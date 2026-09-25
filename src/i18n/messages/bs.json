@@ -3449,7 +3449,9 @@
       "setRetryDelayMs": "Kašnjenje između pokušaja ponovnog slanja na nivou seta, dajući vremena za rješavanje prolaznih problema.",
       "targetTimeoutMs": "Opcionalni timeout po meti. Prazno nasljeđuje trenutni timeout zahtjeva; veće vrijednosti su ograničene tim timeout-om.",
       "comboTimeoutMs": "Opcionalni ukupni vremenski budžet za cijeli combo kroz sve failover mete. Prazno zadržava 10-minutno zaustavljanje; pozitivna vrijednost ga zamjenjuje. Postavite ovo duže od Target timeout-a kako bi failover i dalje imao vremena.",
-      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova."
+      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova.",
+      "connectionAwareExpansion": "Kada je uključeno, ova kombinacija proširuje svaki korak na nivou provajdera u ciljeve po nalogu prije rotacije. Naslijedi koristi globalnu podrazumijevanu postavku (isključeno). Isključeno zadržava rotaciju na nivou provajdera.",
+      "stickyLimit": "Kružna veličina ljepljive serije: uzastopni uspješni zahtjevi poslani jednoj meti prije rotiranja na sljedeću. Prazno nasljeđuje globalnu postavku ljepljivog ograničenja; 1 onemogućava serijsko slanje (čista rotacija jednog zahtjeva)."
     },
     "templatesTitle": "Brzi šabloni",
     "templatesDescription": "Primijenite početni profil, zatim prilagodite modele i konfiguraciju.",
@@ -3788,6 +3790,15 @@
     "disableSessionStickiness": "Onemogući session stickiness",
     "sessionStickinessEnabled": "Stickiness uključeno",
     "sessionStickinessDisabled": "Stickiness isključeno",
+    "stickyLimitEffective": "Efektivno {value} ({source})",
+    "stickyLimitSourceCombo": "Kombinacija",
+    "stickyLimitSourceComboDefaults": "Kombinacijske zadane vrijednosti",
+    "stickyLimitSourceGlobal": "globalno zadano",
+    "connectionAwareExpansion": "Proširenje svjesno veze",
+    "triStateInherit": "naslijedi",
+    "connectionAwareExpansionOn": "Uključeno",
+    "connectionAwareExpansionOff": "Isključeno",
+    "promptCacheAffinityHint": "Usmjeravanje na osnovu lokaliteta keša prompta ima prednost u odnosu na okrugli stol (round-robin) / ponderisanu rotaciju preko zakačenih naloga. Isključite ga u Postavkama, Podrazumijevanim postavkama kombinacija, ako vam je potrebna stroga rotacija.",
     "kimiPresetTitle": "Kimi Coding unaprijed postavljena konfiguracija",
     "kimiPresetDescription": "Kimi K3 kao primarni model (Moonshot API), sa automatskim povratkom na vaše Kimi Code veze (kimi-coding, kimi-web) kada su konfigurisane.",
     "kimiPresetCta": "Dodaj preset",
@@ -14137,7 +14148,12 @@
     "hour": "sat",
     "day": "dan",
     "unknownModel": "nepoznato",
-    "pending": "na čekanju"
+    "pending": "na čekanju",
+    "allApiKeys": "Svi API ključevi",
+    "mcp": "MCP",
+    "mcpTool": "MCP alat",
+    "scope": "Opseg",
+    "apiKey": "API ključ"
   },
   "metadata": {
     "compressionTitle": "Kompresija",

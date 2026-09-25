@@ -313,19 +313,19 @@ Tá mód RTK spreagtha ag **[RTK - Rust Token Killer](https://github.com/rtk-ai/
 
 Thar na 7 mód caighdeánacha, cuimsíonn OmniRoute roinnt córas comhbhrúite casta a oibríonn go huathoibríoch bunaithe ar chomhthéacs.
 
-### Comhbhrúite Cache-Chomhfhiosach
+### Comhbhrúite Cache-Chonaí
 
-Tacaíonn roinnt soláthraithe (cosúil le Anthropic le taisceadh pras) le **taispeánadh pras**, rud a ligeann dóibh codanna den phras a thaisceadh chun costais agus moill a laghdú. Nuair a bhíonn taisceadh cumasaithe, is féidir le comhbhrú ionsaitheach dochar a dhéanamh don fheidhmíocht i ndáiríre toisc go n-athraíonn sé na comharthaí taiscthe, ag neamhbhailíochtú an taisce.
+Tacaíonn roinnt soláthraithe (cosúil le Anthropic le taisceadh pras) le **taispeadh pras**, rud a ligeann dóibh codanna den phras a thaisceadh chun costais agus moill a laghdú. Nuair a bhíonn taisceadh cumasaithe, is féidir le comhbhrúite ionsaitheach **dochar** a dhéanamh don fheidhmíocht mar go n-athraíonn sé na comharthaí taiscthe, ag neamhbhailíochtú an taisce.
 
 Réitíonn an modúl `cachingAware.ts` é seo trí **chomhthéacs taisceadh a bhrath** agus **an straitéis comhbhrúite a choigeartú** dá réir.
 
 #### Conas a oibríonn sé
 
-1. **Brath comhthéacs taisceadh** — Scanann sé corp an iarratais le haghaidh marcóirí `cache_control`
-2. **Aithnigh soláthraithe taisceadh** — Seiceálann sé an dtacaíonn an soláthraí sprice le taisceadh
-3. **Coigeartaigh straitéis** — Íosghrádaíonn sé `ionsaitheach`/`ultra` go `caighdeánach` do sholáthraithe taisceadh
-4. **Scipeáil pras an chórais** — De ghnáth taisctear prasaí an chórais, mar sin ná déan iad a chomhbhrú
-5. **Úsáid claochluithe cinntitheacha** — Ná húsáid ach claochluithe a tháirgeann aschur comhsheasmhach
+1.  **Brath comhthéacs taisceadh** — Scanann sé corp an iarratais le haghaidh marcóirí `cache_control`
+2.  **Aithnigh soláthraithe taisceadh** — Seiceálann sé an dtacaíonn an soláthraí sprice le taisceadh
+3.  **Coigeartaigh straitéis** — Íslíonn sé `aggressive`/`ultra` go `standard` do sholáthraithe taisceadh
+4.  **Scipeáil pras an chórais** — De ghnáth bíonn prasaí an chórais taiscthe, mar sin ná déan iad a chomhbhrú
+5.  **Úsáid claochluithe cinntitheacha** — Ná húsáid ach claochluithe a tháirgeann aschur comhsheasmhach
 
 #### Sampla cóid
 
@@ -350,18 +350,18 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Cathain is ceart é a úsáid
 
-Bíonn comhbhrúite cache-chomhfhiosach **i gcónaí ar siúl** — níl aon chumraíocht ag teastáil. Ní thosaíonn sé ach amháin nuair a:
+Bíonn comhbhrúite cache-chonaí **i gcónaí ar siúl** — níl aon chumraíocht ag teastáil. Ní thosaíonn sé ach amháin nuair a:
 
 - Tá marcóirí `cache_control` ag an iarratas
-- Tacaíonn an soláthraí sprice le taisceadh pras (Anthropic, OpenAI, etc.)
+- Tacaíonn an soláthraí sprice le taisceadh pras (Anthropic, OpenAI, srl.)
 
 ### Aosú Forásach
 
 Cruinníonn comhráite fada go leor casanna teachtaireachta, ach éiríonn casanna níos sine níos lú ábhartha. Déanann an modúl `progressiveAging.ts` **teachtaireachtaí a dhíghrádú de réir achair cas**:
 
 - **Casanna le déanaí (0-3)**: Coinnítear focal ar fhocal (sonraí iomlána)
-- **Meánchasanna (4-8)**: Comhbhrú éadrom (spás bán, glanadh formáidithe)
-- **Sean-chasanna (9+)**: Comhbhrú fear uaimhe (baint líontóirí, achoimre)
+- **Meán-chasanna (4-8)**: Comhbhrúite éadrom (spás bán, glanadh formáidithe)
+- **Sean-chasanna (9+)**: Comhbhrúite uaimheach (baint líontóirí, achoimre)
 - **Casanna an-sean (20+)**: Achoimrithe go mór nó scaoilte
 
 #### Sampla cóid
@@ -373,13 +373,13 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 more turns ...
+  // ... 50 cas eile ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
   verbatim: 3, // An chéad 3 chas: focal ar fhocal
-  light: 8, // Casanna 4-8: comhbhrú éadrom
-  moderate: 20, // Casanna 9-20: comhbhrú fear uaimhe
+  light: 8, // Casanna 4-8: comhbhrúite éadrom
+  moderate: 20, // Casanna 9-20: comhbhrúite uaimheach
   // Casanna 21+: achoimre throm
 });
 
@@ -388,31 +388,31 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### Cathain is ceart é a úsáid
 
-Bíonn aosú forásach **i gcónaí ar siúl** do mhodhanna `ionsaitheach` agus `ultra`. Tá sé éifeachtach go háirithe do:
+Bíonn aosú forásach **i gcónaí ar siúl** do mhodhanna `aggressive` agus `ultra`. Tá sé éifeachtach go háirithe do:
 
 - Seisiúin códaithe fada
 - Comhráite il-lae
-- Sreafaí oibre gníomhaireachta le go leor glaonna uirlisí
+- Sreafaí oibre gníomhaireacha le go leor glaonna uirlisí
 
-### Mód Aschuir Fear Uaimhe
+### Mód Aschuir Uaimheach
 
-Cuireann an modúl `outputMode.ts` **treoracha pras an chórais** isteach chun an tsamhail féin a chur ar fáil aschur comhbhrúite, gonta (stíl "fear uaimhe").
+Déanann an modúl `outputMode.ts` **treoracha pras an chórais a instealladh** chun an tsamhail féin a chur ar chumas aschur comhbhrúite, gairid (stíl "uaimheach") a tháirgeadh.
 
 #### Conas a oibríonn sé
 
 In ionad an t-ionchur a chomhbhrú, cuireann an mód seo pras córais leis mar:
 
-> "Freagair i bhfocail íosta. Scipáil béasaíocht. Úsáid abairtí gearra."
+> "Freagair i bhfocail íosta. Scipeáil béasaíocht. Úsáid abairtí gearra."
 
 Oibríonn sé seo go háirithe go maith do:
 
-- Gineadh cóid (aschur níos gonta = níos lú comharthaí)
+- Giniúint cóid (aschur níos gairide = níos lú comharthaí)
 - Ceisteanna & Freagraí tapa (ní gá míniúcháin casta)
 - Próiseáil bhaisc (uasmhéadaigh tréchur)
 
 #### Cathain is ceart é a úsáid
 
-Tá mód aschuir fear uaimhe **roghnach** — socraigh é tríd an gcumraíocht teaglama:
+Is **rogha é** mód aschuir uaimheach — socraigh é tríd an gcumraíocht teaglama:
 
 ```json
 {
@@ -427,35 +427,55 @@ Tá mód aschuir fear uaimhe **roghnach** — socraigh é tríd an gcumraíocht 
 
 ### Stíleanna Aschuir (catalóg)
 
-Is é mód aschuir fear uaimhe thuas an **cosán stíl aonair oidhreachta**. Ghinearálta Céim 4 é i gcatalóg de stíleanna aschuir in-chomhshuite: `OUTPUT_STYLE_CATALOG` in
-`open-sse/services/compression/outputStyles/catalog.ts`. Is treoir pras-córais é gach stíl a chuireann an tsamhail féin ar fáil aschur níos saoire; is féidir stíleanna a chumasú le chéile agus cuirtear isteach iad in ord na catalóige.
+Is é mód aschuir uaimheach thuas an **cosán stíl aonair oidhreachta**. Rinne Céim 4 é a ghinearálú i gcatalóg de stíleanna aschuir inchumtha: `OUTPUT_STYLE_CATALOG` in `open-sse/services/compression/outputStyles/catalog.ts`. Is treoir pras-córais é gach stíl a chuireann ar chumas an tsamhail féin aschur níos saoire a tháirgeadh; is féidir stíleanna a chumasú le chéile agus instealltar iad in ord na catalóige.
 
-| Stíl                                     | `id`          | Cad a dhéanann sé                                                                                                                                                                                                    | Teangacha treoracha                                                                       |
-| :--------------------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
-| Prós gonta                               | `terse-prose` | Scaoil líonadh/airteagail/fálú; coinnigh substaint theicniúil cruinn. An téacs céanna leis an modh aschuir sean-uaimheach (tagartha, ní athchlóite).                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                             |
-| Níos lú cóid                             | `less-code`   | Dréimire YAGNI: an t-athrú oibre is lú, gan aon teibí neamh-iarrtha.                                                                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                             |
-| Ponytail (forbróir sinsearach leisciúil) | `ponytail`    | "Is é an cód is fearr an cód nár scríobhadh riamh": athúsáid > athscríobh, bunús > siomptóm, an difríocht oibre is giorra.                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                             |
-| Tá ADHD agam (gníomh-ar-dtús)            | `i-have-adhd` | Gníomh ar dtús (ordú/cosán/sliocht roimh phróis), céimeanna teoranta uimhrithe, AON chéim chruinn eile, gan réamhrá/athchló/dúnadh. Oiriúnaithe ó [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                             |
-| CJK gonta (文言)                         | `terse-cjk`   | Stíl ultra-ghonta na Síne Clasaicí.                                                                                                                                                                                  | zh (geataithe de réir logánta: ní thairgtear ach amháin nuair is `zh` an teanga réitithe) |
+| Stíl                                     | `id`          | Cad a dhéanann sé                                                                                                                                                                                                          | Teangacha treoracha                                                                           |
+| ---------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Prós gonta                               | `terse-prose` | Fág ar lár focail líonta/altanna/fálú; coinnigh an tsubstaint theicniúil cruinn. An téacs céanna leis an modh aschuir caveman oidhreachta (tagartha, gan athchló).                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
+| Níos lú cóid                             | `less-code`   | Dréimire YAGNI: an t-athrú oibre is lú, gan aon teibíochtaí neamh-iarrtha.                                                                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
+| Ponytail (forbróir sinsearach leisciúil) | `ponytail`    | "Is é an cód is fearr an cód nár scríobhadh riamh": athúsáid > athscríobh, bunchúis > siomptóm, an difríocht oibre is giorra.                                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
+| Tá ADHD agam (gníomh ar dtús)            | `i-have-adhd` | Gníomh ar dtús (ordú/cosán/blúire roimh phróis), céimeanna uimhrithe teoranta, AON chéim chruinn amháin eile, gan réamhrá/athchló/dúnadh. Oiriúnaithe ó [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
+| CJK gonta (文言)                         | `terse-cjk`   | Stíl ultra-ghonta na Síne Clasaicí.                                                                                                                                                                                        | zh (geataithe de réir logánta: ní thairgtear é ach amháin nuair is é `zh` an teanga réitithe) |
 
-Seolann gach stíl trí leibhéal déine — `lite`, `full`, `ultra` — agus críochnaíonn gach leibhéal
-leis an clásal teorainneacha comhroinnte, a choinníonn bloic cóid, cosáin comhaid, orduithe,
-teaghráin earráide, URLanna agus aitheantóirí mar atá.
+Seoltar trí leibhéal déine le gach stíl — `lite`, `full`, `ultra` — agus críochnaíonn gach leibhéal
+leis an gclásal teorainneacha comhroinnte, a choinníonn bloic chóid, cosáin comhad, orduithe,
+teaghráin earráide, URLanna agus aitheantóirí focal ar fhocal.
 
 #### Conas a oibríonn instealladh
 
-Réitíonn `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`)
-an roghnú i gcoinne an chatalóige (déantar aitheantóirí anaithnid agus stíleanna neamh-chomhoiriúnacha logánta
-a scaoileadh, ní earráid riamh), comhcheanglaíonn sé na treoracha roghnaithe in ord catalóige,
-cuireann sé an clásal teorainneacha leis **uair amháin**, agus cuireann sé an toradh isteach sa
-phrasc córais taobh thiar de mharcóir aon-idempotency (`[OmniRoute Output Styles]`) — ní dhéanann
-ath-chur i bhfeidhm aon rud. Nuair a bhíonn aistriúchán ag an teanga iarratais braite, déantar an
-treoir logánta a instealladh in ionad an Bhéarla.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) réitíonn
+sé an rogha i gcoinne an chatalóige (déantar aitheantóirí anaithnid agus stíleanna nach bhfuil ag teacht le
+logánta a scaoileadh, ní earráid riamh é), comhcheanglaíonn sé na treoracha roghnaithe in ord
+catalóige, cuireann sé an clásal teorainneacha leis **uair amháin**, agus tosaíonn sé an bloc le
+marcálaí díomhaoinachta aonair (`[OmniRoute Output Styles]`), ionas nach bhfuil aon éifeacht ag
+ath-chur i bhfeidhm. Nuair a bhíonn aistriúchán ag an teanga réitithe (féach Roghnú teanga thíos),
+instealltar an treoir logánta in ionad an Bhéarla.
+
+Ar chorp le `messages`, seiceálann seachbhóthar ábhair (`shouldBypassCavemanOutputMode()` in
+`open-sse/services/compression/outputMode.ts`) na trí theachtaireacht dheireanacha agus scipeann sé
+na stíleanna don chasadh iomlán nuair a mheaitseálann siad a eochairfhocail slándála, gníomhaíochta
+do-aisiompaithe, soiléirithe, nó íogaire ó thaobh ordaithe de. Ritheann an seachbhóthar is cuma cén
+socrú atá ar scorán **Seachbhóthar Auto-Soiléireachta** an deais (`cavemanOutputMode.autoClarity`).
+
+Nuair a ligeann an seachbhóthar an casadh tríd, cuireann `placeSystemInstruction()` (an comhad
+céanna), nach gcruthaíonn `messages[0]` nua riamh, an bloc sa chéad cheann díobh seo a aimsíonn sé:
+
+1.  Teachtaireacht chórais tosaigh le hábhar teaghráin: cuirtear an bloc i ndiaidh a téacs.
+2.  An réimse `system` barrleibhéil: cuirtear an bloc i ndiaidh téacs teaghráin, nó cuirtear é mar
+    bhloc téacs nua le sraith bloc-ábhair.
+3.  An chéad teachtaireacht chórais níos déanaí le hábhar teaghráin: cuirtear an bloc i ndiaidh a
+    téacs.
+4.  Níor aimsíodh aon cheann díobh thuas: téann an bloc isteach i dteachtaireacht chórais nua ag
+    deireadh `messages`.
+
+Ar chorp gan `messages`, cuirtear an bloc le réimse teaghráin `instructions`, nó bíonn sé
+`instructions` nuair a iompraíonn an corp `input` (teaghrán nó sraith). Déantar corp gan
+`instructions` ná `input` a scipeáil mar `no_messages`.
 
 #### Conas a chumasú
 
-Sa phainéal: **Comhthéacs → Socruithe → Comhbhrú** — líne amháin in aghaidh an stíle le
-lasc ar/as agus roghnóir leibhéil. Go cláir, coinníonn an cumraíocht comhbhrú an roghnú mar:
+Sa deais: **Comhthéacs → Socruithe → Comhbhrú** — líne amháin in aghaidh an stíle le scorán ar/as
+agus roghnóir leibhéil. Go clárúil, coinníonn an cumraíocht comhbhrú an rogha mar seo:
 
 ```json
 {
@@ -466,59 +486,57 @@ lasc ar/as agus roghnóir leibhéil. Go cláir, coinníonn an cumraíocht comhbh
 }
 ```
 
-Comhoiriúnacht siar: oibríonn an socrú teaglama `outputMode: "caveman"` fós agus mapálann sé go
-`terse-prose`, atá comhionann ó thaobh beart de leis an sean-instealladh i ngach teanga oidhreachta.
+Comhoiriúnacht siar: oibríonn an socrú teaglama oidhreachta `outputMode: "caveman"` fós agus
+mapálann sé go `terse-prose`, atá comhionann ó thaobh beart de leis an sean-instealladh i ngach
+teanga oidhreachta.
 
-Roghú teanga: le `languageConfig.enabled` ar siúl, roghnaíonn `autoDetect`
-teanga an teachtaireacht úsáideora is déanaí (an brathadóir céanna leis na hinnill ionchuir);
-má mhúchtar `autoDetect` déantar `defaultLanguage` a ghlasáil. Múchta → Béarla.
+Roghnú teanga: nuair a bhíonn `languageConfig.enabled` ar siúl, roghnaíonn `autoDetect` teanga na
+teachtaireachta úsáideora is déanaí (an brathadóir céanna leis na hinnill ionchuir); má mhúchtar
+`autoDetect` socraítear `defaultLanguage`. As → Béarla.
 
-Tá an maitrís stíl × teanga biorraithe ag
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: ní féidir stíl nua a sheoladh
-gan aistriúchán pt-BR ar a laghad (nó eisceacht rianaithe sainráite), agus ní féidir le
-stíl atá ann cheana féin logánta a chailleadh go ciúin. Chun stíl a chur leis, féach
+Tá an maitrís stíle × teanga socraithe ag
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: ní féidir stíl nua a sheoladh gan
+aistriúchán pt-BR ar a laghad (nó eisceacht rianaithe soiléir), agus ní féidir le stíl atá ann
+cheana logánta a chailleadh go ciúin. Chun stíl a chur leis, féach
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Comhbhrú Torthaí Uirlisí
 
-Soláthraíonn an modúl `toolResultCompressor.ts` **5 straitéis comhbhrú speisialaithe**
-do thorthaí uirlisí (glaonna feidhme, aschuir gníomhairí, torthaí cuardaigh, srl.):
+Soláthraíonn an modúl `toolResultCompressor.ts` **5 straitéis chomhbhrúite speisialaithe** do
+thorthaí uirlisí (glaonna feidhme, aschuir gníomhairí, torthaí cuardaigh, srl.):
 
-1. **Comhbhrú torthaí cuardaigh** — Baintear torthaí iomarcacha, coinnítear an barr-N
-2. **Comhbhrú léamh comhaid** — Giorraítear comhaid mhóra, caomhnaítear ceanntásca/allmhairí
-3. **Comhbhrú forghníomhú cóid** — Ní choinnítear ach stdout/stderr riachtanach
-4. **Comhbhrú fiosrúchán bunachar sonraí** — Teorannaítear sraitheanna, baintear meiteashonraí briathartha
-5. **Comhbhrú freagra API** — Baintear réimsí nialasacha, comhdhlúthaítear eagair
+1.  **Comhbhrú torthaí cuardaigh** — Baintear torthaí iomarcacha, coinnítear an N is fearr
+2.  **Comhbhrú léamh comhad** — Gearrtar comhaid mhóra, caomhnaítear ceanntásca/allmhairí
+3.  **Comhbhrú forghníomhú cóid** — Ní choinnítear ach stdout/stderr riachtanach
+4.  **Comhbhrú fiosrúchán bunachar sonraí** — Teorannaítear sraitheanna, baintear meiteashonraí briathartha
+5.  **Comhbhrú freagra API** — Baintear réimsí nialasacha, comhdhlúthaítear sraitheanna
 
 #### Cathain is ceart é a úsáid
 
-Bíonn comhbhrú torthaí uirlisí **i gcónaí ar siúl** nuair a bhíonn glaonna uirlisí i láthair. Níl
-aon chumraíocht ag teastáil.
+Bíonn comhbhrú torthaí uirlisí **i gcónaí ar siúl** nuair a bhíonn glaonna uirlisí i láthair. Níl aon chumraíocht ag teastáil.
 
 ### Píblíne Cruachta
 
-Ritheann an modh cruachta **innill iolracha i seicheamh** — de ghnáth RTK ar dtús
-(60-90% de shábháil ar aschur uirlisí), ansin Caveman (30% de shábháil bhreise ar an
-téacs atá fágtha). Baintear amach **78-95% de shábháil iomlán** leis seo.
+Ritheann an modh cruachta **innill iolracha i seicheamh** — de ghnáth RTK ar dtús (coigilteas 60-90% ar aschur uirlisí), ansin Caveman (coigilteas breise 30% ar an téacs atá fágtha). Baintear amach leis seo **coigilteas iomlán 78-95%**.
 
 #### Conas a oibríonn sé
 
 ```
 Ionchur (1000 comhartha)
-  → RTK (scagaire atá feasach ar ordú) → 200 comhartha
-    → Caveman (baint líonadh) → 140 comhartha
-  → Aschur (140 comhartha, 86% de shábháil)
+  → RTK (scagaire atá feasach ar orduithe) → 200 comhartha
+    → Caveman (baint líontóirí) → 140 comhartha
+  → Aschur (140 comhartha, coigilteas 86%)
 ```
 
-#### Cathain is ceart é a úsáid
+#### Cathain le húsáid
 
 Úsáid an modh cruachta le haghaidh:
 
-- Sreafaí oibre troma uirlisí (códaíocht ghníomhaireach, taighde)
-- Próiseáil bhaisc atá íogair ó thaobh costais de
-- Nuair a bhíonn an t-uasmhéid sábhála comharthaí ag teastáil uait
+- Sreafaí oibre troma uirlisí (códú gníomhaireach, taighde)
+- Próiseáil bhaisc atá íogair ó thaobh costais
+- Nuair a bhíonn gá agat leis an coigilteas comharthaí is mó
 
-Cumraigh trí theaglama:
+Cumraigh trí chomhcheangal:
 
 ```json
 {

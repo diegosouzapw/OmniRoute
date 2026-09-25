@@ -1271,22 +1271,22 @@ Kanoniske målinger den 2026-08-24: **1.029 unikke videoer** · **11.132.922 ken
 
 <table>
   <tr><th align="left">Lag</th><th align="left">Teknologi</th></tr>
-  <tr><td nowrap><b>Køretid</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Sprog</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> på tværs af <code>src/</code> og <code>open-sse/</code> (nul <code>any</code> i kernen siden v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 122 domænemoduler, 183 migreringer</td></tr>
-  <tr><td nowrap><b>Hukommelse</b></td><td>SQLite FTS5 fuldtekst + int8-kvantiserede vektorindlejringer, typet henfald</td></tr>
-  <tr><td nowrap><b>Skemaer</b></td><td>Zod 4 — MCP værktøj I/O validering + API-kontrakter</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journalisering) + LowDB (JSON legacy) — 122 domænemoduler, 186 migreringer</td></tr>
+  <tr><td nowrap><b>Hukommelse</b></td><td>SQLite FTS5 fuldtekst + int8-kvantiserede vektor-embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>Skemaer</b></td><td>Zod 4 — MCP-værktøjs-I/O-validering + API-kontrakter</td></tr>
   <tr><td nowrap><b>Protokoller</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket-bro (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Komprimering</b></td><td>12-motorers pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Godkendelse &amp; sikkerhed</b></td><td>OAuth 2.0 (PKCE) + JWT + API-nøgler + MCP scoped godkendelse · AES-256-GCM i hvile · DOMPurify</td></tr>
-  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS fingeraftryksimitation, 3-niveaus proxy</td></tr>
-  <tr><td nowrap><b>Robusthed</b></td><td>Afbryder, eksponentiel backoff, anti-thundering-herd, auto-combo selvhelbredelse</td></tr>
-  <tr><td nowrap><b>Logning</b></td><td>pino — strukturerede JSON-logs med anmodningskontekst</td></tr>
-  <tr><td nowrap><b>Test</b></td><td>Node.js test runner + Vitest — <b>39.000+ statiske testdeklarationer</b> på tværs af 5.100+ sporede testfiler (enhed, integration, E2E, sikkerhed, økosystem)</td></tr>
+  <tr><td nowrap><b>Auth &amp; sikkerhed</b></td><td>OAuth 2.0 (PKCE) + JWT + API-nøgler + MCP-omfangsbegrænset auth · AES-256-GCM ved hvile · DOMPurify</td></tr>
+  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS-fingeraftryks-efterligning, 3-niveaus proxy</td></tr>
+  <tr><td nowrap><b>Resiliens</b></td><td>Circuit breaker, eksponentiel backoff, anti-thundering-herd, auto-combo selvheling</td></tr>
+  <tr><td nowrap><b>Logning</b></td><td>pino — strukturerede JSON-logs med forespørgselskontekst</td></tr>
+  <tr><td nowrap><b>Test</b></td><td>Node.js test runner + Vitest — <b>39.000+ statiske testerklæringer</b> på tværs af 5.100+ sporede testfiler (unit, integration, E2E, sikkerhed, økosystem)</td></tr>
   <tr><td nowrap><b>Platforme</b></td><td>Desktop (Electron) · Android (Termux) · PWA (enhver browser)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatisk npm-udgivelse + Docker Hub ved udgivelse</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatisk npm-udgivelse + Docker Hub ved release</td></tr>
   <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Hjemmeside</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

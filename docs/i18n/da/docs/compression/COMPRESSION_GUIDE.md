@@ -311,21 +311,21 @@ RTK-tilstanden er inspireret af **[RTK - Rust Token Killer](https://github.com/r
 
 ## Avancerede komprimeringssystemer
 
-Ud over de 7 standardtilstande indeholder OmniRoute flere avancerede komprimeringssystemer, som fungerer automatisk ud fra konteksten.
+Ud over de 7 standardtilstande inkluderer OmniRoute flere avancerede komprimeringssystemer, der fungerer automatisk baseret på kontekst.
 
-### Cachebevidst komprimering
+### Cache-bevidst komprimering
 
-Nogle udbydere (som Anthropic med promptcaching) understøtter **promptcaching**, hvilket gør det muligt for dem at cache dele af prompten for at reducere omkostninger og svartid. Når caching er aktiveret, kan aggressiv komprimering faktisk **forringe** ydeevnen, fordi den ændrer de cachede tokens og dermed ugyldiggør cachen.
+Nogle udbydere (som Anthropic med prompt-caching) understøtter **prompt-caching**, hvilket giver dem mulighed for at cache dele af prompten for at reducere omkostninger og latenstid. Når caching er aktiveret, kan aggressiv komprimering faktisk **skade** ydeevnen, fordi den ændrer de cachede tokens og dermed invaliderer cachen.
 
-Modulet `cachingAware.ts` løser dette ved at **registrere cachingkonteksten** og **justere komprimeringsstrategien** i overensstemmelse hermed.
+`cachingAware.ts`-modulet løser dette ved at **registrere caching-kontekst** og **justere komprimeringsstrategien** derefter.
 
 #### Sådan fungerer det
 
-1. **Registrer cachingkontekst** — Gennemgår request-bodyen for `cache_control`-markører
-2. **Identificer cachingudbydere** — Kontrollerer, om måludbyderen understøtter caching
-3. **Juster strategi** — Nedgraderer `aggressive`/`ultra` til `standard` for cachingudbydere
-4. **Spring systemprompten over** — Systemprompter caches normalt, så de skal ikke komprimeres
-5. **Brug deterministiske transformationer** — Brug kun transformationer, der producerer ensartet output
+1. **Registrer caching-kontekst** — Scanner anmodningens brødtekst for `cache_control`-markører
+2. **Identificer caching-udbydere** — Kontrollerer, om måludbyderen understøtter caching
+3. **Juster strategi** — Nedgraderer `aggressive`/`ultra` til `standard` for caching-udbydere
+4. **Spring systemprompt over** — Systemprompts caches normalt, så komprimer dem ikke
+5. **Brug deterministiske transformationer** — Brug kun transformationer, der producerer konsistent output
 
 #### Kodeeksempel
 
@@ -338,7 +338,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Cachemarkør
+  cache_control: { type: "ephemeral" }, // ← Cache-markør
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -348,21 +348,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Hvornår det skal bruges
+#### Hvornår skal det bruges
 
-Cachebevidst komprimering er **altid aktiveret** — ingen konfiguration er nødvendig. Den træder kun i kraft, når:
+Cache-bevidst komprimering er **altid slået til** — ingen konfiguration nødvendig. Den aktiveres kun, når:
 
 - Anmodningen har `cache_control`-markører
-- Måludbyderen understøtter promptcaching (Anthropic, OpenAI osv.)
+- Måludbyderen understøtter prompt-caching (Anthropic, OpenAI osv.)
 
 ### Progressiv ældning
 
-Lange samtaler akkumulerer mange beskedudvekslinger, men ældre udvekslinger bliver mindre relevante. Modulet `progressiveAging.ts` **reducerer detaljegraden i beskeder baseret på afstanden mellem samtalerunderne**:
+Lange samtaler akkumulerer mange meddelelsesrunder, men ældre runder bliver mindre relevante. `progressiveAging.ts`-modulet **nedgraderer meddelelser efter rundens afstand**:
 
-- **Nylige runder (0-3)**: Bevares ordret (alle detaljer)
-- **Mellemliggende runder (4-8)**: Let komprimering (oprydning af mellemrum og formatering)
-- **Gamle runder (9+)**: Hulemandskomprimering (fjernelse af fyldord og opsummering)
-- **Meget gamle runder (20+)**: Opsummeres kraftigt eller fjernes
+- **Nylige runder (0-3)**: Bevares ordret (fuld detalje)
+- **Mellemrunder (4-8)**: Let komprimering (mellemrum, formateringsoprydning)
+- **Gamle runder (9+)**: Huleboerkomprimering (fjernelse af fyldord, opsummering)
+- **Meget gamle runder (20+)**: Kraftigt opsummeret eller udeladt
 
 #### Kodeeksempel
 
@@ -373,46 +373,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 yderligere runder ...
+  // ... 50 flere runder ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // De første 3 runder: ordret
-  light: 8, // Runde 4-8: let komprimering
-  moderate: 20, // Runde 9-20: hulemandskomprimering
-  // Runde 21+: kraftig opsummering
+  verbatim: 3, // Første 3 runder: ordret
+  light: 8, // Runder 4-8: let komprimering
+  moderate: 20, // Runder 9-20: huleboerkomprimering
+  // Runder 21+: kraftig opsummering
 });
 
-// saved = antal sparede tokens
+// saved = antal gemte tokens
 ```
 
-#### Hvornår det skal bruges
+#### Hvornår skal det bruges
 
-Progressiv ældning er **altid aktiveret** i tilstandene `aggressive` og `ultra`. Den er særligt effektiv til:
+Progressiv ældning er **altid slået til** for `aggressive`- og `ultra`-tilstande. Den er især effektiv til:
 
 - Langvarige kodningssessioner
-- Samtaler, der strækker sig over flere dage
+- Samtaler over flere dage
 - Agentbaserede arbejdsgange med mange værktøjskald
 
-### Hulemandsoutputtilstand
+### Huleboer-outputtilstand
 
-Modulet `outputMode.ts` indsætter **systempromptinstruktioner**, der får selve modellen til at producere komprimeret, kortfattet output (en "hulemandsstil").
+`outputMode.ts`-modulet injicerer **systempromptinstruktioner** for at få modellen selv til at producere komprimeret, kortfattet output (en "huleboer"-stil).
 
 #### Sådan fungerer det
 
-I stedet for at komprimere inputtet tilføjer denne tilstand en systemprompt som:
+I stedet for at komprimere input tilføjer denne tilstand en systemprompt som:
 
-> "Svar med så få ord som muligt. Undlad høflighedsfraser. Brug korte sætninger."
+> "Svar med minimale ord. Spring høfligheder over. Brug korte sætninger."
 
 Dette fungerer særligt godt til:
 
-- Kodegenerering (mere kortfattet output = færre tokens)
-- Hurtige spørgsmål og svar (intet behov for udførlige forklaringer)
-- Batchbehandling (maksimer gennemløbet)
+- Kodegenerering (kortere output = færre tokens)
+- Hurtig Q&A (intet behov for udførlige forklaringer)
+- Batchbehandling (maksimer gennemløb)
 
-#### Hvornår det skal bruges
+#### Hvornår skal det bruges
 
-Hulemandsoutputtilstand er **valgfri** — angiv den via kombinationskonfigurationen:
+Huleboer-outputtilstand er **opt-in** — indstil den via kombinationskonfigurationen:
 
 ```json
 {
@@ -425,37 +425,56 @@ Hulemandsoutputtilstand er **valgfri** — angiv den via kombinationskonfigurati
 }
 ```
 
-### Outputstile (katalog)
+### Outputstilarter (katalog)
 
-Hulemandsoutputtilstanden ovenfor er den **ældre løsning med én enkelt stil**. Fase 4 generaliserede den til et katalog over outputstile, der kan kombineres: `OUTPUT_STYLE_CATALOG` i `open-sse/services/compression/outputStyles/catalog.ts`. Hver stil er en systempromptinstruktion, der får selve modellen til at producere billigere output. Stilarter kan aktiveres sammen og indsættes i katalogets rækkefølge.
+Huleboer-outputtilstanden ovenfor er den **ældre enkeltstil-sti**. Fase 4 generaliserede den til et katalog over sammensættelige outputstilarter: `OUTPUT_STYLE_CATALOG` i `open-sse/services/compression/outputStyles/catalog.ts`. Hver stil er en systempromptinstruktion, der får modellen selv til at producere billigere output; stilarter kan aktiveres sammen og injiceres i katalogrækkefølge.
 
-| Stil                             | `id`          | Hvad den gør                                                                                                                                                                                                                      | Instruktionssprog                                                       |
-| -------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Kortfattet prosa                 | `terse-prose` | Fjerner fyldord/artikler/forbehold; bevarer det tekniske indhold præcist. Samme tekst som den ældre caveman-outputtilstand (refereret, ikke genindtastet).                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| Mindre kode                      | `less-code`   | YAGNI-trin: mindste fungerende ændring, ingen abstraktioner, der ikke er blevet anmodet om.                                                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| Hestehale (doven seniorudvikler) | `ponytail`    | "Den bedste kode er den kode, der aldrig bliver skrevet": genbrug > omskrivning, grundårsag > symptom, korteste fungerende diff.                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| Jeg har ADHD (handling først)    | `i-have-adhd` | Handling først (kommando/sti/kodestykke før prosa), nummererede afgrænsede trin, ÉT konkret næste trin, ingen indledning/opsummering/afslutning. Tilpasset fra [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| Kortfattet CJK (文言)            | `terse-cjk`   | Ultrakortfattet stil på klassisk kinesisk.                                                                                                                                                                                        | zh (lokalitetsafgrænset: tilbydes kun, når det fastlagte sprog er `zh`) |
+| Stil                            | `id`          | Hvad den gør                                                                                                                                                                                                           | Instruktionssprog                                               |
+| :------------------------------ | :------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------- |
+| Kortfattet prosa                | `terse-prose` | Fjern fyldord/artikler/forbehold; bevar teknisk substans præcis. Samme tekst som den ældre caveman-outputtilstand (refereret, ikke gentastet).                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                   |
+| Mindre kode                     | `less-code`   | YAGNI-stige: mindste fungerende ændring, ingen uopfordrede abstraktioner.                                                                                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                   |
+| Ponytail (doven seniorudvikler) | `ponytail`    | "Den bedste kode er den kode, der aldrig er skrevet": genbrug > omskrivning, grundårsag > symptom, korteste fungerende diff.                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                   |
+| Jeg har ADHD (handling-først)   | `i-have-adhd` | Handling først (kommando/sti/uddrag før prosa), nummererede afgrænsede trin, ÉT konkret næste trin, ingen forord/resumé/afslutninger. Tilpasset fra [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                   |
+| Kortfattet CJK (文言)           | `terse-cjk`   | Klassisk kinesisk ultra-kortfattet stil.                                                                                                                                                                               | zh (lokale-begrænset: tilbydes kun når det løste sprog er `zh`) |
 
 Hver stil leveres med tre intensitetsniveauer — `lite`, `full`, `ultra` — og hvert niveau
-slutter med den fælles afgrænsningsklausul, som bevarer kodeblokke, filstier, kommandoer,
+afsluttes med den fælles grænseklausul, som bevarer kodeblokke, filstier, kommandoer,
 fejlstrenge, URL'er og identifikatorer ordret.
 
-#### Sådan fungerer injektionen
+#### Hvordan injektion fungerer
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) sammenholder
-valget med kataloget (ukendte id'er og stilarter, der ikke matcher lokaliteten,
-udelades og medfører aldrig en fejl), sammenkæder de valgte instruktioner i katalogrækkefølge,
-tilføjer afgrænsningsklausulen **én gang** og placerer resultatet forrest i systemprompten
-efter en enkelt idempotensmarkør (`[OmniRoute Output Styles]`) — genanvendelse
-gør intet. Når der findes en oversættelse til det registrerede sprog i anmodningen,
-indsættes den lokaliserede instruktion i stedet for den engelske.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) løser
+udvælgelsen mod kataloget (ukendte id'er og sprog-uoverensstemmende stilarter er
+udeladt, aldrig en fejl), sammenkæder de valgte instruktioner i katalogrækkefølge,
+tilføjer grænseklausulen **én gang**, og starter blokken med en enkelt idempotens-
+markør (`[OmniRoute Output Styles]`), så genanvendelse er en no-op. Når det løste
+sprog (se Sprogvalg nedenfor) har en oversættelse, injiceres den lokaliserede instruktion
+i stedet for engelsk.
 
-#### Sådan aktiveres det
+På en krop med `messages` kontrollerer en indholdsbypass (`shouldBypassCavemanOutputMode()` i
+`open-sse/services/compression/outputMode.ts`) de sidste tre meddelelser og springer
+stilarterne over for hele turen, når de matcher dens sikkerheds-, irreversibel-handling-,
+afklaring- eller rækkefølge-følsomme nøgleord. Bypassen kører uanset hvad dashboardets
+**Auto-Clarity Bypass**-skifte (`cavemanOutputMode.autoClarity`) er indstillet til.
 
-I dashboardet: **Kontekst → Indstillinger → Komprimering** — én række pr. stil med en
-til/fra-kontakt og en niveauvælger. Programmatisk gemmer komprimeringskonfigurationen
-valget som:
+Når bypassen tillader turen at passere, placerer `placeSystemInstruction()` (samme fil), som
+aldrig opretter en ny `messages[0]`, blokken i den første af disse, den finder:
+
+1. En indledende systemmeddelelse med strengindhold: blokken tilføjes efter dens tekst.
+2. Topniveau `system`-feltet: blokken tilføjes efter teksten i en streng, eller
+   tilføjes som en ny tekstblok til et indholdsblok-array.
+3. Den første senere systemmeddelelse med strengindhold: blokken tilføjes efter dens tekst.
+4. Ingen af ovenstående: blokken går ind i en ny systemmeddelelse i slutningen af `messages`.
+
+På en krop uden `messages` tilføjes blokken til et streng `instructions`-felt,
+eller bliver `instructions`, når kroppen indeholder `input` (en streng eller et array). En krop
+uden hverken `instructions` eller `input` springes over som `no_messages`.
+
+#### Hvordan man aktiverer
+
+I dashboardet: **Context → Settings → Compression** — en række pr. stil med en
+til/fra-knap og en niveauvælger. Programmatisk bevarer kompressionskonfigurationen
+udvælgelsen som:
 
 ```json
 {
@@ -466,60 +485,56 @@ valget som:
 }
 ```
 
-Bagudkompatibilitet: Den ældre kombinationsindstilling `outputMode: "caveman"` fungerer
-stadig og mappes til `terse-prose`, byte-identisk med den gamle injektion på alle
-ældre sprog.
+Bagudkompatibilitet: den ældre `outputMode: "caveman"` kombinationsindstilling fungerer stadig og kortlægges til
+`terse-prose`, byte-identisk med den gamle injektion i alle ældre sprog.
 
-Sprogvalg: Når `languageConfig.enabled` er slået til, vælger `autoDetect`
-sproget i den seneste brugermeddelelse (samme detektor som inputmotorerne);
-deaktivering af `autoDetect` fastholder `defaultLanguage`. Deaktiveret → engelsk.
+Sprogvalg: med `languageConfig.enabled` slået til, vælger `autoDetect`
+sproget for den seneste brugermeddelelse (samme detektor som inputmotorerne);
+at slå `autoDetect` fra fastlåser `defaultLanguage`. Fra → Engelsk.
 
-Stil × sprog-matricen er fastlåst af
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: En ny stil kan ikke udgives
-uden mindst en pt-BR-oversættelse (eller en eksplicit registreret undtagelse), og en
-eksisterende stil kan ikke lydløst miste en lokalitet. Se
-[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) for at tilføje en stil.
+Stil × sprog-matricen er fastlagt af
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: en ny stil kan ikke sendes
+uden mindst en pt-BR oversættelse (eller en eksplicit sporet undtagelse), og en
+eksisterende stil kan ikke lydløst miste et sprog. For at tilføje en stil, se
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Komprimering af værktøjsresultater
+### Værktøjsresultatkomprimering
 
-Modulet `toolResultCompressor.ts` leverer **5 specialiserede komprimeringsstrategier**
+Modulet `toolResultCompressor.ts` leverer **5 specialiserede kompressionsstrategier**
 til værktøjsresultater (funktionskald, agentoutput, søgeresultater osv.):
 
-1. **Komprimering af søgeresultater** — Fjerner overflødige resultater og beholder de bedste N
-2. **Komprimering af fillæsning** — Afkorter store filer og bevarer headere/importer
-3. **Komprimering af kodekørsel** — Beholder kun nødvendig stdout/stderr
-4. **Komprimering af databaseforespørgsler** — Begrænser rækker og fjerner detaljerede metadata
-5. **Komprimering af API-svar** — Fjerner null-felter og sammenfatter arrays
+1. **Søgeresultatkomprimering** — Fjerner redundante resultater, beholder top-N
+2. **Filindlæsningskomprimering** — Afkorter store filer, bevarer headers/imports
+3. **Kodeudførelseskomprimering** — Beholder kun essentiel stdout/stderr
+4. **Databaseforespørgselskomprimering** — Begrænser rækker, fjerner verbose metadata
+5. **API-svarkomprimering** — Fjerner null-felter, kondenserer arrays
 
-#### Hvornår det skal bruges
+#### Hvornår skal det bruges
 
-Komprimering af værktøjsresultater er **altid aktiveret**, når der forekommer værktøjskald.
-Ingen konfiguration er nødvendig.
+Værktøjsresultatkomprimering er **altid slået til**, når værktøjskald er til stede. Ingen konfiguration nødvendig.
 
-### Stablet pipeline
+### Stablet Pipeline
 
-Den stablede tilstand kører **flere motorer sekventielt** — normalt først RTK
-(60-90 % besparelse på værktøjsoutput), derefter Caveman (yderligere 30 % besparelse på den
-resterende tekst). Dette giver en **samlet besparelse på 78-95 %**.
+Den stablede tilstand kører **flere motorer i rækkefølge** — typisk RTK først (60-90% besparelse på værktøjsoutput), derefter Caveman (30% yderligere besparelse på den resterende tekst). Dette opnår **78-95% samlet besparelse**.
 
 #### Sådan fungerer det
 
 ```
 Input (1000 tokens)
-  → RTK (kommandobevidst filter) → 200 tokens
+  → RTK (kommando-bevidst filter) → 200 tokens
     → Caveman (fjernelse af fyldord) → 140 tokens
-  → Output (140 tokens, 86 % besparelse)
+  → Output (140 tokens, 86% besparelse)
 ```
 
-#### Hvornår det skal bruges
+#### Hvornår skal det bruges
 
 Brug stablet tilstand til:
 
-- Arbejdsgange med mange værktøjer (agentbaseret kodning, research)
+- Værktøjstunge arbejdsgange (agentisk kodning, research)
 - Omkostningsfølsom batchbehandling
-- Når du har brug for størst mulig tokenbesparelse
+- Når du har brug for maksimal tokenbesparelse
 
-Konfigurer via combo:
+Konfigurer via kombination:
 
 ```json
 {

@@ -321,23 +321,23 @@ RTK rejimi terminal, yığma, test, git və alət çıxışlarının filtrasiyas
 
 ---
 
-## Təkmil Sıxılma Sistemləri
+## Qabaqcıl Sıxılma Sistemləri
 
-7 standart rejimdən əlavə, OmniRoute kontekstdən asılı olaraq avtomatik işləyən bir neçə təkmil sıxılma sistemini ehtiva edir.
+7 standart rejimdən əlavə, OmniRoute kontekstə əsasən avtomatik işləyən bir neçə qabaqcıl sıxılma sistemini ehtiva edir.
 
-### Keşdən Xəbərdar Sıxılma
+### Keş-Həssas Sıxılma
 
-Bəzi provayderlər (məsələn, sorğu keşləməsini dəstəkləyən Anthropic) **sorğu keşləməsini** dəstəkləyir; bu, xərcləri və gecikməni azaltmaq üçün sorğunun müəyyən hissələrini keşləməyə imkan verir. Keşləmə aktiv olduqda, aqressiv sıxılma keşlənmiş tokenləri dəyişdirdiyi və keşi etibarsız etdiyi üçün performansa əslində **zərər verə** bilər.
+Bəzi provayderlər (məsələn, Anthropic prompt keşləmə ilə) **prompt keşləməni** dəstəkləyir ki, bu da onlara xərcləri və gecikməni azaltmaq üçün promptun hissələrini keşləməyə imkan verir. Keşləmə aktivləşdirildikdə, aqressiv sıxılma əslində performansa **zərər verə** bilər, çünki o, keşlənmiş tokenləri dəyişdirərək keşi etibarsız edir.
 
-`cachingAware.ts` modulu bunu **keşləmə kontekstini aşkarlamaqla** və **sıxılma strategiyasını uyğun şəkildə tənzimləməklə** həll edir.
+`cachingAware.ts` modulu bu problemi **keşləmə kontekstini aşkar etməklə** və **sıxılma strategiyasını** buna uyğun olaraq **tənzimləməklə** həll edir.
 
 #### Necə işləyir
 
-1. **Keşləmə kontekstini aşkarlayır** — Sorğu gövdəsini `cache_control` markerləri üçün yoxlayır
-2. **Keşləməni dəstəkləyən provayderləri müəyyən edir** — Hədəf provayderin keşləməni dəstəkləyib-dəstəkləmədiyini yoxlayır
-3. **Strategiyanı tənzimləyir** — Keşləməni dəstəkləyən provayderlər üçün `aggressive`/`ultra` rejimlərini `standard` rejiminə endirir
-4. **Sistem sorğusunu ötürür** — Sistem sorğuları adətən keşlənir, buna görə də onları sıxmır
-5. **Deterministik çevrilmələrdən istifadə edir** — Yalnız ardıcıl nəticə yaradan çevrilmələrdən istifadə edir
+1.  **Keşləmə kontekstini aşkar etmək** — Sorğu gövdəsini `cache_control` markerləri üçün skan edir
+2.  **Keşləmə provayderlərini müəyyən etmək** — Hədəf provayderin keşləməni dəstəkləyib-dəstəkləmədiyini yoxlayır
+3.  **Strategiyanı tənzimləmək** — Keşləmə provayderləri üçün `aggressive`/`ultra` rejimini `standard` rejiminə endirir
+4.  **Sistem promptunu atlamaq** — Sistem promptları adətən keşlənir, buna görə də onları sıxmayın
+5.  **Deterministik çevrilmələrdən istifadə etmək** — Yalnız ardıcıl nəticə verən çevrilmələrdən istifadə edin
 
 #### Kod nümunəsi
 
@@ -360,21 +360,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Nə zaman istifadə edilməlidir
+#### Nə vaxt istifadə etməli
 
-Keşdən xəbərdar sıxılma **həmişə aktivdir** — heç bir konfiqurasiya tələb olunmur. O, yalnız aşağıdakı hallarda işə düşür:
+Keş-həssas sıxılma **həmişə aktivdir** — heç bir konfiqurasiya tələb olunmur. O, yalnız aşağıdakı hallarda işə düşür:
 
-- Sorğuda `cache_control` markerləri olduqda
-- Hədəf provayder sorğu keşləməsini dəstəklədikdə (Anthropic, OpenAI və s.)
+- Sorğuda `cache_control` markerləri var
+- Hədəf provayder prompt keşləməni dəstəkləyir (Anthropic, OpenAI və s.)
 
-### Proqressiv Köhnəlmə
+### Proqressiv Yaşlanma
 
-Uzun söhbətlər çoxlu mesaj növbəsi toplayır, lakin köhnə növbələr tədricən daha az aktual olur. `progressiveAging.ts` modulu **mesajları növbə məsafəsinə əsasən sadələşdirir**:
+Uzun söhbətlər çoxlu mesaj dövrələri toplayır, lakin köhnə dövrələr daha az əhəmiyyətli olur. `progressiveAging.ts` modulu **mesajları dövrə məsafəsinə görə pisləşdirir**:
 
-- **Son növbələr (0-3)**: Olduğu kimi saxlanılır (tam təfərrüat)
-- **Orta növbələr (4-8)**: Yüngül sıxılma (boşluqların və formatlamanın təmizlənməsi)
-- **Köhnə növbələr (9+)**: Caveman sıxılması (doldurucu ifadələrin çıxarılması, xülasələşdirmə)
-- **Çox köhnə növbələr (20+)**: Güclü şəkildə xülasələşdirilir və ya silinir
+- **Son dövrələr (0-3)**: Sözbəsöz saxlanılır (tam təfərrüat)
+- **Orta dövrələr (4-8)**: Yüngül sıxılma (boşluqlar, formatlama təmizliyi)
+- **Köhnə dövrələr (9+)**: Caveman sıxılması (doldurucuların çıxarılması, xülasələşdirmə)
+- **Çox köhnə dövrələr (20+)**: Çox xülasələşdirilmiş və ya atılmış
 
 #### Kod nümunəsi
 
@@ -385,46 +385,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... daha 50 növbə ...
+  // ... daha 50 dövrə ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // İlk 3 növbə: olduğu kimi
-  light: 8, // 4-8-ci növbələr: yüngül sıxılma
-  moderate: 20, // 9-20-ci növbələr: caveman sıxılması
-  // 21-ci və sonrakı növbələr: güclü xülasələşdirmə
+  verbatim: 3, // İlk 3 dövrə: sözbəsöz
+  light: 8, // 4-8-ci dövrələr: yüngül sıxılma
+  moderate: 20, // 9-20-ci dövrələr: caveman sıxılması
+  // 21+ dövrələr: ağır xülasələşdirmə
 });
 
-// saved = qənaət edilən tokenlərin sayı
+// saved = qənaət edilmiş tokenlərin sayı
 ```
 
-#### Nə zaman istifadə edilməlidir
+#### Nə vaxt istifadə etməli
 
-Proqressiv köhnəlmə `aggressive` və `ultra` rejimləri üçün **həmişə aktivdir**. O, xüsusilə aşağıdakılar üçün effektivdir:
+Proqressiv yaşlanma `aggressive` və `ultra` rejimləri üçün **həmişə aktivdir**. O, xüsusilə aşağıdakılar üçün effektivdir:
 
-- Uzunmüddətli proqramlaşdırma sessiyaları
-- Bir neçə gün davam edən söhbətlər
-- Çoxlu alət çağırışı olan agent əsaslı iş axınları
+- Uzunmüddətli kodlaşdırma sessiyaları
+- Çoxgünlük söhbətlər
+- Çoxlu alət çağırışları olan agent iş axınları
 
 ### Caveman Çıxış Rejimi
 
-`outputMode.ts` modulu modelin özünün sıxılmış, yığcam çıxış (“caveman” üslubu) yaratmasını təmin etmək üçün **sistem sorğusu təlimatları** əlavə edir.
+`outputMode.ts` modulu modelin özünün sıxılmış, qısa çıxış (bir "caveman" tərzi) istehsal etməsi üçün **sistem prompt təlimatları** daxil edir.
 
 #### Necə işləyir
 
-Bu rejim girişi sıxmaq əvəzinə aşağıdakı kimi bir sistem sorğusu əlavə edir:
+Girişi sıxmaq əvəzinə, bu rejim belə bir sistem promptu əlavə edir:
 
-> "Minimum sözlə cavab ver. Nəzakət ifadələrini ötür. Qısa cümlələrdən istifadə et."
+> "Minimal sözlərlə cavab verin. Xoş sözləri atlayın. Qısa cümlələrdən istifadə edin."
 
 Bu, xüsusilə aşağıdakılar üçün yaxşı işləyir:
 
-- Kod yaratma (daha yığcam çıxış = daha az token)
-- Sürətli sual-cavab (ətraflı izahlara ehtiyac yoxdur)
-- Paket emalı (ötürmə qabiliyyətini maksimuma çatdırır)
+- Kod generasiyası (daha qısa çıxış = daha az token)
+- Sürətli Sual-Cavab (ətraflı izahatlara ehtiyac yoxdur)
+- Toplu emal (məhsuldarlığı maksimuma çatdırmaq)
 
-#### Nə zaman istifadə edilməlidir
+#### Nə vaxt istifadə etməli
 
-Caveman çıxış rejimi **seçim əsasında aktivləşdirilir** — onu birləşdirilmiş konfiqurasiya vasitəsilə təyin edin:
+Caveman çıxış rejimi **seçimlidir** — onu kombinasiya konfiqurasiyası vasitəsilə təyin edin:
 
 ```json
 {
@@ -437,37 +437,55 @@ Caveman çıxış rejimi **seçim əsasında aktivləşdirilir** — onu birlə�
 }
 ```
 
-### Çıxış Üslubları (kataloq)
+### Çıxış Stilləri (kataloq)
 
-Yuxarıdakı Caveman çıxış rejimi **köhnə tək üslublu yanaşmadır**. Phase 4 bunu birləşdirilə bilən çıxış üslubları kataloquna ümumiləşdirdi: `open-sse/services/compression/outputStyles/catalog.ts` faylındakı `OUTPUT_STYLE_CATALOG`. Hər üslub modelin özünün daha ucuz çıxış yaratmasını təmin edən sistem sorğusu təlimatıdır; üslublar birlikdə aktivləşdirilə bilər və kataloq sırası ilə əlavə olunur.
+Yuxarıdakı Caveman çıxış rejimi **köhnə tək-stil yoludur**. Faza 4 onu birləşdirilə bilən çıxış stilləri kataloquna ümumiləşdirdi: `open-sse/services/compression/outputStyles/catalog.ts` faylında `OUTPUT_STYLE_CATALOG`. Hər bir stil modelin özünün daha ucuz çıxış istehsal etməsini təmin edən bir sistem-prompt təlimatıdır; stillər birlikdə aktivləşdirilə bilər və kataloq sırası ilə daxil edilir.
 
-| Üslub                              | `id`          | Nə edir                                                                                                                                                                                                                                 | Təlimat dilləri                                                                      |
-| ---------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Yığcam mətn                        | `terse-prose` | Artıq sözləri/artiklləri/qeyri-müəyyən ifadələri çıxarır; texniki məzmunu dəqiq saxlayır. Köhnə Caveman çıxış rejimi ilə eyni mətndir (istinad edilir, yenidən yazılmır).                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Daha az kod                        | `less-code`   | YAGNI pilləkəni: işləyən ən kiçik dəyişiklik, tələb olunmamış abstraksiyalar yoxdur.                                                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| At quyruğu (tənbəl baş tərtibatçı) | `ponytail`    | "Ən yaxşı kod heç vaxt yazılmamış koddur": təkrar istifadə > yenidən yazma, əsas səbəb > simptom, işləyən ən qısa diff.                                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Məndə ADHD var (əvvəlcə əməl)      | `i-have-adhd` | Əvvəlcə əməl (mətndən əvvəl əmr/yol/fraqment), nömrələnmiş məhdud addımlar, BİR konkret növbəti addım, giriş/xülasə/yekun ifadələri yoxdur. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) əsasında uyğunlaşdırılıb (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Yığcam CJK (文言)                  | `terse-cjk`   | Klassik Çin dilində son dərəcə yığcam üslub.                                                                                                                                                                                            | zh (lokalla məhdudlaşdırılıb: yalnız müəyyən edilmiş dil `zh` olduqda təklif edilir) |
+| Stil                           | `id`          | Nə edir                                                                                                                                                                                                                            | Təlimat dilləri                                                       |
+| :----------------------------- | :------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
+| Qısa nəsr                      | `terse-prose` | Doldurucu/məqalələr/ehtiyatlı ifadələri çıxarır; texniki mahiyyəti dəqiq saxlayır. Köhnə "caveman" çıxış rejimi ilə eyni mətn (istinad edilir, yenidən yazılmır).                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                         |
+| Daha az kod                    | `less-code`   | YAGNI pilləkəni: ən kiçik işləyən dəyişiklik, tələb olunmayan abstraksiyalar yoxdur.                                                                                                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                         |
+| Ponytail (tənbəl baş mühəndis) | `ponytail`    | "Ən yaxşı kod heç vaxt yazılmayan koddur": yenidən istifadə > yenidən yazma, əsas səbəb > simptom, ən qısa işləyən fərq.                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                         |
+| Məndə ADHD var (hərəkət-öncə)  | `i-have-adhd` | Hərəkət öncə (nəsrədən əvvəl əmr/yol/parça), nömrələnmiş məhdud addımlar, BİR konkret növbəti addım, giriş/xülasə/bağlayıcılar yoxdur. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) əsasında uyğunlaşdırılıb. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                         |
+| Qısa CJK (文言)                | `terse-cjk`   | Klassik Çin ultra-qısa stili.                                                                                                                                                                                                      | zh (lokal-qapalı: yalnız həll edilmiş dil `zh` olduqda təklif olunur) |
 
-Hər üslub üç intensivlik səviyyəsi ilə təqdim olunur — `lite`, `full`, `ultra` — və hər səviyyə
-kod bloklarını, fayl yollarını, əmrləri, xəta sətirlərini, URL-ləri və identifikatorları olduğu kimi
-saxlayan ortaq sərhədlər bəndi ilə bitir.
+Hər bir stil üç intensivlik səviyyəsi — `lite`, `full`, `ultra` — ilə gəlir və hər bir səviyyə
+kod bloklarını, fayl yollarını, əmrləri, səhv sətirlərini, URL-ləri və identifikatorları olduğu kimi saxlayan
+ümumi sərhədlər bəndi ilə bitir.
 
-#### Daxiletmə necə işləyir
+#### İnjeksiya necə işləyir
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) seçimi
-kataloq üzrə müəyyən edir (naməlum id-lər və lokala uyğun olmayan üslublar
-çıxarılır, heç vaxt xəta yaranmır), seçilmiş təlimatları kataloq sırası ilə birləşdirir,
-sərhədlər bəndini **bir dəfə** əlavə edir və nəticəni vahid idempotentlik markerindən
-(`[OmniRoute Output Styles]`) sonra sistem sorğusunun əvvəlinə yerləşdirir — təkrar
-tətbiq heç bir əməliyyat icra etmir. Aşkarlanmış sorğu dili üçün tərcümə mövcud olduqda,
-ingiliscə təlimat əvəzinə lokallaşdırılmış təlimat daxil edilir.
+kataloqa qarşı həll edir (naməlum id-lər və lokal uyğunsuz stillər atılır, heç vaxt səhv olmur),
+seçilmiş təlimatları kataloq sırası ilə birləşdirir, sərhədlər bəndini **bir dəfə** əlavə edir
+və bloku tək bir idempotensiya işarəsi (`[OmniRoute Output Styles]`) ilə başlayır,
+beləliklə yenidən tətbiq etmək heç bir əməliyyat deyil. Həll edilmiş dilin (aşağıdakı Dil seçiminə baxın)
+tərcüməsi olduqda, İngilis dili əvəzinə lokallaşdırılmış təlimat daxil edilir.
+
+`messages` olan bir gövdədə, məzmun bypassı (`shouldBypassCavemanOutputMode()`
+`open-sse/services/compression/outputMode.ts` faylında) son üç mesajı yoxlayır və
+təhlükəsizlik, geri dönməz hərəkət, aydınlaşdırma və ya sifarişə həssas açar sözlərinə uyğun gəldikdə
+bütün növbə üçün stilləri atlayır. Bypass, idarə panelinin **Avtomatik Aydınlıq Bypassı**
+keçidi (`cavemanOutputMode.autoClarity`) nəyə təyin olunmasından asılı olmayaraq işləyir.
+
+Bypass növbəni keçməyə icazə verdikdə, `placeSystemInstruction()` (eyni fayl),
+heç vaxt yeni `messages[0]` yaratmır, bloku tapdığı ilk yerə qoyur:
+
+1.  Sətir məzmunlu aparıcı sistem mesajı: blok mətnindən sonra əlavə edilir.
+2.  Ən yüksək səviyyəli `system` sahəsi: blok sətirin mətnindən sonra əlavə edilir və ya
+    məzmun-blok massivinə yeni mətn bloku kimi əlavə edilir.
+3.  Sətir məzmunlu ilk sonrakı sistem mesajı: blok mətnindən sonra əlavə edilir.
+4.  Yuxarıdakılardan heç biri: blok `messages` sonunda yeni bir sistem mesajına daxil olur.
+
+`messages` olmayan bir gövdədə, blok `instructions` sahəsinə əlavə edilir və ya
+gövdə `input` (bir sətir və ya massiv) daşıdıqda `instructions` olur. Nə `instructions`
+nə də `input` olmayan bir gövdə `no_messages` kimi atlanır.
 
 #### Necə aktivləşdirmək olar
 
-İdarəetmə panelində: **Kontekst → Parametrlər → Sıxışdırma** — hər üslub üçün
-aktiv/deaktiv keçidi və səviyyə seçicisi olan bir sətir. Proqram vasitəsilə sıxışdırma konfiqurasiyası
-seçimi belə saxlayır:
+İdarə panelində: **Kontekst → Ayarlar → Sıxılma** — hər stil üçün bir sıra, açma/söndürmə
+keçidi və səviyyə seçicisi ilə. Proqramlaşdırma yolu ilə, sıxılma konfiqurasiyası seçimi
+belə saxlayır:
 
 ```json
 {
@@ -478,56 +496,53 @@ seçimi belə saxlayır:
 }
 ```
 
-Geriyə uyğunluq: köhnə `outputMode: "caveman"` kombinasiya parametri hələ də işləyir və
-`terse-prose` ilə uyğunlaşdırılır; bütün köhnə dillərdə əvvəlki daxiletmə ilə bayt səviyyəsində eynidir.
+Geri uyğunluq: köhnə `outputMode: "caveman"` kombinasiya ayarı hələ də işləyir və
+`terse-prose` ilə xəritələnir, hər köhnə dildə köhnə injeksiya ilə bayt-eyni.
 
-Dil seçimi: `languageConfig.enabled` aktiv olduqda, `autoDetect` ən son istifadəçi mesajının
-dilini seçir (daxiletmə mühərrikləri ilə eyni detektor);
-`autoDetect` söndürüldükdə `defaultLanguage` sabitlənir. Söndürülüb → İngilis dili.
+Dil seçimi: `languageConfig.enabled` aktiv olduqda, `autoDetect` ən son istifadəçi
+mesajının dilini seçir (giriş mühərrikləri ilə eyni detektor); `autoDetect` söndürüldükdə
+`defaultLanguage` sabit qalır. Söndürüldükdə → İngilis dili.
 
-Üslub × dil matrisi
-`tests/unit/compression/output-styles-i18n-matrix.test.ts` tərəfindən sabitlənir: yeni üslub
-ən azı pt-BR tərcüməsi (və ya açıq şəkildə izlənilən istisna) olmadan təqdim edilə bilməz və
-mövcud üslub lokala dəstəyi səssizcə itirə bilməz. Üslub əlavə etmək üçün
-[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) sənədinə baxın.
+Stil × dil matrisi `tests/unit/compression/output-styles-i18n-matrix.test.ts` tərəfindən
+sabitlənir: yeni bir stil ən azı pt-BR tərcüməsi (və ya açıq şəkildə izlənilən istisna)
+olmadan göndərilə bilməz və mövcud bir stil səssizcə bir lokalı itirə bilməz. Bir stil
+əlavə etmək üçün [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style)
+faylına baxın.
 
-### Alət nəticələrinin sıxışdırılması
+### Alət Nəticəsinin Sıxılması
 
 `toolResultCompressor.ts` modulu alət nəticələri (funksiya çağırışları, agent çıxışları,
-axtarış nəticələri və s.) üçün **5 ixtisaslaşdırılmış sıxışdırma strategiyası** təqdim edir:
+axtarış nəticələri və s.) üçün **5 ixtisaslaşmış sıxılma strategiyası** təqdim edir:
 
-1. **Axtarış nəticələrinin sıxışdırılması** — Təkrarlanan nəticələri silir, ən yaxşı N nəticəni saxlayır
-2. **Fayl oxunuşunun sıxışdırılması** — Böyük faylları qısaldır, başlıqları/importları qoruyur
-3. **Kod icrasının sıxışdırılması** — Yalnız vacib stdout/stderr çıxışını saxlayır
-4. **Verilənlər bazası sorğusunun sıxışdırılması** — Sətirləri məhdudlaşdırır, təfərrüatlı metadatanı silir
-5. **API cavabının sıxışdırılması** — Null sahələri çıxarır, massivləri yığcamlaşdırır
+1.  **Axtarış nəticəsinin sıxılması** — Artıq nəticələri silir, ilk-N-i saxlayır
+2.  **Fayl oxuma sıxılması** — Böyük faylları kəsir, başlıqları/idxalları qoruyur
+3.  **Kod icra sıxılması** — Yalnız əsas stdout/stderr-i saxlayır
+4.  **Verilənlər bazası sorğu sıxılması** — Sətirləri məhdudlaşdırır, ətraflı metadatanı silir
+5.  **API cavab sıxılması** — Boş sahələri çıxarır, massivləri sıxır
 
 #### Nə vaxt istifadə etməli
 
-Alət çağırışları mövcud olduqda alət nəticələrinin sıxışdırılması **həmişə aktivdir**.
-Konfiqurasiya tələb olunmur.
+Alət nəticəsinin sıxılması, alət çağırışları mövcud olduqda **həmişə aktivdir**. Heç bir konfiqurasiya tələb olunmur.
 
-### Ardıcıl konveyer
+### Yığılmış Boru Kəməri
 
-Ardıcıl rejim **bir neçə mühərriki növbə ilə** işə salır — adətən əvvəlcə RTK
-(alət çıxışında 60-90% qənaət), sonra Caveman (qalan mətndə əlavə 30% qənaət).
-Bu, **ümumilikdə 78-95% qənaət** təmin edir.
+Yığılmış rejim **ardıcıl olaraq bir neçə mühərriki** işə salır — adətən əvvəlcə RTK (alət çıxışında 60-90% qənaət), sonra Caveman (qalan mətndə əlavə 30% qənaət). Bu, **ümumi 78-95% qənaət** əldə edir.
 
 #### Necə işləyir
 
 ```
-Daxiletmə (1000 token)
-  → RTK (əmrləri nəzərə alan filtr) → 200 token
-    → Caveman (artıq sözlərin çıxarılması) → 140 token
+Giriş (1000 token)
+  → RTK (əmri tanıyan filtr) → 200 token
+    → Caveman (doldurucu silinməsi) → 140 token
   → Çıxış (140 token, 86% qənaət)
 ```
 
 #### Nə vaxt istifadə etməli
 
-Ardıcıl rejimi aşağıdakılar üçün istifadə edin:
+Yığılmış rejimi aşağıdakılar üçün istifadə edin:
 
-- Alətlərdən intensiv istifadə edilən iş axınları (agent əsaslı kodlaşdırma, araşdırma)
-- Xərclərə həssas toplu emal
+- Alət yüklü iş axınları (agentik kodlaşdırma, tədqiqat)
+- Xərcə həssas toplu emal
 - Maksimum token qənaətinə ehtiyacınız olduqda
 
 Kombinasiya vasitəsilə konfiqurasiya edin:

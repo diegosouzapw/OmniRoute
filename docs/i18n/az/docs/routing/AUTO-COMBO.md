@@ -292,45 +292,64 @@ dəyərlər mühərrikin mövcud `config.modePack` / `config.budgetCap` /
 `config.budgetFallback` girişlərinə ötürülür. Kombinasiyada saxlanılan `config.budgetFallback` ("strict" |
 "cheapest") davamlı siyasəti təyin edir; başlıq onu tək bir sorğu üçün əvəz edir.
 
-## Bütün Marşrutlaşdırma Strategiyaları
+## Bütün Yönləndirmə Strategiyaları
 
-OmniRoute-un kombinasiya mühərriki **19 marşrutlaşdırma strategiyasını** dəstəkləyir (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` daxilində elan edilib). Auto Combo mühərrikinin özü `auto` strategiyası altında təqdim olunur; digərləri saxlanılan kombinasiyalar üçün əlçatandır.
+OmniRoute-un kombo mühərriki **19 yönləndirmə strategiyasını** dəstəkləyir (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` faylında elan edilmişdir). Auto Combo mühərrikinin özü `auto` strategiyası altında təqdim olunur; digərləri isə davamlı kombolar üçün mövcuddur.
 
-| Strategiya          | Təsvir                                                                                                                                                                                                        |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `priority`          | Açıq şəkildə təyin edilmiş prioritetə malik, ilk hədəfdən başlayan sıralanmış siyahı                                                                                                                          |
-| `weighted`          | Hər hədəfin çəkisinə əsaslanan çəkili təsadüfi seçim                                                                                                                                                          |
-| `round-robin`       | Hədəflər arasında ardıcıllıqla dövr et                                                                                                                                                                        |
-| `context-relay`     | Konteksti hədəflər arasında ötür (uzun söhbətlər)                                                                                                                                                             |
-| `fill-first`        | Növbəti hədəfə keçməzdən əvvəl hər hədəfin kvotasını doldur                                                                                                                                                   |
-| `p2c`               | 2 seçim gücünə əsaslanan təsadüfi yük balanslaşdırması                                                                                                                                                        |
-| `random`            | Bərabər ehtimallı təsadüfi seçim                                                                                                                                                                              |
-| `least-used`        | Cari yükü ən az olan hədəfi seç                                                                                                                                                                               |
-| `cost-optimized`    | Kataloq qiymətləndirməsinə əsasən hər sorğu üçün xərci minimuma endir                                                                                                                                         |
-| `reset-aware` ⭐    | Kvotanın sıfırlanma vaxtına görə prioritetləşdir — qısa sıfırlanma intervalları daha yüksək sıralanır                                                                                                         |
-| `reset-window`      | Kvota intervalı ən tez sıfırlanacaq hədəflərə üstünlük ver                                                                                                                                                    |
-| `headroom`          | Ən çox qalan kvota ehtiyatına malik hədəfi seç                                                                                                                                                                |
-| `strict-random`     | Təkrarların aradan qaldırılması olmadan təsadüfi seçim                                                                                                                                                        |
-| `auto`              | Auto Combo qiymətləndirməsindən (16 amilli) istifadə et — **tövsiyə olunur**                                                                                                                                  |
-| `lkgp`              | Son Məlum Yaxşı Yol (son uğurlu provayderə bağlanır, sonra isə qaydalara geri qayıdır)                                                                                                                        |
-| `context-optimized` | Cari kontekst ölçüsünə ən uyğun hədəfi seç                                                                                                                                                                    |
-| `cache-optimized`   | Hədəfləri prompt keşinə uyğunluğa görə yenidən sırala — bu sorğunun keşlənmiş prefiksini artıq saxlama ehtimalı ən yüksək olan bağlantı ilk sınanır (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Paralel şəkildə model panelinə sorğu göndər, sonra hakim vasitəsilə vahid cavab sintez et (aşağıya bax)                                                                                                       |
-| `pipeline`          | Hədəfləri ardıcıllıqla işə sal, hər addımın çıxışını növbəti addımın girişinə ötür; yalnız yekun cavab qaytarılır (#6396)                                                                                     |
+| Strategiya          | Təsvir                                                                                                                                                                                                               |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | Açıq prioritetlə ilk hədəf sıralı siyahı                                                                                                                                                                             |
+| `weighted`          | Hədəf başına çəkiyə görə çəkili təsadüfi                                                                                                                                                                             |
+| `round-robin`       | Hədəflər arasında ardıcıllıqla dövr et (toplu; aşağıya bax)                                                                                                                                                          |
+| `context-relay`     | Konteksti hədəflər arasında ötür (uzun söhbətlər)                                                                                                                                                                    |
+| `fill-first`        | Növbəti hədəfə keçməzdən əvvəl hər hədəfin kvotasını doldur                                                                                                                                                          |
+| `p2c`               | 2 seçim gücü təsadüfi yük balanslaşdırması                                                                                                                                                                           |
+| `random`            | Vahid təsadüfi seçim                                                                                                                                                                                                 |
+| `least-used`        | Ən aşağı cari yüklə hədəfi seç                                                                                                                                                                                       |
+| `cost-optimized`    | Kataloq qiymətləri nəzərə alınmaqla sorğu başına $ minimallaşdır                                                                                                                                                     |
+| `reset-aware` ⭐    | Kvota sıfırlama vaxtına görə prioritetləşdir — qısa sıfırlama pəncərələri daha yüksək qiymətləndirilir                                                                                                               |
+| `reset-window`      | Kvota pəncərəsi ən tez sıfırlanan hədəflərə üstünlük ver                                                                                                                                                             |
+| `headroom`          | Ən çox qalan kvota boşluğu olan hədəfi seç                                                                                                                                                                           |
+| `strict-random`     | Təkrarların deduplikasiyası olmadan təsadüfi                                                                                                                                                                         |
+| `auto`              | Auto Combo qiymətləndirməsindən istifadə et (16 faktorlu) — **tövsiyə olunur**                                                                                                                                       |
+| `lkgp`              | Son Məlum Yaxşı Yol (son uğurlu provayderə bağlanır, sonra qaydalara qayıdır)                                                                                                                                        |
+| `context-optimized` | Cari kontekst ölçüsünə ən uyğun hədəfi seç                                                                                                                                                                           |
+| `cache-optimized`   | Hədəfləri prompt-keş yaxınlığına görə yenidən sırala — bu sorğunun keşlənmiş prefiksini artıq saxlama ehtimalı ən yüksək olan əlaqə birinci sınaqdan keçir (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Modellər panelinə paralel olaraq yayılır, sonra bir hakim vasitəsilə bir cavab sintez edilir (aşağıya bax)                                                                                                           |
+| `pipeline`          | Hədəfləri ardıcıl olaraq işlət, hər addımın çıxışını növbəti addımın girişinə ötür; yalnız son cavab qaytarılır (#6396)                                                                                              |
 
-⭐ = v3.8.0 versiyasında yenidir · 🧬 = v3.8.36 versiyasında yenidir
+⭐ = v3.8.0-da yeni · 🧬 = v3.8.36-da yeni
 
 ### `weighted` semantikası
 
-`weighted`, bərabərləşdirici deyil, **hər sorğu üçün proporsional təsadüfi seçimdir**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`):
+`weighted` **sorğu başına proporsional təsadüfi çəkilişdir**
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), bərabərləşdirici deyil:
 
-- Hər sorğu `weight / totalWeight` ehtimalı ilə **bir** addım seçir; qalan addımlar həmin sorğu üçün ehtiyat zənciri kimi çəkiyə görə azalan sıra ilə düzülür.
-- Çəkisi `0` olan (və ya çəkisi göstərilməyən) addım, hər hansı digər addımın çəkisi > 0 olduğu müddətdə **heç vaxt seçilmir** — o, yalnız seçilmiş addım uğursuz olduqdan sonra ehtiyat kimi istifadə edilə bilər. Seçim yalnız **bütün** çəkilər 0 olduqda bərabər ehtimallı olur.
-- Bütün hədəfləri əlçatmaz olan addımlar — provayderin dövrə açarı `OPEN`, bağlantının gözləmə müddəti, modelin bloklanması — seçim baş verməzdən əvvəl seçim toplusundan çıxarılır (`open-sse/services/combo/targetResolution.ts`), buna görə də yeganə sağlam addım müvəqqəti olaraq hər sorğuda qalib gələ bilər.
-- `stickyWeightedLimit` (kombinasiya konfiqurasiyası, standart olaraq `1` = söndürülüb) yenidən seçim etməzdən əvvəl seçilmiş addımı həmin sayda ardıcıl uğur müddətində sabit saxlayır.
+- Hər sorğu `çəki / ümumiÇəki` ehtimalı ilə **bir** addım çəkir; qalan addımlar
+  həmin sorğu üçün ehtiyat zənciri kimi azalan çəkiyə görə sıralanır.
+- Çəkisi `0` (və ya yoxdur) olan bir addım, digər addımların çəkisi > 0 olduğu müddətcə **heç vaxt çəkilmir** —
+  o, yalnız çəkilmiş addım uğursuz olduqdan sonra ehtiyat kimi xidmət edə bilər. Yalnız **bütün**
+  çəkilər 0 olduqda seçim vahid olur.
+- Hədəfləri mövcud olmayan addımlar — provayder dövrə kəsicisi `OPEN`, əlaqə
+  soyutma, model kilidi — çəkilməzdən əvvəl siyahıdan çıxarılır
+  (`open-sse/services/combo/targetResolution.ts`), beləliklə, tək bir sağlam addım müvəqqəti olaraq
+  hər sorğuda qalib gələ bilər.
+- `stickyWeightedLimit` (kombo konfiqurasiyası, defolt `1` = bağlı) çəkilmiş addımı həmin sayda
+  ardıcıl uğur üçün sabitləyir, sonra yenidən çəkir.
 
-Ciddi növbələmə üçün `round-robin` istifadə edin; `weighted` strategiyasında bərabər çəkilər ciddi deyil, statistik balans yaradır.
+Sərt rotasiya üçün `round-robin` istifadə edin; `weighted` üzərində bərabər çəkilər statistik —
+sərt deyil — balans verir.
+
+### `round-robin` yapışqan toplu və hesab genişləndirilməsi
+
+Round-robin topludur, bir sorğu-bir-addım deyil:
+
+- `stickyRoundRobinLimit` (kombinasiya konfiqurasiyası, sonra `comboStickyRoundRobinLimit`, sonra
+  `settings.stickyRoundRobinLimit`, defolt **3**) həmin sayda ardıcıl uğurlu əməliyyatdan sonra fırlanmadan əvvəl eyni hədəfi saxlayır. Bir sorğu fırlanması üçün kombinasiya üzərindən dəyişdirməni (`override`) `1` olaraq təyin edin. Kombinasiya redaktoru effektiv dəyəri və onun hansı qatdan gəldiyini göstərir.
+- `connectionAwareExpansion` (kombinasiya konfiqurasiyası, sonra parametrlər, defolt **false**) hər bir provayder səviyyəli addımı fırlanmadan əvvəl hesab başına hədəflərə genişləndirir. Qrup-B strategiyaları (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp, fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion, pipeline) bu aktiv olana qədər provayder səviyyəli görünüşü saxlayır. Kombinasiya redaktoru inherit / on / off seçimlərini təqdim edir; inherit qlobal defolt (off) dəyərindən istifadə edir.
+- Prompt-keş lokallıq marşrutlaşdırması (`promptCacheAffinityEnabled`, defolt **true**) uyğun keş açarlarının bir hesabda qalması üçün bərkidilmiş bağlantıları yenidən sıralayır. Bu, bərkidilmiş hesab başına addımlarda round-robin və çəkili fırlanmadan üstünlük təşkil edir. Əgər ciddi fırlanmaya ehtiyacınız varsa, onu Parametrlər (Settings) → Kombinasiya defoltları (Combo defaults) altında söndürün. Kombinasiya üzrə xüsusi bir dəyişdirmə (`override`) yoxdur.
+
+Bir modeldə çoxhesablı fırlanma üçün, üç bərkidilmiş `connectionId` əvəzinə, yapışqan limiti `1` olan **bir dinamik hesab addımına** (boş `connectionId`, bütün hovuz) üstünlük verin. Bərkidilmiş addımlar və affinitet, RR sayğacı irəliləyərkən belə, eyni hesaba yığılır.
 
 ## Fusion Strategiyası
 

@@ -261,45 +261,66 @@ lahendatud väärtused edastatakse mootori olemasolevatele sisenditele `config.m
 
 ## Kõik marsruutimisstrateegiad
 
-OmniRoute'i kombomootor toetab **19 marsruutimisstrateegiat** (deklareeritud `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Automaatne kombineerimismootor ise on kättesaadav strateegia `auto` all; teised on saadaval püsivaks muudetud kombineeringute jaoks.
+OmniRoute'i kombineeritud mootor toetab **19 marsruutimisstrateegiat** (deklareeritud failis `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Auto Combo mootor ise on eksponeeritud `auto` strateegia all; teised on saadaval püsivate kombode jaoks.
 
-| Strateegia          | Kirjeldus                                                                                                                                                                                                         |
-| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Esimese sihtmärgi järjestatud nimekiri avaliku prioriteediga                                                                                                                                                      |
-| `weighted`          | Kaalutud juhuslik valik iga sihtmärgi kaalu järgi                                                                                                                                                                 |
-| `round-robin`       | Sihtmärkide vaheldumine järjekorras                                                                                                                                                                               |
-| `context-relay`     | Konteksti edastamine sihtmärkide vahel (pikad vestlused)                                                                                                                                                          |
-| `fill-first`        | Iga sihtmärgi kvoodi täitmine enne järgmisele liikumist                                                                                                                                                           |
-| `p2c`               | 2 valiku võimsusel põhinev juhuslik koormuse jaotus                                                                                                                                                               |
-| `random`            | Ühtlane juhuslik valik                                                                                                                                                                                            |
-| `least-used`        | Madalaima praeguse koormusega sihtmärgi valik                                                                                                                                                                     |
-| `cost-optimized`    | Minimeeri dollari kulu päringu kohta kataloogihinnastiku alusel                                                                                                                                                   |
-| `reset-aware` ⭐    | Prioriseeri kvoodi lähtestamise aja järgi — lühemad lähtestamise aknad kõrgema kohaga                                                                                                                             |
-| `reset-window`      | Eelista sihtmärke, mille kvoodi aken lähtestatakse kõige varem                                                                                                                                                    |
-| `headroom`          | Vali sihtmärk, millel on kõige rohkem järelejäänud kvoodivaru                                                                                                                                                     |
-| `strict-random`     | Juhuslik ilma korduste deduplitseerimata                                                                                                                                                                          |
-| `auto`              | Kasuta Automaatse kombineerimise skoorimist (16-faktorit) — **soovitatud**                                                                                                                                        |
-| `lkgp`              | Viimati-teada-olev tee (kinnistab viimasele edukale pakkujale, seejärel tugineb reeglitele)                                                                                                                       |
-| `context-optimized` | Vali sihtmärk, mis sobib kõige paremini praeguse konteksti suurusega                                                                                                                                              |
-| `cache-optimized`   | Järjesta sihtmärgid ümber prompt-vahemälu afiinsuse järgi — ühendus, mis tõenäolisemalt juba hoiab selle päringu vahemälu eelist, proovitakse esimesena (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Laota laiali mudelite paneelile paralleelselt, seejärel sünteesi üks vastus kohtuniku abil (vaata allpool)                                                                                                        |
-| `pipeline`          | Käivita sihtmärgid järjestikku, põimides iga sammu väljund järgmise sammu sisendisse; tagastatakse ainult lõplik vastus (#6396)                                                                                   |
+| Strateegia          | Kirjeldus                                                                                                                                                                                                                       |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `priority`          | Esimene sihtmärgi järjestatud loend selge prioriteediga                                                                                                                                                                         |
+| `weighted`          | Kaalutud juhuslik valik sihtmärgi kaalu järgi                                                                                                                                                                                   |
+| `round-robin`       | Tsükkel sihtmärkide vahel järjekorras (partiina; vt allpool)                                                                                                                                                                    |
+| `context-relay`     | Konteksti edastamine sihtmärkide vahel (pikad vestlused)                                                                                                                                                                        |
+| `fill-first`        | Täidab iga sihtmärgi kvoodi enne järgmise juurde liikumist                                                                                                                                                                      |
+| `p2c`               | 2 valiku võimsuse juhuslik koormuse tasakaalustamine                                                                                                                                                                            |
+| `random`            | Ühtlane juhuslik valik                                                                                                                                                                                                          |
+| `least-used`        | Valib sihtmärgi madalaima praeguse koormusega                                                                                                                                                                                   |
+| `cost-optimized`    | Minimeerib $ päringu kohta, arvestades kataloogi hinda                                                                                                                                                                          |
+| `reset-aware` ⭐    | Prioriseerib kvoodi lähtestamise aja järgi — lühikesed lähtestamisaknad on kõrgema asetusega                                                                                                                                    |
+| `reset-window`      | Eelistab sihtmärke, mille kvoodiaken lähtestub kõige varem                                                                                                                                                                      |
+| `headroom`          | Valib sihtmärgi, millel on kõige rohkem järelejäänud kvoodivaru                                                                                                                                                                 |
+| `strict-random`     | Juhuslik ilma korduste deduplitseerimiseta                                                                                                                                                                                      |
+| `auto`              | Kasutab Auto Combo hindamist (16-faktoriline) — **soovitatav**                                                                                                                                                                  |
+| `lkgp`              | Viimane teadaolev hea tee (kinnitub viimasele edukale pakkujale, seejärel langeb tagasi reeglitele)                                                                                                                             |
+| `context-optimized` | Valib sihtmärgi, mis sobib kõige paremini praeguse konteksti suurusega                                                                                                                                                          |
+| `cache-optimized`   | Järjestab sihtmärgid ümber viip-vahemälu afiinsuse järgi — ühendust, mis tõenäoliselt juba hoiab selle päringu vahemällu salvestatud eesliidet, proovitakse esimesena (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Levitab paralleelselt mudelite paneelile, seejärel sünteesib kohtuniku kaudu ühe vastuse (vt allpool)                                                                                                                           |
+| `pipeline`          | Käivitab sihtmärgid järjestikku, suunates iga sammu väljundi järgmise sammu sisendisse; tagastatakse ainult lõplik vastus (#6396)                                                                                               |
 
 ⭐ = Uus versioonis v3.8.0 · 🧬 = Uus versioonis v3.8.36
 
 ### `weighted` semantika
 
-`weighted` on **proportsionaalne juhuslik loosimine päringu kohta**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), mitte tasakaalusti:
+`weighted` on **proportsionaalne juhuslik valik päringu kohta** (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), mitte tasakaalustaja:
 
-- Iga päring loob **ühe** sammu tõenäosusega `kaal / kogukaal`; ülejäänud sammud
-  on järjestatud kahaneva kaalu järgi selle päringu jaoks varuahelana.
-- Sammu, mille kaal on `0` (või puudub), **ei loosita kunagi**, kui mõnel teisel sammul on kaal > 0 — see saab toimida ainult varuna pärast loositud sammu läbikukkumist. Ainult siis, kui **kõigi** kaalud on 0, muutub valik ühtlaseks.
-- Sammud, mille sihtmärgid pole kõik kättesaadavad — pakkujahõlgetsüklilülitus `AVATUD`, ühenduse jahtumine, mudeli lukustus — eemaldatakse loosimisest enne, kui see toimub
-  (`open-sse/services/combo/targetResolution.ts`), nii et üks terve samm võib ajutiselt võita iga päringu.
-- `stickyWeightedLimit` (kombineerimise konfiguratsioon, vaikimisi `1` = väljas) kinnistab loositud sammu nii paljudele järjestikustele edukustele enne uuesti loosimist.
+- Iga päring valib **ühe** sammu tõenäosusega `weight / totalWeight`; ülejäänud sammud järjestatakse kahaneva kaalu järgi selle päringu varuahelana.
+- Samm, mille kaal on `0` (või puudub), **ei valita kunagi**, kui mõnel teisel sammul on kaal > 0 — see saab toimida ainult varuna pärast valitud sammu ebaõnnestumist. Ainult siis, kui **kõik** kaalud on 0, muutub valik ühtlaseks.
+- Sammud, mille sihtmärgid on kõik kättesaamatud — pakkuja kaitselüliti `OPEN`, ühenduse jahtumine, mudeli lukustus — eemaldatakse valikust enne selle toimumist (`open-sse/services/combo/targetResolution.ts`), nii et üks terve samm võib ajutiselt võita iga päringu.
+- `stickyWeightedLimit` (kombo konfiguratsioon, vaikimisi `1` = välja lülitatud) kinnitab valitud sammu nii mitmeks järjestikuseks õnnestumiseks enne uuesti valimist.
 
-Range vaheldumise jaoks kasuta `round-robin`; võrdsed kaalud `weighted` annavad statistilise — mitte range — tasakaalu.
+Range pöörlemise jaoks kasutage `round-robin`; võrdsed kaalud `weighted` puhul annavad statistilise — mitte range — tasakaalu.
+
+### `round-robin` kleepuv partii ja konto laiendamine
+
+Ringikujuline jaotus toimub partiidena, mitte üks päring sammu kohta:
+
+- `stickyRoundRobinLimit` (kombo konfiguratsioon, seejärel `comboStickyRoundRobinLimit`, seejärel
+  `settings.stickyRoundRobinLimit`, vaikimisi **3**) hoiab sama sihtmärki nii mitme
+  järjestikuse õnnestumise korral enne pööramist. Seadistage kombo alistamine väärtusele `1`
+  ühe päringu pööramiseks. Kombo redaktor näitab tegelikku väärtust ja seda, millisest kihist see pärineb.
+- `connectionAwareExpansion` (kombo konfiguratsioon, seejärel seaded, vaikimisi **false**)
+  laiendab iga pakkuja taseme sammu kontopõhisteks sihtmärkideks enne pööramist. B-grupi
+  strateegiad (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) säilitavad pakkuja taseme vaate, kuni see on sisse lülitatud. Kombo redaktor
+  pakub valikuid pärimine / sees / väljas; pärimine kasutab globaalset vaikeseadet (väljas).
+- Prompt-vahemälu lokaalsuse marsruutimine (`promptCacheAffinityEnabled`, vaikimisi **true**)
+  järjestab kinnitatud ühendused ümber nii, et vastavad vahemälu võtmed jäävad ühele kontole.
+  See on eelistatud ringikujulise ja kaalutud pööramise ees kinnitatud kontopõhiste sammude
+  puhul. Lülitage see välja jaotises Settings → Combo defaults, kui vajate ranget pööramist.
+  Kombineeritud alistamist ei ole.
+
+Mitme konto pööramiseks ühel mudelil eelistage **ühte dünaamilise konto sammu** (tühi
+`connectionId`, kogu kogum) kleepuva piiranguga `1`, mitte kolme kinnitatud `connectionId`.
+Kinnitatud sammud pluss afiinsus koondavad samale kontole isegi siis, kui RR-loendur edasi liigub.
 
 ## Fusiooni strateegia
 
