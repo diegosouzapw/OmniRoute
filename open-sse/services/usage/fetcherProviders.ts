@@ -50,6 +50,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "opencode",
   "opencode-zen",
   "xiaomi-mimo",
+  "xiaomi-mimo-token-plan",
   "xai",
   "xai-oauth",
   "xao",

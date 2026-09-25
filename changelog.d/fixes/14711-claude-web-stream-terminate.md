@@ -1,0 +1,1 @@
+- fix(providers): synthesize finish_reason after claude-web holds a tool_use turn open (#14711)
