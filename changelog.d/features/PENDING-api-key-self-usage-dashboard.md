@@ -1,0 +1,1 @@
+- **feat(dashboard):** API key details view with self-service settings editor, shared quota provider picker, header policy controls, and 66-locale i18n
