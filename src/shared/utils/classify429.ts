@@ -43,6 +43,9 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /insufficient.*quota/i,
   /billing.*cap/i,
   /credit.*exhaust/i,
+  /exhausted.*credits/i,
+  /exhausted all your credits/i,
+  /have exhausted all your credits/i,
   /out of credits/i,
   /hard.?limit/i,
   /plan.*limit/i,
@@ -204,6 +207,9 @@ const QUOTA_SCALE_RETRY_DELAY_SECONDS = 3600;
 const TERMINAL_QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /INSUFFICIENT_G1_CREDITS_BALANCE/i,
   /credit.*exhaust/i,
+  /exhausted.*credits/i,
+  /exhausted all your credits/i,
+  /have exhausted all your credits/i,
   /out of credits/i,
   /billing.*cap/i,
   /insufficient.*quota/i,
@@ -317,11 +323,14 @@ export function classify429(response: {
   headers?: Record<string, string>;
   body?: unknown;
 }): FailureKind {
-  if (response.status !== 429) return "transient";
+  if (response.status < 400) return "transient";
   const text = bodyToText(response.body);
   if (text && TERMINAL_QUOTA_PATTERNS.some((pat) => pat.test(text))) {
     return "quota_exhausted";
   }
+  // Non-429 4xx/5xx responses that didn't match terminal patterns are
+  // still transient (the caller has already widened the scope from 429-only).
+  if (response.status !== 429) return "transient";
   const declaredDelay = upstreamRetryDelaySeconds(response.body);
   if (declaredDelay !== null && declaredDelay < QUOTA_SCALE_RETRY_DELAY_SECONDS) {
     return "rate_limit";

@@ -52,6 +52,25 @@ test("classify429: auth-layer synthetic 'have exhausted their quota' returns 'qu
   assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
 });
 
+// New test for the phrasing introduced in the recent comment
+test("classify429: detects 'exhausted all your credits' phrasing", () => {
+  const body1 = "You have exhausted all your credits. Please upgrade your plan.";
+  const body2 = "We have exhausted all your credits due to usage limits.";
+  assert.equal(classify429({ status: 429, body: body1 }), "quota_exhausted");
+  assert.equal(classify429({ status: 429, body: body2 }), "quota_exhausted");
+});
+
+// The TPD patterns are terminal, so they classify as quota_exhausted even with
+// a short retry hint in the body — confirming that terminal signals override
+// upstream retry windows (as intended by the fix).
+test("classify429: TPD rate limit body with short retry hint still returns 'quota_exhausted'", () => {
+  const body =
+    "request reached organization TPD rate limit, current: 1500, limit: 1500. " +
+    "please retry in 30s";
+  // Terminal TPD pattern wins over the short retry hint → quota_exhausted
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+});
+
 test("classify429: Google RESOURCE_EXHAUSTED with a billing-period reset is quota exhausted", () => {
   const body = "Resource has been exhausted (e.g. check quota). (reset after 24h)";
   assert.equal(looksLikeQuotaExhausted(body), true);
