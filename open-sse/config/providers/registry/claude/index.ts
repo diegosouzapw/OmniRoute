@@ -55,6 +55,18 @@ export const claudeProvider: RegistryEntry = {
       supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
+    // Listed after Opus 5 so the cc/ Opus default stays on a model stale live catalogs still accept (#14612).
+    {
+      id: "claude-opus-5-5",
+      name: "Claude Opus 5.5",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
+      supportsVision: true,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
     {
       id: "claude-opus-4-8",
       name: "Claude Opus 4.8",

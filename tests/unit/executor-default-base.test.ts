@@ -1575,7 +1575,7 @@ test("DefaultExecutor.execute does not produce duplicate anthropic-version heade
   const sentBody = JSON.parse(capturedBody) as { system?: Array<{ text?: string }> };
   assert.match(
     sentBody.system?.[0]?.text ?? "",
-    /^x-anthropic-billing-header: cc_version=2\.1\.258\.1e2; cc_entrypoint=cli; cch=[0-9a-f]{5};$/
+    /^x-anthropic-billing-header: cc_version=2\.1\.280\.d7b; cc_entrypoint=cli; cch=[0-9a-f]{5};$/
   );
 });
 

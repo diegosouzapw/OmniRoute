@@ -40,7 +40,7 @@ test("getClientIdentityProfileHeaders: unknown profile id falls back to no heade
 
 test("getClientIdentityProfileHeaders: known CLI profiles expose their preset headers", () => {
   const claudeCli = getClientIdentityProfileHeaders("claude-cli");
-  assert.equal(claudeCli["User-Agent"], "claude-cli/2.1.258 (external, cli)");
+  assert.equal(claudeCli["User-Agent"], "claude-cli/2.1.280 (external, cli)");
   assert.equal(claudeCli["X-App"], "cli");
 
   const codexCli = getClientIdentityProfileHeaders("codex-cli");
@@ -56,7 +56,7 @@ test("getClientIdentityProfileHeaders: returns a fresh mutable copy (catalog sta
   headers["User-Agent"] = "tampered";
   assert.equal(
     CLIENT_IDENTITY_PROFILES["claude-cli"].headers["User-Agent"],
-    "claude-cli/2.1.258 (external, cli)"
+    "claude-cli/2.1.280 (external, cli)"
   );
 });
 
@@ -104,7 +104,7 @@ test("profile headers merged into customHeaders survive applyCustomHeaders sanit
     true
   ) as Record<string, string>;
 
-  assert.equal(headers["User-Agent"], "claude-cli/2.1.258 (external, cli)");
+  assert.equal(headers["User-Agent"], "claude-cli/2.1.280 (external, cli)");
   assert.equal(headers["X-App"], "cli");
   assert.equal(headers["Authorization"], "Bearer test-key");
 });

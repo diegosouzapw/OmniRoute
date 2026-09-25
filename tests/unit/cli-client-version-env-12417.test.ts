@@ -40,8 +40,8 @@ async function withEnv<T>(
   }
 }
 
-test("#12417 Claude pin stays the captured 2.1.258 binary", () => {
-  assert.equal(canonical.CLAUDE_CODE_CLIENT_VERSION, "2.1.258");
+test("#12417 Claude pin stays the captured 2.1.280 binary", () => {
+  assert.equal(canonical.CLAUDE_CODE_CLIENT_VERSION, "2.1.280");
 });
 
 test("#12417 getClaudeCodeClientVersion falls back to the captured pin", async () => {
