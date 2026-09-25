@@ -1,0 +1,1 @@
+- **fix(sse):** the applied-proxy capture context is shared across duplicated `proxyFetch` module instances, so the proxy journal can tell a received provider status apart from a local failure no matter which server copy serves the dispatch. ([#14620](https://github.com/diegosouzapw/OmniRoute/pull/14620)) — thanks @maxmad64bis

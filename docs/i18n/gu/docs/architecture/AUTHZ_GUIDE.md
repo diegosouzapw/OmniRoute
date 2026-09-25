@@ -4,14 +4,14 @@
 
 ---
 
-> **સત્યનો અધિકૃત સ્રોત:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **છેલ્લે અપડેટ કરેલું:** 2026-06-28 — v3.8.40
+> **સત્યનો સ્ત્રોત:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **છેલ્લે અપડેટ કરાયેલ:** 2026-09-22 — સ્કોપ નેમસ્પેસ MCP-SERVER.md તરફ નિર્દેશ કરે છે
 
-OmniRoute પાસે રૂટ-જાગૃત અધિકૃતતા પાઇપલાઇન છે, જે દરેક API વિનંતીને નિયંત્રિત કરે છે. વર્ગીકરણ **નિર્ણાયક** અને **નિષ્ફળતા વખતે બંધ** છે — જે કંઈપણ વર્ગીકૃત કરી શકાતું નથી તે `MANAGEMENT` તરીકે સમાપ્ત થાય છે અને સેશન અથવા મેનેજમેન્ટ-ગ્રેડ ટોકનની આવશ્યકતા રાખે છે. આ પાનું રૂટ્સની જાળવણી કરતા અથવા નવા એન્ડપોઇન્ટ્સ ડિઝાઇન કરતા એન્જિનિયરો માટે મોડેલ સમજાવે છે.
+ઓમ્નીરૂટ પાસે રૂટ-અવેર ઓથોરાઇઝેશન પાઇપલાઇન છે જે દરેક API વિનંતીને ગેટ કરે છે. વર્ગીકરણ **નિર્ધારિત** અને **ફેઇલ-ક્લોઝ્ડ** છે — જે કંઈપણ વર્ગીકૃત કરી શકાતું નથી તે `MANAGEMENT` તરીકે સમાપ્ત થાય છે અને સત્ર અથવા મેનેજમેન્ટ-ગ્રેડ ટોકનની માંગ કરે છે. આ પૃષ્ઠ રૂટ જાળવતા અથવા નવા એન્ડપોઇન્ટ્સ ડિઝાઇન કરતા ઇજનેરો માટે મોડેલ સમજાવે છે.
 
-![AuthZ પાઇપલાઇન (3 રૂટ વર્ગો + નીતિ મૂલ્યાંકન)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ પાઇપલાઇન (3 રૂટ ક્લાસ + નીતિ મૂલ્યાંકન)](../diagrams/exported/authz-pipeline.svg)
 
-> સ્રોત: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+> સ્ત્રોત: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## બે પ્રમાણીકરણ મોડ
 
@@ -200,26 +200,22 @@ export async function POST(request: Request) {
 
 ## સ્કોપ્સ
 
-API કીઓમાં `scopes` ઍરે હોય છે (જે `api_keys.scopes` માં JSON તરીકે સંગ્રહિત થાય છે, `src/lib/db/apiKeys.ts` જુઓ).
+ત્રણ નેમસ્પેસ. દરેક ચેકર ફક્ત તેની પોતાની સ્ટ્રિંગ્સ વાંચે છે. બાજુ-બાજુની સરખામણી, જેમાં શા માટે `manage` `read:compression` માટે `scopeMatches` માં નિષ્ફળ જાય છે અને શા માટે `read` એક્સેસ ટોકન `PATCH /api/keys/{id}` કરી શકતું નથી, તે [ત્રણ સ્કોપ નેમસ્પેસ](../frameworks/MCP-SERVER.md#three-scope-namespaces) માં છે.
+
+API કી `scopes` એરે ધરાવે છે (જે `api_keys.scopes` માં JSON તરીકે સંગ્રહિત છે, જુઓ `src/lib/db/apiKeys.ts`).
 
 ### મેનેજમેન્ટ સ્કોપ
 
-- `manage` / `admin` — Bearer તરીકે મોકલવામાં આવે ત્યારે કીને મેનેજમેન્ટ API એન્ડપોઇન્ટ્સની ઍક્સેસ આપે છે.
+- `manage` / `admin` — `hasManageScope`. મેનેજમેન્ટ API રૂટ્સ માટે બેરર એક્સેસ.
+- `mcp:connect`, `self:usage`, `self:account-quota`, અને `policy:bypass-provider-quota` એ એડિટિવ એક્ઝેક્ટ-મેચ સ્કોપ્સ છે. તેઓ `MANAGEMENT_API_KEY_SCOPES` ની બહાર છે. `mcp:connect` ફક્ત `/api/mcp/` નોન-લૂપબેક કાર્વ-આઉટ ખોલે છે.
 
-### MCP સ્કોપ્સ (`src/shared/constants/mcpScopes.ts`)
+### MCP ટૂલ સ્કોપ્સ
 
-દરેક MCP ટૂલને `MCP_TOOL_SCOPES` મારફતે ચોક્કસ સ્કોપ્સની જરૂર પડે છે. સંપૂર્ણ સૂચિ (`MCP_SCOPE_LIST`):
+કેટલોગ અને મેચિંગ નિયમો (સમાન સ્ટ્રિંગ, અથવા `*` માં સમાપ્ત થતો ગ્રાન્ટેડ સ્કોપ): [MCP ટૂલ સ્કોપ્સ](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `src/shared/constants/mcpScopes.ts` માં `MCP_SCOPE_LIST` એ મૂળ ટાઈપ્ડ સબસેટ છે, તે સંપૂર્ણ કેટલોગ નથી. અમલીકરણ `open-sse/mcp-server/scopeEnforcement.ts` માં `resolveCallerScopeContext()` MCP ઓથ માહિતી, વિનંતી મેટાડેટા, અથવા `OMNIROUTE_MCP_SCOPES` માંથી સ્કોપ્સને રિઝોલ્વ કર્યા પછી ચાલે છે. જો `OMNIROUTE_MCP_ENFORCE_SCOPES=true` ન હોય તો તે બંધ રહે છે.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### એક્સેસ-ટોકન સ્કોપ્સ
 
-`open-sse/mcp-server/server.ts` માં સ્કોપ અમલીકરણ, `resolveCallerScopeContext()` દ્વારા MCP પ્રમાણીકરણ માહિતી,
-વિનંતી મેટાડેટા અથવા `OMNIROUTE_MCP_SCOPES` માંથી સ્કોપ્સ ઉકેલાયા પછી, દરેક ટૂલની સ્કોપ સૂચિ
-`evaluateToolScopes()` માં પસાર કરે છે.
+`oma_live_…` ટોકન્સ પર `read` / `write` / `admin`, `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`) દ્વારા ક્રમાંકિત. આ ક્રમ ફક્ત એક્સેસ-ટોકન ક્રેડેન્શિયલને લાગુ પડે છે. જુઓ [મેનેજમેન્ટ ઓથેન્ટિકેશન](../guides/MANAGEMENT-AUTH.md).
 
 ## પ્રમાણીકરણ આવશ્યકતા ટૉગલ
 
@@ -267,7 +263,7 @@ x-omniroute-auth-scopes:    અલ્પવિરામથી અલગ કર�
 
 ## આ પણ જુઓ
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — દરેક એન્ડપોઇન્ટ માટે ઑથ માર્કર
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ઑથ ઇવેન્ટ્સ માટે ઑડિટ લૉગ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP સ્કોપ અમલીકરણની વિગતો
-- સ્રોત: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — દરેક એન્ડપોઇન્ટ દીઠ ઓથ માર્કર
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — ઓથ ઇવેન્ટ્સ માટે ઓડિટ લોગ
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ત્રણ સ્કોપ નેમસ્પેસ અને MCP ટૂલ-સ્કોપ કેટલોગ
+- સ્ત્રોત: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

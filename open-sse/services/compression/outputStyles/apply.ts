@@ -122,11 +122,13 @@ function buildStyleInstructions(resolved: OutputStyleSelectionEntry[], language:
  * - SHARED_BOUNDARIES applied once at the end (not per style).
  * - Single idempotency marker; re-applying is a no-op.
  * - Content bypass runs once across the whole turn (all-or-nothing); reason recorded.
+ *   `options.autoClarity: false` (the Auto-Clarity Bypass toggle) skips it.
  */
 export function applyOutputStyles(
   body: ChatRequestBody,
   selection: OutputStyleSelectionEntry[],
-  language = "en"
+  language = "en",
+  options: { autoClarity?: boolean } = {}
 ): OutputStylesResult {
   const resolved = resolveStyles(selection ?? [], language);
   if (resolved.length === 0) {
@@ -172,9 +174,12 @@ export function applyOutputStyles(
     );
   if (alreadyApplied) return { body, applied: false, skippedReason: "already_applied" };
 
-  // Content bypass (all-or-nothing for the turn): reuse the existing rules verbatim.
-  const bypass = shouldBypassCavemanOutputMode(messages);
-  if (bypass) return { body, applied: false, skippedReason: bypass };
+  // Content bypass (all-or-nothing for the turn): reuse the existing rules verbatim,
+  // gated on the Auto-Clarity toggle the same way applyCavemanOutputMode gates it.
+  if (options.autoClarity !== false) {
+    const bypass = shouldBypassCavemanOutputMode(messages);
+    if (bypass) return { body, applied: false, skippedReason: bypass };
+  }
 
   return {
     body: { ...body, ...placeSystemInstruction(messages, body.system, instruction) },

@@ -1,0 +1,1 @@
+- security(self-hosted): enforce enforceApiKeyPolicy (schedule/rate-limit/allowedModels/quota) on the self-hosted unified-entry divert — only when the divert is configured, so cloud requests still run the policy exactly once inside handleChat() — and compare the optional shared self-hosted API key with a constant-time comparison instead of `!==` (#14485)

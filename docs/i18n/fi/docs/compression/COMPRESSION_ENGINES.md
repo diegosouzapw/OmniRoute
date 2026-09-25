@@ -9,43 +9,33 @@ OmniRoute-pakkaus perustuu moottorisopimuksiin. Tila voi suorittaa yhden moottor
 
 ## Tilat
 
-| Tila         | Moottoripolku                          | Tarkoitettu syöte                                           |
-| ------------ | -------------------------------------- | ----------------------------------------------------------- |
-| `off`        | ei mitään                              | Kehotteen tarkka säilyttäminen                              |
-| `lite`       | Caveman lite -aputoiminnot             | Vähäriskinen, aina käytössä oleva siivous                   |
-| `standard`   | Caveman                                | Luonnollisella kielellä kirjoitetun kehotteen tiivistäminen |
-| `aggressive` | Caveman + historia-/työkalutiivistimet | Pitkät keskusteluistunnot                                   |
-| `ultra`      | Caveman + karsinta-aputoiminnot        | Kontekstirajan ylityksestä palautuminen                     |
-| `rtk`        | RTK                                    | Päätteen, komentotulkin, koonnin, testien ja gitin tuloste  |
-| `omniglyph`  | OmniGlyph                              | Konteksti kuvana natiivissa palveluntarjoajan rajapinnassa  |
-| `stacked`    | Putki, oletuksena `rtk -> caveman`     | Sekalaiset työkalulokit ja proosa, suurimmat säästöt        |
+| Tila         | Moottorin polku                                                                         | Tarkoitettu syöte                                              |
+| ------------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `off`        | none                                                                                    | Tarkka kehotteen säilytys                                      |
+| `lite`       | Caveman lite -apuohjelmat                                                               | Pieniriskiset aina päällä olevat siivoukset                    |
+| `standard`   | Caveman                                                                                 | Luonnollisen kielen kehotteen tiivistys                        |
+| `aggressive` | Caveman + historian/työkalujen tiivistäjät                                              | Pitkät keskusteluistunnot                                      |
+| `ultra`      | Caveman + karsinta-apuohjelmat                                                          | Kontekstirajan palautus                                        |
+| `rtk`        | RTK                                                                                     | Päätteen, komentotulkin, käännöksen, testin ja gitin tulosteet |
+| `omniglyph`  | OmniGlyph                                                                               | Konteksti kuvana natiivin tarjoajan johdossa                   |
+| `stacked`    | Putkilinja. Pyynnön oletus on `session-dedup -> lite`. `rtk -> caveman` on valinnainen. | Sekalaiset työkalulokit ja proosa, maksimisäästöt              |
 
 ### OmniGlyph-pakkausprofiilit
 
-`omniglyph`-moottori (paketti `omniglyph`, 1.4.0+) hyväksyy nimetyn semanttisen profiilin, joka asetetaan
-globaalisti pakkausasetusten `omniglyph.profile`-arvolla tai vaihekohtaisesti
-pinotun putken vaiheen asetuksissa:
+`omniglyph`-moottori (paketti `omniglyph`, 1.4.0+) hyväksyy nimetyn semanttisen profiilin, joka asetetaan globaalisti `omniglyph.profile`-asetuksella pakkausasetuksissa tai vaihekohtaisesti pinotun putkilinjan vaihekonfiguraatiossa:
 
-| Profiili      | Rajaus                                                                                                                               |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `aggressive`  | Oletus. Julkaistuissa mittaustuloksissa käytetty käytäntö — muuntaa järjestelmän, työkaludokumentaation ja tiiviin historian kuviksi |
-| `balanced`    | Säilyttää aktiivisen tilan natiivina, suojaa viimeiset 8 vuoroa ja tiivistää vanhemman suljetun historian                            |
-| `coding-safe` | Säilyttää auktoriteetin, työkaluskeemat ja aktiivisen työkalutulosteen natiivina sekä suojaa viimeiset 12 vuoroa                     |
-| `passthrough` | Reitittää muuntamatta; moottori ohitetaan                                                                                            |
+| Profiili      | Raja                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Oletus. Politiikka, jolla julkaistut kuitit mitattiin – kuvajärjestelmä, työkaludokumentit ja tiheä historia |
+| `balanced`    | Säilyttää elävän tilan natiivina, suojaa viimeiset 8 vuoroa, tiivistää vanhemman suljetun historian          |
+| `coding-safe` | Säilyttää auktoriteetin, työkaluskeemat ja elävän työkalutulosteen natiivina, suojaa viimeiset 12 vuoroa     |
+| `passthrough` | Reitittää muuntamatta; moottori ohitetaan                                                                    |
 
-Profiili on **yläraja, ei alaraja**: paketin `mergeCompressionProfileOptions`
-estää kutsujan ohitusta avaamasta uudelleen profiilin sulkemaa häviöllistä käsittelylinjaa, joten vaihekohtainen
-`preserveSystemPrompt: false` ei voi ottaa järjestelmäpakkauksen käyttöön `coding-safe`-profiilissa.
+Profiili on **katto, ei lattia**: paketin `mergeCompressionProfileOptions` kieltäytyy antamasta kutsujan ohittaa uudelleen avata häviöllistä kaistaa, jonka profiili sulki, joten vaihekohtainen `preserveSystemPrompt: false` ei voi ottaa järjestelmän pakkausta uudelleen käyttöön `coding-safe`-tilassa.
 
-Tällä koodipohjalla mitattuna `coding-safe` ja `balanced` nostavat `minCompressChars`-arvon
-enimmäisarvoonsa ja säilyttävät järjestelmän, työkaluskeemat ja työkalutulokset natiiveina, joten istunto, johon ei ole
-vielä kertynyt historiaa, pysähtyy tilaan `below_min_chars`, eikä moottori muunna mitään. Siksi
-oletus on `aggressive` turvallisimman profiilin sijaan.
+Tässä koodikannassa mitattuna: `coding-safe` ja `balanced` nostavat `minCompressChars`-arvon maksimiinsa ja pitävät järjestelmän, työkaluskeemat ja työkalutulokset natiivina, joten istunto, joka ei ole vielä kerännyt historiaa, pysähtyy `below_min_chars`-kohtaan eikä moottori muunna mitään. Siksi oletus on `aggressive` turvallisimman profiilin sijaan.
 
-Paketti ratkaisee oman mallirajauksensa ja profiilinsa ympäristömäärityksistään.
-OmniRoute ei koskaan delegoi päätöstä: sovitin kiinnittää malliportin paketin
-rajoittavimpaan rajaukseen, joten isäntäympäristön asetukset voivat vain supistaa sallittujen mallien luetteloa, eivät koskaan
-laajentaa sitä OmniRouten mitattujen tulosten ulkopuolelle.
+Paketti ratkaisee oman mallin laajuutensa ja profiilinsa ympäristökonfiguraatiostaan. OmniRoute ei koskaan delegoi päätöstä: sovitin kiinnittää malliportin paketin rajoittavimpaan laajuuteen, joten isäntäympäristön asetukset voivat vain kaventaa sallittujen luetteloa, eivät koskaan laajentaa sitä OmniRouten mitattujen kuittien ohi.
 
 ## Moottorirekisteri
 
@@ -383,7 +373,7 @@ etuliitteet jne.).
 
 ## Validointi
 
-Tämän alueen kohdennetut tarkistukset ovat:
+Tämän alueen keskeiset tarkistuspisteet ovat:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

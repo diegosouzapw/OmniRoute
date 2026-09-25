@@ -1,4 +1,5 @@
 import { createHmac, randomBytes } from "crypto";
+import { isOwnListenerSelfHop, SELF_HOP_HEADER } from "@omniroute/open-sse/utils/selfHop.ts";
 import { timingSafeCompare } from "@/shared/utils/timingSafeCompare";
 
 const ADMISSION_BYPASS_VALUE = "internal";
@@ -43,6 +44,9 @@ export function resolveSelfLoopBearer(): string {
 }
 
 export function isInternalAdmissionBypass(request: Request): boolean {
+  // #13593: our own fetch to this listener already holds the parent lease.
+  if (isOwnListenerSelfHop(request.headers.get(SELF_HOP_HEADER))) return true;
+
   const bypass =
     request.headers.get(ADMISSION_BYPASS_HEADER)?.trim().toLowerCase() === ADMISSION_BYPASS_VALUE;
   if (!bypass) return false;

@@ -1,0 +1,1 @@
+- fix(security): document accepted-risk extract-zip advisories GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv + add regression guard (#14482)

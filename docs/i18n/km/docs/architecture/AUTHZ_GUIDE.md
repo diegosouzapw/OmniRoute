@@ -4,14 +4,14 @@
 
 ---
 
-> **ប្រភពយោងចម្បង:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **បានធ្វើបច្ចុប្បន្នភាពចុងក្រោយ:** 2026-06-28 — v3.8.40
+> **ប្រភពនៃការពិត:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **បានធ្វើបច្ចុប្បន្នភាពចុងក្រោយ:** 2026-09-22 — ឈ្មោះលំហនៃវិសាលភាពចង្អុលទៅ MCP-SERVER.md
 
-OmniRoute មានខ្សែដំណើរការផ្តល់សិទ្ធិដែលយល់ដឹងអំពី route និងគ្រប់គ្រងរាល់សំណើ API។ ការចាត់ថ្នាក់គឺ **មានលក្ខណៈកំណត់ច្បាស់លាស់** និង **បិទការចូលប្រើនៅពេលបរាជ័យ** — អ្វីក៏ដោយដែលមិនអាចចាត់ថ្នាក់បាន នឹងត្រូវចាត់ជា `MANAGEMENT` ហើយទាមទារ session ឬ token កម្រិតគ្រប់គ្រង។ ទំព័រនេះពន្យល់អំពីម៉ូដែលសម្រាប់វិស្វករដែលថែទាំ route ឬរចនា endpoint ថ្មីៗ។
+OmniRoute មានបំពង់បង្ហូរការអនុញ្ញាតដែលដឹងពីផ្លូវ ដែលទប់ស្កាត់រាល់សំណើ API។ ការចាត់ថ្នាក់គឺ **កំណត់បាន** និង **បរាជ័យបិទ** — អ្វីដែលមិនអាចចាត់ថ្នាក់បាននឹងក្លាយជា `MANAGEMENT` ហើយទាមទារវគ្គ ឬថូខឹនកម្រិតគ្រប់គ្រង។ ទំព័រនេះពន្យល់ពីគំរូសម្រាប់វិស្វករដែលថែទាំផ្លូវ ឬរចនាចំណុចបញ្ចប់ថ្មី។
 
-![ខ្សែដំណើរការ AuthZ (ចំណាត់ថ្នាក់ route 3 + ការវាយតម្លៃគោលការណ៍)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
-> ប្រភព៖ [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+> ប្រភព: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## របៀបផ្ទៀងផ្ទាត់អត្តសញ្ញាណពីរ
 
@@ -198,28 +198,24 @@ export async function POST(request: Request) {
 
 ជ្រើសរើស set តាមទម្រង់ មិនមែនតាមភាពងាយស្រួលទេ។ Route មួយត្រូវដាក់ក្នុង `PUBLIC_API_ROUTES_EXACT` (ឬ `PUBLIC_READONLY_CORS_API_ROUTES` សម្រាប់ GET-only)។ មានតែ subtree ពិតប្រាកដប៉ុណ្ណោះដែលត្រូវដាក់ក្នុង `PUBLIC_API_ROUTE_PREFIXES` ហើយវា **ត្រូវតែបញ្ចប់ដោយ `/`**។ ការដាក់ route ទោលមួយក្នុងបញ្ជី prefix ក៏ធ្វើឱ្យ path ជាប់គ្នាទាំងអស់ដែលមានតួអក្សរដើមដូចគ្នាក្លាយជាសាធារណៈផងដែរ — រួមទាំង dynamic-segment sibling ដែលត្រូវបានបន្ថែមនៅពេលក្រោយ (GHSA-74g9-q8f6-793h)។ ធ្វើបច្ចុប្បន្នភាព unit test នៅ `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` និង `tests/unit/authz/classify.test.ts`។
 
-## វិសាលភាព
+## Scopes
 
-API key មានអារេ `scopes` (រក្សាទុកជា JSON នៅក្នុង `api_keys.scopes` សូមមើល `src/lib/db/apiKeys.ts`)។
+ឈ្មោះលំហបី។ កម្មវិធីពិនិត្យនីមួយៗអានតែខ្សែអក្សររបស់វាប៉ុណ្ណោះ។ ការប្រៀបធៀបគ្នា រួមទាំងមូលហេតុដែល `manage` បរាជ័យ `scopeMatches` សម្រាប់ `read:compression` និងមូលហេតុដែល access token `read` មិនអាច `PATCH /api/keys/{id}` គឺ [ឈ្មោះលំហបី](../frameworks/MCP-SERVER.md#three-scope-namespaces)។
 
-### វិសាលភាពគ្រប់គ្រង
+API keys មាន array `scopes` (រក្សាទុកជា JSON ក្នុង `api_keys.scopes` សូមមើល `src/lib/db/apiKeys.ts`)។
 
-- `manage` / `admin` — ផ្តល់សិទ្ធិឱ្យ key ចូលប្រើ endpoint របស់ management API នៅពេលផ្ញើជា Bearer។
+### Management scope
 
-### វិសាលភាព MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`។ ការចូលប្រើ Bearer ទៅកាន់ផ្លូវ API គ្រប់គ្រង។
+- `mcp:connect`, `self:usage`, `self:account-quota`, និង `policy:bypass-provider-quota` គឺជា scopes ដែលត្រូវគ្នាពិតប្រាកដបន្ថែម។ ពួកវាស្ថិតនៅខាងក្រៅ `MANAGEMENT_API_KEY_SCOPES`។ `mcp:connect` បើកតែ `/api/mcp/` non-loopback carve-out ប៉ុណ្ណោះ។
 
-ឧបករណ៍ MCP នីមួយៗតម្រូវឱ្យមានវិសាលភាពជាក់លាក់តាមរយៈ `MCP_TOOL_SCOPES`។ បញ្ជីពេញលេញ (`MCP_SCOPE_LIST`)៖
+### MCP tool scopes
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+កាតាឡុក និងច្បាប់ផ្គូផ្គង (ខ្សែអក្សរដូចគ្នា ឬ scope ដែលបានផ្តល់ដែលបញ្ចប់ដោយ `*`): [MCP tool scopes](../frameworks/MCP-SERVER.md#mcp-tool-scopes)។ `MCP_SCOPE_LIST` ក្នុង `src/shared/constants/mcpScopes.ts` គឺជា subset ដែលបានកំណត់ប្រភេទដើម មិនមែនជាកាតាឡុកពេញលេញនោះទេ។ ការអនុវត្តដំណើរការក្នុង `open-sse/mcp-server/scopeEnforcement.ts` បន្ទាប់ពី `resolveCallerScopeContext()` ដោះស្រាយ scopes ពីព័ត៌មាន MCP auth, metadata សំណើ, ឬ `OMNIROUTE_MCP_SCOPES`។ វានៅតែបិទ លុះត្រាតែ `OMNIROUTE_MCP_ENFORCE_SCOPES=true`។
 
-ការអនុវត្តវិសាលភាពនៅក្នុង `open-sse/mcp-server/server.ts` បញ្ជូនបញ្ជីវិសាលភាពរបស់ឧបករណ៍នីមួយៗទៅក្នុង
-`evaluateToolScopes()` បន្ទាប់ពី `resolveCallerScopeContext()` កំណត់វិសាលភាពពីព័ត៌មានផ្ទៀងផ្ទាត់ MCP,
-metadata របស់ request ឬ `OMNIROUTE_MCP_SCOPES`។
+### Access-token scopes
+
+`read` / `write` / `admin` លើ tokens `oma_live_…` ដែលត្រូវបានចាត់ថ្នាក់ដោយ `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`)។ ចំណាត់ថ្នាក់នេះអនុវត្តចំពោះ access-token credential ប៉ុណ្ណោះ។ សូមមើល [Management Authentication](../guides/MANAGEMENT-AUTH.md)។
 
 ## ការបិទបើកតម្រូវការផ្ទៀងផ្ទាត់
 
@@ -267,7 +263,7 @@ x-omniroute-auth-scopes:    បញ្ជីដែលបំបែកដោយស�
 
 ## សូមមើលផងដែរ
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — សញ្ញាសម្គាល់ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណតាម endpoint នីមួយៗ
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — កំណត់ហេតុសវនកម្មសម្រាប់ព្រឹត្តិការណ៍ផ្ទៀងផ្ទាត់អត្តសញ្ញាណ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — ព័ត៌មានលម្អិតអំពីការអនុវត្ត MCP scope
-- កូដប្រភព៖ `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — សញ្ញាសម្គាល់ការផ្ទៀងផ្ទាត់សម្រាប់ចុងចំណុចនីមួយៗ
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — កំណត់ហេតុសវនកម្មសម្រាប់ព្រឹត្តិការណ៍ផ្ទៀងផ្ទាត់
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ដែនឈ្មោះវិសាលភាពបី និងកាតាឡុកវិសាលភាពឧបករណ៍ MCP
+- ប្រភព: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

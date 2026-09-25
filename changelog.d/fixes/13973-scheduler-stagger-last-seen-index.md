@@ -1,0 +1,1 @@
+- fix(db): phase-offset the model-sync interval (+45 min, period unchanged) from the cleanup 6h scheduler so they never fire in the same second, and add the missing `conversation_turn_nodes.last_seen_at` index used by the retention DELETE (#13973)

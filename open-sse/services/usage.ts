@@ -77,6 +77,7 @@ import { getXaiUsage } from "./usage/xai.ts";
 import { getXaiOauthUsage } from "./usage/xaiOauth.ts";
 import { getGrokCliUsage } from "./usage/grokCli.ts";
 import { getFirecrawlUsage } from "./usage/firecrawl.ts";
+import { getContext7Usage } from "./usage/context7.ts";
 import { getVolcenginePlanUsage } from "./usage/volcenginePlan.ts";
 import { getCommandCodeUsage } from "./usage/command-code.ts";
 import { getQwenTokenPlanUsage } from "./usage/qwen-token-plan.ts";
@@ -229,6 +230,8 @@ export async function getUsageForProvider(
       return await getHyperAgentUsage(apiKey || accessToken, providerSpecificData);
     case "firecrawl":
       return await getFirecrawlUsage(id || "", apiKey, connection);
+    case "context7":
+      return await getContext7Usage(id || "", apiKey, connection);
     case "volcengine-agent-plan":
     case "volcengine-coding-plan":
       return await getVolcenginePlanUsage(apiKey || "", provider, providerSpecificData);
@@ -274,6 +277,7 @@ export const __testing = {
   getXaiUsage,
   getXaiOauthUsage,
   getFirecrawlUsage,
+  getContext7Usage,
   getCommandCodeUsage,
   getVertexUsage,
   getMiniMaxAuthErrorMessage,

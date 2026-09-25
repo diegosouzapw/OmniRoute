@@ -53,6 +53,7 @@ import {
   type StreamFailurePayload,
 } from "./streamErrorFormat.ts";
 import { createStreamFailureAborter } from "./streamFailureBoundary.ts";
+import { createReasoningStreamObserver } from "./responsesReasoningObservation.ts";
 import { recordToolLatency } from "../services/toolLatencyTracker.ts";
 import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
 import {
@@ -144,6 +145,15 @@ type StreamCompletePayload = {
   itlMs?: number | null;
   /** True when the stream was interrupted (timeout/abort/error) before a clean finish. */
   interrupted?: boolean;
+  /**
+   * Encrypted-reasoning observation (Responses opaque `reasoning` items):
+   * flag when seen, wall-clock added→done delta when paired. Efforts are
+   * read at the sink from the request bodies — never threaded here.
+   */
+  reasoningMeta?: {
+    encryptedSeen: boolean;
+    durationMs: number | null;
+  } | null;
 };
 
 /** Queue budget every provider used before `streamBufferBytes` existed. */
@@ -872,6 +882,10 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughLastChatId: string | null = null;
   let passthroughResponsesCurrentFunctionCallKey: string | null = null;
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
+  // Encrypted-reasoning observation (never persisted, never stores content).
+  // Single line: the factory holds tracker + flag + duration (`take()` feeds
+  // both onComplete sites).
+  const reasoningObserver = createReasoningStreamObserver();
   // #6199 — commentary-phase items announced via `response.output_item.added` are
   // internal. Their `response.output_text.delta`/`response.output_text.done`/
   // `response.output_item.done` events do not carry the `phase`, so we remember the
@@ -1666,6 +1680,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                       passthroughResponsesReasoningSummarySeen.add(reasoningKey);
                     }
                   }
+                  // Track a reasoning opening (paired at `done` for the duration).
+                  if (
+                    parsed.type === "response.output_item.added" &&
+                    parsed.item?.type === "reasoning"
+                  )
+                    reasoningObserver.note(parsed, Date.now());
                   if (
                     parsed.type === "response.output_item.added" &&
                     parsed.item?.type === "function_call"
@@ -1723,6 +1743,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (parsed.type === "response.output_item.done" && parsed.item) {
                     emitSyntheticResponsesReasoningSummary(controller, parsed);
                     pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
+                    // L12 replay already filtered above via isDuplicateResponsesSequence.
+                    reasoningObserver.note(parsed, Date.now());
                     if (parsed.item?.type === "function_call") {
                       const pendingKey =
                         typeof parsed.item.id === "string"
@@ -2279,6 +2301,16 @@ export function createSSEStream(options: StreamOptions = {}) {
             continue;
           }
 
+          // Encrypted-reasoning observation on the raw event (replay already
+          // filtered above; never stores content, only presence + timing).
+          if (
+            targetFormat === FORMATS.OPENAI_RESPONSES &&
+            (parsed.type === "response.output_item.added" ||
+              parsed.type === "response.output_item.done") &&
+            (parsed as JsonRecord).item !== undefined
+          )
+            reasoningObserver.note(parsed, Date.now());
+
           if (shouldDropResponsesCommentary && dropCommentary(parsed as JsonRecord)) continue;
           providerPayloadCollector.push(parsed);
           if (parsed && parsed.done) {
@@ -2372,8 +2404,31 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
           }
 
+          // Responses-API upstream (e.g. grok-cli): only output_text deltas are the
+          // visible answer. Reasoning reaches accumulatedReasoning through the response
+          // translator (replayable text on output_item.done), and the `.done` events
+          // repeat the full text as snapshots, so the generic `delta`/`text` fallback
+          // below must not see these events at all.
+          const responsesEventType =
+            typeof (parsed as JsonRecord).type === "string" &&
+            ((parsed as JsonRecord).type as string).startsWith("response.")
+              ? ((parsed as JsonRecord).type as string)
+              : null;
+          if (responsesEventType) {
+            const d = (parsed as JsonRecord).delta;
+            if (typeof d === "string") {
+              totalContentLength += d.length;
+              if (
+                responsesEventType === "response.output_text.delta" &&
+                state?.accumulatedContent !== undefined
+              ) {
+                state.accumulatedContent = appendBoundedText(state.accumulatedContent, d);
+              }
+            }
+          }
+
           // Generic fallback: delta string, top-level content/text (e.g. some SSE payloads)
-          if (state?.accumulatedContent !== undefined) {
+          if (!responsesEventType && state?.accumulatedContent !== undefined) {
             if (typeof (parsed as JsonRecord).delta === "string") {
               const d = (parsed as JsonRecord).delta as string;
               state.accumulatedContent = appendBoundedText(state.accumulatedContent, d);
@@ -2816,6 +2871,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   status: 200,
                   usage,
                   responseBody,
+                  reasoningMeta: reasoningObserver.take(),
                   ttft: timing.ttftMs(),
                   itlMs: timing.avgItlMs(),
                   interrupted: timing.interrupted,
@@ -3105,6 +3161,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 status: 200,
                 usage: state?.usage,
                 responseBody,
+                reasoningMeta: reasoningObserver.take(),
                 // Same OPENAI_RESPONSES carve-out as the passthrough branch above —
                 // the synthesized chat-shaped responseBody drops the `response` object,
                 // and (like the passthrough branch) never carries an `object` marker at

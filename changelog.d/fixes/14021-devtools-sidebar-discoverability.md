@@ -1,0 +1,1 @@
+- fix(dashboard): un-gate the Dev Tools sidebar section (Playground, Translator, Search Tools) from Debug Mode so it is discoverable by default (#14021)

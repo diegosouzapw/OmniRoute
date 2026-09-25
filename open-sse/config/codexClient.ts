@@ -99,8 +99,7 @@ export function getCodexUserAgent(versionOverride?: string | null): string {
 export function getCodexDefaultHeaders(): Record<string, string> {
   return {
     Version: getCodexClientVersion(),
-    "Openai-Beta": "responses=experimental",
-    "X-Codex-Beta-Features": "responses_websockets",
+    "Openai-Beta": "responses_websockets=2026-02-06",
     "User-Agent": getCodexUserAgent(),
   };
 }

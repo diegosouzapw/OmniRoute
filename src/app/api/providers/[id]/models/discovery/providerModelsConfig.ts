@@ -401,20 +401,35 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
 // xai-oauth is not registered in PROVIDER_MODELS_CONFIG below and stays on
 // its frozen static seed (open-sse/config/providers/registry/xai/index.ts)
 // unless the flag is explicitly turned on.
+// x.ai /v1/models lists Grok Imagine media models next to the chat models without a
+// type field. Tag them so they stay out of chat catalogs and auto/* pools.
+function tagXaiMediaModel(model: unknown) {
+  if (!model || typeof model !== "object") return model;
+  const id = typeof (model as { id?: unknown }).id === "string" ? (model as { id: string }).id : "";
+  if (/^grok-imagine-image/i.test(id)) {
+    return { ...model, supportedEndpoints: ["images"], modelType: "image" };
+  }
+  if (/^grok-imagine-video/i.test(id)) return { ...model, supportedEndpoints: ["videos"] };
+  return model;
+}
+
 export const XAI_MODELS_CONFIG: ProviderModelsConfigEntry = {
   url: "https://api.x.ai/v1/models",
   method: "GET",
   headers: { "Content-Type": "application/json" },
   authHeader: "Authorization",
   authPrefix: "Bearer ",
-  parseResponse: (data) => data.data || data.models || [],
+  parseResponse: (data) => {
+    const models = data.data || data.models || [];
+    return Array.isArray(models) ? models.map(tagXaiMediaModel) : models;
+  },
 };
 
 /**
  * Resolve the live-discovery config for xai-oauth when the
  * XAI_OAUTH_LIVE_MODEL_DISCOVERY flag is on, or `undefined` when it is off
  * (or its resolution throws) so the caller falls back to the frozen static
- * seed — the flag defaults to "false" and fails closed on any error.
+ * seed — the flag defaults to "true" and fails closed on any error.
  */
 export function getXaiOauthLiveModelsConfig(): ProviderModelsConfigEntry | undefined {
   try {
@@ -429,7 +444,7 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
   alibaba: ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   "alibaba-cn": ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   claude: {
-    url: "https://api.anthropic.com/v1/models",
+    url: "https://api.anthropic.com/v1/models?limit=1000",
     method: "GET",
     headers: {
       "anthropic-version": "2023-06-01",
