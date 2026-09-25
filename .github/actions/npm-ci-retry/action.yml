@@ -12,6 +12,26 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Select the lockfile-compatible npm version
+      id: npm
+      shell: bash
+      run: |
+        set -euo pipefail
+        expected=$(node -p "require('./config/ci/toolchain.json').npm")
+        if ! [[ "$expected" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Invalid pinned npm version" >&2
+          exit 1
+        fi
+        if [ "$(npm --version)" != "$expected" ]; then
+          npm install --global "npm@$expected" --no-audit --no-fund
+        fi
+        actual=$(npm --version)
+        if [ "$actual" != "$expected" ]; then
+          echo "npm version differs from the lockfile toolchain" >&2
+          exit 1
+        fi
+        echo "version=$actual" >> "$GITHUB_OUTPUT"
+
     - name: Resolve Node version for the cache key
       id: node
       shell: bash
@@ -35,7 +55,7 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: node_modules
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs') }}
+        key: node-modules-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ steps.npm.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs') }}
 
     - name: npm ci (with retry)
       if: steps.node-modules.outputs.cache-hit != 'true'
