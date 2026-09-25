@@ -116,17 +116,28 @@ test("errorResponse keeps Retry-After header and body timing in sync", async () 
 });
 
 test("unavailableResponse exposes reset timing in its body and preserves its legacy message", async () => {
-  const resetAt = new Date(Date.now() + 180_000).toISOString();
+  const resetMs = Date.now() + 180_000;
+  const resetAt = new Date(resetMs).toISOString();
+  // The first unavailableResponse call reads the RETRY_AFTER_PROVENANCE_ENABLED flag, which
+  // lazily opens and migrates the test DB (seconds on a loaded runner). Bound retry_after by
+  // the clock on both sides of the call instead of assuming the call is instantaneous.
+  const calledAt = Date.now();
   const response = unavailableResponse(
     429,
     "All accounts are unavailable",
     resetAt,
     "reset after 3m"
   );
+  const returnedAt = Date.now();
   const body = (await response.json()) as TimedErrorBody;
 
   assert.equal(body.error.message, "All accounts are unavailable (reset after 3m)");
-  assert.ok(body.error.retry_after === 179 || body.error.retry_after === 180);
+  const retryAfter = body.error.retry_after ?? -1;
+  assert.ok(
+    retryAfter >= Math.floor((resetMs - returnedAt) / 1000) &&
+      retryAfter <= Math.ceil((resetMs - calledAt) / 1000),
+    `retry_after ${retryAfter} must match the reset instant measured around the call`
+  );
   assert.equal(body.error.reset_at, resetAt);
   assert.ok(
     Math.abs(Number(response.headers.get("Retry-After")) - (body.error.retry_after ?? 0)) <= 1
