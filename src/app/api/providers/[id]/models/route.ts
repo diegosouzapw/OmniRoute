@@ -15,6 +15,7 @@ import { mergeModelsWithCustomPrecedence } from "@/lib/providers/modelMetadataPr
 import { addModelsSuffix } from "@/lib/providers/validation/urlHelpers";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import { resolveProxyForProvider } from "@/lib/db/proxies";
+import { resolveProxyForConnection } from "@/lib/db/settings";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
   SafeOutboundFetchError,
@@ -1369,9 +1370,17 @@ export async function GET(
 
       if (token) {
         try {
+          const cursorProxy = await resolveProxyForConnection(connectionId, undefined, provider);
           const models = await fetchCursorAvailableModels({
             accessToken: token,
             machineId,
+            fetchImpl: (url, init) =>
+              safeOutboundFetch(url, {
+                ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+                guard: getProviderOutboundGuard(),
+                proxyConfig: cursorProxy.proxy,
+                ...init,
+              }),
           });
           return buildApiDiscoveryResponse(models);
         } catch (err) {

@@ -85,6 +85,12 @@ import {
 } from "./cursor/composer.ts";
 import { CursorServerConfigError, resolveCursorAgentUrl } from "./cursor/agentEndpoint.ts";
 import {
+  createProxyTunnelSocket,
+  parseH2Authority,
+  resolveCursorH2ProxyUrl,
+  tlsConnectOverTunnel,
+} from "./cursor/h2ProxyConnect.ts";
+import {
   classifyCursorError,
   isCursorBenignCancelError,
   resolveCursorEmptyTurnError,
@@ -1033,14 +1039,50 @@ export class CursorExecutor extends BaseExecutor {
   }> {
     if (!http2) throw new Error("http2 module not available");
 
+    // `http2.connect()` opens its own TCP/TLS socket, so neither the global
+    // fetch proxy patch nor the undici dispatcher applies here: without this
+    // the provider proxy configured in the dashboard (and HTTPS_PROXY) was
+    // silently ignored and Cursor traffic egressed on the host IP. Establish
+    // the CONNECT/SOCKS tunnel first, then hand the socket to http2 via
+    // `createConnection` (TLS with ALPN "h2" on top of the tunnel).
+    const proxyUrl = resolveCursorH2ProxyUrl(url);
+    let tunnelSocket: import("node:net").Socket | null = null;
+    if (proxyUrl) {
+      const { host, port } = parseH2Authority(url);
+      tunnelSocket = await createProxyTunnelSocket({
+        targetHost: host,
+        targetPort: port,
+        proxyUrl,
+        signal,
+      });
+    }
+
     return new Promise((resolve, reject) => {
       const urlObj = new URL(url);
-      const client = http2!.connect(`https://${urlObj.host}`);
+      // If http2 never takes ownership of the tunnel (early abort / connect
+      // error), destroy it here instead of leaking an open proxy connection.
+      const releaseTunnel = () => {
+        if (tunnelSocket && !tunnelSocket.destroyed) tunnelSocket.destroy();
+      };
+      const client = http2!.connect(
+        `https://${urlObj.host}`,
+        tunnelSocket
+          ? {
+              createConnection: () =>
+                tlsConnectOverTunnel(tunnelSocket!, urlObj.hostname) as unknown as ReturnType<
+                  NonNullable<import("http2").SecureClientSessionOptions["createConnection"]>
+                >,
+            }
+          : undefined
+      );
       const earlyChunks: Buffer[] = [];
       let resolved = false;
 
       client.on("error", (err) => {
-        if (!resolved) reject(err);
+        if (!resolved) {
+          releaseTunnel();
+          reject(err);
+        }
       });
 
       const req = client.request({
