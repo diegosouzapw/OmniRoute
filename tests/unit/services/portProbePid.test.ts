@@ -9,11 +9,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:net";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { mkdtempSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
+  PID_PROBES,
   parseLsofPid,
   parseNetstatPid,
   parseSsPid,
@@ -169,3 +170,45 @@ test("resolvePortPid still resolves a pid on a host without lsof", async (t) => 
     rmSync(shim, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
+
+test("lsof probe table entry restricts to TCP listeners only (#14722)", () => {
+  const lsof = PID_PROBES.find((p) => p.command === "lsof");
+  assert.ok(lsof, "lsof probe must exist");
+  assert.deepEqual(lsof.args(20128), ["-nP", "-t", "-iTCP:20128", "-sTCP:LISTEN"]);
+});
+
+test("resolvePortPid ignores connected clients and returns only the listener pid (#14722)", async (t) => {
+  if (which("lsof") === null) {
+    t.skip("lsof is not installed on this host");
+    return;
+  }
+
+  const server = createServer();
+  // Use port 0 to bind an ephemeral free port, avoiding hardcoded collision
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = (server.address() as { port: number }).port;
+
+  const child = spawn(process.execPath, [
+    "-e",
+    `const s = require("node:net").connect(${port}, "127.0.0.1"); s.on("connect", () => { setTimeout(() => {}, 10000); });`,
+  ]);
+
+  try {
+    await new Promise<void>((resolve) => {
+      server.once("connection", () => resolve());
+    });
+
+    const resolved = await resolvePortPid(port);
+    assert.equal(resolved, process.pid, "must return the server pid");
+    assert.notEqual(resolved, child.pid, "must not return the client pid");
+  } finally {
+    try {
+      child.kill("SIGKILL");
+    } catch {}
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+
+
+

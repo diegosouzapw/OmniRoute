@@ -231,12 +231,20 @@ export function parseWindowsNetstatPid(stdout: string, port: number): number | n
  * the Linux/macOS row shapes the Windows parser deliberately never matches
  * (LISTEN vs LISTENING), so it degrades to a no-op instead of a false pid.
  */
-const PID_PROBES: ReadonlyArray<{
+export const PID_PROBES: ReadonlyArray<{
   command: string;
   args: (port: number) => string[];
   parse: (stdout: string, port: number) => number | null;
 }> = [
-  { command: "lsof", args: (port) => ["-ti", `:${port}`], parse: (stdout) => parseLsofPid(stdout) },
+  // #14722: listeners only, matching the win32/ss/netstat LISTEN filters and omniroute stop (#14605).
+  // A bare `lsof -ti :PORT` also returns every client connected to the port (for example a browser
+  // tab on the dashboard, a Docker/VM port forward, or an SSH tunnel), which can cause the supervisor
+  // to kill the client or track the wrong pid when adopting.
+  {
+    command: "lsof",
+    args: (port) => ["-nP", "-t", `-iTCP:${port}`, "-sTCP:LISTEN"],
+    parse: (stdout) => parseLsofPid(stdout),
+  },
   {
     command: "ss",
     args: (port) => ["-tlnp", `sport = :${port}`],
