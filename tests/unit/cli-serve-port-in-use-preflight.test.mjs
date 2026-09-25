@@ -158,6 +158,18 @@ test("reportPortInUse degrades gracefully when the owner pid is unknown", async 
   assert.match(out, /omniroute stop/, "must keep the resolution path");
 });
 
+test("serve preflight treats a free port as no listeners when pid discovery returns null", async () => {
+  const { resolveServeBusyPids } = await import("../../bin/cli/commands/serve.mjs");
+  const busyPids = await resolveServeBusyPids(20128, {
+    findListeningPids: async () => null,
+    probePortFree: async () => true,
+  });
+  // #14800: null discovery + a free bind probe used to leave busyPids null, and
+  // the next `.length` threw on any host without lsof/netstat. Free means [].
+  assert.equal(busyPids.length, 0);
+  assert.deepEqual(busyPids, []);
+});
+
 test("serve preflight rejects a busy port even without any discovery tool (end-to-end for #14518)", async () => {
   const { probePortFree, findListeningPids } = await import("../../bin/cli/utils/pid.mjs");
   const server = net.createServer();
