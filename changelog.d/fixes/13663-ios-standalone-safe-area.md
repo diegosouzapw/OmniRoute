@@ -1,0 +1,1 @@
+- fix(dashboard): respect iOS safe-area insets in standalone PWA mode so the header and mobile sidebar no longer slide under the status bar / home indicator (#13663)
