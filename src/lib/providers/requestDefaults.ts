@@ -199,6 +199,18 @@ export function normalizeProviderSpecificData(
     if (normalized.codex_fingerprint_mode === null) delete normalized.codex_fingerprint_mode;
   }
 
+  // Hugging Face Bill-To account (X-HF-Bill-To header source): the edit modal
+  // sends explicit `null` to clear a previously-saved value (the PUT route
+  // merges { ...existing, ...incoming }, so omitting the key would keep it).
+  // Only a non-empty string survives normalization.
+  if ("billTo" in normalized) {
+    if (typeof normalized.billTo === "string" && normalized.billTo.trim()) {
+      normalized.billTo = normalized.billTo.trim();
+    } else {
+      delete normalized.billTo;
+    }
+  }
+
   if (
     "preserveEncryptedReasoning" in normalized &&
     typeof normalized.preserveEncryptedReasoning !== "boolean"

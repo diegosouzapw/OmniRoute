@@ -24,6 +24,7 @@ type FormData = QuotaScrapingFieldValues &
     ccCompatibleSummarizeThinking: boolean;
     consoleApiKey: string;
     customUserAgent: string;
+    huggingfaceBillTo: string;
     cx: string;
     excludedModels: string;
     importFreeModelsOnly: boolean;
@@ -87,6 +88,9 @@ export function buildAddProviderSpecificData(options: {
   if (CONSOLE_API_KEY_PROVIDERS.has(provider ?? "") && formData.consoleApiKey.trim()) {
     data.consoleApiKey = formData.consoleApiKey.trim();
   }
+  if (provider === "huggingface" && formData.huggingfaceBillTo.trim()) {
+    data.billTo = formData.huggingfaceBillTo.trim();
+  }
   if (provider === "agentrouter" && formData.newApiUserId.trim()) {
     data.newApiUserId = formData.newApiUserId.trim();
   }
@@ -149,6 +153,14 @@ export function assignEditApiKeyProviderSpecificData(options: {
   });
   if (CONSOLE_API_KEY_PROVIDERS.has(o.provider)) {
     o.target.consoleApiKey = o.formData.consoleApiKey.trim() || undefined;
+  }
+  if (o.provider === "huggingface") {
+    // Explicit `null`, not `undefined`: the PUT route merges
+    // { ...existing, ...incoming } and JSON.stringify drops `undefined`, so
+    // an omitted key would keep the previously-saved value and clearing the
+    // field would never take effect. `null` survives the wire and the
+    // normalizer deletes it, removing the stored value.
+    o.target.billTo = o.formData.huggingfaceBillTo.trim() || null;
   }
   if (o.provider === "agentrouter") {
     o.target.newApiUserId = o.formData.newApiUserId.trim() || undefined;
