@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "បានរក្សាទុកការកំណត់ចំណុចចុងរបស់ម៉ូដែល",
     "searchByModelAria": "ស្វែងរកតាមម៉ូដែល",
     "selectSupportedEndpoint": "ជ្រើសរើសចំណុចចុងដែលគាំទ្រយ៉ាងហោចណាស់មួយ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "ការកំណត់",

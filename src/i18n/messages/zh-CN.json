@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "已保存的模型端点设置",
     "searchByModelAria": "按型号搜索",
     "selectSupportedEndpoint": "请选择至少一个支持的端点",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "设置",

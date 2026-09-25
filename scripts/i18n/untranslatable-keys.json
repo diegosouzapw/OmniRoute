@@ -151,6 +151,7 @@
     "providers.prefixLabel",
     "providers.proxy",
     "providers.proxyConfiguredBySource",
+    "providers.rateLimitOverridesModelConcurrencyPlaceholder",
     "providers.responses",
     "providers.responsesApi",
     "providers.responsesPath",

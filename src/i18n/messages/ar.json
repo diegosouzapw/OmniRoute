@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "إعدادات نقطة نهاية النموذج المحفوظ",
     "searchByModelAria": "البحث حسب الطراز",
     "selectSupportedEndpoint": "اختر نقطة نهاية مدعومة واحدة على الأقل",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "الإعدادات",

@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "സംരക്ഷിച്ച മോഡൽ എൻഡ്പോയിന്റ് ക്രമീകരണങ്ങൾ",
     "searchByModelAria": "മോഡൽ അനുസരിച്ച് തിരയുക",
     "selectSupportedEndpoint": "പിന്തുണയ്ക്കുന്ന ഒരു എൻഡ്പോയിന്റെങ്കിലും തിരഞ്ഞെടുക്കുക",
-    "antigravityClientProfileHarness": "ഹാർനെസ് / CLI"
+    "antigravityClientProfileHarness": "ഹാർനെസ് / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "ക്രമീകരണങ്ങൾ",

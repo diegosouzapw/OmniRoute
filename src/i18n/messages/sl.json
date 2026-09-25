@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "Nastavitve končne točke modela so shranjene",
     "searchByModelAria": "Iskanje po modelu",
     "selectSupportedEndpoint": "Izberite vsaj eno podprto končno točko",
-    "antigravityClientProfileHarness": "Ogrodje / CLI"
+    "antigravityClientProfileHarness": "Ogrodje / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "Nastavitve",

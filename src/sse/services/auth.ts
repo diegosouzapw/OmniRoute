@@ -43,6 +43,7 @@ import {
   toProviderConnection,
   type ProviderConnectionView,
 } from "@/lib/db/providers/lazyConnectionView";
+import { normalizeModelConcurrencyMap } from "@/lib/db/providers/columns";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
@@ -1102,6 +1103,8 @@ async function materializeConnection(
     errorCode: connection.errorCode,
     rateLimitedUntil: connection.rateLimitedUntil,
     maxConcurrent: connection.maxConcurrent,
+    // normalized per-model cap map only; malformed fails open (null)
+    modelConcurrency: normalizeModelConcurrencyMap(connection.rateLimitOverrides?.modelConcurrency),
     quotaWindowThresholds: connection.quotaWindowThresholds ?? null,
     ...(releaseOAuthSession ? { releaseOAuthSession } : {}),
     ...buildAntigravityRoutingFields(extra.routingLease, connection.id, extra.requestedModel),

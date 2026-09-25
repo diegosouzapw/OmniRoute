@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "မော်ဒယ် endpoint ဆက်တင်များကို သိမ်းဆည်းပြီးပါပြီ",
     "searchByModelAria": "မော်ဒယ်ဖြင့် ရှာဖွေရန်",
     "selectSupportedEndpoint": "ပံ့ပိုးထားသော endpoint အနည်းဆုံးတစ်ခုကို ရွေးချယ်ပါ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "ဆက်တင်များ",

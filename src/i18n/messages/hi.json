@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "सहेजे गए मॉडल एंडपॉइंट सेटिंग्स",
     "searchByModelAria": "मॉडल द्वारा खोजें",
     "selectSupportedEndpoint": "कम से कम एक समर्थित एंडपॉइंट चुनें",
-    "antigravityClientProfileHarness": "हार्नेस / CLI"
+    "antigravityClientProfileHarness": "हार्नेस / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "सेटिंग्स",

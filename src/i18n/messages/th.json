@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "การตั้งค่า endpoint ของโมเดลที่บันทึกไว้",
     "searchByModelAria": "ค้นหาตามรุ่น",
     "selectSupportedEndpoint": "เลือกจุดสิ้นสุดที่รองรับอย่างน้อยหนึ่งจุด",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "การตั้งค่า",

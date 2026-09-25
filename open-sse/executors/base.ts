@@ -180,6 +180,12 @@ export type ProviderCredentials = {
   expiresAt?: string;
   connectionId?: string; // T07: used for API key rotation index
   maxConcurrent?: number | null;
+  /**
+   * Optional per-model concurrency ceilings for this connection (see
+   * ProviderCredentials in open-sse/types.d.ts). Normalized at credential
+   * selection; the chat core resolves the exact-model cap fail-open.
+   */
+  modelConcurrency?: Record<string, number> | null;
   providerSpecificData?: JsonRecord;
   requestEndpointPath?: string;
 };

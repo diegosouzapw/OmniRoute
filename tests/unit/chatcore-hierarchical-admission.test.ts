@@ -22,6 +22,8 @@ test("chatCore acquires cumulative gates immediately before withRateLimit", () =
   assert.match(admission, /key: "global"/);
   assert.match(admission, /key: `provider:\$\{canonicalProviderKey\}`/);
   assert.match(admission, /key: accountSemaphoreKey/);
+  assert.match(admission, /key: modelGate\.key/);
+  assert.match(admission, /modelGate\.maxConcurrency/);
   assert.match(admission, /globalConcurrentRequests/);
   assert.match(admission, /providerConcurrency/);
   assert.match(admission, /maxWaitMs/);

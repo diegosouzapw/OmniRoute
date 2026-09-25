@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "સાચવેલ મોડેલ અંતિમ બિંદુની સેટિંગ્સ",
     "searchByModelAria": "મોડલ દ્વારા શોધો",
     "selectSupportedEndpoint": "કમથી કમ એક સમર્થિત અંતિમ બિંદુ પસંદ કરો",
-    "antigravityClientProfileHarness": "હાર્નેસ / CLI"
+    "antigravityClientProfileHarness": "હાર્નેસ / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "સેટિંગ્સ",

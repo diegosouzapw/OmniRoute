@@ -6520,7 +6520,10 @@
     "savedModelEndpointSettings": "சேமிக்கப்பட்ட மாதிரி முடிவுறுப்பு அமைப்புகள்",
     "searchByModelAria": "மாதிரியில் தேடு",
     "selectSupportedEndpoint": "குறைந்தது ஒரு ஆதரிக்கப்படும் முடிவுகளைத் தேர்ந்தெடுக்கவும்",
-    "antigravityClientProfileHarness": "ஹார்னஸ் / CLI"
+    "antigravityClientProfileHarness": "ஹார்னஸ் / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap."
   },
   "settings": {
     "title": "அமைப்புகள்",
