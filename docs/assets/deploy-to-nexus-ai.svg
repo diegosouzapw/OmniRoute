@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="36" viewBox="0 0 180 36" role="img" aria-label="Deploy to NEXUS AI">
+  <title>Deploy to NEXUS AI</title>
+  <defs>
+    <linearGradient id="nxHex" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="36" rx="8" fill="#05070a"/>
+  <rect x="0.5" y="0.5" width="179" height="35" rx="7.5" fill="none" stroke="#67e8f9" stroke-opacity="0.45"/>
+  <!-- NEXUS AI logo (public/logo.svg), inlined because GitHub blocks external images inside SVGs -->
+  <g transform="translate(11 7) scale(0.0275) translate(-174 -100)">
+    <path d="M 512 100 L 850 300 L 850 700 L 512 900 L 174 700 L 174 300 Z" fill="url(#nxHex)"/>
+    <circle cx="512" cy="500" r="80" fill="#38bdf8" opacity="0.9"/>
+    <circle cx="512" cy="500" r="40" fill="#E8F4F8" opacity="0.4"/>
+    <g stroke="#E8F4F8" stroke-width="12" opacity="0.6">
+      <line x1="512" y1="500" x2="512" y2="300"/>
+      <line x1="512" y1="500" x2="662" y2="400"/>
+      <line x1="512" y1="500" x2="662" y2="600"/>
+      <line x1="512" y1="500" x2="512" y2="700"/>
+      <line x1="512" y1="500" x2="362" y2="600"/>
+      <line x1="512" y1="500" x2="362" y2="400"/>
+    </g>
+    <g fill="#E8F4F8">
+      <circle cx="512" cy="300" r="45"/>
+      <circle cx="662" cy="400" r="45"/>
+      <circle cx="662" cy="600" r="45"/>
+      <circle cx="512" cy="700" r="45"/>
+      <circle cx="362" cy="600" r="45"/>
+      <circle cx="362" cy="400" r="45"/>
+    </g>
+  </g>
+  <text x="37" y="23" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13.5" font-weight="600">Deploy to NEXUS AI</text>
+</svg>

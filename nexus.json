@@ -1,9 +1,0 @@
-{
-  "name": "OmniRoute",
-  "description": "Free MIT AI gateway: one OpenAI-compatible endpoint for hundreds of providers, with auto-fallback, token compression, and a dashboard.",
-  "env": {
-    "INITIAL_PASSWORD": {
-      "description": "Optional. Dashboard password. Leave empty to set it in the setup wizard, which asks for a one-time token printed in the deployment logs."
-    }
-  }
-}

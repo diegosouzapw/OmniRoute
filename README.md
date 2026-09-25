@@ -1082,7 +1082,7 @@ Full table: [Docker Guide — runtime RAM](docs/guides/DOCKER_GUIDE.md#runtime-r
 
 **☁️ Deploy to NEXUS AI (one click)**
 
-[![Deploy to NEXUS AI](https://nexusai.run/deploy-button.svg)](https://nexusai.run/deploy?repo=https://github.com/diegosouzapw/OmniRoute)
+[![Deploy to NEXUS AI](docs/assets/deploy-to-nexus-ai.svg)](https://nexusai.run/deploy?repo=https://github.com/diegosouzapw/OmniRoute)
 
 Builds this repository's `Dockerfile` in your own NEXUS AI account and serves it on an HTTPS URL. No settings are needed: finish setup in the dashboard, then use `https://<your-app>.nexusai.run/v1` as the base URL. See the [NEXUS AI Deployment guide](docs/ops/NEXUS_AI_DEPLOYMENT_GUIDE.md).
 
