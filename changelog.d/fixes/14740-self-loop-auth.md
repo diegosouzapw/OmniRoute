@@ -1,0 +1,1 @@
+- **fix(auth):** Vision and audio bridges work again under `REQUIRE_API_KEY` without `OMNIROUTE_API_KEY`: the per-process self-loop bearer now authenticates (chat/audio only, shared between the proxy and route bundles), and the describe call no longer creates "CLI Auto-Key" DB keys ([#14740](https://github.com/diegosouzapw/OmniRoute/pull/14740))

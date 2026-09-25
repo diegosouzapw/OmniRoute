@@ -24,15 +24,20 @@ export function resolveSessionId(request: Request): string {
 // operator hasn't set OMNIROUTE_API_KEY/ROUTER_API_KEY (#13679: the previous fallback
 // was the checked-in literal "sk_omniroute", a predictable shared secret anyone reading
 // the source could forge). Both the in-process caller (audioBridgeHelpers /
-// visionBridgeHelpers) and the verifier (isInternalAdmissionBypass) call this same
-// function, so they always agree on the value within one process.
-let generatedSelfLoopSecret: string | null = null;
+// visionBridgeHelpers) and the verifiers (isInternalAdmissionBypass, API-key
+// validation) read this same value. It lives on globalThis because the proxy (Next
+// middleware bundle) and the route handlers load separate copies of this module.
+const SELF_LOOP_SECRET_KEY = Symbol.for("omniroute.selfLoopSecret");
+const selfLoopStore = globalThis as unknown as Record<symbol, string | undefined>;
 
 function getGeneratedSelfLoopSecret(): string {
-  if (!generatedSelfLoopSecret) {
-    generatedSelfLoopSecret = randomBytes(32).toString("hex");
-  }
-  return generatedSelfLoopSecret;
+  selfLoopStore[SELF_LOOP_SECRET_KEY] ??= randomBytes(32).toString("hex");
+  return selfLoopStore[SELF_LOOP_SECRET_KEY];
+}
+
+/** The generated self-loop secret, or null when none was created yet. Never creates it. */
+export function peekGeneratedSelfLoopSecret(): string | null {
+  return selfLoopStore[SELF_LOOP_SECRET_KEY] ?? null;
 }
 
 export function resolveSelfLoopBearer(): string {
