@@ -1,0 +1,1 @@
+- **fix(media):** image and video combo strategies now fan out to all targets concurrently and return the first healthy success, so a slow first target (AI Horde queue exhaustion, provider that only fails after its full timeout) no longer blocks every sibling behind it
