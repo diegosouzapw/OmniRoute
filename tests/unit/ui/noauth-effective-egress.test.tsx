@@ -132,14 +132,18 @@ describe("getEffectiveEgress", () => {
     expect(egress?.kind).toBe("pool-empty");
   });
 
-  it("a lone dead combo row blocks a direct claim", () => {
-    const egress = getEffectiveEgress(
-      null,
-      CTX,
-      [poolItem("a", "10.0.0.1", "dead")],
-      [assignment("combo", "some-combo", "a")]
-    );
-    expect(egress?.kind).toBe("pool-empty");
+  it("a lone combo row is not affirmable: neither pool-empty nor direct", () => {
+    // Combo-scoped proxies only apply to requests routed through that combo,
+    // so their mere existence says nothing about this connection's egress.
+    for (const status of ["dead", "active"]) {
+      const egress = getEffectiveEgress(
+        null,
+        CTX,
+        [poolItem("a", "10.0.0.1", status)],
+        [assignment("combo", "some-combo", "a")]
+      );
+      expect(egress).toBeNull();
+    }
   });
 
   it("a live account row wins over a live provider row (server order)", () => {
@@ -186,14 +190,14 @@ describe("getEffectiveEgress", () => {
     expect(egress?.proxy?.host).toBe("10.0.0.2");
   });
 
-  it("a combo row named like the connection still blocks direct (names, not ids)", () => {
+  it("a combo row named like the connection still never claims direct (names, not ids)", () => {
     const egress = getEffectiveEgress(
       null,
       { provider: PROVIDER_ID, connectionId: "conn-1" },
       [poolItem("a", "10.0.0.1")],
       [assignment("combo", "conn-1", "a")]
     );
-    expect(egress?.kind).toBe("pool-empty");
+    expect(egress).toBeNull();
   });
 
   it("a global row still applies when the provider level is empty", () => {
@@ -336,6 +340,23 @@ describe("NoAuthAccountCard effective egress", () => {
     );
     const shield = firstShield(el)!;
     expect(shield.getAttribute("title")).not.toContain("Direct");
+  });
+
+  it("a combo-scope row alone keeps the neutral shield, never 'requests fail'", async () => {
+    setupFetch({
+      fingerprints: [fp(0)],
+      poolItems: [poolItem("a", "10.0.0.1")],
+      assignmentRows: [assignment("combo", "my-combo", "a")],
+    });
+    const el = renderCard();
+    await waitForCondition(() => grid(el)?.querySelectorAll("[data-account-id]").length === 1);
+    // Give the assignments fetch time to land before asserting the steady state.
+    await new Promise((r) => setTimeout(r, 100));
+    const shield = firstShield(el)!;
+    expect(shield.getAttribute("title")).toBe("Configure proxy");
+    expect(shield.getAttribute("title")).not.toContain("Pool empty");
+    expect(shield.getAttribute("title")).not.toContain("Direct");
+    expect(shield.className).not.toContain("text-red-400");
   });
 
   it("the empty selector option inherits the connection instead of claiming direct", async () => {

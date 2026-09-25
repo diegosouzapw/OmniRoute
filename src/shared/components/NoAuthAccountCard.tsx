@@ -129,8 +129,11 @@ export interface EffectiveEgress {
  * rows exist at an applicable level but no member is alive — never direct.
  * Unknown assignments (`null`: still loading or fetch failed) are not
  * affirmable — the caller keeps the legacy rendering, so this returns null.
- * `combo` rows are names, never ids (server `scope_id` = combo name), so they
- * never address this connection: any combo row at all blocks a direct claim.
+ * `combo` rows are names, never ids (server `scope_id` = combo name), and only
+ * apply to requests routed through that combo, so their mere existence says
+ * nothing about this connection: when no account/provider/global level decides,
+ * a combo row makes the egress not affirmable (`null` → neutral legacy
+ * rendering) — neither "direct" nor "pool empty / requests fail".
  */
 const EGRESS_LABEL_KEYS = {
   "inherited-proxy": "inheritedProxy",
@@ -234,7 +237,7 @@ export function getEffectiveEgress(
   const globalRows = selectScopeRows(assignments, ["global"], null);
   const globalEgress = resolveLevelEgress(globalRows, "global", savedProxies);
   if (globalEgress) return globalEgress;
-  if (assignments.some((row) => selectScopeOf(row) === "combo")) return { kind: "pool-empty" };
+  if (assignments.some((row) => selectScopeOf(row) === "combo")) return null;
   return { kind: "direct" };
 }
 
