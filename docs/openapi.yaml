@@ -12567,9 +12567,17 @@ paths:
       tags:
         - Usage
       summary: "POST usage › token limits"
+      description: >-
+        Save a per-key token limit. A key holds one limit per scope and reset interval, so daily,
+        weekly and monthly limits for the same scope coexist. Without `id`, a new limit is added (or
+        the key's limit for the same scope and interval is updated); with `id`, that limit is updated.
       responses:
         "200":
           description: OK
+        "404":
+          description: No token limit with the given `id`.
+        "409":
+          description: The update would take another limit's scope and reset interval.
   /api/usage/utilization:
     get:
       tags:
