@@ -278,6 +278,47 @@ function getValueAtPath(payload: unknown, pathValue: string) {
   return cursor;
 }
 
+// The leaf segment names that carry the Gemini 3.x string thinking level
+// (both camelCase and snake_case spellings). We match ONLY the level, not the
+// `thinkingConfig` container: a rule that writes the whole container object, or
+// that writes the deprecated numeric `thinkingBudget` directly, is the operator
+// stating exactly what they want on the wire and must be left untouched.
+const THINKING_LEVEL_SEGMENTS = new Set(["thinkingLevel", "thinking_level"]);
+
+/**
+ * True when a rule path targets the Gemini 3.x string thinking level — e.g.
+ * `generationConfig.thinkingConfig.thinkingLevel` or a top-level `thinkingLevel`
+ * — AND the value being written is a non-empty string. Writing a level into a
+ * body that also carries the deprecated numeric `thinkingBudget` would leave
+ * BOTH fields on the upstream payload; Google's 3.x guidance deprecates the
+ * numeric budget, so we drop it (see dropDeprecatedThinkingBudget). A null /
+ * empty level (an operator "disable thinking" override) is NOT a level, so it
+ * must not trigger the drop.
+ */
+function isThinkingLevelWrite(pathValue: string, value: unknown): boolean {
+  if (typeof value !== "string" || value.trim() === "") return false;
+  return getPathSegments(pathValue).some((segment) => THINKING_LEVEL_SEGMENTS.has(segment));
+}
+
+/**
+ * Strip the deprecated numeric `thinkingBudget` from a payload's Gemini
+ * generationConfig after a rule wrote a thinking level. Scoped: only touches
+ * payloads that actually carry `generationConfig.thinkingConfig.thinkingBudget`.
+ */
+function dropDeprecatedThinkingBudget(payload: JsonRecord): void {
+  const gc = payload.generationConfig as JsonRecord | undefined;
+  const gcSnake = payload.generation_config as JsonRecord | undefined;
+  for (const container of [gc, gcSnake]) {
+    const tc =
+      container && typeof container === "object"
+        ? ((container.thinkingConfig ?? container.thinking_config) as JsonRecord | undefined)
+        : undefined;
+    if (tc && typeof tc === "object" && "thinkingBudget" in tc) {
+      delete tc.thinkingBudget;
+    }
+  }
+}
+
 function setValueAtPath(payload: JsonRecord, pathValue: string, value: unknown) {
   const segments = getPathSegments(pathValue);
   if (segments.length === 0) return;
@@ -422,6 +463,11 @@ export function applyPayloadRules(
       if (getValueAtPath(normalizedPayload, pathValue) !== undefined) continue;
       setValueAtPath(normalizedPayload, pathValue, rawValue);
       applied.push({ type: "default", path: pathValue, value: cloneValue(rawValue) });
+      // Gemini 3.x: a rule-injected thinking level supersedes the deprecated
+      // numeric thinkingBudget (see isThinkingLevelWrite).
+      if (isThinkingLevelWrite(pathValue, rawValue)) {
+        dropDeprecatedThinkingBudget(normalizedPayload);
+      }
     }
   }
 
@@ -432,6 +478,9 @@ export function applyPayloadRules(
       const parsedValue = parseDefaultRawValue(rawValue);
       setValueAtPath(normalizedPayload, pathValue, parsedValue);
       applied.push({ type: "default-raw", path: pathValue, value: cloneValue(parsedValue) });
+      if (isThinkingLevelWrite(pathValue, parsedValue)) {
+        dropDeprecatedThinkingBudget(normalizedPayload);
+      }
     }
   }
 
@@ -440,6 +489,9 @@ export function applyPayloadRules(
     for (const [pathValue, rawValue] of Object.entries(rule.params)) {
       setValueAtPath(normalizedPayload, pathValue, rawValue);
       applied.push({ type: "override", path: pathValue, value: cloneValue(rawValue) });
+      if (isThinkingLevelWrite(pathValue, rawValue)) {
+        dropDeprecatedThinkingBudget(normalizedPayload);
+      }
     }
   }
 

@@ -11,8 +11,15 @@ export type GeminiGenerationConfig = {
   topK?: unknown;
   maxOutputTokens?: unknown;
   thinkingConfig?: {
-    thinkingBudget: number;
-    includeThoughts: boolean;
+    thinkingBudget?: number;
+    includeThoughts?: boolean;
+    /**
+     * Gemini 3.x native thinking control (string enum low|medium|high).
+     * `thinkingBudget` is deprecated on 3.x models — when an operator payload
+     * override (or the request itself) supplies `thinkingLevel`, the numeric
+     * `thinkingBudget` is dropped so the upstream receives only the native field.
+     */
+    thinkingLevel?: string;
   };
   responseMimeType?: string;
   responseSchema?: unknown;
