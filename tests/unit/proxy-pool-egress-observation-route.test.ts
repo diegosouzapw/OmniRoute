@@ -63,7 +63,17 @@ async function pooledProxyWithTraffic() {
     .run(randomUUID(), new Date(Date.now() - 60_000).toISOString());
 }
 
-test("returns the observation with exactly the four documented keys", async () => {
+test("the four original keys are never removed or renamed", async () => {
+  await pooledProxyWithTraffic();
+  const response = await GET(request(OBSERVATION_PATH, { scope: "provider", scopeId: "openai" }));
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as Record<string, unknown>;
+  for (const key of ["connections", "distinctExits", "maxConnectionsOnOneExit", "windowHours"]) {
+    assert.ok(key in body, key);
+  }
+});
+
+test("returns the observation with exactly the five documented keys", async () => {
   await pooledProxyWithTraffic();
   const response = await GET(request(OBSERVATION_PATH, { scope: "provider", scopeId: "openai" }));
   assert.equal(response.status, 200);
@@ -71,6 +81,7 @@ test("returns the observation with exactly the four documented keys", async () =
   assert.deepEqual(Object.keys(body).sort(), [
     "connections",
     "distinctExits",
+    "failures",
     "maxConnectionsOnOneExit",
     "windowHours",
   ]);
@@ -79,6 +90,12 @@ test("returns the observation with exactly the four documented keys", async () =
     distinctExits: 1,
     maxConnectionsOnOneExit: 1,
     windowHours: 24,
+    failures: {
+      byExit: [],
+      byFamily: [],
+      unattributed: 0,
+      attributionNote: "per-family breakdown covers only requests logged with attribution on",
+    },
   });
 });
 
@@ -90,6 +107,12 @@ test("returns zeros for an empty pool and leaves the pool route untouched", asyn
     distinctExits: 0,
     maxConnectionsOnOneExit: 0,
     windowHours: 24,
+    failures: {
+      byExit: [],
+      byFamily: [],
+      unattributed: 0,
+      attributionNote: "per-family breakdown covers only requests logged with attribution on",
+    },
   });
 
   const pool = await poolRoute.GET(

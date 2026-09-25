@@ -106,8 +106,18 @@ export function listFiles(
   }
 
   if (after) {
-    // Get the creation time of the 'after' file to use for pagination
-    const afterFile = getFile(after);
+    // Get the creation time of the 'after' file to use for pagination.
+    // #14481 item 5/LEDGER-20/21 (same pattern as listBatches()): getFile()
+    // applies no owner filter, so a foreign tenant's file id used to still
+    // resolve here and its created_at was used as the pagination bound — an
+    // existence + timestamp oracle for another tenant's file. When this call
+    // IS owner-scoped, a cursor belonging to a DIFFERENT owner is treated
+    // exactly like an unknown one (ignored) instead of trusted.
+    const resolvedAfterFile = getFile(after);
+    const afterFile =
+      apiKeyId && resolvedAfterFile && resolvedAfterFile.apiKeyId !== apiKeyId
+        ? null
+        : resolvedAfterFile;
     if (afterFile) {
       if (order === "desc") {
         query += " AND (created_at < ? OR (created_at = ? AND id < ?))";

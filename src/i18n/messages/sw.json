@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Zima ushikamano wa kipindi",
     "sessionStickinessEnabled": "Ushikamano umewashwa",
     "sessionStickinessDisabled": "Ushikamano umezimwa",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Seti ya awali ya Kimi Coding",
     "kimiPresetDescription": "Kimi K3 kama modeli kuu (Moonshot API), yenye urejesho wa kiotomatiki kwenye miunganisho yako ya Kimi Code (kimi-coding, kimi-web) inaposanidiwa.",
     "kimiPresetCta": "Ongeza seti ya awali",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Hii itachukua picha ya watoa huduma/watolei sambazwa sasa yanayolingana na kioo hiki katika combo inayoedit.",
     "duplicateAutoComboFailedPrefix": "Imeshindwa kuiga combo ya otomatiki:",
     "duplicateAutoComboUnknownError": "Hitilafai isiyojulikana",
-    "duplicateAutoComboTitle": "Tengeneza combo thabiti kutoka {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Tengeneza combo thabiti kutoka {name}"
   },
   "costs": {
     "title": "Gharama",
@@ -11038,6 +11038,8 @@
     "poolEgressObservation": "{exits, plural, one {njia # ya kutoka} other {njia # za kutoka}} zilitumiwa na {connections, plural, one {muunganisho #} other {miunganisho #}} · hadi {max} kwenye njia moja ya kutoka · saa {hours} zilizopita",
     "poolEgressObservationEmpty": "Hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
     "poolEgressObservationHint": "Imehesabiwa kutoka kwenye kumbukumbu ya proksi katika kipindi hiki: IP tofauti za kutoka zilizoonekana kwa wanachama wa kundi hili, na miunganisho ya OmniRoute iliyozitumia. \"Kwenye njia moja ya kutoka\" humaanisha katika kipindi hicho, si kwa wakati mmoja. Uzuiaji wa 429 kwa kila IP husitisha tu miunganisho ya familia moja ya watoa huduma.",
+    "poolEgressFailuresByExit": "Hitilafu kupitia {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Hitilafu bila njia ya kutoka iliyohusishwa: {count}",
     "poolMemberEgress": "{host}:{port} ilitoka kupitia {egressIp} · saa {hours} zilizopita",
     "poolMemberEgressEmpty": "{host}:{port}: hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
     "poolMemberEgressHint": "IP ya mwisho ya kutoka iliyoonekana kupitia mshiriki huyu wa kundi katika kipindi hiki, ikisomwa kutoka kwenye logi ya proksi. Mshiriki asiye na trafiki katika kipindi hicho huonyesha mstari wa kutokuwepo kwa trafiki.",
@@ -11047,7 +11049,12 @@
     "poolAddMember": "Ongeza",
     "poolAddFailed": "Imeshindwa kuongeza proksi kwenye dimbwi",
     "poolSelectProxy": "Chagua proksi…",
-    "poolSaveFailed": "Imeshindwa kuhifadhi ugawaji wa dimbwi"
+    "poolSaveFailed": "Imeshindwa kuhifadhi ugawaji wa dimbwi",
+    "transportRate": "{rate}% usafiri",
+    "previousSuccessRate": "Awali {rate}% mafanikio",
+    "upstreamRefusals": "{count} kukataliwa kwa upstream",
+    "connectionTestsCount": "{count} majaribio ya muunganisho",
+    "notMeasured": "Haijapimwa"
   },
   "playground": {
     "title": "Mazingira ya Majaribio ya Modeli",
@@ -11476,6 +11483,10 @@
       "requestedModel": "Mfano Uliyoombwa",
       "requestProtocol": "Itifaki ya Req",
       "cacheSource": "Chanzo cha Kumbukumbu",
+      "contentProvenance": "Jibu",
+      "contentEmpty": "Jibu tupu",
+      "usageAbsent": "Idadi ya tokeni haikuripotiwa",
+      "usageEstimated": "Idadi ya tokeni imekadiriwa",
       "modelPinning": "Kufunga Mfano",
       "activeModelPinning": "Hai — mfano umechaguliwa kupitia pini ya kikao",
       "rotated": "Imepinduliwa: {initial} -> {final}",
@@ -11500,7 +11511,13 @@
       "correlationIdValue": "Kitambulisho cha Uhusiano: {id}",
       "detailedPayloadInfo": "Washa ufuatiliaji wa kina kwanza ikiwa unataka mtazamo wa mzigo wa mteja/mtoa huduma wa hatua nne kwa maombi mapya.",
       "copyAll": "Nakili zote",
-      "copiedAll": "Zote zimenakiliwa"
+      "copiedAll": "Zote zimenakiliwa",
+      "resilienceStoredError": "Imetolewa kutoka kwa hitilafu iliyohifadhiwa",
+      "resilienceParked": "Imesimamishwa {ms} kabla ya kutuma",
+      "resilienceRotations": "Mizunguko {count} ya akaunti",
+      "resilienceRetried": "Zamu tupu imejaribiwa tena",
+      "resilienceContinued": "Imeendelea katikati ya mtiririko",
+      "resilienceRecovered": "Imerejeshwa na hatua ya ustahimilivu"
     }
   },
   "proxyLogger": {
@@ -11539,7 +11556,14 @@
     "noProxyLogs": "Bado hakuna kumbukumbu za proksi. Sanidi proksi na ufanye miito ya API ili uzione hapa.",
     "noMatchingLogs": "Hakuna kumbukumbu zinazolingana na vichujio vya sasa.",
     "tlsFingerprint": "Alama ya kidijitali ya TLS ya Chrome 124",
-    "colPublicIp": "IP ya Umma"
+    "colPublicIp": "IP ya Umma",
+    "colUpstream": "Mwelekeo",
+    "colEgress": "IP ya Kutoka",
+    "colCorrelation": "Uhusiano",
+    "colServedBy": "Inatolewa na",
+    "filterTraffic": "Mzunguko",
+    "filterTests": "Majaribio",
+    "filterSource": "Chanzo"
   },
   "endpointOptions": {
     "speech": "Usemi",
@@ -12014,6 +12038,10 @@
     "stopDns": "Simamisha DNS",
     "toggling": "Inageuza…",
     "viewTraffic": "Tazama trafiki",
+    "resetAgent": "Rejesha chaguo-msingi",
+    "resetAgentConfirm": "Rejesha chaguo-msingi?",
+    "resetting": "Inarejesha…",
+    "resetDone": "DNS chaguo-msingi ya {agent} imerejeshwa. Funga programu kabisa (si kuipunguza tu) kisha uifungue tena ili mabadiliko yaanze kufanya kazi.",
     "emptyNoProvidersTitle": "Bado hakuna watoa huduma waliosanidiwa",
     "emptyNoProvidersBody": "Ili kutumia AgentBridge, kwanza unganisha angalau mtoa huduma mmoja. Itakuwa ndiyo fikio ambapo maombi ya IDE yanaelekezwa.",
     "emptyGoToProviders": "Nenda kwa Watoa Huduma",
@@ -12792,7 +12820,12 @@
     "createDahlTokenFailed": "Imeshindikana kuunda token ya Dahl",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Sanidi proxy",
-    "providerProxyTitleConfigured": "Proxy imewekwa: {host}"
+    "providerProxyTitleConfigured": "Proxy imewekwa: {host}",
+    "inheritConnectionOption": "Hakuna proksi binafsi (inarithi muunganisho)",
+    "inheritedProxy": "Inarithi muunganisho: {host}",
+    "inheritedPool": "Inarithi dimbwi la miunganisho ({count})",
+    "poolEmptyBlocked": "Dimbwi tupu — maombi yanashindwa (siyo moja kwa moja)",
+    "directEgress": "Moja kwa moja (bila proksi)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14121,7 +14154,12 @@
     "directNative": "Moja kwa moja",
     "targetUrl": "URL ya Malengo",
     "error": "Kosa",
-    "configuration": "Mipangilio ya Proxy"
+    "configuration": "Mipangilio ya Proxy",
+    "upstreamStatus": "Hali ya mwelekeo",
+    "noResponse": "Hakuna jibu",
+    "egressIp": "IP ya Kutoka",
+    "servedBy": "Inatolewa na",
+    "correlationId": "Kitambulisho cha Uhusiano"
   },
   "requestTimeline": {
     "title": "Muda wa Ombi",

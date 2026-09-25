@@ -1,0 +1,1 @@
+- **feat(dashboard):** proxy log journal shows received code, exit address, correlation and served account ([#14777](https://github.com/diegosouzapw/OmniRoute/pull/14777)) — thanks @maxmad64bis

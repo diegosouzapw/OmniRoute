@@ -877,13 +877,6 @@ export function createRecoverableStream(
       emitCleanTerminal(controller);
       return true;
     }
-    // With STREAM_RECOVERY_TOOLCALL_ORDER_FIX on, a continuation that delivered no text
-    // carries no new information (the next re-request replays the same prefill), so close
-    // after this one spent request instead of burning the rest of the budget.
-    if (scan.text.length === 0 && isToolCallOrderFixOn()) {
-      emitCleanTerminal(controller);
-      return true;
-    }
     // The continuation truncated too — try again (bounded), else close cleanly so the
     // client never hangs waiting on a partial response.
     if (await tryContinue(controller)) return true;

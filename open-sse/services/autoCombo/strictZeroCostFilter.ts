@@ -349,9 +349,11 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
 export function countStrictExclusions<T extends StrictZeroCostCandidate>(
   pool: T[],
   options: StrictZeroCostOptions
-): { excluded: number; noHardStop: number } {
+): { excluded: number; noHardStop: number; exhausted: number; stateUnknown: number } {
   let excluded = 0;
   let noHardStop = 0;
+  let exhausted = 0;
+  let stateUnknown = 0;
   for (const candidate of pool) {
     const budgetEntry = findBudgetEntry(candidate, options.catalog);
     const verdict = classifyStrictZeroCostCandidate(
@@ -363,8 +365,23 @@ export function countStrictExclusions<T extends StrictZeroCostCandidate>(
     if (verdict.outcome === "safe") continue;
     excluded++;
     if (verdict.outcome === "no-hard-stop") noHardStop++;
+    if (verdict.outcome === "exhausted") exhausted++;
+    if (verdict.outcome === "state-unknown") stateUnknown++;
   }
-  return { excluded, noHardStop };
+  return { excluded, noHardStop, exhausted, stateUnknown };
+}
+
+/**
+ * Pool-log detail for a STRICT drop: splits the excluded count into its causes so an
+ * operator can tell a proven-exhausted quota from a missing/unknown quota reading.
+ */
+export function describeStrictExclusions(
+  counts: Pick<
+    ReturnType<typeof countStrictExclusions>,
+    "noHardStop" | "exhausted" | "stateUnknown"
+  >
+): string {
+  return ` (no-hard-stop ${counts.noHardStop}, exhausted ${counts.exhausted}, state-unknown ${counts.stateUnknown})`;
 }
 
 /**
