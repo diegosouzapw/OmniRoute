@@ -16,6 +16,7 @@ import {
   timestampMarkerCustomizeNode,
 } from "@/shared/hooks/useTimestampTitles";
 import { JsonTreeExpandControls } from "@/shared/components/JsonTreeExpandControls";
+import { CallContentProvenanceBadges } from "@/shared/components/CallContentProvenanceBadges";
 import { useJsonTreeExpandLevel } from "@/store/jsonTreeExpandStore";
 import {
   PayloadSection,
@@ -839,6 +840,10 @@ export default function RequestLoggerDetail({
                   {cacheSourceLabel}
                 </span>
               </div>
+              <CallContentProvenanceBadges
+                hasContent={detail?.hasContent ?? log.hasContent}
+                usageProvenance={detail?.usageProvenance ?? log.usageProvenance}
+              />
               {(detail?.modelPinned || log.modelPinned) && (
                 <div>
                   <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">

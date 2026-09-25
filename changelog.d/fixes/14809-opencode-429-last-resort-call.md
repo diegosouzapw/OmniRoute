@@ -1,0 +1,1 @@
+- **fix(sse):** after a 429, a request makes one real call to an account held back by an earlier request (proxy set aside or account cooling down) instead of returning that 429 straight away ([#14809](https://github.com/diegosouzapw/OmniRoute/pull/14809)) — thanks @maxmad64bis

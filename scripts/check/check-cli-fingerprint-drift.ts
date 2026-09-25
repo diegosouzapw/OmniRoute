@@ -39,7 +39,10 @@ interface FingerprintSource {
   npmPackage: string;
   /**
    * Optional second package. grok's launcher (`@xai-official/grok`) is not the
-   * binary that speaks the wire protocol; the platform package is.
+   * binary that speaks the wire protocol; the platform package is. Its version
+   * is read from the launcher's `optionalDependencies` (the binary a fresh
+   * install actually gets), not from the platform package's own `latest`
+   * dist-tag, which xAI stopped moving at 0.1.220 while shipping 1.x binaries.
    */
   platformPackage?: string;
 }
@@ -107,6 +110,43 @@ export async function readNpmVersion(pkg: string): Promise<string> {
   return version;
 }
 
+/**
+ * The exact platform-binary version a launcher pins in `optionalDependencies`,
+ * or null when it is absent or a range (a range is not a shipped binary).
+ */
+export function platformVersionFromLauncherDeps(
+  optionalDependencies: unknown,
+  platformPackage: string
+): string | null {
+  // `npm view <pkg> <field> --json` answers with an array when the resolved
+  // version carries more than one dist-tag (grok's `latest` and `alpha`).
+  const deps = Array.isArray(optionalDependencies)
+    ? optionalDependencies[optionalDependencies.length - 1]
+    : optionalDependencies;
+  const version =
+    deps && typeof deps === "object" ? (deps as Record<string, unknown>)[platformPackage] : null;
+  if (typeof version !== "string" || !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) {
+    return null;
+  }
+  return version;
+}
+
+export async function readPlatformBinaryVersion(
+  launcherPackage: string,
+  platformPackage: string
+): Promise<string> {
+  const { stdout } = await execFileAsync(
+    "npm",
+    ["view", launcherPackage, "optionalDependencies", "--json"],
+    { timeout: 30_000 }
+  );
+  const version = platformVersionFromLauncherDeps(JSON.parse(stdout || "null"), platformPackage);
+  if (!version) {
+    throw new Error(`${launcherPackage} does not pin ${platformPackage} to an exact version`);
+  }
+  return version;
+}
+
 async function main(): Promise<void> {
   const pins = Object.fromEntries(FINGERPRINT_SOURCES.map((s) => [s.id, s.pinned])) as Record<
     FingerprintId,
@@ -118,7 +158,10 @@ async function main(): Promise<void> {
   for (const source of FINGERPRINT_SOURCES) {
     const pkg = source.platformPackage ?? source.npmPackage;
     try {
-      published[source.id] = { version: await readNpmVersion(pkg), source: pkg };
+      const version = source.platformPackage
+        ? await readPlatformBinaryVersion(source.npmPackage, source.platformPackage)
+        : await readNpmVersion(pkg);
+      published[source.id] = { version, source: pkg };
     } catch (error) {
       published[source.id] = null;
       unreachable.push(`${source.id}: ${error instanceof Error ? error.message : String(error)}`);

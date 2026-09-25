@@ -1,0 +1,1 @@
+- **fix(sse):** a handler that never resolves no longer holds the early-keepalive slow path open forever: after a 33-minute last-resort deadline the wrapper emits the route error frame, closes the stream, aborts the handler, and warns once ([#14808](https://github.com/diegosouzapw/OmniRoute/pull/14808)) — thanks @maxmad64bis
