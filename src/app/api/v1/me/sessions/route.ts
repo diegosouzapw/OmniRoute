@@ -17,11 +17,16 @@ function authError(status = 401) {
   return NextResponse.json({ error: status === 401 ? "Unauthorized" : "Forbidden" }, { status });
 }
 
+const isoTimestamp = z
+  .string()
+  .datetime({ offset: true })
+  .transform((value) => new Date(value).toISOString());
+
 const sessionsQuerySchema = z.object({
   project: z.string().trim().min(1).optional(),
   client: z.string().trim().min(1).optional(),
-  from: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
-  to: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
+  from: isoTimestamp.optional(),
+  to: isoTimestamp.optional(),
   sort: z.enum(["lastSeen", "firstSeen", "requests", "tokens", "cost"]).optional(),
   order: z.enum(["asc", "desc"]).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
