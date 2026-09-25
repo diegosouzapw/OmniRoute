@@ -2,9 +2,9 @@
  * #13672 — Retry-After provenance on aggregated unavailable responses, opt-in via
  * RETRY_AFTER_PROVENANCE_ENABLED (default off).
  *
- * Flag off: unavailableResponse keeps the legacy contract byte-for-byte (header always
- * present, clamped to >= 1s; body is { error: { message } }) and combo drain paths only
- * read structured retry fields.
+ * Flag off: unavailableResponse keeps the legacy header contract (always present,
+ * clamped to >= 1s) and now adds structured retry fields only for a concrete future
+ * signal; combo drain paths read those fields without enabling prose parsing.
  * Flag on: no concrete future retry time → no Retry-After header (never a synthetic 1s,
  * never "1" for an elapsed date); body carries error.retry_after_provenance; combo drain
  * paths also read prose hints from JSON and plain-text bodies.
@@ -78,12 +78,20 @@ async function readBody(res: Response) {
   return (await res.json()) as { error: Record<string, unknown> };
 }
 
-test("flag off: unavailableResponse keeps the legacy header and body for every input", async () => {
+test("flag off: unavailableResponse keeps the legacy header and adds real reset timing", async () => {
   for (const [label, input] of [...NO_SIGNAL, ...SIGNAL]) {
     const res = withFlag(false, () => unavailableResponse(429, "drained", input));
     const header = res.headers.get("Retry-After");
     assert.ok(header !== null && Number(header) >= 1, `legacy header for ${label}: ${header}`);
-    assert.deepEqual(await readBody(res), { error: { message: "drained" } }, label);
+    const body = await readBody(res);
+    assert.equal(body.error.message, "drained", label);
+    if (SIGNAL.some(([signalLabel]) => signalLabel === label)) {
+      assert.equal(body.error.retry_after, Number(header), label);
+      assert.equal(typeof body.error.reset_at, "string", label);
+    } else {
+      assert.equal("retry_after" in body.error, false, label);
+      assert.equal("reset_at" in body.error, false, label);
+    }
   }
   const nullRes = withFlag(false, () => unavailableResponse(503, "busy", null));
   assert.equal(nullRes.headers.get("Retry-After"), "1");

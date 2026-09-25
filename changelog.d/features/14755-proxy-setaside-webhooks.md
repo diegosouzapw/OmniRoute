@@ -1,0 +1,2 @@
+- **feat(webhooks):** emit `proxy.set_aside` when a pool member is temporarily set aside, plus `proxy.pool.exhausted` declarations for wildcard subscribers ([#14755](https://github.com/diegosouzapw/OmniRoute/pull/14755)) — thanks @maxmad64bis
+- New `PROXY_WEBHOOK_REBOUND_MS` env (default 5 min, 1s–1h) caps repeat alerts per member so a burst of refusals sends one event

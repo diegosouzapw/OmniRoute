@@ -1,0 +1,1 @@
+- **fix(sse):** over-cap buffered reads return without awaiting the tee clone cancel ([#14791](https://github.com/diegosouzapw/OmniRoute/pull/14791)) — thanks @maxmad64bis
