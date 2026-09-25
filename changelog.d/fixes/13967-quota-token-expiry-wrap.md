@@ -1,0 +1,1 @@
+- **fix(dashboard):** the OAuth token-expiry label in a provider's quota card now wraps onto multiple lines instead of being truncated ([#13967](https://github.com/diegosouzapw/OmniRoute/pull/13967)) — thanks @trycohn
