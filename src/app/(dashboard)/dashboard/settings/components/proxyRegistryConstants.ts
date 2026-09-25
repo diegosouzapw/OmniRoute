@@ -11,6 +11,14 @@ export type HealthInfo = {
   successRate: number | null;
   avgLatencyMs: number | null;
   lastSeenAt: string | null;
+  transportRate: number | null;
+  measured: boolean;
+  transportOk: number;
+  transportFailures: number;
+  upstream4xx: number;
+  upstream5xx: number;
+  connectionTests: number;
+  connectionTestSuccess: number;
 };
 
 export type TestResult = {
