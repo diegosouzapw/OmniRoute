@@ -132,3 +132,53 @@ test("NaraRouter model import falls back when the live catalog is malformed", as
     globalThis.fetch = originalFetch;
   }
 });
+
+test("NaraRouter model discovery continues after a non-safe fetch error", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "nara",
+    authType: "apikey",
+    name: "nara-nonsafe-continue",
+    apiKey: "nara-test-key",
+  });
+
+  const originalFetch = globalThis.fetch;
+  const requestedUrls: string[] = [];
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+    requestedUrls.push(target);
+    if (target === "https://router.bynara.id/v1/models") {
+      const response = new Response(
+        JSON.stringify({ object: "list", data: [{ id: "should-not-win" }] }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+      Object.defineProperty(response, "json", {
+        value: async () => {
+          throw new TypeError("unexpected catalog payload");
+        },
+      });
+      return response;
+    }
+    return Response.json({ object: "list", data: [{ id: "nara-recovered-model" }] });
+  };
+
+  try {
+    const response = await modelsRoute.GET(
+      new Request(`http://localhost/api/providers/${connection.id}/models?refresh=true`),
+      { params: { id: connection.id } }
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(body.source, "api");
+    assert.deepEqual(
+      body.models.map((model: { id: string }) => model.id),
+      ["nara-recovered-model"]
+    );
+    assert.ok(
+      requestedUrls.includes("https://router.bynara.id/models"),
+      "a non-Safe error must not abort discovery before the next endpoint"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

@@ -865,7 +865,8 @@ export async function GET(
         } catch (err: unknown) {
           if (err instanceof Error && err.message === "auth_failed") break; // Don't try other endpoints if auth failed
           if (err instanceof SyntaxError) continue;
-          if (!(err instanceof SafeOutboundFetchError)) throw err;
+          // Non-Safe errors must not abort catalogue sync — probe the next endpoint.
+          if (!(err instanceof SafeOutboundFetchError)) continue;
 
           if (err.code === "REDIRECT_BLOCKED") {
             continue; // Try next endpoint
