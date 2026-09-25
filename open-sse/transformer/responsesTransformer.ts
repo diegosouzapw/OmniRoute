@@ -460,6 +460,8 @@ export function createResponsesApiTransformStream(
     const itemType = customTool ? "custom_tool_call" : "function_call";
     state.funcItemTypes[idx] = itemType;
     state.funcItemAdded[idx] = true;
+    const name = state.funcNames[idx] || "";
+    const identity = resolveRequestToolIdentity(requestToolIdentityMap, name);
 
     emit(controller, "response.output_item.added", {
       type: "response.output_item.added",
@@ -469,7 +471,8 @@ export function createResponsesApiTransformStream(
         type: itemType,
         ...(customTool ? { input: "" } : { arguments: "" }),
         call_id: state.funcCallIds[idx],
-        name: state.funcNames[idx] || "",
+        name: identity?.name ?? name,
+        ...(identity ? { namespace: identity.namespace } : {}),
         status: "in_progress",
       },
     });
