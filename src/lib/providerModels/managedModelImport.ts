@@ -23,7 +23,10 @@ import {
   isDiscoverableAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { isDiscoverableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
-import { filterChatSelectableModels } from "@omniroute/open-sse/services/modelEndpointPolicy.ts";
+import {
+  declaresOnlyNonChatEndpoints,
+  filterChatSelectableModels,
+} from "@omniroute/open-sse/services/modelEndpointPolicy.ts";
 import { filterSelectableModels } from "@omniroute/open-sse/services/modelLifecycle.ts";
 import { isSelfHostedChatProvider } from "@/shared/constants/providers";
 import type { VertexModelMetadataProvenance } from "@/lib/providerModels/vertexModelMetadata";
@@ -288,6 +291,7 @@ export async function importManagedModels({
 
   const nextModelsMap = new Map<string, JsonRecord>();
   const removedCustomModels: JsonRecord[] = [];
+  const selfHosted = isSelfHostedChatProvider(providerId);
 
   for (const model of previousModels) {
     const modelId = getModelId(model);
@@ -295,7 +299,15 @@ export async function importManagedModels({
     // A manually configured row is the provider's user-owned metadata overlay.
     // It may share an id with an upstream model, in which case list and runtime
     // resolution merge it over the synced base. Only replace prior import rows.
-    if (isImportedSource(model.source)) {
+    //
+    // Discovery above is chat-filtered for every provider but self-hosted ones,
+    // so it never brings back a row that declares only speech / transcription /
+    // image / … endpoints. Replacing those rows deleted every model a media-only
+    // provider (Soniox, ElevenLabs, …) had imported from its local catalog on the
+    // next sync cycle. Rows stored with the synthetic ["chat"] default are still
+    // replaced as before.
+    const replacedBySync = selfHosted || !declaresOnlyNonChatEndpoints(model.supportedEndpoints);
+    if (isImportedSource(model.source) && replacedBySync) {
       removedCustomModels.push(model);
       continue;
     }

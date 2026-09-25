@@ -240,12 +240,42 @@ export function normalizeSpeechResponseFormat(fmt) {
   return lower === "ogg" ? "opus" : lower;
 }
 
+// Soniox /tts requires `language` and `voice`. Every Soniox voice speaks every
+// supported language, so a fixed default voice is safe; OpenAI stock voice names
+// are not Soniox voices and fall back to it. Defaults match the Soniox SDK/docs.
+const SONIOX_DEFAULT_VOICE = "Adrian";
+const SONIOX_DEFAULT_LANGUAGE = "en";
+const OPENAI_STOCK_VOICES = new Set([
+  "alloy",
+  "ash",
+  "ballad",
+  "cedar",
+  "coral",
+  "echo",
+  "fable",
+  "marin",
+  "nova",
+  "onyx",
+  "sage",
+  "shimmer",
+  "verse",
+]);
+
+function resolveSonioxVoice(voice: unknown): string {
+  const value = typeof voice === "string" ? voice.trim() : "";
+  return value && !OPENAI_STOCK_VOICES.has(value) ? value : SONIOX_DEFAULT_VOICE;
+}
+
 /**
  * Handle Soniox TTS (OpenAI speech shape → Soniox /tts, returns raw audio bytes)
  */
 async function handleSonioxSpeech(providerConfig, body, modelId, token) {
   const fmt = typeof body.response_format === "string" ? body.response_format : "mp3";
   const audioFormat = fmt === "pcm" ? "pcm_s16le" : fmt;
+  const language =
+    typeof body.language === "string" && body.language.trim()
+      ? body.language.trim()
+      : SONIOX_DEFAULT_LANGUAGE;
 
   const res = await fetch(providerConfig.baseUrl, {
     method: "POST",
@@ -256,7 +286,8 @@ async function handleSonioxSpeech(providerConfig, body, modelId, token) {
     body: JSON.stringify({
       text: body.input,
       model: modelId,
-      ...(body.voice ? { voice: body.voice } : {}),
+      language,
+      voice: resolveSonioxVoice(body.voice),
       audio_format: audioFormat,
     }),
   });

@@ -500,6 +500,10 @@ POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 # TTS — returns audio/mpeg (or requested format) body
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
+# Soniox TTS requires a language and a voice: `language` defaults to "en"; a missing
+# voice or an OpenAI stock voice name (alloy, nova, …) becomes "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v2", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
 # Image edit (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 

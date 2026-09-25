@@ -45,7 +45,7 @@ test("Soniox is registered for transcription and speech", () => {
   assert.equal(tts.baseUrl, "https://tts-rt.soniox.com/tts");
   assert.deepEqual(
     tts.models.map((model) => model.id),
-    ["tts-rt-v1"]
+    ["tts-rt-v2", "tts-rt-v1"]
   );
 });
 
@@ -219,10 +219,61 @@ test("handleAudioSpeech maps the OpenAI speech body to Soniox and passes audio t
     assert.equal(captured.headers.Authorization, "Bearer soniox-key");
     assert.equal(captured.body.model, "tts-rt-v1");
     assert.equal(captured.body.text, "hello");
-    assert.equal(captured.body.voice, "alloy");
+    // Soniox rejects a request without language and voice (400 "Missing required
+    // field"), and "alloy" is an OpenAI stock voice, not a Soniox one.
+    assert.equal(captured.body.language, "en");
+    assert.equal(captured.body.voice, "Adrian");
     assert.equal(captured.body.audio_format, "wav");
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("content-type"), "audio/wav");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioSpeech forwards a Soniox voice and language as given", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured: Record<string, unknown> = {};
+
+  globalThis.fetch = async (_url, options: FetchInit = {}) => {
+    captured = JSON.parse(String(options.body || "{}"));
+    return new Response(new Uint8Array([1]), { status: 200 });
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: { model: "soniox/tts-rt-v2", input: "xin chào", voice: "Daniel", language: "vi" },
+      credentials: { apiKey: "soniox-key" },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(captured.model, "tts-rt-v2");
+    assert.equal(captured.voice, "Daniel");
+    assert.equal(captured.language, "vi");
+    assert.equal(captured.audio_format, "mp3");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioSpeech fills the required Soniox voice and language when omitted", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured: Record<string, unknown> = {};
+
+  globalThis.fetch = async (_url, options: FetchInit = {}) => {
+    captured = JSON.parse(String(options.body || "{}"));
+    return new Response(new Uint8Array([1]), { status: 200 });
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: { model: "soniox/tts-rt-v2", input: "hello" },
+      credentials: { apiKey: "soniox-key" },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(captured.voice, "Adrian");
+    assert.equal(captured.language, "en");
   } finally {
     globalThis.fetch = originalFetch;
   }

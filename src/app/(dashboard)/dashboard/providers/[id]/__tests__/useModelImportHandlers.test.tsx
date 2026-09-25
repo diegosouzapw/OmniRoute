@@ -338,3 +338,81 @@ describe("useModelImportHandlers — imported model metadata", () => {
     );
   });
 });
+
+describe("useModelImportHandlers — failed model creation", () => {
+  const rejected = {
+    ok: false,
+    status: 400,
+    json: async () => ({
+      error: {
+        message: "Invalid request",
+        details: [{ field: "apiFormat", message: "Invalid enum value" }],
+      },
+    }),
+  } as unknown as Response;
+
+  function mockImport(catalog: Array<{ id: string }>, failingIds: string[]) {
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (input === "/api/provider-models" && init?.method === "POST") {
+        const { modelId } = JSON.parse(String(init.body));
+        return failingIds.includes(modelId) ? rejected : ({ ok: true } as Response);
+      }
+      return { ok: true, json: async () => ({ models: catalog }) } as Response;
+    });
+  }
+
+  it("reports an error instead of success when every model is rejected (bug repro)", async () => {
+    const handleSetAlias = vi.fn().mockResolvedValue(undefined);
+    const hook = renderHook(
+      buildParams({
+        providerId: "soniox",
+        providerStorageAlias: "sx",
+        connections: [conn("sx", true)],
+        handleSetAlias,
+      })
+    );
+    mockImport([{ id: "tts-rt-v2" }, { id: "stt-async-v5" }], ["tts-rt-v2", "stt-async-v5"]);
+
+    await act(async () => {
+      await hook.get().handleImportModels();
+    });
+
+    const progress = hook.get().importProgress;
+    expect(progress.phase).toBe("error");
+    expect(progress.importedCount).toBe(0);
+    expect(progress.error).toContain("apiFormat: Invalid enum value");
+    expect(progress.logs.some((line) => line.includes("tts-rt-v2"))).toBe(true);
+    expect(handleSetAlias).not.toHaveBeenCalled();
+  });
+
+  it("counts only the models the server accepted and keeps the failures on screen", async () => {
+    const handleSetAlias = vi.fn().mockResolvedValue(undefined);
+    const fetchProviderModelMeta = vi.fn().mockResolvedValue(undefined);
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    const hook = renderHook(
+      buildParams({
+        providerId: "soniox",
+        providerStorageAlias: "sx",
+        connections: [conn("sx", true)],
+        handleSetAlias,
+        fetchProviderModelMeta,
+      })
+    );
+    mockImport([{ id: "tts-rt-v2" }, { id: "stt-async-v5" }], ["tts-rt-v2"]);
+
+    await act(async () => {
+      await hook.get().handleImportModels();
+    });
+
+    const progress = hook.get().importProgress;
+    expect(progress.phase).toBe("done");
+    expect(progress.importedCount).toBe(1);
+    expect(progress.logs.some((line) => line.includes("bulkFailedCount"))).toBe(true);
+    expect(handleSetAlias).toHaveBeenCalledTimes(1);
+    expect(handleSetAlias).toHaveBeenCalledWith("stt-async-v5", "stt-async-v5", "sx");
+    // No 2s auto-reload (it would wipe the failure lines); the listing is refreshed in place.
+    expect(setTimeoutSpy.mock.calls.some(([, delay]) => delay === 2000)).toBe(false);
+    expect(fetchProviderModelMeta).toHaveBeenCalledTimes(2);
+    setTimeoutSpy.mockRestore();
+  });
+});

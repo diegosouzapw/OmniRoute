@@ -535,7 +535,7 @@ test("provider models route returns the local catalog for built-in image provide
     {
       id: "topaz-enhance",
       name: "topaz-enhance",
-      apiFormat: "images",
+      apiFormat: "images-generations",
       supportedEndpoints: ["images"],
     },
   ]);
