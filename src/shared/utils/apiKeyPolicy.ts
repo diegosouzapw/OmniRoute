@@ -10,6 +10,10 @@
 
 import { extractApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata, isModelAllowedForKey, getApiKeyById } from "@/lib/db/apiKeys";
+import {
+  getApiKeySelfServiceSettings,
+  type AnthropicRateLimitHeaderMode,
+} from "@/lib/db/apiKeySelfServiceSettings";
 import { getComboByName } from "@/lib/db/combos";
 import { isDashboardSessionAuthenticated } from "./apiAuth";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
@@ -103,6 +107,9 @@ export interface ApiKeyMetadata {
   compressionEnabled?: boolean;
   allowAutoCombos?: boolean;
   catalogScope?: "all" | "combos" | "models";
+  /** Self-service settings (db/apiKeySelfServiceSettings). null = all providers. */
+  sharedQuotaProviders?: string[] | null;
+  anthropicRateLimitHeaders?: AnthropicRateLimitHeaderMode;
 }
 
 /**
@@ -680,15 +687,6 @@ async function validateComboAccess(
   }
 }
 
-/** "Resets in Xh Ym."-style suffix for a known future epoch-ms reset instant. */
-function formatResetDurationSuffix(untilMs: unknown, nowMs = Date.now()): string {
-  if (typeof untilMs !== "number" || !Number.isFinite(untilMs) || untilMs <= nowMs) return "";
-  const totalMinutes = Math.max(1, Math.ceil((untilMs - nowMs) / 60_000));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return hours > 0 ? `Resets in ${hours}h ${minutes}m.` : `Resets in ${minutes}m.`;
-}
-
 /**
  * The metered dollar budget check, skipped when the caller defers it to the
  * resolved candidate (see {@link EnforceApiKeyPolicyOptions.meteredBudget}).
@@ -706,17 +704,9 @@ function validateBudget(context: PolicyContext): Response | null {
   if (!apiKeyInfo.id) return null;
   try {
     const budgetOk = checkBudget(apiKeyInfo.id);
-    if (budgetOk.allowed) return null;
-    const resetSuffix = formatResetDurationSuffix(budgetOk.budgetResetAt);
-    const reason = budgetOk.reason || "Budget limit exceeded";
-    return errorResponse(
-      HTTP_STATUS.RATE_LIMITED,
-      resetSuffix ? `${reason} ${resetSuffix}` : reason,
-      {
-        code: "budget_exceeded",
-        retryAfter: budgetOk.budgetResetAt,
-      }
-    );
+    return budgetOk.allowed
+      ? null
+      : errorResponse(HTTP_STATUS.RATE_LIMITED, budgetOk.reason || "Budget limit exceeded");
   } catch (error) {
     log.error("API_POLICY", "Budget check failed. Request blocked.", { error });
     return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Budget policy unavailable");
@@ -731,11 +721,9 @@ function validateTokenLimit(context: PolicyContext): Response | null {
     if (!breach) return null;
     const scopeLabel =
       breach.scopeType === "global" ? "account" : `${breach.scopeType} "${breach.scopeValue}"`;
-    const resetSuffix = formatResetDurationSuffix(breach.nextResetAt) || "Please try again later.";
     return errorResponse(
       HTTP_STATUS.RATE_LIMITED,
-      `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. ${resetSuffix}`,
-      { code: "token_limit_exceeded", retryAfter: breach.nextResetAt }
+      `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. Please try again later.`
     );
   } catch (error) {
     log.error("API_POLICY", "Token limit check failed. Request blocked.", { error });
@@ -778,11 +766,9 @@ async function validateRateLimitAndThrottle(context: PolicyContext): Promise<Res
     const result = await checkRateLimit(apiKeyInfo.id, rules);
     if (!result.allowed) {
       const window = result.failedWindow ? ` (${result.failedWindow}s window)` : "";
-      const resetSuffix = formatResetDurationSuffix(result.resetAt) || "Please try again later.";
       return errorResponse(
         HTTP_STATUS.RATE_LIMITED,
-        `Request limit exceeded${window}. ${resetSuffix}`,
-        { code: "rate_limit_exceeded", retryAfter: result.resetAt }
+        `Request limit exceeded${window}. Please try again later.`
       );
     }
   }
@@ -809,6 +795,30 @@ function extractUngatedClientApiKey(request: Request): string | null {
   const xGoog = request.headers.get("x-goog-api-key") ?? request.headers.get("X-Goog-Api-Key");
   if (xGoog && xGoog.trim()) return xGoog.trim();
   return null;
+}
+
+/**
+ * Merge the key's self-service settings into its metadata so downstream
+ * apiKeyInfo consumers (upstream header policy) see them. Never mutates the
+ * cached metadata object. The env key has no DB row: it belongs to the deployment
+ * owner, so upstream anthropic account headers keep flowing to it unchanged.
+ */
+function withSelfServiceSettings(apiKeyInfo: ApiKeyMetadata): ApiKeyMetadata {
+  if (apiKeyInfo.id === "env-key") return { ...apiKeyInfo, anthropicRateLimitHeaders: "forward" };
+  if (!apiKeyInfo.id) return apiKeyInfo;
+  try {
+    const settings = getApiKeySelfServiceSettings(apiKeyInfo.id);
+    return {
+      ...apiKeyInfo,
+      sharedQuotaProviders: settings.sharedQuotaProviders,
+      anthropicRateLimitHeaders: settings.anthropicRateLimitHeaders,
+    };
+  } catch (error) {
+    log.warn("API_POLICY", "API key self-service settings unavailable; using defaults.", {
+      error,
+    });
+    return apiKeyInfo;
+  }
 }
 
 export async function enforceApiKeyPolicy(
@@ -848,6 +858,7 @@ export async function enforceApiKeyPolicy(
   if (!apiKeyInfo) {
     return { apiKey, apiKeyInfo: null, rejection: null };
   }
+  apiKeyInfo = withSelfServiceSettings(apiKeyInfo);
 
   const context = { request, apiKey, apiKeyInfo, modelStr };
   const statusRejection = validateKeyStatus(context);

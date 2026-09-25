@@ -1,14 +1,51 @@
 import { hasSelfAccountQuotaScope, hasSelfUsageScope } from "@/shared/constants/selfServiceScopes";
-import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 
-type JsonRecord = Record<string, unknown>;
-type DateLike = number | string | Date | null | undefined;
+import {
+  defaultQuotaRefreshTracker,
+  listReachableProviders,
+  resolveAccountQuotaEntries,
+  type AccountQuotaDeps,
+  type ProviderLimitsCacheLike,
+  type ProviderLimitsFetchResultLike,
+  type QuotaRefreshTracker,
+} from "./apiKeySelfServiceAccounts";
+import {
+  buildSelfServiceLimits,
+  buildUsageWindowSummary,
+  getUtcDayWindow,
+  getUtcIsoWeekWindow,
+  type KeyQuotaStatusLike,
+  type SelfServiceLimitDeps,
+  type SelfServiceLimitMetadata,
+  type TokenLimitLike,
+  type UsageLimitStatusLike,
+} from "./apiKeySelfServiceLimits";
+import {
+  isoOrNull,
+  roundNumber,
+  toNumber,
+  type DateLike,
+  type JsonRecord,
+} from "./apiKeySelfServiceShared";
 
-interface ApiKeySelfServiceMetadata {
+export interface ApiKeySelfServiceMetadata {
   id: string;
   name: string;
   scopes: string[];
   allowedConnections: string[];
+  usageLimitEnabled?: boolean;
+  dailyUsageLimitUsd?: number | null;
+  weeklyUsageLimitUsd?: number | null;
+  /** From the key's self-service settings. null/undefined = all providers; [] = none. */
+  sharedQuotaProviders?: string[] | null;
+}
+
+export interface ApiKeySelfServiceOptions {
+  /**
+   * Admin preview (GET /api/keys/[id]/self-service): skip the self:usage scope
+   * check and always include accountQuotas (still filtered by the settings).
+   */
+  adminPreview?: boolean;
 }
 
 interface StatementLike {
@@ -38,10 +75,10 @@ type GetProviderConnectionByIdFn = (connectionId: string) => Promise<unknown>;
 type GetProviderConnectionsFn = (filters?: Record<string, unknown>) => Promise<unknown[]>;
 type FetchAndPersistProviderLimitsFn = (
   connectionId: string,
-  source: "manual"
-) => Promise<{ usage: JsonRecord }>;
+  source: "manual" | "scheduled"
+) => Promise<ProviderLimitsFetchResultLike>;
 
-interface ApiKeySelfServiceDeps {
+export interface ApiKeySelfServiceDeps {
   now?: () => number;
   getCostSummary?: GetCostSummaryFn;
   checkBudget?: CheckBudgetFn;
@@ -49,6 +86,17 @@ interface ApiKeySelfServiceDeps {
   getProviderConnectionById?: GetProviderConnectionByIdFn;
   getProviderConnections?: GetProviderConnectionsFn;
   fetchAndPersistProviderLimits?: FetchAndPersistProviderLimitsFn;
+  getProviderLimitsCache?: (connectionId: string) => ProviderLimitsCacheLike | null;
+  quotaRefreshTracker?: QuotaRefreshTracker;
+  getBudgetWindowTotal?: (apiKeyId: string, periodStartAt: number) => number;
+  getApiKeyUsageLimitStatus?: (metadata: SelfServiceLimitMetadata) => Promise<UsageLimitStatusLike>;
+  listTokenLimits?: (apiKeyId: string) => TokenLimitLike[];
+  getWindowUsage?: (limit: TokenLimitLike, now: number) => number;
+  resetWindowIfElapsed?: (
+    limit: TokenLimitLike,
+    now: number
+  ) => { periodStartAt: number; nextResetAt: number };
+  getKeyQuotaStatus?: (apiKeyId: string, deps: { now: () => number }) => KeyQuotaStatusLike;
 }
 
 interface TokenTotals {
@@ -58,48 +106,6 @@ interface TokenTotals {
   cacheCreationTokens: number;
   reasoningTokens: number;
   totalTokens: number;
-}
-
-interface AccountQuotaConnection {
-  id: string;
-  provider: string;
-  lookupFailed?: boolean;
-  providerSpecificData?: unknown;
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "bigint") return Number(value);
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
-}
-
-function roundNumber(value: number, precision = 6): number {
-  if (!Number.isFinite(value)) return 0;
-  return Number(value.toFixed(precision));
-}
-
-function dateMsOrNull(value: DateLike): number | null {
-  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
-    return value;
-  }
-  if (value instanceof Date) {
-    const parsed = value.getTime();
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-  }
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Date.parse(value);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-  }
-  return null;
-}
-
-function isoOrNull(value: DateLike): string | null {
-  const timestamp = dateMsOrNull(value);
-  return timestamp === null ? null : new Date(timestamp).toISOString();
 }
 
 function withDateFallback(value: DateLike, fallback: number): DateLike {
@@ -177,234 +183,182 @@ function aggregateTokens(db: DbLike, apiKeyId: string, periodStartAt: string): T
   };
 }
 
-function unavailableAccountQuota(reason: string) {
-  return { available: false, reason };
-}
-
-function quotaWindow(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const record = value as JsonRecord;
-  const usedPercentage = toNumber(record.usedPercentage ?? record.used, Number.NaN);
-  const remainingPercentage = toNumber(
-    record.remainingPercentage ?? record.remaining,
-    Number.isFinite(usedPercentage) ? 100 - usedPercentage : Number.NaN
-  );
-  if (!Number.isFinite(usedPercentage) && !Number.isFinite(remainingPercentage)) return null;
-
-  return {
-    usedPercentage: Number.isFinite(usedPercentage)
-      ? roundNumber(usedPercentage, 2)
-      : roundNumber(100 - remainingPercentage, 2),
-    remainingPercentage: Number.isFinite(remainingPercentage)
-      ? roundNumber(remainingPercentage, 2)
-      : roundNumber(100 - usedPercentage, 2),
-    resetAt: isoOrNull(record.resetAt as DateLike),
-  };
-}
-
-function normalizePlan(value: unknown): unknown {
-  if (typeof value === "string" && value.trim()) return value;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "boolean") return value;
-  return undefined;
-}
-
-function isSupportedProvider(
-  provider: string,
-  connection?: { provider?: string; providerSpecificData?: unknown },
-): boolean {
-  return supportsProviderQuota(provider, connection);
-}
-
-function getConnectionIdentity(value: unknown): AccountQuotaConnection | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const record = value as JsonRecord;
-  if (record.isActive === false) return null;
-
-  const id = typeof record.id === "string" ? record.id : "";
-  const provider = typeof record.provider === "string" ? record.provider : "";
-  if (!id || !provider) return null;
-
-  return {
-    id,
-    provider,
-    providerSpecificData: record.providerSpecificData,
-  };
-}
-
-async function listAccountQuotaConnections(
-  metadata: ApiKeySelfServiceMetadata,
-  deps: RequiredDeps
-) {
-  const allowedConnections = Array.isArray(metadata.allowedConnections)
-    ? metadata.allowedConnections
-    : [];
-
-  const rawConnections =
-    allowedConnections.length > 0
-      ? await Promise.all(
-          allowedConnections.map(async (id) => {
-            try {
-              return await deps.getProviderConnectionById(id);
-            } catch {
-              return { id, provider: "unknown", lookupFailed: true };
-            }
-          })
-        )
-      : await deps.getProviderConnections({ isActive: true }).catch(() => []);
-
-  const connections: AccountQuotaConnection[] = [];
-  const seen = new Set<string>();
-  for (const rawConnection of rawConnections) {
-    if (
-      rawConnection &&
-      typeof rawConnection === "object" &&
-      !Array.isArray(rawConnection) &&
-      (rawConnection as JsonRecord).lookupFailed === true
-    ) {
-      const record = rawConnection as JsonRecord;
-      const id = typeof record.id === "string" ? record.id : "";
-      const provider = typeof record.provider === "string" ? record.provider : "unknown";
-      if (!id || seen.has(id)) continue;
-      seen.add(id);
-      connections.push({ id, provider, lookupFailed: true });
-      continue;
-    }
-
-    const connection = getConnectionIdentity(rawConnection);
-    if (!connection || seen.has(connection.id)) continue;
-    seen.add(connection.id);
-    connections.push(connection);
-  }
-
-  return connections;
-}
-
-function normalizeQuotaWindows(quotas: JsonRecord | null) {
-  if (!quotas) return null;
-
-  const normalized: Record<string, ReturnType<typeof quotaWindow>> = {};
-  for (const [key, value] of Object.entries(quotas)) {
-    const window = quotaWindow(value);
-    if (window) normalized[key] = window;
-  }
-
-  return Object.keys(normalized).length > 0 ? normalized : null;
-}
-
-async function resolveConnectionAccountQuota(
-  connection: AccountQuotaConnection,
-  deps: RequiredDeps
-) {
-  if (connection.lookupFailed) {
-    return {
-      provider: connection.provider,
-      connectionId: connection.id,
-      shared: true,
-      ...unavailableAccountQuota("connection_lookup_failed"),
-    };
-  }
-
-  if (!isSupportedProvider(connection.provider, connection)) {
-    return {
-      provider: connection.provider,
-      connectionId: connection.id,
-      shared: true,
-      ...unavailableAccountQuota("not_supported"),
-    };
-  }
-
-  try {
-    const result = await deps.fetchAndPersistProviderLimits(connection.id, "manual");
-    const usage = result.usage as JsonRecord;
-    const quotas =
-      usage.quotas && typeof usage.quotas === "object" && !Array.isArray(usage.quotas)
-        ? (usage.quotas as JsonRecord)
-        : null;
-    const normalizedQuotas = normalizeQuotaWindows(quotas);
-    const plan = normalizePlan(usage.plan);
-
-    if (!normalizedQuotas && plan === undefined) {
-      return {
-        provider: connection.provider,
-        connectionId: connection.id,
-        shared: true,
-        ...unavailableAccountQuota("not_available"),
-      };
-    }
-
-    return {
-      provider: connection.provider,
-      connectionId: connection.id,
-      shared: true,
-      ...(plan !== undefined && { plan }),
-      ...(normalizedQuotas && { quotas: normalizedQuotas }),
-    };
-  } catch {
-    return {
-      provider: connection.provider,
-      connectionId: connection.id,
-      shared: true,
-      ...unavailableAccountQuota("fetch_failed"),
-    };
-  }
-}
-
-async function resolveAccountQuotas(metadata: ApiKeySelfServiceMetadata, deps: RequiredDeps) {
-  if (!hasSelfAccountQuotaScope(metadata.scopes)) return undefined;
-
-  const connections = await listAccountQuotaConnections(metadata, deps);
-  return Promise.all(
-    connections.map((connection) => resolveConnectionAccountQuota(connection, deps))
-  );
-}
-
 type RequiredDeps = Required<ApiKeySelfServiceDeps>;
 
-async function normalizeDeps(deps: ApiKeySelfServiceDeps): Promise<RequiredDeps> {
-  const costRules =
-    deps.getCostSummary && deps.checkBudget ? null : await import("@/domain/costRules");
-  const dbCore = deps.getDbInstance ? null : await import("@/lib/db/core");
-  const localDb =
-    deps.getProviderConnectionById && deps.getProviderConnections
-      ? null
-      : await import("@/lib/db/providers");
-  const providerLimits = deps.fetchAndPersistProviderLimits
-    ? null
-    : await import("@/lib/usage/providerLimits");
+interface DefaultDepsLoader {
+  /** The injectable deps this loader provides; it runs only if one of them is missing. */
+  keys: ReadonlyArray<keyof ApiKeySelfServiceDeps>;
+  load: () => Promise<Partial<RequiredDeps>>;
+}
 
-  return {
-    now: deps.now ?? Date.now,
-    getCostSummary: deps.getCostSummary ?? costRules!.getCostSummary,
-    checkBudget: deps.checkBudget ?? costRules!.checkBudget,
-    getDbInstance: deps.getDbInstance ?? dbCore!.getDbInstance,
-    getProviderConnectionById: deps.getProviderConnectionById ?? localDb!.getProviderConnectionById,
-    getProviderConnections: deps.getProviderConnections ?? localDb!.getProviderConnections,
-    fetchAndPersistProviderLimits:
-      deps.fetchAndPersistProviderLimits ?? providerLimits!.fetchAndPersistProviderLimits,
+// Modules are imported lazily, and only for deps the caller did not inject, so tests that
+// stub a whole group never touch the real DB or network modules behind it.
+const DEFAULT_DEPS_LOADERS: DefaultDepsLoader[] = [
+  {
+    keys: ["getCostSummary", "checkBudget", "getBudgetWindowTotal"],
+    load: async () => {
+      const m = await import("@/domain/costRules");
+      return {
+        getCostSummary: m.getCostSummary,
+        checkBudget: m.checkBudget,
+        getBudgetWindowTotal: m.getBudgetWindowTotal,
+      };
+    },
+  },
+  {
+    keys: ["getDbInstance"],
+    load: async () => ({ getDbInstance: (await import("@/lib/db/core")).getDbInstance }),
+  },
+  {
+    keys: ["getProviderConnectionById", "getProviderConnections"],
+    load: async () => {
+      const m = await import("@/lib/db/providers");
+      return {
+        getProviderConnectionById: m.getProviderConnectionById,
+        getProviderConnections: m.getProviderConnections,
+      };
+    },
+  },
+  {
+    keys: ["fetchAndPersistProviderLimits"],
+    load: async () => ({
+      fetchAndPersistProviderLimits: (await import("@/lib/usage/providerLimits"))
+        .fetchAndPersistProviderLimits,
+    }),
+  },
+  {
+    keys: ["getProviderLimitsCache"],
+    load: async () => ({
+      getProviderLimitsCache: (await import("@/lib/db/providerLimits")).getProviderLimitsCache,
+    }),
+  },
+  {
+    keys: ["getApiKeyUsageLimitStatus"],
+    load: async () => ({
+      getApiKeyUsageLimitStatus: (await import("@/lib/usage/apiKeyUsageLimits"))
+        .getApiKeyUsageLimitStatus,
+    }),
+  },
+  {
+    keys: ["listTokenLimits", "getWindowUsage", "resetWindowIfElapsed"],
+    load: async () => {
+      const m = await import("@/lib/db/tokenLimits");
+      return {
+        listTokenLimits: m.listTokenLimits,
+        getWindowUsage: m.getWindowUsage as unknown as RequiredDeps["getWindowUsage"],
+        resetWindowIfElapsed:
+          m.resetWindowIfElapsed as unknown as RequiredDeps["resetWindowIfElapsed"],
+      };
+    },
+  },
+  {
+    keys: ["getKeyQuotaStatus"],
+    load: async () => ({
+      getKeyQuotaStatus: (await import("@/lib/db/keyQuota")).getKeyQuotaStatus,
+    }),
+  },
+];
+
+async function normalizeDeps(deps: ApiKeySelfServiceDeps): Promise<RequiredDeps> {
+  const resolved: Partial<RequiredDeps> = {
+    now: Date.now,
+    quotaRefreshTracker: defaultQuotaRefreshTracker,
   };
+  for (const loader of DEFAULT_DEPS_LOADERS) {
+    if (loader.keys.some((key) => deps[key] === undefined)) {
+      Object.assign(resolved, await loader.load());
+    }
+  }
+  for (const [key, value] of Object.entries(deps)) {
+    if (value !== undefined) (resolved as Record<string, unknown>)[key] = value;
+  }
+  return resolved as RequiredDeps;
+}
+
+function accountQuotaDeps(deps: RequiredDeps): AccountQuotaDeps {
+  return {
+    now: deps.now,
+    getProviderConnectionById: deps.getProviderConnectionById,
+    getProviderConnections: deps.getProviderConnections,
+    getProviderLimitsCache: deps.getProviderLimitsCache,
+    fetchAndPersistProviderLimits: deps.fetchAndPersistProviderLimits,
+    quotaRefreshTracker: deps.quotaRefreshTracker,
+  };
+}
+
+function limitDeps(deps: RequiredDeps): SelfServiceLimitDeps {
+  return {
+    now: deps.now,
+    checkBudget: deps.checkBudget,
+    getApiKeyUsageLimitStatus: deps.getApiKeyUsageLimitStatus,
+    listTokenLimits: deps.listTokenLimits,
+    getWindowUsage: deps.getWindowUsage,
+    resetWindowIfElapsed: deps.resetWindowIfElapsed,
+    getKeyQuotaStatus: deps.getKeyQuotaStatus,
+  };
+}
+
+async function resolveAccountQuotas(
+  metadata: ApiKeySelfServiceMetadata,
+  deps: RequiredDeps,
+  options: ApiKeySelfServiceOptions
+) {
+  if (!options.adminPreview && !hasSelfAccountQuotaScope(metadata.scopes)) return undefined;
+  return resolveAccountQuotaEntries(
+    {
+      allowedConnections: Array.isArray(metadata.allowedConnections)
+        ? metadata.allowedConnections
+        : [],
+      sharedQuotaProviders: metadata.sharedQuotaProviders ?? null,
+    },
+    accountQuotaDeps(deps)
+  );
 }
 
 export async function buildApiKeySelfServiceStatus(
   metadata: ApiKeySelfServiceMetadata,
-  deps: ApiKeySelfServiceDeps = {}
+  deps: ApiKeySelfServiceDeps = {},
+  options: ApiKeySelfServiceOptions = {}
 ) {
-  if (!hasSelfUsageScope(metadata.scopes)) {
+  if (!options.adminPreview && !hasSelfUsageScope(metadata.scopes)) {
     throw new Error("missing_self_usage_scope");
   }
 
   const resolvedDeps = await normalizeDeps(deps);
+  const now = resolvedDeps.now();
   const summary = resolvedDeps.getCostSummary(metadata.id);
-  resolvedDeps.checkBudget(metadata.id);
 
-  const cost = buildCostStatus(summary, resolvedDeps.now());
+  const cost = buildCostStatus(summary, now);
+  const db = resolvedDeps.getDbInstance() as DbLike;
   const tokens = aggregateTokens(
-    resolvedDeps.getDbInstance() as DbLike,
+    db,
     metadata.id,
-    cost.periodStartAt ??
-      new Date(getCurrentMonthWindow(resolvedDeps.now()).periodStartAt).toISOString()
+    cost.periodStartAt ?? new Date(getCurrentMonthWindow(now).periodStartAt).toISOString()
   );
-  const accountQuotas = await resolveAccountQuotas(metadata, resolvedDeps);
+  const daily = buildUsageWindowSummary(
+    db,
+    metadata.id,
+    getUtcDayWindow(now),
+    resolvedDeps.getBudgetWindowTotal
+  );
+  const weekly = buildUsageWindowSummary(
+    db,
+    metadata.id,
+    getUtcIsoWeekWindow(now),
+    resolvedDeps.getBudgetWindowTotal
+  );
+  const [limits, accountQuotas] = await Promise.all([
+    buildSelfServiceLimits(
+      {
+        id: metadata.id,
+        usageLimitEnabled: metadata.usageLimitEnabled,
+        dailyUsageLimitUsd: metadata.dailyUsageLimitUsd,
+        weeklyUsageLimitUsd: metadata.weeklyUsageLimitUsd,
+      },
+      limitDeps(resolvedDeps)
+    ),
+    resolveAccountQuotas(metadata, resolvedDeps, options),
+  ]);
   const accountQuota = accountQuotas && accountQuotas.length === 1 ? accountQuotas[0] : undefined;
 
   return {
@@ -412,14 +366,34 @@ export async function buildApiKeySelfServiceStatus(
       id: metadata.id,
       name: metadata.name,
     },
+    generatedAt: new Date(now).toISOString(),
     usage: {
       cost,
       tokens: {
         periodStartAt: cost.periodStartAt,
         ...tokens,
       },
+      daily,
+      weekly,
     },
+    limits,
     ...(accountQuotas !== undefined && { accountQuotas }),
     ...(accountQuota !== undefined && { accountQuota }),
   };
+}
+
+/** Providers of the connections a key can reach (admin self-service settings UI). */
+export async function listApiKeyReachableProviders(
+  allowedConnections: string[],
+  deps: Pick<ApiKeySelfServiceDeps, "getProviderConnectionById" | "getProviderConnections"> = {}
+) {
+  const providers =
+    deps.getProviderConnectionById && deps.getProviderConnections
+      ? null
+      : await import("@/lib/db/providers");
+  return listReachableProviders(Array.isArray(allowedConnections) ? allowedConnections : [], {
+    getProviderConnectionById:
+      deps.getProviderConnectionById ?? providers!.getProviderConnectionById,
+    getProviderConnections: deps.getProviderConnections ?? providers!.getProviderConnections,
+  });
 }
