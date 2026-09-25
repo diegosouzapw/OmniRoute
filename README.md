@@ -1080,6 +1080,12 @@ Full table: [Docker Guide — runtime RAM](docs/guides/DOCKER_GUIDE.md#runtime-r
 > are **not supported for production**. See
 > [Docker Release Channels](docs/guides/DOCKER_GUIDE.md#release-channels).
 
+**☁️ Deploy to NEXUS AI (one click)**
+
+[![Deploy to NEXUS AI](docs/assets/deploy-to-nexus-ai.svg)](https://nexusai.run/deploy?repo=https://github.com/diegosouzapw/OmniRoute)
+
+Builds this repository's `Dockerfile` in your own NEXUS AI account and serves it on an HTTPS URL. No settings are needed: finish setup in the dashboard, then use `https://<your-app>.nexusai.run/v1` as the base URL. See the [NEXUS AI Deployment guide](docs/ops/NEXUS_AI_DEPLOYMENT_GUIDE.md).
+
 **🥟 Bun**
 
 Standard `bun install` and global installation (`bun install -g omniroute`) are supported via Bun runtime detection:
@@ -1319,6 +1325,7 @@ Métricas canônicas em 2026-08-24: **1.029 vídeos únicos** · **11.132.922 vi
   <tr><td nowrap><b><a href="contrib/podman/README.md">Podman Guide</a></b></td><td>Quadlet systemd integration, podman-compose, SELinux</td></tr>
   <tr><td nowrap><b><a href="docs/ops/VM_DEPLOYMENT_GUIDE.md">VM Deployment</a></b></td><td>Complete guide: VM + nginx + Cloudflare setup</td></tr>
   <tr><td nowrap><b><a href="docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md">Fly.io Deployment</a></b></td><td>Deploy to Fly.io with persistent storage</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/NEXUS_AI_DEPLOYMENT_GUIDE.md">NEXUS AI Deployment</a></b></td><td>One-click deploy from GitHub with the Deploy to NEXUS AI button</td></tr>
   <tr><td nowrap><b><a href="docs/guides/TERMUX_GUIDE.md">Termux Guide</a></b></td><td>Run OmniRoute on Android via Termux</td></tr>
   <tr><td nowrap><b><a href="docs/guides/PWA_GUIDE.md">PWA Guide</a></b></td><td>Progressive Web App install, caching, architecture</td></tr>
   <tr><td nowrap><b><a href="docs/guides/UNINSTALL.md">Uninstall Guide</a></b></td><td>Clean removal for all install methods</td></tr>
