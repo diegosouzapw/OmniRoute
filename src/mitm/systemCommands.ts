@@ -244,25 +244,37 @@ export async function execFileWithPassword(
     deps.sudoOverrides
   );
 
-  let last: Awaited<ReturnType<typeof runStep>> | null = null;
+  let stdout = "";
   for (let i = 0; i < steps.length; i++) {
-    last = await runStep(steps[i], spawnImpl);
-    if (last.error) {
-      throw new Error(`Command failed: ${getErrorMessage(last.error)}\n${last.stderr}`);
+    const result = await runStep(steps[i], spawnImpl);
+    const canFallBack = i === steps.length - 1 && fallback !== null;
+    if (canFallBack && needsSudoPasswordFallback(result)) {
+      return runStepOrThrow(fallback, spawnImpl);
     }
-    if (last.code !== 0) {
-      const isFinalStep = i === steps.length - 1;
-      if (isFinalStep && fallback && SUDO_PASSWORD_REQUIRED.test(last.stderr)) {
-        last = await runStep(fallback, spawnImpl);
-        if (last.error) {
-          throw new Error(`Command failed: ${getErrorMessage(last.error)}\n${last.stderr}`);
-        }
-        if (last.code === 0) return last.stdout;
-      }
-      throw new Error(`Command failed with code ${last.code}\n${last.stderr}`);
-    }
+    stdout = stepOutputOrThrow(result);
   }
-  return last?.stdout ?? "";
+  return stdout;
+}
+
+type StepResult = Awaited<ReturnType<typeof runStep>>;
+
+/** `sudo -n` refused because this host never keeps a credential (`timestamp_timeout=0`). */
+function needsSudoPasswordFallback(result: StepResult): boolean {
+  return !result.error && result.code !== 0 && SUDO_PASSWORD_REQUIRED.test(result.stderr);
+}
+
+function stepOutputOrThrow(result: StepResult): string {
+  if (result.error) {
+    throw new Error(`Command failed: ${getErrorMessage(result.error)}\n${result.stderr}`);
+  }
+  if (result.code !== 0) {
+    throw new Error(`Command failed with code ${result.code}\n${result.stderr}`);
+  }
+  return result.stdout;
+}
+
+async function runStepOrThrow(step: SudoStep, spawnImpl: SpawnLike): Promise<string> {
+  return stepOutputOrThrow(await runStep(step, spawnImpl));
 }
 
 export function quotePowerShell(value: string): string {
