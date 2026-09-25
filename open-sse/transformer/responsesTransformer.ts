@@ -591,22 +591,39 @@ export function createResponsesApiTransformStream(
       // Sorted by output_index then by emission sequence for stable ordering.
       const output = buildDenseOutput();
 
+      // A truncated or filtered generation must surface as status:"incomplete"
+      // with incomplete_details, matching the real Responses API contract --
+      // see the sibling fix in translator/response/openai-responses.ts for the
+      // full rationale (a production truncation was previously indistinguishable
+      // from a genuine successful completion).
+      const incompleteReason =
+        state.finishReason === "length"
+          ? "max_output_tokens"
+          : state.finishReason === "content_filter"
+            ? "content_filter"
+            : undefined;
+      const isIncomplete = incompleteReason !== undefined;
+
       const response: Record<string, unknown> = {
         id: state.responseId,
         object: "response",
         created_at: state.created,
-        status: "completed",
+        status: isIncomplete ? "incomplete" : "completed",
         background: false,
         error: null,
         output,
       };
+      if (isIncomplete) {
+        response.incomplete_details = { reason: incompleteReason };
+      }
 
       if (state.usage) {
         response.usage = state.usage;
       }
 
-      emit(controller, "response.completed", {
-        type: "response.completed",
+      const eventType = isIncomplete ? "response.incomplete" : "response.completed";
+      emit(controller, eventType, {
+        type: eventType,
         response,
       });
     }
@@ -954,6 +971,11 @@ export function createResponsesApiTransformStream(
 
           // Handle finish_reason
           if (choice.finish_reason) {
+            // Remembered for sendCompleted(): a truncated/filtered generation
+            // must surface as status:"incomplete" with incomplete_details, not
+            // silently as "completed" -- see the sibling fix in
+            // translator/response/openai-responses.ts for the full rationale.
+            state.finishReason = choice.finish_reason;
             for (const i in state.msgItemAdded) closeMessage(controller, i);
             closeReasoning(controller);
             for (const i in state.funcCallIds) closeToolCall(controller, i);
