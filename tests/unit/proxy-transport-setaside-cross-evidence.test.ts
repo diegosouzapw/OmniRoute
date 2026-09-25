@@ -152,3 +152,16 @@ test("the open-sse evidence store never reaches into src/sse", async () => {
     assert.equal(/["']@\/sse\//.test(src), false, `${rel} must not import @/sse/*`);
   }
 });
+
+test("a transport set-aside is announced to transition listeners as kind transport", async () => {
+  const { onProxyTransition } = await import("../../open-sse/utils/proxyTransitionListeners.ts");
+  const seen: string[] = [];
+  const off = onProxyTransition((t) => seen.push(t.kind));
+  try {
+    memory.recordTransportSuccess(DEST, KEY_B, START);
+    for (let i = 0; i < memory.TRANSPORT_EVIDENCE_THRESHOLD; i++) fail(KEY_A, DEST, START + i);
+    assert.deepEqual(seen, ["transport"]);
+  } finally {
+    off();
+  }
+});
