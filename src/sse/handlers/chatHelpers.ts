@@ -967,6 +967,22 @@ export function shouldRetryStreamEarlyEof(
   );
 }
 
+export const STREAM_READINESS_TIMEOUT_MAX_RETRIES = 1;
+
+export function shouldRetryStreamReadinessTimeout(
+  errorCode: string | null | undefined,
+  attempt: number,
+  isCombo: boolean,
+  clientAborted: boolean
+): boolean {
+  return (
+    !isCombo &&
+    !clientAborted &&
+    errorCode === "STREAM_READINESS_TIMEOUT" &&
+    attempt < STREAM_READINESS_TIMEOUT_MAX_RETRIES
+  );
+}
+
 // The sibling hop widens the terminal/failover boundary, so it ships off
 // behind STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED until observed live.
 export function isEarlyEofSiblingFailoverOn(): boolean {

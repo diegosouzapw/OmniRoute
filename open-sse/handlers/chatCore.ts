@@ -337,6 +337,7 @@ import { recordNonStreamingUsageStats } from "./chatCore/nonStreamingUsageStats.
 import {
   normalizeExecutorResult,
   executeWithUpstreamStartTimeout,
+  getExecutorTimeoutMs,
   resolveConnectionTimeoutMs,
 } from "./chatCore/upstreamTimeouts.ts";
 import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/db/models";
@@ -5786,6 +5787,12 @@ export async function handleChatCore({
     maxTimeoutMs: agentGoalPolicy.detected
       ? Math.max(STREAM_READINESS_MAX_TIMEOUT_MS, agentGoalPolicy.readinessMaxTimeoutMs)
       : STREAM_READINESS_MAX_TIMEOUT_MS,
+    cascadeTimeoutMs: getExecutorTimeoutMs(
+      executor,
+      provider,
+      model,
+      resolveConnectionTimeoutMs(credentials?.providerSpecificData)
+    ),
   });
   if (streamReadinessPolicy.timeoutMs !== streamReadinessPolicy.baseTimeoutMs) {
     log?.debug?.(

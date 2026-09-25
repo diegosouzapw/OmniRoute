@@ -101,6 +101,7 @@ import {
   safeLogEvents,
   mergeAppliedProxySink,
   shouldRetryStreamEarlyEof,
+  shouldRetryStreamReadinessTimeout,
   isEarlyEofSiblingFailoverOn,
   withSessionHeader,
   withSelectedConnectionHeader,
@@ -1664,6 +1665,7 @@ async function handleSingleModelChat(
   // re-attempt to exactly one for the whole request. Declared outside both retry
   // loops so it can never reset and loop.
   let streamEarlyEofRetries = 0;
+  let streamReadinessTimeoutRetries = 0;
   // STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED: at most ONE sibling hop per request. Keeps the
   // original early-EOF 502 so an exhausted sibling pool surfaces it verbatim (combo detection).
   let earlyEofOriginal: Response | null = null;
@@ -2130,6 +2132,23 @@ async function handleSingleModelChat(
           result.errorType === "stream_early_eof");
 
       if (
+        shouldRetryStreamReadinessTimeout(
+          result.errorCode,
+          streamReadinessTimeoutRetries,
+          isCombo,
+          requestSignal?.aborted === true
+        ) &&
+        !hasForcedConnection
+      ) {
+        streamReadinessTimeoutRetries += 1;
+        log.warn(
+          "STREAM",
+          `${provider}/${model} produced no readiness event — retrying once on a fresh upstream request`
+        );
+        continue;
+      }
+
+      if (
         (result.errorType === "stream_timeout" ||
           result.errorType === "stream_early_eof" ||
           result.errorCode === "empty_response") &&
@@ -2139,9 +2158,8 @@ async function handleSingleModelChat(
         // send HTTP 200 then close the SSE early with zero useful frames
         // (STREAM_EARLY_EOF). That is a transient upstream glitch, not a bad key — so
         // allow exactly ONE bounded same-connection re-attempt before surfacing the
-        // 502. Do NOT retry STREAM_READINESS_TIMEOUT (a slow-but-alive upstream;
-        // retrying would only double latency) and do NOT mark the account unavailable
-        // for the early close.
+        // 502. The readiness-timeout retry is handled separately above. Do NOT mark
+        // the account unavailable for the early close.
         if (
           shouldRetryStreamEarlyEof(result.errorCode, streamEarlyEofRetries) &&
           !hasForcedConnection

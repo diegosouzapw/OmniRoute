@@ -13,8 +13,8 @@ import path from "node:path";
 // request makes exactly ONE hop to a sibling connection; if no sibling can serve
 // it, the ORIGINAL STREAM_EARLY_EOF 502 is surfaced unchanged so combo-level
 // detection (isStreamEarlyEofErrorBody) keeps working. No account is ever marked
-// unavailable for an early close, STREAM_READINESS_TIMEOUT stays terminal, and
-// with the flag off (the default) the release behavior is unchanged.
+// unavailable for an early close, and readiness timeout retry remains direct-only and
+// bounded. With the flag off (the default) the early-EOF release behavior is unchanged.
 //
 // These cases drive handleChat() directly rather than the /v1/chat/completions
 // route: the route wraps streaming requests in withEarlyStreamKeepalive, which
@@ -345,20 +345,40 @@ test("flag on: a forced connection never hops to a sibling", async () => {
   assert.equal(errorCodeOf(bodyText), "STREAM_EARLY_EOF");
 });
 
-test("flag on: STREAM_READINESS_TIMEOUT stays terminal even with a sibling available", async () => {
+test("STREAM_READINESS_TIMEOUT retries once on the same connection without marking accounts", async () => {
   const connA = await seedConnection("openai-timeout-a", "sk-failover-timeout-a");
   const connB = await seedConnection("openai-timeout-b", "sk-failover-timeout-b");
 
+  const dispatches: string[] = [];
+  stubFetch(dispatches, (_auth, callIndex) =>
+    callIndex === 0 ? stalledStreamResponse() : successStreamResponse("recovered")
+  );
+
+  const response = await handleChat(streamRequest());
+  const bodyText = await response.text();
+
+  assert.equal(dispatches.length, 2, `expected one retry, got ${dispatches.length}`);
+  assert.equal(
+    dispatches[1],
+    dispatches[0],
+    "the readiness retry must reuse the target connection"
+  );
+  assert.equal(response.status, 200, `expected 200, got ${response.status}: ${bodyText}`);
+  assert.match(bodyText, /recovered/);
+  await assertNotMarked(connA, "first");
+  await assertNotMarked(connB, "sibling");
+});
+
+test("STREAM_READINESS_TIMEOUT remains bounded after the retry", async () => {
+  const conn = await seedConnection("openai-timeout-bounded", "sk-failover-timeout-bounded");
   const dispatches: string[] = [];
   stubFetch(dispatches, () => stalledStreamResponse());
 
   const response = await handleChat(streamRequest());
   const bodyText = await response.text();
 
-  // A slow-but-alive upstream is neither retried nor failed over.
-  assert.equal(dispatches.length, 1, `expected 1 dispatch, got ${dispatches.length}`);
+  assert.equal(dispatches.length, 2, `expected one retry, got ${dispatches.length}`);
   assert.equal(response.status, 504, `expected 504, got ${response.status}: ${bodyText}`);
   assert.equal(errorCodeOf(bodyText), "STREAM_READINESS_TIMEOUT");
-  await assertNotMarked(connA, "first");
-  await assertNotMarked(connB, "sibling");
+  await assertNotMarked(conn, "bounded retry");
 });
