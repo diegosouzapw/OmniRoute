@@ -406,6 +406,25 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024"],
   },
 
+  // #14545 — reuses the "gemini" apikey provider id (already registered for chat,
+  // src/shared/constants/providers/apikey/frontier-labs.ts) and the same
+  // generativelanguage.googleapis.com OpenAI-compatible images endpoint that
+  // open-sse/handlers/imageGeneration.ts's synthetic-provider fallback already
+  // calls successfully for unregistered providers — direct calls worked, but the
+  // static registry had no entry, so the combo/catalog path silently dropped them.
+  gemini: {
+    id: "gemini",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/images/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [
+      { id: "gemini-3-pro-image", name: "Gemini 3 Pro Image" },
+      { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
+    ],
+    supportedSizes: ["1024x1024"],
+  },
+
   //Curruntly no models serving
   nebius: {
     id: "nebius",
@@ -545,6 +564,10 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
       { id: "black-forest-labs/flux.2-max", name: "FLUX.2 Max (via OpenRouter)" },
       { id: "black-forest-labs/flux.2-pro", name: "FLUX.2 Pro (via OpenRouter)" },
       { id: "black-forest-labs/flux.2-flex", name: "FLUX.2 Flex (via OpenRouter)" },
+      { id: "openai/gpt-image-2.5-sunburst", name: "GPT Image 2.5 Sunburst (via OpenRouter)" },
+      { id: "openai/gpt-image-2.5-flare", name: "GPT Image 2.5 Flare (via OpenRouter)" },
+      { id: "microsoft/mai-image-2.6", name: "MAI Image 2.6 (via OpenRouter)" },
+      { id: "microsoft/mai-image-2.6-flash", name: "MAI Image 2.6 Flash (via OpenRouter)" },
     ],
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
