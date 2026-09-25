@@ -13,9 +13,12 @@ import {
 // can never break the pool editor. Same management-auth tier as the pool route.
 //
 //   GET ?scope=global|provider|account|combo|key&scopeId=
-//     -> { connections, distinctExits, maxConnectionsOnOneExit, windowHours }
+//     -> { connections, distinctExits, maxConnectionsOnOneExit, windowHours, failures }
 //      | null (read failed, or the PROXY_POOL_EGRESS_OBSERVATION feature flag is off)
 //     -> 400 on an unknown scope or a missing scopeId outside global
+//
+// `failures` groups failed proxied requests by exit and by error family over
+// the same window; requests logged without attribution land in `unattributed`.
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);

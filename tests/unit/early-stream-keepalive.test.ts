@@ -9,6 +9,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  __getDeadlineTokenRegistrySizeForTests,
+  getDeadlineController,
+  withDeadlineSignal,
   withEarlyStreamKeepalive,
   ANTHROPIC_PING_FRAME,
   OPENAI_KEEPALIVE_FRAME,
@@ -459,4 +462,233 @@ test("aborting the client signal stops the keepalive stream (#2544)", async () =
   })();
   const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000));
   assert.equal(await Promise.race([drained, timed]), true, "stream should close after abort");
+});
+
+// Last-resort slow-path deadline: a handler that never resolves must not hold the
+// client stream forever. At slowPathDeadlineMs the wrapper aborts the internal
+// deadline controller (observable here because the test wires the helper-built
+// controller straight into the wrapper), emits the route's errorFrame, closes the
+// stream, and records exactly one correlated warn.
+test("slow-path deadline emits errorFrame, aborts the deadline controller, warns once", async () => {
+  const { wrappedReq, deadlineController } = withDeadlineSignal(
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "m", stream: true }),
+    })
+  );
+  assert.equal(deadlineController.signal.aborted, false);
+  const warnings: Array<{ tag: string; message: string }> = [];
+  const never = new Promise<Response>(() => {
+    /* handler that never resolves */
+  });
+
+  const result = await withEarlyStreamKeepalive(never, {
+    thresholdMs: 10,
+    intervalMs: 15,
+    signal: wrappedReq.signal,
+    slowPathDeadlineMs: 50,
+    deadlineController,
+    errorFrame: OPENAI_CHAT_ERROR_FRAME,
+    correlationId: "test-corr-1",
+    log: { warn: (tag, message) => warnings.push({ tag, message }) },
+  });
+  assert.equal(result.status, 200);
+
+  const body = await readAll(result);
+  assert.match(body, /^data: /m, "deadline must emit the route error frame");
+  assert.match(body, /"error":/, "deadline frame must carry the error payload");
+  assert.equal(deadlineController.signal.aborted, true, "deadline must abort the controller");
+  assert.equal(warnings.length, 1, "exactly one warn at expiration");
+  assert.match(warnings[0]!.tag, /EARLY_KEEPALIVE/);
+  assert.match(warnings[0]!.message, /test-corr-1/);
+});
+
+// A handler that resolves under the deadline takes the normal path: verbatim
+// forward, no error frame, no warn, timer cleaned up.
+test("handler resolving under the deadline forwards with no error and no warn", async () => {
+  const { deadlineController } = withDeadlineSignal(
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "m", stream: true }),
+    })
+  );
+  const warnings: Array<{ tag: string; message: string }> = [];
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 60);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 10,
+    intervalMs: 15,
+    slowPathDeadlineMs: 5000,
+    deadlineController,
+    errorFrame: OPENAI_CHAT_ERROR_FRAME,
+    correlationId: "test-corr-2",
+    log: { warn: (tag, message) => warnings.push({ tag, message }) },
+  });
+  const body = await readAll(result);
+  assert.match(body, /data: \[DONE\]/, "real body must be forwarded");
+  assert.doesNotMatch(body, /"error":/, "no error frame when resolved in time");
+  assert.equal(warnings.length, 0, "no warn when resolved in time");
+  assert.equal(deadlineController.signal.aborted, false, "no abort when resolved in time");
+});
+
+// slowPathDeadlineMs <= 0 disables the deadline: a slow handler keeps the normal
+// slow path with no abort and no warn.
+test("slowPathDeadlineMs <= 0 disables the deadline", async () => {
+  const { deadlineController } = withDeadlineSignal(
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "m", stream: true }),
+    })
+  );
+  const warnings: Array<{ tag: string; message: string }> = [];
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 80);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 10,
+    intervalMs: 15,
+    slowPathDeadlineMs: 0,
+    deadlineController,
+    log: { warn: (tag, message) => warnings.push({ tag, message }) },
+  });
+  const body = await readAll(result);
+  assert.match(body, /data: \[DONE\]/);
+  assert.equal(warnings.length, 0, "disabled deadline must never warn");
+  assert.equal(deadlineController.signal.aborted, false, "disabled deadline must never abort");
+});
+
+// A client abort before the deadline keeps the existing disconnect path: no
+// error frame, no deadline warn, timer cleaned up.
+test("client abort before the deadline emits no error frame and no deadline warn", async () => {
+  const clientController = new AbortController();
+  const { wrappedReq, deadlineController } = withDeadlineSignal(
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "m", stream: true }),
+      signal: clientController.signal,
+    })
+  );
+  const warnings: Array<{ tag: string; message: string }> = [];
+  const never = new Promise<Response>(() => {
+    /* handler that never resolves */
+  });
+
+  const result = await withEarlyStreamKeepalive(never, {
+    thresholdMs: 10,
+    intervalMs: 15,
+    signal: wrappedReq.signal,
+    slowPathDeadlineMs: 5000,
+    deadlineController,
+    log: { warn: (tag, message) => warnings.push({ tag, message }) },
+  });
+  const reader = result.body!.getReader();
+  await reader.read();
+  clientController.abort();
+  const drained = (async () => {
+    while (true) {
+      const { done } = await reader.read();
+      if (done) return true;
+    }
+  })();
+  const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000));
+  assert.equal(await Promise.race([drained, timed]), true, "stream should close after abort");
+  assert.equal(warnings.length, 0, "client abort must not emit a deadline warn");
+  assert.equal(
+    deadlineController.signal.aborted,
+    false,
+    "client abort must not trip the deadline controller"
+  );
+});
+
+// The rebuild-fallback token map is keyed by strings, so without an explicit
+// release every streamed request left one entry behind forever. After N requests
+// through the wrapper — fast path, slow path, deadline expiry and client abort —
+// the map must be back to its original size, and the released token must no
+// longer resolve through a header-only lookup.
+test("deadline token registry returns to its original size after N requests", async () => {
+  const baseline = __getDeadlineTokenRegistrySizeForTests();
+  const makeReq = (signal?: AbortSignal) =>
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+      signal,
+    });
+  const N = 20;
+  let lastHeaders: Headers | null = null;
+  for (let i = 0; i < N; i += 1) {
+    // fast path
+    {
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq());
+      lastHeaders = wrappedReq.headers;
+      const r = await withEarlyStreamKeepalive(Promise.resolve(sseResponse("data: [DONE]\n\n")), {
+        thresholdMs: 50,
+        signal: wrappedReq.signal,
+        deadlineController,
+      });
+      await readAll(r);
+    }
+    // slow path, handler resolves
+    {
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq());
+      const slow = new Promise<Response>((resolve) =>
+        setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 20)
+      );
+      const r = await withEarlyStreamKeepalive(slow, {
+        thresholdMs: 5,
+        intervalMs: 50,
+        signal: wrappedReq.signal,
+        deadlineController,
+      });
+      await readAll(r);
+    }
+    // deadline expiry
+    {
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq());
+      const r = await withEarlyStreamKeepalive(new Promise<Response>(() => {}), {
+        thresholdMs: 5,
+        intervalMs: 50,
+        signal: wrappedReq.signal,
+        slowPathDeadlineMs: 15,
+        deadlineController,
+        errorFrame: OPENAI_CHAT_ERROR_FRAME,
+      });
+      await readAll(r);
+    }
+    // client abort
+    {
+      const client = new AbortController();
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq(client.signal));
+      const r = await withEarlyStreamKeepalive(new Promise<Response>(() => {}), {
+        thresholdMs: 5,
+        intervalMs: 50,
+        signal: wrappedReq.signal,
+        slowPathDeadlineMs: 5000,
+        deadlineController,
+      });
+      const reader = r.body!.getReader();
+      await reader.read();
+      client.abort();
+      while (!(await reader.read()).done) {
+        /* drain */
+      }
+    }
+  }
+  assert.equal(
+    __getDeadlineTokenRegistrySizeForTests(),
+    baseline,
+    "every request must release its deadline token entry"
+  );
+  assert.equal(
+    getDeadlineController({ headers: lastHeaders! }),
+    null,
+    "a released token must not resolve through the header fallback"
+  );
 });

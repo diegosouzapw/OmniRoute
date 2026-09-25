@@ -103,6 +103,12 @@ test("counts distinct exits, connections and the busiest exit of a pool", async 
     distinctExits: 5,
     maxConnectionsOnOneExit: 4,
     windowHours: 24,
+    failures: {
+      byExit: [],
+      byFamily: [],
+      unattributed: 0,
+      attributionNote: "per-family breakdown covers only requests logged with attribution on",
+    },
   });
 });
 
@@ -114,6 +120,12 @@ test("the global pool is read under its stored scope id", async () => {
     distinctExits: 1,
     maxConnectionsOnOneExit: 1,
     windowHours: 24,
+    failures: {
+      byExit: [],
+      byFamily: [],
+      unattributed: 0,
+      attributionNote: "per-family breakdown covers only requests logged with attribution on",
+    },
   });
 });
 
@@ -136,6 +148,12 @@ test("an empty pool yields zeros, not null", async () => {
     distinctExits: 0,
     maxConnectionsOnOneExit: 0,
     windowHours: 24,
+    failures: {
+      byExit: [],
+      byFamily: [],
+      unattributed: 0,
+      attributionNote: "per-family breakdown covers only requests logged with attribution on",
+    },
   });
 });
 
