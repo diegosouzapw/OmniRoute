@@ -6546,7 +6546,7 @@ Thanks to everyone whose work landed in v3.8.43:
 
 - **feat(providers):** add DGrid AI gateway provider — OpenAI-compatible gateway at `api.dgrid.ai/v1` (alias `dgrid`, API-key auth, passthrough models). Free router tier (10 RPM / 100 RPD); a $5 lifetime top-up raises limits to 20 RPM / 1,000 RPD. ([#4931](https://github.com/diegosouzapw/OmniRoute/pull/4931) — thanks @dgridOP)
 
-- **feat(providers):** add Pioneer AI (Fastino Labs) provider — OpenAI-compatible chat completions at `api.pioneer.ai/v1`. Registered with alias `pn`, `X-API-Key` auth, and a catalog of 10 open-tier serverless models (Qwen3, Llama 3.1/3.2, Gemma 3, SmolLM3). Free $75 credits, no credit card required. Gated enterprise models (Claude/GPT/Gemini) require prior fine-tuning on the Pioneer platform and are intentionally excluded from the catalog. ([#4909](https://github.com/diegosouzapw/OmniRoute/pull/4909) — thanks @HikiNarou)
+- **feat(providers):** add Pioneer AI (Fastino Labs) provider — OpenAI-compatible chat completions at `api.pioneer.ai/v1`. Registered with alias `pn`, `X-API-Key` auth, and a catalog of 10 open-tier serverless models (Qwen3, Llama 3.1/3.2, Gemma 3, SmolLM3). No free tier — paid plans start with $40 platform credits. Gated enterprise models (Claude/GPT/Gemini) require prior fine-tuning on the Pioneer platform and are intentionally excluded from the catalog. ([#4909](https://github.com/diegosouzapw/OmniRoute/pull/4909) — thanks @HikiNarou)
 
 - **feat(providers):** add xAI Grok inbound translators and a thinking patcher — Grok requests are now translated on the inbound path and reasoning is normalized so Grok modes behave consistently across clients. ([#4910](https://github.com/diegosouzapw/OmniRoute/pull/4910) — thanks @mugnimaestra)
 
