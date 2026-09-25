@@ -177,6 +177,9 @@ export interface ListAgentSessionsFilter {
   apiKeyId?: string | null;
   projectName?: string | null;
   client?: string | null;
+  /** Sessions with at least one request through this provider / connection. */
+  provider?: string | null;
+  connectionId?: string | null;
   from?: string | null;
   to?: string | null;
   sort?: "lastSeen" | "firstSeen" | "requests" | "tokens" | "cost";
@@ -273,6 +276,19 @@ export function listAgentSessions(
   if (filter.client) {
     conditions.push("client = ?");
     params.push(filter.client);
+  }
+
+  const requestFilters: Array<[string, string | null | undefined]> = [
+    ["provider", filter.provider],
+    ["connection_id", filter.connectionId],
+  ];
+  for (const [column, value] of requestFilters) {
+    if (!value) continue;
+    conditions.push(
+      `EXISTS (SELECT 1 FROM usage_history uh
+               WHERE uh.agent_session_id = agent_sessions.id AND uh.${column} = ?)`
+    );
+    params.push(value);
   }
 
   if (filter.from) {

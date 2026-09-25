@@ -44,6 +44,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "1proxy",
   // Analytics
   "analytics",
+  "analytics-team-reports",
   "analytics-combo-health",
   "analytics-utilization",
   "costs",

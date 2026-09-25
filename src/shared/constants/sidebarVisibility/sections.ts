@@ -341,6 +341,13 @@ const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "analytics",
   },
   {
+    id: "analytics-team-reports",
+    href: "/dashboard/analytics/team-reports",
+    i18nKey: "analyticsTeamReports",
+    subtitleKey: "analyticsTeamReportsSubtitle",
+    icon: "groups",
+  },
+  {
     id: "analytics-combo-health",
     href: "/dashboard/analytics/combo-health",
     i18nKey: "analyticsComboHealth",

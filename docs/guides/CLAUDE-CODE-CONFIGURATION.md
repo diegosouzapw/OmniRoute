@@ -104,6 +104,20 @@ x-omniroute-project-repo: ${repo}}" command claude "$@"
 The `sed` expression strips any credentials embedded in the remote URL. IDE extensions launch
 Claude Code without your shell, so their sessions fall back to the working directory.
 
+### Team reports
+
+**Analytics → Team Reports** (`/dashboard/analytics/team-reports`) rolls these sessions up for
+whoever manages the team's API keys: cost, tokens, requests and errors per member (API key),
+project, client, provider, model, account and day, plus the session list with its latest
+requests. Filters cover a from/to date-time window, member, project, client, provider and
+account, and every table can be sorted and exported as CSV.
+
+The numbers come from the individual requests, so a session that fell back from one provider to
+another is split across both, and the window counts only the requests inside it. Cost is priced
+from the token counts with the current pricing table. The same data is available to management
+callers at `GET /api/reports/summary`, `GET /api/reports/sessions`,
+`GET /api/reports/sessions/{id}` and `GET /api/reports/export?type=…`.
+
 ---
 
 ## Discovery aliases — surface non-Claude models in the `/model` picker
