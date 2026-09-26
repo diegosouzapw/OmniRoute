@@ -54,6 +54,7 @@ import { useCatalogTestRunner } from "./useCatalogTestRunner";
 import { useApiKeyAccessIndex } from "./useApiKeyAccessIndex";
 import CatalogKeyAssignDialog from "./CatalogKeyAssignDialog";
 import CatalogKeyAccessButton from "./CatalogKeyAccessButton";
+import { isKeyAssignableModel, type AssignItem } from "./keyAccessAssignUtils";
 
 const PAGE_SIZE = 50;
 
@@ -446,6 +447,19 @@ export default function ModelCatalogPage() {
     }
   };
 
+  // Combo and auto/* rows in the models tab are not models, so they never enter an allow-list.
+  const selectedModelRows = models.filter((m) => selectedModelIds.has(`${m.providerId}:${m.id}`));
+  const assignItems: AssignItem[] =
+    assignKind === "models"
+      ? selectedModelRows
+          .filter(isKeyAssignableModel)
+          .map((model) => ({ id: model.id, providerId: model.providerId }))
+      : combos
+          .filter((combo) => selectedComboIds.has(combo.id))
+          .map((combo) => ({ id: combo.name }));
+  const excludedAssignCount =
+    assignKind === "models" ? selectedModelRows.length - assignItems.length : 0;
+
   const hasModelFiltersActive = hasActiveModelFilters(modelFilters);
   const hasComboFiltersActive = hasActiveComboFilters(comboFilters);
   const hasTestResults = Object.keys(testResults).length > 0;
@@ -592,9 +606,16 @@ export default function ModelCatalogPage() {
                 onTestModel={testSingleModel}
                 providerHealthMap={providerHealthMap}
                 bulkRunning={running}
-                renderKeyAccess={(id) => (
-                  <CatalogKeyAccessButton kind="models" id={id} index={keyIndex} />
-                )}
+                renderKeyAccess={(model) =>
+                  isKeyAssignableModel(model) ? (
+                    <CatalogKeyAccessButton
+                      kind="models"
+                      id={model.id}
+                      providerId={model.providerId}
+                      index={keyIndex}
+                    />
+                  ) : null
+                }
               />
             )}
           </Card>
@@ -709,13 +730,8 @@ export default function ModelCatalogPage() {
       {assignKind && (
         <CatalogKeyAssignDialog
           kind={assignKind}
-          items={
-            assignKind === "models"
-              ? models
-                  .filter((model) => selectedModelIds.has(`${model.providerId}:${model.id}`))
-                  .map((model) => model.id)
-              : combos.filter((combo) => selectedComboIds.has(combo.id)).map((combo) => combo.name)
-          }
+          items={assignItems}
+          excludedCount={excludedAssignCount}
           index={keyIndex}
           onClose={() => setAssignKind(null)}
         />

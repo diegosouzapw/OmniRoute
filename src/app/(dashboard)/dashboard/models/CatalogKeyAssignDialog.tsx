@@ -5,29 +5,41 @@ import { useTranslations } from "next-intl";
 import { Button, Input, Modal } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import {
+  assignRunToastType,
   filterAccessKeys,
+  findStillAllowedPatterns,
+  getKeyState,
   keyAllowsAll,
   planKeyAssignment,
   summarizeKeyAccess,
+  type AccessKey,
   type AccessKind,
   type AssignAction,
+  type AssignItem,
   type AssignOutcome,
+  type KeyState,
 } from "./keyAccessAssignUtils";
 import { runWithConcurrency } from "./catalogBulkUtils";
 import type { ApiKeyAccessIndex } from "./useApiKeyAccessIndex";
 
+const UNUSABLE_STATES: ReadonlySet<KeyState> = new Set(["revoked", "expired"]);
+
 export default function CatalogKeyAssignDialog({
   kind,
   items,
+  excludedCount = 0,
   index,
   onClose,
 }: {
   kind: AccessKind;
-  items: string[];
+  items: AssignItem[];
+  /** Selected rows that cannot be assigned from this tab (combo rows in the models tab). */
+  excludedCount?: number;
   index: ApiKeyAccessIndex;
   onClose: () => void;
 }) {
   const t = useTranslations("modelCatalog");
+  const common = useTranslations("common");
   const [search, setSearch] = useState("");
   const [action, setAction] = useState<AssignAction>("add");
   const [selected, setSelected] = useState(new Set<string>());
@@ -38,43 +50,55 @@ export default function CatalogKeyAssignDialog({
     changed: "resultChanged",
     unchanged: "resultUnchanged",
     skipped: "resultSkipped",
+    would_empty: kind === "models" ? "resultWouldEmptyModels" : "resultWouldEmptyCombos",
     needs_switch: "resultNeedsSwitch",
     error: "resultNetworkError",
   } as const;
+  const stateLabels: Record<KeyState, string> = {
+    active: t("active"),
+    inactive: t("keyInactive"),
+    banned: t("keyBanned"),
+    revoked: t("keyRevoked"),
+    expired: common("expirationBadgeExpired"),
+  };
+  const itemIds = items.map((item) => item.id);
+  const now = index.checkedAt;
+  const visibleKeys = filterAccessKeys(index.keys, search);
+  // Only keys the admin can still see and that can authenticate are submitted.
+  const targets = visibleKeys.filter(
+    (key) => selected.has(key.id) && !UNUSABLE_STATES.has(getKeyState(key, now))
+  );
   const toggle = (set: Set<string>, id: string) => {
     const next = new Set(set);
     if (next.has(id)) next.delete(id);
     else next.add(id);
     return next;
   };
+  const planFor = (key: AccessKey) =>
+    planKeyAssignment({ key, kind, action, items: itemIds, switchOptIn: switches.has(key.id) });
   const submit = async () => {
     setRunning(true);
     const completed: Record<string, AssignOutcome> = {};
     try {
-      await runWithConcurrency(
-        index.keys.filter((key) => selected.has(key.id)),
-        2,
-        new AbortController().signal,
-        async (key) => {
-          const plan = planKeyAssignment({
-            key,
-            kind,
-            action,
-            items,
-            switchOptIn: switches.has(key.id),
-          });
-          const outcome: AssignOutcome =
-            plan.type === "skip" ? { status: "skipped" } : await index.assign(key.id, plan.body);
-          completed[key.id] = outcome;
-          setOutcomes({ ...completed });
-        }
-      );
-      const failed = Object.values(completed).some(
-        (outcome) => outcome.status === "error" || outcome.status === "needs_switch"
-      );
+      await runWithConcurrency(targets, 2, new AbortController().signal, async (key) => {
+        const plan = planFor(key);
+        const outcome: AssignOutcome =
+          plan.type === "send"
+            ? await index.assign(key.id, plan.body)
+            : { status: plan.reason === "would_empty" ? "would_empty" : "skipped" };
+        completed[key.id] = outcome;
+        setOutcomes({ ...completed });
+      });
+      const type = assignRunToastType(Object.values(completed));
       useNotificationStore.getState().addNotification({
-        type: failed ? "error" : "success",
-        message: t(failed ? "assignFailed" : "assignComplete"),
+        type,
+        message: t(
+          type === "error"
+            ? "assignFailed"
+            : type === "success"
+              ? "assignComplete"
+              : "assignNoChanges"
+        ),
       });
       await index.refresh();
     } finally {
@@ -92,7 +116,7 @@ export default function CatalogKeyAssignDialog({
       footer={
         <Button
           data-testid="assign-apply-btn"
-          disabled={running || selected.size === 0}
+          disabled={running || targets.length === 0 || items.length === 0}
           onClick={() => void submit()}
         >
           {t("assignApply")}
@@ -101,6 +125,11 @@ export default function CatalogKeyAssignDialog({
     >
       <div className="space-y-4">
         <p>{t("selectedAccessItems", { count: items.length })}</p>
+        {excludedCount > 0 && (
+          <p className="text-sm text-text-muted">
+            {t("assignExcludedCombos", { count: excludedCount })}
+          </p>
+        )}
         <div className="flex gap-3">
           {(["add", "remove"] as const).map((mode) => (
             <label key={mode}>
@@ -120,21 +149,30 @@ export default function CatalogKeyAssignDialog({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder={t("searchKeys")}
+          aria-label={t("searchKeys")}
         />
         {index.loading && <p>{t("keysLoading")}</p>}
         {index.error && <Button onClick={() => void index.refresh()}>{t("keysRetry")}</Button>}
         <div className="max-h-96 space-y-2 overflow-auto">
-          {filterAccessKeys(index.keys, search).map((key) => {
+          {visibleKeys.map((key) => {
             const summary = summarizeKeyAccess(key);
             const all = keyAllowsAll(key, kind);
+            const state = getKeyState(key, now);
+            const usable = !UNUSABLE_STATES.has(state);
+            const isTarget = usable && selected.has(key.id);
+            const wouldEmpty = isTarget && planFor(key).type === "skip" && action === "remove";
+            const stillAllowed =
+              isTarget && action === "remove" && kind === "models"
+                ? findStillAllowedPatterns(key, items)
+                : [];
             return (
               <div key={key.id} className="rounded border border-border p-3">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     aria-label={t("selectApiKey", { name: key.name })}
-                    checked={selected.has(key.id)}
-                    disabled={running}
+                    checked={isTarget}
+                    disabled={running || !usable}
                     onChange={() => setSelected(toggle(selected, key.id))}
                   />
                   <span>{key.name}</span>
@@ -147,16 +185,9 @@ export default function CatalogKeyAssignDialog({
                   {summary.allCombos
                     ? t("allCombosAccess")
                     : t("comboAccessCount", { count: summary.comboCount })}{" "}
-                  ·{" "}
-                  {t(
-                    key.isBanned
-                      ? "keyBanned"
-                      : key.isActive === false
-                        ? "keyInactive"
-                        : "keyActive"
-                  )}
+                  · {stateLabels[state]}
                 </p>
-                {selected.has(key.id) && all && action === "add" && (
+                {isTarget && all && action === "add" && (
                   <label className="mt-2 flex items-start gap-2 text-sm">
                     <input
                       type="checkbox"
@@ -168,8 +199,14 @@ export default function CatalogKeyAssignDialog({
                     {t("switchRestrictedConfirm")}
                   </label>
                 )}
-                {selected.has(key.id) && all && action === "remove" && (
+                {isTarget && all && action === "remove" && (
                   <p className="text-xs">{t("removeNoChangeHint")}</p>
+                )}
+                {wouldEmpty && <p className="text-xs">{t(outcomeKeys.would_empty)}</p>}
+                {stillAllowed.length > 0 && (
+                  <p className="text-xs">
+                    {t("removeStaysAllowedHint", { patterns: stillAllowed.join(", ") })}
+                  </p>
                 )}
                 {outcomes[key.id] && (
                   <p data-testid={`assign-result-${key.id}`} role="status" className="mt-2 text-sm">

@@ -129,7 +129,7 @@ export default function ModelCatalogTable({
   onToggleSelectAll?: () => void;
   testResults?: Record<string, CatalogTestResult>;
   activeTestingKeys?: ReadonlySet<string>;
-  renderKeyAccess?: (id: string) => import("react").ReactNode;
+  renderKeyAccess?: (model: CatalogModelRow) => import("react").ReactNode;
   onTestModel?: (providerId: string, modelId: string) => void;
   providerHealthMap?: Record<string, "healthy" | "degraded" | "down">;
   /** A bulk run owns the runner; per-row tests wait until it ends. */
@@ -351,7 +351,7 @@ export default function ModelCatalogTable({
                   </td>
                   {onTestModel && (
                     <td className="whitespace-nowrap px-4 py-3 text-right">
-                      {renderKeyAccess?.(model.id)}
+                      {renderKeyAccess?.(model)}
                       <Button
                         variant="secondary"
                         size="sm"

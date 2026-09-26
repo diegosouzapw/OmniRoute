@@ -5,22 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import enMessages from "@/i18n/messages/en.json";
 
-vi.mock("next-intl", () => ({
-  useTranslations: (ns: string = "common") => {
-    const bag = ((enMessages as Record<string, unknown>)[ns] || {}) as Record<string, string>;
-    const translate = (key: string, params?: Record<string, unknown>) => {
-      let str = bag[key] ?? key;
-      if (params) {
-        for (const [pKey, pVal] of Object.entries(params)) {
-          str = str.replace(new RegExp(`\\{${pKey}\\}`, "g"), String(pVal));
-        }
-      }
-      return str;
-    };
-    return Object.assign(translate, { has: (key: string) => key in bag });
-  },
-}));
-
+// next-intl comes from the shared vitest setup (real ICU formatting over en.json).
 vi.mock("next/link", () => ({
   default: ({
     href,
@@ -40,6 +25,8 @@ import ModelCatalogPage from "@/app/(dashboard)/dashboard/models/page";
 import { useNotificationStore } from "@/store/notificationStore";
 
 const catalogText = (enMessages as { modelCatalog: Record<string, string> }).modelCatalog;
+const commonText = enMessages.common;
+const cliToolsText = enMessages.cliTools;
 
 interface KeyFixture {
   id: string;
@@ -47,8 +34,11 @@ interface KeyFixture {
   modelAccessMode: "all" | "restricted";
   allowedModels: string[];
   allowedCombos: string[];
+  blockedModels?: string[];
   isActive?: boolean;
   isBanned?: boolean;
+  revokedAt?: string | null;
+  expiresAt?: string | null;
 }
 
 interface AccessBody {
@@ -62,7 +52,12 @@ interface AccessCall {
   body: AccessBody;
 }
 
-type AccessHandler = (call: AccessCall, current: KeyFixture) => Promise<Response>;
+/** Return undefined to fall through to the default in-memory server behaviour. */
+type AccessHandler = (
+  call: AccessCall,
+  current: KeyFixture,
+  callIndex: number
+) => Promise<Response> | undefined;
 
 const CATALOG = {
   alpha: {
@@ -75,6 +70,17 @@ const CATALOG = {
   cc: {
     provider: "Claude Code",
     models: [{ id: "cc/claude-sonnet", name: "Claude Sonnet", type: "chat" }],
+  },
+  codex: {
+    provider: "OpenAI Codex",
+    models: [{ id: "cx/gpt-5", name: "GPT 5", type: "chat" }],
+  },
+  combo: {
+    provider: "combo",
+    models: [
+      { id: "my-combo", name: "My Combo", type: "chat" },
+      { id: "auto/coding", name: "Auto Coding", type: "chat" },
+    ],
   },
 };
 
@@ -103,8 +109,8 @@ function initialKeys(): KeyFixture[] {
       id: "k-alice",
       name: "key-alice",
       modelAccessMode: "restricted",
-      allowedModels: ["alpha/chat"],
-      allowedCombos: ["combo/combo-1"],
+      allowedModels: ["alpha/chat", "gamma/extra"],
+      allowedCombos: ["combo/combo-1", "legacy-combo"],
       isActive: true,
     },
     {
@@ -164,8 +170,8 @@ function serverApply(current: KeyFixture, body: AccessBody) {
   return { ...next, changed };
 }
 
-function installFetch(options: { access?: AccessHandler } = {}) {
-  const keys = initialKeys();
+function installFetch(options: { access?: AccessHandler; extraKeys?: KeyFixture[] } = {}) {
+  const keys = [...initialKeys(), ...(options.extraKeys ?? [])];
   const accessCalls: AccessCall[] = [];
   const keyListUrls: string[] = [];
   const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
@@ -179,7 +185,8 @@ function installFetch(options: { access?: AccessHandler } = {}) {
       accessCalls.push(call);
       const index = keys.findIndex((entry) => entry.id === call.keyId);
       const current = keys[index];
-      if (options.access) return options.access(call, current);
+      const custom = options.access?.(call, current, accessCalls.length - 1);
+      if (custom) return custom;
       const result = serverApply(current, call.body);
       const { changed, ...stored } = result;
       keys[index] = stored;
@@ -187,7 +194,9 @@ function installFetch(options: { access?: AccessHandler } = {}) {
     }
     if (url.includes("/api/keys")) {
       keyListUrls.push(url);
-      return Promise.resolve(jsonResponse({ keys: keys.map((entry) => ({ ...entry })), total: 3 }));
+      return Promise.resolve(
+        jsonResponse({ keys: keys.map((entry) => ({ ...entry })), total: keys.length })
+      );
     }
     if (url.includes("/api/models/catalog"))
       return Promise.resolve(jsonResponse({ catalog: CATALOG }));
@@ -311,7 +320,7 @@ describe("Catalog: assign models and combos to API keys", () => {
     expect(keyListUrls[0]).toContain("offset=0");
     const modal = dialog();
     expect(modal.textContent).toContain("key-alice");
-    expect(modal.textContent).toContain("Models: 1");
+    expect(modal.textContent).toContain("Models: 2");
     expect(modal.textContent).toContain("All models");
     expect(modal.textContent).toContain("Active");
 
@@ -428,6 +437,9 @@ describe("Catalog: assign models and combos to API keys", () => {
       { keyId: "k-all", body: { remove: { models: ["alpha/chat", "alpha/embed"] } } },
     ]);
     expect(resultText("k-all")).toContain(catalogText.resultUnchanged);
+    // Nothing changed, so the run ends with an info toast rather than a success toast.
+    expect(toasts.map((toast) => toast.type)).toEqual(["info"]);
+    expect(toasts[0].message).toBe(catalogText.assignNoChanges);
   });
 
   it("toggles a model on a key from the row popover with optimistic updates", async () => {
@@ -522,6 +534,297 @@ describe("Catalog: assign models and combos to API keys", () => {
     });
     await flush();
     expect(byLabel("Allow combo-1 on key-alice")).toBeNull();
+  });
+
+  it("keeps combo and auto rows of the models tab out of key assignment", async () => {
+    const { accessCalls } = installFetch();
+    await renderPage();
+
+    expect(byTestId("key-access-models-alpha/chat")).not.toBeNull();
+    expect(byTestId("key-access-models-my-combo")).toBeNull();
+    expect(byTestId("key-access-models-auto/coding")).toBeNull();
+
+    await click(byLabel("Select model My Combo"));
+    await click(byLabel("Select model Auto Coding"));
+    await click(byTestId("assign-keys-btn"));
+    expect(dialog().textContent).toContain("2 selected combo rows are not models");
+    await selectKeys("key-alice");
+    // Only combo rows are selected, so there is nothing to assign.
+    expect(byTestId("assign-apply-btn")?.hasAttribute("disabled")).toBe(true);
+    await act(async () => {
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    await flush();
+
+    await click(byLabel("Select model Alpha Chat"));
+    await click(byTestId("assign-keys-btn"));
+    await selectKeys("key-all");
+    await click(byTestId("switch-restricted-k-all"));
+    await click(byTestId("assign-apply-btn"));
+
+    expect(accessCalls).toEqual([
+      { keyId: "k-all", body: { add: { models: ["alpha/chat"] }, switchToRestricted: true } },
+    ]);
+  });
+
+  it("never sends a removal that would empty a restricted key", async () => {
+    const lastKey: KeyFixture = {
+      id: "k-last",
+      name: "key-last",
+      modelAccessMode: "restricted",
+      allowedModels: ["alpha/chat"],
+      allowedCombos: ["combo-1"],
+    };
+    const { accessCalls } = installFetch({ extraKeys: [lastKey] });
+    await renderPage();
+
+    await click(byTestId("key-access-models-alpha/chat"));
+    const lastSwitch = byLabel<HTMLButtonElement>("Allow alpha/chat on key-last");
+    expect(lastSwitch?.getAttribute("aria-checked")).toBe("true");
+    expect(lastSwitch?.disabled).toBe(true);
+    expect(byTestId("key-access-row-k-last")?.textContent).toContain(
+      catalogText.resultWouldEmptyModels
+    );
+    await act(async () => {
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    await flush();
+
+    await click(byLabel("Select model Alpha Chat"));
+    await click(byTestId("assign-keys-btn"));
+    await click(byLabel(catalogText.assignActionRemove));
+    await selectKeys("key-last", "key-alice");
+    expect(dialog().textContent).toContain(catalogText.resultWouldEmptyModels);
+    await click(byTestId("assign-apply-btn"));
+
+    expect(accessCalls).toEqual([
+      { keyId: "k-alice", body: { remove: { models: ["alpha/chat"] } } },
+    ]);
+    expect(resultText("k-last")).toContain(catalogText.resultWouldEmptyModels);
+    expect(resultText("k-alice")).toContain(catalogText.resultChanged);
+  });
+
+  it("disables the last remaining combo on a key", async () => {
+    const lastKey: KeyFixture = {
+      id: "k-last",
+      name: "key-last",
+      modelAccessMode: "restricted",
+      allowedModels: ["alpha/chat"],
+      allowedCombos: ["combo/combo-1"],
+    };
+    installFetch({ extraKeys: [lastKey] });
+    await renderPage();
+    await click([...container.querySelectorAll('[role="tab"]')][1]);
+    await click(byTestId("key-access-combos-combo-1"));
+
+    expect(byLabel<HTMLButtonElement>("Allow combo-1 on key-last")?.disabled).toBe(true);
+    expect(byTestId("key-access-row-k-last")?.textContent).toContain(
+      catalogText.resultWouldEmptyCombos
+    );
+    expect(byLabel<HTMLButtonElement>("Allow combo-1 on key-alice")?.disabled).toBe(false);
+  });
+
+  it("matches alias rows through canonical wildcards and shows blocked models", async () => {
+    installFetch({
+      extraKeys: [
+        {
+          id: "k-carol",
+          name: "key-carol",
+          modelAccessMode: "restricted",
+          allowedModels: ["codex/*"],
+          allowedCombos: [],
+        },
+        {
+          id: "k-dana",
+          name: "key-dana",
+          modelAccessMode: "all",
+          allowedModels: [],
+          blockedModels: ["codex/gpt-5"],
+          allowedCombos: ["combo/*"],
+        },
+      ],
+    });
+    await renderPage();
+    await click(byTestId("key-access-models-cx/gpt-5"));
+
+    // key-all and key-carol (via codex/*); key-dana is blocked despite allowing all models.
+    expect(byTestId("key-access-models-cx/gpt-5")?.textContent).toContain("Allowed in: 2 keys");
+    const carolSwitch = byLabel<HTMLButtonElement>("Allow cx/gpt-5 on key-carol");
+    expect(carolSwitch?.getAttribute("aria-checked")).toBe("true");
+    expect(carolSwitch?.disabled).toBe(true);
+    expect(byTestId("key-access-row-k-carol")?.textContent).toContain("via codex/*");
+
+    const danaSwitch = byLabel<HTMLButtonElement>("Allow cx/gpt-5 on key-dana");
+    expect(danaSwitch?.getAttribute("aria-checked")).toBe("false");
+    expect(danaSwitch?.disabled).toBe(true);
+    expect(byTestId("key-access-row-k-dana")?.textContent).toContain("Blocked by codex/gpt-5");
+    expect(byTestId("key-access-row-k-dana")?.querySelector("a")?.getAttribute("href")).toBe(
+      "/dashboard/api-manager/k-dana/access"
+    );
+  });
+
+  it("shows revoked and expired keys but never selects or counts them", async () => {
+    const { accessCalls } = installFetch({
+      extraKeys: [
+        {
+          id: "k-rev",
+          name: "key-rev",
+          modelAccessMode: "restricted",
+          allowedModels: ["alpha/chat", "alpha/embed"],
+          allowedCombos: [],
+          revokedAt: "2026-01-01T00:00:00Z",
+        },
+        {
+          id: "k-exp",
+          name: "key-exp",
+          modelAccessMode: "all",
+          allowedModels: [],
+          allowedCombos: ["combo/*"],
+          expiresAt: "2000-01-01T00:00:00Z",
+        },
+      ],
+    });
+    await renderPage();
+    await click(byTestId("key-access-models-alpha/chat"));
+
+    expect(byTestId("key-access-models-alpha/chat")?.textContent).toContain("Allowed in: 2 keys");
+    expect(byTestId("key-access-row-k-rev")).toBeNull();
+    expect(byTestId("key-access-row-k-exp")).toBeNull();
+    await act(async () => {
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    await flush();
+
+    await openAssignDialogForAlphaModels();
+    const text = dialog().textContent ?? "";
+    expect(text).toContain(catalogText.keyRevoked);
+    expect(text).toContain(commonText.expirationBadgeExpired);
+    expect(byLabel<HTMLInputElement>("Select API key key-rev")?.disabled).toBe(true);
+    expect(byLabel<HTMLInputElement>("Select API key key-exp")?.disabled).toBe(true);
+    await selectKeys("key-rev", "key-bob");
+    await click(byTestId("assign-apply-btn"));
+    expect(accessCalls.map((call) => call.keyId)).toEqual(["k-bob"]);
+  });
+
+  it("gives the popover dialog semantics, an empty state and closes when focus leaves", async () => {
+    installFetch();
+    await renderPage();
+    const chatTrigger = byTestId<HTMLButtonElement>("key-access-models-alpha/chat");
+    const embedTrigger = byTestId<HTMLButtonElement>("key-access-models-alpha/embed");
+    expect(chatTrigger?.getAttribute("aria-haspopup")).toBe("dialog");
+
+    await act(async () => chatTrigger?.focus());
+    await click(chatTrigger);
+    const popoverId = chatTrigger?.getAttribute("aria-controls") ?? "";
+    const popover = document.getElementById(popoverId);
+    expect(popover?.getAttribute("role")).toBe("dialog");
+    expect(popover?.getAttribute("aria-label")).toBe(catalogText.keyAccessButton);
+    // Rendered outside the horizontally scrolling table so it is never clipped.
+    expect(popover?.closest('[role="region"]')).toBeNull();
+
+    await act(async () => embedTrigger?.focus());
+    await flush();
+    expect(document.getElementById(popoverId)).toBeNull();
+  });
+
+  it("shows an empty state when there are no API keys", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.includes("/api/keys")) return Promise.resolve(jsonResponse({ keys: [], total: 0 }));
+        if (url.includes("/api/models/catalog"))
+          return Promise.resolve(jsonResponse({ catalog: CATALOG }));
+        if (url.includes("/api/combos")) return Promise.resolve(jsonResponse({ combos: COMBOS }));
+        return Promise.resolve(jsonResponse({ providers: [] }));
+      })
+    );
+    await renderPage();
+    await click(byTestId("key-access-models-alpha/chat"));
+    const popoverId = byTestId("key-access-models-alpha/chat")?.getAttribute("aria-controls");
+    expect(document.getElementById(popoverId ?? "")?.textContent).toContain(
+      cliToolsText.noApiKeysAvailable
+    );
+  });
+
+  it("submits only the selected keys that the search still shows", async () => {
+    const { accessCalls } = installFetch();
+    await renderPage();
+    await openAssignDialogForAlphaModels();
+    await selectKeys("key-alice");
+
+    const search = byLabel<HTMLInputElement>(catalogText.searchKeys);
+    expect(search?.tagName).toBe("INPUT");
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      setter?.call(search, "bob");
+      search?.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await flush();
+    expect(byLabel("Select API key key-alice")).toBeNull();
+    await selectKeys("key-bob");
+    await click(byTestId("assign-apply-btn"));
+
+    expect(accessCalls.map((call) => call.keyId)).toEqual(["k-bob"]);
+  });
+
+  it("warns when a removed model stays allowed through a wildcard", async () => {
+    installFetch();
+    await renderPage();
+    await click(byLabel("Select model Claude Sonnet"));
+    await click(byTestId("assign-keys-btn"));
+    await click(byLabel(catalogText.assignActionRemove));
+    await selectKeys("key-bob");
+
+    expect(dialog().textContent).toContain("Still allowed on this key through cc/*");
+  });
+
+  it("tells the admin when a toggle is skipped because the key is still saving", async () => {
+    const response = deferred<Response>();
+    const { accessCalls } = installFetch({ access: () => response.promise });
+    await renderPage();
+    await click(byTestId("key-access-models-alpha/chat"));
+
+    await click(byLabel("Allow alpha/chat on key-bob"));
+    expect(byLabel("Allow alpha/chat on key-bob")?.getAttribute("aria-busy")).toBe("true");
+    await click(byLabel("Allow alpha/chat on key-bob"));
+
+    expect(accessCalls.length).toBe(1);
+    expect(toasts).toContainEqual({
+      type: "info",
+      message: "key-bob is still being updated. Try again in a moment.",
+    });
+    await act(async () => {
+      response.resolve(jsonResponse({ error: "Failed to assign key access" }, 500));
+    });
+    await flush();
+  });
+
+  it("rolls back only the failed toggle and keeps a newer dialog result", async () => {
+    const toggleResponse = deferred<Response>();
+    installFetch({
+      access: (_call, _current, callIndex) =>
+        callIndex === 0 ? toggleResponse.promise : undefined,
+    });
+    await renderPage();
+    await click(byTestId("key-access-models-alpha/chat"));
+    await click(byLabel("Allow alpha/chat on key-bob"));
+
+    // While the toggle is pending, a dialog run adds alpha/embed to the same key.
+    await click(byLabel("Select model Alpha Embed"));
+    await click(byTestId("assign-keys-btn"));
+    await selectKeys("key-bob");
+    await click(byTestId("assign-apply-btn"));
+    expect(resultText("k-bob")).toContain(catalogText.resultChanged);
+
+    await act(async () => {
+      toggleResponse.resolve(jsonResponse({ error: "Failed to assign key access" }, 500));
+    });
+    await flush();
+
+    expect(byLabel("Allow alpha/chat on key-bob")?.getAttribute("aria-checked")).toBe("false");
+    // key-all and key-bob: the failed toggle did not wipe the newer alpha/embed entry.
+    expect(byTestId("key-access-models-alpha/embed")?.textContent).toContain("Allowed in: 2 keys");
   });
 
   it("assigns selected combos from the combos tab", async () => {

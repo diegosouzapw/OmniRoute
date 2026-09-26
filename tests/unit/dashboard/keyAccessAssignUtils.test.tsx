@@ -2,33 +2,42 @@ import { describe, expect, it } from "vitest";
 import {
   applyAssignResult,
   applyOptimisticAccess,
+  assignRunToastType,
   buildAssignRequestBody,
   classifyAssignResponse,
   countKeysAllowing,
   filterAccessKeys,
+  findStillAllowedPatterns,
   getComboAccess,
+  getKeyState,
   getModelAccess,
   isComboAllowed,
+  isKeyAssignableModel,
+  isKeyUsable,
   isModelAllowed,
   keyAllowsAll,
   networkErrorOutcome,
   parseAccessKeysPage,
   planKeyAssignment,
+  revertOptimisticAccess,
   summarizeKeyAccess,
-  summarizeOutcomes,
   type AccessKey,
 } from "@/app/(dashboard)/dashboard/models/keyAccessAssignUtils";
+import * as sharedCandidates from "@/shared/utils/modelPermissionCandidates";
+import * as serverPermissions from "@/lib/db/apiKeys/modelPermissions";
 
 function key(overrides: Partial<AccessKey> & { id: string }): AccessKey {
   return {
     name: overrides.id,
     modelAccessMode: "restricted",
     allowedModels: [],
+    blockedModels: [],
     allowedCombos: [],
     ...overrides,
   };
 }
 
+const NOW = Date.parse("2026-06-01T00:00:00Z");
 const allKey = key({ id: "k-all", modelAccessMode: "all", allowedCombos: ["combo/*"] });
 const exactKey = key({
   id: "k-exact",
@@ -41,7 +50,7 @@ const denyAllKey = key({ id: "k-deny", modelAccessMode: "restricted", allowedMod
 describe("parseAccessKeysPage", () => {
   it("reads keys and total and derives the access mode like the server parser", () => {
     const page = parseAccessKeysPage({
-      total: 4,
+      total: 6,
       keys: [
         { id: "a", name: "key-alice", modelAccessMode: "all", allowedModels: [] },
         // A legacy key with a non-empty list and no explicit mode stays restricted.
@@ -50,11 +59,14 @@ describe("parseAccessKeysPage", () => {
         { id: "c", name: "key-carol", modelAccessMode: "restricted", allowedModels: [] },
         { id: "", name: "missing id is dropped" },
         { id: "d", modelAccessMode: "all", allowedCombos: null, isBanned: true },
+        // The server parser keeps a non-empty list restrictive even beside "all".
+        { id: "e", name: "key-erin", modelAccessMode: "all", allowedModels: ["alpha/chat"] },
       ],
     });
 
-    expect(page.total).toBe(4);
-    expect(page.keys.map((entry) => entry.id)).toEqual(["a", "b", "c", "d"]);
+    expect(page.total).toBe(6);
+    expect(page.rawCount).toBe(6);
+    expect(page.keys.map((entry) => entry.id)).toEqual(["a", "b", "c", "d", "e"]);
     expect(page.keys[0].modelAccessMode).toBe("all");
     expect(page.keys[1].modelAccessMode).toBe("restricted");
     expect(page.keys[2].modelAccessMode).toBe("restricted");
@@ -62,11 +74,65 @@ describe("parseAccessKeysPage", () => {
     expect(page.keys[3].allowedCombos).toEqual(["combo/*"]);
     expect(page.keys[3].name).toBe("d");
     expect(page.keys[3].isBanned).toBe(true);
+    expect(page.keys[4].modelAccessMode).toBe("restricted");
+  });
+
+  it("parses blocked models and the revocation and expiry timestamps", () => {
+    const page = parseAccessKeysPage({
+      keys: [
+        {
+          id: "a",
+          name: "key-alice",
+          blockedModels: ["cx/*", 7],
+          revokedAt: "2026-05-01T00:00:00Z",
+          expiresAt: null,
+        },
+        { id: "b", name: "key-bob", expiresAt: "2026-05-02T00:00:00Z" },
+      ],
+    });
+    expect(page.keys[0]).toMatchObject({
+      blockedModels: ["cx/*"],
+      revokedAt: "2026-05-01T00:00:00Z",
+      expiresAt: null,
+    });
+    expect(page.keys[1]).toMatchObject({
+      blockedModels: [],
+      revokedAt: null,
+      expiresAt: "2026-05-02T00:00:00Z",
+    });
   });
 
   it("returns an empty page for malformed payloads", () => {
-    expect(parseAccessKeysPage(null)).toEqual({ keys: [], total: null });
-    expect(parseAccessKeysPage({ keys: "nope" })).toEqual({ keys: [], total: null });
+    expect(parseAccessKeysPage(null)).toEqual({ keys: [], total: null, rawCount: 0 });
+    expect(parseAccessKeysPage({ keys: "nope" })).toEqual({ keys: [], total: null, rawCount: 0 });
+  });
+});
+
+describe("key state", () => {
+  it("reports revoked, expired, banned, inactive and active keys", () => {
+    expect(getKeyState(key({ id: "r", revokedAt: "2026-01-01T00:00:00Z" }), NOW)).toBe("revoked");
+    expect(getKeyState(key({ id: "x", expiresAt: "2026-05-31T23:59:59Z" }), NOW)).toBe("expired");
+    expect(getKeyState(key({ id: "f", expiresAt: "2026-06-02T00:00:00Z" }), NOW)).toBe("active");
+    expect(getKeyState(key({ id: "b", isBanned: true }), NOW)).toBe("banned");
+    expect(getKeyState(key({ id: "i", isActive: false }), NOW)).toBe("inactive");
+    expect(getKeyState(key({ id: "a", revokedAt: " ", expiresAt: "not a date" }), NOW)).toBe(
+      "active"
+    );
+  });
+
+  it("treats only revoked and expired keys as unusable", () => {
+    expect(isKeyUsable(key({ id: "r", revokedAt: "2026-01-01T00:00:00Z" }), NOW)).toBe(false);
+    expect(isKeyUsable(key({ id: "x", expiresAt: "2026-05-01T00:00:00Z" }), NOW)).toBe(false);
+    expect(isKeyUsable(key({ id: "b", isBanned: true }), NOW)).toBe(true);
+  });
+});
+
+describe("isKeyAssignableModel", () => {
+  it("rejects combo and auto rows that the catalog lists beside models", () => {
+    expect(isKeyAssignableModel({ id: "my-combo", providerId: "combo" })).toBe(false);
+    expect(isKeyAssignableModel({ id: "auto/coding", providerId: "combo" })).toBe(false);
+    expect(isKeyAssignableModel({ id: "auto/fast", providerId: "auto" })).toBe(false);
+    expect(isKeyAssignableModel({ id: "cx/gpt-5", providerId: "codex" })).toBe(true);
   });
 });
 
@@ -93,6 +159,70 @@ describe("model access checks", () => {
   it("keeps an explicit restricted key with an empty list as deny-all", () => {
     expect(keyAllowsAll(denyAllKey, "models")).toBe(false);
     expect(isModelAllowed(denyAllKey, "alpha/chat")).toBe(false);
+  });
+
+  it("allows a provider-alias row through a canonical wildcard, like the server", () => {
+    const canonical = key({ id: "k-codex", allowedModels: ["codex/*"] });
+    expect(getModelAccess(canonical, "cx/gpt-5", "codex")).toEqual({
+      allowed: true,
+      via: "pattern",
+      pattern: "codex/*",
+    });
+    const alias = key({ id: "k-cx", allowedModels: ["cx/*"] });
+    expect(getModelAccess(alias, "codex/gpt-5", "codex")).toEqual({
+      allowed: true,
+      via: "pattern",
+      pattern: "cx/*",
+    });
+    // The row's own provider id counts even when the alias is unknown to the registry.
+    const scoped = key({ id: "k-node", allowedModels: ["node-a/*"] });
+    expect(isModelAllowed(scoped, "na/llama", "node-a")).toBe(true);
+  });
+
+  it("strips the extended-context suffix before matching", () => {
+    expect(getModelAccess(exactKey, "alpha/chat[1m]")).toEqual({
+      allowed: true,
+      via: "pattern",
+      pattern: "alpha/chat",
+    });
+  });
+
+  it("does not widen a bare id with its provider, because the server does not either", () => {
+    const canonical = key({ id: "k-codex", allowedModels: ["codex/*"] });
+    expect(isModelAllowed(canonical, "gpt-5", "codex")).toBe(false);
+  });
+
+  it("checks blocked models first, even on all-mode keys", () => {
+    const blockedAll = key({ id: "k-block", modelAccessMode: "all", blockedModels: ["cx/*"] });
+    expect(getModelAccess(blockedAll, "codex/gpt-5", "codex")).toEqual({
+      allowed: false,
+      via: "blocked",
+      pattern: "cx/*",
+    });
+    const blockedExact = key({
+      id: "k-block-exact",
+      allowedModels: ["alpha/chat"],
+      blockedModels: ["alpha/chat"],
+    });
+    expect(getModelAccess(blockedExact, "alpha/chat")).toEqual({
+      allowed: false,
+      via: "blocked",
+      pattern: "alpha/chat",
+    });
+    expect(countKeysAllowing([blockedAll, allKey], "models", "cx/gpt-5", "codex", NOW)).toBe(1);
+  });
+
+  it("reuses the server's pure candidate helpers instead of a copy", () => {
+    expect(serverPermissions.addModelCandidate).toBe(sharedCandidates.addModelCandidate);
+    expect(serverPermissions.stripExtendedContextSuffix).toBe(
+      sharedCandidates.stripExtendedContextSuffix
+    );
+    expect(serverPermissions.addProviderAliasScopedCandidates).toBe(
+      sharedCandidates.addProviderAliasScopedCandidates
+    );
+    expect(serverPermissions.CLAUDE_CODE_PROVIDER_PREFIXES).toBe(
+      sharedCandidates.CLAUDE_CODE_PROVIDER_PREFIXES
+    );
   });
 });
 
@@ -122,6 +252,12 @@ describe("countKeysAllowing and summarizeKeyAccess", () => {
     expect(countKeysAllowing(keys, "models", "cc/claude-sonnet")).toBe(2);
     expect(countKeysAllowing(keys, "combos", "fast")).toBe(2);
     expect(countKeysAllowing(keys, "combos", "unknown")).toBe(1);
+  });
+
+  it("leaves revoked and expired keys out of the count", () => {
+    const revoked = key({ id: "k-rev", modelAccessMode: "all", revokedAt: "2026-01-01" });
+    const expired = key({ id: "k-exp", modelAccessMode: "all", expiresAt: "2026-05-01" });
+    expect(countKeysAllowing([allKey, revoked, expired], "models", "alpha/chat", "", NOW)).toBe(1);
   });
 
   it("summarises the current access of a key", () => {
@@ -177,7 +313,7 @@ describe("buildAssignRequestBody and planKeyAssignment", () => {
     const items = ["alpha/chat"];
     expect(
       planKeyAssignment({ key: allKey, kind: "models", action: "add", items, switchOptIn: false })
-    ).toEqual({ type: "skip" });
+    ).toEqual({ type: "skip", reason: "needs_opt_in" });
     expect(
       planKeyAssignment({ key: allKey, kind: "models", action: "add", items, switchOptIn: true })
     ).toEqual({
@@ -209,9 +345,68 @@ describe("buildAssignRequestBody and planKeyAssignment", () => {
       })
     ).toEqual({ type: "send", body: { remove: { combos: ["fast"] } } });
   });
+
+  it("refuses a removal that would leave a restricted key with no models", () => {
+    expect(
+      planKeyAssignment({
+        key: exactKey,
+        kind: "models",
+        action: "remove",
+        items: ["alpha/chat", "beta/coder"],
+        switchOptIn: false,
+      })
+    ).toEqual({ type: "skip", reason: "would_empty" });
+    expect(
+      planKeyAssignment({
+        key: exactKey,
+        kind: "models",
+        action: "remove",
+        items: ["alpha/chat"],
+        switchOptIn: false,
+      })
+    ).toEqual({ type: "send", body: { remove: { models: ["alpha/chat"] } } });
+  });
+
+  it("compares normalised combo names when checking for an empty list", () => {
+    expect(
+      planKeyAssignment({
+        key: exactKey,
+        kind: "combos",
+        action: "remove",
+        items: ["fast", "combo/slow"],
+        switchOptIn: false,
+      })
+    ).toEqual({ type: "skip", reason: "would_empty" });
+  });
+
+  it("lets a no-op removal through when the list is already empty", () => {
+    expect(
+      planKeyAssignment({
+        key: denyAllKey,
+        kind: "models",
+        action: "remove",
+        items: ["alpha/chat"],
+        switchOptIn: false,
+      })
+    ).toEqual({ type: "send", body: { remove: { models: ["alpha/chat"] } } });
+  });
 });
 
-describe("classifyAssignResponse", () => {
+describe("findStillAllowedPatterns", () => {
+  it("names the wildcards that keep a removed model allowed", () => {
+    const mixed = key({ id: "k-mixed", allowedModels: ["cc/*", "cc/claude-sonnet", "alpha/chat"] });
+    expect(
+      findStillAllowedPatterns(mixed, [
+        { id: "cc/claude-sonnet", providerId: "claude" },
+        { id: "alpha/chat", providerId: "alpha" },
+      ])
+    ).toEqual(["cc/*"]);
+    expect(findStillAllowedPatterns(exactKey, [{ id: "alpha/chat" }])).toEqual([]);
+    expect(findStillAllowedPatterns(allKey, [{ id: "alpha/chat" }])).toEqual([]);
+  });
+});
+
+describe("classifyAssignResponse and assignRunToastType", () => {
   const okBody = {
     id: "k-exact",
     modelAccessMode: "restricted",
@@ -257,33 +452,36 @@ describe("classifyAssignResponse", () => {
     expect(networkErrorOutcome()).toEqual({ status: "error" });
   });
 
-  it("summarises outcomes", () => {
+  it("picks success only when a key changed, error on any failure and info otherwise", () => {
+    expect(assignRunToastType([{ status: "changed" }, { status: "unchanged" }])).toBe("success");
+    expect(assignRunToastType([{ status: "changed" }, { status: "needs_switch" }])).toBe("error");
+    expect(assignRunToastType([{ status: "error" }])).toBe("error");
     expect(
-      summarizeOutcomes([
-        { status: "changed" },
+      assignRunToastType([
         { status: "unchanged" },
         { status: "skipped" },
-        { status: "needs_switch" },
-        { status: "error" },
+        { status: "would_empty" },
       ])
-    ).toEqual({ total: 5, changed: 1, unchanged: 1, skipped: 1, needsSwitch: 1, failed: 1 });
+    ).toBe("info");
+    expect(assignRunToastType([])).toBe("info");
   });
 });
 
-describe("applyAssignResult, applyOptimisticAccess and filterAccessKeys", () => {
+describe("applyAssignResult, optimistic updates and filterAccessKeys", () => {
   it("merges a 200 response back into the key list", () => {
-    const merged = applyAssignResult([allKey, exactKey], {
+    const blocked = key({ id: "k-all", modelAccessMode: "all", blockedModels: ["cx/*"] });
+    const merged = applyAssignResult([blocked, exactKey], {
       id: "k-all",
       modelAccessMode: "restricted",
       allowedModels: ["alpha/chat"],
       allowedCombos: ["combo/*"],
       changed: true,
     });
-    expect(merged[0]).toMatchObject({
-      id: "k-all",
-      name: "k-all",
+    expect(merged[0]).toEqual({
+      ...blocked,
       modelAccessMode: "restricted",
       allowedModels: ["alpha/chat"],
+      allowedCombos: ["combo/*"],
     });
     expect(merged[1]).toBe(exactKey);
   });
@@ -301,6 +499,32 @@ describe("applyAssignResult, applyOptimisticAccess and filterAccessKeys", () => 
     expect(applyOptimisticAccess(wildcardKey, "combos", "fast", true).allowedCombos).toEqual([
       "fast",
     ]);
+  });
+
+  it("rolls back only the optimistic addition and keeps newer data", () => {
+    const newer = key({ id: "k-wild", allowedModels: ["cc/*", "alpha/embed", "alpha/chat"] });
+    expect(
+      revertOptimisticAccess(newer, wildcardKey, "models", "alpha/chat", true).allowedModels
+    ).toEqual(["cc/*", "alpha/embed"]);
+    const without = key({ id: "k-wild", allowedModels: ["cc/*", "alpha/embed"] });
+    expect(revertOptimisticAccess(without, wildcardKey, "models", "alpha/chat", true)).toBe(
+      without
+    );
+  });
+
+  it("restores only the optimistically removed entries that are still missing", () => {
+    const newer = key({ id: "k-exact", allowedModels: ["beta/coder", "gamma/x"] });
+    expect(
+      revertOptimisticAccess(newer, exactKey, "models", "alpha/chat", false).allowedModels
+    ).toEqual(["beta/coder", "gamma/x", "alpha/chat"]);
+    const refreshed = key({ id: "k-exact", allowedModels: ["alpha/chat", "beta/coder"] });
+    expect(revertOptimisticAccess(refreshed, exactKey, "models", "alpha/chat", false)).toBe(
+      refreshed
+    );
+    const combos = key({ id: "k-exact", allowedCombos: ["slow"] });
+    expect(revertOptimisticAccess(combos, exactKey, "combos", "fast", false).allowedCombos).toEqual(
+      ["slow", "combo/fast"]
+    );
   });
 
   it("filters keys by name", () => {
