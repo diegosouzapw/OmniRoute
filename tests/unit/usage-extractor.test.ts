@@ -4,8 +4,15 @@ import assert from "node:assert/strict";
 const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");
 const { extractUsage, normalizeUsage } = await import("../../open-sse/utils/usageTracking.ts");
 const { parseSSEToClaudeResponse } = await import("../../open-sse/handlers/sseParser.ts");
-const { getLoggedInputTokens, getPromptCacheReadTokens, getPromptCacheCreationTokens } =
-  await import("../../src/lib/usage/tokenAccounting.ts");
+const { translateNonStreamingResponse } =
+  await import("../../open-sse/handlers/responseTranslator.ts");
+const {
+  getLoggedInputTokens,
+  getPromptCacheReadTokens,
+  getPromptCacheCreationTokens,
+  getPromptCacheReadTokensOrNull,
+  getPromptCacheCreationTokensOrNull,
+} = await import("../../src/lib/usage/tokenAccounting.ts");
 const { computeCostFromPricing } = await import("../../src/lib/usage/costCalculator.ts");
 
 test("normalizeUsage keeps finite nested cache-read fields for stream cost calculation", () => {
@@ -586,30 +593,19 @@ function anthropicMessageBody(usage: Record<string, unknown> = ANTHROPIC_USAGE) 
   };
 }
 
-const CLAUDE_FORMAT_PROVIDERS_WITHOUT_ANTHROPIC_ID = [
-  "kimi-coding",
-  "wafer",
-  "tabitoken",
-  "devin-cli-agentic",
-  "deepseek",
-  "xiaomi-mimo",
-  "xiaomi-mimo-token-plan",
-  "hcnsec",
-];
+// The rule keys on the body shape, not on a provider list, so one non-native id stands
+// for every Claude-format provider (kimi-coding, deepseek, zai, github /v1/messages, ...).
+test("extractUsageFromResponse totals Anthropic cache tokens for a non-native provider id", () => {
+  const usage = extractUsageFromResponse(anthropicMessageBody(), "kimi-coding");
 
-for (const provider of CLAUDE_FORMAT_PROVIDERS_WITHOUT_ANTHROPIC_ID) {
-  test(`extractUsageFromResponse totals Anthropic cache tokens for ${provider} non-streaming`, () => {
-    const usage = extractUsageFromResponse(anthropicMessageBody(), provider);
-
-    assert.deepEqual(usage, {
-      prompt_tokens: TOTAL_PROMPT_TOKENS,
-      completion_tokens: 50,
-      cache_read_input_tokens: 9_000,
-      cache_creation_input_tokens: 900,
-    });
-    assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS);
+  assert.deepEqual(usage, {
+    prompt_tokens: TOTAL_PROMPT_TOKENS,
+    completion_tokens: 50,
+    cache_read_input_tokens: 9_000,
+    cache_creation_input_tokens: 900,
   });
-}
+  assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS);
+});
 
 test("Anthropic-shaped non-streaming usage matches the native claude id and the streaming path", () => {
   const native = extractUsageFromResponse(anthropicMessageBody(), "claude");
@@ -669,9 +665,49 @@ test("Anthropic-shaped usage without cache keys keeps input as the prompt total"
   assert.equal(usage.completion_tokens, 7);
 });
 
+test("a Claude-format provider with no prompt cache keeps the cache counters N/A", () => {
+  // devin-cli-agentic builds Anthropic bodies with input/output only
+  // (open-sse/executors/devin-agentic/anthropicResponse.ts): no cache concept.
+  const usage = extractUsageFromResponse(
+    anthropicMessageBody({ input_tokens: 42, output_tokens: 7 }),
+    "devin-cli-agentic"
+  );
+
+  assert.equal(usage.prompt_tokens, 42);
+  assert.equal(usage.cache_read_input_tokens, undefined);
+  assert.equal(usage.cache_creation_input_tokens, undefined);
+  assert.equal(getPromptCacheReadTokensOrNull(usage), null);
+  assert.equal(getPromptCacheCreationTokensOrNull(usage), null);
+});
+
+test("a native Claude id still reports unreported cache counters as 0", () => {
+  const usage = extractUsageFromResponse(
+    anthropicMessageBody({ input_tokens: 42, output_tokens: 7 }),
+    "anthropic"
+  );
+
+  assert.equal(getPromptCacheReadTokensOrNull(usage), 0);
+  assert.equal(getPromptCacheCreationTokensOrNull(usage), 0);
+});
+
+test("a Claude-format provider reporting only one cache counter keeps the other N/A", () => {
+  const usage = extractUsageFromResponse(
+    anthropicMessageBody({ input_tokens: 100, output_tokens: 7, cache_read_input_tokens: 900 }),
+    "zai"
+  );
+
+  assert.equal(usage.prompt_tokens, 1_000);
+  assert.equal(getPromptCacheReadTokensOrNull(usage), 900);
+  assert.equal(getPromptCacheCreationTokensOrNull(usage), null);
+});
+
 test("Anthropic-shaped usage keeps reasoning tokens reported by Claude-format providers", () => {
   const thinking = extractUsageFromResponse(
     anthropicMessageBody({ ...ANTHROPIC_USAGE, output_tokens_details: { thinking_tokens: 20 } }),
+    "kimi-coding"
+  );
+  const nested = extractUsageFromResponse(
+    anthropicMessageBody({ ...ANTHROPIC_USAGE, output_tokens_details: { reasoning_tokens: 25 } }),
     "kimi-coding"
   );
   const flat = extractUsageFromResponse(
@@ -680,7 +716,37 @@ test("Anthropic-shaped usage keeps reasoning tokens reported by Claude-format pr
   );
 
   assert.equal(thinking.reasoning_tokens, 20);
+  assert.equal(nested.reasoning_tokens, 25);
+  assert.equal(nested.prompt_tokens, TOTAL_PROMPT_TOKENS);
   assert.equal(flat.reasoning_tokens, 30);
+});
+
+test("an OpenAI answer translated for a Claude client totals back to prompt_tokens", () => {
+  // Semantic-cache replays store the client-format body. For a Claude client served by
+  // an OpenAI provider, responseTranslator sets input_tokens = prompt - cache, so the
+  // extractor must add the cache back to recover the original prompt total.
+  const openAiAnswer = {
+    id: "chatcmpl-translated",
+    object: "chat.completion",
+    model: "gpt-test",
+    choices: [{ index: 0, message: { role: "assistant", content: "ok" }, finish_reason: "stop" }],
+    usage: {
+      prompt_tokens: TOTAL_PROMPT_TOKENS,
+      completion_tokens: 50,
+      total_tokens: TOTAL_PROMPT_TOKENS + 50,
+      prompt_tokens_details: { cached_tokens: 9_000, cache_creation_tokens: 900 },
+    },
+  };
+
+  const claudeBody = translateNonStreamingResponse(openAiAnswer, "openai", "claude");
+  assert.equal(claudeBody.type, "message");
+  assert.equal(claudeBody.usage.input_tokens, 100);
+
+  const usage = extractUsageFromResponse(claudeBody, "openai");
+  assert.equal(usage.prompt_tokens, TOTAL_PROMPT_TOKENS);
+  assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS);
+  assert.equal(getPromptCacheReadTokens(usage), 9_000);
+  assert.equal(getPromptCacheCreationTokens(usage), 900);
 });
 
 // Controls: bodies whose prompt total already includes cached tokens must not be
@@ -747,6 +813,30 @@ test("every usage shape stores the same prompt total for the same request", () =
     assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS, label);
     assert.equal(getPromptCacheReadTokens(usage), 9_000, label);
   }
+});
+
+test("flat Anthropic cache keys without a message body stay on the Responses branch", () => {
+  // MiniMax / Bedrock Responses usage carries flat cache_read_input_tokens next to an
+  // input_tokens that already includes them (responseSanitizer.ts maps the flat key to
+  // input_tokens_details.cached_tokens). Only the `type: "message"` body selects the
+  // Anthropic rule, so this usage must keep its reported input as the prompt total.
+  const usage = extractUsageFromResponse(
+    {
+      id: "resp_flat_cache",
+      output: [],
+      usage: {
+        input_tokens: TOTAL_PROMPT_TOKENS,
+        output_tokens: 50,
+        cache_read_input_tokens: 9_000,
+        cache_creation_input_tokens: 900,
+      },
+    },
+    "minimax"
+  );
+
+  assert.equal(usage.prompt_tokens, TOTAL_PROMPT_TOKENS);
+  assert.equal(usage.cached_tokens, 9_000);
+  assert.equal(getLoggedInputTokens(usage), TOTAL_PROMPT_TOKENS);
 });
 
 test("a message-typed body carrying Responses cached-token details is not re-totalled", () => {

@@ -106,12 +106,22 @@ export function extractUsageFromResponse(responseBody, provider) {
       responseBody.usage.output_tokens_details?.thinking_tokens ??
       responseBody.usage.output_tokens_details?.reasoning_tokens ??
       responseBody.usage.reasoning_tokens;
+    // Native Claude ids always carry both cache counters. Other Claude-format
+    // providers may have no prompt cache at all (devin-cli-agentic reports only
+    // input/output), so emit a counter only when it was reported: the dashboard then
+    // shows N/A instead of 0, as the OpenAI branch above does for cache writes.
+    const reportedCache = (value: unknown) =>
+      isClaudeProvider || (value !== undefined && value !== null);
 
     return {
       prompt_tokens: promptTokens,
       completion_tokens: responseBody.usage.output_tokens || 0,
-      cache_read_input_tokens: cacheRead,
-      cache_creation_input_tokens: cacheCreation,
+      ...(reportedCache(responseBody.usage.cache_read_input_tokens)
+        ? { cache_read_input_tokens: cacheRead }
+        : {}),
+      ...(reportedCache(responseBody.usage.cache_creation_input_tokens)
+        ? { cache_creation_input_tokens: cacheCreation }
+        : {}),
       ...(typeof reasoningTokens === "number" ? { reasoning_tokens: reasoningTokens } : {}),
     };
   }
