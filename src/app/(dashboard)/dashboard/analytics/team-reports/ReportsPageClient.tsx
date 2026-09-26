@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import type {
@@ -14,6 +14,8 @@ import { fmtCompact, formatCost } from "@/shared/utils/formatting";
 import BreakdownTable from "./components/BreakdownTable";
 import ReportFilters from "./components/ReportFilters";
 import SessionsPanel from "./components/SessionsPanel";
+import { CacheTokens, useTokenLabels } from "./components/TokenFigures";
+import { splitTokens } from "./components/format";
 import {
   emptyFilters,
   presetWindow,
@@ -87,10 +89,20 @@ async function loadReport(query: string, signal: AbortSignal): Promise<AgentSess
   return res.json();
 }
 
+interface KpiCard {
+  label: string;
+  value?: string;
+  /** Several labelled figures in place of the single value. */
+  figures?: Array<[string, ReactNode]>;
+  hint: string | null;
+}
+
 function KpiCards({ totals }: { totals: ReportTotals }) {
   const t = useTranslations("reports");
+  const tokenLabels = useTokenLabels();
+  const tokens = splitTokens(totals.tokens);
   const errorRate = totals.requests ? ((totals.errors / totals.requests) * 100).toFixed(1) : "0";
-  const cards = [
+  const cards: KpiCard[] = [
     {
       label: t("kpiCost"),
       value: formatCost(totals.costUsd),
@@ -98,12 +110,12 @@ function KpiCards({ totals }: { totals: ReportTotals }) {
     },
     {
       label: t("kpiTokens"),
-      value: fmtCompact(totals.tokens.total),
-      hint: t("kpiTokensDetail", {
-        input: fmtCompact(totals.tokens.input),
-        output: fmtCompact(totals.tokens.output),
-        cache: fmtCompact(totals.tokens.cacheRead),
-      }),
+      figures: [
+        [tokenLabels.input, fmtCompact(tokens.input)],
+        [tokenLabels.output, fmtCompact(tokens.output)],
+        [tokenLabels.cache, <CacheTokens key="cache" split={tokens} />],
+      ],
+      hint: null,
     },
     {
       label: t("kpiSessions"),
@@ -125,7 +137,18 @@ function KpiCards({ totals }: { totals: ReportTotals }) {
           <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
             {card.label}
           </p>
-          <p className="mt-1 text-xl font-bold tabular-nums text-text-main">{card.value}</p>
+          {card.figures ? (
+            <dl className="mt-1 space-y-0.5">
+              {card.figures.map(([term, value]) => (
+                <div key={term} className="flex items-baseline justify-between gap-2">
+                  <dt className="text-xs text-text-muted">{term}</dt>
+                  <dd className="text-sm font-bold tabular-nums text-text-main">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="mt-1 text-xl font-bold tabular-nums text-text-main">{card.value}</p>
+          )}
           {card.hint && <p className="mt-0.5 text-xs text-text-muted">{card.hint}</p>}
         </Card>
       ))}

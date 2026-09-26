@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import type { AgentSessionRecentUsage, AgentSessionRecord } from "@/lib/db/agentSessions";
 import { Modal, Select } from "@/shared/components";
 import { fmtCompact, formatCost } from "@/shared/utils/formatting";
 
-import { formatDateTime } from "./format";
+import { formatDateTime, splitTokens } from "./format";
+import { CacheTokens, useTokenLabels } from "./TokenFigures";
 
 const PAGE_SIZE = 25;
 const SORT_FIELDS = ["lastSeen", "firstSeen", "requests", "tokens", "cost"] as const;
@@ -27,6 +28,7 @@ interface SessionDetail {
 
 function SessionDetailModal({ sessionId, onClose }: { sessionId: string; onClose: () => void }) {
   const t = useTranslations("reports");
+  const tokenLabels = useTokenLabels();
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -45,6 +47,21 @@ function SessionDetailModal({ sessionId, onClose }: { sessionId: string; onClose
   }, [sessionId]);
 
   const session = detail?.session;
+  const tokens = session && splitTokens(session.tokens);
+  const facts: Array<[string, ReactNode]> = session
+    ? [
+        [t("member"), session.apiKeyName ?? session.apiKeyId ?? "-"],
+        [t("project"), session.projectName ?? "-"],
+        [t("colBranch"), session.gitBranch ?? "-"],
+        [t("colCost"), formatCost(session.costUsd)],
+        [t("colRequests"), `${session.requestCount} (${session.errorCount} ${t("colErrors")})`],
+        [tokenLabels.input, fmtCompact(tokens.input)],
+        [tokenLabels.output, fmtCompact(tokens.output)],
+        [tokenLabels.cache, <CacheTokens key="cache" split={tokens} />],
+        [t("colFirstSeen"), formatDateTime(session.firstSeenAt)],
+        [t("colLastActive"), formatDateTime(session.lastSeenAt)],
+      ]
+    : [];
   return (
     <Modal isOpen onClose={onClose} size="xl" title={t("sessionDetail")}>
       {!session ? (
@@ -54,19 +71,7 @@ function SessionDetailModal({ sessionId, onClose }: { sessionId: string; onClose
       ) : (
         <div className="space-y-4 text-sm">
           <dl className="grid grid-cols-2 gap-3 rounded-lg border border-border p-3 sm:grid-cols-4">
-            {[
-              [t("member"), session.apiKeyName ?? session.apiKeyId ?? "-"],
-              [t("project"), session.projectName ?? "-"],
-              [t("colBranch"), session.gitBranch ?? "-"],
-              [t("colCost"), formatCost(session.costUsd)],
-              [
-                t("colRequests"),
-                `${session.requestCount} (${session.errorCount} ${t("colErrors")})`,
-              ],
-              [t("colTokens"), fmtCompact(session.tokens.total)],
-              [t("colFirstSeen"), formatDateTime(session.firstSeenAt)],
-              [t("colLastActive"), formatDateTime(session.lastSeenAt)],
-            ].map(([term, value]) => (
+            {facts.map(([term, value]) => (
               <div key={term}>
                 <dt className="text-xs uppercase text-text-muted">{term}</dt>
                 <dd className="font-medium text-text-main">{value}</dd>
@@ -119,6 +124,7 @@ function SessionDetailModal({ sessionId, onClose }: { sessionId: string; onClose
 
 export default function SessionsPanel({ query, refreshToken }: SessionsPanelProps) {
   const t = useTranslations("reports");
+  const tokenLabels = useTokenLabels();
   const [sort, setSort] = useState<SessionSort>("lastSeen");
   const [desc, setDesc] = useState(true);
   // Paging is tied to the query it was chosen for, so a filter change starts again at page 1.
@@ -180,7 +186,9 @@ export default function SessionsPanel({ query, refreshToken }: SessionsPanelProp
                 <th className="py-2 px-3">{t("client")}</th>
                 <th className="py-2 px-3">{t("colBranch")}</th>
                 <th className="py-2 px-3 text-right">{t("colRequests")}</th>
-                <th className="py-2 px-3 text-right">{t("colTokens")}</th>
+                <th className="py-2 px-3 text-right">{tokenLabels.input}</th>
+                <th className="py-2 px-3 text-right">{tokenLabels.output}</th>
+                <th className="py-2 px-3 text-right">{tokenLabels.cache}</th>
                 <th className="py-2 px-3 text-right">{t("colCost")}</th>
                 <th className="py-2 px-3">{t("colLastActive")}</th>
                 <th className="py-2 px-3" />
@@ -202,7 +210,13 @@ export default function SessionsPanel({ query, refreshToken }: SessionsPanelProp
                   </td>
                   <td className="py-2.5 px-3 text-right tabular-nums">{session.requestCount}</td>
                   <td className="py-2.5 px-3 text-right tabular-nums">
-                    {fmtCompact(session.tokens.total)}
+                    {fmtCompact(splitTokens(session.tokens).input)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right tabular-nums">
+                    {fmtCompact(splitTokens(session.tokens).output)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right tabular-nums">
+                    <CacheTokens split={splitTokens(session.tokens)} />
                   </td>
                   <td className="py-2.5 px-3 text-right font-mono tabular-nums text-green-500">
                     {formatCost(session.costUsd)}

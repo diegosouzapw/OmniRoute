@@ -6,10 +6,20 @@ import { useTranslations } from "next-intl";
 import type { ReportBreakdownRow } from "@/lib/usage/agentSessionReports";
 import { fmtCompact, formatCost } from "@/shared/utils/formatting";
 
-import { formatDateTime } from "./format";
+import { formatDateTime, splitTokens } from "./format";
+import { CacheTokens, useTokenLabels } from "./TokenFigures";
 
 type SortKey =
-  "name" | "extra" | "sessions" | "requests" | "errors" | "tokens" | "cost" | "lastSeen";
+  | "name"
+  | "extra"
+  | "sessions"
+  | "requests"
+  | "errors"
+  | "input"
+  | "output"
+  | "cache"
+  | "cost"
+  | "lastSeen";
 type ExtraCount = "members" | "projects";
 
 interface BreakdownTableProps {
@@ -29,8 +39,10 @@ function sortValue(row: ReportBreakdownRow, key: SortKey, extra: ExtraCount): st
       return (row.label ?? row.key).toLowerCase();
     case "extra":
       return row[extra];
-    case "tokens":
-      return row.tokens.total;
+    case "input":
+    case "output":
+    case "cache":
+      return splitTokens(row.tokens)[key];
     case "cost":
       return row.costUsd;
     case "lastSeen":
@@ -50,6 +62,7 @@ export default function BreakdownTable({
   onFilter,
 }: BreakdownTableProps) {
   const t = useTranslations("reports");
+  const tokenLabels = useTokenLabels();
   const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({
     key: defaultSort,
     desc: defaultSort !== "name",
@@ -77,7 +90,9 @@ export default function BreakdownTable({
     { key: "sessions", label: t("colSessions"), numeric: true },
     { key: "requests", label: t("colRequests"), numeric: true },
     { key: "errors", label: t("colErrors"), numeric: true },
-    { key: "tokens", label: t("colTokens"), numeric: true },
+    { key: "input", label: tokenLabels.input, numeric: true },
+    { key: "output", label: tokenLabels.output, numeric: true },
+    { key: "cache", label: tokenLabels.cache, numeric: true },
     { key: "cost", label: t("colCost"), numeric: true },
     { key: "lastSeen", label: t("colLastActive") },
   ];
@@ -139,7 +154,13 @@ export default function BreakdownTable({
               <td className="py-2.5 px-3 text-right tabular-nums">{row.requests}</td>
               <td className="py-2.5 px-3 text-right tabular-nums">{row.errors}</td>
               <td className="py-2.5 px-3 text-right tabular-nums">
-                {fmtCompact(row.tokens.total)}
+                {fmtCompact(splitTokens(row.tokens).input)}
+              </td>
+              <td className="py-2.5 px-3 text-right tabular-nums">
+                {fmtCompact(splitTokens(row.tokens).output)}
+              </td>
+              <td className="py-2.5 px-3 text-right tabular-nums">
+                <CacheTokens split={splitTokens(row.tokens)} />
               </td>
               <td className="py-2.5 px-3 text-right font-mono tabular-nums text-green-500">
                 {formatCost(row.costUsd)}
