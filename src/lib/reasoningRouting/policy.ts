@@ -590,8 +590,19 @@ export function applyReasoningRuleDirective(
   delete body._omnirouteReasoningRule;
   const effortMode = directive.effortMode;
   const targetEffort = effort(directive.targetEffort);
-  if (effortMode === "force" && targetEffort === "none") clearReasoning(body);
-  else if ((effortMode === "force" || effortMode === "default") && targetEffort) {
+  if (effortMode === "force" && targetEffort === "none") {
+    clearReasoning(body);
+    // `clearReasoning` only REMOVES reasoning/thinking params. Providers whose
+    // thinking mode defaults ON (e.g. DeepSeek V4 behind its native Responses
+    // API) treat an ABSENT field as "thinking enabled" and then reject the next
+    // tool-call turn with:
+    //   400 The `reasoning_text` in the thinking mode must be passed back to the API.
+    // Emit the explicit OpenAI no-thinking carrier (`reasoning_effort: "none"`)
+    // so a forced-off rule really disables thinking. Providers that reject the
+    // literal `none` are clamped by the dispatch-time sanitizer
+    // (open-sse/executors/base/reasoningEffort.ts).
+    body.reasoning_effort = "none";
+  } else if ((effortMode === "force" || effortMode === "default") && targetEffort) {
     if (effortMode === "force") clearDiscreteReasoning(body);
     if (!targetFormat) body.reasoning_effort = targetEffort;
     if (targetFormat !== "claude")
