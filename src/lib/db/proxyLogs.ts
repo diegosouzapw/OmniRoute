@@ -161,6 +161,34 @@ export function getRecentEgressIpForProxy(
   return { egressIp: row.egress_ip, at: row.timestamp };
 }
 
+/**
+ * Distinct non-null egress IPs observed through a proxy endpoint since
+ * `sinceIso` (up to `limit`). Same host-key normalization and port validation
+ * as `getRecentEgressIpForProxy`: anything unusable yields `[]`, never a throw.
+ */
+export function getRecentEgressIpsForProxy(
+  host: string,
+  port: number,
+  sinceIso: string,
+  limit = 3
+): string[] {
+  const h = normalizeProxyHostKey(host);
+  if (!h) return [];
+  if (!Number.isInteger(port) || port < 1 || port > 65535) return [];
+  if (typeof sinceIso !== "string" || !sinceIso) return [];
+  const capped = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 10) : 3;
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT DISTINCT egress_ip FROM proxy_logs
+       WHERE proxy_host = ? AND proxy_port = ?
+         AND egress_ip IS NOT NULL AND timestamp >= ?
+       LIMIT ?`
+    )
+    .all(h, port, sinceIso, capped) as Array<{ egress_ip: string }>;
+  return rows.map((r) => r.egress_ip).filter((ip) => typeof ip === "string" && ip);
+}
+
 export type PoolEgressObservationCounts = {
   connections: number;
   distinctExits: number;

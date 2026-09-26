@@ -1,0 +1,1 @@
+- **feat(sse):** record per-request added wait with cause in call logs ([#14756](https://github.com/diegosouzapw/OmniRoute/pull/14756)) — thanks @maxmad64bis

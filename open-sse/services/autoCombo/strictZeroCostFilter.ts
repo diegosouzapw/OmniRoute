@@ -273,20 +273,32 @@ export function classifyStrictZeroCostCandidate(
 }
 
 /**
- * Pool-level filter, same off-by-default identity contract as
- * `filterPaidOnlyCandidates`. For a candidate that survives with a NARROWED
- * connection set (the multi-account case), the returned object has
- * `allowedConnectionIds` rewritten to exactly the SAFE subset — dispatch can
- * then never select a connection this filter didn't verify, because
- * `autoStrategy.ts` already enforces `allowedConnectionIds` as a hard
- * allowlist downstream (see the module docstring above).
+ * Pool-level filter with diagnosis, mirroring
+ * `filterPaidOnlyCandidatesWithDiagnosis`'s own shape. Carries the filtering
+ * logic; `filterStrictZeroCostCandidates` below is a thin wrapper over it.
+ * When the opt-in is off, or when nothing is excluded, the pool is returned
+ * unchanged (identity) with a null diagnosis — the same off-by-default
+ * identity contract as `filterPaidOnlyCandidates`. For a candidate that
+ * survives with a NARROWED connection set (the multi-account case), the
+ * returned object has `allowedConnectionIds` rewritten to exactly the SAFE
+ * subset — dispatch can then never select a connection this filter didn't
+ * verify, because `autoStrategy.ts` already enforces `allowedConnectionIds`
+ * as a hard allowlist downstream (see the module docstring above).
  */
-export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate>(
+export type StrictFilterDiagnosis = {
+  excluded: number;
+  noHardStop: number;
+  exhausted: number;
+  stateUnknown: number;
+  total: number;
+};
+
+export function filterStrictZeroCostCandidatesWithDiagnosis<T extends StrictZeroCostCandidate>(
   pool: T[],
   options: StrictZeroCostOptions,
   traceInvocationId?: string
-): T[] {
-  if (!options.enabled) return pool;
+): { pool: T[]; diagnosis: StrictFilterDiagnosis | null } {
+  if (!options.enabled) return { pool, diagnosis: null };
 
   const kept: T[] = [];
   let changed = false;
@@ -339,7 +351,17 @@ export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate
       kept.push({ ...candidate, allowedConnectionIds: safeConnectionIds });
     }
   }
-  return changed ? kept : pool;
+  if (!changed) return { pool, diagnosis: null };
+  const counts = countStrictExclusions(pool, options);
+  return { pool: kept, diagnosis: { ...counts, total: pool.length } };
+}
+
+export function filterStrictZeroCostCandidates<T extends StrictZeroCostCandidate>(
+  pool: T[],
+  options: StrictZeroCostOptions,
+  traceInvocationId?: string
+): T[] {
+  return filterStrictZeroCostCandidatesWithDiagnosis(pool, options, traceInvocationId).pool;
 }
 
 /**

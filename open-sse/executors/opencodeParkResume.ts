@@ -20,6 +20,7 @@ import { PARKED_STREAM_HEADER, PARKED_STREAM_VALUE } from "../utils/streamReadin
 import { isProxyAvoided, proxyEgressKey, proxySetAsideSeq } from "../utils/proxyRefusalMemory.ts";
 import { maskAccountId, type RotatableAccount } from "./accountRotation.ts";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { noteResilienceAction } from "@/lib/usage/resilienceActionsContext.ts";
 import type { ExecuteInput, ExecutorExecuteResult } from "./base.ts";
 
 /** Consecutive transient 429s before a request parks. */
@@ -251,10 +252,22 @@ export async function runParkAndReplay<TAccount extends RotatableAccount>(
         }
         const probe = await replayOneLeg(driver, input, driver.accounts, log, cid);
         const finalBody = probe?.result.response ?? fallback.response;
+        // stream note: note only AFTER the recopy outcome is known. A stored 429
+        // fallback recopied into the 200 SSE envelope is still a stored
+        // error replay — flag alone decides at read time.
+        let recopied = true;
         try {
           await copyFinalBodyAsValidFrames(controller, encoder, finalBody);
         } catch {
-          /* unreadable body — close with the pings already sent */
+          // Unreadable body — the client got pings only, not the replay.
+          recopied = false;
+        }
+        if (probe == null && fallback.response.status === 429) {
+          noteResilienceAction({ stored429: true, replayed: false });
+        } else if (probe != null && recopied) {
+          noteResilienceAction({ replayed: true });
+        } else if (probe != null) {
+          noteResilienceAction({ replayed: false });
         }
         try {
           controller.close();

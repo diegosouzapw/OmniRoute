@@ -207,8 +207,20 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: "PROXY_SKIP_RECENTLY_FAILED",
     label: "Skip Recently Failed Proxies",
     description:
-      "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. Off by default: selection order is exactly the plain rotation.",
+      "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. On by default: selection order is exactly the plain rotation only with PROXY_SKIP_RECENTLY_FAILED=false.",
     descriptionI18nKey: "featureFlagProxySkipRecentlyFailedDescription",
+    category: "network",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "PROXY_POOL_SHARED_EGRESS_ORDER",
+    label: "Shared Egress Pool Order",
+    description:
+      "For providers whose quota is bucketed by egress address, rank a pool member sharing a recently refused member's observed egress address just below healthy members. Order only, never excluded. Needs PROXY_SKIP_RECENTLY_FAILED, which produces the refusal signal it reads. Off by default: selection order is exactly the plain rotation.",
+    descriptionI18nKey: "featureFlagProxyPoolSharedEgressOrderDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",
@@ -317,6 +329,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description:
       "For streaming chat requests, when the first upstream body stalls before producing a usable event, issue one bounded second attempt through the same routing path with the same readiness budget and no account penalty. Off by default: a stalled first body fails the request without a retry.",
     descriptionI18nKey: "featureFlagStreamReadinessStallRetryDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "OPENCODE_POOL_RESELECT",
+    label: "OpenCode 429 Pool Reselect",
+    description:
+      "For the OpenCode multi-account rotation, after a 429 from an egress-bucketed provider on a proxy-less account under an ambient pool context, ask the connection pool for another member for the next attempt instead of retrying the same egress address. Orders, never excludes: an exhausted pool keeps the current behavior. Off by default: every 429 rotates to the next account exactly as before.",
+    descriptionI18nKey: "featureFlagOpencodePoolReselectDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",
