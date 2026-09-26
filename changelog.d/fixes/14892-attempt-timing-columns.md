@@ -1,0 +1,1 @@
+- **fix(db):** record per-attempt upstream headers and first-chunk durations on proxy log rows ([#14892](https://github.com/diegosouzapw/OmniRoute/pull/14892)) — thanks @maxmad64bis

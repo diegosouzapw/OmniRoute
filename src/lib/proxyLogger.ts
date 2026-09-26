@@ -76,6 +76,10 @@ interface ProxyLogEntry {
   attemptNumber: number | null;
   /** Outcome of this send within its request journal; null for unjournaled rows. */
   attemptIssue: "served" | "abandoned" | null;
+  /** Send start -> response headers received; null when unknown (network throw). */
+  headersMs: number | null;
+  /** Send start -> first useful body byte; null until the byte arrives. */
+  firstChunkMs: number | null;
 }
 
 type ProxyLogInput = Partial<ProxyLogEntry> & {
@@ -141,6 +145,8 @@ function loadFromDb() {
           row.attempt_issue === "served" || row.attempt_issue === "abandoned"
             ? row.attempt_issue
             : null,
+        headersMs: sanitizeTimingField(row.headers_ms),
+        firstChunkMs: sanitizeTimingField(row.first_chunk_ms),
       });
     }
 
@@ -202,6 +208,15 @@ export function formatProxyEgressConsoleLine(params: {
 
 // ──────────────── Log a proxy event ────────────────
 
+/**
+ * Non-negative integer durations only: unknown, clock-skewed, or malformed
+ * values stay null so partially migrated databases never corrupt a row.
+ * Shared by the entry builder and the deferred timing patch below.
+ */
+export function sanitizeTimingField(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
+}
+
 export function logProxyEvent(entry: ProxyLogInput) {
   const safeError =
     entry.error === null || entry.error === undefined || entry.error === ""
@@ -240,6 +255,8 @@ export function logProxyEvent(entry: ProxyLogInput) {
       entry.attemptIssue === "served" || entry.attemptIssue === "abandoned"
         ? entry.attemptIssue
         : null,
+    headersMs: sanitizeTimingField(entry.headersMs),
+    firstChunkMs: sanitizeTimingField(entry.firstChunkMs),
   };
 
   // Structured egress line so the operator can confirm, in the proxy logs, which
@@ -327,15 +344,18 @@ export function flushProxyLogsSync() {
   // 2. Persist to SQLite using a single transaction for high-performance non-blocking write
   try {
     const db = getDbInstance();
+    // Self-heal before the fixed-column INSERT: a partially migrated database
+    // would otherwise throw "no such column" instead of storing NULL.
+    ensureProxyLogsColumns(db);
     const insertStmt = db.prepare(
       `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port, proxy_name,
         level, level_id, provider, target_url, public_ip, egress_ip, latency_ms, error,
         connection_id, combo_id, account, rotation_account, correlation_id, tls_fingerprint, upstream_status,
-        attempt_number, attempt_issue)
+        attempt_number, attempt_issue, headers_ms, first_chunk_ms)
       VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort, @proxyName,
         @level, @levelId, @provider, @targetUrl, @clientIp, @egressIp, @latencyMs, @error,
         @connectionId, @comboId, @account, @rotationAccount, @correlationId, @tlsFingerprint, @upstreamStatus,
-        @attemptNumber, @attemptIssue)`
+        @attemptNumber, @attemptIssue, @headersMs, @firstChunkMs)`
     );
 
     const transaction = db.transaction((entries: ProxyLogEntry[]) => {
@@ -365,6 +385,8 @@ export function flushProxyLogsSync() {
           upstreamStatus: item.upstreamStatus,
           attemptNumber: item.attemptNumber,
           attemptIssue: item.attemptIssue,
+          headersMs: item.headersMs,
+          firstChunkMs: item.firstChunkMs,
         });
       }
     });
@@ -375,6 +397,76 @@ export function flushProxyLogsSync() {
       "[proxyLogger] Failed to write proxy log batch to disk:",
       sanitizeErrorMessage(err) || "Proxy log persistence failed"
     );
+  }
+}
+
+// ──────────────── Deferred timing patch ────────────────
+
+// Bounded join key for late first-chunk arrivals: log id -> queued entry ref.
+// Registered only when the first byte is still unknown at journal time; every
+// entry leaves through exactly one path below (notify, settle-without-byte,
+// cancel/error, cap eviction, clear). Cap mirrors the ring buffer so the
+// registry never retains more than memory already does.
+export const TIMING_LINK_CAP = 200;
+const pendingFirstChunk = new Map<string, ProxyLogEntry>();
+
+function evictOldestTimingLink(): void {
+  const oldest = pendingFirstChunk.keys().next();
+  if (!oldest.done) pendingFirstChunk.delete(oldest.value);
+}
+
+/**
+ * Totest seam: current registry size (bounded by TIMING_LINK_CAP).
+ */
+export function pendingFirstChunkSizeForTests(): number {
+  return pendingFirstChunk.size;
+}
+
+/**
+ * Link a journaled row to its still-open upstream body. Called by the journal
+ * layer right after logProxyEvent returns the entry, when the first byte has
+ * not arrived yet. No-ops (no entry) when the timing is already known or when
+ * there is no body to wait for.
+ */
+export function linkPendingFirstChunk(
+  id: string,
+  entry: ProxyLogEntry,
+  timingKnown: boolean,
+  hasBody: boolean
+): void {
+  if (timingKnown || !hasBody) return;
+  if (pendingFirstChunk.size >= TIMING_LINK_CAP) evictOldestTimingLink();
+  pendingFirstChunk.set(id, entry);
+}
+
+function dropPendingFirstChunk(id: string): void {
+  pendingFirstChunk.delete(id);
+}
+
+/**
+ * Settle a linked row once the first useful body byte arrives (or never does).
+ * Before the batch flush the queued object is mutated in place so the INSERT
+ * carries the value; after the flush the row is patched by id and the
+ * in-memory copy is updated. Every path drops the registry entry.
+ * The patch callback keeps this module decoupled from the db writer: the
+ * journal/capture layer passes updateAttemptTiming from the owned db module.
+ */
+export function settlePendingFirstChunk(
+  id: string,
+  firstChunkMs: number | null,
+  patchRow?: (id: string, patch: { firstChunkMs: number | null }) => boolean
+): void {
+  const entry = pendingFirstChunk.get(id);
+  dropPendingFirstChunk(id);
+  if (!entry) return;
+  const clean = sanitizeTimingField(firstChunkMs);
+  entry.firstChunkMs = clean;
+  if (!shouldPersistToDisk) return;
+  if (pendingLogsQueue.includes(entry)) return;
+  try {
+    patchRow?.(id, { firstChunkMs: clean });
+  } catch {
+    // Deferred visibility is best-effort; the in-memory copy above stays correct.
   }
 }
 
@@ -431,6 +523,7 @@ export function getProxyLogs(filters: ProxyLogFilters = {}) {
 
 export function clearProxyLogs() {
   proxyLogs.length = 0;
+  pendingFirstChunk.clear();
 
   if (shouldPersistToDisk) {
     try {

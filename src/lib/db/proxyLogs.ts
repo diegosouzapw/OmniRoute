@@ -303,6 +303,45 @@ export function getPoolEgressFailureBreakdown(
 }
 
 /**
+ * Deferred per-attempt upstream timing patch. Rows are inserted with the
+ * first-chunk duration unknown on slow streams (NULL); the capture layer
+ * patches it once the first useful body byte arrives. Only non-negative
+ * integers are written - anything else is rejected (returns false) so
+ * partially migrated databases and clock skew never corrupt the row.
+ * Returns true when exactly one row was patched.
+ */
+export function updateAttemptTiming(
+  id: string,
+  patch: { headersMs?: number | null; firstChunkMs?: number | null }
+): boolean {
+  if (typeof id !== "string" || !id) return false;
+  const clean = {
+    headersMs: sanitizeTimingValue(patch.headersMs),
+    firstChunkMs: sanitizeTimingValue(patch.firstChunkMs),
+  };
+  if (clean.headersMs === undefined && clean.firstChunkMs === undefined) return false;
+  const db = getDbInstance();
+  const sets: string[] = [];
+  const params: Record<string, unknown> = { id };
+  if (clean.headersMs !== undefined) {
+    sets.push("headers_ms = @headersMs");
+    params.headersMs = clean.headersMs;
+  }
+  if (clean.firstChunkMs !== undefined) {
+    sets.push("first_chunk_ms = @firstChunkMs");
+    params.firstChunkMs = clean.firstChunkMs;
+  }
+  const result = db.prepare(`UPDATE proxy_logs SET ${sets.join(", ")} WHERE id = @id`).run(params);
+  return Number(result.changes) === 1;
+}
+
+function sanitizeTimingValue(value: number | null | undefined): number | null | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) return undefined;
+  return value;
+}
+
+/**
  * How many distinct observed egress IPs served a proxy pool's members since `since`, how
  * many OmniRoute connections went through them, and the most connections seen behind one
  * egress IP over that window. Members are matched to log rows by host and port, so two
