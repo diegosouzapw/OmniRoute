@@ -692,3 +692,38 @@ test("deadline token registry returns to its original size after N requests", as
     "a released token must not resolve through the header fallback"
   );
 });
+
+// Next.js hands App Router handlers without a `dynamic` export a Proxy around the
+// NextRequest (`proxyNextRequest`). Private class fields do not pass through a
+// Proxy, so `new Request(proxiedRequest, init)` threw "Cannot read private member
+// #state" and every /v1/chat/completions, /v1/messages and /v1/responses call
+// returned 500. The wrap must rebuild from public accessors instead.
+test("withDeadlineSignal accepts a Proxy-wrapped request (Next.js proxyNextRequest)", async () => {
+  const client = new AbortController();
+  const inner = new Request("http://localhost/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Test": "kept" },
+    body: '{"model":"auto"}',
+    signal: client.signal,
+  });
+  const proxied = new Proxy(inner, {
+    get: (target, prop) => Reflect.get(target, prop, target),
+  });
+
+  const { wrappedReq, deadlineController } = withDeadlineSignal(proxied);
+
+  assert.equal(wrappedReq.method, "POST");
+  assert.equal(wrappedReq.url, "http://localhost/v1/chat/completions");
+  assert.equal(wrappedReq.headers.get("x-test"), "kept");
+  assert.equal(await wrappedReq.text(), '{"model":"auto"}');
+  assert.equal(getDeadlineController(wrappedReq), deadlineController);
+  assert.equal(wrappedReq.signal.aborted, false);
+  client.abort();
+  assert.equal(wrappedReq.signal.aborted, true, "client abort must still reach the wrapped signal");
+});
+
+test("withDeadlineSignal keeps a body-less GET request valid", () => {
+  const { wrappedReq } = withDeadlineSignal(new Request("http://localhost/v1/models"));
+  assert.equal(wrappedReq.method, "GET");
+  assert.equal(wrappedReq.body, null);
+});

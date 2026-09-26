@@ -312,9 +312,12 @@ export function __getDeadlineTokenRegistrySizeForTests(): number {
  *
  * The wrapped request MUST be the one the route hands downstream (admission,
  * body parse, `handleChat`): the handler snapshots `request.signal` after
- * admission, so wrapping after that point would not propagate. Rebuilt via
- * `new Request(request, { signal, headers })`, which preserves method, url and
- * body byte-for-byte.
+ * admission, so wrapping after that point would not propagate. Rebuilt from the
+ * public accessors (url, method, headers, redirect, body stream), which
+ * preserves method, url and body byte-for-byte. It must NOT be
+ * `new Request(request, init)`: Next.js hands handlers without a `dynamic`
+ * export a Proxy around the NextRequest (`proxyNextRequest`), and the Request
+ * constructor reads the input's private `#state`, which throws through a Proxy.
  *
  * Controller recovery downstream (`getDeadlineController`) is two-layered:
  * the combined signal object (fast path — same object when nothing rebuilds),
@@ -338,7 +341,15 @@ export function withDeadlineSignal(request: Request): {
   // admission rebuilds, which both copy headers but mint new signal objects.
   const token = `dl-${Date.now().toString(36)}-${(deadlineTokenSeq += 1)}`;
   headers.set(DEADLINE_TOKEN_HEADER, token);
-  const wrappedReq = new Request(request, { signal: combined, headers });
+  const hasBody = request.method !== "GET" && request.method !== "HEAD";
+  const wrappedReq = new Request(request.url, {
+    method: request.method,
+    headers,
+    body: hasBody ? request.body : null,
+    redirect: request.redirect,
+    signal: combined,
+    duplex: "half",
+  } as RequestInit & { duplex: "half" });
   deadlineControllers.set(combined, deadlineController);
   deadlineControllersByToken.set(token, new WeakRef(deadlineController));
   deadlineTokenByController.set(deadlineController, token);
