@@ -21,7 +21,7 @@ state itself is part of the resilience model — see
 
 ## Built-in keywords
 
-These 8 substrings always apply (case-insensitive), regardless of any custom list:
+These 7 substrings always apply (case-insensitive), regardless of any custom list:
 
 ```
 account_deactivated
@@ -29,7 +29,6 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
