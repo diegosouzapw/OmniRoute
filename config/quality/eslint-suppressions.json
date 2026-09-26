@@ -3790,11 +3790,6 @@
       "count": 3
     }
   },
-  "tests/unit/gemini-business-provider.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/gemini-finish-reason-normalization.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
