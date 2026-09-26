@@ -733,11 +733,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/batch/components/wizard/InputStep.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1

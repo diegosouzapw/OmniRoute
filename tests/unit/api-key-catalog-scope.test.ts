@@ -93,15 +93,15 @@ test("R5: the catalog skips exactly the rows the scope excludes", () => {
 });
 
 test("R6: the API Manager wires the control and defaults it to 'all'", () => {
-  const client = read("src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx");
-  assert.ok(client.includes("ApiKeyCatalogScopeSelect"), "the modal must render the control");
+  const tab = read("src/app/(dashboard)/dashboard/api-manager/[id]/access/tabs/ModelsTab.tsx");
+  const form = read("src/app/(dashboard)/dashboard/api-manager/[id]/access/useApiKeyAccessForm.ts");
+  assert.ok(tab.includes("ApiKeyCatalogScopeSelect"), "the models tab must render the control");
   assert.ok(
-    client.includes('useState<CatalogScope>(apiKey?.catalogScope ?? "all")'),
+    form.includes('catalogScope: apiKey?.catalogScope ?? "all"'),
     "state must default to 'all' so a key predating the field is unchanged"
   );
-  assert.match(
-    client,
-    /body: JSON\.stringify\(\{[\s\S]*?catalogScope,[\s\S]*?\}\)/,
-    "the PATCH body must include catalogScope"
+  assert.ok(
+    form.includes("catalogScope: formState.catalogScope,"),
+    "the buildApiKeyAccessPayload must include catalogScope"
   );
 });
