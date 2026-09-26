@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import Card from "./Card";
 import Button from "./Button";
@@ -274,6 +274,8 @@ export default function NoAuthAccountCard({
   const [manualApiKey, setManualApiKey] = useState("");
   const [addingManualKey, setAddingManualKey] = useState(false);
   const [showManualKeyInput, setShowManualKeyInput] = useState(false);
+  const [setAsideProxyIds, setSetAsideProxyIds] = useState<Record<string, string | null>>({});
+  const setAsideInflight = useRef<Set<string>>(new Set());
   const [assignments, setAssignments] = useState<EffectiveEgressAssignment[] | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -351,10 +353,56 @@ export default function NoAuthAccountCard({
     }
   }, [proxyAccountId]);
 
-  const allAccountIds = connections.flatMap((c) => c.providerSpecificData?.[dataKey] || []);
+  const checkSetAside = useCallback(async (proxyId: string) => {
+    if (!proxyId || setAsideInflight.current.has(proxyId)) return;
+    setAsideInflight.current.add(proxyId);
+    try {
+      const res = await fetch(
+        `/api/admin/proxy-pool-visibility?proxyId=${encodeURIComponent(proxyId)}`
+      );
+      const payload = await res.json().catch(() => ({}));
+      const member = Array.isArray(payload?.members) ? payload.members[0] : null;
+      setSetAsideProxyIds((prev) =>
+        prev[proxyId] !== undefined
+          ? prev
+          : { ...prev, [proxyId]: member?.setAside ? (member.setAside.endsAt ?? "") : null }
+      );
+    } catch {
+      setSetAsideProxyIds((prev) =>
+        prev[proxyId] !== undefined ? prev : { ...prev, [proxyId]: null }
+      );
+    } finally {
+      setAsideInflight.current.delete(proxyId);
+    }
+  }, []);
+
+  const allAccountIds = useMemo(
+    () => connections.flatMap((c) => c.providerSpecificData?.[dataKey] || []),
+    [connections, dataKey]
+  );
 
   const conn = connections[0];
-  const accountProxies = getAccountProxies(conn);
+  const accountProxies = useMemo(() => getAccountProxies(conn), [conn]);
+
+  // One read per unknown bound proxy id. The effect key is the joined id list
+  // (stable string), not the rebuilt arrays, and the in-flight set is released
+  // in `finally` above so a remount re-reads instead of going blind.
+  const boundProxyIdsKey = useMemo(() => {
+    const ids = new Set<string>();
+    for (const id of allAccountIds) {
+      const boundProxyId = getEntryForFingerprint(accountProxies, id)?.proxyId ?? null;
+      if (boundProxyId) ids.add(boundProxyId);
+    }
+    return [...ids].sort().join(",");
+  }, [allAccountIds, accountProxies]);
+  useEffect(() => {
+    if (boundProxyIdsKey.length === 0) return;
+    const ids = boundProxyIdsKey.split(",");
+    const timer = window.setTimeout(() => {
+      for (const proxyId of ids) void checkSetAside(proxyId);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [boundProxyIdsKey, checkSetAside]);
 
   const handleAddAccount = async () => {
     setAdding(true);
@@ -649,12 +697,14 @@ export default function NoAuthAccountCard({
                 savedProxies,
                 assignments
               );
+              const boundProxyId = entry?.proxyId ?? null;
+              const setAsideEndsAt = boundProxyId ? setAsideProxyIds[boundProxyId] : null;
               const proxy =
                 egress?.kind === "own" || egress?.kind === "inherited-proxy"
                   ? (egress.proxy ?? null)
                   : getDisplayProxy(entry, savedProxies);
               const configured = isEgressConfigured(egress, proxy);
-              const title = egressShieldText(t, egress, proxy, "title");
+              const title = `${egressShieldText(t, egress, proxy, "title")}${setAsideEndsAt ? ` — ${t("proxySetAside")}` : ""}`;
               const ariaLabel = egressShieldText(t, egress, proxy, "aria");
               return (
                 <div

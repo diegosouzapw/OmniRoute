@@ -1924,7 +1924,7 @@
   },
   "src/sse/handlers/chatHelpers.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 3
+      "count": 2
     }
   },
   "tests/benchmarks/pipeline-accuracy.test.ts": {
