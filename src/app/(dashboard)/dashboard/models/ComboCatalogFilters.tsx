@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button, Input } from "@/shared/components";
+import { parseNonNegativeInt } from "./catalogUrlState";
 import type { ComboCatalogFilters } from "./comboCatalogUtils";
 
 function humanize(value: string): string {
@@ -106,7 +107,7 @@ export default function ComboCatalogFiltersComponent({
             value={filters.minMembers ?? ""}
             onChange={(e) =>
               onChange({
-                minMembers: e.target.value ? Number(e.target.value) : undefined,
+                minMembers: parseNonNegativeInt(e.target.value),
               })
             }
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"
@@ -122,7 +123,7 @@ export default function ComboCatalogFiltersComponent({
             value={filters.maxMembers ?? ""}
             onChange={(e) =>
               onChange({
-                maxMembers: e.target.value ? Number(e.target.value) : undefined,
+                maxMembers: parseNonNegativeInt(e.target.value),
               })
             }
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"

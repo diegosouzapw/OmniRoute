@@ -3,8 +3,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { Button, Card } from "@/shared/components";
+import { Button, Card, ConfirmModal } from "@/shared/components";
 import CatalogBulkActionBar from "./CatalogBulkActionBar";
+import {
+  BULK_CONFIRM_COMBO_THRESHOLD,
+  BULK_CONFIRM_MODEL_THRESHOLD,
+  dedupeComboTargets,
+  dedupeModelTargets,
+  type ComboTestTarget,
+  type ModelTestTarget,
+} from "./catalogBulkUtils";
+import CatalogTabs, { catalogPanelId, catalogTabId } from "./CatalogTabs";
 import ComboCatalogFiltersComponent from "./ComboCatalogFilters";
 import ComboCatalogTable from "./ComboCatalogTable";
 import {
@@ -30,18 +39,23 @@ import {
   type CatalogSortDirection,
   type CatalogSortField,
 } from "./modelCatalogUtils";
+import {
+  buildCatalogSearchParams,
+  DEFAULT_COMBO_FILTERS,
+  DEFAULT_MODEL_FILTERS,
+  hasActiveComboFilters,
+  hasActiveModelFilters,
+  parseCatalogTab,
+  parseComboFilters,
+  parseModelFilters,
+  type CatalogTab,
+} from "./catalogUrlState";
 import { useCatalogTestRunner } from "./useCatalogTestRunner";
 
 const PAGE_SIZE = 50;
 
-type CatalogTab = "models" | "combos";
-
-function getUrlParams(): URLSearchParams {
-  if (typeof window !== "undefined") {
-    return new URLSearchParams(window.location.search);
-  }
-  return new URLSearchParams();
-}
+type PendingBulkRun =
+  { kind: "models"; targets: ModelTestTarget[] } | { kind: "combos"; targets: ComboTestTarget[] };
 
 function setUrlParams(params: URLSearchParams) {
   if (typeof window !== "undefined") {
@@ -51,46 +65,13 @@ function setUrlParams(params: URLSearchParams) {
   }
 }
 
-function parseInitialModelFilters(params: URLSearchParams): CatalogFilters {
-  return {
-    query: params.get("query") || "",
-    providerId: params.get("provider") || "all",
-    type: params.get("type") || "all",
-    subtype: params.get("subtype") || "all",
-    capability: params.get("capability") || "all",
-    pricing: params.get("pricing") || "all",
-    providerHealth: params.get("health") || "all",
-    testResult: params.get("testResult") || "all",
-    minContextLength: params.get("minContext") ? Number(params.get("minContext")) : undefined,
-    minMaxOutputTokens: params.get("minOutput") ? Number(params.get("minOutput")) : undefined,
-  };
-}
-
-function parseInitialComboFilters(
-  params: URLSearchParams,
-  tabParam: string | null
-): ComboCatalogFilters {
-  return {
-    query: params.get("cQuery") || (tabParam === "combos" ? params.get("query") || "" : ""),
-    strategy: params.get("strategy") || "all",
-    status: params.get("status") || "all",
-    testResult:
-      params.get("cTestResult") ||
-      (tabParam === "combos" ? params.get("testResult") || "all" : "all"),
-    minMembers: params.get("minMembers") ? Number(params.get("minMembers")) : undefined,
-    maxMembers: params.get("maxMembers") ? Number(params.get("maxMembers")) : undefined,
-  };
-}
-
 export default function ModelCatalogPage() {
   const t = useTranslations("modelCatalog");
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<CatalogTab>(() => {
-    const params = getUrlParams();
-    const tabParam = params.get("tab");
-    return tabParam === "combos" ? "combos" : "models";
-  });
+  // URL-driven state starts from the defaults the server renders; the mount effect below
+  // applies the real query string, so hydration never sees browser-only values.
+  const [activeTab, setActiveTab] = useState<CatalogTab>("models");
+  const [pendingBulkRun, setPendingBulkRun] = useState<PendingBulkRun | null>(null);
 
   // Models State
   const [models, setModels] = useState<CatalogModelRow[]>([]);
@@ -115,16 +96,8 @@ export default function ModelCatalogPage() {
     Record<string, "healthy" | "degraded" | "down">
   >({});
 
-  // Model Filters
-  const [modelFilters, setModelFilters] = useState<CatalogFilters>(() =>
-    parseInitialModelFilters(getUrlParams())
-  );
-
-  // Combo Filters
-  const [comboFilters, setComboFilters] = useState<ComboCatalogFilters>(() => {
-    const params = getUrlParams();
-    return parseInitialComboFilters(params, params.get("tab"));
-  });
+  const [modelFilters, setModelFilters] = useState<CatalogFilters>(DEFAULT_MODEL_FILTERS);
+  const [comboFilters, setComboFilters] = useState<ComboCatalogFilters>(DEFAULT_COMBO_FILTERS);
 
   // Test Runner Hook
   const {
@@ -142,65 +115,26 @@ export default function ModelCatalogPage() {
 
   const requestController = useRef<AbortController | null>(null);
 
-  // Sync state with browser navigation (Back / Forward)
+  // Deep links and Back/Forward: read the query string after mount (DashboardLayout pattern).
   useEffect(() => {
-    const handlePopState = () => {
-      const params = getUrlParams();
-      const tabParam = params.get("tab");
-      setActiveTab(tabParam === "combos" ? "combos" : "models");
-      setModelFilters(parseInitialModelFilters(params));
-      setComboFilters(parseInitialComboFilters(params, tabParam));
+    const applyUrlState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setActiveTab(parseCatalogTab(params));
+      setModelFilters(parseModelFilters(params));
+      setComboFilters(parseComboFilters(params));
     };
-
-    window.addEventListener("popstate", handlePopState);
+    const timer = window.setTimeout(applyUrlState, 0);
+    window.addEventListener("popstate", applyUrlState);
     return () => {
-      window.removeEventListener("popstate", handlePopState);
+      window.clearTimeout(timer);
+      window.removeEventListener("popstate", applyUrlState);
     };
   }, []);
 
   // Sync state to URL search parameters
   const syncUrlParams = useCallback(
     (tab: CatalogTab, mFilters: CatalogFilters, cFilters: ComboCatalogFilters) => {
-      const params = new URLSearchParams();
-      if (tab === "combos") {
-        params.set("tab", "combos");
-      }
-
-      if (tab === "models") {
-        if (mFilters.query) params.set("query", mFilters.query);
-        if (mFilters.providerId !== "all") params.set("provider", mFilters.providerId);
-        if (mFilters.type !== "all") params.set("type", mFilters.type);
-        if (mFilters.subtype && mFilters.subtype !== "all") params.set("subtype", mFilters.subtype);
-        if (mFilters.capability && mFilters.capability !== "all") {
-          params.set("capability", mFilters.capability);
-        }
-        if (mFilters.pricing && mFilters.pricing !== "all") params.set("pricing", mFilters.pricing);
-        if (mFilters.providerHealth && mFilters.providerHealth !== "all") {
-          params.set("health", mFilters.providerHealth);
-        }
-        if (mFilters.testResult && mFilters.testResult !== "all") {
-          params.set("testResult", mFilters.testResult);
-        }
-        if (typeof mFilters.minContextLength === "number") {
-          params.set("minContext", String(mFilters.minContextLength));
-        }
-        if (typeof mFilters.minMaxOutputTokens === "number") {
-          params.set("minOutput", String(mFilters.minMaxOutputTokens));
-        }
-      } else {
-        if (cFilters.query) params.set("query", cFilters.query);
-        if (cFilters.strategy !== "all") params.set("strategy", cFilters.strategy);
-        if (cFilters.status !== "all") params.set("status", cFilters.status);
-        if (cFilters.testResult !== "all") params.set("testResult", cFilters.testResult);
-        if (typeof cFilters.minMembers === "number") {
-          params.set("minMembers", String(cFilters.minMembers));
-        }
-        if (typeof cFilters.maxMembers === "number") {
-          params.set("maxMembers", String(cFilters.maxMembers));
-        }
-      }
-
-      setUrlParams(params);
+      setUrlParams(buildCatalogSearchParams(tab, mFilters, cFilters));
     },
     []
   );
@@ -218,21 +152,9 @@ export default function ModelCatalogPage() {
   };
 
   const clearModelFilters = () => {
-    const cleared: CatalogFilters = {
-      query: "",
-      providerId: "all",
-      type: "all",
-      subtype: "all",
-      capability: "all",
-      pricing: "all",
-      providerHealth: "all",
-      testResult: "all",
-      minContextLength: undefined,
-      minMaxOutputTokens: undefined,
-    };
-    setModelFilters(cleared);
+    setModelFilters(DEFAULT_MODEL_FILTERS);
     setRequestedModelPage(0);
-    syncUrlParams("models", cleared, comboFilters);
+    syncUrlParams("models", DEFAULT_MODEL_FILTERS, comboFilters);
   };
 
   const updateComboFilters = (patch: Partial<ComboCatalogFilters>) => {
@@ -243,17 +165,9 @@ export default function ModelCatalogPage() {
   };
 
   const clearComboFilters = () => {
-    const cleared: ComboCatalogFilters = {
-      query: "",
-      strategy: "all",
-      status: "all",
-      testResult: "all",
-      minMembers: undefined,
-      maxMembers: undefined,
-    };
-    setComboFilters(cleared);
+    setComboFilters(DEFAULT_COMBO_FILTERS);
     setRequestedComboPage(0);
-    syncUrlParams("combos", modelFilters, cleared);
+    syncUrlParams("combos", modelFilters, DEFAULT_COMBO_FILTERS);
   };
 
   // Data Loading
@@ -436,54 +350,52 @@ export default function ModelCatalogPage() {
     });
   };
 
-  // Bulk test triggers
+  // Bulk test triggers: exact duplicates are dropped before counting, and large runs are
+  // confirmed first because every test spends provider quota.
+  const startBulkRun = (run: PendingBulkRun) => {
+    if (run.kind === "models") void testBulkModels(run.targets);
+    else void testBulkCombos(run.targets);
+  };
+
+  const requestBulkRun = (run: PendingBulkRun) => {
+    if (run.targets.length === 0) return;
+    const threshold =
+      run.kind === "models" ? BULK_CONFIRM_MODEL_THRESHOLD : BULK_CONFIRM_COMBO_THRESHOLD;
+    if (run.targets.length > threshold) setPendingBulkRun(run);
+    else startBulkRun(run);
+  };
+
+  const confirmPendingBulkRun = () => {
+    const run = pendingBulkRun;
+    setPendingBulkRun(null);
+    if (run) startBulkRun(run);
+  };
+
+  const toModelTargets = (rows: CatalogModelRow[]) =>
+    dedupeModelTargets(rows.map((m) => ({ providerId: m.providerId, modelId: m.id })));
+  const toComboTargets = (rows: ComboCatalogRow[]) =>
+    dedupeComboTargets(rows.map((c) => ({ comboName: c.name })));
+
   const handleTestSelected = () => {
     if (activeTab === "models") {
-      const selected = models
-        .filter((m) => selectedModelIds.has(`${m.providerId}:${m.id}`))
-        .map((m) => ({ providerId: m.providerId, modelId: m.id }));
-      void testBulkModels(selected);
+      const selected = models.filter((m) => selectedModelIds.has(`${m.providerId}:${m.id}`));
+      requestBulkRun({ kind: "models", targets: toModelTargets(selected) });
     } else {
-      const selected = combos
-        .filter((c) => selectedComboIds.has(c.id))
-        .map((c) => ({ comboName: c.name }));
-      void testBulkCombos(selected);
+      const selected = combos.filter((c) => selectedComboIds.has(c.id));
+      requestBulkRun({ kind: "combos", targets: toComboTargets(selected) });
     }
   };
 
   const handleTestAllFiltered = () => {
     if (activeTab === "models") {
-      const toTest = visibleModels.map((m) => ({
-        providerId: m.providerId,
-        modelId: m.id,
-      }));
-      void testBulkModels(toTest);
+      requestBulkRun({ kind: "models", targets: toModelTargets(visibleModels) });
     } else {
-      const toTest = visibleCombos.map((c) => ({ comboName: c.name }));
-      void testBulkCombos(toTest);
+      requestBulkRun({ kind: "combos", targets: toComboTargets(visibleCombos) });
     }
   };
 
-  const hasModelFiltersActive =
-    modelFilters.query !== "" ||
-    modelFilters.providerId !== "all" ||
-    modelFilters.type !== "all" ||
-    (modelFilters.subtype && modelFilters.subtype !== "all") ||
-    (modelFilters.capability && modelFilters.capability !== "all") ||
-    (modelFilters.pricing && modelFilters.pricing !== "all") ||
-    (modelFilters.providerHealth && modelFilters.providerHealth !== "all") ||
-    (modelFilters.testResult && modelFilters.testResult !== "all") ||
-    typeof modelFilters.minContextLength === "number" ||
-    typeof modelFilters.minMaxOutputTokens === "number";
-
-  const hasComboFiltersActive =
-    comboFilters.query !== "" ||
-    comboFilters.strategy !== "all" ||
-    comboFilters.status !== "all" ||
-    comboFilters.testResult !== "all" ||
-    typeof comboFilters.minMembers === "number" ||
-    typeof comboFilters.maxMembers === "number";
-
+  const hasModelFiltersActive = hasActiveModelFilters(modelFilters);
+  const hasComboFiltersActive = hasActiveComboFilters(comboFilters);
   const hasTestResults = Object.keys(testResults).length > 0;
 
   return (
@@ -504,51 +416,23 @@ export default function ModelCatalogPage() {
           </Button>
         </div>
 
-        {/* Tab Navigation */}
-        <div
-          role="tablist"
-          aria-label={t("catalogSections")}
-          className="mt-2 flex border-b border-border"
-        >
-          <button
-            role="tab"
-            id="tab-models"
-            aria-selected={activeTab === "models"}
-            aria-controls="panel-models"
-            tabIndex={activeTab === "models" ? 0 : -1}
-            onClick={() => switchTab("models")}
-            className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-              activeTab === "models"
-                ? "border-primary text-primary"
-                : "border-transparent text-text-muted hover:text-text-main"
-            }`}
-          >
-            {t("modelsTab")} ({models.length})
-          </button>
-          <button
-            role="tab"
-            id="tab-combos"
-            aria-selected={activeTab === "combos"}
-            aria-controls="panel-combos"
-            tabIndex={activeTab === "combos" ? 0 : -1}
-            onClick={() => switchTab("combos")}
-            className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-              activeTab === "combos"
-                ? "border-primary text-primary"
-                : "border-transparent text-text-muted hover:text-text-main"
-            }`}
-          >
-            {t("combosTab")} ({combos.length})
-          </button>
-        </div>
+        <CatalogTabs
+          activeTab={activeTab}
+          onSelect={switchTab}
+          ariaLabel={t("catalogSections")}
+          labels={{
+            models: `${t("modelsTab")} (${models.length})`,
+            combos: `${t("combosTab")} (${combos.length})`,
+          }}
+        />
       </header>
 
       {/* Models Tab Content */}
       {activeTab === "models" && (
         <section
           role="tabpanel"
-          id="panel-models"
-          aria-labelledby="tab-models"
+          id={catalogPanelId("models")}
+          aria-labelledby={catalogTabId("models")}
           className="flex flex-col gap-4"
         >
           <Card padding="none" className="overflow-hidden">
@@ -574,7 +458,6 @@ export default function ModelCatalogPage() {
               onTestFiltered={handleTestAllFiltered}
               onCancel={cancelTest}
               onClearResults={clearResults}
-              entityLabel="models"
             />
 
             {modelsLoading && models.length === 0 ? (
@@ -655,6 +538,7 @@ export default function ModelCatalogPage() {
                 activeTestingKey={activeItemKey}
                 onTestModel={testSingleModel}
                 providerHealthMap={providerHealthMap}
+                bulkRunning={running}
               />
             )}
           </Card>
@@ -665,8 +549,8 @@ export default function ModelCatalogPage() {
       {activeTab === "combos" && (
         <section
           role="tabpanel"
-          id="panel-combos"
-          aria-labelledby="tab-combos"
+          id={catalogPanelId("combos")}
+          aria-labelledby={catalogTabId("combos")}
           className="flex flex-col gap-4"
         >
           <Card padding="none" className="overflow-hidden">
@@ -689,7 +573,6 @@ export default function ModelCatalogPage() {
               onTestFiltered={handleTestAllFiltered}
               onCancel={cancelTest}
               onClearResults={clearResults}
-              entityLabel="combos"
             />
 
             {combosLoading && combos.length === 0 ? (
@@ -756,11 +639,26 @@ export default function ModelCatalogPage() {
                 onNext={() =>
                   setRequestedComboPage((c) => Math.min(comboPage.pageCount - 1, c + 1))
                 }
+                bulkRunning={running}
               />
             )}
           </Card>
         </section>
       )}
+
+      <ConfirmModal
+        isOpen={pendingBulkRun !== null}
+        onClose={() => setPendingBulkRun(null)}
+        onConfirm={confirmPendingBulkRun}
+        title={t("bulkConfirmTitle")}
+        message={
+          pendingBulkRun?.kind === "combos"
+            ? t("bulkConfirmCombos", { count: pendingBulkRun.targets.length })
+            : t("bulkConfirmModels", { count: pendingBulkRun?.targets.length ?? 0 })
+        }
+        confirmText={t("bulkConfirmStart")}
+        variant="primary"
+      />
     </div>
   );
 }

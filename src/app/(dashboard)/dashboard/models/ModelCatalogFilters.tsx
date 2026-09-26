@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button, Input } from "@/shared/components";
+import { parseNonNegativeInt } from "./catalogUrlState";
 import type { CatalogFilters } from "./modelCatalogUtils";
 
 function humanize(value: string): string {
@@ -175,7 +176,24 @@ export default function ModelCatalogFiltersComponent({
             value={filters.minContextLength ?? ""}
             onChange={(e) =>
               onChange({
-                minContextLength: e.target.value ? Number(e.target.value) : undefined,
+                minContextLength: parseNonNegativeInt(e.target.value),
+              })
+            }
+            className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1 text-xs font-medium text-text-main">
+          {t("minMaxOutput")}
+          <input
+            type="number"
+            min={0}
+            step={1000}
+            placeholder={t("minMaxOutputPlaceholder")}
+            value={filters.minMaxOutputTokens ?? ""}
+            onChange={(e) =>
+              onChange({
+                minMaxOutputTokens: parseNonNegativeInt(e.target.value),
               })
             }
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"

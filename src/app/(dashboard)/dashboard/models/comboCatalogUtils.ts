@@ -3,6 +3,7 @@ import { getComboTestKey } from "./catalogTestStorage";
 
 export interface ComboCatalogStep {
   model: string;
+  kind?: "combo-ref";
   provider?: string;
   connectionId?: string;
   weight?: number;
@@ -61,14 +62,24 @@ export function flattenCombos(rawCombos: unknown): ComboCatalogRow[] {
       for (const m of item.models) {
         if (typeof m === "string") {
           modelsList.push({ model: m });
-        } else if (isRecord(m) && typeof m.model === "string") {
-          modelsList.push({
-            model: m.model,
-            provider: typeof m.provider === "string" ? m.provider : undefined,
-            connectionId: typeof m.connectionId === "string" ? m.connectionId : undefined,
-            weight: typeof m.weight === "number" ? m.weight : undefined,
-            label: typeof m.label === "string" ? m.label : undefined,
-          });
+        } else if (isRecord(m)) {
+          // A nested combo step (`comboRefStepInputSchema`) counts as one member; the table
+          // renders its translated "Combo → name" label from `kind`.
+          if (m.kind === "combo-ref" && typeof m.comboName === "string") {
+            modelsList.push({
+              model: m.comboName,
+              kind: "combo-ref",
+              ...(typeof m.label === "string" ? { label: m.label } : {}),
+            });
+          } else if (typeof m.model === "string") {
+            modelsList.push({
+              model: m.model,
+              provider: typeof m.provider === "string" ? m.provider : undefined,
+              connectionId: typeof m.connectionId === "string" ? m.connectionId : undefined,
+              weight: typeof m.weight === "number" ? m.weight : undefined,
+              label: typeof m.label === "string" ? m.label : undefined,
+            });
+          }
         }
       }
     }

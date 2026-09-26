@@ -36,6 +36,7 @@ const sampleCombos: ComboCatalogRow[] = [
   {
     id: "combo-3",
     name: "gamma-fusion",
+    displayName: "gamma-fusion",
     strategy: "fusion",
     description: "Parallel judge panel",
     models: [{ model: "m1" }],
@@ -78,6 +79,43 @@ describe("flattenCombos", () => {
     });
     expect(result[1].status).toBe("active");
     expect(result[1].memberCount).toBe(2);
+  });
+
+  it("counts combo-ref steps as members for nested combos", () => {
+    const rawCombos = [
+      {
+        id: "c-nested",
+        name: "nested-combo",
+        strategy: "pipeline",
+        models: [
+          { model: "direct-model-1" },
+          { kind: "combo-ref", comboName: "sub-combo-1" },
+          { kind: "combo-ref", comboName: "sub-combo-2" },
+        ],
+        isActive: true,
+      },
+    ];
+
+    const result = flattenCombos(rawCombos);
+    expect(result).toHaveLength(1);
+    expect(result[0].memberCount).toBe(3);
+    expect(result[0].models[1]).toEqual({ model: "sub-combo-1", kind: "combo-ref" });
+    expect(result[0].models[2]).toEqual({ model: "sub-combo-2", kind: "combo-ref" });
+
+    const filters = { query: "", strategy: "all", status: "all", testResult: "all" };
+    expect(filterCatalogCombos(result, { ...filters, minMembers: 3 })).toEqual(result);
+    expect(filterCatalogCombos(result, { ...filters, maxMembers: 2 })).toEqual([]);
+  });
+
+  it("keeps a combo-ref label when the step provides one", () => {
+    const [row] = flattenCombos([
+      {
+        id: "c-labelled",
+        name: "labelled",
+        models: [{ kind: "combo-ref", comboName: "inner", label: "Inner fallback" }],
+      },
+    ]);
+    expect(row.models).toEqual([{ model: "inner", kind: "combo-ref", label: "Inner fallback" }]);
   });
 
   it("handles empty or invalid inputs", () => {

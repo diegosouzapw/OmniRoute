@@ -28,20 +28,30 @@ describe("ModelCatalogPage", () => {
   let root: Root;
 
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval"] });
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
+    window.history.replaceState(null, "", "/dashboard/models");
   });
 
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
+
+  /** Mount effects are deferred with setTimeout; run them and settle the fetch promises. */
+  async function flush() {
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+  }
 
   it("loads all provider models and only labels flags the API actually reports", async () => {
     vi.stubGlobal(
@@ -81,7 +91,7 @@ describe("ModelCatalogPage", () => {
     act(() => {
       root.render(<ModelCatalogPage />);
     });
-    await act(async () => new Promise((resolve) => window.setTimeout(resolve, 0)));
+    await flush();
 
     expect(fetch).toHaveBeenCalledWith("/api/models/catalog", expect.anything());
     expect(container.textContent).toContain("Alpha Labs");
@@ -105,7 +115,7 @@ describe("ModelCatalogPage", () => {
       providerFilter.value = "all";
       providerFilter.dispatchEvent(new Event("change", { bubbles: true }));
     });
-    const modelSort = [...container.querySelectorAll("th button")].find(
+    const modelSort = [...container.querySelectorAll<HTMLButtonElement>("th button")].find(
       (button) => button.textContent === "Model"
     )!;
     act(() => modelSort.click());
@@ -120,7 +130,7 @@ describe("ModelCatalogPage", () => {
     act(() => {
       root.render(<ModelCatalogPage />);
     });
-    await act(async () => new Promise((resolve) => window.setTimeout(resolve, 0)));
+    await flush();
 
     expect(container.querySelector('[role="alert"]')?.textContent).toContain(
       "Unable to load the model catalog."

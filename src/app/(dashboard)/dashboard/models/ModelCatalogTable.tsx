@@ -93,6 +93,7 @@ export default function ModelCatalogTable({
   activeTestingKey = null,
   onTestModel,
   providerHealthMap = {},
+  bulkRunning = false,
 }: {
   rows: CatalogModelRow[];
   sortField: CatalogSortField;
@@ -124,6 +125,8 @@ export default function ModelCatalogTable({
   activeTestingKey?: string | null;
   onTestModel?: (providerId: string, modelId: string) => void;
   providerHealthMap?: Record<string, "healthy" | "degraded" | "down">;
+  /** A bulk run owns the runner; per-row tests wait until it ends. */
+  bulkRunning?: boolean;
 }) {
   const t = useTranslations("modelCatalog");
   const firstResult = startIndex + 1;
@@ -290,7 +293,9 @@ export default function ModelCatalogTable({
                         {additionalCapabilities.length > 0 && (
                           <span
                             role="img"
-                            aria-label={`Additional capabilities: ${additionalCapabilities.join(", ")}`}
+                            aria-label={t("additionalCapabilities", {
+                              list: additionalCapabilities.join(", "),
+                            })}
                             title={additionalCapabilities.join(", ")}
                           >
                             <Badge size="sm" variant="default">
@@ -338,7 +343,7 @@ export default function ModelCatalogTable({
                       <Button
                         variant="secondary"
                         size="sm"
-                        disabled={isTesting}
+                        disabled={isTesting || bulkRunning}
                         onClick={() => onTestModel(model.providerId, model.id)}
                         data-testid={`test-model-${model.id}`}
                       >

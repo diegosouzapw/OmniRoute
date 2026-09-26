@@ -71,6 +71,7 @@ export default function ComboCatalogTable({
   onTestCombo,
   onPrevious,
   onNext,
+  bulkRunning = false,
 }: {
   rows: ComboCatalogRow[];
   sortField: ComboSortField;
@@ -88,6 +89,8 @@ export default function ComboCatalogTable({
   onTestCombo: (comboName: string) => void;
   onPrevious: () => void;
   onNext: () => void;
+  /** A bulk run owns the runner; per-row tests wait until it ends. */
+  bulkRunning?: boolean;
 }) {
   const t = useTranslations("modelCatalog");
   const allOnPageSelected = rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
@@ -214,7 +217,10 @@ export default function ComboCatalogTable({
                             className="inline-block max-w-[150px] truncate rounded bg-black/5 px-1.5 py-0.5 font-mono text-[10px] text-text-muted dark:bg-white/5"
                             title={m.model}
                           >
-                            {m.label || m.model.split("/").pop()}
+                            {m.label ||
+                              (m.kind === "combo-ref"
+                                ? t("comboRefMember", { name: m.model })
+                                : m.model.split("/").pop())}
                           </span>
                         ))}
                         {combo.models.length > 3 && (
@@ -237,7 +243,7 @@ export default function ComboCatalogTable({
                     <Button
                       variant="secondary"
                       size="sm"
-                      disabled={isTesting}
+                      disabled={isTesting || bulkRunning}
                       onClick={() => onTestCombo(combo.name)}
                       data-testid={`test-combo-${combo.name}`}
                     >
