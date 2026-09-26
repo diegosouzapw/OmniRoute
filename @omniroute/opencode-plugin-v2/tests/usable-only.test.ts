@@ -191,7 +191,7 @@ describe("catalog usableOnly gating", () => {
         ok: true,
         status: 200,
         statusText: "OK",
-        json: async () => ({ data: [{ id: "m1" }] }),
+        json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
       };
     }) as typeof fetch;
     const guard = silence();
@@ -232,6 +232,73 @@ describe("catalog usableOnly gating", () => {
         `no providers fetch expected, got: ${JSON.stringify(seen)}`
       );
     } finally {
+      globalThis.fetch = origFetch;
+      guard.restore();
+    }
+  });
+
+  it("toolsOnly default drops models without tool calling through setup", async () => {
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = (async (url: unknown) => {
+      const href = String(url);
+      if (href.includes("/api/combos/auto")) {
+        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
+      }
+      if (href.includes("/api/combos")) {
+        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({
+          data: [
+            { id: "m-tools", capabilities: { tool_calling: true } },
+            { id: "m-plain" },
+          ],
+        }),
+      };
+    }) as typeof fetch;
+    const guard = silence();
+    const { mkdtempSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const prevDataDir = process.env.OPENCODE_DATA_DIR;
+    process.env.OPENCODE_DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-toolsdrop-"));
+    try {
+      const plugin = (await import("../src/index.js")).default as unknown as {
+        setup: (ctx: unknown) => Promise<void>;
+      };
+      const added: unknown[] = [];
+      const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
+      await plugin.setup({
+        options: { baseURL: "https://gw.example.com", providerId: "tools-drop" },
+        provider: {
+          transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+            catalogCallbacks.push(async () => {
+              cb({
+                add: (input: unknown) => {
+                  added.push(input);
+                },
+              });
+            });
+            return Promise.resolve({ dispose: async () => {} });
+          },
+        },
+        model: {
+          transform: () => Promise.resolve({ dispose: async () => {} }),
+        },
+        integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
+      });
+      const { draft } = fakeDraft();
+      await catalogCallbacks[0](draft as never);
+      const dumped = JSON.stringify(added);
+      assert.ok(added.length > 0, `expected a published catalog, got: ${dumped}`);
+      assert.ok(dumped.includes("m-tools"), `expected the tool-capable model, got: ${dumped}`);
+      assert.ok(!dumped.includes("m-plain"), `expected the plain model dropped, got: ${dumped}`);
+    } finally {
+      if (prevDataDir === undefined) delete process.env.OPENCODE_DATA_DIR;
+      else process.env.OPENCODE_DATA_DIR = prevDataDir;
       globalThis.fetch = origFetch;
       guard.restore();
     }

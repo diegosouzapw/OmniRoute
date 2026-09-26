@@ -99,25 +99,31 @@ catalog is never a mystery.
 
 ## Options
 
-| Key                              | Default                                                    | Notes                                                                                                                 |
-| -------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                              | Provider id and integration id; models publish under `<providerId>/…`                                                 |
-| `baseURL`                        | required                                                   | OmniRoute gateway root (no `/v1` suffix needed)                                                                       |
-| `apiKey`                         | connected credential, then `OMNIROUTE_API_KEY`             | Chat key for `/v1/*` — see [Credentials](#credentials)                                                                |
-| `managementReadToken`            | option, then `OMNIROUTE_MANAGEMENT_API_KEY`, then `apiKey` | Management key for `/api/*` (combos, providers, enrichment) — usually **not** the same key                            |
-| `displayName`                    | `"OmniRoute"`                                              | Provider display name                                                                                                 |
-| `timeoutMs`                      | `10000`                                                    | Per-endpoint fetch timeout (auto-combos use 5s)                                                                       |
-| `modelCacheTtlMs`                | `300000`                                                   | Catalog cache TTL; disk snapshot warms cold starts                                                                    |
-| `timeouts`                       | per-endpoint override                                      | `{ models, combos, autoCombos, enrichment }` in ms; falls back to `timeoutMs`                                         |
-| `enrichment`                     | `true`                                                     | Fetch names + pricing (`/api/pricing*`, `/api/free-tier/summary`)                                                     |
-| `providerTag`                    | `true`                                                     | Prefix a display name with the upstream provider it routes to                                                         |
-| `geminiSanitization`             | `true`                                                     | Strip `$schema`/`additionalProperties` from tool schemas sent to Gemini models (`$ref` tools are forwarded untouched) |
-| `usableOnly`                     | `false`                                                    | Filter to healthy provisioned providers (`/api/providers`)                                                            |
-| `visibleModels` / `hiddenModels` | `[]`                                                       | Exact-or-suffix allowlists, deny wins                                                                                 |
-| `apiFormat.allowAnthropic`       | `false`                                                    | Route allowlisted ids to the Anthropic API block                                                                      |
-| `apiFormat.anthropicModels`      | `[]`                                                       | Full model ids routed to Anthropic                                                                                    |
-| `apiFormat.anthropicPrefixes`    | v1 defaults                                                | Deprecated, warns once — prefer `anthropicModels`                                                                     |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                           | Logger verbosity                                                                                                      |
+| Key                                     | Default                                                    | Notes                                                                                                                 |
+| --------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                            | `"omniroute"`                                              | Provider id and integration id; models publish under `<providerId>/…`                                                 |
+| `baseURL`                               | required                                                   | OmniRoute gateway root (no `/v1` suffix needed)                                                                       |
+| `apiKey`                                | connected credential, then `OMNIROUTE_API_KEY`             | Chat key for `/v1/*` — see [Credentials](#credentials)                                                                |
+| `managementReadToken`                   | option, then `OMNIROUTE_MANAGEMENT_API_KEY`, then `apiKey` | Management key for `/api/*` (combos, providers, enrichment) — usually **not** the same key                            |
+| `displayName`                           | `"OmniRoute"`                                              | Provider display name                                                                                                 |
+| `timeoutMs`                             | `10000`                                                    | Per-endpoint fetch timeout (auto-combos use 5s)                                                                       |
+| `modelCacheTtlMs`                       | `300000`                                                   | Catalog cache TTL; disk snapshot warms cold starts                                                                    |
+| `timeouts`                              | per-endpoint override                                      | `{ models, combos, autoCombos, enrichment }` in ms; falls back to `timeoutMs`                                         |
+| `enrichment`                            | `true`                                                     | Fetch names + pricing (`/api/pricing*`, `/api/free-tier/summary`)                                                     |
+| `providerTag`                           | `true`                                                     | Prefix a display name with the upstream provider it routes to                                                         |
+| `geminiSanitization`                    | `true`                                                     | Strip `$schema`/`additionalProperties` from tool schemas sent to Gemini models (`$ref` tools are forwarded untouched) |
+| `usableOnly`                            | `false`                                                    | Filter to healthy provisioned providers (`/api/providers`)                                                            |
+| `freeOnly` / `toolsOnly` / `visionOnly` | `false` / `true` / `false`                                 | Filter to free-tier / tool-calling / image-input models; combos with a filtered member are dropped, never partial     |
+| `visibleModels` / `hiddenModels`        | `[]`                                                       | Exact-or-suffix allowlists, deny wins                                                                                 |
+| `apiFormat.allowAnthropic`              | `false`                                                    | Route allowlisted ids to the Anthropic API block                                                                      |
+| `apiFormat.anthropicModels`             | `[]`                                                       | Full model ids routed to Anthropic                                                                                    |
+| `apiFormat.anthropicPrefixes`           | v1 defaults                                                | Deprecated, warns once — prefer `anthropicModels`                                                                     |
+| `logLevel` / `startupDebug`             | `warn` / `false`                                           | Logger verbosity                                                                                                      |
+
+`toolsOnly` is on by default: the full catalog freezes the host model picker on
+every keystroke, so a minimum tool-capable filter keeps the picker usable (see
+[opencode#47615](https://github.com/anomalyco/opencode/issues/47615)). Set
+`toolsOnly: false` to publish the full catalog.
 
 ## Tool calling on Gemini models
 
