@@ -4,21 +4,31 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import type { AgentContext } from "../../open-sse/handlers/chatCore/agentContext.ts";
+
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-session-messages-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret-at-least-32-chars-long-0123456789";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const featureFlagsDb = await import("../../src/lib/db/featureFlags.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const messagesDb = await import("../../src/lib/db/agentSessionMessages.ts");
+const cleanup = await import("../../src/lib/db/cleanup.ts");
 const { extractUserTurnText, extractAssistantTurnText, extractAgentSessionTurn } =
   await import("../../open-sse/handlers/chatCore/agentSessionTurn.ts");
+const { resolveSessionTurn } = await import("../../open-sse/handlers/chatCore/agentContext.ts");
+const { createSSEStream } = await import("../../open-sse/utils/stream.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { GET: getMessagesRoute } =
   await import("../../src/app/api/v1/me/sessions/[id]/messages/route.ts");
 const { SELF_USAGE_SCOPE } = await import("../../src/shared/constants/selfServiceScopes.ts");
 
+const CAPTURE_FLAG = "AGENT_SESSION_MESSAGES_ENABLED";
+
 test.after(() => {
+  featureFlagsDb.removeFeatureFlagOverride(CAPTURE_FLAG);
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
@@ -26,17 +36,129 @@ test.after(() => {
 let keyAliceToken = "";
 let keyAliceId = "";
 let keyBobToken = "";
-let _keyBobId = "";
 let sessionAliceId = "";
 
+function agentContextFor(clientSessionId: string | null): AgentContext {
+  return {
+    client: "claude-code",
+    clientSessionId,
+    projectName: clientSessionId ? "billing-api" : null,
+    projectRepo: null,
+    projectPath: null,
+    projectSource: clientSessionId ? "path" : null,
+    gitBranch: null,
+  };
+}
+
+async function withCaptureFlag<T>(value: "true" | "false", fn: () => Promise<T>): Promise<T> {
+  featureFlagsDb.setFeatureFlagOverride(CAPTURE_FLAG, value);
+  try {
+    return await fn();
+  } finally {
+    featureFlagsDb.removeFeatureFlagOverride(CAPTURE_FLAG);
+  }
+}
+
+let timestampSeq = 0;
+function nextTimestamp(): string {
+  timestampSeq += 1;
+  return new Date(Date.UTC(2026, 8, 25, 12, 0, timestampSeq)).toISOString();
+}
+
+function countTurnsWithUserText(userText: string): number {
+  const row = core
+    .getDbInstance()
+    .prepare("SELECT COUNT(*) AS c FROM agent_session_messages WHERE user_text = ?")
+    .get(userText) as { c: number };
+  return row.c;
+}
+
+/** Same wiring as chatCore: resolve the turn, then persist it through saveRequestUsage. */
+async function recordTurn(opts: {
+  prompt: string;
+  context: AgentContext;
+  apiKeyId: string | null;
+  apiKeyInfo: { noLog?: boolean } | null;
+}): Promise<void> {
+  const requestBody = { messages: [{ role: "user", content: opts.prompt }] };
+  const responseBody = { content: [{ type: "text", text: "Done." }] };
+  await usageHistory.saveRequestUsage({
+    provider: "anthropic",
+    model: "claude-sonnet-4",
+    tokens: { input: 10, output: 5 },
+    success: true,
+    latencyMs: 50,
+    timestamp: nextTimestamp(),
+    apiKeyId: opts.apiKeyId,
+    agentContext: opts.context,
+    sessionTurn: resolveSessionTurn(requestBody, [responseBody], opts.context, opts.apiKeyInfo),
+  });
+}
+
+type StreamCompletion = { responseBody?: unknown; clientPayload?: { summary?: unknown } };
+type StreamOptions = NonNullable<Parameters<typeof createSSEStream>[0]>;
+
+const textEncoder = new TextEncoder();
+const sse = (payload: unknown) => `data: ${JSON.stringify(payload)}\n\n`;
+
+/** Runs the real stream assembler and returns what it hands to chatCore's onStreamComplete. */
+async function assembleStream(chunks: string[], options: StreamOptions): Promise<StreamCompletion> {
+  let completion: StreamCompletion = {};
+  const source = new ReadableStream({
+    start(controller) {
+      for (const chunk of chunks) controller.enqueue(textEncoder.encode(chunk));
+      controller.close();
+    },
+  });
+  const onComplete = (payload: StreamCompletion) => {
+    completion = payload;
+  };
+  await new Response(source.pipeThrough(createSSEStream({ ...options, onComplete }))).text();
+  return completion;
+}
+
+/** chatCore passes the client payload summary first, then the assembled response body. */
+function streamedAssistantTurn(completion: StreamCompletion) {
+  const turn = extractAgentSessionTurn(
+    { messages: [{ role: "user", content: "go" }] },
+    completion.clientPayload?.summary,
+    completion.responseBody
+  );
+  assert.ok(turn, "the streamed response should yield a turn");
+  return turn;
+}
+
+const openAiChunk = (delta: Record<string, unknown>, finishReason: string | null = null) =>
+  sse({
+    id: "chatcmpl_1",
+    object: "chat.completion.chunk",
+    created: 1,
+    model: "gpt-4.1-mini",
+    choices: [{ index: 0, delta, finish_reason: finishReason }],
+  });
+
+const openAiToolCallChunks = (text: string, toolName: string) => [
+  openAiChunk({ role: "assistant", content: text }),
+  openAiChunk({
+    tool_calls: [
+      {
+        index: 0,
+        id: "call_1",
+        type: "function",
+        function: { name: toolName, arguments: '{"path":"a.ts"}' },
+      },
+    ],
+  }),
+  openAiChunk({}, "tool_calls"),
+];
+
 test.before(async () => {
-  const aliceKey = await apiKeysDb.createApiKey("Alice Key", "test-machine", [SELF_USAGE_SCOPE]);
+  const aliceKey = await apiKeysDb.createApiKey("key-alice", "test-machine", [SELF_USAGE_SCOPE]);
   keyAliceToken = aliceKey.key;
   keyAliceId = aliceKey.id;
 
-  const bobKey = await apiKeysDb.createApiKey("Bob Key", "test-machine", [SELF_USAGE_SCOPE]);
+  const bobKey = await apiKeysDb.createApiKey("key-bob", "test-machine", [SELF_USAGE_SCOPE]);
   keyBobToken = bobKey.key;
-  _keyBobId = bobKey.id;
 
   // Record a session for Alice with 2 turns
   await usageHistory.saveRequestUsage({
@@ -47,7 +169,7 @@ test.before(async () => {
     latencyMs: 100,
     timestamp: "2026-09-25T10:00:00.000Z",
     apiKeyId: keyAliceId,
-    apiKeyName: "Alice Key",
+    apiKeyName: "key-alice",
     agentContext: {
       client: "claude-code",
       clientSessionId: "alice-sess-msg-1",
@@ -73,7 +195,7 @@ test.before(async () => {
     latencyMs: 150,
     timestamp: "2026-09-25T10:05:00.000Z",
     apiKeyId: keyAliceId,
-    apiKeyName: "Alice Key",
+    apiKeyName: "key-alice",
     agentContext: {
       client: "claude-code",
       clientSessionId: "alice-sess-msg-1",
@@ -148,6 +270,64 @@ test("extractUserTurnText returns null when user message only has tool_result", 
   assert.equal(extracted.text, null);
 });
 
+test("extractUserTurnText keeps the prompt before an assistant prefill", () => {
+  const body = {
+    messages: [
+      { role: "user", content: "Summarize the diff" },
+      { role: "assistant", content: "Summary:" },
+    ],
+  };
+
+  assert.equal(extractUserTurnText(body).text, "Summarize the diff");
+});
+
+test("extractUserTurnText returns null for a Chat Completions tool-result turn", () => {
+  const body = {
+    messages: [
+      { role: "user", content: "Read a.ts" },
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [
+          { id: "call_1", type: "function", function: { name: "read", arguments: "{}" } },
+        ],
+      },
+      { role: "tool", tool_call_id: "call_1", content: "file contents" },
+    ],
+  };
+
+  assert.equal(extractUserTurnText(body).text, null);
+});
+
+test("extractUserTurnText reads a Responses API string input", () => {
+  assert.equal(extractUserTurnText({ input: "List the files" }).text, "List the files");
+});
+
+test("extractUserTurnText reads the last user item of a Responses API input array", () => {
+  const body = {
+    input: [
+      { type: "message", role: "developer", content: [{ type: "input_text", text: "rules" }] },
+      { type: "message", role: "user", content: [{ type: "input_text", text: "First task" }] },
+      { type: "message", role: "assistant", content: [{ type: "output_text", text: "Done" }] },
+      { role: "user", content: [{ type: "input_text", text: "Now run the tests" }] },
+    ],
+  };
+
+  assert.equal(extractUserTurnText(body).text, "Now run the tests");
+});
+
+test("extractUserTurnText returns null for a Responses API tool-output turn", () => {
+  const body = {
+    input: [
+      { role: "user", content: [{ type: "input_text", text: "Run the tests" }] },
+      { type: "function_call", call_id: "call_1", name: "shell", arguments: "{}" },
+      { type: "function_call_output", call_id: "call_1", output: "ok" },
+    ],
+  };
+
+  assert.equal(extractUserTurnText(body).text, null);
+});
+
 test("extractAssistantTurnText extracts text and tool names from Anthropic response", () => {
   const response = {
     content: [
@@ -179,6 +359,30 @@ test("extractAssistantTurnText extracts from OpenAI choices shape", () => {
   assert.deepEqual(extracted.toolNames, ["search"]);
 });
 
+test("extractAssistantTurnText extracts from a non-streaming Responses API response", () => {
+  // Native Responses upstream to a Responses client: chatCore hands this JSON on untranslated.
+  const response = {
+    id: "resp_1",
+    object: "response",
+    status: "completed",
+    output: [
+      { type: "reasoning", id: "rs_1", summary: [{ type: "summary_text", text: "thinking" }] },
+      {
+        type: "message",
+        id: "msg_1",
+        role: "assistant",
+        content: [{ type: "output_text", text: "Running the tests.", annotations: [] }],
+      },
+      { type: "function_call", id: "fc_1", call_id: "call_1", name: "shell", arguments: "{}" },
+      { type: "custom_tool_call", id: "ct_1", call_id: "call_2", name: "apply_patch", input: "" },
+    ],
+  };
+
+  const extracted = extractAssistantTurnText(response);
+  assert.equal(extracted.text, "Running the tests.");
+  assert.deepEqual(extracted.toolNames, ["shell", "apply_patch"]);
+});
+
 test("extractAgentSessionTurn caps text at 4000 characters and sets truncated flag", () => {
   const longText = "a".repeat(5000);
   const body = { messages: [{ role: "user", content: longText }] };
@@ -188,6 +392,246 @@ test("extractAgentSessionTurn caps text at 4000 characters and sets truncated fl
   assert.ok(turn);
   assert.equal(turn.userText?.length, 4000);
   assert.equal(turn.truncated, true);
+});
+
+// ──────────────── Streamed responses (real assembler output) ────────────────
+
+test("streamed OpenAI chat passthrough yields assistant text and tool names", async () => {
+  const completion = await assembleStream(openAiToolCallChunks("Reading the file.", "read_file"), {
+    mode: "passthrough",
+    sourceFormat: FORMATS.OPENAI,
+    provider: "openai",
+    model: "gpt-4.1-mini",
+    body: { messages: [{ role: "user", content: "go" }] },
+  });
+
+  const turn = streamedAssistantTurn(completion);
+  assert.equal(turn.assistantText, "Reading the file.");
+  assert.deepEqual(turn.toolNames, ["read_file"]);
+});
+
+test("streamed Anthropic passthrough yields the assistant text", async () => {
+  const completion = await assembleStream(
+    [
+      sse({
+        type: "message_start",
+        message: { id: "msg_1", model: "claude-sonnet-4", role: "assistant", usage: {} },
+      }),
+      sse({ type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }),
+      sse({
+        type: "content_block_delta",
+        index: 0,
+        delta: { type: "text_delta", text: "Let me check the tests." },
+      }),
+      sse({ type: "content_block_stop", index: 0 }),
+      sse({ type: "message_delta", delta: { stop_reason: "end_turn" }, usage: {} }),
+      sse({ type: "message_stop" }),
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.CLAUDE,
+      clientResponseFormat: FORMATS.CLAUDE,
+      provider: "claude",
+      model: "claude-sonnet-4",
+      body: { messages: [{ role: "user", content: "go" }] },
+    }
+  );
+
+  assert.equal(streamedAssistantTurn(completion).assistantText, "Let me check the tests.");
+});
+
+test("streamed OpenAI upstream translated for an Anthropic client yields text and tools", async () => {
+  const completion = await assembleStream(openAiToolCallChunks("Opening a.ts.", "Read"), {
+    mode: "translate",
+    targetFormat: FORMATS.OPENAI,
+    sourceFormat: FORMATS.CLAUDE,
+    provider: "openai",
+    model: "gpt-4.1-mini",
+    body: { messages: [{ role: "user", content: "go" }] },
+  });
+
+  const turn = streamedAssistantTurn(completion);
+  assert.equal(turn.assistantText, "Opening a.ts.");
+  assert.deepEqual(turn.toolNames, ["Read"]);
+});
+
+test("streamed Responses API passthrough yields text and function_call names", async () => {
+  const message = {
+    type: "message",
+    id: "msg_1",
+    role: "assistant",
+    status: "completed",
+    content: [{ type: "output_text", text: "Running the tests.", annotations: [] }],
+  };
+  const functionCall = {
+    type: "function_call",
+    id: "fc_1",
+    call_id: "call_1",
+    name: "shell",
+    arguments: '{"cmd":"npm test"}',
+    status: "completed",
+  };
+  const completion = await assembleStream(
+    [
+      sse({
+        type: "response.created",
+        response: { id: "resp_1", status: "in_progress", output: [] },
+      }),
+      sse({
+        type: "response.output_item.added",
+        output_index: 0,
+        item: { ...message, status: "in_progress", content: [] },
+      }),
+      sse({
+        type: "response.output_text.delta",
+        item_id: "msg_1",
+        output_index: 0,
+        content_index: 0,
+        delta: "Running the tests.",
+      }),
+      sse({ type: "response.output_item.done", output_index: 0, item: message }),
+      sse({
+        type: "response.output_item.added",
+        output_index: 1,
+        item: { ...functionCall, arguments: "", status: "in_progress" },
+      }),
+      sse({
+        type: "response.function_call_arguments.done",
+        item_id: "fc_1",
+        output_index: 1,
+        arguments: functionCall.arguments,
+      }),
+      sse({ type: "response.output_item.done", output_index: 1, item: functionCall }),
+      sse({
+        type: "response.completed",
+        response: { id: "resp_1", status: "completed", output: [message, functionCall] },
+      }),
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+      provider: "codex",
+      model: "gpt-5.5",
+      body: { input: "go" },
+    }
+  );
+
+  const turn = streamedAssistantTurn(completion);
+  assert.equal(turn.assistantText, "Running the tests.");
+  assert.deepEqual(turn.toolNames, ["shell"]);
+});
+
+test("streamed OpenAI upstream translated for a Responses API client yields text and tools", async () => {
+  const completion = await assembleStream(openAiToolCallChunks("Patching a.ts.", "apply_patch"), {
+    mode: "translate",
+    targetFormat: FORMATS.OPENAI,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    provider: "openai",
+    model: "gpt-4.1-mini",
+    body: { input: "go" },
+  });
+
+  const turn = streamedAssistantTurn(completion);
+  assert.equal(turn.assistantText, "Patching a.ts.");
+  assert.deepEqual(turn.toolNames, ["apply_patch"]);
+});
+
+// ──────────────── Capture gating ────────────────
+
+test("a turn is captured when the flag is on and the request has an agent identity", async () => {
+  await withCaptureFlag("true", () =>
+    recordTurn({
+      prompt: "gate-control prompt",
+      context: agentContextFor("gate-control"),
+      apiKeyId: keyAliceId,
+      apiKeyInfo: { noLog: false },
+    })
+  );
+
+  assert.equal(countTurnsWithUserText("gate-control prompt"), 1);
+});
+
+test("no turn is captured while the feature flag is off", async () => {
+  await withCaptureFlag("false", () =>
+    recordTurn({
+      prompt: "gate-flag-off prompt",
+      context: agentContextFor("gate-flag-off"),
+      apiKeyId: keyAliceId,
+      apiKeyInfo: { noLog: false },
+    })
+  );
+
+  assert.equal(countTurnsWithUserText("gate-flag-off prompt"), 0);
+});
+
+test("no turn is captured for a noLog API key", async () => {
+  const noLogKey = await apiKeysDb.createApiKey("key-nolog", "test-machine", [SELF_USAGE_SCOPE]);
+  await apiKeysDb.updateApiKeyPermissions(noLogKey.id, { noLog: true });
+  const metadata = await apiKeysDb.getApiKeyMetadata(noLogKey.key);
+  assert.equal(metadata?.noLog, true);
+
+  await withCaptureFlag("true", async () => {
+    assert.equal(
+      resolveSessionTurn(
+        { messages: [{ role: "user", content: "hidden" }] },
+        [{ content: [{ type: "text", text: "ok" }] }],
+        agentContextFor("gate-nolog"),
+        metadata
+      ),
+      null
+    );
+    await recordTurn({
+      prompt: "gate-nolog prompt",
+      context: agentContextFor("gate-nolog"),
+      apiKeyId: noLogKey.id,
+      apiKeyInfo: metadata,
+    });
+    // A caller that skipped resolveSessionTurn still cannot persist a noLog key's turn.
+    await usageHistory.saveRequestUsage({
+      provider: "anthropic",
+      model: "claude-sonnet-4",
+      tokens: { input: 10, output: 5 },
+      timestamp: nextTimestamp(),
+      apiKeyId: noLogKey.id,
+      agentContext: agentContextFor("gate-nolog"),
+      sessionTurn: {
+        userText: "gate-nolog direct",
+        assistantText: "ok",
+        toolNames: [],
+        truncated: false,
+      },
+    });
+  });
+
+  assert.equal(countTurnsWithUserText("gate-nolog prompt"), 0);
+  assert.equal(countTurnsWithUserText("gate-nolog direct"), 0);
+});
+
+test("no turn is captured for a request without an agent identity", async () => {
+  await withCaptureFlag("true", () =>
+    recordTurn({
+      prompt: "gate-no-identity prompt",
+      context: agentContextFor(null),
+      apiKeyId: keyAliceId,
+      apiKeyInfo: { noLog: false },
+    })
+  );
+
+  assert.equal(countTurnsWithUserText("gate-no-identity prompt"), 0);
+});
+
+test("no turn is captured for a request without an API key", async () => {
+  await withCaptureFlag("true", () =>
+    recordTurn({
+      prompt: "gate-no-key prompt",
+      context: agentContextFor("gate-no-key"),
+      apiKeyId: null,
+      apiKeyInfo: null,
+    })
+  );
+
+  assert.equal(countTurnsWithUserText("gate-no-key prompt"), 0);
 });
 
 // ──────────────── Persistence & Route tests ────────────────
@@ -202,9 +646,11 @@ test("GET /v1/me/sessions/[id]/messages lists messages for the calling key", asy
 
   const data = (await res.json()) as {
     sessionId: string;
+    capturing: boolean;
     messages: messagesDb.AgentSessionMessageRecord[];
   };
   assert.equal(data.sessionId, sessionAliceId);
+  assert.equal(data.capturing, false, "capture is off by default");
   assert.equal(data.messages.length, 2);
   assert.equal(data.messages[0].user, "Fix the bug in auth");
   assert.deepEqual(data.messages[0].tools, ["Edit", "Bash"]);
@@ -219,6 +665,19 @@ test("GET /v1/me/sessions/[id]/messages returns 404 for another key's session", 
 
   const res = await getMessagesRoute(req, { params: Promise.resolve({ id: sessionAliceId }) });
   assert.equal(res.status, 404);
+});
+
+test("GET /v1/me/sessions/[id]/messages rejects invalid limit and cursor values", async () => {
+  for (const query of ["limit=0", "limit=101", "limit=abc", "cursor=0", "cursor=1.5"]) {
+    const req = new Request(
+      `http://localhost:20128/v1/me/sessions/${sessionAliceId}/messages?${query}`,
+      { headers: { Authorization: `Bearer ${keyAliceToken}` } }
+    );
+    const res = await getMessagesRoute(req, { params: Promise.resolve({ id: sessionAliceId }) });
+    assert.equal(res.status, 400, `${query} should be rejected`);
+    const data = (await res.json()) as { error: string };
+    assert.equal(data.error, "Invalid query parameters");
+  }
 });
 
 test("GET /v1/me/sessions/[id]/messages supports limit and cursor pagination", async () => {
@@ -259,4 +718,20 @@ test("deleteAgentSessionMessagesBefore removes older messages", () => {
   const remaining = messagesDb.listAgentSessionMessages(db, sessionAliceId);
   assert.equal(remaining.messages.length, 1);
   assert.equal(remaining.messages[0].user, "Run the tests now");
+});
+
+test("resetUsageHistory('all') deletes agent session messages and reports the count", async () => {
+  const db = core.getDbInstance();
+  const before = db.prepare("SELECT COUNT(*) AS c FROM agent_session_messages").get() as {
+    c: number;
+  };
+  assert.ok(before.c > 0);
+
+  const result = await cleanup.resetUsageHistory("all");
+  assert.equal(result.deletedAgentSessionMessages, before.c);
+
+  const after = db.prepare("SELECT COUNT(*) AS c FROM agent_session_messages").get() as {
+    c: number;
+  };
+  assert.equal(after.c, 0);
 });
