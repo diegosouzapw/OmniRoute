@@ -39,6 +39,8 @@ import {
   hasAgentIdentity,
   type AgentContext,
 } from "@omniroute/open-sse/handlers/chatCore/agentContext.ts";
+import type { ExtractedAgentSessionTurn } from "@omniroute/open-sse/handlers/chatCore/agentSessionTurn.ts";
+import { isNoLog } from "../compliance/noLog";
 import { saveAgentSessionMessage } from "../db/agentSessionMessages";
 import {
   recordAgentSessionUsage,
@@ -760,12 +762,8 @@ export interface UsageEntry {
   cpaAuthIndex?: string | null;
   /** Coding-agent session and project of the request; attributes the row to an agent session. */
   agentContext?: AgentContext | null;
-  sessionTurn?: {
-    userText?: string | null;
-    assistantText?: string | null;
-    toolNames?: string[] | null;
-    truncated?: boolean;
-  } | null;
+  /** Simplified turn for the agent session; stored only for keyed requests that are not noLog. */
+  sessionTurn?: ExtractedAgentSessionTurn | null;
 }
 
 /** Session counters for this request, priced now so reports keep the price at request time. */
@@ -819,6 +817,8 @@ export async function saveRequestUsage(entry: UsageEntry) {
       reasoning: getReasoningTokens(entry.tokens),
     };
     const agentSessionUsage = await buildAgentSessionUsage(entry, tokens, timestamp, serviceTier);
+    // Same noLog source as call logs (key flag or NO_LOG_API_KEY_IDS); only key holders read turns.
+    const sessionTurn = entry.apiKeyId && !isNoLog(entry.apiKeyId) ? entry.sessionTurn : null;
     const connection = entry.connectionId
       ? (db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(entry.connectionId) as
           Record<string, unknown> | undefined)
@@ -881,7 +881,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         ? recordAgentSessionUsage(db, agentSessionUsage)
         : null;
 
-      if (agentSessionId && entry.sessionTurn) {
+      if (agentSessionId && sessionTurn) {
         try {
           saveAgentSessionMessage(db, {
             sessionId: agentSessionId,
@@ -890,10 +890,10 @@ export async function saveRequestUsage(entry: UsageEntry) {
             provider: entry.provider ? resolveProviderId(entry.provider) : null,
             model: entry.model || null,
             success: entry.success !== false,
-            userText: entry.sessionTurn.userText,
-            assistantText: entry.sessionTurn.assistantText,
-            toolNames: entry.sessionTurn.toolNames,
-            truncated: entry.sessionTurn.truncated,
+            userText: sessionTurn.userText,
+            assistantText: sessionTurn.assistantText,
+            toolNames: sessionTurn.toolNames,
+            truncated: sessionTurn.truncated,
           });
         } catch (turnErr) {
           console.error("Failed to save agent session message:", turnErr);
