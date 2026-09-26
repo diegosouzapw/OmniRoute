@@ -182,6 +182,116 @@ function arraysEqual(a: readonly string[], b: readonly string[]): boolean {
   return true;
 }
 
+/** The access fields of a key: read from the stored key, and planned for the assignment. */
+interface KeyAccessFields {
+  modelAccessMode: ModelAccessMode;
+  allowedModels: string[];
+  allowedCombos: string[];
+}
+
+/**
+ * Next model access for the key. A restricted key merges the additions and removals. An "all"
+ * key changes only when models are added, and then only with switchToRestricted.
+ */
+function planModelAccess(
+  key: KeyAccessFields,
+  options: ApiKeyAccessAssignInput
+): Pick<KeyAccessFields, "modelAccessMode" | "allowedModels"> {
+  const addModels = options.add?.models ?? [];
+  const removeModels = options.remove?.models ?? [];
+
+  if (key.modelAccessMode !== "all") {
+    return {
+      modelAccessMode: "restricted",
+      allowedModels: computeUpdatedList(key.allowedModels || [], addModels, removeModels),
+    };
+  }
+
+  if (addModels.length === 0) {
+    // Removing from an "all" key is a no-op: mode stays "all", models list stays empty
+    return { modelAccessMode: key.modelAccessMode, allowedModels: key.allowedModels || [] };
+  }
+
+  if (!options.switchToRestricted) {
+    throw new KeyAllowsAllModelsError();
+  }
+  // When switching to restricted from all, allowedModels is exactly the added models
+  // (with any requested removals applied).
+  const allowedModels = computeUpdatedList([], addModels, removeModels);
+  if (allowedModels.length === 0) {
+    throw new EmptyRestrictedAccessListError(
+      "Switching to restricted models cannot result in an empty allowlist"
+    );
+  }
+  return { modelAccessMode: "restricted", allowedModels };
+}
+
+/**
+ * Next allowed combos for the key. combo/* means allow-all combos: such a key changes only when
+ * combos are added, and then only with switchToRestricted.
+ */
+function planComboAccess(key: KeyAccessFields, options: ApiKeyAccessAssignInput): string[] {
+  const addCombos = options.add?.combos ?? [];
+  const removeCombos = options.remove?.combos ?? [];
+  const isAllCombosKey = (key.allowedCombos ?? []).includes(ALL_COMBOS_ACCESS_RULE);
+
+  if (!isAllCombosKey) {
+    return computeUpdatedComboList(key.allowedCombos || [], addCombos, removeCombos);
+  }
+
+  if (addCombos.length === 0) {
+    // Removing from an allow-all combos key is a no-op: preserve existing combo/*
+    return key.allowedCombos || [ALL_COMBOS_ACCESS_RULE];
+  }
+
+  if (!options.switchToRestricted) {
+    throw new KeyAllowsAllCombosError();
+  }
+  // When switching to restricted from all combos, drop combo/* and apply list
+  const allowedCombos = computeUpdatedComboList([], addCombos, removeCombos);
+  if (allowedCombos.length === 0) {
+    throw new EmptyRestrictedAccessListError(
+      "Switching to restricted combos cannot result in an empty allowlist"
+    );
+  }
+  return allowedCombos;
+}
+
+/** Caps validation matching updateKeyPermissionsSchema. */
+function assertWithinAccessCaps(plan: KeyAccessFields): void {
+  if (plan.allowedModels.length > MAX_ALLOWED_MODELS) {
+    throw new KeyAccessCapExceededError(
+      `Allowed models list exceeds maximum limit of ${MAX_ALLOWED_MODELS}`
+    );
+  }
+
+  if (plan.allowedCombos.length > MAX_ALLOWED_COMBOS) {
+    throw new KeyAccessCapExceededError(
+      `Allowed combos list exceeds maximum limit of ${MAX_ALLOWED_COMBOS}`
+    );
+  }
+}
+
+/**
+ * Resolve the access the key will have after the assignment. Throws when the key allows all
+ * models or combos without switchToRestricted, when the switch leaves an empty list, or when a
+ * resulting list exceeds its cap.
+ */
+function planKeyAccess(key: KeyAccessFields, options: ApiKeyAccessAssignInput): KeyAccessFields {
+  const { modelAccessMode, allowedModels } = planModelAccess(key, options);
+  const allowedCombos = planComboAccess(key, options);
+  const plan = { modelAccessMode, allowedModels, allowedCombos };
+  assertWithinAccessCaps(plan);
+  return plan;
+}
+
+function hasAccessChanged(key: KeyAccessFields, plan: KeyAccessFields): boolean {
+  const modeChanged = plan.modelAccessMode !== key.modelAccessMode;
+  const modelsChanged = !arraysEqual(key.allowedModels || [], plan.allowedModels);
+  const combosChanged = !arraysEqual(key.allowedCombos || [], plan.allowedCombos);
+  return modeChanged || modelsChanged || combosChanged;
+}
+
 /**
  * Atomically assign (add/remove) models and combos to an API key.
  * Serialized per key id using withKeyAccessLock.
@@ -196,85 +306,14 @@ export async function assignApiKeyAccess(
       return null;
     }
 
-    const currentMode = key.modelAccessMode;
-    const addModels = options.add?.models ?? [];
-    const removeModels = options.remove?.models ?? [];
-    const addCombos = options.add?.combos ?? [];
-    const removeCombos = options.remove?.combos ?? [];
-
-    let nextModelAccessMode: ModelAccessMode = currentMode;
-    let nextAllowedModels: string[];
-
-    if (currentMode === "all") {
-      if (addModels.length > 0) {
-        if (!options.switchToRestricted) {
-          throw new KeyAllowsAllModelsError();
-        }
-        nextModelAccessMode = "restricted";
-        // When switching to restricted from all, allowedModels is exactly the added models
-        // (with any requested removals applied).
-        nextAllowedModels = computeUpdatedList([], addModels, removeModels);
-        if (nextAllowedModels.length === 0) {
-          throw new EmptyRestrictedAccessListError(
-            "Switching to restricted models cannot result in an empty allowlist"
-          );
-        }
-      } else {
-        // Removing from an "all" key is a no-op: mode stays "all", models list stays empty
-        nextAllowedModels = key.allowedModels || [];
-      }
-    } else {
-      nextModelAccessMode = "restricted";
-      nextAllowedModels = computeUpdatedList(key.allowedModels || [], addModels, removeModels);
-    }
-
-    // Combos handling: combo/* means allow-all combos
-    const isAllCombosKey = (key.allowedCombos ?? []).includes(ALL_COMBOS_ACCESS_RULE);
-    let nextAllowedCombos: string[];
-
-    if (isAllCombosKey) {
-      if (addCombos.length > 0) {
-        if (!options.switchToRestricted) {
-          throw new KeyAllowsAllCombosError();
-        }
-        // When switching to restricted from all combos, drop combo/* and apply list
-        nextAllowedCombos = computeUpdatedComboList([], addCombos, removeCombos);
-        if (nextAllowedCombos.length === 0) {
-          throw new EmptyRestrictedAccessListError(
-            "Switching to restricted combos cannot result in an empty allowlist"
-          );
-        }
-      } else {
-        // Removing from an allow-all combos key is a no-op: preserve existing combo/*
-        nextAllowedCombos = key.allowedCombos || [ALL_COMBOS_ACCESS_RULE];
-      }
-    } else {
-      nextAllowedCombos = computeUpdatedComboList(key.allowedCombos || [], addCombos, removeCombos);
-    }
-
-    // Caps validation matching updateKeyPermissionsSchema
-    if (nextAllowedModels.length > MAX_ALLOWED_MODELS) {
-      throw new KeyAccessCapExceededError(
-        `Allowed models list exceeds maximum limit of ${MAX_ALLOWED_MODELS}`
-      );
-    }
-
-    if (nextAllowedCombos.length > MAX_ALLOWED_COMBOS) {
-      throw new KeyAccessCapExceededError(
-        `Allowed combos list exceeds maximum limit of ${MAX_ALLOWED_COMBOS}`
-      );
-    }
-
-    const modeChanged = nextModelAccessMode !== currentMode;
-    const modelsChanged = !arraysEqual(key.allowedModels || [], nextAllowedModels);
-    const combosChanged = !arraysEqual(key.allowedCombos || [], nextAllowedCombos);
-    const changed = modeChanged || modelsChanged || combosChanged;
+    const plan = planKeyAccess(key, options);
+    const changed = hasAccessChanged(key, plan);
 
     if (changed) {
       const updated = await updateApiKeyPermissions(id, {
-        modelAccessMode: nextModelAccessMode,
-        allowedModels: nextAllowedModels,
-        allowedCombos: nextAllowedCombos,
+        modelAccessMode: plan.modelAccessMode,
+        allowedModels: plan.allowedModels,
+        allowedCombos: plan.allowedCombos,
       });
 
       if (!updated) {
@@ -284,9 +323,9 @@ export async function assignApiKeyAccess(
 
     return {
       id: key.id,
-      modelAccessMode: nextModelAccessMode,
-      allowedModels: nextAllowedModels,
-      allowedCombos: nextAllowedCombos,
+      modelAccessMode: plan.modelAccessMode,
+      allowedModels: plan.allowedModels,
+      allowedCombos: plan.allowedCombos,
       changed,
     };
   });

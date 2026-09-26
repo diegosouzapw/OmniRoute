@@ -246,26 +246,32 @@ const accessListSchema = z.object({
   combos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
 });
 
+type AccessList = z.infer<typeof accessListSchema>;
+
+const isNonEmptyList = (list: string[] | undefined) => (list?.length ?? 0) > 0;
+
+const hasAccessListEntries = (list: AccessList | undefined) =>
+  isNonEmptyList(list?.models) || isNonEmptyList(list?.combos);
+
+const requireAccessAssignEntries = (
+  data: { add?: AccessList; remove?: AccessList },
+  ctx: z.RefinementCtx
+) => {
+  if (!hasAccessListEntries(data.add) && !hasAccessListEntries(data.remove)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "At least one non-empty list of models or combos must be provided to add or remove",
+      path: ["add"],
+    });
+  }
+};
+
 export const apiKeyAccessAssignSchema = z
   .object({
     add: accessListSchema.optional(),
     remove: accessListSchema.optional(),
     switchToRestricted: z.boolean().optional(),
   })
-  .superRefine((data, ctx) => {
-    const hasAddModels = (data.add?.models?.length ?? 0) > 0;
-    const hasAddCombos = (data.add?.combos?.length ?? 0) > 0;
-    const hasRemoveModels = (data.remove?.models?.length ?? 0) > 0;
-    const hasRemoveCombos = (data.remove?.combos?.length ?? 0) > 0;
-
-    if (!hasAddModels && !hasAddCombos && !hasRemoveModels && !hasRemoveCombos) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "At least one non-empty list of models or combos must be provided to add or remove",
-        path: ["add"],
-      });
-    }
-  });
+  .superRefine(requireAccessAssignEntries);
 
 export type ApiKeyAccessAssignInput = z.infer<typeof apiKeyAccessAssignSchema>;
