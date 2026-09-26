@@ -156,6 +156,50 @@ function entryId(key: string, kind: ProxyRefusalKind): string {
   return `${kind} ${key}`;
 }
 
+/**
+ * Composite key for one (entry, selector member) pair. JSON-array encoding is
+ * unambiguous by construction: member names carrying spaces, brackets, quotes
+ * or unicode cannot alias each other or an entry-level key. Entry-level keys
+ * stay plain `proxyEgressKey` strings so pool/rotation reads are untouched.
+ */
+export function keyForEntryMember(entryKey: string, member: string): string {
+  return JSON.stringify([entryKey, member]);
+}
+
+// Read one composite (entry, member, kind) state, same TTL discipline as entry
+// states: dropped once its period ended more than 2 x maxMs ago.
+function readMemberState(
+  entryKey: string,
+  member: string,
+  kind: ProxyRefusalKind,
+  nowMs: number
+): RefusalState | undefined {
+  const id = entryId(keyForEntryMember(entryKey, member), kind);
+  const state = memory.get(id);
+  if (state && nowMs - state.until >= 2 * REFUSAL_POLICIES[kind].maxMs) {
+    memory.delete(id);
+    return undefined;
+  }
+  return state;
+}
+
+// Shared insert: same curve, same seq, same oldest-first eviction as entries.
+function insertState(key: string, kind: ProxyRefusalKind, nowMs: number): number {
+  const state = readState(key, kind, nowMs);
+  if (state && state.until > nowMs) return -1;
+  const policy = REFUSAL_POLICIES[kind];
+  const streak = (state?.streak ?? 0) + 1;
+  const periodMs = Math.min(policy.baseMs * 2 ** (streak - 1), policy.maxMs);
+  const id = entryId(key, kind);
+  memory.delete(id);
+  memory.set(id, { streak, until: nowMs + periodMs, seq: ++refusalSeq });
+  if (memory.size > MAX_ENTRIES) {
+    const oldest = memory.keys().next().value;
+    if (oldest !== undefined) memory.delete(oldest);
+  }
+  return periodMs;
+}
+
 // Read one (key, kind) state, dropping it once its period ended more than 2 x maxMs ago.
 function readState(key: string, kind: ProxyRefusalKind, nowMs: number): RefusalState | undefined {
   const id = entryId(key, kind);
@@ -174,20 +218,28 @@ export function noteProxyRefusal(
   nowMs: number = Date.now()
 ): number | null {
   if (key === null) return null;
-  const state = readState(key, kind, nowMs);
-  if (state && state.until > nowMs) return null;
-  const policy = REFUSAL_POLICIES[kind];
-  const streak = (state?.streak ?? 0) + 1;
-  const periodMs = Math.min(policy.baseMs * 2 ** (streak - 1), policy.maxMs);
-  const id = entryId(key, kind);
-  memory.delete(id);
-  memory.set(id, { streak, until: nowMs + periodMs, seq: ++refusalSeq });
+  const periodMs = insertState(key, kind, nowMs);
+  if (periodMs < 0) return null;
   notifyProxyTransition({ key, kind, periodMs, until: nowMs + periodMs });
-  if (memory.size > MAX_ENTRIES) {
-    const oldest = memory.keys().next().value;
-    if (oldest !== undefined) memory.delete(oldest);
-  }
   return periodMs;
+}
+
+/**
+ * Set one selector member aside for `kind`, keyed by (entry, member). Reuses
+ * the same policy curve, streak discipline and memory bound as entry writes:
+ * at equal streak the period equals the entry-level one. The entry-level write
+ * stays the caller's job (kept separate so pool/rotation avoidance on the
+ * entry key never regresses). Null entry or member writes nothing.
+ */
+export function noteProxyMemberRefusal(
+  entryKey: string | null,
+  member: string | null,
+  kind: ProxyRefusalKind,
+  nowMs: number = Date.now()
+): number | null {
+  if (entryKey === null || member === null) return null;
+  const periodMs = insertState(keyForEntryMember(entryKey, member), kind, nowMs);
+  return periodMs < 0 ? null : periodMs;
 }
 
 /** The proxy answered again: end its period now, keep the streak so a repeat doubles. */
@@ -271,6 +323,63 @@ export function snapshotProxySetAside(
 /** Sequence number of the last set-aside event recorded in this process (0 = none yet). */
 export function getProxyRefusalSeq(): number {
   return refusalSeq;
+}
+
+/**
+ * True while the (entry, member) pair is set aside for any refusal kind.
+ * Complements `isProxyAvoided` (entry-level, used by pool rotation) — it never
+ * replaces it.
+ */
+export function isSelectorMemberAvoided(
+  entryKey: string | null,
+  member: string | null,
+  nowMs: number = Date.now()
+): boolean {
+  return selectorMemberSetAsideSeq(entryKey, member, nowMs) !== null;
+}
+
+/**
+ * Sequence number of the most recent set-aside event still in force for this
+ * (entry, member) pair, or null when it is not set aside. Powers the
+ * least-recently-set-aside fallback below: among set-aside members the
+ * smallest seq is the oldest event.
+ */
+export function selectorMemberSetAsideSeq(
+  entryKey: string | null,
+  member: string | null,
+  nowMs: number = Date.now()
+): number | null {
+  if (entryKey === null || member === null || memory.size === 0) return null;
+  let latest: number | null = null;
+  for (const kind of REFUSAL_KINDS) {
+    const state = readMemberState(entryKey, member, kind, nowMs);
+    if (state && state.until > nowMs && (latest === null || state.seq > latest)) {
+      latest = state.seq;
+    }
+  }
+  return latest;
+}
+
+/**
+ * Oldest set-aside event among `members` still in force for this entry, or
+ * null when none is set aside. Lets a switch fall back to the least recently
+ * set-aside member instead of refusing to move. Reads `nowMs` once per caller
+ * (pass a frozen timestamp for the whole switch).
+ */
+export function leastRecentlySetAside(
+  entryKey: string | null,
+  members: string[],
+  nowMs: number = Date.now()
+): string | null {
+  if (entryKey === null || memory.size === 0) return null;
+  let oldest: { member: string; seq: number } | null = null;
+  for (const member of members) {
+    const seq = selectorMemberSetAsideSeq(entryKey, member, nowMs);
+    if (seq !== null && (oldest === null || seq < oldest.seq)) {
+      oldest = { member, seq };
+    }
+  }
+  return oldest?.member ?? null;
 }
 
 /** True when anything is held at all: lets hot paths skip key computation and flag reads. */

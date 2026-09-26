@@ -34,6 +34,11 @@
 import { getDbInstance } from "../db/core";
 import { decrypt } from "../db/encryption";
 import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
+import {
+  isSelectorMemberAvoided,
+  leastRecentlySetAside,
+  noteProxyMemberRefusal,
+} from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
 import { parseSelectorTag } from "./selectorEndpoint";
 import { getGroupMembers, switchSelector, type SelectorSwitchReason } from "./selectorClient";
 import { isSelectorControlUrlAllowedAtFetchTime, resolveSelectorAllowlist } from "./selectorGuard";
@@ -211,14 +216,60 @@ async function currentSelectorChoice(
   controlUrl: string,
   secret: string | null,
   selector: string
-): Promise<string | null> {
+): Promise<{ members: string[]; current: string | null } | null> {
   if (!secret) return null;
   try {
-    const { current, reason } = await getGroupMembers(controlUrl, selector, { secret });
-    return reason === "ok" ? current : null;
+    const { members, current, reason } = await getGroupMembers(controlUrl, selector, { secret });
+    return reason === "ok" ? { members, current } : null;
   } catch {
     return null;
   }
+}
+
+/**
+ * First member in declared order that is neither excluded by the caller nor
+ * set aside in the refusal memory for this entry. Falls back to the least
+ * recently set-aside member when every candidate is set aside (progress over
+ * refusal); null only when nothing is eligible at all (e.g. single member).
+ * `nowMs` is frozen by the caller for the whole switch (no clock drift
+ * between the record and the pick).
+ */
+export function pickLiveMember(
+  entryKey: string,
+  members: string[],
+  excluded: Set<string>,
+  nowMs: number
+): string | null {
+  const candidates = members.filter((m) => !excluded.has(m));
+  if (candidates.length === 0) return null;
+  const fresh = candidates.find((m) => !isSelectorMemberAvoided(entryKey, m, nowMs));
+  if (fresh) return fresh;
+  return leastRecentlySetAside(entryKey, candidates, nowMs);
+}
+
+/**
+ * Extra avoid set steering `pickTarget` (first member outside the avoid set)
+ * onto the memory-aware target: first member in declared order that is neither
+ * the avoided/current name nor set aside for this entry; least-recently-set-aside
+ * fallback when all are set aside. Undefined when no steering applies, so the
+ * client keeps its plain avoidName/current behavior.
+ */
+function avoidExtraForSwitch(
+  live: { members: string[]; current: string | null } | null,
+  setAsideKey: string,
+  currentName: string | null,
+  now: number
+): string[] | undefined {
+  if (live == null) return undefined;
+  const memoryTarget = pickLiveMember(
+    setAsideKey,
+    live.members,
+    new Set([currentName ?? setAsideKey, setAsideKey].filter((x): x is string => !!x)),
+    now
+  );
+  if (!memoryTarget) return undefined;
+  const avoidExtra = live.members.filter((m) => m !== memoryTarget);
+  return avoidExtra.length > 0 ? avoidExtra : undefined;
 }
 
 /**
@@ -334,14 +385,21 @@ async function runSwitch(
   // Avoid the live choice: the switch steers away from whichever member the
   // core currently serves (the set-aside member when it was current) and
   // still moves when names are opaque — the client excludes both the avoided
-  // name and the current choice.
-  const currentName = await currentSelectorChoice(hit.controlUrl, secret, hit.selector);
+  // name and the current choice. On top of that, members set aside in the
+  // refusal memory for this entry are skipped in declared order, so a repeat
+  // refusal lands on a fresh member; when every candidate is set aside the
+  // least recently set-aside one is reused (streaks are per (entry, member)
+  // key, so the repeat doubles from that key's own streak).
+  const live = await currentSelectorChoice(hit.controlUrl, secret, hit.selector);
+  const currentName = live?.current ?? null;
+  if (currentName) noteProxyMemberRefusal(setAsideKey, currentName, "ip_quota_429", now);
   const res = await switchSelector(
     {
       controlUrl: hit.controlUrl,
       secret,
       selector: hit.selector,
       avoidName: currentName ?? setAsideKey,
+      avoidExtra: avoidExtraForSwitch(live, setAsideKey, currentName, now),
     },
     undefined
   );
