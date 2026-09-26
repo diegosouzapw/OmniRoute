@@ -20,6 +20,7 @@ export function useApiKeyAccessIndex() {
   const loadedRef = useRef(false);
   const loadRef = useRef<Promise<void> | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
+  const pendingKeysRef = useRef(new Set<string>());
 
   useEffect(() => () => controllerRef.current?.abort(), []);
   const refresh = useCallback((): Promise<void> => {
@@ -82,6 +83,8 @@ export function useApiKeyAccessIndex() {
 
   const toggle = useCallback(
     async (key: AccessKey, kind: AccessKind, id: string, allowed: boolean) => {
+      if (pendingKeysRef.current.has(key.id)) return { status: "skipped" } as AssignOutcome;
+      pendingKeysRef.current.add(key.id);
       setKeys((current) =>
         current.map((entry) =>
           entry.id === key.id ? applyOptimisticAccess(entry, kind, id, allowed) : entry
@@ -90,6 +93,7 @@ export function useApiKeyAccessIndex() {
       const outcome = await assign(key.id, { [allowed ? "add" : "remove"]: { [kind]: [id] } });
       if (!outcome.result)
         setKeys((current) => current.map((entry) => (entry.id === key.id ? key : entry)));
+      pendingKeysRef.current.delete(key.id);
       return outcome;
     },
     [assign]
