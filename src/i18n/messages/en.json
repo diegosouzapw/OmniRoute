@@ -1030,6 +1030,8 @@
     "endpointsSubtitle": "Your AI connection URLs",
     "apiManager": "API Keys",
     "apiManagerSubtitle": "Manage API keys and access",
+    "modelCatalog": "Models & Combos",
+    "modelCatalogSubtitle": "Browse models and combos across providers",
     "embeddedServices": "Embedded Services",
     "embeddedServicesSubtitle": "Optional local services",
     "logs": "Logs",

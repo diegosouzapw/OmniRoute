@@ -1030,6 +1030,8 @@
     "endpointsSubtitle": "URL kết nối AI của bạn",
     "apiManager": "Khóa API",
     "apiManagerSubtitle": "Quản lý khóa API và quyền truy cập",
+    "modelCatalog": "Mô hình & Combo",
+    "modelCatalogSubtitle": "Duyệt các mô hình và combo trên các nhà cung cấp",
     "embeddedServices": "Dịch vụ nhúng",
     "embeddedServicesSubtitle": "Quản lý các dịch vụ proxy cục bộ",
     "logs": "Nhật ký",
@@ -11429,10 +11431,10 @@
       "compressed": "Nén",
       "tps": "TPS",
       "duration": "Thời lượng",
+      "addedWait": "Thời gian chờ thêm",
       "time": "Thời gian",
       "conversation": "Cuộc trò chuyện",
-      "ttft": "TTFT",
-      "addedWait": "Thời gian chờ thêm"
+      "ttft": "TTFT"
     },
     "loadingLogs": "Đang tải nhật ký...",
     "noLogs": "Chưa có nhật ký nào. Hãy thực hiện một số cuộc gọi API để xem chúng ở đây.",
