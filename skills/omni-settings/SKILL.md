@@ -337,6 +337,30 @@ curl -X PUT https://localhost:20128/api/settings/thinking-budget \
   -d '{}'
 ```
 
+### GET /api/settings/cli-versions
+
+Get advertised CLI client versions
+
+The CLI client version OmniRoute advertises for the Claude Code and Codex identity presets. Each row reports the operator override, the version actually advertised, which layer produced it (`settings` > `env` > `default`), and the captured pin it resets to. The `source` field exists because the usual support question is why an override is not taking effect, and the answer is the precedence order.
+
+```bash
+curl https://localhost:20128/api/settings/cli-versions \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PUT /api/settings/cli-versions
+
+Set advertised CLI client versions
+
+Sets one global override per provider kind. `null` clears a key, and an omitted key keeps its current value. A malformed version is rejected with 400 rather than silently ignored, which is the difference from the CLAUDE_CODE_CLIENT_VERSION and CODEX_CLIENT_VERSION env vars.
+
+```bash
+curl -X PUT https://localhost:20128/api/settings/cli-versions \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### GET /api/tags
 
 List Ollama-compatible model tags

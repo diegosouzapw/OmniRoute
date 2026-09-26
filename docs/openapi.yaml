@@ -3104,6 +3104,72 @@ paths:
         "200":
           description: Updated thinking budget configuration
 
+  /api/settings/cli-versions:
+    get:
+      tags: [Settings]
+      summary: Get advertised CLI client versions
+      description: >-
+        The CLI client version OmniRoute advertises for the Claude Code and
+        Codex identity presets. Each row reports the operator override, the
+        version actually advertised, which layer produced it (`settings` >
+        `env` > `default`), and the captured pin it resets to. The `source`
+        field exists because the usual support question is why an override is
+        not taking effect, and the answer is the precedence order.
+      responses:
+        "200":
+          description: CLI client-version overrides
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CliVersionStatus"
+    put:
+      tags: [Settings]
+      summary: Set advertised CLI client versions
+      description: >-
+        Sets one global override per provider kind. `null` clears a key, and an
+        omitted key keeps its current value. A malformed version is rejected
+        with 400 rather than silently ignored, which is the difference from the
+        CLAUDE_CODE_CLIENT_VERSION and CODEX_CLIENT_VERSION env vars.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                claude:
+                  type: string
+                  nullable: true
+                  pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$'
+                  description: Override for the Claude Code preset, or null to clear it.
+                codex:
+                  type: string
+                  nullable: true
+                  pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$'
+                  description: Override for the Codex preset, or null to clear it.
+      responses:
+        "200":
+          description: Updated CLI client-version overrides
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CliVersionStatus"
+        "400":
+          description: Invalid version token, unknown key, or an update with no fields.
+
   /api/rate-limit:
     get:
       tags: [Settings]
@@ -13524,6 +13590,23 @@ components:
             requestId: 0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
 
   schemas:
+    CliVersionStatus:
+      type: object
+      description: >-
+        One provider kind as the dashboard sees it. `version` is the operator
+        override, `effective` is what actually goes on the wire, and `source`
+        names the layer that won.
+      required: [key, version, effective, source, pinned]
+      properties:
+        key: { type: string, enum: [claude, codex] }
+        version:
+          type: [string, "null"]
+          description: The operator override, or null when none is set.
+        effective: { type: string, description: The version advertised upstream. }
+        source: { type: string, enum: [settings, env, default] }
+        pinned:
+          type: string
+          description: The captured pin the override can be reset to.
     ExclusiveConnectionLeaseLifecycle:
       type: object
       description: >-

@@ -8,6 +8,8 @@
  * advertise the version on the wire must go through getClaudeCodeClientVersion()
  * so operators can bump past Anthropic's model gate without a rebuild (#12417).
  */
+import { getCliVersionOverride, type CliVersionSource } from "./cliVersions.ts";
+
 export const CLAUDE_CODE_CLIENT_VERSION = "2.1.258";
 export const CLAUDE_CODE_CLIENT_BUILD_REVISION = "1e2";
 export const CLAUDE_CODE_CLIENT_BILLING_VERSION = `${CLAUDE_CODE_CLIENT_VERSION}.${CLAUDE_CODE_CLIENT_BUILD_REVISION}`;
@@ -30,7 +32,21 @@ function getSafeEnvValue(name: string, pattern: RegExp): string | null {
 }
 
 export function getClaudeCodeClientVersion(): string {
-  return getSafeEnvValue(CLAUDE_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN) || CLAUDE_CODE_CLIENT_VERSION;
+  return (
+    getCliVersionOverride("claude") ||
+    getSafeEnvValue(CLAUDE_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN) ||
+    CLAUDE_CODE_CLIENT_VERSION
+  );
+}
+
+/**
+ * Which layer produced `getClaudeCodeClientVersion()` right now. Resolution is
+ * dashboard override -> `CLAUDE_CODE_CLIENT_VERSION` env -> the captured pin.
+ */
+export function getClaudeCodeClientVersionSource(): CliVersionSource {
+  if (getCliVersionOverride("claude")) return "settings";
+  if (getSafeEnvValue(CLAUDE_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN)) return "env";
+  return "default";
 }
 
 export function getClaudeCodeClientBillingVersion(): string {
