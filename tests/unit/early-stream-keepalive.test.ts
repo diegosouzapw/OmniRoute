@@ -41,6 +41,24 @@ function sseResponse(bodyText: string): Response {
   });
 }
 
+test("deadline wrapper rebuilds a proxied Request without passing its proxy to undici", async () => {
+  const original = new Request("http://localhost/v1/responses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "test-model" }),
+  });
+  const proxied = new Proxy(original, {
+    get(target, key) {
+      const value = Reflect.get(target, key, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+
+  const { wrappedReq } = withDeadlineSignal(proxied as Request);
+  assert.equal(wrappedReq.url, original.url);
+  assert.equal(await wrappedReq.text(), JSON.stringify({ model: "test-model" }));
+});
+
 // #2544: a handler that resolves quickly must be returned verbatim — same object,
 // status, and headers — so the common (fast) path has zero behavior change.
 test("fast handler is returned verbatim with headers preserved (#2544)", async () => {
