@@ -156,13 +156,15 @@ test("getUpstreamErrorIdentifier returns a non-empty string code or undefined", 
 
 test("non-streaming runNonStreamingProviderLeg is inside a try that maps semaphore errors", async () => {
   const fs = await import("node:fs");
-  const src = fs.readFileSync("open-sse/handlers/chatCore.ts", "utf8");
+  // After the decomposition the non-streaming branch lives in the leaf; its
+  // function-level try/catch is what maps semaphore errors.
+  const src = fs.readFileSync("open-sse/handlers/chatCore/nonStreamingResponse.ts", "utf8");
   // `let`, not `const`, since 6077b9dd (#12867) made the finalization step reassign
   // legResult. The guard is about the try/catch that wraps the call, not the keyword.
   const idx = src.search(/(?:const|let) legResult = await runNonStreamingProviderLeg/);
   assert.ok(idx >= 0, "non-streaming branch must exist");
-  const start = src.lastIndexOf("if (!stream)", idx);
-  const end = src.indexOf("// Streaming response", idx);
+  const start = src.lastIndexOf("export async function runNonStreamingResponse(", idx);
+  const end = src.indexOf("} catch (error)", idx);
   assert.ok(start >= 0 && end > start, "non-stream block bounds");
   const block = src.slice(start, end);
   assert.match(
@@ -170,8 +172,9 @@ test("non-streaming runNonStreamingProviderLeg is inside a try that maps semapho
     /try\s*\{[\s\S]*runNonStreamingProviderLeg/,
     "non-stream leg must sit in a try so SEMAPHORE_TIMEOUT cannot escape handleChatCore"
   );
+  const catchBlock = src.slice(end);
   assert.match(
-    block,
+    catchBlock,
     /isSemaphoreCapacityError/,
     "same catch that maps stream semaphore errors must cover the non-stream leg"
   );

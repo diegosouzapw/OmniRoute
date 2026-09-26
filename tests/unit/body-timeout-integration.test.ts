@@ -25,8 +25,10 @@ test("FETCH_BODY_TIMEOUT_MS defaults to FETCH_TIMEOUT_MS when no env override", 
 // ── 2. BodyTimeoutError classification in chatCore ──────────────────────
 
 test("chatCore error classification maps BodyTimeoutError to 504 GATEWAY_TIMEOUT", () => {
-  // Read the source to verify the error classification logic includes BodyTimeoutError
-  const content = fs.readFileSync("open-sse/handlers/chatCore.ts", "utf8");
+  // Read the leaf to verify the error classification logic includes BodyTimeoutError
+  // (the streaming leg's catch block lives in chatCore/streamingResponse.ts since
+  // the chatCore decomposition; the barrel no longer holds the classification).
+  const content = fs.readFileSync("open-sse/handlers/chatCore/streamingResponse.ts", "utf8");
 
   // The error classification block should include BodyTimeoutError alongside TimeoutError.
   // Match whatever identifier carries the error (#13910 renamed it to `errorMetadata`);
@@ -40,14 +42,19 @@ test("chatCore error classification maps BodyTimeoutError to 504 GATEWAY_TIMEOUT
 });
 
 test("chatCore catch block decrements pending requests for all error types", () => {
-  const content = fs.readFileSync("open-sse/handlers/chatCore.ts", "utf8");
-
-  // The catch block should call trackPendingRequest with false before error classification
-  const catchBlockPattern = /catch\s*\(error\)\s*\{[^}]*trackPendingRequest\([^)]*,\s*false\b/;
-  assert.ok(
-    catchBlockPattern.test(content),
-    "chatCore catch block should decrement pending requests"
-  );
+  // After the chatCore decomposition the per-leg catches live in the leaves;
+  // assert both legs decrement pending requests at the top of their catch.
+  for (const leaf of [
+    "open-sse/handlers/chatCore/nonStreamingResponse.ts",
+    "open-sse/handlers/chatCore/streamingResponse.ts",
+  ]) {
+    const content = fs.readFileSync(leaf, "utf8");
+    const catchBlockPattern = /catch\s*\(error\)\s*\{[^}]*trackPendingRequest\([^)]*,\s*false\b/;
+    assert.ok(
+      catchBlockPattern.test(content),
+      `${leaf} catch block should decrement pending requests`
+    );
+  }
 });
 
 test("withBodyTimeout error name is BodyTimeoutError", async () => {

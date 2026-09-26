@@ -69,10 +69,15 @@ test("chatCore stamps clientRequestedResponsesStream before forcing stream:false
   );
   const stamp = source.indexOf("clientRequestedResponsesStream = true");
   const force = source.indexOf("(body as Record<string, unknown>).stream = false");
-  const wrap = source.indexOf("maybeWrapForcedNonStreamingResponsesJson({");
+  const leafSource = await readFile(
+    join(import.meta.dirname, "../../open-sse/handlers/chatCore/nonStreamingResponse.ts"),
+    "utf-8"
+  );
+  const wrap = leafSource.indexOf("maybeWrapForcedNonStreamingResponsesJson({");
+  const leafCall = source.indexOf("await runNonStreamingResponse(");
   assert.ok(stamp !== -1, "must stamp the client-requested stream flag");
   assert.ok(force !== -1, "must still force stream:false for the web_search fallback");
   assert.ok(wrap !== -1, "must wrap the non-streaming JSON return");
   assert.ok(stamp < force, "stamp must happen before stream:false");
-  assert.ok(wrap > force, "wrap must happen on the non-streaming return after the force");
+  assert.ok(leafCall > force, "the non-streaming leaf runs after the force, so its wrap lands after it");
 });

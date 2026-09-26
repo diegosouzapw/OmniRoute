@@ -23,8 +23,14 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // the next credential for a bounded empty-turn retry. The retry dispatches through
     // executeProviderRequest(), whose assertManagedLeaseFence(attemptConnectionId) rejects a
     // connection other than the leased one — so it is fenced centrally (class A).
-    "open-sse/handlers/chatCore.ts": 1,
+    // The FLUSH_EMPTY_RETRY credential pick moved into streamingTail.ts with the
+    // response-path split; same call site, same fencing argument as below.
+    "open-sse/handlers/chatCore/streamingTail.ts": 1,
     "open-sse/handlers/chatCore/providerExecutionPipeline.ts": 2,
+    // The FLUSH_EMPTY_RETRY bounded retry re-resolves credentials inside the
+    // streaming tail (pre-existing site at the base tip, moved out of
+    // chatCore.ts by the decomposition).
+    "open-sse/handlers/chatCore/streamingTail.ts": 1,
     "open-sse/services/imageCombo.ts": 1,
     "open-sse/services/speechCombo.ts": 1,
     "open-sse/services/videoCombo.ts": 2,
@@ -76,7 +82,11 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/sse/services/imageCredentialRetry.ts": 1,
   },
   executor: {
-    "open-sse/handlers/chatCore.ts": 3,
+    // The three executor.execute() sites that used to sit in chatCore.ts moved
+    // with the decomposition: two into the wire-send leaf and one into the
+    // streaming leg (same sites, new homes).
+    "open-sse/handlers/chatCore/executeProviderRequest.ts": 2,
+    "open-sse/handlers/chatCore/streamingResponse.ts": 1,
     "open-sse/handlers/chatCore/cliproxyModelMapping.ts": 1,
     "open-sse/handlers/chatCore/cliproxyapiCredentials.ts": 1,
     // v3.8.51 #11754: the legacy common ChatGPT Web's synthetic
@@ -93,7 +103,10 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
   },
   connection: {
     "open-sse/handlers/autoComboCandidates.ts": 1,
-    "open-sse/handlers/chatCore.ts": 3,
+    // Two of the three connection re-resolution sites moved into the streaming
+    // leg with the decomposition (same sites, new home).
+    "open-sse/handlers/chatCore.ts": 1,
+    "open-sse/handlers/chatCore/streamingResponse.ts": 2,
     "open-sse/handlers/cursorCliProxy.ts": 1,
     "open-sse/services/alibabaFreeTier.ts": 1,
     "open-sse/services/alibabaFreeTierQuotaFetcher.ts": 1,
@@ -234,7 +247,8 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
     ])
   ),
   executor: {
-    "open-sse/handlers/chatCore.ts": "A",
+    "open-sse/handlers/chatCore/executeProviderRequest.ts": "A",
+    "open-sse/handlers/chatCore/streamingResponse.ts": "A",
     "open-sse/handlers/chatCore/cliproxyModelMapping.ts": "A",
     "open-sse/handlers/chatCore/cliproxyapiCredentials.ts": "A",
     "open-sse/handlers/videoGeneration.ts": "B",
@@ -248,6 +262,7 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
       [
         "open-sse/handlers/autoComboCandidates.ts",
         "open-sse/handlers/chatCore.ts",
+        "open-sse/handlers/chatCore/streamingResponse.ts",
         "open-sse/services/alibabaFreeTier.ts",
         "open-sse/services/alibabaFreeTierQuotaFetcher.ts",
         "open-sse/services/combo/executeTargetGates.ts",
@@ -382,9 +397,22 @@ test("managed request surfaces are fenced centrally or rejected before independe
 
   assert.match(chat, /parseManagedLeaseRequestContext\(request\.headers\)/);
   assert.match(chat, /isManagedComboUnsupported/);
-  assert.match(core, /assertManagedLeaseFence\(attemptConnectionId\)/);
+  // The fence call sites moved into the leg leaves with the decomposition.
+  const eprSource = fs.readFileSync(
+    path.join(REPO_ROOT, "open-sse/handlers/chatCore/executeProviderRequest.ts"),
+    "utf8"
+  );
+  const streamingLeg = fs.readFileSync(
+    path.join(REPO_ROOT, "open-sse/handlers/chatCore/streamingResponse.ts"),
+    "utf8"
+  );
+  const nonStreamingLeg = fs.readFileSync(
+    path.join(REPO_ROOT, "open-sse/handlers/chatCore/nonStreamingResponse.ts"),
+    "utf8"
+  );
+  assert.match(eprSource, /assertManagedLeaseFence\(attemptConnectionId\)/);
   assert.match(
-    core,
+    streamingLeg,
     /assertManagedLeaseFence\(getExecutionConnectionId\(getExecutionCredentials\(\)\)\)/
   );
   // #12867 (d6f315018) extracted codex 429 / antigravity 422 account rotation out
@@ -398,9 +426,14 @@ test("managed request surfaces are fenced centrally or rejected before independe
     path.join(REPO_ROOT, "open-sse/handlers/chatCore/providerExecutionPipeline.ts"),
     "utf8"
   );
-  const rotationPolicySites = core.match(
-    /allowAccountRotation: !managedLease && comboStrategy !== "context-relay"/g
-  );
+  const rotationPolicySites = [
+    ...nonStreamingLeg.matchAll(
+      /allowAccountRotation: !managedLease && comboStrategy !== "context-relay"/g
+    ),
+    ...streamingLeg.matchAll(
+      /allowAccountRotation: !managedLease && comboStrategy !== "context-relay"/g
+    ),
+  ];
   assert.equal(
     rotationPolicySites?.length,
     2,

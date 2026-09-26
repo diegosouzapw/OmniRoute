@@ -123,29 +123,34 @@ test("loadPlugin no longer spawns the plugin host with stdout/stderr fully ignor
 // contract test for runPluginOnResponseHook itself
 // (tests/unit/chatcore-plugin-onresponse.test.ts).
 test("chatCore.ts calls runPluginOnResponseHook from both the non-streaming and streaming success paths", async () => {
-  const source = await readFile(
-    join(import.meta.dirname, "../../open-sse/handlers/chatCore.ts"),
+  // After the chatCore decomposition the two success-path call sites live in the
+  // leg leaves: non-streaming in nonStreamingResponse.ts, streaming in streamingTail.ts.
+  const nonStreamingSource = await readFile(
+    join(import.meta.dirname, "../../open-sse/handlers/chatCore/nonStreamingResponse.ts"),
+    "utf-8"
+  );
+  const streamingSource = await readFile(
+    join(import.meta.dirname, "../../open-sse/handlers/chatCore/streamingTail.ts"),
     "utf-8"
   );
 
-  const nonStreamingReturnIndex = source.indexOf("maybeWrapForcedNonStreamingResponsesJson({");
   const hookCallNeedle = "await runPluginOnResponseHook({";
-  const hookCallIndex = source.indexOf(hookCallNeedle);
-  const secondHookCallIndex = source.indexOf(hookCallNeedle, hookCallIndex + 1);
+  const nonStreamingReturnIndex = nonStreamingSource.indexOf("maybeWrapForcedNonStreamingResponsesJson({");
+  const hookCallIndex = nonStreamingSource.indexOf(hookCallNeedle);
+  const streamingHookCallIndex = streamingSource.indexOf(hookCallNeedle);
 
-  assert.notEqual(hookCallIndex, -1, "expected at least one runPluginOnResponseHook call site");
+  assert.notEqual(hookCallIndex, -1, "expected a runPluginOnResponseHook call site in the non-streaming leg");
   assert.notEqual(
-    secondHookCallIndex,
+    streamingHookCallIndex,
     -1,
-    "expected TWO runPluginOnResponseHook call sites — one per success branch " +
-      "(non-streaming JSON return and streaming SSE return)"
+    "expected a runPluginOnResponseHook call site in the streaming leg — one per success branch"
   );
   assert.ok(
-    source.indexOf("response: { status: 200, data: translatedResponse }") !== -1,
+    nonStreamingSource.indexOf("response: { status: 200, data: translatedResponse }") !== -1,
     "non-streaming branch must pass translatedResponse as plugin response data (#8711)"
   );
   assert.ok(
-    source.indexOf("response: { status: 200, streamed: true }") !== -1,
+    streamingSource.indexOf("response: { status: 200, streamed: true }") !== -1,
     "streaming branch must pass streamed:true without materializing SSE body (#8711)"
   );
   assert.ok(
