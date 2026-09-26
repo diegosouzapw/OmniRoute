@@ -6,7 +6,10 @@ import {
   formatProviderModelPermissionSummary,
   restoreProviderScopeSelection,
 } from "@/app/(dashboard)/dashboard/api-manager/apiManagerPageUtils";
-import ProviderModelPermissionList from "@/app/(dashboard)/dashboard/api-manager/components/ProviderModelPermissionList";
+import ProviderModelPermissionList, {
+  type ProviderGroup,
+  type ProviderPermissionModel as Model,
+} from "@/app/(dashboard)/dashboard/api-manager/components/ProviderModelPermissionList";
 import { ApiKeyCatalogScopeSelect } from "@/app/(dashboard)/dashboard/api-manager/components/ApiKeyCatalogScopeSelect";
 import type { CatalogScope } from "@/app/(dashboard)/dashboard/api-manager/components/ApiKeyCatalogScopeSelect";
 import {
@@ -18,13 +21,7 @@ import {
 } from "../useApiKeyAccessForm";
 import TabErrorList from "./TabErrorList";
 
-export interface Model {
-  id: string;
-  name?: string;
-  owned_by?: string;
-}
-
-export type ProviderGroup = [string, Model[]];
+export type { Model, ProviderGroup };
 
 interface ModelsTabProps {
   formState: ApiKeyAccessFormState;
