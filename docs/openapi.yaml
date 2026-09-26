@@ -2436,6 +2436,81 @@ paths:
         "404":
           description: Key not found
 
+  /api/keys/{id}/access:
+    post:
+      tags: [API Keys]
+      summary: Add or remove allowed models and combos on an API key atomically
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                add:
+                  type: object
+                  properties:
+                    models:
+                      type: array
+                      items:
+                        type: string
+                    combos:
+                      type: array
+                      items:
+                        type: string
+                remove:
+                  type: object
+                  properties:
+                    models:
+                      type: array
+                      items:
+                        type: string
+                    combos:
+                      type: array
+                      items:
+                        type: string
+                switchToRestricted:
+                  type: boolean
+      responses:
+        "200":
+          description: API key access updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - modelAccessMode
+                  - allowedModels
+                  - allowedCombos
+                  - changed
+                properties:
+                  id:
+                    type: string
+                  modelAccessMode:
+                    type: string
+                    enum: [all, restricted]
+                  allowedModels:
+                    type: array
+                    items:
+                      type: string
+                  allowedCombos:
+                    type: array
+                    items:
+                      type: string
+                  changed:
+                    type: boolean
+        "400":
+          description: Invalid request or caps exceeded
+        "401":
+          description: Authentication required
+        "404":
+          description: Key not found
+        "409":
+          description: Key allows all models and switchToRestricted was not set
+
   /api/combos:
     get:
       tags: [Combos]
