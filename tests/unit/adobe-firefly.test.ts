@@ -1,3 +1,4 @@
+import "../_setup/disableAdobeBrowser.ts";
 import { test } from "node:test";
 import assert from "node:assert";
 import { resolvePublicCred } from "../../open-sse/utils/publicCreds.ts";
@@ -1132,4 +1133,26 @@ test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async ()
   assert.equal(result.success, true);
   assert.ok(urls.some((u) => u.includes("ims/check")));
   assert.ok(urls.some((u) => u.includes("generate-async")));
+});
+
+test("unit-test setup disables Firefly browser refresh even for a forced warm", async () => {
+  const { adobeFireflyBrowserEnabled, refreshAdobeSessionViaBrowser } =
+    await import("../../open-sse/services/adobeFireflySession.ts");
+  assert.equal(adobeFireflyBrowserEnabled(), false);
+  assert.equal(
+    await refreshAdobeSessionViaBrowser(
+      {
+        accessToken: "unit-test",
+        cookie: "",
+        arpSessionId: "",
+        tokenExpiresAt: 0,
+        updatedAt: 0,
+        fingerprint: "unit-test-no-browser",
+        source: "paste",
+      },
+      undefined,
+      { force: true }
+    ),
+    null
+  );
 });

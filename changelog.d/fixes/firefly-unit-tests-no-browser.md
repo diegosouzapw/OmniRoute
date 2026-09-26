@@ -1,0 +1,1 @@
+Unit tests disable Adobe Firefly's durable browser refresh, preventing mocked image-generation and session tests from opening the user's Chrome profile. The same guard applies to individually run Firefly tests.

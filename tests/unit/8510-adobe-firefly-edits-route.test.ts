@@ -1,3 +1,4 @@
+import "../_setup/disableAdobeBrowser.ts";
 // #8510 (artickc, feat/adobe-firefly-reference-images): route-level coverage for the Adobe
 // Firefly branch that /v1/images/edits gained in this PR. Exercises the actual
 // POST(request) handler (not the inner handleAdobeFireflyImageGeneration helper directly,
