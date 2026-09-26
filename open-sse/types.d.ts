@@ -69,7 +69,19 @@ export interface ChatCoreParams {
   /** Connection ID for usage tracking */
   connectionId: string;
   /** API key metadata for usage attribution */
-  apiKeyInfo?: { id?: string; name?: string; compressionEnabled?: boolean } | null;
+  apiKeyInfo?: {
+    id?: string;
+    name?: string;
+    compressionEnabled?: boolean;
+    /** Scopes granted to this key (e.g. "self:usage", "self:account-quota"). */
+    scopes?: string[];
+    /** Connection ids this key is restricted to; a single entry means the key is pinned to one account. */
+    allowedConnections?: string[];
+    /** Providers whose account quota this key may share/see; null = all. */
+    sharedQuotaProviders?: string[] | null;
+    /** Per-key policy for forwarding upstream anthropic-ratelimit-* / anthropic-organization-id headers. */
+    anthropicRateLimitHeaders?: "auto" | "forward" | "strip";
+  } | null;
   /** Client User-Agent header */
   userAgent?: string;
   /** Callback when credentials are refreshed mid-request */
