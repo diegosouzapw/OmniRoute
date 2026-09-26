@@ -240,3 +240,32 @@ export const updateKeyPermissionsSchema = z
       requireExclusiveLeaseConnections(value, ctx);
     }
   });
+
+const accessListSchema = z.object({
+  models: z.array(z.string().trim().min(1)).max(1000).optional(),
+  combos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
+});
+
+export const apiKeyAccessAssignSchema = z
+  .object({
+    add: accessListSchema.optional(),
+    remove: accessListSchema.optional(),
+    switchToRestricted: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasAddModels = (data.add?.models?.length ?? 0) > 0;
+    const hasAddCombos = (data.add?.combos?.length ?? 0) > 0;
+    const hasRemoveModels = (data.remove?.models?.length ?? 0) > 0;
+    const hasRemoveCombos = (data.remove?.combos?.length ?? 0) > 0;
+
+    if (!hasAddModels && !hasAddCombos && !hasRemoveModels && !hasRemoveCombos) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "At least one non-empty list of models or combos must be provided to add or remove",
+        path: ["add"],
+      });
+    }
+  });
+
+export type ApiKeyAccessAssignInput = z.infer<typeof apiKeyAccessAssignSchema>;

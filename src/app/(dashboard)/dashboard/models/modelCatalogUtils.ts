@@ -1,3 +1,7 @@
+import { isFreeModel } from "@/shared/utils/freeModels";
+import type { CatalogTestResult } from "./catalogTestStorage";
+import { getModelTestKey } from "./catalogTestStorage";
+
 export interface CatalogModel {
   id: string;
   name: string;
@@ -25,10 +29,26 @@ export interface CatalogFilters {
   query: string;
   providerId: string;
   type: string;
+  subtype?: string;
+  capability?: string;
+  minContextLength?: number;
+  minMaxOutputTokens?: number;
+  pricing?: string; // "all" | "free" | "paid"
+  providerHealth?: string; // "all" | "healthy" | "degraded" | "down"
+  testResult?: string; // "all" | "untested" | "ok" | "slow" | "error"
+}
+
+export interface CatalogFilterOptions {
+  providerHealthMap?: Record<string, "healthy" | "degraded" | "down">;
+  testResults?: Record<string, CatalogTestResult>;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === "string";
 }
 
 /** Convert the provider-grouped API payload into stable rows for the dashboard table. */
@@ -75,8 +95,47 @@ export function flattenCatalog(catalog: unknown): CatalogModelRow[] {
   return rows;
 }
 
-function isString(value: unknown): value is string {
-  return typeof value === "string";
+export function extractCatalogCapabilities(models: CatalogModelRow[]): string[] {
+  const caps = new Set<string>();
+  for (const model of models) {
+    if (model.capabilities) {
+      for (const [key, value] of Object.entries(model.capabilities)) {
+        if (value === true) {
+          caps.add(key.toLowerCase());
+        } else if (Array.isArray(value)) {
+          for (const item of value) {
+            if (typeof item === "string" && item.trim()) {
+              caps.add(item.toLowerCase());
+            }
+          }
+        }
+      }
+    }
+  }
+  return [...caps].sort((left, right) => left.localeCompare(right));
+}
+
+function modelHasCapability(model: CatalogModelRow, targetCap: string): boolean {
+  if (!model.capabilities) return false;
+  const target = targetCap.toLowerCase();
+  for (const [key, value] of Object.entries(model.capabilities)) {
+    if (key.toLowerCase() === target && value === true) return true;
+    if (Array.isArray(value)) {
+      if (value.some((item) => typeof item === "string" && item.toLowerCase() === target)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+export function isModelFree(model: CatalogModelRow): boolean {
+  if (model.free === true) return true;
+  try {
+    return isFreeModel(model.providerId, { id: model.id });
+  } catch {
+    return false;
+  }
 }
 
 function searchableText(model: CatalogModelRow): string {
@@ -102,12 +161,55 @@ function searchableText(model: CatalogModelRow): string {
 
 export function filterCatalogModels(
   models: CatalogModelRow[],
-  filters: CatalogFilters
+  filters: CatalogFilters,
+  options: CatalogFilterOptions = {}
 ): CatalogModelRow[] {
   const query = filters.query.trim().toLocaleLowerCase();
+  const { providerHealthMap = {}, testResults = {} } = options;
+
   return models.filter((model) => {
     if (filters.providerId !== "all" && model.providerId !== filters.providerId) return false;
     if (filters.type !== "all" && model.type !== filters.type) return false;
+    if (filters.subtype && filters.subtype !== "all" && model.subtype !== filters.subtype) {
+      return false;
+    }
+    if (filters.capability && filters.capability !== "all") {
+      if (!modelHasCapability(model, filters.capability)) return false;
+    }
+    if (typeof filters.minContextLength === "number" && !Number.isNaN(filters.minContextLength)) {
+      if (
+        typeof model.context_length !== "number" ||
+        model.context_length < filters.minContextLength
+      ) {
+        return false;
+      }
+    }
+    if (
+      typeof filters.minMaxOutputTokens === "number" &&
+      !Number.isNaN(filters.minMaxOutputTokens)
+    ) {
+      if (
+        typeof model.max_output_tokens !== "number" ||
+        model.max_output_tokens < filters.minMaxOutputTokens
+      ) {
+        return false;
+      }
+    }
+    if (filters.pricing && filters.pricing !== "all") {
+      const free = isModelFree(model);
+      if (filters.pricing === "free" && !free) return false;
+      if (filters.pricing === "paid" && free) return false;
+    }
+    if (filters.providerHealth && filters.providerHealth !== "all") {
+      const health = providerHealthMap[model.providerId] ?? "healthy";
+      if (health !== filters.providerHealth) return false;
+    }
+    if (filters.testResult && filters.testResult !== "all") {
+      const testKey = getModelTestKey(model.providerId, model.id);
+      const test = testResults[testKey];
+      const resultStatus = test ? test.status : "untested";
+      if (resultStatus !== filters.testResult) return false;
+    }
     return query === "" || searchableText(model).includes(query);
   });
 }

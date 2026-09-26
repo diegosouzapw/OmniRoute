@@ -1,4 +1,10 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Badge, Button } from "@/shared/components";
+import CatalogTestBadge from "./CatalogTestBadge";
+import type { CatalogTestResult } from "./catalogTestStorage";
+import { getModelTestKey } from "./catalogTestStorage";
 import type { CatalogModelRow, CatalogSortDirection, CatalogSortField } from "./modelCatalogUtils";
 
 function formatCount(value: number): string {
@@ -16,7 +22,10 @@ function humanize(value: string): string {
     .replace(/^\w/, (first) => first.toUpperCase());
 }
 
-function capabilityLabels(model: CatalogModelRow): string[] {
+function capabilityLabels(
+  model: CatalogModelRow,
+  labelsByDirection: { input: string; output: string }
+): string[] {
   const labels = Object.entries(model.capabilities ?? {}).flatMap(([key, value]) => {
     if (value === true) return [humanize(key)];
     if (Array.isArray(value)) {
@@ -25,8 +34,10 @@ function capabilityLabels(model: CatalogModelRow): string[] {
     return [];
   });
 
-  for (const modality of model.input_modalities ?? []) labels.push(`${humanize(modality)} input`);
-  for (const modality of model.output_modalities ?? []) labels.push(`${humanize(modality)} output`);
+  for (const modality of model.input_modalities ?? [])
+    labels.push(`${labelsByDirection.input}: ${humanize(modality)}`);
+  for (const modality of model.output_modalities ?? [])
+    labels.push(`${labelsByDirection.output}: ${humanize(modality)}`);
   return [...new Set(labels)];
 }
 
@@ -80,6 +91,15 @@ export default function ModelCatalogTable({
   onPrevious,
   onNext,
   labels,
+  selectedIds = new Set(),
+  onToggleSelect,
+  onToggleSelectAll,
+  testResults = {},
+  activeTestingKeys = new Set<string>(),
+  onTestModel,
+  renderKeyAccess,
+  providerHealthMap = {},
+  bulkRunning = false,
 }: {
   rows: CatalogModelRow[];
   sortField: CatalogSortField;
@@ -104,34 +124,64 @@ export default function ModelCatalogTable({
     custom: string;
     free: string;
   };
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+  onToggleSelectAll?: () => void;
+  testResults?: Record<string, CatalogTestResult>;
+  activeTestingKeys?: ReadonlySet<string>;
+  renderKeyAccess?: (model: CatalogModelRow) => import("react").ReactNode;
+  onTestModel?: (providerId: string, modelId: string) => void;
+  providerHealthMap?: Record<string, "healthy" | "degraded" | "down">;
+  /** A bulk run owns the runner; per-row tests wait until it ends. */
+  bulkRunning?: boolean;
 }) {
+  const t = useTranslations("modelCatalog");
+  const common = useTranslations("common");
   const firstResult = startIndex + 1;
   const lastResult = startIndex + rows.length;
 
+  const rowIds = rows.map((r) => `${r.providerId}:${r.id}`);
+  const allOnPageSelected = rowIds.length > 0 && rowIds.every((id) => selectedIds.has(id));
+  const someOnPageSelected = rowIds.some((id) => selectedIds.has(id)) && !allOnPageSelected;
+
   return (
     <>
-      <div className="overflow-x-auto" role="region" aria-label="Model catalog table" tabIndex={0}>
-        <table className="min-w-[1040px] w-full border-collapse text-sm">
-          <caption className="sr-only">Model catalog across all providers</caption>
+      <div className="overflow-x-auto" role="region" aria-label={t("tableRegion")} tabIndex={0}>
+        <table className="min-w-[1100px] w-full border-collapse text-sm">
+          <caption className="sr-only">{t("tableCaption")}</caption>
           <thead className="border-b border-border bg-black/[0.02] dark:bg-white/[0.02]">
             <tr>
+              {onToggleSelectAll && (
+                <th scope="col" className="w-10 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={allOnPageSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = someOnPageSelected;
+                    }}
+                    onChange={onToggleSelectAll}
+                    aria-label={t("selectAllModels")}
+                    className="rounded border-black/20 text-primary focus:ring-primary dark:border-white/20"
+                  />
+                </th>
+              )}
               <SortableHeading
                 field="provider"
-                label={labels.provider}
+                label={labels.provider || t("provider")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
               />
               <SortableHeading
                 field="id"
-                label={labels.model}
+                label={labels.model || t("model")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
               />
               <SortableHeading
                 field="type"
-                label={labels.type}
+                label={labels.type || t("type")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
@@ -140,18 +190,18 @@ export default function ModelCatalogTable({
                 scope="col"
                 className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
               >
-                {labels.capabilities}
+                {labels.capabilities || t("capabilities")}
               </th>
               <SortableHeading
                 field="context_length"
-                label={labels.context}
+                label={labels.context || t("context")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
               />
               <SortableHeading
                 field="max_output_tokens"
-                label={labels.output}
+                label={labels.output || t("output")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
@@ -160,21 +210,69 @@ export default function ModelCatalogTable({
                 scope="col"
                 className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
               >
-                {labels.flags}
+                {labels.flags || t("flags")}
               </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
+              >
+                {t("healthTest")}
+              </th>
+              {onTestModel && (
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-text-muted"
+                >
+                  {t("actions")}
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rows.map((model) => {
-              const capabilities = capabilityLabels(model);
+              const rowId = `${model.providerId}:${model.id}`;
+              const isSelected = selectedIds.has(rowId);
+              const testKey = getModelTestKey(model.providerId, model.id);
+              const isTesting = activeTestingKeys.has(testKey);
+              const result = testResults[testKey];
+              const providerHealth = providerHealthMap[model.providerId];
+
+              const capabilities = capabilityLabels(model, {
+                input: common("input"),
+                output: common("output"),
+              });
               const additionalCapabilities = capabilities.slice(3);
               return (
                 <tr
-                  key={`${model.providerId}:${model.id}`}
-                  className="align-top hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+                  key={rowId}
+                  className={`align-top transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02] ${
+                    isSelected ? "bg-primary/[0.03]" : ""
+                  }`}
                 >
+                  {onToggleSelect && (
+                    <td className="w-10 px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => onToggleSelect(rowId)}
+                        aria-label={t("selectModel", { name: model.name })}
+                        className="rounded border-black/20 text-primary focus:ring-primary dark:border-white/20"
+                      />
+                    </td>
+                  )}
                   <td className="px-4 py-3">
-                    <span className="font-medium text-text-main">{model.provider}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-text-main">{model.provider}</span>
+                      {providerHealth && providerHealth !== "healthy" && (
+                        <Badge
+                          size="sm"
+                          variant={providerHealth === "degraded" ? "warning" : "error"}
+                          dot
+                        >
+                          {providerHealth === "degraded" ? t("degraded") : t("down")}
+                        </Badge>
+                      )}
+                    </div>
                     <span className="mt-0.5 block font-mono text-xs text-text-muted">
                       {model.providerId}
                     </span>
@@ -206,7 +304,9 @@ export default function ModelCatalogTable({
                         {additionalCapabilities.length > 0 && (
                           <span
                             role="img"
-                            aria-label={`Additional capabilities: ${additionalCapabilities.join(", ")}`}
+                            aria-label={t("additionalCapabilities", {
+                              list: additionalCapabilities.join(", "),
+                            })}
                             title={additionalCapabilities.join(", ")}
                           >
                             <Badge size="sm" variant="default">
@@ -216,7 +316,7 @@ export default function ModelCatalogTable({
                         )}
                       </div>
                     ) : (
-                      <span className="text-text-muted" title="No capability metadata reported">
+                      <span className="text-text-muted" title={t("noCapabilities")}>
                         —
                       </span>
                     )}
@@ -231,21 +331,38 @@ export default function ModelCatalogTable({
                     <div className="flex flex-wrap gap-1.5">
                       {model.custom === true && (
                         <Badge size="sm" variant="info">
-                          {labels.custom}
+                          {labels.custom || t("custom")}
                         </Badge>
                       )}
                       {model.free === true && (
                         <Badge size="sm" variant="success">
-                          {labels.free}
+                          {labels.free || t("free")}
                         </Badge>
                       )}
                       {model.custom !== true && model.free !== true && (
-                        <span className="text-text-muted" title="No price or source flag reported">
+                        <span className="text-text-muted" title={t("noFlags")}>
                           —
                         </span>
                       )}
                     </div>
                   </td>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <CatalogTestBadge result={result} loading={isTesting} />
+                  </td>
+                  {onTestModel && (
+                    <td className="whitespace-nowrap px-4 py-3 text-right">
+                      {renderKeyAccess?.(model)}
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={isTesting || bulkRunning}
+                        onClick={() => onTestModel(model.providerId, model.id)}
+                        data-testid={`test-model-${model.id}`}
+                      >
+                        {t("test")}
+                      </Button>
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -255,24 +372,21 @@ export default function ModelCatalogTable({
 
       <footer className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-text-muted" aria-live="polite">
-          Showing {formatCount(firstResult)}–{formatCount(lastResult)} of {formatCount(totalCount)}
-          {" models"}
-          {loading && <span className="ml-2">Refreshing…</span>}
-          {error && (
-            <span className="ml-2 text-red-500">
-              Refresh failed. Showing the last loaded catalog.
-            </span>
-          )}
+          {t("showingModels", {
+            first: formatCount(firstResult),
+            last: formatCount(lastResult),
+            total: formatCount(totalCount),
+          })}
+          {loading && <span className="ml-2">{t("refreshing")}</span>}
+          {error && <span className="ml-2 text-red-500">{t("refreshFailed")}</span>}
         </p>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-text-muted">
-            Page {page} of {pageCount}
-          </span>
+          <span className="text-sm text-text-muted">{t("page", { page, pageCount })}</span>
           <Button variant="secondary" size="sm" disabled={page === 1} onClick={onPrevious}>
-            Previous
+            {t("previous")}
           </Button>
           <Button variant="secondary" size="sm" disabled={page >= pageCount} onClick={onNext}>
-            Next
+            {t("next")}
           </Button>
         </div>
       </footer>
