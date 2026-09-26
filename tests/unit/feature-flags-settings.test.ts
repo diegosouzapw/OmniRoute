@@ -45,8 +45,9 @@ const {
 // (rotation skipped/served masked ids + proxy-log request correlation, all
 // read-only diagnostics) takes it to 77. STREAM_READINESS_STALL_RETRY
 // (one bounded retry when a stream stalls before usable output, default off)
-// takes the registry to 78.
-const EXPECTED_FEATURE_FLAG_COUNT = 78;
+// takes the registry to 78. AGENT_SESSION_MESSAGES_ENABLED (opt-in agent session turn
+// capture for GET /v1/me/sessions/{id}/messages) takes it to 79.
+const EXPECTED_FEATURE_FLAG_COUNT = 79;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
