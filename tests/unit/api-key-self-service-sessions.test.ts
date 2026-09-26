@@ -271,3 +271,43 @@ test("GET /v1/me/sessions normalizes timezone offset in from/to query params to 
   assert.equal(data.total, 1);
   assert.equal(data.sessions[0].clientSessionId, "alice-sess-2");
 });
+
+test("GET /v1/me/sessions returns an explicit token split with cached input counted once", async () => {
+  // Stored input includes cache reads and writes; the response spells out the uncached part.
+  await usageHistory.saveRequestUsage({
+    provider: "anthropic",
+    model: "claude-sonnet-5",
+    tokens: { input: 10000, output: 40, cacheRead: 9000, cacheCreation: 900 },
+    success: true,
+    latencyMs: 100,
+    timestamp: "2026-09-25T16:00:00.000Z",
+    apiKeyId: keyAliceId,
+    apiKeyName: "Alice Key",
+    agentContext: {
+      client: "claude-code",
+      clientSessionId: "alice-sess-cache",
+      projectName: "cache-demo",
+      projectRepo: null,
+      projectPath: "/home/alice/cache-demo",
+      projectSource: "path",
+      gitBranch: "main",
+    },
+  });
+
+  const res = await getSessionsRoute(
+    new Request("http://localhost/api/v1/me/sessions?project=cache-demo", {
+      headers: { Authorization: `Bearer ${keyAliceToken}` },
+    })
+  );
+  assert.equal(res.status, 200);
+  const data = (await res.json()) as { sessions: Array<{ tokens: Record<string, number> }> };
+  assert.deepEqual(data.sessions[0].tokens, {
+    input: 10000,
+    uncachedInput: 100,
+    cacheRead: 9000,
+    cacheCreation: 900,
+    output: 40,
+    reasoning: 0,
+    total: 10040,
+  });
+});

@@ -12928,6 +12928,18 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        tokens: { $ref: "#/components/schemas/AgentSessionTokens" }
+                  total: { type: integer, description: Number of matching sessions. }
   /api/v1/me/sessions/{id}:
     get:
       tags:
@@ -12939,6 +12951,15 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    type: object
+                    properties:
+                      tokens: { $ref: "#/components/schemas/AgentSessionTokens" }
         "404":
           description: Session not found
   /api/v1/me/sessions/{id}/messages:
@@ -13576,6 +13597,27 @@ components:
             requestId: 0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
 
   schemas:
+    AgentSessionTokens:
+      type: object
+      description: >-
+        Token counters of an agent session. `input` includes the cache reads and writes, as
+        providers report prompt tokens; do not add `cacheRead` or `cacheCreation` to it. The
+        three disjoint parts of the input are `uncachedInput`, `cacheRead` and `cacheCreation`.
+        A request stored without its cached part (possible for non-streaming Claude-format
+        providers before the usage extractor fix) is normalized when it is recorded.
+      required: [input, uncachedInput, cacheRead, cacheCreation, output, reasoning, total]
+      properties:
+        input: { type: integer, description: Input tokens including cache reads and writes. }
+        uncachedInput:
+          type: integer
+          description: Input that was neither read from nor written to the prompt cache.
+        cacheRead: { type: integer, description: Input tokens read from the prompt cache. }
+        cacheCreation: { type: integer, description: Input tokens written to the prompt cache. }
+        output: { type: integer, description: Output tokens, reasoning included. }
+        reasoning: { type: integer, description: Reasoning tokens, already part of output. }
+        total:
+          type: integer
+          description: uncachedInput + cacheRead + cacheCreation + output (equals input + output).
     ExclusiveConnectionLeaseLifecycle:
       type: object
       description: >-
