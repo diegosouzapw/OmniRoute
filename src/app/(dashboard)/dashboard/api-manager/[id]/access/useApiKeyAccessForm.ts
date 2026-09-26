@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, type Dispatch, type SetStateAction } from "react";
 import { ALL_COMBOS_ACCESS_RULE } from "@/shared/constants/comboAccess";
 import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/selfServiceScopes";
 import { hasProviderQuotaBypassScope } from "@/shared/constants/apiKeyPolicyScopes";
@@ -210,18 +210,33 @@ export function parseUsdLimitInput(value: string | number | null | undefined): n
   return null;
 }
 
-export function createInitialFormState(
-  apiKey: ApiKeyAccessData | null | undefined
-): ApiKeyAccessFormState {
-  const initialModels = Array.isArray(apiKey?.allowedModels) ? apiKey.allowedModels : [];
-  const initialBlockedModels = Array.isArray(apiKey?.blockedModels) ? apiKey.blockedModels : [];
-  const initialCombos = Array.isArray(apiKey?.allowedCombos)
-    ? apiKey.allowedCombos.filter((combo) => combo !== ALL_COMBOS_ACCESS_RULE)
-    : [];
-  const initialConnections = Array.isArray(apiKey?.allowedConnections)
-    ? apiKey.allowedConnections
-    : [];
-  const initialEndpoints = Array.isArray(apiKey?.allowedEndpoints) ? apiKey.allowedEndpoints : [];
+type StoredApiKey = ApiKeyAccessData | null | undefined;
+
+function arrayOrEmpty<T>(value: T[] | null | undefined): T[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function positiveNumberOrZero(value: number | null | undefined): number {
+  return typeof value === "number" && value > 0 ? value : 0;
+}
+
+/** A stored USD limit as the text-field value: positive numbers only, anything else is empty. */
+function positiveUsdLimitText(value: number | null | undefined): string {
+  return typeof value === "number" && value > 0 ? String(value) : "";
+}
+
+function defaultScheduleTimeZone(): string {
+  return typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
+}
+
+function initialAccessListState(apiKey: StoredApiKey) {
+  const initialModels = arrayOrEmpty(apiKey?.allowedModels);
+  const initialBlockedModels = arrayOrEmpty(apiKey?.blockedModels);
+  const initialCombos = arrayOrEmpty(apiKey?.allowedCombos).filter(
+    (combo) => combo !== ALL_COMBOS_ACCESS_RULE
+  );
+  const initialConnections = arrayOrEmpty(apiKey?.allowedConnections);
+  const initialEndpoints = arrayOrEmpty(apiKey?.allowedEndpoints);
 
   const allowAllModels =
     apiKey?.modelAccessMode === "restricted" ? false : initialModels.length === 0;
@@ -239,30 +254,59 @@ export function createInitialFormState(
     selectedConnections: [...initialConnections],
     allowAllEndpoints: initialEndpoints.length === 0,
     selectedEndpoints: [...initialEndpoints],
+  };
+}
+
+function initialKeyStatusState(apiKey: StoredApiKey) {
+  return {
     noLog: apiKey?.noLog === true,
     autoResolve: apiKey?.autoResolve === true,
     isActive: apiKey?.isActive !== false,
-    throttleDelayMs:
-      typeof apiKey?.throttleDelayMs === "number" && apiKey.throttleDelayMs > 0
-        ? apiKey.throttleDelayMs
-        : 0,
+    throttleDelayMs: positiveNumberOrZero(apiKey?.throttleDelayMs),
     isBanned: apiKey?.isBanned === true,
     expiresAt: apiKey?.expiresAt ?? "",
-    maxSessions:
-      typeof apiKey?.maxSessions === "number" && apiKey.maxSessions > 0 ? apiKey.maxSessions : 0,
-    scheduleEnabled: apiKey?.accessSchedule?.enabled === true,
-    scheduleFrom: apiKey?.accessSchedule?.from ?? "08:00",
-    scheduleUntil: apiKey?.accessSchedule?.until ?? "18:00",
-    scheduleDays: apiKey?.accessSchedule?.days ?? [1, 2, 3, 4, 5],
-    scheduleTz:
-      apiKey?.accessSchedule?.tz ??
-      (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC"),
-    rateLimits: Array.isArray(apiKey?.rateLimits) ? [...apiKey.rateLimits] : [],
+    maxSessions: positiveNumberOrZero(apiKey?.maxSessions),
+  };
+}
+
+function initialScheduleState(apiKey: StoredApiKey) {
+  const schedule = apiKey?.accessSchedule;
+  return {
+    scheduleEnabled: schedule?.enabled === true,
+    scheduleFrom: schedule?.from ?? "08:00",
+    scheduleUntil: schedule?.until ?? "18:00",
+    scheduleDays: schedule?.days ?? [1, 2, 3, 4, 5],
+    scheduleTz: schedule?.tz ?? defaultScheduleTimeZone(),
+    rateLimits: [...arrayOrEmpty(apiKey?.rateLimits)],
+  };
+}
+
+function initialScopeState(apiKey: StoredApiKey) {
+  return {
     manageEnabled: Array.isArray(apiKey?.scopes) && apiKey.scopes.includes("manage"),
     selfUsageEnabled: Array.isArray(apiKey?.scopes) && apiKey.scopes.includes(SELF_USAGE_SCOPE),
     selfAccountQuotaEnabled:
       Array.isArray(apiKey?.scopes) && apiKey.scopes.includes(SELF_ACCOUNT_QUOTA_SCOPE),
     bypassProviderQuotaPolicyEnabled: hasProviderQuotaBypassScope(apiKey?.scopes),
+  };
+}
+
+type BehaviourStateField =
+  | "streamDefaultMode"
+  | "compressionEnabled"
+  | "allowAutoCombos"
+  | "catalogScope"
+  | "disableNonPublicModels"
+  | "allowUsageCommand"
+  | "usageLimitEnabled"
+  | "dailyUsageLimitUsd"
+  | "weeklyUsageLimitUsd"
+  | "chaosModeEnabled";
+
+function initialBehaviourState(
+  apiKey: StoredApiKey
+): Pick<ApiKeyAccessFormState, BehaviourStateField> {
+  return {
     streamDefaultMode: apiKey?.streamDefaultMode === "json" ? "json" : "legacy",
     compressionEnabled: apiKey?.compressionEnabled !== false,
     allowAutoCombos: apiKey?.allowAutoCombos !== false,
@@ -270,16 +314,86 @@ export function createInitialFormState(
     disableNonPublicModels: apiKey?.disableNonPublicModels === true,
     allowUsageCommand: apiKey?.allowUsageCommand === true,
     usageLimitEnabled: apiKey?.usageLimitEnabled === true,
-    dailyUsageLimitUsd:
-      typeof apiKey?.dailyUsageLimitUsd === "number" && apiKey.dailyUsageLimitUsd > 0
-        ? String(apiKey.dailyUsageLimitUsd)
-        : "",
-    weeklyUsageLimitUsd:
-      typeof apiKey?.weeklyUsageLimitUsd === "number" && apiKey.weeklyUsageLimitUsd > 0
-        ? String(apiKey.weeklyUsageLimitUsd)
-        : "",
+    dailyUsageLimitUsd: positiveUsdLimitText(apiKey?.dailyUsageLimitUsd),
+    weeklyUsageLimitUsd: positiveUsdLimitText(apiKey?.weeklyUsageLimitUsd),
     chaosModeEnabled: apiKey?.chaosModeEnabled === true,
   };
+}
+
+// The groups are spread in the original field order, so JSON.stringify (the dirty check) sees
+// the same key order as before.
+export function createInitialFormState(apiKey: StoredApiKey): ApiKeyAccessFormState {
+  return {
+    ...initialAccessListState(apiKey),
+    ...initialKeyStatusState(apiKey),
+    ...initialScheduleState(apiKey),
+    ...initialScopeState(apiKey),
+    ...initialBehaviourState(apiKey),
+  };
+}
+
+/**
+ * Blocked models logic: keep non-Claude patterns from originalKey, and add selected blocked
+ * Claude families.
+ */
+function buildValidBlockedModels(
+  formState: ApiKeyAccessFormState,
+  originalKey: ApiKeyAccessData
+): string[] {
+  const initialBlockedModels = Array.isArray(originalKey.blockedModels)
+    ? originalKey.blockedModels
+    : [];
+  const hasClaudeCodeDefaultSelected =
+    !formState.allowAll && formState.selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
+  const blockedModels = initialBlockedModels.filter(
+    (pattern) => !CLAUDE_CODE_BLOCK_PATTERN_SET.has(pattern)
+  );
+  if (hasClaudeCodeDefaultSelected) {
+    for (const familyId of formState.blockedClaudeCodeFamilies) {
+      if (CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId]) {
+        blockedModels.push(...CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId]);
+      }
+    }
+  }
+  return blockedModels.filter((id) => typeof id === "string" && id.length > 0 && id.length < 200);
+}
+
+function buildValidCombos(formState: ApiKeyAccessFormState): string[] {
+  const allowedCombos = formState.allowAllCombos
+    ? [ALL_COMBOS_ACCESS_RULE]
+    : formState.selectedCombos;
+  return allowedCombos.filter(
+    (name) => typeof name === "string" && name.trim().length > 0 && name.length < 200
+  );
+}
+
+function buildValidConnections(formState: ApiKeyAccessFormState): string[] {
+  const allowedConnections = formState.allowAllConnections ? [] : formState.selectedConnections;
+  return allowedConnections.filter((id) => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
+}
+
+function normalizeMaxSessions(maxSessions: number): number {
+  return typeof maxSessions === "number" && Number.isFinite(maxSessions)
+    ? Math.max(0, Math.floor(maxSessions))
+    : 0;
+}
+
+function normalizeThrottleDelayMs(throttleDelayMs: number): number {
+  return typeof throttleDelayMs === "number" && Number.isFinite(throttleDelayMs)
+    ? Math.max(0, Math.min(300000, Math.floor(throttleDelayMs)))
+    : 0;
+}
+
+function buildAccessSchedule(formState: ApiKeyAccessFormState): AccessSchedule | null {
+  return formState.scheduleEnabled
+    ? {
+        enabled: true,
+        from: formState.scheduleFrom,
+        until: formState.scheduleUntil,
+        days: formState.scheduleDays,
+        tz: formState.scheduleTz,
+      }
+    : null;
 }
 
 export function buildApiKeyAccessPayload(
@@ -298,60 +412,12 @@ export function buildApiKeyAccessPayload(
     (id) => typeof id === "string" && id.length > 0 && id.length < 200
   );
 
-  // Blocked models logic: keep non-Claude patterns from originalKey, and add selected blocked Claude families
-  const initialBlockedModels = Array.isArray(originalKey.blockedModels)
-    ? originalKey.blockedModels
-    : [];
-  const hasClaudeCodeDefaultSelected =
-    !formState.allowAll && formState.selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
-  const blockedModels = initialBlockedModels.filter(
-    (pattern) => !CLAUDE_CODE_BLOCK_PATTERN_SET.has(pattern)
-  );
-  if (hasClaudeCodeDefaultSelected) {
-    for (const familyId of formState.blockedClaudeCodeFamilies) {
-      if (CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId]) {
-        blockedModels.push(...CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId]);
-      }
-    }
-  }
-  const validBlockedModels = blockedModels.filter(
-    (id) => typeof id === "string" && id.length > 0 && id.length < 200
-  );
-
-  // Combos
-  const allowedCombos = formState.allowAllCombos
-    ? [ALL_COMBOS_ACCESS_RULE]
-    : formState.selectedCombos;
-  const validCombos = allowedCombos.filter(
-    (name) => typeof name === "string" && name.trim().length > 0 && name.length < 200
-  );
-
-  // Connections
-  const allowedConnections = formState.allowAllConnections ? [] : formState.selectedConnections;
-  const validConnections = allowedConnections.filter(
-    (id) => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id)
-  );
-
-  // Sessions and throttle
-  const normalizedMaxSessions =
-    typeof formState.maxSessions === "number" && Number.isFinite(formState.maxSessions)
-      ? Math.max(0, Math.floor(formState.maxSessions))
-      : 0;
-  const normalizedThrottleDelayMs =
-    typeof formState.throttleDelayMs === "number" && Number.isFinite(formState.throttleDelayMs)
-      ? Math.max(0, Math.min(300000, Math.floor(formState.throttleDelayMs)))
-      : 0;
-
-  // Schedule
-  const schedule: AccessSchedule | null = formState.scheduleEnabled
-    ? {
-        enabled: true,
-        from: formState.scheduleFrom,
-        until: formState.scheduleUntil,
-        days: formState.scheduleDays,
-        tz: formState.scheduleTz,
-      }
-    : null;
+  const validBlockedModels = buildValidBlockedModels(formState, originalKey);
+  const validCombos = buildValidCombos(formState);
+  const validConnections = buildValidConnections(formState);
+  const normalizedMaxSessions = normalizeMaxSessions(formState.maxSessions);
+  const normalizedThrottleDelayMs = normalizeThrottleDelayMs(formState.throttleDelayMs);
+  const schedule = buildAccessSchedule(formState);
 
   // Scopes
   const scopes = mergeApiKeyPermissionScopes(originalKey.scopes, {
@@ -447,6 +513,461 @@ export function validateForm(
   return errors;
 }
 
+type FormStateSetter = Dispatch<SetStateAction<ApiKeyAccessFormState>>;
+
+/** Name, status, expiry, scopes and endpoint setters (General tab). */
+function useGeneralSetters(setFormState: FormStateSetter) {
+  const setName = useCallback(
+    (name: string) => {
+      setFormState((prev) => ({ ...prev, name }));
+    },
+    [setFormState]
+  );
+
+  const setIsActive = useCallback(
+    (isActive: boolean) => {
+      setFormState((prev) => ({ ...prev, isActive }));
+    },
+    [setFormState]
+  );
+
+  const setIsBanned = useCallback(
+    (isBanned: boolean) => {
+      setFormState((prev) => ({ ...prev, isBanned }));
+    },
+    [setFormState]
+  );
+
+  const setExpiresAt = useCallback(
+    (expiresAt: string) => {
+      setFormState((prev) => ({ ...prev, expiresAt }));
+    },
+    [setFormState]
+  );
+
+  return { setName, setIsActive, setIsBanned, setExpiresAt };
+}
+
+/** Management scope, self-service scopes and endpoint setters (General tab). */
+function useScopeAndEndpointSetters(setFormState: FormStateSetter) {
+  const setManageEnabled = useCallback(
+    (manageEnabled: boolean) => {
+      setFormState((prev) => ({ ...prev, manageEnabled }));
+    },
+    [setFormState]
+  );
+
+  const setSelfUsageEnabled = useCallback(
+    (selfUsageEnabled: boolean) => {
+      setFormState((prev) => ({
+        ...prev,
+        selfUsageEnabled,
+        ...(selfUsageEnabled ? {} : { selfAccountQuotaEnabled: false }),
+      }));
+    },
+    [setFormState]
+  );
+
+  const setSelfAccountQuotaEnabled = useCallback(
+    (selfAccountQuotaEnabled: boolean) => {
+      setFormState((prev) => ({ ...prev, selfAccountQuotaEnabled }));
+    },
+    [setFormState]
+  );
+
+  const setAllowAllEndpoints = useCallback(
+    (allowAllEndpoints: boolean) => {
+      setFormState((prev) => ({
+        ...prev,
+        allowAllEndpoints,
+        ...(allowAllEndpoints ? { selectedEndpoints: [] } : {}),
+      }));
+    },
+    [setFormState]
+  );
+
+  const toggleEndpoint = useCallback(
+    (endpointId: string) => {
+      setFormState((prev) => {
+        if (prev.allowAllEndpoints) return prev;
+        const exists = prev.selectedEndpoints.includes(endpointId);
+        const nextEndpoints = exists
+          ? prev.selectedEndpoints.filter((e) => e !== endpointId)
+          : [...prev.selectedEndpoints, endpointId];
+        return { ...prev, selectedEndpoints: nextEndpoints };
+      });
+    },
+    [setFormState]
+  );
+
+  return {
+    setManageEnabled,
+    setSelfUsageEnabled,
+    setSelfAccountQuotaEnabled,
+    setAllowAllEndpoints,
+    toggleEndpoint,
+  };
+}
+
+/** Allow-all and selected-model setters (Models tab). */
+function useModelSelectionSetters(setFormState: FormStateSetter) {
+  const setAllowAll = useCallback(
+    (allowAll: boolean) => {
+      setFormState((prev) => ({
+        ...prev,
+        allowAll,
+        ...(allowAll ? { selectedModels: [], blockedClaudeCodeFamilies: [] } : {}),
+      }));
+    },
+    [setFormState]
+  );
+
+  const setSelectedModels = useCallback(
+    (models: string[] | ((prev: string[]) => string[])) => {
+      setFormState((prev) => ({
+        ...prev,
+        selectedModels: typeof models === "function" ? models(prev.selectedModels) : models,
+      }));
+    },
+    [setFormState]
+  );
+
+  const toggleModel = useCallback(
+    (modelId: string) => {
+      setFormState((prev) => {
+        if (prev.allowAll) return prev;
+        const exists = prev.selectedModels.includes(modelId);
+        const nextModels = exists
+          ? prev.selectedModels.filter((m) => m !== modelId)
+          : [...prev.selectedModels, modelId];
+        return { ...prev, selectedModels: nextModels };
+      });
+    },
+    [setFormState]
+  );
+
+  const selectAllModels = useCallback(
+    (allModelIds: string[]) => {
+      setFormState((prev) => ({
+        ...prev,
+        selectedModels: [...allModelIds],
+        blockedClaudeCodeFamilies: [],
+      }));
+    },
+    [setFormState]
+  );
+
+  const deselectAllModels = useCallback(() => {
+    setFormState((prev) => ({
+      ...prev,
+      selectedModels: [],
+      blockedClaudeCodeFamilies: [],
+    }));
+  }, [setFormState]);
+
+  return { setAllowAll, setSelectedModels, toggleModel, selectAllModels, deselectAllModels };
+}
+
+/** Claude Code family, catalog scope and non-public model setters (Models tab). */
+function useModelPolicySetters(setFormState: FormStateSetter) {
+  const blockClaudeCodeFamily = useCallback(
+    (familyId: ClaudeCodeBlockableFamilyId) => {
+      setFormState((prev) => {
+        const nextFamilies = prev.blockedClaudeCodeFamilies.includes(familyId)
+          ? prev.blockedClaudeCodeFamilies
+          : [...prev.blockedClaudeCodeFamilies, familyId];
+        const nextModels = prev.selectedModels.filter(
+          (modelId) => !isClaudeCodeFamilyModel(modelId, familyId)
+        );
+        return {
+          ...prev,
+          blockedClaudeCodeFamilies: nextFamilies,
+          selectedModels: nextModels,
+        };
+      });
+    },
+    [setFormState]
+  );
+
+  const setCatalogScope = useCallback(
+    (catalogScope: CatalogScope) => {
+      setFormState((prev) => ({ ...prev, catalogScope }));
+    },
+    [setFormState]
+  );
+
+  const setDisableNonPublicModels = useCallback(
+    (disableNonPublicModels: boolean) => {
+      setFormState((prev) => ({ ...prev, disableNonPublicModels }));
+    },
+    [setFormState]
+  );
+
+  return { blockClaudeCodeFamily, setCatalogScope, setDisableNonPublicModels };
+}
+
+/** Combo and connection setters (Combos and Connections tabs). */
+function useComboAndConnectionSetters(setFormState: FormStateSetter) {
+  const setAllowAllCombos = useCallback(
+    (allowAllCombos: boolean) => {
+      setFormState((prev) => ({ ...prev, allowAllCombos }));
+    },
+    [setFormState]
+  );
+
+  const setSelectedCombos = useCallback(
+    (combos: string[] | ((prev: string[]) => string[])) => {
+      setFormState((prev) => ({
+        ...prev,
+        selectedCombos: typeof combos === "function" ? combos(prev.selectedCombos) : combos,
+      }));
+    },
+    [setFormState]
+  );
+
+  const toggleCombo = useCallback(
+    (comboName: string) => {
+      setFormState((prev) => {
+        if (prev.allowAllCombos) return prev;
+        const exists = prev.selectedCombos.includes(comboName);
+        const nextCombos = exists
+          ? prev.selectedCombos.filter((c) => c !== comboName)
+          : [...prev.selectedCombos, comboName];
+        return { ...prev, selectedCombos: nextCombos };
+      });
+    },
+    [setFormState]
+  );
+
+  const setAllowAutoCombos = useCallback(
+    (allowAutoCombos: boolean) => {
+      setFormState((prev) => ({ ...prev, allowAutoCombos }));
+    },
+    [setFormState]
+  );
+
+  const setAllowAllConnections = useCallback(
+    (allowAllConnections: boolean) => {
+      setFormState((prev) => ({
+        ...prev,
+        allowAllConnections,
+        ...(allowAllConnections ? { selectedConnections: [] } : {}),
+      }));
+    },
+    [setFormState]
+  );
+
+  const setSelectedConnections = useCallback(
+    (connections: string[] | ((prev: string[]) => string[])) => {
+      setFormState((prev) => ({
+        ...prev,
+        selectedConnections:
+          typeof connections === "function" ? connections(prev.selectedConnections) : connections,
+      }));
+    },
+    [setFormState]
+  );
+
+  return {
+    setAllowAllCombos,
+    setSelectedCombos,
+    toggleCombo,
+    setAllowAutoCombos,
+    setAllowAllConnections,
+    setSelectedConnections,
+  };
+}
+
+/** Session, throttle, rate-limit and usage-limit setters (Limits tab). */
+function useLimitSetters(setFormState: FormStateSetter) {
+  const setMaxSessions = useCallback(
+    (maxSessions: number) => {
+      setFormState((prev) => ({ ...prev, maxSessions }));
+    },
+    [setFormState]
+  );
+
+  const setThrottleDelayMs = useCallback(
+    (throttleDelayMs: number) => {
+      setFormState((prev) => ({ ...prev, throttleDelayMs }));
+    },
+    [setFormState]
+  );
+
+  const addRateLimit = useCallback(() => {
+    setFormState((prev) => ({
+      ...prev,
+      rateLimits: [...prev.rateLimits, { limit: 100, window: 60 }],
+    }));
+  }, [setFormState]);
+
+  const removeRateLimit = useCallback(
+    (index: number) => {
+      setFormState((prev) => ({
+        ...prev,
+        rateLimits: prev.rateLimits.filter((_, i) => i !== index),
+      }));
+    },
+    [setFormState]
+  );
+
+  const updateRateLimit = useCallback(
+    (index: number, limit: number, windowVal: number) => {
+      setFormState((prev) => {
+        const next = [...prev.rateLimits];
+        if (next[index]) {
+          next[index] = { limit, window: windowVal };
+        }
+        return { ...prev, rateLimits: next };
+      });
+    },
+    [setFormState]
+  );
+
+  const setUsageLimitEnabled = useCallback(
+    (usageLimitEnabled: boolean) => {
+      setFormState((prev) => ({ ...prev, usageLimitEnabled }));
+    },
+    [setFormState]
+  );
+
+  const setDailyUsageLimitUsd = useCallback(
+    (dailyUsageLimitUsd: string) => {
+      setFormState((prev) => ({ ...prev, dailyUsageLimitUsd }));
+    },
+    [setFormState]
+  );
+
+  const setWeeklyUsageLimitUsd = useCallback(
+    (weeklyUsageLimitUsd: string) => {
+      setFormState((prev) => ({ ...prev, weeklyUsageLimitUsd }));
+    },
+    [setFormState]
+  );
+
+  return {
+    setMaxSessions,
+    setThrottleDelayMs,
+    addRateLimit,
+    removeRateLimit,
+    updateRateLimit,
+    setUsageLimitEnabled,
+    setDailyUsageLimitUsd,
+    setWeeklyUsageLimitUsd,
+  };
+}
+
+/** Access schedule setters (Limits tab). */
+function useScheduleSetters(setFormState: FormStateSetter) {
+  const setScheduleEnabled = useCallback(
+    (scheduleEnabled: boolean) => {
+      setFormState((prev) => ({ ...prev, scheduleEnabled }));
+    },
+    [setFormState]
+  );
+
+  const setScheduleFrom = useCallback(
+    (scheduleFrom: string) => {
+      setFormState((prev) => ({ ...prev, scheduleFrom }));
+    },
+    [setFormState]
+  );
+
+  const setScheduleUntil = useCallback(
+    (scheduleUntil: string) => {
+      setFormState((prev) => ({ ...prev, scheduleUntil }));
+    },
+    [setFormState]
+  );
+
+  const setScheduleDays = useCallback(
+    (days: number[] | ((prev: number[]) => number[])) => {
+      setFormState((prev) => ({
+        ...prev,
+        scheduleDays: typeof days === "function" ? days(prev.scheduleDays) : days,
+      }));
+    },
+    [setFormState]
+  );
+
+  const setScheduleTz = useCallback(
+    (scheduleTz: string) => {
+      setFormState((prev) => ({ ...prev, scheduleTz }));
+    },
+    [setFormState]
+  );
+
+  return {
+    setScheduleEnabled,
+    setScheduleFrom,
+    setScheduleUntil,
+    setScheduleDays,
+    setScheduleTz,
+  };
+}
+
+/** Logging, routing and policy toggles (Behaviour tab). */
+function useBehaviourSetters(setFormState: FormStateSetter) {
+  const setNoLog = useCallback(
+    (noLog: boolean) => {
+      setFormState((prev) => ({ ...prev, noLog }));
+    },
+    [setFormState]
+  );
+
+  const setAutoResolve = useCallback(
+    (autoResolve: boolean) => {
+      setFormState((prev) => ({ ...prev, autoResolve }));
+    },
+    [setFormState]
+  );
+
+  const setStreamDefaultMode = useCallback(
+    (streamDefaultMode: StreamDefaultMode) => {
+      setFormState((prev) => ({ ...prev, streamDefaultMode }));
+    },
+    [setFormState]
+  );
+
+  const setCompressionEnabled = useCallback(
+    (compressionEnabled: boolean) => {
+      setFormState((prev) => ({ ...prev, compressionEnabled }));
+    },
+    [setFormState]
+  );
+
+  const setChaosModeEnabled = useCallback(
+    (chaosModeEnabled: boolean) => {
+      setFormState((prev) => ({ ...prev, chaosModeEnabled }));
+    },
+    [setFormState]
+  );
+
+  const setAllowUsageCommand = useCallback(
+    (allowUsageCommand: boolean) => {
+      setFormState((prev) => ({ ...prev, allowUsageCommand }));
+    },
+    [setFormState]
+  );
+
+  const setBypassProviderQuotaPolicyEnabled = useCallback(
+    (bypassProviderQuotaPolicyEnabled: boolean) => {
+      setFormState((prev) => ({ ...prev, bypassProviderQuotaPolicyEnabled }));
+    },
+    [setFormState]
+  );
+
+  return {
+    setNoLog,
+    setAutoResolve,
+    setStreamDefaultMode,
+    setCompressionEnabled,
+    setChaosModeEnabled,
+    setAllowUsageCommand,
+    setBypassProviderQuotaPolicyEnabled,
+  };
+}
+
 export function useApiKeyAccessForm(
   initialKey: ApiKeyAccessData | null,
   t?: (key: string, values?: Record<string, unknown>) => string
@@ -494,267 +1015,6 @@ export function useApiKeyAccessForm(
     return buildApiKeyAccessPayload(formState, initialKey || { id: "", name: "" });
   }, [formState, initialKey]);
 
-  // Setters
-  const setName = useCallback((name: string) => {
-    setFormState((prev) => ({ ...prev, name }));
-  }, []);
-
-  const setAllowAll = useCallback((allowAll: boolean) => {
-    setFormState((prev) => ({
-      ...prev,
-      allowAll,
-      ...(allowAll ? { selectedModels: [], blockedClaudeCodeFamilies: [] } : {}),
-    }));
-  }, []);
-
-  const setSelectedModels = useCallback((models: string[] | ((prev: string[]) => string[])) => {
-    setFormState((prev) => ({
-      ...prev,
-      selectedModels: typeof models === "function" ? models(prev.selectedModels) : models,
-    }));
-  }, []);
-
-  const toggleModel = useCallback((modelId: string) => {
-    setFormState((prev) => {
-      if (prev.allowAll) return prev;
-      const exists = prev.selectedModels.includes(modelId);
-      const nextModels = exists
-        ? prev.selectedModels.filter((m) => m !== modelId)
-        : [...prev.selectedModels, modelId];
-      return { ...prev, selectedModels: nextModels };
-    });
-  }, []);
-
-  const selectAllModels = useCallback((allModelIds: string[]) => {
-    setFormState((prev) => ({
-      ...prev,
-      selectedModels: [...allModelIds],
-      blockedClaudeCodeFamilies: [],
-    }));
-  }, []);
-
-  const deselectAllModels = useCallback(() => {
-    setFormState((prev) => ({
-      ...prev,
-      selectedModels: [],
-      blockedClaudeCodeFamilies: [],
-    }));
-  }, []);
-
-  const blockClaudeCodeFamily = useCallback((familyId: ClaudeCodeBlockableFamilyId) => {
-    setFormState((prev) => {
-      const nextFamilies = prev.blockedClaudeCodeFamilies.includes(familyId)
-        ? prev.blockedClaudeCodeFamilies
-        : [...prev.blockedClaudeCodeFamilies, familyId];
-      const nextModels = prev.selectedModels.filter(
-        (modelId) => !isClaudeCodeFamilyModel(modelId, familyId)
-      );
-      return {
-        ...prev,
-        blockedClaudeCodeFamilies: nextFamilies,
-        selectedModels: nextModels,
-      };
-    });
-  }, []);
-
-  const setAllowAllCombos = useCallback((allowAllCombos: boolean) => {
-    setFormState((prev) => ({ ...prev, allowAllCombos }));
-  }, []);
-
-  const setSelectedCombos = useCallback((combos: string[] | ((prev: string[]) => string[])) => {
-    setFormState((prev) => ({
-      ...prev,
-      selectedCombos: typeof combos === "function" ? combos(prev.selectedCombos) : combos,
-    }));
-  }, []);
-
-  const toggleCombo = useCallback((comboName: string) => {
-    setFormState((prev) => {
-      if (prev.allowAllCombos) return prev;
-      const exists = prev.selectedCombos.includes(comboName);
-      const nextCombos = exists
-        ? prev.selectedCombos.filter((c) => c !== comboName)
-        : [...prev.selectedCombos, comboName];
-      return { ...prev, selectedCombos: nextCombos };
-    });
-  }, []);
-
-  const setAllowAllConnections = useCallback((allowAllConnections: boolean) => {
-    setFormState((prev) => ({
-      ...prev,
-      allowAllConnections,
-      ...(allowAllConnections ? { selectedConnections: [] } : {}),
-    }));
-  }, []);
-
-  const setSelectedConnections = useCallback(
-    (connections: string[] | ((prev: string[]) => string[])) => {
-      setFormState((prev) => ({
-        ...prev,
-        selectedConnections:
-          typeof connections === "function" ? connections(prev.selectedConnections) : connections,
-      }));
-    },
-    []
-  );
-
-  const setAllowAllEndpoints = useCallback((allowAllEndpoints: boolean) => {
-    setFormState((prev) => ({
-      ...prev,
-      allowAllEndpoints,
-      ...(allowAllEndpoints ? { selectedEndpoints: [] } : {}),
-    }));
-  }, []);
-
-  const toggleEndpoint = useCallback((endpointId: string) => {
-    setFormState((prev) => {
-      if (prev.allowAllEndpoints) return prev;
-      const exists = prev.selectedEndpoints.includes(endpointId);
-      const nextEndpoints = exists
-        ? prev.selectedEndpoints.filter((e) => e !== endpointId)
-        : [...prev.selectedEndpoints, endpointId];
-      return { ...prev, selectedEndpoints: nextEndpoints };
-    });
-  }, []);
-
-  const setNoLog = useCallback((noLog: boolean) => {
-    setFormState((prev) => ({ ...prev, noLog }));
-  }, []);
-
-  const setAutoResolve = useCallback((autoResolve: boolean) => {
-    setFormState((prev) => ({ ...prev, autoResolve }));
-  }, []);
-
-  const setIsActive = useCallback((isActive: boolean) => {
-    setFormState((prev) => ({ ...prev, isActive }));
-  }, []);
-
-  const setThrottleDelayMs = useCallback((throttleDelayMs: number) => {
-    setFormState((prev) => ({ ...prev, throttleDelayMs }));
-  }, []);
-
-  const setIsBanned = useCallback((isBanned: boolean) => {
-    setFormState((prev) => ({ ...prev, isBanned }));
-  }, []);
-
-  const setExpiresAt = useCallback((expiresAt: string) => {
-    setFormState((prev) => ({ ...prev, expiresAt }));
-  }, []);
-
-  const setMaxSessions = useCallback((maxSessions: number) => {
-    setFormState((prev) => ({ ...prev, maxSessions }));
-  }, []);
-
-  const setScheduleEnabled = useCallback((scheduleEnabled: boolean) => {
-    setFormState((prev) => ({ ...prev, scheduleEnabled }));
-  }, []);
-
-  const setScheduleFrom = useCallback((scheduleFrom: string) => {
-    setFormState((prev) => ({ ...prev, scheduleFrom }));
-  }, []);
-
-  const setScheduleUntil = useCallback((scheduleUntil: string) => {
-    setFormState((prev) => ({ ...prev, scheduleUntil }));
-  }, []);
-
-  const setScheduleDays = useCallback((days: number[] | ((prev: number[]) => number[])) => {
-    setFormState((prev) => ({
-      ...prev,
-      scheduleDays: typeof days === "function" ? days(prev.scheduleDays) : days,
-    }));
-  }, []);
-
-  const setScheduleTz = useCallback((scheduleTz: string) => {
-    setFormState((prev) => ({ ...prev, scheduleTz }));
-  }, []);
-
-  const addRateLimit = useCallback(() => {
-    setFormState((prev) => ({
-      ...prev,
-      rateLimits: [...prev.rateLimits, { limit: 100, window: 60 }],
-    }));
-  }, []);
-
-  const removeRateLimit = useCallback((index: number) => {
-    setFormState((prev) => ({
-      ...prev,
-      rateLimits: prev.rateLimits.filter((_, i) => i !== index),
-    }));
-  }, []);
-
-  const updateRateLimit = useCallback((index: number, limit: number, windowVal: number) => {
-    setFormState((prev) => {
-      const next = [...prev.rateLimits];
-      if (next[index]) {
-        next[index] = { limit, window: windowVal };
-      }
-      return { ...prev, rateLimits: next };
-    });
-  }, []);
-
-  const setManageEnabled = useCallback((manageEnabled: boolean) => {
-    setFormState((prev) => ({ ...prev, manageEnabled }));
-  }, []);
-
-  const setSelfUsageEnabled = useCallback((selfUsageEnabled: boolean) => {
-    setFormState((prev) => ({
-      ...prev,
-      selfUsageEnabled,
-      ...(selfUsageEnabled ? {} : { selfAccountQuotaEnabled: false }),
-    }));
-  }, []);
-
-  const setSelfAccountQuotaEnabled = useCallback((selfAccountQuotaEnabled: boolean) => {
-    setFormState((prev) => ({ ...prev, selfAccountQuotaEnabled }));
-  }, []);
-
-  const setBypassProviderQuotaPolicyEnabled = useCallback(
-    (bypassProviderQuotaPolicyEnabled: boolean) => {
-      setFormState((prev) => ({ ...prev, bypassProviderQuotaPolicyEnabled }));
-    },
-    []
-  );
-
-  const setStreamDefaultMode = useCallback((streamDefaultMode: StreamDefaultMode) => {
-    setFormState((prev) => ({ ...prev, streamDefaultMode }));
-  }, []);
-
-  const setCompressionEnabled = useCallback((compressionEnabled: boolean) => {
-    setFormState((prev) => ({ ...prev, compressionEnabled }));
-  }, []);
-
-  const setAllowAutoCombos = useCallback((allowAutoCombos: boolean) => {
-    setFormState((prev) => ({ ...prev, allowAutoCombos }));
-  }, []);
-
-  const setCatalogScope = useCallback((catalogScope: CatalogScope) => {
-    setFormState((prev) => ({ ...prev, catalogScope }));
-  }, []);
-
-  const setDisableNonPublicModels = useCallback((disableNonPublicModels: boolean) => {
-    setFormState((prev) => ({ ...prev, disableNonPublicModels }));
-  }, []);
-
-  const setAllowUsageCommand = useCallback((allowUsageCommand: boolean) => {
-    setFormState((prev) => ({ ...prev, allowUsageCommand }));
-  }, []);
-
-  const setUsageLimitEnabled = useCallback((usageLimitEnabled: boolean) => {
-    setFormState((prev) => ({ ...prev, usageLimitEnabled }));
-  }, []);
-
-  const setDailyUsageLimitUsd = useCallback((dailyUsageLimitUsd: string) => {
-    setFormState((prev) => ({ ...prev, dailyUsageLimitUsd }));
-  }, []);
-
-  const setWeeklyUsageLimitUsd = useCallback((weeklyUsageLimitUsd: string) => {
-    setFormState((prev) => ({ ...prev, weeklyUsageLimitUsd }));
-  }, []);
-
-  const setChaosModeEnabled = useCallback((chaosModeEnabled: boolean) => {
-    setFormState((prev) => ({ ...prev, chaosModeEnabled }));
-  }, []);
-
   /** Adopt the current values as the saved baseline (used right after a successful PATCH). */
   const markClean = useCallback(() => {
     setInitialState(formState);
@@ -769,48 +1029,13 @@ export function useApiKeyAccessForm(
     getTabErrorCount,
     hasErrors,
     buildPayload,
-    setName,
-    setAllowAll,
-    setSelectedModels,
-    toggleModel,
-    selectAllModels,
-    deselectAllModels,
-    blockClaudeCodeFamily,
-    setAllowAllCombos,
-    setSelectedCombos,
-    toggleCombo,
-    setAllowAllConnections,
-    setSelectedConnections,
-    setAllowAllEndpoints,
-    toggleEndpoint,
-    setNoLog,
-    setAutoResolve,
-    setIsActive,
-    setThrottleDelayMs,
-    setIsBanned,
-    setExpiresAt,
-    setMaxSessions,
-    setScheduleEnabled,
-    setScheduleFrom,
-    setScheduleUntil,
-    setScheduleDays,
-    setScheduleTz,
-    addRateLimit,
-    removeRateLimit,
-    updateRateLimit,
-    setManageEnabled,
-    setSelfUsageEnabled,
-    setSelfAccountQuotaEnabled,
-    setBypassProviderQuotaPolicyEnabled,
-    setStreamDefaultMode,
-    setCompressionEnabled,
-    setAllowAutoCombos,
-    setCatalogScope,
-    setDisableNonPublicModels,
-    setAllowUsageCommand,
-    setUsageLimitEnabled,
-    setDailyUsageLimitUsd,
-    setWeeklyUsageLimitUsd,
-    setChaosModeEnabled,
+    ...useGeneralSetters(setFormState),
+    ...useScopeAndEndpointSetters(setFormState),
+    ...useModelSelectionSetters(setFormState),
+    ...useModelPolicySetters(setFormState),
+    ...useComboAndConnectionSetters(setFormState),
+    ...useLimitSetters(setFormState),
+    ...useScheduleSetters(setFormState),
+    ...useBehaviourSetters(setFormState),
   };
 }
