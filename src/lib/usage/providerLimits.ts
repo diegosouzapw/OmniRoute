@@ -923,19 +923,32 @@ export async function fetchAndPersistProviderLimits(
   // Don't persist error-only entries (429 etc.) — would wipe prior good cache.
   // Serve the prior entry instead; only successful fetches update the cache.
   if (cache === previous && newCache.message) {
+    // Claude's banked count lives in the list-seeded memo (already on `usage` when known),
+    // so a cached count — e.g. from before a redeem — must not come back through here.
+    const isClaude = connection.provider === "claude";
+    const bankedResetCredits = isClaude ? newCache.bankedResetCredits : previous.bankedResetCredits;
+    let served = previous;
+    if (isClaude && previous.bankedResetCredits !== bankedResetCredits) {
+      const { bankedResetCredits: _cached, ...rest } = previous;
+      served = setProviderLimitsCache(
+        connectionId,
+        bankedResetCredits === undefined ? rest : { ...rest, bankedResetCredits }
+      );
+    }
     const staleUsage: JsonRecord = {
       ...usage,
       quotas: previous.quotas,
       modelQuotas: previous.modelQuotas,
       plan: previous.plan ?? usage.plan ?? null,
-      bankedResetCredits: previous.bankedResetCredits,
+      bankedResetCredits,
       billing: previous.billing,
       message: null,
       _stale: true,
       _staleSince: previous.fetchedAt,
       _staleReason: newCache.message,
     };
-    return { connection, usage: staleUsage, cache: previous };
+    if (bankedResetCredits === undefined) delete staleUsage.bankedResetCredits;
+    return { connection, usage: staleUsage, cache: served };
   }
 
   const mergedUsage: JsonRecord = {

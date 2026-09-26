@@ -28,11 +28,14 @@ const CLAIM_URL = "https://api.anthropic.com/api/organizations/org-uuid-1/reset_
 const originalFetch = globalThis.fetch;
 const calls: string[] = [];
 
-function mockUpstream() {
+function mockUpstream(options: { usageStatus?: number } = {}) {
   calls.length = 0;
   globalThis.fetch = (async (input: unknown, init?: RequestInit) => {
     const url = String(input);
     calls.push(`${init?.method ?? "GET"} ${url}`);
+    if (url === BASE_USAGE_URL && options.usageStatus) {
+      return new Response(null, { status: options.usageStatus });
+    }
     if (url === BASE_USAGE_URL) {
       return Response.json({
         five_hour: { utilization: 100, resets_at: "2099-09-10T14:00:00Z" },
@@ -99,4 +102,29 @@ test("listing seeds the dashboard count and a redeem invalidates it", async () =
   assert.equal(count(`POST ${CLAIM_URL}`), 1);
   assert.equal("bankedResetCredits" in redeemed.usage, false, "the redeem made the count unknown");
   assert.equal(count(`GET ${RESET_CREDIT_LIST_URL}`), 1);
+});
+
+test("a redeem whose follow-up refresh is throttled does not bring back the old count", async () => {
+  const connection = await createProviderConnection({
+    provider: "claude",
+    authType: "oauth",
+    name: "Reset wiring stale",
+    email: "bob@example.com",
+    accessToken: "wiring-stale-token",
+    isActive: true,
+    expiresAt: "2099-01-01T00:00:00Z",
+    providerSpecificData: { organizationUUID: "org-uuid-1" },
+  });
+  const id = connection.id as string;
+  mockUpstream();
+  await listClaudeResetCredits(id);
+  await fetchAndPersistProviderLimits(id, "manual");
+  assert.equal(getProviderLimitsCache(id)?.bankedResetCredits, 3);
+
+  // The usage refresh after the redeem gets a 429, so the stale cached entry is served.
+  mockUpstream({ usageStatus: 429 });
+  const redeemed = await consumeClaudeResetCredit(id, "idem-2", "grant:grant-a");
+  assert.equal(redeemed.usage._stale, true);
+  assert.equal("bankedResetCredits" in redeemed.usage, false, "no pre-redeem count");
+  assert.equal(getProviderLimitsCache(id)?.bankedResetCredits, undefined);
 });

@@ -7,8 +7,7 @@
  * the reset still counts toward the weekly limit.
  *
  * Wire contract:
- *   Status  GET  https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1
- *           (shared with the reset-credit list — see claudeResetCreditCount.ts)
+ *   Status  GET  https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1
  *           → body.juniper_tide = { eligible, ineligible_reason, in_experiment,
  *             arm: "control"|"reset", available, next_available_at, weekly_resets_at,
  *             resets_per_week }
@@ -26,12 +25,9 @@
  * (already used this week, not in the experiment, …) does not re-query on every request.
  */
 
-import { fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
+import { fetchClaudeBootstrap, getClaudeCodeVersion } from "../executors/claudeIdentity.ts";
 import {
-  CLAUDE_RESET_CREDIT_USAGE_URL,
   claudeResetCreditHeaders,
-  fetchAndSeedClaudeResetCreditUsage,
-  fetchClaudeResetCreditUsage,
   fetchJsonWithTimeout,
   forgetClaudeResetCreditCount,
 } from "./claudeResetCreditCount.ts";
@@ -42,7 +38,8 @@ type FetchLike = typeof fetch;
 
 export const CLAUDE_LIMIT_RESET_PROGRAM = "juniper_tide";
 export const CLAUDE_GRANT_RESET_PROGRAM = "cedar_ember";
-export const CLAUDE_LIMIT_RESET_STATUS_URL = CLAUDE_RESET_CREDIT_USAGE_URL;
+export const CLAUDE_LIMIT_RESET_STATUS_URL =
+  "https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1";
 export const CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS = 5_000;
 export const CLAUDE_LIMIT_RESET_CLAIM_TIMEOUT_MS = 25_000;
 /** Back-off after a failed/unavailable claim before the next wall may re-query. */
@@ -109,6 +106,18 @@ function asRecord(value: unknown): JsonRecord {
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
+}
+
+function oauthHeaders(accessToken: string): Record<string, string> {
+  // Same shape as the existing /api/oauth/usage poller (usage/claude.ts): axios-style
+  // `claude-code/<version>` UA, not the Stainless `claude-cli/…` one.
+  return {
+    Accept: "application/json, text/plain, */*",
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+    "User-Agent": `claude-code/${getClaudeCodeVersion()}`,
+    "anthropic-beta": "oauth-2025-04-20",
+  };
 }
 
 /** Parse the `juniper_tide` block of a `/api/oauth/usage?at_wall=1` body. Null when absent/malformed. */
@@ -225,11 +234,17 @@ export async function fetchClaudeLimitResetStatus(
   accessToken: string,
   fetchImpl: FetchLike = fetch
 ): Promise<ClaudeLimitResetStatus | null> {
-  const res = await fetchClaudeResetCreditUsage(accessToken, {
-    fetchImpl,
-    timeoutMs: CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS,
-  });
-  return res.ok ? parseClaudeLimitResetStatus(res.body) : null;
+  try {
+    const res = await fetchJsonWithTimeout(
+      fetchImpl,
+      CLAUDE_LIMIT_RESET_STATUS_URL,
+      { method: "GET", headers: oauthHeaders(accessToken) },
+      CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS
+    );
+    return res.ok ? parseClaudeLimitResetStatus(res.body) : null;
+  } catch {
+    return null;
+  }
 }
 
 /** POST the reset claim for one organization. Never throws. */
@@ -243,6 +258,8 @@ export async function claimClaudeLimitReset(
 
 /**
  * Claim either a specific cedar_ember grant or the weekly juniper_tide session reset.
+ * `profile` picks the request shape: the opt-in auto-reset (default) keeps base's
+ * axios-style headers; only the user-initiated dashboard redeem sends the CLI headers.
  */
 export async function claimClaudeResetCredit(
   accessToken: string,
@@ -250,6 +267,7 @@ export async function claimClaudeResetCredit(
   options: {
     creditId?: string | null;
     requestId?: string | null;
+    profile?: "auto-reset" | "dashboard";
     fetchImpl?: FetchLike;
   } = {}
 ): Promise<ClaudeLimitResetClaim> {
@@ -278,7 +296,10 @@ export async function claimClaudeResetCredit(
       claudeLimitResetClaimUrl(organizationUuid),
       {
         method: "POST",
-        headers: claudeResetCreditHeaders(accessToken),
+        headers:
+          options.profile === "dashboard"
+            ? claudeResetCreditHeaders(accessToken)
+            : oauthHeaders(accessToken),
         body: JSON.stringify(payload),
       },
       CLAUDE_LIMIT_RESET_CLAIM_TIMEOUT_MS
@@ -352,7 +373,7 @@ export type ClaudeLimitResetAttempt = {
  */
 export async function attemptClaudeLimitReset(opts: {
   key: string;
-  /** When known, the status read seeds (and a claim forgets) the dashboard reset-credit count. */
+  /** When known, a claim forgets the dashboard's reset-credit count for this connection. */
   connectionId?: string | null;
   accessToken: string;
   providerSpecificData?: unknown;
@@ -400,11 +421,7 @@ async function resolveLimitResetOffer(
   now: number,
   fetchImpl: FetchLike
 ): Promise<ClaudeLimitResetAttempt | null> {
-  const res = await fetchAndSeedClaudeResetCreditUsage(opts.connectionId, opts.accessToken, {
-    fetchImpl,
-    timeoutMs: CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS,
-  });
-  const status = res.ok ? parseClaudeLimitResetStatus(res.body) : null;
+  const status = await fetchClaudeLimitResetStatus(opts.accessToken, fetchImpl);
   if (!status) {
     memoise(notBefore, opts.key, now + CLAUDE_LIMIT_RESET_RETRY_BACKOFF_MS);
     return { reset: false, outcome: "no_status", nextAvailableAt: null };

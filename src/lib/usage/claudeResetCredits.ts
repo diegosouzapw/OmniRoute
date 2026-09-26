@@ -103,8 +103,6 @@ function requireAccessToken(connection: ClaudeConnectionLike): string {
   return token;
 }
 
-const CLAUDE_RESET_CREDIT_LIST_TIMEOUT_MS = 10_000;
-
 /** Run upstream reset-credit calls through the connection's proxy, like the usage refresh. */
 async function withConnectionProxy<T>(connectionId: string, run: () => Promise<T>): Promise<T> {
   const proxyInfo = await resolveProxyForConnection(connectionId);
@@ -114,9 +112,7 @@ async function withConnectionProxy<T>(connectionId: string, run: () => Promise<T
 /** The user-initiated list read; it also seeds the dashboard's banked-credit count. */
 async function fetchClaudeUsageBody(connectionId: string, accessToken: string): Promise<unknown> {
   const result = await withConnectionProxy(connectionId, () =>
-    fetchAndSeedClaudeResetCreditUsage(connectionId, accessToken, {
-      timeoutMs: CLAUDE_RESET_CREDIT_LIST_TIMEOUT_MS,
-    })
+    fetchAndSeedClaudeResetCreditUsage(connectionId, accessToken)
   );
   if (result.ok) return result.body;
   const errBody = result.body as JsonRecord | null;
@@ -179,7 +175,11 @@ export async function consumeClaudeResetCredit(
     }
 
     const claim = await withConnectionProxy(connection.id, () =>
-      claimClaudeResetCredit(token, orgUuid, { creditId, requestId: idempotencyKey })
+      claimClaudeResetCredit(token, orgUuid, {
+        creditId,
+        requestId: idempotencyKey,
+        profile: "dashboard",
+      })
     );
     // Whatever the outcome, the memoised count may now be stale: unknown until the next list.
     forgetClaudeResetCreditCount(connection.id);

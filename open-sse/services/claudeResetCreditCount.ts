@@ -4,11 +4,10 @@
  * `/api/oauth/usage` only fills `cedar_ember` (banked grants) and `juniper_tide` (weekly
  * session reset) when it is called with the reset-credit query string and CLI headers. The
  * regular usage poller (usage/claude.ts) deliberately keeps the base URL and User-Agent, and
- * it runs from background schedulers, so it must never send this request. Only two callers
- * do:
- *   - the dashboard's reset-credit list (the user opened the modal), and
- *   - the opt-in auto-reset at the usage wall (claudeLimitReset.ts), which already reads it.
- * Both seed the memo below; the provider-limits refresh only READS it. A redeem or an
+ * it runs from background schedulers, so it must never send this request. Only the
+ * dashboard's reset-credit list (the user opened the modal) sends it and seeds the memo
+ * below; the provider-limits refresh only READS it. The opt-in auto-reset keeps its own
+ * base request shape (claudeLimitReset.ts) and never seeds the count. A redeem or an
  * auto-claim forgets the count, so the dashboard treats it as unknown until the next list.
  *
  * The count is tri-state: a number is authoritative (0 = nothing banked); null means unknown
@@ -25,6 +24,8 @@ type FetchLike = typeof fetch;
 export const CLAUDE_RESET_CREDIT_USAGE_URL =
   "https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1";
 export const CLAUDE_RESET_CREDIT_USAGE_TIMEOUT_MS = 5_000;
+/** Deadline of the dashboard list read; every call that joins an in-flight list shares it. */
+export const CLAUDE_RESET_CREDIT_LIST_TIMEOUT_MS = 10_000;
 /** A count nobody has re-listed for this long is treated as unknown again. */
 export const CLAUDE_RESET_CREDIT_COUNT_MAX_AGE_MS = 60 * 60_000;
 const CLAUDE_RESET_CREDIT_COUNT_CACHE_LIMIT = 10_000;
@@ -33,7 +34,7 @@ function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
-/** Headers for the reset-credit usage, claim and auto-reset requests (Claude Code CLI shape). */
+/** Headers for the dashboard's reset-credit list and redeem requests (Claude Code CLI shape). */
 export function claudeResetCreditHeaders(accessToken: string): Record<string, string> {
   return {
     Accept: "application/json, text/plain, */*",
@@ -123,12 +124,10 @@ export function countClaudeBankedResetCredits(usageBody: unknown): number {
 type CountEntry = { count: number; seededAt: number };
 
 const entries = new Map<string, CountEntry>();
+// The registered in-flight list per connection doubles as its admission token: a request
+// may store its result only while it is still the registered one, so a request that
+// forget() dropped (or a newer one replaced) can never write — with nothing to evict.
 const inflight = new Map<string, Promise<ClaudeResetCreditUsageResult>>();
-const generations = new Map<string, number>();
-
-function generationOf(connectionId: string): number {
-  return generations.get(connectionId) ?? 0;
-}
 
 function applyListResult(
   connectionId: string,
@@ -152,22 +151,24 @@ function applyListResult(
 }
 
 /**
- * Send the reset-credit usage request for a user- or auto-reset-initiated read and seed the
- * connection's count from it. Concurrent calls for one connection share a single request; a
- * result that lands after forgetClaudeResetCreditCount() is returned but not stored.
+ * The dashboard's reset-credit list read (user-initiated): send the request and seed the
+ * connection's count from it. Concurrent list calls for one connection share one request
+ * with one deadline; a result that lands after forgetClaudeResetCreditCount() is returned
+ * but not stored.
  */
 export function fetchAndSeedClaudeResetCreditUsage(
-  connectionId: string | null | undefined,
+  connectionId: string,
   accessToken: string,
-  options: { fetchImpl?: FetchLike; timeoutMs?: number; now?: number } = {}
+  options: { fetchImpl?: FetchLike; now?: number } = {}
 ): Promise<ClaudeResetCreditUsageResult> {
-  if (!connectionId) return fetchClaudeResetCreditUsage(accessToken, options);
   const pending = inflight.get(connectionId);
   if (pending) return pending;
-  const generation = generationOf(connectionId);
-  const run = fetchClaudeResetCreditUsage(accessToken, options)
+  const run: Promise<ClaudeResetCreditUsageResult> = fetchClaudeResetCreditUsage(accessToken, {
+    fetchImpl: options.fetchImpl,
+    timeoutMs: CLAUDE_RESET_CREDIT_LIST_TIMEOUT_MS,
+  })
     .then((result) => {
-      if (generationOf(connectionId) === generation) {
+      if (inflight.get(connectionId) === run) {
         applyListResult(connectionId, result, options.now ?? Date.now());
       }
       return result;
@@ -207,23 +208,16 @@ export function withClaudeResetCreditCount<T extends JsonRecord>(
 }
 
 /**
- * Drop the count after a redeem or auto-claim, together with any in-flight list request, and
- * bump the generation so a request started earlier cannot store the pre-redeem count.
+ * Drop the count after a redeem or auto-claim, together with the in-flight list request, so a
+ * request started earlier cannot store the pre-redeem count.
  */
 export function forgetClaudeResetCreditCount(connectionId: string): void {
   entries.delete(connectionId);
   inflight.delete(connectionId);
-  setBoundedEntry(
-    generations,
-    connectionId,
-    generationOf(connectionId) + 1,
-    CLAUDE_RESET_CREDIT_COUNT_CACHE_LIMIT
-  );
 }
 
-/** Test-only: clear every memoised count, in-flight request and generation. */
+/** Test-only: clear every memoised count and in-flight request. */
 export function _resetClaudeResetCreditCountCache(): void {
   entries.clear();
   inflight.clear();
-  generations.clear();
 }
