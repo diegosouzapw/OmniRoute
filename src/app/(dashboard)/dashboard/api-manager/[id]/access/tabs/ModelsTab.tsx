@@ -65,12 +65,17 @@ export default function ModelsTab({
   const tc = useTranslations("common");
 
   const [claudeCodeFamiliesExpanded, setClaudeCodeFamiliesExpanded] = useState(false);
-  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(() => {
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(() => new Set());
+  // The key and the catalog load in parallel, so the provider list may still be empty when this
+  // tab mounts. Decide once, on the first non-empty list: a key that already has selections opens
+  // with every group expanded (as the old modal did); later collapses are left alone.
+  const [initialExpansionDone, setInitialExpansionDone] = useState(false);
+  if (!initialExpansionDone && modelsByProvider.length > 0) {
+    setInitialExpansionDone(true);
     if (formState.selectedModels.length > 0) {
-      return new Set(modelsByProvider.map(([p]) => p));
+      setExpandedProviders(new Set(modelsByProvider.map(([p]) => p)));
     }
-    return new Set();
-  });
+  }
 
   const { providerWildcards: selectedProviderScopes, exactModels: selectedExactModels } = useMemo(
     () => restoreProviderScopeSelection(formState.selectedModels),

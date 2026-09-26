@@ -124,6 +124,9 @@ function ApiKeyAccessEditorForm({
       const linkTarget = anchor.getAttribute("target");
       if (linkTarget && linkTarget !== "_self") return;
       if (anchor.origin !== window.location.origin) return;
+      // An in-page anchor (same path and query, only the hash differs) never leaves the page.
+      const { pathname, search } = window.location;
+      if (anchor.hash && anchor.pathname === pathname && anchor.search === search) return;
       if (!window.confirm(t("unsavedChangesWarning"))) {
         e.preventDefault();
         e.stopPropagation();
@@ -215,7 +218,9 @@ function ApiKeyAccessEditorForm({
             href="/dashboard/api-manager"
             className="hover:text-primary transition-colors inline-flex items-center gap-1"
           >
-            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+            <span aria-hidden="true" className="material-symbols-outlined text-[14px]">
+              arrow_back
+            </span>
             {t("keyManagement")}
           </Link>
           <span>/</span>
@@ -226,7 +231,12 @@ function ApiKeyAccessEditorForm({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-text-main flex items-center gap-2">
-              <span className="material-symbols-outlined text-[28px] text-primary">key</span>
+              <span
+                aria-hidden="true"
+                className="material-symbols-outlined text-[28px] text-primary"
+              >
+                key
+              </span>
               {t("accessEditorTitle", { name: apiKey.name })}
             </h1>
             <p className="text-sm text-text-muted">{t("accessEditorDesc")}</p>
@@ -263,8 +273,13 @@ function ApiKeyAccessEditorForm({
                     : "text-text-muted hover:text-text-main hover:bg-surface/50 border-b-2 border-transparent"
                 }`}
               >
-                <span className="material-symbols-outlined text-[18px]">{tabDef.icon}</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                  {tabDef.icon}
+                </span>
                 <span>{t(tabDef.labelKey)}</span>
+                {/* The space keeps the label and the badge text apart in the accessible name;
+                    white space between flex items is not rendered. */}
+                {errorCount > 0 && " "}
                 {errorCount > 0 && (
                   <span
                     className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-red-500 text-white"
@@ -289,99 +304,107 @@ function ApiKeyAccessEditorForm({
         className="focus:outline-none"
       >
         <Card className="p-6">
-          {activeTab === "general" && (
-            <GeneralTab
-              apiKey={apiKey}
-              formState={form.formState}
-              setName={form.setName}
-              setIsActive={form.setIsActive}
-              setIsBanned={form.setIsBanned}
-              setExpiresAt={form.setExpiresAt}
-              setManageEnabled={form.setManageEnabled}
-              setSelfUsageEnabled={form.setSelfUsageEnabled}
-              setSelfAccountQuotaEnabled={form.setSelfAccountQuotaEnabled}
-              setAllowAllEndpoints={form.setAllowAllEndpoints}
-              toggleEndpoint={form.toggleEndpoint}
-              nameError={form.tabErrors.general[0]}
-              errors={form.tabErrors.general}
-            />
-          )}
+          {/* Locked while saving: the post-save refresh replaces the form state, so an edit
+              made during the request would otherwise be dropped without notice. */}
+          <fieldset
+            disabled={isSubmitting}
+            aria-busy={isSubmitting}
+            className="m-0 min-w-0 border-0 p-0"
+          >
+            {activeTab === "general" && (
+              <GeneralTab
+                apiKey={apiKey}
+                formState={form.formState}
+                setName={form.setName}
+                setIsActive={form.setIsActive}
+                setIsBanned={form.setIsBanned}
+                setExpiresAt={form.setExpiresAt}
+                setManageEnabled={form.setManageEnabled}
+                setSelfUsageEnabled={form.setSelfUsageEnabled}
+                setSelfAccountQuotaEnabled={form.setSelfAccountQuotaEnabled}
+                setAllowAllEndpoints={form.setAllowAllEndpoints}
+                toggleEndpoint={form.toggleEndpoint}
+                nameError={form.tabErrors.general[0]}
+                errors={form.tabErrors.general}
+              />
+            )}
 
-          {activeTab === "models" && (
-            <ModelsTab
-              formState={form.formState}
-              allModels={permissionModels}
-              modelsByProvider={filteredModelsByProvider}
-              modelsLoaded={modelsLoaded}
-              searchModel={searchModel}
-              onSearchChange={setSearchModel}
-              setAllowAll={form.setAllowAll}
-              setSelectedModels={form.setSelectedModels}
-              toggleModel={form.toggleModel}
-              selectAllModels={form.selectAllModels}
-              deselectAllModels={form.deselectAllModels}
-              blockClaudeCodeFamily={form.blockClaudeCodeFamily}
-              setCatalogScope={form.setCatalogScope}
-              setDisableNonPublicModels={form.setDisableNonPublicModels}
-              errors={form.tabErrors.models}
-            />
-          )}
+            {activeTab === "models" && (
+              <ModelsTab
+                formState={form.formState}
+                allModels={permissionModels}
+                modelsByProvider={filteredModelsByProvider}
+                modelsLoaded={modelsLoaded}
+                searchModel={searchModel}
+                onSearchChange={setSearchModel}
+                setAllowAll={form.setAllowAll}
+                setSelectedModels={form.setSelectedModels}
+                toggleModel={form.toggleModel}
+                selectAllModels={form.selectAllModels}
+                deselectAllModels={form.deselectAllModels}
+                blockClaudeCodeFamily={form.blockClaudeCodeFamily}
+                setCatalogScope={form.setCatalogScope}
+                setDisableNonPublicModels={form.setDisableNonPublicModels}
+                errors={form.tabErrors.models}
+              />
+            )}
 
-          {activeTab === "combos" && (
-            <CombosTab
-              formState={form.formState}
-              allCombos={allCombos}
-              setAllowAllCombos={form.setAllowAllCombos}
-              setSelectedCombos={form.setSelectedCombos}
-              toggleCombo={form.toggleCombo}
-              setAllowAutoCombos={form.setAllowAutoCombos}
-              errors={form.tabErrors.combos}
-            />
-          )}
+            {activeTab === "combos" && (
+              <CombosTab
+                formState={form.formState}
+                allCombos={allCombos}
+                setAllowAllCombos={form.setAllowAllCombos}
+                setSelectedCombos={form.setSelectedCombos}
+                toggleCombo={form.toggleCombo}
+                setAllowAutoCombos={form.setAllowAutoCombos}
+                errors={form.tabErrors.combos}
+              />
+            )}
 
-          {activeTab === "connections" && (
-            <ConnectionsTab
-              formState={form.formState}
-              allConnections={allConnections}
-              setAllowAllConnections={form.setAllowAllConnections}
-              setSelectedConnections={form.setSelectedConnections}
-              errors={form.tabErrors.connections}
-            />
-          )}
+            {activeTab === "connections" && (
+              <ConnectionsTab
+                formState={form.formState}
+                allConnections={allConnections}
+                setAllowAllConnections={form.setAllowAllConnections}
+                setSelectedConnections={form.setSelectedConnections}
+                errors={form.tabErrors.connections}
+              />
+            )}
 
-          {activeTab === "limits" && (
-            <LimitsTab
-              formState={form.formState}
-              setMaxSessions={form.setMaxSessions}
-              setThrottleDelayMs={form.setThrottleDelayMs}
-              addRateLimit={form.addRateLimit}
-              removeRateLimit={form.removeRateLimit}
-              updateRateLimit={form.updateRateLimit}
-              setScheduleEnabled={form.setScheduleEnabled}
-              setScheduleFrom={form.setScheduleFrom}
-              setScheduleUntil={form.setScheduleUntil}
-              setScheduleDays={form.setScheduleDays}
-              setScheduleTz={form.setScheduleTz}
-              setUsageLimitEnabled={form.setUsageLimitEnabled}
-              setDailyUsageLimitUsd={form.setDailyUsageLimitUsd}
-              setWeeklyUsageLimitUsd={form.setWeeklyUsageLimitUsd}
-              errors={form.tabErrors.limits}
-            />
-          )}
+            {activeTab === "limits" && (
+              <LimitsTab
+                formState={form.formState}
+                setMaxSessions={form.setMaxSessions}
+                setThrottleDelayMs={form.setThrottleDelayMs}
+                addRateLimit={form.addRateLimit}
+                removeRateLimit={form.removeRateLimit}
+                updateRateLimit={form.updateRateLimit}
+                setScheduleEnabled={form.setScheduleEnabled}
+                setScheduleFrom={form.setScheduleFrom}
+                setScheduleUntil={form.setScheduleUntil}
+                setScheduleDays={form.setScheduleDays}
+                setScheduleTz={form.setScheduleTz}
+                setUsageLimitEnabled={form.setUsageLimitEnabled}
+                setDailyUsageLimitUsd={form.setDailyUsageLimitUsd}
+                setWeeklyUsageLimitUsd={form.setWeeklyUsageLimitUsd}
+                errors={form.tabErrors.limits}
+              />
+            )}
 
-          {activeTab === "behaviour" && (
-            <BehaviourTab
-              formState={form.formState}
-              setNoLog={form.setNoLog}
-              setAutoResolve={form.setAutoResolve}
-              setStreamDefaultMode={form.setStreamDefaultMode}
-              setCompressionEnabled={form.setCompressionEnabled}
-              setChaosModeEnabled={form.setChaosModeEnabled}
-              setAllowUsageCommand={form.setAllowUsageCommand}
-              setBypassProviderQuotaPolicyEnabled={form.setBypassProviderQuotaPolicyEnabled}
-              errors={form.tabErrors.behaviour}
-            />
-          )}
+            {activeTab === "behaviour" && (
+              <BehaviourTab
+                formState={form.formState}
+                setNoLog={form.setNoLog}
+                setAutoResolve={form.setAutoResolve}
+                setStreamDefaultMode={form.setStreamDefaultMode}
+                setCompressionEnabled={form.setCompressionEnabled}
+                setChaosModeEnabled={form.setChaosModeEnabled}
+                setAllowUsageCommand={form.setAllowUsageCommand}
+                setBypassProviderQuotaPolicyEnabled={form.setBypassProviderQuotaPolicyEnabled}
+                errors={form.tabErrors.behaviour}
+              />
+            )}
+          </fieldset>
         </Card>
       </div>
 
@@ -396,7 +419,10 @@ function ApiKeyAccessEditorForm({
               </span>
             ) : (
               <span className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span className="material-symbols-outlined text-[16px] text-emerald-500">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-[16px] text-emerald-500"
+                >
                   check_circle
                 </span>
                 {ts("saved")}
@@ -405,7 +431,9 @@ function ApiKeyAccessEditorForm({
 
             {form.hasErrors && (
               <span className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400 font-medium">
-                <span className="material-symbols-outlined text-[16px]">error</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+                  error
+                </span>
                 {t("fixValidationErrors")}
               </span>
             )}
@@ -634,7 +662,9 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
     return (
       <Card className="flex flex-col items-center justify-center p-12 text-center gap-4">
         <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
-          <span className="material-symbols-outlined text-[24px]">key_off</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[24px]">
+            key_off
+          </span>
         </div>
         <div className="flex flex-col gap-1">
           <h2 className="text-xl font-bold text-text-main">{t("keyNotFound")}</h2>
@@ -642,7 +672,9 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
         </div>
         <Link href="/dashboard/api-manager">
           <Button variant="outline">
-            <span className="material-symbols-outlined text-[16px] mr-1.5">arrow_back</span>
+            <span aria-hidden="true" className="material-symbols-outlined text-[16px] mr-1.5">
+              arrow_back
+            </span>
             {t("backToApiKeys")}
           </Button>
         </Link>
@@ -655,14 +687,18 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
     return (
       <Card className="flex flex-col items-center justify-center p-12 text-center gap-4">
         <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
-          <span className="material-symbols-outlined text-[24px]">error</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[24px]">
+            error
+          </span>
         </div>
         <div className="flex flex-col gap-1">
           <h2 className="text-xl font-bold text-text-main">{fetchError || t("failedLoadKey")}</h2>
         </div>
         <Link href="/dashboard/api-manager">
           <Button variant="outline">
-            <span className="material-symbols-outlined text-[16px] mr-1.5">arrow_back</span>
+            <span aria-hidden="true" className="material-symbols-outlined text-[16px] mr-1.5">
+              arrow_back
+            </span>
             {t("backToApiKeys")}
           </Button>
         </Link>

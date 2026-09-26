@@ -78,10 +78,14 @@ interface FetchOptions {
   keyGet?: (callIndex: number, serverKey: KeyRecord) => Promise<FakeResponse> | FakeResponse;
   /** Answer for PATCH; default: 200 and the body is merged into the server copy. */
   patch?: (body: Record<string, unknown>) => Promise<FakeResponse> | FakeResponse;
+  /** Answer for GET /v1/models; default: a two-model catalog. */
+  models?: () => Promise<FakeResponse> | FakeResponse;
 }
 
 function jsonResponse(body: unknown, status = 200): FakeResponse {
-  return { ok: status >= 200 && status < 300, status, json: async () => body };
+  // A real Response.json() always yields a fresh object, never the server's own reference.
+  const payload = JSON.stringify(body);
+  return { ok: status >= 200 && status < 300, status, json: async () => JSON.parse(payload) };
 }
 
 function deferred<T>() {
@@ -116,6 +120,7 @@ describe("ApiKeyAccessEditorClient", () => {
         return jsonResponse(serverKey);
       }
       if (urlStr.includes("/v1/models")) {
+        if (options.models) return options.models();
         return jsonResponse({
           data: [
             { id: "openai/gpt-4o", name: "GPT-4o", owned_by: "openai" },
@@ -192,6 +197,10 @@ describe("ApiKeyAccessEditorClient", () => {
     const generalTab = screen.getByRole("tab", { name: /general/i });
     expect(generalTab.getAttribute("aria-selected")).toBe("true");
     expect(screen.getByRole("tabpanel")).toBeDefined();
+
+    // Decorative icon ligatures ("tune", "arrow_back") stay out of accessible names.
+    expect(screen.getByRole("tab", { name: "General" })).toBe(generalTab);
+    expect(screen.getByRole("link", { name: messages.apiManager.keyManagement })).toBeDefined();
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("Production Test Key")).toBeDefined();
@@ -356,7 +365,40 @@ describe("ApiKeyAccessEditorClient", () => {
     fireEvent.click(newTabLink);
 
     expect(confirmSpy).not.toHaveBeenCalled();
+
+    // The guard is still armed: a plain click on the same link asks once.
+    fireEvent.click(backLink);
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
     newTabLink.remove();
+  });
+
+  it("does not prompt for same-page hash links", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    await renderLoaded();
+    await makeDirty();
+
+    const { pathname, search } = window.location;
+    const hashLink = document.createElement("a");
+    hashLink.href = `${pathname}${search}#rate-limits`;
+    hashLink.textContent = "jump to rate limits";
+    document.body.appendChild(hashLink);
+    const otherPageHashLink = document.createElement("a");
+    otherPageHashLink.href = `${pathname.replace(/\/?$/, "/elsewhere")}#rate-limits`;
+    otherPageHashLink.textContent = "other page section";
+    document.body.appendChild(otherPageHashLink);
+
+    const swallowNavigation = (event: Event) => event.preventDefault();
+    hashLink.addEventListener("click", swallowNavigation);
+    otherPageHashLink.addEventListener("click", swallowNavigation);
+
+    fireEvent.click(hashLink);
+    expect(confirmSpy).not.toHaveBeenCalled();
+
+    fireEvent.click(otherPageHashLink);
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+
+    hashLink.remove();
+    otherPageHashLink.remove();
   });
 
   it("Save sends the full PATCH body", async () => {
@@ -467,9 +509,75 @@ describe("ApiKeyAccessEditorClient", () => {
     const limitsTab = screen.getByRole("tab", { name: /limits/i });
     const hiddenCount = within(limitsTab).getByText("1 validation error");
     expect(hiddenCount.className).toContain("sr-only");
+    expect(screen.getByRole("tab", { name: "Limits 1 validation error" })).toBe(limitsTab);
     expect(screen.getByRole("button", { name: /save changes/i }).hasAttribute("disabled")).toBe(
       true
     );
+  });
+
+  it("locks the tab panel while a save is in flight so no edit is lost to the refresh", async () => {
+    const saveGate = deferred<FakeResponse>();
+    installFetch({ patch: () => saveGate.promise });
+    await renderLoaded();
+
+    const nameInput = await makeDirty("Pending Name");
+    const [firstSwitch] = screen.getAllByRole("switch");
+    expect(nameInput.matches(":disabled")).toBe(false);
+    expect(firstSwitch.matches(":disabled")).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
+    await waitFor(() => {
+      expect(screen.getByText(messages.settings.saving)).toBeDefined();
+    });
+    expect(nameInput.matches(":disabled")).toBe(true);
+    expect(firstSwitch.matches(":disabled")).toBe(true);
+
+    saveGate.resolve(jsonResponse({}));
+    await waitForSaveToSettle();
+    // The refresh returned the stored key, and the panel is editable again.
+    await waitFor(() => {
+      expect(nameInput.value).toBe("Production Test Key");
+    });
+    expect(nameInput.matches(":disabled")).toBe(false);
+  });
+
+  it("expands every provider group once the catalog arrives for a key with selected models", async () => {
+    const modelsGate = deferred<FakeResponse>();
+    installFetch(
+      { models: () => modelsGate.promise },
+      { ...sampleKey, modelAccessMode: "restricted", allowedModels: ["openai/gpt-4o"] }
+    );
+    currentSearch = "tab=models";
+    await renderLoaded();
+
+    const modelButton = (id: string) =>
+      screen.queryAllByTitle(id).find((element) => element.tagName === "BUTTON") ?? null;
+    expect(modelButton("openai/gpt-4o-mini")).toBeNull();
+
+    modelsGate.resolve(
+      jsonResponse({
+        data: [
+          { id: "openai/gpt-4o", name: "GPT-4o", owned_by: "openai" },
+          { id: "openai/gpt-4o-mini", name: "GPT-4o mini", owned_by: "openai" },
+          { id: "anthropic/claude-3-5-sonnet", name: "Claude 3.5 Sonnet", owned_by: "claude" },
+        ],
+      })
+    );
+
+    await waitFor(() => {
+      expect(modelButton("openai/gpt-4o-mini")).not.toBeNull();
+      expect(modelButton("anthropic/claude-3-5-sonnet")).not.toBeNull();
+    });
+
+    // Only once: a group the user collapses afterwards stays collapsed.
+    const openaiGroup = modelButton("openai/gpt-4o-mini")?.closest(".group");
+    const expandToggle = openaiGroup?.querySelector("button");
+    expect(expandToggle).toBeTruthy();
+    fireEvent.click(expandToggle as HTMLButtonElement);
+    await waitFor(() => {
+      expect(modelButton("openai/gpt-4o-mini")).toBeNull();
+    });
+    expect(modelButton("anthropic/claude-3-5-sonnet")).not.toBeNull();
   });
 
   it("shows the model selection cap inline on the Models tab", async () => {
