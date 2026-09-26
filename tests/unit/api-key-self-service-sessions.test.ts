@@ -300,7 +300,9 @@ test("GET /v1/me/sessions returns an explicit token split with cached input coun
     })
   );
   assert.equal(res.status, 200);
-  const data = (await res.json()) as { sessions: Array<{ tokens: Record<string, number> }> };
+  const data = (await res.json()) as {
+    sessions: Array<{ id: string; tokens: Record<string, number> }>;
+  };
   assert.deepEqual(data.sessions[0].tokens, {
     input: 10000,
     uncachedInput: 100,
@@ -309,5 +311,23 @@ test("GET /v1/me/sessions returns an explicit token split with cached input coun
     output: 40,
     reasoning: 0,
     total: 10040,
+  });
+
+  const detailRes = await getSessionDetailRoute(
+    new Request(`http://localhost/api/v1/me/sessions/${data.sessions[0].id}`, {
+      headers: { Authorization: `Bearer ${keyAliceToken}` },
+    }),
+    { params: Promise.resolve({ id: data.sessions[0].id }) }
+  );
+  const detail = (await detailRes.json()) as {
+    recentRequests: Array<{ tokens: Record<string, number> }>;
+  };
+  assert.deepEqual(detail.recentRequests[0].tokens, {
+    input: 10000,
+    uncachedInput: 100,
+    cacheRead: 9000,
+    cacheCreation: 900,
+    output: 40,
+    reasoning: 0,
   });
 });

@@ -46,7 +46,6 @@ import { redactSessionTurn } from "./agentSessionTurnRedaction";
 import { saveAgentSessionMessage } from "../db/agentSessionMessages";
 import {
   recordAgentSessionUsage,
-  normalizeAgentSessionTokens,
   type AgentSessionTokens,
   type AgentSessionUsage,
 } from "../db/agentSessions";
@@ -779,22 +778,18 @@ async function buildAgentSessionUsage(
   if (!hasAgentIdentity(entry.agentContext)) return null;
   const provider = entry.provider ? resolveProviderId(entry.provider) : null;
   const model = entry.model || null;
-  // Price the cache-inclusive tokens the session stores, so a request whose input was stored
-  // without its cache is not billed as if it had no fresh input.
-  const sessionTokens = normalizeAgentSessionTokens(tokens);
-  const { costUsd, priced } = await calculateCostDetailed(
-    provider || "",
-    model || "",
-    sessionTokens,
-    { provider, model, serviceTier }
-  );
+  const { costUsd, priced } = await calculateCostDetailed(provider || "", model || "", tokens, {
+    provider,
+    model,
+    serviceTier,
+  });
   return {
     context: entry.agentContext,
     apiKeyId: entry.apiKeyId || null,
     apiKeyName: entry.apiKeyName || null,
     timestamp,
     success: entry.success !== false,
-    tokens: sessionTokens,
+    tokens,
     costUsd,
     priced,
     provider,
