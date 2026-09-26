@@ -14483,6 +14483,7 @@
     "colRequests": "Pyynnöt",
     "colErrors": "Virheet",
     "colTokens": "Tokenit",
+    "colCache": "Välimuisti",
     "colTokensInOut": "Tokenit sisään / ulos",
     "colCost": "Kustannukset",
     "colFirstSeen": "Aloitettu",

@@ -14483,6 +14483,7 @@
     "colRequests": "الطلبات",
     "colErrors": "الأخطاء",
     "colTokens": "الرموز",
+    "colCache": "الذاكرة المؤقتة",
     "colTokensInOut": "الرموز الواردة / الصادرة",
     "colCost": "التكلفة",
     "colFirstSeen": "تاريخ البدء",

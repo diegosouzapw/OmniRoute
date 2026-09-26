@@ -14483,6 +14483,7 @@
     "colRequests": "მოთხოვნები",
     "colErrors": "შეცდომები",
     "colTokens": "ტოკენები",
+    "colCache": "ქეში",
     "colTokensInOut": "ტოკენები შემავალი / გამავალი",
     "colCost": "ღირებულება",
     "colFirstSeen": "დაწყების დრო",

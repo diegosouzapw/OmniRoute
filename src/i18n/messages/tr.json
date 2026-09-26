@@ -14483,6 +14483,7 @@
     "colRequests": "İstekler",
     "colErrors": "Hatalar",
     "colTokens": "Tokenlar",
+    "colCache": "Önbellek",
     "colTokensInOut": "Giriş / çıkış tokenları",
     "colCost": "Maliyet",
     "colFirstSeen": "Başlangıç",

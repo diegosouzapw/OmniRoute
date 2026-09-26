@@ -14483,6 +14483,7 @@
     "colRequests": "請求",
     "colErrors": "錯誤",
     "colTokens": "權杖",
+    "colCache": "快取",
     "colTokensInOut": "輸入 / 輸出權杖",
     "colCost": "費用",
     "colFirstSeen": "開始時間",

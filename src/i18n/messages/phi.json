@@ -14483,6 +14483,7 @@
     "colRequests": "Mga Kahilingan",
     "colErrors": "Mga Error",
     "colTokens": "Mga Token",
+    "colCache": "Cache",
     "colTokensInOut": "Mga Token in / out",
     "colCost": "Gastos",
     "colFirstSeen": "Nagsimula",

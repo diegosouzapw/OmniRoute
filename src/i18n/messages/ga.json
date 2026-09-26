@@ -14483,6 +14483,7 @@
     "colRequests": "Iarratais",
     "colErrors": "Earráidí",
     "colTokens": "Comharthaí",
+    "colCache": "Taisce",
     "colTokensInOut": "Comharthaí isteach / amach",
     "colCost": "Costas",
     "colFirstSeen": "Tosaithe",

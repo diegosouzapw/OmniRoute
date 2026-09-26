@@ -14483,6 +14483,7 @@
     "colRequests": "Cereri",
     "colErrors": "Erori",
     "colTokens": "Tokenuri",
+    "colCache": "Cache",
     "colTokensInOut": "Tokenuri intrare / ieșire",
     "colCost": "Cost",
     "colFirstSeen": "Început",

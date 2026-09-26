@@ -14483,6 +14483,7 @@
     "colRequests": "Zahtjevi",
     "colErrors": "Pogreške",
     "colTokens": "Tokeni",
+    "colCache": "Predmemorija",
     "colTokensInOut": "Tokeni ulaz / izlaz",
     "colCost": "Trošak",
     "colFirstSeen": "Započeto",

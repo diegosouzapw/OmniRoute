@@ -14483,6 +14483,7 @@
     "colRequests": "Užklausos",
     "colErrors": "Klaidos",
     "colTokens": "Žetonai",
+    "colCache": "Talpykla",
     "colTokensInOut": "Įvesties / išvesties žetonai",
     "colCost": "Kaina",
     "colFirstSeen": "Pradėta",

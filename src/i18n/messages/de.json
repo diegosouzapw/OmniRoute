@@ -14483,6 +14483,7 @@
     "colRequests": "Anfragen",
     "colErrors": "Fehler",
     "colTokens": "Tokens",
+    "colCache": "Cache",
     "colTokensInOut": "Tokens eingehend / ausgehend",
     "colCost": "Kosten",
     "colFirstSeen": "Gestartet",

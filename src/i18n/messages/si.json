@@ -14483,6 +14483,7 @@
     "colRequests": "ඉල්ලීම්",
     "colErrors": "දෝෂ",
     "colTokens": "ටෝකන",
+    "colCache": "හැඹිලි",
     "colTokensInOut": "ටෝකන ඇතුළත් / පිටතට",
     "colCost": "පිරිවැය",
     "colFirstSeen": "ආරම්භ වූ වේලාව",

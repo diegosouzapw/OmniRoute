@@ -14483,6 +14483,7 @@
     "colRequests": "Permintaan",
     "colErrors": "Kesalahan",
     "colTokens": "Token",
+    "colCache": "Cache",
     "colTokensInOut": "Token masuk / keluar",
     "colCost": "Biaya",
     "colFirstSeen": "Dimulai",

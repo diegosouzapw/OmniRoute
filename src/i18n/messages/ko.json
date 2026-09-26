@@ -14483,6 +14483,7 @@
     "colRequests": "요청",
     "colErrors": "오류",
     "colTokens": "토큰",
+    "colCache": "캐시",
     "colTokensInOut": "입력 / 출력 토큰",
     "colCost": "비용",
     "colFirstSeen": "시작 시간",

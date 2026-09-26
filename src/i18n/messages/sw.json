@@ -14483,6 +14483,7 @@
     "colRequests": "Maombi",
     "colErrors": "Hitilafu",
     "colTokens": "Tokeni",
+    "colCache": "Kashe",
     "colTokensInOut": "Tokeni ndani / nje",
     "colCost": "Gharama",
     "colFirstSeen": "Ilianza",

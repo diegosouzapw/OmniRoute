@@ -14483,6 +14483,7 @@
     "colRequests": "Förfrågningar",
     "colErrors": "Fel",
     "colTokens": "Tokens",
+    "colCache": "Cache",
     "colTokensInOut": "Tokens in / ut",
     "colCost": "Kostnad",
     "colFirstSeen": "Startad",

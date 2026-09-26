@@ -14483,6 +14483,7 @@
     "colRequests": "Запити",
     "colErrors": "Помилки",
     "colTokens": "Токени",
+    "colCache": "Кеш",
     "colTokensInOut": "Вхідні / вихідні токени",
     "colCost": "Вартість",
     "colFirstSeen": "Розпочато",

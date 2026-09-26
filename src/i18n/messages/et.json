@@ -14483,6 +14483,7 @@
     "colRequests": "Päringud",
     "colErrors": "Vead",
     "colTokens": "Tokenid",
+    "colCache": "Vahemälu",
     "colTokensInOut": "Tokenid sisse / välja",
     "colCost": "Kulu",
     "colFirstSeen": "Alustatud",

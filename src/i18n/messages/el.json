@@ -14483,6 +14483,7 @@
     "colRequests": "Αιτήματα",
     "colErrors": "Σφάλματα",
     "colTokens": "Tokens",
+    "colCache": "Κρυφή μνήμη",
     "colTokensInOut": "Tokens εισόδου / εξόδου",
     "colCost": "Κόστος",
     "colFirstSeen": "Έναρξη",

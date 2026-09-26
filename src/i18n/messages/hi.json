@@ -14483,6 +14483,7 @@
     "colRequests": "अनुरोध",
     "colErrors": "त्रुटियां",
     "colTokens": "टोकन",
+    "colCache": "कैश",
     "colTokensInOut": "टोकन इन / आउट",
     "colCost": "लागत",
     "colFirstSeen": "शुरू हुआ",

@@ -14483,6 +14483,7 @@
     "colRequests": "கோரிக்கைகள்",
     "colErrors": "பிழைகள்",
     "colTokens": "டோக்கன்கள்",
+    "colCache": "கேச்",
     "colTokensInOut": "டோக்கன்கள் உள் / வெளி",
     "colCost": "செலவு",
     "colFirstSeen": "தொடங்கப்பட்டது",

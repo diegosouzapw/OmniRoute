@@ -14483,6 +14483,7 @@
     "colRequests": "Požiadavky",
     "colErrors": "Chyby",
     "colTokens": "Tokeny",
+    "colCache": "Vyrovnávacia pamäť",
     "colTokensInOut": "Tokeny vstup / výstup",
     "colCost": "Náklady",
     "colFirstSeen": "Spustené",

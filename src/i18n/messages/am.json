@@ -14483,6 +14483,7 @@
     "colRequests": "ጥያቄዎች",
     "colErrors": "ስህተቶች",
     "colTokens": "ቶከኖች",
+    "colCache": "መሸጎጫ",
     "colTokensInOut": "ገቢ / ወጪ ቶከኖች",
     "colCost": "ወጪ",
     "colFirstSeen": "የተጀመረበት",

@@ -14483,6 +14483,7 @@
     "colRequests": "Kérések",
     "colErrors": "Hibák",
     "colTokens": "Tokenek",
+    "colCache": "Gyorsítótár",
     "colTokensInOut": "Tokenek be / ki",
     "colCost": "Költség",
     "colFirstSeen": "Kezdés",

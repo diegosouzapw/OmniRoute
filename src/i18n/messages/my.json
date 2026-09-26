@@ -14483,6 +14483,7 @@
     "colRequests": "တောင်းဆိုမှုများ",
     "colErrors": "အမှားများ",
     "colTokens": "တိုကင်များ",
+    "colCache": "Cache",
     "colTokensInOut": "အဝင် / အထွက် တိုကင်များ",
     "colCost": "ကုန်ကျစရိတ်",
     "colFirstSeen": "စတင်ချိန်",

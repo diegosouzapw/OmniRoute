@@ -14483,6 +14483,7 @@
     "colRequests": "Soʻrovlar",
     "colErrors": "Xatolar",
     "colTokens": "Tokenlar",
+    "colCache": "Kesh",
     "colTokensInOut": "Kiruvchi / chiquvchi tokenlar",
     "colCost": "Xarajat",
     "colFirstSeen": "Boshlangan",

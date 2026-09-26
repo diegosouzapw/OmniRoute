@@ -14483,6 +14483,7 @@
     "colRequests": "リクエスト",
     "colErrors": "エラー",
     "colTokens": "トークン",
+    "colCache": "キャッシュ",
     "colTokensInOut": "入力 / 出力トークン",
     "colCost": "コスト",
     "colFirstSeen": "開始日時",

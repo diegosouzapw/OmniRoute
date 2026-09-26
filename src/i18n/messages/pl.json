@@ -14483,6 +14483,7 @@
     "colRequests": "Żądania",
     "colErrors": "Błędy",
     "colTokens": "Tokeny",
+    "colCache": "Pamięć podręczna",
     "colTokensInOut": "Tokeny wejściowe / wyjściowe",
     "colCost": "Koszt",
     "colFirstSeen": "Rozpoczęto",

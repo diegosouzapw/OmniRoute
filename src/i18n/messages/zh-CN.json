@@ -14483,6 +14483,7 @@
     "colRequests": "请求",
     "colErrors": "错误",
     "colTokens": "Token",
+    "colCache": "缓存",
     "colTokensInOut": "输入 / 输出 Token",
     "colCost": "费用",
     "colFirstSeen": "开始时间",

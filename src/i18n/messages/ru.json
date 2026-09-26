@@ -14483,6 +14483,7 @@
     "colRequests": "Запросы",
     "colErrors": "Ошибки",
     "colTokens": "Токены",
+    "colCache": "Кэш",
     "colTokensInOut": "Токены вход / выход",
     "colCost": "Стоимость",
     "colFirstSeen": "Начало",

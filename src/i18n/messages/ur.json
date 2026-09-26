@@ -14483,6 +14483,7 @@
     "colRequests": "درخواستیں",
     "colErrors": "خرابیاں",
     "colTokens": "ٹوکنز",
+    "colCache": "کیش",
     "colTokensInOut": "ٹوکنز ان / آؤٹ",
     "colCost": "لاگت",
     "colFirstSeen": "شروع ہوا",

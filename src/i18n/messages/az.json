@@ -14483,6 +14483,7 @@
     "colRequests": "Sorğular",
     "colErrors": "Xətalar",
     "colTokens": "Tokenlər",
+    "colCache": "Keş",
     "colTokensInOut": "Giriş / çıxış tokenləri",
     "colCost": "Xərc",
     "colFirstSeen": "Başladı",

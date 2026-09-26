@@ -14483,6 +14483,7 @@
     "colRequests": "Zahtevki",
     "colErrors": "Napake",
     "colTokens": "Žetoni",
+    "colCache": "Predpomnilnik",
     "colTokensInOut": "Žetoni vhod / izhod",
     "colCost": "Strošek",
     "colFirstSeen": "Začeto",

@@ -14483,6 +14483,7 @@
     "colRequests": "Pieprasījumi",
     "colErrors": "Kļūdas",
     "colTokens": "Tokeni",
+    "colCache": "Kešatmiņa",
     "colTokensInOut": "Ievades / izvades tokeni",
     "colCost": "Izmaksas",
     "colFirstSeen": "Sākts",

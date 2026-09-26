@@ -14484,6 +14484,7 @@
     "colRequests": "Yêu cầu",
     "colErrors": "Lỗi",
     "colTokens": "Token",
+    "colCache": "Cache",
     "colTokensInOut": "Token vào / ra",
     "colCost": "Chi phí",
     "colFirstSeen": "Bắt đầu",

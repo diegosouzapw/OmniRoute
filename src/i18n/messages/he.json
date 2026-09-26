@@ -14483,6 +14483,7 @@
     "colRequests": "בקשות",
     "colErrors": "שגיאות",
     "colTokens": "טוקנים",
+    "colCache": "מטמון",
     "colTokensInOut": "טוקנים נכנסים / יוצאים",
     "colCost": "עלות",
     "colFirstSeen": "התחלה",

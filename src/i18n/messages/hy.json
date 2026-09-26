@@ -14483,6 +14483,7 @@
     "colRequests": "Հարցումներ",
     "colErrors": "Սխալներ",
     "colTokens": "Թոքեններ",
+    "colCache": "Քեշ",
     "colTokensInOut": "Թոքեններ մուտք / ելք",
     "colCost": "Արժեք",
     "colFirstSeen": "Սկսվել է",

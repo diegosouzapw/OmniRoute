@@ -14483,6 +14483,7 @@
     "colRequests": "ਬੇਨਤੀਆਂ",
     "colErrors": "ਗਲਤੀਆਂ",
     "colTokens": "ਟੋਕਨ",
+    "colCache": "ਕੈਸ਼",
     "colTokensInOut": "ਟੋਕਨ ਇਨ / ਆਊਟ",
     "colCost": "ਲਾਗਤ",
     "colFirstSeen": "ਸ਼ੁਰੂ ਹੋਇਆ",
