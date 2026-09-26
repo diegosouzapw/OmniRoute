@@ -30,7 +30,12 @@ import { isOpencodeFreeTierRefusal } from "../../executors/opencodeGeoBlock.ts";
 import { getTrustedLocalRateLimitResponse } from "../rateLimitManager/errors.ts";
 import { TRANSLATION_FAILURE_CODE } from "../../handlers/chatCore/translationFailure.ts";
 import type { ResolvedComboTarget } from "./types.ts";
-import type { ComboErrorEntry } from "./comboErrorAggregation.ts";
+import {
+  classifyComboOutcome,
+  type ComboErrorEntry,
+  type ComboOutcomeKind,
+} from "./comboErrorAggregation.ts";
+import type { ResponseQualityResult } from "./validateQuality.ts";
 
 export { isModelScoped400 } from "../modelAccessDenied.ts";
 
@@ -270,6 +275,7 @@ export function shouldRecordProviderBreakerFailure(args: {
 
 const REQUEST_SCOPED_UPSTREAM_ERROR_CODES: Record<string, true> = {
   context_length_exceeded: true,
+  context_window_exceeded: true,
   upstream_empty_response: true,
   upstream_response_failed: true,
   // Local combo per-target timer (targetTimeoutRunner) — not a connection health signal.
@@ -285,6 +291,20 @@ const REQUEST_SCOPED_UPSTREAM_ERROR_CODES: Record<string, true> = {
 };
 
 /** Request/model-specific failures must not poison provider-wide resilience state. */
+export function classifyQualityFailure(quality: ResponseQualityResult): {
+  status: number;
+  kind: ComboOutcomeKind;
+  requestScoped: boolean;
+} {
+  const upstream = quality.upstreamFailure;
+  if (!upstream) return { status: 502, kind: "quality", requestScoped: false };
+  const kind: ComboOutcomeKind = classifyComboOutcome(
+    upstream.status,
+    upstream.type || upstream.message || ""
+  );
+  return { status: upstream.status, kind, requestScoped: upstream.requestScoped };
+}
+
 export function isRequestScopedUpstreamFailure(error?: {
   code?: string | null;
   type?: string | null;
@@ -293,6 +313,7 @@ export function isRequestScopedUpstreamFailure(error?: {
   const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
   return (
     REQUEST_SCOPED_UPSTREAM_ERROR_CODES[code] === true ||
+    type === "invalid_request_error" ||
     type === "context_length_exceeded" ||
     type === "local_queue_capacity" ||
     // #14313: OpenCode free-tier refusal (FreeTierError) — same verdict on every
@@ -318,6 +339,19 @@ export function isComboRequestScopedFailure(
 }
 
 const INPUT_BOUND_ERROR_CODES = new Set(["context_length_exceeded", "context_window_exceeded"]);
+
+/**
+ * Normalized provider+model key for a target. A request-scoped refusal is a
+ * property of the request and the model — another ACL/account/connection of the
+ * same model rejects it identically, so those targets are skipped instead of
+ * being replayed. Distinct models (even aliases) keep their own key.
+ */
+export function requestScopedReplayKey(modelStr: string): string {
+  const parsed = parseModel(modelStr);
+  const model = (parsed.model || modelStr).toLowerCase();
+  const provider = (parsed.provider || parsed.providerAlias || "").toLowerCase();
+  return provider && provider !== "unknown" ? `${provider}/${model}` : model;
+}
 
 /**
  * #8375: Whether an upstream error is input-bound — i.e. determined solely by the

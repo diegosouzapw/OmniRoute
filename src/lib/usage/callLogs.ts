@@ -14,6 +14,8 @@ import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
 import { updateRequestTokensById } from "./usageHistory";
 import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
+import { serializeResilienceActions, resetResilienceActions } from "./resilienceActionsContext";
+import { parseResilienceActions } from "./resilienceActionsParse";
 import {
   seedPendingContinuationState,
   clearPendingContinuationState,
@@ -127,6 +129,7 @@ type CallLogSummaryRow = {
   correlation_id?: string | null;
   model_pinned?: number | null;
   session_tag?: string | null;
+  resilience_actions?: string | null;
   has_content?: number | null;
   usage_provenance?: string | null;
 };
@@ -364,6 +367,28 @@ function hasTable(tableName: string): boolean {
   );
 }
 
+function hasCallLogsColumn(columnName: string): boolean {
+  // One PRAGMA per INSERT is wasteful; the cached answer is invalidated only
+  // when a write fails with "no such column" (concurrent migration race).
+  const cached = (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache;
+  if (cached?.has(columnName)) return cached.get(columnName) as boolean;
+  try {
+    const db = getDbInstance();
+    const rows = db.prepare("PRAGMA table_info(call_logs)").all() as Array<{ name?: string }>;
+    const found = rows.some((row) => row.name === columnName);
+    const map = cached ?? new Map<string, boolean>();
+    map.set(columnName, found);
+    (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache = map;
+    return found;
+  } catch {
+    return false;
+  }
+}
+
+export function invalidateCallLogsColumnCache(): void {
+  (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache = undefined;
+}
+
 function readLegacyLogFromDisk(entry: {
   timestamp: string | null;
   model: string | null;
@@ -427,6 +452,8 @@ export function resolveProviderDisplay(
   return null;
 }
 
+export { parseResilienceActions };
+
 function mapSummaryRow(row: CallLogSummaryRow) {
   const detailState = normalizeDetailState(row.detail_state);
   const provider = row.provider;
@@ -476,6 +503,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     correlationId: row.correlation_id || null,
     modelPinned: toNumber(row.model_pinned) === 1,
     sessionTag: row.session_tag || null,
+    resilienceActions: parseResilienceActions(row.resilience_actions ?? null),
   };
 }
 
@@ -558,6 +586,13 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         Boolean(entry.videoContentRemoved)
       );
     }
+
+    // resilience resilience summary for this attempt (implicit ALS store opened
+    // around the attempt; null outside a store or when nothing was noted).
+    // Read BEFORE any await: the ALS context is synchronous and later awaits
+    // (resolveAccountName, artifact write) may cross async boundaries.
+    const resilienceActions = serializeResilienceActions();
+    const hasResilienceColumn = hasCallLogsColumn("resilience_actions");
 
     const account = await resolveAccountName(entry.connectionId || null);
     const rawProvider: string = entry.provider || "-";
@@ -676,6 +711,12 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
       correlationId: entry.correlationId || null,
+      // Ms of pacing/park wait imposed before dispatch (null = none).
+      addedWaitMs:
+        typeof entry.addedWaitMs === "number" && Number.isFinite(entry.addedWaitMs)
+          ? entry.addedWaitMs
+          : null,
+      addedWaitCause: toStringOrNull(entry.addedWaitCause),
       modelPinned: entry.modelPinned ? 1 : 0,
       sessionTag: entry.sessionTag || null,
       // OpenAI Responses API response id, when this attempt produced one --
@@ -726,6 +767,9 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       }
     }
 
+    // Optional column (migration 191) — only fixed identifiers are spliced in.
+    const resilienceCol = hasResilienceColumn ? ", resilience_actions" : "";
+    const resilienceParam = hasResilienceColumn ? ", @resilienceActions" : "";
     const insertStmt = db.prepare(
       `
       INSERT INTO call_logs (
@@ -740,7 +784,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
         correlation_id, model_pinned, session_tag, response_id, error_type,
-        video_content_removed, has_content, usage_provenance
+        video_content_removed, has_content, usage_provenance,
+        added_wait_ms, added_wait_cause${resilienceCol}
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -754,7 +799,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
         @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
-        @videoContentRemoved, @hasContent, @usageProvenance
+        @videoContentRemoved, @hasContent, @usageProvenance,
+        @addedWaitMs, @addedWaitCause${resilienceParam}
       )
     `
     );
@@ -767,6 +813,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       artifactSha256,
       hasRequestBody: protectedRequestBody !== null ? 1 : 0,
       hasResponseBody: protectedResponseBody !== null ? 1 : 0,
+      resilienceActions,
       hasPipelineDetails: protectedPipelinePayloads ? 1 : 0,
       requestSummary,
     };
@@ -781,6 +828,10 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         insertParams.id = generateLogId();
       }
     }
+    // sink note: the sink is the unique consumer — reset only after a successful
+    // INSERT, so a failed write (or a second persistence of the same
+    // attempt) keeps the summary instead of silently writing NULL.
+    resetResilienceActions();
 
     if (detailState === "ready" && typeof logEntry.responseId === "string") {
       // The durable row is now authoritative; drop the bridge entry instead
@@ -790,6 +841,9 @@ async function saveCallLogOperation(entry: any): Promise<void> {
 
     scheduleCallLogRotation();
   } catch (error) {
+    if (String((error as Error)?.message ?? error).includes("no such column")) {
+      invalidateCallLogsColumnCache();
+    }
     console.error(
       "[callLogs] Failed to save call log:",
       sanitizeErrorMessage(error) || "Call log persistence failed"

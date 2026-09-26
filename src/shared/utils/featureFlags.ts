@@ -196,14 +196,32 @@ export function isNetworkRotationSharedEgressGuardEnabled(): boolean {
 
 /**
  * Proxy refusal memory (#13578): pools and account rotation skip a proxy that just failed.
- * Opt-in; an unreadable flag store keeps the plain selection.
+ * On by default; an unreadable flag store keeps skipping (fail-safe on).
+ * Opt-out: PROXY_SKIP_RECENTLY_FAILED=false restores the plain selection.
  */
 export function isProxySkipRecentlyFailedEnabled(): boolean {
   try {
     return isFeatureFlagEnabled("PROXY_SKIP_RECENTLY_FAILED");
   } catch (error) {
     console.error(
-      "[featureFlags] Failed to resolve PROXY_SKIP_RECENTLY_FAILED, defaulting to disabled:",
+      "[featureFlags] Failed to resolve PROXY_SKIP_RECENTLY_FAILED, defaulting to enabled:",
+      error instanceof Error ? error.message : error
+    );
+    return true;
+  }
+}
+
+/**
+ * Shared-egress pool ordering (opt-in, default off). Needs
+ * PROXY_SKIP_RECENTLY_FAILED, which produces the refusal signal it reads.
+ * Fail-closed: an unreadable flag store keeps the plain selection.
+ */
+export function isProxyPoolSharedEgressOrderEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("PROXY_POOL_SHARED_EGRESS_ORDER");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve PROXY_POOL_SHARED_EGRESS_ORDER, defaulting to disabled:",
       error instanceof Error ? error.message : error
     );
     return false;
@@ -392,6 +410,26 @@ export function isStreamReadinessStallRetryEnabled(): boolean {
   } catch (error) {
     console.error(
       "[featureFlags] Failed to resolve STREAM_READINESS_STALL_RETRY, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+/**
+ * OpenCode 429 pool re-selection. Opt-in: when off, every 429 rotates to the
+ * next account exactly as before. When on, a 429 from an egress-bucketed
+ * provider on a proxy-less account under an ambient pool context asks the
+ * pool for another member for the next attempt instead of retrying the same
+ * egress address. Fail closed: an unreadable flag store keeps the pre-flag
+ * behavior (disabled).
+ */
+export function isOpencodePoolReselectEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("OPENCODE_POOL_RESELECT");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve OPENCODE_POOL_RESELECT, defaulting to disabled:",
       error instanceof Error ? error.message : error
     );
     return false;
