@@ -69,6 +69,7 @@ export default function ComboCatalogTable({
   testResults,
   activeTestingKeys,
   onTestCombo,
+  renderKeyAccess,
   onPrevious,
   onNext,
   bulkRunning = false,
@@ -86,6 +87,7 @@ export default function ComboCatalogTable({
   onToggleSelectAll: () => void;
   testResults: Record<string, CatalogTestResult>;
   activeTestingKeys: ReadonlySet<string>;
+  renderKeyAccess?: (id: string) => import("react").ReactNode;
   onTestCombo: (comboName: string) => void;
   onPrevious: () => void;
   onNext: () => void;
@@ -240,6 +242,7 @@ export default function ComboCatalogTable({
                     <CatalogTestBadge result={result} loading={isTesting} />
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right">
+                    {renderKeyAccess?.(combo.name)}
                     <Button
                       variant="secondary"
                       size="sm"

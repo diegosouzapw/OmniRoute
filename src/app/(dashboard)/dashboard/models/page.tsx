@@ -51,6 +51,9 @@ import {
   type CatalogTab,
 } from "./catalogUrlState";
 import { useCatalogTestRunner } from "./useCatalogTestRunner";
+import { useApiKeyAccessIndex } from "./useApiKeyAccessIndex";
+import CatalogKeyAssignDialog from "./CatalogKeyAssignDialog";
+import CatalogKeyAccessButton from "./CatalogKeyAccessButton";
 
 const PAGE_SIZE = 50;
 
@@ -66,6 +69,12 @@ function setUrlParams(params: URLSearchParams) {
 }
 
 export default function ModelCatalogPage() {
+  const keyIndex = useApiKeyAccessIndex();
+  const [assignKind, setAssignKind] = useState<CatalogTab | null>(null);
+  const openAssign = (kind: CatalogTab) => {
+    setAssignKind(kind);
+    void keyIndex.ensureLoaded();
+  };
   const t = useTranslations("modelCatalog");
 
   // URL-driven state starts from the defaults the server renders; the mount effect below
@@ -501,6 +510,7 @@ export default function ModelCatalogPage() {
               onTestFiltered={handleTestAllFiltered}
               onCancel={cancelTest}
               onClearResults={clearResults}
+              onAssign={() => openAssign("models")}
             />
 
             {modelsLoading && models.length === 0 ? (
@@ -582,6 +592,9 @@ export default function ModelCatalogPage() {
                 onTestModel={testSingleModel}
                 providerHealthMap={providerHealthMap}
                 bulkRunning={running}
+                renderKeyAccess={(id) => (
+                  <CatalogKeyAccessButton kind="models" id={id} index={keyIndex} />
+                )}
               />
             )}
           </Card>
@@ -616,6 +629,7 @@ export default function ModelCatalogPage() {
               onTestFiltered={handleTestAllFiltered}
               onCancel={cancelTest}
               onClearResults={clearResults}
+              onAssign={() => openAssign("combos")}
             />
 
             {combosLoading && combos.length === 0 ? (
@@ -683,10 +697,28 @@ export default function ModelCatalogPage() {
                   setRequestedComboPage((c) => Math.min(comboPage.pageCount - 1, c + 1))
                 }
                 bulkRunning={running}
+                renderKeyAccess={(id) => (
+                  <CatalogKeyAccessButton kind="combos" id={id} index={keyIndex} />
+                )}
               />
             )}
           </Card>
         </section>
+      )}
+
+      {assignKind && (
+        <CatalogKeyAssignDialog
+          kind={assignKind}
+          items={
+            assignKind === "models"
+              ? models
+                  .filter((model) => selectedModelIds.has(`${model.providerId}:${model.id}`))
+                  .map((model) => model.id)
+              : combos.filter((combo) => selectedComboIds.has(combo.id)).map((combo) => combo.name)
+          }
+          index={keyIndex}
+          onClose={() => setAssignKind(null)}
+        />
       )}
 
       <ConfirmModal
