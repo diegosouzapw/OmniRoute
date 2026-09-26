@@ -234,7 +234,8 @@ function rowToAgentSessionRecord(row: Record<string, unknown>): AgentSessionReco
       cacheRead,
       cacheCreation,
       reasoning,
-      total: input + output + cacheRead + cacheCreation,
+      // Stored input already includes cache reads and writes; adding them again double counts.
+      total: input + output,
     },
     costUsd: Number(row.cost_usd ?? 0),
     unpricedCount: Number(row.unpriced_count ?? 0),
@@ -248,7 +249,7 @@ const SORT_COLUMNS: Record<string, string> = {
   lastSeen: "last_seen_at",
   firstSeen: "first_seen_at",
   requests: "request_count",
-  tokens: "(tokens_input + tokens_output + tokens_cache_read + tokens_cache_creation)",
+  tokens: "(tokens_input + tokens_output)",
   cost: "cost_usd",
 };
 
