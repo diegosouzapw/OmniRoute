@@ -362,6 +362,14 @@ export function ensureProxyLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE proxy_logs ADD COLUMN attempt_issue TEXT");
       console.log("[DB] Added proxy_logs.attempt_issue column");
     }
+    if (!columnNames.has("headers_ms")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN headers_ms INTEGER DEFAULT NULL");
+      console.log("[DB] Added proxy_logs.headers_ms column");
+    }
+    if (!columnNames.has("first_chunk_ms")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN first_chunk_ms INTEGER DEFAULT NULL");
+      console.log("[DB] Added proxy_logs.first_chunk_ms column");
+    }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify proxy_logs schema:", message);
