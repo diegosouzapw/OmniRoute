@@ -63,6 +63,7 @@ function ApiKeyAccessEditorForm({
   switchTab,
 }: ApiKeyAccessEditorFormProps) {
   const t = useTranslations("apiManager");
+  const ts = useTranslations("settings");
   const { success: successToast, error: errorToast } = useNotificationStore();
 
   const tabListRef = useRef<HTMLDivElement | null>(null);
@@ -115,12 +116,17 @@ function ApiKeyAccessEditorForm({
   useEffect(() => {
     if (!form.isDirty) return;
     const handleDocumentClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest("a");
-      if (target && target.href && !target.target && target.origin === window.location.origin) {
-        if (!window.confirm(t("unsavedChangesWarning"))) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
+      // Modified or non-primary clicks open a new tab/window and never leave this page.
+      if (e.defaultPrevented || e.button !== 0) return;
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+      const anchor = e.target instanceof Element ? e.target.closest("a") : null;
+      if (!anchor || !anchor.href || anchor.hasAttribute("download")) return;
+      const linkTarget = anchor.getAttribute("target");
+      if (linkTarget && linkTarget !== "_self") return;
+      if (anchor.origin !== window.location.origin) return;
+      if (!window.confirm(t("unsavedChangesWarning"))) {
+        e.preventDefault();
+        e.stopPropagation();
       }
     };
     document.addEventListener("click", handleDocumentClick, true);
@@ -157,41 +163,51 @@ function ApiKeyAccessEditorForm({
       .filter(([, models]) => models.length > 0);
   }, [modelsByProvider, debouncedSearchModel]);
 
-  // Save handler
+  const keyUrl = `/api/keys/${encodeURIComponent(apiKey.id)}`;
+
+  // The save already succeeded and the form is clean; a failed refresh only means the page
+  // keeps showing what was just saved, so it must not surface as a save error.
+  const refreshSavedKey = async () => {
+    try {
+      const res = await fetch(keyUrl);
+      if (res.ok) setApiKey(await res.json());
+    } catch (err) {
+      console.warn("Could not refresh the API key after saving:", err);
+    }
+  };
+
   const handleSave = async () => {
     if (isSubmitting || form.hasErrors) return;
 
     setIsSubmitting(true);
     try {
-      const payload = form.buildPayload();
-      const res = await fetch(`/api/keys/${encodeURIComponent(apiKey.id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        successToast(t("accessUpdatedSuccess"));
-        const updatedKeyRes = await fetch(`/api/keys/${encodeURIComponent(apiKey.id)}`);
-        if (updatedKeyRes.ok) {
-          const updatedKey = await updatedKeyRes.json();
-          setApiKey(updatedKey);
+      let saved = false;
+      try {
+        const res = await fetch(keyUrl, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form.buildPayload()),
+        });
+        if (res.ok) {
+          saved = true;
+          form.markClean();
+          successToast(t("accessUpdatedSuccess"));
+        } else {
+          const errorData = await res.json();
+          errorToast(extractApiErrorMessage(errorData, t("failedUpdateAccess")));
         }
-      } else {
-        const errorData = await res.json();
-        const msg = extractApiErrorMessage(errorData, t("failedUpdateAccess"));
-        errorToast(msg);
+      } catch (err) {
+        console.error("Error saving API key access:", err);
+        errorToast(t("failedUpdateAccess"));
       }
-    } catch (err) {
-      console.error("Error saving API key access:", err);
-      errorToast(t("failedUpdateAccess"));
+      if (saved) await refreshSavedKey();
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 pb-24">
+    <div className="flex flex-col gap-6">
       {/* Header & Breadcrumb */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-xs text-text-muted">
@@ -205,7 +221,7 @@ function ApiKeyAccessEditorForm({
           <span>/</span>
           <span className="font-mono text-text-main truncate max-w-[200px]">{apiKey.name}</span>
           <span>/</span>
-          <span>Access</span>
+          <span>{t("accessBreadcrumb")}</span>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
@@ -223,7 +239,7 @@ function ApiKeyAccessEditorForm({
         <div
           ref={tabListRef}
           role="tablist"
-          aria-label="API Key Access Tabs"
+          aria-label={t("accessEditorTabsLabel")}
           className="flex gap-1 overflow-x-auto scrollbar-none pb-px"
         >
           {TABS.map((tabDef, index) => {
@@ -236,7 +252,7 @@ function ApiKeyAccessEditorForm({
                 role="tab"
                 type="button"
                 id={`tab-${tabDef.id}`}
-                aria-controls={`panel-${tabDef.id}`}
+                aria-controls={isSelected ? `panel-${tabDef.id}` : undefined}
                 aria-selected={isSelected}
                 tabIndex={isSelected ? 0 : -1}
                 onClick={() => switchTab(tabDef.id)}
@@ -252,9 +268,10 @@ function ApiKeyAccessEditorForm({
                 {errorCount > 0 && (
                   <span
                     className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-red-500 text-white"
-                    title={`${errorCount} validation error${errorCount > 1 ? "s" : ""}`}
+                    title={t("errorBadgeLabel", { count: errorCount })}
                   >
-                    {errorCount}
+                    <span aria-hidden="true">{errorCount}</span>
+                    <span className="sr-only">{t("errorBadgeLabel", { count: errorCount })}</span>
                   </span>
                 )}
               </button>
@@ -268,6 +285,7 @@ function ApiKeyAccessEditorForm({
         role="tabpanel"
         id={`panel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
+        tabIndex={0}
         className="focus:outline-none"
       >
         <Card className="p-6">
@@ -285,6 +303,7 @@ function ApiKeyAccessEditorForm({
               setAllowAllEndpoints={form.setAllowAllEndpoints}
               toggleEndpoint={form.toggleEndpoint}
               nameError={form.tabErrors.general[0]}
+              errors={form.tabErrors.general}
             />
           )}
 
@@ -304,6 +323,7 @@ function ApiKeyAccessEditorForm({
               blockClaudeCodeFamily={form.blockClaudeCodeFamily}
               setCatalogScope={form.setCatalogScope}
               setDisableNonPublicModels={form.setDisableNonPublicModels}
+              errors={form.tabErrors.models}
             />
           )}
 
@@ -315,6 +335,7 @@ function ApiKeyAccessEditorForm({
               setSelectedCombos={form.setSelectedCombos}
               toggleCombo={form.toggleCombo}
               setAllowAutoCombos={form.setAllowAutoCombos}
+              errors={form.tabErrors.combos}
             />
           )}
 
@@ -324,6 +345,7 @@ function ApiKeyAccessEditorForm({
               allConnections={allConnections}
               setAllowAllConnections={form.setAllowAllConnections}
               setSelectedConnections={form.setSelectedConnections}
+              errors={form.tabErrors.connections}
             />
           )}
 
@@ -343,6 +365,7 @@ function ApiKeyAccessEditorForm({
               setUsageLimitEnabled={form.setUsageLimitEnabled}
               setDailyUsageLimitUsd={form.setDailyUsageLimitUsd}
               setWeeklyUsageLimitUsd={form.setWeeklyUsageLimitUsd}
+              errors={form.tabErrors.limits}
             />
           )}
 
@@ -356,14 +379,15 @@ function ApiKeyAccessEditorForm({
               setChaosModeEnabled={form.setChaosModeEnabled}
               setAllowUsageCommand={form.setAllowUsageCommand}
               setBypassProviderQuotaPolicyEnabled={form.setBypassProviderQuotaPolicyEnabled}
+              errors={form.tabErrors.behaviour}
             />
           )}
         </Card>
       </div>
 
-      {/* Sticky Save Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 p-4 bg-background/80 backdrop-blur-md border-t border-border shadow-lg">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      {/* Save bar: sticks to the bottom of the dashboard content scroller, never over the sidebar */}
+      <div className="sticky bottom-0 z-30 rounded-xl border border-border bg-surface/90 p-4 shadow-lg backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             {form.isDirty ? (
               <span className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
@@ -375,7 +399,7 @@ function ApiKeyAccessEditorForm({
                 <span className="material-symbols-outlined text-[16px] text-emerald-500">
                   check_circle
                 </span>
-                Saved
+                {ts("saved")}
               </span>
             )}
 
@@ -406,7 +430,7 @@ function ApiKeyAccessEditorForm({
               {isSubmitting ? (
                 <span className="flex items-center gap-1.5">
                   <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving...
+                  {ts("saving")}
                 </span>
               ) : (
                 t("saveChanges")
@@ -466,7 +490,7 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
   useEffect(() => {
     let cancelled = false;
 
-    async function loadData() {
+    async function loadKey() {
       setLoading(true);
       setFetchError(null);
       setNotFound(false);
@@ -477,13 +501,11 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
 
         if (keyRes.status === 404) {
           setNotFound(true);
-          setLoading(false);
           return;
         }
 
         if (!keyRes.ok) {
           setFetchError(t("failedLoadKey"));
-          setLoading(false);
           return;
         }
 
@@ -497,11 +519,6 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
       } finally {
         if (!cancelled) setLoading(false);
       }
-
-      // Concurrently fetch models, combos, and connections
-      fetchModels();
-      fetchCombos();
-      fetchConnections();
     }
 
     async function fetchModels() {
@@ -592,7 +609,9 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
       }
     }
 
-    loadData();
+    // The key and the model/combo/connection lists load in parallel (same as the old page);
+    // only the key gates the loading state.
+    void Promise.all([loadKey(), fetchModels(), fetchCombos(), fetchConnections()]);
 
     return () => {
       cancelled = true;

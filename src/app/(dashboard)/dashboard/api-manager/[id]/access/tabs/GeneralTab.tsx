@@ -10,6 +10,7 @@ import {
   type ApiKeyAccessData,
   type ApiKeyAccessFormState,
 } from "../useApiKeyAccessForm";
+import TabErrorList from "./TabErrorList";
 
 interface GeneralTabProps {
   apiKey: ApiKeyAccessData;
@@ -23,7 +24,10 @@ interface GeneralTabProps {
   setSelfAccountQuotaEnabled: (enabled: boolean) => void;
   setAllowAllEndpoints: (allowAll: boolean) => void;
   toggleEndpoint: (id: string) => void;
+  /** Shown on the name input itself. */
   nameError?: string;
+  /** Every General-tab validation message; the name error is not repeated in the list. */
+  errors?: string[];
 }
 
 export default function GeneralTab({
@@ -39,6 +43,7 @@ export default function GeneralTab({
   setAllowAllEndpoints,
   toggleEndpoint,
   nameError,
+  errors,
 }: GeneralTabProps) {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
@@ -48,6 +53,8 @@ export default function GeneralTab({
 
   return (
     <div className="flex flex-col gap-5">
+      <TabErrorList errors={errors?.filter((message) => message !== nameError)} />
+
       {/* Key Name */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 p-4 rounded-lg border border-border bg-surface/40">
         <div className="flex flex-col gap-1">

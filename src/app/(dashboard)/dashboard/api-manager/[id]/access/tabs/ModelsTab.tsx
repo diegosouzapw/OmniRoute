@@ -16,6 +16,7 @@ import {
   type ClaudeCodeBlockableFamilyId,
   type ApiKeyAccessFormState,
 } from "../useApiKeyAccessForm";
+import TabErrorList from "./TabErrorList";
 
 export interface Model {
   id: string;
@@ -40,6 +41,7 @@ interface ModelsTabProps {
   blockClaudeCodeFamily: (familyId: ClaudeCodeBlockableFamilyId) => void;
   setCatalogScope: (scope: CatalogScope) => void;
   setDisableNonPublicModels: (disabled: boolean) => void;
+  errors?: string[];
 }
 
 export default function ModelsTab({
@@ -57,6 +59,7 @@ export default function ModelsTab({
   blockClaudeCodeFamily,
   setCatalogScope,
   setDisableNonPublicModels,
+  errors,
 }: ModelsTabProps) {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
@@ -141,6 +144,8 @@ export default function ModelsTab({
 
   return (
     <div className="flex flex-col gap-5">
+      <TabErrorList errors={errors} />
+
       {/* Access Mode Toggle */}
       <div className="flex gap-2 p-1 bg-surface rounded-lg">
         <button

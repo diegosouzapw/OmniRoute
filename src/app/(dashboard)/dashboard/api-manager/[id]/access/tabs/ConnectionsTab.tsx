@@ -5,12 +5,14 @@ import ProviderConnectionPermissionList, {
   type ProviderConnection,
 } from "@/app/(dashboard)/dashboard/api-manager/components/ProviderConnectionPermissionList";
 import type { ApiKeyAccessFormState } from "../useApiKeyAccessForm";
+import TabErrorList from "./TabErrorList";
 
 interface ConnectionsTabProps {
   formState: ApiKeyAccessFormState;
   allConnections: ProviderConnection[];
   setAllowAllConnections: (allow: boolean) => void;
   setSelectedConnections: (connections: string[]) => void;
+  errors?: string[];
 }
 
 export default function ConnectionsTab({
@@ -18,11 +20,14 @@ export default function ConnectionsTab({
   allConnections,
   setAllowAllConnections,
   setSelectedConnections,
+  errors,
 }: ConnectionsTabProps) {
   const t = useTranslations("apiManager");
 
   return (
     <div className="flex flex-col gap-5">
+      <TabErrorList errors={errors} />
+
       <div className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-surface/40">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-col gap-1">

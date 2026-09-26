@@ -101,8 +101,9 @@ export interface ApiKeyAccessData {
   modelAccessMode?: "all" | "restricted" | null;
   blockedModels?: string[] | null;
   allowedCombos?: string[] | null;
+  // `connectionAccessMode` is a PATCH-only input: the stored key has no such column, so
+  // GET never returns it and an empty list is what "all connections" looks like.
   allowedConnections?: string[] | null;
-  connectionAccessMode?: "all" | "restricted" | null;
   noLog?: boolean | null;
   autoResolve?: boolean | null;
   isActive?: boolean | null;
@@ -225,8 +226,7 @@ export function createInitialFormState(
   const allowAllModels =
     apiKey?.modelAccessMode === "restricted" ? false : initialModels.length === 0;
 
-  const allowAllConnections =
-    apiKey?.connectionAccessMode === "restricted" ? false : initialConnections.length === 0;
+  const allowAllConnections = initialConnections.length === 0;
 
   return {
     name: apiKey?.name || "",
@@ -432,14 +432,14 @@ export function validateForm(
 
   // Limits tab
   if (formState.throttleDelayMs < 0 || formState.throttleDelayMs > 300000) {
-    errors.limits.push("Throttle delay must be between 0 and 300000 ms");
+    errors.limits.push(tr("throttleDelayRangeError"));
   }
   if (formState.maxSessions < 0) {
-    errors.limits.push("Max sessions must be non-negative");
+    errors.limits.push(tr("maxSessionsNegativeError"));
   }
   for (const rl of formState.rateLimits) {
     if (rl.limit <= 0 || rl.window <= 0) {
-      errors.limits.push("Rate limits must have positive requests and seconds");
+      errors.limits.push(tr("rateLimitPositiveError"));
       break;
     }
   }
@@ -555,13 +555,6 @@ export function useApiKeyAccessForm(
         selectedModels: nextModels,
       };
     });
-  }, []);
-
-  const unblockClaudeCodeFamily = useCallback((familyId: ClaudeCodeBlockableFamilyId) => {
-    setFormState((prev) => ({
-      ...prev,
-      blockedClaudeCodeFamilies: prev.blockedClaudeCodeFamilies.filter((id) => id !== familyId),
-    }));
   }, []);
 
   const setAllowAllCombos = useCallback((allowAllCombos: boolean) => {
@@ -686,16 +679,6 @@ export function useApiKeyAccessForm(
     setFormState((prev) => ({ ...prev, scheduleTz }));
   }, []);
 
-  const setRateLimits = useCallback(
-    (rateLimits: RateLimitEntry[] | ((prev: RateLimitEntry[]) => RateLimitEntry[])) => {
-      setFormState((prev) => ({
-        ...prev,
-        rateLimits: typeof rateLimits === "function" ? rateLimits(prev.rateLimits) : rateLimits,
-      }));
-    },
-    []
-  );
-
   const addRateLimit = useCallback(() => {
     setFormState((prev) => ({
       ...prev,
@@ -783,10 +766,16 @@ export function useApiKeyAccessForm(
     setFormState((prev) => ({ ...prev, chaosModeEnabled }));
   }, []);
 
+  /** Adopt the current values as the saved baseline (used right after a successful PATCH). */
+  const markClean = useCallback(() => {
+    setInitialState(formState);
+  }, [formState]);
+
   return {
     formState,
     isDirty,
     resetForm,
+    markClean,
     tabErrors,
     getTabErrorCount,
     hasErrors,
@@ -798,7 +787,6 @@ export function useApiKeyAccessForm(
     selectAllModels,
     deselectAllModels,
     blockClaudeCodeFamily,
-    unblockClaudeCodeFamily,
     setAllowAllCombos,
     setSelectedCombos,
     toggleCombo,
@@ -819,7 +807,6 @@ export function useApiKeyAccessForm(
     setScheduleUntil,
     setScheduleDays,
     setScheduleTz,
-    setRateLimits,
     addRateLimit,
     removeRateLimit,
     updateRateLimit,
@@ -832,7 +819,6 @@ export function useApiKeyAccessForm(
     setAllowAutoCombos,
     setCatalogScope,
     setDisableNonPublicModels,
-    allowUsageCommand: formState.allowUsageCommand,
     setAllowUsageCommand,
     setUsageLimitEnabled,
     setDailyUsageLimitUsd,

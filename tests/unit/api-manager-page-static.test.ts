@@ -29,6 +29,10 @@ const connectionsTabPath = path.join(
   repoRoot,
   "src/app/(dashboard)/dashboard/api-manager/[id]/access/tabs/ConnectionsTab.tsx"
 );
+const combosTabPath = path.join(
+  repoRoot,
+  "src/app/(dashboard)/dashboard/api-manager/[id]/access/tabs/CombosTab.tsx"
+);
 const providerModelPermissionListPath = path.join(
   repoRoot,
   "src/app/(dashboard)/dashboard/api-manager/components/ProviderModelPermissionList.tsx"
@@ -66,6 +70,10 @@ function readModelsTab() {
 
 function readConnectionsTab() {
   return fs.readFileSync(connectionsTabPath, "utf8");
+}
+
+function readCombosTab() {
+  return fs.readFileSync(combosTabPath, "utf8");
 }
 
 test("general tab uses i18n for management access description", () => {
@@ -144,8 +152,24 @@ test("access editor switch buttons declare button type", () => {
   }
 });
 
-test("access form serializes All and empty Restrict Combo access distinctly", () => {
+test("access form serializes All and empty Restrict Combo access distinctly (#12267)", () => {
   const source = readAccessForm();
+  const combosTab = readCombosTab();
+  const page = readApiManagerPage();
+
+  // Restrict stays reachable, and an empty restriction is saved as-is (deny-all): it is
+  // neither rejected by validation nor widened back to combo/*.
+  assert.match(combosTab, /onRestrict=\{\(\) => setAllowAllCombos\(false\)\}/);
+  assert.doesNotMatch(source, /errors\.combos\.push/);
+  assert.doesNotMatch(
+    source,
+    /!formState\.allowAllCombos && formState\.selectedCombos\.length === 0/
+  );
+  // The key list still reports a combo restriction for any stored list without combo/*.
+  assert.match(
+    page,
+    /Array\.isArray\(key\.allowedCombos\) &&\s*!key\.allowedCombos\.includes\(ALL_COMBOS_ACCESS_RULE\)/
+  );
 
   assert.match(
     source,
@@ -188,12 +212,20 @@ test("behaviour tab persists the per-key prompt-compression switch", () => {
 
 test("access editor exposes Claude Code default wildcard model", () => {
   const source = readAccessForm();
+  const client = readAccessEditorClient();
+  const modelsTab = readModelsTab();
   const modelListSource = fs.readFileSync(providerModelPermissionListPath, "utf8");
 
   assert.match(source, /export const CLAUDE_CODE_DEFAULT_MODEL_ID = "cc\/\*";/);
   assert.match(source, /export const CLAUDE_CODE_DEFAULT_MODEL_NAME = "Claude Code default";/);
-  assert.match(source, /withClaudeCodeDefaultModel/);
+  assert.match(client, /withClaudeCodeDefaultModel\(allModels\)/);
   assert.match(modelListSource, /getModelDisplayName\(model\.id\)/);
+  // cc/* shows as "Claude Code default"; every other id is shown verbatim (never a catalog name).
+  assert.match(
+    modelsTab,
+    /modelId === CLAUDE_CODE_DEFAULT_MODEL_ID\s+\?\s+CLAUDE_CODE_DEFAULT_MODEL_NAME\s+:\s+modelId/
+  );
+  assert.doesNotMatch(modelsTab, /modelById\.get\(modelId\)\?\.name/);
 });
 
 test("models tab expands Claude Code default families in selected models summary", () => {
@@ -222,6 +254,7 @@ test("models tab expands Claude Code default families in selected models summary
     formSource,
     /blockedModels\.push\(\.\.\.CLAUDE_CODE_FAMILY_BLOCK_PATTERNS\[familyId\]\)/
   );
+  assert.doesNotMatch(source, /Block Fable family/);
 });
 
 test("API-key model fallback preserves combo pseudo-models", () => {
@@ -328,4 +361,52 @@ test("connections tab and validation use i18n translation keys", () => {
   assert.match(connectionsSection, /t\("selectAtLeastOneConnection"\)/);
   assert.match(connectionsSection, /t\("allConnectionsDesc"\)/);
   assert.match(connectionsSection, /t\("restrictedToConnections"/);
+  assert.doesNotMatch(connectionsSection, />\s*All\s*<\/button>/);
+  assert.doesNotMatch(connectionsSection, />\s*Restrict\s*<\/button>/);
+});
+
+test("access editor save bar sticks inside the page content instead of spanning the viewport", () => {
+  const source = readAccessEditorClient();
+
+  assert.match(source, /className="sticky bottom-0 /);
+  assert.doesNotMatch(source, /\bfixed bottom-0\b/);
+  assert.doesNotMatch(source, /\bleft-0 right-0\b/);
+});
+
+test("access editor chrome and validation messages come from the message catalog", () => {
+  const client = readAccessEditorClient();
+  const form = readAccessForm();
+  const en = JSON.parse(fs.readFileSync(path.join(messagesDir, "en.json"), "utf8"));
+
+  assert.doesNotMatch(client, /aria-label="[^"]/);
+  assert.doesNotMatch(client, />\s*(Access|Saved|Saving\.\.\.)\s*</);
+  assert.doesNotMatch(client, /validation error/);
+  assert.match(client, /\{t\("accessBreadcrumb"\)\}/);
+  assert.match(client, /aria-label=\{t\("accessEditorTabsLabel"\)\}/);
+  assert.match(client, /title=\{t\("errorBadgeLabel", \{ count: errorCount \}\)\}/);
+  assert.match(client, /className="sr-only">\{t\("errorBadgeLabel", \{ count: errorCount \}\)\}/);
+  assert.match(client, /\{ts\("saved"\)\}/);
+  assert.match(client, /\{ts\("saving"\)\}/);
+
+  assert.doesNotMatch(form, /errors\.\w+\.push\("/);
+  for (const key of [
+    "throttleDelayRangeError",
+    "maxSessionsNegativeError",
+    "rateLimitPositiveError",
+  ]) {
+    assert.match(form, new RegExp(`errors\\.limits\\.push\\(tr\\("${key}"\\)\\)`));
+  }
+
+  for (const key of [
+    "accessBreadcrumb",
+    "accessEditorTabsLabel",
+    "errorBadgeLabel",
+    "throttleDelayRangeError",
+    "maxSessionsNegativeError",
+    "rateLimitPositiveError",
+  ]) {
+    assert.equal(typeof en.apiManager[key], "string", `apiManager.${key} missing from en.json`);
+  }
+  assert.equal(en.settings.saved, "Saved");
+  assert.equal(en.settings.saving, "Saving...");
 });

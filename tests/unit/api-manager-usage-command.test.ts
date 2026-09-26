@@ -11,11 +11,26 @@ function read(relativePath: string) {
 
 test("api manager exposes allowUsageCommand in create, edit, and list UI", () => {
   const src = read("src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx");
+  // Editing moved from the permissions modal to the access editor page (Behaviour tab).
+  const behaviourTab = read(
+    "src/app/(dashboard)/dashboard/api-manager/[id]/access/tabs/BehaviourTab.tsx"
+  );
+  const accessForm = read(
+    "src/app/(dashboard)/dashboard/api-manager/[id]/access/useApiKeyAccessForm.ts"
+  );
 
   assert.ok(src.includes("newKeyAllowUsageCommand"), "create modal must keep command state");
-  assert.ok(src.includes("setUsageCommandEnabled"), "permissions modal must edit command state");
+  assert.ok(
+    behaviourTab.includes("setAllowUsageCommand(!formState.allowUsageCommand)"),
+    "access editor must edit command state"
+  );
+  assert.ok(
+    accessForm.includes("allowUsageCommand: formState.allowUsageCommand"),
+    "access editor PATCH payload must include allowUsageCommand"
+  );
   assert.ok(src.includes("allowUsageCommand"), "API payloads must include allowUsageCommand");
-  assert.ok(src.includes('t("localUsageCommand")'), "toggle must use i18n title");
+  assert.ok(src.includes('t("localUsageCommand")'), "create toggle must use i18n title");
+  assert.ok(behaviourTab.includes('t("localUsageCommand")'), "edit toggle must use i18n title");
   assert.ok(src.includes('t("localUsageCommandBadge")'), "key list must show enabled state");
 });
 

@@ -5,6 +5,7 @@ import { ApiKeyCompressionToggle } from "@/app/(dashboard)/dashboard/api-manager
 import { ChaosModeAccessToggle } from "@/app/(dashboard)/dashboard/api-manager/components/ChaosModeAccessToggle";
 import { BypassProviderQuotaToggle } from "@/app/(dashboard)/dashboard/api-manager/components/BypassProviderQuotaToggle";
 import type { ApiKeyAccessFormState, StreamDefaultMode } from "../useApiKeyAccessForm";
+import TabErrorList from "./TabErrorList";
 
 interface BehaviourTabProps {
   formState: ApiKeyAccessFormState;
@@ -15,6 +16,7 @@ interface BehaviourTabProps {
   setChaosModeEnabled: (enabled: boolean) => void;
   setAllowUsageCommand: (enabled: boolean) => void;
   setBypassProviderQuotaPolicyEnabled: (enabled: boolean) => void;
+  errors?: string[];
 }
 
 export default function BehaviourTab({
@@ -26,12 +28,15 @@ export default function BehaviourTab({
   setChaosModeEnabled,
   setAllowUsageCommand,
   setBypassProviderQuotaPolicyEnabled,
+  errors,
 }: BehaviourTabProps) {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
 
   return (
     <div className="flex flex-col gap-5">
+      <TabErrorList errors={errors} />
+
       {/* Privacy Toggle */}
       <div className="flex items-start justify-between gap-3 p-4 rounded-lg border border-border bg-surface/40">
         <div className="flex flex-col gap-1">

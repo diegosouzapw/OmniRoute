@@ -3,6 +3,7 @@
 import { AllowedCombosSection } from "@/app/(dashboard)/dashboard/api-manager/components/AllowedCombosSection";
 import { ApiKeyAutoCombosToggle } from "@/app/(dashboard)/dashboard/api-manager/components/ApiKeyAutoCombosToggle";
 import type { ApiKeyAccessFormState } from "../useApiKeyAccessForm";
+import TabErrorList from "./TabErrorList";
 
 export interface ComboOption {
   name: string;
@@ -19,6 +20,7 @@ interface CombosTabProps {
   setSelectedCombos: (combos: string[]) => void;
   toggleCombo: (comboName: string) => void;
   setAllowAutoCombos: (enabled: boolean) => void;
+  errors?: string[];
 }
 
 export default function CombosTab({
@@ -28,9 +30,12 @@ export default function CombosTab({
   setSelectedCombos,
   toggleCombo,
   setAllowAutoCombos,
+  errors,
 }: CombosTabProps) {
   return (
     <div className="flex flex-col gap-5">
+      <TabErrorList errors={errors} />
+
       {/* Auto Combos Toggle */}
       <ApiKeyAutoCombosToggle
         enabled={formState.allowAutoCombos}

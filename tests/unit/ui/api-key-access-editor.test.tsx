@@ -2,7 +2,7 @@
 
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import messages from "../../../src/i18n/messages/en.json";
 import ApiKeyAccessEditorClient from "../../../src/app/(dashboard)/dashboard/api-manager/[id]/access/ApiKeyAccessEditorClient";
@@ -41,13 +41,12 @@ vi.mock("next/link", () => ({
 const sampleKey = {
   id: "test-key-id",
   name: "Production Test Key",
-  key: "omni-test-12345678",
+  key: "omni-tes****5678",
   modelAccessMode: "all",
-  allowedModels: [],
-  blockedModels: [],
-  allowedCombos: [],
-  allowedConnections: [],
-  connectionAccessMode: "all",
+  allowedModels: [] as string[],
+  blockedModels: [] as string[],
+  allowedCombos: [] as string[],
+  allowedConnections: [] as string[],
   noLog: false,
   autoResolve: false,
   isActive: true,
@@ -58,7 +57,7 @@ const sampleKey = {
   accessSchedule: null,
   rateLimits: null,
   scopes: ["manage", "self:usage"],
-  allowedEndpoints: [],
+  allowedEndpoints: [] as string[],
   streamDefaultMode: "legacy",
   compressionEnabled: true,
   allowAutoCombos: true,
@@ -71,76 +70,83 @@ const sampleKey = {
   chaosModeEnabled: false,
 };
 
+type KeyRecord = typeof sampleKey;
+type FakeResponse = { ok: boolean; status: number; json: () => Promise<unknown> };
+
+interface FetchOptions {
+  /** Answer for the Nth (0-based) GET of the key; default: the current server copy. */
+  keyGet?: (callIndex: number, serverKey: KeyRecord) => Promise<FakeResponse> | FakeResponse;
+  /** Answer for PATCH; default: 200 and the body is merged into the server copy. */
+  patch?: (body: Record<string, unknown>) => Promise<FakeResponse> | FakeResponse;
+}
+
+function jsonResponse(body: unknown, status = 200): FakeResponse {
+  return { ok: status >= 200 && status < 300, status, json: async () => body };
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+}
+
 describe("ApiKeyAccessEditorClient", () => {
   let patchCalls: Array<{ url: string; body: Record<string, unknown> }> = [];
+  let fetchUrls: string[] = [];
+  let keyGetCount = 0;
+
+  function installFetch(options: FetchOptions = {}, initialKey: KeyRecord = sampleKey) {
+    let serverKey: KeyRecord = { ...initialKey };
+    keyGetCount = 0;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const urlStr = String(url);
+      fetchUrls.push(urlStr);
+      if (urlStr.includes("/api/keys/test-key-id") && init?.method === "PATCH") {
+        const body = JSON.parse(String(init.body));
+        patchCalls.push({ url: urlStr, body });
+        if (options.patch) return options.patch(body);
+        serverKey = { ...serverKey, ...body };
+        return jsonResponse({ message: "API key settings updated successfully" });
+      }
+      if (urlStr.includes("/api/keys/test-key-id")) {
+        const index = keyGetCount++;
+        if (options.keyGet) return options.keyGet(index, serverKey);
+        return jsonResponse(serverKey);
+      }
+      if (urlStr.includes("/v1/models")) {
+        return jsonResponse({
+          data: [
+            { id: "openai/gpt-4o", name: "GPT-4o", owned_by: "openai" },
+            { id: "anthropic/claude-3-5-sonnet", name: "Claude 3.5 Sonnet", owned_by: "claude" },
+          ],
+        });
+      }
+      if (urlStr.includes("/api/combos")) {
+        return jsonResponse({ combos: [{ name: "test-combo", isActive: true }] });
+      }
+      if (urlStr.includes("/api/providers")) {
+        return jsonResponse({ connections: [] });
+      }
+      return jsonResponse({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
 
   beforeEach(() => {
     patchCalls = [];
+    fetchUrls = [];
     currentSearch = "";
     vi.clearAllMocks();
-
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string, init?: RequestInit) => {
-        const urlStr = String(url);
-        if (urlStr.includes("/api/keys/test-key-id") && init?.method === "PATCH") {
-          const body = JSON.parse(String(init.body));
-          patchCalls.push({ url: urlStr, body });
-          return {
-            ok: true,
-            status: 200,
-            json: async () => ({ message: "API key settings updated successfully" }),
-          };
-        }
-        if (urlStr.includes("/api/keys/test-key-id")) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => sampleKey,
-          };
-        }
-        if (urlStr.includes("/v1/models")) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => ({
-              data: [
-                { id: "openai/gpt-4o", name: "GPT-4o", owned_by: "openai" },
-                {
-                  id: "anthropic/claude-3-5-sonnet",
-                  name: "Claude 3.5 Sonnet",
-                  owned_by: "claude",
-                },
-              ],
-            }),
-          };
-        }
-        if (urlStr.includes("/api/combos")) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => ({ combos: [{ name: "test-combo", isActive: true }] }),
-          };
-        }
-        if (urlStr.includes("/api/providers")) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => ({ connections: [] }),
-          };
-        }
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({}),
-        };
-      })
-    );
+    installFetch();
   });
 
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   function renderEditor() {
@@ -151,35 +157,49 @@ describe("ApiKeyAccessEditorClient", () => {
     );
   }
 
-  it("renders tabs and default general tab content", async () => {
-    renderEditor();
-
+  async function renderLoaded() {
+    const view = renderEditor();
     await waitFor(() => {
       expect(screen.getByRole("tablist")).toBeDefined();
     });
+    return view;
+  }
+
+  function isUnloadBlocked(): boolean {
+    const event = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(event);
+    return event.defaultPrevented;
+  }
+
+  async function makeDirty(value = "Updated Key Name") {
+    const nameInput = await screen.findByDisplayValue("Production Test Key");
+    fireEvent.change(nameInput, { target: { value } });
+    return nameInput as HTMLInputElement;
+  }
+
+  async function waitForSaveToSettle() {
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /save changes/i })).toBeDefined();
+    });
+  }
+
+  it("renders tabs and default general tab content", async () => {
+    await renderLoaded();
 
     const tabs = screen.getAllByRole("tab");
     expect(tabs.length).toBe(6);
 
-    // Verify accessible tab semantics
     const generalTab = screen.getByRole("tab", { name: /general/i });
     expect(generalTab.getAttribute("aria-selected")).toBe("true");
+    expect(screen.getByRole("tabpanel")).toBeDefined();
 
-    const generalPanel = screen.getByRole("tabpanel");
-    expect(generalPanel).toBeDefined();
-
-    // Key Name input should be visible in general tab
     await waitFor(() => {
       expect(screen.getByDisplayValue("Production Test Key")).toBeDefined();
     });
   });
 
   it("switches tabs via click and via keyboard navigation", async () => {
-    renderEditor();
-
-    await waitFor(() => {
-      expect(screen.getByRole("tablist")).toBeDefined();
-    });
+    await renderLoaded();
 
     const modelsTab = screen.getByRole("tab", { name: /models/i });
     fireEvent.click(modelsTab);
@@ -187,128 +207,311 @@ describe("ApiKeyAccessEditorClient", () => {
     expect(modelsTab.getAttribute("aria-selected")).toBe("true");
     expect(screen.getByRole("button", { name: /allow all/i })).toBeDefined();
 
-    // Keyboard navigation from models tab
-    // ArrowRight should move to Combos tab
     fireEvent.keyDown(modelsTab, { key: "ArrowRight" });
     const combosTab = screen.getByRole("tab", { name: /combos/i });
     expect(combosTab.getAttribute("aria-selected")).toBe("true");
 
-    // ArrowLeft should move back to Models tab
     fireEvent.keyDown(combosTab, { key: "ArrowLeft" });
     expect(modelsTab.getAttribute("aria-selected")).toBe("true");
 
-    // End key should jump to Behaviour tab
     fireEvent.keyDown(modelsTab, { key: "End" });
     const behaviourTab = screen.getByRole("tab", { name: /behaviour/i });
     expect(behaviourTab.getAttribute("aria-selected")).toBe("true");
 
-    // Home key should jump to General tab
     fireEvent.keyDown(behaviourTab, { key: "Home" });
     const generalTab = screen.getByRole("tab", { name: /general/i });
     expect(generalTab.getAttribute("aria-selected")).toBe("true");
   });
 
+  it("every aria-controls points at a rendered tabpanel labelled by its tab", async () => {
+    await renderLoaded();
+
+    for (const tabId of ["general", "limits", "behaviour"]) {
+      fireEvent.click(screen.getByRole("tab", { name: new RegExp(tabId, "i") }));
+      for (const tab of screen.getAllByRole("tab")) {
+        const controls = tab.getAttribute("aria-controls");
+        if (controls) expect(document.getElementById(controls)).not.toBeNull();
+      }
+      const selected = screen.getByRole("tab", { selected: true });
+      const panel = screen.getByRole("tabpanel");
+      expect(selected.getAttribute("aria-controls")).toBe(panel.id);
+      expect(panel.getAttribute("aria-labelledby")).toBe(selected.id);
+    }
+  });
+
   it("respects deep link ?tab=limits", async () => {
     currentSearch = "tab=limits";
-    renderEditor();
-
-    await waitFor(() => {
-      expect(screen.getByRole("tablist")).toBeDefined();
-    });
+    await renderLoaded();
 
     const limitsTab = screen.getByRole("tab", { name: /limits/i });
     expect(limitsTab.getAttribute("aria-selected")).toBe("true");
     expect(screen.getByText(/Max Active Sessions/i)).toBeDefined();
   });
 
-  it("dirty guard tracks unsaved state and enables save/discard buttons", async () => {
+  it("fetches the key and the model/combo/connection lists in parallel", async () => {
+    const keyGate = deferred<FakeResponse>();
+    installFetch({ keyGet: (index, key) => (index === 0 ? keyGate.promise : jsonResponse(key)) });
+
     renderEditor();
 
+    // Lists must be requested without waiting for the key to resolve
+    await waitFor(() => {
+      const hasModels = fetchUrls.some((url) => url.includes("/v1/models"));
+      const hasCombos = fetchUrls.some((url) => url.includes("/api/combos"));
+      const hasProviders = fetchUrls.some((url) => url.includes("/api/providers"));
+      const hasKey = fetchUrls.some((url) => url.includes("/api/keys/test-key-id"));
+      expect(hasModels).toBe(true);
+      expect(hasCombos).toBe(true);
+      expect(hasProviders).toBe(true);
+      expect(hasKey).toBe(true);
+    });
+    // Loading gate should still be up (key not yet resolved)
+    expect(screen.queryByRole("tablist")).toBeNull();
+
+    keyGate.resolve(jsonResponse(sampleKey));
     await waitFor(() => {
       expect(screen.getByRole("tablist")).toBeDefined();
     });
+  });
+
+  it("dirty state enables save/discard and discard restores the loaded values", async () => {
+    await renderLoaded();
 
     const saveButton = screen.getByRole("button", { name: /save changes/i });
     const discardButton = screen.getByRole("button", { name: /discard/i });
-
-    // Initially clean -> buttons disabled
     expect(saveButton.hasAttribute("disabled")).toBe(true);
     expect(discardButton.hasAttribute("disabled")).toBe(true);
 
-    // Edit key name
-    const nameInput = await screen.findByDisplayValue("Production Test Key");
-    fireEvent.change(nameInput, { target: { value: "Updated Key Name" } });
-
-    // Now dirty -> buttons enabled
+    const nameInput = await makeDirty();
     expect(saveButton.hasAttribute("disabled")).toBe(false);
     expect(discardButton.hasAttribute("disabled")).toBe(false);
 
-    // Click discard -> restores original name and disables buttons
     fireEvent.click(discardButton);
-    expect((nameInput as HTMLInputElement).value).toBe("Production Test Key");
+    expect(nameInput.value).toBe("Production Test Key");
     expect(saveButton.hasAttribute("disabled")).toBe(true);
   });
 
-  it("Save calls PATCH with the built payload", async () => {
-    renderEditor();
+  it("blocks beforeunload only while dirty, including right after a save", async () => {
+    await renderLoaded();
+    expect(isUnloadBlocked()).toBe(false);
+
+    await makeDirty();
+    expect(isUnloadBlocked()).toBe(true);
+
+    fireEvent.click(screen.getByRole("button", { name: /discard/i }));
+    expect(isUnloadBlocked()).toBe(false);
+
+    await makeDirty("Saved Key Name");
+    expect(isUnloadBlocked()).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole("tablist")).toBeDefined();
+      expect(patchCalls.length).toBe(1);
+      expect(keyGetCount).toBe(2);
     });
+    await waitForSaveToSettle();
+    expect(isUnloadBlocked()).toBe(false);
+    expect(screen.getByDisplayValue("Saved Key Name")).toBeDefined();
+  });
 
-    const nameInput = await screen.findByDisplayValue("Production Test Key");
-    fireEvent.change(nameInput, { target: { value: "New Patched Name" } });
+  it("asks for confirmation before following an in-app link while dirty", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    await renderLoaded();
 
-    const saveButton = screen.getByRole("button", { name: /save changes/i });
-    fireEvent.click(saveButton);
+    const backLink = screen.getByRole("link", { name: /api key management/i });
+    const swallowNavigation = (event: Event) => event.preventDefault();
+
+    backLink.addEventListener("click", swallowNavigation);
+    fireEvent.click(backLink);
+    expect(confirmSpy).not.toHaveBeenCalled();
+    backLink.removeEventListener("click", swallowNavigation);
+
+    await makeDirty();
+    const notCancelled = fireEvent.click(backLink);
+    expect(confirmSpy).toHaveBeenCalledWith(messages.apiManager.unsavedChangesWarning);
+    expect(notCancelled).toBe(false);
+  });
+
+  it("does not intercept modified clicks, middle clicks or links opening a new tab", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    await renderLoaded();
+    await makeDirty();
+
+    const backLink = screen.getByRole("link", { name: /api key management/i });
+    const newTabLink = document.createElement("a");
+    newTabLink.href = "/dashboard/api-manager";
+    newTabLink.target = "_blank";
+    newTabLink.textContent = "open in new tab";
+    document.body.appendChild(newTabLink);
+
+    const swallowNavigation = (event: Event) => event.preventDefault();
+    backLink.addEventListener("click", swallowNavigation);
+    newTabLink.addEventListener("click", swallowNavigation);
+
+    fireEvent.click(backLink, { ctrlKey: true });
+    fireEvent.click(backLink, { metaKey: true });
+    fireEvent.click(backLink, { shiftKey: true });
+    fireEvent.click(backLink, { altKey: true });
+    fireEvent.click(backLink, { button: 1 });
+    fireEvent.click(newTabLink);
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    newTabLink.remove();
+  });
+
+  it("Save sends the full PATCH body", async () => {
+    await renderLoaded();
+    await makeDirty("New Patched Name");
+
+    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => {
       expect(patchCalls.length).toBe(1);
     });
 
-    expect(patchCalls[0].url).toContain("/api/keys/test-key-id");
-    expect(patchCalls[0].body.name).toBe("New Patched Name");
-    expect(patchCalls[0].body.modelAccessMode).toBe("all");
-    expect(patchCalls[0].body.connectionAccessMode).toBe("all");
+    expect(patchCalls[0].url).toBe("/api/keys/test-key-id");
+    expect(patchCalls[0].body).toEqual({
+      name: "New Patched Name",
+      modelAccessMode: "all",
+      connectionAccessMode: "all",
+      allowedModels: [],
+      blockedModels: [],
+      allowedCombos: [],
+      allowedConnections: [],
+      noLog: false,
+      autoResolve: false,
+      isActive: true,
+      throttleDelayMs: 0,
+      isBanned: false,
+      expiresAt: null,
+      maxSessions: 0,
+      accessSchedule: null,
+      rateLimits: null,
+      scopes: ["manage", "self:usage"],
+      allowedEndpoints: [],
+      streamDefaultMode: "legacy",
+      compressionEnabled: true,
+      allowAutoCombos: true,
+      catalogScope: "all",
+      disableNonPublicModels: false,
+      allowUsageCommand: false,
+      usageLimitEnabled: false,
+      dailyUsageLimitUsd: null,
+      weeklyUsageLimitUsd: null,
+      chaosModeEnabled: false,
+    });
   });
 
-  it("shows error toast on 4xx PATCH response", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string, init?: RequestInit) => {
-        const urlStr = String(url);
-        if (urlStr.includes("/api/keys/test-key-id") && init?.method === "PATCH") {
-          return {
-            ok: false,
-            status: 400,
-            json: async () => ({
-              error: { message: "Invalid key configuration" },
-            }),
-          };
-        }
-        if (urlStr.includes("/api/keys/test-key-id")) {
-          return { ok: true, status: 200, json: async () => sampleKey };
-        }
-        return { ok: true, status: 200, json: async () => ({}) };
-      })
-    );
+  it("a failed refetch after a successful PATCH leaves the form clean without an error toast", async () => {
+    installFetch({
+      keyGet: (index, key) => {
+        if (index === 0) return jsonResponse(key);
+        throw new TypeError("network down");
+      },
+    });
+    const successSpy = vi.spyOn(useNotificationStore.getState(), "success");
+    const errorSpy = vi.spyOn(useNotificationStore.getState(), "error");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
 
+    await renderLoaded();
+    await makeDirty("Renamed Once");
+    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(successSpy).toHaveBeenCalledWith(messages.apiManager.accessUpdatedSuccess);
+      expect(keyGetCount).toBe(2);
+    });
+    await waitForSaveToSettle();
+
+    expect(screen.queryByText(messages.apiManager.unsavedChanges)).toBeNull();
+    expect(screen.getByRole("button", { name: /save changes/i }).hasAttribute("disabled")).toBe(
+      true
+    );
+    expect(screen.getByDisplayValue("Renamed Once")).toBeDefined();
+    expect(isUnloadBlocked()).toBe(false);
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it("shows error toast on 4xx PATCH response and keeps the edits", async () => {
+    installFetch({
+      patch: () => jsonResponse({ error: { message: "Invalid key configuration" } }, 400),
+    });
     const errorSpy = vi.spyOn(useNotificationStore.getState(), "error");
 
-    renderEditor();
+    await renderLoaded();
+    await makeDirty("Trigger Error Name");
+    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole("tablist")).toBeDefined();
+      expect(errorSpy).toHaveBeenCalledWith("Invalid key configuration");
     });
+    await waitForSaveToSettle();
+    expect(screen.getByText(messages.apiManager.unsavedChanges)).toBeDefined();
+    expect(isUnloadBlocked()).toBe(true);
+  });
 
-    const nameInput = await screen.findByDisplayValue("Production Test Key");
-    fireEvent.change(nameInput, { target: { value: "Trigger Error Name" } });
+  it("renders validation messages inline on the tab and counts them on the tab badge", async () => {
+    currentSearch = "tab=limits";
+    await renderLoaded();
 
-    const saveButton = screen.getByRole("button", { name: /save changes/i });
-    fireEvent.click(saveButton);
+    fireEvent.click(screen.getByRole("button", { name: /add limit/i }));
+    const [requestsInput] = screen.getAllByPlaceholderText(
+      messages.apiManager.apiManagerRateLimitRequestsPlaceholder
+    );
+    fireEvent.change(requestsInput, { target: { value: "0" } });
 
+    const panel = screen.getByRole("tabpanel");
+    expect(within(panel).getByText(messages.apiManager.rateLimitPositiveError)).toBeDefined();
+
+    const limitsTab = screen.getByRole("tab", { name: /limits/i });
+    const hiddenCount = within(limitsTab).getByText("1 validation error");
+    expect(hiddenCount.className).toContain("sr-only");
+    expect(screen.getByRole("button", { name: /save changes/i }).hasAttribute("disabled")).toBe(
+      true
+    );
+  });
+
+  it("shows the model selection cap inline on the Models tab", async () => {
+    installFetch(
+      {},
+      {
+        ...sampleKey,
+        modelAccessMode: "restricted",
+        allowedModels: Array.from({ length: 501 }, (_, i) => `provider/model-${i}`),
+      }
+    );
+    currentSearch = "tab=models";
+    await renderLoaded();
+
+    const panel = screen.getByRole("tabpanel");
+    expect(within(panel).getByText("Cannot select more than 500 models")).toBeDefined();
+    expect(
+      within(screen.getByRole("tab", { name: /models/i })).getByText("1 validation error")
+    ).toBeDefined();
+  });
+
+  // The vitest UI setup mocks next-intl globally with the real en.json and falls back to the bare
+  // key for a missing message, so these assertions catch an absent catalog entry. That the
+  // strings are not hardcoded is guarded in api-manager-page-static.test.ts.
+  it("renders the page chrome from catalog entries", async () => {
+    const saveGate = deferred<FakeResponse>();
+    installFetch({ patch: () => saveGate.promise });
+
+    await renderLoaded();
+
+    expect(
+      screen.getByRole("tablist", { name: messages.apiManager.accessEditorTabsLabel })
+    ).toBeDefined();
+    expect(screen.getByText(messages.apiManager.accessBreadcrumb)).toBeDefined();
+    expect(screen.getByText(messages.settings.saved)).toBeDefined();
+
+    await makeDirty();
+    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
     await waitFor(() => {
-      expect(errorSpy).toHaveBeenCalled();
+      expect(screen.getByText(messages.settings.saving)).toBeDefined();
     });
+    saveGate.resolve(jsonResponse({}));
+    await waitForSaveToSettle();
   });
 });

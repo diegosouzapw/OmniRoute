@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Input } from "@/shared/components";
 import { UsageLimitSettings } from "@/app/(dashboard)/dashboard/api-manager/components/UsageLimitSettings";
 import type { ApiKeyAccessFormState } from "../useApiKeyAccessForm";
+import TabErrorList from "./TabErrorList";
 
 interface LimitsTabProps {
   formState: ApiKeyAccessFormState;
@@ -20,6 +21,7 @@ interface LimitsTabProps {
   setUsageLimitEnabled: (enabled: boolean) => void;
   setDailyUsageLimitUsd: (val: string) => void;
   setWeeklyUsageLimitUsd: (val: string) => void;
+  errors?: string[];
 }
 
 export default function LimitsTab({
@@ -37,12 +39,15 @@ export default function LimitsTab({
   setUsageLimitEnabled,
   setDailyUsageLimitUsd,
   setWeeklyUsageLimitUsd,
+  errors,
 }: LimitsTabProps) {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
 
   return (
     <div className="flex flex-col gap-5">
+      <TabErrorList errors={errors} />
+
       {/* Max Sessions Limit (T08) */}
       <div className="flex items-start justify-between gap-3 p-4 rounded-lg border border-border bg-surface/40">
         <div className="flex flex-col gap-1">
