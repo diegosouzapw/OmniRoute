@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 
 const START_MS = 1_800_000_000_000;
 const MIN = 60_000;
-const DEFAULT_PERIODS = [2 * MIN, 4 * MIN, 8 * MIN, 16 * MIN, 32 * MIN, 60 * MIN, 60 * MIN];
+const DEFAULT_PERIODS = [5 * MIN, 10 * MIN, 15 * MIN, 15 * MIN, 15 * MIN];
 
 const ROOT = path.dirname(path.dirname(path.dirname(fileURLToPath(import.meta.url))));
 
@@ -56,8 +56,8 @@ function replay(
   return { periods: JSON.parse(result.stdout) as Array<number | null>, stderr: result.stderr };
 }
 
-test("without variables the curve is unchanged", () => {
-  const { periods, stderr } = replay({}, 7);
+test("without variables the curve is the new default", () => {
+  const { periods, stderr } = replay({}, 5);
   assert.deepEqual(periods, DEFAULT_PERIODS);
   assert.ok(!stderr.includes("PROXY_QUOTA_429"), `unexpected warning: ${stderr}`);
 });
@@ -73,18 +73,18 @@ test("bounded variables set the base and the cap", () => {
 
 test("an out-of-range base falls back to the default with a warning", () => {
   const { periods, stderr } = replay({ PROXY_QUOTA_429_BASE_MS: "0" }, 2);
-  assert.deepEqual(periods, [2 * MIN, 4 * MIN]);
+  assert.deepEqual(periods, [5 * MIN, 10 * MIN]);
   assert.match(stderr, /PROXY_QUOTA_429_BASE_MS/);
 });
 
 test("an unreadable base falls back to the default with a warning", () => {
   const { periods, stderr } = replay({ PROXY_QUOTA_429_BASE_MS: "abc" }, 1);
-  assert.deepEqual(periods, [2 * MIN]);
+  assert.deepEqual(periods, [5 * MIN]);
   assert.match(stderr, /PROXY_QUOTA_429_BASE_MS/);
 });
 
 test("an out-of-range cap falls back to the default with a warning", () => {
-  const { periods, stderr } = replay({ PROXY_QUOTA_429_MAX_MS: "999999999" }, 7);
+  const { periods, stderr } = replay({ PROXY_QUOTA_429_MAX_MS: "999999999" }, 5);
   assert.deepEqual(periods, DEFAULT_PERIODS);
   assert.match(stderr, /PROXY_QUOTA_429_MAX_MS/);
 });
@@ -94,14 +94,14 @@ test("a cap below the base falls back to the default cap with a warning", () => 
     { PROXY_QUOTA_429_BASE_MS: "600000", PROXY_QUOTA_429_MAX_MS: "300000" },
     5
   );
-  assert.deepEqual(periods, [600_000, 1_200_000, 2_400_000, 3_600_000, 3_600_000]);
+  assert.deepEqual(periods, [600_000, 900_000, 900_000, 900_000, 900_000]);
   assert.match(stderr, /PROXY_QUOTA_429_MAX_MS/);
 });
 
 test("a zero or negative cap never disables the set-aside", () => {
   for (const cap of ["0", "-5"]) {
     const { periods, stderr } = replay({ PROXY_QUOTA_429_MAX_MS: cap }, 2);
-    assert.deepEqual(periods, [2 * MIN, 4 * MIN]);
+    assert.deepEqual(periods, [5 * MIN, 10 * MIN]);
     assert.ok(
       periods.every((period) => typeof period === "number" && period > 0),
       `cap ${cap} gave a non-positive period`
