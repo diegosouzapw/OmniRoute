@@ -52,7 +52,7 @@ interface ApiKeyAccessEditorFormProps {
   switchTab: (tab: AccessEditorTab) => void;
 }
 
-function ApiKeyAccessEditorForm({
+function useAccessFormContext({
   apiKey,
   setApiKey,
   allModels,
@@ -64,7 +64,6 @@ function ApiKeyAccessEditorForm({
 }: ApiKeyAccessEditorFormProps) {
   const t = useTranslations("apiManager");
   const ts = useTranslations("settings");
-  const { success: successToast, error: errorToast } = useNotificationStore();
 
   const tabListRef = useRef<HTMLDivElement | null>(null);
   const [searchModel, setSearchModel] = useState("");
@@ -73,6 +72,45 @@ function ApiKeyAccessEditorForm({
   // Form management hook initialized with non-null apiKey
   const form = useApiKeyAccessForm(apiKey, t);
 
+  const handleTabKeyDown = useAccessTabKeyboard(switchTab, tabListRef);
+  useAccessNavigationGuard(form.isDirty, t);
+  const { permissionModels, filteredModelsByProvider } = useAccessModelGroups(
+    allModels,
+    searchModel,
+    t
+  );
+  const handleSave = useSaveAccessKey({
+    apiKey,
+    setApiKey,
+    form,
+    isSubmitting,
+    setIsSubmitting,
+    t,
+  });
+  return {
+    apiKey,
+    form,
+    t,
+    ts,
+    tabListRef,
+    activeTab,
+    switchTab,
+    handleTabKeyDown,
+    isSubmitting,
+    handleSave,
+    permissionModels,
+    filteredModelsByProvider,
+    modelsLoaded,
+    searchModel,
+    setSearchModel,
+    allCombos,
+    allConnections,
+  };
+}
+function useAccessTabKeyboard(
+  switchTab: ApiKeyAccessEditorFormProps["switchTab"],
+  tabListRef: React.RefObject<HTMLDivElement | null>
+) {
   // Keyboard navigation for tablist
   const handleTabKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
@@ -98,35 +136,46 @@ function ApiKeyAccessEditorForm({
         button?.focus();
       }
     },
-    [switchTab]
+    [switchTab, tabListRef]
   );
 
+  return handleTabKeyDown;
+}
+function isModifiedAccessClick(e: MouseEvent): boolean {
+  return e.ctrlKey || e.metaKey || e.shiftKey || e.altKey;
+}
+
+function isLeavingAccessPage(e: MouseEvent): boolean {
+  // Modified or non-primary clicks open a new tab/window and never leave this page.
+  if (e.defaultPrevented || e.button !== 0) return false;
+  if (isModifiedAccessClick(e)) return false;
+  const anchor = e.target instanceof Element ? e.target.closest("a") : null;
+  if (!anchor || !anchor.href || anchor.hasAttribute("download")) return false;
+  const linkTarget = anchor.getAttribute("target");
+  if (linkTarget && linkTarget !== "_self") return false;
+  if (anchor.origin !== window.location.origin) return false;
+  // An in-page anchor (same path and query, only the hash differs) never leaves the page.
+  const { pathname, search } = window.location;
+  if (anchor.hash && anchor.pathname === pathname && anchor.search === search) return false;
+  return true;
+}
+function useAccessNavigationGuard(isDirty: boolean, t: ReturnType<typeof useTranslations>) {
   // Dirty navigation guard (browser close / reload)
   useEffect(() => {
-    if (!form.isDirty) return;
+    if (!isDirty) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [form.isDirty]);
+  }, [isDirty]);
 
   // Dirty navigation guard (in-app link clicks)
   useEffect(() => {
-    if (!form.isDirty) return;
+    if (!isDirty) return;
     const handleDocumentClick = (e: MouseEvent) => {
-      // Modified or non-primary clicks open a new tab/window and never leave this page.
-      if (e.defaultPrevented || e.button !== 0) return;
-      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-      const anchor = e.target instanceof Element ? e.target.closest("a") : null;
-      if (!anchor || !anchor.href || anchor.hasAttribute("download")) return;
-      const linkTarget = anchor.getAttribute("target");
-      if (linkTarget && linkTarget !== "_self") return;
-      if (anchor.origin !== window.location.origin) return;
-      // An in-page anchor (same path and query, only the hash differs) never leaves the page.
-      const { pathname, search } = window.location;
-      if (anchor.hash && anchor.pathname === pathname && anchor.search === search) return;
+      if (!isLeavingAccessPage(e)) return;
       if (!window.confirm(t("unsavedChangesWarning"))) {
         e.preventDefault();
         e.stopPropagation();
@@ -134,8 +183,13 @@ function ApiKeyAccessEditorForm({
     };
     document.addEventListener("click", handleDocumentClick, true);
     return () => document.removeEventListener("click", handleDocumentClick, true);
-  }, [form.isDirty, t]);
-
+  }, [isDirty, t]);
+}
+function useAccessModelGroups(
+  allModels: Model[],
+  searchModel: string,
+  t: ReturnType<typeof useTranslations>
+) {
   // Models provider grouping
   const permissionModels = useMemo(() => withClaudeCodeDefaultModel(allModels), [allModels]);
   const debouncedSearchModel = useDebouncedValue(searchModel, 150);
@@ -166,6 +220,24 @@ function ApiKeyAccessEditorForm({
       .filter(([, models]) => models.length > 0);
   }, [modelsByProvider, debouncedSearchModel]);
 
+  return { permissionModels, filteredModelsByProvider };
+}
+function useSaveAccessKey({
+  apiKey,
+  setApiKey,
+  form,
+  isSubmitting,
+  setIsSubmitting,
+  t,
+}: {
+  apiKey: ApiKeyAccessData;
+  setApiKey: ApiKeyAccessEditorFormProps["setApiKey"];
+  form: ReturnType<typeof useApiKeyAccessForm>;
+  isSubmitting: boolean;
+  setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const { success: successToast, error: errorToast } = useNotificationStore();
   const keyUrl = `/api/keys/${encodeURIComponent(apiKey.id)}`;
 
   // The save already succeeded and the form is clean; a failed refresh only means the page
@@ -209,300 +281,416 @@ function ApiKeyAccessEditorForm({
     }
   };
 
+  return handleSave;
+}
+
+type AccessFormContext = ReturnType<typeof useAccessFormContext>;
+function AccessGeneralPanelPanelContent({ context }: { context: AccessFormContext }) {
+  const { apiKey, form } = context;
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header & Breadcrumb */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-xs text-text-muted">
-          <Link
-            href="/dashboard/api-manager"
-            className="hover:text-primary transition-colors inline-flex items-center gap-1"
-          >
-            <span aria-hidden="true" className="material-symbols-outlined text-[14px]">
-              arrow_back
-            </span>
-            {t("keyManagement")}
-          </Link>
-          <span>/</span>
-          <span className="font-mono text-text-main truncate max-w-[200px]">{apiKey.name}</span>
-          <span>/</span>
-          <span>{t("accessBreadcrumb")}</span>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-main flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="material-symbols-outlined text-[28px] text-primary"
-              >
-                key
-              </span>
-              {t("accessEditorTitle", { name: apiKey.name })}
-            </h1>
-            <p className="text-sm text-text-muted">{t("accessEditorDesc")}</p>
-          </div>
-        </div>
-      </div>
+    <GeneralTab
+      apiKey={apiKey}
+      formState={form.formState}
+      setName={form.setName}
+      setIsActive={form.setIsActive}
+      setIsBanned={form.setIsBanned}
+      setExpiresAt={form.setExpiresAt}
+      setManageEnabled={form.setManageEnabled}
+      setSelfUsageEnabled={form.setSelfUsageEnabled}
+      setSelfAccountQuotaEnabled={form.setSelfAccountQuotaEnabled}
+      setAllowAllEndpoints={form.setAllowAllEndpoints}
+      toggleEndpoint={form.toggleEndpoint}
+      nameError={form.tabErrors.general[0]}
+      errors={form.tabErrors.general}
+    />
+  );
+}
 
-      {/* Tabs Navigation */}
-      <div className="border-b border-border">
-        <div
-          ref={tabListRef}
-          role="tablist"
-          aria-label={t("accessEditorTabsLabel")}
-          className="flex gap-1 overflow-x-auto scrollbar-none pb-px"
+function AccessModelsPanelPanelContent({ context }: { context: AccessFormContext }) {
+  const {
+    form,
+    permissionModels,
+    filteredModelsByProvider,
+    modelsLoaded,
+    searchModel,
+    setSearchModel,
+  } = context;
+  return (
+    <ModelsTab
+      formState={form.formState}
+      allModels={permissionModels}
+      modelsByProvider={filteredModelsByProvider}
+      modelsLoaded={modelsLoaded}
+      searchModel={searchModel}
+      onSearchChange={setSearchModel}
+      setAllowAll={form.setAllowAll}
+      setSelectedModels={form.setSelectedModels}
+      toggleModel={form.toggleModel}
+      selectAllModels={form.selectAllModels}
+      deselectAllModels={form.deselectAllModels}
+      blockClaudeCodeFamily={form.blockClaudeCodeFamily}
+      setCatalogScope={form.setCatalogScope}
+      setDisableNonPublicModels={form.setDisableNonPublicModels}
+      errors={form.tabErrors.models}
+    />
+  );
+}
+
+function AccessCombosPanelPanelContent({ context }: { context: AccessFormContext }) {
+  const { form, allCombos } = context;
+  return (
+    <CombosTab
+      formState={form.formState}
+      allCombos={allCombos}
+      setAllowAllCombos={form.setAllowAllCombos}
+      setSelectedCombos={form.setSelectedCombos}
+      toggleCombo={form.toggleCombo}
+      setAllowAutoCombos={form.setAllowAutoCombos}
+      errors={form.tabErrors.combos}
+    />
+  );
+}
+
+function AccessConnectionsPanelPanelContent({ context }: { context: AccessFormContext }) {
+  const { form, allConnections } = context;
+  return (
+    <ConnectionsTab
+      formState={form.formState}
+      allConnections={allConnections}
+      setAllowAllConnections={form.setAllowAllConnections}
+      setSelectedConnections={form.setSelectedConnections}
+      errors={form.tabErrors.connections}
+    />
+  );
+}
+
+function AccessLimitsPanelPanelContent({ context }: { context: AccessFormContext }) {
+  const { form } = context;
+  return (
+    <LimitsTab
+      formState={form.formState}
+      setMaxSessions={form.setMaxSessions}
+      setThrottleDelayMs={form.setThrottleDelayMs}
+      addRateLimit={form.addRateLimit}
+      removeRateLimit={form.removeRateLimit}
+      updateRateLimit={form.updateRateLimit}
+      setScheduleEnabled={form.setScheduleEnabled}
+      setScheduleFrom={form.setScheduleFrom}
+      setScheduleUntil={form.setScheduleUntil}
+      setScheduleDays={form.setScheduleDays}
+      setScheduleTz={form.setScheduleTz}
+      setUsageLimitEnabled={form.setUsageLimitEnabled}
+      setDailyUsageLimitUsd={form.setDailyUsageLimitUsd}
+      setWeeklyUsageLimitUsd={form.setWeeklyUsageLimitUsd}
+      errors={form.tabErrors.limits}
+    />
+  );
+}
+
+function AccessBehaviourPanelPanelContent({ context }: { context: AccessFormContext }) {
+  const { form } = context;
+  return (
+    <BehaviourTab
+      formState={form.formState}
+      setNoLog={form.setNoLog}
+      setAutoResolve={form.setAutoResolve}
+      setStreamDefaultMode={form.setStreamDefaultMode}
+      setCompressionEnabled={form.setCompressionEnabled}
+      setChaosModeEnabled={form.setChaosModeEnabled}
+      setAllowUsageCommand={form.setAllowUsageCommand}
+      setBypassProviderQuotaPolicyEnabled={form.setBypassProviderQuotaPolicyEnabled}
+      errors={form.tabErrors.behaviour}
+    />
+  );
+}
+
+function AccessHeader({ context }: { context: AccessFormContext }) {
+  const { apiKey, t } = context;
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2 text-xs text-text-muted">
+        <Link
+          href="/dashboard/api-manager"
+          className="hover:text-primary transition-colors inline-flex items-center gap-1"
         >
-          {TABS.map((tabDef, index) => {
-            const isSelected = activeTab === tabDef.id;
-            const errorCount = form.getTabErrorCount(tabDef.id);
-
-            return (
-              <button
-                key={tabDef.id}
-                role="tab"
-                type="button"
-                id={`tab-${tabDef.id}`}
-                aria-controls={isSelected ? `panel-${tabDef.id}` : undefined}
-                aria-selected={isSelected}
-                tabIndex={isSelected ? 0 : -1}
-                onClick={() => switchTab(tabDef.id)}
-                onKeyDown={(e) => handleTabKeyDown(e, index)}
-                className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap rounded-t-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                  isSelected
-                    ? "text-primary border-b-2 border-primary bg-primary/5"
-                    : "text-text-muted hover:text-text-main hover:bg-surface/50 border-b-2 border-transparent"
-                }`}
-              >
-                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
-                  {tabDef.icon}
-                </span>
-                <span>{t(tabDef.labelKey)}</span>
-                {/* The space keeps the label and the badge text apart in the accessible name;
-                    white space between flex items is not rendered. */}
-                {errorCount > 0 && " "}
-                {errorCount > 0 && (
-                  <span
-                    className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-red-500 text-white"
-                    title={t("errorBadgeLabel", { count: errorCount })}
-                  >
-                    <span aria-hidden="true">{errorCount}</span>
-                    <span className="sr-only">{t("errorBadgeLabel", { count: errorCount })}</span>
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+          <span aria-hidden="true" className="material-symbols-outlined text-[14px]">
+            arrow_back
+          </span>
+          {t("keyManagement")}
+        </Link>
+        <span>/</span>
+        <span className="font-mono text-text-main truncate max-w-[200px]">{apiKey.name}</span>
+        <span>/</span>
+        <span>{t("accessBreadcrumb")}</span>
       </div>
-
-      {/* Active Tab Panel */}
-      <div
-        role="tabpanel"
-        id={`panel-${activeTab}`}
-        aria-labelledby={`tab-${activeTab}`}
-        tabIndex={0}
-        className="focus:outline-none"
-      >
-        <Card className="p-6">
-          {/* Locked while saving: the post-save refresh replaces the form state, so an edit
-              made during the request would otherwise be dropped without notice. */}
-          <fieldset
-            disabled={isSubmitting}
-            aria-busy={isSubmitting}
-            className="m-0 min-w-0 border-0 p-0"
-          >
-            {activeTab === "general" && (
-              <GeneralTab
-                apiKey={apiKey}
-                formState={form.formState}
-                setName={form.setName}
-                setIsActive={form.setIsActive}
-                setIsBanned={form.setIsBanned}
-                setExpiresAt={form.setExpiresAt}
-                setManageEnabled={form.setManageEnabled}
-                setSelfUsageEnabled={form.setSelfUsageEnabled}
-                setSelfAccountQuotaEnabled={form.setSelfAccountQuotaEnabled}
-                setAllowAllEndpoints={form.setAllowAllEndpoints}
-                toggleEndpoint={form.toggleEndpoint}
-                nameError={form.tabErrors.general[0]}
-                errors={form.tabErrors.general}
-              />
-            )}
-
-            {activeTab === "models" && (
-              <ModelsTab
-                formState={form.formState}
-                allModels={permissionModels}
-                modelsByProvider={filteredModelsByProvider}
-                modelsLoaded={modelsLoaded}
-                searchModel={searchModel}
-                onSearchChange={setSearchModel}
-                setAllowAll={form.setAllowAll}
-                setSelectedModels={form.setSelectedModels}
-                toggleModel={form.toggleModel}
-                selectAllModels={form.selectAllModels}
-                deselectAllModels={form.deselectAllModels}
-                blockClaudeCodeFamily={form.blockClaudeCodeFamily}
-                setCatalogScope={form.setCatalogScope}
-                setDisableNonPublicModels={form.setDisableNonPublicModels}
-                errors={form.tabErrors.models}
-              />
-            )}
-
-            {activeTab === "combos" && (
-              <CombosTab
-                formState={form.formState}
-                allCombos={allCombos}
-                setAllowAllCombos={form.setAllowAllCombos}
-                setSelectedCombos={form.setSelectedCombos}
-                toggleCombo={form.toggleCombo}
-                setAllowAutoCombos={form.setAllowAutoCombos}
-                errors={form.tabErrors.combos}
-              />
-            )}
-
-            {activeTab === "connections" && (
-              <ConnectionsTab
-                formState={form.formState}
-                allConnections={allConnections}
-                setAllowAllConnections={form.setAllowAllConnections}
-                setSelectedConnections={form.setSelectedConnections}
-                errors={form.tabErrors.connections}
-              />
-            )}
-
-            {activeTab === "limits" && (
-              <LimitsTab
-                formState={form.formState}
-                setMaxSessions={form.setMaxSessions}
-                setThrottleDelayMs={form.setThrottleDelayMs}
-                addRateLimit={form.addRateLimit}
-                removeRateLimit={form.removeRateLimit}
-                updateRateLimit={form.updateRateLimit}
-                setScheduleEnabled={form.setScheduleEnabled}
-                setScheduleFrom={form.setScheduleFrom}
-                setScheduleUntil={form.setScheduleUntil}
-                setScheduleDays={form.setScheduleDays}
-                setScheduleTz={form.setScheduleTz}
-                setUsageLimitEnabled={form.setUsageLimitEnabled}
-                setDailyUsageLimitUsd={form.setDailyUsageLimitUsd}
-                setWeeklyUsageLimitUsd={form.setWeeklyUsageLimitUsd}
-                errors={form.tabErrors.limits}
-              />
-            )}
-
-            {activeTab === "behaviour" && (
-              <BehaviourTab
-                formState={form.formState}
-                setNoLog={form.setNoLog}
-                setAutoResolve={form.setAutoResolve}
-                setStreamDefaultMode={form.setStreamDefaultMode}
-                setCompressionEnabled={form.setCompressionEnabled}
-                setChaosModeEnabled={form.setChaosModeEnabled}
-                setAllowUsageCommand={form.setAllowUsageCommand}
-                setBypassProviderQuotaPolicyEnabled={form.setBypassProviderQuotaPolicyEnabled}
-                errors={form.tabErrors.behaviour}
-              />
-            )}
-          </fieldset>
-        </Card>
-      </div>
-
-      {/* Save bar: sticks to the bottom of the dashboard content scroller, never over the sidebar */}
-      <div className="sticky bottom-0 z-30 rounded-xl border border-border bg-surface/90 p-4 shadow-lg backdrop-blur-md">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            {form.isDirty ? (
-              <span className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                {t("unsavedChanges")}
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span
-                  aria-hidden="true"
-                  className="material-symbols-outlined text-[16px] text-emerald-500"
-                >
-                  check_circle
-                </span>
-                {ts("saved")}
-              </span>
-            )}
-
-            {form.hasErrors && (
-              <span className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400 font-medium">
-                <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
-                  error
-                </span>
-                {t("fixValidationErrors")}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={form.resetForm}
-              disabled={!form.isDirty || isSubmitting}
-              className="flex-1 sm:flex-none"
-            >
-              {t("discardChanges")}
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSave}
-              disabled={!form.isDirty || isSubmitting || form.hasErrors}
-              className="flex-1 sm:flex-none"
-            >
-              {isSubmitting ? (
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {ts("saving")}
-                </span>
-              ) : (
-                t("saveChanges")
-              )}
-            </Button>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-main flex items-center gap-2">
+            <span aria-hidden="true" className="material-symbols-outlined text-[28px] text-primary">
+              key
+            </span>
+            {t("accessEditorTitle", { name: apiKey.name })}
+          </h1>
+          <p className="text-sm text-text-muted">{t("accessEditorDesc")}</p>
         </div>
       </div>
     </div>
   );
 }
 
-interface ApiKeyAccessEditorClientProps {
-  apiKeyId: string;
+function AccessTabBar({ context }: { context: AccessFormContext }) {
+  const { form, t, tabListRef, activeTab, switchTab, handleTabKeyDown } = context;
+  return (
+    <div className="border-b border-border">
+      <div
+        ref={tabListRef}
+        role="tablist"
+        aria-label={t("accessEditorTabsLabel")}
+        className="flex gap-1 overflow-x-auto scrollbar-none pb-px"
+      >
+        {TABS.map((tabDef, index) => {
+          const isSelected = activeTab === tabDef.id;
+          const errorCount = form.getTabErrorCount(tabDef.id);
+
+          return (
+            <button
+              key={tabDef.id}
+              role="tab"
+              type="button"
+              id={`tab-${tabDef.id}`}
+              aria-controls={isSelected ? `panel-${tabDef.id}` : undefined}
+              aria-selected={isSelected}
+              tabIndex={isSelected ? 0 : -1}
+              onClick={() => switchTab(tabDef.id)}
+              onKeyDown={(e) => handleTabKeyDown(e, index)}
+              className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap rounded-t-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                isSelected
+                  ? "text-primary border-b-2 border-primary bg-primary/5"
+                  : "text-text-muted hover:text-text-main hover:bg-surface/50 border-b-2 border-transparent"
+              }`}
+            >
+              <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                {tabDef.icon}
+              </span>
+              <span>{t(tabDef.labelKey)}</span>
+              {/* The space keeps the label and the badge text apart in the accessible name;
+                    white space between flex items is not rendered. */}
+              {errorCount > 0 && " "}
+              {errorCount > 0 && (
+                <span
+                  className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-red-500 text-white"
+                  title={t("errorBadgeLabel", { count: errorCount })}
+                >
+                  <span aria-hidden="true">{errorCount}</span>
+                  <span className="sr-only">{t("errorBadgeLabel", { count: errorCount })}</span>
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
-export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEditorClientProps) {
-  const t = useTranslations("apiManager");
-  const tc = useTranslations("common");
-  const searchParams = useSearchParams();
+function AccessPanel({ context }: { context: AccessFormContext }) {
+  const { activeTab, isSubmitting } = context;
+  return (
+    <div
+      role="tabpanel"
+      id={`panel-${activeTab}`}
+      aria-labelledby={`tab-${activeTab}`}
+      tabIndex={0}
+      className="focus:outline-none"
+    >
+      <Card className="p-6">
+        {/* Locked while saving: the post-save refresh replaces the form state, so an edit
+              made during the request would otherwise be dropped without notice. */}
+        <fieldset
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          className="m-0 min-w-0 border-0 p-0"
+        >
+          {activeTab === "general" && <AccessGeneralPanelPanelContent context={context} />}
 
-  // Deep-linked tab
-  const tabParam = searchParams.get("tab") as AccessEditorTab | null;
-  const initialTab: AccessEditorTab =
-    tabParam && TABS.some((tDef) => tDef.id === tabParam) ? tabParam : "general";
-  const [localTab, setLocalTab] = useState<AccessEditorTab>(initialTab);
-  const [prevTabParam, setPrevTabParam] = useState(tabParam);
+          {activeTab === "models" && <AccessModelsPanelPanelContent context={context} />}
 
-  if (tabParam !== prevTabParam) {
-    setPrevTabParam(tabParam);
-    if (tabParam && TABS.some((tDef) => tDef.id === tabParam)) {
-      setLocalTab(tabParam);
+          {activeTab === "combos" && <AccessCombosPanelPanelContent context={context} />}
+
+          {activeTab === "connections" && <AccessConnectionsPanelPanelContent context={context} />}
+
+          {activeTab === "limits" && <AccessLimitsPanelPanelContent context={context} />}
+
+          {activeTab === "behaviour" && <AccessBehaviourPanelPanelContent context={context} />}
+        </fieldset>
+      </Card>
+    </div>
+  );
+}
+
+function AccessSaveBar({ context }: { context: AccessFormContext }) {
+  const { form, t, ts, isSubmitting, handleSave } = context;
+  return (
+    <div className="sticky bottom-0 z-30 rounded-xl border border-border bg-surface/90 p-4 shadow-lg backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          {form.isDirty ? (
+            <span className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              {t("unsavedChanges")}
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-xs text-text-muted">
+              <span
+                aria-hidden="true"
+                className="material-symbols-outlined text-[16px] text-emerald-500"
+              >
+                check_circle
+              </span>
+              {ts("saved")}
+            </span>
+          )}
+
+          {form.hasErrors && (
+            <span className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400 font-medium">
+              <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+                error
+              </span>
+              {t("fixValidationErrors")}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={form.resetForm}
+            disabled={!form.isDirty || isSubmitting}
+            className="flex-1 sm:flex-none"
+          >
+            {t("discardChanges")}
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={!form.isDirty || isSubmitting || form.hasErrors}
+            className="flex-1 sm:flex-none"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                {ts("saving")}
+              </span>
+            ) : (
+              t("saveChanges")
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+function ApiKeyAccessEditorForm(props: ApiKeyAccessEditorFormProps) {
+  const context = useAccessFormContext(props);
+  return (
+    <div className="flex flex-col gap-6">
+      <AccessHeader context={context} />
+      <AccessTabBar context={context} />
+      <AccessPanel context={context} />
+      <AccessSaveBar context={context} />
+    </div>
+  );
+}
+
+function readAccessCombosResponse(response: Response) {
+  return response.ok ? response.json() : Promise.resolve({ combos: [] });
+}
+
+async function loadAccessEditorModels({
+  cancelled,
+  setModelsLoaded,
+  setAllModels,
+}: {
+  cancelled: () => boolean;
+  setModelsLoaded: React.Dispatch<React.SetStateAction<boolean>>;
+  setAllModels: React.Dispatch<React.SetStateAction<Model[]>>;
+}) {
+  setModelsLoaded(false);
+  try {
+    const res = await fetch("/v1/models");
+    if (res.ok) {
+      const data = await res.json();
+      if (!cancelled()) {
+        setAllModels(Array.isArray(data.data) ? data.data : []);
+      }
+      return;
     }
+
+    const [fallbackRes, combosRes] = await Promise.all([
+      fetch("/api/models?all=true"),
+      fetch("/api/combos"),
+    ]);
+    if (cancelled()) return;
+    if (fallbackRes.ok) {
+      const [fallbackData, combosData] = await Promise.all([
+        fallbackRes.json(),
+        readAccessCombosResponse(combosRes),
+      ]);
+      const fallbackModels = Array.isArray(fallbackData.models) ? fallbackData.models : [];
+      const comboModels = (Array.isArray(combosData.combos) ? combosData.combos : [])
+        .filter(
+          (combo: ComboOption) =>
+            combo?.isActive !== false &&
+            combo?.isHidden !== true &&
+            typeof combo?.name === "string" &&
+            combo.name.trim().length > 0
+        )
+        .map((combo: ComboOption) => ({
+          id: combo.name,
+          owned_by: "combo",
+          name: combo.name,
+        }));
+      const modelEntries = fallbackModels
+        .map((m: { fullModel?: string; provider?: string; model?: string; alias?: string }) => ({
+          id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
+          owned_by: typeof m.provider === "string" ? m.provider : "unknown",
+          name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
+        }))
+        .filter((m: Model) => typeof m.id === "string" && m.id.length > 0);
+
+      const seen = new Set<string>();
+      setAllModels(
+        [...comboModels, ...modelEntries].filter((m: Model) => {
+          if (seen.has(m.id)) return false;
+          seen.add(m.id);
+          return true;
+        })
+      );
+    }
+  } catch (err) {
+    console.error("Error fetching models:", err);
+  } finally {
+    if (!cancelled()) setModelsLoaded(true);
   }
+}
 
-  const activeTab = localTab;
+async function loadAccessConnections(
+  cancelled: () => boolean,
+  setAllConnections: React.Dispatch<React.SetStateAction<ProviderConnection[]>>
+) {
+  try {
+    const res = await fetch("/api/providers");
+    if (res.ok && !cancelled()) {
+      const data = await res.json();
+      setAllConnections(data.connections || []);
+    }
+  } catch (err) {
+    console.error("Error fetching connections:", err);
+  }
+}
 
-  const switchTab = useCallback((tab: AccessEditorTab) => {
-    setLocalTab(tab);
-    const url = new URL(window.location.href);
-    url.searchParams.set("tab", tab);
-    window.history.replaceState({}, "", url.toString());
-  }, []);
-
+function useAccessEditorData(apiKeyId: string, t: ReturnType<typeof useTranslations>) {
   // Remote data state
   const [apiKey, setApiKey] = useState<ApiKeyAccessData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -549,67 +737,8 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
       }
     }
 
-    async function fetchModels() {
-      setModelsLoaded(false);
-      try {
-        const res = await fetch("/v1/models");
-        if (res.ok) {
-          const data = await res.json();
-          if (!cancelled) {
-            setAllModels(Array.isArray(data.data) ? data.data : []);
-          }
-          return;
-        }
-
-        const [fallbackRes, combosRes] = await Promise.all([
-          fetch("/api/models?all=true"),
-          fetch("/api/combos"),
-        ]);
-        if (fallbackRes.ok && !cancelled) {
-          const [fallbackData, combosData] = await Promise.all([
-            fallbackRes.json(),
-            combosRes.ok ? combosRes.json() : Promise.resolve({ combos: [] }),
-          ]);
-          const fallbackModels = Array.isArray(fallbackData.models) ? fallbackData.models : [];
-          const comboModels = (Array.isArray(combosData.combos) ? combosData.combos : [])
-            .filter(
-              (combo: ComboOption) =>
-                combo?.isActive !== false &&
-                combo?.isHidden !== true &&
-                typeof combo?.name === "string" &&
-                combo.name.trim().length > 0
-            )
-            .map((combo: ComboOption) => ({
-              id: combo.name,
-              owned_by: "combo",
-              name: combo.name,
-            }));
-          const modelEntries = fallbackModels
-            .map(
-              (m: { fullModel?: string; provider?: string; model?: string; alias?: string }) => ({
-                id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
-                owned_by: typeof m.provider === "string" ? m.provider : "unknown",
-                name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
-              })
-            )
-            .filter((m: Model) => typeof m.id === "string" && m.id.length > 0);
-
-          const seen = new Set<string>();
-          setAllModels(
-            [...comboModels, ...modelEntries].filter((m: Model) => {
-              if (seen.has(m.id)) return false;
-              seen.add(m.id);
-              return true;
-            })
-          );
-        }
-      } catch (err) {
-        console.error("Error fetching models:", err);
-      } finally {
-        if (!cancelled) setModelsLoaded(true);
-      }
-    }
-
+    const fetchModels = () =>
+      loadAccessEditorModels({ cancelled: () => cancelled, setModelsLoaded, setAllModels });
     async function fetchCombos() {
       try {
         const res = await fetch("/api/combos");
@@ -625,17 +754,7 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
       }
     }
 
-    async function fetchConnections() {
-      try {
-        const res = await fetch("/api/providers");
-        if (res.ok && !cancelled) {
-          const data = await res.json();
-          setAllConnections(data.connections || []);
-        }
-      } catch (err) {
-        console.error("Error fetching connections:", err);
-      }
-    }
+    const fetchConnections = () => loadAccessConnections(() => cancelled, setAllConnections);
 
     // The key and the model/combo/connection lists load in parallel (same as the old page);
     // only the key gates the loading state.
@@ -646,17 +765,77 @@ export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEdito
     };
   }, [apiKeyId, t]);
 
-  // Loading Gate
-  if (loading) {
-    return (
-      <div className="flex flex-col gap-6" role="status" aria-live="polite" aria-busy="true">
-        <span className="sr-only">{tc("loading")}</span>
-        <CardSkeleton />
-        <CardSkeleton />
-      </div>
-    );
+  return {
+    apiKey,
+    setApiKey,
+    loading,
+    notFound,
+    fetchError,
+    allModels,
+    modelsLoaded,
+    allCombos,
+    allConnections,
+  };
+}
+
+function AccessEditorLoading() {
+  const tc = useTranslations("common");
+  return (
+    <div className="flex flex-col gap-6" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">{tc("loading")}</span>
+      <CardSkeleton />
+      <CardSkeleton />
+    </div>
+  );
+}
+function useAccessEditorTab(tabParam: AccessEditorTab | null) {
+  // Deep-linked tab
+  const initialTab: AccessEditorTab =
+    tabParam && TABS.some((tDef) => tDef.id === tabParam) ? tabParam : "general";
+  const [localTab, setLocalTab] = useState<AccessEditorTab>(initialTab);
+  const [prevTabParam, setPrevTabParam] = useState(tabParam);
+
+  if (tabParam !== prevTabParam) {
+    setPrevTabParam(tabParam);
+    if (tabParam && TABS.some((tDef) => tDef.id === tabParam)) {
+      setLocalTab(tabParam);
+    }
   }
 
+  const activeTab = localTab;
+
+  const switchTab = useCallback((tab: AccessEditorTab) => {
+    setLocalTab(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tab);
+    window.history.replaceState({}, "", url.toString());
+  }, []);
+
+  return { activeTab, switchTab };
+}
+interface ApiKeyAccessEditorClientProps {
+  apiKeyId: string;
+}
+
+export default function ApiKeyAccessEditorClient({ apiKeyId }: ApiKeyAccessEditorClientProps) {
+  const t = useTranslations("apiManager");
+  const searchParams = useSearchParams();
+
+  const { activeTab, switchTab } = useAccessEditorTab(
+    searchParams.get("tab") as AccessEditorTab | null
+  );
+  const {
+    apiKey,
+    setApiKey,
+    loading,
+    notFound,
+    fetchError,
+    allModels,
+    modelsLoaded,
+    allCombos,
+    allConnections,
+  } = useAccessEditorData(apiKeyId, t);
+  if (loading) return <AccessEditorLoading />;
   // Not Found Gate
   if (notFound) {
     return (
