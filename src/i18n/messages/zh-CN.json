@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "在目标模型缺少所需能力（视觉、工具、结构化输出、上下文窗口）时，拒绝调度前的请求。保护绕过组合层兼容性过滤器的直接单一提供者请求。",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "在按密钥的 USD 使用配额中，将未定价模型的使用量计为 $0，而不是视为超出配额。默认关闭：未定价模型或路由别名可能会隐藏实际支出，因此配额采取故障闭合。",
   "featureFlagDisableContextWindowChecksDescription": "对于直接发送到单个模型的请求，跳过 OmniRoute 本地的上下文窗口和最大输入令牌检查。上游提供者仍会强制执行其实际限制。提示词压缩和输出令牌上限仍然有效。",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "搜索统计信息和最近搜索仅统计仍有有效连接的提供者（无需密钥的提供者，如 duckduckgo-free，始终会被统计）。关闭此选项后，会保留每一条带有提供者 ID 的已留存搜索记录。",
   "publicSystem": {

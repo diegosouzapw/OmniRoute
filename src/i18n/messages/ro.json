@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Respinge cererile înainte de expediere atunci când modelul țintă nu are capabilitățile necesare (viziune, instrumente, ieșire structurată, fereastră de context). Protejează cererile directe de un singur furnizor care ocolesc filtrul de compatibilitate al stratului combinat.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Contorizează utilizarea modelelor fără preț ca $0 în cotele de utilizare USD per cheie în loc să trateze cota ca fiind depășită. Dezactivat în mod implicit: un model fără preț sau un alias de dirijare poate ascunde cheltuielile reale, astfel încât cota eșuează în mod închis.",
   "featureFlagDisableContextWindowChecksDescription": "Omite verificarea locală OmniRoute privind fereastra de context și numărul maxim de tokenuri de intrare pentru solicitările directe către un singur model. Furnizorii din amonte își aplică în continuare limitele reale. Comprimarea promptului și limitele pentru tokenurile de ieșire rămân active.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Statisticile căutărilor și căutările recente iau în calcul doar furnizorii care au încă o conexiune activă (furnizorii fără cheie, precum duckduckgo-free, sunt luați întotdeauna în calcul). Opțiunea Oprit păstrează fiecare rând de căutare salvat care are un ID de furnizor.",
   "publicSystem": {

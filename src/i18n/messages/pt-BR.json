@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Rejeitar requisições antes do despacho quando o modelo alvo nao possui as capacidades necessarias (visao, ferramentas, saída estruturada, janela de contexto). Protege requisições diretas que ignoram o filtro de compatibilidade do combo.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Contar o uso de modelos sem preço como $0 nas cotas de uso em USD por chave, em vez de tratar a cota como excedida. Desativado por padrão: um modelo sem preço ou alias de roteamento pode ocultar o gasto real, fazendo com que a cota falhe fechada.",
   "featureFlagDisableContextWindowChecksDescription": "Ignora a verificação local do OmniRoute para janela de contexto e limite máximo de tokens de entrada em solicitações diretas a um único modelo. Os provedores upstream continuam aplicando seus limites reais. A compactação de prompts e os limites de tokens de saída permanecem ativos.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "As estatísticas de pesquisa e as pesquisas recentes contabilizam apenas os provedores que ainda têm uma conexão ativa (provedores sem chave, como duckduckgo-free, são sempre contabilizados). A opção Desativado mantém todas as linhas de pesquisa retidas com um ID de provedor.",
   "publicSystem": {

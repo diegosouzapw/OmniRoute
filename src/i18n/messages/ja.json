@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "ディスパッチ前にリクエストを拒否します。ターゲットモデルに必要な機能（ビジョン、ツール、構造化出力、コンテキストウィンドウ）が欠けている場合。コンボレイヤーの互換性フィルターをバイパスする直接の単一プロバイダーリクエストを保護します。",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "クォータを超過したものとして扱う代わりに、キー単位のUSD使用量クォータで価格設定のないモデルの使用量を $0 としてカウントします。デフォルトではオフです。価格のないモデルやルーティングエイリアスによって実際の支出が隠れる可能性があるため、クォータはクローズ状態で失敗（拒否）します。",
   "featureFlagDisableContextWindowChecksDescription": "単一モデルへの直接リクエストについて、OmniRoute のローカルなコンテキストウィンドウと最大入力トークン数のチェックをスキップします。上流プロバイダーでは、実際の制限が引き続き適用されます。プロンプト圧縮と出力トークン数の上限も引き続き有効です。",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "検索統計と最近の検索には、接続が有効なプロバイダーのみが含まれます（duckduckgo-free などのキーレスプロバイダーは常に含まれます）。オフにすると、プロバイダー ID が設定された保持済みの検索行がすべて維持されます。",
   "publicSystem": {

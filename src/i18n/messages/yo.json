@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Kọ àwọn ìbéèrè kí a tó fi wọ́n ránṣẹ́ nígbà tí àwòṣe àfojúsùn kò bá ní àwọn agbára tí a nílò (ìríran, irinṣẹ́, àbájáde tó ní ìṣètò, fèrèsé àyíká-ọ̀rọ̀). Èyí ń dáàbò bo àwọn ìbéèrè olùpèsè-kan tààrà tí ó ré àlẹ̀mọ́ ìbámu combo-layer kọjá.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Ka lílo àwọn awoṣe tí kò ní iye owó sí $0 nínú àwọn ìwọ̀n lílo USD fún kọ́kọ́rọ́ kọ̀ọ̀kan dípò kí a kà á sí pé ó ti kọjá ìwọ̀n. Ó wà ní pípa ní àkọ́kọ́: awoṣe tí a kò fún ní iye owó tàbí orúkọ ìnagijẹ ìdarí ipa-ọ̀nà lè fi ìnáwó gidi pamọ́, nítorí náà ìwọ̀n náà yóò kọ ìbéèrè sílẹ̀.",
   "featureFlagDisableContextWindowChecksDescription": "Fo àyẹ̀wò fèrèsé àyíká-ọ̀rọ̀ àti àyẹ̀wò iye token ìwọlé tó pọ̀jù ti OmniRoute fún àwọn ìbéèrè àwòṣe-kan tààrà. Àwọn olùpèsè upstream ṣì ń fi àwọn ààlà gidi wọn múlẹ̀. Ìfúnpọ̀ prompt àti àwọn ààlà token àbájáde ṣì ń ṣiṣẹ́.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Àwọn ìṣirò ìṣàwárí àti àwọn ìṣàwárí àìpẹ́ yóò ka àwọn olùpèsè tí àsopọ̀ wọn ṣì ń ṣiṣẹ́ nìkan (àwọn olùpèsè tí kò nílò kọ́kọ́rọ́ bíi duckduckgo-free ni a máa ń kà nígbà gbogbo). Pípa yóò pa gbogbo ìlà ìṣàwárí tí a ti fi pamọ́ tí ó ní ID olùpèsè mọ́.",
   "publicSystem": {

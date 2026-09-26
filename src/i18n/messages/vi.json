@@ -13907,6 +13907,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Từ chối yêu cầu trước khi gửi đi khi mô hình đích thiếu các khả năng bắt buộc (thị giác, công cụ, đầu ra có cấu trúc, cửa sổ ngữ cảnh). Bảo vệ các yêu cầu trực tiếp đến một nhà cung cấp khi chúng bỏ qua bộ lọc tương thích của combo.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Tính mức sử dụng của các mô hình không có giá là $0 trong hạn ngạch sử dụng USD cho mỗi khóa thay vì coi hạn ngạch đã bị vượt quá. Mặc định tắt: một mô hình chưa định giá hoặc bí danh định tuyến có thể che giấu chi tiêu thực tế, do đó hạn ngạch sẽ bị từ chối mặc định (fail-closed).",
   "featureFlagDisableContextWindowChecksDescription": "Bỏ qua kiểm tra cục bộ của OmniRoute về cửa sổ ngữ cảnh và giới hạn token đầu vào tối đa cho yêu cầu trực tiếp đến một mô hình đơn lẻ. Nhà cung cấp thượng nguồn vẫn áp dụng các giới hạn thực tế. Tính năng nén prompt và giới hạn token đầu ra vẫn hoạt động.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Thống kê tìm kiếm và các lượt tìm kiếm gần đây chỉ tính những nhà cung cấp vẫn còn kết nối hoạt động (các nhà cung cấp không cần khóa như duckduckgo-free luôn được tính). Khi tắt, mọi hàng tìm kiếm được lưu giữ có ID nhà cung cấp đều được giữ lại.",
   "publicSystem": {

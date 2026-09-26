@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Irrifjuta t-talbiet qabel jintbagħtu meta l-mudell fil-mira ma jkollux il-kapaċitajiet meħtieġa (viżjoni, għodod, output strutturat, tieqa tal-kuntest). Jipproteġi t-talbiet diretti lil fornitur wieħed li jaqbżu l-filtru tal-kompatibbiltà tas-saff tal-kombinazzjonijiet.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Għodd l-użu ta’ mudelli li m’għandhomx prezz bħala $0 fil-kwoti tal-użu f'USD għal kull ċavetta minflok ma tqis li l-kwota nqabżet. Diżattivat b’mod awtomatiku: mudell mingħajr prezz jew isem alternattiv tad-direzzjonar jista’ jaħbi l-infiq reali, għalhekk il-kwota tfalli billi tiċħad l-aċċess.",
   "featureFlagDisableContextWindowChecksDescription": "Aqbeż il-verifika lokali ta' OmniRoute għat-tieqa tal-kuntest u l-għadd massimu ta' tokens tal-input għal talbiet diretti lil mudell wieħed. Il-fornituri upstream xorta jinfurzaw il-limiti effettivi tagħhom. Il-kompressjoni tal-prompt u l-limiti tat-tokens tal-output jibqgħu attivi.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "L-istatistika tat-tiftix u t-tiftix reċenti jgħoddu biss il-fornituri li għad għandhom konnessjoni attiva (fornituri mingħajr ċavetta bħal duckduckgo-free dejjem jingħaddu). Meta jkun mitfi, jinżammu r-ringieli kollha tat-tiftix li jkunu ġew miżmuma u li jkollhom ID tal-fornitur.",
   "publicSystem": {

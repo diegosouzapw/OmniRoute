@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Zavrni zahteve pred posredovanjem, ko ciljni model nima zahtevanih zmogljivosti (slikovni vhod, orodja, strukturiran izhod, kontekstno okno). Ščiti neposredne zahteve za enega ponudnika, ki obidejo filter združljivosti kombinacijskega sloja.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Štejte porabo modelov brez določene cene kot $0 v kvotah porabe v USD na ključ, namesto da se kvota obravnava kot presežena. Privzeto je izklopljeno: model brez cene ali usmerjevalni vzdevek lahko skrije dejansko porabo, zato kvota ob napaki zavrne zahteve.",
   "featureFlagDisableContextWindowChecksDescription": "Preskoči lokalno preverjanje kontekstnega okna in največjega števila vhodnih žetonov v OmniRoute za neposredne zahteve za posamezen model. Ponudniki v zaledju še vedno uveljavljajo svoje dejanske omejitve. Stiskanje pozivov in omejitve izhodnih žetonov ostanejo aktivni.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Statistika iskanja in nedavna iskanja upoštevajo samo ponudnike, ki imajo še vedno aktivno povezavo (ponudniki brez ključa, kot je duckduckgo-free, se vedno upoštevajo). Možnost Izklopljeno ohrani vse shranjene vrstice iskanja z ID-jem ponudnika.",
   "publicSystem": {

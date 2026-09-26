@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Elutasítja a kéréseket a kiszállítás előtt, amikor a célmodell hiányzik a szükséges képességekből (látás, eszközök, strukturált kimenet, kontextusablak). Védi a közvetlen, egy szolgáltatótól érkező kéréseket, amelyek megkerülik a kombinált réteg kompatibilitási szűrőt.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Az ár nélküli modellek használatát $0-ként számolja a kulcsonkénti USD használati kvótákban, ahelyett, hogy túllépettként kezelné a kvótát. Alapértelmezés szerint kikapcsolva: egy ár nélküli modell vagy útválasztási álnév elrejtheti a valós költést, így a kvóta hiba esetén lezár.",
   "featureFlagDisableContextWindowChecksDescription": "Az OmniRoute helyi kontextusablak-ellenőrzésének és a bemeneti tokenek maximális számára vonatkozó ellenőrzésének kihagyása közvetlen, egyetlen modellt használó kéréseknél. A külső szolgáltatók továbbra is érvényesítik a tényleges korlátaikat. A prompttömörítés és a kimeneti tokenek korlátozása aktív marad.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "A keresési statisztikák és a legutóbbi keresések csak azokat a szolgáltatókat veszik figyelembe, amelyek még aktív kapcsolattal rendelkeznek (a kulcs nélküli szolgáltatók, például a duckduckgo-free, mindig beleszámítanak). Kikapcsolt állapotban minden megőrzött keresési sor megmarad szolgáltatói azonosítóval.",
   "publicSystem": {

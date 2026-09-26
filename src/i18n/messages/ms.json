@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Tolak permintaan sebelum penghantaran apabila model sasaran tidak mempunyai keupayaan yang diperlukan (penglihatan, alat, output terstruktur, tetingkap konteks). Melindungi permintaan penyedia tunggal secara langsung yang mengabaikan penapis keserasian lapisan gabungan.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Kira penggunaan model yang tiada harga sebagai $0 dalam kuota penggunaan USD setiap kunci dan bukannya menganggap kuota telah melebihi had. Dimatikan secara lalai: model tanpa harga atau alias penghalaan boleh menyembunyikan perbelanjaan sebenar, jadi kuota gagal ditutup.",
   "featureFlagDisableContextWindowChecksDescription": "Langkau semakan tetingkap konteks dan token input maksimum setempat OmniRoute untuk permintaan terus bagi model tunggal. Penyedia huluan masih menguatkuasakan had sebenar mereka. Pemampatan gesaan dan had token output kekal aktif.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Statistik carian dan carian terkini hanya mengira penyedia yang masih mempunyai sambungan aktif (penyedia tanpa kunci seperti duckduckgo-free sentiasa dikira). Apabila dimatikan, setiap baris carian yang disimpan dengan ID penyedia akan dikekalkan.",
   "publicSystem": {

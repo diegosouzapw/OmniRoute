@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Afvis anmodninger før afsendelse, når målmodellen mangler de nødvendige funktioner (vision, værktøjer, struktureret output, kontekstvindue). Beskytter direkte anmodninger fra en enkelt udbyder, der omgår kombinationslagets kompatibilitetsfilter.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Tæl forbrug af modeller uden pris som $0 i USD-forbrugskvoter pr. nøgle i stedet for at behandle kvoten som overskredet. Deaktiveret som standard: en model uden pris eller et routingalias kan skjule det reelle forbrug, så kvoten fejler lukket.",
   "featureFlagDisableContextWindowChecksDescription": "Spring OmniRoute's lokale kontrol af kontekstvindue og maksimalt antal inputtokens over for direkte anmodninger til en enkelt model. Opstrømsudbydere håndhæver stadig deres faktiske grænser. Promptkomprimering og grænser for outputtokens forbliver aktive.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Søgestatistik og seneste søgninger tæller kun udbydere, der stadig har en aktiv forbindelse (nøglefri udbydere såsom duckduckgo-free tæller altid med). Fra bevarer alle gemte søgerækker med et udbyder-id.",
   "publicSystem": {

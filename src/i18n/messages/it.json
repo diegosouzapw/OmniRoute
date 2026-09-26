@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Rifiuta le richieste prima della spedizione quando il modello di destinazione manca delle capacità richieste (visione, strumenti, output strutturato, finestra di contesto). Protegge le richieste dirette a singolo fornitore che bypassano il filtro di compatibilità del livello combinato.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Conteggia l'utilizzo dei modelli senza prezzo come $0 nelle quote di utilizzo in USD per chiave invece di considerare la quota come superata. Disattivato per impostazione predefinita: un modello senza prezzo o un alias di routing può nascondere la spesa reale, quindi la quota fallisce bloccandosi.",
   "featureFlagDisableContextWindowChecksDescription": "Ignora il controllo locale di OmniRoute sulla finestra di contesto e sul numero massimo di token di input per le richieste dirette a un singolo modello. I provider upstream applicano comunque i propri limiti effettivi. La compressione dei prompt e i limiti dei token di output rimangono attivi.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Le statistiche di ricerca e le ricerche recenti conteggiano solo i fornitori che dispongono ancora di una connessione attiva (i fornitori senza chiave, come duckduckgo-free, vengono sempre conteggiati). Se l'opzione è disattivata, vengono mantenute tutte le righe di ricerca conservate con un ID fornitore.",
   "publicSystem": {

@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Avvis forespørselene før utsendelse når målmodellen mangler nødvendige funksjoner (visjon, verktøy, strukturert utdata, kontekstvindu). Beskytter direkte forespørseler fra enkeltleverandører som omgår kombinasjonslagets kompatibilitetsfilter.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Tell bruk av modeller som ikke har noen pris som $0 i USD-brukskvoter per nøkkel i stedet for å behandle kvoten som overskredet. Av som standard: en modell uten pris eller et rutingsalias kan skjule faktisk forbruk, så kvoten feiler lukket.",
   "featureFlagDisableContextWindowChecksDescription": "Hopp over OmniRoutes lokale kontroll av kontekstvindu og maksimalt antall inndatatokener for direkte forespørsler til én enkelt modell. Oppstrømsleverandører håndhever fortsatt sine faktiske grenser. Komprimering av ledetekster og grenser for utdatatokener forblir aktive.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Søkestatistikk og nylige søk teller bare leverandører som fortsatt har en aktiv tilkobling (leverandører uten nøkkel, som duckduckgo-free, teller alltid). Når funksjonen er av, beholdes alle lagrede søkerader med en leverandør-ID.",
   "publicSystem": {

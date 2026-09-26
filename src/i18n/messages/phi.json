@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Tanggihan ang mga kahilingan bago ang pagpapadala kapag ang target na modelo ay kulang sa mga kinakailangang kakayahan (paningin, mga tool, nakabalangkas na output, bintana ng konteksto). Pinoprotektahan ang mga direktang kahilingan mula sa isang tagapagbigay na lumalampas sa filter ng pagiging tugma ng combo-layer.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Bilangin ang paggamit ng mga modelong walang presyo bilang $0 sa mga quota sa paggamit ng USD bawat key sa halip na ituring na lumampas na sa quota. Naka-off bilang default: ang isang modelong walang presyo o routing alias ay maaaring magtago ng tunay na nagastos, kaya nagfe-fail closed ang quota.",
   "featureFlagDisableContextWindowChecksDescription": "Laktawan ang lokal na pagsusuri ng OmniRoute sa context window at maximum na input token para sa mga direktang kahilingan sa iisang modelo. Ipinapatupad pa rin ng mga upstream provider ang kanilang aktuwal na limitasyon. Nananatiling aktibo ang prompt compression at mga limitasyon sa output token.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Binibilang lamang ng mga estadistika sa paghahanap at mga kamakailang paghahanap ang mga provider na mayroon pa ring aktibong koneksyon (palaging binibilang ang mga provider na walang susi gaya ng duckduckgo-free). Kapag naka-off, pinapanatili ang bawat nakaimbak na hilera ng paghahanap na may provider id.",
   "publicSystem": {

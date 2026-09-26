@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Lehnen Sie Anfragen ab, bevor sie versendet werden, wenn das Zielmodell über die erforderlichen Funktionen (Vision, Werkzeuge, strukturierte Ausgabe, Kontextfenster) nicht verfügt. Schützt direkte Einzelanbieteranfragen, die den Kombo-Schicht-Kompatibilitätsfilter umgehen.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Die Nutzung von Modellen ohne Preis in USD-Nutzungskontingenten pro Schlüssel als $0 zählen, anstatt das Kontingent als überschritten zu behandeln. Standardmäßig deaktiviert: Ein Modell ohne Preis oder ein Routing-Alias kann tatsächliche Ausgaben verbergen, sodass das Kontingent geschlossen fehlschlägt.",
   "featureFlagDisableContextWindowChecksDescription": "Lokale Kontextfenster- und Maximaleingabetoken-Prüfung von OmniRoute für direkte Einzelmodell-Anfragen überspringen. Upstream-Anbieter erzwingen weiterhin ihre tatsächlichen Grenzen. Prompt-Komprimierung und Ausgabetoken-Grenzen bleiben aktiv.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Suchstatistiken und kürzlich durchgeführte Suchen berücksichtigen nur Anbieter, die noch über eine aktive Verbindung verfügen (Anbieter ohne Schlüssel wie duckduckgo-free werden immer berücksichtigt). Bei „Aus“ wird jede gespeicherte Suchzeile mit einer Anbieter-ID beibehalten.",
   "publicSystem": {

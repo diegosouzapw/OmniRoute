@@ -13906,6 +13906,7 @@
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Diúltaigh d’iarratais sula seoltar iad nuair nach bhfuil na cumais riachtanacha ag an spriocmhúnla (fís, uirlisí, aschur struchtúrtha, fuinneog chomhthéacsúil). Cosnaíonn sé iarratais dhíreacha ar sholáthraí aonair a sheachnaíonn scagaire comhoiriúnachta na sraithe teaglamaí.",
+  "featureFlagUsageLimitIgnoreUnpricedDescription": "Áirigh úsáid samhlacha nach bhfuil aon phraghas orthu mar $0 i gcuótaí úsáide USD in aghaidh eochrach in ionad caitheamh leis an gcuóta mar rud sáraithe. As de réir réamhshocraithe: is féidir le samhail gan phraghas nó ailias ródaithe fíorchaiteachas a cheilt, mar sin teipeann ar an gcuóta ar bhealach dúnta.",
   "featureFlagDisableContextWindowChecksDescription": "Fág seiceáil áitiúil OmniRoute ar an bhfuinneog chomhthéacsúil agus ar uaslíon na gcomharthaí ionchuir ar lár le haghaidh iarratais dhíreacha ar mhúnla aonair. Cuireann soláthraithe réamhtheachtacha a dteorainneacha iarbhír i bhfeidhm fós. Fanann comhbhrú leideanna agus teorainneacha ar chomharthaí aschuir gníomhach.",
   "featureFlagSearchStatsHideDeletedConnectionsDescription": "Ní áirítear i staitisticí cuardaigh ná i gcuardaigh le déanaí ach soláthraithe a bhfuil nasc beo acu fós (áirítear soláthraithe gan eochair amhail duckduckgo-free i gcónaí). Nuair atá sé as, coinnítear gach ró cuardaigh a coinníodh agus a bhfuil aitheantas soláthraí aige.",
   "publicSystem": {

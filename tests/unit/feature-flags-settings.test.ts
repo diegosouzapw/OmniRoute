@@ -50,7 +50,9 @@ const {
 // per-address 429, default off) takes the registry to 79.
 // PROXY_POOL_SHARED_EGRESS_ORDER (shared-egress pool ordering, default off)
 // takes it to 80.
-const EXPECTED_FEATURE_FLAG_COUNT = 80;
+// USAGE_LIMIT_IGNORE_UNPRICED (opt-in flag to count unpriced usage as $0 in USD
+// quotas, default off) takes it to 81.
+const EXPECTED_FEATURE_FLAG_COUNT = 81;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
