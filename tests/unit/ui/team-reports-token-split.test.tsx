@@ -82,18 +82,25 @@ const SESSION: AgentSessionRecord = {
 };
 
 // The two requests of SESSION: their split adds up to the session header.
-function request(id: number, tokens: Omit<AgentSessionRecentUsage["tokens"], "reasoning">) {
+function request(
+  id: number,
+  tokens: Omit<AgentSessionRecentUsage["tokens"], "reasoning" | "uncachedInput">
+): AgentSessionRecentUsage {
   return {
     id,
     timestamp: `2026-09-25T09:0${id}:00.000Z`,
     provider: "anthropic",
     model: "claude-sonnet",
-    tokens: { ...tokens, reasoning: 0 },
+    tokens: {
+      ...tokens,
+      reasoning: 0,
+      uncachedInput: tokens.input - tokens.cacheRead - tokens.cacheCreation,
+    },
     latencyMs: 900,
     ttftMs: 300,
     status: "200",
     success: true,
-  } as AgentSessionRecentUsage;
+  };
 }
 const REQUESTS = [
   request(1, { input: 7_000, output: 1_000, cacheRead: 5_000, cacheCreation: 1_000 }),

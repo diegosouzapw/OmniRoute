@@ -137,3 +137,62 @@ test("the self-service API, the report detail and the report rollups agree on th
     assert.deepEqual(summed, shown);
   }
 });
+
+test("a request recorded without its cache is shown as recorded in every view, never corrected", async () => {
+  // Before the usage extractor fix (#14878) some non-streaming Claude-format providers stored
+  // input without its cached part. No view guesses: input stays 100, uncached input clamps to 0.
+  const key = await apiKeysDb.createApiKey("Legacy Key", "test-machine", [SELF_USAGE_SCOPE]);
+  await usageHistory.saveRequestUsage({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    tokens: { input: 100, output: 50, cacheRead: 9000, cacheCreation: 900 },
+    success: true,
+    latencyMs: 10,
+    timestamp: "2026-09-25T11:00:00.000Z",
+    apiKeyId: key.id,
+    apiKeyName: "Legacy Key",
+    agentContext: {
+      client: "claude-code",
+      clientSessionId: "legacy-session",
+      projectName: "legacy",
+      projectRepo: null,
+      projectPath: "/work/legacy",
+      projectSource: "path",
+      gitBranch: "main",
+    },
+  });
+  const expected = {
+    input: 100,
+    uncachedInput: 0,
+    cacheRead: 9000,
+    cacheCreation: 900,
+    output: 50,
+    reasoning: 0,
+    total: 150,
+  };
+
+  const me = (await (
+    await getMeSessions(
+      new Request("http://localhost/api/v1/me/sessions", {
+        headers: { Authorization: `Bearer ${key.key}` },
+      })
+    )
+  ).json()) as { sessions: Array<{ id: string; tokens: typeof expected }> };
+  const [session] = me.sessions;
+  assert.deepEqual(session.tokens, expected);
+
+  const detail = (await (
+    await getReportSession(new Request(`http://localhost/api/reports/sessions/${session.id}`), {
+      params: Promise.resolve({ id: session.id }),
+    })
+  ).json()) as {
+    session: { tokens: typeof expected };
+    recentRequests: Array<{ tokens: Record<string, number> }>;
+  };
+  assert.deepEqual(detail.session.tokens, expected);
+  const { total: _total, ...requestExpected } = expected;
+  assert.deepEqual(detail.recentRequests[0].tokens, requestExpected);
+
+  const report = await buildAgentSessionReport({ apiKeyId: key.id });
+  assert.deepEqual(report.totals.tokens, expected);
+});
