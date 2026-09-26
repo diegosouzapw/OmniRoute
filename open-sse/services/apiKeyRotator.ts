@@ -62,11 +62,84 @@ interface KeyHealth {
   lastSuccess: string | null; // ISO timestamp
   totalRequests: number;
   totalFailures: number;
+  // #14573: per-key 429 cooldown. A rate-limited key is skipped by the rotator
+  // until this ISO timestamp passes; unlike "invalid" it recovers automatically
+  // and does not count as a credential failure.
+  cooldownUntil?: string | null;
 }
 
 const _keyHealth = new Map<string, KeyHealth>();
 
 const FAILURE_THRESHOLD = 2; // Mark as invalid after 2 consecutive failures
+
+/**
+ * Default per-key cooldown when a 429 carries no Retry-After (#14573).
+ * Overridable via OMNIROUTE_API_KEY_COOLDOWN_MS (milliseconds).
+ */
+export const DEFAULT_KEY_COOLDOWN_MS = (() => {
+  const raw = Number(process.env.OMNIROUTE_API_KEY_COOLDOWN_MS);
+  return Number.isFinite(raw) && raw > 0 ? raw : 60_000;
+})();
+
+/**
+ * Parse a Retry-After header value into milliseconds.
+ * Handles delta-seconds ("30") and HTTP-date (RFC 9110 §10.2.3).
+ * Returns 0 for an already-expired HTTP-date, null when unparseable/absent.
+ */
+export function parseRetryAfterMs(value: string | null | undefined): number | null {
+  if (value == null) return null;
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  if (/^\d+$/.test(trimmed)) {
+    return Number(trimmed) * 1000;
+  }
+  const dateMs = Date.parse(trimmed);
+  if (Number.isNaN(dateMs)) return null;
+  return Math.max(dateMs - Date.now(), 0);
+}
+
+/**
+ * True when the key's cooldown window has not elapsed yet. An existing
+ * in-memory record is fully authoritative — including an explicit `null`
+ * cooldown left by recordKeySuccess — so a stale DB-provided snapshot can
+ * never resurrect a cooldown that was just cleared. The `provided` fallback
+ * only applies when no in-memory record exists (e.g. first touch after
+ * startup hydration).
+ */
+function isCooling(
+  connectionId: string,
+  keyId: string,
+  provided?: KeyHealth | undefined
+): boolean {
+  const inMemory = _keyHealth.get(`${connectionId}:${keyId}`);
+  const until = inMemory
+    ? inMemory.cooldownUntil ?? null
+    : (provided?.cooldownUntil ?? null);
+  if (!until) return false;
+  const untilMs = Date.parse(until);
+  return Number.isFinite(untilMs) && untilMs > Date.now();
+}
+
+/**
+ * Record a per-key rate-limit cooldown (#14573). Unlike recordKeyFailure,
+ * this never changes `status` or `failures` — a 429 is temporary. The key is
+ * skipped by getValidApiKey until `cooldownUntil` passes, then eligible again.
+ *
+ * @param connectionId - Connection scope for health state isolation
+ * @param keyId - Key identifier ("primary" | "extra_0" | ...)
+ * @param cooldownMs - Cooldown window in milliseconds (Retry-After or default)
+ * @returns Updated health status
+ */
+export function recordKeyCooldown(
+  connectionId: string,
+  keyId: string,
+  cooldownMs: number
+): KeyHealth {
+  const health = getOrCreateHealth(connectionId, keyId);
+  health.cooldownUntil = new Date(Date.now() + Math.max(cooldownMs, 0)).toISOString();
+  health.totalRequests++;
+  return { ...health };
+}
 
 /**
  * Get or create health status for a specific key within a connection scope.
@@ -85,6 +158,7 @@ function getOrCreateHealth(connectionId: string, keyId: string): KeyHealth {
       lastSuccess: null,
       totalRequests: 0,
       totalFailures: 0,
+      cooldownUntil: null,
     });
   }
   return _keyHealth.get(scopedKey)!;
@@ -114,11 +188,12 @@ export function getValidApiKey(
   // Add primary key if valid
   if (primaryKey) {
     const primaryHealth = health?.["primary"] || getOrCreateHealth(connectionId, "primary");
-    if (primaryHealth.status !== "invalid") {
+    if (primaryHealth.status !== "invalid" && !isCooling(connectionId, "primary", primaryHealth)) {
       allKeys.push({ key: primaryKey, keyId: "primary" });
     } else {
+      const reason = primaryHealth.status === "invalid" ? "invalid" : "cooling";
       console.warn(
-        `[KeyRotator] Skipping invalid primary key for connection ${connectionId.slice(0, 8)}`
+        `[KeyRotator] Skipping ${reason} primary key for connection ${connectionId.slice(0, 8)}`
       );
     }
   }
@@ -127,7 +202,7 @@ export function getValidApiKey(
   for (let i = 0; i < validExtras.length; i++) {
     const keyId = `extra_${i}`;
     const keyHealth = health?.[keyId] || getOrCreateHealth(connectionId, keyId);
-    if (keyHealth.status !== "invalid") {
+    if (keyHealth.status !== "invalid" && !isCooling(connectionId, keyId, keyHealth)) {
       allKeys.push({ key: validExtras[i], keyId });
     }
   }
@@ -229,8 +304,39 @@ export function recordKeySuccess(connectionId: string, keyId: string): KeyHealth
   health.totalRequests++;
   health.lastSuccess = new Date().toISOString();
   health.status = "active";
+  // A genuine success proves the key works again — clear any 429 cooldown (#14573).
+  health.cooldownUntil = null;
 
   return { ...health };
+}
+
+/**
+ * True when the rotator can still produce an eligible key for this connection
+ * (#14573). Used by the chatCore quota-exhausted guard: if extra keys exist
+ * and at least one remains usable, a single hot key must not take the whole
+ * connection down.
+ */
+export function hasEligibleKey(
+  connectionId: string,
+  primaryKey: string,
+  extraKeys: string[] = [],
+  health?: Record<string, KeyHealth>
+): boolean {
+  // Pure predicate: never mutates the round-robin index. chatCore consults
+  // this on the quota-exhausted guard path, and a predicate that consumed a
+  // rotation step would desync the next real key selection (#14573 review).
+  const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
+  const candidates: Array<{ keyId: string; provided?: KeyHealth | undefined }> = [];
+  if (primaryKey) candidates.push({ keyId: "primary", provided: health?.["primary"] });
+  validExtras.forEach((_, i) =>
+    candidates.push({ keyId: `extra_${i}`, provided: health?.[`extra_${i}`] })
+  );
+  for (const { keyId, provided } of candidates) {
+    const inMemory = _keyHealth.get(`${connectionId}:${keyId}`);
+    const status = provided?.status ?? inMemory?.status ?? "active";
+    if (status !== "invalid" && !isCooling(connectionId, keyId, provided)) return true;
+  }
+  return false;
 }
 
 /**

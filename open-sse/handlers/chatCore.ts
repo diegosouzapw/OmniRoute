@@ -252,7 +252,8 @@ import { isOpencodeFreeTierRefusalForProvider } from "../executors/opencodeGeoBl
 import { noteOpencodeFreeTierSkip } from "../services/opencodeFreeTierSkip.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
-import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
+import { connectionHasExtraKeys, parseRetryAfterMs } from "../services/apiKeyRotator.ts";
+import { shouldKeepConnectionActiveOnRateLimit } from "./chatCore/rateLimitConnectionGuard.ts";
 import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/keyHealth.ts";
 import { getSkillsModelIdForFormat } from "./chatCore/skillsFormat.ts";
 import { readNonStreamingResponseBody } from "./chatCore/nonStreamingResponseBody.ts";
@@ -738,8 +739,9 @@ async function handleChatCoreInner({
     status: number,
     creds: Record<string, unknown> | null | undefined,
     transport?: string,
-    failureDetail?: string
-  ): void => recordKeyHealthStatusFor(status, creds, log, transport, failureDetail);
+    failureDetail?: string,
+    retryAfterMs?: number | null
+  ): void => recordKeyHealthStatusFor(status, creds, log, transport, failureDetail, retryAfterMs);
   // Endpoint/format resolution extracted to chatCore/requestFormat.ts (#3501); pure derivation
   // from the request. OUTSIDE the try below — persistFailureUsage closes over endpointPath.
   const {
@@ -3298,11 +3300,12 @@ async function handleChatCoreInner({
 
               if (
                 stream &&
-                (res.response.ok ||
+                ((res.response.ok ||
                   res.response.status === HTTP_STATUS.UNAUTHORIZED ||
-                  res.response.status === HTTP_STATUS.FORBIDDEN) &&
-                executionConnectionId &&
-                !(await shouldIsolateProbeFailures())
+                  res.response.status === HTTP_STATUS.FORBIDDEN ||
+                  res.response.status === HTTP_STATUS.RATE_LIMITED) &&
+                  executionConnectionId &&
+                  !(await shouldIsolateProbeFailures()))
               ) {
                 const failureDetail = res.response.ok
                   ? ""
@@ -3310,7 +3313,17 @@ async function handleChatCoreInner({
                       .clone()
                       .text()
                       .catch(() => "");
-                recordKeyHealthStatus(res.response.status, execCreds, res.transport, failureDetail);
+                // #14573: a streaming 429 must reach the per-key cooldown recorder
+                // (Retry-After honored when upstream provides it).
+                recordKeyHealthStatus(
+                  res.response.status,
+                  execCreds,
+                  res.transport,
+                  failureDetail,
+                  res.response.status === HTTP_STATUS.RATE_LIMITED
+                    ? parseRetryAfterMs(res.response.headers.get("retry-after"))
+                    : null
+                );
               }
 
               if (isModelScope() && res.response.status === 429 && attempts < maxAttempts - 1) {
@@ -3548,7 +3561,10 @@ async function handleChatCoreInner({
             status,
             rawResult._executionCredentials,
             rawResult.transport,
-            status >= 400 ? payload : ""
+            status >= 400 ? payload : "",
+            status === HTTP_STATUS.RATE_LIMITED
+              ? parseRetryAfterMs(responseHeaders.get("retry-after"))
+              : null
           );
         }
         releaseRawResultAccountSemaphore();
@@ -3987,6 +4003,19 @@ async function handleChatCoreInner({
               const quotaScope = getQuotaScopeLabelForProvider(provider, targetModel);
               console.warn(
                 `[provider] Node ${errorConnectionId} ${quotaScope}-only quota exhausted (${statusCode}) for ${targetModel} - ${Math.ceil(quotaCooldownMs / 1000)}s (cooldown_scope=${quotaScope}, ttl_source=${retryAfterMs ? "upstream" : "inferred"}, connection stays active)`
+              );
+            } else if (shouldKeepConnectionActiveOnRateLimit(credentials, errorConnectionId)) {
+              // #14573: a 429 on ONE key must not disable a connection whose
+              // extra keys are still eligible. Mirrors the ACCOUNT_DEACTIVATED
+              // guard; the hot key itself is already cooling via the per-key
+              // cooldown recorded at the execution sites.
+              await updateProviderConnection(errorConnectionId, {
+                lastErrorType: errorType,
+                lastError: persistentMessage,
+                errorCode: statusCode,
+              });
+              console.warn(
+                `[provider] Node ${errorConnectionId} rate limited on one key (${statusCode}) -- extra keys eligible, keeping connection active`
               );
             } else {
               await writeTerminalStatus(
