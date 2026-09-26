@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Suis utama untuk alias gerbang no-think/&lt;provider&gt;/&lt;model&gt;. Hidup (lalai): /v1/models memaparkan varian tanpa penaakulan bagi setiap model Claude berkeupayaan menaakul yang layak, dan id no-think/ yang dihantar dalam permintaan akan dipadankan semula kepada model sebenar dengan penaakulan disekat. Mati: tiada varian dipaparkan dan id no-think/ dianggap seperti mana-mana id model tidak diketahui yang lain. Pilihan ikut serta/tarik diri ModelSpec.noThinkingAlias bagi setiap model masih terpakai semasa tetapan ini dihidupkan.",
   "featureFlagChatVirtualLanesEnabledDescription": "Aktifkan lorong kemasukan maya adaptif setiap-tenant untuk penghantaran pembekal (#9654): lonjakan satu tenant tidak lagi memberikan 503 kepada tenant lain. Pemboleh ubah persekitaran OMNIROUTE_CHAT_VIRTUAL_LANES mengatasi tetapan papan pemuka ini; perubahan berkuat kuasa apabila pelayan dimulakan semula.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Halaman penyedia papan pemuka: tunjukkan lencana Percuma hanya pada isyarat yang disokong oleh penyedia — menggugurkan heuristik nama paparan, medan percuma bukan boolean dan akhiran :free pada penyedia berdaftar tanpa peringkat percuma yang didokumenkan. Mati mengekalkan peraturan lencana terdahulu.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Kumpulan proksi dan penggiliran opencode bagi setiap akaun akan berhenti menyediakan semula proksi yang baru sahaja gagal (probe TCP ditolak atau 429 diterima melaluinya) untuk tempoh bagi setiap proses yang berganda pada setiap kegagalan berulang, sehingga had maksimum. Tiada status proksi direkodkan; apabila setiap calon diketepikan, pilihan tidak berubah. Dimatikan secara lalai: susunan pemilihan adalah sama seperti penggiliran biasa.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Kumpulan proksi dan penggiliran opencode bagi setiap akaun akan berhenti menyediakan semula proksi yang baru sahaja gagal (probe TCP ditolak atau 429 diterima melaluinya) untuk tempoh bagi setiap proses yang berganda pada setiap kegagalan berulang, sehingga had maksimum. Tiada status proksi direkodkan; apabila setiap calon diketepikan, pilihan tidak berubah. Dihidupkan secara lalai; `false` memulihkan pemilihan biasa.",
   "featureFlagProxyPoolEgressObservationDescription": "Tunjukkan, di bawah kumpulan proksi dalam papan pemuka, bilangan IP keluar yang diperhatikan telah digunakan oleh ahlinya sepanjang 24 jam yang lalu, bilangan sambungan yang menggunakannya dan bilangan terbanyak yang dilihat di sebalik satu IP. Baca sahaja, dikira daripada log proksi dan tidak pernah digunakan untuk penghalaan. Dimatikan secara lalai: editor kumpulan tidak berubah dan laluan pemerhatian memberikan null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Dalam imbasan kesihatan proksi, benarkan probe yang ditolak oleh sasaran (401/403/429: proksi telah menyampaikan permintaan, tetapi destinasi menolak IP keluar ini) menetapkan semula rentetan kegagalan berturut-turut proksi, seperti probe yang berjaya dilayan. Dimatikan secara lalai: penolakan kekal neutral dan mengekalkan rentetan tersebut. 5xx kekal tidak muktamad dalam kedua-dua keadaan dan penolakan tidak akan mengalih keluar, menyahdayakan atau mengaktifkan semula proksi.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Benarkan proses pembersihan automatik memadam tugas API Batch berstatus terminal (completed/failed/cancelled/expired) yang lebih lama daripada OMNIROUTE_BATCH_RETENTION_DAYS, berserta titik semak setiap barisnya, dan mengosongkan kandungan BLOB bagi fail yang dimuat naik selepas expires_at masing-masing. Dimatikan secara lalai: setiap pemasangan sedia ada mengekalkan data ini tepat seperti sebelumnya sehingga pengendali memilih untuk mengaktifkannya. Laluan DELETE /api/v1/batches/delete-completed yang dicetuskan oleh pengendali tidak terjejas dalam mana-mana keadaan — laluan itu ialah kontrak API awam berasingan yang tidak bersyarat.",
@@ -3915,6 +3915,15 @@
     "disableSessionStickiness": "Nyahdayakan kelekatan sesi",
     "sessionStickinessEnabled": "Kelekatan aktif",
     "sessionStickinessDisabled": "Kelekatan tidak aktif",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Preset Kimi Coding",
     "kimiPresetDescription": "Kimi K3 sebagai model utama (Moonshot API), dengan sandaran automatik ke sambungan Kimi Code anda (kimi-coding, kimi-web) apabila dikonfigurasikan.",
     "kimiPresetCta": "Tambah preset",
@@ -3930,16 +3939,7 @@
     "duplicateAutoComboSnapshotMsg": "Ini akan mengambil snapshot penyedia/model yang disambungkan semasa yang sepadan dengan templat ini ke dalam kombo yang boleh diedit.",
     "duplicateAutoComboFailedPrefix": "Gagal menduplikasi kombo automatik:",
     "duplicateAutoComboUnknownError": "Ralat tidak diketahui",
-    "duplicateAutoComboTitle": "Cipta kombo statik dari {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Cipta kombo statik dari {name}"
   },
   "costs": {
     "title": "Kos",
@@ -11142,6 +11142,16 @@
     "batchDeleteSelected": "Padam {count} yang dipilih",
     "batchActivateSelected": "Dayakan {count} yang dipilih",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Imbasan terakhir: {cause} ({code}) {age}",
+    "sweepNoData": "Tiada imbasan lagi sejak mula",
+    "sweepLabel": {
+      "unproven": "sasaran menolak",
+      "unclassified": "semakan tidak meyakinkan",
+      "ok": "dilayan",
+      "fail": "sambungan gagal",
+      "hang": "handshake tersekat",
+      "inconclusive": "tidak meyakinkan"
+    },
     "close": "Tutup",
     "managePool": "Urus Kolam",
     "poolTitle": "Kolam & Putaran Proksi",
@@ -11163,6 +11173,8 @@
     "poolEgressObservation": "{exits, plural, one {# laluan keluar} other {# laluan keluar}} digunakan oleh {connections, plural, one {# sambungan} other {# sambungan}} · sehingga {max} pada satu laluan keluar · {hours} j terakhir",
     "poolEgressObservationEmpty": "Tiada trafik dikesan dalam tempoh {hours} j terakhir",
     "poolEgressObservationHint": "Dikira daripada log proksi sepanjang tempoh tersebut: IP egress berbeza yang dikesan untuk ahli kumpulan ini dan sambungan OmniRoute yang menggunakannya. \"Pada satu laluan keluar\" bermaksud sepanjang tempoh tersebut, bukan pada masa yang sama. Sekatan 429 bagi setiap IP hanya menjeda sambungan daripada keluarga penyedia yang sama.",
+    "poolEgressFailuresByExit": "Kegagalan melalui {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Kegagalan tanpa laluan keluar yang dikaitkan: {count}",
     "poolMemberEgress": "{host}:{port} keluar melalui {egressIp} · {hours} j terakhir",
     "poolMemberEgressEmpty": "{host}:{port}: tiada trafik dikesan dalam {hours} j terakhir",
     "poolMemberEgressHint": "IP egress terakhir yang dikesan melalui ahli kumpulan ini dalam tempoh tersebut, dibaca daripada log proksi. Ahli tanpa trafik dalam tempoh tersebut memaparkan baris tiada trafik.",
@@ -11172,7 +11184,12 @@
     "poolAddMember": "Tambah",
     "poolAddFailed": "Gagal menambah proksi ke dalam kolam",
     "poolSelectProxy": "Pilih proksi…",
-    "poolSaveFailed": "Gagal menyimpan tugasan kolam"
+    "poolSaveFailed": "Gagal menyimpan tugasan kolam",
+    "transportRate": "{rate}% pengangkutan",
+    "previousSuccessRate": "Sebelum ini {rate}% berjaya",
+    "upstreamRefusals": "{count} penolakan huluan",
+    "connectionTestsCount": "{count} ujian sambungan",
+    "notMeasured": "Belum diukur"
   },
   "playground": {
     "title": "Title",
@@ -11599,6 +11616,10 @@
       "requestedModel": "Model Yang Diminta",
       "requestProtocol": "Protokol Req",
       "cacheSource": "Sumber Cache",
+      "contentProvenance": "Balasan",
+      "contentEmpty": "Balasan kosong",
+      "usageAbsent": "Bilangan token tidak dilaporkan",
+      "usageEstimated": "Bilangan token dianggarkan",
       "modelPinning": "Penetapan Model",
       "activeModelPinning": "Aktif — model dipilih melalui penetapan sesi",
       "rotated": "Diputar: {initial} -> {final}",
@@ -11623,7 +11644,13 @@
       "correlationIdValue": "ID Korelasi: {id}",
       "detailedPayloadInfo": "Aktifkan log terperinci terlebih dahulu jika anda ingin pandangan muatan klien/pemberi perkhidmatan empat peringkat untuk permintaan baru.",
       "copyAll": "Salin semua",
-      "copiedAll": "Semua telah disalin"
+      "copiedAll": "Semua telah disalin",
+      "resilienceStoredError": "Dilayan daripada ralat tersimpan",
+      "resilienceParked": "Ditahan {ms} sebelum dihantar",
+      "resilienceRotations": "{count} putaran akaun",
+      "resilienceRetried": "Giliran kosong dicuba semula",
+      "resilienceContinued": "Disambung semula di tengah strim",
+      "resilienceRecovered": "Dipulihkan oleh tindakan daya tahan"
     }
   },
   "proxyLogger": {
@@ -11662,7 +11689,14 @@
     "noProxyLogs": "Belum ada log proksi. Konfigurasikan proksi dan buat panggilan API untuk melihatnya di sini.",
     "noMatchingLogs": "Tiada log yang sepadan dengan penapis semasa.",
     "tlsFingerprint": "Cap Jari TLS Chrome 124",
-    "colPublicIp": "IP Awam"
+    "colPublicIp": "IP Awam",
+    "colUpstream": "Hulu",
+    "colEgress": "IP Egress",
+    "colCorrelation": "Korelasi",
+    "colServedBy": "Dihidangkan oleh",
+    "filterTraffic": "Lalu lintas",
+    "filterTests": "Ujian",
+    "filterSource": "Sumber"
   },
   "endpointOptions": {
     "speech": "Pertuturan",
@@ -12137,6 +12171,10 @@
     "stopDns": "Hentikan DNS",
     "toggling": "Menogol…",
     "viewTraffic": "Lihat trafik",
+    "resetAgent": "Pulihkan lalai",
+    "resetAgentConfirm": "Pulihkan lalai?",
+    "resetting": "Memulihkan…",
+    "resetDone": "DNS lalai untuk {agent} telah dipulihkan. Tutup aplikasi sepenuhnya (bukan sekadar meminimumkan) dan buka semula supaya perubahan berkuat kuasa.",
     "emptyNoProvidersTitle": "Tiada penyedia dikonfigurasikan lagi",
     "emptyNoProvidersBody": "Untuk menggunakan AgentBridge, sambungkan sekurang-kurangnya satu penyedia terlebih dahulu. Ia akan menjadi destinasi tempat permintaan IDE dihalakan.",
     "emptyGoToProviders": "Pergi ke Penyedia",
@@ -12915,7 +12953,12 @@
     "createDahlTokenFailed": "Gagal untuk mencipta token Dahl",
     "providerProxy": "Proksi",
     "providerProxyConfigureHint": "Konfigurasikan proksi",
-    "providerProxyTitleConfigured": "Proksi dikonfigurasikan: {host}"
+    "providerProxyTitleConfigured": "Proksi dikonfigurasikan: {host}",
+    "inheritConnectionOption": "Tiada proksi sendiri (mewarisi sambungan)",
+    "inheritedProxy": "Mewarisi sambungan: {host}",
+    "inheritedPool": "Mewarisi kolam sambungan ({count})",
+    "poolEmptyBlocked": "Kolam kosong — permintaan gagal (bukan langsung)",
+    "directEgress": "Langsung (tanpa proksi)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14244,7 +14287,12 @@
     "directNative": "Langsung",
     "targetUrl": "URL Sasaran",
     "error": "Ralat",
-    "configuration": "Konfigurasi Proksi"
+    "configuration": "Konfigurasi Proksi",
+    "upstreamStatus": "Status hulu",
+    "noResponse": "Tiada respons",
+    "egressIp": "IP Egress",
+    "servedBy": "Dihidangkan oleh",
+    "correlationId": "ID Korelasi"
   },
   "requestTimeline": {
     "title": "Garis Masa Permintaan",

@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; ゲートウェイエイリアスのマスタースイッチです。オン（デフォルト）の場合、/v1/models は、対象となる思考機能対応の各 Claude モデルについて思考なしのバリアントを提示し、リクエストで送信された no-think/ ID は実際のモデルに解決され、推論が抑制されます。オフの場合、バリアントは提示されず、no-think/ ID は他の不明なモデル ID と同様に扱われます。オンの場合でも、モデルごとの ModelSpec.noThinkingAlias によるオプトイン／オプトアウトが適用されます。",
   "featureFlagChatVirtualLanesEnabledDescription": "プロバイダーへのディスパッチ用に、テナントごとの適応型仮想受付レーンを有効にします（#9654）：あるテナントのバーストが他のテナントに503を返さなくなります。OMNIROUTE_CHAT_VIRTUAL_LANES環境変数はこのダッシュボード設定より優先されます。変更はサーバー再起動時に反映されます。",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "ダッシュボードのプロバイダーページ：プロバイダーが正式に対応していることを示すシグナルに対してのみ「Free」バッジを表示します。表示名による推測、ブール値ではない無料フィールド、および無料枠が文書化されていない登録済みプロバイダーの「:free」サフィックスは使用しません。オフにすると、従来のバッジ判定ルールが適用されます。",
-  "featureFlagProxySkipRecentlyFailedDescription": "プロキシプールと、アカウントごとのopencodeローテーションで、直前に失敗したプロキシ（TCPプローブが拒否された、またはそのプロキシ経由で429を受信したもの）の再使用を、同一プロセス内で一定期間停止します。この期間は失敗を繰り返すたびに倍増し、上限があります。プロキシのステータスは書き込まれません。すべての候補が除外された場合、選択は変更されません。デフォルトではオフです。有効にしない限り、選択順序は通常のローテーションとまったく同じです。",
+  "featureFlagProxySkipRecentlyFailedDescription": "プロキシプールと、アカウントごとのopencodeローテーションで、直前に失敗したプロキシ（TCPプローブが拒否された、またはそのプロキシ経由で429を受信したもの）の再使用を、同一プロセス内で一定期間停止します。この期間は失敗を繰り返すたびに倍増し、上限があります。プロキシのステータスは書き込まれません。すべての候補が除外された場合、選択は変更されません。デフォルトではオンです。`false` にすると通常の選択に戻ります。",
   "featureFlagProxyPoolEgressObservationDescription": "ダッシュボードのプロキシプールの下に、過去24時間にそのメンバーに使用されたことが観測された送信元IPの数、それらを使用した接続数、および1つのIPの背後で観測された最多のメンバー数を表示します。読み取り専用で、プロキシログから算出され、ルーティングには使用されません。デフォルトではオフです。プールエディターは変更されず、観測ルートはnullを返します。",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "プロキシのヘルススイープで、ターゲットに拒否されたプローブ（401/403/429：プロキシは中継したが、宛先がこの送信元IPを拒否したもの）が、正常に処理されたプローブと同様に、プロキシの連続失敗回数をリセットできるようにします。デフォルトではオフです。拒否は中立のままで、連続失敗回数は維持されます。どちらの場合も5xxは判定不能のままであり、拒否によってプロキシが削除、無効化、または再有効化されることはありません。",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "自動クリーンアップ処理で、OMNIROUTE_BATCH_RETENTION_DAYS より古い終了済み（完了／失敗／キャンセル／期限切れ）の Batch API ジョブを行ごとのチェックポイントとともに削除し、それぞれの expires_at を過ぎたアップロード済みファイルの BLOB コンテンツを消去します。デフォルトではオフです。オペレーターが明示的に有効化するまで、既存のすべてのインストール環境では従来どおりデータが保持されます。オペレーターが実行する DELETE /api/v1/batches/delete-completed ルートは、設定の有効／無効にかかわらず影響を受けません。これは独立した無条件の公開 API 契約です。",
@@ -3915,6 +3915,15 @@
     "disableSessionStickiness": "セッションスティッキネスを無効化",
     "sessionStickinessEnabled": "スティッキネス オン",
     "sessionStickinessDisabled": "スティッキネス オフ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding プリセット",
     "kimiPresetDescription": "Kimi K3 をプライマリモデル（Moonshot API）とし、設定時は Kimi Code 接続（kimi-coding、kimi-web）へ自動的にフォールバックします。",
     "kimiPresetCta": "プリセットを追加",
@@ -3930,16 +3939,7 @@
     "duplicateAutoComboSnapshotMsg": "このテンプレートに一致する現在接続されているプロバイダー/モデルを編集可能なコンボとしてスナップショットします。",
     "duplicateAutoComboFailedPrefix": "オートコンボの複製に失敗しました：",
     "duplicateAutoComboUnknownError": "不明なエラー",
-    "duplicateAutoComboTitle": "{name}から静的コンボを作成",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name}から静的コンボを作成"
   },
   "costs": {
     "title": "コスト",
@@ -11142,6 +11142,16 @@
     "batchDeleteSelected": "選択した {count} 件を削除",
     "batchActivateSelected": "選択した {count} 件を有効化",
     "testPassed": "✓ OK",
+    "sweepVerdict": "最終スキャン: {cause} ({code}) {age}",
+    "sweepNoData": "起動以降スキャンなし",
+    "sweepLabel": {
+      "unproven": "ターゲットが拒否",
+      "unclassified": "チェック不確定",
+      "ok": "応答済み",
+      "fail": "接続失敗",
+      "hang": "ハンドシェイク停滞",
+      "inconclusive": "不確定"
+    },
     "close": "閉じる",
     "managePool": "プールを管理",
     "poolTitle": "プロキシプールとローテーション",
@@ -11163,6 +11173,8 @@
     "poolEgressObservation": "{exits, plural, one {# 個の出口} other {# 個の出口}}を{connections, plural, one {# 件の接続} other {# 件の接続}}が使用 · 1つの出口で最大{max}件 · 過去{hours}時間",
     "poolEgressObservationEmpty": "過去{hours}時間にトラフィックは観測されませんでした",
     "poolEgressObservationHint": "指定期間のプロキシログに基づく集計です。このプールのメンバーで観測された異なる出口IPと、それらを使用したOmniRoute接続を示します。「1つの出口で」は指定期間全体を意味し、同時に使用された数ではありません。IPごとの429ロックアウトでは、同じプロバイダーファミリーの接続のみが一時停止されます。",
+    "poolEgressFailuresByExit": "{exit} 経由の失敗: {count}",
+    "poolEgressFailuresUnattributed": "出口を特定できない失敗: {count}",
     "poolMemberEgress": "{host}:{port} は {egressIp} 経由で送信 · 過去 {hours} 時間",
     "poolMemberEgressEmpty": "{host}:{port}: 過去 {hours} 時間にトラフィックは観測されませんでした",
     "poolMemberEgressHint": "期間内にこのプールメンバーを通じて観測された最新のエグレス IP（プロキシログから取得）。期間内にトラフィックがないメンバーには、トラフィックなしの行が表示されます。",
@@ -11172,7 +11184,12 @@
     "poolAddMember": "追加",
     "poolAddFailed": "プールへのプロキシの追加に失敗しました",
     "poolSelectProxy": "プロキシを選択…",
-    "poolSaveFailed": "プールの割り当ての保存に失敗しました"
+    "poolSaveFailed": "プールの割り当ての保存に失敗しました",
+    "transportRate": "{rate}％トランスポート",
+    "previousSuccessRate": "以前は{rate}％成功",
+    "upstreamRefusals": "{count}件のアップストリーム拒否",
+    "connectionTestsCount": "{count}件の接続テスト",
+    "notMeasured": "未測定"
   },
   "playground": {
     "title": "Title",
@@ -11599,6 +11616,10 @@
       "requestedModel": "要求されたモデル",
       "requestProtocol": "要求プロトコル",
       "cacheSource": "キャッシュソース",
+      "contentProvenance": "応答",
+      "contentEmpty": "空の応答",
+      "usageAbsent": "トークン数が報告されていません",
+      "usageEstimated": "トークン数は推定値です",
       "modelPinning": "モデルピン留め",
       "activeModelPinning": "アクティブ — セッションピンニングを介して選択されたモデル",
       "rotated": "回転: {initial} -> {final}",
@@ -11623,7 +11644,13 @@
       "correlationIdValue": "相関ID: {id}",
       "detailedPayloadInfo": "新しいリクエストのために四段階のクライアント/プロバイダー ペイロードビューを表示したい場合は、まず詳細なログ記録を有効にしてください。",
       "copyAll": "すべてコピー",
-      "copiedAll": "すべてコピーしました"
+      "copiedAll": "すべてコピーしました",
+      "resilienceStoredError": "保存済みエラーから応答",
+      "resilienceParked": "送信前に{ms}待機",
+      "resilienceRotations": "アカウント切替{count}回",
+      "resilienceRetried": "空ターンを再試行",
+      "resilienceContinued": "ストリーム途中で再開",
+      "resilienceRecovered": "レジリエンス動作で回復"
     }
   },
   "proxyLogger": {
@@ -11662,7 +11689,14 @@
     "noProxyLogs": "プロキシログはまだありません。プロキシを設定してAPIを呼び出すと、ここに表示されます。",
     "noMatchingLogs": "現在のフィルターに一致するログはありません。",
     "tlsFingerprint": "Chrome 124 TLSフィンガープリント",
-    "colPublicIp": "パブリックIP"
+    "colPublicIp": "パブリックIP",
+    "colUpstream": "アップストリーム",
+    "colEgress": "イーグレスIP",
+    "colCorrelation": "相関",
+    "colServedBy": "提供元",
+    "filterTraffic": "トラフィック",
+    "filterTests": "テスト",
+    "filterSource": "ソース"
   },
   "endpointOptions": {
     "speech": "音声",
@@ -12137,6 +12171,10 @@
     "stopDns": "DNSを停止",
     "toggling": "切り替え中…",
     "viewTraffic": "トラフィックを表示",
+    "resetAgent": "デフォルトに戻す",
+    "resetAgentConfirm": "デフォルトに戻しますか？",
+    "resetting": "復元中…",
+    "resetDone": "{agent} のデフォルト DNS を復元しました。変更を反映するには、アプリを完全に終了し（最小化ではなく）、もう一度開いてください。",
     "emptyNoProvidersTitle": "プロバイダーがまだ設定されていません",
     "emptyNoProvidersBody": "AgentBridgeを使用するには、まず少なくとも1つのプロバイダーを接続してください。これがIDEリクエストのルーティング先になります。",
     "emptyGoToProviders": "プロバイダーへ移動",
@@ -12915,7 +12953,12 @@
     "createDahlTokenFailed": "Dahlトークンの作成に失敗しました",
     "providerProxy": "プロキシ",
     "providerProxyConfigureHint": "プロキシを設定する",
-    "providerProxyTitleConfigured": "プロキシが設定されました: {host}"
+    "providerProxyTitleConfigured": "プロキシが設定されました: {host}",
+    "inheritConnectionOption": "独自プロキシなし(接続を継承)",
+    "inheritedProxy": "接続を継承:{host}",
+    "inheritedPool": "接続プールを継承({count})",
+    "poolEmptyBlocked": "プールが空—リクエストは失敗します(直接ではありません)",
+    "directEgress": "直接(プロキシなし)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14244,7 +14287,12 @@
     "directNative": "ダイレクト",
     "targetUrl": "ターゲットURL",
     "error": "エラー",
-    "configuration": "プロキシ設定"
+    "configuration": "プロキシ設定",
+    "upstreamStatus": "アップストリームステータス",
+    "noResponse": "応答なし",
+    "egressIp": "イーグレスIP",
+    "servedBy": "提供元",
+    "correlationId": "相関ID"
   },
   "requestTimeline": {
     "title": "リクエストタイムライン",

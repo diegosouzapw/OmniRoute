@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; դարպասային այլանունների գլխավոր անջատիչը։ Միացված (լռելյայն)․ /v1/models-ը յուրաքանչյուր համապատասխան, մտածելու ունակ Claude մոդելի համար հրապարակում է առանց մտածողության տարբերակ, իսկ հարցման մեջ ուղարկված no-think/ նույնացուցիչը համապատասխանեցվում է իրական մոդելին՝ դատողությունն անջատելով։ Անջատված․ տարբերակներ չեն հրապարակվում, իսկ no-think/ նույնացուցիչը դիտարկվում է ինչպես ցանկացած այլ անհայտ մոդելի նույնացուցիչ։ Քանի դեռ սա միացված է, յուրաքանչյուր մոդելի ModelSpec.noThinkingAlias ընտրովի միացման/անջատման կարգավորումը շարունակում է գործել։",
   "featureFlagChatVirtualLanesEnabledDescription": "Միացնել ըստ վարձակալի հարմարվողական վիրտուալ ընդունման ուղիները մատակարարին ուղարկելու համար (#9654)․ մեկ վարձակալի հարցումների կտրուկ աճն այլևս չի առաջացնում 503 մեկ այլ վարձակալի համար։ OMNIROUTE_CHAT_VIRTUAL_LANES միջավայրի փոփոխականը գերակայում է կառավարման վահանակի այս վերասահմանմանը․ փոփոխություններն ուժի մեջ են մտնում սերվերը վերագործարկելիս։",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Վահանակի մատակարարների էջերում «Անվճար» նշանը ցուցադրել միայն մատակարարի կողմից հաստատված ազդանշանների դեպքում․ այլևս չօգտագործել ցուցադրվող անվան վրա հիմնված մոտավոր որոշումը, ոչ բուլյան free դաշտերը և փաստաթղթավորված անվճար մակարդակ չունեցող գրանցված մատակարարների :free վերջածանցները։ Անջատված լինելու դեպքում պահպանվում է նշանի ցուցադրման նախկին կանոնը։",
-  "featureFlagProxySkipRecentlyFailedDescription": "Պրոքսի խմբերը և opencode-ի՝ ըստ հաշվի ռոտացիան դադարում են կրկին տրամադրել հենց նոր ձախողված պրոքսին (մերժված TCP ստուգում կամ դրա միջոցով ստացված 429)՝ յուրաքանչյուր գործընթացի համար սահմանված ժամանակահատվածով, որը յուրաքանչյուր կրկնության դեպքում կրկնապատկվում է՝ մինչև առավելագույն սահմանաչափը։ Պրոքսիի որևէ կարգավիճակ չի գրանցվում․ երբ բոլոր թեկնածուները մի կողմ են դրված, ընտրությունը մնում է անփոփոխ։ Լռելյայն անջատված է․ ընտրության հերթականությունը ճշգրտորեն համապատասխանում է սովորական ռոտացիային։",
+  "featureFlagProxySkipRecentlyFailedDescription": "Պրոքսի խմբերը և opencode-ի՝ ըստ հաշվի ռոտացիան դադարում են կրկին տրամադրել հենց նոր ձախողված պրոքսին (մերժված TCP ստուգում կամ դրա միջոցով ստացված 429)՝ յուրաքանչյուր գործընթացի համար սահմանված ժամանակահատվածով, որը յուրաքանչյուր կրկնության դեպքում կրկնապատկվում է՝ մինչև առավելագույն սահմանաչափը։ Պրոքսիի որևէ կարգավիճակ չի գրանցվում․ երբ բոլոր թեկնածուները մի կողմ են դրված, ընտրությունը մնում է անփոփոխ։ Լռելյայն միացված է․ `false`-ը վերականգնում է սովորական ընտրությունը։",
   "featureFlagProxyPoolEgressObservationDescription": "Վահանակում՝ պրոքսի խմբի տակ, ցույց տալ, թե վերջին 24 ժ-ի ընթացքում քանի դիտարկված ելքային IP է սպասարկել դրա անդամներին, քանի միացում է օգտագործել դրանք, և մեկ IP-ի հետևում դիտված միացումների առավելագույն քանակը։ Միայն կարդալու համար է, հաշվարկվում է պրոքսիի մատյանից և երբեք չի օգտագործվում երթուղավորման համար։ Լռելյայն անջատված է․ խմբի խմբագրիչը մնում է անփոփոխ, իսկ դիտարկման երթուղին վերադարձնում է null։",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Պրոքսիի առողջական վիճակի ստուգման ընթացքում թույլ տալ, որ թիրախի կողմից մերժված ստուգումը (401/403/429․ պրոքսին փոխանցել է հարցումը, իսկ նպատակակետը մերժել է այս ելքային IP-ն) զրոյացնի պրոքսիի հաջորդական ձախողումների շարքը՝ ինչպես սպասարկված ստուգման դեպքում։ Լռելյայն անջատված է․ մերժումը մնում է չեզոք և պահպանում է շարքը։ 5xx-ը երկու դեպքում էլ մնում է անորոշ, իսկ մերժումը երբեք չի հեռացնում, անջատում կամ վերաակտիվացնում պրոքսին։",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Թույլատրել, որ ավտոմատ մաքրման գործընթացը ջնջի OMNIROUTE_BATCH_RETENTION_DAYS-ից ավելի հին վերջնական կարգավիճակով (completed/failed/cancelled/expired) Batch API առաջադրանքները՝ դրանց յուրաքանչյուր տողի ստուգակետերի հետ միասին, և մաքրի այն վերբեռնված ֆայլերի BLOB բովանդակությունը, որոնց expires_at-ն անցել է։ Լռելյայն անջատված է․ բոլոր առկա տեղադրումները շարունակում են պահպանել այս տվյալները ճիշտ այնպես, ինչպես նախկինում, մինչև օպերատորը միացնի այս գործառույթը։ Օպերատորի կողմից գործարկվող DELETE /api/v1/batches/delete-completed երթուղին որևէ դեպքում չի ազդվում․ այն առանձին, անվերապահ հանրային API պայմանագիր է։",
@@ -3915,6 +3915,15 @@
     "disableSessionStickiness": "Անջատել աշխատաշրջանի ամրագրումը",
     "sessionStickinessEnabled": "Ամրագրումը միացված է",
     "sessionStickinessDisabled": "Ամրագրումն անջատված է",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-ի նախակարգավորում",
     "kimiPresetDescription": "Kimi K3-ը՝ որպես հիմնական մոդել (Moonshot API), իսկ անհասանելիության դեպքում՝ ավտոմատ անցում ձեր Kimi Code կապերին (kimi-coding, kimi-web), եթե դրանք կազմաձևված են։",
     "kimiPresetCta": "Ավելացնել նախակարգավորում",
@@ -3930,16 +3939,7 @@
     "duplicateAutoComboSnapshotMsg": "Այս ձևանմուշին համապատասխանող՝ ներկայումս միացված մատակարարների/մոդելների պատճենը կպահվի որպես խմբագրվող կոմբինացիա։",
     "duplicateAutoComboFailedPrefix": "Չհաջողվեց կրկնօրինակել ավտոմատ կոմբինացիան՝",
     "duplicateAutoComboUnknownError": "Անհայտ սխալ",
-    "duplicateAutoComboTitle": "Ստեղծել ստատիկ կոմբինացիա {name}-ից",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Ստեղծել ստատիկ կոմբինացիա {name}-ից"
   },
   "costs": {
     "title": "Ծախսեր",
@@ -11142,6 +11142,16 @@
     "batchDeleteSelected": "Ջնջել ընտրված {count} պրոքսիները",
     "batchActivateSelected": "Միացնել ընտրված {count} պրոքսիները",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Վերջին սկանավորում՝ {cause} ({code}) {age}",
+    "sweepNoData": "Մեկնարկից ի վեր սկանավորում չկա",
+    "sweepLabel": {
+      "unproven": "թիրախը մերժեց",
+      "unclassified": "ստուգումն անորոշ է",
+      "ok": "սպասարկված է",
+      "fail": "կապը ձախողվեց",
+      "hang": "ձեռքսեղմումը կանգ առավ",
+      "inconclusive": "անորոշ"
+    },
     "close": "Փակել",
     "managePool": "Կառավարել պուլը",
     "poolTitle": "Պրոքսիների պուլ և ռոտացիա",
@@ -11163,6 +11173,8 @@
     "poolEgressObservation": "Օգտագործվել է {exits, plural, one {# ելք} other {# ելք}}՝ {connections, plural, one {# կապի} other {# կապերի}} կողմից · մինչև {max}՝ մեկ ելքի վրա · վերջին {hours} ժ",
     "poolEgressObservationEmpty": "Վերջին {hours} ժ ընթացքում տրաֆիկ չի դիտարկվել",
     "poolEgressObservationHint": "Հաշվարկված է պրոքսիի մատյանից տվյալ ժամանակահատվածի համար՝ այս պուլի անդամների համար դիտարկված տարբեր ելքային IP-ները և դրանք օգտագործած OmniRoute կապերը։ «Մեկ ելքի վրա» նշանակում է տվյալ ժամանակահատվածի ընթացքում, ոչ թե միաժամանակ։ Յուրաքանչյուր IP-ի համար 429 արգելափակումը դադարեցնում է միայն նույն մատակարարի ընտանիքի կապերը։",
+    "poolEgressFailuresByExit": "Ձախողումներ {exit}-ի միջոցով՝ {count}",
+    "poolEgressFailuresUnattributed": "Ձախողումներ առանց վերագրված ելքի՝ {count}",
     "poolMemberEgress": "{host}:{port}՝ ելք {egressIp}-ի միջոցով · վերջին {hours} ժ",
     "poolMemberEgressEmpty": "{host}:{port}՝ վերջին {hours} ժ ընթացքում երթևեկություն չի դիտարկվել",
     "poolMemberEgressHint": "Պրոքսիի մատյանից վերցված՝ տվյալ ժամանակային միջակայքում պուլի այս անդամի միջոցով դիտարկված վերջին ելքային IP հասցեն։ Եթե անդամի համար այդ միջակայքում երթևեկություն չի եղել, ցուցադրվում է երթևեկության բացակայության տողը։",
@@ -11172,7 +11184,12 @@
     "poolAddMember": "Ավելացնել",
     "poolAddFailed": "Չհաջողվեց պրոքսին ավելացնել պուլին",
     "poolSelectProxy": "Ընտրեք պրոքսի…",
-    "poolSaveFailed": "Չհաջողվեց պահպանել պուլին վերագրումը"
+    "poolSaveFailed": "Չհաջողվեց պահպանել պուլին վերագրումը",
+    "transportRate": "{rate}% փոխադրում",
+    "previousSuccessRate": "Նախկինում {rate}% հաջողություն",
+    "upstreamRefusals": "{count} upstream մերժում",
+    "connectionTestsCount": "{count} կապի թեստ",
+    "notMeasured": "Չի չափվել"
   },
   "playground": {
     "title": "Մոդելների փորձարկման հարթակ",
@@ -11599,6 +11616,10 @@
       "requestedModel": "Պահանջված մոդել",
       "requestProtocol": "Հարցման արձանագրություն",
       "cacheSource": "Քեշի աղբյուր",
+      "contentProvenance": "Պատասխան",
+      "contentEmpty": "Դատարկ պատասխան",
+      "usageAbsent": "Թոքենների քանակը չի հաղորդվել",
+      "usageEstimated": "Թոքենների քանակը գնահատված է",
       "modelPinning": "Մոդելի ամրագրում",
       "activeModelPinning": "Ակտիվ — մոդելն ընտրվել է սեսիայի ամրագրման միջոցով",
       "rotated": "Փոխարկվել է՝ {initial} -> {final}",
@@ -11623,7 +11644,13 @@
       "correlationIdValue": "Կապակցման ID՝ {id}",
       "detailedPayloadInfo": "Նոր հարցումների համար հաճախորդի/մատակարարի օգտակար բեռների քառափուլ տեսքը դիտելու նպատակով նախ միացրեք մանրամասն գրանցումը։",
       "copyAll": "Պատճենել ամբողջը",
-      "copiedAll": "Ամբողջը պատճենված է"
+      "copiedAll": "Ամբողջը պատճենված է",
+      "resilienceStoredError": "Մատուցվել է պահպանված սխալից",
+      "resilienceParked": "Կանգնեցվել է {ms} ուղարկելուց առաջ",
+      "resilienceRotations": "{count} հաշվի ռոտացիա",
+      "resilienceRetried": "Դատարկ հերթը կրկնվել է",
+      "resilienceContinued": "Վերսկսվել է հոսքի կեսից",
+      "resilienceRecovered": "Վերականգնվել է կայունության գործողությամբ"
     }
   },
   "proxyLogger": {
@@ -11662,7 +11689,14 @@
     "noProxyLogs": "Պրոքսիի մատյաններ դեռ չկան։ Կարգավորեք պրոքսիները և կատարեք API կանչեր՝ դրանք այստեղ տեսնելու համար։",
     "noMatchingLogs": "Ընթացիկ զտիչներին համապատասխանող մատյաններ չկան։",
     "tlsFingerprint": "Chrome 124 TLS մատնահետք",
-    "colPublicIp": "Հանրային IP"
+    "colPublicIp": "Հանրային IP",
+    "colUpstream": "Վերին հոսք",
+    "colEgress": "Ելքային IP",
+    "colCorrelation": "Համապատասխանություն",
+    "colServedBy": "Մատակարարող",
+    "filterTraffic": "Հոսք",
+    "filterTests": "Թեստեր",
+    "filterSource": "Աղբյուր"
   },
   "endpointOptions": {
     "speech": "Խոսք",
@@ -12137,6 +12171,10 @@
     "stopDns": "Դադարեցնել DNS-ը",
     "toggling": "Փոխարկվում է…",
     "viewTraffic": "Դիտել թրաֆիկը",
+    "resetAgent": "Վերականգնել լռելյայնը",
+    "resetAgentConfirm": "Վերականգնե՞լ լռելյայնը",
+    "resetting": "Վերականգնվում է…",
+    "resetDone": "{agent}-ի լռելյայն DNS-ը վերականգնվեց։ Որպեսզի փոփոխությունն ուժի մեջ մտնի, ամբողջությամբ փակեք հավելվածը (ոչ միայն փոքրացրեք) և նորից բացեք այն։",
     "emptyNoProvidersTitle": "Դեռևս ոչ մի մատակարար կարգավորված չէ",
     "emptyNoProvidersBody": "AgentBridge-ն օգտագործելու համար նախ միացրեք առնվազն մեկ մատակարար։ Այն կլինի այն նպատակակետը, ուր կուղղորդվեն IDE-ի հարցումները։",
     "emptyGoToProviders": "Անցնել «Մատակարարներ» բաժին",
@@ -12915,7 +12953,12 @@
     "createDahlTokenFailed": "Չհաջողվեց ստեղծել Dahl թոքենը",
     "providerProxy": "Պրոքսի",
     "providerProxyConfigureHint": "Կարգավորել պրոքսին",
-    "providerProxyTitleConfigured": "Պրոքսին կարգավորված է՝ {host}"
+    "providerProxyTitleConfigured": "Պրոքսին կարգավորված է՝ {host}",
+    "inheritConnectionOption": "Սեփական պրոքսի չկա (ժառանգում է կապը)",
+    "inheritedProxy": "Ժառանգում է կապը՝ {host}",
+    "inheritedPool": "Ժառանգում է կապերի խումբը ({count})",
+    "poolEmptyBlocked": "Խումբը դատարկ է — հարցումները ձախողվում են (ոչ ուղիղ)",
+    "directEgress": "Ուղիղ (առանց պրոքսիի)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14244,7 +14287,12 @@
     "directNative": "Ուղիղ (նատիվ)",
     "targetUrl": "Թիրախային URL",
     "error": "Սխալ",
-    "configuration": "Պրոքսիի կազմաձևում"
+    "configuration": "Պրոքսիի կազմաձևում",
+    "upstreamStatus": "Վերին հոսքի կարգավիճակ",
+    "noResponse": "Պատասխան չկա",
+    "egressIp": "Ելքային IP",
+    "servedBy": "Մատակարարող",
+    "correlationId": "Համապատասխանության ID"
   },
   "requestTimeline": {
     "title": "Հարցումների ժամանակագիծ",

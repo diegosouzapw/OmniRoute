@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Comutator principal pentru aliasurile gateway no-think/&lt;provider&gt;/&lt;model&gt;. Activat (implicit): /v1/models afișează o variantă fără raționament pentru fiecare model Claude eligibil care poate raționa, iar un id no-think/ trimis într-o solicitare este asociat din nou modelului real, cu raționamentul dezactivat. Dezactivat: nu este afișată nicio variantă, iar un id no-think/ este tratat ca orice alt id de model necunoscut. Opțiunea individuală de activare/dezactivare ModelSpec.noThinkingAlias pentru fiecare model se aplică în continuare cât timp această setare este activată.",
   "featureFlagChatVirtualLanesEnabledDescription": "Activați benzile de admitere virtuale adaptive per-tenant pentru expedierea către furnizori (#9654): un vârf de trafic al unui tenant nu mai returnează 503 altui tenant. Variabila de mediu OMNIROUTE_CHAT_VIRTUAL_LANES are prioritate față de această setare din panou; modificările intră în vigoare la repornirea serverului.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Paginile furnizorilor din tabloul de bord: afișează insigna Gratuit numai pe baza indiciilor confirmate de furnizor — elimină euristica bazată pe numele afișat, câmpurile pentru gratuitate care nu au valori booleene și sufixele :free în cazul furnizorilor înregistrați care nu au un nivel gratuit documentat. Opțiunea Dezactivat păstrează regula istorică privind insigna.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Pool-urile de proxy-uri și rotația per cont din opencode nu mai reutilizează un proxy care tocmai a eșuat (sondă TCP refuzată sau un răspuns 429 primit prin acesta) pentru o perioadă per proces care se dublează la fiecare repetare, până la o limită maximă. Nu este înregistrată nicio stare a proxy-ului; dacă toți candidații sunt puși deoparte, alegerea rămâne neschimbată. Dezactivat în mod implicit: ordinea de selectare este exact cea a rotației simple.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Pool-urile de proxy-uri și rotația per cont din opencode nu mai reutilizează un proxy care tocmai a eșuat (sondă TCP refuzată sau un răspuns 429 primit prin acesta) pentru o perioadă per proces care se dublează la fiecare repetare, până la o limită maximă. Nu este înregistrată nicio stare a proxy-ului; dacă toți candidații sunt puși deoparte, alegerea rămâne neschimbată. Activat în mod implicit; `false` restabilește selecția simplă.",
   "featureFlagProxyPoolEgressObservationDescription": "Afișează, sub un pool de proxy-uri din panoul de control, câte IP-uri de ieșire observate au deservit membrii acestuia în ultimele 24 h, câte conexiuni le-au folosit și numărul maxim de conexiuni observate în spatele unui singur IP. Doar pentru citire, calculat din jurnalul proxy-ului și niciodată utilizat pentru rutare. Dezactivat în mod implicit: editorul pool-ului rămâne neschimbat, iar ruta de observare returnează null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "În verificarea periodică a stării proxy-urilor, permite unei sonde refuzate de destinație (401/403/429: proxy-ul a retransmis, iar destinația a refuzat acest IP de ieșire) să reseteze seria de eșecuri consecutive a proxy-ului, la fel ca o sondă procesată cu succes. Dezactivat în mod implicit: un refuz rămâne neutru și păstrează seria. Un răspuns 5xx rămâne neconcludent în ambele cazuri, iar un refuz nu elimină, nu dezactivează și nu reactivează niciodată un proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Permite procesului automat de curățare să șteargă sarcinile Batch API în stare terminală (finalizate/eșuate/anulate/expirate) mai vechi decât OMNIROUTE_BATCH_RETENTION_DAYS, împreună cu punctele de control pentru fiecare linie, și să golească conținutul BLOB al fișierelor încărcate care și-au depășit propria valoare expires_at. Dezactivată implicit: fiecare instalare existentă păstrează aceste date exact ca înainte, până când un operator activează opțiunea. Ruta DELETE /api/v1/batches/delete-completed declanșată de operator nu este afectată în niciun caz — aceasta este un contract API public separat și necondiționat.",
@@ -3915,6 +3915,15 @@
     "disableSessionStickiness": "Dezactivare persistență sesiune",
     "sessionStickinessEnabled": "Persistență activată",
     "sessionStickinessDisabled": "Persistență dezactivată",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Presetare Kimi Coding",
     "kimiPresetDescription": "Kimi K3 ca model principal (Moonshot API), cu revenire automată (fallback) la conexiunile dvs. Kimi Code (kimi-coding, kimi-web) atunci când sunt configurate.",
     "kimiPresetCta": "Adaugă presetare",
@@ -3930,16 +3939,7 @@
     "duplicateAutoComboSnapshotMsg": "Acesta va captura furnizorii/modelurile conectate în prezent care se potrivesc cu acest șablon într-o combinație editabilă.",
     "duplicateAutoComboFailedPrefix": "Duplicarea combinației automate a eșuat:",
     "duplicateAutoComboUnknownError": "Eroare necunoscută",
-    "duplicateAutoComboTitle": "Creați o combinație statică din {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Creați o combinație statică din {name}"
   },
   "costs": {
     "title": "Costuri",
@@ -11142,6 +11142,16 @@
     "batchDeleteSelected": "Șterge {count} selectate",
     "batchActivateSelected": "Activează {count} selectate",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Ultima scanare: {cause} ({code}) {age}",
+    "sweepNoData": "Nicio scanare de la pornire",
+    "sweepLabel": {
+      "unproven": "țintă refuzată",
+      "unclassified": "verificare neconcludentă",
+      "ok": "deservit",
+      "fail": "conexiune eșuată",
+      "hang": "handshake blocat",
+      "inconclusive": "neconcludent"
+    },
     "close": "Închide",
     "managePool": "Gestionează pool-ul",
     "poolTitle": "Pool de proxy-uri și rotație",
@@ -11163,6 +11173,8 @@
     "poolEgressObservation": "{exits, plural, one {# ieșire utilizată} other {# ieșiri utilizate}} de {connections, plural, one {# conexiune} other {# conexiuni}} · până la {max} pe o singură ieșire · ultimele {hours} h",
     "poolEgressObservationEmpty": "Nu s-a observat trafic în ultimele {hours} h",
     "poolEgressObservationHint": "Calculat din jurnalul proxy pentru intervalul de timp: adresele IP de ieșire distincte observate pentru membrii acestui grup și conexiunile OmniRoute care le-au utilizat. „Pe o singură ieșire” se referă la întregul interval, nu la același moment. Blocarea 429 per IP întrerupe temporar doar conexiunile din aceeași familie de furnizori.",
+    "poolEgressFailuresByExit": "Eșecuri prin {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Eșecuri fără ieșire atribuită: {count}",
     "poolMemberEgress": "{host}:{port} a ieșit prin {egressIp} · ultimele {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: nu s-a observat trafic în ultimele {hours} h",
     "poolMemberEgressHint": "Ultimul IP de ieșire observat prin acest membru al poolului în intervalul selectat, preluat din jurnalul proxy. Pentru un membru fără trafic în acest interval se afișează mesajul privind absența traficului.",
@@ -11172,7 +11184,12 @@
     "poolAddMember": "Adaugă",
     "poolAddFailed": "Nu s-a putut adăuga proxy-ul în pool",
     "poolSelectProxy": "Selectează un proxy…",
-    "poolSaveFailed": "Nu s-a putut salva atribuirea pool-ului"
+    "poolSaveFailed": "Nu s-a putut salva atribuirea pool-ului",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Anterior {rate} % succes",
+    "upstreamRefusals": "{count} refuzuri upstream",
+    "connectionTestsCount": "{count} teste de conexiune",
+    "notMeasured": "Nemăsurat"
   },
   "playground": {
     "title": "Title",
@@ -11599,6 +11616,10 @@
       "requestedModel": "Model Solicitat",
       "requestProtocol": "Protocol Req",
       "cacheSource": "Sursă Cache",
+      "contentProvenance": "Răspuns",
+      "contentEmpty": "Răspuns gol",
+      "usageAbsent": "Numărul de tokenuri nu a fost raportat",
+      "usageEstimated": "Numărul de tokenuri este estimat",
       "modelPinning": "Fixarea Modelului",
       "activeModelPinning": "Activ — model selectat prin fixarea sesiunii",
       "rotated": "Rotit: {initial} -> {final}",
@@ -11623,7 +11644,13 @@
       "correlationIdValue": "ID de corelare: {id}",
       "detailedPayloadInfo": "Activați mai întâi jurnalizarea detaliată dacă doriți vizualizarea payload-ului client/provider în patru etape pentru cererile noi.",
       "copyAll": "Copiază tot",
-      "copiedAll": "Totul a fost copiat"
+      "copiedAll": "Totul a fost copiat",
+      "resilienceStoredError": "Servit din eroarea stocată",
+      "resilienceParked": "Parcat {ms} înainte de trimitere",
+      "resilienceRotations": "{count} rotații de cont",
+      "resilienceRetried": "Tură goală reîncercată",
+      "resilienceContinued": "Reluat la mijlocul fluxului",
+      "resilienceRecovered": "Recuperat printr-o acțiune de reziliență"
     }
   },
   "proxyLogger": {
@@ -11662,7 +11689,14 @@
     "noProxyLogs": "Nu există încă jurnale proxy. Configurați proxy-uri și efectuați apeluri API pentru a le vedea aici.",
     "noMatchingLogs": "Niciun jurnal nu corespunde filtrelor actuale.",
     "tlsFingerprint": "Amprentă TLS Chrome 124",
-    "colPublicIp": "IP public"
+    "colPublicIp": "IP public",
+    "colUpstream": "Ascendent",
+    "colEgress": "IP de ieșire",
+    "colCorrelation": "Corelare",
+    "colServedBy": "Servit de",
+    "filterTraffic": "Trafic",
+    "filterTests": "Teste",
+    "filterSource": "Sursă"
   },
   "endpointOptions": {
     "speech": "Vorbire",
@@ -12137,6 +12171,10 @@
     "stopDns": "Opriți DNS",
     "toggling": "Se comută…",
     "viewTraffic": "Vizualizați traficul",
+    "resetAgent": "Restabilește implicit",
+    "resetAgentConfirm": "Restabiliți setarea implicită?",
+    "resetting": "Se restabilește…",
+    "resetDone": "DNS-ul implicit a fost restabilit pentru {agent}. Închideți complet aplicația (nu doar minimizați-o) și redeschideți-o pentru ca modificarea să intre în vigoare.",
     "emptyNoProvidersTitle": "Niciun furnizor configurat încă",
     "emptyNoProvidersBody": "Pentru a utiliza AgentBridge, conectați mai întâi cel puțin un furnizor. Acesta va fi destinația către care sunt direcționate cererile IDE.",
     "emptyGoToProviders": "Mergeți la Furnizori",
@@ -12915,7 +12953,12 @@
     "createDahlTokenFailed": "Nu s-a reușit crearea tokenului Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configurează proxy",
-    "providerProxyTitleConfigured": "Proxy configurat: {host}"
+    "providerProxyTitleConfigured": "Proxy configurat: {host}",
+    "inheritConnectionOption": "Fără proxy propriu (moștenește conexiunea)",
+    "inheritedProxy": "Moștenește conexiunea: {host}",
+    "inheritedPool": "Moștenește pool-ul de conexiuni ({count})",
+    "poolEmptyBlocked": "Pool gol — cererile eșuează (nu direct)",
+    "directEgress": "Direct (fără proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14244,7 +14287,12 @@
     "directNative": "Direct",
     "targetUrl": "URL țintă",
     "error": "Eroare",
-    "configuration": "Configurarea Proxy"
+    "configuration": "Configurarea Proxy",
+    "upstreamStatus": "Stare ascendentă",
+    "noResponse": "Fără răspuns",
+    "egressIp": "IP de ieșire",
+    "servedBy": "Servit de",
+    "correlationId": "ID de corelare"
   },
   "requestTimeline": {
     "title": "Cronologia Cererii",
