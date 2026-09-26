@@ -44,6 +44,8 @@ export interface SelectorSwitchInput {
   secret: string | null | undefined;
   selector: string;
   avoidName: string;
+  /** Extra member names to avoid (set-aside memory); additive with avoidName. */
+  avoidExtra?: string[];
 }
 
 type FetchLike = (
@@ -133,12 +135,20 @@ export async function getGroupMembers(
   }
 }
 
-function pickTarget(members: string[], avoidName: string, current: string | null): string | null {
+function pickTarget(
+  members: string[],
+  avoidName: string,
+  current: string | null,
+  avoidExtra?: string[]
+): string | null {
   // Target: first member that is neither the avoided member nor the current
   // choice. `avoidName` carries the set-aside entry's NAME when known (hook
   // path passes the egress key, which doubles as the match anchor) — the
   // current-choice exclusion guarantees progress even when names differ.
-  const avoid = new Set([avoidName, current].filter((x): x is string => !!x));
+  // `avoidExtra` carries set-aside member names from the refusal memory.
+  const avoid = new Set(
+    [avoidName, current, ...(avoidExtra ?? [])].filter((x): x is string => !!x)
+  );
   return members.find((m) => !avoid.has(m)) ?? null;
 }
 
@@ -171,7 +181,8 @@ async function putSelectorChoice(
 }
 /**
  * Switch a selector group away from `avoidName` to the first member that is
- * neither the current choice nor the avoided one. Never throws.
+ * neither the current choice nor the avoided one (plus any `avoidExtra`
+ * set-aside names). Never throws.
  */
 export async function switchSelector(
   input: SelectorSwitchInput,
@@ -184,7 +195,7 @@ export async function switchSelector(
     fetchFn,
   });
   if (reason !== "ok") return { switched: false, reason };
-  const target = pickTarget(members, input.avoidName, current);
+  const target = pickTarget(members, input.avoidName, current, input.avoidExtra);
   if (!target) return { switched: false, reason: "no-target" };
   return putSelectorChoice(fetchFn, input.controlUrl, input.selector, input.secret, target);
 }

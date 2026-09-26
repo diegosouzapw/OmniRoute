@@ -1,0 +1,1 @@
+- **fix(proxies):** local-core selector switches land on members without recent refusals, falling back to the least recently set-aside member ([#14804](https://github.com/diegosouzapw/OmniRoute/pull/14804)) — thanks @maxmad64bis
