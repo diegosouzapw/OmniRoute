@@ -1607,6 +1607,19 @@ test("isAccountDeactivated still matches built-in signals when custom list is em
   assert.equal(isAccountDeactivated("rate limit exceeded, retry later"), false);
 });
 
+test("isAccountDeactivated does NOT treat transient 'verify your account to continue' as permanent deactivation", () => {
+  setCustomBannedSignals([]);
+  assert.equal(
+    isAccountDeactivated("verify your account to continue"),
+    false,
+    "'verify your account to continue' must NOT trigger permanent deactivation"
+  );
+  assert.equal(
+    isAccountDeactivated("Error: Please verify your account to continue with Google Cloud Code"),
+    false
+  );
+});
+
 test("isAccountDeactivated matches a custom signal after setCustomBannedSignals", () => {
   setCustomBannedSignals([]);
   // Before registration the custom phrase is not a ban signal
