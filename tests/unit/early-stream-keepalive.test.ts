@@ -692,3 +692,42 @@ test("deadline token registry returns to its original size after N requests", as
     "a released token must not resolve through the header fallback"
   );
 });
+
+// Regression guard for the #14808 incident (2026-09-26): under the Next.js
+// App Router, inbound route requests are Proxies around the real request
+// (dynamic "auto" rendering). `withDeadlineSignal` must NOT pass the proxy
+// itself as the `new Request` constructor input — undici reads `#state` on
+// the receiver and ECMAScript mandates that a Proxy has no private-field
+// slots, so the wrap throws
+// "TypeError: Cannot read private member #state from an object whose class
+// did not declare it". The wrap is built field-by-field instead; this test
+// pins that form. Bug-injection check: restoring `new Request(request, …)`
+// makes this test throw (verified during review).
+test("withDeadlineSignal wraps a Next-style proxied request without throwing", async () => {
+  const body = JSON.stringify({ model: "space-grok", messages: [{ role: "user", content: "hi" }] });
+  const req = new Request("http://localhost/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Custom": "keep-me" },
+    body,
+  });
+  // Mirror the Next.js app-route runtime trap: every get forwards with the
+  // receiver forced to the target (not the proxy), which is what makes
+  // property reads safe while native private-field access on the proxy
+  // receiver is not.
+  const proxied = new Proxy(req, {
+    get(target, prop, _receiver) {
+      return Reflect.get(target, prop, target);
+    },
+  });
+  const { wrappedReq, deadlineController } = withDeadlineSignal(proxied);
+  assert.equal(wrappedReq.method, "POST");
+  assert.equal(wrappedReq.url, "http://localhost/v1/chat/completions");
+  assert.equal(wrappedReq.headers.get("Content-Type"), "application/json");
+  assert.equal(wrappedReq.headers.get("X-Custom"), "keep-me");
+  assert.ok(wrappedReq.headers.get("x-deadline-token") !== null);
+  // Body survived the wrap and is readable end-to-end.
+  const text = await wrappedReq.text();
+  assert.equal(text, body);
+  // The deadline token mechanism still resolves the controller downstream.
+  assert.equal(getDeadlineController({ headers: wrappedReq.headers }), deadlineController);
+});
