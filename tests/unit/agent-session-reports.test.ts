@@ -108,9 +108,36 @@ test("read-time report cost matches the write-time session cost for the same req
   assert.equal(report.totals.sessions, 2);
   assert.equal(report.totals.members, 2);
   assert.equal(report.totals.projects, 2);
-  assert.equal(report.totals.tokens.total, 4 * (1000 + 500 + 200));
+  // Stored input already includes the 200 cached tokens, so the total is input + output.
+  assert.equal(report.totals.tokens.total, 4 * (1000 + 500));
   assert.ok(report.totals.costUsd > 0);
   assert.ok(Math.abs(report.totals.costUsd - sessionCost) < 1e-9);
+});
+
+function csvColumn(csv: string, column: string): string[] {
+  const [header, ...rows] = csv.trim().split("\n");
+  const index = header.split(",").indexOf(column);
+  assert.ok(index >= 0, `missing CSV column ${column}`);
+  return rows.map((row) => row.split(",")[index]);
+}
+
+test("breakdown and CSV token totals count cached input once", async () => {
+  // Bob: two requests of 1000 input (200 of them cached) and 500 output.
+  const { breakdowns } = await buildAgentSessionReport({ apiKeyId: "key-bob" });
+  const [bob] = breakdowns.members;
+  assert.equal(bob.tokens.cacheRead, 400);
+  assert.equal(bob.tokens.total, 2 * (1000 + 500));
+
+  const membersCsv = await (
+    await getExport(reportRequest("/api/reports/export?type=members&apiKeyId=key-bob"))
+  ).text();
+  assert.deepEqual(csvColumn(membersCsv, "tokens_total"), ["3000"]);
+  assert.deepEqual(csvColumn(membersCsv, "tokens_cache_read"), ["400"]);
+
+  const sessionsCsv = await (
+    await getExport(reportRequest("/api/reports/export?type=sessions&apiKeyId=key-bob"))
+  ).text();
+  assert.deepEqual(csvColumn(sessionsCsv, "tokens_total"), ["3000"]);
 });
 
 // Seen on production 2026-09-25: the report showed 160 unpriced requests where the sessions

@@ -100,13 +100,14 @@ class TotalsAccumulator {
   }
 
   toTotals(): ReportTotals {
-    const { input, output, cacheRead, cacheCreation } = this.tokens;
+    // Stored input already includes cache reads and writes; adding them again double counts.
+    const { input, output } = this.tokens;
     return {
       requests: this.requests,
       errors: this.errors,
       unpricedRequests: this.unpricedRequests,
       costUsd: Number(this.costUsd.toFixed(6)),
-      tokens: { ...this.tokens, total: input + output + cacheRead + cacheCreation },
+      tokens: { ...this.tokens, total: input + output },
       sessions: this.sessions.size,
       members: this.members.size,
       projects: this.projects.size,
