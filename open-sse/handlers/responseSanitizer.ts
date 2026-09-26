@@ -58,6 +58,10 @@ const RESPONSES_EXTRA_TOP_LEVEL_FIELDS = [
   "server_side_tool_usage_details",
   "server_side_tool_usage",
   "cost_in_usd_ticks",
+  // Why the response stopped early. Dropping it leaves status:"incomplete"
+  // with no reason, so a client (and rememberResponseState) cannot tell a
+  // max_output_tokens truncation from a content_filter stop.
+  "incomplete_details",
 ] as const;
 
 type JsonRecord = Record<string, unknown>;
@@ -1095,7 +1099,10 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
 
   // Fast-path: check if any mutations would actually be needed
   // Most passthrough chunks (content deltas) need no sanitization
-  const needsIdNormalization = parsedRecord.id !== undefined && parsedRecord.id !== null && typeof parsedRecord.id !== "string";
+  const needsIdNormalization =
+    parsedRecord.id !== undefined &&
+    parsedRecord.id !== null &&
+    typeof parsedRecord.id !== "string";
   const hasChoices = Array.isArray(parsedRecord.choices) && parsedRecord.choices.length > 0;
   const hasUsage = parsedRecord.usage !== undefined;
   const hasSystemFingerprint = parsedRecord.system_fingerprint !== undefined;

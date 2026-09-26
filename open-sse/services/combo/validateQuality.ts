@@ -828,7 +828,12 @@ export async function validateResponseQuality(
     if (!responsesApiOutputHasContent(json.output))
       return { valid: false, reason: "empty_choices" };
     const status = typeof json.status === "string" ? json.status : "";
-    if (status && !["completed", "done"].includes(status)) {
+    // Same terminal set as detectMalformedNonStream (diagnostics.ts). A combo
+    // whose members are a reasoning model returns status:"incomplete" on a
+    // small max_output_tokens; rejecting that here fails every target over
+    // and the client still sees 502 after the direct path was fixed.
+    // "canceled" matches the SSE parser fallback spelling.
+    if (status && !["completed", "done", "incomplete", "cancelled", "canceled"].includes(status)) {
       return { valid: false, reason: "no_terminal" };
     }
     return {

@@ -276,6 +276,72 @@ test("detectMalformedNonStream returns 'no_terminal' for Responses API with fail
   assert.equal(detectMalformedNonStream(body), "no_terminal");
 });
 
+// OpenAI Responses API spec: "incomplete" and "cancelled" are legal terminal
+// states (budget exhausted / cancelled upstream), not malformed bodies. A
+// non-streaming /v1/responses request with a small max_output_tokens on a
+// reasoning model deterministically produces status:"incomplete"; surfacing
+// that body to the client (like chat-completions finish_reason:"length")
+// is correct, while mapping it to 502 "did not reach a terminal state"
+// breaks every such request.
+test("detectMalformedNonStream passes Responses API incomplete status through", () => {
+  const body = {
+    object: "response",
+    status: "incomplete",
+    incomplete_details: { reason: "max_output_tokens" },
+    output: [
+      {
+        type: "message",
+        content: [{ type: "output_text", text: "Partial essay…" }],
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream passes Responses API cancelled status through", () => {
+  const body = {
+    object: "response",
+    status: "cancelled",
+    output: [
+      {
+        type: "message",
+        content: [{ type: "output_text", text: "Partial answer" }],
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+// parseSSEToResponsesOutput writes this spelling when the terminal event is
+// response.canceled and the snapshot omits status (sseParser.ts).
+test("detectMalformedNonStream passes the SSE parser's canceled spelling through", () => {
+  const body = {
+    object: "response",
+    status: "canceled",
+    output: [
+      {
+        type: "message",
+        content: [{ type: "output_text", text: "Bye" }],
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream still flags Responses API in_progress as no_terminal", () => {
+  const body = {
+    object: "response",
+    status: "in_progress",
+    output: [
+      {
+        type: "message",
+        content: [{ type: "output_text", text: "Mid-stream snapshot" }],
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), "no_terminal");
+});
+
 test("detectMalformedNonStream allows Responses API function_call items as valid output", () => {
   const body = {
     object: "response",

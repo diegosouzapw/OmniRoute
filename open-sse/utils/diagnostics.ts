@@ -222,7 +222,20 @@ export function detectMalformedNonStream(
       });
     if (!hasOutput) return "empty_choices";
     const status = typeof body.status === "string" ? body.status : "";
-    if (status && !["completed", "done"].includes(status)) return "no_terminal";
+    // OpenAI Responses spec: "incomplete" (budget exhausted — max_output_tokens
+    // / max_tool_calls) and "cancelled" are legal terminal states, not a body
+    // that never finished. A non-streaming /v1/responses call with a small
+    // max_output_tokens on a reasoning model deterministically returns
+    // status:"incomplete" with usable partial output; mapping that to 502
+    // "did not reach a terminal state" kills every such request (chat
+    // completions already surfaces the equivalent as finish_reason:"length").
+    // "canceled" is the spelling parseSSEToResponsesOutput writes when the
+    // terminal event is response.canceled and the snapshot omits status
+    // (sseParser.ts). "failed" stays malformed so describeMalformedNonStream
+    // can emit the upstream error message; "in_progress" / "queued" / anything
+    // else is still mid-flight.
+    if (status && !["completed", "done", "incomplete", "cancelled", "canceled"].includes(status))
+      return "no_terminal";
     return null;
   }
 

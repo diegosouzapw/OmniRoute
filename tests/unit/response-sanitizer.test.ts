@@ -299,9 +299,7 @@ test("sanitizeOpenAIResponse promotes reasoning_details text to reasoning_conten
           role: "assistant",
           content: "Visible answer",
           reasoning: "Hmm, let me think this through",
-          reasoning_details: [
-            { type: "reasoning.text", text: "Hmm, let me think this through" },
-          ],
+          reasoning_details: [{ type: "reasoning.text", text: "Hmm, let me think this through" }],
         },
       },
     ],
@@ -496,6 +494,25 @@ test("sanitizeResponsesApiResponse preserves native Responses payloads and usage
   assert.equal((sanitized as any).usage.output_tokens_details.reasoning_tokens, 3);
 });
 
+test("sanitizeResponsesApiResponse keeps incomplete_details on an incomplete body", () => {
+  const sanitized = sanitizeResponsesApiResponse({
+    id: "resp_trunc",
+    object: "response",
+    status: "incomplete",
+    incomplete_details: { reason: "max_output_tokens" },
+    output: [
+      {
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", text: "Partial" }],
+      },
+    ],
+  });
+  const body = sanitized as { status: string; incomplete_details: { reason: string } };
+  assert.equal(body.status, "incomplete");
+  assert.deepEqual(body.incomplete_details, { reason: "max_output_tokens" });
+});
+
 test("sanitizeResponsesApiResponse preserves native continuation reasoning state", () => {
   const plaintext = {
     id: "rs_plaintext",
@@ -634,9 +651,7 @@ test("sanitizeStreamingChunk promotes reasoning_details text when reasoning is a
   ).choices[0].delta;
   assert.equal(delta.reasoning, "thinking chunk");
   assert.equal(delta.reasoning_content, "thinking chunk");
-  assert.deepEqual(delta.reasoning_details, [
-    { type: "reasoning.text", text: "thinking chunk" },
-  ]);
+  assert.deepEqual(delta.reasoning_details, [{ type: "reasoning.text", text: "thinking chunk" }]);
 });
 
 test("sanitizeStreamingChunk preserves and mirrors Copilot reasoning_text deltas", () => {
