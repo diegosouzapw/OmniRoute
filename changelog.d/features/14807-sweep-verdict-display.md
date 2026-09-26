@@ -1,0 +1,1 @@
+- **feat(proxy-health):** the proxy health cell shows the last sweep verdict with cause and age ([#14807](https://github.com/diegosouzapw/OmniRoute/pull/14807)) — thanks @maxmad64bis
