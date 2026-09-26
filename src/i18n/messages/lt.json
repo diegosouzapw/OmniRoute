@@ -1902,7 +1902,14 @@
     "readinessStep3": "Nukopijuokite savo galinį tašką",
     "readinessStep4": "Išsiųskite testinę užklausą",
     "readinessContinue": "Tęsti sąranką",
-    "readinessDismiss": "Kol kas paslėpti"
+    "readinessDismiss": "Kol kas paslėpti",
+    "unpricedUsageTitle": "{count, plural, one {# modelis} few {# modeliai} many {# modelių} other {# modelių}} su nesenu naudojimu, bet be nustatytos kainos",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API raktas su naudojimo limitu} few {# API raktai su naudojimo limitu} many {# API raktų su naudojimo limitu} other {# API raktų su naudojimo limitu}} naudojo šiuos modelius per paskutines 8 dienas. Kol tas naudojimas patenka į rakto dieninio arba savaitinio lango ribas, raktas laikomas viršijus kvotą ir jo užklausos blokuojamos (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Šis naudojimas skaičiuojamas kaip $0 į kiekvieno rakto naudojimo limitus (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# užklausa} few {# užklausos} many {# užklausų} other {# užklausų}}, {keys, plural, one {# ribotas raktas} few {# riboti raktai} many {# ribotų raktų} other {# ribotų raktų}}",
+    "unpricedUsageMore": "…ir dar {count}",
+    "unpricedUsageConfigure": "Nustatyti kainodarą",
+    "unpricedUsageDismiss": "Atmesti"
   },
   "analytics": {
     "title": "Analitika",
@@ -13088,7 +13095,9 @@
       "disabled": "Išjungta",
       "dual": "Dvigubas",
       "alias": "Pseudonimas",
-      "canonical": "Kanoninis"
+      "canonical": "Kanoninis",
+      "fail_closed": "Blokuoti (fail_closed)",
+      "count_as_zero": "Skaičiuoti kaip $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Apsaugoto prioriteto infrastruktūros sustabdymai pateikiami kaip 502",
         "description": "Grąžinti 502, o ne 503, kai prioritetinis tik atsarginiam perėjimui dėl kvotos skirtas tikslas sustabdo derinį dėl priežasties, kuri akivaizdžiai nesusijusi su kvota: atviro teikėjo grandinės pertraukiklio arba praleidimo dėl prognozuojamos delsos."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Neįkainoto naudojimo biudžeto politika",
+        "description": "Kaip kiekvieno rakto dieniniai/savaitiniai USD limitai traktuoja sėkmingą naudojimą, kurio tiekėjas ar modelis neturi kainos įrašo. fail_closed (numatytasis) pažymi langą kaip viršytą, todėl nežinoma kaina niekada nepraslys per griežtą ribą. count_as_zero skaičiuoja tą naudojimą kaip $0 ir toliau taiko apribojimus pagal apibrėžtas kainas. Neįkainoti modeliai bet kuriuo atveju yra išvardyti pagrindiniame informacijos suvestinės puslapyje."
       }
     }
   },

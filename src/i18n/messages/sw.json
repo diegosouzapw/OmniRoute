@@ -1902,7 +1902,14 @@
     "readinessStep3": "Nakili endpoint yako",
     "readinessStep4": "Tuma ombi la majaribio",
     "readinessContinue": "Endelea na usanidi",
-    "readinessDismiss": "Ficha kwa sasa"
+    "readinessDismiss": "Ficha kwa sasa",
+    "unpricedUsageTitle": "{count, plural, one {# modeli iliyotumika hivi karibuni lakini haina bei iliyowekwa} other {# modeli zilizotumika hivi karibuni lakini hazina bei zilizowekwa}}",
+    "unpricedUsageFailClosed": "{keys, plural, one {# ufunguo wa API wenye kikomo cha matumizi umetumia modeli hizi katika siku 8 zilizopita. Wakati matumizi hayo yako ndani ya dirisha la kila ufunguo la kila siku au la kila wiki, ufunguo unachukuliwa kuwa umevuka kikomo na maombi yake yamezuiliwa (UNPRICED_USAGE_BUDGET_POLICY=fail_closed)} other {# funguo za API zenye kikomo cha matumizi zimetumia modeli hizi katika siku 8 zilizopita. Wakati matumizi hayo yako ndani ya dirisha la kila ufunguo la kila siku au la kila wiki, funguo hizo zinachukuliwa kuwa zimevuka kikomo na maombi yao yamezuiliwa (UNPRICED_USAGE_BUDGET_POLICY=fail_closed)}}",
+    "unpricedUsageCountAsZero": "Matumizi haya yamehesabiwa kama $0 kwa ajili ya vikwazo vya matumizi vya kila ufunguo (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# ombi} other {# maombi}}, {keys, plural, one {# ufunguo lenye kikomo} other {# funguo zenye kikomo}}",
+    "unpricedUsageMore": "…na {count} zaidi",
+    "unpricedUsageConfigure": "Sanidi bei",
+    "unpricedUsageDismiss": "Puuza"
   },
   "analytics": {
     "title": "Uchanganuzi",
@@ -13088,7 +13095,9 @@
       "disabled": "Imezimwa",
       "dual": "Mbili",
       "alias": "Lakabu",
-      "canonical": "Kanuni"
+      "canonical": "Kanuni",
+      "fail_closed": "Zuia (fail_closed)",
+      "count_as_zero": "Hesabu kama $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Kusimamishwa kwa Miundombinu ya Kipaumbele Kilicholindwa kama 502",
         "description": "Jibu 502 badala ya 503 wakati lengo la kipaumbele lenye mbadala wa mgawo pekee linaposimamisha mseto kwa sababu ambayo kwa hakika si mgawo: kivunja saketi cha mtoa huduma kilicho wazi au urukaji unaotabiriwa kutokana na muda wa kusubiri."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Sera ya bajeti ya matumizi isiyo na bei",
+        "description": "Jinsi vikwazo vya USD vya kila ufunguo vya kila siku/kila wiki vinavyoshughulikia matumizi yaliyofanikiwa ambayo muuzaji/modeli hana safu ya bei. fail_closed (chaguo-msingi) inaweka dirisha kuwa limevuka, kwa hivyo gharama isiyojulikana haiwezi kupita kikomo thabiti. count_as_zero inahesabu matumizi hayo kama $0 na inaendelea kutekeleza matumizi yenye bei. Modeli zisizo na bei zinaorodheshwa kwenye ukurasa wa nyumbani wa dashibodi kwa njia yoyote."
       }
     }
   },

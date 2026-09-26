@@ -1902,7 +1902,14 @@
     "readinessStep3": "Copiază endpointul",
     "readinessStep4": "Trimite o solicitare de test",
     "readinessContinue": "Continuă configurarea",
-    "readinessDismiss": "Ascunde pentru moment"
+    "readinessDismiss": "Ascunde pentru moment",
+    "unpricedUsageTitle": "{count, plural, one {# model} other {# modele}} cu utilizare recentă dar fără preț configurat",
+    "unpricedUsageFailClosed": "{keys, plural, one {# cheie API cu o limită de utilizare} other {# chei API cu o limită de utilizare}} au folosit aceste modele în ultimele 8 zile. Când acea utilizare se încadrează în fereastra zilnică sau săptămânală a unei chei, cheia este considerată depășită de cotă și cererile sale sunt blocate (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Această utilizare este considerată $0 pentru limitele de utilizare pe cheie (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# cerere} other {# cereri}}, {keys, plural, one {# cheie limitată} other {# chei limitate}}",
+    "unpricedUsageMore": "…și încă {count}",
+    "unpricedUsageConfigure": "Configurează prețurile",
+    "unpricedUsageDismiss": "Închide"
   },
   "analytics": {
     "title": "Analiză",
@@ -13088,7 +13095,9 @@
       "disabled": "Dezactivat",
       "dual": "Dublu",
       "alias": "Alias",
-      "canonical": "Canonic"
+      "canonical": "Canonic",
+      "fail_closed": "Blochează (fail_closed)",
+      "count_as_zero": "Contabilizează ca $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Opriri de infrastructură cu prioritate protejată returnate ca 502",
         "description": "Răspunde cu 502 în loc de 503 atunci când o țintă prioritară cu fallback exclusiv pentru cotă oprește combinația dintr-o cauză care, în mod demonstrabil, nu ține de cotă: un întrerupător de circuit deschis al furnizorului sau o omitere predictivă bazată pe latență."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Politica bugetului pentru utilizare fără preț",
+        "description": "Cum tratează limitele zilnice/săptămânale în USD pe cheie utilizarea reușită pentru care furnizorul/modelul nu are o linie de preț. fail_closed (implicit) marchează fereastra ca depășită, astfel încât un cost necunoscut să nu poată trece peste un plafon strict. count_as_zero contabilizează acea utilizare ca $0 și continuă să aplice cheltuielile cu preț. Modelele fără preț sunt listate oricum pe pagina principală a tabloului de bord."
       }
     }
   },

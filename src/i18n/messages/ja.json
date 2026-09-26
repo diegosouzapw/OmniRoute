@@ -1902,7 +1902,14 @@
     "readinessStep3": "エンドポイントをコピー",
     "readinessStep4": "テストリクエストを送信",
     "readinessContinue": "セットアップを続ける",
-    "readinessDismiss": "今は閉じる"
+    "readinessDismiss": "今は閉じる",
+    "unpricedUsageTitle": "{count, plural, other {#個のモデルに最近の利用がありますが、価格が設定されていません}}",
+    "unpricedUsageFailClosed": "{keys, plural, other {利用上限が設定された API キー #個}}が、過去 8 日間にこれらのモデルを使用しました。その利用がキーの日次または週次の集計期間内にある間、そのキーはクォータ超過と見なされ、リクエストはブロックされます（UNPRICED_USAGE_BUDGET_POLICY=fail_closed）。",
+    "unpricedUsageCountAsZero": "この利用は、キーごとの利用上限に対して $0 として計上されます（UNPRICED_USAGE_BUDGET_POLICY=count_as_zero）。",
+    "unpricedUsageModelStats": "{requests, plural, other {#件のリクエスト}}、{keys, plural, other {上限付きキー #個}}",
+    "unpricedUsageMore": "…ほか {count} 件",
+    "unpricedUsageConfigure": "価格を設定",
+    "unpricedUsageDismiss": "閉じる"
   },
   "analytics": {
     "title": "分析",
@@ -13088,7 +13095,9 @@
       "disabled": "無効",
       "dual": "デュアル",
       "alias": "エイリアス",
-      "canonical": "カノニカル"
+      "canonical": "カノニカル",
+      "fail_closed": "ブロック (fail_closed)",
+      "count_as_zero": "$0 として計上 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "保護優先度のインフラ停止を 502 として処理",
         "description": "クォータ枯渇時のみフォールバックする優先ターゲットが、クォータ以外であることが明確に証明できる原因（プロバイダーのサーキットブレーカーが開いている、または予測レイテンシによるスキップ）でコンボを停止した場合、503 ではなく 502 を返します。"
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "価格未設定の利用に対する予算ポリシー",
+        "description": "プロバイダー/モデルに価格設定がない成功した利用を、キーごとの日次/週次 USD 上限でどう扱うかを決めます。fail_closed（既定）はその期間を上限超過として扱い、不明なコストがハード上限をすり抜けないようにします。count_as_zero はその利用を $0 として計上し、価格が設定された支出には引き続き上限を適用します。どちらの場合も、価格未設定のモデルはダッシュボードのホームに一覧表示されます。"
       }
     }
   },

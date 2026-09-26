@@ -1902,7 +1902,14 @@
     "readinessStep3": "Kopiera din slutpunkt",
     "readinessStep4": "Skicka en testförfrågan",
     "readinessContinue": "Fortsätt konfigurationen",
-    "readinessDismiss": "Avfärda tills vidare"
+    "readinessDismiss": "Avfärda tills vidare",
+    "unpricedUsageTitle": "{count, plural, one {# modell} other {# modeller}} med nylig användning men utan konfigurerat pris",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API-nyckel med en användningsgräns} other {# API-nycklar med en användningsgräns}} använde dessa modeller de senaste 8 dagarna. Medan den användningen ligger inom en nyckels dagliga eller veckovisa period betraktas nyckeln som över kvoten och dess förfrågningar blockeras (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Denna användning räknas som $0 mot per-nyckel användningsgränser (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# begäran} other {# begäranden}}, {keys, plural, one {# begränsad nyckel} other {# begränsade nycklar}}",
+    "unpricedUsageMore": "…och {count} till",
+    "unpricedUsageConfigure": "Konfigurera prissättning",
+    "unpricedUsageDismiss": "Stäng"
   },
   "analytics": {
     "title": "Analys",
@@ -13088,7 +13095,9 @@
       "disabled": "Inaktiverad",
       "dual": "Dubbel",
       "alias": "Alias",
-      "canonical": "Kanonisk"
+      "canonical": "Kanonisk",
+      "fail_closed": "Blockera (fail_closed)",
+      "count_as_zero": "Räkna som $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Infrastrukturstopp för skyddad prioritet som 502",
         "description": "Svara med 502 i stället för 503 när ett prioritetsmål med en reserv som endast används vid kvotfel stoppar kombinationen av en orsak som bevisligen inte är kvotrelaterad: en öppen kretsbrytare hos leverantören eller ett prediktivt latensbaserat överhopp."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Policy för oprissad användningsbudget",
+        "description": "Hur per-nyckel dagliga/veckovisa USD-gränser behandlar lyckad användning vars leverantör/modell inte har någon prisrad. fail_closed (standard) markerar perioden som överskriden, så att en okänd kostnad aldrig kan smyga förbi ett hårt tak. count_as_zero räknar den användningen som $0 och fortsätter att tillämpa den prissatta förbrukningen. Oprissatta modeller listas på instrumentpanelens startsida i båda fallen."
       }
     }
   },

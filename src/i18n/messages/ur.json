@@ -1902,7 +1902,14 @@
     "readinessStep3": "اپنا اینڈ پوائنٹ کاپی کریں",
     "readinessStep4": "آزمائشی درخواست بھیجیں",
     "readinessContinue": "سیٹ اپ جاری رکھیں",
-    "readinessDismiss": "ابھی کے لیے بند کریں"
+    "readinessDismiss": "ابھی کے لیے بند کریں",
+    "unpricedUsageTitle": "{count, plural, one {# ماڈل} other {# ماڈلز}} جن کا حالیہ استعمال ہوا ہے مگر کوئی قیمت مرتب نہیں ہے",
+    "unpricedUsageFailClosed": "{keys, plural, one {# حدِ استعمال والی API کلید} other {# حدِ استعمال والی API کلیدیں}} نے پچھلے 8 دنوں میں یہ ماڈلز استعمال کیے۔ جب یہ استعمال کلید کے روزانہ یا ہفتہ وار دورانیہ کے اندر ہوتا ہے، تو اسے کوٹا سے تجاوز کیا ہوا سمجھا جاتا ہے اور اس کی درخواستیں بلاک کر دی جاتی ہیں (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "یہ استعمال فی کلید استعمال کی حدود میں $0 شمار کیا جاتا ہے (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# درخواست} other {# درخواستیں}}, {keys, plural, one {# محدود کلید} other {# محدود کلیدیں}}",
+    "unpricedUsageMore": "…اور {count} مزید",
+    "unpricedUsageConfigure": "قیمت مقرر کریں",
+    "unpricedUsageDismiss": "رد کریں"
   },
   "analytics": {
     "title": "تجزیات",
@@ -13088,7 +13095,9 @@
       "disabled": "غیر فعال",
       "dual": "دوہرا",
       "alias": "عرف",
-      "canonical": "معیاری"
+      "canonical": "معیاری",
+      "fail_closed": "بلاک کریں (fail_closed)",
+      "count_as_zero": "اسے $0 شمار کریں (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "محفوظ ترجیحی انفرا کی بندشیں بطور 502",
         "description": "جب صرف کوٹے کے فال بیک والا ترجیحی ہدف کسی ایسی وجہ سے کومبو روک دے جو ثابت شدہ طور پر کوٹے سے متعلق نہ ہو—یعنی کھلا ہوا پرووائیڈر سرکٹ بریکر یا پیش گوئی کی بنیاد پر لیٹنسی اسکیپ—تو 503 کے بجائے 502 جواب دیں۔"
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "بغیر قیمت استعمال بجٹ پالیسی",
+        "description": "یہ بتاتا ہے کہ فی کلید روزانہ/ہفتہ وار USD حدود اُن کامیاب استعمالات کو کیسے سلوک دیتی ہیں جن کے فراہم کنندہ/ماڈل کے لیے قیمت کا اندراج موجود نہیں۔ fail_closed (پہلے سے طے شدہ) ونڈو کو تجاوز شدہ نشان زد کرتا ہے، تاکہ نامعلوم لاگت کبھی بھی ہارڈ کیپ کے پار نہ نکل سکے۔ count_as_zero اس استعمال کو $0 شمار کرتا ہے اور قیمت شدہ اخراجات پر عمل درآمد جاری رکھتا ہے۔ بہرحال بغیر قیمت ماڈلز ہر صورت ڈیش بورڈ ہوم پیج پر فہرست کیے جاتے ہیں۔"
       }
     }
   },

@@ -1902,7 +1902,14 @@
     "readinessStep3": "ඔබගේ අන්ත ලක්ෂ්යය පිටපත් කරන්න",
     "readinessStep4": "පරීක්ෂණ ඉල්ලීමක් යවන්න",
     "readinessContinue": "පිහිටුවීම දිගටම කරගෙන යන්න",
-    "readinessDismiss": "දැනට නොසලකා හරින්න"
+    "readinessDismiss": "දැනට නොසලකා හරින්න",
+    "unpricedUsageTitle": "{count, plural, one {# මොඩලයක්} other {# මොඩල}} මෑත භාවිතයක් තිබුණත් මිල සකස් කර නොමැත",
+    "unpricedUsageFailClosed": "{keys, plural, one {# භාවිත සීමාවක් ඇති API යතුරක්} other {# භාවිත සීමාවක් ඇති API යතුරු}} මේ මොඩල් අවසන් 8 දිනවල භාවිත කර ඇත. එම භාවිතය යතුරක දෛනික හෝ සතිපතා කවුළුවට අතුලු වන විට, යතුර කෝටාව ඉක්මවා ගොස් ඇති ලෙස සැලකෙයි සහ එහි ඉල්ලීම් අවහිර කෙරේ (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "මෙම භාවිතය යතුරු අනුව වන භාවිත සීමාවන්ට $0 ලෙස ගණනය වේ (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# ඉල්ලීම} other {# ඉල්ලීම්}}, {keys, plural, one {# සීමිත යතුරක්} other {# සීමිත යතුරු}}",
+    "unpricedUsageMore": "…සහ තව {count}ක්",
+    "unpricedUsageConfigure": "මිල සකස් කරන්න",
+    "unpricedUsageDismiss": "අවලංගු කරන්න"
   },
   "analytics": {
     "title": "විශ්ලේෂණ",
@@ -13088,7 +13095,9 @@
       "disabled": "අබල කර ඇත",
       "dual": "ද්විත්ව",
       "alias": "අන්වර්ථ නාමය",
-      "canonical": "සම්මත"
+      "canonical": "සම්මත",
+      "fail_closed": "අවහිර කරන්න (fail_closed)",
+      "count_as_zero": "$0 ලෙස ගණන් කරන්න (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "ආරක්ෂිත-ප්රමුඛතා යටිතල පහසුකම් නැවතුම් 502 ලෙස",
         "description": "කෝටා පමණක් භාවිත කරන fallback ප්රමුඛතා ඉලක්කයක්, කෝටාව නිසා නොවන බව නිශ්චිතව ඔප්පු කළ හැකි හේතුවක් මත combo එක නවත්වන විට 503 වෙනුවට 502 ලෙස පිළිතුරු දෙන්න: විවෘත සපයන්නාගේ circuit breaker එකක් හෝ පුරෝකථන ප්රමාද මඟහැරීමක්."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "මිල සකස් නොකළ භාවිත බජට් ප්‍රතිපත්තිය",
+        "description": "යතුරකට දෛනික/සाप्तාහික USD සීමා සපයන්නා/මොඩලය සඳහා මිල පේළියක් නොමැති වූ විට එම සීමා ඒ භාවිතය කෙසේ ප්‍රතිකාර කරන්නේද යන්න. fail_closed (පෙරනිමි) කවුළුව ඉක්මවා ගොස් ඇති ලෙස සලකයි, එනිසා අනතුරු ඇත්නම් වියදම් දැඩි සීමාවක් හරහා යා නොහැක. count_as_zero එම භාවිතය $0 ලෙස ගණනය කරමිල සකස් කළ වියදම ක්‍රියාත්මක තබයි. මිල සකස් නොකළ මොඩල් ඕනෑම අවස්ථාවකම ඩෑෂ්බෝර්ඩ් මුල් පිටුවේ ලැයිස්තුගත වේ."
       }
     }
   },

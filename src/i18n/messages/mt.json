@@ -1902,7 +1902,14 @@
     "readinessStep3": "Ikkopja l-endpoint tiegħek",
     "readinessStep4": "Ibgħat talba ta’ prova",
     "readinessContinue": "Kompli l-konfigurazzjoni",
-    "readinessDismiss": "Agħlaq għalissa"
+    "readinessDismiss": "Agħlaq għalissa",
+    "unpricedUsageTitle": "{count, plural, one {# modell} other {# mudelli}} b’użu reċenti iżda mingħajr prezz kkonfigurat",
+    "unpricedUsageFailClosed": "{keys, plural, one {# ċavetta API b’limitu ta’ użu} other {# ċwievet API b’limitu ta’ użu}} użaw dawn il-mudelli fl-aħħar 8 ijiem. Waqt li dak l-użu huwa fil-perjodu ta’ kuljum jew ta’ kull ġimgħa tal-ċavetta, iċ-ċavetta titqies bħala mgħaddija mill-limitu u t-talbiet tagħha jiġu mblukkati (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Dak l-użu jinżel bħala $0 lejn il-limiti ta’ użu għal kull ċavetta (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# talba} other {# talbiet}}, {keys, plural, one {# ċavetta limitata} other {# ċwievet limitati}}",
+    "unpricedUsageMore": "…u {count} aktar",
+    "unpricedUsageConfigure": "Ikkonfigura prezzijiet",
+    "unpricedUsageDismiss": "Għalaq"
   },
   "analytics": {
     "title": "Analitika",
@@ -13088,7 +13095,9 @@
       "disabled": "Diżattivat",
       "dual": "Doppju",
       "alias": "Isem alternattiv",
-      "canonical": "Kanoniku"
+      "canonical": "Kanoniku",
+      "fail_closed": "Imblokka (fail_closed)",
+      "count_as_zero": "Ikkontabilizza bħala $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Waqfiet tal-Infrastruttura bi Prijorità Protetta bħala 502",
         "description": "Wieġeb b’502 minflok 503 meta mira ta’ prijorità b’fallback għall-kwota biss twaqqaf il-combo għal kawża li jista’ jiġi ppruvat li mhijiex relatata mal-kwota: circuit breaker miftuħ tal-fornitur jew qbiż predittiv minħabba l-latenza."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Politika tal-baġit għall-użu mingħajr prezz",
+        "description": "Kif il-limiti USD ta’ kuljum/ta’ kull ġimgħa għal kull ċavetta jitrattaw użu b’suċċess li l-fornitur/mudell tiegħu m’għandux riga ta’ prezz. fail_closed (predefinit) jimmarka l-perjodu bħala mgħaddija mill-limitu, sabiex spiża mhux magħrufa qatt ma tista’ tgħaddi mill-limitu strett. count_as_zero jikkontabilizza dak l-użu bħala $0 u jkompli jissalvagwardja l-ispejjeż b’prezz. Il-mudelli mingħajr prezz huma elenkati fil-paġna ewlenija tad-dashboard f’kull każ."
       }
     }
   },

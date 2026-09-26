@@ -1902,7 +1902,14 @@
     "readinessStep3": "Kwafi endpoint ɗinka",
     "readinessStep4": "Aika buƙatar gwaji",
     "readinessContinue": "Ci gaba da saiti",
-    "readinessDismiss": "Yi watsi da shi a yanzu"
+    "readinessDismiss": "Yi watsi da shi a yanzu",
+    "unpricedUsageTitle": "{count, plural, one {# samfur} other {# samfura}} tare da amfani kwanan nan amma ba a saita farashi ba",
+    "unpricedUsageFailClosed": "{keys, plural, one {# maɓallin API da ke da iyaka na amfani} other {# maɓallan API da ke da iyaka na amfani}} an yi amfani da waɗannan samfura a cikin kwanaki 8 da suka wuce. Yayin da wannan amfani yake cikin taga na kullum ko mako-mako na maɓalli, ana ɗaukar maɓallin a matsayin ya wuce ƙima kuma ana toshe buƙatunsa (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Wannan amfani ana ƙididdige shi a matsayin $0 wajen iyakokin amfani na kowane maɓalli (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# buƙata} other {# buƙatu}}, {keys, plural, one {# maɓalli mai iyaka} other {# maɓallan masu iyaka}}",
+    "unpricedUsageMore": "…da {count} ƙari",
+    "unpricedUsageConfigure": "Saita farashi",
+    "unpricedUsageDismiss": "Rufe"
   },
   "analytics": {
     "title": "Nazari",
@@ -13088,7 +13095,9 @@
       "disabled": "An kashe",
       "dual": "Nau'i biyu",
       "alias": "Laƙabi",
-      "canonical": "Na asali"
+      "canonical": "Na asali",
+      "fail_closed": "Toshe (fail_closed)",
+      "count_as_zero": "Ƙidaya a Matsayin $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Tsayawar Infra na Protected-Priority a matsayin 502",
         "description": "A ba da amsar 502 maimakon 503 lokacin da maƙasudin fifiko na quota-only-fallback ya dakatar da combo saboda dalilin da aka tabbatar ba quota ba ne: buɗaɗɗen circuit breaker na provider ko tsallakewa bisa hasashen latency."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Manufa ta Kasafin Amfani Maras Farashi",
+        "description": "Yadda iyakokin USD na kullum/mako-mako na kowane maɓalli ke ɗaukar amfani mai nasara idan mai samarwa ko samfurin ba su da layin farashi. fail_closed (na asali) yana alamar cewa taga ya wuce ƙima, don haka farashin da ba a sani ba ba zai taɓa wuce iyaka mai tsauri ba. count_as_zero yana ƙididdige wannan amfani a matsayin $0 kuma yana ci gaba da tilasta kashe kuɗin da aka saita. A kowane hali, an jera samfura maras farashi a shafin gida na dashboard."
       }
     }
   },

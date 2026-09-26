@@ -1902,7 +1902,14 @@
     "readinessStep3": "Kopēt savu galapunktu",
     "readinessStep4": "Nosūtīt testa pieprasījumu",
     "readinessContinue": "Turpināt iestatīšanu",
-    "readinessDismiss": "Pagaidām paslēpt"
+    "readinessDismiss": "Pagaidām paslēpt",
+    "unpricedUsageTitle": "{count, plural, one {# modelis} other {# modeļi}} ar nesenu izmantojumu, bet bez konfigurētas cenas",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API atslēga ar lietošanas ierobežojumu} other {# API atslēgas ar lietošanas ierobežojumu}} izmantoja šos modeļus pēdējās 8 dienās. Kamēr šī izmantošana ietilpst atslēgas diennakts vai nedēļas periodā, atslēga tiek uzskatīta par pārsniegušu kvotu un tās pieprasījumi tiek bloķēti (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Šo izmantošanu uzskaita kā $0 attiecībā uz viena atslēgas lietošanas ierobežojumiem (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# pieprasījums} other {# pieprasījumi}}, {keys, plural, one {# ierobežota atslēga} other {# ierobežotas atslēgas}}",
+    "unpricedUsageMore": "…un vēl {count}",
+    "unpricedUsageConfigure": "Konfigurēt cenas",
+    "unpricedUsageDismiss": "Aizvērt"
   },
   "analytics": {
     "title": "Analītika",
@@ -13088,7 +13095,9 @@
       "disabled": "Atspējots",
       "dual": "Divkāršs",
       "alias": "Pseidonīms",
-      "canonical": "Kanonisks"
+      "canonical": "Kanonisks",
+      "fail_closed": "Bloķēt (fail_closed)",
+      "count_as_zero": "Uzskaitīt kā $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Aizsargātās prioritātes infrastruktūras apturēšana kā 502",
         "description": "Atbildēt ar 502, nevis 503, ja prioritārais mērķis ar rezerves variantu tikai kvotas izsmelšanas gadījumā aptur Combo tāda iemesla dēļ, kas pierādāmi nav saistīts ar kvotu: atvērts pakalpojumu sniedzēja ķēdes pārtraucējs vai izlaišana prognozēta latentuma dēļ."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Budžeta politika par necenotu izmantošanu",
+        "description": "Kā viena atslēgas diennakts vai nedēļas USD limiti izturas pret veiksmīgu izmantošanu, kurai pakalpojuma sniedzējam vai modelim nav cenas rindas. fail_closed (noklusējums) atzīmē logu kā pārsniegtu, tāpēc nezināmas izmaksas nekad nevar izsprukt ārpus stingra limita. count_as_zero uzskaita šo izmantošanu kā $0 un turpina piemērot cenas pamatotos izdevumus. Necenoti modeļi jebkurā gadījumā tiek parādīti paneļa sākumlapā."
       }
     }
   },

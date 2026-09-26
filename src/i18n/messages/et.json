@@ -1902,7 +1902,14 @@
     "readinessStep3": "Kopeeri oma lõpp-punkt",
     "readinessStep4": "Saada testpäring",
     "readinessContinue": "Jätka seadistamist",
-    "readinessDismiss": "Jäta praegu vahele"
+    "readinessDismiss": "Jäta praegu vahele",
+    "unpricedUsageTitle": "{count, plural, one {# mudel} other {# mudelit}} millel on hiljutine kasutus, kuid hinnakirja pole seadistatud",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API-võti, millel on kasutuslimiit} other {# API-võtit, millel on kasutuslimiit}} kasutasid neid mudeleid viimase 8 päeva jooksul. Kui see kasutus jääb võtme päevase või nädalase akna sisse, loetakse võti limiidi ületatuks ja selle päringud blokeeritakse (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "See kasutus arvestatakse per‑võtme kasutuslimiitide puhul kui $0 (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# päring} other {# päringut}}, {keys, plural, one {# piiratud võti} other {# piiratud võtit}}",
+    "unpricedUsageMore": "…ja veel {count}",
+    "unpricedUsageConfigure": "Määra hinnad",
+    "unpricedUsageDismiss": "Sulge"
   },
   "analytics": {
     "title": "Analüütika",
@@ -13088,7 +13095,9 @@
       "disabled": "Keelatud",
       "dual": "Mõlemad",
       "alias": "Alias",
-      "canonical": "Kanooniline"
+      "canonical": "Kanooniline",
+      "fail_closed": "Blokeeri (fail_closed)",
+      "count_as_zero": "Arvesta $0‑ks (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Kaitstud prioriteediga taristu peatamised kui 502",
         "description": "Vasta 503 asemel 502-ga, kui ainult kvoodipõhise varuvariandiga prioriteetne sihtmärk peatab combo põhjusel, mis pole tõendatavalt kvoodiga seotud: teenusepakkuja avatud kaitselüliti või prognoosiv latentsuse tõttu vahelejätmine."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Hinnastamata kasutuse eelarvepoliitika",
+        "description": "Kuidas per‑võtme päevased või nädalased USD‑limiidid käsitlevad edukat kasutust, mille teenusepakkujal või mudelil puudub hinnakirje. fail_closed (vaikimisi) märgib akna ületatuks, nii et tundmatu kulu ei pääse kunagi kõva limiidi alt läbi. count_as_zero arvestab selle kasutuse $0‑ks ja jätkab hinnastatud kulude piirangute rakendamist. Hinnastamata mudelid kuvatakse igal juhul juhtpaneeli avalehel."
       }
     }
   },

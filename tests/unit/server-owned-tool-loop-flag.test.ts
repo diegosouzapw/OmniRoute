@@ -72,8 +72,9 @@ describe("feature-flags-settings count update", () => {
     // (flush empty-turn retry, default off) bumps it to 76; ROTATION_ATTRIBUTION (#14223,
     // default off) to 77; STREAM_READINESS_STALL_RETRY (#14669, default off) to 78;
     // OPENCODE_POOL_RESELECT (default off) to 79; PROXY_POOL_SHARED_EGRESS_ORDER
-    // (#14657, default off) to 80.
-    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 80);
+    // (#14657, default off) to 80; UNPRICED_USAGE_BUDGET_POLICY (default
+    // fail_closed) to 81.
+    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 81);
   });
 });
 

@@ -1902,7 +1902,14 @@
     "readinessStep3": "Copie o seu endpoint",
     "readinessStep4": "Envie um pedido de teste",
     "readinessContinue": "Continuar a configuração",
-    "readinessDismiss": "Ignorar por agora"
+    "readinessDismiss": "Ignorar por agora",
+    "unpricedUsageTitle": "{count, plural, one {# modelo} other {# modelos}} com utilização recente mas sem preço configurado",
+    "unpricedUsageFailClosed": "{keys, plural, one {# chave API com limite de utilização} other {# chaves API com limite de utilização}} usaram estes modelos nos últimos 8 dias. Enquanto essa utilização estiver dentro da janela diária ou semanal da chave, a chave é considerada com a quota excedida e os seus pedidos são bloqueados (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Esta utilização conta como $0 para os limites de utilização por chave (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# pedido} other {# pedidos}}, {keys, plural, one {# chave limitada} other {# chaves limitadas}}",
+    "unpricedUsageMore": "…e mais {count}",
+    "unpricedUsageConfigure": "Configurar preços",
+    "unpricedUsageDismiss": "Fechar"
   },
   "analytics": {
     "title": "Análise",
@@ -13088,7 +13095,9 @@
       "disabled": "Desativado",
       "dual": "Duplo",
       "alias": "Nome alternativo",
-      "canonical": "Canónico"
+      "canonical": "Canónico",
+      "fail_closed": "Bloquear (fail_closed)",
+      "count_as_zero": "Contar como $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Paragens de infraestrutura com prioridade protegida como 502",
         "description": "Responder com 502 em vez de 503 quando um destino prioritário com fallback apenas em caso de quota interrompe a combinação por uma causa que comprovadamente não está relacionada com a quota: um disjuntor de fornecedor aberto ou uma omissão preditiva devido à latência."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Política de Orçamento de Utilização sem Preço",
+        "description": "Como os limites diários/semanais por chave em USD tratam utilização bem-sucedida cujo fornecedor/modelo não tem uma linha de preços. fail_closed (predefinido) marca a janela como excedida, de modo que um custo desconhecido nunca possa ultrapassar um limite rígido. count_as_zero conta essa utilização como $0 e continua a aplicar o gasto tarifado. Os modelos sem preço são listados na página inicial do painel de qualquer forma."
       }
     }
   },

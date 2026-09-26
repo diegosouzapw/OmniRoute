@@ -1902,7 +1902,14 @@
     "readinessStep3": "Salin titik akhir anda",
     "readinessStep4": "Hantar permintaan ujian",
     "readinessContinue": "Teruskan persediaan",
-    "readinessDismiss": "Abaikan buat masa ini"
+    "readinessDismiss": "Abaikan buat masa ini",
+    "unpricedUsageTitle": "{count, plural, one {# model} other {# model}} dengan penggunaan terkini tetapi tiada harga ditetapkan",
+    "unpricedUsageFailClosed": "{keys, plural, one {# kunci API dengan had penggunaan} other {# kunci API dengan had penggunaan}} telah menggunakan model-model ini dalam 8 hari terakhir. Walaupun penggunaan itu berada dalam jendela harian atau mingguan kunci, kunci dianggap melebihi kuota dan permintaannya disekat (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Penggunaan ini dikira sebagai $0 terhadap had penggunaan setiap kunci (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# permintaan} other {# permintaan}}, {keys, plural, one {# kunci terhad} other {# kunci terhad}}",
+    "unpricedUsageMore": "…dan {count} lagi",
+    "unpricedUsageConfigure": "Konfigurasikan harga",
+    "unpricedUsageDismiss": "Tutup"
   },
   "analytics": {
     "title": "Analitis",
@@ -13088,7 +13095,9 @@
       "disabled": "Dinyahaktifkan",
       "dual": "Dwi",
       "alias": "Alias",
-      "canonical": "Kanonikal"
+      "canonical": "Kanonikal",
+      "fail_closed": "Sekat (fail_closed)",
+      "count_as_zero": "Kira sebagai $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Penghentian Infrastruktur Keutamaan Terlindung sebagai 502",
         "description": "Berikan respons 502 dan bukannya 503 apabila sasaran keutamaan yang sandarannya hanya dicetuskan oleh kuota menghentikan gabungan atas sebab yang dapat dibuktikan tidak berkaitan dengan kuota: pemutus litar penyedia yang terbuka atau pelangkauan latensi ramalan."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Dasar Bajet Penggunaan Tanpa Harga",
+        "description": "Bagaimana had USD harian/mingguan setiap kunci mengendalikan penggunaan yang berjaya apabila pembekal/model tidak mempunyai baris harga. fail_closed (lalai) menandakan jendela sebagai telah terlampaui, jadi kos yang tidak diketahui tidak akan dapat melepasi had keras. count_as_zero mengira penggunaan itu sebagai $0 dan terus menguatkuasakan perbelanjaan yang mempunyai harga. Model tanpa harga tetap disenaraikan di halaman utama papan pemuka."
       }
     }
   },

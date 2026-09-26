@@ -1903,7 +1903,14 @@
     "readinessStep3": "Sao chép endpoint của bạn",
     "readinessStep4": "Gửi một yêu cầu thử nghiệm",
     "readinessContinue": "Tiếp tục thiết lập",
-    "readinessDismiss": "Bỏ qua lúc này"
+    "readinessDismiss": "Bỏ qua lúc này",
+    "unpricedUsageTitle": "{count, plural, one {# mô hình} other {# mô hình}} có hoạt động gần đây nhưng không có giá được cấu hình",
+    "unpricedUsageFailClosed": "{keys, plural, one {# khóa API có giới hạn sử dụng} other {# khóa API có giới hạn sử dụng}} đã sử dụng các mô hình này trong 8 ngày qua. Khi lượng sử dụng đó nằm trong cửa sổ hàng ngày hoặc hàng tuần của khóa, khóa được coi là vượt hạn mức và các yêu cầu của nó bị chặn (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Lượng sử dụng này được tính là $0 vào giới hạn sử dụng theo mỗi khóa (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# yêu cầu} other {# yêu cầu}}, {keys, plural, one {# khóa có giới hạn} other {# khóa có giới hạn}}",
+    "unpricedUsageMore": "…và {count} mục khác",
+    "unpricedUsageConfigure": "Cấu hình giá",
+    "unpricedUsageDismiss": "Bỏ qua"
   },
   "analytics": {
     "title": "Phân tích",
@@ -13089,7 +13096,9 @@
       "disabled": "Vô hiệu hóa",
       "dual": "Song song",
       "alias": "Bí danh",
-      "canonical": "Chính thức"
+      "canonical": "Chính thức",
+      "fail_closed": "Chặn (fail_closed)",
+      "count_as_zero": "Tính là $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13236,6 +13245,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Các điểm dừng do hạ tầng ở mức ưu tiên được bảo vệ trả về 502",
         "description": "Trả về 502 thay vì 503 khi một mục tiêu ưu tiên chỉ dùng hạn mức làm phương án dự phòng dừng combo vì một nguyên nhân được chứng minh là không liên quan đến hạn mức: bộ ngắt mạch của nhà cung cấp đang mở hoặc bị bỏ qua do dự đoán độ trễ."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Chính sách ngân sách cho sử dụng chưa định giá",
+        "description": "Cách giới hạn USD hàng ngày/hàng tuần theo mỗi khóa xử lý lượng sử dụng thành công khi nhà cung cấp/mô hình không có dòng giá. fail_closed (mặc định) đánh dấu cửa sổ là đã vượt, nên một chi phí không xác định sẽ không bao giờ vượt qua giới hạn cứng. count_as_zero tính lượng sử dụng đó là $0 và tiếp tục áp dụng chi tiêu đã định giá. Các mô hình chưa có giá vẫn được liệt kê trên trang chính của bảng điều khiển trong mọi trường hợp."
       }
     }
   },

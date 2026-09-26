@@ -49,8 +49,9 @@ const {
 // OPENCODE_POOL_RESELECT (re-select a pool member per attempt after a
 // per-address 429, default off) takes the registry to 79.
 // PROXY_POOL_SHARED_EGRESS_ORDER (shared-egress pool ordering, default off)
-// takes it to 80.
-const EXPECTED_FEATURE_FLAG_COUNT = 80;
+// takes it to 80. UNPRICED_USAGE_BUDGET_POLICY (per-key USD limit handling
+// of unpriced usage, default fail_closed) takes it to 81.
+const EXPECTED_FEATURE_FLAG_COUNT = 81;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
@@ -58,6 +59,33 @@ const EXPECTED_FEATURE_FLAG_COUNT = 80;
 describe("featureFlagDefinitions", () => {
   it(`has exactly ${EXPECTED_FEATURE_FLAG_COUNT} flag definitions`, () => {
     assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, EXPECTED_FEATURE_FLAG_COUNT);
+  });
+
+  it("keeps the documented catalog total in sync with the registry", () => {
+    const catalog = fs.readFileSync(
+      new URL("../../docs/reference/FEATURE_FLAGS.md", import.meta.url),
+      "utf8"
+    );
+    const count = catalog.match(/^(\d+) flags across \d+ categories\./m);
+    assert.ok(count, "Feature Flags catalog must declare its total");
+    assert.equal(Number(count[1]), FEATURE_FLAG_DEFINITIONS.length);
+  });
+
+  it("resolves the unpriced budget policy description from every locale", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "UNPRICED_USAGE_BUDGET_POLICY");
+    assert.ok(def);
+    assert.equal(
+      def.descriptionI18nKey,
+      "featureFlags.definitions.UNPRICED_USAGE_BUDGET_POLICY.description"
+    );
+    const messagesDir = new URL("../../src/i18n/messages/", import.meta.url);
+    for (const filename of fs.readdirSync(messagesDir).filter((name) => name.endsWith(".json"))) {
+      const messages = JSON.parse(fs.readFileSync(new URL(filename, messagesDir), "utf8"));
+      const description =
+        messages.featureFlags?.definitions?.UNPRICED_USAGE_BUDGET_POLICY?.description;
+      assert.equal(typeof description, "string", `missing policy description in ${filename}`);
+      assert.ok(description.trim(), `blank policy description in ${filename}`);
+    }
   });
 
   it("has unique keys for all flags", () => {

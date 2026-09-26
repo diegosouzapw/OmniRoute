@@ -1902,7 +1902,14 @@
     "readinessStep3": "Kopirajte svojo končno točko",
     "readinessStep4": "Pošljite preskusno zahtevo",
     "readinessContinue": "Nadaljujte nastavitev",
-    "readinessDismiss": "Za zdaj prezrite"
+    "readinessDismiss": "Za zdaj prezrite",
+    "unpricedUsageTitle": "{count, plural, one {# model} two {# modela} few {# modeli} other {# modelov}} z nedavno uporabo, vendar brez konfigurirane cene",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API ključ z omejitvijo uporabe} two {# API ključa z omejitvijo uporabe} few {# API ključi z omejitvijo uporabe} other {# API ključev z omejitvijo uporabe}} so v zadnjih 8 dneh uporabili te modele. Dokler je ta uporaba znotraj dnevnega ali tedenskega okna ključa, se šteje, da je kvota prekoračena, zato so njegove zahteve blokirane (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Ta uporaba se šteje kot $0 pri omejitvah uporabe na ključ (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# zahteva} two {# zahtevi} few {# zahteve} other {# zahtev}}, {keys, plural, one {# omejen ključ} two {# omejena ključa} few {# omejeni ključi} other {# omejenih ključev}}",
+    "unpricedUsageMore": "…in še {count}",
+    "unpricedUsageConfigure": "Konfiguriraj cene",
+    "unpricedUsageDismiss": "Zapri"
   },
   "analytics": {
     "title": "Analitika",
@@ -13088,7 +13095,9 @@
       "disabled": "Onemogočeno",
       "dual": "Dvojno",
       "alias": "Vzdevek",
-      "canonical": "Kanonično"
+      "canonical": "Kanonično",
+      "fail_closed": "Blokiraj (fail_closed)",
+      "count_as_zero": "Štej kot $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Infrastrukturne zaustavitve z zaščiteno prioriteto kot 502",
         "description": "Odgovori s 502 namesto 503, ko prednostni cilj z nadomestno uporabo samo ob izčrpani kvoti ustavi kombinacijo zaradi vzroka, ki dokazljivo ni povezan s kvoto: odprtega odklopnika ponudnika ali preskoka zaradi napovedane zakasnitve."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Politika proračuna za neocenjeno uporabo",
+        "description": "Kako dnevne/tedenske omejitve (v USD) za posamezen ključ obravnavajo uspešno uporabo, pri kateri ponudnik/model nima vnesene cene. fail_closed (privzeto) označi okno kot prekoračeno, zato neznan strošek nikoli ne more zaobiti trde omejitve. count_as_zero šteje to uporabo kot $0 in še naprej uveljavlja porabo s ceno. Modeli brez cene so v vsakem primeru navedeni na domači strani nadzorne plošče."
       }
     }
   },

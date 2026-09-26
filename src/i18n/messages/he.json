@@ -1902,7 +1902,14 @@
     "readinessStep3": "העתקת נקודת הקצה שלכם",
     "readinessStep4": "שליחת בקשת בדיקה",
     "readinessContinue": "המשך ההגדרה",
-    "readinessDismiss": "התעלמות לעת עתה"
+    "readinessDismiss": "התעלמות לעת עתה",
+    "unpricedUsageTitle": "{count, plural, one {# מודל} other {# מודלים}} עם שימוש לאחרונה אך ללא מחיר מוגדר",
+    "unpricedUsageFailClosed": "{keys, plural, one {# מפתח API עם מגבלת שימוש} other {# מפתחות API עם מגבלת שימוש}} השתמשו במודלים אלה ב-8 הימים האחרונים. כאשר שימוש זה נמצא בחלון היומי או השבועי של המפתח, המפתח נחשב כחורג מהמכסה ובקשותיו נחסמות (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "שימוש זה נספר כ-$0 כלפי מגבלות השימוש לכל מפתח (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# בקשה} other {# בקשות}}, {keys, plural, one {# מפתח מוגבל} other {# מפתחות מוגבלים}}",
+    "unpricedUsageMore": "…ועוד {count}",
+    "unpricedUsageConfigure": "הגדר תמחור",
+    "unpricedUsageDismiss": "התעלם"
   },
   "analytics": {
     "title": "אנליטיקס",
@@ -13088,7 +13095,9 @@
       "disabled": "מושבת",
       "dual": "כפול",
       "alias": "כינוי",
-      "canonical": "קנוני"
+      "canonical": "קנוני",
+      "fail_closed": "חסום (fail_closed)",
+      "count_as_zero": "נספר כ-$0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "עצירות תשתית בעדיפות מוגנת מוחזרות כ-502",
         "description": "יש להשיב ב-502 במקום ב-503 כאשר יעד בעדיפות שמאפשר גיבוי רק במקרה של מכסה עוצר את השילוב מסיבה שניתן להוכיח שאינה קשורה למכסה: מפסק מעגל פתוח של ספק או דילוג חזוי בשל זמן השהיה."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "מדיניות תקציב לשימוש לא מתומחר",
+        "description": "כיצד מגבלות USD יומיות/שבועיות לכל מפתח מתייחסות לשימוש מוצלח של ספק או מודל שאין לו שורת תמחור. fail_closed (ברירת מחדל) מסמן שהחלון עבר את המגבלה, כך שעלות לא ידועה לא תעבור מעולם את המכסה הקשיחה. count_as_zero מחשב שימוש זה כ-$0 וממשיך לאכוף את ההוצאה המתומחרת. מודלים ללא תמחור מופיעים בדף הבית של לוח המחוונים בכל מקרה."
       }
     }
   },

@@ -1902,7 +1902,14 @@
     "readinessStep3": "Kopirajte svoj endpoint",
     "readinessStep4": "Pošaljite test zahtjev",
     "readinessContinue": "Nastavi sa podešavanjem",
-    "readinessDismiss": "Zatvori za sada"
+    "readinessDismiss": "Zatvori za sada",
+    "unpricedUsageTitle": "{count, plural, one {# model} other {# modela}} sa nedavnom upotrebom ali bez konfigurirane cijene",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API ključ s ograničenjem korištenja} other {# API ključeva s ograničenjem korištenja}} su koristili ove modele u posljednjih 8 dana. Dok je ta upotreba unutar dnevnog ili sedmičnog obračunskog perioda ključa, ključ se smatra prekoračenim i njegovi zahtjevi se blokiraju (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Ova upotreba se računa kao $0 prema ograničenjima upotrebe po ključu (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# zahtjev} other {# zahtjeva}}, {keys, plural, one {# ograničen ključ} other {# ograničena ključa}}",
+    "unpricedUsageMore": "…i još {count}",
+    "unpricedUsageConfigure": "Konfiguriraj cijene",
+    "unpricedUsageDismiss": "Zatvori"
   },
   "analytics": {
     "title": "Analitika",
@@ -13088,7 +13095,9 @@
       "disabled": "Onemogućeno",
       "dual": "Dualno",
       "alias": "Pseudonim",
-      "canonical": "Kanonički"
+      "canonical": "Kanonički",
+      "fail_closed": "Blokiraj (fail_closed)",
+      "count_as_zero": "Računaj kao $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Zaustavljanja infrastrukture sa zaštićenim prioritetom kao 502",
         "description": "Odgovori sa 502 umjesto 503 kada prioritetna meta samo za fallback kvote zaustavi combo iz razloga koji dokazivo nije kvota: otvoreni circuit breaker provajdera ili prediktivno preskakanje latencije."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Politika budžeta za neprocijenjenu upotrebu",
+        "description": "Kako dnevna/sedmična USD ograničenja po ključu tretiraju uspješnu upotrebu čiji provajder/model nema konfiguriranu cijenu. fail_closed (zadano) označava prozor kao prekoračen, pa nepoznat trošak ne može proći pored stroge granice. count_as_zero računa tu upotrebu kao $0 i nastavlja primjenjivati cjenovnu potrošnju. Neprocijenjeni modeli su ionako navedeni na početnoj stranici nadzorne ploče."
       }
     }
   },

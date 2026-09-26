@@ -1902,7 +1902,14 @@
     "readinessStep3": "আপনার এন্ডপয়েন্ট কপি করুন",
     "readinessStep4": "একটি টেস্ট রিকোয়েস্ট পাঠান",
     "readinessContinue": "সেটআপ চালিয়ে যান",
-    "readinessDismiss": "আপাতত সরিয়ে দিন"
+    "readinessDismiss": "আপাতত সরিয়ে দিন",
+    "unpricedUsageTitle": "{count, plural, one {#টি মডেল} other {#টি মডেল}} সাম্প্রতিক ব্যবহার আছে কিন্তু মূল্য কনফিগার করা নেই",
+    "unpricedUsageFailClosed": "{keys, plural, one {#টি API কী যার ব্যবহার সীমা আছে} other {#টি API কী যার ব্যবহার সীমা আছে}} গত 8 দিনে এই মডেলগুলো ব্যবহার করেছে। যখন সেই ব্যবহার কীটির দৈনিক বা সাপ্তাহিক উইন্ডোর ভেতরে থাকে, কীটিকে কোটা অতিক্রম করেছে বলে ধরা হয় এবং তার অনুরোধগুলো ব্লক করা হয় (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "এই ব্যবহার প্রতি কী-র ব্যবহার সীমায় $0 হিসেবে গণ্য হবে (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {#টি অনুরোধ} other {#টি অনুরোধ}}, {keys, plural, one {#টি সীমাবদ্ধ API কী} other {#টি সীমাবদ্ধ API কী}}",
+    "unpricedUsageMore": "…এবং আরও {count}",
+    "unpricedUsageConfigure": "মূল্য কনফিগার করুন",
+    "unpricedUsageDismiss": "বাতিল"
   },
   "analytics": {
     "title": "বিশ্লেষণ",
@@ -13088,7 +13095,9 @@
       "disabled": "নিষ্ক্রিয়",
       "dual": "দ্বৈত",
       "alias": "অ্যালিয়াস",
-      "canonical": "ক্যানোনিকাল"
+      "canonical": "ক্যানোনিকাল",
+      "fail_closed": "ব্লক (fail_closed)",
+      "count_as_zero": "$0 হিসেবে গণ্য করুন (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "সুরক্ষিত-অগ্রাধিকার অবকাঠামোগত স্টপের জন্য 502",
         "description": "শুধু-কোটা-ফলব্যাক অগ্রাধিকার টার্গেট যখন প্রমাণযোগ্যভাবে কোটা-সংক্রান্ত নয় এমন কোনো কারণে combo থামায়—যেমন খোলা provider circuit breaker বা predictive latency skip—তখন 503-এর পরিবর্তে 502 দিয়ে উত্তর দিন।"
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "মূল্যবিহীন ব্যবহার বাজেট নীতি",
+        "description": "প্রতি-কী দৈনিক/সাপ্তাহিক USD সীমাগুলি সফল ব্যবহারগুলোকে কীভাবে বিবেচনা করে যখন সেই প্রোভাইডার/মডেলের কোনো মূল্য সারি নেই। fail_closed (ডিফল্ট) উইন্ডোকে অতিপার হিসেবে চিহ্নিত করে, যাতে অজানা খরচ কখনো কঠোর কেপ পেরিয়ে যেতে না পারে। count_as_zero সেই ব্যবহারকে $0 হিসেবে গণ্য করে এবং মূল্য নির্ধারিত ব্যয় প্রয়োগ চালু রাখে। মূল্যবিহীন মডেলগুলো যাই হোক ড্যাশবোর্ড হোম পেজে তালিকাভুক্ত থাকে।"
       }
     }
   },

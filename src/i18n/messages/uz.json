@@ -1902,7 +1902,14 @@
     "readinessStep3": "Endpoint manzilingizni nusxalang",
     "readinessStep4": "Sinov soʻrovini yuboring",
     "readinessContinue": "Sozlashni davom ettirish",
-    "readinessDismiss": "Hozircha yopish"
+    "readinessDismiss": "Hozircha yopish",
+    "unpricedUsageTitle": "{count, plural, one {# ta model yaqinda ishlatilgan, lekin narxi belgilanmagan} other {# ta model yaqinda ishlatilgan, lekin narxlari belgilanmagan}}",
+    "unpricedUsageFailClosed": "{keys, plural, one {# ta API kaliti foydalanish limitiga ega} other {# ta API kaliti foydalanish limitiga ega}} so’nggi 8 kunda bu modellardan foydalangan. Agar bu foydalanish kalitning kunlik yoki haftalik oynasi ichida bo’lsa, kalit kvota oshgan deb hisoblanadi va uning so’rovlariga ruxsat berilmaydi (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Bu foydalanish har bir kalit uchun foydalanish limitlariga $0 sifatida hisoblanadi (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# ta so’rov} other {# ta so’rov}}, {keys, plural, one {# ta cheklangan kalit} other {# ta cheklangan kalit}}",
+    "unpricedUsageMore": "…va yana {count} ta",
+    "unpricedUsageConfigure": "Narxlarni sozlash",
+    "unpricedUsageDismiss": "Yopish"
   },
   "analytics": {
     "title": "Tahlil",
@@ -13088,7 +13095,9 @@
       "disabled": "Faol emas",
       "dual": "Ikkalasi",
       "alias": "Taxallus",
-      "canonical": "Kanonik"
+      "canonical": "Kanonik",
+      "fail_closed": "Bloklash (fail_closed)",
+      "count_as_zero": "$0 sifatida hisoblash (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Himoyalangan ustuvorlikdagi infratuzilma toʻxtashlariga 502 javobi",
         "description": "Faqat kvota sababli zaxira variantga oʻtadigan ustuvor maqsad comboʼni kvotaga aloqador emasligi isbotlangan sabab — provayderning ochiq circuit breakerʼi yoki bashorat qilingan kechikish tufayli oʻtkazib yuborish — bilan toʻxtatsa, 503 oʻrniga 502 javobini bering."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Narxi belgilanmagan foydalanish byudjet siyosati",
+        "description": "Har bir kalit uchun kunlik/haftalik USD limitlar provayder/model uchun narx satri yo’q bo’lgan muvaffaqiyatli foydalanishni qanday hisoblashini ko’rsatadi. fail_closed (odatiy) oynani ortiqcha deb belgilaydi, shuning uchun noma’lum xarajat qattiq cheklovdan o’tib ketmaydi. count_as_zero ushbu foydalanishni $0 deb hisoblaydi va narxlangan sarfni majburan nazorat qilishni davom ettiradi. Narxi belgilanmagan modellar har holda boshqaruv paneli bosh sahifasida ko’rsatiladi."
       }
     }
   },

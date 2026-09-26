@@ -1902,7 +1902,14 @@
     "readinessStep3": "Kopier endepunktet ditt",
     "readinessStep4": "Send en testforespørsel",
     "readinessContinue": "Fortsett oppsettet",
-    "readinessDismiss": "Skjul inntil videre"
+    "readinessDismiss": "Skjul inntil videre",
+    "unpricedUsageTitle": "{count, plural, one {# modell} other {# modeller}} med nylig bruk, men ingen konfigurert pris",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API-nøkkel med bruksbegrensning} other {# API-nøkler med bruksbegrensning}} brukte disse modellene de siste 8 dagene. Så lenge denne bruken er innenfor nøkkelens daglige eller ukentlige vindu, blir nøkkelen behandlet som over kvote og forespørslene blokkeres (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Denne bruken telles som $0 mot bruksgrenser per nøkkel (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# forespørsel} other {# forespørsler}}, {keys, plural, one {# begrenset nøkkel} other {# begrensede nøkler}}",
+    "unpricedUsageMore": "…og {count} til",
+    "unpricedUsageConfigure": "Konfigurer priser",
+    "unpricedUsageDismiss": "Lukk"
   },
   "analytics": {
     "title": "Analyse",
@@ -13088,7 +13095,9 @@
       "disabled": "Deaktivert",
       "dual": "Dobbel",
       "alias": "Alias",
-      "canonical": "Kanonisk"
+      "canonical": "Kanonisk",
+      "fail_closed": "Blokker (fail_closed)",
+      "count_as_zero": "Telles som $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Infrastrukturstopp med beskyttet prioritet som 502",
         "description": "Svar med 502 i stedet for 503 når et prioritetsmål med reserve kun ved kvoteproblemer stopper kombinasjonen av en årsak som beviselig ikke skyldes kvoten: en åpen kretsbryter hos leverandøren eller at målet hoppes over på grunn av predikert latenstid."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Retningslinje for budsjett ved bruk uten pris",
+        "description": "Hvordan USD-grenser per nøkkel (daglig/ukentlig) behandler vellykket bruk der leverandør/modell ikke har en prisrad. fail_closed (standard) markerer vinduet som overskredet, slik at en ukjent kostnad aldri kan passere et hardt tak. count_as_zero teller denne bruken som $0 og fortsetter å håndheve priset forbruk. Modeller uten pris listes på dashbordets forside uansett."
       }
     }
   },

@@ -1902,7 +1902,14 @@
     "readinessStep3": "ចម្លង endpoint របស់អ្នក",
     "readinessStep4": "ផ្ញើសំណើសាកល្បង",
     "readinessContinue": "បន្តការរៀបចំ",
-    "readinessDismiss": "រំលងសិន"
+    "readinessDismiss": "រំលងសិន",
+    "unpricedUsageTitle": "{count, plural, one {# ម៉ូឌែល} other {# ម៉ូឌែល}} ដែលមានការប្រើប្រាស់ថ្មីៗ ប៉ុន្តែមិនមានតម្លៃបានកំណត់",
+    "unpricedUsageFailClosed": "{keys, plural, one {# កូនសោ API ដែលមានដែនកំណត់ការប្រើ} other {# កូនសោ API ដែលមានដែនកំណត់ការប្រើ}} បានប្រើម៉ូឌែលទាំងនេះក្នុង 8 ថ្ងៃចុងក្រោយ។ ពេលការប្រើនោះនៅក្នុងរយៈពេលរៀងរាល់ថ្ងៃ ឬសប្តាហ៍របស់កូនសោនោះ កូនសោនឹងត្រូវបានចាត់ទុកថាបានលើសកម្រិត និងសំណើរបស់វាត្រូវបានរារាំង (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "ការប្រើនេះត្រូវបានគិតថាជា $0 លើដែនកំណត់ការប្រើ​តាមកូនសោ (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# សំណើ} other {# សំណើ}}, {keys, plural, one {# កូនសោដែលមានដែនកំណត់} other {# កូនសោដែលមានដែនកំណត់}}",
+    "unpricedUsageMore": "… និង {count} ផ្សេងទៀត",
+    "unpricedUsageConfigure": "កំណត់តម្លៃ",
+    "unpricedUsageDismiss": "បិទ"
   },
   "analytics": {
     "title": "ការវិភាគ",
@@ -13088,7 +13095,9 @@
       "disabled": "បានបិទ",
       "dual": "ទ្វេ",
       "alias": "ឈ្មោះក្លែង",
-      "canonical": "ឈ្មោះផ្លូវការ"
+      "canonical": "ឈ្មោះផ្លូវការ",
+      "fail_closed": "រារាំង (fail_closed)",
+      "count_as_zero": "គិតជា $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "ការបញ្ឈប់ហេដ្ឋារចនាសម្ព័ន្ធអាទិភាពដែលបានការពារ ជា 502",
         "description": "ឆ្លើយតបដោយ 502 ជំនួសឱ្យ 503 នៅពេលគោលដៅអាទិភាព quota-only-fallback បញ្ឈប់ combo ដោយសារមូលហេតុដែលអាចបញ្ជាក់បានថាមិនមែនជា quota៖ ឧបករណ៍បំបែកសៀគ្វីរបស់អ្នកផ្តល់សេវាដែលបើក ឬការរំលងដោយសារការព្យាករណ៍ភាពយឺតយ៉ាវ។"
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "គោលនយោបាយថវិកាការប្រើគ្មានតម្លៃ",
+        "description": "របៀបដែលដែនកំណត់ជា USD រៀងរាល់ថ្ងៃ/សប្តាហ៍តាមកូនសោ ប្រកាសចំពោះការប្រើបានជោគជ័យដែលអ្នកផ្គត់ផ្គង់ ឬម៉ូឌែលមិនមានជួរតម្លៃ។ fail_closed (លំនាំដើម) ចាត់ទុកថារយៈពេលនោះបានលើស ដូច្នេះថ្លៃមិនស្គាល់មិនអាចរ្លេចកាត់កម្រិតផ្ដាច់មុខបានឡើយ។ count_as_zero គិតការប្រើនោះជា $0 ហើយបន្តអនុវត្តចំណាយដែលមានតម្លៃ។ ម៉ូឌែលគ្មានតម្លៃ ត្រូវបានរាយនៅលើទំព័រដើមផ្ទៃបញ្ជារ ទោះបីជាករណីណាក៏ដោយ។"
       }
     }
   },

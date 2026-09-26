@@ -1902,7 +1902,14 @@
     "readinessStep3": "Kopyahin ang iyong endpoint",
     "readinessStep4": "Magpadala ng pansubok na kahilingan",
     "readinessContinue": "Ipagpatuloy ang pag-setup",
-    "readinessDismiss": "Huwag munang ipakita"
+    "readinessDismiss": "Huwag munang ipakita",
+    "unpricedUsageTitle": "{count, plural, one {# modelo} other {# mga modelo}} na kamakailang ginamit ngunit walang naka-configure na presyo",
+    "unpricedUsageFailClosed": "{keys, plural, one {# API key na may limit sa paggamit} other {# API keys na may limit sa paggamit}} ang gumamit ng mga modelong ito sa nakaraang 8 araw. Habang ang paggamit na iyon ay nasa loob ng pang-araw-araw o panglinggong panahon ng key, itinuturing na lampas sa quota ang key at binablok ang mga kahilingan nito (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Ang paggamit na ito ay binibilang bilang $0 para sa mga limitasyon ng paggamit kada key (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# kahilingan} other {# mga kahilingan}}, {keys, plural, one {# limitadong key} other {# mga limitadong key}}",
+    "unpricedUsageMore": "…at {count} pa",
+    "unpricedUsageConfigure": "I-configure ang pagpepresyo",
+    "unpricedUsageDismiss": "Isara"
   },
   "analytics": {
     "title": "Analitika",
@@ -13088,7 +13095,9 @@
       "disabled": "Naka-disable",
       "dual": "Dalawahan",
       "alias": "Alyas",
-      "canonical": "Kanonikal"
+      "canonical": "Kanonikal",
+      "fail_closed": "Harangan (fail_closed)",
+      "count_as_zero": "Ituring na $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Humihinto bilang 502 ang Protektadong-Priyoridad na Imprastraktura",
         "description": "Ibalik ang 502 sa halip na 503 kapag pinahinto ng isang priyoridad na target na may fallback para lamang sa quota ang kumbinasyon dahil sa isang sanhi na mapatutunayang hindi quota: isang bukas na circuit breaker ng provider o paglaktaw batay sa hinulaang latency."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Patakaran sa Badyet para sa Hindi Naka-presyong Paggamit",
+        "description": "Kung paano tinatrato ng pang-araw-araw/panglinggong USD na mga limitasyon kada key ang matagumpay na paggamit kung ang provider/model ay walang hilera ng presyo. Ang fail_closed (karaniwan) ay minamarkahan ang panahon bilang nalampasan, kaya ang hindi kilalang gastos ay hindi kailanman makakalusot sa isang mahigpit na limitasyon. Ang count_as_zero ay binibilang ang paggamit na iyon bilang $0 at pinapanatili ang pagpapatupad ng binayarang gastos. Nakalista ang mga modelong walang presyo sa home page ng dashboard sa anumang kaso."
       }
     }
   },

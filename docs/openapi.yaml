@@ -3742,6 +3742,24 @@ paths:
         "200":
           description: Per-model pricing data
 
+  /api/pricing/unpriced-usage:
+    get:
+      tags: [Pricing]
+      summary: List recent usage with no configured price
+      description: >-
+        Successful usage in the last 8 days whose provider/model has no pricing row,
+        with request counts, affected API keys (and how many of those have a per-key
+        USD limit enabled), and the active UNPRICED_USAGE_BUDGET_POLICY. Under the
+        default `fail_closed` policy those limited keys are blocked until the model
+        is priced or the window rolls over.
+      responses:
+        "200":
+          description: Unpriced usage report
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+
   # ─── Translator ────────────────────────────────────────────────
 
   /api/translator/detect:

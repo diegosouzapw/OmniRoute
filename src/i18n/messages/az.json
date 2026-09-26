@@ -1902,7 +1902,14 @@
     "readinessStep3": "Son nöqtənizi kopyalayın",
     "readinessStep4": "Sınaq sorğusu göndərin",
     "readinessContinue": "Quraşdırmaya davam edin",
-    "readinessDismiss": "Hələlik bağlayın"
+    "readinessDismiss": "Hələlik bağlayın",
+    "unpricedUsageTitle": "{count, plural, one {# model} other {# modellər}} son zamanlarda istifadə edilib, lakin qiymət təyin edilməyib",
+    "unpricedUsageFailClosed": "{keys, plural, one {# istifadə limiti olan API açarı} other {# istifadə limiti olan API açarları}} son 8 gündə bu modellərdən istifadə edib. Bu istifadə bir açarın günlük və ya həftəlik pəncərəsi daxilində olduğu müddətdə, açar kvota aşılmış sayılır və onun sorğuları bloklanır (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Bu istifadə hər-açar istifadə limitlərinə $0 kimi hesablanır (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# sorğu} other {# sorğular}}, {keys, plural, one {# limitli açar} other {# limitli açarlar}}",
+    "unpricedUsageMore": "…və daha {count}",
+    "unpricedUsageConfigure": "Qiymətləri təyin et",
+    "unpricedUsageDismiss": "Bağla"
   },
   "analytics": {
     "title": "Analitika",
@@ -13088,7 +13095,9 @@
       "disabled": "Deaktiv edilib",
       "dual": "İkili",
       "alias": "Ləqəb",
-      "canonical": "Kanonik"
+      "canonical": "Kanonik",
+      "fail_closed": "Blokla (fail_closed)",
+      "count_as_zero": "$0 kimi hesabla (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Qorunan prioritetli infrastruktur dayanmalarının 502 kimi qaytarılması",
         "description": "Yalnız kvota üzrə ehtiyat variant kimi istifadə olunan prioritet hədəf combo-nu kvota ilə əlaqəli olmadığı sübuta yetirilən səbəbdən — provayderin açıq dövrəqırıcısı və ya proqnozlaşdırılan gecikməyə görə ötürülmə — dayandırdıqda 503 əvəzinə 502 cavabı verin."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Qiymətsiz İstifadə Büdcə Siyasəti",
+        "description": "Bir-açar günlük/həftəlik USD limitləri provideri/modeli üçün qiymət sətri olmayan uğurlu istifadəni necə idarə edir. fail_closed (varsayılan) pəncərəni aşılmış kimi qeyd edir, beləliklə naməlum xərc heç vaxt sərt limiti keçə bilməz. count_as_zero həmin istifadəni $0 kimi hesablayır və qiymətlənmiş xərclərin tətbiqini davam etdirir. Qiyməti təyin olunmamış modellər hər halda panelin ana səhifəsində siyahılanır."
       }
     }
   },

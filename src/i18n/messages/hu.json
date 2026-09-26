@@ -1902,7 +1902,14 @@
     "readinessStep3": "Másolja ki a végpontot",
     "readinessStep4": "Küldjön tesztkérést",
     "readinessContinue": "Beállítás folytatása",
-    "readinessDismiss": "Egyelőre bezárás"
+    "readinessDismiss": "Egyelőre bezárás",
+    "unpricedUsageTitle": "{count, plural, one {# modellt a közelmúltban használták, de nincs árazás beállítva} other {# modelleket a közelmúltban használták, de nincs árazás beállítva}}",
+    "unpricedUsageFailClosed": "{keys, plural, one {# használati korláttal rendelkező API-kulcs az elmúlt 8 napban használta ezeket a modelleket. Amíg ez a használat a kulcs napi vagy heti időablakán belül esik, a kulcs túllépettnek számít és a kérései blokkolva lesznek (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).} other {# használati korláttal rendelkező API-kulcsok az elmúlt 8 napban használták ezeket a modelleket. Amíg ez a használat egy kulcs napi vagy heti időablakán belül esik, a kulcsokat túllépettnek tekintik és a kéréseiket blokkolják (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).}}",
+    "unpricedUsageCountAsZero": "Ez a használat $0-ként számít a kulcsonkénti használati korlátok felé (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# kérés} other {# kérések}}, {keys, plural, one {# korlátozott kulcs} other {# korlátozott kulcsok}}",
+    "unpricedUsageMore": "…és még {count} további",
+    "unpricedUsageConfigure": "Árazás beállítása",
+    "unpricedUsageDismiss": "Bezárás"
   },
   "analytics": {
     "title": "Analitika",
@@ -13088,7 +13095,9 @@
       "disabled": "Letiltva",
       "dual": "Kettős",
       "alias": "Álnév",
-      "canonical": "Kanonikus"
+      "canonical": "Kanonikus",
+      "fail_closed": "Blokkolás (fail_closed)",
+      "count_as_zero": "$0-ként számol (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Védett prioritású infrastruktúra-leállások 502-es hibaként",
         "description": "503 helyett 502-es választ adjon, amikor egy csak kvóta esetén tartalékként használt prioritási cél olyan okból állítja le a kombinációt, amely bizonyíthatóan nem kvótával kapcsolatos: nyitott szolgáltatói megszakító vagy prediktív késleltetés miatti kihagyás."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Árazatlan használati költségpolitika",
+        "description": "Hogyan kezelik a kulcsonkénti napi/hetentei USD-korlátok a sikeres használatot, amelynél a szolgáltatónál vagy a modellnél nincs árazási bejegyzés. fail_closed (alapértelmezett) a periódust túllépettnek jelöli, így egy ismeretlen költség soha nem kerülhet át a kemény plafonon. count_as_zero ezt a használatot $0-ként számolja, és továbbra is érvényesíti a beárazott költést. Az árazatlan modelleket mindenesetre listázza a műszerfal kezdőlapja."
       }
     }
   },

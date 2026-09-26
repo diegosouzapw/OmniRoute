@@ -1902,7 +1902,14 @@
     "readinessStep3": "የመዳረሻ ነጥብዎን ይቅዱ",
     "readinessStep4": "የሙከራ ጥያቄ ይላኩ",
     "readinessContinue": "ማዋቀሩን ይቀጥሉ",
-    "readinessDismiss": "ለአሁን ዝጉት"
+    "readinessDismiss": "ለአሁን ዝጉት",
+    "unpricedUsageTitle": "{count, plural, one {# ሞዴል} other {# ሞዴሎች}} የቅርብ ጊዜ ተጠቃሚነት አለው፣ ግን ዋጋ አልተቀመጠም",
+    "unpricedUsageFailClosed": "{keys, plural, one {# የጥቅም ገደብ ያለው API ቁልፍ} other {# የጥቅም ገደብ ያሉ የAPI ቁልፎች}} ባለፈው 8 ቀናት ውስጥ እነዚህን ሞዴሎች ተጠቀሙ። ይህ ተጠቃሚነት በቁልፉ ዕለታዊ ወይም ሳምንታዊ መድብ ውስጥ ሲኖር፣ ቁልፉ እንደ ቀርቦ ተወድቋል ተብሎ ይቈጠራል እና ጥያቄዎቹ ይቋረጣሉ (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "ይህ አጠቃቀም እንደ $0 ይቆጠራል እና የቁልፉ የጥቅም ገደቦችን ይቀጥላል (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# ጥያቄ} other {# ጥያቄዎች}}, {keys, plural, one {# የጥቅም ገደብ ያለ ቁልፍ} other {# የጥቅም ገደብ ያሉ ቁልፎች}}",
+    "unpricedUsageMore": "…እና {count} ተጨማሪ",
+    "unpricedUsageConfigure": "ዋጋን ያቀናብሩ",
+    "unpricedUsageDismiss": "ዝጋ"
   },
   "analytics": {
     "title": "ትንታኔ",
@@ -13088,7 +13095,9 @@
       "disabled": "ተሰናክሏል",
       "dual": "ድርብ",
       "alias": "ተለዋጭ ስም",
-      "canonical": "ቀኖናዊ"
+      "canonical": "ቀኖናዊ",
+      "fail_closed": "እንዲቋረጥ ይከለክላል (fail_closed)",
+      "count_as_zero": "እንደ $0 ይቆጠራል (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "የተጠበቀ ቅድሚያ ያላቸው የመሠረተ ልማት ማቆሚያዎች እንደ 502",
         "description": "በኮታ ብቻ የመጠባበቂያ አማራጭ የሆነ ቅድሚያ ያለው ዒላማ፣ ምክንያቱ ኮታ አለመሆኑ በእርግጠኝነት ሊረጋገጥ ለሚችል ሁኔታ—ክፍት የአቅራቢ circuit breaker ወይም ትንበያዊ የመዘግየት መዝለል—comboውን ሲያቆም፣ ከ503 ይልቅ 502 መልስ።"
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "ያልተዋጋ የአጠቃቀም የበጀት ፖሊሲ",
+        "description": "የእያንዳንዱ ቁልፍ የዕለታዊ/የሳምንታዊ USD ገደቦች ለአቅራቢው/ሞዴሉ የዋጋ መዝገብ የሌለው ተጠቃሚነትን እንዴት እንደሚያነካ ይገልፃል። fail_closed (ነባር) መድብን እንደ ተበላሸ ይምልከታል፣ ስለዚህ ያልታወቀ ወጪ ከጥንቃቄ የተደረገ ከፍ አይላላም። count_as_zero እንዲሁ እንደ $0 ይቆጠራል እና የተዋጋ ወጪን መቆጣጠር ይቀጥላል። በሁለቱም ሁኔታዎች ያልተዋጋ ሞዴሎች በዳሽቦርድ መነጽር ገጽ ላይ ይታያሉ።"
       }
     }
   },

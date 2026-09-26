@@ -1902,7 +1902,14 @@
     "readinessStep3": "Uç noktanızı kopyalayın",
     "readinessStep4": "Bir test isteği gönderin",
     "readinessContinue": "Kuruluma devam edin",
-    "readinessDismiss": "Şimdilik kapatın"
+    "readinessDismiss": "Şimdilik kapatın",
+    "unpricedUsageTitle": "{count, plural, one {# model} other {# model}} yakın zamanda kullanılmış ancak fiyatı yapılandırılmamış",
+    "unpricedUsageFailClosed": "{keys, plural, one {# kullanım sınırı olan API anahtarı} other {# kullanım sınırı olan API anahtarları}} son 8 günde bu modelleri kullandı. Bu kullanım bir anahtarın günlük veya haftalık dönemindeyse, anahtar kota aşılmış sayılır ve istekleri engellenir (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Bu kullanım, anahtar başına kullanım limitlerine $0 olarak sayılır (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# istek} other {# istek}}, {keys, plural, one {# sınırlı anahtar} other {# sınırlı anahtar}}",
+    "unpricedUsageMore": "…ve {count} tane daha",
+    "unpricedUsageConfigure": "Fiyatlandırmayı yapılandır",
+    "unpricedUsageDismiss": "Kapat"
   },
   "analytics": {
     "title": "Analitik",
@@ -13088,7 +13095,9 @@
       "disabled": "Devre Dışı",
       "dual": "İkili",
       "alias": "Takma Ad",
-      "canonical": "Kanonik"
+      "canonical": "Kanonik",
+      "fail_closed": "Engelle (fail_closed)",
+      "count_as_zero": "$0 olarak say (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Korumalı Öncelikli Altyapı Durdurmaları 502 Olarak Döndürülür",
         "description": "Yalnızca kota durumunda yedeğe geçen öncelikli bir hedef, kota olmadığı kanıtlanabilen bir nedenle (açık bir sağlayıcı devre kesicisi veya tahmine dayalı gecikme atlaması) combo'yu durdurduğunda 503 yerine 502 yanıtı verin."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Fiyatlandırılmamış Kullanım Bütçe Politikası",
+        "description": "Anahtar başına günlük/haftalık USD limitlerinin, sağlayıcısı/modeli için fiyat satırı olmayan başarılı kullanımı nasıl ele aldığı. fail_closed (varsayılan) pencereyi aşılmış olarak işaretler; böylece bilinmeyen bir maliyet sert bir üst sınırı aşamaz. count_as_zero bu kullanımı $0 olarak sayar ve fiyatlandırılmış harcamayı uygulamaya devam eder. Fiyatlandırılmamış modeller her durumda pano ana sayfasında listelenir."
       }
     }
   },

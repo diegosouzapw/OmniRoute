@@ -1902,7 +1902,14 @@
     "readinessStep3": "Salin endpoint Anda",
     "readinessStep4": "Kirim permintaan uji",
     "readinessContinue": "Lanjutkan penyiapan",
-    "readinessDismiss": "Tutup untuk sekarang"
+    "readinessDismiss": "Tutup untuk sekarang",
+    "unpricedUsageTitle": "{count, plural, one {# model} other {# model}} dengan penggunaan baru-baru ini tetapi tanpa harga yang dikonfigurasikan",
+    "unpricedUsageFailClosed": "{keys, plural, one {# kunci API dengan batas penggunaan} other {# kunci API dengan batas penggunaan}} menggunakan model ini dalam 8 hari terakhir. Selama penggunaan itu berada dalam jendela harian atau mingguan kunci, kunci tersebut dianggap melebihi kuota dan permintaannya diblokir (UNPRICED_USAGE_BUDGET_POLICY=fail_closed).",
+    "unpricedUsageCountAsZero": "Penggunaan ini dihitung sebagai $0 terhadap batas penggunaan per kunci (UNPRICED_USAGE_BUDGET_POLICY=count_as_zero).",
+    "unpricedUsageModelStats": "{requests, plural, one {# permintaan} other {# permintaan}}, {keys, plural, one {# kunci terbatas} other {# kunci terbatas}}",
+    "unpricedUsageMore": "…dan {count} lagi",
+    "unpricedUsageConfigure": "Konfigurasikan harga",
+    "unpricedUsageDismiss": "Tutup"
   },
   "analytics": {
     "title": "Analisis",
@@ -13088,7 +13095,9 @@
       "disabled": "Dinonaktifkan",
       "dual": "Ganda",
       "alias": "Alias",
-      "canonical": "Kanonis"
+      "canonical": "Kanonis",
+      "fail_closed": "Blokir (fail_closed)",
+      "count_as_zero": "Hitung sebagai $0 (count_as_zero)"
     },
     "definitions": {
       "REQUIRE_API_KEY": {
@@ -13235,6 +13244,10 @@
       "PROTECTED_PRIORITY_INFRA_502_ENABLED": {
         "label": "Penghentian Infrastruktur Prioritas Terlindungi sebagai 502",
         "description": "Berikan respons 502 alih-alih 503 ketika target prioritas dengan fallback khusus kuota menghentikan combo karena penyebab yang terbukti bukan kuota: circuit breaker penyedia yang terbuka atau pelompatan berdasarkan prediksi latensi."
+      },
+      "UNPRICED_USAGE_BUDGET_POLICY": {
+        "label": "Kebijakan Anggaran Penggunaan Tanpa Harga",
+        "description": "Bagaimana batas USD harian/mingguan per-kunci memperlakukan penggunaan yang berhasil apabila penyedia/modelnya tidak memiliki baris harga. fail_closed (bawaan) menandai jendela sebagai terlampaui, sehingga biaya yang tidak diketahui tidak pernah bisa melewati batas keras. count_as_zero menghitung penggunaan itu sebagai $0 dan terus menegakkan pengeluaran yang diberi harga. Model tanpa harga tetap ditampilkan di halaman utama dasbor dalam kedua kasus."
       }
     }
   },
