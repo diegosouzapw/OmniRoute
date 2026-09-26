@@ -69,6 +69,24 @@ test("detectMalformedNonStream allows Claude message with (empty response) + sto
   );
 });
 
+// Chat-completions spelling of the same truncation. Claude's translator maps
+// stop_reason "max_tokens" to finish_reason "length"; a thinking model can
+// burn a 1-token probe budget and return no visible text. The Claude shape
+// exempts that (#12968); the translated shape must too.
+test("detectMalformedNonStream allows a chat completion truncated at length with no visible text", () => {
+  const resp = {
+    choices: [{ finish_reason: "length", message: { role: "assistant", content: null } }],
+  };
+  assert.equal(detectMalformedNonStream(resp), null);
+});
+
+test("detectMalformedNonStream still rejects a chat completion that stopped with no output", () => {
+  const resp = {
+    choices: [{ finish_reason: "stop", message: { role: "assistant", content: null } }],
+  };
+  assert.equal(detectMalformedNonStream(resp), "empty_choices");
+});
+
 // ── (b) synthResponsesFailure matches a response.failed event ────────────────
 
 test("synthResponsesFailure produces a response.failed SSE event", () => {

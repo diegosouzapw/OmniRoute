@@ -345,7 +345,21 @@ export function detectMalformedNonStream(
     return false;
   });
 
-  if (!anyHasOutput) return "empty_choices";
+  if (!anyHasOutput) {
+    // A finish_reason of "length" is the chat-completions spelling of a
+    // truncated completion: the model hit max_tokens. Claude's translator maps
+    // stop_reason "max_tokens" to it (claude-to-openai.ts), and the Claude
+    // shape already exempts that case (#12968, diagnostics above) because a
+    // thinking model can burn a 1-token probe budget and return no visible
+    // text. Rejecting the translated form reintroduces the 502 the exemption
+    // removed. "stop" with no output stays empty_choices.
+    const truncated = choices.some((choice) => {
+      const c = choice as Record<string, unknown>;
+      return c?.finish_reason === "length";
+    });
+    if (truncated) return null;
+    return "empty_choices";
+  }
 
   // #13461: only for the narrow provider allowlist — see classifyFakeSuccessBody's
   // doc comment for the false-positive guards (short content + dominant signal).

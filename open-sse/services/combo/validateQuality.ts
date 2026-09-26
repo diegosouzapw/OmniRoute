@@ -895,6 +895,20 @@ export async function validateResponseQuality(
   }
 
   if (!hasContent && !hasToolCalls) {
+    // finish_reason "length" is a truncated completion (max_tokens hit), the
+    // same case the Claude shape exempts as stop_reason "max_tokens" (#12968).
+    // A thinking model that spends the whole budget before any visible token
+    // is a valid response, not a reason to fail the combo target over.
+    if (firstChoice?.finish_reason === "length") {
+      return {
+        valid: true,
+        clonedResponse: new Response(text, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        }),
+      };
+    }
     return { valid: false, reason: "empty content and no tool_calls in response" };
   }
 

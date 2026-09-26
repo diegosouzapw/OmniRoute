@@ -166,3 +166,31 @@ test("streaming OpenAI finish_reason-only chunk (no content delta) → invalid (
   assert.strictEqual(verdict.valid, false);
   assert.match(verdict.reason ?? "", /streaming openai terminated with empty completion/);
 });
+
+function chatBody(finishReason: string) {
+  return JSON.stringify({
+    choices: [{ finish_reason: finishReason, message: { role: "assistant", content: null } }],
+  });
+}
+
+// finish_reason "length" is the chat spelling of a max_tokens truncation, the
+// case the Claude shape already exempts (#12968). A thinking model can spend
+// the whole budget before emitting text; that must not fail the combo over.
+test("non-streaming chat completion truncated at length with no text is valid", async () => {
+  const verdict = await validateResponseQuality(
+    makeResponse(chatBody("length"), "application/json"),
+    false,
+    {}
+  );
+  assert.strictEqual(verdict.valid, true);
+});
+
+test("non-streaming chat completion that stopped with no text stays invalid", async () => {
+  const verdict = await validateResponseQuality(
+    makeResponse(chatBody("stop"), "application/json"),
+    false,
+    {}
+  );
+  assert.strictEqual(verdict.valid, false);
+  assert.match(verdict.reason ?? "", /empty content/);
+});
