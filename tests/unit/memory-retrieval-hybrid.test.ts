@@ -90,6 +90,22 @@ test("retrieveMemories: hybrid strategy with no vec store does NOT throw", async
   }, "hybrid strategy with no vec store must not throw");
 });
 
+test("retrieveMemories: FTS5 punctuation in user text does not become an operator", async () => {
+  const db = core.getDbInstance();
+  insertMemory(db, "hyb-punctuation", "api-punctuation", "Reply exactly OK");
+
+  const { retrieveMemories, sanitizeFts5Query } = await import("../../src/lib/memory/retrieval.ts");
+
+  assert.equal(sanitizeFts5Query("Reply exactly: OK"), '"Reply" "exactly" "OK"');
+  await assert.doesNotReject(() =>
+    retrieveMemories("api-punctuation", {
+      retrievalStrategy: "hybrid",
+      query: "Reply exactly: OK",
+      maxTokens: 2000,
+    })
+  );
+});
+
 test("retrieveMemories: hybrid FTS5 fallback returns only correct apiKeyId memories", async () => {
   const db = core.getDbInstance();
   insertMemory(db, "hyb-a1", "api-ha", "The sun is a star at the center of our solar system.");
