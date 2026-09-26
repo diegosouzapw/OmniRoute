@@ -10,6 +10,10 @@
 
 import { extractApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata, isModelAllowedForKey, getApiKeyById } from "@/lib/db/apiKeys";
+import {
+  getApiKeySelfServiceSettings,
+  type AnthropicRateLimitHeaderMode,
+} from "@/lib/db/apiKeySelfServiceSettings";
 import { getComboByName } from "@/lib/db/combos";
 import { isDashboardSessionAuthenticated } from "./apiAuth";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
@@ -103,6 +107,9 @@ export interface ApiKeyMetadata {
   compressionEnabled?: boolean;
   allowAutoCombos?: boolean;
   catalogScope?: "all" | "combos" | "models";
+  /** Self-service settings (db/apiKeySelfServiceSettings). null = all providers. */
+  sharedQuotaProviders?: string[] | null;
+  anthropicRateLimitHeaders?: AnthropicRateLimitHeaderMode;
 }
 
 /**
@@ -811,6 +818,30 @@ function extractUngatedClientApiKey(request: Request): string | null {
   return null;
 }
 
+/**
+ * Merge the key's self-service settings into its metadata so downstream
+ * apiKeyInfo consumers (upstream header policy) see them. Never mutates the
+ * cached metadata object. The env key has no DB row: it belongs to the deployment
+ * owner, so upstream anthropic account headers keep flowing to it unchanged.
+ */
+function withSelfServiceSettings(apiKeyInfo: ApiKeyMetadata): ApiKeyMetadata {
+  if (apiKeyInfo.id === "env-key") return { ...apiKeyInfo, anthropicRateLimitHeaders: "forward" };
+  if (!apiKeyInfo.id) return apiKeyInfo;
+  try {
+    const settings = getApiKeySelfServiceSettings(apiKeyInfo.id);
+    return {
+      ...apiKeyInfo,
+      sharedQuotaProviders: settings.sharedQuotaProviders,
+      anthropicRateLimitHeaders: settings.anthropicRateLimitHeaders,
+    };
+  } catch (error) {
+    log.warn("API_POLICY", "API key self-service settings unavailable; using defaults.", {
+      error,
+    });
+    return apiKeyInfo;
+  }
+}
+
 export async function enforceApiKeyPolicy(
   request: Request,
   modelStr: string | null,
@@ -848,6 +879,7 @@ export async function enforceApiKeyPolicy(
   if (!apiKeyInfo) {
     return { apiKey, apiKeyInfo: null, rejection: null };
   }
+  apiKeyInfo = withSelfServiceSettings(apiKeyInfo);
 
   const context = { request, apiKey, apiKeyInfo, modelStr };
   const statusRejection = validateKeyStatus(context);

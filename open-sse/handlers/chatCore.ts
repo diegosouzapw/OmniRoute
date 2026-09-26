@@ -118,7 +118,7 @@ import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import {
   buildStreamingResponseHeaders,
   materializeDeduplicatedExecutionResult,
-  stripNextMiddlewareControlHeaders,
+  stripNonStreamingForwardedHeaders,
   stripStaleForwardingHeaders,
 } from "./chatCore/responseHeaders.ts";
 import {
@@ -3522,7 +3522,7 @@ async function handleChatCoreInner({
         const headersObj = normalizeHeaders(rawResult.response.headers);
         const responseHeaders = new Headers(headersObj);
         stripStaleForwardingHeaders(responseHeaders);
-        stripNextMiddlewareControlHeaders(responseHeaders);
+        stripNonStreamingForwardedHeaders(responseHeaders, apiKeyInfo, provider);
         // The upstream headers (turn-state included) are about to be committed
         // to the client — record which connection minted the blob so a later
         // cross-account echo can be stripped (Codex failover guard).
@@ -6001,6 +6001,7 @@ async function handleChatCoreInner({
     isCombo, // #14116: foreign-account quota-header strip (only meaningful when true)
     requestedConnectionId: forcedConnectionId || null,
     selectedConnectionId: credentials?.connectionId ?? null,
+    apiKeyInfo, // per-key upstream anthropic-ratelimit-* header policy
   });
 
   // The streaming headers (turn-state included, when present) are committed to

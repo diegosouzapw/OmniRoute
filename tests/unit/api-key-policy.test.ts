@@ -837,3 +837,36 @@ test("enforceApiKeyPolicy enforces request-per-minute limits and returns success
   assert.equal(second.rejection.status, 429);
   assert.match(await readErrorMessage(second.rejection), /Request limit exceeded/);
 });
+
+test("enforceApiKeyPolicy carries the key's self-service settings on apiKeyInfo", async () => {
+  const settingsDb = await import("../../src/lib/db/apiKeySelfServiceSettings.ts");
+  const key = await createKeyWithPolicy();
+  settingsDb.updateApiKeySelfServiceSettings(key.id, {
+    sharedQuotaProviders: ["claude"],
+    anthropicRateLimitHeaders: "strip",
+  });
+  const policy = await loadPolicy("self-service-settings");
+
+  const result = await policy.enforceApiKeyPolicy(makePolicyRequest(key.key), null);
+
+  assert.equal(result.rejection, null);
+  assert.deepEqual(result.apiKeyInfo.sharedQuotaProviders, ["claude"]);
+  assert.equal(result.apiKeyInfo.anthropicRateLimitHeaders, "strip");
+});
+
+test("enforceApiKeyPolicy keeps forwarding upstream anthropic headers for the env key", async () => {
+  const previous = process.env.OMNIROUTE_API_KEY;
+  process.env.OMNIROUTE_API_KEY = "sk-env-owner-key";
+  try {
+    const policy = await loadPolicy("env-key-anthropic-headers");
+
+    const result = await policy.enforceApiKeyPolicy(makePolicyRequest("sk-env-owner-key"), null);
+
+    assert.equal(result.rejection, null);
+    assert.equal(result.apiKeyInfo.id, "env-key");
+    assert.equal(result.apiKeyInfo.anthropicRateLimitHeaders, "forward");
+  } finally {
+    if (previous === undefined) delete process.env.OMNIROUTE_API_KEY;
+    else process.env.OMNIROUTE_API_KEY = previous;
+  }
+});
