@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { mock } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -27,6 +27,7 @@ const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { GET: getMessagesRoute } =
   await import("../../src/app/api/v1/me/sessions/[id]/messages/route.ts");
 const { SELF_USAGE_SCOPE } = await import("../../src/shared/constants/selfServiceScopes.ts");
+const { buildClientRawRequest } = await import("../../src/sse/handlers/chat/clientRawRequest.ts");
 
 const CAPTURE_FLAG = "AGENT_SESSION_MESSAGES_ENABLED";
 
@@ -958,4 +959,205 @@ test("resetUsageHistory deletes agent session messages and reports the count", a
   assert.ok(result.deletedAgentSessionMessages >= 2);
   assert.deepEqual(sessionTurnTexts(sessionId), []);
   assert.equal(sessionTurnTexts(sessionAliceId).length, 2, "recent turns are kept");
+});
+
+// ──────────────── Privacy, attempt ordering, bounded bodies ────────────────
+
+async function withFlags<T>(flags: Record<string, string>, fn: () => Promise<T>): Promise<T> {
+  for (const [key, value] of Object.entries(flags))
+    featureFlagsDb.setFeatureFlagOverride(key, value);
+  try {
+    return await fn();
+  } finally {
+    for (const key of Object.keys(flags)) featureFlagsDb.removeFeatureFlagOverride(key);
+  }
+}
+
+const turnsWithPrompt = (sessionId: string, prompt: string) =>
+  messagesDb
+    .listAgentSessionMessages(core.getDbInstance(), sessionId)
+    .messages.filter((message) => message.user === prompt);
+
+async function saveTurnWithText(label: string, userText: string, assistantText: string) {
+  await usageHistory.saveRequestUsage({
+    provider: "openai",
+    model: "gpt-4o",
+    tokens: { input: 10, output: 5 },
+    timestamp: nextTimestamp(),
+    apiKeyId: keyAliceId,
+    agentContext: agentContextFor(label),
+    sessionTurn: { userText, assistantText, toolNames: [], truncated: false },
+  });
+  return core
+    .getDbInstance()
+    .prepare(
+      `SELECT m.user_text AS user, m.assistant_text AS assistant FROM agent_session_messages m
+       JOIN agent_sessions s ON s.id = m.session_id WHERE s.client_session_id = ?`
+    )
+    .all(label) as { user: string; assistant: string }[];
+}
+
+test("stored turns are redacted the way the client and upstream saw them when PII flags are on", async () => {
+  const rows = await withFlags(
+    { PII_RESPONSE_SANITIZATION: "true", PII_REDACTION_ENABLED: "true" },
+    () => saveTurnWithText("pii-on", "Mail alice@example.com please", "Sent to alice@example.com.")
+  );
+
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].user, "Mail [EMAIL_REDACTED] please");
+  assert.equal(rows[0].assistant, "Sent to [EMAIL_REDACTED].");
+});
+
+test("stored turns stay verbatim while the PII flags are off (opt-in)", async () => {
+  const rows = await saveTurnWithText(
+    "pii-off",
+    "Mail alice@example.com please",
+    "Sent to alice@example.com."
+  );
+
+  assert.deepEqual(rows, [
+    { user: "Mail alice@example.com please", assistant: "Sent to alice@example.com." },
+  ]);
+});
+
+test("stored turns mirror credential redaction when it is enabled", async () => {
+  const fakeKey = `sk-proj-${"x".repeat(24)}`;
+  const previous = process.env.CREDENTIAL_REDACTION_ENABLED;
+  process.env.CREDENTIAL_REDACTION_ENABLED = "true";
+  try {
+    const rows = await saveTurnWithText("cred-on", `use ${fakeKey}`, `got ${fakeKey}`);
+    assert.deepEqual(rows, [{ user: "use [REDACTED:openai]", assistant: "got [REDACTED:openai]" }]);
+  } finally {
+    if (previous === undefined) delete process.env.CREDENTIAL_REDACTION_ENABLED;
+    else process.env.CREDENTIAL_REDACTION_ENABLED = previous;
+  }
+});
+
+test("the first non-empty text wins and tool names merge across representations", () => {
+  const toolCalls = (...names: string[]) => names.map((name) => ({ function: { name } }));
+  const turn = extractAgentSessionTurn(
+    { messages: [{ role: "user", content: "go" }] },
+    { choices: [{ message: { content: null, tool_calls: toolCalls("Read", "Grep", "Glob") } }] },
+    { choices: [{ message: { content: "Visible reply.", tool_calls: toolCalls("Read", "Edit") } }] }
+  );
+
+  assert.equal(turn?.assistantText, "Visible reply.");
+  assert.deepEqual(turn?.toolNames, ["Read", "Grep", "Glob", "Edit"]);
+});
+
+test("attempts of one client request get increasing attempt numbers", async () => {
+  const clientRawRequest = { body: { messages: [{ role: "user", content: "seq prompt" }] } };
+  const input = {
+    clientRawRequest,
+    body: clientRawRequest.body,
+    responses: [{ content: [{ type: "text", text: "ok" }] }],
+    agentContext: agentContextFor("attempt-seq"),
+    apiKeyInfo: { noLog: false },
+  };
+  const [first, second] = await withCaptureFlag("true", async () => [
+    resolveSessionTurn(input),
+    resolveSessionTurn(input),
+  ]);
+
+  assert.equal(first?.requestKey, second?.requestKey);
+  assert.equal(first?.attemptSeq, 1);
+  assert.equal(second?.attemptSeq, 2);
+});
+
+test("a stale attempt that finishes saving last does not overwrite the newer turn", async () => {
+  const { sessionId } = await seedSession("stale", [minutesAgo(40)]);
+  const db = core.getDbInstance();
+  const save = (attemptSeq: number, assistantText: string) =>
+    messagesDb.saveAgentSessionMessage(db, {
+      sessionId,
+      timestamp: nextTimestamp(),
+      userText: "stale prompt",
+      assistantText,
+      requestKey: "request-stale",
+      attemptSeq,
+    });
+
+  save(2, "attempt two");
+  save(1, "attempt one");
+
+  const rows = turnsWithPrompt(sessionId, "stale prompt");
+  assert.deepEqual(
+    rows.map((row) => row.assistant),
+    ["attempt two"]
+  );
+});
+
+test("a discarded attempt stores nothing, even when its save lands afterwards", async () => {
+  const { sessionId } = await seedSession("discard", [minutesAgo(40)]);
+  const db = core.getDbInstance();
+  const save = (attemptSeq: number) =>
+    messagesDb.saveAgentSessionMessage(db, {
+      sessionId,
+      timestamp: nextTimestamp(),
+      userText: "discard prompt",
+      assistantText: `attempt ${attemptSeq}`,
+      requestKey: "request-discard",
+      attemptSeq,
+    });
+
+  save(1);
+  messagesDb.discardAgentSessionMessageAttempt(db, "request-discard", 2);
+  save(2);
+
+  assert.deepEqual(turnsWithPrompt(sessionId, "discard prompt"), []);
+});
+
+test("per-request turn state expires by age", async () => {
+  const { sessionId } = await seedSession("ttl", [minutesAgo(40)]);
+  const db = core.getDbInstance();
+  const save = (attemptSeq: number) =>
+    messagesDb.saveAgentSessionMessage(db, {
+      sessionId,
+      timestamp: nextTimestamp(),
+      userText: "ttl prompt",
+      assistantText: `attempt ${attemptSeq}`,
+      requestKey: "request-ttl",
+      attemptSeq,
+    });
+
+  mock.timers.enable({ apis: ["Date"], now: Date.now() });
+  try {
+    save(1);
+    mock.timers.tick(messagesDb.AGENT_SESSION_TURN_STATE_TTL_MS + 1_000);
+    save(2);
+  } finally {
+    mock.timers.reset();
+  }
+
+  assert.equal(turnsWithPrompt(sessionId, "ttl prompt").length, 2);
+});
+
+test("log-bounded raw bodies never become the stored prompt", async () => {
+  const body = {
+    model: "gpt-4o",
+    messages: [{ role: "user", content: [{ type: "text", text: "Refactor the parser" }] }],
+  };
+  const previous = process.env.CHAT_LOG_MAX_DEPTH;
+  try {
+    for (const depth of ["2", "3"]) {
+      process.env.CHAT_LOG_MAX_DEPTH = depth;
+      const clientRawRequest = buildClientRawRequest(
+        new Request("http://localhost/v1/chat/completions", { method: "POST" }),
+        body
+      );
+      const turn = await withCaptureFlag("true", async () =>
+        resolveSessionTurn({
+          clientRawRequest,
+          body,
+          responses: [{ content: [{ type: "text", text: "ok" }] }],
+          agentContext: agentContextFor(`bounded-${depth}`),
+          apiKeyInfo: { noLog: false },
+        })
+      );
+      assert.equal(turn?.userText, "Refactor the parser", `CHAT_LOG_MAX_DEPTH=${depth}`);
+    }
+  } finally {
+    if (previous === undefined) delete process.env.CHAT_LOG_MAX_DEPTH;
+    else process.env.CHAT_LOG_MAX_DEPTH = previous;
+  }
 });

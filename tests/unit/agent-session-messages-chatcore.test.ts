@@ -13,6 +13,8 @@ const core = await import("../../src/lib/db/core.ts");
 const featureFlagsDb = await import("../../src/lib/db/featureFlags.ts");
 const { waitForCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
+const { BaseGuardrail, guardrailRegistry, resetGuardrailsForTests } =
+  await import("../../src/lib/guardrails/index.ts");
 
 const CAPTURE_FLAG = "AGENT_SESSION_MESSAGES_ENABLED";
 const originalFetch = globalThis.fetch;
@@ -59,6 +61,7 @@ type ChatCoreRun = {
   model?: string;
   endpoint?: string;
   clientRawRequest?: { endpoint: string; body: Record<string, unknown>; headers: Headers };
+  expectSuccess?: boolean;
 };
 
 function chatBody(run: ChatCoreRun): Record<string, unknown> {
@@ -92,8 +95,8 @@ async function runChatCore(run: ChatCoreRun): Promise<string> {
     clientRawRequest: run.clientRawRequest ?? clientRequestFor(run),
     userAgent: "claude-cli/2.1.0 (external, cli)",
   });
-  assert.equal(result.success, true);
-  const clientText = run.stream ? await result.response.text() : "";
+  assert.equal(result.success, run.expectSuccess ?? true);
+  const clientText = run.stream && result.success ? await result.response.text() : "";
   await flushAsyncSideEffects();
   return clientText;
 }
@@ -222,4 +225,58 @@ test("two attempts for one client request (combo fallback) store a single turn",
     storedTurns("wiring combo prompt").map((row) => row.assistant_text),
     ["Accepted fallback answer."]
   );
+});
+
+test("a reply blocked by a post-call guardrail stores no turn", async () => {
+  class BlockEveryReply extends BaseGuardrail {
+    constructor() {
+      super("test-block-every-reply", { priority: 1 });
+    }
+    async postCall() {
+      return { block: true, message: "blocked by test guardrail" };
+    }
+  }
+  guardrailRegistry.register(new BlockEveryReply());
+  globalThis.fetch = async () => chatCompletion("Text the client never receives.");
+  try {
+    await runChatCore({
+      prompt: "wiring blocked prompt",
+      stream: false,
+      sessionId: "wire-blocked",
+      expectSuccess: false,
+    });
+  } finally {
+    resetGuardrailsForTests();
+  }
+
+  assert.deepEqual(storedTurns("wiring blocked prompt"), []);
+});
+
+test("streaming with PII response sanitization stores the redacted text", async () => {
+  featureFlagsDb.setFeatureFlagOverride("PII_RESPONSE_SANITIZATION", "true");
+  const chunk = (delta: Record<string, unknown>, finishReason: string | null = null) => ({
+    id: "chatcmpl_wire_pii",
+    object: "chat.completion.chunk",
+    created: 1,
+    model: "gpt-4o-mini",
+    choices: [{ index: 0, delta, finish_reason: finishReason }],
+  });
+  globalThis.fetch = async () =>
+    sseResponse([
+      chunk({ role: "assistant", content: "Reach alice@example.com now." }),
+      chunk({}, "stop"),
+    ]);
+  let clientText = "";
+  try {
+    clientText = await runChatCore({
+      prompt: "wiring pii prompt",
+      stream: true,
+      sessionId: "wire-pii",
+    });
+  } finally {
+    featureFlagsDb.removeFeatureFlagOverride("PII_RESPONSE_SANITIZATION");
+  }
+
+  assert.ok(!clientText.includes("alice@example.com"), "the client stream is redacted");
+  assert.equal(storedTurn("wiring pii prompt")?.assistant_text, "Reach [EMAIL_REDACTED] now.");
 });
