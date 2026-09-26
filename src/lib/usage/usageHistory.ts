@@ -42,6 +42,7 @@ import {
 } from "@omniroute/open-sse/handlers/chatCore/agentContext.ts";
 import type { AgentSessionTurn } from "@omniroute/open-sse/handlers/chatCore/agentSessionTurn.ts";
 import { isNoLog } from "../compliance/noLog";
+import { redactSessionTurn } from "./agentSessionTurnRedaction";
 import { saveAgentSessionMessage } from "../db/agentSessionMessages";
 import {
   recordAgentSessionUsage,
@@ -820,7 +821,8 @@ export async function saveRequestUsage(entry: UsageEntry) {
     const agentSessionUsage = await buildAgentSessionUsage(entry, tokens, timestamp, serviceTier);
     // Only /v1/me key holders read turns: no keyless or env-key rows, and the call-log noLog source.
     const turnReadable = entry.apiKeyId && !isSyntheticApiKeyId(entry.apiKeyId);
-    const sessionTurn = turnReadable && !isNoLog(entry.apiKeyId) ? entry.sessionTurn : null;
+    const sessionTurn =
+      turnReadable && !isNoLog(entry.apiKeyId) ? await redactSessionTurn(entry.sessionTurn) : null;
     const connection = entry.connectionId
       ? (db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(entry.connectionId) as
           Record<string, unknown> | undefined)
@@ -897,6 +899,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
             toolNames: sessionTurn.toolNames,
             truncated: sessionTurn.truncated,
             requestKey: sessionTurn.requestKey,
+            attemptSeq: sessionTurn.attemptSeq,
           });
         } catch (turnErr) {
           console.error("Failed to save agent session message:", turnErr);
