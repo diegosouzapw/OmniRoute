@@ -1,0 +1,1 @@
+- **fix(providers):** OpenAI GPT-6 requests map `max_tokens` to `max_completion_tokens` ([#14870](https://github.com/diegosouzapw/OmniRoute/pull/14870)) — thanks @fidelix
