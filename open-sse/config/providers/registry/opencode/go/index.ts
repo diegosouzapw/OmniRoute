@@ -179,12 +179,20 @@ export const opencode_goProvider: RegistryEntry = {
     // Muse Spark 1.2 Contributor — base + effort-tier aliases from the OpenCode Go
     // registry (`opencode models opencode-go --verbose`; exact suffix set:
     // minimal/low/medium/high/xhigh, no max).
+    // supportedThinkingEfforts was missing from this base row even though
+    // executors/opencode.ts's EFFORT_TIERS already declares the identical
+    // tier set for it (#10788's own pattern: "declared on the base row so the
+    // catalog's variant synthesis (#9485) and the effort sanitizer share one
+    // source of truth with OpencodeExecutor's EFFORT_TIERS") — every sibling
+    // base row above (glm-5.2, kimi-k3, mimo-v2.5, hy3, qwen3.6-plus/3.7-max/3.7-plus)
+    // already carries it.
     {
       id: "muse-spark-1.2-contributor",
       name: "Muse Spark 1.2 Contributor",
       contextLength: 1048576,
       maxOutputTokens: 131072,
       supportsReasoning: true,
+      supportedThinkingEfforts: ["minimal", "low", "medium", "high", "xhigh"],
       supportsVision: true,
       supportsAudio: true,
       supportsVideo: true,
@@ -257,6 +265,7 @@ export const opencode_goProvider: RegistryEntry = {
       contextLength: 1048576,
       maxOutputTokens: 131072,
       supportsReasoning: true,
+      supportedThinkingEfforts: ["minimal", "low", "medium", "high", "xhigh"],
       supportsVision: true,
       supportsAudio: true,
       supportsVideo: true,
