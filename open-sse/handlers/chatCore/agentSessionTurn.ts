@@ -7,6 +7,8 @@
  * stream assembler reports for every client format), OpenAI Responses `output[]`.
  */
 
+import { TOOL_USE_NAMES_FIELD } from "../../utils/streamClaudeDelta.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 export const MAX_TURN_TEXT_CHARS = 4_000;
@@ -138,6 +140,11 @@ export function extractAssistantTurnText(responseBody: unknown): {
       for (const tc of message.tool_calls)
         collectToolName(toolNames, asRecord(asRecord(tc)?.function)?.name);
     }
+    // Claude passthrough streams hand their tool_use names over off the serialized body.
+    const sideChannelNames = message[TOOL_USE_NAMES_FIELD];
+    if (Array.isArray(sideChannelNames)) {
+      for (const name of sideChannelNames) collectToolName(toolNames, name);
+    }
   }
 
   // OpenAI Responses: output: [{ type: "message", content: [output_text] }, { type: "function_call" }]
@@ -161,23 +168,30 @@ export interface ExtractedAgentSessionTurn {
   truncated: boolean;
 }
 
+/** A turn ready to store; `requestKey` is shared by every attempt of one client request. */
+export interface AgentSessionTurn extends ExtractedAgentSessionTurn {
+  requestKey?: string | null;
+}
+
+type AssistantTurn = ReturnType<typeof extractAssistantTurnText>;
+
+const assistantTurnWeight = (turn: AssistantTurn) => (turn.text ? 1 : 0) + turn.toolNames.length;
+
 /**
- * Build the turn from the request and the first response body that carries assistant text or
- * tool calls. Callers pass the most complete representation first (for a streamed Responses
- * client, the client payload summary keeps `function_call` items the assembled body drops).
+ * Build the turn from the request and the response body that carries the most: assistant text
+ * counts once, plus one per tool name; ties keep the earlier body. Callers pass alternative
+ * representations of the same reply (the streamed client payload summary keeps Responses
+ * `function_call` items; the assembled body keeps Claude passthrough tool names).
  */
 export function extractAgentSessionTurn(
   requestBody: unknown,
   ...responseBodies: unknown[]
 ): ExtractedAgentSessionTurn | null {
   const user = extractUserTurnText(requestBody);
-  const assistant = responseBodies
-    .map(extractAssistantTurnText)
-    .find((candidate) => candidate.text || candidate.toolNames.length > 0) ?? {
-    text: null,
-    toolNames: [],
-    truncated: false,
-  };
+  let assistant: AssistantTurn = { text: null, toolNames: [], truncated: false };
+  for (const candidate of responseBodies.map(extractAssistantTurnText)) {
+    if (assistantTurnWeight(candidate) > assistantTurnWeight(assistant)) assistant = candidate;
+  }
 
   const hasContent = Boolean(user.text || assistant.text || assistant.toolNames.length > 0);
   if (!hasContent) return null;

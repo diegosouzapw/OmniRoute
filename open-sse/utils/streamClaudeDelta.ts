@@ -32,6 +32,13 @@ type JsonRecord = Record<string, unknown>;
 
 const MAX_TOOL_USE_NAMES = 20;
 
+/**
+ * Non-enumerable field on the assembled chat message that carries Claude passthrough tool names
+ * to the session-turn extractor only. JSON.stringify, object spreads and structuredClone all skip
+ * it, so call logs, the semantic cache and reasoning replay see the body exactly as before.
+ */
+export const TOOL_USE_NAMES_FIELD = "_omnirouteToolNames";
+
 function asRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
 }
@@ -51,13 +58,12 @@ export function collectToolUseName(toolNames: string[], event: unknown): void {
   toolNames.push(name);
 }
 
-/** Adds the collected names as name-only `tool_calls` the assembled chat message lacks. */
-export function mergeToolUseNames(message: JsonRecord, toolNames: readonly string[]): void {
+/** Attaches the collected names under {@link TOOL_USE_NAMES_FIELD}; the message stays as is. */
+export function attachToolUseNames(message: JsonRecord, toolNames: readonly string[]): void {
   if (toolNames.length === 0) return;
-  const existing = Array.isArray(message.tool_calls) ? message.tool_calls : [];
-  const known = new Set(existing.map((call) => asRecord(asRecord(call)?.function)?.name));
-  const added = toolNames
-    .filter((name) => !known.has(name))
-    .map((name) => ({ type: "function", function: { name } }));
-  if (added.length > 0) message.tool_calls = [...existing, ...added];
+  Object.defineProperty(message, TOOL_USE_NAMES_FIELD, {
+    value: [...toolNames],
+    enumerable: false,
+    configurable: true,
+  });
 }
