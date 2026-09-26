@@ -360,11 +360,16 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
 #   2. `codex` / `claude-code` dev pre-releases (`@next`, dist-tags) mutate
 #      API surface without notice; reproducible builds need a SHA-pinned dev
 #      build, not the floating `@latest`.
+# `@qoder-ai/qodercli` (#9292): the Qoder PAT (`pt-*`) login path shells out to
+# this binary for WASM-signed Cosy auth; without it the executor's own
+# `cli_not_found` handling is correct but every PAT login fails with
+# `spawn qodercli ENOENT`. Same pinning rationale as the tools above.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm install -g --no-audit --no-fund \
     @openai/codex@0.156.1 \
     @anthropic-ai/claude-code@2.1.260 \
     droid@0.212.0 \
-    openclaw@2026.9.1
+    openclaw@2026.9.1 \
+    @qoder-ai/qodercli@1.1.63
 
 USER node
