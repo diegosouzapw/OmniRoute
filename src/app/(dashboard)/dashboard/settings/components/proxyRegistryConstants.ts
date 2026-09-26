@@ -1,4 +1,5 @@
 import type { ProxyItem } from "./proxyRegistryTypes";
+import type { SweepVerdict } from "@/lib/proxyHealth/sweepVerdict";
 
 export type UsageInfo = {
   count: number;
@@ -19,6 +20,7 @@ export type HealthInfo = {
   upstream5xx: number;
   connectionTests: number;
   connectionTestSuccess: number;
+  sweep?: SweepVerdict & { ageMs: number };
 };
 
 export type TestResult = {

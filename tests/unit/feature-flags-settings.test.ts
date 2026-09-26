@@ -271,14 +271,14 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.warningLevel, "info");
   });
 
-  it("defines skip-recently-failed proxies as a network boolean flag disabled by default", () => {
+  it("defines skip-recently-failed proxies as a network boolean flag enabled by default", () => {
     // Guards the routing default: with this on, pools and account rotation skip a proxy
-    // that just failed. Selection order must stay the plain rotation unless opted in.
+    // that just failed. Opt-out with PROXY_SKIP_RECENTLY_FAILED=false.
     const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "PROXY_SKIP_RECENTLY_FAILED");
     assert.ok(def, "PROXY_SKIP_RECENTLY_FAILED should exist");
     assert.strictEqual(def.category, "network");
     assert.strictEqual(def.type, "boolean");
-    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.defaultValue, "true");
     assert.strictEqual(def.requiresRestart, false);
   });
 

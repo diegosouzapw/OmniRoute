@@ -290,6 +290,14 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE call_logs ADD COLUMN usage_provenance TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.usage_provenance column");
     }
+    // added by 191_call_logs_resilience_actions; back-filled here for
+    // lineages that skipped the migration file — the call-log write path
+    // references this column on every insert (guarded by hasCallLogsColumn,
+    // but the heal keeps old databases queryable without the guard).
+    if (!columnNames.has("resilience_actions")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN resilience_actions TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.resilience_actions column");
+    }
 
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model)"

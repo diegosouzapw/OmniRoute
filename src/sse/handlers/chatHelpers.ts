@@ -463,6 +463,9 @@ export async function executeChatWithBreaker({
   videoBridgeLog = undefined,
   fallbackAttempts = undefined,
   forcedConnectionId = null,
+  // optional resume flag from a rehydrated previous_response_id —
+  // forwarded to handleChatCore, which notes it under the attempt store.
+  previousResponseResumed = undefined,
 }: ExecuteChatWithBreakerOptions): Promise<ExecuteChatWithBreakerResult> {
   let tlsFingerprintUsed = false;
   const normalizedTrafficType: TrafficType =
@@ -524,6 +527,7 @@ export async function executeChatWithBreaker({
             reasoningTransportFallback,
             managedLease,
             videoBridgeLog,
+            previousResponseResumed,
             fallbackAttempts,
             forcedConnectionId,
             skipResourcePressureGuard: true,
