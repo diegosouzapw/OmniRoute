@@ -7,7 +7,8 @@
  * the reset still counts toward the weekly limit.
  *
  * Wire contract:
- *   Status  GET  https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1
+ *   Status  GET  https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1
+ *           (shared with the reset-credit list — see claudeResetCreditCount.ts)
  *           → body.juniper_tide = { eligible, ineligible_reason, in_experiment,
  *             arm: "control"|"reset", available, next_available_at, weekly_resets_at,
  *             resets_per_week }
@@ -25,7 +26,15 @@
  * (already used this week, not in the experiment, …) does not re-query on every request.
  */
 
-import { fetchClaudeBootstrap, getClaudeCodeVersion } from "../executors/claudeIdentity.ts";
+import { fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
+import {
+  CLAUDE_RESET_CREDIT_USAGE_URL,
+  claudeResetCreditHeaders,
+  fetchAndSeedClaudeResetCreditUsage,
+  fetchClaudeResetCreditUsage,
+  fetchJsonWithTimeout,
+  forgetClaudeResetCreditCount,
+} from "./claudeResetCreditCount.ts";
 import { setBoundedEntry } from "./claudeLowPriority.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -33,8 +42,7 @@ type FetchLike = typeof fetch;
 
 export const CLAUDE_LIMIT_RESET_PROGRAM = "juniper_tide";
 export const CLAUDE_GRANT_RESET_PROGRAM = "cedar_ember";
-export const CLAUDE_LIMIT_RESET_STATUS_URL =
-  "https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1";
+export const CLAUDE_LIMIT_RESET_STATUS_URL = CLAUDE_RESET_CREDIT_USAGE_URL;
 export const CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS = 5_000;
 export const CLAUDE_LIMIT_RESET_CLAIM_TIMEOUT_MS = 25_000;
 /** Back-off after a failed/unavailable claim before the next wall may re-query. */
@@ -101,17 +109,6 @@ function asRecord(value: unknown): JsonRecord {
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
-}
-
-function oauthHeaders(accessToken: string): Record<string, string> {
-  return {
-    Accept: "application/json, text/plain, */*",
-    Authorization: `Bearer ${accessToken}`,
-    "Content-Type": "application/json",
-    "User-Agent": `claude-cli/${getClaudeCodeVersion()} (external, cli)`,
-    "x-app": "cli",
-    "anthropic-beta": "oauth-2025-04-20",
-  };
 }
 
 /** Parse the `juniper_tide` block of a `/api/oauth/usage?at_wall=1` body. Null when absent/malformed. */
@@ -223,86 +220,16 @@ export function parseAllClaudeResetCredits(usageBody: unknown): ClaudeResetCredi
   return { credits, availableCount };
 }
 
-/**
- * Banked reset credits for the dashboard badge: every `cedar_ember` grant with resets left
- * plus the weekly `juniper_tide` session reset when it is offered to this account.
- */
-export function countClaudeBankedResetCredits(usageBody: unknown): number {
-  const body = asRecord(usageBody);
-  let count = 0;
-  const cedar = asRecord(body.cedar_ember);
-  if (Array.isArray(cedar.grants)) {
-    for (const item of cedar.grants) {
-      const g = asRecord(item);
-      if (typeof g.resets_left === "number" && g.resets_left > 0) count += g.resets_left;
-    }
-  }
-  const juniper = asRecord(body.juniper_tide);
-  if (juniper.available === true || (juniper.eligible === true && juniper.arm === "reset")) {
-    count += 1;
-  }
-  return count;
-}
-
-export type ClaudeResetCreditUsageResult =
-  { ok: true; body: unknown } | { ok: false; status: number; body: unknown };
-
-/**
- * GET the reset-credit usage snapshot: the only request that carries the reset-credit query
- * string and CLI headers (the regular usage poller in usage/claude.ts keeps its base URL and
- * User-Agent). Never throws — a transport failure or timeout reports `status: 0`.
- */
-export async function fetchClaudeResetCreditUsage(
-  accessToken: string,
-  options: { fetchImpl?: FetchLike; timeoutMs?: number } = {}
-): Promise<ClaudeResetCreditUsageResult> {
-  try {
-    const res = await fetchWithTimeout(
-      options.fetchImpl ?? fetch,
-      CLAUDE_LIMIT_RESET_STATUS_URL,
-      { method: "GET", headers: oauthHeaders(accessToken) },
-      options.timeoutMs ?? CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS
-    );
-    const body: unknown = await res.json().catch(() => null);
-    return res.ok ? { ok: true, body: body ?? {} } : { ok: false, status: res.status, body };
-  } catch {
-    return { ok: false, status: 0, body: null };
-  }
-}
-
-async function fetchWithTimeout(
-  fetchImpl: FetchLike,
-  url: string,
-  init: RequestInit,
-  timeoutMs: number
-): Promise<Response> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    return await fetchImpl(url, { ...init, signal: ctrl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 /** GET the at-wall usage snapshot and extract the reset offer. Null on any failure. */
 export async function fetchClaudeLimitResetStatus(
   accessToken: string,
   fetchImpl: FetchLike = fetch
 ): Promise<ClaudeLimitResetStatus | null> {
-  try {
-    const res = await fetchWithTimeout(
-      fetchImpl,
-      CLAUDE_LIMIT_RESET_STATUS_URL,
-      { method: "GET", headers: oauthHeaders(accessToken) },
-      CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS
-    );
-    if (!res.ok) return null;
-    const body: unknown = await res.json().catch(() => null);
-    return parseClaudeLimitResetStatus(body);
-  } catch {
-    return null;
-  }
+  const res = await fetchClaudeResetCreditUsage(accessToken, {
+    fetchImpl,
+    timeoutMs: CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS,
+  });
+  return res.ok ? parseClaudeLimitResetStatus(res.body) : null;
 }
 
 /** POST the reset claim for one organization. Never throws. */
@@ -346,12 +273,12 @@ export async function claimClaudeResetCredit(
       };
 
   try {
-    const res = await fetchWithTimeout(
+    const res = await fetchJsonWithTimeout(
       fetchImpl,
       claudeLimitResetClaimUrl(organizationUuid),
       {
         method: "POST",
-        headers: oauthHeaders(accessToken),
+        headers: claudeResetCreditHeaders(accessToken),
         body: JSON.stringify(payload),
       },
       CLAUDE_LIMIT_RESET_CLAIM_TIMEOUT_MS
@@ -362,8 +289,7 @@ export async function claimClaudeResetCredit(
       return { result: "auth_error", nextAvailableAt: null, weeklyResetsAt: null };
     }
     if (!res.ok) return { result: "error", nextAvailableAt: null, weeklyResetsAt: null };
-    const body: unknown = await res.json().catch(() => null);
-    return parseClaudeLimitResetClaim(body);
+    return parseClaudeLimitResetClaim(res.body);
   } catch {
     return { result: "error", nextAvailableAt: null, weeklyResetsAt: null };
   }
@@ -426,6 +352,8 @@ export type ClaudeLimitResetAttempt = {
  */
 export async function attemptClaudeLimitReset(opts: {
   key: string;
+  /** When known, the status read seeds (and a claim forgets) the dashboard reset-credit count. */
+  connectionId?: string | null;
   accessToken: string;
   providerSpecificData?: unknown;
   now?: number;
@@ -472,7 +400,11 @@ async function resolveLimitResetOffer(
   now: number,
   fetchImpl: FetchLike
 ): Promise<ClaudeLimitResetAttempt | null> {
-  const status = await fetchClaudeLimitResetStatus(opts.accessToken, fetchImpl);
+  const res = await fetchAndSeedClaudeResetCreditUsage(opts.connectionId, opts.accessToken, {
+    fetchImpl,
+    timeoutMs: CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS,
+  });
+  const status = res.ok ? parseClaudeLimitResetStatus(res.body) : null;
   if (!status) {
     memoise(notBefore, opts.key, now + CLAUDE_LIMIT_RESET_RETRY_BACKOFF_MS);
     return { reset: false, outcome: "no_status", nextAvailableAt: null };
@@ -494,6 +426,8 @@ async function runLimitResetClaim(
   organizationUuid: string
 ): Promise<ClaudeLimitResetAttempt> {
   const claim = await claimClaudeLimitReset(opts.accessToken, organizationUuid, fetchImpl);
+  // The claim may have spent a reset: the dashboard count is unknown until the next list.
+  if (opts.connectionId) forgetClaudeResetCreditCount(opts.connectionId);
   const granted = claim.result === "reset" || claim.result === "not_limited";
   const spent = granted || claim.result === "already_used";
   memoiseNotBefore(

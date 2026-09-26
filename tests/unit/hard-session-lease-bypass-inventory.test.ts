@@ -202,6 +202,10 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/tokenHealthCheck.ts": 3,
     "src/lib/tokenHealthCheckCopilot.ts": 1,
     "src/lib/usage/callLogs.ts": 1,
+    // #14728: Claude sibling of codexResetCredits.ts, same shape —
+    // isConnectionUnavailableToAuxiliaryActivity() gates the lookup, so an ACTIVE
+    // exclusive lease defers list/redeem (409 exclusive_lease_active).
+    "src/lib/usage/claudeResetCredits.ts": 1,
     "src/lib/usage/codexResetCredits.ts": 1,
     "src/lib/usage/comboScoringInspector.ts": 1,
     "src/lib/usage/glmResetCards.ts": 1,
@@ -258,6 +262,7 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
         "src/lib/providers/volcPlanAutoSyncBackfill.ts",
         "src/lib/providers/volcenginePlanBinding.ts",
         "src/lib/services/quotaAutoPing.ts",
+        "src/lib/usage/claudeResetCredits.ts",
         "src/lib/usage/codexResetCredits.ts",
         "src/lib/usage/glmResetCards.ts",
         "src/lib/usage/grokResetCredits.ts",
@@ -368,6 +373,7 @@ test("managed request surfaces are fenced centrally or rejected before independe
     "src/app/api/translator/translate/route.ts",
     "src/lib/api/modelTestRunner.ts",
     "src/lib/services/quotaAutoPing.ts",
+    "src/lib/usage/claudeResetCredits.ts",
     "src/lib/usage/codexResetCredits.ts",
     "src/lib/usage/glmResetCards.ts",
     "src/lib/usage/grokResetCredits.ts",

@@ -13,7 +13,6 @@ import { z } from "zod";
 import { safePercentage } from "@/shared/utils/formatting";
 import { getClaudeCodeVersion, fetchClaudeBootstrap } from "../../executors/claudeIdentity.ts";
 import { isClaudeOauthUsageCoolingDown, markClaudeOauthUsage429 } from "../claudeUsageCooldown.ts";
-import { getClaudeResetCreditCount } from "../claudeResetCreditCount.ts";
 import { toRecord } from "./scalars.ts";
 import { type UsageQuota, parseResetTime } from "./quota.ts";
 
@@ -90,7 +89,6 @@ export async function getClaudeUsage(accessToken?: string) {
     }
 
     if (oauthResponse.ok) {
-      const resetCreditCountPromise = getClaudeResetCreditCount(accessToken);
       const data = toRecord(await oauthResponse.json());
       const quotas: Record<string, UsageQuota> = {};
 
@@ -146,9 +144,6 @@ export async function getClaudeUsage(accessToken?: string) {
         });
       }
 
-      // This base-URL response carries `cedar_ember`/`juniper_tide` as null; the banked
-      // reset-credit count comes from the dedicated (memoised) reset-credit list request.
-      const bankedResetCredits = await resetCreditCountPromise;
       const bootstrap = await bootstrapPromise;
       const plan =
         getClaudePlanLabel(
@@ -163,7 +158,6 @@ export async function getClaudeUsage(accessToken?: string) {
         quotas,
         modelQuotas,
         extraUsage: data.extra_usage ?? null,
-        ...(bankedResetCredits !== null && bankedResetCredits > 0 ? { bankedResetCredits } : {}),
         bootstrap,
       };
     }

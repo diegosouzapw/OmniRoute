@@ -368,11 +368,39 @@ export function canProviderRedeemResetCredit(provider: string): boolean {
   return (RESET_CREDIT_PROVIDERS as readonly string[]).includes(provider);
 }
 
-export function computeCanRedeemResetCredit(provider: string, quotas: any[]): boolean {
-  return (
-    canProviderRedeemResetCredit(provider) &&
-    quotas.some((q: any) => q?.isResetCredits && Number(q.creditCount ?? q.remaining ?? 0) > 0)
-  );
+export interface ResetCreditGateContext {
+  /** The raw usage payload behind the card (carries `bankedResetCredits` when known). */
+  raw?: unknown;
+  authType?: string;
+}
+
+/**
+ * The regular Claude usage poll cannot see banked reset credits; only the reset-credit list
+ * (opened by the user) or the opt-in auto-reset learns the count. Until then the count is
+ * unknown and a Claude OAuth card keeps its entry point — only an authoritative 0 hides it.
+ */
+function isClaudeResetCreditCountUnknown(
+  provider: string,
+  context?: ResetCreditGateContext
+): boolean {
+  if (provider !== "claude" || context?.authType !== "oauth") return false;
+  const raw =
+    context.raw && typeof context.raw === "object"
+      ? (context.raw as Record<string, unknown>)
+      : null;
+  return typeof raw?.bankedResetCredits !== "number";
+}
+
+export function computeCanRedeemResetCredit(
+  provider: string,
+  quotas: any[],
+  context?: ResetCreditGateContext
+): boolean {
+  if (!canProviderRedeemResetCredit(provider)) return false;
+  if (quotas.some((q: any) => q?.isResetCredits && Number(q.creditCount ?? q.remaining ?? 0) > 0)) {
+    return true;
+  }
+  return isClaudeResetCreditCountUnknown(provider, context);
 }
 
 export function hasQuotaCutoffOverrides(connection: any): boolean {

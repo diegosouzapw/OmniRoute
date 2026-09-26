@@ -1,4 +1,5 @@
 import { getProviderConnectionById } from "@/lib/db/providers";
+import { resolveProxyForConnection } from "@/lib/db/settings";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import {
   fetchAndPersistProviderLimits,
@@ -6,17 +7,17 @@ import {
 } from "@/lib/usage/providerLimits";
 import {
   claimClaudeResetCredit,
-  fetchClaudeResetCreditUsage,
   parseAllClaudeResetCredits,
   resolveClaudeOrganizationUuid,
   type PublicClaudeResetCredit,
   type ClaudeResetCreditList,
 } from "@omniroute/open-sse/services/claudeLimitReset.ts";
 import {
+  fetchAndSeedClaudeResetCreditUsage,
   forgetClaudeResetCreditCount,
-  rememberClaudeResetCreditCount,
 } from "@omniroute/open-sse/services/claudeResetCreditCount.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 export { PublicClaudeResetCredit, ClaudeResetCreditList };
 
@@ -104,10 +105,19 @@ function requireAccessToken(connection: ClaudeConnectionLike): string {
 
 const CLAUDE_RESET_CREDIT_LIST_TIMEOUT_MS = 10_000;
 
-async function fetchClaudeUsageBody(accessToken: string): Promise<unknown> {
-  const result = await fetchClaudeResetCreditUsage(accessToken, {
-    timeoutMs: CLAUDE_RESET_CREDIT_LIST_TIMEOUT_MS,
-  });
+/** Run upstream reset-credit calls through the connection's proxy, like the usage refresh. */
+async function withConnectionProxy<T>(connectionId: string, run: () => Promise<T>): Promise<T> {
+  const proxyInfo = await resolveProxyForConnection(connectionId);
+  return runWithProxyContext(proxyInfo?.proxy ?? null, run);
+}
+
+/** The user-initiated list read; it also seeds the dashboard's banked-credit count. */
+async function fetchClaudeUsageBody(connectionId: string, accessToken: string): Promise<unknown> {
+  const result = await withConnectionProxy(connectionId, () =>
+    fetchAndSeedClaudeResetCreditUsage(connectionId, accessToken, {
+      timeoutMs: CLAUDE_RESET_CREDIT_LIST_TIMEOUT_MS,
+    })
+  );
   if (result.ok) return result.body;
   const errBody = result.body as JsonRecord | null;
   const msg =
@@ -129,8 +139,7 @@ export async function listClaudeResetCredits(connectionId: string): Promise<Clau
     let connection = await loadClaudeConnection(connectionId);
     connection = await refreshClaudeConnectionIfNeeded(connection);
     const token = requireAccessToken(connection);
-    const usageBody = await fetchClaudeUsageBody(token);
-    rememberClaudeResetCreditCount(token, usageBody);
+    const usageBody = await fetchClaudeUsageBody(connection.id, token);
     return parseAllClaudeResetCredits(usageBody);
   } catch (error) {
     if (error instanceof ClaudeResetCreditError) throw error;
@@ -158,7 +167,9 @@ export async function consumeClaudeResetCredit(
     let connection = await loadClaudeConnection(connectionId);
     connection = await refreshClaudeConnectionIfNeeded(connection);
     const token = requireAccessToken(connection);
-    const orgUuid = await resolveClaudeOrganizationUuid(connection.providerSpecificData, token);
+    const orgUuid = await withConnectionProxy(connection.id, () =>
+      resolveClaudeOrganizationUuid(connection.providerSpecificData, token)
+    );
     if (!orgUuid) {
       throw new ClaudeResetCreditError(
         400,
@@ -167,12 +178,11 @@ export async function consumeClaudeResetCredit(
       );
     }
 
-    const claim = await claimClaudeResetCredit(token, orgUuid, {
-      creditId,
-      requestId: idempotencyKey,
-    });
-    // Whatever the outcome, the memoised badge count may now be stale.
-    forgetClaudeResetCreditCount(token);
+    const claim = await withConnectionProxy(connection.id, () =>
+      claimClaudeResetCredit(token, orgUuid, { creditId, requestId: idempotencyKey })
+    );
+    // Whatever the outcome, the memoised count may now be stale: unknown until the next list.
+    forgetClaudeResetCreditCount(connection.id);
 
     if (claim.result === "reset" || claim.result === "not_limited") {
       const refreshed = await fetchAndPersistProviderLimits(connectionId, "manual", {

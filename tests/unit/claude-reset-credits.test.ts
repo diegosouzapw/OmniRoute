@@ -7,17 +7,14 @@ import assert from "node:assert/strict";
 import {
   parseAllClaudeResetCredits,
   claimClaudeResetCredit,
+  attemptClaudeLimitReset,
+  _resetClaudeLimitResetMemo,
   CLAUDE_GRANT_RESET_PROGRAM,
   CLAUDE_LIMIT_RESET_PROGRAM,
-  fetchClaudeResetCreditUsage,
 } from "../../open-sse/services/claudeLimitReset.ts";
-import {
-  CLAUDE_RESET_CREDIT_COUNT_TTL_MS,
-  _resetClaudeResetCreditCountCache,
-  forgetClaudeResetCreditCount,
-  getClaudeResetCreditCount,
-  rememberClaudeResetCreditCount,
-} from "../../open-sse/services/claudeResetCreditCount.ts";
+// Namespace import: the memo API is exercised per test, so one missing export fails one test.
+import * as resetCreditMemo from "../../open-sse/services/claudeResetCreditCount.ts";
+import * as resetCreditRedemption from "../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/useCodexResetCreditRedemption.ts";
 import { parseQuotaData } from "../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx";
 import {
   canProviderRedeemResetCredit,
@@ -206,19 +203,36 @@ test("CodexResetCreditsModal helpers format Claude credits appropriately", () =>
 });
 
 // Upstream only fills `cedar_ember` / `juniper_tide` when the reset-credit query string is
-// sent; the regular poller's base URL gets both keys back as null. The mock mirrors that so
-// the dashboard gate is exercised against what the regular poller really receives.
+// sent; the regular poller's base URL gets both keys back as null. The mock mirrors that.
 const BASE_USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
 const RESET_CREDIT_LIST_URL =
   "https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1";
+const CLAIM_URL = "https://api.anthropic.com/api/organizations/org-uuid-1/reset_rate_limits";
 
-type RecordedRequest = { url: string; headers: Record<string, string> };
+const LIST_BODY_WITH_CREDITS = {
+  five_hour: { utilization: 100, resets_at: "2099-09-10T14:00:00Z" },
+  cedar_ember: { eligible: true, grants: [{ id: "grant-a", resets_left: 2, usable_now: true }] },
+  juniper_tide: { eligible: true, arm: "reset", available: true },
+};
+const LIST_BODY_EMPTY = {
+  five_hour: { utilization: 10, resets_at: "2099-09-10T14:00:00Z" },
+  cedar_ember: { eligible: true, grants: [] },
+  juniper_tide: { eligible: false, arm: "control", available: false },
+};
 
-function mockClaudeUpstream(listStatus = 200) {
+type RecordedRequest = { url: string; method: string; headers: Record<string, string> };
+
+function mockClaudeUpstream(
+  options: { listStatus?: number; listBody?: unknown; claimResult?: string } = {}
+) {
   const requests: RecordedRequest[] = [];
   const fetchImpl = (async (input: unknown, init?: RequestInit) => {
     const url = String(input);
-    requests.push({ url, headers: { ...((init?.headers as Record<string, string>) ?? {}) } });
+    requests.push({
+      url,
+      method: init?.method ?? "GET",
+      headers: { ...((init?.headers as Record<string, string>) ?? {}) },
+    });
     if (url === BASE_USAGE_URL) {
       return Response.json({
         five_hour: { utilization: 100, resets_at: "2099-09-10T14:00:00Z" },
@@ -228,37 +242,58 @@ function mockClaudeUpstream(listStatus = 200) {
       });
     }
     if (url === RESET_CREDIT_LIST_URL) {
-      if (listStatus !== 200) return new Response(null, { status: listStatus });
-      return Response.json({
-        five_hour: { utilization: 100, resets_at: "2099-09-10T14:00:00Z" },
-        cedar_ember: {
-          eligible: true,
-          grants: [{ id: "grant-a", resets_left: 2, usable_now: true }],
-        },
-        juniper_tide: { eligible: true, arm: "reset", available: true },
-      });
+      const status = options.listStatus ?? 200;
+      if (status !== 200) return new Response(null, { status });
+      return Response.json(options.listBody ?? LIST_BODY_WITH_CREDITS);
     }
+    if (url === CLAIM_URL) return Response.json({ result: options.claimResult ?? "reset" });
     return new Response(null, { status: 503 });
   }) as typeof fetch;
-  return { requests, fetchImpl };
+  const listCalls = () => requests.filter((r) => r.url === RESET_CREDIT_LIST_URL).length;
+  return { requests, fetchImpl, listCalls };
 }
 
-test("Claude reset credits reach the dashboard gate while the regular poller keeps the base URL", async () => {
+/** A list request the test releases by hand, to interleave redeems and concurrent callers. */
+function deferredListFetch() {
+  let calls = 0;
+  const releases: Array<() => void> = [];
+  const fetchImpl = (async () => {
+    calls += 1;
+    await new Promise<void>((resolve) => releases.push(resolve));
+    return Response.json(LIST_BODY_WITH_CREDITS);
+  }) as typeof fetch;
+  return {
+    fetchImpl,
+    calls: () => calls,
+    releaseAll: () => releases.splice(0).forEach((r) => r()),
+  };
+}
+
+test.beforeEach(() => {
+  resetCreditMemo._resetClaudeResetCreditCountCache();
+  _resetClaudeLimitResetMemo();
+});
+
+test("the regular usage poller never requests the reset-credit list and keeps the base headers", async () => {
   const { getClaudeUsage } = await import("../../open-sse/services/usage/claude.ts");
   const { getClaudeCodeVersion } = await import("../../open-sse/executors/claudeIdentity.ts");
-  const { requests, fetchImpl } = mockClaudeUpstream();
+  const upstream = mockClaudeUpstream();
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = fetchImpl;
+  globalThis.fetch = upstream.fetchImpl;
   try {
-    const usage = await getClaudeUsage("poller-gate-token");
-    const rows = parseQuotaData("claude", usage);
-    assert.equal(computeCanRedeemResetCredit("claude", rows), true);
-    assert.equal(usage.bankedResetCredits, 3);
-
-    const poll = requests.find((r) => r.url === BASE_USAGE_URL);
-    assert.ok(poll, "regular usage poll must hit the base URL");
-    assert.equal(poll.headers["User-Agent"], `claude-code/${getClaudeCodeVersion()}`);
-    assert.equal("x-app" in poll.headers, false);
+    const usage = await getClaudeUsage("poller-token");
+    assert.equal(upstream.listCalls(), 0);
+    const polls = upstream.requests.filter((r) => r.url === BASE_USAGE_URL);
+    assert.equal(polls.length, 1);
+    assert.deepEqual(polls[0].headers, {
+      Accept: "application/json, text/plain, */*",
+      "Accept-Encoding": "gzip, compress, deflate, br",
+      Authorization: "Bearer poller-token",
+      "Content-Type": "application/json",
+      "User-Agent": `claude-code/${getClaudeCodeVersion()}`,
+      "anthropic-beta": "oauth-2025-04-20",
+    });
+    assert.equal("bankedResetCredits" in usage, false);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -266,101 +301,190 @@ test("Claude reset credits reach the dashboard gate while the regular poller kee
 
 test("reset-credit list and redeem requests carry the query string and CLI headers", async () => {
   const { getClaudeCodeVersion } = await import("../../open-sse/executors/claudeIdentity.ts");
-  const { requests, fetchImpl } = mockClaudeUpstream();
-  const listed = await fetchClaudeResetCreditUsage("shape-token", { fetchImpl });
+  const upstream = mockClaudeUpstream();
+  const listed = await resetCreditMemo.fetchClaudeResetCreditUsage("shape-token", {
+    fetchImpl: upstream.fetchImpl,
+  });
   assert.equal(listed.ok, true);
-  const claimRequests: RecordedRequest[] = [];
   await claimClaudeResetCredit("shape-token", "org-uuid-1", {
     creditId: "grant:grant-a",
     requestId: "req-1",
-    fetchImpl: (async (input: unknown, init?: RequestInit) => {
-      claimRequests.push({ url: String(input), headers: init?.headers as Record<string, string> });
-      return Response.json({ result: "reset" });
-    }) as typeof fetch,
+    fetchImpl: upstream.fetchImpl,
   });
 
-  const cliUa = `claude-cli/${getClaudeCodeVersion()} (external, cli)`;
   assert.deepEqual(
-    requests.map((r) => r.url),
-    [RESET_CREDIT_LIST_URL]
+    upstream.requests.map((r) => `${r.method} ${r.url}`),
+    [`GET ${RESET_CREDIT_LIST_URL}`, `POST ${CLAIM_URL}`]
   );
-  for (const request of [requests[0], claimRequests[0]]) {
+  const cliUa = `claude-cli/${getClaudeCodeVersion()} (external, cli)`;
+  for (const request of upstream.requests) {
     assert.equal(request.headers["User-Agent"], cliUa);
     assert.equal(request.headers["x-app"], "cli");
     assert.equal(request.headers["anthropic-beta"], "oauth-2025-04-20");
   }
 });
 
-test("the reset-credit list is fetched once per TTL, not on every usage refresh", async () => {
-  const { getClaudeUsage } = await import("../../open-sse/services/usage/claude.ts");
-  const { requests, fetchImpl } = mockClaudeUpstream();
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = fetchImpl;
-  try {
-    const first = await getClaudeUsage("ttl-token");
-    const second = await getClaudeUsage("ttl-token");
-    assert.equal(first.bankedResetCredits, 3);
-    assert.equal(second.bankedResetCredits, 3);
-    assert.equal(requests.filter((r) => r.url === BASE_USAGE_URL).length, 2);
-    assert.equal(requests.filter((r) => r.url === RESET_CREDIT_LIST_URL).length, 1);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+test("the dashboard count is unknown until a reset-credit list answers, then authoritative", async () => {
+  const pollUsage = { quotas: { "session (5h)": { used: 100, remaining: 0, total: 100 } } };
+  const gate = (usage: Record<string, unknown>) =>
+    computeCanRedeemResetCredit("claude", parseQuotaData("claude", usage), {
+      raw: usage,
+      authType: "oauth",
+    });
+
+  const unknown = resetCreditMemo.withClaudeResetCreditCount("conn-1", pollUsage);
+  assert.equal("bankedResetCredits" in unknown, false);
+  assert.equal(gate(unknown), true, "an unknown count keeps the entry point visible");
+  assert.equal(
+    parseQuotaData("claude", unknown).some(
+      (row: { isResetCredits?: boolean }) => row.isResetCredits
+    ),
+    false,
+    "an unknown count must not render a number"
+  );
+
+  const withCredits = mockClaudeUpstream();
+  await resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+    fetchImpl: withCredits.fetchImpl,
+  });
+  const seeded = resetCreditMemo.withClaudeResetCreditCount("conn-1", pollUsage);
+  assert.equal(seeded.bankedResetCredits, 3);
+  assert.equal(gate(seeded), true);
+
+  const empty = mockClaudeUpstream({ listBody: LIST_BODY_EMPTY });
+  await resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+    fetchImpl: empty.fetchImpl,
+  });
+  const none = resetCreditMemo.withClaudeResetCreditCount("conn-1", pollUsage);
+  assert.equal(none.bankedResetCredits, 0);
+  assert.equal(gate(none), false, "only an authoritative zero hides the entry point");
 });
 
-test("a failing reset-credit list leaves the regular usage poll intact and omits the count", async () => {
-  const { getClaudeUsage } = await import("../../open-sse/services/usage/claude.ts");
-  const { fetchImpl } = mockClaudeUpstream(503);
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = fetchImpl;
-  try {
-    const usage = await getClaudeUsage("list-down-token");
-    assert.equal(usage.quotas["session (5h)"].used, 100);
-    assert.equal("bankedResetCredits" in usage, false);
-    const rows = parseQuotaData("claude", usage);
-    assert.equal(computeCanRedeemResetCredit("claude", rows), false);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+test("concurrent reset-credit list calls for one connection share a single request", async () => {
+  const deferred = deferredListFetch();
+  const first = resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+    fetchImpl: deferred.fetchImpl,
+  });
+  const second = resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+    fetchImpl: deferred.fetchImpl,
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  deferred.releaseAll();
+  const [a, b] = await Promise.all([first, second]);
+  assert.equal(deferred.calls(), 1);
+  assert.deepEqual(a, b);
+  assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-1"), 3);
 });
 
-test("reset-credit count serves the last known value through a failed refresh", async () => {
-  _resetClaudeResetCreditCountCache();
-  const ok = mockClaudeUpstream();
-  const down = mockClaudeUpstream(429);
+test("a list request started before a redeem cannot store the pre-redeem count", async () => {
+  const deferred = deferredListFetch();
+  const inFlight = resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+    fetchImpl: deferred.fetchImpl,
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  resetCreditMemo.forgetClaudeResetCreditCount("conn-1");
+
+  // forget() also drops the in-flight entry: a new list call starts its own request.
+  const fresh = mockClaudeUpstream({ listBody: LIST_BODY_EMPTY });
+  const after = resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+    fetchImpl: fresh.fetchImpl,
+  });
+  assert.equal((await after).ok, true);
+  assert.equal(fresh.listCalls(), 1);
+  assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-1"), 0);
+
+  deferred.releaseAll();
+  assert.equal((await inFlight).ok, true);
+  assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-1"), 0, "stale result dropped");
+});
+
+test("a reset-credit response whose body never finishes times out", async () => {
+  const hanging = (async () =>
+    new Response(new ReadableStream({ start() {} }), { status: 200 })) as typeof fetch;
+  const startedAt = Date.now();
+  const result = await resetCreditMemo.fetchClaudeResetCreditUsage("tok", {
+    fetchImpl: hanging,
+    timeoutMs: 30,
+  });
+  assert.deepEqual(result, { ok: false, status: 0, body: null });
+  assert.ok(Date.now() - startedAt < 2_000);
+});
+
+test("a count nobody refreshed within the max age becomes unknown", async () => {
   const t0 = 1_000_000;
-  assert.equal(await getClaudeResetCreditCount("tok", { now: t0, fetchImpl: ok.fetchImpl }), 3);
-  const afterTtl = t0 + CLAUDE_RESET_CREDIT_COUNT_TTL_MS + 1;
-  assert.equal(
-    await getClaudeResetCreditCount("tok", { now: afterTtl, fetchImpl: down.fetchImpl }),
-    3
-  );
-  // Inside the failure back-off no further list request is made.
-  await getClaudeResetCreditCount("tok", { now: afterTtl + 1_000, fetchImpl: down.fetchImpl });
-  assert.equal(down.requests.length, 1);
-  // A token that never succeeded stays unknown rather than a fake zero.
-  assert.equal(
-    await getClaudeResetCreditCount("fresh", { now: t0, fetchImpl: down.fetchImpl }),
-    null
-  );
+  const upstream = mockClaudeUpstream();
+  await resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+    fetchImpl: upstream.fetchImpl,
+    now: t0,
+  });
+  const maxAge = resetCreditMemo.CLAUDE_RESET_CREDIT_COUNT_MAX_AGE_MS;
+  assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-1", t0 + maxAge - 1), 3);
+  assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-1", t0 + maxAge + 1), null);
+  // Expired entries are deleted on read, not just hidden.
+  assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-1", t0), null);
 });
 
-test("redeem invalidates the count and the dashboard list re-seeds it", async () => {
-  _resetClaudeResetCreditCountCache();
-  const first = mockClaudeUpstream();
-  const t0 = 2_000_000;
-  assert.equal(await getClaudeResetCreditCount("tok", { now: t0, fetchImpl: first.fetchImpl }), 3);
+test("throttled or failing lists keep the last count; other 4xx make it unknown", async () => {
+  const seed = mockClaudeUpstream();
+  await resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+    fetchImpl: seed.fetchImpl,
+  });
+  for (const status of [429, 503]) {
+    await resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+      fetchImpl: mockClaudeUpstream({ listStatus: status }).fetchImpl,
+    });
+    assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-1"), 3, `kept after ${status}`);
+  }
+  await resetCreditMemo.fetchAndSeedClaudeResetCreditUsage("conn-1", "tok", {
+    fetchImpl: mockClaudeUpstream({ listStatus: 403 }).fetchImpl,
+  });
+  assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-1"), null);
+});
 
-  forgetClaudeResetCreditCount("tok");
-  const second = mockClaudeUpstream();
-  await getClaudeResetCreditCount("tok", { now: t0 + 1_000, fetchImpl: second.fetchImpl });
-  assert.equal(second.requests.length, 1, "a redeemed credit must not be served from the memo");
+test("the opt-in auto-reset seeds the count from its status read and forgets it after a claim", async () => {
+  const notOffered = mockClaudeUpstream({
+    listBody: { ...LIST_BODY_WITH_CREDITS, juniper_tide: { eligible: false, arm: "control" } },
+  });
+  const skipped = await attemptClaudeLimitReset({
+    key: "conn-a",
+    connectionId: "conn-a",
+    accessToken: "tok-a",
+    providerSpecificData: { organizationUUID: "org-uuid-1" },
+    fetchImpl: notOffered.fetchImpl,
+  });
+  assert.equal(skipped.outcome, "not_offered");
+  assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-a"), 2);
 
-  rememberClaudeResetCreditCount("tok", { cedar_ember: { grants: [] }, juniper_tide: null }, t0);
-  const third = mockClaudeUpstream();
+  // The status read re-seeds conn-b (3 credits); the claim that follows must forget it.
+  const offered = mockClaudeUpstream();
+  const claimed = await attemptClaudeLimitReset({
+    key: "conn-b",
+    connectionId: "conn-b",
+    accessToken: "tok-b",
+    providerSpecificData: { organizationUUID: "org-uuid-1" },
+    fetchImpl: offered.fetchImpl,
+  });
+  assert.equal(claimed.outcome, "reset");
+  assert.equal(offered.requests.filter((r) => r.url === CLAIM_URL).length, 1);
+  assert.equal(resetCreditMemo.peekClaudeResetCreditCount("conn-b"), null);
+});
+
+test("the Claude entry point hides only after an authoritative empty list", () => {
+  const oauth = (raw: Record<string, unknown>) => ({ raw, authType: "oauth" });
+  assert.equal(computeCanRedeemResetCredit("claude", [], oauth({})), true);
+  assert.equal(computeCanRedeemResetCredit("claude", [], oauth({ bankedResetCredits: 0 })), false);
+  assert.equal(computeCanRedeemResetCredit("claude", [], { raw: {}, authType: "apikey" }), false);
+  assert.equal(computeCanRedeemResetCredit("codex", [], oauth({})), false);
+
+  const entry = { quotas: [{ name: "session (5h)", used: 10 }], raw: { quotas: {} } };
+  const listedEmpty = resetCreditRedemption.applyEmptyResetCreditList(entry);
+  assert.equal(listedEmpty.raw.bankedResetCredits, 0);
   assert.equal(
-    await getClaudeResetCreditCount("tok", { now: t0 + 2_000, fetchImpl: third.fetchImpl }),
-    0
+    computeCanRedeemResetCredit("claude", listedEmpty.quotas, oauth(listedEmpty.raw)),
+    false
   );
-  assert.equal(third.requests.length, 0);
+
+  // A committed redeem on an unknown count must not invent a zero.
+  const fallback = resetCreditRedemption.applyCommittedResetCreditFallback(entry);
+  assert.equal("bankedResetCredits" in fallback.raw, false);
 });

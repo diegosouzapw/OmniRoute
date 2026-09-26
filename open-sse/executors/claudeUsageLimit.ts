@@ -112,6 +112,7 @@ export class ClaudeUsageLimitGuard {
       claimLimitReset: () =>
         attemptClaudeLimitReset({
           key,
+          connectionId: credentials?.connectionId ?? null,
           accessToken: credentials?.accessToken ?? "",
           providerSpecificData: credentials?.providerSpecificData,
           log: this.log,
