@@ -6,12 +6,16 @@ import {
 } from "@/lib/usage/providerLimits";
 import {
   claimClaudeResetCredit,
+  fetchClaudeResetCreditUsage,
   parseAllClaudeResetCredits,
   resolveClaudeOrganizationUuid,
   type PublicClaudeResetCredit,
   type ClaudeResetCreditList,
 } from "@omniroute/open-sse/services/claudeLimitReset.ts";
-import { getClaudeCodeVersion } from "@omniroute/open-sse/executors/claudeIdentity.ts";
+import {
+  forgetClaudeResetCreditCount,
+  rememberClaudeResetCreditCount,
+} from "@omniroute/open-sse/services/claudeResetCreditCount.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 export { PublicClaudeResetCredit, ClaudeResetCreditList };
@@ -98,39 +102,22 @@ function requireAccessToken(connection: ClaudeConnectionLike): string {
   return token;
 }
 
+const CLAUDE_RESET_CREDIT_LIST_TIMEOUT_MS = 10_000;
+
 async function fetchClaudeUsageBody(accessToken: string): Promise<unknown> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 10_000);
-  try {
-    const res = await fetch(
-      "https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1",
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json, text/plain, */*",
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          "User-Agent": `claude-cli/${getClaudeCodeVersion()} (external, cli)`,
-          "x-app": "cli",
-          "anthropic-beta": "oauth-2025-04-20",
-        },
-        signal: ctrl.signal,
-      }
-    );
-    if (!res.ok) {
-      const errBody = (await res.json().catch(() => null)) as JsonRecord | null;
-      const msg =
-        (typeof errBody?.message === "string" ? errBody.message : null) || `HTTP ${res.status}`;
-      throw new ClaudeResetCreditError(
-        res.status === 429 ? 429 : 502,
-        res.status === 429 ? "rate_limited" : "claude_usage_failed",
-        `Failed to fetch Claude usage: ${msg}`
-      );
-    }
-    return await res.json().catch(() => ({}));
-  } finally {
-    clearTimeout(timer);
-  }
+  const result = await fetchClaudeResetCreditUsage(accessToken, {
+    timeoutMs: CLAUDE_RESET_CREDIT_LIST_TIMEOUT_MS,
+  });
+  if (result.ok) return result.body;
+  const errBody = result.body as JsonRecord | null;
+  const msg =
+    (typeof errBody?.message === "string" ? errBody.message : null) ||
+    (result.status ? `HTTP ${result.status}` : "request failed");
+  throw new ClaudeResetCreditError(
+    result.status === 429 ? 429 : 502,
+    result.status === 429 ? "rate_limited" : "claude_usage_failed",
+    `Failed to fetch Claude usage: ${msg}`
+  );
 }
 
 export async function listClaudeResetCredits(connectionId: string): Promise<ClaudeResetCreditList> {
@@ -143,6 +130,7 @@ export async function listClaudeResetCredits(connectionId: string): Promise<Clau
     connection = await refreshClaudeConnectionIfNeeded(connection);
     const token = requireAccessToken(connection);
     const usageBody = await fetchClaudeUsageBody(token);
+    rememberClaudeResetCreditCount(token, usageBody);
     return parseAllClaudeResetCredits(usageBody);
   } catch (error) {
     if (error instanceof ClaudeResetCreditError) throw error;
@@ -183,6 +171,8 @@ export async function consumeClaudeResetCredit(
       creditId,
       requestId: idempotencyKey,
     });
+    // Whatever the outcome, the memoised badge count may now be stale.
+    forgetClaudeResetCreditCount(token);
 
     if (claim.result === "reset" || claim.result === "not_limited") {
       const refreshed = await fetchAndPersistProviderLimits(connectionId, "manual", {

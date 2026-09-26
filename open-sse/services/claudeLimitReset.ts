@@ -223,6 +223,53 @@ export function parseAllClaudeResetCredits(usageBody: unknown): ClaudeResetCredi
   return { credits, availableCount };
 }
 
+/**
+ * Banked reset credits for the dashboard badge: every `cedar_ember` grant with resets left
+ * plus the weekly `juniper_tide` session reset when it is offered to this account.
+ */
+export function countClaudeBankedResetCredits(usageBody: unknown): number {
+  const body = asRecord(usageBody);
+  let count = 0;
+  const cedar = asRecord(body.cedar_ember);
+  if (Array.isArray(cedar.grants)) {
+    for (const item of cedar.grants) {
+      const g = asRecord(item);
+      if (typeof g.resets_left === "number" && g.resets_left > 0) count += g.resets_left;
+    }
+  }
+  const juniper = asRecord(body.juniper_tide);
+  if (juniper.available === true || (juniper.eligible === true && juniper.arm === "reset")) {
+    count += 1;
+  }
+  return count;
+}
+
+export type ClaudeResetCreditUsageResult =
+  { ok: true; body: unknown } | { ok: false; status: number; body: unknown };
+
+/**
+ * GET the reset-credit usage snapshot: the only request that carries the reset-credit query
+ * string and CLI headers (the regular usage poller in usage/claude.ts keeps its base URL and
+ * User-Agent). Never throws — a transport failure or timeout reports `status: 0`.
+ */
+export async function fetchClaudeResetCreditUsage(
+  accessToken: string,
+  options: { fetchImpl?: FetchLike; timeoutMs?: number } = {}
+): Promise<ClaudeResetCreditUsageResult> {
+  try {
+    const res = await fetchWithTimeout(
+      options.fetchImpl ?? fetch,
+      CLAUDE_LIMIT_RESET_STATUS_URL,
+      { method: "GET", headers: oauthHeaders(accessToken) },
+      options.timeoutMs ?? CLAUDE_LIMIT_RESET_STATUS_TIMEOUT_MS
+    );
+    const body: unknown = await res.json().catch(() => null);
+    return res.ok ? { ok: true, body: body ?? {} } : { ok: false, status: res.status, body };
+  } catch {
+    return { ok: false, status: 0, body: null };
+  }
+}
+
 async function fetchWithTimeout(
   fetchImpl: FetchLike,
   url: string,

@@ -9,7 +9,15 @@ import {
   claimClaudeResetCredit,
   CLAUDE_GRANT_RESET_PROGRAM,
   CLAUDE_LIMIT_RESET_PROGRAM,
+  fetchClaudeResetCreditUsage,
 } from "../../open-sse/services/claudeLimitReset.ts";
+import {
+  CLAUDE_RESET_CREDIT_COUNT_TTL_MS,
+  _resetClaudeResetCreditCountCache,
+  forgetClaudeResetCreditCount,
+  getClaudeResetCreditCount,
+  rememberClaudeResetCreditCount,
+} from "../../open-sse/services/claudeResetCreditCount.ts";
 import { parseQuotaData } from "../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx";
 import {
   canProviderRedeemResetCredit,
@@ -197,34 +205,162 @@ test("CodexResetCreditsModal helpers format Claude credits appropriately", () =>
   assert.match(confirmText, /Claude usage limits/);
 });
 
-test("getClaudeUsage extracts bankedResetCredits from cedar_ember response", async () => {
-  const { getClaudeUsage } = await import("../../open-sse/services/usage/claude.ts");
+// Upstream only fills `cedar_ember` / `juniper_tide` when the reset-credit query string is
+// sent; the regular poller's base URL gets both keys back as null. The mock mirrors that so
+// the dashboard gate is exercised against what the regular poller really receives.
+const BASE_USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
+const RESET_CREDIT_LIST_URL =
+  "https://api.anthropic.com/api/oauth/usage?at_wall=1&cedar_ember=1&skip_spend=1";
 
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async (input: unknown) => {
+type RecordedRequest = { url: string; headers: Record<string, string> };
+
+function mockClaudeUpstream(listStatus = 200) {
+  const requests: RecordedRequest[] = [];
+  const fetchImpl = (async (input: unknown, init?: RequestInit) => {
     const url = String(input);
-    if (url.includes("/api/oauth/usage")) {
-      return new Response(
-        JSON.stringify({
-          five_hour: { utilization: 20 },
-          seven_day: { utilization: 40 },
-          cedar_ember: {
-            grants: [
-              { id: "g1", resets_left: 1 },
-              { id: "g2", resets_left: 2 },
-            ],
-          },
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
+    requests.push({ url, headers: { ...((init?.headers as Record<string, string>) ?? {}) } });
+    if (url === BASE_USAGE_URL) {
+      return Response.json({
+        five_hour: { utilization: 100, resets_at: "2099-09-10T14:00:00Z" },
+        seven_day: { utilization: 40, resets_at: "2099-09-16T13:00:00Z" },
+        cedar_ember: null,
+        juniper_tide: null,
+      });
     }
-    return new Response(JSON.stringify({}), { status: 200 });
+    if (url === RESET_CREDIT_LIST_URL) {
+      if (listStatus !== 200) return new Response(null, { status: listStatus });
+      return Response.json({
+        five_hour: { utilization: 100, resets_at: "2099-09-10T14:00:00Z" },
+        cedar_ember: {
+          eligible: true,
+          grants: [{ id: "grant-a", resets_left: 2, usable_now: true }],
+        },
+        juniper_tide: { eligible: true, arm: "reset", available: true },
+      });
+    }
+    return new Response(null, { status: 503 });
   }) as typeof fetch;
+  return { requests, fetchImpl };
+}
 
+test("Claude reset credits reach the dashboard gate while the regular poller keeps the base URL", async () => {
+  const { getClaudeUsage } = await import("../../open-sse/services/usage/claude.ts");
+  const { getClaudeCodeVersion } = await import("../../open-sse/executors/claudeIdentity.ts");
+  const { requests, fetchImpl } = mockClaudeUpstream();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = fetchImpl;
   try {
-    const usage = await getClaudeUsage("test-token");
+    const usage = await getClaudeUsage("poller-gate-token");
+    const rows = parseQuotaData("claude", usage);
+    assert.equal(computeCanRedeemResetCredit("claude", rows), true);
     assert.equal(usage.bankedResetCredits, 3);
+
+    const poll = requests.find((r) => r.url === BASE_USAGE_URL);
+    assert.ok(poll, "regular usage poll must hit the base URL");
+    assert.equal(poll.headers["User-Agent"], `claude-code/${getClaudeCodeVersion()}`);
+    assert.equal("x-app" in poll.headers, false);
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("reset-credit list and redeem requests carry the query string and CLI headers", async () => {
+  const { getClaudeCodeVersion } = await import("../../open-sse/executors/claudeIdentity.ts");
+  const { requests, fetchImpl } = mockClaudeUpstream();
+  const listed = await fetchClaudeResetCreditUsage("shape-token", { fetchImpl });
+  assert.equal(listed.ok, true);
+  const claimRequests: RecordedRequest[] = [];
+  await claimClaudeResetCredit("shape-token", "org-uuid-1", {
+    creditId: "grant:grant-a",
+    requestId: "req-1",
+    fetchImpl: (async (input: unknown, init?: RequestInit) => {
+      claimRequests.push({ url: String(input), headers: init?.headers as Record<string, string> });
+      return Response.json({ result: "reset" });
+    }) as typeof fetch,
+  });
+
+  const cliUa = `claude-cli/${getClaudeCodeVersion()} (external, cli)`;
+  assert.deepEqual(
+    requests.map((r) => r.url),
+    [RESET_CREDIT_LIST_URL]
+  );
+  for (const request of [requests[0], claimRequests[0]]) {
+    assert.equal(request.headers["User-Agent"], cliUa);
+    assert.equal(request.headers["x-app"], "cli");
+    assert.equal(request.headers["anthropic-beta"], "oauth-2025-04-20");
+  }
+});
+
+test("the reset-credit list is fetched once per TTL, not on every usage refresh", async () => {
+  const { getClaudeUsage } = await import("../../open-sse/services/usage/claude.ts");
+  const { requests, fetchImpl } = mockClaudeUpstream();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = fetchImpl;
+  try {
+    const first = await getClaudeUsage("ttl-token");
+    const second = await getClaudeUsage("ttl-token");
+    assert.equal(first.bankedResetCredits, 3);
+    assert.equal(second.bankedResetCredits, 3);
+    assert.equal(requests.filter((r) => r.url === BASE_USAGE_URL).length, 2);
+    assert.equal(requests.filter((r) => r.url === RESET_CREDIT_LIST_URL).length, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("a failing reset-credit list leaves the regular usage poll intact and omits the count", async () => {
+  const { getClaudeUsage } = await import("../../open-sse/services/usage/claude.ts");
+  const { fetchImpl } = mockClaudeUpstream(503);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = fetchImpl;
+  try {
+    const usage = await getClaudeUsage("list-down-token");
+    assert.equal(usage.quotas["session (5h)"].used, 100);
+    assert.equal("bankedResetCredits" in usage, false);
+    const rows = parseQuotaData("claude", usage);
+    assert.equal(computeCanRedeemResetCredit("claude", rows), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("reset-credit count serves the last known value through a failed refresh", async () => {
+  _resetClaudeResetCreditCountCache();
+  const ok = mockClaudeUpstream();
+  const down = mockClaudeUpstream(429);
+  const t0 = 1_000_000;
+  assert.equal(await getClaudeResetCreditCount("tok", { now: t0, fetchImpl: ok.fetchImpl }), 3);
+  const afterTtl = t0 + CLAUDE_RESET_CREDIT_COUNT_TTL_MS + 1;
+  assert.equal(
+    await getClaudeResetCreditCount("tok", { now: afterTtl, fetchImpl: down.fetchImpl }),
+    3
+  );
+  // Inside the failure back-off no further list request is made.
+  await getClaudeResetCreditCount("tok", { now: afterTtl + 1_000, fetchImpl: down.fetchImpl });
+  assert.equal(down.requests.length, 1);
+  // A token that never succeeded stays unknown rather than a fake zero.
+  assert.equal(
+    await getClaudeResetCreditCount("fresh", { now: t0, fetchImpl: down.fetchImpl }),
+    null
+  );
+});
+
+test("redeem invalidates the count and the dashboard list re-seeds it", async () => {
+  _resetClaudeResetCreditCountCache();
+  const first = mockClaudeUpstream();
+  const t0 = 2_000_000;
+  assert.equal(await getClaudeResetCreditCount("tok", { now: t0, fetchImpl: first.fetchImpl }), 3);
+
+  forgetClaudeResetCreditCount("tok");
+  const second = mockClaudeUpstream();
+  await getClaudeResetCreditCount("tok", { now: t0 + 1_000, fetchImpl: second.fetchImpl });
+  assert.equal(second.requests.length, 1, "a redeemed credit must not be served from the memo");
+
+  rememberClaudeResetCreditCount("tok", { cedar_ember: { grants: [] }, juniper_tide: null }, t0);
+  const third = mockClaudeUpstream();
+  assert.equal(
+    await getClaudeResetCreditCount("tok", { now: t0 + 2_000, fetchImpl: third.fetchImpl }),
+    0
+  );
+  assert.equal(third.requests.length, 0);
 });
