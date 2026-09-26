@@ -221,35 +221,57 @@ test("session token totals count cached input once, and the tokens sort follows 
   ]);
 });
 
-test("rows stored without their cache are normalized per request before they reach the session", async () => {
-  // A correct row carries input that already includes cache reads and writes (100 fresh). A
-  // bug-shaped row (non-streaming Claude-format providers before the extractor fix) stored only
-  // the 100 fresh tokens as input. Both are the same request size: 100 fresh + 9000 read + 900 write.
-  const context = agentContext({ clientSessionId: "sess-heidi" });
-  await recordUsage({
-    apiKeyId: "key-heidi",
-    agentContext: context,
-    timestamp: "2026-09-25T15:00:00.000Z",
-    tokens: { input: 10000, output: 50, cacheRead: 9000, cacheCreation: 900 },
-  });
-  await recordUsage({
-    apiKeyId: "key-heidi",
-    agentContext: context,
-    timestamp: "2026-09-25T15:01:00.000Z",
-    tokens: { input: 100, output: 50, cacheRead: 9000, cacheCreation: 900 },
-  });
+test("the uncached input is input minus cache reads and writes, clamped at 0 and never corrected", async () => {
+  // Stored input includes cache reads and writes. Three one-request sessions probe the boundary.
+  const cases = [
+    {
+      id: "sess-ivan-normal",
+      tokens: { input: 10000, output: 50, cacheRead: 9000, cacheCreation: 900 },
+    },
+    {
+      id: "sess-ivan-equal",
+      tokens: { input: 9900, output: 50, cacheRead: 9000, cacheCreation: 900 },
+    },
+    // A row recorded without its cache (before the usage extractor fix) is not guessed at: the
+    // uncached input clamps to 0 and the stored input and total stay as recorded.
+    {
+      id: "sess-ivan-short",
+      tokens: { input: 100, output: 50, cacheRead: 9000, cacheCreation: 900 },
+    },
+  ];
+  for (const [index, { id, tokens }] of cases.entries()) {
+    await recordUsage({
+      apiKeyId: "key-ivan",
+      agentContext: agentContext({ clientSessionId: id }),
+      timestamp: `2026-09-25T15:0${index}:00.000Z`,
+      tokens,
+    });
+  }
 
   const db = core.getDbInstance();
-  const [listed] = agentSessionsDb.listAgentSessions(db, { apiKeyId: "key-heidi" }).sessions;
-  const expected = {
-    input: 20000,
-    uncachedInput: 200,
-    cacheRead: 18000,
-    cacheCreation: 1800,
-    output: 100,
-    reasoning: 0,
-    total: 20100,
+  const sessions = agentSessionsDb.listAgentSessions(db, { apiKeyId: "key-ivan", limit: 10 });
+  const byClientId = new Map(sessions.sessions.map((s) => [s.clientSessionId, s]));
+  const split = (id: string) => {
+    const { input, uncachedInput, total } = byClientId.get(id)!.tokens;
+    return { input, uncachedInput, total };
   };
-  assert.deepEqual(listed.tokens, expected);
-  assert.deepEqual(agentSessionsDb.getAgentSessionById(db, listed.id)?.tokens, expected);
+  assert.deepEqual(split("sess-ivan-normal"), { input: 10000, uncachedInput: 100, total: 10050 });
+  assert.deepEqual(split("sess-ivan-equal"), { input: 9900, uncachedInput: 0, total: 9950 });
+  assert.deepEqual(split("sess-ivan-short"), { input: 100, uncachedInput: 0, total: 150 });
+
+  // Each request carries the same split, so the request rows add up to the session.
+  const normal = byClientId.get("sess-ivan-normal")!;
+  const [request] = agentSessionsDb.getAgentSessionRecentUsage(db, normal.id);
+  assert.deepEqual(request.tokens, {
+    input: 10000,
+    uncachedInput: 100,
+    cacheRead: 9000,
+    cacheCreation: 900,
+    output: 50,
+    reasoning: 0,
+  });
+  const short = byClientId.get("sess-ivan-short")!;
+  const [shortRequest] = agentSessionsDb.getAgentSessionRecentUsage(db, short.id);
+  assert.equal(shortRequest.tokens.input, 100);
+  assert.equal(shortRequest.tokens.uncachedInput, 0);
 });
