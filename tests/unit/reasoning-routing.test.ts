@@ -174,6 +174,33 @@ test("default does not override a budget-only signal and force replaces discrete
   assert.equal(policy.applyReasoningRuleDirective(untouched), untouched);
 });
 
+test("force + none emits the explicit no-thinking carrier", () => {
+  // Regression: clearReasoning() only REMOVES reasoning params. Providers whose
+  // thinking mode defaults ON (DeepSeek V4 behind the native Responses API)
+  // treat an absent field as "thinking enabled" and then reject the next
+  // tool-call turn with:
+  //   400 The `reasoning_text` in the thinking mode must be passed back to the API.
+  // The forced-off directive must therefore carry an explicit `none`.
+  const forcedNone = policy.applyReasoningRuleDirective({
+    model: "deepseek/deepseek-flash",
+    reasoning_effort: "high",
+    reasoning: { effort: "high", summary: "auto" },
+    thinking: { type: "enabled", budget_tokens: 4096 },
+    _omnirouteReasoningRule: {
+      id: "force-none",
+      effortMode: "force",
+      targetEffort: "none",
+      budgetAction: "remove",
+      budgetTokens: null,
+    },
+  }) as Record<string, unknown>;
+
+  assert.equal(forcedNone.reasoning_effort, "none");
+  assert.equal(forcedNone.reasoning, undefined);
+  assert.equal(forcedNone.thinking, undefined);
+  assert.equal(forcedNone._omnirouteReasoningRule, undefined);
+});
+
 test("CRUD validates references, invalidates cache, and cascades deleted owners", async () => {
   const key = await apiKeysDb.createApiKey("Owner", "reasoning-owner-machine");
   const combo = await combosDb.createCombo({
