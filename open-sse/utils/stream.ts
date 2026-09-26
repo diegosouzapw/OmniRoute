@@ -86,7 +86,7 @@ import {
 } from "../translator/helpers/toolCallHelper.ts";
 import { restoreClaudeToolName } from "../services/claudeCodeToolRemapper.ts";
 import { normalizeFinalOpenAIStreamChunk } from "./openAIStreamChunk.ts";
-import { collectClaudeDelta } from "./streamClaudeDelta.ts";
+import { collectClaudeDelta, collectToolUseName, mergeToolUseNames } from "./streamClaudeDelta.ts";
 import { createStreamTiming, type StreamTiming } from "./streamTiming.ts";
 import { buildUsageOnlyChunk } from "./usageOnlyChunk.ts";
 
@@ -838,6 +838,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughSawFinishReason = false;
   /** Passthrough: accumulate tool_calls deltas for call log responseBody */
   const passthroughToolCalls = new Map<string, ToolCall>();
+  const passthroughClaudeToolNames: string[] = []; // Claude tool_use names, call log only
   let passthroughToolCallSeq = 0;
   const allowedToolNames = extractAllowedToolNames(body);
   let skipPassthroughEvent = false;
@@ -1894,6 +1895,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     toolNameMap,
                     body
                   );
+                  collectToolUseName(passthroughClaudeToolNames, parsed);
                   // Track content length and accumulate from Claude format
                   if (parsed.delta?.text) {
                     totalContentLength += parsed.delta.text.length;
@@ -2843,6 +2845,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     (a, b) => a.index - b.index
                   );
                 }
+                mergeToolUseNames(message, passthroughClaudeToolNames);
                 // Hardening: log empty assistant response after tool completion
                 // for observability — helps diagnose Copilot "Sorry, no response was returned"
                 if (passthroughHasToolCalls && !content.trim() && !reasoning.trim()) {

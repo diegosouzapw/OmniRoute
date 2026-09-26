@@ -95,7 +95,11 @@ async function recordTurn(opts: {
   });
 }
 
-type StreamCompletion = { responseBody?: unknown; clientPayload?: { summary?: unknown } };
+type StreamCompletion = {
+  responseBody?: unknown;
+  clientPayload?: { summary?: unknown };
+  clientText?: string;
+};
 type StreamOptions = NonNullable<Parameters<typeof createSSEStream>[0]>;
 
 const textEncoder = new TextEncoder();
@@ -113,8 +117,9 @@ async function assembleStream(chunks: string[], options: StreamOptions): Promise
   const onComplete = (payload: StreamCompletion) => {
     completion = payload;
   };
-  await new Response(source.pipeThrough(createSSEStream({ ...options, onComplete }))).text();
-  return completion;
+  const stream = source.pipeThrough(createSSEStream({ ...options, onComplete }));
+  const clientText = await new Response(stream).text();
+  return { ...completion, clientText };
 }
 
 /** chatCore passes the client payload summary first, then the assembled response body. */
@@ -410,34 +415,93 @@ test("streamed OpenAI chat passthrough yields assistant text and tool names", as
   assert.deepEqual(turn.toolNames, ["read_file"]);
 });
 
-test("streamed Anthropic passthrough yields the assistant text", async () => {
+const claudePassthroughOptions = (toolNameMap?: Map<string, string>): StreamOptions => ({
+  mode: "passthrough",
+  sourceFormat: FORMATS.CLAUDE,
+  clientResponseFormat: FORMATS.CLAUDE,
+  provider: "claude",
+  model: "claude-sonnet-4",
+  body: { messages: [{ role: "user", content: "go" }] },
+  toolNameMap,
+});
+
+/** A Claude stream with one tool_use block per name, then a closing text block. */
+const claudeToolUseStream = (toolNames: string[], text: string) => [
+  sse({
+    type: "message_start",
+    message: { id: "msg_2", model: "claude-sonnet-4", role: "assistant", usage: {} },
+  }),
+  ...toolNames.flatMap((name, index) => [
+    sse({
+      type: "content_block_start",
+      index,
+      content_block: { type: "tool_use", id: `toolu_${index}`, name, input: {} },
+    }),
+    sse({
+      type: "content_block_delta",
+      index,
+      delta: { type: "input_json_delta", partial_json: '{"file_path":"a.ts"}' },
+    }),
+    sse({ type: "content_block_stop", index }),
+  ]),
+  sse({
+    type: "content_block_start",
+    index: toolNames.length,
+    content_block: { type: "text", text: "" },
+  }),
+  sse({
+    type: "content_block_delta",
+    index: toolNames.length,
+    delta: { type: "text_delta", text },
+  }),
+  sse({ type: "content_block_stop", index: toolNames.length }),
+  sse({ type: "message_delta", delta: { stop_reason: "tool_use" }, usage: {} }),
+  sse({ type: "message_stop" }),
+];
+
+type AssembledChatBody = { choices: { message: Record<string, unknown> }[] };
+
+test("streamed Anthropic passthrough yields the assistant text and tool_use names", async () => {
+  const chunks = claudeToolUseStream(["Read"], "Let me check the tests.");
+  const completion = await assembleStream(chunks, claudePassthroughOptions());
+
+  const message = (completion.responseBody as AssembledChatBody).choices[0].message;
+  assert.deepEqual(message.tool_calls, [{ type: "function", function: { name: "Read" } }]);
+  const turn = streamedAssistantTurn(completion);
+  assert.equal(turn.assistantText, "Let me check the tests.");
+  assert.deepEqual(turn.toolNames, ["Read"]);
+  assert.deepEqual(extractAgentSessionTurn({ messages: [] }, completion.responseBody)?.toolNames, [
+    "Read",
+  ]);
+  assert.ok(completion.clientText?.includes(chunks[1]), "tool_use frame reaches the client as-is");
+  assert.ok(!completion.clientText?.includes("tool_calls"), "client stream stays Claude-shaped");
+});
+
+test("streamed Anthropic passthrough stores restored, de-duplicated tool names", async () => {
+  const toolNameMap = new Map([
+    ["proxy_Read", "Read"],
+    ["proxy_Grep", "Grep"],
+  ]);
   const completion = await assembleStream(
-    [
-      sse({
-        type: "message_start",
-        message: { id: "msg_1", model: "claude-sonnet-4", role: "assistant", usage: {} },
-      }),
-      sse({ type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }),
-      sse({
-        type: "content_block_delta",
-        index: 0,
-        delta: { type: "text_delta", text: "Let me check the tests." },
-      }),
-      sse({ type: "content_block_stop", index: 0 }),
-      sse({ type: "message_delta", delta: { stop_reason: "end_turn" }, usage: {} }),
-      sse({ type: "message_stop" }),
-    ],
-    {
-      mode: "passthrough",
-      sourceFormat: FORMATS.CLAUDE,
-      clientResponseFormat: FORMATS.CLAUDE,
-      provider: "claude",
-      model: "claude-sonnet-4",
-      body: { messages: [{ role: "user", content: "go" }] },
-    }
+    claudeToolUseStream(["proxy_Read", "proxy_Read", "proxy_Grep"], "Searching."),
+    claudePassthroughOptions(toolNameMap)
   );
 
-  assert.equal(streamedAssistantTurn(completion).assistantText, "Let me check the tests.");
+  assert.deepEqual(streamedAssistantTurn(completion).toolNames, ["Read", "Grep"]);
+  assert.ok(completion.clientText?.includes('"name":"Read"'), "client sees the restored name");
+  assert.ok(!completion.clientText?.includes("tool_calls"), "client stream stays Claude-shaped");
+});
+
+test("streamed Anthropic passthrough keeps at most 20 tool names", async () => {
+  const names = Array.from({ length: 25 }, (_, i) => `tool_${i}`);
+  const completion = await assembleStream(
+    claudeToolUseStream(names, "Done."),
+    claudePassthroughOptions()
+  );
+
+  const message = (completion.responseBody as AssembledChatBody).choices[0].message;
+  assert.equal((message.tool_calls as unknown[]).length, 20);
+  assert.deepEqual(streamedAssistantTurn(completion).toolNames, names.slice(0, 20));
 });
 
 test("streamed OpenAI upstream translated for an Anthropic client yields text and tools", async () => {
