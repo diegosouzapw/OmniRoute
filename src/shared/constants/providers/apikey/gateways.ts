@@ -295,12 +295,12 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "ONO",
     passthroughModels: true,
     website: "https://onomeo.com",
-    // Free credits come from a daily check-in, not a standing quota: 1,200 a day,
-    // rising to 3,500 with a streak. Credits count characters sent and received,
-    // so this is a small allowance; premium models cost many times more.
+    // Free credits come from a daily check-in, not a standing quota: 50,000 on day 1,
+    // rising to 200,000 a day from day 7. Cost per reply varies by model, and unpaid
+    // accounts share a 50,000/day cap on premium models. onomeo is in public beta.
     hasFree: true,
     freeNote:
-      "Sign in (email, Google or GitHub, no card) and check in daily for 1,200 credits, up to 3,500 with a streak. Credits count characters sent and received; premium models cost many times more. 12 requests/min per key, 60 requests per 5 hours per account.",
+      "Sign in (email, Google or GitHub, no card) and check in daily for 50,000 credits on day 1, rising to 200,000 a day from day 7 of a streak. Cost per reply varies by model (see https://onomeo.com/models); accounts that have not paid share a cap of 50,000 credits a day on premium models. Optional: $5 one-time buys 1,000,000 credits. 12 requests/min per key, 60 requests per 5 hours per account, 120 per 5 hours per IP. Public beta: not every feature is guaranteed to work; feedback is welcome at https://onomeo.com/feedback.",
     // onomeo routes to third-party upstreams; some may train on prompts, and each
     // model page on onomeo.com says which.
     apiHint:
