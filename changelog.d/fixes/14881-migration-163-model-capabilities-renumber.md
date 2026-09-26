@@ -1,0 +1,1 @@
+- **fix(db):** databases created by the npm 3.8.50 package, which recorded migration 163 as `model_capabilities`, now run the release's `163_radar_feed_cache_generated_at` on upgrade instead of skipping it, so `radar_feed_cache.generated_at` exists and the renumbering CRITICAL stops ([#14881](https://github.com/diegosouzapw/OmniRoute/pull/14881)) — thanks @agusgonzaleznic
