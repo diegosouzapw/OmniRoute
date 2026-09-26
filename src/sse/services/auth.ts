@@ -641,6 +641,17 @@ function compareP2CConnections(
  * exclude it (#3061), otherwise it gets re-selected forever.
  */
 const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+
+/**
+ * #9057 gate for the synthetic keyless connection: allowed when there is no
+ * allowlist, or when the allowlist names the synthetic id explicitly. The auto
+ * combo pins keyless targets to "noauth", and pin-fail-closed
+ * (`implicitPinAllowlist`) turns that pin into the allowlist ["noauth"].
+ */
+function allowlistPermitsSyntheticNoAuth(allowedConnections: string[] | null | undefined) {
+  if (!Array.isArray(allowedConnections) || allowedConnections.length === 0) return true;
+  return allowedConnections.includes(SYNTHETIC_NOAUTH_CONNECTION_ID);
+}
 type AnonymousFallbackProviderDefinition = {
   anonymousFallback?: boolean;
   noAuth?: boolean;
@@ -781,10 +792,10 @@ async function maybeSyntheticNoAuthFallback(
 ) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
   // #9057: a key pinned to specific connections via allowedConnections must
-  // NOT receive the synthetic "noauth" connection — the synthetic id is
-  // never in an explicit allowlist, so returning it would let a restricted
-  // key reach free providers (OpenCode Free, etc.) that it should not access.
-  if (Array.isArray(allowedConnections) && allowedConnections.length > 0) return null;
+  // NOT receive the synthetic "noauth" connection unless the allowlist names
+  // it — returning it would let a restricted key reach free providers
+  // (OpenCode Free, etc.) that it should not access.
+  if (!allowlistPermitsSyntheticNoAuth(allowedConnections)) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
   // #14313: a free-tier refusal just paused this keyless path — do not re-select
   // the synthetic noauth connection until the short TTL expires.
@@ -1217,12 +1228,12 @@ export async function getProviderCredentials(
       ) {
         return optionalKey;
       }
-      // #9057: when allowedConnections is set, the synthetic "noauth" connection
-      // is never in the explicit allowlist, so we must NOT return it — fall through
-      // to the normal connection-selection path so the connection allowlist is
-      // respected (the no-auth provider will be rejected if it has no real connections
-      // matching the allowlist, or a real connection row will be selected if present).
-      if (!allowedConnections || allowedConnections.length === 0) {
+      // #9057: when allowedConnections is set and does not name the synthetic
+      // "noauth" connection, we must NOT return it — fall through to the normal
+      // connection-selection path so the connection allowlist is respected (the
+      // no-auth provider will be rejected if it has no real connections matching
+      // the allowlist, or a real connection row will be selected if present).
+      if (allowlistPermitsSyntheticNoAuth(allowedConnections)) {
         // #13483: check model-only lockout before handing back the synthetic
         // connection. Without this, a locked model (e.g. 400 model_capacity)
         // is retried on every request because the noauth path short-circuits
