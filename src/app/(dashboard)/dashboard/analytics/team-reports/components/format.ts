@@ -11,6 +11,8 @@ interface StoredTokens {
   output: number;
   cacheRead: number;
   cacheCreation: number;
+  /** Server-computed uncached input (per request); preferred over the aggregate difference. */
+  uncachedInput?: number;
 }
 
 export interface TokenSplit {
@@ -25,14 +27,14 @@ export interface TokenSplit {
 }
 
 /**
- * Split stored token counters into three figures that do not overlap. The stored input counter
- * already includes cache reads and writes (the cost calculator subtracts them the same way), so
- * showing it next to the cache figure would count the cached part twice.
+ * Split stored token counters into three figures that do not overlap. The input counter already
+ * includes cache reads and writes (the cost calculator subtracts them the same way), so showing
+ * it next to the cache figure would count the cached part twice.
  */
 export function splitTokens(tokens: StoredTokens): TokenSplit {
   const cache = tokens.cacheRead + tokens.cacheCreation;
   return {
-    input: Math.max(0, tokens.input - cache),
+    input: tokens.uncachedInput ?? Math.max(0, tokens.input - cache),
     output: tokens.output,
     cache,
     cacheRead: tokens.cacheRead,

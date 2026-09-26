@@ -4,7 +4,7 @@
  * time window exact and lets provider/account filters see every request a session made.
  */
 
-import type { AgentSessionTokens } from "./agentSessions";
+import { cacheInclusiveInputSql, type AgentSessionTokens } from "./agentSessions";
 import type { SqliteAdapter } from "./adapters/types";
 
 export interface AgentSessionReportFilter {
@@ -82,7 +82,8 @@ export function listAgentSessionUsageSlices(
                             + COALESCE(uh.tokens_cache_creation, 0) > 0
                        THEN 1 ELSE 0 END) AS requests_with_tokens,
               SUM(CASE WHEN uh.success = 0 THEN 1 ELSE 0 END) AS errors,
-              COALESCE(SUM(uh.tokens_input), 0) AS tokens_input,
+              -- Per request: a row stored without its cached part gets it back before summing.
+              COALESCE(SUM(${cacheInclusiveInputSql("uh.")}), 0) AS tokens_input,
               COALESCE(SUM(uh.tokens_output), 0) AS tokens_output,
               COALESCE(SUM(uh.tokens_cache_read), 0) AS tokens_cache_read,
               COALESCE(SUM(uh.tokens_cache_creation), 0) AS tokens_cache_creation,

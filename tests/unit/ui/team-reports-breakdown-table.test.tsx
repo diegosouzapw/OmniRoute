@@ -12,7 +12,7 @@ import type { ReportBreakdownRow } from "../../../src/lib/usage/agentSessionRepo
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-type Tokens = Omit<ReportBreakdownRow["tokens"], "total">;
+type Tokens = Omit<ReportBreakdownRow["tokens"], "total" | "uncachedInput">;
 
 function row(key: string, costUsd: number, requests: number, tokens: Tokens): ReportBreakdownRow {
   return {
@@ -23,7 +23,11 @@ function row(key: string, costUsd: number, requests: number, tokens: Tokens): Re
     errors: 0,
     unpricedRequests: 0,
     costUsd,
-    tokens: { ...tokens, total: tokens.input + tokens.output },
+    tokens: {
+      ...tokens,
+      uncachedInput: tokens.input - tokens.cacheRead - tokens.cacheCreation,
+      total: tokens.input + tokens.output,
+    },
     sessions: 1,
     members: 1,
     projects: 1,

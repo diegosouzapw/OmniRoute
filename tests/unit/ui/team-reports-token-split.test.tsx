@@ -29,7 +29,8 @@ const REPORT: AgentSessionReport = {
       cacheRead: 1_000_000,
       cacheCreation: 200_000,
       reasoning: 5_000,
-      total: 2_745_000,
+      uncachedInput: 300_000,
+      total: 1_545_000,
     },
     sessions: 3,
     members: 2,
@@ -68,7 +69,8 @@ const SESSION: AgentSessionRecord = {
     cacheRead: 9_000,
     cacheCreation: 1_000,
     reasoning: 500,
-    total: 25_000,
+    uncachedInput: 2_000,
+    total: 15_000,
   },
   costUsd: 0.5,
   unpricedCount: 0,
@@ -151,7 +153,7 @@ describe("Team Reports token split", () => {
     expect(figures.get("Output")?.textContent).toBe("45.0K");
     expect(figures.get("Cache")?.textContent?.startsWith("1.2M")).toBe(true);
     expectCacheDetail(figures.get("Cache"), 1_000_000, 200_000);
-    expect(card.textContent).not.toContain("2.7M");
+    expect(card.textContent).not.toContain("1.5M");
   });
 
   it("sessions list shows Input, Output and Cache columns", async () => {

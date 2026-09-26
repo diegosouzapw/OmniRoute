@@ -23,12 +23,17 @@ export interface ReportTotals {
   errors: number;
   unpricedRequests: number;
   costUsd: number;
+  /** Same fields and meaning as an agent session's tokens (see AgentSessionRecord). */
   tokens: {
+    /** Input including cache reads and writes. */
     input: number;
     output: number;
     cacheRead: number;
     cacheCreation: number;
     reasoning: number;
+    /** Input that was neither read from nor written to the prompt cache. */
+    uncachedInput: number;
+    /** uncachedInput + cacheRead + cacheCreation + output, i.e. input + output. */
     total: number;
   };
   sessions: number;
@@ -100,14 +105,19 @@ class TotalsAccumulator {
   }
 
   toTotals(): ReportTotals {
-    // Stored input already includes cache reads and writes; adding them again double counts.
-    const { input, output } = this.tokens;
+    // Slice input is cache-inclusive per request (see listAgentSessionUsageSlices), so the
+    // uncached part is a plain difference and adding the cache counters again double counts.
+    const { input, output, cacheRead, cacheCreation } = this.tokens;
     return {
       requests: this.requests,
       errors: this.errors,
       unpricedRequests: this.unpricedRequests,
       costUsd: Number(this.costUsd.toFixed(6)),
-      tokens: { ...this.tokens, total: input + output },
+      tokens: {
+        ...this.tokens,
+        uncachedInput: Math.max(0, input - cacheRead - cacheCreation),
+        total: input + output,
+      },
       sessions: this.sessions.size,
       members: this.members.size,
       projects: this.projects.size,
