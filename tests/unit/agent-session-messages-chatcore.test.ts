@@ -11,6 +11,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const featureFlagsDb = await import("../../src/lib/db/featureFlags.ts");
+const { waitForCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 
 const CAPTURE_FLAG = "AGENT_SESSION_MESSAGES_ENABLED";
@@ -20,8 +21,9 @@ test.before(() => {
   featureFlagsDb.setFeatureFlagOverride(CAPTURE_FLAG, "true");
 });
 
-test.after(() => {
+test.after(async () => {
   globalThis.fetch = originalFetch;
+  await waitForCallLogSaves(5_000);
   featureFlagsDb.removeFeatureFlagOverride(CAPTURE_FLAG);
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
@@ -31,92 +33,193 @@ const noopLog = () => ({ debug() {}, info() {}, warn() {}, error() {} });
 
 async function flushAsyncSideEffects() {
   for (let i = 0; i < 10; i++) await new Promise((resolve) => setImmediate(resolve));
+  await waitForCallLogSaves(5_000);
 }
 
-function storedTurn(prompt: string) {
+type StoredTurn = { user_text: string; assistant_text: string | null; tool_names: string | null };
+
+function storedTurns(prompt: string): StoredTurn[] {
   return core
     .getDbInstance()
     .prepare(
       "SELECT user_text, assistant_text, tool_names FROM agent_session_messages WHERE user_text = ?"
     )
-    .get(prompt) as { user_text: string; assistant_text: string; tool_names: string } | undefined;
+    .all(prompt) as StoredTurn[];
 }
 
-async function runChatCore(prompt: string, stream: boolean, sessionId: string) {
-  const body = {
-    model: "openai/gpt-4o-mini",
-    messages: [{ role: "user", content: prompt }],
+function storedTurn(prompt: string): StoredTurn | undefined {
+  return storedTurns(prompt)[0];
+}
+
+type ChatCoreRun = {
+  prompt: string;
+  stream: boolean;
+  sessionId: string;
+  provider?: string;
+  model?: string;
+  endpoint?: string;
+  clientRawRequest?: { endpoint: string; body: Record<string, unknown>; headers: Headers };
+};
+
+function chatBody(run: ChatCoreRun): Record<string, unknown> {
+  return {
+    model: run.model ?? "gpt-4o-mini",
+    messages: [{ role: "user", content: run.prompt }],
     max_tokens: 16,
-    stream,
+    stream: run.stream,
   };
+}
+
+function clientRequestFor(run: ChatCoreRun) {
+  return {
+    endpoint: run.endpoint ?? "/v1/chat/completions",
+    body: chatBody(run),
+    headers: new Headers({ accept: "application/json", "x-claude-code-session-id": run.sessionId }),
+  };
+}
+
+async function runChatCore(run: ChatCoreRun): Promise<string> {
   const result = await handleChatCore({
-    body: structuredClone(body),
-    modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
+    body: chatBody(run),
+    modelInfo: {
+      provider: run.provider ?? "openai",
+      model: run.model ?? "gpt-4o-mini",
+      extendedContext: false,
+    },
     credentials: { apiKey: "sk-test-not-real", providerSpecificData: {} },
     log: noopLog(),
     apiKeyInfo: { id: "key-alice-id", name: "key-alice", noLog: false },
-    clientRawRequest: {
-      endpoint: "/v1/chat/completions",
-      body: structuredClone(body),
-      headers: new Headers({ accept: "application/json", "x-claude-code-session-id": sessionId }),
-    },
+    clientRawRequest: run.clientRawRequest ?? clientRequestFor(run),
     userAgent: "claude-cli/2.1.0 (external, cli)",
   });
   assert.equal(result.success, true);
-  if (stream) await result.response.text();
+  const clientText = run.stream ? await result.response.text() : "";
   await flushAsyncSideEffects();
+  return clientText;
 }
 
-test("non-streaming handleChatCore stores the session turn", async () => {
-  globalThis.fetch = async () =>
-    Response.json({
-      id: "chatcmpl_wire_1",
-      object: "chat.completion",
-      created: 1,
-      model: "gpt-4o-mini",
-      choices: [
-        {
-          index: 0,
-          message: { role: "assistant", content: "Non-streamed answer." },
-          finish_reason: "stop",
-        },
-      ],
-      usage: { prompt_tokens: 5, completion_tokens: 3, total_tokens: 8 },
-    });
+const chatCompletion = (content: string) =>
+  Response.json({
+    id: "chatcmpl_wire_1",
+    object: "chat.completion",
+    created: 1,
+    model: "gpt-4o-mini",
+    choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
+    usage: { prompt_tokens: 5, completion_tokens: 3, total_tokens: 8 },
+  });
 
-  await runChatCore("wiring non-stream prompt", false, "wire-session-json");
+const sseResponse = (frames: unknown[]) =>
+  new Response(frames.map((frame) => `data: ${JSON.stringify(frame)}\n\n`).join(""), {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+
+test("non-streaming handleChatCore stores the session turn", async () => {
+  globalThis.fetch = async () => chatCompletion("Non-streamed answer.");
+
+  await runChatCore({ prompt: "wiring non-stream prompt", stream: false, sessionId: "wire-json" });
 
   const row = storedTurn("wiring non-stream prompt");
   assert.ok(row, "a turn row is stored");
   assert.equal(row.assistant_text, "Non-streamed answer.");
 });
 
-test("streaming handleChatCore stores the session turn with tool names", async () => {
-  const chunk = (delta: Record<string, unknown>, finishReason: string | null = null) =>
-    `data: ${JSON.stringify({
-      id: "chatcmpl_wire_2",
-      object: "chat.completion.chunk",
-      created: 1,
-      model: "gpt-4o-mini",
-      choices: [{ index: 0, delta, finish_reason: finishReason }],
-    })}\n\n`;
-  const sse = [
-    chunk({ role: "assistant", content: "Streamed answer." }),
-    chunk({
-      tool_calls: [
-        { index: 0, id: "call_1", type: "function", function: { name: "Bash", arguments: "{}" } },
-      ],
-    }),
-    chunk({}, "tool_calls"),
-    "data: [DONE]\n\n",
-  ].join("");
-  globalThis.fetch = async () =>
-    new Response(sse, { status: 200, headers: { "Content-Type": "text/event-stream" } });
+test("non-streaming handleChatCore stores the sanitized client-visible text", async () => {
+  globalThis.fetch = async () => chatCompletion("<think>private chain</think>Visible answer.");
 
-  await runChatCore("wiring stream prompt", true, "wire-session-sse");
+  await runChatCore({
+    prompt: "wiring sanitized prompt",
+    stream: false,
+    sessionId: "wire-sanitized",
+    model: "deepseek-r1",
+  });
+
+  assert.equal(storedTurn("wiring sanitized prompt")?.assistant_text, "Visible answer.");
+});
+
+test("streaming handleChatCore stores the session turn with tool names", async () => {
+  const chunk = (delta: Record<string, unknown>, finishReason: string | null = null) => ({
+    id: "chatcmpl_wire_2",
+    object: "chat.completion.chunk",
+    created: 1,
+    model: "gpt-4o-mini",
+    choices: [{ index: 0, delta, finish_reason: finishReason }],
+  });
+  globalThis.fetch = async () =>
+    sseResponse([
+      chunk({ role: "assistant", content: "Streamed answer." }),
+      chunk({
+        tool_calls: [
+          { index: 0, id: "call_1", type: "function", function: { name: "Bash", arguments: "{}" } },
+        ],
+      }),
+      chunk({}, "tool_calls"),
+    ]);
+
+  await runChatCore({ prompt: "wiring stream prompt", stream: true, sessionId: "wire-sse" });
 
   const row = storedTurn("wiring stream prompt");
   assert.ok(row, "a turn row is stored");
   assert.equal(row.assistant_text, "Streamed answer.");
-  assert.deepEqual(JSON.parse(row.tool_names), ["Bash"]);
+  assert.deepEqual(JSON.parse(String(row.tool_names)), ["Bash"]);
+});
+
+test("streaming /v1/messages Claude passthrough stores tool names off the wire", async () => {
+  globalThis.fetch = async () =>
+    sseResponse([
+      {
+        type: "message_start",
+        message: { id: "msg_1", model: "claude-sonnet-4", role: "assistant", usage: {} },
+      },
+      { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } },
+      { type: "content_block_delta", index: 0, delta: { type: "text_delta", text: "Reading." } },
+      { type: "content_block_stop", index: 0 },
+      {
+        type: "content_block_start",
+        index: 1,
+        content_block: { type: "tool_use", id: "toolu_1", name: "Read", input: {} },
+      },
+      {
+        type: "content_block_delta",
+        index: 1,
+        delta: { type: "input_json_delta", partial_json: '{"file_path":"a.ts"}' },
+      },
+      { type: "content_block_stop", index: 1 },
+      { type: "message_delta", delta: { stop_reason: "tool_use" }, usage: { output_tokens: 5 } },
+      { type: "message_stop" },
+    ]);
+
+  const clientText = await runChatCore({
+    prompt: "wiring claude prompt",
+    stream: true,
+    sessionId: "wire-claude",
+    provider: "claude",
+    model: "claude-sonnet-4",
+    endpoint: "/v1/messages",
+  });
+
+  const row = storedTurn("wiring claude prompt");
+  assert.ok(row, "a turn row is stored");
+  assert.equal(row.assistant_text, "Reading.");
+  assert.deepEqual(JSON.parse(String(row.tool_names)), ["Read"]);
+  assert.ok(!clientText.includes("tool_calls"), "the client stream stays Claude-shaped");
+});
+
+test("two attempts for one client request (combo fallback) store a single turn", async () => {
+  const run: ChatCoreRun = {
+    prompt: "wiring combo prompt",
+    stream: false,
+    sessionId: "wire-combo",
+  };
+  const clientRawRequest = clientRequestFor(run);
+
+  globalThis.fetch = async () => chatCompletion("Rejected by the combo quality check.");
+  await runChatCore({ ...run, clientRawRequest });
+  globalThis.fetch = async () => chatCompletion("Accepted fallback answer.");
+  await runChatCore({ ...run, clientRawRequest });
+
+  assert.deepEqual(
+    storedTurns("wiring combo prompt").map((row) => row.assistant_text),
+    ["Accepted fallback answer."]
+  );
 });

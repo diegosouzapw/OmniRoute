@@ -16,6 +16,9 @@ const featureFlagsDb = await import("../../src/lib/db/featureFlags.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const messagesDb = await import("../../src/lib/db/agentSessionMessages.ts");
 const cleanup = await import("../../src/lib/db/cleanup.ts");
+const { getUserDatabaseSettings } = await import("../../src/lib/db/databaseSettings.ts");
+const { storeStreamingSemanticCacheResponse } =
+  await import("../../open-sse/handlers/chatCore/streamingSemanticCacheStore.ts");
 const { extractUserTurnText, extractAssistantTurnText, extractAgentSessionTurn } =
   await import("../../open-sse/handlers/chatCore/agentSessionTurn.ts");
 const { resolveSessionTurn } = await import("../../open-sse/handlers/chatCore/agentContext.ts");
@@ -59,10 +62,15 @@ async function withCaptureFlag<T>(value: "true" | "false", fn: () => Promise<T>)
   }
 }
 
+const MINUTE_MS = 60_000;
+const DAY_MS = 24 * 60 * MINUTE_MS;
+const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * MINUTE_MS).toISOString();
+const daysAgo = (days: number) => new Date(Date.now() - days * DAY_MS).toISOString();
+
 let timestampSeq = 0;
 function nextTimestamp(): string {
   timestampSeq += 1;
-  return new Date(Date.UTC(2026, 8, 25, 12, 0, timestampSeq)).toISOString();
+  return new Date(Date.now() - 20 * MINUTE_MS + timestampSeq * 1000).toISOString();
 }
 
 function countTurnsWithUserText(userText: string): number {
@@ -91,7 +99,12 @@ async function recordTurn(opts: {
     timestamp: nextTimestamp(),
     apiKeyId: opts.apiKeyId,
     agentContext: opts.context,
-    sessionTurn: resolveSessionTurn(requestBody, [responseBody], opts.context, opts.apiKeyInfo),
+    sessionTurn: resolveSessionTurn({
+      body: requestBody,
+      responses: [responseBody],
+      agentContext: opts.context,
+      apiKeyInfo: opts.apiKeyInfo,
+    }),
   });
 }
 
@@ -172,7 +185,7 @@ test.before(async () => {
     tokens: { input: 100, output: 50 },
     success: true,
     latencyMs: 100,
-    timestamp: "2026-09-25T10:00:00.000Z",
+    timestamp: minutesAgo(30),
     apiKeyId: keyAliceId,
     apiKeyName: "key-alice",
     agentContext: {
@@ -198,7 +211,7 @@ test.before(async () => {
     tokens: { input: 200, output: 80 },
     success: true,
     latencyMs: 150,
-    timestamp: "2026-09-25T10:05:00.000Z",
+    timestamp: minutesAgo(25),
     apiKeyId: keyAliceId,
     apiKeyName: "key-alice",
     agentContext: {
@@ -466,7 +479,9 @@ test("streamed Anthropic passthrough yields the assistant text and tool_use name
   const completion = await assembleStream(chunks, claudePassthroughOptions());
 
   const message = (completion.responseBody as AssembledChatBody).choices[0].message;
-  assert.deepEqual(message.tool_calls, [{ type: "function", function: { name: "Read" } }]);
+  assert.equal(message.tool_calls, undefined, "the assembled body gains no name-only tool_calls");
+  assert.ok(!JSON.stringify(completion.responseBody).includes("Read"), "names stay off the wire");
+  assert.ok(!JSON.stringify(completion.clientPayload).includes("tool_calls"), "call log unchanged");
   const turn = streamedAssistantTurn(completion);
   assert.equal(turn.assistantText, "Let me check the tests.");
   assert.deepEqual(turn.toolNames, ["Read"]);
@@ -499,9 +514,38 @@ test("streamed Anthropic passthrough keeps at most 20 tool names", async () => {
     claudePassthroughOptions()
   );
 
-  const message = (completion.responseBody as AssembledChatBody).choices[0].message;
-  assert.equal((message.tool_calls as unknown[]).length, 20);
   assert.deepEqual(streamedAssistantTurn(completion).toolNames, names.slice(0, 20));
+});
+
+test("the semantic cache stores the Claude passthrough body without tool names", async () => {
+  const completion = await assembleStream(
+    claudeToolUseStream(["Read"], "Cached text."),
+    claudePassthroughOptions()
+  );
+  let cachedBody: unknown = null;
+  storeStreamingSemanticCacheResponse(
+    {
+      enabled: true,
+      streamStatus: 200,
+      streamResponseBody: completion.responseBody as Record<string, unknown>,
+      body: { messages: [{ role: "user", content: "go" }], temperature: 0 },
+      headers: {},
+      model: "claude-sonnet-4",
+    },
+    {
+      isCacheableForWrite: () => true,
+      isTruncatedStreamBody: () => false,
+      isSmallEnoughForSemanticCache: () => true,
+      generateSignature: () => "sig-claude-passthrough",
+      setCachedResponse: (_sig: string, _model: string, body: unknown) => {
+        cachedBody = body;
+      },
+    }
+  );
+
+  const replayed = JSON.parse(JSON.stringify(cachedBody)) as AssembledChatBody;
+  assert.equal(replayed.choices[0].message.content, "Cached text.");
+  assert.equal(replayed.choices[0].message.tool_calls, undefined, "no malformed tool calls replay");
 });
 
 test("streamed OpenAI upstream translated for an Anthropic client yields text and tools", async () => {
@@ -637,12 +681,12 @@ test("no turn is captured for a noLog API key", async () => {
 
   await withCaptureFlag("true", async () => {
     assert.equal(
-      resolveSessionTurn(
-        { messages: [{ role: "user", content: "hidden" }] },
-        [{ content: [{ type: "text", text: "ok" }] }],
-        agentContextFor("gate-nolog"),
-        metadata
-      ),
+      resolveSessionTurn({
+        body: { messages: [{ role: "user", content: "hidden" }] },
+        responses: [{ content: [{ type: "text", text: "ok" }] }],
+        agentContext: agentContextFor("gate-nolog"),
+        apiKeyInfo: metadata,
+      }),
       null
     );
     await recordTurn({
@@ -698,7 +742,121 @@ test("no turn is captured for a request without an API key", async () => {
   assert.equal(countTurnsWithUserText("gate-no-key prompt"), 0);
 });
 
+test("resolveSessionTurn ignores a stream that did not finish with status 200", async () => {
+  const input = {
+    body: { messages: [{ role: "user", content: "retry me" }] },
+    responses: [{ choices: [{ message: { content: "" } }] }],
+    agentContext: agentContextFor("gate-status"),
+    apiKeyInfo: { noLog: false },
+  };
+  await withCaptureFlag("true", async () => {
+    assert.equal(resolveSessionTurn({ ...input, streamStatus: 502 }), null);
+    assert.equal(resolveSessionTurn({ ...input, streamStatus: 200 })?.userText, "retry me");
+  });
+});
+
+test("resolveSessionTurn reads the prompt from the raw client body", async () => {
+  const turn = await withCaptureFlag("true", async () =>
+    resolveSessionTurn({
+      clientRawRequest: { body: { messages: [{ role: "user", content: "raw prompt" }] } },
+      body: { messages: [{ role: "user", content: "[compressed] raw" }] },
+      responses: [{ content: [{ type: "text", text: "ok" }] }],
+      agentContext: agentContextFor("gate-raw-body"),
+      apiKeyInfo: { noLog: false },
+    })
+  );
+  assert.equal(turn?.userText, "raw prompt");
+});
+
+test("combo attempts of one client request keep only the last turn", async () => {
+  const clientRawRequest = { body: { messages: [{ role: "user", content: "combo prompt" }] } };
+  const context = agentContextFor("gate-combo");
+  await withCaptureFlag("true", async () => {
+    for (const answer of ["rejected answer", "accepted answer"]) {
+      await usageHistory.saveRequestUsage({
+        provider: "openai",
+        model: "gpt-4o",
+        tokens: { input: 10, output: 5 },
+        timestamp: nextTimestamp(),
+        apiKeyId: keyAliceId,
+        agentContext: context,
+        sessionTurn: resolveSessionTurn({
+          clientRawRequest,
+          body: clientRawRequest.body,
+          responses: [{ choices: [{ message: { content: answer } }] }],
+          agentContext: context,
+          apiKeyInfo: { noLog: false },
+        }),
+      });
+    }
+  });
+
+  const rows = core
+    .getDbInstance()
+    .prepare("SELECT assistant_text FROM agent_session_messages WHERE user_text = ?")
+    .all("combo prompt") as { assistant_text: string }[];
+  assert.deepEqual(rows, [{ assistant_text: "accepted answer" }]);
+});
+
+test("no turn is captured for the environment API key", async () => {
+  await withCaptureFlag("true", () =>
+    recordTurn({
+      prompt: "gate-env-key prompt",
+      context: agentContextFor("gate-env-key"),
+      apiKeyId: "env-key",
+      apiKeyInfo: { noLog: false },
+    })
+  );
+
+  assert.equal(countTurnsWithUserText("gate-env-key prompt"), 0);
+});
+
 // ──────────────── Persistence & Route tests ────────────────
+
+/** A fresh key with one agent session holding one turn per timestamp. */
+async function seedSession(label: string, timestamps: string[]) {
+  const key = await apiKeysDb.createApiKey(`key-${label}`, "test-machine", [SELF_USAGE_SCOPE]);
+  for (const [index, timestamp] of timestamps.entries()) {
+    await usageHistory.saveRequestUsage({
+      provider: "openai",
+      model: "gpt-4o",
+      tokens: { input: 10 + index, output: 5 },
+      timestamp,
+      apiKeyId: key.id,
+      agentContext: agentContextFor(`${label}-session`),
+      sessionTurn: {
+        userText: `${label} turn ${index}`,
+        assistantText: "ok",
+        toolNames: [],
+        truncated: false,
+      },
+    });
+  }
+  const row = core
+    .getDbInstance()
+    .prepare("SELECT id FROM agent_sessions WHERE client_session_id = ? AND api_key_id = ?")
+    .get(`${label}-session`, key.id) as { id: string };
+  return { sessionId: row.id, token: key.key };
+}
+
+const sessionTurnTexts = (sessionId: string) =>
+  messagesDb
+    .listAgentSessionMessages(core.getDbInstance(), sessionId)
+    .messages.map((message) => message.user);
+
+test("GET /v1/me/sessions/[id]/messages requires a bearer key with self:usage", async () => {
+  const url = `http://localhost:20128/v1/me/sessions/${sessionAliceId}/messages`;
+  const params = { params: Promise.resolve({ id: sessionAliceId }) };
+  const unscoped = await apiKeysDb.createApiKey("key-unscoped", "test-machine", []);
+
+  const missing = await getMessagesRoute(new Request(url), params);
+  assert.equal(missing.status, 401);
+  const forbidden = await getMessagesRoute(
+    new Request(url, { headers: { Authorization: `Bearer ${unscoped.key}` } }),
+    params
+  );
+  assert.equal(forbidden.status, 403);
+});
 
 test("GET /v1/me/sessions/[id]/messages lists messages for the calling key", async () => {
   const req = new Request(`http://localhost:20128/v1/me/sessions/${sessionAliceId}/messages`, {
@@ -774,28 +932,30 @@ test("GET /v1/me/sessions/[id]/messages supports limit and cursor pagination", a
   assert.equal(data2.nextCursor, null);
 });
 
-test("deleteAgentSessionMessagesBefore removes older messages", () => {
-  const db = core.getDbInstance();
-  const deleted = messagesDb.deleteAgentSessionMessagesBefore(db, "2026-09-25T10:02:00.000Z");
-  assert.equal(deleted, 1);
+test("deleteAgentSessionMessagesBefore removes older messages", async () => {
+  const { sessionId } = await seedSession("delete", [daysAgo(400), daysAgo(399)]);
 
-  const remaining = messagesDb.listAgentSessionMessages(db, sessionAliceId);
-  assert.equal(remaining.messages.length, 1);
-  assert.equal(remaining.messages[0].user, "Run the tests now");
+  const deleted = messagesDb.deleteAgentSessionMessagesBefore(core.getDbInstance(), daysAgo(399.5));
+  assert.ok(deleted >= 1);
+  assert.deepEqual(sessionTurnTexts(sessionId), ["delete turn 1"]);
 });
 
-test("resetUsageHistory('all') deletes agent session messages and reports the count", async () => {
-  const db = core.getDbInstance();
-  const before = db.prepare("SELECT COUNT(*) AS c FROM agent_session_messages").get() as {
-    c: number;
-  };
-  assert.ok(before.c > 0);
+test("cleanupAgentSessionMessages uses the usage_history day boundary", async () => {
+  const retentionDays = getUserDatabaseSettings().retention.usageHistory;
+  const cutoffDay = daysAgo(retentionDays).split("T")[0];
+  const dayBefore = new Date(Date.parse(`${cutoffDay}T00:00:00.000Z`) - DAY_MS).toISOString();
+  const { sessionId } = await seedSession("retention", [dayBefore, `${cutoffDay}T00:00:00.001Z`]);
 
-  const result = await cleanup.resetUsageHistory("all");
-  assert.equal(result.deletedAgentSessionMessages, before.c);
+  const result = await cleanup.cleanupAgentSessionMessages();
+  assert.equal(result.errors, 0);
+  assert.deepEqual(sessionTurnTexts(sessionId), ["retention turn 1"]);
+});
 
-  const after = db.prepare("SELECT COUNT(*) AS c FROM agent_session_messages").get() as {
-    c: number;
-  };
-  assert.equal(after.c, 0);
+test("resetUsageHistory deletes agent session messages and reports the count", async () => {
+  const { sessionId } = await seedSession("reset", [daysAgo(60), daysAgo(59)]);
+
+  const result = await cleanup.resetUsageHistory("30d");
+  assert.ok(result.deletedAgentSessionMessages >= 2);
+  assert.deepEqual(sessionTurnTexts(sessionId), []);
+  assert.equal(sessionTurnTexts(sessionAliceId).length, 2, "recent turns are kept");
 });
