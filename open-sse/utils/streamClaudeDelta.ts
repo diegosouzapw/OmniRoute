@@ -1,3 +1,4 @@
+import { TOOL_USE_NAMES_FIELD } from "./sessionTurnToolNames.ts";
 import { appendBoundedText } from "./streamHelpers.ts";
 
 type ClaudeDeltaState = {
@@ -31,13 +32,6 @@ export function collectClaudeDelta(delta: unknown, state?: ClaudeDeltaState) {
 type JsonRecord = Record<string, unknown>;
 
 const MAX_TOOL_USE_NAMES = 20;
-
-/**
- * Non-enumerable field on the assembled chat message that carries Claude passthrough tool names
- * to the session-turn extractor only. JSON.stringify, object spreads and structuredClone all skip
- * it, so call logs, the semantic cache and reasoning replay see the body exactly as before.
- */
-export const TOOL_USE_NAMES_FIELD = "_omnirouteToolNames";
 
 function asRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;

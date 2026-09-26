@@ -7,11 +7,14 @@
  * stream assembler reports for every client format), OpenAI Responses `output[]`.
  */
 
-import { TOOL_USE_NAMES_FIELD } from "../../utils/streamClaudeDelta.ts";
+import { TOOL_USE_NAMES_FIELD } from "../../utils/sessionTurnToolNames.ts";
 
 type JsonRecord = Record<string, unknown>;
 
 export const MAX_TURN_TEXT_CHARS = 4_000;
+const MAX_TURN_TOOL_NAMES = 20;
+/** Placeholder cloneBoundedForLog puts where the log copy of a request exceeds its depth cap. */
+const LOG_MAX_DEPTH_MARKER = "[MaxDepth]";
 
 const USER_TEXT_PARTS: ReadonlySet<string> = new Set(["text", "input_text"]);
 const ASSISTANT_TEXT_PARTS: ReadonlySet<string> = new Set(["text", "output_text"]);
@@ -50,7 +53,7 @@ function capTurnText(text: string): { text: string | null; truncated: boolean } 
 
 /** Text of a string or of the `text` parts listed in `partTypes` (untyped parts included). */
 function contentText(content: unknown, partTypes: ReadonlySet<string>): string {
-  if (typeof content === "string") return content;
+  if (typeof content === "string") return content === LOG_MAX_DEPTH_MARKER ? "" : content;
   if (!Array.isArray(content)) return "";
   const parts: string[] = [];
   for (const part of content) {
@@ -158,7 +161,7 @@ export function extractAssistantTurnText(responseBody: unknown): {
   }
 
   const { text, truncated } = capTurnText(cleanTurnText(textParts.filter(Boolean).join("\n\n")));
-  return { text, toolNames: [...new Set(toolNames)].slice(0, 20), truncated };
+  return { text, toolNames: [...new Set(toolNames)].slice(0, MAX_TURN_TOOL_NAMES), truncated };
 }
 
 export interface ExtractedAgentSessionTurn {
@@ -168,38 +171,40 @@ export interface ExtractedAgentSessionTurn {
   truncated: boolean;
 }
 
-/** A turn ready to store; `requestKey` is shared by every attempt of one client request. */
+/**
+ * A turn ready to store. `requestKey` is shared by every attempt of one client request and
+ * `attemptSeq` orders those attempts; the latest attempt's turn is the one kept.
+ */
 export interface AgentSessionTurn extends ExtractedAgentSessionTurn {
   requestKey?: string | null;
+  attemptSeq?: number | null;
 }
 
-type AssistantTurn = ReturnType<typeof extractAssistantTurnText>;
-
-const assistantTurnWeight = (turn: AssistantTurn) => (turn.text ? 1 : 0) + turn.toolNames.length;
-
 /**
- * Build the turn from the request and the response body that carries the most: assistant text
- * counts once, plus one per tool name; ties keep the earlier body. Callers pass alternative
- * representations of the same reply (the streamed client payload summary keeps Responses
- * `function_call` items; the assembled body keeps Claude passthrough tool names).
+ * Build the turn from the request and alternative representations of the same reply (the
+ * streamed client payload summary keeps Responses `function_call` items; the assembled body
+ * keeps Claude passthrough tool names). Text comes from the first representation that has
+ * any; tool names are merged across all of them, de-duplicated and capped.
  */
 export function extractAgentSessionTurn(
   requestBody: unknown,
   ...responseBodies: unknown[]
 ): ExtractedAgentSessionTurn | null {
   const user = extractUserTurnText(requestBody);
-  let assistant: AssistantTurn = { text: null, toolNames: [], truncated: false };
-  for (const candidate of responseBodies.map(extractAssistantTurnText)) {
-    if (assistantTurnWeight(candidate) > assistantTurnWeight(assistant)) assistant = candidate;
-  }
+  const assistants = responseBodies.map(extractAssistantTurnText);
+  const withText = assistants.find((candidate) => candidate.text);
+  const toolNames = [...new Set(assistants.flatMap((candidate) => candidate.toolNames))].slice(
+    0,
+    MAX_TURN_TOOL_NAMES
+  );
 
-  const hasContent = Boolean(user.text || assistant.text || assistant.toolNames.length > 0);
-  if (!hasContent) return null;
+  const assistantText = withText?.text ?? null;
+  if (!user.text && !assistantText && toolNames.length === 0) return null;
 
   return {
     userText: user.text,
-    assistantText: assistant.text,
-    toolNames: assistant.toolNames,
-    truncated: user.truncated || assistant.truncated,
+    assistantText,
+    toolNames,
+    truncated: user.truncated || Boolean(withText?.truncated),
   };
 }
