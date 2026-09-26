@@ -3468,6 +3468,110 @@ paths:
         "200":
           description: Historical usage data
 
+  /api/reports/summary:
+    get:
+      tags: [Usage]
+      summary: Team report of coding-agent usage
+      description: >
+        Totals plus breakdowns by member, project, client, provider, model, account and day, computed
+        from requests attributed to agent sessions. Cost is priced from token counts.
+      parameters:
+        - $ref: "#/components/parameters/ReportFrom"
+        - $ref: "#/components/parameters/ReportTo"
+        - $ref: "#/components/parameters/ReportApiKeyId"
+        - $ref: "#/components/parameters/ReportProjectName"
+        - $ref: "#/components/parameters/ReportClient"
+        - $ref: "#/components/parameters/ReportProvider"
+        - $ref: "#/components/parameters/ReportConnectionId"
+      responses:
+        "200":
+          description: "{ totals, breakdowns: { members, projects, clients, providers, models, accounts, daily } }"
+        "400":
+          description: Invalid query parameters
+
+  /api/reports/sessions:
+    get:
+      tags: [Usage]
+      summary: List agent sessions for the team report
+      description: >
+        from/to match the session's last activity; provider and connectionId match sessions with
+        at least one request through that provider or account.
+      parameters:
+        - $ref: "#/components/parameters/ReportFrom"
+        - $ref: "#/components/parameters/ReportTo"
+        - $ref: "#/components/parameters/ReportApiKeyId"
+        - $ref: "#/components/parameters/ReportProjectName"
+        - $ref: "#/components/parameters/ReportClient"
+        - $ref: "#/components/parameters/ReportProvider"
+        - $ref: "#/components/parameters/ReportConnectionId"
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [lastSeen, firstSeen, requests, tokens, cost]
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        "200":
+          description: "{ sessions, total }"
+        "400":
+          description: Invalid query parameters
+
+  /api/reports/sessions/{id}:
+    get:
+      tags: [Usage]
+      summary: Agent session detail with its latest 100 requests
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: "{ session, recentRequests }"
+        "404":
+          description: Session not found
+
+  /api/reports/export:
+    get:
+      tags: [Usage]
+      summary: Download a team report breakdown or the session list as CSV
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [members, projects, clients, providers, models, accounts, daily, sessions]
+        - $ref: "#/components/parameters/ReportFrom"
+        - $ref: "#/components/parameters/ReportTo"
+        - $ref: "#/components/parameters/ReportApiKeyId"
+        - $ref: "#/components/parameters/ReportProjectName"
+        - $ref: "#/components/parameters/ReportClient"
+        - $ref: "#/components/parameters/ReportProvider"
+        - $ref: "#/components/parameters/ReportConnectionId"
+      responses:
+        "200":
+          description: CSV file (session export is capped at 10,000 rows)
+          content:
+            text/csv:
+              schema:
+                type: string
+        "400":
+          description: Invalid query parameters
+
   /api/usage/logs:
     get:
       tags: [Usage]
@@ -12919,6 +13023,62 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/me/sessions:
+    get:
+      tags:
+        - V1 Me
+      summary: "GET me › sessions"
+      description: List agent sessions opened by the calling API key.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        tokens: { $ref: "#/components/schemas/AgentSessionTokens" }
+                  total: { type: integer, description: Number of matching sessions. }
+  /api/v1/me/sessions/{id}:
+    get:
+      tags:
+        - V1 Me
+      summary: "GET me › sessions › <id>"
+      description: Get details and recent requests of a session owned by the calling API key.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    type: object
+                    properties:
+                      tokens: { $ref: "#/components/schemas/AgentSessionTokens" }
+                  recentRequests:
+                    type: array
+                    description: Latest requests of the session, newest first.
+                    items:
+                      type: object
+                      properties:
+                        timestamp: { type: string, format: date-time }
+                        provider: { type: [string, "null"] }
+                        model: { type: [string, "null"] }
+                        tokens: { $ref: "#/components/schemas/AgentSessionRequestTokens" }
+                        latencyMs: { type: integer }
+                        status: { type: [string, "null"] }
+                        success: { type: boolean }
+        "404":
+          description: Session not found
   /api/v1/models/{model}:
     get:
       tags:
@@ -13449,6 +13609,48 @@ components:
       required: true
       schema:
         type: string
+    ReportFrom:
+      name: from
+      in: query
+      description: Only count requests at or after this ISO 8601 timestamp.
+      schema:
+        type: string
+        format: date-time
+    ReportTo:
+      name: to
+      in: query
+      description: Only count requests at or before this ISO 8601 timestamp.
+      schema:
+        type: string
+        format: date-time
+    ReportApiKeyId:
+      name: apiKeyId
+      in: query
+      description: Team member (API key id).
+      schema:
+        type: string
+    ReportProjectName:
+      name: projectName
+      in: query
+      schema:
+        type: string
+    ReportClient:
+      name: client
+      in: query
+      description: Coding agent, e.g. claude-code or codex.
+      schema:
+        type: string
+    ReportProvider:
+      name: provider
+      in: query
+      schema:
+        type: string
+    ReportConnectionId:
+      name: connectionId
+      in: query
+      description: Provider account (connection id).
+      schema:
+        type: string
 
   responses:
     Unauthorized:
@@ -13524,6 +13726,45 @@ components:
             requestId: 0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
 
   schemas:
+    AgentSessionTokens:
+      type: object
+      description: >-
+        Token counters of an agent session. `input` includes the cache reads and writes, as
+        providers report prompt tokens; do not add `cacheRead` or `cacheCreation` to it. The
+        three disjoint parts of the input are `uncachedInput`, `cacheRead` and `cacheCreation`.
+        Requests recorded before the usage extractor fix (#14878) by some non-streaming
+        Claude-format providers stored input without its cached part, so for them `input` and
+        `uncachedInput` may be under-reported.
+      required: [input, uncachedInput, cacheRead, cacheCreation, output, reasoning, total]
+      properties:
+        input: { type: integer, description: Input tokens including cache reads and writes. }
+        uncachedInput:
+          type: integer
+          description: >-
+            Input that was neither read from nor written to the prompt cache:
+            input - cacheRead - cacheCreation, clamped at 0.
+        cacheRead: { type: integer, description: Input tokens read from the prompt cache. }
+        cacheCreation: { type: integer, description: Input tokens written to the prompt cache. }
+        output: { type: integer, description: Output tokens, reasoning included. }
+        reasoning: { type: integer, description: Reasoning tokens, already part of output. }
+        total:
+          type: integer
+          description: input + output (cache reads and writes are already part of input).
+    AgentSessionRequestTokens:
+      type: object
+      description: >-
+        Token counters of one request, with the meaning of AgentSessionTokens, so the requests
+        of a session add up to the session.
+      required: [input, uncachedInput, cacheRead, cacheCreation, output, reasoning]
+      properties:
+        input: { type: integer, description: Input tokens including cache reads and writes. }
+        uncachedInput:
+          type: integer
+          description: input - cacheRead - cacheCreation, clamped at 0.
+        cacheRead: { type: integer }
+        cacheCreation: { type: integer }
+        output: { type: integer, description: Output tokens, reasoning included. }
+        reasoning: { type: integer }
     ExclusiveConnectionLeaseLifecycle:
       type: object
       description: >-

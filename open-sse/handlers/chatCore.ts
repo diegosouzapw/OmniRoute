@@ -334,6 +334,7 @@ import {
 } from "./chatCore/pluginOnResponse.ts";
 import { scheduleStreamingQuotaShareConsumption } from "./chatCore/streamingQuotaShare.ts";
 import { recordStreamingUsageStats } from "./chatCore/streamingUsageStats.ts";
+import { resolveUsageAgentContext } from "./chatCore/agentContext.ts";
 import { recordStreamingCost, buildStreamLedgerDetails } from "./chatCore/streamingCost.ts";
 import { isJsonRecord } from "./chatCore/nonStreamingResponseParse.ts";
 import { recordNonStreamingUsageStats } from "./chatCore/nonStreamingUsageStats.ts";
@@ -707,6 +708,7 @@ async function handleChatCoreInner({
     maxDepth = 3
   ): EffectiveServiceTier | null => resolveReportedServiceTierFor(provider, payload, maxDepth);
   let providerResponse;
+  const agentContext = resolveUsageAgentContext(body, clientRawRequest?.headers, apiKeyInfo);
   // Failure usage record building extracted to chatCore/failureUsage.ts (#3501); the handler keeps
   // the fire-and-forget save + computes latencyMs, so the call sites stay byte-identical.
   const persistFailureUsage = (
@@ -728,6 +730,7 @@ async function handleChatCoreInner({
         latencyMs: Date.now() - startTime,
         endpoint: endpointPath,
         cpaAuthIndex: readCpaAuthIndex(providerResponse),
+        agentContext,
         aggregate: aggregate ?? undefined,
       })
     ).catch(() => {});
@@ -5413,7 +5416,7 @@ async function handleChatCoreInner({
         effectiveServiceTier,
         isCombo,
         comboStrategy,
-        endpoint: endpointPath, cpaAuthIndex: readCpaAuthIndex(providerResponse),
+        endpoint: endpointPath, cpaAuthIndex: readCpaAuthIndex(providerResponse), agentContext,
       });
 
       // #12150 P1b surface 3 (fix round 1): a video-bridge-observed request's
@@ -6123,7 +6126,7 @@ async function handleChatCoreInner({
       effectiveServiceTier,
       isCombo,
       comboStrategy,
-      endpoint: endpointPath, cpaAuthIndex: readCpaAuthIndex(providerResponse),
+      endpoint: endpointPath, cpaAuthIndex: readCpaAuthIndex(providerResponse), agentContext,
     });
 
     // Routing event (feedback foundation) — fire-and-forget, cheap, never blocks

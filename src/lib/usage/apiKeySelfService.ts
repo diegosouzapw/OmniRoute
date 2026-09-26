@@ -211,7 +211,7 @@ function normalizePlan(value: unknown): unknown {
 
 function isSupportedProvider(
   provider: string,
-  connection?: { provider?: string; providerSpecificData?: unknown },
+  connection?: { provider?: string; providerSpecificData?: unknown }
 ): boolean {
   return supportsProviderQuota(provider, connection);
 }
@@ -421,5 +421,94 @@ export async function buildApiKeySelfServiceStatus(
     },
     ...(accountQuotas !== undefined && { accountQuotas }),
     ...(accountQuota !== undefined && { accountQuota }),
+  };
+}
+
+export interface SelfServiceSessionsQuery {
+  project?: string | null;
+  client?: string | null;
+  from?: string | null;
+  to?: string | null;
+  sort?: "lastSeen" | "firstSeen" | "requests" | "tokens" | "cost";
+  order?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+}
+
+export async function buildApiKeySelfServiceSessions(
+  metadata: { id: string; scopes: string[] },
+  query: SelfServiceSessionsQuery = {},
+  deps: { getDbInstance?: () => unknown } = {}
+) {
+  if (!hasSelfUsageScope(metadata.scopes)) {
+    throw new Error("missing_self_usage_scope");
+  }
+
+  const { getDbInstance: defaultGetDbInstance } = await import("../db/core");
+  const db = (
+    deps.getDbInstance ? deps.getDbInstance() : defaultGetDbInstance()
+  ) as import("../db/adapters/types").SqliteAdapter;
+  const { listAgentSessions } = await import("../db/agentSessions");
+
+  const allowConnections = hasSelfAccountQuotaScope(metadata.scopes);
+
+  const { sessions, total } = listAgentSessions(db, {
+    apiKeyId: metadata.id,
+    projectName: query.project || undefined,
+    client: query.client || undefined,
+    from: query.from || undefined,
+    to: query.to || undefined,
+    sort: query.sort,
+    order: query.order,
+    limit: query.limit,
+    offset: query.offset,
+  });
+
+  const sanitizedSessions = sessions.map(({ lastConnectionId, ...session }) => ({
+    ...session,
+    ...(allowConnections && { lastConnectionId }),
+  }));
+
+  return {
+    sessions: sanitizedSessions,
+    total,
+    limit: query.limit ?? 20,
+    offset: query.offset ?? 0,
+  };
+}
+
+export async function buildApiKeySelfServiceSessionDetail(
+  metadata: { id: string; scopes: string[] },
+  sessionId: string,
+  deps: { getDbInstance?: () => unknown } = {}
+) {
+  if (!hasSelfUsageScope(metadata.scopes)) {
+    throw new Error("missing_self_usage_scope");
+  }
+
+  const { getDbInstance: defaultGetDbInstance } = await import("../db/core");
+  const db = (
+    deps.getDbInstance ? deps.getDbInstance() : defaultGetDbInstance()
+  ) as import("../db/adapters/types").SqliteAdapter;
+  const { getAgentSessionById, getAgentSessionRecentUsage } = await import("../db/agentSessions");
+
+  const session = getAgentSessionById(db, sessionId, metadata.id);
+  if (!session) return null;
+
+  const allowConnections = hasSelfAccountQuotaScope(metadata.scopes);
+  const recentUsage = getAgentSessionRecentUsage(db, sessionId, 50);
+
+  const { lastConnectionId, ...sanitizedSession } = session;
+  const sanitizedUsage = recentUsage.map(({ connectionId, ...item }) => ({
+    ...item,
+    ...(allowConnections && { connectionId }),
+  }));
+
+  return {
+    session: {
+      ...sanitizedSession,
+      ...(allowConnections && { lastConnectionId }),
+    },
+    recentRequests: sanitizedUsage,
   };
 }

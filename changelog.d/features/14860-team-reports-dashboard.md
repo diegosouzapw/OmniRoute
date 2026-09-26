@@ -1,0 +1,1 @@
+- **feat(dashboard):** add Analytics → Team Reports with cost, tokens and sessions per team member, project, client, provider, model and account, date-time filters, sortable tables and CSV export, plus the `/api/reports/*` management endpoints ([#14860](https://github.com/diegosouzapw/OmniRoute/pull/14860)) — thanks @fouadSalkini
