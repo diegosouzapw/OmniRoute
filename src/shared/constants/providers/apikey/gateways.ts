@@ -297,10 +297,10 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://onomeo.com",
     // Free credits come from a daily check-in, not a standing quota: 50,000 on day 1,
     // rising to 200,000 a day from day 7. Cost per reply varies by model, and unpaid
-    // accounts share a 50,000/day cap on premium models.
+    // accounts each get up to 50,000/day on premium models.
     hasFree: true,
     freeNote:
-      "Sign in (email, Google or GitHub, no card) and check in daily: 50,000 credits on day 1, up to 200,000 a day from day 7. Cost per reply varies by model; unpaid accounts share a 50,000/day cap on premium models. Optional: $5 buys 1,000,000 credits. 12 requests/min per key, 60 requests per 5 hours per account.",
+      "Sign in (email, Google or GitHub, no card) and check in daily: 50,000 credits on day 1, up to 200,000 a day from day 7. Cost per reply varies by model; each unpaid account gets up to 50,000/day on premium models. Optional: $5 buys 1,000,000 credits. 12 requests/min per key, 60 requests per 5 hours per account.",
     // onomeo routes to third-party upstreams; some may train on prompts, and each
     // model page on onomeo.com says which.
     apiHint:
