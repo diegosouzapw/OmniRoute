@@ -100,7 +100,11 @@ import {
   buildRolling24hQuotaFallback,
   SUBSCRIPTION_QUOTA_COOLDOWN_MS,
 } from "./quotaTextCooldowns.ts";
-import { parseDayGranularityResetMs, parseIsoDateTimeResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
+import {
+  parseDayGranularityResetMs,
+  parseIsoDateTimeResetMs,
+  shouldPreserveQuotaSignals,
+} from "./quotaResetParsing.ts";
 import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
 export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
 export { hasPerModelFailureScope } from "./accountFallback/perModelFailureScope.ts";
@@ -434,9 +438,7 @@ export function isProviderModelUnsupported400(status: number, errorText: string)
   return PROVIDER_MODEL_UNSUPPORTED_PATTERNS.some((p) => p.test(errorText));
 }
 
-// Malformed request patterns — the model rejected the message format but a different
-// provider/model in the combo may accept it.
-const MALFORMED_REQUEST_PATTERNS = [
+export const MALFORMED_REQUEST_PATTERNS = [
   /\bimproperly formed request\b/i,
   /\binvalid.*message.*format/i,
   /\bmessages must alternate\b/i,
@@ -462,12 +464,16 @@ export const RATE_LIMIT_TEXT_PATTERNS = [
 ];
 
 // Parameter validation errors — model-specific constraints (different models = different limits)
-const PARAM_VALIDATION_PATTERNS = [
+// #13757: include extra inputs and unrecognized field rejections from upstream schema validators
+export const PARAM_VALIDATION_PATTERNS = [
   /max_tokens.*illegal/i,
   /max_tokens.*must be/i,
   /max_tokens.*range/i,
   /parameter is illegal/i,
   /is illegal.*range/i,
+  /\b(?:extra|additional)\s+(?:input|inputs|propert(?:y|ies)|field|fields)\b.*(?:not permitted|not allowed)/i,
+  /\b(?:unknown|unrecognized|unexpected)\s+(?:field|fields|property|properties|parameter|parameters|input|inputs)\b/i,
+  /\binvalid\s+(?:field|fields|property|properties|parameter|parameters|input|inputs)\b/i,
 ];
 
 /**
@@ -2057,7 +2063,8 @@ export function checkFallbackError(
     if (sessionResult) return sessionResult;
 
     const detectedRetryHint = detectRetryHint();
-    const quotaResetHintMs = detectedRetryHint?.retryAfterMs ?? parseRetryFromErrorText(errorStr, provider);
+    const quotaResetHintMs =
+      detectedRetryHint?.retryAfterMs ?? parseRetryFromErrorText(errorStr, provider);
     const quotaResetHintSource: RetryHintProvenance | undefined = detectedRetryHint
       ? detectedRetryHint.provenance
       : quotaResetHintMs

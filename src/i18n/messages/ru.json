@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Главный переключатель псевдонимов шлюза no-think/&lt;provider&gt;/&lt;model&gt;. Включено (по умолчанию): /v1/models объявляет вариант без рассуждений для каждой подходящей модели Claude с поддержкой рассуждений, а идентификатор no-think/, переданный в запросе, преобразуется обратно в реальную модель с отключёнными рассуждениями. Выключено: варианты не объявляются, а идентификатор no-think/ обрабатывается как любой другой неизвестный идентификатор модели. Индивидуальная настройка ModelSpec.noThinkingAlias для каждой модели по-прежнему применяется, пока этот переключатель включён.",
   "featureFlagChatVirtualLanesEnabledDescription": "Включите адаптивные виртуальные полосы допуска для каждого тенанта при маршрутизации к провайдерам (#9654): всплеск нагрузки одного тенанта больше не вызывает 503 у другого. Переменная окружения OMNIROUTE_CHAT_VIRTUAL_LANES имеет приоритет над этой настройкой в панели; изменения вступают в силу после перезапуска сервера.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Страницы провайдеров на панели управления: показывать значок «Бесплатно» только для признаков, которые учитывает провайдер. Эвристика на основе отображаемого имени, небулевы поля free и суффиксы :free для зарегистрированных провайдеров без документально подтверждённого бесплатного тарифа больше не используются. При отключении сохраняется прежнее правило отображения значка.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Пулы прокси и ротация opencode для каждой учётной записи временно перестают повторно выбирать прокси сразу после сбоя (отказ при проверке TCP или ответ 429, полученный через него) на срок, действующий в рамках процесса и удваивающийся при каждом повторном сбое вплоть до установленного предела. Статус прокси не записывается; если отложены все кандидаты, выбор остаётся прежним. По умолчанию отключено: порядок выбора в точности соответствует обычной ротации.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Пулы прокси и ротация opencode для каждой учётной записи временно перестают повторно выбирать прокси сразу после сбоя (отказ при проверке TCP или ответ 429, полученный через него) на срок, действующий в рамках процесса и удваивающийся при каждом повторном сбое вплоть до установленного предела. Статус прокси не записывается; если отложены все кандидаты, выбор остаётся прежним. По умолчанию включено; `false` возвращает обычный выбор.",
   "featureFlagProxyPoolEgressObservationDescription": "Показывать под пулом прокси на панели управления, сколько наблюдаемых исходящих IP-адресов использовалось его участниками за последние 24 ч, сколько подключений использовало эти адреса и какое наибольшее число подключений приходилось на один IP-адрес. Данные доступны только для чтения, вычисляются по журналу прокси и никогда не используются для маршрутизации. По умолчанию отключено: редактор пула остаётся без изменений, а маршрут наблюдений возвращает null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "При проверке работоспособности прокси позволить проверке, отклонённой целевым сервером (401/403/429: прокси передал запрос, но целевой сервер отклонил этот исходящий IP-адрес), сбрасывать счётчик последовательных сбоев прокси, как при успешно обслуженной проверке. По умолчанию отключено: отказ остаётся нейтральным и не сбрасывает счётчик. Ответ 5xx в любом случае остаётся неопределённым, а отказ никогда не удаляет, не отключает и не активирует прокси повторно.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Разрешить автоматической очистке удалять задания Batch API в конечном состоянии (завершённые/завершившиеся ошибкой/отменённые/с истёкшим сроком действия) старше OMNIROUTE_BATCH_RETENTION_DAYS вместе с их построчными контрольными точками, а также очищать содержимое BLOB загруженных файлов после наступления указанного для них expires_at. По умолчанию отключено: во всех существующих установках эти данные сохраняются без изменений, пока оператор не включит эту функцию. Маршрут DELETE /api/v1/batches/delete-completed, запускаемый оператором, не затрагивается независимо от этой настройки — это отдельный безусловный контракт публичного API.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Отключить привязку сессий",
     "sessionStickinessEnabled": "Привязка включена",
     "sessionStickinessDisabled": "Привязка выключена",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Пресет Kimi Coding",
     "kimiPresetDescription": "Kimi K3 в качестве основной модели (Moonshot API) с автоматическим переключением на ваши подключения Kimi Code (kimi-coding, kimi-web) при их настройке.",
     "kimiPresetCta": "Добавить пресет",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Это создаст снимок текущих подключенных провайдеров/моделей, соответствующих этому шаблону, в редактируемом комбо.",
     "duplicateAutoComboFailedPrefix": "Не удалось дублировать автоматическое комбо:",
     "duplicateAutoComboUnknownError": "Неизвестная ошибка",
-    "duplicateAutoComboTitle": "Создать статическое комбо из {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Создать статическое комбо из {name}"
   },
   "costs": {
     "title": "Затраты",
@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Локальный эндпоинт прокси-ядра недействителен; узлы SS/VMess/Trojan/VLESS были проигнорированы.",
         "NEEDS_CORE_NOT_CONFIGURED": "Эта подписка содержит узлы, которым требуется локальное прокси-ядро (SS/VMess/Trojan/VLESS); они не будут маршрутизироваться, пока вы не настроите SOCKS5-эндпоинт локального ядра.",
-        "NO_USABLE_NODES": "Подписка не вернула доступных узлов (http/https/socks5 или узлов с локальным эндпоинтом ядра)."
+        "NO_USABLE_NODES": "Подписка не вернула доступных узлов (http/https/socks5 или узлов с локальным эндпоинтом ядра).",
+        "SELECTOR_SWITCH_FAILED": "Вызов управления прокси-ядра не удался; предыдущий маршрут остаётся активным. Проверьте URL и секрет управления, затем обновите."
       },
       "description": "Вставьте ссылку на подписку на прокси. После включения трафик маршрутизируется через пул прокси-серверов в глобальном режиме или режиме правила (указанного поставщика). Узлы подписки автоматически синхронизируются с пулом прокси-серверов и повторно используют существующие механизмы опроса, проверки работоспособности и защиты от утечек.",
       "addSubscription": "Добавить подписку",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Маршрутизация Провайдеров",
       "refresh": "Обновить",
       "refreshInterval": "Интервал обновления",
-      "ruleModeDescription": "Описание режима правил"
+      "ruleModeDescription": "Описание режима правил",
+      "controlUrl": "URL API управления",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Секрет API управления",
+      "controlSecretPlaceholder": "Оставьте пустым, чтобы сохранить секрет",
+      "controlSecretSaved": "Секрет сохранён",
+      "controlSecretNotSet": "Секрет не сохранён",
+      "selectorMinGap": "Минимальное время между переключениями (секунды)",
+      "selectorHelp": "Добавьте « selector='<name>' » в строку local-core, чтобы привязать её к группе selector.",
+      "lastSwitch": "Последнее переключение",
+      "lastSwitchNever": "Переключения пока не записаны",
+      "lastSwitchMember": "Обслуживающий участник",
+      "nextSwitch": "Следующее возможное переключение",
+      "nextSwitchNow": "Сейчас"
     },
     "bulkHealthcheck": "Массовая проверка здоровья",
     "bulkHealthcheckDesc": "Проверьте все настроенные прокси по целевому URL, чтобы определить рабочие.",
@@ -11017,6 +11031,16 @@
     "batchDeleteSelected": "Удалить {count} выбранных",
     "batchActivateSelected": "Включить {count} выбранных",
     "testPassed": "✓ ОК",
+    "sweepVerdict": "Последнее сканирование: {cause} ({code}) {age}",
+    "sweepNoData": "Сканирований с запуска не было",
+    "sweepLabel": {
+      "unproven": "цель отклонена",
+      "unclassified": "проверка без вывода",
+      "ok": "обслужено",
+      "fail": "соединение не удалось",
+      "hang": "рукопожатие зависло",
+      "inconclusive": "без вывода"
+    },
     "close": "Закрыть",
     "managePool": "Управление пулом",
     "poolTitle": "Пул прокси и ротация",
@@ -11038,6 +11062,8 @@
     "poolEgressObservation": "Использованных выходов: {exits, plural, one {#} few {#} many {#} other {#}} · использовавших их подключений: {connections, plural, one {#} few {#} many {#} other {#}} · до {max} на одном выходе · за последние {hours} ч",
     "poolEgressObservationEmpty": "За последние {hours} ч трафик не наблюдался",
     "poolEgressObservationHint": "Рассчитано по журналу прокси за выбранный период: уникальные исходящие IP-адреса, обнаруженные у прокси из этого пула, и подключения OmniRoute, которые их использовали. «На одном выходе» означает за весь период, а не одновременно. Блокировка 429 для отдельного IP-адреса приостанавливает только подключения того же семейства провайдеров.",
+    "poolEgressFailuresByExit": "Сбои через {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Сбои без определённого выхода: {count}",
     "poolMemberEgress": "{host}:{port} выходил через {egressIp} · за последние {hours} ч",
     "poolMemberEgressEmpty": "{host}:{port}: за последние {hours} ч трафик не наблюдался",
     "poolMemberEgressHint": "Последний исходящий IP-адрес, наблюдавшийся у этого участника пула за указанный период согласно журналу прокси-сервера. Для участника, у которого за этот период не было трафика, отображается строка об отсутствии трафика.",
@@ -11047,7 +11073,23 @@
     "poolAddMember": "Добавить",
     "poolAddFailed": "Не удалось добавить прокси в пул",
     "poolSelectProxy": "Выберите прокси…",
-    "poolSaveFailed": "Не удалось сохранить назначение пула"
+    "poolSaveFailed": "Не удалось сохранить назначение пула",
+    "poolPreferenceOrder": "Порядок предпочтений",
+    "poolSetAsideReason": "Отложен: {kind}",
+    "poolSetAsideKindProxyUnreachable": "прокси недоступен",
+    "poolSetAsideKindIpQuota429": "ограничение частоты по IP (429)",
+    "poolSetAsideUntil": "Снова в ротации {endsAt}",
+    "poolSetAsideRepeat": "Отложен {count, plural, one {# раз} other {# раз}}",
+    "poolUnknownAddress": "Неизвестный адрес",
+    "poolSinceRestart": "С последнего перезапуска",
+    "poolSignalSetAside": "Отложить",
+    "poolSignalPosition": "Порядок позиций",
+    "poolHealthRankingOff": "Рейтинг здоровья выкл",
+    "transportRate": "{rate}% транспорта",
+    "previousSuccessRate": "Ранее {rate}% успеха",
+    "upstreamRefusals": "{count} отказов апстрима",
+    "connectionTestsCount": "{count} проверок соединения",
+    "notMeasured": "Не измерено"
   },
   "playground": {
     "title": "Title",
@@ -11386,6 +11428,7 @@
       "compressed": "Сжатие",
       "tps": "TPS",
       "duration": "Длительность",
+      "addedWait": "Добавленное ожидание",
       "time": "Время",
       "conversation": "Диалог",
       "ttft": "TTFT"
@@ -11460,6 +11503,7 @@
       "startedAt": "Начато в",
       "endedAt": "Завершено В",
       "duration": "Длительность",
+      "addedWait": "Добавленное ожидание",
       "model": "Модель",
       "provider": "Поставщик",
       "account": "Учетная запись",
@@ -11474,6 +11518,10 @@
       "requestedModel": "Запрашиваемая Модель",
       "requestProtocol": "Протокол Req",
       "cacheSource": "Кэш Источника",
+      "contentProvenance": "Ответ",
+      "contentEmpty": "Пустой ответ",
+      "usageAbsent": "Число токенов не передано",
+      "usageEstimated": "Число токенов оценено",
       "modelPinning": "Закрепление Модели",
       "activeModelPinning": "Активный — модель, выбранная через закрепление сессии",
       "rotated": "Повернуто: {initial} -> {final}",
@@ -11498,7 +11546,13 @@
       "correlationIdValue": "Идентификатор корреляции: {id}",
       "detailedPayloadInfo": "Сначала включите детализированный логгинг, если вы хотите получить четырехступенчатый просмотр полезной нагрузки клиента/поставщика для новых запросов.",
       "copyAll": "Копировать всё",
-      "copiedAll": "Всё скопировано"
+      "copiedAll": "Всё скопировано",
+      "resilienceStoredError": "Обслужено из сохранённой ошибки",
+      "resilienceParked": "Ожидание {ms} перед отправкой",
+      "resilienceRotations": "{count} ротаций аккаунта",
+      "resilienceRetried": "Пустой ход повторён",
+      "resilienceContinued": "Возобновлено в середине потока",
+      "resilienceRecovered": "Восстановлено действием устойчивости"
     }
   },
   "proxyLogger": {
@@ -11537,7 +11591,14 @@
     "noProxyLogs": "Журналов прокси пока нет. Настройте прокси и выполните вызовы API, чтобы увидеть их здесь.",
     "noMatchingLogs": "Нет журналов, соответствующих текущим фильтрам.",
     "tlsFingerprint": "TLS-отпечаток Chrome 124",
-    "colPublicIp": "Публичный IP"
+    "colPublicIp": "Публичный IP",
+    "colUpstream": "Верхний поток",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Корреляция",
+    "colServedBy": "Обслуживается",
+    "filterTraffic": "Трафик",
+    "filterTests": "Тесты",
+    "filterSource": "Источник"
   },
   "endpointOptions": {
     "speech": "Речь",
@@ -12012,6 +12073,10 @@
     "stopDns": "Остановить DNS",
     "toggling": "Переключение…",
     "viewTraffic": "Просмотр трафика",
+    "resetAgent": "Восстановить по умолчанию",
+    "resetAgentConfirm": "Восстановить по умолчанию?",
+    "resetting": "Восстановление…",
+    "resetDone": "DNS по умолчанию для {agent} восстановлен. Чтобы изменение вступило в силу, полностью закройте приложение (не просто сверните) и откройте его снова.",
     "emptyNoProvidersTitle": "Поставщики еще не настроены",
     "emptyNoProvidersBody": "Чтобы использовать AgentBridge, сначала подключите хотя бы одного провайдера. Это будет место назначения, куда направляются запросы IDE.",
     "emptyGoToProviders": "Перейти к Провайдерам",
@@ -12790,7 +12855,13 @@
     "createDahlTokenFailed": "Не удалось создать токен Dahl",
     "providerProxy": "Прокси",
     "providerProxyConfigureHint": "Настроить прокси",
-    "providerProxyTitleConfigured": "Прокси настроен: {host}"
+    "providerProxyTitleConfigured": "Прокси настроен: {host}",
+    "proxySetAside": "Прокси отложен",
+    "inheritConnectionOption": "Без собственного прокси (наследует соединение)",
+    "inheritedProxy": "Наследует соединение: {host}",
+    "inheritedPool": "Наследует пул соединений ({count})",
+    "poolEmptyBlocked": "Пул пуст — запросы завершаются ошибкой (не напрямую)",
+    "directEgress": "Напрямую (без прокси)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14190,12 @@
     "directNative": "Прямой",
     "targetUrl": "Целевой URL",
     "error": "Ошибка",
-    "configuration": "Настройка прокси"
+    "configuration": "Настройка прокси",
+    "upstreamStatus": "Статус верхнего потока",
+    "noResponse": "Нет ответа",
+    "egressIp": "Egress IP",
+    "servedBy": "Обслуживается",
+    "correlationId": "ID корреляции"
   },
   "requestTimeline": {
     "title": "Временная шкала запроса",

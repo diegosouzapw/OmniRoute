@@ -565,11 +565,6 @@
       "count": 3
     }
   },
-  "open-sse/services/tierResolver.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/services/tokenLimitCounter.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1967,7 +1962,7 @@
   },
   "src/sse/handlers/chatHelpers.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 3
+      "count": 2
     }
   },
   "tests/benchmarks/pipeline-accuracy.test.ts": {
@@ -3798,11 +3793,6 @@
   "tests/unit/gamification/leaderboard.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
-    }
-  },
-  "tests/unit/gemini-business-provider.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/unit/gemini-finish-reason-normalization.test.ts": {

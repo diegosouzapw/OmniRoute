@@ -19,6 +19,7 @@ process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES = "true";
 process.env.PROXY_HEALTH_TEST_STAGGER_MS = "0";
 process.env.PROXY_HEALTH_TEST_URL = "http://127.0.0.1:1/probe";
 process.env.PROXY_PASSIVE_WINDOW_MS = "600000";
+process.env.PROXY_HEALTH_PASSIVE_SKIP = "true";
 delete process.env.PROXY_AUTO_REMOVE;
 delete process.env.PROXY_AUTO_DISABLE;
 
@@ -28,6 +29,7 @@ const proxyLogger = await import("../../src/lib/proxyLogger.ts");
 const scheduler = await import("../../src/lib/proxyHealth/scheduler.ts");
 
 test.after(() => {
+  delete process.env.PROXY_HEALTH_PASSIVE_SKIP;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
@@ -153,6 +155,34 @@ test("single-provider success skips the redundant probe", async () => {
     assert.match(summary, /0 tested/);
     assert.match(summary, /passive-skipped \(recent success\)/);
   } finally {
+    await proxiesDb.deleteProxyById(created!.id, { force: true });
+  }
+});
+
+test("flag off probes everything despite attributed production failures", async () => {
+  delete process.env.PROXY_HEALTH_PASSIVE_SKIP;
+  const port = await freePort();
+  const created = await proxiesDb.createProxy({
+    name: "passive-e2e-off",
+    type: "http",
+    host: "127.0.0.1",
+    port,
+  });
+  try {
+    for (let i = 0; i < 3; i++) {
+      proxyLogger.logProxyEvent({
+        status: "error",
+        proxy: { type: "http", host: "127.0.0.1", port },
+        provider: "acme",
+        error: "connect ECONNREFUSED 127.0.0.1",
+      });
+    }
+    proxyLogger.flushProxyLogsSync();
+    const summary = await sweepCapturingSummary();
+    assert.match(summary, /1 tested/);
+    assert.ok(!summary.includes("passive-skipped"), `no passive skip, got: ${summary}`);
+  } finally {
+    process.env.PROXY_HEALTH_PASSIVE_SKIP = "true";
     await proxiesDb.deleteProxyById(created!.id, { force: true });
   }
 });

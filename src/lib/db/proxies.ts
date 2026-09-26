@@ -46,12 +46,14 @@ import {
   clearRotationState,
   resetRotationCursor,
   normalizeRotationStrategy,
+  getScopePoolEgressRows,
   getScopeProxyPool,
   getScopeRotationStrategy,
   resolveProxyForConnectionFromRegistry,
   resolveProxyForScopeFromRegistry,
 } from "./proxies/rotation";
 export {
+  getScopePoolEgressRows,
   getScopeProxyPool,
   getScopeRotationStrategy,
   resolveProxyForConnectionFromRegistry,
@@ -811,6 +813,14 @@ export async function getProxyHealthStats(options?: { hours?: number }) {
          SUM(CASE WHEN l.status = 'success' THEN 1 ELSE 0 END) as success_count,
          SUM(CASE WHEN l.status = 'error' THEN 1 ELSE 0 END) as error_count,
          SUM(CASE WHEN l.status = 'timeout' THEN 1 ELSE 0 END) as timeout_count,
+         SUM(CASE WHEN l.id IS NOT NULL AND l.target_url LIKE '%/connection-test' THEN 1 ELSE 0 END) as connection_tests,
+         SUM(CASE WHEN l.id IS NOT NULL AND l.target_url LIKE '%/connection-test' AND l.status = 'success' THEN 1 ELSE 0 END) as connection_test_success,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) THEN 1 ELSE 0 END) as real_requests,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.upstream_status IS NOT NULL THEN 1 ELSE 0 END) as measured_requests,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND (l.upstream_status IS NOT NULL OR l.status = 'success') THEN 1 ELSE 0 END) as transport_ok,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.status IN ('error', 'timeout') AND l.upstream_status IS NULL THEN 1 ELSE 0 END) as transport_failures,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.upstream_status >= 400 AND l.upstream_status < 500 THEN 1 ELSE 0 END) as upstream_4xx,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.upstream_status >= 500 AND l.upstream_status < 600 THEN 1 ELSE 0 END) as upstream_5xx,
          AVG(CASE WHEN l.latency_ms IS NOT NULL THEN l.latency_ms END) as avg_latency_ms,
          MAX(l.timestamp) as last_seen_at
        FROM proxy_registry p
@@ -830,6 +840,14 @@ export async function getProxyHealthStats(options?: { hours?: number }) {
     const error = Number(row.error_count || 0);
     const timeout = Number(row.timeout_count || 0);
     const successRate = total > 0 ? Math.round((success / total) * 10000) / 100 : null;
+    const realRequests = Number(row.real_requests || 0);
+    const transportOk = Number(row.transport_ok || 0);
+    const transportFailures = Number(row.transport_failures || 0);
+    const measuredRequests = Number(row.measured_requests || 0);
+    const transportRate =
+      !measuredRequests || transportOk + transportFailures === 0
+        ? null
+        : Math.round((transportOk / (transportOk + transportFailures)) * 10000) / 100;
 
     return {
       proxyId: String(row.proxy_id || ""),
@@ -843,6 +861,16 @@ export async function getProxyHealthStats(options?: { hours?: number }) {
       errorCount: error,
       timeoutCount: timeout,
       successRate,
+      connectionTests: Number(row.connection_tests || 0),
+      connectionTestSuccess: Number(row.connection_test_success || 0),
+      realRequests,
+      measuredRequests,
+      measured: measuredRequests > 0,
+      transportOk,
+      transportFailures,
+      transportRate,
+      upstream4xx: Number(row.upstream_4xx || 0),
+      upstream5xx: Number(row.upstream_5xx || 0),
       avgLatencyMs:
         row.avg_latency_ms === null || row.avg_latency_ms === undefined
           ? null

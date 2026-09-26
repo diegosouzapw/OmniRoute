@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Hlavní přepínač pro aliasy brány no-think/&lt;provider&gt;/&lt;model&gt;. Zapnuto (výchozí): /v1/models uvádí variantu bez přemýšlení pro každý způsobilý model Claude podporující přemýšlení a id no-think/ odeslané v požadavku se převede zpět na skutečný model s potlačeným uvažováním. Vypnuto: žádné varianty nejsou uváděny a id no-think/ se považuje za jakékoli jiné neznámé id modelu. Dokud je tato možnost zapnutá, nadále platí povolení či zakázání pro jednotlivé modely prostřednictvím ModelSpec.noThinkingAlias.",
   "featureFlagChatVirtualLanesEnabledDescription": "Povolte adaptivní virtuální vstupní pruhy pro každého tenanta při odesílání poskytovatelům (#9654): špička jednoho tenanta už nezpůsobí 503 u jiného. Proměnná prostředí OMNIROUTE_CHAT_VIRTUAL_LANES má přednost před tímto nastavením na řídicím panelu; změny se projeví po restartu serveru.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Stránky poskytovatelů na řídicím panelu: zobrazí odznak Zdarma pouze na základě příznaků, které poskytovatel podporuje — přestane používat heuristiku zobrazovaného názvu, nebooleovská pole free a přípony :free u registrovaných poskytovatelů bez zdokumentované bezplatné úrovně. Vypnutí zachová původní pravidlo pro odznak.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Fondy proxy serverů a rotace opencode pro jednotlivé účty dočasně přestanou znovu nabízet proxy server, který právě selhal (odmítnutá sonda TCP nebo odpověď 429 přijatá přes tento server), a to na dobu platnou pro daný proces, která se při každém opakování zdvojnásobí až do stanoveného maxima. Stav proxy serveru se nezapisuje; pokud jsou odloženi všichni kandidáti, volba se nemění. Ve výchozím nastavení vypnuto: pořadí výběru přesně odpovídá prosté rotaci.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Fondy proxy serverů a rotace opencode pro jednotlivé účty dočasně přestanou znovu nabízet proxy server, který právě selhal (odmítnutá sonda TCP nebo odpověď 429 přijatá přes tento server), a to na dobu platnou pro daný proces, která se při každém opakování zdvojnásobí až do stanoveného maxima. Stav proxy serveru se nezapisuje; pokud jsou odloženi všichni kandidáti, volba se nemění. Ve výchozím nastavení zapnuto; `false` obnoví prostý výběr.",
   "featureFlagProxyPoolEgressObservationDescription": "Zobrazit pod fondem proxy serverů na řídicím panelu, kolik pozorovaných odchozích IP adres obsluhovalo jeho členy za posledních 24 h, kolik připojení je použilo a jaký byl nejvyšší počet připojení zaznamenaný za jednou IP adresou. Pouze pro čtení, vypočítáváno z protokolu proxy serveru a nikdy nepoužíváno ke směrování. Ve výchozím nastavení vypnuto: editor fondu zůstává beze změny a trasa pozorování vrací null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Při kontrole stavu proxy serveru umožnit, aby sonda odmítnutá cílem (401/403/429: proxy server požadavek předal, ale cíl odmítl tuto odchozí IP adresu) vynulovala řadu po sobě jdoucích selhání proxy serveru stejně jako úspěšně obsloužená sonda. Ve výchozím nastavení vypnuto: odmítnutí zůstává neutrální a řadu zachovává. Odpověď 5xx zůstává v obou případech neprůkazná a odmítnutí nikdy neodebere, nezakáže ani znovu neaktivuje proxy server.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Povolit automatickému čištění odstraňovat úlohy Batch API v koncovém stavu (dokončené/neúspěšné/zrušené/expirované), které jsou starší než OMNIROUTE_BATCH_RETENTION_DAYS, spolu s jejich kontrolními body pro jednotlivé řádky a mazat obsah BLOB nahraných souborů po uplynutí jejich vlastního expires_at. Ve výchozím nastavení vypnuto: každá stávající instalace uchovává tato data přesně jako dříve, dokud správce tuto funkci nepovolí. Trasa DELETE /api/v1/batches/delete-completed spouštěná správcem zůstává v obou případech beze změny – jde o samostatný, nepodmíněný veřejný kontrakt API.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Zakázat stálost relace",
     "sessionStickinessEnabled": "Stálost relace zapnuta",
     "sessionStickinessDisabled": "Stálost relace vypnuta",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Předvolba Kimi Coding",
     "kimiPresetDescription": "Kimi K3 jako primární model (Moonshot API) s automatickým záložním řešením na vaše připojení Kimi Code (kimi-coding, kimi-web), pokud jsou nakonfigurována.",
     "kimiPresetCta": "Přidat předvolbu",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Tím se zachytí aktuálně připojení poskytovatelé/modely, které odpovídají této šabloně, do upravitelné kombinace.",
     "duplicateAutoComboFailedPrefix": "Duplikace automatické kombinace selhala:",
     "duplicateAutoComboUnknownError": "Neznámá chyba",
-    "duplicateAutoComboTitle": "Vytvořte statickou kombinaci z {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Vytvořte statickou kombinaci z {name}"
   },
   "costs": {
     "title": "Náklady",
@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokální koncový bod proxy jádra je neplatný; uzly SS/VMess/Trojan/VLESS byly ignorovány.",
         "NEEDS_CORE_NOT_CONFIGURED": "Tento odběr obsahuje uzly, které vyžadují lokální proxy jádro (SS/VMess/Trojan/VLESS); nebudou směrovány, dokud nenakonfigurujete SOCKS5 koncový bod lokálního jádra.",
-        "NO_USABLE_NODES": "Odběr neposkytl žádné použitelné uzly (http/https/socks5 nebo uzly s koncovým bodem lokálního jádra)."
+        "NO_USABLE_NODES": "Odběr neposkytl žádné použitelné uzly (http/https/socks5 nebo uzly s koncovým bodem lokálního jádra).",
+        "SELECTOR_SWITCH_FAILED": "Řídicí volání proxy-core selhalo; předchozí trasa zůstává aktivní. Zkontrolujte řídicí URL a tajný klíč a obnovte."
       },
       "description": "Vložte odkaz na předplatné proxy. Po povolení je provoz směrován přes fond proxy v globálním režimu nebo režimu pravidel (zadaný poskytovatel). Uzly předplatného se automaticky synchronizují do fondu proxy a znovu používají existující mechanismy dotazování, kontroly stavu a ochrany proti úniku.",
       "addSubscription": "Přidat předplatné",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Směrování poskytovatele",
       "refresh": "Obnovit",
       "refreshInterval": "Interval Obnovování",
-      "ruleModeDescription": "Popis režimu pravidel"
+      "ruleModeDescription": "Popis režimu pravidel",
+      "controlUrl": "URL řídicího API",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Tajný klíč řídicího API",
+      "controlSecretPlaceholder": "Ponechte prázdné pro zachování uloženého klíče",
+      "controlSecretSaved": "Klíč uložen",
+      "controlSecretNotSet": "Žádný uložený klíč",
+      "selectorMinGap": "Minimální čas mezi přepnutími (sekundy)",
+      "selectorHelp": "Přidejte „ selector='<name>' “ na řádek local-core pro navázání na skupinu selector.",
+      "lastSwitch": "Poslední přepnutí",
+      "lastSwitchNever": "Zatím žádné zaznamenané přepnutí",
+      "lastSwitchMember": "Obsluhující člen",
+      "nextSwitch": "Další možné přepnutí",
+      "nextSwitchNow": "Nyní"
     },
     "bulkHealthcheck": "Hromadná kontrola stavu",
     "bulkHealthcheckDesc": "Otestovat všechny nakonfigurované proxy servery vůči cílové URL a zjistit, které fungují.",
@@ -11017,6 +11031,16 @@
     "batchDeleteSelected": "Smazat {count} vybraných",
     "batchActivateSelected": "Povolit {count} vybraných",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Poslední kontrola: {cause} ({code}) {age}",
+    "sweepNoData": "Od spuštění zatím žádná kontrola",
+    "sweepLabel": {
+      "unproven": "cíl odmítnut",
+      "unclassified": "kontrola neprůkazná",
+      "ok": "obslouženo",
+      "fail": "připojení selhalo",
+      "hang": "handshake se zasekl",
+      "inconclusive": "neprůkazné"
+    },
     "close": "Zavřít",
     "managePool": "Spravovat pool",
     "poolTitle": "Proxy pool a rotace",
@@ -11038,6 +11062,8 @@
     "poolEgressObservation": "Použito {exits, plural, one {# výstup} other {# výstupů}} prostřednictvím {connections, plural, one {# připojení} other {# připojení}} · až {max} na jednom výstupu · za posledních {hours} h",
     "poolEgressObservationEmpty": "Za posledních {hours} h nebyl zaznamenán žádný provoz",
     "poolEgressObservationHint": "Počítáno z protokolu proxy za dané období: jedinečné odchozí IP adresy zaznamenané u členů tohoto fondu a připojení OmniRoute, která je použila. „Na jednom výstupu“ znamená za celé období, nikoli současně. Blokace 429 pro jednotlivé IP adresy pozastaví pouze připojení stejné rodiny poskytovatelů.",
+    "poolEgressFailuresByExit": "Selhání přes {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Selhání bez přiřazeného výstupu: {count}",
     "poolMemberEgress": "{host}:{port} odchozí přes {egressIp} · posledních {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: za posledních {hours} h nebyl zaznamenán žádný provoz",
     "poolMemberEgressHint": "Poslední odchozí IP adresa zaznamenaná přes tohoto člena fondu během daného období, načtená z protokolu proxy. U člena bez provozu v tomto období se zobrazí řádek informující o nulovém provozu.",
@@ -11047,7 +11073,23 @@
     "poolAddMember": "Přidat",
     "poolAddFailed": "Nepodařilo se přidat proxy do poolu",
     "poolSelectProxy": "Vybrat proxy…",
-    "poolSaveFailed": "Nepodařilo se uložit přiřazení poolu"
+    "poolSaveFailed": "Nepodařilo se uložit přiřazení poolu",
+    "poolPreferenceOrder": "Pořadí preferencí",
+    "poolSetAsideReason": "Odloženo: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy je nedostupná",
+    "poolSetAsideKindIpQuota429": "omezení rychlosti podle IP (429)",
+    "poolSetAsideUntil": "Zpět v rotaci {endsAt}",
+    "poolSetAsideRepeat": "Odloženo {count, plural, one {#krát} other {#krát}}",
+    "poolUnknownAddress": "Neznámá adresa",
+    "poolSinceRestart": "Od posledního restartu",
+    "poolSignalSetAside": "Odložit",
+    "poolSignalPosition": "Pořadí pozic",
+    "poolHealthRankingOff": "Hodnocení zdraví vypnuto",
+    "transportRate": "{rate} % přenosu",
+    "previousSuccessRate": "Dříve {rate} % úspěšnost",
+    "upstreamRefusals": "{count} odmítnutí upstream",
+    "connectionTestsCount": "{count} testů připojení",
+    "notMeasured": "Neměřeno"
   },
   "playground": {
     "title": "Title",
@@ -11386,6 +11428,7 @@
       "compressed": "Komprese",
       "tps": "TPS",
       "duration": "Doba trvání",
+      "addedWait": "Přidané čekání",
       "time": "Čas",
       "conversation": "Konverzace",
       "ttft": "TTFT"
@@ -11460,6 +11503,7 @@
       "startedAt": "Začalo v",
       "endedAt": "Skončilo v",
       "duration": "Doba trvání",
+      "addedWait": "Přidané čekání",
       "model": "Model",
       "provider": "Poskytovatel",
       "account": "Účet",
@@ -11474,6 +11518,10 @@
       "requestedModel": "Požadovaný model",
       "requestProtocol": "Protokol požadavku",
       "cacheSource": "Cache Zdroj",
+      "contentProvenance": "Odpověď",
+      "contentEmpty": "Prázdná odpověď",
+      "usageAbsent": "Počet tokenů nebyl nahlášen",
+      "usageEstimated": "Počet tokenů je odhadnutý",
       "modelPinning": "Zamykání Modelu",
       "activeModelPinning": "Aktivní — model vybraný pomocí připnutí relace",
       "rotated": "Otočeno: {initial} -> {final}",
@@ -11498,7 +11546,13 @@
       "correlationIdValue": "ID korelace: {id}",
       "detailedPayloadInfo": "Nejprve povolte podrobné protokolování, pokud chcete čtyřstupňový pohled na payload klienta/poskytovatele pro nové požadavky.",
       "copyAll": "Kopírovat vše",
-      "copiedAll": "Vše zkopírováno"
+      "copiedAll": "Vše zkopírováno",
+      "resilienceStoredError": "Obslouženo z uložené chyby",
+      "resilienceParked": "Odloženo o {ms} před odesláním",
+      "resilienceRotations": "{count} rotací účtů",
+      "resilienceRetried": "Prázdný tah zopakován",
+      "resilienceContinued": "Obnoveno uprostřed streamu",
+      "resilienceRecovered": "Obnoveno akcí odolnosti"
     }
   },
   "proxyLogger": {
@@ -11537,7 +11591,14 @@
     "noProxyLogs": "Zatím nejsou k dispozici žádné protokoly proxy. Nakonfigurujte proxy a proveďte volání API, aby se zde zobrazily.",
     "noMatchingLogs": "Aktuálním filtrům neodpovídají žádné protokoly.",
     "tlsFingerprint": "Otisk TLS pro Chrome 124",
-    "colPublicIp": "Veřejná IP"
+    "colPublicIp": "Veřejná IP",
+    "colUpstream": "Nahoře",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korelace",
+    "colServedBy": "Poskytováno",
+    "filterTraffic": "Provoz",
+    "filterTests": "Testy",
+    "filterSource": "Zdroj"
   },
   "endpointOptions": {
     "speech": "Řeč",
@@ -12012,6 +12073,10 @@
     "stopDns": "Zastavit DNS",
     "toggling": "Přepínání…",
     "viewTraffic": "Zobrazit provoz",
+    "resetAgent": "Obnovit výchozí",
+    "resetAgentConfirm": "Obnovit výchozí?",
+    "resetting": "Obnovování…",
+    "resetDone": "Výchozí DNS pro {agent} bylo obnoveno. Aby se změna projevila, aplikaci úplně ukončete (nejen minimalizujte) a znovu ji otevřete.",
     "emptyNoProvidersTitle": "Zatím nejsou nakonfigurováni žádní poskytovatelé",
     "emptyNoProvidersBody": "Chcete-li použít AgentBridge, nejprve připojte alespoň jednoho poskytovatele. Bude to cíl, kam budou směrovány požadavky z IDE.",
     "emptyGoToProviders": "Přejít na Poskytovatele",
@@ -12790,7 +12855,13 @@
     "createDahlTokenFailed": "Nepodařilo se vytvořit token Dahl",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Nastavit proxy",
-    "providerProxyTitleConfigured": "Proxy nakonfigurován: {host}"
+    "providerProxyTitleConfigured": "Proxy nakonfigurován: {host}",
+    "proxySetAside": "Proxy odložena",
+    "inheritConnectionOption": "Bez vlastní proxy (dědí připojení)",
+    "inheritedProxy": "Dědí připojení: {host}",
+    "inheritedPool": "Dědí fond připojení ({count})",
+    "poolEmptyBlocked": "Fond prázdný — požadavky selžou (ne přímo)",
+    "directEgress": "Přímo (bez proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14190,12 @@
     "directNative": "Přímý",
     "targetUrl": "Cílová URL",
     "error": "Chyba",
-    "configuration": "Konfigurace proxy"
+    "configuration": "Konfigurace proxy",
+    "upstreamStatus": "Stav nahoře",
+    "noResponse": "Žádná odpověď",
+    "egressIp": "Egress IP",
+    "servedBy": "Poskytováno",
+    "correlationId": "ID korelace"
   },
   "requestTimeline": {
     "title": "Časová osa žádosti",

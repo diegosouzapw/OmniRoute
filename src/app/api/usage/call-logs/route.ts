@@ -152,6 +152,9 @@ export function buildCallLogListRows({
       connectionId: detail.connectionId,
       duration: Math.max(0, now - detail.startedAt),
       tokens: detail.tokens || { in: 0, out: 0 },
+      // In-memory details carry no added wait yet — null like "no wait".
+      addedWaitMs: null,
+      addedWaitCause: null,
       cacheSource: null,
       sourceFormat: null,
       targetFormat: null,
@@ -194,6 +197,9 @@ export function buildCallLogListRows({
       connectionId: detail.connectionId,
       duration,
       tokens: detail.tokens || { in: 0, out: 0 },
+      // In-memory details carry no added wait yet — null like "no wait".
+      addedWaitMs: null,
+      addedWaitCause: null,
       cacheSource: null,
       sourceFormat: null,
       targetFormat: null,

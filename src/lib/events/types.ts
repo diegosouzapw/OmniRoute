@@ -16,6 +16,8 @@ export type DashboardEventName =
   | "combo.target.failed"
   | "combo.target.succeeded"
   | "credential.health.changed"
+  | "proxy.set_aside"
+  | "proxy.pool.exhausted"
   | "compression.completed"
   | "compression.step"
   | "agent.task.updated";
@@ -91,6 +93,22 @@ export interface CredentialHealthChangedPayload {
   timestamp: number;
 }
 
+export interface ProxySetAsidePayload {
+  reason: "ip_quota_429" | "proxy_unreachable" | "transport";
+  setAsideUntil: string;
+  durationMs: number;
+  egressKeyMasked: string;
+  timestamp: number;
+}
+
+export interface ProxyPoolExhaustedPayload {
+  scope: string;
+  poolSize: number;
+  setAsideCount: number;
+  fallback: "fail-closed-serve";
+  timestamp: number;
+}
+
 export interface CompressionCompletedPayload {
   requestId: string;
   comboId: string | null;
@@ -162,6 +180,8 @@ export interface DashboardEventMap {
   "combo.target.failed": ComboTargetFailedPayload;
   "combo.target.succeeded": ComboTargetSucceededPayload;
   "credential.health.changed": CredentialHealthChangedPayload;
+  "proxy.set_aside": ProxySetAsidePayload;
+  "proxy.pool.exhausted": ProxyPoolExhaustedPayload;
   "compression.completed": CompressionCompletedPayload;
   "compression.step": CompressionStepPayload;
   "agent.task.updated": AgentTaskUpdatedPayload;
@@ -176,13 +196,15 @@ export type DashboardEventListener<E extends DashboardEventName> = (
 // ── Channel Definitions ───────────────────────────────────────────────────
 
 /** Available subscription channels */
-export type DashboardChannel = "requests" | "combo" | "credentials" | "compression" | "agents";
+export type DashboardChannel =
+  "requests" | "combo" | "credentials" | "proxy" | "compression" | "agents";
 
 /** Map channels to their events */
 export const CHANNEL_EVENTS: Record<DashboardChannel, DashboardEventName[]> = {
   requests: ["request.started", "request.streaming", "request.completed", "request.failed"],
   combo: ["combo.target.attempt", "combo.target.failed", "combo.target.succeeded"],
   credentials: ["credential.health.changed"],
+  proxy: ["proxy.set_aside", "proxy.pool.exhausted"],
   compression: ["compression.completed", "compression.step"],
   agents: ["agent.task.updated"],
 };

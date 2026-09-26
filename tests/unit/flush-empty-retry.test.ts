@@ -191,6 +191,32 @@ test("bounded read outcome tells a read failure apart from an over-cap body", as
   assert.deepEqual(ok, { kind: "text", text: body });
 });
 
+test("bounded read returns skipped without awaiting a tee clone cancel", async () => {
+  const BUDGET_MS = 2000;
+  const neverClosing = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode("x".repeat(FLUSH_EMPTY_RETRY_MAX_BYTES + 1)));
+    },
+  });
+  let res: Response | undefined;
+  const start = Date.now();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    res = new Response(neverClosing, { status: 200 });
+    const outcome = await Promise.race([
+      readBoundedResponseOutcome(res, FLUSH_EMPTY_RETRY_MAX_BYTES),
+      new Promise<never>((_, rej) => {
+        timer = setTimeout(() => rej(new Error("bounded read timed out")), BUDGET_MS);
+      }),
+    ]);
+    assert.equal(outcome.kind, "skipped");
+    assert.ok(Date.now() - start < BUDGET_MS, `expected bounded skipped well under ${BUDGET_MS}ms`);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+    await res?.body?.cancel().catch(() => undefined);
+  }
+});
+
 test("buffered turn verdict: a dropped stream retries unless the client went away", () => {
   const dropped = { kind: "error" } as const;
   const retry = judgeBufferedTurn(dropped, FORMATS.OPENAI_RESPONSES, FORMATS.OPENAI, false);

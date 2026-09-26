@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Hoofdschakelaar voor de no-think/&lt;provider&gt;/&lt;model&gt;-gatewayaliassen. Aan (standaard): /v1/models vermeldt een variant zonder denkproces voor elk geschikt Claude-model met denkfunctionaliteit, en een no-think/-id dat met een verzoek wordt meegestuurd, wordt omgezet naar het echte model waarbij redeneren wordt onderdrukt. Uit: er worden geen varianten vermeld en een no-think/-id wordt behandeld als elke andere onbekende model-id. De opt-in/opt-out per model via ModelSpec.noThinkingAlias blijft van toepassing zolang dit is ingeschakeld.",
   "featureFlagChatVirtualLanesEnabledDescription": "Schakel adaptieve virtuele toegangsbanen per tenant in voor provider-dispatch (#9654): een piek van de ene tenant geeft de andere niet langer een 503. De omgevingsvariabele OMNIROUTE_CHAT_VIRTUAL_LANES wint het van deze dashboard-instelling; wijzigingen gaan in bij een serverherstart.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Providerpagina's in het dashboard: toon de badge Gratis alleen bij signalen die de provider ondersteunt — de heuristiek voor weergavenamen, niet-booleaanse gratisvelden en :free-achtervoegsels bij geregistreerde providers zonder een gedocumenteerde gratis laag worden niet meer gebruikt. Uit behoudt de historische badgeregel.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Proxypools en de rotatie per account van opencode zorgen ervoor dat een proxy die zojuist is mislukt (geweigerde TCP-probe of een 429 die via de proxy is ontvangen) gedurende een periode per proces niet opnieuw wordt aangeboden. Deze periode verdubbelt bij elke herhaling, tot een maximum. Er wordt geen proxystatus opgeslagen; wanneer elke kandidaat terzijde is geschoven, blijft de keuze ongewijzigd. Standaard uitgeschakeld: de selectievolgorde is exact gelijk aan de gewone rotatie.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proxypools en de rotatie per account van opencode zorgen ervoor dat een proxy die zojuist is mislukt (geweigerde TCP-probe of een 429 die via de proxy is ontvangen) gedurende een periode per proces niet opnieuw wordt aangeboden. Deze periode verdubbelt bij elke herhaling, tot een maximum. Er wordt geen proxystatus opgeslagen; wanneer elke kandidaat terzijde is geschoven, blijft de keuze ongewijzigd. Standaard ingeschakeld; `false` herstelt de gewone selectie.",
   "featureFlagProxyPoolEgressObservationDescription": "Toon onder een proxypool in het dashboard hoeveel waargenomen uitgaande IP-adressen de leden ervan in de afgelopen 24 uur hebben gebruikt, hoeveel verbindingen daarvan gebruikmaakten en hoeveel verbindingen maximaal achter één IP zijn waargenomen. Alleen-lezen, berekend op basis van het proxylogboek en nooit gebruikt voor routering. Standaard uitgeschakeld: de pooleditor blijft ongewijzigd en de observatieroute antwoordt met null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Laat bij de proxygezondheidscontrole een probe die door het doel is geweigerd (401/403/429: de proxy heeft doorgestuurd, maar de bestemming heeft dit uitgaande IP-adres geweigerd) de reeks opeenvolgende fouten van de proxy resetten, net als een geslaagde probe. Standaard uitgeschakeld: een weigering blijft neutraal en behoudt de reeks. Een 5xx blijft in beide gevallen onbeslist, en een weigering verwijdert, deactiveert of heractiveert een proxy nooit.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Laat de automatische opschoonactie definitieve (voltooide/mislukte/geannuleerde/verlopen) Batch API-taken verwijderen die ouder zijn dan OMNIROUTE_BATCH_RETENTION_DAYS, samen met hun controlepunten per regel, en laat de BLOB-inhoud wissen van geüploade bestanden waarvan de eigen expires_at is verstreken. Standaard uitgeschakeld: elke bestaande installatie bewaart deze gegevens precies zoals voorheen, totdat een beheerder dit inschakelt. De door de beheerder geactiveerde route DELETE /api/v1/batches/delete-completed wordt in beide gevallen niet beïnvloed; dit is een afzonderlijk, onvoorwaardelijk openbaar API-contract.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "Sessievastheid uitschakelen",
     "sessionStickinessEnabled": "Sessievastheid aan",
     "sessionStickinessDisabled": "Sessievastheid uit",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding-preset",
     "kimiPresetDescription": "Kimi K3 als het primaire model (Moonshot API), met automatische terugval naar uw Kimi Code-verbindingen (kimi-coding, kimi-web) indien geconfigureerd.",
     "kimiPresetCta": "Preset toevoegen",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "Dit maakt een momentopname van de momenteel verbonden providers/modellen die overeenkomen met dit sjabloon in een bewerkbare combinatie.",
     "duplicateAutoComboFailedPrefix": "Automatische combinatie dupliceren mislukt:",
     "duplicateAutoComboUnknownError": "Onbekende fout",
-    "duplicateAutoComboTitle": "Maak een statische combinatie van {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "Maak een statische combinatie van {name}"
   },
   "costs": {
     "title": "Kosten",
@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokaal proxy-core-eindpunt is ongeldig; SS/VMess/Trojan/VLESS-nodes zijn genegeerd.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dit abonnement bevat nodes die een lokale proxy-core vereisen (SS/VMess/Trojan/VLESS); ze worden niet gerouteerd totdat u het SOCKS5-eindpunt van de lokale core configureert.",
-        "NO_USABLE_NODES": "Abonnement heeft geen bruikbare nodes opgeleverd (http/https/socks5 of nodes met een lokaal core-eindpunt)."
+        "NO_USABLE_NODES": "Abonnement heeft geen bruikbare nodes opgeleverd (http/https/socks5 of nodes met een lokaal core-eindpunt).",
+        "SELECTOR_SWITCH_FAILED": "De besturingsaanroep van de proxy-core is mislukt; de vorige route blijft actief. Controleer de besturings-URL en het geheim en vernieuw daarna."
       },
       "description": "Plak uw proxy-abonnementslink. Eenmaal ingeschakeld, wordt het verkeer door de proxypool gerouteerd in de globale of regelmodus (gespecificeerde provider). Abonnementknooppunten worden automatisch gesynchroniseerd met de proxypool en hergebruiken bestaande polling-, statuscheck- en anti-lekmechanismen.",
       "addSubscription": "Abonnement toevoegen",
@@ -6939,7 +6940,20 @@
       "providerRouting": "Providerroutering",
       "refresh": "Vernieuwen",
       "refreshInterval": "Vernieuwingsinterval",
-      "ruleModeDescription": "Regelmodus Beschrijving"
+      "ruleModeDescription": "Regelmodus Beschrijving",
+      "controlUrl": "Besturings-API-URL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Besturings-API-geheim",
+      "controlSecretPlaceholder": "Leeg laten om het opgeslagen geheim te behouden",
+      "controlSecretSaved": "Geheim opgeslagen",
+      "controlSecretNotSet": "Geen geheim opgeslagen",
+      "selectorMinGap": "Minimale tijd tussen wisselingen (seconden)",
+      "selectorHelp": "Voeg « selector='<name>' » toe aan een local-core-regel om deze aan een selectorgroep te koppelen.",
+      "lastSwitch": "Laatste wisseling",
+      "lastSwitchNever": "Nog geen wisseling vastgelegd",
+      "lastSwitchMember": "Bedienend lid",
+      "nextSwitch": "Volgende mogelijke wisseling",
+      "nextSwitchNow": "Nu"
     },
     "bulkHealthcheck": "Bulkstatuscontrole",
     "bulkHealthcheckDesc": "Test alle geconfigureerde proxy's met een doel-URL om te bepalen welke werken.",
@@ -11017,6 +11031,16 @@
     "batchDeleteSelected": "{count} geselecteerde verwijderen",
     "batchActivateSelected": "{count} geselecteerde inschakelen",
     "testPassed": "✓ OK",
+    "sweepVerdict": "Laatste scan: {cause} ({code}) {age}",
+    "sweepNoData": "Nog geen scan sinds opstart",
+    "sweepLabel": {
+      "unproven": "doel geweigerd",
+      "unclassified": "controle zonder uitsluitsel",
+      "ok": "bediend",
+      "fail": "verbinding mislukt",
+      "hang": "handshake vastgelopen",
+      "inconclusive": "zonder uitsluitsel"
+    },
     "close": "Sluiten",
     "managePool": "Pool beheren",
     "poolTitle": "Proxypool & rotatie",
@@ -11038,6 +11062,8 @@
     "poolEgressObservation": "{exits, plural, one {# uitgang} other {# uitgangen}} gebruikt door {connections, plural, one {# verbinding} other {# verbindingen}} · maximaal {max} op één uitgang · laatste {hours} u",
     "poolEgressObservationEmpty": "Geen verkeer waargenomen in de afgelopen {hours} u",
     "poolEgressObservationHint": "Geteld op basis van het proxylogboek binnen dit tijdsvenster: afzonderlijke uitgaande IP-adressen die zijn waargenomen voor de leden van deze pool, en de OmniRoute-verbindingen die deze hebben gebruikt. ‘Op één uitgang’ heeft betrekking op het tijdsvenster, niet op hetzelfde moment. De 429-blokkering per IP pauzeert alleen verbindingen van dezelfde providerfamilie.",
+    "poolEgressFailuresByExit": "Fouten via {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Fouten zonder toegewezen uitgang: {count}",
     "poolMemberEgress": "{host}:{port} verliet via {egressIp} · afgelopen {hours} u",
     "poolMemberEgressEmpty": "{host}:{port}: geen verkeer waargenomen in de afgelopen {hours} u",
     "poolMemberEgressHint": "Het laatste uitgaande IP-adres dat binnen dit tijdsvenster via dit poollid is waargenomen, afgelezen uit het proxylogboek. Voor een lid zonder verkeer binnen het tijdsvenster wordt de regel voor geen verkeer weergegeven.",
@@ -11047,7 +11073,23 @@
     "poolAddMember": "Toevoegen",
     "poolAddFailed": "Kan de proxy niet aan de pool toevoegen",
     "poolSelectProxy": "Selecteer een proxy…",
-    "poolSaveFailed": "Kan pooltoewijzing niet opslaan"
+    "poolSaveFailed": "Kan pooltoewijzing niet opslaan",
+    "poolPreferenceOrder": "Voorkeursvolgorde",
+    "poolSetAsideReason": "Terzijde gesteld: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy onbereikbaar",
+    "poolSetAsideKindIpQuota429": "IP-snelheidslimiet (429)",
+    "poolSetAsideUntil": "Terug in rotatie {endsAt}",
+    "poolSetAsideRepeat": "Terzijde gesteld {count, plural, one {# keer} other {# keer}}",
+    "poolUnknownAddress": "Onbekend adres",
+    "poolSinceRestart": "Sinds de laatste herstart",
+    "poolSignalSetAside": "Terzijde stellen",
+    "poolSignalPosition": "Positievolgorde",
+    "poolHealthRankingOff": "Gezondheidsrangschikking uit",
+    "transportRate": "{rate} % transport",
+    "previousSuccessRate": "Eerder {rate} % succes",
+    "upstreamRefusals": "{count} upstream-weigeringen",
+    "connectionTestsCount": "{count} verbindingstests",
+    "notMeasured": "Niet gemeten"
   },
   "playground": {
     "title": "Title",
@@ -11386,6 +11428,7 @@
       "compressed": "Compressie",
       "tps": "TPS",
       "duration": "Duur",
+      "addedWait": "Extra wachttijd",
       "time": "Tijd",
       "conversation": "Gesprek",
       "ttft": "TTFT"
@@ -11460,6 +11503,7 @@
       "startedAt": "Begon Op",
       "endedAt": "Eindigde Op",
       "duration": "Duur",
+      "addedWait": "Extra wachttijd",
       "model": "Model",
       "provider": "Aanbieder",
       "account": "Account",
@@ -11474,6 +11518,10 @@
       "requestedModel": "Aangevraagd Model",
       "requestProtocol": "Verzoekprotocol",
       "cacheSource": "Cachebron",
+      "contentProvenance": "Antwoord",
+      "contentEmpty": "Leeg antwoord",
+      "usageAbsent": "Aantal tokens niet gerapporteerd",
+      "usageEstimated": "Aantal tokens geschat",
       "modelPinning": "Model vastzetten",
       "activeModelPinning": "Actief — model geselecteerd via sessiepinnen",
       "rotated": "Geroteerd: {initial} -> {final}",
@@ -11498,7 +11546,13 @@
       "correlationIdValue": "Correlatie-ID: {id}",
       "detailedPayloadInfo": "Schakel eerst gedetailleerde logging in als je de vier-fasen client/provider payloadweergave voor nieuwe verzoeken wilt.",
       "copyAll": "Alles kopiëren",
-      "copiedAll": "Alles gekopieerd"
+      "copiedAll": "Alles gekopieerd",
+      "resilienceStoredError": "Bediend vanuit opgeslagen fout",
+      "resilienceParked": "{ms} geparkeerd vóór verzending",
+      "resilienceRotations": "{count} accountrotaties",
+      "resilienceRetried": "Lege beurt opnieuw geprobeerd",
+      "resilienceContinued": "Midden in stream hervat",
+      "resilienceRecovered": "Hersteld door een veerkrachtactie"
     }
   },
   "proxyLogger": {
@@ -11537,7 +11591,14 @@
     "noProxyLogs": "Nog geen proxylogboeken. Configureer proxy's en voer API-aanroepen uit om ze hier te zien.",
     "noMatchingLogs": "Geen logboeken komen overeen met de huidige filters.",
     "tlsFingerprint": "TLS-vingerafdruk van Chrome 124",
-    "colPublicIp": "Openbaar IP-adres"
+    "colPublicIp": "Openbaar IP-adres",
+    "colUpstream": "Stroomopwaarts",
+    "colEgress": "Uittrede IP",
+    "colCorrelation": "Correlatie",
+    "colServedBy": "Gediend door",
+    "filterTraffic": "Verkeer",
+    "filterTests": "Tests",
+    "filterSource": "Bron"
   },
   "endpointOptions": {
     "speech": "Spraak",
@@ -12012,6 +12073,10 @@
     "stopDns": "DNS stoppen",
     "toggling": "Schakelen…",
     "viewTraffic": "Verkeer bekijken",
+    "resetAgent": "Standaard herstellen",
+    "resetAgentConfirm": "Standaard herstellen?",
+    "resetting": "Herstellen…",
+    "resetDone": "Standaard-DNS hersteld voor {agent}. Sluit de app volledig af (niet alleen minimaliseren) en open hem opnieuw om de wijziging door te voeren.",
     "emptyNoProvidersTitle": "Nog geen providers geconfigureerd",
     "emptyNoProvidersBody": "Verbind eerst ten minste één provider om AgentBridge te gebruiken. Dit is de bestemming waarnaar IDE-verzoeken worden gerouteerd.",
     "emptyGoToProviders": "Ga naar Providers",
@@ -12790,7 +12855,13 @@
     "createDahlTokenFailed": "Mislukt om Dahl-token te maken",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Configureer proxy",
-    "providerProxyTitleConfigured": "Proxy geconfigureerd: {host}"
+    "providerProxyTitleConfigured": "Proxy geconfigureerd: {host}",
+    "proxySetAside": "Proxy terzijde gesteld",
+    "inheritConnectionOption": "Geen eigen proxy (erft verbinding)",
+    "inheritedProxy": "Erft verbinding: {host}",
+    "inheritedPool": "Erft verbindingspool ({count})",
+    "poolEmptyBlocked": "Pool leeg — verzoeken mislukken (niet direct)",
+    "directEgress": "Direct (geen proxy)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14190,12 @@
     "directNative": "Direct",
     "targetUrl": "Doel-URL",
     "error": "Fout",
-    "configuration": "Proxyconfiguratie"
+    "configuration": "Proxyconfiguratie",
+    "upstreamStatus": "Stroomopwaartse status",
+    "noResponse": "Geen reactie",
+    "egressIp": "Uittrede IP",
+    "servedBy": "Gediend door",
+    "correlationId": "Correlatie-ID"
   },
   "requestTimeline": {
     "title": "Verzoek Tijdlijn",

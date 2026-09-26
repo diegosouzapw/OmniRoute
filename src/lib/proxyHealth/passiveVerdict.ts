@@ -32,15 +32,22 @@ export interface AttributedFailureSignals {
   status?: string | null;
 }
 
-// Connection-level failures that prove the PROXY is at fault: the request
-// never reached a provider (DNS never resolved, connection refused, TLS or
-// handshake stalled). Matched against the `error` column of `proxy_logs`.
+// Connection-level failures that prove the proxy is at fault: the request
+// never reached a provider (DNS never resolved, connection refused, or the
+// socket died on the proxy leg). Only bounded syscall codes blame the proxy,
+// matched at word granularity so provider text never matches. Matched against
+// the `error` column of `proxy_logs`.
 const ATTRIBUTED_ERROR_PATTERNS =
-  /ENOTFOUND|EAI_AGAIN|ECONNREFUSED|EHOSTUNREACH|ENETUNREACH|ENOTCONN|ERR_SOCKET|socket hang up|TLS|handshake|DNS|fetch failed/i;
+  /\b(?:ENOTFOUND|EAI_AGAIN|ECONNREFUSED|EHOSTUNREACH|ENETUNREACH|ENOTCONN|EHOSTDOWN|ENETDOWN|ERR_SOCKET_CLOSED|ERR_SOCKET_TIMEOUT)\b|socket hang up/i;
 
-// Ambiguous transport failures: the connection dropped mid-flight, which can
-// be the provider, the network, or the proxy — never attributed to the proxy.
-const NEUTRAL_ERROR_PATTERNS = /ECONNRESET|EPIPE|ETIMEDOUT|ECONNABORTED|ERR_NETWORK/i;
+// Explicitly neutral (never attributed — each pinned by a test): mid-flight
+// drops (ECONNRESET, EPIPE, ETIMEDOUT, ECONNABORTED, ERR_NETWORK, bare
+// ERR_SOCKET), bare provider-side wording (TLS, DNS, handshake, fetch
+// failed), and coded upstream TLS faults (CERT_*, ERR_TLS_*, TLSV1_ALERT_*).
+// The matcher above fires only on bounded proxy codes, so anything listed
+// here falls through to `false` — except a message that ALSO carries a
+// bounded proxy code (`fetch failed: connect ECONNREFUSED ...`), where the
+// code decides and the row degrades.
 
 // Relayed provider refusals (the TARGET refused this egress IP) prove the
 // proxy relayed fine — neutral, exactly like the sweep's `blocked` outcome.
@@ -48,8 +55,9 @@ const TARGET_REFUSAL_STATUSES: ReadonlySet<number> = new Set([401, 403, 429]);
 
 /**
  * PURE: does this logged row prove the PROXY failed (not the provider, not
- * the network)? Connection refused / DNS / handshake → true (degrade).
- * ECONNRESET / transient / relayed 5xx / target refusal → false (neutral).
+ * the network)? Bounded syscall codes / stalled proxy-leg handshake → true
+ * (degrade). Mid-flight drops, bare provider-side tokens, coded upstream TLS
+ * faults, relayed 5xx, target refusals → false (neutral).
  * A row with `upstream_status` NULL carries no proof either way → false.
  */
 export function isProxyAttributedFailure(signals: AttributedFailureSignals): boolean {
@@ -67,7 +75,10 @@ export function isProxyAttributedFailure(signals: AttributedFailureSignals): boo
     return false;
   }
   if (typeof error !== "string" || error.length === 0) return false;
-  if (NEUTRAL_ERROR_PATTERNS.test(error)) return false;
+  // A bounded proxy code anywhere in the message decides, even behind a
+  // generic prefix (`fetch failed: connect ECONNREFUSED ...` still degrades).
+  // Bare provider-side tokens (TLS/DNS/handshake/fetch wording, coded
+  // upstream TLS faults) match nothing here and stay neutral below.
   return ATTRIBUTED_ERROR_PATTERNS.test(error);
 }
 
@@ -148,6 +159,19 @@ export function resolvePassiveCacheTtlMs(env: PassiveEnv = process.env): number 
   return Math.min(ttl, windowMs);
 }
 
+/**
+ * Opt-in gate for the passive sweep skip. Off by default: with the flag
+ * unset the sweep probes every proxy exactly as before (no passive skip).
+ * Local env read (same convention as the recovery pass gate) so no registry
+ * file is touched.
+ */
+export function isPassiveSweepSkipEnabled(env: PassiveEnv = process.env): boolean {
+  return env.PROXY_HEALTH_PASSIVE_SKIP === "true";
+}
+
+/** Bounded aggregate cache: one slot per proxy endpoint, oldest evicted first. */
+export const MAX_PASSIVE_VERDICT_ENTRIES = 500;
+
 const passiveVerdictCache = new Map<
   string,
   { verdict: PassiveVerdict; providers: string[]; at: number }
@@ -173,13 +197,20 @@ export function getCachedPassiveVerdict(
   return { verdict: entry.verdict, providers: entry.providers };
 }
 
-/** Test seam: store one cached verdict. */
+/** Test seam: store one cached verdict. Evicts the oldest entry past the bound. */
 export function setCachedPassiveVerdict(
   key: string,
   verdict: PassiveVerdict,
   providers: string[] = [],
   now: number = Date.now()
 ): void {
+  if (!passiveVerdictCache.has(key)) {
+    while (passiveVerdictCache.size >= MAX_PASSIVE_VERDICT_ENTRIES) {
+      const oldest = passiveVerdictCache.keys().next();
+      if (oldest.done) break;
+      passiveVerdictCache.delete(oldest.value);
+    }
+  }
   passiveVerdictCache.set(key, { verdict, providers, at: now });
 }
 

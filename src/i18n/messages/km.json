@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "កុងតាក់មេសម្រាប់ gateway aliases របស់ no-think/&lt;provider&gt;/&lt;model&gt;។ បើក (លំនាំដើម)៖ /v1/models ផ្សព្វផ្សាយវ៉ារ្យ៉ង់មិនគិតសម្រាប់គ្រប់ម៉ូដែល Claude ដែលមានសមត្ថភាពគិត និងមានលក្ខណៈសម្បត្តិគ្រប់គ្រាន់ ហើយ no-think/ id ដែលបានផ្ញើក្នុងសំណើ នឹងត្រូវដោះស្រាយត្រឡប់ទៅម៉ូដែលពិត ដោយបិទការវែកញែក។ បិទ៖ គ្មានវ៉ារ្យ៉ង់ណាមួយត្រូវបានផ្សព្វផ្សាយទេ ហើយ no-think/ id ត្រូវបានចាត់ទុកដូចជា model id មិនស្គាល់ផ្សេងទៀត។ ការជ្រើសរើសបើក/បិទ ModelSpec.noThinkingAlias សម្រាប់ម៉ូដែលនីមួយៗ នៅតែអនុវត្ត ខណៈដែលវាត្រូវបានបើក។",
   "featureFlagChatVirtualLanesEnabledDescription": "បើកផ្លូវចូលនិម្មិតដែលសម្របខ្លួនតាម tenant នីមួយៗ សម្រាប់ការបញ្ជូនទៅ provider (#9654)៖ ការកើនឡើងខ្លាំងភ្លាមៗរបស់ tenant មួយ នឹងលែងបណ្ដាលឱ្យ tenant មួយទៀតទទួល 503។ env var OMNIROUTE_CHAT_VIRTUAL_LANES មានអាទិភាពលើការកំណត់ជំនួសពី dashboard នេះ ហើយការផ្លាស់ប្ដូរនឹងមានប្រសិទ្ធភាពនៅពេលចាប់ផ្ដើម server ឡើងវិញ។",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "ទំព័រអ្នកផ្តល់សេវានៅលើផ្ទាំងគ្រប់គ្រង៖ បង្ហាញស្លាក ឥតគិតថ្លៃ តែលើសញ្ញាដែលអ្នកផ្តល់សេវាទទួលស្គាល់ប៉ុណ្ណោះ — លុបចោលការសន្និដ្ឋានតាមឈ្មោះបង្ហាញ វាលឥតគិតថ្លៃដែលមិនមែនជាតម្លៃប៊ូលីន និងបច្ច័យ :free លើអ្នកផ្តល់សេវាដែលបានចុះបញ្ជី ប៉ុន្តែមិនមានកម្រិតសេវាឥតគិតថ្លៃដែលបានចងក្រងជាឯកសារ។ ការបិទនឹងរក្សាច្បាប់ស្លាកចាស់ដដែល។",
-  "featureFlagProxySkipRecentlyFailedDescription": "ក្រុមប្រូកស៊ី និងការបង្វិលតាមគណនីនីមួយៗរបស់ opencode នឹងផ្អាកការប្រើប្រូកស៊ីដែលទើបតែបរាជ័យឡើងវិញ (ការស្ទង់ TCP ត្រូវបានបដិសេធ ឬទទួលបាន 429 តាមរយៈវា) ក្នុងរយៈពេលមួយសម្រាប់ដំណើរការនីមួយៗ ដែលកើនទ្វេដងរាល់ពេលកើតឡើងម្តងទៀត រហូតដល់កម្រិតអតិបរមា។ គ្មានស្ថានភាពប្រូកស៊ីត្រូវបានកត់ត្រាទេ ហើយនៅពេលបេក្ខភាពទាំងអស់ត្រូវបានទុកមួយឡែក ជម្រើសនៅតែមិនផ្លាស់ប្តូរ។ បិទតាមលំនាំដើម៖ លំដាប់ជ្រើសរើសគឺដូចគ្នាទាំងស្រុងនឹងការបង្វិលធម្មតា។",
+  "featureFlagProxySkipRecentlyFailedDescription": "ក្រុមប្រូកស៊ី និងការបង្វិលតាមគណនីនីមួយៗរបស់ opencode នឹងផ្អាកការប្រើប្រូកស៊ីដែលទើបតែបរាជ័យឡើងវិញ (ការស្ទង់ TCP ត្រូវបានបដិសេធ ឬទទួលបាន 429 តាមរយៈវា) ក្នុងរយៈពេលមួយសម្រាប់ដំណើរការនីមួយៗ ដែលកើនទ្វេដងរាល់ពេលកើតឡើងម្តងទៀត រហូតដល់កម្រិតអតិបរមា។ គ្មានស្ថានភាពប្រូកស៊ីត្រូវបានកត់ត្រាទេ ហើយនៅពេលបេក្ខភាពទាំងអស់ត្រូវបានទុកមួយឡែក ជម្រើសនៅតែមិនផ្លាស់ប្តូរ។ បើកតាមលំនាំដើម៖ `false` ស្ដារការជ្រើសរើសធម្មតាវិញ។",
   "featureFlagProxyPoolEgressObservationDescription": "បង្ហាញនៅក្រោមក្រុមប្រូកស៊ីក្នុងផ្ទាំងគ្រប់គ្រងថា ក្នុងរយៈពេល 24 ម៉ោងចុងក្រោយ មាន IP ចេញក្រៅដែលបានសង្កេតឃើញចំនួនប៉ុន្មានបានបម្រើសមាជិករបស់ក្រុម មានការតភ្ជាប់ចំនួនប៉ុន្មានបានប្រើពួកវា និងចំនួនអតិបរមាដែលបានឃើញនៅពីក្រោយ IP តែមួយ។ សម្រាប់តែអានប៉ុណ្ណោះ គណនាពីកំណត់ហេតុប្រូកស៊ី និងមិនដែលប្រើសម្រាប់ការកំណត់ផ្លូវទេ។ បិទតាមលំនាំដើម៖ កម្មវិធីកែសម្រួលក្រុមមិនផ្លាស់ប្តូរ ហើយផ្លូវសង្កេតឆ្លើយតបជា null។",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "ក្នុងការត្រួតពិនិត្យសុខភាពប្រូកស៊ី អនុញ្ញាតឱ្យការស្ទង់ដែលគោលដៅបានបដិសេធ (401/403/429៖ ប្រូកស៊ីបានបញ្ជូនបន្ត ប៉ុន្តែគោលដៅបានបដិសេធ IP ចេញក្រៅនេះ) កំណត់ចំនួនបរាជ័យជាប់ៗគ្នារបស់ប្រូកស៊ីឡើងវិញ ដូចការស្ទង់ដែលត្រូវបានបម្រើ។ បិទតាមលំនាំដើម៖ ការបដិសេធនៅតែអព្យាក្រឹត និងរក្សាចំនួនបរាជ័យជាប់ៗគ្នា។ 5xx នៅតែមិនអាចសន្និដ្ឋានបានក្នុងករណីទាំងពីរ ហើយការបដិសេធមិនដែលលុប បិទ ឬធ្វើឱ្យប្រូកស៊ីសកម្មឡើងវិញទេ។",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "អនុញ្ញាតឱ្យការសម្អាតដោយស្វ័យប្រវត្តិលុបកិច្ចការ Batch API ដែលស្ថិតក្នុងស្ថានភាពបញ្ចប់ (បានបញ្ចប់/បរាជ័យ/បានបោះបង់/ផុតកំណត់) និងចាស់ជាង OMNIROUTE_BATCH_RETENTION_DAYS រួមទាំងចំណុចត្រួតពិនិត្យតាមបន្ទាត់របស់កិច្ចការទាំងនោះ ព្រមទាំងសម្អាតខ្លឹមសារ BLOB របស់ឯកសារដែលបានផ្ទុកឡើង និងហួស expires_at របស់វា។ តាមលំនាំដើម មុខងារនេះត្រូវបានបិទ៖ ការដំឡើងដែលមានស្រាប់ទាំងអស់នឹងរក្សាទិន្នន័យនេះដូចមុនទាំងស្រុង រហូតដល់ប្រតិបត្តិករជ្រើសរើសបើកប្រើ។ Route DELETE /api/v1/batches/delete-completed ដែលប្រតិបត្តិករបើកដំណើរការ មិនរងផលប៉ះពាល់ទោះជាករណីណាក៏ដោយ — វាជាកិច្ចសន្យា public API ដាច់ដោយឡែក និងគ្មានលក្ខខណ្ឌ។",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "បិទភាពជាប់លាប់នៃសម័យ",
     "sessionStickinessEnabled": "បើកភាពជាប់លាប់នៃសម័យ",
     "sessionStickinessDisabled": "បិទភាពជាប់លាប់នៃសម័យ",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "ការកំណត់ជាមុន Kimi Coding",
     "kimiPresetDescription": "Kimi K3 ជាម៉ូដែលចម្បង (Moonshot API) ជាមួយនឹងការប្តូរដោយស្វ័យប្រវត្តិទៅការតភ្ជាប់ Kimi Code របស់អ្នក (kimi-coding, kimi-web) នៅពេលបានកំណត់រចនាសម្ព័ន្ធ។",
     "kimiPresetCta": "បន្ថែមការកំណត់ជាមុន",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "វានឹងថតស្ថានភាពបច្ចុប្បន្ននៃអ្នកផ្តល់សេវា/ម៉ូដែលដែលបានតភ្ជាប់ និងត្រូវគ្នានឹងគំរូនេះ ទៅជាបន្សំដែលអាចកែសម្រួលបាន។",
     "duplicateAutoComboFailedPrefix": "មិនអាចចម្លងបន្សំស្វ័យប្រវត្តិបានទេ៖",
     "duplicateAutoComboUnknownError": "កំហុសដែលមិនស្គាល់",
-    "duplicateAutoComboTitle": "បង្កើតបន្សំថេរពី {name}",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "បង្កើតបន្សំថេរពី {name}"
   },
   "costs": {
     "title": "ការចំណាយ",
@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "ចំណុចបញ្ចប់ proxy-core ក្នុងម៉ាស៊ីនមិនត្រឹមត្រូវទេ ដូច្នេះ node SS/VMess/Trojan/VLESS មិនត្រូវបានយកមកប្រើទេ។",
         "NEEDS_CORE_NOT_CONFIGURED": "ការជាវនេះមាន node ដែលត្រូវការ proxy core ក្នុងម៉ាស៊ីន (SS/VMess/Trojan/VLESS)។ ពួកវានឹងមិនត្រូវបានកំណត់ផ្លូវទេ រហូតដល់អ្នកកំណត់រចនាសម្ព័ន្ធចំណុចបញ្ចប់ SOCKS5 របស់ local-core។",
-        "NO_USABLE_NODES": "ការជាវនេះមិនមាន node ដែលអាចប្រើបានទេ (http/https/socks5 ឬ node ដែលមានចំណុចបញ្ចប់ local core)។"
+        "NO_USABLE_NODES": "ការជាវនេះមិនមាន node ដែលអាចប្រើបានទេ (http/https/socks5 ឬ node ដែលមានចំណុចបញ្ចប់ local core)។",
+        "SELECTOR_SWITCH_FAILED": "ការហៅបញ្ជា proxy-core បានបរាជ័យ; ផ្លូវមុននៅតែសកម្ម។ សូមពិនិត្យ URL និង secret បញ្ជា រួចផ្ទុកឡើងវិញ។"
       },
       "description": "បិទភ្ជាប់តំណការជាវប្រូកស៊ីរបស់អ្នក។ នៅពេលបើកដំណើរការ ចរាចរណ៍នឹងត្រូវបានកំណត់ផ្លូវតាមបណ្តុំប្រូកស៊ី ក្នុងរបៀបសកល ឬរបៀបតាមច្បាប់ (Provider ដែលបានបញ្ជាក់)។ node នៃការជាវនឹងត្រូវបានធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិទៅក្នុងបណ្តុំប្រូកស៊ី និងប្រើឡើងវិញនូវយន្តការស្ទង់ពិនិត្យ ការពិនិត្យសុខភាព និងការការពារការលេចធ្លាយដែលមានស្រាប់។",
       "addSubscription": "បន្ថែមការជាវ",
@@ -6939,7 +6940,20 @@
       "providerRouting": "ការកំណត់ផ្លូវរបស់ Provider",
       "refresh": "ធ្វើបច្ចុប្បន្នភាព",
       "refreshInterval": "ចន្លោះពេលធ្វើបច្ចុប្បន្នភាព",
-      "ruleModeDescription": "ការពិពណ៌នាអំពីរបៀបផ្អែកលើច្បាប់"
+      "ruleModeDescription": "ការពិពណ៌នាអំពីរបៀបផ្អែកលើច្បាប់",
+      "controlUrl": "URL API បញ្ជា",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "secret API បញ្ជា",
+      "controlSecretPlaceholder": "ទុកទទេដើម្បីរក្សា secret ដែលបានរក្សាទុក",
+      "controlSecretSaved": "បានរក្សាទុក secret",
+      "controlSecretNotSet": "មិនមាន secret ដែលបានរក្សាទុក",
+      "selectorMinGap": "ពេលវេលាអប្បបរមារវាងការប្តូរ (វិនាទី)",
+      "selectorHelp": "បន្ថែម « selector='<name>' » ទៅបន្ទាត់ local-core ដើម្បីចងទៅក្រុម selector។",
+      "lastSwitch": "ការប្តូរចុងក្រោយ",
+      "lastSwitchNever": "មិនទាន់មានការប្តូរដែលបានកត់ត្រា",
+      "lastSwitchMember": "សមាជិកកំពុងបម្រើ",
+      "nextSwitch": "ការប្តូរបន្ទាប់ដែលអាចធ្វើបាន",
+      "nextSwitchNow": "ឥឡូវ"
     },
     "bulkHealthcheck": "ការពិនិត្យស្ថានភាពជាក្រុម",
     "bulkHealthcheckDesc": "សាកល្បងប្រូកស៊ីដែលបានកំណត់រចនាសម្ព័ន្ធទាំងអស់ជាមួយ URL គោលដៅ ដើម្បីរកមើលថាតើមួយណាដំណើរការ។",
@@ -11017,6 +11031,16 @@
     "batchDeleteSelected": "លុបធាតុដែលបានជ្រើសរើស {count}",
     "batchActivateSelected": "បើកដំណើរការធាតុដែលបានជ្រើសរើស {count}",
     "testPassed": "✓ OK",
+    "sweepVerdict": "ការស្កេនចុងក្រោយ: {cause} ({code}) {age}",
+    "sweepNoData": "មិនទាន់មានការស្កេនតាំងពីចាប់ផ្តើម",
+    "sweepLabel": {
+      "unproven": "គោលដៅបានបដិសេធ",
+      "unclassified": "ការត្រួតពិនិត្យមិនច្បាស់",
+      "ok": "បានបម្រើ",
+      "fail": "ការតភ្ជាប់បរាជ័យ",
+      "hang": "ការចាប់ដៃជាប់គាំង",
+      "inconclusive": "មិនច្បាស់"
+    },
     "close": "បិទ",
     "managePool": "គ្រប់គ្រងក្រុម",
     "poolTitle": "ក្រុមប្រូកស៊ី និងការប្ដូរវេន",
@@ -11038,6 +11062,8 @@
     "poolEgressObservation": "បានប្រើច្រកចេញ {exits, plural, one {#} other {#}} ដោយការតភ្ជាប់ {connections, plural, one {#} other {#}} · អតិបរមា {max} នៅលើច្រកចេញមួយ · ក្នុងរយៈពេល {hours} ម៉ោងចុងក្រោយ",
     "poolEgressObservationEmpty": "មិនបានសង្កេតឃើញចរាចរណ៍ក្នុងរយៈពេល {hours} ម៉ោងចុងក្រោយទេ",
     "poolEgressObservationHint": "រាប់ពីកំណត់ហេតុប្រូកស៊ីក្នុងអំឡុងពេលកំណត់៖ អាសយដ្ឋាន IP ចេញផ្សេងៗគ្នាដែលបានសង្កេតឃើញសម្រាប់សមាជិកនៃក្រុមនេះ និងការតភ្ជាប់ OmniRoute ដែលបានប្រើពួកវា។ «នៅលើច្រកចេញមួយ» មានន័យថាក្នុងអំឡុងពេលកំណត់ មិនមែននៅពេលតែមួយទេ។ ការចាក់សោ 429 សម្រាប់ IP នីមួយៗ ផ្អាកតែការតភ្ជាប់នៃគ្រួសារអ្នកផ្តល់សេវាដូចគ្នាប៉ុណ្ណោះ។",
+    "poolEgressFailuresByExit": "ការបរាជ័យតាមរយៈ {exit}: {count}",
+    "poolEgressFailuresUnattributed": "ការបរាជ័យដែលគ្មានច្រកចេញកំណត់: {count}",
     "poolMemberEgress": "{host}:{port} បានចេញតាមរយៈ {egressIp} · {hours} ម៉ោងចុងក្រោយ",
     "poolMemberEgressEmpty": "{host}:{port}៖ មិនបានសង្កេតឃើញចរាចរណ៍ក្នុងរយៈពេល {hours} ម៉ោងចុងក្រោយទេ",
     "poolMemberEgressHint": "អាសយដ្ឋាន IP ចេញចុងក្រោយដែលបានសង្កេតឃើញតាមរយៈសមាជិកក្រុមនេះក្នុងអំឡុងពេលកំណត់ ដោយអានពីកំណត់ហេតុប្រូកស៊ី។ សមាជិកដែលគ្មានចរាចរណ៍ក្នុងអំឡុងពេលកំណត់នឹងបង្ហាញបន្ទាត់គ្មានចរាចរណ៍។",
@@ -11047,7 +11073,23 @@
     "poolAddMember": "បន្ថែម",
     "poolAddFailed": "បានបរាជ័យក្នុងការបន្ថែមប្រូកស៊ីទៅក្រុម",
     "poolSelectProxy": "ជ្រើសរើសប្រូកស៊ី…",
-    "poolSaveFailed": "បានបរាជ័យក្នុងការរក្សាទុកការចាត់តាំងទៅក្រុម"
+    "poolSaveFailed": "បានបរាជ័យក្នុងការរក្សាទុកការចាត់តាំងទៅក្រុម",
+    "poolPreferenceOrder": "លំដាប់អាទិភាព",
+    "poolSetAsideReason": "ដាក់ឡែក: {kind}",
+    "poolSetAsideKindProxyUnreachable": "មិនអាចភ្ជាប់ទៅប្រូកស៊ីបាន",
+    "poolSetAsideKindIpQuota429": "ដែនកំណត់អត្រា IP (429)",
+    "poolSetAsideUntil": "ត្រឡប់ទៅការបង្វិល {endsAt}",
+    "poolSetAsideRepeat": "ដាក់ឡែក {count, plural, one {# ដង} other {# ដង}}",
+    "poolUnknownAddress": "អាសយដ្ឋានមិនស្គាល់",
+    "poolSinceRestart": "ចាប់តាំងពីការចាប់ផ្តើមឡើងវិញចុងក្រោយ",
+    "poolSignalSetAside": "ដាក់ឡែក",
+    "poolSignalPosition": "លំដាប់ទីតាំង",
+    "poolHealthRankingOff": "ចំណាត់ថ្នាក់សុខភាពបិទ",
+    "transportRate": "{rate}% ការដឹកជញ្ជូន",
+    "previousSuccessRate": "ពីមុន {rate}% ជោគជ័យ",
+    "upstreamRefusals": "{count} ការបដិសេធ upstream",
+    "connectionTestsCount": "{count} ការធ្វើតេស្តការតភ្ជាប់",
+    "notMeasured": "មិនបានវាស់"
   },
   "playground": {
     "title": "កន្លែងសាកល្បងម៉ូដែល",
@@ -11386,6 +11428,7 @@
       "compressed": "ការបង្ហាប់",
       "tps": "TPS",
       "duration": "រយៈពេល",
+      "addedWait": "ការរង់ចាំបន្ថែម",
       "time": "ពេលវេលា",
       "conversation": "ការសន្ទនា",
       "ttft": "TTFT"
@@ -11460,6 +11503,7 @@
       "startedAt": "បានចាប់ផ្តើមនៅ",
       "endedAt": "បានបញ្ចប់នៅ",
       "duration": "រយៈពេល",
+      "addedWait": "ការរង់ចាំបន្ថែម",
       "model": "ម៉ូដែល",
       "provider": "អ្នកផ្តល់សេវា",
       "account": "គណនី",
@@ -11474,6 +11518,10 @@
       "requestedModel": "ម៉ូដែលដែលបានស្នើ",
       "requestProtocol": "ពិធីការសំណើ",
       "cacheSource": "ប្រភពឃ្លាំងសម្ងាត់",
+      "contentProvenance": "ការឆ្លើយតប",
+      "contentEmpty": "ការឆ្លើយតបទទេ",
+      "usageAbsent": "ចំនួន token មិនត្រូវបានរាយការណ៍",
+      "usageEstimated": "ចំនួន token ជាការប៉ាន់ស្មាន",
       "modelPinning": "ការចងម៉ូដែល",
       "activeModelPinning": "សកម្ម — ម៉ូដែលត្រូវបានជ្រើសរើសតាមរយៈការចងម៉ូដែលតាមសម័យ",
       "rotated": "បានប្តូរវេន៖ {initial} -> {final}",
@@ -11498,7 +11546,13 @@
       "correlationIdValue": "លេខសម្គាល់ទំនាក់ទំនង៖ {id}",
       "detailedPayloadInfo": "សូមបើកការកត់ត្រាលម្អិតជាមុនសិន ប្រសិនបើអ្នកចង់មើល payload បួនដំណាក់កាលរបស់កម្មវិធីអតិថិជន/អ្នកផ្តល់សេវា សម្រាប់សំណើថ្មីៗ។",
       "copyAll": "ចម្លងទាំងអស់",
-      "copiedAll": "បានចម្លងទាំងអស់"
+      "copiedAll": "បានចម្លងទាំងអស់",
+      "resilienceStoredError": "បានបម្រើពីកំហុសដែលបានរក្សាទុក",
+      "resilienceParked": "បានផ្អាក {ms} មុនពេលផ្ញើ",
+      "resilienceRotations": "ការបង្វិលគណនី {count} ដង",
+      "resilienceRetried": "បានព្យាយាមវេនទទេម្តងទៀត",
+      "resilienceContinued": "បានបន្តនៅកណ្តាលស្ទ្រីម",
+      "resilienceRecovered": "បានស្ដារឡើងវិញដោយសកម្មភាពធន់"
     }
   },
   "proxyLogger": {
@@ -11537,7 +11591,14 @@
     "noProxyLogs": "មិនទាន់មានកំណត់ហេតុប្រូកស៊ីទេ។ កំណត់រចនាសម្ព័ន្ធប្រូកស៊ី និងធ្វើការហៅ API ដើម្បីមើលពួកវានៅទីនេះ។",
     "noMatchingLogs": "គ្មានកំណត់ហេតុណាមួយត្រូវនឹងតម្រងបច្ចុប្បន្នទេ។",
     "tlsFingerprint": "ស្នាមម្រាមដៃ TLS របស់ Chrome 124",
-    "colPublicIp": "IP សាធារណៈ"
+    "colPublicIp": "IP សាធារណៈ",
+    "colUpstream": "អ៊ុបស្ត្រីម",
+    "colEgress": "អ៊ីភីចេញ",
+    "colCorrelation": "ការតភ្ជាប់",
+    "colServedBy": "បានផ្តល់ដោយ",
+    "filterTraffic": "ចរាចរណ៍",
+    "filterTests": "ការសាកល្បង",
+    "filterSource": "ប្រភព"
   },
   "endpointOptions": {
     "speech": "សំឡេងនិយាយ",
@@ -12012,6 +12073,10 @@
     "stopDns": "បញ្ឈប់ DNS",
     "toggling": "កំពុងបិទបើក…",
     "viewTraffic": "មើលចរាចរណ៍",
+    "resetAgent": "ស្ដារលំនាំដើម",
+    "resetAgentConfirm": "ស្ដារលំនាំដើមឬ?",
+    "resetting": "កំពុងស្ដារ…",
+    "resetDone": "DNS លំនាំដើមសម្រាប់ {agent} ត្រូវបានស្ដារ។ សូមបិទកម្មវិធីទាំងស្រុង (មិនមែនគ្រាន់តែបង្រួម) ហើយបើកវាម្ដងទៀត ដើម្បីឱ្យការផ្លាស់ប្ដូរមានប្រសិទ្ធភាព។",
     "emptyNoProvidersTitle": "មិនទាន់មានអ្នកផ្តល់សេវាដែលបានកំណត់រចនាសម្ព័ន្ធទេ",
     "emptyNoProvidersBody": "ដើម្បីប្រើ AgentBridge ដំបូងត្រូវភ្ជាប់អ្នកផ្តល់សេវាយ៉ាងហោចណាស់មួយ។ វានឹងក្លាយជាគោលដៅដែលសំណើ IDE ត្រូវបានបញ្ជូនទៅ។",
     "emptyGoToProviders": "ទៅកាន់អ្នកផ្តល់សេវា",
@@ -12790,7 +12855,13 @@
     "createDahlTokenFailed": "បរាជ័យក្នុងការបង្កើតថូខឹន Dahl",
     "providerProxy": "ប្រូកស៊ី",
     "providerProxyConfigureHint": "កំណត់រចនាសម្ព័ន្ធប្រូកស៊ី",
-    "providerProxyTitleConfigured": "បានកំណត់រចនាសម្ព័ន្ធប្រូកស៊ី៖ {host}"
+    "providerProxyTitleConfigured": "បានកំណត់រចនាសម្ព័ន្ធប្រូកស៊ី៖ {host}",
+    "proxySetAside": "ប្រូកស៊ីបានដាក់ឡែក",
+    "inheritConnectionOption": "គ្មានប្រូកស៊ីផ្ទាល់ខ្លួន (ទទួលមរតកការតភ្ជាប់)",
+    "inheritedProxy": "ទទួលមរតកការតភ្ជាប់: {host}",
+    "inheritedPool": "ទទួលមរតកបណ្តុំការតភ្ជាប់ ({count})",
+    "poolEmptyBlocked": "បណ្តុំទទេ — សំណើបរាជ័យ (មិនផ្ទាល់)",
+    "directEgress": "ផ្ទាល់ (គ្មានប្រូកស៊ី)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14190,12 @@
     "directNative": "ផ្ទាល់ (ដើម)",
     "targetUrl": "URL គោលដៅ",
     "error": "កំហុស",
-    "configuration": "ការកំណត់រចនាសម្ព័ន្ធប្រូកស៊ី"
+    "configuration": "ការកំណត់រចនាសម្ព័ន្ធប្រូកស៊ី",
+    "upstreamStatus": "ស្ថានភាពអ៊ុបស្ត្រីម",
+    "noResponse": "មិនមានការឆ្លើយតប",
+    "egressIp": "អ៊ីភីចេញ",
+    "servedBy": "បានផ្តល់ដោយ",
+    "correlationId": "អត្តសញ្ញាណការតភ្ជាប់"
   },
   "requestTimeline": {
     "title": "ខ្សែពេលវេលានៃសំណើ",

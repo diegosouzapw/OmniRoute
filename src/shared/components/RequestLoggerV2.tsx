@@ -34,6 +34,7 @@ import {
   shouldAutoRefresh,
   shouldTriggerInfiniteScroll,
 } from "./requestLoggerSignature";
+import { getResilienceBadges } from "./requestLoggerResilience";
 import {
   DEFAULT_REFRESH_INTERVAL_SEC,
   clampRefreshIntervalSec,
@@ -90,7 +91,6 @@ function getCacheSourceMeta(cacheSource: unknown) {
         "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30",
     };
   }
-
   return {
     key: "upstream",
     className: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30",
@@ -102,9 +102,13 @@ export interface RequestLoggerV2Handle {
   getSortedLogs: () => any[];
 }
 
-const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: string }>(
+type RequestLoggerV2InitialProps = {
+  initialSelectedId?: string;
+  initialCorrelationId?: string;
+};
+const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2InitialProps>(
   (props, ref) => {
-    const { initialSelectedId } = props as any;
+    const { initialSelectedId, initialCorrelationId } = props;
     const t = useTranslations("requestLogger");
     const tCache = useTranslations("cache");
     const { emailsVisible } = useEmailPrivacyStore();
@@ -135,6 +139,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         { key: "tokens", label: t("columns.tokens") },
         { key: "tps", label: t("columns.tps") },
         { key: "duration", label: t("columns.duration") },
+        { key: "addedWait", label: t("columns.addedWait") },
         { key: "time", label: t("columns.time") },
         { key: "conversation", label: t("columns.conversation") },
       ],
@@ -152,7 +157,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const [selectedApiKey, setSelectedApiKey] = useState("");
     const [sortBy, setSortBy] = useState("newest");
     const [selectedLog, setSelectedLog] = useState(null);
-    const [correlationIdFilter, setCorrelationIdFilter] = useState("");
+    const [correlationIdFilter, setCorrelationIdFilter] = useState(
+      () => initialCorrelationId ?? ""
+    );
     const [hoveredCid, setHoveredCid] = useState<string | null>(null);
     const [groupedView, setGroupedView] = useState(false);
     const [detailLoading, setDetailLoading] = useState(false);
@@ -1283,6 +1290,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         {getSortIndicator("duration")}
                       </th>
                     )}
+                    {visibleColumns.addedWait && (
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>
+                        {t("columns.addedWait")}
+                      </th>
+                    )}
                     {visibleColumns.time && (
                       <th
                         className={`${LOG_TABLE_HEADER_CELL_RIGHT_CLASS} cursor-pointer select-none`}
@@ -1399,14 +1411,25 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                             {isActive ? (
                               <span className="text-text-muted text-[10px]">—</span>
                             ) : (
-                              <span
-                                className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${cacheSourceMeta?.className || ""}`}
-                                title={
-                                  isSemanticCache ? t("semanticCacheHit") : t("upstreamResponse")
-                                }
-                              >
-                                {isSemanticCache ? t("semantic") : t("upstream")}
-                              </span>
+                              <>
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${cacheSourceMeta?.className || ""}`}
+                                  title={
+                                    isSemanticCache ? t("semanticCacheHit") : t("upstreamResponse")
+                                  }
+                                >
+                                  {isSemanticCache ? t("semantic") : t("upstream")}
+                                </span>
+                                {getResilienceBadges(log.resilienceActions, (key, values) =>
+                                  t(`detail.${key}`, values)
+                                ).map((badge) => (
+                                  // Unstyled span: inherits the cache-source
+                                  // badge line; the title carries the detail.
+                                  <span key={badge.key} title={badge.title}>
+                                    [{badge.label}]
+                                  </span>
+                                ))}
+                              </>
                             )}
                           </td>
                         )}
@@ -1636,6 +1659,13 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         {visibleColumns.duration && (
                           <td className="px-3 py-2 text-right text-text-muted font-mono">
                             {formatDuration(log.duration)}
+                          </td>
+                        )}
+                        {visibleColumns.addedWait && (
+                          <td className="px-3 py-2 text-right text-text-muted font-mono">
+                            {typeof log.addedWaitMs === "number" && log.addedWaitMs > 0
+                              ? `${formatDuration(log.addedWaitMs)}${log.addedWaitCause ? ` (${log.addedWaitCause})` : ""}`
+                              : "—"}
                           </td>
                         )}
                         {visibleColumns.time && (

@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; गेटवे उपनामांसाठी मुख्य स्विच. चालू (डीफॉल्ट): /v1/models प्रत्येक पात्र, विचार-क्षम Claude मॉडेलसाठी विचार न करणारा प्रकार दाखवते आणि विनंतीमध्ये पाठवलेला no-think/ आयडी तर्कप्रक्रिया दडपून पुन्हा वास्तविक मॉडेलकडे निर्देशित केला जातो. बंद: कोणतेही प्रकार दाखवले जात नाहीत आणि no-think/ आयडीला इतर कोणत्याही अज्ञात मॉडेल आयडीप्रमाणे हाताळले जाते. हे चालू असताना प्रत्येक मॉडेलसाठी ModelSpec.noThinkingAlias ची निवड/निवड रद्द करण्याची सेटिंग तरीही लागू होते.",
   "featureFlagChatVirtualLanesEnabledDescription": "प्रदाता डिस्पॅचसाठी प्रति-टेनंट अनुकूली व्हर्च्युअल अॅडमिशन लेन सक्षम करा (#9654): एका टेनंटचा बर्स्ट यापुढे दुसऱ्या टेनंटला 503 देत नाही. OMNIROUTE_CHAT_VIRTUAL_LANES पर्यावरण चल या डॅशबोर्ड सेटिंगपेक्षा वरचढ आहे; बदल सर्व्हर रीस्टार्ट केल्यावर प्रभावी होतात.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "डॅशबोर्डवरील प्रदाता पृष्ठे: प्रदाता मान्य करतो अशाच संकेतांवर मोफत बॅज दाखवा — दस्तऐवजीकृत मोफत स्तर नसलेल्या नोंदणीकृत प्रदात्यांसाठी प्रदर्शन-नाव अनुमान, नॉन-बूलियन मोफत फील्ड आणि :free प्रत्यय वगळले जातात. बंद केल्यास ऐतिहासिक बॅज नियम कायम राहतो.",
-  "featureFlagProxySkipRecentlyFailedDescription": "प्रॉक्सी पूल आणि opencode चे प्रति-खाते रोटेशन नुकताच अयशस्वी झालेला प्रॉक्सी (TCP प्रोब नाकारला गेला किंवा त्याद्वारे 429 प्राप्त झाला) प्रत्येक प्रक्रियेसाठी ठरावीक कालावधीपर्यंत पुन्हा वापरत नाहीत; प्रत्येक पुनरावृत्तीनंतर हा कालावधी दुप्पट होतो, कमाल मर्यादेपर्यंत. प्रॉक्सीची कोणतीही स्थिती लिहिली जात नाही; प्रत्येक उमेदवार बाजूला ठेवल्यास निवड अपरिवर्तित राहते. डीफॉल्टनुसार बंद: निवडीचा क्रम अगदी साध्या रोटेशनप्रमाणेच असतो.",
+  "featureFlagProxySkipRecentlyFailedDescription": "प्रॉक्सी पूल आणि opencode चे प्रति-खाते रोटेशन नुकताच अयशस्वी झालेला प्रॉक्सी (TCP प्रोब नाकारला गेला किंवा त्याद्वारे 429 प्राप्त झाला) प्रत्येक प्रक्रियेसाठी ठरावीक कालावधीपर्यंत पुन्हा वापरत नाहीत; प्रत्येक पुनरावृत्तीनंतर हा कालावधी दुप्पट होतो, कमाल मर्यादेपर्यंत. प्रॉक्सीची कोणतीही स्थिती लिहिली जात नाही; प्रत्येक उमेदवार बाजूला ठेवल्यास निवड अपरिवर्तित राहते. डीफॉल्टनुसार चालू; `false` साधी निवड पुनर्संचयित करते.",
   "featureFlagProxyPoolEgressObservationDescription": "डॅशबोर्डमध्ये प्रॉक्सी पूलखाली, मागील 24 तासांत त्याच्या सदस्यांना सेवा देणारे किती निरीक्षित इग्रेस IP होते, किती कनेक्शन्सनी त्यांचा वापर केला आणि एका IP मागून सर्वाधिक किती कनेक्शन्स दिसली हे दाखवा. हे केवळ-वाचनीय असून प्रॉक्सी लॉगवरून मोजले जाते आणि रूटिंगसाठी कधीही वापरले जात नाही. डीफॉल्टनुसार बंद: पूल एडिटर अपरिवर्तित राहतो आणि निरीक्षण रूट null असे उत्तर देतो.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "प्रॉक्सी आरोग्य तपासणीमध्ये, लक्ष्याने नाकारलेल्या प्रोबला (401/403/429: प्रॉक्सीने पुढे पाठवले, पण गंतव्याने हा इग्रेस IP नाकारला) सेवा दिलेल्या प्रोबप्रमाणे प्रॉक्सीच्या सलग अपयशांची मालिका रीसेट करू द्या. डीफॉल्टनुसार बंद: नकार तटस्थ राहतो आणि मालिका कायम ठेवतो. 5xx दोन्ही बाबतींत अनिर्णीत राहतो आणि नकारामुळे प्रॉक्सी कधीही काढला, अक्षम किंवा पुन्हा सक्रिय केला जात नाही.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "स्वयंचलित क्लीनअप स्वीपला OMNIROUTE_BATCH_RETENTION_DAYS पेक्षा जुनी टर्मिनल (पूर्ण/अयशस्वी/रद्द केलेली/कालबाह्य) Batch API कार्ये, त्यांच्या प्रत्येक ओळीच्या चेकपॉइंटसह हटवू द्या आणि स्वतःची expires_at वेळ उलटून गेलेल्या अपलोड केलेल्या फाइल्समधील BLOB सामग्री साफ करू द्या. डीफॉल्टनुसार बंद: ऑपरेटरने हे सुरू करेपर्यंत प्रत्येक विद्यमान इंस्टॉलेशन हा डेटा पूर्वीप्रमाणेच ठेवते. ऑपरेटरने ट्रिगर केलेला DELETE /api/v1/batches/delete-completed मार्ग कोणत्याही परिस्थितीत अप्रभावित राहतो — तो स्वतंत्र, बिनशर्त सार्वजनिक API करार आहे.",
@@ -3790,6 +3790,15 @@
     "disableSessionStickiness": "सेशन स्टिकिनेस अक्षम करा",
     "sessionStickinessEnabled": "स्टिकिनेस सुरू",
     "sessionStickinessDisabled": "स्टिकिनेस बंद",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding प्रीसेट",
     "kimiPresetDescription": "प्राथमिक मॉडेल म्हणून Kimi K3 (Moonshot API), कॉन्फिगर केलेले असल्यास तुमच्या Kimi Code कनेक्शन्सवर (kimi-coding, kimi-web) स्वयंचलित फॉलबॅकसह.",
     "kimiPresetCta": "प्रीसेट जोडा",
@@ -3805,16 +3814,7 @@
     "duplicateAutoComboSnapshotMsg": "या टेम्पलेटशी जुळणारे सध्या कनेक्ट केलेले प्रदाता/मॉडेल्स संपादनयोग्य कॉम्बोमध्ये स्नॅपशॉट घेईल.",
     "duplicateAutoComboFailedPrefix": "ऑटोकॉम्बो डुप्लिकेट करण्यात अपयश:",
     "duplicateAutoComboUnknownError": "अज्ञात त्रुटी",
-    "duplicateAutoComboTitle": "{name} मधून स्थिर कॉम्बो तयार करा",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} मधून स्थिर कॉम्बो तयार करा"
   },
   "costs": {
     "title": "खर्च",
@@ -6866,7 +6866,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "स्थानिक proxy-core endpoint अवैध आहे; SS/VMess/Trojan/VLESS नोड्स दुर्लक्षित केले गेले.",
         "NEEDS_CORE_NOT_CONFIGURED": "या सदस्यतेमध्ये असे नोड्स आहेत ज्यांना स्थानिक proxy core (SS/VMess/Trojan/VLESS) ची आवश्यकता आहे; जोपर्यंत तुम्ही local-core SOCKS5 endpoint कॉन्फिगर करत नाही तोपर्यंत ते रूट केले जात नाहीत.",
-        "NO_USABLE_NODES": "सदस्यतेमधून कोणतेही वापरण्यायोग्य नोड्स मिळाले नाहीत (http/https/socks5 किंवा स्थानिक core endpoint असलेले नोड्स)."
+        "NO_USABLE_NODES": "सदस्यतेमधून कोणतेही वापरण्यायोग्य नोड्स मिळाले नाहीत (http/https/socks5 किंवा स्थानिक core endpoint असलेले नोड्स).",
+        "SELECTOR_SWITCH_FAILED": "प्रॉक्सी-कोर नियंत्रण कॉल अयशस्वी; मागील मार्ग सक्रिय राहतो. नियंत्रण URL व सीक्रेट तपासा, मग रिफ्रेश करा."
       },
       "description": "तुमची प्रॉक्सी सदस्यता लिंक पेस्ट करा. एकदा सक्षम केल्यानंतर, ट्रॅफिक प्रॉक्सी पूलद्वारे जागतिक किंवा नियम (निर्दिष्ट प्रदाता) मोडमध्ये मार्गस्थ केले जाते. सबस्क्रिप्शन नोड्स आपोआप प्रॉक्सी पूलमध्ये सिंक केले जातात आणि विद्यमान मतदान, आरोग्य-तपासणी आणि अँटी-लीक यंत्रणा पुन्हा वापरतात.",
       "addSubscription": "सदस्यता जोडा",
@@ -6939,7 +6940,20 @@
       "providerRouting": "प्रदाता मार्गनिर्देशन",
       "refresh": "पुनः ताजेतवाने करा",
       "refreshInterval": "ताजेतवाने अंतराल",
-      "ruleModeDescription": "नियम मोड वर्णन"
+      "ruleModeDescription": "नियम मोड वर्णन",
+      "controlUrl": "नियंत्रण API URL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "नियंत्रण API सीक्रेट",
+      "controlSecretPlaceholder": "जतन केलेले सीक्रेट ठेवण्यासाठी रिकामे ठेवा",
+      "controlSecretSaved": "सीक्रेट जतन केले",
+      "controlSecretNotSet": "जतन केलेले सीक्रेट नाही",
+      "selectorMinGap": "बदलांमधील किमान वेळ (सेकंद)",
+      "selectorHelp": "local-core ओळीत « selector='<name>' » जोडून selector गटाशी बांधा.",
+      "lastSwitch": "शेवटचा बदल",
+      "lastSwitchNever": "अद्याप कोणताही बदल नोंदलेला नाही",
+      "lastSwitchMember": "सेवा देणारा सदस्य",
+      "nextSwitch": "पुढील संभाव्य बदल",
+      "nextSwitchNow": "आता"
     },
     "bulkHealthcheck": "सामूहिक आरोग्य तपासणी",
     "bulkHealthcheckDesc": "कोणते प्रॉक्सी कार्यरत आहेत हे शोधण्यासाठी सर्व कॉन्फिगर केलेले प्रॉक्सी लक्ष्य URL वर तपासा.",
@@ -11017,6 +11031,16 @@
     "batchDeleteSelected": "निवडलेले {count} हटवा",
     "batchActivateSelected": "निवडलेले {count} सक्षम करा",
     "testPassed": "✓ ठीक आहे",
+    "sweepVerdict": "शेवटचे स्कॅन: {cause} ({code}) {age}",
+    "sweepNoData": "सुरू झाल्यापासून अद्याप स्कॅन नाही",
+    "sweepLabel": {
+      "unproven": "लक्ष्याने नकार दिला",
+      "unclassified": "तपासणी अनिर्णित",
+      "ok": "सेवा दिली",
+      "fail": "कनेक्शन अयशस्वी",
+      "hang": "हँडशेक रखडले",
+      "inconclusive": "अनिर्णित"
+    },
     "close": "बंद करा",
     "managePool": "पूल व्यवस्थापित करा",
     "poolTitle": "प्रॉक्सी पूल आणि रोटेशन",
@@ -11038,6 +11062,8 @@
     "poolEgressObservation": "निर्गमने: {exits, plural, one {# निर्गमन} other {# निर्गमने}} · त्यांचा वापर करणारी कनेक्शने: {connections, plural, one {# कनेक्शन} other {# कनेक्शने}} · एका निर्गमनावर कमाल {max} · मागील {hours} तास",
     "poolEgressObservationEmpty": "मागील {hours} तासांत कोणतीही वाहतूक आढळली नाही",
     "poolEgressObservationHint": "या कालावधीतील प्रॉक्सी लॉगवरून मोजलेले: या पूलच्या सदस्यांसाठी आढळलेले वेगवेगळे निर्गमन IP आणि त्यांचा वापर करणारी OmniRoute कनेक्शने. \"एका निर्गमनावर\" याचा अर्थ संपूर्ण कालावधीत असा आहे, एकाच वेळी नाही. प्रति-IP 429 लॉकआउट केवळ त्याच प्रदाता कुटुंबातील कनेक्शने तात्पुरती थांबवते.",
+    "poolEgressFailuresByExit": "{exit} द्वारे अपयश: {count}",
+    "poolEgressFailuresUnattributed": "निश्चित एक्झिट नसलेली अपयशे: {count}",
     "poolMemberEgress": "{host}:{port} वरून {egressIp} द्वारे बाहेर गेले · मागील {hours} तास",
     "poolMemberEgressEmpty": "{host}:{port}: मागील {hours} तासांत कोणतीही ट्रॅफिक आढळली नाही",
     "poolMemberEgressHint": "या कालावधीत या पूल सदस्याद्वारे आढळलेला शेवटचा निर्गमन IP, जो प्रॉक्सी लॉगमधून वाचला आहे. या कालावधीत ट्रॅफिक नसलेल्या सदस्यासाठी ट्रॅफिक-नसल्याची ओळ दाखवली जाते.",
@@ -11047,7 +11073,23 @@
     "poolAddMember": "जोडा",
     "poolAddFailed": "पूलमध्ये प्रॉक्सी जोडण्यात अयशस्वी",
     "poolSelectProxy": "प्रॉक्सी निवडा…",
-    "poolSaveFailed": "पूल असाइनमेंट सेव्ह करण्यात अयशस्वी"
+    "poolSaveFailed": "पूल असाइनमेंट सेव्ह करण्यात अयशस्वी",
+    "poolPreferenceOrder": "प्राधान्य क्रम",
+    "poolSetAsideReason": "बाजूला ठेवले: {kind}",
+    "poolSetAsideKindProxyUnreachable": "प्रॉक्सीपर्यंत पोहोचता येत नाही",
+    "poolSetAsideKindIpQuota429": "IP दर मर्यादा (429)",
+    "poolSetAsideUntil": "रोटेशनमध्ये परत {endsAt}",
+    "poolSetAsideRepeat": "बाजूला ठेवले {count, plural, one {# वेळा} other {# वेळा}}",
+    "poolUnknownAddress": "अज्ञात पत्ता",
+    "poolSinceRestart": "शेवटच्या रीस्टार्टपासून",
+    "poolSignalSetAside": "बाजूला ठेवा",
+    "poolSignalPosition": "स्थान क्रम",
+    "poolHealthRankingOff": "आरोग्य क्रमवारी बंद",
+    "transportRate": "{rate}% वाहतूक",
+    "previousSuccessRate": "यापूर्वी {rate}% यश",
+    "upstreamRefusals": "{count} अपस्ट्रीम नकार",
+    "connectionTestsCount": "{count} कनेक्शन चाचण्या",
+    "notMeasured": "मोजले नाही"
   },
   "playground": {
     "title": "मॉडेल प्लेग्राउंड",
@@ -11386,6 +11428,7 @@
       "compressed": "संक्षेप",
       "tps": "TPS",
       "duration": "कालावधी",
+      "addedWait": "अतिरिक्त प्रतीक्षा",
       "time": "वेळ",
       "conversation": "संभाषण",
       "ttft": "TTFT"
@@ -11460,6 +11503,7 @@
       "startedAt": "सुरू झालेले आहे",
       "endedAt": "समाप्त झालेले आहे",
       "duration": "कालावधी",
+      "addedWait": "अतिरिक्त प्रतीक्षा",
       "model": "मॉडेल",
       "provider": "प्रदायक",
       "account": "खाते",
@@ -11474,6 +11518,10 @@
       "requestedModel": "विनंती केलेला मॉडेल",
       "requestProtocol": "आवश्यक प्रोटोकॉल",
       "cacheSource": "कॅश स्रोत",
+      "contentProvenance": "उत्तर",
+      "contentEmpty": "रिकामे उत्तर",
+      "usageAbsent": "टोकन संख्या कळवली नाही",
+      "usageEstimated": "टोकन संख्या अंदाजे",
       "modelPinning": "मॉडेल पिनिंग",
       "activeModelPinning": "सक्रिय — सत्र पिनिंगद्वारे निवडलेला मॉडेल",
       "rotated": "रोटेटेड: {initial} -> {final}",
@@ -11498,7 +11546,13 @@
       "correlationIdValue": "संबंधित आयडी: {id}",
       "detailedPayloadInfo": "नवीन विनंत्यांसाठी चार-चरणीय क्लायंट/प्रदाता पेलोड दृश्य पाहण्यासाठी प्रथम तपशीलवार लॉगिंग सक्षम करा.",
       "copyAll": "सर्व कॉपी करा",
-      "copiedAll": "सर्व कॉपी केले"
+      "copiedAll": "सर्व कॉपी केले",
+      "resilienceStoredError": "जतन केलेल्या त्रुटीतून दिले",
+      "resilienceParked": "पाठवण्यापूर्वी {ms} थांबवले",
+      "resilienceRotations": "{count} खाते रोटेशन",
+      "resilienceRetried": "रिकामी फेरी पुन्हा प्रयत्न केली",
+      "resilienceContinued": "स्ट्रीमच्या मध्यातून पुन्हा सुरू केले",
+      "resilienceRecovered": "लवचिकता कृतीद्वारे पुनर्प्राप्त"
     }
   },
   "proxyLogger": {
@@ -11537,7 +11591,14 @@
     "noProxyLogs": "अद्याप कोणतेही प्रॉक्सी लॉग नाहीत. ते येथे पाहण्यासाठी प्रॉक्सी कॉन्फिगर करा आणि API कॉल करा.",
     "noMatchingLogs": "सध्याच्या फिल्टरशी कोणतेही लॉग जुळत नाहीत.",
     "tlsFingerprint": "Chrome 124 TLS फिंगरप्रिंट",
-    "colPublicIp": "सार्वजनिक IP"
+    "colPublicIp": "सार्वजनिक IP",
+    "colUpstream": "उपस्ट्रीम",
+    "colEgress": "इग्रेस IP",
+    "colCorrelation": "संबंधी",
+    "colServedBy": "द्वारे सेवा दिली",
+    "filterTraffic": "वाहतूक",
+    "filterTests": "चाचण्या",
+    "filterSource": "स्रोत"
   },
   "endpointOptions": {
     "speech": "वाणी",
@@ -12012,6 +12073,10 @@
     "stopDns": "DNS थांबवा",
     "toggling": "टॉगल करत आहे…",
     "viewTraffic": "ट्रॅफिक पहा",
+    "resetAgent": "डीफॉल्ट पुनर्संचयित करा",
+    "resetAgentConfirm": "डीफॉल्ट पुनर्संचयित करायचे?",
+    "resetting": "पुनर्संचयित करत आहे…",
+    "resetDone": "{agent} साठी डीफॉल्ट DNS पुनर्संचयित केले. बदल लागू होण्यासाठी अ‍ॅप पूर्णपणे बंद करा (फक्त मिनिमाइज करू नका) आणि पुन्हा उघडा.",
     "emptyNoProvidersTitle": "अद्याप कोणतेही प्रदाते कॉन्फिगर केलेले नाहीत",
     "emptyNoProvidersBody": "AgentBridge वापरण्यासाठी, प्रथम किमान एक प्रदाता कनेक्ट करा. हे ते गंतव्यस्थान असेल जिथे IDE विनंत्या पाठवल्या जातील.",
     "emptyGoToProviders": "प्रदात्यांवर जा",
@@ -12790,7 +12855,13 @@
     "createDahlTokenFailed": "Dahl टोकन तयार करण्यात अयशस्वी झाले",
     "providerProxy": "प्रॉक्सी",
     "providerProxyConfigureHint": "प्रॉक्सी कॉन्फिगर करा",
-    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फिगर केले: {host}"
+    "providerProxyTitleConfigured": "प्रॉक्सी कॉन्फिगर केले: {host}",
+    "proxySetAside": "प्रॉक्सी बाजूला ठेवली",
+    "inheritConnectionOption": "स्वतःची प्रॉक्सी नाही (कनेक्शन वारशाने)",
+    "inheritedProxy": "कनेक्शन वारशाने: {host}",
+    "inheritedPool": "कनेक्शन पूल वारशाने ({count})",
+    "poolEmptyBlocked": "पूल रिकामा — विनंत्या अयशस्वी होतात (थेट नाही)",
+    "directEgress": "थेट (प्रॉक्सीशिवाय)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14119,7 +14190,12 @@
     "directNative": "सिधा",
     "targetUrl": "लक्ष्य URL",
     "error": "त्रुटी",
-    "configuration": "प्रॉक्सी कॉन्फिगरेशन"
+    "configuration": "प्रॉक्सी कॉन्फिगरेशन",
+    "upstreamStatus": "उपस्ट्रीम स्थिती",
+    "noResponse": "कोणतीही प्रतिक्रिया नाही",
+    "egressIp": "इग्रेस IP",
+    "servedBy": "द्वारे सेवा दिली",
+    "correlationId": "संबंधी ID"
   },
   "requestTimeline": {
     "title": "अनुरोध कालावधी",
