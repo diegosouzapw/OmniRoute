@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getApiKeySelfServiceSettings } from "@/lib/db/apiKeySelfServiceSettings";
 import { buildApiKeySelfServiceStatus } from "@/lib/usage/apiKeySelfService";
 import { hasSelfUsageScope } from "@/shared/constants/selfServiceScopes";
 
@@ -10,12 +11,21 @@ function extractBearerToken(request: Request): string | null {
   return token ? token : null;
 }
 
+function extractXApiKey(request: Request): string | null {
+  const token = request.headers.get("x-api-key")?.trim();
+  return token ? token : null;
+}
+
 function authError(status = 401) {
   return NextResponse.json({ error: status === 401 ? "Unauthorized" : "Forbidden" }, { status });
 }
 
+function optionalUsd(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
 export async function GET(request: Request) {
-  const apiKey = extractBearerToken(request);
+  const apiKey = extractBearerToken(request) ?? extractXApiKey(request);
   if (!apiKey) return authError(401);
 
   const { validateApiKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
@@ -29,11 +39,16 @@ export async function GET(request: Request) {
   if (!hasSelfUsageScope(metadata.scopes)) return authError(403);
 
   try {
+    const settings = getApiKeySelfServiceSettings(metadata.id);
     const status = await buildApiKeySelfServiceStatus({
       id: metadata.id,
       name: metadata.name,
       scopes: metadata.scopes,
       allowedConnections: metadata.allowedConnections,
+      usageLimitEnabled: metadata.usageLimitEnabled === true,
+      dailyUsageLimitUsd: optionalUsd(metadata.dailyUsageLimitUsd),
+      weeklyUsageLimitUsd: optionalUsd(metadata.weeklyUsageLimitUsd),
+      sharedQuotaProviders: settings.sharedQuotaProviders,
     });
 
     return NextResponse.json(status);
