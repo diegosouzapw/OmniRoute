@@ -19,6 +19,9 @@ const { generateSignature, setCachedResponse, clearCache } =
 const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
 const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
 const { formatOmniRouteCost } = await import("../../src/domain/omnirouteResponseMeta.ts");
+const { translateNonStreamingResponse } =
+  await import("../../open-sse/handlers/responseTranslator.ts");
+const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -405,6 +408,60 @@ test("checkSemanticCache HIT bills 0 incremental cost and reports the original c
     res.headers.get(OMNIROUTE_RESPONSE_HEADERS.costSaved),
     expectedSaved,
     "X-OmniRoute-Cost-Saved reflects the original cost the cache avoided"
+  );
+});
+
+test("checkSemanticCache replays the full prompt total of an OpenAI answer cached for a Claude client", async () => {
+  clearCache();
+  // A non-streaming Claude client served by an OpenAI provider: the cache stores the
+  // client-format body, where responseTranslator split prompt_tokens into
+  // input_tokens (fresh only) + cache_read/cache_creation counters.
+  const openAiAnswer = {
+    id: "chatcmpl-claude-client",
+    object: "chat.completion",
+    model: "gpt-4o",
+    choices: [
+      { index: 0, message: { role: "assistant", content: "cached answer" }, finish_reason: "stop" },
+    ],
+    usage: {
+      prompt_tokens: 10_000,
+      completion_tokens: 50,
+      total_tokens: 10_050,
+      prompt_tokens_details: { cached_tokens: 9_000, cache_creation_tokens: 900 },
+    },
+  };
+  const cached = translateNonStreamingResponse(openAiAnswer, "openai", "claude");
+  assert.equal(cached.type, "message", "sanity: the cached body is Claude-shaped");
+  assert.equal(cached.usage.input_tokens, 100, "sanity: input_tokens excludes the cache");
+
+  const { args } = makeHitArgs({
+    body: {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "hit query claude client" }],
+      temperature: 0,
+    },
+    stream: false,
+  });
+  seedHit(args, cached);
+
+  const expectedSaved = formatOmniRouteCost(
+    await calculateCost(
+      args.provider,
+      args.model,
+      extractUsageFromResponse(openAiAnswer, args.provider) as Record<string, number>
+    )
+  );
+
+  const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+  assert.ok(result, "HIT -> non-null result");
+  const res = result.response as Response;
+
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.tokensIn), "10000");
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.savingsTokens), "10050");
+  assert.equal(
+    res.headers.get(OMNIROUTE_RESPONSE_HEADERS.costSaved),
+    expectedSaved,
+    "the avoided cost matches the original OpenAI usage, fresh input included"
   );
 });
 
