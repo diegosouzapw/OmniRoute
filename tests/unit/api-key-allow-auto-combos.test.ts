@@ -123,26 +123,21 @@ test("R5: the update route forwards allowAutoCombos into the payload", () => {
 });
 
 test("R7: the API Manager wires the toggle and defaults it ON", () => {
-  const client = read("src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx");
+  const tab = read("src/app/(dashboard)/dashboard/api-manager/[id]/access/tabs/CombosTab.tsx");
+  const form = read("src/app/(dashboard)/dashboard/api-manager/[id]/access/useApiKeyAccessForm.ts");
 
   assert.ok(
-    client.includes("ApiKeyAutoCombosToggle"),
-    "the permissions modal must render the auto-combos toggle"
+    tab.includes("ApiKeyAutoCombosToggle"),
+    "the combos tab must render the auto-combos toggle"
   );
   assert.ok(
-    client.includes("apiKey?.allowAutoCombos !== false"),
+    form.includes("allowAutoCombos: apiKey?.allowAutoCombos !== false"),
     "state must default ON via `!== false` — `=== true` would render a key that predates the field as disabled"
   );
-  // Positional plumbing: the save handler signature, the onSave call and the
-  // PATCH payload must each carry the field, or later arguments shift by one.
+  assert.ok(form.includes("allowAutoCombos: boolean;"), "the form state interface must declare it");
   assert.ok(
-    client.includes("allowAutoCombos: boolean,"),
-    "the save handler and modal prop signatures must declare it"
-  );
-  assert.match(
-    client,
-    /body: JSON\.stringify\(\{[\s\S]*?allowAutoCombos,[\s\S]*?\}\)/,
-    "the PATCH body must include allowAutoCombos"
+    form.includes("allowAutoCombos: formState.allowAutoCombos,"),
+    "the buildApiKeyAccessPayload must include allowAutoCombos"
   );
 });
 
