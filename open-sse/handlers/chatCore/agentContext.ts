@@ -26,7 +26,13 @@ import {
   type AgentSessionTurn,
 } from "./agentSessionTurn.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
-import { discardLatestSessionTurnAttempt, startSessionTurnAttempt } from "./sessionTurnAttempts.ts";
+import { isFusionPanelCall } from "../../utils/fusionPanelContext.ts";
+import {
+  discardSessionTurnAttempt,
+  sessionTurnAttemptSeq,
+  sessionTurnRequestKey,
+  startSessionTurnAttempt,
+} from "./sessionTurnAttempts.ts";
 
 type HeaderSource = Record<string, unknown> | Headers | null | undefined;
 type JsonRecord = Record<string, unknown>;
@@ -236,8 +242,10 @@ export function resolveUsageAgentContext(
   headers: HeaderSource,
   apiKeyInfo: { noLog?: boolean } | null | undefined
 ): AgentContext {
-  const context = extractAgentContext(body, headers);
-  return apiKeyInfo?.noLog === true ? withoutPromptDerivedFields(context) : context;
+  const extracted = extractAgentContext(body, headers);
+  const context = apiKeyInfo?.noLog === true ? withoutPromptDerivedFields(extracted) : extracted;
+  startSessionTurnAttempt(context); // numbers this attempt at dispatch (see sessionTurnAttempts)
+  return context;
 }
 
 export function hasAgentIdentity(
@@ -266,9 +274,10 @@ export interface SessionTurnInput {
  * (compression and compaction rewrite the pipeline body), like call logs.
  */
 export function resolveSessionTurn(input: SessionTurnInput): AgentSessionTurn | null {
+  if (isFusionPanelCall()) return null; // a panel reply never reaches the client
   const rawBody = input.clientRawRequest?.body;
   if (input.streamStatus !== undefined && input.streamStatus !== 200) {
-    discardLatestSessionTurnAttempt(rawBody);
+    discardSessionTurnAttempt(rawBody, input.agentContext);
     return null;
   }
   if (!hasAgentIdentity(input.agentContext) || input.apiKeyInfo?.noLog === true) return null;
@@ -277,8 +286,11 @@ export function resolveSessionTurn(input: SessionTurnInput): AgentSessionTurn | 
     const promptBody = rawBody && extractUserTurnText(rawBody).text ? rawBody : input.body;
     const turn = extractAgentSessionTurn(promptBody, ...input.responses);
     if (!turn) return null;
-    const attempt = startSessionTurnAttempt(rawBody);
-    return { ...turn, requestKey: attempt?.requestKey ?? null, attemptSeq: attempt?.attemptSeq };
+    return {
+      ...turn,
+      requestKey: sessionTurnRequestKey(rawBody),
+      attemptSeq: sessionTurnAttemptSeq(input.agentContext),
+    };
   } catch (error) {
     defaultLogger.debug("AGENT_SESSION", "session turn extraction failed", {
       error: error instanceof Error ? error.message : String(error),

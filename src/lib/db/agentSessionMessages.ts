@@ -78,10 +78,16 @@ const MAX_TRACKED_REQUESTS = 10_000;
 
 interface RequestTurnState {
   rowId: number | null;
+  /** Attempt number of the stored row. */
+  rowSeq: number;
+  /** Highest attempt number saved or discarded; older attempts can no longer write. */
   latestSeq: number;
-  discarded: boolean;
+  /** Attempts whose reply the client never got; a late save of theirs is ignored. */
+  discardedSeqs: number[];
   touchedAt: number;
 }
+
+const MAX_DISCARDED_SEQS_PER_REQUEST = 32;
 
 /** Insertion order is last-use order: every write re-inserts the key at the end. */
 const turnStateByRequestKey = new Map<string, RequestTurnState>();
@@ -122,12 +128,10 @@ export function saveAgentSessionMessage(
   const requestKey = input.requestKey || null;
   const attemptSeq = input.attemptSeq ?? 0;
   const state = requestKey ? readTurnState(requestKey, Date.now()) : undefined;
-  if (
-    state &&
-    (attemptSeq < state.latestSeq || (attemptSeq === state.latestSeq && state.discarded))
-  ) {
+  if (state && (attemptSeq < state.latestSeq || state.discardedSeqs.includes(attemptSeq))) {
     return state.rowId ?? 0; // an older or dropped attempt finished saving late
   }
+  const discardedSeqs = state?.discardedSeqs ?? [];
 
   if (requestKey && state?.rowId != null) {
     const updated = db
@@ -139,7 +143,12 @@ export function saveAgentSessionMessage(
       )
       .run(...values, state.rowId, input.sessionId);
     if (Number(updated.changes) > 0) {
-      writeTurnState(requestKey, { rowId: state.rowId, latestSeq: attemptSeq, discarded: false });
+      writeTurnState(requestKey, {
+        rowId: state.rowId,
+        rowSeq: attemptSeq,
+        latestSeq: attemptSeq,
+        discardedSeqs,
+      });
       return state.rowId;
     }
   }
@@ -154,13 +163,16 @@ export function saveAgentSessionMessage(
     .run(input.sessionId, ...values);
 
   const rowId = Number(result.lastInsertRowid);
-  if (requestKey) writeTurnState(requestKey, { rowId, latestSeq: attemptSeq, discarded: false });
+  if (requestKey) {
+    writeTurnState(requestKey, { rowId, rowSeq: attemptSeq, latestSeq: attemptSeq, discardedSeqs });
+  }
   return rowId;
 }
 
 /**
- * Drops the turn of an attempt whose reply the client never got. Removes the request's stored
- * row, and a save of that attempt (or an older one) that lands later is ignored.
+ * Drops the turn of one attempt whose reply the client never got: its stored row, if the row
+ * is that attempt's, and any save of it that lands later. Turns of other attempts of the same
+ * request (such as the winner of a combo) are left alone.
  */
 export function discardAgentSessionMessageAttempt(
   db: SqliteAdapter,
@@ -168,11 +180,19 @@ export function discardAgentSessionMessageAttempt(
   attemptSeq: number
 ): void {
   const state = readTurnState(requestKey, Date.now());
-  if (state && attemptSeq < state.latestSeq) return; // a newer attempt owns the turn
-  if (state?.rowId != null) {
-    db.prepare("DELETE FROM agent_session_messages WHERE id = ?").run(state.rowId);
+  let rowId = state?.rowId ?? null;
+  if (rowId !== null && state?.rowSeq === attemptSeq) {
+    db.prepare("DELETE FROM agent_session_messages WHERE id = ?").run(rowId);
+    rowId = null;
   }
-  writeTurnState(requestKey, { rowId: null, latestSeq: attemptSeq, discarded: true });
+  writeTurnState(requestKey, {
+    rowId,
+    rowSeq: rowId === null ? 0 : (state?.rowSeq ?? 0),
+    latestSeq: Math.max(state?.latestSeq ?? 0, attemptSeq),
+    discardedSeqs: [...(state?.discardedSeqs ?? []), attemptSeq].slice(
+      -MAX_DISCARDED_SEQS_PER_REQUEST
+    ),
+  });
 }
 
 export function listAgentSessionMessages(

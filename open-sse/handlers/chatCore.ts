@@ -1115,7 +1115,7 @@ async function handleChatCoreInner({
       detailedLoggingEnabled,
       reqLogger,
       pendingRequestId,
-      clientRawRequest,
+      clientRawRequest, agentContext,
       requestedModel,
       credentials,
       startTime,
