@@ -24,6 +24,7 @@ import { isEstimatedUsage } from "../../utils/usageTracking.ts";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./logTruncation.ts";
 import { attachLogMeta } from "./cacheUsageMeta.ts";
 import { readAddedWait } from "../../utils/proxyFetch.ts";
+import { discardLatestSessionTurnAttempt } from "./sessionTurnAttempts.ts";
 
 const OMITTED_VIDEO_TRANSCRIPT_REQUEST = { _omniroute_omitted: "video-transcript" };
 
@@ -271,7 +272,7 @@ export type PersistAttemptLogsContext = {
   detailedLoggingEnabled: boolean;
   reqLogger: { getPipelinePayloads?: () => Record<string, unknown> | undefined } | null | undefined;
   pendingRequestId: unknown;
-  clientRawRequest: { endpoint?: string } | null | undefined;
+  clientRawRequest: { endpoint?: string; body?: unknown } | null | undefined;
   requestedModel: unknown;
   credentials: { connectionId?: string } | null | undefined;
   startTime: number;
@@ -427,6 +428,8 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     videoBridgeLogRedaction,
     videoContentRemoved,
   } = ctx;
+  // A non-200 outcome means the client did not get the latest attempt's reply.
+  if (status !== 200) discardLatestSessionTurnAttempt(clientRawRequest?.body);
   const initialConnectionId = toConnectionId(connectionId);
   const finalConnectionId = toConnectionId(credentials?.connectionId) || initialConnectionId;
   const accountRotationMeta = buildAccountRotationMeta(

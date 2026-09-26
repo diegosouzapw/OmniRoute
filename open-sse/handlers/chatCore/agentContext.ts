@@ -20,8 +20,13 @@
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 import { defaultLogger } from "../../utils/logger.ts";
-import { extractAgentSessionTurn, type AgentSessionTurn } from "./agentSessionTurn.ts";
+import {
+  extractAgentSessionTurn,
+  extractUserTurnText,
+  type AgentSessionTurn,
+} from "./agentSessionTurn.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
+import { discardLatestSessionTurnAttempt, startSessionTurnAttempt } from "./sessionTurnAttempts.ts";
 
 type HeaderSource = Record<string, unknown> | Headers | null | undefined;
 type JsonRecord = Record<string, unknown>;
@@ -241,27 +246,14 @@ export function hasAgentIdentity(
   return Boolean(context?.clientSessionId || context?.projectName);
 }
 
-/** One key per client request: every combo or fallback attempt reuses the raw request body. */
-const requestKeysByRawBody = new WeakMap<object, string>();
-
-function sessionTurnRequestKey(rawBody: unknown): string | null {
-  if (!rawBody || typeof rawBody !== "object") return null;
-  let key = requestKeysByRawBody.get(rawBody);
-  if (!key) {
-    key = globalThis.crypto.randomUUID();
-    requestKeysByRawBody.set(rawBody, key);
-  }
-  return key;
-}
-
 export interface SessionTurnInput {
   /** The client's request as received; its body is the prompt source and the attempt key. */
   clientRawRequest?: { body?: unknown } | null;
-  /** Pipeline body, used only when there is no raw client body. */
+  /** Pipeline body, used when the raw client body has no prompt (log bounds can drop it). */
   body: unknown;
   /** Alternative representations of the client-visible reply (see extractAgentSessionTurn). */
   responses: readonly unknown[];
-  /** Streaming completion status; a stream that did not end with 200 stores no turn. */
+  /** Streaming completion status; a failed stream stores no turn and drops the earlier one. */
   streamStatus?: number;
   agentContext: AgentContext | null | undefined;
   apiKeyInfo: { noLog?: boolean } | null | undefined;
@@ -274,15 +266,19 @@ export interface SessionTurnInput {
  * (compression and compaction rewrite the pipeline body), like call logs.
  */
 export function resolveSessionTurn(input: SessionTurnInput): AgentSessionTurn | null {
+  const rawBody = input.clientRawRequest?.body;
+  if (input.streamStatus !== undefined && input.streamStatus !== 200) {
+    discardLatestSessionTurnAttempt(rawBody);
+    return null;
+  }
   if (!hasAgentIdentity(input.agentContext) || input.apiKeyInfo?.noLog === true) return null;
-  if (input.streamStatus !== undefined && input.streamStatus !== 200) return null;
   if (!isFeatureFlagEnabled("AGENT_SESSION_MESSAGES_ENABLED")) return null;
   try {
-    const rawBody = input.clientRawRequest?.body ?? input.body;
-    const turn = extractAgentSessionTurn(rawBody, ...input.responses);
-    return turn
-      ? { ...turn, requestKey: sessionTurnRequestKey(input.clientRawRequest?.body) }
-      : null;
+    const promptBody = rawBody && extractUserTurnText(rawBody).text ? rawBody : input.body;
+    const turn = extractAgentSessionTurn(promptBody, ...input.responses);
+    if (!turn) return null;
+    const attempt = startSessionTurnAttempt(rawBody);
+    return { ...turn, requestKey: attempt?.requestKey ?? null, attemptSeq: attempt?.attemptSeq };
   } catch (error) {
     defaultLogger.debug("AGENT_SESSION", "session turn extraction failed", {
       error: error instanceof Error ? error.message : String(error),
