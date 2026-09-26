@@ -23,6 +23,7 @@
  */
 
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/db/proxies";
+import { exportProxyLogsSince } from "@/lib/db/proxyLogs";
 import { isProxyLogIncludeIps } from "@/lib/proxyLogger";
 import {
   getRecentEgressSharingSummary,
@@ -62,6 +63,17 @@ import {
   isProxyHealthBlockedResetsStreakEnabled,
   isProxySkipRecentlyFailedEnabled,
 } from "@/shared/utils/featureFlags";
+import {
+  decidePassiveVerdict,
+  getCachedPassiveVerdict,
+  isPassiveSweepSkipEnabled,
+  passiveVerdictKey,
+  resolvePassiveCacheTtlMs,
+  resolvePassiveWindowMs,
+  setCachedPassiveVerdict,
+  type PassiveLogRow,
+  type PassiveVerdict,
+} from "./passiveVerdict.ts";
 
 // #6246: a HEAD to the public probe target through a legit (often loaded) proxy
 // can exceed a few seconds; the old 5s ceiling produced false negatives that
@@ -523,6 +535,101 @@ async function testOneProxy(proxy: {
   }
 }
 
+/**
+ * Passive verdicts read from production traffic, grouped by proxy endpoint.
+ * Filled from the persisted request log on a short TTL so one sweep pays one
+ * bounded windowed read; a proxy that just failed a real request is skipped
+ * without waiting for the next live probe.
+ */
+interface EndpointVerdict {
+  verdict: PassiveVerdict;
+  /** Distinct providers observed for the endpoint; healthy skips need exactly one. */
+  providers: string[];
+}
+
+function readPassiveVerdicts(
+  proxies: Array<{ host: string; port: number }>
+): Map<string, EndpointVerdict> {
+  const verdicts = new Map<string, EndpointVerdict>();
+  const windowMs = resolvePassiveWindowMs();
+  const ttlMs = resolvePassiveCacheTtlMs();
+  const now = Date.now();
+  const since = new Date(now - windowMs).toISOString();
+  let rows: Record<string, unknown>[] = [];
+  try {
+    // Bounded by the short window via idx_pl_timestamp; never let a DB
+    // hiccup fail the sweep — fall back to live probes (unknown everywhere).
+    rows = exportProxyLogsSince(since);
+  } catch (error) {
+    console.error(`${LOG_PREFIX} Passive verdicts skipped:`, error);
+    return verdicts;
+  }
+  const endpoints = new Set(proxies.map((p) => passiveVerdictKey(p.host, p.port)));
+  const byEndpoint = new Map<string, PassiveLogRow[]>();
+  for (const row of rows) {
+    const host = typeof row.proxy_host === "string" ? row.proxy_host : null;
+    const port = typeof row.proxy_port === "number" ? row.proxy_port : null;
+    if (!host || !port || !endpoints.has(passiveVerdictKey(host, port))) continue;
+    const key = passiveVerdictKey(host, port);
+    const list = byEndpoint.get(key) ?? [];
+    list.push(row as PassiveLogRow);
+    byEndpoint.set(key, list);
+  }
+  for (const [key, keyedRows] of byEndpoint) {
+    const cached = getCachedPassiveVerdict(key, ttlMs, now);
+    const providers = [...new Set(keyedRows.map((r) => r.provider).filter((p) => p))];
+    if (cached !== null) {
+      verdicts.set(key, { verdict: cached.verdict, providers: cached.providers });
+      continue;
+    }
+    const verdict = decidePassiveVerdict({ rows: keyedRows });
+    setCachedPassiveVerdict(key, verdict, providers as string[], now);
+    verdicts.set(key, { verdict, providers: providers as string[] });
+  }
+  return verdicts;
+}
+
+/** Test-only: verdict lookup seam for sweep-level tests. */
+export type PassiveVerdictReader = (proxyId: string) => PassiveVerdict;
+
+let passiveReader: PassiveVerdictReader | null = null;
+
+/** Test-only: override the verdict lookup. */
+export function __setPassiveVerdictReaderForTesting(fn: PassiveVerdictReader | null): void {
+  passiveReader = fn;
+}
+
+type PassiveSkipOutcome = "passive-skipped-degraded" | "passive-skipped-healthy";
+
+/**
+ * Passive skip check for one proxy: production traffic already judged this
+ * endpoint. A recent attributed failure skips the live probe; a recent
+ * success skips it only when the window shows a single provider (a success
+ * for one provider never skips the probe another provider would need).
+ * Returns the skip outcome, or null when the proxy must be probed live.
+ */
+function resolvePassiveSkip(
+  proxy: { id: string; host: string; port: number },
+  passiveVerdicts: Map<string, EndpointVerdict>
+): PassiveSkipOutcome | null {
+  const endpointVerdict = passiveReader
+    ? { verdict: passiveReader(proxy.id), providers: [] as string[] }
+    : (passiveVerdicts.get(`${proxy.host}:${proxy.port}`) ?? {
+        verdict: "unknown" as const,
+        providers: [] as string[],
+      });
+  if (endpointVerdict.verdict === "degraded") return "passive-skipped-degraded";
+  if (endpointVerdict.verdict === "healthy" && isSingleProviderSkip(endpointVerdict)) {
+    return "passive-skipped-healthy";
+  }
+  return null;
+}
+
+/** A healthy verdict skips the probe only with exactly one observed provider. */
+function isSingleProviderSkip(endpointVerdict: EndpointVerdict): boolean {
+  return passiveReader !== null || endpointVerdict.providers.length === 1;
+}
+
 async function sweep(): Promise<void> {
   // #10677: anonymous egress-sharing signal from persisted proxy_logs (no live
   // probes). Logged only when sharing exists — the sweep line is a warning
@@ -542,6 +649,13 @@ async function sweep(): Promise<void> {
   const { items: proxies } = await listProxies({ includeSecrets: true });
   if (proxies.length === 0) return;
 
+  // Passive verdicts from production traffic (opt-in): an endpoint already
+  // judged by recent traffic skips the live probe. Scheduling only — skips
+  // are collected with the probe results and partitioned before the decision
+  // phase, so they never touch the failure streak, the cross-proxy evidence,
+  // the promotion tally, or the sweep verdict display.
+  const passiveEnabled = isPassiveSweepSkipEnabled();
+  const passiveVerdicts = passiveEnabled ? readPassiveVerdicts(proxies) : new Map();
   const failureMap = getFailureMap();
   const removeAfter = getRemoveAfter();
   const autoRemove = isAutoRemoveEnabled();
@@ -551,6 +665,16 @@ async function sweep(): Promise<void> {
   // Phase 1 — collect raw probe results across all batches WITHOUT deciding
   // (cross-proxy evidence requires every response of the target first).
   const collected = await collectProbeResults(proxies, async (proxy) => {
+    const skip = passiveEnabled ? resolvePassiveSkip(proxy, passiveVerdicts) : null;
+    if (skip !== null) {
+      return {
+        id: proxy.id,
+        proxy,
+        outcome: skip as unknown as ProxyProbeOutcome,
+        status: null,
+        target: null,
+      };
+    }
     const { outcome, status, target } = await testOneProxy(proxy);
     // Ledger: only a sweep-observed 429 with a usable key is recorded.
     // No memory write happens on fail/hang here, except a promoted
@@ -561,25 +685,42 @@ async function sweep(): Promise<void> {
     return { id: proxy.id, proxy, outcome, status, target };
   });
 
+  // Partition: passive skips stay out of the decision phase (no streak, no
+  // status, no evidence, no verdict display) and are only counted apart.
+  const skipped = collected.filter(
+    (entry) =>
+      entry.outcome === "passive-skipped-degraded" || entry.outcome === "passive-skipped-healthy"
+  );
+  const probed = collected.filter(
+    (entry) =>
+      entry.outcome !== "passive-skipped-degraded" && entry.outcome !== "passive-skipped-healthy"
+  );
+  const passiveSkippedDegraded = skipped.filter(
+    (entry) => entry.outcome === "passive-skipped-degraded"
+  ).length;
+  const passiveSkippedHealthy = skipped.length - passiveSkippedDegraded;
+
   // Previous-generation evidence is replaced wholesale (never merged): the
   // current sweep's answered targets become generation N-1 for the next sweep.
   // Lift the abstention only where proof exists (same sweep or the
   // immediately previous generation). Received HTTP statuses are never
   // reclassified — only status-less `inconclusive` probes can become `fail`.
+  // Only live probes feed the evidence: skipped endpoints contribute nothing.
   const { tested, alive, inconclusive, blocked, hangs, removed, disabled, promoted } =
-    await decideCollectedResults(collected, {
+    await decideCollectedResults(probed, {
       failureMap,
       removeAfter,
       autoRemove,
       autoDisable,
       blockedResetsStreak,
     });
-  refreshTargetEvidence(collected);
+  refreshTargetEvidence(probed);
 
   console.log(
     `${LOG_PREFIX} Sweep complete: ${tested} tested, ${alive} alive, ` +
       `${blocked} refused by target, ${inconclusive} inconclusive, ${promoted} promoted, ` +
-      `${removed} auto-removed, ${disabled} auto-disabled`
+      `${removed} auto-removed, ${disabled} auto-disabled` +
+      `${passiveSkippedDegraded > 0 || passiveSkippedHealthy > 0 ? `, ${passiveSkippedDegraded} passive-skipped (recent failure), ${passiveSkippedHealthy} passive-skipped (recent success)` : ""}`
   );
   if (hangs > 0) {
     console.debug(`${LOG_PREFIX} stalled handshakes observed: ${hangs}`);

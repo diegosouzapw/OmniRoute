@@ -1,0 +1,1 @@
+- **feat(proxy-health):** skip sweep probes covered by recent production traffic, opt-in via `PROXY_HEALTH_PASSIVE_SKIP` (default off: sweep probes every proxy as before) ([#14805](https://github.com/diegosouzapw/OmniRoute/pull/14805)) — thanks @maxmad64bis
