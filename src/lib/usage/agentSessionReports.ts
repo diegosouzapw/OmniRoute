@@ -31,9 +31,9 @@ export interface ReportTotals {
     cacheRead: number;
     cacheCreation: number;
     reasoning: number;
-    /** Input that was neither read from nor written to the prompt cache. */
+    /** Input that was neither read from nor written to the prompt cache, clamped at 0. */
     uncachedInput: number;
-    /** uncachedInput + cacheRead + cacheCreation + output, i.e. input + output. */
+    /** input + output: cache reads and writes are already part of input. */
     total: number;
   };
   sessions: number;
@@ -105,8 +105,10 @@ class TotalsAccumulator {
   }
 
   toTotals(): ReportTotals {
-    // Slice input is cache-inclusive per request (see listAgentSessionUsageSlices), so the
-    // uncached part is a plain difference and adding the cache counters again double counts.
+    // Stored input already includes cache reads and writes, so the uncached part is a plain
+    // difference and adding the cache counters again double counts. Requests recorded before the
+    // usage extractor fix (#14878) by some non-streaming Claude-format providers stored input
+    // without its cached part; they may under-report input and are not guessed at.
     const { input, output, cacheRead, cacheCreation } = this.tokens;
     return {
       requests: this.requests,

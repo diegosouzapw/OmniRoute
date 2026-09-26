@@ -89,7 +89,9 @@ function SessionDetailModal({ sessionId, onClose }: { sessionId: string; onClose
                   <th className="py-2 px-2">{t("colTime")}</th>
                   <th className="py-2 px-2">{t("provider")}</th>
                   <th className="py-2 px-2">{t("colModel")}</th>
-                  <th className="py-2 px-2 text-right">{t("colTokensInOut")}</th>
+                  <th className="py-2 px-2 text-right">{tokenLabels.input}</th>
+                  <th className="py-2 px-2 text-right">{tokenLabels.output}</th>
+                  <th className="py-2 px-2 text-right">{tokenLabels.cache}</th>
                   <th className="py-2 px-2 text-right">{t("colLatency")}</th>
                   <th className="py-2 px-2">{t("colStatus")}</th>
                 </tr>
@@ -103,7 +105,13 @@ function SessionDetailModal({ sessionId, onClose }: { sessionId: string; onClose
                     <td className="py-1.5 px-2">{request.provider ?? "-"}</td>
                     <td className="py-1.5 px-2 font-mono">{request.model ?? "-"}</td>
                     <td className="py-1.5 px-2 text-right tabular-nums">
-                      {fmtCompact(request.tokens.input)} / {fmtCompact(request.tokens.output)}
+                      {fmtCompact(splitTokens(request.tokens).input)}
+                    </td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">
+                      {fmtCompact(splitTokens(request.tokens).output)}
+                    </td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">
+                      <CacheTokens split={splitTokens(request.tokens)} />
                     </td>
                     <td className="py-1.5 px-2 text-right tabular-nums">{request.latencyMs}ms</td>
                     <td

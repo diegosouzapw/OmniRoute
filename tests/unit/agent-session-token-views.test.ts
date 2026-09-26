@@ -1,7 +1,6 @@
 // Agent-session token split: /v1/me/sessions, the team-report session detail and the team-report
-// rollups must return the same Input / Cache / Output figures for the same requests, including
-// requests stored without their cached part (non-streaming Claude-format providers before the
-// usage extractor fix).
+// rollups must return the same Input / Cache / Output figures for the same requests, and the
+// request rows of a session must add up to it.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -22,6 +21,7 @@ const { buildAgentSessionReport } = await import("../../src/lib/usage/agentSessi
 const { splitTokens } =
   await import("../../src/app/(dashboard)/dashboard/analytics/team-reports/components/format.ts");
 const { GET: getMeSessions } = await import("../../src/app/api/v1/me/sessions/route.ts");
+const { GET: getMeSessionDetail } = await import("../../src/app/api/v1/me/sessions/[id]/route.ts");
 const { GET: getReportSession } = await import("../../src/app/api/reports/sessions/[id]/route.ts");
 const { SELF_USAGE_SCOPE } = await import("../../src/shared/constants/selfServiceScopes.ts");
 
@@ -32,17 +32,20 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-// Every request is 100 fresh + 9000 cache-read + 900 cache-write input tokens and 50 output.
-const CORRECT_ROW = { input: 10000, output: 50, cacheRead: 9000, cacheCreation: 900 };
-const ROW_STORED_WITHOUT_CACHE = { input: 100, output: 50, cacheRead: 9000, cacheCreation: 900 };
+// Stored input includes cache reads and writes: 100 + 0 + 6000 uncached tokens in total.
+const ROWS = [
+  { input: 10000, output: 50, cacheRead: 9000, cacheCreation: 900 },
+  { input: 9900, output: 50, cacheRead: 9000, cacheCreation: 900 },
+  { input: 12000, output: 70, cacheRead: 6000, cacheCreation: 0 },
+];
 const EXPECTED = {
-  input: 30000,
-  uncachedInput: 300,
-  cacheRead: 27000,
-  cacheCreation: 2700,
-  output: 150,
+  input: 31900,
+  uncachedInput: 6100,
+  cacheRead: 24000,
+  cacheCreation: 1800,
+  output: 170,
   reasoning: 0,
-  total: 30150,
+  total: 32070,
 };
 
 let keyToken = "";
@@ -56,8 +59,7 @@ test.before(async () => {
   keyToken = key.key;
   keyId = key.id;
 
-  const rows = [CORRECT_ROW, ROW_STORED_WITHOUT_CACHE, CORRECT_ROW];
-  for (const [index, tokens] of rows.entries()) {
+  for (const [index, tokens] of ROWS.entries()) {
     await usageHistory.saveRequestUsage({
       provider: "openai",
       model: "gpt-4o-mini",
@@ -108,7 +110,30 @@ test("the self-service API, the report detail and the report rollups agree on th
   assert.ok(Math.abs(report.totals.costUsd - session.costUsd) < 1e-9, "same pricing input");
 
   // The dashboard shows the same figures whichever view it renders.
-  const shown = { input: 300, output: 150, cache: 29700, cacheRead: 27000, cacheCreation: 2700 };
+  const shown = { input: 6100, output: 170, cache: 25800, cacheRead: 24000, cacheCreation: 1800 };
   assert.deepEqual(splitTokens(detail.session.tokens), shown);
   assert.deepEqual(splitTokens(report.totals.tokens), shown);
+
+  // The request rows of both detail views add up to the session split.
+  const meDetailRes = await getMeSessionDetail(
+    new Request(`http://localhost/api/v1/me/sessions/${session.id}`, {
+      headers: { Authorization: `Bearer ${keyToken}` },
+    }),
+    { params: Promise.resolve({ id: session.id }) }
+  );
+  type RequestRows = { recentRequests: Array<{ tokens: Parameters<typeof splitTokens>[0] }> };
+  const meDetail = (await meDetailRes.json()) as RequestRows;
+  for (const rows of [meDetail.recentRequests, (detail as unknown as RequestRows).recentRequests]) {
+    assert.equal(rows.length, ROWS.length);
+    const summed = rows
+      .map((row) => splitTokens(row.tokens))
+      .reduce((sum, row) => ({
+        input: sum.input + row.input,
+        output: sum.output + row.output,
+        cache: sum.cache + row.cache,
+        cacheRead: sum.cacheRead + row.cacheRead,
+        cacheCreation: sum.cacheCreation + row.cacheCreation,
+      }));
+    assert.deepEqual(summed, shown);
+  }
 });
