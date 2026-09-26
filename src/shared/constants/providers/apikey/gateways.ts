@@ -202,6 +202,20 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create and verify an AnyAPI account, then use https://api.anyapi.ai/v1 as the OpenAI-compatible base URL.",
   },
+  beatapi: {
+    id: "beatapi",
+    serviceKinds: ["llm"],
+    alias: "beatapi",
+    name: "BeatAPI",
+    icon: "hub",
+    color: "#2563EB",
+    textIcon: "BA",
+    passthroughModels: true,
+    website: "https://beatapi.io",
+    authHint: "Create an API key at https://beatapi.io/dashboard/apikeys, then paste it here.",
+    apiHint:
+      "OpenAI-compatible base URL: https://api.beatapi.io/v1. Available models depend on your account; check the live model list before selecting one.",
+  },
   electronhub: {
     id: "electronhub",
     serviceKinds: ["llm"],

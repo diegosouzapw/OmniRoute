@@ -13,6 +13,7 @@ export const PROVIDER_ENDPOINTS = {
   poolside: "https://inference.poolside.ai/v1/chat/completions",
   fastrouter: "https://api.fastrouter.ai/api/v1/chat/completions",
   anyapi: "https://api.anyapi.ai/v1/chat/completions",
+  beatapi: "https://api.beatapi.io/v1/chat/completions",
   electronhub: "https://api.electronhub.ai/v1/chat/completions",
   llmgateway: "https://api.llmgateway.io/v1/chat/completions",
   lyceum: "https://api.lyceum.technology/openai/v1/chat/completions",

@@ -120,6 +120,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "zylo-api",
   "fastrouter",
   "anyapi",
+  "beatapi",
   "electronhub",
   "llmgateway",
   "lyceum",
