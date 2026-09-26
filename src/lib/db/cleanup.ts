@@ -98,10 +98,6 @@ export async function cleanupCallLogs(): Promise<CleanupResult> {
 }
 
 /**
- * Clean up old usage_history based on retention settings.
- */
-
-/**
  * Clean up old agent_session_messages based on retention settings.
  */
 export async function cleanupAgentSessionMessages(): Promise<CleanupResult> {
@@ -122,6 +118,9 @@ export async function cleanupAgentSessionMessages(): Promise<CleanupResult> {
   return result;
 }
 
+/**
+ * Clean up old usage_history based on retention settings.
+ */
 export async function cleanupUsageHistory(): Promise<CleanupResult> {
   const db = getDbInstance();
   const retention = getRetentionSettings();
@@ -839,6 +838,7 @@ const RESET_USAGE_HISTORY_PERIOD_MS: Record<TimedResetUsageHistoryPeriod, number
 
 export interface ResetUsageHistoryResult extends CleanupResult {
   deletedUsageHistory: number;
+  deletedAgentSessionMessages: number;
   deletedDailySummary: number;
   deletedHourlySummary: number;
   deletedCallLogs: number;
@@ -967,6 +967,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
   const result: ResetUsageHistoryResult = {
     deleted: 0,
     deletedUsageHistory: 0,
+    deletedAgentSessionMessages: 0,
     deletedDailySummary: 0,
     deletedHourlySummary: 0,
     deletedCallLogs: 0,
