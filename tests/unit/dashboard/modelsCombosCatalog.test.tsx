@@ -437,6 +437,39 @@ describe("Models and Combos Catalog Page UI", () => {
     expect(bodyRows()).toHaveLength(2);
   });
 
+  it("ignores unknown provider filters once catalog options load", async () => {
+    installFetch();
+    window.history.replaceState(null, "", "/dashboard/models?provider=unknown");
+    await renderPage();
+    expect(bodyRows().length).toBeGreaterThan(0);
+    expect(window.location.search).not.toContain("provider=unknown");
+  });
+
+  it("keeps both row tests disabled until their own requests finish", async () => {
+    const responses = [deferred<Response>(), deferred<Response>()];
+    let index = 0;
+    installFetch({ modelTest: () => responses[index++].promise });
+    await renderPage();
+    const buttons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button[data-testid^='test-model-']")
+    );
+    await click(buttons[0]);
+    await click(buttons[1]);
+    expect(buttons[0].disabled).toBe(true);
+    expect(buttons[1].disabled).toBe(true);
+    await act(async () => {
+      responses[0].resolve(jsonResponse({ status: "ok", latencyMs: 90 }));
+      await flush();
+    });
+    expect(buttons[0].disabled).toBe(false);
+    expect(buttons[1].disabled).toBe(true);
+    await act(async () => {
+      responses[1].resolve(jsonResponse({ status: "ok", latencyMs: 90 }));
+      await flush();
+    });
+    expect(buttons[1].disabled).toBe(false);
+  });
+
   it("executes a single model test and displays the status badge and latency", async () => {
     const fetchMock = installFetch();
     await renderPage();

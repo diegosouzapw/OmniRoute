@@ -147,10 +147,10 @@ export function mapBatchResponse(
     if (!isRecord(entry)) return [];
     const latencyMs = asNumber(entry.latencyMs);
     const statusCode = asNumber(entry.statusCode);
-    const status = normalizeTestStatus(
-      typeof entry.status === "string" ? entry.status : "error",
-      latencyMs
-    );
+    const isTimeout = entry.isTimeout === true || entry.status === "slow";
+    const status = isTimeout
+      ? "error"
+      : normalizeTestStatus(typeof entry.status === "string" ? entry.status : "error", latencyMs);
     const error = status === "error" ? extractErrorText(entry.error) : undefined;
     return [
       {
@@ -163,7 +163,7 @@ export function mapBatchResponse(
             ? failureClass(error, statusCode, {
                 rateLimited: entry.rateLimited === true,
                 isQuota: entry.isQuota === true,
-                isTimeout: entry.isTimeout === true,
+                isTimeout,
               })
             : undefined,
         statusCode,

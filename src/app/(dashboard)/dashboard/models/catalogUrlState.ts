@@ -48,15 +48,16 @@ export function parseCatalogTab(params: URLSearchParams): CatalogTab {
 }
 
 export function parseModelFilters(params: URLSearchParams): CatalogFilters {
+  const onModelsTab = parseCatalogTab(params) === "models";
   return {
-    query: params.get("query") || "",
+    query: onModelsTab ? params.get("query") || "" : "",
     providerId: params.get("provider") || "all",
     type: params.get("type") || "all",
     subtype: params.get("subtype") || "all",
     capability: params.get("capability") || "all",
     pricing: pickAllowed(params.get("pricing"), PRICING_VALUES),
     providerHealth: pickAllowed(params.get("health"), HEALTH_VALUES),
-    testResult: pickAllowed(params.get("testResult"), TEST_RESULT_VALUES),
+    testResult: pickAllowed(onModelsTab ? params.get("testResult") : null, TEST_RESULT_VALUES),
     minContextLength: parseNonNegativeInt(params.get("minContext")),
     minMaxOutputTokens: parseNonNegativeInt(params.get("minOutput")),
   };

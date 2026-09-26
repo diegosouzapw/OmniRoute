@@ -65,7 +65,7 @@ export default function CatalogTabs({
             role="tab"
             id={catalogTabId(tab)}
             aria-selected={selected}
-            aria-controls={catalogPanelId(tab)}
+            aria-controls={selected ? catalogPanelId(tab) : undefined}
             tabIndex={selected ? 0 : -1}
             onClick={() => onSelect(tab)}
             onKeyDown={(event) => handleKeyDown(event, index)}

@@ -96,7 +96,11 @@ export function loadCatalogTestResults(): Record<string, CatalogTestResult> {
         typeof value === "object" &&
         !Array.isArray(value) &&
         "status" in value &&
-        typeof (value as { status: unknown }).status === "string"
+        typeof (value as { status: unknown }).status === "string" &&
+        "testedAt" in value &&
+        typeof value.testedAt === "number" &&
+        Number.isFinite(value.testedAt) &&
+        Math.abs(value.testedAt) <= 8.64e15
       ) {
         sanitized[key] = value as CatalogTestResult;
       }

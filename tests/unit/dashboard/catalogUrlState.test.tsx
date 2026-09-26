@@ -49,6 +49,16 @@ describe("parseModelFilters", () => {
     expect(parseModelFilters(new URLSearchParams(""))).toEqual(DEFAULT_MODEL_FILTERS);
   });
 
+  it("does not leak combo search or test-result filters into models after reload", () => {
+    const params = buildCatalogSearchParams("combos", DEFAULT_MODEL_FILTERS, {
+      ...DEFAULT_COMBO_FILTERS,
+      query: "fast",
+      testResult: "error",
+    });
+    expect(parseModelFilters(params)).toEqual(DEFAULT_MODEL_FILTERS);
+    expect(parseComboFilters(params)).toMatchObject({ query: "fast", testResult: "error" });
+  });
+
   it("reads every model filter param", () => {
     expect(
       parseModelFilters(

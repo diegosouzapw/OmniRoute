@@ -62,6 +62,30 @@ export function buildModelBatches(
   return batches;
 }
 
+export async function runModelBatches(
+  batches: ModelTestBatch[],
+  signal: AbortSignal,
+  worker: (batch: ModelTestBatch) => Promise<void>
+): Promise<void> {
+  const providerGroups = new Map<string, ModelTestBatch[]>();
+  for (const batch of batches) {
+    const group = providerGroups.get(batch.providerId) ?? [];
+    group.push(batch);
+    providerGroups.set(batch.providerId, group);
+  }
+  await runWithConcurrency(
+    [...providerGroups.values()],
+    BULK_CONCURRENCY,
+    signal,
+    async (group) => {
+      for (const batch of group) {
+        if (signal.aborted) return;
+        await worker(batch);
+      }
+    }
+  );
+}
+
 /** Run `worker` over `items` with at most `limit` in flight; stop scheduling once `signal` aborts. */
 export async function runWithConcurrency<T>(
   items: T[],
