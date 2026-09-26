@@ -19,7 +19,8 @@
 
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
-import { extractAgentSessionTurn, type ExtractedAgentSessionTurn } from "./agentSessionTurn.ts";
+import { defaultLogger } from "../../utils/logger.ts";
+import { extractAgentSessionTurn, type AgentSessionTurn } from "./agentSessionTurn.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
 
 type HeaderSource = Record<string, unknown> | Headers | null | undefined;
@@ -240,22 +241,52 @@ export function hasAgentIdentity(
   return Boolean(context?.clientSessionId || context?.projectName);
 }
 
+/** One key per client request: every combo or fallback attempt reuses the raw request body. */
+const requestKeysByRawBody = new WeakMap<object, string>();
+
+function sessionTurnRequestKey(rawBody: unknown): string | null {
+  if (!rawBody || typeof rawBody !== "object") return null;
+  let key = requestKeysByRawBody.get(rawBody);
+  if (!key) {
+    key = globalThis.crypto.randomUUID();
+    requestKeysByRawBody.set(rawBody, key);
+  }
+  return key;
+}
+
+export interface SessionTurnInput {
+  /** The client's request as received; its body is the prompt source and the attempt key. */
+  clientRawRequest?: { body?: unknown } | null;
+  /** Pipeline body, used only when there is no raw client body. */
+  body: unknown;
+  /** Alternative representations of the client-visible reply (see extractAgentSessionTurn). */
+  responses: readonly unknown[];
+  /** Streaming completion status; a stream that did not end with 200 stores no turn. */
+  streamStatus?: number;
+  agentContext: AgentContext | null | undefined;
+  apiKeyInfo: { noLog?: boolean } | null | undefined;
+}
+
 /**
  * Simplified conversation turn to store for the request's agent session, or null. Stored only
- * when AGENT_SESSION_MESSAGES_ENABLED is on, the request has an agent identity and the key is
- * not `noLog`. `responseBodies` are tried in order (see extractAgentSessionTurn).
+ * when AGENT_SESSION_MESSAGES_ENABLED is on, the request has an agent identity, the key is not
+ * `noLog` and a streamed reply finished with 200. The prompt comes from the raw client body
+ * (compression and compaction rewrite the pipeline body), like call logs.
  */
-export function resolveSessionTurn(
-  requestBody: unknown,
-  responseBodies: readonly unknown[],
-  agentContext: AgentContext | null | undefined,
-  apiKeyInfo: { noLog?: boolean } | null | undefined
-): ExtractedAgentSessionTurn | null {
-  if (!hasAgentIdentity(agentContext) || apiKeyInfo?.noLog === true) return null;
+export function resolveSessionTurn(input: SessionTurnInput): AgentSessionTurn | null {
+  if (!hasAgentIdentity(input.agentContext) || input.apiKeyInfo?.noLog === true) return null;
+  if (input.streamStatus !== undefined && input.streamStatus !== 200) return null;
   if (!isFeatureFlagEnabled("AGENT_SESSION_MESSAGES_ENABLED")) return null;
   try {
-    return extractAgentSessionTurn(requestBody, ...responseBodies);
-  } catch {
+    const rawBody = input.clientRawRequest?.body ?? input.body;
+    const turn = extractAgentSessionTurn(rawBody, ...input.responses);
+    return turn
+      ? { ...turn, requestKey: sessionTurnRequestKey(input.clientRawRequest?.body) }
+      : null;
+  } catch (error) {
+    defaultLogger.debug("AGENT_SESSION", "session turn extraction failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return null;
   }
 }

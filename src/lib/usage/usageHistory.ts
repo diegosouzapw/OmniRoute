@@ -8,6 +8,7 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { isSyntheticApiKeyId } from "@/shared/constants/apiKeyIdentities";
 import { resolveProviderId } from "@/shared/constants/providers";
 import { normalizePayloadForLog, protectPayloadForLog } from "../logPayloads";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
@@ -39,7 +40,7 @@ import {
   hasAgentIdentity,
   type AgentContext,
 } from "@omniroute/open-sse/handlers/chatCore/agentContext.ts";
-import type { ExtractedAgentSessionTurn } from "@omniroute/open-sse/handlers/chatCore/agentSessionTurn.ts";
+import type { AgentSessionTurn } from "@omniroute/open-sse/handlers/chatCore/agentSessionTurn.ts";
 import { isNoLog } from "../compliance/noLog";
 import { saveAgentSessionMessage } from "../db/agentSessionMessages";
 import {
@@ -763,7 +764,7 @@ export interface UsageEntry {
   /** Coding-agent session and project of the request; attributes the row to an agent session. */
   agentContext?: AgentContext | null;
   /** Simplified turn for the agent session; stored only for keyed requests that are not noLog. */
-  sessionTurn?: ExtractedAgentSessionTurn | null;
+  sessionTurn?: AgentSessionTurn | null;
 }
 
 /** Session counters for this request, priced now so reports keep the price at request time. */
@@ -817,8 +818,9 @@ export async function saveRequestUsage(entry: UsageEntry) {
       reasoning: getReasoningTokens(entry.tokens),
     };
     const agentSessionUsage = await buildAgentSessionUsage(entry, tokens, timestamp, serviceTier);
-    // Same noLog source as call logs (key flag or NO_LOG_API_KEY_IDS); only key holders read turns.
-    const sessionTurn = entry.apiKeyId && !isNoLog(entry.apiKeyId) ? entry.sessionTurn : null;
+    // Only /v1/me key holders read turns: no keyless or env-key rows, and the call-log noLog source.
+    const turnReadable = entry.apiKeyId && !isSyntheticApiKeyId(entry.apiKeyId);
+    const sessionTurn = turnReadable && !isNoLog(entry.apiKeyId) ? entry.sessionTurn : null;
     const connection = entry.connectionId
       ? (db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(entry.connectionId) as
           Record<string, unknown> | undefined)
@@ -894,6 +896,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
             assistantText: sessionTurn.assistantText,
             toolNames: sessionTurn.toolNames,
             truncated: sessionTurn.truncated,
+            requestKey: sessionTurn.requestKey,
           });
         } catch (turnErr) {
           console.error("Failed to save agent session message:", turnErr);

@@ -30,6 +30,8 @@ export interface SaveAgentSessionMessageInput {
   assistantText?: string | null;
   toolNames?: string[] | null;
   truncated?: boolean;
+  /** Shared by every attempt of one client request; a later attempt replaces the earlier turn. */
+  requestKey?: string | null;
 }
 
 export interface ListAgentSessionMessagesOptions {
@@ -64,6 +66,23 @@ function rowToMessage(row: Record<string, unknown>): AgentSessionMessageRecord {
   };
 }
 
+/**
+ * Row id of the turn stored for each recent client request. Combo fallback runs one attempt per
+ * target for the same request; only the last attempt (the one the client received) is kept.
+ * Attempts of one request run within seconds in one process, so a bounded map is enough.
+ */
+const turnRowIdByRequestKey = new Map<string, number>();
+const MAX_TRACKED_REQUEST_KEYS = 1_000;
+
+function rememberTurnRow(requestKey: string, rowId: number): void {
+  turnRowIdByRequestKey.delete(requestKey);
+  turnRowIdByRequestKey.set(requestKey, rowId);
+  if (turnRowIdByRequestKey.size > MAX_TRACKED_REQUEST_KEYS) {
+    const oldest = turnRowIdByRequestKey.keys().next().value;
+    if (oldest !== undefined) turnRowIdByRequestKey.delete(oldest);
+  }
+}
+
 export function saveAgentSessionMessage(
   db: SqliteAdapter,
   input: SaveAgentSessionMessageInput
@@ -72,6 +91,30 @@ export function saveAgentSessionMessage(
     input.toolNames && input.toolNames.length > 0
       ? JSON.stringify(input.toolNames.slice(0, 20))
       : null;
+  const values = [
+    input.apiKeyId || null,
+    input.timestamp,
+    input.provider || null,
+    input.model || null,
+    input.success !== false ? 1 : 0,
+    input.userText || null,
+    input.assistantText || null,
+    toolsJson,
+    input.truncated ? 1 : 0,
+  ];
+
+  const previousRowId = input.requestKey ? turnRowIdByRequestKey.get(input.requestKey) : undefined;
+  if (previousRowId !== undefined) {
+    const updated = db
+      .prepare(
+        `UPDATE agent_session_messages SET
+          api_key_id = ?, timestamp = ?, provider = ?, model = ?, success = ?,
+          user_text = ?, assistant_text = ?, tool_names = ?, truncated = ?
+        WHERE id = ? AND session_id = ?`
+      )
+      .run(...values, previousRowId, input.sessionId);
+    if (Number(updated.changes) > 0) return previousRowId;
+  }
 
   const result = db
     .prepare(
@@ -80,20 +123,11 @@ export function saveAgentSessionMessage(
         user_text, assistant_text, tool_names, truncated
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
-    .run(
-      input.sessionId,
-      input.apiKeyId || null,
-      input.timestamp,
-      input.provider || null,
-      input.model || null,
-      input.success !== false ? 1 : 0,
-      input.userText || null,
-      input.assistantText || null,
-      toolsJson,
-      input.truncated ? 1 : 0
-    );
+    .run(input.sessionId, ...values);
 
-  return Number(result.lastInsertRowid);
+  const rowId = Number(result.lastInsertRowid);
+  if (input.requestKey) rememberTurnRow(input.requestKey, rowId);
+  return rowId;
 }
 
 export function listAgentSessionMessages(
