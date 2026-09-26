@@ -17,6 +17,9 @@
  * entries and the first MAX_SCAN_CHARS of each text, and uses indexOf rather than regexes.
  */
 
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+
+import { extractAgentSessionTurn, type ExtractedAgentSessionTurn } from "./agentSessionTurn.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
 
 type HeaderSource = Record<string, unknown> | Headers | null | undefined;
@@ -237,4 +240,22 @@ export function hasAgentIdentity(
   return Boolean(context?.clientSessionId || context?.projectName);
 }
 
-export { resolveSessionTurn } from "./agentSessionTurn.ts";
+/**
+ * Simplified conversation turn to store for the request's agent session, or null. Stored only
+ * when AGENT_SESSION_MESSAGES_ENABLED is on, the request has an agent identity and the key is
+ * not `noLog`. `responseBodies` are tried in order (see extractAgentSessionTurn).
+ */
+export function resolveSessionTurn(
+  requestBody: unknown,
+  responseBodies: readonly unknown[],
+  agentContext: AgentContext | null | undefined,
+  apiKeyInfo: { noLog?: boolean } | null | undefined
+): ExtractedAgentSessionTurn | null {
+  if (!hasAgentIdentity(agentContext) || apiKeyInfo?.noLog === true) return null;
+  if (!isFeatureFlagEnabled("AGENT_SESSION_MESSAGES_ENABLED")) return null;
+  try {
+    return extractAgentSessionTurn(requestBody, ...responseBodies);
+  } catch {
+    return null;
+  }
+}

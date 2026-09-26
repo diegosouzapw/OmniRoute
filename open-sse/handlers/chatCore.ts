@@ -5403,7 +5403,7 @@ export async function handleChatCore({
         effectiveServiceTier,
         isCombo,
         comboStrategy,
-        endpoint: endpointPath, cpaAuthIndex: readCpaAuthIndex(providerResponse), agentContext, sessionTurn: resolveSessionTurn(body, memoryExtractionResponse, agentContext, apiKeyInfo),
+        endpoint: endpointPath, cpaAuthIndex: readCpaAuthIndex(providerResponse), agentContext, sessionTurn: resolveSessionTurn(body, [memoryExtractionResponse], agentContext, apiKeyInfo),
       });
 
       // #12150 P1b surface 3 (fix round 1): a video-bridge-observed request's
@@ -6110,7 +6110,7 @@ export async function handleChatCore({
       effectiveServiceTier,
       isCombo,
       comboStrategy,
-      endpoint: endpointPath, cpaAuthIndex: readCpaAuthIndex(providerResponse), agentContext, sessionTurn: resolveSessionTurn(body, streamResponseBody, agentContext, apiKeyInfo),
+      endpoint: endpointPath, cpaAuthIndex: readCpaAuthIndex(providerResponse), agentContext, sessionTurn: resolveSessionTurn(body, [clientPayload?.summary, streamResponseBody], agentContext, apiKeyInfo),
     });
 
     // Routing event (feedback foundation) — fire-and-forget, cheap, never blocks
