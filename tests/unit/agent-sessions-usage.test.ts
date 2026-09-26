@@ -11,6 +11,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const agentSessionsDb = await import("../../src/lib/db/agentSessions.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 
 test.after(() => {
@@ -187,4 +188,35 @@ test("traffic without an agent identity creates no session", async () => {
   });
   assert.equal(sessionsFor("key-frank").length, 0);
   assert.deepEqual(usageSessionIds("key-frank"), [null, null]);
+});
+
+test("session token totals count cached input once, and the tokens sort follows them", async () => {
+  // Stored input already includes cache reads and writes, so the total is input + output.
+  await recordUsage({
+    apiKeyId: "key-grace",
+    agentContext: agentContext({ clientSessionId: "sess-grace-plain" }),
+    timestamp: "2026-09-25T14:00:00.000Z",
+    tokens: { input: 1000, output: 500, cacheRead: 0, cacheCreation: 0 },
+  });
+  await recordUsage({
+    apiKeyId: "key-grace",
+    agentContext: agentContext({ clientSessionId: "sess-grace-cached" }),
+    timestamp: "2026-09-25T14:01:00.000Z",
+    tokens: { input: 1200, output: 100, cacheRead: 900, cacheCreation: 200 },
+  });
+
+  const db = core.getDbInstance();
+  const byTokens = (order: "asc" | "desc") =>
+    agentSessionsDb
+      .listAgentSessions(db, { apiKeyId: "key-grace", sort: "tokens", order })
+      .sessions.map((session) => [session.clientSessionId, session.tokens.total]);
+
+  assert.deepEqual(byTokens("desc"), [
+    ["sess-grace-plain", 1500],
+    ["sess-grace-cached", 1300],
+  ]);
+  assert.deepEqual(byTokens("asc"), [
+    ["sess-grace-cached", 1300],
+    ["sess-grace-plain", 1500],
+  ]);
 });
