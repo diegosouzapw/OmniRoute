@@ -264,7 +264,7 @@ test("pool-exhausted: one member still eligible emits nothing", () => {
 });
 
 test("pool-exhausted: flag off emits nothing even when all are set aside", () => {
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   try {
     const received: unknown[] = [];
     const off = bus.on("proxy.pool.exhausted", (payload) => {

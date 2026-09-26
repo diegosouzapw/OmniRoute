@@ -40,7 +40,6 @@ import {
   resolveDisableSessionStickiness,
 } from "./sessionStickiness.ts";
 import { makeConnectionConcurrencyResolver } from "./concurrencyCaps.ts";
-import { getCachedProviderConnectionById } from "../../../src/lib/db/readCache.ts";
 import { orderTargetsByEvalScores } from "../evalRouting.ts";
 import {
   applyPromptCacheAffinity,
@@ -84,6 +83,7 @@ import {
 import {
   TRANSIENT_FOR_SEMAPHORE,
   MAX_FALLBACK_WAIT_MS,
+  classifyQualityFailure,
   COMBO_LOOP_SAFETY_TIMEOUT_MS,
   isAllAccountsRateLimitedResponse,
   clampComboDepth,
@@ -96,8 +96,11 @@ import {
   isLocalQueueCapacityErrorBody,
   toRecordedTarget,
   getExhaustedTargetSkipReason,
+  requestScopedReplayKey,
   resolvePersistedConnectionCooldownSkipReason,
 } from "./comboPredicates.ts";
+import { handlePreContentStreamRetry } from "./executeTargetClassify.ts";
+import { getCachedProviderConnectionById } from "../../../src/lib/db/readCache.ts";
 import { applyComboTargetExhaustion } from "./targetExhaustion.ts";
 import { isRetryAfterEligibleStatus } from "./unavailableRetryGate.ts";
 import { isRecord } from "./comboData.ts";
@@ -117,23 +120,7 @@ import {
 } from "./comboStructure.ts";
 import { releaseStickyPinOnFailure, clearStaleLKGP } from "../combo.ts";
 import { resolveComboDailyReset } from "./comboDailyResetClock.ts";
-
-/** Per-connection TPM budget for quota reservation. Undefined = store keeps prior limit. */
-async function resolveTargetTokenLimit(target: {
-  connectionId?: string | null;
-}): Promise<number | undefined> {
-  const connectionId = target?.connectionId;
-  if (!connectionId) return undefined;
-  try {
-    const connection = await getCachedProviderConnectionById(connectionId);
-    const overrides = (connection as { rateLimitOverrides?: Record<string, number> | null } | null)
-      ?.rateLimitOverrides;
-    const tpm = overrides?.tpm;
-    return typeof tpm === "number" && tpm > 0 ? tpm : undefined;
-  } catch {
-    return undefined;
-  }
-}
+import { resolveTargetTokenLimit } from "./targetTokenLimit.ts";
 
 /**
  * Handle round-robin combo: each request goes to the next model in circular order.
@@ -479,6 +466,7 @@ export async function handleRoundRobinCombo({
   const exhaustedProviders = new Set<string>();
   const exhaustedConnections = new Set<string>();
   const transientRateLimitedProviders = new Set<string>();
+  const rejectedModelKeys = new Set<string>(); // same-model targets after a request-scoped refusal
 
   // Try each model starting from the round-robin target
   try {
@@ -489,6 +477,11 @@ export async function handleRoundRobinCombo({
       const target = filteredTargets[modelIndex];
       const modelStr = target.modelStr;
       const provider = target.provider;
+      if (rejectedModelKeys.has(requestScopedReplayKey(modelStr))) {
+        log.info("COMBO-RR", `Skipping ${modelStr} — same request already refused request-scoped`);
+        if (offset > 0) fallbackCount++;
+        continue;
+      }
       const rrEvents = createRRDashboardEvents(combo.name, modelIndex, provider, modelStr);
       const profile = await getRuntimeProviderProfile(provider);
       const semaphoreKey = `combo:${combo.name}:${target.executionKey}`;
@@ -771,14 +764,21 @@ export async function handleRoundRobinCombo({
               recordedAttempts++;
               // Fix #1707: Set terminal state so the fallback doesn't emit
               // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
+              const qualityFailure = classifyQualityFailure(quality);
+              if (qualityFailure.requestScoped)
+                rejectedModelKeys.add(requestScopedReplayKey(modelStr));
               lastError = `Upstream response failed quality validation: ${quality.reason}`;
-              lastStatus = 502;
+              lastStatus = qualityFailure.status;
               rrOutcomes.push({
                 model: modelStr,
-                status: 502,
+                status: qualityFailure.status,
                 error: quality.reason || "upstream response failed quality validation",
-                kind: "quality",
+                kind: qualityFailure.kind,
               });
+              if (
+                handlePreContentStreamRetry(quality, retry, { maxRetries, signal, log }, modelStr)
+              )
+                continue;
               if (offset > 0) fallbackCount++;
               break; // move to next model
             }

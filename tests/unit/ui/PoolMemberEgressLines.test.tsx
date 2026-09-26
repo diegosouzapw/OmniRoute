@@ -85,4 +85,67 @@ describe("PoolMemberEgressLines", () => {
     const { element } = await renderWith(() => Promise.reject(new Error("offline")));
     expect(element.textContent).toBe("");
   });
+
+  it("labels the set-aside motive and end time instead of printing raw values", async () => {
+    const endsAt = "2026-09-25T12:34:00.000Z";
+    const { element } = await renderWith((url: unknown) =>
+      String(url).startsWith("/api/admin/proxy-pool-visibility")
+        ? jsonResponse({
+            rankedBy: "health",
+            members: [
+              {
+                id: "p1",
+                name: "pool-a",
+                display: "http://10.9.1.1:21001",
+                userMasked: null,
+                opaque: false,
+                rank: 1,
+                signal: "set-aside",
+                setAside: {
+                  kind: "ip_quota_429",
+                  since: "2026-09-25T12:00:00.000Z",
+                  endsAt,
+                  streak: 2,
+                },
+              },
+            ],
+          })
+        : jsonResponse(null)
+    );
+    const text = element.textContent ?? "";
+    expect(text).toContain("http://10.9.1.1:21001");
+    expect(text).toContain('poolSetAsideReason:{"kind":"poolSetAsideKindIpQuota429"}');
+    expect(text).not.toContain("ip_quota_429");
+    expect(text).not.toContain(endsAt);
+  });
+
+  it("labels a transport set-aside (#14802) instead of printing the raw kind", async () => {
+    const { element } = await renderWith((url: unknown) =>
+      String(url).startsWith("/api/admin/proxy-pool-visibility")
+        ? jsonResponse({
+            rankedBy: "health",
+            members: [
+              {
+                id: "p1",
+                name: "pool-a",
+                display: "http://10.9.1.1:21001",
+                userMasked: null,
+                opaque: false,
+                rank: 1,
+                signal: "set-aside",
+                setAside: {
+                  kind: "transport",
+                  since: "2026-09-25T12:00:00.000Z",
+                  endsAt: "2026-09-25T12:34:00.000Z",
+                  streak: 1,
+                },
+              },
+            ],
+          })
+        : jsonResponse(null)
+    );
+    const text = element.textContent ?? "";
+    expect(text).toContain('poolSetAsideReason:{"kind":"poolSetAsideKindProxyUnreachable"}');
+    expect(text).not.toContain('"kind":"transport"');
+  });
 });
