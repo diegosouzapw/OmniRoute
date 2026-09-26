@@ -103,11 +103,23 @@ export interface RateLimitRule {
 export interface RateLimitResult {
   allowed: boolean;
   failedWindow?: number;
+  /** Epoch-ms when the failed fixed window rolls over. Only set when allowed=false. */
+  resetAt?: number;
+}
+
+/**
+ * Fixed-window reset instant (epoch-ms): the start of the window AFTER the one
+ * containing `nowSeconds`. Shared by the in-memory path below and mirrored in
+ * the Lua script's `reset_at` expression so both paths agree byte-for-byte.
+ */
+export function computeFixedWindowResetAt(nowSeconds: number, windowSeconds: number): number {
+  return (Math.floor(nowSeconds / windowSeconds) + 1) * windowSeconds * 1000;
 }
 
 /**
  * Atomic Lua script for multi-rule rate limiting using fixed window.
- * Returns {1, 0} if allowed, or {0, failedWindow} if rejected.
+ * Returns {1, 0} if allowed, or {0, failedWindow, resetAt} if rejected — resetAt
+ * (epoch-ms) mirrors computeFixedWindowResetAt() above.
  */
 const RATE_LIMIT_SCRIPT = `
 local key_prefix = KEYS[1]
@@ -128,7 +140,8 @@ for i, rule in ipairs(rules) do
 
   local count = tonumber(redis.call("GET", window_key) or "0")
   if count >= rule.limit then
-    return { 0, rule.window } -- Reject, return which window failed
+    local reset_at = (current_window + 1) * rule.window * 1000
+    return { 0, rule.window, reset_at } -- Reject: failed window + reset instant (epoch-ms)
   end
 end
 
@@ -210,7 +223,11 @@ function checkInMemoryRateLimit(
     const windowKey = `rl:api_key:${keyId}:${rule.window}:${currentWindow}`;
     const count = store.get(windowKey) || 0;
     if (count >= rule.limit) {
-      return { allowed: false, failedWindow: rule.window };
+      return {
+        allowed: false,
+        failedWindow: rule.window,
+        resetAt: computeFixedWindowResetAt(now, rule.window),
+      };
     }
   }
 
@@ -254,10 +271,11 @@ export async function checkRateLimit(
     const result = (await redis.eval(RATE_LIMIT_SCRIPT, 1, `rl:api_key:${keyId}`, ...args)) as [
       number,
       number,
+      number?,
     ];
 
     if (result[0] === 0) {
-      return { allowed: false, failedWindow: result[1] };
+      return { allowed: false, failedWindow: result[1], resetAt: result[2] };
     }
 
     return { allowed: true };

@@ -2,7 +2,12 @@ import { getDbInstance } from "@/lib/db/core";
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
 import { getProviderQuotaWindowStartIso } from "@/lib/db/quotaResetEvents";
 import { calculateCostDetailed } from "./costCalculator";
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import {
+  buildErrorBody,
+  errorResponse,
+  resolveRetryAfterInstant,
+  sanitizeErrorMessage,
+} from "@omniroute/open-sse/utils/error.ts";
 import {
   getUnpricedUsageBudgetPolicy,
   type UnpricedUsageBudgetPolicy,
@@ -479,7 +484,7 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
 
   return {
     totalUsd: roundUsd(total),
-    hasUnpricedUsage: unpriced.size > 0 || hasPricingFailure,
+    hasUnpricedUsage: unpriced.size > 0,
     unpricedModels: [...unpriced].sort(),
     hasPricingFailure,
   };
@@ -522,12 +527,10 @@ export async function getApiKeyUsageLimitStatus(
   // "unpriced" — the true spend is unknown — so it blocks under every policy.
   const unpricedUsagePolicy = resolvedDeps.getUnpricedUsagePolicy();
   const failClosed = unpricedUsagePolicy !== "count_as_zero";
-  const dailyBlocksOnUnknown = failClosed
-    ? dailySpend.hasUnpricedUsage
-    : dailySpend.hasPricingFailure;
-  const weeklyBlocksOnUnknown = failClosed
-    ? weeklySpend.hasUnpricedUsage
-    : weeklySpend.hasPricingFailure;
+  const dailyBlocksOnUnknown =
+    dailySpend.hasPricingFailure || (failClosed && dailySpend.hasUnpricedUsage);
+  const weeklyBlocksOnUnknown =
+    weeklySpend.hasPricingFailure || (failClosed && weeklySpend.hasUnpricedUsage);
   const dailyExceeded =
     enabled && dailyLimitUsd !== null && (dailySpentUsd >= dailyLimitUsd || dailyBlocksOnUnknown);
   const weeklyExceeded =
@@ -723,14 +726,31 @@ export function buildApiKeyUsageLimitRejection(
   now = Date.now(),
   options: { showUsd?: boolean } = {}
 ): Response {
-  const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status, now, options));
+  const unpricedMessage = buildUnpricedUsageBlockedMessage(status, now);
+  const message = sanitizeErrorMessage(
+    unpricedMessage ?? buildUsageLimitExceededMessage(status, now, options)
+  );
+  // Match the window named in the message: a daily block caused only by
+  // missing pricing must not lend its reset to a priced weekly overage.
+  const trippedResetAtIso =
+    status.dailyExceeded && shouldReportDailyWindow(status)
+      ? status.dailyResetAtIso
+      : status.weeklyExceeded
+        ? status.weeklyResetAtIso
+        : null;
   if (isAnthropicMessagesRequest(request)) {
+    // Claude Code treats a non-400 /v1/messages error as an auth failure and triggers
+    // a re-login prompt — this branch's status MUST stay 400 (see the "does not trigger
+    // login" regression test). The reset timing is still worth surfacing, so it rides
+    // along as extra fields on the same Anthropic-shaped error envelope.
+    const resolved = resolveRetryAfterInstant(trippedResetAtIso);
     return new Response(
       JSON.stringify({
         type: "error",
         error: {
           type: "invalid_request_error",
           message,
+          ...resolved,
         },
       }),
       {
@@ -740,9 +760,19 @@ export function buildApiKeyUsageLimitRejection(
     );
   }
 
-  return new Response(JSON.stringify(buildErrorBody(400, message)), {
-    status: 400,
-    headers: { "Content-Type": "application/json" },
+  // Missing pricing or a failed lookup needs an administrator or a recovered
+  // pricing store, not a timed quota reset. Do not trigger automatic 429 retries.
+  if (unpricedMessage) {
+    return new Response(JSON.stringify(buildErrorBody(400, message)), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Priced quota overages retain the current 429 + reset timing contract.
+  return errorResponse(429, message, {
+    code: "usage_limit_exceeded",
+    retryAfter: trippedResetAtIso,
   });
 }
 

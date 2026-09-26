@@ -100,7 +100,9 @@ test("default policy is fail_closed and names the unpriced model instead of a mi
   const result = await enforceApiKeyPolicy(chatRequest(created.key), "openai/gpt-4o");
 
   assert.ok(result.rejection, "a limited key with unpriced usage must still be blocked by default");
+  // Missing pricing needs an administrator, not an automatic 429 retry loop.
   assert.equal(result.rejection!.status, 400);
+  assert.equal(result.rejection!.headers.get("Retry-After"), null);
   const message = JSON.stringify(await result.rejection!.json());
   assert.match(message, /no configured price/);
   // The test key has no provider quota window, so its weekly window is rolling
@@ -159,6 +161,7 @@ test("a priced overage in another window keeps the regular quota message", async
   const result = await enforceApiKeyPolicy(chatRequest(created.key), "openai/gpt-4o");
 
   assert.ok(result.rejection);
+  assert.equal(result.rejection!.status, 429, "a priced quota overage follows the live base");
   const message = JSON.stringify(await result.rejection!.json());
   assert.match(message, /reached its daily usage quota/);
   assert.doesNotMatch(message, /no configured price/);
@@ -178,6 +181,12 @@ test("a priced weekly overage is reported even when the daily window is blocked 
   const result = await enforceApiKeyPolicy(chatRequest(created.key), "openai/gpt-4o");
 
   assert.ok(result.rejection);
+  assert.equal(result.rejection!.status, 429);
+  assert.equal(
+    result.rejection!.headers.get("Retry-After"),
+    null,
+    "rolling weekly window has no fixed reset; daily unpriced status must not supply its reset"
+  );
   const message = JSON.stringify(await result.rejection!.json());
   assert.match(message, /reached its weekly usage quota/);
   assert.doesNotMatch(message, /daily usage quota/);
@@ -206,9 +215,12 @@ test("count_as_zero still fails closed when a cost lookup throws, and says so", 
 
     assert.equal(status.unpricedUsagePolicy, "count_as_zero");
     assert.equal(status.weeklyPricingFailure, true);
+    assert.equal(status.weeklyHasUnpricedUsage, false, "lookup failure is not a missing-price row");
+    assert.deepEqual(status.weeklyUnpricedModels, []);
     assert.equal(status.weeklyExceeded, true);
 
     const rejection = buildApiKeyUsageLimitRejection(chatRequest(created.key), status);
+    assert.equal(rejection.status, 400, "unknown cost must not trigger automatic quota retries");
     const message = JSON.stringify(await rejection.json());
     assert.match(message, /could not be calculated/);
     assert.doesNotMatch(message, /no configured price/);

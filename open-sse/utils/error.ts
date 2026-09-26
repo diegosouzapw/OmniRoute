@@ -10,6 +10,9 @@ import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 import { buildPassthroughErrorResponse } from "./upstreamErrorPassthrough.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { resolveRetryAfterInstant } from "./retryAfterInstant.ts";
+
+export { parseRetryAfterHeader, resolveRetryAfterInstant } from "./retryAfterInstant.ts";
 
 export { redactSensitiveErrorText, sanitizeErrorMessage, sanitizeUpstreamDetails };
 
@@ -20,6 +23,10 @@ interface ErrorResponseBody {
     type?: string;
     code?: string;
     reason?: string;
+    /** Seconds until the caller may retry — only ever set for a resolved FUTURE instant. */
+    retry_after?: number;
+    /** ISO-8601 instant the underlying quota/limit resets — pairs with retry_after. */
+    reset_at?: string;
   };
   upstream_details?: Record<string, unknown> | null; // sanitized upstream provider body
 }
@@ -29,6 +36,8 @@ export type ErrorBodyClassification = {
   type?: string;
   code?: string;
   reason?: string;
+  /** ISO / epoch-ms / Date the underlying quota/limit resets — see resolveRetryAfterInstant(). */
+  retryAfter?: string | number | Date | null;
 };
 
 const PUBLIC_ERROR_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -325,6 +334,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "upstream_timeout",
   "upstream_websocket_connect_failed",
   "upstream_websocket_error",
+  "usage_limit_exceeded",
   "usage_limit_reached",
   "video_artifact_content_type_invalid",
   "video_artifact_download_failed",
@@ -365,7 +375,8 @@ export function projectPublicErrorIdentifier(value: unknown, fallback: unknown):
  * Optional third argument `upstreamDetails` (raw parsed provider body) is
  * sanitized by sanitizeUpstreamDetails before inclusion as `upstream_details`.
  * Optional fourth argument `classification` preserves an explicit type/code
- * instead of re-deriving both from the status-code table.
+ * instead of re-deriving both from the status-code table; a `retryAfter` on it
+ * populates `retry_after`/`reset_at` when it resolves to a future instant.
  */
 export function buildErrorBody(
   statusCode: number,
@@ -379,6 +390,7 @@ export function buildErrorBody(
     typeof classification?.reason === "string" && isSafePublicErrorIdentifier(classification.reason)
       ? classification.reason
       : undefined;
+  const retryAfterFields = resolveRetryAfterInstant(classification?.retryAfter);
 
   const body: ErrorResponseBody = {
     error: {
@@ -386,6 +398,7 @@ export function buildErrorBody(
       type: projectPublicErrorIdentifier(classification?.type, errorInfo.type),
       code: projectPublicErrorIdentifier(classification?.code, errorInfo.code),
       reason: safeReason,
+      ...retryAfterFields,
     },
   };
 
@@ -574,7 +587,7 @@ export function errorResponseWithComboDiagnostics(
   statusCode: number,
   message: string,
   diagnostics: ComboDiagnostics,
-  opts: { code?: string; type?: string } = {}
+  opts: { code?: string; type?: string; retryAfter?: ErrorBodyClassification["retryAfter"] } = {}
 ): Response {
   const safe = sanitizeComboDiagnostics(diagnostics);
   const body = buildErrorBody(statusCode, message, undefined, opts) as ErrorResponseBody & {
@@ -596,6 +609,9 @@ export function errorResponseWithComboDiagnostics(
     "x-omniroute-combo-excluded": excludedHeader,
     "x-omniroute-combo-terminal-reason": toHeaderSafeAscii(safe.terminalReason.slice(0, 200)),
   };
+  if (typeof body.error.retry_after === "number") {
+    headers["Retry-After"] = String(body.error.retry_after);
+  }
 
   if (safe.recovery) {
     headers["x-omniroute-recovery-action"] = safe.recovery.action;
@@ -630,17 +646,11 @@ export function errorResponse(
   message: string,
   classification?: ErrorBodyClassification
 ): Response {
-  return new Response(
-    JSON.stringify(
-      buildErrorBody(statusCode, sanitizeErrorMessage(message), undefined, classification)
-    ),
-    {
-      status: statusCode,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  const body = buildErrorBody(statusCode, sanitizeErrorMessage(message), undefined, classification);
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (typeof body.error.retry_after === "number")
+    headers["Retry-After"] = String(body.error.retry_after);
+  return new Response(JSON.stringify(body), { status: statusCode, headers });
 }
 
 /**
@@ -1019,14 +1029,23 @@ export function unavailableResponse(
   const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
   const safeRetryAfterHuman = retryAfterHuman ? sanitizeErrorMessage(retryAfterHuman) : "";
   const msg = safeRetryAfterHuman ? `${safeMessage} (${safeRetryAfterHuman})` : safeMessage;
-  const error = provenance
-    ? { message: msg, retry_after_provenance: retryAfterSec === null ? "none" : "signal" }
-    : { message: msg };
+  // Preserve unavailableResponse's established bare envelope; adding the generic
+  // type/code from buildErrorBody would be an unrelated API-shape change. Only a
+  // concrete future hint adds the two structured timing fields.
+  const retryFields = resolveRetryAfterInstant(retryAfter);
+  const error: {
+    message: string;
+    retry_after?: number;
+    reset_at?: string;
+    retry_after_provenance?: "none" | "signal";
+  } = { message: msg, ...retryFields };
+  if (provenance) error.retry_after_provenance = retryAfterSec === null ? "none" : "signal";
+  const effectiveRetryAfterSec = retryFields?.retry_after ?? retryAfterSec;
   return new Response(JSON.stringify({ error }), {
     status: statusCode,
     headers: {
       "Content-Type": "application/json",
-      ...(retryAfterSec === null ? {} : { "Retry-After": String(retryAfterSec) }),
+      ...(effectiveRetryAfterSec === null ? {} : { "Retry-After": String(effectiveRetryAfterSec) }),
     },
   });
 }

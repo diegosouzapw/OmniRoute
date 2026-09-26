@@ -5,6 +5,7 @@ import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
 import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/base.ts";
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
 import * as memory from "../../open-sse/utils/proxyRefusalMemory.ts";
+import { lastResort429 } from "../../open-sse/executors/opencodeEgressThrottle.ts";
 
 // With PROXY_SKIP_RECENTLY_FAILED on, a refusal received on a proxied opencode account sets
 // that member aside across requests; a direct account is never concerned. With the flag off
@@ -123,8 +124,8 @@ describe("OpencodeExecutor proxy refusal memory", () => {
     assert.deepStrictEqual((await run(exec, proxied(), [200])).observed, [port(1)]);
   });
 
-  it("with the flag at its default (off) the refused proxy is tried again in turn", async () => {
-    delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  it("with the flag opted out the refused proxy is tried again in turn", async () => {
+    process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
     const exec = new OpencodeExecutor("opencode-zen");
     await run(exec, proxied(), [429, 200]);
     assert.strictEqual(memory.__proxyRefusalMemorySizeForTesting(), 0);
@@ -147,9 +148,9 @@ describe("OpencodeExecutor proxy refusal memory", () => {
     assert.deepStrictEqual((await run(exec, proxied(), [200])).observed, [port(0)]);
   });
 
-  it("with the flag off a member set aside earlier is not skipped", async () => {
+  it("with the flag opted out a member set aside earlier is not skipped", async () => {
     memory.noteProxyRefusal(keyFor(0), "ip_quota_429");
-    delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+    process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
     const exec = new OpencodeExecutor("opencode-zen");
     assert.deepStrictEqual((await run(exec, proxied(), [200])).observed, [port(0)]);
   });
@@ -192,5 +193,70 @@ describe("OpencodeExecutor proxy refusal memory", () => {
     // The fast path may retry a refusal internally: every planned answer is a refusal.
     await run(exec, noAccounts, [429, 429, 429, 429, 429]);
     assert.strictEqual(memory.__proxyRefusalMemorySizeForTesting(), 0);
+  });
+
+  it("after a 429, a member set aside by an earlier request still gets one real call", async () => {
+    for (let i = 1; i < 3; i++) memory.noteProxyRefusal(keyFor(i), "ip_quota_429");
+    const exec = new OpencodeExecutor("opencode-zen");
+
+    const result = await run(exec, proxied(), [429, 200]);
+    assert.strictEqual(result.status, 200);
+    assert.strictEqual(result.observed.length, 2);
+    assert.strictEqual(result.observed[0], port(0));
+    assert.notStrictEqual(result.observed[1], port(0));
+    const served = ports.findIndex((p) => String(p) === result.observed[1]);
+    assert.strictEqual(memory.isProxyAvoided(keyFor(served)), false);
+  });
+
+  it("the last resort after a 429 is a single call, then the 429 is served", async () => {
+    for (let i = 1; i < 3; i++) memory.noteProxyRefusal(keyFor(i), "ip_quota_429");
+    const exec = new OpencodeExecutor("opencode-zen");
+
+    const result = await run(exec, proxied(), [429, 429, 429]);
+    assert.strictEqual(result.status, 429);
+    assert.strictEqual(result.observed.length, 2);
+    assert.strictEqual(new Set(result.observed).size, 2);
+  });
+
+  it("with the flag off, members cooling down from an earlier request still get one call", async () => {
+    process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
+    const exec = new OpencodeExecutor("opencode-zen");
+    assert.strictEqual((await run(exec, proxied(), [429, 429, 429])).observed.length, 3);
+
+    const result = await run(exec, proxied(), [429, 200]);
+    assert.strictEqual(result.status, 200);
+    assert.strictEqual(result.observed.length, 2);
+    assert.notStrictEqual(result.observed[0], result.observed[1]);
+  });
+});
+
+describe("lastResort429", () => {
+  const account = (fingerprint: string, proxy: { host: string; port: number } | null) => ({
+    fingerprint,
+    cooldownUntil: Date.now() + 60_000,
+    consecutiveFails: 1,
+    proxy: proxy === null ? null : { type: "http", ...proxy },
+  });
+  const never = () => false;
+
+  it("never hands out a proxy-less account and leaves the cursor untouched", () => {
+    const accounts = [account("a", { host: "127.0.0.1", port: 1 }), account("b", null)];
+    const cursor = { nextAccountIdx: 1, lastHealthyFingerprint: "b" };
+    const spare = lastResort429(accounts, cursor, new Set(["127.0.0.1:1"]));
+
+    assert.strictEqual(spare.take(429, accounts[0], never), null);
+    assert.deepStrictEqual(cursor, { nextAccountIdx: 1, lastHealthyFingerprint: "b" });
+  });
+
+  it("hands out one open account per request, and only after a 429", () => {
+    const accounts = [
+      account("a", { host: "127.0.0.1", port: 1 }),
+      account("b", { host: "127.0.0.1", port: 2 }),
+    ];
+    const spare = lastResort429(accounts, { nextAccountIdx: 0 }, new Set(["127.0.0.1:1"]));
+
+    assert.strictEqual(spare.take(403, accounts[0], never), null);
+    assert.strictEqual(spare.take(429, accounts[0], never), accounts[1]);
+    assert.strictEqual(spare.take(429, accounts[0], never), null);
   });
 });

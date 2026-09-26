@@ -161,11 +161,146 @@ export function getRecentEgressIpForProxy(
   return { egressIp: row.egress_ip, at: row.timestamp };
 }
 
+/**
+ * Distinct non-null egress IPs observed through a proxy endpoint since
+ * `sinceIso` (up to `limit`). Same host-key normalization and port validation
+ * as `getRecentEgressIpForProxy`: anything unusable yields `[]`, never a throw.
+ */
+export function getRecentEgressIpsForProxy(
+  host: string,
+  port: number,
+  sinceIso: string,
+  limit = 3
+): string[] {
+  const h = normalizeProxyHostKey(host);
+  if (!h) return [];
+  if (!Number.isInteger(port) || port < 1 || port > 65535) return [];
+  if (typeof sinceIso !== "string" || !sinceIso) return [];
+  const capped = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 10) : 3;
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT DISTINCT egress_ip FROM proxy_logs
+       WHERE proxy_host = ? AND proxy_port = ?
+         AND egress_ip IS NOT NULL AND timestamp >= ?
+       LIMIT ?`
+    )
+    .all(h, port, sinceIso, capped) as Array<{ egress_ip: string }>;
+  return rows.map((r) => r.egress_ip).filter((ip) => typeof ip === "string" && ip);
+}
+
 export type PoolEgressObservationCounts = {
   connections: number;
   distinctExits: number;
   maxConnectionsOnOneExit: number;
 };
+
+export type PoolEgressFailureFamily = {
+  family: string;
+  count: number;
+};
+
+export type PoolEgressFailureExit = {
+  exit: string;
+  failures: number;
+  byFamily: PoolEgressFailureFamily[];
+};
+
+export type PoolEgressFailureBreakdown = {
+  byExit: PoolEgressFailureExit[];
+  byFamily: PoolEgressFailureFamily[];
+  unattributed: number;
+  attributionNote: string;
+};
+
+export type PoolEgressObservation = PoolEgressObservationCounts & {
+  failures: PoolEgressFailureBreakdown;
+};
+
+// Per-family breakdowns only cover requests whose per-family attribution was
+// logged: `proxy_logs.correlation_id` is NULL for legacy rows and whenever the
+// attribution flag is off (`isRotationAttributionEnabled()` gates the proxy
+// side), while `call_logs.correlation_id` is written by `saveCallLog` with
+// no gate. Unmatchable rows land in the explicit `unattributed` bucket.
+export const POOL_EGRESS_ATTRIBUTION_NOTE =
+  "per-family breakdown covers only requests logged with attribution on";
+
+/**
+ * Per-exit failure breakdown for a proxy pool's members since `since`: one row
+ * per failed proxied request (`status != 'success'`, i.e. `error` and
+ * `timeout`), grouped by egress IP and by call-log error family. Families come
+ * from `call_logs.error_type` (persisted vocabulary + `unknown`; NULL means
+ * "legacy row / not a failure") joined on `correlation_id`; rows with no
+ * correlation or no match land in `unattributed`, never in a family.
+ *
+ * Same member join and same `egress_ip IS NOT NULL AND connection_id IS NOT
+ * NULL` filters as the `connections` counters above, so failure totals stay
+ * reconcilable with them (no host:port fallback; note `failures` counts rows
+ * via `COUNT(*)` while `connections` counts `DISTINCT connection_id`, so the
+ * two are comparable but not equatable). A retry can share one
+ * correlation_id across several call_logs rows (precedent:
+ * agenticConversations.ts keeps the first match), so a correlated scalar
+ * sub-query reads `error_type` from the first row by `rowid`, one index seek
+ * per failed request on `idx_cl_correlation_id` instead of a pass over the
+ * whole call_logs table. The family is computed in a derived table and grouped
+ * outside it: grouping on the scalar sub-query's alias in the same SELECT
+ * merges distinct families on SQLite. 0 new indexes: the window rides
+ * `idx_pl_timestamp`.
+ * `scope`/`scopeId` must already be normalized; an empty pool yields empties.
+ */
+export function getPoolEgressFailureBreakdown(
+  scope: string,
+  scopeId: string | null,
+  since: string
+): PoolEgressFailureBreakdown {
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT exit, family, COUNT(*) AS n
+       FROM (
+         SELECT l.egress_ip AS exit,
+                (SELECT c.error_type FROM call_logs c
+                 WHERE c.correlation_id = l.correlation_id
+                 ORDER BY c.rowid LIMIT 1) AS family
+         FROM proxy_logs l
+         JOIN proxy_registry r ON l.proxy_host = r.host AND l.proxy_port = r.port
+         WHERE r.id IN (SELECT proxy_id FROM proxy_assignments WHERE scope = ? AND scope_id IS ?)
+           AND l.timestamp >= ? AND l.status != 'success'
+           AND l.egress_ip IS NOT NULL AND l.connection_id IS NOT NULL
+       )
+       GROUP BY exit, family
+       ORDER BY exit ASC`
+    )
+    .all(scope, scopeId, since) as Array<{ exit: string; family: string | null; n: number }>;
+  const byExitMap = new Map<string, Map<string, number>>();
+  const byFamilyMap = new Map<string, number>();
+  let unattributed = 0;
+  for (const row of rows) {
+    const family = row.family ?? "unattributed";
+    let exitFamilies = byExitMap.get(row.exit);
+    if (!exitFamilies) {
+      exitFamilies = new Map<string, number>();
+      byExitMap.set(row.exit, exitFamilies);
+    }
+    exitFamilies.set(family, (exitFamilies.get(family) ?? 0) + row.n);
+    byFamilyMap.set(family, (byFamilyMap.get(family) ?? 0) + row.n);
+    if (family === "unattributed") unattributed += row.n;
+  }
+  const sortFamilies = (entries: Array<[string, number]>): PoolEgressFailureFamily[] =>
+    entries
+      .map(([family, count]) => ({ family, count }))
+      .sort((a, b) => b.count - a.count || (a.family < b.family ? -1 : 1));
+  return {
+    byExit: [...byExitMap.entries()].map(([exit, families]) => ({
+      exit,
+      failures: [...families.values()].reduce((sum, n) => sum + n, 0),
+      byFamily: sortFamilies([...families.entries()]),
+    })),
+    byFamily: sortFamilies([...byFamilyMap.entries()]),
+    unattributed,
+    attributionNote: POOL_EGRESS_ATTRIBUTION_NOTE,
+  };
+}
 
 /**
  * How many distinct observed egress IPs served a proxy pool's members since `since`, how
@@ -179,7 +314,7 @@ export function getPoolEgressObservation(
   scope: string,
   scopeId: string | null,
   since: string
-): PoolEgressObservationCounts {
+): PoolEgressObservation {
   const db = getDbInstance();
   const perExit = db
     .prepare(
@@ -204,5 +339,6 @@ export function getPoolEgressObservation(
     connections: total.n,
     distinctExits: perExit.length,
     maxConnectionsOnOneExit: perExit.reduce((max, row) => Math.max(max, row.n), 0),
+    failures: getPoolEgressFailureBreakdown(scope, scopeId, since),
   };
 }

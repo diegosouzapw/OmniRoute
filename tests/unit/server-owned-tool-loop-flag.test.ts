@@ -71,8 +71,10 @@ describe("feature-flags-settings count update", () => {
     // 893fef9c added OPENCODE_PARK_AND_RESUME (74 -> 75); FLUSH_EMPTY_RETRY_ENABLED
     // (flush empty-turn retry, default off) bumps it to 76; ROTATION_ATTRIBUTION (#14223,
     // default off) to 77; STREAM_READINESS_STALL_RETRY (#14669, default off) to 78;
-    // UNPRICED_USAGE_BUDGET_POLICY (#14604, default fail_closed) to 79.
-    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 79);
+    // OPENCODE_POOL_RESELECT (default off) to 79; PROXY_POOL_SHARED_EGRESS_ORDER
+    // (#14657, default off) to 80; UNPRICED_USAGE_BUDGET_POLICY (default
+    // fail_closed) to 81.
+    assert.equal(FEATURE_FLAG_DEFINITIONS.length, 81);
   });
 });
 

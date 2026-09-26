@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; 閘道別名的主開關。開啟（預設）：/v1/models 會為每個符合資格且支援思考的 Claude 模型提供不思考變體，而請求中傳送的 no-think/ ID 會解析回實際模型並抑制推理。關閉：不會提供任何變體，且 no-think/ ID 會像其他未知模型 ID 一樣處理。開啟此選項時，每個模型的 ModelSpec.noThinkingAlias 選擇加入／退出設定仍然適用。",
   "featureFlagChatVirtualLanesEnabledDescription": "為提供者調度啟用按租戶的自適應虛擬准入通道（#9654）：一個租戶的突發流量不再導致另一個租戶收到 503。OMNIROUTE_CHAT_VIRTUAL_LANES 環境變數優先於此儀表板設定；變更在伺服器重新啟動後生效。",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "儀表板提供者頁面：僅根據提供者明確認可的訊號顯示「免費」徽章——不再對沒有文件說明免費方案的已註冊提供者使用顯示名稱啟發法、非布林值免費欄位及 :free 後綴。關閉時會沿用過往的徽章規則。",
-  "featureFlagProxySkipRecentlyFailedDescription": "Proxy 集區以及 opencode 的每帳戶輪替機制，會在每個處理程序的一段期間內，停止再次使用剛失敗的 Proxy（TCP 探測遭拒，或透過該 Proxy 收到 429）。每次重複失敗時，這段期間都會加倍，直到達到上限。不會寫入任何 Proxy 狀態；即使所有候選項目都被暫時擱置，選擇結果仍維持不變。預設關閉：選擇順序與一般輪替完全相同。",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proxy 集區以及 opencode 的每帳戶輪替機制，會在每個處理程序的一段期間內，停止再次使用剛失敗的 Proxy（TCP 探測遭拒，或透過該 Proxy 收到 429）。每次重複失敗時，這段期間都會加倍，直到達到上限。不會寫入任何 Proxy 狀態；即使所有候選項目都被暫時擱置，選擇結果仍維持不變。預設開啟；設為 `false` 可恢復一般選擇。",
   "featureFlagProxyPoolEgressObservationDescription": "在儀表板的 Proxy 集區下方，顯示過去 24 小時內觀察到多少個出口 IP 為其成員提供服務、使用這些 IP 的連線數，以及單一 IP 後方觀察到的最高數量。唯讀，根據 Proxy 記錄計算，絕不會用於路由。預設關閉：集區編輯器維持不變，觀察路由會回傳 null。",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "在 Proxy 健康狀態掃描中，讓遭目標拒絕的探測（401/403/429：Proxy 已轉送，但目的地拒絕此出口 IP）能像已提供服務的探測一樣，重設 Proxy 的連續失敗次數。預設關閉：拒絕仍視為中性，並保留目前的連續失敗次數。無論此設定為何，5xx 仍視為無法判定，而且拒絕絕不會移除、停用或重新啟用 Proxy。",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "允許自動清理程序刪除早於 OMNIROUTE_BATCH_RETENTION_DAYS 且處於最終狀態（已完成／失敗／已取消／已過期）的 Batch API 作業及其逐行檢查點，並清除已超過各自 expires_at 的上傳檔案 BLOB 內容。預設關閉：在操作員選擇啟用前，所有現有安裝都會完全比照以往保留這些資料。無論是否啟用，操作員觸發的 DELETE /api/v1/batches/delete-completed 路由都不受影響——它是獨立且無條件的公開 API 合約。",
@@ -3797,6 +3797,15 @@
     "disableSessionStickiness": "停用連線黏性",
     "sessionStickinessEnabled": "黏性已啟用",
     "sessionStickinessDisabled": "黏性關閉",
+    "stickyLimitEffective": "生效 {value}（{source}）",
+    "stickyLimitSourceCombo": "本組合",
+    "stickyLimitSourceComboDefaults": "組合預設",
+    "stickyLimitSourceGlobal": "全域預設",
+    "connectionAwareExpansion": "依帳號展開",
+    "triStateInherit": "繼承",
+    "connectionAwareExpansionOn": "開",
+    "connectionAwareExpansionOff": "關",
+    "promptCacheAffinityHint": "提示快取親和會優先於輪詢/加權在已釘帳號之間的輪轉。若需要嚴格輪轉，請到設定 → 組合預設關閉該選項。",
     "kimiPresetTitle": "Kimi Coding 預設組合",
     "kimiPresetDescription": "以 Kimi K3 作為主要模型（Moonshot API），設定完成後會自動備援至您的 Kimi Code 連線（kimi-coding、kimi-web）。",
     "kimiPresetCta": "新增預設組合",
@@ -3812,16 +3821,7 @@
     "duplicateAutoComboSnapshotMsg": "這將把與此模板匹配的目前連線提供者/模型快照到可編輯的組合中。",
     "duplicateAutoComboFailedPrefix": "複製自動組合失敗：",
     "duplicateAutoComboUnknownError": "未知錯誤",
-    "duplicateAutoComboTitle": "從{name}建立靜態組合",
-    "stickyLimitEffective": "生效 {value}（{source}）",
-    "stickyLimitSourceCombo": "本組合",
-    "stickyLimitSourceComboDefaults": "組合預設",
-    "stickyLimitSourceGlobal": "全域預設",
-    "connectionAwareExpansion": "依帳號展開",
-    "triStateInherit": "繼承",
-    "connectionAwareExpansionOn": "開",
-    "connectionAwareExpansionOff": "關",
-    "promptCacheAffinityHint": "提示快取親和會優先於輪詢/加權在已釘帳號之間的輪轉。若需要嚴格輪轉，請到設定 → 組合預設關閉該選項。"
+    "duplicateAutoComboTitle": "從{name}建立靜態組合"
   },
   "costs": {
     "title": "成本",
@@ -6873,7 +6873,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "本機 proxy-core 端點無效；已忽略 SS/VMess/Trojan/VLESS 節點。",
         "NEEDS_CORE_NOT_CONFIGURED": "此訂閱包含需要本機 proxy core 的節點（SS/VMess/Trojan/VLESS）；在設定本機 core SOCKS5 端點之前，這些節點不會被路由。",
-        "NO_USABLE_NODES": "訂閱未產生可用節點（http/https/socks5 或具有本機 core 端點的節點）。"
+        "NO_USABLE_NODES": "訂閱未產生可用節點（http/https/socks5 或具有本機 core 端點的節點）。",
+        "SELECTOR_SWITCH_FAILED": "代理核心控制呼叫失敗；上一條路由保持有效。請檢查控制 URL 和密鑰，然後重新整理。"
       },
       "description": "貼上您的代理訂閱連結。啟用後，流量將透過代理程式池以全域或規則（指定提供者）模式路由。訂閱節點會自動同步到代理程式池中，並重複使用現有的輪詢、健康檢查和防洩漏機制。",
       "addSubscription": "新增訂閱",
@@ -6946,7 +6947,20 @@
       "providerRouting": "提供者路由",
       "refresh": "重新整理",
       "refreshInterval": "刷新間隔",
-      "ruleModeDescription": "規則模式描述"
+      "ruleModeDescription": "規則模式描述",
+      "controlUrl": "控制 API 位址",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "控制 API 密鑰",
+      "controlSecretPlaceholder": "留白以保留已儲存的密鑰",
+      "controlSecretSaved": "密鑰已儲存",
+      "controlSecretNotSet": "尚未儲存密鑰",
+      "selectorMinGap": "切換最小間隔（秒）",
+      "selectorHelp": "在 local-core 行後附加「 selector='<name>'」以將其繫結到 selector 群組。",
+      "lastSwitch": "上次切換",
+      "lastSwitchNever": "尚未記錄切換",
+      "lastSwitchMember": "服務中的成員",
+      "nextSwitch": "下次可切換",
+      "nextSwitchNow": "現在"
     },
     "bulkHealthcheck": "批次健康檢查",
     "bulkHealthcheckDesc": "針對目標 URL 測試所有已設定代理，找出可用代理。",
@@ -11024,6 +11038,16 @@
     "batchDeleteSelected": "刪除選取的 {count} 個",
     "batchActivateSelected": "啟用選取的 {count} 個",
     "testPassed": "✓ 正常",
+    "sweepVerdict": "上次掃描：{cause} ({code}) {age}",
+    "sweepNoData": "啟動以來尚無掃描",
+    "sweepLabel": {
+      "unproven": "目標已拒絕",
+      "unclassified": "檢查無定論",
+      "ok": "已服務",
+      "fail": "連線失敗",
+      "hang": "交握停滯",
+      "inconclusive": "無定論"
+    },
     "close": "關閉",
     "managePool": "管理池",
     "poolTitle": "代理池與輪換",
@@ -11045,6 +11069,8 @@
     "poolEgressObservation": "{exits, plural, one {# 個出口} other {# 個出口}}由 {connections, plural, one {# 個連線} other {# 個連線}}使用 · 單一出口最多 {max} 個 · 過去 {hours} 小時",
     "poolEgressObservationEmpty": "過去 {hours} 小時內未觀察到流量",
     "poolEgressObservationHint": "根據代理伺服器記錄在此時間範圍內計算：觀察到此集區成員使用的不同出口 IP，以及使用這些 IP 的 OmniRoute 連線。「單一出口」是指整個時間範圍內，而非同一時間。每個 IP 的 429 鎖定只會暫停同一提供者系列的連線。",
+    "poolEgressFailuresByExit": "經由 {exit} 的失敗：{count}",
+    "poolEgressFailuresUnattributed": "未歸屬出口的失敗：{count}",
     "poolMemberEgress": "{host}:{port} 經由 {egressIp} 對外連線 · 過去 {hours} 小時",
     "poolMemberEgressEmpty": "{host}:{port}：過去 {hours} 小時內未觀察到流量",
     "poolMemberEgressHint": "在此時間範圍內，透過此集區成員觀察到的最新出口 IP（讀取自 Proxy 日誌）。若成員在此時間範圍內沒有流量，則會顯示無流量訊息。",
@@ -11054,7 +11080,23 @@
     "poolAddMember": "新增",
     "poolAddFailed": "將代理新增至池失敗",
     "poolSelectProxy": "選取代理…",
-    "poolSaveFailed": "儲存池指派失敗"
+    "poolSaveFailed": "儲存池指派失敗",
+    "poolPreferenceOrder": "偏好順序",
+    "poolSetAsideReason": "已擱置:{kind}",
+    "poolSetAsideKindProxyUnreachable": "代理無法連線",
+    "poolSetAsideKindIpQuota429": "IP 速率限制 (429)",
+    "poolSetAsideUntil": "{endsAt}恢復輪換",
+    "poolSetAsideRepeat": "已擱置{count, plural, one {#次} other {#次}}",
+    "poolUnknownAddress": "未知位址",
+    "poolSinceRestart": "自上次重新啟動以來",
+    "poolSignalSetAside": "擱置",
+    "poolSignalPosition": "位置順序",
+    "poolHealthRankingOff": "健康排名已關閉",
+    "transportRate": "{rate}%傳輸",
+    "previousSuccessRate": "此前{rate}%成功",
+    "upstreamRefusals": "{count}次上游拒絕",
+    "connectionTestsCount": "{count}次連線測試",
+    "notMeasured": "未測量"
   },
   "playground": {
     "title": "模型演練場",
@@ -11393,6 +11435,7 @@
       "compressed": "壓縮",
       "tps": "TPS",
       "duration": "時長",
+      "addedWait": "額外等待",
       "time": "時間",
       "conversation": "對話",
       "ttft": "TTFT"
@@ -11467,6 +11510,7 @@
       "startedAt": "開始於",
       "endedAt": "結束於",
       "duration": "持續時間",
+      "addedWait": "額外等待",
       "model": "模型",
       "provider": "提供者",
       "account": "帳戶",
@@ -11481,6 +11525,10 @@
       "requestedModel": "請求的模型",
       "requestProtocol": "需求協議",
       "cacheSource": "快取來源",
+      "contentProvenance": "回覆",
+      "contentEmpty": "空回覆",
+      "usageAbsent": "未回報 token 數量",
+      "usageEstimated": "token 數量為估算值",
       "modelPinning": "模型固定",
       "activeModelPinning": "活動 — 通過會話固定選擇的模型",
       "rotated": "旋轉: {initial} -> {final}",
@@ -11505,7 +11553,13 @@
       "correlationIdValue": "關聯 ID: {id}",
       "detailedPayloadInfo": "如果您想要新請求的四階段客戶端/提供者有效載荷視圖，請先啟用詳細日誌記錄。",
       "copyAll": "全部複製",
-      "copiedAll": "已全部複製"
+      "copiedAll": "已全部複製",
+      "resilienceStoredError": "根據已存錯誤提供服務",
+      "resilienceParked": "傳送前等待{ms}",
+      "resilienceRotations": "輪換帳戶{count}次",
+      "resilienceRetried": "重試空輪次",
+      "resilienceContinued": "在串流中途恢復",
+      "resilienceRecovered": "透過彈性操作恢復"
     }
   },
   "proxyLogger": {
@@ -11544,7 +11598,14 @@
     "noProxyLogs": "尚無代理日誌。設定代理併發起 API 呼叫後會顯示在這裡。",
     "noMatchingLogs": "沒有日誌匹配當前篩選條件。",
     "tlsFingerprint": "Chrome 124 TLS 指紋",
-    "colPublicIp": "公共IP"
+    "colPublicIp": "公共IP",
+    "colUpstream": "上游",
+    "colEgress": "出口 IP",
+    "colCorrelation": "關聯",
+    "colServedBy": "由...提供",
+    "filterTraffic": "流量",
+    "filterTests": "測試",
+    "filterSource": "來源"
   },
   "endpointOptions": {
     "speech": "語音",
@@ -12019,6 +12080,10 @@
     "stopDns": "停止 DNS",
     "toggling": "切換中…",
     "viewTraffic": "檢視流量",
+    "resetAgent": "還原預設值",
+    "resetAgentConfirm": "還原預設值？",
+    "resetting": "正在還原…",
+    "resetDone": "已為 {agent} 還原預設 DNS。請完全結束應用程式（不只是最小化）後重新開啟，變更才會生效。",
     "emptyNoProvidersTitle": "尚未設定提供程式",
     "emptyNoProvidersBody": "要使用 AgentBridge，首先連線至少一個提供者。它將是 IDE 請求路由的目標。",
     "emptyGoToProviders": "前往提供者",
@@ -12797,7 +12862,13 @@
     "createDahlTokenFailed": "無法創建 Dahl 令牌",
     "providerProxy": "代理伺服器",
     "providerProxyConfigureHint": "配置代理",
-    "providerProxyTitleConfigured": "代理已配置：{host}"
+    "providerProxyTitleConfigured": "代理已配置：{host}",
+    "proxySetAside": "代理已擱置",
+    "inheritConnectionOption": "無自有代理(繼承連線)",
+    "inheritedProxy": "繼承連線:{host}",
+    "inheritedPool": "繼承連線集區({count})",
+    "poolEmptyBlocked": "集區為空——請求將失敗(非直連)",
+    "directEgress": "直連(無代理)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14132,7 +14203,12 @@
     "directNative": "直接",
     "targetUrl": "目標 URL",
     "error": "錯誤",
-    "configuration": "代理設定"
+    "configuration": "代理設定",
+    "upstreamStatus": "上游狀態",
+    "noResponse": "無回應",
+    "egressIp": "出口 IP",
+    "servedBy": "由...提供",
+    "correlationId": "關聯 ID"
   },
   "requestTimeline": {
     "title": "請求時間線",

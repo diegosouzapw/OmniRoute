@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "Glavni prekidač za no-think/&lt;provider&gt;/&lt;model&gt; gateway aliase. Uključeno (podrazumijevano): /v1/models oglašava no-thinking varijantu za svaki kvalifikovani Claude model sa sposobnošću razmišljanja, a no-think/ ID poslan u zahtjevu se razrješava u stvarni model sa potisnutim razmišljanjem. Isključeno: varijante se ne oglašavaju, a no-think/ ID se tretira kao bilo koji drugi nepoznat ID modela. Opcija ModelSpec.noThinkingAlias po modelu i dalje vrijedi dok je ovo uključeno.",
   "featureFlagChatVirtualLanesEnabledDescription": "Omogući adaptivne virtualne trake prijema po tenantu za dispatch provajdera (#9654): burst jednog tenanta više ne uzrokuje 503 grešku drugom. Env varijabla OMNIROUTE_CHAT_VIRTUAL_LANES ima prednost nad ovim override-om na dashboardu; promjene stupaju na snagu nakon ponovnog pokretanja servera.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Stranice provajdera na dashboardu: prikaži Free bedž samo na signalima koje provajder priznaje — uklanja heuristiku display-name-a, ne-boolean free polja i :free sufikse na registrovanim provajderima bez dokumentiranog besplatnog nivoa. Isključeno zadržava historijsko pravilo za bedževe.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Proxy pool-ovi i rotacija po računu za opencode prestaju ponovo posluživati proxy koji je upravo zakazao (odbijena TCP proba ili primljeni 429 kroz njega) za period po procesu koji se udvostručuje pri svakom ponavljanju, do određenog limita. Status proxy-ja se ne zapisuje; sa svakim odloženim kandidatom izbor ostaje nepromijenjen. Podrazumijevano isključeno: redoslijed selekcije je tačno obična rotacija.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proxy pool-ovi i rotacija po računu za opencode prestaju ponovo posluživati proxy koji je upravo zakazao (odbijena TCP proba ili primljeni 429 kroz njega) za period po procesu koji se udvostručuje pri svakom ponavljanju, do određenog limita. Status proxy-ja se ne zapisuje; sa svakim odloženim kandidatom izbor ostaje nepromijenjen. Podrazumijevano uključeno; `false` vraća običnu selekciju.",
   "featureFlagProxyPoolEgressObservationDescription": "Prikaži, unutar proxy pool-a na dashboardu, koliko je opaženih egress IP-ova poslužilo njegove članove u posljednjih 24 h, koliko je konekcija ih koristilo i najviše viđenih iza jednog IP-a. Samo za čitanje, izračunato iz proxy log-a, nikada ne koristi se za rutiranje. Podrazumijevano isključeno: editor pool-a ostaje nepromijenjen, a ruta za opažanje vraća null.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "U skeniranju zdravlja proxy-ja, dopusti da proba koju je cilj odbio (401/403/429: proxy je proslijedio, destinacija je odbila ovaj egress IP) resetuje niz uzastopnih neuspjeha proxy-ja, kao i poslužena proba. Podrazumijevano isključeno: odbijanje ostaje neutralno i zadržava niz. 5xx ostaje neodređen u oba slučaja, a odbijanje nikada ne uklanja, onemogućuje ili ponovo aktivira proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Dopusti automatskom skeniranju za čišćenje da obriše terminalne (završene/neuspjele/otkazane/istekle) Batch API poslove starije od OMNIROUTE_BATCH_RETENTION_DAYS, zajedno sa njihovim checkpointima po liniji, i očisti BLOB sadržaj uploadovanih datoteka nakon njihovog expires_at. Podrazumijevano isključeno: svaka postojeća instalacija čuva ove podatke tačno kao i ranije dok operator ne odobri. Ruta DELETE /api/v1/batches/delete-completed pokrenuta od strane operatora nije pogođena u oba slučaja -- to je zaseban, bezuvjetni javni API ugovor.",
@@ -3456,7 +3456,9 @@
       "setRetryDelayMs": "Kašnjenje između pokušaja ponovnog slanja na nivou seta, dajući vremena za rješavanje prolaznih problema.",
       "targetTimeoutMs": "Opcionalni timeout po meti. Prazno nasljeđuje trenutni timeout zahtjeva; veće vrijednosti su ograničene tim timeout-om.",
       "comboTimeoutMs": "Opcionalni ukupni vremenski budžet za cijeli combo kroz sve failover mete. Prazno zadržava 10-minutno zaustavljanje; pozitivna vrijednost ga zamjenjuje. Postavite ovo duže od Target timeout-a kako bi failover i dalje imao vremena.",
-      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova."
+      "disableSessionStickiness": "Rotirajte na različitu vezu pri svakom zahtjevu umjesto fiksiranja cijelog razgovora na jednu vezu putem hash-a prve poruke. Nadjačava globalni default. Ostavite na Inherit kako biste sačuvali prompt-cache pogodke za razgovore u više krugova.",
+      "connectionAwareExpansion": "Kada je uključeno, ova kombinacija proširuje svaki korak na nivou provajdera u ciljeve po računu prije rotacije. Nasljedstvo koristi globalni podrazumijevani (isključeno). Isključeno zadržava rotaciju na nivou provajdera.",
+      "stickyLimit": "Veličina serije sa rotacijom: uzastopni uspješni zahtjevi poslani jednom cilju prije rotacije na sljedeći. Prazno nasljeđuje globalnu postavku Sticky Limit; 1 onemogućava grupisanje (čista rotacija jednog zahtjeva)."
     },
     "templatesTitle": "Brzi šabloni",
     "templatesDescription": "Primijenite početni profil, zatim prilagodite modele i konfiguraciju.",
@@ -3795,6 +3797,15 @@
     "disableSessionStickiness": "Onemogući session stickiness",
     "sessionStickinessEnabled": "Stickiness uključeno",
     "sessionStickinessDisabled": "Stickiness isključeno",
+    "stickyLimitEffective": "Efektivno {value} ({source})",
+    "stickyLimitSourceCombo": "kombinacija",
+    "stickyLimitSourceComboDefaults": "podrazumijevane kombinacije",
+    "stickyLimitSourceGlobal": "globalni podrazumijevani",
+    "connectionAwareExpansion": "Proširenje svjesno veze",
+    "triStateInherit": "naslijedi",
+    "connectionAwareExpansionOn": "Uključeno",
+    "connectionAwareExpansionOff": "Isključeno",
+    "promptCacheAffinityHint": "Usmjeravanje lokalnosti predmemorije zahtjeva ima prioritet nad rotacijom po principu round-robin/težinskoj rotaciji među fiksiranim računima. Isključite to u Postavkama, Podrazumijevane kombinacije, ako vam je potrebna stroga rotacija.",
     "kimiPresetTitle": "Kimi Coding unaprijed postavljena konfiguracija",
     "kimiPresetDescription": "Kimi K3 kao primarni model (Moonshot API), sa automatskim povratkom na vaše Kimi Code veze (kimi-coding, kimi-web) kada su konfigurisane.",
     "kimiPresetCta": "Dodaj preset",
@@ -6862,7 +6873,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokalna proxy-core krajnja tačka je nevažeća; SS/VMess/Trojan/VLESS čvorovi su ignorisani.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ova pretplata ima čvorove kojima je potreban lokalni proxy core (SS/VMess/Trojan/VLESS); oni neće biti rutirani dok ne konfigurišete lokalni-core SOCKS5 endpoint.",
-        "NO_USABLE_NODES": "Pretplata nije pružila nijedan upotrebljiv čvor (http/https/socks5 ili čvorovi sa lokalnom core krajnjom tačkom)."
+        "NO_USABLE_NODES": "Pretplata nije pružila nijedan upotrebljiv čvor (http/https/socks5 ili čvorovi sa lokalnom core krajnjom tačkom).",
+        "SELECTOR_SWITCH_FAILED": "Upravljački poziv proxy-corea nije uspio; prethodna ruta ostaje aktivna. Provjerite upravljački URL i tajnu, pa osvježite."
       },
       "description": "Zalijepite link vaše proxy pretplate. Kada se omogući, saobraćaj se rutira kroz proxy pool u globalnom ili rule (specifični Provider) režimu. Čvorovi pretplate se automatski sinhronizuju u proxy pool i koriste postojeće mehanizme polling-a, provjere zdravlja i anti-leak zaštite.",
       "addSubscription": "Dodaj Pretplatu",
@@ -6935,7 +6947,20 @@
       "providerRouting": "Rutiranje provajdera",
       "refresh": "Osvježi",
       "refreshInterval": "Interval osvježavanja",
-      "ruleModeDescription": "Opis režima pravila"
+      "ruleModeDescription": "Opis režima pravila",
+      "controlUrl": "URL upravljačkog API-ja",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "Tajna upravljačkog API-ja",
+      "controlSecretPlaceholder": "Ostavite prazno da zadržite spremljenu tajnu",
+      "controlSecretSaved": "Tajna spremljena",
+      "controlSecretNotSet": "Nema spremljene tajne",
+      "selectorMinGap": "Najmanje vrijeme između prebacivanja (sekunde)",
+      "selectorHelp": "Dodajte « selector='<name>' » u red local-core da ga vežete za grupu selector.",
+      "lastSwitch": "Zadnje prebacivanje",
+      "lastSwitchNever": "Još nema evidentiranog prebacivanja",
+      "lastSwitchMember": "Član koji opslužuje",
+      "nextSwitch": "Sljedeće moguće prebacivanje",
+      "nextSwitchNow": "Sada"
     },
     "bulkHealthcheck": "Masovna provjera zdravlja",
     "bulkHealthcheckDesc": "Testirajte sve konfigurisane proksije protiv ciljanog URL-a kako biste saznali koji rade.",
@@ -11013,6 +11038,16 @@
     "batchDeleteSelected": "Obriši {count} odabranih",
     "batchActivateSelected": "Omogući {count} odabranih",
     "testPassed": "✓ U redu",
+    "sweepVerdict": "Zadnje skeniranje: {cause} ({code}) {age}",
+    "sweepNoData": "Nema skeniranja od pokretanja",
+    "sweepLabel": {
+      "unproven": "meta odbila",
+      "unclassified": "provjera neuvjerljiva",
+      "ok": "posluženo",
+      "fail": "veza nije uspjela",
+      "hang": "rukovanje zastalo",
+      "inconclusive": "neuvjerljivo"
+    },
     "close": "Zatvori",
     "managePool": "Upravljanje pool-om",
     "poolTitle": "Proxy Pool i Rotacija",
@@ -11034,6 +11069,8 @@
     "poolEgressObservation": "{exits, plural, one {# izlaz} other {# izlaza}} koristi {connections, plural, one {# konekcija} other {# konekcija}} · do {max} na jednom izlazu · zadnjih {hours} h",
     "poolEgressObservationEmpty": "Nije primijećen saobraćaj u zadnjih {hours} h",
     "poolEgressObservationHint": "Brojčano iz proxy loga tokom perioda: različiti izlazni IP-ovi primijećeni za članove ovog pool-a i OmniRoute konekcije koje su ih koristile. \"Na jednom izlazu\" znači tokom perioda, ne u isto vrijeme. Per-IP 429 blokada pauzira samo konekcije iste porodice providera.",
+    "poolEgressFailuresByExit": "Neuspjesi preko {exit}: {count}",
+    "poolEgressFailuresUnattributed": "Neuspjesi bez pripisanog izlaza: {count}",
     "poolMemberEgress": "{host}:{port} izlaz kroz {egressIp} · posljednjih {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: nije zabilježen saobraćaj u posljednjih {hours} h",
     "poolMemberEgressHint": "Posljednja izlazna IP adresa zabilježena putem ovog člana skupa u posmatranom periodu, očitana iz dnevnika proxyja. Za člana bez saobraćaja u tom periodu prikazuje se poruka da nije bilo saobraćaja.",
@@ -11043,7 +11080,23 @@
     "poolAddMember": "Dodaj",
     "poolAddFailed": "Neuspješno dodavanje proxy-ja u pool",
     "poolSelectProxy": "Odaberite proxy…",
-    "poolSaveFailed": "Neuspješno spremanje dodjele pool-a"
+    "poolSaveFailed": "Neuspješno spremanje dodjele pool-a",
+    "poolPreferenceOrder": "Redoslijed preferencija",
+    "poolSetAsideReason": "Sklonjeno: {kind}",
+    "poolSetAsideKindProxyUnreachable": "proxy nedostupan",
+    "poolSetAsideKindIpQuota429": "ograničenje brzine po IP-u (429)",
+    "poolSetAsideUntil": "Nazad u rotaciji {endsAt}",
+    "poolSetAsideRepeat": "Sklonjeno {count, plural, one {# put} other {# puta}}",
+    "poolUnknownAddress": "Nepoznata adresa",
+    "poolSinceRestart": "Od posljednjeg restarta",
+    "poolSignalSetAside": "Skloni",
+    "poolSignalPosition": "Redoslijed pozicija",
+    "poolHealthRankingOff": "Rangiranje zdravlja isključeno",
+    "transportRate": "{rate} % transporta",
+    "previousSuccessRate": "Ranije {rate} % uspjeha",
+    "upstreamRefusals": "{count} upstream odbijanja",
+    "connectionTestsCount": "{count} testova konekcije",
+    "notMeasured": "Nije mjereno"
   },
   "playground": {
     "title": "Testno okruženje za modele",
@@ -11382,6 +11435,7 @@
       "compressed": "Kompresija",
       "tps": "TPS",
       "duration": "Trajanje",
+      "addedWait": "Dodatno čekanje",
       "time": "Vrijeme",
       "conversation": "Konverzacija",
       "ttft": "TTFT"
@@ -11456,6 +11510,7 @@
       "startedAt": "Započeto u",
       "endedAt": "Završeno u",
       "duration": "Trajanje",
+      "addedWait": "Dodatno čekanje",
       "model": "Model",
       "provider": "Provajder",
       "account": "Račun",
@@ -11470,6 +11525,10 @@
       "requestedModel": "Zatraženi model",
       "requestProtocol": "Req protokol",
       "cacheSource": "Izvor keša",
+      "contentProvenance": "Odgovor",
+      "contentEmpty": "Prazan odgovor",
+      "usageAbsent": "Broj tokena nije prijavljen",
+      "usageEstimated": "Broj tokena je procijenjen",
       "modelPinning": "Fiksiranje modela",
       "activeModelPinning": "Aktivno — model odabran putem fiksiranja sesije",
       "rotated": "Rotirano: {initial} -> {final}",
@@ -11494,7 +11553,13 @@
       "correlationIdValue": "Korelacijski ID: {id}",
       "detailedPayloadInfo": "Prvo omogućite detaljno zapisivanje ako želite pregled payloada klijenta/providera u četiri faze za nove zahtjeve.",
       "copyAll": "Kopiraj sve",
-      "copiedAll": "Kopirano sve"
+      "copiedAll": "Kopirano sve",
+      "resilienceStoredError": "Posluženo iz sačuvane greške",
+      "resilienceParked": "Zadržano {ms} prije slanja",
+      "resilienceRotations": "{count} rotacija naloga",
+      "resilienceRetried": "Prazan krug ponovljen",
+      "resilienceContinued": "Nastavljeno usred streama",
+      "resilienceRecovered": "Oporavljeno akcijom otpornosti"
     }
   },
   "proxyLogger": {
@@ -11533,7 +11598,14 @@
     "noProxyLogs": "Još nema proxy logova. Konfigurišite proxye i uputite API pozive kako biste ih vidjeli ovdje.",
     "noMatchingLogs": "Nijedan log ne odgovara trenutnim filterima.",
     "tlsFingerprint": "TLS otisak Chromea 124",
-    "colPublicIp": "Javna IP adresa"
+    "colPublicIp": "Javna IP adresa",
+    "colUpstream": "Upravljački",
+    "colEgress": "Egress IP",
+    "colCorrelation": "Korelacija",
+    "colServedBy": "Posluženo od",
+    "filterTraffic": "Saobraćaj",
+    "filterTests": "Testovi",
+    "filterSource": "Izvor"
   },
   "endpointOptions": {
     "speech": "Govor",
@@ -12008,6 +12080,10 @@
     "stopDns": "Zaustavi DNS",
     "toggling": "Prebacivanje…",
     "viewTraffic": "Pogledaj saobraćaj",
+    "resetAgent": "Vrati zadano",
+    "resetAgentConfirm": "Vratiti zadano?",
+    "resetting": "Vraćanje…",
+    "resetDone": "Zadani DNS je vraćen za {agent}. Potpuno zatvorite aplikaciju (ne samo minimizirajte) i ponovo je otvorite da bi promjena stupila na snagu.",
     "emptyNoProvidersTitle": "Još uvijek nema konfigurisanih provajdera",
     "emptyNoProvidersBody": "Da biste koristili AgentBridge, prvo povežite barem jednog provajdera. On će biti odredište gdje se rutiraju zahtjevi iz IDE-a.",
     "emptyGoToProviders": "Idi na Provajdere",
@@ -12786,7 +12862,13 @@
     "createDahlTokenFailed": "Neuspjelo kreiranje Dahl tokena",
     "providerProxy": "Proxy",
     "providerProxyConfigureHint": "Konfigurišite proxy",
-    "providerProxyTitleConfigured": "Proxy konfigurisan: {host}"
+    "providerProxyTitleConfigured": "Proxy konfigurisan: {host}",
+    "proxySetAside": "Proxy sklonjen",
+    "inheritConnectionOption": "Bez vlastitog proxyja (nasljeđuje konekciju)",
+    "inheritedProxy": "Nasljeđuje konekciju: {host}",
+    "inheritedPool": "Nasljeđuje bazen konekcija ({count})",
+    "poolEmptyBlocked": "Bazen prazan — zahtjevi ne uspijevaju (ne direktno)",
+    "directEgress": "Direktno (bez proxyja)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14121,7 +14203,12 @@
     "directNative": "Direktno (native)",
     "targetUrl": "Ciljni URL",
     "error": "Greška",
-    "configuration": "Konfiguracija proxy-ja"
+    "configuration": "Konfiguracija proxy-ja",
+    "upstreamStatus": "Status upravljačkog",
+    "noResponse": "Nema odgovora",
+    "egressIp": "Egress IP",
+    "servedBy": "Posluženo od",
+    "correlationId": "ID korelacije"
   },
   "requestTimeline": {
     "title": "Vremenska linija zahtjeva",
@@ -14146,7 +14233,12 @@
     "hour": "sat",
     "day": "dan",
     "unknownModel": "nepoznato",
-    "pending": "na čekanju"
+    "pending": "na čekanju",
+    "allApiKeys": "Svi API ključevi",
+    "mcp": "MCP",
+    "mcpTool": "MCP alat",
+    "scope": "Opseg",
+    "apiKey": "API ključ"
   },
   "metadata": {
     "compressionTitle": "Kompresija",

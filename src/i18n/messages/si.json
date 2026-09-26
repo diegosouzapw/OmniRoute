@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; ද්වාර අන්වර්ථ සඳහා ප්රධාන ස්විචය. සක්රියයි (පෙරනිමිය): /v1/models මඟින් සුදුසුකම් ඇති, සිතා බැලීමේ හැකියාව සහිත සෑම Claude මාදිලියකටම සිතා බැලීමෙන් තොර ප්රභේදයක් ප්රචාරය කරන අතර, ඉල්ලීමක් සමඟ යවන no-think/ හැඳුනුමක් තර්කනය යටපත් කර සැබෑ මාදිලිය වෙත නැවත විසඳයි. අක්රියයි: කිසිදු ප්රභේදයක් ප්රචාරය නොකරන අතර no-think/ හැඳුනුමක් වෙනත් ඕනෑම නොදන්නා මාදිලි හැඳුනුමක් මෙන් සලකයි. මෙය සක්රියව තිබියදීත් එක් එක් මාදිලියට අදාළ ModelSpec.noThinkingAlias තෝරා සක්රිය කිරීම/අක්රිය කිරීම තවදුරටත් අදාළ වේ.",
   "featureFlagChatVirtualLanesEnabledDescription": "සපයන්නා වෙත යැවීම සඳහා එක් එක් ටෙනන්ට්ට අනුව අනුවර්තනය වන අතථ්ය ප්රවේශ මංතීරු සබල කරන්න (#9654): එක් ටෙනන්ට් කෙනෙකුගේ හදිසි ඉල්ලීම් වැඩිවීමක් තවදුරටත් වෙනත් අයෙකුට 503 දෝෂයක් ඇති නොකරයි. OMNIROUTE_CHAT_VIRTUAL_LANES පරිසර විචල්යය මෙම උපකරණ පුවරු අතික්රමණයට වඩා ප්රමුඛ වේ; වෙනස්කම් සේවාදායකය නැවත ආරම්භ කළ විට ක්රියාත්මක වේ.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "උපකරණ පුවරුවේ සැපයුම්කරු පිටු: සැපයුම්කරු පිළිගන්නා සංඥා මත පමණක් නොමිලේ ලාංඡනය පෙන්වන්න — ලේඛනගත නොමිලේ මට්ටමක් නොමැති ලියාපදිංචි සැපයුම්කරුවන් සඳහා සංදර්ශක නාම අනුමානය, බූලීය නොවන නොමිලේ ක්ෂේත්ර සහ :free ප්රත්ය අත්හරියි. අක්රිය කළ විට ඓතිහාසික ලාංඡන රීතිය භාවිත කරයි.",
-  "featureFlagProxySkipRecentlyFailedDescription": "ප්රොක්සි සංචිත සහ opencode හි ගිණුමකට වෙන් වූ මාරු කිරීම, අසාර්ථක වූ ප්රොක්සියක් (ප්රතික්ෂේප වූ TCP පරීක්ෂාවක් හෝ එය හරහා ලැබුණු 429 ප්රතිචාරයක්) එක් එක් නැවත සිදුවීමේදී දෙගුණ වන, උපරිම සීමාවකට යටත් ක්රියාවලි-විශේෂිත කාලයක් සඳහා නැවත භාවිත කිරීම නවත්වයි. කිසිදු ප්රොක්සි තත්ත්වයක් ලියනු නොලැබේ; සෑම අපේක්ෂකයෙකුම පසෙකට කළ විට තේරීම වෙනස් නොවේ. පෙරනිමියෙන් අක්රියයි: තේරීම් අනුපිළිවෙළ සරල මාරු කිරීමේ අනුපිළිවෙළට හරියටම සමාන වේ.",
+  "featureFlagProxySkipRecentlyFailedDescription": "ප්රොක්සි සංචිත සහ opencode හි ගිණුමකට වෙන් වූ මාරු කිරීම, අසාර්ථක වූ ප්රොක්සියක් (ප්රතික්ෂේප වූ TCP පරීක්ෂාවක් හෝ එය හරහා ලැබුණු 429 ප්රතිචාරයක්) එක් එක් නැවත සිදුවීමේදී දෙගුණ වන, උපරිම සීමාවකට යටත් ක්රියාවලි-විශේෂිත කාලයක් සඳහා නැවත භාවිත කිරීම නවත්වයි. කිසිදු ප්රොක්සි තත්ත්වයක් ලියනු නොලැබේ; සෑම අපේක්ෂකයෙකුම පසෙකට කළ විට තේරීම වෙනස් නොවේ. පෙරනිමියෙන් සක්‍රියයි; `false` සරල තේරීම ප්‍රතිසාධනය කරයි.",
   "featureFlagProxyPoolEgressObservationDescription": "උපකරණ පුවරුවේ ප්රොක්සි සංචිතයක් යටතේ, පසුගිය පැය 24 තුළ එහි සාමාජිකයන්ට සේවය සැපයූ නිරීක්ෂිත පිටතට යන IP ලිපින ගණන, ඒවා භාවිත කළ සම්බන්ධතා ගණන සහ එක් IP ලිපිනයක් පිටුපසින් නිරීක්ෂණය වූ උපරිම ගණන පෙන්වන්න. මෙය කියවීමට පමණක් වන අතර ප්රොක්සි ලොගයෙන් ගණනය කෙරෙන අතර මාර්ගගත කිරීම සඳහා කිසි විටෙක භාවිත නොකෙරේ. පෙරනිමියෙන් අක්රියයි: සංචිත සංස්කාරකය වෙනස් නොවන අතර නිරීක්ෂණ මාර්ගය null ලෙස පිළිතුරු දෙයි.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "ප්රොක්සි සෞඛ්ය පරීක්ෂණ වටයේදී, ඉලක්කය ප්රතික්ෂේප කළ පරීක්ෂාවකට (401/403/429: ප්රොක්සිය ඉල්ලීම යොමු කළ නමුත් ගමනාන්තය මෙම පිටතට යන IP ලිපිනය ප්රතික්ෂේප කළේය) සාර්ථකව සේවය කළ පරීක්ෂාවක් මෙන් ප්රොක්සියේ අඛණ්ඩ අසාර්ථකවීම් පෙළ යළි සැකසීමට ඉඩ දෙන්න. පෙරනිමියෙන් අක්රියයි: ප්රතික්ෂේප කිරීමක් මධ්යස්ථව පවතින අතර අඛණ්ඩ අසාර්ථකවීම් පෙළ එලෙසම තබයි. 5xx ප්රතිචාරයක් අවස්ථා දෙකේදීම අවිනිශ්චිතව පවතින අතර, ප්රතික්ෂේප කිරීමක් කිසි විටෙක ප්රොක්සියක් ඉවත් කිරීම, අක්රිය කිරීම හෝ නැවත සක්රිය කිරීම සිදු නොකරයි.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "ස්වයංක්රීය පිරිසිදු කිරීමේ ක්රියාවලියට OMNIROUTE_BATCH_RETENTION_DAYS ට වඩා පැරණි අවසන් තත්ත්වයේ (සම්පූර්ණ කළ/අසාර්ථක වූ/අවලංගු කළ/කල් ඉකුත් වූ) Batch API කාර්ය, ඒවායේ එක් එක් පේළියේ checkpoints සමඟ මකා දැමීමටත්, තමන්ගේ expires_at පසු කළ උඩුගත කළ ගොනුවල BLOB අන්තර්ගතය හිස් කිරීමටත් ඉඩ දෙන්න. පෙරනිමියෙන් අක්රියයි: ක්රියාකරු තේරීමෙන් සක්රිය කරන තෙක් පවතින සෑම ස්ථාපනයක්ම මෙම දත්ත පෙර පරිදිම තබා ගනී. ක්රියාකරු විසින් ක්රියාත්මක කරන DELETE /api/v1/batches/delete-completed මාර්ගයට මෙය කෙසේ සැකසුවත් බලපෑමක් නැත — එය වෙනම, කොන්දේසි රහිත පොදු API ගිවිසුමකි.",
@@ -3797,6 +3797,15 @@
     "disableSessionStickiness": "සැසි ස්ථායීතාව අක්රිය කරන්න",
     "sessionStickinessEnabled": "ස්ථායීතාව සක්රියයි",
     "sessionStickinessDisabled": "ස්ථායීතාව අක්රියයි",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding පෙරසැකසුම",
     "kimiPresetDescription": "Kimi K3 ප්රධාන ආකෘතිය ලෙස (Moonshot API), වින්යාස කර ඇති විට ඔබගේ Kimi Code සම්බන්ධතා (kimi-coding, kimi-web) වෙත ස්වයංක්රීයව මාරු වේ.",
     "kimiPresetCta": "පෙරසැකසුම එක් කරන්න",
@@ -3812,16 +3821,7 @@
     "duplicateAutoComboSnapshotMsg": "මෙමඟින් මෙම අච්චුවට ගැළපෙන, දැනට සම්බන්ධිත සැපයුම්කරුවන්/ආකෘතිවල වත්මන් තත්ත්වය සංස්කරණය කළ හැකි සංයෝජනයක් ලෙස සුරකිනු ඇත.",
     "duplicateAutoComboFailedPrefix": "ස්වයංක්රීය සංයෝජනය අනුපිටපත් කිරීමට අසමත් විය:",
     "duplicateAutoComboUnknownError": "නොදන්නා දෝෂයකි",
-    "duplicateAutoComboTitle": "{name} වෙතින් ස්ථිතික සංයෝජනයක් සාදන්න",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} වෙතින් ස්ථිතික සංයෝජනයක් සාදන්න"
   },
   "costs": {
     "title": "පිරිවැය",
@@ -6873,7 +6873,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "දේශීය proxy-core අන්ත ලක්ෂ්යය වලංගු නොවේ; SS/VMess/Trojan/VLESS නෝඩ නොසලකා හරින ලදී.",
         "NEEDS_CORE_NOT_CONFIGURED": "මෙම දායකත්වයේ දේශීය ප්රොක්සි කෝරයක් අවශ්ය නෝඩ ඇත (SS/VMess/Trojan/VLESS); ඔබ local-core SOCKS5 අන්ත ලක්ෂ්යය වින්යාස කරන තෙක් ඒවා මාර්ගගත නොකෙරේ.",
-        "NO_USABLE_NODES": "දායකත්වයෙන් භාවිත කළ හැකි නෝඩ කිසිවක් නොලැබුණි (http/https/socks5 හෝ දේශීය කෝර අන්ත ලක්ෂ්යයක් සහිත නෝඩ)."
+        "NO_USABLE_NODES": "දායකත්වයෙන් භාවිත කළ හැකි නෝඩ කිසිවක් නොලැබුණි (http/https/socks5 හෝ දේශීය කෝර අන්ත ලක්ෂ්යයක් සහිත නෝඩ).",
+        "SELECTOR_SWITCH_FAILED": "ප්‍රොක්සි-කෝර් පාලන ඇමතුම අසාර්ථක විය; පෙර මාර්ගය සක්‍රීයව පවතී. පාලන URL සහ රහස පරීක්ෂා කර නැවුම් කරන්න."
       },
       "description": "ඔබේ ප්රොක්සි දායකත්ව සබැඳිය අලවන්න. සබල කළ පසු, ගමනාගමනය ගෝලීය හෝ රීති (නිශ්චිත Provider) ප්රකාරයේදී ප්රොක්සි සංචිතය හරහා මාර්ගගත කෙරේ. දායකත්ව නෝඩ ස්වයංක්රීයව ප්රොක්සි සංචිතයට සමමුහුර්ත කර, පවතින polling, health-check සහ anti-leak යාන්ත්රණ නැවත භාවිත කරයි.",
       "addSubscription": "දායකත්වයක් එක් කරන්න",
@@ -6946,7 +6947,20 @@
       "providerRouting": "Provider මාර්ගගත කිරීම",
       "refresh": "නැවුම් කරන්න",
       "refreshInterval": "නැවුම් කිරීමේ කාල පරතරය",
-      "ruleModeDescription": "රීති ප්රකාරය පිළිබඳ විස්තරය"
+      "ruleModeDescription": "රීති ප්රකාරය පිළිබඳ විස්තරය",
+      "controlUrl": "පාලන API URL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "පාලන API රහස",
+      "controlSecretPlaceholder": "සුරකින ලද රහස තබා ගැනීමට හිස්ව තබන්න",
+      "controlSecretSaved": "රහස සුරකින ලදී",
+      "controlSecretNotSet": "සුරකින ලද රහසක් නැත",
+      "selectorMinGap": "මාරු අතර අවම කාලය (තත්පර)",
+      "selectorHelp": "local-core පේළියකට « selector='<name>' » එක් කර selector කණ්ඩායමට බඳින්න.",
+      "lastSwitch": "අවසන් මාරුව",
+      "lastSwitchNever": "තවම මාරුවක් සටහන් වී නැත",
+      "lastSwitchMember": "සේවය කරන සාමාජිකයා",
+      "nextSwitch": "ඊළඟ විය හැකි මාරුව",
+      "nextSwitchNow": "දැන්"
     },
     "bulkHealthcheck": "සමූහ සෞඛ්ය පරීක්ෂාව",
     "bulkHealthcheckDesc": "ක්රියා කරන ඒවා හඳුනා ගැනීමට වින්යාස කර ඇති සියලුම ප්රොක්සි ඉලක්ක URL එකක් සමඟ පරීක්ෂා කරන්න.",
@@ -11024,6 +11038,16 @@
     "batchDeleteSelected": "තෝරාගත් {count}ක් මකන්න",
     "batchActivateSelected": "තෝරාගත් {count}ක් සබල කරන්න",
     "testPassed": "✓ හරි",
+    "sweepVerdict": "අවසාන ස්කෑන්: {cause} ({code}) {age}",
+    "sweepNoData": "ආරම්භයේ සිට තවම ස්කෑන් නැත",
+    "sweepLabel": {
+      "unproven": "ඉලක්කය ප්‍රතික්ෂේප කළා",
+      "unclassified": "පරීක්ෂාව අවිනිශ්චිතයි",
+      "ok": "සේවය ලැබුණා",
+      "fail": "සම්බන්ධතාව අසාර්ථකයි",
+      "hang": "හෑන්ඩ්ෂේක් ඇණහිටියා",
+      "inconclusive": "අවිනිශ්චිතයි"
+    },
     "close": "වසා දමන්න",
     "managePool": "සංචිතය කළමනාකරණය කරන්න",
     "poolTitle": "ප්රොක්සි සංචිතය සහ මාරුව",
@@ -11045,6 +11069,8 @@
     "poolEgressObservation": "{exits, plural, one {පිටවීම #ක්} other {පිටවීම් #ක්}} {connections, plural, one {සම්බන්ධතාව #ක්} other {සම්බන්ධතා #ක්}} විසින් භාවිත කර ඇත · එක් පිටවීමක උපරිම {max}ක් · පසුගිය පැය {hours}",
     "poolEgressObservationEmpty": "පසුගිය පැය {hours} තුළ ගමනාගමනයක් නිරීක්ෂණය වී නැත",
     "poolEgressObservationHint": "කාල කවුළුව තුළ proxy ලොගයෙන් ගණනය කරන ලදී: මෙම සංචිතයේ සාමාජිකයන් සඳහා නිරීක්ෂණය කළ වෙනස් egress IP ලිපින සහ ඒවා භාවිත කළ OmniRoute සම්බන්ධතා. \"එක් පිටවීමක\" යන්නෙන් අදහස් වන්නේ එකම වේලාවේ නොව, කාල කවුළුව පුරා යන්නයි. එක් එක් IP සඳහා වන 429 අගුලු දැමීමෙන් තාවකාලිකව නතර කරන්නේ එකම සැපයුම්කරු පවුලේ සම්බන්ධතා පමණි.",
+    "poolEgressFailuresByExit": "{exit} හරහා අසාර්ථකවීම්: {count}",
+    "poolEgressFailuresUnattributed": "නියමිත පිටවීමක් නොමැති අසාර්ථකවීම්: {count}",
     "poolMemberEgress": "{host}:{port} වෙතින් {egressIp} හරහා පිටවිය · පසුගිය පැය {hours} තුළ",
     "poolMemberEgressEmpty": "{host}:{port}: පසුගිය පැය {hours} තුළ කිසිදු ගමනාගමනයක් නිරීක්ෂණය වී නැත",
     "poolMemberEgressHint": "මෙම කාල පරාසය තුළ මෙම සංචිත සාමාජිකයා හරහා අවසන් වරට නිරීක්ෂණය කළ පිටවීමේ IP ලිපිනය, ප්රොක්සි ලොගයෙන් කියවන ලදී. මෙම කාල පරාසය තුළ ගමනාගමනයක් නොමැති සාමාජිකයෙකු සඳහා ගමනාගමනයක්-නොමැති පේළිය පෙන්වයි.",
@@ -11054,7 +11080,23 @@
     "poolAddMember": "එක් කරන්න",
     "poolAddFailed": "ප්රොක්සිය සංචිතයට එක් කිරීමට අසමත් විය",
     "poolSelectProxy": "ප්රොක්සියක් තෝරන්න…",
-    "poolSaveFailed": "සංචිත පැවරීම සුරැකීමට අසමත් විය"
+    "poolSaveFailed": "සංචිත පැවරීම සුරැකීමට අසමත් විය",
+    "poolPreferenceOrder": "කැමැත්ත අනුපිළිවෙල",
+    "poolSetAsideReason": "වෙන්කර ඇත: {kind}",
+    "poolSetAsideKindProxyUnreachable": "ප්‍රොක්සියට ළඟා විය නොහැක",
+    "poolSetAsideKindIpQuota429": "IP අනුපාත සීමාව (429)",
+    "poolSetAsideUntil": "භ්‍රමණයට ආපසු {endsAt}",
+    "poolSetAsideRepeat": "වෙන්කර ඇත {count, plural, one {# වතාවක්} other {# වතාවක්}}",
+    "poolUnknownAddress": "නොදන්නා ලිපිනය",
+    "poolSinceRestart": "අවසාන නැවත ආරම්භයේ සිට",
+    "poolSignalSetAside": "වෙන්කරන්න",
+    "poolSignalPosition": "ස්ථාන අනුපිළිවෙල",
+    "poolHealthRankingOff": "සෞඛ්‍ය ශ්‍රේණිගත කිරීම අක්‍රිය",
+    "transportRate": "{rate}% ප්‍රවාහනය",
+    "previousSuccessRate": "පෙර {rate}% සාර්ථකත්වය",
+    "upstreamRefusals": "{count} upstream ප්‍රතික්ෂේප",
+    "connectionTestsCount": "{count} සම්බන්ධතා පරීක්ෂණ",
+    "notMeasured": "මනින ලද්දේ නැත"
   },
   "playground": {
     "title": "ආකෘති අත්හදා බැලීමේ පරිසරය",
@@ -11393,6 +11435,7 @@
       "compressed": "සම්පීඩනය",
       "tps": "TPS",
       "duration": "කාලසීමාව",
+      "addedWait": "එකතු කළ රැඳීම",
       "time": "වේලාව",
       "conversation": "සංවාදය",
       "ttft": "TTFT"
@@ -11467,6 +11510,7 @@
       "startedAt": "ආරම්භ කළ වේලාව",
       "endedAt": "අවසන් කළ වේලාව",
       "duration": "කාලසීමාව",
+      "addedWait": "එකතු කළ රැඳීම",
       "model": "මාදිලිය",
       "provider": "සපයන්නා",
       "account": "ගිණුම",
@@ -11481,6 +11525,10 @@
       "requestedModel": "ඉල්ලා ඇති මාදිලිය",
       "requestProtocol": "ඉල්ලීම් ප්රොටෝකෝලය",
       "cacheSource": "කෑෂ් මූලාශ්රය",
+      "contentProvenance": "පිළිතුර",
+      "contentEmpty": "හිස් පිළිතුර",
+      "usageAbsent": "ටෝකන ගණන වාර්තා කර නැත",
+      "usageEstimated": "ටෝකන ගණන ඇස්තමේන්තුගත",
       "modelPinning": "මාදිලි ඇමිණීම",
       "activeModelPinning": "සක්රියයි — සැසි ඇමිණීම හරහා මාදිලිය තෝරා ඇත",
       "rotated": "මාරු කරන ලදී: {initial} -> {final}",
@@ -11505,7 +11553,13 @@
       "correlationIdValue": "සහසම්බන්ධතා හැඳුනුම්කාරකය: {id}",
       "detailedPayloadInfo": "නව ඉල්ලීම් සඳහා අදියර හතරක සේවාලාභී/සපයන්නා දත්ත කොටස් දසුන අවශ්ය නම්, පළමුව සවිස්තරාත්මක ලොග් කිරීම සබල කරන්න.",
       "copyAll": "සියල්ල පිටපත් කරන්න",
-      "copiedAll": "සියල්ල පිටපත් කරන ලදී"
+      "copiedAll": "සියල්ල පිටපත් කරන ලදී",
+      "resilienceStoredError": "ගබඩා කළ දෝෂයෙන් සපයන ලදී",
+      "resilienceParked": "යැවීමට පෙර {ms} රඳවා ඇත",
+      "resilienceRotations": "ගිණුම් භ්‍රමණ {count}",
+      "resilienceRetried": "හිස් වාරය නැවත උත්සාහ කළා",
+      "resilienceContinued": "ප්‍රවාහය මැදින් නැවත ආරම්භ කළා",
+      "resilienceRecovered": "ප්‍රත්‍යස්ථතා ක්‍රියාවකින් ප්‍රතිසාධනය කළා"
     }
   },
   "proxyLogger": {
@@ -11544,7 +11598,14 @@
     "noProxyLogs": "තවම ප්රොක්සි ලොග් නොමැත. ඒවා මෙහි බැලීමට ප්රොක්සි වින්යාස කර API ඇමතුම් සිදු කරන්න.",
     "noMatchingLogs": "වත්මන් පෙරහන්වලට ගැළපෙන ලොග් නොමැත.",
     "tlsFingerprint": "Chrome 124 TLS ඇඟිලි සලකුණ",
-    "colPublicIp": "පොදු IP"
+    "colPublicIp": "පොදු IP",
+    "colUpstream": "උඩුගතය",
+    "colEgress": "ඉවත් වීමේ IP",
+    "colCorrelation": "සම්බන්ධතා",
+    "colServedBy": "සැපයුම්කරු",
+    "filterTraffic": "ගමනාගමනය",
+    "filterTests": "පරීක්ෂණ",
+    "filterSource": "මූලාශ්‍රය"
   },
   "endpointOptions": {
     "speech": "කථනය",
@@ -12019,6 +12080,10 @@
     "stopDns": "DNS නවත්වන්න",
     "toggling": "මාරු කරමින්…",
     "viewTraffic": "ගමනාගමනය බලන්න",
+    "resetAgent": "පෙරනිමිය ප්‍රතිසාධනය කරන්න",
+    "resetAgentConfirm": "පෙරනිමිය ප්‍රතිසාධනය කරන්නද?",
+    "resetting": "ප්‍රතිසාධනය කරමින්…",
+    "resetDone": "{agent} සඳහා පෙරනිමි DNS ප්‍රතිසාධනය කරන ලදී. වෙනස බලපැවැත්වීමට යෙදුම සම්පූර්ණයෙන්ම වසා (අවම කිරීම පමණක් නොව) නැවත විවෘත කරන්න.",
     "emptyNoProvidersTitle": "තවමත් සැපයුම්කරුවන් වින්යාස කර නොමැත",
     "emptyNoProvidersBody": "AgentBridge භාවිත කිරීමට, පළමුව අවම වශයෙන් එක් සැපයුම්කරුවෙකු සම්බන්ධ කරන්න. IDE ඉල්ලීම් යොමු කරන ගමනාන්තය එය වනු ඇත.",
     "emptyGoToProviders": "සැපයුම්කරුවන් වෙත යන්න",
@@ -12797,7 +12862,13 @@
     "createDahlTokenFailed": "Dahl ටෝකනය සෑදීමට අසමත් විය",
     "providerProxy": "ප්රොක්සි",
     "providerProxyConfigureHint": "ප්රොක්සි වින්යාස කරන්න",
-    "providerProxyTitleConfigured": "ප්රොක්සි වින්යාස කර ඇත: {host}"
+    "providerProxyTitleConfigured": "ප්රොක්සි වින්යාස කර ඇත: {host}",
+    "proxySetAside": "ප්‍රොක්සිය වෙන්කර ඇත",
+    "inheritConnectionOption": "ස්වන්ත ප්‍රොක්සියක් නැත (සම්බන්ධතාව උරුම වේ)",
+    "inheritedProxy": "සම්බන්ධතාව උරුම වේ: {host}",
+    "inheritedPool": "සම්බන්ධතා තටාකය උරුම වේ ({count})",
+    "poolEmptyBlocked": "තටාකය හිස් — ඉල්ලීම් අසාර්ථකයි (සෘජු නොවේ)",
+    "directEgress": "සෘජු (ප්‍රොක්සි නැතිව)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14132,7 +14203,12 @@
     "directNative": "සෘජු (ස්වදේශීය)",
     "targetUrl": "ඉලක්ක URL",
     "error": "දෝෂය",
-    "configuration": "ප්රොක්සි වින්යාසය"
+    "configuration": "ප්රොක්සි වින්යාසය",
+    "upstreamStatus": "උඩුගත තත්වය",
+    "noResponse": "ප්‍රතිචාරයක් නැත",
+    "egressIp": "ඉවත් වීමේ IP",
+    "servedBy": "සැපයුම්කරු",
+    "correlationId": "සම්බන්ධතා ID"
   },
   "requestTimeline": {
     "title": "ඉල්ලීමේ කාලරේඛාව",

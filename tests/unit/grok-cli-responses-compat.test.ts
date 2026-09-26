@@ -23,6 +23,12 @@ test("grok-cli exposes the authenticated grok-build model catalog", () => {
     })),
     [
       {
+        id: "grok-4.7",
+        name: "Grok 4.7",
+        contextLength: 500000,
+        targetFormat: "openai-responses",
+      },
+      {
         id: "grok-4.6",
         name: "Grok 4.6",
         contextLength: 500000,

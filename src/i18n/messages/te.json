@@ -993,7 +993,7 @@
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; గేట్వే అలియాస్ల కోసం ప్రధాన స్విచ్. ఆన్ (డిఫాల్ట్): అర్హత కలిగిన ప్రతి థింకింగ్ సామర్థ్యం గల Claude మోడల్కు /v1/models నో-థింకింగ్ వేరియంట్ను చూపిస్తుంది, అలాగే అభ్యర్థనలో పంపిన no-think/ id రీజనింగ్ను అణచివేస్తూ అసలు మోడల్గా పరిష్కరించబడుతుంది. ఆఫ్: ఏ వేరియంట్లూ చూపించబడవు మరియు no-think/ id ఇతర తెలియని మోడల్ id లాగానే పరిగణించబడుతుంది. ఇది ఆన్లో ఉన్నప్పుడు ఒక్కో మోడల్కు సంబంధించిన ModelSpec.noThinkingAlias ఆప్ట్-ఇన్/ఆప్ట్-అవుట్ ఇప్పటికీ వర్తిస్తుంది.",
   "featureFlagChatVirtualLanesEnabledDescription": "ప్రొవైడర్ డిస్పాచ్ కోసం ప్రతి-టెనెంట్ అడాప్టివ్ వర్చువల్ అడ్మిషన్ లేన్లను ప్రారంభించండి (#9654): ఒక టెనెంట్ బర్స్ట్ ఇకపై మరొక టెనెంట్కు 503 ఇవ్వదు. OMNIROUTE_CHAT_VIRTUAL_LANES ఎన్విరాన్మెంట్ వేరియబుల్ ఈ డాష్బోర్డ్ సెట్టింగ్ కంటే ప్రాధాన్యత పొందుతుంది; మార్పులు సర్వర్ పునఃప్రారంభంలో ప్రభావం చూపుతాయి.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "డ్యాష్బోర్డ్ ప్రొవైడర్ పేజీలు: ప్రొవైడర్ గుర్తించే సంకేతాలపైనే ఉచిత బ్యాడ్జ్ను చూపించండి — డాక్యుమెంట్ చేయబడిన ఉచిత టైర్ లేని నమోదిత ప్రొవైడర్లలో డిస్ప్లే-పేరు హ్యూరిస్టిక్, బూలియన్ కాని ఉచిత ఫీల్డ్లు మరియు :free ప్రత్యయాలను విస్మరిస్తుంది. ఆఫ్ చేస్తే మునుపటి బ్యాడ్జ్ నియమాన్ని కొనసాగిస్తుంది.",
-  "featureFlagProxySkipRecentlyFailedDescription": "Proxy పూల్లు మరియు opencode యొక్క ఒక్కో ఖాతా రొటేషన్లో, అప్పుడే విఫలమైన Proxyని (TCP ప్రోబ్ తిరస్కరించబడటం లేదా దాని ద్వారా 429 అందుకోవడం) ప్రతి పునరావృతంతో రెట్టింపయ్యే, గరిష్ఠ పరిమితి వరకు ఉండే ఒక్కో ప్రాసెస్ వ్యవధిలో మళ్లీ అందించకుండా ఆపుతుంది. Proxy స్థితి ఏదీ వ్రాయబడదు; ప్రతి అభ్యర్థినీ పక్కన పెడితే ఎంపికలో మార్పు ఉండదు. డిఫాల్ట్గా ఆఫ్లో ఉంటుంది: ఎంపిక క్రమం సరిగ్గా సాధారణ రొటేషన్లానే ఉంటుంది.",
+  "featureFlagProxySkipRecentlyFailedDescription": "Proxy పూల్లు మరియు opencode యొక్క ఒక్కో ఖాతా రొటేషన్లో, అప్పుడే విఫలమైన Proxyని (TCP ప్రోబ్ తిరస్కరించబడటం లేదా దాని ద్వారా 429 అందుకోవడం) ప్రతి పునరావృతంతో రెట్టింపయ్యే, గరిష్ఠ పరిమితి వరకు ఉండే ఒక్కో ప్రాసెస్ వ్యవధిలో మళ్లీ అందించకుండా ఆపుతుంది. Proxy స్థితి ఏదీ వ్రాయబడదు; ప్రతి అభ్యర్థినీ పక్కన పెడితే ఎంపికలో మార్పు ఉండదు. డిఫాల్ట్‌గా ఆన్‌లో ఉంటుంది; `false` సాధారణ ఎంపికను పునరుద్ధరిస్తుంది.",
   "featureFlagProxyPoolEgressObservationDescription": "డ్యాష్బోర్డ్లోని Proxy పూల్ కింద, గత 24 గంటల్లో దాని సభ్యులకు సేవలందించిన గమనించిన ఎగ్రెస్ IPల సంఖ్య, వాటిని ఉపయోగించిన కనెక్షన్ల సంఖ్య మరియు ఒకే IP వెనుక అత్యధికంగా కనిపించిన సంఖ్యను చూపండి. ఇది చదవడానికి మాత్రమే, Proxy లాగ్ నుండి గణించబడుతుంది, రూటింగ్ కోసం ఎప్పుడూ ఉపయోగించబడదు. డిఫాల్ట్గా ఆఫ్లో ఉంటుంది: పూల్ ఎడిటర్ మారదు మరియు పరిశీలన రూట్ null అని సమాధానమిస్తుంది.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proxy ఆరోగ్య స్వీప్లో, లక్ష్యం తిరస్కరించిన ప్రోబ్ (401/403/429: Proxy ప్రసారం చేసింది, గమ్యస్థానం ఈ ఎగ్రెస్ IPని తిరస్కరించింది) విజయవంతంగా సేవలందించిన ప్రోబ్లాగే Proxy యొక్క వరుస వైఫల్యాల పరంపరను రీసెట్ చేయనివ్వండి. డిఫాల్ట్గా ఆఫ్లో ఉంటుంది: తిరస్కరణ తటస్థంగానే ఉండి పరంపరను అలాగే ఉంచుతుంది. ఏ విధంగానైనా 5xx అనిశ్చితంగానే ఉంటుంది, అలాగే తిరస్కరణ ఎప్పుడూ Proxyని తొలగించదు, నిలిపివేయదు లేదా మళ్లీ సక్రియం చేయదు.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "OMNIROUTE_BATCH_RETENTION_DAYS కంటే పాతవైన టెర్మినల్ (పూర్తయిన/విఫలమైన/రద్దయిన/గడువు ముగిసిన) Batch API జాబ్లను, వాటి ప్రతి-లైన్ చెక్పాయింట్లతో సహా ఆటోమేటిక్ క్లీనప్ స్వీప్ తొలగించేలా చేయండి; అలాగే వాటి స్వంత expires_at దాటిన అప్లోడ్ చేసిన ఫైల్ల BLOB కంటెంట్ను క్లియర్ చేయండి. డిఫాల్ట్గా ఆఫ్లో ఉంటుంది: ఆపరేటర్ దీన్ని ఎంచుకునే వరకు ప్రతి ప్రస్తుత ఇన్స్టాలేషన్ ఈ డేటాను మునుపటిలాగే ఉంచుతుంది. ఆపరేటర్ ప్రారంభించే DELETE /api/v1/batches/delete-completed రూట్పై ఏ విధంగానూ ప్రభావం ఉండదు — అది ప్రత్యేకమైన, షరతులు లేని పబ్లిక్ API ఒప్పందం.",
@@ -3797,6 +3797,15 @@
     "disableSessionStickiness": "సెషన్ స్టిక్కీనెస్‌ను నిలిపివేయండి",
     "sessionStickinessEnabled": "స్టిక్కీనెస్ ఆన్",
     "sessionStickinessDisabled": "స్టిక్కీనెస్ ఆఫ్",
+    "stickyLimitEffective": "Effective {value} ({source})",
+    "stickyLimitSourceCombo": "combo",
+    "stickyLimitSourceComboDefaults": "combo defaults",
+    "stickyLimitSourceGlobal": "global default",
+    "connectionAwareExpansion": "Connection-aware expansion",
+    "triStateInherit": "inherit",
+    "connectionAwareExpansionOn": "On",
+    "connectionAwareExpansionOff": "Off",
+    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
     "kimiPresetTitle": "Kimi Coding ప్రీసెట్",
     "kimiPresetDescription": "ప్రాథమిక మోడల్‌గా Kimi K3 (Moonshot API), కాన్ఫిగర్ చేసినప్పుడు మీ Kimi Code కనెక్షన్‌లకు (kimi-coding, kimi-web) ఆటోమేటిక్ ఫాల్‌బ్యాక్‌తో.",
     "kimiPresetCta": "ప్రీసెట్‌ను జోడించు",
@@ -3812,16 +3821,7 @@
     "duplicateAutoComboSnapshotMsg": "ఈ టెంప్లేట్‌తో సరిపోయే ప్రస్తుత కనెక్ట్ చేసిన ప్రొవైడర్లు/మోడల్‌లను ఎడిటబుల్ కంబోలో స్నాప్‌షాట్ తీసుకుంటుంది.",
     "duplicateAutoComboFailedPrefix": "ఆటోకంబో డూప్లికేట్ చేయడంలో విఫలమైంది:",
     "duplicateAutoComboUnknownError": "తెలియని దోషం",
-    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి",
-    "stickyLimitEffective": "Effective {value} ({source})",
-    "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
-    "triStateInherit": "inherit",
-    "connectionAwareExpansionOn": "On",
-    "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation."
+    "duplicateAutoComboTitle": "{name} నుండి స్థిర కంబో సృష్టించండి"
   },
   "costs": {
     "title": "ఖర్చులు",
@@ -6873,7 +6873,8 @@
       "error": {
         "LOCAL_CORE_ENDPOINT_INVALID": "లోకల్ ప్రోక్సీ-కోర్ ఎండ్‌పాయింట్ చెల్లదు; SS/VMess/Trojan/VLESS నోడ్‌లు విస్మరించబడ్డాయి.",
         "NEEDS_CORE_NOT_CONFIGURED": "ఈ సబ్‌స్క్రిప్షన్‌లో లోకల్ ప్రోక్సీ కోర్ (SS/VMess/Trojan/VLESS) అవసరమైన నోడ్‌లు ఉన్నాయి; మీరు లోకల్-కోర్ SOCKS5 ఎండ్‌పాయింట్‌ను కాన్ఫిగర్ చేసే వరకు అవి రూట్ చేయబడవు.",
-        "NO_USABLE_NODES": "సబ్‌స్క్రిప్షన్ ఉపయోగించదగిన నోడ్‌లను దేనినీ అందించలేదు (http/https/socks5 లేదా లోకల్ కోర్ ఎండ్‌పాయింట్ కలిగిన నోడ్‌లు)."
+        "NO_USABLE_NODES": "సబ్‌స్క్రిప్షన్ ఉపయోగించదగిన నోడ్‌లను దేనినీ అందించలేదు (http/https/socks5 లేదా లోకల్ కోర్ ఎండ్‌పాయింట్ కలిగిన నోడ్‌లు).",
+        "SELECTOR_SWITCH_FAILED": "ప్రాక్సీ-కోర్ నియంత్రణ కాల్ విఫలమైంది; మునుపటి మార్గం చురుకుగా ఉంటుంది. నియంత్రణ URL మరియు రహస్యాన్ని తనిఖీ చేసి రిఫ్రెష్ చేయండి."
       },
       "description": "మీ ప్రాక్సీ సబ్‌స్క్రిప్షన్ లింక్‌ను అతికించండి. ప్రారంభించిన తర్వాత, ట్రాఫిక్ గ్లోబల్ లేదా రూల్ (పేర్కొన్న ప్రొవైడర్) మోడ్‌లో ప్రాక్సీ పూల్ ద్వారా మళ్లించబడుతుంది. సబ్‌స్క్రిప్షన్ నోడ్‌లు స్వయంచాలకంగా ప్రాక్సీ పూల్‌లోకి సమకాలీకరించబడతాయి మరియు ఇప్పటికే ఉన్న పోలింగ్, ఆరోగ్య తనిఖీ మరియు యాంటీ లీక్ మెకానిజమ్‌లను మళ్లీ ఉపయోగిస్తాయి.",
       "addSubscription": "సభ్యత్వాన్ని జోడించండి",
@@ -6946,7 +6947,20 @@
       "providerRouting": "ప్రొవైడర్ రూటింగ్",
       "refresh": "తాజా చేయండి",
       "refreshInterval": "రీఫ్రెష్ ఇంటర్వల్",
-      "ruleModeDescription": "నియమ మోడ్ వివరణ"
+      "ruleModeDescription": "నియమ మోడ్ వివరణ",
+      "controlUrl": "నియంత్రణ API URL",
+      "controlUrlPlaceholder": "http://127.0.0.1:9090",
+      "controlSecret": "నియంత్రణ API రహస్యం",
+      "controlSecretPlaceholder": "సేవ్ చేసిన రహస్యాన్ని ఉంచడానికి ఖాళీగా వదలండి",
+      "controlSecretSaved": "రహస్యం సేవ్ చేయబడింది",
+      "controlSecretNotSet": "సేవ్ చేసిన రహస్యం లేదు",
+      "selectorMinGap": "మార్పుల మధ్య కనీస సమయం (సెకన్లు)",
+      "selectorHelp": "local-core పంక్తికి « selector='<name>' » జోడించి selector సమూహానికి కట్టండి.",
+      "lastSwitch": "చివరి మార్పు",
+      "lastSwitchNever": "ఇంకా మార్పు నమోదు కాలేదు",
+      "lastSwitchMember": "సేవలందిస్తున్న సభ్యుడు",
+      "nextSwitch": "తదుపరి సాధ్యమైన మార్పు",
+      "nextSwitchNow": "ఇప్పుడు"
     },
     "bulkHealthcheck": "బల్క్ హెల్త్చెక్",
     "bulkHealthcheckDesc": "పనిచేసే ప్రాక్సీలను గుర్తించడానికి కాన్ఫిగర్ చేసిన అన్ని ప్రాక్సీలను లక్ష్య URLతో పరీక్షించండి.",
@@ -11024,6 +11038,16 @@
     "batchDeleteSelected": "ఎంపిక చేసిన {count} వాటిని తొలగించండి",
     "batchActivateSelected": "ఎంపిక చేసిన {count} వాటిని ప్రారంభించండి",
     "testPassed": "✓ సరే",
+    "sweepVerdict": "చివరి స్కాన్: {cause} ({code}) {age}",
+    "sweepNoData": "ప్రారంభం నుండి ఇంకా స్కాన్ లేదు",
+    "sweepLabel": {
+      "unproven": "లక్ష్యం తిరస్కరించింది",
+      "unclassified": "తనిఖీ అనిశ్చితం",
+      "ok": "సేవ అందించబడింది",
+      "fail": "కనెక్షన్ విఫలమైంది",
+      "hang": "హ్యాండ్‌షేక్ నిలిచిపోయింది",
+      "inconclusive": "అనిశ్చితం"
+    },
     "close": "మూసివేయి",
     "managePool": "పూల్‌ను నిర్వహించండి",
     "poolTitle": "ప్రాక్సీ పూల్ & రొటేషన్",
@@ -11045,6 +11069,8 @@
     "poolEgressObservation": "{connections, plural, one {# కనెక్షన్} other {# కనెక్షన్లు}} ఉపయోగించిన {exits, plural, one {# ఎగ్జిట్} other {# ఎగ్జిట్లు}} · ఒక ఎగ్జిట్లో గరిష్ఠంగా {max} · గత {hours} గం.",
     "poolEgressObservationEmpty": "గత {hours} గంటల్లో ట్రాఫిక్ ఏదీ గమనించబడలేదు",
     "poolEgressObservationHint": "ఈ విండో వ్యవధిలో ప్రాక్సీ లాగ్ నుంచి లెక్కించినవి: ఈ పూల్ సభ్యుల కోసం గమనించిన విభిన్న ఎగ్రెస్ IPలు మరియు వాటిని ఉపయోగించిన OmniRoute కనెక్షన్లు. \"ఒకే ఎగ్జిట్లో\" అంటే ఒకే సమయంలో అని కాకుండా, విండో వ్యవధిలో అని అర్థం. ఒక్కో IPకి వర్తించే 429 లాకౌట్ అదే ప్రొవైడర్ ఫ్యామిలీకి చెందిన కనెక్షన్లను మాత్రమే తాత్కాలికంగా నిలిపివేస్తుంది.",
+    "poolEgressFailuresByExit": "{exit} ద్వారా వైఫల్యాలు: {count}",
+    "poolEgressFailuresUnattributed": "కేటాయించిన నిష్క్రమణ లేని వైఫల్యాలు: {count}",
     "poolMemberEgress": "{host}:{port} నుంచి {egressIp} ద్వారా వెళ్లింది · గత {hours} గం.",
     "poolMemberEgressEmpty": "{host}:{port}: గత {hours} గం.లో ట్రాఫిక్ ఏదీ గమనించబడలేదు",
     "poolMemberEgressHint": "ఈ సమయ విండోలో ఈ పూల్ సభ్యుడి ద్వారా చివరిగా గమనించిన ఎగ్రెస్ IP, ప్రాక్సీ లాగ్ నుండి చదవబడింది. విండోలో ట్రాఫిక్ లేని సభ్యుడికి ట్రాఫిక్-లేదు అనే పంక్తి చూపబడుతుంది.",
@@ -11054,7 +11080,23 @@
     "poolAddMember": "జోడించు",
     "poolAddFailed": "పూల్‌కు ప్రాక్సీని జోడించడం విఫలమైంది",
     "poolSelectProxy": "ప్రాక్సీని ఎంచుకోండి…",
-    "poolSaveFailed": "పూల్ అసైన్‌మెంట్‌ను సేవ్ చేయడం విఫలమైంది"
+    "poolSaveFailed": "పూల్ అసైన్‌మెంట్‌ను సేవ్ చేయడం విఫలమైంది",
+    "poolPreferenceOrder": "ప్రాధాన్యతా క్రమం",
+    "poolSetAsideReason": "పక్కన పెట్టబడింది: {kind}",
+    "poolSetAsideKindProxyUnreachable": "ప్రాక్సీని చేరుకోలేకపోయింది",
+    "poolSetAsideKindIpQuota429": "IP రేట్ పరిమితి (429)",
+    "poolSetAsideUntil": "రొటేషన్‌లోకి తిరిగి {endsAt}",
+    "poolSetAsideRepeat": "పక్కన పెట్టబడింది {count, plural, one {# సారి} other {# సార్లు}}",
+    "poolUnknownAddress": "తెలియని చిరునామా",
+    "poolSinceRestart": "చివరి పునఃప్రారంభం నుండి",
+    "poolSignalSetAside": "పక్కన పెట్టు",
+    "poolSignalPosition": "స్థాన క్రమం",
+    "poolHealthRankingOff": "ఆరోగ్య ర్యాంకింగ్ ఆఫ్",
+    "transportRate": "{rate}% రవాణా",
+    "previousSuccessRate": "గతంలో {rate}% విజയം",
+    "upstreamRefusals": "{count} అప్‌స్ట్రీమ్ నిరాకరణలు",
+    "connectionTestsCount": "{count} కనెక్షన్ పరీక్షలు",
+    "notMeasured": "కొలవబడలేదు"
   },
   "playground": {
     "title": "మోడల్ ప్లేగ్రౌండ్",
@@ -11393,6 +11435,7 @@
       "compressed": "కుదింపు",
       "tps": "TPS",
       "duration": "వ్యవధి",
+      "addedWait": "అదనపు నిరీక్షణ",
       "time": "సమయం",
       "conversation": "సంభాషణ",
       "ttft": "TTFT"
@@ -11467,6 +11510,7 @@
       "startedAt": "ప్రారంభించబడింది",
       "endedAt": "ముగిసింది వద్ద",
       "duration": "కాలవ్యవధి",
+      "addedWait": "అదనపు నిరీక్షణ",
       "model": "మోడల్",
       "provider": "ప్రదాత",
       "account": "ఖాతా",
@@ -11481,6 +11525,10 @@
       "requestedModel": "అభ్యర్థించిన మోడల్",
       "requestProtocol": "రిక్వెస్ట్ ప్రోటోకాల్",
       "cacheSource": "క్యాష్ మూలం",
+      "contentProvenance": "సమాధానం",
+      "contentEmpty": "ఖాళీ సమాధానం",
+      "usageAbsent": "టోకెన్ సంఖ్య నివేదించబడలేదు",
+      "usageEstimated": "టోకెన్ సంఖ్య అంచనా",
       "modelPinning": "మోడల్ పిన్నింగ్",
       "activeModelPinning": "సక్రియ — సెషన్ పిన్నింగ్ ద్వారా ఎంపిక చేసిన మోడల్",
       "rotated": "మలుపు: {initial} -> {final}",
@@ -11505,7 +11553,13 @@
       "correlationIdValue": "సంబంధిత ID: {id}",
       "detailedPayloadInfo": "కొత్త అభ్యర్థనల కోసం నాలుగు దశల క్లయింట్/ప్రొవైడర్ పేమెంట్ వీక్షణను కావాలంటే, మొదట వివరణాత్మక లాగింగ్‌ను ప్రారంభించండి.",
       "copyAll": "అన్నింటినీ కాపీ చేయండి",
-      "copiedAll": "అన్నీ కాపీ అయ్యాయి"
+      "copiedAll": "అన్నీ కాపీ అయ్యాయి",
+      "resilienceStoredError": "నిల్వ చేసిన లోపం నుండి అందించబడింది",
+      "resilienceParked": "పంపే ముందు {ms} నిలిపి ఉంచబడింది",
+      "resilienceRotations": "{count} ఖాతా రొటేషన్లు",
+      "resilienceRetried": "ఖాళీ టర్న్ మళ్లీ ప్రయత్నించబడింది",
+      "resilienceContinued": "స్ట్రీమ్ మధ్యలో నుండి కొనసాగించబడింది",
+      "resilienceRecovered": "రెసిలియెన్స్ చర్య ద్వారా పునరుద్ధరించబడింది"
     }
   },
   "proxyLogger": {
@@ -11544,7 +11598,14 @@
     "noProxyLogs": "ఇంకా ప్రాక్సీ లాగ్లు లేవు. వాటిని ఇక్కడ చూడటానికి ప్రాక్సీలను కాన్ఫిగర్ చేసి API కాల్లు చేయండి.",
     "noMatchingLogs": "ప్రస్తుత ఫిల్టర్లకు సరిపోలే లాగ్లు లేవు.",
     "tlsFingerprint": "Chrome 124 TLS ఫింగర్ప్రింట్",
-    "colPublicIp": "పబ్లిక్ IP"
+    "colPublicIp": "పబ్లిక్ IP",
+    "colUpstream": "అప్‌స్ట్రీమ్",
+    "colEgress": "ఇగ్రెస్ IP",
+    "colCorrelation": "సంబంధం",
+    "colServedBy": "సేవ అందించినది",
+    "filterTraffic": "ట్రాఫిక్",
+    "filterTests": "పరీక్షలు",
+    "filterSource": "మూలం"
   },
   "endpointOptions": {
     "speech": "స్పీచ్",
@@ -12019,6 +12080,10 @@
     "stopDns": "DNS నిలిపివేయండి",
     "toggling": "టాగుల్ అవుతోంది…",
     "viewTraffic": "ట్రాఫిక్‌ను వీక్షించండి",
+    "resetAgent": "డిఫాల్ట్‌ను పునరుద్ధరించు",
+    "resetAgentConfirm": "డిఫాల్ట్‌ను పునరుద్ధరించాలా?",
+    "resetting": "పునరుద్ధరిస్తోంది…",
+    "resetDone": "{agent} కోసం డిఫాల్ట్ DNS పునరుద్ధరించబడింది. మార్పు అమలులోకి రావడానికి యాప్‌ను పూర్తిగా మూసివేసి (కేవలం మినిమైజ్ చేయడం కాదు) మళ్లీ తెరవండి.",
     "emptyNoProvidersTitle": "ఇంకా ఏ ప్రొవైడర్లు కాన్ఫిగర్ చేయబడలేదు",
     "emptyNoProvidersBody": "AgentBridgeని ఉపయోగించడానికి, మొదట కనీసం ఒక ప్రొవైడర్‌ను కనెక్ట్ చేయండి. IDE అభ్యర్థనలు రూట్ చేయబడే గమ్యస్థానం ఇదే అవుతుంది.",
     "emptyGoToProviders": "ప్రొవైడర్లకు వెళ్లండి",
@@ -12797,7 +12862,13 @@
     "createDahlTokenFailed": "Dahl టోకెన్ సృష్టించడంలో విఫలమైంది",
     "providerProxy": "ప్రాక్సీ",
     "providerProxyConfigureHint": "ప్రాక్సీని కాన్ఫిగర్ చేయండి",
-    "providerProxyTitleConfigured": "ప్రాక్సీ కాన్ఫిగర్ చేయబడింది: {host}"
+    "providerProxyTitleConfigured": "ప్రాక్సీ కాన్ఫిగర్ చేయబడింది: {host}",
+    "proxySetAside": "ప్రాక్సీ పక్కన పెట్టబడింది",
+    "inheritConnectionOption": "స్వంత ప్రాక్సీ లేదు (కనెక్షన్‌ను వారసత్వంగా)",
+    "inheritedProxy": "కనెక్షన్ వారసత్వం: {host}",
+    "inheritedPool": "కనెక్షన్ పూల్ వారసత్వం ({count})",
+    "poolEmptyBlocked": "పూల్ ఖాళీ — అభ్యర్థనలు విఫలమవుతాయి (ప్రత్యక్షం కాదు)",
+    "directEgress": "ప్రత్యక్షం (ప్రాక్సీ లేకుండా)"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -14132,7 +14203,12 @@
     "directNative": "ప్రత్యక్ష (నేటివ్)",
     "targetUrl": "లక్ష్య URL",
     "error": "లోపం",
-    "configuration": "ప్రాక్సీ కాన్ఫిగరేషన్"
+    "configuration": "ప్రాక్సీ కాన్ఫిగరేషన్",
+    "upstreamStatus": "అప్‌స్ట్రీమ్ స్థితి",
+    "noResponse": "స్పందన లేదు",
+    "egressIp": "ఇగ్రెస్ IP",
+    "servedBy": "సేవ అందించినది",
+    "correlationId": "సంబంధ ID"
   },
   "requestTimeline": {
     "title": "అభ్యర్థన సమయరేఖ",

@@ -52,13 +52,14 @@ export default function UnpricedUsageBanner() {
 
   if (dismissed || !report || report.models.length === 0) return null;
 
-  const failClosed = report.policy !== "count_as_zero";
+  const failClosed = report.policy !== "count_as_zero" && report.limitedApiKeysAffected > 0;
+  const countAsZero = report.policy === "count_as_zero";
   const listed = report.models.slice(0, MAX_LISTED_MODELS);
   const hidden = report.models.length - listed.length;
 
   return (
     <div
-      role="alert"
+      role={failClosed ? "alert" : "status"}
       className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm mb-4 ${
         failClosed
           ? "border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-900 dark:text-red-200"
@@ -68,11 +69,13 @@ export default function UnpricedUsageBanner() {
       <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">price_change</span>
       <div className="flex-1 min-w-0">
         <p className="font-semibold">{t("unpricedUsageTitle", { count: report.models.length })}</p>
-        <p className="mt-0.5 opacity-80">
-          {failClosed
-            ? t("unpricedUsageFailClosed", { keys: report.limitedApiKeysAffected })
-            : t("unpricedUsageCountAsZero")}
-        </p>
+        {(failClosed || countAsZero) && (
+          <p className="mt-0.5 opacity-80">
+            {failClosed
+              ? t("unpricedUsageFailClosed", { keys: report.limitedApiKeysAffected })
+              : t("unpricedUsageCountAsZero")}
+          </p>
+        )}
         <ul className="mt-1.5 space-y-0.5 font-mono text-xs">
           {listed.map((m) => (
             <li key={`${m.provider}/${m.model}`}>
