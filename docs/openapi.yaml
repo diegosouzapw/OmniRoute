@@ -2440,6 +2440,13 @@ paths:
     post:
       tags: [API Keys]
       summary: Add or remove allowed models and combos on an API key atomically
+      description: |
+        Adds or removes allowed models and combos on an API key without lost updates.
+        Serialized per key ID using an in-process async lock.
+        Keys allowing all models (modelAccessMode: all) or all combos (allowedCombos containing 'combo/*')
+        require switchToRestricted: true when adding new models or combos, otherwise returning a 409 Conflict.
+        When switching to restricted mode, the allowlist becomes exactly the net added items (at least one required).
+        Direct concurrent PATCH calls to /api/keys/{id} completely overwrite the policy outside this lock.
       parameters:
         - $ref: "#/components/parameters/ResourceId"
       requestBody:
@@ -2454,23 +2461,35 @@ paths:
                   properties:
                     models:
                       type: array
+                      minItems: 1
+                      maxItems: 1000
                       items:
                         type: string
+                        minLength: 1
                     combos:
                       type: array
+                      minItems: 1
+                      maxItems: 500
                       items:
                         type: string
+                        minLength: 1
                 remove:
                   type: object
                   properties:
                     models:
                       type: array
+                      minItems: 1
+                      maxItems: 1000
                       items:
                         type: string
+                        minLength: 1
                     combos:
                       type: array
+                      minItems: 1
+                      maxItems: 500
                       items:
                         type: string
+                        minLength: 1
                 switchToRestricted:
                   type: boolean
       responses:
@@ -2503,13 +2522,35 @@ paths:
                   changed:
                     type: boolean
         "400":
-          description: Invalid request or caps exceeded
+          description: Invalid request, caps exceeded, or empty restricted list
         "401":
           description: Authentication required
+        "403":
+          description: API key lacks 'manage' scope
         "404":
           description: Key not found
         "409":
-          description: Key allows all models and switchToRestricted was not set
+          description: Key allows all models or all combos and switchToRestricted was not set
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: object
+                    required:
+                      - code
+                      - message
+                    properties:
+                      code:
+                        type: string
+                        enum:
+                          - key_allows_all_models
+                          - key_allows_all_combos
+                      message:
+                        type: string
 
   /api/combos:
     get:

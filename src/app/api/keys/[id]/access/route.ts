@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import {
   assignApiKeyAccess,
   KeyAllowsAllModelsError,
+  KeyAllowsAllCombosError,
+  EmptyRestrictedAccessListError,
   KeyAccessCapExceededError,
   ApiKeyPolicyInvariantError,
 } from "@/lib/db/apiKeyAccessAssign";
@@ -61,7 +63,7 @@ export async function POST(
       changed: result.changed,
     });
   } catch (error) {
-    if (error instanceof KeyAllowsAllModelsError) {
+    if (error instanceof KeyAllowsAllModelsError || error instanceof KeyAllowsAllCombosError) {
       return NextResponse.json(
         {
           error: {
@@ -73,7 +75,10 @@ export async function POST(
       );
     }
 
-    if (error instanceof KeyAccessCapExceededError) {
+    if (
+      error instanceof EmptyRestrictedAccessListError ||
+      error instanceof KeyAccessCapExceededError
+    ) {
       return NextResponse.json(buildErrorBody(400, error.message), { status: 400 });
     }
 

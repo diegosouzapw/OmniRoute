@@ -13,8 +13,13 @@ const core = await import("../../src/lib/db/core.ts");
 const apiKeys = await import("../../src/lib/db/apiKeys.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const accessRoute = await import("../../src/app/api/keys/[id]/access/route.ts");
-const { assignApiKeyAccess, KeyAllowsAllModelsError, KeyAccessCapExceededError } =
-  await import("../../src/lib/db/apiKeyAccessAssign.ts");
+const {
+  assignApiKeyAccess,
+  KeyAllowsAllModelsError,
+  KeyAllowsAllCombosError,
+  KeyAccessCapExceededError,
+  EmptyRestrictedAccessListError,
+} = await import("../../src/lib/db/apiKeyAccessAssign.ts");
 
 const MACHINE_ID = "0123456789abcdef";
 
@@ -313,62 +318,186 @@ test("10. Concurrent calls both applied (no lost updates via async lock)", async
   assert.equal(finalKey?.allowedCombos.length, 3);
 });
 
-test("11. ApiKeyPolicyInvariantError: returns 400 with lease_error classification", async () => {
-  const key = await apiKeys.createApiKey("LeaseKey", MACHINE_ID, [], {
-    modelAccessMode: "restricted",
-    allowedModels: ["m1"],
-  });
+test("11. Default key: has combo/* and empty blockedModels; handles all-combos restrictions", async () => {
+  const defaultKey = await apiKeys.createApiKey("DefaultFreshKey", MACHINE_ID);
+  const loaded = await apiKeys.getApiKeyById(defaultKey.id);
 
-  const db = core.getDbInstance();
-  const originalPrepare = db.prepare.bind(db);
-  (db as { prepare: typeof originalPrepare }).prepare = ((sql: string, ...args: unknown[]) => {
-    if (typeof sql === "string" && sql.includes("UPDATE api_keys SET")) {
-      throw new apiKeys.ApiKeyPolicyInvariantError(
-        "lease:exclusive requires explicit allowedConnections"
-      );
-    }
-    return originalPrepare(sql, ...args);
-  }) as typeof db.prepare;
+  assert.deepEqual(loaded?.allowedCombos, ["combo/*"]);
+  assert.deepEqual(loaded?.blockedModels, []);
 
-  try {
-    const response = await accessRoute.POST(postRequest(key.id, { add: { models: ["m2"] } }), {
-      params: Promise.resolve({ id: key.id }),
-    });
+  // 11a. Adding combos to a default key without switchToRestricted returns 409 key_allows_all_combos
+  const resConflict = await accessRoute.POST(
+    postRequest(defaultKey.id, { add: { combos: ["smart-routing"] } }),
+    { params: Promise.resolve({ id: defaultKey.id }) }
+  );
+  assert.equal(resConflict.status, 409);
+  const conflictBody = (await resConflict.json()) as { error?: { code?: string } };
+  assert.equal(conflictBody.error?.code, "key_allows_all_combos");
 
-    assert.equal(response.status, 400);
-    const body = (await response.json()) as {
-      error?: { type?: string; code?: string; message?: string };
-    };
-    assert.equal(body.error?.type, "lease_error");
-    assert.equal(body.error?.code, "LEASE_KEY_POLICY_INVALID");
-    assert.equal(body.error?.message, "lease:exclusive requires explicit allowedConnections");
-    assert.equal(JSON.stringify(body).includes("at /"), false);
-  } finally {
-    (db as { prepare: typeof originalPrepare }).prepare = originalPrepare;
-  }
+  // 11b. Removing combos from an all-combos key is a no-op 200 with changed: false
+  const resRemove = await accessRoute.POST(
+    postRequest(defaultKey.id, { remove: { combos: ["nonexistent"] } }),
+    { params: Promise.resolve({ id: defaultKey.id }) }
+  );
+  assert.equal(resRemove.status, 200);
+  const removeBody = (await resRemove.json()) as { changed: boolean; allowedCombos: string[] };
+  assert.equal(removeBody.changed, false);
+  assert.deepEqual(removeBody.allowedCombos, ["combo/*"]);
+
+  // 11c. Adding combos with switchToRestricted drops combo/* and sets exactly added combos
+  const resSwitch = await accessRoute.POST(
+    postRequest(defaultKey.id, {
+      add: { combos: ["smart-routing", "fast-combo"] },
+      switchToRestricted: true,
+    }),
+    { params: Promise.resolve({ id: defaultKey.id }) }
+  );
+  assert.equal(resSwitch.status, 200);
+  const switchBody = (await resSwitch.json()) as { changed: boolean; allowedCombos: string[] };
+  assert.equal(switchBody.changed, true);
+  assert.deepEqual(switchBody.allowedCombos, ["smart-routing", "fast-combo"]);
+  assert.equal(switchBody.allowedCombos.includes("combo/*"), false);
 });
 
-test("12. assignApiKeyAccess DB function directly rejects all-mode key without switch", async () => {
-  const key = await apiKeys.createApiKey("DirectAllKey", MACHINE_ID, [], {
+test("12. Normalized combo names: compares foo and combo/foo when deduping and removing", async () => {
+  const key = await apiKeys.createApiKey("NormComboKey", MACHINE_ID, [], {
+    modelAccessMode: "restricted",
+    allowedModels: ["m1"],
+    allowedCombos: ["my-combo", "combo/second-combo"],
+  });
+
+  // Adding "combo/my-combo" should dedupe with existing "my-combo"
+  // Adding "new-combo" should be added
+  // Removing "second-combo" should remove "combo/second-combo"
+  const response = await accessRoute.POST(
+    postRequest(key.id, {
+      add: { combos: ["combo/my-combo", "new-combo", "combo/new-combo"] },
+      remove: { combos: ["second-combo"] },
+    }),
+    { params: Promise.resolve({ id: key.id }) }
+  );
+
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as { allowedCombos: string[] };
+  // "my-combo" retained (combo/my-combo deduped)
+  // "combo/second-combo" removed because "second-combo" matched it normalized
+  // "new-combo" added, "combo/new-combo" deduped
+  assert.deepEqual(body.allowedCombos, ["my-combo", "new-combo"]);
+
+  // Test removing by prefixed name "combo/my-combo"
+  const response2 = await accessRoute.POST(
+    postRequest(key.id, {
+      remove: { combos: ["combo/my-combo"] },
+    }),
+    { params: Promise.resolve({ id: key.id }) }
+  );
+  assert.equal(response2.status, 200);
+  const body2 = (await response2.json()) as { allowedCombos: string[] };
+  assert.deepEqual(body2.allowedCombos, ["new-combo"]);
+});
+
+test("13. Net empty restricted list: rejected with 400 when switching from all", async () => {
+  // Models: switching all-models key where add & remove cancel out
+  const modelKey = await apiKeys.createApiKey("EmptyRestrictedModelKey", MACHINE_ID, [], {
+    modelAccessMode: "all",
+    allowedModels: [],
+  });
+
+  const resModel = await accessRoute.POST(
+    postRequest(modelKey.id, {
+      add: { models: ["cancel-me"] },
+      remove: { models: ["cancel-me"] },
+      switchToRestricted: true,
+    }),
+    { params: Promise.resolve({ id: modelKey.id }) }
+  );
+  assert.equal(resModel.status, 400);
+  const bodyModel = (await resModel.json()) as { error?: { message?: string } };
+  assert.ok(bodyModel.error?.message?.includes("cannot result in an empty allowlist"));
+
+  // Combos: switching all-combos key where add & remove cancel out
+  const comboKey = await apiKeys.createApiKey("EmptyRestrictedComboKey", MACHINE_ID);
+  const resCombo = await accessRoute.POST(
+    postRequest(comboKey.id, {
+      add: { combos: ["cancel-combo"] },
+      remove: { combos: ["combo/cancel-combo"] },
+      switchToRestricted: true,
+    }),
+    { params: Promise.resolve({ id: comboKey.id }) }
+  );
+  assert.equal(resCombo.status, 400);
+  const bodyCombo = (await resCombo.json()) as { error?: { message?: string } };
+  assert.ok(bodyCombo.error?.message?.includes("cannot result in an empty allowlist"));
+});
+
+test("14. Merged-cap test: rejects when existing + added exceeds limit (999 + 2 -> 400)", async () => {
+  // Models cap: 999 existing + 2 added = 1001 > 1000
+  const existingModels = Array.from({ length: 999 }, (_, i) => `existing-mod-${i}`);
+  const modelCapKey = await apiKeys.createApiKey("ModelMergedCapKey", MACHINE_ID, [], {
+    modelAccessMode: "restricted",
+    allowedModels: existingModels,
+    allowedCombos: [],
+  });
+
+  const resModelCap = await accessRoute.POST(
+    postRequest(modelCapKey.id, {
+      add: { models: ["extra-1", "extra-2"] },
+    }),
+    { params: Promise.resolve({ id: modelCapKey.id }) }
+  );
+  assert.equal(resModelCap.status, 400);
+
+  // Combos cap: 499 existing + 2 added = 501 > 500
+  const existingCombos = Array.from({ length: 499 }, (_, i) => `existing-combo-${i}`);
+  const comboCapKey = await apiKeys.createApiKey("ComboMergedCapKey", MACHINE_ID, [], {
+    modelAccessMode: "restricted",
+    allowedModels: [],
+    allowedCombos: existingCombos,
+  });
+
+  const resComboCap = await accessRoute.POST(
+    postRequest(comboCapKey.id, {
+      add: { combos: ["extra-c1", "extra-c2"] },
+    }),
+    { params: Promise.resolve({ id: comboCapKey.id }) }
+  );
+  assert.equal(resComboCap.status, 400);
+});
+
+test("15. Direct DB function: rejects all-mode key, cap violation, and empty restricted list", async () => {
+  const allKey = await apiKeys.createApiKey("DirectAllKey", MACHINE_ID, [], {
     modelAccessMode: "all",
     allowedModels: [],
   });
 
   await assert.rejects(
-    assignApiKeyAccess(key.id, { add: { models: ["direct-model"] } }),
+    assignApiKeyAccess(allKey.id, { add: { models: ["direct-model"] } }),
     KeyAllowsAllModelsError
   );
-});
 
-test("13. assignApiKeyAccess DB function directly rejects cap violations", async () => {
-  const key = await apiKeys.createApiKey("DirectCapKey", MACHINE_ID, [], {
+  const defaultCombosKey = await apiKeys.createApiKey("DirectCombosKey", MACHINE_ID);
+  await assert.rejects(
+    assignApiKeyAccess(defaultCombosKey.id, { add: { combos: ["direct-combo"] } }),
+    KeyAllowsAllCombosError
+  );
+
+  await assert.rejects(
+    assignApiKeyAccess(allKey.id, {
+      add: { models: ["mod"] },
+      remove: { models: ["mod"] },
+      switchToRestricted: true,
+    }),
+    EmptyRestrictedAccessListError
+  );
+
+  const restrictedKey = await apiKeys.createApiKey("DirectCapKey", MACHINE_ID, [], {
     modelAccessMode: "restricted",
     allowedModels: [],
+    allowedCombos: [],
   });
-
   const overflow = Array.from({ length: 1001 }, (_, i) => `mod-${i}`);
   await assert.rejects(
-    assignApiKeyAccess(key.id, { add: { models: overflow } }),
+    assignApiKeyAccess(restrictedKey.id, { add: { models: overflow } }),
     KeyAccessCapExceededError
   );
 });

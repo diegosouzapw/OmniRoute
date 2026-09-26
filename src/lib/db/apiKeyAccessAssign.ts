@@ -3,11 +3,24 @@
  *
  * Keeps concurrency safe via an in-process async lock per key ID and writes through
  * updateApiKeyPermissions so all existing invariants, normalizations and cache invalidations run.
+ *
+ * Concurrency & Lost Update Note:
+ * Calls to `assignApiKeyAccess` are serialized per key ID using `withKeyAccessLock` (an in-process
+ * promise chain map) to ensure concurrent add/remove assignments on the same key do not overwrite
+ * each other.
+ *
+ * Direct PATCH /api/keys/[id] requests completely overwrite permissions without acquiring this lock.
+ * Running the read-merge-write inside a single synchronous DB transaction alongside the PATCH path
+ * is not possible without refactoring updateApiKeyPermissions in src/lib/db/apiKeys.ts (which is
+ * frozen at its file size cap). Callers doing incremental model/combo assignments should use this
+ * endpoint rather than interleaved read-modify-PATCH requests.
  */
 
 import { getApiKeyById, updateApiKeyPermissions, ApiKeyPolicyInvariantError } from "./apiKeys";
 import type { ModelAccessMode } from "./apiKeys/modelAccessMode";
 import type { ApiKeyAccessAssignInput } from "@/shared/validation/schemas/keys";
+import { ALL_COMBOS_ACCESS_RULE } from "@/shared/constants/comboAccess";
+import { normalizeComboAccessName } from "@/shared/utils/apiKeyPolicy";
 
 export { ApiKeyPolicyInvariantError };
 
@@ -18,6 +31,24 @@ export class KeyAllowsAllModelsError extends Error {
   ) {
     super(message);
     this.name = "KeyAllowsAllModelsError";
+  }
+}
+
+export class KeyAllowsAllCombosError extends Error {
+  readonly code = "key_allows_all_combos";
+  constructor(
+    message = "API key allows all combos. Specify switchToRestricted: true to switch to restricted access."
+  ) {
+    super(message);
+    this.name = "KeyAllowsAllCombosError";
+  }
+}
+
+export class EmptyRestrictedAccessListError extends Error {
+  readonly code = "EMPTY_RESTRICTED_ACCESS_LIST";
+  constructor(message: string) {
+    super(message);
+    this.name = "EmptyRestrictedAccessListError";
   }
 }
 
@@ -70,7 +101,7 @@ export async function withKeyAccessLock<T>(keyId: string, fn: () => Promise<T>):
 }
 
 /**
- * Deduplicate items while keeping order: existing items first, then newly added items.
+ * Deduplicate models while keeping order: existing items first, then newly added items.
  * Removals are applied after additions.
  */
 function computeUpdatedList(
@@ -98,6 +129,46 @@ function computeUpdatedList(
   if (toRemove.length > 0) {
     const removeSet = new Set(toRemove);
     return merged.filter((item) => !removeSet.has(item));
+  }
+
+  return merged;
+}
+
+/**
+ * Deduplicate combos comparing normalized combo names (foo == combo/foo)
+ * while preserving order: existing then newly added.
+ * Removals match on normalized names and are applied after additions.
+ */
+function computeUpdatedComboList(
+  existing: readonly string[],
+  toAdd: readonly string[] = [],
+  toRemove: readonly string[] = []
+): string[] {
+  const seenNorm = new Set<string>();
+  const merged: string[] = [];
+
+  for (const item of existing) {
+    const norm = normalizeComboAccessName(item) ?? item;
+    if (!seenNorm.has(norm)) {
+      seenNorm.add(norm);
+      merged.push(item);
+    }
+  }
+
+  for (const item of toAdd) {
+    const norm = normalizeComboAccessName(item) ?? item;
+    if (!seenNorm.has(norm)) {
+      seenNorm.add(norm);
+      merged.push(item);
+    }
+  }
+
+  if (toRemove.length > 0) {
+    const removeNormSet = new Set(toRemove.map((item) => normalizeComboAccessName(item) ?? item));
+    return merged.filter((item) => {
+      const norm = normalizeComboAccessName(item) ?? item;
+      return !removeNormSet.has(norm);
+    });
   }
 
   return merged;
@@ -143,6 +214,11 @@ export async function assignApiKeyAccess(
         // When switching to restricted from all, allowedModels is exactly the added models
         // (with any requested removals applied).
         nextAllowedModels = computeUpdatedList([], addModels, removeModels);
+        if (nextAllowedModels.length === 0) {
+          throw new EmptyRestrictedAccessListError(
+            "Switching to restricted models cannot result in an empty allowlist"
+          );
+        }
       } else {
         // Removing from an "all" key is a no-op: mode stays "all", models list stays empty
         nextAllowedModels = key.allowedModels || [];
@@ -152,8 +228,29 @@ export async function assignApiKeyAccess(
       nextAllowedModels = computeUpdatedList(key.allowedModels || [], addModels, removeModels);
     }
 
-    // Combos are always an allow-list
-    const nextAllowedCombos = computeUpdatedList(key.allowedCombos || [], addCombos, removeCombos);
+    // Combos handling: combo/* means allow-all combos
+    const isAllCombosKey = (key.allowedCombos ?? []).includes(ALL_COMBOS_ACCESS_RULE);
+    let nextAllowedCombos: string[];
+
+    if (isAllCombosKey) {
+      if (addCombos.length > 0) {
+        if (!options.switchToRestricted) {
+          throw new KeyAllowsAllCombosError();
+        }
+        // When switching to restricted from all combos, drop combo/* and apply list
+        nextAllowedCombos = computeUpdatedComboList([], addCombos, removeCombos);
+        if (nextAllowedCombos.length === 0) {
+          throw new EmptyRestrictedAccessListError(
+            "Switching to restricted combos cannot result in an empty allowlist"
+          );
+        }
+      } else {
+        // Removing from an allow-all combos key is a no-op: preserve existing combo/*
+        nextAllowedCombos = key.allowedCombos || [ALL_COMBOS_ACCESS_RULE];
+      }
+    } else {
+      nextAllowedCombos = computeUpdatedComboList(key.allowedCombos || [], addCombos, removeCombos);
+    }
 
     // Caps validation matching updateKeyPermissionsSchema
     if (nextAllowedModels.length > MAX_ALLOWED_MODELS) {
