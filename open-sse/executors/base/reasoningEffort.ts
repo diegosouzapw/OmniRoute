@@ -70,19 +70,11 @@ export const GLM_53_FAMILY_PATTERN = /(?:^|\/|\b)glm-5\.3(?:$|-)/i;
 export const GLM_52_FAMILY_PATTERN = /(?:^|\/|\b)glm-5\.2(?:$|-)/i;
 
 export function isCommandCodeProvider(provider: string): boolean {
-  return (
-    provider === "command-code" ||
-    provider === "cmd" ||
-    provider === "command_code"
-  );
+  return provider === "command-code" || provider === "cmd" || provider === "command_code";
 }
 
 export function isOllamaCloudProvider(provider: string): boolean {
-  return (
-    provider === "ollama-cloud" ||
-    provider === "ollamacloud" ||
-    provider === "ollama_cloud"
-  );
+  return provider === "ollama-cloud" || provider === "ollamacloud" || provider === "ollama_cloud";
 }
 
 export function isOpencodeGoProvider(provider: string): boolean {
@@ -206,12 +198,7 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
     MAX_TIER_REASONING_MODEL_PATTERN.test(resolvedModelId) ||
     MAX_TIER_REASONING_MODEL_PATTERN.test(model);
   return (
-    isClaude ||
-    isOpencodeGo ||
-    isOllamaCloud ||
-    isMoonshotK3 ||
-    isCommandCode ||
-    isMaxTierModel
+    isClaude || isOpencodeGo || isOllamaCloud || isMoonshotK3 || isCommandCode || isMaxTierModel
   );
 }
 
@@ -271,6 +258,29 @@ function writeEffortValue(
   if (c.hasOutputConfigEffort && c.outputConfig)
     next.output_config = { ...c.outputConfig, effort: value };
   return next;
+}
+
+/**
+ * The effort the outgoing body actually asks for, across all three carriers.
+ * Used by the reactive 4xx probe in `base.ts` to decide which tier to step
+ * down to, so it must report what is on the wire — not what the registry says
+ * the model supports.
+ */
+export function readBodyReasoningEffort(body: unknown): string | null {
+  if (!body || typeof body !== "object") return null;
+  const effort = readEffortCarriers(body as Record<string, unknown>).effort;
+  return typeof effort === "string" ? effort : null;
+}
+
+/**
+ * Write `value` onto every carrier the body already uses, leaving the shape of
+ * the body untouched — the reactive probe rewrites one field of the request
+ * that is already on its way upstream, so it must not reshape anything else.
+ */
+export function writeBodyReasoningEffort(body: unknown, value: string): unknown {
+  if (!body || typeof body !== "object") return body;
+  const record = body as Record<string, unknown>;
+  return writeEffortValue(record, value, readEffortCarriers(record));
 }
 
 /** Strip the effort field from every carrier that was present. */
@@ -549,11 +559,10 @@ export function sanitizeReasoningEffortForProvider(
     ? modelStr.slice(provider.length + 1)
     : modelStr;
   const declaredEfforts = getProviderModels(provider).find(
-    (entry) => entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
+    (entry) =>
+      entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
   )?.supportedThinkingEfforts;
-  const declaredRanked = (
-    Array.isArray(declaredEfforts) ? declaredEfforts : []
-  )
+  const declaredRanked = (Array.isArray(declaredEfforts) ? declaredEfforts : [])
     .map((tier) => ({ tier, rank: REASONING_EFFORT_ORDER.indexOf(tier) }))
     .filter((x) => x.rank >= 0)
     .sort((a, b) => a.rank - b.rank);

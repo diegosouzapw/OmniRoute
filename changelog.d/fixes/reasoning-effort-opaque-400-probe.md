@@ -1,0 +1,1 @@
+- **fix(sse):** recover from a `reasoning_effort` 4xx that names no accepted set — the reactive path now probes one tier down and, when the probe is answered, learns that ceiling so later requests clamp up front instead of 400ing on every attempt

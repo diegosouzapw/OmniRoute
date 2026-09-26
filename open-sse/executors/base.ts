@@ -24,6 +24,8 @@ import {
 import {
   recordLearnedReasoningEffort,
   parseReasoningEffortEnum,
+  nextProbeReasoningEffort,
+  recordLearnedProbeReasoningEffort,
 } from "../services/learnedReasoningEffortCaps.ts";
 import {
   getParamFilterConfig,
@@ -125,7 +127,11 @@ export {
   isOpenAICompatibleEndpoint,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
-import { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
+import {
+  sanitizeReasoningEffortForProvider,
+  readBodyReasoningEffort,
+  writeBodyReasoningEffort,
+} from "./base/reasoningEffort.ts";
 // Reasoning-effort sanitation extracted to a pure leaf; re-exported for external
 // importers (mimoThinking service + tests) that import it from "./base.ts".
 export { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
@@ -1603,6 +1609,46 @@ export class BaseExecutor {
                 );
                 response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
               }
+            }
+          } else {
+            // No enum in the 4xx body — the upstream told us nothing we can
+            // record. Step down one tier and retry; if that retry is accepted we
+            // have PROOF of the ceiling (unlike the enum path, which trusts the
+            // upstream's own list) and can learn it for every later request.
+            // A failed probe changes nothing, so an upstream that refuses every
+            // tier still surfaces its original error.
+            const probe = nextProbeReasoningEffort(readBodyReasoningEffort(transformedBody) ?? "");
+            if (probe) {
+              reasoningEffortClamped = true;
+              const probeBody = writeBodyReasoningEffort(transformedBody, probe) as Record<
+                string,
+                unknown
+              >;
+              let serialized = JSON.stringify(probeBody);
+              if (usesClaudeCodeProtocol || this.provider === "claude") {
+                serialized = await signRequestBody(serialized);
+              }
+              log?.info?.(
+                "REASONING_SANITIZE",
+                `Upstream ${response.status} refused reasoning_effort on ${url} without naming the accepted set — probing one step down (${probe}) for ${this.provider}/${model}`
+              );
+              const probeResponse = await fetchWithStartTimeout(url, {
+                ...fetchOptions,
+                body: serialized,
+              });
+              if (probeResponse.ok) {
+                const learned = recordLearnedProbeReasoningEffort(this.provider, model, probe);
+                log?.info?.(
+                  "REASONING_SANITIZE",
+                  `Probe accepted for ${this.provider}/${model} — learned ceiling up to ${[...(learned ?? [])].join(",") || probe}`
+                );
+              } else {
+                log?.info?.(
+                  "REASONING_SANITIZE",
+                  `Probe ${probe} also refused for ${this.provider}/${model} — learned nothing, surfacing the original ${response.status}`
+                );
+              }
+              response = probeResponse;
             }
           }
         }
