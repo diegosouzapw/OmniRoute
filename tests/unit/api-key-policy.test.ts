@@ -31,6 +31,7 @@ const combosDb = await import("../../src/lib/db/combos.ts");
 const modelComboMappingsDb = await import("../../src/lib/db/modelComboMappings.ts");
 const costRules = await import("../../src/domain/costRules.ts");
 const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
+const tokenLimitsDb = await import("../../src/lib/db/tokenLimits.ts");
 
 rateLimiter.setRateLimiterTestMode(true);
 
@@ -107,8 +108,19 @@ function makeBareXApiKeyPolicyRequest(apiKey) {
   });
 }
 
+async function readErrorBody(response) {
+  return (await response.json()) as {
+    error?: {
+      message?: unknown;
+      code?: unknown;
+      retry_after?: unknown;
+      reset_at?: unknown;
+    };
+  };
+}
+
 async function readErrorMessage(response) {
-  const body = (await response.json()) as { error?: { message?: unknown } };
+  const body = await readErrorBody(response);
   return typeof body.error?.message === "string" ? body.error.message : "";
 }
 
@@ -514,7 +526,44 @@ test("enforceApiKeyPolicy rejects disallowed models and exhausted budgets", asyn
     "openai/gpt-4.1"
   );
   assert.equal(overBudget.rejection.status, 429);
-  assert.match(await readErrorMessage(overBudget.rejection), /Daily budget exceeded/);
+  const budgetBody = await readErrorBody(overBudget.rejection);
+  assert.match(String(budgetBody.error?.message), /Daily budget exceeded/);
+  assert.match(String(budgetBody.error?.message), /Resets in/);
+  assert.equal(budgetBody.error?.code, "budget_exceeded");
+  assert.equal(typeof budgetBody.error?.retry_after, "number");
+  assert.equal(typeof budgetBody.error?.reset_at, "string");
+  assert.equal(
+    overBudget.rejection.headers.get("Retry-After"),
+    String(budgetBody.error?.retry_after)
+  );
+});
+
+test("enforceApiKeyPolicy returns the token-limit reset instant", async () => {
+  const limitedKey = await createKeyWithPolicy();
+  const metadata = await apiKeysDb.getApiKeyMetadata(limitedKey.key);
+  const limit = tokenLimitsDb.upsertTokenLimit({
+    apiKeyId: metadata.id,
+    scopeType: "global",
+    tokenLimit: 10,
+    resetInterval: "daily",
+    resetTime: "00:00",
+  });
+  const { windowStart } = tokenLimitsDb.resetWindowIfElapsed(limit);
+  tokenLimitsDb.incrementWindowTokens(limit.id, windowStart, 10);
+  const policy = await loadPolicy("token-limit-reset");
+
+  const result = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(limitedKey.key),
+    "openai/gpt-4.1"
+  );
+  assert.equal(result.rejection.status, 429);
+  const body = await readErrorBody(result.rejection);
+  assert.match(String(body.error?.message), /Token limit exceeded/);
+  assert.match(String(body.error?.message), /Resets in/);
+  assert.equal(body.error?.code, "token_limit_exceeded");
+  assert.equal(typeof body.error?.retry_after, "number");
+  assert.equal(typeof body.error?.reset_at, "string");
+  assert.equal(result.rejection.headers.get("Retry-After"), String(body.error?.retry_after));
 });
 
 test("enforceApiKeyPolicy applies blockedModels in all-access mode", async () => {
@@ -623,7 +672,13 @@ test("enforceApiKeyPolicy enforces custom multi-window rate limits", async () =>
     "openai/gpt-4.1"
   );
   assert.equal(second.rejection.status, 429);
-  assert.match(await readErrorMessage(second.rejection), /Request limit exceeded/);
+  const rateBody = await readErrorBody(second.rejection);
+  assert.match(String(rateBody.error?.message), /Request limit exceeded/);
+  assert.match(String(rateBody.error?.message), /Resets in/);
+  assert.equal(rateBody.error?.code, "rate_limit_exceeded");
+  assert.equal(typeof rateBody.error?.retry_after, "number");
+  assert.equal(typeof rateBody.error?.reset_at, "string");
+  assert.equal(second.rejection.headers.get("Retry-After"), String(rateBody.error?.retry_after));
 });
 
 test("enforceApiKeyPolicy enforces combo allowlists separately from model allowlists", async () => {
