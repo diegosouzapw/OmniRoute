@@ -48,6 +48,8 @@ import {
   parseCatalogTab,
   parseComboFilters,
   parseModelFilters,
+  restrictComboFiltersToOptions,
+  restrictModelFiltersToOptions,
   type CatalogTab,
 } from "./catalogUrlState";
 import { useCatalogTestRunner } from "./useCatalogTestRunner";
@@ -57,11 +59,21 @@ const PAGE_SIZE = 50;
 type PendingBulkRun =
   { kind: "models"; targets: ModelTestTarget[] } | { kind: "combos"; targets: ComboTestTarget[] };
 
+/**
+ * Mirror the filters into the URL. Browsers rate-limit history updates (Safari throws a
+ * SecurityError after 100 calls in 10 s), so unchanged URLs are skipped and a refused update is
+ * ignored: the URL is a shareable convenience, never worth taking the page down.
+ */
 function setUrlParams(params: URLSearchParams) {
-  if (typeof window !== "undefined") {
-    const query = params.toString();
-    const newUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
-    window.history.replaceState(null, "", newUrl);
+  if (typeof window === "undefined") return;
+  const query = params.toString();
+  const { pathname, search } = window.location;
+  const nextUrl = query ? `${pathname}?${query}` : pathname;
+  if (nextUrl === `${pathname}${search}`) return;
+  try {
+    window.history.replaceState(null, "", nextUrl);
+  } catch {
+    // Rate-limited or refused: keep the current URL; the next change retries.
   }
 }
 
@@ -71,6 +83,8 @@ export default function ModelCatalogPage() {
   // URL-driven state starts from the defaults the server renders; the mount effect below
   // applies the real query string, so hydration never sees browser-only values.
   const [activeTab, setActiveTab] = useState<CatalogTab>("models");
+  /** True once the query string has been read; the URL is never written before that. */
+  const [urlApplied, setUrlApplied] = useState(false);
   const [pendingBulkRun, setPendingBulkRun] = useState<PendingBulkRun | null>(null);
 
   // Models State
@@ -122,6 +136,7 @@ export default function ModelCatalogPage() {
       setActiveTab(parseCatalogTab(params));
       setModelFilters(parseModelFilters(params));
       setComboFilters(parseComboFilters(params));
+      setUrlApplied(true);
     };
     const timer = window.setTimeout(applyUrlState, 0);
     window.addEventListener("popstate", applyUrlState);
@@ -130,14 +145,6 @@ export default function ModelCatalogPage() {
       window.removeEventListener("popstate", applyUrlState);
     };
   }, []);
-
-  // Sync state to URL search parameters
-  const syncUrlParams = useCallback(
-    (tab: CatalogTab, mFilters: CatalogFilters, cFilters: ComboCatalogFilters) => {
-      setUrlParams(buildCatalogSearchParams(tab, mFilters, cFilters));
-    },
-    []
-  );
 
   // Data Loading
   const loadData = useCallback(async () => {
@@ -254,27 +261,25 @@ export default function ModelCatalogPage() {
     [combos]
   );
 
+  // Free-form URL values (provider, type, …) are checked against the loaded options, but only
+  // while options exist. Loading flags are not enough: a Refresh keeps the previous rows, and a
+  // failed load has no options at all, so gating on them would flash an empty table or drop
+  // perfectly valid filters from the URL.
+  const modelOptionsKnown = models.length > 0;
+  const comboOptionsKnown = combos.length > 0;
   const modelFilters = useMemo(
-    () => ({
-      ...rawModelFilters,
-      providerId:
-        modelsLoading || providerOptions.some(([id]) => id === rawModelFilters.providerId)
-          ? rawModelFilters.providerId
-          : "all",
-      type:
-        modelsLoading || typeOptions.includes(rawModelFilters.type) ? rawModelFilters.type : "all",
-      subtype:
-        modelsLoading || subtypeOptions.includes(rawModelFilters.subtype || "all")
-          ? rawModelFilters.subtype
-          : "all",
-      capability:
-        modelsLoading || capabilityOptions.includes(rawModelFilters.capability || "all")
-          ? rawModelFilters.capability
-          : "all",
-    }),
+    () =>
+      modelOptionsKnown
+        ? restrictModelFiltersToOptions(rawModelFilters, {
+            providerIds: providerOptions.map(([id]) => id),
+            types: typeOptions,
+            subtypes: subtypeOptions,
+            capabilities: capabilityOptions,
+          })
+        : rawModelFilters,
     [
       rawModelFilters,
-      modelsLoading,
+      modelOptionsKnown,
       providerOptions,
       typeOptions,
       subtypeOptions,
@@ -282,50 +287,42 @@ export default function ModelCatalogPage() {
     ]
   );
   const comboFilters = useMemo(
-    () => ({
-      ...rawComboFilters,
-      strategy:
-        combosLoading || strategyOptions.includes(rawComboFilters.strategy)
-          ? rawComboFilters.strategy
-          : "all",
-    }),
-    [rawComboFilters, combosLoading, strategyOptions]
+    () =>
+      comboOptionsKnown
+        ? restrictComboFiltersToOptions(rawComboFilters, strategyOptions)
+        : rawComboFilters,
+    [rawComboFilters, comboOptionsKnown, strategyOptions]
   );
 
+  // The only URL writer: one write per change of tab or (normalised) filters, never before the
+  // query string has been read, and skipped when the URL already matches.
   useEffect(() => {
-    if (modelsLoading || combosLoading) return;
-    syncUrlParams(activeTab, modelFilters, comboFilters);
-  }, [activeTab, modelFilters, comboFilters, modelsLoading, combosLoading, syncUrlParams]);
+    if (!urlApplied) return;
+    setUrlParams(buildCatalogSearchParams(activeTab, modelFilters, comboFilters));
+  }, [urlApplied, activeTab, modelFilters, comboFilters]);
 
   const switchTab = (tab: CatalogTab) => {
     setActiveTab(tab);
-    syncUrlParams(tab, modelFilters, comboFilters);
   };
 
   const updateModelFilters = (patch: Partial<CatalogFilters>) => {
-    const updated = { ...modelFilters, ...patch };
-    setModelFilters(updated);
+    setModelFilters({ ...modelFilters, ...patch });
     setRequestedModelPage(0);
-    syncUrlParams("models", updated, comboFilters);
   };
 
   const clearModelFilters = () => {
     setModelFilters(DEFAULT_MODEL_FILTERS);
     setRequestedModelPage(0);
-    syncUrlParams("models", DEFAULT_MODEL_FILTERS, comboFilters);
   };
 
   const updateComboFilters = (patch: Partial<ComboCatalogFilters>) => {
-    const updated = { ...comboFilters, ...patch };
-    setComboFilters(updated);
+    setComboFilters({ ...comboFilters, ...patch });
     setRequestedComboPage(0);
-    syncUrlParams("combos", modelFilters, updated);
   };
 
   const clearComboFilters = () => {
     setComboFilters(DEFAULT_COMBO_FILTERS);
     setRequestedComboPage(0);
-    syncUrlParams("combos", modelFilters, DEFAULT_COMBO_FILTERS);
   };
 
   // Filtered & Sorted Models

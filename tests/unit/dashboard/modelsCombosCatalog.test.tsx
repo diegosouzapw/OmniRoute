@@ -132,6 +132,8 @@ function okResultsFor(body: TestAllBody, latencyMs = 140) {
 function installFetch(
   options: {
     catalog?: CatalogFixture;
+    /** Overrides the whole /api/models/catalog response (e.g. a failure or a pending reload). */
+    catalogResponse?: () => Promise<Response>;
     combos?: unknown[];
     testAll?: RouteHandler;
     modelTest?: RouteHandler;
@@ -141,6 +143,7 @@ function installFetch(
   const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.includes("/api/models/catalog")) {
+      if (options.catalogResponse) return options.catalogResponse();
       return Promise.resolve(jsonResponse({ catalog: options.catalog ?? DEFAULT_CATALOG }));
     }
     if (url.includes("/api/providers/health-matrix")) {
@@ -752,5 +755,118 @@ describe("Models and Combos Catalog Page UI", () => {
     expect(comboCalls[2].signal?.aborted).toBe(true);
     expect(comboCalls[3].signal?.aborted).toBe(true);
     expect(query("button[data-testid='cancel-tests-btn']")).toBeNull();
+  });
+
+  describe("URL sync", () => {
+    function selectByLabel(text: string): HTMLSelectElement {
+      const label = [...container.querySelectorAll("label")].find((element) =>
+        element.textContent?.trim().startsWith(text)
+      );
+      const select = label?.querySelector("select") ?? null;
+      expect(select).not.toBeNull();
+      return select as HTMLSelectElement;
+    }
+
+    function refreshButton(): HTMLButtonElement | null {
+      return (
+        [...container.querySelectorAll<HTMLButtonElement>("button")].find((button) =>
+          button.textContent?.trim().endsWith("Refresh")
+        ) ?? null
+      );
+    }
+
+    it("keeps the page usable and filtering when history.replaceState throws", async () => {
+      installFetch();
+      await renderPage();
+      // Safari throws a SecurityError after 100 history updates in 10 seconds.
+      const replaceState = vi.spyOn(window.history, "replaceState").mockImplementation(() => {
+        throw new DOMException("history.replaceState() called too often", "SecurityError");
+      });
+
+      const minOutput = inputByLabel("Min max output");
+      for (const value of ["8", "80", "800", "8000"]) {
+        await act(async () => setInputValue(minOutput, value));
+        await flush();
+      }
+
+      expect(replaceState).toHaveBeenCalled();
+      expect(query('[role="tablist"]')).not.toBeNull();
+      expect(bodyRows()).toHaveLength(1);
+      expect(query("tbody")?.textContent).toContain("Alpha Chat");
+    });
+
+    it("does not rewrite the URL when it already matches the filters", async () => {
+      installFetch();
+      await renderPage();
+      const replaceState = vi.spyOn(window.history, "replaceState");
+
+      await act(async () => {
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      });
+      await flush();
+
+      expect(replaceState).not.toHaveBeenCalled();
+    });
+
+    it("writes the URL once per filter change", async () => {
+      installFetch();
+      await renderPage();
+      const replaceState = vi.spyOn(window.history, "replaceState");
+
+      await act(async () => setInputValue(inputByLabel("Min context"), "8000"));
+      await flush();
+
+      expect(replaceState).toHaveBeenCalledTimes(1);
+      expect(new URLSearchParams(window.location.search).get("minContext")).toBe("8000");
+    });
+
+    it("keeps rows visible during Refresh when the URL carries an unknown provider", async () => {
+      const reload = deferred<Response>();
+      let catalogCalls = 0;
+      installFetch({
+        catalogResponse: () => {
+          catalogCalls += 1;
+          return catalogCalls === 1
+            ? Promise.resolve(jsonResponse({ catalog: DEFAULT_CATALOG }))
+            : reload.promise;
+        },
+      });
+      window.history.replaceState(null, "", "/dashboard/models?provider=bogus");
+      await renderPage();
+      expect(bodyRows()).toHaveLength(3);
+
+      await click(refreshButton());
+      expect(catalogCalls).toBe(2);
+      expect(container.textContent).not.toContain("No models match these filters.");
+      expect(bodyRows()).toHaveLength(3);
+
+      await act(async () => {
+        reload.resolve(jsonResponse({ catalog: DEFAULT_CATALOG }));
+      });
+      await flush();
+      expect(bodyRows()).toHaveLength(3);
+      expect(window.location.search).not.toContain("provider=bogus");
+    });
+
+    it("keeps valid URL filters when the catalog request fails", async () => {
+      installFetch({ catalogResponse: () => Promise.reject(new Error("network down")) });
+      window.history.replaceState(null, "", "/dashboard/models?provider=alpha&type=chat");
+      await renderPage();
+
+      expect(query('[role="alert"]')?.textContent).toContain("Unable to load the model catalog.");
+      const params = new URLSearchParams(window.location.search);
+      expect(params.get("provider")).toBe("alpha");
+      expect(params.get("type")).toBe("chat");
+    });
+
+    it("matches a capability URL param case-insensitively", async () => {
+      installFetch();
+      window.history.replaceState(null, "", "/dashboard/models?capability=Tools");
+      await renderPage();
+
+      expect(bodyRows()).toHaveLength(1);
+      expect(query("tbody")?.textContent).toContain("Alpha Chat");
+      expect(selectByLabel("Capability").value).toBe("tools");
+    });
   });
 });

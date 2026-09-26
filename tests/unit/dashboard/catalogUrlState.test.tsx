@@ -9,6 +9,8 @@ import {
   parseComboFilters,
   parseModelFilters,
   parseNonNegativeInt,
+  restrictComboFiltersToOptions,
+  restrictModelFiltersToOptions,
 } from "@/app/(dashboard)/dashboard/models/catalogUrlState";
 
 describe("parseNonNegativeInt", () => {
@@ -152,5 +154,73 @@ describe("hasActive*Filters", () => {
     expect(hasActiveModelFilters({ ...DEFAULT_MODEL_FILTERS, minMaxOutputTokens: 0 })).toBe(true);
     expect(hasActiveComboFilters(DEFAULT_COMBO_FILTERS)).toBe(false);
     expect(hasActiveComboFilters({ ...DEFAULT_COMBO_FILTERS, maxMembers: 3 })).toBe(true);
+  });
+});
+
+describe("restrictModelFiltersToOptions", () => {
+  const options = {
+    providerIds: ["alpha", "beta"],
+    types: ["chat", "embedding"],
+    subtypes: ["code"],
+    capabilities: ["reasoning", "tools"],
+  };
+
+  it("keeps values that match a loaded option", () => {
+    const filters = {
+      ...DEFAULT_MODEL_FILTERS,
+      providerId: "beta",
+      type: "chat",
+      subtype: "code",
+      capability: "tools",
+    };
+    expect(restrictModelFiltersToOptions(filters, options)).toEqual(filters);
+  });
+
+  it("resets values no loaded option matches to all", () => {
+    expect(
+      restrictModelFiltersToOptions(
+        {
+          ...DEFAULT_MODEL_FILTERS,
+          providerId: "bogus",
+          type: "image",
+          subtype: "dense",
+          capability: "vision",
+        },
+        options
+      )
+    ).toEqual(DEFAULT_MODEL_FILTERS);
+  });
+
+  it("matches capabilities case-insensitively and returns the option value", () => {
+    expect(
+      restrictModelFiltersToOptions({ ...DEFAULT_MODEL_FILTERS, capability: "Tools" }, options)
+        .capability
+    ).toBe("tools");
+  });
+
+  it("keeps provider ids case-sensitive like the filter itself", () => {
+    expect(
+      restrictModelFiltersToOptions({ ...DEFAULT_MODEL_FILTERS, providerId: "Alpha" }, options)
+        .providerId
+    ).toBe("all");
+  });
+
+  it("leaves the non option-backed filters untouched", () => {
+    const filters = { ...DEFAULT_MODEL_FILTERS, query: "x", minContextLength: 10 };
+    expect(restrictModelFiltersToOptions(filters, options)).toEqual(filters);
+  });
+});
+
+describe("restrictComboFiltersToOptions", () => {
+  it("keeps a known strategy and resets an unknown one", () => {
+    const strategies = ["priority", "fusion"];
+    expect(
+      restrictComboFiltersToOptions({ ...DEFAULT_COMBO_FILTERS, strategy: "fusion" }, strategies)
+        .strategy
+    ).toBe("fusion");
+    expect(
+      restrictComboFiltersToOptions({ ...DEFAULT_COMBO_FILTERS, strategy: "zzz" }, strategies)
+        .strategy
+    ).toBe("all");
   });
 });

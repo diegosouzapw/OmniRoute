@@ -119,6 +119,53 @@ export function buildCatalogSearchParams(
   return params;
 }
 
+export interface ModelFilterOptions {
+  providerIds: string[];
+  types: string[];
+  subtypes: string[];
+  capabilities: string[];
+}
+
+/**
+ * Map a free-form filter value onto a loaded option: the option itself when it matches, else
+ * "all". `caseInsensitive` mirrors filters that compare with `toLowerCase()` (capabilities).
+ */
+function matchOption(
+  value: string | undefined,
+  options: string[],
+  caseInsensitive = false
+): string {
+  if (!value || value === "all") return "all";
+  if (options.includes(value)) return value;
+  if (!caseInsensitive) return "all";
+  const lowered = value.toLowerCase();
+  return options.find((option) => option.toLowerCase() === lowered) ?? "all";
+}
+
+/**
+ * Drop URL values that no loaded option matches, so the select shows "All" instead of an empty
+ * list. Only call this once options are known: with no loaded data every value looks invalid.
+ */
+export function restrictModelFiltersToOptions(
+  filters: CatalogFilters,
+  options: ModelFilterOptions
+): CatalogFilters {
+  return {
+    ...filters,
+    providerId: matchOption(filters.providerId, options.providerIds),
+    type: matchOption(filters.type, options.types),
+    subtype: matchOption(filters.subtype, options.subtypes),
+    capability: matchOption(filters.capability, options.capabilities, true),
+  };
+}
+
+export function restrictComboFiltersToOptions(
+  filters: ComboCatalogFilters,
+  strategies: string[]
+): ComboCatalogFilters {
+  return { ...filters, strategy: matchOption(filters.strategy, strategies) };
+}
+
 export function hasActiveModelFilters(filters: CatalogFilters): boolean {
   return (
     filters.query !== "" ||
