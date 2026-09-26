@@ -15,6 +15,7 @@ const { waitForCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { BaseGuardrail, guardrailRegistry, resetGuardrailsForTests } =
   await import("../../src/lib/guardrails/index.ts");
+const { handleFusionChat } = await import("../../open-sse/services/fusion.ts");
 
 const CAPTURE_FLAG = "AGENT_SESSION_MESSAGES_ENABLED";
 const originalFetch = globalThis.fetch;
@@ -279,4 +280,155 @@ test("streaming with PII response sanitization stores the redacted text", async 
 
   assert.ok(!clientText.includes("alice@example.com"), "the client stream is redacted");
   assert.equal(storedTurn("wiring pii prompt")?.assistant_text, "Reach [EMAIL_REDACTED] now.");
+});
+
+// ──────────────── Concurrent attempts: fusion panel and overlapping combo attempts ────────────────
+
+type Deferred = { promise: Promise<Response>; resolve: (response: Response) => void };
+const deferred = (): Deferred => {
+  let resolve: (response: Response) => void = () => {};
+  const promise = new Promise<Response>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+};
+
+const upstreamError = () =>
+  new Response(
+    JSON.stringify({ error: { message: "bad request", type: "invalid_request_error" } }),
+    {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+/** Routes the mocked upstream by the requested model name. */
+function routeFetchByModel(routes: Record<string, () => Response | Promise<Response>>) {
+  globalThis.fetch = async (_url: RequestInfo | URL, init?: RequestInit) => {
+    const model = String(JSON.parse(String(init?.body ?? "{}")).model ?? "");
+    const route = Object.entries(routes).find(([name]) => model.endsWith(name));
+    return route ? route[1]() : upstreamError();
+  };
+}
+
+function chatCoreAttempt(model: string, clientRawRequest: ReturnType<typeof clientRequestFor>) {
+  return handleChatCore({
+    body: structuredClone(clientRawRequest.body),
+    modelInfo: { provider: "openai", model, extendedContext: false },
+    credentials: { apiKey: "sk-test-not-real", providerSpecificData: {} },
+    log: noopLog(),
+    apiKeyInfo: { id: "key-alice-id", name: "key-alice", noLog: false },
+    clientRawRequest,
+    userAgent: "claude-cli/2.1.0 (external, cli)",
+  });
+}
+
+const settle = async () => {
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  await flushAsyncSideEffects();
+};
+
+for (const lateOutcome of ["success", "failure"] as const) {
+  test(`a late fusion panel ${lateOutcome} after the judge leaves the judge's turn intact`, async () => {
+    const prompt = `wiring fusion ${lateOutcome} prompt`;
+    const clientRawRequest = clientRequestFor({
+      prompt,
+      stream: false,
+      sessionId: `wire-fusion-${lateOutcome}`,
+    });
+    const slowPanel = deferred();
+    routeFetchByModel({
+      "gpt-panel-a": () => chatCompletion("Panel A answer."),
+      "gpt-panel-b": () => chatCompletion("Panel B answer."),
+      "gpt-panel-c": () => slowPanel.promise,
+      "gpt-judge": () => chatCompletion("Judged answer."),
+    });
+
+    const response = await handleFusionChat({
+      body: structuredClone(clientRawRequest.body),
+      models: ["openai/gpt-panel-a", "openai/gpt-panel-b", "openai/gpt-panel-c"],
+      judgeModel: "openai/gpt-judge",
+      tuning: { minPanel: 2, stragglerGraceMs: 20, panelHardTimeoutMs: 60_000 },
+      log: { info() {}, warn() {}, debug() {} },
+      handleSingleModel: async (_body, modelStr) => {
+        const result = await chatCoreAttempt(
+          modelStr.split("/").pop() ?? modelStr,
+          clientRawRequest
+        );
+        return result.success ? result.response : upstreamError();
+      },
+    });
+    assert.equal(response.ok, true);
+    await settle();
+    assert.deepEqual(
+      storedTurns(prompt).map((row) => row.assistant_text),
+      ["Judged answer."]
+    );
+
+    slowPanel.resolve(
+      lateOutcome === "success" ? chatCompletion("Late panel C answer.") : upstreamError()
+    );
+    await settle();
+    assert.deepEqual(
+      storedTurns(prompt).map((row) => row.assistant_text),
+      ["Judged answer."]
+    );
+  });
+}
+
+test("a fusion whose judge fails stores no panel turn", async () => {
+  const prompt = "wiring fusion judge-failure prompt";
+  const clientRawRequest = clientRequestFor({
+    prompt,
+    stream: false,
+    sessionId: "wire-fusion-judge",
+  });
+  routeFetchByModel({
+    "gpt-panel-a": () => chatCompletion("Panel A answer."),
+    "gpt-panel-b": () => chatCompletion("Panel B answer."),
+    "gpt-judge": () => upstreamError(),
+  });
+
+  const response = await handleFusionChat({
+    body: structuredClone(clientRawRequest.body),
+    models: ["openai/gpt-panel-a", "openai/gpt-panel-b"],
+    judgeModel: "openai/gpt-judge",
+    tuning: { minPanel: 2, stragglerGraceMs: 20, panelHardTimeoutMs: 60_000 },
+    log: { info() {}, warn() {}, debug() {} },
+    handleSingleModel: async (_body, modelStr) => {
+      const result = await chatCoreAttempt(modelStr.split("/").pop() ?? modelStr, clientRawRequest);
+      return result.success ? result.response : upstreamError();
+    },
+  });
+  assert.equal(response.ok, false);
+  await settle();
+  assert.deepEqual(storedTurns(prompt), [], "panel replies never reached the client");
+});
+
+test("an earlier combo attempt failing after the winner does not delete the winner's turn", async () => {
+  const prompt = "wiring overlapping combo prompt";
+  const clientRawRequest = clientRequestFor({ prompt, stream: false, sessionId: "wire-overlap" });
+  const slowAttempt = deferred();
+  routeFetchByModel({
+    "gpt-slow": () => slowAttempt.promise,
+    "gpt-fast": () => chatCompletion("Winner answer."),
+  });
+
+  const abandoned = chatCoreAttempt("gpt-slow", clientRawRequest);
+  const winner = await chatCoreAttempt("gpt-fast", clientRawRequest);
+  assert.equal(winner.success, true);
+  await settle();
+  assert.deepEqual(
+    storedTurns(prompt).map((row) => row.assistant_text),
+    ["Winner answer."]
+  );
+
+  slowAttempt.resolve(upstreamError());
+  const late = await abandoned;
+  assert.equal(late.success, false);
+  await settle();
+  assert.deepEqual(
+    storedTurns(prompt).map((row) => row.assistant_text),
+    ["Winner answer."]
+  );
 });

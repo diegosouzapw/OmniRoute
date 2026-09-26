@@ -1045,23 +1045,28 @@ test("the first non-empty text wins and tool names merge across representations"
   assert.deepEqual(turn?.toolNames, ["Read", "Grep", "Glob", "Edit"]);
 });
 
-test("attempts of one client request get increasing attempt numbers", async () => {
+test("attempts are numbered when dispatched, not when their turn is resolved", async () => {
+  const { resolveUsageAgentContext } =
+    await import("../../open-sse/handlers/chatCore/agentContext.ts");
   const clientRawRequest = { body: { messages: [{ role: "user", content: "seq prompt" }] } };
-  const input = {
-    clientRawRequest,
-    body: clientRawRequest.body,
-    responses: [{ content: [{ type: "text", text: "ok" }] }],
-    agentContext: agentContextFor("attempt-seq"),
-    apiKeyInfo: { noLog: false },
-  };
-  const [first, second] = await withCaptureFlag("true", async () => [
-    resolveSessionTurn(input),
-    resolveSessionTurn(input),
+  const headers = { "x-claude-code-session-id": "attempt-seq" };
+  const earlier = resolveUsageAgentContext(clientRawRequest.body, headers, null);
+  const later = resolveUsageAgentContext(clientRawRequest.body, headers, null);
+  const resolve = (agentContext: AgentContext) =>
+    resolveSessionTurn({
+      clientRawRequest,
+      body: clientRawRequest.body,
+      responses: [{ content: [{ type: "text", text: "ok" }] }],
+      agentContext,
+      apiKeyInfo: { noLog: false },
+    });
+  const [laterTurn, earlierTurn] = await withCaptureFlag("true", async () => [
+    resolve(later),
+    resolve(earlier),
   ]);
 
-  assert.equal(first?.requestKey, second?.requestKey);
-  assert.equal(first?.attemptSeq, 1);
-  assert.equal(second?.attemptSeq, 2);
+  assert.equal(earlierTurn?.requestKey, laterTurn?.requestKey);
+  assert.ok(Number(earlierTurn?.attemptSeq) < Number(laterTurn?.attemptSeq));
 });
 
 test("a stale attempt that finishes saving last does not overwrite the newer turn", async () => {
@@ -1087,7 +1092,7 @@ test("a stale attempt that finishes saving last does not overwrite the newer tur
   );
 });
 
-test("a discarded attempt stores nothing, even when its save lands afterwards", async () => {
+test("discarding an attempt drops only that attempt's turn, even when its save lands later", async () => {
   const { sessionId } = await seedSession("discard", [minutesAgo(40)]);
   const db = core.getDbInstance();
   const save = (attemptSeq: number) =>
@@ -1100,11 +1105,14 @@ test("a discarded attempt stores nothing, even when its save lands afterwards", 
       attemptSeq,
     });
 
+  const assistants = () => turnsWithPrompt(sessionId, "discard prompt").map((row) => row.assistant);
   save(1);
   messagesDb.discardAgentSessionMessageAttempt(db, "request-discard", 2);
+  assert.deepEqual(assistants(), ["attempt 1"], "only attempt 2's own turn is dropped");
   save(2);
-
-  assert.deepEqual(turnsWithPrompt(sessionId, "discard prompt"), []);
+  assert.deepEqual(assistants(), ["attempt 1"], "a late save of the dropped attempt is ignored");
+  messagesDb.discardAgentSessionMessageAttempt(db, "request-discard", 1);
+  assert.deepEqual(assistants(), []);
 });
 
 test("per-request turn state expires by age", async () => {
