@@ -9789,7 +9789,11 @@
     "updatedShort": "Թարմացվել է",
     "lastRefreshed": "Վերջին թարմացումը",
     "providerQuota": "Մատակարարի քվոտա",
-    "providerQuotaHomeHint": "Միացված հաշիվների ընթացիկ կարգավիճակը"
+    "providerQuotaHomeHint": "Միացված հաշիվների ընթացիկ կարգավիճակը",
+    "claudeResetCreditDefaultTitle": "Claude սահմանաչափի զրոյացում",
+    "confirmRedeemClaudeResetCredit": "Ակտիվացումն անմիջապես զրոյացնում է Claude-ի օգտագործման համապատասխան սահմանաչափերը և անվերադարձ սպառում է այս կրեդիտը:",
+    "claudeResetCreditsModalTitle": "Claude զրոյացման կրեդիտներ",
+    "claudeResetCreditsModalExplainer": "Այս հաշվի համար հասանելի Claude զրոյացման կրեդիտներ և շաբաթական սեանսների զրոյացումներ:"
   },
   "modals": {
     "waitingAuth": "Սպասում է լիազորմանը",

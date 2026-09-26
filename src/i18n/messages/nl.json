@@ -9789,7 +9789,11 @@
     "updatedShort": "Bijgewerkt",
     "lastRefreshed": "Laatst vernieuwd",
     "providerQuota": "Providerquota",
-    "providerQuotaHomeHint": "Live status over verbonden accounts"
+    "providerQuotaHomeHint": "Live status over verbonden accounts",
+    "claudeResetCreditDefaultTitle": "Claude-limietreset",
+    "confirmRedeemClaudeResetCredit": "Inwisselen reset direct de in aanmerking komende Claude-gebruikslimieten en verbruikt dit tegoed definitief.",
+    "claudeResetCreditsModalTitle": "Claude-resetcredits",
+    "claudeResetCreditsModalExplainer": "Beschikbare Claude-resetcredits en wekelijkse sessieresets voor dit account."
   },
   "modals": {
     "waitingAuth": "Wachten op toestemming",

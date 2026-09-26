@@ -9789,7 +9789,11 @@
     "updatedShort": "புதுப்பிக்கப்பட்டது",
     "lastRefreshed": "கடைசியாகப் புதுப்பிக்கப்பட்டது",
     "providerQuota": "வழங்குநர் ஒதுக்கீடு",
-    "providerQuotaHomeHint": "இணைக்கப்பட்ட கணக்குகளின் நேரலை நிலை"
+    "providerQuotaHomeHint": "இணைக்கப்பட்ட கணக்குகளின் நேரலை நிலை",
+    "claudeResetCreditDefaultTitle": "Claude வரம்பு மீட்டமைப்பு",
+    "confirmRedeemClaudeResetCredit": "மீட்பதன் மூலம் தகுதியுள்ள Claude பயன்பாட்டு வரம்புகள் உடனடியாக மீட்டமைக்கப்படும் மற்றும் இந்தக் கிரெடிட் நிரந்தரமாகப் பயன்படுத்தப்படும்.",
+    "claudeResetCreditsModalTitle": "Claude மீட்டமைப்பு கிரெடிட்கள்",
+    "claudeResetCreditsModalExplainer": "இந்தக் கணக்கிற்குக் கிடைக்கும் Claude மீட்டமைப்பு கிரெடிட்கள் மற்றும் வாராந்திர அமர்வு மீட்டமைப்புகள்."
   },
   "modals": {
     "waitingAuth": "அங்கீகாரத்திற்காகக் காத்திருக்கிறது",

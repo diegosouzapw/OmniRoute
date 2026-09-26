@@ -9789,7 +9789,11 @@
     "updatedShort": "បានធ្វើបច្ចុប្បន្នភាព",
     "lastRefreshed": "បានធ្វើឱ្យស្រស់ចុងក្រោយ",
     "providerQuota": "កូតារបស់អ្នកផ្តល់សេវា",
-    "providerQuotaHomeHint": "ស្ថានភាពផ្ទាល់នៅទូទាំងគណនីដែលបានភ្ជាប់"
+    "providerQuotaHomeHint": "ស្ថានភាពផ្ទាល់នៅទូទាំងគណនីដែលបានភ្ជាប់",
+    "claudeResetCreditDefaultTitle": "ការកំណត់ដែនកំណត់ Claude ឡើងវិញ",
+    "confirmRedeemClaudeResetCredit": "ការប្តូរយកនឹងកំណត់ដែនកំណត់នៃការប្រើប្រាស់ Claude ដែលមានសិទ្ធិឡើងវិញភ្លាមៗ និងប្រើប្រាស់ក្រេឌីតនេះជាអចិន្ត្រៃយ៍។",
+    "claudeResetCreditsModalTitle": "ក្រេឌីតកំណត់ Claude ឡើងវិញ",
+    "claudeResetCreditsModalExplainer": "ក្រេឌីតកំណត់ Claude ឡើងវិញដែលមាន និងការកំណត់វគ្គឡើងវិញប្រចាំសប្តាហ៍សម្រាប់គណនីនេះ។"
   },
   "modals": {
     "waitingAuth": "កំពុងរង់ចាំការផ្តល់សិទ្ធិ",

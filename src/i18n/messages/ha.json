@@ -9789,7 +9789,11 @@
     "updatedShort": "An sabunta",
     "lastRefreshed": "Sabuntawa ta ƙarshe",
     "providerQuota": "Ƙayyadadden kason mai bayarwa",
-    "providerQuotaHomeHint": "Matsayi na ainihin lokaci a duk asusun da aka haɗa"
+    "providerQuotaHomeHint": "Matsayi na ainihin lokaci a duk asusun da aka haɗa",
+    "claudeResetCreditDefaultTitle": "Sake saitin iyakar Claude",
+    "confirmRedeemClaudeResetCredit": "Karɓa nan take yana sake saita iyakokin amfani da Claude da suka cancanta kuma yana cinye wannan kiredit ɗin dindindin.",
+    "claudeResetCreditsModalTitle": "Kiredit ɗin sake saitin Claude",
+    "claudeResetCreditsModalExplainer": "Kiredit ɗin sake saitin Claude da sake saitin zama na mako-mako da ke akwai don wannan asusun."
   },
   "modals": {
     "waitingAuth": "Ana Jiran Izini",

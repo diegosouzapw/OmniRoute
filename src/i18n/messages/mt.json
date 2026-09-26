@@ -9789,7 +9789,11 @@
     "updatedShort": "Aġġornat",
     "lastRefreshed": "Aġġornat l-aħħar darba",
     "providerQuota": "Kwota tal-Fornitur",
-    "providerQuotaHomeHint": "Status f’ħin reali fil-kontijiet konnessi"
+    "providerQuotaHomeHint": "Status f’ħin reali fil-kontijiet konnessi",
+    "claudeResetCreditDefaultTitle": "Irrisettjar tal-limitu ta' Claude",
+    "confirmRedeemClaudeResetCredit": "It-tifdija tirrisettja immedjatament il-limiti eliġibbli tal-użu ta' Claude u tikkonsma dan il-kreditu b'mod permanenti.",
+    "claudeResetCreditsModalTitle": "Krediti għall-irrisettjar ta' Claude",
+    "claudeResetCreditsModalExplainer": "Krediti disponibbli għall-irrisettjar ta' Claude u rrisettjar ta' sessjonijiet ta' kull ġimgħa għal dan il-kont."
   },
   "modals": {
     "waitingAuth": "Stennija għall-Awtorizzazzjoni",

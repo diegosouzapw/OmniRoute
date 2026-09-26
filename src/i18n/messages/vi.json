@@ -9790,7 +9790,11 @@
     "updatedShort": "Đã cập nhật",
     "lastRefreshed": "Cập nhật lần cuối",
     "providerQuota": "Hạn ngạch nhà cung cấp",
-    "providerQuotaHomeHint": "Trạng thái theo thời gian thực của các tài khoản đã kết nối"
+    "providerQuotaHomeHint": "Trạng thái theo thời gian thực của các tài khoản đã kết nối",
+    "claudeResetCreditDefaultTitle": "Đặt lại giới hạn Claude",
+    "confirmRedeemClaudeResetCredit": "Việc quy đổi sẽ ngay lập tức đặt lại các giới hạn sử dụng Claude đủ điều kiện và tiêu hao vĩnh viễn khoản tín dụng này.",
+    "claudeResetCreditsModalTitle": "Tín dụng đặt lại Claude",
+    "claudeResetCreditsModalExplainer": "Tín dụng đặt lại Claude khả dụng và lượt đặt lại phiên hàng tuần cho tài khoản này."
   },
   "modals": {
     "waitingAuth": "Đang chờ ủy quyền",

@@ -9789,7 +9789,11 @@
     "updatedShort": "Aktualizováno",
     "lastRefreshed": "Naposledy aktualizováno",
     "providerQuota": "Kvóta poskytovatele",
-    "providerQuotaHomeHint": "Aktuální stav napříč připojenými účty"
+    "providerQuotaHomeHint": "Aktuální stav napříč připojenými účty",
+    "claudeResetCreditDefaultTitle": "Reset limitu Claude",
+    "confirmRedeemClaudeResetCredit": "Uplatnění okamžitě resetuje příslušné limity využití Claude a trvale spotřebuje tento kredit.",
+    "claudeResetCreditsModalTitle": "Kredity na reset Claude",
+    "claudeResetCreditsModalExplainer": "Dostupné kredity na reset Claude a týdenní resety relací pro tento účet."
   },
   "modals": {
     "waitingAuth": "Očekávám Autorizaci",

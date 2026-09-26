@@ -9789,7 +9789,11 @@
     "updatedShort": "עודכן",
     "lastRefreshed": "רענון אחרון",
     "providerQuota": "מכסת ספק",
-    "providerQuotaHomeHint": "סטטוס בזמן אמת בכל החשבונות המחוברים"
+    "providerQuotaHomeHint": "סטטוס בזמן אמת בכל החשבונות המחוברים",
+    "claudeResetCreditDefaultTitle": "איפוס מגבלת Claude",
+    "confirmRedeemClaudeResetCredit": "מימוש מאפס מיידית את מגבלות השימוש הזכאיות של Claude ומנצל קרדיט זה לצמיתות.",
+    "claudeResetCreditsModalTitle": "קרדיטים לאיפוס Claude",
+    "claudeResetCreditsModalExplainer": "קרדיטים זמינים לאיפוס Claude ואיפוסי סשן שבועיים עבור חשבון זה."
   },
   "modals": {
     "waitingAuth": "ממתין לאישור",

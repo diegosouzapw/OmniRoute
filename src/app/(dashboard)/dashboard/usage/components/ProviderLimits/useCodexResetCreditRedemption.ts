@@ -87,14 +87,24 @@ export function applyCommittedResetCreditFallback(entry: any): any {
         return count > 0 ? [{ ...quota, creditCount: count, remaining: count }] : [];
       })
     : entry.quotas;
+  // An unknown count (Claude before any list) stays unknown rather than becoming a fake 0.
   const raw =
-    entry.raw && typeof entry.raw === "object"
-      ? {
-          ...entry.raw,
-          bankedResetCredits: Math.max(0, Number(entry.raw.bankedResetCredits ?? 0) - 1),
-        }
+    entry.raw && typeof entry.raw === "object" && typeof entry.raw.bankedResetCredits === "number"
+      ? { ...entry.raw, bankedResetCredits: Math.max(0, entry.raw.bankedResetCredits - 1) }
       : entry.raw;
   return { ...entry, quotas, raw };
+}
+
+/** An authoritative empty reset-credit list: record the zero so the card hides its entry point. */
+export function applyEmptyResetCreditList(entry: any): any {
+  const base = entry && typeof entry === "object" ? entry : {};
+  return {
+    ...base,
+    quotas: Array.isArray(base.quotas)
+      ? base.quotas.filter((quota: any) => !quota?.isResetCredits)
+      : base.quotas,
+    raw: { ...(base.raw && typeof base.raw === "object" ? base.raw : {}), bankedResetCredits: 0 },
+  };
 }
 
 function useOpenCodexResetCredits(
@@ -103,6 +113,7 @@ function useOpenCodexResetCredits(
   setErrors: SetErrors,
   setLoadingResetCreditsId: React.Dispatch<React.SetStateAction<string | null>>,
   setResetCreditPicker: React.Dispatch<React.SetStateAction<ResetCreditPickerState | null>>,
+  setQuotaData: SetQuotaData,
   tr: TranslateUsage
 ) {
   const notify = useNotificationStore();
@@ -125,10 +136,18 @@ function useOpenCodexResetCredits(
         );
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || response.statusText);
+        const credits = Array.isArray(data.credits) ? data.credits : [];
+        if (provider === "claude" && credits.length === 0) {
+          setQuotaData((prev) =>
+            prev[connectionId]
+              ? { ...prev, [connectionId]: applyEmptyResetCreditList(prev[connectionId]) }
+              : prev
+          );
+        }
         setResetCreditPicker({
           connectionId,
           provider,
-          credits: Array.isArray(data.credits) ? data.credits : [],
+          credits,
           availableCount: Number.isFinite(Number(data.availableCount))
             ? Number(data.availableCount)
             : 0,
@@ -150,6 +169,7 @@ function useOpenCodexResetCredits(
       redeemingResetCreditId,
       setErrors,
       setLoadingResetCreditsId,
+      setQuotaData,
       setResetCreditPicker,
       tr,
     ]
@@ -246,6 +266,7 @@ export function useCodexResetCreditRedemption(
     setErrors,
     setLoadingResetCreditsId,
     setResetCreditPicker,
+    setQuotaData,
     tr
   );
   const redeemCodexResetCredit = useRedeemCodexResetCredit({

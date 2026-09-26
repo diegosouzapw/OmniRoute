@@ -9789,7 +9789,11 @@
     "updatedShort": "Обновлено",
     "lastRefreshed": "Последнее обновление",
     "providerQuota": "Квота Провайдера",
-    "providerQuotaHomeHint": "Живой статус по подключенным аккаунтам"
+    "providerQuotaHomeHint": "Живой статус по подключенным аккаунтам",
+    "claudeResetCreditDefaultTitle": "Сброс лимитов Claude",
+    "confirmRedeemClaudeResetCredit": "Активация мгновенно сбрасывает применимые лимиты использования Claude и безвозвратно расходует этот кредит.",
+    "claudeResetCreditsModalTitle": "Кредиты на сброс Claude",
+    "claudeResetCreditsModalExplainer": "Доступные кредиты на сброс Claude и еженедельные сбросы сессий для этого аккаунта."
   },
   "modals": {
     "waitingAuth": "Ожидание авторизации",

@@ -9789,7 +9789,11 @@
     "updatedShort": "Opdateret",
     "lastRefreshed": "Sidst opdateret",
     "providerQuota": "Udbyderkvote",
-    "providerQuotaHomeHint": "Livestatus på tværs af tilknyttede konti"
+    "providerQuotaHomeHint": "Livestatus på tværs af tilknyttede konti",
+    "claudeResetCreditDefaultTitle": "Nulstilling af Claude-grænse",
+    "confirmRedeemClaudeResetCredit": "Indløsning nulstiller øjeblikkeligt de gældende Claude-brugsgrænser og forbruger denne kredit permanent.",
+    "claudeResetCreditsModalTitle": "Claude-nulstillingskreditter",
+    "claudeResetCreditsModalExplainer": "Tilgængelige Claude-nulstillingskreditter og ugentlige sessionsnulstillinger for denne konto."
   },
   "modals": {
     "waitingAuth": "Venter på autorisation",

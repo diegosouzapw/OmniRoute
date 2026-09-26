@@ -9789,7 +9789,11 @@
     "updatedShort": "Ažurirano",
     "lastRefreshed": "Posljednje osvježavanje",
     "providerQuota": "Kvota davatelja",
-    "providerQuotaHomeHint": "Stanje uživo na povezanim računima"
+    "providerQuotaHomeHint": "Stanje uživo na povezanim računima",
+    "claudeResetCreditDefaultTitle": "Resetiranje Claude ograničenja",
+    "confirmRedeemClaudeResetCredit": "Iskorištavanjem se odmah resetiraju primjenjiva Claude ograničenja upotrebe i trajno troši ovaj kredit.",
+    "claudeResetCreditsModalTitle": "Claude krediti za resetiranje",
+    "claudeResetCreditsModalExplainer": "Dostupni Claude krediti za resetiranje i tjedna resetiranja sesija za ovaj račun."
   },
   "modals": {
     "waitingAuth": "Čekanje na autorizaciju",

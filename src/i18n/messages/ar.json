@@ -9789,7 +9789,11 @@
     "updatedShort": "تم التحديث",
     "lastRefreshed": "آخر تحديث",
     "providerQuota": "حصة المزود",
-    "providerQuotaHomeHint": "الحالة المباشرة عبر الحسابات المتصلة"
+    "providerQuotaHomeHint": "الحالة المباشرة عبر الحسابات المتصلة",
+    "claudeResetCreditDefaultTitle": "إعادة تعيين حد Claude",
+    "confirmRedeemClaudeResetCredit": "يؤدي الاسترداد إلى إعادة تعيين حدود استخدام Claude المؤهلة فورًا واستهلاك هذا الرصيد بشكل دائم.",
+    "claudeResetCreditsModalTitle": "أرصدة إعادة تعيين Claude",
+    "claudeResetCreditsModalExplainer": "أرصدة إعادة تعيين Claude المتاحة وعمليات إعادة تعيين الجلسات الأسبوعية لهذا الحساب."
   },
   "modals": {
     "waitingAuth": "في انتظار التصريح",

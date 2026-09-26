@@ -9789,7 +9789,11 @@
     "updatedShort": "Aggiornato",
     "lastRefreshed": "Ultimo aggiornamento",
     "providerQuota": "Quota del provider",
-    "providerQuotaHomeHint": "Stato in tempo reale tra gli account connessi"
+    "providerQuotaHomeHint": "Stato in tempo reale tra gli account connessi",
+    "claudeResetCreditDefaultTitle": "Ripristino limite Claude",
+    "confirmRedeemClaudeResetCredit": "Il riscatto ripristina immediatamente i limiti di utilizzo di Claude idonei e consuma permanentemente questo credito.",
+    "claudeResetCreditsModalTitle": "Crediti di ripristino Claude",
+    "claudeResetCreditsModalExplainer": "Crediti di ripristino Claude disponibili e ripristini settimanali delle sessioni per questo account."
   },
   "modals": {
     "waitingAuth": "In attesa di autorizzazione",

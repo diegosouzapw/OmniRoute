@@ -9789,7 +9789,11 @@
     "updatedShort": "Yeniləndi",
     "lastRefreshed": "Sonuncu dəfə yenilənib",
     "providerQuota": "Provayder kvotası",
-    "providerQuotaHomeHint": "Qoşulmuş hesablar üzrə canlı status"
+    "providerQuotaHomeHint": "Qoşulmuş hesablar üzrə canlı status",
+    "claudeResetCreditDefaultTitle": "Claude limitinin sıfırlanması",
+    "confirmRedeemClaudeResetCredit": "İstifadə edilməsi uyğun Claude istifadə limitlərini dərhal sıfırlayır və bu krediti həmişəlik sərf edir.",
+    "claudeResetCreditsModalTitle": "Claude sıfırlama kreditləri",
+    "claudeResetCreditsModalExplainer": "Bu hesab üçün mövcud Claude sıfırlama kreditləri və həftəlik sessiya sıfırlamaları."
   },
   "modals": {
     "waitingAuth": "Avtorizasiya gözlənilir",

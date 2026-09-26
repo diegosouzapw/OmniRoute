@@ -9789,7 +9789,11 @@
     "updatedShort": "અપડેટ કરેલ",
     "lastRefreshed": "છેલ્લે રિફ્રેશ કરેલ",
     "providerQuota": "પ્રદાતા ક્વોટા",
-    "providerQuotaHomeHint": "કનેક્ટેડ એકાઉન્ટ્સમાં લાઇવ સ્થિતિ"
+    "providerQuotaHomeHint": "કનેક્ટેડ એકાઉન્ટ્સમાં લાઇવ સ્થિતિ",
+    "claudeResetCreditDefaultTitle": "Claude મર્યાદા રીસેટ",
+    "confirmRedeemClaudeResetCredit": "રીડીમ કરવાથી પાત્ર Claude વપરાશ મર્યાદાઓ તરત જ રીસેટ થઈ જાય છે અને આ ક્રેડિટ કાયમી ધોરણે વપરાઈ જાય છે.",
+    "claudeResetCreditsModalTitle": "Claude રીસેટ ક્રેડિટ્સ",
+    "claudeResetCreditsModalExplainer": "આ એકાઉન્ટ માટે ઉપલબ્ધ Claude રીસેટ ક્રેડિટ્સ અને સાપ્તાહિક સત્ર રીસેટ્સ."
   },
   "modals": {
     "waitingAuth": "અધિકૃતતાની રાહ જોઈ રહ્યું છે",

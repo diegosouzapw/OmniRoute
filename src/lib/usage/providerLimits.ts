@@ -21,6 +21,10 @@ import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 import { mergeProviderLimitsCacheEntry, toProviderLimitsCacheEntry } from "./providerLimitsCache";
 import { getCredentialRefreshExecutor } from "@omniroute/open-sse/executors/credential.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
+import {
+  fetchAndSeedClaudeResetCreditUsage,
+  withClaudeResetCreditCount,
+} from "@omniroute/open-sse/services/claudeResetCreditCount.ts";
 import { cooldownUntilMs } from "@omniroute/open-sse/services/accountFallback.ts";
 import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import {
@@ -732,7 +736,11 @@ export async function fetchLiveProviderLimits(connectionId: string): Promise<{
 
 async function fetchLiveProviderLimitsWithOptions(
   connectionId: string,
-  options: { forceRefresh?: boolean; allowRotatingRefresh?: boolean } = {}
+  options: {
+    forceRefresh?: boolean;
+    allowRotatingRefresh?: boolean;
+    includeResetCredits?: boolean;
+  } = {}
 ): Promise<{
   connection: ProviderConnectionLike;
   usage: JsonRecord;
@@ -812,6 +820,11 @@ async function fetchLiveProviderLimitsWithOptions(
         }
       }
 
+      // Only the dashboard's on-demand refresh lists credits; background polls keep
+      // their base usage request and never trigger reset-credit activity.
+      if (options.includeResetCredits && conn.provider === "claude" && conn.accessToken) {
+        await fetchAndSeedClaudeResetCreditUsage(conn.id, conn.accessToken);
+      }
       connection = conn;
       return { usage: usageData };
     });
@@ -893,14 +906,19 @@ async function fetchLiveProviderLimitsWithOptions(
 
   return {
     connection,
-    usage: result.usage,
+    // Claude's banked reset-credit count is invisible to the regular usage poll; attach the
+    // count the user-opened list (or the opt-in auto-reset) last seeded, or omit it (unknown).
+    usage:
+      connection.provider === "claude"
+        ? withClaudeResetCreditCount(connection.id, result.usage)
+        : result.usage,
   };
 }
 
 export async function fetchAndPersistProviderLimits(
   connectionId: string,
   source: SyncSource = "manual",
-  opts: { allowRotatingRefresh?: boolean } = {}
+  opts: { allowRotatingRefresh?: boolean; includeResetCredits?: boolean } = {}
 ): Promise<{
   connection: ProviderConnectionLike;
   usage: JsonRecord;
@@ -909,6 +927,7 @@ export async function fetchAndPersistProviderLimits(
   const { connection, usage } = await fetchLiveProviderLimitsWithOptions(connectionId, {
     forceRefresh: source === "manual",
     allowRotatingRefresh: opts.allowRotatingRefresh,
+    includeResetCredits: opts.includeResetCredits,
   });
   const newCache = toProviderLimitsCacheEntry(usage, source);
   const previous = getProviderLimitsCache(connectionId);
@@ -917,19 +936,32 @@ export async function fetchAndPersistProviderLimits(
   // Don't persist error-only entries (429 etc.) — would wipe prior good cache.
   // Serve the prior entry instead; only successful fetches update the cache.
   if (cache === previous && newCache.message) {
+    // Claude's banked count lives in the list-seeded memo (already on `usage` when known),
+    // so a cached count — e.g. from before a redeem — must not come back through here.
+    const isClaude = connection.provider === "claude";
+    const bankedResetCredits = isClaude ? newCache.bankedResetCredits : previous.bankedResetCredits;
+    let served = previous;
+    if (isClaude && previous.bankedResetCredits !== bankedResetCredits) {
+      const { bankedResetCredits: _cached, ...rest } = previous;
+      served = setProviderLimitsCache(
+        connectionId,
+        bankedResetCredits === undefined ? rest : { ...rest, bankedResetCredits }
+      );
+    }
     const staleUsage: JsonRecord = {
       ...usage,
       quotas: previous.quotas,
       modelQuotas: previous.modelQuotas,
       plan: previous.plan ?? usage.plan ?? null,
-      bankedResetCredits: previous.bankedResetCredits,
+      bankedResetCredits,
       billing: previous.billing,
       message: null,
       _stale: true,
       _staleSince: previous.fetchedAt,
       _staleReason: newCache.message,
     };
-    return { connection, usage: staleUsage, cache: previous };
+    if (bankedResetCredits === undefined) delete staleUsage.bankedResetCredits;
+    return { connection, usage: staleUsage, cache: served };
   }
 
   const mergedUsage: JsonRecord = {

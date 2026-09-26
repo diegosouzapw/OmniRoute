@@ -9789,7 +9789,11 @@
     "updatedShort": "Atualizado",
     "lastRefreshed": "Última atualização",
     "providerQuota": "Cota do Provedor",
-    "providerQuotaHomeHint": "Status em tempo real nas contas conectadas"
+    "providerQuotaHomeHint": "Status em tempo real nas contas conectadas",
+    "claudeResetCreditDefaultTitle": "Redefinição de limite do Claude",
+    "confirmRedeemClaudeResetCredit": "O resgate redefine imediatamente os limites de uso elegíveis do Claude e consome este crédito permanentemente.",
+    "claudeResetCreditsModalTitle": "Créditos de redefinição do Claude",
+    "claudeResetCreditsModalExplainer": "Créditos de redefinição do Claude disponíveis e redefinições semanais de sessão para esta conta."
   },
   "modals": {
     "waitingAuth": "Aguardando Autorização",

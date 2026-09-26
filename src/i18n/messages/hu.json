@@ -9789,7 +9789,11 @@
     "updatedShort": "Frissítve",
     "lastRefreshed": "Legutóbb frissítve",
     "providerQuota": "Szolgáltatói kvóta",
-    "providerQuotaHomeHint": "Élő állapot a csatlakoztatott fiókokban"
+    "providerQuotaHomeHint": "Élő állapot a csatlakoztatott fiókokban",
+    "claudeResetCreditDefaultTitle": "Claude-korlát visszaállítása",
+    "confirmRedeemClaudeResetCredit": "A beváltás azonnal visszaállítja a jogosult Claude használati korlátokat, és véglegesen felhasználja ezt a kreditet.",
+    "claudeResetCreditsModalTitle": "Claude-visszaállítási kreditek",
+    "claudeResetCreditsModalExplainer": "Elérhető Claude-visszaállítási kreditek és heti munkamenet-visszaállítások ehhez a fiókhoz."
   },
   "modals": {
     "waitingAuth": "Várakozás az engedélyezésre",

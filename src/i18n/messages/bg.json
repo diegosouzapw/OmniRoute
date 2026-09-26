@@ -9789,7 +9789,11 @@
     "updatedShort": "Актуализирано",
     "lastRefreshed": "Последно опреснено",
     "providerQuota": "Квота на доставчика",
-    "providerQuotaHomeHint": "Статус в реално време за свързаните акаунти"
+    "providerQuotaHomeHint": "Статус в реално време за свързаните акаунти",
+    "claudeResetCreditDefaultTitle": "Нулиране на лимита на Claude",
+    "confirmRedeemClaudeResetCredit": "Активирането незабавно нулира отговарящите на условията лимити за използване на Claude и окончателно изразходва този кредит.",
+    "claudeResetCreditsModalTitle": "Кредити за нулиране на Claude",
+    "claudeResetCreditsModalExplainer": "Налични кредити за нулиране на Claude и седмични нулирания на сесиите за този акаунт."
   },
   "modals": {
     "waitingAuth": "Изчакване на разрешение",

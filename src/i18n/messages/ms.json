@@ -9789,7 +9789,11 @@
     "updatedShort": "Dikemas kini",
     "lastRefreshed": "Terakhir disegarkan",
     "providerQuota": "Kuota Penyedia",
-    "providerQuotaHomeHint": "Status langsung merentas akaun yang disambungkan"
+    "providerQuotaHomeHint": "Status langsung merentas akaun yang disambungkan",
+    "claudeResetCreditDefaultTitle": "Tetapan semula had Claude",
+    "confirmRedeemClaudeResetCredit": "Penebusan akan menetapkan semula had penggunaan Claude yang layak dengan serta-merta dan menggunakan kredit ini secara kekal.",
+    "claudeResetCreditsModalTitle": "Kredit tetapan semula Claude",
+    "claudeResetCreditsModalExplainer": "Kredit tetapan semula Claude yang tersedia dan tetapan semula sesi mingguan untuk akaun ini."
   },
   "modals": {
     "waitingAuth": "Menunggu Keizinan",

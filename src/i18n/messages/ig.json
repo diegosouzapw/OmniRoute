@@ -9789,7 +9789,11 @@
     "updatedShort": "Emelitere",
     "lastRefreshed": "Oge ikpeazụ emere ka ọ dị ọhụrụ",
     "providerQuota": "Oke ojiji onye na-eweta ọrụ",
-    "providerQuotaHomeHint": "Ọnọdụ ozugbo n'ofe akaụntụ ejikọrọ"
+    "providerQuotaHomeHint": "Ọnọdụ ozugbo n'ofe akaụntụ ejikọrọ",
+    "claudeResetCreditDefaultTitle": "Ntọgharị oke Claude",
+    "confirmRedeemClaudeResetCredit": "Ịgbapụta na-atọgharị oke ojiji Claude ruru eru ozugbo ma na-emefu kredit a kpamkpam.",
+    "claudeResetCreditsModalTitle": "Kredit ntọgharị Claude",
+    "claudeResetCreditsModalExplainer": "Kredit ntọgharị Claude dịnụ na ntọgharị nnọkọ nke izu ụka maka akaụntụ a."
   },
   "modals": {
     "waitingAuth": "Na-eche maka ikike",

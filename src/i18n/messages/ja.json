@@ -9789,7 +9789,11 @@
     "updatedShort": "更新済み",
     "lastRefreshed": "最終更新",
     "providerQuota": "プロバイダークォータ",
-    "providerQuotaHomeHint": "接続されたアカウント全体のライブステータス"
+    "providerQuotaHomeHint": "接続されたアカウント全体のライブステータス",
+    "claudeResetCreditDefaultTitle": "Claude 制限のリセット",
+    "confirmRedeemClaudeResetCredit": "引き換えると、対象となる Claude の利用制限が即座にリセットされ、このクレジットは完全に消費されます。",
+    "claudeResetCreditsModalTitle": "Claude リセットクレジット",
+    "claudeResetCreditsModalExplainer": "このアカウントで利用可能な Claude リセットクレジットおよび週次セッションリセット。"
   },
   "modals": {
     "waitingAuth": "承認を待っています",

@@ -9789,7 +9789,11 @@
     "updatedShort": "Ažurirano",
     "lastRefreshed": "Posljednje osvježavanje",
     "providerQuota": "Kvota provajdera",
-    "providerQuotaHomeHint": "Status uživo kroz povezane račune"
+    "providerQuotaHomeHint": "Status uživo kroz povezane račune",
+    "claudeResetCreditDefaultTitle": "Reset Claude limita",
+    "confirmRedeemClaudeResetCredit": "Iskorištavanje odmah resetuje prihvatljive Claude limite korištenja i trajno troši ovaj kredit.",
+    "claudeResetCreditsModalTitle": "Claude krediti za reset",
+    "claudeResetCreditsModalExplainer": "Dostupni Claude krediti za reset i sedmični reseti sesija za ovaj račun."
   },
   "modals": {
     "waitingAuth": "Čekanje autorizacije",

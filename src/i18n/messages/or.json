@@ -9789,7 +9789,11 @@
     "updatedShort": "ଅଦ୍ୟତନ କରାଯାଇଛି",
     "lastRefreshed": "ଶେଷ ଥର ସତେଜ କରାଯାଇଛି",
     "providerQuota": "ପ୍ରଦାନକାରୀ କୋଟା",
-    "providerQuotaHomeHint": "ସଂଯୁକ୍ତ ଆକାଉଣ୍ଟଗୁଡ଼ିକର ଲାଇଭ୍ ସ୍ଥିତି"
+    "providerQuotaHomeHint": "ସଂଯୁକ୍ତ ଆକାଉଣ୍ଟଗୁଡ଼ିକର ଲାଇଭ୍ ସ୍ଥିତି",
+    "claudeResetCreditDefaultTitle": "Claude ସୀମା ରିସେଟ୍",
+    "confirmRedeemClaudeResetCredit": "ରିଡିମ୍ କରିବା ଦ୍ୱାରା ଯୋଗ୍ୟ Claude ବ୍ୟବହାର ସୀମା ତୁରନ୍ତ ରିସେଟ୍ ହୋଇଥାଏ ଏବଂ ଏହି କ୍ରେଡିଟ୍ ସ୍ଥାୟୀ ଭାବରେ ଖର୍ଚ୍ଚ ହୋଇଯାଏ।",
+    "claudeResetCreditsModalTitle": "Claude ରିସେଟ୍ କ୍ରେଡିଟ୍",
+    "claudeResetCreditsModalExplainer": "ଏହି ଆକାଉଣ୍ଟ ପାଇଁ ଉପଲବ୍ଧ Claude ରିସେଟ୍ କ୍ରେଡିଟ୍ ଏବଂ ସାପ୍ତାହିକ ସେସନ୍ ରିସେଟ୍।"
   },
   "modals": {
     "waitingAuth": "ଅନୁମୋଦନ ପାଇଁ ଅପେକ୍ଷାରତ",

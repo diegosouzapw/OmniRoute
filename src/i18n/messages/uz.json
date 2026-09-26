@@ -9789,7 +9789,11 @@
     "updatedShort": "Yangilangan",
     "lastRefreshed": "Oxirgi yangilanish",
     "providerQuota": "Provayder kvotasi",
-    "providerQuotaHomeHint": "Ulangan hisoblar bo‘yicha joriy holat"
+    "providerQuotaHomeHint": "Ulangan hisoblar bo‘yicha joriy holat",
+    "claudeResetCreditDefaultTitle": "Claude limitini tiklash",
+    "confirmRedeemClaudeResetCredit": "Faollashtirish mos keluvchi Claude foydalanish limitlarini darhol tiklaydi va ushbu kreditni butunlay sarflaydi.",
+    "claudeResetCreditsModalTitle": "Claude tiklash kreditlari",
+    "claudeResetCreditsModalExplainer": "Ushbu hisob uchun mavjud Claude tiklash kreditlari va haftalik sessiya tiklashlari."
   },
   "modals": {
     "waitingAuth": "Avtorizatsiya kutilmoqda",

@@ -9789,7 +9789,11 @@
     "updatedShort": "ተዘምኗል",
     "lastRefreshed": "ለመጨረሻ ጊዜ የታደሰው",
     "providerQuota": "የአቅራቢ ኮታ",
-    "providerQuotaHomeHint": "በተገናኙ መለያዎች ላይ ያለው የቀጥታ ሁኔታ"
+    "providerQuotaHomeHint": "በተገናኙ መለያዎች ላይ ያለው የቀጥታ ሁኔታ",
+    "claudeResetCreditDefaultTitle": "የClaude ገደብ ዳግም ማስጀመሪያ",
+    "confirmRedeemClaudeResetCredit": "መዋጀት ወዲያውኑ ብቁ የClaude የአጠቃቀም ገደቦችን ዳግም ያስጀምራል እና ይህን ክሬዲት በቋሚነት ይጨርሳል።",
+    "claudeResetCreditsModalTitle": "የClaude ዳግም ማስጀመሪያ ክሬዲቶች",
+    "claudeResetCreditsModalExplainer": "ለዚህ መለያ የሚገኙ የClaude ዳግም ማስጀመሪያ ክሬዲቶች እና ሳምንታዊ የክፍለ-ጊዜ ዳግም ማስጀመሪያዎች።"
   },
   "modals": {
     "waitingAuth": "ፈቃድ በመጠበቅ ላይ",

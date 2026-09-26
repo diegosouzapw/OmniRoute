@@ -9789,7 +9789,11 @@
     "updatedShort": "อัปเดตแล้ว",
     "lastRefreshed": "รีเฟรชล่าสุดเมื่อ",
     "providerQuota": "โควตาผู้ให้บริการ",
-    "providerQuotaHomeHint": "สถานะแบบเรียลไทม์ของบัญชีที่เชื่อมต่อทั้งหมด"
+    "providerQuotaHomeHint": "สถานะแบบเรียลไทม์ของบัญชีที่เชื่อมต่อทั้งหมด",
+    "claudeResetCreditDefaultTitle": "รีเซ็ตขีดจำกัด Claude",
+    "confirmRedeemClaudeResetCredit": "การแลกรับจะรีเซ็ตขีดจำกัดการใช้งาน Claude ที่เข้าเกณฑ์ทันที และจะใช้เครดิตนี้ไปอย่างถาวร",
+    "claudeResetCreditsModalTitle": "เครดิตรีเซ็ต Claude",
+    "claudeResetCreditsModalExplainer": "เครดิตรีเซ็ต Claude ที่มีอยู่และการรีเซ็ตเซสชันรายสัปดาห์สำหรับบัญชีนี้"
   },
   "modals": {
     "waitingAuth": "รอการอนุญาต",

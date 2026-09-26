@@ -9789,7 +9789,11 @@
     "updatedShort": "പുതുക്കിയത്",
     "lastRefreshed": "അവസാനം പുതുക്കിയത്",
     "providerQuota": "ദാതാവിന്റെ ക്വോട്ട",
-    "providerQuotaHomeHint": "ബന്ധിപ്പിച്ച അക്കൗണ്ടുകളിലുടനീളമുള്ള തത്സമയ നില"
+    "providerQuotaHomeHint": "ബന്ധിപ്പിച്ച അക്കൗണ്ടുകളിലുടനീളമുള്ള തത്സമയ നില",
+    "claudeResetCreditDefaultTitle": "Claude ലിമിറ്റ് റീസെറ്റ്",
+    "confirmRedeemClaudeResetCredit": "റിഡീം ചെയ്യുന്നത് യോഗ്യമായ Claude ഉപയോഗ പരിധികൾ ഉടനടി റീസെറ്റ് ചെയ്യുകയും ഈ ക്രെഡിറ്റ് ശാശ്വതമായി ഉപയോഗിച്ചു തീർക്കുകയും ചെയ്യുന്നു.",
+    "claudeResetCreditsModalTitle": "Claude റീസെറ്റ് ക്രെഡിറ്റുകൾ",
+    "claudeResetCreditsModalExplainer": "ഈ അക്കൗണ്ടിനായി ലഭ്യമായ Claude റീസെറ്റ് ക്രെഡിറ്റുകളും പ്രതിവാര സെഷൻ റീസെറ്റുകളും."
   },
   "modals": {
     "waitingAuth": "അംഗീകാരത്തിനായി കാത്തിരിക്കുന്നു",
