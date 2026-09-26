@@ -228,6 +228,46 @@ export function proxySetAsideSeq(key: string | null, nowMs: number = Date.now())
   return latest;
 }
 
+/**
+ * Read-only snapshot of the set-aside state still in force for a proxy egress
+ * key, or null when the proxy is not set aside. Exposes the refusal motive,
+ * the set-aside start, the expected end and the repeat count so a read-only
+ * status screen can explain why a pool member is currently deprioritized.
+ * Never mutates the memory (expired entries are dropped by readState as usual).
+ */
+export interface ProxySetAsideSnapshot {
+  kind: ProxyRefusalKind;
+  setAsideAt: number;
+  endsAt: number;
+  streak: number;
+}
+
+export function snapshotProxySetAside(
+  key: string | null,
+  nowMs: number = Date.now()
+): ProxySetAsideSnapshot | null {
+  if (key === null || memory.size === 0) return null;
+  let latest: (ProxySetAsideSnapshot & { seq: number }) | null = null;
+  for (const kind of REFUSAL_KINDS) {
+    const state = readState(key, kind, nowMs);
+    if (!state || state.until <= nowMs || (latest !== null && state.seq <= latest.seq)) continue;
+    // Recompute the period from the stored streak with the same doubling curve as
+    // noteProxyRefusal so setAsideAt = until - periodMs (read-only, no state change).
+    const policy = REFUSAL_POLICIES[kind];
+    const periodMs = Math.min(policy.baseMs * 2 ** (state.streak - 1), policy.maxMs);
+    latest = {
+      kind,
+      setAsideAt: state.until - periodMs,
+      endsAt: state.until,
+      streak: state.streak,
+      seq: state.seq,
+    };
+  }
+  if (!latest) return null;
+  const { seq: _seq, ...snapshot } = latest;
+  return snapshot;
+}
+
 /** Sequence number of the last set-aside event recorded in this process (0 = none yet). */
 export function getProxyRefusalSeq(): number {
   return refusalSeq;

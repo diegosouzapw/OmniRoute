@@ -1,0 +1,1 @@
+- **feat(admin):** pool members show set-aside state (reason, expected end, repeat count) and preference order ([#14754](https://github.com/diegosouzapw/OmniRoute/pull/14754)) — thanks @maxmad64bis

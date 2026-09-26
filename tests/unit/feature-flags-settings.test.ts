@@ -45,8 +45,14 @@ const {
 // (rotation skipped/served masked ids + proxy-log request correlation, all
 // read-only diagnostics) takes it to 77. STREAM_READINESS_STALL_RETRY
 // (one bounded retry when a stream stalls before usable output, default off)
-// takes the registry to 78.
-const EXPECTED_FEATURE_FLAG_COUNT = 79;
+// takes it to 78.
+// OPENCODE_POOL_RESELECT (re-select a pool member per attempt after a
+// per-address 429, default off) takes the registry to 79.
+// PROXY_POOL_SHARED_EGRESS_ORDER (shared-egress pool ordering, default off)
+// takes it to 80.
+// USAGE_LIMIT_IGNORE_UNPRICED (opt-in flag to count unpriced usage as $0 in USD
+// quotas, default off) takes it to 81.
+const EXPECTED_FEATURE_FLAG_COUNT = 81;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
