@@ -67,7 +67,7 @@ export default function ComboCatalogTable({
   onToggleSelect,
   onToggleSelectAll,
   testResults,
-  activeTestingKey,
+  activeTestingKeys,
   onTestCombo,
   onPrevious,
   onNext,
@@ -85,7 +85,7 @@ export default function ComboCatalogTable({
   onToggleSelect: (id: string) => void;
   onToggleSelectAll: () => void;
   testResults: Record<string, CatalogTestResult>;
-  activeTestingKey: string | null;
+  activeTestingKeys: ReadonlySet<string>;
   onTestCombo: (comboName: string) => void;
   onPrevious: () => void;
   onNext: () => void;
@@ -169,7 +169,7 @@ export default function ComboCatalogTable({
             {rows.map((combo) => {
               const isSelected = selectedIds.has(combo.id);
               const testKey = getComboTestKey(combo.name);
-              const isTesting = activeTestingKey === testKey;
+              const isTesting = activeTestingKeys.has(testKey);
               const result = testResults[testKey];
 
               return (

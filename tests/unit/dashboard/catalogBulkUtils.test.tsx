@@ -4,6 +4,7 @@ import {
   dedupeComboTargets,
   dedupeModelTargets,
   runWithConcurrency,
+  runModelBatches,
 } from "@/app/(dashboard)/dashboard/models/catalogBulkUtils";
 
 function deferred() {
@@ -78,6 +79,32 @@ describe("buildModelBatches", () => {
       2
     );
     expect(batches.map((batch) => batch.modelIds)).toEqual([["a", "b"], ["c"]]);
+  });
+});
+
+describe("runModelBatches", () => {
+  it("serializes each provider while another provider fills the second slot", async () => {
+    const gates = [deferred(), deferred(), deferred()];
+    const batches = [
+      { providerId: "alpha", modelIds: ["0"] },
+      { providerId: "alpha", modelIds: ["1"] },
+      { providerId: "beta", modelIds: ["2"] },
+    ];
+    const started: string[] = [];
+    const run = runModelBatches(batches, new AbortController().signal, async (batch) => {
+      started.push(`${batch.providerId}:${batch.modelIds[0]}`);
+      await gates[Number(batch.modelIds[0])].promise;
+    });
+    await settle();
+    expect(started).toEqual(["alpha:0", "beta:2"]);
+    gates[2].resolve();
+    await settle();
+    expect(started).toEqual(["alpha:0", "beta:2"]);
+    gates[0].resolve();
+    await settle();
+    expect(started).toEqual(["alpha:0", "beta:2", "alpha:1"]);
+    gates[1].resolve();
+    await run;
   });
 });
 

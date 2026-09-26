@@ -22,7 +22,10 @@ function humanize(value: string): string {
     .replace(/^\w/, (first) => first.toUpperCase());
 }
 
-function capabilityLabels(model: CatalogModelRow): string[] {
+function capabilityLabels(
+  model: CatalogModelRow,
+  labelsByDirection: { input: string; output: string }
+): string[] {
   const labels = Object.entries(model.capabilities ?? {}).flatMap(([key, value]) => {
     if (value === true) return [humanize(key)];
     if (Array.isArray(value)) {
@@ -31,8 +34,10 @@ function capabilityLabels(model: CatalogModelRow): string[] {
     return [];
   });
 
-  for (const modality of model.input_modalities ?? []) labels.push(`${humanize(modality)} input`);
-  for (const modality of model.output_modalities ?? []) labels.push(`${humanize(modality)} output`);
+  for (const modality of model.input_modalities ?? [])
+    labels.push(`${labelsByDirection.input}: ${humanize(modality)}`);
+  for (const modality of model.output_modalities ?? [])
+    labels.push(`${labelsByDirection.output}: ${humanize(modality)}`);
   return [...new Set(labels)];
 }
 
@@ -90,7 +95,7 @@ export default function ModelCatalogTable({
   onToggleSelect,
   onToggleSelectAll,
   testResults = {},
-  activeTestingKey = null,
+  activeTestingKeys = new Set<string>(),
   onTestModel,
   providerHealthMap = {},
   bulkRunning = false,
@@ -122,13 +127,14 @@ export default function ModelCatalogTable({
   onToggleSelect?: (id: string) => void;
   onToggleSelectAll?: () => void;
   testResults?: Record<string, CatalogTestResult>;
-  activeTestingKey?: string | null;
+  activeTestingKeys?: ReadonlySet<string>;
   onTestModel?: (providerId: string, modelId: string) => void;
   providerHealthMap?: Record<string, "healthy" | "degraded" | "down">;
   /** A bulk run owns the runner; per-row tests wait until it ends. */
   bulkRunning?: boolean;
 }) {
   const t = useTranslations("modelCatalog");
+  const common = useTranslations("common");
   const firstResult = startIndex + 1;
   const lastResult = startIndex + rows.length;
 
@@ -225,11 +231,14 @@ export default function ModelCatalogTable({
               const rowId = `${model.providerId}:${model.id}`;
               const isSelected = selectedIds.has(rowId);
               const testKey = getModelTestKey(model.providerId, model.id);
-              const isTesting = activeTestingKey === testKey;
+              const isTesting = activeTestingKeys.has(testKey);
               const result = testResults[testKey];
               const providerHealth = providerHealthMap[model.providerId];
 
-              const capabilities = capabilityLabels(model);
+              const capabilities = capabilityLabels(model, {
+                input: common("input"),
+                output: common("output"),
+              });
               const additionalCapabilities = capabilities.slice(3);
               return (
                 <tr

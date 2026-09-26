@@ -12,6 +12,33 @@ const TESTED_AT = 1_000;
 describe("mapBatchResponse", () => {
   const batch = { providerId: "alpha", modelIds: ["a", "b", "c"] };
 
+  it.each([{ status: "slow" }, { status: "error", isTimeout: true }])(
+    "classifies a batch timeout as an error: %j",
+    (timeout) => {
+      const error = "No model output within 30s";
+      const [bulk] = mapBatchResponse(
+        { providerId: "alpha", modelIds: ["chat"] },
+        OK,
+        { results: { chat: { ...timeout, latencyMs: 30_000, error } } },
+        TESTED_AT
+      );
+      const single = mapSingleModelResponse(
+        "alpha",
+        "chat",
+        { ok: false, status: 504 },
+        { status: "error", latencyMs: 30_000, error },
+        TESTED_AT
+      );
+      expect(bulk).toMatchObject({
+        status: single.status,
+        errorClass: single.errorClass,
+        error,
+      });
+      expect(bulk.status).toBe("error");
+      expect(bulk.errorClass).toBe("timeout");
+    }
+  );
+
   it("stores only the models the server reported when it stopped early", () => {
     const results = mapBatchResponse(
       batch,

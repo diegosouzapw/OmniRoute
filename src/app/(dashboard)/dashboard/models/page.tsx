@@ -96,14 +96,14 @@ export default function ModelCatalogPage() {
     Record<string, "healthy" | "degraded" | "down">
   >({});
 
-  const [modelFilters, setModelFilters] = useState<CatalogFilters>(DEFAULT_MODEL_FILTERS);
-  const [comboFilters, setComboFilters] = useState<ComboCatalogFilters>(DEFAULT_COMBO_FILTERS);
+  const [rawModelFilters, setModelFilters] = useState<CatalogFilters>(DEFAULT_MODEL_FILTERS);
+  const [rawComboFilters, setComboFilters] = useState<ComboCatalogFilters>(DEFAULT_COMBO_FILTERS);
 
   // Test Runner Hook
   const {
     testResults,
     running,
-    activeItemKey,
+    activeItemKeys,
     progress,
     testSingleModel,
     testSingleCombo,
@@ -138,37 +138,6 @@ export default function ModelCatalogPage() {
     },
     []
   );
-
-  const switchTab = (tab: CatalogTab) => {
-    setActiveTab(tab);
-    syncUrlParams(tab, modelFilters, comboFilters);
-  };
-
-  const updateModelFilters = (patch: Partial<CatalogFilters>) => {
-    const updated = { ...modelFilters, ...patch };
-    setModelFilters(updated);
-    setRequestedModelPage(0);
-    syncUrlParams("models", updated, comboFilters);
-  };
-
-  const clearModelFilters = () => {
-    setModelFilters(DEFAULT_MODEL_FILTERS);
-    setRequestedModelPage(0);
-    syncUrlParams("models", DEFAULT_MODEL_FILTERS, comboFilters);
-  };
-
-  const updateComboFilters = (patch: Partial<ComboCatalogFilters>) => {
-    const updated = { ...comboFilters, ...patch };
-    setComboFilters(updated);
-    setRequestedComboPage(0);
-    syncUrlParams("combos", modelFilters, updated);
-  };
-
-  const clearComboFilters = () => {
-    setComboFilters(DEFAULT_COMBO_FILTERS);
-    setRequestedComboPage(0);
-    syncUrlParams("combos", modelFilters, DEFAULT_COMBO_FILTERS);
-  };
 
   // Data Loading
   const loadData = useCallback(async () => {
@@ -284,6 +253,80 @@ export default function ModelCatalogPage() {
     () => [...new Set(combos.map((c) => c.strategy))].sort((a, b) => a.localeCompare(b)),
     [combos]
   );
+
+  const modelFilters = useMemo(
+    () => ({
+      ...rawModelFilters,
+      providerId:
+        modelsLoading || providerOptions.some(([id]) => id === rawModelFilters.providerId)
+          ? rawModelFilters.providerId
+          : "all",
+      type:
+        modelsLoading || typeOptions.includes(rawModelFilters.type) ? rawModelFilters.type : "all",
+      subtype:
+        modelsLoading || subtypeOptions.includes(rawModelFilters.subtype || "all")
+          ? rawModelFilters.subtype
+          : "all",
+      capability:
+        modelsLoading || capabilityOptions.includes(rawModelFilters.capability || "all")
+          ? rawModelFilters.capability
+          : "all",
+    }),
+    [
+      rawModelFilters,
+      modelsLoading,
+      providerOptions,
+      typeOptions,
+      subtypeOptions,
+      capabilityOptions,
+    ]
+  );
+  const comboFilters = useMemo(
+    () => ({
+      ...rawComboFilters,
+      strategy:
+        combosLoading || strategyOptions.includes(rawComboFilters.strategy)
+          ? rawComboFilters.strategy
+          : "all",
+    }),
+    [rawComboFilters, combosLoading, strategyOptions]
+  );
+
+  useEffect(() => {
+    if (modelsLoading || combosLoading) return;
+    syncUrlParams(activeTab, modelFilters, comboFilters);
+  }, [activeTab, modelFilters, comboFilters, modelsLoading, combosLoading, syncUrlParams]);
+
+  const switchTab = (tab: CatalogTab) => {
+    setActiveTab(tab);
+    syncUrlParams(tab, modelFilters, comboFilters);
+  };
+
+  const updateModelFilters = (patch: Partial<CatalogFilters>) => {
+    const updated = { ...modelFilters, ...patch };
+    setModelFilters(updated);
+    setRequestedModelPage(0);
+    syncUrlParams("models", updated, comboFilters);
+  };
+
+  const clearModelFilters = () => {
+    setModelFilters(DEFAULT_MODEL_FILTERS);
+    setRequestedModelPage(0);
+    syncUrlParams("models", DEFAULT_MODEL_FILTERS, comboFilters);
+  };
+
+  const updateComboFilters = (patch: Partial<ComboCatalogFilters>) => {
+    const updated = { ...comboFilters, ...patch };
+    setComboFilters(updated);
+    setRequestedComboPage(0);
+    syncUrlParams("combos", modelFilters, updated);
+  };
+
+  const clearComboFilters = () => {
+    setComboFilters(DEFAULT_COMBO_FILTERS);
+    setRequestedComboPage(0);
+    syncUrlParams("combos", modelFilters, DEFAULT_COMBO_FILTERS);
+  };
 
   // Filtered & Sorted Models
   const visibleModels = useMemo(() => {
@@ -535,7 +578,7 @@ export default function ModelCatalogPage() {
                 onToggleSelect={toggleSelectModel}
                 onToggleSelectAll={toggleSelectAllModelsOnPage}
                 testResults={testResults}
-                activeTestingKey={activeItemKey}
+                activeTestingKeys={activeItemKeys}
                 onTestModel={testSingleModel}
                 providerHealthMap={providerHealthMap}
                 bulkRunning={running}
@@ -633,7 +676,7 @@ export default function ModelCatalogPage() {
                 onToggleSelect={toggleSelectCombo}
                 onToggleSelectAll={toggleSelectAllCombosOnPage}
                 testResults={testResults}
-                activeTestingKey={activeItemKey}
+                activeTestingKeys={activeItemKeys}
                 onTestCombo={testSingleCombo}
                 onPrevious={() => setRequestedComboPage((c) => Math.max(0, c - 1))}
                 onNext={() =>

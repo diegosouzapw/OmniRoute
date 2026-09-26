@@ -81,6 +81,26 @@ describe("flattenCombos", () => {
     expect(result[1].memberCount).toBe(2);
   });
 
+  it("counts provider-wildcard steps in the member-range filter", () => {
+    const rows = flattenCombos([
+      {
+        name: "wildcard",
+        models: [{ kind: "provider-wildcard", providerId: "alpha", modelPattern: "chat-*" }],
+      },
+    ]);
+    expect(rows[0].memberCount).toBe(1);
+    expect(rows[0].models[0].model).toBe("alpha/chat-*");
+    expect(
+      filterCatalogCombos(rows, {
+        query: "",
+        strategy: "all",
+        status: "all",
+        testResult: "all",
+        minMembers: 1,
+      })
+    ).toEqual(rows);
+  });
+
   it("counts combo-ref steps as members for nested combos", () => {
     const rawCombos = [
       {

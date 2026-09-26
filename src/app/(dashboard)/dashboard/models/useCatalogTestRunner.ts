@@ -7,6 +7,7 @@ import {
   dedupeComboTargets,
   dedupeModelTargets,
   runWithConcurrency,
+  runModelBatches,
   type ComboTestTarget,
   type ModelTestTarget,
 } from "./catalogBulkUtils";
@@ -44,7 +45,8 @@ const JSON_HEADERS = { "Content-Type": "application/json" };
 export function useCatalogTestRunner() {
   const [testResults, setTestResults] = useState<Record<string, CatalogTestResult>>({});
   const [running, setRunning] = useState(false);
-  const [activeItemKey, setActiveItemKey] = useState<string | null>(null);
+  const [activeItemKeys, setActiveItemKeys] = useState<Set<string>>(new Set());
+  const activeSignalsRef = useRef(new Map<string, AbortSignal>());
   const [progress, setProgress] = useState<ProgressState>(IDLE_PROGRESS);
 
   const mountedRef = useRef(false);
@@ -78,9 +80,17 @@ export function useCatalogTestRunner() {
     setTestResults({ ...saveBatchTestResults(results) });
   }, []);
 
+  const claimActiveKey = useCallback((key: string, signal: AbortSignal) => {
+    if (activeSignalsRef.current.has(key)) return false;
+    activeSignalsRef.current.set(key, signal);
+    setActiveItemKeys(new Set(activeSignalsRef.current.keys()));
+    return true;
+  }, []);
+
   const releaseActiveKey = useCallback((key: string, signal: AbortSignal) => {
-    if (!mountedRef.current || signal.aborted) return;
-    setActiveItemKey((current) => (current === key ? null : current));
+    if (activeSignalsRef.current.get(key) !== signal) return;
+    activeSignalsRef.current.delete(key);
+    if (mountedRef.current) setActiveItemKeys(new Set(activeSignalsRef.current.keys()));
   }, []);
 
   const withSingleController = useCallback(async (work: (signal: AbortSignal) => Promise<void>) => {
@@ -96,7 +106,7 @@ export function useCatalogTestRunner() {
   const runComboTest = useCallback(
     async (comboName: string, signal: AbortSignal) => {
       const key = getComboTestKey(comboName);
-      setActiveItemKey(key);
+      if (!claimActiveKey(key, signal)) return;
       try {
         const res = await fetch("/api/combos/test", {
           method: "POST",
@@ -115,14 +125,14 @@ export function useCatalogTestRunner() {
         releaseActiveKey(key, signal);
       }
     },
-    [persist, releaseActiveKey]
+    [claimActiveKey, persist, releaseActiveKey]
   );
 
   const testSingleModel = useCallback(
     (providerId: string, modelId: string) =>
       withSingleController(async (signal) => {
         const key = getModelTestKey(providerId, modelId);
-        setActiveItemKey(key);
+        if (!claimActiveKey(key, signal)) return;
         try {
           const res = await fetch("/api/models/test", {
             method: "POST",
@@ -141,7 +151,7 @@ export function useCatalogTestRunner() {
           releaseActiveKey(key, signal);
         }
       }),
-    [persist, releaseActiveKey, withSingleController]
+    [claimActiveKey, persist, releaseActiveKey, withSingleController]
   );
 
   const testSingleCombo = useCallback(
@@ -180,41 +190,36 @@ export function useCatalogTestRunner() {
       const controller = startRun("models", unique.length);
       const { signal } = controller;
       try {
-        await runWithConcurrency(
-          buildModelBatches(unique),
-          BULK_CONCURRENCY,
-          signal,
-          async (batch) => {
-            try {
-              const res = await fetch("/api/models/test-all", {
-                method: "POST",
-                headers: JSON_HEADERS,
-                body: JSON.stringify({
-                  providerId: batch.providerId,
-                  modelIds: batch.modelIds,
-                  respectRateLimit: true,
-                }),
-                signal,
-              });
-              const body = await readJsonBody<BatchModelTestResponse>(res);
-              persist(mapBatchResponse(batch, res, body, Date.now()), signal);
-            } catch (failure) {
-              const testedAt = Date.now();
-              persist(
-                batch.modelIds.map((modelId) =>
-                  mapRequestFailure(
-                    { targetType: "model", providerId: batch.providerId, modelId },
-                    failure,
-                    testedAt
-                  )
-                ),
-                signal
-              );
-            } finally {
-              advanceRun(controller, batch.modelIds.length);
-            }
+        await runModelBatches(buildModelBatches(unique), signal, async (batch) => {
+          try {
+            const res = await fetch("/api/models/test-all", {
+              method: "POST",
+              headers: JSON_HEADERS,
+              body: JSON.stringify({
+                providerId: batch.providerId,
+                modelIds: batch.modelIds,
+                respectRateLimit: true,
+              }),
+              signal,
+            });
+            const body = await readJsonBody<BatchModelTestResponse>(res);
+            persist(mapBatchResponse(batch, res, body, Date.now()), signal);
+          } catch (failure) {
+            const testedAt = Date.now();
+            persist(
+              batch.modelIds.map((modelId) =>
+                mapRequestFailure(
+                  { targetType: "model", providerId: batch.providerId, modelId },
+                  failure,
+                  testedAt
+                )
+              ),
+              signal
+            );
+          } finally {
+            advanceRun(controller, batch.modelIds.length);
           }
-        );
+        });
       } finally {
         finishRun(controller);
       }
@@ -249,7 +254,10 @@ export function useCatalogTestRunner() {
     runControllerRef.current = null;
     controller.abort();
     setRunning(false);
-    setActiveItemKey(null);
+    for (const [key, signal] of activeSignalsRef.current) {
+      if (signal === controller.signal) activeSignalsRef.current.delete(key);
+    }
+    setActiveItemKeys(new Set(activeSignalsRef.current.keys()));
     setProgress((current) => ({ ...current, cancelled: true }));
   }, []);
 
@@ -261,7 +269,7 @@ export function useCatalogTestRunner() {
   return {
     testResults,
     running,
-    activeItemKey,
+    activeItemKeys,
     progress,
     testSingleModel,
     testSingleCombo,

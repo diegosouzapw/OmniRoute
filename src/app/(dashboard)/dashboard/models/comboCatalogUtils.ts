@@ -71,6 +71,12 @@ export function flattenCombos(rawCombos: unknown): ComboCatalogRow[] {
               kind: "combo-ref",
               ...(typeof m.label === "string" ? { label: m.label } : {}),
             });
+          } else if (
+            m.kind === "provider-wildcard" &&
+            typeof m.providerId === "string" &&
+            typeof m.modelPattern === "string"
+          ) {
+            modelsList.push({ model: `${m.providerId}/${m.modelPattern}` });
           } else if (typeof m.model === "string") {
             modelsList.push({
               model: m.model,

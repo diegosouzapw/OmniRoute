@@ -70,6 +70,17 @@ describe("catalogTestStorage", () => {
     expect(loaded[comboResult.id]).toEqual(comboResult);
   });
 
+  it("drops stored timestamps outside the JavaScript date range", () => {
+    localStorage.setItem(
+      CATALOG_TEST_RESULTS_KEY,
+      JSON.stringify({
+        invalid: { status: "ok", testedAt: 8.64e15 + 1 },
+        valid: { status: "ok", testedAt: 1000 },
+      })
+    );
+    expect(loadCatalogTestResults()).toEqual({ valid: { status: "ok", testedAt: 1000 } });
+  });
+
   it("clears test results from localStorage", () => {
     const modelResult: CatalogTestResult = {
       id: getModelTestKey("alpha", "chat-1"),
