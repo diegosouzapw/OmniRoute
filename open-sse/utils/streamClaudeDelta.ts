@@ -61,3 +61,21 @@ export function attachToolUseNames(message: JsonRecord, toolNames: readonly stri
     configurable: true,
   });
 }
+
+/**
+ * Wraps a stream's onComplete so the assembled chat message carries the tool_use names the
+ * Claude client received, in both passthrough and translated streams (Gemini, Antigravity,
+ * OpenAI-compatible or Responses upstreams). One attach point for every stream mode.
+ */
+export function withToolUseNames<P extends { responseBody?: unknown }>(
+  onComplete: ((payload: P) => void) | null | undefined,
+  toolNames: readonly string[]
+): ((payload: P) => void) | null {
+  if (!onComplete) return null;
+  return (payload) => {
+    const choices = asRecord(payload?.responseBody)?.choices;
+    const message = Array.isArray(choices) ? asRecord(asRecord(choices[0])?.message) : null;
+    if (message) attachToolUseNames(message, toolNames);
+    onComplete(payload);
+  };
+}
