@@ -21,7 +21,10 @@ import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 import { mergeProviderLimitsCacheEntry, toProviderLimitsCacheEntry } from "./providerLimitsCache";
 import { getCredentialRefreshExecutor } from "@omniroute/open-sse/executors/credential.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
-import { withClaudeResetCreditCount } from "@omniroute/open-sse/services/claudeResetCreditCount.ts";
+import {
+  fetchAndSeedClaudeResetCreditUsage,
+  withClaudeResetCreditCount,
+} from "@omniroute/open-sse/services/claudeResetCreditCount.ts";
 import { cooldownUntilMs } from "@omniroute/open-sse/services/accountFallback.ts";
 import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import {
@@ -733,7 +736,11 @@ export async function fetchLiveProviderLimits(connectionId: string): Promise<{
 
 async function fetchLiveProviderLimitsWithOptions(
   connectionId: string,
-  options: { forceRefresh?: boolean; allowRotatingRefresh?: boolean } = {}
+  options: {
+    forceRefresh?: boolean;
+    allowRotatingRefresh?: boolean;
+    includeResetCredits?: boolean;
+  } = {}
 ): Promise<{
   connection: ProviderConnectionLike;
   usage: JsonRecord;
@@ -813,6 +820,11 @@ async function fetchLiveProviderLimitsWithOptions(
         }
       }
 
+      // Only the dashboard's on-demand refresh lists credits; background polls keep
+      // their base usage request and never trigger reset-credit activity.
+      if (options.includeResetCredits && conn.provider === "claude" && conn.accessToken) {
+        await fetchAndSeedClaudeResetCreditUsage(conn.id, conn.accessToken);
+      }
       connection = conn;
       return { usage: usageData };
     });
@@ -906,7 +918,7 @@ async function fetchLiveProviderLimitsWithOptions(
 export async function fetchAndPersistProviderLimits(
   connectionId: string,
   source: SyncSource = "manual",
-  opts: { allowRotatingRefresh?: boolean } = {}
+  opts: { allowRotatingRefresh?: boolean; includeResetCredits?: boolean } = {}
 ): Promise<{
   connection: ProviderConnectionLike;
   usage: JsonRecord;
@@ -915,6 +927,7 @@ export async function fetchAndPersistProviderLimits(
   const { connection, usage } = await fetchLiveProviderLimitsWithOptions(connectionId, {
     forceRefresh: source === "manual",
     allowRotatingRefresh: opts.allowRotatingRefresh,
+    includeResetCredits: opts.includeResetCredits,
   });
   const newCache = toProviderLimitsCacheEntry(usage, source);
   const previous = getProviderLimitsCache(connectionId);

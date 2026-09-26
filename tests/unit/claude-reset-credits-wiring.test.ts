@@ -70,6 +70,24 @@ test.after(() => {
   fs.rmSync(dataDir, { recursive: true, force: true });
 });
 
+test("dashboard quota refresh shows reset credits without opening the credits modal", async () => {
+  const connection = await createProviderConnection({
+    provider: "claude",
+    authType: "oauth",
+    name: "Dashboard credits",
+    accessToken: "dashboard-credits-token",
+    isActive: true,
+    expiresAt: "2099-01-01T00:00:00Z",
+  });
+  mockUpstream();
+  const refreshed = await fetchAndPersistProviderLimits(connection.id as string, "manual", {
+    includeResetCredits: true,
+  });
+  assert.equal(refreshed.usage.bankedResetCredits, 3);
+  assert.equal(getProviderLimitsCache(connection.id as string)?.bankedResetCredits, 3);
+  assert.equal(count(`GET ${RESET_CREDIT_LIST_URL}`), 1);
+});
+
 test("listing seeds the dashboard count and a redeem invalidates it", async () => {
   const connection = await createProviderConnection({
     provider: "claude",

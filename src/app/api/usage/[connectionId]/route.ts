@@ -19,6 +19,7 @@ export async function GET(
     const { connectionId } = await params;
     const { usage } = await fetchAndPersistProviderLimits(connectionId, "manual", {
       allowRotatingRefresh: true,
+      includeResetCredits: true,
     });
     return Response.json(usage);
   } catch (error) {
