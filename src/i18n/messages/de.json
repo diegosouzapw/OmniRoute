@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "Partnerlink",
     "dismissAriaLabel": "Schließen"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Deaktiviert die Generierung von Denkstufenvarianten (z. B. -low, -medium, -high) im /v1/models-Katalog."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Deaktiviert die Generierung von Denkstufenvarianten (z. B. -low, -medium, -high) im /v1/models-Katalog.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Vereinfachte Konversationsschritte (Benutzer-Prompt, Assistenten-Antwort, aufgerufene Tools) für Coding-Agent-Sitzungen erfassen und dem Sitzungsinhaber über GET /v1/me/sessions/{id}/messages bereitstellen. Standardmäßig deaktiviert: Schritte werden nicht erfasst, es sei denn, dieses Flag ist aktiviert. Wird für noLog-API-Schlüssel nie erfasst."
 }

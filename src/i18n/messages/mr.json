@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "भागीदार लिंक",
     "dismissAriaLabel": "बंद करा"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models कॅटलॉगमध्ये विचार-पातळीच्या प्रकारांची (उदा. -low, -medium, -high) निर्मिती अक्षम करा."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models कॅटलॉगमध्ये विचार-पातळीच्या प्रकारांची (उदा. -low, -medium, -high) निर्मिती अक्षम करा.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "कोडिंग-एजंट सेशन्ससाठी संभाषणातील सरलीकृत टर्न्स (युझर प्रॉम्प्ट, असिस्टंट प्रतिसाद, कॉल केलेली टूल्स) कॅप्चर करा आणि सेशन मालकाला GET /v1/me/sessions/{id}/messages द्वारे ते उपलब्ध करा. डीफॉल्टनुसार बंद: हा फ्लॅग सक्षम केल्याशिवाय टर्न्स कॅप्चर केले जात नाहीत. noLog API कीजसाठी कधीही कॅप्चर केले जात नाही."
 }

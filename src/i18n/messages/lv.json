@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "Partnera saite",
     "dismissAriaLabel": "Aizvērt"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Atspējot domāšanas līmeņu variantu (piem., -low, -medium, -high) ģenerēšanu /v1/models katalogā."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Atspējot domāšanas līmeņu variantu (piem., -low, -medium, -high) ģenerēšanu /v1/models katalogā.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Fiksēt vienkāršotus sarunas soļus (lietotāja uzvedne, asistenta atbilde, izsauktie rīki) kodēšanas aģenta sesijām un padarīt tos pieejamus sesijas īpašniekam, izmantojot GET /v1/me/sessions/{id}/messages. Pēc noklusējuma izslēgts: soļi netiek fiksēti, ja vien šis karodziņš nav iespējots. Nekad netiek fiksēts noLog API atslēgām."
 }

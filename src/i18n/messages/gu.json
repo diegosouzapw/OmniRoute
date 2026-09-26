@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "ભાગીદાર લિંક",
     "dismissAriaLabel": "બંધ કરો"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models કેટલોગમાં વિચાર-સ્તરના વેરિઅન્ટ્સ (દા.ત. -low, -medium, -high) બનાવવાનું નિષ્ક્રિય કરો."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models કેટલોગમાં વિચાર-સ્તરના વેરિઅન્ટ્સ (દા.ત. -low, -medium, -high) બનાવવાનું નિષ્ક્રિય કરો.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "કોડિંગ-એજન્ટ સત્રો માટે સરળીકૃત વાતચીતના ટર્ન (user prompt, assistant response, called tools) કેપ્ચર કરો અને તેને સત્રના માલિક માટે GET /v1/me/sessions/{id}/messages દ્વારા ઉપલબ્ધ કરાવો. ડિફૉલ્ટ રૂપે બંધ: જ્યાં સુધી આ ફ્લેગ સક્ષમ કરવામાં ન આવે ત્યાં સુધી ટર્ન કેપ્ચર થતા નથી. noLog API કી માટે ક્યારેય કેપ્ચર થતા નથી."
 }

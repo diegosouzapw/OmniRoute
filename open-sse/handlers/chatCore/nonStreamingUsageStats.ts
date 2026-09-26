@@ -17,6 +17,8 @@ import { COLORS } from "../../utils/stream.ts";
 import { recordTokenUsage } from "../../services/tokenLimitCounter.ts";
 import { computeBillableTokens } from "./upstreamTimeouts.ts";
 import { type EffectiveServiceTier } from "./serviceTier.ts";
+import { type AgentContext } from "./agentContext.ts";
+import { type AgentSessionTurn } from "./agentSessionTurn.ts";
 
 export type RecordNonStreamingUsageStatsContext = {
   traceEnabled: boolean;
@@ -30,6 +32,8 @@ export type RecordNonStreamingUsageStatsContext = {
   comboStrategy: string | null | undefined;
   endpoint?: string | null | undefined;
   cpaAuthIndex?: string | null | undefined;
+  agentContext?: AgentContext | null;
+  sessionTurn?: AgentSessionTurn | null;
 };
 
 function logUsageTrace(
@@ -60,6 +64,8 @@ function persistUsageRow(usage: object, ctx: RecordNonStreamingUsageStatsContext
     comboStrategy: ctx.isCombo ? ctx.comboStrategy || undefined : undefined,
     endpoint: ctx.endpoint || undefined,
     cpaAuthIndex: ctx.cpaAuthIndex || undefined,
+    agentContext: ctx.agentContext ?? null,
+    sessionTurn: ctx.sessionTurn ?? null,
   }).catch((err) => {
     console.error("Failed to save usage stats:", err.message);
   });

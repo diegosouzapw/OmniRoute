@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "හවුල්කරු සබැඳිය",
     "dismissAriaLabel": "ඉවත දමන්න"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models නාමාවලිය තුළ චින්තන මට්ටමේ ප්රභේද (උදා. -low, -medium, -high) ජනනය කිරීම අක්රිය කරන්න."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models නාමාවලිය තුළ චින්තන මට්ටමේ ප්රභේද (උදා. -low, -medium, -high) ජනනය කිරීම අක්රිය කරන්න.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "coding-agent සැසි සඳහා සරල කළ සංවාද වාර (පරිශීලක ප්‍රේරකය, සහයක ප්‍රතිචාරය, කැඳවූ මෙවලම්) ග්‍රහණය කර ඒවා GET /v1/me/sessions/{id}/messages හරහා සැසියේ හිමිකරුට ලබා දෙන්න. පෙරනිමියෙන් අක්‍රියයි: මෙම flag එක සක්‍රීය කර ඇත්නම් මිස වාර ග්‍රහණය කර නොගනී. noLog API keys සඳහා කිසි විටෙකත් ග්‍රහණය කර නොගනී."
 }

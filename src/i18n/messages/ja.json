@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "パートナーリンク",
     "dismissAriaLabel": "閉じる"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/modelsカタログで思考レベルのバリアント（例：-low、-medium、-high）を生成しないようにします。"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/modelsカタログで思考レベルのバリアント（例：-low、-medium、-high）を生成しないようにします。",
+  "featureFlagAgentSessionMessagesEnabledDescription": "コーディングエージェントセッションの簡略化された会話ターン（ユーザープロンプト、アシスタントの応答、呼び出されたツール）を記録し、GET /v1/me/sessions/{id}/messages 経由でセッション所有者に公開します。デフォルトではオフになっており、このフラグを有効にしない限りターンは記録されません。noLog APIキーでは一切記録されません。"
 }

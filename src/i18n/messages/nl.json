@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "Partnerlink",
     "dismissAriaLabel": "Sluiten"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Schakel het genereren van varianten op denkniveau (bijv. -low, -medium, -high) in de catalogus /v1/models uit."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Schakel het genereren van varianten op denkniveau (bijv. -low, -medium, -high) in de catalogus /v1/models uit.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Leg vereenvoudigde gespreksbeurten (gebruikersprompt, assistentrespons, aangeroepen tools) vast voor coding-agent-sessies en stel ze via GET /v1/me/sessions/{id}/messages beschikbaar aan de sessie-eigenaar. Standaard uitgeschakeld: beurten worden niet vastgelegd tenzij deze vlag is ingeschakeld. Wordt nooit vastgelegd voor noLog-API-sleutels."
 }

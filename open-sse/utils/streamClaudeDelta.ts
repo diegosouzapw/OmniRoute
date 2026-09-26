@@ -1,3 +1,4 @@
+import { TOOL_USE_NAMES_FIELD } from "./sessionTurnToolNames.ts";
 import { appendBoundedText } from "./streamHelpers.ts";
 
 type ClaudeDeltaState = {
@@ -26,4 +27,55 @@ export function collectClaudeDelta(delta: unknown, state?: ClaudeDeltaState) {
   }
 
   return { contentLength, hasText: typeof text === "string" };
+}
+
+type JsonRecord = Record<string, unknown>;
+
+const MAX_TOOL_USE_NAMES = 20;
+
+function asRecord(value: unknown): JsonRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
+}
+
+/**
+ * Claude passthrough forwards `tool_use` blocks verbatim, so the call-log body never saw them.
+ * Records the block's name (after the caller restored the client-facing name), bounded and
+ * de-duplicated. Read-only: the forwarded event is not modified.
+ */
+export function collectToolUseName(toolNames: string[], event: unknown): void {
+  const record = asRecord(event);
+  if (record?.type !== "content_block_start") return;
+  const block = asRecord(record.content_block);
+  const name =
+    block?.type === "tool_use" && typeof block.name === "string" ? block.name.trim() : "";
+  if (!name || toolNames.length >= MAX_TOOL_USE_NAMES || toolNames.includes(name)) return;
+  toolNames.push(name);
+}
+
+/** Attaches the collected names under {@link TOOL_USE_NAMES_FIELD}; the message stays as is. */
+export function attachToolUseNames(message: JsonRecord, toolNames: readonly string[]): void {
+  if (toolNames.length === 0) return;
+  Object.defineProperty(message, TOOL_USE_NAMES_FIELD, {
+    value: [...toolNames],
+    enumerable: false,
+    configurable: true,
+  });
+}
+
+/**
+ * Wraps a stream's onComplete so the assembled chat message carries the tool_use names the
+ * Claude client received, in both passthrough and translated streams (Gemini, Antigravity,
+ * OpenAI-compatible or Responses upstreams). One attach point for every stream mode.
+ */
+export function withToolUseNames<P extends { responseBody?: unknown }>(
+  onComplete: ((payload: P) => void) | null | undefined,
+  toolNames: readonly string[]
+): ((payload: P) => void) | null {
+  if (!onComplete) return null;
+  return (payload) => {
+    const choices = asRecord(payload?.responseBody)?.choices;
+    const message = Array.isArray(choices) ? asRecord(asRecord(choices[0])?.message) : null;
+    if (message) attachToolUseNames(message, toolNames);
+    onComplete(payload);
+  };
 }

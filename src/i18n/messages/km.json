@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "តំណដៃគូ",
     "dismissAriaLabel": "បិទ"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "បិទការបង្កើតវ៉ារ្យ៉ង់កម្រិតនៃការគិត (ឧ. -low, -medium, -high) នៅក្នុងកាតាឡុក /v1/models។"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "បិទការបង្កើតវ៉ារ្យ៉ង់កម្រិតនៃការគិត (ឧ. -low, -medium, -high) នៅក្នុងកាតាឡុក /v1/models។",
+  "featureFlagAgentSessionMessagesEnabledDescription": "កត់ត្រាវគ្គសន្ទនាដែលបានសម្រួល (user prompt, ការឆ្លើយតបរបស់ assistant, ឧបករណ៍ដែលបានហៅ) សម្រាប់ session របស់ coding-agent និងបង្ហាញពួកវាតាមរយៈ GET /v1/me/sessions/{id}/messages ទៅកាន់ម្ចាស់ session។ បិទតាមលំនាំដើម៖ វគ្គសន្ទនានឹងមិនត្រូវបានកត់ត្រាឡើយ លុះត្រាតែ flag នេះត្រូវបានបើកដំណើរការ។ មិនកត់ត្រាជាដាច់ខាតសម្រាប់ API keys ប្រភេទ noLog។"
 }

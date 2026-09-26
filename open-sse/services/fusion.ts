@@ -20,6 +20,7 @@
  */
 import { errorResponse, sanitizeErrorMessage } from "../utils/error.ts";
 import { extractTextContent } from "../translator/helpers/geminiHelper.ts";
+import { runFusionPanelCall } from "../utils/fusionPanelContext.ts";
 import type { PerTargetAdmissionHook } from "./admission/types.ts";
 import type { ComboLogger, HandleSingleModel, ResolvedComboTarget } from "./combo/types.ts";
 
@@ -375,8 +376,12 @@ export async function handleFusionChat({
   }
 
   const t0 = Date.now();
+  // Panel replies only feed the judge; the panel context keeps them out of session turns.
   const calls = panelToDispatch.map((target) =>
-    withTimeout(dispatchFusionModel(handleSingleModel, panelBody, target), cfg.panelHardTimeoutMs)
+    withTimeout(
+      runFusionPanelCall(() => dispatchFusionModel(handleSingleModel, panelBody, target)),
+      cfg.panelHardTimeoutMs
+    )
   );
   const settled = await collectPanel(calls, { ...cfg, minPanel });
   log.info("FUSION", `fan-out collected in ${Date.now() - t0}ms`);

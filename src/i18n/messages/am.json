@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "የአጋር አገናኝ",
     "dismissAriaLabel": "ዝጋ"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "በ/v1/models ካታሎግ ውስጥ የአስተሳሰብ ደረጃ ተለዋጮችን (ለምሳሌ -low, -medium, -high) ማመንጨትን አሰናክል።"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "በ/v1/models ካታሎግ ውስጥ የአስተሳሰብ ደረጃ ተለዋጮችን (ለምሳሌ -low, -medium, -high) ማመንጨትን አሰናክል።",
+  "featureFlagAgentSessionMessagesEnabledDescription": "ለcoding-agent ክፍለ-ጊዜዎች የቀለሉ የውይይት ምልልሶችን (የተጠቃሚ መጠየቂያ፣ የአጋዥ ምላሽ፣ የተጠሩ መሣሪያዎች) ይቅረጹ እና በGET /v1/me/sessions/{id}/messages በኩል ለክፍለ-ጊዜው ባለቤት ያቅርቡ። በነባሪ ጠፍቷል፦ ይህ flag ካልበራ በስተቀር ምልልሶች አይቀረጹም። ለnoLog API keys በጭራሽ አይቀረጽም።"
 }

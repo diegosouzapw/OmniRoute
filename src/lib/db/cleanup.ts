@@ -8,6 +8,7 @@ import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
 import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
 
 import { getDbInstance } from "./core";
+import { deleteAgentSessionMessagesBefore } from "./agentSessionMessages";
 import { getUserDatabaseSettings } from "./databaseSettings";
 import {
   describeReclaim,
@@ -96,6 +97,30 @@ export async function cleanupCallLogs(): Promise<CleanupResult> {
   return result;
 }
 
+/** First day (YYYY-MM-DD) kept by usage_history retention; older rows are removed. */
+function usageHistoryCutoffDay(retentionDays: number): string {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  return cutoffDate.toISOString().split("T")[0];
+}
+
+/**
+ * Clean up old agent_session_messages with the same day boundary as usage_history.
+ */
+export async function cleanupAgentSessionMessages(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const cutoffDay = usageHistoryCutoffDay(getRetentionSettings().usageHistory);
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+  try {
+    result.deleted = deleteAgentSessionMessagesBefore(db, cutoffDay);
+  } catch (err) {
+    result.errors++;
+    console.error("[Cleanup] Error cleaning agent_session_messages:", err);
+  }
+  return result;
+}
+
 /**
  * Clean up old usage_history based on retention settings.
  */
@@ -104,10 +129,7 @@ export async function cleanupUsageHistory(): Promise<CleanupResult> {
   const retention = getRetentionSettings();
 
   const retentionDays = retention.usageHistory;
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
-  const cutoffISO = cutoffDate.toISOString();
-  const cutoffDateStr = cutoffISO.split("T")[0];
+  const cutoffDateStr = usageHistoryCutoffDay(retentionDays);
 
   const result: CleanupResult = { deleted: 0, errors: 0 };
 
@@ -686,6 +708,7 @@ export async function runAutoCleanup(): Promise<{
     quotaSnapshots: await cleanupQuotaSnapshots(),
     callLogs: await cleanupCallLogs(),
     usageHistory: await cleanupUsageHistory(),
+    agentSessionMessages: await cleanupAgentSessionMessages(),
     compressionAnalytics: await cleanupCompressionAnalytics(),
     compressionEngineBreakdown: await cleanupCompressionEngineBreakdown(),
     mcpAudit: await cleanupMcpAudit(),
@@ -815,6 +838,7 @@ const RESET_USAGE_HISTORY_PERIOD_MS: Record<TimedResetUsageHistoryPeriod, number
 
 export interface ResetUsageHistoryResult extends CleanupResult {
   deletedUsageHistory: number;
+  deletedAgentSessionMessages: number;
   deletedDailySummary: number;
   deletedHourlySummary: number;
   deletedCallLogs: number;
@@ -854,6 +878,12 @@ const RESET_TARGETS: Array<
   DeleteByPeriodTarget & { resultKey: keyof ResetUsageHistoryResult; allOnly?: boolean }
 > = [
   { table: "usage_history", column: "timestamp", cutoff: "iso", resultKey: "deletedUsageHistory" },
+  {
+    table: "agent_session_messages",
+    column: "timestamp",
+    cutoff: "iso",
+    resultKey: "deletedAgentSessionMessages",
+  },
   {
     table: "daily_usage_summary",
     column: "date",
@@ -937,6 +967,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
   const result: ResetUsageHistoryResult = {
     deleted: 0,
     deletedUsageHistory: 0,
+    deletedAgentSessionMessages: 0,
     deletedDailySummary: 0,
     deletedHourlySummary: 0,
     deletedCallLogs: 0,

@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "ਭਾਈਵਾਲ ਲਿੰਕ",
     "dismissAriaLabel": "ਬੰਦ ਕਰੋ"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models ਕੈਟਾਲਾਗ ਵਿੱਚ ਸੋਚਣ ਦੇ ਪੱਧਰ ਦੇ ਰੂਪਾਂ (ਉਦਾਹਰਨ ਲਈ -low, -medium, -high) ਦੀ ਰਚਨਾ ਨੂੰ ਅਯੋਗ ਕਰੋ।"
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models ਕੈਟਾਲਾਗ ਵਿੱਚ ਸੋਚਣ ਦੇ ਪੱਧਰ ਦੇ ਰੂਪਾਂ (ਉਦਾਹਰਨ ਲਈ -low, -medium, -high) ਦੀ ਰਚਨਾ ਨੂੰ ਅਯੋਗ ਕਰੋ।",
+  "featureFlagAgentSessionMessagesEnabledDescription": "ਕੋਡਿੰਗ-ਏਜੰਟ ਸੈਸ਼ਨਾਂ ਲਈ ਸਰਲ ਬਣਾਏ ਗਏ ਗੱਲਬਾਤ ਦੇ ਟਰਨਜ਼ (ਯੂਜ਼ਰ ਪ੍ਰੋਂਪਟ, ਅਸਿਸਟੈਂਟ ਜਵਾਬ, ਕਾਲ ਕੀਤੇ ਟੂਲਜ਼) ਕੈਪਚਰ ਕਰੋ ਅਤੇ ਉਹਨਾਂ ਨੂੰ GET /v1/me/sessions/{id}/messages ਰਾਹੀਂ ਸੈਸ਼ਨ ਮਾਲਕ ਲਈ ਉਪਲਬਧ ਕਰਵਾਓ। ਡਿਫੌਲਟ ਤੌਰ 'ਤੇ ਬੰਦ: ਜਦੋਂ ਤੱਕ ਇਹ ਫਲੈਗ ਸਮਰੱਥ ਨਹੀਂ ਕੀਤਾ ਜਾਂਦਾ, ਟਰਨਜ਼ ਕੈਪਚਰ ਨਹੀਂ ਕੀਤੇ ਜਾਂਦੇ। noLog API ਕੁੰਜੀਆਂ ਲਈ ਕਦੇ ਵੀ ਕੈਪਚਰ ਨਹੀਂ ਕੀਤੇ ਜਾਂਦੇ।"
 }

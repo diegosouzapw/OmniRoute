@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "Партнёрская ссылка",
     "dismissAriaLabel": "Закрыть"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Отключить создание вариантов уровней рассуждения (например, -low, -medium, -high) в каталоге /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Отключить создание вариантов уровней рассуждения (например, -low, -medium, -high) в каталоге /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Сохранять упрощенные реплики диалога (запрос пользователя, ответ ассистента, вызванные инструменты) для сессий кодинг-агентов и предоставлять к ним доступ владельцу сессии через GET /v1/me/sessions/{id}/messages. По умолчанию отключено: реплики не сохраняются, если этот флаг не включен. Никогда не сохраняются для API-ключей noLog."
 }

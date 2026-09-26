@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "Партнерски линк",
     "dismissAriaLabel": "Затвори"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Онемогући генерисање варијанти нивоа размишљања (нпр. -low, -medium, -high) у каталогу /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Онемогући генерисање варијанти нивоа размишљања (нпр. -low, -medium, -high) у каталогу /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Бележи поједностављене кораке у разговору (кориснички упит, одговор асистента, позване алатке) за сесије агената за кодирање и чини их доступним власнику сесије путем GET /v1/me/sessions/{id}/messages. Подразумевано је искључено: кораци се не бележе осим ако ова заставица није омогућена. Никада се не бележе за noLog API кључеве."
 }

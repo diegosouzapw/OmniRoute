@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "Σύνδεσμος συνεργάτη",
     "dismissAriaLabel": "Κλείσιμο"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Απενεργοποίηση της δημιουργίας παραλλαγών επιπέδου σκέψης (π.χ. -low, -medium, -high) στον κατάλογο /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Απενεργοποίηση της δημιουργίας παραλλαγών επιπέδου σκέψης (π.χ. -low, -medium, -high) στον κατάλογο /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Καταγραφή απλοποιημένων γύρων συνομιλίας (προτροπή χρήστη, απάντηση βοηθού, κληθέντα εργαλεία) για συνεδρίες coding-agent και διάθεσή τους μέσω του GET /v1/me/sessions/{id}/messages στον κάτοχο της συνεδρίας. Ανενεργό από προεπιλογή: οι γύροι δεν καταγράφονται εκτός εάν ενεργοποιηθεί αυτή η σημαία. Δεν καταγράφονται ποτέ για noLog API keys."
 }

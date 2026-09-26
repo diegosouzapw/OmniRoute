@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "Partnerský odkaz",
     "dismissAriaLabel": "Zavrieť"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Zakázať generovanie variantov úrovne uvažovania (napr. -low, -medium, -high) v katalógu /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Zakázať generovanie variantov úrovne uvažovania (napr. -low, -medium, -high) v katalógu /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Zachytávať zjednodušené konverzačné ťahy (používateľská výzva, odpoveď asistenta, volané nástroje) pre relácie kódovacieho agenta a sprístupniť ich vlastníkovi relácie cez GET /v1/me/sessions/{id}/messages. Predvolene vypnuté: ťahy sa nezachytávajú, pokiaľ nie je tento príznak povolený. Nikdy sa nezachytávajú pre API kľúče noLog."
 }

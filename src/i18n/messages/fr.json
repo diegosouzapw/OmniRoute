@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "Lien partenaire",
     "dismissAriaLabel": "Fermer"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Désactiver la génération des variantes de niveau de réflexion (par ex. -low, -medium, -high) dans le catalogue /v1/models."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Désactiver la génération des variantes de niveau de réflexion (par ex. -low, -medium, -high) dans le catalogue /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Capture les échanges simplifiés de conversation (prompt utilisateur, réponse de l'assistant, outils appelés) pour les sessions d'agent de codage et les expose via GET /v1/me/sessions/{id}/messages au propriétaire de la session. Désactivé par défaut : les échanges ne sont pas capturés tant que cette option n'est pas activée. Jamais capturés pour les clés API noLog."
 }

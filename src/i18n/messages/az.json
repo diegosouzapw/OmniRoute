@@ -14428,5 +14428,6 @@
     "partnerLinkNote": "Tərəfdaş keçidi",
     "dismissAriaLabel": "Bağla"
   },
-  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models kataloqunda düşünmə səviyyəsi variantlarının (məsələn, -low, -medium, -high) yaradılmasını deaktiv edin."
+  "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models kataloqunda düşünmə səviyyəsi variantlarının (məsələn, -low, -medium, -high) yaradılmasını deaktiv edin.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Kodlaşdırma agenti sessiyaları üçün sadələşdirilmiş söhbət növbələrini (istifadəçi sorğusu, köməkçi cavabı, çağırılan alətlər) qeydə alın və GET /v1/me/sessions/{id}/messages vasitəsilə sessiya sahibinə təqdim edin. Varsayılan olaraq deaktivdir: bu bayraq aktivləşdirilmədikcə növbələr qeydə alınmır. noLog API açarları üçün heç vaxt qeydə alınmır."
 }
