@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button, Input } from "@/shared/components";
 import type { CatalogFilters } from "./modelCatalogUtils";
 
@@ -31,13 +32,15 @@ export default function ModelCatalogFiltersComponent({
   hasActiveFilters: boolean;
   totalCount: number;
 }) {
+  const t = useTranslations("modelCatalog");
+
   return (
     <div className="flex flex-col gap-4 border-b border-border p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
         <Input
-          label="Search models"
+          label={t("searchModels")}
           icon="search"
-          placeholder="Search by model, provider, or capability"
+          placeholder={t("searchModelsPlaceholder")}
           value={filters.query}
           onChange={(event) => onChange({ query: event.target.value })}
           className="min-w-0 flex-1"
@@ -45,11 +48,11 @@ export default function ModelCatalogFiltersComponent({
 
         <div className="flex items-center gap-3">
           <span className="text-sm text-text-muted">
-            {totalCount} {totalCount === 1 ? "model" : "models"}
+            {totalCount} {totalCount === 1 ? t("modelCountSingle") : t("modelCountPlural")}
           </span>
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={onClear}>
-              Clear filters
+              {t("clearFilters")}
             </Button>
           )}
         </div>
@@ -57,13 +60,13 @@ export default function ModelCatalogFiltersComponent({
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
         <label className="flex flex-col gap-1 text-xs font-medium text-text-main">
-          Provider
+          {t("provider")}
           <select
             value={filters.providerId}
             onChange={(e) => onChange({ providerId: e.target.value })}
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"
           >
-            <option value="all">All providers</option>
+            <option value="all">{t("allProviders")}</option>
             {providerOptions.map(([id, name]) => (
               <option key={id} value={id}>
                 {name}
@@ -73,13 +76,13 @@ export default function ModelCatalogFiltersComponent({
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-medium text-text-main">
-          Type
+          {t("type")}
           <select
             value={filters.type}
             onChange={(e) => onChange({ type: e.target.value })}
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"
           >
-            <option value="all">All types</option>
+            <option value="all">{t("allTypes")}</option>
             {typeOptions.map((type) => (
               <option key={type} value={type}>
                 {humanize(type)}
@@ -89,13 +92,13 @@ export default function ModelCatalogFiltersComponent({
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-medium text-text-main">
-          Subtype
+          {t("subtype")}
           <select
             value={filters.subtype ?? "all"}
             onChange={(e) => onChange({ subtype: e.target.value })}
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"
           >
-            <option value="all">All subtypes</option>
+            <option value="all">{t("allSubtypes")}</option>
             {subtypeOptions.map((subtype) => (
               <option key={subtype} value={subtype}>
                 {humanize(subtype)}
@@ -105,13 +108,13 @@ export default function ModelCatalogFiltersComponent({
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-medium text-text-main">
-          Capability
+          {t("capability")}
           <select
             value={filters.capability ?? "all"}
             onChange={(e) => onChange({ capability: e.target.value })}
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"
           >
-            <option value="all">All capabilities</option>
+            <option value="all">{t("allCapabilities")}</option>
             {capabilityOptions.map((cap) => (
               <option key={cap} value={cap}>
                 {humanize(cap)}
@@ -121,54 +124,54 @@ export default function ModelCatalogFiltersComponent({
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-medium text-text-main">
-          Pricing
+          {t("pricing")}
           <select
             value={filters.pricing ?? "all"}
             onChange={(e) => onChange({ pricing: e.target.value })}
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"
           >
-            <option value="all">All pricing</option>
-            <option value="free">Free only</option>
-            <option value="paid">Standard / Non-free</option>
+            <option value="all">{t("allPricing")}</option>
+            <option value="free">{t("freeOnly")}</option>
+            <option value="paid">{t("nonFree")}</option>
           </select>
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-medium text-text-main">
-          Provider health
+          {t("providerHealth")}
           <select
             value={filters.providerHealth ?? "all"}
             onChange={(e) => onChange({ providerHealth: e.target.value })}
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"
           >
-            <option value="all">All health states</option>
-            <option value="healthy">Healthy</option>
-            <option value="degraded">Degraded</option>
-            <option value="down">Down</option>
+            <option value="all">{t("allHealthStates")}</option>
+            <option value="healthy">{t("healthy")}</option>
+            <option value="degraded">{t("degraded")}</option>
+            <option value="down">{t("down")}</option>
           </select>
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-medium text-text-main">
-          Test result
+          {t("testResult")}
           <select
             value={filters.testResult ?? "all"}
             onChange={(e) => onChange({ testResult: e.target.value })}
             className="h-9 w-full rounded-control border border-black/10 bg-white px-2.5 text-xs text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/10 dark:bg-white/5"
           >
-            <option value="all">All results</option>
-            <option value="untested">Untested</option>
-            <option value="ok">OK</option>
-            <option value="slow">Slow</option>
-            <option value="error">Error</option>
+            <option value="all">{t("allResults")}</option>
+            <option value="untested">{t("untested")}</option>
+            <option value="ok">{t("statusOk")}</option>
+            <option value="slow">{t("statusSlow")}</option>
+            <option value="error">{t("statusError")}</option>
           </select>
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-medium text-text-main">
-          Min context
+          {t("minContext")}
           <input
             type="number"
             min={0}
             step={1000}
-            placeholder="e.g. 32000"
+            placeholder={t("minContextPlaceholder")}
             value={filters.minContextLength ?? ""}
             onChange={(e) =>
               onChange({

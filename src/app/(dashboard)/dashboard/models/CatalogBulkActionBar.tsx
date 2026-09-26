@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import type { ProgressState } from "./useCatalogTestRunner";
 
@@ -26,6 +27,7 @@ export default function CatalogBulkActionBar({
   onClearResults: () => void;
   entityLabel?: "models" | "combos";
 }) {
+  const t = useTranslations("modelCatalog");
   const percent = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;
 
   return (
@@ -38,7 +40,7 @@ export default function CatalogBulkActionBar({
           onClick={onTestSelected}
           data-testid="test-selected-btn"
         >
-          {`Test selected (${selectedCount})`}
+          {t("testSelected", { count: selectedCount })}
         </Button>
         <Button
           variant="secondary"
@@ -47,12 +49,12 @@ export default function CatalogBulkActionBar({
           onClick={onTestFiltered}
           data-testid="test-all-filtered-btn"
         >
-          {`Test all filtered (${filteredCount})`}
+          {t("testAllFiltered", { count: filteredCount })}
         </Button>
 
         {running && (
           <Button variant="danger" size="sm" onClick={onCancel} data-testid="cancel-tests-btn">
-            Cancel
+            {t("cancel")}
           </Button>
         )}
 
@@ -63,7 +65,7 @@ export default function CatalogBulkActionBar({
             onClick={onClearResults}
             data-testid="clear-test-results-btn"
           >
-            Clear results
+            {t("clearResults")}
           </Button>
         )}
       </div>

@@ -34,12 +34,6 @@ import { useCatalogTestRunner } from "./useCatalogTestRunner";
 
 const PAGE_SIZE = 50;
 
-type Translator = ((key: string) => string) & { has?: (key: string) => boolean };
-
-function commonText(translator: Translator, key: string, fallback: string): string {
-  return typeof translator.has === "function" && translator.has(key) ? translator(key) : fallback;
-}
-
 type CatalogTab = "models" | "combos";
 
 function getUrlParams(): URLSearchParams {
@@ -89,7 +83,7 @@ function parseInitialComboFilters(
 }
 
 export default function ModelCatalogPage() {
-  const commonTranslator = useTranslations("common") as unknown as Translator;
+  const t = useTranslations("modelCatalog");
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<CatalogTab>(() => {
@@ -177,26 +171,33 @@ export default function ModelCatalogPage() {
         if (mFilters.providerId !== "all") params.set("provider", mFilters.providerId);
         if (mFilters.type !== "all") params.set("type", mFilters.type);
         if (mFilters.subtype && mFilters.subtype !== "all") params.set("subtype", mFilters.subtype);
-        if (mFilters.capability && mFilters.capability !== "all")
+        if (mFilters.capability && mFilters.capability !== "all") {
           params.set("capability", mFilters.capability);
+        }
         if (mFilters.pricing && mFilters.pricing !== "all") params.set("pricing", mFilters.pricing);
-        if (mFilters.providerHealth && mFilters.providerHealth !== "all")
+        if (mFilters.providerHealth && mFilters.providerHealth !== "all") {
           params.set("health", mFilters.providerHealth);
-        if (mFilters.testResult && mFilters.testResult !== "all")
+        }
+        if (mFilters.testResult && mFilters.testResult !== "all") {
           params.set("testResult", mFilters.testResult);
-        if (typeof mFilters.minContextLength === "number")
+        }
+        if (typeof mFilters.minContextLength === "number") {
           params.set("minContext", String(mFilters.minContextLength));
-        if (typeof mFilters.minMaxOutputTokens === "number")
+        }
+        if (typeof mFilters.minMaxOutputTokens === "number") {
           params.set("minOutput", String(mFilters.minMaxOutputTokens));
+        }
       } else {
         if (cFilters.query) params.set("query", cFilters.query);
         if (cFilters.strategy !== "all") params.set("strategy", cFilters.strategy);
         if (cFilters.status !== "all") params.set("status", cFilters.status);
         if (cFilters.testResult !== "all") params.set("testResult", cFilters.testResult);
-        if (typeof cFilters.minMembers === "number")
+        if (typeof cFilters.minMembers === "number") {
           params.set("minMembers", String(cFilters.minMembers));
-        if (typeof cFilters.maxMembers === "number")
+        }
+        if (typeof cFilters.maxMembers === "number") {
           params.set("maxMembers", String(cFilters.maxMembers));
+        }
       }
 
       setUrlParams(params);
@@ -485,17 +486,13 @@ export default function ModelCatalogPage() {
 
   const hasTestResults = Object.keys(testResults).length > 0;
 
-  const text = (key: string, fallback: string) => commonText(commonTranslator, key, fallback);
-
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-text-main">Models & Combos</h1>
-            <p className="mt-1 max-w-3xl text-sm text-text-muted">
-              Browse and health-test models and combo routing pipelines across every provider.
-            </p>
+            <h1 className="text-2xl font-semibold text-text-main">{t("title")}</h1>
+            <p className="mt-1 max-w-3xl text-sm text-text-muted">{t("subtitle")}</p>
           </div>
           <Button
             variant="secondary"
@@ -503,14 +500,14 @@ export default function ModelCatalogPage() {
             loading={modelsLoading || combosLoading}
             onClick={refreshAll}
           >
-            Refresh
+            {t("refresh")}
           </Button>
         </div>
 
         {/* Tab Navigation */}
         <div
           role="tablist"
-          aria-label="Catalog Sections"
+          aria-label={t("catalogSections")}
           className="mt-2 flex border-b border-border"
         >
           <button
@@ -526,7 +523,7 @@ export default function ModelCatalogPage() {
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
-            Models ({models.length})
+            {t("modelsTab")} ({models.length})
           </button>
           <button
             role="tab"
@@ -541,7 +538,7 @@ export default function ModelCatalogPage() {
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
-            Combos ({combos.length})
+            {t("combosTab")} ({combos.length})
           </button>
         </div>
       </header>
@@ -586,17 +583,17 @@ export default function ModelCatalogPage() {
                 aria-live="polite"
                 className="flex min-h-64 items-center justify-center p-8 text-sm text-text-muted"
               >
-                {text("loading", "Loading...")}
+                {t("loading")}
               </div>
             ) : modelsError && models.length === 0 ? (
               <div
                 role="alert"
                 className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center"
               >
-                <p className="text-sm text-text-main">Unable to load the model catalog.</p>
-                <p className="text-sm text-text-muted">Check the connection and try again.</p>
+                <p className="text-sm text-text-main">{t("unableToLoad")}</p>
+                <p className="text-sm text-text-muted">{t("checkConnection")}</p>
                 <Button variant="secondary" onClick={refreshAll}>
-                  {text("retry", "Retry")}
+                  {t("retry")}
                 </Button>
               </div>
             ) : visibleModels.length === 0 ? (
@@ -608,13 +605,11 @@ export default function ModelCatalogPage() {
                   search_off
                 </span>
                 <p className="font-medium text-text-main">
-                  {models.length === 0
-                    ? text("noModelsFound", "No models are available yet.")
-                    : "No models match these filters."}
+                  {models.length === 0 ? t("noModelsAvailable") : t("noModelsMatch")}
                 </p>
                 {models.length > 0 && (
                   <Button variant="ghost" size="sm" onClick={clearModelFilters}>
-                    Clear filters
+                    {t("clearFilters")}
                   </Button>
                 )}
               </div>
@@ -643,15 +638,15 @@ export default function ModelCatalogPage() {
                   setRequestedModelPage((c) => Math.min(modelPage.pageCount - 1, c + 1))
                 }
                 labels={{
-                  provider: text("provider", "Provider"),
-                  model: text("model", "Model"),
-                  type: text("type", "Type"),
-                  capabilities: "Capabilities",
-                  context: "Context",
-                  output: text("output", "Max output"),
-                  flags: "Flags",
-                  custom: text("custom", "Custom"),
-                  free: text("free", "Free"),
+                  provider: t("provider"),
+                  model: t("model"),
+                  type: t("type"),
+                  capabilities: t("capabilities"),
+                  context: t("context"),
+                  output: t("output"),
+                  flags: t("flags"),
+                  custom: t("custom"),
+                  free: t("free"),
                 }}
                 selectedIds={selectedModelIds}
                 onToggleSelect={toggleSelectModel}
@@ -703,17 +698,17 @@ export default function ModelCatalogPage() {
                 aria-live="polite"
                 className="flex min-h-64 items-center justify-center p-8 text-sm text-text-muted"
               >
-                {text("loading", "Loading...")}
+                {t("loading")}
               </div>
             ) : combosError && combos.length === 0 ? (
               <div
                 role="alert"
                 className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center"
               >
-                <p className="text-sm text-text-main">Unable to load combos.</p>
-                <p className="text-sm text-text-muted">Check the connection and try again.</p>
+                <p className="text-sm text-text-main">{t("unableToLoadCombos")}</p>
+                <p className="text-sm text-text-muted">{t("checkConnection")}</p>
                 <Button variant="secondary" onClick={refreshAll}>
-                  {text("retry", "Retry")}
+                  {t("retry")}
                 </Button>
               </div>
             ) : visibleCombos.length === 0 ? (
@@ -725,13 +720,11 @@ export default function ModelCatalogPage() {
                   search_off
                 </span>
                 <p className="font-medium text-text-main">
-                  {combos.length === 0
-                    ? "No combos are available yet."
-                    : "No combos match these filters."}
+                  {combos.length === 0 ? t("noCombosAvailable") : t("noCombosMatch")}
                 </p>
                 {combos.length > 0 && (
                   <Button variant="ghost" size="sm" onClick={clearComboFilters}>
-                    Clear filters
+                    {t("clearFilters")}
                   </Button>
                 )}
               </div>

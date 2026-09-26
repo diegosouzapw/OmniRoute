@@ -3,10 +3,21 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import enMessages from "@/i18n/messages/en.json";
+
 vi.mock("next-intl", () => ({
-  useTranslations: () => {
-    const translate = (key: string) => key;
-    return Object.assign(translate, { has: () => false });
+  useTranslations: (ns: string = "common") => {
+    const bag = ((enMessages as Record<string, unknown>)[ns] || {}) as Record<string, string>;
+    const translate = (key: string, params?: Record<string, unknown>) => {
+      let str = bag[key] ?? key;
+      if (params) {
+        for (const [pKey, pVal] of Object.entries(params)) {
+          str = str.replace(new RegExp(`\\{${pKey}\\}`, "g"), String(pVal));
+        }
+      }
+      return str;
+    };
+    return Object.assign(translate, { has: (key: string) => key in bag });
   },
 }));
 

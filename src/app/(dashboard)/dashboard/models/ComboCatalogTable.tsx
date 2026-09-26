@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Badge, Button } from "@/shared/components";
 import CatalogTestBadge from "./CatalogTestBadge";
 import type { CatalogTestResult } from "./catalogTestStorage";
@@ -88,6 +89,7 @@ export default function ComboCatalogTable({
   onPrevious: () => void;
   onNext: () => void;
 }) {
+  const t = useTranslations("modelCatalog");
   const allOnPageSelected = rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
   const someOnPageSelected = rows.some((row) => selectedIds.has(row.id)) && !allOnPageSelected;
 
@@ -96,9 +98,14 @@ export default function ComboCatalogTable({
 
   return (
     <>
-      <div className="overflow-x-auto" role="region" aria-label="Combos catalog table" tabIndex={0}>
+      <div
+        className="overflow-x-auto"
+        role="region"
+        aria-label={t("combosTableRegion")}
+        tabIndex={0}
+      >
         <table className="min-w-[900px] w-full border-collapse text-sm">
-          <caption className="sr-only">Combos catalog with health test results</caption>
+          <caption className="sr-only">{t("combosTableCaption")}</caption>
           <thead className="border-b border-border bg-black/[0.02] dark:bg-white/[0.02]">
             <tr>
               <th scope="col" className="w-10 px-4 py-3">
@@ -109,34 +116,34 @@ export default function ComboCatalogTable({
                     if (el) el.indeterminate = someOnPageSelected;
                   }}
                   onChange={onToggleSelectAll}
-                  aria-label="Select all combos on this page"
+                  aria-label={t("selectAllCombos")}
                   className="rounded border-black/20 text-primary focus:ring-primary dark:border-white/20"
                 />
               </th>
               <SortableHeading
                 field="name"
-                label="Combo"
+                label={t("combo")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
               />
               <SortableHeading
                 field="strategy"
-                label="Strategy"
+                label={t("strategy")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
               />
               <SortableHeading
                 field="memberCount"
-                label="Members"
+                label={t("members")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
               />
               <SortableHeading
                 field="status"
-                label="Status"
+                label={t("status")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
@@ -145,13 +152,13 @@ export default function ComboCatalogTable({
                 scope="col"
                 className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
               >
-                Health Test
+                {t("healthTest")}
               </th>
               <th
                 scope="col"
                 className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-text-muted"
               >
-                Actions
+                {t("actions")}
               </th>
             </tr>
           </thead>
@@ -174,7 +181,7 @@ export default function ComboCatalogTable({
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => onToggleSelect(combo.id)}
-                      aria-label={`Select combo ${combo.name}`}
+                      aria-label={t("selectCombo", { name: combo.name })}
                       className="rounded border-black/20 text-primary focus:ring-primary dark:border-white/20"
                     />
                   </td>
@@ -196,7 +203,8 @@ export default function ComboCatalogTable({
                   </td>
                   <td className="px-4 py-3">
                     <span className="font-medium tabular-nums text-text-main">
-                      {combo.memberCount} {combo.memberCount === 1 ? "model" : "models"}
+                      {combo.memberCount}{" "}
+                      {combo.memberCount === 1 ? t("modelCountSingle") : t("modelCountPlural")}
                     </span>
                     {combo.models.length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">
@@ -211,7 +219,7 @@ export default function ComboCatalogTable({
                         ))}
                         {combo.models.length > 3 && (
                           <span className="text-[10px] text-text-muted">
-                            +{combo.models.length - 3} more
+                            {t("moreMembers", { count: combo.models.length - 3 })}
                           </span>
                         )}
                       </div>
@@ -219,7 +227,7 @@ export default function ComboCatalogTable({
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">
                     <Badge size="sm" variant={combo.status === "active" ? "success" : "default"}>
-                      {combo.status === "active" ? "Active" : "Paused"}
+                      {combo.status === "active" ? t("active") : t("paused")}
                     </Badge>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">
@@ -233,7 +241,7 @@ export default function ComboCatalogTable({
                       onClick={() => onTestCombo(combo.name)}
                       data-testid={`test-combo-${combo.name}`}
                     >
-                      Test
+                      {t("test")}
                     </Button>
                   </td>
                 </tr>
@@ -245,18 +253,19 @@ export default function ComboCatalogTable({
 
       <footer className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-text-muted" aria-live="polite">
-          Showing {formatCount(firstResult)}–{formatCount(lastResult)} of {formatCount(totalCount)}
-          {" combos"}
+          {t("showingCombos", {
+            first: formatCount(firstResult),
+            last: formatCount(lastResult),
+            total: formatCount(totalCount),
+          })}
         </p>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-text-muted">
-            Page {page} of {pageCount}
-          </span>
+          <span className="text-sm text-text-muted">{t("page", { page, pageCount })}</span>
           <Button variant="secondary" size="sm" disabled={page === 1} onClick={onPrevious}>
-            Previous
+            {t("previous")}
           </Button>
           <Button variant="secondary" size="sm" disabled={page >= pageCount} onClick={onNext}>
-            Next
+            {t("next")}
           </Button>
         </div>
       </footer>

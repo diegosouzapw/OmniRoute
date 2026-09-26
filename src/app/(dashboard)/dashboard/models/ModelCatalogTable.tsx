@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Badge, Button } from "@/shared/components";
 import CatalogTestBadge from "./CatalogTestBadge";
 import type { CatalogTestResult } from "./catalogTestStorage";
@@ -122,6 +125,7 @@ export default function ModelCatalogTable({
   onTestModel?: (providerId: string, modelId: string) => void;
   providerHealthMap?: Record<string, "healthy" | "degraded" | "down">;
 }) {
+  const t = useTranslations("modelCatalog");
   const firstResult = startIndex + 1;
   const lastResult = startIndex + rows.length;
 
@@ -131,9 +135,9 @@ export default function ModelCatalogTable({
 
   return (
     <>
-      <div className="overflow-x-auto" role="region" aria-label="Model catalog table" tabIndex={0}>
+      <div className="overflow-x-auto" role="region" aria-label={t("tableRegion")} tabIndex={0}>
         <table className="min-w-[1100px] w-full border-collapse text-sm">
-          <caption className="sr-only">Model catalog across all providers</caption>
+          <caption className="sr-only">{t("tableCaption")}</caption>
           <thead className="border-b border-border bg-black/[0.02] dark:bg-white/[0.02]">
             <tr>
               {onToggleSelectAll && (
@@ -145,28 +149,28 @@ export default function ModelCatalogTable({
                       if (el) el.indeterminate = someOnPageSelected;
                     }}
                     onChange={onToggleSelectAll}
-                    aria-label="Select all models on this page"
+                    aria-label={t("selectAllModels")}
                     className="rounded border-black/20 text-primary focus:ring-primary dark:border-white/20"
                   />
                 </th>
               )}
               <SortableHeading
                 field="provider"
-                label={labels.provider}
+                label={labels.provider || t("provider")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
               />
               <SortableHeading
                 field="id"
-                label={labels.model}
+                label={labels.model || t("model")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
               />
               <SortableHeading
                 field="type"
-                label={labels.type}
+                label={labels.type || t("type")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
@@ -175,18 +179,18 @@ export default function ModelCatalogTable({
                 scope="col"
                 className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
               >
-                {labels.capabilities}
+                {labels.capabilities || t("capabilities")}
               </th>
               <SortableHeading
                 field="context_length"
-                label={labels.context}
+                label={labels.context || t("context")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
               />
               <SortableHeading
                 field="max_output_tokens"
-                label={labels.output}
+                label={labels.output || t("output")}
                 activeField={sortField}
                 direction={sortDirection}
                 onSort={onSort}
@@ -195,20 +199,20 @@ export default function ModelCatalogTable({
                 scope="col"
                 className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
               >
-                {labels.flags}
+                {labels.flags || t("flags")}
               </th>
               <th
                 scope="col"
                 className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted"
               >
-                Health Test
+                {t("healthTest")}
               </th>
               {onTestModel && (
                 <th
                   scope="col"
                   className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-text-muted"
                 >
-                  Actions
+                  {t("actions")}
                 </th>
               )}
             </tr>
@@ -237,7 +241,7 @@ export default function ModelCatalogTable({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => onToggleSelect(rowId)}
-                        aria-label={`Select model ${model.name}`}
+                        aria-label={t("selectModel", { name: model.name })}
                         className="rounded border-black/20 text-primary focus:ring-primary dark:border-white/20"
                       />
                     </td>
@@ -251,7 +255,7 @@ export default function ModelCatalogTable({
                           variant={providerHealth === "degraded" ? "warning" : "error"}
                           dot
                         >
-                          {providerHealth}
+                          {providerHealth === "degraded" ? t("degraded") : t("down")}
                         </Badge>
                       )}
                     </div>
@@ -296,7 +300,7 @@ export default function ModelCatalogTable({
                         )}
                       </div>
                     ) : (
-                      <span className="text-text-muted" title="No capability metadata reported">
+                      <span className="text-text-muted" title={t("noCapabilities")}>
                         —
                       </span>
                     )}
@@ -311,16 +315,16 @@ export default function ModelCatalogTable({
                     <div className="flex flex-wrap gap-1.5">
                       {model.custom === true && (
                         <Badge size="sm" variant="info">
-                          {labels.custom}
+                          {labels.custom || t("custom")}
                         </Badge>
                       )}
                       {model.free === true && (
                         <Badge size="sm" variant="success">
-                          {labels.free}
+                          {labels.free || t("free")}
                         </Badge>
                       )}
                       {model.custom !== true && model.free !== true && (
-                        <span className="text-text-muted" title="No price or source flag reported">
+                        <span className="text-text-muted" title={t("noFlags")}>
                           —
                         </span>
                       )}
@@ -338,7 +342,7 @@ export default function ModelCatalogTable({
                         onClick={() => onTestModel(model.providerId, model.id)}
                         data-testid={`test-model-${model.id}`}
                       >
-                        Test
+                        {t("test")}
                       </Button>
                     </td>
                   )}
@@ -351,24 +355,21 @@ export default function ModelCatalogTable({
 
       <footer className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-text-muted" aria-live="polite">
-          Showing {formatCount(firstResult)}–{formatCount(lastResult)} of {formatCount(totalCount)}
-          {" models"}
-          {loading && <span className="ml-2">Refreshing…</span>}
-          {error && (
-            <span className="ml-2 text-red-500">
-              Refresh failed. Showing the last loaded catalog.
-            </span>
-          )}
+          {t("showingModels", {
+            first: formatCount(firstResult),
+            last: formatCount(lastResult),
+            total: formatCount(totalCount),
+          })}
+          {loading && <span className="ml-2">{t("refreshing")}</span>}
+          {error && <span className="ml-2 text-red-500">{t("refreshFailed")}</span>}
         </p>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-text-muted">
-            Page {page} of {pageCount}
-          </span>
+          <span className="text-sm text-text-muted">{t("page", { page, pageCount })}</span>
           <Button variant="secondary" size="sm" disabled={page === 1} onClick={onPrevious}>
-            Previous
+            {t("previous")}
           </Button>
           <Button variant="secondary" size="sm" disabled={page >= pageCount} onClick={onNext}>
-            Next
+            {t("next")}
           </Button>
         </div>
       </footer>

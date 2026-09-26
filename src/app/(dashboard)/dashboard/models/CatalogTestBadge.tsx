@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Badge } from "@/shared/components";
 import type { CatalogTestResult } from "./catalogTestStorage";
 
@@ -9,15 +10,16 @@ function formatLatency(ms?: number): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-function formatTimeAgo(timestamp?: number): string {
+function formatTestTime(timestamp?: number): string {
   if (!timestamp) return "";
-  const diffSec = Math.floor((Date.now() - timestamp) / 1000);
-  if (diffSec < 60) return "Just now";
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return new Date(timestamp).toLocaleDateString();
+  try {
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
 }
 
 export default function CatalogTestBadge({
@@ -27,6 +29,8 @@ export default function CatalogTestBadge({
   result?: CatalogTestResult;
   loading?: boolean;
 }) {
+  const t = useTranslations("modelCatalog");
+
   if (loading) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-text-muted">
@@ -34,14 +38,14 @@ export default function CatalogTestBadge({
           className="inline-block size-3 animate-spin rounded-full border-2 border-primary border-t-transparent"
           aria-hidden="true"
         />
-        <span>Testing...</span>
+        <span>{t("testing")}</span>
       </div>
     );
   }
 
   if (!result) {
     return (
-      <span className="text-xs text-text-muted/60" title="Untested">
+      <span className="text-xs text-text-muted/60" title={t("untested")}>
         —
       </span>
     );
@@ -50,17 +54,18 @@ export default function CatalogTestBadge({
   const variant =
     result.status === "ok" ? "success" : result.status === "slow" ? "warning" : "error";
 
-  const label =
-    result.status === "ok"
-      ? "OK"
-      : result.status === "slow"
-        ? "Slow"
-        : result.errorClass
-          ? result.errorClass.replace("-", " ")
-          : "Error";
+  const getLabel = () => {
+    if (result.status === "ok") return t("statusOk");
+    if (result.status === "slow") return t("statusSlow");
+    if (result.errorClass === "rate-limited") return t("rateLimited");
+    if (result.errorClass === "quota") return t("quotaExceeded");
+    if (result.errorClass === "timeout") return t("timeout");
+    return t("otherError");
+  };
 
+  const label = getLabel();
   const latencyStr = formatLatency(result.latencyMs);
-  const timeStr = formatTimeAgo(result.testedAt);
+  const timeStr = formatTestTime(result.testedAt);
 
   return (
     <div
