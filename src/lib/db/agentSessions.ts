@@ -13,6 +13,8 @@ import type { SqliteAdapter } from "./adapters/types";
 export const AGENT_SESSION_IDLE_WINDOW_MS = 30 * 60 * 1000;
 
 // A type alias (not an interface) so it stays assignable to the cost calculator's token record.
+// `input` includes cache reads and writes, the way the usage extractors report prompt tokens and
+// the cost calculator prices them; `output` includes reasoning.
 export type AgentSessionTokens = {
   input: number;
   output: number;
@@ -20,6 +22,23 @@ export type AgentSessionTokens = {
   cacheCreation: number;
   reasoning: number;
 };
+
+/**
+ * A request whose input is smaller than its cache reads + writes was stored without the cached
+ * part (non-streaming Claude-format providers before the usage extractor fix). Restore the
+ * cache-inclusive input so every request, and every sum of requests, means the same thing.
+ */
+export function normalizeAgentSessionTokens(tokens: AgentSessionTokens): AgentSessionTokens {
+  const cache = tokens.cacheRead + tokens.cacheCreation;
+  return tokens.input < cache ? { ...tokens, input: tokens.input + cache } : tokens;
+}
+
+/** SQL twin of normalizeAgentSessionTokens for one row; `alias` prefixes the column names. */
+export function cacheInclusiveInputSql(alias = ""): string {
+  const input = `COALESCE(${alias}tokens_input, 0)`;
+  const cache = `(COALESCE(${alias}tokens_cache_read, 0) + COALESCE(${alias}tokens_cache_creation, 0))`;
+  return `(CASE WHEN ${input} < ${cache} THEN ${input} + ${cache} ELSE ${input} END)`;
+}
 
 export interface AgentSessionUsage {
   context: AgentContext;
@@ -115,7 +134,8 @@ function hasTokens(tokens: AgentSessionTokens): boolean {
  */
 export function recordAgentSessionUsage(db: SqliteAdapter, usage: AgentSessionUsage): string {
   const id = resolveSessionId(db, usage);
-  const { context, tokens } = usage;
+  const { context } = usage;
+  const tokens = normalizeAgentSessionTokens(usage.tokens);
   db.prepare(UPSERT_SQL).run({
     id,
     apiKeyId: usage.apiKeyId,
@@ -159,11 +179,15 @@ export interface AgentSessionRecord {
   requestCount: number;
   errorCount: number;
   tokens: {
+    /** Input including cache reads and writes. */
     input: number;
     output: number;
     cacheRead: number;
     cacheCreation: number;
     reasoning: number;
+    /** Input that was neither read from nor written to the prompt cache. */
+    uncachedInput: number;
+    /** uncachedInput + cacheRead + cacheCreation + output, i.e. input + output. */
     total: number;
   };
   costUsd: number;
@@ -208,11 +232,15 @@ export interface AgentSessionRecentUsage {
 }
 
 function rowToAgentSessionRecord(row: Record<string, unknown>): AgentSessionRecord {
-  const input = Number(row.tokens_input ?? 0);
-  const output = Number(row.tokens_output ?? 0);
-  const cacheRead = Number(row.tokens_cache_read ?? 0);
-  const cacheCreation = Number(row.tokens_cache_creation ?? 0);
-  const reasoning = Number(row.tokens_reasoning ?? 0);
+  // Requests are normalized when they are recorded; this also covers a session written earlier
+  // entirely from requests stored without their cache.
+  const { input, output, cacheRead, cacheCreation, reasoning } = normalizeAgentSessionTokens({
+    input: Number(row.tokens_input ?? 0),
+    output: Number(row.tokens_output ?? 0),
+    cacheRead: Number(row.tokens_cache_read ?? 0),
+    cacheCreation: Number(row.tokens_cache_creation ?? 0),
+    reasoning: Number(row.tokens_reasoning ?? 0),
+  });
   return {
     id: String(row.id),
     apiKeyId: typeof row.api_key_id === "string" ? row.api_key_id : null,
@@ -234,7 +262,8 @@ function rowToAgentSessionRecord(row: Record<string, unknown>): AgentSessionReco
       cacheRead,
       cacheCreation,
       reasoning,
-      // Stored input already includes cache reads and writes; adding them again double counts.
+      uncachedInput: input - cacheRead - cacheCreation,
+      // Input already includes cache reads and writes; adding them again double counts.
       total: input + output,
     },
     costUsd: Number(row.cost_usd ?? 0),
@@ -249,7 +278,7 @@ const SORT_COLUMNS: Record<string, string> = {
   lastSeen: "last_seen_at",
   firstSeen: "first_seen_at",
   requests: "request_count",
-  tokens: "(tokens_input + tokens_output)",
+  tokens: `(${cacheInclusiveInputSql()} + COALESCE(tokens_output, 0))`,
   cost: "cost_usd",
 };
 

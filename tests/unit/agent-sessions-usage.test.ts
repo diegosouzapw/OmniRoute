@@ -220,3 +220,36 @@ test("session token totals count cached input once, and the tokens sort follows 
     ["sess-grace-plain", 1500],
   ]);
 });
+
+test("rows stored without their cache are normalized per request before they reach the session", async () => {
+  // A correct row carries input that already includes cache reads and writes (100 fresh). A
+  // bug-shaped row (non-streaming Claude-format providers before the extractor fix) stored only
+  // the 100 fresh tokens as input. Both are the same request size: 100 fresh + 9000 read + 900 write.
+  const context = agentContext({ clientSessionId: "sess-heidi" });
+  await recordUsage({
+    apiKeyId: "key-heidi",
+    agentContext: context,
+    timestamp: "2026-09-25T15:00:00.000Z",
+    tokens: { input: 10000, output: 50, cacheRead: 9000, cacheCreation: 900 },
+  });
+  await recordUsage({
+    apiKeyId: "key-heidi",
+    agentContext: context,
+    timestamp: "2026-09-25T15:01:00.000Z",
+    tokens: { input: 100, output: 50, cacheRead: 9000, cacheCreation: 900 },
+  });
+
+  const db = core.getDbInstance();
+  const [listed] = agentSessionsDb.listAgentSessions(db, { apiKeyId: "key-heidi" }).sessions;
+  const expected = {
+    input: 20000,
+    uncachedInput: 200,
+    cacheRead: 18000,
+    cacheCreation: 1800,
+    output: 100,
+    reasoning: 0,
+    total: 20100,
+  };
+  assert.deepEqual(listed.tokens, expected);
+  assert.deepEqual(agentSessionsDb.getAgentSessionById(db, listed.id)?.tokens, expected);
+});
