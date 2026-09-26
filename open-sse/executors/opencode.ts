@@ -446,8 +446,7 @@ export class OpencodeExecutor extends BaseExecutor {
               if (isResponsesTerminalLine(line)) {
                 // OpenCode Zen sends a ping after response.completed and may keep
                 // the HTTP connection alive. The Responses terminal event is
-                // authoritative; do not let those post-completion pings hold Chat
-                // Completions open.
+                // authoritative; do not let those post-completion pings hold Chat Completions open.
                 closed = true;
                 void reader.cancel().catch(() => undefined);
                 controller.close();
@@ -865,6 +864,7 @@ export class OpencodeExecutor extends BaseExecutor {
               stalled: headersWait.spent,
               cooldown: markCooldown,
               markDirect: () => (directTried = true),
+              slow: { account, enabled: skipRecentlyFailed, read: readAppliedKey },
             }); // same settle as the stall arm
             log?.warn?.(
               "OPENCODE",

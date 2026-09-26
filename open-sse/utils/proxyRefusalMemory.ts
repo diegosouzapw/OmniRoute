@@ -10,12 +10,14 @@
  * (callers gate writes and decisions on it) and it stays free of the proxy dispatcher, so
  * the DB layer can consult it without loading undici or the SOCKS connector.
  */
-import { COOLDOWN_MS } from "../config/errorConfig.ts";
 import { notifyProxyTransition } from "./proxyTransitionListeners.ts";
 import { stripIpv6Brackets } from "./proxyFamily.ts";
 
-const DEFAULT_QUOTA_429_BASE_MS = COOLDOWN_MS.rateLimit;
-const DEFAULT_QUOTA_429_MAX_MS = 3_600_000;
+// Field trends show a refused egress rarely recovers within minutes, so the
+// first set-aside lasts five minutes and doubles from there; the cap lets a
+// recovered member return within the quarter-hour.
+const DEFAULT_QUOTA_429_BASE_MS = 300_000;
+const DEFAULT_QUOTA_429_MAX_MS = 900_000;
 const MIN_QUOTA_429_MS = 1_000;
 const MAX_QUOTA_429_MS = 3_600_000;
 
@@ -57,6 +59,7 @@ export const REFUSAL_POLICIES: {
   proxy_unreachable: { baseMs: 60_000; maxMs: 600_000 };
   ip_quota_429: RefusalPolicy;
   transport: { baseMs: 60_000; maxMs: 600_000 };
+  slow: { baseMs: 60_000; maxMs: 600_000 };
 } = {
   /** The TCP probe could not open a connection to the proxy. */
   proxy_unreachable: { baseMs: 60_000, maxMs: 600_000 },
@@ -68,6 +71,12 @@ export const REFUSAL_POLICIES: {
    * not the destination — is at fault. Same curve as a refused probe.
    */
   transport: { baseMs: 60_000, maxMs: 600_000 },
+  /**
+   * Repeated settled waits for upstream response headers through this egress:
+   * one slow wait is the upstream queue, not the member. Same short curve as
+   * a refused probe, kept apart from the quota curve.
+   */
+  slow: { baseMs: 60_000, maxMs: 600_000 },
 };
 
 export type ProxyRefusalKind = keyof typeof REFUSAL_POLICIES;
@@ -388,6 +397,65 @@ export function __resetTransportEvidenceForTesting(): void {
 /** Test-only: current evidence store sizes. */
 export function __transportEvidenceSizeForTesting(): { failures: number; successes: number } {
   return { failures: transportFailures.length, successes: transportSuccesses.length };
+}
+
+/**
+ * Settled waits for upstream response headers, per egress key. One slow wait
+ * is the upstream queue, not the member — only repetition condemns it, so the
+ * store keeps bare timestamps and the gated helper decides at k=3 / 5 min.
+ */
+export const SLOW_OVERRUN_WINDOW_MS = 300_000;
+export const SLOW_OVERRUN_THRESHOLD = 3;
+const MAX_SLOW_OVERRUNS = 1000;
+
+type SlowOverrun = { key: string; at: number };
+
+const slowOverruns: SlowOverrun[] = [];
+
+// Lazy purge mirrors readState: entries older than the evidence window plus
+// twice the slow cap can no longer contribute, so drop them on record.
+function purgeSlowOverruns(nowMs: number): void {
+  const cutoff = nowMs - SLOW_OVERRUN_WINDOW_MS - 2 * REFUSAL_POLICIES.slow.maxMs;
+  while (slowOverruns.length > 0 && slowOverruns[0].at < cutoff) {
+    slowOverruns.shift();
+  }
+}
+
+/** Record one settled headers-wait overrun. Never throws, never writes refusal memory. */
+export function recordSlowOverrun(key: string | null, nowMs: number = Date.now()): void {
+  if (key === null || key === "") return;
+  purgeSlowOverruns(nowMs);
+  slowOverruns.push({ key, at: nowMs });
+  while (slowOverruns.length > MAX_SLOW_OVERRUNS) slowOverruns.shift();
+}
+
+/**
+ * True when this egress waited out the headers window at least
+ * SLOW_OVERRUN_THRESHOLD times inside SLOW_OVERRUN_WINDOW_MS. Overruns for
+ * other keys never count.
+ */
+export function hasSlowOverrunEvidence(key: string | null, nowMs: number = Date.now()): boolean {
+  if (key === null || key === "") return false;
+  purgeSlowOverruns(nowMs);
+  const from = nowMs - SLOW_OVERRUN_WINDOW_MS;
+  let overruns = 0;
+  for (const o of slowOverruns) {
+    if (o.key === key && o.at >= from) {
+      overruns++;
+      if (overruns >= SLOW_OVERRUN_THRESHOLD) return true;
+    }
+  }
+  return false;
+}
+
+/** Test-only: forget slow overruns (refusal memory is separate). */
+export function __resetSlowOverrunsForTesting(): void {
+  slowOverruns.length = 0;
+}
+
+/** Test-only: current slow-overrun store size. */
+export function __slowOverrunSizeForTesting(): number {
+  return slowOverruns.length;
 }
 
 /** Test-only: number of (key, kind) entries held. */

@@ -1,0 +1,1 @@
+- **fix(proxies):** refused-egress set-aside defaults to a 300s base with a 900s cap, and an egress that repeatedly waits out the response-headers window is set aside under a short 60s/600s curve after three settled overruns in five minutes ([#14891](https://github.com/diegosouzapw/OmniRoute/pull/14891)) — thanks @maxmad64bis
