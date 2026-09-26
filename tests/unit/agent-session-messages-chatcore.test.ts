@@ -209,6 +209,40 @@ test("streaming /v1/messages Claude passthrough stores tool names off the wire",
   assert.ok(!clientText.includes("tool_calls"), "the client stream stays Claude-shaped");
 });
 
+test("streaming /v1/messages translated from a Gemini upstream stores the tool names", async () => {
+  globalThis.fetch = async () =>
+    sseResponse([
+      { candidates: [{ content: { role: "model", parts: [{ text: "Searching." }] } }] },
+      {
+        candidates: [
+          {
+            content: {
+              role: "model",
+              parts: [{ functionCall: { name: "Glob", args: { pattern: "*.ts" } } }],
+            },
+            finishReason: "STOP",
+          },
+        ],
+        usageMetadata: { promptTokenCount: 4, candidatesTokenCount: 5, totalTokenCount: 9 },
+      },
+    ]);
+
+  const clientText = await runChatCore({
+    prompt: "wiring gemini prompt",
+    stream: true,
+    sessionId: "wire-gemini",
+    provider: "gemini",
+    model: "gemini-2.5-flash",
+    endpoint: "/v1/messages",
+  });
+
+  assert.ok(clientText.includes('"tool_use"'), "the Claude client received a tool_use block");
+  const row = storedTurn("wiring gemini prompt");
+  assert.ok(row, "a turn row is stored");
+  assert.equal(row.assistant_text, "Searching.");
+  assert.deepEqual(JSON.parse(String(row.tool_names)), ["Glob"]);
+});
+
 test("two attempts for one client request (combo fallback) store a single turn", async () => {
   const run: ChatCoreRun = {
     prompt: "wiring combo prompt",
