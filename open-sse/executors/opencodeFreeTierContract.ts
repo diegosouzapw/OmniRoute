@@ -36,6 +36,10 @@ import {
   rememberAttempt,
   shapeKeyOf,
 } from "./opencodeRequestShape.ts";
+import {
+  clientSuppliedOpencodeSession,
+  satisfiesOpencodeUserAgentContract,
+} from "../utils/opencodeHeaders.ts";
 
 /**
  * What one gated request declared, kept until its outcome is known.
@@ -334,6 +338,46 @@ function clientToolNamesOf(body: unknown): string[] {
     if (typeof name === "string") names.push(name);
   }
   return names;
+}
+
+/**
+ * Whether a request already carried the OpenCode client contract, judged on the RAW client
+ * body and the client-derived headers.
+ *
+ * #14977: the #14313 free-tier pause is provider-global, and keyless `opencode` has no
+ * keyed connections, so arming it on a thin or synthetic request parks the provider for
+ * every later caller — including the native CLI whose own shape would have been served. A
+ * contract-shaped refusal says something about that one shape and is already handled by the
+ * per-shape retry (#14405), so it must not arm a provider-wide pause.
+ *
+ * Three conditions, each judged only on evidence the client itself supplied:
+ *
+ *   1. `stream: true` — the client asked for a stream. The post-processing body would say
+ *      true either way, because the contract forces it, so this is only meaningful on the
+ *      raw body.
+ *   2. at least one tool name outside `{_noop} ∪ configuredPlaceholderToolNames()` — the
+ *      placeholder is OmniRoute synthesis in every case, never evidence of a real client.
+ *   3. a session identity OR a CLI user-agent — OR, not AND: OmniRoute synthesizes the
+ *      other half anyway, and the upstream's own check is per-header, so demanding both
+ *      would classify legitimate native requests as foreign.
+ */
+export function carriesFreeTierRequestContract(
+  body: unknown,
+  clientHeaders?: Record<string, string> | null
+): boolean {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return false;
+  const record = body as Record<string, unknown>;
+  if (record.stream !== true) return false;
+
+  const placeholders = new Set<string>([
+    PLACEHOLDER_TOOL_NAME,
+    ...configuredPlaceholderToolNames(),
+  ]);
+  const hasOwnTool = clientToolNamesOf(record).some((name) => !placeholders.has(name));
+  if (!hasOwnTool) return false;
+
+  if (clientSuppliedOpencodeSession(clientHeaders, body)) return true;
+  return satisfiesOpencodeUserAgentContract(clientHeaders?.["user-agent"]);
 }
 
 /**

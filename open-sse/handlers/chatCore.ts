@@ -247,6 +247,7 @@ import {
 } from "@/lib/resilience/settings";
 import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
 import { isOpencodeFreeTierRefusalForProvider } from "../executors/opencodeGeoBlock.ts";
+import { carriesFreeTierRequestContract } from "../executors/opencodeFreeTierContract.ts";
 import { noteOpencodeFreeTierSkip } from "../services/opencodeFreeTierSkip.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
@@ -4072,9 +4073,16 @@ async function handleChatCoreInner({
           );
           // #14313: free-tier refusal on the keyless path — record a short TTL
           // skip so auto-combo / noauth fallback stop re-picking it immediately.
+          // #14977: that skip is provider-global, and keyless opencode has no keyed
+          // connections, so arming it on a thin/synthetic request would black out every
+          // later contract-shaped caller for the whole TTL. Judge the refusal on the RAW
+          // client body (the post-processing one carries our own synthesis) and skip the
+          // arm when the request already carried the client contract — that refusal is a
+          // per-shape verdict, handled by the per-shape retry (#14405).
           if (
             errorConnectionId === "noauth" &&
-            isOpencodeFreeTierRefusalForProvider(provider, statusCode, message)
+            isOpencodeFreeTierRefusalForProvider(provider, statusCode, message) &&
+            !carriesFreeTierRequestContract(clientRawRequest?.body ?? body, getExecutorClientHeaders())
           ) {
             noteOpencodeFreeTierSkip(provider);
           }

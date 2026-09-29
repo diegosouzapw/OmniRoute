@@ -291,6 +291,30 @@ model lockout / cooldown, and (on the synthetic `noauth` path) pauses auto-combo
 for a short TTL. Ship requests that carry a non-empty tool list, `stream: true`, and the
 OpenCode session/UA headers (`opencodeFreeTierContract.ts`) or expect the 403.
 
+### The pause is armed only for non-contract shapes (#14977)
+
+That TTL skip is **provider-global and in-process**, so arming it on a thin or synthetic
+request parked the whole keyless provider for every later caller. Keyless `opencode` has no
+keyed connections, so there was no other path to fall back to: one thin refusal blacked out
+every subsequent contract-shaped request — including the native CLI's own shape, which would
+have been served — for the full TTL.
+
+The arm site now judges the refused request on the **raw** client body
+(`clientRawRequest?.body ?? body`; the post-processing body carries OmniRoute's own synthesis)
+and the client-derived headers, and arms the pause only when the request did **not** already
+carry the client contract. `carriesFreeTierRequestContract()` requires all three of:
+
+1. `stream: true`;
+2. at least one tool name outside `{_noop} ∪ OPENCODE_FREE_TIER_PLACEHOLDER_TOOLS` — the
+   placeholder is synthesis, never client evidence;
+3. a session identity **or** a CLI user-agent (OR, not AND — OmniRoute synthesizes the other
+   half anyway, and the upstream checks each header independently).
+
+A contract-shaped refusal is a per-shape verdict and is handled by the per-shape retry
+(`opencodeFreeTierRetry.ts`); it arms no provider pause and keeps the anti-repick-loop bound.
+The read site (`src/sse/services/auth.ts`) is deliberately unchanged — it has no request
+context, so shape is not plumbed through the four account-selection call sites.
+
 ## What changed since the shipped catalog (`freeNote`)
 
 > The v3.8.0-era `freeNote` strings are stale. Corrections found by this research (these drive the catalog update in `_tasks/features-v3.8.12`):
