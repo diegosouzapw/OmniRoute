@@ -321,6 +321,33 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create an EURouter API key, then use https://api.eurouter.ai/v1 as the OpenAI-compatible base URL. Models are served by third-party upstreams listed per model in the EURouter catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
   },
+  // Y-API (https://y-api.bestvirtualgoods.com) — API-key gateway over third-party
+  // upstreams. Its own machine-readable catalog (models.json, synced 2026-09-29) defines
+  // `vendor` as "who trained the model, not who serves it" and states every model there
+  // is served by the gateway itself: a resale router, not an inference host. Its live
+  // catalog endpoint GET /v1/models requires a key (401 anonymously), so discovery is
+  // left to the user's own key rather than a seeded list.
+  "y-api": {
+    id: "y-api",
+    serviceKinds: ["llm"],
+    alias: "y-api",
+    name: "Y-API",
+    icon: "router",
+    color: "#0891B2",
+    textIcon: "YA",
+    passthroughModels: true,
+    website: "https://y-api.bestvirtualgoods.com",
+    // Free in the sense the OpenRouter and UnoRouter entries above use: the publisher
+    // prices a named subset of its catalog at 0 credit, so the badge is earned by those
+    // models, not by a standing free tier. The note dates the snapshot and points at the
+    // file rather than promising the subset survives. It quotes no cash figure: the
+    // credit-to-cash conversion is a published promotional rate, so only 0 stays stable.
+    hasFree: true,
+    freeNote:
+      "4 of its 17 catalog models (deepseek/deepseek-v4-flash, minimax/minimax-m2.7, tencent/hy3, xiaomi/mimo-v2.5) are priced at 0 credit in the publisher's 2026-09-29 snapshot; the rest bill against prepaid credit, and signup grants a small credit whose amount is Y-API's to set. Y-API can withdraw a free model at any time — re-check https://y-api.bestvirtualgoods.com/pricing.json.",
+    apiHint:
+      "Create an API key at https://y-api.bestvirtualgoods.com, then use https://api.y-api.bestvirtualgoods.com/v1 as the OpenAI-compatible base URL. Models are served by this gateway from the third-party upstream vendors named per model in its catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
+  },
   "mnn-ai": {
     id: "mnn-ai",
     serviceKinds: ["llm"],
