@@ -40,6 +40,8 @@ import {
   clientSuppliedOpencodeSession,
   satisfiesOpencodeUserAgentContract,
 } from "../utils/opencodeHeaders.ts";
+import { isOpencodeFreeTierRefusalForProvider } from "./opencodeGeoBlock.ts";
+import { noteOpencodeFreeTierSkip } from "../services/opencodeFreeTierSkip.ts";
 
 /**
  * What one gated request declared, kept until its outcome is known.
@@ -348,7 +350,8 @@ function clientToolNamesOf(body: unknown): string[] {
  * keyed connections, so arming it on a thin or synthetic request parks the provider for
  * every later caller — including the native CLI whose own shape would have been served. A
  * contract-shaped refusal says something about that one shape and is already handled by the
- * per-shape retry (#14405), so it must not arm a provider-wide pause.
+ * per-shape retry (`opencodeFreeTierRetry.ts`), so it must not arm a provider-wide
+ * pause.
  *
  * Three conditions, each judged only on evidence the client itself supplied:
  *
@@ -378,6 +381,41 @@ export function carriesFreeTierRequestContract(
 
   if (clientSuppliedOpencodeSession(clientHeaders, body)) return true;
   return satisfiesOpencodeUserAgentContract(clientHeaders?.["user-agent"]);
+}
+
+/**
+ * #14313: the free-tier pause, armed from one place, gated by #14977.
+ *
+ * #14313 arms a short provider-global TTL skip on the keyless path after an OpenCode
+ * free-tier refusal, so a tight auto-combo loop stops re-picking the same candidate.
+ * #14977 bounds what that refusal is allowed to prove: the pause is provider-global, and
+ * keyless `opencode` has no keyed connections, so a refusal on a thin or synthetic request
+ * would black out every LATER contract-shaped caller for the whole TTL — including the
+ * native CLI, whose own shape would have been served. A request that already carried the
+ * client contract has been judged on its own shape, and that verdict is per-shape, handled
+ * by the per-shape retry (`opencodeFreeTierRetry.ts`) — it is not evidence about the
+ * provider.
+ *
+ * So the pause is armed only for a request that did NOT already carry the contract, judged
+ * on the RAW client body (the post-processing one carries OmniRoute's own synthesis, which
+ * would make every request look like a client) and the client-derived headers.
+ *
+ * Lives here, beside the predicate it gates, rather than at the call site: the arm site is
+ * inside `chatCore.ts`, a file frozen at its line budget, and the decision needs both the
+ * refusal test and the contract predicate to stay legible in one place.
+ */
+export function armOpencodeFreeTierSkipAfterRefusal(
+  connectionId: string | null | undefined,
+  provider: string | null | undefined,
+  statusCode: number,
+  message: string | null | undefined,
+  rawClientBody: unknown,
+  clientHeaders?: Record<string, string> | null
+): void {
+  if (connectionId !== "noauth") return;
+  if (!isOpencodeFreeTierRefusalForProvider(provider, statusCode, message ?? null)) return;
+  if (carriesFreeTierRequestContract(rawClientBody, clientHeaders)) return;
+  noteOpencodeFreeTierSkip(provider);
 }
 
 /**

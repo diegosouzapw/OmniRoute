@@ -299,7 +299,9 @@ keyed connections, so there was no other path to fall back to: one thin refusal 
 every subsequent contract-shaped request — including the native CLI's own shape, which would
 have been served — for the full TTL.
 
-The arm site now judges the refused request on the **raw** client body
+The arm site in `open-sse/handlers/chatCore.ts` now hands the refused request to
+`armOpencodeFreeTierSkipAfterRefusal()` (`open-sse/executors/opencodeFreeTierContract.ts`),
+which judges it on the **raw** client body
 (`clientRawRequest?.body ?? body`; the post-processing body carries OmniRoute's own synthesis)
 and the client-derived headers, and arms the pause only when the request did **not** already
 carry the client contract. `carriesFreeTierRequestContract()` requires all three of:
@@ -311,7 +313,7 @@ carry the client contract. `carriesFreeTierRequestContract()` requires all three
    half anyway, and the upstream checks each header independently).
 
 A contract-shaped refusal is a per-shape verdict and is handled by the per-shape retry
-(`opencodeFreeTierRetry.ts`); it arms no provider pause and keeps the anti-repick-loop bound.
+(`open-sse/executors/opencodeFreeTierRetry.ts`); it arms no provider pause and keeps the anti-repick-loop bound.
 The read site (`src/sse/services/auth.ts`) is deliberately unchanged — it has no request
 context, so shape is not plumbed through the four account-selection call sites.
 

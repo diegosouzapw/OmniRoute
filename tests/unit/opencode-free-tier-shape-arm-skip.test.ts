@@ -4,17 +4,23 @@
  * Keyless `opencode` has no keyed connections, so a single thin refusal must not park
  * the provider.
  *
- * The arm site now judges the refused request on the RAW client body
- * (`clientRawRequest?.body ?? body` — the post-processing `body` carries OmniRoute's own
- * synthesis) and the client-derived headers, and arms the pause only when the refusal did
- * NOT already carry the OpenCode client contract. A contract-shaped refusal is a
- * per-shape verdict, already handled by the per-shape retry (#14405).
+ * The arm site now hands the refused request to `armOpencodeFreeTierSkipAfterRefusal`,
+ * which judges it on the RAW client body (`clientRawRequest?.body ?? body` — the
+ * post-processing `body` carries OmniRoute's own synthesis) and the client-derived headers,
+ * and arms the pause only when the refusal did NOT already carry the OpenCode client
+ * contract. A contract-shaped refusal is a per-shape verdict, already handled by the
+ * per-shape retry (`open-sse/executors/opencodeFreeTierRetry.ts`).
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { carriesFreeTierRequestContract, DEFAULT_PLACEHOLDER_TOOL_NAME } =
-  await import("../../open-sse/executors/opencodeFreeTierContract.ts");
+const {
+  carriesFreeTierRequestContract,
+  armOpencodeFreeTierSkipAfterRefusal,
+  DEFAULT_PLACEHOLDER_TOOL_NAME,
+} = await import("../../open-sse/executors/opencodeFreeTierContract.ts");
+const { isOpencodeFreeTierSkipped, clearOpencodeFreeTierSkips } =
+  await import("../../open-sse/services/opencodeFreeTierSkip.ts");
 
 const CLI_USER_AGENT = "opencode/1.18.31";
 const SESSION_ID = "ses_0123456789abcdefghijklmn";
@@ -116,15 +122,92 @@ test("the arm site gates the pause behind the predicate (#14977 regression guard
     fileURLToPath(new URL("../../open-sse/handlers/chatCore.ts", import.meta.url)),
     "utf8"
   );
-  const armIndex = source.indexOf("noteOpencodeFreeTierSkip(provider");
+  const armIndex = source.indexOf("armOpencodeFreeTierSkipAfterRefusal(");
   assert.notEqual(armIndex, -1, "the #14313 arm site must still exist");
 
-  // The guard must sit between the refusal test and the arm, on the RAW client body.
-  const window = source.slice(Math.max(0, armIndex - 1200), armIndex);
+  // The gate must be handed the RAW client body and the client headers, and must not be
+  // inlined back into chatCore — that is the shape the fix is about.
+  const window = source.slice(armIndex, armIndex + 400);
   assert.match(
     window,
-    /carriesFreeTierRequestContract\(\s*clientRawRequest\?\.body\s*\?\?\s*body/,
-    "the pause must be armed only when the refused request did not carry the client contract"
+    /clientRawRequest\?\.body\s*\?\?\s*body/,
+    "the pause must be judged on the RAW client body, not the contract-processed one"
   );
   assert.match(window, /getExecutorClientHeaders\(\)/, "headers must come from the client");
+  assert.doesNotMatch(
+    window,
+    /noteOpencodeFreeTierSkip\(/,
+    "the arm must be delegated, not re-inlined around a raw noteOpencodeFreeTierSkip call"
+  );
+});
+
+const REFUSAL_MESSAGE = "FreeTierError: free tier can only be used with an OpenCode client shape";
+const REFUSAL_STATUS = 403;
+
+/** Arm the pause the way the arm site does, and report whether it took. */
+function armed(
+  connectionId: string,
+  body: unknown,
+  headers: Record<string, string> | null
+): boolean {
+  clearOpencodeFreeTierSkips();
+  armOpencodeFreeTierSkipAfterRefusal(
+    connectionId,
+    "opencode",
+    REFUSAL_STATUS,
+    REFUSAL_MESSAGE,
+    body,
+    headers
+  );
+  return isOpencodeFreeTierSkipped("opencode");
+}
+
+test("a thin noauth refusal still arms the pause (#14313 preserved)", () => {
+  assert.equal(
+    armed("noauth", { model: "big-pickle", messages: [] }, { "user-agent": "curl/8.5.0" }),
+    true,
+    "a request that did not carry the client contract is exactly what the pause is for"
+  );
+});
+
+test("a contract-shaped refusal does NOT arm the pause (#14977)", () => {
+  assert.equal(
+    armed("noauth", contractBody(), { ...CLI_HEADERS, ...SESSION_HEADERS }),
+    false,
+    "the provider-global pause must not be armed by a refusal that judges one request shape"
+  );
+});
+
+test("a contract-shaped refusal is still a pause for the shapes that need it", () => {
+  // Same request shape, but the client sent no stream: nothing about the provider changed,
+  // so the pause must still arm — the gate judges the request, not the outcome.
+  assert.equal(
+    armed("noauth", contractBody({ stream: false }), { ...CLI_HEADERS, ...SESSION_HEADERS }),
+    true
+  );
+});
+
+test("the pause is armed only on the keyless path", () => {
+  assert.equal(armed("conn-42", { model: "big-pickle" }, CLI_HEADERS), false);
+});
+
+test("a non-free-tier refusal never arms the pause", () => {
+  clearOpencodeFreeTierSkips();
+  armOpencodeFreeTierSkipAfterRefusal(
+    "noauth",
+    "opencode",
+    401,
+    "CreditsError: insufficient credits",
+    { model: "big-pickle" },
+    CLI_HEADERS
+  );
+  assert.equal(isOpencodeFreeTierSkipped("opencode"), false);
+});
+
+test("a foreign provider echoing the refusal is out of scope", () => {
+  clearOpencodeFreeTierSkips();
+  armOpencodeFreeTierSkipAfterRefusal("noauth", "openai", REFUSAL_STATUS, REFUSAL_MESSAGE, {
+    model: "gpt-5",
+  });
+  assert.equal(isOpencodeFreeTierSkipped("openai"), false);
 });
