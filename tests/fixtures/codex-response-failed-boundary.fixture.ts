@@ -31,6 +31,7 @@ const HOSTILE_MESSAGE =
 type FailedPayload = {
   type: "response.failed";
   response: {
+    id: string;
     error: {
       code: string | null;
       message: string;
@@ -235,6 +236,34 @@ test("Codex same-format failures reject contradictory allowlisted status, code a
     type: "authentication_error",
     statusCode: 401,
   });
+});
+
+test("#15202: Codex same-format failure frame carries a string response.id", () => {
+  const result = encodeResponseSseEvent(
+    JSON.stringify({
+      type: "response.failed",
+      response: { status: "failed", error: { message: HOSTILE_MESSAGE } },
+    })
+  );
+
+  const payload = responseFailedPayload(result.sse);
+  assert.equal(typeof payload.response.id, "string");
+  assert.ok(payload.response.id.length > 0, "synthesized response.id must not be empty");
+});
+
+test("#15202: Codex WebSocket failure frame carries a string response.id", async () => {
+  const socket = {
+    send() {
+      queueMicrotask(() => socket.onerror?.({ message: HOSTILE_MESSAGE }));
+    },
+    close() {},
+    onmessage: null as ((event: { data: unknown }) => void) | null,
+    onerror: null as ((event: { message?: string }) => void) | null,
+    onclose: null as (() => void) | null,
+  };
+  const sse = await executeCodexWebSocketFailure(async () => socket);
+
+  assert.equal(typeof responseFailedPayload(sse).response.id, "string");
 });
 
 test("Codex WebSocket in-flight error event cannot expose transport details", async () => {
