@@ -411,11 +411,10 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## Ohjeiden saaminen
+## Avun saaminen
 
 - **Arkkitehtuuri**: Katso [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **API-viite**: Katso [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Tietoturvadokumentaatio**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Ylläpitodokumentaatio**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Ongelmat**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR:t**: Arkkitehtuuripäätökset ovat hakemistossa `docs/adr/`

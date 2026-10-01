@@ -258,14 +258,21 @@ Glanann sé **gach** sárú DB ag an am céanna, ag athchóiriú gach lasc chuig
 
 ## Cúltaca Éigeandála don Bhuiséad
 
-Rialaíonn `OMNIROUTE_EMERGENCY_FALLBACK` (catagóir `runtime`, réamhshocrú `true`)
-an chonair chúltaca éigeandála saor in aisce in
+Rialaíonn `OMNIROUTE_EMERGENCY_FALLBACK` (catagóir `runtime`, réamhshocrú `true`) an
+chúlbhealach éigeandála saor in aisce in
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Nuair atá sé cumasaithe, seoltar iarratais a ídíonn a mbuiséad chuig soláthraí/samhail
-chúltaca saor in aisce seachas teip iomlán a dhéanamh. Socraigh go `false` (nó `0`) é — trí
-scorán na deaise, forshárú DB, nó an athróg timpeallachta
-`OMNIROUTE_EMERGENCY_FALLBACK` — chun an t-iompar a dhíchumasú agus ligean d’iarratais a bhfuil a mbuiséad ídithe acu
-teip. (Cuireadh ar fáil mar scorán deaise in PRanna #3741 / #3752.)
+Nuair atá sé cumasaithe, seoltar iarratais a bhfuil a mbuiséad ídithe acu chuig
+soláthraí/samhail chúltaca saor in aisce in ionad teip iomlán. Socraigh é mar
+`false` (nó `0`) — trí scorán an deais, sárú sa bhunachar sonraí, nó an athróg
+timpeallachta `OMNIROUTE_EMERGENCY_FALLBACK` — chun an t-iompar seo a dhíchumasú
+agus ligean d’iarratais a bhfuil a mbuiséad ídithe acu teip. (Léiríodh é mar
+scorán deais in PRanna #3741 / #3752.)
+
+Bíonn an ceanntásc
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>` ar
+fhreagra a sheachadtar tríd an gcúltaca seo, ionas gur féidir le cliant a
+aithint gur atreoraíodh é gan `X-OmniRoute-Provider` a chur i gcomparáid lena
+iarratas. Ní bhíonn an ceanntásc i láthair ar aon fhreagra eile.
 
 ---
 

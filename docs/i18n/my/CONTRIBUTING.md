@@ -430,9 +430,8 @@ VPS deploy များအတွက် `npm run build` အစား `npm run bui
 
 ## အကူအညီရယူခြင်း
 
-- **Architecture**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) ကို ကြည့်ပါ
+- **ဗိသုကာဖွဲ့စည်းပုံ**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) ကို ကြည့်ပါ
 - **API ကိုးကားချက်**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) ကို ကြည့်ပါ
 - **လုံခြုံရေးဆိုင်ရာ စာရွက်စာတမ်းများ**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **လုပ်ငန်းလည်ပတ်မှုဆိုင်ရာ စာရွက်စာတမ်းများ**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **ပြဿနာများ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: ဗိသုကာဆိုင်ရာ ဆုံးဖြတ်ချက်မှတ်တမ်းများအတွက် `docs/adr/` ကို ကြည့်ပါ

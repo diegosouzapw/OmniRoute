@@ -133,22 +133,25 @@ via **Dashboard → Beveiliging → Toegestane CORS-origins**.
 
 ## Voorbeeld: reverse proxy vóór OmniRoute
 
-CORS wordt door OmniRoute zelf afgedwongen. De proxy moet daarom doorgaans
-**geen** `Access-Control-*`-headers toevoegen of herschrijven (dubbele headers
-veroorzaken problemen in browsers). Beëindig TLS en stuur het verkeer door — laat
-OmniRoute preflightverzoeken beantwoorden:
+CORS wordt door OmniRoute zelf afgedwongen, dus de proxy moet over het algemeen **geen**
+`Access-Control-*`-headers toevoegen of herschrijven (dubbele headers veroorzaken problemen in browsers). Beëindig TLS
+en stuur het verkeer door — laat OmniRoute preflightverzoeken beantwoorden:
 
 ```nginx
 # nginx — doorsturen naar OmniRoute; voeg hier GEEN Access-Control-* toe
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Stel X-Forwarded-For NIET in op 127.0.0.1 — dit omzeilt de routebeveiliging voor loopback.
+    # Behoud de doorstuurheaders: een proxy op dezelfde host maakt verbinding via loopback, en deze
+    # laten OmniRoute weten dat de aanroeper niet de lokale beheerder is. Een proxy die geen van deze headers toevoegt,
+    # laat elke externe aanroeper lokaal lijken. Stel X-Forwarded-For ook nooit in op 127.0.0.1.
 }
 ```
 
-Stel de toegestane browser-origins in OmniRoute in (`CORS_ALLOWED_ORIGINS` of het
+Stel de toegestane browserorigins in OmniRoute in (`CORS_ALLOWED_ORIGINS` of het
 tabblad Beveiliging), niet in de proxy.
 
 ## Bronbestanden

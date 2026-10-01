@@ -433,6 +433,5 @@ Daga nan sai a yi amfani da skills na `/deploy-vps-*-cc`, waɗanda ke amfani da 
 - **Tsarin Gine-gine**: Duba [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Manazartar API**: Duba [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Takardun tsaro**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Takardun ayyukan gudanarwa**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Takardun gudanarwa**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Matsaloli**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Duba `docs/adr/` don bayanan shawarwarin tsarin gine-gine

@@ -37,33 +37,33 @@ Mga karaniwang problema at solusyon para sa OmniRoute.
 
 ---
 
-### Paglilimita ng Rate sa mga Libreng Provider (429 / 400 / 401)
+### Paglilimita sa Rate sa mga Libreng Provider (429 / 400 / 401)
 
-**Sintomas**: Kapag gumagamit ng `model: "auto"` kasama ang mga libre/hindi nangangailangan ng authentication na provider (opencode, auggie, atbp.), paminsan-minsan kang nakakatanggap ng `HTTP 429`, `400`, o `401` sa halip na mga sagot. Nagtatagumpay ang mga request kapag muling sinusubukan ang parehong prompt makalipas ang ilang sandali, ngunit humihinto ang automation (mga cron job, agent, script) sa unang pagkabigo.
+**Sintomas**: Kapag gumagamit ng `model: "auto"` sa mga libre/walang-auth na provider (opencode, auggie, atbp.), paminsan-minsan ay makakatanggap ka ng `HTTP 429`, `400`, o `401` sa halip na mga sagot. Nagiging matagumpay ang mga request kapag muling sinubukan ang parehong prompt makalipas ang ilang sandali, ngunit humihinto ang automation (mga cron job, agent, script) sa unang pagkabigo.
 
-**Pangunahing sanhi**: Nagsasabay-sabay ang tatlong magkakahiwalay na uri ng pagkabigo:
+**Ugat ng problema**: Nagsasabay-sabay ang tatlong magkakahiwalay na uri ng pagkabigo:
 
-1. **Limitasyon ng rate ng provider (`429`)**: Maaaring magpatupad ang mga libreng tier ng quota sa bawat takdang panahon. Nauubos ito ng bugso ng magkakasabay na call, kaya tinatanggihan ang susunod na request hanggang sa mag-reset ang takdang panahon.
-2. **Sirang model sa passthrough (`400`/`401`)**: Maaaring magsama ang mga pool na `auto/*` ng mga passthrough model mula sa `opencode` na nakarehistro sa catalog ngunit walang aktibong kredensyal (hal. `oc/north-mini-code-free` → `401`). Sinusubukan ng auto-router ang isa, nabibigo ito, at naipapasa ang error bago gumana ang fallback.
-3. **Pagpapalala dahil sa concurrency (`429` kapag maraming load)**: Kapag maraming session ng agent/cron ang sabay-sabay na gumagamit ng `auto`, lumalampas ang pinagsama-samang rate ng request sa kayang tanggapin ng mga libreng provider, kaya namamarkahan bilang mapang-abuso ang mga lehitimong call.
+1. **Rate limit ng provider (`429`)**: Maaaring magpatupad ang mga libreng tier ng quota sa bawat window. Nauubos ito ng sunod-sunod na parallel call, kaya tinatanggihan ang susunod na request hanggang sa mag-reset ang window.
+2. **Sirang model sa passthrough (`400`/`401`)**: Maaaring magsama ang mga `auto/*` pool ng mga passthrough model mula sa `opencode` na nakarehistro sa catalog ngunit walang aktibong credential (hal. `oc/north-mini-code-free` → `401`). Susubukan ng auto-router ang isa, mabibigo ito, at maipapasa ang error bago gumana ang fallback.
+3. **Paglaki dahil sa concurrency (`429` kapag mataas ang load)**: Kapag sabay-sabay na gumagamit ng `auto` ang maraming agent/cron session, lumalampas ang pinagsama-samang rate ng request sa kayang tanggapin ng mga libreng provider, kaya natutukoy bilang mapang-abuso ang mga lehitimong call.
 
-**Napatunayang solusyon (iniulat ng komunidad, 2026-08-10)**: isaayos ang tatlong environment variable upang ang rotation, concurrency, at fallback ang sumalo sa pabago-bagong kondisyon ng libreng tier sa halip na tuluyang mabigo dahil dito:
+**Napatunayang solusyon (iniulat ng komunidad, 2026-08-10)**: isaayos ang tatlong environment variable upang masalo ng rotation, concurrency, at fallback ang pabago-bagong kondisyon ng libreng tier sa halip na tuluyang huminto dahil dito:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # lumipat sa ibang model/provider kapag may 400/401 (nilalaktawan ang mga sirang passthrough model)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # tahasang pinakamataas na bilang ng heavyweight admission (hindi naka-set bilang default: walang limitasyon sa bilang ng request, tingnan ang tala sa ibaba)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # mas mahabang limitadong paghihintay para sa heavyweight capacity sa halip na agarang retryable na 503
+export OMNIROUTE_ROTATE_ON_400=true           # lumipat sa ibang model/provider kapag 400/401 (nilalaktawan ang mga sirang passthrough model)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # tahasang pinakamataas na bilang ng sabay-sabay na heavyweight admission (hindi nakatakda bilang default: walang limitasyon sa bilang ng request, tingnan ang tala sa ibaba)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # taasan ang limitadong paghihintay nang lampas sa default na RATE_LIMIT_MAX_WAIT_MS para sa mababagal na upstream
 ```
 
-I-set ang mga ito sa process environment ng OmniRoute (ang daemon, hal. sa pamamagitan ng LaunchAgent plist o `systemctl edit`), pagkatapos ay i-restart ang OmniRoute. Ang rotation flag ang nag-iisang may pinakamalaking epekto: ginagawa nitong transparent na retry sa isang maayos na provider sa pool ang isang ganap na pagkabigo.
+Itakda ang mga ito sa process environment ng OmniRoute (ang daemon, hal. sa pamamagitan ng LaunchAgent plist o `systemctl edit`), pagkatapos ay i-restart ang OmniRoute. Ang rotation flag ang may pinakamalaking epekto: ginagawa nitong transparent na muling pagsubok sa isang maayos na provider sa pool ang isang matinding pagkabigo.
 
-**Tala**: Nililimitahan ng `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` kung ilang heavyweight — long-context — request ang tumatakbo nang sabay-sabay; admission gate ang limitasyon, hindi provider rate limiter. **Update sa #503-fanout:** hindi na naka-set bilang default ang var na ito (nalalapat lang ito ngayon kapag tahasang na-configure, gaya sa itaas) — sa halip, kinokontrol na ang heavyweight admission ng awtomatikong kinuhang byte budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) na kusang umaangkop batay sa aktuwal na memory ceiling ng host, kaya dapat makakita ang isang bagong deployment ng mas kaunting pagtangging `503 chat_admission_busy` nang hindi kailangang i-set ang var na ito; gagana pa rin nang eksakto tulad ng nakadokumento ang tahasang pag-set nito rito. Nililimitahan sa 8 MiB–2 GiB ang mga tahasang byte-budget override. Hindi pansamantala ang `413 body_exceeds_budget`: taasan ang byte budget na iyon, babaan ang `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, o taasan ang process memory ceiling. Pansamantalang contention ang isang `inflight_bytes_budget` shed at maaari pa ring subukang muli. Hiwalay na pinamamahalaan ng `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, at `RATE_LIMIT_AUTO_ENABLE` ang paglilimita ng rate sa bawat provider (`open-sse/services/rateLimitManager.ts`) — tingnan ang `.env.example`.
+**Tala**: Nililimitahan ng `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` kung ilang heavyweight — long-context — na request ang sabay-sabay na tumatakbo; ang hangganan ay isang admission gate, hindi rate limiter ng provider. **Update sa #503-fanout:** hindi na nakatakda bilang default ang variable na ito (gagana lamang ito kapag tahasang kinonfigure, gaya sa itaas) — sa halip, kinokontrol na ang heavyweight admission ng awtomatikong kinukuwentang byte budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) na kusang umaayon sa aktuwal na limitasyon ng memory ng host, kaya dapat makakita ang isang bagong deployment ng mas kaunting `503 chat_admission_busy` na pagtanggi kahit hindi itakda ang variable na ito; gagana pa rin nang eksakto gaya ng nakadokumento ang tahasang pagtatakda nito rito. Ang mga tahasang override sa byte budget ay nililimitahan sa 8 MiB–2 GiB. Hindi pansamantala ang isang `413 body_exceeds_budget`: taasan ang byte budget na iyon, babaan ang `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, o taasan ang limitasyon ng memory ng process. Pansamantalang contention ang isang `inflight_bytes_budget` shed at maaari pa ring subukang muli. Ang rate limiting sa bawat provider (`open-sse/services/rateLimitManager.ts`) ay hiwalay na pinamamahalaan ng `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, at `RATE_LIMIT_AUTO_ENABLE` — tingnan ang `.env.example`.
 
-**Paano tiyaking gumana ito**: patakbuhin ang iyong agent/cron nang dalawang beses nang sunod-sunod at tiyaking parehong matagumpay. Bago ang pag-aayos, karaniwang naglalabas ang ikalawang pagtakbo ng `429`/`401`. Pagkatapos ng pag-aayos, ang mga kabiguan (kung mayroon man) ay awtomatikong sinusubukang muli at nakukumpleto ang tawag. Maaari mo ring patakbuhin ang `curl /monitoring/health` at subaybayan ang field na `rateLimitedUntil` sa mga koneksyon ng provider at ang `circuitBreakers.providerBreakers[].state` para sa mga apektadong provider — ang estado ay isa sa `CLOSED`, `DEGRADED`, `OPEN`, o `HALF_OPEN` (tingnan ang `src/shared/utils/circuitBreaker.ts`), at ang provider na patuloy na nabibigo ay lilipat mula `CLOSED → DEGRADED → OPEN` bago magpahintulot ang palugit ng pag-reset na makalusot ang isang pagsubok (`HALF_OPEN`).
+**Paano tiyaking gumana ito**: patakbuhin ang iyong agent/cron nang dalawang beses nang magkasunod at tiyaking parehong matagumpay. Bago ang pag-aayos, karaniwang naglalabas ng `429`/`401` ang ikalawang pagtakbo. Pagkatapos ng pag-aayos, transparent na muling sinusubukan ang mga pagkabigo (kung mayroon man) at nakukumpleto ang call. Maaari mo ring patakbuhin ang `curl /monitoring/health` at bantayan ang field na `rateLimitedUntil` sa mga koneksyon ng provider at ang `circuitBreakers.providerBreakers[].state` para sa mga apektadong provider — ang state ay isa sa `CLOSED`, `DEGRADED`, `OPEN`, o `HALF_OPEN` (tingnan ang `src/shared/utils/circuitBreaker.ts`), at ang provider na patuloy na nabibigo ay lilipat mula `CLOSED → DEGRADED → OPEN` bago payagan ng reset window na makalusot ang isang probe (`HALF_OPEN`).
 
-**Kung nakikita mo pa rin ang 429**: talagang naubos na ng aktibong account para sa provider na iyon ang _quota_ nito (hindi lang ang limitasyon sa dalas). Magdagdag ng pangalawang account para sa parehong provider sa OmniRoute dashboard → Providers → Accounts, o magsama ng isa pang libreng provider (hal. `routeway`, `auggie`). Nakakatulong lamang ang pag-ikot sa pansamantalang rate/400/401; kapag ganap nang naubos ang quota, kailangan ng pangalawang kredensyal o ibang provider.
+**Kung nakakakita ka pa rin ng 429**: talagang naubos na ng aktibong account para sa provider na iyon ang _quota_ nito (hindi lamang ang rate). Magdagdag ng ikalawang account para sa parehong provider sa OmniRoute dashboard → Providers → Accounts, o magsama ng isa pang libreng provider (hal. `routeway`, `auggie`). Nakakatulong lamang ang rotation sa pansamantalang rate/400/401; nangangailangan ang ganap na pagkaubos ng quota ng ikalawang credential o ibang provider.
 
-**Kung nakikita mo ang 403 sa mga vision model (`auto/vision`, `bazaarlink/*`)**: walang bayad na planong may kasamang vision ang nakakonektang account, o hindi sapat ang mga pahintulot ng API key. Tiyakin sa dashboard ng provider na kasama sa saklaw ng key ang vision/multimodal, o magkonekta ng account na may bayad na tier at panatilihin ito bilang target para sa vision.
+**Kung nakakakita ka ng 403 sa mga vision model (`auto/vision`, `bazaarlink/*`)**: walang bayad na plan na may kasamang vision ang nakakonektang account, o walang sapat na permission ang API key. Tiyakin sa dashboard ng provider na kasama sa scope ng key ang vision/multimodal, o magkonekta ng paid tier account at panatilihin ito bilang vision target.
 
 ---
 
@@ -546,34 +546,33 @@ Gamitin ang **Dashboard → Translator** upang i-debug ang mga isyu sa pagsasali
 
 - Nalalapat lamang ang awtomatikong rate-limit sa mga provider ng API key (hindi sa OAuth/subscription)
 - Tiyaking naka-enable ang awtomatikong rate-limit sa **Settings → Resilience → Provider Profiles**
-- Tingnan kung nagbabalik ang provider ng mga status code na `429` o mga header na `Retry-After`
+- Tingnan kung nagbabalik ang provider ng mga `429` status code o `Retry-After` header
 
 ### Pag-tune ng exponential backoff
 
-Sinusuportahan ng mga profile ng provider ang mga setting na ito:
+Sinusuportahan ng mga provider profile ang mga setting na ito:
 
-- **Base delay** — Paunang tagal ng paghihintay pagkatapos ng unang kabiguan (default: 1s)
-- **Max delay** — Maximum na limitasyon ng tagal ng paghihintay (default: 30s)
-- **Multiplier** — Gaano kalaki ang itataas sa delay sa bawat sunod-sunod na kabiguan (default: 2x)
+- **Base delay** — Paunang tagal ng paghihintay pagkatapos ng unang pagkabigo (default: 1s)
+- **Max delay** — Pinakamataas na limitasyon ng tagal ng paghihintay (default: 30s)
+- **Multiplier** — Gaano kalaki ang idadagdag sa delay sa bawat magkakasunod na pagkabigo (default: 2x)
 
 ### Pag-iwas sa thundering herd
 
-Kapag maraming magkakasabay na request ang tumama sa isang provider na may rate-limit, gumagamit ang OmniRoute ng mutex + awtomatikong rate-limiting upang isa-isahin ang mga request at maiwasan ang magkakasunod na kabiguan. Awtomatiko ito para sa mga provider ng API key.
+Kapag maraming magkakasabay na request ang tumama sa isang provider na may rate limit, gumagamit ang OmniRoute ng mutex + awtomatikong rate-limiting upang isa-isahin ang mga request at maiwasan ang magkakasunod na pagkabigo. Awtomatiko ito para sa mga provider ng API key.
 
 ### Nabibigo ang mga chat request na may 503 / chat_admission_busy
 
-**Mga Sintomas:**
+**Mga sintomas:**
 
-- Nagbabalik ang endpoint ng chat completions ng retryable na tugong `503` na may error code na
+- Nagbabalik ang endpoint ng chat completions ng maaaring subukang muli na `503` response na ang error code ay
   `chat_admission_busy`.
-- Kasama sa tugon ang `Retry-After`. Mula noong #12135, hinango ang value mula sa naobserbahang
-  occupancy — alinman ang mas malaki sa window na `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` na nahintay na ng request
+- Kasama sa response ang `Retry-After`. Mula noong #12135, hinango ang value mula sa naobserbahang
+  occupancy — alinman ang mas malaki sa `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` window na naihintay na ng request
   at sa tagal na hawak ang mga kasalukuyang heavyweight lease — ni-round up sa buong
-  segundo at nilimitahan sa 60. Sa isang idle na gate, pinapanatili nito ang mga dating minimum: 2 segundo sa
-  byte-based na path, 1 segundo sa structure-based na path (na may kasama ring
+  segundo at nilimitahan sa 60. Sa isang idle na gate, pinananatili nito ang mga dating minimum: 2 segundo sa
+  byte-based na path, 1 segundo sa structure-based na path (na kasama rin ang
   `reason: "structure_limit"`).
-- Maaari itong mangyari habang may isa pang heavyweight chat o matagal tumakbong streaming response na
-  isinasagawa pa rin.
+- Maaari itong mangyari habang pinoproseso pa ang isa pang heavyweight chat o matagal na streaming response.
 
 Ang byte-based na response body ay:
 
@@ -587,53 +586,53 @@ Ang byte-based na response body ay:
 }
 ```
 
-Gumagamit ang structure-based na tugon ng parehong type at code, na may mensaheng
+Gumagamit ang structure-based na response ng parehong type at code, na may message na
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 at `reason: "structure_limit"`.
-Sa mga default na threshold, itinuturing na structurally heavy ang isang request kapag mayroon itong hindi bababa sa `200` mensahe,
-hindi bababa sa `64` tool, o hindi bababa sa tinatayang `32,000` token, o kapag naubos ng bounded structure estimation
+Sa mga default na threshold, itinuturing na structurally heavy ang isang request kapag mayroon itong hindi bababa sa `200` message,
+hindi bababa sa `64` tool, o hindi bababa sa `32,000` tinatayang token, o kapag naubos ng bounded structure estimation
 ang mga limitasyon nitong `10,000` binisitang node o depth na `12`.
 
-**Sanhi:** Sinadyang load shedding ito sa loob ng OmniRoute, hindi isang kabiguan ng upstream provider.
+**Sanhi:** Sinasadyang load shedding ito sa loob ng OmniRoute, hindi pagkabigo ng upstream provider.
 Gumagamit ang bawat process ng process-local guard upang magreserba ng limitadong heavyweight capacity bago panatilihin
-at i-parse ang isang malaking request body. Nananatiling hawak ang isang heavyweight lease sa buong tagal ng isang SSE
+at i-parse ang isang malaking request body. Nananatiling hawak ang isang heavyweight lease sa buong lifecycle ng isang SSE
 response.
 
 **#503-fanout:** bago ang pag-aayos na ito, nililimitahan ng guard ang concurrency sa isang nakapirming BILANG ng request
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, default na `1`) anuman ang memory ng host, kaya ang fan-out ng coding-agent
-(maraming subagent/CLI, mga body na karaniwang > 256 KB) ay bumabagsak sa epektibong
-concurrency na ~1 at nagbabalik ng 503 sa ganap na normal na load. Awtomatiko na ngayong nagtu-tune ang guard: kinokontrol ito
-ng awtomatikong hinangong ingest BYTE budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) na ibinabatay sa
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, default `1`) anuman ang memory ng host, kaya ang fan-out ng coding-agent
+(maraming subagent/CLI, mga body na karaniwang > 256 KB) ay bumagsak sa epektibong
+concurrency na ~1 at nagbalik ng 503 sa ganap na normal na load. Ngayon ay awtomatikong nagtu-tune ang guard: kinokontrol
+ito ng awtomatikong hinangong ingest BYTE budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) na itinakda batay sa
 aktuwal na memory ceiling ng process, at kumokonsulta rin ito sa isang live na signal ng resource pressure — kaya
-naglo-load shed lamang ito kapag talagang nakararanas ng memory pressure ang host, hindi dahil lamang sa higit sa isang
-heavy request ang dumating nang sabay-sabay. Sinusunod pa rin ang lumang count cap (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`),
+naglo-load shed lamang ito kapag tunay na nakararanas ng memory pressure ang host, hindi dahil lamang higit sa isang
+heavy request ang dumating nang sabay. Sinusunod pa rin ang lumang count cap (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`),
 ngunit kung tahasan mo lamang itong ise-set.
 
 Kapag abala ang capacity, naghihintay muna ang isang heavyweight request nang hanggang
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default na `2000`, idi-disable ng `0` ang paghihintay) para may mabakanteng slot
-bago ibalik ang retryable na `503`. Umiiral ang limitadong paghihintay upang ang mga agent-style client
-(OpenCode, Claude Code, Cursor) na sabay-sabay na nagfa-fan out ng mga heavy sub-request ay isa-isahin ang burst
-sa halip na ubusin ang kanilang buong retry budget sa mga agarang pagtanggi at huminto sa gitna ng gawain.
-Makikita sa `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) ang kasalukuyang occupancy ng heavyweight lease, ang nalutas na byte budget, at ang
-antas ng live pressure — suriin ang mga ito bago baguhin ang anumang env var.
-Hindi ito kinokontrol ng Settings → Resilience → Request Queue → Concurrent Requests; pinamamahalaan ng setting na iyon
-ang isang hiwalay na mekanismo ng request queue ng provider.
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (ang default ay `RATE_LIMIT_MAX_WAIT_MS`; dini-disable ng `0` ang paghihintay) para lumuwag ang isang slot
+bago ibalik ang maaaring subukang muli na `503`. Umiiral ang limitadong paghihintay upang ang mga agent-style na client
+(OpenCode, Claude Code, Cursor) na sabay-sabay na nagfa-fan out ng mabibigat na sub-request ay isa-isahin ang burst
+sa halip na maubos ang kanilang buong retry budget sa mga agarang rejection at tumigil habang nasa gitna ng task.
+Ang kasalukuyang occupancy ng heavyweight lease, ang natukoy na byte budget, at ang live na tindi ng pressure ay
+makikita sa `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — tingnan ang mga ito bago baguhin ang anumang env var.
+Hindi ito kinokontrol ng Settings → Resilience → Request Queue → Concurrent Requests; ang setting na iyon
+ang namamahala sa hiwalay na mekanismo ng request queue ng provider.
 
 **Pag-aayos:**
 
-1. Subukan munang muli. Dapat sundin ng mga client ang `Retry-After` at gumamit ng backoff sa halip na agad
+1. Subukang muli muna. Dapat sundin ng mga client ang `Retry-After` at gumamit ng backoff sa halip na agad
    ulitin ang request.
-2. Suriin ang `/api/monitoring/health` → `chatAdmission` bago mag-tune ng anuman. Ang `countCapEnabled:
-false` at isang sapat na malaking `maxInflightBytes` ay nangangahulugang maayos nang gumagana ang awtomatikong hinangong budget;
-   ang `pressureSeverity` na `high`/`critical` ay nangangahulugang talagang kapos sa memory ang host —
-   hindi ito maaayos ng isang admission env var; nangangailangan ito ng mas maraming RAM o mas maliit na workload.
-3. Tanging kung ipinapakita ng `/api/monitoring/health` na talagang napakaliit ng awtomatikong hinangong budget para sa
+2. Tingnan ang `/api/monitoring/health` → `chatAdmission` bago mag-tune ng anuman. Ang `countCapEnabled:
+false` at malaking `maxInflightBytes` ay nangangahulugang gumagana na nang tama ang awtomatikong hinangong budget;
+   ang `pressureSeverity` na `high`/`critical` ay nangangahulugang tunay na kapos sa memory ang host —
+   hindi ito maaayos sa pamamagitan ng admission env var; kailangan nito ng mas maraming RAM o mas maliit na workload.
+3. Kung ipinapakita lamang ng `/api/monitoring/health` na tunay na napakaliit ng awtomatikong hinangong budget para sa
    iyong host (bihira — awtomatiko na itong nag-i-scale mula container hanggang bare-metal), direktang i-override ito gamit ang
    `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` sa halip na bumalik sa legacy na request-count cap.
 
-Tingnan ang [sanggunian ng environment variable](../reference/ENVIRONMENT.md#4-security--authentication)
-para sa awtoritatibong mga setting ng admission.
+Tingnan ang [reference ng environment variable](../reference/ENVIRONMENT.md#4-security--authentication)
+para sa opisyal na mga setting ng admission.
 
 ---
 

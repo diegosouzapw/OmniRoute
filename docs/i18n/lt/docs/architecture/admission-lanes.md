@@ -7,52 +7,52 @@
 OmniRoute turi **dvi** proceso vietiniu mastu veikiančias kanalų sistemas, kurių taikymo sritys skiriasi. Jos yra
 viena kitą papildančios; operatoriai turėtų žinoti, kurią iš jų stebi.
 
-## 1. Baitų lygmens priėmimas viso proceso mastu (`chatBodyAdmission.ts`)
+## 1. Baitų lygmens viso proceso priėmimas (`chatBodyAdmission.ts`)
 
-- **Taikymo sritis:** buferizuoto užklausos turinio / kaupo kelias, skirtas `POST /v1/chat/completions`,
+- **Taikymo sritis:** buferizuojamo užklausos turinio / kaupo kelias, skirtas `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` ir kitiems pokalbio formato maršrutams. Apsaugo
   nuo kaupo naudojimo išaugimo dėl didelių programavimo agentų užklausų turinių (#4380).
-- **Vienas visam procesui bendras valdiklis, o ne atskiros juostos kiekvienam raktui (#10110).** Kiekvienas API raktas
-  (maišos reikšmė) arba `anonymous` seansas priimamas pagal **tą patį** bendrą biudžetą —
-  seanso maišos identifikatorius naudojamas TIK kaip teisingo planavimo raktas (ciklinis
+- **Vienas visam procesui bendras valdiklis, o ne atskiros kiekvieno rakto juostos (#10110).** Kiekvienas API raktas
+  (maišos pavidalu) arba `anonymous` seansas priimamas pagal **tą patį** bendrą biudžetą —
+  maišos pavidalo seanso ID naudojamas TIK kaip sąžiningo planavimo raktas (ciklinis
   laukiančiųjų paskirstymas), bet niekada kaip pajėgumo segmentas. Ankstesnėje šio
   dokumento versijoje buvo aprašytos atskiros kiekvieno rakto juostos su nepriklausomu pajėgumu; šio modelio
-  atsisakyta #10110 pakeitime, nes jis leido naudojant suklastotus neautentifikuotus prisijungimo duomenis padidinti
+  atsisakyta #10110, nes dėl jo neautentifikuoti netikri kredencialai galėjo padidinti
   visam procesui taikomą ribą.
-- **Užkarda (#503-fanout): automatiškai apskaičiuojamas priėmimo BAITŲ biudžetas, o ne fiksuotas užklausų
-  skaičius.** Ankstesnė `CHAT_MAX_HEAVY_IN_FLIGHT` užklausų skaičiaus riba (prieš šį pataisymą numatytoji reikšmė buvo `1`)
-  sumažindavo programavimo agentų lygiagretų išsišakojimą (keli pagalbiniai agentai / CLI,
-  užklausų turiniai paprastai > 256 KB) iki faktinio ~1 lygiagretumo, todėl esant visiškai
-  normaliai apkrovai būdavo grąžinama 503 klaida. Dabar ši riba taikoma tik tada, kai operatorius aiškiai
-  nustato `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Jei reikšmė nenustatyta, priėmimą vietoje jos
-  riboja `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — biudžetas, automatiškai apskaičiuojamas pagal
-  faktinę proceso atminties ribą (`src/shared/middleware/admissionBudget.ts`):
-  25 % mažesniosios iš V8 kaupo ribos ir bet kokios cgroup / konteinerio ribos,
-  padalijus iš 8x laikinojo išaugimo koeficiento ir apribojus intervale nuo 8 MiB iki
-  2 GiB. Aiškiai nurodytoms reikšmėms taikomos tos pačios ribos. Todėl sistema prisitaiko
-  nuo 512 MB konteinerio iki 32 GB darbalaukio be aplinkos kintamųjų derinimo. Užklausos turinys, kuris
-  netelpa į faktinį biudžetą, iš karto atmetamas su `413 body_exceeds_budget`;
-  į ribotą teisingumo eilę patenka tik konkurencija tarp atskirai aptarnaujamų užklausų turinių.
-  Tiesioginis kelių signalų išteklių apkrovos sekiklis (V8 kaupo santykis,
+- **Užtvara (#503-fanout): automatiškai nustatomas priėmimo BAITŲ biudžetas, o ne fiksuotas užklausų
+  skaičius.** Ankstesnė `CHAT_MAX_HEAVY_IN_FLIGHT` užklausų skaičiaus riba (iki šio pataisymo
+  numatytoji reikšmė buvo `1`) sumažindavo programavimo agentų lygiagretų išsišakojimą (keli antriniai agentai / CLI,
+  užklausų turiniai įprastai > 256 KB) iki faktinio ~1 lygiagretumo, todėl esant visiškai
+  normaliai apkrovai būdavo grąžinama 503 klaida. Dabar ji taikoma tik tada, kai operatorius aiškiai
+  nustato `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Jei ši reikšmė nenustatyta, priėmimą riboja
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — biudžetas, automatiškai nustatomas pagal
+  realią proceso atminties ribą (`src/shared/middleware/admissionBudget.ts`):
+  25 % mažesnės iš V8 kaupo ribos ir bet kokios cgroup / konteinerio ribos,
+  padalijus iš 8 kartų laikinojo išaugimo koeficiento ir apribojus diapazonu nuo 8 MiB iki
+  2 GiB. Aiškiai nurodytoms reikšmėms taikomos tos pačios ribos. Taip be jokio aplinkos kintamųjų derinimo
+  automatiškai prisitaikoma nuo 512 MB konteinerio iki 32 GB stalinio kompiuterio. Užklausos turinys, kuris
+  netelpa į faktinį biudžetą, iškart atmetamas su `413 body_exceeds_budget`;
+  į ribotą sąžiningumo eilę patenka tik konkurencija tarp pavieniui aptarnaujamų užklausų turinių.
+  Veikianti kelių signalų išteklių apkrovos stebėjimo priemonė (V8 kaupo santykis,
   cgroup, PSI, OOM įvykiai — `open-sse/utils/resourcePressurePolicy.ts`) sutrumpina
-  ribotą laukimo laiką esant `high` apkrovai ir iš karto atmeta užklausą su
+  ribotą laukimo laiką esant `high` apkrovai ir iškart atmeta užklausą su
   `503 resource_pressure` esant `critical` apkrovai, dar prieš priimant bent vieną
-  baitą. Kai įmanoma, PSI skaitomas iš šio vieneto cgroup failo `memory.pressure`
+  baitą. Kai įmanoma, PSI nuskaitomas iš šio vieneto cgroup failo `memory.pressure`
   (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` apima
-  visą pagrindinę sistemą ir naudojamas tik kaip atsarginis variantas fizinėje sistemoje / cgroup v1, todėl atminties
-  puslapius į diską perkelianti pagrindinė sistema negali sukelti 503 klaidos neveikliame konteineryje.
+  visą pagrindinį kompiuterį ir naudojamas tik kaip atsarginis variantas fizinėje sistemoje / cgroup v1, todėl atminties
+  puslapius perkeliantis pagrindinis kompiuteris negali lemti 503 atsako neveikliame konteineryje.
 - **Derinimas:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — automatiškai apskaičiuojamo baitų biudžeto perrašymas
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — ankstesnė užklausų skaičiaus riba, taikoma tik pasirinktinai
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — laukimo eilėje trukmė prieš grąžinant 503 (numatytoji reikšmė 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — eilėje esančių baitų kaupo vožtuvas (numatytoji reikšmė 4 MB)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — automatiškai nustatomo baitų biudžeto perrašymas
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — ankstesnė užklausų skaičiaus riba, taikoma tik pasirinktinai ją įjungus
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — laukimo eilėje trukmė prieš grąžinant 503 (numatytoji reikšmė yra `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — eilėje esančių baitų kaupo vožtuvas (numatytoji reikšmė – 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — nebenaudojami
-    ir nuo #10110 nieko neatlieka (priimami dėl konfigūracijos suderinamumo, bet ignoruojami)
+    neveikiantys parametrai nuo #10110 (priimami dėl konfigūracijos suderinamumo, bet ignoruojami)
 - **Ataskaitos:** `GET /api/monitoring/health` → `chatAdmission` (#11244), įskaitant
   #503-fanout papildymus `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` ir `countCapEnabled`
-  (numatytajame diegime reikšmė yra false — tai patvirtina, kad faktiškai riboja baitų biudžetas, o ne ankstesnė
-  skaičiaus riba).
+  (numatytojoje diegtyje reikšmė yra false — tai patvirtina, kad iš tikrųjų riboja baitų biudžetas, o ne ankstesnė
+  užklausų skaičiaus riba).
 
 ## 2. Adaptyvios vykdymo aplinkos virtualios juostos (`open-sse/services/admission`)
 

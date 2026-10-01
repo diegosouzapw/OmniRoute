@@ -347,50 +347,50 @@ curl http://localhost:20128/v1/chat/completions \
 
 <img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Animacja wszystkich 19 strategii routingu kombinacji — po jednym kafelku na strategię: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Opis działania każdej z nich znajduje się w tabeli powyżej."/>
 
-> **Kombinacja** to łańcuch modeli, między którymi OmniRoute przełącza ruch **automatycznie**. Jeśli limit zostanie wyczerpany, dostawca ulegnie awarii lub koszty gwałtownie wzrosną, kombinacja może przejść do następnego kwalifikującego się, sprawnego modelu. 🛡️
+> **Kombinacja** to łańcuch modeli, między którymi OmniRoute kieruje ruch **automatycznie**. Jeśli limit zostanie wyczerpany, dostawca ulegnie awarii lub koszty gwałtownie wzrosną, kombinacja może przejść do kolejnego kwalifikującego się, sprawnego modelu. 🛡️
 
 ### ⚡ Bez konfiguracji — po prostu użyj `auto`
 
-Nie musisz tworzyć kombinacji. Ustaw model na `auto` (lub jeden z jego wariantów), a OmniRoute utworzy wirtualną kombinację z połączonych dostawców, ocenianych na bieżąco:
+Nie musisz tworzyć kombinacji. Ustaw model na `auto` (lub jeden z jego wariantów), a OmniRoute utworzy wirtualną kombinację na podstawie połączonych dostawców i będzie oceniać ich na bieżąco:
 
 <table>
   <tr><th align="left">Identyfikator modelu</th><th align="left">Co optymalizuje</th></tr>
   <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Zrównoważone ustawienie domyślne (LKGP — pozostaje przy ostatnim sprawdzonym dostawcy)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Wagi z priorytetem jakości przy generowaniu kodu</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Wagi stawiające jakość na pierwszym miejscu podczas generowania kodu</td></tr>
   <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Najpierw najniższe opóźnienie</td></tr>
   <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Najpierw najniższy koszt tokenu</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Najpierw największy zapas limitu / ograniczenia szybkości</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Priorytet jakości + 10% eksploracji w celu wykrywania lepszych modeli</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Jawne trzymanie się ostatniego sprawdzonego dostawcy</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Wagi wstrzykiwania błędów do testowania odporności (inżynieria chaosu)</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Najpierw największy zapas limitu / przepustowości</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Jakość na pierwszym miejscu + 10% eksploracji w celu odkrywania lepszych modeli</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Jawne przywiązanie do ostatniego sprawdzonego dostawcy</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Równoległe rozsyłanie do panelu modeli (po jednym na dostawcę, domyślnie 5), zwracające jedną odpowiedź; jedno wywołanie nadrzędne na każdy model w panelu, a nie wstrzykiwanie awarii</td></tr>
 </table>
 
 ##
 
-### 🔀 Lub utwórz własną — 19 strategii routingu
+### 🔀 Lub utwórz własną kombinację — 19 strategii routingu
 
-Wszystkie **19** strategii — dowolnie łącz je w poszczególnych krokach kombinacji:
+Wszystkie **19** strategii — możesz je dowolnie łączyć na każdym etapie kombinacji:
 
 <table>
   <tr>
     <th>#</th>
     <th align="left">Strategia</th>
-    <th align="left">Jak działa</th>
+    <th align="left">Działanie</th>
   </tr>
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>Uporządkowana lista z pierwszym celem — wyczerpuje każdy z nich przed przejściem do następnego 🥇</td>
+    <td>Uporządkowana lista z pierwszym celem — wykorzystuje każdy przed przejściem do następnego 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>W pełni wykorzystuje limit każdego celu przed przejściem dalej</td>
+    <td>W pełni wykorzystuje limit każdego celu przed przejściem do następnego</td>
   </tr>
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>Losowy wybór ważony według wagi każdego celu</td>
+    <td>Losowy wybór ważony według wagi poszczególnych celów</td>
   </tr>
   <tr>
     <td align="center">4</td>
@@ -400,17 +400,17 @@ Wszystkie **19** strategii — dowolnie łącz je w poszczególnych krokach komb
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>Losowe równoważenie obciążenia metodą wyboru z dwóch opcji</td>
+    <td>Losowe równoważenie obciążenia metodą wyboru lepszego z dwóch</td>
   </tr>
   <tr>
     <td align="center">6</td>
     <td nowrap><code>least-used</code></td>
-    <td>Wybiera cel z najniższym bieżącym obciążeniem</td>
+    <td>Wybiera cel o najniższym bieżącym obciążeniu</td>
   </tr>
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>Jednostajny wybór losowy (z deduplikacją)</td>
+    <td>Jednostajny wybór losowy (bez duplikatów)</td>
   </tr>
   <tr>
     <td align="center">8</td>
@@ -420,7 +420,7 @@ Wszystkie **19** strategii — dowolnie łącz je w poszczególnych krokach komb
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>Minimalizuje koszt w $ na żądanie na podstawie aktualnych cen katalogowych 💸</td>
+    <td>Minimalizuje koszt $ na żądanie na podstawie bieżących cen katalogowych 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
@@ -445,32 +445,32 @@ Wszystkie **19** strategii — dowolnie łącz je w poszczególnych krokach komb
   <tr>
     <td align="center">14</td>
     <td nowrap><code>context-optimized</code></td>
-    <td>Wybiera najlepsze dopasowanie do bieżącego rozmiaru kontekstu</td>
+    <td>Wybiera cel najlepiej dopasowany do bieżącego rozmiaru kontekstu</td>
   </tr>
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>Przypisuje każdy prefiks podpowiedzi wielokrotnego użytku do tego samego konta — maksymalizuje trafienia w pamięci podręcznej podpowiedzi 🎯</td>
+    <td>Przypisuje każdy prefiks monitu wielokrotnego użytku do tego samego konta — maksymalizuje trafienia w pamięci podręcznej monitów 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Ostatnia znana sprawna ścieżka — przypisuje ruch do ostatniego dostawcy, który obsłużył żądanie pomyślnie, a następnie korzysta z reguł awaryjnych</td>
+    <td>Ostatnia znana dobra ścieżka — przypisuje do ostatniego dostawcy, który pomyślnie obsłużył żądanie, a następnie stosuje reguły przełączania awaryjnego</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>Bieżąca ocena każdego połączenia na podstawie 16 czynników 🤖</td>
+    <td>Bieżąca ocena wszystkich połączeń na podstawie 16 czynników 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>Rozsyła żądanie do panelu modeli, a model oceniający syntetyzuje jedną odpowiedź 🧬</td>
+    <td>Rozsyła żądanie do panelu modeli, a model oceniający tworzy jedną zbiorczą odpowiedź 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>Łączy kroki — wynik każdego celu jest przekazywany do następnego 🔗</td>
+    <td>Łączy etapy — wynik każdego celu jest przekazywany do następnego 🔗</td>
   </tr>
 </table>
 
@@ -480,7 +480,7 @@ Wszystkie **19** strategii — dowolnie łącz je w poszczególnych krokach komb
 
 ### 🧱 Odporność jest wbudowana (3 niezależne warstwy)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Odporność OmniRoute — 3 niezależne warstwy samonaprawcze, właściwa warstwa dla właściwej awarii. Warstwa 1: wyłącznik automatyczny dostawcy (cały dostawca): uruchamia się tylko przy 408/5xx, progi: OAuth 8× / klucz API 12× / lokalnie 2×, resetuje się po 60s/30s/15s, przechodząc do testu HALF-OPEN; odzyskiwanie leniwe; gdy stan to OPEN, kombinacja przekierowuje ruch do następnego dostawcy. Warstwa 2: okres oczekiwania połączenia (jeden klucz/konto): bazowo 5s dla OAuth / 3s dla klucza API, wykładnicze opóźnienie ×2 z zabezpieczeniem przed skumulowanymi równoczesnymi żądaniami, 429 respektuje Retry-After, sukces usuwa cały stan błędów; jeden klucz w okresie oczekiwania jest pomijany, podczas gdy pozostałe klucze nadal obsługują żądania. Warstwa 3: blokada modelu (jeden model): 429 dla danego modelu, lokalne 404 lub odmowy trybu blokują tylko ten model — nigdy całe połączenie. Stany końcowe (zablokowany, wygasły, wyczerpane środki) wymagają działania operatora, a nie okresów oczekiwania."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Odporność OmniRoute — 3 niezależne warstwy samonaprawcze, właściwa warstwa dla właściwej awarii. Warstwa 1: wyłącznik obwodu dostawcy (cały dostawca): uruchamia się tylko przy 408/5xx, progi OAuth 8× / klucz API 12× / lokalny 2×, resetuje się po 60s/30s/15s, przechodząc do próby HALF-OPEN; odzyskiwanie leniwe; w stanie OPEN kombinacja przekierowuje ruch do następnego dostawcy. Warstwa 2: okres wyciszenia połączenia (jeden klucz/konto): bazowo 5s dla OAuth / 3s dla klucza API, wykładnicze wycofanie ×2 z ochroną przed lawiną równoczesnych żądań, 429 respektuje Retry-After, powodzenie usuwa cały stan błędów; jeden wyciszony klucz jest pomijany, podczas gdy pozostałe klucze nadal obsługują żądania. Warstwa 3: blokada modelu (jeden model): 429 dla konkretnego modelu, lokalne 404 lub odmowy trybu blokują tylko ten model — nigdy całe połączenie. Stany końcowe (zablokowany, wygasły, wyczerpane środki) wymagają działania operatora, a nie okresu wyciszenia."/>
 
 <sub>📖 [Silnik Auto-Combo](docs/routing/AUTO-COMBO.md) · [Przewodnik po odporności](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
@@ -571,29 +571,29 @@ aktualnym katalogu znajdziesz na stronie **[radar.omniroute.online/planos](https
 
 </div>
 
-> Najważniejsze ostatnie zmiany od **v3.8.20 → v3.8.50**. Pełna historia znajduje się w [`CHANGELOG.md`](CHANGELOG.md).
+> Najważniejsze nowości z wersji **v3.8.20 → v3.8.50**. Pełna historia znajduje się w pliku [`CHANGELOG.md`](CHANGELOG.md).
 
-- **🎛️ OmniConductor** — przychodzące delegowanie A2A do floty agentów, umiejętności Conductor na karcie agenta oraz panel pulpitu z czatem głosowym Faro typu „naciśnij, aby mówić”. → [Serwer A2A](docs/frameworks/A2A-SERVER.md)
-- **🛂 Adaptacyjne dopuszczanie i ochrona przed przeciążeniem** — zasobożerne żądania czatu trafiają do kolejki zamiast zwracać błąd 503, z atomowymi, kroczącymi dzierżawami RPM dla każdego połączenia. → [Przewodnik po odporności](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ Kanoniczna kolejność `/v1/models`** — jeden ciągły blok pogrupowany według dostawcy dla każdego dostawcy (kombinacje przypięte na początku), stabilny we wszystkich źródłach katalogu. → [Dokumentacja API](docs/reference/API_REFERENCE.md)
-- **🗜️ Wzmocniona kompresja** — domyślnie włączone zabezpieczenie przed nadmierną dekompresją, pakiety Caveman dla DE / FR / JA oraz języka chińskiego (wényán), filtry RTK dla Gradle i .NET. → [Kompresja](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Rzetelny koszt ryczałtowy** — dostawcy subskrypcyjni / planów programistycznych wykazują koszt **$0** w analityce kosztów; budżet, limit i routing nadal korzystają z szacunków. → [Dokumentacja API](docs/reference/API_REFERENCE.md)
-- **⚖️ Routing Quota-Share** — sprawiedliwie rozdziela limit współdzielonego konta między klucze w puli, z pełnym wykorzystaniem zasobów dzięki udostępnianiu niewykorzystanych przydziałów. → [Przewodnik po odporności](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 Konfiguracja CLI/agenta jednym poleceniem** — 13 zarejestrowanych poleceń `setup-*`; `omniroute run` uruchamia 7 narzędzi CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` obsługuje 10 środowisk docelowych, oferując interaktywny wybór dostawcy i modelu oraz ulubione pozycje dla poszczególnych kontekstów. → [Integracje CLI](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Tryb zdalny** — sterowanie zdalną instancją OmniRoute za pomocą tokenów o ograniczonym zakresie (`connect` / `contexts` / `tokens`) oraz pomocnika OAuth `antigravity` przeznaczonego do instalacji na VPS. → [Tryb zdalny](docs/guides/REMOTE-MODE.md)
-- **🧭 Inteligentniejszy automatyczny routing** — kombinacje `auto/<category>:<tier>`, **Fusion** (panel modeli + sędzia), routing uwzględniający rodzaj zadania oraz nadpisywanie modelu / trybu / budżetu w USD dla poszczególnych żądań. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Modułowa kompresja** — 12 współpracujących ze sobą silników + Compression Studios: LLMLingua-2, dwupoziomowy Ultra, omniglyph, bramka wierności dla poszczególnych kroków, GCF v3.2, edytor zmiany kolejności metodą przeciągania. → [Kompresja](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Przezroczyste odszyfrowywanie MITM (TPROXY)** — przechwytywanie narzędzi CLI, które ignorują zmienne środowiskowe serwera proxy, z urzędem certyfikacji dla poszczególnych SNI oraz instalatorem magazynu zaufanych certyfikatów. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Telemetria kosztów wszędzie** — nagłówki kosztów/użycia `X-OmniRoute-*` w każdym punkcie końcowym, nagłówek oszczędności z trafień pamięci podręcznej oraz limity wydatków w USD dla poszczególnych kluczy. → [Dokumentacja API](docs/reference/API_REFERENCE.md)
-- **🧠 Pamięć pod Twoją kontrolą** — domyślnie wyłączona, opcjonalna kwantyzacja wektorów int8 + typowany zanik, a także `x-omniroute-no-memory` dla poszczególnych żądań. → [Pamięć](docs/frameworks/MEMORY.md)
-- **🛡️ Bezpieczeństwo** — ochrona przed wstrzykiwaniem promptów na każdej trasie LLM (zestaw testów red-team), opcjonalne zabezpieczenie maskujące dane uwierzytelniające (redaguje ujawnione klucze API/sekrety w obu kierunkach), bezpłatne wyszukiwanie internetowe DuckDuckGo ostatniej szansy oraz opcjonalna brama logowania OIDC do pulpitu (logowanie hasłem pozostaje zawsze dostępne). → [Zabezpieczenia](docs/security/GUARDRAILS.md)
+- **🎛️ OmniConductor** — przychodzące delegowanie A2A do floty agentów, umiejętności Conductor na karcie agenta oraz panel pulpitu z czatem głosowym push-to-talk obsługiwanym przez Faro. → [Serwer A2A](docs/frameworks/A2A-SERVER.md)
+- **🛂 Adaptacyjne dopuszczanie i ochrona przed przeciążeniem** — wymagające żądania czatu trafiają do kolejki zamiast zwracać błąd 503, z atomowymi, kroczącymi dzierżawami RPM dla każdego połączenia. → [Przewodnik po odporności](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ Kanoniczna kolejność `/v1/models`** — jeden ciągły blok dla każdego dostawcy, pogrupowany według dostawców (z kombinacjami przypiętymi na początku), spójny we wszystkich źródłach katalogu. → [Dokumentacja API](docs/reference/API_REFERENCE.md)
+- **🗜️ Wzmocnienie kompresji** — domyślnie włączone zabezpieczenie przed nadmierną dekompresją, pakiety Caveman dla DE / FR / JA oraz chińskiego (wényán), filtry RTK dla Gradle i .NET. → [Kompresja](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Rzetelny koszt ryczałtowy** — dostawcy subskrypcji i planów programistycznych wykazują koszt **$0** w analizach kosztów; mechanizmy budżetu, limitów i routingu nadal korzystają z oszacowań. → [Dokumentacja API](docs/reference/API_REFERENCE.md)
+- **⚖️ Routing Quota-Share** — sprawiedliwie dzieli limit współdzielonego konta między klucze w puli, zachowując pełne wykorzystanie zasobów dzięki udostępnianiu niewykorzystanych przydziałów. → [Przewodnik po odporności](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 Konfiguracja CLI/agenta jednym poleceniem** — 13 zarejestrowanych poleceń `setup-*`; `omniroute run` uruchamia 7 narzędzi CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` obsługuje 10 miejsc docelowych z interaktywnym wyborem dostawcy i modelu oraz ulubionymi ustawieniami dla poszczególnych kontekstów. → [Integracje CLI](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Tryb zdalny** — sterowanie zdalną instancją OmniRoute za pomocą tokenów o ograniczonym zakresie (`connect` / `contexts` / `tokens`) oraz pomocnika OAuth `antigravity` dla instalacji na VPS. → [Tryb zdalny](docs/guides/REMOTE-MODE.md)
+- **🧭 Inteligentniejszy automatyczny routing** — kombinacje `auto/<category>:<tier>`, **Fusion** (panel modeli + sędzia), routing uwzględniający zadanie oraz nadpisywanie modelu / trybu / budżetu w USD dla poszczególnych żądań. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Modułowa kompresja** — 12 komponowalnych silników + Compression Studios: LLMLingua-2, dwupoziomowy Ultra, omniglyph, bramka wierności dla każdego kroku, GCF v3.2 oraz edytor z możliwością zmiany kolejności przez przeciąganie. → [Kompresja](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ Przezroczyste deszyfrowanie MITM (TPROXY)** — przechwytywanie narzędzi CLI ignorujących zmienne środowiskowe serwera proxy, z urzędem certyfikacji dla każdego SNI oraz instalatorem magazynu zaufanych certyfikatów. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Telemetria kosztów wszędzie** — nagłówki kosztów i wykorzystania `X-OmniRoute-*` w każdym punkcie końcowym, nagłówek oszczędności wynikających z trafienia w pamięć podręczną oraz limity wydatków w USD dla poszczególnych kluczy. → [Dokumentacja API](docs/reference/API_REFERENCE.md)
+- **🧠 Pamięć pod Twoją kontrolą** — domyślnie wyłączona, opcjonalna kwantyzacja wektorowa int8 i typowany zanik oraz `x-omniroute-no-memory` dla poszczególnych żądań. → [Pamięć](docs/frameworks/MEMORY.md)
+- **🛡️ Bezpieczeństwo** — ochrona przed wstrzykiwaniem promptów na każdej trasie LLM (zestaw testów red-team), opcjonalne zabezpieczenie maskujące dane uwierzytelniające (redaguje ujawnione klucze API i sekrety w obu kierunkach), bezpłatne wyszukiwanie internetowe DuckDuckGo jako ostatnia deska ratunku oraz opcjonalna bramka logowania OIDC do pulpitu (logowanie hasłem pozostaje zawsze dostępne). → [Zabezpieczenia](docs/security/GUARDRAILS.md)
 - **🖼️ Nowe punkty końcowe** — `/v1/ocr` (Mistral OCR) i `/v1/audio/translations` (w stylu Whisper) uzupełniają obsługę multimediów. → [Dokumentacja API](docs/reference/API_REFERENCE.md)
-- **🎨 Generowanie obrazów / wideo / audio** — jedno API do multimediów: xAI Grok Imagine i wideo Novita AI, ComfyUI, Magnific, Adobe Firefly, Segmind oraz dostawcy syntezy mowy, tacy jak ElevenLabs. → [Dokumentacja API](docs/reference/API_REFERENCE.md)
-- **🌍 Wdrażanie i eksploatacja** — `basePath` odwrotnego serwera proxy, automatyczne wykrywanie języka przeglądarki, śledzenie urządzeń dla poszczególnych kluczy, zaufanie MITM bez uprawnień roota, lokalizacja zh-TW. → [Środowisko](docs/reference/ENVIRONMENT.md)
-- **🤝 Więcej dostawców i agentów** — agenci chmurowi (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) z przeglądarką + logowaniem OAuth, pełnoprawna karta Ollama, Claude Opus 5 i Sonnet 5, oficjalne partnerstwo z Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… oraz odświeżony **katalog 352 dostawców**. → [Dostawcy](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Przejrzystość routingu** — każda odpowiedź zawiera nagłówek `X-OmniRoute-Decision` wskazujący strategię/dostawcę/opóźnienie, które ją obsłużyły; nowa strategia kombinacji `cache-optimized` oraz czynnik Auto-Combo `cacheAffinity` kierują powtórzone żądania z powrotem do połączenia przechowującego prefiks w pamięci podręcznej, a punkt końcowy `/v1/auto-combo/{channel}/candidates` tylko do odczytu udostępnia bieżącą pulę kandydatów kanału `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Lokalna wydajność i infrastruktura** — lokalny Redis uruchamiany jednym kliknięciem, narzędzia wdrożeniowe przekaźników Cloudflare Workers / Deno Deploy oraz Bifrost i Mux jako nadzorowane usługi wbudowane. → [Usługi wbudowane](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 Również w zestawie** — framework wtyczek + marketplace, frameworki umiejętności Omni/Agent/GitHub, integracja z repozytorium Obsidian (22 narzędzia MCP), zgodne z OpenAI interfejsy API Batch i Files, semantyczna pamięć podręczna odpowiedzi, grywalizacja z rankingami, wykrywanie agentów ACP (15 wbudowanych agentów), zaplanowany eksport logów do BigQuery, wstrzykiwanie awarii `auto/chaos`, most z botem Telegram, wbudowany menedżer wersji oraz rankingi ELO bezpłatnych dostawców LMArena. → [Dokumentacja](docs/README.md)
+- **🎨 Generowanie obrazów / wideo / dźwięku** — jedno API dla multimediów: generowanie wideo za pomocą xAI Grok Imagine i Novita AI, ComfyUI, Magnific, Adobe Firefly, Segmind oraz dostawcy syntezy mowy, tacy jak ElevenLabs. → [Dokumentacja API](docs/reference/API_REFERENCE.md)
+- **🌍 Wdrażanie i eksploatacja** — `basePath` odwrotnego serwera proxy, automatyczne wykrywanie języka przeglądarki, śledzenie urządzeń dla poszczególnych kluczy, zaufanie MITM bez uprawnień roota oraz lokalizacja zh-TW. → [Środowisko](docs/reference/ENVIRONMENT.md)
+- **🤝 Więcej dostawców i agentów** — agenci chmurowi (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) z przeglądarką i logowaniem OAuth, pełnoprawna karta Ollama, Claude Opus 5 i Sonnet 5, oficjalne partnerstwo z Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… oraz odświeżony **katalog 352 dostawców**. → [Dostawcy](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 Przejrzystość routingu** — każda odpowiedź zawiera nagłówek `X-OmniRoute-Decision` wskazujący strategię, dostawcę i opóźnienie obsługujące żądanie; nowa strategia kombinacji `cache-optimized` wraz z czynnikiem Auto-Combo `cacheAffinity` kieruje powtarzające się żądania z powrotem do połączenia przechowującego prefiks w pamięci podręcznej, a punkt końcowy tylko do odczytu `/v1/auto-combo/{channel}/candidates` udostępnia aktywną pulę kandydatów kanału `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ Lokalna wydajność i infrastruktura** — lokalny Redis uruchamiany jednym kliknięciem, narzędzia wdrożeniowe przekaźników dla Cloudflare Workers / Deno Deploy oraz Bifrost i Mux jako nadzorowane usługi wbudowane. → [Usługi wbudowane](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 Również w zestawie** — framework wtyczek i marketplace, frameworki umiejętności Omni/Agent/GitHub, integracja ze skarbcem Obsidian (22 narzędzia MCP), zgodne z OpenAI interfejsy API Batch i Files, semantyczna pamięć podręczna odpowiedzi, grywalizacja z tabelami wyników, wykrywanie agentów ACP (15 wbudowanych agentów), zaplanowany eksport dzienników do BigQuery, równoległe rozsyłanie do wielu modeli `auto/chaos`, most do bota Telegram, wbudowany menedżer wersji oraz rankingi bezpłatnych dostawców LMArena-ELO. → [Dokumentacja](docs/README.md)
 
 <br/>
 
@@ -1272,19 +1272,19 @@ Metryki kanoniczne na dzień 2026-08-24: **1.029 unikalnych filmów** · **11.13
 <table>
   <tr><th align="left">Warstwa</th><th align="left">Technologia</th></tr>
   <tr><td nowrap><b>Środowisko uruchomieniowe</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Język</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> w <code>src/</code> i <code>open-sse/</code> (zero <code>any</code> w rdzeniu od wersji v2.0)</td></tr>
+  <tr><td nowrap><b>Język</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> w <code>src/</code> i <code>open-sse/</code> (zero <code>any</code> w rdzeniu od v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Baza danych</b></td><td>better-sqlite3 (SQLite, dziennikowanie WAL) + LowDB (starszy format JSON) — 122 moduły domenowe, 190 migracji</td></tr>
-  <tr><td nowrap><b>Pamięć</b></td><td>Pełnotekstowe wyszukiwanie SQLite FTS5 + wektorowe reprezentacje osadzone kwantyzowane do int8, typowane zanikanie</td></tr>
+  <tr><td nowrap><b>Baza danych</b></td><td>better-sqlite3 (SQLite, kronikowanie WAL) + LowDB (starszy format JSON) — 136 modułów domenowych, 193 migracje</td></tr>
+  <tr><td nowrap><b>Pamięć</b></td><td>Pełnotekstowe wyszukiwanie SQLite FTS5 + embeddingi wektorowe kwantyzowane do int8, typowany zanik</td></tr>
   <tr><td nowrap><b>Schematy</b></td><td>Zod 4 — walidacja wejścia/wyjścia narzędzi MCP + kontrakty API</td></tr>
   <tr><td nowrap><b>Protokoły</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Strumieniowanie</b></td><td>Server-Sent Events (SSE) + most WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Kompresja</b></td><td>Potok obejmujący 12 silników — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Uwierzytelnianie i bezpieczeństwo</b></td><td>OAuth 2.0 (PKCE) + JWT + klucze API + uwierzytelnianie MCP o ograniczonym zakresie · AES-256-GCM dla danych w spoczynku · DOMPurify</td></tr>
-  <tr><td nowrap><b>Maskowanie</b></td><td>wreq-js — podszywanie się pod odciski palca TLS JA3 / JA4, trójpoziomowe proxy</td></tr>
-  <tr><td nowrap><b>Odporność</b></td><td>Wyłącznik obwodu, wykładnicze zwiększanie odstępów, ochrona przed efektem „thundering herd”, samonaprawianie auto-combo</td></tr>
-  <tr><td nowrap><b>Rejestrowanie</b></td><td>pino — ustrukturyzowane logi JSON z kontekstem żądania</td></tr>
-  <tr><td nowrap><b>Testowanie</b></td><td>Moduł uruchamiający testy Node.js + Vitest — <b>ponad 39 000 statycznych deklaracji testów</b> w ponad 5100 śledzonych plikach testowych (testy jednostkowe, integracyjne, E2E, bezpieczeństwa i ekosystemu)</td></tr>
+  <tr><td nowrap><b>Kompresja</b></td><td>Potok z 12 silnikami — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Uwierzytelnianie i bezpieczeństwo</b></td><td>OAuth 2.0 (PKCE) + JWT + klucze API + uwierzytelnianie MCP z zakresami · AES-256-GCM dla danych w spoczynku · DOMPurify</td></tr>
+  <tr><td nowrap><b>Kamuflaż</b></td><td>wreq-js — imitowanie odcisków TLS JA3 / JA4, 3-poziomowe proxy</td></tr>
+  <tr><td nowrap><b>Odporność</b></td><td>Wyłącznik automatyczny, wykładnicze ponawianie z opóźnieniem, ochrona przed efektem lawinowym, samonaprawianie auto-combo</td></tr>
+  <tr><td nowrap><b>Rejestrowanie</b></td><td>pino — ustrukturyzowane dzienniki JSON z kontekstem żądania</td></tr>
+  <tr><td nowrap><b>Testowanie</b></td><td>Moduł testowy Node.js + Vitest — <b>ponad 39 000 statycznych deklaracji testów</b> w ponad 5 100 śledzonych plikach testowych (testy jednostkowe, integracyjne, E2E, bezpieczeństwa i ekosystemu)</td></tr>
   <tr><td nowrap><b>Platformy</b></td><td>Komputery stacjonarne (Electron) · Android (Termux) · PWA (dowolna przeglądarka)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatyczna publikacja w npm i Docker Hub przy wydaniu</td></tr>
   <tr><td nowrap><b>Łącza</b></td><td><a href="https://omniroute.online">Witryna internetowa</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>

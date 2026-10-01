@@ -417,4 +417,3 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **सुरक्षा दस्तऐवज**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **ऑपरेशन्स दस्तऐवज**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **समस्या**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: आर्किटेक्चरल निर्णय नोंदींसाठी `docs/adr/` पहा

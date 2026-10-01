@@ -10,46 +10,46 @@
 
 ## Sıfır Yapılandırmalı Otomatik Yönlendirme (`auto/` öneki)
 
-> **YENİ:** Combo oluşturmanız gerekmez. Herhangi bir istemcide doğrudan `auto/` önekini kullanın.
+> **YENİ:** Birleşim oluşturmanız gerekmez. Herhangi bir istemcide doğrudan `auto/` önekini kullanın.
 
 ### Hızlı Örnekler
 
-| Model Kimliği  | Varyant | Davranış                                                                  |
-| -------------- | ------- | ------------------------------------------------------------------------- |
-| `auto`         | default | Bağlı tüm sağlayıcılar, LKGP stratejisi, dengeli ağırlıklar               |
-| `auto/coding`  | coding  | Kalite öncelikli ağırlıklar, kod üretimi için uygun                       |
-| `auto/fast`    | fast    | Düşük gecikme ağırlıklı seçim                                             |
-| `auto/cheap`   | cheap   | Maliyet için optimize edilmiş yönlendirme (önce en düşük maliyet)         |
-| `auto/offline` | offline | En yüksek kota kullanılabilirliğine sahip sağlayıcıları tercih eder       |
-| `auto/smart`   | smart   | Daha iyi model keşfi için kalite önceliği + daha yüksek keşif oranı (%10) |
-| `auto/lkgp`    | lkgp    | Açık LKGP (`auto` varsayılanıyla aynı)                                    |
-| `auto/chaos`   | chaos   | Dayanıklılık testi için hata enjeksiyonu ağırlıkları (kaos mühendisliği)  |
+| Model Kimliği  | Varyant    | Davranış                                                                |
+| -------------- | ---------- | ----------------------------------------------------------------------- |
+| `auto`         | varsayılan | Tüm bağlı sağlayıcılar, LKGP stratejisi, dengeli ağırlıklar             |
+| `auto/coding`  | kodlama    | Önce kalite ağırlıkları, kod üretimine uygun                            |
+| `auto/fast`    | hızlı      | Düşük gecikme süreli ağırlıklı seçim                                    |
+| `auto/cheap`   | ucuz       | Maliyet için optimize edilmiş yönlendirme (önce en düşük maliyet)       |
+| `auto/offline` | çevrimdışı | En yüksek kota kullanılabilirliğine sahip sağlayıcılara öncelik verir   |
+| `auto/smart`   | akıllı     | Daha iyi model keşfi için önce kalite + daha yüksek keşif oranı (%10)   |
+| `auto/lkgp`    | lkgp       | Açık LKGP (varsayılan `auto` ile aynı)                                  |
+| `auto/chaos`   | kaos       | Paralel yayılım, sağlayıcı başına bir model (hata enjeksiyonu değildir) |
 
 ### Kategori × Katman Bileşimi (`auto/<category>:<tier>`)
 
-OpenRouter tarzı sonekler, **ne tür bir rota** istendiğini (kategori) **nasıl optimize edileceğinden** (katman) ayırır; böylece bunları serbestçe birleştirebilirsiniz (#4235 Aşama B, `open-sse/services/autoCombo/suffixComposition.ts`):
+OpenRouter tarzı son ekler, **ne tür bir rota** (kategori) ile **nasıl optimize edileceğini** (katman) birbirinden ayırır; böylece bunları serbestçe birleştirebilirsiniz (#4235 Aşama B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Kategoriler** (aday havuzunu yeteneğe göre filtreler): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal`, görüntü işleme yeteneğine sahip modelleri korur; `reasoning`, akıl yürütme/düşünme modellerini korur.
-- **Katmanlar** (puanlama ağırlıklarını / havuz filtresini seçer): `fast` (hızlı teslimat) · `cheap` (`floor` diğer adıyla, maliyet tasarrufu) · `reliable` (devre kesici sağlığı + gecikme kararlılığı) · `free` / `pro` (`classifyTier` aracılığıyla havuzu model katmanına göre filtreler — ücretsiz katman ile premium karşılaştırması).
+- **Kategoriler** (aday havuzunu yeteneğe göre filtreler): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal`, görüntü yetenekli modelleri korur; `reasoning`, akıl yürütme/düşünme modellerini korur.
+- **Katmanlar** (puanlama ağırlıklarını / havuz filtresini seçer): `fast` (hızlı teslim) · `cheap` (`floor` diğer adıyla, maliyet tasarruflu) · `reliable` (devre kesici durumu + gecikme kararlılığı) · `free` / `pro` (`classifyTier` aracılığıyla havuzu model katmanına göre filtreler — ücretsiz katman ve premium).
 
-| Örnek                  | Çözümlendiği sonuç                                                               |
+| Örnek                  | Çözümlendiği değer                                                               |
 | ---------------------- | -------------------------------------------------------------------------------- |
 | `auto/coding:fast`     | kodlama havuzu, düşük gecikme ağırlıkları                                        |
 | `auto/coding:cheap`    | kodlama havuzu, maliyet için optimize edilmiş (`auto/coding:floor` diğer adıyla) |
 | `auto/reasoning:pro`   | yalnızca akıl yürütme/düşünme modelleri, premium katman                          |
-| `auto/vision`          | görüntü işleme yeteneğine sahip modeller (katman yok → dengeli ağırlıklar)       |
-| `auto/multimodal:free` | çok modlu modeller, yalnızca ücretsiz katman                                     |
+| `auto/vision`          | görüntü yetenekli modeller (katman yok → dengeli ağırlıklar)                     |
+| `auto/multimodal:free` | çok modlu yetenekli modeller, yalnızca ücretsiz katman                           |
 
-Geçerli tüm `auto/<category>[:<tier>]` değerleri istek üzerine çözümlenir; özenle seçilmiş bir alt küme `/v1/models` içinde ve kontrol panelinde duyurulur (`open-sse/services/autoCombo/builtinCatalog.ts` içindeki `AUTO_SUFFIX_VARIANTS`). Filtreleme **hata durumunda açık** çalışır — bir kısıtlama bağlı modellerden hiçbiriyle eşleşmezse yönlendirmenin hiçbir zaman bozulmaması için tam havuz kullanılır. Temel puanlayıcı (`combo.ts`) değişmeden kalır; kategori/katman filtresi `buildAutoCandidates` içinde uygulanır.
+Geçerli tüm `auto/<category>[:<tier>]` değerleri talep üzerine çözümlenir; özenle seçilmiş bir alt küme `/v1/models` içinde ve kontrol panelinde (`open-sse/services/autoCombo/builtinCatalog.ts` içindeki `AUTO_SUFFIX_VARIANTS`) yayımlanır. Filtreleme **hata durumunda açık** çalışır — bir kısıt hiçbir bağlı modelle eşleşmezse yönlendirmenin hiçbir zaman bozulmaması için tam havuz kullanılır. Temel puanlayıcı (`combo.ts`) değişmemiştir; kategori/katman filtresi `buildAutoCandidates` içinde uygulanır.
 
 > **Canlı model zekâsı:** `ARENA_ELO_SYNC_ENABLED` bayrağı açık olduğunda otomatik yönlendirme uygunluğu, canlı **Arena ELO** sıralamaları + **models.dev** katman verileriyle belirlenir (aksi takdirde statik uygunluk haritasına geri döner).
 
-**Nasıl kullanılır:**
+**Kullanımı:**
 
 ```bash
 # OpenAI biçimini destekleyen herhangi bir IDE veya CLI aracı
-Temel URL: http://localhost:20128/v1
-API Anahtarı:  <your-endpoint-key>
+Base URL: http://localhost:20128/v1
+API Key:  <uç-nokta-anahtarınız>
 
 # Kodunuzda/yapılandırmanızda modeli şu şekilde ayarlayın:
 model: "auto"                 # dengeli varsayılan
@@ -62,26 +62,25 @@ model: "auto/cheap"           # token başına en ucuz seçenek
 
 1. OmniRoute, `src/sse/handlers/chat.ts` içinde `auto/` önekini algılar
 2. Veritabanındaki tüm **etkin sağlayıcı bağlantılarını** sorgular
-3. Geçerli kimlik bilgilerine (API anahtarı veya OAuth token'ı) sahip olanları filtreler
+3. Geçerli kimlik bilgilerine (API anahtarı veya OAuth tokeni) sahip olanları filtreler
 4. Bağlantı başına modeli belirler (`connection.defaultModel` veya sağlayıcının ilk modeli)
-5. Bellekte bir **sanal combo** oluşturur (DB'de saklanmaz)
-6. Seçilen varyantın ağırlık profili + LKGP stratejisini kullanarak yönlendirme yapar
+5. Bellekte bir **sanal birleşim** oluşturur (DB'de saklanmaz)
+6. Seçilen varyantın ağırlık profili + LKGP stratejisini kullanarak yönlendirir
 
 **Temel özellikler:**
 
-- ✅ **Her zaman açık:** Geçiş anahtarı, combo oluşturma veya yapılandırma gerekmez
+- ✅ **Her zaman açık:** Geçiş düğmesi, birleşim oluşturma veya yapılandırma gerekmez
 - ✅ **Dinamik:** Mevcut bağlı sağlayıcıları otomatik olarak yansıtır
 - ✅ **Oturum bağlılığı:** LKGP, son başarılı sağlayıcıya öncelik verilmesini sağlar
-- ✅ **Çoklu hesap farkındalığı:** Her sağlayıcı bağlantısı ayrı bir aday hâline gelir
-- ✅ **DB yazma işlemi yok:** Sanal combo yalnızca istek süresince var olur, kalıcılık ek yükü sıfırdır
+- ✅ **Birden fazla hesaba duyarlı:** Her sağlayıcı bağlantısı ayrı bir aday hâline gelir
+- ✅ **DB'ye yazma yok:** Sanal birleşim yalnızca istek süresince bulunur, kalıcılık ek yükü sıfırdır
 
 ### Anahtar başına aday denetimi (#7819, Seviye 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = `auto/` sonrasındaki sonek veya
-temel kanal için `auto` sabit değeri), mevcut dayanıklılık okumalarını yeniden kullanarak
-(ham devre kesici `state` değerini hiçbir zaman kullanmadan) bir `auto/*` kanalının,
-canlı erişilebilirlik bilgileriyle zenginleştirilmiş mevcut aday havuzunu listeleyen
-**salt okunur** bir uç noktadır:
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = `auto/` sonrasındaki son ek veya
+temel kanal için doğrudan `auto`), mevcut dayanıklılık okumalarını
+(hiçbir zaman ham devre kesici `state` değeri kullanılmaz) yeniden kullanarak bir
+`auto/*` kanalının mevcut aday havuzunu canlı erişilebilirlik bilgileriyle birlikte listeleyen **salt okunur** bir uç noktadır:
 
 - sağlayıcı devre kesicisi — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
 - bağlantı bekleme süresi — çözümlenen `provider_connections` satırındaki
@@ -90,43 +89,44 @@ canlı erişilebilirlik bilgileriyle zenginleştirilmiş mevcut aday havuzunu li
 
 Her aday ayrıca bu API anahtarının `excluded` bayrağını taşır. Hariç tutmalar
 API anahtarı başına (`auto_candidate_overrides` tablosu, `128` geçişi) saklanır —
-OmniRoute, `users` tablosu bulunmayan tek kiracılı bir sistem olduğundan `apiKeyId`,
-çağrı yapan taraf için mevcut en yakın gerçek kimliktir — ve saf, birim testlerinden
-geçmiş `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`)
-aracılığıyla `open-sse/services/autoCombo/virtualFactory.ts` içindeki aday havuzu
-darboğazında uygulanır. Filtre **hata durumunda açık** çalışır: ayarlanmamış bir
-apiKeyId/kanal veya DB arama hatası, her iki durumda da havuzu filtrelemeden bırakır;
-böylece hiçbir geçersiz kılma yapılandırmamış bir operatör, yönlendirmeyi bu özellikten
-önceki hâliyle bayt düzeyinde aynı görür.
+OmniRoute, `users` tablosu olmayan tek kiracılı bir sistemdir; dolayısıyla `apiKeyId`,
+çağıran başına gerçek kimliğe en yakın seçenektir — ve
+`open-sse/services/autoCombo/virtualFactory.ts` içindeki aday havuzu darboğazında,
+saf ve birim testlerinden geçirilmiş
+`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`)
+aracılığıyla uygulanır. Filtre **hata durumunda açık** çalışır: ayarlanmamış bir
+apiKeyId/channel veya bir DB arama hatası, her iki durumda da havuzu filtrelenmemiş
+bırakır; böylece yapılandırılmış geçersiz kılması bulunmayan bir operatör, yönlendirmeyi
+bu özellikten önceki hâliyle bayt düzeyinde tamamen aynı görür.
 
-**Takip sorununa ertelendi:** aday bazlı ağırlıklar + açık sıralama (Seviye 3
-— mevcut ağırlıklı/öncelikli strateji yollarını besler) ve her `auto/*` kanalı için
-belirli bir `combo.ts` stratejisinin sabitlenmesi (Seviye 4). Tek kiracılı model göz önüne
-alındığında geçersiz kılmaların API anahtarı bazında mı kalacağı yoksa global mi olacağına
-ilişkin açık soru için #7819 planına bakın.
+**Takip eden bir issue'ya ertelendi:** aday başına ağırlıklar + açık sıralama (Seviye 3
+— mevcut ağırlıklı/öncelikli strateji yollarını besler) ve her `auto/*` kanalı için belirli bir
+`combo.ts` stratejisinin sabitlenmesi (Seviye 4). Tek kiracılı model göz önüne alındığında,
+geçersiz kılmaların API anahtarı başına mı kalması yoksa global mi olması gerektiğine ilişkin açık
+soru için #7819 planına bakın.
 
 **Arka planda:**
 
 ```txt
 İstek: { model: "auto/coding" }
    ↓
-src/sse/handlers/chat.ts öneki algılar
+src/sse/handlers/chat.ts ön eki algılar
    ↓
 createVirtualAutoCombo('coding') → etkin bağlantılardan candidatePool
    ↓
 handleComboChat (kalıcı kombinasyonlarla aynı motor)
    ↓
-Otomatik puanlama, her istek için en iyi sağlayıcıyı/modeli seçer
+Otomatik puanlama, istek başına en iyi sağlayıcıyı/modeli seçer
 ```
 
 **Uygulama dosyaları:**
 
 | Dosya                                                     | Amaç                                                     |
 | --------------------------------------------------------- | -------------------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Önek ayrıştırıcı (`parseAutoPrefix`)                     |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Ön ek ayrıştırıcısı (`parseAutoPrefix`)                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Sanal `AutoComboConfig` nesneleri oluşturur              |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Sağlayıcı kayıt defterini taklit etmek için test kancası |
-| `src/sse/handlers/chat.ts`                                | Entegrasyon: auto öneki için kısa devre                  |
+| `src/sse/handlers/chat.ts`                                | Entegrasyon: auto ön eki için kısa devre                 |
 | `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` sistem girdisi                   |
 
 ## Gerçek Bir Model Kimliğiyle Eşleşen Combo Adları
@@ -234,7 +234,7 @@ Otomatik Kombo Motoru, **16 faktörlü bir puanlama işlevi** (`open-sse/service
 
 ## Mod Paketleri
 
-`open-sse/services/autoCombo/modePacks.ts` içinde önceden tanımlanmış 6 ağırlık profili bulunur. Her paket, seçimi tek bir hedefe yönlendirmek için varsayılan ağırlıkların tamamen yerini alır. Her paketin toplamı zaten `1.0`'dır (dört ondalık basamakla yazdırıldığında `0.9999`), dolayısıyla bir paket etkinken `normalizeScoringWeights()` işlevinin anlamlı şekilde düzelteceği bir şey yoktur — aşağıdaki değerler, yuvarlama payı dışında, puanlayıcının uyguladığı değerlerdir.
+`open-sse/services/autoCombo/modePacks.ts` içinde önceden tanımlanmış 6 ağırlık profili bulunur. Her paket, seçimi tek bir hedefe yönlendirmek için varsayılan ağırlıkların tamamının yerini alır. Her paketin toplamı zaten `1.0`'dır (dört ondalık basamakla gösterildiğinde `0.9999`), dolayısıyla bir paket etkinken `normalizeScoringWeights()` işlevinin anlamlı biçimde düzelteceği bir şey yoktur — aşağıdaki değerler, yuvarlama payı hesaba katıldığında puanlayıcının uyguladığı değerlerdir.
 
 | Faktör                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -256,26 +256,26 @@ Otomatik Kombo Motoru, **16 faktörlü bir puanlama işlevi** (`open-sse/service
 
 Notlar:
 
-- **Paketler `quality` ve `reliability` değerlerini içerir** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) ve ağırlık haritasının tamamının yerini alır (`weights = pack`, birleştirme yapılmaz). `DEFAULT_WEIGHTS`, `quality 0.03 / reliability 0` değerlerini içerir; `balanced`/`default` seçildiğinde bu varsayılanlar korunur, bir paket seçildiğinde ise yukarıdaki paket değerleri kullanılır. Soğuk bir havuzda (henüz gözlem olmadığından `quality 0.5` ve `reliability 1`) bu iki faktör genel bir paket altında `+0.04` (`0.03 + 0.01`), `quality-first` altında `+0.045` ve `reliability-first` altında `+0.05` ekler.
+- **Paketler `quality` ve `reliability` değerlerini içerir** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) ve ağırlık eşlemesinin tamamını değiştirir (`weights = pack`, bir birleştirme değildir). `DEFAULT_WEIGHTS`, `quality 0.03 / reliability 0` değerlerini içerir; `balanced`/`default` seçildiğinde bu varsayılanlar korunur, bir paket seçildiğinde ise paketin yukarıdaki değerleri kullanılır. Soğuk bir havuzda (henüz gözlem yokken, dolayısıyla `quality 0.5` ve `reliability 1`) bu iki faktör, genel bir paket altında `+0.04` (`0.03 + 0.01`), `quality-first` altında `+0.045` ve `reliability-first` altında `+0.05` ekler.
 - `tierAffinity`, `specificityMatch` ve `resetWindowAffinity`, her pakette açıkça `0` olarak ayarlanmıştır.
-- Her paketin öne çıkan yönleri:
+- Her paketin öne çıkardığı noktalar:
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (düşük gecikmeli, sağlıklı bağlantılar)
   - **cost-saver** → costInv 0.3324 (en ucuz token'lar kazanır)
   - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03; tüm paketler arasındaki en yüksek değer (görev için en iyi ve tutarlı model)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (hızdan/maliyetten bağımsız olarak maksimum kapasite payı)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (hızdan/maliyetten bağımsız olarak azami boş kapasite)
   - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04; tüm paketler arasındaki en yüksek değer (en az sürpriz)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (hata enjeksiyonu profili)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (`auto/chaos` ağırlık paketinin panel üyelerine atadığı değerler; paralel dağıtım bu ağırlıkları okumaz ve bu bir hata enjeksiyonu profili değildir, bkz. [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### İstek Başına Denetimler (üstbilgiler) — #6023 / #6024 / #6025 / #3470
+### İstek Bazında Denetimler (üstbilgiler) — #6023 / #6024 / #6025 / #3470
 
-Bir `auto` kombinasyonu, kombinasyonun kayıtlı yapılandırması değiştirilmeden üç üstbilgi aracılığıyla **istek başına** yönlendirilebilir. Bunlar yalnızca `auto` stratejisine ve yalnızca bu üstbilgileri taşıyan isteğe uygulanır; üstbilgi olmadığında kombinasyonun kaydedilmiş `modePack`/`budgetCap`/`budgetFallback` değerleri kullanılır.
+Bir `auto` kombinasyonu, depolanan kombinasyon yapılandırmasını değiştirmeden üç üstbilgi aracılığıyla **istek bazında** yönlendirilebilir. Bunlar yalnızca `auto` stratejisine ve yalnızca bunları taşıyan isteğe uygulanır; üstbilgi mevcut olmadığında kombinasyonun kayıtlı `modePack`/`budgetCap`/`budgetFallback` değerleri kullanılır.
 
-| Üstbilgi                      | Kabul Edilen Değerler                                                                                                                                                                      | Etki                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `X-OmniRoute-Mode`            | ön ayar takma adı (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) veya ham paket adı (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Bu istek için puanlama ağırlıklarını geçersiz kılar. `balanced`/`default`, varsayılan ağırlıkları zorunlu kılar (paket yoktur). Bilinmeyen değerler yok sayılır (yapılandırma korunur).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `X-OmniRoute-Budget`          | pozitif bir sayı (istek başına maksimum USD)                                                                                                                                               | Kesin maliyet üst sınırı: tahmini maliyeti bu sınırı aşan adaylar seçimden önce filtrelenir. **Tüm** adaylar sınırı aştığında ne olacağı, aşağıdaki `X-OmniRoute-Budget-Fallback` tarafından belirlenir.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (varsayılan, takma adlar: `cheapest-viable`, `soft`) veya `strict` (takma adlar: `block`, `hard`)                                                                               | `cheapest`: sınırı hâlâ aşıyor olsa bile genel olarak en ucuz adaya geri döner (eski davranış). `strict`: seçim yapmayı reddeder — istek, sessizce bütçeyi aşmak yerine `HTTP 402` ile hemen başarısız olur. Bilinmeyen değerler yok sayılır.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `X-OmniRoute-Effort`          | `auto` (diğer değerler ayrılmıştır)                                                                                                                                                        | Uyarlanabilir düşünme bütçesi: istek herhangi bir biçimde **hiçbir** akıl yürütme alanı (`reasoning_effort`, `reasoning`, `thinking`) içermediğinde ağ geçidi, belirlenimci istek yapısı sinyallerini (son kullanıcı mesajının uzunluğu, son kullanıcı mesajına kadarki bağlam boyutu, önceki araç sonuçları, araç döngüsü derinliği) kullanarak `auto` değerini `low`/`medium`/`high` olarak çözümler. Sinyaller geçerli turla sınırlandırılır — son kullanıcı mesajından sonraki her şey yok sayılır — böylece araç döngüsündeki her istek aynı düzeye çözümlenir (tur başına durumsuz sabitleme, oturum durumu yoktur ve yukarı akış istem önbelleği öneklerini bozacak döngü içi yükseltme yapılmaz). İstemci tarafından açıkça belirtilen bir akıl yürütme alanı her zaman önceliklidir. Yukarı akış yönlendirmesi OpenAI Chat Completions biçimine çözümlenen isteklerle sınırlıdır (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort`, OpenAI biçimli bir alandır; bu nedenle üstbilginin Claude veya Gemini hedefli bir istek üzerinde etkisi yoktur (bkz. `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Başlık                        | Kabul Edilen Değerler                                                                                                                                                                                     | Etki                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | önceden tanımlanmış bir takma ad (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) veya ham paket adı (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Bu istek için puanlama ağırlıklarını geçersiz kılar. `balanced`/`default`, varsayılan ağırlıkların kullanılmasını zorunlu kılar (paket kullanılmaz). Bilinmeyen değerler yok sayılır (yapılandırma korunur).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `X-OmniRoute-Budget`          | pozitif bir sayı (istek başına maksimum USD)                                                                                                                                                              | Kesin maliyet üst sınırı: tahmini maliyeti bu sınırı aşan adaylar seçimden önce filtrelenir. **Her** adayın bu sınırı aşması durumunda ne olacağı, aşağıdaki `X-OmniRoute-Budget-Fallback` tarafından belirlenir.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (varsayılan, takma adlar: `cheapest-viable`, `soft`) veya `strict` (takma adlar: `block`, `hard`)                                                                                              | `cheapest`: sınırı hâlâ aşıyor olsa bile genel olarak en ucuz adaya geri döner (eski davranış). `strict`: seçim yapmayı reddeder — istek, sessizce fazla harcama yapmak yerine `HTTP 402` ile hızla başarısız olur. Bilinmeyen değerler yok sayılır.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `X-OmniRoute-Effort`          | `auto` (diğer değerler ayrılmıştır)                                                                                                                                                                       | Uyarlanabilir düşünme bütçesi: istek herhangi bir biçimde **hiçbir** akıl yürütme alanı (`reasoning_effort`, `reasoning`, `thinking`) içermediğinde ağ geçidi, deterministik istek yapısı sinyallerine (son kullanıcı mesajının uzunluğu, son kullanıcı mesajına kadar olan bağlam boyutu, önceki araç sonuçları, araç döngüsü derinliği) göre `auto` değerini `low`/`medium`/`high` olarak çözümler. Sinyaller geçerli turla sınırlıdır — son kullanıcı mesajından sonraki her şey yok sayılır — böylece bir araç döngüsündeki her istek aynı düzeye çözümlenir (tur başına durumsuz sabitleme; oturum durumu yoktur ve üst sistem istem önbelleği öneklerini bozacak döngü ortası yükseltme yapılmaz). İstemci tarafından açıkça belirtilen bir akıl yürütme alanı her zaman önceliklidir. Üst sistem yönlendirmesi OpenAI Chat Completions biçimine çözümlenen isteklerle (`targetFormat === FORMATS.OPENAI`) sınırlıdır — `reasoning_effort`, OpenAI biçimli bir alan olduğundan başlığın Claude veya Gemini hedefli bir istekte hiçbir etkisi yoktur (bkz. `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
 # En hızlı profili zorunlu kıl, bu isteği $0.05 ile sınırla ve bütçeyi aşmak yerine kesin olarak engelle
@@ -287,10 +287,10 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Çözümleme saf bir fonksiyondur (`open-sse/services/autoCombo/requestControls.ts`); çözümlenen
-değerler, motorun mevcut `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` girdilerine aktarılır. Bir kombinasyonun depolanan `config.budgetFallback` ("strict" |
-"cheapest") değeri kalıcı politikayı belirler; üstbilgi, tek bir istek için bunu geçersiz kılar.
+Çözümleme saf bir fonksiyondur (`open-sse/services/autoCombo/requestControls.ts`);
+çözümlenen değerler, motorun mevcut `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` girdilerine aktarılır. Bir kombinasyonun saklanan `config.budgetFallback` ("strict" |
+"cheapest") değeri kalıcı politikayı belirler; başlık bunu tek bir istek için geçersiz kılar.
 
 ## Tüm Yönlendirme Stratejileri
 
@@ -749,16 +749,16 @@ Temel `auto` (varsayılan) ile `autoPrefix.ts` içinde bildirilen 6 `AutoVariant
 
 (`AutoVariant` kendi başına 6 değeri listeler; 7. seçenek "varyant yok" seçeneğidir — temel `auto` — ve `parseAutoPrefix()` tarafından `variant: undefined` olarak işlenir.)
 
-## Katmanların Auto-Combo'ya uyumu
+## Katmanlar Auto-Combo'ya nasıl uyar?
 
 16 faktörlü puanlama işlevi (`open-sse/services/autoCombo/scoring.ts`), katman
-üyeliğini iki sinyal olarak değerlendirir: `tierPriority` (0.0476) ve `tierAffinity` (0.0476). Tam
-`DEFAULT_WEIGHTS` kümesi için yukarıdaki standart [puanlama faktörleri tablosuna](#how-it-works-persisted-auto-combos) bakın — paket başına geçersiz kılmalar (ship-fast/cost-saver/quality-first/
+üyeliğini iki sinyal olarak ele alır: `tierPriority` (0.0476) ve `tierAffinity` (0.0476). Tam
+`DEFAULT_WEIGHTS` kümesi için yukarıdaki standart [puanlama faktörleri tablosuna](#how-it-works-persisted-auto-combos) bakın — paket bazındaki geçersiz kılmalar (ship-fast/cost-saver/quality-first/
 offline-friendly), "Paket başına ağırlık profilleri" tablosunda listelenmiştir.
 
-Katman tek başına Tier 1'in önce gelmesini **zorunlu kılmaz** — Tier 1 gecikme süresi kötüyse veya
-maliyet-kalite dengesi ideal değilse Tier 2 kazanır. Katman sıralamasını zorunlu kılmak için combo
-stratejisi olarak `priority` kullanın ve sağlayıcıları katmana göre sıralayın.
+Katman tek başına **Tier 1'in** önce gelmesini zorunlu kılmaz — Tier 1 gecikme süresi kötüyse veya
+maliyet-kalite dengesi optimal değilse Tier 2 kazanır. Katman sıralamasını zorunlu kılmak için combo
+stratejisi olarak `priority` kullanın ve sağlayıcıları katmana göre düzenleyin.
 
 Tier 1'i (abonelik) güçlü biçimde tercih etmek için `tierPriority` ağırlığını artırın:
 
@@ -769,7 +769,7 @@ Tier 1'i (abonelik) güçlü biçimde tercih etmek için `tierPriority` ağırl�
 }
 ```
 
-Katman tanımları ve sağlayıcı sınıflandırması için `docs/marketing/TIERS.md` dosyasına bakın.
+Katman tanımları ve sağlayıcı sınıflandırması için [`docs/guides/TIERS.md`](../guides/TIERS.md) belgesine bakın.
 
 ## Test ve Kapsam
 

@@ -263,16 +263,21 @@ Devuelve `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Alternativa de emergencia para el presupuesto
+## Alternativa de emergencia por presupuesto
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (categoría `runtime`, valor predeterminado `true`) controla la
 ruta alternativa gratuita de emergencia en
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Cuando está habilitada, las solicitudes que agotan su presupuesto se enrutan a un
-proveedor/modelo alternativo gratuito en lugar de fallar directamente. Establécela en `false` (o `0`) —mediante el
-interruptor del panel de control, una sobrescritura de DB o la variable de entorno
-`OMNIROUTE_EMERGENCY_FALLBACK`— para deshabilitar este comportamiento y permitir que las solicitudes que hayan agotado
-su presupuesto fallen. (Se incorporó como interruptor del panel de control en las PR #3741 / #3752.)
+Cuando está habilitada, las solicitudes que agotan su presupuesto se redirigen a un
+proveedor/modelo alternativo gratuito en lugar de fallar directamente. Establézcala en `false` (o `0`) — mediante el
+selector del panel de control, una sobrescritura en la base de datos o la variable de entorno
+`OMNIROUTE_EMERGENCY_FALLBACK` — para deshabilitar este comportamiento y permitir que las solicitudes
+que hayan agotado su presupuesto fallen. (Disponible como selector en el panel de control en las PR #3741 / #3752).
+
+Una respuesta servida mediante esta alternativa incluye
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, por lo que un
+cliente puede saber que fue redirigida sin comparar `X-OmniRoute-Provider` con su
+solicitud. El encabezado no está presente en ninguna otra respuesta.
 
 ---
 

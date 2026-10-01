@@ -215,30 +215,27 @@ t-oibreoir dul isteach."
 
 ## Próifíl tógála: `minimal`
 
-D’úsáideoirí a bhfuil déantán atá oiriúnach do Socket de dhíth orthu, tógtar é le:
+D’úsáideoirí a dteastaíonn déantúsán atá comhoiriúnach le Socket uathu, tóg le:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Úsáideann `NormalModuleReplacementPlugin` webpack ailiasanna chun ceithre
-mhodúl a chur in ionad leaganacha ionaid:
+Úsáideann `NormalModuleReplacementPlugin` webpack ailiasanna chun ceithre mhodúl a ionadú le bunleaganacha:
 
-| Modúl                                       | Leagan ionaid                                    |
+| Modúl                                       | Bunleagan                                        |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Easpórtálann gach leagan ionaid an dromchla céanna, ach caitheann gach feidhm
-`featureDisabledError(name)` ag am rite. Filleann bealaí a bhraitheann ar an
-modúl díchumasaithe HTTP 503 le teachtaireacht shoiléir in ionad an chonair
-íogair chóid a ghníomhachtú.
+Easpórtálann gach bunleagan an comhéadan céanna, ach caitheann gach feidhm
+`featureDisabledError(name)` ag am rite. Tugann bealaí a bhraitheann ar an modúl
+díchumasaithe HTTP 503 ar ais le teachtaireacht shoiléir in ionad an chonair
+chóid íogair a ghníomhachtú.
 
-Tá sé beartaithe an beartán a eascraíonn as seo a fhoilsiú mar
-`omniroute-secure`. Féach `docs/ops/PUBLISHING_SECURE.md` chun an t-oideas
-foilsithe a fháil.
+Tá sé beartaithe an beartán a eascraíonn as seo a fhoilsiú mar `omniroute-secure`.
 
 ---
 

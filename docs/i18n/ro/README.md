@@ -341,35 +341,35 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🎯 Combinații — Funcționalitatea emblematică
+## 🎯 Combos — Funcționalitatea principală
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Toate cele 19 strategii de rutare pentru combinații, animate — câte o dală pentru fiecare strategie: prioritate, umplere-întâi, ponderată, rotație, p2c, cel-mai-puțin-utilizat, aleatorie, strict-aleatorie, optimizată-pentru-cost, marjă, fereastră-de-resetare, conștientă-de-resetare, retransmitere-context, optimizată-pentru-context, optimizată-pentru-cache, lkgp, automat, fuziune, conductă. Consultați tabelul de mai sus pentru a vedea ce face fiecare."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Toate cele 19 strategii de rutare combo animate — câte o dală pentru fiecare strategie: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Consultați tabelul de mai sus pentru a vedea ce face fiecare."/>
 
-> O **combinație** este un lanț de modele între care OmniRoute rutează **automat**. Dacă se epuizează cota, un furnizor eșuează sau costurile cresc brusc, combinația poate trece la următorul model eligibil și funcțional. 🛡️
+> Un **combo** este un lanț de modele între care OmniRoute rutează **automat**. Dacă se epuizează cota, un furnizor eșuează sau costurile cresc brusc, combo-ul poate trece la următorul model eligibil și funcțional. 🛡️
 
-### ⚡ Configurare zero — folosiți pur și simplu `auto`
+### ⚡ Fără configurare — folosiți doar `auto`
 
-Nu trebuie creată nicio combinație. Setați modelul la `auto` (sau la o variantă), iar OmniRoute construiește o combinație virtuală din furnizorii conectați, evaluată în timp real:
+Nu trebuie să creați niciun combo. Setați modelul la `auto` (sau la o variantă), iar OmniRoute construiește un combo virtual din furnizorii conectați, evaluați în timp real:
 
 <table>
   <tr><th align="left">ID model</th><th align="left">Pentru ce optimizează</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Opțiune implicită echilibrată (LKGP — rămâne la ultimul furnizor care a funcționat)</td></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Opțiune implicită echilibrată (LKGP — rămâne la ultimul furnizor funcțional)</td></tr>
   <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Ponderi axate pe calitate pentru generarea de cod</td></tr>
   <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Cea mai mică latență mai întâi</td></tr>
   <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Cel mai mic cost per token mai întâi</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Cea mai mare marjă de cotă / limită de rată mai întâi</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Calitatea mai întâi + explorare de 10% pentru a descoperi modele mai bune</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Persistență explicită la ultimul furnizor cunoscut ca funcțional</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Ponderi de injectare a defecțiunilor pentru testarea rezilienței (ingineria haosului)</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Cea mai mare rezervă de cotă / limită de rată mai întâi</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Calitatea pe primul loc + 10% explorare pentru a descoperi modele mai bune</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Preferință explicită pentru ultimul furnizor cunoscut ca funcțional</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Distribuire paralelă către un grup de modele (câte unul per furnizor, implicit 5), returnează un singur răspuns; câte un apel în amonte pentru fiecare model din grup, nu injectare de erori</td></tr>
 </table>
 
 ##
 
-### 🔀 Sau creați-vă propria combinație — 19 strategii de rutare
+### 🔀 Sau creați-vă propriul combo — 19 strategii de rutare
 
-Toate cele **19** strategii — combinați-le după preferință pentru fiecare pas al combinației:
+Toate cele **19** strategii — combinați-le după preferințe pentru fiecare pas al combo-ului:
 
 <table>
   <tr>
@@ -380,57 +380,57 @@ Toate cele **19** strategii — combinați-le după preferință pentru fiecare 
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>Listă ordonată începând cu prima țintă — epuizează fiecare țintă înainte de a trece la următoarea 🥇</td>
+    <td>Listă ordonată cu prima destinație prioritară — o epuizează pe fiecare înainte de a trece la următoarea 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>Utilizează complet cota fiecărei ținte înainte de a continua</td>
+    <td>Utilizează integral cota fiecărei destinații înainte de a trece mai departe</td>
   </tr>
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>Selectare aleatorie ponderată după ponderea fiecărei ținte</td>
+    <td>Selecție aleatorie ponderată în funcție de ponderea fiecărei destinații</td>
   </tr>
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>Parcurge ciclic țintele în ordine</td>
+    <td>Parcurge ciclic destinațiile, în ordine</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>Echilibrare aleatorie a sarcinii prin alegerea dintre două opțiuni</td>
+    <td>Echilibrare aleatorie a încărcării prin alegerea dintre două opțiuni</td>
   </tr>
   <tr>
     <td align="center">6</td>
     <td nowrap><code>least-used</code></td>
-    <td>Alege ținta cu cea mai mică sarcină curentă</td>
+    <td>Alege destinația cu cea mai mică încărcare curentă</td>
   </tr>
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>Selectare aleatorie uniformă (cu eliminarea duplicatelor)</td>
+    <td>Selecție aleatorie uniformă (deduplicată)</td>
   </tr>
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>Selectare aleatorie fără eliminarea repetărilor 🎲</td>
+    <td>Selecție aleatorie fără deduplicarea repetărilor 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>Minimizează costul în $ per solicitare pe baza prețurilor actuale din catalog 💸</td>
+    <td>Minimizează costul în $ per cerere folosind prețurile în timp real din catalog 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
     <td nowrap><code>headroom</code></td>
-    <td>Alege ținta cu cea mai mare cotă rămasă</td>
+    <td>Alege destinația cu cea mai mare cotă rămasă</td>
   </tr>
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>Preferă ținta a cărei fereastră de cotă se resetează cel mai curând</td>
+    <td>Preferă destinația a cărei fereastră de cotă se resetează cel mai curând</td>
   </tr>
   <tr>
     <td align="center">12</td>
@@ -440,22 +440,22 @@ Toate cele **19** strategii — combinați-le după preferință pentru fiecare 
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>Transferă contextul între ținte pentru conversații lungi 🧠</td>
+    <td>Transferă contextul între destinații pentru conversații lungi 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
     <td nowrap><code>context-optimized</code></td>
-    <td>Alege cea mai potrivită țintă pentru dimensiunea actuală a contextului</td>
+    <td>Alege cea mai potrivită opțiune pentru dimensiunea actuală a contextului</td>
   </tr>
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>Fixează fiecare prefix reutilizabil al promptului la același cont — maximizează reutilizarea cache-ului pentru prompturi 🎯</td>
+    <td>Fixează fiecare prefix reutilizabil al promptului la același cont — maximizează accesările cache-ului de prompturi 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Ultima cale cunoscută ca funcțională — fixează ultimul furnizor utilizat cu succes, apoi recurge la reguli</td>
+    <td>Ultima cale cunoscută ca funcțională — fixează rutarea la ultimul furnizor care a reușit, apoi recurge la reguli</td>
   </tr>
   <tr>
     <td align="center">17</td>
@@ -465,24 +465,24 @@ Toate cele **19** strategii — combinați-le după preferință pentru fiecare 
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>Trimite solicitarea către un grup de modele + un arbitru sintetizează un singur răspuns 🧬</td>
+    <td>Distribuie cererea către un grup de modele + un arbitru sintetizează un singur răspuns 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>Înlănțuiește pașii — rezultatul fiecărei ținte este transmis celei următoare 🔗</td>
+    <td>Înlănțuie pașii — rezultatul fiecărei destinații îl alimentează pe următorul 🔗</td>
   </tr>
 </table>
 
-<sub>Motorul Auto-Combo evaluează fiecare candidat pe baza a **16 factori** (stare de funcționare, cotă, cost, latență, potrivire pentru sarcină, calitate, disponibilitatea sesiunii…) — consultați [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
+<sub>Motorul Auto-Combo evaluează fiecare candidat pe baza a **16 factori** (stare de funcționare, cotă, cost, latență, adecvare la sarcină, calitate, disponibilitatea sesiunii…) — consultați [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
 ##
 
-### 🧱 Reziliența este încorporată (3 straturi independente)
+### 🧱 Reziliența este integrată (3 niveluri independente)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Reziliența OmniRoute — 3 niveluri independente de autoremediere, nivelul potrivit pentru defecțiunea potrivită. Nivelul 1: întrerupător de circuit pentru furnizor (întregul furnizor): se declanșează numai la 408/5xx, praguri OAuth 8× / cheie API 12× / local 2×, se resetează după 60s/30s/15s într-o stare HALF-OPEN de verificare, recuperare lentă; cât timp este OPEN, combinația redirecționează către următorul furnizor. Nivelul 2: perioadă de așteptare a conexiunii (o cheie/un cont): bază de 5s pentru OAuth / 3s pentru cheia API, temporizare exponențială ×2 cu protecție împotriva efectului de turmă, 429 respectă Retry-After, succesul elimină toate stările de eroare; o cheie aflată în perioada de așteptare este omisă, în timp ce cheile asociate continuă să deservească solicitări. Nivelul 3: blocarea modelului (un model): răspunsurile 429 per model, răspunsurile locale 404 sau refuzurile de mod blochează doar modelul respectiv — niciodată întreaga conexiune. Stările terminale (interzis, expirat, credite epuizate) sunt destinate operatorului, nu perioadelor de așteptare."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Reziliența OmniRoute — 3 niveluri independente de autoremediere, nivelul potrivit pentru defecțiunea potrivită. Nivelul 1: disjunctorul furnizorului (întregul furnizor): se declanșează doar la 408/5xx, praguri OAuth 8× / cheie API 12× / local 2×, se resetează după 60s/30s/15s într-o stare HALF-OPEN de verificare, recuperare întârziată; cât timp este OPEN, combinația redirecționează către următorul furnizor. Nivelul 2: perioada de așteptare a conexiunii (o cheie/un cont): bază de 5s pentru OAuth / 3s pentru cheia API, temporizare exponențială ×2 cu protecție împotriva efectului de turmă, 429 respectă Retry-After, succesul șterge întreaga stare de eroare; o cheie aflată în perioada de așteptare este omisă, în timp ce cheile asociate continuă să deservească solicitările. Nivelul 3: blocarea modelului (un model): răspunsurile 429 per model, răspunsurile locale 404 sau refuzurile de mod blochează doar modelul respectiv — niciodată întreaga conexiune. Stările terminale (interzis, expirat, credite epuizate) sunt destinate operatorului, nu perioadelor de așteptare."/>
 
-<sub>📖 [Motorul de combinații automate](docs/routing/AUTO-COMBO.md) · [Ghid de reziliență](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [Motorul Auto-Combo](docs/routing/AUTO-COMBO.md) · [Ghid de reziliență](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
@@ -570,29 +570,29 @@ catalogul actual la **[radar.omniroute.online/planos](https://radar.omniroute.on
 
 </div>
 
-> Cele mai recente îmbunătățiri din **v3.8.20 → v3.8.50**. Istoricul complet este disponibil în [`CHANGELOG.md`](CHANGELOG.md).
+> Noutăți recente din **v3.8.20 → v3.8.50**. Istoricul complet este disponibil în [`CHANGELOG.md`](CHANGELOG.md).
 
-- **🎛️ OmniConductor** — delegare A2A de intrare către flota dvs. de agenți, abilități Conductor pe Agent Card și un panou de control cu chat vocal Faro de tip push-to-talk. → [Server A2A](docs/frameworks/A2A-SERVER.md)
-- **🛂 Admitere adaptivă și protecție la supraîncărcare** — solicitările complexe de chat sunt puse în coadă în loc să returneze 503, cu lease-uri RPM glisante și atomice pentru fiecare conexiune. → [Ghid de reziliență](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ Ordonare canonică pentru `/v1/models`** — câte un bloc contiguu, grupat după furnizor, pentru fiecare furnizor (combinațiile sunt fixate primele), stabil în toate sursele catalogului. → [Referință API](docs/reference/API_REFERENCE.md)
-- **🗜️ Consolidarea compresiei** — protecție activată implicit împotriva inflației, pachete Caveman pentru DE / FR / JA + chineză (wényán), filtre RTK pentru Gradle și .NET. → [Compresie](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Cost fix afișat corect** — furnizorii pe bază de abonament / plan de programare afișează **$0** în analiza costurilor; estimările pentru buget, cotă și rutare sunt păstrate. → [Referință API](docs/reference/API_REFERENCE.md)
-- **⚖️ Rutare Quota-Share** — distribuie echitabil cota unui cont partajat între cheile grupate, păstrând utilizarea eficientă prin împrumutarea segmentelor inactive. → [Ghid de reziliență](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 Configurare CLI/agent printr-o singură comandă** — 13 comenzi `setup-*` înregistrate; `omniroute run` lansează 7 instrumente CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` acceptă 10 destinații, cu un selector interactiv pentru furnizor și model și favorite pentru fiecare context. → [Integrări CLI](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Mod la distanță** — controlați o instanță OmniRoute la distanță folosind tokenuri cu domeniu limitat (`connect` / `contexts` / `tokens`) și un instrument OAuth auxiliar `antigravity` pentru instalările pe VPS. → [Mod la distanță](docs/guides/REMOTE-MODE.md)
-- **🧭 Rutare automată mai inteligentă** — combinații `auto/<category>:<tier>`, **Fusion** (panou de modele + evaluator), rutare adaptată sarcinii, înlocuiri per solicitare pentru model / mod / buget în USD. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Compresie extensibilă** — 12 motoare componibile + Compression Studios: LLMLingua-2, Ultra pe două niveluri, omniglyph, filtru de fidelitate pentru fiecare etapă, GCF v3.2, editor cu reordonare prin glisare. → [Compresie](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Decriptare MITM transparentă (TPROXY)** — interceptează instrumentele CLI care ignoră variabilele de mediu pentru proxy, folosind o CA per SNI și un program de instalare în depozitul de încredere. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Telemetrie a costurilor pretutindeni** — anteturi `X-OmniRoute-*` pentru cost/utilizare la fiecare endpoint, antet pentru economiile obținute la cache-HIT, cote de cheltuieli în USD pentru fiecare cheie. → [Referință API](docs/reference/API_REFERENCE.md)
+- **🎛️ OmniConductor** — delegare A2A la intrare către flota dvs. de agenți, abilități Conductor pe Agent Card și un panou de control cu chat vocal Faro de tip push-to-talk. → [Server A2A](docs/frameworks/A2A-SERVER.md)
+- **🛂 Admitere adaptivă și protecție la supraîncărcare** — solicitările de chat care consumă multe resurse sunt puse în coadă în loc să returneze 503, cu concesiuni RPM glisante și atomice pentru fiecare conexiune. → [Ghid de reziliență](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ Ordonare canonică pentru `/v1/models`** — câte un bloc contiguu, grupat după furnizor, pentru fiecare furnizor (combinațiile sunt fixate primele), stabil pentru fiecare sursă de catalog. → [Referință API](docs/reference/API_REFERENCE.md)
+- **🗜️ Consolidarea compresiei** — protecție implicit activată împotriva expansiunii, pachete Caveman pentru DE / FR / JA + chineză (wényán), filtre RTK pentru Gradle și .NET. → [Compresie](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Cost fix realist** — furnizorii pe bază de abonament / planuri de programare afișează **$0** în analizele de cost; bugetul, cota și rutarea continuă să facă estimări. → [Referință API](docs/reference/API_REFERENCE.md)
+- **⚖️ Rutare cu partajarea cotei** — împarte echitabil cota unui cont comun între cheile grupate, conservând utilizarea, astfel încât porțiunile inactive să fie împrumutate. → [Ghid de reziliență](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 Configurare CLI/agent cu o singură comandă** — 13 comenzi `setup-*` înregistrate; `omniroute run` lansează 7 CLI-uri (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` acceptă 10 ținte, cu un selector interactiv pentru furnizor și model și favorite pentru fiecare context. → [Integrări CLI](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Mod la distanță** — controlați o instanță OmniRoute la distanță folosind tokenuri cu domeniu limitat (`connect` / `contexts` / `tokens`) și un instrument OAuth `antigravity` pentru instalări pe VPS. → [Mod la distanță](docs/guides/REMOTE-MODE.md)
+- **🧭 Rutare automată mai inteligentă** — combinații `auto/<category>:<tier>`, **Fusion** (panou de modele + arbitru), rutare adaptată sarcinii, suprascrieri pentru fiecare solicitare privind modelul / modul / bugetul în USD. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Compresie extensibilă** — 12 motoare combinabile + Compression Studios: LLMLingua-2, Ultra pe două niveluri, omniglyph, prag de fidelitate pentru fiecare pas, GCF v3.2, editor cu reordonare prin glisare. → [Compresie](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ Decriptare MITM transparentă (TPROXY)** — interceptează CLI-urile care ignoră variabilele de mediu pentru proxy, cu o CA pentru fiecare SNI și un program de instalare în depozitul de încredere. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Telemetrie de cost pretutindeni** — antete `X-OmniRoute-*` privind costurile/utilizarea pentru fiecare endpoint, antet pentru economiile obținute la cache-HIT, cote de cheltuieli în USD pentru fiecare cheie. → [Referință API](docs/reference/API_REFERENCE.md)
 - **🧠 Memorie pe care o controlați** — dezactivată implicit, cuantizare vectorială int8 opțională + degradare tipizată, `x-omniroute-no-memory` pentru fiecare solicitare. → [Memorie](docs/frameworks/MEMORY.md)
-- **🛡️ Securitate** — protecție împotriva injectării de prompturi pe fiecare rută LLM (suită red-team), mecanism opțional de protecție pentru mascarea acreditărilor (elimină cheile API/secretele divulgate în ambele direcții), căutare web gratuită DuckDuckGo ca ultimă soluție și un filtru opțional de autentificare OIDC pentru panoul de control (autentificarea cu parolă rămâne întotdeauna disponibilă). → [Mecanisme de protecție](docs/security/GUARDRAILS.md)
-- **🖼️ Endpointuri noi** — `/v1/ocr` (Mistral OCR) și `/v1/audio/translations` (în stil Whisper) completează suprafața media. → [Referință API](docs/reference/API_REFERENCE.md)
-- **🎨 Generare de imagini / videoclipuri / conținut audio** — un singur API pentru conținut media: xAI Grok Imagine și videoclipuri Novita AI, ComfyUI, Magnific, Adobe Firefly, Segmind și furnizori de voce precum ElevenLabs. → [Referință API](docs/reference/API_REFERENCE.md)
+- **🛡️ Securitate** — protecție împotriva injectării de prompturi pe fiecare rută LLM (suită red-team), mecanism opțional de mascare a credențialelor (elimină cheile API/secretele expuse în ambele direcții), căutare web gratuită DuckDuckGo ca ultimă soluție și un mecanism opțional de autentificare OIDC pentru panoul de control (autentificarea cu parolă rămâne permanent disponibilă). → [Mecanisme de protecție](docs/security/GUARDRAILS.md)
+- **🖼️ Endpointuri noi** — `/v1/ocr` (Mistral OCR) și `/v1/audio/translations` (în stil Whisper) completează funcționalitățile media. → [Referință API](docs/reference/API_REFERENCE.md)
+- **🎨 Generare de imagini / videoclipuri / conținut audio** — un singur API pentru conținut media: videoclipuri xAI Grok Imagine și Novita AI, ComfyUI, Magnific, Adobe Firefly, Segmind și furnizori vocali precum ElevenLabs. → [Referință API](docs/reference/API_REFERENCE.md)
 - **🌍 Implementare și operațiuni** — `basePath` pentru proxy invers, detectarea automată a limbii browserului, urmărirea dispozitivelor pentru fiecare cheie, încredere MITM fără privilegii root, localizare zh-TW. → [Mediu](docs/reference/ENVIRONMENT.md)
 - **🤝 Mai mulți furnizori și agenți** — agenți cloud (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) cu browser + autentificare OAuth, card dedicat pentru Ollama, Claude Opus 5 și Sonnet 5, parteneriat oficial Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… și un **catalog actualizat cu 352 de furnizori**. → [Furnizori](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Transparența rutării** — fiecare răspuns include un antet `X-OmniRoute-Decision` care indică strategia/furnizorul/latenta ce l-au deservit, o nouă strategie de combinație `cache-optimized` + factorul Auto-Combo `cacheAffinity` redirecționează solicitările repetate către conexiunea care deține prefixul memorat în cache, iar un endpoint doar în citire `/v1/auto-combo/{channel}/candidates` expune grupul actual de candidați al unui canal `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Performanță și infrastructură locală** — Redis local cu un singur clic, instrumente de implementare pentru relee Cloudflare Workers / Deno Deploy, Bifrost și Mux ca servicii încorporate și supravegheate. → [Servicii încorporate](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 Incluse, de asemenea** — cadru pentru pluginuri + marketplace, cadre pentru abilități Omni/Agent/GitHub, integrare cu seifurile Obsidian (22 de instrumente MCP), API-uri Batch și Files compatibile cu OpenAI, cache semantic pentru răspunsuri, gamificare cu clasamente, descoperire de agenți ACP (15 agenți integrați), export programat al jurnalelor în BigQuery, injectare de erori `auto/chaos`, o punte pentru boți Telegram, un manager de versiuni în aplicație și clasamente LMArena-ELO pentru furnizorii gratuiți. → [Documentație](docs/README.md)
+- **📡 Transparența rutării** — fiecare răspuns include un antet `X-OmniRoute-Decision` care indică strategia/furnizorul/ latența utilizată, o nouă strategie de combinare `cache-optimized` + factorul Auto-Combo `cacheAffinity` direcționează solicitările repetate înapoi către conexiunea care deține prefixul memorat în cache, iar un endpoint doar în citire `/v1/auto-combo/{channel}/candidates` expune grupul actual de candidați al unui canal `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ Performanță locală și infrastructură** — Redis local cu un singur clic, instrumente de implementare pentru relee Cloudflare Workers / Deno Deploy, Bifrost și Mux ca servicii încorporate supravegheate. → [Servicii încorporate](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 De asemenea, incluse** — cadru de pluginuri + marketplace, cadre de abilități Omni/Agent/GitHub, integrare cu seifuri Obsidian (22 de instrumente MCP), API-uri Batch și Files compatibile cu OpenAI, cache semantic pentru răspunsuri, gamificare cu clasamente, descoperirea agenților ACP (15 agenți integrați), export programat al jurnalelor în BigQuery, distribuire paralelă către mai multe modele prin `auto/chaos`, o punte pentru boți Telegram, un manager de versiuni în aplicație și clasamente LMArena-ELO pentru furnizorii gratuiți. → [Documentație](docs/README.md)
 
 <br/>
 
@@ -1272,18 +1272,18 @@ Valori canonice la 2026-08-24: **1.029 de videoclipuri unice** · **11.132.922 d
   <tr><th align="left">Nivel</th><th align="left">Tehnologie</th></tr>
   <tr><td nowrap><b>Mediu de execuție</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Limbaj</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> în <code>src/</code> și <code>open-sse/</code> (zero <code>any</code> în nucleu începând cu v2.0)</td></tr>
-  <tr><td nowrap><b>Cadru de lucru</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Bază de date</b></td><td>better-sqlite3 (SQLite, jurnalizare WAL) + LowDB (JSON moștenit) — 122 de module de domeniu, 190 de migrări</td></tr>
-  <tr><td nowrap><b>Memorie</b></td><td>Căutare în text integral cu SQLite FTS5 + reprezentări vectoriale cuantizate int8, degradare tipizată</td></tr>
+  <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Bază de date</b></td><td>better-sqlite3 (SQLite, jurnalizare WAL) + LowDB (JSON moștenit) — 136 de module de domeniu, 193 de migrări</td></tr>
+  <tr><td nowrap><b>Memorie</b></td><td>Căutare full-text SQLite FTS5 + reprezentări vectoriale cuantizate int8, degradare tipizată</td></tr>
   <tr><td nowrap><b>Scheme</b></td><td>Zod 4 — validarea intrărilor/ieșirilor instrumentelor MCP + contracte API</td></tr>
   <tr><td nowrap><b>Protocoale</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Transmitere în flux</b></td><td>Evenimente trimise de server (SSE) + punte WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Transmitere în flux</b></td><td>Server-Sent Events (SSE) + punte WebSocket (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Compresie</b></td><td>Flux cu 12 motoare — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Autentificare și securitate</b></td><td>OAuth 2.0 (PKCE) + JWT + chei API + autentificare MCP cu domeniu limitat · AES-256-GCM pentru datele stocate · DOMPurify</td></tr>
+  <tr><td nowrap><b>Autentificare &amp; securitate</b></td><td>OAuth 2.0 (PKCE) + JWT + chei API + autentificare MCP cu domeniu limitat · AES-256-GCM pentru datele stocate · DOMPurify</td></tr>
   <tr><td nowrap><b>Discreție</b></td><td>wreq-js — imitarea amprentelor TLS JA3 / JA4, proxy pe 3 niveluri</td></tr>
-  <tr><td nowrap><b>Reziliență</b></td><td>Întrerupător de circuit, reluare exponențială, protecție împotriva efectului „thundering herd”, autoremediere automată a combinațiilor</td></tr>
-  <tr><td nowrap><b>Jurnalizare</b></td><td>pino — jurnale JSON structurate, cu contextul solicitării</td></tr>
-  <tr><td nowrap><b>Testare</b></td><td>Instrumentul de testare Node.js + Vitest — <b>peste 39.000 de declarații statice de teste</b> în peste 5.100 de fișiere de testare urmărite (unitare, de integrare, E2E, de securitate, de ecosistem)</td></tr>
+  <tr><td nowrap><b>Reziliență</b></td><td>Întrerupător de circuit, întârziere exponențială, protecție împotriva efectului de turmă, autoremediere automată a combinațiilor</td></tr>
+  <tr><td nowrap><b>Jurnalizare</b></td><td>pino — jurnale JSON structurate, cu contextul cererii</td></tr>
+  <tr><td nowrap><b>Testare</b></td><td>Executorul de teste Node.js + Vitest — <b>peste 39.000 de declarații statice de teste</b> în peste 5.100 de fișiere de testare urmărite (unitare, integrare, E2E, securitate, ecosistem)</td></tr>
   <tr><td nowrap><b>Platforme</b></td><td>Desktop (Electron) · Android (Termux) · PWA (orice browser)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — publicare automată pe npm + Docker Hub la lansare</td></tr>
   <tr><td nowrap><b>Linkuri</b></td><td><a href="https://omniroute.online">Site web</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>

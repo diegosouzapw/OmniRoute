@@ -411,11 +411,10 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## 도움말 보기
+## 도움말
 
 - **아키텍처**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) 참조
-- **API 참조 문서**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) 참조
+- **API 레퍼런스**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) 참조
 - **보안 문서**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **운영 문서**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **이슈**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: 아키텍처 결정 기록은 `docs/adr/` 참조

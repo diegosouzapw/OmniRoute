@@ -262,16 +262,24 @@ Efface **toutes** les surcharges de la base de données en une seule fois, resta
 
 ---
 
-## Solution de repli d’urgence en cas d’épuisement du budget
+## Repli d’urgence en cas d’épuisement du budget
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (catégorie `runtime`, valeur par défaut `true`) contrôle le
 mécanisme de repli gratuit d’urgence dans
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Lorsqu’il est activé, les requêtes qui épuisent leur budget sont acheminées vers un
-fournisseur/modèle de repli gratuit au lieu d’échouer purement et simplement. Définissez-le sur `false` (ou `0`) — via le
-bouton d’activation/désactivation du tableau de bord, une valeur de remplacement dans la DB ou la variable d’environnement `OMNIROUTE_EMERGENCY_FALLBACK`
-— pour désactiver ce comportement et laisser échouer les requêtes dont le budget est
-épuisé. (Présenté sous forme de bouton d’activation/désactivation dans le tableau de bord dans les PR #3741 / #3752.)
+Lorsqu’il est activé, les requêtes qui épuisent leur budget sont redirigées vers un
+fournisseur/modèle de repli gratuit au lieu d’échouer immédiatement. Définissez-le sur
+`false` (ou `0`) — via le commutateur du tableau de bord, une valeur de remplacement
+dans la base de données ou la variable d’environnement
+`OMNIROUTE_EMERGENCY_FALLBACK` — pour désactiver ce comportement et laisser échouer
+les requêtes dont le budget est épuisé. (Présenté sous forme de commutateur dans le
+tableau de bord dans les PR #3741 / #3752.)
+
+Une réponse fournie par ce mécanisme de repli comporte l’en-tête
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, ce qui
+permet à un client de savoir qu’elle a été redirigée sans comparer
+`X-OmniRoute-Provider` à sa requête. Cet en-tête est absent de toutes les autres
+réponses.
 
 ---
 

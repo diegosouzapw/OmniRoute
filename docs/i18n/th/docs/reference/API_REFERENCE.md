@@ -423,51 +423,51 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## เอนด์พอยต์ที่เข้ากันได้
+## เอนด์พอยต์ที่รองรับความเข้ากันได้
 
-| Method | Path                                      | Format                               |
-| ------ | ----------------------------------------- | ------------------------------------ |
-| POST   | `/v1/chat/completions`                    | OpenAI                               |
-| POST   | `/v1/messages`                            | Anthropic                            |
-| POST   | `/v1/responses`                           | การตอบกลับของ OpenAI                 |
-| POST   | `/v1/embeddings`                          | OpenAI                               |
-| POST   | `/v1/images/generations`                  | รูปภาพของ OpenAI                     |
-| POST   | `/v1/images/edits`                        | รูปภาพของ OpenAI (แก้ไข/เติมเต็ม)    |
-| POST   | `/v1/videos/generations`                  | การสร้างวิดีโอสไตล์ OpenAI           |
-| POST   | `/v1/music/generations`                   | การสร้างเพลงสไตล์ OpenAI             |
-| POST   | `/v1/audio/transcriptions`                | เสียงของ OpenAI (STT)                |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (ส่งคืนเนื้อหาเสียง)      |
-| POST   | `/v1/rerank`                              | การจัดอันดับใหม่สไตล์ Cohere/Voyage  |
-| POST   | `/v1/classify`                            | การจัดหมวดหมู่ Jina (`api.jina.ai`)  |
-| POST   | `/v1/segment`                             | ตัวแบ่งส่วน Jina (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | การกลั่นกรองของ OpenAI               |
-| GET    | `/v1/models`                              | OpenAI                               |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                            |
-| GET    | `/v1beta/models`                          | Gemini                               |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent               |
-| POST   | `/v1/api/chat`                            | Ollama                               |
-| GET    | `/api/v1/vscode/{token}/`                 | นามแฝงแค็ตตาล็อก OpenAI              |
-| GET    | `/api/v1/vscode/{token}/models`           | นามแฝงโมเดล OpenAI                   |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | นามแฝงแบบโทเค็นของ OpenAI            |
-| POST   | `/api/v1/vscode/{token}/responses`        | นามแฝงการตอบกลับของ OpenAI แบบโทเค็น |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | นามแฝง Ollama แบบโทเค็น              |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | นามแฝงแท็ก Ollama แบบโทเค็น          |
+| เมธอด | พาธ                                       | รูปแบบ                                  |
+| ----- | ----------------------------------------- | --------------------------------------- |
+| POST  | `/v1/chat/completions`                    | OpenAI                                  |
+| POST  | `/v1/messages`                            | Anthropic                               |
+| POST  | `/v1/responses`                           | OpenAI Responses                        |
+| POST  | `/v1/embeddings`                          | OpenAI                                  |
+| POST  | `/v1/images/generations`                  | OpenAI Images                           |
+| POST  | `/v1/images/edits`                        | OpenAI Images (แก้ไข/เติมภาพ)           |
+| POST  | `/v1/videos/generations`                  | การสร้างวิดีโอในรูปแบบ OpenAI           |
+| POST  | `/v1/music/generations`                   | การสร้างเพลงในรูปแบบ OpenAI             |
+| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                      |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (ส่งคืนเนื้อหาเสียง)         |
+| POST  | `/v1/rerank`                              | การจัดอันดับใหม่แบบ Cohere/Voyage       |
+| POST  | `/v1/classify`                            | การจำแนกประเภทด้วย Jina (`api.jina.ai`) |
+| POST  | `/v1/segment`                             | ตัวแบ่งส่วนของ Jina (`segment.jina.ai`) |
+| POST  | `/v1/moderations`                         | OpenAI Moderations                      |
+| GET   | `/v1/models`                              | OpenAI                                  |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                               |
+| GET   | `/v1beta/models`                          | Gemini                                  |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                  |
+| POST  | `/v1/api/chat`                            | Ollama                                  |
+| GET   | `/api/v1/vscode/{token}/`                 | นามแฝงแค็ตตาล็อก OpenAI                 |
+| GET   | `/api/v1/vscode/{token}/models`           | นามแฝงโมเดล OpenAI                      |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | นามแฝง OpenAI ที่ใช้โทเค็น              |
+| POST  | `/api/v1/vscode/{token}/responses`        | นามแฝง OpenAI Responses ที่ใช้โทเค็น    |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | นามแฝง Ollama ที่ใช้โทเค็น              |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | นามแฝงแท็ก Ollama ที่ใช้โทเค็น          |
 
-เส้นทาง POST ทั้งหมดมีรูปแบบเดียวกัน: `Bearer your-api-key` + เนื้อหา JSON ที่ตรวจสอบโดย Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` เป็นต้น ดูที่ `src/shared/validation/schemas.ts`) จะส่งคืน 4xx หากการตรวจสอบ Schema ล้มเหลว
+เส้นทาง POST ทั้งหมดใช้โครงสร้างเดียวกัน: `Bearer your-api-key` + เนื้อหา JSON ที่ตรวจสอบความถูกต้องด้วย Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ฯลฯ โปรดดู `src/shared/validation/schemas.ts`) ระบบจะส่งคืน 4xx เมื่อการตรวจสอบสคีมาล้มเหลว
 
-สำหรับไคลเอนต์ที่ไม่สามารถแนบ `Authorization: Bearer ...` ได้ OmniRoute ยังยอมรับคีย์ API ใน URL ผ่านความเข้ากันได้ของสตริงคำค้นหา (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) หรือเอนด์พอยต์เฉพาะ `/api/v1/vscode/{token}/...` ที่ระบุไว้ด้านล่าง
+สำหรับไคลเอนต์ที่ไม่สามารถแนบ `Authorization: Bearer ...` ได้ OmniRoute ยังรองรับคีย์ API ใน URL ผ่านพารามิเตอร์คิวรีเพื่อความเข้ากันได้ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) หรือผ่านเอนด์พอยต์เฉพาะ `/api/v1/vscode/{token}/...` ที่อธิบายไว้ด้านล่าง
 
 ```bash
-# จัดอันดับใหม่ (ผู้ให้บริการ Cloud Registry หรือโหนดผู้ให้บริการที่เข้ากันได้กับ OpenAI ในรูปแบบ "<prefix>/<model>")
+# จัดอันดับใหม่ (ผู้ให้บริการในรีจิสทรีคลาวด์ หรือโหนดผู้ให้บริการที่เข้ากันได้กับ OpenAI ในรูปแบบ "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# จัดหมวดหมู่ Jina (ข้อมูลรับรอง Foundation API)
+# จำแนกประเภทด้วย Jina (ข้อมูลประจำตัวของ Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# ตัวแบ่งส่วน Jina
+# ตัวแบ่งส่วนของ Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# ค้นหา Jina (s.jina.ai; นามแฝงผู้ให้บริการ: jina-search, jina-ai, jina)
+# การค้นหาด้วย Jina (s.jina.ai; นามแฝงผู้ให้บริการ: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # การกลั่นกรอง
@@ -476,21 +476,43 @@ POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 # TTS — ส่งคืนเนื้อหา audio/mpeg (หรือรูปแบบที่ร้องขอ)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# แก้ไขรูปภาพ (หลายส่วน)
+# Soniox TTS ต้องระบุภาษาและเสียง: `language` มีค่าเริ่มต้นเป็น "en"; หากไม่ระบุ
+# เสียงหรือใช้ชื่อเสียงมาตรฐานของ OpenAI (alloy, nova, …) ระบบจะเปลี่ยนเป็น "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# แก้ไขภาพ (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# การสร้างวิดีโอ / เพลง (รหัสโมเดลที่มีคำนำหน้าผู้ให้บริการ)
+# สร้างวิดีโอ / เพลง (รหัสโมเดลที่มีคำนำหน้าผู้ให้บริการ)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **โหนดผู้ให้บริการจัดอันดับใหม่:** `POST /v1/rerank` ยังส่งเส้นทางไปยังโหนดผู้ให้บริการที่เข้ากันได้กับ OpenAI (oMLX, vLLM, Infinity, TEI ที่อยู่เบื้องหลังเกตเวย์, …) ซึ่งระบุเป็น `<node-prefix>/<model>` โหนด Loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) มีสิทธิ์เสมอ โหนดบนโฮสต์อื่นใด — กล่อง LAN หรือ Tailscale peer — จะมีสิทธิ์ก็ต่อเมื่อผู้ดูแลระบบเปิดใช้งานแฟล็กคุณสมบัติ `RERANK_REMOTE_PROVIDER_NODES` **และ** URL พื้นฐานของโหนดผ่านนโยบาย URL ขาออกของผู้ให้บริการ (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); โฮสต์เมตาดาต้าคลาวด์จะไม่ถูกส่งเส้นทางไป การจัดอันดับใหม่ของเอนจินหน่วยความจำจะเรียกเส้นทางนี้ผ่าน loopback ดังนั้นกฎเดียวกันนี้จึงควบคุม `rerankProviderModel` ในการตั้งค่าหน่วยความจำ
+> **โหนดผู้ให้บริการสำหรับการจัดอันดับใหม่:** `POST /v1/rerank` ยังส่งต่อคำขอไปยังโหนดผู้ให้บริการ
+> ที่เข้ากันได้กับ OpenAI (oMLX, vLLM, Infinity, TEI ที่อยู่หลังเกตเวย์, …) ซึ่งระบุด้วย
+> `<node-prefix>/<model>` โหนดลูปแบ็ก (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ใช้งานได้เสมอ
+> โหนดบนโฮสต์อื่นทั้งหมด ไม่ว่าจะเป็นเครื่องใน LAN หรือเพียร์ Tailscale จะใช้งานได้ต่อเมื่อ
+> ผู้ดำเนินการเปิดใช้แฟล็กฟีเจอร์ `RERANK_REMOTE_PROVIDER_NODES` **และ** URL ฐานของโหนด
+> ผ่านนโยบาย URL ขาออกของผู้ให้บริการ (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` /
+> `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) เท่านั้น ระบบจะไม่ส่งต่อคำขอไปยังโฮสต์ข้อมูลเมตาของคลาวด์
+> ขั้นตอนการจัดอันดับใหม่ของเอนจินหน่วยความจำจะเรียกเส้นทางนี้ผ่านลูปแบ็ก ดังนั้นกฎเดียวกันนี้จึงควบคุม
+> `rerankProviderModel` ในการตั้งค่าหน่วยความจำด้วย
 >
-> **รูปแบบเซิร์ฟเวอร์ภายใน:** โหนดจะถูกเรียกที่ `<base>/v1/rerank` และเมื่อเกิด 404 จะถูกเรียกที่ `<base>/rerank` (Infinity, TEI) เนื้อหาต้นทางจะประกอบด้วยทั้งการสะกดแบบ Cohere/OpenAI (`documents`, `return_documents`) และการสะกดแบบ TEI (`texts`, `return_text`) และการตอบกลับต้นทางจะถูกปรับให้เป็นรูปแบบ Cohere: `[{index, score, text}]` แบบเปลือยของ TEI, `{results: [{index, score}]}` จากเกตเวย์แบบบาง และ `{data: [...]}` สไตล์ Voyage ทั้งหมดจะถูกส่งกลับไปยังไคลเอนต์ในรูปแบบ `{results: [{index, relevance_score, document?}]}` โดยเรียงตามคะแนนและจำกัดที่ `top_n`
+> **รูปแบบของเซิร์ฟเวอร์ภายในเครื่อง:** ระบบจะเรียกโหนดที่ `<base>/v1/rerank` และหากได้รับ 404
+> จะเรียกที่ `<base>/rerank` (Infinity, TEI) เนื้อหาคำขอต้นทางจะมีทั้งการสะกดแบบ Cohere/OpenAI
+> (`documents`, `return_documents`) และการสะกดแบบ TEI (`texts`, `return_text`) ส่วนการตอบกลับ
+> จากต้นทางจะถูกปรับให้เป็นเอนเวโลปแบบ Cohere: ทั้งอาร์เรย์เปล่าของ TEI `[{index, score, text}]`,
+> `{results: [{index, score}]}` จากเกตเวย์ขนาดเล็ก และรูปแบบ Voyage `{data: [...]}` จะถูกส่งกลับ
+> ไปยังไคลเอนต์เป็น `{results: [{index, relevance_score, document?}]}` โดยเรียงตามคะแนนและจำกัด
+> จำนวนสูงสุดตาม `top_n`
 
-> **การค้นพบโหนดผู้ให้บริการ:** โมเดลบนโหนดผู้ให้บริการที่เข้ากันได้กับ OpenAI จะปรากฏใน `GET /v1/models` ภายใต้คำนำหน้าโหนด แถวที่ไม่มีเมตาดาต้าเอนด์พอยต์ (ซึ่งเป็นเรื่องปกติสำหรับการแสดงรายการ `/v1/models` ภายใน) จะสืบทอด `apiType` ของโหนด ดังนั้นโมเดลของโหนด `embeddings` จะเป็น `type: "embedding"` และโมเดลของโหนด `rerank` จะเป็น `type: "rerank"` แทนที่จะเป็นค่าเริ่มต้นของการแชท; `supportedEndpoints` ที่ระบุไว้อย่างชัดเจนในแถวที่ซิงค์หรือเพิ่มด้วยตนเองยังคงมีความสำคัญเหนือกว่า
+> **การค้นหาโหนดผู้ให้บริการ:** โมเดลบนโหนดผู้ให้บริการที่เข้ากันได้กับ OpenAI จะปรากฏใน `GET /v1/models`
+> ภายใต้คำนำหน้าของโหนด แถวที่ไม่มีข้อมูลเมตาของเอนด์พอยต์ (ซึ่งพบได้ทั่วไปในรายการ `/v1/models` ภายในเครื่อง)
+> จะสืบทอด `apiType` ของโหนด ดังนั้นโมเดลของโหนด `embeddings` จะมี `type: "embedding"` และ
+> โมเดลของโหนด `rerank` จะมี `type: "rerank"` แทนที่จะใช้ค่าเริ่มต้นเป็นแชต ทั้งนี้ `supportedEndpoints`
+> ที่ระบุไว้อย่างชัดเจนในแถวที่ซิงค์หรือเพิ่มด้วยตนเองยังคงมีลำดับความสำคัญสูงกว่า
 
-### เส้นทางผู้ให้บริการเฉพาะ
+### เส้นทางเฉพาะสำหรับผู้ให้บริการ
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -498,7 +520,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-คำนำหน้า provider จะถูกเพิ่มโดยอัตโนมัติหากไม่มี โมเดลที่ไม่ตรงกันจะส่งคืน `400`
+ระบบจะเพิ่มคำนำหน้าผู้ให้บริการโดยอัตโนมัติหากไม่มี โมเดลที่ไม่ตรงกันจะส่งคืน `400`
 
 ---
 
@@ -1426,22 +1448,22 @@ GET /.well-known/agent.json
 
 ---
 
-## คลาวด์ การประเมินผล และการประเมิน
+## คลาวด์, Evals และการประเมิน
 
 | เมธอด | พาธ | คำอธิบาย |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | ตรวจสอบคีย์ Bearer และส่งคืนการเชื่อมต่อผู้ให้บริการที่ปกปิดข้อมูลบางส่วน พร้อมนามแฝงโมเดลสำหรับไคลเอนต์ซิงค์กับคลาวด์ |
+| POST | `/api/cloud/auth` | ตรวจสอบคีย์ Bearer และส่งคืนการเชื่อมต่อผู้ให้บริการแบบปกปิดข้อมูล + นามแฝงโมเดลสำหรับไคลเอนต์ซิงค์กับคลาวด์ |
 | POST | `/api/cloud/credentials/update` | อัปเดตข้อมูลประจำตัวที่เข้ารหัสสำหรับผู้ให้บริการที่ซิงค์กับคลาวด์ |
-| POST | `/api/cloud/model/resolve` | แปลงรหัสโมเดลเชิงตรรกะเป็นผู้ให้บริการ/โมเดลจริงโดยใช้ตารางการกำหนดเส้นทางภายในเครื่อง |
-| GET | `/api/cloud/models/alias` | แสดงรายการนามแฝงโมเดลที่เปิดเผยต่อการซิงค์กับคลาวด์ |
+| POST | `/api/cloud/model/resolve` | แปลง ID โมเดลเชิงตรรกะเป็นผู้ให้บริการ/โมเดลที่เป็นรูปธรรมโดยใช้ตารางการกำหนดเส้นทางภายในเครื่อง |
+| GET | `/api/cloud/models/alias` | แสดงรายการนามแฝงโมเดลตามที่เปิดเผยแก่การซิงค์กับคลาวด์ |
 | GET | `/api/assess` | อ่านการจัดหมวดหมู่จากการประเมินล่าสุด (แยกตามผู้ให้บริการ/โมเดล) |
 | POST | `/api/assess` | เรียกใช้การประเมิน — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | แสดงรายการชุดการประเมินผลในตัว + การเรียกใช้ล่าสุด |
-| POST | `/api/evals` | เริ่มการเรียกใช้การประเมินผล |
-| POST | `/api/evals/suites` | สร้างชุดการประเมินผลแบบกำหนดเอง — ตรวจสอบ body ด้วย `evalSuiteSaveSchema` |
-| GET | `/api/evals/suites/[id]` | ดึงข้อมูลชุดการประเมินผลแบบกำหนดเอง |
+| GET | `/api/evals` | แสดงรายการชุด eval ในตัว + การเรียกใช้ล่าสุด |
+| POST | `/api/evals` | เริ่มการเรียกใช้ eval |
+| POST | `/api/evals/suites` | สร้างชุด eval แบบกำหนดเอง — body ได้รับการตรวจสอบโดย `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | เรียกข้อมูลชุด eval แบบกำหนดเอง |
 
-**การยืนยันตัวตน:** `/api/cloud/auth` ตรวจสอบคีย์ Bearer โดยตรง ส่วนเส้นทาง `/api/cloud/*`, `/api/evals/*` และ `/api/assess` อื่น ๆ ต้องใช้เซสชัน/คีย์ API สำหรับการจัดการ คำขอ POST ไปยัง `/api/assess` ใช้ `validateBody` ร่วมกับสคีมาขอบเขตแบบ discriminated union
+**การยืนยันตัวตน:** `/api/cloud/auth` ตรวจสอบคีย์ Bearer โดยตรง และส่งคืนเฉพาะคีย์ที่ปกปิดแล้วกับ `projectId` ของแต่ละการเชื่อมต่อสำหรับคีย์ที่มีขอบเขต `manage` / `admin` เท่านั้น ส่วนเส้นทาง `/api/cloud/*`, `/api/evals/*` และ `/api/assess` อื่น ๆ ต้องใช้เซสชันการจัดการ/คีย์ API การส่งคำขอ POST ไปยัง `/api/assess` ใช้ `validateBody` กับสคีมาขอบเขตแบบ discriminated union
 
 ---
 

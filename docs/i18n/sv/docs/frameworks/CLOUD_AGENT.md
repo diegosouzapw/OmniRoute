@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 uppströmsleverantören — det finns ingen RPC för avbrott i `CloudAgentBase`. För att stoppa
 debiteringen uppströms måste uppgiften avslutas i leverantörens egen konsol.
 
-## REST API — infrastruktur för molnleverantörer
+## REST API — integrering med molnleverantörer
 
-Dessa kompletterande slutpunkter under `src/app/api/cloud/` används av fjärrklienter
-(CLI:n, Electron-appen eller synkroniseringsprocesser) för att läsa anslutningsmetadata
-för leverantörer och matcha modellalias. De autentiseras med en **vanlig API-nyckel**
-(via `validateApiKey`), inte med den administrationsautentisering som används av uppgiftsslutpunkterna.
+Dessa extraendpoints under `src/app/api/cloud/` används av fjärrklienter
+(CLI:t, Electron-appen eller synkroniseringsarbetare) för att läsa anslutningsmetadata
+för leverantörer och matcha modellalias. De autentiseras med en **API-nyckel**
+(via `validateApiKey`), inte med den hanteringsautentisering som används av uppgiftsendpoints. Vad
+`/api/cloud/auth` returnerar beror på nyckelns behörighetsomfång (se nedan).
 
-| Metod | Sökväg                          | Syfte                                                                         |
-| ----- | ------------------------------- | ----------------------------------------------------------------------------- |
-| POST  | `/api/cloud/auth`               | Validera API-nyckeln och returnera maskerad anslutningsmetadata + modellalias |
-| PUT   | `/api/cloud/credentials/update` | Uppdatera `accessToken` / `refreshToken` / `expiresAt`                        |
-| POST  | `/api/cloud/model/resolve`      | Matcha ett modellalias till `{ provider, model }`                             |
-| GET   | `/api/cloud/models/alias`       | Lista alla modellalias                                                        |
-| PUT   | `/api/cloud/models/alias`       | Ange ett modellalias (och synkronisera automatiskt till molnet om aktiverat)  |
+| Metod | Sökväg                          | Syfte                                                                       |
+| ----- | ------------------------------- | --------------------------------------------------------------------------- |
+| POST  | `/api/cloud/auth`               | Validera API-nyckeln, returnera maskerade anslutningsmetadata + modellalias |
+| PUT   | `/api/cloud/credentials/update` | Uppdatera `accessToken` / `refreshToken` / `expiresAt`                      |
+| POST  | `/api/cloud/model/resolve`      | Matcha ett modellalias till `{ provider, model }`                           |
+| GET   | `/api/cloud/models/alias`       | Lista alla modellalias                                                      |
+| PUT   | `/api/cloud/models/alias`       | Ange ett modellalias (och synkronisera automatiskt till Cloud om aktiverat) |
 
 `/api/cloud/auth` returnerar aldrig obearbetade `apiKey` / `accessToken` / `refreshToken`. Den
-returnerar `hasApiKey`, `hasAccessToken`, `hasRefreshToken` och en maskerad förhandsvisning
-(`maskedApiKey`: de första 4 + `****` + de sista 4).
+returnerar `hasApiKey`, `hasAccessToken`, `hasRefreshToken` för de aktiva anslutningar som nyckeln
+får använda (en nyckel som begränsats med `allowedConnections` ser endast dessa). För en API-nyckel med
+behörighetsomfånget `manage` eller `admin`, inklusive distributionsnyckeln från `OMNIROUTE_API_KEY`, returnerar den även
+en maskerad förhandsvisning (`maskedApiKey`: upp till 4 tecken i vardera änden, färre för en kort
+nyckel och inga för nycklar med högst 8 tecken) samt anslutningens `projectId`. Båda fälten utelämnas
+från svaret för alla andra nycklar.
 
 ## Matchning av autentiseringsuppgifter
 

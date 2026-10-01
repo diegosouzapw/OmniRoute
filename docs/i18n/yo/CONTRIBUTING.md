@@ -428,9 +428,8 @@ Lẹ́yìn náà, lo àwọn skill `/deploy-vps-*-cc` tí ó máa ń lo rsync l�
 
 ## Bí A Ṣe Lè Rí Ìrànlọ́wọ́
 
-- **Àwòrán-ẹ̀rọ**: Wo [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **Ìṣètò Àwòrán Ẹ̀rọ**: Wo [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Ìtọ́kasí API**: Wo [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Àwọn ìwé ààbò**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Àwọn ìwé iṣẹ́-ìṣàkóso**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Àwọn àkọsílẹ̀ ààbò**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Àwọn àkọsílẹ̀ iṣẹ́ ìṣàkóso**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Àwọn ìṣòro**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Àwọn ADR**: Wo `docs/adr/` fún àwọn àkọsílẹ̀ ìpinnu àwòrán-ẹ̀rọ

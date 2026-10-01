@@ -419,5 +419,4 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **API-referencia**: Lásd: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Biztonsági dokumentáció**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Üzemeltetési dokumentáció**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Problémák**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-ek**: Az architekturális döntési feljegyzéseket a `docs/adr/` könyvtárban találja.
+- **Hibajegyek**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

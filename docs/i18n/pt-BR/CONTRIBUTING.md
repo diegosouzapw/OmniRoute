@@ -428,11 +428,10 @@ Em seguida, use as skills `/deploy-vps-*-cc`, que sincronizam `dist/` via rsync 
 
 ---
 
-## Como obter ajuda
+## Obtendo ajuda
 
 - **Arquitetura**: Consulte [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Referência da API**: Consulte [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Documentação de segurança**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Documentação de operações**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Consulte `docs/adr/` para ver os registros de decisões arquiteturais
+- **Problemas**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

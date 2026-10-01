@@ -268,11 +268,16 @@ na halaga nito. Nagbabalik ng `{ cleared: <count>, message: "..." }`.
 Kinokontrol ng `OMNIROUTE_EMERGENCY_FALLBACK` (kategoryang `runtime`, default na `true`) ang
 pang-emergency na libreng fallback path sa
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Kapag naka-enable, ang mga request na nakaubos ng kanilang badyet ay ipinapasa sa isang libreng fallback
+Kapag naka-enable, ang mga request na nakaubos ng kanilang badyet ay niruruta sa isang libreng fallback na
 provider/model sa halip na tuluyang mabigo. Itakda ito sa `false` (o `0`) — sa pamamagitan ng
-dashboard toggle, DB override, o environment variable na `OMNIROUTE_EMERGENCY_FALLBACK`
-— upang i-disable ang gawi at hayaang mabigo ang mga request na nakaubos ng badyet.
-(Inilabas bilang dashboard toggle sa mga PR #3741 / #3752.)
+toggle sa dashboard, isang override sa DB, o ng `OMNIROUTE_EMERGENCY_FALLBACK`
+environment variable — upang i-disable ang gawi at hayaang mabigo ang mga request na
+nakaubos ng badyet. (Inilantad bilang toggle sa dashboard sa mga PR #3741 / #3752.)
+
+Ang tugon na ibinigay ng fallback na ito ay may
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, upang
+malaman ng client na muli itong niruta nang hindi inihahambing ang `X-OmniRoute-Provider` sa
+request nito. Wala ang header na ito sa lahat ng iba pang tugon.
 
 ---
 

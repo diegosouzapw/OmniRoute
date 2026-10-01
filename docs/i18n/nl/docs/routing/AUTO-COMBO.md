@@ -8,39 +8,39 @@
 
 > Zelfbeherende modelketens met adaptieve scoring + automatische routering zonder configuratie
 
-## Automatische routering zonder configuratie (prefix `auto/`)
+## Automatische routering zonder configuratie (`auto/`-voorvoegsel)
 
-> **NIEUW:** Het aanmaken van een combo is niet vereist. Gebruik de prefix `auto/` rechtstreeks in elke client.
+> **NIEUW:** Het aanmaken van een combo is niet vereist. Gebruik het voorvoegsel `auto/` rechtstreeks in elke client.
 
 ### Snelle voorbeelden
 
-| Model-ID       | Variant | Gedrag                                                                           |
-| -------------- | ------- | -------------------------------------------------------------------------------- |
-| `auto`         | default | Alle verbonden providers, LKGP-strategie, gebalanceerde gewichten                |
-| `auto/coding`  | coding  | Kwaliteitsgerichte gewichten, geschikt voor codegeneratie                        |
-| `auto/fast`    | fast    | Gewogen selectie met lage latentie                                               |
-| `auto/cheap`   | cheap   | Kostengeoptimaliseerde routering (laagste kosten eerst)                          |
-| `auto/offline` | offline | Geeft voorrang aan providers met de hoogste quotumbeschikbaarheid                |
-| `auto/smart`   | smart   | Kwaliteitsgericht + hoger exploratiepercentage (10%) voor betere modelontdekking |
-| `auto/lkgp`    | lkgp    | Expliciete LKGP (hetzelfde als standaard `auto`)                                 |
-| `auto/chaos`   | chaos   | Gewichten voor foutinjectie om veerkracht te testen (chaosengineering)           |
+| Model-ID       | Variant   | Gedrag                                                                           |
+| -------------- | --------- | -------------------------------------------------------------------------------- |
+| `auto`         | standaard | Alle verbonden providers, LKGP-strategie, gebalanceerde gewichten                |
+| `auto/coding`  | coding    | Gewichten gericht op kwaliteit, geschikt voor het genereren van code             |
+| `auto/fast`    | fast      | Gewogen selectie met lage latentie                                               |
+| `auto/cheap`   | cheap     | Kostengeoptimaliseerde routering (laagste kosten eerst)                          |
+| `auto/offline` | offline   | Geeft de voorkeur aan providers met de hoogste beschikbare quota                 |
+| `auto/smart`   | smart     | Gericht op kwaliteit + hogere verkenningsgraad (10%) voor betere modelontdekking |
+| `auto/lkgp`    | lkgp      | Expliciete LKGP (hetzelfde als standaard `auto`)                                 |
+| `auto/chaos`   | chaos     | Parallelle fan-out, één model per provider (geen foutinjectie)                   |
 
 ### Samenstelling van categorie × niveau (`auto/<category>:<tier>`)
 
-Achtervoegsels in OpenRouter-stijl scheiden **welk soort route** (categorie) van **hoe deze moet worden geoptimaliseerd** (niveau), zodat u ze vrij kunt combineren (#4235 fase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Achtervoegsels in OpenRouter-stijl scheiden **welk soort route** (categorie) van **hoe deze moet worden geoptimaliseerd** (niveau), zodat u ze vrij kunt combineren (#4235 Fase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Categorieën** (filteren de kandidatenpool op mogelijkheid): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` behouden modellen met ondersteuning voor beeldverwerking; `reasoning` behoudt modellen voor redeneren/denken.
-- **Niveaus** (bepalen de scoringgewichten / het poolfilter): `fast` (snelle oplevering) · `cheap` (alias `floor`, kostenbesparend) · `reliable` (status van circuitonderbreker + latentiestabiliteit) · `free` / `pro` (filteren de pool op modelniveau via `classifyTier` — gratis niveau versus premium).
+- **Categorieën** (filteren de kandidatenpool op functionaliteit): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` behouden modellen die beeldverwerking ondersteunen; `reasoning` behoudt modellen voor redeneren/denken.
+- **Niveaus** (bepalen de scoringsgewichten / het poolfilter): `fast` (snel opleveren) · `cheap` (alias `floor`, kostenbesparend) · `reliable` (status van circuitonderbreker + stabiliteit van latentie) · `free` / `pro` (filteren de pool op modelniveau via `classifyTier` — gratis niveau versus premium).
 
-| Voorbeeld              | Wordt omgezet naar                                                                      |
-| ---------------------- | --------------------------------------------------------------------------------------- |
-| `auto/coding:fast`     | codingpool, gewichten voor lage latentie                                                |
-| `auto/coding:cheap`    | codingpool, kostengeoptimaliseerd (alias `auto/coding:floor`)                           |
-| `auto/reasoning:pro`   | alleen modellen voor redeneren/denken, premiumniveau                                    |
-| `auto/vision`          | modellen met ondersteuning voor beeldverwerking (geen niveau → gebalanceerde gewichten) |
-| `auto/multimodal:free` | modellen met multimodale ondersteuning, alleen gratis niveau                            |
+| Voorbeeld              | Wordt omgezet naar                                                   |
+| ---------------------- | -------------------------------------------------------------------- |
+| `auto/coding:fast`     | coding-pool, gewichten voor lage latentie                            |
+| `auto/coding:cheap`    | coding-pool, kostengeoptimaliseerd (alias `auto/coding:floor`)       |
+| `auto/reasoning:pro`   | alleen modellen voor redeneren/denken, premiumniveau                 |
+| `auto/vision`          | modellen met beeldverwerking (geen niveau → gebalanceerde gewichten) |
+| `auto/multimodal:free` | modellen met multimodale mogelijkheden, alleen gratis niveau         |
 
-Elke geldige `auto/<category>[:<tier>]` wordt op aanvraag omgezet; een zorgvuldig samengestelde subset wordt vermeld in `/v1/models` en het dashboard (`AUTO_SUFFIX_VARIANTS` in `open-sse/services/autoCombo/builtinCatalog.ts`). Filteren werkt volgens het **fail-open-principe** — als geen enkel verbonden model aan een beperking voldoet, wordt de volledige pool gebruikt, zodat de routering nooit uitvalt. De kernscorer (`combo.ts`) blijft ongewijzigd; het categorie-/niveaufilter wordt toegepast in `buildAutoCandidates`.
+Elke geldige `auto/<category>[:<tier>]` wordt op aanvraag omgezet; een zorgvuldig samengestelde subset wordt gepubliceerd in `/v1/models` en het dashboard (`AUTO_SUFFIX_VARIANTS` in `open-sse/services/autoCombo/builtinCatalog.ts`). Filteren gebeurt **fail-open** — als geen enkel verbonden model aan een beperking voldoet, wordt de volledige pool gebruikt, zodat de routering nooit wordt onderbroken. De kernscorefunctie (`combo.ts`) blijft ongewijzigd; het categorie-/niveaufilter wordt toegepast in `buildAutoCandidates`.
 
 > **Live modelinformatie:** de geschiktheid voor automatische routering wordt gebaseerd op live **Arena ELO**-ranglijsten + niveaugegevens van **models.dev** wanneer de vlag `ARENA_ELO_SYNC_ENABLED` is ingeschakeld (anders wordt teruggevallen op de statische geschiktheidskaart).
 
@@ -48,84 +48,85 @@ Elke geldige `auto/<category>[:<tier>]` wordt op aanvraag omgezet; een zorgvuldi
 
 ```bash
 # Elke IDE of CLI-tool die de OpenAI-indeling ondersteunt
-Base URL: http://localhost:20128/v1
-API Key:  <uw-endpoint-sleutel>
+Basis-URL: http://localhost:20128/v1
+API-sleutel:  <uw-endpointsleutel>
 
-# Stel het model in uw code/configuratie in op:
+# Stel in uw code/configuratie het model in op:
 model: "auto"                 # gebalanceerde standaardinstelling
-model: "auto/coding"          # het beste voor programmeertaken
+model: "auto/coding"          # het meest geschikt voor programmeertaken
 model: "auto/fast"            # snelst beschikbare optie
 model: "auto/cheap"           # goedkoopst per token
 ```
 
-**Wat gebeurt er:**
+**Wat er gebeurt:**
 
-1. OmniRoute detecteert de prefix `auto/` in `src/sse/handlers/chat.ts`
+1. OmniRoute detecteert het voorvoegsel `auto/` in `src/sse/handlers/chat.ts`
 2. Vraagt alle **actieve providerverbindingen** op uit de database
-3. Filtert deze op geldige referenties (API-sleutel of OAuth-token)
+3. Filtert op verbindingen met geldige referenties (API-sleutel of OAuth-token)
 4. Bepaalt het model per verbinding (`connection.defaultModel` of het eerste model van de provider)
-5. Bouwt in het geheugen een **virtuele combo** (niet opgeslagen in de database)
+5. Bouwt een **virtuele combo** in het geheugen (niet opgeslagen in de database)
 6. Routeert met het gewichtsprofiel van de geselecteerde variant + de LKGP-strategie
 
 **Belangrijkste eigenschappen:**
 
 - ✅ **Altijd actief:** Geen schakeloptie, geen combo-aanmaak en geen configuratie nodig
 - ✅ **Dynamisch:** Weerspiegelt automatisch de momenteel verbonden providers
-- ✅ **Sessiestabiliteit:** LKGP zorgt ervoor dat de laatst succesvolle provider prioriteit krijgt
+- ✅ **Sessiestabiliteit:** LKGP zorgt dat de laatst succesvolle provider prioriteit krijgt
 - ✅ **Ondersteuning voor meerdere accounts:** Elke providerverbinding wordt een afzonderlijke kandidaat
-- ✅ **Geen schrijfbewerkingen naar de database:** De virtuele combo bestaat alleen voor het verzoek, zonder overhead voor persistente opslag
+- ✅ **Geen schrijfacties naar de database:** De virtuele combo bestaat alleen voor het verzoek, zonder persistentie-overhead
 
-### Kandidatenbeheer per sleutel (#7819, niveau 1+2)
+### Kandidaatbeheer per sleutel (#7819, niveau 1+2)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = het achtervoegsel na `auto/`, of
 de letterlijke waarde `auto` voor het basiskanaal) is een **alleen-lezen**-endpoint dat de
-huidige kandidatenpool van een `auto/*`-kanaal toont, aangevuld met actuele bereikbaarheidsinformatie,
-waarbij de bestaande uitleesfuncties voor veerkracht worden hergebruikt (nooit de ruwe `state` van de circuitonderbreker):
+huidige kandidatenpool van een `auto/*`-kanaal weergeeft, aangevuld met live bereikbaarheidsinformatie,
+waarbij de bestaande weerbaarheidsuitlezingen worden hergebruikt (nooit de onbewerkte `state`
+van de circuitonderbreker):
 
 - circuitonderbreker van de provider — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- afkoelperiode van de verbinding — `rateLimitedUntil` / `testStatus` in de gevonden rij van
-  `provider_connections`
-- modelblokkering — `isModelLocked(provider, connectionId, model)`
+- afkoelperiode van de verbinding — `rateLimitedUntil` / `testStatus` in de gevonden
+  rij van `provider_connections`
+- modelvergrendeling — `isModelLocked(provider, connectionId, model)`
 
 Elke kandidaat bevat ook de vlag `excluded` voor deze API-sleutel. Uitsluitingen worden
 per API-sleutel opgeslagen (tabel `auto_candidate_overrides`, migratie `128`) — OmniRoute
 is single-tenant en heeft geen tabel `users`, waardoor `apiKeyId` de meest geschikte echte
-identiteit per aanroeper is — en worden afgedwongen op het centrale punt voor de kandidatenpool in
-`open-sse/services/autoCombo/virtualFactory.ts` via de pure, met unittests geteste functie
-`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Het filter werkt volgens het **fail-open-principe**: bij een ontbrekende apiKeyId/kanaalwaarde of een mislukte
-databasequery blijft de pool ongefilterd, zodat een beheerder zonder geconfigureerde overschrijvingen routering
-ontvangt die byte voor byte identiek is aan de situatie vóór deze functie.
+identiteit per aanroeper is — en worden afgedwongen op het centrale controlepunt van de
+kandidatenpool in `open-sse/services/autoCombo/virtualFactory.ts` via de zuivere, met unittests
+geteste functie `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
+Het filter werkt **fail-open**: een niet-ingestelde apiKeyId/een niet-ingesteld kanaal of een
+mislukte databaseopzoeking laat de pool ongefilterd, zodat een beheerder zonder geconfigureerde
+overschrijvingen routering ziet die byte voor byte identiek is aan die van vóór deze functie.
 
 **Uitgesteld naar een vervolgissue:** gewichten per kandidaat + expliciete volgorde (niveau 3
-— wordt doorgegeven aan de bestaande strategieën voor weging/prioriteit) en het vastzetten van een specifieke
+— wordt verwerkt via de bestaande strategieën voor weging/prioriteit) en het vastzetten van een specifieke
 `combo.ts`-strategie per `auto/*`-kanaal (niveau 4). Zie het plan van #7819 voor de openstaande
-vraag of overrides per API-sleutel moeten blijven of globaal moeten worden vanwege het
+vraag of overrides per API-sleutel moeten blijven gelden of globaal moeten worden vanwege het
 single-tenantmodel.
 
 **Achter de schermen:**
 
 ```txt
-Verzoek: { model: "auto/coding" }
+Request: { model: "auto/coding" }
    ↓
-src/sse/handlers/chat.ts detecteert voorvoegsel
+src/sse/handlers/chat.ts detecteert het voorvoegsel
    ↓
 createVirtualAutoCombo('coding') → candidatePool uit actieve verbindingen
    ↓
 handleComboChat (dezelfde engine als voor persistente combo's)
    ↓
-Automatische scoring selecteert per verzoek de beste provider/het beste model
+Automatische scoring selecteert per request de beste provider/het beste model
 ```
 
 **Implementatiebestanden:**
 
-| Bestand                                                   | Doel                                                 |
-| --------------------------------------------------------- | ---------------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser voor voorvoegsels (`parseAutoPrefix`)         |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Maakt virtuele `AutoComboConfig`-objecten            |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testhook voor het mocken van het providerregister    |
-| `src/sse/handlers/chat.ts`                                | Integratie: vroegtijdige afhandeling van auto-prefix |
-| `src/shared/constants/providers.ts`                       | Systeemvermelding `SYSTEM_PROVIDERS.auto`            |
+| Bestand                                                   | Doel                                                       |
+| --------------------------------------------------------- | ---------------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Voorvoegselparser (`parseAutoPrefix`)                      |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Maakt virtuele `AutoComboConfig`-objecten                  |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testhook voor het mocken van het providerregister          |
+| `src/sse/handlers/chat.ts`                                | Integratie: kortsluiting voor het automatische voorvoegsel |
+| `src/shared/constants/providers.ts`                       | Systeemvermelding `SYSTEM_PROVIDERS.auto`                  |
 
 ## Combonamen die overeenkomen met een echte model-id
 
@@ -216,7 +217,7 @@ De Auto-Combo Engine selecteert voor elke aanvraag dynamisch de beste provider e
 
 ## Moduspakketten
 
-6 vooraf gedefinieerde gewichtsprofielen in `open-sse/services/autoCombo/modePacks.ts`. Elk pakket vervangt de standaardgewichten volledig om de selectie op één doel te richten. Elk pakket telt al op tot `1.0` (`0.9999` zoals weergegeven met vier decimalen), dus `normalizeScoringWeights()` heeft niets wezenlijks te corrigeren wanneer een pakket actief is — de onderstaande waarden zijn, behoudens afronding, de waarden die de scorer toepast.
+6 vooraf gedefinieerde gewichtsprofielen in `open-sse/services/autoCombo/modePacks.ts`. Elk pakket vervangt de standaardgewichten volledig om de selectie op één doel te richten. Elk pakket telt al op tot `1.0` (`0.9999` zoals weergegeven met vier decimalen), dus `normalizeScoringWeights()` heeft niets wezenlijks te corrigeren wanneer een pakket actief is — de onderstaande waarden zijn, afgezien van afronding, de waarden die het scoremechanisme toepast.
 
 | Factor                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -238,32 +239,32 @@ De Auto-Combo Engine selecteert voor elke aanvraag dynamisch de beste provider e
 
 Opmerkingen:
 
-- **Pakketten bevatten `quality` en `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) en vervangen de gewichtstoewijzing volledig (`weights = pack`, geen samenvoeging). `DEFAULT_WEIGHTS` bevat `quality 0.03 / reliability 0`; bij selectie van `balanced`/`default` blijven die standaardwaarden behouden, terwijl bij selectie van een pakket de bovenstaande waarden van dat pakket worden gebruikt. In een koude pool (nog geen waarnemingen, dus `quality 0.5` en `reliability 1`) voegen deze twee factoren `+0.04` toe bij een generiek pakket (`0.03 + 0.01`), `+0.045` bij `quality-first` en `+0.05` bij `reliability-first`.
+- **Pakketten bevatten `quality` en `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) en vervangen de gewichtstoewijzing volledig (`weights = pack`, geen samenvoeging). `DEFAULT_WEIGHTS` bevat `quality 0.03 / reliability 0`; bij selectie van `balanced`/`default` blijven die standaardwaarden behouden, terwijl bij selectie van een pakket de bovenstaande waarden van dat pakket worden gebruikt. In een cold pool (nog geen waarnemingen, dus `quality 0.5` en `reliability 1`) voegen deze twee factoren `+0.04` toe bij een algemeen pakket (`0.03 + 0.01`), `+0.045` bij `quality-first` en `+0.05` bij `reliability-first`.
 - `tierAffinity`, `specificityMatch` en `resetWindowAffinity` zijn in elk pakket expliciet ingesteld op `0`.
 - De nadruk van elk pakket in één oogopslag:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (gezonde verbindingen met lage latentie)
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (verbindingen met lage latentie en een goede status)
   - **cost-saver** → costInv 0.3324 (de goedkoopste tokens winnen)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, het hoogste van alle pakketten (beste model voor de taak, consistent)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, het hoogste van alle pakketten (het beste model voor de taak, consistent)
   - **offline-friendly** → quota 0.3324 + health 0.2667 (maximale speelruimte, ongeacht snelheid/kosten)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, het hoogste van alle pakketten (minste verrassingen)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profiel voor foutinjectie)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, het hoogste van alle pakketten (de minste verrassingen)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (het gewichtspakket dat `auto/chaos` aan de leden van zijn panel toewijst; de parallelle fan-out leest deze gewichten niet en dit is geen profiel voor foutinjectie, zie [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Besturing per aanvraag (headers) — #6023 / #6024 / #6025 / #3470
+### Besturing per verzoek (headers) — #6023 / #6024 / #6025 / #3470
 
-Een `auto`-combinatie kan **per aanvraag** worden aangestuurd via drie headers, zonder de
-opgeslagen configuratie van de combinatie te wijzigen. Deze zijn alleen van toepassing op de `auto`-strategie en alleen op de aanvraag
-die ze bevat; de opgeslagen `modePack`/`budgetCap`/`budgetFallback` van de combinatie worden gebruikt
+Een `auto`-combo kan **per verzoek** worden aangestuurd via drie headers, zonder de opgeslagen configuratie van de
+combo te wijzigen. Deze zijn alleen van toepassing op de `auto`-strategie en alleen op het verzoek
+dat ze bevat; de opgeslagen `modePack`/`budgetCap`/`budgetFallback` van de combo worden gebruikt
 wanneer de header ontbreekt.
 
-| Header                        | Accepteert                                                                                                                                                                                                     | Effect                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | een vooraf ingestelde alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) of een onbewerkte pakketnaam (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Overschrijft de scoringsgewichten voor deze aanvraag. `balanced`/`default` dwingen de standaardgewichten af (geen pakket). Onbekende waarden worden genegeerd (configuratie blijft behouden).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `X-OmniRoute-Budget`          | een positief getal (maximaal USD per aanvraag)                                                                                                                                                                 | Harde kostenlimiet: kandidaten waarvan de geschatte kosten deze limiet overschrijden, worden vóór de selectie uitgefilterd. Wat er gebeurt wanneer **elke** kandidaat de limiet overschrijdt, wordt bepaald door `X-OmniRoute-Budget-Fallback` hieronder.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (standaard, aliassen: `cheapest-viable`, `soft`) of `strict` (aliassen: `block`, `hard`)                                                                                                            | `cheapest`: valt terug op de wereldwijd goedkoopste kandidaat, ook al overschrijdt deze nog steeds de limiet (verouderd gedrag). `strict`: weigert een selectie te maken — de aanvraag mislukt direct met `HTTP 402` in plaats van stilzwijgend het budget te overschrijden. Onbekende waarden worden genegeerd.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `X-OmniRoute-Effort`          | `auto` (andere waarden gereserveerd)                                                                                                                                                                           | Adaptief denkbudget: wanneer de aanvraag **geen** redeneerveld van welke vorm dan ook bevat (`reasoning_effort`, `reasoning`, `thinking`), zet de gateway `auto` om in `low`/`medium`/`high` op basis van deterministische signalen uit de aanvraagstructuur (lengte van het laatste gebruikersbericht, contextomvang tot en met het laatste gebruikersbericht, eerdere toolresultaten, diepte van de tool-lus). Signalen zijn beperkt tot de huidige beurt — alles na het laatste gebruikersbericht wordt genegeerd — zodat elke aanvraag in een tool-lus op hetzelfde niveau uitkomt (statusloze vastzetting per beurt, geen sessiestatus, geen opschaling halverwege de lus die bovenliggende prompt-cacheprefixen zou verbreken). Een expliciet redeneerveld van de client heeft altijd voorrang. Beperkt tot aanvragen waarvan de bovenliggende dispatch wordt omgezet naar de OpenAI Chat Completions-vorm (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` is een veld in OpenAI-vorm, dus de header heeft geen effect op een aanvraag die op Claude of Gemini is gericht (zie `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Header                        | Accepteert                                                                                                                                                                                                     | Effect                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | een vooraf ingestelde alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) of een onbewerkte pakketnaam (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Overschrijft de scoringsgewichten voor deze aanvraag. `balanced`/`default` dwingen de standaardgewichten af (geen pakket). Onbekende waarden worden genegeerd (configuratie blijft behouden).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `X-OmniRoute-Budget`          | een positief getal (maximaal USD per aanvraag)                                                                                                                                                                 | Harde kostenlimiet: kandidaten waarvan de geschatte kosten deze limiet overschrijden, worden vóór de selectie uitgefilterd. Wat er gebeurt wanneer **elke** kandidaat deze limiet overschrijdt, wordt bepaald door `X-OmniRoute-Budget-Fallback` hieronder.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (standaard, aliassen: `cheapest-viable`, `soft`) of `strict` (aliassen: `block`, `hard`)                                                                                                            | `cheapest`: valt terug op de wereldwijd goedkoopste kandidaat, ook al overschrijdt deze nog steeds de limiet (verouderd gedrag). `strict`: weigert een selectie te maken — de aanvraag mislukt onmiddellijk met `HTTP 402` in plaats van stilzwijgend het budget te overschrijden. Onbekende waarden worden genegeerd.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `X-OmniRoute-Effort`          | `auto` (andere waarden gereserveerd)                                                                                                                                                                           | Adaptief denkbudget: wanneer de aanvraag **geen enkel** redeneerveld bevat, in welke vorm dan ook (`reasoning_effort`, `reasoning`, `thinking`), zet de gateway `auto` op basis van deterministische signalen uit de aanvraagstructuur om naar `low`/`medium`/`high` (lengte van het laatste gebruikersbericht, contextgrootte tot en met het laatste gebruikersbericht, eerdere toolresultaten, diepte van de tool-lus). Signalen zijn beperkt tot de huidige beurt — alles na het laatste gebruikersbericht wordt genegeerd — zodat elke aanvraag in een tool-lus op hetzelfde niveau uitkomt (toewijzing per beurt zonder status, geen sessiestatus en geen opschaling halverwege de lus die bovenliggende prompt-cacheprefixen zou verstoren). Een expliciet redeneerveld van de client heeft altijd voorrang. Beperkt tot aanvragen waarvan de bovenliggende routering wordt omgezet naar de OpenAI Chat Completions-structuur (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` is een veld volgens de OpenAI-structuur, dus de header heeft geen effect op een aanvraag die op Claude of Gemini is gericht (zie `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Forceer het snelste profiel, beperk deze aanvraag tot $0.05 en blokkeer strikt in plaats van het budget te overschrijden
+# Dwing het snelste profiel af, beperk deze aanvraag tot $0.05 en blokkeer strikt in plaats van het budget te overschrijden
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -272,10 +273,10 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-De resolutie is een zuivere functie (`open-sse/services/autoCombo/requestControls.ts`); de
-opgeloste waarden worden doorgegeven aan de bestaande invoerparameters `config.modePack` / `config.budgetCap` /
+De omzetting is een zuivere functie (`open-sse/services/autoCombo/requestControls.ts`); de
+omgezette waarden worden doorgegeven aan de bestaande invoerwaarden `config.modePack` / `config.budgetCap` /
 `config.budgetFallback` van de engine. De opgeslagen `config.budgetFallback` van een combinatie ("strict" |
-"cheapest") bepaalt het permanente beleid; de header overschrijft dit voor één enkele aanvraag.
+"cheapest") bepaalt het permanente beleid; de header overschrijft dit voor één aanvraag.
 
 ## Alle routeringsstrategieën
 
@@ -769,13 +770,19 @@ Inclusief de kale `auto` (standaard) plus de 6 `AutoVariant`-waarden die in `aut
 
 (`AutoVariant` zelf somt 6 waarden op; de 7e optie is "geen variant" — kale `auto` — die door `parseAutoPrefix()` wordt verwerkt als `variant: undefined`.)
 
-## Hoe niveaus binnen Auto-Combo passen
+## Hoe niveaus in Auto-Combo passen
 
-De scoringsfunctie met 16 factoren (`open-sse/services/autoCombo/scoring.ts`) behandelt het behoren tot een niveau als twee signalen: `tierPriority` (0.0476) en `tierAffinity` (0.0476). Zie de canonieke [tabel met scoringsfactoren](#how-it-works-persisted-auto-combos) hierboven voor de volledige set `DEFAULT_WEIGHTS` — de overschrijvingen per pakket (ship-fast/cost-saver/quality-first/offline-friendly) staan vermeld in de tabel "Gewichtsprofielen per pakket".
+De scorefunctie met 16 factoren (`open-sse/services/autoCombo/scoring.ts`) behandelt
+lidmaatschap van een niveau als twee signalen: `tierPriority` (0.0476) en `tierAffinity` (0.0476). Zie de
+canonieke [tabel met scorefactoren](#how-it-works-persisted-auto-combos) hierboven voor de volledige
+`DEFAULT_WEIGHTS`-set — de overschrijvingen per pakket (ship-fast/cost-saver/quality-first/
+offline-friendly) staan in de tabel "Gewichtsprofielen per pakket".
 
-Het niveau alleen dwingt **niet** af dat niveau 1 als eerste komt — als de latentie van niveau 1 slecht is of de verhouding tussen kosten en kwaliteit niet optimaal is, wint niveau 2. Gebruik de combostrategie `priority` en rangschik providers per niveau om de volgorde van niveaus af te dwingen.
+Alleen het niveau zorgt er **niet** voor dat Niveau 1 als eerste komt — als de latentie van Niveau 1 slecht is of
+de verhouding tussen kosten en kwaliteit niet optimaal is, wint Niveau 2. Gebruik de combostrategie
+`priority` en rangschik providers per niveau om de niveauvolgorde af te dwingen.
 
-Verhoog het gewicht van `tierPriority` om niveau 1 (abonnement) sterk te bevoordelen:
+Verhoog het gewicht van `tierPriority` om Niveau 1 (abonnement) sterk te bevoordelen:
 
 ```json
 {
@@ -784,7 +791,7 @@ Verhoog het gewicht van `tierPriority` om niveau 1 (abonnement) sterk te bevoord
 }
 ```
 
-Zie `docs/marketing/TIERS.md` voor niveaudefinities en providerclassificatie.
+Zie [`docs/guides/TIERS.md`](../guides/TIERS.md) voor definities van niveaus en de classificatie van providers.
 
 ## Testen en dekking
 

@@ -413,5 +413,4 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **مرجع API**: به [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) مراجعه کنید
 - **مستندات امنیتی**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md)، [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md)، [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)، [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **مستندات عملیات**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **مشکلات**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **رکوردهای تصمیمگیری معماری (ADR)**: برای مشاهدهٔ رکوردهای تصمیمگیری معماری، به `docs/adr/` مراجعه کنید
+- **مسائل**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

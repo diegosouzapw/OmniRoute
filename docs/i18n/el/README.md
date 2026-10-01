@@ -341,35 +341,35 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🎯 Combos — Η Ναυαρχίδα
+## 🎯 Combos — Η κορυφαία λειτουργία
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Και οι 19 στρατηγικές δρομολόγησης combo σε κίνηση — ένα πλακίδιο ανά στρατηγική: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Δείτε τον παραπάνω πίνακα για το τι κάνει η καθεμία."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Και οι 19 στρατηγικές δρομολόγησης combo σε κίνηση — ένα πλακίδιο ανά στρατηγική: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Δείτε τον παραπάνω πίνακα για το τι κάνει καθεμία."/>
 
-> Ένα **combo** είναι μια αλυσίδα μοντέλων στην οποία το OmniRoute δρομολογεί **αυτόματα**. Αν εξαντληθεί η ποσόστωση, αποτύχει ένας πάροχος ή εκτιναχθεί το κόστος, το combo μπορεί να μεταβεί στο επόμενο υγιές μοντέλο που πληροί τις προϋποθέσεις. 🛡️
+> Ένα **combo** είναι μια αλυσίδα μοντέλων μεταξύ των οποίων το OmniRoute δρομολογεί **αυτόματα**. Αν εξαντληθεί το όριο χρήσης, αποτύχει ένας πάροχος ή αυξηθεί απότομα το κόστος, το combo μπορεί να μεταβεί στο επόμενο κατάλληλο και υγιές μοντέλο. 🛡️
 
 ### ⚡ Μηδενική ρύθμιση — απλώς χρησιμοποιήστε το `auto`
 
-Δεν χρειάζεται να δημιουργήσετε combo. Ορίστε το μοντέλο σας σε `auto` (ή μια παραλλαγή) και το OmniRoute δημιουργεί ένα εικονικό combo από τους συνδεδεμένους παρόχους σας, βαθμολογημένο σε πραγματικό χρόνο:
+Δεν χρειάζεται να δημιουργήσετε combo. Ορίστε το μοντέλο σας σε `auto` (ή σε μια παραλλαγή του) και το OmniRoute δημιουργεί ένα εικονικό combo από τους συνδεδεμένους παρόχους σας, με αξιολόγηση σε πραγματικό χρόνο:
 
 <table>
-  <tr><th align="left">ID Μοντέλου</th><th align="left">Τι βελτιστοποιεί</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Ισορροπημένη προεπιλογή (LKGP — παραμένει στον τελευταίο καλό πάροχό σας)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Βάρη με προτεραιότητα στην ποιότητα για παραγωγή κώδικα</td></tr>
-  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Χαμηλότερη λανθάνουσα κατάσταση πρώτα</td></tr>
-  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Φθηνότερο ανά token πρώτα</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Μεγαλύτερη ποσόστωση / περιθώριο ορίου ρυθμού πρώτα</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Προτεραιότητα στην ποιότητα + 10% εξερεύνηση για ανακάλυψη καλύτερων μοντέλων</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Ρητή παραμονή στον τελευταίο γνωστό-καλό-πάροχο</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Βάρη έγχυσης σφαλμάτων για δοκιμές ανθεκτικότητας (chaos engineering)</td></tr>
+  <tr><th align="left">Αναγνωριστικό μοντέλου</th><th align="left">Τι βελτιστοποιεί</th></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Ισορροπημένη προεπιλογή (LKGP — παραμένει στον τελευταίο αξιόπιστο πάροχό σας)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Βάρη με προτεραιότητα στην ποιότητα για δημιουργία κώδικα</td></tr>
+  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Πρώτα η χαμηλότερη καθυστέρηση</td></tr>
+  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Πρώτα το χαμηλότερο κόστος ανά token</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Πρώτα το μεγαλύτερο περιθώριο ορίου χρήσης / περιορισμού ρυθμού</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Προτεραιότητα στην ποιότητα + 10% εξερεύνηση για την ανακάλυψη καλύτερων μοντέλων</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Ρητή προσήλωση στον τελευταίο γνωστό αξιόπιστο πάροχο</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Παράλληλη διανομή σε μια ομάδα μοντέλων (ένα ανά πάροχο, 5 από προεπιλογή), επιστρέφει μία απάντηση· μία κλήση προς ανάντη υπηρεσία ανά μοντέλο της ομάδας, όχι εισαγωγή σφαλμάτων</td></tr>
 </table>
 
 ##
 
-### 🔀 Ή φτιάξτε το δικό σας — 19 στρατηγικές δρομολόγησης
+### 🔀 Ή δημιουργήστε το δικό σας — 19 στρατηγικές δρομολόγησης
 
-Και οι **19** στρατηγικές — συνδυάστε τις ελεύθερα ανά βήμα combo:
+Και οι **19** στρατηγικές — συνδυάστε τις ελεύθερα ανά βήμα του combo:
 
 <table>
   <tr>
@@ -380,27 +380,27 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>Διατεταγμένη λίστα με πρώτο στόχο — εξαντλεί τον καθένα πριν προχωρήσει στον επόμενο 🥇</td>
+    <td>Ταξινομημένη λίστα με προτεραιότητα στον πρώτο στόχο — εξαντλεί κάθε στόχο πριν προχωρήσει στον επόμενο 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>Γεμίζει πλήρως την ποσόστωση κάθε στόχου πριν προχωρήσει</td>
+    <td>Εξαντλεί πλήρως το όριο χρήσης κάθε στόχου πριν προχωρήσει στον επόμενο</td>
   </tr>
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>Τυχαία επιλογή με βάση βαρύτητα ανά στόχο</td>
+    <td>Σταθμισμένη τυχαία επιλογή βάσει του βάρους κάθε στόχου</td>
   </tr>
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>Εναλλαγή μεταξύ στόχων με σειρά</td>
+    <td>Εναλλάσσεται κυκλικά μεταξύ των στόχων με τη σειρά</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>Τυχαία εξισορρόπηση φόρτου power-of-two-choices</td>
+    <td>Τυχαία εξισορρόπηση φορτίου με επιλογή μεταξύ δύο στόχων</td>
   </tr>
   <tr>
     <td align="center">6</td>
@@ -410,79 +410,79 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>Ομοιόμορφη τυχαία επιλογή (χωρίς επανάληψη)</td>
+    <td>Ομοιόμορφη τυχαία επιλογή (με αφαίρεση διπλοτύπων)</td>
   </tr>
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>Τυχαία επιλογή χωρίς αποεπανάληψη 🎲</td>
+    <td>Τυχαία επιλογή χωρίς αφαίρεση επαναλήψεων 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>Ελαχιστοποίηση $ ανά αίτημα από τιμοκατάλογο σε πραγματικό χρόνο 💸</td>
+    <td>Ελαχιστοποιεί το $ ανά αίτημα βάσει των τιμών του καταλόγου σε πραγματικό χρόνο 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
     <td nowrap><code>headroom</code></td>
-    <td>Επιλέγει τον στόχο με το μεγαλύτερο υπολειπόμενο περιθώριο ποσόστωσης</td>
+    <td>Επιλέγει τον στόχο με το μεγαλύτερο υπολειπόμενο όριο χρήσης</td>
   </tr>
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>Προτιμά τον στόχο του οποίου το παράθυρο ποσόστωσης επαναφέρεται συντομότερα</td>
+    <td>Προτιμά τον στόχο του οποίου το χρονικό παράθυρο ορίου χρήσης επαναφέρεται συντομότερα</td>
   </tr>
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>Κατάταξη με βάση τον χρόνο επαναφοράς ποσόστωσης — πρώτα τα σύντομα παράθυρα 📊</td>
+    <td>Κατατάσσει βάσει του χρόνου επαναφοράς του ορίου χρήσης — πρώτα τα σύντομα χρονικά παράθυρα 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>Μεταβίβαση πλαισίου μεταξύ στόχων για μακρές συνομιλίες 🧠</td>
+    <td>Μεταβιβάζει το περιεχόμενο μεταξύ στόχων για μεγάλες συνομιλίες 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
     <td nowrap><code>context-optimized</code></td>
-    <td>Επιλέγει τον καλύτερο στόχο για το τρέχον μέγεθος πλαισίου</td>
+    <td>Επιλέγει την καλύτερη αντιστοίχιση για το τρέχον μέγεθος περιεχομένου</td>
   </tr>
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>Καρφιτσώνει κάθε επαναχρησιμοποιήσιμο πρόθεμα προτροπής στον ίδιο λογαριασμό — μέγιστες επιτυχίες προσωρινής αποθήκευσης προτροπής 🎯</td>
+    <td>Αντιστοιχίζει κάθε επαναχρησιμοποιήσιμο πρόθεμα προτροπής στον ίδιο λογαριασμό — μεγιστοποιεί τις επιτυχίες στην κρυφή μνήμη προτροπών 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Τελευταία Γνωστή Καλή Διαδρομή — καρφιτσώνει στον τελευταίο επιτυχή πάροχο, κατόπιν εφαρμόζει εναλλακτικούς κανόνες</td>
+    <td>Τελευταία γνωστή αξιόπιστη διαδρομή — παραμένει στον τελευταίο επιτυχημένο πάροχο και, στη συνέχεια, καταφεύγει στους κανόνες</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>Ζωντανή βαθμολόγηση 16 παραγόντων σε κάθε σύνδεση 🤖</td>
+    <td>Αξιολόγηση 16 παραγόντων σε πραγματικό χρόνο για κάθε σύνδεση 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>Εκπομπή σε ομάδα μοντέλων + ένας κριτής συνθέτει μία απάντηση 🧬</td>
+    <td>Διανέμει το αίτημα σε μια ομάδα μοντέλων + ένας κριτής συνθέτει μία απάντηση 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>Αλυσίδα βημάτων — η έξοδος κάθε στόχου τροφοδοτεί τον επόμενο 🔗</td>
+    <td>Αλυσιδωτά βήματα — η έξοδος κάθε στόχου τροφοδοτεί τον επόμενο 🔗</td>
   </tr>
 </table>
 
-<sub>Η μηχανή Auto-Combo βαθμολογεί κάθε υποψήφιο με βάση **16 παράγοντες** (υγεία, ποσόστωση, κόστος, λανθάνουσα κατάσταση, καταλληλότητα εργασίας, ποιότητα, διαθεσιμότητα συνεδρίας…) — δείτε [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
+<sub>Η μηχανή Auto-Combo αξιολογεί κάθε υποψήφιο βάσει **16 παραγόντων** (υγεία, όριο χρήσης, κόστος, καθυστέρηση, καταλληλότητα για την εργασία, ποιότητα, διαθεσιμότητα συνεδρίας…) — δείτε το [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
 ##
 
 ### 🧱 Η ανθεκτικότητα είναι ενσωματωμένη (3 ανεξάρτητα επίπεδα)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Ανθεκτικότητα OmniRoute — 3 ανεξάρτητα επίπεδα αυτο-επούλωσης, το κατάλληλο επίπεδο για κάθε τύπο αποτυχίας. Επίπεδο 1 διακόπτης κυκλώματος παρόχου (ολόκληρος ο πάροχος): ενεργοποιείται μόνο για 408/5xx, κατώφλια OAuth 8× / κλειδί-API 12× / τοπικό 2×, επαναφορά 60s/30s/15s σε δοκιμαστική κατάσταση HALF-OPEN, ανάκτηση με τεμπελιά· ενώ είναι ΑΝΟΙΧΤΟΣ το combo δρομολογεί στον επόμενο πάροχο. Επίπεδο 2 ψύξη σύνδεσης (ένα κλειδί/λογαριασμός): βάση 5s OAuth / 3s κλειδί-API, εκθετική υπαναχώρηση ×2 με προστασία αντι-thundering-herd, το 429 τιμά το Retry-After, η επιτυχία καθαρίζει όλη την κατάσταση σφάλματος· ένα κλειδί που ψύχεται παραλείπεται ενώ τα αδελφά κλειδιά συνεχίζουν να εξυπηρετούν. Επίπεδο 3 αποκλεισμός μοντέλου (ένα μοντέλο): 429 ανά μοντέλο, τοπικό 404 ή αρνήσεις λειτουργίας κλειδώνουν μόνο αυτό το μοντέλο — ποτέ ολόκληρη τη σύνδεση. Τερματικές καταστάσεις (αποκλεισμός, λήξη, εξάντληση πιστώσεων) αφορούν τον χειριστή, όχι ψύξεις."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Ανθεκτικότητα OmniRoute — 3 ανεξάρτητα επίπεδα αυτοΐασης, το σωστό επίπεδο για τη σωστή αστοχία. Επίπεδο 1: διακόπτης κυκλώματος παρόχου (ολόκληρος ο πάροχος): ενεργοποιείται μόνο σε 408/5xx, όρια OAuth 8× / API-key 12× / local 2×, επαναφορά σε 60s/30s/15s σε δοκιμή HALF-OPEN, ανάκτηση κατά απαίτηση· όσο είναι OPEN, ο συνδυασμός αναδρομολογεί στον επόμενο πάροχο. Επίπεδο 2: περίοδος αναμονής σύνδεσης (ένα κλειδί/λογαριασμός): βάση 5s για OAuth / 3s για API-key, εκθετική οπισθοχώρηση ×2 με προστασία από ταυτόχρονες μαζικές επαναλήψεις, το 429 τηρεί το Retry-After, η επιτυχία εκκαθαρίζει όλη την κατάσταση σφαλμάτων· ένα κλειδί σε αναμονή παραλείπεται, ενώ τα υπόλοιπα κλειδιά συνεχίζουν να εξυπηρετούν. Επίπεδο 3: αποκλεισμός μοντέλου (ένα μοντέλο): 429 ανά μοντέλο, τοπικό 404 ή απορρίψεις λειτουργίας αποκλείουν μόνο το συγκεκριμένο μοντέλο — ποτέ ολόκληρη τη σύνδεση. Οι τερματικές καταστάσεις (απαγορευμένο, ληγμένο, εξαντλημένες πιστώσεις) αφορούν τον διαχειριστή, όχι τις περιόδους αναμονής."/>
 
-<sub>📖 [Μηχανή Auto-Combo](docs/routing/AUTO-COMBO.md) · [Οδηγός Ανθεκτικότητας](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [Μηχανή αυτόματου συνδυασμού](docs/routing/AUTO-COMBO.md) · [Οδηγός ανθεκτικότητας](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
@@ -567,33 +567,33 @@ Pix copia-e-cola:
 
 <div align="center">
 
-## ✨ Τι Νέο Υπάρχει
+## ✨ Τι νέο υπάρχει
 
 </div>
 
-> Πρόσφατες κορυφαίες αλλαγές από την **v3.8.20 → v3.8.50**. Πλήρες ιστορικό στο [`CHANGELOG.md`](CHANGELOG.md).
+> Πρόσφατες σημαντικές προσθήκες από την έκδοση **v3.8.20 → v3.8.50**. Πλήρες ιστορικό στο [`CHANGELOG.md`](CHANGELOG.md).
 
-- **🎛️ OmniConductor** — εισερχόμενη ανάθεση A2A στον στόλο agent σας, δεξιότητες Conductor στο Agent Card, και πίνακας dashboard με φωνητική συνομιλία push-to-talk Faro. → [A2A Server](docs/frameworks/A2A-SERVER.md)
-- **🛂 Προσαρμοστική αποδοχή & προστασία από υπερφόρτωση** — τα βαριά αιτήματα chat μπαίνουν σε ουρά αντί να λαμβάνουν 503, με ατομικές κυλιόμενες εκμισθώσεις RPM ανά σύνδεση. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ Κανονική ταξινόμηση `/v1/models`** — ένα συνεχόμενο μπλοκ ομαδοποιημένο ανά πάροχο για κάθε πάροχο (οι συνδυασμοί καρφιτσωμένοι πρώτα), σταθερό σε κάθε πηγή καταλόγου. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🗜️ Ενίσχυση συμπίεσης** — inflation guard ενεργό εξ ορισμού, Caveman packs για DE / FR / JA + Κινεζικά (wényán), φίλτρα RTK για Gradle & .NET. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Ειλικρινής σταθερό κόστος** — οι πάροχοι συνδρομής / προγράμματος κωδικοποίησης εμφανίζουν **$0** στην ανάλυση κόστους· ο προϋπολογισμός, η ποσόστωση και η δρομολόγηση συνεχίζουν να εκτιμούν. → [API Reference](docs/reference/API_REFERENCE.md)
-- **⚖️ Δρομολόγηση Quota-Share** — διανέμει δίκαια την ποσόστωση ενός κοινού λογαριασμού σε κλειδιά pool, με διατήρηση εργασίας ώστε αδρανείς κατανομές να δανείζονται. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 Εγκατάσταση CLI/agent με μία εντολή** — 13 καταχωρημένες εντολές `setup-*`· το `omniroute run` εκκινεί 7 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI)· το `omniroute configure` υποστηρίζει 10 στόχους με διαδραστικό επιλογέα παρόχου+μοντέλου και αγαπημένα ανά πλαίσιο. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Απομακρυσμένη λειτουργία** — οδηγήστε ένα απομακρυσμένο OmniRoute με διακριτικά εμβέλειας (`connect` / `contexts` / `tokens`) + έναν βοηθό `antigravity` OAuth για εγκαταστάσεις VPS. → [Remote Mode](docs/guides/REMOTE-MODE.md)
-- **🧭 Εξυπνότερη αυτόματη δρομολόγηση** — συνδυασμοί `auto/<category>:<tier>`, **Fusion** (πίνακας μοντέλων + κριτής), δρομολόγηση ανά εργασία, παρακάμψεις μοντέλου / λειτουργίας / USD-budget ανά αίτημα. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Συμπίεση με δυνατότητα προσθήκης** — 12 συνδυαστικές μηχανές + Compression Studios: LLMLingua-2, Ultra δύο επιπέδων, omniglyph, πύλη πιστότητας ανά βήμα, GCF v3.2, επεξεργαστής με αναδιάταξη drag. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Διαφανής αποκρυπτογράφηση MITM (TPROXY)** — καταγράφει CLI που αγνοούν μεταβλητές περιβάλλοντος proxy, με CA ανά SNI + εγκαταστάτη αποθήκης εμπιστοσύνης. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Τηλεμετρία κόστους παντού** — κεφαλίδες κόστους/χρήσης `X-OmniRoute-*` σε κάθε endpoint, κεφαλίδα εξοικονόμησης cache-HIT, ποσοστώσεις δαπάνης USD ανά κλειδί. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🧠 Μνήμη υπό τον έλεγχό σας** — ανενεργή εξ ορισμού, προαιρετική κβαντοποίηση διανύσματος int8 + τυποποιημένη φθορά, `x-omniroute-no-memory` ανά αίτημα. → [Memory](docs/frameworks/MEMORY.md)
-- **🛡️ Ασφάλεια** — φύλακας έγχυσης prompt σε κάθε διαδρομή LLM (σουίτα red-team), προαιρετική ασπίδα απόκρυψης διαπιστευτηρίων (αποκρύπτει διαρρεόντα κλειδιά API/μυστικά και στις δύο κατευθύνσεις), δωρεάν αναζήτηση web DuckDuckGo ως έσχατη λύση, και προαιρετική πύλη σύνδεσης OIDC για το dashboard (η σύνδεση με κωδικό πρόσβασης παραμένει πάντα διαθέσιμη). → [Guardrails](docs/security/GUARDRAILS.md)
-- **🖼️ Νέα endpoint** — `/v1/ocr` (Mistral OCR) και `/v1/audio/translations` (τύπου Whisper) συμπληρώνουν την επιφάνεια πολυμέσων. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🎨 Δημιουργία εικόνας / βίντεο / ήχου** — ένα API για πολυμέσα: xAI Grok Imagine & Novita AI βίντεο, ComfyUI, Magnific, Adobe Firefly, Segmind, και πάροχοι ομιλίας όπως ElevenLabs. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🌍 Ανάπτυξη & λειτουργίες** — `basePath` αντίστροφου proxy, αυτόματη ανίχνευση γλώσσας browser, παρακολούθηση συσκευής ανά κλειδί, εμπιστοσύνη MITM χωρίς root, τοπικοποίηση zh-TW. → [Environment](docs/reference/ENVIRONMENT.md)
-- **🤝 Περισσότεροι πάροχοι & agents** — cloud agents (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) με σύνδεση μέσω browser + OAuth, κάρτα πρώτης κατηγορίας Ollama, Claude Opus 5 & Sonnet 5, επίσημη συνεργασία Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… και ανανεωμένος **κατάλογος 352 παρόχων**. → [Providers](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Διαφάνεια δρομολόγησης** — κάθε απόκριση φέρει κεφαλίδα `X-OmniRoute-Decision` που ονομάζει τη στρατηγική/πάροχο/καθυστέρηση που την εξυπηρέτησε, νέα στρατηγική συνδυασμού `cache-optimized` + παράγοντας `cacheAffinity` Auto-Combo που δρομολογεί επαναλαμβανόμενα αιτήματα πίσω στη σύνδεση που κατέχει το αποθηκευμένο πρόθεμα, και ένα endpoint μόνο-ανάγνωσης `/v1/auto-combo/{channel}/candidates` που εκθέτει το ζωντανό pool υποψηφίων ενός καναλιού `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Τοπική απόδοση & υποδομή** — τοπικό Redis με ένα κλικ, αναπτυκτήρες relay Cloudflare Workers / Deno Deploy, Bifrost & Mux ως εποπτευόμενες ενσωματωμένες υπηρεσίες. → [Embedded Services](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 Επίσης στο πακέτο** — πλαίσιο plugin + marketplace, πλαίσια δεξιοτήτων Omni/Agent/GitHub, ενοποίηση αποθήκης Obsidian (22 εργαλεία MCP), API Batch & Files συμβατά με OpenAI, σημασιολογική cache αποκρίσεων, gamification με πίνακες κατάταξης, ανακάλυψη agent ACP (15 ενσωματωμένοι agents), προγραμματισμένη εξαγωγή αρχείων καταγραφής στο BigQuery, έγχυση σφαλμάτων `auto/chaos`, γέφυρα bot Telegram, ενδοεφαρμογικός διαχειριστής εκδόσεων και κατατάξεις δωρεάν παρόχων LMArena-ELO. → [Docs](docs/README.md)
+- **🎛️ OmniConductor** — εισερχόμενη ανάθεση A2A στον στόλο πρακτόρων σας, δεξιότητες Conductor στην Κάρτα Πράκτορα και ένας πίνακας ελέγχου με φωνητική συνομιλία push-to-talk μέσω Faro. → [Διακομιστής A2A](docs/frameworks/A2A-SERVER.md)
+- **🛂 Προσαρμοστικός έλεγχος εισαγωγής & προστασία από υπερφόρτωση** — τα απαιτητικά αιτήματα συνομιλίας μπαίνουν σε ουρά αντί να επιστρέφουν 503, με ατομικές κυλιόμενες μισθώσεις RPM ανά σύνδεση. → [Οδηγός ανθεκτικότητας](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ Κανονική ταξινόμηση του `/v1/models`** — ένα συνεχόμενο μπλοκ ομαδοποιημένο ανά πάροχο για κάθε πάροχο (με τα combos πρώτα), σταθερό σε κάθε πηγή καταλόγου. → [Αναφορά API](docs/reference/API_REFERENCE.md)
+- **🗜️ Ενίσχυση της συμπίεσης** — προεπιλεγμένη προστασία από υπερβολική αποσυμπίεση, πακέτα Caveman για DE / FR / JA + Κινεζικά (wényán), φίλτρα RTK για Gradle & .NET. → [Συμπίεση](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Ειλικρινές κόστος σταθερής χρέωσης** — οι πάροχοι συνδρομών / προγραμμάτων προγραμματισμού εμφανίζουν κόστος **$0** στις αναλύσεις κόστους· ο προϋπολογισμός, τα όρια χρήσης και η δρομολόγηση εξακολουθούν να κάνουν εκτιμήσεις. → [Αναφορά API](docs/reference/API_REFERENCE.md)
+- **⚖️ Δρομολόγηση Quota-Share** — κατανέμει δίκαια το όριο χρήσης ενός κοινόχρηστου λογαριασμού μεταξύ συγκεντρωμένων κλειδιών, αξιοποιώντας πλήρως τους πόρους ώστε τα αδρανή μερίδια να παραχωρούνται προσωρινά. → [Οδηγός ανθεκτικότητας](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 Ρύθμιση CLI/πράκτορα με μία εντολή** — 13 καταχωρισμένες εντολές `setup-*`· το `omniroute run` εκκινεί 7 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI)· το `omniroute configure` υποστηρίζει 10 προορισμούς με διαδραστική επιλογή παρόχου+μοντέλου και αγαπημένα ανά περιβάλλον. → [Ενσωματώσεις CLI](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Απομακρυσμένη λειτουργία** — χειριστείτε ένα απομακρυσμένο OmniRoute με διακριτικά περιορισμένου πεδίου (`connect` / `contexts` / `tokens`) + ένα βοηθητικό εργαλείο OAuth `antigravity` για εγκαταστάσεις σε VPS. → [Απομακρυσμένη λειτουργία](docs/guides/REMOTE-MODE.md)
+- **🧭 Εξυπνότερη αυτόματη δρομολόγηση** — combos `auto/<category>:<tier>`, **Fusion** (πάνελ μοντέλων + κριτής), δρομολόγηση με επίγνωση της εργασίας και παρακάμψεις μοντέλου / λειτουργίας / προϋπολογισμού USD ανά αίτημα. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Επεκτάσιμη συμπίεση** — 12 συνδυάσιμες μηχανές + Compression Studios: LLMLingua-2, Ultra δύο επιπέδων, omniglyph, πύλη πιστότητας ανά βήμα, GCF v3.2, πρόγραμμα επεξεργασίας με αναδιάταξη μέσω μεταφοράς. → [Συμπίεση](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ Διαφανής αποκρυπτογράφηση MITM (TPROXY)** — καταγράψτε CLI που αγνοούν τις μεταβλητές περιβάλλοντος διακομιστή μεσολάβησης, με CA ανά SNI + πρόγραμμα εγκατάστασης στο χώρο αποθήκευσης αξιόπιστων πιστοποιητικών. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Τηλεμετρία κόστους παντού** — κεφαλίδες κόστους/χρήσης `X-OmniRoute-*` σε κάθε endpoint, κεφαλίδα εξοικονόμησης από cache-HIT και όρια δαπανών USD ανά κλειδί. → [Αναφορά API](docs/reference/API_REFERENCE.md)
+- **🧠 Μνήμη που ελέγχετε εσείς** — απενεργοποιημένη από προεπιλογή, προαιρετική κβαντοποίηση διανυσμάτων int8 + τυποποιημένη εξασθένηση, `x-omniroute-no-memory` ανά αίτημα. → [Μνήμη](docs/frameworks/MEMORY.md)
+- **🛡️ Ασφάλεια** — προστασία από prompt injection σε κάθε διαδρομή LLM (σουίτα red-team), προαιρετικός μηχανισμός απόκρυψης διαπιστευτηρίων (απαλείφει κλειδιά API/μυστικά που έχουν διαρρεύσει και προς τις δύο κατευθύνσεις), δωρεάν αναζήτηση ιστού μέσω DuckDuckGo ως έσχατη λύση και προαιρετική πύλη σύνδεσης OIDC για τον πίνακα ελέγχου (η σύνδεση με κωδικό πρόσβασης παραμένει πάντα διαθέσιμη). → [Μηχανισμοί προστασίας](docs/security/GUARDRAILS.md)
+- **🖼️ Νέα endpoints** — τα `/v1/ocr` (Mistral OCR) και `/v1/audio/translations` (τύπου Whisper) ολοκληρώνουν την κάλυψη πολυμέσων. → [Αναφορά API](docs/reference/API_REFERENCE.md)
+- **🎨 Δημιουργία εικόνων / βίντεο / ήχου** — ένα API για πολυμέσα: βίντεο μέσω xAI Grok Imagine & Novita AI, ComfyUI, Magnific, Adobe Firefly, Segmind και πάροχοι ομιλίας όπως το ElevenLabs. → [Αναφορά API](docs/reference/API_REFERENCE.md)
+- **🌍 Ανάπτυξη & λειτουργία** — `basePath` αντίστροφου διακομιστή μεσολάβησης, αυτόματος εντοπισμός της γλώσσας του προγράμματος περιήγησης, παρακολούθηση συσκευών ανά κλειδί, εμπιστοσύνη MITM χωρίς root, τοπικοποίηση zh-TW. → [Περιβάλλον](docs/reference/ENVIRONMENT.md)
+- **🤝 Περισσότεροι πάροχοι & πράκτορες** — πράκτορες cloud (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) με πρόγραμμα περιήγησης + σύνδεση OAuth, κάρτα πρώτης κατηγορίας για το Ollama, Claude Opus 5 & Sonnet 5, επίσημη συνεργασία με το Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… και ένας ανανεωμένος **κατάλογος 352 παρόχων**. → [Πάροχοι](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 Διαφάνεια δρομολόγησης** — κάθε απόκριση περιλαμβάνει μια κεφαλίδα `X-OmniRoute-Decision` που κατονομάζει τη στρατηγική/τον πάροχο/την καθυστέρηση που την εξυπηρέτησε, μια νέα στρατηγική combo `cache-optimized` + ο παράγοντας Auto-Combo `cacheAffinity` δρομολογούν τα επαναλαμβανόμενα αιτήματα πίσω στη σύνδεση που διατηρεί το αποθηκευμένο πρόθεμα, ενώ ένα endpoint μόνο για ανάγνωση `/v1/auto-combo/{channel}/candidates` εκθέτει το ενεργό σύνολο υποψηφίων ενός καναλιού `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ Τοπική απόδοση & υποδομή** — τοπικό Redis με ένα κλικ, εργαλεία ανάπτυξης relay για Cloudflare Workers / Deno Deploy, Bifrost & Mux ως εποπτευόμενες ενσωματωμένες υπηρεσίες. → [Ενσωματωμένες υπηρεσίες](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 Περιλαμβάνονται επίσης** — πλαίσιο προσθηκών + marketplace, πλαίσια δεξιοτήτων Omni/Agent/GitHub, ενσωμάτωση θησαυροφυλακίου Obsidian (22 εργαλεία MCP), API Batch & Files συμβατά με OpenAI, σημασιολογική cache αποκρίσεων, παιχνιδοποίηση με πίνακες κατάταξης, ανακάλυψη πρακτόρων ACP (15 ενσωματωμένοι πράκτορες), προγραμματισμένη εξαγωγή αρχείων καταγραφής στο BigQuery, παράλληλη διασπορά σε πολλαπλά μοντέλα μέσω `auto/chaos`, γέφυρα bot για το Telegram, διαχειριστής εκδόσεων εντός της εφαρμογής και κατατάξεις δωρεάν παρόχων LMArena-ELO. → [Τεκμηρίωση](docs/README.md)
 
 <br/>
 
@@ -1265,28 +1265,28 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
 <br/>
 <div align="center">
 
-## 🛠️ Τεχνολογική Στοίβα
+## 🛠️ Τεχνολογικό Stack
 
 </div>
 
 <table>
   <tr><th align="left">Επίπεδο</th><th align="left">Τεχνολογία</th></tr>
   <tr><td nowrap><b>Περιβάλλον εκτέλεσης</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Γλώσσα</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> σε όλο το <code>src/</code> και το <code>open-sse/</code> (μηδενική χρήση <code>any</code> στον πυρήνα από την v2.0)</td></tr>
+  <tr><td nowrap><b>Γλώσσα</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> σε όλο το <code>src/</code> και το <code>open-sse/</code> (μηδενική χρήση του <code>any</code> στον πυρήνα από την έκδοση v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Βάση δεδομένων</b></td><td>better-sqlite3 (SQLite, καταγραφή WAL) + LowDB (παλαιού τύπου JSON) — 122 λειτουργικές μονάδες τομέα, 190 μετεγκαταστάσεις</td></tr>
+  <tr><td nowrap><b>Βάση δεδομένων</b></td><td>better-sqlite3 (SQLite, καταγραφή WAL) + LowDB (παλαιού τύπου JSON) — 136 λειτουργικές μονάδες τομέα, 193 μεταναστεύσεις</td></tr>
   <tr><td nowrap><b>Μνήμη</b></td><td>Αναζήτηση πλήρους κειμένου SQLite FTS5 + διανυσματικές ενσωματώσεις κβαντισμένες σε int8, τυποποιημένη εξασθένηση</td></tr>
   <tr><td nowrap><b>Σχήματα</b></td><td>Zod 4 — επικύρωση εισόδου/εξόδου εργαλείων MCP + συμβάσεις API</td></tr>
   <tr><td nowrap><b>Πρωτόκολλα</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Ροή δεδομένων</b></td><td>Server-Sent Events (SSE) + γέφυρα WebSocket (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Συμπίεση</b></td><td>Διοχέτευση 12 μηχανών — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Έλεγχος ταυτότητας &amp; ασφάλεια</b></td><td>OAuth 2.0 (PKCE) + JWT + κλειδιά API + έλεγχος ταυτότητας MCP βάσει πεδίου εφαρμογής · AES-256-GCM για αποθηκευμένα δεδομένα · DOMPurify</td></tr>
-  <tr><td nowrap><b>Απόκρυψη</b></td><td>wreq-js — πλαστοπροσωπία αποτυπώματος TLS JA3 / JA4, διακομιστής μεσολάβησης 3 επιπέδων</td></tr>
-  <tr><td nowrap><b>Ανθεκτικότητα</b></td><td>Διακόπτης κυκλώματος, εκθετική οπισθοχώρηση, προστασία από το φαινόμενο thundering herd, αυτοΐαση αυτόματων συνδυασμών</td></tr>
+  <tr><td nowrap><b>Έλεγχος ταυτότητας &amp; ασφάλεια</b></td><td>OAuth 2.0 (PKCE) + JWT + κλειδιά API + έλεγχος ταυτότητας MCP βάσει εύρους · AES-256-GCM για δεδομένα σε αδράνεια · DOMPurify</td></tr>
+  <tr><td nowrap><b>Απόκρυψη</b></td><td>wreq-js — πλαστοπροσωπία αποτυπώματος JA3 / JA4 TLS, διακομιστής μεσολάβησης 3 επιπέδων</td></tr>
+  <tr><td nowrap><b>Ανθεκτικότητα</b></td><td>Αυτόματος διακόπτης κυκλώματος, εκθετική υποχώρηση, προστασία από ταυτόχρονη μαζική επανάληψη αιτημάτων, αυτοΐαση αυτόματων συνδυασμών</td></tr>
   <tr><td nowrap><b>Καταγραφή</b></td><td>pino — δομημένα αρχεία καταγραφής JSON με περιβάλλον αιτήματος</td></tr>
-  <tr><td nowrap><b>Δοκιμές</b></td><td>Πρόγραμμα εκτέλεσης δοκιμών Node.js + Vitest — <b>39.000+ στατικές δηλώσεις δοκιμών</b> σε 5.100+ παρακολουθούμενα αρχεία δοκιμών (μονάδων, ενσωμάτωσης, E2E, ασφάλειας, οικοσυστήματος)</td></tr>
-  <tr><td nowrap><b>Πλατφόρμες</b></td><td>Επιτραπέζιοι υπολογιστές (Electron) · Android (Termux) · PWA (οποιοδήποτε πρόγραμμα περιήγησης)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — αυτόματη δημοσίευση στο npm + Docker Hub κατά την κυκλοφορία έκδοσης</td></tr>
+  <tr><td nowrap><b>Δοκιμές</b></td><td>Εκτελεστής δοκιμών Node.js + Vitest — <b>39.000+ στατικές δηλώσεις δοκιμών</b> σε 5.100+ παρακολουθούμενα αρχεία δοκιμών (μονάδων, ενοποίησης, E2E, ασφάλειας, οικοσυστήματος)</td></tr>
+  <tr><td nowrap><b>Πλατφόρμες</b></td><td>Υπολογιστές (Electron) · Android (Termux) · PWA (οποιοδήποτε πρόγραμμα περιήγησης)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — αυτόματη δημοσίευση στο npm + Docker Hub κατά την κυκλοφορία</td></tr>
   <tr><td nowrap><b>Σύνδεσμοι</b></td><td><a href="https://omniroute.online">Ιστότοπος</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

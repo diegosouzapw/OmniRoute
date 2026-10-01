@@ -418,4 +418,3 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **பாதுகாப்பு ஆவணங்கள்**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **செயல்பாட்டு ஆவணங்கள்**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **சிக்கல்கள்**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: கட்டமைப்பு முடிவுப் பதிவுகளுக்கு `docs/adr/`-ஐப் பார்க்கவும்

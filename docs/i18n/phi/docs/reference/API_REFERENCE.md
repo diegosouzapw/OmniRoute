@@ -423,42 +423,42 @@ Gamitin ang endpoint na ito kapag tumatakbo ang isang sidecar nang out-of-proces
 
 ---
 
-## Mga Endpoint ng Pagkakatugma
+## Mga Endpoint ng Compatibility
 
-| Paraan | Path                                      | Format                                 |
-| ------ | ----------------------------------------- | -------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                 |
-| POST   | `/v1/messages`                            | Anthropic                              |
-| POST   | `/v1/responses`                           | Mga Tugon ng OpenAI                    |
-| POST   | `/v1/embeddings`                          | OpenAI                                 |
-| POST   | `/v1/images/generations`                  | Mga Larawan ng OpenAI                  |
-| POST   | `/v1/images/edits`                        | Mga Larawan ng OpenAI (i-edit/inpaint) |
-| POST   | `/v1/videos/generations`                  | Pagbuo ng video na parang OpenAI       |
-| POST   | `/v1/music/generations`                   | Pagbuo ng musika na parang OpenAI      |
-| POST   | `/v1/audio/transcriptions`                | Audio ng OpenAI (STT)                  |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (nagbabalik ng audio body)  |
-| POST   | `/v1/rerank`                              | Rerank na parang Cohere/Voyage         |
-| POST   | `/v1/classify`                            | Jina classify (`api.jina.ai`)          |
-| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)     |
-| POST   | `/v1/moderations`                         | Mga Moderasyon ng OpenAI               |
-| GET    | `/v1/models`                              | OpenAI                                 |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                              |
-| GET    | `/v1beta/models`                          | Gemini                                 |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                 |
-| POST   | `/v1/api/chat`                            | Ollama                                 |
-| GET    | `/api/v1/vscode/{token}/`                 | Alias ng katalogo ng OpenAI            |
-| GET    | `/api/v1/vscode/{token}/models`           | Alias ng mga modelo ng OpenAI          |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenized alias ng OpenAI              |
-| POST   | `/api/v1/vscode/{token}/responses`        | Tokenized alias ng Mga Tugon ng OpenAI |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenized alias ng Ollama              |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenized alias ng mga tag ng Ollama   |
+| Pamamaraan | Landas                                    | Format                                  |
+| ---------- | ----------------------------------------- | --------------------------------------- |
+| POST       | `/v1/chat/completions`                    | OpenAI                                  |
+| POST       | `/v1/messages`                            | Anthropic                               |
+| POST       | `/v1/responses`                           | OpenAI Responses                        |
+| POST       | `/v1/embeddings`                          | OpenAI                                  |
+| POST       | `/v1/images/generations`                  | OpenAI Images                           |
+| POST       | `/v1/images/edits`                        | OpenAI Images (pag-edit/inpaint)        |
+| POST       | `/v1/videos/generations`                  | Pagbuo ng video na istilong OpenAI      |
+| POST       | `/v1/music/generations`                   | Pagbuo ng musika na istilong OpenAI     |
+| POST       | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                      |
+| POST       | `/v1/audio/speech`                        | OpenAI TTS (nagbabalik ng audio body)   |
+| POST       | `/v1/rerank`                              | Rerank na istilong Cohere/Voyage        |
+| POST       | `/v1/classify`                            | Jina classify (`api.jina.ai`)           |
+| POST       | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)      |
+| POST       | `/v1/moderations`                         | OpenAI Moderations                      |
+| GET        | `/v1/models`                              | OpenAI                                  |
+| POST       | `/v1/messages/count_tokens`               | Anthropic                               |
+| GET        | `/v1beta/models`                          | Gemini                                  |
+| POST       | `/v1beta/models/{...path}`                | Gemini generateContent                  |
+| POST       | `/v1/api/chat`                            | Ollama                                  |
+| GET        | `/api/v1/vscode/{token}/`                 | Alias ng catalog ng OpenAI              |
+| GET        | `/api/v1/vscode/{token}/models`           | Alias ng mga modelo ng OpenAI           |
+| POST       | `/api/v1/vscode/{token}/chat/completions` | Tokenized na alias ng OpenAI            |
+| POST       | `/api/v1/vscode/{token}/responses`        | Tokenized na alias ng OpenAI Responses  |
+| POST       | `/api/v1/vscode/{token}/api/chat`         | Tokenized na alias ng Ollama            |
+| GET        | `/api/v1/vscode/{token}/api/tags`         | Tokenized na alias ng mga tag ng Ollama |
 
-Lahat ng POST routes ay sumusunod sa parehong hugis: `Bearer your-api-key` + Zod-validated JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, atbp., tingnan ang `src/shared/validation/schemas.ts`). Ang 4xx ay ibinabalik kapag may pagkabigo sa schema.
+Iisa ang anyo ng lahat ng rutang POST: `Bearer your-api-key` + JSON body na bine-validate ng Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, atbp., tingnan ang `src/shared/validation/schemas.ts`). Nagbabalik ng 4xx kapag nabigo ang schema validation.
 
-Para sa mga kliyente na hindi makapag-attach ng `Authorization: Bearer ...`, tinatanggap din ng OmniRoute ang mga API key sa URL sa pamamagitan ng query-string compatibility (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) o ang mga dedikadong `/api/v1/vscode/{token}/...` endpoint na nakadokumento sa ibaba.
+Para sa mga client na hindi makapaglakip ng `Authorization: Bearer ...`, tumatanggap din ang OmniRoute ng mga API key sa URL sa pamamagitan ng query-string compatibility (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) o ng mga nakalaang endpoint na `/api/v1/vscode/{token}/...` na nakadokumento sa ibaba.
 
 ```bash
-# Rerank (cloud registry provider, o isang OpenAI-compatible provider node bilang "<prefix>/<model>")
+# Rerank (provider ng cloud registry, o isang OpenAI-compatible na provider node bilang "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina classify (mga kredensyal ng Foundation API)
@@ -470,27 +470,47 @@ POST /v1/segment     { "content": "...", "return_chunks": true }
 # Jina search (s.jina.ai; mga alias ng provider: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Mga Moderasyon
+# Mga moderation
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — nagbabalik ng audio/mpeg (o hiniling na format) body
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Pag-edit ng Larawan (multipart)
+# Nangangailangan ang Soniox TTS ng wika at boses: ang default ng `language` ay "en"; ang nawawalang
+# boses o pangalan ng stock voice ng OpenAI (alloy, nova, …) ay nagiging "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# Pag-edit ng larawan (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Pagbuo ng Video / Musika (provider-prefixed model id)
+# Pagbuo ng video / musika (model id na may prefix ng provider)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Mga node ng provider ng Rerank:** Ang `POST /v1/rerank` ay nagruruta din sa mga OpenAI-compatible provider node (oMLX, vLLM, Infinity, TEI sa likod ng isang gateway, …) na tinutukoy bilang `<node-prefix>/<model>`. Ang mga loopback node (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ay palaging karapat-dapat. Ang mga node sa anumang ibang host — isang LAN box o Tailscale peer — ay karapat-dapat lamang kapag pinagana ng operator ang `RERANK_REMOTE_PROVIDER_NODES` feature flag **at** ang base URL ng node ay pumasa sa provider outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); ang mga cloud-metadata host ay hindi kailanman niruruta. Ang rerank step ng memory engine ay tumatawag sa rutang ito sa pamamagitan ng loopback, kaya ang parehong panuntunan ang namamahala sa `rerankProviderModel` sa mga setting ng Memory.
+> **Mga rerank provider node:** Nagruruta rin ang `POST /v1/rerank` sa mga OpenAI-compatible na provider node
+> (oMLX, vLLM, Infinity, TEI sa likod ng gateway, …) na tinutukoy bilang `<node-prefix>/<model>`. Palaging
+> kwalipikado ang mga loopback node (`localhost`, `127.0.0.1`, `172.16.0.0/12`). Ang mga node sa anumang
+> ibang host — isang LAN box o Tailscale peer — ay kwalipikado lamang kapag pinagana ng operator ang
+> feature flag na `RERANK_REMOTE_PROVIDER_NODES` **at** pumasa ang base URL ng node sa patakaran sa
+> outbound URL ng provider (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> hindi kailanman nirurutahan ang mga cloud-metadata host. Tinatawag ng hakbang sa rerank ng memory engine ang rutang ito sa
+> pamamagitan ng loopback, kaya ang parehong panuntunan ang namamahala sa `rerankProviderModel` sa mga setting ng Memory.
 >
-> **Mga hugis ng lokal na server:** ang node ay tinatawag sa `<base>/v1/rerank` at, sa 404, sa `<base>/rerank` (Infinity, TEI). Ang upstream body ay nagdadala ng parehong Cohere/OpenAI spelling (`documents`, `return_documents`) at ang TEI spelling (`texts`, `return_text`), at ang upstream response ay na-normalize sa Cohere envelope: Ang hubad na `[{index, score, text}]` ng TEI, `{results: [{index, score}]}` mula sa manipis na gateways, at Voyage-style `{data: [...]}` ay lahat ay bumabalik sa kliyente bilang `{results: [{index, relevance_score, document?}]}`, na nakaayos ayon sa score at limitado sa `top_n`.
+> **Mga anyo ng lokal na server:** Tinatawag ang node sa `<base>/v1/rerank` at, kapag 404, sa `<base>/rerank`
+> (Infinity, TEI). Dala ng upstream body ang parehong baybay na Cohere/OpenAI (`documents`,
+> `return_documents`) at baybay na TEI (`texts`, `return_text`), at ginagawang normal ang upstream response
+> sa Cohere envelope: ang payak na `[{index, score, text}]` ng TEI, `{results: [{index, score}]}`
+> mula sa mga manipis na gateway, at ang istilong Voyage na `{data: [...]}` ay ibinabalik lahat sa client bilang
+> `{results: [{index, relevance_score, document?}]}`, inayos ayon sa score at nilimitahan sa `top_n`.
 
-> **Pagtuklas ng provider-node:** ang mga modelo sa isang OpenAI-compatible provider node ay lumalabas sa `GET /v1/models` sa ilalim ng node prefix. Ang mga row na walang dalang endpoint metadata (karaniwan para sa mga lokal na `/v1/models` listing) ay nagmamana ng `apiType` ng node, kaya ang mga modelo ng `embeddings` node ay `type: "embedding"` at ang mga modelo ng `rerank` node ay `type: "rerank"` sa halip na mag-default sa chat; ang isang tahasang `supportedEndpoints` sa isang naka-sync o manu-manong idinagdag na row ay mayroon pa ring priyoridad.
+> **Pagtuklas ng provider node:** lumilitaw sa `GET /v1/models` ang mga model sa isang provider node na compatible sa OpenAI
+> sa ilalim ng prefix ng node. Ang mga row na walang metadata ng endpoint (karaniwan sa mga lokal na listing ng `/v1/models`)
+> ay nagmamana ng `apiType` ng node, kaya ang mga model ng isang `embeddings` node ay `type: "embedding"` at ang mga
+> model ng isang `rerank` node ay `type: "rerank"` sa halip na gawing chat bilang default; nangunguna pa rin ang isang tahasang
+> `supportedEndpoints` sa isang naka-sync o manu-manong idinagdag na row.
 
-### Mga Dedikadong Ruta ng Provider
+### Mga Nakalaang Route ng Provider
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -498,7 +518,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Ang prefix ng provider ay awtomatikong idinadagdag kung nawawala. Ang mga hindi tugmang modelo ay nagbabalik ng `400`.
+Awtomatikong idinaragdag ang prefix ng provider kung nawawala ito. Nagbabalik ng `400` ang mga model na hindi tugma.
 
 ---
 
@@ -1424,22 +1444,22 @@ Ibinabalik ang pampublikong A2A agent card (pangalan, paglalarawan, mga kakayaha
 
 ---
 
-## Cloud, Mga Eval at Pagtatasa
+## Cloud, Evals at Assess
 
-| Method | Path | Paglalarawan |
+| Pamamaraan | Path | Paglalarawan |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Beripikahin ang isang Bearer key at ibalik ang mga naka-mask na koneksiyon ng provider + mga model alias para sa mga cloud sync client |
+| POST | `/api/cloud/auth` | Mag-verify ng Bearer key at ibalik ang mga naka-mask na koneksyon ng provider + mga alias ng model para sa mga cloud sync client |
 | POST | `/api/cloud/credentials/update` | I-update ang mga naka-encrypt na credential para sa isang cloud-synced na provider |
-| POST | `/api/cloud/model/resolve` | I-resolve ang isang logical model id sa isang kongkretong provider/model gamit ang lokal na routing table |
-| GET | `/api/cloud/models/alias` | Ilista ang mga model alias ayon sa pagkakalantad sa cloud sync |
-| GET | `/api/assess` | Basahin ang pinakabagong mga kategorya ng pagtatasa (bawat provider/model) |
-| POST | `/api/assess` | Magpatakbo ng pagtatasa — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| POST | `/api/cloud/model/resolve` | I-resolve ang isang lohikal na model id tungo sa isang kongkretong provider/model gamit ang lokal na routing table |
+| GET | `/api/cloud/models/alias` | Ilista ang mga alias ng model ayon sa pagkakalantad sa cloud sync |
+| GET | `/api/assess` | Basahin ang pinakabagong mga pagkakategorya ng assessment (bawat provider/model) |
+| POST | `/api/assess` | Magpatakbo ng assessment — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
 | GET | `/api/evals` | Ilista ang mga built-in na eval suite + mga pinakabagong run |
-| POST | `/api/evals` | Mag-trigger ng isang eval run |
-| POST | `/api/evals/suites` | Gumawa ng custom na eval suite — bina-validate ang body ng `evalSuiteSaveSchema` |
+| POST | `/api/evals` | Mag-trigger ng eval run |
+| POST | `/api/evals/suites` | Gumawa ng custom na eval suite — ang body ay bina-validate ng `evalSuiteSaveSchema` |
 | GET | `/api/evals/suites/[id]` | Kunin ang isang custom na eval suite |
 
-**Auth:** direktang bina-validate ng `/api/cloud/auth` ang isang Bearer key; nangangailangan ang iba pang `/api/cloud/*`, `/api/evals/*`, at `/api/assess` route ng management session/API key. Gumagamit ang `/api/assess` POST ng `validateBody` na may discriminated-union scope schema.
+**Auth:** Direktang bina-validate ng `/api/cloud/auth` ang isang Bearer key at ibinabalik ang naka-mask na key at `projectId` ng bawat koneksyon para lamang sa key na may `manage` / `admin` scope; nangangailangan ng management session/API key ang iba pang mga route na `/api/cloud/*`, `/api/evals/*`, at `/api/assess`. Ginagamit ng POST ng `/api/assess` ang `validateBody` kasama ang isang discriminated-union scope schema.
 
 ---
 

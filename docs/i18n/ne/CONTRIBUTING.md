@@ -436,4 +436,3 @@ VPS डिप्लोयका लागि, `npm run build` होइन, `npm
 - **सुरक्षा कागजातहरू**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **सञ्चालनसम्बन्धी कागजातहरू**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **समस्याहरू**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: आर्किटेक्चरल निर्णय अभिलेखहरूका लागि `docs/adr/` हेर्नुहोस्

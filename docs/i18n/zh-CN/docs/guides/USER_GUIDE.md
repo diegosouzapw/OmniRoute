@@ -617,28 +617,94 @@ post_install() {
 
 ### 自定义模型
 
-添加任意模型 ID 到任意服务商，无需等待应用更新：
+无需等待应用更新，即可向任何提供者添加任意模型 ID：
 
 ```bash
-# Via API
+# 通过 API
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# List: curl http://localhost:20128/api/provider-models?provider=openai
-# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
+# 列出：curl http://localhost:20128/api/provider-models?provider=openai
+# 删除：curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-或使用 Dashboard：**Providers → [Provider] → Custom Models**。
+或者使用仪表板：**提供者 → [提供者] → 自定义模型**。
 
-注意事项：
+注意：
 
-- OpenRouter 和 OpenAI/Anthropic 兼容服务商仅通过 **Available Models** 管理。手动添加、导入和自动同步都汇总到同一个可用模型列表，因此这些服务商不显示单独的 Custom Models 区域。
-- **Custom Models** 区域适用于不暴露托管模型导入功能的服务商。
+- OpenRouter 以及兼容 OpenAI/Anthropic 的提供者仅通过**可用模型**进行管理。手动添加、导入和自动同步的模型都会进入同一个可用模型列表，因此这些提供者没有单独的“自定义模型”部分。
+- **自定义模型**部分适用于不支持托管式可用模型导入的提供者。
 
-### 专用服务商路由
+### 自定义 OpenAI 兼容提供者
 
-将请求直接路由到特定服务商，并附带模型校验：
+任何支持 OpenAI API 的网关（自托管代理、vLLM、第三方聚合器）
+都可以作为独立的提供者节点添加：
+
+1. **提供者 → 添加 OpenAI 兼容提供者**。
+2. **名称**：节点的显示标签。
+3. **前缀**：路由名称。客户端以 `<prefix>/<model>` 的形式调用模型，因此前缀为
+   `mygw` 的节点提供 `mygw/gpt-4o-mini`。此项必填；无字符限制。
+4. **API 类型**：网关提供的端点系列（Chat Completions、Responses、
+   Embeddings、音频、图像）。
+5. **基础 URL**：API 根地址，应包含 `/v1`（例如
+   `https://gateway.example.com/v1`），而不是完整的 `/chat/completions` 路径。使用
+   非标准路径的网关可在**高级设置**下设置相应路径（聊天路径、模型路径）。
+6. **API 密钥（用于检查）**字段仅用于测试连接。创建节点后，
+   打开该节点并使用**添加连接**来存储请求实际使用的密钥。
+
+该节点会获得形式为 `openai-compatible-<apiType>-<uuid>` 的内部 ID；你无需
+手动输入它，前缀才是公开名称。
+
+#### 保留前缀
+
+前缀不能是内置提供者的 ID 或别名（例如 `openai`、`cf`），也不能是已停用提供者
+的 ID。模型解析器会先检查内置 ID 和别名，然后才检查自定义节点，因此使用这些
+前缀的节点永远无法接收流量：`<prefix>/model` 会被路由到内置提供者，或者在该
+提供者已停用时以失败关闭方式拒绝请求。使用此类前缀创建或编辑节点时，会返回：
+
+```text
+prefix: "<prefix>" is a reserved provider prefix — choose a different prefix (reserved ids/aliases cannot be used for custom nodes because requests like <prefix>/model route to a built-in provider or fail closed when retired)
+```
+
+请选择一个不同的前缀（`mygw`、`acme-proxy`）。如果向自定义节点发送的请求失败，
+且错误信息中提到了某个内置提供者或其凭据，请检查该节点的前缀是否为保留前缀：
+在此规则实施前保存的节点仍会保留，但其前缀会被路由到内置提供者。请编辑该节点
+并为其指定新的前缀。
+
+### 串联 OmniRoute 对等节点
+
+可以将另一个 OmniRoute 网关添加为**自定义 OpenAI 兼容**提供者。请使用该对等
+节点的 `/v1` 基础 URL，以及由该节点签发的专用最小权限 API 密钥。
+
+对于双向或多跳链路，请在每个网关上启用可选的循环防护：
+
+```bash
+# gateway-a
+OMNIROUTE_INSTANCE_ID=gateway-a
+OMNIROUTE_PEER_URLS=http://gateway-b:20128/v1
+OMNIROUTE_PEER_MAX_HOPS=4
+```
+
+```bash
+# gateway-b
+OMNIROUTE_INSTANCE_ID=gateway-b
+OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
+OMNIROUTE_PEER_MAX_HOPS=4
+```
+
+只有发送到显式加入允许列表的对等节点 URL 的请求才会携带
+`X-OmniRoute-Peer-Trace` 标头。如果出现重复的实例 ID 或跳数预算已耗尽，网关会
+以 HTTP `508 Loop Detected` 拒绝请求；普通上游提供者不会收到任何对等节点元数据。
+
+对等节点串联并不等同于数据库复制或主机故障转移。每个网关都维护独立的
+SQLite 状态、缓存、速率计数器和会话。对于主动/被动或主动/主动可用性，请使用带
+健康检查的反向代理或客户端故障转移，并且绝不要将同一个 SQLite 数据库挂载到多个
+正在运行的 OmniRoute 实例中。
+
+### 提供者专用路由
+
+通过模型验证将请求直接路由到特定提供者：
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -646,25 +712,25 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-服务商前缀在缺失时自动添加。模型不匹配返回 `400`。
+如果缺少提供者前缀，系统会自动添加。模型不匹配时返回 `400`。
 
 ### 网络代理配置
 
 ```bash
-# Set global proxy
+# 设置全局代理
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# Per-provider proxy
+# 每个提供者单独设置代理
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Test proxy
+# 测试代理
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**优先级：** Key 级 → Combo 级 → 服务商级 → 全局 → 环境变量。
+**优先级：** 密钥专用 → 组合专用 → 提供者专用 → 全局 → 环境。
 
 ### 模型目录 API
 
@@ -672,92 +738,92 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-按服务商分组返回模型，并标注类型（`chat`、`embedding`、`image`）。
+返回按提供者分组的模型及其类型（`chat`、`embedding`、`image`）。
 
-### Cloud Sync
+### 云同步
 
-- 跨设备同步服务商、Combo 和设置
-- 自动后台同步，带超时和快速失败机制
-- 生产环境建议使用服务端 `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`
+- 在设备之间同步提供者、组合和设置
+- 支持超时和快速失败的自动后台同步
+- 生产环境中优先使用服务端 `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL`
 
-### Cloudflare Quick Tunnel
+### Cloudflare 快速隧道
 
-- 在 Docker 和其他自托管部署中，前往 **Dashboard → Endpoints** 使用
-- 创建一个临时的 `https://*.trycloudflare.com` URL，将流量转发到当前的 OpenAI 兼容 `/v1` 端点
-- 首次启用时按需安装 `cloudflared`；后续重启复用同一托管二进制文件
-- Quick Tunnel 在 OmniRoute 或容器重启后不会自动恢复；需要时从 Dashboard 重新启用
-- Tunnel URL 是临时的，每次停止/启动 Tunnel 都会变化
-- 托管 Quick Tunnel 默认使用 HTTP/2 传输，以避免在受限容器中产生 QUIC UDP 缓冲区噪音
-- 如需覆盖托管传输选择，设置 `CLOUDFLARED_PROTOCOL=quic` 或 `auto`
-- 如需使用预装的 `cloudflared` 二进制文件而非托管下载，设置 `CLOUDFLARED_BIN`
-- Cloudflare Quick Tunnel、Tailscale Funnel 和 ngrok Tunnel 面板可在 **Settings → Appearance** 中显示或隐藏。隐藏面板不会停止正在运行的 Tunnel。
+- 在 Docker 和其他自托管部署中，可通过 **Dashboard → Endpoints** 使用
+- 创建一个临时的 `https://*.trycloudflare.com` URL，并将其转发到当前兼容 OpenAI 的 `/v1` 端点
+- 首次启用时仅在需要时安装 `cloudflared`；后续重启会复用同一个托管二进制文件
+- OmniRoute 或容器重启后不会自动恢复 Quick Tunnels；需要时请从仪表板重新启用
+- 隧道 URL 是临时的，每次停止/启动隧道时都会更改
+- 托管的 Quick Tunnels 默认使用 HTTP/2 传输，以避免在资源受限的容器中出现大量 QUIC UDP 缓冲区警告
+- 如果要覆盖托管传输方式的选择，请将 `CLOUDFLARED_PROTOCOL` 设置为 `quic` 或 `auto`
+- 如果更希望使用预安装的 `cloudflared` 二进制文件，而不是托管下载的版本，请设置 `CLOUDFLARED_BIN`
+- 可在 **Settings → Appearance** 中显示或隐藏 Cloudflare Quick Tunnel、Tailscale Funnel 和 ngrok Tunnel 面板。隐藏面板不会停止正在运行的隧道。
 
-### LLM 网关智能（Phase 9）
+### LLM 网关智能功能（阶段 9）
 
-- **语义缓存** — 自动缓存非流式、temperature=0 的响应（通过 `X-OmniRoute-No-Cache: true` 绕过）
-- **请求幂等** — 通过 `Idempotency-Key` 或 `X-Request-Id` 头在 5 秒内对请求去重
-- **进度追踪** — 通过 `X-OmniRoute-Progress: true` 头选择加入 SSE `event: progress` 事件
+- **语义缓存** — 自动缓存非流式、temperature=0 的响应（可使用 `X-OmniRoute-No-Cache: true` 绕过）
+- **请求幂等性** — 通过 `Idempotency-Key` 或 `X-Request-Id` 请求头，对 5 秒内的请求进行去重
+- **进度跟踪** — 通过 `X-OmniRoute-Progress: true` 请求头选择启用 SSE `event: progress` 事件
 
 ---
 
-### 翻译器实验场
+### 翻译器演练场
 
-通过 **Dashboard → Translator** 访问。调试和可视化 OmniRoute 如何在服务商之间转换 API 请求。
+通过 **Dashboard → Translator** 访问。调试并可视化 OmniRoute 如何在提供者之间转换 API 请求。
 
-| 模式             | 用途                                                |
-| ---------------- | --------------------------------------------------- |
-| **Playground**   | 选择源/目标格式，粘贴请求，即时查看翻译后的输出     |
-| **Chat Tester**  | 通过代理发送实时聊天消息，并检查完整的请求/响应周期 |
-| **Test Bench**   | 跨多个格式组合运行批量测试，验证翻译正确性          |
-| **Live Monitor** | 实时观察请求流经代理时的翻译过程                    |
+| 模式           | 用途                                                  |
+| -------------- | ----------------------------------------------------- |
+| **演练场**     | 选择源格式/目标格式，粘贴请求，并立即查看转换后的输出 |
+| **聊天测试器** | 通过代理发送实时聊天消息，并检查完整的请求/响应周期   |
+| **测试台**     | 对多种格式组合运行批量测试，以验证转换的正确性        |
+| **实时监视器** | 在请求流经代理时观察实时转换                          |
 
-**用途：**
+**使用场景：**
 
-- 调试特定客户端/服务商组合失败的原因
-- 验证 thinking 标签、工具调用和系统提示翻译是否正确
-- 对比 OpenAI、Claude、Gemini 和 Responses API 格式之间的差异
+- 调试特定客户端/提供者组合失败的原因
+- 验证思考标签、工具调用和系统提示词是否被正确转换
+- 比较 OpenAI、Claude、Gemini 和 Responses API 格式之间的差异
 
 ---
 
 ### 路由策略
 
-通过 **Dashboard → Settings → Routing** 配置。Dashboard 展示六种最常用的策略；Combo 和自动路由器内部支持更多策略。
+通过 **Dashboard → Settings → Routing** 配置。仪表板提供六种最常用的策略；组合和自动路由器在内部支持更广泛的策略集。
 
-**Dashboard 可见策略（账户级路由）：**
+**仪表板中可见的策略（账户级路由）：**
 
-| 策略                           | 说明                                                       |
-| ------------------------------ | ---------------------------------------------------------- |
-| **Fill First**                 | 按优先级顺序使用账户 — 主账户处理所有请求，直到不可用      |
-| **Round Robin**                | 循环遍历所有账户，可配置粘性限制（默认：每账户 3 次调用）  |
-| **P2C (Power of Two Choices)** | 随机选择 2 个账户，路由到更健康的那个 — 兼顾负载与健康感知 |
-| **Random**                     | 使用 Fisher-Yates 洗牌为每次请求随机选择账户               |
-| **Least Used**                 | 路由到 `lastUsedAt` 时间戳最早的账户，均匀分配流量         |
-| **Cost Optimized**             | 路由到优先级值最低的账户，优先选择成本最低的服务商         |
+| 策略              | 说明                                                                            |
+| ----------------- | ------------------------------------------------------------------------------- |
+| **优先填充**      | 按优先级顺序使用账户——主账户处理所有请求，直至不可用                            |
+| **轮询**          | 依次使用所有账户，并支持配置粘性限制（默认：每个账户调用 3 次）                 |
+| **P2C（二选一）** | 随机选择 2 个账户，并将请求路由到状态更健康的账户——在感知健康状态的同时平衡负载 |
+| **随机**          | 使用 Fisher-Yates 洗牌算法，为每个请求随机选择一个账户                          |
+| **最少使用**      | 将请求路由到 `lastUsedAt` 时间戳最早的账户，从而均匀分配流量                    |
+| **成本优化**      | 将请求路由到优先级值最低的账户，从而优先使用成本最低的提供者                    |
 
-**高级 Combo 和自动策略**（可按 Combo 配置或通过 `auto/*` 前缀 — 详见 [AUTO-COMBO.md](../routing/AUTO-COMBO.md)）：
+**高级组合和自动策略**（可按组合配置，或通过 `auto/*` 前缀配置——参见 [AUTO-COMBO.md](../routing/AUTO-COMBO.md)）：
 
-- `priority` — 严格顺序，不轮询
-- `weighted` — 按模型权重分配流量比例
-- `fill-first` — 将第一个模型用至限制后才切换
+- `priority` — 严格按顺序选择，绝不轮询
+- `weighted` — 按各模型的权重按比例拆分流量
+- `fill-first` — 持续使用第一个模型，直至达到限制
 - `round-robin` / `strict-random` / `random`
-- `p2c` (Power of Two Choices)
+- `p2c`（二选一）
 - `least-used` 和 `cost-optimized`
-- `auto` — 在所有候选中按得分驱动
-- `lkgp` (Last Known Good Provider) — 每次会话固定使用上一次成功的模型
+- `auto` — 根据评分从所有候选项中选择
+- `lkgp`（上次已知可用的提供者）— 固定使用最近一次成功的提供者，失败后再回退到规则
 - `context-optimized` — 选择可用上下文窗口最大的模型
-- `context-relay` — 串联长上下文模型用于后续轮次
+- `context-relay` — 为后续轮次串联长上下文模型
 
-#### 外部粘性会话头
+#### 外部粘性会话请求头
 
-对于外部会话亲和性（例如反向代理后的 Claude Code/Codex 代理），发送：
+如需实现外部会话亲和性（例如，位于反向代理后的 Claude Code/Codex 代理），请发送：
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute 也接受 `x_session_id`，并在 `X-OmniRoute-Session-Id` 中返回生效的会话 Key。
+OmniRoute 也接受 `x_session_id`，并通过 `X-OmniRoute-Session-Id` 返回实际使用的会话键。
 
-如果你使用 Nginx 发送下划线形式的头，启用：
+如果使用 Nginx 并发送下划线形式的请求头，请启用：
 
 ```nginx
 underscores_in_headers on;
@@ -765,21 +831,21 @@ underscores_in_headers on;
 
 #### 通配符模型别名
 
-创建通配符模式来重新映射模型名称：
+创建通配符模式以重新映射模型名称：
 
 ```
-Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
-Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
+模式: claude-sonnet-*     →  目标: cc/claude-sonnet-4-6
+模式: gpt-*               →  目标: gh/gpt-5.3-codex
 ```
 
 通配符支持 `*`（任意字符）和 `?`（单个字符）。
 
-#### 容灾链
+#### 回退链
 
-定义应用于所有请求的全局容灾链：
+定义适用于所有请求的全局回退链：
 
 ```
-Chain: production-fallback
+回退链: production-fallback
   1. cc/claude-opus-4-7
   2. gh/gpt-5.3-codex
   3. glm/glm-4.7
@@ -787,148 +853,153 @@ Chain: production-fallback
 
 ---
 
-### 容灾与熔断器
+### 弹性与断路器
 
 通过 **Dashboard → Settings → Resilience** 配置。
 
-OmniRoute 通过五个组件实现服务商级容灾：
+OmniRoute 通过五个组件实现提供者级别的弹性：
 
-1. **请求队列与限流** — 系统级请求整形：
-   - **每分钟请求数 (RPM)** — 每个账户每分钟最大请求数
-   - **请求最小间隔** — 请求之间的最小间隔（毫秒）
-   - **最大并发请求数** — 每个账户同时处理的最大请求数
+1. **请求队列与节流** — 系统级请求整形：
+   - **每分钟请求数（RPM）** — 每个账户每分钟的最大请求数
+   - **请求间最短时间** — 请求之间的最小间隔（以毫秒为单位）
+   - **最大并发请求数** — 每个账户允许同时处理的最大请求数
+2. **连接冷却** — 针对单个连接按认证类型进行配置，用于处理可重试的失败：
+   - **基础冷却时间** — 上游发生可重试失败时的默认冷却时间窗口
+   - **使用上游重试提示** — 在上游提供权威的 `Retry-After` 或重置提示时遵循这些提示
+   - **最大退避步数** — 重复失败时指数退避的最大级别
 
-2. **连接冷却** — 在发生可重试故障后，对单条连接按认证类型配置：
-   - **基础冷却** — 可重试上游故障后的默认冷却窗口
-   - **使用上游重试提示** — 当上游提供 `Retry-After` 或重置提示时予以遵循
-   - **最大退避步数** — 重复故障时的最大指数退避级别
+3. **提供者断路器** — 跟踪提供者的端到端失败；达到配置的警告阈值时，将提供者标记为已降级；达到配置的失败阈值时，打开断路器：
+   - **降级阈值** — 进入 `DEGRADED` 状态前允许的连续提供者失败次数
+   - **失败阈值** — 进入 `OPEN` 状态前允许的连续提供者失败次数
+   - **重置超时** — 再次测试提供者之前的等待时间窗口
+   - **CLOSED**（健康）— 请求正常流转
+   - **DEGRADED** — 在跟踪异常升高的失败率时，请求仍可继续流转
+   - **OPEN** — 重复失败后暂时阻止该提供者
+   - **HALF_OPEN** — 测试提供者是否已恢复
 
-3. **服务商熔断器** — 追踪端到端服务商故障，在达到配置的警告阈值时将服务商标记为降级，在达到配置的故障阈值时断开熔断器：
-   - **降级阈值** — 服务商进入 `DEGRADED` 状态前的连续故障数
-   - **故障阈值** — 服务商进入 `OPEN` 状态前的连续故障数
-   - **重置超时** — 重新测试服务商之前的时间窗口
-   - **CLOSED**（健康）— 请求正常流通
-   - **DEGRADED** — 请求继续流通，同时追踪升高的故障率
-   - **OPEN** — 服务商在重复故障后被暂时阻断
-   - **HALF_OPEN** — 测试服务商是否已恢复
+   连接范围内的 `429` 速率限制会保留在**连接冷却**机制中，不计入提供者断路器。
 
-   连接级 `429` 速率限制仅计入**连接冷却**，不计入服务商熔断器。
+   提供者断路器的运行时状态仅显示在**仪表板 → 健康状态**中。
 
-   服务商熔断器运行时状态仅在 **Dashboard → Health** 上显示。
+4. **等待冷却结束** — 如果所有候选连接都处于冷却状态，OmniRoute 可以等待最早结束的冷却时间，并自动重试同一客户端请求。
 
-4. **等待冷却** — 如果所有候选连接都已在冷却中，OmniRoute 可以等待最早完成的冷却，然后自动重试同一个客户端请求。
+5. **自动检测速率限制** — 启用此设置后，如果上游提供者返回明确的等待时间窗口，这些提示将覆盖本地连接冷却时间。
 
-5. **速率限制自动检测** — 当上游服务商返回明确的等待窗口时，如果该设置已启用，这些提示会覆盖本地连接冷却。
-
-**技巧：** 在发生故障后，使用 **Health** 页面检查和重置实时的服务商熔断器。Resilience 页面仅用于修改配置。
+**专业提示：** 在服务中断后，可使用**健康状态**页面检查并重置实时提供者断路器。“弹性”页面仅用于更改配置。
 
 ---
 
-### 数据库导出/导入
+### 数据库导出 / 导入
 
-在 **Dashboard → Settings → System & Storage** 中管理数据库备份。
+在**仪表板 → 设置 → 系统与存储**中管理数据库备份。
 
-| 操作                   | 说明                                                                                                  |
-| ---------------------- | ----------------------------------------------------------------------------------------------------- |
-| **导出数据库**         | 下载当前 SQLite 数据库为 `.sqlite` 文件                                                               |
-| **全部导出 (.tar.gz)** | 下载完整备份归档，包含：数据库、设置、Combo、服务商连接（不含凭据）、API Key 元数据                   |
-| **导入数据库**         | 上传 `.sqlite` 文件以替换当前数据库。导入前会自动创建备份，除非设置 `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| 操作                    | 描述                                                                                                        |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **导出数据库**          | 将当前 SQLite 数据库下载为 `.sqlite` 文件                                                                   |
+| **导出全部（.tar.gz）** | 下载完整备份归档，其中包括：数据库、设置、组合、提供者连接（不含凭据）、API 密钥元数据                      |
+| **导入数据库**          | 上传 `.sqlite` 文件以替换当前数据库。除非设置了 `DISABLE_SQLITE_AUTO_BACKUP=true`，否则会自动创建导入前备份 |
 
 ```bash
-# API: Export database
+# API：导出数据库
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: Export all (full archive)
+# API：导出全部（完整归档）
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: Import database
+# API：导入数据库
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**导入验证：** 导入的文件需通过完整性校验（SQLite pragma 检查）、必要表检查（`provider_connections`、`provider_nodes`、`combos`、`api_keys`）和大小限制（最大 100MB）。
+**导入验证：** 系统会验证导入文件的完整性（SQLite pragma 检查）、必需的表（`provider_connections`、`provider_nodes`、`combos`、`api_keys`）以及大小（最大 100MB）。
 
-**用途：**
+**使用场景：**
 
-- 在机器之间迁移 OmniRoute
-- 为灾难恢复创建外部备份
-- 在团队成员之间共享配置（全部导出 → 分享归档）
-
----
-
-### 设置面板
-
-设置页面分为 **7 个标签页**，方便导航：
-
-| 标签页         | 内容                                                                                    |
-| -------------- | --------------------------------------------------------------------------------------- |
-| **General**    | 系统存储工具、默认行为、Endpoint 隧道可见性                                             |
-| **Appearance** | 主题控制（浅色/深色/系统）、侧边栏可见性、Cloudflare/Tailscale/ngrok 隧道卡片的面板开关 |
-| **AI**         | 思考预算配置、全局系统提示注入、提示缓存统计                                            |
-| **Security**   | 登录/密码设置、IP 访问控制、`/models` 的 API 认证、服务商屏蔽、提示注入安全护栏         |
-| **Routing**    | 全局路由策略、通配符模型别名、容灾链、Combo 默认值                                      |
-| **Resilience** | 请求队列、连接冷却、服务商熔断器配置及等待冷却行为                                      |
-| **Advanced**   | 全局代理配置（HTTP/SOCKS5）、按服务商的代理覆盖                                         |
-
-General 标签页不再重复显示只读的日志和缓存说明。数据库保留和优化设置通过 `/api/settings/database` 持久化；手动清除缓存使用 `DELETE /api/cache`。请求和代理日志行数上限由 `CALL_LOGS_TABLE_MAX_ROWS` 和 `PROXY_LOGS_TABLE_MAX_ROWS` 控制。
+- 在不同计算机之间迁移 OmniRoute
+- 创建用于灾难恢复的外部备份
+- 在团队成员之间共享配置（导出全部 → 共享归档）
 
 ---
 
-### 费用与预算管理
+### 设置仪表板
 
-通过 **Dashboard → Costs** 访问。
+设置页面划分为 **7 个选项卡**，便于导航：
 
-| 标签页      | 用途                                                          |
-| ----------- | ------------------------------------------------------------- |
-| **Budget**  | 为每个 API Key 设置日/周/月预算上限，实时追踪消费             |
-| **Pricing** | 查看和编辑模型定价条目 — 各服务商每 1K 输入/输出 Token 的费用 |
+| 选项卡   | 内容                                                                                                                                |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **常规** | 系统存储工具、默认行为、端点隧道可见性                                                                                              |
+| **外观** | 主题控制（浅色/深色/系统）、侧边栏可见性、Cloudflare/Tailscale/ngrok 隧道卡片的面板开关                                             |
+| **AI**   | 思考预算（透传 / 自动剥离 / 自定义 / 自适应 — 参见 [THINKING_BUDGET.md](./THINKING_BUDGET.md)）、全局系统提示词、提示词缓存统计信息 |
+| **安全** | 登录/密码设置、IP 访问控制、`/models` 的 API 认证、提供者屏蔽、提示词注入防护                                                       |
+| **路由** | 全局路由策略（优先填充 / 轮询 / P2C / 随机 / 最少使用 / 成本优化）、通配符模型别名、回退链、组合默认值                              |
+| **弹性** | 请求队列、连接冷却、提供者断路器配置以及等待冷却结束的行为                                                                          |
+| **高级** | 全局代理配置（HTTP/SOCKS5）、每个提供者的代理覆盖设置                                                                               |
+
+“常规”不再重复显示只读的日志和缓存说明。数据库保留与
+优化设置通过 `/api/settings/database` 持久化；手动清除缓存使用
+`DELETE /api/cache`。请求日志和代理日志的最大行数分别由
+`CALL_LOGS_TABLE_MAX_ROWS` 和 `PROXY_LOGS_TABLE_MAX_ROWS` 控制。
+
+---
+
+### 成本与预算管理
+
+通过**仪表板 → 成本**访问。
+
+| 选项卡   | 用途                                                            |
+| -------- | --------------------------------------------------------------- |
+| **预算** | 为每个 API 密钥设置每日/每周/每月支出限额，并进行实时跟踪       |
+| **定价** | 查看和编辑模型定价条目 — 各提供者每 1K 个输入/输出 token 的成本 |
 
 ```bash
-# API: Set a budget
+# API：设置预算
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Get current budget status
+# API：获取当前预算状态
 curl http://localhost:20128/api/usage/budget
 ```
 
-**费用追踪：** 每次请求记录 Token 用量并使用定价表计算费用。在 **Dashboard → Usage** 中按服务商、模型和 API Key 查看明细。
+**成本跟踪：** 每个请求都会记录令牌使用量，并使用定价表计算成本。可在 **仪表板 → 使用情况** 中按提供者、模型和 API 密钥查看明细。
 
 ---
 
 ### 音频转录
 
-OmniRoute 通过 OpenAI 兼容端点支持音频转录：
+OmniRoute 通过兼容 OpenAI 的端点支持音频转录：
 
 ```bash
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
-# Example with curl
+# 使用 curl 的示例
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
-  -F "model=deepgram/nova-3"
+  -F "model=openai/whisper-1"
 ```
 
-**语音转文字（转录）** 服务商：
+`deepgram/nova-3` 是原生 Deepgram 路由，需要 Deepgram API 密钥。
+如果仅配置了 OpenRouter，请使用 `openrouter/deepgram/nova-3`。
 
-- `openai/` (whisper-compatible)
-- `groq/` (Groq Whisper Turbo)
-- `deepgram/` (Nova family)
+**语音转文本（转录）**提供者：
+
+- `openai/`（兼容 Whisper）
+- `groq/`（Groq Whisper Turbo）
+- `deepgram/`（Nova 系列）
 - `assemblyai/`
-- `nvidia/` (Parakeet, Canary)
-- `huggingface/` (whisper variants)
+- `nvidia/`（Parakeet、Canary）
+- `huggingface/`（Whisper 变体）
 - `qwen/`
 
-**文字转语音 (`POST /v1/audio/speech`)** 服务商：
+**文本转语音（`POST /v1/audio/speech`）**提供者：
 
-- `openai/` (tts-1, tts-1-hd)
+- `openai/`（tts-1、tts-1-hd）
 - `hyperbolic/`
-- `deepgram/` (Aura)
-- `nvidia/` (Magpie TTS)
+- `deepgram/`（Aura）
+- `nvidia/`（Magpie TTS）
 - `elevenlabs/`
 - `huggingface/`
 - `inworld/`
@@ -937,49 +1008,58 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 - `kie/`
 - `aws-polly/`
 - `xiaomi-mimo/`
-- `coqui/`, `tortoise/`
+- `coqui/`、`tortoise/`
 - `qwen/`
 
-转录支持的音频格式：`mp3`、`wav`、`m4a`、`flac`、`ogg`、`webm`。TTS 输出格式取决于服务商（mp3、wav、opus、pcm、mulaw）。
+转录支持的音频格式：`mp3`、`wav`、`m4a`、`flac`、`ogg`、`webm`。TTS 输出格式取决于提供者（mp3、wav、opus、pcm、mulaw）。
 
 ---
 
-### Combo 负载均衡策略
+### 组合均衡策略
 
-在 **Dashboard → Combos → Create/Edit → Strategy** 中按 Combo 配置负载均衡。
+在 **仪表板 → 组合 → 创建/编辑 → 策略** 中配置每个组合的均衡方式。
 
-| 策略               | 说明                                        |
-| ------------------ | ------------------------------------------- |
-| **Round-Robin**    | 按顺序轮询模型                              |
-| **Priority**       | 始终先尝试第一个模型，仅在出错时容灾切换    |
-| **Random**         | 每次请求从 Combo 中随机选择一个模型         |
-| **Weighted**       | 按每个模型分配的权重比例路由                |
-| **Least-Used**     | 路由到最近请求最少的模型（使用 Combo 指标） |
-| **Cost-Optimized** | 路由到当前可用的最廉价模型（使用定价表）    |
+| 策略         | 描述                                       |
+| ------------ | ------------------------------------------ |
+| **轮询**     | 按顺序轮换使用各个模型                     |
+| **优先级**   | 始终先尝试第一个模型；仅在出错时回退       |
+| **随机**     | 为每个请求从组合中随机选择一个模型         |
+| **加权**     | 根据为每个模型分配的权重按比例路由         |
+| **最少使用** | 路由到近期请求数最少的模型（使用组合指标） |
+| **成本优化** | 路由到成本最低的可用模型（使用定价表）     |
 
-全局 Combo 默认值可在 **Dashboard → Settings → Routing → Combo Defaults** 中设置。
-Combo 目标超时默认继承当前请求超时。仅在需要更短的按目标限制以触发更快容灾切换时，才在 Combo 默认值或单个 Combo 上使用 **Target timeout (seconds)**。
+可在 **仪表板 → 设置 → 路由 → 组合默认值** 中设置全局组合默认值。
+默认情况下，组合目标超时会继承当前请求的超时时间。仅当希望通过更短的单目标限制
+更快触发回退时，才应在组合默认值或单个组合中使用 **目标超时
+（秒）**。
 
-零延时 Combo 优化是可选功能。保持 **Zero-latency optimizations** 禁用可避免这些延时特性竞跑容灾目标、基于 TTFT 历史跳过目标或压缩容灾请求；启用后允许配置的对冲、预测性 TTFT 跳过和主动容灾压缩，以路由/请求的保真度换取更低的尾部延时。
+零延迟组合优化需要主动启用。保持 **零延迟优化** 处于禁用状态，可以
+防止这些延迟优化功能竞速调用回退目标、根据 TTFT
+历史记录跳过目标，或压缩回退请求；启用后，系统可以使用已配置的对冲、预测性 TTFT
+跳过和主动回退压缩，以牺牲路由/请求保真度来换取更低的尾部
+延迟。
 
-当上游服务商要求严格的 `max_tokens`/`maxOutputTokens` 限制时，禁用 **Reasoning token buffer**。启用后，Combo 路由仅对已知输出上限的模型添加推理模型 Headroom，当安全的缓冲值超出客户端 Token 限制时保持其不变。如果客户端限制已高于已知上限，OmniRoute 在发送上游请求前会将其限制到该上限。
+当上游提供者要求严格遵守
+`max_tokens` / `maxOutputTokens` 限制时，请禁用 **推理令牌缓冲区**。启用后，组合路由仅会为具有已知输出上限的推理模型
+增加余量；当安全缓冲值会超出该上限时，客户端令牌限制将保持不变。如果客户端限制已高于已知上限，
+OmniRoute 会在向上游发送请求之前将其限制到该上限。
 
 ---
 
-### 健康面板
+### 运行状况仪表板
 
-通过 **Dashboard → Health** 访问。实时系统健康概览，包含 6 张卡片：
+通过 **仪表板 → 运行状况** 访问。实时系统运行状况概览包含 6 个卡片：
 
-| 卡片                  | 显示内容                           |
-| --------------------- | ---------------------------------- |
-| **System Status**     | 运行时间、版本、内存用量、数据目录 |
-| **Provider Health**   | 全局服务商熔断器运行时状态         |
-| **Rate Limits**       | 每账户活跃的连接冷却及剩余时间     |
-| **Active Lockouts**   | 活跃的模型级封锁和临时排除         |
-| **Signature Cache**   | 去重缓存统计（活跃 Key、命中率）   |
-| **Latency Telemetry** | 各服务商的 p50/p95/p99 延时聚合    |
+| 卡片               | 显示内容                             |
+| ------------------ | ------------------------------------ |
+| **系统状态**       | 运行时间、版本、内存使用量、数据目录 |
+| **提供者运行状况** | 全局提供者熔断器的运行时状态         |
+| **速率限制**       | 每个账户当前有效的连接冷却及剩余时间 |
+| **有效锁定**       | 当前有效的模型级锁定和临时排除       |
+| **签名缓存**       | 去重缓存统计信息（有效密钥、命中率） |
+| **延迟遥测**       | 每个提供者的 p50/p95/p99 延迟聚合    |
 
-**技巧：** Health 页面每 10 秒自动刷新。使用熔断器卡片识别哪些服务商正在发生问题。
+**专业提示：** 运行状况页面每 10 秒自动刷新一次。使用熔断器卡片可识别哪些提供者遇到了问题。
 
 ---
 
@@ -1101,34 +1181,34 @@ OmniRoute 集成了云编程代理（**OpenAI Codex Cloud**、**Devin**、**Jule
 
 ## 🛠️ 编程式管理
 
-你可以通过 HTTP，使用具有 `manage` 权限域的 **Bearer Key** 来管理 OmniRoute 的每一项资源（服务商、Combo、Key、设置）。
+你可以使用具有 `manage` 作用域的 **Bearer 密钥**，通过 HTTP 管理所有 OmniRoute 资源（提供者、组合、密钥和设置）。
 
-在 **Dashboard → API Keys → New Key → Scope: manage** 中生成 Key，然后：
+在 **控制面板 → API 密钥 → 新建密钥 → 作用域：manage** 中生成密钥，然后：
 
 ```bash
-# List providers
+# 列出提供者
 curl http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 
-# Add a provider connection
+# 添加提供者连接
 curl -X POST http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "provider": "openai", "apiKey": "sk-...", "name": "main" }'
 
-# Create a combo
+# 创建组合
 curl -X POST http://localhost:20128/api/combos \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
 
-# List/create API keys
+# 列出/创建 API 密钥
 curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
-完整端点目录和请求/响应 Schema 见 [API_REFERENCE.md](../reference/API_REFERENCE.md)。
+有关完整的端点目录和请求/响应架构，请参阅 [API_REFERENCE.md](../reference/API_REFERENCE.md)。
 
 ---
 

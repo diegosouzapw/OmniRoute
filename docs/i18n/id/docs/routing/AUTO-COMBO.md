@@ -8,9 +8,9 @@
 
 > Rantai model yang mengelola dirinya sendiri dengan penilaian adaptif + perutean otomatis tanpa konfigurasi
 
-## Perutean Otomatis Tanpa Konfigurasi (prefiks `auto/`)
+## Perutean Otomatis Tanpa Konfigurasi (awalan `auto/`)
 
-> **BARU:** Tidak perlu membuat combo. Gunakan prefiks `auto/` secara langsung di klien apa pun.
+> **BARU:** Tidak perlu membuat combo. Gunakan awalan `auto/` secara langsung di klien apa pun.
 
 ### Contoh Singkat
 
@@ -18,38 +18,38 @@
 | -------------- | ------- | -------------------------------------------------------------------------------------------------- |
 | `auto`         | default | Semua penyedia yang terhubung, strategi LKGP, bobot seimbang                                       |
 | `auto/coding`  | coding  | Bobot yang mengutamakan kualitas, cocok untuk pembuatan kode                                       |
-| `auto/fast`    | fast    | Pemilihan berbobot berlatensi rendah                                                               |
-| `auto/cheap`   | cheap   | Perutean yang dioptimalkan untuk biaya (biaya terendah terlebih dahulu)                            |
+| `auto/fast`    | fast    | Pemilihan berbobot dengan latensi rendah                                                           |
+| `auto/cheap`   | cheap   | Perutean yang dioptimalkan untuk biaya (biaya terendah lebih dahulu)                               |
 | `auto/offline` | offline | Mengutamakan penyedia dengan ketersediaan kuota tertinggi                                          |
 | `auto/smart`   | smart   | Mengutamakan kualitas + tingkat eksplorasi lebih tinggi (10%) untuk penemuan model yang lebih baik |
 | `auto/lkgp`    | lkgp    | LKGP eksplisit (sama seperti `auto` default)                                                       |
-| `auto/chaos`   | chaos   | Bobot injeksi kegagalan untuk pengujian ketahanan (chaos engineering)                              |
+| `auto/chaos`   | chaos   | Fan-out paralel, satu model per penyedia (bukan injeksi kegagalan)                                 |
 
 ### Komposisi Kategori × Tingkat (`auto/<category>:<tier>`)
 
-Sufiks bergaya OpenRouter memisahkan **jenis rute** (kategori) dari **cara mengoptimalkannya** (tingkat), sehingga Anda dapat menyusunnya secara bebas (#4235 Fase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Akhiran bergaya OpenRouter memisahkan **jenis rute** (kategori) dari **cara mengoptimalkannya** (tingkat), sehingga Anda dapat mengombinasikannya dengan bebas (#4235 Fase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Kategori** (memfilter kumpulan kandidat berdasarkan kemampuan): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` mempertahankan model yang mendukung visi; `reasoning` mempertahankan model penalaran/berpikir.
-- **Tingkat** (memilih bobot penilaian / filter kumpulan): `fast` (rilis cepat) · `cheap` (alias `floor`, penghemat biaya) · `reliable` (kesehatan circuit breaker + stabilitas latensi) · `free` / `pro` (memfilter kumpulan berdasarkan tingkat model melalui `classifyTier` — tingkat gratis vs. premium).
+- **Kategori** (memfilter kumpulan kandidat berdasarkan kapabilitas): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` mempertahankan model yang mendukung visi; `reasoning` mempertahankan model penalaran/berpikir.
+- **Tingkat** (memilih bobot penilaian / filter kumpulan): `fast` (pengiriman cepat) · `cheap` (alias `floor`, penghemat biaya) · `reliable` (kesehatan circuit breaker + stabilitas latensi) · `free` / `pro` (memfilter kumpulan berdasarkan tingkat model melalui `classifyTier` — tingkat gratis vs. premium).
 
-| Contoh                 | Menghasilkan                                                          |
+| Contoh                 | Diresolusikan menjadi                                                 |
 | ---------------------- | --------------------------------------------------------------------- |
-| `auto/coding:fast`     | kumpulan coding, bobot berlatensi rendah                              |
+| `auto/coding:fast`     | kumpulan coding, bobot latensi rendah                                 |
 | `auto/coding:cheap`    | kumpulan coding, dioptimalkan untuk biaya (alias `auto/coding:floor`) |
 | `auto/reasoning:pro`   | hanya model penalaran/berpikir, tingkat premium                       |
 | `auto/vision`          | model yang mendukung visi (tanpa tingkat → bobot seimbang)            |
 | `auto/multimodal:free` | model yang mendukung multimodal, hanya tingkat gratis                 |
 
-Setiap `auto/<category>[:<tier>]` yang valid di-resolve sesuai permintaan; subset terkurasi ditampilkan di `/v1/models` dan dasbor (`AUTO_SUFFIX_VARIANTS` dalam `open-sse/services/autoCombo/builtinCatalog.ts`). Pemfilteran bersifat **fail-open** — jika suatu batasan tidak cocok dengan model terhubung mana pun, kumpulan lengkap akan digunakan agar perutean tidak pernah gagal. Penilai inti (`combo.ts`) tidak berubah; filter kategori/tingkat diterapkan dalam `buildAutoCandidates`.
+Setiap `auto/<category>[:<tier>]` yang valid diresolusikan sesuai permintaan; subset pilihan ditampilkan di `/v1/models` dan dasbor (`AUTO_SUFFIX_VARIANTS` di `open-sse/services/autoCombo/builtinCatalog.ts`). Pemfilteran bersifat **fail-open** — jika suatu batasan tidak cocok dengan model terhubung mana pun, kumpulan lengkap akan digunakan agar perutean tidak pernah terhenti. Penilai inti (`combo.ts`) tidak berubah; filter kategori/tingkat diterapkan di `buildAutoCandidates`.
 
-> **Inteligensi model langsung:** kelayakan perutean otomatis didasarkan pada peringkat **Arena ELO** langsung + data tingkat **models.dev** saat flag `ARENA_ELO_SYNC_ENABLED` aktif (jika tidak, kembali menggunakan peta kelayakan statis).
+> **Inteligensi model langsung:** kelayakan perutean otomatis ditentukan berdasarkan peringkat **Arena ELO** langsung + data tingkat **models.dev** ketika flag `ARENA_ELO_SYNC_ENABLED` aktif (jika tidak, kembali menggunakan peta kelayakan statis).
 
 **Cara menggunakan:**
 
 ```bash
 # IDE atau alat CLI apa pun yang mendukung format OpenAI
-URL Dasar: http://localhost:20128/v1
-Kunci API: <your-endpoint-key>
+Base URL: http://localhost:20128/v1
+API Key:  <your-endpoint-key>
 
 # Dalam kode/konfigurasi Anda, atur model menjadi:
 model: "auto"                 # default seimbang
@@ -60,50 +60,51 @@ model: "auto/cheap"           # paling murah per token
 
 **Yang terjadi:**
 
-1. OmniRoute mendeteksi prefiks `auto/` dalam `src/sse/handlers/chat.ts`
+1. OmniRoute mendeteksi awalan `auto/` di `src/sse/handlers/chat.ts`
 2. Mengambil semua **koneksi penyedia aktif** dari basis data
 3. Memfilter koneksi yang memiliki kredensial valid (kunci API atau token OAuth)
 4. Menentukan model per koneksi (`connection.defaultModel` atau model pertama milik penyedia)
-5. Membuat **combo virtual** dalam memori (tidak disimpan dalam DB)
-6. Melakukan perutean menggunakan profil bobot varian yang dipilih + strategi LKGP
+5. Membuat **combo virtual** dalam memori (tidak disimpan di DB)
+6. Merutekan menggunakan profil bobot varian yang dipilih + strategi LKGP
 
 **Properti utama:**
 
-- ✅ **Selalu aktif:** Tidak memerlukan tombol pengaktif, pembuatan combo, atau konfigurasi
+- ✅ **Selalu aktif:** Tidak diperlukan sakelar, pembuatan combo, atau konfigurasi
 - ✅ **Dinamis:** Secara otomatis mencerminkan penyedia yang saat ini terhubung
-- ✅ **Afinitas sesi:** LKGP memastikan penyedia terakhir yang berhasil diprioritaskan
+- ✅ **Afinitas sesi:** LKGP memastikan penyedia yang terakhir berhasil akan diprioritaskan
 - ✅ **Mendukung banyak akun:** Setiap koneksi penyedia menjadi kandidat terpisah
-- ✅ **Tanpa penulisan DB:** Combo virtual hanya tersedia untuk permintaan tersebut, tanpa overhead persistensi
+- ✅ **Tanpa penulisan DB:** Combo virtual hanya tersedia selama permintaan berlangsung, tanpa beban persistensi
 
 ### Kontrol kandidat per kunci (#7819, Level 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = sufiks setelah `auto/`, atau
-literal `auto` untuk saluran dasar) adalah endpoint **hanya baca** yang mencantumkan
-kumpulan kandidat terkini dari saluran `auto/*` beserta keterjangkauan langsung,
-dengan menggunakan kembali pembacaan ketahanan yang sudah ada (tidak pernah menggunakan
-`state` mentah dari breaker):
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = akhiran setelah `auto/`, atau
+literal `auto` untuk kanal dasar) adalah endpoint **hanya-baca** yang mencantumkan
+kumpulan kandidat saat ini dari kanal `auto/*`, dilengkapi dengan keterjangkauan langsung,
+dengan menggunakan kembali pembacaan resiliensi yang ada (tidak pernah menggunakan
+`state` breaker mentah):
 
 - circuit breaker penyedia — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
 - cooldown koneksi — `rateLimitedUntil` / `testStatus` pada baris
-  `provider_connections` yang telah di-resolve
+  `provider_connections` yang diresolusikan
 - penguncian model — `isModelLocked(provider, connectionId, model)`
 
-Setiap kandidat juga menyertakan flag `excluded` milik kunci API ini. Pengecualian
-disimpan per kunci API (tabel `auto_candidate_overrides`, migrasi `128`) — OmniRoute
-bersifat single-tenant tanpa tabel `users`, sehingga `apiKeyId` merupakan identitas
-per-pemanggil nyata yang paling mendekati — dan diberlakukan pada titik kontrol
-kumpulan kandidat dalam `open-sse/services/autoCombo/virtualFactory.ts` melalui
-`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`)
-yang murni dan telah diuji dengan unit test. Filter ini bersifat **fail-open**:
-apiKeyId/saluran yang tidak ditetapkan maupun kegagalan pencarian DB akan membiarkan
-kumpulan tetap tidak terfilter, sehingga operator tanpa override yang dikonfigurasi
-akan melihat perutean yang identik per byte dengan sebelum fitur ini.
+Setiap kandidat juga memuat flag `excluded` untuk kunci API ini. Pengecualian disimpan
+per kunci API (tabel `auto_candidate_overrides`, migrasi `128`) — OmniRoute bersifat
+single-tenant tanpa tabel `users`, sehingga `apiKeyId` merupakan identitas per pemanggil
+riil yang paling mendekati — dan diterapkan pada titik pengendali kumpulan kandidat di
+`open-sse/services/autoCombo/virtualFactory.ts` melalui
+`filterExcludedCandidates()` yang murni dan telah diuji dengan pengujian unit
+(`open-sse/services/autoCombo/candidateOverrides.ts`).
+Filter ini bersifat **fail-open**: apiKeyId/kanal yang tidak ditetapkan atau kegagalan
+pencarian DB sama-sama membiarkan kumpulan tidak difilter, sehingga operator tanpa
+override yang dikonfigurasi mendapatkan perutean yang identik byte demi byte dengan
+sebelum fitur ini tersedia.
 
-**Ditangguhkan ke isu lanjutan:** bobot per kandidat + pengurutan eksplisit (Level 3
+**Ditunda ke isu lanjutan:** bobot per kandidat + pengurutan eksplisit (Level 3
 — diteruskan ke jalur strategi berbobot/prioritas yang sudah ada) dan penyematan strategi
-`combo.ts` tertentu per kanal `auto/*` (Level 4). Lihat rencana #7819 untuk pertanyaan terbuka
-mengenai apakah override harus tetap berlaku per kunci API atau menjadi global mengingat
-model penyewa tunggal.
+`combo.ts` tertentu per kanal `auto/*` (Level 4). Lihat rencana #7819 untuk pertanyaan
+terbuka mengenai apakah penimpaan harus tetap berlaku per kunci API atau menjadi global
+mengingat model penyewa tunggal.
 
 **Di balik layar:**
 
@@ -114,20 +115,20 @@ src/sse/handlers/chat.ts mendeteksi prefiks
    ↓
 createVirtualAutoCombo('coding') → candidatePool dari koneksi aktif
    ↓
-handleComboChat (mesin yang sama dengan combo tersimpan)
+handleComboChat (mesin yang sama dengan kombo tersimpan)
    ↓
-Penilaian otomatis memilih penyedia/model terbaik per permintaan
+Penilaian otomatis memilih penyedia/model terbaik untuk setiap permintaan
 ```
 
 **File implementasi:**
 
-| File                                                      | Tujuan                                            |
-| --------------------------------------------------------- | ------------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefiks (`parseAutoPrefix`)                |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Membuat objek `AutoComboConfig` virtual           |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook pengujian untuk memalsukan registri penyedia |
-| `src/sse/handlers/chat.ts`                                | Integrasi: pintasan prefiks auto                  |
-| `src/shared/constants/providers.ts`                       | Entri sistem `SYSTEM_PROVIDERS.auto`              |
+| File                                                      | Tujuan                                        |
+| --------------------------------------------------------- | --------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Pengurai prefiks (`parseAutoPrefix`)          |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Membuat objek `AutoComboConfig` virtual       |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Kait pengujian untuk meniru registri penyedia |
+| `src/sse/handlers/chat.ts`                                | Integrasi: pintasan awal prefiks otomatis     |
+| `src/shared/constants/providers.ts`                       | Entri sistem `SYSTEM_PROVIDERS.auto`          |
 
 ## Nama Combo yang Cocok dengan ID Model Nyata
 
@@ -219,7 +220,7 @@ Auto-Combo Engine secara dinamis memilih penyedia/model terbaik untuk setiap per
 
 ## Paket Mode
 
-6 profil bobot siap pakai di `open-sse/services/autoCombo/modePacks.ts`. Setiap paket sepenuhnya menggantikan bobot default untuk mengarahkan pemilihan ke satu tujuan. Jumlah setiap paket sudah mencapai `1.0` (`0.9999` jika ditampilkan dengan empat angka desimal), sehingga `normalizeScoringWeights()` tidak memiliki koreksi berarti saat suatu paket aktif — nilai-nilai di bawah ini, dengan mempertimbangkan pembulatan, adalah nilai yang diterapkan oleh pemberi skor.
+6 profil bobot siap pakai di `open-sse/services/autoCombo/modePacks.ts`. Setiap paket menggantikan bobot default sepenuhnya untuk mengarahkan pemilihan ke satu tujuan. Total setiap paket sudah berjumlah `1.0` (`0.9999` saat ditampilkan dengan empat angka desimal), sehingga `normalizeScoringWeights()` tidak memiliki hal berarti untuk dikoreksi ketika suatu paket aktif — dengan memperhitungkan pembulatan, nilai di bawah ini adalah nilai yang diterapkan oleh pemberi skor.
 
 | Faktor                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -241,32 +242,29 @@ Auto-Combo Engine secara dinamis memilih penyedia/model terbaik untuk setiap per
 
 Catatan:
 
-- **Paket menyertakan `quality` dan `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) dan menggantikan seluruh peta bobot (`weights = pack`, bukan penggabungan). `DEFAULT_WEIGHTS` menyertakan `quality 0.03 / reliability 0`; memilih `balanced`/`default` mempertahankan nilai default tersebut, sedangkan memilih suatu paket menggunakan nilai paket di atas. Pada pool dingin (belum ada observasi, sehingga `quality 0.5` dan `reliability 1`), kedua faktor ini menambahkan `+0.04` pada paket generik (`0.03 + 0.01`), `+0.045` pada `quality-first`, dan `+0.05` pada `reliability-first`.
+- **Paket menyertakan `quality` dan `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) dan menggantikan seluruh peta bobot (`weights = pack`, bukan penggabungan). `DEFAULT_WEIGHTS` menyertakan `quality 0.03 / reliability 0`; memilih `balanced`/`default` mempertahankan nilai default tersebut, sedangkan memilih sebuah paket menggunakan nilai paket di atas. Pada pool yang masih kosong (belum ada observasi, sehingga `quality 0.5` dan `reliability 1`), kedua faktor ini menambahkan `+0.04` pada paket generik (`0.03 + 0.01`), `+0.045` pada `quality-first`, dan `+0.05` pada `reliability-first`.
 - `tierAffinity`, `specificityMatch`, dan `resetWindowAffinity` secara eksplisit bernilai `0` di setiap paket.
 - Ringkasan fokus setiap paket:
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (koneksi sehat dengan latensi rendah)
-  - **cost-saver** → costInv 0.3324 (token termurah menang)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, tertinggi di antara semua paket (model terbaik dan konsisten untuk tugas tersebut)
+  - **cost-saver** → costInv 0.3324 (token termurah yang menang)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, tertinggi dari semua paket (model terbaik untuk tugas tersebut, konsisten)
   - **offline-friendly** → quota 0.3324 + health 0.2667 (ruang kapasitas maksimum tanpa memandang kecepatan/biaya)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, tertinggi di antara semua paket (paling sedikit kejutan)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profil injeksi kegagalan)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, tertinggi dari semua paket (paling sedikit kejutan)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (paket bobot yang ditetapkan `auto/chaos` kepada anggota panelnya; fan-out paralel tidak membaca bobot ini, dan ini bukan profil injeksi kegagalan, lihat [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
 ### Kontrol Per Permintaan (header) — #6023 / #6024 / #6025 / #3470
 
-Combo `auto` dapat diarahkan **per permintaan** melalui tiga header, tanpa mengubah konfigurasi
-tersimpan combo tersebut. Ini hanya berlaku untuk strategi `auto` dan hanya untuk permintaan
-yang menyertakannya; `modePack`/`budgetCap`/`budgetFallback` tersimpan milik combo digunakan
-jika header tidak ada.
+Combo `auto` dapat diarahkan **per permintaan** melalui tiga header, tanpa mengubah konfigurasi tersimpan milik combo tersebut. Ini hanya berlaku untuk strategi `auto` dan hanya untuk permintaan yang menyertakannya; `modePack`/`budgetCap`/`budgetFallback` yang tersimpan pada combo digunakan ketika header tidak ada.
 
-| Header                        | Nilai yang Diterima                                                                                                                                                                      | Efek                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | alias preset (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) atau nama pack mentah (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Mengganti bobot penilaian untuk permintaan ini. `balanced`/`default` memaksakan bobot default (tanpa pack). Nilai yang tidak dikenal akan diabaikan (konfigurasi dipertahankan).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `X-OmniRoute-Budget`          | angka positif (USD maksimum per permintaan)                                                                                                                                              | Batas biaya mutlak: kandidat yang perkiraan biayanya melebihi batas ini akan difilter sebelum pemilihan. Tindakan yang dilakukan ketika **setiap** kandidat melebihi batas tersebut dikendalikan oleh `X-OmniRoute-Budget-Fallback` di bawah ini.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (default, alias: `cheapest-viable`, `soft`) atau `strict` (alias: `block`, `hard`)                                                                                            | `cheapest`: beralih ke kandidat termurah secara global meskipun kandidat tersebut masih melebihi batas (perilaku lama). `strict`: menolak melakukan pemilihan — permintaan langsung gagal dengan `HTTP 402`, alih-alih secara diam-diam mengeluarkan biaya berlebih. Nilai yang tidak dikenal akan diabaikan.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `X-OmniRoute-Effort`          | `auto` (nilai lain dicadangkan)                                                                                                                                                          | Anggaran pemikiran adaptif: ketika permintaan **tidak** memuat bidang penalaran dalam bentuk apa pun (`reasoning_effort`, `reasoning`, `thinking`), gateway menetapkan `auto` menjadi `low`/`medium`/`high` berdasarkan sinyal deterministik dari struktur permintaan (panjang pesan pengguna terakhir, ukuran konteks hingga pesan pengguna terakhir, hasil tool sebelumnya, kedalaman loop tool). Sinyal dibatasi pada giliran saat ini — semua yang berada setelah pesan pengguna terakhir diabaikan — sehingga setiap permintaan dalam loop tool ditetapkan ke tingkat yang sama (penetapan stateless per giliran, tanpa status sesi, tanpa eskalasi di tengah loop yang dapat merusak prefiks cache prompt upstream). Bidang penalaran eksplisit dari klien selalu diprioritaskan. Berlaku untuk permintaan yang pengiriman upstream-nya ditetapkan ke bentuk OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` adalah bidang berbentuk OpenAI, sehingga header ini tidak berpengaruh pada permintaan yang ditujukan ke Claude atau Gemini (lihat `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Header                        | Menerima                                                                                                                                                                                 | Efek                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | alias preset (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) atau nama pack mentah (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Mengganti bobot penilaian untuk permintaan ini. `balanced`/`default` menerapkan bobot default secara paksa (tanpa pack). Nilai yang tidak dikenal akan diabaikan (konfigurasi dipertahankan).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `X-OmniRoute-Budget`          | angka positif (USD maksimum per permintaan)                                                                                                                                              | Batas atas biaya mutlak: kandidat yang estimasi biayanya melampaui batas ini akan disaring sebelum pemilihan. Hal yang terjadi ketika **semua** kandidat melampauinya dikendalikan oleh `X-OmniRoute-Budget-Fallback` di bawah ini.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (default, alias: `cheapest-viable`, `soft`) atau `strict` (alias: `block`, `hard`)                                                                                            | `cheapest`: beralih ke kandidat termurah secara global meskipun kandidat tersebut masih melampaui batas (perilaku lama). `strict`: menolak untuk memilih — permintaan langsung gagal dengan `HTTP 402`, alih-alih diam-diam mengeluarkan biaya berlebih. Nilai yang tidak dikenal akan diabaikan.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `X-OmniRoute-Effort`          | `auto` (nilai lain dicadangkan)                                                                                                                                                          | Anggaran berpikir adaptif: ketika permintaan **tidak** membawa bidang penalaran dalam bentuk apa pun (`reasoning_effort`, `reasoning`, `thinking`), gateway menetapkan `auto` menjadi `low`/`medium`/`high` berdasarkan sinyal bentuk permintaan yang deterministik (panjang pesan pengguna terakhir, ukuran konteks hingga pesan pengguna terakhir, hasil alat sebelumnya, kedalaman perulangan alat). Sinyal dibatasi pada giliran saat ini — semua yang berada setelah pesan pengguna terakhir diabaikan — sehingga setiap permintaan dalam perulangan alat ditetapkan ke tingkat yang sama (penetapan stateless per giliran, tanpa status sesi, tanpa eskalasi di tengah perulangan yang akan merusak prefiks cache prompt upstream). Bidang penalaran klien yang eksplisit selalu diutamakan. Dibatasi pada permintaan yang pengiriman upstream-nya ditetapkan ke format OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` adalah bidang berformat OpenAI, sehingga header tersebut tidak berpengaruh pada permintaan yang ditujukan ke Claude atau Gemini (lihat `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Paksa profil tercepat, batasi permintaan ini hingga $0.05, dan lakukan pemblokiran keras alih-alih membelanjakan secara berlebihan
+# Paksa profil tercepat, batasi permintaan ini hingga $0.05, dan lakukan pemblokiran tegas alih-alih melebihi anggaran
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -275,9 +273,9 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Resolusi merupakan fungsi murni (`open-sse/services/autoCombo/requestControls.ts`); nilai yang
-telah diresolusi diteruskan ke masukan `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` yang sudah ada pada mesin. `config.budgetFallback` yang tersimpan milik suatu combo ("strict" |
+Penetapan merupakan fungsi murni (`open-sse/services/autoCombo/requestControls.ts`);
+nilai yang telah ditetapkan diteruskan ke input `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` yang sudah ada pada mesin. `config.budgetFallback` yang tersimpan pada suatu kombinasi ("strict" |
 "cheapest") menetapkan kebijakan persisten; header menimpanya untuk satu permintaan.
 
 ## Semua Strategi Perutean
@@ -765,13 +763,13 @@ Dengan menyertakan `auto` tanpa varian (default) serta 6 nilai `AutoVariant` yan
 
 (`AutoVariant` sendiri mencantumkan 6 nilai; opsi ke-7 adalah "tanpa varian" — `auto` tanpa varian — yang ditangani oleh `parseAutoPrefix()` sebagai `variant: undefined`.)
 
-## Cara tier berperan dalam Auto-Combo
+## Bagaimana tier digunakan dalam Auto-Combo
 
-Fungsi penilaian 16 faktor (`open-sse/services/autoCombo/scoring.ts`) memperlakukan keanggotaan tier sebagai dua sinyal: `tierPriority` (0.0476) dan `tierAffinity` (0.0476). Lihat [tabel faktor penilaian](#how-it-works-persisted-auto-combos) kanonis di atas untuk rangkaian lengkap `DEFAULT_WEIGHTS` — penggantian per paket (ship-fast/cost-saver/quality-first/offline-friendly) tercantum dalam tabel "Profil bobot per paket".
+Fungsi penilaian 16 faktor (`open-sse/services/autoCombo/scoring.ts`) memperlakukan keanggotaan tier sebagai dua sinyal: `tierPriority` (0.0476) dan `tierAffinity` (0.0476). Lihat [tabel faktor penilaian](#how-it-works-persisted-auto-combos) kanonis di atas untuk kumpulan lengkap `DEFAULT_WEIGHTS` — penggantian per paket (ship-fast/cost-saver/quality-first/offline-friendly) tercantum dalam tabel "Profil bobot per paket".
 
-Tier saja **tidak** memaksa Tier 1 untuk selalu didahulukan — jika latensi Tier 1 buruk atau perbandingan biaya terhadap kualitas tidak optimal, Tier 2 yang akan dipilih. Untuk memaksakan urutan tier, gunakan strategi combo `priority` dan atur penyedia berdasarkan tier.
+Tier saja **tidak** memaksa Tier 1 untuk menjadi yang pertama — jika latensi Tier 1 buruk atau perbandingan biaya dengan kualitas tidak optimal, Tier 2 akan menang. Untuk memaksakan urutan tier, gunakan strategi combo `priority` dan susun penyedia berdasarkan tier.
 
-Untuk sangat memprioritaskan Tier 1 (langganan), tingkatkan bobot `tierPriority`:
+Untuk sangat mengutamakan Tier 1 (langganan), tingkatkan bobot `tierPriority`:
 
 ```json
 {
@@ -780,7 +778,7 @@ Untuk sangat memprioritaskan Tier 1 (langganan), tingkatkan bobot `tierPriority`
 }
 ```
 
-Lihat `docs/marketing/TIERS.md` untuk definisi tier dan klasifikasi penyedia.
+Lihat [`docs/guides/TIERS.md`](../guides/TIERS.md) untuk definisi tier dan klasifikasi penyedia.
 
 ## Pengujian & Cakupan
 

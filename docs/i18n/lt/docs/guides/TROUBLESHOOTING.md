@@ -37,33 +37,33 @@ Dažniausios „OmniRoute“ problemos ir jų sprendimai.
 
 ---
 
-### Nemokamų paslaugų teikėjų užklausų dažnio ribojimas (429 / 400 / 401)
+### Nemokamų teikėjų užklausų dažnio ribojimas (429 / 400 / 401)
 
-**Požymis**: naudojant `model: "auto"` su nemokamais arba autentifikavimo nereikalaujančiais teikėjais („opencode“, „auggie“ ir kt.), vietoje atsakymų protarpiais gaunama `HTTP 429`, `400` arba `401` klaida. Po kelių akimirkų pakartojus tą pačią užklausą, ji įvykdoma sėkmingai, tačiau automatizavimas („cron“ užduotys, agentai, scenarijai) nutrūksta jau po pirmosios klaidos.
+**Požymis**: naudojant `model: "auto"` su nemokamais teikėjais arba teikėjais, kuriems nereikia autentifikavimo („opencode“, „auggie“ ir kt.), vietoje atsakymų kartais gaunamos `HTTP 429`, `400` arba `401` klaidos. Po kelių akimirkų pakartojus tą pačią užklausą, ji įvykdoma sėkmingai, tačiau automatizavimas („cron“ užduotys, agentai, scenarijai) nutrūksta po pirmosios klaidos.
 
-**Pagrindinė priežastis**: susideda trys nepriklausomi gedimų tipai:
+**Pagrindinė priežastis**: susideda trys nepriklausomi gedimų režimai:
 
-1. **Paslaugų teikėjo užklausų dažnio limitas (`429`)**: nemokamuose planuose gali būti taikoma vienam laiko intervalui skirta kvota. Lygiagrečių iškvietimų pliūpsnis ją išnaudoja, todėl kita užklausa atmetama, kol prasideda naujas intervalas.
-2. **Neveikiantis modelis tiesioginio perdavimo režimu (`400`/`401`)**: `auto/*` telkiniuose gali būti tiesioginio perdavimo modelių iš `opencode`, kurie užregistruoti kataloge, bet neturi galiojančių prisijungimo duomenų (pvz., `oc/north-mini-code-free` → `401`). Automatinis maršruto parinkiklis išbando vieną iš jų, patiria klaidą, o ši išplatinama dar prieš suveikiant atsarginiam variantui.
-3. **Lygiagretumo sustiprinimas (`429` esant apkrovai)**: kai kelios agentų arba „cron“ sesijos vienu metu kreipiasi į `auto`, bendras užklausų dažnis viršija nemokamų paslaugų teikėjų toleruojamą ribą, todėl teisėtos užklausos pažymimos kaip piktnaudžiavimas.
+1. **Teikėjo užklausų dažnio limitas (`429`)**: nemokamuose planuose gali būti taikoma vienam laiko intervalui nustatyta kvota. Lygiagrečių iškvietimų pliūpsnis ją išnaudoja, todėl kita užklausa atmetama, kol prasideda naujas intervalas.
+2. **Neveikiantis modelis tiesioginio perdavimo režime (`400`/`401`)**: `auto/*` telkiniuose gali būti tiesiogiai perduodamų `opencode` modelių, kurie užregistruoti kataloge, tačiau neturi galiojančių prisijungimo duomenų (pvz., `oc/north-mini-code-free` → `401`). Automatinis maršruto parinkiklis išbando vieną iš jų, patiria klaidą, o ši perduodama toliau prieš įsijungiant atsarginiam variantui.
+3. **Lygiagretumo sustiprinimas (`429` esant apkrovai)**: kai keli agento ar „cron“ seansai vienu metu kreipiasi į `auto`, bendras užklausų dažnis viršija nemokamų teikėjų toleruojamą ribą, todėl teisėtos užklausos pažymimos kaip piktnaudžiavimas.
 
-**Patvirtintas sprendimas (bendruomenės pranešimas, 2026-08-10)**: sureguliuokite tris aplinkos kintamuosius, kad rotacija, lygiagretumas ir atsarginio varianto naudojimas suvaldytų nemokamo plano nepastovumą, užuot dėl jo nutraukę veikimą:
+**Patvirtintas sprendimas (bendruomenės pranešimas, 2026-08-10)**: pakoreguokite tris aplinkos kintamuosius, kad rotacija, lygiagretumas ir atsarginiai variantai kompensuotų nemokamo plano nepastovumą, užuot dėl jo nutraukę veikimą:
 
 ```bash
 export OMNIROUTE_ROTATE_ON_400=true           # gavus 400/401, pereiti prie kito modelio ar teikėjo (praleidžiami neveikiantys tiesioginio perdavimo modeliai)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # aiški sunkiasvorių užklausų priėmimo riba (pagal numatytąją nuostatą nenustatyta: užklausų skaičius neribojamas, žr. pastabą toliau)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # ilgiau, bet ribotai laukti sunkiasvorėms užklausoms skirtų išteklių, užuot iškart grąžinus pakartotinai bandyti leidžiančią 503 klaidą
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # aiški didelių užklausų priėmimo riba (pagal numatytuosius nustatymus nenustatyta: užklausų skaičius neribojamas, žr. pastabą toliau)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # ribotą laukimo laiką padidinti virš numatytosios RATE_LIMIT_MAX_WAIT_MS reikšmės, skirtos lėtiems išoriniams teikėjams
 ```
 
-Nustatykite šiuos kintamuosius „OmniRoute“ proceso aplinkoje (demone, pvz., per „LaunchAgent“ plist arba `systemctl edit`), tada paleiskite „OmniRoute“ iš naujo. Rotacijos žyma yra vienas veiksmingiausių svertų: ji negrįžtamą gedimą paverčia skaidriu pakartotiniu bandymu naudojant veikiantį telkinio paslaugų teikėją.
+Nustatykite juos „OmniRoute“ proceso aplinkoje (demone, pvz., naudodami „LaunchAgent“ plist arba `systemctl edit`), tada paleiskite „OmniRoute“ iš naujo. Rotacijos žyma yra pats veiksmingiausias svertas: ji paverčia kritinę klaidą skaidriai atliekamu pakartotiniu bandymu naudojant veikiantį telkinio teikėją.
 
-**Pastaba**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` riboja, kiek sunkiasvorių — ilgo konteksto — užklausų gali būti vykdoma vienu metu; ši riba yra užklausų priėmimo vartai, o ne paslaugų teikėjo užklausų dažnio ribotuvas. **#503-fanout atnaujinimas:** šis kintamasis pagal numatytąją nuostatą nebėra nustatomas (dabar jis taikomas tik aiškiai sukonfigūravus, kaip parodyta pirmiau) — vietoje to sunkiasvorių užklausų priėmimą riboja automatiškai apskaičiuojamas baitų biudžetas (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kuris prisitaiko prie faktinės pagrindinio kompiuterio atminties ribos, todėl naujame diegime turėtų pasitaikyti gerokai mažiau `503 chat_admission_busy` atmetimų net ir visai nenustačius šio kintamojo; aiškus jo nustatymas čia vis tiek veikia tiksliai taip, kaip aprašyta. Aiškiai nurodyti baitų biudžeto pakeitimai apribojami iki 8 MiB–2 GiB. `413 body_exceeds_budget` nėra laikina klaida: padidinkite šį baitų biudžetą, sumažinkite `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` arba padidinkite proceso atminties ribą. `inflight_bytes_budget` atmetimas reiškia laikiną išteklių konkurenciją, todėl užklausą galima kartoti. Kiekvieno paslaugų teikėjo užklausų dažnio ribojimas (`open-sse/services/rateLimitManager.ts`) atskirai valdomas naudojant `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` ir `RATE_LIMIT_AUTO_ENABLE` — žr. `.env.example`.
+**Pastaba**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` riboja, kiek didelių — ilgo konteksto — užklausų gali būti vykdoma vienu metu; ši riba yra priėmimo vartai, o ne teikėjo užklausų dažnio ribotuvas. **#503 išskleidimo atnaujinimas:** šis kintamasis pagal numatytuosius nustatymus nebėra nustatomas (dabar jis taikomas tik aiškiai sukonfigūravus, kaip parodyta anksčiau) — vietoje to didelių užklausų priėmimą riboja automatiškai nustatomas baitų biudžetas (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), kuris prisitaiko prie faktinės pagrindinio kompiuterio atminties ribos, todėl naujoje diegtyje turėtų pasitaikyti gerokai mažiau `503 chat_admission_busy` atmetimų, net jei šis kintamasis visai nenustatytas; aiškiai jį nustačius čia, jis vis tiek veikia tiksliai taip, kaip aprašyta. Aiškiai nustatytos baitų biudžeto reikšmės apribojamos iki 8 MiB–2 GiB intervalo. `413 body_exceeds_budget` nėra laikina klaida: padidinkite baitų biudžetą, sumažinkite `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` arba padidinkite proceso atminties ribą. `inflight_bytes_budget` apkrovos atmetimas reiškia laikiną išteklių konkurenciją, todėl užklausą galima bandyti kartoti. Kiekvieno teikėjo užklausų dažnio ribojimas (`open-sse/services/rateLimitManager.ts`) atskirai valdomas naudojant `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` ir `RATE_LIMIT_AUTO_ENABLE` — žr. `.env.example`.
 
-**Kaip patikrinti, ar pataisa suveikė**: paleiskite savo agentą / cron užduotį du kartus greitai iš eilės ir įsitikinkite, kad abu paleidimai sėkmingi. Prieš pataisą antrasis paleidimas paprastai pateikia `429` / `401` klaidą. Po pataisos klaidos (jei tokių yra) automatiškai pakartotinai apdorojamos ir iškvieta užbaigiama. Taip pat galite vykdyti `curl /monitoring/health` ir stebėti lauką `rateLimitedUntil` teikėjų ryšiuose bei `circuitBreakers.providerBreakers[].state` paveiktiems teikėjams — būsena gali būti `CLOSED`, `DEGRADED`, `OPEN` arba `HALF_OPEN` (žr. `src/shared/utils/circuitBreaker.ts`), o teikėjas, kuriam nuolat nepavyksta įvykdyti užklausų, pereis per būsenas `CLOSED → DEGRADED → OPEN`, kol pasibaigus atkūrimo laikotarpiui bus praleista bandomoji užklausa (`HALF_OPEN`).
+**Kaip patikrinti, ar sprendimas suveikė**: du kartus greitai iš eilės paleiskite agentą ar „cron“ užduotį ir įsitikinkite, kad abu paleidimai sėkmingi. Prieš pritaikant sprendimą antrasis paleidimas paprastai grąžina `429`/`401`. Pritaikius sprendimą, klaidos (jei jų pasitaiko) skaidriai pakartojamos ir iškvietimas užbaigiamas. Taip pat galite vykdyti `curl /monitoring/health` ir stebėti teikėjo ryšių lauką `rateLimitedUntil` bei paveiktų teikėjų `circuitBreakers.providerBreakers[].state` — būsena yra viena iš `CLOSED`, `DEGRADED`, `OPEN` arba `HALF_OPEN` (žr. `src/shared/utils/circuitBreaker.ts`), o nuolat klaidas grąžinantis teikėjas pereis per būsenas `CLOSED → DEGRADED → OPEN`, kol pasibaigus atkūrimo intervalui bus galima praleisti bandomąją užklausą (`HALF_OPEN`).
 
-**Jei vis dar matote 429**: aktyvi to teikėjo paskyra iš tiesų išnaudojo savo _kvotą_ (tai nėra vien tik užklausų dažnio ribojimas). OmniRoute valdymo skydelyje, pasirinkę Providers → Accounts, pridėkite antrą to paties teikėjo paskyrą arba įtraukite kitą nemokamą teikėją (pvz., `routeway`, `auggie`). Rotacija padeda tik esant laikinoms dažnio ribojimo / 400 / 401 klaidoms; visiškai išnaudojus kvotą reikia kitų prisijungimo duomenų arba kito teikėjo.
+**Jei vis tiek matote 429**: aktyvi to teikėjo paskyra iš tiesų išnaudojo savo _kvotą_ (ne tik užklausų dažnio limitą). „OmniRoute“ valdymo skydelyje pasirinkite Teikėjai → Paskyros ir pridėkite antrą to paties teikėjo paskyrą arba įtraukite kitą nemokamą teikėją (pvz., `routeway`, `auggie`). Rotacija padeda tik esant laikinam dažnio ribojimui arba 400/401 klaidoms; visiškai išnaudojus kvotą reikia antrų prisijungimo duomenų arba kito teikėjo.
 
-**Jei naudojant vaizdo modelius (`auto/vision`, `bazaarlink/*`) rodoma 403 klaida**: prijungta paskyra neturi mokamo plano, apimančio vaizdo funkcijas, arba API raktui nesuteikta pakankamai leidimų. Teikėjo valdymo skydelyje patikrinkite, ar rakto apimtis apima vaizdo / multimodalines funkcijas, arba prijunkite mokamo plano paskyrą ir palikite ją kaip vaizdo užklausų tikslą.
+**Jei naudojant vaizdo modelius (`auto/vision`, `bazaarlink/*`) rodoma 403 klaida**: prijungta paskyra neturi mokamo plano, apimančio vaizdo funkcijas, arba API raktui nesuteikta pakankamai leidimų. Teikėjo valdymo skydelyje patikrinkite, ar rakto aprėptis apima vaizdo ir daugiarūšes funkcijas, arba prijunkite mokamo plano paskyrą ir palikite ją kaip vaizdo užklausų paskirties paskyrą.
 
 ---
 
@@ -548,38 +548,37 @@ Norėdami derinti formatų vertimo problemas, naudokite **Valdymo skydas → Ver
 
 ### Automatinis užklausų dažnio ribojimas nesuveikia
 
-- Automatinis užklausų dažnio ribojimas taikomas tik API rakto teikėjams (ne OAuth / prenumeratoms)
+- Automatinis užklausų dažnio ribojimas taikomas tik API rakto teikėjams (ne OAuth / prenumeratos teikėjams)
 - Patikrinkite, ar skiltyje **Nustatymai → Atsparumas → Teikėjų profiliai** įjungtas automatinis užklausų dažnio ribojimas
 - Patikrinkite, ar teikėjas grąžina `429` būsenos kodus arba `Retry-After` antraštes
 
 ### Eksponentinio delsos didinimo derinimas
 
-Teikėjų profiliai palaiko šiuos nustatymus:
+Teikėjų profiliuose palaikomi šie nustatymai:
 
-- **Bazinė delsa** — pradinis laukimo laikas po pirmosios nesėkmės (numatytoji reikšmė: 1s)
-- **Didžiausia delsa** — didžiausia laukimo laiko riba (numatytoji reikšmė: 30s)
-- **Daugiklis** — kiek didinti delsą po kiekvienos iš eilės įvykusios nesėkmės (numatytoji reikšmė: 2x)
+- **Bazinė delsa** — pradinis laukimo laikas po pirmosios trikties (numatytoji reikšmė: 1 s)
+- **Didžiausia delsa** — didžiausia laukimo laiko riba (numatytoji reikšmė: 30 s)
+- **Daugiklis** — kiek padidinti delsą po kiekvienos iš eilės įvykusios trikties (numatytoji reikšmė: 2x)
 
-### Užklausų antplūdžio prevencija
+### Vienalaikių užklausų antplūdžio prevencija
 
-Kai daug lygiagrečių užklausų pasiekia teikėją, kuriam taikomas užklausų dažnio ribojimas, OmniRoute naudoja mutex ir automatinį užklausų dažnio ribojimą, kad užklausos būtų vykdomos nuosekliai ir būtų išvengta pakopinių gedimų. API rakto teikėjams tai atliekama automatiškai.
+Kai daug vienalaikių užklausų pasiekia teikėją, ribojantį užklausų dažnį, „OmniRoute“ naudoja mutex ir automatinį užklausų dažnio ribojimą, kad užklausos būtų vykdomos nuosekliai ir būtų išvengta grandininių trikčių. API rakto teikėjams tai atliekama automatiškai.
 
-### Pokalbio užklausos nepavyksta su 503 / chat_admission_busy
+### Pokalbių užklausos nepavyksta dėl 503 / chat_admission_busy
 
 **Požymiai:**
 
-- Pokalbio užbaigimų galinis taškas grąžina pakartotinai bandyti leidžiantį `503` atsakymą, kurio klaidos kodas yra
+- Pokalbių užbaigimų galinis taškas grąžina pakartotinai siunčiamą `503` atsakymą, kurio klaidos kodas yra
   `chat_admission_busy`.
-- Atsakyme yra `Retry-After`. Nuo #12135 reikšmė nustatoma pagal stebimą
-  užimtumą — pasirenkama didesnė iš `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` intervalo, kurį užklausa jau
-  laukė, ir laiko, kurį laikomos esamos sunkiasvorių užklausų nuomos — suapvalinama aukštyn iki sveikų
-  sekundžių ir apribojama iki 60. Kai vartai neužimti, išlaikomos istorinės minimalios reikšmės: 2 sekundės
-  baitais pagrįstame kelyje, 1 sekundė struktūra pagrįstame kelyje (jame taip pat pateikiama
+- Atsakyme yra `Retry-After`. Nuo #12135 ši reikšmė nustatoma pagal stebimą
+  užimtumą — pasirenkama didesnė reikšmė iš `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` intervalo, kurį užklausa jau
+  laukė, ir laiko, kurį buvo laikomos dabartinės didelio svorio rezervacijos; ji suapvalinama aukštyn iki sveikų
+  sekundžių ir apribojama iki 60. Kai vartai neapkrauti, išlaikomos ankstesnės mažiausios reikšmės: 2 sekundės
+  baitais pagrįstame kelyje ir 1 sekundė struktūra pagrįstame kelyje (kuriame taip pat pateikiama
   `reason: "structure_limit"`).
-- Taip gali nutikti, kol kita sunkiasvorė pokalbio užklausa arba ilgai vykdomas srautinis atsakymas vis dar
-  apdorojamas.
+- Taip gali nutikti, kol vis dar vykdoma kita didelio svorio pokalbio užklausa arba ilgai trunkantis srautinis atsakas.
 
-Baitais pagrįsto atsakymo turinys yra:
+Baitais pagrįsto atsakymo turinys:
 
 ```json
 {
@@ -591,50 +590,50 @@ Baitais pagrįsto atsakymo turinys yra:
 }
 ```
 
-Struktūra pagrįstame atsakyme naudojamas tas pats tipas ir kodas, o pranešimas yra
+Struktūra pagrįstame atsakyme naudojami tas pats tipas ir kodas, o pranešimas yra
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 ir `reason: "structure_limit"`.
-Esant numatytosioms ribinėms reikšmėms, užklausa laikoma struktūriškai sunkia, kai joje yra bent `200` pranešimų,
-bent `64` įrankiai arba bent `32,000` apskaičiuotų atpažinimo ženklų, arba kai apribotas struktūros vertinimas
-išnaudoja savo ribas: `10,000` aplankytų mazgų arba gylį `12`.
+Taikant numatytąsias ribines reikšmes, užklausa laikoma struktūriškai sunkia, kai joje yra bent `200` pranešimų,
+bent `64` įrankiai ar bent `32,000` numanomų prieigos raktų, arba kai apribotas struktūros įvertinimas
+išnaudoja savo ribas — `10,000` aplankytų mazgų arba `12` gylį.
 
-**Priežastis:** Tai sąmoningas apkrovos mažinimas OmniRoute viduje, o ne aukštesnio lygio teikėjo gedimas.
-Kiekvienas procesas naudoja vietinę proceso apsaugą, kad rezervuotų ribotus sunkiasvorių užklausų išteklius prieš išlaikydamas
-ir analizuodamas didelį užklausos turinį. Sunkiasvorės užklausos nuoma lieka aktyvi visą SSE
-atsakymo gyvavimo laiką.
+**Priežastis:** tai sąmoningas apkrovos mažinimas „OmniRoute“ viduje, o ne aukštesnio lygio teikėjo triktis.
+Kiekvienas procesas naudoja vietinę proceso apsaugą, kad prieš išlaikant ir analizuojant didelį užklausos turinį
+būtų rezervuota ribota didelio svorio užklausų talpa. Didelio svorio rezervacija išlaikoma visą SSE
+atsako gyvavimo laiką.
 
-**#503 išplitimas:** prieš šį pataisymą apsauga ribojo lygiagretumą pagal fiksuotą užklausų SKAIČIŲ
+**503 atsakymų išplitimas:** prieš šį pataisymą apsauga ribojo lygiagretumą pagal fiksuotą užklausų SKAIČIŲ
 (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, numatytoji reikšmė `1`), neatsižvelgdama į pagrindinio kompiuterio atmintį, todėl programavimo agentų
-išsišakojimas (keli pagalbiniai agentai / CLI, užklausų turiniai įprastai > 256 KB) sumažindavo faktinį
-lygiagretumą iki ~1 ir visiškai įprastos apkrovos metu sukeldavo 503 klaidas. Dabar apsauga prisiderina
-automatiškai: ją valdo automatiškai nustatytas priimamų BAITŲ biudžetas (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), apskaičiuotas pagal
-tikrąją proceso atminties ribą, be to, atsižvelgiama į tiesioginį išteklių apkrovos signalą — todėl
-apkrova mažinama tik tada, kai pagrindiniame kompiuteryje iš tiesų trūksta atminties, o ne vien todėl, kad vienu metu
-gauta daugiau nei viena sunki užklausa. Senoji skaičiaus riba (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) vis dar
-taikoma, tačiau tik jei ją aiškiai nustatote.
+išsišakojimas (keli antriniai agentai / CLI, turiniai paprastai > 256 KB) sumažindavo faktinį
+lygiagretumą iki ~1 ir visiškai įprastos apkrovos metu sukeldavo 503 atsakymus. Dabar apsauga susiderina
+automatiškai: ji valdoma pagal automatiškai nustatomą priėmimo BAITŲ biudžetą (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), apskaičiuotą pagal
+tikrąją proceso atminties ribą, taip pat atsižvelgia į tiesioginį išteklių apkrovos signalą, todėl
+apkrova mažinama tik tada, kai pagrindiniame kompiuteryje iš tiesų trūksta atminties, o ne vien todėl, kad vienu
+metu gauta daugiau nei viena sunki užklausa. Senoji skaičiaus riba (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) vis dar
+taikoma, tačiau tik tuo atveju, jei ją nustatote aiškiai.
 
-Kai ištekliai užimti, sunkiasvorė užklausa pirmiausia iki
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (numatytoji reikšmė `2000`, `0` išjungia laukimą) laukia, kol atsilaisvins vieta,
-ir tik tada pateikiamas pakartotinai bandyti leidžiantis `503` atsakymas. Ribotas laukimas naudojamas tam, kad agentų tipo klientai
-(OpenCode, Claude Code, Cursor), vienu metu išsišakojantys į sunkias pagalbines užklausas, apdorotų antplūdį nuosekliai,
-užuot išnaudoję visą pakartotinių bandymų limitą dėl nedelsiamų atmetimų ir nutrūkę viduryje užduoties.
-Dabartinis sunkiasvorių užklausų nuomų užimtumas, nustatytas baitų biudžetas ir tiesioginis apkrovos lygis
+Kai talpa užimta, didelio svorio užklausa pirmiausia iki
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (numatytoji reikšmė yra `RATE_LIMIT_MAX_WAIT_MS`; `0` išjungia laukimą) laukia, kol atsilaisvins vieta,
+ir tik tada grąžina pakartotinai siunčiamą `503`. Ribotas laukimas naudojamas tam, kad agentų tipo klientai
+(OpenCode, Claude Code, Cursor), vienu metu išsišakojantys į sunkias antrines užklausas, vykdytų antplūdį nuosekliai,
+užuot išnaudoję visą pakartotinių bandymų biudžetą dėl iškart gaunamų atmetimų ir nustoję veikti užduoties viduryje.
+Dabartinis didelio svorio rezervacijų užimtumas, nustatytas baitų biudžetas ir tiesioginės apkrovos lygis
 pateikiami adresu `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) — patikrinkite juos prieš keisdami bet kokį aplinkos kintamąjį.
-Nustatymai → Atsparumas → Užklausų eilė → Lygiagrečios užklausos šio mechanizmo nevaldo; šis nustatymas
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — patikrinkite juos prieš keisdami bet kurį aplinkos kintamąjį.
+Nustatymai → Atsparumas → Užklausų eilė → Lygiagrečios užklausos to nevaldo; šis nustatymas
 valdo atskirą teikėjo užklausų eilės mechanizmą.
 
 **Sprendimas:**
 
-1. Pirmiausia bandykite pakartotinai. Klientai turėtų paisyti `Retry-After` ir naudoti didėjančią delsą, užuot nedelsdami
+1. Pirmiausia pakartokite užklausą. Klientai turėtų paisyti `Retry-After` ir naudoti didėjančią delsą, užuot iš karto
    kartoję užklausą.
 2. Prieš ką nors derindami patikrinkite `/api/monitoring/health` → `chatAdmission`. `countCapEnabled:
-false` ir pakankamai didelė `maxInflightBytes` reikšmė reiškia, kad automatiškai nustatytas biudžetas jau veikia
-   tinkamai; `pressureSeverity` reikšmė `high`/`critical` reiškia, kad pagrindiniame kompiuteryje iš tiesų trūksta atminties —
-   to negalima ištaisyti priėmimo aplinkos kintamuoju, reikia daugiau RAM arba mažesnio darbo krūvio.
-3. Tik jei `/api/monitoring/health` rodo, kad automatiškai nustatytas biudžetas iš tiesų yra per mažas
-   jūsų pagrindiniam kompiuteriui (tai reta — jis jau prisitaiko nuo konteinerio iki fizinės infrastruktūros), pakeiskite jį tiesiogiai naudodami
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, užuot grįžę prie senojo užklausų skaičiaus apribojimo.
+false` ir pakankamai didelė `maxInflightBytes` reikšmė reiškia, kad automatiškai nustatytas biudžetas jau atlieka savo
+   darbą; `pressureSeverity` reikšmė `high` / `critical` reiškia, kad pagrindiniame kompiuteryje iš tiesų trūksta atminties —
+   to negalima išspręsti priėmimo aplinkos kintamuoju; reikia daugiau RAM arba mažesnio darbo krūvio.
+3. Tik jei `/api/monitoring/health` rodo, kad automatiškai nustatytas biudžetas iš tiesų per mažas jūsų
+   pagrindiniam kompiuteriui (tai reta — jis jau pritaikomas nuo konteinerių iki fizinių serverių), pakeiskite jį tiesiogiai naudodami
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, užuot grįžę prie senosios užklausų skaičiaus ribos.
 
 Autoritetingus priėmimo nustatymus rasite [aplinkos kintamųjų žinyne](../reference/ENVIRONMENT.md#4-security--authentication).
 

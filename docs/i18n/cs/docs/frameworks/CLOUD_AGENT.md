@@ -310,20 +310,25 @@ upstream poskytovatele — v `CloudAgentBase` neexistuje žádné RPC pro přeru
 
 Tyto pomocné endpointy v `src/app/api/cloud/` používají vzdálení klienti
 (CLI, aplikace Electron nebo synchronizační workery) ke čtení metadat připojení
-poskytovatelů a překladu aliasů modelů. Ověřují se pomocí **běžného API klíče**
-(prostřednictvím `validateApiKey`), nikoli pomocí ověřování pro správu používaného endpointy úloh.
+k poskytovatelům a překladu aliasů modelů. Ověřují se pomocí **API klíče**
+(prostřednictvím `validateApiKey`), nikoli pomocí ověřování pro správu používaného endpointy úloh;
+to, co `/api/cloud/auth` vrací, závisí na rozsahu oprávnění klíče (viz níže).
 
-| Metoda | Cesta                           | Účel                                                                            |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Ověřit API klíč a vrátit maskovaná metadata připojení + aliasy modelů           |
-| PUT    | `/api/cloud/credentials/update` | Obnovit `accessToken` / `refreshToken` / `expiresAt`                            |
-| POST   | `/api/cloud/model/resolve`      | Přeložit alias modelu na `{ provider, model }`                                  |
-| GET    | `/api/cloud/models/alias`       | Vypsat všechny aliasy modelů                                                    |
-| PUT    | `/api/cloud/models/alias`       | Nastavit alias modelu (a při povolení jej automaticky synchronizovat do cloudu) |
+| Metoda | Cesta                           | Účel                                                                                              |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Ověřit API klíč a vrátit maskovaná metadata připojení + aliasy modelů                             |
+| PUT    | `/api/cloud/credentials/update` | Obnovit `accessToken` / `refreshToken` / `expiresAt`                                              |
+| POST   | `/api/cloud/model/resolve`      | Přeložit alias modelu na `{ provider, model }`                                                    |
+| GET    | `/api/cloud/models/alias`       | Vypsat všechny aliasy modelů                                                                      |
+| PUT    | `/api/cloud/models/alias`       | Nastavit alias modelu (a automaticky ho synchronizovat do cloudu, pokud je tato možnost povolena) |
 
 `/api/cloud/auth` nikdy nevrací nezpracované hodnoty `apiKey` / `accessToken` / `refreshToken`.
-Vrací `hasApiKey`, `hasAccessToken`, `hasRefreshToken` a maskovaný náhled
-(`maskedApiKey`: první 4 + `****` + poslední 4).
+Vrací `hasApiKey`, `hasAccessToken`, `hasRefreshToken` pro aktivní připojení, která smí klíč
+používat (klíč omezený pomocí `allowedConnections` vidí pouze tato připojení). Pro API klíč
+s rozsahem oprávnění `manage` nebo `admin`, včetně klíče nasazení z `OMNIROUTE_API_KEY`, vrací
+také maskovaný náhled (`maskedApiKey`: až 4 znaky na každém konci, méně u krátkého klíče,
+žádné u klíče s 8 nebo méně znaky) a `projectId` připojení. Obě pole jsou u všech ostatních
+klíčů z odpovědi vynechána.
 
 ## Vyhledání přihlašovacích údajů
 

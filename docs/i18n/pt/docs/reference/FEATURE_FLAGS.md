@@ -254,16 +254,22 @@ valor de ambiente / predefinido. Devolve `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Recurso de Emergência para Orçamento
+## Recurso de Emergência por Esgotamento do Orçamento
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (categoria `runtime`, predefinição `true`) controla o
-caminho de recurso de emergência gratuito em
+mecanismo de recurso gratuito de emergência em
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Quando ativado, os pedidos que esgotam o seu orçamento são encaminhados para um fornecedor/modelo
-de recurso gratuito em vez de falharem completamente. Defina-o para `false` (ou `0`) —
-através do interruptor do dashboard, de uma substituição DB, ou da variável de ambiente
-`OMNIROUTE_EMERGENCY_FALLBACK` — para desativar o comportamento e permitir que os pedidos
-com orçamento esgotado falhem. (Apresentado como um interruptor do dashboard nos PRs #3741 / #3752.)
+Quando ativado, os pedidos que esgotam o respetivo orçamento são encaminhados para um
+fornecedor/modelo de recurso gratuito, em vez de falharem imediatamente. Defina-o como
+`false` (ou `0`) — através da opção no painel, de uma substituição na BD ou da variável
+de ambiente `OMNIROUTE_EMERGENCY_FALLBACK` — para desativar este comportamento e
+permitir que os pedidos cujo orçamento se esgotou falhem. (Disponibilizado como uma
+opção no painel nos PRs #3741 / #3752.)
+
+Uma resposta fornecida por este mecanismo de recurso inclui
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, para que
+um cliente consiga saber que foi reencaminhada sem comparar `X-OmniRoute-Provider` com
+o respetivo pedido. O cabeçalho não está presente em nenhuma outra resposta.
 
 ---
 

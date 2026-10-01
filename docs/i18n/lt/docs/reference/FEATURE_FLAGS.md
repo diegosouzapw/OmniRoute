@@ -258,16 +258,23 @@ reikšmę. Grąžina `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Avarinio biudžeto atsarginis variantas
+## Avarinis biudžeto atsarginis mechanizmas
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (kategorija `runtime`, numatytoji reikšmė `true`) kontroliuoja
-avarinį nemokamą atsarginį kelią
+`OMNIROUTE_EMERGENCY_FALLBACK` (kategorija `runtime`, numatytoji reikšmė `true`) valdo
+avarinį nemokamo atsarginio maršruto mechanizmą faile
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Kai įjungta, užklausos, kurios išnaudoja savo biudžetą, nukreipiamos į nemokamą atsarginį
-teikėją/modelį, užuot tiesiogiai nepavykus. Nustatykite ją į `false` (arba `0`) – per
-prietaisų skydelio perjungiklį, DB pakeitimą arba `OMNIROUTE_EMERGENCY_FALLBACK`
-aplinkos kintamąjį – kad išjungtumėte šį elgesį ir leistumėte užklausoms, išnaudojusioms biudžetą,
-nepavykti. (Prietaisų skydelio perjungiklis įdiegtas PR #3741 / #3752.)
+Kai jis įjungtas, užklausos, išnaudojusios savo biudžetą, nukreipiamos į nemokamą
+atsarginį teikėją / modelį, užuot iš karto baigiamos klaida. Nustatykite reikšmę
+`false` (arba `0`) — naudodami valdymo skydelio jungiklį, DB perrašą arba
+`OMNIROUTE_EMERGENCY_FALLBACK` aplinkos kintamąjį — kad išjungtumėte šią elgseną ir
+leistumėte išnaudojus biudžetą užklausas baigti klaida. (Valdymo skydelio jungiklis
+pridėtas PR #3741 / #3752.)
+
+Naudojant šį atsarginį mechanizmą pateiktame atsakyme yra
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, todėl
+klientas gali nustatyti, kad užklausa buvo nukreipta iš naujo, nelygindamas
+`X-OmniRoute-Provider` su savo užklausa. Visuose kituose atsakymuose šios antraštės
+nėra.
 
 ---
 

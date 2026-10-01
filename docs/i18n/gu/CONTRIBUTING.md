@@ -415,6 +415,5 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **આર્કિટેક્ચર**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) જુઓ
 - **API સંદર્ભ**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) જુઓ
 - **સુરક્ષા દસ્તાવેજો**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **ઑપરેશન્સ દસ્તાવેજો**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **ઓપરેશન્સ દસ્તાવેજો**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **સમસ્યાઓ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: આર્કિટેક્ચરલ નિર્ણયોના રેકોર્ડ માટે `docs/adr/` જુઓ

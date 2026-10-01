@@ -445,70 +445,90 @@ Bruk dette endepunktet når en sidecar kjører utenfor prosessen og ikke kan imp
 
 ## Kompatibilitetsendepunkter
 
-| Metode | Bane                                      | Format                             |
-| ------ | ----------------------------------------- | ---------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                             |
-| POST   | `/v1/messages`                            | Anthropic                          |
-| POST   | `/v1/responses`                           | OpenAI Responses                   |
-| POST   | `/v1/embeddings`                          | OpenAI                             |
-| POST   | `/v1/images/generations`                  | OpenAI Images                      |
-| POST   | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)       |
-| POST   | `/v1/videos/generations`                  | OpenAI-style video generation      |
-| POST   | `/v1/music/generations`                   | OpenAI-style music generation      |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (returns audio body)    |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-style rerank         |
-| POST   | `/v1/classify`                            | Jina classify (`api.jina.ai`)      |
-| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                 |
-| GET    | `/v1/models`                              | OpenAI                             |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                          |
-| GET    | `/v1beta/models`                          | Gemini                             |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent             |
-| POST   | `/v1/api/chat`                            | Ollama                             |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias               |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI models alias                |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias             |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenized alias   |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias             |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias        |
+| Metode | Bane                                      | Format                                |
+| ------ | ----------------------------------------- | ------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                |
+| POST   | `/v1/messages`                            | Anthropic                             |
+| POST   | `/v1/responses`                           | OpenAI Responses                      |
+| POST   | `/v1/embeddings`                          | OpenAI                                |
+| POST   | `/v1/images/generations`                  | OpenAI Images                         |
+| POST   | `/v1/images/edits`                        | OpenAI Images (redigering/inpainting) |
+| POST   | `/v1/videos/generations`                  | OpenAI-lignende videogenerering       |
+| POST   | `/v1/music/generations`                   | OpenAI-lignende musikkgenerering      |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (tale til tekst)         |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (returnerer lydinnhold)    |
+| POST   | `/v1/rerank`                              | Cohere/Voyage-lignende omrangering    |
+| POST   | `/v1/classify`                            | Jina-klassifisering (`api.jina.ai`)   |
+| POST   | `/v1/segment`                             | Jina-segmentering (`segment.jina.ai`) |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                    |
+| GET    | `/v1/models`                              | OpenAI                                |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                             |
+| GET    | `/v1beta/models`                          | Gemini                                |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                |
+| POST   | `/v1/api/chat`                            | Ollama                                |
+| GET    | `/api/v1/vscode/{token}/`                 | OpenAI-katalogalias                   |
+| GET    | `/api/v1/vscode/{token}/models`           | OpenAI-modellalias                    |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenisert OpenAI-alias               |
+| POST   | `/api/v1/vscode/{token}/responses`        | Tokenisert OpenAI Responses-alias     |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenisert Ollama-alias               |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenisert alias for Ollama-tagger    |
 
-Alle POST-ruter følger samme form: `Bearer your-api-key` + Zod-validert JSON-kropp (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, etc., se `src/shared/validation/schemas.ts`). 4xx returneres ved skjemafeil.
+Alle POST-ruter følger samme struktur: `Bearer your-api-key` + Zod-validert JSON-innhold (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` osv.; se `src/shared/validation/schemas.ts`). 4xx returneres ved skjemafeil.
 
-For klienter som ikke kan legge ved `Authorization: Bearer ...`, aksepterer OmniRoute også API-nøkler i URL-en via enten spørrestrengkompatibilitet (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) eller de dedikerte `/api/v1/vscode/{token}/...` endepunktene dokumentert nedenfor.
+For klienter som ikke kan legge ved `Authorization: Bearer ...`, godtar OmniRoute også API-nøkler i URL-en, enten gjennom kompatible spørringsparametere (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) eller de dedikerte `/api/v1/vscode/{token}/...`-endepunktene som er dokumentert nedenfor.
 
 ```bash
-# Rerank (skyregisterleverandør, eller en OpenAI-kompatibel leverandørnode som "<prefix>/<model>")
+# Omrangering (leverandør fra skyregisteret eller en OpenAI-kompatibel leverandørnode som "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (Foundation API-legitimasjon)
+# Jina-klassifisering (legitimasjon for Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Jina-segmentering
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; leverandøralias: jina-search, jina-ai, jina)
+# Jina-søk (s.jina.ai; leverandøraliaser: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Modereringer
+# Moderering
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — returnerer audio/mpeg (eller ønsket format) kropp
+# TTS — returnerer audio/mpeg-innhold (eller forespurt format)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Bilde redigering (multipart)
+# Soniox TTS krever språk og stemme: `language` bruker som standard "en"; en manglende
+# stemme eller et standard stemmenavn fra OpenAI (alloy, nova, …) blir til "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# Bilderedigering (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Video / musikkgenerering (leverandør-prefiksert modell-ID)
+# Video-/musikkgenerering (modell-ID med leverandørprefiks)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Rerank-leverandørnoder:** `POST /v1/rerank` ruter også til OpenAI-kompatible leverandørnoder (oMLX, vLLM, Infinity, TEI bak en gateway, …) adressert som `<node-prefix>/<model>`. Loopback-noder (`localhost`, `127.0.0.1`, `172.16.0.0/12`) er alltid kvalifiserte. Noder på en hvilken som helst annen vert – en LAN-boks eller Tailscale-peer – er kvalifiserte kun når operatøren aktiverer `RERANK_REMOTE_PROVIDER_NODES` funksjonsflagget **og** nodens base-URL passerer leverandørens utgående URL-policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); sky-metadata-verter rutes aldri til. Minne-motorens rerank-trinn kaller denne ruten over loopback, så den samme regelen styrer `rerankProviderModel` i minneinnstillingene.
+> **Leverandørnoder for omrangering:** `POST /v1/rerank` ruter også til OpenAI-kompatible leverandørnoder
+> (oMLX, vLLM, Infinity, TEI bak en gateway, …) adressert som `<node-prefix>/<model>`. Loopback-
+> noder (`localhost`, `127.0.0.1`, `172.16.0.0/12`) er alltid kvalifiserte. Noder på alle andre
+> verter — en maskin på lokalnettet eller en Tailscale-node — er bare kvalifiserte når operatøren aktiverer
+> funksjonsflagget `RERANK_REMOTE_PROVIDER_NODES` **og** nodens basis-URL består leverandørens
+> policy for utgående URL-er (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> verter for skymetadata rutes aldri til. Minnefunksjonens omrangeringstrinn kaller denne ruten via
+> loopback, så samme regel gjelder for `rerankProviderModel` i minneinnstillingene.
 >
-> **Lokale serverformer:** noden kalles på `<base>/v1/rerank` og, ved 404, på `<base>/rerank` (Infinity, TEI). Oppstrøms-kroppen inneholder både Cohere/OpenAI-stavemåten (`documents`, `return_documents`) og TEI-stavemåten (`texts`, `return_text`), og oppstrøms-svaret normaliseres til Cohere-konvolutten: TEIs bare `[{index, score, text}]`, `{results: [{index, score}]}` fra tynne gateways, og Voyage-stil `{data: [...]}` kommer alle tilbake til klienten som `{results: [{index, relevance_score, document?}]}`, sortert etter poengsum og begrenset til `top_n`.
+> **Lokale serverformater:** noden kalles på `<base>/v1/rerank` og, ved 404, på `<base>/rerank`
+> (Infinity, TEI). Oppstrømsinnholdet inneholder både Cohere/OpenAI-stavemåten (`documents`,
+> `return_documents`) og TEI-stavemåten (`texts`, `return_text`), og oppstrømssvaret
+> normaliseres til Cohere-konvolutten: TEIs uinnpakkede `[{index, score, text}]`, `{results: [{index, score}]}`
+> fra enkle gatewayer og Voyage-lignende `{data: [...]}` returneres alle til klienten som
+> `{results: [{index, relevance_score, document?}]}`, sortert etter poengsum og begrenset til `top_n`.
 
-> **Leverandørnode-oppdagelse:** modeller på en OpenAI-kompatibel leverandørnode vises i `GET /v1/models` under nodeprefikset. Rader som ikke inneholder endepunktmetadata (typisk for lokale `/v1/models`-oppføringer) arver nodens `apiType`, slik at en `embeddings`-nodes modeller er `type: "embedding"` og en `rerank`-nodes modeller er `type: "rerank"` i stedet for å standardisere til chat; en eksplisitt `supportedEndpoints` på en synkronisert eller manuelt lagt til rad har fortsatt forrang.
+> **Oppdagelse av leverandørnoder:** Modeller på en OpenAI-kompatibel leverandørnode vises i `GET /v1/models`
+> under nodens prefiks. Rader uten endepunktmetadata (typisk for lokale `/v1/models`-oppføringer)
+> arver nodens `apiType`, slik at modellene til en `embeddings`-node får `type: "embedding"` og
+> modellene til en `rerank`-node får `type: "rerank"` i stedet for å bruke chat som standard; en eksplisitt
+> `supportedEndpoints` på en synkronisert eller manuelt lagt til rad har fortsatt forrang.
 
 ### Dedikerte leverandørruter
 
@@ -518,7 +538,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Leverandørprefikset legges automatisk til hvis det mangler. Uoverensstemmende modeller returnerer `400`.
+Leverandørprefikset legges til automatisk hvis det mangler. Modeller som ikke samsvarer, returnerer `400`.
 
 ---
 
@@ -1391,20 +1411,20 @@ Returnerer det offentlige A2A-agentkortet (navn, beskrivelse, kapasiteter, ferdi
 
 ## Sky, evalueringer og vurderinger
 
-| Metode | Sti                             | Beskrivelse                                                                                                             |
-| ------ | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Verifiser en Bearer-nøkkel og returner maskerte leverandørforbindelser + modellaliaser for skysynkroniseringsklienter   |
-| POST   | `/api/cloud/credentials/update` | Oppdater krypterte legitimasjoner for en sky-synkronisert leverandør                                                    |
-| POST   | `/api/cloud/model/resolve`      | Løs opp en logisk modell-ID til en konkret leverandør/modell ved hjelp av den lokale rutingtabellen                     |
-| GET    | `/api/cloud/models/alias`       | List modellaliaser som eksponeres for skysynkronisering                                                                 |
-| GET    | `/api/assess`                   | Les de nyeste vurderingskategoriseringene (per-leverandør/modell)                                                       |
-| POST   | `/api/assess`                   | Kjør en vurdering — body: `{scope: {type:"all"} \| {type:"provider", providerId} \| {type:"model", modelId}, trigger?}` |
-| GET    | `/api/evals`                    | List innebygde evalueringssuiter + nyeste kjøringer                                                                     |
-| POST   | `/api/evals`                    | Utløs en evalueringskjøring                                                                                             |
-| POST   | `/api/evals/suites`             | Opprett en tilpasset evalueringssuite — body validert av `evalSuiteSaveSchema`                                          |
-| GET    | `/api/evals/suites/[id]`        | Hent en tilpasset evalueringssuite                                                                                      |
+| Metode | Bane | Beskrivelse |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
+| POST | `/api/cloud/auth` | Verifiser en Bearer-nøkkel og returner maskerte leverandørtilkoblinger + modellaliaser for skysynkroniseringsklienter |
+| POST | `/api/cloud/credentials/update` | Oppdater kryptert legitimasjon for en skysynkronisert leverandør |
+| POST | `/api/cloud/model/resolve` | Slå opp en logisk modell-ID til en konkret leverandør/modell ved hjelp av den lokale rutingtabellen |
+| GET | `/api/cloud/models/alias` | List opp modellaliaser slik de eksponeres for skysynkronisering |
+| GET | `/api/assess` | Les de nyeste vurderingskategoriseringene (per leverandør/modell) |
+| POST | `/api/assess` | Kjør en vurdering — forespørselsdata: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | List opp innebygde evalueringspakker + de nyeste kjøringene |
+| POST | `/api/evals` | Utløs en evalueringskjøring |
+| POST | `/api/evals/suites` | Opprett en egendefinert evalueringspakke — forespørselsdata validert av `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | Hent en egendefinert evalueringspakke |
 
-**Autentisering:** `/api/cloud/auth` validerer en Bearer-nøkkel direkte; de andre `/api/cloud/*`, `/api/evals/*` og `/api/assess`-rutene krever administrasjonsøkt/API-nøkkel. `/api/assess` POST bruker `validateBody` med et diskriminert-union scope-skjema.
+**Autentisering:** `/api/cloud/auth` validerer en Bearer-nøkkel direkte og returnerer den maskerte nøkkelen og `projectId` for hver tilkobling kun for en nøkkel med tilgangsområdet `manage` / `admin`; de andre rutene under `/api/cloud/*`, `/api/evals/*` og `/api/assess` krever en administrasjonsøkt/API-nøkkel. POST mot `/api/assess` bruker `validateBody` med et omfangsskjema basert på en diskriminert union.
 
 ---
 

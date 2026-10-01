@@ -424,68 +424,88 @@ Bifrost, CLIProxyAPI અને ભવિષ્યના sidecar routers દ્�
 | ------ | ----------------------------------------- | ---------------------------------- |
 | POST   | `/v1/chat/completions`                    | OpenAI                             |
 | POST   | `/v1/messages`                            | Anthropic                          |
-| POST   | `/v1/responses`                           | OpenAI પ્રતિભાવો                   |
+| POST   | `/v1/responses`                           | OpenAI Responses                   |
 | POST   | `/v1/embeddings`                          | OpenAI                             |
-| POST   | `/v1/images/generations`                  | OpenAI છબીઓ                        |
-| POST   | `/v1/images/edits`                        | OpenAI છબીઓ (સંપાદિત/ઇનપેઇન્ટ)     |
-| POST   | `/v1/videos/generations`                  | OpenAI-શૈલી વિડિઓ જનરેશન           |
-| POST   | `/v1/music/generations`                   | OpenAI-શૈલી સંગીત જનરેશન           |
-| POST   | `/v1/audio/transcriptions`                | OpenAI ઑડિઓ (STT)                  |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (ઑડિઓ બોડી પરત કરે છે)  |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-શૈલી રીરેન્ક         |
+| POST   | `/v1/images/generations`                  | OpenAI Images                      |
+| POST   | `/v1/images/edits`                        | OpenAI Images (સંપાદન/ઇનપેઇન્ટ)    |
+| POST   | `/v1/videos/generations`                  | OpenAI-શૈલીનું વિડિયો જનરેશન       |
+| POST   | `/v1/music/generations`                   | OpenAI-શૈલીનું સંગીત જનરેશન        |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (ઑડિયો બોડી પરત કરે છે) |
+| POST   | `/v1/rerank`                              | Cohere/Voyage-શૈલીનું રીરૅન્ક      |
 | POST   | `/v1/classify`                            | Jina વર્ગીકરણ (`api.jina.ai`)      |
 | POST   | `/v1/segment`                             | Jina સેગમેન્ટર (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI મોડરેશન્સ                   |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                 |
 | GET    | `/v1/models`                              | OpenAI                             |
 | POST   | `/v1/messages/count_tokens`               | Anthropic                          |
 | GET    | `/v1beta/models`                          | Gemini                             |
 | POST   | `/v1beta/models/{...path}`                | Gemini generateContent             |
 | POST   | `/v1/api/chat`                            | Ollama                             |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI કેટલોગ ઉપનામ                |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI મોડેલ્સ ઉપનામ               |
+| GET    | `/api/v1/vscode/{token}/`                 | OpenAI કૅટલૉગ ઉપનામ                |
+| GET    | `/api/v1/vscode/{token}/models`           | OpenAI મૉડલ્સ ઉપનામ                |
 | POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI ટોકનાઇઝ્ડ ઉપનામ             |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI પ્રતિભાવો ટોકનાઇઝ્ડ ઉપનામ   |
+| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ટોકનાઇઝ્ડ ઉપનામ   |
 | POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama ટોકનાઇઝ્ડ ઉપનામ             |
 | GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama ટૅગ્સ ટોકનાઇઝ્ડ ઉપનામ       |
 
-બધા POST રૂટ્સ સમાન આકારને અનુસરે છે: `Bearer your-api-key` + Zod-માન્ય JSON બોડી (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, વગેરે, `src/shared/validation/schemas.ts` જુઓ). સ્કીમા નિષ્ફળતા પર 4xx પરત કરવામાં આવે છે.
+બધા POST રૂટ સમાન માળખાને અનુસરે છે: `Bearer your-api-key` + Zod દ્વારા માન્ય કરાયેલ JSON બોડી (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, વગેરે, `src/shared/validation/schemas.ts` જુઓ). સ્કીમા નિષ્ફળ જાય ત્યારે 4xx પરત કરવામાં આવે છે.
 
-જે ક્લાયન્ટ્સ `Authorization: Bearer ...` જોડી શકતા નથી, તેમના માટે OmniRoute URL માં API કી પણ સ્વીકારે છે, ક્યાં તો ક્વેરી-સ્ટ્રિંગ સુસંગતતા (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) દ્વારા અથવા નીચે દસ્તાવેજીકૃત સમર્પિત `/api/v1/vscode/{token}/...` એન્ડપોઇન્ટ્સ દ્વારા.
+જે ક્લાયન્ટ્સ `Authorization: Bearer ...` જોડી શકતા નથી, તેમના માટે OmniRoute ક્વેરી-સ્ટ્રિંગ સુસંગતતા (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) અથવા નીચે દસ્તાવેજીકૃત સમર્પિત `/api/v1/vscode/{token}/...` એન્ડપોઇન્ટ્સ દ્વારા URLમાં API કીઝ પણ સ્વીકારે છે.
 
 ```bash
-# રીરેન્ક (ક્લાઉડ રજિસ્ટ્રી પ્રદાતા, અથવા OpenAI-સુસંગત પ્રદાતા નોડ "<prefix>/<model>" તરીકે)
+# રીરૅન્ક (ક્લાઉડ રજિસ્ટ્રી પ્રોવાઇડર, અથવા "<prefix>/<model>" તરીકે OpenAI-સુસંગત પ્રોવાઇડર નોડ)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina વર્ગીકરણ (ફાઉન્ડેશન API ઓળખપત્રો)
+# Jina વર્ગીકરણ (Foundation API ઓળખપત્રો)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Jina સેગમેન્ટર
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina શોધ (s.jina.ai; પ્રદાતા ઉપનામો: jina-search, jina-ai, jina)
+# Jina શોધ (s.jina.ai; પ્રોવાઇડર ઉપનામો: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # મોડરેશન્સ
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — ઑડિઓ/mpeg (અથવા વિનંતી કરેલ ફોર્મેટ) બોડી પરત કરે છે
+# TTS — audio/mpeg (અથવા વિનંતી કરેલું ફોર્મેટ) બોડી પરત કરે છે
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# છબી સંપાદિત કરો (મલ્ટીપાર્ટ)
+# Soniox TTS માટે ભાષા અને વૉઇસ જરૂરી છે: `language`નું ડિફૉલ્ટ મૂલ્ય "en" છે; ગેરહાજર
+# વૉઇસ અથવા OpenAIનું સ્ટૉક વૉઇસ નામ (alloy, nova, …) "Adrian" બની જાય છે
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# ઇમેજ સંપાદન (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# વિડિઓ / સંગીત જનરેશન (પ્રદાતા-પ્રીફિક્સ્ડ મોડેલ ID)
+# વિડિયો / સંગીત જનરેશન (પ્રોવાઇડર-પ્રિફિક્સવાળી મૉડલ id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **રીરેન્ક પ્રદાતા નોડ્સ:** `POST /v1/rerank` OpenAI-સુસંગત પ્રદાતા નોડ્સ (oMLX, vLLM, Infinity, TEI ગેટવે પાછળ, …) પર પણ રૂટ થાય છે જેને `<node-prefix>/<model>` તરીકે સંબોધવામાં આવે છે. લૂપબેક નોડ્સ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) હંમેશા પાત્ર હોય છે. અન્ય કોઈપણ હોસ્ટ પરના નોડ્સ — LAN બોક્સ અથવા Tailscale પીઅર — ત્યારે જ પાત્ર હોય છે જ્યારે ઑપરેટર `RERANK_REMOTE_PROVIDER_NODES` ફીચર ફ્લેગ સક્ષમ કરે **અને** નોડનો બેઝ URL પ્રદાતા આઉટબાઉન્ડ URL નીતિ (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ને પસાર કરે; ક્લાઉડ-મેટાડેટા હોસ્ટ્સ પર ક્યારેય રૂટ કરવામાં આવતા નથી. મેમરી એન્જિનનું રીરેન્ક સ્ટેપ લૂપબેક પર આ રૂટને કૉલ કરે છે, તેથી મેમરી સેટિંગ્સમાં `rerankProviderModel` ને પણ આ જ નિયમ લાગુ પડે છે.
+> **રીરૅન્ક પ્રોવાઇડર નોડ્સ:** `POST /v1/rerank` OpenAI-સુસંગત પ્રોવાઇડર નોડ્સ તરફ પણ રૂટ કરે છે
+> (oMLX, vLLM, Infinity, ગેટવે પાછળનું TEI, …), જેમને `<node-prefix>/<model>` તરીકે સંબોધવામાં આવે છે. લૂપબૅક
+> નોડ્સ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) હંમેશાં પાત્ર હોય છે. કોઈપણ અન્ય
+> હોસ્ટ પરના નોડ્સ — LAN બૉક્સ અથવા Tailscale પીઅર — માત્ર ત્યારે જ પાત્ર હોય છે જ્યારે ઑપરેટર
+> `RERANK_REMOTE_PROVIDER_NODES` ફીચર ફ્લૅગ સક્ષમ કરે **અને** નોડનું બેઝ URL પ્રોવાઇડર
+> આઉટબાઉન્ડ URL નીતિ (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)માં પાસ થાય;
+> ક્લાઉડ-મેટાડેટા હોસ્ટ્સ તરફ ક્યારેય રૂટ કરવામાં આવતું નથી. મેમરી એન્જિનનું રીરૅન્ક પગલું આ રૂટને
+> લૂપબૅક મારફતે કૉલ કરે છે, તેથી મેમરી સેટિંગ્સમાં `rerankProviderModel` પર પણ આ જ નિયમ લાગુ પડે છે.
 >
-> **સ્થાનિક સર્વર આકારો:** નોડને `<base>/v1/rerank` પર અને, 404 પર, `<base>/rerank` (Infinity, TEI) પર કૉલ કરવામાં આવે છે. અપસ્ટ્રીમ બોડી Cohere/OpenAI સ્પેલિંગ (`documents`, `return_documents`) અને TEI સ્પેલિંગ (`texts`, `return_text`) બંને ધરાવે છે, અને અપસ્ટ્રીમ પ્રતિભાવને Cohere એન્વેલપમાં સામાન્ય કરવામાં આવે છે: TEI ના ખાલી `[{index, score, text}]`, પાતળા ગેટવેમાંથી `{results: [{index, score}]}`, અને Voyage-શૈલી `{data: [...]}` બધા ક્લાયન્ટને `{results: [{index, relevance_score, document?}]}` તરીકે પાછા મળે છે, જે સ્કોર દ્વારા સૉર્ટ કરેલા હોય છે અને `top_n` પર કેપ કરેલા હોય છે.
->
-> **પ્રદાતા-નોડ શોધ:** OpenAI-સુસંગત પ્રદાતા નોડ પરના મોડેલ્સ નોડ પ્રીફિક્સ હેઠળ `GET /v1/models` માં દેખાય છે. જે પંક્તિઓમાં કોઈ એન્ડપોઇન્ટ મેટાડેટા નથી (સ્થાનિક `/v1/models` સૂચિઓ માટે સામાન્ય) તે નોડના `apiType` ને વારસામાં મેળવે છે, તેથી `embeddings` નોડના મોડેલ્સ `type: "embedding"` હોય છે અને `rerank` નોડના મોડેલ્સ `type: "rerank"` હોય છે, ચેટ પર ડિફોલ્ટ થવાને બદલે; સમન્વયિત અથવા મેન્યુઅલી ઉમેરેલી પંક્તિ પર સ્પષ્ટ `supportedEndpoints` હજુ પણ અગ્રતા લે છે.
+> **સ્થાનિક સર્વર માળખાં:** નોડને `<base>/v1/rerank` પર અને 404 આવે ત્યારે `<base>/rerank`
+> (Infinity, TEI) પર કૉલ કરવામાં આવે છે. અપસ્ટ્રીમ બોડી Cohere/OpenAI સ્પેલિંગ (`documents`,
+> `return_documents`) અને TEI સ્પેલિંગ (`texts`, `return_text`) બંને ધરાવે છે, અને અપસ્ટ્રીમ પ્રતિસાદને
+> Cohere એન્વલપમાં સામાન્યકૃત કરવામાં આવે છે: TEIનું બેર `[{index, score, text}]`, પાતળા ગેટવેમાંથી
+> `{results: [{index, score}]}`, અને Voyage-શૈલીનું `{data: [...]}` — આ બધું ક્લાયન્ટને
+> `{results: [{index, relevance_score, document?}]}` તરીકે પરત મળે છે, સ્કોર અનુસાર સૉર્ટ કરેલું અને `top_n` સુધી મર્યાદિત.
 
-### સમર્પિત પ્રદાતા રૂટ્સ
+> **પ્રોવાઇડર-નોડ શોધ:** OpenAI-સુસંગત પ્રોવાઇડર નોડ પરના મોડેલો `GET /v1/models`માં
+> નોડ પ્રીફિક્સ હેઠળ દેખાય છે. જે પંક્તિઓમાં કોઈ એન્ડપોઇન્ટ મેટાડેટા નથી (સ્થાનિક `/v1/models` સૂચિઓ માટે સામાન્ય)
+> તે નોડનું `apiType` વારસામાં મેળવે છે, તેથી `embeddings` નોડના મોડેલો ડિફૉલ્ટ રૂપે ચેટ થવાને બદલે `type: "embedding"` હોય છે અને
+> `rerank` નોડના મોડેલો `type: "rerank"` હોય છે; સિંક કરેલી અથવા મેન્યુઅલી ઉમેરેલી પંક્તિ પરનું સ્પષ્ટ
+> `supportedEndpoints` હજી પણ પ્રાથમિકતા ધરાવે છે.
+
+### સમર્પિત પ્રોવાઇડર રૂટ્સ
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -493,7 +513,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-જો ખૂટતું હોય તો પ્રદાતા ઉપસર્ગ આપમેળે ઉમેરવામાં આવે છે. અસંગત મોડેલ્સ `400` પરત કરે છે.
+જો પ્રોવાઇડર પ્રીફિક્સ ગેરહાજર હોય, તો તે આપમેળે ઉમેરવામાં આવે છે. મેળ ન ખાતા મોડેલો માટે `400` પરત મળે છે.
 
 ---
 
@@ -1415,18 +1435,18 @@ GET /.well-known/agent.json
 
 | પદ્ધતિ | પાથ | વર્ણન |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer કી ચકાસો અને ક્લાઉડ સિંક ક્લાયન્ટ્સ માટે માસ્ક કરેલા પ્રોવાઇડર કનેક્શન્સ + મોડલ એલિયાસ પરત કરો |
-| POST | `/api/cloud/credentials/update` | ક્લાઉડ-સિંક કરેલા પ્રોવાઇડર માટે એન્ક્રિપ્ટ કરેલા ક્રેડેન્શિયલ્સ અપડેટ કરો |
-| POST | `/api/cloud/model/resolve` | સ્થાનિક રાઉટિંગ ટેબલનો ઉપયોગ કરીને લૉજિકલ મોડલ idને ચોક્કસ પ્રોવાઇડર/મોડલમાં રિઝોલ્વ કરો |
-| GET | `/api/cloud/models/alias` | ક્લાઉડ સિંકમાં પ્રદર્શિત થતા મોડલ એલિયાસની સૂચિ આપો |
-| GET | `/api/assess` | નવીનતમ આકલન વર્ગીકરણો વાંચો (પ્રત્યેક પ્રોવાઇડર/મોડલ માટે) |
-| POST | `/api/assess` | આકલન ચલાવો — બૉડી: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | બિલ્ટ-ઇન eval સ્યુટ્સ + સૌથી તાજેતરના રન્સની સૂચિ આપો |
-| POST | `/api/evals` | eval રન ટ્રિગર કરો |
-| POST | `/api/evals/suites` | કસ્ટમ eval સ્યુટ બનાવો — બૉડીનું `evalSuiteSaveSchema` દ્વારા વૅલિડેશન થાય છે |
-| GET | `/api/evals/suites/[id]` | કસ્ટમ eval સ્યુટ મેળવો |
+| POST | `/api/cloud/auth` | બેરર કી ચકાસો અને ક્લાઉડ સિંક ક્લાયન્ટ્સ માટે માસ્ક કરેલા પ્રદાતા કનેક્શન્સ + મોડલ ઉપનામો પરત કરો |
+| POST | `/api/cloud/credentials/update` | ક્લાઉડ-સિંક કરેલા પ્રદાતા માટે એન્ક્રિપ્ટ કરેલા ક્રેડેન્શિયલ્સ અપડેટ કરો |
+| POST | `/api/cloud/model/resolve` | સ્થાનિક રાઉટિંગ ટેબલનો ઉપયોગ કરીને લોજિકલ મોડલ id ને ચોક્કસ પ્રદાતા/મોડલ સાથે રિઝોલ્વ કરો |
+| GET | `/api/cloud/models/alias` | ક્લાઉડ સિંક માટે ઉપલબ્ધ કરાવેલા મોડલ ઉપનામોની યાદી આપો |
+| GET | `/api/assess` | નવીનતમ આકલન વર્ગીકરણો વાંચો (પ્રતિ-પ્રદાતા/મોડલ) |
+| POST | `/api/assess` | આકલન ચલાવો — બોડી: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | બિલ્ટ-ઇન મૂલ્યાંકન સ્યુટ્સ + સૌથી તાજેતરના રનની યાદી આપો |
+| POST | `/api/evals` | મૂલ્યાંકન રન ટ્રિગર કરો |
+| POST | `/api/evals/suites` | કસ્ટમ મૂલ્યાંકન સ્યુટ બનાવો — બોડી `evalSuiteSaveSchema` દ્વારા માન્ય કરવામાં આવે છે |
+| GET | `/api/evals/suites/[id]` | કસ્ટમ મૂલ્યાંકન સ્યુટ મેળવો |
 
-**ઑથ:** `/api/cloud/auth` Bearer કીનું સીધું વૅલિડેશન કરે છે; અન્ય `/api/cloud/*`, `/api/evals/*` અને `/api/assess` રૂટ્સ માટે મેનેજમેન્ટ સેશન/API કી જરૂરી છે. `/api/assess` POST ભેદદર્શક-યુનિયન સ્કોપ સ્કીમા સાથે `validateBody`નો ઉપયોગ કરે છે.
+**પ્રમાણીકરણ:** `/api/cloud/auth` બેરર કીને સીધી માન્ય કરે છે અને માત્ર `manage` / `admin` સ્કોપ ધરાવતી કી માટે જ દરેક કનેક્શનની માસ્ક કરેલી કી અને `projectId` પરત કરે છે; અન્ય `/api/cloud/*`, `/api/evals/*`, અને `/api/assess` રૂટ્સ માટે મેનેજમેન્ટ સેશન/API કી આવશ્યક છે. `/api/assess` POST ડિસ્ક્રિમિનેટેડ-યુનિયન સ્કોપ સ્કીમા સાથે `validateBody` નો ઉપયોગ કરે છે.
 
 ---
 

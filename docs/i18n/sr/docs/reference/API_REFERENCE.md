@@ -445,90 +445,97 @@ Koristite ovaj endpoint kada sidecar radi izvan procesa (out-of-process) i ne mo
 
 ---
 
-## Kompatibilne krajnje tačke
+## Компатибилне крајње тачке
 
-| Metoda | Putanja                                   | Format                             |
-| ------ | ----------------------------------------- | ---------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                             |
-| POST   | `/v1/messages`                            | Anthropic                          |
-| POST   | `/v1/responses`                           | OpenAI Odgovori                    |
-| POST   | `/v1/embeddings`                          | OpenAI                             |
-| POST   | `/v1/images/generations`                  | OpenAI Slike                       |
-| POST   | `/v1/images/edits`                        | OpenAI Slike (izmena/inpaint)      |
-| POST   | `/v1/videos/generations`                  | Generisanje videa u OpenAI stilu   |
-| POST   | `/v1/music/generations`                   | Generisanje muzike u OpenAI stilu  |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (vraća audio telo)      |
-| POST   | `/v1/rerank`                              | Rerank u Cohere/Voyage stilu       |
-| POST   | `/v1/classify`                            | Jina klasifikacija (`api.jina.ai`) |
-| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI Moderacije                  |
-| GET    | `/v1/models`                              | OpenAI                             |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                          |
-| GET    | `/v1beta/models`                          | Gemini                             |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent             |
-| POST   | `/v1/api/chat`                            | Ollama                             |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI katalog alias               |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI modeli alias                |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenizovani alias          |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Odgovori tokenizovani alias |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenizovani alias          |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tagovi tokenizovani alias   |
+| Метод | Путања                                    | Формат                               |
+| ----- | ----------------------------------------- | ------------------------------------ |
+| POST  | `/v1/chat/completions`                    | OpenAI                               |
+| POST  | `/v1/messages`                            | Anthropic                            |
+| POST  | `/v1/responses`                           | OpenAI Responses                     |
+| POST  | `/v1/embeddings`                          | OpenAI                               |
+| POST  | `/v1/images/generations`                  | OpenAI Images                        |
+| POST  | `/v1/images/edits`                        | OpenAI Images (уређивање/inpaint)    |
+| POST  | `/v1/videos/generations`                  | Генерисање видеа у OpenAI стилу      |
+| POST  | `/v1/music/generations`                   | Генерисање музике у OpenAI стилу     |
+| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                   |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (враћа аудио садржај)     |
+| POST  | `/v1/rerank`                              | Рерангирање у Cohere/Voyage стилу    |
+| POST  | `/v1/classify`                            | Jina класификација (`api.jina.ai`)   |
+| POST  | `/v1/segment`                             | Jina сегментатор (`segment.jina.ai`) |
+| POST  | `/v1/moderations`                         | OpenAI Moderations                   |
+| GET   | `/v1/models`                              | OpenAI                               |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                            |
+| GET   | `/v1beta/models`                          | Gemini                               |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent               |
+| POST  | `/v1/api/chat`                            | Ollama                               |
+| GET   | `/api/v1/vscode/{token}/`                 | Алијас OpenAI каталога               |
+| GET   | `/api/v1/vscode/{token}/models`           | Алијас OpenAI модела                 |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI алијас са токеном             |
+| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses алијас са токеном   |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama алијас са токеном             |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama алијас ознака са токеном      |
 
-Sve POST rute prate isti oblik: `Bearer your-api-key` + Zod-validirano JSON telo (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, itd., pogledajte `src/shared/validation/schemas.ts`). 4xx se vraća u slučaju neuspeha šeme.
+Све POST руте имају исти облик: `Bearer your-api-key` + JSON тело валидирано помоћу Zod-а (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` итд.; погледајте `src/shared/validation/schemas.ts`). У случају неуспешне валидације шеме враћа се 4xx.
 
-Za klijente koji ne mogu da prilože `Authorization: Bearer ...`, OmniRoute takođe prihvata API ključeve u URL-u putem kompatibilnosti sa upitnim nizom (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ili namenskih `/api/v1/vscode/{token}/...` krajnjih tačaka dokumentovanih u nastavku.
+За клијенте који не могу да приложе `Authorization: Bearer ...`, OmniRoute такође прихвата API кључеве у URL-у, било путем компатибилних параметара упита (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) или путем наменских крајњих тачака `/api/v1/vscode/{token}/...` документованих у наставку.
 
 ```bash
-# Rerank (provajder cloud registra, ili čvor provajdera kompatibilan sa OpenAI kao "<prefiks>/<model>")
+# Рерангирање (провајдер из регистра у облаку или чвор провајдера компатибилан са OpenAI-јем као „<prefix>/<model>“)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina klasifikacija (akreditivi Foundation API-ja)
+# Jina класификација (акредитиви за Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Jina сегментатор
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina pretraga (s.jina.ai; alias provajdera: jina-search, jina-ai, jina)
+# Jina претрага (s.jina.ai; алијаси провајдера: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderacije
+# Модерације
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — vraća audio/mpeg (ili traženi format) telo
+# TTS — враћа тело у формату audio/mpeg (или у захтеваном формату)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Izmena slike (multipart)
+# Soniox TTS захтева језик и глас: подразумевана вредност за `language` је „en“; ако
+# глас недостаје или је наведен стандардни OpenAI назив гласа (alloy, nova, …), користи се „Adrian“
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# Уређивање слике (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Generisanje videa / muzike (ID modela sa prefiksom provajdera)
+# Генерисање видеа / музике (ID модела са префиксом провајдера)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Čvorovi provajdera za rerank:** `POST /v1/rerank` takođe rutira ka čvorovima provajdera kompatibilnim sa OpenAI
-> (oMLX, vLLM, Infinity, TEI iza gateway-a, …) adresiranim kao `<node-prefix>/<model>`. Loopback
-> čvorovi (`localhost`, `127.0.0.1`, `172.16.0.0/12`) su uvek prihvatljivi. Čvorovi na bilo kom drugom
-> hostu — LAN kutija ili Tailscale peer — su prihvatljivi samo kada operator omogući
-> `RERANK_REMOTE_PROVIDER_NODES` zastavicu funkcije **i** osnovni URL čvora prođe politiku
-> odlaznog URL-a provajdera (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> hostovi sa cloud metapodacima nikada se ne rutiraju. Korak rerank-a memorijskog mehanizma poziva ovu rutu preko
-> loopback-a, tako da isto pravilo reguliše `rerankProviderModel` u podešavanjima memorije.
+> **Чворови провајдера за рерангирање:** `POST /v1/rerank` такође усмерава захтеве ка чворовима провајдера
+> компатибилним са OpenAI-јем (oMLX, vLLM, Infinity, TEI иза мрежног пролаза, …), адресираним као
+> `<node-prefix>/<model>`. Чворови повратне петље (`localhost`, `127.0.0.1`, `172.16.0.0/12`) увек
+> испуњавају услове. Чворови на било ком другом хосту — уређају у LAN-у или Tailscale равноправном чвору —
+> испуњавају услове само када оператор омогући заставицу функције `RERANK_REMOTE_PROVIDER_NODES` **и**
+> основни URL чвора прође смернице за одлазне URL-ове провајдера
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> захтеви се никада не усмеравају ка хостовима метаподатака у облаку. Корак рерангирања механизма меморије
+> позива ову руту преко повратне петље, па исто правило управља и опцијом `rerankProviderModel` у подешавањима
+> меморије.
 >
-> **Oblici lokalnog servera:** čvor se poziva na `<base>/v1/rerank` i, u slučaju 404, na `<base>/rerank`
-> (Infinity, TEI). Uzvodno telo nosi i Cohere/OpenAI pravopis (`documents`,
-> `return_documents`) i TEI pravopis (`texts`, `return_text`), a uzvodni odgovor je
-> normalizovan na Cohere omotač: TEI-jev goli `[{index, score, text}]`, `{results: [{index, score}]}`
-> iz tankih gateway-a, i Voyage-stil `{data: [...]}` sve se vraćaju klijentu kao
-> `{results: [{index, relevance_score, document?}]}`, sortirani po rezultatu i ograničeni na `top_n`.
+> **Облици локалног сервера:** чвор се позива на `<base>/v1/rerank`, а у случају одговора 404 на
+> `<base>/rerank` (Infinity, TEI). Тело захтева ка узводном сервису садржи и Cohere/OpenAI начин писања
+> (`documents`, `return_documents`) и TEI начин писања (`texts`, `return_text`), а одговор узводног сервиса
+> нормализује се у Cohere омотач: TEI-јев необавијени `[{index, score, text}]`,
+> `{results: [{index, score}]}` из једноставних мрежних пролаза и Voyage формат `{data: [...]}` враћају се
+> клијенту као `{results: [{index, relevance_score, document?}]}`, сортирано по резултату и ограничено на
+> `top_n`.
 
-> **Otkrivanje čvorova provajdera:** modeli na čvoru provajdera kompatibilnom sa OpenAI pojavljuju se u `GET /v1/models`
-> pod prefiksom čvora. Redovi koji ne sadrže metapodatke krajnje tačke (tipično za lokalne `/v1/models` liste)
-> nasleđuju `apiType` čvora, tako da su modeli čvora `embeddings` `type: "embedding"`, a modeli
-> čvora `rerank` su `type: "rerank"` umesto da podrazumevano budu chat; eksplicitni
-> `supportedEndpoints` na sinhronizovanom ili ručno dodatom redu i dalje ima prednost.
+> **Откривање чворова провајдера:** модели на чвору провајдера компатибилном са OpenAI-јем појављују се у `GET /v1/models`
+> под префиксом чвора. Редови који не садрже метаподатке о крајњој тачки (што је типично за локалне `/v1/models` листе)
+> наслеђују `apiType` чвора, тако да модели `embeddings` чвора имају `type: "embedding"`, а модели
+> `rerank` чвора имају `type: "rerank"` уместо да подразумевано буду подешени на ћаскање; експлицитни
+> `supportedEndpoints` у синхронизованом или ручно додатом реду и даље има предност.
 
-### Namenske rute provajdera
+### Наменске руте провајдера
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -536,7 +543,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Prefiks provajdera se automatski dodaje ako nedostaje. Neodgovarajući modeli vraćaju `400`.
+Префикс провајдера се аутоматски додаје ако недостаје. Неусклађени модели враћају `400`.
 
 ---
 
@@ -1460,22 +1467,22 @@ GET /.well-known/agent.json
 
 ---
 
-## Cloud, Evals и Assess
+## Cloud, евалуације и процена
 
 | Метод | Путања | Опис |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Верификује Bearer кључ и враћа маскиране конекције провајдера + алиасе модела за cloud sync клијенте |
-| POST | `/api/cloud/credentials/update` | Ажурира шифроване креденцијале за провајдера синхронизованог путем cloud-а |
-| POST | `/api/cloud/model/resolve` | Резолвује логички id модела у конкретан провајдер/модел користећи локалну табелу рутирања |
-| GET | `/api/cloud/models/alias` | Листа алиасе модела изложене cloud sync-у |
-| GET | `/api/assess` | Читање последњих категоризација процене (по провајдеру/моделу) |
-| POST | `/api/assess` | Покретање процене — тело: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | Листа уграђених eval suite-ова + најновијих извршавања |
-| POST | `/api/evals` | Покретање eval извршавања |
-| POST | `/api/evals/suites` | Креирање прилагођеног eval suite-а — тело се валидира помоћу `evalSuiteSaveSchema` |
-| GET | `/api/evals/suites/[id]` | Преузимање прилагођеног eval suite-а |
+| POST | `/api/cloud/auth` | Проверава Bearer кључ и враћа маскиране везе са добављачима + алијасе модела за клијенте синхронизације са облаком |
+| POST | `/api/cloud/credentials/update` | Ажурира шифроване акредитиве за добављача синхронизованог са облаком |
+| POST | `/api/cloud/model/resolve` | Разрешава логички ID модела у конкретног добављача/модел користећи локалну табелу усмеравања |
+| GET | `/api/cloud/models/alias` | Наводи алијасе модела онако како су изложени синхронизацији са облаком |
+| GET | `/api/assess` | Чита најновије категоризације процене (по добављачу/моделу) |
+| POST | `/api/assess` | Покреће процену — тело: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Наводи уграђене пакете евалуација + најновија покретања |
+| POST | `/api/evals` | Покреће извршавање евалуације |
+| POST | `/api/evals/suites` | Креира прилагођени пакет евалуација — тело се валидира помоћу `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | Преузима прилагођени пакет евалуација |
 
-**Аутентикација:** `/api/cloud/auth` директно валидира Bearer кључ; остале руте `/api/cloud/*`, `/api/evals/*` и `/api/assess` захтевају управљачку сесију/API кључ. `/api/assess` POST користи `validateBody` са дискриминисаном унијом scope шеме.
+**Аутентификација:** `/api/cloud/auth` директно валидира Bearer кључ и враћа маскирани кључ и `projectId` сваке везе само за кључ са опсегом `manage` / `admin`; остале руте `/api/cloud/*`, `/api/evals/*` и `/api/assess` захтевају управљачку сесију/API кључ. POST захтев за `/api/assess` користи `validateBody` са шемом опсега заснованом на дискриминисаној унији.
 
 ---
 

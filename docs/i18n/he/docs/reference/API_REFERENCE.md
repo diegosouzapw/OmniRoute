@@ -423,45 +423,45 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## נקודות קצה תאימות
+## נקודות קצה לתאימות
 
-| שיטה | נתיב                                      | פורמט                              |
-| ---- | ----------------------------------------- | ---------------------------------- |
-| POST | `/v1/chat/completions`                    | OpenAI                             |
-| POST | `/v1/messages`                            | Anthropic                          |
-| POST | `/v1/responses`                           | תגובות OpenAI                      |
-| POST | `/v1/embeddings`                          | OpenAI                             |
-| POST | `/v1/images/generations`                  | תמונות OpenAI                      |
-| POST | `/v1/images/edits`                        | תמונות OpenAI (עריכה/מילוי)        |
-| POST | `/v1/videos/generations`                  | יצירת וידאו בסגנון OpenAI          |
-| POST | `/v1/music/generations`                   | יצירת מוזיקה בסגנון OpenAI         |
-| POST | `/v1/audio/transcriptions`                | שמע OpenAI (STT)                   |
-| POST | `/v1/audio/speech`                        | TTS של OpenAI (מחזיר גוף שמע)      |
-| POST | `/v1/rerank`                              | דירוג מחדש בסגנון Cohere/Voyage    |
-| POST | `/v1/classify`                            | סיווג Jina (`api.jina.ai`)         |
-| POST | `/v1/segment`                             | מפלח Jina (`segment.jina.ai`)      |
-| POST | `/v1/moderations`                         | מודרציות OpenAI                    |
-| GET  | `/v1/models`                              | OpenAI                             |
-| POST | `/v1/messages/count_tokens`               | Anthropic                          |
-| GET  | `/v1beta/models`                          | Gemini                             |
-| POST | `/v1beta/models/{...path}`                | Gemini generateContent             |
-| POST | `/v1/api/chat`                            | Ollama                             |
-| GET  | `/api/v1/vscode/{token}/`                 | כינוי קטלוג OpenAI                 |
-| GET  | `/api/v1/vscode/{token}/models`           | כינוי מודלים של OpenAI             |
-| POST | `/api/v1/vscode/{token}/chat/completions` | כינוי ממופה אסימונים של OpenAI     |
-| POST | `/api/v1/vscode/{token}/responses`        | כינוי תגובות OpenAI ממופה אסימונים |
-| POST | `/api/v1/vscode/{token}/api/chat`         | כינוי Ollama ממופה אסימונים        |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | כינוי תגיות Ollama ממופה אסימונים  |
+| שיטה | נתיב                                      | פורמט                            |
+| ---- | ----------------------------------------- | -------------------------------- |
+| POST | `/v1/chat/completions`                    | OpenAI                           |
+| POST | `/v1/messages`                            | Anthropic                        |
+| POST | `/v1/responses`                           | OpenAI Responses                 |
+| POST | `/v1/embeddings`                          | OpenAI                           |
+| POST | `/v1/images/generations`                  | OpenAI Images                    |
+| POST | `/v1/images/edits`                        | OpenAI Images (עריכה/השלמה)      |
+| POST | `/v1/videos/generations`                  | יצירת וידאו בסגנון OpenAI        |
+| POST | `/v1/music/generations`                   | יצירת מוזיקה בסגנון OpenAI       |
+| POST | `/v1/audio/transcriptions`                | OpenAI Audio (המרת דיבור לטקסט)  |
+| POST | `/v1/audio/speech`                        | OpenAI TTS (מחזיר גוף שמע)       |
+| POST | `/v1/rerank`                              | דירוג מחדש בסגנון Cohere/Voyage  |
+| POST | `/v1/classify`                            | סיווג Jina (`api.jina.ai`)       |
+| POST | `/v1/segment`                             | מפלח Jina (`segment.jina.ai`)    |
+| POST | `/v1/moderations`                         | OpenAI Moderations               |
+| GET  | `/v1/models`                              | OpenAI                           |
+| POST | `/v1/messages/count_tokens`               | Anthropic                        |
+| GET  | `/v1beta/models`                          | Gemini                           |
+| POST | `/v1beta/models/{...path}`                | Gemini generateContent           |
+| POST | `/v1/api/chat`                            | Ollama                           |
+| GET  | `/api/v1/vscode/{token}/`                 | כינוי לקטלוג OpenAI              |
+| GET  | `/api/v1/vscode/{token}/models`           | כינוי למודלים של OpenAI          |
+| POST | `/api/v1/vscode/{token}/chat/completions` | כינוי OpenAI עם אסימון           |
+| POST | `/api/v1/vscode/{token}/responses`        | כינוי OpenAI Responses עם אסימון |
+| POST | `/api/v1/vscode/{token}/api/chat`         | כינוי Ollama עם אסימון           |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | כינוי לתגיות Ollama עם אסימון    |
 
-כל נתיבי ה-POST עוקבים אחר אותה צורה: `Bearer your-api-key` + גוף JSON מאומת Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, וכו', ראה `src/shared/validation/schemas.ts`). 4xx מוחזר במקרה של כשל בסכימה.
+כל נתיבי POST משתמשים באותו מבנה: `Bearer your-api-key` + גוף JSON שעבר אימות באמצעות Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` וכו'; ראו `src/shared/validation/schemas.ts`). במקרה של כשל באימות הסכימה מוחזר 4xx.
 
-עבור לקוחות שאינם יכולים לצרף `Authorization: Bearer ...`, OmniRoute מקבל גם מפתחות API בכתובת ה-URL באמצעות תאימות מחרוזת שאילתה (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) או נקודות הקצה הייעודיות `/api/v1/vscode/{token}/...` המתועדות להלן.
+עבור לקוחות שאינם יכולים לצרף `Authorization: Bearer ...`, OmniRoute מקבל גם מפתחות API בכתובת ה-URL, באמצעות תאימות למחרוזת שאילתה (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) או באמצעות נקודות הקצה הייעודיות `/api/v1/vscode/{token}/...` המתועדות להלן.
 
 ```bash
-# דירוג מחדש (ספק רישום בענן, או צומת ספק תואם OpenAI בתור "<prefix>/<model>")
+# דירוג מחדש (ספק ממרשם הענן, או צומת ספק תואם OpenAI בתור "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# סיווג Jina (אישורי Foundation API)
+# סיווג Jina (פרטי גישה ל-Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # מפלח Jina
@@ -470,11 +470,15 @@ POST /v1/segment     { "content": "...", "return_chunks": true }
 # חיפוש Jina (s.jina.ai; כינויי ספק: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# מודרציות
+# ניהול תוכן
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — מחזיר גוף audio/mpeg (או פורמט מבוקש)
+# TTS — מחזיר גוף audio/mpeg (או בפורמט המבוקש)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
+
+# Soniox TTS דורש שפה וקול: ברירת המחדל של `language` היא "en"; קול חסר
+# או שם של קול מובנה ב-OpenAI (alloy, nova, …) מוחלף ב-"Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
 # עריכת תמונה (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
@@ -484,29 +488,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **צמתי ספק לדירוג מחדש:** `POST /v1/rerank` מנתב גם לצמתי ספק תואמי OpenAI
-> (oMLX, vLLM, Infinity, TEI מאחורי שער, ...) המטופלים כ-`<node-prefix>/<model>`.
-> צמתי לולאה חוזרת (`localhost`, `127.0.0.1`, `172.16.0.0/12`) תמיד כשירים.
-> צמתים בכל מארח אחר — תיבת LAN או עמית Tailscale — כשירים רק כאשר המפעיל מאפשר את
-> דגל התכונה `RERANK_REMOTE_PROVIDER_NODES` **וגם** כתובת ה-URL הבסיסית של הצומת עוברת את
-> מדיניות כתובות ה-URL היוצאות של הספק (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> מארחי מטא-נתונים בענן לעולם אינם מנותבים. שלב הדירוג מחדש של מנוע הזיכרון קורא לנתיב זה
-> דרך לולאה חוזרת, כך שאותו כלל חל על `rerankProviderModel` בהגדרות הזיכרון.
+> **צומתי ספק לדירוג מחדש:** `POST /v1/rerank` מנתב גם לצומתי ספק תואמי OpenAI
+> (oMLX, vLLM, Infinity, TEI מאחורי שער, …) שאליהם פונים בתור `<node-prefix>/<model>`. צומתי loopback
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) תמיד כשירים. צמתים בכל מארח אחר
+> — מחשב ברשת LAN או עמית Tailscale — כשירים רק כאשר המפעיל מפעיל את דגל התכונה
+> `RERANK_REMOTE_PROVIDER_NODES` **וגם** כתובת ה-URL הבסיסית של הצומת עומדת במדיניות כתובות ה-URL
+> היוצאות של הספק (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> לעולם לא מתבצע ניתוב למארחי מטא-נתונים בענן. שלב הדירוג מחדש של מנוע הזיכרון קורא לנתיב הזה דרך
+> loopback, ולכן אותו כלל חל על `rerankProviderModel` בהגדרות הזיכרון.
 >
-> **צורות שרת מקומיות:** הצומת נקרא ב-`<base>/v1/rerank` ובמקרה של 404, ב-`<base>/rerank`
-> (Infinity, TEI). גוף ה-upstream נושא הן את הכתיב של Cohere/OpenAI (`documents`,
-> `return_documents`) והן את הכתיב של TEI (`texts`, `return_text`), ותגובת ה-upstream
-> מנורמלת למעטפת Cohere: `[{index, score, text}]` הריק של TEI, `{results: [{index, score}]}`
-> משערים דקים, ו-`{data: [...]}` בסגנון Voyage כולם חוזרים ללקוח כ-
+> **מבני שרת מקומי:** הקריאה לצומת מתבצעת ב-`<base>/v1/rerank`, ובמקרה של 404, ב-`<base>/rerank`
+> (Infinity, TEI). הגוף הנשלח לשירות במעלה הזרם כולל הן את האיות של Cohere/OpenAI (`documents`,
+> `return_documents`) והן את האיות של TEI (`texts`, `return_text`), והתגובה משירות זה
+> מנורמלת למעטפת Cohere: המערך החשוף של TEI מסוג `[{index, score, text}]`, המבנה `{results: [{index, score}]}`
+> משערים דקים, והמבנה בסגנון Voyage מסוג `{data: [...]}` — כולם מוחזרים ללקוח בתור
 > `{results: [{index, relevance_score, document?}]}`, ממוינים לפי ציון ומוגבלים ל-`top_n`.
 
-> **גילוי צמתי ספק:** מודלים בצומת ספק תואם OpenAI מופיעים ב-`GET /v1/models`
-> תחת קידומת הצומת. שורות שאינן נושאות מטא-נתונים של נקודת קצה (אופייני לרישומי `/v1/models` מקומיים)
-> יורשות את ה-`apiType` של הצומת, כך שמודלים של צומת `embeddings` הם `type: "embedding"`
-> ומודלים של צומת `rerank` הם `type: "rerank"` במקום ברירת המחדל לצ'אט;
-> `supportedEndpoints` מפורש בשורה מסונכרנת או שנוספה ידנית עדיין מקבל עדיפות.
+> **גילוי צומתי ספק:** מודלים בצומת ספק תואם OpenAI מופיעים ב־`GET /v1/models`
+> תחת קידומת הצומת. שורות שאינן כוללות מטא־נתונים של נקודת קצה (כמקובל ברשימות `/v1/models` מקומיות)
+> יורשות את ה־`apiType` של הצומת, כך שהמודלים של צומת `embeddings` הם `type: "embedding"` והמודלים של
+> צומת `rerank` הם `type: "rerank"` במקום שברירת המחדל שלהם תהיה צ'אט; ערך מפורש של
+> `supportedEndpoints` בשורה שסונכרנה או נוספה ידנית עדיין מקבל עדיפות.
 
-### נתיבי ספק ייעודיים
+### נתיבים ייעודיים לספק
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -514,7 +518,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-קידומת הספק מתווספת אוטומטית אם חסרה. מודלים לא תואמים מחזירים `400`.
+קידומת הספק מתווספת אוטומטית אם היא חסרה. מודלים שאינם תואמים מחזירים `400`.
 
 ---
 
@@ -1444,20 +1448,20 @@ GET /.well-known/agent.json
 
 ## ענן, הערכות ובחינה
 
-| שיטה | נתיב | תיאור |
+| מתודה | נתיב | תיאור |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | אימות מפתח Bearer והחזרת חיבורי ספקים מוסווים + כינויי מודלים עבור לקוחות סנכרון ענן |
+| POST | `/api/cloud/auth` | אימות מפתח Bearer והחזרת חיבורי ספקים מוסווים וכינויי מודלים עבור לקוחות סנכרון ענן |
 | POST | `/api/cloud/credentials/update` | עדכון פרטי גישה מוצפנים עבור ספק המסונכרן עם הענן |
 | POST | `/api/cloud/model/resolve` | פתרון מזהה מודל לוגי לספק/מודל קונקרטי באמצעות טבלת הניתוב המקומית |
-| GET | `/api/cloud/models/alias` | הצגת כינויי מודלים כפי שהם נחשפים לסנכרון ענן |
+| GET | `/api/cloud/models/alias` | הצגת רשימת כינויי המודלים כפי שהם נחשפים לסנכרון ענן |
 | GET | `/api/assess` | קריאת סיווגי ההערכה העדכניים ביותר (לפי ספק/מודל) |
-| POST | `/api/assess` | הרצת הערכה — גוף: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | הצגת חבילות הערכה מובנות + ההרצות האחרונות |
+| POST | `/api/assess` | הפעלת הערכה — גוף: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | הצגת רשימת חבילות ההערכה המובנות + ההרצות האחרונות |
 | POST | `/api/evals` | הפעלת הרצת הערכה |
 | POST | `/api/evals/suites` | יצירת חבילת הערכה מותאמת אישית — הגוף מאומת באמצעות `evalSuiteSaveSchema` |
 | GET | `/api/evals/suites/[id]` | אחזור חבילת הערכה מותאמת אישית |
 
-**אימות:** `/api/cloud/auth` מאמת מפתח Bearer ישירות; הנתיבים האחרים תחת `/api/cloud/*`,‏ `/api/evals/*` ו־`/api/assess` דורשים הפעלת ניהול/מפתח API. בקשות POST אל `/api/assess` משתמשות ב־`validateBody` עם סכמת תחום מסוג discriminated union.
+**אימות:** `/api/cloud/auth` מאמת מפתח Bearer ישירות ומחזיר את המפתח המוסווה ואת `projectId` של כל חיבור, רק עבור מפתח בעל ההרשאה `manage` / `admin`; הנתיבים האחרים תחת `/api/cloud/*`,‏ `/api/evals/*` ו-`/api/assess` דורשים הפעלת ניהול/מפתח API. בקשת POST אל `/api/assess` משתמשת ב-`validateBody` עם סכמת תחום מסוג איחוד מובחן.
 
 ---
 

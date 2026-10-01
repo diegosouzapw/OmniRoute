@@ -413,11 +413,10 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## Ottenere assistenza
+## Ottenere aiuto
 
 - **Architettura**: Consulta [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Riferimento API**: Consulta [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Documentazione sulla sicurezza**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Documentazione operativa**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Segnalazioni**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: Consulta `docs/adr/` per i registri delle decisioni architetturali

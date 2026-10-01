@@ -127,25 +127,28 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
   `Access-Control-Allow-Credentials` की अनुपस्थिति द्वारा सुरक्षित है। प्रबंधन/डैशबोर्ड
   ओरिजिन को किसी भी अनुमेय कॉन्फ़िगरेशन से बाहर रखें; उन्हें पूर्णतः fail-closed रहना चाहिए।
 
-## उदाहरण: OmniRoute के सामने रिवर्स प्रॉक्सी
+## उदाहरण: OmniRoute के आगे रिवर्स प्रॉक्सी
 
-CORS को OmniRoute स्वयं लागू करता है, इसलिए आम तौर पर प्रॉक्सी को
-`Access-Control-*` हेडर **नहीं** जोड़ने या पुनर्लेखित करने चाहिए (दोहरा हेडर ब्राउज़र
-को बाधित करता है)। TLS को समाप्त करें और अनुरोध फ़ॉरवर्ड करें — प्रीफ़्लाइट का उत्तर
-OmniRoute को देने दें:
+CORS को OmniRoute स्वयं लागू करता है, इसलिए प्रॉक्सी को सामान्यतः `Access-Control-*`
+हेडर **नहीं** जोड़ने या फिर से लिखने चाहिए (दोहरा हेडर ब्राउज़र को बाधित करता है)। TLS
+को टर्मिनेट करके अनुरोध फ़ॉरवर्ड करें — प्रीफ़्लाइट का उत्तर OmniRoute को देने दें:
 
 ```nginx
-# nginx — OmniRoute को फ़ॉरवर्ड करें; यहाँ Access-Control-* इंजेक्ट न करें
+# nginx — OmniRoute पर फ़ॉरवर्ड करें; यहाँ Access-Control-* इंजेक्ट न करें
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For को 127.0.0.1 पर सेट न करें — यह loopback रूट गार्ड को निष्प्रभावी करता है।
+    # फ़ॉरवर्डिंग हेडर बनाए रखें: उसी होस्ट पर मौजूद प्रॉक्सी लूपबैक से कनेक्ट होती है, और ये
+    # OmniRoute को बताते हैं कि कॉलर स्थानीय ऑपरेटर नहीं है। इनमें से कोई भी हेडर न जोड़ने वाली प्रॉक्सी
+    # प्रत्येक रिमोट कॉलर को स्थानीय दिखाती है। X-Forwarded-For को कभी भी 127.0.0.1 पर सेट न करें।
 }
 ```
 
-अनुमत ब्राउज़र ओरिजिन को प्रॉक्सी में नहीं, बल्कि OmniRoute
-(`CORS_ALLOWED_ORIGINS` या Security टैब) में सेट करें।
+अनुमत ब्राउज़र ओरिजिन प्रॉक्सी में नहीं, बल्कि OmniRoute (`CORS_ALLOWED_ORIGINS` या
+सुरक्षा टैब) में सेट करें।
 
 ## स्रोत फ़ाइलें
 

@@ -431,7 +431,6 @@ VPS ನಿಯೋಜನೆಗಳಿಗಾಗಿ, `npm run build` ಬದಲಿಗ�
 
 - **ಆರ್ಕಿಟೆಕ್ಚರ್**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) ನೋಡಿ
 - **API ಉಲ್ಲೇಖ**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) ನೋಡಿ
-- **ಭದ್ರತಾ ದಾಖಲೆಗಳು**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **ಕಾರ್ಯಾಚರಣೆಗಳ ದಾಖಲೆಗಳು**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **ಭದ್ರತಾ ದಸ್ತಾವೇಜುಗಳು**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **ಕಾರ್ಯಾಚರಣೆಗಳ ದಸ್ತಾವೇಜುಗಳು**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **ಸಮಸ್ಯೆಗಳು**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: ಆರ್ಕಿಟೆಕ್ಚರಲ್ ನಿರ್ಧಾರ ದಾಖಲೆಗಳಿಗಾಗಿ `docs/adr/` ನೋಡಿ

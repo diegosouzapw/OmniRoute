@@ -408,8 +408,7 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 ## సహాయం పొందడం
 
 - **ఆర్కిటెక్చర్**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) చూడండి
-- **API సూచిక**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) చూడండి
-- **భద్రతా డాక్యుమెంట్లు**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **ఆపరేషన్స్ డాక్యుమెంట్లు**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **API రిఫరెన్స్**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) చూడండి
+- **భద్రతా డాక్యుమెంటేషన్**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **ఆపరేషన్స్ డాక్యుమెంటేషన్**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **సమస్యలు**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRలు**: ఆర్కిటెక్చరల్ నిర్ణయాల రికార్డుల కోసం `docs/adr/` చూడండి

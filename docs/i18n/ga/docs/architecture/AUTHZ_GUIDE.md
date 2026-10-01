@@ -17,59 +17,61 @@ Tá píblíne údaraithe atá feasach ar bhealaí ag OmniRoute a chuireann bac a
 
 ### 1. Eochair API (Bearer)
 
-Úsáidtear í le haghaidh APIanna cliaint atá comhoiriúnach le OpenAI/Anthropic/Gemini agus le haghaidh roinnt bealaí bainistíochta nuair atá an scóip `manage` ag an eochair.
+Úsáidtear é le haghaidh APIanna cliaint atá comhoiriúnach le OpenAI/Anthropic/Gemini agus roinnt bealaí bainistíochta nuair atá an scóip `manage` ag an eochair.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Déanann `isValidApiKey()` / `extractApiKey()` in `src/sse/services/auth.ts` í a bhailíochtú agus déantar í a ath-easpórtáil trí `src/shared/utils/apiAuth.ts`. Glacann an bailíochtóir freisin leis na hathróga timpeallachta `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` mar eochracha buana pas-trí (saincheist #1350).
+Déantar é a bhailíochtú le `isValidApiKey()` / `extractApiKey()` in `src/sse/services/auth.ts` agus déantar é a ath-easpórtáil trí `src/shared/utils/apiAuth.ts`. Glacann an bailíochtóir leis na hathróga timpeallachta `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` mar eochracha seasmhacha tríchuir freisin (fadhb #1350).
 
-### 2. Seisiún Deaise (fianán auth_token)
+### 2. Seisiún an Deais (fianán auth_token)
 
-Le haghaidh leathanaigh na deaise agus oibríochtaí riaracháin.
+Le haghaidh leathanaigh an deais agus oibríochtaí riaracháin.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Ní seisiún é fianán ach amháin nuair a fhíoraítear an JWT **agus** nuair atá `authenticated: true`
-ann (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Gach
-tomhaltóir den fhianán (garda bealaigh, athnuachan phíblíne authz, croitheadh láimhe WebSocket, freastalaí
-beo, `/api/settings/require-login`, `/api/auth/status`), téann sé tríd an gcúntóir sin.
-Tá JWTanna eile sínithe le `JWT_SECRET` ann — gineann pas-trí Cursor CLI
-comharthaí `iss "omniroute" / aud "cursor-cli"` do shealbhóirí eochrach — agus ní seisiúin iad
-riamh (#13298).
+Ní seisiún é fianán ach amháin nuair a fhíoraítear an JWT **agus** nuair atá `authenticated: true` ann
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Gach
+úsáideoir den fhianán (garda bhealach an deais (`isDashboardSessionAuthenticated()`), athnuachan na píblíne authz, croitheadh láimhe WebSocket, an freastalaí
+beo, `/api/settings/require-login`, `/api/auth/status`) téann sé tríd an gcúntóir sin.
+Tá JWTanna eile ann atá sínithe le `JWT_SECRET` — eisíonn tríchur Cursor CLI
+comharthaí `iss "omniroute" / aud "cursor-cli"` do shealbhóirí eochrach — agus ní seisiúin iad riamh
+(#13298).
 
-Déanann `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts` é a fhíorú. Athnuachan an phíblíne an JWT go huathoibríoch nuair atá níos lú ná 7 lá fágtha dá shaolré 30 lá.
+Déantar é a fhíorú le `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. Déanann an phíblíne an JWT a athnuachan go huathoibríoch nuair atá níos lú ná 7 lá fágtha dá shaolré 30 lá.
 
-Glacann roinnt bealaí bainistíochta le **ceachtar** mód: fianán NÓ `Bearer <key>` nuair atá an scóip `manage` (nó `admin`) ag an eochair API. Is é seo a chumasaíonn an sreabhadh oibre „inchumraithe trí ghlaonna API” a cuireadh leis in v3.8.
+Is féidir le seisiún críochnú sula mbíonn a 30 lá istigh freisin, toisc go dtéann gach eisitheoir trí `mintDashboardSessionToken` (am eisiúna `iat` agus aitheantas `jti`) agus seiceálann an fíoraitheoir dhá shocrú: `sessionsValidAfter`, a shocraítear nuair a athraítear pasfhocal ionas nach bhfíoraítear a thuilleadh aon seisiún a eisíodh roimhe sin (faigheann an brabhsálaí inar athraíodh an pasfhocal fianán úr), agus `revokedDashboardSessions`, a gcuireann `POST /api/auth/logout` `jti` an tseisiúin sínithe-amach leis. Ní bhíonn ceachtar éileamh i seisiúin a d'eisigh leagan níos sine agus fanann siad bailí go dtí an chéad athrú pasfhocail. Mura féidir na socruithe a léamh, ní chuirtear muinín sa seisiún.
 
-#### Geata logála isteach roghnach OIDC (#6973)
+Glacann roinnt bealaí bainistíochta le **ceachtar** mód: fianán NÓ `Bearer <key>` nuair atá an scóip `manage` (nó `admin`) ag an eochair API. Is é seo a chumasaíonn an sreabhadh oibre “inchumraithe trí ghlaonna API” a cuireadh leis in v3.8.
 
-Tacaíonn logáil isteach riarthóra na deaise freisin le sreabhadh OIDC (OpenID Connect) **roghnach**
-in éineacht leis an logáil isteach réamhshocraithe le pasfhocal — ní bhaintear an logáil isteach le pasfhocal riamh,
-ní dhéantar ach cur leis:
+#### Geata roghnach logála isteach OIDC (#6973)
 
-- Bíonn sé díchumasaithe mura bhfuil `settings.oidcEnabled === true` **agus** mura bhfuil `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` cumraithe ar fad (Socruithe → Fíordheimhniú).
-  Tugann `GET /api/auth/oidc/login` `400` ar ais murach sin.
+Tacaíonn logáil isteach riarthóra an deais le sreabhadh OIDC (OpenID Connect) **roghnach** freisin
+in éineacht leis an logáil isteach réamhshocraithe le pasfhocal — ní bhaintear logáil isteach le pasfhocal riamh, ní dhéantar ach
+é a fhorlíonadh:
+
+- Bíonn sé díchumasaithe mura bhfuil `settings.oidcEnabled === true` **agus** mura bhfuil
+  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` uile cumraithe (Socruithe → Fíordheimhniú).
+  Seolann `GET /api/auth/oidc/login` `400` ar ais murach sin.
 - Aimsíonn `GET /api/auth/oidc/login` an `authorization_endpoint` ó
-  `/.well-known/openid-configuration` an eisitheora (agus titeann sé siar ar
-  `<issuer>/authorize`), tógann sé an URI atreoraithe ón iarratas isteach
+  `/.well-known/openid-configuration` an eisitheora (agus téann sé ar ais chuig
+  `<issuer>/authorize` mura n-éiríonn leis), tógann sé an URI atreoraithe ón iarratas isteach
   (agus `x-forwarded-proto` á chur san áireamh), agus atreoraíonn sé chuig an IdP le `state`
-  randamach stóráilte i bhfianán `oidc_state` `httpOnly`.
+  randamach stóráilte i bhfianán `httpOnly` `oidc_state`.
 - Bailíochtaíonn `GET /api/auth/oidc/callback` `state`, malartaíonn sé an cód údaraithe,
   agus fíoraíonn sé síniú an chomhartha ID trí JWKS an eisitheora
-  (`createRemoteJWKSet` de chuid `jose`, i dtaisce de réir URI JWKS) le seiceálacha
+  (`createRemoteJWKSet` de chuid `jose`, arna thaisceadh de réir URI JWKS) le seiceálacha
   `issuer`/`audience`. Meaitseálann liosta ceada roghnach `oidcAllowedSubjects`
-  éileamh `sub` an chomhartha nó a éileamh `email` — ní ghlactar leis an éileamh ríomhphoist
-  ach amháin nuair atá `email_verified === true`, mar sin ní féidir le ríomhphost neamhfhíoraithe
-  ag an IdP dul tríd an ngeata choíche.
-- Má éiríonn leis, gineann sé an JWT `auth_token` 30 lá **ceannann céanna** a eisíonn an logáil
-  isteach le pasfhocal (`src/app/api/auth/login/route.ts`), mar sin fanann an chuid eile de
-  phíblíne sheisiún na deaise (uath-athnuachan, bratacha fianáin) gan athrú —
-  ní athraíonn OIDC ach an chaoi a ngintear an fianán, ní na ceadanna a thugann sé.
+  éileamh `sub` an chomhartha nó a éileamh `email` — ní thugtar aitheantas don éileamh ríomhphoist ach amháin nuair atá
+  `email_verified === true`, mar sin ní féidir le ríomhphost neamhfhíoraithe ag an IdP dul tríd
+  an ngeata riamh.
+- Má éiríonn leis, eisíonn sé an JWT `auth_token` 30 lá **ceannann céanna** a eisíonn an logáil isteach
+  le pasfhocal (`src/app/api/auth/login/route.ts`), mar sin ní athraítear an chuid eile de
+  phíblíne sheisiún an deais (athnuachan uathoibríoch, bratacha fianán) —
+  ní athraíonn OIDC ach an chaoi a n-eisítear an fianán, seachas na ceadanna a thugann sé.
 
 ## Aicmí Bealaigh
 

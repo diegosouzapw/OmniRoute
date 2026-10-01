@@ -427,5 +427,4 @@ VPS ਡਿਪਲੌਇਆਂ ਲਈ, `npm run build` ਦੀ ਬਜਾਏ `npm ru
 - **API ਹਵਾਲਾ**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) ਵੇਖੋ
 - **ਸੁਰੱਖਿਆ ਦਸਤਾਵੇਜ਼**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **ਓਪਰੇਸ਼ਨ ਦਸਤਾਵੇਜ਼**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **ਮੁੱਦੇ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: ਆਰਕੀਟੈਕਚਰਲ ਫ਼ੈਸਲਿਆਂ ਦੇ ਰਿਕਾਰਡਾਂ ਲਈ `docs/adr/` ਵੇਖੋ
+- **ਸਮੱਸਿਆਵਾਂ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

@@ -131,21 +131,25 @@ uten omstart.
 ## Eksempel: omvendt proxy foran OmniRoute
 
 CORS håndheves av OmniRoute selv, så proxyen bør vanligvis **ikke** legge til eller
-skrive om `Access-Control-*`-headere (dupliserte headere skaper problemer i nettlesere).
-Terminer TLS og videresend — la OmniRoute besvare preflight-forespørsler:
+skrive om `Access-Control-*`-headere (doble headere skaper problemer i nettlesere). Terminer TLS
+og videresend — la OmniRoute besvare preflight-forespørsler:
 
 ```nginx
-# nginx — videresend til OmniRoute; IKKE legg inn Access-Control-* her
+# nginx — videresend til OmniRoute; IKKE sett inn Access-Control-* her
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # IKKE sett X-Forwarded-For til 127.0.0.1 — det omgår rutevernet for loopback.
+    # Behold videresendingsheaderne: En proxy på samme vert kobler til fra loopback, og det er disse
+    # som forteller OmniRoute at anroperen ikke er den lokale operatøren. En proxy som ikke legger til noen av dem,
+    # får alle eksterne anropere til å se lokale ut. Sett heller aldri X-Forwarded-For til 127.0.0.1.
 }
 ```
 
-Angi de tillatte nettleseropphavene i OmniRoute (`CORS_ALLOWED_ORIGINS` eller
-Security-fanen), ikke i proxyen.
+Angi de tillatte nettleseropprinnelsene i OmniRoute (`CORS_ALLOWED_ORIGINS` eller
+fanen Security), ikke i proxyen.
 
 ## Kildefiler
 

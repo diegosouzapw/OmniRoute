@@ -417,74 +417,94 @@ Sidecar တစ်ခုသည် out-of-process အနေဖြင့် လည�
 
 ---
 
-## တွဲဖက်အသုံးပြုနိုင်သော Endpoints များ
+## ကိုက်ညီမှုရှိသော Endpoint များ
 
-| Method | Path                                      | Format                                    |
-| ------ | ----------------------------------------- | ----------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                    |
-| POST   | `/v1/messages`                            | Anthropic                                 |
-| POST   | `/v1/responses`                           | OpenAI တုံ့ပြန်မှုများ                    |
-| POST   | `/v1/embeddings`                          | OpenAI                                    |
-| POST   | `/v1/images/generations`                  | OpenAI ပုံများ                            |
-| POST   | `/v1/images/edits`                        | OpenAI ပုံများ (ပြင်ဆင်ခြင်း/inpaint)     |
-| POST   | `/v1/videos/generations`                  | OpenAI ပုံစံ ဗီဒီယိုထုတ်လုပ်ခြင်း         |
-| POST   | `/v1/music/generations`                   | OpenAI ပုံစံ သီချင်းထုတ်လုပ်ခြင်း         |
-| POST   | `/v1/audio/transcriptions`                | OpenAI အသံ (STT)                          |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (အသံကိုယ်ထည်ကို ပြန်ပေးသည်)    |
-| POST   | `/v1/rerank`                              | Cohere/Voyage ပုံစံ rerank                |
-| POST   | `/v1/classify`                            | Jina ခွဲခြားခြင်း (`api.jina.ai`)         |
-| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)        |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                        |
-| GET    | `/v1/models`                              | OpenAI                                    |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                                 |
-| GET    | `/v1beta/models`                          | Gemini                                    |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                    |
-| POST   | `/v1/api/chat`                            | Ollama                                    |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI ကတ်တလောက် အမည်ဝှက်                 |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI မော်ဒယ်များ အမည်ဝှက်               |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized အမည်ဝှက်                 |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI တုံ့ပြန်မှုများ tokenized အမည်ဝှက် |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized အမည်ဝှက်                 |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized အမည်ဝှက်            |
+| နည်းလမ်း | လမ်းကြောင်း                               | ဖော်မတ်                                     |
+| -------- | ----------------------------------------- | ------------------------------------------- |
+| POST     | `/v1/chat/completions`                    | OpenAI                                      |
+| POST     | `/v1/messages`                            | Anthropic                                   |
+| POST     | `/v1/responses`                           | OpenAI Responses                            |
+| POST     | `/v1/embeddings`                          | OpenAI                                      |
+| POST     | `/v1/images/generations`                  | OpenAI Images                               |
+| POST     | `/v1/images/edits`                        | OpenAI Images (တည်းဖြတ်ခြင်း/inpaint)       |
+| POST     | `/v1/videos/generations`                  | OpenAI ပုံစံ ဗီဒီယိုဖန်တီးခြင်း             |
+| POST     | `/v1/music/generations`                   | OpenAI ပုံစံ တေးဂီတဖန်တီးခြင်း              |
+| POST     | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                          |
+| POST     | `/v1/audio/speech`                        | OpenAI TTS (အသံ body ကို ပြန်ပေးသည်)        |
+| POST     | `/v1/rerank`                              | Cohere/Voyage ပုံစံ အဆင့်ပြန်စီခြင်း        |
+| POST     | `/v1/classify`                            | Jina အမျိုးအစားခွဲခြားခြင်း (`api.jina.ai`) |
+| POST     | `/v1/segment`                             | Jina အပိုင်းခွဲစနစ် (`segment.jina.ai`)     |
+| POST     | `/v1/moderations`                         | OpenAI Moderations                          |
+| GET      | `/v1/models`                              | OpenAI                                      |
+| POST     | `/v1/messages/count_tokens`               | Anthropic                                   |
+| GET      | `/v1beta/models`                          | Gemini                                      |
+| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                      |
+| POST     | `/v1/api/chat`                            | Ollama                                      |
+| GET      | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias                        |
+| GET      | `/api/v1/vscode/{token}/models`           | OpenAI models alias                         |
+| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAI token ပါသော alias                    |
+| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responses token ပါသော alias          |
+| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollama token ပါသော alias                    |
+| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollama tags token ပါသော alias               |
 
-POST လမ်းကြောင်းများအားလုံးသည် ပုံစံတူညီစွာရှိသည်- `Bearer your-api-key` + Zod-မှန်ကန်ကြောင်းစစ်ဆေးထားသော JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` စသည်ဖြင့်၊ `src/shared/validation/schemas.ts` တွင် ကြည့်ပါ)။ schema ပျက်ကွက်ပါက 4xx ကို ပြန်ပေးသည်။
+POST route အားလုံးသည် တူညီသောပုံစံကို လိုက်နာသည်- `Bearer your-api-key` + Zod ဖြင့် အတည်ပြုထားသော JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` စသည်တို့၊ `src/shared/validation/schemas.ts` ကိုကြည့်ပါ)။ Schema အတည်ပြုမှု မအောင်မြင်ပါက 4xx ကို ပြန်ပေးသည်။
 
-`Authorization: Bearer ...` ကို ပူးတွဲ၍မရသော client များအတွက်၊ OmniRoute သည် API key များကို URL တွင် query-string တွဲဖက်အသုံးပြုနိုင်မှု (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) သို့မဟုတ် အောက်တွင် မှတ်တမ်းတင်ထားသော သီးသန့် `/api/v1/vscode/{token}/...` endpoints များမှတစ်ဆင့် လက်ခံသည်။
+`Authorization: Bearer ...` ကို ထည့်သွင်း၍မရသော client များအတွက် OmniRoute သည် query-string ကိုက်ညီမှုပုံစံ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) သို့မဟုတ် အောက်တွင် မှတ်တမ်းတင်ထားသော သီးသန့် `/api/v1/vscode/{token}/...` endpoint များမှတစ်ဆင့် URL ထဲရှိ API key များကိုလည်း လက်ခံသည်။
 
 ```bash
-# Rerank (cloud registry provider၊ သို့မဟုတ် OpenAI-နှင့် တွဲဖက်အသုံးပြုနိုင်သော provider node ကို "<prefix>/<model>" အဖြစ်)
+# အဆင့်ပြန်စီခြင်း (cloud registry provider သို့မဟုတ် "<prefix>/<model>" ပုံစံဖြင့် OpenAI-compatible provider node)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina ခွဲခြားခြင်း (Foundation API credentials)
+# Jina အမျိုးအစားခွဲခြားခြင်း (Foundation API အထောက်အထားများ)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Jina အပိုင်းခွဲစနစ်
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina ရှာဖွေခြင်း (s.jina.ai; provider အမည်ဝှက်များ: jina-search, jina-ai, jina)
+# Jina ရှာဖွေမှု (s.jina.ai; provider alias များ- jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderations
+# အကြောင်းအရာစိစစ်ခြင်း
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (သို့မဟုတ် တောင်းဆိုထားသော format) body ကို ပြန်ပေးသည်
+# TTS — audio/mpeg (သို့မဟုတ် တောင်းဆိုထားသော ဖော်မတ်) body ကို ပြန်ပေးသည်
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# ပုံပြင်ဆင်ခြင်း (multipart)
+# Soniox TTS အတွက် ဘာသာစကားနှင့် အသံတစ်ခု လိုအပ်သည်- `language` သည် မူလအတိုင်း "en" ဖြစ်သည်။ အသံမပါရှိပါက
+# သို့မဟုတ် OpenAI ၏ ပုံသေ အသံအမည် (alloy, nova, …) ဖြစ်ပါက "Adrian" အဖြစ် ပြောင်းလဲသတ်မှတ်သည်
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# ပုံတည်းဖြတ်ခြင်း (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# ဗီဒီယို / သီချင်းထုတ်လုပ်ခြင်း (provider-prefixed model id)
+# ဗီဒီယို / တေးဂီတ ဖန်တီးခြင်း (provider prefix ပါသော model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Rerank provider nodes များ:** `POST /v1/rerank` သည် OpenAI-နှင့် တွဲဖက်အသုံးပြုနိုင်သော provider nodes များ (oMLX, vLLM, Infinity, gateway နောက်ကွယ်ရှိ TEI, …) ကို `<node-prefix>/<model>` အဖြစ် လမ်းကြောင်းပြောင်းပေးသည်။ Loopback nodes များ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) သည် အမြဲတမ်း အရည်အချင်းပြည့်မီသည်။ အခြား host တစ်ခုခု — LAN box သို့မဟုတ် Tailscale peer — ပေါ်ရှိ nodes များသည် operator မှ `RERANK_REMOTE_PROVIDER_NODES` feature flag ကို ဖွင့်ထားမှသာလျှင် **နှင့်** node ၏ base URL သည် provider outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ကို ကျော်ဖြတ်မှသာလျှင် အရည်အချင်းပြည့်မီသည်။ cloud-metadata hosts များသို့ လမ်းကြောင်းပြောင်းပေးခြင်း မရှိပါ။ memory engine ၏ rerank အဆင့်သည် ဤလမ်းကြောင်းကို loopback မှတစ်ဆင့် ခေါ်ဆိုသောကြောင့်၊ Memory settings ရှိ `rerankProviderModel` ကိုလည်း ထိုစည်းမျဉ်းအတိုင်း အုပ်ချုပ်သည်။
+> **အဆင့်ပြန်စီသည့် provider node များ:** `POST /v1/rerank` သည် `<node-prefix>/<model>` ဖြင့် လိပ်စာသတ်မှတ်ထားသော
+> OpenAI-compatible provider node များ (oMLX, vLLM, Infinity၊ gateway နောက်ကွယ်ရှိ TEI၊ …) သို့လည်း route လုပ်ပေးသည်။ Loopback
+> node များ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ကို အမြဲတမ်း အသုံးပြုနိုင်သည်။ အခြား
+> host တစ်ခုခုရှိ node များ — LAN စက်တစ်လုံး သို့မဟုတ် Tailscale peer — ကို operator က
+> `RERANK_REMOTE_PROVIDER_NODES` feature flag ကို ဖွင့်ထားပြီး node ၏ base URL သည် provider
+> outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ကို ဖြတ်သန်းနိုင်မှသာ အသုံးပြုနိုင်သည်။
+> cloud-metadata host များသို့ မည်သည့်အခါမျှ route မလုပ်ပါ။ Memory engine ၏ အဆင့်ပြန်စီသည့်အဆင့်သည် ဤ route ကို
+> loopback မှတစ်ဆင့် ခေါ်ဆိုသောကြောင့် Memory ဆက်တင်များရှိ `rerankProviderModel` ကိုလည်း အလားတူစည်းမျဉ်းဖြင့် ထိန်းချုပ်သည်။
 >
-> **Local server ပုံစံများ:** node ကို `<base>/v1/rerank` တွင် ခေါ်ဆိုပြီး၊ 404 တွင် `<base>/rerank` (Infinity, TEI) တွင် ခေါ်ဆိုသည်။ upstream body သည် Cohere/OpenAI စာလုံးပေါင်း (`documents`, `return_documents`) နှင့် TEI စာလုံးပေါင်း (`texts`, `return_text`) နှစ်ခုလုံးကို သယ်ဆောင်ပြီး၊ upstream တုံ့ပြန်မှုကို Cohere envelope သို့ ပုံမှန်ဖြစ်အောင် ပြုလုပ်သည်- TEI ၏ `[{index, score, text}]`၊ thin gateways မှ `{results: [{index, score}]}` နှင့် Voyage-style `{data: [...]}` အားလုံးသည် client သို့ `{results: [{index, relevance_score, document?}]}` အဖြစ် ပြန်လာပြီး၊ score အလိုက် စီထားကာ `top_n` တွင် ကန့်သတ်ထားသည်။
+> **Local server ပုံစံများ:** node ကို `<base>/v1/rerank` တွင် ခေါ်ဆိုပြီး 404 ရရှိပါက `<base>/rerank`
+> (Infinity, TEI) တွင် ခေါ်ဆိုသည်။ Upstream body တွင် Cohere/OpenAI စာလုံးပေါင်းပုံစံ (`documents`,
+> `return_documents`) နှင့် TEI စာလုံးပေါင်းပုံစံ (`texts`, `return_text`) နှစ်မျိုးစလုံး ပါဝင်ပြီး upstream response ကို
+> Cohere envelope အဖြစ် စံပြုသည်- TEI ၏ ရိုးရိုး `[{index, score, text}]`၊ ပေါ့ပါးသော gateway များမှ `{results: [{index, score}]}`
+> နှင့် Voyage ပုံစံ `{data: [...]}` အားလုံးကို client ထံ
+> `{results: [{index, relevance_score, document?}]}` ပုံစံဖြင့် ပြန်ပေးပြီး score အလိုက် စီကာ `top_n` ဖြင့် အရေအတွက်ကန့်သတ်သည်။
 
-> **Provider-node ရှာဖွေတွေ့ရှိမှု:** OpenAI-နှင့် တွဲဖက်အသုံးပြုနိုင်သော provider node ပေါ်ရှိ မော်ဒယ်များသည် `GET /v1/models` တွင် node prefix အောက်တွင် ပေါ်လာသည်။ endpoint metadata မပါရှိသော (local `/v1/models` စာရင်းများအတွက် ပုံမှန်) အတန်းများသည် node ၏ `apiType` ကို အမွေဆက်ခံသောကြောင့်၊ `embeddings` node ၏ မော်ဒယ်များသည် `type: "embedding"` ဖြစ်ပြီး `rerank` node ၏ မော်ဒယ်များသည် chat သို့ မူရင်းအတိုင်း မသတ်မှတ်ဘဲ `type: "rerank"` ဖြစ်သည်။ synced သို့မဟုတ် ကိုယ်တိုင်ထည့်သွင်းထားသော အတန်းရှိ ရှင်းလင်းသော `supportedEndpoints` သည် ဦးစားပေးဆဲဖြစ်သည်။
+> **Provider-node ရှာဖွေခြင်း:** OpenAI နှင့် တွဲဖက်အသုံးပြုနိုင်သော provider node တစ်ခုပေါ်ရှိ model များသည် `GET /v1/models`
+> တွင် node prefix အောက်၌ ပေါ်လာသည်။ Endpoint metadata မပါရှိသော row များ (local `/v1/models` စာရင်းများတွင် အများအားဖြင့် တွေ့ရသည်)
+> သည် node ၏ `apiType` ကို ဆက်ခံသဖြင့် `embeddings` node ၏ model များသည် မူလသတ်မှတ်ချက်အရ chat ဖြစ်သွားမည့်အစား `type: "embedding"` ဖြစ်ပြီး
+> `rerank` node ၏ model များသည် `type: "rerank"` ဖြစ်သည်။ Sync လုပ်ထားသော သို့မဟုတ် ကိုယ်တိုင်ထည့်သွင်းထားသော row တစ်ခုရှိ အတိအလင်းသတ်မှတ်ထားသည့်
+> `supportedEndpoints` သည် ဦးစားပေးအဖြစ် ဆက်လက်သက်ရောက်သည်။
 
-### သီးသန့် Provider လမ်းကြောင်းများ
+### သီးသန့် Provider Route များ
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -492,7 +512,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-ပံ့ပိုးသူ ရှေ့ဆက်စကားလုံး မရှိပါက အလိုအလျောက် ထည့်သွင်းပေးပါသည်။ မကိုက်ညီသော မော်ဒယ်များသည် `400` ကို ပြန်ပို့ပါသည်။
+Provider prefix မပါရှိပါက အလိုအလျောက် ထည့်သွင်းပေးသည်။ ကိုက်ညီမှုမရှိသော model များသည် `400` ကို ပြန်ပေးသည်။
 
 ---
 
@@ -1423,20 +1443,20 @@ GET /.well-known/agent.json
 
 ## Cloud၊ Evals နှင့် Assess
 
-| Method | Path | ဖော်ပြချက် |
+| နည်းလမ်း | လမ်းကြောင်း | ဖော်ပြချက် |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer key တစ်ခုကို အတည်ပြုပြီး cloud sync client များအတွက် ဖုံးကွယ်ထားသော provider connection များ + model alias များကို ပြန်ပေးသည် |
-| POST | `/api/cloud/credentials/update` | cloud နှင့် sync လုပ်ထားသော provider တစ်ခုအတွက် ကုဒ်ဝှက်ထားသည့် credential များကို အပ်ဒိတ်လုပ်သည် |
-| POST | `/api/cloud/model/resolve` | local routing table ကို အသုံးပြု၍ logical model id တစ်ခုကို တိကျသော provider/model အဖြစ် ဖြေရှင်းသတ်မှတ်သည် |
-| GET | `/api/cloud/models/alias` | cloud sync သို့ ဖော်ထုတ်ထားသည့် model alias များကို စာရင်းပြုစုသည် |
-| GET | `/api/assess` | နောက်ဆုံး assessment အမျိုးအစားခွဲခြားမှုများကို ဖတ်ရှုသည် (provider/model တစ်ခုချင်းစီအလိုက်) |
-| POST | `/api/assess` | assessment တစ်ခုကို လုပ်ဆောင်သည် — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | အသင့်ပါရှိသော eval suite များ + နောက်ဆုံး run များကို စာရင်းပြုစုသည် |
-| POST | `/api/evals` | eval run တစ်ခုကို စတင်စေသည် |
+| POST | `/api/cloud/auth` | Bearer key ကို အတည်ပြုပြီး cloud sync client များအတွက် ဖုံးကွယ်ထားသော provider connection များနှင့် model alias များကို ပြန်ပေးသည် |
+| POST | `/api/cloud/credentials/update` | Cloud နှင့် sync လုပ်ထားသော provider တစ်ခုအတွက် ကုဒ်ဝှက်ထားသည့် credential များကို အပ်ဒိတ်လုပ်သည် |
+| POST | `/api/cloud/model/resolve` | Local routing table ကို အသုံးပြု၍ logical model id တစ်ခုကို တိကျသော provider/model တစ်ခုအဖြစ် ဖြေရှင်းပေးသည် |
+| GET | `/api/cloud/models/alias` | Cloud sync သို့ ဖော်ပြထားသည့် model alias များကို စာရင်းပြုစုသည် |
+| GET | `/api/assess` | နောက်ဆုံး assessment အမျိုးအစားခွဲခြားမှုများကို ဖတ်ရှုသည် (provider/model တစ်ခုချင်းအလိုက်) |
+| POST | `/api/assess` | Assessment တစ်ခုကို လုပ်ဆောင်သည် — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Built-in eval suite များနှင့် နောက်ဆုံးလုပ်ဆောင်ထားသည့် run များကို စာရင်းပြုစုသည် |
+| POST | `/api/evals` | Eval run တစ်ခုကို စတင်လုပ်ဆောင်သည် |
 | POST | `/api/evals/suites` | စိတ်ကြိုက် eval suite တစ်ခုကို ဖန်တီးသည် — body ကို `evalSuiteSaveSchema` ဖြင့် အတည်ပြုသည် |
 | GET | `/api/evals/suites/[id]` | စိတ်ကြိုက် eval suite တစ်ခုကို ရယူသည် |
 
-**Auth:** `/api/cloud/auth` သည် Bearer key တစ်ခုကို တိုက်ရိုက်အတည်ပြုသည်; အခြား `/api/cloud/*`, `/api/evals/*` နှင့် `/api/assess` route များတွင် management session/API key လိုအပ်သည်။ `/api/assess` POST သည် discriminated-union scope schema ပါသော `validateBody` ကို အသုံးပြုသည်။
+**Auth:** `/api/cloud/auth` သည် Bearer key တစ်ခုကို တိုက်ရိုက်အတည်ပြုပြီး `manage` / `admin` scope ပါရှိသော key အတွက်သာ connection တစ်ခုစီ၏ ဖုံးကွယ်ထားသော key နှင့် `projectId` ကို ပြန်ပေးသည်။ အခြား `/api/cloud/*`၊ `/api/evals/*` နှင့် `/api/assess` route များသည် management session/API key လိုအပ်သည်။ `/api/assess` POST သည် discriminated-union scope schema နှင့်အတူ `validateBody` ကို အသုံးပြုသည်။
 
 ---
 

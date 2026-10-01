@@ -434,4 +434,3 @@ docs/
 - **ឯកសារសុវត្ថិភាព**៖ [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **ឯកសារប្រតិបត្តិការ**៖ [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **បញ្ហា**៖ [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**៖ សូមមើល `docs/adr/` សម្រាប់កំណត់ត្រាសេចក្ដីសម្រេចផ្នែកស្ថាបត្យកម្ម

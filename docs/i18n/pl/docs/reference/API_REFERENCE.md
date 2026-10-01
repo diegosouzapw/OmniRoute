@@ -401,24 +401,24 @@ Użyj tego punktu końcowego, gdy sidecar działa poza procesem i nie może bezp
 
 ---
 
-## Punkty Końcowe Kompatybilności
+## Punkty końcowe zgodności
 
 | Metoda | Ścieżka                                   | Format                               |
 | ------ | ----------------------------------------- | ------------------------------------ |
 | POST   | `/v1/chat/completions`                    | OpenAI                               |
 | POST   | `/v1/messages`                            | Anthropic                            |
-| POST   | `/v1/responses`                           | Odpowiedzi OpenAI                    |
+| POST   | `/v1/responses`                           | OpenAI Responses                     |
 | POST   | `/v1/embeddings`                          | OpenAI                               |
-| POST   | `/v1/images/generations`                  | Obrazy OpenAI                        |
-| POST   | `/v1/images/edits`                        | Obrazy OpenAI (edycja/inpaint)       |
+| POST   | `/v1/images/generations`                  | OpenAI Images                        |
+| POST   | `/v1/images/edits`                        | OpenAI Images (edycja/inpainting)    |
 | POST   | `/v1/videos/generations`                  | Generowanie wideo w stylu OpenAI     |
 | POST   | `/v1/music/generations`                   | Generowanie muzyki w stylu OpenAI    |
-| POST   | `/v1/audio/transcriptions`                | Audio OpenAI (STT)                   |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (zwraca ciało audio)      |
-| POST   | `/v1/rerank`                              | Rerank w stylu Cohere/Voyage         |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                   |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (zwraca treść audio)      |
+| POST   | `/v1/rerank`                              | Reranking w stylu Cohere/Voyage      |
 | POST   | `/v1/classify`                            | Klasyfikacja Jina (`api.jina.ai`)    |
 | POST   | `/v1/segment`                             | Segmentator Jina (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | Moderacje OpenAI                     |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                   |
 | GET    | `/v1/models`                              | OpenAI                               |
 | POST   | `/v1/messages/count_tokens`               | Anthropic                            |
 | GET    | `/v1beta/models`                          | Gemini                               |
@@ -427,48 +427,68 @@ Użyj tego punktu końcowego, gdy sidecar działa poza procesem i nie może bezp
 | GET    | `/api/v1/vscode/{token}/`                 | Alias katalogu OpenAI                |
 | GET    | `/api/v1/vscode/{token}/models`           | Alias modeli OpenAI                  |
 | POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenizowany alias OpenAI            |
-| POST   | `/api/v1/vscode/{token}/responses`        | Tokenizowany alias odpowiedzi OpenAI |
+| POST   | `/api/v1/vscode/{token}/responses`        | Tokenizowany alias OpenAI Responses  |
 | POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenizowany alias Ollama            |
 | GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenizowany alias tagów Ollama      |
 
-Wszystkie trasy POST mają ten sam kształt: `Bearer your-api-key` + ciało JSON walidowane przez Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` itd., patrz `src/shared/validation/schemas.ts`). W przypadku błędu schematu zwracany jest kod 4xx.
+Wszystkie trasy POST mają tę samą strukturę: `Bearer your-api-key` + treść JSON zweryfikowana przez Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` itd.; zobacz `src/shared/validation/schemas.ts`). W przypadku niepowodzenia walidacji schematu zwracany jest kod 4xx.
 
-Dla klientów, którzy nie mogą dołączyć `Authorization: Bearer ...`, OmniRoute akceptuje również klucze API w adresie URL za pośrednictwem zgodności z ciągiem zapytania (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) lub dedykowanych punktów końcowych `/api/v1/vscode/{token}/...` udokumentowanych poniżej.
+W przypadku klientów, którzy nie mogą dołączyć nagłówka `Authorization: Bearer ...`, OmniRoute akceptuje również klucze API w adresie URL — za pośrednictwem parametrów zapytania zapewniających zgodność (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) lub dedykowanych punktów końcowych `/api/v1/vscode/{token}/...` opisanych poniżej.
 
 ```bash
-# Rerank (dostawca rejestru chmurowego lub węzeł dostawcy zgodny z OpenAI jako "<prefix>/<model>")
+# Reranking (dostawca z rejestru chmurowego lub węzeł dostawcy zgodny z OpenAI jako "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Klasyfikacja Jina (poświadczenia API Foundation)
+# Klasyfikacja Jina (dane uwierzytelniające Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Segmentator Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Wyszukiwanie Jina (s.jina.ai; aliasy dostawców: jina-search, jina-ai, jina)
+# Wyszukiwanie Jina (s.jina.ai; aliasy dostawcy: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderacje
+# Moderacja
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — zwraca ciało audio/mpeg (lub w żądanym formacie)
+# TTS — zwraca treść audio/mpeg (lub treść w żądanym formacie)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
+
+# Soniox TTS wymaga języka i głosu: `language` ma domyślną wartość "en"; brakujący
+# głos lub nazwa standardowego głosu OpenAI (alloy, nova, …) zostaje zastąpiona przez "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
 # Edycja obrazu (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Generowanie wideo / muzyki (ID modelu z prefiksem dostawcy)
+# Generowanie wideo / muzyki (identyfikator modelu z prefiksem dostawcy)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Węzły dostawców rerank:** `POST /v1/rerank` kieruje również do węzłów dostawców zgodnych z OpenAI (oMLX, vLLM, Infinity, TEI za bramą, …) adresowanych jako `<node-prefix>/<model>`. Węzły loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) są zawsze kwalifikowane. Węzły na dowolnym innym hoście — urządzeniu LAN lub peerze Tailscale — są kwalifikowane tylko wtedy, gdy operator włączy flagę funkcji `RERANK_REMOTE_PROVIDER_NODES` **i** podstawowy adres URL węzła przejdzie politykę wychodzących adresów URL dostawcy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); hosty metadanych chmurowych nigdy nie są kierowane. Krok rerank silnika pamięci wywołuje tę trasę przez loopback, więc ta sama zasada rządzi `rerankProviderModel` w ustawieniach pamięci.
+> **Węzły dostawców rerankingu:** `POST /v1/rerank` kieruje również żądania do węzłów dostawców zgodnych z OpenAI
+> (oMLX, vLLM, Infinity, TEI za bramą, …), adresowanych jako `<node-prefix>/<model>`. Węzły pętli zwrotnej
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) są zawsze dostępne. Węzły na dowolnym innym
+> hoście — urządzeniu w sieci LAN lub peeringu Tailscale — są dostępne tylko wtedy, gdy operator włączy
+> flagę funkcji `RERANK_REMOTE_PROVIDER_NODES` **oraz** bazowy adres URL węzła spełnia zasady dotyczące
+> wychodzących adresów URL dostawców (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> żądania nigdy nie są kierowane do hostów metadanych chmurowych. Etap rerankingu silnika pamięci wywołuje tę trasę przez
+> pętlę zwrotną, dlatego ta sama reguła ma zastosowanie do `rerankProviderModel` w ustawieniach pamięci.
 >
-> **Kształty serwerów lokalnych:** węzeł jest wywoływany pod adresem `<base>/v1/rerank`, a w przypadku 404, pod adresem `<base>/rerank` (Infinity, TEI). Ciało żądania nadrzędnego zawiera zarówno pisownię Cohere/OpenAI (`documents`, `return_documents`), jak i pisownię TEI (`texts`, `return_text`), a odpowiedź nadrzędna jest normalizowana do koperty Cohere: gołe `[{index, score, text}]` z TEI, `{results: [{index, score}]}` z cienkich bramek oraz `{data: [...]}` w stylu Voyage, wszystko wraca do klienta jako `{results: [{index, relevance_score, document?}]}`, posortowane według wyniku i ograniczone do `top_n`.
+> **Struktury serwerów lokalnych:** węzeł jest wywoływany pod adresem `<base>/v1/rerank`, a po otrzymaniu kodu 404 — pod adresem `<base>/rerank`
+> (Infinity, TEI). Treść wysyłana do serwera nadrzędnego zawiera zarówno nazewnictwo Cohere/OpenAI (`documents`,
+> `return_documents`), jak i nazewnictwo TEI (`texts`, `return_text`), a odpowiedź serwera nadrzędnego jest
+> normalizowana do obwiedni Cohere: nieopakowana odpowiedź TEI `[{index, score, text}]`, odpowiedź `{results: [{index, score}]}`
+> z prostych bram oraz odpowiedź w stylu Voyage `{data: [...]}` są zwracane klientowi jako
+> `{results: [{index, relevance_score, document?}]}`, posortowane według wyniku i ograniczone do `top_n`.
 
-> **Odkrywanie węzłów dostawców:** modele na węźle dostawcy zgodnym z OpenAI pojawiają się w `GET /v1/models` pod prefiksem węzła. Wiersze, które nie zawierają metadanych punktu końcowego (typowe dla lokalnych list `/v1/models`), dziedziczą `apiType` węzła, więc modele węzła `embeddings` mają `type: "embedding"`, a modele węzła `rerank` mają `type: "rerank"`, zamiast domyślnie być czatem; jawne `supportedEndpoints` w zsynchronizowanym lub ręcznie dodanym wierszu nadal ma pierwszeństwo.
+> **Wykrywanie modeli węzła dostawcy:** modele w węźle dostawcy zgodnym z OpenAI pojawiają się w `GET /v1/models`
+> pod prefiksem węzła. Wiersze niezawierające metadanych punktu końcowego (co jest typowe dla lokalnych list `/v1/models`)
+> dziedziczą `apiType` węzła, dlatego modele węzła `embeddings` mają `type: "embedding"`, a modele
+> węzła `rerank` mają `type: "rerank"` zamiast domyślnie przyjmować typ czatu; jawnie określone
+> `supportedEndpoints` w zsynchronizowanym lub ręcznie dodanym wierszu nadal ma pierwszeństwo.
 
-### Dedykowane Trasy Dostawców
+### Dedykowane trasy dostawców
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -476,7 +496,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Prefiks dostawcy jest dodawany automatycznie, jeśli brakuje. Niezgodne modele zwracają `400`.
+Prefiks dostawcy jest dodawany automatycznie, jeśli go brakuje. Niedopasowane modele zwracają kod `400`.
 
 ---
 
@@ -1391,22 +1411,24 @@ Zwraca publiczną kartę agenta A2A (nazwa, opis, możliwości, katalog umiejęt
 
 ---
 
-## Chmura, Oceny i Analiza
+## Chmura, ewaluacje i ocena
 
-| Metoda | Ścieżka                         | Opis                                                                                                                   |
-| ------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Weryfikuje klucz Bearer i zwraca zamaskowane połączenia dostawców + aliasy modeli dla klientów synchronizacji z chmurą |
-| POST   | `/api/cloud/credentials/update` | Aktualizuje zaszyfrowane poświadczenia dla dostawcy synchronizowanego z chmurą                                         |
-| POST   | `/api/cloud/model/resolve`      | Rozwiązuje logiczny identyfikator modelu do konkretnego dostawcy/modelu za pomocą lokalnej tabeli routingu             |
-| GET    | `/api/cloud/models/alias`       | Wyświetla listę aliasów modeli udostępnionych do synchronizacji z chmurą                                               |
-| GET    | `/api/assess`                   | Odczytuje najnowsze kategoryzacje ocen (dla każdego dostawcy/modelu)                                                   |
-| POST   | `/api/assess`                   | Uruchamia ocenę — ciało: `{scope: {type:"all"} \| {type:"provider", providerId} \| {type:"model", modelId}, trigger?}` |
-| GET    | `/api/evals`                    | Wyświetla listę wbudowanych zestawów ewaluacyjnych + najnowsze uruchomienia                                            |
-| POST   | `/api/evals`                    | Uruchamia przebieg ewaluacji                                                                                           |
-| POST   | `/api/evals/suites`             | Tworzy niestandardowy zestaw ewaluacyjny — ciało walidowane przez `evalSuiteSaveSchema`                                |
-| GET    | `/api/evals/suites/[id]`        | Pobiera niestandardowy zestaw ewaluacyjny                                                                              |
+| Metoda | Ścieżka | Opis |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
+| POST | `/api/cloud/auth` | Weryfikuje klucz Bearer i zwraca zamaskowane połączenia z dostawcami oraz aliasy modeli dla klientów synchronizacji z chmurą |
+| POST | `/api/cloud/credentials/update` | Aktualizuje zaszyfrowane dane uwierzytelniające dostawcy synchronizowanego z chmurą |
+| POST | `/api/cloud/model/resolve` | Rozpoznaje logiczny identyfikator modelu do konkretnego dostawcy/modelu przy użyciu lokalnej tabeli routingu |
+| GET | `/api/cloud/models/alias` | Wyświetla aliasy modeli udostępniane na potrzeby synchronizacji z chmurą |
+| GET | `/api/assess` | Odczytuje najnowsze kategoryzacje ocen (według dostawcy/modelu) |
+| POST | `/api/assess` | Uruchamia ocenę — treść: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Wyświetla wbudowane zestawy ewaluacyjne i najnowsze uruchomienia |
+| POST | `/api/evals` | Uruchamia ewaluację |
+| POST | `/api/evals/suites` | Tworzy niestandardowy zestaw ewaluacyjny — treść walidowana przez `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | Pobiera niestandardowy zestaw ewaluacyjny |
 
-**Uwierzytelnianie:** `/api/cloud/auth` bezpośrednio waliduje klucz Bearer; pozostałe trasy `/api/cloud/*`, `/api/evals/*` i `/api/assess` wymagają sesji zarządzania/klucza API. POST `/api/assess` używa `validateBody` ze schematem zakresu unii dyskryminowanej.
+**Uwierzytelnianie:** `/api/cloud/auth` bezpośrednio waliduje klucz Bearer i zwraca zamaskowany klucz oraz `projectId` każdego połączenia tylko w przypadku klucza z zakresem `manage` / `admin`; pozostałe trasy `/api/cloud/*`, `/api/evals/*` i `/api/assess` wymagają sesji zarządzania/klucza API. Żądanie POST do `/api/assess` używa `validateBody` ze schematem zakresu będącym unią dyskryminowaną.
+
+---
 
 ## Zarządzanie ACP (Agent Client Protocol)
 

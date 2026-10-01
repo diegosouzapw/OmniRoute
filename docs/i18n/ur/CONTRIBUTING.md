@@ -416,6 +416,5 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **آرکیٹیکچر**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) دیکھیں
 - **API حوالہ**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) دیکھیں
 - **سیکیورٹی دستاویزات**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md)، [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md)، [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)، [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **آپریشنز کی دستاویزات**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **آپریشنز دستاویزات**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **مسائل**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: آرکیٹیکچرل فیصلوں کے ریکارڈز کے لیے `docs/adr/` دیکھیں

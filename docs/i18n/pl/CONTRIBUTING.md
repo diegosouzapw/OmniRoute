@@ -1,4 +1,8 @@
-# Współtworzenie OmniRoute
+# Contributing to OmniRoute (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+
+---
 
 Dziękujemy za zainteresowanie współtworzeniem projektu! Ten przewodnik zawiera wszystko, czego potrzebujesz, aby zacząć.
 
@@ -263,67 +267,67 @@ Zobacz `open-sse/utils/stream.ts` i `open-sse/utils/streamHandler.ts` jako zasto
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Dashboard pages (23 sections)
-│   ├── api/                # API routes (51 directories)
-│   └── login/              # Auth pages (.tsx)
-├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
-├── lib/                    # Core business logic (.ts)
-│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
-│   ├── acp/                # Agent Communication Protocol registry
-│   ├── compliance/         # Compliance policy engine
-│   ├── db/                 # SQLite database layer (110 top-level modules + 130 migrations)
-│   ├── memory/             # Persistent conversational memory
-│   ├── oauth/              # OAuth providers, services, and utilities
-│   ├── skills/             # Extensible skill framework
-│   ├── usage/              # Usage tracking and cost calculation
-│   └── localDb.ts          # Re-export layer only — never add logic here
-├── middleware/              # Request middleware (promptInjectionGuard)
-├── mitm/                   # MITM proxy (cert, DNS, target routing)
+│   ├── (dashboard)/        # Strony panelu (23 sekcje)
+│   ├── api/                # Trasy API (51 katalogów)
+│   └── login/              # Strony uwierzytelniania (.tsx)
+├── domain/                 # Silnik zasad (policyEngine, comboResolver, costRules itd.)
+├── lib/                    # Podstawowa logika biznesowa (.ts)
+│   ├── a2a/                # Serwer protokołu Agent-to-Agent v0.3
+│   ├── acp/                # Rejestr protokołu Agent Communication Protocol
+│   ├── compliance/         # Silnik zasad zgodności
+│   ├── db/                 # Moduły domenowe SQLite + 130 migracji
+│   ├── memory/             # Trwała pamięć konwersacyjna
+│   ├── oauth/              # Dostawcy OAuth, usługi i narzędzia
+│   ├── skills/             # Rozszerzalny framework umiejętności
+│   ├── usage/              # Śledzenie użycia i obliczanie kosztów
+│   └── localDb.ts          # Wyłącznie warstwa reeksportu — nigdy nie dodawaj tutaj logiki
+├── middleware/              # Oprogramowanie pośredniczące żądań (promptInjectionGuard)
+├── mitm/                   # Serwer proxy MITM (certyfikaty, DNS, routing docelowy)
 ├── shared/
-│   ├── components/         # React components (.tsx)
-│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
-│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
-│   └── validation/         # Zod v4 schemas
-└── sse/                    # SSE proxy pipeline
+│   ├── components/         # Komponenty React (.tsx)
+│   ├── constants/          # Definicje dostawców (329), zakresy MCP, 19 strategii routingu
+│   ├── utils/              # Wyłącznik obwodu, narzędzie oczyszczające, funkcje pomocnicze uwierzytelniania
+│   └── validation/         # Schematy Zod v4
+└── sse/                    # Potok proxy SSE
 
-open-sse/                   # @omniroute/open-sse workspace
-├── executors/              # 89 executor implementation modules
-├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
-├── mcp-server/             # MCP server (107 tools, 3 transports, 32 scopes)
-├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
-├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Responses API transformer
-└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
+open-sse/                   # Przestrzeń robocza @omniroute/open-sse
+├── executors/              # 89 modułów implementacji wykonawców
+├── handlers/               # 11 procedur obsługi żądań (czat, odpowiedzi, osadzenia, obrazy itd.)
+├── mcp-server/             # Serwer MCP (110 unikalnych narzędzi, 3 transporty, 33 zakresy)
+├── services/               # 178 usług najwyższego poziomu (combo, autoCombo, rateLimitManager itd.)
+├── translator/             # Translatory formatów (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Transformator Responses API
+└── utils/                  # 22 moduły narzędziowe (strumień, TLS, proxy, rejestrowanie)
 
-electron/                   # Electron desktop app (cross-platform)
+electron/                   # Wieloplatformowa aplikacja desktopowa Electron
 
 tests/
-├── unit/                   # Node.js test runner (1,574 test files)
-├── integration/            # Integration tests
-├── e2e/                    # Playwright tests
-├── security/               # Security tests
-├── translator/             # Translator-specific tests
-└── load/                   # Load tests
+├── unit/                   # Moduł uruchamiający testy Node.js (1574 pliki testowe)
+├── integration/            # Testy integracyjne
+├── e2e/                    # Testy Playwright
+├── security/               # Testy bezpieczeństwa
+├── translator/             # Testy specyficzne dla translatora
+└── load/                   # Testy obciążeniowe
 
 docs/
-├── adr/                     # Architecture Decision Records
-├── architecture/            # System architecture & resilience
-├── comparison/              # OmniRoute vs alternatives
-├── compression/             # Compression guides & rules
-├── dev/                     # Development guides
-├── diagrams/                # Architecture diagrams
-├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
-├── guides/                  # User guide, Docker, setup, troubleshooting
-├── i18n/                    # Internationalized README translations
-├── marketing/               # Marketing materials
-├── ops/                     # Deployment, proxy, coverage, releases
-├── providers/               # Provider-specific docs
-├── reference/               # API reference, env vars, CLI tools, free tiers
-├── releases/                # Release notes
-├── routing/                 # Auto-combo engine, reasoning replay
-├── screenshots/             # Dashboard screenshots
-├── security/                # Guardrails, compliance, stealth, tokens
-└── specs/                   # Design specs
+├── adr/                     # Rejestry decyzji architektonicznych
+├── architecture/            # Architektura i odporność systemu
+├── comparison/              # OmniRoute a rozwiązania alternatywne
+├── compression/             # Przewodniki i reguły kompresji
+├── dev/                     # Przewodniki programistyczne
+├── diagrams/                # Diagramy architektury
+├── frameworks/              # MCP, A2A, OpenCode, pamięć, umiejętności
+├── guides/                  # Podręcznik użytkownika, Docker, konfiguracja, rozwiązywanie problemów
+├── i18n/                    # Umiędzynarodowione tłumaczenia README
+├── marketing/               # Materiały marketingowe
+├── ops/                     # Wdrażanie, proxy, pokrycie testami, wydania
+├── providers/               # Dokumentacja poszczególnych dostawców
+├── reference/               # Dokumentacja API, zmienne środowiskowe, narzędzia CLI, bezpłatne plany
+├── releases/                # Informacje o wydaniach
+├── routing/                 # Silnik auto-combo, odtwarzanie rozumowania
+├── screenshots/             # Zrzuty ekranu panelu
+├── security/                # Mechanizmy ochronne, zgodność, tryb dyskretny, tokeny
+└── specs/                   # Specyfikacje projektowe
 ```
 
 ---
@@ -393,11 +397,10 @@ Następnie użyj skilli `/deploy-vps-*-cc`, które robią rsync `dist/` do zdaln
 
 ---
 
-## Pomoc
+## Uzyskiwanie pomocy
 
 - **Architektura**: Zobacz [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Dokumentacja API**: Zobacz [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Dokumenty bezpieczeństwa**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Dokumenty ops**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-y**: Zobacz `docs/adr/` dla architectural decision records
+- **Dokumentacja bezpieczeństwa**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Dokumentacja operacyjna**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Zgłoszenia**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

@@ -263,16 +263,23 @@ Returnerer `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Nødreserve ved budgetoverskridelse
+## Nødreserve ved opbrugt budget
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (kategori `runtime`, standardværdi `true`) styrer
-nødreserveforløbet med gratis fallback i
+nødmekanismen med en gratis reserveløsning i
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Når det er aktiveret, dirigeres anmodninger, der har opbrugt deres budget, til en gratis
-fallback-udbyder/-model i stedet for straks at mislykkes. Indstil det til `false` (eller `0`) — via
-til/fra-knappen i dashboardet, en DB-tilsidesættelse eller miljøvariablen
-`OMNIROUTE_EMERGENCY_FALLBACK` — for at deaktivere adfærden og lade anmodninger med
-opbrugt budget mislykkes. (Gjort tilgængelig som en til/fra-knap i dashboardet i PR'er #3741 / #3752.)
+Når den er aktiveret, dirigeres anmodninger, der har opbrugt deres budget, til en
+gratis reserveudbyder/-model i stedet for at mislykkes med det samme. Indstil den
+til `false` (eller `0`) — via kontakten i dashboardet, en DB-tilsidesættelse eller
+miljøvariablen `OMNIROUTE_EMERGENCY_FALLBACK` — for at deaktivere denne adfærd og
+lade anmodninger med opbrugt budget mislykkes. (Tilgængelig som en kontakt i
+dashboardet i PR'er #3741 / #3752.)
+
+Et svar, der leveres via denne reserveløsning, indeholder
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, så en
+klient kan se, at anmodningen blev omdirigeret, uden at sammenligne
+`X-OmniRoute-Provider` med sin anmodning. Headeren er ikke til stede i noget andet
+svar.
 
 ---
 

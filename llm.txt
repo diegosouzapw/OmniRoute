@@ -8,7 +8,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 **Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
 
-**Current version:** 3.8.51
+**Current version:** 3.8.52
 
 ## Tech Stack
 

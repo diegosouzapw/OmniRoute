@@ -270,13 +270,13 @@ ympäristön / oletusarvoon. Palauttaa `{ cleared: <count>, message: "..." }`.
 ## Budjetin hätävaravaihtoehto
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (luokka `runtime`, oletusarvo `true`) hallitsee
-budjetin hätävaravaihtoehdon polkua tiedostossa
+maksutonta hätävarareittiä tiedostossa
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Kun se on käytössä, budjettinsa kuluttaneet pyynnöt reititetään maksuttomalle varapalveluntarjoajalle/-mallille
-sen sijaan, että ne epäonnistuisivat kokonaan. Aseta sen arvoksi `false` (tai `0`) — hallintapaneelin
-valintakytkimellä, tietokantaohituksella tai `OMNIROUTE_EMERGENCY_FALLBACK`-
-ympäristömuuttujalla — poistaaksesi toiminnon käytöstä ja antaaksesi budjettinsa kuluttaneiden pyyntöjen
-epäonnistua. (Tuotu hallintapaneelin valintakytkimeksi PR-muutoksissa #3741 / #3752.)
+Kun asetus on käytössä, budjettinsa loppuun käyttäneet pyynnöt ohjataan maksuttomalle varapalveluntarjoajalle/-mallille sen sijaan, että ne epäonnistuisivat suoraan. Aseta arvoksi `false` (tai `0`) — hallintapaneelin valitsimella, tietokannan ohitusasetuksella tai
+`OMNIROUTE_EMERGENCY_FALLBACK`-ympäristömuuttujalla — poistaaksesi toiminnon käytöstä ja antaaksesi budjettinsa loppuun käyttäneiden pyyntöjen epäonnistua. (Tuotu hallintapaneeliin valitsimena PR-muutoksissa #3741 / #3752.)
+
+Tämän varavaihtoehdon kautta toimitettu vastaus sisältää otsakkeen
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, joten asiakas voi havaita uudelleenreitityksen vertaamatta `X-OmniRoute-Provider`-otsaketta pyyntöönsä. Otsake puuttuu kaikista muista vastauksista.
 
 ---
 

@@ -250,11 +250,20 @@ Tnaddaf **l-overrides kollha** tad-DB f'daqqa, u tirrestawra kull flag għall-va
 
 ---
 
-## Emergency Budget Fallback
+## Alternattiva ta' Emerġenza għall-Baġit
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (kategorija `runtime`, default `true`) tikkontrolla l-mogħdija ta' fallback b'xejn ta' emerġenza f'
+`OMNIROUTE_EMERGENCY_FALLBACK` (kategorija `runtime`, valur predefinit `true`) jikkontrolla l-mogħdija alternattiva bla ħlas ta' emerġenza f'
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Meta attivata, talbiet li jispiċċawlhom il-baġit jiġu diretti lejn fornitur/mudell ta' fallback b'xejn minflok ma jfallu għal kollox. Issettjaha għal `false` (jew `0`) — permezz tat-toggle tad-dashboard, override tad-DB, jew il-varjabbli tal-ambjent `OMNIROUTE_EMERGENCY_FALLBACK` — biex tiddiżattiva l-imġieba u tħalli t-talbiet li jispiċċawlhom il-baġit ifallu. (Murija bħala toggle tad-dashboard fil-PRs #3741 / #3752.)
+Meta tkun attivata, it-talbiet li jeżawrixxu l-baġit tagħhom jiġu diretti lejn
+fornitur/mudell alternattiv bla ħlas minflok ma jfallu għalkollox. Issettjaha għal `false` (jew `0`) — permezz tal-
+buttuna fid-dashboard, override fid-DB, jew il-varjabbli ambjentali
+`OMNIROUTE_EMERGENCY_FALLBACK` — biex tiddiżattiva din l-imġiba u tħalli t-talbiet
+li jkunu eżawrew il-baġit ifallu. (Murija bħala buttuna fid-dashboard fil-PRs #3741 / #3752.)
+
+Risposta pprovduta minn din l-alternattiva jkollha
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, sabiex
+klijent ikun jista' jagħraf li ġiet diretta mill-ġdid mingħajr ma jqabbel `X-OmniRoute-Provider` mat-
+talba tiegħu. L-header ma jkun preżenti fl-ebda risposta oħra.
 
 ---
 

@@ -419,11 +419,10 @@ docs/
 
 ---
 
-## Λήψη Βοήθειας
+## Λήψη βοήθειας
 
-- **Αρχιτεκτονική**: Δείτε [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Αναφορά API**: Δείτε [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Έγγραφα ασφαλείας**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Έγγραφα λειτουργίας**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Αρχιτεκτονική**: Δείτε το [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **Αναφορά API**: Δείτε το [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Τεκμηρίωση ασφαλείας**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Τεκμηρίωση λειτουργίας**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Ζητήματα**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Δείτε τον φάκελο `docs/adr/` για αρχεία αποφάσεων αρχιτεκτονικής

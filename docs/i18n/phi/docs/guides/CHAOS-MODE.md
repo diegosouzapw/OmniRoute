@@ -8,15 +8,41 @@
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (session ng dashboard) · `POST /api/skills/collect/chaos` (API key)  
 > **Source:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Nagpapadala ang Chaos Mode ng **isang gawain sa maraming provider nang sabay-sabay** — nag-aambag ang bawat kalahok na provider ng isang instance ng model, at makukuha mo ang lahat ng sagot nang magkakatabi (o magkakasunod). Isa itong surface para sa multi-model execution, hindi isang routing strategy: hindi nito kailanman naaapektuhan ang karaniwan mong traffic sa `/v1/chat/completions`.
+Nagpapadala ang Chaos Mode ng **isang gawain sa ilang provider nang sabay-sabay** — nag-aambag ang bawat kalahok na provider
+ng isang instance ng modelo, at makukuha mo ang lahat ng sagot nang magkakatabi (o magkakasunod na nakakadena). Isa itong
+surface para sa pagpapatakbo ng maraming modelo, hindi isang diskarte sa pagruruta: hindi nito kailanman naaapektuhan ang iyong karaniwang trapiko sa
+`/v1/chat/completions`.
 
-**Paglilinaw — tatlong magkakaibang bagay ang may "chaos" sa pangalan:**
+**Paglilinaw — tatlong magkakaibang bagay ang inilalabas na may "chaos" sa pangalan:**
 
-| Bagay              | Ano ito                                                                                                                           | Saan nakadokumento                           |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**     | Ang dashboard page + API na inilalarawan dito: ipamahagi ang isang gawain sa maraming provider (parallel o collaborative).        | Ang gabay na ito                             |
-| `auto/chaos`       | Isang Auto-Combo model id na may fault-injection scoring weights, para sa resilience testing. Walang kailangang i-configure.      | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos combo config | Isang naka-persist na combo na may `config.chaos.enabled` na namamahagi sa isang panel na may opsyonal na judge model (API-only). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Bagay              | Ano ito                                                                                                                                                                                  | Saan nakadokumento                           |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**     | Ang pahina ng dashboard + API na inilalarawan dito: ipamahagi ang isang gawain sa maraming provider (parallel o collaborative).                                                          | Ang gabay na ito                             |
+| `auto/chaos`       | Model id ng Auto-Combo: parallel na pamamahagi, isang modelo bawat provider, tig-isang upstream call. Hindi fault injection ([mga detalye](#autochaos-parallel-fan-out)).                | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos combo config | Isang naka-persist na combo na may `config.chaos.enabled` na namamahagi sa parehong paraan (API-only); pinipili lamang ng `judgeModel` ang panghuling sagot, nang walang synthesis call. | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: parallel na pamamahagi
+
+Ang `auto/chaos` ay **hindi** isang kontrol para sa fault injection o pagsusuri ng resilience. Kapag humiling ng
+`model: "auto/chaos"` sa `/v1/chat/completions`:
+
+1. Bumubuo ito ng panel na may **isang modelo bawat provider**: ang unang kandidato ng bawat
+   nakakonektang provider, ayon sa pagkakasunod-sunod sa candidate pool, hanggang 5 miyembro
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, limitado sa 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Itinatakda lamang ng `chaos-mode` weight
+   pack ang `weight` ng bawat miyembro; hindi ito binabasa ng pamamahagi.
+2. Ipinapadala nito ang parehong request sa bawat miyembro ng panel **nang sabay-sabay**, kaya ang isang request
+   ay nagkakahalaga ng isang upstream call bawat miyembro ng panel
+   (`open-sse/services/autoCombo/chaosEngine.ts`, ipinapadala mula sa
+   `open-sse/services/combo.ts`).
+3. Nag-i-stream ito ng isang status line bawat miyembro ng panel habang dumarating ang resulta: isang SSE comment
+   (`: chaos <index> ok|fail <model>`) bilang default, kasama ang isang `omni-chaos-part`
+   event (`model`, `index`, `ok`, `error`) kapag itinakda ng request ang
+   `stream_options.include_chaos_parts: true`. Walang nilalamang teksto ng sagot ang mga ito.
+4. Nagpapadala ito ng **isang** sagot mula sa panel bilang panghuling chunk na OpenAI-style: ang sagot ng unang miyembro ng panel
+   (itinatalaga ito ng `auto/chaos` bilang `judgeModel`) kapag matagumpay ito, o kung hindi,
+   ang sagot ng huling matagumpay na miyembro. Hindi ibinabalik ang iba pang sagot ng panel, kaya
+   nagbabayad ka para sa N call ngunit isang completion lamang ang natatanggap mo.
 
 ## Pag-set up
 

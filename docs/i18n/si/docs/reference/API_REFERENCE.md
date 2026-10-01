@@ -418,72 +418,92 @@ sidecar එකක් ක්රියාවලියෙන් පිටත ධා
 
 ---
 
-## අනුකූලතා අවසන් ලක්ෂ්ය
+## ගැළපුම් අන්ත ලක්ෂ්ය
 
-| ක්රමය | මාර්ගය                                    | ආකෘතිය                                       |
-| ----- | ----------------------------------------- | -------------------------------------------- |
-| POST  | `/v1/chat/completions`                    | OpenAI                                       |
-| POST  | `/v1/messages`                            | Anthropic                                    |
-| POST  | `/v1/responses`                           | OpenAI ප්රතිචාර                              |
-| POST  | `/v1/embeddings`                          | OpenAI                                       |
-| POST  | `/v1/images/generations`                  | OpenAI රූප                                   |
-| POST  | `/v1/images/edits`                        | OpenAI රූප (සංස්කරණය/පිරවීම)                 |
-| POST  | `/v1/videos/generations`                  | OpenAI-විලාසිතාවේ වීඩියෝ ජනනය                |
-| POST  | `/v1/music/generations`                   | OpenAI-විලාසිතාවේ සංගීත ජනනය                 |
-| POST  | `/v1/audio/transcriptions`                | OpenAI ශ්රව්ය (STT)                          |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (ශ්රව්ය ශරීරය ආපසු ලබා දෙයි)      |
-| POST  | `/v1/rerank`                              | Cohere/Voyage-විලාසිතාවේ නැවත ශ්රේණිගත කිරීම |
-| POST  | `/v1/classify`                            | Jina වර්ගීකරණය (`api.jina.ai`)               |
-| POST  | `/v1/segment`                             | Jina කොටස්කරණය (`segment.jina.ai`)           |
-| POST  | `/v1/moderations`                         | OpenAI මධ්යස්ථකරණය                           |
-| GET   | `/v1/models`                              | OpenAI                                       |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                                    |
-| GET   | `/v1beta/models`                          | Gemini                                       |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                       |
-| POST  | `/v1/api/chat`                            | Ollama                                       |
-| GET   | `/api/v1/vscode/{token}/`                 | OpenAI නාමාවලි අන්වර්ථ නාමය                  |
-| GET   | `/api/v1/vscode/{token}/models`           | OpenAI මාදිලි අන්වර්ථ නාමය                   |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI ටෝකනයිස් කළ අන්වර්ථ නාමය              |
-| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI ප්රතිචාර ටෝකනයිස් කළ අන්වර්ථ නාමය     |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama ටෝකනයිස් කළ අන්වර්ථ නාමය              |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama ටැග් ටෝකනයිස් කළ අන්වර්ථ නාමය         |
+| ක්රමය | මාර්ගය                                    | ආකෘතිය                                   |
+| ----- | ----------------------------------------- | ---------------------------------------- |
+| POST  | `/v1/chat/completions`                    | OpenAI                                   |
+| POST  | `/v1/messages`                            | Anthropic                                |
+| POST  | `/v1/responses`                           | OpenAI Responses                         |
+| POST  | `/v1/embeddings`                          | OpenAI                                   |
+| POST  | `/v1/images/generations`                  | OpenAI Images                            |
+| POST  | `/v1/images/edits`                        | OpenAI Images (සංස්කරණය/inpaint)         |
+| POST  | `/v1/videos/generations`                  | OpenAI-ශෛලියේ වීඩියෝ ජනනය                |
+| POST  | `/v1/music/generations`                   | OpenAI-ශෛලියේ සංගීත ජනනය                 |
+| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (ශ්රව්ය body එක ලබා දෙයි)     |
+| POST  | `/v1/rerank`                              | Cohere/Voyage-ශෛලියේ නැවත ශ්රේණිගත කිරීම |
+| POST  | `/v1/classify`                            | Jina වර්ගීකරණය (`api.jina.ai`)           |
+| POST  | `/v1/segment`                             | Jina ඛණ්ඩකය (`segment.jina.ai`)          |
+| POST  | `/v1/moderations`                         | OpenAI Moderations                       |
+| GET   | `/v1/models`                              | OpenAI                                   |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                                |
+| GET   | `/v1beta/models`                          | Gemini                                   |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                   |
+| POST  | `/v1/api/chat`                            | Ollama                                   |
+| GET   | `/api/v1/vscode/{token}/`                 | OpenAI නාමාවලි අන්වර්ථය                  |
+| GET   | `/api/v1/vscode/{token}/models`           | OpenAI ආකෘති අන්වර්ථය                    |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI token සහිත අන්වර්ථය               |
+| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses token සහිත අන්වර්ථය     |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama token සහිත අන්වර්ථය               |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama tags token සහිත අන්වර්ථය          |
 
-සියලුම POST මාර්ග එකම හැඩය අනුගමනය කරයි: `Bearer your-api-key` + Zod-වලංගු කළ JSON ශරීරය (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ආදිය, `src/shared/validation/schemas.ts` බලන්න). යෝජනා ක්රමය අසාර්ථක වුවහොත් 4xx ආපසු ලබා දේ.
+සියලුම POST මාර්ග එකම ආකෘතිය අනුගමනය කරයි: `Bearer your-api-key` + Zod මඟින් වලංගු කළ JSON body එකක් (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ආදිය; `src/shared/validation/schemas.ts` බලන්න). schema අසමත් වුවහොත් 4xx ආපසු ලබා දෙයි.
 
-`Authorization: Bearer ...` ඇමිණීමට නොහැකි සේවාදායකයන් සඳහා, OmniRoute මඟින් URL එකෙහි API යතුරු පිළිගනු ලබන්නේ විමසුම්-තන්තු අනුකූලතාවය (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) හෝ පහත ලේඛනගත කර ඇති කැපවූ `/api/v1/vscode/{token}/...` අවසන් ලක්ෂ්ය හරහාය.
+`Authorization: Bearer ...` ඇමිණිය නොහැකි clients සඳහා, query-string ගැළපුම (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) හෝ පහත ලේඛනගත කර ඇති කැපවූ `/api/v1/vscode/{token}/...` අන්ත ලක්ෂ්ය හරහා URL තුළ API keys ද OmniRoute පිළිගනී.
 
 ```bash
-# නැවත ශ්රේණිගත කිරීම (ක්ලවුඩ් රෙජිස්ට්රි සපයන්නා, හෝ OpenAI-අනුකූල සපයන්නා නෝඩයක් ලෙස "<prefix>/<model>")
+# නැවත ශ්රේණිගත කිරීම (cloud registry provider එකක්, හෝ "<prefix>/<model>" ලෙස OpenAI-ගැළපෙන provider node එකක්)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina වර්ගීකරණය (Foundation API අක්තපත්ර)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina කොටස්කරණය
+# Jina ඛණ්ඩකය
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina සෙවීම (s.jina.ai; සපයන්නාගේ අන්වර්ථ නාම: jina-search, jina-ai, jina)
+# Jina සෙවීම (s.jina.ai; provider අන්වර්ථ: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# මධ්යස්ථකරණය
+# අන්තර්ගත පාලනය
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (හෝ ඉල්ලූ ආකෘතිය) ශරීරය ආපසු ලබා දෙයි
+# TTS — audio/mpeg body එකක් (හෝ ඉල්ලූ ආකෘතිය) ලබා දෙයි
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# රූප සංස්කරණය (බහු කොටස්)
+# Soniox TTS සඳහා භාෂාවක් සහ හඬක් අවශ්ය වේ: `language` හි පෙරනිමිය "en" වේ; නොමැති
+# හඬක් හෝ OpenAI හි සම්මත හඬ නාමයක් (alloy, nova, …) "Adrian" බවට පත් වේ
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# රූප සංස්කරණය (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# වීඩියෝ / සංගීත ජනනය (සපයන්නා-පෙරනිමි මාදිලි හැඳුනුම්පත)
+# වීඩියෝ / සංගීත ජනනය (provider-prefix සහිත model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **නැවත ශ්රේණිගත කිරීමේ සපයන්නා නෝඩ්:** `POST /v1/rerank` මඟින් OpenAI-අනුකූල සපයන්නා නෝඩ් (oMLX, vLLM, Infinity, TEI ගේට්වේ එකක් පිටුපස, ...) වෙතද `<node-prefix>/<model>` ලෙස යොමු කරයි. ලූප්බැක් නෝඩ් (`localhost`, `127.0.0.1`, `172.16.0.0/12`) සෑම විටම සුදුසුකම් ලබයි. වෙනත් ඕනෑම සත්කාරකයක ඇති නෝඩ් — LAN පෙට්ටියක් හෝ Tailscale සමකක්ෂයක් — සුදුසුකම් ලබන්නේ ක්රියාකරු `RERANK_REMOTE_PROVIDER_NODES` විශේෂාංග ධජය සක්රීය කළ විට **සහ** නෝඩයේ මූලික URL සපයන්නාගේ පිටතට යන URL ප්රතිපත්තිය (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) සමත් වූ විට පමණි; ක්ලවුඩ්-මෙටාඩේටා සත්කාරක වෙත කිසිවිටෙක යොමු නොකෙරේ. මතක එන්ජිමේ නැවත ශ්රේණිගත කිරීමේ පියවර මෙම මාර්ගය ලූප්බැක් හරහා අමතයි, එබැවින් මතක සැකසුම්වල `rerankProviderModel` පාලනය කරන්නේ එම රීතියමයි.
+> **නැවත ශ්රේණිගත කිරීමේ provider nodes:** `POST /v1/rerank` මඟින් `<node-prefix>/<model>` ලෙස යොමු කරන ලද OpenAI-ගැළපෙන provider nodes
+> (oMLX, vLLM, Infinity, gateway එකක් පිටුපස ඇති TEI, …) වෙත ද ඉල්ලීම් මාර්ගගත කරයි. Loopback
+> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) සැමවිටම සුදුසුකම් ලබයි. වෙනත් ඕනෑම
+> host එකක ඇති nodes — LAN යන්ත්රයක් හෝ Tailscale peer එකක් — සුදුසුකම් ලබන්නේ operator විසින්
+> `RERANK_REMOTE_PROVIDER_NODES` විශේෂාංග ධජය සක්රීය කර ඇති විට **සහ** node එකේ base URL එක provider
+> outbound URL ප්රතිපත්තිය (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) සමත් වන විට පමණි;
+> cloud-metadata hosts වෙත කිසි විටෙකත් මාර්ගගත නොකෙරේ. memory engine එකේ නැවත ශ්රේණිගත කිරීමේ පියවර loopback හරහා
+> මෙම මාර්ගය කැඳවන බැවින්, Memory සැකසුම්වල `rerankProviderModel` සඳහාත් මෙම රීතියම අදාළ වේ.
 >
-> **දේශීය සේවාදායක හැඩතල:** නෝඩය `<base>/v1/rerank` හිදී සහ 404 හිදී `<base>/rerank` (Infinity, TEI) හිදී අමතනු ලැබේ. ඉහළ ධාරාවේ ශරීරය Cohere/OpenAI අක්ෂර වින්යාසය (`documents`, `return_documents`) සහ TEI අක්ෂර වින්යාසය (`texts`, `return_text`) යන දෙකම දරයි, සහ ඉහළ ධාරාවේ ප්රතිචාරය Cohere ලියුම් කවරයට සාමාන්යකරණය කර ඇත: TEI හි හිස් `[{index, score, text}]`, සිහින් ගේට්වේ වලින් `{results: [{index, score}]}` සහ Voyage-විලාසිතාවේ `{data: [...]}` සියල්ල සේවාදායකයා වෙත `{results: [{index, relevance_score, document?}]}` ලෙස ආපසු පැමිණේ, ලකුණු අනුව වර්ග කර `top_n` හි සීමා කර ඇත.
+> **Local server ආකෘති:** node එක `<base>/v1/rerank` හිදීත්, 404 ලැබුණහොත් `<base>/rerank` හිදීත්
+> (Infinity, TEI) කැඳවනු ලැබේ. upstream body එක Cohere/OpenAI අක්ෂර වින්යාසය (`documents`,
+> `return_documents`) සහ TEI අක්ෂර වින්යාසය (`texts`, `return_text`) යන දෙකම රැගෙන යන අතර, upstream ප්රතිචාරය
+> Cohere envelope එකට සාමාන්යකරණය කෙරේ: TEI හි හිස් `[{index, score, text}]`, සරල gateways වෙතින් ලැබෙන
+> `{results: [{index, score}]}`, සහ Voyage-ශෛලියේ `{data: [...]}` යන සියල්ල client වෙත
+> `{results: [{index, relevance_score, document?}]}` ලෙස, score අනුව අනුපිළිවෙළට සකසා `top_n` දක්වා සීමා කර ආපසු ලැබේ.
 
-> **සපයන්නා-නෝඩ් සොයාගැනීම:** OpenAI-අනුකූල සපයන්නා නෝඩයක ඇති මාදිලි `GET /v1/models` හි නෝඩ් උපසර්ගය යටතේ දිස්වේ. අවසන් ලක්ෂ්ය මෙටාඩේටා නොමැති පේළි (දේශීය `/v1/models` ලැයිස්තු සඳහා සාමාන්ය) නෝඩයේ `apiType` උරුම කර ගනී, එබැවින් `embeddings` නෝඩයක මාදිලි `type: "embedding"` වන අතර `rerank` නෝඩයක මාදිලි `type: "rerank"` වේ, පෙරනිමියෙන් චැට් වෙත යොමු නොවී; සමමුහුර්ත කළ හෝ අතින් එකතු කළ පේළියක ඇති පැහැදිලි `supportedEndpoints` තවමත් ප්රමුඛත්වය ගනී.
+> **සපයන්නා-නෝඩ් සොයාගැනීම:** OpenAI-අනුකූල සපයන්නා නෝඩයක ඇති ආකෘති, නෝඩ් උපසර්ගය යටතේ `GET /v1/models` තුළ දිස් වේ.
+> අන්ත ලක්ෂ්ය පාරදත්ත නොමැති පේළි (දේශීය `/v1/models` ලැයිස්තු සඳහා සාමාන්ය වේ)
+> නෝඩයේ `apiType` උරුම කරගනී. එබැවින් `embeddings` නෝඩයක ආකෘති පෙරනිමියෙන් සංවාද ලෙස සැලකීම වෙනුවට `type: "embedding"` වන අතර,
+> `rerank` නෝඩයක ආකෘති `type: "rerank"` වේ; සමමුහුර්ත කළ හෝ අතින් එක් කළ පේළියක පැහැදිලිව දක්වා ඇති
+> `supportedEndpoints` අගයක් තවමත් ප්රමුඛත්වය ගනී.
 
 ### කැපවූ සපයන්නා මාර්ග
 
@@ -493,7 +513,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-සපයන්නාගේ උපසර්ගය නොමැති නම් ස්වයංක්රීයව එකතු වේ. නොගැලපෙන මාදිලි `400` ආපසු ලබා දෙයි.
+සපයන්නා උපසර්ගය නොමැති නම් එය ස්වයංක්රීයව එක් කෙරේ. නොගැළපෙන ආකෘති `400` ආපසු ලබා දෙයි.
 
 ---
 
@@ -1414,22 +1434,22 @@ GET /.well-known/agent.json
 
 ---
 
-## Cloud, Evals සහ Assess
+## ක්ලවුඩ්, ඇගයීම් සහ තක්සේරු කිරීම්
 
 | ක්රමය | මාර්ගය | විස්තරය |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer යතුරක් සත්යාපනය කර cloud සමමුහුර්තකරණ සේවාලාභීන් සඳහා ආවරණය කළ සැපයුම්කරු සම්බන්ධතා + මාදිලි අන්වර්ථ නාම ආපසු ලබා දෙන්න |
-| POST | `/api/cloud/credentials/update` | cloud සමමුහුර්ත කළ සැපයුම්කරුවෙකු සඳහා සංකේතනය කළ අක්තපත්ර යාවත්කාලීන කරන්න |
-| POST | `/api/cloud/model/resolve` | දේශීය මාර්ගගත කිරීමේ වගුව භාවිතයෙන් තාර්කික මාදිලි හැඳුනුම්පතක් නිශ්චිත සැපයුම්කරුවෙකු/මාදිලියක් වෙත නිරාකරණය කරන්න |
-| GET | `/api/cloud/models/alias` | cloud සමමුහුර්තකරණයට නිරාවරණය කර ඇති මාදිලි අන්වර්ථ නාම ලැයිස්තුගත කරන්න |
-| GET | `/api/assess` | නවතම ඇගයීම් වර්ගීකරණ (සෑම සැපයුම්කරුවෙකු/මාදිලියක් සඳහාම) කියවන්න |
-| POST | `/api/assess` | ඇගයීමක් ක්රියාත්මක කරන්න — ඉල්ලීම් අන්තර්ගතය: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | ඇතුළත් කර ඇති eval කට්ටල + වඩාත්ම මෑත ක්රියාත්මක කිරීම් ලැයිස්තුගත කරන්න |
-| POST | `/api/evals` | eval ක්රියාත්මක කිරීමක් ආරම්භ කරන්න |
-| POST | `/api/evals/suites` | අභිරුචි eval කට්ටලයක් සාදන්න — ඉල්ලීම් අන්තර්ගතය `evalSuiteSaveSchema` මගින් වලංගු කෙරේ |
-| GET | `/api/evals/suites/[id]` | අභිරුචි eval කට්ටලයක් ලබාගන්න |
+| POST | `/api/cloud/auth` | Bearer යතුරක් සත්යාපනය කර, ක්ලවුඩ් සමමුහුර්තකරණ සේවාලාභීන් සඳහා ආවරණය කළ සැපයුම්කරු සම්බන්ධතා සහ මොඩල් අන්වර්ථ නාම ආපසු ලබා දෙන්න |
+| POST | `/api/cloud/credentials/update` | ක්ලවුඩ් සමමුහුර්ත කළ සැපයුම්කරුවෙකු සඳහා සංකේතනය කළ අක්තපත්ර යාවත්කාලීන කරන්න |
+| POST | `/api/cloud/model/resolve` | දේශීය මාර්ගගත කිරීමේ වගුව භාවිතයෙන් තාර්කික මොඩල් හැඳුනුම්කාරකයක් නිශ්චිත සැපයුම්කරුවෙකු/මොඩලයක් වෙත නිරාකරණය කරන්න |
+| GET | `/api/cloud/models/alias` | ක්ලවුඩ් සමමුහුර්තකරණයට නිරාවරණය කර ඇති මොඩල් අන්වර්ථ නාම ලැයිස්තුගත කරන්න |
+| GET | `/api/assess` | නවතම තක්සේරු වර්ගීකරණ කියවන්න (සැපයුම්කරු/මොඩලය අනුව) |
+| POST | `/api/assess` | තක්සේරුවක් ධාවනය කරන්න — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | අන්තර්ගත eval කට්ටල සහ වඩාත් මෑත ධාවන ලැයිස්තුගත කරන්න |
+| POST | `/api/evals` | eval ධාවනයක් ආරම්භ කරන්න |
+| POST | `/api/evals/suites` | අභිරුචි eval කට්ටලයක් සාදන්න — body එක `evalSuiteSaveSchema` මඟින් වලංගු කෙරේ |
+| GET | `/api/evals/suites/[id]` | අභිරුචි eval කට්ටලයක් ලබා ගන්න |
 
-**සත්යාපනය:** `/api/cloud/auth` විසින් Bearer යතුරක් සෘජුවම වලංගු කරයි; අනෙකුත් `/api/cloud/*`, `/api/evals/*`, සහ `/api/assess` මාර්ග සඳහා කළමනාකරණ සැසියක්/API යතුරක් අවශ්ය වේ. `/api/assess` POST විසින් වෙනස්කම් සහිත ඒකාබද්ධ විෂය පථ යෝජනා ක්රමයක් සමඟ `validateBody` භාවිත කරයි.
+**සත්යාපනය:** `/api/cloud/auth` විසින් Bearer යතුරක් සෘජුවම වලංගු කර, `manage` / `admin` විෂය පථය සහිත යතුරක් සඳහා පමණක් එක් එක් සම්බන්ධතාවේ ආවරණය කළ යතුර සහ `projectId` ආපසු ලබා දෙයි; අනෙකුත් `/api/cloud/*`, `/api/evals/*`, සහ `/api/assess` මාර්ග සඳහා කළමනාකරණ සැසියක්/API යතුරක් අවශ්ය වේ. `/api/assess` POST විසින් වෙනස්කම් හඳුනාගත හැකි union විෂය පථ schema එකක් සමඟ `validateBody` භාවිත කරයි.
 
 ---
 

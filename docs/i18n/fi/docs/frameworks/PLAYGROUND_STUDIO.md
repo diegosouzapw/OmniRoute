@@ -190,14 +190,14 @@ Todennus: valinnainen (`REQUIRE_API_KEY`). Virheet `buildErrorBody()`-funktion k
 
 ## Vianmääritys
 
-| Oire                                         | Syy                                       | Korjaus                                                                                                                        |
-| -------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Monaco-editori ei näy API-välilehdellä       | SSR latasi Monacon                        | Varmista, että `ApiTab` käyttää määritystä `dynamic(..., { ssr: false })`                                                      |
-| Vertailusuoratoistot käynnistyvät peräkkäin  | Virheellinen `Promise.all`-käyttö         | Kaikkien suoratoistojen käynnistykset on suoritettava yhdessä `Promise.all`-kutsussa                                           |
-| Mittarit näyttävät TTFT-arvona `null`        | Ensimmäisen osan käsittelijää ei kytketty | Tarkista, että `useStreamMetrics.onFirstChunk()` kutsutaan SSE-lukijan silmukassa                                              |
-| Esiasetus ei säily                           | Tietokantamigraatiota ei ole suoritettu   | Suorita `npm run db:migrate` tai käynnistä palvelin uudelleen (migraatio suoritetaan automaattisesti käynnistyksen yhteydessä) |
-| Kehotteen parantaminen palauttaa 502-virheen | Mallia ei ole asetettu asetuksissa        | Käyttäjän on annettava mallin nimi asetuspaneelissa ennen parantamista                                                         |
-| Viedyn koodin arvo on `MISSING_API_KEY`      | Paikkamerkkiä ei ole lisätty              | `codeExport.ts` käyttää aina arvoa `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                                                |
+| Oire                                         | Syy                                           | Korjaus                                                                                       |
+| -------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Monaco-editori ei hahmonnu API-välilehdellä  | SSR latasi Monacon                            | Varmista, että `ApiTab` käyttää asetusta `dynamic(..., { ssr: false })`                       |
+| Vertailun streamit käynnistyvät peräkkäin    | Virheellinen `Promise.all`-käyttö             | Kaikki streamien käynnistykset on suoritettava yhdessä `Promise.all`-kutsussa                 |
+| Mittarit näyttävät TTFT-arvona `null`        | Ensimmäisen osan käsittelijää ei ole kytketty | Tarkista, että `useStreamMetrics.onFirstChunk()` kutsutaan SSE-lukusilmukassa                 |
+| Esiasetus ei säily                           | Tietokannan migraatiota ei ole suoritettu     | Käynnistä palvelin uudelleen: migraatiot suoritetaan automaattisesti käynnistyksen yhteydessä |
+| Kehotteen parantaminen palauttaa 502-virheen | Mallia ei ole määritetty Config-näkymässä     | Käyttäjän on annettava mallin nimi Config-ruudussa ennen parantamista                         |
+| Viety koodi näyttää arvon `MISSING_API_KEY`  | Paikkamerkkiä ei ole lisätty                  | `codeExport.ts` käyttää aina määritystä `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`          |
 
 ---
 

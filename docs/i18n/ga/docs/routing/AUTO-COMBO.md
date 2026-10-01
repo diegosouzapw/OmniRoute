@@ -8,125 +8,125 @@
 
 > Slabhraí samhlacha fé bhainistiú féin le scóráil oiriúnaitheach + uathródú gan chumraíocht
 
-## Ródú Uathoibríoch Gan Chumrú (réimír `auto/`)
+## Uathródú Gan Chumraíocht (réimír `auto/`)
 
-> **NUA:** Ní gá combo a chruthú. Úsáid réimír `auto/` go díreach in aon chliant.
+> **NUA:** Ní gá teaglama a chruthú. Úsáid an réimír `auto/` go díreach in aon chliant.
 
 ### Samplaí Tapa
 
-| Aitheantas Samhail | Malartach       | Iompar                                                                               |
-| ------------------ | --------------- | ------------------------------------------------------------------------------------ |
-| `auto`             | réamhshocraithe | Gach soláthraí nasctha, straitéis LKGP, meáchain cothroma                            |
-| `auto/coding`      | coding          | Meáchain ar cháidh ar dtús, oiriúnach le haghaidh gineadh códra                      |
-| `auto/fast`        | fast            | Ródú roghnaithe meáchain le seirbhís-laghdaithe                                      |
-| `auto/cheap`       | cheap           | Ródú optamaithe costais (costas is ísle ar dtús)                                     |
-| `auto/offline`     | offline         | Is fearr le soláthraithe a bhfuil an cuóta ina n-uachtar ag teacht                   |
-| `auto/smart`       | smart           | Cáidh ar dtús + ráta iniúchta níos airde (10%) le haghaidh aimsigh níos fearr        |
-| `auto/lkgp`        | lkgp            | LKGP sainráite (cosúil le `auto` réamhshocraithe)                                    |
-| `auto/chaos`       | chaos           | Meáchain instealltaearráide le haghaidh tástáil seasmhachta ( innealtóireacht chaos) |
+| Aitheantas Samhla | Malairt     | Iompar                                                                                             |
+| ----------------- | ----------- | -------------------------------------------------------------------------------------------------- |
+| `auto`            | réamhshocrú | Gach soláthraí nasctha, straitéis LKGP, meáchain chothromaithe                                     |
+| `auto/coding`     | códú        | Meáchain a thugann tús áite don cháilíocht, oiriúnach do ghiniúint cóid                            |
+| `auto/fast`       | tapa        | Roghnú ualaithe ar aga folaigh íseal                                                               |
+| `auto/cheap`      | saor        | Ródú optamaithe de réir costais (an costas is ísle ar dtús)                                        |
+| `auto/offline`    | as líne     | Tugtar tús áite do sholáthraithe leis an infhaighteacht cuóta is airde                             |
+| `auto/smart`      | cliste      | Tús áite don cháilíocht + ráta taiscéalaíochta níos airde (10%) chun samhlacha a aimsiú níos fearr |
+| `auto/lkgp`       | lkgp        | LKGP follasach (mar an gcéanna leis an `auto` réamhshocraithe)                                     |
+| `auto/chaos`      | anord       | Leathnú amach comhthreomhar, samhail amháin in aghaidh an tsoláthraí (ní instealladh lochta é)     |
 
-### Comhdháil Catagóir × Tairscéal (`auto/<category>:<tier>`)
+### Comhdhéanamh Catagóire × Sraithe (`auto/<category>:<tier>`)
 
-Scarann iarmhíreanna stíl OpenRouter **cad é an cineál ródaithe** (catagóir) ó **conas é a bharrfheabhsú** (tairscéal), ionas gur féidir iad a chomhdháil go saor in aisce (#4235 Céim B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Scarann iarmhíreanna ar nós OpenRouter **cén cineál róid** (catagóir) ó **conas é a bharrfheabhsú** (sraith), ionas gur féidir leat iad a chomhdhéanamh gan srian (#4235 Céim B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Catagóirí** (scag an linn iarratais de réir cumais): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. Coinníonn `vision`/`multimodal` samhlacha atá in ann léamh; coinneann `reasoning` samhlacha smaointeoireachta.
-- **Tairscí** (roghnaigh na meáchain scórála / scagaire linn): `fast` (seachadadh tapa) · `cheap` (ailias `floor`, sábhálóir costais) · `reliable` (sláinte scriostóra chiorcail + seasmhacht seirbhíse-laghdaithe) · `free` / `pro` (scag an linn de réir tairscéal samhail le `classifyTier` — saor in aisce vs. préimhe).
+- **Catagóirí** (scag comhthiomsú na n-iarrthóirí de réir cumais): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. Coinníonn `vision`/`multimodal` samhlacha atá ábalta ar fhís; coinníonn `reasoning` samhlacha réasúnaíochta/smaointeoireachta.
+- **Sraitheanna** (roghnaigh na meáchain scórála / scagaire an chomhthiomsaithe): `fast` (seoladh tapa) · `cheap` (ailias `floor`, coigilteas costais) · `reliable` (sláinte scoradáin chiorcaid + cobhsaíocht aga folaigh) · `free` / `pro` (scag an comhthiomsú de réir shraith na samhla trí `classifyTier` — sraith saor in aisce seachas sraith phréimhe).
 
-| Sampla                 | Réitíonn go                                                    |
-| ---------------------- | -------------------------------------------------------------- |
-| `auto/coding:fast`     | linn coding, meáchain seirbhíse-laghdaithe                     |
-| `auto/coding:cheap`    | linn coding, optamaithe costais (alias `auto/coding:floor`)    |
-| `auto/reasoning:pro`   | samhlacha smaointeoireachta amháin, tairscéal préimhe          |
-| `auto/vision`          | samhlacha atá in ann léamh (gan tairscéal → meáchain cothroma) |
-| `auto/multimodal:free` | samhlacha atá in ann ilmheáin, saor in aisce amháin            |
+| Sampla                 | Réitítear mar                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `auto/coding:fast`     | comhthiomsú códaithe, meáchain ar aga folaigh íseal                           |
+| `auto/coding:cheap`    | comhthiomsú códaithe, optamaithe de réir costais (ailias `auto/coding:floor`) |
+| `auto/reasoning:pro`   | samhlacha réasúnaíochta/smaointeoireachta amháin, sraith phréimhe             |
+| `auto/vision`          | samhlacha atá ábalta ar fhís (gan sraith → meáchain chothromaithe)            |
+| `auto/multimodal:free` | samhlacha ilmhódacha amháin, sraith saor in aisce amháin                      |
 
-Réitíonn aon bhailí `auto/<category>[:<tier>]` ar éileamh; fógraítear faoin bhfáilt roghnaithe san `v1/models` agus ar an deais (`AUTO_SUFFIX_VARIANTS` i `open-sse/services/autoCombo/builtinCatalog.ts`). Is **oscailte ag teip** an scagadh — má mheaitseann srian le samhlacha nasctha gan aon cheann, úsáidtear an linn iomlán ionas go n-éireoidh an ródú riamh. Ní athraítear an scórálaí croí (`combo.ts`); cuirtear i bhfeidhm an scagaire catagóire/tairscéal i `buildAutoCandidates`.
+Réitítear aon `auto/<category>[:<tier>]` bailí ar éileamh; fógraítear fothacar coimeádaithe in `/v1/models` agus ar an deais (`AUTO_SUFFIX_VARIANTS` in `open-sse/services/autoCombo/builtinCatalog.ts`). Tá an scagadh **oscailte i gcás teipe** — mura meaitseálann srian aon samhail nasctha, úsáidtear an comhthiomsú iomlán ionas nach gcliseann an ródú choíche. Níl aon athrú ar an gcroí-scóróir (`combo.ts`); cuirtear an scagaire catagóire/sraithe i bhfeidhm in `buildAutoCandidates`.
 
-> **Intleacht samhail bheo:** tugann rangú **Arena ELO** beo + sonraí tairscéal **models.dev** eolas ar oiriúnacht ródaithe uathoibríoch nuair a bheidh an bhratach `ARENA_ELO_SYNC_ENABLED ) curtha ar siúl (fillfidh ar an léarscáil oiriúnacht statach eile de) mar sin.
+> **Faisnéis bheo faoi shamhlacha:** treoraítear oiriúnacht an uathródaithe ag ranguithe beo **Arena ELO** + sonraí sraithe **models.dev** nuair atá an bhratach `ARENA_ELO_SYNC_ENABLED` ar siúl (úsáidtear an léarscáil statach oiriúnachta mar chúltaca mura bhfuil).
 
 **Conas é a úsáid:**
 
 ```bash
 # Aon uirlis IDE nó CLI a thacaíonn le formáid OpenAI
-An Seoladh Boinn: http://localhost:20128/v1
+URL Bonn: http://localhost:20128/v1
 Eochair API:  <your-endpoint-key>
 
-# I do chód/chumrú, socraigh an tsamhail go:
-model: "auto"                 # réamhshocraithe cothrom
-model: "auto/coding"          # is fearr le haghaidh tascanna códraíochta
-model: "auto/fast"            # is tapúla ar fáil
-model: "auto/cheap"           # is saoire in aghaidh an tseicind
+# I do chód/chumraíocht, socraigh an tsamhail mar:
+model: "auto"                 # réamhshocrú cothromaithe
+model: "auto/coding"          # is fearr do thascanna códaithe
+model: "auto/fast"            # an ceann is tapúla atá ar fáil
+model: "auto/cheap"           # an ceann is saoire in aghaidh an chomhartha
 ```
 
 **Cad a tharlaíonn:**
 
-1. Lorgann OmniRoute réimír `auto/` i `src/sse/handlers/chat.ts`
-2. Iarrann ar gach **nasc gníomhach soláthraí** ón mbunachar sonraí
-3. Scagann iad siúd a bhfuil dintiúra bailí acu (eochair API nó comhartha OAuth)
-4. Socraíonn an tsamhail in aghaidh an naisc (`connection.defaultModel` nó an chéad tsamhail soláthraí)
-5. Cruthaíonn **combo fíorúil** i免meamhlán (ní stóráiltear é sa DB)
-6. Ródann le próifíl meáchain an mhalach roghnaithe + straitéis LKGP
+1. Aimsíonn OmniRoute an réimír `auto/` in `src/sse/handlers/chat.ts`
+2. Iarrann sé gach **nasc gníomhach soláthraí** ón mbunachar sonraí
+3. Scagann sé iad siúd a bhfuil dintiúir bhailí acu (eochair API nó comhartha OAuth)
+4. Cinneann sé an tsamhail in aghaidh an naisc (`connection.defaultModel` nó céad samhail an tsoláthraí)
+5. Tógann sé **teaglama fíorúil** sa chuimhne (ní stóráiltear sa bhunachar sonraí é)
+6. Déanann sé ródú ag úsáid phróifíl mheáchain na malairte roghnaithe + straitéis LKGP
 
-**Príomhthréithe:**
+**Príomh-airíonna:**
 
-- ✅ **I gcónaí ar siúl:** Gan scorálaí, gan cruthú combo, gan chumrú ag teastáil
-- ✅ **Dinimiciúil:** Léiríonn sé na soláthraithe nasctha reatha go huathoibríoch
-- ✅ **Greamaitheacht seisiúin:** Cinntíonn LKGP go dtabharfar tosaíocht don soláthraí rathúil deiridh
-- ✅ **Ilchuntais ar a dtuigeann:** Ní dhéanann gach nasc soláthraí iarratasóir ar leith
-- ✅ **Níl aon scríbhneoireachta DB:** Ní ann don combo fíorúil ach don iarratas, gan ualach seasmhachta
+- ✅ **Ar siúl i gcónaí:** Ní theastaíonn scorán, cruthú teaglama ná cumraíocht ar bith
+- ✅ **Dinimiciúil:** Léiríonn sé na soláthraithe atá nasctha faoi láthair go huathoibríoch
+- ✅ **Greamaitheacht seisiúin:** Cinntíonn LKGP go dtugtar tús áite don soláthraí deireanach ar éirigh leis
+- ✅ **Feasach ar ilchuntais:** Déantar iarrthóir ar leith de gach nasc soláthraí
+- ✅ **Gan scríobh sa bhunachar sonraí:** Ní bhíonn an teaglama fíorúil ann ach don iarratas, gan aon fhorchostas marthanachta
 
-### Rialú iarratasóir in aghaidh na heochrach (#7819, Leibhéal 1+2)
+### Rialú iarrthóirí de réir eochrach (#7819, Leibhéal 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = an t-iascar tar éis `auto/`, nó
-an litriú `auto` le haghaidh an chainéil bhunaidh) is **pointe deireadh inliteanta amháin** é
-a thaispeánann linn iarratasóirí reatha chainéil `auto/*` maisithe le indíreach bheo, ag
-athsúsáid na léitheanna seasmhachta reatha (riamh stáit `state` raw scriostóra):
+Is críochphointe **inléite amháin** é `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = an iarmhír tar éis `auto/`, nó
+an litriúil `auto` don bhunchainéal) a liostaíonn comhthiomsú reatha iarrthóirí cainéil
+`auto/*`, maisithe le hinrochtaineacht bheo, agus a athúsáideann
+na léamha athléimneachta atá ann cheana (ní úsáidtear `state` amh an scoradáin choíche):
 
-- scriostóra ciorcail soláthraí — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- fuarú nasc — `rateLimitedUntil` / `testStatus` ar an tsraith
-  `provider_connections` réitithe
-- glasáil samhail — `isModelLocked(provider, connectionId, model)`
+- scoradán ciorcaid an tsoláthraí — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- tréimhse shuaimhnithe an naisc — `rateLimitedUntil` / `testStatus` ar an ró réitithe
+  `provider_connections`
+- frithdhúnadh samhla — `isModelLocked(provider, connectionId, model)`
 
-Tugann gach iarratasóir an bhratach `excluded` den eochair API seo. Stóráiltear easnaimh
-in aghaidh an eochair API (`auto_candidate_overrides` tábla, imirce `128`) — Il-áit
-atá in OmniRoute gan tábla `users`, mar sin is `apiKeyId` an aitheantas fíor is gaire don
-glaoiteoir — agus cuirtear i bhfeidhm é ag an bpointe teannais linn iarratasóirí i
-`open-sse/services/autoCombo/virtualFactory.ts` le `filterExcludedCandidates()`
-glan, tástáil-aonaid (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Is **oscailte ag teip** an scagaire: cuireann apiKeyId/channel gan socrú nó teip
-fiosrúcháin DB an linn gan scagadh, mar sin feiceann oibreoir gan easnaimh socraithe
-ródú comhionann leis an ghné seo roimh ré.
+Bíonn bratach `excluded` na heochrach API seo ag gach iarrthóir freisin. Stóráiltear eisiamh
+de réir eochair API (tábla `auto_candidate_overrides`, ascnaimh `128`) — tá OmniRoute
+aonthionónta agus níl aon tábla `users` ann, mar sin is é `apiKeyId` an fhéiniúlacht
+fhíor is gaire in aghaidh an ghlaoiteora — agus cuirtear i bhfeidhm iad ag scrogall chomhthiomsú
+na n-iarrthóirí in `open-sse/services/autoCombo/virtualFactory.ts` tríd an bhfeidhm íon,
+aonadthástáilte `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
+Tá an scagaire **oscailte i gcás teipe**: fágann `apiKeyId`/cainéal neamhshocraithe nó teip
+chuardaigh sa bhunachar sonraí an comhthiomsú gan scagadh, agus mar sin feiceann oibreoir nach
+bhfuil aon sáruithe cumraithe aige ródú atá comhionann beart ar bheart leis an méid a bhí ann
+roimh an ngné seo.
 
-**Fágtha le saincheist leanúnaigh:** meáchain in aghaidh an iarratasóra + ordú sainráite (Leibhéal
-3 — cothaíonn sé seo isteach sa straitéis meáchain/príorachta reatha) agus
-pinning straitéis `combo` ar leith le haghaidh gach chainéil `auto/*` (Leibhéal 4).
-Féach ar phlean #7819 le haghaidh an cheist oscailte ar an gceist an gcoinneofar easnaimh
-in aghaidh an eochair API nó go ndéanfar iad domhanda agus an tsamhail il-áit
-ann.
+**Curtha siar go dtí saincheist leantach:** ualuithe in aghaidh an iarrthóra + ordú sainráite (Leibhéal 3
+— cuirtear é seo isteach sna conairí straitéise ualaithe/tosaíochta atá ann cheana) agus straitéis shonrach
+`combo.ts` a phionnáil do gach cainéal `auto/*` (Leibhéal 4). Féach plean #7819 don cheist oscailte
+faoi cé acu ar cheart do sháruithe fanacht de réir eochair API nó éirí domhanda i bhfianaise na samhla
+aontionónta.
 
-**Taobh thiar de na radhairc:**
+**Taobh thiar den ardán:**
 
 ```txt
 Iarratas: { model: "auto/coding" }
    ↓
-src/sse/handlers/chat.ts luann réimír
+src/sse/handlers/chat.ts aimsíonn sé an réimír
    ↓
-createVirtualAutoCombo('coding') → candidatePool ó naisc gníomhacha
+createVirtualAutoCombo('coding') → candidatePool ó naisc ghníomhacha
    ↓
-handleComboChat (an t-inneall céanna le combos stóráilte)
+handleComboChat (an t-inneall céanna le teaglamaí marthanacha)
    ↓
-Roghnú uathoibríoch roghnaíonn an soláthraí/samhail is fearr in aghaidh an iarratais
+Roghnaíonn uathscóráil an soláthraí/tsamhail is fearr do gach iarratas
 ```
 
-**Comhaid chur i bhfeidhm:**
+**Comhaid chur chun feidhme:**
 
-| Comhaid                                                   | Cuspóir                                             |
-| --------------------------------------------------------- | --------------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | parsálaí réimíre (`parseAutoPrefix`)                |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Cruthaíonn réada `AutoComboConfig` fíorúil          |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | cónascaire tástála le haghaidh déanamh ionadaíochta |
-| `src/sse/handlers/chat.ts`                                | comhtháthú: gearr-iorr réimíre auto                 |
-| `src/shared/constants/providers.ts`                       | iontráil `SYSTEM_PROVIDERS.auto` córais             |
+| Comhad                                                    | Cuspóir                                                     |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Parsálaí réimíre (`parseAutoPrefix`)                        |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Cruthaíonn sé oibiachtaí fíorúla `AutoComboConfig`          |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Crúca tástála chun clárlann na soláthraithe a bhréagshamhlú |
+| `src/sse/handlers/chat.ts`                                | Comhtháthú: gearrchiorcad don réimír auto                   |
+| `src/shared/constants/providers.ts`                       | Iontráil chórais `SYSTEM_PROVIDERS.auto`                    |
 
 ## Ainmneacha Combo a Mheaitseálann le Fíor-Aitheantas Múnla
 
@@ -199,7 +199,7 @@ Roghnaíonn an tInneall Uath-Theaglama go dinimiciúil an soláthraí/samhail is
 
 ## Pacáistí Móid
 
-6 phróifíl meáchain réamhshainithe in `open-sse/services/autoCombo/modePacks.ts`. Cuireann gach pacáiste a chuid meáchain féin in ionad na meáchan réamhshocraithe ina n-iomláine chun an roghnú a chlaonadh i dtreo sprice amháin. Is é `1.0` suim gach pacáiste cheana féin (`0.9999` mar a phriontáiltear é go ceithre ionad dheachúlacha), mar sin níl aon rud fiúntach le ceartú ag `normalizeScoringWeights()` nuair atá pacáiste gníomhach — is iad na luachanna thíos, faoi réir slánaithe, na cinn a chuireann an scórálaí i bhfeidhm.
+6 phróifíl meáchain réamhshainithe in `open-sse/services/autoCombo/modePacks.ts`. Cuireann gach pacáiste a chuid meáchan féin in ionad na meáchan réamhshocraithe go hiomlán chun an roghnú a chlaonadh i dtreo sprice amháin. Is é `1.0` suim gach pacáiste cheana féin (`0.9999` mar a phriontáiltear é le ceithre ionad dheachúlacha), mar sin níl aon rud fóinteach le ceartú ag `normalizeScoringWeights()` nuair atá pacáiste gníomhach — is iad na luachanna thíos, faoi réir slánúcháin, na cinn a chuireann an córas scórála i bhfeidhm.
 
 | Fachtóir              | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -221,29 +221,32 @@ Roghnaíonn an tInneall Uath-Theaglama go dinimiciúil an soláthraí/samhail is
 
 Nótaí:
 
-- **Tá `quality` agus `reliability` sna pacáistí** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) agus cuirtear iad in ionad na léarscáile meáchan ina hiomláine (`weights = pack`, ní cumasc). Tá `quality 0.03 / reliability 0` in `DEFAULT_WEIGHTS`; má roghnaítear `balanced`/`default`, coinnítear na réamhshocruithe sin, agus má roghnaítear pacáiste, úsáidtear luachanna an phacáiste thuas. I linn fhuar (gan aon bhreathnuithe fós, mar sin `quality 0.5` agus `reliability 1`), cuireann an dá fhachtóir seo `+0.04` leis faoi phacáiste cineálach (`0.03 + 0.01`), `+0.045` faoi `quality-first` agus `+0.05` faoi `reliability-first`.
+- **Bíonn `quality` agus `reliability` sna pacáistí** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) agus cuirtear iad in ionad na léarscáile meáchain ina hiomláine (`weights = pack`, ní cumasc). Tá `quality 0.03 / reliability 0` in `DEFAULT_WEIGHTS`; má roghnaítear `balanced`/`default`, coinnítear na réamhshocruithe sin, agus má roghnaítear pacáiste, úsáidtear luachanna an phacáiste thuas. I linn fhuar (gan aon bhreathnuithe fós, mar sin `quality 0.5` agus `reliability 1`), cuireann an dá fhachtóir seo `+0.04` leis faoi phacáiste cineálach (`0.03 + 0.01`), `+0.045` faoi `quality-first` agus `+0.05` faoi `reliability-first`.
 - Tá `tierAffinity`, `specificityMatch` agus `resetWindowAffinity` socraithe go sainráite mar `0` i ngach pacáiste.
-- Béim gach pacáiste go hachomair:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (naisc shláintiúla íseal-fholaigh)
+- Sracfhéachaint ar bhéim gach pacáiste:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (naisc shláintiúla ar bheagán aga folaigh)
   - **cost-saver** → costInv 0.3324 (is iad na comharthaí is saoire a bhuann)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, an luach is airde in aon phacáiste (an tsamhail is fearr don tasc, comhsheasmhach)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (an corrlach uasta beag beann ar luas/costas)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, an luach is airde in aon phacáiste (an líon is lú iontas)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (próifíl insteallta lochtanna)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, an ceann is airde in aon phacáiste (an tsamhail is fearr don tasc, go comhsheasmhach)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (an méid spáis bhreise is mó, beag beann ar luas/costas)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, an ceann is airde in aon phacáiste (an líon is lú iontas)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (an pacáiste meáchain a shannann `auto/chaos` dá bhaill painéil; ní léann an leathnú amach comhthreomhar na meáchain seo, agus ní próifíl insteallta lochtanna é seo, féach [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
 ### Rialuithe de Réir Iarratais (ceanntásca) — #6023 / #6024 / #6025 / #3470
 
-Is féidir teaglaim `auto` a stiúradh **de réir iarratais** trí thrí cheanntásc, gan cumraíocht stóráilte na teaglaime a athrú. Ní bhaineann siad seo ach leis an straitéis `auto` agus leis an iarratas a iompraíonn iad; úsáidtear `modePack`/`budgetCap`/`budgetFallback` sábháilte na teaglaime nuair nach mbíonn an ceanntásc ann.
+Is féidir teaglama `auto` a stiúradh **de réir iarratais** trí thrí cheanntásc, gan cumraíocht stóráilte an
+teaglama a athrú. Ní bhaineann siad seo ach leis an straitéis `auto` agus leis an iarratas
+ina bhfuil siad; úsáidtear `modePack`/`budgetCap`/`budgetFallback` sábháilte an teaglama
+nuair nach bhfuil an ceanntásc ann.
 
-| Ceanntásc                     | Glacann sé le                                                                                                                                                                                     | Éifeacht                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | ailias réamhshocraithe (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) nó ainm pacáiste amh (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Sáraíonn sé na hualuithe scórála don iarratas seo. Cuireann `balanced`/`default` na hualuithe réamhshocraithe i bhfeidhm (gan phacáiste). Déantar neamhaird de luachanna anaithnide (caomhnaítear an chumraíocht).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `X-OmniRoute-Budget`          | uimhir dheimhneach (uasmhéid USD in aghaidh an iarratais)                                                                                                                                         | Uasteorainn chrua costais: scagtar amach iarrthóirí a bhfuil a gcostas measta níos airde ná í roimh an roghnú. Rialaítear an méid a tharlaíonn nuair a sháraíonn **gach** iarrthóir í le `X-OmniRoute-Budget-Fallback` thíos.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (réamhshocrú, ailiasanna: `cheapest-viable`, `soft`) nó `strict` (ailiasanna: `block`, `hard`)                                                                                         | `cheapest`: téann sé ar ais chuig an iarrthóir is saoire ar an iomlán, cé go sáraíonn sé an uasteorainn fós (sean-iompar). `strict`: diúltaíonn sé roghnú a dhéanamh — teipeann ar an iarratas láithreach le `HTTP 402` in ionad róchaiteachas a dhéanamh gan rabhadh. Déantar neamhaird de luachanna anaithnide.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `X-OmniRoute-Effort`          | `auto` (luachanna eile curtha in áirithe)                                                                                                                                                         | Buiséad smaointeoireachta oiriúnaitheach: nuair nach bhfuil **aon** réimse réasúnaithe d'aon chruth san iarratas (`reasoning_effort`, `reasoning`, `thinking`), socraíonn an geata `auto` mar `low`/`medium`/`high` ó chomharthaí cinntitheacha faoi chruth an iarratais (fad na teachtaireachta deireanaí ón úsáideoir, méid an chomhthéacs suas go dtí an teachtaireacht deireanach ón úsáideoir, torthaí uirlisí roimhe seo, doimhneacht lúibe uirlisí). Tá na comharthaí teoranta don seal reatha — déantar neamhaird de gach rud i ndiaidh na teachtaireachta deireanaí ón úsáideoir — mar sin socraítear an leibhéal céanna do gach iarratas i lúb uirlisí (biorán gan stát in aghaidh an tseala, gan stát seisiúin, gan ardú i lár lúibe a bhrisfeadh réimíreanna taisce leideanna réamhtheachtacha). Bíonn tosaíocht i gcónaí ag réimse réasúnaithe sainráite ón gcliant. Tá sé teoranta d'iarratais a socraítear a seoladh réamhtheachtach de réir chruth OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — is réimse de chruth OpenAI é `reasoning_effort`, mar sin ní dhéanann an ceanntásc faic ar iarratas atá dírithe ar Claude nó Gemini (féach `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Ceanntásc                     | Glacann le                                                                                                                                                                                        | Éifeacht                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | ailias réamhshocraithe (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) nó ainm pacáiste amh (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Sáraíonn sé na hualuithe scórála don iarratas seo. Cuireann `balanced`/`default` na hualuithe réamhshocraithe i bhfeidhm go héigeantach (gan phacáiste). Déantar neamhaird de luachanna anaithnide (caomhnaítear an chumraíocht).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `X-OmniRoute-Budget`          | uimhir dheimhneach (uasmhéid USD in aghaidh an iarratais)                                                                                                                                         | Uasteorainn chostais dhocht: scagtar amach roimh an roghnú iarrthóirí a bhfuil a gcostas measta níos mó ná í. Is é `X-OmniRoute-Budget-Fallback` thíos a rialaíonn cad a tharlaíonn nuair a sháraíonn **gach** iarrthóir í.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (réamhshocrú, ailiasanna: `cheapest-viable`, `soft`) nó `strict` (ailiasanna: `block`, `hard`)                                                                                         | `cheapest`: téitear ar ais chuig an iarrthóir is saoire ar an iomlán cé go sáraíonn sé an uasteorainn fós (iompraíocht oidhreachta). `strict`: diúltaítear roghnú — teipeann ar an iarratas láithreach le `HTTP 402` in ionad róchaiteachas a dhéanamh go ciúin. Déantar neamhaird de luachanna anaithnide.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `X-OmniRoute-Effort`          | `auto` (luachanna eile curtha in áirithe)                                                                                                                                                         | Buiséad smaointeoireachta oiriúnaitheach: nuair nach mbíonn réimse réasúnaíochta d’aon chineál san iarratas (`reasoning_effort`, `reasoning`, `thinking`), réitíonn an geata `auto` go `low`/`medium`/`high` bunaithe ar chomharthaí cinntitheacha ó chruth an iarratais (fad theachtaireacht dheireanach an úsáideora, méid an chomhthéacs suas go dtí teachtaireacht dheireanach an úsáideora, torthaí uirlisí roimhe seo, doimhneacht lúb na n-uirlisí). Tá na comharthaí teoranta don seal reatha — déantar neamhaird de gach rud i ndiaidh theachtaireacht dheireanach an úsáideora — mar sin réitítear gach iarratas i lúb uirlisí go dtí an leibhéal céanna (biorán gan stát in aghaidh an tseala, gan aon staid seisiúin, gan aon ardú i lár lúibe a bhrisfeadh réimíreanna taisce leideanna réamhtheachtacha). Bíonn tosaíocht i gcónaí ag réimse réasúnaíochta sainráite ón gcliant. Teoranta d’iarratais a réitíonn a seoladh réamhtheachtach go cruth OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — is réimse de chruth OpenAI é `reasoning_effort`, mar sin ní bhíonn aon éifeacht ag an gceanntásc ar iarratas atá dírithe ar Claude nó Gemini (féach `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Cuir an phróifíl is tapúla i bhfeidhm, cuir teorainn $0.05 leis an iarratas seo, agus cuir bac iomlán air seachas róchaiteachas a cheadú
+# Cuir an phróifíl is tapúla i bhfeidhm, cuir teorainn $0.05 leis an iarratas seo, agus blocáil go docht in ionad róchaiteachais
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -252,9 +255,9 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Is feidhm íon í an réiteach (`open-sse/services/autoCombo/requestControls.ts`); cuirtear na
-luachanna réitithe ar fáil d'ionchuir reatha `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` an innill. Socraíonn `config.budgetFallback` stóráilte teaglama ("strict" |
+Is feidhm íon é an réiteach (`open-sse/services/autoCombo/requestControls.ts`); cuirtear na
+luachanna réitithe isteach sna hionchuir `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` atá san inneall cheana féin. Socraíonn `config.budgetFallback` stóráilte teaglama ("strict" |
 "cheapest") an beartas marthanach; sáraíonn an ceanntásc é le haghaidh iarratais aonair.
 
 ## Gach Straitéis Ródúcháin
@@ -705,18 +708,19 @@ Ag cur san áireamh an `auto` lom (réamhshocrú) chomh maith leis na luachanna 
 
 (`AutoVariant` féin liostann 6 luach; an 7ú rogha é "gan athróg" — `auto` lom — a láimhseálann `parseAutoPrefix()` mar `variant: undefined`.)
 
-## Conas a oireann na leibhéil le Comhcheangal-Auto
+## Conas a oireann sraitheanna do Auto-Combo
 
-Déanann an fheidhm scórála 16-fhachtóir (`open-sse/services/autoCombo/scoring.ts`) diagnóisiú mar dhá chomhartha: `tierPriority` (0.0476) agus `tierAffinity` (0.0476). Féach an
-tábla fachtóra canónach [mar a thaispeánann tuilleadh eolais](#how-it-works-persisted-auto-combos) thuas le haghaidh an tsraith iomlán
-`DEFAULT_WEIGHTS` — liostaítear na forluí in aghaidh an phearsan (ship-fast/cost-saver/quality-first/
-offline-friendly) sa tábla "Próifílí meáchain in aghaidh an phearsan".
+Déileálann an fheidhm scórála 16 fhachtóir (`open-sse/services/autoCombo/scoring.ts`) le ballraíocht
+i sraith mar dhá chomhartha: `tierPriority` (0.0476) agus `tierAffinity` (0.0476). Féach ar an
+[tábla canónach d’fhachtóirí scórála](#how-it-works-persisted-auto-combos) thuas chun an tacar iomlán
+`DEFAULT_WEIGHTS` a fheiceáil — tá na sáruithe de réir pacáiste (ship-fast/cost-saver/quality-first/
+offline-friendly) liostaithe sa tábla "Próifílí meáchain de réir pacáiste".
 
-Ní dhéanann leibhéal amháin Leibhéal 1 a chur ar dtús — má tá moill Leibhéal 1 go dona nó
-má tá costas-vs-íonacht neamhroghnaithe, buann Leibhéal 2. Chun treamhadh leibhéil a chur i bhfeidhm, úsáid straitéis comhcheangail
-`priority` agus cuir soláthraithe in ord de réir leibhéil.
+Ní chuireann an tsraith amháin iallach **ar Shraith 1** teacht ar dtús — má bhíonn aga folaigh Shraith 1 go dona nó
+má bhíonn an costas i gcomparáid leis an gcáilíocht fo-optamach, bíonn an bua ag Sraith 2. Chun ord na sraitheanna a fhorchur, úsáid an straitéis teaglama
+`priority` agus cuir na soláthraithe in ord de réir sraithe.
 
-Chun leibhéal 1 ( síntiús) a bhfuil sé d'aidhm acu é a shábháil go láidir, méadaigh meáchan `tierPriority`:
+Chun tús áite láidir a thabhairt do Shraith 1 (síntiús), méadaigh meáchan `tierPriority`:
 
 ```json
 {
@@ -725,7 +729,7 @@ Chun leibhéal 1 ( síntiús) a bhfuil sé d'aidhm acu é a shábháil go láidi
 }
 ```
 
-Féach `docs/marketing/TIERS.md` le haghaidh sainmhínithe leibhéal agus clasacht soláthraithe.
+Féach ar [`docs/guides/TIERS.md`](../guides/TIERS.md) le haghaidh sainmhínithe ar na sraitheanna agus aicmiú na soláthraithe.
 
 ## Tástáil agus Clúdach
 

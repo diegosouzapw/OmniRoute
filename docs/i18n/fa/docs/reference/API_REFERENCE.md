@@ -425,70 +425,90 @@ GET /api/v1/provider-plugin-manifest
 
 ## نقاط پایانی سازگاری
 
-| متد  | مسیر                                      | فرمت                                                  |
-| :--- | :---------------------------------------- | :---------------------------------------------------- |
-| POST | `/v1/chat/completions`                    | اوپنایآی                                              |
-| POST | `/v1/messages`                            | آنتروپیک                                              |
-| POST | `/v1/responses`                           | پاسخهای اوپنایآی                                      |
-| POST | `/v1/embeddings`                          | اوپنایآی                                              |
-| POST | `/v1/images/generations`                  | تصاویر اوپنایآی                                       |
-| POST | `/v1/images/edits`                        | تصاویر اوپنایآی (ویرایش/نقاشی درون)                   |
-| POST | `/v1/videos/generations`                  | تولید ویدیوی به سبک اوپنایآی                          |
-| POST | `/v1/music/generations`                   | تولید موسیقی به سبک اوپنایآی                          |
-| POST | `/v1/audio/transcriptions`                | صوت اوپنایآی (تبدیل گفتار به متن)                     |
-| POST | `/v1/audio/speech`                        | تبدیل متن به گفتار اوپنایآی (بدنه صوتی را برمیگرداند) |
-| POST | `/v1/rerank`                              | بازرتبهبندی به سبک Cohere/Voyage                      |
-| POST | `/v1/classify`                            | دستهبندی Jina (`api.jina.ai`)                         |
-| POST | `/v1/segment`                             | تقسیمکننده Jina (`segment.jina.ai`)                   |
-| POST | `/v1/moderations`                         | اعتدالسازی اوپنایآی                                   |
-| GET  | `/v1/models`                              | اوپنایآی                                              |
-| POST | `/v1/messages/count_tokens`               | آنتروپیک                                              |
-| GET  | `/v1beta/models`                          | جمینی                                                 |
-| POST | `/v1beta/models/{...path}`                | تولید محتوای جمینی                                    |
-| POST | `/v1/api/chat`                            | اولاما                                                |
-| GET  | `/api/v1/vscode/{token}/`                 | نام مستعار کاتالوگ اوپنایآی                           |
-| GET  | `/api/v1/vscode/{token}/models`           | نام مستعار مدلهای اوپنایآی                            |
-| POST | `/api/v1/vscode/{token}/chat/completions` | نام مستعار توکنگذاری شده اوپنایآی                     |
-| POST | `/api/v1/vscode/{token}/responses`        | نام مستعار توکنگذاری شده پاسخهای اوپنایآی             |
-| POST | `/api/v1/vscode/{token}/api/chat`         | نام مستعار توکنگذاری شده اولاما                       |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | نام مستعار توکنگذاری شده تگهای اولاما                 |
+| متد  | مسیر                                      | قالب                                              |
+| ---- | ----------------------------------------- | ------------------------------------------------- |
+| POST | `/v1/chat/completions`                    | OpenAI                                            |
+| POST | `/v1/messages`                            | Anthropic                                         |
+| POST | `/v1/responses`                           | پاسخهای OpenAI                                    |
+| POST | `/v1/embeddings`                          | OpenAI                                            |
+| POST | `/v1/images/generations`                  | تصاویر OpenAI                                     |
+| POST | `/v1/images/edits`                        | تصاویر OpenAI (ویرایش/ترمیم)                      |
+| POST | `/v1/videos/generations`                  | تولید ویدئو به سبک OpenAI                         |
+| POST | `/v1/music/generations`                   | تولید موسیقی به سبک OpenAI                        |
+| POST | `/v1/audio/transcriptions`                | صوت OpenAI (تبدیل گفتار به متن)                   |
+| POST | `/v1/audio/speech`                        | تبدیل متن به گفتار OpenAI (بدنهٔ صوتی برمیگرداند) |
+| POST | `/v1/rerank`                              | بازرتبهبندی به سبک Cohere/Voyage                  |
+| POST | `/v1/classify`                            | طبقهبندی Jina (`api.jina.ai`)                     |
+| POST | `/v1/segment`                             | قطعهبند Jina (`segment.jina.ai`)                  |
+| POST | `/v1/moderations`                         | تعدیل محتوای OpenAI                               |
+| GET  | `/v1/models`                              | OpenAI                                            |
+| POST | `/v1/messages/count_tokens`               | Anthropic                                         |
+| GET  | `/v1beta/models`                          | Gemini                                            |
+| POST | `/v1beta/models/{...path}`                | Gemini generateContent                            |
+| POST | `/v1/api/chat`                            | Ollama                                            |
+| GET  | `/api/v1/vscode/{token}/`                 | نام مستعار کاتالوگ OpenAI                         |
+| GET  | `/api/v1/vscode/{token}/models`           | نام مستعار مدلهای OpenAI                          |
+| POST | `/api/v1/vscode/{token}/chat/completions` | نام مستعار توکندار OpenAI                         |
+| POST | `/api/v1/vscode/{token}/responses`        | نام مستعار توکندار پاسخهای OpenAI                 |
+| POST | `/api/v1/vscode/{token}/api/chat`         | نام مستعار توکندار Ollama                         |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | نام مستعار توکندار برچسبهای Ollama                |
 
-تمام مسیرهای POST از یک شکل پیروی میکنند: `Bearer your-api-key` + بدنه JSON اعتبارسنجی شده توسط Zod (مانند `v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` و غیره، به `src/shared/validation/schemas.ts` مراجعه کنید). در صورت خطای طرحواره، کد 4xx برگردانده میشود.
+تمام مسیرهای POST از ساختار یکسانی پیروی میکنند: `Bearer your-api-key` بههمراه بدنهٔ JSON اعتبارسنجیشده با Zod (`v1RerankSchema`، `v1ModerationSchema`، `v1AudioSpeechSchema` و غیره؛ به `src/shared/validation/schemas.ts` مراجعه کنید). در صورت شکست اعتبارسنجی طرحواره، پاسخ 4xx برگردانده میشود.
 
-برای کلاینتهایی که نمیتوانند `Authorization: Bearer ...` را پیوست کنند، OmniRoute کلیدهای API را در URL نیز میپذیرد، یا از طریق سازگاری با رشته کوئری (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) یا از طریق نقاط پایانی اختصاصی `/api/v1/vscode/{token}/...` که در ادامه مستند شدهاند.
+برای کلاینتهایی که نمیتوانند `Authorization: Bearer ...` را پیوست کنند، OmniRoute همچنین کلیدهای API را در URL میپذیرد؛ یا از طریق سازگاری با رشتهٔ پرسوجو (`?token=...`، `?apiKey=...`، `?api_key=...`، `?key=...`) یا از طریق نقاط پایانی اختصاصی `/api/v1/vscode/{token}/...` که در ادامه مستند شدهاند.
 
 ```bash
-# بازرتبهبندی (ارائهدهنده رجیستری ابری، یا یک گره ارائهدهنده سازگار با OpenAI به عنوان "<prefix>/<model>")
+# بازرتبهبندی (ارائهدهندهٔ رجیستری ابری، یا یک گره ارائهدهندهٔ سازگار با OpenAI بهصورت "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# دستهبندی Jina (اعتبارنامههای Foundation API)
+# طبقهبندی Jina (اعتبارنامههای Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# تقسیمکننده Jina
+# قطعهبند Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# جستجوی Jina (s.jina.ai؛ نامهای مستعار ارائهدهنده: jina-search, jina-ai, jina)
+# جستوجوی Jina (s.jina.ai؛ نامهای مستعار ارائهدهنده: jina-search، jina-ai، jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# اعتدالسازی
+# تعدیل محتوا
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# تبدیل متن به گفتار — بدنه audio/mpeg (یا فرمت درخواستی) را برمیگرداند
+# تبدیل متن به گفتار — بدنهای با قالب audio/mpeg (یا قالب درخواستی) برمیگرداند
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# ویرایش تصویر (چند قسمتی)
+# تبدیل متن به گفتار Soniox به یک زبان و یک صدا نیاز دارد: مقدار پیشفرض `language` برابر "en" است؛ صدای
+# مشخصنشده یا نام یکی از صداهای استاندارد OpenAI (alloy، nova، …) به "Adrian" تبدیل میشود
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# ویرایش تصویر (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# تولید ویدیو / موسیقی (شناسه مدل با پیشوند ارائهدهنده)
+# تولید ویدئو / موسیقی (شناسهٔ مدل با پیشوند ارائهدهنده)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **گرههای ارائهدهنده بازرتبهبندی:** `POST /v1/rerank` همچنین به گرههای ارائهدهنده سازگار با OpenAI (oMLX, vLLM, Infinity, TEI پشت یک گیتوی، ...) که با فرمت `<node-prefix>/<model>` آدرسدهی میشوند، مسیردهی میکند. گرههای لوپبک (`localhost`, `127.0.0.1`, `172.16.0.0/12`) همیشه واجد شرایط هستند. گرههای روی هر میزبان دیگری — یک جعبه LAN یا همتای Tailscale — تنها زمانی واجد شرایط هستند که اپراتور پرچم ویژگی `RERANK_REMOTE_PROVIDER_NODES` را فعال کند **و** URL پایه گره از سیاست URL خروجی ارائهدهنده (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) عبور کند؛ میزبانهای فراداده ابری هرگز مسیردهی نمیشوند. مرحله بازرتبهبندی موتور حافظه این مسیر را از طریق لوپبک فراخوانی میکند، بنابراین همین قانون بر `rerankProviderModel` در تنظیمات حافظه حاکم است.
+> **گرههای ارائهدهندهٔ بازرتبهبندی:** `POST /v1/rerank` درخواستها را به گرههای ارائهدهندهٔ سازگار با OpenAI نیز هدایت میکند
+> (oMLX، vLLM، Infinity، TEI پشت یک درگاه و …) که بهصورت `<node-prefix>/<model>` آدرسدهی میشوند. گرههای
+> لوپبک (`localhost`، `127.0.0.1`، `172.16.0.0/12`) همیشه واجد شرایط هستند. گرههای روی هر میزبان دیگری
+> — یک دستگاه در LAN یا همتای Tailscale — فقط زمانی واجد شرایطاند که اپراتور پرچم قابلیت
+> `RERANK_REMOTE_PROVIDER_NODES` را فعال کند **و** URL پایهٔ گره از خطمشی URL خروجی ارائهدهنده
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) عبور کند؛
+> درخواستها هرگز به میزبانهای فرادادهٔ ابری هدایت نمیشوند. مرحلهٔ بازرتبهبندی موتور حافظه این مسیر را از طریق
+> لوپبک فراخوانی میکند، بنابراین همین قاعده بر `rerankProviderModel` در تنظیمات حافظه حاکم است.
 >
-> **اشکال سرور محلی:** گره در `<base>/v1/rerank` و در صورت 404، در `<base>/rerank` (Infinity, TEI) فراخوانی میشود. بدنه بالادستی هم املای Cohere/OpenAI (`documents`, `return_documents`) و هم املای TEI (`texts`, `return_text`) را حمل میکند، و پاسخ بالادستی به قالب Cohere نرمالسازی میشود: `[{index, score, text}]` خالی TEI، `{results: [{index, score}]}` از گیتویهای نازک، و `{data: [...]}` به سبک Voyage همگی به عنوان `{results: [{index, relevance_score, document?}]}` به کلاینت بازمیگردند، که بر اساس امتیاز مرتب شده و به `top_n` محدود شدهاند.
+> **ساختارهای سرور محلی:** گره در `<base>/v1/rerank` و در صورت دریافت 404، در `<base>/rerank`
+> (Infinity، TEI) فراخوانی میشود. بدنهٔ بالادستی هم نامگذاری Cohere/OpenAI (`documents`،
+> `return_documents`) و هم نامگذاری TEI (`texts`، `return_text`) را شامل میشود و پاسخ بالادستی
+> به پوشش Cohere نرمالسازی میشود: آرایهٔ سادهٔ `[{index, score, text}]` از TEI، ساختار `{results: [{index, score}]}`
+> از درگاههای سبک و ساختار به سبک Voyage یعنی `{data: [...]}`، همگی بهشکل
+> `{results: [{index, relevance_score, document?}]}` به کلاینت بازگردانده میشوند، بر اساس امتیاز مرتب شده و به `top_n` محدود میشوند.
 
-> **کشف گره ارائهدهنده:** مدلهای روی یک گره ارائهدهنده سازگار با OpenAI در `GET /v1/models` تحت پیشوند گره ظاهر میشوند. ردیفهایی که هیچ فراداده نقطه پایانی ندارند (که برای لیستهای محلی `/v1/models` معمول است) `apiType` گره را به ارث میبرند، بنابراین مدلهای یک گره `embeddings` از نوع `type: "embedding"` و مدلهای یک گره `rerank` از نوع `type: "rerank"` هستند به جای اینکه به چت پیشفرض شوند؛ یک `supportedEndpoints` صریح روی یک ردیف همگامسازی شده یا به صورت دستی اضافه شده همچنان اولویت دارد.
+> **کشف گره ارائهدهنده:** مدلهای یک گره ارائهدهنده سازگار با OpenAI در `GET /v1/models`
+> زیر پیشوند گره نمایش داده میشوند. ردیفهایی که هیچ فرادادهای درباره نقطه پایانی ندارند (که برای فهرستهای محلی `/v1/models` معمول است)
+> مقدار `apiType` گره را به ارث میبرند؛ بنابراین مدلهای یک گره `embeddings` دارای `type: "embedding"` و مدلهای یک
+> گره `rerank` دارای `type: "rerank"` هستند، بهجای آنکه بهطور پیشفرض از نوع چت در نظر گرفته شوند؛ بااینحال، مقدار صریح
+> `supportedEndpoints` در یک ردیف همگامسازیشده یا دستی اضافهشده همچنان اولویت دارد.
 
 ### مسیرهای اختصاصی ارائهدهنده
 
@@ -498,7 +518,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-پیشوند ارائهدهنده در صورت عدم وجود به صورت خودکار اضافه میشود. مدلهای ناسازگار کد `400` را برمیگردانند.
+اگر پیشوند ارائهدهنده وجود نداشته باشد، بهطور خودکار اضافه میشود. مدلهای ناسازگار خطای `400` برمیگردانند.
 
 ---
 
@@ -1393,22 +1413,22 @@ GET /.well-known/agent.json
 
 ---
 
-## ابری، ارزیابیها و سنجش
+## Cloud، Evals و Assess
 
 | متد | مسیر | توضیحات |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | یک کلید Bearer را تأیید کرده و اتصالات ارائهدهنده پوشانده شده + نامهای مستعار مدل را برای کلاینتهای همگامسازی ابری برمیگرداند |
-| POST | `/api/cloud/credentials/update` | بهروزرسانی اعتبارنامههای رمزگذاری شده برای یک ارائهدهنده همگامسازی شده با ابر |
-| POST | `/api/cloud/model/resolve` | حل یک شناسه مدل منطقی به یک ارائهدهنده/مدل مشخص با استفاده از جدول مسیریابی محلی |
-| GET | `/api/cloud/models/alias` | لیست نامهای مستعار مدل که برای همگامسازی ابری در دسترس هستند |
-| GET | `/api/assess` | خواندن آخرین دستهبندیهای سنجش (به ازای هر ارائهدهنده/مدل) |
-| POST | `/api/assess` | اجرای یک سنجش — بدنه: `{scope: {type:"all"} \| {type:"provider", providerId} \| {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | لیست مجموعههای ارزیابی داخلی + جدیدترین اجراها |
-| POST | `/api/evals` | راهاندازی یک اجرای ارزیابی |
-| POST | `/api/evals/suites` | ایجاد یک مجموعه ارزیابی سفارشی — بدنه توسط `evalSuiteSaveSchema` اعتبارسنجی میشود |
-| GET | `/api/evals/suites/[id]` | بازیابی یک مجموعه ارزیابی سفارشی |
+| POST | `/api/cloud/auth` | یک کلید Bearer را تأیید میکند و اتصالهای ماسکشدهٔ ارائهدهندگان بههمراه نامهای مستعار مدل را برای کلاینتهای همگامسازی ابری بازمیگرداند |
+| POST | `/api/cloud/credentials/update` | اطلاعات احراز هویت رمزنگاریشدهٔ یک ارائهدهندهٔ همگامشده با ابر را بهروزرسانی میکند |
+| POST | `/api/cloud/model/resolve` | یک شناسهٔ منطقی مدل را با استفاده از جدول مسیریابی محلی به ارائهدهنده/مدل مشخص تبدیل میکند |
+| GET | `/api/cloud/models/alias` | نامهای مستعار مدل را همانگونه که برای همگامسازی ابری ارائه میشوند فهرست میکند |
+| GET | `/api/assess` | جدیدترین دستهبندیهای ارزیابی را بهتفکیک ارائهدهنده/مدل میخواند |
+| POST | `/api/assess` | یک ارزیابی را اجرا میکند — بدنه: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | مجموعههای ارزیابی داخلی و جدیدترین اجراها را فهرست میکند |
+| POST | `/api/evals` | اجرای یک ارزیابی را آغاز میکند |
+| POST | `/api/evals/suites` | یک مجموعهٔ ارزیابی سفارشی ایجاد میکند — بدنه توسط `evalSuiteSaveSchema` اعتبارسنجی میشود |
+| GET | `/api/evals/suites/[id]` | یک مجموعهٔ ارزیابی سفارشی را بازیابی میکند |
 
-**احراز هویت:** `/api/cloud/auth` یک کلید Bearer را مستقیماً اعتبارسنجی میکند؛ سایر مسیرهای `/api/cloud/*`, `/api/evals/*`, و `/api/assess` به نشست مدیریتی/کلید API نیاز دارند. POST `/api/assess` از `validateBody` با یک طرحواره دامنه اتحادیه متمایز استفاده میکند.
+**احراز هویت:** `/api/cloud/auth` یک کلید Bearer را مستقیماً اعتبارسنجی میکند و فقط برای کلیدی با دامنهٔ `manage` / `admin`، کلید ماسکشده و `projectId` هر اتصال را بازمیگرداند؛ سایر مسیرهای `/api/cloud/*`، `/api/evals/*` و `/api/assess` به نشست مدیریتی/کلید API نیاز دارند. درخواست POST به `/api/assess` از `validateBody` همراه با یک شِمای دامنهٔ اجتماع متمایزشده استفاده میکند.
 
 ---
 

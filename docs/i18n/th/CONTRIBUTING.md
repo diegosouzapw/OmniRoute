@@ -417,6 +417,5 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **สถาปัตยกรรม**: ดู [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **เอกสารอ้างอิง API**: ดู [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **เอกสารด้านความปลอดภัย**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **เอกสารการปฏิบัติการ**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **เอกสารด้านการปฏิบัติการ**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **ปัญหา**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: ดูบันทึกการตัดสินใจด้านสถาปัตยกรรมได้ที่ `docs/adr/`

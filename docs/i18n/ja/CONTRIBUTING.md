@@ -417,5 +417,4 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **API リファレンス**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)を参照してください
 - **セキュリティドキュメント**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md)、[`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md)、[`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)、[`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **運用ドキュメント**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **課題**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: アーキテクチャ上の意思決定記録については、`docs/adr/`を参照してください
+- **Issue**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

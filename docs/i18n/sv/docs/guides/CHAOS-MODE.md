@@ -6,20 +6,43 @@
 
 > **Dashboard:** **Chaos Mode** (sidofältet) → `/dashboard/chaos`  
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (dashboard-session) · `POST /api/skills/collect/chaos` (API-nyckel)  
-> **Källkod:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
+> **Källa:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
 Chaos Mode skickar **en uppgift till flera leverantörer samtidigt** — varje deltagande leverantör
-bidrar med en modellinstans, och du får alla svar sida vid sida (eller kedjade). Det är en
-körningsyta för flera modeller, inte en routningsstrategi: din vanliga trafik till
-`/v1/chat/completions` påverkas aldrig av den.
+bidrar med en modellinstans, och du får alla svar sida vid sida (eller länkade i en kedja). Det är en
+körningsyta för flera modeller, inte en routningsstrategi: din normala trafik till `/v1/chat/completions`
+påverkas aldrig av den.
 
 **Förtydligande — tre olika saker levereras med ”chaos” i namnet:**
 
-| Sak                       | Vad det är                                                                                                                  | Var det dokumenteras                         |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**            | Dashboard-sidan + API:et som beskrivs här: skicka en uppgift till många leverantörer (parallellt eller kollaborativt).      | Den här guiden                               |
-| `auto/chaos`              | Ett Auto-Combo-modell-id med poängvikter för felinjektion, avsett för resiliensprovning. Inget behöver konfigureras.        | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos combo-konfiguration | En beständig kombination där `config.chaos.enabled` distribuerar till en panel med en valfri bedömningsmodell (endast API). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Sak                | Vad det är                                                                                                                                                             | Var det dokumenteras                         |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**     | Dashboard-sidan + API:et som beskrivs här: distribuera en uppgift till många leverantörer (parallellt eller gemensamt).                                                | Den här guiden                               |
+| `auto/chaos`       | Auto-Combo-modell-id: parallell distribution, en modell per leverantör, ett uppströmsanrop vardera. Inte felinjektion ([detaljer](#autochaos-parallell-distribution)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos combo-konfig | En beständig combo med `config.chaos.enabled` distribuerar på samma sätt (endast via API); `judgeModel` väljer bara slutsvaret, utan något syntesanrop.                | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: parallell distribution
+
+`auto/chaos` är **inte** en inställning för felinjektion eller resiliensprovning. När
+`model: "auto/chaos"` begärs på `/v1/chat/completions`:
+
+1. Skapas en panel med **en modell per leverantör**: den första kandidaten från varje
+   ansluten leverantör, i kandidatpoolens ordning, upp till 5 medlemmar
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, begränsat till högst 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Viktpaketet `chaos-mode`
+   anger endast varje medlems `weight`; distributionen läser det inte.
+2. Samma begäran skickas till varje panelmedlem **parallellt**, så en begäran
+   kostar ett uppströmsanrop per panelmedlem
+   (`open-sse/services/autoCombo/chaosEngine.ts`, skickat från
+   `open-sse/services/combo.ts`).
+3. En statusrad strömmas för varje panelmedlem när den anländer: som standard en SSE-kommentar
+   (`: chaos <index> ok|fail <model>`), samt en `omni-chaos-part`-händelse
+   (`model`, `index`, `ok`, `error`) när begäran anger
+   `stream_options.include_chaos_parts: true`. Dessa innehåller ingen svarstext.
+4. **Ett** panelsvar skickas som den slutliga OpenAI-formaterade delen: den första
+   panelmedlemmens (`auto/chaos` anger den som `judgeModel`) när den lyckas, annars
+   den senast lyckade medlemmens. De andra panelsvaren returneras inte, så du
+   betalar för N anrop och får ett slutförande.
 
 ## Konfiguration
 

@@ -423,11 +423,10 @@ VPS വിന്യാസങ്ങൾക്കായി, `npm run build` എന�
 
 ---
 
-## സഹായം ലഭിക്കാൻ
+## സഹായം നേടൽ
 
 - **ആർക്കിടെക്ചർ**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) കാണുക
 - **API റഫറൻസ്**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) കാണുക
 - **സുരക്ഷാ ഡോക്യുമെന്റേഷൻ**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **ഓപ്പറേഷൻസ് ഡോക്യുമെന്റേഷൻ**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **പ്രശ്നങ്ങൾ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: ആർക്കിടെക്ചറൽ തീരുമാന രേഖകൾക്കായി `docs/adr/` കാണുക

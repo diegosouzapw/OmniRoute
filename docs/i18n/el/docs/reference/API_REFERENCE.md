@@ -413,42 +413,42 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## Τελικά Σημεία Συμβατότητας
+## Τερματικά σημεία συμβατότητας
 
-| Μέθοδος | Διαδρομή                                  | Μορφή                                   |
-| ------- | ----------------------------------------- | --------------------------------------- |
-| POST    | `/v1/chat/completions`                    | OpenAI                                  |
-| POST    | `/v1/messages`                            | Anthropic                               |
-| POST    | `/v1/responses`                           | Αποκρίσεις OpenAI                       |
-| POST    | `/v1/embeddings`                          | OpenAI                                  |
-| POST    | `/v1/images/generations`                  | Εικόνες OpenAI                          |
-| POST    | `/v1/images/edits`                        | Εικόνες OpenAI (επεξεργασία/inpaint)    |
-| POST    | `/v1/videos/generations`                  | Δημιουργία βίντεο τύπου OpenAI          |
-| POST    | `/v1/music/generations`                   | Δημιουργία μουσικής τύπου OpenAI        |
-| POST    | `/v1/audio/transcriptions`                | Ήχος OpenAI (STT)                       |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (επιστρέφει σώμα ήχου)       |
-| POST    | `/v1/rerank`                              | Επανακατάταξη τύπου Cohere/Voyage       |
-| POST    | `/v1/classify`                            | Ταξινόμηση Jina (`api.jina.ai`)         |
-| POST    | `/v1/segment`                             | Τμηματοποιητής Jina (`segment.jina.ai`) |
-| POST    | `/v1/moderations`                         | Μετριοπάθειες OpenAI                    |
-| GET     | `/v1/models`                              | OpenAI                                  |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                               |
-| GET     | `/v1beta/models`                          | Gemini                                  |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                  |
-| POST    | `/v1/api/chat`                            | Ollama                                  |
-| GET     | `/api/v1/vscode/{token}/`                 | Ψευδώνυμο καταλόγου OpenAI              |
-| GET     | `/api/v1/vscode/{token}/models`           | Ψευδώνυμο μοντέλων OpenAI               |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | Ψευδώνυμο με token OpenAI               |
-| POST    | `/api/v1/vscode/{token}/responses`        | Ψευδώνυμο με token αποκρίσεων OpenAI    |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Ψευδώνυμο με token Ollama               |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Ψευδώνυμο με token ετικετών Ollama      |
+| Μέθοδος | Διαδρομή                                  | Μορφή                                    |
+| ------- | ----------------------------------------- | ---------------------------------------- |
+| POST    | `/v1/chat/completions`                    | OpenAI                                   |
+| POST    | `/v1/messages`                            | Anthropic                                |
+| POST    | `/v1/responses`                           | OpenAI Responses                         |
+| POST    | `/v1/embeddings`                          | OpenAI                                   |
+| POST    | `/v1/images/generations`                  | OpenAI Images                            |
+| POST    | `/v1/images/edits`                        | OpenAI Images (επεξεργασία/inpaint)      |
+| POST    | `/v1/videos/generations`                  | Δημιουργία βίντεο τύπου OpenAI           |
+| POST    | `/v1/music/generations`                   | Δημιουργία μουσικής τύπου OpenAI         |
+| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (επιστρέφει σώμα ήχου)        |
+| POST    | `/v1/rerank`                              | Ανακατάταξη τύπου Cohere/Voyage          |
+| POST    | `/v1/classify`                            | Ταξινόμηση Jina (`api.jina.ai`)          |
+| POST    | `/v1/segment`                             | Τμηματοποιητής Jina (`segment.jina.ai`)  |
+| POST    | `/v1/moderations`                         | OpenAI Moderations                       |
+| GET     | `/v1/models`                              | OpenAI                                   |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                                |
+| GET     | `/v1beta/models`                          | Gemini                                   |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                   |
+| POST    | `/v1/api/chat`                            | Ollama                                   |
+| GET     | `/api/v1/vscode/{token}/`                 | Ψευδώνυμο καταλόγου OpenAI               |
+| GET     | `/api/v1/vscode/{token}/models`           | Ψευδώνυμο μοντέλων OpenAI                |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | Ψευδώνυμο OpenAI με διακριτικό           |
+| POST    | `/api/v1/vscode/{token}/responses`        | Ψευδώνυμο OpenAI Responses με διακριτικό |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ψευδώνυμο Ollama με διακριτικό           |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ψευδώνυμο ετικετών Ollama με διακριτικό  |
 
-Όλες οι διαδρομές POST ακολουθούν την ίδια μορφή: `Bearer your-api-key` + σώμα JSON επικυρωμένο από Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, κ.λπ., δείτε `src/shared/validation/schemas.ts`). Επιστρέφεται 4xx σε περίπτωση αποτυχίας σχήματος.
+Όλες οι διαδρομές POST ακολουθούν την ίδια μορφή: `Bearer your-api-key` + σώμα JSON επικυρωμένο μέσω Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` κ.λπ., δείτε το `src/shared/validation/schemas.ts`). Σε περίπτωση αποτυχίας του σχήματος επιστρέφεται 4xx.
 
-Για πελάτες που δεν μπορούν να επισυνάψουν `Authorization: Bearer ...`, το OmniRoute δέχεται επίσης κλειδιά API στην διεύθυνση URL είτε μέσω συμβατότητας συμβολοσειράς ερωτήματος (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) είτε μέσω των αποκλειστικών τελικών σημείων `/api/v1/vscode/{token}/...` που τεκμηριώνονται παρακάτω.
+Για πελάτες που δεν μπορούν να επισυνάψουν `Authorization: Bearer ...`, το OmniRoute δέχεται επίσης κλειδιά API στη διεύθυνση URL είτε μέσω συμβατότητας με συμβολοσειρά ερωτήματος (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) είτε μέσω των αποκλειστικών τερματικών σημείων `/api/v1/vscode/{token}/...` που τεκμηριώνονται παρακάτω.
 
 ```bash
-# Επανακατάταξη (πάροχος μητρώου cloud, ή κόμβος παρόχου συμβατός με OpenAI ως "<prefix>/<model>")
+# Ανακατάταξη (πάροχος μητρώου cloud ή κόμβος παρόχου συμβατός με OpenAI ως "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Ταξινόμηση Jina (διαπιστευτήρια Foundation API)
@@ -460,11 +460,15 @@ POST /v1/segment     { "content": "...", "return_chunks": true }
 # Αναζήτηση Jina (s.jina.ai· ψευδώνυμα παρόχου: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Μετριοπάθειες
+# Έλεγχοι εποπτείας
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — επιστρέφει σώμα audio/mpeg (ή της ζητούμενης μορφής)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
+
+# Το Soniox TTS απαιτεί γλώσσα και φωνή: το `language` έχει προεπιλεγμένη τιμή "en"· μια φωνή που λείπει
+# ή ένα τυπικό όνομα φωνής του OpenAI (alloy, nova, …) μετατρέπεται σε "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
 # Επεξεργασία εικόνας (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
@@ -474,13 +478,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Κόμβοι παρόχου επανακατάταξης:** Το `POST /v1/rerank` δρομολογεί επίσης σε κόμβους παρόχου συμβατούς με OpenAI (oMLX, vLLM, Infinity, TEI πίσω από μια πύλη, …) που προσδιορίζονται ως `<node-prefix>/<model>`. Οι κόμβοι loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) είναι πάντα επιλέξιμοι. Οι κόμβοι σε οποιονδήποτε άλλο κεντρικό υπολογιστή — ένα κουτί LAN ή ένας ομότιμος Tailscale — είναι επιλέξιμοι μόνο όταν ο χειριστής ενεργοποιήσει τη σημαία λειτουργίας `RERANK_REMOTE_PROVIDER_NODES` **και** η βασική διεύθυνση URL του κόμβου περάσει την πολιτική εξερχόμενων URL του παρόχου (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)· οι κεντρικοί υπολογιστές μεταδεδομένων cloud δεν δρομολογούνται ποτέ. Το βήμα επανακατάταξης της μηχανής μνήμης καλεί αυτή τη διαδρομή μέσω loopback, οπότε ο ίδιος κανόνας διέπει το `rerankProviderModel` στις ρυθμίσεις Μνήμης.
+> **Κόμβοι παρόχων ανακατάταξης:** Το `POST /v1/rerank` δρομολογεί επίσης προς κόμβους παρόχων συμβατούς με OpenAI
+> (oMLX, vLLM, Infinity, TEI πίσω από μια πύλη, …), οι οποίοι προσδιορίζονται ως `<node-prefix>/<model>`. Οι κόμβοι
+> loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) είναι πάντα επιλέξιμοι. Οι κόμβοι σε οποιονδήποτε άλλο
+> κεντρικό υπολογιστή —ένα μηχάνημα LAN ή ένας ομότιμος κόμβος Tailscale— είναι επιλέξιμοι μόνο όταν ο διαχειριστής ενεργοποιήσει τη
+> σημαία δυνατότητας `RERANK_REMOTE_PROVIDER_NODES` **και** η βασική διεύθυνση URL του κόμβου περάσει την πολιτική
+> εξερχόμενων URL παρόχων (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)·
+> οι κεντρικοί υπολογιστές μεταδεδομένων cloud δεν χρησιμοποιούνται ποτέ για δρομολόγηση. Το βήμα ανακατάταξης της μηχανής μνήμης καλεί αυτήν τη διαδρομή μέσω
+> loopback, επομένως ο ίδιος κανόνας διέπει το `rerankProviderModel` στις ρυθμίσεις Μνήμης.
 >
-> **Μορφές τοπικού διακομιστή:** ο κόμβος καλείται στο `<base>/v1/rerank` και, σε 404, στο `<base>/rerank` (Infinity, TEI). Το σώμα upstream φέρει τόσο την ορθογραφία Cohere/OpenAI (`documents`, `return_documents`) όσο και την ορθογραφία TEI (`texts`, `return_text`), και η απόκριση upstream κανονικοποιείται στο περίβλημα Cohere: το απλό `[{index, score, text}]` του TEI, το `{results: [{index, score}]}` από λεπτές πύλες, και το `{data: [...]}` τύπου Voyage, όλα επιστρέφουν στον πελάτη ως `{results: [{index, relevance_score, document?}]}`, ταξινομημένα κατά βαθμολογία και περιορισμένα στο `top_n`.
+> **Μορφές τοπικού διακομιστή:** Ο κόμβος καλείται στο `<base>/v1/rerank` και, σε περίπτωση 404, στο `<base>/rerank`
+> (Infinity, TEI). Το σώμα προς τον ανάντη διακομιστή περιλαμβάνει τόσο την ορθογραφία Cohere/OpenAI (`documents`,
+> `return_documents`) όσο και την ορθογραφία TEI (`texts`, `return_text`), ενώ η απόκριση του ανάντη διακομιστή
+> κανονικοποιείται στο περίβλημα Cohere: ο γυμνός πίνακας του TEI `[{index, score, text}]`, το `{results: [{index, score}]}`
+> από ελαφριές πύλες και το τύπου Voyage `{data: [...]}` επιστρέφονται όλα στον πελάτη ως
+> `{results: [{index, relevance_score, document?}]}`, ταξινομημένα κατά βαθμολογία και περιορισμένα στο `top_n`.
 
-> **Ανακάλυψη κόμβου παρόχου:** τα μοντέλα σε έναν κόμβο παρόχου συμβατό με OpenAI εμφανίζονται στο `GET /v1/models` υπό το πρόθεμα του κόμβου. Οι γραμμές που δεν φέρουν μεταδεδομένα τελικού σημείου (τυπικό για τοπικές λίστες `/v1/models`) κληρονομούν το `apiType` του κόμβου, οπότε τα μοντέλα ενός κόμβου `embeddings` είναι `type: "embedding"` και τα μοντέλα ενός κόμβου `rerank` είναι `type: "rerank"` αντί να προεπιλέγονται σε συνομιλία· ένα ρητό `supportedEndpoints` σε μια συγχρονισμένη ή χειροκίνητα προστιθέμενη γραμμή εξακολουθεί να έχει προτεραιότητα.
+> **Εντοπισμός κόμβων παρόχου:** τα μοντέλα σε έναν κόμβο παρόχου συμβατό με το OpenAI εμφανίζονται στο `GET /v1/models`
+> κάτω από το πρόθεμα του κόμβου. Οι εγγραφές που δεν περιέχουν μεταδεδομένα τελικού σημείου (όπως συμβαίνει συνήθως στις τοπικές καταχωρίσεις `/v1/models`)
+> κληρονομούν το `apiType` του κόμβου, επομένως τα μοντέλα ενός κόμβου `embeddings` έχουν `type: "embedding"` και τα
+> μοντέλα ενός κόμβου `rerank` έχουν `type: "rerank"` αντί να χρησιμοποιούν από προεπιλογή τη συνομιλία· ένα ρητό
+> `supportedEndpoints` σε μια συγχρονισμένη ή μη αυτόματα προστεθειμένη εγγραφή εξακολουθεί να υπερισχύει.
 
-### Αποκλειστικές Διαδρομές Παρόχου
+### Αποκλειστικές διαδρομές παρόχου
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -488,7 +508,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Το πρόθεμα παρόχου προστίθεται αυτόματα αν λείπει. Τα μη αντιστοιχισμένα μοντέλα επιστρέφουν `400`.
+Το πρόθεμα του παρόχου προστίθεται αυτόματα αν λείπει. Τα μοντέλα που δεν αντιστοιχούν επιστρέφουν `400`.
 
 ---
 
@@ -1408,18 +1428,18 @@ GET /.well-known/agent.json
 
 | Μέθοδος | Διαδρομή | Περιγραφή |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Επαλήθευση ενός Bearer key και επιστροφή κρυφών συνδέσεων παρόχου + ψευδώνυμα μοντέλων για clients cloud συγχρονισμού |
-| POST | `/api/cloud/credentials/update` | Ενημέρωση κρυπτογραφημένων διαπιστευτηρίων για έναν πάροχο που συγχρονίζεται με το cloud |
-| POST | `/api/cloud/model/resolve` | Επίλυση ενός λογικού αναγνωριστικού μοντέλου σε συγκεκριμένο πάροχο/μοντέλο χρησιμοποιώντας τον τοπικό πίνακα δρομολόγησης |
-| GET | `/api/cloud/models/alias` | Λίστα ψευδωνύμων μοντέλων όπως εκτίθενται στο cloud sync |
-| GET | `/api/assess` | Ανάγνωση των τελευταίων κατηγοριοποιήσεων αξιολόγησης (ανά πάροχο/μοντέλο) |
-| POST | `/api/assess` | Εκτέλεση αξιολόγησης — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | Λίστα ενσωματωμένων σουιτών eval + πιο πρόσφατες εκτελέσεις |
-| POST | `/api/evals` | Εκκίνηση εκτέλεσης eval |
-| POST | `/api/evals/suites` | Δημιουργία προσαρμοσμένης σουίτας eval — body επικυρωμένο από `evalSuiteSaveSchema` |
-| GET | `/api/evals/suites/[id]` | Ανάκτηση προσαρμοσμένης σουίτας eval |
+| POST | `/api/cloud/auth` | Επαληθεύει ένα κλειδί Bearer και επιστρέφει καλυμμένες συνδέσεις παρόχων + ψευδώνυμα μοντέλων για πελάτες συγχρονισμού cloud |
+| POST | `/api/cloud/credentials/update` | Ενημερώνει τα κρυπτογραφημένα διαπιστευτήρια για έναν πάροχο συγχρονισμένο με το cloud |
+| POST | `/api/cloud/model/resolve` | Αντιστοιχίζει ένα λογικό αναγνωριστικό μοντέλου σε συγκεκριμένο πάροχο/μοντέλο χρησιμοποιώντας τον τοπικό πίνακα δρομολόγησης |
+| GET | `/api/cloud/models/alias` | Παραθέτει τα ψευδώνυμα μοντέλων όπως εκτίθενται στον συγχρονισμό cloud |
+| GET | `/api/assess` | Διαβάζει τις πιο πρόσφατες κατηγοριοποιήσεις αξιολόγησης (ανά πάροχο/μοντέλο) |
+| POST | `/api/assess` | Εκτελεί μια αξιολόγηση — σώμα: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Παραθέτει τις ενσωματωμένες σουίτες eval + τις πιο πρόσφατες εκτελέσεις |
+| POST | `/api/evals` | Ενεργοποιεί μια εκτέλεση eval |
+| POST | `/api/evals/suites` | Δημιουργεί μια προσαρμοσμένη σουίτα eval — το σώμα επικυρώνεται από το `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | Ανακτά μια προσαρμοσμένη σουίτα eval |
 
-**Αυθεντικοποίηση:** το `/api/cloud/auth` επικυρώνει απευθείας ένα Bearer key· οι υπόλοιπες διαδρομές `/api/cloud/*`, `/api/evals/*` και `/api/assess` απαιτούν session διαχείρισης ή API key. Το POST `/api/assess` χρησιμοποιεί `validateBody` με ένα σχήμα scope discriminated-union.
+**Έλεγχος ταυτότητας:** Το `/api/cloud/auth` επικυρώνει απευθείας ένα κλειδί Bearer και επιστρέφει το καλυμμένο κλειδί και το `projectId` κάθε σύνδεσης μόνο για κλειδί με εμβέλεια `manage` / `admin`· οι άλλες διαδρομές `/api/cloud/*`, `/api/evals/*` και `/api/assess` απαιτούν συνεδρία διαχείρισης/κλειδί API. Το POST `/api/assess` χρησιμοποιεί το `validateBody` με ένα σχήμα εμβέλειας διακριτής ένωσης.
 
 ---
 

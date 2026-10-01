@@ -415,23 +415,23 @@ Bifrost, CLIProxyAPI ಮತ್ತು ಭವಿಷ್ಯದ ಸೈಡ್ಕಾರ
 
 ---
 
-## ಹೊಂದಾಣಿಕೆಯ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳು
+## ಹೊಂದಾಣಿಕೆ ಎಂಡ್ಪಾಯಿಂಟ್ಗಳು
 
-| ವಿಧಾನ | ಮಾರ್ಗ                                     | ಸ್ವರೂಪ                                   |
+| ವಿಧಾನ | ಪಥ                                        | ಸ್ವರೂಪ                                   |
 | ----- | ----------------------------------------- | ---------------------------------------- |
 | POST  | `/v1/chat/completions`                    | OpenAI                                   |
 | POST  | `/v1/messages`                            | Anthropic                                |
 | POST  | `/v1/responses`                           | OpenAI Responses                         |
 | POST  | `/v1/embeddings`                          | OpenAI                                   |
 | POST  | `/v1/images/generations`                  | OpenAI Images                            |
-| POST  | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)             |
-| POST  | `/v1/videos/generations`                  | OpenAI-ಶೈಲಿಯ ವೀಡಿಯೊ ಉತ್ಪಾದನೆ             |
-| POST  | `/v1/music/generations`                   | OpenAI-ಶೈಲಿಯ ಸಂಗೀತ ಉತ್ಪಾದನೆ              |
+| POST  | `/v1/images/edits`                        | OpenAI Images (ಸಂಪಾದನೆ/inpaint)          |
+| POST  | `/v1/videos/generations`                  | OpenAI-ಶೈಲಿಯ ವೀಡಿಯೊ ರಚನೆ                 |
+| POST  | `/v1/music/generations`                   | OpenAI-ಶೈಲಿಯ ಸಂಗೀತ ರಚನೆ                  |
 | POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (ಆಡಿಯೊ ಬಾಡಿ ಹಿಂದಿರುಗಿಸುತ್ತದೆ) |
-| POST  | `/v1/rerank`                              | Cohere/Voyage-ಶೈಲಿಯ ಮರು ಶ್ರೇಣೀಕರಣ        |
-| POST  | `/v1/classify`                            | Jina classify (`api.jina.ai`)            |
-| POST  | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)       |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (ಆಡಿಯೊ ಬಾಡಿ ಹಿಂತಿರುಗಿಸುತ್ತದೆ) |
+| POST  | `/v1/rerank`                              | Cohere/Voyage-ಶೈಲಿಯ ಮರುಶ್ರೇಯಾಂಕ          |
+| POST  | `/v1/classify`                            | Jina ವರ್ಗೀಕರಣ (`api.jina.ai`)            |
+| POST  | `/v1/segment`                             | Jina ಸೆಗ್ಮೆಂಟರ್ (`segment.jina.ai`)      |
 | POST  | `/v1/moderations`                         | OpenAI Moderations                       |
 | GET   | `/v1/models`                              | OpenAI                                   |
 | POST  | `/v1/messages/count_tokens`               | Anthropic                                |
@@ -440,63 +440,67 @@ Bifrost, CLIProxyAPI ಮತ್ತು ಭವಿಷ್ಯದ ಸೈಡ್ಕಾರ
 | POST  | `/v1/api/chat`                            | Ollama                                   |
 | GET   | `/api/v1/vscode/{token}/`                 | OpenAI ಕ್ಯಾಟಲಾಗ್ ಅಲಿಯಾಸ್                 |
 | GET   | `/api/v1/vscode/{token}/models`           | OpenAI ಮಾದರಿಗಳ ಅಲಿಯಾಸ್                   |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI ಟೋಕನೈಸ್ಡ್ ಅಲಿಯಾಸ್                 |
-| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ಟೋಕನೈಸ್ಡ್ ಅಲಿಯಾಸ್       |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama ಟೋಕನೈಸ್ಡ್ ಅಲಿಯಾಸ್                 |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama ಟ್ಯಾಗ್ಗಳ ಟೋಕನೈಸ್ಡ್ ಅಲಿಯಾಸ್        |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI ಟೋಕನೀಕೃತ ಅಲಿಯಾಸ್                  |
+| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ಟೋಕನೀಕೃತ ಅಲಿಯಾಸ್        |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama ಟೋಕನೀಕೃತ ಅಲಿಯಾಸ್                  |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama ಟ್ಯಾಗ್ಗಳ ಟೋಕನೀಕೃತ ಅಲಿಯಾಸ್         |
 
-ಎಲ್ಲಾ POST ಮಾರ್ಗಗಳು ಒಂದೇ ಆಕಾರವನ್ನು ಅನುಸರಿಸುತ್ತವೆ: `Bearer your-api-key` + Zod-ಮೌಲ್ಯೀಕರಿಸಿದ JSON ಬಾಡಿ (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ಇತ್ಯಾದಿ, `src/shared/validation/schemas.ts` ನೋಡಿ). ಸ್ಕೀಮಾ ವೈಫಲ್ಯದ ಮೇಲೆ 4xx ಅನ್ನು ಹಿಂದಿರುಗಿಸಲಾಗುತ್ತದೆ.
+ಎಲ್ಲಾ POST ರೂಟ್ಗಳು ಒಂದೇ ವಿನ್ಯಾಸವನ್ನು ಅನುಸರಿಸುತ್ತವೆ: `Bearer your-api-key` + Zod-ಮೌಲ್ಯೀಕರಿಸಿದ JSON ಬಾಡಿ (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ಇತ್ಯಾದಿ; `src/shared/validation/schemas.ts` ನೋಡಿ). ಸ್ಕೀಮಾ ವಿಫಲವಾದಾಗ 4xx ಹಿಂತಿರುಗಿಸಲಾಗುತ್ತದೆ.
 
-`Authorization: Bearer ...` ಅನ್ನು ಲಗತ್ತಿಸಲು ಸಾಧ್ಯವಾಗದ ಕ್ಲೈಂಟ್ಗಳಿಗಾಗಿ, OmniRoute API ಕೀಗಳನ್ನು URL ನಲ್ಲಿ ಪ್ರಶ್ನೆ-ಸ್ಟ್ರಿಂಗ್ ಹೊಂದಾಣಿಕೆಯ ಮೂಲಕ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ಅಥವಾ ಕೆಳಗೆ ದಾಖಲಿಸಲಾದ ಮೀಸಲಾದ `/api/v1/vscode/{token}/...` ಎಂಡ್ಪಾಯಿಂಟ್ಗಳ ಮೂಲಕ ಸ್ವೀಕರಿಸುತ್ತದೆ.
+`Authorization: Bearer ...` ಅನ್ನು ಲಗತ್ತಿಸಲು ಸಾಧ್ಯವಾಗದ ಕ್ಲೈಂಟ್ಗಳಿಗಾಗಿ, ಕೆಳಗೆ ದಾಖಲಿಸಿರುವ ಮೀಸಲಾದ `/api/v1/vscode/{token}/...` ಎಂಡ್ಪಾಯಿಂಟ್ಗಳ ಮೂಲಕ ಅಥವಾ ಕ್ವೆರಿ-ಸ್ಟ್ರಿಂಗ್ ಹೊಂದಾಣಿಕೆ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ಮೂಲಕ URLನಲ್ಲಿ API ಕೀಗಳನ್ನು OmniRoute ಸ್ವೀಕರಿಸುತ್ತದೆ.
 
 ```bash
-# Rerank (ಕ್ಲೌಡ್ ರಿಜಿಸ್ಟ್ರಿ ಪ್ರೊವೈಡರ್, ಅಥವಾ OpenAI-ಹೊಂದಾಣಿಕೆಯ ಪ್ರೊವೈಡರ್ ನೋಡ್ ಅನ್ನು "<prefix>/<model>" ಎಂದು)
+# ಮರುಶ್ರೇಯಾಂಕ (ಕ್ಲೌಡ್ ರಿಜಿಸ್ಟ್ರಿ ಪೂರೈಕೆದಾರ ಅಥವಾ "<prefix>/<model>" ರೂಪದ OpenAI-ಹೊಂದಾಣಿಕೆಯ ಪೂರೈಕೆದಾರ ನೋಡ್)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (ಫೌಂಡೇಶನ್ API ರುಜುವಾತುಗಳು)
+# Jina ವರ್ಗೀಕರಣ (Foundation API ರುಜುವಾತುಗಳು)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Jina ಸೆಗ್ಮೆಂಟರ್
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; ಪ್ರೊವೈಡರ್ ಅಲಿಯಾಸ್ಗಳು: jina-search, jina-ai, jina)
+# Jina ಹುಡುಕಾಟ (s.jina.ai; ಪೂರೈಕೆದಾರ ಅಲಿಯಾಸ್ಗಳು: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderations
+# ಮಾಡರೇಶನ್ಗಳು
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (ಅಥವಾ ವಿನಂತಿಸಿದ ಸ್ವರೂಪ) ಬಾಡಿಯನ್ನು ಹಿಂದಿರುಗಿಸುತ್ತದೆ
+# TTS — audio/mpeg (ಅಥವಾ ವಿನಂತಿಸಿದ ಸ್ವರೂಪದ) ಬಾಡಿಯನ್ನು ಹಿಂತಿರುಗಿಸುತ್ತದೆ
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Image edit (ಮಲ್ಟಿಪಾರ್ಟ್)
+# Soniox TTSಗೆ ಭಾಷೆ ಮತ್ತು ಧ್ವನಿ ಅಗತ್ಯವಿದೆ: `language` ನ ಡೀಫಾಲ್ಟ್ "en"; ಧ್ವನಿ ಇಲ್ಲದಿದ್ದರೆ
+# ಅಥವಾ OpenAI ಸ್ಟಾಕ್ ಧ್ವನಿಯ ಹೆಸರಾಗಿದ್ದರೆ (alloy, nova, …), ಅದು "Adrian" ಆಗುತ್ತದೆ
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# ಚಿತ್ರ ಸಂಪಾದನೆ (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Video / music generation (ಪ್ರೊವೈಡರ್-ಪ್ರಿಫಿಕ್ಸ್ಡ್ ಮಾಡೆಲ್ ಐಡಿ)
+# ವೀಡಿಯೊ / ಸಂಗೀತ ರಚನೆ (ಪೂರೈಕೆದಾರ-ಪೂರ್ವಪ್ರತ್ಯಯದ ಮಾದರಿ ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Rerank ಪ್ರೊವೈಡರ್ ನೋಡ್ಗಳು:** `POST /v1/rerank` ಸಹ OpenAI-ಹೊಂದಾಣಿಕೆಯ ಪ್ರೊವೈಡರ್ ನೋಡ್ಗಳಿಗೆ ಮಾರ್ಗಗಳನ್ನು ನೀಡುತ್ತದೆ
-> (oMLX, vLLM, Infinity, TEI ಗೇಟ್ವೇ ಹಿಂದೆ, ...) `<node-prefix>/<model>` ಎಂದು ಸಂಬೋಧಿಸಲಾಗುತ್ತದೆ. ಲೂಪ್ಬ್ಯಾಕ್
-> ನೋಡ್ಗಳು (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ಯಾವಾಗಲೂ ಅರ್ಹವಾಗಿರುತ್ತವೆ. ಯಾವುದೇ ಇತರ
-> ಹೋಸ್ಟ್ನಲ್ಲಿರುವ ನೋಡ್ಗಳು — LAN ಬಾಕ್ಸ್ ಅಥವಾ Tailscale ಪೀರ್ — ಆಪರೇಟರ್
-> `RERANK_REMOTE_PROVIDER_NODES` ವೈಶಿಷ್ಟ್ಯ ಫ್ಲ್ಯಾಗ್ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿದಾಗ ಮಾತ್ರ ಅರ್ಹವಾಗಿರುತ್ತವೆ **ಮತ್ತು** ನೋಡ್ನ ಮೂಲ URL
-> ಪ್ರೊವೈಡರ್ ಹೊರಹೋಗುವ URL ನೀತಿಯನ್ನು ಪಾಸ್ ಮಾಡಿದಾಗ (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> ಕ್ಲೌಡ್-ಮೆಟಾಡೇಟಾ ಹೋಸ್ಟ್ಗಳಿಗೆ ಎಂದಿಗೂ ಮಾರ್ಗವನ್ನು ನೀಡಲಾಗುವುದಿಲ್ಲ. ಮೆಮೊರಿ ಎಂಜಿನ್ನ ಮರು ಶ್ರೇಣೀಕರಣ ಹಂತವು ಈ ಮಾರ್ಗವನ್ನು
-> ಲೂಪ್ಬ್ಯಾಕ್ ಮೂಲಕ ಕರೆಯುತ್ತದೆ, ಆದ್ದರಿಂದ ಮೆಮೊರಿ ಸೆಟ್ಟಿಂಗ್ಗಳಲ್ಲಿ `rerankProviderModel` ಅನ್ನು ಅದೇ ನಿಯಮವು ನಿಯಂತ್ರಿಸುತ್ತದೆ.
+> **ಮರುಶ್ರೇಯಾಂಕ ಪೂರೈಕೆದಾರ ನೋಡ್ಗಳು:** `POST /v1/rerank` ಅನ್ನು `<node-prefix>/<model>` ಎಂದು ವಿಳಾಸಗೊಳಿಸಲಾದ OpenAI-ಹೊಂದಾಣಿಕೆಯ ಪೂರೈಕೆದಾರ ನೋಡ್ಗಳಿಗೂ
+> (ಗೇಟ್ವೇ ಹಿಂದಿರುವ oMLX, vLLM, Infinity, TEI, …) ರೂಟ್ ಮಾಡಲಾಗುತ್ತದೆ. ಲೂಪ್ಬ್ಯಾಕ್
+> ನೋಡ್ಗಳು (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ಯಾವಾಗಲೂ ಅರ್ಹವಾಗಿರುತ್ತವೆ. ಬೇರೆ ಯಾವುದೇ
+> ಹೋಸ್ಟ್ನಲ್ಲಿರುವ ನೋಡ್ಗಳು — LAN ಯಂತ್ರ ಅಥವಾ Tailscale ಪಿಯರ್ — ಆಪರೇಟರ್
+> `RERANK_REMOTE_PROVIDER_NODES` ವೈಶಿಷ್ಟ್ಯ ಫ್ಲ್ಯಾಗ್ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿದಾಗ **ಮತ್ತು** ನೋಡ್ನ ಬೇಸ್ URL ಪೂರೈಕೆದಾರರ
+> ಔಟ್ಬೌಂಡ್ URL ನೀತಿಯನ್ನು (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ಪೂರೈಸಿದಾಗ ಮಾತ್ರ ಅರ್ಹವಾಗುತ್ತವೆ;
+> ಕ್ಲೌಡ್-ಮೆಟಾಡೇಟಾ ಹೋಸ್ಟ್ಗಳಿಗೆ ಎಂದಿಗೂ ರೂಟ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ. ಮೆಮೊರಿ ಎಂಜಿನ್ನ ಮರುಶ್ರೇಯಾಂಕ ಹಂತವು ಈ ರೂಟ್ ಅನ್ನು
+> ಲೂಪ್ಬ್ಯಾಕ್ ಮೂಲಕ ಕರೆಯುತ್ತದೆ, ಆದ್ದರಿಂದ ಇದೇ ನಿಯಮವು Memory ಸೆಟ್ಟಿಂಗ್ಗಳಲ್ಲಿನ `rerankProviderModel`ಗೂ ಅನ್ವಯಿಸುತ್ತದೆ.
 >
-> **ಸ್ಥಳೀಯ ಸರ್ವರ್ ಆಕಾರಗಳು:** ನೋಡ್ ಅನ್ನು `<base>/v1/rerank` ನಲ್ಲಿ ಕರೆಯಲಾಗುತ್ತದೆ ಮತ್ತು, 404 ನಲ್ಲಿ, `<base>/rerank` ನಲ್ಲಿ
-> (Infinity, TEI). ಅಪ್ಸ್ಟ್ರೀಮ್ ಬಾಡಿಯು Cohere/OpenAI ಕಾಗುಣಿತ (`documents`,
-> `return_documents`) ಮತ್ತು TEI ಕಾಗುಣಿತ (`texts`, `return_text`) ಎರಡನ್ನೂ ಒಯ್ಯುತ್ತದೆ, ಮತ್ತು ಅಪ್ಸ್ಟ್ರೀಮ್ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು
-> Cohere ಎನ್ವೆಲಪ್ಗೆ ಸಾಮಾನ್ಯೀಕರಿಸಲಾಗುತ್ತದೆ: TEI ನ ಬರಿಯ `[{index, score, text}]`, `{results: [{index, score}]}`
-> ತೆಳುವಾದ ಗೇಟ್ವೇಗಳಿಂದ, ಮತ್ತು Voyage-ಶೈಲಿಯ `{data: [...]}` ಎಲ್ಲವೂ ಕ್ಲೈಂಟ್ಗೆ
-> `{results: [{index, relevance_score, document?}]}` ಎಂದು ಹಿಂದಿರುಗುತ್ತವೆ, ಸ್ಕೋರ್ನಿಂದ ವಿಂಗಡಿಸಲಾಗುತ್ತದೆ ಮತ್ತು `top_n` ನಲ್ಲಿ ಸೀಮಿತಗೊಳಿಸಲಾಗುತ್ತದೆ.
+> **ಸ್ಥಳೀಯ ಸರ್ವರ್ ವಿನ್ಯಾಸಗಳು:** ನೋಡ್ ಅನ್ನು `<base>/v1/rerank` ನಲ್ಲಿ ಮತ್ತು 404 ಬಂದಾಗ `<base>/rerank`
+> (Infinity, TEI) ನಲ್ಲಿ ಕರೆಯಲಾಗುತ್ತದೆ. ಅಪ್ಸ್ಟ್ರೀಮ್ ಬಾಡಿಯು Cohere/OpenAI ಕಾಗುಣಿತ (`documents`,
+> `return_documents`) ಮತ್ತು TEI ಕಾಗುಣಿತ (`texts`, `return_text`) ಎರಡನ್ನೂ ಹೊಂದಿರುತ್ತದೆ; ಅಪ್ಸ್ಟ್ರೀಮ್ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು
+> Cohere ಎನ್ವಲಪ್ಗೆ ಸಾಮಾನ್ಯೀಕರಿಸಲಾಗುತ್ತದೆ: TEIಯ ನೇರ `[{index, score, text}]`, ತೆಳುವಾದ ಗೇಟ್ವೇಗಳಿಂದ ಬರುವ
+> `{results: [{index, score}]}`, ಮತ್ತು Voyage-ಶೈಲಿಯ `{data: [...]}` ಇವೆಲ್ಲವೂ ಕ್ಲೈಂಟ್ಗೆ
+> `{results: [{index, relevance_score, document?}]}` ರೂಪದಲ್ಲಿ ಹಿಂತಿರುಗುತ್ತವೆ, ಸ್ಕೋರ್ ಪ್ರಕಾರ ವಿಂಗಡಿಸಲ್ಪಟ್ಟು `top_n`ಗೆ ಮಿತಿಗೊಳಿಸಲ್ಪಡುತ್ತವೆ.
 
-> **ಪ್ರೊವೈಡರ್-ನೋಡ್ ಡಿಸ್ಕವರಿ:** OpenAI-ಹೊಂದಾಣಿಕೆಯ ಪ್ರೊವೈಡರ್ ನೋಡ್ನಲ್ಲಿರುವ ಮಾದರಿಗಳು `GET /v1/models` ನಲ್ಲಿ
-> ನೋಡ್ ಪೂರ್ವಪ್ರತ್ಯಯದ ಅಡಿಯಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ. ಯಾವುದೇ ಎಂಡ್ಪಾಯಿಂಟ್ ಮೆಟಾಡೇಟಾವನ್ನು ಹೊಂದಿರದ ಸಾಲುಗಳು (ಸ್ಥಳೀಯ `/v1/models` ಪಟ್ಟಿಗಳಿಗೆ ವಿಶಿಷ್ಟ)
-> ನೋಡ್ನ `apiType` ಅನ್ನು ಆನುವಂಶಿಕವಾಗಿ ಪಡೆಯುತ್ತವೆ, ಆದ್ದರಿಂದ `embeddings` ನೋಡ್ನ ಮಾದರಿಗಳು `type: "embedding"` ಮತ್ತು
-> `rerank` ನೋಡ್ನ ಮಾದರಿಗಳು `type: "rerank"` ಆಗಿರುತ್ತವೆ, ಚಾಟ್ಗೆ ಡೀಫಾಲ್ಟ್ ಆಗುವ ಬದಲು; ಸಿಂಕ್ ಮಾಡಿದ ಅಥವಾ ಹಸ್ತಚಾಲಿತವಾಗಿ ಸೇರಿಸಿದ ಸಾಲಿನಲ್ಲಿ ಸ್ಪಷ್ಟವಾದ
-> `supportedEndpoints` ಇನ್ನೂ ಆದ್ಯತೆಯನ್ನು ಪಡೆಯುತ್ತದೆ.
+> **ಪ್ರೊವೈಡರ್-ನೋಡ್ ಅನ್ವೇಷಣೆ:** OpenAI-ಹೊಂದಾಣಿಕೆಯ ಪ್ರೊವೈಡರ್ ನೋಡ್ನಲ್ಲಿರುವ ಮಾದರಿಗಳು ನೋಡ್ ಪೂರ್ವಪ್ರತ್ಯಯದ ಅಡಿಯಲ್ಲಿ `GET /v1/models` ನಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ.
+> ಯಾವುದೇ ಎಂಡ್ಪಾಯಿಂಟ್ ಮೆಟಾಡೇಟಾವನ್ನು ಹೊಂದಿರದ ಸಾಲುಗಳು (ಸ್ಥಳೀಯ `/v1/models` ಪಟ್ಟಿಗಳಿಗೆ ಸಾಮಾನ್ಯವಾದುದು)
+> ನೋಡ್ನ `apiType` ಅನ್ನು ಆನುವಂಶಿಕವಾಗಿ ಪಡೆಯುತ್ತವೆ; ಆದ್ದರಿಂದ `embeddings` ನೋಡ್ನ ಮಾದರಿಗಳು ಚಾಟ್ಗೆ ಡೀಫಾಲ್ಟ್ ಆಗುವ ಬದಲು `type: "embedding"` ಆಗಿರುತ್ತವೆ ಮತ್ತು
+> `rerank` ನೋಡ್ನ ಮಾದರಿಗಳು `type: "rerank"` ಆಗಿರುತ್ತವೆ; ಸಿಂಕ್ ಮಾಡಲಾದ ಅಥವಾ ಹಸ್ತಚಾಲಿತವಾಗಿ ಸೇರಿಸಲಾದ ಸಾಲಿನಲ್ಲಿರುವ ಸ್ಪಷ್ಟ
+> `supportedEndpoints` ಇನ್ನೂ ಆದ್ಯತೆ ಪಡೆಯುತ್ತದೆ.
 
 ### ಮೀಸಲಾದ ಪ್ರೊವೈಡರ್ ಮಾರ್ಗಗಳು
 
@@ -506,7 +510,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-ಪೂರೈಕೆದಾರರ ಪೂರ್ವಪ್ರತ್ಯಯವು ಕಾಣೆಯಾಗಿದ್ದರೆ ಸ್ವಯಂ-ಸೇರಿಸಲಾಗುತ್ತದೆ. ಹೊಂದಿಕೆಯಾಗದ ಮಾದರಿಗಳು `400` ಅನ್ನು ಹಿಂದಿರುಗಿಸುತ್ತವೆ.
+ಪ್ರೊವೈಡರ್ ಪೂರ್ವಪ್ರತ್ಯಯವು ಇಲ್ಲದಿದ್ದರೆ ಅದನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸೇರಿಸಲಾಗುತ್ತದೆ. ಹೊಂದಿಕೆಯಾಗದ ಮಾದರಿಗಳು `400` ಅನ್ನು ಹಿಂದಿರುಗಿಸುತ್ತವೆ.
 
 ---
 
@@ -1432,22 +1436,22 @@ GET /.well-known/agent.json
 
 ---
 
-## ಕ್ಲೌಡ್, ಮೌಲ್ಯಮಾಪನಗಳು ಮತ್ತು ನಿರ್ಧಾರಣೆ
+## ಕ್ಲೌಡ್, ಮೌಲ್ಯಮಾಪನಗಳು & ಪರಿಶೀಲನೆ
 
 | ವಿಧಾನ | ಪಥ | ವಿವರಣೆ |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer ಕೀಲಿಯನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಕ್ಲೌಡ್ ಸಿಂಕ್ ಕ್ಲೈಂಟ್ಗಳಿಗಾಗಿ ಮರೆಮಾಡಲಾದ ಪೂರೈಕೆದಾರ ಸಂಪರ್ಕಗಳು + ಮಾದರಿ ಅಲಿಯಾಸ್ಗಳನ್ನು ಹಿಂದಿರುಗಿಸುತ್ತದೆ |
-| POST | `/api/cloud/credentials/update` | ಕ್ಲೌಡ್ನೊಂದಿಗೆ ಸಿಂಕ್ ಮಾಡಿದ ಪೂರೈಕೆದಾರರ ಎನ್ಕ್ರಿಪ್ಟ್ ಮಾಡಿದ ರುಜುವಾತುಗಳನ್ನು ನವೀಕರಿಸುತ್ತದೆ |
-| POST | `/api/cloud/model/resolve` | ಸ್ಥಳೀಯ ರೂಟಿಂಗ್ ಕೋಷ್ಟಕವನ್ನು ಬಳಸಿಕೊಂಡು ತಾರ್ಕಿಕ ಮಾದರಿ ID ಅನ್ನು ನಿರ್ದಿಷ್ಟ ಪೂರೈಕೆದಾರ/ಮಾದರಿಗೆ ಪರಿಹರಿಸುತ್ತದೆ |
-| GET | `/api/cloud/models/alias` | ಕ್ಲೌಡ್ ಸಿಂಕ್ಗೆ ಬಹಿರಂಗಪಡಿಸಿದಂತೆ ಮಾದರಿ ಅಲಿಯಾಸ್ಗಳನ್ನು ಪಟ್ಟಿ ಮಾಡುತ್ತದೆ |
-| GET | `/api/assess` | ಇತ್ತೀಚಿನ ನಿರ್ಧಾರಣೆಯ ವರ್ಗೀಕರಣಗಳನ್ನು ಓದುತ್ತದೆ (ಪ್ರತಿ ಪೂರೈಕೆದಾರ/ಮಾದರಿಗೆ) |
-| POST | `/api/assess` | ನಿರ್ಧಾರಣೆಯನ್ನು ನಡೆಸುತ್ತದೆ — ವಿನಂತಿಯ ಭಾಗ: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | ಅಂತರ್ನಿರ್ಮಿತ ಮೌಲ್ಯಮಾಪನ ಸೂಟ್ಗಳು + ಇತ್ತೀಚಿನ ರನ್ಗಳನ್ನು ಪಟ್ಟಿ ಮಾಡುತ್ತದೆ |
-| POST | `/api/evals` | ಮೌಲ್ಯಮಾಪನ ರನ್ ಅನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ |
-| POST | `/api/evals/suites` | ಕಸ್ಟಮ್ ಮೌಲ್ಯಮಾಪನ ಸೂಟ್ ಅನ್ನು ರಚಿಸುತ್ತದೆ — ವಿನಂತಿಯ ಭಾಗವನ್ನು `evalSuiteSaveSchema` ಮೂಲಕ ಮೌಲ್ಯೀಕರಿಸಲಾಗುತ್ತದೆ |
-| GET | `/api/evals/suites/[id]` | ಕಸ್ಟಮ್ ಮೌಲ್ಯಮಾಪನ ಸೂಟ್ ಅನ್ನು ಹಿಂಪಡೆಯುತ್ತದೆ |
+| POST | `/api/cloud/auth` | Bearer ಕೀಲಿಯನ್ನು ಪರಿಶೀಲಿಸಿ, ಕ್ಲೌಡ್ ಸಿಂಕ್ ಕ್ಲೈಂಟ್ಗಳಿಗಾಗಿ ಮರೆಮಾಚಿದ ಪೂರೈಕೆದಾರ ಸಂಪರ್ಕಗಳು + ಮಾದರಿ ಅಲಿಯಾಸ್ಗಳನ್ನು ಹಿಂತಿರುಗಿಸಿ |
+| POST | `/api/cloud/credentials/update` | ಕ್ಲೌಡ್ನೊಂದಿಗೆ ಸಿಂಕ್ ಮಾಡಲಾದ ಪೂರೈಕೆದಾರರ ಎನ್ಕ್ರಿಪ್ಟ್ ಮಾಡಿದ ರುಜುವಾತುಗಳನ್ನು ನವೀಕರಿಸಿ |
+| POST | `/api/cloud/model/resolve` | ಸ್ಥಳೀಯ ರೂಟಿಂಗ್ ಕೋಷ್ಟಕವನ್ನು ಬಳಸಿಕೊಂಡು ತಾರ್ಕಿಕ ಮಾದರಿ id ಅನ್ನು ನಿರ್ದಿಷ್ಟ ಪೂರೈಕೆದಾರ/ಮಾದರಿಗೆ ಪರಿಹರಿಸಿ |
+| GET | `/api/cloud/models/alias` | ಕ್ಲೌಡ್ ಸಿಂಕ್ಗೆ ಪ್ರದರ್ಶಿಸಲಾದ ಮಾದರಿ ಅಲಿಯಾಸ್ಗಳನ್ನು ಪಟ್ಟಿ ಮಾಡಿ |
+| GET | `/api/assess` | ಇತ್ತೀಚಿನ ಪರಿಶೀಲನಾ ವರ್ಗೀಕರಣಗಳನ್ನು ಓದಿ (ಪ್ರತಿ ಪೂರೈಕೆದಾರ/ಮಾದರಿಗೆ) |
+| POST | `/api/assess` | ಪರಿಶೀಲನೆಯನ್ನು ಚಲಾಯಿಸಿ — ಬಾಡಿ: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | ಅಂತರ್ನಿರ್ಮಿತ ಮೌಲ್ಯಮಾಪನ ಸೂಟ್ಗಳು + ಇತ್ತೀಚಿನ ರನ್ಗಳನ್ನು ಪಟ್ಟಿ ಮಾಡಿ |
+| POST | `/api/evals` | ಮೌಲ್ಯಮಾಪನ ರನ್ ಅನ್ನು ಪ್ರಚೋದಿಸಿ |
+| POST | `/api/evals/suites` | ಕಸ್ಟಮ್ ಮೌಲ್ಯಮಾಪನ ಸೂಟ್ ಅನ್ನು ರಚಿಸಿ — ಬಾಡಿಯನ್ನು `evalSuiteSaveSchema` ಮೂಲಕ ಮೌಲ್ಯೀಕರಿಸಲಾಗುತ್ತದೆ |
+| GET | `/api/evals/suites/[id]` | ಕಸ್ಟಮ್ ಮೌಲ್ಯಮಾಪನ ಸೂಟ್ ಅನ್ನು ಹಿಂಪಡೆಯಿರಿ |
 
-**ದೃಢೀಕರಣ:** `/api/cloud/auth` ನೇರವಾಗಿ Bearer ಕೀಲಿಯನ್ನು ಮೌಲ್ಯೀಕರಿಸುತ್ತದೆ; ಇತರ `/api/cloud/*`, `/api/evals/*`, ಮತ್ತು `/api/assess` ಮಾರ್ಗಗಳಿಗೆ ನಿರ್ವಹಣಾ ಸೆಷನ್/API ಕೀಲಿ ಅಗತ್ಯವಿದೆ. `/api/assess` POST, ವಿಭೇದಿತ-ಯೂನಿಯನ್ ವ್ಯಾಪ್ತಿ ಸ್ಕೀಮಾದೊಂದಿಗೆ `validateBody` ಅನ್ನು ಬಳಸುತ್ತದೆ.
+**ದೃಢೀಕರಣ:** `/api/cloud/auth` ನೇರವಾಗಿ Bearer ಕೀಲಿಯನ್ನು ಮೌಲ್ಯೀಕರಿಸುತ್ತದೆ ಮತ್ತು `manage` / `admin` ಸ್ಕೋಪ್ ಹೊಂದಿರುವ ಕೀಲಿಗೆ ಮಾತ್ರ ಪ್ರತಿ ಸಂಪರ್ಕದ ಮರೆಮಾಚಿದ ಕೀಲಿ ಹಾಗೂ `projectId` ಅನ್ನು ಹಿಂತಿರುಗಿಸುತ್ತದೆ; ಇತರ `/api/cloud/*`, `/api/evals/*`, ಮತ್ತು `/api/assess` ರೂಟ್ಗಳಿಗೆ ನಿರ್ವಹಣಾ ಸೆಷನ್/API ಕೀಲಿ ಅಗತ್ಯವಿದೆ. `/api/assess` POST, ವಿಭೇದಿತ-ಯೂನಿಯನ್ ಸ್ಕೋಪ್ ಸ್ಕೀಮಾದೊಂದಿಗೆ `validateBody` ಅನ್ನು ಬಳಸುತ್ತದೆ.
 
 ---
 

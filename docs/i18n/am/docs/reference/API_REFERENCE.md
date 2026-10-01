@@ -438,90 +438,94 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## የተኳሃኝነት የመጨረሻ ነጥቦች
+## የተኳኋኝነት መገናኛ ነጥቦች
 
-| ዘዴ   | መንገድ                                      | ቅርጸት                            |
-| ---- | ----------------------------------------- | ------------------------------- |
-| POST | `/v1/chat/completions`                    | OpenAI                          |
-| POST | `/v1/messages`                            | Anthropic                       |
-| POST | `/v1/responses`                           | OpenAI ምላሾች                     |
-| POST | `/v1/embeddings`                          | OpenAI                          |
-| POST | `/v1/images/generations`                  | OpenAI ምስሎች                     |
-| POST | `/v1/images/edits`                        | OpenAI ምስሎች (አርትዕ/ውስጥ ቀለም)      |
-| POST | `/v1/videos/generations`                  | OpenAI-ቅጥ የቪዲዮ ትውልድ             |
-| POST | `/v1/music/generations`                   | OpenAI-ቅጥ የሙዚቃ ትውልድ             |
-| POST | `/v1/audio/transcriptions`                | OpenAI ኦዲዮ (STT)                |
-| POST | `/v1/audio/speech`                        | OpenAI TTS (የድምጽ አካል ይመልሳል)     |
-| POST | `/v1/rerank`                              | Cohere/Voyage-ቅጥ ዳግም ደረጃ        |
-| POST | `/v1/classify`                            | Jina ምደባ (`api.jina.ai`)        |
-| POST | `/v1/segment`                             | Jina ሰግመንተር (`segment.jina.ai`) |
-| POST | `/v1/moderations`                         | OpenAI ሞደሬሽኖች                   |
-| GET  | `/v1/models`                              | OpenAI                          |
-| POST | `/v1/messages/count_tokens`               | Anthropic                       |
-| GET  | `/v1beta/models`                          | Gemini                          |
-| POST | `/v1beta/models/{...path}`                | Gemini generateContent          |
-| POST | `/v1/api/chat`                            | Ollama                          |
-| GET  | `/api/v1/vscode/{token}/`                 | OpenAI ካታሎግ ቅጽል ስም              |
-| GET  | `/api/v1/vscode/{token}/models`           | OpenAI ሞዴሎች ቅጽል ስም              |
-| POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI ቶከን የተደረገ ቅጽል ስም         |
-| POST | `/api/v1/vscode/{token}/responses`        | OpenAI ምላሾች ቶከን የተደረገ ቅጽል ስም    |
-| POST | `/api/v1/vscode/{token}/api/chat`         | Ollama ቶከን የተደረገ ቅጽል ስም         |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama መለያዎች ቶከን የተደረገ ቅጽል ስም   |
+| ዘዴ   | ዱካ                                        | ቅርጸት                           |
+| ---- | ----------------------------------------- | ------------------------------ |
+| POST | `/v1/chat/completions`                    | OpenAI                         |
+| POST | `/v1/messages`                            | Anthropic                      |
+| POST | `/v1/responses`                           | OpenAI Responses               |
+| POST | `/v1/embeddings`                          | OpenAI                         |
+| POST | `/v1/images/generations`                  | OpenAI Images                  |
+| POST | `/v1/images/edits`                        | OpenAI Images (ማርትዕ/ክፍተት መሙላት) |
+| POST | `/v1/videos/generations`                  | የOpenAI-ቅጥ ቪዲዮ ማመንጨት           |
+| POST | `/v1/music/generations`                   | የOpenAI-ቅጥ ሙዚቃ ማመንጨት           |
+| POST | `/v1/audio/transcriptions`                | OpenAI Audio (STT)             |
+| POST | `/v1/audio/speech`                        | OpenAI TTS (የድምፅ ይዘት ይመልሳል)    |
+| POST | `/v1/rerank`                              | የCohere/Voyage-ቅጥ ዳግም ደረጃ አሰጣጥ |
+| POST | `/v1/classify`                            | Jina ምደባ (`api.jina.ai`)       |
+| POST | `/v1/segment`                             | Jina ከፋይ (`segment.jina.ai`)   |
+| POST | `/v1/moderations`                         | OpenAI Moderations             |
+| GET  | `/v1/models`                              | OpenAI                         |
+| POST | `/v1/messages/count_tokens`               | Anthropic                      |
+| GET  | `/v1beta/models`                          | Gemini                         |
+| POST | `/v1beta/models/{...path}`                | Gemini generateContent         |
+| POST | `/v1/api/chat`                            | Ollama                         |
+| GET  | `/api/v1/vscode/{token}/`                 | የOpenAI ካታሎግ ቅጽል               |
+| GET  | `/api/v1/vscode/{token}/models`           | የOpenAI ሞዴሎች ቅጽል               |
+| POST | `/api/v1/vscode/{token}/chat/completions` | የOpenAI ቶከን ያለው ቅጽል            |
+| POST | `/api/v1/vscode/{token}/responses`        | የOpenAI Responses ቶከን ያለው ቅጽል  |
+| POST | `/api/v1/vscode/{token}/api/chat`         | የOllama ቶከን ያለው ቅጽል            |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | የOllama መለያዎች ቶከን ያለው ቅጽል      |
 
-ሁሉም የPOST መንገዶች ተመሳሳይ ቅርጽ ይከተላሉ፡ `Bearer your-api-key` + Zod-የተረጋገጠ JSON አካል (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ወዘተ. `src/shared/validation/schemas.ts` ይመልከቱ)። በስኪማ ውድቀት ላይ 4xx ይመለሳል።
+ሁሉም POST መስመሮች ተመሳሳይ ቅርጽ ይከተላሉ፦ `Bearer your-api-key` + በZod የተረጋገጠ JSON ይዘት (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, ወዘተ፤ `src/shared/validation/schemas.ts`ን ይመልከቱ)። የስኪማ ማረጋገጫው ሲከሽፍ 4xx ይመለሳል።
 
-`Authorization: Bearer ...` ማያያዝ ለማይችሉ ደንበኞች፣ OmniRoute የኤፒአይ ቁልፎችን በURL በኩል በሁለቱም የጥያቄ-ሕብረቁምፊ ተኳሃኝነት (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ወይም ከዚህ በታች በተዘረዘሩት ልዩ `/api/v1/vscode/{token}/...` የመጨረሻ ነጥቦች በኩል ይቀበላል።
+`Authorization: Bearer ...`ን ማያያዝ ለማይችሉ ደንበኞች፣ OmniRoute በመጠይቅ-ሕብረቁምፊ ተኳኋኝነት (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ወይም ከታች በተመዘገቡት የተወሰኑ `/api/v1/vscode/{token}/...` መገናኛ ነጥቦች አማካኝነት በURL ውስጥ ያሉ API ቁልፎችንም ይቀበላል።
 
 ```bash
-# ዳግም ደረጃ (የደመና መዝገብ አቅራቢ፣ ወይም OpenAI-ተኳሃኝ አቅራቢ ኖድ እንደ "<prefix>/<model>")
+# ዳግም ደረጃ አሰጣጥ (የደመና መዝገብ አቅራቢ፣ ወይም እንደ "<prefix>/<model>" የOpenAI-ተኳኋኝ የአቅራቢ ኖድ)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina ምደባ (የመሠረት ኤፒአይ ምስክርነቶች)
+# Jina ምደባ (የFoundation API ማረጋገጫ መረጃዎች)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina ሰግመንተር
+# Jina ከፋይ
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina ፍለጋ (s.jina.ai; አቅራቢ ቅጽል ስሞች: jina-search, jina-ai, jina)
+# Jina ፍለጋ (s.jina.ai፤ የአቅራቢ ቅጽሎች፦ jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# ሞደሬሽኖች
+# ይዘት ማጣሪያዎች
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (ወይም የተጠየቀ ቅርጸት) አካል ይመልሳል
+# TTS — የaudio/mpeg (ወይም የተጠየቀውን ቅርጸት) ይዘት ይመልሳል
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# የምስል አርትዖት (multipart)
+# Soniox TTS ቋንቋና ድምፅ ይፈልጋል፦ `language` በነባሪ "en" ነው፤ የጎደለ
+# ድምፅ ወይም መደበኛ የOpenAI ድምፅ ስም (alloy, nova, …) ወደ "Adrian" ይቀየራል
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# ምስል ማርትዕ (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# የቪዲዮ / ሙዚቃ ትውልድ (አቅራቢ-ቅድመ ቅጥያ ሞዴል መታወቂያ)
+# ቪዲዮ / ሙዚቃ ማመንጨት (የአቅራቢ ቅድመ-ቅጥያ ያለው የሞዴል መለያ)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **ዳግም ደረጃ አቅራቢ ኖዶች:** `POST /v1/rerank` ወደ OpenAI-ተኳሃኝ አቅራቢ ኖዶችም ይመራል
-> (oMLX, vLLM, Infinity, TEI ከጌትዌይ ጀርባ፣ …) እንደ `<node-prefix>/<model>` ተብለው የተገለጹ። Loopback
-> ኖዶች (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ሁልጊዜ ብቁ ናቸው። በሌላ በማንኛውም
-> አስተናጋጅ ላይ ያሉ ኖዶች — የLAN ሳጥን ወይም Tailscale ፒር — ብቁ የሚሆኑት ኦፕሬተሩ
-> `RERANK_REMOTE_PROVIDER_NODES` የባህሪ ባንዲራውን ሲያነቃ **እና** የኖዱ መሰረታዊ URL የአቅራቢውን
-> ወጪ URL ፖሊሲ (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ሲያልፍ ብቻ ነው፤
-> የደመና-ሜታዳታ አስተናጋጆች በጭራሽ አይመሩም። የማስታወሻ ሞተሩ የዳግም ደረጃ እርምጃ ይህንን መንገድ በloopback በኩል ይጠራል፣
-> ስለዚህ ተመሳሳይ ህግ በማስታወሻ ቅንብሮች ውስጥ `rerankProviderModel`ን ይቆጣጠራል።
+> **የዳግም ደረጃ አሰጣጥ አቅራቢ ኖዶች፦** `POST /v1/rerank` እንደ `<node-prefix>/<model>` ወደሚጠቀሱ የOpenAI-ተኳኋኝ የአቅራቢ ኖዶችም
+> (oMLX, vLLM, Infinity, TEI ከጌትዌይ በስተጀርባ፣ …) ይመራል። የሉፕባክ
+> ኖዶች (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ሁልጊዜ ብቁ ናቸው። በሌላ ማንኛውም
+> አስተናጋጅ ላይ ያሉ ኖዶች — የLAN ሳጥን ወይም የTailscale አቻ — ብቁ የሚሆኑት ኦፕሬተሩ
+> የ`RERANK_REMOTE_PROVIDER_NODES` ባህሪ ባንዲራን ሲያነቃ **እና** የኖዱ መሠረታዊ URL የአቅራቢውን
+> ወደ ውጭ የሚወጣ URL ፖሊሲ (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ሲያልፍ ብቻ ነው፤
+> የደመና-ሜታዳታ አስተናጋጆች ፈጽሞ መስመር አይሰጣቸውም። የማህደረ ትውስታ ሞተሩ የዳግም ደረጃ አሰጣጥ ደረጃ ይህን መስመር በ
+> ሉፕባክ በኩል ይጠራል፣ ስለዚህ በMemory ቅንብሮች ውስጥ ያለውን `rerankProviderModel` የሚቆጣጠረውም ተመሳሳይ ደንብ ነው።
 >
-> **የአካባቢ አገልጋይ ቅርጾች:** ኖዱ በ`<base>/v1/rerank` እና በ404 ላይ በ`<base>/rerank`
-> (Infinity, TEI) ይጠራል። የላይኛው አካል ሁለቱንም የCohere/OpenAI አጻጻፍ (`documents`,
-> `return_documents`) እና የTEI አጻጻፍ (`texts`, `return_text`) ይይዛል፣ እና የላይኛው ምላሽ
-> ወደ Cohere ኤንቨሎፕ መደበኛ ይሆናል፡ የTEI ባዶ `[{index, score, text}]`፣ `{results: [{index, score}]}`
-> ከቀጭን ጌትዌይስ፣ እና Voyage-ቅጥ `{data: [...]}` ሁሉም ወደ ደንበኛው እንደ
-> `{results: [{index, relevance_score, document?}]}` ይመለሳሉ፣ በውጤት የተደረደሩ እና በ`top_n` የተገደቡ።
+> **የአካባቢያዊ አገልጋይ ቅርጾች፦** ኖዱ በ`<base>/v1/rerank` ይጠራል፣ 404 ከተመለሰም በ`<base>/rerank`
+> (Infinity, TEI) ይጠራል። ወደላይ የሚላከው ይዘት ሁለቱንም የCohere/OpenAI አጻጻፍ (`documents`,
+> `return_documents`) እና የTEI አጻጻፍ (`texts`, `return_text`) ይይዛል፣ እንዲሁም ከወደላይ የሚመለሰው ምላሽ
+> ወደ Cohere የማሸጊያ ቅርጽ ይደረጃል፦ የTEI ባዶ `[{index, score, text}]`፣ ከቀላል ጌትዌዮች የሚመጣ
+> `{results: [{index, score}]}`፣ እና የVoyage-ቅጥ `{data: [...]}` ሁሉም ወደ ደንበኛው እንደ
+> `{results: [{index, relevance_score, document?}]}` ይመለሳሉ፤ በውጤት ተደርድረው በ`top_n` ይገደባሉ።
 
-> **የአቅራቢ-ኖድ ግኝት:** በOpenAI-ተኳሃኝ አቅራቢ ኖድ ላይ ያሉ ሞዴሎች በ`GET /v1/models` ውስጥ
-> በኖድ ቅድመ ቅጥያ ስር ይታያሉ። ምንም የመጨረሻ ነጥብ ሜታዳታ የሌላቸው ረድፎች (ለአካባቢያዊ `/v1/models` ዝርዝሮች የተለመደ)
-> የኖዱን `apiType` ይወርሳሉ፣ ስለዚህ የአንድ `embeddings` ኖድ ሞዴሎች `type: "embedding"` እና የአንድ
-> `rerank` ኖድ ሞዴሎች `type: "rerank"` ናቸው ከቻት ነባሪ ይልቅ፤ በየተመሳሰለ ወይም በእጅ በተጨመረ ረድፍ ላይ ያለ ግልጽ
-> `supportedEndpoints` አሁንም ቅድሚያ ይሰጣል።
+> **የአቅራቢ-ኖድ ፍለጋ፦** OpenAI-ተኳኋኝ በሆነ የአቅራቢ ኖድ ላይ ያሉ ሞዴሎች በኖዱ ቅድመ-ቅጥ ስር በ`GET /v1/models`
+> ውስጥ ይታያሉ። የመዳረሻ ነጥብ ሜታዳታ የሌላቸው ረድፎች (ለአካባቢያዊ `/v1/models` ዝርዝሮች የተለመደ)
+> የኖዱን `apiType` ይወርሳሉ፤ ስለዚህ በነባሪነት ወደ ውይይት ከመመደብ ይልቅ የ`embeddings` ኖድ ሞዴሎች `type: "embedding"` እና
+> የ`rerank` ኖድ ሞዴሎች `type: "rerank"` ይሆናሉ፤ በተመሳሰለ ወይም በእጅ በታከለ ረድፍ ላይ በግልጽ የተጠቀሰ
+> `supportedEndpoints` ግን አሁንም ቅድሚያ ይኖረዋል።
 
-### የተሰጡ የአቅራቢ መንገዶች
+### የተወሰኑ የአቅራቢ መስመሮች
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -529,7 +533,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-የአቅራቢው ቅድመ ቅጥያ ከጠፋ በራስ-ሰር ይታከላል። የማይዛመዱ ሞዴሎች `400` ይመልሳሉ።
+የአቅራቢው ቅድመ-ቅጥ ከሌለ በራስ-ሰር ይጨመራል። የማይዛመዱ ሞዴሎች `400` ይመልሳሉ።
 
 ---
 
@@ -1153,10 +1157,10 @@ GET /api/telemetry/summary
 ## በጀት
 
 ```bash
-# ለሁሉም የኤፒአይ ቁልፎች የበጀት ሁኔታን ያግኙ
+# የሁሉንም API ቁልፎች የበጀት ሁኔታ ያግኙ
 GET /api/usage/budget
 
-# በጀትን ያዘጋጁ ወይም ያዘምኑ
+# በጀት ያዘጋጁ ወይም ያዘምኑ
 POST /api/usage/budget
 Content-Type: application/json
 
@@ -1170,7 +1174,7 @@ Content-Type: application/json
 }
 ```
 
-> **ስኪማ ማስታወሻዎች** (`setBudgetSchema`): `apiKeyId` ያስፈልጋል፤ ከ`dailyLimitUsd`፣ `weeklyLimitUsd` ወይም `monthlyLimitUsd` ቢያንስ አንዱ ከዜሮ በላይ መሆን አለበት። አማራጭ መስኮች: `warningThreshold` (0–1), `resetInterval` (`daily` | `weekly` | `monthly`), `resetTime` (`HH:MM`)። የቀድሞው `{keyId, limit, period}` ቅርጽ `400 Bad Request` ይመልሳል።
+> **የስኪማ ማስታወሻዎች** (`setBudgetSchema`)፦ `apiKeyId` አስፈላጊ ነው፤ ከ`dailyLimitUsd`፣ `weeklyLimitUsd` ወይም `monthlyLimitUsd` ቢያንስ አንዱ ከዜሮ በላይ መሆን አለበት። አማራጭ መስኮች፦ `warningThreshold` (0–1)፣ `resetInterval` (`daily` | `weekly` | `monthly`)፣ `resetTime` (`HH:MM`)። የቆየው `{keyId, limit, period}` ቅርጽ `400 Bad Request` ይመልሳል።
 
 ## የቶከን ገደቦች
 
@@ -1454,22 +1458,22 @@ GET /.well-known/agent.json
 
 ---
 
-## ደመና፣ ግምገማዎች እና ዳሰሳ
+## ክላውድ፣ ግምገማዎች እና ዳሰሳ
 
-| ዘዴ | መንገድ | መግለጫ |
+| ዘዴ | ዱካ | መግለጫ |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | የBearer ቁልፍን ያረጋግጣል፣ እንዲሁም ለደመና ማመሳሰያ ደንበኞች የተሸፈኑ የአቅራቢ ግንኙነቶችን + የሞዴል ተለዋጭ ስሞችን ይመልሳል |
-| POST | `/api/cloud/credentials/update` | በደመና ለተመሳሰለ አቅራቢ የተመሰጠሩ የማረጋገጫ መረጃዎችን ያዘምናል |
-| POST | `/api/cloud/model/resolve` | አመክንዮአዊ የሞዴል idን የአካባቢውን የማዞሪያ ሰንጠረዥ በመጠቀም ወደ ተወሰነ አቅራቢ/ሞዴል ይፈታል |
-| GET | `/api/cloud/models/alias` | ለደመና ማመሳሰል የሚቀርቡ የሞዴል ተለዋጭ ስሞችን ይዘረዝራል |
-| GET | `/api/assess` | የቅርብ ጊዜዎቹን የዳሰሳ ምደባዎች (በየአቅራቢው/ሞዴሉ) ያነባል |
-| POST | `/api/assess` | ዳሰሳ ያካሂዳል — ይዘት፦ `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| POST | `/api/cloud/auth` | የBearer ቁልፍን ያረጋግጣል እና ለክላውድ ማመሳሰያ ደንበኞች የተደበቁ የአቅራቢ ግንኙነቶችን + የሞዴል ቅጽል ስሞችን ይመልሳል |
+| POST | `/api/cloud/credentials/update` | በክላውድ ለሚመሳሰል አቅራቢ የተመሰጠሩ ማረጋገጫዎችን ያዘምናል |
+| POST | `/api/cloud/model/resolve` | የአካባቢውን የማዞሪያ ሰንጠረዥ በመጠቀም ሎጂካዊ የሞዴል መታወቂያን ወደ ተወሰነ አቅራቢ/ሞዴል ይፈታል |
+| GET | `/api/cloud/models/alias` | ለክላውድ ማመሳሰል የቀረቡ የሞዴል ቅጽል ስሞችን ይዘረዝራል |
+| GET | `/api/assess` | የቅርብ ጊዜዎቹን የዳሰሳ ምደባዎች (በእያንዳንዱ አቅራቢ/ሞዴል) ያነባል |
+| POST | `/api/assess` | ዳሰሳ ያስኬዳል — የጥያቄ አካል፦ `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
 | GET | `/api/evals` | አብረው የተካተቱ የግምገማ ስብስቦችን + የቅርብ ጊዜ አሂዶችን ይዘረዝራል |
 | POST | `/api/evals` | የግምገማ አሂድን ያስጀምራል |
-| POST | `/api/evals/suites` | ብጁ የግምገማ ስብስብ ይፈጥራል — ይዘቱ በ`evalSuiteSaveSchema` ይረጋገጣል |
+| POST | `/api/evals/suites` | ብጁ የግምገማ ስብስብ ይፈጥራል — የጥያቄ አካሉ በ`evalSuiteSaveSchema` ይረጋገጣል |
 | GET | `/api/evals/suites/[id]` | ብጁ የግምገማ ስብስብን ያመጣል |
 
-**ማረጋገጫ፦** `/api/cloud/auth` የBearer ቁልፍን በቀጥታ ያረጋግጣል፤ ሌሎቹ `/api/cloud/*`፣ `/api/evals/*` እና `/api/assess` መንገዶች የአስተዳደር ክፍለ ጊዜ/API ቁልፍ ያስፈልጋቸዋል። `/api/assess` POST የተለየ-ዩኒየን የወሰን መርሃግብር ያለውን `validateBody` ይጠቀማል።
+**ማረጋገጫ፦** `/api/cloud/auth` የBearer ቁልፍን በቀጥታ ያረጋግጣል፤ የ`manage` / `admin` ወሰን ላለው ቁልፍ ብቻ የእያንዳንዱን ግንኙነት የተደበቀ ቁልፍ እና `projectId` ይመልሳል። ሌሎቹ `/api/cloud/*`፣ `/api/evals/*` እና `/api/assess` መስመሮች የአስተዳደር ክፍለ-ጊዜ/API ቁልፍ ይፈልጋሉ። `/api/assess` POST በአይነት መለያ የተከፋፈለ የዩኒየን ወሰን መርሐግብር ያለውን `validateBody` ይጠቀማል።
 
 ---
 

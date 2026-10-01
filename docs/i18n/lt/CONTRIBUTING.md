@@ -429,11 +429,10 @@ Tada naudokite `/deploy-vps-*-cc` įgūdžius, kurie per rsync nukopijuoja `dist
 
 ---
 
-## Pagalba
+## Pagalbos gavimas
 
 - **Architektūra**: žr. [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API dokumentacija**: žr. [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Saugumo dokumentai**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Eksploatavimo dokumentai**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **API žinynas**: žr. [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Saugumo dokumentacija**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Eksploatavimo dokumentacija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Problemos**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: architektūrinių sprendimų įrašus rasite `docs/adr/`

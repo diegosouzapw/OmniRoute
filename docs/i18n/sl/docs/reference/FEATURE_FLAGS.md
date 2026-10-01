@@ -262,17 +262,23 @@ Počisti **vse** prepise DB naenkrat, s čimer se vsaka zastavica povrne na svoj
 
 ---
 
-## Rezervni način ob prekoračitvi proračuna
+## Nadomestna rešitev za prekoračitev proračuna v sili
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (kategorija `runtime`, privzeto `true`) nadzoruje
-rezervno brezplačno pot za nujne primere v
+brezplačno nadomestno pot v sili v
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Ko je možnost omogočena, se zahteve, ki izčrpajo svoj proračun, namesto takojšnje zavrnitve
-preusmerijo k brezplačnemu rezervnemu ponudniku/modelu. Nastavite jo na `false` (ali `0`) —
-prek preklopnega stikala na nadzorni plošči, preglasitve v DB ali okoljske spremenljivke
-`OMNIROUTE_EMERGENCY_FALLBACK` — da onemogočite to vedenje in dovolite, da zahteve z
-izčrpanim proračunom ne uspejo. (Na nadzorni plošči je prikazano kot preklopno stikalo
-v PR-jih #3741 / #3752.)
+Ko je omogočena, se zahteve, ki izčrpajo svoj proračun, preusmerijo k brezplačnemu
+nadomestnemu ponudniku/modelu, namesto da bi bile takoj neuspešne. Nastavite jo na
+`false` (ali `0`) — prek stikala na nadzorni plošči, preglasitve v zbirki podatkov
+ali okoljske spremenljivke `OMNIROUTE_EMERGENCY_FALLBACK` — da onemogočite to
+vedenje in omogočite, da zahteve z izčrpanim proračunom ne uspejo. (Na nadzorni
+plošči je prikazano kot stikalo v zahtevah PR #3741 / #3752.)
+
+Odgovor, posredovan prek te nadomestne rešitve, vsebuje
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, zato
+lahko odjemalec ugotovi, da je bil preusmerjen, ne da bi moral primerjati
+`X-OmniRoute-Provider` s svojo zahtevo. Pri vseh drugih odgovorih ta glava ni
+prisotna.
 
 ---
 

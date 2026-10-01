@@ -399,74 +399,95 @@ Bifrost、CLIProxyAPI、および将来のサイドカールーターで使用�
 
 ---
 
-## 互換性エンドポイント
+## 互換エンドポイント
 
-| Method | Path                                      | 形式                                          |
-| ------ | ----------------------------------------- | --------------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                        |
-| POST   | `/v1/messages`                            | Anthropic                                     |
-| POST   | `/v1/responses`                           | OpenAI レスポンス                             |
-| POST   | `/v1/embeddings`                          | OpenAI                                        |
-| POST   | `/v1/images/generations`                  | OpenAI 画像                                   |
-| POST   | `/v1/images/edits`                        | OpenAI 画像 (編集/インペイント)               |
-| POST   | `/v1/videos/generations`                  | OpenAI スタイルの動画生成                     |
-| POST   | `/v1/music/generations`                   | OpenAI スタイルの音楽生成                     |
-| POST   | `/v1/audio/transcriptions`                | OpenAI オーディオ (STT)                       |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (オーディオボディを返します)       |
-| POST   | `/v1/rerank`                              | Cohere/Voyage スタイルのリランク              |
-| POST   | `/v1/classify`                            | Jina classify (`api.jina.ai`)                 |
-| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)            |
-| POST   | `/v1/moderations`                         | OpenAI モデレーション                         |
-| GET    | `/v1/models`                              | OpenAI                                        |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                                     |
-| GET    | `/v1beta/models`                          | Gemini                                        |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                        |
-| POST   | `/v1/api/chat`                            | Ollama                                        |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI カタログエイリアス                     |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI モデルエイリアス                       |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI トークン化されたエイリアス             |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI レスポンスのトークン化されたエイリアス |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama トークン化されたエイリアス             |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama タグのトークン化されたエイリアス       |
+| メソッド | パス                                      | 形式                                   |
+| -------- | ----------------------------------------- | -------------------------------------- |
+| POST     | `/v1/chat/completions`                    | OpenAI                                 |
+| POST     | `/v1/messages`                            | Anthropic                              |
+| POST     | `/v1/responses`                           | OpenAI Responses                       |
+| POST     | `/v1/embeddings`                          | OpenAI                                 |
+| POST     | `/v1/images/generations`                  | OpenAI Images                          |
+| POST     | `/v1/images/edits`                        | OpenAI Images（編集／インペイント）    |
+| POST     | `/v1/videos/generations`                  | OpenAI形式の動画生成                   |
+| POST     | `/v1/music/generations`                   | OpenAI形式の音楽生成                   |
+| POST     | `/v1/audio/transcriptions`                | OpenAI Audio（STT）                    |
+| POST     | `/v1/audio/speech`                        | OpenAI TTS（音声ボディを返す）         |
+| POST     | `/v1/rerank`                              | Cohere/Voyage形式のリランキング        |
+| POST     | `/v1/classify`                            | Jina分類（`api.jina.ai`）              |
+| POST     | `/v1/segment`                             | Jinaセグメンター（`segment.jina.ai`）  |
+| POST     | `/v1/moderations`                         | OpenAI Moderations                     |
+| GET      | `/v1/models`                              | OpenAI                                 |
+| POST     | `/v1/messages/count_tokens`               | Anthropic                              |
+| GET      | `/v1beta/models`                          | Gemini                                 |
+| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                 |
+| POST     | `/v1/api/chat`                            | Ollama                                 |
+| GET      | `/api/v1/vscode/{token}/`                 | OpenAIカタログエイリアス               |
+| GET      | `/api/v1/vscode/{token}/models`           | OpenAIモデルエイリアス                 |
+| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAIトークン付きエイリアス           |
+| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responsesトークン付きエイリアス |
+| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollamaトークン付きエイリアス           |
+| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollama tagsトークン付きエイリアス      |
 
-すべての POST ルートは同じ形式に従います: `Bearer your-api-key` + Zod で検証された JSON ボディ (`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema` など、`src/shared/validation/schemas.ts` を参照)。スキーマ検証に失敗すると 4xx が返されます。
+すべてのPOSTルートは同じ形式に従います：`Bearer your-api-key` + Zodで検証されたJSONボディ（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema`など。`src/shared/validation/schemas.ts`を参照）。スキーマ検証に失敗した場合は4xxが返されます。
 
-`Authorization: Bearer ...` を付加できないクライアントの場合、OmniRoute はクエリ文字列の互換性 (`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`) または以下に記載されている専用の `/api/v1/vscode/{token}/...` エンドポイントを介して、URL 内の API キーも受け入れます。
+`Authorization: Bearer ...`を付与できないクライアント向けに、OmniRouteはクエリ文字列による互換方式（`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`）または以下に記載する専用の`/api/v1/vscode/{token}/...`エンドポイントを介して、URL内のAPIキーも受け付けます。
 
 ```bash
-# リランク (クラウドレジストリプロバイダー、または "<prefix>/<model>" としての OpenAI 互換プロバイダーノード)
+# リランキング（クラウドレジストリプロバイダー、または"<prefix>/<model>"形式のOpenAI互換プロバイダーノード）
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (Foundation API 認証情報)
+# Jina分類（Foundation API認証情報）
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Jinaセグメンター
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; プロバイダーエイリアス: jina-search, jina-ai, jina)
+# Jina検索（s.jina.ai、プロバイダーエイリアス：jina-search、jina-ai、jina）
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # モデレーション
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (または要求された形式) のボディを返します
+# TTS — audio/mpeg（または指定された形式）のボディを返す
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# 画像編集 (マルチパート)
+# Soniox TTSには言語と音声が必要：`language`のデフォルトは"en"。音声が未指定の場合、
+# またはOpenAIの標準音声名（alloy、novaなど）が指定された場合は"Adrian"になる
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# 画像編集（multipart）
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# 動画 / 音楽生成 (プロバイダープレフィックス付きモデル ID)
+# 動画／音楽生成（プロバイダープレフィックス付きモデルID）
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **リランクプロバイダーノード:** `POST /v1/rerank` は、`<node-prefix>/<model>` としてアドレス指定される OpenAI 互換プロバイダーノード (oMLX、vLLM、Infinity、ゲートウェイの背後にある TEI など) にもルーティングされます。ループバックノード (`localhost`、`127.0.0.1`、`172.16.0.0/12`) は常に適格です。その他のホスト — LAN ボックスまたは Tailscale ピア — 上のノードは、オペレーターが `RERANK_REMOTE_PROVIDER_NODES` 機能フラグを有効にし、**かつ** ノードのベース URL がプロバイダーのアウトバウンド URL ポリシー (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) を通過する場合にのみ適格です。クラウドメタデータホストにはルーティングされません。メモリエンジンのリランクステップはこのルートをループバック経由で呼び出すため、メモリ設定の `rerankProviderModel` も同じルールに従います。
+> **リランキングプロバイダーノード：** `POST /v1/rerank`は、`<node-prefix>/<model>`として指定されたOpenAI互換プロバイダーノード
+> （oMLX、vLLM、Infinity、ゲートウェイ背後のTEIなど）にもルーティングします。ループバック
+> ノード（`localhost`、`127.0.0.1`、`172.16.0.0/12`）は常に利用対象です。それ以外の
+> ホスト上にあるノード（LAN内のマシンやTailscaleピア）は、オペレーターが
+> `RERANK_REMOTE_PROVIDER_NODES`機能フラグを有効化し、**かつ**ノードのベースURLがプロバイダーの
+> 外向きURLポリシー（`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`）を
+> 通過した場合にのみ利用対象となります。クラウドメタデータホストには決してルーティングされません。メモリエンジンの
+> リランキングステップはループバック経由でこのルートを呼び出すため、Memory設定の`rerankProviderModel`にも
+> 同じルールが適用されます。
 >
-> **ローカルサーバーの形式:** ノードは `<base>/v1/rerank` で呼び出され、404 の場合は `<base>/rerank` (Infinity, TEI) で呼び出されます。アップストリームボディは、Cohere/OpenAI の表記 (`documents`、`return_documents`) と TEI の表記 (`texts`、`return_text`) の両方を持ち、アップストリーム応答は Cohere エンベロープに正規化されます。TEI の生の `[{index, score, text}]`、シンゲートウェイからの `{results: [{index, score}]}`、および Voyage スタイルの `{data: [...]}` はすべて、スコアでソートされ `top_n` で上限が設定された `{results: [{index, relevance_score, document?}]}` としてクライアントに返されます。
+> **ローカルサーバーの形式：** ノードは`<base>/v1/rerank`で呼び出され、404の場合は`<base>/rerank`
+> （Infinity、TEI）で呼び出されます。アップストリームのボディには、Cohere/OpenAI形式の表記（`documents`、
+> `return_documents`）とTEI形式の表記（`texts`、`return_text`）の両方が含まれ、アップストリームのレスポンスは
+> Cohereのエンベロープ形式に正規化されます。TEIのベア形式`[{index, score, text}]`、軽量ゲートウェイからの
+> `{results: [{index, score}]}`、Voyage形式の`{data: [...]}`はいずれも、スコア順に並べられ、
+> `top_n`を上限として、`{results: [{index, relevance_score, document?}]}`の形式でクライアントに返されます。
 
-> **プロバイダーノードの検出:** OpenAI 互換プロバイダーノード上のモデルは、ノードプレフィックスの下の `GET /v1/models` に表示されます。エンドポイントメタデータを持たない行 (ローカルの `/v1/models` リストで一般的) は、ノードの `apiType` を継承するため、`embeddings` ノードのモデルは `type: "embedding"` となり、`rerank` ノードのモデルはデフォルトのチャットではなく `type: "rerank"` となります。同期された行または手動で追加された行の明示的な `supportedEndpoints` は、引き続き優先されます。
+> **プロバイダーノードの検出:** OpenAI 互換のプロバイダーノード上のモデルは、ノードのプレフィックス配下で `GET /v1/models`
+> に表示されます。エンドポイントのメタデータを持たない行（ローカルの `/v1/models` リストでは一般的）は、
+> ノードの `apiType` を継承します。そのため、デフォルトでチャットになるのではなく、`embeddings` ノードのモデルは `type: "embedding"`、
+> `rerank` ノードのモデルは `type: "rerank"` になります。同期された行または手動で追加された行に明示的な
+> `supportedEndpoints` がある場合は、引き続きそちらが優先されます。
 
-### 専用プロバイダールート
+### プロバイダー専用ルート
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -474,7 +495,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-プロバイダープレフィックスが欠落している場合、自動的に追加されます。モデルが一致しない場合、`400` が返されます。
+プロバイダーのプレフィックスがない場合は、自動的に追加されます。モデルが一致しない場合は `400` が返されます。
 
 ---
 
@@ -1100,7 +1121,7 @@ GET /api/telemetry/summary
 ## 予算
 
 ```bash
-# すべてのAPIキーの予算ステータスを取得
+# すべての API キーの予算状況を取得
 GET /api/usage/budget
 
 # 予算を設定または更新
@@ -1117,7 +1138,7 @@ Content-Type: application/json
 }
 ```
 
-> **スキーマに関する注意** (`setBudgetSchema`): `apiKeyId` は必須です。`dailyLimitUsd`、`weeklyLimitUsd`、または`monthlyLimitUsd` のいずれか1つ以上がゼロより大きい必要があります。オプションフィールド: `warningThreshold` (0–1)、`resetInterval` (`daily` | `weekly` | `monthly`)、`resetTime` (`HH:MM`)。従来の `{keyId, limit, period}` 形式は `400 Bad Request` を返します。
+> **スキーマに関する注意事項** (`setBudgetSchema`): `apiKeyId` は必須です。`dailyLimitUsd`、`weeklyLimitUsd`、`monthlyLimitUsd` のうち、少なくとも 1 つはゼロより大きい値である必要があります。省略可能なフィールド: `warningThreshold`（0～1）、`resetInterval`（`daily` | `weekly` | `monthly`）、`resetTime`（`HH:MM`）。従来の `{keyId, limit, period}` 形式を使用すると、`400 Bad Request` が返されます。
 
 ## トークン制限
 
@@ -1405,18 +1426,18 @@ GET /.well-known/agent.json
 
 | メソッド | パス | 説明 |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer キーを検証し、マスクされたプロバイダー接続とモデルエイリアスをクラウド同期クライアント向けに返します |
-| POST | `/api/cloud/credentials/update` | クラウド同期されたプロバイダーの暗号化済み認証情報を更新します |
-| POST | `/api/cloud/model/resolve` | ローカルルーティングテーブルを使用して、論理モデル ID を具体的なプロバイダー／モデルに解決します |
-| GET | `/api/cloud/models/alias` | クラウド同期に公開されるモデルエイリアスの一覧を取得します |
-| GET | `/api/assess` | 最新のアセスメント分類（プロバイダー／モデルごと）を読み取ります |
-| POST | `/api/assess` | アセスメントを実行 — 本文：`{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | 組み込み評価スイートと最新の実行結果を一覧表示します |
-| POST | `/api/evals` | 評価の実行を開始します |
-| POST | `/api/evals/suites` | カスタム評価スイートを作成 — 本文は `evalSuiteSaveSchema` によって検証されます |
-| GET | `/api/evals/suites/[id]` | カスタム評価スイートを取得します |
+| POST | `/api/cloud/auth` | Bearer キーを検証し、クラウド同期クライアント向けにマスクされたプロバイダー接続とモデルエイリアスを返す |
+| POST | `/api/cloud/credentials/update` | クラウド同期されたプロバイダーの暗号化済み認証情報を更新する |
+| POST | `/api/cloud/model/resolve` | ローカルルーティングテーブルを使用して、論理モデル ID を具体的なプロバイダー／モデルに解決する |
+| GET | `/api/cloud/models/alias` | クラウド同期に公開されるモデルエイリアスを一覧表示する |
+| GET | `/api/assess` | 最新のアセスメント分類をプロバイダー／モデルごとに読み取る |
+| POST | `/api/assess` | アセスメントを実行する — 本文: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | 組み込みの評価スイートと最新の実行結果を一覧表示する |
+| POST | `/api/evals` | 評価の実行をトリガーする |
+| POST | `/api/evals/suites` | カスタム評価スイートを作成する — 本文は `evalSuiteSaveSchema` によって検証される |
+| GET | `/api/evals/suites/[id]` | カスタム評価スイートを取得する |
 
-**認証：** `/api/cloud/auth` は Bearer キーを直接検証します。その他の `/api/cloud/*`、`/api/evals/*`、および `/api/assess` ルートには、管理セッションまたは API キーが必要です。`/api/assess` の POST は、判別可能なユニオン型のスコープスキーマとともに `validateBody` を使用します。
+**認証:** `/api/cloud/auth` は Bearer キーを直接検証し、`manage` / `admin` スコープを持つキーに対してのみ、各接続のマスクされたキーと `projectId` を返します。その他の `/api/cloud/*`、`/api/evals/*`、`/api/assess` ルートでは、管理セッション／API キーが必要です。`/api/assess` の POST は、判別共用体のスコープスキーマとともに `validateBody` を使用します。
 
 ---
 

@@ -403,51 +403,51 @@ Sử dụng endpoint này khi một sidecar chạy ngoài tiến trình và khô
 
 ---
 
-## Điểm cuối tương thích
+## Các endpoint tương thích
 
-| Phương thức | Đường dẫn                                 | Định dạng                                |
-| ----------- | ----------------------------------------- | ---------------------------------------- |
-| POST        | `/v1/chat/completions`                    | OpenAI                                   |
-| POST        | `/v1/messages`                            | Anthropic                                |
-| POST        | `/v1/responses`                           | OpenAI Responses                         |
-| POST        | `/v1/embeddings`                          | OpenAI                                   |
-| POST        | `/v1/images/generations`                  | OpenAI Images                            |
-| POST        | `/v1/images/edits`                        | OpenAI Images (chỉnh sửa/inpaint)        |
-| POST        | `/v1/videos/generations`                  | Tạo video kiểu OpenAI                    |
-| POST        | `/v1/music/generations`                   | Tạo nhạc kiểu OpenAI                     |
-| POST        | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                       |
-| POST        | `/v1/audio/speech`                        | OpenAI TTS (trả về nội dung âm thanh)    |
-| POST        | `/v1/rerank`                              | Sắp xếp lại kiểu Cohere/Voyage           |
-| POST        | `/v1/classify`                            | Phân loại Jina (`api.jina.ai`)           |
-| POST        | `/v1/segment`                             | Bộ phân đoạn Jina (`segment.jina.ai`)    |
-| POST        | `/v1/moderations`                         | Kiểm duyệt OpenAI                        |
-| GET         | `/v1/models`                              | OpenAI                                   |
-| POST        | `/v1/messages/count_tokens`               | Anthropic                                |
-| GET         | `/v1beta/models`                          | Gemini                                   |
-| POST        | `/v1beta/models/{...path}`                | Gemini generateContent                   |
-| POST        | `/v1/api/chat`                            | Ollama                                   |
-| GET         | `/api/v1/vscode/{token}/`                 | Bí danh danh mục OpenAI                  |
-| GET         | `/api/v1/vscode/{token}/models`           | Bí danh mô hình OpenAI                   |
-| POST        | `/api/v1/vscode/{token}/chat/completions` | Bí danh được mã hóa của OpenAI           |
-| POST        | `/api/v1/vscode/{token}/responses`        | Bí danh được mã hóa của OpenAI Responses |
-| POST        | `/api/v1/vscode/{token}/api/chat`         | Bí danh được mã hóa của Ollama           |
-| GET         | `/api/v1/vscode/{token}/api/tags`         | Bí danh được mã hóa của thẻ Ollama       |
+| Phương thức | Đường dẫn                                 | Định dạng                                       |
+| ----------- | ----------------------------------------- | ----------------------------------------------- |
+| POST        | `/v1/chat/completions`                    | OpenAI                                          |
+| POST        | `/v1/messages`                            | Anthropic                                       |
+| POST        | `/v1/responses`                           | OpenAI Responses                                |
+| POST        | `/v1/embeddings`                          | OpenAI                                          |
+| POST        | `/v1/images/generations`                  | OpenAI Images                                   |
+| POST        | `/v1/images/edits`                        | OpenAI Images (chỉnh sửa/inpaint)               |
+| POST        | `/v1/videos/generations`                  | Tạo video theo phong cách OpenAI                |
+| POST        | `/v1/music/generations`                   | Tạo nhạc theo phong cách OpenAI                 |
+| POST        | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                              |
+| POST        | `/v1/audio/speech`                        | OpenAI TTS (trả về nội dung âm thanh)           |
+| POST        | `/v1/rerank`                              | Xếp hạng lại theo kiểu Cohere/Voyage            |
+| POST        | `/v1/classify`                            | Phân loại bằng Jina (`api.jina.ai`)             |
+| POST        | `/v1/segment`                             | Trình phân đoạn Jina (`segment.jina.ai`)        |
+| POST        | `/v1/moderations`                         | OpenAI Moderations                              |
+| GET         | `/v1/models`                              | OpenAI                                          |
+| POST        | `/v1/messages/count_tokens`               | Anthropic                                       |
+| GET         | `/v1beta/models`                          | Gemini                                          |
+| POST        | `/v1beta/models/{...path}`                | Gemini generateContent                          |
+| POST        | `/v1/api/chat`                            | Ollama                                          |
+| GET         | `/api/v1/vscode/{token}/`                 | Bí danh danh mục OpenAI                         |
+| GET         | `/api/v1/vscode/{token}/models`           | Bí danh mô hình OpenAI                          |
+| POST        | `/api/v1/vscode/{token}/chat/completions` | Bí danh OpenAI được mã hóa bằng token           |
+| POST        | `/api/v1/vscode/{token}/responses`        | Bí danh OpenAI Responses được mã hóa bằng token |
+| POST        | `/api/v1/vscode/{token}/api/chat`         | Bí danh Ollama được mã hóa bằng token           |
+| GET         | `/api/v1/vscode/{token}/api/tags`         | Bí danh thẻ Ollama được mã hóa bằng token       |
 
-Tất cả các tuyến POST đều có cùng định dạng: `Bearer your-api-key` + JSON body được xác thực bằng Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, v.v., xem `src/shared/validation/schemas.ts`). Mã 4xx được trả về khi xác thực schema thất bại.
+Tất cả các route POST đều tuân theo cùng một cấu trúc: `Bearer your-api-key` + nội dung JSON được Zod xác thực (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, v.v., xem `src/shared/validation/schemas.ts`). Mã 4xx được trả về khi xác thực schema thất bại.
 
-Đối với các client không thể đính kèm `Authorization: Bearer ...`, OmniRoute cũng chấp nhận khóa API trong URL thông qua khả năng tương thích với chuỗi truy vấn (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) hoặc các điểm cuối `/api/v1/vscode/{token}/...` chuyên dụng được ghi lại bên dưới.
+Đối với các client không thể đính kèm `Authorization: Bearer ...`, OmniRoute cũng chấp nhận khóa API trong URL thông qua khả năng tương thích với chuỗi truy vấn (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) hoặc các endpoint chuyên dụng `/api/v1/vscode/{token}/...` được ghi lại bên dưới.
 
 ```bash
-# Sắp xếp lại (nhà cung cấp registry đám mây, hoặc một node nhà cung cấp tương thích OpenAI dưới dạng "<prefix>/<model>")
+# Xếp hạng lại (nhà cung cấp trong sổ đăng ký đám mây hoặc node nhà cung cấp tương thích OpenAI dưới dạng "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Phân loại Jina (thông tin xác thực API nền tảng)
+# Phân loại bằng Jina (thông tin xác thực Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Bộ phân đoạn Jina
+# Trình phân đoạn Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Tìm kiếm Jina (s.jina.ai; bí danh nhà cung cấp: jina-search, jina-ai, jina)
+# Tìm kiếm bằng Jina (s.jina.ai; bí danh nhà cung cấp: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Kiểm duyệt
@@ -456,37 +456,41 @@ POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 # TTS — trả về nội dung audio/mpeg (hoặc định dạng được yêu cầu)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
+# Soniox TTS yêu cầu ngôn ngữ và giọng nói: `language` mặc định là "en"; khi thiếu
+# giọng nói hoặc dùng tên giọng nói mặc định của OpenAI (alloy, nova, …), giá trị sẽ trở thành "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
 # Chỉnh sửa hình ảnh (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Tạo video / nhạc (id mô hình có tiền tố nhà cung cấp)
+# Tạo video / nhạc (ID mô hình có tiền tố nhà cung cấp)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Các node nhà cung cấp sắp xếp lại:** `POST /v1/rerank` cũng định tuyến đến các node nhà cung cấp tương thích với OpenAI
-> (oMLX, vLLM, Infinity, TEI phía sau một gateway, …) được định địa chỉ là `<node-prefix>/<model>`. Các node loopback
+> **Các node nhà cung cấp xếp hạng lại:** `POST /v1/rerank` cũng định tuyến đến các node nhà cung cấp tương thích OpenAI
+> (oMLX, vLLM, Infinity, TEI phía sau một gateway, …) được định địa chỉ dưới dạng `<node-prefix>/<model>`. Các node loopback
 > (`localhost`, `127.0.0.1`, `172.16.0.0/12`) luôn đủ điều kiện. Các node trên bất kỳ
-> máy chủ nào khác — một hộp LAN hoặc peer Tailscale — chỉ đủ điều kiện khi nhà điều hành bật
-> cờ tính năng `RERANK_REMOTE_PROVIDER_NODES` **và** URL cơ sở của node vượt qua chính sách URL đi của nhà cung cấp
+> host nào khác — một máy trong LAN hoặc peer Tailscale — chỉ đủ điều kiện khi người vận hành bật
+> cờ tính năng `RERANK_REMOTE_PROVIDER_NODES` **và** URL cơ sở của node vượt qua chính sách URL gửi đi của nhà cung cấp
 > (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> các máy chủ siêu dữ liệu đám mây không bao giờ được định tuyến đến. Bước sắp xếp lại của công cụ bộ nhớ gọi tuyến này qua
-> loopback, vì vậy cùng một quy tắc chi phối `rerankProviderModel` trong cài đặt Bộ nhớ.
+> các host siêu dữ liệu đám mây không bao giờ được định tuyến đến. Bước xếp hạng lại của công cụ bộ nhớ gọi route này qua
+> loopback, vì vậy cùng một quy tắc cũng chi phối `rerankProviderModel` trong phần cài đặt Memory.
 >
-> **Các định dạng máy chủ cục bộ:** node được gọi tại `<base>/v1/rerank` và, khi 404, tại `<base>/rerank`
-> (Infinity, TEI). Nội dung upstream mang cả cách viết của Cohere/OpenAI (`documents`,
-> `return_documents`) và cách viết của TEI (`texts`, `return_text`), và phản hồi upstream được
-> chuẩn hóa thành envelope của Cohere: `[{index, score, text}]` trần của TEI, `{results: [{index, score}]}`
-> từ các gateway mỏng, và `{data: [...]}` kiểu Voyage đều được trả về client dưới dạng
+> **Cấu trúc máy chủ cục bộ:** node được gọi tại `<base>/v1/rerank` và, khi nhận mã 404, tại `<base>/rerank`
+> (Infinity, TEI). Nội dung gửi lên thượng nguồn chứa cả cách viết của Cohere/OpenAI (`documents`,
+> `return_documents`) và cách viết của TEI (`texts`, `return_text`), còn phản hồi thượng nguồn được
+> chuẩn hóa thành lớp bao Cohere: mảng thuần của TEI `[{index, score, text}]`, `{results: [{index, score}]}`
+> từ các gateway mỏng và `{data: [...]}` theo kiểu Voyage đều được trả về cho client dưới dạng
 > `{results: [{index, relevance_score, document?}]}`, được sắp xếp theo điểm số và giới hạn ở `top_n`.
 
-> **Phát hiện node nhà cung cấp:** các mô hình trên một node nhà cung cấp tương thích với OpenAI xuất hiện trong `GET /v1/models`
-> dưới tiền tố node. Các hàng không mang siêu dữ liệu điểm cuối (điển hình cho danh sách `/v1/models` cục bộ)
-> kế thừa `apiType` của node, vì vậy các mô hình của node `embeddings` là `type: "embedding"` và các
-> mô hình của node `rerank` là `type: "rerank"` thay vì mặc định là chat; một `supportedEndpoints` rõ ràng
-> trên một hàng được đồng bộ hóa hoặc thêm thủ công vẫn được ưu tiên.
+> **Khám phá node nhà cung cấp:** các mô hình trên một node nhà cung cấp tương thích với OpenAI xuất hiện trong `GET /v1/models`
+> dưới tiền tố của node. Các hàng không chứa siêu dữ liệu endpoint (thường gặp trong danh sách `/v1/models` cục bộ)
+> sẽ kế thừa `apiType` của node, vì vậy các mô hình của node `embeddings` có `type: "embedding"` và các
+> mô hình của node `rerank` có `type: "rerank"` thay vì mặc định là chat; `supportedEndpoints` được chỉ định rõ ràng
+> trên một hàng đã đồng bộ hoặc được thêm thủ công vẫn được ưu tiên.
 
-### Các tuyến nhà cung cấp chuyên dụng
+### Các route dành riêng cho nhà cung cấp
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -494,7 +498,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Tiền tố nhà cung cấp sẽ tự động được thêm vào nếu bị thiếu. Các mô hình không khớp sẽ trả về `400`.
+Tiền tố nhà cung cấp sẽ tự động được thêm nếu còn thiếu. Các mô hình không khớp sẽ trả về `400`.
 
 ---
 
@@ -1420,22 +1424,24 @@ Trả về thẻ tác nhân A2A công khai (tên, mô tả, khả năng, danh m�
 
 ---
 
-## Đám mây, Đánh giá & Thẩm định
+## Đám mây, Evals & Đánh giá
 
 | Phương thức | Đường dẫn | Mô tả |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
 | POST | `/api/cloud/auth` | Xác minh khóa Bearer và trả về các kết nối nhà cung cấp đã che thông tin + bí danh mô hình cho các máy khách đồng bộ hóa đám mây |
-| POST | `/api/cloud/credentials/update` | Cập nhật thông tin xác thực được mã hóa cho một nhà cung cấp được đồng bộ hóa với đám mây |
-| POST | `/api/cloud/model/resolve` | Phân giải id mô hình logic thành nhà cung cấp/mô hình cụ thể bằng bảng định tuyến cục bộ |
-| GET | `/api/cloud/models/alias` | Liệt kê các bí danh mô hình được cung cấp cho tính năng đồng bộ hóa đám mây |
-| GET | `/api/assess` | Đọc các phân loại thẩm định mới nhất (theo từng nhà cung cấp/mô hình) |
-| POST | `/api/assess` | Chạy một lượt thẩm định — phần thân: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | Liệt kê các bộ đánh giá tích hợp sẵn + những lượt chạy gần đây nhất |
-| POST | `/api/evals` | Kích hoạt một lượt chạy đánh giá |
-| POST | `/api/evals/suites` | Tạo một bộ đánh giá tùy chỉnh — phần thân được xác thực bởi `evalSuiteSaveSchema` |
-| GET | `/api/evals/suites/[id]` | Truy xuất một bộ đánh giá tùy chỉnh |
+| POST | `/api/cloud/credentials/update` | Cập nhật thông tin xác thực đã mã hóa cho một nhà cung cấp được đồng bộ hóa với đám mây |
+| POST | `/api/cloud/model/resolve` | Phân giải một ID mô hình logic thành nhà cung cấp/mô hình cụ thể bằng bảng định tuyến cục bộ |
+| GET | `/api/cloud/models/alias` | Liệt kê các bí danh mô hình được cung cấp cho đồng bộ hóa đám mây |
+| GET | `/api/assess` | Đọc các phân loại đánh giá mới nhất (theo từng nhà cung cấp/mô hình) |
+| POST | `/api/assess` | Chạy một lượt đánh giá — nội dung yêu cầu: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Liệt kê các bộ eval tích hợp sẵn + những lượt chạy gần đây nhất |
+| POST | `/api/evals` | Kích hoạt một lượt chạy eval |
+| POST | `/api/evals/suites` | Tạo một bộ eval tùy chỉnh — nội dung yêu cầu được xác thực bằng `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | Truy xuất một bộ eval tùy chỉnh |
 
-**Xác thực:** `/api/cloud/auth` xác thực trực tiếp khóa Bearer; các tuyến `/api/cloud/*`, `/api/evals/*` và `/api/assess` khác yêu cầu phiên quản lý/khóa API. Yêu cầu POST đến `/api/assess` sử dụng `validateBody` với lược đồ phạm vi hợp phân biệt.
+**Xác thực:** `/api/cloud/auth` xác thực trực tiếp khóa Bearer và chỉ trả về khóa đã che cùng `projectId` của mỗi kết nối đối với khóa có phạm vi `manage` / `admin`; các route `/api/cloud/*`, `/api/evals/*` và `/api/assess` khác yêu cầu phiên quản lý/khóa API. Yêu cầu POST tới `/api/assess` sử dụng `validateBody` với schema phạm vi hợp phân biệt.
+
+---
 
 ## Quản lý ACP (Agent Client Protocol)
 

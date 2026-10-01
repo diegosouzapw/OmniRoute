@@ -419,70 +419,90 @@ Ezt a végpontot akkor használja, ha egy sidecar folyamaton kívül fut, és ne
 
 ## Kompatibilitási végpontok
 
-| Metódus | Útvonal                                   | Formátum                             |
-| ------- | ----------------------------------------- | ------------------------------------ |
-| POST    | `/v1/chat/completions`                    | OpenAI                               |
-| POST    | `/v1/messages`                            | Anthropic                            |
-| POST    | `/v1/responses`                           | OpenAI válaszok                      |
-| POST    | `/v1/embeddings`                          | OpenAI                               |
-| POST    | `/v1/images/generations`                  | OpenAI képek                         |
-| POST    | `/v1/images/edits`                        | OpenAI képek (szerkesztés/kitöltés)  |
-| POST    | `/v1/videos/generations`                  | OpenAI-stílusú videógenerálás        |
-| POST    | `/v1/music/generations`                   | OpenAI-stílusú zene generálás        |
-| POST    | `/v1/audio/transcriptions`                | OpenAI hang (STT)                    |
-| POST    | `/v1/audio/speech`                        | OpenAI TTS (hanganyagot ad vissza)   |
-| POST    | `/v1/rerank`                              | Cohere/Voyage-stílusú újrarendezés   |
-| POST    | `/v1/classify`                            | Jina osztályozás (`api.jina.ai`)     |
-| POST    | `/v1/segment`                             | Jina szegmentáló (`segment.jina.ai`) |
-| POST    | `/v1/moderations`                         | OpenAI moderációk                    |
-| GET     | `/v1/models`                              | OpenAI                               |
-| POST    | `/v1/messages/count_tokens`               | Anthropic                            |
-| GET     | `/v1beta/models`                          | Gemini                               |
-| POST    | `/v1beta/models/{...path}`                | Gemini generateContent               |
-| POST    | `/v1/api/chat`                            | Ollama                               |
-| GET     | `/api/v1/vscode/{token}/`                 | OpenAI katalógus alias               |
-| GET     | `/api/v1/vscode/{token}/models`           | OpenAI modellek alias                |
-| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenizált alias              |
-| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI válaszok tokenizált alias     |
-| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenizált alias              |
-| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama címkék tokenizált alias       |
+| Metódus | Útvonal                                   | Formátum                              |
+| ------- | ----------------------------------------- | ------------------------------------- |
+| POST    | `/v1/chat/completions`                    | OpenAI                                |
+| POST    | `/v1/messages`                            | Anthropic                             |
+| POST    | `/v1/responses`                           | OpenAI Responses                      |
+| POST    | `/v1/embeddings`                          | OpenAI                                |
+| POST    | `/v1/images/generations`                  | OpenAI Images                         |
+| POST    | `/v1/images/edits`                        | OpenAI Images (szerkesztés/inpaint)   |
+| POST    | `/v1/videos/generations`                  | OpenAI-stílusú videógenerálás         |
+| POST    | `/v1/music/generations`                   | OpenAI-stílusú zenegenerálás          |
+| POST    | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                    |
+| POST    | `/v1/audio/speech`                        | OpenAI TTS (hangtörzset ad vissza)    |
+| POST    | `/v1/rerank`                              | Cohere/Voyage-stílusú újrarangsorolás |
+| POST    | `/v1/classify`                            | Jina-osztályozás (`api.jina.ai`)      |
+| POST    | `/v1/segment`                             | Jina-szegmentáló (`segment.jina.ai`)  |
+| POST    | `/v1/moderations`                         | OpenAI Moderations                    |
+| GET     | `/v1/models`                              | OpenAI                                |
+| POST    | `/v1/messages/count_tokens`               | Anthropic                             |
+| GET     | `/v1beta/models`                          | Gemini                                |
+| POST    | `/v1beta/models/{...path}`                | Gemini generateContent                |
+| POST    | `/v1/api/chat`                            | Ollama                                |
+| GET     | `/api/v1/vscode/{token}/`                 | OpenAI-katalógus aliasa               |
+| GET     | `/api/v1/vscode/{token}/models`           | OpenAI-modellek aliasa                |
+| POST    | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenizált aliasa              |
+| POST    | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenizált aliasa    |
+| POST    | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenizált aliasa              |
+| GET     | `/api/v1/vscode/{token}/api/tags`         | Ollama-címkék tokenizált aliasa       |
 
-Minden POST útvonal azonos formátumot követ: `Bearer your-api-key` + Zod-validált JSON törzs (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, stb., lásd `src/shared/validation/schemas.ts`). Sémahiba esetén 4xx-es válasz kerül visszaadásra.
+Minden POST-útvonal ugyanazt a formát követi: `Bearer your-api-key` + Zod által ellenőrzött JSON-törzs (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` stb.; lásd: `src/shared/validation/schemas.ts`). A sémaellenőrzés sikertelensége esetén 4xx válasz érkezik.
 
-Azoknak az ügyfeleknek, amelyek nem tudnak `Authorization: Bearer ...` fejlécet csatolni, az OmniRoute az API kulcsokat az URL-ben is elfogadja, akár lekérdezési sztring kompatibilitás (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) révén, akár az alább dokumentált dedikált `/api/v1/vscode/{token}/...` végpontokon keresztül.
+Az `Authorization: Bearer ...` fejlécet csatolni nem képes kliensek számára az OmniRoute az API-kulcsokat az URL-ben is elfogadja, akár lekérdezésikarakterlánc-kompatibilitással (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), akár az alább dokumentált, dedikált `/api/v1/vscode/{token}/...` végpontokon keresztül.
 
 ```bash
-# Újrarendezés (felhőalapú regisztrációs szolgáltató, vagy OpenAI-kompatibilis szolgáltatói csomópont "<előtag>/<modell>" formában)
+# Újrarangsorolás (felhőalapú regisztrációs szolgáltató vagy OpenAI-kompatibilis szolgáltatócsomópont "<prefix>/<model>" formában)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina osztályozás (Foundation API hitelesítő adatok)
+# Jina-osztályozás (Foundation API-hitelesítő adatok)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina szegmentáló
+# Jina-szegmentáló
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina keresés (s.jina.ai; szolgáltatói aliasok: jina-search, jina-ai, jina)
+# Jina-keresés (s.jina.ai; szolgáltatói aliasok: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderációk
+# Moderálás
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (vagy kért formátumú) törzset ad vissza
+# TTS — audio/mpeg (vagy a kért formátumú) törzset ad vissza
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
+
+# A Soniox TTS nyelvet és hangot igényel: a `language` alapértelmezett értéke "en"; a hiányzó
+# hang vagy egy szabványos OpenAI-hangnév (alloy, nova, …) értéke "Adrian" lesz
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
 # Képszerkesztés (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Videó / zene generálás (szolgáltató-előtaggal ellátott modell azonosító)
+# Videó-/zenegenerálás (szolgáltatói előtaggal ellátott modellazonosító)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Újrarendezési szolgáltatói csomópontok:** A `POST /v1/rerank` útvonal OpenAI-kompatibilis szolgáltatói csomópontokhoz is irányít (oMLX, vLLM, Infinity, TEI egy átjáró mögött, …), amelyek `<csomópont-előtag>/<modell>` formában vannak címezve. A loopback csomópontok (`localhost`, `127.0.0.1`, `172.16.0.0/12`) mindig jogosultak. Bármely más gazdagépen — egy LAN-dobozon vagy Tailscale-társgépen — lévő csomópontok csak akkor jogosultak, ha az operátor engedélyezi a `RERANK_REMOTE_PROVIDER_NODES` funkciójelzőt **és** a csomópont alap URL-je megfelel a szolgáltató kimenő URL-szabályzatának (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); a felhő-metaadat gazdagépekhez soha nem történik útválasztás. A memóriakezelő újrarendezési lépése ezen az útvonalon keresztül hívja meg a loopbacket, így ugyanez a szabály vonatkozik a `rerankProviderModel`-re a Memória beállításokban.
+> **Újrarangsorolási szolgáltatócsomópontok:** A `POST /v1/rerank` az OpenAI-kompatibilis szolgáltatócsomópontokhoz
+> (oMLX, vLLM, Infinity, átjáró mögötti TEI, …) is továbbít, amelyek címzése `<node-prefix>/<model>` formájú. A visszacsatolási
+> csomópontok (`localhost`, `127.0.0.1`, `172.16.0.0/12`) mindig használhatók. Bármely más
+> gazdagépen — helyi hálózati gépen vagy Tailscale-társponton — található csomópont csak akkor használható, ha az üzemeltető engedélyezi a
+> `RERANK_REMOTE_PROVIDER_NODES` funkciójelzőt, **és** a csomópont alap-URL-je megfelel a szolgáltató
+> kimenő URL-ekre vonatkozó szabályzatának (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> a felhőmetaadat-gazdagépekhez soha nem történik továbbítás. A memóriamotor újrarangsorolási lépése a visszacsatolási
+> interfészen keresztül hívja ezt az útvonalat, így ugyanez a szabály vonatkozik a Memória beállításaiban szereplő `rerankProviderModel` értékre.
 >
-> **Helyi szerver formák:** A csomópontot a `<base>/v1/rerank` címen hívják meg, és 404 esetén a `<base>/rerank` címen (Infinity, TEI). A felsőbb rétegbeli törzs tartalmazza a Cohere/OpenAI írásmódot (`documents`, `return_documents`) és a TEI írásmódot (`texts`, `return_text`) is, és a felsőbb rétegbeli válasz a Cohere borítékhoz van normalizálva: A TEI csupasz `[{index, score, text}]` formátuma, a vékony átjárókból származó `{results: [{index, score}]}` és a Voyage-stílusú `{data: [...]}` mind `{results: [{index, relevance_score, document?}]}` formában térnek vissza az ügyfélhez, pontszám szerint rendezve és `top_n`-nél korlátozva.
+> **Helyi kiszolgálói formátumok:** a csomópont hívása a `<base>/v1/rerank`, 404 esetén pedig a `<base>/rerank`
+> útvonalon történik (Infinity, TEI). A továbbított törzs a Cohere/OpenAI-féle elnevezést (`documents`,
+> `return_documents`) és a TEI-féle elnevezést (`texts`, `return_text`) egyaránt tartalmazza, a továbbított válasz pedig
+> a Cohere-burkoló formátumára normalizálódik: a TEI csupasz `[{index, score, text}]` válasza, a vékony átjáróktól érkező
+> `{results: [{index, score}]}`, valamint a Voyage-stílusú `{data: [...]}` egyaránt
+> `{results: [{index, relevance_score, document?}]}` formában jut vissza a klienshez, pontszám szerint rendezve és `top_n` számú elemre korlátozva.
 
-> **Szolgáltatói csomópont felfedezés:** Az OpenAI-kompatibilis szolgáltatói csomóponton lévő modellek a `GET /v1/models` alatt jelennek meg a csomópont előtaggal. Azok a sorok, amelyek nem tartalmaznak végpont metaadatokat (jellemző a helyi `/v1/models` listázásokra), öröklik a csomópont `apiType`-ját, így egy beágyazási csomópont modelljei `type: "embedding"` típusúak, és egy újrarendezési csomópont modelljei `type: "rerank"` típusúak lesznek a chat alapértelmezett helyett; egy szinkronizált vagy manuálisan hozzáadott soron lévő explicit `supportedEndpoints` továbbra is elsőbbséget élvez.
+> **Szolgáltatócsomópont-felderítés:** az OpenAI-kompatibilis szolgáltatócsomóponton lévő modellek a `GET /v1/models`
+> végponton, a csomópont előtagja alatt jelennek meg. A végpont-metaadatokat nem tartalmazó sorok (ami jellemző a helyi `/v1/models` listázásokra)
+> öröklik a csomópont `apiType` értékét, így egy `embeddings` csomópont modelljei `type: "embedding"`, egy
+> `rerank` csomópont modelljei pedig `type: "rerank"` típusúak lesznek ahelyett, hogy alapértelmezés szerint csevegési típusúak lennének; a szinkronizált vagy manuálisan hozzáadott soron explicit módon megadott
+> `supportedEndpoints` továbbra is elsőbbséget élvez.
 
 ### Dedikált szolgáltatói útvonalak
 
@@ -492,7 +512,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-A szolgáltató előtagja automatikusan hozzáadódik, ha hiányzik. Az illesztetlen modellek `400`-as hibakódot adnak vissza.
+A szolgáltatói előtag automatikusan hozzáadódik, ha hiányzik. A nem egyező modellek esetén a válasz `400`.
 
 ---
 
@@ -1425,17 +1445,17 @@ Visszaadja a nyilvános A2A-ügynökkártyát (név, leírás, képességek, ké
 | Metódus | Útvonal | Leírás |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
 | POST | `/api/cloud/auth` | Bearer-kulcs ellenőrzése, valamint maszkolt szolgáltatói kapcsolatok és modellálnevek visszaadása a felhőszinkronizálási kliensek számára |
-| POST | `/api/cloud/credentials/update` | Egy felhővel szinkronizált szolgáltató titkosított hitelesítő adatainak frissítése |
-| POST | `/api/cloud/model/resolve` | Logikai modellazonosító feloldása konkrét szolgáltatóra/modellre a helyi útválasztási táblázat használatával |
+| POST | `/api/cloud/credentials/update` | Egy felhőben szinkronizált szolgáltató titkosított hitelesítő adatainak frissítése |
+| POST | `/api/cloud/model/resolve` | Egy logikai modellazonosító feloldása konkrét szolgáltatóra/modellre a helyi útválasztási tábla használatával |
 | GET | `/api/cloud/models/alias` | A felhőszinkronizálás számára elérhető modellálnevek listázása |
-| GET | `/api/assess` | A legutóbbi felmérési kategorizálások beolvasása (szolgáltatónként/modellenként) |
+| GET | `/api/assess` | A legújabb felmérési kategorizálások lekérése (szolgáltatónként/modellenként) |
 | POST | `/api/assess` | Felmérés futtatása — törzs: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | Beépített kiértékelési csomagok és legutóbbi futtatásaik listázása |
+| GET | `/api/evals` | A beépített kiértékelési csomagok és a legutóbbi futtatások listázása |
 | POST | `/api/evals` | Kiértékelési futtatás indítása |
-| POST | `/api/evals/suites` | Egyéni kiértékelési csomag létrehozása — a törzset az `evalSuiteSaveSchema` ellenőrzi |
+| POST | `/api/evals/suites` | Egyéni kiértékelési csomag létrehozása — a törzset az `evalSuiteSaveSchema` validálja |
 | GET | `/api/evals/suites/[id]` | Egyéni kiértékelési csomag lekérése |
 
-**Hitelesítés:** az `/api/cloud/auth` közvetlenül ellenőrzi a Bearer-kulcsot; a többi `/api/cloud/*`, `/api/evals/*` és `/api/assess` útvonal kezelési munkamenetet/API-kulcsot igényel. Az `/api/assess` POST a `validateBody` függvényt használja egy diszkriminált uniós hatókörsémával.
+**Hitelesítés:** Az `/api/cloud/auth` közvetlenül ellenőrzi a Bearer-kulcsot, és csak `manage` / `admin` hatókörű kulcs esetén adja vissza az egyes kapcsolatok maszkolt kulcsát és `projectId` értékét; a többi `/api/cloud/*`, `/api/evals/*` és `/api/assess` útvonal kezelői munkamenetet/API-kulcsot igényel. Az `/api/assess` POST a `validateBody` függvényt használja egy diszkriminált uniós hatókörsémával.
 
 ---
 

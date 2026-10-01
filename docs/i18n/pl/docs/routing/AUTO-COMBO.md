@@ -10,50 +10,50 @@
 
 ## Automatyczny routing bez konfiguracji (prefiks `auto/`)
 
-> **NOWOŚĆ:** Nie trzeba tworzyć kombinacji. Użyj prefiksu `auto/` bezpośrednio w dowolnym kliencie.
+> **NOWOŚĆ:** Nie trzeba tworzyć żadnej kombinacji. Użyj prefiksu `auto/` bezpośrednio w dowolnym kliencie.
 
 ### Szybkie przykłady
 
-| Identyfikator modelu | Wariant  | Działanie                                                                                |
-| -------------------- | -------- | ---------------------------------------------------------------------------------------- |
-| `auto`               | domyślny | Wszyscy połączeni dostawcy, strategia LKGP, zrównoważone wagi                            |
-| `auto/coding`        | coding   | Wagi ukierunkowane na jakość, odpowiednie do generowania kodu                            |
-| `auto/fast`          | fast     | Wybór ważony pod kątem niskich opóźnień                                                  |
-| `auto/cheap`         | cheap    | Routing zoptymalizowany pod kątem kosztów (najpierw najniższy koszt)                     |
-| `auto/offline`       | offline  | Preferuje dostawców z największą dostępną kwotą                                          |
-| `auto/smart`         | smart    | Priorytet jakości + wyższy współczynnik eksploracji (10%) dla lepszego wykrywania modeli |
-| `auto/lkgp`          | lkgp     | Jawne LKGP (takie samo jak domyślne `auto`)                                              |
-| `auto/chaos`         | chaos    | Wagi wstrzykiwania błędów do testowania odporności (inżynieria chaosu)                   |
+| ID modelu      | Wariant   | Zachowanie                                                                                            |
+| -------------- | --------- | ----------------------------------------------------------------------------------------------------- |
+| `auto`         | domyślny  | Wszyscy połączeni dostawcy, strategia LKGP, zrównoważone wagi                                         |
+| `auto/coding`  | kodowanie | Wagi ukierunkowane na jakość, odpowiednie do generowania kodu                                         |
+| `auto/fast`    | szybki    | Ważony wybór o niskich opóźnieniach                                                                   |
+| `auto/cheap`   | tani      | Routing zoptymalizowany pod kątem kosztów (najpierw najniższy koszt)                                  |
+| `auto/offline` | offline   | Preferuje dostawców o największej dostępności limitu                                                  |
+| `auto/smart`   | smart     | Jakość na pierwszym miejscu + wyższy współczynnik eksploracji (10%) w celu lepszego wykrywania modeli |
+| `auto/lkgp`    | lkgp      | Jawne LKGP (takie samo jak domyślne `auto`)                                                           |
+| `auto/chaos`   | chaos     | Równoległe rozsyłanie, jeden model na dostawcę (nie jest to wstrzykiwanie błędów)                     |
 
-### Kompozycja kategorii × poziomu (`auto/<category>:<tier>`)
+### Kompozycja kategoria × poziom (`auto/<category>:<tier>`)
 
-Sufiksy w stylu OpenRouter oddzielają **rodzaj trasy** (kategorię) od **sposobu jej optymalizacji** (poziomu), dzięki czemu można je dowolnie łączyć (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Sufiksy w stylu OpenRouter oddzielają **rodzaj trasy** (kategorię) od **sposobu jej optymalizacji** (poziomu), dzięki czemu można je swobodnie łączyć (#4235, faza B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Kategorie** (filtrują pulę kandydatów według możliwości): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` zachowują modele obsługujące przetwarzanie obrazu; `reasoning` zachowuje modele rozumujące/myślące.
-- **Poziomy** (wybierają wagi punktacji / filtr puli): `fast` (szybkie dostarczenie) · `cheap` (alias `floor`, oszczędność kosztów) · `reliable` (stan mechanizmu circuit breaker + stabilność opóźnień) · `free` / `pro` (filtrują pulę według poziomu modelu za pomocą `classifyTier` — poziom bezpłatny lub premium).
+- **Kategorie** (filtrują pulę kandydatów według możliwości): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` zachowują modele obsługujące obraz; `reasoning` zachowuje modele rozumujące/myślące.
+- **Poziomy** (wybierają wagi punktacji / filtr puli): `fast` (szybkie dostarczenie) · `cheap` (alias `floor`, oszczędność kosztów) · `reliable` (stan wyłącznika obwodu + stabilność opóźnień) · `free` / `pro` (filtrują pulę według poziomu modelu za pomocą `classifyTier` — poziom bezpłatny lub premium).
 
-| Przykład               | Wynik                                                                           |
-| ---------------------- | ------------------------------------------------------------------------------- |
-| `auto/coding:fast`     | pula modeli do programowania, wagi pod kątem niskich opóźnień                   |
-| `auto/coding:cheap`    | pula modeli do programowania, optymalizacja kosztów (alias `auto/coding:floor`) |
-| `auto/reasoning:pro`   | tylko modele rozumujące/myślące, poziom premium                                 |
-| `auto/vision`          | modele obsługujące przetwarzanie obrazu (brak poziomu → zrównoważone wagi)      |
-| `auto/multimodal:free` | modele obsługujące wiele modalności, tylko poziom bezpłatny                     |
+| Przykład               | Wynik                                                             |
+| ---------------------- | ----------------------------------------------------------------- |
+| `auto/coding:fast`     | pula kodowania, wagi o niskich opóźnieniach                       |
+| `auto/coding:cheap`    | pula kodowania, optymalizacja kosztów (alias `auto/coding:floor`) |
+| `auto/reasoning:pro`   | tylko modele rozumujące/myślące, poziom premium                   |
+| `auto/vision`          | modele obsługujące obraz (brak poziomu → zrównoważone wagi)       |
+| `auto/multimodal:free` | modele obsługujące wiele modalności, tylko poziom bezpłatny       |
 
-Każdy prawidłowy wariant `auto/<category>[:<tier>]` jest rozwiązywany na żądanie; wyselekcjonowany podzbiór jest udostępniany w `/v1/models` oraz w panelu (`AUTO_SUFFIX_VARIANTS` w `open-sse/services/autoCombo/builtinCatalog.ts`). Filtrowanie działa w trybie **fail-open** — jeśli żaden połączony model nie spełnia ograniczenia, używana jest pełna pula, dzięki czemu routing nigdy nie przestaje działać. Główny mechanizm punktacji (`combo.ts`) pozostaje bez zmian; filtr kategorii/poziomu jest stosowany w `buildAutoCandidates`.
+Każdy prawidłowy zapis `auto/<category>[:<tier>]` jest rozwiązywany na żądanie; wyselekcjonowany podzbiór jest publikowany w `/v1/models` oraz w panelu (`AUTO_SUFFIX_VARIANTS` w `open-sse/services/autoCombo/builtinCatalog.ts`). Filtrowanie działa w trybie **fail-open** — jeśli żaden połączony model nie spełnia ograniczenia, używana jest pełna pula, dzięki czemu routing nigdy nie przestaje działać. Główny mechanizm punktacji (`combo.ts`) pozostaje bez zmian; filtr kategorii/poziomu jest stosowany w `buildAutoCandidates`.
 
-> **Bieżące informacje o modelach:** na ocenę przydatności w automatycznym routingu wpływają aktualne rankingi **Arena ELO** oraz dane o poziomach z **models.dev**, gdy flaga `ARENA_ELO_SYNC_ENABLED` jest włączona (w przeciwnym razie używana jest statyczna mapa przydatności).
+> **Analiza modeli na żywo:** dopasowanie automatycznego routingu opiera się na aktualnych rankingach **Arena ELO** oraz danych poziomów z **models.dev**, gdy flaga `ARENA_ELO_SYNC_ENABLED` jest włączona (w przeciwnym razie używana jest statyczna mapa dopasowania).
 
-**Sposób użycia:**
+**Jak używać:**
 
 ```bash
-# Dowolne środowisko IDE lub narzędzie CLI obsługujące format OpenAI
-Bazowy URL: http://localhost:20128/v1
-Klucz API:  <klucz-endpointu>
+# Dowolne IDE lub narzędzie CLI obsługujące format OpenAI
+Bazowy adres URL: http://localhost:20128/v1
+Klucz API:       <klucz-punktu-końcowego>
 
 # W kodzie/konfiguracji ustaw model na:
-model: "auto"                 # zrównoważona opcja domyślna
-model: "auto/coding"          # najlepszy do zadań programistycznych
+model: "auto"                 # zrównoważone ustawienie domyślne
+model: "auto/coding"          # najlepszy do zadań związanych z kodowaniem
 model: "auto/fast"            # najszybszy dostępny
 model: "auto/cheap"           # najtańszy w przeliczeniu na token
 ```
@@ -62,45 +62,48 @@ model: "auto/cheap"           # najtańszy w przeliczeniu na token
 
 1. OmniRoute wykrywa prefiks `auto/` w `src/sse/handlers/chat.ts`
 2. Odpytuje bazę danych o wszystkie **aktywne połączenia z dostawcami**
-3. Filtruje je do tych z prawidłowymi danymi uwierzytelniającymi (kluczem API lub tokenem OAuth)
+3. Filtruje je do tych, które mają prawidłowe dane uwierzytelniające (klucz API lub token OAuth)
 4. Określa model dla każdego połączenia (`connection.defaultModel` lub pierwszy model dostawcy)
-5. Tworzy **wirtualną kombinację** w pamięci (nie jest ona przechowywana w bazie danych)
-6. Wykonuje routing z użyciem profilu wag wybranego wariantu oraz strategii LKGP
+5. Tworzy w pamięci **wirtualną kombinację** (nie jest ona przechowywana w bazie danych)
+6. Wykonuje routing przy użyciu profilu wag wybranego wariantu oraz strategii LKGP
 
 **Najważniejsze właściwości:**
 
 - ✅ **Zawsze aktywne:** Nie wymaga przełącznika, tworzenia kombinacji ani konfiguracji
 - ✅ **Dynamiczne:** Automatycznie odzwierciedla aktualnie połączonych dostawców
-- ✅ **Przywiązanie sesji:** LKGP zapewnia priorytet ostatnio działającemu dostawcy
+- ✅ **Przywiązanie sesji:** LKGP zapewnia priorytet ostatniemu dostawcy, który pomyślnie obsłużył żądanie
 - ✅ **Obsługa wielu kont:** Każde połączenie z dostawcą staje się osobnym kandydatem
-- ✅ **Brak zapisów w bazie danych:** Wirtualna kombinacja istnieje tylko na czas żądania, bez narzutu związanego z trwałym zapisem
+- ✅ **Brak zapisów w bazie danych:** Wirtualna kombinacja istnieje tylko na potrzeby żądania, bez narzutu związanego z trwałym przechowywaniem
 
 ### Kontrola kandydatów dla poszczególnych kluczy (#7819, poziom 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = sufiks po `auto/` albo
-literał `auto` dla kanału bazowego) to endpoint **tylko do odczytu**, który wyświetla
-bieżącą pulę kandydatów kanału `auto/*`, uzupełnioną o aktualny stan osiągalności, wykorzystując
-istniejące odczyty mechanizmów odporności (nigdy nie używa surowego `state` mechanizmu breaker):
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = sufiks po `auto/` lub
+literał `auto` dla kanału bazowego) jest punktem końcowym **tylko do odczytu**, który
+wyświetla bieżącą pulę kandydatów kanału `auto/*` wraz z aktualną osiągalnością,
+wykorzystując istniejące odczyty mechanizmów odporności (nigdy bezpośrednio `state`
+wyłącznika obwodu):
 
-- mechanizm circuit breaker dostawcy — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- okres oczekiwania połączenia — `rateLimitedUntil` / `testStatus` w rozpoznanym
-  wierszu `provider_connections`
+- wyłącznik obwodu dostawcy — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- okres karencji połączenia — `rateLimitedUntil` / `testStatus` w rozwiązanym wierszu
+  `provider_connections`
 - blokada modelu — `isModelLocked(provider, connectionId, model)`
 
-Każdy kandydat zawiera również flagę `excluded` dla tego klucza API. Wykluczenia są przechowywane
-osobno dla każdego klucza API (tabela `auto_candidate_overrides`, migracja `128`) — OmniRoute jest
-systemem dla jednego dzierżawcy bez tabeli `users`, dlatego `apiKeyId` jest najbliższą rzeczywistą
-tożsamością poszczególnych wywołujących — i są wymuszane w centralnym punkcie puli kandydatów w
-`open-sse/services/autoCombo/virtualFactory.ts` za pomocą czystej, przetestowanej jednostkowo funkcji
-`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Filtr działa w trybie **fail-open**: nieustawione apiKeyId/kanał lub błąd odczytu bazy danych
-pozostawiają pulę bez filtrowania, dzięki czemu operator bez skonfigurowanych nadpisań otrzymuje routing
-identyczny bajt w bajt jak przed wprowadzeniem tej funkcji.
+Każdy kandydat zawiera również flagę `excluded` dla tego klucza API. Wykluczenia są
+przechowywane oddzielnie dla każdego klucza API (tabela `auto_candidate_overrides`,
+migracja `128`) — OmniRoute jest systemem przeznaczonym dla jednego dzierżawcy i nie
+ma tabeli `users`, dlatego `apiKeyId` jest najbliższą rzeczywistą tożsamością
+poszczególnych wywołujących — oraz wymuszane w centralnym punkcie kontroli puli
+kandydatów w `open-sse/services/autoCombo/virtualFactory.ts` za pomocą czystej,
+przetestowanej jednostkowo funkcji `filterExcludedCandidates()`
+(`open-sse/services/autoCombo/candidateOverrides.ts`). Filtr działa w trybie
+**fail-open**: brak wartości apiKeyId/kanału lub błąd odczytu bazy danych pozostawiają
+pulę bez filtrowania, dzięki czemu operator bez skonfigurowanych nadpisań otrzymuje
+routing identyczny bajt w bajt z działaniem sprzed wprowadzenia tej funkcji.
 
-**Odłożone do kolejnego zgłoszenia:** wagi poszczególnych kandydatów + jawna kolejność (Poziom 3
-— wykorzystuje istniejące ścieżki strategii ważonej/priorytetowej) oraz przypięcie konkretnej
-strategii `combo.ts` do poszczególnych kanałów `auto/*` (Poziom 4). Zobacz plan #7819 dotyczący otwartej
-kwestii, czy nadpisania powinny pozostać przypisane do klucza API, czy stać się globalne ze względu na
+**Odłożone do kolejnego zgłoszenia:** wagi poszczególnych kandydatów + jawne porządkowanie (poziom 3
+— wykorzystuje istniejące ścieżki strategii ważonej/priorytetowej) oraz przypinanie konkretnej
+strategii `combo.ts` do każdego kanału `auto/*` (poziom 4). Zobacz plan #7819 dotyczący otwartej
+kwestii, czy nadpisania powinny pozostać przypisane do poszczególnych kluczy API, czy stać się globalne ze względu na
 model pojedynczego dzierżawcy.
 
 **Za kulisami:**
@@ -110,22 +113,22 @@ model pojedynczego dzierżawcy.
    ↓
 src/sse/handlers/chat.ts wykrywa prefiks
    ↓
-createVirtualAutoCombo('coding') → candidatePool z aktywnych połączeń
+createVirtualAutoCombo('coding') → pula kandydatów z aktywnych połączeń
    ↓
-handleComboChat (ten sam mechanizm co w przypadku utrwalonych kombinacji)
+handleComboChat (ten sam silnik co w przypadku utrwalonych kombinacji)
    ↓
-Automatyczna punktacja wybiera najlepszego dostawcę/model dla każdego żądania
+Automatyczna ocena wybiera najlepszego dostawcę/model dla każdego żądania
 ```
 
 **Pliki implementacji:**
 
-| Plik                                                      | Przeznaczenie                                             |
-| --------------------------------------------------------- | --------------------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefiksu (`parseAutoPrefix`)                       |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Tworzy wirtualne obiekty `AutoComboConfig`                |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Punkt zaczepienia testów do mockowania rejestru dostawców |
-| `src/sse/handlers/chat.ts`                                | Integracja: obsługa prefiksu auto w pierwszej kolejności  |
-| `src/shared/constants/providers.ts`                       | Wpis systemowy `SYSTEM_PROVIDERS.auto`                    |
+| Plik                                                      | Przeznaczenie                                      |
+| --------------------------------------------------------- | -------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefiksu (`parseAutoPrefix`)                |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Tworzy wirtualne obiekty `AutoComboConfig`         |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Punkt zaczepienia do mockowania rejestru dostawców |
+| `src/sse/handlers/chat.ts`                                | Integracja: skrócona ścieżka dla prefiksu auto     |
+| `src/shared/constants/providers.ts`                       | Wpis systemowy `SYSTEM_PROVIDERS.auto`             |
 
 ## Nazwy kombinacji odpowiadające rzeczywistemu identyfikatorowi modelu
 
@@ -217,9 +220,9 @@ Mechanizm Auto-Combo dynamicznie wybiera najlepszego dostawcę/model dla każdeg
 
 ## Pakiety trybów
 
-6 wstępnie zdefiniowanych profili wag w `open-sse/services/autoCombo/modePacks.ts`. Każdy pakiet całkowicie zastępuje domyślne wagi, aby ukierunkować wybór na jeden cel. Suma wag każdego pakietu wynosi już `1.0` (`0.9999` przy wyświetlaniu z dokładnością do czterech miejsc po przecinku), więc `normalizeScoringWeights()` nie ma nic istotnego do skorygowania, gdy pakiet jest aktywny — poniższe wartości są, z uwzględnieniem zaokrągleń, wartościami stosowanymi przez mechanizm punktacji.
+6 wstępnie zdefiniowanych profili wag w `open-sse/services/autoCombo/modePacks.ts`. Każdy pakiet całkowicie zastępuje domyślne wagi, aby ukierunkować wybór na jeden cel. Suma wag w każdym pakiecie wynosi już `1.0` (`0.9999` przy wyświetlaniu z dokładnością do czterech miejsc po przecinku), więc `normalizeScoringWeights()` nie ma nic istotnego do skorygowania, gdy pakiet jest aktywny — poniższe wartości są, z uwzględnieniem zaokrągleń, wartościami stosowanymi przez mechanizm oceny.
 
-| Czynnik               | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
+| Współczynnik          | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
 | `quota`               | 0.1133     | 0.1133     | 0.0752        | **0.3324**       | 0.1133            | 0.0376     |
 | `health`              | 0.2667     | 0.1810     | 0.1714        | 0.2667           | **0.3524**        | **0.4000** |
@@ -239,26 +242,29 @@ Mechanizm Auto-Combo dynamicznie wybiera najlepszego dostawcę/model dla każdeg
 
 Uwagi:
 
-- **Pakiety zawierają `quality` i `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) i zastępują całą mapę wag (`weights = pack`, a nie scalanie). `DEFAULT_WEIGHTS` zawiera `quality 0.03 / reliability 0`; wybranie `balanced`/`default` zachowuje te wartości domyślne, natomiast wybranie pakietu powoduje użycie jego wartości podanych powyżej. W zimnej puli (brak dotychczasowych obserwacji, więc `quality 0.5` i `reliability 1`) te dwa czynniki dodają `+0.04` w przypadku pakietu ogólnego (`0.03 + 0.01`), `+0.045` w przypadku `quality-first` oraz `+0.05` w przypadku `reliability-first`.
+- **Pakiety zawierają `quality` i `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) i zastępują całą mapę wag (`weights = pack`, a nie scalanie). `DEFAULT_WEIGHTS` zawiera `quality 0.03 / reliability 0`; wybranie `balanced`/`default` zachowuje te wartości domyślne, natomiast wybranie pakietu powoduje użycie jego wartości podanych powyżej. W przypadku zimnej puli (brak dotychczasowych obserwacji, więc `quality 0.5` i `reliability 1`) te dwa współczynniki dodają `+0.04` w ramach ogólnego pakietu (`0.03 + 0.01`), `+0.045` w ramach `quality-first` oraz `+0.05` w ramach `reliability-first`.
 - `tierAffinity`, `specificityMatch` i `resetWindowAffinity` mają jawnie ustawioną wartość `0` w każdym pakiecie.
 - Najważniejsze cechy poszczególnych pakietów:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (sprawne połączenia o małych opóźnieniach)
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (zdrowe połączenia o małych opóźnieniach)
   - **cost-saver** → costInv 0.3324 (wygrywają najtańsze tokeny)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, najwyższa wartość spośród wszystkich pakietów (najlepszy model dla zadania, spójność)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, najwyższa wartość spośród wszystkich pakietów (najlepszy model do zadania, spójne działanie)
   - **offline-friendly** → quota 0.3324 + health 0.2667 (maksymalny zapas niezależnie od szybkości/kosztu)
   - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, najwyższa wartość spośród wszystkich pakietów (najmniej niespodzianek)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profil wstrzykiwania błędów)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (pakiet wag przypisywany przez `auto/chaos` członkom swojego panelu; równoległe rozgałęzianie nie odczytuje tych wag i nie jest to profil wstrzykiwania błędów — zobacz [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Sterowanie dla poszczególnych żądań (nagłówki) — #6023 / #6024 / #6025 / #3470
+### Mechanizmy sterowania dla poszczególnych żądań (nagłówki) — #6023 / #6024 / #6025 / #3470
 
-Kombinacją `auto` można sterować **dla każdego żądania osobno** za pomocą trzech nagłówków, bez modyfikowania zapisanej konfiguracji kombinacji. Mają one zastosowanie wyłącznie do strategii `auto` i tylko do żądania, które je zawiera; gdy nagłówek nie występuje, używane są zapisane wartości `modePack`/`budgetCap`/`budgetFallback` kombinacji.
+Działaniem kombinacji `auto` można sterować **dla każdego żądania osobno** za pomocą trzech nagłówków bez modyfikowania
+zapisanej konfiguracji kombinacji. Mają one zastosowanie wyłącznie do strategii `auto` i tylko do żądania,
+które je zawiera; gdy nagłówek jest nieobecny, używane są zapisane wartości `modePack`/`budgetCap`/`budgetFallback`
+kombinacji.
 
-| Nagłówek                      | Akceptuje                                                                                                                                                                                                 | Efekt                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | alias ustawienia wstępnego (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) lub surową nazwę pakietu (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Zastępuje wagi punktacji dla tego żądania. `balanced`/`default` wymuszają domyślne wagi (bez pakietu). Nieznane wartości są ignorowane (konfiguracja zostaje zachowana).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `X-OmniRoute-Budget`          | liczbę dodatnią (maksymalna kwota w USD na żądanie)                                                                                                                                                       | Twardy limit kosztów: kandydaci, których szacowany koszt go przekracza, są odfiltrowywani przed dokonaniem wyboru. Zachowanie w przypadku, gdy **każdy** kandydat go przekracza, jest kontrolowane przez opisany poniżej nagłówek `X-OmniRoute-Budget-Fallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (domyślnie, aliasy: `cheapest-viable`, `soft`) lub `strict` (aliasy: `block`, `hard`)                                                                                                          | `cheapest`: wybiera globalnie najtańszego kandydata, mimo że nadal przekracza on limit (starsze zachowanie). `strict`: odmawia dokonania wyboru — żądanie natychmiast kończy się niepowodzeniem z kodem `HTTP 402`, zamiast po cichu przekroczyć budżet. Nieznane wartości są ignorowane.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `X-OmniRoute-Effort`          | `auto` (inne wartości są zastrzeżone)                                                                                                                                                                     | Adaptacyjny budżet rozumowania: gdy żądanie **nie** zawiera pola rozumowania w żadnej postaci (`reasoning_effort`, `reasoning`, `thinking`), brama przekształca `auto` na `low`/`medium`/`high` na podstawie deterministycznych cech struktury żądania (długości ostatniej wiadomości użytkownika, rozmiaru kontekstu do ostatniej wiadomości użytkownika, wcześniejszych wyników narzędzi, głębokości pętli narzędzi). Sygnały są ograniczone do bieżącej tury — wszystko po ostatniej wiadomości użytkownika jest ignorowane — dzięki czemu każde żądanie w pętli narzędzi jest rozstrzygane na tym samym poziomie (bezstanowe przypięcie dla każdej tury, brak stanu sesji, brak eskalacji w trakcie pętli, która naruszyłaby prefiksy pamięci podręcznej promptów po stronie upstream). Jawne pole rozumowania podane przez klienta ma zawsze pierwszeństwo. Dotyczy żądań, których wysyłka do upstream jest przekształcana do formatu OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` jest polem w formacie OpenAI, więc nagłówek nie ma wpływu na żądanie kierowane do Claude lub Gemini (zobacz `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Nagłówek                      | Akceptowane wartości                                                                                                                                                                                               | Działanie                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | alias ustawienia wstępnego (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) lub nieprzetworzona nazwa pakietu (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Zastępuje wagi punktacji dla tego żądania. `balanced`/`default` wymuszają domyślne wagi (bez pakietu). Nieznane wartości są ignorowane (konfiguracja pozostaje zachowana).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `X-OmniRoute-Budget`          | liczba dodatnia (maksymalna kwota w USD na żądanie)                                                                                                                                                                | Twardy limit kosztów: kandydaci, których szacowany koszt przekracza ten limit, są odfiltrowywani przed dokonaniem wyboru. Zachowanie w sytuacji, gdy **każdy** kandydat przekracza limit, jest kontrolowane przez opisany poniżej nagłówek `X-OmniRoute-Budget-Fallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (domyślnie, aliasy: `cheapest-viable`, `soft`) lub `strict` (aliasy: `block`, `hard`)                                                                                                                   | `cheapest`: wybiera globalnie najtańszego kandydata, mimo że nadal przekracza on limit (starszy sposób działania). `strict`: odmawia dokonania wyboru — żądanie natychmiast kończy się niepowodzeniem z kodem `HTTP 402`, zamiast po cichu przekroczyć budżet. Nieznane wartości są ignorowane.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `X-OmniRoute-Effort`          | `auto` (pozostałe wartości są zarezerwowane)                                                                                                                                                                       | Adaptacyjny budżet rozumowania: gdy żądanie **nie zawiera** pola rozumowania w żadnej postaci (`reasoning_effort`, `reasoning`, `thinking`), brama rozstrzyga wartość `auto` jako `low`/`medium`/`high` na podstawie deterministycznych sygnałów wynikających ze struktury żądania (długość ostatniej wiadomości użytkownika, rozmiar kontekstu do ostatniej wiadomości użytkownika włącznie, wcześniejsze wyniki narzędzi, głębokość pętli narzędzi). Sygnały są ograniczone do bieżącej tury — wszystko po ostatniej wiadomości użytkownika jest ignorowane — dzięki czemu każde żądanie w pętli narzędzi jest rozstrzygane na tym samym poziomie (bezstanowe przypięcie dla danej tury, bez stanu sesji i bez eskalacji w trakcie pętli, która naruszyłaby prefiksy pamięci podręcznej promptów po stronie usługi nadrzędnej). Jawnie określone przez klienta pole rozumowania ma zawsze pierwszeństwo. Dotyczy żądań, których przekazanie do usługi nadrzędnej przyjmuje format OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` jest polem charakterystycznym dla formatu OpenAI, dlatego nagłówek nie ma wpływu na żądanie skierowane do Claude lub Gemini (zobacz `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
 # Wymuś najszybszy profil, ogranicz koszt tego żądania do $0.05 i zastosuj twardą blokadę zamiast przekraczania budżetu
@@ -270,9 +276,11 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Rozstrzyganie jest czystą funkcją (`open-sse/services/autoCombo/requestControls.ts`); rozstrzygnięte wartości trafiają do istniejących parametrów wejściowych silnika `config.modePack` / `config.budgetCap` /
-`config.budgetFallback`. Zapisana wartość `config.budgetFallback` kombinacji („strict” |
-„cheapest”) określa trwałą politykę; nagłówek zastępuje ją dla pojedynczego żądania.
+Rozstrzyganie jest funkcją czystą (`open-sse/services/autoCombo/requestControls.ts`);
+rozstrzygnięte wartości są przekazywane do istniejących parametrów wejściowych silnika
+`config.modePack` / `config.budgetCap` / `config.budgetFallback`. Zapisane w kombinacji ustawienie
+`config.budgetFallback` (`strict` | `cheapest`) określa trwałą politykę; nagłówek zastępuje je
+dla pojedynczego żądania.
 
 ## Wszystkie strategie routingu
 
@@ -761,17 +769,12 @@ Uwzględniając podstawowe `auto` (domyślne) oraz 6 wartości `AutoVariant` zad
 
 ## Jak poziomy współdziałają z Auto-Combo
 
-16-czynnikowa funkcja oceny (`open-sse/services/autoCombo/scoring.ts`) traktuje
-przynależność do poziomu jako dwa sygnały: `tierPriority` (0.0476) i `tierAffinity` (0.0476). Pełny
-zestaw `DEFAULT_WEIGHTS` znajduje się w kanonicznej [tabeli czynników oceny](#how-it-works-persisted-auto-combos) powyżej
-— nadpisania dla poszczególnych pakietów (ship-fast/cost-saver/quality-first/
+Funkcja oceny oparta na 16 czynnikach (`open-sse/services/autoCombo/scoring.ts`) traktuje przynależność do poziomu jako dwa sygnały: `tierPriority` (0.0476) i `tierAffinity` (0.0476). Pełny zestaw `DEFAULT_WEIGHTS` znajduje się w kanonicznej [tabeli czynników oceny](#how-it-works-persisted-auto-combos) powyżej — ustawienia nadpisujące dla poszczególnych pakietów (ship-fast/cost-saver/quality-first/
 offline-friendly) wymieniono w tabeli „Profile wag dla poszczególnych pakietów”.
 
-Sam poziom **nie** wymusza pierwszeństwa Poziomu 1 — jeśli opóźnienie Poziomu 1 jest duże lub
-stosunek kosztu do jakości jest nieoptymalny, wygrywa Poziom 2. Aby wymusić kolejność poziomów, użyj
-strategii kombinacji `priority` i uporządkuj dostawców według poziomów.
+Sam poziom **nie** wymusza pierwszeństwa poziomu 1 — jeśli opóźnienie poziomu 1 jest duże lub stosunek kosztu do jakości jest nieoptymalny, wygrywa poziom 2. Aby wymusić kolejność poziomów, użyj strategii combo `priority` i uporządkuj dostawców według poziomów.
 
-Aby zdecydowanie preferować Poziom 1 (subskrypcja), zwiększ wagę `tierPriority`:
+Aby zdecydowanie faworyzować poziom 1 (subskrypcja), zwiększ wagę `tierPriority`:
 
 ```json
 {
@@ -780,7 +783,7 @@ Aby zdecydowanie preferować Poziom 1 (subskrypcja), zwiększ wagę `tierPriorit
 }
 ```
 
-Definicje poziomów i klasyfikację dostawców znajdziesz w `docs/marketing/TIERS.md`.
+Definicje poziomów i klasyfikację dostawców znajdziesz w [`docs/guides/TIERS.md`](../guides/TIERS.md).
 
 ## Testowanie i pokrycie
 

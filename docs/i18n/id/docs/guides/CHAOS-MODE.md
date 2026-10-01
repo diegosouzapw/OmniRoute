@@ -4,22 +4,42 @@
 
 ---
 
-> **Dasbor:** **Chaos Mode** (bilah sisi) → `/dashboard/chaos`  
+> **Dasbor:** **Chaos Mode** (bilah samping) → `/dashboard/chaos`  
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sesi dasbor) · `POST /api/skills/collect/chaos` (kunci API)  
 > **Sumber:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Chaos Mode mengirimkan **satu tugas ke beberapa penyedia sekaligus** — setiap penyedia yang berpartisipasi
-menyumbangkan satu instans model, dan Anda mendapatkan semua jawaban secara berdampingan (atau berantai). Ini
-adalah antarmuka eksekusi multi-model, bukan strategi perutean: lalu lintas normal `/v1/chat/completions`
-Anda tidak pernah terpengaruh olehnya.
+Chaos Mode mengirimkan **satu tugas ke beberapa penyedia sekaligus** — setiap penyedia yang berpartisipasi menyumbangkan satu instans model, dan Anda mendapatkan semua jawaban secara berdampingan (atau berantai). Ini adalah sarana eksekusi multi-model, bukan strategi perutean: lalu lintas normal `/v1/chat/completions` Anda tidak pernah terpengaruh olehnya.
 
-**Disambiguasi — ada tiga hal berbeda yang dirilis dengan nama "chaos":**
+**Klarifikasi — ada tiga hal berbeda yang dirilis dengan nama "chaos":**
 
-| Hal                     | Pengertiannya                                                                                                                | Lokasi dokumentasi                           |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**          | Halaman dasbor + API yang dijelaskan di sini: menyebarkan satu tugas ke banyak penyedia (paralel atau kolaboratif).          | Panduan ini                                  |
-| `auto/chaos`            | ID model Auto-Combo dengan bobot penilaian injeksi kegagalan, untuk pengujian ketahanan. Tidak ada yang perlu dikonfigurasi. | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Konfigurasi kombo Chaos | Kombo persisten dengan `config.chaos.enabled` yang menyebarkan tugas ke panel dengan model juri opsional (khusus API).       | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Hal                     | Pengertiannya                                                                                                                                                                | Tempat dokumentasi                           |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**          | Halaman dasbor + API yang dijelaskan di sini: sebarkan satu tugas ke banyak penyedia (secara paralel atau kolaboratif).                                                      | Panduan ini                                  |
+| `auto/chaos`            | ID model Auto-Combo: penyebaran paralel, satu model per penyedia, masing-masing satu panggilan upstream. Bukan injeksi kegagalan ([detail](#autochaos-parallel-fan-out)).    | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Konfigurasi combo chaos | Combo tersimpan dengan `config.chaos.enabled` menyebarkan permintaan dengan cara yang sama (khusus API); `judgeModel` hanya memilih jawaban akhir, tanpa panggilan sintesis. | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: penyebaran paralel
+
+`auto/chaos` **bukan** opsi injeksi kegagalan atau pengujian ketahanan. Meminta
+`model: "auto/chaos"` pada `/v1/chat/completions`:
+
+1. Membentuk panel berisi **satu model per penyedia**: kandidat pertama dari setiap
+   penyedia yang terhubung, sesuai urutan kumpulan kandidat, hingga 5 anggota
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, dibatasi maksimal 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Paket bobot `chaos-mode`
+   hanya menetapkan `weight` setiap anggota; proses penyebaran tidak membacanya.
+2. Mengirimkan permintaan yang sama ke setiap anggota panel **secara paralel**, sehingga satu permintaan
+   memerlukan satu panggilan upstream per anggota panel
+   (`open-sse/services/autoCombo/chaosEngine.ts`, didistribusikan dari
+   `open-sse/services/combo.ts`).
+3. Mengalirkan satu baris status per anggota panel saat hasilnya tiba: komentar SSE
+   (`: chaos <index> ok|fail <model>`) secara default, ditambah event `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) ketika permintaan menetapkan
+   `stream_options.include_chaos_parts: true`. Data ini tidak memuat teks jawaban.
+4. Mengirimkan **satu** jawaban panel sebagai chunk akhir bergaya OpenAI: jawaban anggota
+   panel pertama (`auto/chaos` menetapkannya sebagai `judgeModel`) jika berhasil, atau
+   jawaban anggota terakhir yang berhasil jika tidak. Jawaban anggota panel lainnya tidak dikembalikan,
+   sehingga Anda membayar N panggilan dan menerima satu completion.
 
 ## Penyiapan
 

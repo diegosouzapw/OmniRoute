@@ -428,5 +428,4 @@ VPS-ზე განთავსებისთვის გამოიყე�
 - **API-ის ცნობარი**: იხილეთ [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **უსაფრთხოების დოკუმენტაცია**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **ოპერაციების დოკუმენტაცია**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **საკითხები**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-ები**: არქიტექტურული გადაწყვეტილებების ჩანაწერებისთვის იხილეთ `docs/adr/`
+- **პრობლემები**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

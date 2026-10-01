@@ -430,9 +430,8 @@ Mgbe ahụ, jiri skills `/deploy-vps-*-cc` ndị na-eji rsync ebuga `dist/` na d
 
 ## Inweta Enyemaka
 
-- **Ọdịdị sistemụ**: Lee [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Ntụaka API**: Lee [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Nhazi sistemụ**: Hụ [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **Ntụaka API**: Hụ [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Akwụkwọ nchekwa**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Akwụkwọ arụmọrụ**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Akwụkwọ ọrụ sistemụ**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Nsogbu**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Lee `docs/adr/` maka ndekọ mkpebi gbasara ọdịdị sistemụ

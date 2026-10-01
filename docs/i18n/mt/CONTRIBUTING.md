@@ -415,11 +415,10 @@ Għad-displokki VPS, uża `npm run build:release` (mhux `npm run build`) — dan
 
 ---
 
-## Kif Tista' Tinkiseb Għajnuna
+## Kif Tikseb l-Għajnuna
 
 - **Arkitettura**: Ara [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Referenza API**: Ara [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Dokumentazzjoni tas-Sigurtà**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Dokumentazzjoni tal-Operazzjonijiet**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Għaddas ta' Problemi**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Ara `docs/adr/` għar-rekords tad-deċiżjonijiet tal-arkitettura
+- **Referenza tal-API**: Ara [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Dokumentazzjoni tas-sigurtà**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Dokumentazzjoni tal-operazzjonijiet**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Problemi**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

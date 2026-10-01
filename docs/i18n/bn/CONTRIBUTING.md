@@ -414,7 +414,6 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 - **আর্কিটেকচার**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) দেখুন
 - **API রেফারেন্স**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) দেখুন
-- **নিরাপত্তা ডকুমেন্টেশন**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **অপারেশনস ডকুমেন্টেশন**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **নিরাপত্তা-সংক্রান্ত ডকুমেন্টেশন**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **অপারেশন-সংক্রান্ত ডকুমেন্টেশন**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **সমস্যাসমূহ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: আর্কিটেকচার-সংক্রান্ত সিদ্ধান্তের রেকর্ডের জন্য `docs/adr/` দেখুন

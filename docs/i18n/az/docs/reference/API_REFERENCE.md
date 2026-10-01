@@ -440,72 +440,92 @@ Sidecar prosesdən kənarda işlədikdə və `open-sse/config/providerPluginMani
 
 ---
 
-## Uyğunluq Son Nöqtələri
+## Uyğunluq Endpoint-ləri
 
-| Metod | Yol                                       | Format                                     |
-| :---- | :---------------------------------------- | :----------------------------------------- |
-| POST  | `/v1/chat/completions`                    | OpenAI                                     |
-| POST  | `/v1/messages`                            | Anthropic                                  |
-| POST  | `/v1/responses`                           | OpenAI Cavabları                           |
-| POST  | `/v1/embeddings`                          | OpenAI                                     |
-| POST  | `/v1/images/generations`                  | OpenAI Şəkilləri                           |
-| POST  | `/v1/images/edits`                        | OpenAI Şəkilləri (redaktə/daxili rəngləmə) |
-| POST  | `/v1/videos/generations`                  | OpenAI-stil video generasiyası             |
-| POST  | `/v1/music/generations`                   | OpenAI-stil musiqi generasiyası            |
-| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                         |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (audio gövdəsini qaytarır)      |
-| POST  | `/v1/rerank`                              | Cohere/Voyage-stil yenidən sıralama        |
-| POST  | `/v1/classify`                            | Jina təsnifatı (`api.jina.ai`)             |
-| POST  | `/v1/segment`                             | Jina seqmentləyicisi (`segment.jina.ai`)   |
-| POST  | `/v1/moderations`                         | OpenAI Moderasiyaları                      |
-| GET   | `/v1/models`                              | OpenAI                                     |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                                  |
-| GET   | `/v1beta/models`                          | Gemini                                     |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                     |
-| POST  | `/v1/api/chat`                            | Ollama                                     |
-| GET   | `/api/v1/vscode/{token}/`                 | OpenAI kataloq ləqəbi                      |
-| GET   | `/api/v1/vscode/{token}/models`           | OpenAI modellər ləqəbi                     |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenləşdirilmiş ləqəbi             |
-| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Cavabları tokenləşdirilmiş ləqəbi   |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenləşdirilmiş ləqəbi             |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama teqləri tokenləşdirilmiş ləqəbi     |
+| Metod | Yol                                       | Format                                       |
+| ----- | ----------------------------------------- | -------------------------------------------- |
+| POST  | `/v1/chat/completions`                    | OpenAI                                       |
+| POST  | `/v1/messages`                            | Anthropic                                    |
+| POST  | `/v1/responses`                           | OpenAI Responses                             |
+| POST  | `/v1/embeddings`                          | OpenAI                                       |
+| POST  | `/v1/images/generations`                  | OpenAI Images                                |
+| POST  | `/v1/images/edits`                        | OpenAI Images (redaktə/inpaint)              |
+| POST  | `/v1/videos/generations`                  | OpenAI üslublu video generasiyası            |
+| POST  | `/v1/music/generations`                   | OpenAI üslublu musiqi generasiyası           |
+| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                           |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (audio gövdəsi qaytarır)          |
+| POST  | `/v1/rerank`                              | Cohere/Voyage üslublu yenidən sıralama       |
+| POST  | `/v1/classify`                            | Jina təsnifatı (`api.jina.ai`)               |
+| POST  | `/v1/segment`                             | Jina seqmentləşdiricisi (`segment.jina.ai`)  |
+| POST  | `/v1/moderations`                         | OpenAI Moderations                           |
+| GET   | `/v1/models`                              | OpenAI                                       |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                                    |
+| GET   | `/v1beta/models`                          | Gemini                                       |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                       |
+| POST  | `/v1/api/chat`                            | Ollama                                       |
+| GET   | `/api/v1/vscode/{token}/`                 | OpenAI kataloq aliası                        |
+| GET   | `/api/v1/vscode/{token}/models`           | OpenAI model aliası                          |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenləşdirilmiş aliası               |
+| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenləşdirilmiş aliası     |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenləşdirilmiş aliası               |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama etiketlərinin tokenləşdirilmiş aliası |
 
-Bütün POST marşrutları eyni formaya malikdir: `Bearer your-api-key` + Zod-təsdiqlənmiş JSON gövdəsi (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` və s., `src/shared/validation/schemas.ts` faylına baxın). Sxem uğursuz olduqda 4xx qaytarılır.
+Bütün POST marşrutları eyni formaya uyğundur: `Bearer your-api-key` + Zod ilə doğrulanan JSON gövdəsi (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` və s.; baxın: `src/shared/validation/schemas.ts`). Sxem doğrulaması uğursuz olduqda 4xx qaytarılır.
 
-`Authorization: Bearer ...` əlavə edə bilməyən müştərilər üçün OmniRoute API açarlarını URL-də sorğu sətiri uyğunluğu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) vasitəsilə və ya aşağıda sənədləşdirilmiş xüsusi `/api/v1/vscode/{token}/...` son nöqtələri vasitəsilə qəbul edir.
+`Authorization: Bearer ...` əlavə edə bilməyən klientlər üçün OmniRoute həmçinin sorğu sətri uyğunluğu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) və ya aşağıda sənədləşdirilmiş xüsusi `/api/v1/vscode/{token}/...` endpoint-ləri vasitəsilə URL-də API açarlarını qəbul edir.
 
 ```bash
-# Yenidən sıralama (bulud reyestr provayderi, və ya OpenAI-uyğun provayder düyünü "<prefix>/<model>" kimi)
+# Yenidən sıralama (bulud reyestri provayderi və ya "<prefix>/<model>" kimi OpenAI-uyğun provayder nodu)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina təsnifatı (Foundation API etimadnamələri)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina seqmentləyicisi
+# Jina seqmentləşdiricisi
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina axtarışı (s.jina.ai; provayder ləqəbləri: jina-search, jina-ai, jina)
+# Jina axtarışı (s.jina.ai; provayder aliasları: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderasiyalar
+# Moderasiya
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg (və ya tələb olunan format) gövdəsini qaytarır
+# TTS — audio/mpeg (və ya tələb olunan formatda) gövdə qaytarır
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Şəkil redaktəsi (çoxhissəli)
+# Soniox TTS dil və səs tələb edir: `language` üçün standart dəyər "en"-dir; çatışmayan
+# səs və ya OpenAI-nin standart səs adı (alloy, nova, …) "Adrian" olur
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# Şəklin redaktəsi (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Video / musiqi generasiyası (provayder-önşəkilçili model ID-si)
+# Video / musiqi generasiyası (provayder prefiksli model ID-si)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Yenidən sıralama provayder düyünləri:** `POST /v1/rerank` həmçinin OpenAI-uyğun provayder düyünlərinə (oMLX, vLLM, Infinity, şlüz arxasında TEI, …) `<node-prefix>/<model>` kimi yönləndirilir. Loopback düyünləri (`localhost`, `127.0.0.1`, `172.16.0.0/12`) həmişə uyğundur. Hər hansı digər hostda — LAN qutusu və ya Tailscale həmkarı — olan düyünlər yalnız operator `RERANK_REMOTE_PROVIDER_NODES` funksiya bayrağını aktiv etdikdə **və** düyünün əsas URL-i provayderin çıxış URL siyasətindən (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) keçdikdə uyğun olur; bulud-metadata hostlarına heç vaxt yönləndirilmir. Yaddaş mühərrikinin yenidən sıralama addımı bu marşrutu loopback üzərindən çağırır, buna görə də eyni qayda Yaddaş parametrlərində `rerankProviderModel` üçün də keçərlidir.
+> **Yenidən sıralama provayder nodları:** `POST /v1/rerank` həmçinin `<node-prefix>/<model>` kimi ünvanlanan OpenAI-uyğun provayder nodlarına
+> (oMLX, vLLM, Infinity, şlüz arxasındakı TEI, …) yönləndirir. Loopback
+> nodları (`localhost`, `127.0.0.1`, `172.16.0.0/12`) həmişə uyğundur. İstənilən digər
+> hostdakı nodlar — LAN qurğusu və ya Tailscale qoşulma nöqtəsi — yalnız operator
+> `RERANK_REMOTE_PROVIDER_NODES` funksiya bayrağını aktivləşdirdikdə **və** nodun baza URL-i provayderin
+> xarici URL siyasətindən (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) keçdikdə uyğundur;
+> bulud metadata hostlarına heç vaxt yönləndirmə edilmir. Yaddaş mühərrikinin yenidən sıralama addımı bu marşrutu
+> loopback üzərindən çağırır, buna görə də eyni qayda Yaddaş ayarlarındakı `rerankProviderModel` üçün keçərlidir.
 >
-> **Yerli server formaları:** düyün `<base>/v1/rerank` ünvanında və 404 halında `<base>/rerank` ünvanında (Infinity, TEI) çağırılır. Yuxarı axın gövdəsi həm Cohere/OpenAI yazılışını (`documents`, `return_documents`), həm də TEI yazılışını (`texts`, `return_text`) daşıyır və yuxarı axın cavabı Cohere zərfinə normallaşdırılır: TEI-nin sadə `[{index, score, text}]`, nazik şlüzlərdən `{results: [{index, score}]}` və Voyage-stil `{data: [...]}` hamısı müştəriyə `{results: [{index, relevance_score, document?}]}` kimi qayıdır, nəticələr bala görə sıralanır və `top_n` ilə məhdudlaşdırılır.
+> **Lokal server formaları:** nod `<base>/v1/rerank` ünvanında, 404 halında isə `<base>/rerank`
+> ünvanında çağırılır (Infinity, TEI). Yuxarı axın gövdəsi həm Cohere/OpenAI yazılışını (`documents`,
+> `return_documents`), həm də TEI yazılışını (`texts`, `return_text`) daşıyır və yuxarı axın cavabı
+> Cohere zərfinə normallaşdırılır: TEI-nin açıq `[{index, score, text}]` formatı, sadə şlüzlərdən gələn
+> `{results: [{index, score}]}` və Voyage üslublu `{data: [...]}` formatlarının hamısı klientə
+> `{results: [{index, relevance_score, document?}]}` şəklində, bala görə sıralanmış və `top_n` ilə məhdudlaşdırılmış formada qaytarılır.
 
-> **Provayder-düyün kəşfi:** OpenAI-uyğun provayder düyünündəki modellər `GET /v1/models` altında düyün prefiksi ilə görünür. Son nöqtə metadatasını daşımayan sətirlər (yerli `/v1/models` siyahıları üçün tipikdir) düyünün `apiType` dəyərini miras alır, beləliklə, `embeddings` düyününün modelləri `type: "embedding"` və `rerank` düyününün modelləri söhbətə standart olaraq təyin edilmək əvəzinə `type: "rerank"` olur; sinxronlaşdırılmış və ya əl ilə əlavə edilmiş sətirdəki açıq `supportedEndpoints` hələ də üstünlük təşkil edir.
+> **Provayder qovşağının aşkarlanması:** OpenAI ilə uyğun provayder qovşağındakı modellər `GET /v1/models`
+> cavabında qovşaq prefiksi altında görünür. Son nöqtə metadatası olmayan sətirlər (yerli `/v1/models` siyahıları üçün səciyyəvidir)
+> qovşağın `apiType` dəyərini miras alır; beləliklə, standart olaraq çat tipinə təyin edilmək əvəzinə, `embeddings` qovşağının modelləri `type: "embedding"`,
+> `rerank` qovşağının modelləri isə `type: "rerank"` olur; sinxronlaşdırılmış və ya əl ilə əlavə edilmiş sətirdə açıq şəkildə göstərilən
+> `supportedEndpoints` yenə də üstünlüyə malikdir.
 
 ### Xüsusi Provayder Marşrutları
 
@@ -515,7 +535,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Provayder prefiksi çatışmadığı halda avtomatik əlavə olunur. Uyğun gəlməyən modellər `400` qaytarır.
+Provayder prefiksi yoxdursa, avtomatik əlavə edilir. Uyğun gəlməyən modellər `400` qaytarır.
 
 ---
 
@@ -1442,22 +1462,22 @@ GET /.well-known/agent.json
 
 ---
 
-## Bulud, Evals və Assess
+## Bulud, qiymətləndirmələr və dəyərləndirmə
 
 | Metod | Yol | Təsvir |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer açarını yoxlayır və bulud sinxronizasiya müştəriləri üçün maskalanmış provayder bağlantıları + model aliasları qaytarır |
-| POST | `/api/cloud/credentials/update` | Buludla sinxronlaşdırılmış provayder üçün şifrələnmiş giriş məlumatlarını yeniləyir |
-| POST | `/api/cloud/model/resolve` | Lokal marşrutlaşdırma cədvəlindən istifadə edərək məntiqi model identifikatorunu konkret provayder/model ilə uyğunlaşdırır |
-| GET | `/api/cloud/models/alias` | Bulud sinxronizasiyasına təqdim edilən model aliaslarını siyahılayır |
-| GET | `/api/assess` | Ən son qiymətləndirmə kateqoriyalarını oxuyur (hər provayder/model üzrə) |
-| POST | `/api/assess` | Qiymətləndirmə başladır — gövdə: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | Daxili eval dəstlərini + ən son icraları siyahılayır |
-| POST | `/api/evals` | Eval icrasını başladır |
-| POST | `/api/evals/suites` | Fərdi eval dəsti yaradır — gövdə `evalSuiteSaveSchema` tərəfindən yoxlanılır |
-| GET | `/api/evals/suites/[id]` | Fərdi eval dəstini əldə edir |
+| POST | `/api/cloud/auth` | Bearer açarını yoxlayın və buludla sinxronizasiya müştəriləri üçün maskalanmış provayder bağlantılarını + model aliaslarını qaytarın |
+| POST | `/api/cloud/credentials/update` | Buludla sinxronizasiya olunan provayder üçün şifrələnmiş giriş məlumatlarını yeniləyin |
+| POST | `/api/cloud/model/resolve` | Lokal marşrutlaşdırma cədvəlindən istifadə edərək məntiqi model id-sini konkret provayder/model ilə uyğunlaşdırın |
+| GET | `/api/cloud/models/alias` | Bulud sinxronizasiyasına təqdim edilən model aliaslarını siyahılayın |
+| GET | `/api/assess` | Ən son dəyərləndirmə kateqoriyalarını oxuyun (hər provayder/model üzrə) |
+| POST | `/api/assess` | Dəyərləndirmə başladın — gövdə: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Daxili qiymətləndirmə dəstlərini + ən son icraları siyahılayın |
+| POST | `/api/evals` | Qiymətləndirmə icrasını başladın |
+| POST | `/api/evals/suites` | Fərdi qiymətləndirmə dəsti yaradın — gövdə `evalSuiteSaveSchema` ilə doğrulanır |
+| GET | `/api/evals/suites/[id]` | Fərdi qiymətləndirmə dəstini əldə edin |
 
-**Autentifikasiya:** `/api/cloud/auth` Bearer açarını birbaşa yoxlayır; digər `/api/cloud/*`, `/api/evals/*` və `/api/assess` marşrutları idarəetmə sessiyası/API açarı tələb edir. `/api/assess` POST diskriminantlı birləşmə əhatə dairəsi sxemi ilə `validateBody` istifadə edir.
+**Autentifikasiya:** `/api/cloud/auth` Bearer açarını birbaşa doğrulayır və yalnız `manage` / `admin` əhatə dairəsinə malik açar üçün hər bağlantının maskalanmış açarını və `projectId` dəyərini qaytarır; digər `/api/cloud/*`, `/api/evals/*` və `/api/assess` marşrutları idarəetmə sessiyası/API açarı tələb edir. `/api/assess` POST ayrı-seçkili birləşmə əhatə dairəsi sxemi ilə `validateBody` istifadə edir.
 
 ---
 

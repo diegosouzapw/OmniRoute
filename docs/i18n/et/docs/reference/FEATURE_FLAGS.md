@@ -266,13 +266,19 @@ vaikeväärtuse. Tagastab `{ cleared: <count>, message: "..." }`.
 ## Eelarve hädaolukorra varuvariant
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (kategooria `runtime`, vaikeväärtus `true`) juhib
-hädaolukorra tasuta varuvariandi teed failis
+hädaolukorra tasuta varuvariandi mehhanismi failis
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Kui see on lubatud, suunatakse eelarve ammendanud päringud täieliku nurjumise asemel
-tasuta varupakkujale/-mudelile. Määrake selle väärtuseks `false` (või `0`) — töölaua
-lüliti, DB ülekirjutuse või keskkonnamuutuja `OMNIROUTE_EMERGENCY_FALLBACK`
-kaudu — et see käitumine keelata ja lasta eelarve ammendanud päringutel
-nurjuda. (Lisati töölaua lülitina PR-ides #3741 / #3752.)
+Kui see on lubatud, suunatakse oma eelarve ammendanud päringud täieliku
+nurjumise asemel tasuta varuteenusepakkujale/-mudelile. Määrake selle väärtuseks
+`false` (või `0`) — juhtpaneeli lüliti, andmebaasi ülekirjutuse või
+keskkonnamuutuja `OMNIROUTE_EMERGENCY_FALLBACK` kaudu — et see käitumine keelata
+ja lasta eelarve ammendanud päringutel nurjuda. (Lisati juhtpaneeli lülitina
+PR-ides #3741 / #3752.)
+
+Selle varuvariandi teenindatud vastus sisaldab päist
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, mis
+võimaldab kliendil tuvastada ümbersuunamise, ilma et peaks võrdlema päist
+`X-OmniRoute-Provider` oma päringuga. Kõigis muudes vastustes see päis puudub.
 
 ---
 

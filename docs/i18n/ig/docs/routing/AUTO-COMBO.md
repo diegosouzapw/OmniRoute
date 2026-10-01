@@ -8,111 +8,111 @@
 
 > Usoro ụdịọrụ na-achịkwa onwe ha, nwere inye akara na-agbanwe agbanwe + iziga arịrịọ na-akpaghị aka na-enweghị nhazi ọ bụla
 
-## Ntugharị Ụzọ Akpaaka Na-enweghị Nhazi (nganiihu `auto/`)
+## Ntụgharị-Ụzọ Akpaaka Na-Enweghị Nhazi (`auto/` prefix)
 
-> **IHE ỌHỤRỤ:** Ọ dịghị mkpa ịmepụta combo. Jiri nganiihu `auto/` ozugbo n'ime client ọ bụla.
+> **IHE ỌHỤRỤ:** Ọ dịghị mkpa ịmepụta combo. Jiri `auto/` prefix ozugbo n'ime client ọ bụla.
 
-### Ihe Atụ Ngwa Ngwa
+### Ọmụmaatụ Ngwa Ngwa
 
-| ID Ụdịdị       | Ụdị Nhọrọ | Omume                                                                  |
-| -------------- | --------- | ---------------------------------------------------------------------- |
-| `auto`         | ndabara   | Ndị na-eweta niile ejikọrọ, atụmatụ LKGP, ibu ndị ahaziri nhata        |
-| `auto/coding`  | coding    | Ibu na-ebute ịdịmma ụzọ, dabara maka imepụta koodu                     |
-| `auto/fast`    | fast      | Nhọrọ e nyere ibu nke nwere obere oge nchere                           |
-| `auto/cheap`   | cheap     | Ntugharị ụzọ ahaziri iji belata ọnụ ahịa (ọnụ ahịa kacha ala buru ụzọ) |
-| `auto/offline` | offline   | Na-akwado ndị na-eweta nwere oke ojiji kachasị dị                      |
-| `auto/smart`   | smart     | Ịdịmma buru ụzọ + oke nyocha dị elu (10%) iji chọpụta ụdịdị ka mma     |
-| `auto/lkgp`    | lkgp      | LKGP akọwapụtara kpọmkwem (otu ihe ahụ dị ka `auto` ndabara)           |
-| `auto/chaos`   | chaos     | Ibu ntinye-ntupo maka ịnwale ikike ịnagide nsogbu (chaos engineering)  |
+| ID Model       | Ụdị     | Omume                                                                                     |
+| -------------- | ------- | ----------------------------------------------------------------------------------------- |
+| `auto`         | ndabara | Ndị na-eweta ọrụ niile ejikọrọ, atụmatụ LKGP, arọ ndị ahaziri nhata                       |
+| `auto/coding`  | coding  | Arọ ndị na-ebute ogo ụzọ, dabara maka imepụta koodu                                       |
+| `auto/fast`    | fast    | Nhọrọ nwere arọ na obere latency                                                          |
+| `auto/cheap`   | cheap   | Ntụgharị-ụzọ ahaziri iji belata ọnụ ahịa (ọnụ ahịa kacha ala na mbụ)                      |
+| `auto/offline` | offline | Na-akwado ndị na-eweta ọrụ nwere oke ojiji kacha dị ukwuu                                 |
+| `auto/smart`   | smart   | Ogo ụzọ + ọnụego nyocha dị elu (10%) iji chọpụta model ka mma                             |
+| `auto/lkgp`    | lkgp    | LKGP akọwapụtara kpọmkwem (otu ihe ahụ dị ka `auto` ndabara)                              |
+| `auto/chaos`   | chaos   | Mgbasa yiri ibe ya, otu model maka onye na-eweta ọrụ ọ bụla (ọ bụghị itinye nsogbu n'ọrụ) |
 
 ### Ngwakọta Otu × Ọkwa (`auto/<category>:<tier>`)
 
-Mgbakwunye ndị yiri nke OpenRouter na-ekewa **ụdị ụzọ ọ bụ** (otu) na **otu esi eme ka ọ rụọ ọrụ kacha mma** (ọkwa), ka i nwee ike ijikọta ha n'enweghị mgbochi (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Suffix ndị yiri nke OpenRouter na-ekewa **ụdị ụzọ ọ bụ** (otu) na **otu esi ahazi ya nke ọma** (ọkwa), ka ị nwee ike ijikọta ha n'enweghị mgbochi (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Otu dị iche iche** (na-enyocha ọdọ ndị a ga-ahọrọ site n'ike ha): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` na-edobe ụdịdị nwere ikike ịhụ ihe; `reasoning` na-edobe ụdịdị nwere ikike ịtụgharị uche/iche echiche.
-- **Ọkwa dị iche iche** (họrọ ibu ntule / nzacha ọdọ): `fast` (zipu-ngwa-ngwa) · `cheap` (aha ọzọ `floor`, onye na-echekwa ọnụ ahịa) · `reliable` (ahụike circuit-breaker + nkwụsi ike nke oge nchere) · `free` / `pro` (jiri `classifyTier` nyochaa ọdọ ahụ dịka ọkwa ụdịdị — ọkwa efu megide ọkwa premium).
+- **Otu dị iche iche** (na-enyocha ọdọ ndị a ga-ahọrọ dịka ike ha si dị): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` na-edobe model ndị nwere ike vision; `reasoning` na-edobe model ndị nwere ike reasoning/thinking.
+- **Ọkwa dị iche iche** (na-ahọrọ arọ akara / ihe nzacha ọdọ): `fast` (zipụ-ngwa-ngwa) · `cheap` (aha ọzọ bụ `floor`, onye na-echekwa ọnụ ahịa) · `reliable` (ahụike circuit-breaker + nkwụsi ike latency) · `free` / `pro` (na-eji `classifyTier` enyocha ọdọ ahụ dịka ọkwa model si dị — ọkwa efu megide nke premium).
 
-| Ihe Atụ                | Na-aghọ                                                               |
-| ---------------------- | --------------------------------------------------------------------- |
-| `auto/coding:fast`     | ọdọ coding, ibu nwere obere oge nchere                                |
-| `auto/coding:cheap`    | ọdọ coding, ahaziri iji belata ọnụ ahịa (aha ọzọ `auto/coding:floor`) |
-| `auto/reasoning:pro`   | naanị ụdịdị ntụgharị uche/iche echiche, ọkwa premium                  |
-| `auto/vision`          | ụdịdị nwere ikike ịhụ ihe (enweghị ọkwa → ibu ndị ahaziri nhata)      |
-| `auto/multimodal:free` | ụdịdị nwere ikike multimodal, naanị ọkwa efu                          |
+| Ọmụmaatụ               | Na-aghọ                                                             |
+| ---------------------- | ------------------------------------------------------------------- |
+| `auto/coding:fast`     | ọdọ coding, arọ nwere obere latency                                 |
+| `auto/coding:cheap`    | ọdọ coding, nke ahaziri maka ọnụ ahịa (aha ọzọ `auto/coding:floor`) |
+| `auto/reasoning:pro`   | naanị model reasoning/thinking, ọkwa premium                        |
+| `auto/vision`          | model ndị nwere ike vision (enweghị ọkwa → arọ ndị ahaziri nhata)   |
+| `auto/multimodal:free` | model ndị nwere ike multimodal, naanị ọkwa efu                      |
 
-`auto/<category>[:<tier>]` ọ bụla ziri ezi na-edozi onwe ya mgbe achọrọ ya; a na-akpọsa obere nchịkọta ahọpụtara n'ime `/v1/models` na dashboard (`AUTO_SUFFIX_VARIANTS` n'ime `open-sse/services/autoCombo/builtinCatalog.ts`). Nzacha ahụ bụ **fail-open** — ọ bụrụ na enweghị ụdịdị ejikọrọ kwekọrọ na mmachi, a na-eji ọdọ niile eme ihe ka ntụgharị ụzọ ghara ịkwụsị. Onye isi ntule (`combo.ts`) agbanwebeghị; a na-etinye nzacha otu/ọkwa n'ime `buildAutoCandidates`.
+`auto/<category>[:<tier>]` ọ bụla ziri ezi na-edozi mgbe achọrọ ya; a na-egosi obere nchịkọta a họpụtara nke ọma na `/v1/models` nakwa na dashboard (`AUTO_SUFFIX_VARIANTS` dị na `open-sse/services/autoCombo/builtinCatalog.ts`). Nzacha a bụ **fail-open** — ọ bụrụ na iwu enweghị model ejikọrọ ọ bụla dabara na ya, a ga-eji ọdọ niile ka ntụgharị-ụzọ ghara ịkwụsị ịrụ ọrụ. Onye isi na-enye akara (`combo.ts`) agbanwebeghị; a na-etinye ihe nzacha otu/ọkwa n'ime `buildAutoCandidates`.
 
-> **Ọgụgụ isi ụdịdị ozugbo:** A na-eji ọkwa **Arena ELO** dị ugbu a + data ọkwa **models.dev** eme ka ntụgharị ụzọ akpaaka mara ndị kacha dabara adaba mgbe ọkọlọtọ `ARENA_ELO_SYNC_ENABLED` dị ọkụ (ma ọ bụghị ya, ọ na-alaghachi na map ịdịmma na-adịghị agbanwe agbanwe).
+> **Ọgụgụ isi model ozugbo:** ọkwa **Arena ELO** ndị dị ugbu a + data ọkwa **models.dev** na-enye aka n'ịtụ ịdị mma nke ntụgharị-ụzọ akpaaka mgbe flag `ARENA_ELO_SYNC_ENABLED` dị ọkụ (ma ọ bụghị ya, ọ na-alaghachi na map ịdị mma static).
 
 **Otu esi eji ya:**
 
 ```bash
 # IDE ma ọ bụ ngwa CLI ọ bụla na-akwado usoro OpenAI
 Base URL: http://localhost:20128/v1
-API Key:  <your-endpoint-key>
+API Key:  <igodo-endpoint-gị>
 
 # N'ime koodu/nhazi gị, tọọ model ka ọ bụrụ:
 model: "auto"                 # ndabara ahaziri nhata
 model: "auto/coding"          # kacha mma maka ọrụ coding
-model: "auto/fast"            # nke kacha ọsọ n'ime ndị dị
-model: "auto/cheap"           # nke kacha ọnụ ala n'otu token
+model: "auto/fast"            # nke kacha ọsọ dị
+model: "auto/cheap"           # nke kacha ọnụ ala kwa token
 ```
 
 **Ihe na-eme:**
 
-1. OmniRoute na-achọpụta nganiihu `auto/` n'ime `src/sse/handlers/chat.ts`
-2. Na-ajụ njikọ **ndị na-eweta nọ n'ọrụ** niile site na database
-3. Na-enyocha naanị ndị nwere nzere ziri ezi (API key ma ọ bụ OAuth token)
-4. Na-ekpebi ụdịdị maka njikọ ọ bụla (`connection.defaultModel` ma ọ bụ ụdịdị mbụ nke onye na-eweta)
-5. Na-ewu **virtual combo** n'ime ebe nchekwa (anaghị echekwa ya na DB)
-6. Na-atụgharị ụzọ site na iji profaịlụ ibu nke ụdị nhọrọ ahọpụtara + atụmatụ LKGP
+1. OmniRoute na-achọpụta `auto/` prefix n'ime `src/sse/handlers/chat.ts`
+2. Na-ajụ nchekwa data maka **njikọ ndị na-eweta ọrụ niile nọ n'ọrụ**
+3. Na-enyocha ma hapụ naanị ndị nwere nzere ziri ezi (API key ma ọ bụ OAuth token)
+4. Na-ekpebi model maka njikọ ọ bụla (`connection.defaultModel` ma ọ bụ model mbụ nke onye na-eweta ọrụ)
+5. Na-ewulite **virtual combo** n'ime ebe nchekwa (anaghị echekwa ya na DB)
+6. Na-eme ntụgharị-ụzọ site na iji profaịlụ arọ nke ụdị ahọpụtara + atụmatụ LKGP
 
 **Njirimara ndị bụ isi:**
 
 - ✅ **Na-arụ ọrụ mgbe niile:** Enweghị toggle, enweghị imepụta combo, enweghị nhazi achọrọ
-- ✅ **Na-agbanwe agbanwe:** Na-egosipụta ndị na-eweta ejikọrọ ugbu a na-akpaghị aka
-- ✅ **Ịrapara na session:** LKGP na-ahụ na onye na-eweta ikpeazụ rụpụtara nke ọma na-enweta mkpa ụzọ
-- ✅ **Na-amata ọtụtụ account:** Njikọ onye na-eweta ọ bụla na-aghọ candidate dị iche
-- ✅ **Enweghị ide na DB:** Virtual combo dị naanị maka arịrịọ ahụ, enweghị ibu nchekwa na-adịgide adịgide
+- ✅ **Na-agbanwe agbanwe:** Na-egosipụta ndị na-eweta ọrụ ejikọrọ ugbu a na-akpaghị aka
+- ✅ **Ịrapara na session:** LKGP na-ahụ na a na-ebute onye na-eweta ọrụ ikpeazụ rụrụ nke ọma ụzọ
+- ✅ **Na-aghọta ọtụtụ account:** Njikọ onye na-eweta ọrụ ọ bụla na-aghọ candidate dị iche
+- ✅ **Enweghị ide na DB:** Virtual combo dị naanị maka request ahụ, enweghị ibu persistence ọ bụla
 
-### Njikwa candidate maka key ọ bụla (#7819, Ọkwa 1+2)
+### Njikwa candidate nke igodo ọ bụla (#7819, Ọkwa 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = mgbakwunye na-esochi `auto/`, ma ọ bụ
-`auto` kpọmkwem maka channel ntọala) bụ endpoint **naanị maka ịgụ** nke na-edepụta
-ọdọ candidate dị ugbu a nke channel `auto/*`, tinyere ọnọdụ nnweta ya ozugbo, site n'iji
-ọgụgụ resilience ndị dị ugbu a ọzọ (ọ bụghị `state` breaker raw):
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = suffix na-esote `auto/`, ma ọ bụ
+`auto` kpọmkwem maka channel bụ isi) bụ endpoint **naanị maka ịgụ** nke na-edepụta
+ọdọ candidate dị ugbu a nke channel `auto/*`, tinyere ozi nnweta ozugbo, site n'iji
+ọgụgụ resilience ndị dị ugbu a emegharị (ọ bụghị breaker `state` raw):
 
-- circuit breaker nke onye na-eweta — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- oge nchere njikọ — `rateLimitedUntil` / `testStatus` na row
-  `provider_connections` edoziworo
-- mkpọchi ụdịdị — `isModelLocked(provider, connectionId, model)`
+- circuit breaker nke onye na-eweta ọrụ — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- cooldown nke njikọ — `rateLimitedUntil` / `testStatus` n'ahịrị
+  `provider_connections` e kpebiri
+- mkpọchi model — `isModelLocked(provider, connectionId, model)`
 
-Kandideeti ọ bụla na-ebukwa ọkọlọtọ `excluded` nke API key a. A na-echekwa mwepụ ndị ahụ
-n’otu API key n’otu API key (`auto_candidate_overrides` table, migration `128`) — OmniRoute bụ
-usoro nke otu tenant na-enweghị `users` table, ya mere `apiKeyId` bụ njirimara ezigbo onye kpọrọ API
-kachasị nso — a na-amanyekwa ya n’ebe a na-achịkọta ndị kandideeti na
-`open-sse/services/autoCombo/virtualFactory.ts` site na
-`filterExcludedCandidates()` dị ọcha ma nke e ji unit test nwalee (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Ihe nzacha ahụ bụ **fail-open**: ma apiKeyId/channel edoghị anya ma ọ bụ nchọ DB daa,
-ha abụọ na-ahapụ pool ahụ n’enweghị nzacha, ya mere onye njikwa na-enweghị override ọ bụla ahaziri ga-ahụ routing
-nke yiri nke tupu atụmatụ a n’otu n’otu byte.
+Candidate ọ bụla nwekwara flag `excluded` nke API key a. A na-echekwa mwepu
+maka API-key ọ bụla (`auto_candidate_overrides` table, migration `128`) — OmniRoute bụ
+single-tenant na-enweghị table `users`, ya mere `apiKeyId` bụ njirimara onye na-akpọ oku
+kachasị nso n'ezie — a na-etinyekwa ya n'ọrụ n'ebe njedebe ọdọ candidate dị na
+`open-sse/services/autoCombo/virtualFactory.ts` site na `filterExcludedCandidates()`
+dị ọcha ma nwalee unit (`open-sse/services/autoCombo/candidateOverrides.ts`).
+Ihe nzacha ahụ bụ **fail-open**: apiKeyId/channel a na-edobeghị ma ọ bụ ọdịda nchọta DB
+ga-ahapụ ọdọ ahụ n'enweghị nzacha, ka onye nchịkwa na-enweghị override ọ bụla ahaziri
+wee hụ ntụgharị-ụzọ nke byte ọ bụla yiri nnọọ nke dị tupu atụmatụ a.
 
-**Ebugharịla ya gaa na issue a ga-emezi n’ọdịnihu:** arọ nke kandideeti ọ bụla + nhazi doro anya (Level 3
-— na-abanye n’ụzọ strategy weighted/priority ndị dị ugbu a) yana ịkpọgide strategy
-`combo.ts` kpọmkwem maka channel `auto/*` ọ bụla (Level 4). Lee atụmatụ #7819 maka ajụjụ ka ghe oghe
-banyere ma override kwesịrị ịnọgide bụrụ nke otu API key n’otu API key, ka ọ bụ bụrụ nke zuru ụwa ọnụ n’ihi
-usoro single-tenant ahụ.
+**Ebugharịrị gaa n'okwu a ga-esochi:** ibu arọ nke onye ndọrọ ọ bụla + nhazi pořọdụ doro anya (Ọkwa 3
+— na-abanye n'ụzọ atụmatụ ibu arọ/ebute ụzọ ndị dị ugbu a) na ịtụgide atụmatụ
+`combo.ts` akọwapụtara maka channel `auto/*` ọ bụla (Ọkwa 4). Lee atụmatụ #7819 maka ajụjụ
+ka ghe oghe gbasara ma overrides kwesịrị ịdịgide n'otu API key ọ bụla, ka ọ bụ bụrụ nke zuru ụwa ọnụ n'ihi
+ụdị single-tenant ahụ.
 
-**Ihe na-eme n’azụ:**
+**Ihe na-eme n'azụ:**
 
 ```txt
 Arịrịọ: { model: "auto/coding" }
    ↓
 src/sse/handlers/chat.ts na-achọpụta prefix
    ↓
-createVirtualAutoCombo('coding') → candidatePool sitere na njikọ ndị na-arụ ọrụ
+createVirtualAutoCombo('coding') → candidatePool sitere na njikọ ndị nọ n'ọrụ
    ↓
-handleComboChat (otu engine ahụ dị ka combo ndị echekwara)
+handleComboChat (otu engine ahụ dị ka combos echekwara)
    ↓
 Auto-scoring na-ahọrọ provider/model kacha mma maka arịrịọ ọ bụla
 ```
@@ -121,10 +121,10 @@ Auto-scoring na-ahọrọ provider/model kacha mma maka arịrịọ ọ bụla
 
 | Faịlụ                                                     | Ebumnuche                                   |
 | --------------------------------------------------------- | ------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefix (`parseAutoPrefix`)           |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Na-emepụta object `AutoComboConfig` mebere  |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook nnwale maka ịme mock registry provider |
-| `src/sse/handlers/chat.ts`                                | Njikọ: ụzọ mkpirisi prefix auto             |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Ihe nyocha prefix (`parseAutoPrefix`)       |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Na-emepụta objects `AutoComboConfig` mebere |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook maka ịme mock provider registry   |
+| `src/sse/handlers/chat.ts`                                | Njikọ: auto prefix short-circuit            |
 | `src/shared/constants/providers.ts`                       | Ntinye sistemụ `SYSTEM_PROVIDERS.auto`      |
 
 ## Aha Combo Ndị Dabara na Ezigbo Model Id
@@ -216,7 +216,7 @@ Auto-Combo Engine na-ahọrọ provider/model kacha mma n'ụzọ na-agbanwe agb
 
 ## Ngwugwu Ọnọdụ
 
-Profaịlụ arọ 6 akọwapụtarala dị na `open-sse/services/autoCombo/modePacks.ts`. Ngwugwu ọ bụla na-eji nke ya dochie arọ ndabara kpamkpam iji mee ka nhọpụta lekwasị anya n'otu ebumnuche. Ngwugwu ọ bụla agbakọtalarị ruo `1.0` (`0.9999` dịka e bipụtara ya na ntụpọ iri anọ), ya mere `normalizeScoringWeights()` enweghị ihe bara uru ọ ga-emezi mgbe ngwugwu nọ n'ọrụ — ụkpụrụ ndị dị n'okpuru bụ, ma e wepụ obere mgbanwe sitere na ịgbakọta ọnụọgụ, ihe onye na-enye akara na-etinye n'ọrụ.
+Profaịlụ arọ 6 a kọwapụtara tupu oge eruo dị na `open-sse/services/autoCombo/modePacks.ts`. Ngwugwu ọ bụla na-eji arọ nke ya dochie arọ ndabara kpamkpam iji mee ka nhọpụta lekwasị anya n'otu ebumnuche. Ngwugwu ọ bụla agbakọtalarị ruo `1.0` (`0.9999` dịka e bipụtara ya n'ọnụọgụ desetị anọ), ya mere `normalizeScoringWeights()` enweghị ihe bara uru ọ ga-agbazi mgbe ngwugwu na-arụ ọrụ — ụkpụrụ ndị dị n'okpuru bụ, ma e wepụ obere mgbanwe sitere na ịgbakọ ọnụọgụ, ndị onye na-agbakọ akara na-etinye n'ọrụ.
 
 | Ihe                   | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -238,32 +238,32 @@ Profaịlụ arọ 6 akọwapụtarala dị na `open-sse/services/autoCombo/mode
 
 Ndetu:
 
-- **Ngwugwu nwere `quality` na `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) ma na-eji maapụ arọ ahụ dochie nke dịbu kpamkpam (`weights = pack`, ọ bụghị ijikọ ha). `DEFAULT_WEIGHTS` nwere `quality 0.03 / reliability 0`; ịhọrọ `balanced`/`default` na-edobe ndabara ndị ahụ, ebe ịhọrọ ngwugwu na-eji ụkpụrụ ngwugwu ahụ dị n'elu. N'ime pool oyi (enwebeghị nlele ọ bụla, ya mere `quality 0.5` na `reliability 1`), ihe abụọ ndị a na-agbakwunye `+0.04` n'okpuru ngwugwu izugbe (`0.03 + 0.01`), `+0.045` n'okpuru `quality-first` na `+0.05` n'okpuru `reliability-first`.
-- `tierAffinity`, `specificityMatch` na `resetWindowAffinity` bụ `0` n'ụzọ doro anya n'ime ngwugwu ọ bụla.
-- Ihe ngwugwu ọ bụla na-emesi ike na nchịkọta:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (njikọ dị mma nwere obere oge nchere)
-  - **cost-saver** → costInv 0.3324 (token ndị kacha ọnụ ala na-emeri)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, nke kachasị elu n'ime ngwugwu niile (model kacha mma maka ọrụ ahụ, nke na-agbanwebeghị agbanwe)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (ohere fọdụrụ kachasị ukwuu n'agbanyeghị ọsọ/ọnụahịa)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, nke kachasị elu n'ime ngwugwu niile (ihe ijuanya pere mpe)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profaịlụ itinye ntụpọ-ọrụ)
+- **Ngwugwu nwere `quality` na `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) ma na-eji map arọ ahụ dochie nke dịbu kpamkpam (`weights = pack`, ọ bụghị ijikọta ha). `DEFAULT_WEIGHTS` nwere `quality 0.03 / reliability 0`; ịhọrọ `balanced`/`default` na-edobe ndabara ndị ahụ, ebe ịhọrọ ngwugwu na-eji ụkpụrụ ngwugwu ahụ ndị dị n'elu. N'ime ọdọ njikọ oyi (enwebeghị nlebanya ọ bụla, ya mere `quality 0.5` na `reliability 1`) ihe abụọ ndị a na-agbakwunye `+0.04` n'okpuru ngwugwu izugbe (`0.03 + 0.01`), `+0.045` n'okpuru `quality-first` na `+0.05` n'okpuru `reliability-first`.
+- E debere `tierAffinity`, `specificityMatch` na `resetWindowAffinity` kpọmkwem ka ha bụrụ `0` na ngwugwu ọ bụla.
+- Isi ihe ngwugwu ọ bụla na-emesi ike na nlele ngwa ngwa:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (njikọ nwere obere oge nchere ma dị mma)
+  - **cost-saver** → costInv 0.3324 (token ndị dị ọnụ ala karịa na-emeri)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, nke kachasị elu n'ime ngwugwu niile (ụdị kacha mma maka ọrụ ahụ, nke na-agbanweghịghị agbanwe)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (ohere fọdụrụ kachasị elu n'agbanyeghị ọsọ/ọnụahịa)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, nke kachasị elu n'ime ngwugwu niile (ihe mberede a na-atụghị anya ya kacha nta)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (ngwugwu arọ `auto/chaos` na-ekenye ndị otu panel ya; mgbasawanye yiri ibe ya anaghị agụ arọ ndị a, nke a abụghịkwa profaịlụ itinye ntụpọ n'usoro, lee [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Njikwa Maka Arịrịọ Ọ Bụla (headers) — #6023 / #6024 / #6025 / #3470
+### Njikwa Maka Arịrịọ Ọ Kachasị (headers) — #6023 / #6024 / #6025 / #3470
 
-Enwere ike iduzi combo `auto` **maka arịrịọ ọ bụla** site na headers atọ, n'agbanweghị
-nhazi combo echekwara. Ndị a metụtara naanị atụmatụ `auto` ma bụrụ naanị maka arịrịọ
-nke bu ha; a na-eji `modePack`/`budgetCap`/`budgetFallback` echekwara nke combo ahụ
+Enwere ike iji headers atọ duzie combo `auto` **maka arịrịọ ọ bụla**, na-agbanweghị
+nhazi combo echekwara. Ndị a metụtara naanị atụmatụ `auto` ma bụrụkwa naanị maka arịrịọ
+bu ha; a na-eji `modePack`/`budgetCap`/`budgetFallback` echekwara nke combo ahụ
 mgbe header adịghị.
 
-| Isiokwu                       | Ihe ọ na-anabata                                                                                                                                                                                  | Mmetụta                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | aha nnọchi preset (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) ma ọ bụ aha pack kpọmkwem (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Ọ na-akagbu arọ akara maka arịrịọ a. `balanced`/`default` na-amanye arọ ndabara (enweghị pack). A na-eleghara ụkpụrụ ndị a na-amaghị anya (a na-echekwa nhazi ahụ).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `X-OmniRoute-Budget`          | ọnụọgụ dị mma (USD kachasị elu n'otu arịrịọ)                                                                                                                                                      | Oke ọnụahịa siri ike: a na-ewepụ ndị a na-atụle nhọrọ nke ọnụahịa ha a tụrụ anya ya karịrị oke ahụ tupu ahọpụta. Ihe ga-eme mgbe **onye ọ bụla** a na-atụle nhọrọ karịrị ya ka `X-OmniRoute-Budget-Fallback` dị n'okpuru na-achịkwa.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (ndabara, aha nnọchi: `cheapest-viable`, `soft`) ma ọ bụ `strict` (aha nnọchi: `block`, `hard`)                                                                                        | `cheapest`: ọ na-alaghachi n'onye a na-atụle nhọrọ kachasị ọnụ ala n'ozuzu ya, ọ bụ ezie na ọ ka karịrị oke ahụ (omume ochie). `strict`: ọ jụrụ ịhọpụta — arịrịọ ahụ na-ada ozugbo site na `HTTP 402` kama imefu ego karịrị akarị na nzuzo. A na-eleghara ụkpụrụ ndị a na-amaghị anya.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `X-OmniRoute-Effort`          | `auto` (e debere ụkpụrụ ndị ọzọ)                                                                                                                                                                  | Mmefu echiche na-agbanwe agbanwe: mgbe arịrịọ ahụ **enweghị** oghere reasoning n'ụdị ọ bụla (`reasoning_effort`, `reasoning`, `thinking`), gateway ahụ na-ekpebi `auto` ka ọ bụrụ `low`/`medium`/`high` site na akara doro anya sitere n'ọdịdị arịrịọ (ogologo ozi onye ọrụ ikpeazụ, nha context ruo na ozi onye ọrụ ikpeazụ, nsonaazụ tool ndị gara aga, omimi tool-loop). Akara ndị ahụ metụtara naanị turn dị ugbu a — a na-eleghara ihe niile dị mgbe ozi onye ọrụ ikpeazụ gasịrị — ya mere arịrịọ ọ bụla n'ime tool loop na-ekpebi otu ọkwa ahụ (pin na-enweghị state maka turn ọ bụla, enweghị session state, enweghị mmụba n'etiti loop nke ga-emebi prefix prompt-cache upstream). Oghere reasoning nke client kọwara nke ọma na-emeri mgbe niile. Ọ metụtara arịrịọ ndị upstream dispatch ha na-ekpebi n'ụdị OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` bụ oghere nwere ọdịdị OpenAI, ya mere header ahụ anaghị arụ ọrụ n'arịrịọ ezubere maka Claude ma ọ bụ Gemini (lee `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Isiokwu                       | Ihe ọ na-anabata                                                                                                                                                                                    | Mmetụta                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `X-OmniRoute-Mode`            | aha ọzọ e debere (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) ma ọ bụ aha ngwugwu kpọmkwem (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Ọ na-akagbu ibu akara maka arịrịọ a. `balanced`/`default` na-amanye ibu ndabara (enweghị ngwugwu). A na-eleghara ụkpụrụ ndị a na-amaghị anya (a na-echekwa nhazi ahụ).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `X-OmniRoute-Budget`          | ọnụọgụ dị mma (USD kachasị elu kwa arịrịọ)                                                                                                                                                          | Oke ọnụahịa siri ike: a na-enyocha ma wepụ ndị nhọrọ ọnụahịa ha a tụrụ anya ya karịrị oke ahụ tupu ịhọrọ. Ihe ga-eme mgbe **ndị nhọrọ niile** karịrị ya bụ `X-OmniRoute-Budget-Fallback` dị n'okpuru na-achịkwa ya.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (ndabara, aha ndị ọzọ: `cheapest-viable`, `soft`) ma ọ bụ `strict` (aha ndị ọzọ: `block`, `hard`)                                                                                        | `cheapest`: ọ na-alaghachi n'ịhọrọ nhọrọ kacha ọnụ ala n'ozuzu ya n'agbanyeghị na ọ ka karịrị oke ahụ (omume ochie). `strict`: ọ na-ajụ ịhọrọ — arịrịọ ahụ na-ada ozugbo site na `HTTP 402` kama imefu ego karịrị oke na nzuzo. A na-eleghara ụkpụrụ ndị a na-amaghị anya.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `X-OmniRoute-Effort`          | `auto` (e debere ụkpụrụ ndị ọzọ maka ojiji n'ọdịnihu)                                                                                                                                               | Mmefu echiche na-agbanwe agbanwe: mgbe arịrịọ ahụ enweghị oghere ntụgharị uche n'ụdị ọ bụla (`reasoning_effort`, `reasoning`, `thinking`), ọnụ ụzọ ahụ na-eji akara ndị a pụrụ ikpebi site n'ụdị arịrịọ (ogologo ozi ikpeazụ onye ọrụ, nha ọnọdụ ruo n'ozi ikpeazụ onye ọrụ, nsonaazụ ngwaọrụ ndị gara aga, omimi okirikiri ngwaọrụ) dozie `auto` ka ọ bụrụ `low`/`medium`/`high`. Akara ndị a metụtara naanị ntụgharị dị ugbu a — a na-eleghara ihe niile dị mgbe ozi ikpeazụ onye ọrụ gasịrị anya — ya mere arịrịọ ọ bụla n'ime okirikiri ngwaọrụ na-enweta otu ọkwa ahụ (ntụdo na-enweghị ọnọdụ maka ntụgharị ọ bụla, enweghị ọnọdụ nnọkọ, enweghị ịrị elu n'etiti okirikiri nke ga-emebi nganiihu cache prompt nke upstream). Oghere ntụgharị uche onye ahịa kọwara kpọmkwem na-ebute ụzọ mgbe niile. Nke a metụtara arịrịọ ndị upstream dispatch ha na-edozi gaa n'ụdị OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` bụ oghere nke ụdị OpenAI, ya mere nkụnyeisi ahụ anaghị eme ihe ọ bụla na arịrịọ ezubere maka Claude ma ọ bụ Gemini (lee `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Manye profaịlụ kachasị ọsọ, debe oke arịrịọ a na $0.05, ma gbochie ya kpamkpam kama imefu karịa oke
+# Manye profaịlụ kachasị ọsọ, kpachie arịrịọ a na $0.05, ma gbochie ya kpamkpam kama imefu karịa oke
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -272,10 +272,10 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Mkpebi ahụ bụ pure function (`open-sse/services/autoCombo/requestControls.ts`); ụkpụrụ ndị
+Mkpebi ahụ bụ ọrụ dị ọcha (`open-sse/services/autoCombo/requestControls.ts`); ụkpụrụ ndị
 e kpebiri na-abanye na ntinye `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` dịbu adị nke engine ahụ. `config.budgetFallback` echekwara nke combo ("strict" |
-"cheapest") na-edobe iwu na-adịgide adịgide; header ahụ na-akagbu ya maka naanị otu arịrịọ.
+`config.budgetFallback` ndị engine ahụ nwere ugbu a. `config.budgetFallback` echekwara nke combo ("strict" |
+"cheapest") na-edobe amụma na-adịgide adịgide; nkụnyeisi ahụ na-akagbu ya maka naanị otu arịrịọ.
 
 ## Atụmatụ Nduzi Niile
 
@@ -765,17 +765,12 @@ Mgbe a gụnyere `auto` nkịtị (ndabara) tinyere ụkpụrụ `AutoVariant` 6
 
 ## Otu tiers si daba na Auto-Combo
 
-Ọrụ inye akara nwere ihe 16 (`open-sse/services/autoCombo/scoring.ts`) na-ewere
-ịbụ onye otu tier dịka akara ngosi abụọ: `tierPriority` (0.0476) na `tierAffinity` (0.0476). Lee
-[tebụl ihe ndị eji enye akara](#how-it-works-persisted-auto-combos) bụ isi dị n’elu maka nchịkọta
-`DEFAULT_WEIGHTS` zuru ezu — e depụtara mgbanwe pụrụ iche maka pack ọ bụla (ship-fast/cost-saver/quality-first/
-offline-friendly) na tebụl "Weight profiles per pack".
+Ọrụ ntule nwere ihe 16 (`open-sse/services/autoCombo/scoring.ts`) na-ewere ịbụ onye otu tier dị ka akara abụọ: `tierPriority` (0.0476) na `tierAffinity` (0.0476). Lee [tebụl ihe ntule bụ isi](#how-it-works-persisted-auto-combos) dị n’elu maka nchịkọta `DEFAULT_WEIGHTS` zuru ezu — edepụtara mgbanwe pụrụ iche maka pack ọ bụla (ship-fast/cost-saver/quality-first/
+offline-friendly) na tebụl "Profaịlụ ibu maka pack ọ bụla".
 
-Tier naanị ya **anaghị** eme ka Tier 1 buru ụzọ — ọ bụrụ na latency Tier 1 adịghị mma ma ọ bụ
-ntule ọnụahịa na ogo adịghị mma, Tier 2 ga-emeri. Iji manye nhazi tier, jiri strategy combo
-`priority` ma hazie providers dịka tier ha si dị.
+Tier naanị ya **anaghị** eme ka Tier 1 buru ụzọ — ọ bụrụ na latency nke Tier 1 adịghị mma ma ọ bụ na ntụnyere ọnụahịa na ogo adịghị mma, Tier 2 ga-emeri. Iji manye usoro tier, jiri atụmatụ combo `priority` ma hazie ndị na-eweta ọrụ dịka tier ha si dị.
 
-Iji nye Tier 1 (ndebanye aha) nnukwu mmasị, bulie ibu `tierPriority`:
+Iji nye Tier 1 (ndebanye aha) nnukwu uru, bulie ibu `tierPriority`:
 
 ```json
 {
@@ -784,7 +779,7 @@ Iji nye Tier 1 (ndebanye aha) nnukwu mmasị, bulie ibu `tierPriority`:
 }
 ```
 
-Lee `docs/marketing/TIERS.md` maka nkọwa tier na nhazi providers.
+Lee [`docs/guides/TIERS.md`](../guides/TIERS.md) maka nkọwa tier na nhazi ndị na-eweta ọrụ.
 
 ## Nnwale & Mkpuchi
 

@@ -413,9 +413,8 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ## Mendapatkan Bantuan
 
-- **Seni Bina**: Lihat [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **Seni bina**: Lihat [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Rujukan API**: Lihat [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Dokumentasi keselamatan**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Dokumentasi operasi**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Isu**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: Lihat `docs/adr/` untuk rekod keputusan seni bina

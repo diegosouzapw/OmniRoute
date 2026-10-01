@@ -33,37 +33,37 @@ Häufige Probleme und Lösungen für OmniRoute.
 
 ---
 
-## Ausführliche Fehlerbehebung
+## Detaillierte Fehlerbehebung
 
 ---
 
 ### Ratenbegrenzung bei kostenlosen Anbietern (429 / 400 / 401)
 
-**Symptom**: Bei der Verwendung von `model: "auto"` mit kostenlosen beziehungsweise authentifizierungsfreien Anbietern (opencode, auggie usw.) erhalten Sie zeitweise `HTTP 429`, `400` oder `401` anstelle von Antworten. Wenn dieselbe Eingabeaufforderung kurze Zeit später erneut gesendet wird, sind die Anfragen erfolgreich, doch Automatisierungen (Cronjobs, Agenten, Skripte) brechen beim ersten Fehler ab.
+**Symptom**: Bei der Verwendung von `model: "auto"` mit kostenlosen bzw. nicht authentifizierungspflichtigen Anbietern (opencode, auggie usw.) erhalten Sie zeitweise `HTTP 429`, `400` oder `401` anstelle von Antworten. Wenn dieselbe Anfrage kurze Zeit später erneut gesendet wird, ist sie erfolgreich, doch Automatisierungen (Cronjobs, Agenten, Skripte) brechen beim ersten Fehler ab.
 
-**Ursache**: Drei voneinander unabhängige Fehlermodi überlagern sich:
+**Ursache**: Drei unabhängige Fehlermodi verstärken sich gegenseitig:
 
-1. **Ratenbegrenzung des Anbieters (`429`)**: Kostenlose Tarife können ein Kontingent pro Zeitfenster erzwingen. Ein Schub paralleler Aufrufe schöpft es aus, sodass die nächste Anfrage abgelehnt wird, bis das Zeitfenster zurückgesetzt wird.
-2. **Defektes Modell im Passthrough (`400`/`401`)**: `auto/*`-Pools können Passthrough-Modelle von `opencode` enthalten, die zwar im Katalog registriert sind, aber über keine gültigen Anmeldedaten verfügen (z. B. `oc/north-mini-code-free` → `401`). Der automatische Router versucht eines davon, scheitert, und der Fehler wird weitergegeben, bevor der Fallback greift.
-3. **Verstärkung durch Parallelität (`429` unter Last)**: Wenn mehrere Agenten-/Cron-Sitzungen gleichzeitig auf `auto` zugreifen, überschreitet die Gesamtanfragerate das von kostenlosen Anbietern tolerierte Maß, sodass legitime Aufrufe als missbräuchlich eingestuft werden.
+1. **Ratenbegrenzung des Anbieters (`429`)**: Kostenlose Tarife können ein Kontingent pro Zeitfenster erzwingen. Eine Serie paralleler Aufrufe schöpft dieses Kontingent aus, sodass die nächste Anfrage abgelehnt wird, bis das Zeitfenster zurückgesetzt wird.
+2. **Defektes Modell im Passthrough (`400`/`401`)**: `auto/*`-Pools können Passthrough-Modelle von `opencode` enthalten, die im Katalog registriert sind, aber über keine gültigen Anmeldedaten verfügen (z. B. `oc/north-mini-code-free` → `401`). Der automatische Router probiert eines davon aus, schlägt fehl und gibt den Fehler weiter, bevor der Fallback greift.
+3. **Verstärkung durch Nebenläufigkeit (`429` unter Last)**: Wenn mehrere Agenten-/Cron-Sitzungen gleichzeitig auf `auto` zugreifen, übersteigt die gesamte Anfragerate das von kostenlosen Anbietern tolerierte Maß, sodass legitime Aufrufe als missbräuchlich eingestuft werden.
 
-**Bestätigte Lösung (von der Community gemeldet, 2026-08-10)**: Passen Sie drei Umgebungsvariablen so an, dass Rotation, Parallelität und Fallback die Schwankungen der kostenlosen Tarife abfangen, anstatt daran zu scheitern:
+**Verifizierte Lösung (von der Community gemeldet, 2026-08-10)**: Passen Sie drei Umgebungsvariablen so an, dass Rotation, Nebenläufigkeit und Fallback die Schwankungen des kostenlosen Tarifs abfangen, statt daran zu scheitern:
 
 ```bash
 export OMNIROUTE_ROTATE_ON_400=true           # bei 400/401 zu einem anderen Modell/Anbieter wechseln (überspringt defekte Passthrough-Modelle)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # explizite Obergrenze für die Zulassung rechenintensiver Anfragen (standardmäßig nicht gesetzt: keine Begrenzung der Anfrageanzahl, siehe Hinweis unten)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # längere begrenzte Wartezeit auf Kapazität für rechenintensive Anfragen statt eines sofortigen, wiederholbaren 503-Fehlers
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # explizite Obergrenze für die Zulassung rechenintensiver Anfragen (standardmäßig nicht gesetzt: keine Begrenzung der Anfragenanzahl, siehe Hinweis unten)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # die begrenzte Wartezeit für langsame Upstreams über den Standardwert von RATE_LIMIT_MAX_WAIT_MS hinaus erhöhen
 ```
 
-Legen Sie diese in der Prozessumgebung von OmniRoute fest (dem Daemon, z. B. über die LaunchAgent-plist oder `systemctl edit`) und starten Sie OmniRoute anschließend neu. Das Rotations-Flag hat die größte Hebelwirkung: Es verwandelt einen endgültigen Fehler in einen transparenten Wiederholungsversuch bei einem funktionsfähigen Anbieter im Pool.
+Legen Sie diese Variablen in der Prozessumgebung von OmniRoute fest (für den Daemon, z. B. über die LaunchAgent-plist oder `systemctl edit`) und starten Sie OmniRoute anschließend neu. Das Rotations-Flag bietet die größte Hebelwirkung: Es wandelt einen harten Fehler in einen transparenten Wiederholungsversuch bei einem funktionierenden Anbieter im Pool um.
 
-**Hinweis**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` begrenzt, wie viele rechenintensive Anfragen — also Anfragen mit langem Kontext — gleichzeitig ausgeführt werden; diese Grenze ist eine Zulassungsschranke und keine Ratenbegrenzung des Anbieters. **Aktualisierung zum #503-Fan-out:** Diese Variable wird nicht mehr standardmäßig gesetzt (sie greift jetzt nur, wenn sie wie oben ausdrücklich konfiguriert wurde) — stattdessen wird die Zulassung rechenintensiver Anfragen durch ein automatisch abgeleitetes Byte-Budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) gesteuert, das sich anhand der tatsächlichen Speicherobergrenze des Hosts skaliert. Daher sollten bei einer neuen Bereitstellung deutlich weniger Ablehnungen des Typs `503 chat_admission_busy` auftreten, ohne dass diese Variable überhaupt gesetzt werden muss; wenn sie hier explizit gesetzt wird, funktioniert sie weiterhin genau wie dokumentiert. Explizite Überschreibungen des Byte-Budgets werden auf 8 MiB bis 2 GiB begrenzt. Ein `413 body_exceeds_budget` ist kein vorübergehender Fehler: Erhöhen Sie dieses Byte-Budget, verringern Sie `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` oder erhöhen Sie die Speicherobergrenze des Prozesses. Eine Lastabweisung des Typs `inflight_bytes_budget` weist auf eine vorübergehende Ressourcenkonkurrenz hin und kann weiterhin durch einen erneuten Versuch behoben werden. Die Ratenbegrenzung pro Anbieter (`open-sse/services/rateLimitManager.ts`) wird separat durch `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` und `RATE_LIMIT_AUTO_ENABLE` gesteuert — siehe `.env.example`.
+**Hinweis**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` begrenzt, wie viele rechenintensive Anfragen mit langem Kontext gleichzeitig ausgeführt werden. Die Begrenzung ist eine Zulassungsschranke und keine Ratenbegrenzung des Anbieters. **#503-Fan-out-Aktualisierung:** Diese Variable wird standardmäßig nicht mehr gesetzt (sie greift jetzt nur noch, wenn sie wie oben explizit konfiguriert wurde). Stattdessen wird die Zulassung rechenintensiver Anfragen durch ein automatisch abgeleitetes Byte-Budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) gesteuert, das sich anhand der tatsächlichen Speicherobergrenze des Hosts skaliert. Daher sollte eine neue Bereitstellung deutlich weniger `503 chat_admission_busy`-Ablehnungen verursachen, ohne dass diese Variable überhaupt gesetzt werden muss. Wird sie hier explizit gesetzt, funktioniert sie weiterhin genau wie dokumentiert. Explizite Überschreibungen des Byte-Budgets werden auf 8 MiB–2 GiB begrenzt. Ein `413 body_exceeds_budget` ist kein vorübergehender Fehler: Erhöhen Sie dieses Byte-Budget, verringern Sie `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` oder erhöhen Sie die Speicherobergrenze des Prozesses. Eine Abweisung vom Typ `inflight_bytes_budget` ist auf eine vorübergehende Ressourcenkonkurrenz zurückzuführen und kann weiterhin erneut versucht werden. Die Ratenbegrenzung pro Anbieter (`open-sse/services/rateLimitManager.ts`) wird separat durch `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` und `RATE_LIMIT_AUTO_ENABLE` gesteuert — siehe `.env.example`.
 
-**So überprüfen Sie, ob es funktioniert hat**: Führen Sie Ihren Agenten/cron zweimal kurz hintereinander aus und vergewissern Sie sich, dass beide Ausführungen erfolgreich sind. Vor der Fehlerbehebung gibt die zweite Ausführung typischerweise `429`/`401` zurück. Nach der Fehlerbehebung werden Fehler (falls vorhanden) transparent erneut versucht und der Aufruf wird abgeschlossen. Sie können außerdem `curl /monitoring/health` ausführen und bei den Provider-Verbindungen das Feld `rateLimitedUntil` sowie für die betroffenen Provider `circuitBreakers.providerBreakers[].state` beobachten — der Status ist entweder `CLOSED`, `DEGRADED`, `OPEN` oder `HALF_OPEN` (siehe `src/shared/utils/circuitBreaker.ts`). Ein Provider, bei dem weiterhin Fehler auftreten, wechselt von `CLOSED → DEGRADED → OPEN`, bevor nach Ablauf des Rücksetzungszeitfensters eine Testanfrage zugelassen wird (`HALF_OPEN`).
+**So überprüfen Sie, ob die Lösung funktioniert hat**: Führen Sie Ihren Agenten/Cronjob zweimal kurz hintereinander aus und bestätigen Sie, dass beide Ausführungen erfolgreich sind. Vor der Korrektur löst die zweite Ausführung normalerweise `429`/`401` aus. Nach der Korrektur werden Fehler (falls vorhanden) transparent erneut versucht, und der Aufruf wird abgeschlossen. Sie können außerdem `curl /monitoring/health` ausführen und das Feld `rateLimitedUntil` bei den Anbieterverbindungen sowie `circuitBreakers.providerBreakers[].state` für die betroffenen Anbieter beobachten. Der Zustand ist entweder `CLOSED`, `DEGRADED`, `OPEN` oder `HALF_OPEN` (siehe `src/shared/utils/circuitBreaker.ts`). Ein Anbieter, bei dem weiterhin Fehler auftreten, wechselt von `CLOSED → DEGRADED → OPEN`, bevor nach Ablauf des Rücksetzzeitfensters eine Prüfanforderung zugelassen wird (`HALF_OPEN`).
 
-**Falls weiterhin 429 angezeigt wird**: Das aktive Konto für diesen Provider hat sein _Kontingent_ tatsächlich ausgeschöpft (nicht nur das Ratenlimit erreicht). Fügen Sie im OmniRoute-Dashboard unter Providers → Accounts ein zweites Konto für denselben Provider hinzu oder verwenden Sie zusätzlich einen anderen kostenlosen Provider (z. B. `routeway`, `auggie`). Die Rotation hilft nur bei vorübergehenden Ratenbegrenzungen sowie 400-/401-Fehlern; bei einer vollständigen Ausschöpfung des Kontingents sind zweite Anmeldedaten oder ein anderer Provider erforderlich.
+**Falls weiterhin 429 auftritt**: Das aktive Konto für diesen Anbieter hat tatsächlich sein _Kontingent_ ausgeschöpft, nicht nur die Ratenbegrenzung erreicht. Fügen Sie im OmniRoute-Dashboard unter Providers → Accounts ein zweites Konto für denselben Anbieter hinzu oder nehmen Sie einen weiteren kostenlosen Anbieter in den Pool auf (z. B. `routeway`, `auggie`). Die Rotation hilft nur bei vorübergehenden Ratenbegrenzungen bzw. 400-/401-Fehlern. Bei einer vollständigen Ausschöpfung des Kontingents sind zweite Anmeldedaten oder ein anderer Anbieter erforderlich.
 
-**Falls bei Vision-Modellen (`auto/vision`, `bazaarlink/*`) 403 angezeigt wird**: Das verbundene Konto verfügt nicht über einen kostenpflichtigen Tarif, der Vision umfasst, oder der API-Schlüssel besitzt nicht die erforderlichen Berechtigungen. Überprüfen Sie im Provider-Dashboard, ob der Schlüsselbereich Vision/Multimodal umfasst, oder verbinden Sie ein Konto mit kostenpflichtigem Tarif und verwenden Sie dieses weiterhin als Vision-Ziel.
+**Falls bei Vision-Modellen (`auto/vision`, `bazaarlink/*`) ein 403-Fehler auftritt**: Das verbundene Konto verfügt nicht über einen kostenpflichtigen Tarif, der Vision-Funktionen umfasst, oder der API-Schlüssel hat unzureichende Berechtigungen. Prüfen Sie im Anbieter-Dashboard, ob der Geltungsbereich des Schlüssels Vision/Multimodalität umfasst, oder verbinden Sie ein Konto mit kostenpflichtigem Tarif und verwenden Sie dieses weiterhin als Vision-Ziel.
 
 ---
 
@@ -557,34 +557,34 @@ Verwenden Sie **Dashboard → Translator**, um Probleme bei der Formatübersetzu
 
 ### Automatische Ratenbegrenzung wird nicht ausgelöst
 
-- Die automatische Ratenbegrenzung gilt nur für Anbieter mit API-Schlüssel (nicht für OAuth-/Abonnement-Anbieter)
+- Die automatische Ratenbegrenzung gilt nur für Anbieter mit API-Schlüssel (nicht für OAuth/Abonnements)
 - Überprüfen Sie, ob unter **Einstellungen → Resilienz → Anbieterprofile** die automatische Ratenbegrenzung aktiviert ist
 - Prüfen Sie, ob der Anbieter `429`-Statuscodes oder `Retry-After`-Header zurückgibt
 
-### Abstimmen des exponentiellen Backoffs
+### Exponentiellen Backoff abstimmen
 
 Anbieterprofile unterstützen diese Einstellungen:
 
 - **Basisverzögerung** — Anfängliche Wartezeit nach dem ersten Fehler (Standard: 1s)
-- **Maximale Verzögerung** — Obergrenze der maximalen Wartezeit (Standard: 30s)
-- **Multiplikator** — Faktor, um den die Verzögerung bei jedem aufeinanderfolgenden Fehler erhöht wird (Standard: 2x)
+- **Maximale Verzögerung** — Obergrenze für die maximale Wartezeit (Standard: 30s)
+- **Multiplikator** — Wert, um den sich die Verzögerung bei jedem aufeinanderfolgenden Fehler erhöht (Standard: 2x)
 
-### Schutz vor Thundering-Herd-Problemen
+### Schutz vor „Thundering Herd“
 
-Wenn viele gleichzeitige Anfragen auf einen ratenbegrenzten Anbieter treffen, verwendet OmniRoute Mutex-Sperren und automatische Ratenbegrenzung, um Anfragen zu serialisieren und kaskadierende Fehler zu verhindern. Dies erfolgt bei Anbietern mit API-Schlüssel automatisch.
+Wenn viele gleichzeitige Anfragen auf einen ratenbegrenzten Anbieter treffen, verwendet OmniRoute Mutex und automatische Ratenbegrenzung, um die Anfragen zu serialisieren und kaskadierende Fehler zu verhindern. Dies erfolgt bei Anbietern mit API-Schlüssel automatisch.
 
 ### Chat-Anfragen schlagen mit 503 / chat_admission_busy fehl
 
 **Symptome:**
 
-- Der Endpunkt für Chat-Vervollständigungen gibt eine wiederholbare `503`-Antwort mit dem Fehlercode
-  `chat_admission_busy` zurück.
+- Der Endpunkt für Chat-Vervollständigungen gibt eine wiederholbare `503`-Antwort zurück, deren Fehlercode
+  `chat_admission_busy` lautet.
 - Die Antwort enthält `Retry-After`. Seit #12135 wird der Wert aus der beobachteten
-  Auslastung abgeleitet — dem größeren Wert aus dem `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`-Zeitfenster, das die Anfrage bereits
-  gewartet hat, und der Zeit, die die aktuellen Heavyweight-Leases gehalten wurden — auf volle
-  Sekunden aufgerundet und auf 60 begrenzt. Bei einem inaktiven Gate gelten weiterhin die bisherigen Mindestwerte: 2 Sekunden beim
-  bytebasierten Pfad und 1 Sekunde beim strukturbasierten Pfad (der außerdem
-  `reason: "structure_limit"` enthält).
+  Auslastung abgeleitet — dem größeren Wert aus dem bereits von der Anfrage abgewarteten Zeitfenster
+  `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` und der Zeit, während der die aktuellen Heavyweight-Leases gehalten wurden —
+  auf volle Sekunden aufgerundet und auf 60 begrenzt. Bei einem inaktiven Gate bleiben die bisherigen
+  Mindestwerte erhalten: 2 Sekunden auf dem bytebasierten Pfad und 1 Sekunde auf dem strukturbasierten Pfad
+  (der auch `reason: "structure_limit"` enthält).
 - Dies kann auftreten, während ein anderer Heavyweight-Chat oder eine lang laufende Streaming-Antwort noch
   verarbeitet wird.
 
@@ -603,49 +603,49 @@ Der bytebasierte Antworttext lautet:
 Die strukturbasierte Antwort verwendet denselben Typ und Code mit der Nachricht
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 und `reason: "structure_limit"`.
-Bei den Standardschwellenwerten gilt eine Anfrage als strukturell aufwendig, wenn sie mindestens `200` Nachrichten,
-mindestens `64` Tools oder mindestens `32,000` geschätzte Token umfasst oder wenn die begrenzte Strukturschätzung
-ihre Grenzen von `10,000` besuchten Knoten oder einer Tiefe von `12` ausschöpft.
+Bei den Standardschwellenwerten gilt eine Anfrage als strukturell schwergewichtig, wenn sie mindestens `200` Nachrichten,
+mindestens `64` Tools oder mindestens `32,000` geschätzte Token enthält oder wenn die begrenzte Strukturschätzung
+ihre Grenzwerte von `10,000` besuchten Knoten oder einer Tiefe von `12` ausschöpft.
 
-**Ursache:** Hierbei handelt es sich um eine beabsichtigte Lastabweisung innerhalb von OmniRoute und nicht um einen Fehler des Upstream-Anbieters.
-Jeder Prozess verwendet einen prozesslokalen Schutzmechanismus, um begrenzte Heavyweight-Kapazität zu reservieren, bevor
-ein großer Anfragekörper im Speicher gehalten und geparst wird. Eine Heavyweight-Lease bleibt für die gesamte Lebensdauer einer SSE-
+**Ursache:** Hierbei handelt es sich um eine bewusste Lastabweisung innerhalb von OmniRoute und nicht um einen Fehler eines Upstream-Anbieters.
+Jeder Prozess verwendet eine prozesslokale Schutzvorrichtung, um begrenzte Heavyweight-Kapazität zu reservieren, bevor
+ein großer Anfragekörper beibehalten und geparst wird. Eine Heavyweight-Lease bleibt während der gesamten Lebensdauer einer SSE-
 Antwort bestehen.
 
-**#503-Fan-out:** Vor diesem Fix begrenzte der Schutzmechanismus die Parallelität unabhängig vom Hostspeicher auf eine feste Anzahl von Anfragen
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, Standard `1`), sodass der Fan-out von Coding-Agenten
-(mehrere Subagenten/CLIs, Anfragekörper regelmäßig > 256 KB) auf eine effektive
-Parallelität von etwa 1 reduziert wurde und unter völlig normaler Last 503-Fehler erzeugte. Der Schutzmechanismus stimmt sich nun selbst ab: Er wird
-durch ein automatisch abgeleitetes BYTE-Budget für die Aufnahme (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) gesteuert, dessen Größe anhand des
-tatsächlichen Speicherlimits des Prozesses bestimmt wird, und berücksichtigt außerdem ein aktuelles Signal für Ressourcendruck — sodass er
-Last nur dann abweist, wenn der Host tatsächlich unter Speicherdruck steht, und nicht nur, weil mehr als eine
-aufwendige Anfrage gleichzeitig eingetroffen ist. Die alte Anzahlbegrenzung (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) wird
+**#503-Fan-out:** Vor diesem Fix begrenzte die Schutzvorrichtung die Parallelität auf eine feste AnfrageANZAHL
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, Standard: `1`), unabhängig vom Arbeitsspeicher des Hosts, sodass der Fan-out
+von Coding-Agenten (mehrere Subagenten/CLIs, Anfragekörper routinemäßig > 256 KB) auf eine effektive
+Parallelität von etwa 1 einbrach und unter vollkommen normaler Last 503-Fehler erzeugte. Die Schutzvorrichtung stimmt sich nun selbst ab: Sie wird
+durch ein automatisch abgeleitetes BYTE-Budget für die Aufnahme (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) gesteuert, dessen Größe
+anhand der tatsächlichen Speicherobergrenze des Prozesses bestimmt wird, und berücksichtigt zudem ein aktuelles Signal für den Ressourcendruck — sodass sie
+Last nur abweist, wenn der Host tatsächlich unter Speicherdruck steht, und nicht bloß, weil mehr als eine
+schwergewichtige Anfrage gleichzeitig eingetroffen ist. Die alte Anzahlbegrenzung (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) wird
 weiterhin berücksichtigt, jedoch nur, wenn Sie sie ausdrücklich festlegen.
 
-Wenn die Kapazität ausgelastet ist, wartet eine Heavyweight-Anfrage zunächst bis zu
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (Standard `2000`, `0` deaktiviert das Warten) darauf, dass ein Platz frei wird,
-bevor sie mit dem wiederholbaren `503` antwortet. Die begrenzte Wartezeit sorgt dafür, dass agentenbasierte Clients
-(OpenCode, Claude Code, Cursor), die aufwendige Unteranfragen gleichzeitig auffächern, den Anfragestoß serialisieren,
-anstatt ihr gesamtes Wiederholungsbudget durch sofortige Ablehnungen aufzubrauchen und während einer Aufgabe abzubrechen.
+Wenn die Kapazität ausgelastet ist, wartet eine schwergewichtige Anfrage zunächst bis zu
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (standardmäßig `RATE_LIMIT_MAX_WAIT_MS`; `0` deaktiviert das Warten) darauf, dass ein Platz frei wird,
+bevor die wiederholbare `503`-Antwort gesendet wird. Die begrenzte Wartezeit ist vorhanden, damit agentenbasierte Clients
+(OpenCode, Claude Code, Cursor), die gleichzeitig schwergewichtige Unteranfragen auffächern, die Lastspitze serialisieren,
+anstatt ihr gesamtes Wiederholungsbudget durch sofortige Ablehnungen aufzubrauchen und mitten in der Aufgabe abzubrechen.
 Die aktuelle Belegung durch Heavyweight-Leases, das ermittelte Byte-Budget und der aktuelle Schweregrad des Ressourcendrucks werden
 unter `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) angezeigt — prüfen Sie diese Werte, bevor Sie eine Umgebungsvariable ändern.
 Einstellungen → Resilienz → Anfragewarteschlange → Gleichzeitige Anfragen steuert dies nicht; diese Einstellung
-regelt einen separaten Warteschlangenmechanismus für Anbieteranfragen.
+steuert einen separaten Mechanismus für Anbieter-Anfragewarteschlangen.
 
-**Lösung:**
+**Behebung:**
 
-1. Versuchen Sie es zunächst erneut. Clients sollten `Retry-After` beachten und Backoff verwenden, anstatt die Anfrage sofort
-   zu wiederholen.
-2. Prüfen Sie `/api/monitoring/health` → `chatAdmission`, bevor Sie Einstellungen anpassen. `countCapEnabled:
-false` und ein großzügiger Wert für `maxInflightBytes` bedeuten, dass das automatisch abgeleitete Budget bereits wie vorgesehen
-   funktioniert; ein `pressureSeverity`-Wert von `high`/`critical` bedeutet, dass der Host tatsächlich nur noch wenig Speicher hat —
-   dies lässt sich nicht durch eine Umgebungsvariable für die Zulassungssteuerung beheben, sondern erfordert mehr RAM oder eine kleinere Arbeitslast.
+1. Versuchen Sie es zunächst erneut. Clients sollten `Retry-After` berücksichtigen und einen Backoff verwenden, anstatt die Anfrage
+   sofort zu wiederholen.
+2. Prüfen Sie `/api/monitoring/health` → `chatAdmission`, bevor Sie Anpassungen vornehmen. `countCapEnabled:
+false` und ein großzügiger Wert für `maxInflightBytes` bedeuten, dass das automatisch abgeleitete Budget bereits seine
+   Aufgabe erfüllt; ein `pressureSeverity`-Wert von `high`/`critical` bedeutet, dass der Host tatsächlich über zu wenig Arbeitsspeicher verfügt —
+   dies lässt sich nicht durch eine Umgebungsvariable für die Zulassung beheben, sondern erfordert mehr RAM oder eine kleinere Arbeitslast.
 3. Nur wenn `/api/monitoring/health` zeigt, dass das automatisch abgeleitete Budget für
-   Ihren Host tatsächlich zu klein ist (selten — es skaliert bereits von Containern bis hin zu Bare-Metal-Systemen), sollten Sie es direkt mit
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` überschreiben, anstatt auf die alte Begrenzung anhand der Anfrageanzahl zurückzugreifen.
+   Ihren Host tatsächlich zu klein ist (selten — es skaliert bereits von Containern bis hin zu Bare-Metal-Systemen), überschreiben Sie es direkt mit
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, anstatt auf die veraltete Begrenzung der Anfrageanzahl zurückzugreifen.
 
-Die maßgeblichen Einstellungen für die Zulassungssteuerung finden Sie in der [Referenz zu Umgebungsvariablen](../reference/ENVIRONMENT.md#4-security--authentication).
+Die maßgeblichen Zulassungseinstellungen finden Sie in der [Referenz der Umgebungsvariablen](../reference/ENVIRONMENT.md#4-security--authentication).
 
 ---
 

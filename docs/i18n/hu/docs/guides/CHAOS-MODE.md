@@ -8,18 +8,41 @@
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (irányítópult-munkamenet) · `POST /api/skills/collect/chaos` (API-kulcs)  
 > **Forrás:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-A Chaos Mode **egyetlen feladatot küld egyszerre több szolgáltatónak** — minden részt vevő szolgáltató
-egy modellpéldánnyal járul hozzá, és az összes választ egymás mellett (vagy láncba fűzve) kapja meg. Ez egy
+A Chaos Mode **egyszerre több szolgáltatónak küld el egy feladatot** — minden részt vevő szolgáltató
+egy modellpéldánnyal járul hozzá, Ön pedig az összes választ egymás mellett (vagy láncolva) kapja meg. Ez egy
 többmodelles végrehajtási felület, nem pedig útválasztási stratégia: a normál `/v1/chat/completions`
-forgalmát soha nem befolyásolja.
+forgalmat soha nem érinti.
 
-**Pontosítás — három különböző dolog nevében is szerepel a „chaos” kifejezés:**
+**Egyértelműsítés — három különböző dolog nevében szerepel a „chaos” kifejezés:**
 
-| Dolog                    | Mi ez                                                                                                                                                    | Hol található a dokumentációja               |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**           | Az itt ismertetett irányítópult-oldal és API: egy feladat továbbítása több szolgáltatónak (párhuzamosan vagy együttműködve).                             | Ez az útmutató                               |
-| `auto/chaos`             | Hibainjektálási pontozási súlyokkal rendelkező Auto-Combo modellazonosító rezilienciateszteléshez. Nem igényel konfigurálást.                            | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos combo konfiguráció | Egy tartósan tárolt kombináció, amelynél a `config.chaos.enabled` egy panelnek továbbítja a feladatot, opcionális bírálómodellel (csak API-n keresztül). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Dolog                           | Mi ez                                                                                                                                                                                                   | Dokumentáció helye                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**                  | Az itt ismertetett irányítópult-oldal és API: egy feladat továbbítása több szolgáltatóhoz (párhuzamosan vagy együttműködő módon).                                                                       | Ez az útmutató                               |
+| `auto/chaos`                    | Auto-Combo-modellazonosító: párhuzamos továbbítás, szolgáltatónként egy modell, modellenként egy upstream-hívás. Nem hibainjektálás ([részletek](#autochaos-parallel-fan-out)).                         | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos-kombináció konfigurációja | Egy tartósan tárolt kombináció, amelynél a `config.chaos.enabled` ugyanilyen módon továbbítja a kérést (csak API-n keresztül); a `judgeModel` csak a végső választ választja ki, szintézishívás nélkül. | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: párhuzamos továbbítás
+
+Az `auto/chaos` **nem** hibainjektálási vagy rezilienciatesztelési beállítás. Ha a
+`/v1/chat/completions` végponton a `model: "auto/chaos"` értéket kéri:
+
+1. Létrehoz egy panelt, amelyben **szolgáltatónként egy modell** található: minden
+   csatlakoztatott szolgáltató első jelöltje, a jelöltkészlet sorrendjében, legfeljebb 5 taggal
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, maximum 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). A `chaos-mode` súlycsomag
+   csak az egyes tagok `weight` értékét állítja be; a továbbítás ezt nem olvassa ki.
+2. Ugyanazt a kérést **párhuzamosan** elküldi minden paneltagnak, így egy kérés
+   paneltagonként egy upstream-hívásba kerül
+   (`open-sse/services/autoCombo/chaosEngine.ts`, indítása:
+   `open-sse/services/combo.ts`).
+3. Érkezéskor paneltagonként egy állapotsort streamel: alapértelmezés szerint egy SSE-megjegyzést
+   (`: chaos <index> ok|fail <model>`), továbbá egy `omni-chaos-part`
+   eseményt (`model`, `index`, `ok`, `error`), ha a kérésben
+   `stream_options.include_chaos_parts: true` szerepel. Ezek nem tartalmaznak válaszszöveget.
+4. **Egy** panelválaszt küld végső, OpenAI-stílusú adatdarabként: az első paneltag
+   válaszát (az `auto/chaos` ezt állítja be `judgeModel` értékként), ha az sikeres, egyébként
+   az utolsó sikeres tagét. A többi panelválaszt nem adja vissza, így
+   N hívásért fizet, és egyetlen befejezést kap.
 
 ## Beállítás
 

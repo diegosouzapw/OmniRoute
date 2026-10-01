@@ -426,9 +426,8 @@ Seejärel kasuta töövooge `/deploy-vps-*-cc`, mis kasutavad rsync-i `dist/` ed
 
 ## Abi saamine
 
-- **Arhitektuur**: Vaata [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API viide**: Vaata [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Turvadokumendid**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Toimingute dokumendid**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Arhitektuur**: Vaadake faili [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API viitedokumentatsioon**: Vaadake faili [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Turbedokumentatsioon**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Käitlusdokumentatsioon**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Probleemid**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arhitektuurilised otsused**: Vaata kausta `docs/adr/` arhitektuuriliste otsuste kirjelduste jaoks

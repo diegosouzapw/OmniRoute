@@ -412,11 +412,10 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## Kupata Msaada
+## Kupata Usaidizi
 
 - **Usanifu**: Tazama [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Marejeleo ya API**: Tazama [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Nyaraka za usalama**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Nyaraka za uendeshaji**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Masuala**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: Tazama `docs/adr/` kwa rekodi za maamuzi ya usanifu

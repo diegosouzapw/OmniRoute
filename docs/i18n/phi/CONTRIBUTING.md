@@ -412,11 +412,10 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## Pagkuha ng Tulong
+## Paghingi ng Tulong
 
 - **Arkitektura**: Tingnan ang [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Sanggunian ng API**: Tingnan ang [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Mga dokumento sa seguridad**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Mga dokumento sa operasyon**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Mga isyu**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Mga ADR**: Tingnan ang `docs/adr/` para sa mga talaan ng desisyong pang-arkitektura

@@ -433,4 +433,3 @@ VPS-ում տեղակայելու համար օգտագործեք `npm run build
 - **Անվտանգության փաստաթղթեր**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Շահագործման փաստաթղթեր**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Խնդիրներ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-ներ**: Ճարտարապետական որոշումների գրառումների համար տե՛ս `docs/adr/`

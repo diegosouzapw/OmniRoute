@@ -184,30 +184,29 @@ rawBody)`) `verifyCloudSignature(rawBody, sigHeader)` சரிபார்க�
 
 ---
 
-## கட்டுமானச் சுயவிவரம்: `minimal`
+## உருவாக்கச் சுயவிவரம்: `minimal`
 
-Socket-க்கு உகந்த கலைப்பொருள் தேவைப்படும் பயனர்கள், பின்வருமாறு கட்டமைக்கவும்:
+Socket-க்கு உகந்த artifact தேவைப்படும் பயனர்கள், பின்வருமாறு உருவாக்கவும்:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin` நான்கு தொகுதிகளை stub-களுக்கு மாற்றுப்பெயரிடுகிறது:
+webpack `NormalModuleReplacementPlugin` நான்கு module-களை stub-களுக்கு alias செய்கிறது:
 
-| தொகுதி                                      | Stub                                             |
+| Module                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-ஒவ்வொரு stub-உம் அதே இடைமுகத்தை ஏற்றுமதி செய்கிறது, ஆனால் ஒவ்வொரு செயல்பாடும்
-இயக்க நேரத்தில் `featureDisabledError(name)`-ஐ எறிகிறது. முடக்கப்பட்ட தொகுதியைச்
-சார்ந்துள்ள வழித்தடங்கள், நுண்ணுணர்வுள்ள குறியீட்டுப் பாதையைச் செயல்படுத்துவதற்குப் பதிலாக
-தெளிவான செய்தியுடன் HTTP 503-ஐத் திருப்பியளிக்கின்றன.
+ஒவ்வொரு stub-உம் அதே இடைமுகத்தை export செய்கிறது, ஆனால் ஒவ்வொரு function-உம் இயக்க நேரத்தில்
+`featureDisabledError(name)`-ஐ throw செய்கிறது. முடக்கப்பட்ட module-ஐச் சார்ந்த route-கள்,
+முக்கியமான code path-ஐச் செயல்படுத்துவதற்குப் பதிலாகத் தெளிவான செய்தியுடன் HTTP 503-ஐத்
+திருப்பி அனுப்புகின்றன.
 
-இதன் விளைவாக உருவாகும் தொகுப்பு `omniroute-secure` ஆக வெளியிடப்படுவதற்காக
-வடிவமைக்கப்பட்டுள்ளது. வெளியீட்டு செய்முறைக்கு `docs/ops/PUBLISHING_SECURE.md`-ஐப் பார்க்கவும்.
+இதன் விளைவாக உருவாகும் bundle, `omniroute-secure` ஆக வெளியிடப்படுவதற்காக வடிவமைக்கப்பட்டுள்ளது.
 
 ---
 

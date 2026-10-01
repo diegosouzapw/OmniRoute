@@ -446,24 +446,24 @@ přímo importovat `open-sse/config/providerPluginManifestRegistry.ts`.
 
 ---
 
-## Koncové body kompatibility
+## Kompatibilní koncové body
 
 | Metoda | Cesta                                     | Formát                               |
 | ------ | ----------------------------------------- | ------------------------------------ |
 | POST   | `/v1/chat/completions`                    | OpenAI                               |
 | POST   | `/v1/messages`                            | Anthropic                            |
-| POST   | `/v1/responses`                           | Odpovědi OpenAI                      |
+| POST   | `/v1/responses`                           | OpenAI Responses                     |
 | POST   | `/v1/embeddings`                          | OpenAI                               |
-| POST   | `/v1/images/generations`                  | Obrázky OpenAI                       |
-| POST   | `/v1/images/edits`                        | Obrázky OpenAI (úpravy/vyplnění)     |
+| POST   | `/v1/images/generations`                  | OpenAI Images                        |
+| POST   | `/v1/images/edits`                        | OpenAI Images (úpravy/inpainting)    |
 | POST   | `/v1/videos/generations`                  | Generování videa ve stylu OpenAI     |
 | POST   | `/v1/music/generations`                   | Generování hudby ve stylu OpenAI     |
-| POST   | `/v1/audio/transcriptions`                | Zvuk OpenAI (STT)                    |
-| POST   | `/v1/audio/speech`                        | TTS OpenAI (vrací tělo zvuku)        |
-| POST   | `/v1/rerank`                              | Přerankování ve stylu Cohere/Voyage  |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                   |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (vrací zvukové tělo)      |
+| POST   | `/v1/rerank`                              | Přeřazení ve stylu Cohere/Voyage     |
 | POST   | `/v1/classify`                            | Klasifikace Jina (`api.jina.ai`)     |
 | POST   | `/v1/segment`                             | Segmentátor Jina (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | Moderace OpenAI                      |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                   |
 | GET    | `/v1/models`                              | OpenAI                               |
 | POST   | `/v1/messages/count_tokens`               | Anthropic                            |
 | GET    | `/v1beta/models`                          | Gemini                               |
@@ -472,32 +472,36 @@ přímo importovat `open-sse/config/providerPluginManifestRegistry.ts`.
 | GET    | `/api/v1/vscode/{token}/`                 | Alias katalogu OpenAI                |
 | GET    | `/api/v1/vscode/{token}/models`           | Alias modelů OpenAI                  |
 | POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenizovaný alias OpenAI            |
-| POST   | `/api/v1/vscode/{token}/responses`        | Tokenizovaný alias odpovědí OpenAI   |
+| POST   | `/api/v1/vscode/{token}/responses`        | Tokenizovaný alias OpenAI Responses  |
 | POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenizovaný alias Ollama            |
 | GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenizovaný alias značek Ollama     |
 
-Všechny POST cesty mají stejný tvar: `Bearer your-api-key` + JSON tělo validované Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` atd., viz `src/shared/validation/schemas.ts`). Při selhání schématu je vrácen kód 4xx.
+Všechny trasy POST mají stejnou strukturu: `Bearer your-api-key` + tělo JSON ověřené pomocí Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` atd., viz `src/shared/validation/schemas.ts`). Při selhání validace schématu se vrací 4xx.
 
-Pro klienty, kteří nemohou připojit `Authorization: Bearer ...`, OmniRoute také přijímá API klíče v URL buď prostřednictvím kompatibility s řetězcem dotazu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), nebo prostřednictvím vyhrazených koncových bodů `/api/v1/vscode/{token}/...` zdokumentovaných níže.
+Pro klienty, kteří nemohou připojit `Authorization: Bearer ...`, přijímá OmniRoute klíče API také v adrese URL, a to buď prostřednictvím kompatibilních parametrů dotazu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), nebo pomocí vyhrazených koncových bodů `/api/v1/vscode/{token}/...` zdokumentovaných níže.
 
 ```bash
-# Přerankování (poskytovatel cloudového registru nebo uzel poskytovatele kompatibilní s OpenAI jako "<prefix>/<model>")
+# Přeřazení (poskytovatel z cloudového registru nebo uzel poskytovatele kompatibilní s OpenAI jako "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Klasifikace Jina (pověření Foundation API)
+# Klasifikace Jina (přihlašovací údaje Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Segmentátor Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Vyhledávání Jina (s.jina.ai; aliasy poskytovatelů: jina-search, jina-ai, jina)
+# Vyhledávání Jina (s.jina.ai; aliasy poskytovatele: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderace
+# Moderování
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — vrací tělo audio/mpeg (nebo požadovaný formát)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
+
+# Soniox TTS vyžaduje jazyk a hlas: výchozí hodnota `language` je "en"; chybějící
+# hlas nebo standardní název hlasu OpenAI (alloy, nova, …) se změní na "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
 # Úprava obrázku (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
@@ -507,29 +511,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Uzly poskytovatele přerankování:** `POST /v1/rerank` také směruje na uzly poskytovatele kompatibilní s OpenAI
-> (oMLX, vLLM, Infinity, TEI za bránou, …) adresované jako `<node-prefix>/<model>`. Loopback
-> uzly (`localhost`, `127.0.0.1`, `172.16.0.0/12`) jsou vždy způsobilé. Uzly na jakémkoli jiném
-> hostiteli — LAN boxu nebo Tailscale peeru — jsou způsobilé pouze tehdy, když operátor povolí
-> příznak funkce `RERANK_REMOTE_PROVIDER_NODES` **a** základní URL uzlu splňuje zásady
-> odchozích URL poskytovatele (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> hostitelé s cloudovými metadaty nejsou nikdy směrováni. Krok přerankování paměťového enginu volá tuto cestu přes
-> loopback, takže stejné pravidlo platí pro `rerankProviderModel` v nastavení paměti.
+> **Uzly poskytovatelů pro přeřazení:** `POST /v1/rerank` směruje požadavky také na uzly poskytovatelů kompatibilní s OpenAI
+> (oMLX, vLLM, Infinity, TEI za bránou, …), adresované jako `<node-prefix>/<model>`. Uzly zpětné smyčky
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) jsou vždy způsobilé. Uzly na jakémkoli jiném
+> hostiteli — zařízení v síti LAN nebo protějšek Tailscale — jsou způsobilé pouze tehdy, když provozovatel povolí
+> příznak funkce `RERANK_REMOTE_PROVIDER_NODES` **a zároveň** základní adresa URL uzlu vyhovuje zásadám poskytovatele
+> pro odchozí adresy URL (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> na hostitele cloudových metadat se požadavky nikdy nesměrují. Krok přeřazení paměťového enginu volá tuto trasu přes
+> zpětnou smyčku, takže stejné pravidlo se v nastavení paměti vztahuje i na `rerankProviderModel`.
 >
-> **Tvary lokálních serverů:** uzel je volán na `<base>/v1/rerank` a při 404 na `<base>/rerank`
-> (Infinity, TEI). Tělo upstreamu nese jak Cohere/OpenAI zápis (`documents`,
-> `return_documents`), tak TEI zápis (`texts`, `return_text`), a upstream odpověď je
-> normalizována na obálku Cohere: holé `[{index, score, text}]` z TEI, `{results: [{index, score}]}`
-> z tenkých bran a `{data: [...]}` ve stylu Voyage se všechny vrátí klientovi jako
+> **Formáty lokálních serverů:** uzel je volán na `<base>/v1/rerank` a v případě odpovědi 404 na `<base>/rerank`
+> (Infinity, TEI). Tělo odesílané nadřazenému serveru obsahuje jak pojmenování Cohere/OpenAI (`documents`,
+> `return_documents`), tak pojmenování TEI (`texts`, `return_text`), a odpověď nadřazeného serveru je
+> normalizována do obálky Cohere: holé pole TEI `[{index, score, text}]`, `{results: [{index, score}]}`
+> z jednoduchých bran i formát Voyage `{data: [...]}` jsou klientovi vráceny jako
 > `{results: [{index, relevance_score, document?}]}`, seřazené podle skóre a omezené na `top_n`.
 
-> **Objevování uzlů poskytovatele:** modely na uzlu poskytovatele kompatibilním s OpenAI se objevují v `GET /v1/models`
-> pod předponou uzlu. Řádky, které nenesou žádná metadata koncového bodu (typické pro lokální výpisy `/v1/models`),
-> dědí `apiType` uzlu, takže modely uzlu `embeddings` mají `type: "embedding"` a modely uzlu
-> `rerank` mají `type: "rerank` namísto výchozího chatu; explicitní
-> `supportedEndpoints` na synchronizovaném nebo ručně přidaném řádku má stále přednost.
+> **Zjišťování uzlů poskytovatelů:** modely na uzlu kompatibilním s OpenAI se zobrazují v `GET /v1/models`
+> pod prefixem uzlu. Záznamy, které neobsahují metadata koncového bodu (typické pro místní výpisy `/v1/models`),
+> dědí `apiType` uzlu, takže modely uzlu `embeddings` mají `type: "embedding"` a modely
+> uzlu `rerank` mají `type: "rerank"` namísto výchozího typu chatu; explicitní
+> `supportedEndpoints` u synchronizovaného nebo ručně přidaného záznamu má nadále přednost.
 
-### Vyhrazené cesty poskytovatele
+### Vyhrazené trasy poskytovatelů
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -537,7 +541,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Předpona poskytovatele je automaticky přidána, pokud chybí. Neshodné modely vrátí `400`.
+Pokud prefix poskytovatele chybí, přidá se automaticky. Neshodující se modely vracejí `400`.
 
 ---
 
@@ -1466,22 +1470,22 @@ Vrací veřejnou kartu agenta A2A (název, popis, schopnosti, katalog dovednost�
 
 ---
 
-## Cloud, vyhodnocení a posouzení
+## Cloud, Evals a Assess
 
 | Metoda | Cesta | Popis |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Ověří klíč Bearer a vrátí maskovaná připojení poskytovatelů + aliasy modelů pro klienty cloudové synchronizace |
-| POST | `/api/cloud/credentials/update` | Aktualizuje šifrované přihlašovací údaje poskytovatele synchronizovaného s cloudem |
+| POST | `/api/cloud/auth` | Ověří Bearer klíč a vrátí maskovaná připojení poskytovatelů + aliasy modelů pro klienty cloudové synchronizace |
+| POST | `/api/cloud/credentials/update` | Aktualizuje šifrované přihlašovací údaje pro poskytovatele synchronizovaného s cloudem |
 | POST | `/api/cloud/model/resolve` | Převede logické ID modelu na konkrétního poskytovatele/model pomocí místní směrovací tabulky |
 | GET | `/api/cloud/models/alias` | Vypíše aliasy modelů zpřístupněné cloudové synchronizaci |
-| GET | `/api/assess` | Načte nejnovější kategorizace posouzení (podle poskytovatele/modelu) |
-| POST | `/api/assess` | Spustí posouzení — tělo: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | Vypíše vestavěné sady vyhodnocení + nejnovější běhy |
-| POST | `/api/evals` | Spustí běh vyhodnocení |
-| POST | `/api/evals/suites` | Vytvoří vlastní sadu vyhodnocení — tělo ověřuje `evalSuiteSaveSchema` |
-| GET | `/api/evals/suites/[id]` | Načte vlastní sadu vyhodnocení |
+| GET | `/api/assess` | Načte nejnovější kategorizace hodnocení (pro jednotlivé poskytovatele/modely) |
+| POST | `/api/assess` | Spustí hodnocení — tělo: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Vypíše vestavěné sady evalů + nejnovější běhy |
+| POST | `/api/evals` | Spustí běh evalu |
+| POST | `/api/evals/suites` | Vytvoří vlastní sadu evalů — tělo ověřuje `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | Načte vlastní sadu evalů |
 
-**Ověřování:** `/api/cloud/auth` ověřuje klíč Bearer přímo; ostatní trasy `/api/cloud/*`, `/api/evals/*` a `/api/assess` vyžadují relaci pro správu nebo klíč API. Požadavek POST na `/api/assess` používá `validateBody` se schématem rozsahu typu discriminated union.
+**Autorizace:** `/api/cloud/auth` přímo ověřuje Bearer klíč a vrací maskovaný klíč a `projectId` každého připojení pouze pro klíč s rozsahem `manage` / `admin`; ostatní trasy `/api/cloud/*`, `/api/evals/*` a `/api/assess` vyžadují relaci pro správu / API klíč. POST `/api/assess` používá `validateBody` se schématem rozsahu založeným na diskriminovaném sjednocení.
 
 ---
 

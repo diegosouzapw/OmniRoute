@@ -256,16 +256,23 @@ Yana share **dukkanin** wuce gona da iri na DB lokaci ɗaya, yana dawo da kowace
 
 ---
 
-## Madadin Gaggawa na Budget
+## Madadin Kasafin Kuɗi na Gaggawa
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (category `runtime`, default `true`) yana sarrafa
-hanyar free-fallback ta gaggawa a cikin
+`OMNIROUTE_EMERGENCY_FALLBACK` (nau'in `runtime`, tsoho `true`) yana sarrafa
+hanyar madadin kyauta ta gaggawa a cikin
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Idan an kunna shi, requests da suka ƙare budget ɗinsu za a tura su zuwa free fallback
-provider/model maimakon su gaza gaba ɗaya. Saita shi zuwa `false` (ko `0`) — ta
-dashboard toggle, DB override, ko environment variable na `OMNIROUTE_EMERGENCY_FALLBACK`
-— don kashe wannan halayya da barin requests da budget ɗinsu ya ƙare su
-gaza. (An bayyana shi a matsayin dashboard toggle a cikin PRs #3741 / #3752.)
+Idan an kunna shi, buƙatun da suka ƙare kasafin kuɗinsu za a tura su zuwa wani
+mai samarwa/samfuri na madadin kyauta maimakon su gaza kai tsaye. Saita shi zuwa
+`false` (ko `0`) — ta hanyar maɓallin dashboard, saitin maye gurbi na DB, ko
+environment variable na `OMNIROUTE_EMERGENCY_FALLBACK` — don kashe wannan
+ɗabi'ar kuma a bar buƙatun da suka ƙare kasafin kuɗinsu su gaza. (An bayyana shi
+a matsayin maɓallin dashboard a cikin PRs #3741 / #3752.)
+
+Amsar da aka bayar ta wannan madadin tana ɗauke da
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, don
+haka abokin hulɗa zai iya gane cewa an sake tura ta ba tare da kwatanta
+`X-OmniRoute-Provider` da buƙatarsa ba. Wannan header ba ya kasance a cikin kowace
+amsa daban.
 
 ---
 

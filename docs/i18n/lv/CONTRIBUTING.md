@@ -420,9 +420,8 @@ Pēc tam izmantojiet `/deploy-vps-*-cc` prasmes, kas ar rsync sinhronizē `dist/
 
 ## Palīdzības saņemšana
 
-- **Arhitektūra**: skatiet [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API atsauce**: skatiet [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Arhitektūra**: Skatiet [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API atsauce**: Skatiet [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Drošības dokumentācija**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Operāciju dokumentācija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Ekspluatācijas dokumentācija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Problēmas**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: skatiet `docs/adr/`, lai iepazītos ar arhitektūras lēmumu ierakstiem

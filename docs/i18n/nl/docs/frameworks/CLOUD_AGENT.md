@@ -305,12 +305,13 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 upstreamprovider **niet** aan — er is geen RPC voor afbreken in `CloudAgentBase`. Om
 upstreamfacturering te stoppen, beëindigt u de taak in de eigen console van de provider.
 
-## REST API — Cloudprovider-infrastructuur
+## REST API — infrastructuur voor cloudproviders
 
-Deze ondersteunende endpoints onder `src/app/api/cloud/` worden gebruikt door externe clients
-(de CLI, de Electron-app of synchronisatieworkers) om verbindingsmetadata van providers te lezen
-en modelaliassen om te zetten. Ze worden geauthenticeerd met een **reguliere API-sleutel**
-(via `validateApiKey`), niet met de beheer-authenticatie die door de taakendpoints wordt gebruikt.
+Deze aanvullende endpoints onder `src/app/api/cloud/` worden door externe clients
+(de CLI, de Electron-app of synchronisatieworkers) gebruikt om verbindingsmetadata van providers
+te lezen en modelaliassen om te zetten. Ze worden geauthenticeerd met een **API-sleutel**
+(via `validateApiKey`), niet met de beheerautorisatie die door de taak-endpoints wordt gebruikt; wat
+`/api/cloud/auth` retourneert, hangt af van het bereik van de sleutel (zie hieronder).
 
 | Methode | Pad                             | Doel                                                                                   |
 | ------- | ------------------------------- | -------------------------------------------------------------------------------------- |
@@ -320,9 +321,13 @@ en modelaliassen om te zetten. Ze worden geauthenticeerd met een **reguliere API
 | GET     | `/api/cloud/models/alias`       | Alle modelaliassen weergeven                                                           |
 | PUT     | `/api/cloud/models/alias`       | Een modelalias instellen (en automatisch met Cloud synchroniseren indien ingeschakeld) |
 
-`/api/cloud/auth` retourneert nooit de onbewerkte `apiKey` / `accessToken` / `refreshToken`. Het
-retourneert `hasApiKey`, `hasAccessToken`, `hasRefreshToken` en een gemaskeerde voorvertoning
-(`maskedApiKey`: eerste 4 + `****` + laatste 4).
+`/api/cloud/auth` retourneert nooit onbewerkte waarden voor `apiKey` / `accessToken` / `refreshToken`. Het
+retourneert `hasApiKey`, `hasAccessToken`, `hasRefreshToken` voor de actieve verbindingen die de sleutel
+mag gebruiken (een sleutel die met `allowedConnections` is beperkt, ziet alleen die verbindingen). Voor een API-sleutel met
+het bereik `manage` of `admin`, waaronder de implementatiesleutel uit `OMNIROUTE_API_KEY`, retourneert het ook
+een gemaskeerd voorbeeld (`maskedApiKey`: maximaal 4 tekens aan elk uiteinde, minder voor een korte
+sleutel, geen voor 8 tekens of minder) en de `projectId` van de verbinding. Beide velden worden
+voor elke andere sleutel uit de respons weggelaten.
 
 ## Referenties oplossen
 

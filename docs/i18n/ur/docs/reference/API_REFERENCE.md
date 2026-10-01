@@ -419,74 +419,94 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## مطابقت کے اینڈ پوائنٹس
+## مطابقتی اینڈ پوائنٹس
 
-| طریقہ | پاتھ                                      | فارمیٹ                             |
-| ----- | ----------------------------------------- | ---------------------------------- |
-| POST  | `/v1/chat/completions`                    | OpenAI                             |
-| POST  | `/v1/messages`                            | Anthropic                          |
-| POST  | `/v1/responses`                           | OpenAI Responses                   |
-| POST  | `/v1/embeddings`                          | OpenAI                             |
-| POST  | `/v1/images/generations`                  | OpenAI Images                      |
-| POST  | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)       |
-| POST  | `/v1/videos/generations`                  | OpenAI-style video generation      |
-| POST  | `/v1/music/generations`                   | OpenAI-style music generation      |
-| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                 |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (returns audio body)    |
-| POST  | `/v1/rerank`                              | Cohere/Voyage-style rerank         |
-| POST  | `/v1/classify`                            | Jina classify (`api.jina.ai`)      |
-| POST  | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`) |
-| POST  | `/v1/moderations`                         | OpenAI Moderations                 |
-| GET   | `/v1/models`                              | OpenAI                             |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                          |
-| GET   | `/v1beta/models`                          | Gemini                             |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent             |
-| POST  | `/v1/api/chat`                            | Ollama                             |
-| GET   | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias               |
-| GET   | `/api/v1/vscode/{token}/models`           | OpenAI models alias                |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias             |
-| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenized alias   |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias             |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias        |
+| طریقہ | راستہ                                     | فارمیٹ                                |
+| ----- | ----------------------------------------- | ------------------------------------- |
+| POST  | `/v1/chat/completions`                    | OpenAI                                |
+| POST  | `/v1/messages`                            | Anthropic                             |
+| POST  | `/v1/responses`                           | OpenAI Responses                      |
+| POST  | `/v1/embeddings`                          | OpenAI                                |
+| POST  | `/v1/images/generations`                  | OpenAI Images                         |
+| POST  | `/v1/images/edits`                        | OpenAI Images (ترمیم/inpaint)         |
+| POST  | `/v1/videos/generations`                  | OpenAI طرز کی ویڈیو تخلیق             |
+| POST  | `/v1/music/generations`                   | OpenAI طرز کی موسیقی تخلیق            |
+| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                    |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (آڈیو باڈی لوٹاتا ہے)      |
+| POST  | `/v1/rerank`                              | Cohere/Voyage طرز کی دوبارہ درجہ بندی |
+| POST  | `/v1/classify`                            | Jina درجہ بندی (`api.jina.ai`)        |
+| POST  | `/v1/segment`                             | Jina سیگمینٹر (`segment.jina.ai`)     |
+| POST  | `/v1/moderations`                         | OpenAI Moderations                    |
+| GET   | `/v1/models`                              | OpenAI                                |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                             |
+| GET   | `/v1beta/models`                          | Gemini                                |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                |
+| POST  | `/v1/api/chat`                            | Ollama                                |
+| GET   | `/api/v1/vscode/{token}/`                 | OpenAI کیٹلاگ عرف                     |
+| GET   | `/api/v1/vscode/{token}/models`           | OpenAI ماڈلز عرف                      |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI ٹوکنائزڈ عرف                   |
+| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ٹوکنائزڈ عرف         |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama ٹوکنائزڈ عرف                   |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama ٹیگز ٹوکنائزڈ عرف              |
 
-تمام POST روٹس کی شکل ایک جیسی ہے: `Bearer your-api-key` + Zod-تصدیق شدہ JSON باڈی (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, وغیرہ، دیکھیں `src/shared/validation/schemas.ts`)۔ اسکیما کی ناکامی پر 4xx واپس کیا جاتا ہے۔
+تمام POST روٹس ایک ہی ساخت کی پیروی کرتے ہیں: `Bearer your-api-key` + Zod سے توثیق شدہ JSON باڈی (`v1RerankSchema`، `v1ModerationSchema`، `v1AudioSpeechSchema` وغیرہ، `src/shared/validation/schemas.ts` دیکھیں)۔ اسکیما کی ناکامی پر 4xx لوٹایا جاتا ہے۔
 
-ایسے کلائنٹس کے لیے جو `Authorization: Bearer ...` منسلک نہیں کر سکتے، OmniRoute URL میں API کیز کو بھی قبول کرتا ہے یا تو کوئری سٹرنگ مطابقت (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) کے ذریعے یا نیچے دستاویزی کردہ مخصوص `/api/v1/vscode/{token}/...` اینڈ پوائنٹس کے ذریعے۔
+جو کلائنٹس `Authorization: Bearer ...` منسلک نہیں کر سکتے، ان کے لیے OmniRoute استفساری اسٹرنگ کی مطابقت (`?token=...`، `?apiKey=...`، `?api_key=...`، `?key=...`) یا ذیل میں دستاویز کردہ مخصوص `/api/v1/vscode/{token}/...` اینڈ پوائنٹس کے ذریعے URL میں API کلیدیں بھی قبول کرتا ہے۔
 
 ```bash
-# ریرینک (کلاؤڈ رجسٹری فراہم کنندہ، یا ایک OpenAI-مطابق فراہم کنندہ نوڈ بطور "<prefix>/<model>")
+# دوبارہ درجہ بندی (کلاؤڈ رجسٹری فراہم کنندہ، یا "<prefix>/<model>" کی صورت میں OpenAI سے مطابقت رکھنے والا فراہم کنندہ نوڈ)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# جینا کلاسیفائی (فاؤنڈیشن API اسناد)
+# Jina درجہ بندی (Foundation API اسناد)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# جینا سیگمینٹر
+# Jina سیگمینٹر
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# جینا سرچ (s.jina.ai؛ فراہم کنندہ کے عرفی نام: jina-search, jina-ai, jina)
+# Jina تلاش (s.jina.ai؛ فراہم کنندہ کے عرف: jina-search، jina-ai، jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# اعتدال پسندی
+# اعتدال کاری
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — آڈیو/ایم پی ای جی (یا مطلوبہ فارمیٹ) باڈی واپس کرتا ہے
+# TTS — audio/mpeg (یا مطلوبہ فارمیٹ) باڈی لوٹاتا ہے
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# تصویر میں ترمیم (ملٹی پارٹ)
+# Soniox TTS کے لیے زبان اور آواز درکار ہیں: `language` کی طے شدہ قدر "en" ہے؛ غیر موجود
+# آواز یا OpenAI کی اسٹاک آواز کا نام (alloy، nova، …) "Adrian" بن جاتا ہے
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# تصویر میں ترمیم (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# ویڈیو / موسیقی کی تخلیق (فراہم کنندہ سے پہلے ماڈل ID)
+# ویڈیو / موسیقی کی تخلیق (فراہم کنندہ کے سابقے والی ماڈل ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **ریرینک فراہم کنندہ نوڈز:** `POST /v1/rerank` OpenAI-مطابق فراہم کنندہ نوڈز (oMLX, vLLM, Infinity, TEI ایک گیٹ وے کے پیچھے، …) کو بھی روٹ کرتا ہے جنہیں `<node-prefix>/<model>` کے طور پر ایڈریس کیا جاتا ہے۔ لوپ بیک نوڈز (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ہمیشہ اہل ہوتے ہیں۔ کسی بھی دوسرے میزبان — ایک LAN باکس یا Tailscale پیئر — پر موجود نوڈز صرف اس صورت میں اہل ہوتے ہیں جب آپریٹر `RERANK_REMOTE_PROVIDER_NODES` فیچر فلیگ کو فعال کرتا ہے **اور** نوڈ کا بیس URL فراہم کنندہ کی آؤٹ باؤنڈ URL پالیسی (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) کو پاس کرتا ہے؛ کلاؤڈ میٹا ڈیٹا میزبانوں کو کبھی روٹ نہیں کیا جاتا۔ میموری انجن کا ریرینک مرحلہ لوپ بیک پر اس روٹ کو کال کرتا ہے، لہذا میموری کی ترتیبات میں `rerankProviderModel` پر بھی یہی اصول لاگو ہوتا ہے۔
+> **دوبارہ درجہ بندی کے فراہم کنندہ نوڈز:** `POST /v1/rerank` کو OpenAI سے مطابقت رکھنے والے فراہم کنندہ نوڈز
+> (oMLX، vLLM، Infinity، گیٹ وے کے پیچھے TEI، …) کی طرف بھی روٹ کیا جاتا ہے، جنہیں `<node-prefix>/<model>` کے طور پر ایڈریس کیا جاتا ہے۔ لوپ بیک
+> نوڈز (`localhost`، `127.0.0.1`، `172.16.0.0/12`) ہمیشہ اہل ہوتے ہیں۔ کسی دوسرے
+> ہوسٹ پر موجود نوڈز — LAN مشین یا Tailscale پیئر — صرف اس وقت اہل ہوتے ہیں جب آپریٹر
+> `RERANK_REMOTE_PROVIDER_NODES` فیچر فلیگ فعال کرے **اور** نوڈ کا بنیادی URL فراہم کنندہ کی
+> آؤٹ باؤنڈ URL پالیسی (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) پر پورا اترے؛
+> کلاؤڈ میٹا ڈیٹا ہوسٹس کی طرف کبھی روٹ نہیں کیا جاتا۔ میموری انجن کا دوبارہ درجہ بندی کا مرحلہ لوپ بیک کے ذریعے
+> اس روٹ کو کال کرتا ہے، لہٰذا یہی اصول میموری کی ترتیبات میں `rerankProviderModel` پر لاگو ہوتا ہے۔
 >
-> **مقامی سرور کی شکلیں:** نوڈ کو `<base>/v1/rerank` پر اور، 404 پر، `<base>/rerank` (Infinity, TEI) پر کال کیا جاتا ہے۔ اپ اسٹریم باڈی Cohere/OpenAI کی ہجے (`documents`, `return_documents`) اور TEI کی ہجے (`texts`, `return_text`) دونوں کو لے جاتی ہے، اور اپ اسٹریم رسپانس کو Cohere انویلپ میں نارملائز کیا جاتا ہے: TEI کا سادہ `[{index, score, text}]`، پتلے گیٹ ویز سے `{results: [{index, score}]}`، اور Voyage-اسٹائل `{data: [...]}` سب کلائنٹ کو `{results: [{index, relevance_score, document?}]}` کے طور پر واپس آتے ہیں، جو اسکور کے لحاظ سے ترتیب دیے جاتے ہیں اور `top_n` پر محدود ہوتے ہیں۔
+> **مقامی سرور کی ساختیں:** نوڈ کو `<base>/v1/rerank` پر، اور 404 کی صورت میں `<base>/rerank`
+> (Infinity، TEI) پر کال کیا جاتا ہے۔ اپ اسٹریم باڈی Cohere/OpenAI ہجے (`documents`،
+> `return_documents`) اور TEI ہجے (`texts`، `return_text`) دونوں رکھتی ہے، اور اپ اسٹریم جواب کو
+> Cohere لفافے کے مطابق معمول پر لایا جاتا ہے: TEI کا سادہ `[{index, score, text}]`، باریک گیٹ ویز سے
+> `{results: [{index, score}]}`، اور Voyage طرز کا `{data: [...]}`، سب کلائنٹ کو
+> `{results: [{index, relevance_score, document?}]}` کے طور پر واپس ملتے ہیں، اسکور کے لحاظ سے مرتب اور `top_n` تک محدود۔
 
-> **فراہم کنندہ نوڈ کی دریافت:** ایک OpenAI-مطابق فراہم کنندہ نوڈ پر موجود ماڈلز نوڈ کے پریفکس کے تحت `GET /v1/models` میں ظاہر ہوتے ہیں۔ ایسی قطاریں جن میں کوئی اینڈ پوائنٹ میٹا ڈیٹا نہیں ہوتا (مقامی `/v1/models` فہرستوں کے لیے عام) نوڈ کے `apiType` کو وراثت میں حاصل کرتی ہیں، لہذا ایک `embeddings` نوڈ کے ماڈلز `type: "embedding"` ہوتے ہیں اور ایک `rerank` نوڈ کے ماڈلز `type: "rerank"` ہوتے ہیں بجائے اس کے کہ وہ چیٹ پر ڈیفالٹ ہوں۔ ایک مطابقت پذیر یا دستی طور پر شامل کی گئی قطار پر ایک واضح `supportedEndpoints` اب بھی ترجیح لیتا ہے۔
+> **پرووائیڈر نوڈ کی دریافت:** OpenAI سے مطابقت رکھنے والے پرووائیڈر نوڈ پر موجود ماڈلز `GET /v1/models`
+> میں نوڈ کے سابقے کے تحت ظاہر ہوتے ہیں۔ وہ قطاریں جن میں اینڈ پوائنٹ میٹا ڈیٹا موجود نہیں ہوتا (جو مقامی `/v1/models` فہرستوں میں عام ہے)
+> نوڈ کا `apiType` وراثت میں لیتی ہیں، لہٰذا `embeddings` نوڈ کے ماڈلز `type: "embedding"` اور
+> `rerank` نوڈ کے ماڈلز `type: "rerank"` ہوتے ہیں، بجائے اس کے کہ وہ بطور ڈیفالٹ چیٹ بن جائیں؛ ہم وقت ساز یا دستی طور پر شامل کی گئی قطار پر واضح
+> `supportedEndpoints` کو اب بھی ترجیح حاصل رہتی ہے۔
 
-### مخصوص فراہم کنندہ روٹس
+### پرووائیڈر کے لیے مخصوص روٹس
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -494,7 +514,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-اگر فراہم کنندہ کا سابقہ غائب ہو تو اسے خود بخود شامل کر دیا جاتا ہے۔ غیر موافق ماڈلز `400` واپس کرتے ہیں۔
+اگر پرووائیڈر کا سابقہ موجود نہ ہو تو وہ خودکار طور پر شامل کر دیا جاتا ہے۔ غیر مماثل ماڈلز `400` لوٹاتے ہیں۔
 
 ---
 
@@ -1424,20 +1444,20 @@ GET /.well-known/agent.json
 
 ## کلاؤڈ، Evals اور Assess
 
-| میتھڈ | پاتھ | تفصیل |
+| طریقہ | راستہ | تفصیل |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer کلید کی تصدیق کریں اور کلاؤڈ سنک کلائنٹس کے لیے مخفی کردہ پرووائیڈر کنکشنز + ماڈل عرف واپس کریں |
-| POST | `/api/cloud/credentials/update` | کلاؤڈ سے سنک شدہ پرووائیڈر کے لیے خفیہ کردہ اسناد اپ ڈیٹ کریں |
-| POST | `/api/cloud/model/resolve` | مقامی روٹنگ ٹیبل استعمال کرتے ہوئے منطقی ماڈل id کو کسی ٹھوس پرووائیڈر/ماڈل سے حل کریں |
-| GET | `/api/cloud/models/alias` | کلاؤڈ سنک کے سامنے ظاہر کیے گئے ماڈل عرف کی فہرست دکھائیں |
-| GET | `/api/assess` | تازہ ترین جائزے کی زمرہ بندی پڑھیں (فی پرووائیڈر/ماڈل) |
-| POST | `/api/assess` | جائزہ چلائیں — باڈی: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| POST | `/api/cloud/auth` | بیئرر کلید کی توثیق کریں اور کلاؤڈ سنک کلائنٹس کے لیے مخفی فراہم کنندہ کنکشنز + ماڈل عرف واپس کریں |
+| POST | `/api/cloud/credentials/update` | کلاؤڈ سے ہم وقت فراہم کنندہ کی خفیہ کردہ اسناد اپ ڈیٹ کریں |
+| POST | `/api/cloud/model/resolve` | مقامی روٹنگ ٹیبل استعمال کرتے ہوئے ایک منطقی ماڈل id کو کسی ٹھوس فراہم کنندہ/ماڈل سے حل کریں |
+| GET | `/api/cloud/models/alias` | کلاؤڈ سنک کے لیے ظاہر کیے گئے ماڈل عرف کی فہرست دکھائیں |
+| GET | `/api/assess` | تازہ ترین اسیسمنٹ زمرہ بندیاں پڑھیں (فی فراہم کنندہ/ماڈل) |
+| POST | `/api/assess` | ایک اسیسمنٹ چلائیں — باڈی: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
 | GET | `/api/evals` | بلٹ اِن eval سویٹس + تازہ ترین رنز کی فہرست دکھائیں |
-| POST | `/api/evals` | eval رن شروع کریں |
-| POST | `/api/evals/suites` | حسبِ ضرورت eval سویٹ بنائیں — باڈی کی توثیق `evalSuiteSaveSchema` کے ذریعے کی جاتی ہے |
-| GET | `/api/evals/suites/[id]` | حسبِ ضرورت eval سویٹ بازیافت کریں |
+| POST | `/api/evals` | ایک eval رن شروع کریں |
+| POST | `/api/evals/suites` | ایک حسبِ ضرورت eval سویٹ بنائیں — باڈی کی توثیق `evalSuiteSaveSchema` کے ذریعے کی جاتی ہے |
+| GET | `/api/evals/suites/[id]` | ایک حسبِ ضرورت eval سویٹ بازیافت کریں |
 
-**توثیق:** `/api/cloud/auth` براہِ راست Bearer کلید کی توثیق کرتا ہے؛ دیگر `/api/cloud/*`، `/api/evals/*`، اور `/api/assess` روٹس کے لیے انتظامی سیشن/API کلید درکار ہے۔ `/api/assess` POST امتیازی-یونین اسکوپ اسکیما کے ساتھ `validateBody` استعمال کرتا ہے۔
+**توثیق:** `/api/cloud/auth` براہِ راست بیئرر کلید کی توثیق کرتا ہے اور صرف `manage` / `admin` اسکوپ والی کلید کے لیے ہر کنکشن کی مخفی کلید اور `projectId` واپس کرتا ہے؛ دیگر `/api/cloud/*`، `/api/evals/*`، اور `/api/assess` روٹس کے لیے مینجمنٹ سیشن/API کلید درکار ہوتی ہے۔ `/api/assess` POST ایک امتیازی-یونین اسکوپ اسکیما کے ساتھ `validateBody` استعمال کرتا ہے۔
 
 ---
 

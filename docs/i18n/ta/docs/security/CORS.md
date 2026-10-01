@@ -128,22 +128,26 @@ restart செய்யாமல், runtime-இல் **Dashboard → Security 
 
 ## எடுத்துக்காட்டு: OmniRoute-க்கு முன்னால் reverse proxy
 
-CORS-ஐ OmniRoute தானே செயல்படுத்துகிறது; எனவே proxy பொதுவாக `Access-Control-*`
-headers-ஐச் சேர்க்கவோ மீண்டும் எழுதவோ **கூடாது** (இரட்டை headers browsers-ஐச் செயலிழக்கச் செய்யும்). TLS-ஐ
-terminate செய்து forward செய்யவும் — preflight-க்கு OmniRoute பதிலளிக்கட்டும்:
+CORS-ஐ OmniRoute தானே செயல்படுத்துகிறது, எனவே proxy பொதுவாக `Access-Control-*`
+headers-ஐச் சேர்க்கவோ மாற்றி எழுதவோ **கூடாது** (இரட்டை headers உலாவிகளைச் செயலிழக்கச் செய்யும்). TLS-ஐ
+முடிவுறச் செய்து forward செய்யுங்கள் — preflight-க்கு OmniRoute பதிலளிக்கட்டும்:
 
 ```nginx
-# nginx — OmniRoute-க்கு forward செய்யவும்; இங்கே Access-Control-* ஐச் செலுத்த வேண்டாம்
+# nginx — OmniRoute-க்கு forward செய்யுங்கள்; இங்கே Access-Control-* ஐச் சேர்க்க வேண்டாம்
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For ஐ 127.0.0.1 ஆக அமைக்க வேண்டாம் — அது loopback route guard-ஐச் செயலிழக்கச் செய்யும்.
+    # forwarding headers-ஐ வைத்திருங்கள்: அதே host-இல் உள்ள proxy loopback வழியாக இணைகிறது, மேலும் அவைதான்
+    # அழைப்பவர் local operator அல்ல என்பதை OmniRoute-க்குத் தெரிவிக்கின்றன. அவற்றில் எதையும் சேர்க்காத proxy
+    # ஒவ்வொரு remote caller-ஐயும் local போலத் தோன்றச் செய்கிறது. X-Forwarded-For-ஐ 127.0.0.1 ஆகவும் ஒருபோதும் அமைக்க வேண்டாம்.
 }
 ```
 
-அனுமதிக்கப்பட்ட browser origins-ஐ proxy-இல் அல்லாமல், OmniRoute-இல்
-(`CORS_ALLOWED_ORIGINS` அல்லது Security தாவல்) அமைக்கவும்.
+அனுமதிக்கப்பட்ட browser origins-ஐ proxy-இல் அல்லாமல், OmniRoute-இல் (`CORS_ALLOWED_ORIGINS`
+அல்லது Security tab) அமைக்கவும்.
 
 ## மூலக் கோப்புகள்
 

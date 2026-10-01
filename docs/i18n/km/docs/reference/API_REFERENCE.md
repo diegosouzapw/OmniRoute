@@ -422,60 +422,64 @@ GET /api/v1/provider-plugin-manifest
 
 ---
 
-## ចំណុចបញ្ចប់នៃភាពត្រូវគ្នា
+## ចំណុចបញ្ចប់ដែលត្រូវគ្នា
 
-| Method | Path                                      | Format                                          |
-| ------ | ----------------------------------------- | ----------------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                          |
-| POST   | `/v1/messages`                            | Anthropic                                       |
-| POST   | `/v1/responses`                           | ការឆ្លើយតប OpenAI                               |
-| POST   | `/v1/embeddings`                          | OpenAI                                          |
-| POST   | `/v1/images/generations`                  | រូបភាព OpenAI                                   |
-| POST   | `/v1/images/edits`                        | រូបភាព OpenAI (កែសម្រួល/បំពេញ)                  |
-| POST   | `/v1/videos/generations`                  | ការបង្កើតវីដេអូតាមបែប OpenAI                    |
-| POST   | `/v1/music/generations`                   | ការបង្កើតតន្ត្រីតាមបែប OpenAI                   |
-| POST   | `/v1/audio/transcriptions`                | សំឡេង OpenAI (STT)                              |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (ប្រគល់តួសំឡេង)                      |
-| POST   | `/v1/rerank`                              | Rerank តាមបែប Cohere/Voyage                     |
-| POST   | `/v1/classify`                            | Jina ចាត់ថ្នាក់ (`api.jina.ai`)                 |
-| POST   | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)              |
-| POST   | `/v1/moderations`                         | ការសម្របសម្រួល OpenAI                           |
-| GET    | `/v1/models`                              | OpenAI                                          |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                                       |
-| GET    | `/v1beta/models`                          | Gemini                                          |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                          |
-| POST   | `/v1/api/chat`                            | Ollama                                          |
-| GET    | `/api/v1/vscode/{token}/`                 | ឈ្មោះហៅក្រៅកាតាឡុក OpenAI                       |
-| GET    | `/api/v1/vscode/{token}/models`           | ឈ្មោះហៅក្រៅម៉ូដែល OpenAI                        |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | ឈ្មោះហៅក្រៅដែលបានបំបែកជាថូខឹន OpenAI            |
-| POST   | `/api/v1/vscode/{token}/responses`        | ឈ្មោះហៅក្រៅការឆ្លើយតប OpenAI ដែលបានបំបែកជាថូខឹន |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | ឈ្មោះហៅក្រៅ Ollama ដែលបានបំបែកជាថូខឹន           |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | ឈ្មោះហៅក្រៅស្លាក Ollama ដែលបានបំបែកជាថូខឹន      |
+| វិធីសាស្ត្រ | ផ្លូវ                                     | ទម្រង់                                       |
+| ----------- | ----------------------------------------- | -------------------------------------------- |
+| POST        | `/v1/chat/completions`                    | OpenAI                                       |
+| POST        | `/v1/messages`                            | Anthropic                                    |
+| POST        | `/v1/responses`                           | OpenAI Responses                             |
+| POST        | `/v1/embeddings`                          | OpenAI                                       |
+| POST        | `/v1/images/generations`                  | OpenAI Images                                |
+| POST        | `/v1/images/edits`                        | OpenAI Images (កែសម្រួល/inpaint)             |
+| POST        | `/v1/videos/generations`                  | ការបង្កើតវីដេអូតាមបែប OpenAI                 |
+| POST        | `/v1/music/generations`                   | ការបង្កើតតន្ត្រីតាមបែប OpenAI                |
+| POST        | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                           |
+| POST        | `/v1/audio/speech`                        | OpenAI TTS (ត្រឡប់តួទិន្នន័យអូឌីយ៉ូ)         |
+| POST        | `/v1/rerank`                              | ការរៀបចំណាត់ថ្នាក់ឡើងវិញតាមបែប Cohere/Voyage |
+| POST        | `/v1/classify`                            | ការចាត់ថ្នាក់ Jina (`api.jina.ai`)           |
+| POST        | `/v1/segment`                             | កម្មវិធីបែងចែក Jina (`segment.jina.ai`)      |
+| POST        | `/v1/moderations`                         | OpenAI Moderations                           |
+| GET         | `/v1/models`                              | OpenAI                                       |
+| POST        | `/v1/messages/count_tokens`               | Anthropic                                    |
+| GET         | `/v1beta/models`                          | Gemini                                       |
+| POST        | `/v1beta/models/{...path}`                | Gemini generateContent                       |
+| POST        | `/v1/api/chat`                            | Ollama                                       |
+| GET         | `/api/v1/vscode/{token}/`                 | ឈ្មោះជំនួសកាតាឡុក OpenAI                     |
+| GET         | `/api/v1/vscode/{token}/models`           | ឈ្មោះជំនួសម៉ូដែល OpenAI                      |
+| POST        | `/api/v1/vscode/{token}/chat/completions` | ឈ្មោះជំនួស OpenAI ដែលមាន token               |
+| POST        | `/api/v1/vscode/{token}/responses`        | ឈ្មោះជំនួស OpenAI Responses ដែលមាន token     |
+| POST        | `/api/v1/vscode/{token}/api/chat`         | ឈ្មោះជំនួស Ollama ដែលមាន token               |
+| GET         | `/api/v1/vscode/{token}/api/tags`         | ឈ្មោះជំនួសស្លាក Ollama ដែលមាន token          |
 
-រាល់ផ្លូវ POST ទាំងអស់មានទម្រង់ដូចគ្នា៖ `Bearer your-api-key` + តួ JSON ដែលបានផ្ទៀងផ្ទាត់ដោយ Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ជាដើម សូមមើល `src/shared/validation/schemas.ts`)។ 4xx ត្រូវបានប្រគល់មកវិញនៅពេលបរាជ័យ Schema។
+រាល់ផ្លូវ POST ទាំងអស់មានរចនាសម្ព័ន្ធដូចគ្នា៖ `Bearer your-api-key` + តួ JSON ដែលបានផ្ទៀងផ្ទាត់ដោយ Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` ជាដើម សូមមើល `src/shared/validation/schemas.ts`)។ 4xx នឹងត្រូវបានត្រឡប់នៅពេលការផ្ទៀងផ្ទាត់ schema បរាជ័យ។
 
-សម្រាប់ម៉ាស៊ីនភ្ញៀវដែលមិនអាចភ្ជាប់ `Authorization: Bearer ...` នោះ OmniRoute ក៏ទទួលយក API key នៅក្នុង URL តាមរយៈភាពត្រូវគ្នានៃ query-string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ឬចំណុចបញ្ចប់ដែលបានកំណត់ `/api/v1/vscode/{token}/...` ដែលបានចងក្រងជាឯកសារខាងក្រោម។
+សម្រាប់ client ដែលមិនអាចភ្ជាប់ `Authorization: Bearer ...` បាន OmniRoute ក៏ទទួលយក API key នៅក្នុង URL តាមរយៈភាពត្រូវគ្នានៃ query string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ឬតាមរយៈចំណុចបញ្ចប់ `/api/v1/vscode/{token}/...` ដែលបានចងក្រងឯកសារខាងក្រោម។
 
 ```bash
-# Rerank (អ្នកផ្តល់សេវាចុះបញ្ជីពពក ឬថ្នាំងអ្នកផ្តល់សេវាដែលត្រូវគ្នាជាមួយ OpenAI ជា "<prefix>/<model>")
+# រៀបចំណាត់ថ្នាក់ឡើងវិញ (អ្នកផ្តល់សេវាក្នុង cloud registry ឬ node អ្នកផ្តល់សេវាដែលត្រូវគ្នាជាមួយ OpenAI ជា "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (លិខិតសម្គាល់ Foundation API)
+# ការចាត់ថ្នាក់ Jina (ព័ត៌មានសម្គាល់អត្តសញ្ញាណ Foundation API)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# កម្មវិធីបែងចែក Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; ឈ្មោះហៅក្រៅអ្នកផ្តល់សេវា: jina-search, jina-ai, jina)
+# ការស្វែងរក Jina (s.jina.ai; ឈ្មោះជំនួសអ្នកផ្តល់សេវា៖ jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# ការសម្របសម្រួល
+# ការត្រួតពិនិត្យខ្លឹមសារ
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — ប្រគល់តួ audio/mpeg (ឬទម្រង់ដែលបានស្នើសុំ)
+# TTS — ត្រឡប់តួទិន្នន័យ audio/mpeg (ឬទម្រង់ដែលបានស្នើសុំ)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# កែសម្រួលរូបភាព (multipart)
+# Soniox TTS តម្រូវឱ្យមានភាសា និងសំឡេង៖ `language` មានលំនាំដើមជា "en"; សំឡេងដែលបាត់
+# ឬឈ្មោះសំឡេងស្តង់ដាររបស់ OpenAI (alloy, nova, …) នឹងក្លាយជា "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# ការកែសម្រួលរូបភាព (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # ការបង្កើតវីដេអូ / តន្ត្រី (លេខសម្គាល់ម៉ូដែលដែលមានបុព្វបទអ្នកផ្តល់សេវា)
@@ -483,13 +487,28 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **ថ្នាំងអ្នកផ្តល់សេវា Rerank:** `POST /v1/rerank` ក៏បញ្ជូនទៅកាន់ថ្នាំងអ្នកផ្តល់សេវាដែលត្រូវគ្នាជាមួយ OpenAI (oMLX, vLLM, Infinity, TEI នៅពីក្រោយ gateway, …) ដែលមានអាសយដ្ឋានជា `<node-prefix>/<model>`។ ថ្នាំង Loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) តែងតែមានសិទ្ធិ។ ថ្នាំងនៅលើម៉ាស៊ីនផ្សេងទៀត — ដូចជា LAN box ឬ Tailscale peer — មានសិទ្ធិតែនៅពេលដែលប្រតិបត្តិករបើកដំណើរការ feature flag `RERANK_REMOTE_PROVIDER_NODES` **និង** URL មូលដ្ឋានរបស់ថ្នាំងឆ្លងកាត់គោលការណ៍ URL ចេញរបស់អ្នកផ្តល់សេវា (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)។ ម៉ាស៊ីន cloud-metadata មិនត្រូវបានបញ្ជូនទៅទេ។ ជំហាន rerank របស់ memory engine ហៅផ្លូវនេះតាមរយៈ loopback ដូច្នេះច្បាប់ដូចគ្នានេះគ្រប់គ្រង `rerankProviderModel` នៅក្នុងការកំណត់ Memory។
+> **node អ្នកផ្តល់សេវារៀបចំណាត់ថ្នាក់ឡើងវិញ៖** `POST /v1/rerank` ក៏បញ្ជូនផ្លូវទៅកាន់ node អ្នកផ្តល់សេវាដែលត្រូវគ្នាជាមួយ OpenAI
+> (oMLX, vLLM, Infinity, TEI នៅពីក្រោយ gateway, …) ដែលបានកំណត់អាសយដ្ឋានជា `<node-prefix>/<model>`។ node ត្រឡប់មកម៉ាស៊ីនខ្លួនឯង
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) តែងតែមានសិទ្ធិប្រើបាន។ node នៅលើ host ផ្សេងទៀត
+> — ម៉ាស៊ីនក្នុង LAN ឬ Tailscale peer — មានសិទ្ធិប្រើបាន លុះត្រាតែប្រតិបត្តិករបើក
+> feature flag `RERANK_REMOTE_PROVIDER_NODES` **និង** URL មូលដ្ឋានរបស់ node ឆ្លងកាត់គោលការណ៍ URL ចេញក្រៅរបស់អ្នកផ្តល់សេវា
+> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> host សម្រាប់ metadata របស់ cloud មិនត្រូវបានបញ្ជូនផ្លូវទៅឡើយ។ ជំហានរៀបចំណាត់ថ្នាក់ឡើងវិញរបស់ memory engine ហៅផ្លូវនេះតាម
+> loopback ដូច្នេះច្បាប់ដូចគ្នានេះគ្រប់គ្រង `rerankProviderModel` នៅក្នុងការកំណត់ Memory។
 >
-> **ទម្រង់ម៉ាស៊ីនមេមូលដ្ឋាន:** ថ្នាំងត្រូវបានហៅនៅ `<base>/v1/rerank` ហើយនៅពេល 404 ត្រូវបានហៅនៅ `<base>/rerank` (Infinity, TEI)។ តួ upstream ផ្ទុកទាំងអក្ខរាវិរុទ្ធ Cohere/OpenAI (`documents`, `return_documents`) និងអក្ខរាវិរុទ្ធ TEI (`texts`, `return_text`) ហើយការឆ្លើយតប upstream ត្រូវបានធ្វើឱ្យមានលក្ខណៈធម្មតាទៅជា Cohere envelope: TEI's bare `[{index, score, text}]`, `{results: [{index, score}]}` ពី thin gateways, និង Voyage-style `{data: [...]}` ទាំងអស់ត្រឡប់ទៅម៉ាស៊ីនភ្ញៀវវិញជា `{results: [{index, relevance_score, document?}]}` ដែលត្រូវបានតម្រៀបតាមពិន្ទុ និងកំណត់ត្រឹម `top_n`។
->
-> **ការរកឃើញថ្នាំងអ្នកផ្តល់សេវា:** ម៉ូដែលនៅលើថ្នាំងអ្នកផ្តល់សេវាដែលត្រូវគ្នាជាមួយ OpenAI លេចឡើងនៅក្នុង `GET /v1/models` ក្រោមបុព្វបទថ្នាំង។ ជួរដេកដែលមិនមាន metadata ចំណុចបញ្ចប់ (ធម្មតាសម្រាប់បញ្ជី `/v1/models` ក្នុងស្រុក) ទទួលមរតក `apiType` របស់ថ្នាំង ដូច្នេះម៉ូដែលរបស់ថ្នាំង embeddings គឺ `type: "embedding"` ហើយម៉ូដែលរបស់ថ្នាំង rerank គឺ `type: "rerank"` ជំនួសឱ្យការកំណត់លំនាំដើមទៅជា chat។ `supportedEndpoints` ច្បាស់លាស់នៅលើជួរដេកដែលបានធ្វើសមកាលកម្ម ឬបានបន្ថែមដោយដៃនៅតែមានអាទិភាព។
+> **រចនាសម្ព័ន្ធ server មូលដ្ឋាន៖** node ត្រូវបានហៅនៅ `<base>/v1/rerank` ហើយនៅពេលទទួល 404 ត្រូវបានហៅនៅ `<base>/rerank`
+> (Infinity, TEI)។ តួទិន្នន័យដែលបញ្ជូនទៅ upstream មានទាំងការសរសេរតាមបែប Cohere/OpenAI (`documents`,
+> `return_documents`) និងការសរសេរតាមបែប TEI (`texts`, `return_text`) ហើយ response របស់ upstream ត្រូវបាន
+> ធ្វើឱ្យមានស្តង់ដារទៅជា envelope របស់ Cohere៖ ទម្រង់ទទេរបស់ TEI `[{index, score, text}]`, `{results: [{index, score}]}`
+> ពី gateway ស្តើង និងទម្រង់បែប Voyage `{data: [...]}` ទាំងអស់ត្រូវបានត្រឡប់ទៅ client ជា
+> `{results: [{index, relevance_score, document?}]}` ដែលត្រូវបានតម្រៀបតាមពិន្ទុ និងកំណត់ចំនួនត្រឹម `top_n`។
 
-### ផ្លូវអ្នកផ្តល់សេវាដែលបានកំណត់
+> **ការស្វែងរកថ្នាំងអ្នកផ្តល់សេវា:** ម៉ូដែលនៅលើថ្នាំងអ្នកផ្តល់សេវាដែលឆបគ្នាជាមួយ OpenAI បង្ហាញនៅក្នុង `GET /v1/models`
+> ក្រោមបុព្វបទរបស់ថ្នាំង។ ជួរដេកដែលមិនមានមេតាទិន្នន័យ endpoint (ជាទូទៅសម្រាប់បញ្ជី `/v1/models` មូលដ្ឋាន)
+> ទទួលយក `apiType` របស់ថ្នាំង ដូច្នេះម៉ូដែលរបស់ថ្នាំង `embeddings` មាន `type: "embedding"` ហើយម៉ូដែលរបស់
+> ថ្នាំង `rerank` មាន `type: "rerank"` ជំនួសឱ្យការកំណត់លំនាំដើមទៅជា chat; `supportedEndpoints` ដែលបានបញ្ជាក់ជាក់លាក់នៅលើជួរដេកដែលបានធ្វើសមកាលកម្ម ឬបន្ថែមដោយដៃ នៅតែមានអាទិភាព។
+
+### ផ្លូវពិសេសសម្រាប់អ្នកផ្តល់សេវា
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -497,7 +516,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-បុព្វបទ provider នឹងត្រូវបានបន្ថែមដោយស្វ័យប្រវត្តិ ប្រសិនបើបាត់។ ម៉ូដែលដែលមិនត្រូវគ្នា នឹងត្រឡប់ `400`។
+បុព្វបទរបស់អ្នកផ្តល់សេវាត្រូវបានបន្ថែមដោយស្វ័យប្រវត្តិ ប្រសិនបើមិនមាន។ ម៉ូដែលដែលមិនត្រូវគ្នានឹងត្រឡប់ `400`។
 
 ---
 
@@ -1427,22 +1446,22 @@ GET /.well-known/agent.json
 
 ---
 
-## Cloud, Evals និង Assess
+## ក្លោដ, តេស្តវាយតម្លៃ និងការវាយតម្លៃ
 
-| វិធីសាស្ត្រ | Path | ការពិពណ៌នា |
+| វិធីសាស្ត្រ | ផ្លូវ | សេចក្តីពិពណ៌នា |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | ផ្ទៀងផ្ទាត់ Bearer key ហើយត្រឡប់ connection របស់ provider ដែលបានបិទបាំង + alias របស់ model សម្រាប់ client ធ្វើ cloud sync |
-| POST | `/api/cloud/credentials/update` | ធ្វើបច្ចុប្បន្នភាព credential ដែលបានអ៊ិនគ្រីបសម្រាប់ provider ដែលបាន sync ជាមួយ cloud |
-| POST | `/api/cloud/model/resolve` | កំណត់ model id ឡូជីខលទៅជា provider/model ជាក់លាក់ដោយប្រើតារាង routing មូលដ្ឋាន |
-| GET | `/api/cloud/models/alias` | រាយបញ្ជី alias របស់ model ដូចដែលបានបង្ហាញសម្រាប់ cloud sync |
-| GET | `/api/assess` | អានការចាត់ប្រភេទ assessment ចុងក្រោយបំផុត (តាម provider/model នីមួយៗ) |
-| POST | `/api/assess` | ដំណើរការ assessment មួយ — body៖ `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | រាយបញ្ជី eval suite ដែលមានស្រាប់ + ការដំណើរការថ្មីៗបំផុត |
-| POST | `/api/evals` | ចាប់ផ្ដើមការដំណើរការ eval |
-| POST | `/api/evals/suites` | បង្កើត eval suite ផ្ទាល់ខ្លួន — body ត្រូវបានផ្ទៀងផ្ទាត់ដោយ `evalSuiteSaveSchema` |
-| GET | `/api/evals/suites/[id]` | ទាញយក eval suite ផ្ទាល់ខ្លួនមួយ |
+| POST | `/api/cloud/auth` | ផ្ទៀងផ្ទាត់សោ Bearer ហើយត្រឡប់ការតភ្ជាប់ទៅកាន់អ្នកផ្តល់សេវាដែលបានបិទបាំង + ឈ្មោះក្លែងក្លាយរបស់ម៉ូដែល សម្រាប់កម្មវិធីភ្ញៀវធ្វើសមកាលកម្មក្លោដ |
+| POST | `/api/cloud/credentials/update` | ធ្វើបច្ចុប្បន្នភាពព័ត៌មានសម្គាល់អត្តសញ្ញាណដែលបានអ៊ិនគ្រីប សម្រាប់អ្នកផ្តល់សេវាដែលបានធ្វើសមកាលកម្មជាមួយក្លោដ |
+| POST | `/api/cloud/model/resolve` | កំណត់ម៉ូដែលឡូជីខលតាម id ទៅជាអ្នកផ្តល់សេវា/ម៉ូដែលជាក់លាក់ ដោយប្រើតារាងកំណត់ផ្លូវមូលដ្ឋាន |
+| GET | `/api/cloud/models/alias` | រាយបញ្ជីឈ្មោះក្លែងក្លាយរបស់ម៉ូដែល ដូចដែលបានបង្ហាញសម្រាប់ការធ្វើសមកាលកម្មក្លោដ |
+| GET | `/api/assess` | អានចំណាត់ថ្នាក់នៃការវាយតម្លៃចុងក្រោយបំផុត (តាមអ្នកផ្តល់សេវា/ម៉ូដែលនីមួយៗ) |
+| POST | `/api/assess` | ដំណើរការការវាយតម្លៃ — តួសំណើ៖ `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | រាយបញ្ជីសំណុំតេស្តវាយតម្លៃដែលមានស្រាប់ + ការដំណើរការថ្មីៗបំផុត |
+| POST | `/api/evals` | ចាប់ផ្តើមការដំណើរការតេស្តវាយតម្លៃ |
+| POST | `/api/evals/suites` | បង្កើតសំណុំតេស្តវាយតម្លៃផ្ទាល់ខ្លួន — តួសំណើត្រូវបានផ្ទៀងផ្ទាត់ដោយ `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | ទាញយកសំណុំតេស្តវាយតម្លៃផ្ទាល់ខ្លួន |
 
-**Auth៖** `/api/cloud/auth` ផ្ទៀងផ្ទាត់ Bearer key ដោយផ្ទាល់; route `/api/cloud/*`, `/api/evals/*` និង `/api/assess` ផ្សេងទៀត តម្រូវឱ្យមាន management session/API key។ POST `/api/assess` ប្រើ `validateBody` ជាមួយ schema scope ប្រភេទ discriminated-union។
+**ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ៖** `/api/cloud/auth` ផ្ទៀងផ្ទាត់សោ Bearer ដោយផ្ទាល់ ហើយត្រឡប់តែសោដែលបានបិទបាំង និង `projectId` នៃការតភ្ជាប់នីមួយៗ សម្រាប់សោដែលមានវិសាលភាព `manage` / `admin` ប៉ុណ្ណោះ; ផ្លូវ `/api/cloud/*`, `/api/evals/*` និង `/api/assess` ផ្សេងទៀត ទាមទារសម័យគ្រប់គ្រង/សោ API។ POST `/api/assess` ប្រើ `validateBody` ជាមួយស្គីមាវិសាលភាពប្រភេទ discriminated-union។
 
 ---
 

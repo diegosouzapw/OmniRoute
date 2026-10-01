@@ -431,8 +431,7 @@ So‘ng `dist/` tarkibini masofaviy `app/` katalogiga rsync orqali sinxronlaydig
 ## Yordam olish
 
 - **Arxitektura**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) fayliga qarang
-- **API ma’lumotnomasi**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) fayliga qarang
+- **API maʼlumotnomasi**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) fayliga qarang
 - **Xavfsizlik hujjatlari**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Ekspluatatsiya hujjatlari**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Operatsion hujjatlar**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Muammolar**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR’lar**: Arxitektura qarorlari yozuvlari uchun `docs/adr/` katalogiga qarang
