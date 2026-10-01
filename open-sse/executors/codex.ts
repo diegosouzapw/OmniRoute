@@ -44,7 +44,10 @@ import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudge
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { projectCodexPublicError } from "../utils/codexPublicError.ts";
 import { errorResponse } from "../utils/error.ts";
-import { buildSyntheticResponsesFailedEvent } from "../utils/responsesSequence.ts";
+import {
+  buildSyntheticResponsesFailureId,
+  buildSyntheticResponsesFailedEvent,
+} from "../utils/responsesSequence.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
@@ -494,7 +497,7 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
   if (statusCode !== null) error.status_code = statusCode;
 
   return buildSyntheticResponsesFailedEvent({
-    id: typeof response?.id === "string" ? response.id : null,
+    id: typeof response?.id === "string" ? response.id : buildSyntheticResponsesFailureId(),
     status: "failed",
     error,
   });
@@ -973,7 +976,9 @@ export class CodexExecutor extends BaseExecutor {
       const controller = streamController;
       const payload = JSON.stringify(
         buildSyntheticResponsesFailedEvent({
-          id: null,
+          // #15202: the WebSocket failure path has no upstream id to preserve, so it
+          // must synthesize a string id instead of emitting `id: null`.
+          id: buildSyntheticResponsesFailureId(),
           status: "failed",
           error: projectCodexPublicError({ status: 502, code, type: "provider_error" }),
         })
