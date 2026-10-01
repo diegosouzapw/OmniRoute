@@ -20,6 +20,7 @@ import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
+import { resolveTraeApiHost } from "../utils/traeHost.ts";
 
 type JsonRecord = Record<string, unknown>;
 type ChatMessage = { role?: string; content?: unknown };
@@ -455,7 +456,7 @@ export class TraeExecutor extends BaseExecutor {
     const psd = (credentials?.providerSpecificData as JsonRecord) || {};
     const refreshToken = credentials?.refreshToken as string | undefined;
     if (!refreshToken) return null;
-    const host = ((psd.host as string) || "https://api-us-east.trae.ai").replace(/\/$/, "");
+    const host = resolveTraeApiHost(psd.host);
     const clientId =
       (psd.clientId as string) || resolvePublicCred("trae_id", "TRAE_OAUTH_CLIENT_ID");
     const url = `${host}/cloudide/api/v3/trae/oauth/ExchangeToken`;

@@ -341,65 +341,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # መጀመሪያ OMNIROUTE_API
 
 ---
 
-## አውዶችን ማስተዳደር (በአገልጋዮች መካከል መቀያየር)
+## ኮንቴክስቶችን ማስተዳደር (በሰርቨሮች መካከል መቀያየር)
 
-**አውድ** የተቀመጠ አገልጋይ (baseUrl + ማረጋገጫ መረጃ + ወሰን) ነው። `omniroute connect`
-አንድ አውድ ይፈጥርና ንቁ ያደርገዋል፤ ከዚያ በኋላ እያንዳንዱ ትእዛዝ ወደዚያ ይመራል። አውዶችን በ`omniroute contexts`
-ያስተዳድሩ እና በመካከላቸው ይቀያየሩ፦
+አንድ **ኮንቴክስት** የተቀመጠ ሰርቨር ነው (baseUrl + ምስክርነት + ስኮፕ)። `omniroute connect` አንዱን ይፈጥራል እና ንቁ ያደርገዋል፤ ከዚያን ጊዜ ጀምሮ እያንዳንዱ ትዕዛዝ እሱን ኢላማ ያደርጋል። በ`omniroute contexts` በመጠቀም ያቀናብሩ እና በመካከላቸው ይቀያይሩ:
 
 ```bash
-omniroute contexts list            # ሁሉም አውዶች፤ ንቁው በ● ይመለከታል
-omniroute contexts current         # ንቁው አገልጋይ፣ የማረጋገጫ ሁኔታ እና ወሰን
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
 ```
 
 ```text
-  | ስም     | መሠረታዊ URL               | ማረጋገጫ | ወሰን  | መግለጫ
-● | vps     | http://100.67.86.91:20128 | token     | admin | የርቀት OmniRoute (…)
-  | default | http://localhost:20128    | ✗         |       |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**አገልጋዮችን ይቀያይሩ** — ከዚያ በኋላ የሚሰጠው እያንዳንዱ ትእዛዝ ንቁውን አውድ ይከተላል፦
+**ሰርቨሮችን ይቀይሩ** — እያንዳንዱ ተከታይ ትዕዛዝ ንቁ ኮንቴክስትን ይከተላል:
 
 ```bash
-omniroute contexts use vps         # → አሁን ሁሉም ትእዛዞች የርቀት VPSን ይጠቀማሉ
-omniroute tokens list              #   (በVPS ላይ ይሠራል)
+omniroute contexts use vps         # → all commands now hit the remote VPS
+omniroute tokens list              #   (runs against the VPS)
 
-omniroute contexts use default     # → ወደ localhost ተመለስ
-omniroute tokens list              #   (በአካባቢያዊው አገልጋይ ላይ ይሠራል)
+omniroute contexts use default     # → back to localhost
+omniroute tokens list              #   (runs against the local server)
 ```
 
-**አውድን በእጅ ያክሉ** (በ`connect` ፋንታ)፣ ይመርምሩት ወይም ስሙን ይቀይሩ፦
+**ኮንቴክስትን በእጅ ያክሉ** (`connect` ከማድረግ ይልቅ)፣ ይፈትሹ፣ ወይም ስም ይቀይሩ:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "የሙከራ አገልጋይ"
-omniroute contexts show staging    # ለአንድ አውድ ሙሉ ዝርዝሮች
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # full details for one context
 omniroute contexts rename staging stg
 ```
 
-**አውድን ያስወግዱ** — ማረጋገጫ ይጠይቃል፤ ይህን ለመዝለል `--yes` ይጠቀሙ
-(ያለበለዚያ በደህና ውድቅ ለሚያደርጉ ስክሪፕቶች / መስተጋብራዊ ላልሆኑ shells ያስፈልጋል)፦
+**ኮንቴክስትን ያስወግዱ** — ለማረጋገጥ ይጠይቃል፤ ለመዝለል `--yes` ን ያስተላልፉ (ለስክሪፕቶች / መስተጋብራዊ ላልሆኑ ሼሎች ያስፈልጋል፣ አለበለዚያ በአስተማማኝ ሁኔታ እምቢ ይላል):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) ሊወገድ አይችልም። ንቁውን አውድ ማስወገድ ወደ
-> `default` ይመልሳል። ጠቃሚ ምክር፦ አውድን ማስወገድ የሚያስወግደው **አካባቢያዊ** የተቀመጠውን ማረጋገጫ መረጃ ብቻ ነው —
-> መዳረሻን በትክክል ለማቋረጥ ቶከኑን በአገልጋዩ ላይ በ`omniroute tokens revoke <id>` ይሻሩ።
+> `default` (localhost) ሊወገድ አይችልም። ንቁ ኮንቴክስትን ማስወገድ ወደ `default` ይመለሳል። ጠቃሚ ምክር: ኮንቴክስትን ማስወገድ የሚያስወግደው **አካባቢያዊ** የተቀመጠውን ምስክርነት ብቻ ነው — ትክክለኛውን መዳረሻ ለማጥፋት ቶከኑን በሰርቨሩ ላይ በ`omniroute tokens revoke <id>` ያጥፉ።
 
-አውዶችን **ወደ ውጭ መላክ / ከውጭ ማስገባት** (ለምሳሌ፣ በማሽኖች መካከል ለማዛወር)። አዲስ አውዶች የሚያስቀምጡት
-የቁልፍ ሰንሰለት ማጣቀሻን ብቻ ነው፤ የOS ቁልፍ ሰንሰለት ሲገኝ የማረጋገጫ መረጃዎች ወደ ውጭ በሚላከው ፋይል ውስጥ አይገለበጡም፦
+**ኮንቴክስቶችን ወደ ውጭ መላክ / ማስመጣት** (ለምሳሌ በመሳሪያዎች መካከል ለማንቀሳቀስ)። ወደ ውጭ የሚላኩ ነገሮች በነባሪነት ምስክርነቶችን ይተዋሉ፣ በፋይል ምትኬ የተከማቹ ምስክርነቶችን ጨምሮ። ተንቀሳቃሽ ምስክርነት የያዘ ምትኬ ሲያስፈልግ `--include-secrets` ን በግልጽ ይጠቀሙ:
 
 ```bash
-omniroute contexts export --out contexts.json     # ነባሪ፦ stdout
-omniroute contexts import contexts.json            # ይተካል፤ ነባሮቹን ለማቆየት --merge
-omniroute contexts migrate --yes                  # የቆዩ plaintext ቶከኖችን ወደ ቁልፍ ሰንሰለት ያዛውሩ
+omniroute contexts export --out contexts.json     # redacted; default destination: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
 
-ጥቅም ላይ የሚውል የOS ቁልፍ ሰንሰለት በሌላቸው headless ስርዓቶች ላይ CLIው
-በ`0600` ሁነታ ወደ `config.json` ይመለሳል እና የአንድ ጊዜ ማስጠንቀቂያ ያትማል። ከዚያ ተተኪ ዘዴ የተላኩ ፋይሎችን
-(እና ከማዛወር በፊት ያሉ ማናቸውንም የቆዩ ውቅሮች) እንደ ምስጢራዊ መረጃ ይያዙ።
+`--include-secrets` ወደ ውጭ ከመላኩ በፊት የቁልፍ ሰንሰለት ማጣቀሻዎችን ይፈታል እና ማንኛውም የተጠቀሰ ምስክርነት ሊነበብ ካልቻለ ይከሽፋል። `--no-secrets` ሁልጊዜ ቅድሚያ ይሰጣል። ወደ ውጭ የሚላኩ ፋይሎች በአቶሚክ ሁኔታ በ`0600` ሞድ ይጻፋሉ። ግልጽ የሆነ ሚስጥር የያዘ ወደ ውጭ መላክን እንደ ሚስጥራዊ ቁሳቁስ ይቁጠሩት። ሊሰራ የሚችል የስርዓተ ክወና ቁልፍ ሰንሰለት በሌላቸው ሄድለስ ሲስተሞች ላይ፣ CLI ወደ `config.json` በ`0600` ሞድ ይመለሳል እና የአንድ ጊዜ ማስጠንቀቂያ ያትማል፤ በዚህ ሞድ ውስጥ ነባሪ ወደ ውጭ መላክ ተስተካክሎ ይቆያል።
 
 ---
 

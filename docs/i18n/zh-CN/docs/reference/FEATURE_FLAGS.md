@@ -39,154 +39,155 @@
 
 ## 标志目录
 
-共 76 个标志，分为 6 个类别。**默认值**是定义中的默认值，即既不存在数据库覆盖值，也不存在环境变量时所使用的值。
+共 80 个标志，分为 6 个类别。**默认值**是定义中的默认值——当既不存在 DB 覆盖值，也不存在环境变量时使用的值。
 
 ### 安全性 (10)
 
-| 键                                      | 类型   | 默认值   | 描述                                                                                                                                                                                   |
-| --------------------------------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `REQUIRE_API_KEY`                       | 布尔值 | `false`  | 要求所有传入请求提供 API 密钥。                                                                                                                                                        |
-| `INPUT_SANITIZER_ENABLED`               | 布尔值 | `true`   | 为所有请求启用输入清理。                                                                                                                                                               |
-| `INJECTION_GUARD_MODE`                  | 枚举   | `off`    | 提示词注入防护模式。可选值：`off`、`warn`、`block`、`redact`。                                                                                                                         |
-| `PII_REDACTION_ENABLED`                 | 布尔值 | `false`  | 从请求中修订 PII（独立于 `INPUT_SANITIZER_MODE`）。                                                                                                                                    |
-| `PII_RESPONSE_SANITIZATION`             | 布尔值 | `false`  | 清理提供者响应中的 PII。                                                                                                                                                               |
-| `PII_RESPONSE_SANITIZATION_MODE`        | 枚举   | `redact` | PII 响应清理模式。可选值：`redact`、`warn`、`block`、`off`。                                                                                                                           |
-| `OUTBOUND_SSRF_GUARD_ENABLED`           | 布尔值 | `true`   | 阻止向私有/内部 IP 范围发送出站请求。                                                                                                                                                  |
-| `ALLOW_API_KEY_REVEAL`                  | 布尔值 | `false`  | 允许已经过身份验证的仪表板用户显示已存储的 API 密钥，而不是仅查看掩码值。                                                                                                              |
-| `AUTH_LOG_INCLUDE_ACCOUNT_ID`           | 布尔值 | `false`  | 在 AUTH 日志行中包含账户前缀（例如“正在使用 <provider> 账户：abc12345...”）。默认禁用，因此账户标识符会从共享/多租户进程日志中修订。此设置独立于调试模式；切换调试模式不会显示该信息。 |
-| `OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN` | 布尔值 | `false`  | 启用 OIDC 时，禁用密码登录，使用户只能通过 OIDC 单点登录进行身份验证。禁用时（默认），密码登录和 OIDC 均可用。                                                                         |
+| 键                                      | 类型   | 默认值   | 描述                                                                                                                                                                                         |
+| --------------------------------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REQUIRE_API_KEY`                       | 布尔值 | `false`  | 要求所有传入请求都提供 API 密钥。                                                                                                                                                            |
+| `INPUT_SANITIZER_ENABLED`               | 布尔值 | `true`   | 为所有请求启用输入清理。                                                                                                                                                                     |
+| `INJECTION_GUARD_MODE`                  | 枚举   | `off`    | 提示词注入防护模式。可选值：`off`、`warn`、`block`、`redact`。                                                                                                                               |
+| `PII_REDACTION_ENABLED`                 | 布尔值 | `false`  | 从请求中隐去 PII（独立于 `INPUT_SANITIZER_MODE`）。                                                                                                                                          |
+| `PII_RESPONSE_SANITIZATION`             | 布尔值 | `false`  | 清理提供者响应中的 PII。                                                                                                                                                                     |
+| `PII_RESPONSE_SANITIZATION_MODE`        | 枚举   | `redact` | PII 响应清理模式。可选值：`redact`、`warn`、`block`、`off`。                                                                                                                                 |
+| `OUTBOUND_SSRF_GUARD_ENABLED`           | 布尔值 | `true`   | 阻止向私有/内部 IP 范围发出的出站请求。                                                                                                                                                      |
+| `ALLOW_API_KEY_REVEAL`                  | 布尔值 | `false`  | 允许经过身份验证的仪表板用户显示已存储的 API 密钥，而不是只能看到掩码值。                                                                                                                    |
+| `AUTH_LOG_INCLUDE_ACCOUNT_ID`           | 布尔值 | `false`  | 在 AUTH 日志行中包含账户前缀（例如，“正在使用 <provider> 账户：abc12345...”）。默认禁用，因此账户标识符会从共享/多租户进程日志中隐去。此设置独立于调试模式；切换调试模式不会显示这些标识符。 |
+| `OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN` | 布尔值 | `false`  | 启用 OIDC 后，禁用密码登录，使用户只能通过 OIDC 单点登录进行身份验证。禁用时（默认），密码登录和 OIDC 均可用。                                                                               |
 
-### 网络 (18)
+### 网络 (22)
 
-| 键                                              | 类型    | 默认值  | 重启 | 描述                                                                                                                                                                                                                                                                                                                                      |
-| ----------------------------------------------- | ------- | ------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ENABLE_TLS_FINGERPRINT`                        | boolean | `false` | ✓    | 启用 TLS 指纹隐匿模式。                                                                                                                                                                                                                                                                                                                   |
-| `AUDIO_REMOTE_PROVIDER_NODES`                   | boolean | `false` |      | 允许 /v1/audio/* 路由使用托管在 localhost 之外、与 OpenAI 兼容的提供者节点。默认关闭——将音频路由到远程主机会改变出口身份，因此必须由运维人员明确决定。始终允许环回节点，且不受此设置影响。                                                                                                                                                |
-| `RERANK_REMOTE_PROVIDER_NODES`                  | boolean | `false` |      | 允许 POST /v1/rerank（以及记忆引擎的环回重排序步骤）使用托管在 localhost 之外、与 OpenAI 兼容的提供者节点。默认关闭——路由到远程主机会改变出口身份，因此必须由运维人员明确决定。始终允许环回节点；远程节点还必须通过提供者出站 URL 策略检查。                                                                                              |
-| `PROXY_AUTO_SELECT_ENABLED`                     | boolean | `false` |      | 当没有为连接分配代理时，自动从注册表中选择第一个可用的代理。默认关闭（否则注册表中的任何代理都会成为全局回退代理——#3332）。                                                                                                                                                                                                               |
-| `OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK` | boolean | `false` |      | 当代理可达性预检查失败时，允许 OAuth 和提供者验证流程绕过固定代理并直接连接。默认关闭，因为这可能会改变出口 IP。                                                                                                                                                                                                                          |
-| `NETWORK_ROTATION_SHARED_EGRESS_GUARD`          | boolean | `true`  |      | 对于多账户轮换执行器，如果发生网络异常（超时、连接被拒绝/重置），且失败账户没有专用代理，则应用短暂冷却，并在当前请求的剩余过程中跳过其他无代理账户，而不是逐一重试。默认开启（安全：不会改变出口 IP，只会降低共享出口账户的延迟/冷却风险）。禁用后，将恢复在第一个无代理账户抛出异常时立即传播该异常。                                   |
-| `PROXY_SKIP_RECENTLY_FAILED`                    | boolean | `false` |      | 代理池和 opencode 的按账户轮换会在每个进程的特定时段内停止重新提供刚刚失败的代理（TCP 探测被拒绝，或通过该代理收到 429）；每次重复失败时，该时段都会翻倍，直至达到上限。不会写入代理状态；当所有候选代理都被暂时搁置时，选择结果保持不变。默认关闭。                                                                                      |
-| `PROXY_POOL_EGRESS_OBSERVATION`                 | boolean | `false` |      | 在仪表板的代理池下显示过去 24 h 内为其成员提供服务的已观测出口 IP 数量，以及使用这些 IP 的连接数量。此信息为只读，根据代理日志计算，绝不会用于路由。默认关闭。                                                                                                                                                                            |
-| `OPENCODE_RESPONSES_STALL_ROTATION`             | boolean | `false` |      | 对于 OpenCode 执行器，监测流式 Responses 回复的第一个正文字节（时间窗口：`RESPONSES_FIRST_BYTE_TIMEOUT_MS`，默认值为 `15000`）。如果 2xx Responses 流在超过该时间窗口后仍无数据，则视为停滞：账户将进入冷却状态，并将请求轮换至下一个账户一次；如果再次停滞，则快速失败。默认关闭：停滞的流会继续按当前行为等待，直至达到流就绪超时时间。 |
-| `OPENCODE_USER_BLOCKED_ROTATION`                | boolean | `false` |      | OpenCode 执行器：当收到携带 `user_blocked` 拒绝信息的 403/451（非地理限制，也非 Cloudflare 指纹拒绝）时，将被拒绝的账户置于冷却状态，并且每个请求最多轮换至下一个账户一次；第二次拒绝将按原样返回，且不会标记为成功。默认关闭：绕过上游用户封禁进行路由可能被视为规避措施，并将标记扩散到整个账户池。                                     |
-| `OPENCODE_TRANSIENT_FAILOVER_BACKOFF`           | boolean | `false` |      | OpenCode 轮换：连续发生两次上游瞬时故障（5xx 或空响应的 400）后，在切换至下一个账户前暂停——从 1.5 秒开始，此后每次故障将等待时间加倍，单次暂停最长 6 秒，每个请求累计最长 10 秒；客户端断开连接时跳过暂停；等待前会释放失败的响应体。默认关闭：故障转移保持立即执行。                                                                     |
-| `OPENCODE_PARK_AND_RESUME`                      | boolean | `false` |      | OpenCode 轮换：在重复出现瞬时 429（或出现新的池压力标记）后，通过心跳机制挂起请求，然后重放一个受限轮次，依次尝试最多 3 个账户，而非向整个账户池并发扩散。默认关闭：每次收到 429 时都与之前完全一样轮换至下一个账户。                                                                                                                     |
-| `FLUSH_EMPTY_RETRY_ENABLED`                     | boolean | `false` |      | 对于经过转换的流式轮次，当上游轮次不包含可用内容（仅推理的完成结果或没有任何有价值的数据块）时，在向客户端公开任何内容之前，通过常规凭据路径进行有限次数的重试（最多 `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX` 次）。默认关闭：空轮次保持当前行为（返回空的 200 或空内容的 502）。                                                           |
-| `OPENCODE_RATE_LIMITED_429_EARLY_STOP`          | boolean | `false` |      | OpenCode 轮换：遇到首个被判定为真正速率限制的 429（包含可解析的 `Retry-After`，或响应体中提及速率/用量限制）时停止账户轮换，并原样返回该上游 429。无法分类的 429 将继续轮换。默认关闭：免费层按出口 IP 限制（#9611），因此每次收到 429 时都会轮换，所有账户均尝试失败后将返回最后一个上游 429。                                           |
-| `MITM_DISABLE_TLS_VERIFY`                       | boolean | `false` | ✓    | 禁用 MITM 代理的 TLS 证书验证。**危险。**                                                                                                                                                                                                                                                                                                 |
-| `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`         | boolean | `false` |      | 允许指向私有/内部网络的提供者 URL。                                                                                                                                                                                                                                                                                                       |
-| `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`           | boolean | `true`  |      | 允许添加/验证位于本地/私有地址（127.0.0.1、localhost、LAN）上的提供者。默认启用（本地优先）；如需严格限制为仅允许公共地址，请将其禁用。云元数据地址仍会被阻止。                                                                                                                                                                           |
-| `ENABLE_CC_COMPATIBLE_PROVIDER`                 | boolean | `false` | ✓    | 启用 Claude Code 兼容提供者模式。                                                                                                                                                                                                                                                                                                         |
+| 键                                              | 类型    | 默认值  | 重启 | 说明                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------------- | ------- | ------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ENABLE_TLS_FINGERPRINT`                        | boolean | `false` | ✓    | 启用 TLS 指纹隐匿模式。                                                                                                                                                                                                                                                                                                             |
+| `AUDIO_REMOTE_PROVIDER_NODES`                   | boolean | `false` |      | 允许 /v1/audio/* 路由使用托管在 localhost 之外、兼容 OpenAI 的提供者节点。默认关闭——将音频路由到远程主机会改变出口身份，因此必须由运维人员明确决定。始终允许环回节点，且其不受此设置影响。                                                                                                                                          |
+| `RERANK_REMOTE_PROVIDER_NODES`                  | boolean | `false` |      | 允许 POST /v1/rerank（以及记忆引擎的环回重排序步骤）使用托管在 localhost 之外、兼容 OpenAI 的提供者节点。默认关闭——路由到远程主机会改变出口身份，因此必须由运维人员明确决定。始终允许环回节点；远程节点还必须通过提供者出站 URL 策略检查。                                                                                          |
+| `PROXY_AUTO_SELECT_ENABLED`                     | boolean | `false` |      | 当未为连接分配代理时，自动从注册表中选择第一个可用的代理。默认关闭（否则注册表中的任何代理都会成为全局回退代理——#3332）。                                                                                                                                                                                                           |
+| `OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK` | boolean | `false` |      | 当代理可达性预检查失败时，允许 OAuth 和提供者验证流程绕过固定代理并直接连接。默认关闭，因为这可能会改变出口 IP。                                                                                                                                                                                                                    |
+| `NETWORK_ROTATION_SHARED_EGRESS_GUARD`          | boolean | `true`  |      | 对于多账户轮换执行器，当发生网络异常（超时、连接被拒绝/重置）且失败账户没有专用代理时，应用短暂冷却，并在该请求的剩余过程中跳过其他无代理账户，而不是逐一重试。默认开启（安全：不会改变出口 IP，只会降低共享出口账户的延迟/冷却风险）。禁用后，将恢复在第一个无代理账户抛出异常时立即向上传播。                                     |
+| `ROTATION_ATTRIBUTION`                          | boolean | `false` |      | Opencode 轮换会记录由哪个账户提供服务或哪个账户被跳过（仅记录脱敏后的 ID，绝不记录完整账户 ID），并将代理日志条目关联到相应请求，以便运维人员区分被跳过的账户与未使用的账户。默认关闭。                                                                                                                                             |
+| `PROXY_SKIP_RECENTLY_FAILED`                    | boolean | `true`  |      | 代理池和 opencode 的按账户轮换会暂时停止重新分配刚刚失败的代理（TCP 探测被拒绝，或通过该代理收到 429）；暂缓时长按进程计算，每次重复失败时翻倍，直至达到上限。不会写入代理状态；当所有候选代理均被暂缓时，选择结果保持不变。默认开启；设为 `false` 可恢复普通选择方式。                                                             |
+| `PROXY_POOL_SHARED_EGRESS_ORDER`                | boolean | `false` |      | 对于配额按出口地址分桶的提供者，将与近期被拒绝成员具有相同观测出口地址的池成员排在健康成员之后。仅调整顺序，绝不排除。需要启用 PROXY_SKIP_RECENTLY_FAILED，由它产生此设置所读取的拒绝信号。默认关闭。                                                                                                                               |
+| `PROXY_POOL_EGRESS_OBSERVATION`                 | boolean | `false` |      | 在仪表板的代理池下方显示过去 24 小时内为其成员提供服务的已观测出口 IP 数量，以及使用这些 IP 的连接数。只读，根据代理日志计算，绝不用于路由。默认关闭。                                                                                                                                                                              |
+| `OPENCODE_RESPONSES_STALL_ROTATION`             | boolean | `false` |      | 对于 OpenCode 执行器，监视流式 Responses 回复的第一个正文非空字节（时间窗口：`RESPONSES_FIRST_BYTE_TIMEOUT_MS`，默认值为 `15000`）。如果 2xx Responses 流在超过该时间窗口后仍无数据，则视为停滞：将该账户置于冷却状态，并将请求轮换至下一个账户一次；第二次停滞时快速失败。默认关闭：停滞的流会继续按当前行为等待，直至流就绪超时。 |
+| `OPENCODE_USER_BLOCKED_ROTATION`                | boolean | `false` |      | OpenCode 执行器：收到携带 `user_blocked` 拒绝信息的 403/451 响应时（非地域限制，也非 Cloudflare 指纹拒绝），将被拒绝的账户置于冷却状态，并且每个请求最多轮换至下一个账户一次；第二次拒绝将原样返回，且不标记为成功。默认关闭：绕过上游用户封禁的路由行为可能看起来像是在规避限制，并可能将标记扩散至整个账户集群。                  |
+| `OPENCODE_TRANSIENT_FAILOVER_BACKOFF`           | boolean | `false` |      | OpenCode 轮换：连续发生两次上游瞬时故障（5xx 或正文为空的 400）后，在尝试下一个账户前暂停——从 1.5 秒开始，后续每次故障将暂停时间翻倍，单次暂停最长 6 秒，每个请求累计最长 10 秒；客户端断开连接时跳过暂停。等待前会释放失败响应的正文。默认关闭：故障转移会立即进行。                                                               |
+| `OPENCODE_PARK_AND_RESUME`                      | boolean | `false` |      | OpenCode 轮换：在重复收到瞬时 429（或存在新的池压力标记）后，发送心跳并暂存请求，然后重放一轮有上限的尝试，最多依次使用 3 个账户，而不是向整个账户集群扇出请求。默认关闭：每次收到 429 时均与之前完全一样，轮换至下一个账户。                                                                                                       |
+| `STREAM_READINESS_STALL_RETRY`                  | boolean | `false` |      | 流式聊天：当第一个上游响应正文在生成可用事件前停滞时，通过相同的路由路径进行一次有界的第二次尝试，使用相同的就绪时间预算，且不对账户施加惩罚。默认关闭：第一个响应正文停滞时，请求直接失败，不进行重试。                                                                                                                            |
+| `FLUSH_EMPTY_RETRY_ENABLED`                     | boolean | `false` |      | 对于经过转换的流式轮次，当上游轮次不包含可用内容（仅有推理的完成结果或有价值的数据块数量为零）时，在向客户端公开任何内容之前，通过正常的凭证路径执行有界重试（最多 `STREAM_RECOVERY.EMPTY_TURN_RETRY_MAX` 次）。默认关闭：空轮次保持当前行为（空的 200 响应或内容为空的 502 响应）。                                                |
+| `OPENCODE_POOL_RESELECT`                        | boolean | `false` |      | OpenCode 轮换：在环境池上下文中，无代理账户从按出口 IP 分桶的提供者收到 429 后，要求连接池为下一次尝试选择其他成员，而不是使用相同的出口地址重试。仅调整顺序，绝不排除成员：池耗尽时保持当前行为。默认关闭：每次收到 429 时均与之前完全一样，轮换至下一个账户。                                                                     |
+| `OPENCODE_RATE_LIMITED_429_EARLY_STOP`          | boolean | `false` |      | OpenCode 轮换：遇到第一个被判定为真实速率限制的 429 时（包含可解析的 `Retry-After`，或正文中提及速率/用量限制），停止该轮账户尝试，并原样返回上游的 429。无法分类的 429 仍会继续轮换。默认关闭：免费层级按出口 IP 进行限制（#9611），因此每次收到 429 时都会轮换，而一轮尝试耗尽后会返回最后一个上游 429。                          |
+| `MITM_DISABLE_TLS_VERIFY`                       | boolean | `false` | ✓    | 禁用 MITM 代理的 TLS 证书验证。**危险。**                                                                                                                                                                                                                                                                                           |
+| `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`         | boolean | `false` |      | 允许提供者 URL 指向私有/内部网络。                                                                                                                                                                                                                                                                                                  |
+| `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`           | boolean | `true`  |      | 允许在本地/私有地址（127.0.0.1、localhost、LAN）上添加/验证提供者。默认启用（本地优先）；若要严格阻止仅限公网以外的地址，请将其禁用。云元数据地址仍会被阻止。                                                                                                                                                                       |
+| `ENABLE_CC_COMPATIBLE_PROVIDER`                 | boolean | `false` | ✓    | 启用与 Claude Code 兼容的提供者模式。                                                                                                                                                                                                                                                                                               |
 
-### 策略（5）
+### 策略 (5)
 
-| 键                              | 类型   | 默认值     | 描述                                                                                                                                       |
-| ------------------------------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `TOOL_POLICY_MODE`              | 枚举   | `disabled` | 工具使用策略的执行模式。可选值：`disabled`、`warn`、`block`。                                                                              |
-| `RATE_LIMIT_AUTO_ENABLE`        | 布尔值 | `false`    | 根据使用模式自动启用速率限制。                                                                                                             |
-| `DISABLE_CONTEXT_WINDOW_CHECKS` | 布尔值 | `false`    | 对直接的单模型请求跳过 OmniRoute 的本地上下文窗口/最大输入令牌检查。上游限制仍然适用。                                                     |
-| `CAPABILITY_FILTER_ENABLED`     | 布尔值 | `false`    | 当目标模型缺少所需能力（视觉、工具、结构化输出、上下文窗口）时，在分发前拒绝请求。保护绕过组合层兼容性筛选器、直接发送给单一提供者的请求。 |
-| `RADAR_ENABLED`                 | 布尔值 | `false`    | 启用 OmniRoute Radar 模块（目录源页面和同步）。默认关闭；启用后仅解锁 UI，数据同步仍需单独选择启用。                                       |
+| 键                              | 类型    | 默认值     | 描述                                                                                                                             |
+| ------------------------------- | ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `TOOL_POLICY_MODE`              | enum    | `disabled` | 工具使用策略执行模式。可选值：`disabled`、`warn`、`block`。                                                                      |
+| `RATE_LIMIT_AUTO_ENABLE`        | boolean | `false`    | 根据使用模式自动启用速率限制。                                                                                                   |
+| `DISABLE_CONTEXT_WINDOW_CHECKS` | boolean | `false`    | 对直接单模型请求跳过 OmniRoute 的本地上下文窗口/最大输入令牌检查。上游限制仍然适用。                                             |
+| `CAPABILITY_FILTER_ENABLED`     | boolean | `false`    | 当目标模型缺少必需功能（视觉、工具、结构化输出、上下文窗口）时，在分发前拒绝请求。保护绕过组合层兼容性筛选器的直接单提供者请求。 |
+| `RADAR_ENABLED`                 | boolean | `false`    | 启用 OmniRoute Radar 模块（目录源页面和同步）。默认关闭；启用仅会解锁 UI，数据同步仍需单独选择启用。                             |
 
-### 运行时（33）
+### 运行时 (33)
 
-| 键                                          | 类型    | 默认值  | 重启 | 描述                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ------------------------------------------- | ------- | ------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `UNIVERSAL_CONTEXT_HANDOFF_ENABLED`         | boolean | `true`  |      | 当组合路由切换模型时，生成并注入对话摘要。禁用后会独立处理模型切换，并阻止针对所有现有及未来组合的后台上下文交接请求。                                                                                                                                                                                                                                                                                                           |
-| `RESPONSES_PASSTHROUGH_DROP_COMMENTARY`     | boolean | `true`  |      | 在转发给客户端之前，从 Responses API 直通流中丢弃内部评论阶段的输出项。禁用后可接收原始上游评论。                                                                                                                                                                                                                                                                                                                                |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`              | boolean | `true`  |      | 对 MCP 工具访问强制实施作用域限制。                                                                                                                                                                                                                                                                                                                                                                                              |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`       | boolean | `false` |      | 压缩 MCP 工具描述以减少令牌用量。                                                                                                                                                                                                                                                                                                                                                                                                |
-| `OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS` | boolean | `false` |      | 启用运行时后台任务处理。                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `OMNIROUTE_DISABLE_BACKGROUND_SERVICES`     | boolean | `false` | ✓    | 禁用所有后台服务（配额刷新、同步等）。                                                                                                                                                                                                                                                                                                                                                                                           |
-| `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS`       | boolean | `false` |      | 信任项目级 RTK 过滤器，无需验证。                                                                                                                                                                                                                                                                                                                                                                                                |
-| `OMNIROUTE_ENABLE_LIVE_WS`                  | boolean | `true`  | ✓    | 导入时启动实时仪表板 WebSocket 服务器（默认端口为 20132）。                                                                                                                                                                                                                                                                                                                                                                      |
-| `OMNIROUTE_CODEX_WS_ENABLED`                | boolean | `true`  |      | 允许 Codex 使用 Responses-over-WebSocket 传输。关闭时，Codex 将回退到 HTTP Responses。                                                                                                                                                                                                                                                                                                                                           |
-| `OMNIROUTE_CODEX_APP_SERVER_ENABLED`        | boolean | `true`  |      | 允许 Codex 使用本地 app-server WebSocket JSON-RPC 传输（codexTransport=app-server）。关闭时，已选择使用 app-server 的连接将回退到 Codex 的其他传输方式。                                                                                                                                                                                                                                                                         |
-| `OMNIROUTE_EMERGENCY_FALLBACK`              | boolean | `true`  |      | 将预算耗尽的请求路由到免费的紧急回退提供者/模型。（请参阅下方的[紧急预算回退](#emergency-budget-fallback)。）                                                                                                                                                                                                                                                                                                                    |
-| `STREAM_RECOVERY_ENABLED`                   | boolean | `false` |      | 在任何响应字节到达客户端之前，为被截断的上游 SSE 流启用透明的早期重试。                                                                                                                                                                                                                                                                                                                                                          |
-| `STREAM_RECOVERY_MIDSTREAM_ENABLED`         | boolean | `false` |      | 允许流恢复在响应字节已到达客户端后重新请求并拼接响应。                                                                                                                                                                                                                                                                                                                                                                           |
-| `STREAM_RECOVERY_TOOLCALL_ORDER_FIX`        | boolean | `false` |      | 确保流中途续传对工具调用安全：一旦已发出工具调用（正在进行中，或已完成且 finish_reason 为 tool_calls），绝不恢复被截断的流；遇到一次空续传后即关闭，而不是耗尽全部预算。关闭时：使用发行版行为。                                                                                                                                                                                                                                 |
-| `STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED` | boolean | `false` |      | 当 SSE 流在发出任何有用帧之前关闭，且同一连接内有限次数的重试已用尽时，故障转移一次至同级连接；如果没有可用的同级连接，则返回原始的 `STREAM_EARLY_EOF` 502。默认关闭：同一连接重试后，提前 EOF 仍为终止性错误。                                                                                                                                                                                                                  |
-| `MODEL_CATALOG_INCLUDE_NAMES`               | boolean | `true`  |      | 在 `/v1/models` 响应中包含便于显示的名称字段。对于仅接受模型 ID 的客户端，请禁用此项。                                                                                                                                                                                                                                                                                                                                           |
-| `MODELS_CATALOG_PREFIX_MODE`                | enum    | `dual`  |      | 控制 `/v1/models` 中模型 ID 的前缀方式。`dual`（默认）会同时生成别名和规范提供者 ID 前缀，以保持向后兼容性。`alias` 仅生成短别名前缀（例如 `ds-web/model`，而非 `deepseek-web/model`）。`canonical` 仅生成完整的提供者 ID 前缀。可选值：`dual`、`alias`、`canonical`。                                                                                                                                                           |
-| `ARENA_ELO_SYNC_ENABLED`                    | boolean | `true`  |      | 启用 Arena AI 排行榜 ELO 的定期同步，用于模型智能水平排名。                                                                                                                                                                                                                                                                                                                                                                      |
-| `EXPOSE_CC_DISCOVERY_ALIASES`               | boolean | `false` |      | 在 `/v1/models` 上公布 `claude/<provider>/<model>` 镜像 ID，使 Claude Code 网关的模型发现功能可以列出非 Claude 模型。这是三级开关中的全局级别（环境变量优先于控制面板覆盖设置）。请参阅 [Claude Code 配置](../guides/CLAUDE-CODE-CONFIGURATION.md#discovery-aliases--surface-non-claude-models-in-the-model-picker)。                                                                                                            |
-| `NO_THINKING_ALIAS_ENABLED`                 | boolean | `true`  |      | `no-think/<provider>/<model>` 网关别名的总开关。开启（默认）：`/v1/models` 会为每个符合条件且支持思考的 Claude 模型公布一个无思考变体，请求中发送的 `no-think/` ID 会解析回实际模型，并抑制推理。关闭：不会公布任何变体，且 `no-think/` ID 会被视为与其他未知模型 ID 相同。启用此项时，每个模型的 `ModelSpec.noThinkingAlias` 选择启用/停用设置仍然适用。                                                                        |
-| `OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS` | boolean | `false` |      | 禁止在 `/v1/models` 目录中生成思考级别变体（例如 `-low`、`-medium`、`-high`）。                                                                                                                                                                                                                                                                                                                                                  |
-| `OMNIROUTE_CHAT_VIRTUAL_LANES`              | boolean | `false` | ✓    | 为提供者分发启用按租户自适应的虚拟准入通道（#9654）：一个租户的突发流量将不再导致另一个租户收到 503。`OMNIROUTE_CHAT_VIRTUAL_LANES` 环境变量优先于此控制面板覆盖设置；更改将在服务器重启后生效。                                                                                                                                                                                                                                 |
-| `EXPOSE_FUNCTIONAL_GATEWAY_MIRRORS`         | boolean | `false` |      | 对于规范所有者没有有效凭据、但由具有有效凭据的透传网关进行路由的模型，在 /v1/models 中公布 <gateway-alias>/<model> 镜像 ID。警告：全局启用时，会为所有客户端添加目录条目。                                                                                                                                                                                                                                                       |
-| `NEWAPI_AGGREGATOR_BALANCE`                 | boolean | `false` |      | 为与 New-API / One-API / Sub2API 聚合器兼容的节点启用余额检测。启用后，已设置聚合器标志的兼容节点将在仪表板和配额预检路由中报告其余额。                                                                                                                                                                                                                                                                                          |
-| `SERVER_OWNED_TOOL_LOOP_ENABLED`            | boolean | `false` |      | 继续执行服务器所有的非流式工具调用，直到模型返回客户端可用的响应。                                                                                                                                                                                                                                                                                                                                                               |
-| `SEARCH_STATS_HIDE_DELETED_CONNECTIONS`     | boolean | `false` |      | 搜索统计和最近搜索仅统计仍具有活动连接的提供者（无密钥提供者（如 duckduckgo-free）始终计入）。关闭时，将保留每一条带有提供者 ID 的搜索记录。                                                                                                                                                                                                                                                                                     |
-| `FREE_BADGE_REQUIRES_PROVIDER_FREE_TIER`    | boolean | `false` |      | 仪表板提供者页面：仅在提供者明确支持的信号上显示“免费”徽章——不再采用显示名称启发式规则，并忽略没有已记录免费层级的已注册提供者上的非布尔型免费字段和 :free 后缀。关闭时，保留历史徽章规则。                                                                                                                                                                                                                                      |
-| `RETRY_AFTER_PROVENANCE_ENABLED`            | boolean | `false` |      | 对于聚合后的 429/503 不可用响应，当无法确定具体的未来重试时间时，省略 `Retry-After`（而不是使用虚构的 1 秒），添加 `error.retry_after_provenance`（`signal` \| `none`），并允许组合排空路径从 JSON 和纯文本上游响应正文中读取文字形式的重试提示。该字段仅出现在由 `unavailableResponse()` 构建的响应中；其他 429/503 响应正文保持不变。                                                                                          |
-| `PROTECTED_PRIORITY_INFRA_502_ENABLED`      | boolean | `false` |      | 当标记为“仅在配额耗尽时回退”的 `priority` 组合目标因可证明并非配额问题的原因（提供者断路器已打开、预测延迟跳过）而停止组合时，返回 502，而不是看似配额问题的 503。因锁定、冷却、不可用、耗尽和并发上限导致的停止仍返回 503。                                                                                                                                                                                                     |
-| `MISTRAL_AMBIGUOUS_401_SOFT_LOCKOUT`        | boolean | `false` |      | 对于已吊销的密钥和配额已耗尽的情况，单纯的 Mistral 401（`{"detail":"Unauthorized"}`，无明确的身份验证信号）完全相同。启用后，系统会将连接置于冷却状态，而不是将其标记为 `expired`；每个连接每小时最多 3 次，下一次则会将其标记为 `expired`，因此已吊销的密钥最终仍会进入该状态。默认关闭：与之前一样，每个单纯的 Mistral 401 都会将连接标记为 `expired`。                                                                        |
-| `XAI_OAUTH_LIVE_MODEL_DISCOVERY`            | boolean | `false` |      | 对于 `xai-oauth` 连接，使用 OAuth bearer token 从 `https://api.x.ai/v1/models` 获取实时 xAI 模型目录，而不是使用冻结的静态种子。默认关闭：`xai-oauth` 将继续原样提供静态种子。若解析过程中出现任何错误，发现机制将回退到种子（尚未验证 x.ai 是否接受在此端点使用 OAuth bearer）。                                                                                                                                                |
-| `BATCH_AND_FILE_AUTO_CLEANUP_ENABLED`       | boolean | `false` |      | 允许自动清理任务删除早于 `OMNIROUTE_BATCH_RETENTION_DAYS` 的终态（已完成/失败/已取消/已过期）Batch API 作业及其逐行检查点，并清除超过其自身 `expires_at` 的已上传文件的 BLOB 内容。默认关闭：在操作员主动启用之前，所有现有安装都会完全按之前的方式保留这些数据。无论是否启用，由操作员触发的 `DELETE /api/v1/batches/delete-completed` 路由均不受影响——它是一项独立且无条件的公共 API 契约。                                    |
-| `ANTIGRAVITY_ACCOUNT_LEASE_ENABLED`         | boolean | `false` |      | 在选中 Antigravity 账户的请求的流式处理生命周期内保留该账户，从而防止并发重试或凭据移交重新选中已分配给进行中流的账户。保留范围限定为（连接、可调用的上游模型），因此一个账户仍可同时为两个不同模型提供服务。当该模型的所有合格账户均已被租用时，请求将返回结构化的 503 `antigravity_pool_busy` 响应，并附带有上限的 `Retry-After`，而不是继续将请求堆积到繁忙账户上。默认关闭：账户选择方式与之前完全相同，且不会进行任何保留。 |
+| 键                                          | 类型    | 默认值  | 重启 | 描述                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------- | ------- | ------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `UNIVERSAL_CONTEXT_HANDOFF_ENABLED`         | 布尔值  | `true`  |      | 当组合路由切换模型时，生成并注入对话摘要。禁用后，将模型切换视为相互独立，并阻止针对所有现有和未来组合的后台交接请求。                                                                                                                                                                                                                                                                                                                |
+| `RESPONSES_PASSTHROUGH_DROP_COMMENTARY`     | 布尔值  | `true`  |      | 在转发给客户端之前，从 Responses API 直通流中丢弃内部评论阶段的输出项。禁用后可接收原始上游评论。                                                                                                                                                                                                                                                                                                                                     |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`              | 布尔值  | `false` |      | 对 MCP 工具访问强制实施作用域限制。                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`       | 布尔值  | `false` |      | 压缩 MCP 工具描述以减少 token 使用量。                                                                                                                                                                                                                                                                                                                                                                                                |
+| `OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS` | 布尔值  | `false` |      | 启用运行时后台任务处理。                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `OMNIROUTE_DISABLE_BACKGROUND_SERVICES`     | 布尔值  | `false` | ✓    | 禁用所有后台服务（配额刷新、同步等）。                                                                                                                                                                                                                                                                                                                                                                                                |
+| `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS`       | boolean | `false` |      | 信任项目级 RTK 过滤器，无需验证。                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `OMNIROUTE_ENABLE_LIVE_WS`                  | boolean | `true`  | ✓    | 导入时启动实时仪表板 WebSocket 服务器（默认端口为 20132）。                                                                                                                                                                                                                                                                                                                                                                           |
+| `OMNIROUTE_CODEX_WS_ENABLED`                | boolean | `true`  |      | 允许 Codex 使用 Responses-over-WebSocket 传输。关闭时，Codex 将回退到 HTTP Responses。                                                                                                                                                                                                                                                                                                                                                |
+| `OMNIROUTE_CODEX_APP_SERVER_ENABLED`        | boolean | `true`  |      | 允许 Codex 使用本地 app-server WebSocket JSON-RPC 传输（codexTransport=app-server）。关闭时，选择使用 app-server 的连接将回退到 Codex 的其他传输方式。                                                                                                                                                                                                                                                                                |
+| `OMNIROUTE_EMERGENCY_FALLBACK`              | boolean | `true`  |      | 将预算耗尽的请求路由到紧急免费回退提供者/模型。（请参阅下文的[紧急预算回退](#emergency-budget-fallback)。）                                                                                                                                                                                                                                                                                                                           |
+| `STREAM_RECOVERY_ENABLED`                   | boolean | `false` |      | 启用透明的提前重试，以便在任何响应字节到达客户端之前恢复被截断的上游 SSE 流。                                                                                                                                                                                                                                                                                                                                                         |
+| `STREAM_RECOVERY_MIDSTREAM_ENABLED`         | boolean | `false` |      | 允许流恢复在字节已经到达客户端后重新发起请求并拼接响应。                                                                                                                                                                                                                                                                                                                                                                              |
+| `STREAM_RECOVERY_TOOLCALL_ORDER_FIX`        | boolean | `false` |      | 确保流中途续传对工具调用安全：一旦已发出工具调用（正在执行，或已完成且 finish_reason 为 tool_calls），绝不恢复被中断的流；并在一次空续传后关闭，而不是耗尽全部预算。关闭时：使用发布版行为。                                                                                                                                                                                                                                          |
+| `STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED` | boolean | `false` |      | 当 SSE 流在发出任何有效帧之前关闭，且同一连接上有限次数的重试已用尽时，故障转移到同级连接一次；如果没有可用的同级连接，则返回原始的 `STREAM_EARLY_EOF` 502。默认关闭：在同一连接上重试后，提前 EOF 仍为终止性错误。                                                                                                                                                                                                                   |
+| `MODEL_CATALOG_INCLUDE_NAMES`               | boolean | `true`  |      | 在 `/v1/models` 响应中包含便于显示的名称字段。对于仅需要模型 ID 的客户端，请禁用此项。                                                                                                                                                                                                                                                                                                                                                |
+| `MODELS_CATALOG_PREFIX_MODE`                | enum    | `dual`  |      | 控制 /v1/models 中模型 ID 的前缀方式。'dual'（默认）会同时生成别名前缀和规范提供者 ID 前缀，以实现向后兼容。'alias' 仅生成短别名前缀（例如 ds-web/model，而不是 deepseek-web/model）。'canonical' 仅生成完整的提供者 ID 前缀。可选值：`dual`、`alias`、`canonical`。                                                                                                                                                                  |
+| `ARENA_ELO_SYNC_ENABLED`                    | boolean | `true`  |      | 启用 Arena AI 排行榜 ELO 的定期同步，用于模型智能水平排名。                                                                                                                                                                                                                                                                                                                                                                           |
+| `EXPOSE_CC_DISCOVERY_ALIASES`               | boolean | `false` |      | 在 `/v1/models` 上公布 `claude/<provider>/<model>` 镜像 ID，以便 Claude Code 网关的模型发现功能列出非 Claude 模型。这是三级开关中的全局级别（环境变量优先于仪表板覆盖设置）。请参阅 [Claude Code 配置](../guides/CLAUDE-CODE-CONFIGURATION.md#discovery-aliases--surface-non-claude-models-in-the-model-picker)。                                                                                                                     |
+| `NO_THINKING_ALIAS_ENABLED`                 | boolean | `true`  |      | no-think/<provider>/<model> 网关别名的总开关。开启（默认）：/v1/models 会为每个符合条件且支持思考的 Claude 模型公布一个无思考变体，请求中发送的 no-think/ ID 会解析回真实模型，同时抑制推理。关闭：不公布任何变体，并将 no-think/ ID 视为与其他未知模型 ID 相同。开启此项时，每个模型的 ModelSpec.noThinkingAlias 选择加入/退出设置仍然适用。                                                                                         |
+| `OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS` | boolean | `false` |      | 禁止在 /v1/models 目录中生成思考级别变体（例如 -low、-medium、-high）。                                                                                                                                                                                                                                                                                                                                                               |
+| `OMNIROUTE_CHAT_VIRTUAL_LANES`              | boolean | `false` | ✓    | 为提供者分发启用按租户划分的自适应虚拟准入通道 (#9654)：一个租户的突发流量不再导致另一租户收到 503。环境变量 OMNIROUTE_CHAT_VIRTUAL_LANES 优先于此仪表板覆盖设置；更改将在服务器重启时生效。                                                                                                                                                                                                                                          |
+| `EXPOSE_FUNCTIONAL_GATEWAY_MIRRORS`         | boolean | `false` |      | 对于规范所有者没有有效凭据、但具有有效凭据的透传网关可路由的模型，在 /v1/models 上公布 <gateway-alias>/<model> 镜像 ID。警告：全局启用时，会为所有客户端添加目录条目。                                                                                                                                                                                                                                                                |
+| `NEWAPI_AGGREGATOR_BALANCE`                 | boolean | `false` |      | 为兼容 New-API / One-API / Sub2API 聚合器的节点启用余额检测。启用后，已设置聚合器标志的兼容节点将在仪表板和配额预检路由中报告其余额。                                                                                                                                                                                                                                                                                                 |
+| `SERVER_OWNED_TOOL_LOOP_ENABLED`            | boolean | `false` |      | 持续执行非流式服务端自有工具调用，直到模型返回客户端可用的响应。                                                                                                                                                                                                                                                                                                                                                                      |
+| `SEARCH_STATS_HIDE_DELETED_CONNECTIONS`     | boolean | `false` |      | 搜索统计和最近搜索仅统计仍具有有效连接的提供者（duckduckgo-free 等无密钥提供者始终计入）。关闭时，将保留每一条带有提供者 ID 的搜索记录。                                                                                                                                                                                                                                                                                              |
+| `FREE_BADGE_REQUIRES_PROVIDER_FREE_TIER`    | boolean | `false` |      | 仪表板提供者页面：仅根据提供者认可的信号显示“免费”徽章——忽略显示名称启发式规则、非布尔类型的免费字段，以及没有已记录免费套餐的已注册提供者名称中的 :free 后缀。关闭时保留原有的徽章规则。                                                                                                                                                                                                                                             |
+| `RETRY_AFTER_PROVENANCE_ENABLED`            | boolean | `false` |      | 对于聚合后的 429/503 不可用响应，如果没有已知的明确未来重试时间，则省略 `Retry-After`（而不是使用虚构的 1 秒），添加 `error.retry_after_provenance`（`signal` \| `none`），并允许组合排空路径从 JSON 和纯文本上游响应正文中读取文字形式的重试提示。该字段仅出现在由 `unavailableResponse()` 构建的响应中；其他 429/503 响应正文保持不变。                                                                                             |
+| `PROTECTED_PRIORITY_INFRA_502_ENABLED`      | boolean | `false` |      | 当标记为仅在配额耗尽时回退的 `priority` 组合目标由于可证明并非配额问题的原因（提供者熔断器打开、预测性延迟跳过）而停止组合时，返回 502，而不是看似配额问题的 503。因锁定、冷却、不可用、耗尽和并发上限而停止时，仍返回 503。                                                                                                                                                                                                          |
+| `MISTRAL_AMBIGUOUS_401_SOFT_LOCKOUT`        | boolean | `false` |      | 不含明确身份验证信号的纯 Mistral 401（`{"detail":"Unauthorized"}`）对于已撤销密钥和配额耗尽两种情况是完全相同的。启用后，将冷却连接而不是将其停放为 `expired`，每个连接每小时最多 3 次；下一次会将其停放，因此已撤销的密钥最终仍会进入停放状态。默认关闭：与之前一样，每次纯 Mistral 401 都会将连接停放。                                                                                                                             |
+| `XAI_OAUTH_LIVE_MODEL_DISCOVERY`            | boolean | `true`  |      | 对于 xai-oauth 连接，使用 OAuth 持有者令牌从 https://api.x.ai/v1/models 获取实时 xAI 模型目录，而不是使用冻结的静态种子。默认启用。将此标志设置为 false 可继续提供静态种子。HTTP 请求失败时，发现路由会回退到该种子；标志的 getter 本身不会发起 HTTP 请求。                                                                                                                                                                           |
+| `BATCH_AND_FILE_AUTO_CLEANUP_ENABLED`       | boolean | `false` |      | 允许自动清理任务删除早于 `OMNIROUTE_BATCH_RETENTION_DAYS` 的终态（已完成/失败/已取消/已过期）Batch API 作业及其逐行检查点，并清除已超过自身 `expires_at` 的上传文件的 BLOB 内容。默认关闭：在运维人员选择启用之前，所有现有安装都将完全照旧保留这些数据。无论是否启用，运维人员触发的 `DELETE /api/v1/batches/delete-completed` 路由均不受影响——它是一个独立且无条件生效的公共 API 契约。                                             |
+| `ANTIGRAVITY_ACCOUNT_LEASE_ENABLED`         | boolean | `false` |      | 在选中某个 Antigravity 账户的请求的流式生命周期内保留该账户，从而使并发重试或凭据移交无法再次选中已分配给进行中流的账户。此保留的作用域为（连接、可调用的上游模型），因此一个账户仍可同时为两个不同的模型提供服务。当该模型的所有符合条件的账户都已被租用时，请求将返回结构化的 503 `antigravity_pool_busy`，并附带有界的 `Retry-After`，而不是继续将请求堆积到繁忙账户上。默认关闭：账户选择行为与之前完全相同，且不会进行任何保留。 |
 
 ### CLI（5）
 
-| 键                                    | 类型    | 默认值  | 重启 | 描述                                                                                                                                                       |
-| ------------------------------------- | ------- | ------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CLI_COMPAT_ALL`                      | boolean | `false` | ✓    | 为所有 CLI 客户端启用兼容模式。                                                                                                                            |
-| `MODEL_ALIAS_COMPAT_ENABLED`          | boolean | `false` |      | 启用模型别名兼容层。                                                                                                                                       |
-| `PRICING_SYNC_ENABLED`                | boolean | `false` |      | 启用定价数据自动同步（还需要设置 `PRICING_SYNC_ENABLED` 环境变量）。                                                                                       |
-| `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES`  | boolean | `false` |      | 在提供者模型同步后，根据实时目录自动（重新）写入 ~/.codex/*.config.toml 配置文件。绝不会更改当前/默认 Codex 配置。默认关闭。                               |
-| `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES` | boolean | `false` |      | 在提供者模型同步后，根据实时目录自动（重新）写入 ~/.claude/profiles/<name>/settings.json Claude Code 配置文件。绝不会更改当前/默认 Claude 配置。默认关闭。 |
+| 键                                    | 类型    | 默认值  | 重启 | 描述                                                                                                                                                             |
+| ------------------------------------- | ------- | ------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLI_COMPAT_ALL`                      | boolean | `false` | ✓    | 为所有 CLI 客户端启用兼容模式。                                                                                                                                  |
+| `MODEL_ALIAS_COMPAT_ENABLED`          | boolean | `false` |      | 启用模型别名兼容层。                                                                                                                                             |
+| `PRICING_SYNC_ENABLED`                | boolean | `false` |      | 启用定价数据自动同步（还需要设置 `PRICING_SYNC_ENABLED` 环境变量）。                                                                                             |
+| `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES`  | boolean | `false` |      | 提供者模型同步后，根据实时目录自动（重新）写入 ~/.codex/*.config.toml 配置文件。绝不会更改当前使用的/默认的 Codex 配置。默认关闭。                               |
+| `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES` | boolean | `false` |      | 提供者模型同步后，根据实时目录自动（重新）写入 ~/.claude/profiles/<name>/settings.json Claude Code 配置文件。绝不会更改当前使用的/默认的 Claude 配置。默认关闭。 |
 
 ### 健康状态（5）
 
-| 键                                        | 类型    | 默认值  | 描述                                                                                                                                                                                        |
-| ----------------------------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK`     | boolean | `false` | 禁用本地实例健康检查端点。                                                                                                                                                                  |
-| `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK`     | boolean | `false` | 禁用令牌验证健康检查。                                                                                                                                                                      |
-| `SKILLS_SANDBOX_NETWORK_ENABLED`          | boolean | `false` | 启用技能沙箱环境中的网络访问。                                                                                                                                                              |
-| `PROXY_HEALTH_BLOCKED_RESETS_STREAK`      | boolean | `false` | 在代理健康检查扫描中，当探测被目标拒绝（401/403/429）时，重置代理的连续失败次数。默认关闭：拒绝保持中性状态（#10654）。无论如何，5xx 均保持结果不确定；拒绝绝不会移除、禁用或重新激活代理。 |
-| `DB_HEALTHCHECK_STARTUP_DEFERRED_ENABLED` | boolean | `false` | 在服务器开始接受请求后（通过 `setImmediate`）运行启动时的数据库完整性/健康检查，而不是阻塞启动直至检查完成（#13717）。默认关闭：启动过程与此 PR 之前完全相同，仍会被阻塞。                  |
+| 键                                        | 类型   | 默认值  | 描述                                                                                                                                                                                      |
+| ----------------------------------------- | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK`     | 布尔值 | `false` | 禁用本地实例健康检查端点。                                                                                                                                                                |
+| `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK`     | 布尔值 | `false` | 禁用令牌验证健康检查。                                                                                                                                                                    |
+| `SKILLS_SANDBOX_NETWORK_ENABLED`          | 布尔值 | `false` | 在技能沙箱环境中启用网络访问。                                                                                                                                                            |
+| `PROXY_HEALTH_BLOCKED_RESETS_STREAK`      | 布尔值 | `false` | 在代理健康扫描中，当目标拒绝探测请求（401/403/429）时，重置代理的连续失败次数。默认关闭：拒绝保持中性状态（#10654）。无论如何，5xx 均保持结果不确定；拒绝绝不会移除、禁用或重新激活代理。 |
+| `DB_HEALTHCHECK_STARTUP_DEFERRED_ENABLED` | 布尔值 | `false` | 在服务器开始接受请求后（通过 `setImmediate`）运行启动时数据库完整性/健康检查，而不是阻塞启动直至检查完成（#13717）。默认关闭：启动过程与此 PR 之前完全一样会被阻塞。                      |
 
 > [!NOTE]
 > `INPUT_SANITIZER_BLOCK_THRESHOLD` 及其旧版别名
 > `INJECTION_GUARD_BLOCK_THRESHOLD` 用于调整 `INJECTION_GUARD_MODE` 的
 > `block` 模式，但它们只是由
 > [`src/shared/utils/injectionSeverity.ts`](../../src/shared/utils/injectionSeverity.ts)
-> 读取的普通环境变量，而非功能标志：它们没有数据库覆盖值，也没有仪表板开关。请参阅
+> 读取的普通环境变量，而不是功能标志：它们没有数据库覆盖值，也没有仪表板开关。请参阅
 > [`ENVIRONMENT.md`](./ENVIRONMENT.md#4-security--authentication)。
 
 > [!NOTE]
-> `Restart` 列用于标记带有 `requiresRestart: true` 的标志——其值会
+> `Restart` 列标记了设有 `requiresRestart: true` 的标志——其值会
 > 立即持久化，但只有在进程重新加载后才会生效。枚举
-> 标志会拒绝其允许集合之外的任何值（在服务器端的
-> `setFeatureFlagOverride()` 和 REST `PUT` 处理程序中均会进行验证）。
+> 标志会拒绝允许集合之外的任何值（服务器端会在
+> `setFeatureFlagOverride()` 和 REST `PUT` 处理程序中进行验证）。
 
 ---
 
-## 切换功能标志
+## 切换标志
 
 ### 仪表板
 
-导航至 **仪表板 → 设置 → 功能标志**
-(`/dashboard/settings/feature-flags`)。网格
+导航到 **仪表板 → 设置 → 功能标志**
+(`/dashboard/settings/feature-flags`)。该网格
 (`src/app/(dashboard)/dashboard/settings/components/FeatureFlagsGrid.tsx`)
 支持：
 
-- 按键名或描述进行**搜索**，以及按类别进行**筛选**（另有一个合成的
-  **需要重启**视图）。
-- 用于布尔型标志的**开关**，以及用于枚举型标志的**下拉菜单**
+- 按键或描述**搜索**，并按类别**筛选**（外加一个合成的**需要重启**视图）。
+- 布尔标志的**开关**和枚举标志的**下拉菜单**
   (`src/app/(dashboard)/dashboard/settings/components/FeatureFlagCard.tsx`)。
-- 每个标志都有一个**来源徽章** — `DB`、`ENV` 或 `DEF` — 用于显示
-  有效值的来源。
-- **重置**按钮（仅对来源为 `DB` 的标志显示），用于移除覆盖值；
-  底部还有一个**重置所有覆盖值**按钮。
-- 当 `requiresRestart` 标志发生更改时，会显示**重启服务器**横幅。
+- 每个标志的**来源徽章**——`DB`、`ENV`或`DEF`——显示有效值来自何处。
+- **重置**按钮（仅对`DB`来源的标志显示）用于取消覆盖，底部还有一个**重置所有覆盖**按钮。
+- 当`requiresRestart`标志被更改时，会显示**重启服务器**横幅。
 
 ### REST API
 
-所有操作均通过单一路由完成：
+所有操作都通过一个路由进行：
 [`src/app/api/settings/feature-flags/route.ts`](../../src/app/api/settings/feature-flags/route.ts)。
-每种方法都需要经过身份验证的仪表板会话（否则返回 `401`）。
+每个方法都需要经过身份验证的仪表板会话（否则返回`401`）。
 
 #### `GET /api/settings/feature-flags`
 
@@ -197,8 +198,8 @@
   "flags": [
     {
       "key": "REQUIRE_API_KEY",
-      "label": "要求 API 密钥",
-      "description": "要求所有传入请求都提供 API 密钥",
+      "label": "Require API Key",
+      "description": "Require an API key for all incoming requests",
       "category": "security",
       "type": "boolean",
       "enumValues": null,
@@ -208,7 +209,7 @@
       "requiresRestart": false,
       "warningLevel": "caution",
     },
-    // ... 全部 75 个标志
+    // ... 所有 77 个标志
   ],
   "summary": {
     "total": 56,
@@ -222,34 +223,32 @@
 
 #### `PUT /api/settings/feature-flags`
 
-设置或移除单个覆盖值。请求体：`{ key: string; value?: string }`。
-省略 `value` 会移除覆盖值（恢复为环境变量值/默认值）。
+设置或移除单个覆盖。请求体：`{ key: string; value?: string }`。
+省略`value`会移除覆盖（恢复环境变量/默认值）。
 
 ```bash
-# 设置 DB 覆盖值
+# 设置一个 DB 覆盖
 curl -X PUT http://localhost:20128/api/settings/feature-flags \
   -H "Content-Type: application/json" \
   -d '{"key":"REQUIRE_API_KEY","value":"true"}'
 
-# 移除覆盖值（不含 "value"）
+# 移除覆盖（无 "value"）
 curl -X PUT http://localhost:20128/api/settings/feature-flags \
   -H "Content-Type: application/json" \
   -d '{"key":"REQUIRE_API_KEY"}'
 ```
 
-响应会回显新的 `effectiveValue`/`source`、`previousValue`/
-`previousSource` 和 `requiresRestart`。未知键和超出范围的枚举值将被拒绝，
-并返回 `400`。
+响应会回显新的`effectiveValue`/`source`、`previousValue`/
+`previousSource`和`requiresRestart`。未知键和超出范围的枚举值将被`400`拒绝。
 
 #### `DELETE /api/settings/feature-flags`
 
-一次性清除**所有** DB 覆盖值，将每个标志恢复为其环境变量值/默认值。
-返回 `{ cleared: <count>, message: "..." }`。
+一次性清除**所有**DB覆盖，将每个标志恢复到其环境变量/默认值。返回`{ cleared: <count>, message: "..." }`。
 
-> [!NOTE]
-> `requiresRestart: true` 的标志仅在进程重新加载后才会生效。
-> 仪表板的重启流程会调用 `POST /api/restart`，然后轮询
-> `GET /api/health/ping`，直到服务器恢复运行。
+> [!注意]
+> 带有`requiresRestart: true`的标志仅在进程重新加载后生效。
+> 仪表板的重启流程会调用`POST /api/restart`，然后轮询
+> `GET /api/health/ping`直到服务器恢复运行。
 
 ---
 

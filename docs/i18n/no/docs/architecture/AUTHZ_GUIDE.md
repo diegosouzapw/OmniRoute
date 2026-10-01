@@ -5,11 +5,11 @@
 ---
 
 > **Sannhetskilde:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Sist oppdatert:** 2026-06-28 — v3.8.40
+> **Sist oppdatert:** 2026-09-22 — omfangsnavnerom peker til MCP-SERVER.md
 
-OmniRoute har en rutebevisst autorisasjonskjede som kontrollerer hver API-forespørsel. Klassifiseringen er **deterministisk** og **lukket ved feil** — alt som ikke kan klassifiseres, ender opp som `MANAGEMENT` og krever en økt eller et token med administrasjonstilgang. Denne siden forklarer modellen for utviklere som vedlikeholder ruter eller utformer nye endepunkter.
+OmniRoute har en rutebevisst autorisasjons-pipeline som kontrollerer hver API-forespørsel. Klassifiseringen er **deterministisk** og **fail-closed** – alt som ikke kan klassifiseres ender opp som `MANAGEMENT` og krever en sesjon eller et token av administrasjonsgrad. Denne siden forklarer modellen for ingeniører som vedlikeholder ruter eller designer nye endepunkter.
 
-![AuthZ-kjede (3 ruteklasser + policyevaluering)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ-pipeline (3 ruteklasser + policyevaluering)](../diagrams/exported/authz-pipeline.svg)
 
 > Kilde: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -200,28 +200,38 @@ export async function POST(request: Request) {
 
 Velg mengde etter form, ikke bekvemmelighet. Én rute skal legges i `PUBLIC_API_ROUTES_EXACT` (eller `PUBLIC_READONLY_CORS_API_ROUTES` dersom den bare støtter GET). Bare et reelt undertre skal legges i `PUBLIC_API_ROUTE_PREFIXES`, og det **må slutte med `/`**. Hvis en enkeltstående rute legges i prefikslisten, blir også alle tilstøtende stier som deler de innledende tegnene, offentlige — inkludert søskenruter med dynamiske segmenter som legges til senere (GHSA-74g9-q8f6-793h). Oppdater enhetstestene i `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` og `tests/unit/authz/classify.test.ts`.
 
-## Tilgangsområder
+## Scopes
 
-API-nøkler har en `scopes`-matrise (lagret som JSON i `api_keys.scopes`, se `src/lib/db/apiKeys.ts`).
+Tre navneområder. Hver sjekker leser kun sine egne strenger. Side-ved-side-visningen,
+inkludert hvorfor `manage` feiler `scopeMatches` for `read:compression` og hvorfor et
+`read` tilgangstoken ikke kan `PATCH /api/keys/{id}`, er
+[Tre omfangsnavneområder](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Administrasjonstilgang
+API-nøkler inneholder en `scopes`-array (lagret som JSON i `api_keys.scopes`, se `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — gir nøkkelen tilgang til endepunkter i administrasjons-API-et når den sendes som Bearer-token.
+### Administrasjonsomfang
 
-### MCP-tilgangsområder (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Bearer-tilgang til administrasjons-API-ruter.
+- `mcp:connect`, `self:usage`, `self:account-quota`, og
+  `policy:bypass-provider-quota` er additive eksakt-match-omfang. De sitter
+  utenfor `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` åpner kun
+  `/api/mcp/` non-loopback-utskjæringen.
 
-Hvert MCP-verktøy krever bestemte tilgangsområder via `MCP_TOOL_SCOPES`. Fullstendig liste (`MCP_SCOPE_LIST`):
+### MCP-verktøyomfang
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalog og samsvarsregler (identisk streng, eller et gitt omfang som slutter med `*`):
+[MCP-verktøyomfang](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` i `src/shared/constants/mcpScopes.ts` er det originale typede
+undersettet, ikke den fulle katalogen. Håndhevelse kjører i
+`open-sse/mcp-server/scopeEnforcement.ts` etter at `resolveCallerScopeContext()`
+løser omfang fra MCP-autentiseringsinformasjon, forespørselsmetadata eller `OMNIROUTE_MCP_SCOPES`.
+Den forblir av med mindre `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Håndheving av tilgangsområder i `open-sse/mcp-server/server.ts` sender hvert verktøys liste over tilgangsområder til
-`evaluateToolScopes()` etter at `resolveCallerScopeContext()` har fastslått tilgangsområdene fra MCP-autentiseringsinformasjon,
-metadata i forespørselen eller `OMNIROUTE_MCP_SCOPES`.
+### Tilgangstoken-omfang
+
+`read` / `write` / `admin` på `oma_live_…` tokens, rangert etter `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Denne rangeringen gjelder kun for tilgangstoken-legitimasjonen.
+Se [Administrasjonsautentisering](../guides/MANAGEMENT-AUTH.md).
 
 ## Bryter for krav om autentisering
 
@@ -271,5 +281,5 @@ Bruk `assertAuth(req, expectedClass)` i handlere — den utløser `AuthzAssertio
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — autentiseringsmarkør per endepunkt
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — revisjonslogg for autentiseringshendelser
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — detaljer om håndheving av MCP-omfang
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tre omfang-navneområder og MCP verktøy-omfangskatalog
 - Kilde: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

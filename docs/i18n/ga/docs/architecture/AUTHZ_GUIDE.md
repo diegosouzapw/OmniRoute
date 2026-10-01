@@ -5,11 +5,11 @@
 ---
 
 > **Foinse na fírinne:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Nuashonraithe go deireanach:** 2026-06-28 — v3.8.40
+> **Nuashonraithe go deireanach:** 2026-09-22 — dírithe ar MCP-SERVER.md
 
-Tá píblíne údaraithe ag OmniRoute atá feasach ar bhealaí agus a dhéanann rialú rochtana ar gach iarratas API. Tá an t-aicmiú **cinntitheach** agus **dúnta i gcás teipe** — déantar `MANAGEMENT` d'aon rud nach féidir a aicmiú agus éilítear seisiún nó comhartha ar ghrád bainistíochta. Mínítear ar an leathanach seo an tsamhail d'innealtóirí a chothaíonn bealaí nó a dhearann críochphointí nua.
+Tá píblíne údaraithe atá feasach ar bhealaí ag OmniRoute a chuireann bac ar gach iarratas API. Tá an aicmiú **cinntitheach** agus **teip-dúnta** — críochnaíonn aon rud nach féidir a aicmiú mar `MANAGEMENT` agus éilíonn sé seisiún nó comhartha grád bainistíochta. Míníonn an leathanach seo an tsamhail d'innealtóirí a chothabhálann bealaí nó a dhearann críochphointí nua.
 
-![Píblíne AuthZ (3 aicme bealaigh + measúnú beartais)](../diagrams/exported/authz-pipeline.svg)
+![Píblíne AuthZ (3 aicme bealaigh + meastóireacht beartais)](../diagrams/exported/authz-pipeline.svg)
 
 > Foinse: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -202,26 +202,35 @@ Roghnaigh an tacar de réir crutha, ní de réir áisiúlachta. Cuirtear bealach
 
 ## Scóip
 
-Tá eagar `scopes` ag eochracha API (stóráilte mar JSON in `api_keys.scopes`, féach `src/lib/db/apiKeys.ts`).
+Trí spásainm. Ní léann gach seiceálaí ach a shreanga féin. Tá an taobh le taobh,
+lena n-áirítear cén fáth a dteipeann ar `manage` `scopeMatches` do `read:compression` agus cén fáth nach féidir le comhartha rochtana `read` `PATCH /api/keys/{id}`, le fáil anseo:
+[Trí spásainm scóip](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+Bíonn eochracha API ag iompar eagar `scopes` (stóráilte mar JSON i `api_keys.scopes`, féach `src/lib/db/apiKeys.ts`).
 
 ### Scóip bhainistíochta
 
-- `manage` / `admin` — tugann sé rochtain don eochair ar chríochphointí API bainistíochta nuair a sheoltar í mar Bearer.
+- `manage` / `admin` — `hasManageScope`. Rochtain iompróra ar bhealaí API bainistíochta.
+- `mcp:connect`, `self:usage`, `self:account-quota`, agus
+  `policy:bypass-provider-quota` is scóip bhreise, chomhfhreagracha iad. Tá siad
+  lasmuigh de `MANAGEMENT_API_KEY_SCOPES`. Ní osclaíonn `mcp:connect` ach an
+  gearradh amach neamh-lúbchúlaithe `/api/mcp/`.
 
-### Scóip MCP (`src/shared/constants/mcpScopes.ts`)
+### Scóip uirlisí MCP
 
-Teastaíonn scóip shonracha ó gach uirlis MCP trí `MCP_TOOL_SCOPES`. An liosta iomlán (`MCP_SCOPE_LIST`):
+Catalóg agus rialacha meaitseála (sreangán comhionann, nó scóip deonaithe ag críochnú le `*`):
+[Scóip uirlisí MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+Is é `MCP_SCOPE_LIST` i `src/shared/constants/mcpScopes.ts` an fochuid chlóscríofa bhunaidh,
+ní an chatalóg iomlán sin. Ritheann forfheidhmiú i
+`open-sse/mcp-server/scopeEnforcement.ts` tar éis do `resolveCallerScopeContext()`
+scóip a réiteach ó fhaisnéis fíordheimhnithe MCP, meiteashonraí iarratais, nó `OMNIROUTE_MCP_SCOPES`.
+Fanann sé múchta mura bhfuil `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Scóip chomhartha rochtana
 
-Le linn fhorfheidhmiú na scóp in `open-sse/mcp-server/server.ts`, cuirtear liosta scóp gach uirlise ar aghaidh chuig
-`evaluateToolScopes()` tar éis do `resolveCallerScopeContext()` scóip a réiteach ó fhaisnéis fíordheimhnithe MCP,
-ó mheiteashonraí an iarratais, nó ó `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` ar chomharthaí `oma_live_…`, rangaithe de réir `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ní bhaineann an rang seo ach leis an dintiúr
+comhartha rochtana. Féach [Fíordheimhniú Bainistíochta](../guides/MANAGEMENT-AUTH.md).
 
 ## Scorán Riachtanais Fíordheimhnithe
 
@@ -269,7 +278,7 @@ x-omniroute-auth-scopes:    comma-separated list
 
 ## Féach Freisin
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marcóir fíordheimhnithe de réir críochphointe
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — loga iniúchóireachta le haghaidh teagmhais fíordheimhnithe
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — sonraí faoi fhorfheidhmiú scóip MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marcóir fíordheimhnithe in aghaidh an cheannphointe
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — logáil iniúchta d'imeachtaí fíordheimhnithe
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trí spásainm scóip agus catalóg scóip uirlise MCP
 - Foinse: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

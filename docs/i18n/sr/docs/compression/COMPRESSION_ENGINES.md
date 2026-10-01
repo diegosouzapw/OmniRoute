@@ -7,45 +7,35 @@
 OmniRoute компресија је изграђена око уговора механизама. Режим може директно да покрене један механизам
 (`caveman` или `rtk`) или детерминистички сложени ток који редом извршава више механизама.
 
-## Режими
+## Režimi
 
-| Режим        | Путања механизма                    | Предвиђени улаз                                       |
-| ------------ | ----------------------------------- | ----------------------------------------------------- |
-| `off`        | нема                                | Потпуно очување упита                                 |
-| `lite`       | Caveman lite помоћне функције       | Стално чишћење ниског ризика                          |
-| `standard`   | Caveman                             | Сажимање упита на природном језику                    |
-| `aggressive` | Caveman + сажимачи историје/алата   | Дуге сесије ћаскања                                   |
-| `ultra`      | Caveman + помоћне функције резидбе  | Опоравак од ограничења контекста                      |
-| `rtk`        | RTK                                 | Излаз терминала, љуске, изградње, тестова и git-а     |
-| `omniglyph`  | OmniGlyph                           | Контекст као слика у изворном протоколу провајдера    |
-| `stacked`    | Ток, подразумевано `rtk -> caveman` | Комбиновани дневници алата и проза, максимална уштеда |
+| Režim        | Putanja do mehanizma                                                                              | Predviđeni ulaz                                   |
+| ------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `off`        | none                                                                                              | Tačno očuvanje upita                              |
+| `lite`       | Caveman lite helpers                                                                              | Niskorizično uvek-uključeno čišćenje              |
+| `standard`   | Caveman                                                                                           | Kondenzacija upita prirodnog jezika               |
+| `aggressive` | Caveman + history/tool summarizers                                                                | Duge sesije ćaskanja                              |
+| `ultra`      | Caveman + pruning helpers                                                                         | Oporavak od ograničenja konteksta                 |
+| `rtk`        | RTK                                                                                               | Izlaz terminala, shell-a, build-a, test-a i git-a |
+| `omniglyph`  | OmniGlyph                                                                                         | Kontekst kao slika na izvornoj provajderskoj žici |
+| `stacked`    | Pipeline. Podrazumevana vrednost zahteva je `session-dedup -> lite`. `rtk -> caveman` je opcioni. | Mešani logovi alata i proza, maksimalna ušteda    |
 
-### OmniGlyph профили компресије
+### OmniGlyph profili kompresije
 
-Механизам `omniglyph` (пакет `omniglyph`, 1.4.0+) прихвата именовани семантички профил, који се
-глобално поставља преко `omniglyph.profile` у подешавањима компресије или за сваки корак преко
-конфигурације корака сложеног тока:
+Mehanizam `omniglyph` (paket `omniglyph`, 1.4.0+) prihvata imenovani semantički profil, postavljen globalno putem `omniglyph.profile` u podešavanjima kompresije ili po koraku kroz konfiguraciju koraka složenog pipeline-a:
 
-| Профил        | Граница                                                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Подразумевано. Политика измерена у објављеним резултатима — претвара систем, документацију алата и густу историју у слике |
-| `balanced`    | Задржава активно стање у изворном облику, штити последњих 8 потеза и сажима старију затворену историју                    |
-| `coding-safe` | Задржава овлашћења, шеме алата и активни излаз алата у изворном облику и штити последњих 12 потеза                        |
-| `passthrough` | Прослеђује без трансформације; механизам се прескаче                                                                      |
+| Profil        | Granica                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Podrazumevano. Politika koju su merili objavljeni računi — sistem slika, dokumentacija alata i gusta istorija |
+| `balanced`    | Čuva živo stanje nativnim, štiti poslednjih 8 okretaja, sažima stariju zatvorenu istoriju                     |
+| `coding-safe` | Čuva autoritet, šeme alata i izlaz alata uživo nativnim, štiti poslednjih 12 okretaja                         |
+| `passthrough` | Ruta bez transformacije; mehanizam se preskače                                                                |
 
-Профил је **горња, а не доња граница**: `mergeCompressionProfileOptions` у пакету
-не дозвољава да измена позиваоца поново отвори канал са губицима који је профил затворио, тако да
-`preserveSystemPrompt: false` за појединачни корак не може поново да омогући компресију системског упита у профилу `coding-safe`.
+Profil je **plafon, a ne pod**: `mergeCompressionProfileOptions` u paketu odbija da dozvoli pozivaocu da premosti ponovno otvaranje gubljenja podataka koje je profil zatvorio, tako da `preserveSystemPrompt: false` po koraku ne može ponovo omogućiti kompresiju sistema pod `coding-safe`.
 
-Измерено на овој бази кода: `coding-safe` и `balanced` подижу `minCompressChars` на његову
-максималну вредност и задржавају систем, шеме алата и резултате алата у изворном облику, па се сесија која још
-није прикупила историју зауставља на `below_min_chars` и механизам ништа не трансформише. Зато је
-подразумевани профил `aggressive`, а не најбезбеднији профил.
+Mereno na ovoj bazi koda: `coding-safe` i `balanced` podižu `minCompressChars` na svoj maksimum i čuvaju sistem, šeme alata i rezultate alata nativnim, tako da sesija koja još nije akumulirala istoriju staje na `below_min_chars` i mehanizam ne transformiše ništa. Zato je podrazumevani profil `aggressive`, a ne najsigurniji.
 
-Пакет одређује сопствени опсег модела и профил из своје конфигурације окружења.
-OmniRoute никада не препушта ту одлуку: адаптер фиксира ограничење модела на најрестриктивнији
-опсег пакета, тако да подешавања окружења хоста могу само да сузе листу дозвољених модела, али никада
-да је прошире изван измерених резултата OmniRoute-а.
+Paket rešava sopstveni opseg modela i profil iz svoje konfiguracije okruženja. OmniRoute nikada ne delegira odluku: adapter fiksira model gate na najrestriktivniji opseg paketa, tako da podešavanja host okruženja mogu samo suziti listu dozvoljenih, nikada je ne proširiti izvan OmniRoute-ovih izmerenih računa.
 
 ## Регистар механизама
 
@@ -386,9 +376,9 @@ ID-ове модела / `provider/model` циљеве који се никад�
   `engineBreakdown` — не може се разликовати од прескоченог корака. Разликовање
   „покренут, 0 %“ од „прескочен“ захтевало би измену модела прегледа и одложено је.
 
-## Валидација
+## Validacija
 
-Циљане провере за ову област су:
+Fokusirani testovi za ovu oblast su:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

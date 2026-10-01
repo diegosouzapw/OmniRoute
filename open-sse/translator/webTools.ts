@@ -12,6 +12,8 @@ export interface OpenAIToolCall {
   function: { name: string; arguments: string };
 }
 
+import { findTagBlocks } from "../utils/tagBlocks.ts";
+
 interface OpenAIToolDef {
   type?: string;
   function?: {
@@ -21,11 +23,15 @@ interface OpenAIToolDef {
   };
 }
 
-const TOOL_BLOCK_RE = /<tool>\s*([\s\S]*?)\s*<\/tool>/g;
+const TOOL_OPEN_RE = /<tool>/g;
+const TOOL_CLOSE_RE = /<\/tool>/g;
 // Some web-cookie models (e.g. ds-web) wrap calls as `<tool_call name="...">{json}</tool_call>`
 // instead of the canonical `<tool>{json}</tool>`. Capture the JSON body — the real tool name
 // lives there, never in the tag's `name="..."` attribute (#3260).
-const TOOL_CALL_TAG_RE = /<tool_call(?:\s+[^>]*)?\s*>\s*([\s\S]*?)\s*<\/tool_call>/g;
+// The attribute run stops at `<` as well as `>`: with `[^>]*` an unterminated `<tool_call ` scanned
+// to the end of the text from every such tag, so a run of them was quadratic again.
+const TOOL_CALL_OPEN_RE = /<tool_call(?:\s[^<>]*)?>/g;
+const TOOL_CALL_CLOSE_RE = /<\/tool_call>/g;
 
 // Per-request nonce binding for tool envelopes (#9343). Associates a random nonce
 // with each tools[] array reference so the serializer and parser can share it
@@ -437,23 +443,14 @@ export function parseToolCallsFromText(
   const nonce = getToolNonce(requestedTools);
   const candidates: ToolParseCandidate[] = [];
 
-  let blockMatch: RegExpExecArray | null;
-  TOOL_BLOCK_RE.lastIndex = 0;
-  while ((blockMatch = TOOL_BLOCK_RE.exec(text)) !== null) {
+  for (const block of [
+    ...findTagBlocks(text, TOOL_OPEN_RE, TOOL_CLOSE_RE),
+    ...findTagBlocks(text, TOOL_CALL_OPEN_RE, TOOL_CALL_CLOSE_RE),
+  ]) {
     candidates.push({
-      raw: blockMatch[1].trim(),
-      start: blockMatch.index,
-      end: TOOL_BLOCK_RE.lastIndex,
-      requireRequestedTool: false,
-    });
-  }
-
-  TOOL_CALL_TAG_RE.lastIndex = 0;
-  while ((blockMatch = TOOL_CALL_TAG_RE.exec(text)) !== null) {
-    candidates.push({
-      raw: blockMatch[1].trim(),
-      start: blockMatch.index,
-      end: TOOL_CALL_TAG_RE.lastIndex,
+      raw: block.inner.trim(),
+      start: block.start,
+      end: block.end,
       requireRequestedTool: false,
     });
   }

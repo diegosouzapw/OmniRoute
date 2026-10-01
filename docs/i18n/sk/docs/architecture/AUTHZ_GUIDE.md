@@ -5,11 +5,11 @@
 ---
 
 > **Zdroj pravdy:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Naposledy aktualizované:** 2026-06-28 — v3.8.40
+> **Posledná aktualizácia:** 2026-09-22 — menné priestory rozsahu ukazujú na MCP-SERVER.md
 
-OmniRoute používa autorizačný kanál zohľadňujúci trasy, ktorý kontroluje každú požiadavku API. Klasifikácia je **deterministická** a **uzavretá pri zlyhaní** — všetko, čo nemožno klasifikovať, skončí ako `MANAGEMENT` a vyžaduje reláciu alebo token s úrovňou oprávnení na správu. Táto stránka vysvetľuje model pre vývojárov, ktorí udržiavajú trasy alebo navrhujú nové koncové body.
+OmniRoute má autorizačný pipeline, ktorý je citlivý na trasy a stráži každú požiadavku API. Klasifikácia je **deterministická** a **fail-closed** — čokoľvek, čo nemožno klasifikovať, skončí ako `MANAGEMENT` a vyžaduje reláciu alebo token s úrovňou riadenia. Táto stránka vysvetľuje model pre inžinierov, ktorí udržiavajú trasy alebo navrhujú nové koncové body.
 
-![Autorizačný kanál AuthZ (3 triedy trás + vyhodnotenie zásad)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 triedy trás + vyhodnotenie politiky)](../diagrams/exported/authz-pipeline.svg)
 
 > Zdroj: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -199,28 +199,38 @@ export async function POST(request: Request) {
 
 Vyberte množinu podľa tvaru, nie podľa pohodlnosti. Jedna trasa patrí do `PUBLIC_API_ROUTES_EXACT` (alebo do `PUBLIC_READONLY_CORS_API_ROUTES`, ak je určená iba pre GET); do `PUBLIC_API_ROUTE_PREFIXES` patrí iba skutočný podstrom a položka sa **musí končiť znakom `/`**. Umiestnenie jednej trasy do zoznamu prefixov zároveň zverejní každú susednú cestu, ktorá má rovnaké úvodné znaky — vrátane súrodeneckých trás s dynamickými segmentmi pridaných neskôr (GHSA-74g9-q8f6-793h). Aktualizujte jednotkové testy v súboroch `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` a `tests/unit/authz/classify.test.ts`.
 
-## Rozsahy
+## Rozsahy (Scopes)
 
-Kľúče API obsahujú pole `scopes` (uložené ako JSON v `api_keys.scopes`, pozrite si `src/lib/db/apiKeys.ts`).
+Tri menné priestory. Každý kontrolór číta len svoje vlastné reťazce. Porovnanie
+vedľa seba, vrátane toho, prečo `manage` zlyháva `scopeMatches` pre `read:compression` a prečo
+prístupový token `read` nemôže `PATCH /api/keys/{id}`, je
+[Tri menné priestory rozsahov](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+API kľúče obsahujú pole `scopes` (uložené ako JSON v `api_keys.scopes`, pozri `src/lib/db/apiKeys.ts`).
 
 ### Rozsah správy
 
-- `manage` / `admin` — udeľuje kľúču prístup ku koncovým bodom API správy, keď je odoslaný ako Bearer.
+- `manage` / `admin` — `hasManageScope`. Prístup nositeľa k trasám API správy.
+- `mcp:connect`, `self:usage`, `self:account-quota` a
+  `policy:bypass-provider-quota` sú aditívne rozsahy s presnou zhodou. Sú mimo
+  `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` otvára iba
+  `/api/mcp/` výnimku pre non-loopback.
 
-### Rozsahy MCP (`src/shared/constants/mcpScopes.ts`)
+### Nástrojové rozsahy MCP
 
-Každý nástroj MCP vyžaduje konkrétne rozsahy prostredníctvom `MCP_TOOL_SCOPES`. Úplný zoznam (`MCP_SCOPE_LIST`):
+Katalóg a pravidlá zhody (identický reťazec, alebo udelený rozsah končiaci na `*`):
+[Nástrojové rozsahy MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` v `src/shared/constants/mcpScopes.ts` je pôvodná typovaná
+podmnožina, nie celý katalóg. Vynucovanie prebieha v
+`open-sse/mcp-server/scopeEnforcement.ts` po tom, čo `resolveCallerScopeContext()`
+vyrieši rozsahy z autentifikačných informácií MCP, metadát požiadavky alebo `OMNIROUTE_MCP_SCOPES`.
+Zostáva vypnuté, pokiaľ `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Rozsahy prístupových tokenov
 
-Vynucovanie rozsahov v `open-sse/mcp-server/server.ts` odovzdáva zoznam rozsahov každého nástroja do
-`evaluateToolScopes()` po tom, ako `resolveCallerScopeContext()` určí rozsahy z autentifikačných údajov MCP,
-metadát požiadavky alebo `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` na tokenoch `oma_live_…`, zoradené podľa `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Toto poradie sa vzťahuje iba na poverenia prístupového tokenu.
+Pozri [Autentifikácia správy](../guides/MANAGEMENT-AUTH.md).
 
 ## Prepínač vyžadovania autentifikácie
 
@@ -266,9 +276,9 @@ x-omniroute-auth-scopes:    zoznam oddelený čiarkami
 
 V obslužných programoch použite `assertAuth(req, expectedClass)` — ak bol middleware obídený, vyvolá `AuthzAssertionError` s kódom `AUTHZ_NOT_INITIALIZED` (užitočné na zachytenie regresií konfigurácie v testoch).
 
-## Pozrite tiež
+## Pozri tiež
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — značka autentifikácie pre každý koncový bod
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — protokol auditu udalostí autentifikácie
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — podrobnosti o vynucovaní rozsahov MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — značka overenia pre koncový bod
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — auditný záznam pre udalosti overenia
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tri menné priestory rozsahu a katalóg rozsahu nástrojov MCP
 - Zdroj: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

@@ -268,6 +268,8 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     color: "#EA580C",
     textIcon: "MT",
     website: "https://mimo.mi.com",
+    apiHint:
+      "Use a Token Plan key (tp-…) and select the cluster (Singapore, Amsterdam, or China) that issued it.",
   },
   baidu: {
     id: "baidu",

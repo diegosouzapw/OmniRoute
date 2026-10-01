@@ -243,43 +243,69 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## 所有路由策略
 
-OmniRoute 的组合引擎支持 **19 种路由策略**（声明于 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身通过 `auto` 策略提供；其他策略可用于持久化组合。
+OmniRoute 的组合引擎支持 **19 种路由策略**（在 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` 中声明）。Auto Combo 引擎本身通过 `auto` 策略提供；其他策略可用于持久化组合。
 
-| 策略                | 描述                                                                                                                              |
-| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | 具有明确优先级、按顺序选择首个目标的列表                                                                                          |
-| `weighted`          | 根据每个目标的权重进行加权随机选择                                                                                                |
-| `round-robin`       | 按顺序循环遍历目标                                                                                                                |
-| `context-relay`     | 在不同目标之间传递上下文（用于长对话）                                                                                            |
-| `fill-first`        | 先用满每个目标的配额，再转到下一个目标                                                                                            |
-| `p2c`               | 二选一随机负载均衡                                                                                                                |
-| `random`            | 均匀随机选择                                                                                                                      |
-| `least-used`        | 选择当前负载最低的目标                                                                                                            |
-| `cost-optimized`    | 根据目录定价将每次请求的成本降至最低                                                                                              |
-| `reset-aware` ⭐    | 按配额重置时间确定优先级——重置窗口较短的目标排名更高                                                                              |
-| `reset-window`      | 优先选择配额窗口最早重置的目标                                                                                                    |
-| `headroom`          | 选择剩余配额余量最大的目标                                                                                                        |
-| `strict-random`     | 随机选择，不对重复项去重                                                                                                          |
-| `auto`              | 使用 Auto Combo 评分（16 项因素）——**推荐**                                                                                       |
-| `lkgp`              | 最近已知良好路径（固定使用上一个成功的提供者，然后回退到规则）                                                                    |
-| `context-optimized` | 选择最适合当前上下文大小的目标                                                                                                    |
-| `cache-optimized`   | 按提示词缓存亲和性重新排列目标——优先尝试最有可能已缓存此请求前缀的连接（`open-sse/services/combo/promptCacheAffinity.ts`，#8008） |
-| `fusion` 🧬         | 并行分发给一组模型，然后通过评判模型将结果综合为一个答案（见下文）                                                                |
-| `pipeline`          | 依次运行目标，将每一步的输出传入下一步作为输入；仅返回最终答案（#6396）                                                           |
+| 策略                | 描述                                                                                                                            |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------ |
+| `priority`          | 按明确优先级排列的首选目标有序列表                                                                                              |
+| `weighted`          | 根据各目标权重进行加权随机选择                                                                                                  |
+| `round-robin`       | 按顺序循环使用目标（分批进行；见下文）                                                                                          |
+| `context-relay`     | 在目标之间传递上下文（适用于长对话）                                                                                            |
+| `fill-first`        | 先用满每个目标的配额，再转到下一个目标                                                                                          |
+| `p2c`               | 二选一随机负载均衡                                                                                                              |
+| `random`            | 均匀随机选择                                                                                                                    |
+| `least-used`        | 选择当前负载最低的目标                                                                                                          |
+| `cost-optimized`    | 根据目录定价，最大限度降低每次请求的费用                                                                                        |
+| `reset-aware` ⭐    | 按配额重置时间确定优先级——重置窗口较短的目标排名更高                                                                            |
+| `reset-window`      | 优先选择配额窗口最早重置的目标                                                                                                  |
+| `headroom`          | 选择剩余配额余量最多的目标                                                                                                      |
+| `strict-random`     | 随机选择，不对重复项去重                                                                                                        |
+| `auto`              | 使用 Auto Combo 评分（16 项因素）——**推荐**                                                                                     |
+| `lkgp`              | 最近已知可用路径（固定使用最近成功的提供者，然后按规则回退）                                                                    |
+| `context-optimized` | 选择最适合当前上下文大小的目标                                                                                                  |
+| `cache-optimized`   | 按提示缓存亲和性重新排列目标——最可能已缓存此请求前缀的连接会最先尝试（`open-sse/services/combo/promptCacheAffinity.ts`，#8008） |
+| `fusion` 🧬         | 并行分发给一组模型，然后由评判模型综合生成一个答案（见下文）                                                                    |
+| `pipeline`          | 依次运行各目标，将每一步的输出传入下一步作为输入；仅返回最终答案（#6396）                                                       |
 
-⭐ = v3.8.0 中新增 · 🧬 = v3.8.36 中新增
+⭐ = v3.8.0 新增 · 🧬 = v3.8.36 新增
 
 ### `weighted` 语义
 
 `weighted` 是**按请求进行的比例随机抽取**
-（`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`），而不是均衡器：
+（`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`），并非均衡器：
 
-- 每个请求以 `weight / totalWeight` 的概率抽取**一个**步骤；其余步骤按权重降序排列，作为该请求的回退链。
-- 当任何其他步骤的权重 > 0 时，权重为 `0`（或未设置权重）的步骤**永远不会被抽中**——它只能在抽中的步骤失败后作为回退。仅当**所有**权重均为 0 时，才会采用均匀选择。
-- 如果某步骤的所有目标均不可用——提供者断路器为 `OPEN`、连接处于冷却期、模型被锁定——则会在抽取发生前将其移除（`open-sse/services/combo/targetResolution.ts`），因此当只有一个步骤处于健康状态时，它可能会暂时赢得每个请求。
-- `stickyWeightedLimit`（组合配置，默认值为 `1`，即关闭）会将抽中的步骤固定使用指定次数的连续成功请求，然后再重新抽取。
+- 每个请求按照 `weight / totalWeight` 的概率抽取**一个**步骤；其余步骤按权重降序排列，作为该请求的回退链。
+- 当任何其他步骤的权重 > 0 时，权重为 `0`（或未设置）的步骤**永远不会被抽中**——它只能在被抽中的步骤失败后作为回退。只有当**所有**权重均为 0 时，选择才会变为均匀随机。
+- 目标全部不可用的步骤——提供者断路器为 `OPEN`、连接处于冷却状态、模型被锁定——会在抽取前被移除（`open-sse/services/combo/targetResolution.ts`），因此单个健康步骤可能暂时赢得每个请求。
+- `stickyWeightedLimit`（组合配置，默认值为 `1`，表示关闭）会将抽中的步骤固定用于指定次数的连续成功请求，然后重新抽取。
 
-如需严格轮换，请使用 `round-robin`；在 `weighted` 中设置相同权重只能实现统计意义上的均衡，而非严格均衡。
+如需严格轮换，请使用 `round-robin`；在 `weighted` 中使用相同权重只能实现统计意义上的均衡，而非严格均衡。
+
+### 智能体式流水线模式
+
+两步式 `pipeline` 组合可以通过 `config.agenticOrchestration.enabled` 启用规划器/执行器路由。第一个目标负责规划和最终回答；第二个目标发出客户端原生工具调用。OmniRoute 会从请求协议中检测工具结果续接，询问规划器是否需要再进行一轮工具调用，并动态选择执行器或规划器作为面向客户端的最终步骤。
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+执行器可以在一次响应中发出多个相互独立的调用。依赖调用会在客户端后续的工具结果轮次中处理，并由规划器审核每个结果。`maxToolRounds` 默认为 `8`，接受 `1`–`32`；达到上限后，规划器必须生成当前可得的最佳最终回答。内部规划器决策会被缓冲，而所选的面向客户端响应会保留原始流式传输偏好。
+
+### `round-robin` 粘性批处理与账户扩展
+
+轮询采用批处理方式，而不是每个步骤处理一个请求：
+
+- `stickyRoundRobinLimit`（依次取组合配置、`comboStickyRoundRobinLimit`、`settings.stickyRoundRobinLimit`，默认值为 **3**）会让同一目标连续成功指定次数后再轮换。将组合覆盖值设置为 `1` 可实现每个请求轮换一次。组合编辑器会显示生效值及其来源层级。
+- `connectionAwareExpansion`（依次取组合配置、设置，默认值为 **false**）会在轮换前将每个提供者级步骤扩展为按账户划分的目标。在启用此选项之前，B 组策略（priority、weighted、round-robin、random、p2c、least-used、cost-optimized、lkgp、fill-first、strict-random、context-optimized、cache-optimized、context-relay、fusion、pipeline）会保持提供者级视图。组合编辑器提供继承 / 开启 / 关闭选项；继承使用全局默认值（关闭）。
+- 提示词缓存亲和性路由（`promptCacheAffinityEnabled`，默认值为 **true**）会对固定连接重新排序，使匹配缓存键的请求留在同一账户上。对于固定到具体账户的步骤，它的优先级高于轮询和加权轮换。如果需要严格轮换，请在 Settings → Combo defaults 下将其关闭。此选项不支持按组合覆盖。
+
+若要在一个模型的多个账户间进行轮换，建议使用**一个动态账户步骤**（`connectionId` 为空，使用整个账户池）并将粘性限制设为 `1`，而不要使用三个固定的 `connectionId`。即使 RR 计数器持续递增，固定步骤加上亲和性机制仍会集中到同一个账户上。
 
 ## 融合策略
 

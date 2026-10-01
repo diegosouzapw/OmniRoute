@@ -44,13 +44,31 @@ export const UNSUPPORTED_PARAM_RE =
   /unsupported\s+parameter\w*(?:\s*\(s\))?[:\s]+["'`]?(\w+)["'`]?/i;
 
 /**
+ * Anthropic's wording for a retired sampling param:
+ *   "`temperature` is deprecated for this model."
+ * The name must be backtick-quoted so plain prose never matches.
+ */
+export const DEPRECATED_PARAM_RE = /`(\w+)`\s+is\s+deprecated\b/i;
+
+// Stripping these changes what is asked, not how, so auto-learn must never block them.
+const NON_STRIPPABLE_PARAMS = new Set([
+  "model",
+  "messages",
+  "input",
+  "contents",
+  "system",
+  "stream",
+]);
+
+/**
  * Extract a single unsupported parameter name from a 400 error body,
- * or null if the error does not match the known pattern.
+ * or null if the error does not match a known pattern.
  */
 export function detectUnsupportedParam(bodyText: string): string | null {
   if (typeof bodyText !== "string" || !bodyText) return null;
-  const match = UNSUPPORTED_PARAM_RE.exec(bodyText);
-  return match?.[1] ?? null;
+  const name =
+    UNSUPPORTED_PARAM_RE.exec(bodyText)?.[1] ?? DEPRECATED_PARAM_RE.exec(bodyText)?.[1] ?? null;
+  return name && !NON_STRIPPABLE_PARAMS.has(name.toLowerCase()) ? name : null;
 }
 
 /** Immutably drop request fields Groq rejects with a 400. */

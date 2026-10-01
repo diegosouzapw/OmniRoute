@@ -154,7 +154,9 @@ async function resolveConnection(
   const configuredPort = Number.parseInt(process.env.CLIPROXYAPI_PORT ?? "", 10);
   return {
     state: "ready",
-    host: options.host ?? externalHost,
+    // A management key alone (no CLIPROXYAPI_HOST) means a local CLIProxyAPI — the documented
+    // default, same as the executor's; otherwise the probe went to `http://undefined:<port>`.
+    host: options.host ?? (externalHost || "127.0.0.1"),
     port:
       options.port ??
       (Number.isInteger(configuredPort) && configuredPort > 0

@@ -70,19 +70,11 @@ export const GLM_53_FAMILY_PATTERN = /(?:^|\/|\b)glm-5\.3(?:$|-)/i;
 export const GLM_52_FAMILY_PATTERN = /(?:^|\/|\b)glm-5\.2(?:$|-)/i;
 
 export function isCommandCodeProvider(provider: string): boolean {
-  return (
-    provider === "command-code" ||
-    provider === "cmd" ||
-    provider === "command_code"
-  );
+  return provider === "command-code" || provider === "cmd" || provider === "command_code";
 }
 
 export function isOllamaCloudProvider(provider: string): boolean {
-  return (
-    provider === "ollama-cloud" ||
-    provider === "ollamacloud" ||
-    provider === "ollama_cloud"
-  );
+  return provider === "ollama-cloud" || provider === "ollamacloud" || provider === "ollama_cloud";
 }
 
 export function isOpencodeGoProvider(provider: string): boolean {
@@ -206,12 +198,7 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
     MAX_TIER_REASONING_MODEL_PATTERN.test(resolvedModelId) ||
     MAX_TIER_REASONING_MODEL_PATTERN.test(model);
   return (
-    isClaude ||
-    isOpencodeGo ||
-    isOllamaCloud ||
-    isMoonshotK3 ||
-    isCommandCode ||
-    isMaxTierModel
+    isClaude || isOpencodeGo || isOllamaCloud || isMoonshotK3 || isCommandCode || isMaxTierModel
   );
 }
 
@@ -271,6 +258,29 @@ function writeEffortValue(
   if (c.hasOutputConfigEffort && c.outputConfig)
     next.output_config = { ...c.outputConfig, effort: value };
   return next;
+}
+
+/**
+ * The effort the outgoing body actually asks for, across all three carriers.
+ * Used by the reactive 4xx probe in `base.ts` to decide which tier to step
+ * down to, so it must report what is on the wire — not what the registry says
+ * the model supports.
+ */
+export function readBodyReasoningEffort(body: unknown): string | null {
+  if (!body || typeof body !== "object") return null;
+  const effort = readEffortCarriers(body as Record<string, unknown>).effort;
+  return typeof effort === "string" ? effort : null;
+}
+
+/**
+ * Write `value` onto every carrier the body already uses, leaving the shape of
+ * the body untouched — the reactive probe rewrites one field of the request
+ * that is already on its way upstream, so it must not reshape anything else.
+ */
+export function writeBodyReasoningEffort(body: unknown, value: string): unknown {
+  if (!body || typeof body !== "object") return body;
+  const record = body as Record<string, unknown>;
+  return writeEffortValue(record, value, readEffortCarriers(record));
 }
 
 /** Strip the effort field from every carrier that was present. */
@@ -466,29 +476,49 @@ export function sanitizeReasoningEffortForProvider(
   // Command Code rejects it outright:
   //   Validation error: Invalid option: expected one of
   //   "low"|"medium"|"high"|"xhigh"|"max" at "params.reasoning_effort"
-  // Map it to the closest supported value (`low`) for command-code only;
+  // Command Code rejects the OpenAI no-thinking carrier `none` with the same
+  // error. That matters because a `force` + `none` reasoning-routing rule now
+  // emits `reasoning_effort: "none"` (src/lib/reasoningRouting/policy.ts) so
+  // that providers whose thinking defaults ON actually turn it off.
+  // Map both to the closest supported value (`low`) for command-code only;
   // other providers (codex etc.) keep their native `minimal` handling.
-  if (isCommandCodeProvider(provider) && effortStr === "minimal") {
+  // Exception: a Responses-shaped body (`input`, no `messages`) is routed to
+  // /provider/v1/responses (#14692), which DOES honor `reasoning.effort: "none"`
+  // (verified live 2026-09-24: reasoning_tokens 0) — keep `none` there, or a
+  // no-thinking request silently turns reasoning back on.
+  const commandCodeResponsesNone =
+    effortStr === "none" && b.input !== undefined && b.messages === undefined;
+  if (
+    isCommandCodeProvider(provider) &&
+    (effortStr === "minimal" || effortStr === "none") &&
+    !commandCodeResponsesNone
+  ) {
     log?.info?.(
       "REASONING_SANITIZE",
-      `${provider}/${modelStr}: mapped reasoning_effort minimal → low`
+      `${provider}/${modelStr}: mapped reasoning_effort ${effortStr} → low`
     );
     return writeEffortValue(b, "low", c);
   }
 
   // Providers and model families whose top reasoning tier is `max` natively
   // (or whose gateways expect `max` rather than OmniRoute's internal `xhigh`):
-  //   - Command Code (`command-code` / `cmd`)
   //   - Ollama Cloud (`ollama-cloud` / `ollamacloud`)
   //   - OpenCode Go (`opencode-go` / `opencode-zen` / `opencode`)
   //   - GLM 5.1+ / 6.0+ (Z.AI / Zhipu GLM-5.1, GLM-5.2, GLM-5.3, GLM-5.4...)
   //   - DeepSeek V4+ (Flash, Pro, Vision, ...)
   //   - Kimi K3+ (Moonshot AI K3, K4, ...)
   // OpenRouter (pi#4055) is excluded because OpenRouter's normalized API expects xhigh.
+  //
+  // Command Code is deliberately NOT in this list. Its own validator advertises
+  // `low|medium|high|xhigh|max` (the quoted enum in the `minimal` mapping above),
+  // so `xhigh` is a native and distinct tier there. Rewriting it onto `max`
+  // silently spends a different reasoning level than the caller asked for, and it
+  // also overwrote the nested `reasoning.effort` carrier that the Responses path
+  // reads. Unlisted models already pass `xhigh` through unchanged below via
+  // supportsXHighEffort(); this early return used to preempt that.
   const isMaxTierTarget =
     provider !== "openrouter" &&
-    (isCommandCodeProvider(provider) ||
-      isOllamaCloudProvider(provider) ||
+    (isOllamaCloudProvider(provider) ||
       isOpencodeGoProvider(provider) ||
       MAX_TIER_REASONING_MODEL_PATTERN.test(modelStr));
 
@@ -549,11 +579,10 @@ export function sanitizeReasoningEffortForProvider(
     ? modelStr.slice(provider.length + 1)
     : modelStr;
   const declaredEfforts = getProviderModels(provider).find(
-    (entry) => entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
+    (entry) =>
+      entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
   )?.supportedThinkingEfforts;
-  const declaredRanked = (
-    Array.isArray(declaredEfforts) ? declaredEfforts : []
-  )
+  const declaredRanked = (Array.isArray(declaredEfforts) ? declaredEfforts : [])
     .map((tier) => ({ tier, rank: REASONING_EFFORT_ORDER.indexOf(tier) }))
     .filter((x) => x.rank >= 0)
     .sort((a, b) => a.rank - b.rank);

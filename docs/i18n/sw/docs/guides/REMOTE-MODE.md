@@ -350,67 +350,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # kwanza hamisha OMNIROUTE_API_
 
 ---
 
-## Kudhibiti miktadha (kubadilisha kati ya seva)
+## Kudhibiti contexts (badilisha kati ya seva)
 
-**Muktadha** ni seva iliyohifadhiwa (baseUrl + kitambulisho + upeo). `omniroute connect`
-huunda mmoja na kuufanya uwe amilifu; kuanzia hapo kila amri hulenga muktadha huo. Dhibiti na
-ubadilishe kati yake kwa kutumia `omniroute contexts`:
+**Context** ni seva iliyohifadhiwa (baseUrl + credential + scope). `omniroute connect` huunda moja na kuifanya iwe hai; kuanzia hapo kila amri huilenga. Dhibiti na ubadilishe kati yao kwa kutumia `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # miktadha yote; ulio amilifu umewekwa alama ●
-omniroute contexts current         # seva amilifu, hali ya uthibitishaji, upeo
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
 ```
 
 ```text
-  | Jina    | URL ya Msingi              | Uthibitishaji | Upeo  | Maelezo
-● | vps     | http://100.67.86.91:20128 | token         | admin | OmniRoute ya Mbali (…)
-  | default | http://localhost:20128    | ✗             |       |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Badilisha seva** — kila amri inayofuata hutumia muktadha amilifu:
+**Badilisha seva** — kila amri inayofuata inafuata context hai:
 
 ```bash
-omniroute contexts use vps         # → sasa amri zote zinalenga VPS ya mbali
-omniroute tokens list              #   (hutekelezwa dhidi ya VPS)
+omniroute contexts use vps         # → all commands now hit the remote VPS
+omniroute tokens list              #   (runs against the VPS)
 
-omniroute contexts use default     # → kurudi localhost
-omniroute tokens list              #   (hutekelezwa dhidi ya seva ya ndani)
+omniroute contexts use default     # → back to localhost
+omniroute tokens list              #   (runs against the local server)
 ```
 
-**Ongeza muktadha mwenyewe** (badala ya `connect`), ukague, au ubadilishe jina:
+**Ongeza context mwenyewe** (badala ya `connect`), kagua, au badilisha jina:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # maelezo kamili ya muktadha mmoja
+omniroute contexts show staging    # full details for one context
 omniroute contexts rename staging stg
 ```
 
-**Ondoa muktadha** — huomba uthibitisho; tumia `--yes` ili kuuruka
-(inahitajika kwa hati / shell zisizoingiliana, ambazo vinginevyo hukataa kwa usalama):
+**Ondoa context** — huomba uthibitisho; pitisha `--yes` kuiruka (inahitajika kwa scripts / shells zisizoingiliana, ambazo vinginevyo hukataa salama):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) haiwezi kuondolewa. Kuondoa muktadha amilifu hurudisha matumizi
-> kwenye `default`. Kidokezo: kuondoa muktadha hufuta tu kitambulisho kilichohifadhiwa **ndani** —
-> batilisha tokeni kwenye seva kwa kutumia `omniroute tokens revoke <id>` ili kusitisha
-> ufikiaji kikamilifu.
+> `default` (localhost) haiwezi kuondolewa. Kuondoa context hai hurudi kwenye `default`. Kidokezo: kuondoa context huondoa tu credential iliyohifadhiwa **ndani** — batilisha token kwenye seva kwa kutumia `omniroute tokens revoke <id>` ili kukata kabisa ufikiaji.
 
-**Hamisha nje / ingiza** miktadha (kwa mfano, kuihamisha kati ya mashine). Miktadha mipya huhifadhi
-rejeleo la keychain pekee; vitambulisho havinakiliwi kwenye faili ya kuhamisha nje wakati
-keychain ya OS inapatikana:
+**Hamisha / ingiza contexts** (k.m. kuzihamisha kati ya mashine). Uhamishaji huacha credentials kwa chaguo-msingi, ikiwemo credentials zilizohifadhiwa na file fallback. Tumia `--include-secrets` waziwazi wakati nakala rudufu inayoweza kubebeka yenye credentials inahitajika:
 
 ```bash
-omniroute contexts export --out contexts.json     # chaguo-msingi: stdout
-omniroute contexts import contexts.json            # andika juu yake; --merge ili kuhifadhi iliyopo
-omniroute contexts migrate --yes                  # hamisha tokeni za zamani za maandishi wazi kwenda keychain
+omniroute contexts export --out contexts.json     # redacted; default destination: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
 
-Kwenye mifumo isiyo na kiolesura bila keychain ya OS inayoweza kutumika, CLI hurudi kutumia
-`config.json` yenye modi `0600` na kuchapisha onyo la mara moja. Chukulia faili zilizohamishwa nje
-kutoka kwenye mbinu hiyo mbadala (na usanidi wowote wa zamani kabla ya uhamishaji) kama nyenzo za siri.
+`--include-secrets` hutatua marejeleo ya keychain kabla ya kuhamisha na hushindwa ikiwa credential yoyote iliyorejelewa haiwezi kusomwa. `--no-secrets` daima hupewa kipaumbele. Faili za kuhamisha huandikwa kwa atomiki na mode `0600`. Chukulia uhamishaji waziwazi wenye siri kama nyenzo ya siri. Kwenye mifumo isiyo na kichwa bila keychain ya OS inayoweza kutumika, CLI hurudi kwenye `config.json` na mode `0600` na huchapisha onyo la mara moja; uhamishaji wa chaguo-msingi hubaki umefichwa katika hali hii.
 
 ---
 

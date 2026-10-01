@@ -1,7 +1,7 @@
 ---
 title: "🚀 Self-Host Guide — OmniRoute (零月费自托管 / zero-fee self-host)"
 version: 3.8.51
-lastUpdated: 2026-09-14
+lastUpdated: 2026-09-27
 ---
 
 # 🚀 Self-Host Guide — OmniRoute
@@ -10,7 +10,17 @@ lastUpdated: 2026-09-14
 > billing, no multi-tenant isolation, no hosted prompt-processing hop. Your
 > prompts go straight to the provider you pick.
 
+> **Version note:** this flow applies from **v3.8.51** on. The two files it uses
+> (`docker-compose.selfhost.yml` and `.env.selfhost.example`) are not in
+> v3.8.50 or any earlier tag. On v3.8.50, use the single-container
+> [`docker run` flow in the Docker Guide](../guides/DOCKER_GUIDE.md#quick-run)
+> instead.
+
 ```bash
+mkdir omniroute && cd omniroute
+BASE=https://raw.githubusercontent.com/diegosouzapw/OmniRoute/v3.8.51
+curl -fsSLO "$BASE/docker-compose.selfhost.yml"
+curl -fsSLO "$BASE/.env.selfhost.example"
 cp .env.selfhost.example .env      # then edit the 2 lines marked "EDIT ME"
 docker compose -f docker-compose.selfhost.yml up -d
 open http://127.0.0.1:20128
@@ -48,15 +58,32 @@ When you outgrow it, graduate to the full
 - A provider API key from any supported provider (OpenAI, Anthropic, Google,
   or one of the [150+ free tiers](./FREE-TIERS-GUIDE.md)).
 
-No build toolchain, no Node, no git clone required — the image is pulled.
+No build toolchain, no Node, no git clone required: you download two files
+(the compose file and the env template, Step 1) and the image is pulled.
 
 ---
 
 ## Step 1 — Configure (1 min)
 
+Download the two self-host files into an empty directory, pinned to the
+release tag, and create your `.env` from the template:
+
 ```bash
+mkdir omniroute && cd omniroute
+BASE=https://raw.githubusercontent.com/diegosouzapw/OmniRoute/v3.8.51
+curl -fsSLO "$BASE/docker-compose.selfhost.yml"
+curl -fsSLO "$BASE/.env.selfhost.example"
 cp .env.selfhost.example .env
 ```
+
+(Working from a git clone of v3.8.51 or later? Both files are at the repo
+root; just run the `cp`.)
+
+The compose file reads **`./.env` next to `docker-compose.selfhost.yml`**
+(`env_file: .env`). It does **not** read `~/.omniroute/.env`: that file belongs
+to the npm CLI install (`omniroute` command, see
+[Local binary build](#local-binary-build-optional)) and has no effect on the
+Docker flow.
 
 Edit exactly **two** lines in `.env`:
 
@@ -172,8 +199,12 @@ npm install -g omniroute
 omniroute
 ```
 
-This runs the Next.js standalone server directly on your host — same ports,
-same `DATA_DIR` (`./data` by default). Use it when you cannot run Docker
+This runs the Next.js standalone server directly on your host, on the same
+ports. It keeps its data and its `.env` in `~/.omniroute` by default
+(when `~/.omniroute` does not exist: `%APPDATA%\omniroute` on Windows, or
+`$XDG_CONFIG_HOME/omniroute` when that variable is set; `$DATA_DIR` overrides
+all of these), not in the `./data` directory the Docker flow mounts.
+Use it when you cannot run Docker
 (e.g. a locked-down VM). The container path above is the recommended default
 because it bundles the exact runtime the image was tested with.
 
@@ -230,6 +261,23 @@ sections for copy-paste reverse-proxy configs.
 ---
 
 ## Common issues
+
+<details>
+<summary><code>cp: cannot stat '.env.selfhost.example': No such file or directory</code></summary>
+
+The self-host files are not in your current directory. Download them first
+(see [Step 1](#step-1--configure-1-min)); they ship from v3.8.51 on, so the
+tag-pinned URLs do not exist for v3.8.50 or earlier. On v3.8.50 use the
+[`docker run` flow](../guides/DOCKER_GUIDE.md#quick-run).
+</details>
+
+<details>
+<summary>Edited <code>~/.omniroute/.env</code> and nothing changed</summary>
+
+That file is read by the npm CLI install only. The Docker flow reads the
+`.env` next to `docker-compose.selfhost.yml`. Edit that one and re-run
+`docker compose -f docker-compose.selfhost.yml up -d`.
+</details>
 
 <details>
 <summary><code>docker compose up</code> only starts Redis</summary>

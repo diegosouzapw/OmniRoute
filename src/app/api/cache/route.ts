@@ -10,6 +10,7 @@ import {
 import { getIdempotencyStats } from "@/lib/idempotencyLayer";
 import { getCacheMetrics, getCacheTrend } from "@/lib/db/settings";
 import { getCachedSettings } from "@/lib/db/readCache";
+import { isTrustedLoopbackInternalServiceRequest } from "@/lib/api/internalServiceAuth";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
@@ -18,7 +19,7 @@ function errorMessage(error: unknown): string {
 }
 
 export async function GET(req: NextRequest) {
-  if (!(await isAuthenticated(req))) {
+  if (!isTrustedLoopbackInternalServiceRequest(req) && !(await isAuthenticated(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await isAuthenticated(req))) {
+  if (!isTrustedLoopbackInternalServiceRequest(req) && !(await isAuthenticated(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

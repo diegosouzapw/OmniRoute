@@ -17,6 +17,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import net from "node:net";
+import { EventEmitter } from "node:events";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { findListeningPids } from "../../bin/cli/utils/pid.mjs";
@@ -73,14 +74,177 @@ test("findListeningPids reports the PID holding the port (posix lsof)", async ()
   assert.deepEqual(pids, [4242, 4243]);
 });
 
-test("findListeningPids returns empty when nothing is listening", async () => {
+test("findListeningPids treats an empty lsof result as a free port", async () => {
+  const noMatch = Object.assign(new Error("lsof exited with no matches"), {
+    code: 1,
+    stdout: "",
+  });
+  const pids = await findListeningPids(20128, {
+    platform: "darwin",
+    execFileAsync: async () => {
+      throw noMatch;
+    },
+  });
+  assert.deepEqual(pids, [], "lsof exit 1 with empty output means nothing is listening");
+});
+
+test("findListeningPids returns null when discovery is unavailable (#14518)", async () => {
   const pids = await findListeningPids(20128, {
     platform: "win32",
     execFileAsync: async () => {
       throw new Error("netstat unavailable");
     },
   });
-  assert.deepEqual(pids, [], "a discovery failure must not be reported as a busy port");
+  assert.equal(pids, null, "a discovery failure is 'unknown'; the caller bind-probes instead");
+});
+
+// Tests for #14518: on a host without lsof/netstat (Termux, slim containers),
+// findListeningPids() returned [] — indistinguishable from "no listener" — so
+// the serve preflight waved the doomed second instance through and the user
+// got an EADDRINUSE restart loop instead of the one-line port-in-use message.
+// The fix makes the guard bind-probe the port itself when discovery tools are
+// missing, so "tool absent" can never again be read as "port free".
+
+test("findListeningPids returns null when the discovery binary does not exist", async () => {
+  const enoent = Object.assign(new Error("spawn lsof ENOENT"), { code: "ENOENT" });
+  const pids = await findListeningPids(20128, {
+    platform: "linux",
+    execFileAsync: async () => {
+      throw enoent;
+    },
+  });
+  assert.equal(pids, null, "a missing tool is 'unknown', not 'free'");
+});
+
+test("findListeningPids returns null for a missing netstat on win32", async () => {
+  const enoent = Object.assign(new Error("spawn netstat ENOENT"), { code: "ENOENT" });
+  const pids = await findListeningPids(20128, {
+    platform: "win32",
+    execFileAsync: async () => {
+      throw enoent;
+    },
+  });
+  assert.equal(pids, null);
+});
+
+test("probePortFree is false while a socket holds the port and true after release", async () => {
+  const { probePortFree } = await import("../../bin/cli/utils/pid.mjs");
+  const server = net.createServer();
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const { port } = server.address();
+  try {
+    assert.equal(await probePortFree(port), false, "a held port must not read as free");
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
+  assert.equal(await probePortFree(port), true, "a released port must bind cleanly");
+});
+
+// macOS, unlike Linux, lets the probe's wildcard bind succeed while a server
+// holds the same port on 0.0.0.0 (the default host), 127.0.0.1 or ::1
+// (localhost), so a wildcard-only probe never saw it. This stub applies those
+// bind semantics, where only the held address itself fails, so the check runs
+// on Linux CI as well.
+function netWithHeldHost(heldHost, code = "EADDRINUSE") {
+  return {
+    createServer() {
+      const server = new EventEmitter();
+      server.listen = (options, onListening) => {
+        const host = typeof options === "object" ? options.host : undefined;
+        queueMicrotask(() => {
+          if (host === heldHost) {
+            server.emit("error", Object.assign(new Error(`listen ${code}`), { code }));
+          } else {
+            onListening();
+          }
+        });
+        return server;
+      };
+      server.close = (done) => {
+        done?.();
+        return server;
+      };
+      return server;
+    },
+  };
+}
+
+test("probePortFree sees a held port when the wildcard bind succeeds (macOS)", async () => {
+  const { probePortFree } = await import("../../bin/cli/utils/pid.mjs");
+  for (const host of ["0.0.0.0", "127.0.0.1", "::1"]) {
+    assert.equal(
+      await probePortFree(20128, { net: netWithHeldHost(host) }),
+      false,
+      `a server bound to ${host} must read as busy`
+    );
+  }
+  assert.equal(await probePortFree(20128, { net: netWithHeldHost(null) }), true);
+});
+
+test("probePortFree treats a missing loopback address as free", async () => {
+  const { probePortFree } = await import("../../bin/cli/utils/pid.mjs");
+  const ipv4Only = netWithHeldHost("::1", "EADDRNOTAVAIL");
+  assert.equal(
+    await probePortFree(20128, { net: ipv4Only }),
+    true,
+    "an IPv4-only host must not block serve"
+  );
+});
+
+test("reportPortInUse degrades gracefully when the owner pid is unknown", async () => {
+  const { reportPortInUse } = await import("../../bin/cli/commands/serve.mjs");
+  const lines = [];
+  const origErr = console.error.bind(console);
+  console.error = (...args) => lines.push(args.join(" "));
+  try {
+    reportPortInUse(20128, []);
+  } finally {
+    console.error = origErr;
+  }
+  const out = lines.join("\n");
+  assert.match(out, /Port 20128 is already in use/, "must still name the port");
+  assert.match(out, /unknown|unidentified/, "must say the owner could not be identified");
+  assert.match(out, /omniroute stop/, "must keep the resolution path");
+});
+
+test("serve preflight treats a free port as no listeners when pid discovery returns null", async () => {
+  const { resolveServeBusyPids } = await import("../../bin/cli/commands/serve.mjs");
+  const busyPids = await resolveServeBusyPids(20128, {
+    findListeningPids: async () => null,
+    probePortFree: async () => true,
+  });
+  // #14800: null discovery + a free bind probe used to leave busyPids null, and
+  // the next `.length` threw on any host without lsof/netstat. Free means [].
+  assert.equal(busyPids.length, 0);
+  assert.deepEqual(busyPids, []);
+});
+
+test("serve preflight rejects a busy port even without any discovery tool (end-to-end for #14518)", async () => {
+  const { probePortFree, findListeningPids } = await import("../../bin/cli/utils/pid.mjs");
+  const server = net.createServer();
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const { port } = server.address();
+  const enoent = Object.assign(new Error("spawn lsof ENOENT"), { code: "ENOENT" });
+  try {
+    // Simulate the Termux condition: discovery tool absent.
+    const pids = await findListeningPids(port, {
+      platform: "linux",
+      execFileAsync: async () => {
+        throw enoent;
+      },
+    });
+    assert.equal(pids, null, "guard cannot rely on pid discovery here");
+    // The fixed preflight then bind-probes; that must expose the conflict.
+    assert.equal(await probePortFree(port), false, "busy port must be caught by the probe");
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
 });
 
 test(

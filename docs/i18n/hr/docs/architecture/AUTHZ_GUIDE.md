@@ -5,11 +5,11 @@
 ---
 
 > **Izvor istine:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Posljednje ažuriranje:** 2026-06-28 — v3.8.40
+> **Zadnje ažurirano:** 2026-09-22 — prostori naziva opsega upućuju na MCP-SERVER.md
 
-OmniRoute ima autorizacijski cjevovod koji uzima u obzir rute i kontrolira svaki API zahtjev. Klasifikacija je **deterministička** i **zatvorena u slučaju pogreške** — sve što se ne može klasificirati završava kao `MANAGEMENT` i zahtijeva sesiju ili token s ovlastima za upravljanje. Ova stranica objašnjava model inženjerima koji održavaju rute ili dizajniraju nove krajnje točke.
+OmniRoute ima autorizacijski cjevovod svjestan ruta koji štiti svaki API zahtjev. Klasifikacija je **deterministička** i **zatvorena u slučaju kvara** — sve što se ne može klasificirati završava kao `MANAGEMENT` i zahtijeva sesiju ili token upravljačke razine. Ova stranica objašnjava model za inženjere koji održavaju rute ili dizajniraju nove krajnje točke.
 
-![Autorizacijski cjevovod (3 klase ruta + evaluacija pravila)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ cjevovod (3 klase ruta + evaluacija politike)](../diagrams/exported/authz-pipeline.svg)
 
 > Izvor: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -202,26 +202,36 @@ Odaberite skup prema obliku, a ne prema praktičnosti. Jedna ruta ide u `PUBLIC_
 
 ## Opsezi
 
-API ključevi sadrže polje `scopes` (pohranjeno kao JSON u `api_keys.scopes`, pogledajte `src/lib/db/apiKeys.ts`).
+Tri imenska prostora. Svaki provjerivač čita samo vlastite nizove. Usporedba,
+uključujući zašto `manage` ne uspijeva `scopeMatches` za `read:compression` i zašto
+pristupni token `read` ne može `PATCH /api/keys/{id}`, nalazi se u
+[Tri imenska prostora opsega](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Opseg upravljanja
+API ključevi sadrže `scopes` niz (pohranjen kao JSON u `api_keys.scopes`, pogledajte `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — ključu omogućuje pristup krajnjim točkama API-ja za upravljanje kada se šalje kao Bearer.
+### Upravljački opseg
 
-### MCP opsezi (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Nositeljski pristup rutama upravljačkog API-ja.
+- `mcp:connect`, `self:usage`, `self:account-quota` i
+  `policy:bypass-provider-quota` su aditivni opsezi s točnim podudaranjem. Nalaze se
+  izvan `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` otvara samo
+  `/api/mcp/` izuzetak koji nije povratna veza.
 
-Svaki MCP alat zahtijeva određene opsege putem `MCP_TOOL_SCOPES`. Cjelovit popis (`MCP_SCOPE_LIST`):
+### Opsezi MCP alata
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalog i pravila podudaranja (identičan niz znakova, ili dodijeljeni opseg koji završava s `*`):
+[Opsezi MCP alata](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` u `src/shared/constants/mcpScopes.ts` je izvorni tipizirani
+podskup, a ne taj potpuni katalog. Provedba se izvršava u
+`open-sse/mcp-server/scopeEnforcement.ts` nakon što `resolveCallerScopeContext()`
+razriješi opsege iz MCP informacija o autentifikaciji, metapodataka zahtjeva ili
+`OMNIROUTE_MCP_SCOPES`. Ostaje isključena osim ako `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Provedba opsega u `open-sse/mcp-server/server.ts` prosljeđuje popis opsega svakog alata funkciji
-`evaluateToolScopes()` nakon što `resolveCallerScopeContext()` razriješi opsege iz podataka za MCP autentifikaciju,
-metapodataka zahtjeva ili `OMNIROUTE_MCP_SCOPES`.
+### Opsezi pristupnog tokena
+
+`read` / `write` / `admin` na `oma_live_…` tokenima, rangirani prema `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ovaj rang se primjenjuje samo na
+vjerodajnicu pristupnog tokena. Pogledajte [Upravljačka autentifikacija](../guides/MANAGEMENT-AUTH.md).
 
 ## Prekidač za obveznu autentifikaciju
 
@@ -267,9 +277,9 @@ x-omniroute-auth-scopes:    popis odvojen zarezima
 
 Upotrijebite `assertAuth(req, expectedClass)` unutar rukovatelja — izbacuje `AuthzAssertionError` s kodom `AUTHZ_NOT_INITIALIZED` ako je međuprogram zaobiđen (korisno za otkrivanje regresija konfiguracije u testovima).
 
-## Pogledajte također
+## Vidi također
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — oznaka autentifikacije po krajnjoj točki
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — zapisnik revizije za događaje autentifikacije
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — pojedinosti o provođenju MCP opsega
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — oznaka autorizacije po krajnjoj točki
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — revizijski zapisnik za događaje autorizacije
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tri imenska prostora opsega i MCP katalog opsega alata
 - Izvor: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

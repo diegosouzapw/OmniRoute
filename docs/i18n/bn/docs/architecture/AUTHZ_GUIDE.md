@@ -4,10 +4,10 @@
 
 ---
 
-> **প্রামাণিক উৎস:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **সর্বশেষ হালনাগাদ:** 2026-06-28 — v3.8.40
+> **সত্যের উৎস:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **সর্বশেষ হালনাগাদ:** 2026-09-22 — স্কোপ নেমস্পেসগুলো MCP-SERVER.md-এর দিকে নির্দেশ করে
 
-OmniRoute-এ একটি রুট-সচেতন অনুমোদন পাইপলাইন রয়েছে, যা প্রতিটি API অনুরোধ নিয়ন্ত্রণ করে। শ্রেণিবিন্যাস **নির্ধারণমূলক** এবং **fail-closed** — যেকোনো কিছু শ্রেণিবদ্ধ করা না গেলে সেটি `MANAGEMENT` হিসেবে গণ্য হয় এবং একটি সেশন বা ম্যানেজমেন্ট-গ্রেড টোকেন দাবি করে। রুট রক্ষণাবেক্ষণকারী বা নতুন এন্ডপয়েন্ট ডিজাইনকারী প্রকৌশলীদের জন্য এই পৃষ্ঠায় মডেলটি ব্যাখ্যা করা হয়েছে।
+OmniRoute-এ একটি রুট-সচেতন অথরাইজেশন পাইপলাইন রয়েছে, যা প্রতিটি API অনুরোধকে নিয়ন্ত্রণ করে। শ্রেণিবিন্যাস **নির্ধারণবাদী** এবং **ব্যর্থ হলে বন্ধ** — শ্রেণিবদ্ধ করা যায় না এমন সবকিছু শেষ পর্যন্ত `MANAGEMENT` হিসেবে গণ্য হয় এবং একটি সেশন বা ম্যানেজমেন্ট-গ্রেড টোকেন দাবি করে। রুট রক্ষণাবেক্ষণকারী বা নতুন এন্ডপয়েন্ট ডিজাইনকারী প্রকৌশলীদের জন্য এই পৃষ্ঠায় মডেলটি ব্যাখ্যা করা হয়েছে।
 
 ![AuthZ পাইপলাইন (৩টি রুট শ্রেণি + নীতি মূল্যায়ন)](../diagrams/exported/authz-pipeline.svg)
 
@@ -201,24 +201,33 @@ export async function POST(request: Request) {
 
 ## স্কোপসমূহ
 
-API কীগুলো একটি `scopes` অ্যারে বহন করে (JSON হিসেবে `api_keys.scopes`-এ সংরক্ষিত, দেখুন `src/lib/db/apiKeys.ts`)।
+তিনটি নেমস্পেস। প্রতিটি পরীক্ষক কেবল তার নিজস্ব স্ট্রিং পড়ে। পাশাপাশি তুলনা, যার মধ্যে কেন `manage` `read:compression`-এর জন্য `scopeMatches`-এ ব্যর্থ হয় এবং কেন একটি `read` অ্যাক্সেস টোকেন `PATCH /api/keys/{id}` করতে পারে না, তা এখানে রয়েছে:
+[তিনটি স্কোপ নেমস্পেস](../frameworks/MCP-SERVER.md#three-scope-namespaces)।
 
-### ম্যানেজমেন্ট স্কোপ
+API কিগুলো একটি `scopes` অ্যারে বহন করে (`api_keys.scopes`-এ JSON হিসেবে সংরক্ষিত, দেখুন `src/lib/db/apiKeys.ts`)।
 
-- `manage` / `admin` — Bearer হিসেবে পাঠানো হলে কীটিকে ম্যানেজমেন্ট API এন্ডপয়েন্টগুলোতে অ্যাক্সেস দেয়।
+### ব্যবস্থাপনা স্কোপ
 
-### MCP স্কোপসমূহ (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`। ব্যবস্থাপনা API রুটগুলোতে Bearer অ্যাক্সেস।
+- `mcp:connect`, `self:usage`, `self:account-quota`, এবং
+  `policy:bypass-provider-quota` হলো সংযোজনধর্মী হুবহু-মিল স্কোপ। এগুলো
+  `MANAGEMENT_API_KEY_SCOPES`-এর বাইরে থাকে। `mcp:connect` কেবল
+  `/api/mcp/` নন-লুপব্যাক ব্যতিক্রমটি উন্মুক্ত করে।
 
-প্রতিটি MCP টুলের জন্য `MCP_TOOL_SCOPES`-এর মাধ্যমে নির্দিষ্ট স্কোপ প্রয়োজন। সম্পূর্ণ তালিকা (`MCP_SCOPE_LIST`):
+### MCP টুল স্কোপসমূহ
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+ক্যাটালগ এবং মেলানোর নিয়মাবলি (অভিন্ন স্ট্রিং, অথবা `*` দিয়ে শেষ হওয়া কোনো মঞ্জুরকৃত স্কোপ):
+[MCP টুল স্কোপসমূহ](../frameworks/MCP-SERVER.md#mcp-tool-scopes)।
+`src/shared/constants/mcpScopes.ts`-এর `MCP_SCOPE_LIST` হলো মূল টাইপযুক্ত
+উপসেট, সম্পূর্ণ ক্যাটালগটি নয়। `resolveCallerScopeContext()` MCP প্রমাণীকরণ তথ্য, অনুরোধের মেটাডেটা, অথবা `OMNIROUTE_MCP_SCOPES` থেকে স্কোপ নির্ধারণ করার পর
+`open-sse/mcp-server/scopeEnforcement.ts`-এ প্রয়োগ কার্যকর হয়।
+`OMNIROUTE_MCP_ENFORCE_SCOPES=true` না হলে এটি নিষ্ক্রিয় থাকে।
 
-`resolveCallerScopeContext()` MCP auth তথ্য, রিকোয়েস্ট মেটাডেটা, অথবা `OMNIROUTE_MCP_SCOPES` থেকে স্কোপ নির্ধারণ করার পর `open-sse/mcp-server/server.ts`-এর স্কোপ প্রয়োগ ব্যবস্থা প্রতিটি টুলের স্কোপ তালিকা `evaluateToolScopes()`-এ পাঠায়।
+### অ্যাক্সেস-টোকেন স্কোপসমূহ
+
+`oma_live_…` টোকেনে `read` / `write` / `admin`, `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) অনুযায়ী র্যাঙ্ক করা। এই র্যাঙ্ক কেবল অ্যাক্সেস-টোকেন
+ক্রেডেনশিয়ালের ক্ষেত্রেই প্রযোজ্য। দেখুন [ব্যবস্থাপনা প্রমাণীকরণ](../guides/MANAGEMENT-AUTH.md)।
 
 ## Auth আবশ্যকতা টগল
 
@@ -266,7 +275,7 @@ x-omniroute-auth-scopes:    কমা দিয়ে পৃথক করা ত
 
 ## আরও দেখুন
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — প্রতিটি এন্ডপয়েন্টের অথ মার্কার
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — অথ ইভেন্টের অডিট লগ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP স্কোপ প্রয়োগের বিস্তারিত
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — প্রতিটি এন্ডপয়েন্টের auth মার্কার
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — auth ইভেন্টগুলোর জন্য অডিট লগ
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — তিনটি scope namespace এবং MCP tool-scope ক্যাটালগ
 - সোর্স: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

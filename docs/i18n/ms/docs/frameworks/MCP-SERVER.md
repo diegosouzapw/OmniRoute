@@ -291,8 +291,71 @@ Kedua-dua pengangkutan SSE dan HTTP Boleh Distrim disekat sehingga pelayan MCP d
 
 ## Pengesahan & Skop
 
-Alat MCP disahkan melalui skop kunci API. Penguatkuasaan skop dipusatkan dalam
-`open-sse/mcp-server/scopeEnforcement.ts`. Setiap alat memerlukan skop tertentu:
+Alat MCP membaca rentetan skop daripada pemanggil. Semakan itu adalah salah satu daripada tiga ruang nama bebas. Lulus daripada satu penyemak bukan lulus daripada yang lain. Peraturannya adalah [Tiga ruang nama skop](#three-scope-namespaces). Katalog alat adalah [Skop alat MCP](#mcp-tool-scopes).
+
+### Tiga ruang nama skop
+
+`manage` pada kunci API, `read:compression` pada alat MCP, dan `read` pada token akses `oma_live_…` adalah tiga pemberian yang berbeza. Pemanggil yang menghantar token akses `read` ke laluan pengurusan yang mengubah akan mendapat HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` Pangkat itu adalah `scopeSatisfies`. Ia tidak merujuk jadual MCP, dan pencocok MCP tidak merujuknya.
+
+| Ruang Nama           | Kredensial                                                               | Penyemak                         | Lulus membenarkan                                                  |
+| :------------------- | :----------------------------------------------------------------------- | :------------------------------- | :----------------------------------------------------------------- |
+| Pengurusan kunci API | `api_keys.scopes`                                                        | `hasManageScope`                 | REST Pengurusan untuk kunci Bearer itu                             |
+| Tambahan kunci API   | tatasusunan yang sama, satu rentetan tepat                               | pembantu yang dinamakan di bawah | Hanya satu keupayaan itu                                           |
+| Skop alat MCP        | tatasusunan yang sama, selain MCP `_meta`, selain `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                   | Alat itu, setelah penguatkuasaan dihidupkan                        |
+| Token akses          | `oma_live_…`                                                             | `scopeSatisfies`                 | Laluan pengurusan yang kaedah dan laluannya memerlukan pangkat itu |
+
+Mencipta setiap kredensial diliputi dalam [Pengesahan Pengurusan](../guides/MANAGEMENT-AUTH.md).
+
+#### Skop kunci API
+
+Satu tatasusunan `api_keys.scopes` menyalurkan dua tugas. Mereka menggunakan fungsi yang berbeza.
+
+**REST Pengurusan.** `manage` dan `admin` adalah ahli `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`). `hasManageScope` adalah apa yang membenarkan laluan pengurusan untuk kunci itu. `admin` berkemampuan pengurusan pada laluan tersebut. Perkataan `admin` di sini bukan pangkat token akses dan ia tidak berkembang menjadi skop alat MCP.
+
+**Rentetan tambahan.** Setiap satu adalah ujian keahlian yang tepat, dan setiap satu kekal di luar `MANAGEMENT_API_KEY_SCOPES`.
+
+| Skop                           | Lulus membenarkan                                                                                                                                                          |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Hanya `/api/mcp/` LOCAL_ONLY yang bukan gelung balik (`hasMcpConnectOrManageScope`). Kunci dengan `manage` atau `admin` masih lulus pengecualian itu.                      |
+| `self:usage`                   | `GET /api/v1/me/status` untuk kunci ini (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` menambah skop ini pada penciptaan (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Kuota akaun huluan dalam muatan status itu (`src/lib/usage/apiKeySelfService.ts`). Laluan status masih memerlukan `self:usage`.                                            |
+| `policy:bypass-provider-quota` | Panggilan inferens kunci ini melangkau dasar kuota penyedia (`hasProviderQuotaBypassScope` dalam `src/sse/handlers/chat.ts`).                                              |
+
+#### Padanan
+
+Katalog adalah jadual di bawah [Skop alat MCP](#mcp-tool-scopes). Jangan anggap `MCP_SCOPE_LIST` dalam `src/shared/constants/mcpScopes.ts` sebagai katalog itu: ia adalah subset bertaip asal. Alat-alat kemudian mengisytiharkan skop selanjutnya di sampingnya (`read:notion`, `read:skills`, `read:local-corpus`, dan selebihnya jadual).
+
+`evaluateToolScopes` dalam `open-sse/mcp-server/scopeEnforcement.ts` membenarkan panggilan apabila setiap skop yang diperlukan sepadan dengan beberapa skop yang diberikan:
+
+- `*` sepadan dengan setiap skop yang diperlukan.
+- Skop yang diberikan yang berakhir dengan `*` sepadan dengan skop yang diperlukan yang bermula dengan awalan sebelum bintang. `read:*` sepadan dengan `read:compression`.
+- Setiap skop lain yang diberikan hanya sepadan dengan rentetan yang diperlukan yang sama.
+
+Kunci yang skopnya adalah `["manage"]` gagal `scopeMatches` untuk `read:compression`. Panggilan yang sama gagal untuk `admin`, `mcp:connect`, `read`, dan `write` apabila itu adalah satu-satunya rentetan yang diberikan. Tiada hierarki di antara skop alat MCP selain daripada `*` yang mengekor.
+
+Penguatkuasaan dimatikan melainkan `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (lalai `false`). Semasa ia dimatikan, `evaluateToolScopes` membenarkan panggilan dan melangkau katalog. Semasa ia dihidupkan, HTTP menggunakan `api_keys.scopes` kunci Bearer sebagai `authInfo` (lihat [Pengikatan skop HTTP setiap kunci](#per-key-http-scope-binding-7895)). Apabila tiada skop kunci diselesaikan, set yang diberikan jatuh melalui ke MCP `_meta`, kemudian `OMNIROUTE_MCP_SCOPES`.
+
+#### Skop token akses
+
+Token `oma_live_…` (`src/lib/accessTokens/scopes.ts`) membawa `read`, `write`, atau `admin`. `scopeSatisfies` adalah pangkat: `admin` meliputi `write` dan `read`, dan `write` meliputi `read`. Skop yang tidak diketahui tidak meliputi apa-apa.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) membandingkan pangkat itu dengan `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD`, dan `OPTIONS` memerlukan `read`.
+- Setiap kaedah lain memerlukan `write`.
+- Laluan dalam `ADMIN_SCOPE_PREFIXES` memerlukan `admin` untuk setiap kaedah. `/api/mcp` ada dalam senarai itu, jadi token akses `write` masih tidak boleh memanggil permukaan HTTP MCP.
+- Laluan dalam `ADMIN_MUTATION_PREFIXES` memerlukan `admin` hanya untuk mutasi.
+
+`PATCH /api/keys/{id}` ialah mutasi dan tiada dalam senarai pentadbir tersebut, jadi token `read` menerima 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Token akses `write` atau `admin` memenuhi laluan tersebut. JWT papan pemuka, token ID mesin CLI loopback, dan kunci API dengan `manage` atau `admin` mengambil cabang lain dan tidak disempitkan oleh pangkat ini.
+
+Token akses yang melepasi `scopeSatisfies` untuk `/api/mcp` hanya telah melepasi gerbang pengurusan. Panggilan alat masih menjalankan `scopeMatches` terhadap skop kunci API. Pangkat token akses bukan input kepada `scopeMatches`.
+
+### Skop alat MCP
+
+Penguatkuasaan skop dipusatkan dalam `open-sse/mcp-server/scopeEnforcement.ts`.
+Setiap alat memerlukan skop tertentu:
 
 | Skop                  | Alat                                                                                                                                                                        |
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -332,13 +395,33 @@ Alat MCP disahkan melalui skop kunci API. Penguatkuasaan skop dipusatkan dalam
 
 Skop kad bebas disokong: `read:*` memberikan semua skop baca, `*` memberikan akses penuh.
 
-### `mcp:connect` — keupayaan laluan terhad (#7895)
+### `mcp:connect` — keupayaan laluan sempit (#7895)
 
-Untuk mencapai pengangkutan HTTP/SSE MCP (`/api/mcp/*`) dari alamat bukan gelung balik, pengecualian LOCAL_ONLY `/api/mcp/` diperlukan (lihat `docs/security/ROUTE_GUARD_TIERS.md`). Sebelum ini, pengecualian tersebut hanya menerima kunci API dengan skop penuh `manage`/`admin` — terlalu luas bagi pemanggil yang hanya perlu berkomunikasi dengan MCP. `src/shared/constants/managementScopes.ts` kini mengeksport `MCP_CONNECT_SCOPE = "mcp:connect"`: skop tambahan yang terhad (mengikut pendekatan terdahulu yang sama seperti `SELF_USAGE_SCOPE`) yang membenarkan HANYA pemintasan `/api/mcp/` dalam `src/server/authz/policies/management.ts` — ia tidak memberikan akses kepada mana-mana laluan pengurusan lain dan sengaja TIDAK disertakan dalam `MANAGEMENT_API_KEY_SCOPES`. Kunci yang mempunyai `manage`/`admin` masih melepasi pengecualian tersebut tanpa perubahan; `mcp:connect` ialah alternatif dengan keistimewaan lebih rendah untuk pemanggil jauh yang hanya menggunakan MCP, yang disemak melalui `hasMcpConnectOrManageScope()`.
+Mencapai pengangkutan HTTP/SSE MCP (`/api/mcp/*`) dari bukan gelung balik memerlukan
+ukiran `/api/mcp/` LOCAL_ONLY (lihat `docs/security/ROUTE_GUARD_TIERS.md`). Secara sejarah
+ukiran itu hanya menerima kunci API `manage`/`admin`-skop penuh — terlalu luas untuk
+pemanggil yang hanya perlu bercakap dengan MCP. `src/shared/constants/managementScopes.ts` kini
+mengeksport `MCP_CONNECT_SCOPE = "mcp:connect"`: skop tambahan yang sempit (preseden yang sama seperti
+`SELF_USAGE_SCOPE`) yang hanya membenarkan pintasan `/api/mcp/` dalam
+`src/server/authz/policies/management.ts` — ia tidak memberikan akses laluan pengurusan lain
+dan sengaja dikekalkan DI LUAR `MANAGEMENT_API_KEY_SCOPES`. Kunci yang memegang `manage`/`admin`
+masih melepasi ukiran tanpa perubahan; `mcp:connect` adalah alternatif keistimewaan yang lebih rendah untuk
+pemanggil MCP-sahaja jauh, diperiksa melalui `hasMcpConnectOrManageScope()`.
 
-### Pengikatan skop HTTP bagi setiap kunci (#7895)
+### Pengikatan skop HTTP setiap kunci (#7895)
 
-Melalui HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` kini mendapatkan `api_keys.scopes` sebenar pemanggil melalui `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) dan menghantarnya kepada `transport.handleRequest(req, { authInfo })` milik SDK MCP, supaya `extra.authInfo.scopes` yang sampai kepada setiap panggilan alat mencerminkan skop kunci Bearer itu sendiri. `resolveCallerScopeContext()` dalam `scopeEnforcement.ts` sememangnya telah mengutamakan `authInfo` berbanding `_meta` dan sandaran env `OMNIROUTE_MCP_SCOPES` — perubahan ini hanya mengisi sumber pertama dengan keutamaan tertinggi tersebut, yang sebelum ini tidak dibekalkan melalui HTTP. Apabila tiada kunci API berjaya dikenal pasti (tiada pengepala, kunci tidak sah), `authInfo` kekal `undefined` dan penyelesaian diteruskan kepada rantaian `meta`/env sedia ada tanpa perubahan. Ini TIDAK mengubah lalai `OMNIROUTE_MCP_ENFORCE_SCOPES` — penguatkuasaan masih perlu didayakan secara eksplisit; perubahan ini hanya memastikan laluan setiap kunci diutamakan selepas penguatkuasaan didayakan. stdio tidak mempunyai identiti bagi setiap pemanggil (lihat `mcpCallerIdentity.ts`) dan tidak terjejas — ia kekal menggunakan rantaian sandaran `_meta`/env.
+Melalui HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` kini menyelesaikan
+`api_keys.scopes` sebenar pemanggil melalui `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+dan menyerahkannya kepada `transport.handleRequest(req, { authInfo })` SDK MCP, jadi
+`extra.authInfo.scopes` yang mencapai setiap panggilan alat mencerminkan skop kunci Bearer itu sendiri.
+`scopeEnforcement.ts`'s `resolveCallerScopeContext()` sudah mengutamakan `authInfo` berbanding
+`_meta` dan `OMNIROUTE_MCP_SCOPES` fallback env — ini hanya mengisi sumber pertama,
+keutamaan tertinggi itu, yang sebelum ini tidak diberi makan melalui HTTP. Apabila tiada kunci API diselesaikan
+(tiada pengepala, kunci tidak sah), `authInfo` kekal `undefined` dan penyelesaian jatuh melalui
+rantai `meta`/env sedia ada tanpa perubahan. Ini TIDAK membalikkan lalai `OMNIROUTE_MCP_ENFORCE_SCOPES` —
+penguatkuasaan masih perlu diaktifkan secara eksplisit; perubahan ini hanya menjadikan
+laluan setiap kunci diutamakan setelah ia diaktifkan. stdio tidak mempunyai identiti setiap pemanggil (lihat
+`mcpCallerIdentity.ts`) dan tidak terjejas — ia kekal pada rantai fallback `_meta`/env.
 
 ---
 

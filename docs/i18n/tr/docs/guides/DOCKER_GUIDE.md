@@ -239,14 +239,14 @@ docker compose -f docker-compose.prod.yml down
 
 ## Dockerfile Aşamaları
 
-Depo, çok aşamalı bir Dockerfile (`Dockerfile`) ile gelir. Dört aşama kullanıma sunulur; kullanım senaryonuz için doğru `target` değerini seçin.
+Depo, çok aşamalı bir Dockerfile (`Dockerfile`) ile birlikte gelir. Dört aşama kullanıma sunulur; kullanım durumunuz için doğru `target` değerini seçin.
 
-| Aşama         | Temel imaj            | Amaç                                                                                                                                                                                                                                                                                                  |
-| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Bağımlılıkları yükler (`npm ci --legacy-peer-deps`) ve `npm run build` komutunu çalıştırır (varsayılan olarak Turbopack — aşağıdaki Derleme zamanı kaynakları bölümüne bakın)                                                                                                                         |
-| `runner-base` | `node:26-trixie-slim` | Next.js bağımsız çıktısını içeren üretim çalışma ortamı. **Sağlayıcı CLI'ları dahil değildir.**                                                                                                                                                                                                       |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` ve global CLI'ları ekler: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Aracı tabanlı iş akışları için bunu seçin.**                                                                                                                      |
-| `runner-web`  | `runner-base`         | Web oturumu sağlayıcıları için Playwright ve bir Chromium tarayıcısı (`--with-deps`) ekler: `gemini-web`, `claude-web`, `claude-turnstile`. **Bu sağlayıcıları kullanıyorsanız bunu seçin** — düz imaj bunlar olmadan istek sırasında başarısız olur (Sürüm Kanalları altındaki `-web` notuna bakın). |
+| Aşama         | Temel imaj            | Amaç                                                                                                                                                                                                                                                                                                   |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `builder`     | `node:26-trixie-slim` | Bağımlılıkları yükler (`npm ci --legacy-peer-deps`) ve `npm run build` komutunu çalıştırır (varsayılan olarak Turbopack — aşağıdaki Derleme zamanı kaynakları bölümüne bakın)                                                                                                                          |
+| `runner-base` | `node:26-trixie-slim` | Next.js bağımsız çıktısını içeren üretim çalışma zamanı. **Hiçbir sağlayıcı CLI'ı dahil değildir.**                                                                                                                                                                                                    |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` ve global CLI'ları ekler: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Aracı tabanlı iş akışları için bunu seçin.**                                                                                                                       |
+| `runner-web`  | `runner-base`         | Web oturumu sağlayıcıları için Playwright + Chromium tarayıcısı (`--with-deps`) ekler: `gemini-web`, `claude-web`, `claude-turnstile`. **Bu sağlayıcıları kullanıyorsanız bunu seçin** — standart imaj, bunlar olmadan istek sırasında başarısız olur (Sürüm Kanalları altındaki `-web` notuna bakın). |
 
 Belirli bir hedefi manuel olarak derleyin:
 
@@ -263,49 +263,29 @@ docker build --target runner-web  -t omniroute:web  .
 
 | Derleme argümanı            | Varsayılan | Etki                                                                                                     |
 | --------------------------- | ---------- | -------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`        | `0`, bunun yerine webpack ile derler. En yüksek bellek kullanımı daha düşük, ancak daha yavaştır.        |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`     | Başlatılan `next build` için V8 yığın sınırı (`--max-old-space-size`).                                   |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`        | `CIRCLE_NODE_TOTAL` değerini sağlar; Next, sayfa verisi toplama için `workers = N - 1` değerini türetir. |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`        | `0`, webpack ile derler: daha düşük azami bellek kullanımı, daha yavaş. `1`, Turbopack'i etkinleştirir.  |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`     | Başlatılan `next build` için V8 yığın üst sınırı (`--max-old-space-size`).                               |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`        | `CIRCLE_NODE_TOTAL` değerini besler; Next, sayfa verisi toplama için `workers = N - 1` değerini türetir. |
 
-`OMNIROUTE_BUILD_WORKERS`, büyük bir derleme makinesinde artırılması gereken ve
-kısıtlı kaynaklara sahip bir derleme **`✓ Compiled successfully` sonrasında** başarısız olduğunda
-şüphelenilmesi gereken ayardır. Her sayfa verisi worker'ı ayrı bir süreçtir ve üst
-`next build` sürecinin kendisi de öyledir; canlı bir VPS yeniden üretimi (issue #7518),
-her sürecin en yüksek RSS değerini `NODE_OPTIONS` yığın bayrağından bağımsız olarak
-~4.5 GB ölçmüştür (Turbopack, V8 yığınının dışındaki yerel/Rust belleğinde derleme yapar).
-Varsayılan `2` değeri (→ 1 worker, toplam 2 süreç), yayımlama işlem hattının kullandığı
-16 GB / 4 vCPU GitHub tarafından barındırılan runner'lar için boyutlandırılmıştır.
-`8` değerinde (→ 7 worker) bu runner'ın belleği tükendi ve buildkit,
-`ResourceExhausted: ... cannot allocate memory` hatasıyla adımı başarısız kıldı;
-süreç başına RSS çıkarım yoluyla belirlenmek yerine doğrudan ölçüldüğünde `3`
-(→ 2 worker) değeri de hâlâ belleğe sığmadı. `tests/unit/docker-build-memory-budget.test.ts`,
-ölçülen değere göre hesaplama yapar ve ayarlardan biri runner'ın kapasitesini aşarsa
-başarısız olur.
+`OMNIROUTE_BUILD_WORKERS`, güçlü bir derleme makinesinde artırmanız gereken ve kısıtlı kaynaklara sahip bir derlemenin `✓ Compiled successfully` sonrasında başarısız olması durumunda şüphelenmeniz gereken ayardır. Her sayfa verisi çalışanı ayrı bir süreçtir ve ana `next build` süreci de öyledir; canlı bir VPS üzerinde yapılan yeniden üretimde (sorun #7518), her sürecin azami RSS değerinin `NODE_OPTIONS` yığın bayrağından bağımsız olarak ~4.5 GB olduğu ölçülmüştür (Turbopack, V8 yığınının dışındaki yerel/Rust belleğinde derleme yapar). Varsayılan `2` değeri (→ 1 çalışan, toplam 2 süreç), yayımlama işlem hattının kullandığı 16 GB / 4 vCPU'lu GitHub tarafından barındırılan çalıştırıcılar için boyutlandırılmıştır. `8` değerinde (→ 7 çalışan) bu çalıştırıcının belleği tükendi ve buildkit, `ResourceExhausted: ... cannot allocate memory` hatasıyla adımı başarısız kıldı; süreç başına RSS tahmin edilmek yerine doğrudan ölçüldüğünde `3` değeri (→ 2 çalışan) bile mevcut belleğe sığmadı. `tests/unit/docker-build-memory-budget.test.ts`, ölçülen değere göre hesaplama yapar ve ayarlardan herhangi biri çalıştırıcının kapasitesini aşarsa başarısız olur.
 
-Turbopack, V8 yığınının **dışında** bulunan yerel Rust belleğinde derleme yaptığından
-`OMNIROUTE_BUILD_MEMORY_MB` bu belleği sınırlamaz. Bellek sınırı olan bir ana makinede
-derleme, hiçbir hata metni olmadan OOM killer tarafından SIGKILL ile sonlandırılır —
-`Creating an optimized production build` sırasında öylece durur; bu durum, bellek
-yetersizliğinden çok takılma gibi görünür. Derleme ana makinesinin kaynakları kısıtlıysa
-paketleyiciyi değiştirin:
+Turbopack, V8 yığınının **dışında** bulunan yerel Rust belleğinde derleme yapar; dolayısıyla `OMNIROUTE_BUILD_MEMORY_MB` bunu sınırlamaz. Bellek üst sınırı bulunan bir ana makinede derleme, OOM sonlandırıcısı tarafından hiçbir hata metni olmadan SIGKILL ile sonlandırılır — `Creating an optimized production build` işleminin ortasında durur; bu da bellek yetersizliği yerine takılma gibi görünür. Bu nedenle `Dockerfile`, Turbopack'in kod düzeyinde varsayılan olduğu `npm run dev` / `npm run build` komutlarının aksine varsayılan olarak webpack'i (`OMNIROUTE_USE_TURBOPACK=0`) kullanır: hiçbir derleme argümanı içermeyen yalın bir `docker build .` komutu (Railway ve diğer tek tıklamalı barındırma hizmetlerinin çalıştırdığı komut), belleği sınırlandırılmış bir derleme makinesinde sessizce başarısız olmamalıdır. Yayımlanan imajlar, `docker-publish.yml` içinde zaten açıkça `OMNIROUTE_USE_TURBOPACK=0` değerini geçirir. Bol miktarda RAM'e sahip bir derleme makinesinde daha hızlı derleme için Turbopack'i etkinleştirin:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` etkindir; dolayısıyla `next build`, bir üst süreç **ve** bir worker
-süreci çalıştırır ve her biri `OMNIROUTE_BUILD_MEMORY_MB` değerini ayrı ayrı uygular.
-Konteyner sınırını bu değerin bir katının değil, yaklaşık iki katının üzerinde belirleyin.
+`webpackBuildWorker` etkindir; bu nedenle `next build`, bir ana süreç **ve** bir çalışan süreç çalıştırır ve her biri `OMNIROUTE_BUILD_MEMORY_MB` değerine ayrı ayrı uyar. Kapsayıcı üst sınırını bu değerin bir katının değil, yaklaşık iki katının üzerinde olacak şekilde belirleyin.
 
-Bu kaynak ağacında ölçülen sonuçlar (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Bu kaynak ağacında ölçülen değerler (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Paketleyici | Konteyner sınırı | Sonuç                                                |
-| ----------- | ---------------- | ---------------------------------------------------- |
-| Turbopack   | 8 GiB / 16 GiB   | Her ikisinde de sessizce OOM nedeniyle sonlandırıldı |
-| webpack     | 8 GiB            | Derleme worker'ı SIGKILL ile sonlandırıldı           |
-| webpack     | 12 GiB           | Başarılı oldu, en yüksek kullanım 11.1 GiB           |
+| Paketleyici | Kapsayıcı üst sınırı | Sonuç                                                |
+| ----------- | -------------------- | ---------------------------------------------------- |
+| Turbopack   | 8 GiB / 16 GiB       | Her ikisinde de OOM nedeniyle sessizce sonlandırıldı |
+| webpack     | 8 GiB                | Derleme çalışanı SIGKILL ile sonlandırıldı           |
+| webpack     | 12 GiB               | Başarılı oldu, 11.1 GiB ile zirve yaptı              |
 
 ### Çalışma zamanı varsayılanları
 
@@ -314,24 +294,24 @@ Bu kaynak ağacında ölçülen sonuçlar (`--target runner-base`, `OMNIROUTE_BU
 Docker'daki bellek davranışı:
 
 - İmaj, `OMNIROUTE_MEMORY_MB=1024` değerini ayarlar ve bundan `NODE_OPTIONS=--max-old-space-size=1024` değerini türetir.
-- Asıl sunucu süreci, `OMNIROUTE_MEMORY_MB` değerini okuyan ve `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` seçeneğini ekleyen bağımsız başlatıcı tarafından başlatılır.
-- Node, yinelenen `--max-old-space-size` değerlerinden sonuncusunu kullanır; dolayısıyla `OMNIROUTE_MEMORY_MB` ayarı, etkin Docker heap sınırını kontrol eder.
-- İmaj bu değeri her zaman ayarladığı için başlatıcının RAM'e göre kalibre edilen yedek değeri Docker altında hiçbir zaman uygulanmaz. İş yükü için bu değeri açıkça artırın (aşağıdaki tabloya bakın). `2048`, kodlama aracılarının `/v1/responses` istekleri için hâlâ çok küçüktür.
+- Asıl sunucu işlemi, `OMNIROUTE_MEMORY_MB` değerini okuyup `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` seçeneğini ekleyen bağımsız başlatıcı tarafından başlatılır.
+- Node, yinelenen `--max-old-space-size` değerlerinden sonuncusunu kullanır; dolayısıyla `OMNIROUTE_MEMORY_MB` ayarı, etkin Docker heap sınırını belirler.
+- İmaj bu değeri her zaman ayarladığı için başlatıcının RAM'e göre ayarlanan kendi varsayılan değeri Docker altında hiçbir zaman uygulanmaz. İş yükü için bu değeri açıkça artırın (aşağıdaki tabloya bakın). `2048`, kodlama aracılarının `/v1/responses` istekleri için hâlâ çok küçüktür.
 
 ### Kodlama aracıları için çalışma zamanı RAM'i
 
-1 GiB'lık varsayılan Docker değeri, üretim boyutu değil, pano/hafif sohbet için alt sınırdır. Uzun `POST /v1/responses` gövdeleri (yüzlerce mesaj, onlarca araç), sıkıştırma sırasında birden fazla bellek içi grafiği bellekte tutar. Çakışan yaklaşık 3 MiB / yaklaşık 750 bin token'lık iki istek, **12 GiB** old-space değerinde V8'i durdurmuş (`FATAL ERROR: Reached heap limit`) ve ayrıca 16 GiB'lık cgroup OOM sınırına ulaşmıştır. Bkz. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Docker'ın varsayılan 1 GiB değeri, üretim boyutu değil, pano/hafif sohbet için alt sınırdır. Uzun `POST /v1/responses` gövdeleri (yüzlerce mesaj, onlarca araç), sıkıştırma sırasında birden fazla bellek içi grafiği bellekte tutar. Birbiriyle çakışan yaklaşık 3 MiB / yaklaşık 750 bin token'lık iki istek, **12 GiB** old-space alanında V8'in sonlanmasına (`FATAL ERROR: Reached heap limit`) ve ayrıca 16 GiB cgroup OOM sınırına ulaşılmasına neden olmuştur. Bkz. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-**cgroup `--memory` değerini heap'in üzerinde** boyutlandırın — yerel tamponlar, SQLite ve sıkıştırma ara verileri V8'in dışında bulunur.
+**cgroup `--memory` değerini heap'in üzerinde** boyutlandırın — yerel tamponlar, SQLite ve sıkıştırma ara verileri V8 dışında bulunur.
 
-| İş yükü                                 | `OMNIROUTE_MEMORY_MB`     | Konteyner / cgroup           | Notlar                                                                                                                     |
-| --------------------------------------- | ------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Pano, tek bir hafif sohbet              | `1024` (imaj varsayılanı) | ≥2 GiB                       |                                                                                                                            |
-| Bir kodlama aracısı (Claude/Codex/Grok) | `8192`                    | ≥10 GiB                      | Tipik tek oturumlu `/v1/responses`                                                                                         |
-| Eşzamanlı iki uzun `/v1/responses`      | `10240`–`12288`           | ≥12–16 GiB                   | Yaklaşık 12 GiB heap değerinde ölçülen V8 durması                                                                          |
-| Eşzamanlı üçten fazla uzun bağlam       | tek süreçte kullanmayın   | sıraya alın / daha fazla RAM | Varsayılan ağır iş kabulü, aynı anda yürütülen 1 işlemdir; RAM'i artırmadan bunu yükseltmek durmayı yeniden ortaya çıkarır |
+| İş yükü                                  | `OMNIROUTE_MEMORY_MB`     | Konteyner / cgroup           | Notlar                                                                                                                                     |
+| ---------------------------------------- | ------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Pano, tek bir hafif sohbet               | `1024` (imaj varsayılanı) | ≥2 GiB                       |                                                                                                                                            |
+| Tek kodlama aracısı (Claude/Codex/Grok)  | `8192`                    | ≥10 GiB                      | Tipik tek oturumlu `/v1/responses`                                                                                                         |
+| Eşzamanlı iki uzun `/v1/responses`       | `10240`–`12288`           | ≥12–16 GiB                   | Yaklaşık 12 GiB heap'te ölçülen V8 sonlanması                                                                                              |
+| Eşzamanlı üç veya daha fazla uzun bağlam | tek işlemde kullanmayın   | sıraya alın / daha fazla RAM | Varsayılan ağır iş yükü kabulü, devam eden 1 istekle sınırlıdır; RAM'i artırmadan bunu yükseltmek sonlanma sorununu yeniden ortaya çıkarır |
 
-`OMNIROUTE_MEMORY_MB` **ayarlanmamışsa**, bare metal üzerinde `omniroute serve` RAM'in yaklaşık %35'ine göre kalibrasyon yapar (`[512, 4096]` aralığıyla sınırlandırılır). Docker her zaman `1024` değerini ayarladığı için bu kalibrasyon resmî imajda hiçbir zaman çalışmaz.
+Çıplak metal üzerinde `omniroute serve`, `OMNIROUTE_MEMORY_MB` **ayarlanmamışsa** RAM'in yaklaşık %35'ini (`[512, 4096]` aralığıyla sınırlandırılmış olarak) ayarlar. Docker her zaman `1024` değerini ayarladığından bu ayarlama resmî imajda hiçbir zaman çalışmaz.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

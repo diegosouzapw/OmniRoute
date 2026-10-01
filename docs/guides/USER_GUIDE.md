@@ -691,6 +691,43 @@ Notes:
 - OpenRouter and OpenAI/Anthropic-compatible providers are managed from **Available Models** only. Manual add, import, and auto-sync all land in the same available-model list, so there is no separate Custom Models section for those providers.
 - The **Custom Models** section is intended for providers that do not expose managed available-model imports.
 
+### Custom OpenAI-Compatible Providers
+
+Any gateway that speaks the OpenAI API (a self-hosted proxy, vLLM, a third-party aggregator)
+can be added as its own provider node:
+
+1. **Providers → Add OpenAI Compatible**.
+2. **Name**: a display label for the node.
+3. **Prefix**: the routing name. Clients call models as `<prefix>/<model>`, so a node with
+   prefix `mygw` serves `mygw/gpt-4o-mini`. Required; there is no character restriction.
+4. **API Type**: the endpoint family the gateway serves (Chat Completions, Responses,
+   Embeddings, audio, images).
+5. **Base URL**: the API root, up to and including `/v1` (for example
+   `https://gateway.example.com/v1`), not the full `/chat/completions` path. Gateways with
+   non-standard paths set them under **Advanced Settings** (chat path, models path).
+6. The **API Key (for Check)** field only tests the connection. After creating the node,
+   open it and use **Add Connection** to store the key that requests will use.
+
+The node gets an internal id of the form `openai-compatible-<apiType>-<uuid>`; you never
+need to type it, the prefix is the public name.
+
+#### Reserved prefixes
+
+A prefix cannot be the id or alias of a built-in provider (for example `openai`, `cf`), nor
+the id of a retired provider. The model resolver checks built-in ids and aliases before
+custom nodes, so a node using one of those prefixes would never receive traffic:
+`<prefix>/model` would go to the built-in provider instead, or fail closed if that provider
+was retired. Creating or editing a node with such a prefix is rejected with:
+
+```text
+prefix: "<prefix>" is a reserved provider prefix — choose a different prefix (reserved ids/aliases cannot be used for custom nodes because requests like <prefix>/model route to a built-in provider or fail closed when retired)
+```
+
+Pick a distinct prefix (`mygw`, `acme-proxy`). If requests to a custom node fail with an
+error that names a built-in provider or its credentials, check whether the node's prefix is
+reserved: nodes saved before this rule existed are still stored, but their prefix routes to
+the built-in provider. Edit the node and give it a new prefix.
+
 ### Chaining OmniRoute Peers
 
 Another OmniRoute gateway can be added as a **Custom OpenAI-compatible** provider. Use the

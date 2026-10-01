@@ -4,23 +4,11 @@
 
 ---
 
-OmniRoute፣ የኮድ ማዘጋጃ CLI (Codex፣ Claude Code፣ OpenCode፣ Cline፣ …) OmniRouteን እንደ የኋላ አገልግሎቱ እንዲጠቀም የሚያዋቅሩ የ`setup-*` ትዕዛዞች ስብስብን ያቀርባል — በዚህም
-መሣሪያው ከ**አንድ** የመገናኛ ነጥብ ጋር ይገናኛል፣ OmniRoute ደግሞ በራስ-ሰር ወደ ተለዋጭ አቅራቢ የመሸጋገር ችሎታ በመጠቀም ወደ ትክክለኛው አቅራቢ ይመራዋል። እያንዳንዱ ትዕዛዝ በሥራ ላይ ካለ
-OmniRoute (አካባቢያዊ ወይም የርቀት) **ቀጥታ** የሞዴል ካታሎጉን ያነባል እና የመሣሪያውን የራሱን የውቅር ፋይል በ**እርስዎ**
-ማሽን ላይ ይጽፋል። መሣሪያው በሚደግፍበት ቦታ ሁሉ የAPI ቁልፉ በአካባቢ ተለዋዋጭ በኩል ይጠቀሳል። መሣሪያ-አካባቢያዊ የአካባቢ ፋይልን በቋሚነት የሚያስቀምጡ ትዕዛዞች ከታች ተጠቅሰዋል።
+OmniRoute የኮዲንግ CLI (Codex, Claude Code, OpenCode, Cline, …) OmniRouteን እንደ ባክኤንድ እንዲጠቀም የሚያዋቅሩ የ`setup-*` ትዕዛዞች ቤተሰብ ያቀርባል — ስለዚህ መሳሪያው ከአንድ **ነጠላ** የመጨረሻ ነጥብ ጋር ይነጋገራል እና OmniRoute ወደ ትክክለኛው አቅራቢ በራስ-ሰር ምትኬ (auto-fallback) ያዞራል. እያንዳንዱ ትዕዛዝ ከሚሰራ OmniRoute (አካባቢያዊ ወይም የርቀት) **ቀጥታ** ሞዴል ካታሎግ ያነባል እና የመሳሪያውን የራሱን የማዋቀሪያ ፋይል **በእርስዎ** ማሽን ላይ ይጽፋል. የኤፒአይ ቁልፉ መሳሪያው በሚደግፍበት ቦታ ሁሉ በአካባቢ ተለዋዋጭ (environment variable) ይጠቀሳል. የመሳሪያ-አካባቢያዊ የአካባቢ ፋይልን የሚያስቀምጡ ትዕዛዞች ከታች ተጠቅሰዋል.
 
-አጠቃላይ ማስጀመሪያም አለ — `omniroute run <target>` — ምንም ዓይነት ውቅር ሳይጽፍ፣ ትክክለኛውን አካባቢ በማስገባት
-`claude`፣ `codex`፣ `aider`፣ `goose`፣ `opencode`፣ `qwen` ወይም `gemini`ን ያስነሳል። ዒላማዎችና ተለዋጭ ስሞቻቸው
-ከመደበኛው ማኒፌስት `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`፣ `codex-cli|openai-codex|openai`፣ `goose-cli`፣
-`open-code`፣ `qwen-code`፣ `gemini-cli`) የሚመጡ ሲሆን፣ `omniroute completion`ም
-ከዚሁ ማኒፌስት የተገኙ የዒላማ ቃላትን ያቀርባል። የቀድሞዎቹ ለእያንዳንዱ መሣሪያ የተዘጋጁ ማስጀመሪያዎች —
-`omniroute launch` (Claude Code) እና `omniroute launch-codex` (Codex) — አሁንም
-ይገኛሉ።
+አጠቃላይ አስጀማሪም አለ — `omniroute run <target>` — ትክክለኛው አካባቢ (env) ተወግሮበት `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ወይም `gemini`ን የሚያስጀምር፣ ምንም አይነት ማዋቀር ሳይጽፍ. ኢላማዎች (Targets) እና ቅጽል ስሞቻቸው (aliases) ከዋናው ማኒፌስት `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`) ይመጣሉ፣ እና `omniroute completion` ተመሳሳይ በማኒፌስት የተገኙ ኢላማ ቃላትን ያቀርባል. የቆዩት የመሳሪያ-ለ-መሳሪያ አስጀማሪዎች — `omniroute launch` (Claude Code) እና `omniroute launch-codex` (Codex) — አሁንም ይገኛሉ.
 
-አቅራቢን የማስጀመሪያ ሂደት ከዚሁ አካባቢያዊ/የርቀት አውድ ይገኛል። ከታች ያሉት
-APIን ቀዳሚ የሚያደርጉ ትዕዛዞች የአስተዳደር ማረጋገጫን ከአቅራቢ ምስክርነቶች
-ለይተው ያቆያሉ፣ እንዲሁም በተዋቀረ ውጤት ውስጥ ምስክርነትን ፈጽሞ አያትሙም፦
+የአቅራቢ ምዝገባ (onboarding) ከተመሳሳይ አካባቢያዊ/የርቀት አውድ (context) ይገኛል. ከታች ያሉት ኤፒአይ-መጀመሪያ ትዕዛዞች የአስተዳደር ማረጋገጫን ከአቅራቢ ምስክርነቶች (credentials) ይለያሉ እና በተዋቀረ ውፅዓት (structured output) ውስጥ ምስክርነትን በጭራሽ አያትሙም:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -30,18 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-ለስክሪፕቶች `--credential-stdin` ወይም `--credential-env`ን ይምረጡ፤ `--credential`
-ቁጥጥር ላለው አካባቢያዊ አጠቃቀም ተቀምጧል። `providers remove` በይነተገናኝ ባልሆነ
-ተርሚናል ላይ `--yes`ን ይፈልጋል፣ እና አምስቱም ትዕዛዞች ንቁውን አውድ ወይም
-አጠቃላይ `--base-url`/`--api-key` አማራጮችን ያከብራሉ።
+ለስክሪፕቶች፣ `--credential-stdin` ወይም `--credential-env`ን ይምረጡ; `--credential` ለቁጥጥር የሚደረግበት አካባቢያዊ አጠቃቀም ተይዟል. `providers remove` መስተጋብራዊ ባልሆነ ተርሚናል ላይ `--yes`ን ይፈልጋል፣ እና አምስቱም ትዕዛዞች ንቁውን አውድ (active context) ወይም ዓለም አቀፋዊውን `--base-url`/`--api-key` አማራጮችን ያከብራሉ.
 
-በእጅ አንድ ጊዜ ብቻ ለሚከናወነው የሁለቱ ባለጸጋ ውህደቶች መሠረታዊ ማዋቀር፣ ለእያንዳንዱ መሣሪያ የተዘጋጁትን ዝርዝር መመሪያዎች ይመልከቱ፦
+የአቅራቢ መራጮች ግልጽ ያልሆኑ የመታወቂያ ቅድመ ቅጥያዎችን (ID prefixes)፣ ስሞችን ወይም የአቅራቢ ስሞችን አይቀበሉም; ብዙ ግንኙነቶች ሲዛመዱ ሙሉ የግንኙነት መታወቂያን ይጠቀሙ. የመፍጠር እና የማስተካከል ትዕዛዞች የተቀመጠውን ግንኙነት መልሰው ያነባሉ፣ እና ማስወገድ (removal) ከእንግዲህ ማንበብ እንደማይቻል ያረጋግጣል. ማስመጣት (import) ያለውን የአቅራቢ/ስም ጥንድ ይዘላል. የገቡ ግቤቶች (imported entries) ለCLI የቀረበውን የአስተዳደር የመጨረሻ ነጥብ (management endpoint)፣ አውድ (context) ወይም የአስተዳደር ምስክርነቶችን (management credentials) መሻር አይችሉም.
 
-- [የClaude Code ውቅር](./CLAUDE-CODE-CONFIGURATION.md)
-- [የCodex CLI ውቅር](./CODEX-CLI-CONFIGURATION.md)
-- [የርቀት ሁነታ](./REMOTE-MODE.md) — የርቀት OmniRouteን (VPS / Tailnet) ከላፕቶፕዎ ያስተዳድሩ
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — የOmniCopilot ቅጥያ፤ እነዚህን
-  `setup-*` ትዕዛዞች ከአርታዒው ውስጥ ሆኖም ሊያስኬድልዎ ይችላል
+ለሁለቱ እጅግ የበለጸጉ ውህደቶች የአንድ ጊዜ፣ በእጅ የተጻፈ መሰረታዊ ማዋቀር፣ የመሳሪያ-ለ-መሳሪያ ጥልቅ ዳሰሳዎችን ይመልከቱ:
+
+- [Claude Code ማዋቀር](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI ማዋቀር](./CODEX-CLI-CONFIGURATION.md)
+- [የርቀት ሁነታ](./REMOTE-MODE.md) — የርቀት OmniRouteን (VPS / Tailnet) ከላፕቶፕዎ ያንቀሳቅሱ
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — የOmniCopilot ቅጥያ; እነዚህን `setup-*` ትዕዛዞች ከአርታዒው ውስጥ ለእርስዎ ማስኬድ ይችላል
 
 ---
 

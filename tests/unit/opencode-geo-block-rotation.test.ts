@@ -4,6 +4,11 @@ import net from "node:net";
 import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
 import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/base.ts";
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
+import {
+  __resetProxyRefusalMemoryForTesting,
+  __resetSlowOverrunsForTesting,
+  __resetTransportEvidenceForTesting,
+} from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 const log: ExecutorLog = { debug() {}, info() {}, warn() {}, error() {} };
 
@@ -81,6 +86,13 @@ describe("OpencodeExecutor geo-block rotation", () => {
   beforeEach(() => {
     originalFetch = globalThis.fetch;
     observed = [];
+    // The refusal memory is module-global and PROXY_SKIP_RECENTLY_FAILED is on by
+    // default: a 429 in one case (e.g. "a geo-tried proxy is never re-called even
+    // after a 429") correctly sets that proxy aside for minutes, which then leaked
+    // into later cases sharing the same local proxy ports. Start each case clean.
+    __resetProxyRefusalMemoryForTesting();
+    __resetSlowOverrunsForTesting();
+    __resetTransportEvidenceForTesting();
   });
 
   afterEach(() => {

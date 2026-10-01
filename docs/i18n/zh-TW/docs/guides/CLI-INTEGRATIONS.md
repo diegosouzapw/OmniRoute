@@ -4,24 +4,11 @@
 
 ---
 
-OmniRoute 提供一系列 `setup-*` 指令，用來設定程式設計
-CLI（Codex、Claude Code、OpenCode、Cline，…），使其使用 OmniRoute 作為後端——如此一來，
-工具只需與**單一**端點通訊，而 OmniRoute 會將請求路由至正確的提供者，
-並支援自動容錯移轉。每個指令都會從執行中的 OmniRoute（本機或遠端）讀取**即時**
-模型目錄，並將工具本身的設定檔寫入**您的**
-機器。只要工具支援，API 金鑰就會透過環境變數引用。會將工具專用環境檔案持久化的指令會在下方註明。
+OmniRoute 提供一系列 `setup-*` 命令，用於配置編碼 CLI (Codex, Claude Code, OpenCode, Cline, …) 以使用 OmniRoute 作為其後端 — 這樣工具只需與**一個**端點通訊，OmniRoute 便會自動回退並路由到正確的提供者。每個命令都會從正在運行的 OmniRoute（本地或遠端）讀取**即時**模型目錄，並在**您的**機器上寫入工具自己的配置文件。只要工具支援，API 金鑰就會透過環境變數引用。下面列出了會持久化工具本地環境文件的命令。
 
-此外還提供通用啟動器——`omniroute run <target>`——它可以在完全不寫入任何設定的情況下，
-注入正確的環境變數並啟動 `claude`、`codex`、`aider`、`goose`、`opencode`、`qwen` 或 `gemini`。
-目標及其別名來自正式資訊清單 `bin/cli/cli-manifest.mjs`
-（`claude-code|cc|anthropic`、`codex-cli|openai-codex|openai`、`goose-cli`、
-`open-code`、`qwen-code`、`gemini-cli`），而 `omniroute completion` 也會提供
-從同一資訊清單衍生出的目標名稱。舊版的個別工具啟動器——
-`omniroute launch`（Claude Code）與 `omniroute launch-codex`（Codex）——仍然
-可用。
+還有一個通用啟動器 — `omniroute run <target>` — 它會在不寫入任何配置的情況下，注入正確的環境變數來啟動 `claude`、`codex`、`aider`、`goose`、`opencode`、`qwen` 或 `gemini`。目標及其別名來自規範清單 `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`)，而 `omniroute completion` 則提供相同的、源自清單的目標詞。傳統的每個工具啟動器 — `omniroute launch` (Claude Code) 和 `omniroute launch-codex` (Codex) — 仍然可用。
 
-您也可以在相同的本機／遠端情境中完成提供者設定。下列
-API 優先指令會將管理驗證與提供者認證資訊分開，且絕不會在結構化輸出中列印認證資訊：
+提供者上線可從相同的本地/遠端上下文取得。下面這些 API 優先的命令將管理驗證與提供者憑證分開，並且從不在結構化輸出中列印憑證：
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -31,19 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-針對指令碼，建議使用 `--credential-stdin` 或 `--credential-env`；`--credential`
-則保留供受控的本機使用。於非互動式終端機中執行 `providers remove` 時必須指定
-`--yes`，且這五個指令都會遵循作用中的情境，或使用全域
-`--base-url`／`--api-key` 選項。
+對於腳本，請優先使用 `--credential-stdin` 或 `--credential-env`；`--credential` 則保留用於受控的本地使用。在非互動式終端機上，`providers remove` 需要 `--yes` 選項，並且所有這五個命令都遵循活動上下文或全域 `--base-url`/`--api-key` 選項。
 
-若要瞭解功能最完整的兩項整合如何進行一次性的手動基礎設定，請參閱
-各工具的深入指南：
+提供者選擇器會拒絕模糊的 ID 前綴、名稱或提供者名稱；當有多個連接匹配時，請使用完整的連接 ID。建立和編輯命令會讀回已儲存的連接，而移除操作則會驗證該連接是否不再可讀。匯入操作會跳過現有的提供者/名稱對。匯入的條目不能覆蓋提供給 CLI 的管理端點、上下文或管理憑證。
 
-- [Claude Code 設定](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI 設定](./CODEX-CLI-CONFIGURATION.md)
-- [遠端模式](./REMOTE-MODE.md)——從您的筆記型電腦操作遠端 OmniRoute（VPS／Tailnet）
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md)——OmniCopilot 擴充功能；它也可以在編輯器內為您執行這些
-  `setup-*` 指令
+對於兩個最豐富整合的一次性手動基礎設定，請參閱各工具的深入探討：
+
+- [Claude Code 配置](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI 配置](./CODEX-CLI-CONFIGURATION.md)
+- [遠端模式](./REMOTE-MODE.md) — 從您的筆記型電腦驅動遠端 OmniRoute (VPS / Tailnet)
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot 擴充功能；它也可以在編輯器內部為您執行這些 `setup-*` 命令
 
 ---
 

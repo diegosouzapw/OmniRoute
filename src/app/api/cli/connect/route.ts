@@ -5,10 +5,17 @@ import { getCachedSettings } from "@/lib/db/readCache";
 import {
   ensurePersistentManagementPasswordHash,
   getStoredManagementPassword,
+  isKnownInsecureManagementPassword,
   verifyManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { checkLoginGuard, clearLoginAttempts, recordLoginFailure } from "@/server/auth/loginGuard";
+import {
+  getLoginLockoutKey,
+  getLoginSourceScope,
+  isHostOperatorRequest,
+} from "@/server/auth/loginPeer";
+import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
 import { createAccessToken } from "@/lib/db/accessTokens";
 import { ACCESS_SCOPES } from "@/lib/accessTokens/scopes";
 
@@ -52,8 +59,12 @@ export async function POST(request: Request) {
     const settings = await getCachedSettings();
     const bruteForceEnabled = settings.bruteForceProtection !== false;
     const clientIp = auditContext.ipAddress || null;
+    // Key the lockout on the socket peer the authz pipeline stamped: any value
+    // taken from forwarding headers is chosen by the caller, so rotating it
+    // would hand out a fresh attempt budget on every request.
+    const lockoutKey = getLoginLockoutKey(request, clientIp);
 
-    const guardCheck = checkLoginGuard(clientIp, { enabled: bruteForceEnabled });
+    const guardCheck = checkLoginGuard(lockoutKey, { enabled: bruteForceEnabled });
     if (!guardCheck.allowed) {
       logAuditEvent({
         action: "cli.connect.locked",
@@ -90,7 +101,7 @@ export async function POST(request: Request) {
 
     const isValid = await verifyManagementPassword(password, storedHash);
     if (!isValid) {
-      const failureDecision = recordLoginFailure(clientIp, { enabled: bruteForceEnabled });
+      const failureDecision = recordLoginFailure(lockoutKey, { enabled: bruteForceEnabled });
       logAuditEvent({
         action: "cli.connect.failed",
         actor: "anonymous",
@@ -115,7 +126,39 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
-    clearLoginAttempts(clientIp);
+    // #14486: /api/auth/login refuses the well-known INITIAL_PASSWORD placeholder
+    // from off-loopback since #13679, but this route verifies the SAME password and
+    // mints an admin-scoped `oma_` token, and it is not loopback-only. A fresh
+    // install carries `INITIAL_PASSWORD=CHANGEME` (scripts/dev/sync-env.mjs copies
+    // .env.example), so without this gate the public default is exchangeable for
+    // admin from anywhere the port is reachable. Pair from a local console first,
+    // then rotate.
+    if (isKnownInsecureManagementPassword(password) && !isHostOperatorRequest(request)) {
+      logAuditEvent({
+        action: "cli.connect.insecure_default_blocked",
+        actor: "anonymous",
+        target: "cli-access-token",
+        resourceType: "auth_session",
+        status: "failed",
+        ipAddress: clientIp || undefined,
+        requestId: auditContext.requestId,
+        metadata: {
+          reason: "well_known_default_password_non_loopback",
+          sourceScope: getLoginSourceScope(request, clientIp),
+          peerLocality: getRequestPeerLocality(request),
+        },
+      });
+      return NextResponse.json(
+        {
+          error:
+            "The management password is still set to the well-known default. " +
+            "Pair the CLI from the host itself (loopback) and rotate the password first.",
+        },
+        { status: 403 }
+      );
+    }
+
+    clearLoginAttempts(lockoutKey);
 
     const tokenScope = scope ?? "admin";
     const tokenName = (name ?? "remote-cli").trim() || "remote-cli";

@@ -28,12 +28,14 @@ import {
   formatCachePercentage,
 } from "@/shared/utils/formatting";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
+import { buildLogTpsTitle, computeLogTps } from "@/shared/utils/logTps";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import {
   computeLogsSignature,
   shouldAutoRefresh,
   shouldTriggerInfiniteScroll,
 } from "./requestLoggerSignature";
+import { getResilienceBadges } from "./requestLoggerResilience";
 import {
   DEFAULT_REFRESH_INTERVAL_SEC,
   clampRefreshIntervalSec,
@@ -69,11 +71,9 @@ function getLogTotalTokens(log) {
   return (log?.tokens?.in || 0) + (log?.tokens?.out || 0);
 }
 
+// #13130: generation-time TPS (duration - TTFT, reasoning-aware); see logTps.ts.
 function getLogTps(log): number {
-  const tokensOut = log?.tokens?.out || 0;
-  const durationMs = log?.duration || 0;
-  if (tokensOut <= 0 || durationMs <= 0) return 0;
-  return tokensOut / (durationMs / 1000);
+  return computeLogTps(log?.tokens?.out, log?.tokens?.reasoning, log?.duration, log?.ttft);
 }
 
 function formatTps(tps: number): string {
@@ -90,7 +90,6 @@ function getCacheSourceMeta(cacheSource: unknown) {
         "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30",
     };
   }
-
   return {
     key: "upstream",
     className: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30",
@@ -102,9 +101,13 @@ export interface RequestLoggerV2Handle {
   getSortedLogs: () => any[];
 }
 
-const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: string }>(
+type RequestLoggerV2InitialProps = {
+  initialSelectedId?: string;
+  initialCorrelationId?: string;
+};
+const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2InitialProps>(
   (props, ref) => {
-    const { initialSelectedId } = props as any;
+    const { initialSelectedId, initialCorrelationId } = props;
     const t = useTranslations("requestLogger");
     const tCache = useTranslations("cache");
     const { emailsVisible } = useEmailPrivacyStore();
@@ -134,7 +137,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         { key: "combo", label: t("columns.combo") },
         { key: "tokens", label: t("columns.tokens") },
         { key: "tps", label: t("columns.tps") },
+        { key: "ttft", label: t("columns.ttft") },
         { key: "duration", label: t("columns.duration") },
+        { key: "addedWait", label: t("columns.addedWait") },
         { key: "time", label: t("columns.time") },
         { key: "conversation", label: t("columns.conversation") },
       ],
@@ -152,7 +157,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const [selectedApiKey, setSelectedApiKey] = useState("");
     const [sortBy, setSortBy] = useState("newest");
     const [selectedLog, setSelectedLog] = useState(null);
-    const [correlationIdFilter, setCorrelationIdFilter] = useState("");
+    const [correlationIdFilter, setCorrelationIdFilter] = useState(
+      () => initialCorrelationId ?? ""
+    );
     const [hoveredCid, setHoveredCid] = useState<string | null>(null);
     const [groupedView, setGroupedView] = useState(false);
     const [detailLoading, setDetailLoading] = useState(false);
@@ -200,6 +207,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
 
     const [visibleColumns, setVisibleColumns] = useState(() => {
       const defaultVisible = Object.fromEntries(columns.map((c) => [c.key, true]));
+      // #13130: TTFT is only recorded for streaming calls written after the
+      // ttft_ms migration, so most rows show "—"; opt-in column, not default.
+      defaultVisible.ttft = false;
       if (globalThis.window === undefined) return defaultVisible;
       try {
         const saved = localStorage.getItem("loggerVisibleColumns");
@@ -1274,6 +1284,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         {getSortIndicator("tps")}
                       </th>
                     )}
+                    {visibleColumns.ttft && (
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.ttft")}</th>
+                    )}
                     {visibleColumns.duration && (
                       <th
                         className={`${LOG_TABLE_HEADER_CELL_RIGHT_CLASS} cursor-pointer select-none`}
@@ -1281,6 +1294,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                       >
                         {t("columns.duration")}
                         {getSortIndicator("duration")}
+                      </th>
+                    )}
+                    {visibleColumns.addedWait && (
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>
+                        {t("columns.addedWait")}
                       </th>
                     )}
                     {visibleColumns.time && (
@@ -1399,14 +1417,25 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                             {isActive ? (
                               <span className="text-text-muted text-[10px]">—</span>
                             ) : (
-                              <span
-                                className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${cacheSourceMeta?.className || ""}`}
-                                title={
-                                  isSemanticCache ? t("semanticCacheHit") : t("upstreamResponse")
-                                }
-                              >
-                                {isSemanticCache ? t("semantic") : t("upstream")}
-                              </span>
+                              <>
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${cacheSourceMeta?.className || ""}`}
+                                  title={
+                                    isSemanticCache ? t("semanticCacheHit") : t("upstreamResponse")
+                                  }
+                                >
+                                  {isSemanticCache ? t("semantic") : t("upstream")}
+                                </span>
+                                {getResilienceBadges(log.resilienceActions, (key, values) =>
+                                  t(`detail.${key}`, values)
+                                ).map((badge) => (
+                                  // Unstyled span: inherits the cache-source
+                                  // badge line; the title carries the detail.
+                                  <span key={badge.key} title={badge.title}>
+                                    [{badge.label}]
+                                  </span>
+                                ))}
+                              </>
                             )}
                           </td>
                         )}
@@ -1625,7 +1654,10 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                                         ? "text-sky-600 dark:text-sky-400"
                                         : "text-amber-600 dark:text-amber-400";
                                 return (
-                                  <span className={color} title={`${tps.toFixed(2)} tokens/sec`}>
+                                  <span
+                                    className={color}
+                                    title={buildLogTpsTitle(log, tps, formatDuration)}
+                                  >
                                     {formatTps(tps)}
                                   </span>
                                 );
@@ -1633,9 +1665,21 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                             )}
                           </td>
                         )}
+                        {visibleColumns.ttft && (
+                          <td className="px-3 py-2 text-right text-text-muted font-mono">
+                            {formatDuration(log.ttft > 0 ? log.ttft : null)}
+                          </td>
+                        )}
                         {visibleColumns.duration && (
                           <td className="px-3 py-2 text-right text-text-muted font-mono">
                             {formatDuration(log.duration)}
+                          </td>
+                        )}
+                        {visibleColumns.addedWait && (
+                          <td className="px-3 py-2 text-right text-text-muted font-mono">
+                            {typeof log.addedWaitMs === "number" && log.addedWaitMs > 0
+                              ? `${formatDuration(log.addedWaitMs)}${log.addedWaitCause ? ` (${log.addedWaitCause})` : ""}`
+                              : "—"}
                           </td>
                         )}
                         {visibleColumns.time && (

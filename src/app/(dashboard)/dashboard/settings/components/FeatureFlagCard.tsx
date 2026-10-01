@@ -213,7 +213,9 @@ export default function FeatureFlagCard({
       </div>
 
       {/* Description */}
-      <p className="mb-3 line-clamp-2 text-xs text-text-muted">{flag.description}</p>
+      <p className="mb-3 line-clamp-2 text-xs text-text-muted" title={flag.description}>
+        {flag.description}
+      </p>
 
       <EnvPrecedenceWarning flag={flag} text={t("ccDiscoveryAliasesEnvWarning")} />
 

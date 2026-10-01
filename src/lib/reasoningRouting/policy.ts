@@ -12,6 +12,10 @@ import {
   splitClaudeEffortSuffix,
   getProviderModels,
 } from "@omniroute/open-sse/config/providerModels.ts";
+import {
+  codexModelFamilySupportsExtendedEffort,
+  isCodexExtendedEffortBaseModel,
+} from "@/shared/reasoning/codexExtendedEffort";
 
 type JsonRecord = Record<string, unknown>;
 const EFFORTS = new Set<ReasoningEffort>([
@@ -79,8 +83,9 @@ function splitGenericEffortSuffix(model: string): {
 }
 
 function supportsCodexSuffix(candidate: string, normalizedBase: string): boolean {
-  if (candidate === "max") return /^gpt-5\.6-(?:sol|terra|luna)$/.test(normalizedBase);
-  if (candidate === "ultra") return /^gpt-5\.6-(?:sol|terra)$/.test(normalizedBase);
+  if (candidate === "max" || candidate === "ultra") {
+    return isCodexExtendedEffortBaseModel(normalizedBase, candidate);
+  }
   return true;
 }
 
@@ -278,7 +283,8 @@ function capabilityFor(
     //   2. For unregistered providers/models, a declared (synced or
     //      operator-overridden) vocabulary listing the tier is authoritative —
     //      the sanitizer forwards verbatim there (#8057 trust-the-upstream).
-    //   3. The gpt-5.6 regex remains the fallback for undeclared models.
+    //   3. The Codex max/ultra alias sets (`codex/reasoningSuffix.ts`) remain
+    //      the fallback for undeclared models.
     // This keeps custom OpenAI-compatible providers whose models accept `max`
     // natively (e.g. Merge Gateway `zai/glm-5.3-flash`, accepting
     // `low|high|max`) usable with forced-max rules instead of 400ing.
@@ -308,16 +314,15 @@ function capabilityFor(
     }
     // An operator-declared vocabulary that excludes the tier is terminal —
     // the same lookup the override resolves from must not be overruled by the
-    // legacy regex below.
+    // alias-set fallback below.
     if (capabilities.reasoningEffortsOverride && Array.isArray(declaredEfforts)) {
       return "unsupported" as const;
     }
-    const normalized = model.toLowerCase().replace(/^(?:codex|cx)\//, "");
-    const supported =
-      targetEffort === "ultra"
-        ? /^gpt-5\.6-(?:sol|terra)(?:-|$)/.test(normalized)
-        : /^gpt-5\.6-(?:sol|terra|luna)(?:-|$)/.test(normalized);
-    if (supported) return "supported" as const;
+    // Strip the provider namespace (`openai/`, `github/`, `opencode-zen/`,
+    // `codex/`…) so every provider serving the family resolves the same way.
+    if (codexModelFamilySupportsExtendedEffort(modelIdForRegistry, targetEffort)) {
+      return "supported" as const;
+    }
     if (capabilities.supportsThinking === null) return "unknown" as const;
     return "unsupported" as const;
   }
@@ -590,8 +595,19 @@ export function applyReasoningRuleDirective(
   delete body._omnirouteReasoningRule;
   const effortMode = directive.effortMode;
   const targetEffort = effort(directive.targetEffort);
-  if (effortMode === "force" && targetEffort === "none") clearReasoning(body);
-  else if ((effortMode === "force" || effortMode === "default") && targetEffort) {
+  if (effortMode === "force" && targetEffort === "none") {
+    clearReasoning(body);
+    // `clearReasoning` only REMOVES reasoning/thinking params. Providers whose
+    // thinking mode defaults ON (e.g. DeepSeek V4 behind its native Responses
+    // API) treat an ABSENT field as "thinking enabled" and then reject the next
+    // tool-call turn with:
+    //   400 The `reasoning_text` in the thinking mode must be passed back to the API.
+    // Emit the explicit OpenAI no-thinking carrier (`reasoning_effort: "none"`)
+    // so a forced-off rule really disables thinking. Providers that reject the
+    // literal `none` are clamped by the dispatch-time sanitizer
+    // (open-sse/executors/base/reasoningEffort.ts).
+    body.reasoning_effort = "none";
+  } else if ((effortMode === "force" || effortMode === "default") && targetEffort) {
     if (effortMode === "force") clearDiscreteReasoning(body);
     if (!targetFormat) body.reasoning_effort = targetEffort;
     if (targetFormat !== "claude")

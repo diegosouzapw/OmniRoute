@@ -4,24 +4,11 @@
 
 ---
 
-OmniRoute විසින් coding CLI එකක් (Codex, Claude Code, OpenCode, Cline, …) එහි backend එක ලෙස OmniRoute භාවිත කිරීමට වින්යාස කරන `setup-*` විධාන සමූහයක් සපයයි — එම නිසා
-මෙවලම **එක්** endpoint එකක් සමඟ සන්නිවේදනය කරන අතර OmniRoute විසින් ස්වයංක්රීය fallback සමඟ
-නිවැරදි provider වෙත route කරයි. සෑම විධානයක්ම ක්රියාත්මක වන
-OmniRoute එකකින් (දේශීය හෝ දුරස්ථ) **සජීවී** model catalog එක කියවා, මෙවලමට අදාළ config file එක **ඔබගේ**
-යන්ත්රයේ ලියයි. මෙවලම සහාය දක්වන සෑම තැනකම API key එක environment variable එකක් මඟින් යොමු කරනු ලැබේ. මෙවලමට-දේශීය environment file එකක් ස්ථිරව සුරකින විධාන පහත සටහන් කර ඇත.
+OmniRoute මඟින් `setup-*` විධාන සමූහයක් සපයනු ලැබේ, එය කෝඩින් CLI (Codex, Claude Code, OpenCode, Cline, …) එකක් OmniRoute එහි backend ලෙස භාවිතා කිරීමට වින්යාස කරයි — එමඟින් මෙවලම **එක්** endpoint එකක් සමඟ සන්නිවේදනය කරන අතර OmniRoute ස්වයංක්රීය-පසුබැසීමක් (auto-fallback) සමඟ නිවැරදි සපයන්නා වෙත මාර්ගගත කරයි. සෑම විධානයක්ම ක්රියාත්මක වන OmniRoute (දේශීය හෝ දුරස්ථ) වෙතින් **සජීවී** model catalog කියවා **ඔබගේ** යන්ත්රයේ මෙවලමෙහිම config file ලියයි. මෙවලම එයට සහය දක්වන ඕනෑම තැනක API key එක environment variable එකක් මඟින් යොමු කෙරේ. මෙවලම්-දේශීය environment file එකක් ස්ථිරව තබා ගන්නා විධාන පහත සටහන් කර ඇත.
 
-කිසිදු config එකක් නොලියා, නිවැරදි env අගයන් ඇතුළත් කර
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` හෝ `gemini` ආරම්භ කරන සාමාන්ය launcher එකක් ද ඇත — `omniroute run <target>`.
-Targets සහ ඒවායේ aliases, canonical manifest එක වන `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`) වෙතින් ලැබෙන අතර, `omniroute completion` ද එම
-manifest එකෙන් ලබාගත් target වචනම සපයයි. පැරණි එක් එක් මෙවලමට විශේෂිත launchers —
-`omniroute launch` (Claude Code) සහ `omniroute launch-codex` (Codex) — තවමත්
-ලබා ගත හැක.
+සාමාන්ය launcher එකක් ද ඇත — `omniroute run <target>` — එය කිසිදු config එකක් නොලියා, නිවැරදි env එන්නත් කරමින් `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` හෝ `gemini` ආරම්භ කරයි. ඉලක්ක (targets) සහ ඒවායේ අන්වර්ථ නාම (aliases) `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`) යන canonical manifest වෙතින් පැමිණේ, තවද `omniroute completion` මඟින් එම manifest-ව්යුත්පන්න ඉලක්ක වචන සපයයි. පැරණි මෙවලම්-විශේෂිත launchers — `omniroute launch` (Claude Code) සහ `omniroute launch-codex` (Codex) — තවමත් ලබා ගත හැකිය.
 
-Provider onboarding කිරීම ද එම දේශීය/දුරස්ථ context එකෙන්ම සිදු කළ හැක. පහත
-API-ප්රමුඛ විධාන management authentication එක provider
-credentials වලින් වෙන්ව තබන අතර, structured output තුළ credential එකක් කිසිවිටෙකත් මුද්රණය නොකරයි:
+සපයන්නන් බඳවා ගැනීම (Provider onboarding) එම දේශීය/දුරස්ථ සන්දර්භය (context) වෙතින් ලබා ගත හැකිය. පහත දැක්වෙන API-පළමු විධාන මඟින් කළමනාකරණ සත්යාපනය (management authentication) සපයන්නාගේ අක්තපත්රවලින් (provider credentials) වෙන් කර තබන අතර, කිසිවිටෙකත් අක්තපත්රයක් structured output එකක මුද්රණය නොකරයි:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -31,17 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Scripts සඳහා, `--credential-stdin` හෝ `--credential-env` භාවිත කිරීමට ප්රමුඛත්වය දෙන්න; පාලිත දේශීය භාවිතය සඳහා `--credential`
-තවදුරටත් පවත්වාගෙන යනු ලැබේ. අන්තර්ක්රියාකාරී නොවන terminal එකකදී `providers remove` සඳහා `--yes` අවශ්ය වන අතර,
-විධාන පහම සක්රිය context එකට හෝ ගෝලීය `--base-url`/`--api-key` options වලට අනුකූල වේ.
+scripts සඳහා, `--credential-stdin` හෝ `--credential-env` භාවිතා කිරීමට කැමති වන්න; `--credential` පාලිත දේශීය භාවිතය සඳහා රඳවා තබා ඇත. `providers remove` සඳහා non-interactive terminal එකකදී `--yes` අවශ්ය වේ, තවද විධාන පහම active context හෝ ගෝලීය `--base-url`/`--api-key` විකල්පවලට ගරු කරයි.
 
-වඩාත්ම විශේෂාංග සහිත integrations දෙකේ එක් වරක් පමණක් අතින් සිදු කරන මූලික setup එක සඳහා, එක් එක් මෙවලම පිළිබඳ සවිස්තරාත්මක මාර්ගෝපදේශ බලන්න:
+සපයන්නා තෝරන්නන් (Provider selectors) අපැහැදිලි ID prefixes, නම් හෝ සපයන්නාගේ නම් ප්රතික්ෂේප කරයි; සම්බන්ධතා කිහිපයක් ගැලපෙන විට සම්පූර්ණ connection ID එකක් භාවිතා කරන්න. නිර්මාණය කිරීමේ සහ සංස්කරණය කිරීමේ විධාන මඟින් සුරකින ලද සම්බන්ධතාවය නැවත කියවනු ලැබේ, සහ ඉවත් කිරීම මඟින් එය තවදුරටත් කියවිය නොහැකි බව තහවුරු කරයි. ආනයනයක් (import) පවතින provider/name යුගලයක් මඟ හරියි. ආනයනය කරන ලද ඇතුළත් කිරීම් මඟින් CLI වෙත සපයන ලද management endpoint, context හෝ management credentials අභිබවා යා නොහැක.
+
+වඩාත් පොහොසත් ඒකාබද්ධ කිරීම් දෙකෙහි එක් වරක්, අතින් ලියන ලද මූලික සැකසුම සඳහා, මෙවලම්-විශේෂිත ගැඹුරු අධ්යයනයන් බලන්න:
 
 - [Claude Code වින්යාසය](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI වින්යාසය](./CODEX-CLI-CONFIGURATION.md)
-- [දුරස්ථ ප්රකාරය](./REMOTE-MODE.md) — ඔබගේ laptop එකෙන් දුරස්ථ OmniRoute එකක් (VPS / Tailnet) මෙහෙයවන්න
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot extension එක; එයට editor එක තුළින්ම මෙම
-  `setup-*` විධාන ඔබ වෙනුවෙන් ක්රියාත්මක කිරීමට ද හැක
+- [දුරස්ථ මාදිලිය](./REMOTE-MODE.md) — ඔබගේ ලැප්ටොප් පරිගණකයෙන් දුරස්ථ OmniRoute (VPS / Tailnet) ධාවනය කරන්න
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot extension; එයට මෙම `setup-*` විධාන editor ඇතුළත සිට ඔබ වෙනුවෙන් ක්රියාත්මක කළ හැක
 
 ---
 

@@ -37,13 +37,15 @@ Cookie: auth_token=<JWT signed with JWT_SECRET>
 
 A cookie is a session only when the JWT verifies **and** carries `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Every
-consumer of the cookie (route guard, authz pipeline refresh, WebSocket handshake, live
+consumer of the cookie (dashboard route guard (`isDashboardSessionAuthenticated()`), authz pipeline refresh, WebSocket handshake, live
 server, `/api/settings/require-login`, `/api/auth/status`) goes through that helper.
 Other JWTs signed with `JWT_SECRET` exist — the Cursor CLI passthrough mints
 `iss "omniroute" / aud "cursor-cli"` tokens for key holders — and are never sessions
 (#13298).
 
 Verified by `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. The pipeline auto-refreshes the JWT when it has fewer than 7 days left in its 30-day lifetime.
+
+A session can also end before its 30 days are up, because every minter goes through `mintDashboardSessionToken` (an issue time `iat` and an id `jti`) and the verifier checks two settings: `sessionsValidAfter`, set by a password change so every session issued before it stops verifying (the browser that changed the password gets a fresh cookie), and `revokedDashboardSessions`, to which `POST /api/auth/logout` adds the signed-out session's `jti`. Sessions minted by an older release carry neither claim and stay valid until the first password change. If the settings cannot be read, the session is not trusted.
 
 Some management routes accept **either** mode: cookie OR `Bearer <key>` when the API key has the `manage` (or `admin`) scope. This is what enables the "configurable via API calls" workflow added in v3.8.
 

@@ -23,6 +23,8 @@ const auth = await import("../../src/sse/services/auth.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { getExecutor } = await import("../../open-sse/executors/index.ts");
 const { clearAllModelLockouts } = await import("../../open-sse/services/accountFallback.ts");
+const { clearOpencodeFreeTierSkips } =
+  await import("../../open-sse/services/opencodeFreeTierSkip.ts");
 
 const originalFetch = globalThis.fetch;
 const REFUSAL_BODY = JSON.stringify({
@@ -39,8 +41,15 @@ const noopLog = { debug() {}, info() {}, warn() {}, error() {} };
 test.after(() => {
   globalThis.fetch = originalFetch;
   clearAllModelLockouts();
+  clearOpencodeFreeTierSkips();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+// #14313: a free-tier refusal on noauth records a short TTL skip; drop it so later
+// cases in this file still resolve the synthetic credentials under test.
+test.beforeEach(() => {
+  clearOpencodeFreeTierSkips();
 });
 
 async function refreshAttemptsFor({ provider, model, credentials, status, body }) {

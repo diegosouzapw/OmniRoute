@@ -524,6 +524,28 @@ export function parseDeepSeekToolCalls(
 
   text = normalizeDsmlInvokeMarkup(text);
 
+  // Normalize DeepSeek V4 DSML markup (<｜｜DSML｜｜ ...>) only when markers are present,
+  // preserving original whitespace formatting on plain non-tool replies.
+  if (
+    /[｜|]{1,2}DSML[｜|]{1,2}/i.test(text) ||
+    /<parameter\b/i.test(text) ||
+    /<\/(?:parameter|invoke|arguments|calls|tool_calls|function_calls)>/i.test(text) ||
+    text.includes("This response is AI-generated, for reference only.")
+  ) {
+    // Clean trailing provider disclaimer (anchored to the end of the text to protect argument values)
+    text = text.replace(/\s*This response is AI-generated, for reference only\.\s*$/i, "");
+    text = text
+      .replace(/<\/?(?:[｜|]{1,2})DSML(?:[｜|]{1,2})\s*(?:calls|tool_calls|function_calls)>/gi, "")
+      .replace(/<(\/?)(?:(?:[｜|]{1,2})DSML(?:[｜|]{1,2})\s*)?invoke\b/gi, "<$1tool")
+      .replace(/<(\/?)(?:(?:[｜|]{1,2})DSML(?:[｜|]{1,2})\s*)?parameter\b/gi, "<$1parameter")
+      .replace(/(}\s*)<\/(?:parameter|invoke|calls|tool_calls|function_calls)>/gi, "$1");
+
+    // If model emitted bare <parameter> tags without enclosing <tool> or <invoke>
+    if (/<parameter\b/i.test(text) && !/<tool\b/i.test(text)) {
+      text = text.replace(/((?:<parameter\b[\s\S]*?<\/parameter>\s*)+)/gi, "<tool>$1</tool>");
+    }
+  }
+
   const tokens = tokenizeToolTags(text);
   if (tokens.length === 0) {
     // No DeepSeek-specific tags — defer to the proven canonical parser (bare JSON, etc.).
@@ -596,5 +618,14 @@ export function parseDeepSeekToolCalls(
     ...tokens.filter((t) => !within(t)).map((t) => ({ start: t.start, end: t.end })),
   ];
 
-  return { content: stripRanges(text, ranges), toolCalls };
+  let content = stripRanges(text, ranges);
+  if (toolCalls.length > 0) {
+    content = content
+      .replace(/<parameter\b[^>]*>[\s\S]*?(?:<\/parameter>|$)/gi, "")
+      .replace(/<\/?(?:parameter|invoke|tool|calls|tool_calls|function_calls)\b[^>]*>/gi, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  return { content, toolCalls };
 }

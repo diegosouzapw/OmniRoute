@@ -42,6 +42,25 @@ function buildTurnEndedPayload(): Buffer {
   return lenPrefixed(1, iu);
 }
 
+function buildTurnEndedUsagePayload(
+  input: number,
+  output: number,
+  read: number,
+  write: number
+): Buffer {
+  const ended = Buffer.concat([
+    tag(1, 0),
+    v(input),
+    tag(2, 0),
+    v(output),
+    tag(3, 0),
+    v(read),
+    tag(4, 0),
+    v(write),
+  ]);
+  return lenPrefixed(1, lenPrefixed(14, ended));
+}
+
 // AgentServerMessage { interaction_update (1): { token_delta (8): { count (1): n } } }
 function buildTokenDeltaPayload(tokens: number): Buffer {
   const tokDelta = Buffer.concat([tag(1, 0), v(tokens)]);
@@ -184,12 +203,15 @@ test("REGRESSION #10215: long preamble (>2.5K chars) then KV then exec_mcp keeps
   // Covers the at-risk band the reporter identified (2505-2933 chars of text
   // before the tool call on cursor/grok-4.5-high). A KV checkpoint arriving
   // mid-preamble must not truncate the still-pending exec_mcp.
-  const longPreamble =
-    "The model streams a lengthy preamble before invoking a tool. ".repeat(60);
+  const longPreamble = "The model streams a lengthy preamble before invoking a tool. ".repeat(60);
   assert.ok(longPreamble.length > 2500);
   for (const model of ["cursor/grok-4.5-high", "auto"]) {
     const ctx = newStreamCtx(model, () => {});
-    driveFrames(ctx, [buildTextDeltaPayload(longPreamble), buildKvServerMessagePayload(), buildExecMcpPayload()]);
+    driveFrames(ctx, [
+      buildTextDeltaPayload(longPreamble),
+      buildKvServerMessagePayload(),
+      buildExecMcpPayload(),
+    ]);
     assert.equal(ctx.toolCalls.length, 1, `model ${model} must keep the tool call`);
     assert.equal(ctx.endReason, "tool_calls");
     assert.ok(ctx.totalText.length > 2500);
@@ -349,7 +371,7 @@ test("buildCursorUsage omits completion_tokens_details when no thinking", () => 
   assert.equal(usage.completion_tokens_details, undefined);
 });
 
-test("buildCursorUsage never emits cache fields (cursor doesn't expose them)", () => {
+test("buildCursorUsage omits cache fields when the upstream turn has no metering", () => {
   const ctx = newStreamCtx("auto", () => {});
   processFrame(buildThinkingDeltaPayload("thinking"), ctx, new Set());
   processFrame(buildTextDeltaPayload("text"), ctx, new Set());
@@ -358,6 +380,20 @@ test("buildCursorUsage never emits cache fields (cursor doesn't expose them)", (
   assert.equal(usage.cached_tokens, undefined);
   assert.equal(usage.cache_read_input_tokens, undefined);
   assert.equal(usage.cache_creation_input_tokens, undefined);
+});
+
+test("Cursor turn end exposes upstream cache reads and writes in OpenAI usage", () => {
+  const ctx = newStreamCtx("grok-4.7", () => {});
+  processFrame(buildTurnEndedUsagePayload(12, 5, 8, 4), ctx, new Set());
+  const usage = buildCursorUsage(ctx, SAMPLE_BODY) as Record<string, unknown>;
+  assert.equal(usage.prompt_tokens, 24);
+  assert.equal(usage.completion_tokens, 5);
+  assert.equal(usage.total_tokens, 29);
+  assert.deepEqual(usage.prompt_tokens_details, {
+    cached_tokens: 8,
+    cache_creation_tokens: 4,
+  });
+  assert.equal(usage.estimated, undefined);
 });
 
 test("emitCursorSseError matches buildStreamErrorChunks OpenAI shape", () => {

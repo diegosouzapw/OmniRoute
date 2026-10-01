@@ -43,8 +43,14 @@ const {
 // 893fef9c added OPENCODE_PARK_AND_RESUME (74 -> 75); FLUSH_EMPTY_RETRY_ENABLED
 // (flush empty-turn retry, default off) bumps it to 76. ROTATION_ATTRIBUTION
 // (rotation skipped/served masked ids + proxy-log request correlation, all
-// read-only diagnostics) is this PR's flag, taking the registry to 77.
-const EXPECTED_FEATURE_FLAG_COUNT = 77;
+// read-only diagnostics) takes it to 77. STREAM_READINESS_STALL_RETRY
+// (one bounded retry when a stream stalls before usable output, default off)
+// takes it to 78.
+// OPENCODE_POOL_RESELECT (re-select a pool member per attempt after a
+// per-address 429, default off) takes the registry to 79.
+// PROXY_POOL_SHARED_EGRESS_ORDER (shared-egress pool ordering, default off)
+// takes it to 80.
+const EXPECTED_FEATURE_FLAG_COUNT = 80;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
@@ -269,14 +275,14 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.warningLevel, "info");
   });
 
-  it("defines skip-recently-failed proxies as a network boolean flag disabled by default", () => {
+  it("defines skip-recently-failed proxies as a network boolean flag enabled by default", () => {
     // Guards the routing default: with this on, pools and account rotation skip a proxy
-    // that just failed. Selection order must stay the plain rotation unless opted in.
+    // that just failed. Opt-out with PROXY_SKIP_RECENTLY_FAILED=false.
     const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "PROXY_SKIP_RECENTLY_FAILED");
     assert.ok(def, "PROXY_SKIP_RECENTLY_FAILED should exist");
     assert.strictEqual(def.category, "network");
     assert.strictEqual(def.type, "boolean");
-    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.defaultValue, "true");
     assert.strictEqual(def.requiresRestart, false);
   });
 

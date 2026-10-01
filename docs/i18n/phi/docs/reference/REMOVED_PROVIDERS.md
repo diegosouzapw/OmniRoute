@@ -4,61 +4,38 @@
 
 ---
 
-May ilang service na isinama sa OmniRoute at kalaunan ay inalis dahil hiniling ito ng mga taong
-namamahala sa mga iyon. Ang pahinang ito ang pangmatagalang talaan ng mga pag-aalis na iyon. Ang tanging layunin nito ay
-maiwasang maibalik ang mga iyon nang hindi sinasadya: ang isang contributor na makakita ng lumang fork, naka-cache na npm
-tarball, naka-archive na issue, o kahilingang "ibalik ang provider X" ay nangangailangan ng iisang lugar na nagsasabing **huwag
-muling isama**.
+Ang ilang mga serbisyo ay isinama sa OmniRoute at kalaunan ay inalis dahil hiniling ito ng mga taong nagpapatakbo sa mga ito. Ang pahinang ito ay ang permanenteng talaan ng mga pag-aalis na iyon. Ang tanging layunin nito ay pigilan ang mga ito na makabalik nang hindi sinasadya: ang isang contributor na makakakita ng lumang fork, isang naka-cache na npm tarball, isang naka-archive na issue, o isang request na "i-restore ang provider X" ay nangangailangan ng isang lugar na nagsasabing **huwag nang ibalik**.
 
-Ang pahinang ito ay **hindi** listahan ng mga patay o itinigil nang service. Sinusubaybayan ang mga iyon sa
-[`FREE_TIERS.md`](FREE_TIERS.md) ("Inalis / walang libreng tier") at maaaring maibalik kung bumalik ang service.
-Maaari lamang maibalik ang mga entry sa ibaba kapag may nakasulat na pahintulot mula sa operator na pinangalanan sa
-kahilingan, at dapat i-link ang pahintulot na iyon mula sa entry.
+Ang pahinang ito ay **hindi** listahan ng mga patay o itinigil na serbisyo. Ang mga iyon ay sinusubaybayan sa [`FREE_TIERS.md`](FREE_TIERS.md) ("Removed / no free tier") at maaaring bumalik kung bumalik ang serbisyo. Ang mga entry sa ibaba ay maaari lamang bumalik nang may nakasulat na pahintulot mula sa operator na pinangalanan sa request, at ang pahintulot na iyon ay dapat na naka-link mula sa entry.
 
 ## Patakaran
 
-1. **Ang kahilingan sa pag-aalis mula sa operator ng isang service ay sinusunod, hindi tinatawaran.** Ang OmniRoute ay
-   hindi kaanib ng anumang upstream service. Kapag hiniling ng operator ng isang service na alisin ang
-   integration, aalisin ito, gumamit man o hindi ng opisyal na API ang integration.
-2. **Ang ibig sabihin ng "Inalis" ay ang bawat bahaging kontrolado ng OmniRoute.** Executor, registry entry, provider
-   id at alias, listahan ng modelo, mga endpoint, mga environment variable, icon, mga card sa dashboard, ang
-   nabuong sanggunian ng provider, `FREE_TIERS.md`, ang sanggunian ng environment, mga bilang sa README,
-   mga mirror ng `llm.txt`, mga nakalaang test at golden snapshot, mga komento sa code, mga bullet sa CHANGELOG
-   (na may nakatalang pagtutugma, tingnan ang `config/release/changelog-reconciliations.json`),
-   mga tala sa GitHub Releases, ang wiki, at ang mga GitHub issue, discussion, at pull request na
-   ang paksa ay ang provider na iyon (dine-delete ang mga issue at discussion; pinapalitan ang pamagat ng mga pull request,
-   pinapalitan ang paglalarawan ng mga iyon, at nilo-lock ang thread, dahil hindi maaaring mag-delete ng mga pull request ang GitHub).
-3. **Huwag kailanman muling isama ang isang entry sa pahinang ito nang walang nakasulat na pahintulot.** Kabilang dito ang
-   muling pagdaragdag ng id o alias sa anumang catalog ng provider, pagdaragdag ng mga domain sa isang executor,
-   pagtanggap ng PR ng contributor na "nagbabalik" dito, pagdaragdag nito sa catalog ng libreng modelo, o
-   pagdodokumento ng manu-manong paraan upang ma-access ito sa pamamagitan ng OmniRoute. Isara ang mga ganitong PR at issue na may
-   link sa pahinang ito.
-4. **Panatilihing minimal ang entry.** Itala lamang ang kailangan ng isang reviewer upang makilala ang
-   muling pagsasama: mga identifier, domain, petsa, at ang pull request na nagsagawa ng pag-aalis.
-   Huwag ilarawan kung paano gumagana ang integration.
-5. **Ang regression guard ay `tests/unit/removed-providers-blocklist.test.ts`.** Nabibigo ito kapag
-   muling lumitaw ang alinmang identifier o domain sa ibaba sa mga catalog ng provider, executor map, o
-   mga source ng provider registry. Idagdag ang mga bagong identifier sa test na iyon sa parehong PR na
-   nagdaragdag ng row dito.
+1. **Ang takedown request mula sa isang service operator ay iginagalang, hindi pinag-uusapan.** Ang OmniRoute ay walang kaugnayan sa anumang upstream service. Kapag hiniling ng operator ng isang serbisyo na alisin ang integration, aalisin ito, gumamit man ang integration ng opisyal na API o hindi.
+2. **Ang "Removed" ay nangangahulugang bawat surface na kontrolado ng OmniRoute.** Executor, registry entry, provider id at alias, listahan ng modelo, endpoints, environment variables, icon, dashboard cards, ang nabuong provider reference, `FREE_TIERS.md`, ang environment reference, README counts, `llm.txt` mirrors, mga nakalaang test at golden snapshots, mga komento sa code, CHANGELOG bullets (na may ledgered reconciliation, tingnan ang `config/release/changelog-reconciliations.json`), mga tala sa GitHub Releases, ang wiki, at ang mga GitHub issues, discussions, at pull requests na ang paksa ay ang provider na iyon (ang mga issue at discussion ay binubura; ang mga pull request ay pinapalitan ang pamagat, ang kanilang deskripsyon ay pinapalitan at ang thread ay nilalagyan ng lock, dahil hindi maaaring magbura ng pull request ang GitHub).
+3. **Huwag na huwag ibabalik ang isang entry sa pahinang ito nang walang nakasulat na pahintulot.** Kasama rito ang pagdaragdag muli ng id o alias sa anumang provider catalog, pagdaragdag ng mga domain sa isang executor, pagtanggap ng PR mula sa contributor na "nagbabalik" nito, pagdaragdag nito sa free-model catalog, o pagdodokumento ng manual na paraan upang maabot ito sa pamamagitan ng OmniRoute. Isara ang mga naturang PR at issue na may link sa pahinang ito.
+4. **Panatilihing minimal ang entry.** Itala lamang ang kailangan ng isang reviewer upang makilala ang isang muling pagpapakilala: mga identifier, domain, petsa, at ang pull request na nagsagawa ng pag-aalis. Huwag ilarawan kung paano gumana ang integration.
+5. **Ang regression guard ay `tests/unit/removed-providers-blocklist.test.ts`.** Nabibigo ito kapag ang anumang identifier o domain sa ibaba ay lumitaw muli sa mga provider catalog, sa executor map, o sa mga source ng provider registry. Idagdag ang mga bagong identifier sa test na iyon sa parehong PR na nagdaragdag ng row dito.
 
 ## Rehistro
 
-| Petsa ng pag-aalis | Provider id | Alias  | Mga domain                              | Humiling                            | PR ng pag-aalis                                                | Mga tala                                                                                                                                                            |
-| ------------------ | ----------- | ------ | --------------------------------------- | ----------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-12         | `puter`     | `pu`   | `puter.com`                             | May-ari ng Puter (Nariman Jelveh)   | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | Provider na gumagamit ng API key. Nililinis ng migration na `152_remove_puter_provider.sql` ang nakaimbak na config.                                                |
-| 2026-09-02         | `theoldllm` | `tllm` | `theoldllm.com`, `theoldllm.vercel.app` | Operator ng service (support email) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Provider na walang key. Natanggap ang nakasulat na kahilingan noong 2026-08-30. Dinelete ang mga nakalaang issue at discussion, at pinalitan ang pamagat ng mga PR. |
+| Inalis noong | Provider id       | Alias    | Mga Domain                                       | Hiniling ni                                                                                             | PR ng Pag-alis                                                 | Mga Tala                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------ | ----------------- | -------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-12   | `puter`           | `pu`     | `puter.com`                                      | May-ari ng Puter (Nariman Jelveh)                                                                       | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | Provider ng API-key. Nililinis ng migration na `152_remove_puter_provider.sql` ang nakaimbak na config.                                                                                                                                                                                                                                                                                                                            |
+| 2026-09-02   | `theoldllm`       | `tllm`   | `theoldllm.com`, `theoldllm.vercel.app`          | Ang operator ng serbisyo (support email)                                                                | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Keyless na provider. Nakatanggap ng nakasulat na kahilingan noong 2026-08-30. Ang mga nakalaang isyu at diskusyon ay tinanggal, ang mga PR ay binago ang pamagat.                                                                                                                                                                                                                                                                  |
+| 2026-09-21   | `gemini-business` | `gembiz` | `business.gemini.google`                         | Desisyon ng may-ari ng proyekto (isyu [#14217](https://github.com/diegosouzapw/OmniRoute/issues/14217)) | [#14467](https://github.com/diegosouzapw/OmniRoute/pull/14467) | Cookie-based na web provider. Inalis ng Google ang `BardFrontendService/StreamGenerate` endpoint na tinarget ng executor; ang kapalit (`biz-discoveryengine.googleapis.com` `widgetStreamAssist`, Bearer JWT na binuo mula sa `__Secure-C_SES`/`csesidx`) ay hindi maaaring buuin o i-validate nang walang live na Gemini Enterprise/Workspace account, na wala ang proyekto. Inalis sa halip na isulat muli nang hindi na-verify. |
+| 2026-09-21   | `suno`            | `suno`   | `studio-api.suno.ai`, `studio-api-prod.suno.com` | Desisyon ng may-ari ng proyekto (`#14224`)                                                              | [#14468](https://github.com/diegosouzapw/OmniRoute/pull/14468) | Cookie-auth na provider, hindi pagtanggal ng operator. Ang `studio-api.suno.ai` ay sinuspinde (503); ang live host ay nangangailangan ng Clerk JWT exchange kasama ang isang bayad na hCaptcha-solving dependency na pinili ng OmniRoute na hindi idagdag para sa isang music provider. Ang `kie/suno-v4.0` at `kie/suno-v3.5` (kie.ai-hosted) ay hindi apektado at nananatiling suportado.                                        |
 
-## Pagdaragdag ng entry
+## Pagdaragdag ng isang entry
 
-Kapag may dumating na bagong kahilingan sa pag-aalis:
+Kapag dumating ang isang bagong kahilingan sa pagtanggal:
 
-1. Kumpirmahing nagmula ang kahilingan sa operator ng service (sa kanilang support address o sa isang
-   domain na kontrolado nila), at panatilihing pribado ang mensahe.
-2. Alisin ang integration alinsunod sa checklist sa item 2 ng patakaran. Gamitin ang
-   [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) bilang sanggunian para sa isang
-   provider na walang key at ang [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) para sa isang
-   provider na gumagamit ng API key at may mga nakaimbak na koneksyon (magdagdag ng migration).
-3. Magdagdag ng isang row sa table sa itaas at ng mga identifier sa
+1. Kumpirmahin na ang kahilingan ay nagmula sa operator ng serbisyo (ang kanilang support address o isang
+   domain na kanilang kontrolado), at panatilihing pribado ang mensahe.
+2. Alisin ang integrasyon kasunod ng checklist sa policy item 2. Gamitin ang
+   [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) bilang reperensya para sa isang
+   keyless provider at [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) para sa isang
+   API-key provider na may stored connections (magdagdag ng migration).
+3. Magdagdag ng isang row sa talahanayan sa itaas at ang mga identifier sa
    `tests/unit/removed-providers-blocklist.test.ts`, sa parehong PR.
-4. Tumugon sa operator kapag na-merge na ang PR, na inililista kung ano ang inalis at kung ano ang hindi
-   mababago ng OmniRoute (mga nailabas nang npm at Docker version, kasaysayan ng git, mga third-party fork).
+4. Sumagot sa operator kapag na-merge na ang PR, ilista kung ano ang inalis at kung ano ang
+   hindi kayang baguhin ng OmniRoute (mga na-publish nang npm at Docker versions, git history, third-party forks).

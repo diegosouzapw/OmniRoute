@@ -9,46 +9,33 @@ OmniRoute siqish mexanizmi engine shartnomalari asosida qurilgan. Rejim bitta en
 
 ## Rejimlar
 
-| Rejim        | Engine yo‘li                         | Mo‘ljallangan kirish ma’lumoti                             |
-| ------------ | ------------------------------------ | ---------------------------------------------------------- |
-| `off`        | yo‘q                                 | Promptni aynan saqlab qolish                               |
-| `lite`       | Caveman lite yordamchilari           | Xavfi past, doimiy tozalash                                |
-| `standard`   | Caveman                              | Tabiiy tildagi promptni ixchamlashtirish                   |
-| `aggressive` | Caveman + tarix/vosita xulosachilari | Uzoq chat seanslari                                        |
-| `ultra`      | Caveman + qisqartirish yordamchilari | Kontekst chegarasidan tiklanish                            |
-| `rtk`        | RTK                                  | Terminal, shell, build, test va git chiqishi               |
-| `omniglyph`  | OmniGlyph                            | Mahalliy provayder kanalida tasvir ko‘rinishidagi kontekst |
-| `stacked`    | Pipeline, standart `rtk -> caveman`  | Aralash vosita jurnallari va nasriy matn, maksimal tejash  |
+| Rejim        | Dvigatel yo'li                                                                                   | Mo'ljallangan kirish                               |
+| ------------ | ------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| `off`        | hech qanday                                                                                      | Aniq so'rovni saqlash                              |
+| `lite`       | Caveman lite yordamchilari                                                                       | Har doim yoqilgan past xavfli tozalash             |
+| `standard`   | Caveman                                                                                          | Tabiiy til so'rovini ixchamlash                    |
+| `aggressive` | Caveman + tarix/asbob xulosachilari                                                              | Uzoq suhbat sessiyalari                            |
+| `ultra`      | Caveman + kesish yordamchilari                                                                   | Kontekst chegarasini tiklash                       |
+| `rtk`        | RTK                                                                                              | Terminal, shell, build, test va git chiqishi       |
+| `omniglyph`  | OmniGlyph                                                                                        | Mahalliy provayder simida kontekstni rasm sifatida |
+| `stacked`    | Pipeline. So'rovning sukut bo'yicha qiymati `session-dedup -> lite`. `rtk -> caveman` ixtiyoriy. | Aralash asbob jurnallari va nasr, maksimal tejash  |
 
 ### OmniGlyph siqish profillari
 
-`omniglyph` engine’i (`omniglyph` paketi, 1.4.0+) nomlangan semantik profilni qabul qiladi; u
-siqish sozlamalaridagi `omniglyph.profile` orqali global miqyosda yoki stacked pipeline’ning
-qadam konfiguratsiyasi orqali har bir qadam uchun alohida o‘rnatiladi:
+`omniglyph` dvigateli (`omniglyph` paketi, 1.4.0+) nomlangan semantik profilni qabul qiladi, u siqish sozlamalarida `omniglyph.profile` orqali global ravishda yoki yig'ilgan quvur liniyasining qadam konfiguratsiyasi orqali har bir qadam uchun o'rnatiladi:
 
-| Profil        | Chegara                                                                                                                    |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Standart. E’lon qilingan o‘lchovlarda ishlatilgan siyosat — system, vosita hujjatlari va zich tarixni tasvirga aylantiradi |
-| `balanced`    | Faol holatni asl ko‘rinishda saqlaydi, oxirgi 8 ta navbatni himoya qiladi, eski yopilgan tarixni ixchamlashtiradi          |
-| `coding-safe` | Vakolatlarni, vosita sxemalarini va faol vosita chiqishini asl ko‘rinishda saqlaydi, oxirgi 12 ta navbatni himoya qiladi   |
-| `passthrough` | O‘zgartirmasdan yo‘naltiradi; engine o‘tkazib yuboriladi                                                                   |
+| Profil        | Chegara                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Standart. Nashr etilgan kvitansiyalar o'lchagan siyosat — tasvirlar tizimi, asbob hujjatlari va zich tarix   |
+| `balanced`    | Jonli holatni mahalliy saqlaydi, oxirgi 8 burilishni himoya qiladi, eski yopiq tarixni yig'adi               |
+| `coding-safe` | Vakolatni, asbob sxemalarini va jonli asbob chiqishini mahalliy saqlaydi, oxirgi 12 burilishni himoya qiladi |
+| `passthrough` | O'zgartirmasdan yo'naltiradi; dvigatel o'tkazib yuboriladi                                                   |
 
-Profil **quyi chegara emas, yuqori chegara**: paketdagi `mergeCompressionProfileOptions`
-chaqiruvchi tomonidan berilgan override’ga profil yopgan yo‘qotishli kanalni qayta ochishga
-ruxsat bermaydi, shu sababli har bir qadam uchun berilgan `preserveSystemPrompt: false`
-`coding-safe` ostida system siqishni qayta yoqa olmaydi.
+Profil **shift, pol emas**: paketdagi `mergeCompressionProfileOptions` chaqiruvchiga profil yopgan yo'qotishli yo'lni qayta ochishga ruxsat bermaydi, shuning uchun har bir qadam uchun `preserveSystemPrompt: false` `coding-safe` ostida tizim siqishni qayta yoqolmaydi.
 
-Ushbu kod bazasida o‘lchanganda: `coding-safe` va `balanced` `minCompressChars` qiymatini
-maksimal darajaga oshiradi hamda system, vosita sxemalari va vosita natijalarini asl
-ko‘rinishda saqlaydi, shuning uchun hali tarix to‘planmagan seans `below_min_chars` holatida
-to‘xtaydi va engine hech narsani o‘zgartirmaydi. Shu sababli standart profil eng xavfsiz
-profil emas, balki `aggressive` hisoblanadi.
+Ushbu kod bazasida o'lchangan: `coding-safe` va `balanced` `minCompressChars` ni maksimal darajaga ko'taradi va tizim, asbob sxemalari va asbob natijalarini mahalliy saqlaydi, shuning uchun hali tarix to'plamagan sessiya `below_min_chars` da to'xtaydi va dvigatel hech narsani o'zgartirmaydi. Shuning uchun standart profil eng xavfsiz profil emas, balki `aggressive` hisoblanadi.
 
-Paket o‘z model qamrovi va profilini muhit konfiguratsiyasidan mustaqil ravishda aniqlaydi.
-OmniRoute qarorni hech qachon boshqa tomonga topshirmaydi: adapter model darvozasini
-paketning eng cheklovchi qamroviga mahkamlaydi, shu sababli xost muhiti sozlamalari ruxsat
-ro‘yxatini faqat toraytirishi mumkin, uni OmniRoute o‘lchovlarida tasdiqlangan chegaradan
-kengaytira olmaydi.
+Paket o'zining model doirasini va profilini o'z muhit konfiguratsiyasidan hal qiladi. OmniRoute hech qachon qarorni delegatsiya qilmaydi: adapter model darvozasini paketning eng cheklovchi doirasiga bog'laydi, shuning uchun xost muhiti sozlamalari faqat ruxsat berilganlar ro'yxatini toraytirishi mumkin, OmniRoute o'lchagan kvitansiyalardan tashqariga kengaytira olmaydi.
 
 ## Dvigatellar reyestri
 
@@ -379,9 +366,9 @@ prefikslar va hokazo).
 - **Caveman til paketlari `de` / `fr` / `ja` qisman toʻliq.** Ular `context` + `filler` + `structural` qoidalari bilan taqdim etiladi, ammo `dedup` / `ultra` paketlari mavjud emas, shu sababli bu tillar uchun `ultra` intensivligi `full` dan kuchliroq emas (ular faqat oʻz qoidalaridan foydalanadi — xorijiy matnni buzishi mumkin boʻlgan inglizcha `dedup`/`ultra` qoidalariga yashirin qaytish mavjud emas). `en` / `es` / `id` / `pt-BR` toʻliq. Qisman toʻliq paketlar uchun `dedup.json` + `ultra.json` hissalari mamnuniyat bilan qabul qilinadi.
 - **Ketma-ket telemetriya faqat siqishni amalga oshirgan enginelarni koʻrsatadi.** Engine ishga tushgan, ammo 0 % tejashni taʼminlagan ketma-ket pipeline bosqichi `stats:null` qaytaradi va shu sababli `engineBreakdown` ichida koʻrinmaydi — uni oʻtkazib yuborilgan bosqichdan ajratib boʻlmaydi. “Ishga tushdi, 0 %” holatini “oʻtkazib yuborildi” holatidan ajratish breakdown modelini oʻzgartirishni talab qiladi va keyinga qoldirilgan.
 
-## Tekshirish
+## Validatsiya
 
-Ushbu soha uchun yoʻnaltirilgan tekshiruvlar:
+Ushbu soha uchun asosiy testlar quyidagilar:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

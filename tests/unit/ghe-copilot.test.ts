@@ -13,6 +13,11 @@ test("GHE Copilot registry exposes Claude Opus 5", () => {
     name: "Claude Opus 5",
     contextLength: 1000000,
     maxOutputTokens: 64000,
+    // #14732 declared the thinking-effort tiers on the first-party Claude registries
+    // (GHE Copilot included) — intentional contract change.
+    supportsReasoning: true,
+    supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+    supportsXHighEffort: true,
     unsupportedParams: ["temperature", "top_p", "top_k"],
   });
 });

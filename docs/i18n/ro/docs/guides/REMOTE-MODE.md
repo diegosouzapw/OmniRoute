@@ -342,32 +342,30 @@ opencode -m omniroute/glm/glm-5.2 "..."          # exportați mai întâi OMNIRO
 
 ## Gestionarea contextelor (comutarea între servere)
 
-Un **context** este un server salvat (baseUrl + acreditare + domeniu de acces). `omniroute connect`
-creează unul și îl activează; din acel moment, fiecare comandă îl vizează. Gestionați
-și comutați între contexte cu `omniroute contexts`:
+Un **context** este un server salvat (baseUrl + credențial + scop). `omniroute connect` creează unul și îl activează; de atunci, fiecare comandă îl vizează. Gestionați și comutați între ele cu `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # toate contextele; cel activ este marcat cu ●
-omniroute contexts current         # serverul activ, starea autentificării, domeniul de acces
+omniroute contexts list            # toate contextele; cel activ este marcat ●
+omniroute contexts current         # serverul activ, starea autentificării, scopul
 ```
 
 ```text
-  | Name    | Base URL                  | Auth  | Scope | Description
-● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
-  | default | http://localhost:20128    | ✗     |       |
+  | Nume    | URL de bază               | Autentificare | Scop  | Descriere
+● | vps     | http://100.67.86.91:20128 | token         | admin | OmniRoute la distanță (…)
+  | default | http://localhost:20128    | ✗             |       |
 ```
 
-**Comutați între servere** — fiecare comandă ulterioară urmează contextul activ:
+**Comutați serverele** — fiecare comandă ulterioară urmează contextul activ:
 
 ```bash
-omniroute contexts use vps         # → toate comenzile vizează acum VPS-ul de la distanță
+omniroute contexts use vps         # → toate comenzile vizează acum VPS-ul la distanță
 omniroute tokens list              #   (rulează pe VPS)
 
 omniroute contexts use default     # → înapoi la localhost
 omniroute tokens list              #   (rulează pe serverul local)
 ```
 
-**Adăugați manual un context** (în loc de `connect`), inspectați-l sau redenumiți-l:
+**Adăugați un context manual** (în loc de `connect`), inspectați sau redenumiți:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
@@ -376,31 +374,24 @@ omniroute contexts show staging    # detalii complete pentru un context
 omniroute contexts rename staging stg
 ```
 
-**Eliminați un context** — solicită confirmare; transmiteți `--yes` pentru a o omite
-(obligatoriu pentru scripturi / shell-uri neinteractive, care altfel refuză în siguranță):
+**Eliminați un context** — solicită confirmare; treceți `--yes` pentru a o omite (necesar pentru scripturi / shell-uri non-interactive, care altfel refuză în siguranță):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) nu poate fi eliminat. Eliminarea contextului activ determină revenirea
-> la `default`. Sfat: eliminarea unui context șterge doar acreditarea salvată **local** —
-> revocați tokenul pe server cu `omniroute tokens revoke <id>` pentru a anula efectiv
-> accesul.
+> `default` (localhost) nu poate fi eliminat. Eliminarea contextului activ revine la `default`. Sfat: eliminarea unui context șterge doar credențialul salvat **local** — revocați tokenul pe server cu `omniroute tokens revoke <id>` pentru a anula efectiv accesul.
 
-**Exportați / importați** contexte (de exemplu, pentru a le muta între sisteme). Contextele noi păstrează
-doar o referință către portchei; acreditările nu sunt copiate în export atunci când
-portcheiul sistemului de operare este disponibil:
+**Exportați / importați** contextele (de exemplu, pentru a le muta între mașini). Exporturile omit credențialele în mod implicit, inclusiv credențialele stocate prin fallback-ul de fișiere. Utilizați `--include-secrets` explicit atunci când este necesară o copie de rezervă portabilă care conține credențiale:
 
 ```bash
-omniroute contexts export --out contexts.json     # implicit: stdout
-omniroute contexts import contexts.json            # suprascriere; --merge pentru păstrarea celor existente
-omniroute contexts migrate --yes                  # mută tokenurile vechi în text simplu în portchei
+omniroute contexts export --out contexts.json     # redactat; destinație implicită: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # suprascrie; --merge pentru a păstra cele existente
+omniroute contexts migrate --yes                  # mută tokenurile plaintext vechi în portofelul de chei
 ```
 
-Pe sistemele headless fără un portchei utilizabil al sistemului de operare, CLI-ul revine la
-`config.json` cu modul `0600` și afișează o avertizare unică. Tratați exporturile din
-acest mecanism de rezervă (și orice configurație veche de dinaintea migrării) ca material secret.
+`--include-secrets` rezolvă referințele portofelului de chei înainte de export și eșuează dacă orice credențial referențiat nu poate fi citit. `--no-secrets` are întotdeauna prioritate. Fișierele exportate sunt scrise atomic cu modul `0600`. Tratați un export explicit care conține secrete ca material secret. Pe sistemele fără interfață grafică și fără un portofel de chei al sistemului de operare utilizabil, CLI-ul revine la `config.json` cu modul `0600` și afișează un avertisment unic; un export implicit rămâne redactat în acest mod.
 
 ---
 

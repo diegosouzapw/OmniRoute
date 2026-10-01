@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Semantika tal-ispiża ta’ cache hit:** meta jkun hemm HIT fil-cache semantika (`X-OmniRoute-Cache-Hit: true`), ma ssir ebda sejħa upstream, għalhekk `X-OmniRoute-Response-Cost` ikun `0.0000000000` (l-ispiża **inkrementali** biex jiġi pprovdut il-hit). L-ispiża oriġinali/li kieku kienet tiġġarrab tiġi rrappurtata separatament f’`X-OmniRoute-Cost-Saved`. Il-konsumaturi tad-dejta tal-kontijiet għandhom jgħoddu s-somma ta’ `X-OmniRoute-Response-Cost` (il-hits ma jiswew xejn); l-analitika tal-cache tista’ taggrega `X-OmniRoute-Cost-Saved`.
 
-## Kirjiet Esklussivi ta’ Sessjonijiet Ġestiti
+## Kirjiet ta' Sessjonijiet Ġestiti Esklussivi
 
-Il-kiri esklussiv ta’ sessjonijiet ġestiti huwa kuntratt ta’ routing fakultattiv u newtrali għall-klijent: sid attiv wieħed
-iżomm konnessjoni OmniRoute eliġibbli waħda. Dan ma jikrix mudell, ma jeħtieġx OAuth, ma jidentifikax
-klijent partikolari, u ma jeħtieġx fornitur partikolari.
+Il-kiri ta' sessjonijiet ġestiti esklussivi huwa kuntratt ta' rotta opt-in, newtrali għall-klijent: sid attiv wieħed iżomm konnessjoni OmniRoute waħda eliġibbli. Ma jikrix mudell, ma jeħtieġx OAuth, ma jidentifikax klijent partikolari, jew ma jeħtieġx fornitur partikolari.
 
-Iċ-ċavetta API li twettaq l-awtentikazzjoni jrid ikollha l-ambitu `lease:exclusive` u lista espliċita mhux vojta
-`allowedConnections`. Il-konfini tal-mutazzjoni tad-database jinforzaw iż-żewġ kampijiet flimkien waqt il-ħolqien
-taċ-ċavetta u l-aġġornamenti parzjali.
+Iċ-ċavetta tal-API tal-awtentikazzjoni għandu jkollha skop `lease:exclusive` u lista espliċita mhux vojta ta' `allowedConnections`. Il-konfini tal-mutazzjoni tad-database tinforza ż-żewġ oqsma flimkien mal-ħolqien taċ-ċavetta u l-aġġornamenti parzjali.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-It-tweġibiet ta’ akkwist, tiġdid u rilaxx li jirnexxu jesponu timestamps, `state`, u l-valur pożittiv eżatt
-ta’ `generation`, iżda qatt il-konnessjoni magħżula jew il-kredenzjali. It-tiġdid u r-rilaxx jipprovdu
-l-ġenerazzjoni fil-body JSON:
+Ir-risposti ta' akkwist, tiġdid, u rilaxx b'suċċess jesponu timestamps, `state`, u l-eżatt `generation` pożittiv, iżda qatt il-konnessjoni jew il-kredenzjali magħżula. It-tiġdid u r-rilaxx jipprovdu l-ġenerazzjoni fil-korp JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ l-ġenerazzjoni fil-body JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Sid attiv tal-kiri jista’ jitlob b’mod espliċitu metadata tal-wiri li tipproteġi l-privatezza għall-assoċjazzjoni attwali tiegħu:
+Sid ta' kiri attiv jista' jitlob espliċitament metadata tal-wiri sigura għall-privatezza għall-binding kurrenti tiegħu:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Sid attiv tal-kiri jista’ jitlob b’mod espliċitu metadata tal-wiri li tippr
 }
 ```
 
-Din l-azzjoni fakultattiva tal-istatus hija protetta mis-sid opak, miċ-ċavetta API ġestita u awtentikata, u mill-
-ġenerazzjoni attiva eżatta fi tranżazzjoni waħda tad-database. `displayName` huwa biss l-isem ikkonfigurat
-u mirqum tal-konnessjoni; ikun `null` meta ma jkun jeżisti ebda isem ikkonfigurat sikur. OmniRoute qatt ma jissostitwixxi
-email jew identità tal-kont iġġenerata. Il-valur tal-fornitur huwa tikketta tal-wiri mhux sensittiva u qatt
-identifikatur iġġenerat ta’ fornitur kompatibbli. Il-kredenzjali, it-tokens, il-cookies, l-identifikaturi mhux ipproċessati tal-konnessjoni jew taċ-ċavetta
-API, il-hashes tas-sid, is-sigrieti tal-fencing, u d-data interna tar-routing huma esklużi.
+Din l-azzjoni ta' status opt-in hija magħluqa mis-sid opak, iċ-ċavetta tal-API ġestita awtentikata, u l-ġenerazzjoni attiva eżatta f'transazzjoni waħda tad-database. `displayName` huwa biss l-isem tal-konnessjoni kkonfigurat imqassar; huwa `null` meta ma jeżisti l-ebda isem konfigurat sigur. OmniRoute qatt ma jissostitwixxi email jew identità ta' kont ġenerata. Il-valur tal-fornitur huwa tikketta tal-wiri mhux sensittiva u qatt ma huwa identifikatur ta' fornitur kompatibbli ġenerat. Kredenzjali, tokens, cookies, IDs ta' konnessjoni jew API key mhux ipproċessati, hashes tas-sid, sigrieti ta' fencing, u data ta' rotta interna huma esklużi.
 
-It-tfittxijiet b’ċavetta ħażina, sid ħażin, ġenerazzjoni skaduta, kiri nieqes, skadut, rilaxxat jew invalidat kollha
-jirritornaw l-istess żball `409 LEASE_FENCE_STALE` mingħajr metadata tal-konnessjoni. Klijent li rċieva t-tweġiba ta’ stennija għall-kapaċità ma għandu l-ebda assoċjazzjoni attiva x’jispezzjona. Meta r-routing jittrasferixxi kiri attiv,
-l-istess ġenerazzjoni tibqa’ valida u l-istatus jirritorna atomikament l-assoċjazzjoni l-ġdida, u qatt dik il-qadima.
-Il-klijenti eżistenti jibqgħu l-istess għax it-tweġibiet ta’ akkwist, tiġdid, rilaxx u stennija jżommu
-l-forom preċedenti tagħhom.
+Tiftix b'ċavetta żbaljata, sid żbaljat, ġenerazzjoni skaduta, nieqsa, skaduta, rilaxxata, u invalidata kollha jirritornaw l-istess żball `409 LEASE_FENCE_STALE` mingħajr metadata tal-konnessjoni. Klijent li rċieva r-risposta ta' stennija tal-kapaċità m'għandu l-ebda binding attiv biex jispezzjona. Meta r-rotta tittrasferixxi kiri attiv, l-istess ġenerazzjoni tibqa' valida u l-istatus jirritorna b'mod atomiku l-binding il-ġdid, qatt dak il-qadim. Il-klijenti eżistenti jibqgħu mhux mibdula minħabba li l-akkwist, it-tiġdid, ir-rilaxx, u r-risposti ta' stennija jżommu l-forom preċedenti tagħhom.
 
-Dan il-kuntratt tas-server ma jibdilx `/status` standard ta’ OpenAI Codex. Bħalissa, Codex standard jirrapporta l-
-fornitur tal-mudell u l-istat integrat tal-awtentikazzjoni/kont tiegħu, iżda ma jirrendix metadata arbitrarja
-ta’ kont ta’ fornitur personalizzat; integrazzjoni futura tal-klijent trid issejjaħ din l-azzjoni u tiddeċiedi kif
-turi `connection.displayName`.
+Dan il-kuntratt tas-server ma jbiddilx l-OpenAI Codex `/status` standard. Il-Codex standard bħalissa jirrapporta l-fornitur tal-mudell tiegħu u l-istat tal-awtentikazzjoni/kont inkorporat iżda ma jirrendix metadata tal-kont tal-fornitur personalizzata arbitrarja; integrazzjoni tal-klijent aktar tard trid issejjaħ din l-azzjoni u tiddeċiedi kif turi `connection.displayName`.
 
-Kull talba ta’ inferenza ġestita mbagħad tipprovdi ż-żewġ headers ta’ kontroll:
+Kull talba ta' inferenza ġestita mbagħad tipprovdi ż-żewġ headers ta' kontroll:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Is-sid eżatt, il-ġenerazzjoni, il-konnessjoni attiva, u ċ-ċavetta API awtentikata jiġu vverifikati minnufih
-qabel kull tentattiv upstream appoġġjat. Ir-ripetizzjoni tas-sid u l-ġenerazzjoni b’ċavetta oħra tfalli anki
-meta dik iċ-ċavetta tippermetti l-istess konnessjoni. Is-sidien mhux ipproċessati ma jiġux ippersistiti, irreġistrati fil-logs, miżmuma fl-
-istantanja tat-talba, jew mgħoddija upstream.
+Is-sid eżatt, il-ġenerazzjoni, il-konnessjoni attiva, u ċ-ċavetta tal-API awtentikata huma magħluqa immedjatament qabel kull tentattiv upstream appoġġjat. Ir-replay tas-sid u l-ġenerazzjoni b'ċavetta oħra jfalli anke meta dik iċ-ċavetta tippermetti l-istess konnessjoni. Is-sidien mhux ipproċessati ma jiġux persistiti, illoggjati, miżmuma fl-snapshot tat-talba, jew mibgħuta upstream.
 
-Kontenzjoni temporanja tirritorna HTTP `429` b’`Retry-After` u:
+Kontenzjoni temporanja tirritorna HTTP `429` b' `Retry-After` u:
 
 ```json
 {
@@ -178,30 +157,29 @@ Kontenzjoni temporanja tirritorna HTTP `429` b’`Retry-After` u:
 }
 ```
 
-Din it-tweġiba tfisser biss li s-sett eliġibbli ordinarju ma kienx vojt u kull kandidat liberu kien
-miżmum minn kiri attiv barrani. Mudelli/fornituri mhux appoġġjati, nuqqas ta’ qbil mal-politika, cooldown, kwota,
-saħħa, u fallimenti ordinarji oħra tal-eliġibbiltà jżommu t-tweġibiet OmniRoute eżistenti tagħhom.
+Din ir-risposta tfisser biss li s-sett eliġibbli ordinarju ma kienx vojt u kull kandidat liberu kien miżmum minn kiri attiv barrani. Mudelli/fornituri mhux appoġġjati, nuqqas ta' qbil tal-politika, cooldown, kwota, saħħa, u fallimenti oħra ta' eliġibilità ordinarja jżommu r-risposti OmniRoute eżistenti tagħhom.
 
 ### `x-omniroute-compression`
 
-Sovrascrittura għal kull talba tal-pjan tal-kompressjoni. L-ogħla preċedenza — tieħu prijorità fuq is-sovrascrittura tal-kombinazzjoni tar-routing,
-il-profil attiv, l-attivazzjoni awtomatika, u d-Default tal-pannell. Valuri:
+Override għal kull talba tal-pjan ta' kompressjoni. L-ogħla preċedenza — tegħleb l-override tal-combo tar-rotta, il-profil attiv, l-awto-trigger, u l-Default tal-pannell. Valuri:
 
-| Valur         | Effett                                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------------------------- |
-| `off`         | Ebda kompressjoni għal din it-talba.                                                                          |
-| `default`     | Il-profil Default derivat mill-pannell (jinjora l-profil attiv).                                              |
-| `engine:<id>` | Magna waħda meta tkun attivata, eż. `engine:rtk`.                                                             |
-| `<combo>`     | Kombinazzjoni msemmija, imqabbla l-ewwel skont l-isem (mingħajr sensittività għall-każ), imbagħad skont l-id. |
+| Valur         | Effett                                                                                             |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| `off`         | L-ebda kompressjoni għal din it-talba.                                                             |
+| `default`     | Il-profil Default derivat mill-pannell (jinjora l-profil attiv). Il-magni lossy jitħallew mitfija. |
+| `safe`        | Dedup u tiwi tal-ispazji bojod biss.                                                               |
+| `allow-lossy` | Żomm il-pjan tal-operatur għal din it-talba, inklużi s-sommarji u r-rewrites tal-istil.            |
+| `engine:<id>` | Magna waħda meta attivata, eż. `engine:rtk`. Opt-in għal kull talba għal dik il-magna.             |
+| `<combo>`     | Combo bl-isem, imqabbla bl-isem (mhux sensittiv għall-każ) l-ewwel, imbagħad bl-id.                |
 
 Noti:
 
-- Valuri mhux magħrufa jiġu injorati (it-talba qatt ma tiġi rrifjutata); ir-riżoluzzjoni tkompli skont il-preċedenza normali tal-operaturi.
-- Jekk diversi kombinazzjonijiet ikollhom l-istess isem, għaddi l-**id** tal-kombinazzjoni għal tqabbil deterministiku.
-- Kombinazzjoni li isimha huwa `off` jew `default` ma tistax tintgħażel bl-isem (dawk il-kliem ewlieni jiġu interpretati l-ewwel); irreferi għal tali kombinazzjoni bl-id tagħha.
-- Is-swiċċ prinċipali tal-kompressjoni huwa kontroll assolut: meta l-kompressjoni tkun diżattivata globalment, dan il-header ma jistax jattivaha.
+- Valuri mhux magħrufa jiġu injorati (it-talba qatt ma tiġi rrifjutata); ir-riżoluzzjoni taqa' għall-preċedenza normali tal-operatur.
+- Jekk combos multipli jaqsmu isem, għaddi l-**id** tal-combo għal tqabbil deterministiku.
+- Combo li isimha huwa `off` jew `default` ma tistax tintgħażel bl-isem (dawk il-kliem kjavi jiġu interpretati l-ewwel); irreferi għal combo bħal din bl-id tagħha.
+- Is-swiċċ prinċipali tal-kompressjoni huwa gate iebes: meta l-kompressjoni tkun diżattivata globalment, dan l-header ma jistax jattivaha.
 
-Il-pjan applikat jintbagħat lura fil-header tat-tweġiba:
+Il-pjan applikat jiġi rrepetut fl-header tar-risposta:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
@@ -429,88 +407,72 @@ Uża dan l-endpoint meta sidecar jaħdem barra mill-proċess u ma jkunx jista’
 
 ## Endpoints ta' Kompatibbiltà
 
-| Metodu | Mogħdija                                  | Format                                                   |
-| ------ | ----------------------------------------- | -------------------------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                                   |
-| POST   | `/v1/messages`                            | Anthropic                                                |
-| POST   | `/v1/responses`                           | OpenAI Responses                                         |
-| POST   | `/v1/embeddings`                          | OpenAI                                                   |
-| POST   | `/v1/images/generations`                  | OpenAI Images                                            |
-| POST   | `/v1/images/edits`                        | OpenAI Images (edit/inpaint)                             |
-| POST   | `/v1/videos/generations`                  | Ġenerazzjoni ta' vidjows fuq l-istil ta' OpenAI          |
-| POST   | `/v1/music/generations`                   | Ġenerazzjoni ta' mużika fuq l-istil ta' OpenAI           |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                                       |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (jirritorna l-korp tal-awdjo)                 |
-| POST   | `/v1/rerank`                              | Klassifikazzjoni mill-ġdid fuq l-istil ta' Cohere/Voyage |
-| POST   | `/v1/classify`                            | Klassifikazzjoni ta' Jina (`api.jina.ai`)                |
-| POST   | `/v1/segment`                             | Segmentatur ta' Jina (`segment.jina.ai`)                 |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                                       |
-| GET    | `/v1/models`                              | OpenAI                                                   |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                                                |
-| GET    | `/v1beta/models`                          | Gemini                                                   |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                                   |
-| POST   | `/v1/api/chat`                            | Ollama                                                   |
-| GET    | `/api/v1/vscode/{token}/`                 | Alias tal-katalgu ta' OpenAI                             |
-| GET    | `/api/v1/vscode/{token}/models`           | Alias tal-mudelli ta' OpenAI                             |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias tokenizzat ta' OpenAI                              |
-| POST   | `/api/v1/vscode/{token}/responses`        | Alias tokenizzat ta' OpenAI Responses                    |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias tokenizzat ta' Ollama                              |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias tokenizzat tat-tags ta' Ollama                     |
+| Metodu | Mogħdija                                  | Format                                |
+| ------ | ----------------------------------------- | ------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                |
+| POST   | `/v1/messages`                            | Anthropic                             |
+| POST   | `/v1/responses`                           | Risposti OpenAI                       |
+| POST   | `/v1/embeddings`                          | OpenAI                                |
+| POST   | `/v1/images/generations`                  | Stampi OpenAI                         |
+| POST   | `/v1/images/edits`                        | Stampi OpenAI (editjar/inpaint)       |
+| POST   | `/v1/videos/generations`                  | Ġenerazzjoni ta' vidjows stil OpenAI  |
+| POST   | `/v1/music/generations`                   | Ġenerazzjoni ta' mużika stil OpenAI   |
+| POST   | `/v1/audio/transcriptions`                | Awdjo OpenAI (STT)                    |
+| POST   | `/v1/audio/speech`                        | TTS OpenAI (jirritorna korp awdjo)    |
+| POST   | `/v1/rerank`                              | Rerank stil Cohere/Voyage             |
+| POST   | `/v1/classify`                            | Klassifikazzjoni Jina (`api.jina.ai`) |
+| POST   | `/v1/segment`                             | Segmentatur Jina (`segment.jina.ai`)  |
+| POST   | `/v1/moderations`                         | Moderazzjonijiet OpenAI               |
+| GET    | `/v1/models`                              | OpenAI                                |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                             |
+| GET    | `/v1beta/models`                          | Gemini                                |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                |
+| POST   | `/v1/api/chat`                            | Ollama                                |
+| GET    | `/api/v1/vscode/{token}/`                 | Alias tal-katalogu OpenAI             |
+| GET    | `/api/v1/vscode/{token}/models`           | Alias tal-mudelli OpenAI              |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Alias tokenizzat OpenAI               |
+| POST   | `/api/v1/vscode/{token}/responses`        | Alias tokenizzat tar-Risposti OpenAI  |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Alias tokenizzat Ollama               |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Alias tokenizzat tat-tikketti Ollama  |
 
-Ir-rotot POST kollha jsegwu l-istess struttura: `Bearer your-api-key` + korp JSON ivvalidat b'Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, eċċ., ara `src/shared/validation/schemas.ts`). Jiġi rritornat 4xx meta l-validazzjoni tal-iskema tfalli.
+Ir-rotot POST kollha jsegwu l-istess forma: `Bearer your-api-key` + korp JSON validat minn Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, eċċ., ara `src/shared/validation/schemas.ts`). 4xx jiġi rritornat f'każ ta' falliment tal-iskema.
 
-Għall-klijenti li ma jistgħux jehmżu `Authorization: Bearer ...`, OmniRoute jaċċetta wkoll API keys fil-URL permezz jew ta' kompatibbiltà mal-query string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) jew tal-endpoints iddedikati `/api/v1/vscode/{token}/...` dokumentati hawn taħt.
+Għal klijenti li ma jistgħux jgħaqqdu `Authorization: Bearer ...`, OmniRoute jaċċetta wkoll ċwievet API fl-URL permezz ta' kompatibbiltà ta' query-string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) jew l-endpoints dedikati `/api/v1/vscode/{token}/...` dokumentati hawn taħt.
 
 ```bash
-# Klassifikazzjoni mill-ġdid (fornitur mir-reġistru tal-cloud, jew node ta' fornitur kompatibbli ma' OpenAI bħala "<prefix>/<model>")
+# Rerank (fornitur tar-reġistru tal-cloud, jew node fornitur kompatibbli ma' OpenAI bħala "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Klassifikazzjoni ta' Jina (kredenzjali tal-Foundation API)
+# Klassifikazzjoni Jina (kredenzjali tal-API tal-Fondazzjoni)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Segmentatur ta' Jina
+# Segmentatur Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Tfittxija ta' Jina (s.jina.ai; aliases tal-fornitur: jina-search, jina-ai, jina)
+# Tiftix Jina (s.jina.ai; aliases tal-fornitur: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderazzjonijiet
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — jirritorna korp audio/mpeg (jew bil-format mitlub)
+# TTS — jirritorna korp awdjo/mpeg (jew format mitlub)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Editjar ta' immaġni (multipart)
+# Editjar tal-immaġni (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # Ġenerazzjoni ta' vidjow / mużika (ID tal-mudell bi prefiss tal-fornitur)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Nodes tal-fornitur għall-klassifikazzjoni mill-ġdid:** `POST /v1/rerank` jidderieġi wkoll lejn nodes ta' fornituri kompatibbli ma' OpenAI
-> (oMLX, vLLM, Infinity, TEI wara gateway, …) indirizzati bħala `<node-prefix>/<model>`. Nodes loopback
-> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) huma dejjem eliġibbli. Nodes fuq kwalunkwe host ieħor
-> — apparat fuq LAN jew peer ta' Tailscale — huma eliġibbli biss meta l-operatur jattiva l-feature flag
-> `RERANK_REMOTE_PROVIDER_NODES` **u** l-URL bażi tan-node jgħaddi mill-politika tal-URLs 'il barra tal-fornitur
-> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> hosts tal-metadata tal-cloud qatt ma jiġu diretti lejhom. Il-pass tal-klassifikazzjoni mill-ġdid tal-magna tal-memorja jsejjaħ din ir-rotta permezz ta'
-> loopback, għalhekk l-istess regola tirregola `rerankProviderModel` fis-settings tal-Memorja.
+> **Nodes tal-fornitur tar-rerank:** `POST /v1/rerank` jidderieġi wkoll lejn nodes fornituri kompatibbli ma' OpenAI (oMLX, vLLM, Infinity, TEI wara gateway, …) indirizzati bħala `<node-prefix>/<model>`. Nodes loopback (`localhost`, `127.0.0.1`, `172.16.0.0/12`) huma dejjem eliġibbli. Nodes fuq kwalunkwe host ieħor — kaxxa LAN jew peer Tailscale — huma eliġibbli biss meta l-operatur jippermetti l-feature flag `RERANK_REMOTE_PROVIDER_NODES` **u** l-URL bażi tan-node tgħaddi l-politika tal-URL outbound tal-fornitur (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`); hosts tal-metadata tal-cloud qatt ma jiġu diretti lejhom. Il-pass tar-rerank tal-magna tal-memorja jsejjaħ din ir-rotta fuq loopback, għalhekk l-istess regola tirregola `rerankProviderModel` fis-settings tal-Memorja.
 >
-> **Strutturi tas-server lokali:** in-node jissejjaħ f'<base>/v1/rerank` u, f'każ ta' 404, f'<base>/rerank`
-> (Infinity, TEI). Il-korp upstream iġorr kemm l-ortografija ta' Cohere/OpenAI (`documents`,
-> `return_documents`) kif ukoll dik ta' TEI (`texts`, `return_text`), u r-rispons upstream jiġi
-> normalizzat għall-envelope ta' Cohere: l-array sempliċi ta' TEI `[{index, score, text}]`, `{results: [{index, score}]}`
-> minn gateways ħfief, u `{data: [...]}` fuq l-istil ta' Voyage kollha jaslu lura għand il-klijent bħala
-> `{results: [{index, relevance_score, document?}]}`, magħżula skont il-punteġġ u limitati għal `top_n`.
+> **Forom ta' server lokali:** in-node jissejjaħ f'`<base>/v1/rerank` u, fuq 404, f'`<base>/rerank` (Infinity, TEI). Il-korp upstream iġorr kemm l-ortografija Cohere/OpenAI (`documents`, `return_documents`) kif ukoll l-ortografija TEI (`texts`, `return_text`), u r-rispons upstream huwa normalizzat għall-envelope Cohere: `[{index, score, text}]` vojt ta' TEI, `{results: [{index, score}]}` minn gateways irqaq, u `{data: [...]}` stil Voyage kollha jirritornaw lill-klijent bħala `{results: [{index, relevance_score, document?}]}`, irranġati skont il-punteġġ u limitati għal `top_n`.
+>
+> **Skoperta ta' node tal-fornitur:** mudelli fuq node fornitur kompatibbli ma' OpenAI jidhru f'`GET /v1/models` taħt il-prefiss tan-node. Ringieli li ma jġorru l-ebda metadata tal-endpoint (tipika għal listi lokali ta' `/v1/models`) jirtu l-`apiType` tan-node, għalhekk il-mudelli ta' node `embeddings` huma `type: "embedding"` u l-mudelli ta' node `rerank` huma `type: "rerank"` minflok ma jmorru għal chat awtomatikament; `supportedEndpoints` espliċitu fuq ringiela sinkronizzata jew miżjuda manwalment xorta jieħu preċedenza.
 
-> **Skoperta tan-nodes tal-fornitur:** il-mudelli fuq node ta' fornitur kompatibbli ma' OpenAI jidhru f'`GET /v1/models`
-> taħt il-prefiss tan-node. Ringieli li ma jkollhomx metadata tal-endpoint (tipiku għal listi lokali ta' `/v1/models`)
-> jirtu l-`apiType` tan-node, għalhekk il-mudelli ta' node `embeddings` ikunu `type: "embedding"` u dawk ta'
-> node `rerank` ikunu `type: "rerank"` minflok ma jaqgħu awtomatikament għal chat; `supportedEndpoints` espliċitu
-> fuq ringiela sinkronizzata jew miżjuda manwalment xorta jieħu preċedenza.
-
-### Rotot Iddedikati għall-Fornituri
+### Rotot Dedikati tal-Fornitur
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -518,7 +480,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Il-prefiss tal-fornitur jiżdied awtomatikament jekk ikun nieqes. Mudelli li ma jaqblux jirritornaw `400`.
+Il-prefiss tal-fornitur jiżdied awtomatikament jekk ikun nieqes. Mudelli mhux korrispondenti jirritornaw `400`.
 
 ---
 

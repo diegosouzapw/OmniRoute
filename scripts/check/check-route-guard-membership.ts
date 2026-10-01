@@ -73,6 +73,9 @@ export const SPAWN_CAPABLE_ROUTE_ROOTS: ReadonlyArray<string> = [
   // (executor.ts -> builtins.ts -> sandbox.ts) — invisible to the source-scan subcheck.
   "src/app/api/skills/install", // POST stores handlerCode verbatim; a built-in name aliases execute_command / eval_code (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
   "src/app/api/skills/executions", // POST runs skillExecutor.execute() -> sandbox container spawn (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
+  // install / start / restart / stop reach the CLIProxyAPI download + ServiceSupervisor spawn
+  // transitively, which the source-scan subcheck cannot see.
+  "src/app/api/version-manager", // downloads, unpacks and runs the CLIProxyAPI binary (Hard Rules #15 + #17)
 ];
 
 // Frozen pre-existing exceptions: spawn-capable routes NOT yet classified

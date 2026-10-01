@@ -4,12 +4,12 @@
 
 ---
 
-> **Hiteles forrás:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Utolsó frissítés:** 2026-06-28 — v3.8.40
+> **Igazság forrása:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Utolsó frissítés:** 2026-09-22 — hatókör névterek mutatnak az MCP-SERVER.md-re
 
-Az OmniRoute útvonal-tudatos engedélyezési folyamattal védi az összes API-kérést. A besorolás **determinisztikus** és **alapértelmezetten tiltó** — minden, ami nem sorolható be, `MANAGEMENT` besorolást kap, és munkamenetet vagy kezelési szintű tokent igényel. Ez az oldal az útvonalakat karbantartó vagy új végpontokat tervező mérnökök számára ismerteti a modellt.
+Az OmniRoute útvonal-érzékeny engedélyezési folyamattal rendelkezik, amely minden API kérést ellenőriz. Az osztályozás **determinisztikus** és **fail-closed** (hibásan zárt) — minden, ami nem osztályozható, `MANAGEMENT` kategóriába kerül, és munkamenet vagy menedzsment szintű tokent igényel. Ez az oldal a modelljét magyarázza el azoknak a mérnököknek, akik útvonalakat tartanak karban vagy új végpontokat terveznek.
 
-![AuthZ-folyamat (3 útvonalosztály + házirend-kiértékelés)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ folyamat (3 útvonalkategória + házirend-értékelés)](../diagrams/exported/authz-pipeline.svg)
 
 > Forrás: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -198,26 +198,40 @@ A halmazt az alak, ne pedig a kényelmi szempontok alapján válaszd ki. Egyetle
 
 ## Hatókörök
 
-Az API-kulcsok egy `scopes` tömböt tartalmaznak (JSON-ként tárolva az `api_keys.scopes` mezőben, lásd: `src/lib/db/apiKeys.ts`).
+Három névtér. Minden ellenőrző csak a saját stringjeit olvassa. Az összehasonlítás,
+beleértve azt is, hogy miért hiúsul meg a `manage` a `scopeMatches` ellenőrzésen
+a `read:compression` esetében, és miért nem tud egy `read` hozzáférési token
+`PATCH /api/keys/{id}` kérést végrehajtani, itt található:
+[Három hatókör névtér](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Felügyeleti hatókör
+Az API kulcsok tartalmaznak egy `scopes` tömböt (JSON formátumban tárolva az
+`api_keys.scopes` mezőben, lásd `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — hozzáférést biztosít a kulcs számára a felügyeleti API-végpontokhoz, ha Bearer-tokenként küldik el.
+### Kezelési hatókör
 
-### MCP-hatókörök (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Bearer hozzáférés a kezelési API útvonalakhoz.
+- Az `mcp:connect`, `self:usage`, `self:account-quota` és
+  `policy:bypass-provider-quota` additív, pontosan egyező hatókörök. Ezek
+  kívül esnek a `MANAGEMENT_API_KEY_SCOPES` hatókörön. Az `mcp:connect` csak
+  az `/api/mcp/` nem-loopback kivágást nyitja meg.
 
-Minden MCP-eszköz meghatározott hatóköröket igényel az `MCP_TOOL_SCOPES` alapján. A teljes lista (`MCP_SCOPE_LIST`):
+### MCP eszköz hatókörök
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalógus és illesztési szabályok (azonos string, vagy egy `*`-ra végződő
+megadott hatókör): [MCP eszköz hatókörök](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+Az `MCP_SCOPE_LIST` a `src/shared/constants/mcpScopes.ts` fájlban az eredeti
+típusos részhalmaz, nem a teljes katalógus. A kényszerítés az
+`open-sse/mcp-server/scopeEnforcement.ts` fájlban fut, miután a
+`resolveCallerScopeContext()` feloldja a hatóköröket az MCP hitelesítési
+információkból, a kérés metaadataiból vagy az `OMNIROUTE_MCP_SCOPES` alapján.
+Ez kikapcsolva marad, hacsak az `OMNIROUTE_MCP_ENFORCE_SCOPES=true` nincs beállítva.
 
-A hatókörök kikényszerítése az `open-sse/mcp-server/server.ts` fájlban minden eszköz hatókörlistáját átadja az
-`evaluateToolScopes()` függvénynek, miután a `resolveCallerScopeContext()` feloldotta a hatóköröket az MCP hitelesítési adataiból,
-a kérés metaadataiból vagy az `OMNIROUTE_MCP_SCOPES` változóból.
+### Hozzáférési token hatókörök
+
+`read` / `write` / `admin` az `oma_live_…` tokeneken, a `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) alapján rangsorolva. Ez a rangsor csak a
+hozzáférési token hitelesítő adatokra vonatkozik. Lásd:
+[Kezelési hitelesítés](../guides/MANAGEMENT-AUTH.md).
 
 ## Hitelesítési követelmény kapcsolója
 
@@ -266,6 +280,6 @@ A kezelőkön belül használja az `assertAuth(req, expectedClass)` függvényt 
 ## Lásd még
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — hitelesítési jelölő végpontonként
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — hitelesítési események naplója
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — az MCP-hatókörök kikényszerítésének részletei
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — naplózási napló hitelesítési eseményekhez
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — három hatókör-névtér és MCP eszköz-hatókör katalógus
 - Forrás: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

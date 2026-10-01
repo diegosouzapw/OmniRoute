@@ -154,8 +154,14 @@ export function compressToolResults(
 } {
   if (!body.messages) return { body, applied: false };
   const MAX_TOOL_LENGTH = resolveLiteMaxToolLength(options.maxToolLength);
+  // Results of the latest tool calls (after the last assistant message) are
+  // what the model asked for this turn. Cutting them makes it re-read the same
+  // file forever, since every re-read is cut again.
+  const lastAssistant = body.messages.findLastIndex((msg) => msg.role === "assistant");
+  const currentTurnStart = lastAssistant === -1 ? body.messages.length : lastAssistant + 1;
   let applied = false;
-  const messages = body.messages.map((msg) => {
+  const messages = body.messages.map((msg, index) => {
+    if (index >= currentTurnStart) return msg;
     if (msg.role !== "tool" || typeof msg.content !== "string") return msg;
     if (msg.content.length <= MAX_TOOL_LENGTH) return msg;
     applied = true;

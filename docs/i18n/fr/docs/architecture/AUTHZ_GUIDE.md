@@ -4,12 +4,12 @@
 
 ---
 
-> **Source de référence :** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Dernière mise à jour :** 2026-06-28 — v3.8.40
+> **Source de vérité :** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Dernière mise à jour :** 2026-09-22 — les espaces de noms de portée pointent vers MCP-SERVER.md
 
-OmniRoute dispose d’un pipeline d’autorisation tenant compte des routes, qui contrôle chaque requête API. La classification est **déterministe** et **fermée par défaut** — tout ce qui ne peut pas être classifié finit dans `MANAGEMENT` et exige une session ou un jeton de niveau gestion. Cette page explique le modèle aux ingénieurs chargés de maintenir les routes ou de concevoir de nouveaux points de terminaison.
+OmniRoute dispose d'un pipeline d'autorisation sensible aux routes qui filtre chaque requête API. La classification est **déterministe** et **fermée par défaut** — tout ce qui ne peut pas être classifié est considéré comme `MANAGEMENT` et exige une session ou un jeton de niveau gestion. Cette page explique le modèle aux ingénieurs qui maintiennent des routes ou conçoivent de nouveaux points de terminaison.
 
-![Pipeline AuthZ (3 classes de routes + évaluation des politiques)](../diagrams/exported/authz-pipeline.svg)
+![Pipeline d'autorisation (3 classes de routes + évaluation des politiques)](../diagrams/exported/authz-pipeline.svg)
 
 > Source : [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -200,26 +200,33 @@ Choisissez l’ensemble en fonction de la forme, et non par commodité. Une rout
 
 ## Portées
 
-Les clés d’API comportent un tableau `scopes` (stocké au format JSON dans `api_keys.scopes`, voir `src/lib/db/apiKeys.ts`).
+Trois espaces de noms. Chaque vérificateur ne lit que ses propres chaînes. La comparaison côte à côte, y compris pourquoi `manage` échoue `scopeMatches` pour `read:compression` et pourquoi un jeton d'accès `read` ne peut pas `PATCH /api/keys/{id}`, se trouve dans [Trois espaces de noms de portée](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+Les clés API contiennent un tableau `scopes` (stocké au format JSON dans `api_keys.scopes`, voir `src/lib/db/apiKeys.ts`).
 
 ### Portée de gestion
 
-- `manage` / `admin` — accorde à la clé l’accès aux points de terminaison de l’API de gestion lorsqu’elle est transmise comme jeton Bearer.
+- `manage` / `admin` — `hasManageScope`. Accès Bearer aux routes de l'API de gestion.
+- `mcp:connect`, `self:usage`, `self:account-quota`, et
+  `policy:bypass-provider-quota` sont des portées additives à correspondance exacte. Elles se situent
+  en dehors de `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` ouvre uniquement la
+  découpe non-loopback `/api/mcp/`.
 
-### Portées MCP (`src/shared/constants/mcpScopes.ts`)
+### Portées des outils MCP
 
-Chaque outil MCP nécessite des portées spécifiques via `MCP_TOOL_SCOPES`. Liste complète (`MCP_SCOPE_LIST`) :
+Catalogue et règles de correspondance (chaîne identique, ou une portée accordée se terminant par `*`) :
+[Portées des outils MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` dans `src/shared/constants/mcpScopes.ts` est le sous-ensemble typé original,
+et non le catalogue complet. L'application s'exécute dans
+`open-sse/mcp-server/scopeEnforcement.ts` après que `resolveCallerScopeContext()`
+résolve les portées à partir des informations d'authentification MCP, des métadonnées de requête ou de `OMNIROUTE_MCP_SCOPES`.
+Elle reste désactivée à moins que `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Portées des jetons d'accès
 
-L’application des portées dans `open-sse/mcp-server/server.ts` transmet la liste des portées de chaque outil à
-`evaluateToolScopes()` après que `resolveCallerScopeContext()` a résolu les portées à partir des informations d’authentification MCP,
-des métadonnées de la requête ou de `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` sur les jetons `oma_live_…`, classés par `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ce classement s'applique uniquement aux identifiants
+du jeton d'accès. Voir [Authentification de gestion](../guides/MANAGEMENT-AUTH.md).
 
 ## Option d’authentification obligatoire
 
@@ -267,7 +274,7 @@ Utilisez `assertAuth(req, expectedClass)` dans les gestionnaires — cette fonct
 
 ## Voir aussi
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marqueur d’authentification par point de terminaison
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — journal d’audit des événements d’authentification
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — détails sur l’application des portées MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marqueur d'authentification par point d'accès
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — journal d'audit pour les événements d'authentification
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trois espaces de noms de portée et catalogue de portée d'outil MCP
 - Source : `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

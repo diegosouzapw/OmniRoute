@@ -4,27 +4,11 @@
 
 ---
 
-OmniRoute include o familie de comenzi `setup-*` care configurează un CLI de
-programare (Codex, Claude Code, OpenCode, Cline, …) să utilizeze OmniRoute drept backend — astfel
-instrumentul comunică cu **un singur** endpoint, iar OmniRoute direcționează solicitările către furnizorul potrivit, cu
-comutare automată în caz de indisponibilitate. Fiecare comandă citește catalogul **actual** de modele dintr-o instanță
-OmniRoute care rulează (locală sau la distanță) și scrie fișierul de configurare propriu instrumentului pe calculatorul
-**dvs.** Cheia API este referențiată printr-o variabilă de mediu oriunde instrumentul
-acceptă acest lucru. Comenzile care salvează un fișier de mediu local instrumentului sunt menționate mai jos.
+OmniRoute include o familie de comenzi `setup-*` care configurează un CLI de programare (Codex, Claude Code, OpenCode, Cline, …) pentru a utiliza OmniRoute ca backend — astfel încât unealta comunică cu **un singur** punct final, iar OmniRoute redirecționează către furnizorul corect cu recădere automată (auto-fallback). Fiecare comandă citește catalogul de modele **activ** de la un OmniRoute în execuție (local sau la distanță) și scrie propriul fișier de configurare al uneltei pe **mașina ta**. Cheia API este referențiată printr-o variabilă de mediu oriunde unealta acceptă acest lucru. Comenzile care persistă un fișier de mediu local uneltei sunt menționate mai jos.
 
-Există și un lansator generic — `omniroute run <target>` — care pornește
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` sau `gemini` cu variabilele de
-mediu corecte injectate, fără a scrie nicio configurație. Țintele și
-aliasurile lor provin din manifestul canonic `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), iar `omniroute completion` oferă aceiași
-termeni-țintă derivați din manifest. Lansatoarele vechi, specifice fiecărui instrument —
-`omniroute launch` (Claude Code) și `omniroute launch-codex` (Codex) — rămân
-disponibile.
+Există, de asemenea, un lansator generic — `omniroute run <target>` — care lansează `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` sau `gemini` cu mediul corect injectat, fără a scrie nicio configurare. Țintele și aliasurile lor provin din manifestul canonic `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), iar `omniroute completion` oferă aceleași cuvinte țintă derivate din manifest. Lansatoarele vechi specifice uneltelor — `omniroute launch` (Claude Code) și `omniroute launch-codex` (Codex) — rămân disponibile.
 
-Configurarea inițială a furnizorilor este disponibilă din același context local/la distanță. Comenzile
-orientate în primul rând către API de mai jos păstrează autentificarea de administrare separată de datele de autentificare
-ale furnizorilor și nu afișează niciodată date de autentificare în ieșirea structurată:
+Integrarea furnizorilor (provider onboarding) este disponibilă din același context local/la distanță. Comenzile orientate spre API de mai jos mențin autentificarea de gestionare separată de acreditările furnizorului și nu afișează niciodată o acreditare în ieșirea structurată:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,19 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Pentru scripturi, preferați `--credential-stdin` sau `--credential-env`; `--credential`
-este păstrat pentru utilizarea locală controlată. `providers remove` necesită `--yes` într-un
-terminal neinteractiv, iar toate cele cinci comenzi respectă contextul activ sau
-opțiunile globale `--base-url`/`--api-key`.
+Pentru scripturi, preferați `--credential-stdin` sau `--credential-env`; `--credential` este păstrat pentru utilizare locală controlată. `providers remove` necesită `--yes` pe un terminal neinteractiv, iar toate cele cinci comenzi respectă contextul activ sau opțiunile globale `--base-url`/`--api-key`.
 
-Pentru configurarea de bază, manuală și efectuată o singură dată, a celor mai bogate două integrări, consultați
-ghidurile detaliate pentru fiecare instrument:
+Selectorii de furnizori resping prefixele de ID, numele sau numele de furnizori ambigue; folosiți un ID de conexiune complet atunci când se potrivesc mai multe conexiuni. Comenzile de creare și editare citesc înapoi conexiunea salvată, iar eliminarea verifică dacă aceasta nu mai poate fi citită. O importare omite o pereche furnizor/nume existentă. Intrările importate nu pot suprascrie punctul final de gestionare, contextul sau acreditările de gestionare furnizate CLI-ului.
+
+Pentru configurarea de bază unică, realizată manual, a celor mai bogate două integrări, consultați ghidurile detaliate per unealtă:
 
 - [Configurarea Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Configurarea Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Modul la distanță](./REMOTE-MODE.md) — controlați un OmniRoute la distanță (VPS / Tailnet) de pe laptop
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — extensia OmniCopilot; aceasta poate rula și aceste
-  comenzi `setup-*` pentru dvs. din editor
+- [Modul la distanță (Remote Mode)](./REMOTE-MODE.md) — controlează un OmniRoute la distanță (VPS / Tailnet) de pe laptopul tău
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — extensia OmniCopilot; poate rula, de asemenea, aceste comenzi `setup-*` pentru tine din interiorul editorului
 
 ---
 

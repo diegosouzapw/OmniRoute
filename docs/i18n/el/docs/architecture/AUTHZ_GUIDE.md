@@ -5,11 +5,11 @@
 ---
 
 > **Πηγή αλήθειας:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Τελευταία ενημέρωση:** 2026-06-28 — v3.8.40
+> **Τελευταία ενημέρωση:** 2026-09-22 — οι χώροι ονομάτων εμβέλειας παραπέμπουν στο MCP-SERVER.md
 
-Το OmniRoute διαθέτει μια διοχέτευση εξουσιοδότησης που λαμβάνει υπόψη τη διαδρομή και ελέγχει κάθε αίτημα API. Η ταξινόμηση είναι **ντετερμινιστική** και **κλειστή σε περίπτωση αποτυχίας** — οτιδήποτε δεν μπορεί να ταξινομηθεί καταλήγει ως `MANAGEMENT` και απαιτεί συνεδρία ή διακριτικό επιπέδου διαχείρισης. Αυτή η σελίδα εξηγεί το μοντέλο για μηχανικούς που συντηρούν διαδρομές ή σχεδιάζουν νέα τελικά σημεία.
+Το OmniRoute διαθέτει μια διοχέτευση εξουσιοδότησης με επίγνωση διαδρομών, η οποία ελέγχει κάθε αίτημα API. Η ταξινόμηση είναι **ντετερμινιστική** και **fail-closed** — οτιδήποτε δεν μπορεί να ταξινομηθεί καταλήγει ως `MANAGEMENT` και απαιτεί συνεδρία ή διακριτικό επιπέδου διαχείρισης. Αυτή η σελίδα εξηγεί το μοντέλο για μηχανικούς που συντηρούν διαδρομές ή σχεδιάζουν νέα τελικά σημεία.
 
-![Διοχέτευση AuthZ (3 κατηγορίες διαδρομών + αξιολόγηση πολιτικής)](../diagrams/exported/authz-pipeline.svg)
+![Διοχέτευση AuthZ (3 κλάσεις διαδρομών + αξιολόγηση πολιτικής)](../diagrams/exported/authz-pipeline.svg)
 
 > Πηγή: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -198,28 +198,38 @@ export async function POST(request: Request) {
 
 Επιλέξτε το σύνολο βάσει μορφής και όχι βάσει ευκολίας. Μία διαδρομή τοποθετείται στο `PUBLIC_API_ROUTES_EXACT` (ή στο `PUBLIC_READONLY_CORS_API_ROUTES` αν είναι μόνο για GET)· μόνο ένα πραγματικό υποδέντρο τοποθετείται στο `PUBLIC_API_ROUTE_PREFIXES` και **πρέπει να τελειώνει σε `/`**. Η τοποθέτηση μιας μεμονωμένης διαδρομής στη λίστα προθεμάτων δημοσιοποιεί επίσης κάθε γειτονική διαδρομή που έχει τους ίδιους αρχικούς χαρακτήρες — συμπεριλαμβανομένων συγγενικών διαδρομών με δυναμικά τμήματα που θα προστεθούν αργότερα (GHSA-74g9-q8f6-793h). Ενημερώστε τις δοκιμές μονάδας στα `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` και `tests/unit/authz/classify.test.ts`.
 
-## Πεδία εφαρμογής
+## Εμβέλειες
 
-Τα κλειδιά API περιέχουν έναν πίνακα `scopes` (αποθηκευμένο ως JSON στο `api_keys.scopes`, βλ. `src/lib/db/apiKeys.ts`).
+Τρεις χώροι ονομάτων. Κάθε ελεγκτής διαβάζει μόνο τις δικές του συμβολοσειρές. Η παράθεση,
+συμπεριλαμβανομένου του γιατί το `manage` αποτυγχάνει στο `scopeMatches` για το `read:compression` και γιατί ένα
+διακριτικό πρόσβασης `read` δεν μπορεί να εκτελέσει `PATCH /api/keys/{id}`, βρίσκεται στην ενότητα
+[Τρεις χώροι ονομάτων εμβέλειας](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Πεδίο εφαρμογής διαχείρισης
+Τα κλειδιά API περιλαμβάνουν έναν πίνακα `scopes` (αποθηκευμένο ως JSON στο `api_keys.scopes`, βλ. `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — παρέχει στο κλειδί πρόσβαση στα τελικά σημεία του API διαχείρισης όταν αποστέλλεται ως Bearer.
+### Εμβέλεια διαχείρισης
 
-### Πεδία εφαρμογής MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Πρόσβαση Bearer στις διαδρομές API διαχείρισης.
+- Τα `mcp:connect`, `self:usage`, `self:account-quota` και
+  `policy:bypass-provider-quota` είναι προσθετικές εμβέλειες ακριβούς αντιστοίχισης. Βρίσκονται
+  εκτός του `MANAGEMENT_API_KEY_SCOPES`. Το `mcp:connect` ανοίγει μόνο την
+  εξαίρεση μη loopback για το `/api/mcp/`.
 
-Κάθε εργαλείο MCP απαιτεί συγκεκριμένα πεδία εφαρμογής μέσω του `MCP_TOOL_SCOPES`. Πλήρης λίστα (`MCP_SCOPE_LIST`):
+### Εμβέλειες εργαλείων MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Κατάλογος και κανόνες αντιστοίχισης (πανομοιότυπη συμβολοσειρά ή μια εκχωρημένη εμβέλεια που λήγει σε `*`):
+[Εμβέλειες εργαλείων MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+Το `MCP_SCOPE_LIST` στο `src/shared/constants/mcpScopes.ts` είναι το αρχικό υποσύνολο με τύπους,
+όχι ο πλήρης κατάλογος. Η επιβολή εκτελείται στο
+`open-sse/mcp-server/scopeEnforcement.ts` αφού το `resolveCallerScopeContext()`
+επιλύσει τις εμβέλειες από τις πληροφορίες ελέγχου ταυτότητας MCP, τα μεταδεδομένα αιτήματος ή το `OMNIROUTE_MCP_SCOPES`.
+Παραμένει απενεργοποιημένη εκτός εάν έχει οριστεί `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Η επιβολή των πεδίων εφαρμογής στο `open-sse/mcp-server/server.ts` μεταβιβάζει τη λίστα πεδίων εφαρμογής κάθε εργαλείου στη
-`evaluateToolScopes()`, αφού η `resolveCallerScopeContext()` επιλύσει τα πεδία εφαρμογής από τις πληροφορίες ελέγχου ταυτότητας MCP,
-τα μεταδεδομένα του αιτήματος ή το `OMNIROUTE_MCP_SCOPES`.
+### Εμβέλειες διακριτικών πρόσβασης
+
+`read` / `write` / `admin` σε διακριτικά `oma_live_…`, ταξινομημένα βάσει του `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Αυτή η κατάταξη εφαρμόζεται μόνο στο διαπιστευτήριο διακριτικού πρόσβασης.
+Βλ. [Έλεγχος ταυτότητας διαχείρισης](../guides/MANAGEMENT-AUTH.md).
 
 ## Εναλλαγή απαίτησης ελέγχου ταυτότητας
 
@@ -267,7 +277,7 @@ x-omniroute-auth-scopes:    λίστα διαχωρισμένη με κόμμα�
 
 ## Δείτε επίσης
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — δείκτης ελέγχου ταυτότητας ανά τελικό σημείο
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ένδειξη ελέγχου ταυτότητας ανά τελικό σημείο
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — αρχείο καταγραφής ελέγχου για συμβάντα ελέγχου ταυτότητας
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — λεπτομέρειες επιβολής πεδίου εφαρμογής MCP
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — τρεις χώροι ονομάτων εμβέλειας και κατάλογος εμβελειών εργαλείων MCP
 - Πηγαίος κώδικας: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

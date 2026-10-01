@@ -613,6 +613,15 @@ function isSchemaAlreadyApplied(
       // correlation_id at boot. Keyed by version only — a stale number here
       // would answer for another migration's schema and skip it.
       return hasColumn(db, "proxy_logs", "correlation_id");
+    case "187":
+      // Same shape as 179/181/183/184: ensureProxyLogsColumns may have added
+      // attempt_number at boot. Keyed by version only — a stale number here
+      // would answer for another migration's schema and skip it.
+      return hasColumn(db, "proxy_logs", "attempt_number");
+    case "194":
+      // Same shape as 179/181/183/184/187: ensureProxyLogsColumns may have
+      // added headers_ms at boot. Keyed by version only.
+      return hasColumn(db, "proxy_logs", "headers_ms");
     default:
       return false;
   }

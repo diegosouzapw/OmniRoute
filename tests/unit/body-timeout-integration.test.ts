@@ -43,7 +43,7 @@ test("chatCore catch block decrements pending requests for all error types", () 
   const content = fs.readFileSync("open-sse/handlers/chatCore.ts", "utf8");
 
   // The catch block should call trackPendingRequest with false before error classification
-  const catchBlockPattern = /catch\s*\(error\)\s*\{[^}]*trackPendingRequest\([^)]*,\s*false\)/;
+  const catchBlockPattern = /catch\s*\(error\)\s*\{[^}]*trackPendingRequest\([^)]*,\s*false\b/;
   assert.ok(
     catchBlockPattern.test(content),
     "chatCore catch block should decrement pending requests"

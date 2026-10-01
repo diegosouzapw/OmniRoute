@@ -89,11 +89,50 @@ export async function findListeningPids(port, deps = {}) {
       .split("\n")
       .map((entry) => parseInt(entry, 10))
       .filter((entry) => Number.isFinite(entry) && entry > 0);
-  } catch {
-    // No netstat/lsof available, or simply no listener. Report "free": a false
-    // "busy" would block a legitimate start, the worse failure of the two.
-    return [];
+  } catch (err) {
+    // POSIX lsof exits 1 with empty output when there are simply no matches.
+    // That is the normal "port is free" result, not a discovery failure.
+    if (
+      platform !== "win32" &&
+      err?.code === 1 &&
+      !String(err?.stdout ?? "").trim()
+    ) {
+      return [];
+    }
+    // Tool missing (ENOENT) or genuinely unusable: "no listener" cannot be
+    // distinguished from "cannot look" here, so report null and let the serve
+    // preflight bind-probe the port instead (#14518).
+    return null;
   }
+}
+
+// Bind-probe a port without any external binary: try to listen on it. Answers
+// "is anything holding this port" on hosts without lsof/netstat (Termux, slim
+// containers) and on any other discovery failure. EADDRINUSE from the probe
+// attempt means the port is held; EACCES (privileged port) and friends are
+// reported as free — the guard must not block a legitimate start it cannot
+// actually observe (#14518 keeps the false-"busy" failure mode the worse one).
+export async function probePortFree(port, deps = {}) {
+  const net = deps.net || (await import("node:net"));
+  const bindable = (host) =>
+    new Promise((resolve) => {
+      const probe = net.createServer();
+      probe.once("error", (err) => {
+        probe.close();
+        resolve(err.code !== "EADDRINUSE");
+      });
+      probe.listen({ port, host }, () => {
+        probe.close(() => resolve(true));
+      });
+    });
+  // macOS lets a bind on one address succeed while another address holds the
+  // port, so a server on 0.0.0.0 (the default), 127.0.0.1 or ::1 (localhost) is
+  // only visible to a probe on that same address. A host without one of these
+  // addresses gets EADDRNOTAVAIL, which reads as free.
+  for (const host of [undefined, "0.0.0.0", "127.0.0.1", "::1"]) {
+    if (!(await bindable(host))) return false;
+  }
+  return true;
 }
 
 function parseNetstatListeningPids(stdout, port) {

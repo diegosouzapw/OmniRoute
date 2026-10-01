@@ -4,7 +4,10 @@
  * Extracted verbatim from openai-responses.ts. Registration stays in the host.
  */
 import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
-import { isInternalReasoningPlaceholder } from "../../../utils/reasoningPlaceholder.ts";
+import {
+  isInternalReasoningPlaceholder,
+  requiresReasoningContentPresence,
+} from "../../../utils/reasoningPlaceholder.ts";
 import { getReadableReasoningValue } from "../../../utils/reasoningFields.ts";
 import { generateToolCallId } from "../../helpers/toolCallHelper.ts";
 import {
@@ -233,6 +236,25 @@ export function openaiToOpenAIResponsesRequest(
           // for opaque items in reasoningInputPolicy.ts (#11108).
           summary: [],
         });
+      } else if (
+        isInternalReasoningPlaceholder(reasoning) &&
+        requiresReasoningContentPresence(credentialRecord._provider, model)
+      ) {
+        // Reasoning-presence validation on strict Responses upstreams (opencode
+        // console gateways) rejects thinking-mode history whose assistant turns
+        // lack a reasoning_text item — even when OmniRoute's replay cache missed
+        // and the history only carries the internal sentinel (see
+        // replayOpenAIReasoningMessage's requiresExplicitReasoningReplay branch).
+        // Emit the sentinel text: it satisfies presence validation, and the
+        // response translators suppress the sentinel again on echo (#9573).
+        // Gated to presence-enforcing upstreams only: everywhere else (e.g.
+        // DeepSeek) the sentinel is never promoted, since models echo it as
+        // their own reasoning and stop (#9573/#9610).
+        input.push({
+          type: "reasoning",
+          content: [{ type: "reasoning_text", text: reasoning }],
+          summary: [],
+        });
       }
 
       // Thinking blocks remain display-only here. They do not prove that the
@@ -404,6 +426,30 @@ export function openaiToOpenAIResponsesRequest(
   }
   if (root.conversation_id !== undefined) {
     result.conversation_id = root.conversation_id;
+  }
+
+  // GitHub Copilot /responses (and OpenAI) reject a body that has neither a
+  // non-empty `input` nor previous_response_id / prompt / conversation:
+  //   400 One of "input" or "previous_response_id" or 'prompt' or 'conversation'
+  //       must be provided.
+  // System-only turns, empty messages, and orphan-filtered tool results can all
+  // leave input:[] here. Inject a placeholder user item unless a continuity
+  // field already satisfies the validator (mirrors the reverse direction in
+  // openai-responses.ts — 9router#419).
+  if (Array.isArray(result.input) && result.input.length === 0) {
+    const hasContinuity =
+      (typeof result.previous_response_id === "string" && result.previous_response_id.length > 0) ||
+      (typeof result.conversation_id === "string" && result.conversation_id.length > 0) ||
+      (typeof result.prompt === "string" && result.prompt.length > 0);
+    if (!hasContinuity) {
+      result.input = [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "..." }],
+        },
+      ];
+    }
   }
   if (root.service_tier !== undefined) result.service_tier = root.service_tier;
   if (root.temperature !== undefined) result.temperature = root.temperature;

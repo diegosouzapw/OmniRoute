@@ -43,6 +43,7 @@ test("primary sidebar items place limits after cache", () => {
       "endpoints",
       "api-manager",
       "providers",
+      "model-catalog",
       "embedded-services",
       "combos",
       "combos-live",
@@ -161,6 +162,13 @@ test("plugins has a discoverable sidebar entry (#3656 follow-up)", async () => {
   assert.doesNotMatch(pluginsPage, /^\s*redirect\(/m);
   // R0.2: marketplace tab removed (dead code) — verify the page still has plugin management UI.
   assert.match(pluginsPage, /scanForPlugins|installedTab|fetchPlugins/i);
+});
+
+test("model catalog is available from the OmniProxy sidebar and can be hidden", () => {
+  const item = sectionItems("omni-proxy").find((candidate) => candidate.id === "model-catalog");
+  assert.ok(item, "expected the model catalog sidebar item to exist");
+  assert.equal(item.href, "/dashboard/models");
+  assert.equal(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS.includes("model-catalog"), true);
 });
 
 test("legacy dashboard routes redirect to their consolidated surfaces", async () => {

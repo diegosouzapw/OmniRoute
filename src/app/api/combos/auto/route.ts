@@ -25,14 +25,19 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   try {
-    const { createVirtualAutoCombo } =
+    const { prepareVirtualAutoComboInputs, createVirtualAutoComboFromPrepared } =
       await import("@omniroute/open-sse/services/autoCombo/virtualFactory");
+
+    // #14889: every variant below is built from the same candidate pool, so prepare
+    // it once per request. createVirtualAutoCombo() prepares it again on each call,
+    // which made this route rebuild the whole pool once per listed variant.
+    const prepared = await prepareVirtualAutoComboInputs();
 
     const combos = [];
     const seenIds = new Set<string>();
     for (const { variant, name } of ALL_VARIANTS) {
       try {
-        const virtual = await createVirtualAutoCombo(variant);
+        const virtual = await createVirtualAutoComboFromPrepared(prepared, variant);
         const id = variant ? `auto/${variant}` : "auto";
         seenIds.add(id);
         combos.push({
@@ -68,7 +73,7 @@ export async function GET(request: Request) {
       try {
         const variant = AUTO_TEMPLATE_VARIANTS[modelStr];
         const spec = modelStr === "auto/best-free" ? { tier: "free" as const } : undefined;
-        const virtual = await createVirtualAutoCombo(variant, spec);
+        const virtual = await createVirtualAutoComboFromPrepared(prepared, variant, spec);
 
         const displayName = variant
           ? `Auto ${variant.charAt(0).toUpperCase() + variant.slice(1)}`
@@ -107,7 +112,7 @@ export async function GET(request: Request) {
         const parsed = parseAutoSuffix(suffix);
         if (!parsed.valid) continue;
 
-        const virtual = await createVirtualAutoCombo(undefined, {
+        const virtual = await createVirtualAutoComboFromPrepared(prepared, undefined, {
           category: parsed.category,
           tier: parsed.tier,
         });
@@ -150,7 +155,9 @@ export async function GET(request: Request) {
       if (seenIds.has(modelStr)) continue;
       try {
         const suffix = modelStr.slice("auto/".length);
-        const virtual = await createVirtualAutoCombo(undefined, { family: suffix });
+        const virtual = await createVirtualAutoComboFromPrepared(prepared, undefined, {
+          family: suffix,
+        });
 
         const displayName = `Auto ${suffix.charAt(0).toUpperCase() + suffix.slice(1)}`;
 

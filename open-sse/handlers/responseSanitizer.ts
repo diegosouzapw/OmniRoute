@@ -58,6 +58,10 @@ const RESPONSES_EXTRA_TOP_LEVEL_FIELDS = [
   "server_side_tool_usage_details",
   "server_side_tool_usage",
   "cost_in_usd_ticks",
+  // Why the response stopped early. Dropping it leaves status:"incomplete"
+  // with no reason, so a client (and rememberResponseState) cannot tell a
+  // max_output_tokens truncation from a content_filter stop.
+  "incomplete_details",
 ] as const;
 
 type JsonRecord = Record<string, unknown>;
@@ -95,12 +99,18 @@ function stripZeroWidthToolArgumentJson(value: unknown): string {
 
 function stripZeroWidthFunctionArguments(functionCall: unknown): unknown {
   const fn = toRecord(functionCall);
-  if (!fn || typeof fn.arguments !== "string") return functionCall;
-  const stripped = stripZeroWidthText(fn.arguments);
-  // Fast path: return the original reference when there is nothing to strip, so
-  // hot streaming paths avoid a per-chunk shallow clone of every tool call.
-  if (stripped === fn.arguments) return functionCall;
-  return { ...fn, arguments: stripped };
+  if (!fn) return functionCall;
+  if (typeof fn.arguments === "string") {
+    const stripped = stripZeroWidthText(fn.arguments);
+    // Fast path: return the original reference when there is nothing to strip, so
+    // hot streaming paths avoid a per-chunk shallow clone of every tool call.
+    if (stripped === fn.arguments) return functionCall;
+    return { ...fn, arguments: stripped };
+  }
+  if (fn.arguments === null || typeof fn.arguments !== "object") return functionCall;
+  const serialized = JSON.stringify(fn.arguments);
+  if (typeof serialized !== "string") return functionCall;
+  return { ...fn, arguments: stripZeroWidthText(serialized) };
 }
 
 function stripZeroWidthToolCallArguments(toolCall: unknown): unknown {
@@ -1095,7 +1105,10 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
 
   // Fast-path: check if any mutations would actually be needed
   // Most passthrough chunks (content deltas) need no sanitization
-  const needsIdNormalization = parsedRecord.id !== undefined && parsedRecord.id !== null && typeof parsedRecord.id !== "string";
+  const needsIdNormalization =
+    parsedRecord.id !== undefined &&
+    parsedRecord.id !== null &&
+    typeof parsedRecord.id !== "string";
   const hasChoices = Array.isArray(parsedRecord.choices) && parsedRecord.choices.length > 0;
   const hasUsage = parsedRecord.usage !== undefined;
   const hasSystemFingerprint = parsedRecord.system_fingerprint !== undefined;

@@ -4,12 +4,12 @@
 
 ---
 
-> **حتمی ماخذ:** `src/server/authz/`، `src/shared/constants/publicApiRoutes.ts`، `src/lib/api/requireManagementAuth.ts`، `src/shared/utils/apiAuth.ts`
-> **آخری تازہ کاری:** 2026-06-28 — v3.8.40
+> **معلومات کا ماخذ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **آخری بار اپ ڈیٹ کیا گیا:** 2026-09-22 — اسکوپ نیم اسپیسز MCP-SERVER.md کی طرف اشارہ کرتے ہیں
 
-OmniRoute میں روٹ سے آگاہ اجازت دہی کی ایک پائپ لائن ہے جو ہر API درخواست کو کنٹرول کرتی ہے۔ درجہ بندی **قطعی** اور **ناکامی پر بند** ہے — جس چیز کی درجہ بندی نہ ہو سکے، وہ `MANAGEMENT` میں چلی جاتی ہے اور اس کے لیے سیشن یا انتظامی درجے کا ٹوکن درکار ہوتا ہے۔ یہ صفحہ روٹس کی دیکھ بھال کرنے یا نئے endpoints ڈیزائن کرنے والے انجینئرز کے لیے اس ماڈل کی وضاحت کرتا ہے۔
+OmniRoute کے پاس ایک روٹ-آگاہ اجازت پائپ لائن ہے جو ہر API درخواست کو روکتی ہے۔ درجہ بندی **مقرر** اور **فیل-کلوزڈ** ہے — کوئی بھی چیز جس کی درجہ بندی نہیں کی جا سکتی وہ `MANAGEMENT` کے طور پر ختم ہوتی ہے اور ایک سیشن یا مینجمنٹ-گریڈ ٹوکن کا مطالبہ کرتی ہے۔ یہ صفحہ ان انجینئرز کے لیے ماڈل کی وضاحت کرتا ہے جو روٹس کو برقرار رکھتے ہیں یا نئے اینڈ پوائنٹس ڈیزائن کرتے ہیں۔
 
-![AuthZ پائپ لائن (3 روٹ کلاسز + پالیسی کی جانچ)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ پائپ لائن (3 روٹ کلاسز + پالیسی کی تشخیص)](../diagrams/exported/authz-pipeline.svg)
 
 > ماخذ: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -198,26 +198,24 @@ export async function POST(request: Request) {
 
 set کا انتخاب سہولت کے بجائے ساخت کے لحاظ سے کریں۔ ایک route کو `PUBLIC_API_ROUTES_EXACT` میں رکھا جاتا ہے (یا صرف GET کے لیے `PUBLIC_READONLY_CORS_API_ROUTES` میں)؛ صرف حقیقی subtree کو `PUBLIC_API_ROUTE_PREFIXES` میں رکھا جاتا ہے، اور اس کا اختتام **لازماً `/` پر ہونا چاہیے**۔ prefix فہرست میں ایک منفرد route رکھنے سے ہر وہ متصل path بھی عوامی ہو جاتا ہے جس کے ابتدائی حروف یکساں ہوں — بشمول بعد میں شامل کیے جانے والے dynamic-segment siblings (GHSA-74g9-q8f6-793h)۔ `tests/unit/public-api-routes.test.ts`، `tests/unit/authz/public-route-exact-match.test.ts` اور `tests/unit/authz/classify.test.ts` میں unit tests اپ ڈیٹ کریں۔
 
-## اسکوپس
+## سکوپس
 
-API کیز ایک `scopes` ارے رکھتی ہیں (جسے `api_keys.scopes` میں JSON کے طور پر محفوظ کیا جاتا ہے، `src/lib/db/apiKeys.ts` دیکھیں)۔
+تین نام اسپیسز۔ ہر چیکر صرف اپنی سٹرنگز پڑھتا ہے۔ ساتھ ساتھ موازنہ، بشمول یہ کہ `manage` `read:compression` کے لیے `scopeMatches` میں کیوں ناکام ہوتا ہے اور ایک `read` ایکسیس ٹوکن `PATCH /api/keys/{id}` کیوں نہیں کر سکتا، [تین سکوپ نام اسپیسز](../frameworks/MCP-SERVER.md#three-scope-namespaces) میں ہے۔
 
-### مینجمنٹ اسکوپ
+API کیز میں ایک `scopes` ایرے شامل ہوتا ہے (جو `api_keys.scopes` میں JSON کے طور پر محفوظ کیا جاتا ہے، دیکھیں `src/lib/db/apiKeys.ts`)۔
 
-- `manage` / `admin` — جب کی کو Bearer کے طور پر بھیجا جائے تو اسے مینجمنٹ API اینڈ پوائنٹس تک رسائی دیتا ہے۔
+### مینجمنٹ سکوپ
 
-### MCP اسکوپس (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`۔ مینجمنٹ API روٹس تک بیئرر رسائی۔
+- `mcp:connect`، `self:usage`، `self:account-quota`، اور `policy:bypass-provider-quota` اضافی عین مطابق میچ سکوپس ہیں۔ یہ `MANAGEMENT_API_KEY_SCOPES` سے باہر رہتے ہیں۔ `mcp:connect` صرف `/api/mcp/` نان-لوپ بیک کارو آؤٹ کو کھولتا ہے۔
 
-ہر MCP ٹول کو `MCP_TOOL_SCOPES` کے ذریعے مخصوص اسکوپس درکار ہوتے ہیں۔ مکمل فہرست (`MCP_SCOPE_LIST`):
+### MCP ٹول سکوپس
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+کیٹلاگ اور میچنگ کے قواعد (یکساں سٹرنگ، یا ایک عطا کردہ سکوپ جو `*` پر ختم ہوتا ہے): [MCP ٹول سکوپس](../frameworks/MCP-SERVER.md#mcp-tool-scopes)۔ `src/shared/constants/mcpScopes.ts` میں `MCP_SCOPE_LIST` اصل ٹائپ شدہ ذیلی سیٹ ہے، نہ کہ وہ مکمل کیٹلاگ۔ نفاذ `open-sse/mcp-server/scopeEnforcement.ts` میں `resolveCallerScopeContext()` کے بعد چلتا ہے جو MCP تصدیقی معلومات، ریکویسٹ میٹا ڈیٹا، یا `OMNIROUTE_MCP_SCOPES` سے سکوپس کو حل کرتا ہے۔ یہ بند رہتا ہے جب تک کہ `OMNIROUTE_MCP_ENFORCE_SCOPES=true` نہ ہو۔
 
-`open-sse/mcp-server/server.ts` میں اسکوپ کا نفاذ، `resolveCallerScopeContext()` کی جانب سے MCP توثیقی معلومات، درخواست کے میٹا ڈیٹا، یا `OMNIROUTE_MCP_SCOPES` سے اسکوپس حل کیے جانے کے بعد، ہر ٹول کی اسکوپ فہرست `evaluateToolScopes()` کو بھیجتا ہے۔
+### ایکسیس ٹوکن سکوپس
+
+`oma_live_…` ٹوکنز پر `read` / `write` / `admin`، جن کی درجہ بندی `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`) کے ذریعے کی جاتی ہے۔ یہ درجہ بندی صرف ایکسیس ٹوکن کریڈینشل پر لاگو ہوتی ہے۔ [مینجمنٹ تصدیق](../guides/MANAGEMENT-AUTH.md) دیکھیں۔
 
 ## توثیق درکار ہونے کا ٹوگل
 
@@ -265,7 +263,7 @@ x-omniroute-auth-scopes:    کوما سے جدا کردہ فہرست
 
 ## مزید دیکھیں
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ہر endpoint کے لیے توثیقی نشان
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — توثیقی واقعات کے لیے آڈٹ لاگ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP scope کے نفاذ کی تفصیلات
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ہر اینڈ پوائنٹ کے لیے auth مارکر
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — auth ایونٹس کے لیے آڈٹ لاگ
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — تین اسکوپ نیم اسپیسز اور MCP ٹول-اسکوپ کیٹلاگ
 - ماخذ: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

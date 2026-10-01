@@ -347,9 +347,7 @@ opencode -m omniroute/glm/glm-5.2 "..."          # vispirms eksportēt OMNIROUTE
 
 ## Kontekstu pārvaldība (pārslēgšanās starp serveriem)
 
-**Konteksts** ir saglabāts serveris (baseUrl + akreditācijas dati + tvērums). `omniroute connect`
-izveido kontekstu un padara to aktīvu; turpmāk visas komandas tiek izpildītas tajā. Pārvaldiet
-kontekstus un pārslēdzieties starp tiem, izmantojot `omniroute contexts`:
+**Konteksts** ir saglabāts serveris (baseUrl + akreditācijas dati + tvērums). `omniroute connect` izveido vienu un padara to aktīvu; no tā brīža katra komanda to mērķē. Pārvaldiet un pārslēdzieties starp tiem ar `omniroute contexts`:
 
 ```bash
 omniroute contexts list            # visi konteksti; aktīvais ir atzīmēts ar ●
@@ -357,22 +355,22 @@ omniroute contexts current         # aktīvais serveris, autentifikācijas statu
 ```
 
 ```text
-  | Nosaukums | Pamata URL                | Autent. | Tvērums | Apraksts
-● | vps       | http://100.67.86.91:20128 | token   | admin  | Attālais OmniRoute (…)
-  | default   | http://localhost:20128    | ✗       |        |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Pārslēgšanās starp serveriem** — katra nākamā komanda izmanto aktīvo kontekstu:
+**Pārslēgt serverus** — katra nākamā komanda seko aktīvajam kontekstam:
 
 ```bash
-omniroute contexts use vps         # → visas komandas tagad izmanto attālo VPS
-omniroute tokens list              #   (tiek izpildīta VPS serverī)
+omniroute contexts use vps         # → visas komandas tagad mērķē attālo VPS
+omniroute tokens list              #   (darbojas pret VPS)
 
 omniroute contexts use default     # → atpakaļ uz localhost
-omniroute tokens list              #   (tiek izpildīta lokālajā serverī)
+omniroute tokens list              #   (darbojas pret lokālo serveri)
 ```
 
-**Konteksta manuāla pievienošana** (`connect` vietā), apskate vai pārdēvēšana:
+**Pievienot kontekstu manuāli** (`connect` vietā), pārbaudīt vai pārdēvēt:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
@@ -381,30 +379,24 @@ omniroute contexts show staging    # pilna informācija par vienu kontekstu
 omniroute contexts rename staging stg
 ```
 
-**Konteksta noņemšana** — tiek pieprasīts apstiprinājums; norādiet `--yes`, lai to izlaistu
-(nepieciešams skriptiem / neinteraktīvām čaulām, kas pretējā gadījumā drošības nolūkos darbību noraida):
+**Noņemt kontekstu** — prasa apstiprinājumu; nododiet `--yes`, lai to izlaistu (nepieciešams skriptiem / neinteraktīvām čaulām, kas citādi droši atteiksies):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) nevar noņemt. Noņemot aktīvo kontekstu, automātiski tiek izmantots
-> `default`. Padoms: konteksta noņemšana dzēš tikai **lokāli** saglabātos akreditācijas datus —
-> lai faktiski liegtu piekļuvi, atsauciet pilnvaru serverī ar `omniroute tokens revoke <id>`.
+> `default` (localhost) nevar noņemt. Aktīvā konteksta noņemšana atgriežas pie `default`. Padoms: konteksta noņemšana tikai atceļ **lokāli** saglabātos akreditācijas datus — atsaukiet marķieri serverī ar `omniroute tokens revoke <id>`, lai faktiski pārtrauktu piekļuvi.
 
-Kontekstu **eksportēšana/importēšana** (piemēram, lai tos pārvietotu starp ierīcēm). Ja OS
-atslēgu saišķis ir pieejams, jaunajiem kontekstiem tiek saglabāta tikai atsauce uz atslēgu saišķi;
-akreditācijas dati netiek iekļauti eksportā:
+**Eksportēt / importēt** kontekstus (piemēram, lai tos pārvietotu starp mašīnām). Eksporti pēc noklusējuma izlaiž akreditācijas datus, ieskaitot akreditācijas datus, kas saglabāti ar failu atgriezenisko saiti. Izmantojiet `--include-secrets` skaidri, ja nepieciešama pārnēsājama dublējumkopija ar akreditācijas datiem:
 
 ```bash
-omniroute contexts export --out contexts.json     # noklusējums: stdout
+omniroute contexts export --out contexts.json     # rediģēts; noklusējuma galamērķis: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
 omniroute contexts import contexts.json            # pārrakstīt; --merge, lai saglabātu esošos
-omniroute contexts migrate --yes                  # pārvietot mantotos vienkāršā teksta pilnvaras atslēgu saišķī
+omniroute contexts migrate --yes                  # pārvietot vecos vienkāršā teksta marķierus uz atslēgu piekariņu
 ```
 
-Bezgalvas sistēmās, kurās nav izmantojama OS atslēgu saišķa, CLI izmanto
-`config.json` ar režīmu `0600` un parāda vienreizēju brīdinājumu. Eksportus no
-šī rezerves risinājuma (un jebkuru mantoto konfigurāciju pirms migrācijas) uzskatiet par slepenu materiālu.
+`--include-secrets` atrisina atslēgu piekariņa atsauces pirms eksportēšanas un neizdodas, ja kādu atsauci nevar nolasīt. `--no-secrets` vienmēr ir prioritāte. Eksporta faili tiek rakstīti atomiski ar režīmu `0600`. Uzskatiet skaidru eksportu ar slepeniem datiem par slepenu materiālu. Sistēmās bez galvas (headless systems) bez lietojama OS atslēgu piekariņa CLI atgriežas pie `config.json` ar režīmu `0600` un izdrukā vienreizēju brīdinājumu; noklusējuma eksports šajā režīmā paliek rediģēts.
 
 ---
 

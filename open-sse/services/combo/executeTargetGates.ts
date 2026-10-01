@@ -14,13 +14,17 @@ import {
 import { isProviderInCooldown } from "../providerCooldownTracker.ts";
 import { checkCredentialGate, logCredentialSkip } from "../credentialGate.ts";
 import { errorResponse } from "../../utils/error.ts";
-import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
+import {
+  getCircuitBreaker,
+  type CircuitBreakerStatus,
+} from "../../../src/shared/utils/circuitBreaker";
 import { connectionCircuitBreakerName } from "../connectionCircuitBreaker.ts";
 import { parseModel } from "../model.ts";
 import { canAffordRequest } from "../../../src/lib/quota/quotaScheduler.ts";
 import { getCachedProviderConnectionById } from "../../../src/lib/db/readCache.ts";
 import { lookupPositiveCap } from "./concurrencyCaps.ts";
 import { recordComboDecision } from "./decisionTrace.ts";
+import { recordPersistedSkipBypass } from "../comboMetrics.ts";
 import {
   getExhaustedTargetSkipReason,
   resolvePersistedConnectionCooldownSkipReason,
@@ -30,6 +34,52 @@ import { protectedPriorityStopStatus } from "./protectedPriorityStopStatus.ts";
 import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 import type { AttemptLoopDeps, AttemptLoopState, GateDecision } from "./attemptLoopTypes.ts";
 import { modelAvailabilitySkipReason, type ResolvedComboTarget } from "./types.ts";
+import type { PreDispatchExclusion } from "./pinRecovery.ts";
+
+/**
+ * The breaker that keeps a target from being dispatched: the provider-wide one
+ * first, then the connection-scoped one. Null when neither is OPEN. Shared by the
+ * pre-dispatch gate and by the terminal response, so both read the same rule.
+ */
+export function findOpenCircuitBreaker(
+  provider: string,
+  connectionId?: string | null
+): { scope: "provider" | "connection"; status: CircuitBreakerStatus } | null {
+  const providerStatus = getCircuitBreaker(provider).getStatus();
+  if (providerStatus.state === "OPEN") return { scope: "provider", status: providerStatus };
+  if (!connectionId) return null;
+  const connectionStatus = getCircuitBreaker(
+    connectionCircuitBreakerName(provider, connectionId)
+  ).getStatus();
+  return connectionStatus.state === "OPEN"
+    ? { scope: "connection", status: connectionStatus }
+    : null;
+}
+
+/**
+ * When every target was skipped because its breaker is OPEN, describe each one
+ * (provider, model, time until the next probe) so the terminal response can say
+ * so instead of a generic pre-dispatch skip. Null as soon as one target is not
+ * behind an open breaker: a mixed pool keeps the generic response.
+ */
+export function collectCircuitOpenExclusions(
+  targets: readonly ResolvedComboTarget[]
+): PreDispatchExclusion[] | null {
+  if (targets.length === 0) return null;
+  const exclusions: PreDispatchExclusion[] = [];
+  for (const target of targets) {
+    if (!target.provider) return null;
+    const open = findOpenCircuitBreaker(target.provider, target.connectionId);
+    if (!open) return null;
+    exclusions.push({
+      provider: target.provider,
+      model: parseModel(target.modelStr).model || target.modelStr,
+      reason: "circuit_open",
+      retryAfterMs: open.status.retryAfterMs > 0 ? open.status.retryAfterMs : null,
+    });
+  }
+  return exclusions;
+}
 
 /**
  * Cached vs fresh connection read for the persisted-cooldown gate.
@@ -83,16 +133,11 @@ export async function evaluateExecuteTargetGates(opts: {
     if (i > 0) state.fallbackCount++;
   };
 
-  const providerBreaker = getCircuitBreaker(provider);
-  const scopedConnectionId = target.connectionId ?? undefined;
-  const connectionBreaker = scopedConnectionId
-    ? getCircuitBreaker(connectionCircuitBreakerName(provider, scopedConnectionId))
-    : null;
-  const providerOpen = providerBreaker.getStatus().state === "OPEN";
-  const connectionOpen = connectionBreaker?.getStatus().state === "OPEN";
-  if (providerOpen || connectionOpen) {
-    const cb = providerOpen ? providerBreaker : connectionBreaker!;
-    const cbStatus = cb.getStatus();
+  const openBreaker = findOpenCircuitBreaker(provider, target.connectionId);
+  if (openBreaker) {
+    const providerOpen = openBreaker.scope === "provider";
+    const scopedConnectionId = target.connectionId ?? undefined;
+    const cbStatus = openBreaker.status;
     state.skippedForCircuitOpen = true;
     if (
       cbStatus.retryAfterMs > 0 &&
@@ -159,7 +204,7 @@ export async function evaluateExecuteTargetGates(opts: {
       }
     : { ...target, modelAbortSignal: abortSignal, fallbackAttempts: i };
 
-  if (target.connectionId && !allowRateLimitedConnection) {
+  if (target.connectionId) {
     const persistedSkip = await resolvePersistedConnectionCooldownSkipReason(
       target,
       (id) => readConnectionForCooldownGate(id, false),
@@ -188,6 +233,10 @@ export async function evaluateExecuteTargetGates(opts: {
       );
       bumpFallback();
       return { kind: "skip", result: null };
+    } else if (allowRateLimitedConnection) {
+      // The transient flag re-served a target with no future persisted
+      // cooldown: count the bypass for operators.
+      recordPersistedSkipBypass(deps.combo.name);
     }
   }
 

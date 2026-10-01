@@ -76,7 +76,9 @@ const INTERNAL_SERVICE_HEADER = "x-omniroute-internal-service-token";
  * packaged CLI. Sent alongside the internal-service token so a build that only honours one
  * of the two still answers with the full payload.
  */
-function derivePackagedCliToken(prefix) {
+// The CLI token salt lives under <DATA_DIR> (#13679/#13909): derive against the DATA_DIR the
+// probed server boots on, or the token never matches.
+function derivePackagedCliToken(prefix, dataDir) {
   const cliModuleUrl = pathToFileURL(
     path.join(packageRootFor(prefix), "bin", "cli", "utils", "cliToken.mjs")
   ).href;
@@ -89,7 +91,7 @@ function derivePackagedCliToken(prefix) {
         "import(process.argv[1]).then(async m => process.stdout.write(await m.getCliToken()))",
         cliModuleUrl,
       ],
-      { encoding: "utf8", env: { ...process.env } }
+      { encoding: "utf8", env: { ...process.env, DATA_DIR: dataDir } }
     ).trim();
   } catch {
     // A truncated/broken install cannot derive a token. Returning null keeps the boot
@@ -176,7 +178,7 @@ async function bootAndProbe({ prefix, dataDir, port, expectVersion, label }) {
   if (!fs.existsSync(binPath)) {
     return { ok: false, failures: [`${label}: bin not found at ${binPath}`], tail: [] };
   }
-  const cliToken = derivePackagedCliToken(prefix);
+  const cliToken = derivePackagedCliToken(prefix, dataDir);
   const probeHeaders = {
     [INTERNAL_SERVICE_HEADER]: INTERNAL_SERVICE_TOKEN,
     ...(cliToken ? { "x-omniroute-cli-token": cliToken } : {}),

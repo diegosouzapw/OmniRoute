@@ -1,6 +1,7 @@
 import { FREE_MODEL_BUDGETS, grantsFreeAccess } from "@omniroute/open-sse/config/freeModelCatalog";
 import { getProviderById, resolveProviderId } from "@/shared/constants/providers";
 import { globToRegex } from "@/shared/utils/globPattern";
+import { hasPayloadFreeEvidence } from "@/shared/utils/payloadFreeEvidence";
 import { AI_MODELS } from "@/shared/constants/models";
 
 /**
@@ -71,17 +72,12 @@ export function providerHasFreeModels(providerId: string | undefined | null): bo
   );
 }
 
-function isZeroPrice(value: unknown): boolean {
-  if (typeof value === "number") return value === 0;
-  if (typeof value !== "string") return false;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed === 0;
-}
-
 export interface FreeModelCandidate {
   id?: string;
-  pricing?: { prompt?: string | number; completion?: string | number };
+  /** Raw `pricing` object from the provider's /models entry (any shape). */
+  pricing?: unknown;
   isFree?: boolean;
+  tags?: unknown;
 }
 
 /** Shipped-catalog entry for this provider (id or alias): trusted on its own. */
@@ -93,20 +89,13 @@ function isCatalogFreeModel(provider: string, modelId: unknown): boolean {
   );
 }
 
-/** Payload-supplied free signals: `isFree:true`, a `:free` id suffix, or zero prices. */
-function hasPayloadFreeSignal(model: FreeModelCandidate): boolean {
-  if (model.isFree === true) return true;
-  if (typeof model.id === "string" && model.id.endsWith(":free")) return true;
-  return isZeroPrice(model.pricing?.prompt) && isZeroPrice(model.pricing?.completion);
-}
-
 /**
  * Whether a single fetched model qualifies as free for the given provider (id or alias): a
  * shipped-catalog entry, or a payload signal on a provider with a documented free tier.
  */
 export function isFreeModel(provider: string, model: FreeModelCandidate): boolean {
   if (isCatalogFreeModel(provider, model.id)) return true;
-  return providerHasFreeModels(provider) && hasPayloadFreeSignal(model);
+  return providerHasFreeModels(provider) && hasPayloadFreeEvidence(model);
 }
 
 /** Reusable free predicate for fetched payloads — provider must have a documented free tier. */
@@ -128,7 +117,8 @@ export const FREE_BADGE_STRICT_FLAG = "FREE_BADGE_REQUIRES_PROVIDER_FREE_TIER";
 /**
  * Whether the provider-page model list shows the "Free" badge for a model row.
  *
- * Default (`strict: false`) is the historical rule, unchanged: any truthy `free` field,
+ * Default (`strict: false`) is the historical rule: any truthy `free` field, an explicit
+ * `isFree === true` (live discovery evidence, honored on every provider as in strict mode),
  * a `:free` id suffix, "free"/"grátis" in the display name, or `isFreeModel`.
  *
  * With `strict: true` (feature flag FREE_BADGE_REQUIRES_PROVIDER_FREE_TIER) only badges
@@ -149,6 +139,7 @@ export function isModelFreeBadge(
   if (!options.strict) {
     return (
       Boolean(model.free) ||
+      model.isFree === true ||
       model.id.endsWith(":free") ||
       /\bgr[aá]tis\b|\bfree\b/i.test(model.name || "") ||
       isFreeModel(provider, { id: model.id, isFree: model.isFree as boolean | undefined })

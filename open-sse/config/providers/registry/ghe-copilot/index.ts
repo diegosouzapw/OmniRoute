@@ -37,12 +37,18 @@ export const gheCopilotProvider: RegistryEntry = {
       name: "Claude Fable 5",
       contextLength: 1000000,
       maxOutputTokens: 64000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
     },
     {
       id: "claude-opus-5",
       name: "Claude Opus 5",
       contextLength: 1000000,
       maxOutputTokens: 64000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {
@@ -50,6 +56,9 @@ export const gheCopilotProvider: RegistryEntry = {
       name: "Claude Opus 4.8 (fast mode)",
       contextLength: 1000000,
       maxOutputTokens: 64000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {
@@ -57,6 +66,9 @@ export const gheCopilotProvider: RegistryEntry = {
       name: "Claude Opus 4.8",
       contextLength: 1000000,
       maxOutputTokens: 64000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {
@@ -64,6 +76,9 @@ export const gheCopilotProvider: RegistryEntry = {
       name: "Claude Opus 4.7",
       contextLength: 1000000,
       maxOutputTokens: 64000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
     },
     {
       id: "claude-sonnet-4.6",
@@ -76,6 +91,8 @@ export const gheCopilotProvider: RegistryEntry = {
       name: "Claude Opus 4.5",
       contextLength: 200000,
       maxOutputTokens: 32000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high"],
     },
     {
       id: "claude-sonnet-5",

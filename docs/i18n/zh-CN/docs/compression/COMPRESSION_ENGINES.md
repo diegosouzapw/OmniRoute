@@ -9,41 +9,33 @@ OmniRoute 压缩围绕引擎契约构建。一个模式可以直接运行一个�
 
 ## 模式
 
-| 模式         | 引擎路径                      | 预期输入                               |
-| ------------ | ----------------------------- | -------------------------------------- |
-| `off`        | 无                            | 精确保留提示词                         |
-| `lite`       | Caveman 轻量辅助工具          | 低风险、始终启用的清理                 |
-| `standard`   | Caveman                       | 自然语言提示词压缩                     |
-| `aggressive` | Caveman + 历史记录/工具摘要器 | 长时间聊天会话                         |
-| `ultra`      | Caveman + 剪枝辅助工具        | 上下文限制恢复                         |
-| `rtk`        | RTK                           | 终端、shell、构建、测试和 git 输出     |
-| `omniglyph`  | OmniGlyph                     | 原生提供者传输链路上的图像化上下文     |
-| `stacked`    | 管线，默认为 `rtk -> caveman` | 混合工具日志和文本，最大限度节省上下文 |
+| 模式         | 引擎路径                                                                              | 预期输入                           |
+| ------------ | ------------------------------------------------------------------------------------- | ---------------------------------- |
+| `off`        | none                                                                                  | 精确的提示词保留                   |
+| `lite`       | Caveman lite helpers                                                                  | 低风险的常驻清理                   |
+| `standard`   | Caveman                                                                               | 自然语言提示词精简                 |
+| `aggressive` | Caveman + history/tool summarizers                                                    | 长对话会话                         |
+| `ultra`      | Caveman + pruning helpers                                                             | 上下文限制恢复                     |
+| `rtk`        | RTK                                                                                   | 终端、shell、构建、测试和 Git 输出 |
+| `omniglyph`  | OmniGlyph                                                                             | 原生提供者线路上的图像化上下文     |
+| `stacked`    | Pipeline. The request default is `session-dedup -> lite`. `rtk -> caveman` is opt-in. | 混合工具日志和散文，最大程度节省   |
 
 ### OmniGlyph 压缩配置文件
 
-`omniglyph` 引擎（包 `omniglyph`，1.4.0+）接受一个具名语义配置文件，可通过压缩设置中的
-`omniglyph.profile` 进行全局设置，也可通过堆叠管线的步骤配置按步骤设置：
+`omniglyph` 引擎（包 `omniglyph`，1.4.0+）接受一个命名的语义配置文件，可以通过压缩设置中的 `omniglyph.profile` 进行全局设置，也可以通过堆叠管道的步骤配置为每个步骤单独设置：
 
-| 配置文件      | 边界                                                                       |
-| ------------- | -------------------------------------------------------------------------- |
-| `aggressive`  | 默认。已发布测量记录所采用的策略——将系统提示、工具文档和密集历史记录图像化 |
-| `balanced`    | 保持实时状态为原生形式，保护最后 8 轮对话，折叠更早且已结束的历史记录      |
-| `coding-safe` | 保持权限信息、工具模式和实时工具输出为原生形式，保护最后 12 轮对话         |
-| `passthrough` | 仅路由而不转换；跳过该引擎                                                 |
+| 配置文件      | 边界                                                           |
+| ------------- | -------------------------------------------------------------- |
+| `aggressive`  | 默认。已发布收据所衡量的策略——图像系统、工具文档和密集历史记录 |
+| `balanced`    | 保持实时状态原生，保护最后 8 轮对话，折叠较旧的已关闭历史记录  |
+| `coding-safe` | 保持权限、工具模式和实时工具输出原生，保护最后 12 轮对话       |
+| `passthrough` | 不进行转换地路由；引擎被跳过                                   |
 
-该配置文件是**上限，而非下限**：包中的 `mergeCompressionProfileOptions`
-不允许调用方通过覆盖选项重新开启已被配置文件关闭的有损处理通道，因此按步骤设置的
-`preserveSystemPrompt: false` 无法在 `coding-safe` 下重新启用系统压缩。
+配置文件是**上限，而非下限**：包中的 `mergeCompressionProfileOptions` 不允许调用者覆盖重新打开配置文件已关闭的有损通道，因此在 `coding-safe` 下，每步的 `preserveSystemPrompt: false` 无法重新启用系统压缩。
 
-在此代码库上的测量结果表明：`coding-safe` 和 `balanced` 会将 `minCompressChars`
-提升至其最大值，并保持系统提示、工具模式和工具结果为原生形式，因此尚未积累历史记录的会话
-会在 `below_min_chars` 处停止，引擎不会进行任何转换。这就是默认使用 `aggressive`
-而非最安全配置文件的原因。
+在此代码库上测量：`coding-safe` 和 `balanced` 将 `minCompressChars` 提高到最大值，并保持系统、工具模式和工具结果原生，因此尚未积累历史记录的会话会在 `below_min_chars` 处停止，引擎不会进行任何转换。这就是为什么默认是 `aggressive` 而不是最安全的配置文件。
 
-该包会根据其环境配置解析自己的模型作用域和配置文件。
-OmniRoute 从不委托这一决策：适配器会将模型门控固定为该包最严格的作用域，因此主机环境设置只能
-缩小允许列表，绝不能将其扩大到超出 OmniRoute 测量记录所验证的范围。
+该包从其环境配置中解析自己的模型范围和配置文件。OmniRoute 从不委托决策：适配器将模型门限制在包最严格的范围内，因此主机环境设置只能缩小允许列表，而不能将其扩展到超出 OmniRoute 测量的收据范围。
 
 ## 引擎注册表
 
@@ -371,7 +363,7 @@ open-sse/services/compression/engines/mcpAccessibility/
 
 ## 验证
 
-此部分的重点检查项如下：
+此区域的重点关卡是：
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

@@ -196,6 +196,16 @@ test("GHSA-jx89-f37j-pq89: /api/skills/install + /api/skills/executions (transit
   }
 });
 
+test("/api/version-manager/* (CLIProxyAPI download + supervisor spawn) is classified local-only", () => {
+  assert.ok(
+    SPAWN_CAPABLE_ROUTE_ROOTS.includes("src/app/api/version-manager"),
+    "src/app/api/version-manager must be a SPAWN_CAPABLE_ROUTE_ROOT"
+  );
+  for (const r of ["install", "start", "restart", "stop", "status", "check-update"]) {
+    assert.equal(isLocalOnlyPath(`/api/version-manager/${r}`), true, `${r} must be local-only`);
+  }
+});
+
 test("6A.8: spawn-capable routes in SPAWN_CAPABLE_ROUTE_ROOTS are still all classified local-only", async () => {
   // The original subcheck (SPAWN_CAPABLE_ROUTE_ROOTS) must still pass.
   // This test is a regression guard — the new source-scan does not break the old check.

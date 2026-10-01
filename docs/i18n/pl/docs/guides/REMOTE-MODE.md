@@ -329,13 +329,11 @@ opencode -m omniroute/glm/glm-5.2 "..."          # najpierw wyeksportuj OMNIROUT
 
 ## Zarządzanie kontekstami (przełączanie między serwerami)
 
-**Kontekst** to zapisany serwer (baseUrl + poświadczenie + scope). `omniroute connect`
-tworzy jeden i czyni go aktywnym; odtąd każde polecenie go celuje. Zarządzaj i
-przełączaj je przez `omniroute contexts`:
+**Kontekst** to zapisany serwer (baseUrl + poświadczenia + zakres). `omniroute connect` tworzy go i aktywuje; od tego momentu każde polecenie jest do niego kierowane. Zarządzaj nimi i przełączaj się między nimi za pomocą `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # all contexts; the active one is marked ●
-omniroute contexts current         # the active server, auth status, scope
+omniroute contexts list            # wszystkie konteksty; aktywny jest oznaczony ●
+omniroute contexts current         # aktywny serwer, status uwierzytelnienia, zakres
 ```
 
 ```text
@@ -344,44 +342,43 @@ omniroute contexts current         # the active server, auth status, scope
   | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Przełączanie serwerów** — każde kolejne polecenie podąża za aktywnym kontekstem:
+**Przełączanie serwerów** — każde kolejne polecenie jest wykonywane w ramach aktywnego kontekstu:
 
 ```bash
-omniroute contexts use vps         # → all commands now hit the remote VPS
-omniroute tokens list              #   (runs against the VPS)
+omniroute contexts use vps         # → wszystkie polecenia trafiają teraz do zdalnego VPS
+omniroute tokens list              #   (wykonywane na VPS)
 
-omniroute contexts use default     # → back to localhost
-omniroute tokens list              #   (runs against the local server)
+omniroute contexts use default     # → powrót do localhost
+omniroute tokens list              #   (wykonywane na lokalnym serwerze)
 ```
 
-**Dodaj kontekst ręcznie** (zamiast `connect`), podejrzyj lub zmień nazwę:
+**Dodaj kontekst ręcznie** (zamiast `connect`), sprawdź lub zmień nazwę:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # full details for one context
+omniroute contexts show staging    # pełne szczegóły dla jednego kontekstu
 omniroute contexts rename staging stg
 ```
 
-**Usuń kontekst** — pyta o potwierdzenie; podaj `--yes`, by pominąć
-(wymagane w skryptach / powłokach nieinteraktywnych, które inaczej bezpiecznie odmawiają):
+**Usuń kontekst** — prosi o potwierdzenie; użyj `--yes`, aby pominąć (wymagane dla skryptów / powłok nieinteraktywnych, które w przeciwnym razie bezpiecznie odrzucają operację):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) nie może zostać usunięty. Usunięcie aktywnego kontekstu wraca
-> do `default`. Wskazówka: usunięcie kontekstu usuwa tylko **lokalnie** zapisane poświadczenie —
-> odwołaj token na serwerze przez `omniroute tokens revoke <id>`, by faktycznie
-> unieważnić dostęp.
+> Kontekstu `default` (localhost) nie można usunąć. Usunięcie aktywnego kontekstu powoduje powrót do `default`. Wskazówka: usunięcie kontekstu powoduje jedynie usunięcie **lokalnie** zapisanych poświadczeń — aby faktycznie zablokować dostęp, unieważnij token na serwerze za pomocą `omniroute tokens revoke <id>`.
 
-**Eksport / import** kontekstów (np. przeniesienie między maszynami — sekrety włącznie,
-więc ostrożnie z plikiem):
+**Eksport / import** kontekstów (np. w celu przeniesienia ich między maszynami). Eksporty domyślnie pomijają poświadczenia, w tym poświadczenia przechowywane przez awaryjny plik. Użyj `--include-secrets` jawnie, gdy potrzebna jest przenośna kopia zapasowa zawierająca poświadczenia:
 
 ```bash
-omniroute contexts export --out contexts.json     # default: stdout
-omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts export --out contexts.json     # zredagowane; domyślne miejsce docelowe: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # nadpisz; --merge, aby zachować istniejące
+omniroute contexts migrate --yes                  # przenieś starsze tokeny w postaci jawnego tekstu do pęku kluczy
 ```
+
+`--include-secrets` rozwiązuje odniesienia do pęku kluczy przed eksportem i kończy się niepowodzeniem, jeśli nie można odczytać żadnych odwołujących się poświadczeń. `--no-secrets` zawsze ma pierwszeństwo. Pliki eksportu są zapisywane atomowo z trybem `0600`. Jawny eksport zawierający tajne dane należy traktować jako materiał tajny. W systemach bezgłowych, bez użytecznego pęku kluczy systemu operacyjnego, CLI wraca do `config.json` z trybem `0600` i wyświetla jednorazowe ostrzeżenie; domyślny eksport pozostaje zredagowany w tym trybie.
 
 ---
 

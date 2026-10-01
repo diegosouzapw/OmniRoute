@@ -542,6 +542,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["kimi-k2.6-thinking"],
   },
 
+  // ── Kimi K2.8 Preview (Kimi Coding — 1M context, native vision) ──
+  // #14003: Kimi Coding's stable wire ids `kimi-for-coding` and
+  // `kimi-for-coding-highspeed` both resolve to Kimi K2.8 Preview, which
+  // supports vision, tools, and thinking. The highspeed sibling must alias
+  // this spec too, otherwise it silently falls back to default caps (no
+  // vision) and the Vision-Bridge reroute bug reappears for that variant.
+  "kimi-k2.8-preview": {
+    maxOutputTokens: 131072,
+    contextWindow: 1048576,
+    thinkingBudgetCap: 32768,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["kimi-for-coding", "kimi-for-coding-highspeed"],
+  },
+
   // ── Kimi K2.7 Code (Moonshot — 262K native, parity with K2.6) ───
   // #3761: importing this via Ollama Cloud's sparse /v1/models gave it no caps, so it
   // fell back to the 128K/8K defaults and lost vision/thinking. Pin the real values.
@@ -613,10 +629,14 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // ── Xiaomi MiMo V2.5 (1M context, consensus across 7+ sync sources) ──
-  // Vision: ONLY mimo-v2.5 and mimo-v2-omni accept images per Xiaomi's docs
-  // (mimo.mi.com .../image-understanding). The *-pro chat models are TEXT-ONLY;
-  // models.dev mislabels them (hermes-agent#18884) — a hard override in
-  // src/lib/modelCapabilities.ts also beats that wrong synced attachment.
+  // Vision: in the v2.5 generation only `mimo-v2.5` and `mimo-v2-omni` accept
+  // images per Xiaomi's docs (mimo.mi.com .../image-understanding). The v2.5
+  // `*-pro` chat models are TEXT-ONLY; models.dev mislabels them
+  // (hermes-agent#18884) — a hard override in src/lib/modelCapabilities.ts
+  // also beats that wrong synced attachment. The v2.6 generation flips the
+  // `*-pro` rule (#14587): `mimo-v2.6-pro` accepts image input, covered by the
+  // `mimo-v2.6-pro` / `mimo-v2.6-flash` fragments in the shared vision
+  // heuristic rather than a spec.
   "mimo-v2.5-pro": {
     maxOutputTokens: 131072,
     contextWindow: 1048576,

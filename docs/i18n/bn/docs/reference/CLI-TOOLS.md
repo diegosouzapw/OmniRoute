@@ -43,43 +43,27 @@ ACP এজেন্টস (বিপরীত স্পন প্রবাহ):
 
 ---
 
-## `setup-*` এর সাথে স্বয়ংক্রিয় কনফিগার করুন
+## `setup-*` দিয়ে স্বয়ংক্রিয়-কনফিগার করুন
 
-আপনাকে প্রতিটি টুলের কনফিগারেশন হাতে লিখতে হবে না। OmniRoute একটি `setup-*`
-কমান্ড সরবরাহ করে প্রতি সমর্থিত CLI এর জন্য যা একটি চলমান
-OmniRoute (স্থানীয় বা দূরবর্তী) থেকে **লাইভ** মডেল ক্যাটালগ পড়ে এবং আপনার মেশিনে টুলের নিজস্ব কনফিগারেশন লেখে:
+আপনাকে প্রতিটি টুলের কনফিগ হাতে লিখতে হবে না। OmniRoute প্রতিটি সমর্থিত CLI-এর জন্য একটি `setup-*` কমান্ড সরবরাহ করে যা একটি চলমান OmniRoute (স্থানীয় বা দূরবর্তী) থেকে **লাইভ** মডেল ক্যাটালগ পড়ে এবং আপনার মেশিনে টুলের নিজস্ব কনফিগ লেখে:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-প্রতিটি `--remote <url> --api-key <key>` গ্রহণ করে (একটি স্থানীয় টুলকে একটি
-দূরবর্তী OmniRoute এর বিরুদ্ধে কনফিগার করতে), `--dry-run` (লেখার আগে প্রিভিউ), এবং `--port`। মডেল স্বয়ংক্রিয় আবিষ্কার ছাড়া টুলগুলি (Cline, Kilo, Roo, Goose, Aider, Qwen) `--model <id>` গ্রহণ করে (এবং `--yes` অ-ইন্টারঅ্যাকটিভ রানগুলির জন্য)। সঠিক পরিবেশ ইনজেক্ট করে এবং কোনও কনফিগারেশন লেখা ছাড়াই একটি CLI চালু করতে, সাধারণ
-`omniroute run <target>` লঞ্চার ব্যবহার করুন (claude, codex, aider, goose, opencode, qwen,
-gemini — লক্ষ্য এবং উপনামগুলি `bin/cli/cli-manifest.mjs` থেকে আসে); লিগ্যাসি
-প্রতি-টুল লঞ্চারগুলি `omniroute launch` (Claude Code) এবং `omniroute launch-codex`
-(Codex) উপলব্ধ রয়েছে। Gemini CLI শুধুমাত্র লঞ্চ-অনলি: এটি একটি `omniroute run`
-লক্ষ্য কিন্তু এর কোনও `setup-*`/`configure` রেসিপি নেই।
+প্রতিটি `--remote <url> --api-key <key>` (একটি দূরবর্তী OmniRoute-এর বিরুদ্ধে একটি স্থানীয় টুল কনফিগার করুন), `--dry-run` (না লিখে পূর্বরূপ দেখুন), এবং `--port` গ্রহণ করে। মডেল স্বয়ংক্রিয়-আবিষ্কার ছাড়া টুলগুলি (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (এবং নন-ইন্টারেক্টিভ রানের জন্য `--yes`) নেয়। `setup-5dive` হল একমাত্র রেসিপি যা `$HOME`-এর অধীনে লেখে না: এটি ফ্লিট হোস্টে একটি রুট-মালিকানাধীন অথ প্রোফাইল লিখে একটি 5dive এজেন্ট ফ্লিট কনফিগার করে, তাই এটি `sudo`-এর মাধ্যমে পুনরায় কার্যকর হয় এবং এর নিজস্ব কোনো দূরবর্তী মোড নেই। সঠিক এনভ ইনজেক্ট করে এবং কোনো কনফিগ না লিখে একটি CLI চালু করতে, জেনেরিক `omniroute run <target>` লঞ্চার ব্যবহার করুন (claude, codex, aider, goose, opencode, qwen, gemini — টার্গেট এবং উপনামগুলি `bin/cli/cli-manifest.mjs` থেকে আসে); লিগ্যাসি প্রতি-টুল লঞ্চার `omniroute launch` (Claude Code) এবং `omniroute launch-codex` (Codex) এখনও উপলব্ধ। Gemini CLI শুধুমাত্র লঞ্চ-ভিত্তিক: এটি একটি `omniroute run` টার্গেট কিন্তু এর কোনো `setup-*`/`configure` রেসিপি নেই।
 
-> **সম্পূর্ণ রেফারেন্স:** মাস্টার টেবিল — প্রতিটি কমান্ড কী লেখে, প্রতিটি পতাকা,
-> স্থানীয় বনাম দূরবর্তী, এবং কোন টুলগুলি `/v1` সাফিক্স চায় — এটি
-> **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** এ রয়েছে।
+> **সম্পূর্ণ রেফারেন্স:** মাস্টার টেবিল — প্রতিটি কমান্ড কী লেখে, প্রতিটি ফ্ল্যাগ, স্থানীয় বনাম দূরবর্তী, এবং কোন টুলগুলির `/v1` প্রত্যয় প্রয়োজন — **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**-এ রয়েছে।
 
-### একটি কনটেইনারের ভিতরে এগুলি চালানো
+### একটি কন্টেইনারের ভিতরে এগুলি চালানো
 
-OmniRoute কনটেইনারের ভিতরে কার্যকর করা একটি `setup-*` কমান্ড কনটেইনারের নিজস্ব হোমে লেখে, যা কোনও হোস্ট CLI পড়ে না এবং যা কনটেইনারের সাথে অদৃশ্য হয়ে যায়। OmniRoute এটি সনাক্ত করে এবং লেখার পরিবর্তে নির্দেশনা সহ `2` এ বেরিয়ে আসে। এগিয়ে যাওয়ার দুটি সমর্থিত উপায় — হোস্টে CLI ইনস্টল করুন এবং
-`omniroute connect` কনটেইনারে, অথবা কনফিগারেশন ডিরেক্টরিগুলি বাইন্ড-মাউন্ট করুন এবং `CLI_CONFIG_HOME` সেট করুন (কম্পোজ `host` প্রোফাইল)। প্রতিটি `setup-*` কমান্ড, পাশাপাশি
-`omniroute configure` এবং `omniroute config set`, গ্রহণ করে
-`--allow-container-write` যখন কনটেইনারের নিজস্ব CLIs কনফিগার করা আপনার আসল উদ্দেশ্য ছিল; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` সার্ভারের জন্য একই কাজ করে। দেখুন
-[Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)।
+OmniRoute কন্টেইনারের ভিতরে সম্পাদিত একটি `setup-*` কমান্ড কন্টেইনারের নিজস্ব হোমে লেখে, যা কোনো হোস্ট CLI পড়ে না এবং যা কন্টেইনারের সাথে অদৃশ্য হয়ে যায়। OmniRoute এটি সনাক্ত করে এবং লেখার পরিবর্তে নির্দেশাবলী সহ `2` থেকে প্রস্থান করে। দুটি সমর্থিত উপায় — হোস্টে CLI ইনস্টল করুন এবং কন্টেইনারের সাথে `omniroute connect` করুন, অথবা কনফিগ ডিরেক্টরিগুলি বাইন্ড-মাউন্ট করুন এবং `CLI_CONFIG_HOME` সেট করুন (কম্পোজ `host` প্রোফাইল)। প্রতিটি `setup-*` কমান্ড, এছাড়াও `omniroute configure` এবং `omniroute config set`, `--allow-container-write` গ্রহণ করে যখন কন্টেইনারের নিজস্ব CLI কনফিগার করা আপনার আসল উদ্দেশ্য ছিল; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` সার্ভারের জন্য একই কাজ করে। দেখুন [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)।
 
-ড্যাশবোর্ডের **প্রয়োগ এন্ডপয়েন্ট** (`POST /api/cli-tools/apply`) একই সুরক্ষা প্রয়োগ করে: একটি কনটেইনারে, একটি লেখার লক্ষ্য যা হোস্ট থেকে বাইন্ড-মাউন্ট করা হয়নি **`422`** এর সাথে উত্তর দেয় `containerEphemeralTarget: true`, নিরাপদ ত্রুটি
-টেক্সট এবং — যেসব টুলের একটি হোস্ট রেসিপি রয়েছে (claude, codex, opencode, cline,
-kilo, continue) — একটি `hostSetupCommand` (যেমন `omniroute setup-opencode`) যা পরিবর্তে হোস্টে চালাতে হবে; কিছুই লেখা হয় না। `dryRun: true` কনটেইনার মোডে কাজ করে এবং ডিস্কে স্পর্শ না করে উত্পন্ন সামগ্রী + লক্ষ্য পাথ ফেরত দেয়, তাই আপনি ড্যাশবোর্ড থেকে প্রিভিউ করতে পারেন এবং হোস্টে প্রয়োগ করতে পারেন। এই আচরণটি ইচ্ছাকৃত এবং
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` দ্বারা রিগ্রেশন-গার্ডেড — কখনও "ফিক্স" করবেন না একটি 422 কে সুরক্ষা অপসারণ করে।
+ড্যাশবোর্ডের **অ্যাপ্লাই এন্ডপয়েন্ট** (`POST /api/cli-tools/apply`) একই গার্ড প্রয়োগ করে: একটি কন্টেইনারে, একটি রাইট যার টার্গেট হোস্ট থেকে বাইন্ড-মাউন্ট করা হয়নি তা `containerEphemeralTarget: true`, নিরাপদ ত্রুটি পাঠ্য এবং — হোস্ট রেসিপি সহ টুলগুলির জন্য (claude, codex, opencode, cline, kilo, continue) — একটি `hostSetupCommand` (যেমন `omniroute setup-opencode`) সহ **`422`** উত্তর দেয় যা হোস্টে চালানোর জন্য; কিছুই লেখা হয় না। `dryRun: true` কন্টেইনার মোডে কাজ করতে থাকে এবং ডিস্কে স্পর্শ না করে একটি সংশোধিত পূর্বরূপ + টার্গেট পাথ ফেরত দেয়। পূর্বরূপ বিষয়বস্তু অনুলিপি বা আমদানি করার জন্য একটি প্রমাণপত্র-বহনকারী কনফিগারেশন নয়। হোস্টে আসল টুল/বেস URL/API কী/মডেল ইনপুট দিয়ে প্রয়োগ করুন, অথবা নির্দেশিত হোস্ট-সাইড সেটআপ কমান্ড ব্যবহার করুন। পূর্বরূপ হেডার এবং অনুরোধ চুক্তির জন্য [CLI configuration security](../security/CLI-CONFIGURATION.md) দেখুন। এই আচরণটি ইচ্ছাকৃত এবং `tests/unit/api/cli-tools/apply-container-guard.test.ts` দ্বারা রিগ্রেশন-সুরক্ষিত — গার্ড অপসারণ করে কখনও 422 "ঠিক" করবেন না।
 
 ---
 

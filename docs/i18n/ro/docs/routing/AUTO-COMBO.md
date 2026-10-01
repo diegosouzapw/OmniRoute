@@ -279,49 +279,102 @@ rezolvate sunt transmise intrărilor existente `config.modePack` / `config.budge
 
 Motorul de combinații OmniRoute acceptă **19 strategii de rutare** (declarate în `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Motorul Auto Combo propriu-zis este disponibil prin strategia `auto`; celelalte sunt disponibile pentru combinațiile persistate.
 
-| Strategie           | Descriere                                                                                                                                                                                                                                                 |
-| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Listă ordonată după prima țintă, cu prioritate explicită                                                                                                                                                                                                  |
-| `weighted`          | Selecție aleatorie ponderată în funcție de ponderea fiecărei ținte                                                                                                                                                                                        |
-| `round-robin`       | Parcurgerea ciclică a țintelor, în ordine                                                                                                                                                                                                                 |
-| `context-relay`     | Transferă contextul între ținte (conversații lungi)                                                                                                                                                                                                       |
-| `fill-first`        | Umple cota fiecărei ținte înainte de a trece la următoarea                                                                                                                                                                                                |
-| `p2c`               | Echilibrare aleatorie a sarcinii prin alegerea dintre 2 opțiuni                                                                                                                                                                                           |
-| `random`            | Selecție aleatorie uniformă                                                                                                                                                                                                                               |
-| `least-used`        | Alege ținta cu cea mai mică sarcină curentă                                                                                                                                                                                                               |
-| `cost-optimized`    | Minimizează costul în $ per solicitare pe baza tarifelor din catalog                                                                                                                                                                                      |
-| `reset-aware` ⭐    | Prioritizează în funcție de momentul resetării cotei — intervalele scurte de resetare sunt clasate mai sus                                                                                                                                                |
-| `reset-window`      | Preferă țintele a căror fereastră de cotă se resetează cel mai curând                                                                                                                                                                                     |
-| `headroom`          | Alege ținta cu cea mai mare marjă de cotă rămasă                                                                                                                                                                                                          |
-| `strict-random`     | Selecție aleatorie fără deduplicarea repetărilor                                                                                                                                                                                                          |
-| `auto`              | Utilizează punctajul Auto Combo (16 factori) — **recomandat**                                                                                                                                                                                             |
-| `lkgp`              | Ultima rută funcțională cunoscută (fixează ultimul furnizor care a reușit, apoi revine la reguli în caz de eșec)                                                                                                                                          |
-| `context-optimized` | Alege ținta care se potrivește cel mai bine dimensiunii actuale a contextului                                                                                                                                                                             |
-| `cache-optimized`   | Reordonează țintele după afinitatea cu memoria cache a promptului — conexiunea care are cele mai mari șanse să dețină deja prefixul memorat în cache al acestei solicitări este încercată prima (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Trimite solicitarea în paralel unui grup de modele, apoi sintetizează un singur răspuns prin intermediul unui arbitru (vezi mai jos)                                                                                                                      |
-| `pipeline`          | Rulează țintele secvențial, transmițând ieșirea fiecărui pas ca intrare pentru pasul următor; este returnat doar răspunsul final (#6396)                                                                                                                  |
+| Strategie           | Descriere                                                                                                                                                                                                                                                   |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | Listă ordonată după prima țintă, cu prioritate explicită                                                                                                                                                                                                    |
+| `weighted`          | Selecție aleatorie ponderată în funcție de ponderea fiecărei ținte                                                                                                                                                                                          |
+| `round-robin`       | Parcurge ciclic țintele în ordine (în loturi; consultați mai jos)                                                                                                                                                                                           |
+| `context-relay`     | Transferă contextul între ținte (conversații lungi)                                                                                                                                                                                                         |
+| `fill-first`        | Umple cota fiecărei ținte înainte de a trece la următoarea                                                                                                                                                                                                  |
+| `p2c`               | Echilibrare aleatorie a încărcării prin alegerea dintre 2 opțiuni                                                                                                                                                                                           |
+| `random`            | Selecție aleatorie uniformă                                                                                                                                                                                                                                 |
+| `least-used`        | Alege ținta cu cea mai mică încărcare curentă                                                                                                                                                                                                               |
+| `cost-optimized`    | Minimizează costul în $ per solicitare pe baza prețurilor din catalog                                                                                                                                                                                       |
+| `reset-aware` ⭐    | Prioritizează în funcție de momentul resetării cotei — intervalele scurte de resetare sunt clasate mai sus                                                                                                                                                  |
+| `reset-window`      | Preferă țintele a căror fereastră de cotă se resetează cel mai curând                                                                                                                                                                                       |
+| `headroom`          | Alege ținta cu cea mai mare marjă de cotă rămasă                                                                                                                                                                                                            |
+| `strict-random`     | Selecție aleatorie fără deduplicarea repetărilor                                                                                                                                                                                                            |
+| `auto`              | Utilizează punctajul Auto Combo (16 factori) — **recomandat**                                                                                                                                                                                               |
+| `lkgp`              | Ultima cale funcțională cunoscută (fixează ultimul furnizor care a răspuns cu succes, apoi revine la reguli în caz de eșec)                                                                                                                                 |
+| `context-optimized` | Alege ținta care se potrivește cel mai bine dimensiunii contextului curent                                                                                                                                                                                  |
+| `cache-optimized`   | Reordonează țintele după afinitatea cu memoria cache a promptului — conexiunea cu cea mai mare probabilitate de a deține deja prefixul stocat în cache al acestei solicitări este încercată prima (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Trimite solicitarea în paralel către un grup de modele, apoi sintetizează un singur răspuns prin intermediul unui arbitru (consultați mai jos)                                                                                                              |
+| `pipeline`          | Rulează țintele secvențial, transmițând rezultatul fiecărui pas ca intrare pentru pasul următor; este returnat numai răspunsul final (#6396)                                                                                                                |
 
 ⭐ = Nou în v3.8.0 · 🧬 = Nou în v3.8.36
 
-### Semantica `weighted`
+### Semantica strategiei `weighted`
 
 `weighted` reprezintă o **extragere aleatorie proporțională pentru fiecare solicitare**
 (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), nu un mecanism de egalizare:
 
 - Pentru fiecare solicitare este extras **un** pas cu probabilitatea `weight / totalWeight`; pașii rămași
-  sunt ordonați descrescător după pondere și formează lanțul de rezervă pentru solicitarea respectivă.
+  sunt ordonați descrescător după pondere, formând lanțul alternativ pentru solicitarea respectivă.
 - Un pas a cărui pondere este `0` (sau lipsește) nu este **niciodată extras** atât timp cât orice alt pas are o
-  pondere > 0 — acesta poate servi doar ca opțiune de rezervă după ce pasul extras eșuează. Selecția devine uniformă numai atunci când **toate**
+  pondere > 0 — acesta poate servi doar ca alternativă după ce pasul extras eșuează. Selecția devine uniformă numai atunci când **toate**
   ponderile sunt 0.
-- Pașii ale căror ținte sunt toate indisponibile — întrerupătorul de circuit al furnizorului este `OPEN`, conexiunea
+- Pașii ale căror ținte sunt toate indisponibile — disjunctorul furnizorului este `OPEN`, conexiunea
   se află în perioada de așteptare, modelul este blocat — sunt eliminați din extragere înainte ca aceasta să aibă loc
-  (`open-sse/services/combo/targetResolution.ts`), astfel încât un singur pas funcțional poate câștiga temporar
-  fiecare solicitare.
+  (`open-sse/services/combo/targetResolution.ts`), astfel încât un singur pas funcțional poate fi selectat temporar
+  pentru fiecare solicitare.
 - `stickyWeightedLimit` (configurația combinației, valoarea implicită `1` = dezactivat) fixează pasul extras pentru acel număr de
   reușite consecutive înainte de o nouă extragere.
 
-Pentru o rotație strictă, utilizați `round-robin`; ponderile egale cu `weighted` oferă un echilibru statistic — nu
+Pentru o rotație strictă, utilizați `round-robin`; ponderile egale cu `weighted` asigură un echilibru statistic — nu
 strict.
+
+### Modul pipeline agentic
+
+O combinație `pipeline` în doi pași poate activa rutarea planificator/executor prin
+`config.agenticOrchestration.enabled`. Prima țintă se ocupă de planificare și de răspunsurile finale;
+a doua țintă emite apeluri de instrumente native pentru client. OmniRoute detectează continuările
+cu rezultate ale instrumentelor din protocolul cererii, întreabă planificatorul dacă este necesară
+încă o rundă de instrumente și stabilește dinamic executorul sau planificatorul drept pasul final
+orientat către client.
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+Executorul poate emite mai multe apeluri independente într-un singur răspuns. Apelurile dependente
+sunt gestionate în rundele ulterioare de rezultate ale instrumentelor clientului, planificatorul
+revizuind fiecare rezultat. Valoarea implicită pentru `maxToolRounds` este `8`, iar aceasta acceptă
+valori între `1` și `32`; odată ce limita este atinsă, planificatorul trebuie să genereze cel mai bun
+răspuns final disponibil. Deciziile interne ale planificatorului sunt stocate în memoria tampon, iar
+răspunsul selectat pentru client păstrează preferința inițială privind transmiterea în flux.
+
+### Loturi persistente `round-robin` și extinderea conturilor
+
+Round-robin funcționează în loturi, nu cu o cerere per pas:
+
+- `stickyRoundRobinLimit` (configurația combinației, apoi `comboStickyRoundRobinLimit`, apoi
+  `settings.stickyRoundRobinLimit`, valoare implicită **3**) păstrează aceeași țintă pentru acest
+  număr de reușite consecutive înainte de rotație. Setați suprascrierea combinației la `1` pentru
+  rotația la fiecare cerere. Editorul de combinații afișează valoarea efectivă și nivelul din care
+  provine.
+- `connectionAwareExpansion` (configurația combinației, apoi setările, valoare implicită **false**)
+  extinde fiecare pas la nivel de furnizor în ținte per cont înainte de rotație. Strategiile din
+  grupul B (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) păstrează o vizualizare la nivel de furnizor până la activarea acestei opțiuni.
+  Editorul de combinații oferă opțiunile moștenire / activat / dezactivat; moștenirea utilizează
+  valoarea implicită globală (dezactivat).
+- Rutarea în funcție de localitatea cache-ului promptului (`promptCacheAffinityEnabled`, valoare
+  implicită **true**) reordonează conexiunile fixate, astfel încât cheile de cache corespondente
+  să rămână într-un singur cont. Aceasta are prioritate față de rotația round-robin și ponderată
+  între pașii fixați per cont. Dezactivați-o din Settings → Combo defaults dacă aveți nevoie de
+  rotație strictă. Nu există nicio suprascriere per combinație.
+
+Pentru rotația între mai multe conturi pe un singur model, preferați **un singur pas cu cont dinamic**
+(`connectionId` gol, întregul grup) cu limita de persistență `1`, nu trei valori `connectionId`
+fixate. Pașii fixați împreună cu afinitatea ajung să utilizeze același cont chiar și în timp ce
+contorul RR avansează.
 
 ## Strategia Fusion
 

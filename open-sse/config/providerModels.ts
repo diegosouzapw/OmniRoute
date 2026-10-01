@@ -212,6 +212,27 @@ export function findModelName(aliasOrId: string, modelId: string): string {
   return found?.name || modelId;
 }
 
+// OpenCode's Muse Spark family is Responses-only. Keep this rule provider-scoped
+// and version-agnostic so a newly published Muse Spark model is routed correctly
+// before the static catalog is refreshed.
+const OPENCODE_MUSE_SPARK_ALIASES = new Set(["oc", "opencode-zen", "opencode-go"]);
+const MUSE_SPARK_MODEL_PATTERN = /^muse-spark(?:-|$)/i;
+
+const OPENCODE_MODEL_PREFIXES = ["opencode/", "oc/", "opencode-zen/", "opencode-go/"] as const;
+
+/**
+ * OpenCode Zen's Responses endpoint accepts the upstream model id only. The
+ * OpenCode executor keeps this guard because `/v1/responses` callers can reach
+ * it without the Chat Completions model-normalization path.
+ */
+export function stripOpencodeModelPrefix(model: unknown): unknown {
+  if (typeof model !== "string") return model;
+  for (const prefix of OPENCODE_MODEL_PREFIXES) {
+    if (model.startsWith(prefix)) return model.slice(prefix.length);
+  }
+  return model;
+}
+
 export function getModelTargetFormat(aliasOrId: string, modelId: string): string | null {
   // Accept either the public alias ("cmd") or the raw provider id ("command-code"),
   // mirroring getProviderModels (same pattern as #2798/#3870).
@@ -222,6 +243,22 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   const bareModelId = prefix ? modelId.slice(prefix.length) : modelId;
   const found = PROVIDER_MODELS[alias]?.find((m) => m.id === bareModelId);
   if (found?.targetFormat) return found.targetFormat;
+  // Resolved models can still carry the raw provider id (for example
+  // "opencode/muse-spark-1.3-contributor-free") even when the public alias is
+  // "oc". Match the family against the final model segment so both forms work.
+  const modelFamilyId = bareModelId.split("/").pop() || bareModelId;
+  if (OPENCODE_MUSE_SPARK_ALIASES.has(alias) && MUSE_SPARK_MODEL_PATTERN.test(modelFamilyId)) {
+    return "openai-responses";
+  }
+  // Effort suffixes (gpt-6-astra-high, gpt-5.6-sol-xhigh) are not separate
+  // catalog rows on the public OpenAI provider. They must keep the base
+  // model's endpoint, or tools+reasoning land on /v1/chat/completions and
+  // OpenAI returns a 400 that the Responses API would have accepted.
+  const effortStripped = bareModelId.replace(/-(?:ultra|max|xhigh|high|medium|low|none)$/i, "");
+  if (effortStripped !== bareModelId) {
+    const base = PROVIDER_MODELS[alias]?.find((m) => m.id === effortStripped);
+    if (base?.targetFormat) return base.targetFormat;
+  }
   // #5842: OpenAI "*-pro" reasoning models (o1-pro, gpt-5.x-pro) are only served by
   // the native /v1/responses endpoint — /v1/chat/completions 404s ("only supported
   // in v1/responses"). Curated catalog entries are tagged explicitly; this heuristic
@@ -229,10 +266,26 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   // executor's /codex/i routing, 9router#102). Scoped to the openai alias so other
   // providers shipping *-pro ids keep their own endpoint semantics.
   if (alias === "openai" && /-pro$/i.test(bareModelId)) return "openai-responses";
+  // Grok Build only speaks Responses: GrokCliExecutor always POSTs to /v1/responses and
+  // live discovery drops non-`responses` backends. A passthrough id that post-dates the
+  // seed (e.g. grok-4.7 before a sync) otherwise falls back to the provider's "openai"
+  // format and ships a chat-completions body, which Grok Build rejects with 400.
+  if (alias === "gc") return "openai-responses";
   // Vertex uses three protocol families: Gemini generateContent, Anthropic Messages rawPredict,
   // and OpenAI-shaped Mistral/Open-MaaS requests. Resource names retain enough publisher data to
   // route future dynamically-synced models without adding another pinned prefix here.
   if (alias === "vertex" || alias === "vp") return getVertexModelTargetFormat(bareModelId);
+  // #14575: GitHub/GHE Copilot's own executors (github.ts, ghe-copilot.ts) route ANY
+  // claude-named model to Copilot's Anthropic-native /v1/messages endpoint via an
+  // unconditional /claude/i name match, regardless of curated-catalog coverage. When
+  // Copilot ships a new Claude id before the catalog is updated (e.g. claude-opus-5.5),
+  // the curated lookup above misses and previously fell through to the provider's base
+  // "openai" format, leaving the request body OpenAI-shaped while it is dispatched to the
+  // Anthropic-native endpoint — which rejects it (tool_choice/tools shape mismatch).
+  // Mirror the routing heuristic here so body translation stays consistent with where the
+  // executor actually sends the request (same pattern as the openai "-pro" heuristic above,
+  // #5842).
+  if ((alias === "gh" || alias === "ghe-copilot") && /claude/i.test(bareModelId)) return "claude";
   // Model-level targetFormat is provider-scoped: a catalog entry declares how THIS
   // provider's endpoint serves the model — do NOT import another provider's tag.
   // #9994 scoped this for providers WITH a catalog; #10072 extends it to catalogless

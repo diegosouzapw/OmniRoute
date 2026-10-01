@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { asRecord, DevinAgenticBridgeError, type AnthropicTool, type JsonRecord } from "./types.ts";
+import { findTagBlocks } from "../../utils/tagBlocks.ts";
 
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map((item) => stableJson(item)).join(",")}]`;
@@ -66,8 +67,32 @@ function validateSchema(value: unknown, schema: JsonRecord, path: string): strin
   return errors;
 }
 
+const SUMMARY_OPEN = "<summary>";
+const SUMMARY_CLOSE = "</summary>";
+
+/**
+ * Detects a whole-response Devin "summarizer" progress report: an internal
+ * `<summary>...</summary>` envelope with no `<tool>` request alongside it.
+ * Mirrors the strict whole-string match used for `<tool>` above — a
+ * narrative block that merely mentions "summary" inline must not match.
+ * Returns the inner body, or null when the text is not a bare envelope.
+ */
+export function extractBareSummaryEnvelope(text: string): string | null {
+  const trimmed = text.trim();
+  // Anchored prefix/suffix checks instead of one `^<summary>\s*([\s\S]*?)\s*<\/summary>$`
+  // pattern, whose overlapping whitespace classes are cubic on a long run of spaces.
+  if (trimmed.length < SUMMARY_OPEN.length + SUMMARY_CLOSE.length) return null;
+  if (!/^<summary>/i.test(trimmed) || !/<\/summary>$/i.test(trimmed)) return null;
+  return trimmed.slice(SUMMARY_OPEN.length, trimmed.length - SUMMARY_CLOSE.length).trim();
+}
+
 export function parseDevinToolRequest(text: string, tools: AnthropicTool[], idSeed = "") {
-  const matches = [...text.matchAll(/<tool>\s*([\s\S]*?)\s*<\/tool>/g)];
+  // `text` is model output; scan forward once instead of matching `<tool>\s*([\s\S]*?)\s*<\/tool>`,
+  // which is cubic on a long run of spaces after an unclosed tag.
+  const matches = findTagBlocks(text, /<tool>/g, /<\/tool>/g).map((block) => ({
+    whole: text.slice(block.start, block.end),
+    inner: block.inner.trim(),
+  }));
   if (matches.length === 0) return null;
   if (matches.length > 1) {
     throw new DevinAgenticBridgeError(
@@ -76,7 +101,7 @@ export function parseDevinToolRequest(text: string, tools: AnthropicTool[], idSe
     );
   }
 
-  if (text.trim() !== matches[0][0].trim()) {
+  if (text.trim() !== matches[0].whole.trim()) {
     throw new DevinAgenticBridgeError(
       "Devin tool request must be a standalone tool envelope without narrative text",
       "mixed_tool_narrative"
@@ -85,7 +110,7 @@ export function parseDevinToolRequest(text: string, tools: AnthropicTool[], idSe
 
   let payload: JsonRecord;
   try {
-    payload = asRecord(JSON.parse(matches[0][1] || "{}"));
+    payload = asRecord(JSON.parse(matches[0].inner || "{}"));
   } catch {
     throw new DevinAgenticBridgeError("Devin tool request was not valid JSON", "invalid_tool_json");
   }

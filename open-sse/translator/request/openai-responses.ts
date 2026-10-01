@@ -391,7 +391,8 @@ export function openaiResponsesToOpenAIRequest(
 
     if (itemType === "function_call") {
       // Skip tool calls with empty names to avoid infinite placeholder_tool loops
-      const fnName = toString(item.name).trim();
+      const leafName = toString(item.name).trim();
+      const fnName = leafName ? flattenNamespaceToolName(toString(item.namespace), leafName) : "";
       if (!fnName) {
         continue;
       }
@@ -469,7 +470,8 @@ export function openaiResponsesToOpenAIRequest(
       // arguments. Map it onto the assistant tool_calls list as a function call whose
       // arguments wrap the raw string as { input }, matching the { input: string }
       // schema the request-side tools normalization advertises for custom tools.
-      const fnName = toString(item.name).trim();
+      const leafName = toString(item.name).trim();
+      const fnName = leafName ? flattenNamespaceToolName(toString(item.namespace), leafName) : "";
       if (!fnName) {
         continue;
       }

@@ -4,12 +4,12 @@
 
 ---
 
-> **ആധികാരിക ഉറവിടം:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **അവസാനം പുതുക്കിയത്:** 2026-06-28 — v3.8.40
+> **വിശ്വസനീയമായ ഉറവിടം:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **അവസാനം അപ്ഡേറ്റ് ചെയ്തത്:** 2026-09-22 — സ്കോപ്പ് നെയിംസ്പേസുകൾ MCP-SERVER.md-ലേക്ക് വിരൽ ചൂണ്ടുന്നു
 
-എല്ലാ API അഭ്യർത്ഥനകളെയും നിയന്ത്രിക്കുന്ന റൂട്ട്-അവബോധമുള്ള ഒരു ഓതറൈസേഷൻ പൈപ്പ്ലൈൻ OmniRoute-ലുണ്ട്. വർഗ്ഗീകരണം **നിർണ്ണയാത്മകവും** **പരാജയപ്പെടുമ്പോൾ അടച്ചിടുന്നതുമാണ്** — വർഗ്ഗീകരിക്കാൻ കഴിയാത്ത എന്തും `MANAGEMENT` ആയി പരിഗണിക്കപ്പെടുകയും ഒരു സെഷനോ മാനേജ്മെന്റ്-ഗ്രേഡ് ടോക്കണോ ആവശ്യപ്പെടുകയും ചെയ്യും. റൂട്ടുകൾ പരിപാലിക്കുന്നതോ പുതിയ എൻഡ്പോയിന്റുകൾ രൂപകൽപ്പന ചെയ്യുന്നതോ ആയ എൻജിനീയർമാർക്കായി ഈ പേജ് മോഡൽ വിശദീകരിക്കുന്നു.
+ഓരോ API അഭ്യർത്ഥനകളെയും നിയന്ത്രിക്കുന്ന ഒരു റൂട്ട്-അവബോധമുള്ള ഓതറൈസേഷൻ പൈപ്പ്ലൈൻ OmniRoute-നുണ്ട്. വർഗ്ഗീകരണം **നിർണ്ണായകവും** **ഫെയിൽ-ക്ലോസ്ഡും** ആണ് — വർഗ്ഗീകരിക്കാൻ കഴിയാത്ത എന്തും `MANAGEMENT` ആയി മാറുകയും ഒരു സെഷനോ മാനേജ്മെൻ്റ്-ഗ്രേഡ് ടോക്കണോ ആവശ്യപ്പെടുകയും ചെയ്യും. റൂട്ടുകൾ പരിപാലിക്കുന്ന അല്ലെങ്കിൽ പുതിയ എൻഡ്പോയിന്റുകൾ രൂപകൽപ്പന ചെയ്യുന്ന എഞ്ചിനീയർമാർക്കായി ഈ പേജ് മോഡൽ വിശദീകരിക്കുന്നു.
 
-![AuthZ പൈപ്പ്ലൈൻ (3 റൂട്ട് ക്ലാസുകൾ + പോളിസി വിലയിരുത്തൽ)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
 > ഉറവിടം: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -200,24 +200,22 @@ export async function POST(request: Request) {
 
 ## സ്കോപ്പുകൾ
 
-API കീകൾ ഒരു `scopes` അറേ വഹിക്കുന്നു (`api_keys.scopes`-ൽ JSON ആയി സംഭരിക്കുന്നു; `src/lib/db/apiKeys.ts` കാണുക).
+മൂന്ന് നെയിംസ്പേസുകൾ. ഓരോ ചെക്കറും അതിൻ്റേതായ സ്ട്രിംഗുകൾ മാത്രമേ വായിക്കൂ. `manage` എന്തുകൊണ്ട് `read:compression` എന്നതിനായുള്ള `scopeMatches` പരാജയപ്പെടുത്തുന്നു, ഒരു `read` ആക്സസ് ടോക്കണിന് എന്തുകൊണ്ട് `PATCH /api/keys/{id}` ചെയ്യാൻ കഴിയില്ല എന്നതുൾപ്പെടെയുള്ള താരതമ്യം, [മൂന്ന് സ്കോപ്പ് നെയിംസ്പേസുകൾ](../frameworks/MCP-SERVER.md#three-scope-namespaces) എന്നതിൽ കാണുക.
 
-### മാനേജ്മെന്റ് സ്കോപ്പ്
+API കീകൾ ഒരു `scopes` അറേ വഹിക്കുന്നു (`api_keys.scopes` എന്നതിൽ JSON ആയി സംഭരിച്ചിരിക്കുന്നു, `src/lib/db/apiKeys.ts` കാണുക).
 
-- `manage` / `admin` — Bearer ആയി അയയ്ക്കുമ്പോൾ മാനേജ്മെന്റ് API എൻഡ്പോയിന്റുകളിലേക്കുള്ള ആക്സസ് കീയ്ക്ക് നൽകുന്നു.
+### മാനേജ്മെൻ്റ് സ്കോപ്പ്
 
-### MCP സ്കോപ്പുകൾ (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. മാനേജ്മെൻ്റ് API റൂട്ടുകളിലേക്കുള്ള ബെയറർ ആക്സസ്.
+- `mcp:connect`, `self:usage`, `self:account-quota`, കൂടാതെ `policy:bypass-provider-quota` എന്നിവ അഡിറ്റീവ് എക്സാക്റ്റ്-മാച്ച് സ്കോപ്പുകളാണ്. അവ `MANAGEMENT_API_KEY_SCOPES` എന്നതിന് പുറത്താണ്. `mcp:connect` എന്നത് `/api/mcp/` നോൺ-ലൂപ്പ്ബാക്ക് കാർവ്-ഔട്ട് മാത്രമേ തുറക്കൂ.
 
-ഓരോ MCP ടൂളിനും `MCP_TOOL_SCOPES` വഴി നിർദ്ദിഷ്ട സ്കോപ്പുകൾ ആവശ്യമാണ്. പൂർണ്ണ പട്ടിക (`MCP_SCOPE_LIST`):
+### MCP ടൂൾ സ്കോപ്പുകൾ
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+കാറ്റലോഗും പൊരുത്തപ്പെടുന്ന നിയമങ്ങളും (ഒരേ സ്ട്രിംഗ്, അല്ലെങ്കിൽ `*` എന്നതിൽ അവസാനിക്കുന്ന ഒരു അനുവദിച്ച സ്കോപ്പ്): [MCP ടൂൾ സ്കോപ്പുകൾ](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `src/shared/constants/mcpScopes.ts` എന്നതിലെ `MCP_SCOPE_LIST` എന്നത് യഥാർത്ഥ ടൈപ്പ് ചെയ്ത ഉപവിഭാഗമാണ്, ആ മുഴുവൻ കാറ്റലോഗല്ല. `resolveCallerScopeContext()` MCP ഓത്ത് വിവരങ്ങൾ, അഭ്യർത്ഥന മെറ്റാഡാറ്റ, അല്ലെങ്കിൽ `OMNIROUTE_MCP_SCOPES` എന്നിവയിൽ നിന്ന് സ്കോപ്പുകൾ പരിഹരിച്ച ശേഷം `open-sse/mcp-server/scopeEnforcement.ts` എന്നതിൽ എൻഫോഴ്സ്മെൻ്റ് പ്രവർത്തിക്കുന്നു. `OMNIROUTE_MCP_ENFORCE_SCOPES=true` അല്ലെങ്കിൽ ഇത് ഓഫായിരിക്കും.
 
-`resolveCallerScopeContext()` MCP ഓത്ത് വിവരങ്ങൾ, അഭ്യർത്ഥനാ മെറ്റാഡാറ്റ, അല്ലെങ്കിൽ `OMNIROUTE_MCP_SCOPES` എന്നിവയിൽനിന്ന് സ്കോപ്പുകൾ നിർണ്ണയിച്ചശേഷം, `open-sse/mcp-server/server.ts`-ലെ സ്കോപ്പ് നിർബന്ധമാക്കൽ ഓരോ ടൂളിന്റെയും സ്കോപ്പ് പട്ടിക `evaluateToolScopes()`-ലേക്ക് കൈമാറുന്നു.
+### ആക്സസ്-ടോക്കൺ സ്കോപ്പുകൾ
+
+`oma_live_…` ടോക്കണുകളിലെ `read` / `write` / `admin`, `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`) അനുസരിച്ച് റാങ്ക് ചെയ്തിരിക്കുന്നു. ഈ റാങ്ക് ആക്സസ്-ടോക്കൺ ക്രെഡൻഷ്യലിന് മാത്രമേ ബാധകമാകൂ. [മാനേജ്മെൻ്റ് ഓതൻ്റിക്കേഷൻ](../guides/MANAGEMENT-AUTH.md) കാണുക.
 
 ## ഓത്ത് ആവശ്യകതാ ടോഗിൾ
 
@@ -265,7 +263,7 @@ x-omniroute-auth-scopes:    കോമ ഉപയോഗിച്ച് വേർ�
 
 ## ഇതും കാണുക
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ഓരോ എൻഡ്പോയിന്റിനുമുള്ള ഓത്ത് മാർക്കർ
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ഓത്ത് ഇവന്റുകൾക്കുള്ള ഓഡിറ്റ് ലോഗ്
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP സ്കോപ്പ് എൻഫോഴ്സ്മെന്റ് വിശദാംശങ്ങൾ
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ഓരോ എൻഡ്പോയിന്റിനും വേണ്ടിയുള്ള ഓത്ത് മാർക്കർ
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — ഓത്ത് ഇവന്റുകൾക്കായുള്ള ഓഡിറ്റ് ലോഗ്
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — മൂന്ന് സ്കോപ്പ് നെയിംസ്പേസുകളും MCP ടൂൾ-സ്കോപ്പ് കാറ്റലോഗും
 - ഉറവിടം: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

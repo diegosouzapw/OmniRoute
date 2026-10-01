@@ -79,6 +79,20 @@ test("content bypass is all-or-nothing across every selected style", () => {
   assert.equal(r.body.messages?.at(-1)?.role, "user"); // untouched
 });
 
+test("autoClarity: false keeps every selected style on a turn the bypass would skip", () => {
+  const r = applyOutputStyles(
+    { messages: [{ role: "user", content: "Explain this security vulnerability in detail." }] },
+    sel(["terse-prose", "full"], ["less-code", "full"]),
+    "en",
+    { autoClarity: false }
+  );
+  assert.equal(r.applied, true);
+  assert.deepEqual(
+    r.appliedStyles?.map((s) => s.id),
+    ["terse-prose", "less-code"]
+  );
+});
+
 test("no styles selected → body untouched", () => {
   const body = { messages: [{ role: "user", content: "Tell me a joke." }] };
   const r = applyOutputStyles(body, []);

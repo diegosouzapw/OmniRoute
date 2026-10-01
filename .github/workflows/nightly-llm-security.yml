@@ -26,22 +26,30 @@ jobs:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           OMNIROUTE_BUILD_BACKEND_ONLY: "1"
         run: npm run build:cli
+      # Own port: this box also hosts the deployed server (the a11y job's
+      # "20128 is already used" nights prove it). A test server that dies on
+      # EADDRINUSE must NOT let the eval fall through to whatever else answers
+      # on the port — a block-mode validation against a server running WITHOUT
+      # block mode validates the wrong deployment and can only ever pass.
       - name: Start OmniRoute (block mode)
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-          PORT: "20128"
+          PORT: "21778"
           INJECTION_GUARD_MODE: block
         run: |
           node dist/server.js > server.log 2>&1 &
           echo $! > server.pid
-          for i in $(seq 1 30); do
-            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo up; break; fi
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:21778/api/monitoring/health >/dev/null; then echo up; exit 0; fi
             sleep 2
           done
+          echo "::error::Test server did not come up on 21778 in 120s — see server.log. Refusing to run the guard eval against an unknown target."
+          tail -40 server.log || true
+          exit 1
       - name: promptfoo guard-validation
         run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache
         env:
-          OMNIROUTE_URL: http://localhost:20128
+          OMNIROUTE_URL: http://localhost:21778
           OMNIROUTE_API_KEY: not-needed-blocked-before-upstream
       - name: Stop server
         if: always()
@@ -84,18 +92,24 @@ jobs:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           OMNIROUTE_BUILD_BACKEND_ONLY: "1"
         run: npm run build:cli
+      # Same contract as the promptfoo job above: dedicated port, and the
+      # health wait must fail the job instead of letting garak probe whatever
+      # else listens on the default port.
       - name: Start OmniRoute
         if: steps.gate.outputs.run == 'true'
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-          PORT: "20128"
+          PORT: "21779"
         run: |
           node dist/server.js > server.log 2>&1 &
           echo $! > server.pid
-          for i in $(seq 1 30); do
-            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo up; break; fi
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:21779/api/monitoring/health >/dev/null; then echo up; exit 0; fi
             sleep 2
           done
+          echo "::error::Test server did not come up on 21779 in 120s — see server.log."
+          tail -40 server.log || true
+          exit 1
       - uses: actions/setup-python@v7
         if: steps.gate.outputs.run == 'true'
         with: { python-version: "3.12" }
@@ -105,7 +119,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.PROMPTFOO_PROVIDER_KEY }}
-          OPENAI_BASE_URL: http://localhost:20128/v1
+          OPENAI_BASE_URL: http://localhost:21779/v1
         run: garak --model_type openai --model_name gpt-4o-mini --probes promptinject,dan,leakreplay --report_prefix garak-omniroute || true
       - name: Stop server
         if: always() && steps.gate.outputs.run == 'true'

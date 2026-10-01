@@ -4,57 +4,59 @@
 
 ---
 
-# Upravljačka autentifikacija
-
 OmniRoute ima **četiri porodice vjerodajnica** koje mogu autorizirati upravljačke rute.
-One nisu zamjenjive. Inference API ključevi (`sk-…`) **ne** upravljaju
-serverom osim ako im nije eksplicitno dodijeljen `manage` ili `admin` opseg.
+One nisu međusobno zamjenjive. API ključevi za inferenciju (`sk-…`) **ne** upravljaju
+serverom osim ako im je izričito dodijeljen opseg `manage` ili `admin`.
 
 Kanonska implementacija: `src/lib/api/requireManagementAuth.ts`.
 
-| Vjerodajnica         | Tipičan oblik                          | Kreirano gdje                                           | Namjena                        | Upravljačka sposobnost                                                                        |
-| -------------------- | -------------------------------------- | ------------------------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
-| Dashboard JWT sesija | `auth_token` kolačić                   | Prijava na dashboard                                    | Preglednik UI                  | Potpuno upravljanje dashboardom, podložno CSRF, lokalitetu i pravilima uvijek zaštićenih ruta |
-| CLI machine-id token | interno / lokalno                      | CLI bootstrap (`omniroute` na istoj mašini)             | Lokalni CLI                    | Samo lokalno upravljanje                                                                      |
-| Scoped Access Token  | `oma_live_…`                           | **Postavke → Pristupni tokeni** ili `omniroute connect` | Udaljeni CLI i upravljački API | Mora zadovoljiti traženi `read`, `write` ili `admin` opseg rute                               |
-| Inference API ključ  | `sk-…` (i drugi prefiksi API ključeva) | **API Manager / API ključevi**                          | `/v1/*` inference              | **Nijedna** osim ako metapodaci ključa uključuju `manage` ili `admin`                         |
+| Vjerodajnica             | Tipični oblik                          | Gdje se kreira                                           | Namjena                           | Mogućnost upravljanja                                                                       |
+| ------------------------ | -------------------------------------- | -------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------- |
+| Dashboard JWT sesija     | `auth_token` kolačić                   | Prijava na dashboard                                     | Korisničko sučelje preglednika    | Potpuno upravljanje putem dashboarda, uz pravila za CSRF, lokalnost i uvijek zaštićene rute |
+| CLI machine-id token     | interno / lokalno                      | CLI bootstrap (`omniroute` na istom računaru)            | Lokalni CLI                       | Samo lokalno upravljanje                                                                    |
+| Token s opsegom pristupa | `oma_live_…`                           | **Postavke → Tokeni za pristup** ili `omniroute connect` | Udaljeni CLI i API za upravljanje | Mora zadovoljavati opseg `read`, `write` ili `admin` koji ruta zahtijeva                    |
+| API ključ za inferenciju | `sk-…` (i drugi prefiksi API ključeva) | **Upravitelj API-ja / API ključevi**                     | `/v1/*` inferencija               | **Nema** osim ako metapodaci ključa uključuju `manage` ili `admin`                          |
 
-`oma_` vjerodajnice su upravljačke/CLI vjerodajnice. One **nisu** inference API ključevi.
+Vjerodajnice `oma_` su vjerodajnice za upravljanje/CLI. One **nisu** API ključevi za inferenciju.
 
-Ako je prijava/API-ključ autentifikacija onemogućena za server, neke upravljačke rute mogu
-prihvatiti neautentificirane pozive. Rute koje su samo lokalne i uvijek zaštićene i dalje primjenjuju
-svoja pravila. Predočavanje jedne od ovih vjerodajnica stoga nije univerzalno obavezno,
-a posjedovanje jedne nije univerzalno dovoljno bez potrebnog opsega i lokaliteta rute.
+Ako je autentifikacija prijavom/API ključem onemogućena za server, neke upravljačke rute mogu
+prihvatati neautentificirane pozive. Rute koje su samo lokalne i uvijek zaštićene i dalje primjenjuju
+vlastita pravila. Stoga predstavljanje jedne od ovih vjerodajnica nije univerzalno
+obavezno, a njeno posjedovanje nije univerzalno dovoljno bez zahtijevanog
+opsega i lokalnosti rute.
 
-Povezano: [Remote Mode](./REMOTE-MODE.md) (kako se `oma_live_…` kreira za udaljeni CLI).
+Povezano: [Udaljeni način rada](./REMOTE-MODE.md) (kako se `oma_live_…` izdaje za udaljeni CLI).
 
 ---
 
 ## Matrice opsega
 
-Ova dva vokabulara opsega su **različita**. Nemojte ih miješati.
+Opsezi za upravljanje API ključevima i opsezi pristupnih tokena koriste različite terminologije.
+Opsezi MCP alata predstavljaju treću terminologiju i provjeravaju se pomoću `scopeMatches`, a ne
+funkcijama navedenim u tabelama ispod. Uporedni prikaz:
+[Tri prostora imena opsega](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
 ### Opsezi pristupnih tokena (`oma_live_…`)
 
-| Opseg   | Tipične operacije                                                                 |
-| ------- | --------------------------------------------------------------------------------- |
-| `read`  | List/status GET zahtjevi koje token smije vidjeti                                 |
-| `write` | Mutacije (kreiranje/ažuriranje/brisanje) ispod admin nivoa                        |
-| `admin` | Potpuni udaljeni CLI / connect token (password bootstrap ovdje podrazumijeva ovo) |
+| Opseg   | Tipične operacije                                                                           |
+| ------- | ------------------------------------------------------------------------------------------- |
+| `read`  | GET zahtjevi za prikaz liste/statusa koje token smije vidjeti                               |
+| `write` | Izmjene (kreiranje/ažuriranje/brisanje) ispod administratorskog nivoa                       |
+| `admin` | Potpuni udaljeni CLI / token za povezivanje (početno postavljanje lozinkom ovdje je zadano) |
 
-Token sa `read` opsegom ne može pozvati `write` rutu. Oblik poruke tokom izvršavanja:
-`Access token scope '<have>' is insufficient; '<need>' required.`
+Token s opsegom `read` ne može pozvati rutu s opsegom `write`. Format poruke tokom izvršavanja:
+`Opseg pristupnog tokena '<have>' nije dovoljan; potreban je '<need>'.`
 
-### Opsezi upravljanja API ključevima
+### Opsezi za upravljanje API ključevima
 
-| Opseg     | Značenje                                                                      |
-| --------- | ----------------------------------------------------------------------------- |
-| (nijedan) | Samo inference. Upravljačke rute vraćaju 403.                                 |
-| `manage`  | Upravljački API (ista kapija kao `requireManagementAuth` API-ključ grana)     |
-| `admin`   | Također zadovoljava `hasManageScope` (tretira se kao sposoban za upravljanje) |
+| Opseg    | Značenje                                                                        |
+| -------- | ------------------------------------------------------------------------------- |
+| (nema)   | Samo zaključivanje. Rute za upravljanje vraćaju 403.                            |
+| `manage` | API za upravljanje (ista provjera kao grana API ključa `requireManagementAuth`) |
+| `admin`  | Također zadovoljava `hasManageScope` (tretira se kao sposoban za upravljanje)   |
 
-Omogućite `manage` na ključu u API Keys / API Manager UI-u. Nemojte ponovo koristiti
-ključ chat klijenta za automatizaciju osim ako niste namjerno dodijelili taj opseg.
+Omogućite `manage` na ključu u korisničkom interfejsu API Keys / API Manager. Nemojte ponovo koristiti
+ključ klijenta za razgovor za automatizaciju osim ako mu niste namjerno dodijelili taj opseg.
 
 ---
 
@@ -126,26 +128,29 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Trenutne greške tokom izvršavanja (ne ispisujte tajne)
+## Trenutne greške tokom izvršavanja (ne prikazujte tajne podatke)
 
-| Situacija                                        | Tipičan status | Poruka (sanitizirana)                                                |
+| Situacija                                        | Tipični status | Poruka (bez osjetljivih podataka)                                    |
 | ------------------------------------------------ | -------------- | -------------------------------------------------------------------- |
-| Nema vjerodajnica                                | 401            | `Authentication required`                                            |
-| Neispravan/istekao `oma_live_…`                  | 401            | `Invalid or expired access token`                                    |
-| Ispravan API ključ bez `manage`/`admin`          | 403            | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Neispravan običan API ključ na upravljačkoj ruti | 403            | `Invalid management token`                                           |
+| Nema vjerodajnice                                | 401            | `Authentication required`                                            |
+| Nevažeći/istekli `oma_live_…`                    | 401            | `Invalid or expired access token`                                    |
+| Važeći API ključ bez opsega `manage`/`admin`     | 403            | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Nevažeći obični API ključ na ruti za upravljanje | 403            | `Invalid management token`                                           |
 | Opseg pristupnog tokena je prenizak              | 403            | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token" znači da nosilac **nije** prihvaćen kao upravljačka vjerodajnica. To vam **ne** govori koju porodicu (vrstu) trebate izdati. Koristite gornju tabelu: ključevi za inferenciju trebaju `manage` opseg; udaljeni CLI treba `oma_live_…`; kontrolna tabla koristi sesijski kolačić.
+„Invalid management token“ znači da nosilac tokena **nije** prihvaćen kao vjerodajnica
+za upravljanje. Poruka vam **ne** govori koju vrstu vjerodajnice trebate generisati. Koristite gornju tabelu:
+ključevi za inferenciju zahtijevaju opseg `manage`; udaljeni CLI zahtijeva `oma_live_…`; kontrolna tabla
+koristi kolačić sesije.
 
 ---
 
 ## Preporučeni izbor s najmanjim privilegijama
 
-| Pozivalac                                           | Upotreba                                        |
-| --------------------------------------------------- | ----------------------------------------------- |
-| Preglednik                                          | Sesija kontrolne table                          |
-| CLI na hostu servera                                | Mašinski token                                  |
-| CLI na laptopu koji komunicira s udaljenim serverom | `oma_live_…` iz `omniroute connect`             |
-| CI / skripte (samo upravljanje)                     | `oma_live_…` s najmanjim opsegom koji radi      |
-| CI koji mora pozivati i `/v1` i `/api`              | API ključ s `manage` **ili** dvije vjerodajnice |
+| Pozivalac                                           | Koristite                                         |
+| --------------------------------------------------- | ------------------------------------------------- |
+| Preglednik                                          | Sesija kontrolne ploče                            |
+| CLI na hostu servera                                | Token mašine                                      |
+| CLI na laptopu koji komunicira s udaljenim serverom | `oma_live_…` iz `omniroute connect`               |
+| CI / skripte (samo upravljanje)                     | `oma_live_…` s najmanjim opsegom koji funkcionira |
+| CI koji mora pozivati i `/v1` i `/api`              | API ključ s `manage` **ili** dvije vjerodajnice   |

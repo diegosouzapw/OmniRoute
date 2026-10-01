@@ -304,6 +304,7 @@ Export contexts to JSON
 
 - `--out <path>`
 - `--no-secrets`
+- `--include-secrets`
 
 **Example:**
 

@@ -284,29 +284,29 @@ aniqlangan qiymatlar mexanizmning mavjud `config.modePack` / `config.budgetCap` 
 
 ## Barcha marshrutlash strategiyalari
 
-OmniRoute’ning combo mexanizmi **19 ta marshrutlash strategiyasini** qoʻllab-quvvatlaydi (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` ichida eʼlon qilingan). Auto Combo mexanizmining oʻzi `auto` strategiyasi orqali taqdim etiladi; qolganlari saqlangan combo’lar uchun mavjud.
+OmniRoute kombinatsiya mexanizmi **19 ta marshrutlash strategiyasini** qoʻllab-quvvatlaydi (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` ichida eʼlon qilingan). Auto Combo mexanizmining oʻzi `auto` strategiyasi orqali taqdim etiladi; qolganlari saqlangan kombinatsiyalar uchun mavjud.
 
-| Strategiya          | Tavsif                                                                                                                                                                                                                                |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `priority`          | Aniq ustuvorlikka ega, birinchi nishondan boshlanadigan tartiblangan roʻyxat                                                                                                                                                          |
-| `weighted`          | Har bir nishon vazniga asoslangan vaznli tasodifiy tanlov                                                                                                                                                                             |
-| `round-robin`       | Nishonlar boʻylab tartib bilan navbatma-navbat oʻtish                                                                                                                                                                                 |
-| `context-relay`     | Kontekstni nishonlar oʻrtasida uzatish (uzoq suhbatlar)                                                                                                                                                                               |
-| `fill-first`        | Keyingisiga oʻtishdan oldin har bir nishon kvotasini toʻldirish                                                                                                                                                                       |
-| `p2c`               | 2 ta tanlov quvvatiga asoslangan tasodifiy yuk muvozanatlash                                                                                                                                                                          |
-| `random`            | Bir tekis tasodifiy tanlov                                                                                                                                                                                                            |
-| `least-used`        | Joriy yuki eng kam boʻlgan nishonni tanlash                                                                                                                                                                                           |
-| `cost-optimized`    | Katalog narxlariga asoslanib, har bir soʻrov uchun $ xarajatni minimallashtirish                                                                                                                                                      |
-| `reset-aware` ⭐    | Kvota tiklanish vaqtiga koʻra ustuvorlashtirish — qisqa tiklanish oynalari yuqoriroq oʻringa qoʻyiladi                                                                                                                                |
-| `reset-window`      | Kvota oynasi eng tez tiklanadigan nishonlarni afzal koʻrish                                                                                                                                                                           |
-| `headroom`          | Eng koʻp qolgan kvota zaxirasiga ega nishonni tanlash                                                                                                                                                                                 |
-| `strict-random`     | Takrorlarni deduplikatsiya qilmasdan tasodifiy tanlash                                                                                                                                                                                |
-| `auto`              | Auto Combo baholashidan foydalanish (16 omil) — **tavsiya etiladi**                                                                                                                                                                   |
-| `lkgp`              | Oxirgi maʼlum yaxshi yoʻl (soʻnggi muvaffaqiyatli provayderga mahkamlaydi, keyin qoidalarga qaytadi)                                                                                                                                  |
-| `context-optimized` | Joriy kontekst hajmiga eng mos nishonni tanlash                                                                                                                                                                                       |
-| `cache-optimized`   | Nishonlarni prompt keshi bilan yaqinligiga qarab qayta tartiblash — ushbu soʻrovning keshlangan prefiksiga ega boʻlish ehtimoli eng yuqori ulanish birinchi boʻlib sinaladi (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Modellar guruhiga parallel ravishda soʻrov yuborish, soʻng hakam orqali yagona javobni sintez qilish (quyiga qarang)                                                                                                                  |
-| `pipeline`          | Nishonlarni ketma-ket ishga tushirib, har bir bosqich chiqishini keyingi bosqich kirishiga uzatish; faqat yakuniy javob qaytariladi (#6396)                                                                                           |
+| Strategiya          | Tavsif                                                                                                                                                                                                                                      |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `priority`          | Aniq ustuvorlikka ega, birinchi nishondan boshlanadigan tartiblangan roʻyxat                                                                                                                                                                |
+| `weighted`          | Har bir nishon vazniga asoslangan vaznli tasodifiy tanlov                                                                                                                                                                                   |
+| `round-robin`       | Nishonlarni tartib boʻyicha navbatma-navbat aylantirish (paketlab; quyiga qarang)                                                                                                                                                           |
+| `context-relay`     | Kontekstni nishonlar oʻrtasida uzatish (uzoq suhbatlar)                                                                                                                                                                                     |
+| `fill-first`        | Keyingisiga oʻtishdan oldin har bir nishon kvotasini toʻldirish                                                                                                                                                                             |
+| `p2c`               | Ikki variantdan tanlash usuliga asoslangan tasodifiy yukni muvozanatlash                                                                                                                                                                    |
+| `random`            | Bir tekis tasodifiy tanlash                                                                                                                                                                                                                 |
+| `least-used`        | Joriy yuki eng past boʻlgan nishonni tanlash                                                                                                                                                                                                |
+| `cost-optimized`    | Katalog narxlariga asoslanib, har bir soʻrov uchun $ xarajatini minimallashtirish                                                                                                                                                           |
+| `reset-aware` ⭐    | Kvota tiklanish vaqtiga qarab ustuvorlashtirish — tiklanish oraligʻi qisqa boʻlganlar yuqoriroq tartiblanadi                                                                                                                                |
+| `reset-window`      | Kvota oynasi eng tez tiklanadigan nishonlarni afzal koʻrish                                                                                                                                                                                 |
+| `headroom`          | Qolgan kvota zaxirasi eng koʻp boʻlgan nishonni tanlash                                                                                                                                                                                     |
+| `strict-random`     | Takrorlarni olib tashlamasdan tasodifiy tanlash                                                                                                                                                                                             |
+| `auto`              | Auto Combo baholashidan foydalanish (16 omil) — **tavsiya etiladi**                                                                                                                                                                         |
+| `lkgp`              | Oxirgi maʼlum yaxshi yoʻl (oxirgi muvaffaqiyatli provayderga biriktiradi, soʻng qoidalarga qaytadi)                                                                                                                                         |
+| `context-optimized` | Joriy kontekst oʻlchamiga eng mos nishonni tanlash                                                                                                                                                                                          |
+| `cache-optimized`   | Nishonlarni prompt keshi bilan mosligiga qarab qayta tartiblash — bu soʻrovning keshlangan prefiksiga allaqachon ega boʻlish ehtimoli eng yuqori ulanish birinchi boʻlib sinaladi (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Modellardan iborat panelga parallel ravishda soʻrov yuborish, soʻng baholovchi model orqali bitta javobni sintez qilish (quyiga qarang)                                                                                                     |
+| `pipeline`          | Nishonlarni ketma-ket ishga tushirish, har bir bosqich chiqishini keyingi bosqich kirishiga uzatish; faqat yakuniy javob qaytariladi (#6396)                                                                                                |
 
 ⭐ = v3.8.0 versiyasida yangi · 🧬 = v3.8.36 versiyasida yangi
 
@@ -318,17 +318,67 @@ OmniRoute’ning combo mexanizmi **19 ta marshrutlash strategiyasini** qoʻllab-
 - Har bir soʻrov `weight / totalWeight` ehtimoli bilan **bitta** bosqichni tanlaydi; qolgan bosqichlar
   ushbu soʻrov uchun zaxira zanjiri sifatida vaznning kamayish tartibida joylashtiriladi.
 - Vazni `0` boʻlgan (yoki koʻrsatilmagan) bosqich boshqa istalgan bosqichning vazni
-  > 0 boʻlsa, **hech qachon tanlanmaydi** — u faqat tanlangan bosqich muvaffaqiyatsiz tugaganidan keyin zaxira sifatida xizmat qilishi mumkin. Faqat **barcha**
-  > vaznlar 0 boʻlgandagina tanlov bir tekis boʻladi.
+  0 dan katta boʻlsa, **hech qachon tanlanmaydi** — u faqat tanlangan bosqich muvaffaqiyatsiz tugaganidan keyin zaxira sifatida xizmat qilishi mumkin. Faqat **barcha**
+  vaznlar 0 boʻlgandagina tanlov bir tekis boʻladi.
 - Barcha nishonlari mavjud boʻlmagan bosqichlar — provayder avtomatik uzgichi `OPEN`, ulanishning
-  sovish muddati, model blokirovkasi — tanlov amalga oshirilishidan oldin undan chiqarib tashlanadi
-  (`open-sse/services/combo/targetResolution.ts`), shuning uchun yagona sogʻlom bosqich vaqtincha
+  sovish davri, model bloklanishi — tanlov amalga oshirilishidan oldin undan chiqarib tashlanadi
+  (`open-sse/services/combo/targetResolution.ts`), shu sababli yagona sogʻlom bosqich vaqtincha
   har bir soʻrovda tanlanishi mumkin.
-- `stickyWeightedLimit` (combo konfiguratsiyasi, standart qiymati `1` = oʻchiq) qayta tanlashdan oldin tanlangan bosqichni shuncha
-  ketma-ket muvaffaqiyat davomida mahkamlab qoʻyadi.
+- `stickyWeightedLimit` (kombinatsiya konfiguratsiyasi, standart qiymati `1` = oʻchiq) qayta tanlashdan oldin tanlangan bosqichni shuncha
+  ketma-ket muvaffaqiyat davomida biriktirib qoʻyadi.
 
-Qatʼiy rotatsiya uchun `round-robin` dan foydalaning; `weighted` dagi teng vaznlar qatʼiy emas,
+Qatʼiy navbatlash uchun `round-robin` dan foydalaning; `weighted` da teng vaznlar qatʼiy emas,
 statistik muvozanatni taʼminlaydi.
+
+### Agentik pipeline rejimi
+
+Ikki bosqichli `pipeline` kombinatsiyasi
+`config.agenticOrchestration.enabled` orqali rejalashtiruvchi/ijrochi yoʻnaltirishini yoqishi mumkin. Birinchi target rejalashtirish va yakuniy javoblar uchun javobgar;
+ikkinchi target esa klientga xos vosita chaqiruvlarini yuboradi. OmniRoute soʻrov protokolidan vosita natijasi bilan
+davom ettirishlarni aniqlaydi, rejalashtiruvchidan yana bir vosita bosqichi zarurligini
+soʻraydi va dinamik ravishda ijrochi yoki rejalashtiruvchini klientga yuboriladigan yakuniy
+bosqich sifatida belgilaydi.
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+Ijrochi bitta javobda bir nechta mustaqil chaqiruvlarni yuborishi mumkin. Bogʻliq chaqiruvlar
+klientning keyingi vosita natijasi bosqichlarida qayta ishlanadi va rejalashtiruvchi har bir natijani koʻrib chiqadi.
+`maxToolRounds` standart qiymati `8` boʻlib, `1`–`32` oraligʻidagi qiymatlarni qabul qiladi; limitga yetilgach, rejalashtiruvchi
+mavjud eng yaxshi yakuniy javobni taqdim etishi kerak. Rejalashtiruvchining ichki qarorlari buferlanadi, shu bilan birga
+klientga yuboriladigan tanlangan javob asl oqimli uzatish sozlamasini saqlab qoladi.
+
+### `round-robin` yopishqoq paketlash va hisoblarni kengaytirish
+
+Round-robin har bir bosqichga bittadan soʻrov tarzida emas, paketli tarzda ishlaydi:
+
+- `stickyRoundRobinLimit` (avval kombinatsiya konfiguratsiyasi, keyin `comboStickyRoundRobinLimit`, soʻng
+  `settings.stickyRoundRobinLimit`, standart qiymat **3**) rotatsiyadan oldin bir xil targetni shuncha
+  ketma-ket muvaffaqiyatli soʻrov davomida saqlab turadi. Har bir soʻrovda rotatsiya qilish uchun kombinatsiyadagi qiymatni
+  `1` qilib belgilang. Kombinatsiya muharriri amaldagi qiymatni va u qaysi qatlamdan olinganini koʻrsatadi.
+- `connectionAwareExpansion` (avval kombinatsiya konfiguratsiyasi, keyin sozlamalar, standart qiymat **false**) rotatsiyadan
+  oldin provayder darajasidagi har bir bosqichni alohida hisob targetlariga kengaytiradi. B guruhi strategiyalari
+  (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) ushbu parametr yoqilmaguncha provayder darajasidagi koʻrinishni saqlaydi. Kombinatsiya muharriri
+  inherit / on / off variantlarini taqdim etadi; inherit global standart qiymatdan (off) foydalanadi.
+- Prompt keshining lokalligiga asoslangan yoʻnaltirish (`promptCacheAffinityEnabled`, standart qiymat **true**)
+  mos kesh kalitlari bitta hisobda qolishi uchun biriktirilgan ulanishlarni qayta tartiblaydi. Bu har bir hisobga
+  biriktirilgan bosqichlar boʻylab round-robin va weighted rotatsiyasidan ustun turadi. Qatʼiy rotatsiya kerak boʻlsa,
+  uni Settings → Combo defaults boʻlimida oʻchiring. Har bir kombinatsiya uchun alohida qayta belgilash imkoniyati mavjud emas.
+
+Bitta modelda bir nechta hisob oʻrtasida rotatsiya qilish uchun uchta biriktirilgan `connectionId` oʻrniga
+yopishqoqlik limiti `1` boʻlgan **bitta dinamik hisob bosqichi**dan (boʻsh
+`connectionId`, butun hovuz) foydalaning.
+Biriktirilgan bosqichlar va yaqinlik mexanizmi, hatto RR hisoblagichi oldinga siljiyotgan boʻlsa ham,
+soʻrovlarni bir xil hisobga jamlaydi.
 
 ## Fusion strategiyasi
 

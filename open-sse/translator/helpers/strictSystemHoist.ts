@@ -7,7 +7,9 @@ function toTextContent(content: unknown): string {
   if (Array.isArray(content)) {
     return content
       .filter((part): part is { type: string; text?: unknown } => {
-        return Boolean(part) && typeof part === "object" && (part as { type?: unknown }).type === "text";
+        return (
+          Boolean(part) && typeof part === "object" && (part as { type?: unknown }).type === "text"
+        );
       })
       .map((part) => String(part.text ?? ""))
       .join("\n");
@@ -32,6 +34,12 @@ function toTextContent(content: unknown): string {
  *
  * No-op (same array reference) whenever the provider is not strict, or the request is
  * already compliant — required for prompt-cache prefix stability (#3890 class).
+ *
+ * #13948: callers must NOT invoke this for sourceFormat===CLAUDE&&targetFormat===OPENAI —
+ * claude-to-openai.ts's demoteMidSystem already enforces the restriction in position for
+ * that path, and hoisting first (on the pre-translation Claude array) makes the later
+ * demote-in-place inherit the hoisted index instead of the original chronological one.
+ * See open-sse/translator/index.ts's call sites for the guard.
  */
 export function hoistLeadingSystemMessage(
   messages: Message[],

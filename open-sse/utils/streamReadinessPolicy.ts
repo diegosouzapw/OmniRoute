@@ -8,7 +8,9 @@ export type StreamReadinessPolicyInput = {
   provider?: string | null;
   model?: string | null;
   body?: StreamReadinessBody;
+  sourceBody?: StreamReadinessBody;
   maxTimeoutMs?: number;
+  cascadeTimeoutMs?: number;
 };
 
 export type StreamReadinessPolicyResult = {
@@ -71,8 +73,8 @@ function isCodexGpt5x(provider?: string | null, model?: string | null): boolean 
 }
 
 /**
- * High-reasoning Codex GPT-5.x targets do a cold, expensive reasoning warm-up
- * (~78s TTFB) even for small prompts. Detect "high" reasoning effort either from
+ * High-reasoning targets can do a cold, expensive reasoning warm-up even for
+ * small prompts. Detect "high" or "max" reasoning effort either from
  * the model alias suffix (`...-high`) or from the request body's reasoning effort
  * field (OpenAI `reasoning_effort` or Responses API `reasoning.effort`).
  */
@@ -93,7 +95,7 @@ function isHighReasoningEffort(
     }
     return "";
   })();
-  return effort.toLowerCase() === "high";
+  return ["high", "max"].includes(effort.toLowerCase());
 }
 
 /**
@@ -122,10 +124,19 @@ export function resolveStreamReadinessTimeout(
 ): StreamReadinessPolicyResult {
   const baseTimeoutMs = Math.max(0, Math.floor(input.baseTimeoutMs || 0));
   if (baseTimeoutMs <= 0) {
-    return { timeoutMs: baseTimeoutMs, baseTimeoutMs, maxTimeoutMs: baseTimeoutMs, reasons: ["disabled"] };
+    return {
+      timeoutMs: baseTimeoutMs,
+      baseTimeoutMs,
+      maxTimeoutMs: baseTimeoutMs,
+      reasons: ["disabled"],
+    };
   }
 
-  const maxTimeoutMs = Math.max(baseTimeoutMs, input.maxTimeoutMs ?? DEFAULT_MAX_TIMEOUT_MS);
+  const maxTimeoutMs = Math.max(
+    baseTimeoutMs,
+    input.maxTimeoutMs ?? DEFAULT_MAX_TIMEOUT_MS,
+    input.cascadeTimeoutMs ?? 0
+  );
   const reasons: string[] = [];
   let timeoutMs = baseTimeoutMs;
 
@@ -134,8 +145,15 @@ export function resolveStreamReadinessTimeout(
   const itemCount = Math.max(inputCount, messageCount);
   const toolCount = countArrayField(input.body, "tools");
   const estimatedChars = estimateBodyChars(input.body);
+  const cursorSourceItems = ["cursor", "cursor-api"].includes((input.provider || "").toLowerCase())
+    ? Math.max(
+        countArrayField(input.sourceBody, "input"),
+        countArrayField(input.sourceBody, "messages")
+      )
+    : 0;
   const codexGpt5x = isCodexGpt5x(input.provider, input.model);
-  const codexHighReasoning = codexGpt5x && isHighReasoningEffort(input.model, input.body);
+  const highReasoning = isHighReasoningEffort(input.model, input.body);
+  const codexHighReasoning = codexGpt5x && highReasoning;
   const extendedThinking = isExtendedThinkingModel(input.model);
 
   if (itemCount > VERY_LARGE_ITEM_THRESHOLD) {
@@ -167,6 +185,9 @@ export function resolveStreamReadinessTimeout(
   if (codexHighReasoning) {
     timeoutMs += 30_000;
     reasons.push("codex_gpt_5_5_high_reasoning");
+  } else if (highReasoning) {
+    timeoutMs += 30_000;
+    reasons.push("high_reasoning");
   } else if (
     codexGpt5x &&
     (itemCount > LARGE_ITEM_THRESHOLD || toolCount >= TOOL_HEAVY_THRESHOLD)
@@ -190,9 +211,17 @@ export function resolveStreamReadinessTimeout(
     reasons.push("extended_thinking");
   }
 
-  if (isClaudeFormatReasoningProvider(input.provider) && !codexHighReasoning && !extendedThinking) {
+  if (isClaudeFormatReasoningProvider(input.provider) && !highReasoning && !extendedThinking) {
     timeoutMs += 30_000;
     reasons.push("claude_format_heavy_reasoning");
+  }
+
+  // Cursor flattens Responses history into one wire message before dispatch;
+  // use the original item count so long agent conversations get the existing
+  // hard ceiling instead of failing at the 80s first-event budget.
+  if (cursorSourceItems > LARGE_ITEM_THRESHOLD) {
+    timeoutMs = maxTimeoutMs;
+    reasons.push("cursor_long_history");
   }
 
   timeoutMs = Math.min(timeoutMs, maxTimeoutMs);

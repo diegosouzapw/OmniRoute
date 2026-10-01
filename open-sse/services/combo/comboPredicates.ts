@@ -16,11 +16,26 @@ import {
   isLocalExecutionError,
   isModelCapacityOverloadError,
 } from "@/shared/utils/circuitBreaker";
-import { CONTEXT_OVERFLOW_PATTERNS, cooldownUntilMs } from "../accountFallback.ts";
+import {
+  CONTEXT_OVERFLOW_PATTERNS,
+  PARAM_VALIDATION_PATTERNS,
+  RATE_LIMIT_TEXT_PATTERNS,
+  AUTH_CREDENTIAL_ERROR_PATTERNS,
+  isProviderModelUnsupported400,
+  cooldownUntilMs,
+} from "../accountFallback.ts";
+import { isRequestScoped400 } from "../accountFallback/requestScoped400.ts";
 import { isResourceNotFoundResponse } from "../errorClassifier.ts";
+import { isOpencodeFreeTierRefusal } from "../../executors/opencodeGeoBlock.ts";
 import { getTrustedLocalRateLimitResponse } from "../rateLimitManager/errors.ts";
+import { TRANSLATION_FAILURE_CODE } from "../../handlers/chatCore/translationFailure.ts";
 import type { ResolvedComboTarget } from "./types.ts";
-import type { ComboErrorEntry } from "./comboErrorAggregation.ts";
+import {
+  classifyComboOutcome,
+  type ComboErrorEntry,
+  type ComboOutcomeKind,
+} from "./comboErrorAggregation.ts";
+import type { ResponseQualityResult } from "./validateQuality.ts";
 
 export { isModelScoped400 } from "../modelAccessDenied.ts";
 
@@ -260,6 +275,7 @@ export function shouldRecordProviderBreakerFailure(args: {
 
 const REQUEST_SCOPED_UPSTREAM_ERROR_CODES: Record<string, true> = {
   context_length_exceeded: true,
+  context_window_exceeded: true,
   upstream_empty_response: true,
   upstream_response_failed: true,
   // Local combo per-target timer (targetTimeoutRunner) — not a connection health signal.
@@ -275,6 +291,20 @@ const REQUEST_SCOPED_UPSTREAM_ERROR_CODES: Record<string, true> = {
 };
 
 /** Request/model-specific failures must not poison provider-wide resilience state. */
+export function classifyQualityFailure(quality: ResponseQualityResult): {
+  status: number;
+  kind: ComboOutcomeKind;
+  requestScoped: boolean;
+} {
+  const upstream = quality.upstreamFailure;
+  if (!upstream) return { status: 502, kind: "quality", requestScoped: false };
+  const kind: ComboOutcomeKind = classifyComboOutcome(
+    upstream.status,
+    upstream.type || upstream.message || ""
+  );
+  return { status: upstream.status, kind, requestScoped: upstream.requestScoped };
+}
+
 export function isRequestScopedUpstreamFailure(error?: {
   code?: string | null;
   type?: string | null;
@@ -283,8 +313,13 @@ export function isRequestScopedUpstreamFailure(error?: {
   const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
   return (
     REQUEST_SCOPED_UPSTREAM_ERROR_CODES[code] === true ||
+    type === "invalid_request_error" ||
     type === "context_length_exceeded" ||
-    type === "local_queue_capacity"
+    type === "local_queue_capacity" ||
+    // #14313: OpenCode free-tier refusal (FreeTierError) — same verdict on every
+    // account for the same request; never a connection/model health signal.
+    type === "freetiererror" ||
+    code === "freetiererror"
   );
 }
 
@@ -297,11 +332,26 @@ export function isComboRequestScopedFailure(
   return (
     getTrustedLocalRateLimitResponse(response) !== null ||
     isRequestScopedUpstreamFailure(error) ||
-    (response.status === 404 && isResourceNotFoundResponse(errorText))
+    (response.status === 404 && isResourceNotFoundResponse(errorText)) ||
+    // #14313: body-only free-tier refusals (relayed sentence, no error.type kept).
+    isOpencodeFreeTierRefusal(response.status, errorText)
   );
 }
 
 const INPUT_BOUND_ERROR_CODES = new Set(["context_length_exceeded", "context_window_exceeded"]);
+
+/**
+ * Normalized provider+model key for a target. A request-scoped refusal is a
+ * property of the request and the model — another ACL/account/connection of the
+ * same model rejects it identically, so those targets are skipped instead of
+ * being replayed. Distinct models (even aliases) keep their own key.
+ */
+export function requestScopedReplayKey(modelStr: string): string {
+  const parsed = parseModel(modelStr);
+  const model = (parsed.model || modelStr).toLowerCase();
+  const provider = (parsed.provider || parsed.providerAlias || "").toLowerCase();
+  return provider && provider !== "unknown" ? `${provider}/${model}` : model;
+}
 
 /**
  * #8375: Whether an upstream error is input-bound — i.e. determined solely by the
@@ -340,11 +390,38 @@ export function shouldSkipConnDisable(
     errorCode?: string | null;
     errorType?: string | null;
     error?: unknown;
+    rawMessage?: string | null;
   },
   is401: boolean,
   hasExtraKeys: boolean,
   provider: string
 ): boolean {
+  let errorText = "";
+  if (typeof result.rawMessage === "string") {
+    errorText = result.rawMessage;
+  } else if (typeof result.error === "string") {
+    errorText = result.error;
+  } else if (result.error instanceof Error) {
+    errorText = result.error.message;
+  } else if (result.error && typeof result.error === "object") {
+    const errObj = result.error as Record<string, unknown>;
+    if (typeof errObj.message === "string") {
+      errorText = errObj.message;
+    } else if (typeof errObj.error === "string") {
+      errorText = errObj.error;
+    }
+  }
+  const isReqScoped400 =
+    isRequestScoped400(result.status, errorText) ||
+    isProviderModelUnsupported400(result.status, errorText) ||
+    isParamValidation400(errorText) ||
+    (result.status === 400 &&
+      !RATE_LIMIT_TEXT_PATTERNS.some((p) => p.test(errorText)) &&
+      !AUTH_CREDENTIAL_ERROR_PATTERNS.some((p) => p.test(errorText)) &&
+      (isInputBoundRequestFailure({ code: result.errorCode, type: result.errorType }) ||
+        result.errorCode === "context_length_exceeded" ||
+        result.errorType === "context_length_exceeded"));
+
   return (
     result.status === 499 ||
     result.errorCode === "client_disconnected" ||
@@ -356,9 +433,12 @@ export function shouldSkipConnDisable(
     (result.response ? getTrustedLocalRateLimitResponse(result.response) !== null : false) ||
     result.errorCode === "plugin_block" ||
     result.errorType === "plugin_block" ||
+    // #14815: translation fails locally on the client's body — no account is at fault.
+    result.errorCode === TRANSLATION_FAILURE_CODE ||
     (is401 && hasExtraKeys) ||
     isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) ||
-    isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider)
+    isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider) ||
+    isReqScoped400
   );
 }
 
@@ -436,6 +516,37 @@ export function isTokenLimitBreachErrorBody(errorBody: unknown): boolean {
   const error = (errorBody as Record<string, unknown>).error;
   if (!error || typeof error !== "object") return false;
   return (error as Record<string, unknown>).code === "TOKEN_LIMIT_EXCEEDED";
+}
+
+/**
+ * A local per-API-key POLICY breach: this OmniRoute instance refused the
+ * candidate before dispatch because of the key's own limits, not because an
+ * upstream said no. Today that is the token-limit 429 above and the metered
+ * dollar-budget 429 ("BUDGET_EXCEEDED", see handleSingleModelChat in
+ * src/sse/handlers/chat.ts).
+ *
+ * Both share one consequence: the shared account/provider is healthy and must
+ * not be cooled, deprioritised or retried as if an upstream had rate-limited
+ * it. They differ in what comes next, and the combo loop gets that right
+ * without another flag — a token limit is key-scoped, so every remaining
+ * candidate breaches it too and the loop runs out of targets; a budget breach
+ * is scoped to candidates that draw on the allowance, so the loop advances and
+ * a flat-rate candidate still serves the request.
+ */
+export function isLocalKeyPolicyBreachErrorBody(errorBody: unknown): boolean {
+  return isTokenLimitBreachErrorBody(errorBody) || isBudgetBreachErrorBody(errorBody);
+}
+
+/**
+ * The metered dollar budget refused this candidate before dispatch — see the
+ * eligibility gate in handleSingleModelChat. Only candidates that DRAW on the
+ * allowance can raise it, so it is never a verdict on the combo as a whole.
+ */
+export function isBudgetBreachErrorBody(errorBody: unknown): boolean {
+  if (!errorBody || typeof errorBody !== "object") return false;
+  const error = (errorBody as Record<string, unknown>).error;
+  if (!error || typeof error !== "object") return false;
+  return (error as Record<string, unknown>).code === "BUDGET_EXCEEDED";
 }
 
 /** Local limiter capacity is not an upstream/provider failure and must not cascade. */
@@ -560,11 +671,11 @@ export function getPersistedConnectionCooldownSkipReason(
   connection: Record<string, unknown> | null | undefined,
   allowRateLimitedConnection = false
 ): string | null {
-  if (allowRateLimitedConnection) return null;
   if (!target.connectionId || !connection) return null;
   if (hasFutureRateLimitUntil(connection.rateLimitedUntil)) {
     return `Skipping ${target.modelStr} — connection ${target.connectionId} has persisted cooldown until ${String(connection.rateLimitedUntil)}`;
   }
+  if (allowRateLimitedConnection) return null;
   const status = normalizeConnectionStatus(connection.testStatus);
   if (QUOTA_BLOCKING_CONNECTION_STATUSES.has(status)) {
     return `Skipping ${target.modelStr} — connection ${target.connectionId} status=${status}`;
@@ -615,7 +726,6 @@ export async function resolvePersistedConnectionCooldownSkipReason(
   fetchConnection: (id: string) => Promise<Record<string, unknown> | null | undefined>,
   allowRateLimitedConnection = false
 ): Promise<string | null> {
-  if (allowRateLimitedConnection) return null;
   if (!target.connectionId) return null;
   let connection: Record<string, unknown> | null | undefined;
   try {
@@ -646,6 +756,7 @@ export function isParamValidation400(errorText: string | null | undefined): bool
   return (
     /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(text) ||
     /\bparameter is illegal\b/i.test(text) ||
-    /\bis illegal.*range\b/i.test(text)
+    /\bis illegal.*range\b/i.test(text) ||
+    PARAM_VALIDATION_PATTERNS.some((p) => p.test(text))
   );
 }

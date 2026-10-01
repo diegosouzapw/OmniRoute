@@ -107,6 +107,10 @@ export default function DashboardLayout({ children }) {
         className={`fixed inset-y-0 start-0 z-50 transform lg:hidden transition-transform duration-300 ease-in-out h-dvh overflow-y-auto ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         }`}
+        style={{
+          top: "var(--ios-safe-top, 0px)",
+          bottom: "var(--ios-safe-bottom, 0px)",
+        }}
         aria-hidden={!sidebarOpen}
         inert={!sidebarOpen ? true : undefined}
       >

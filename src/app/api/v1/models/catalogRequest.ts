@@ -1,4 +1,10 @@
-import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
+import {
+  hasConfiguredOidc,
+  hasConfiguredPassword,
+  isAuthRequired,
+  isDashboardSessionAuthenticated,
+  isLoopbackRequest,
+} from "@/shared/utils/apiAuth";
 import { extractApiKey } from "@/sse/services/auth";
 
 // Request-scoped catalog helpers: API-key auth gating for `/v1/models` and Codex
@@ -9,6 +15,34 @@ async function validateCatalogApiKey(apiKey: string): Promise<boolean> {
   return validateApiKey(apiKey);
 }
 
+/**
+ * #13354: `isAuthRequired()` can return true purely from its bootstrap
+ * `setupComplete === true || !loopback` fallback, with ZERO credentials
+ * configured anywhere. That is a broader signal than "management auth is
+ * configured" — the intent #9320 actually wants to gate on. A pre-existing
+ * keyless install that completed onboarding (without ever configuring a
+ * password, OIDC, or INITIAL_PASSWORD, and without ever creating an API key)
+ * has no credential surface at all, so `/v1/models` must stay open for it —
+ * restoring the documented keyless local-first posture without reopening
+ * the #9320 leak for any install that DOES have a credential surface.
+ *
+ * The bypass is scoped to a TRUSTED loopback peer (`isLoopbackRequest`, the
+ * same token-stamped TCP-peer verdict the bootstrap gate uses). A keyless
+ * install exposed on the network — public IP, LAN, or a Docker bridge gateway,
+ * which is deliberately NOT loopback (#14296) — keeps requiring a credential.
+ */
+async function hasNoCredentialSurface(settings: Record<string, any>): Promise<boolean> {
+  if (hasConfiguredPassword(settings) || hasConfiguredOidc(settings)) return false;
+  if (process.env.INITIAL_PASSWORD) return false;
+  try {
+    const { getApiKeysCount } = await import("@/lib/db/apiKeys");
+    return getApiKeysCount() === 0;
+  } catch {
+    // Fail closed: on a DB hiccup, assume keys exist and keep requiring auth.
+    return false;
+  }
+}
+
 export async function getModelCatalogAuthRejection(
   request: Request,
   settings: Record<string, any>,
@@ -17,6 +51,7 @@ export async function getModelCatalogAuthRejection(
   const authRequired = await isAuthRequired(request);
   if (!authRequired) return null;
   if (settings.requireAuthForModels === false) return null;
+  if (isLoopbackRequest(request) && (await hasNoCredentialSurface(settings))) return null;
 
   const apiKey = extractApiKey(request);
   if (apiKey) {

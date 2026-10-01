@@ -48,24 +48,24 @@ test("invalid input, null, undefined and relays give a null key without throwing
   assert.equal(memory.proxyEgressKey({ type: "vercel", host: "x.vercel.app", port: 443 }), null);
 });
 
-test("repeated refusals double the period up to the one-hour cap", () => {
+test("repeated refusals double the period up to the fifteen-minute cap", () => {
   const key = "http://@h:8080";
   const periods: Array<number | null> = [];
   let now = START_MS;
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 5; i++) {
     const period = memory.noteProxyRefusal(key, "ip_quota_429", now);
     periods.push(period);
     now += period ?? 0;
   }
-  assert.deepEqual(periods, [2 * MIN, 4 * MIN, 8 * MIN, 16 * MIN, 32 * MIN, 60 * MIN, 60 * MIN]);
+  assert.deepEqual(periods, [5 * MIN, 10 * MIN, 15 * MIN, 15 * MIN, 15 * MIN]);
 });
 
 test("a note while the proxy is set aside changes nothing", () => {
   const key = "http://@h:8080";
-  assert.equal(memory.noteProxyRefusal(key, "ip_quota_429", START_MS), 2 * MIN);
+  assert.equal(memory.noteProxyRefusal(key, "ip_quota_429", START_MS), 5 * MIN);
   assert.equal(memory.noteProxyRefusal(key, "ip_quota_429", START_MS + MIN), null);
-  assert.equal(memory.isProxyAvoided(key, START_MS + 2 * MIN - 1), true);
-  assert.equal(memory.isProxyAvoided(key, START_MS + 2 * MIN), false);
+  assert.equal(memory.isProxyAvoided(key, START_MS + 5 * MIN - 1), true);
+  assert.equal(memory.isProxyAvoided(key, START_MS + 5 * MIN), false);
 });
 
 test("recovery ends the period but keeps the streak for a repeat", () => {
@@ -85,7 +85,7 @@ test("a served response forgets every refusal kind for that key", () => {
   assert.equal(memory.__proxyRefusalMemorySizeForTesting(), 0);
 });
 
-test("an old streak is purged per kind: unreachable 20 min, refusal 2 h", () => {
+test("an old streak is purged per kind: unreachable 20 min, refusal 30 min", () => {
   const key = "http://@h:8080";
   memory.noteProxyRefusal(key, "proxy_unreachable", START_MS);
   const endUnreachable = START_MS + MIN;
@@ -100,11 +100,11 @@ test("an old streak is purged per kind: unreachable 20 min, refusal 2 h", () => 
 
   memory.__resetProxyRefusalMemoryForTesting();
   memory.noteProxyRefusal(key, "ip_quota_429", START_MS);
-  const endRefusal = START_MS + 2 * MIN;
-  assert.equal(memory.noteProxyRefusal(key, "ip_quota_429", endRefusal + 119 * MIN), 4 * MIN);
+  const endRefusal = START_MS + 5 * MIN;
+  assert.equal(memory.noteProxyRefusal(key, "ip_quota_429", endRefusal + 29 * MIN), 10 * MIN);
   memory.__resetProxyRefusalMemoryForTesting();
   memory.noteProxyRefusal(key, "ip_quota_429", START_MS);
-  assert.equal(memory.noteProxyRefusal(key, "ip_quota_429", endRefusal + 120 * MIN), 2 * MIN);
+  assert.equal(memory.noteProxyRefusal(key, "ip_quota_429", endRefusal + 30 * MIN), 5 * MIN);
 });
 
 test("a null key never writes and is never set aside", () => {
@@ -195,5 +195,5 @@ test("set-aside events are ordered, and only the one in force is reported", () =
   assert.equal(memory.proxySetAsideSeq(a, START_MS + 7), memory.getProxyRefusalSeq());
 
   // Once every period is over nothing is in force.
-  assert.equal(memory.proxySetAsideSeq(b, START_MS + 4 + 2 * MIN), null);
+  assert.equal(memory.proxySetAsideSeq(b, START_MS + 4 + 5 * MIN), null);
 });

@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 export default function ModelAliasesTab() {
   const [builtIn, setBuiltIn] = useState<Record<string, string>>({});
   const [custom, setCustom] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const [newFrom, setNewFrom] = useState("");

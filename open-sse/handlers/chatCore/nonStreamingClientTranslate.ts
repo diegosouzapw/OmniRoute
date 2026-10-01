@@ -120,6 +120,7 @@ export function translateNonStreamingClientResponse(
       cacheReasoningFromAssistantMessage(msg, provider, model, {
         scope: reasoningCacheScope,
         historyMessages: Array.isArray(historyMessages) ? historyMessages : [],
+        videoTranscriptSensitive: input.videoTranscriptSensitive,
       });
     }
   } catch {

@@ -9,6 +9,7 @@ import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
 import { BURST_PARK_THRESHOLD } from "../../open-sse/executors/opencodeParkResume.ts";
 import * as throttle from "../../open-sse/executors/opencodeEgressThrottle.ts";
+import { __resetProxyRefusalMemoryForTesting } from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 const FLAG = "OPENCODE_PARK_AND_RESUME";
 const MARKER_ENV = "OPENCODE_POOL_STRAIN_MARKER_PATH";
@@ -63,6 +64,9 @@ describe("opencode 429 park-and-resume", () => {
   let markerDir: string;
 
   beforeEach(() => {
+    // PROXY_SKIP_RECENTLY_FAILED is on by default (#14688): a refusal recorded by one
+    // case would otherwise set its proxy aside for the next case.
+    __resetProxyRefusalMemoryForTesting();
     originalFetch = globalThis.fetch;
     priorFlag = process.env[FLAG];
     priorMarker = process.env[MARKER_ENV];
@@ -98,7 +102,12 @@ describe("opencode 429 park-and-resume", () => {
   }
 
   function writeMarker(payload: Record<string, unknown>): void {
-    fs.writeFileSync(process.env[MARKER_ENV] as string, JSON.stringify(payload));
+    const markerPath = process.env[MARKER_ENV] as string;
+    fs.writeFileSync(markerPath, JSON.stringify(payload));
+    // #14487: the marker is only trusted when it is owner-locked-down (no
+    // group/other write bit) — the fixture must reflect that, not just the
+    // umask-derived default mode.
+    fs.chmodSync(markerPath, 0o600);
   }
 
   async function run(count: number, stream: boolean, signal: AbortSignal | null = null) {

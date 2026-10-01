@@ -8,16 +8,21 @@
  */
 
 import { cookies } from "next/headers";
+import { getOrCreateBootstrapToken, peekBootstrapToken } from "@/lib/auth/bootstrapToken";
 import { getSettings } from "@/lib/db/settings";
 import {
   AUTHZ_HEADER_PEER_LOCALITY,
+  BOOTSTRAP_TOKEN_HEADER,
   PEER_IP_HEADER,
   VIA_PROXY_HEADER,
 } from "@/server/authz/headers";
 import { classifyStampedPeerLocality } from "@/server/authz/peerStamp";
 import { classifyHostLocality } from "@/server/authz/routeGuard";
 import { isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
-import { verifyDashboardSessionToken } from "@/shared/utils/dashboardSessionToken";
+import {
+  verifyDashboardSessionToken,
+  DASHBOARD_SESSION_COOKIE,
+} from "@/shared/utils/dashboardSessionToken";
 import { extractApiKey } from "@/sse/services/auth";
 
 type RequestLike = {
@@ -42,12 +47,19 @@ export interface AuthRequiredOptions {
    * pipeline's own locality header could still be present.
    */
   loopback?: boolean;
+  /**
+   * Judge a public-classified path as if it were a management path. A public route
+   * that does its own management check (`requireManagementAuth`) must not inherit the
+   * "public, no auth needed" shortcut of the fresh-install window, or a remote caller
+   * passes the check before a password exists.
+   */
+  ignorePublicRoute?: boolean;
 }
 
-function hasConfiguredPassword(settings: Record<string, unknown>): boolean {
+export function hasConfiguredPassword(settings: Record<string, unknown>): boolean {
   return typeof settings.password === "string" && settings.password.length > 0;
 }
-function hasConfiguredOidc(settings: Record<string, unknown>): boolean {
+export function hasConfiguredOidc(settings: Record<string, unknown>): boolean {
   return (
     settings.oidcEnabled === true &&
     typeof settings.oidcIssuer === "string" &&
@@ -91,6 +103,43 @@ function isOnboardingBootstrapPath(pathname: string | null): boolean {
 
 function isRequireLoginBootstrapWritePath(pathname: string | null, method: string): boolean {
   return pathname === "/api/settings/require-login" && method.toUpperCase() === "POST";
+}
+
+/**
+ * #14296: a non-loopback caller (typically a Docker/NAT-forwarded local
+ * operator — see docs at the top of bootstrapToken.ts) may still complete
+ * the fresh-install bootstrap window by presenting the one-shot token
+ * printed to the process log. Never widens `isLoopbackRequest` itself —
+ * this is an alternate proof checked only for the require-login bootstrap
+ * write above, and only a non-mutating peek (the route handler consumes/
+ * invalidates the token once the write actually succeeds).
+ */
+function hasBootstrapToken(request: RequestLike | Request | null | undefined): boolean {
+  const header = getHeaderValue(request, BOOTSTRAP_TOKEN_HEADER);
+  return peekBootstrapToken(header);
+}
+
+/**
+ * #14296: resolves whether the onboarding bootstrap write (require-login
+ * POST) should stay open for this request.
+ * Extracted out of isAuthRequired() to keep that function's branching flat —
+ * this helper owns the loopback-or-token decision on its own.
+ *
+ * A loopback caller is always exempt. A non-loopback caller (e.g. a
+ * Docker/NAT-forwarded local operator) is exempt ONLY with a valid one-shot
+ * bootstrap token; otherwise a token is minted/announced to the process log
+ * and auth stays required.
+ */
+function isBootstrapWriteExempt(
+  request: RequestLike | Request | null | undefined,
+  loopback: boolean
+): boolean {
+  if (loopback) return true;
+  if (hasBootstrapToken(request)) return true;
+  // No (or a stale/consumed) token — mint/announce one so an operator
+  // watching the log can retrieve it, and keep requiring auth.
+  getOrCreateBootstrapToken();
+  return false;
 }
 
 function getRequestMethod(request: RequestLike | Request | null | undefined): string {
@@ -150,40 +199,51 @@ function getSocketPeerAddress(request: RequestLike | Request | null | undefined)
  * `src/server/authz/peerContext.ts::isLoopbackRequest`.
  */
 export function isLoopbackRequest(request: RequestLike | Request | null | undefined): boolean {
-  if (!request || typeof request !== "object") return false;
+  return getRequestPeerLocality(request) === "loopback";
+}
+
+/**
+ * Trusted three-way locality of the caller — the same signals and order as
+ * `isLoopbackRequest()` above, but keeping the LAN verdict so route handlers can apply
+ * the LOCAL_ONLY semantics (loopback OR private LAN, never via a reverse proxy) to a
+ * single capability inside a route that stays reachable remotely. Fails closed to
+ * "remote".
+ */
+export function getRequestPeerLocality(
+  request: RequestLike | Request | null | undefined
+): "loopback" | "lan" | "remote" {
+  if (!request || typeof request !== "object") return "remote";
 
   const stampToken = process.env.OMNIROUTE_PEER_STAMP_TOKEN;
 
   const stampedPeer = getHeaderValue(request, PEER_IP_HEADER);
   if (stampedPeer !== null) {
-    return (
-      classifyStampedPeerLocality(
-        stampedPeer,
-        getHeaderValue(request, VIA_PROXY_HEADER),
-        stampToken
-      ) === "loopback"
+    return classifyStampedPeerLocality(
+      stampedPeer,
+      getHeaderValue(request, VIA_PROXY_HEADER),
+      stampToken
     );
   }
 
   const pipelineVerdict = getHeaderValue(request, AUTHZ_HEADER_PEER_LOCALITY);
   if (pipelineVerdict !== null && stampToken) {
-    return pipelineVerdict === "loopback";
+    return pipelineVerdict === "loopback" || pipelineVerdict === "lan" ? pipelineVerdict : "remote";
   }
 
   const socketPeer = getSocketPeerAddress(request);
-  if (socketPeer) return classifyHostLocality(socketPeer) === "loopback";
+  if (socketPeer) return classifyHostLocality(socketPeer);
 
   // A stamping server is in front (every supported runtime — run-next dev/start and
   // standalone-server-ws for Docker, the npm CLI and Electron — calls
   // ensurePeerStampToken() at boot) but neither trusted signal is on this request:
   // fail closed. The Host header is never consulted in that process.
-  if (stampToken) return false;
+  if (stampToken) return "remote";
 
   // No stamping server in this process at all: route handlers invoked directly (the
   // unit-test harness) or a raw `next` launch that also bypasses every LOCAL_ONLY
   // gate in peerContext. There is no real peer to read, so keep the historical
   // URL/Host verdict rather than turning every direct handler call into a remote one.
-  return isLegacyHostLoopback(request);
+  return isLegacyHostLoopback(request) ? "loopback" : "remote";
 }
 
 function isLegacyHostLoopback(request: RequestLike | Request): boolean {
@@ -306,21 +366,21 @@ export async function isDashboardSessionAuthenticated(
     request &&
     typeof request === "object" &&
     "cookies" in request &&
-    request.cookies?.get?.("auth_token")?.value
-      ? request.cookies.get("auth_token")?.value || null
+    request.cookies?.get?.(DASHBOARD_SESSION_COOKIE)?.value
+      ? request.cookies.get(DASHBOARD_SESSION_COOKIE)?.value || null
       : null;
 
   const requestHeaders =
     request && typeof request === "object" && "headers" in request ? request.headers : undefined;
 
   if (!token) {
-    token = getCookieValueFromHeader(requestHeaders, "auth_token");
+    token = getCookieValueFromHeader(requestHeaders, DASHBOARD_SESSION_COOKIE);
   }
 
   if (!token) {
     try {
       const cookieStore = await cookies();
-      token = cookieStore.get("auth_token")?.value || null;
+      token = cookieStore.get(DASHBOARD_SESSION_COOKIE)?.value || null;
     } catch {
       token = null;
     }
@@ -424,7 +484,7 @@ export async function isAuthRequired(
         return false;
       }
 
-      if (pathname && isPublicApiRoute(pathname, method)) {
+      if (!options?.ignorePublicRoute && pathname && isPublicApiRoute(pathname, method)) {
         return false;
       }
 
@@ -436,8 +496,20 @@ export async function isAuthRequired(
       // used to be an unconditional `return false`, open to any network peer
       // during the window (GHSA-7pq4-8pvv-rx7r). It stays open for the local
       // operator even after onboarding completed without a password.
+      //
+      // #14296: a non-loopback caller here is NOT automatically the remote
+      // attacker GHSA-7pq4-8pvv-rx7r closed — it may be a Docker/NAT-forwarded
+      // local operator whose peer is the docker0 bridge gateway, never
+      // 127.0.0.1. Owner decision: never reclassify that peer as loopback
+      // (it is indistinguishable from any other client of the published
+      // port); instead accept the one-shot bootstrap token printed to the
+      // process log as an alternate proof for this write only. The general
+      // `PATCH /api/settings` is deliberately NOT token-reachable: it accepts
+      // any settings key, and the wizard never needs it — the skip-password
+      // path writes requireLogin=false first (auth then off install-wide by
+      // design, #574) and the password path logs in and carries a session.
       if (isRequireLoginBootstrapWritePath(pathname, method)) {
-        return !loopback;
+        return !isBootstrapWriteExempt(request, loopback);
       }
 
       return settings.setupComplete === true || !loopback;

@@ -4,56 +4,87 @@
 
 ---
 
-OmniRoute publicerar npm- och Docker-artefakter. Dessa grindar tillhandahåller proveniens,
-inventering (SBOM) och CVE-skanning, helt med öppen källkod och integrerat i arbetsflödena för releaser.
-**Rådgivande först** — de rapporterar nu och blir blockerande efter den första
-gröna releasen.
+OmniRoute publicerar npm- + Docker-artefakter. Dessa grindar (gates) tillhandahåller härkomst (provenance),
+lagerförteckning (SBOM) och CVE-sökning, allt med öppen källkod, integrerat i release-arbetsflöden.
+**Rådgivningsfienterad** hållning (**Advisory-first**) — de rapporterar nu, blir blockerande efter den
+första gröna releasen.
 
-| Grind                 | Verktyg                                        | Var                           | Blockerar?                         | Utdata                                        |
-| --------------------- | ---------------------------------------------- | ----------------------------- | ---------------------------------- | --------------------------------------------- |
-| SLSA-proveniens (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | endast om publiceringen misslyckas | npmjs-märke / `npm audit signatures`          |
-| SBOM för npm          | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | endast om genereringen misslyckas  | Release-resurs + artefakt                     |
-| SBOM för avbildning   | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | rådgivande                         | CycloneDX-artefakt                            |
-| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | rådgivande                         | SARIF (HIGH+CRITICAL) → fliken Security       |
-| Trivy CRITICAL-grind  | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **blockerande**                    | `exit-code: '1'` för åtgärdbara CRITICAL      |
-| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **blockerande**                    | spärrar `metrics.vulnCount` (riktning: nedåt) |
-| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | rådgivande                         | SARIF → Security + märke                      |
+| Grind (Gate)          | Verktyg                                        | Var                           | Blockerar?                 | Utdata                                       |
+| --------------------- | ---------------------------------------------- | ----------------------------- | -------------------------- | -------------------------------------------- |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | endast vid publiceringsfel | märke npmjs / `npm audit signatures`         |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | endast vid genereringsfel  | Release-tillgång + artefakt                  |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | rådgivande                 | CycloneDX-artefakt                           |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | rådgivande                 | SARIF (HIGH+CRITICAL) → Säkerhetsfliken      |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **blockerande**            | `exit-code: '1'` vid åtgärdningsbar CRITICAL |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **blockerande**            | spärrar `metrics.vulnCount` (riktning: ner)  |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | rådgivande                 | SARIF → Säkerhetsfliken + märke              |
 
-CVE-spärren för avbildningen använder **två steg** i `docker-publish.yml`: SARIF-steget
-(`HIGH,CRITICAL`, `exit-code: 0`) håller HIGH+CRITICAL synliga på fliken Security
-utan att blockera; steget _CRITICAL-grind_ (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) stoppar releasen vid en CRITICAL-CVE **med en tillgänglig korrigering**. `ignore-unfixed`
-förhindrar att releasen blockeras på grund av en CVE i basavbildningen utan en uppströmskorrigering.
+Avbildningens (image) CVE-spärr använder **två steg** i `docker-publish.yml`: SARIF-steget
+(`HIGH,CRITICAL`, `exit-code: 0`) håller HIGH+CRITICAL synliga i Säkerhetsfliken
+utan att blockera; _CRITICAL-grindsteget_ (`severity: CRITICAL`, `ignore-unfixed: true`,
+`exit-code: 1`) underkänner releasen vid en CRITICAL CVE **där en fix finns tillgänglig**. `ignore-unfixed`
+förhindrar att releasen blockeras för en basavbildnings-CVE utan uppströmsfix.
 
-## ⚠️ CVE-variation (blockerande osv-/Trivy-grindar)
+## ⚠️ CVE-avvikelse (blockerande osv-/Trivy-grindar)
 
-osv och Trivy jämför beroenden mot CVE-databaser som **växer kontinuerligt**. En PR
-som **inte ändrar några beroenden** kan plötsligt bli röd eftersom en ny CVE har
+osv och Trivy jämför beroenden mot CVE-databaser som **kontinuerligt växer**. En PR
+som **inte berör några beroenden** kan plötsligt bli röd eftersom en ny CVE har
 offentliggjorts i ett befintligt beroende (osv: uppmätt `vulnCount` > baslinje; Trivy: en ny
-åtgärdbar CRITICAL i avbildningen). **Detta är FÖRVÄNTAT driftbeteende för en blockerande
+åtgärdningsbar CRITICAL i avbildningen). **Detta är FÖRVÄNTAT operationellt beteende för en blockerande
 CVE-grind, inte en produktregression.**
 
 När osv eller Trivy blir röda på grund av en nyligen offentliggjord CVE är åtgärden:
 
-1. **Uppdatera det berörda beroendet** (föredras) — uppgradera till den korrigerade versionen via `package.json`
-   `overrides` (transitiva beroenden) eller bygg om avbildningen med en korrigerad bas.
-2. **Om det inte finns någon uppströmskorrigering:**
-   - **osv:** fastställ en ny baslinje för `metrics.vulnCount` i `config/quality/quality-baseline.json`
-     (`npm run quality:ratchet -- --update` omfattar inte dedikerade grindar — redigera värdet
-     manuellt, `direction:down`) med en motivering + ett spårningsärende.
-   - **Trivy:** lägg till en post i `.trivyignore` (ett CVE-ID per rad) med en motiverande
-     kommentar + ett spårningsärende. `ignore-unfixed: true` hanterar redan automatiskt CVE:er
-     utan korrigeringar.
+1. **Uppdatera det berörda beroendet** (föredras) – uppgradera till den fixade versionen via `package.json`
+   `overrides` (transitiva beroenden) eller bygg om avbildningen på en fixad bas.
+2. **Om det inte finns någon uppströmsfix:**
+   - **osv:** uppdatera baslinjen för `metrics.vulnCount` i `config/quality/quality-baseline.json`
+     (`npm run quality:ratchet -- --update` täcker inte dedikerade grindar – redigera värdet
+     manuellt, `direction:down`) med en motivering + spårningsärende.
+   - **Trivy:** lägg till en post i `.trivyignore` (CVE-ID per rad) med en
+     motiveringskommentar + spårningsärende. `ignore-unfixed: true` täcker redan CVE:er utan
+     patchar automatiskt.
 
-Båda grindarna **HOPPAR ÖVER utan fel** (exit 0) när verktyget saknas eller mätningen
-misslyckas (osv-scanner finns inte i PATH, osv.dev/nätverket kan inte nås, ogiltig JSON) — ett
-**mätningsfel** blockerar aldrig; endast en **uppmätt** regression blockerar.
+Båda grindarna **Hoppar graciöst över** (avslutar med 0) när verktyget saknas eller mätningen
+misslyckas (osv-scanner finns inte i PATH, osv.dev/nätverket är o nåbart, ogiltig JSON) – ett
+**mätningsfel** blockerar aldrig, endast en **uppmätt** regression blockerar.
 
-## Att göra: Scorecard från rådgivande → blockerande
+## Kända accepterade risker
+
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
+
+`extract-zip@2.0.1` innehåller två opatchade symlink-traversal-rådgivningar med hög allvarlighetsgrad.
+Enligt "ingen uppströmsfix"-grenen av CVE Variance-åtgärden ovan är detta en
+**accepterad risk**, inte en bump:
+
+- **Kedja:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Bekräftat via `package-lock.json` — exakt ett paket i hela beroendeträdet
+  (`@openai/codex-security`) deklarerar `extract-zip`, och exakt ett paket
+  (`promptfoo`) deklarerar `@openai/codex-security`.
+- **Ingen fixad version existerar någonstans i kedjan.** `extract-zip@2.0.1` (publicerad 2020) är paketets sista version — det underhålls inte. `@openai/codex-security`s
+  nuvarande npm-latest (`0.1.29`) drar fortfarande `extract-zip@2.0.1`.
+- **Oåtkomlig från produktion.** `promptfoo` är endast devDependency (aldrig listad
+  under `dependencies`), och ingen fil under `src/`, `open-sse/`, eller `bin/` importerar
+  npm-paketet `extract-zip` — OmniRoutes egen `extractZip()`-hjälpare
+  (`src/lib/versionManager/binaryManager.ts:93`) anropar native `unzip`/`tar`
+  och är orelaterad. `@openai/codex-security` levererar också sitt eget symlink-traversal-skydd
+  ovanpå extract-zips onEntry-callback.
+- **Aliasera inte** `extract-zip` via `package.json` `overrides` — den enda gångbara
+  drop-in-ersättningen är Electron-org-intern och API-inkompatibel med
+  `@openai/codex-security`s egna onEntry/defaultDirMode/defaultFileMode-kontroller;
+  att åsidosätta den skulle tyst bryta paketets säkerhetskontroller.
+- **Baslinje:** uppmätt osv `vulnCount` (3) är redan väl under den frysta
+  `config/quality/quality-baseline.json`-baslinjen (27) — ingen spärrförändring behövs.
+- **Regressionsskydd:** `tests/unit/extract-zip-14482-exposure.test.ts` bekräftar
+  kedjan och den ovanstående invarianten för ingen-produktionsimport; den misslyckas i CI om någon av dem
+  någonsin bryts (t.ex. en framtida PR gör `extract-zip` åtkomlig från produktion).
+- **Spårning:** ärende #14482.
+
+## Eftersläpning: Scorecard-rådgivning → blockering
 
 Efter den första gröna releasen med Scorecard-rapportering:
 
-- Scorecard: poängspärr (fryser den uppmätta poängen; den får inte minska).
+- Scorecard: poängspärr (fryser den uppmätta poängen; kan inte minska).
 
-Kompletterar grindarna i fas 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-granskar själva arbetsflödena; Scorecard mäter repots säkerhetsstatus som helhet.
+Kompletterar fas 7-grindarna (osv-scanner, gitleaks, actionlint+zizmor): zizmor
+granskar arbetsflödena själva; Scorecard mäter repo-positionen totalt.

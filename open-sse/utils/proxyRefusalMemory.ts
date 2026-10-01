@@ -10,15 +10,74 @@
  * (callers gate writes and decisions on it) and it stays free of the proxy dispatcher, so
  * the DB layer can consult it without loading undici or the SOCKS connector.
  */
-import { COOLDOWN_MS } from "../config/errorConfig.ts";
+import { notifyProxyTransition } from "./proxyTransitionListeners.ts";
 import { stripIpv6Brackets } from "./proxyFamily.ts";
 
-export const REFUSAL_POLICIES = {
+// Field trends show a refused egress rarely recovers within minutes, so the
+// first set-aside lasts five minutes and doubles from there; the cap lets a
+// recovered member return within the quarter-hour.
+const DEFAULT_QUOTA_429_BASE_MS = 300_000;
+const DEFAULT_QUOTA_429_MAX_MS = 900_000;
+const MIN_QUOTA_429_MS = 1_000;
+const MAX_QUOTA_429_MS = 3_600_000;
+
+// Number() idiom (cf. readTimeoutMs): accepts hex/exponents/whitespace, then floored and bounded.
+function readBoundedMs(name: string, def: number, min: number, max: number): number {
+  const raw = process.env[name];
+  if (raw == null || raw.trim() === "") return def;
+  const parsed = Math.floor(Number(raw));
+  if (!Number.isFinite(parsed) || parsed < min || parsed > max) {
+    console.warn(`[ProxyRefusalMemory] Invalid ${name}="${raw}". Using default ${def}ms.`);
+    return def;
+  }
+  return parsed;
+}
+
+type RefusalPolicy = { baseMs: number; maxMs: number };
+
+const quota429BaseMs = readBoundedMs(
+  "PROXY_QUOTA_429_BASE_MS",
+  DEFAULT_QUOTA_429_BASE_MS,
+  MIN_QUOTA_429_MS,
+  MAX_QUOTA_429_MS
+);
+let quota429MaxMs = readBoundedMs(
+  "PROXY_QUOTA_429_MAX_MS",
+  DEFAULT_QUOTA_429_MAX_MS,
+  MIN_QUOTA_429_MS,
+  MAX_QUOTA_429_MS
+);
+// When max < base the curve would start at max, so fall back to the default cap instead.
+if (quota429MaxMs < quota429BaseMs) {
+  console.warn(
+    `[ProxyRefusalMemory] Invalid PROXY_QUOTA_429_MAX_MS="${process.env.PROXY_QUOTA_429_MAX_MS}": below PROXY_QUOTA_429_BASE_MS. Using default ${DEFAULT_QUOTA_429_MAX_MS}ms.`
+  );
+  quota429MaxMs = DEFAULT_QUOTA_429_MAX_MS;
+}
+
+export const REFUSAL_POLICIES: {
+  proxy_unreachable: { baseMs: 60_000; maxMs: 600_000 };
+  ip_quota_429: RefusalPolicy;
+  transport: { baseMs: 60_000; maxMs: 600_000 };
+  slow: { baseMs: 60_000; maxMs: 600_000 };
+} = {
   /** The TCP probe could not open a connection to the proxy. */
   proxy_unreachable: { baseMs: 60_000, maxMs: 600_000 },
   /** The provider refused through this proxy; the member is set aside for a cooldown. */
-  ip_quota_429: { baseMs: COOLDOWN_MS.rateLimit, maxMs: 3_600_000 },
-} as const;
+  ip_quota_429: { baseMs: quota429BaseMs, maxMs: quota429MaxMs },
+  /**
+   * Repeated tagged transport failures through this egress with cross-evidence:
+   * the same destination answers through a different egress, so the member —
+   * not the destination — is at fault. Same curve as a refused probe.
+   */
+  transport: { baseMs: 60_000, maxMs: 600_000 },
+  /**
+   * Repeated settled waits for upstream response headers through this egress:
+   * one slow wait is the upstream queue, not the member. Same short curve as
+   * a refused probe, kept apart from the quota curve.
+   */
+  slow: { baseMs: 60_000, maxMs: 600_000 },
+};
 
 export type ProxyRefusalKind = keyof typeof REFUSAL_POLICIES;
 
@@ -106,6 +165,50 @@ function entryId(key: string, kind: ProxyRefusalKind): string {
   return `${kind} ${key}`;
 }
 
+/**
+ * Composite key for one (entry, selector member) pair. JSON-array encoding is
+ * unambiguous by construction: member names carrying spaces, brackets, quotes
+ * or unicode cannot alias each other or an entry-level key. Entry-level keys
+ * stay plain `proxyEgressKey` strings so pool/rotation reads are untouched.
+ */
+export function keyForEntryMember(entryKey: string, member: string): string {
+  return JSON.stringify([entryKey, member]);
+}
+
+// Read one composite (entry, member, kind) state, same TTL discipline as entry
+// states: dropped once its period ended more than 2 x maxMs ago.
+function readMemberState(
+  entryKey: string,
+  member: string,
+  kind: ProxyRefusalKind,
+  nowMs: number
+): RefusalState | undefined {
+  const id = entryId(keyForEntryMember(entryKey, member), kind);
+  const state = memory.get(id);
+  if (state && nowMs - state.until >= 2 * REFUSAL_POLICIES[kind].maxMs) {
+    memory.delete(id);
+    return undefined;
+  }
+  return state;
+}
+
+// Shared insert: same curve, same seq, same oldest-first eviction as entries.
+function insertState(key: string, kind: ProxyRefusalKind, nowMs: number): number {
+  const state = readState(key, kind, nowMs);
+  if (state && state.until > nowMs) return -1;
+  const policy = REFUSAL_POLICIES[kind];
+  const streak = (state?.streak ?? 0) + 1;
+  const periodMs = Math.min(policy.baseMs * 2 ** (streak - 1), policy.maxMs);
+  const id = entryId(key, kind);
+  memory.delete(id);
+  memory.set(id, { streak, until: nowMs + periodMs, seq: ++refusalSeq });
+  if (memory.size > MAX_ENTRIES) {
+    const oldest = memory.keys().next().value;
+    if (oldest !== undefined) memory.delete(oldest);
+  }
+  return periodMs;
+}
+
 // Read one (key, kind) state, dropping it once its period ended more than 2 x maxMs ago.
 function readState(key: string, kind: ProxyRefusalKind, nowMs: number): RefusalState | undefined {
   const id = entryId(key, kind);
@@ -124,19 +227,28 @@ export function noteProxyRefusal(
   nowMs: number = Date.now()
 ): number | null {
   if (key === null) return null;
-  const state = readState(key, kind, nowMs);
-  if (state && state.until > nowMs) return null;
-  const policy = REFUSAL_POLICIES[kind];
-  const streak = (state?.streak ?? 0) + 1;
-  const periodMs = Math.min(policy.baseMs * 2 ** (streak - 1), policy.maxMs);
-  const id = entryId(key, kind);
-  memory.delete(id);
-  memory.set(id, { streak, until: nowMs + periodMs, seq: ++refusalSeq });
-  if (memory.size > MAX_ENTRIES) {
-    const oldest = memory.keys().next().value;
-    if (oldest !== undefined) memory.delete(oldest);
-  }
+  const periodMs = insertState(key, kind, nowMs);
+  if (periodMs < 0) return null;
+  notifyProxyTransition({ key, kind, periodMs, until: nowMs + periodMs });
   return periodMs;
+}
+
+/**
+ * Set one selector member aside for `kind`, keyed by (entry, member). Reuses
+ * the same policy curve, streak discipline and memory bound as entry writes:
+ * at equal streak the period equals the entry-level one. The entry-level write
+ * stays the caller's job (kept separate so pool/rotation avoidance on the
+ * entry key never regresses). Null entry or member writes nothing.
+ */
+export function noteProxyMemberRefusal(
+  entryKey: string | null,
+  member: string | null,
+  kind: ProxyRefusalKind,
+  nowMs: number = Date.now()
+): number | null {
+  if (entryKey === null || member === null) return null;
+  const periodMs = insertState(keyForEntryMember(entryKey, member), kind, nowMs);
+  return periodMs < 0 ? null : periodMs;
 }
 
 /** The proxy answered again: end its period now, keep the streak so a repeat doubles. */
@@ -177,9 +289,106 @@ export function proxySetAsideSeq(key: string | null, nowMs: number = Date.now())
   return latest;
 }
 
+/**
+ * Read-only snapshot of the set-aside state still in force for a proxy egress
+ * key, or null when the proxy is not set aside. Exposes the refusal motive,
+ * the set-aside start, the expected end and the repeat count so a read-only
+ * status screen can explain why a pool member is currently deprioritized.
+ * Never mutates the memory (expired entries are dropped by readState as usual).
+ */
+export interface ProxySetAsideSnapshot {
+  kind: ProxyRefusalKind;
+  setAsideAt: number;
+  endsAt: number;
+  streak: number;
+}
+
+export function snapshotProxySetAside(
+  key: string | null,
+  nowMs: number = Date.now()
+): ProxySetAsideSnapshot | null {
+  if (key === null || memory.size === 0) return null;
+  let latest: (ProxySetAsideSnapshot & { seq: number }) | null = null;
+  for (const kind of REFUSAL_KINDS) {
+    const state = readState(key, kind, nowMs);
+    if (!state || state.until <= nowMs || (latest !== null && state.seq <= latest.seq)) continue;
+    // Recompute the period from the stored streak with the same doubling curve as
+    // noteProxyRefusal so setAsideAt = until - periodMs (read-only, no state change).
+    const policy = REFUSAL_POLICIES[kind];
+    const periodMs = Math.min(policy.baseMs * 2 ** (state.streak - 1), policy.maxMs);
+    latest = {
+      kind,
+      setAsideAt: state.until - periodMs,
+      endsAt: state.until,
+      streak: state.streak,
+      seq: state.seq,
+    };
+  }
+  if (!latest) return null;
+  const { seq: _seq, ...snapshot } = latest;
+  return snapshot;
+}
+
 /** Sequence number of the last set-aside event recorded in this process (0 = none yet). */
 export function getProxyRefusalSeq(): number {
   return refusalSeq;
+}
+
+/**
+ * True while the (entry, member) pair is set aside for any refusal kind.
+ * Complements `isProxyAvoided` (entry-level, used by pool rotation) — it never
+ * replaces it.
+ */
+export function isSelectorMemberAvoided(
+  entryKey: string | null,
+  member: string | null,
+  nowMs: number = Date.now()
+): boolean {
+  return selectorMemberSetAsideSeq(entryKey, member, nowMs) !== null;
+}
+
+/**
+ * Sequence number of the most recent set-aside event still in force for this
+ * (entry, member) pair, or null when it is not set aside. Powers the
+ * least-recently-set-aside fallback below: among set-aside members the
+ * smallest seq is the oldest event.
+ */
+export function selectorMemberSetAsideSeq(
+  entryKey: string | null,
+  member: string | null,
+  nowMs: number = Date.now()
+): number | null {
+  if (entryKey === null || member === null || memory.size === 0) return null;
+  let latest: number | null = null;
+  for (const kind of REFUSAL_KINDS) {
+    const state = readMemberState(entryKey, member, kind, nowMs);
+    if (state && state.until > nowMs && (latest === null || state.seq > latest)) {
+      latest = state.seq;
+    }
+  }
+  return latest;
+}
+
+/**
+ * Oldest set-aside event among `members` still in force for this entry, or
+ * null when none is set aside. Lets a switch fall back to the least recently
+ * set-aside member instead of refusing to move. Reads `nowMs` once per caller
+ * (pass a frozen timestamp for the whole switch).
+ */
+export function leastRecentlySetAside(
+  entryKey: string | null,
+  members: string[],
+  nowMs: number = Date.now()
+): string | null {
+  if (entryKey === null || memory.size === 0) return null;
+  let oldest: { member: string; seq: number } | null = null;
+  for (const member of members) {
+    const seq = selectorMemberSetAsideSeq(entryKey, member, nowMs);
+    if (seq !== null && (oldest === null || seq < oldest.seq)) {
+      oldest = { member, seq };
+    }
+  }
+  return oldest?.member ?? null;
 }
 
 /** True when anything is held at all: lets hot paths skip key computation and flag reads. */
@@ -190,6 +399,172 @@ export function hasProxyRefusals(): boolean {
 /** Test-only: forget everything. */
 export function __resetProxyRefusalMemoryForTesting(): void {
   memory.clear();
+}
+
+/**
+ * The destination a transport outcome is attributed to: the lower-cased host of
+ * the requested target URL, without IPv6 brackets. Shared by the failure and
+ * success hooks so cross-evidence always matches on the same normalization.
+ * Null when the target is not a parseable URL.
+ */
+export function transportDestinationKey(targetUrl: string): string | null {
+  try {
+    const host = new URL(targetUrl).hostname;
+    if (!host) return null;
+    return stripIpv6Brackets(host).toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cross-evidence for the `transport` refusal kind. A tagged transport failure
+ * alone never sets a member aside: it is only evidence, kept per (egress key,
+ * destination host). A later success to the same destination through a
+ * *different* egress proves the destination answers and the failing member —
+ * not the destination — is at fault.
+ */
+export const TRANSPORT_EVIDENCE_WINDOW_MS = 300_000;
+export const TRANSPORT_EVIDENCE_THRESHOLD = 3;
+const MAX_TRANSPORT_EVIDENCE = 1000;
+
+type TransportFailure = { key: string; destination: string; at: number };
+type TransportSuccess = { destination: string; key: string; at: number };
+
+const transportFailures: TransportFailure[] = [];
+const transportSuccesses: TransportSuccess[] = [];
+
+// Lazy purge mirrors readState: entries older than the evidence window plus
+// twice the transport cap can no longer contribute, so drop them on read.
+function purgeTransportEvidence(nowMs: number): void {
+  const cutoff = nowMs - TRANSPORT_EVIDENCE_WINDOW_MS - 2 * REFUSAL_POLICIES.transport.maxMs;
+  while (transportFailures.length > 0 && transportFailures[0].at < cutoff) {
+    transportFailures.shift();
+  }
+  while (transportSuccesses.length > 0 && transportSuccesses[0].at < cutoff) {
+    transportSuccesses.shift();
+  }
+}
+
+/** Record one final tagged transport failure. Never throws, never writes refusal memory. */
+export function recordTransportFailure(
+  key: string | null,
+  destination: string | null,
+  nowMs: number = Date.now()
+): void {
+  if (key === null || destination === null || destination === "") return;
+  purgeTransportEvidence(nowMs);
+  transportFailures.push({ key, destination, at: nowMs });
+  while (transportFailures.length > MAX_TRANSPORT_EVIDENCE) transportFailures.shift();
+}
+
+/** Record one success to a destination through an egress. Never throws. */
+export function recordTransportSuccess(
+  destination: string | null,
+  key: string | null,
+  nowMs: number = Date.now()
+): void {
+  if (key === null || destination === null || destination === "") return;
+  purgeTransportEvidence(nowMs);
+  transportSuccesses.push({ destination, key, at: nowMs });
+  while (transportSuccesses.length > MAX_TRANSPORT_EVIDENCE) transportSuccesses.shift();
+}
+
+/**
+ * True when the evidence condemns this egress for this destination: at least
+ * TRANSPORT_EVIDENCE_THRESHOLD tagged failures through it inside the window
+ * AND at least one success to the same destination through a different egress
+ * inside the window. A success through the egress itself is not evidence.
+ */
+export function hasTransportCrossEvidence(
+  key: string | null,
+  destination: string | null,
+  nowMs: number = Date.now()
+): boolean {
+  if (key === null || destination === null || destination === "") return false;
+  purgeTransportEvidence(nowMs);
+  const from = nowMs - TRANSPORT_EVIDENCE_WINDOW_MS;
+  let failures = 0;
+  for (const f of transportFailures) {
+    if (f.key === key && f.destination === destination && f.at >= from) {
+      failures++;
+      if (failures >= TRANSPORT_EVIDENCE_THRESHOLD) break;
+    }
+  }
+  if (failures < TRANSPORT_EVIDENCE_THRESHOLD) return false;
+  return transportSuccesses.some(
+    (s) => s.destination === destination && s.key !== key && s.at >= from
+  );
+}
+
+/** Test-only: forget transport evidence (refusal memory is separate). */
+export function __resetTransportEvidenceForTesting(): void {
+  transportFailures.length = 0;
+  transportSuccesses.length = 0;
+}
+
+/** Test-only: current evidence store sizes. */
+export function __transportEvidenceSizeForTesting(): { failures: number; successes: number } {
+  return { failures: transportFailures.length, successes: transportSuccesses.length };
+}
+
+/**
+ * Settled waits for upstream response headers, per egress key. One slow wait
+ * is the upstream queue, not the member — only repetition condemns it, so the
+ * store keeps bare timestamps and the gated helper decides at k=3 / 5 min.
+ */
+export const SLOW_OVERRUN_WINDOW_MS = 300_000;
+export const SLOW_OVERRUN_THRESHOLD = 3;
+const MAX_SLOW_OVERRUNS = 1000;
+
+type SlowOverrun = { key: string; at: number };
+
+const slowOverruns: SlowOverrun[] = [];
+
+// Lazy purge mirrors readState: entries older than the evidence window plus
+// twice the slow cap can no longer contribute, so drop them on record.
+function purgeSlowOverruns(nowMs: number): void {
+  const cutoff = nowMs - SLOW_OVERRUN_WINDOW_MS - 2 * REFUSAL_POLICIES.slow.maxMs;
+  while (slowOverruns.length > 0 && slowOverruns[0].at < cutoff) {
+    slowOverruns.shift();
+  }
+}
+
+/** Record one settled headers-wait overrun. Never throws, never writes refusal memory. */
+export function recordSlowOverrun(key: string | null, nowMs: number = Date.now()): void {
+  if (key === null || key === "") return;
+  purgeSlowOverruns(nowMs);
+  slowOverruns.push({ key, at: nowMs });
+  while (slowOverruns.length > MAX_SLOW_OVERRUNS) slowOverruns.shift();
+}
+
+/**
+ * True when this egress waited out the headers window at least
+ * SLOW_OVERRUN_THRESHOLD times inside SLOW_OVERRUN_WINDOW_MS. Overruns for
+ * other keys never count.
+ */
+export function hasSlowOverrunEvidence(key: string | null, nowMs: number = Date.now()): boolean {
+  if (key === null || key === "") return false;
+  purgeSlowOverruns(nowMs);
+  const from = nowMs - SLOW_OVERRUN_WINDOW_MS;
+  let overruns = 0;
+  for (const o of slowOverruns) {
+    if (o.key === key && o.at >= from) {
+      overruns++;
+      if (overruns >= SLOW_OVERRUN_THRESHOLD) return true;
+    }
+  }
+  return false;
+}
+
+/** Test-only: forget slow overruns (refusal memory is separate). */
+export function __resetSlowOverrunsForTesting(): void {
+  slowOverruns.length = 0;
+}
+
+/** Test-only: current slow-overrun store size. */
+export function __slowOverrunSizeForTesting(): number {
+  return slowOverruns.length;
 }
 
 /** Test-only: number of (key, kind) entries held. */

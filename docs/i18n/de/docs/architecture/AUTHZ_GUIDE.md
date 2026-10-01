@@ -4,12 +4,12 @@
 
 ---
 
-> **Verbindliche Quelle:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Zuletzt aktualisiert:** 2026-06-28 — v3.8.40
+> **Maßgebliche Quelle:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Zuletzt aktualisiert:** 2026-09-22 — Scope-Namespaces verweisen auf MCP-SERVER.md
 
-OmniRoute verfügt über eine routenbezogene Autorisierungspipeline, die jede API-Anfrage kontrolliert. Die Klassifizierung ist **deterministisch** und **standardmäßig verweigernd** — alles, was nicht klassifiziert werden kann, wird als `MANAGEMENT` eingestuft und erfordert eine Sitzung oder ein Token mit Verwaltungsberechtigung. Diese Seite erläutert das Modell für Entwickler, die Routen pflegen oder neue Endpunkte entwerfen.
+OmniRoute verfügt über eine routenabhängige Autorisierungspipeline, die jede API-Anfrage absichert. Die Klassifizierung ist **deterministisch** und erfolgt nach dem **Fail-Closed-Prinzip** — alles, was nicht klassifiziert werden kann, wird als `MANAGEMENT` eingestuft und erfordert eine Sitzung oder ein Token mit Berechtigungen auf Management-Ebene. Diese Seite erläutert das Modell für Entwickler, die Routen verwalten oder neue Endpunkte entwerfen.
 
-![AuthZ-Pipeline (3 Routenklassen + Richtlinienauswertung)](../diagrams/exported/authz-pipeline.svg)
+![Autorisierungspipeline (3 Routenklassen + Richtlinienauswertung)](../diagrams/exported/authz-pipeline.svg)
 
 > Quelle: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -177,26 +177,36 @@ Wählen Sie die Menge anhand der Form aus, nicht nach Bequemlichkeit. Eine einze
 
 ## Scopes
 
+Drei Namensräume. Jede Prüfung liest nur ihre eigenen Zeichenfolgen. Die Gegenüberstellung,
+einschließlich der Gründe, warum `manage` bei `scopeMatches` für `read:compression` fehlschlägt und warum ein
+`read`-Zugriffstoken `PATCH /api/keys/{id}` nicht aufrufen kann, finden Sie unter
+[Drei Scope-Namensräume](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
 API-Schlüssel enthalten ein `scopes`-Array (als JSON in `api_keys.scopes` gespeichert, siehe `src/lib/db/apiKeys.ts`).
 
-### Management-Scope
+### Verwaltungs-Scope
 
-- `manage` / `admin` — gewährt dem Schlüssel Zugriff auf Management-API-Endpunkte, wenn er als Bearer gesendet wird.
+- `manage` / `admin` — `hasManageScope`. Bearer-Zugriff auf Routen der Verwaltungs-API.
+- `mcp:connect`, `self:usage`, `self:account-quota` und
+  `policy:bypass-provider-quota` sind additive Scopes mit exakter Übereinstimmung. Sie liegen
+  außerhalb von `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` öffnet nur die
+  Nicht-Loopback-Ausnahme für `/api/mcp/`.
 
-### MCP-Scopes (`src/shared/constants/mcpScopes.ts`)
+### MCP-Tool-Scopes
 
-Jedes MCP-Tool erfordert über `MCP_TOOL_SCOPES` bestimmte Scopes. Vollständige Liste (`MCP_SCOPE_LIST`):
+Katalog und Abgleichregeln (identische Zeichenfolge oder ein gewährter Scope, der mit `*` endet):
+[MCP-Tool-Scopes](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` in `src/shared/constants/mcpScopes.ts` ist die ursprüngliche typisierte
+Teilmenge, nicht der vollständige Katalog. Die Durchsetzung erfolgt in
+`open-sse/mcp-server/scopeEnforcement.ts`, nachdem `resolveCallerScopeContext()`
+die Scopes aus MCP-Authentifizierungsinformationen, Anfragemetadaten oder `OMNIROUTE_MCP_SCOPES`
+ermittelt hat. Sie bleibt deaktiviert, sofern nicht `OMNIROUTE_MCP_ENFORCE_SCOPES=true` gesetzt ist.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Zugriffstoken-Scopes
 
-Die Scope-Durchsetzung in `open-sse/mcp-server/server.ts` übergibt die Scope-Liste jedes Tools an
-`evaluateToolScopes()`, nachdem `resolveCallerScopeContext()` die Scopes aus MCP-Authentifizierungsinformationen,
-Anfragemetadaten oder `OMNIROUTE_MCP_SCOPES` ermittelt hat.
+`read` / `write` / `admin` für `oma_live_…`-Token, eingestuft durch `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Diese Rangfolge gilt nur für die Zugriffstoken-
+Anmeldeinformationen. Siehe [Verwaltungsauthentifizierung](../guides/MANAGEMENT-AUTH.md).
 
 ## Umschalter für erforderliche Authentifizierung
 
@@ -244,7 +254,7 @@ Verwenden Sie `assertAuth(req, expectedClass)` innerhalb von Handlern — die Fu
 
 ## Siehe auch
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — Authentifizierungsmarker pro Endpunkt
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — Audit-Protokoll für Authentifizierungsereignisse
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — Details zur Durchsetzung von MCP-Berechtigungsumfängen
-- Quellcode: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — Authentifizierungskennzeichnung pro Endpunkt
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — Auditprotokoll für Authentifizierungsereignisse
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — drei Scope-Namensräume und MCP-Tool-Scope-Katalog
+- Quelle: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

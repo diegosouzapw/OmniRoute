@@ -343,13 +343,23 @@ test("sanitizeReasoningEffortForProvider: Qwen 3.8 family (qwen3.8-max, qwen3.8-
   ) as Record<string, unknown>;
   assert.equal(rQwenMaxLiteral.reasoning_effort, "max", "qwen3.8-max passes max through");
 
-  // qwen-3.8 on opencode-go / command-code gateways maps xhigh → max
+  // qwen-3.8 on the opencode-go gateway maps xhigh → max, but on command-code
+  // the literal survives: Command Code's validator accepts xhigh natively.
+  const bQwenOg = { model: "qwen-3.8", reasoning_effort: "xhigh", messages: [] };
+  const rQwenOg = sanitizeReasoningEffortForProvider(
+    bQwenOg,
+    "opencode-go",
+    "qwen-3.8",
+    log
+  ) as Record<string, unknown>;
+  assert.equal(rQwenOg.reasoning_effort, "max", "qwen-3.8 on opencode-go maps xhigh → max");
+
   const bQwenCmd = { model: "qwen-3.8", reasoning_effort: "xhigh", messages: [] };
   const rQwenCmd = sanitizeReasoningEffortForProvider(bQwenCmd, "cmd", "qwen-3.8", log) as Record<
     string,
     unknown
   >;
-  assert.equal(rQwenCmd.reasoning_effort, "max", "qwen-3.8 on command-code maps xhigh → max");
+  assert.equal(rQwenCmd.reasoning_effort, "xhigh", "qwen-3.8 on command-code preserves xhigh");
 });
 
 test("sanitizeReasoningEffortForProvider: 2026 comprehensive models (Claude 4.7+, GPT-5.6, Kimi K4, DeepSeek V4) pass-through & normalization", () => {

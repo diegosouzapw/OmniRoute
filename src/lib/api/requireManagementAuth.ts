@@ -56,7 +56,7 @@ export async function requireManagementAuth(
   if (request === undefined || request === null) {
     return null;
   }
-  if (!options.alwaysRequireAuth && !(await isAuthRequired(request))) {
+  if (!options.alwaysRequireAuth && !(await isAuthRequired(request, { ignorePublicRoute: true }))) {
     return null;
   }
 

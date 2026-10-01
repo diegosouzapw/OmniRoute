@@ -288,76 +288,114 @@ LLM 提供者相同的連線模型接入 OmniRoute。它們透過自身的 REST 
 
 ## 驗證與範圍
 
-MCP 工具透過 API 金鑰範圍進行驗證。範圍強制執行集中於
-`open-sse/mcp-server/scopeEnforcement.ts`。每個工具都需要特定範圍：
+MCP 工具會從呼叫者讀取範圍字串。該檢查是三個獨立命名空間之一。一個檢查器的通過不代表其他檢查器也通過。規則請參閱[三個範圍命名空間](#three-scope-namespaces)。工具目錄請參閱[MCP 工具範圍](#mcp-tool-scopes)。
 
-| 範圍                  | 工具                                                                                                                                                                         |
-| :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                            |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                    |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                       |
-| `read:quota`          | `check_quota`                                                                                                                                                                |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                       |
-| `read:models`         | `list_models_catalog`                                                                                                                                                        |
-| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                |
-| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                        |
-| `write:budget`        | `set_budget_guard`                                                                                                                                                           |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                  |
-| `pricing:write`       | `sync_pricing`                                                                                                                                                               |
-| `read:cache`          | `cache_stats`                                                                                                                                                                |
-| `write:cache`         | `cache_flush`                                                                                                                                                                |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                   |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                            |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                        |
-| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                             |
-| `write:notion`        | `notion_append_blocks`                                                                                                                                                       |
-| `read:memory`         | `memory_search`                                                                                                                                                              |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                 |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                           |
-| `write:skills`        | `skills_enable`                                                                                                                                                              |
-| `execute:skills`      | `skills_execute`                                                                                                                                                             |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                             |
-| `read:tools`          | `omniroute_tool_search`                                                                                                                                                      |
-| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                    |
-| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                             |
-| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                               |
-| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                           |
-| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                              |
-| `read:obsidian`       | 13 個讀取工具 — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | 9 個寫入工具 — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
-| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                            |
+### 三個範圍命名空間
 
-支援萬用字元權限範圍：`read:*` 授予所有讀取權限範圍，`*` 授予完整存取權。
+API 金鑰上的 `manage`、MCP 工具上的 `read:compression` 以及 `oma_live_…` 存取權杖上的 `read` 是三種不同的授權。將 `read` 存取權杖傳送到變動性管理路由的呼叫者會收到 HTTP 403 錯誤，訊息為 `Access token scope 'read' is insufficient; 'write' required.`。該等級為 `scopeSatisfies`。它不查詢 MCP 表格，MCP 匹配器也不查詢它。
 
-### `mcp:connect` — 限定路由能力（#7895）
+| 命名空間     | 憑證                                                        | 檢查器             | 允許的通過項目                   |
+| :----------- | :---------------------------------------------------------- | :----------------- | :------------------------------- |
+| API 金鑰管理 | `api_keys.scopes`                                           | `hasManageScope`   | 該 Bearer 金鑰的管理 REST        |
+| API 金鑰附加 | 相同陣列，一個精確字串                                      | 下方提及的輔助程式 | 僅限該單一功能                   |
+| MCP 工具範圍 | 相同陣列，否則為 MCP `_meta`，否則為 `OMNIROUTE_MCP_SCOPES` | `scopeMatches`     | 該工具，一旦啟用強制執行         |
+| 存取權杖     | `oma_live_…`                                                | `scopeSatisfies`   | 其方法和路徑需要該等級的管理路由 |
 
-從非回送位址存取 HTTP/SSE MCP 傳輸端點（`/api/mcp/*`）時，需要使用
-`/api/mcp/` 的 LOCAL_ONLY 例外規則（請參閱 `docs/security/ROUTE_GUARD_TIERS.md`）。過去，
-該例外規則只接受具有完整 `manage`/`admin` 權限範圍的 API 金鑰——對於只需要與 MCP
-通訊的呼叫端而言，權限過於寬泛。`src/shared/constants/managementScopes.ts` 現在會
-匯出 `MCP_CONNECT_SCOPE = "mcp:connect"`：這是一個附加的限定權限範圍（遵循
-`SELF_USAGE_SCOPE` 的相同先例），僅授權略過
-`src/server/authz/policies/management.ts` 中的 `/api/mcp/` 限制——它不授予任何其他
-管理路由存取權，且刻意未納入 `MANAGEMENT_API_KEY_SCOPES`。具有 `manage`/`admin`
-權限範圍的金鑰仍可照常通過此例外規則；`mcp:connect` 則是提供給僅從遠端呼叫 MCP
-之呼叫端的低權限替代方案，並透過 `hasMcpConnectOrManageScope()` 進行檢查。
+每個憑證的鑄造都涵蓋在[管理驗證](../guides/MANAGEMENT-AUTH.md)中。
 
-### 每個金鑰的 HTTP 權限範圍繫結（#7895）
+#### API 金鑰範圍
 
-透過 HTTP/SSE 時，`open-sse/mcp-server/httpTransport.ts` 現在會藉由
-`resolveMcpCallerAuthInfo()`（`open-sse/mcp-server/httpAuthContext.ts`）解析呼叫端實際的
-`api_keys.scopes`，並將其傳遞給 MCP SDK 的 `transport.handleRequest(req, { authInfo })`，
-因此傳入每次工具呼叫的 `extra.authInfo.scopes` 會反映 Bearer 金鑰本身的權限範圍。
-`scopeEnforcement.ts` 的 `resolveCallerScopeContext()` 原本就會優先採用 `authInfo`，而非
-`_meta` 與 `OMNIROUTE_MCP_SCOPES` 環境變數的備援值——此變更只是填入第一個、
-最高優先順序的來源；先前透過 HTTP 時，該來源並未獲得資料。若未解析出任何 API 金鑰
-（沒有標頭或金鑰無效），`authInfo` 會維持為 `undefined`，解析流程則會照常回退至現有的
-`meta`/環境變數鏈。此變更不會改變 `OMNIROUTE_MCP_ENFORCE_SCOPES` 的預設值——仍須
-明確啟用強制執行；此變更僅讓每個金鑰的處理路徑在啟用後具有優先權。stdio 沒有每個
-呼叫端各自的身分（請參閱 `mcpCallerIdentity.ts`），因此不受影響——仍會使用
-`_meta`/環境變數備援鏈。
+一個 `api_keys.scopes` 陣列用於兩個工作。它們使用不同的函數。
 
----
+**管理 REST。** `manage` 和 `admin` 是 `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) 的成員。`hasManageScope` 是授權該金鑰管理路由的依據。`admin` 在這些路由上具有管理能力。這裡的 `admin` 一詞並非存取權杖等級，它也不會擴展為 MCP 工具範圍。
+
+**附加字串。** 每個都是精確的成員資格測試，並且每個都保持在 `MANAGEMENT_API_KEY_SCOPES` 之外。
+
+| 範圍                           | 允許的通過項目                                                                                                                                        |
+| :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | 僅限非迴路 `/api/mcp/` LOCAL_ONLY 專用區 (`hasMcpConnectOrManageScope`)。具有 `manage` 或 `admin` 的金鑰仍然可以通過該專用區。                        |
+| `self:usage`                   | 此金鑰的 `GET /api/v1/me/status` (`src/app/api/v1/me/status/route.ts`)。`POST /api/keys` 在建立時新增此範圍 (`normalizeSelfServiceScopesForCreate`)。 |
+| `self:account-quota`           | 該狀態酬載中的上游帳戶配額 (`src/lib/usage/apiKeySelfService.ts`)。狀態路由仍需要 `self:usage`。                                                      |
+| `policy:bypass-provider-quota` | 此金鑰的推斷呼叫會跳過提供者配額策略 (`src/sse/handlers/chat.ts` 中的 `hasProviderQuotaBypassScope`)。                                                |
+
+#### 匹配
+
+目錄是[MCP 工具範圍](#mcp-tool-scopes)下的表格。請勿將 `src/shared/constants/mcpScopes.ts` 中的 `MCP_SCOPE_LIST` 視為該目錄：它是原始的類型化子集。後來的工具在其旁邊聲明了更多範圍 (`read:notion`、`read:skills`、`read:local-corpus` 以及表格的其餘部分)。
+
+當每個所需範圍都與某些已授予範圍匹配時，`open-sse/mcp-server/scopeEnforcement.ts` 中的 `evaluateToolScopes` 允許呼叫：
+
+- `*` 匹配所有所需範圍。
+- 以 `*` 結尾的已授予範圍匹配以星號前綴開頭的所需範圍。`read:*` 匹配 `read:compression`。
+- 所有其他已授予範圍僅匹配相同的所需字串。
+
+範圍為 `["manage"]` 的金鑰在 `read:compression` 上會使 `scopeMatches` 失敗。當 `admin`、`mcp:connect`、`read` 和 `write` 是唯一授予的字串時，相同的呼叫也會失敗。MCP 工具範圍中除了尾隨的 `*` 之外沒有層次結構。
+
+除非 `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (預設為 `false`)，否則強制執行是關閉的。當它關閉時，`evaluateToolScopes` 允許呼叫並跳過目錄。當它開啟時，HTTP 使用 Bearer 金鑰的 `api_keys.scopes` 作為 `authInfo` (請參閱[每個金鑰的 HTTP 範圍綁定](#per-key-http-scope-binding-7895))。當沒有金鑰範圍解析時，授予的集合會回退到 MCP `_meta`，然後是 `OMNIROUTE_MCP_SCOPES`。
+
+#### 存取權杖範圍
+
+`oma_live_…` 權杖 (`src/lib/accessTokens/scopes.ts`) 攜帶 `read`、`write` 或 `admin`。`scopeSatisfies` 是一個等級：`admin` 涵蓋 `write` 和 `read`，而 `write` 涵蓋 `read`。未知範圍不涵蓋任何內容。
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) 將該等級與 `inferRequiredScope` (`src/server/authz/accessScopes.ts`) 進行比較：
+
+- `GET`、`HEAD` 和 `OPTIONS` 需要 `read`。
+- 所有其他方法都需要 `write`。
+- `ADMIN_SCOPE_PREFIXES` 中的路徑對每個方法都需要 `admin`。`/api/mcp` 在該列表中，因此 `write` 存取權杖仍然無法呼叫 MCP HTTP 介面。
+- `ADMIN_MUTATION_PREFIXES` 中的路徑僅對變動需要 `admin`。
+
+`PATCH /api/keys/{id}` 是一個變動操作，且不在那些管理員列表中，因此 `read` 權杖會收到 403 錯誤，訊息為 `Access token scope 'read' is insufficient; 'write' required.`。`write` 或 `admin` 存取權杖符合該路由。儀表板 JWT、loopback CLI machine-id 權杖，以及具有 `manage` 或 `admin` 權限的 API 金鑰會走其他分支，且不受此等級限制。
+
+通過 `/api/mcp` 的 `scopeSatisfies` 的存取權杖僅表示已通過管理關卡。工具呼叫仍會針對 API 金鑰範圍執行 `scopeMatches`。存取權杖等級不是 `scopeMatches` 的輸入。
+
+### MCP 工具範圍
+
+範圍強制執行集中在 `open-sse/mcp-server/scopeEnforcement.ts` 中。每個工具都需要特定的範圍：
+
+| 範圍                  | 工具                                                                                                                                                                                                                                                                            |
+| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                                                                                                               |
+| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                                                                                                                       |
+| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                                                                                                                          |
+| `read:quota`          | `check_quota`                                                                                                                                                                                                                                                                   |
+| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                                                                                                                          |
+| `read:models`         | `list_models_catalog`                                                                                                                                                                                                                                                           |
+| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                                                                                                                   |
+| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                                                                                                                           |
+| `write:budget`        | `set_budget_guard`                                                                                                                                                                                                                                                              |
+| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                                                                                                                     |
+| `pricing:write`       | `sync_pricing`                                                                                                                                                                                                                                                                  |
+| `read:cache`          | `cache_stats`                                                                                                                                                                                                                                                                   |
+| `write:cache`         | `cache_flush`                                                                                                                                                                                                                                                                   |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                                                                                                                      |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                                                                                                               |
+| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                                                                                                                           |
+| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                                                                                                                |
+| `write:notion`        | `notion_append_blocks`                                                                                                                                                                                                                                                          |
+| `read:memory`         | `memory_search`                                                                                                                                                                                                                                                                 |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                                                                                                                    |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                                                                                                              |
+| `write:skills`        | `skills_enable`                                                                                                                                                                                                                                                                 |
+| `execute:skills`      | `skills_execute`                                                                                                                                                                                                                                                                |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                                                                                                                |
+| `read:tools`          | `omniroute_tool_search`                                                                                                                                                                                                                                                         |
+| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                                                                                                                       |
+| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                                                                                                                |
+| `write:gamification`  | 寫入：遊戲化 — `gamification_invite`（遊戲化邀請），`gamification_transfer`（遊戲化轉移）                                                                                                                                                                                       |
+| `read:plugins`        | 讀取：外掛程式 — `plugin_list`（外掛程式列表），`plugin_executions`（外掛程式執行）                                                                                                                                                                                             |
+| `write:plugins`       | 寫入：外掛程式 — `plugin_scan`（外掛程式掃描），`plugin_install`（外掛程式安裝），`plugin_uninstall`（外掛程式解除安裝），`plugin_activate`（外掛程式啟用），`plugin_deactivate`（外掛程式停用），`plugin_configure`（外掛程式配置）                                            |
+| `read:obsidian`       | 讀取：Obsidian — 13 個讀取工具 — `obsidian_list_vault`（列出儲存庫），`obsidian_read_note`（讀取筆記），`obsidian_search_simple`（簡單搜尋），`obsidian_search_structured`（結構化搜尋），`obsidian_get_periodic_note`（取得週期性筆記），`obsidian_sync_status`（同步狀態），… |
+| `write:obsidian`      | 寫入：Obsidian — 9 個寫入工具 — `obsidian_write_note`（寫入筆記），`obsidian_append_note`（附加筆記），`obsidian_patch_note`（修補筆記），`obsidian_move_note`（移動筆記），`obsidian_delete_note`（刪除筆記），`obsidian_sync_trigger`（觸發同步），…                          |
+| `read:local-corpus`   | 讀取：本地語料庫 — `local_corpus_search`（本地語料庫搜尋），`local_corpus_read`（本地語料庫讀取），`local_corpus_status`（本地語料庫狀態）                                                                                                                                      |
+
+通配符範圍受到支援：`read:*` 授予所有讀取範圍，`*` 授予完整存取權限。
+
+### `mcp:connect` — 窄化路由功能 (#7895)
+
+從非迴路介面存取 HTTP/SSE MCP 傳輸 (`/api/mcp/*`) 需要 `/api/mcp/` 的 LOCAL_ONLY 特殊豁免 (請參閱 `docs/security/ROUTE_GUARD_TIERS.md`)。過去，該豁免僅接受完整的 `manage`/`admin` 範圍 API 金鑰 — 對於僅需與 MCP 通訊的呼叫者來說，這範圍過於廣泛。`src/shared/constants/managementScopes.ts` 現在匯出 `MCP_CONNECT_SCOPE = "mcp:connect"`：這是一個附加的、窄化的範圍（與 `SELF_USAGE_SCOPE` 具有相同先例），它**僅**授權 `src/server/authz/policies/management.ts` 中的 `/api/mcp/` 繞過 — 它不授予任何其他管理路由存取權限，並被刻意排除在 `MANAGEMENT_API_KEY_SCOPES` 之外。持有 `manage`/`admin` 的金鑰仍然可以不變地通過豁免；`mcp:connect` 是遠端僅限 MCP 呼叫者的較低權限替代方案，透過 `hasMcpConnectOrManageScope()` 進行檢查。
+
+### 每金鑰 HTTP 範圍綁定 (#7895)
+
+透過 HTTP/SSE，`open-sse/mcp-server/httpTransport.ts` 現在透過 `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) 解析呼叫者的實際 `api_keys.scopes`，並將其傳遞給 MCP SDK 的 `transport.handleRequest(req, { authInfo })`，因此到達每個工具呼叫的 `extra.authInfo.scopes` 反映了 Bearer 金鑰本身的範圍。`scopeEnforcement.ts` 的 `resolveCallerScopeContext()` 已經將 `authInfo` 的優先級置於 `_meta` 和 `OMNIROUTE_MCP_SCOPES` 環境變數回退之上 — 這只是填充了第一個、最高優先級的來源，該來源以前未透過 HTTP 提供。當沒有 API 金鑰解析時（無標頭，無效金鑰），`authInfo` 保持 `undefined`，並且解析會不變地回退到現有的 `meta`/環境變數鏈。這**不會**改變 `OMNIROUTE_MCP_ENFORCE_SCOPES` 的預設值 — 強制執行仍然必須明確啟用；此更改僅在啟用後使每金鑰路徑優先。stdio 沒有每個呼叫者的身份（請參閱 `mcpCallerIdentity.ts`），因此不受影響 — 它仍然依賴於 `_meta`/環境變數回退鏈。
 
 ## 環境變數
 
@@ -415,9 +453,9 @@ MCP_TOOL_ALLOW="omniroute_route_request,omniroute_check_quota" omniroute --mcp
 
 ---
 
-## 執行階段心跳
+## 執行時心跳 (Runtime Heartbeat)
 
-stdio 傳輸每 5 秒會將存活狀態持久化至 `${DATA_DIR}/runtime/mcp-heartbeat.json`。儀表板 (`/api/mcp/status`) 會讀取此檔案並檢查 PID 存活狀態，以判定 `online`。HTTP 傳輸則改由程序內的 `getMcpHttpStatus()` 回報狀態（不寫入檔案）。
+stdio 傳輸層每 5 秒將存活狀態持久化到 `${DATA_DIR}/runtime/mcp-heartbeat.json`。儀表板 (`/api/mcp/status`) 讀取此檔案以及 PID 存活狀態以推導出 `online` 狀態。HTTP 傳輸層則從程序內的 `getMcpHttpStatus()` 報告狀態（不寫入檔案）。
 
 心跳快照包含：
 

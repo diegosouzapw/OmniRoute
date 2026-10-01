@@ -5,11 +5,11 @@
 ---
 
 > **Vir resnice:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Nazadnje posodobljeno:** 2026-06-28 — v3.8.40
+> **Zadnja posodobitev:** 2026-09-22 — imenski prostori obsega kažejo na MCP-SERVER.md
 
-OmniRoute uporablja avtorizacijski cevovod, ki upošteva poti in preverja vsako zahtevo API. Razvrščanje je **deterministično** in **privzeto zavrača dostop** — vse, česar ni mogoče razvrstiti, je obravnavano kot `MANAGEMENT` ter zahteva sejo ali žeton z upravljavskimi pravicami. Ta stran pojasnjuje model za inženirje, ki vzdržujejo poti ali načrtujejo nove končne točke.
+OmniRoute ima cevovod za avtorizacijo, ki je odvisen od poti in varuje vsako zahtevo API-ja. Klasifikacija je **determinirana** in **zapira ob napaki** — vse, kar ni mogoče klasificirati, se konča kot `MANAGEMENT` in zahteva sejo ali žeton za upravljanje. Ta stran pojasnjuje model za inženirje, ki vzdržujejo poti ali načrtujejo nove končne točke.
 
-![Cevovod AuthZ (3 razredi poti + vrednotenje pravilnikov)](../diagrams/exported/authz-pipeline.svg)
+![Cevovod AuthZ (3 razredi poti + vrednotenje pravilnika)](../diagrams/exported/authz-pipeline.svg)
 
 > Vir: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -200,26 +200,33 @@ Nabor izberite glede na obliko, ne glede na priročnost. Posamezna pot sodi v `P
 
 ## Obsegi
 
-Ključi API vsebujejo polje `scopes` (shranjeno kot JSON v `api_keys.scopes`, glejte `src/lib/db/apiKeys.ts`).
+Trije imenski prostori. Vsak preverjevalnik bere samo svoje nize. Stranska primerjava, vključno s tem, zakaj `manage` ne uspe `scopeMatches` za `read:compression` in zakaj dostopni žeton `read` ne more `PATCH /api/keys/{id}`, je opisana v [Treh imenskih prostorih obsegov](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Obseg za upravljanje
+API ključi vsebujejo polje `scopes` (shranjeno kot JSON v `api_keys.scopes`, glej `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — ključu omogoči dostop do končnih točk upravljalnega API-ja, ko je poslan kot Bearer.
+### Obseg upravljanja
 
-### Obsegi MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Dostop nosilca do API poti za upravljanje.
+- `mcp:connect`, `self:usage`, `self:account-quota` in
+  `policy:bypass-provider-quota` so aditivni obsegi z natančnim ujemanjem. Nahajajo se
+  zunaj `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` odpre samo
+  `/api/mcp/` izrez, ki ni povratna zanka.
 
-Vsako orodje MCP prek `MCP_TOOL_SCOPES` zahteva določene obsege. Celoten seznam (`MCP_SCOPE_LIST`):
+### Obsegi orodij MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalog in pravila ujemanja (identičen niz ali dodeljen obseg, ki se konča z `*`):
+[Obsegi orodij MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` v `src/shared/constants/mcpScopes.ts` je izvirna tipizirana
+podmnožica, ne celoten katalog. Izvrševanje poteka v
+`open-sse/mcp-server/scopeEnforcement.ts` po tem, ko `resolveCallerScopeContext()`
+razreši obsege iz informacij o avtentikaciji MCP, metapodatkov zahteve ali `OMNIROUTE_MCP_SCOPES`.
+Ostane izklopljeno, razen če je `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Uveljavljanje obsegov v `open-sse/mcp-server/server.ts` posreduje seznam obsegov vsakega orodja funkciji
-`evaluateToolScopes()`, potem ko `resolveCallerScopeContext()` razreši obsege iz podatkov za preverjanje pristnosti MCP,
-metapodatkov zahtevka ali `OMNIROUTE_MCP_SCOPES`.
+### Obsegi dostopnih žetonov
+
+`read` / `write` / `admin` na žetonih `oma_live_…`, razvrščeni po `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ta rang velja samo za poverilnico dostopnega žetona.
+Glejte [Avtentikacija upravljanja](../guides/MANAGEMENT-AUTH.md).
 
 ## Preklop zahteve za preverjanje pristnosti
 
@@ -267,7 +274,7 @@ Znotraj obdelovalnikov uporabite `assertAuth(req, expectedClass)` — ta sproži
 
 ## Glejte tudi
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — oznaka preverjanja pristnosti za vsako končno točko
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — revizijski dnevnik dogodkov preverjanja pristnosti
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — podrobnosti uveljavljanja obsegov MCP
-- Izvorna koda: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — oznaka za avtentikacijo za vsako končno točko
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — revizijski dnevnik za dogodke avtentikacije
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trije imenski prostori obsega in katalog orodij MCP
+- Vir: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

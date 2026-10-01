@@ -6,9 +6,9 @@ import type { AntigravityClientProfile } from "@/shared/constants/antigravityCli
 // VS Code Copilot Chat extension. The CLI's `copilot-developer-cli` integration
 // id is the catalog-unlock lever: it exposes the full entitled model set
 // (gemini-3.x, gpt-5.4-nano, the full opus reasoning range) where `vscode-chat`
-// returns a narrower list. Version strings track the live-captured CLI 1.0.81-6.
+// returns a narrower list. Version strings track the live-captured CLI 1.0.88.
 export const GITHUB_COPILOT_API_VERSION = "2026-08-01";
-export const GITHUB_COPILOT_CLI_VERSION = "1.0.81-6";
+export const GITHUB_COPILOT_CLI_VERSION = "1.0.88";
 const GITHUB_COPILOT_VERSION_OVERRIDE_ENV = "GITHUB_COPILOT_CLI_VERSION";
 const SAFE_COPILOT_VERSION_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/;
 
@@ -102,7 +102,7 @@ export function getGitHubCopilotChatHeaders(
   initiator = GITHUB_COPILOT_DEFAULT_INITIATOR,
   options: { vision?: boolean; intent?: string; integrationId?: string } = {}
 ): Record<string, string> {
-  // Matches the live @github/copilot CLI 1.0.81-6 inference request 1:1 (MITM-
+  // Matches the live @github/copilot CLI 1.0.88 inference request 1:1 (MITM-
   // captured). NOTE the CLI does NOT send `editor-plugin-version` nor
   // `x-vscode-user-agent-library-version` on the inference path — those belong
   // to the VS Code Copilot Chat extension, not the CLI. Sending an incomplete
@@ -118,7 +118,7 @@ export function getGitHubCopilotChatHeaders(
   const headers: Record<string, string> = {
     "copilot-integration-id": integrationId,
     "editor-version": `copilot/${version}`,
-    "user-agent": `copilot/${version}`,
+    "user-agent": `copilot/${version} (${getRuntimePlatform()}) term/unknown`,
     "openai-intent": options.intent || GITHUB_COPILOT_OPENAI_INTENT,
     "x-interaction-type": GITHUB_COPILOT_INTERACTION_TYPE,
     "copilot-harness-id": GITHUB_COPILOT_HARNESS_ID,

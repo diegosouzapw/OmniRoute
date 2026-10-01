@@ -252,10 +252,28 @@ function validateRequestedModalities(runtime: EmbeddingRuntime): EmbeddingFailur
     : null;
 }
 
+/**
+ * Conservative per-item character budget for embedding string inputs. 20k
+ * chars stays under the smallest common embedding context (8192 tokens,
+ * text-embedding-3-small) even for code/CJK-heavy text. Array items are
+ * clamped individually; non-string items (structured/native modalities) are
+ * passed through untouched.
+ */
+const MAX_EMBEDDING_INPUT_CHARS = 20_000;
+
+export function clampEmbeddingStringInput(input: unknown): unknown {
+  const clampString = (s: string): string =>
+    s.length > MAX_EMBEDDING_INPUT_CHARS ? s.slice(0, MAX_EMBEDDING_INPUT_CHARS) : s;
+  if (typeof input === "string") return clampString(input);
+  if (Array.isArray(input))
+    return input.map((item) => (typeof item === "string" ? clampString(item) : item));
+  return input;
+}
+
 function buildUpstreamBody(runtime: EmbeddingRuntime): Record<string, unknown> {
   const upstreamBody: Record<string, unknown> = {
     model: runtime.model,
-    input: runtime.body.input,
+    input: clampEmbeddingStringInput(runtime.body.input),
   };
   if (runtime.body.dimensions !== undefined) upstreamBody.dimensions = runtime.body.dimensions;
   if (runtime.body.encoding_format !== undefined) {
@@ -436,9 +454,10 @@ async function enforceEmbeddingQuota(runtime: EmbeddingRuntime): Promise<Embeddi
 function resolveSingleTexts(runtime: EmbeddingRuntime): string[] | EmbeddingFailure | null {
   if (runtime.providerConfig.singleTextProtocol !== "clova-v2") return null;
   const input = Array.isArray(runtime.body.input) ? runtime.body.input : [runtime.body.input];
+  const clamped = clampEmbeddingStringInput(input) as unknown[];
   if (
-    input.length === 0 ||
-    input.some((item) => typeof item !== "string" || item.trim().length === 0)
+    clamped.length === 0 ||
+    clamped.some((item) => typeof item !== "string" || item.trim().length === 0)
   ) {
     return failure(400, "CLOVA Studio embedding v2 accepts non-empty text strings only");
   }
@@ -448,7 +467,7 @@ function resolveSingleTexts(runtime: EmbeddingRuntime): string[] | EmbeddingFail
   if (runtime.body.dimensions !== undefined && Number(runtime.body.dimensions) !== 1024) {
     return failure(400, "CLOVA Studio embedding v2 has a fixed dimension of 1024");
   }
-  return input as string[];
+  return clamped as string[];
 }
 
 function appendClovaEmbedding(

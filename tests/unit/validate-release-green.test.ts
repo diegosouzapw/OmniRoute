@@ -409,6 +409,16 @@ test("extractCiGates: the REAL ci.yml yields the base-reds that leaked in v3.8.4
   assert.ok(ids.size >= 20, "the real gate set is substantial (>= 20 static gates)");
 });
 
+test("validate-release-green parses workflow YAML via the declared js-yaml dependency", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  assert.match(src, /from ["']js-yaml["']/);
+  assert.doesNotMatch(src, /from ["']yaml["']/);
+});
+
 // ─── Verdict accuracy (review of the #9985 release-green verdict) ────────────
 
 test("firstFailureLine never blames a PASSING line whose test FILE NAME contains 'fail' (#9985)", () => {

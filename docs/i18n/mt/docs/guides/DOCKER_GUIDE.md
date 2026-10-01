@@ -237,12 +237,12 @@ L-istack tal-produzzjoni jaħdem b’mod parallel ma’ compose tal-iżvilupp (i
 
 ## Stadji tad-Dockerfile
 
-Ir-repożitorju jinkludi Dockerfile b’diversi stadji (`Dockerfile`). Erba’ stadji huma esposti; agħżel it-`target` adattat għall-każ tal-użu tiegħek.
+Ir-repożitorju jinkludi Dockerfile b’diversi stadji (`Dockerfile`). Erba’ stadji huma esposti; agħżel it-`target` xieraq għall-każ ta’ użu tiegħek.
 
 | Stadju        | Immaġni bażi          | Għan                                                                                                                                                                                                                                                                                            |
 | ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Jinstalla d-dipendenzi (`npm ci --legacy-peer-deps`) u jħaddem `npm run build` (Turbopack b’mod awtomatiku — ara r-Riżorsi waqt il-build hawn taħt)                                                                                                                                             |
-| `runner-base` | `node:26-trixie-slim` | Ambjent ta’ runtime għall-produzzjoni bl-output standalone ta’ Next.js. **Ma jinkludi ebda CLI tal-fornituri.**                                                                                                                                                                                 |
+| `builder`     | `node:26-trixie-slim` | Jinstalla d-dipendenzi (`npm ci --legacy-peer-deps`) u jħaddem `npm run build` (Turbopack b’mod awtomatiku — ara r-Riżorsi waqt il-bini hawn taħt)                                                                                                                                              |
+| `runner-base` | `node:26-trixie-slim` | Ambjent ta’ eżekuzzjoni għall-produzzjoni bl-output standalone ta’ Next.js. **Ma jinkludi l-ebda CLI tal-fornituri.**                                                                                                                                                                           |
 | `runner-cli`  | `runner-base`         | Iżid `git`, `docker.io`, `docker-compose` u CLIs globali: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Agħżel dan għal flussi tax-xogħol b’aġenti.**                                                                                                                    |
 | `runner-web`  | `runner-base`         | Iżid Playwright + browser Chromium (`--with-deps`) għall-fornituri ta’ sessjonijiet tal-web: `gemini-web`, `claude-web`, `claude-turnstile`. **Agħżel dan meta tuża dawk il-fornituri** — l-immaġni sempliċi tfalli waqt it-talba mingħajru (ara n-nota dwar `-web` taħt il-Kanali tar-Rilaxx). |
 
@@ -254,80 +254,89 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Riżorsi waqt il-build
+### Riżorsi waqt il-bini
 
-Tliet argumenti tal-build jikkontrollaw kemm juża riżorsi l-istadju `builder`. Dawn japplikaw biss waqt il-build —
-`OMNIROUTE_MEMORY_MB` (hawn taħt) huwa parametru separat għar-runtime.
+Tliet argomenti tal-bini jikkontrollaw kemm jikkonsma riżorsi l-istadju `builder`. Dawn japplikaw biss waqt il-bini —
+`OMNIROUTE_MEMORY_MB` (hawn taħt) huwa kontroll separat għall-ħin tal-eżekuzzjoni.
 
-| Argument tal-build          | Valur awtomatiku | Effett                                                                                          |
+| Argument tal-bini           | Valur predefinit | Effett                                                                                          |
 | --------------------------- | ---------------- | ----------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`              | `0` jibni b’webpack minflok. Memorja massima aktar baxxa, iżda aktar bil-mod.                   |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`           | Limitu tal-heap ta’ V8 (`--max-old-space-size`) għall-`next build` li jitnieda.                 |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`              | `0` jibni b’webpack: inqas memorja massima, iżda aktar bil-mod. `1` jagħżel Turbopack.          |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`           | Limitu tal-heap ta’ V8 (`--max-old-space-size`) għall-`next build` li jinbeda.                  |
 | `OMNIROUTE_BUILD_WORKERS`   | `2`              | Jipprovdi `CIRCLE_NODE_TOTAL`; Next jikkalkula `workers = N - 1` għall-ġbir tad-data tal-paġni. |
 
 `OMNIROUTE_BUILD_WORKERS` huwa dak li għandek iżżid fuq builder b’saħħtu u dak li
-għandek tissuspetta meta build b’riżorsi limitati jieqaf **wara** `✓ Compiled successfully`. Kull
-worker tad-data tal-paġni huwa proċess għalih, u l-proċess ġenitur `next build` ukoll;
-riproduzzjoni diretta fuq VPS (issue #7518) kejlet l-ogħla RSS ta’ kull proċess
-għal ~4.5 GB, indipendentement mill-flag tal-heap `NODE_OPTIONS` (Turbopack jikkompila
-f’memorja nattiva/Rust barra mill-heap ta’ V8). Il-valur awtomatiku ta’ `2` (→ worker wieħed, 2
-proċessi b’kollox) huwa adattat għar-runners ospitati minn GitHub b’16 GB / 4 vCPU li
-tuża l-pipeline tal-pubblikazzjoni. B’`8` (→ 7 workers), dak ir-runner spiċċalu l-memorja u
-buildkit falla l-pass b’`ResourceExhausted: ... cannot allocate memory`;
-`3` (→ 2 workers) xorta ma kienx biżżejjed wara li l-RSS għal kull proċess tkejjel
-direttament minflok ġie dedott. `tests/unit/docker-build-memory-budget.test.ts`
-jagħmel il-kalkoli abbażi tal-valur imkejjel u jfalli jekk xi wieħed miż-żewġ parametri
-jaqbeż il-kapaċità tar-runner.
+għandek tissuspetta meta build b’riżorsi limitati jfalli **wara** `✓ Compiled successfully`. Kull
+worker tad-data tal-paġni huwa proċess għalih, bħalma huwa wkoll il-proċess ewlieni
+`next build`; riproduzzjoni diretta fuq VPS (issue #7518) kejlet il-massimu tal-RSS
+ta’ kull proċess għal ~4.5 GB indipendentement mill-flag tal-heap `NODE_OPTIONS`
+(Turbopack jikkompila f’memorja nattiva/Rust barra mill-heap ta’ V8). Il-valur
+predefinit ta’ `2` (→ worker wieħed, 2 proċessi b’kollox) huwa adattat għar-runners
+ospitati minn GitHub b’16 GB / 4 vCPU li tuża l-pipeline tal-pubblikazzjoni.
+B’`8` (→ 7 workers), dak ir-runner spiċċa bla memorja u buildkit falla l-pass
+b’`ResourceExhausted: ... cannot allocate memory`; `3` (→ 2 workers) xorta ma
+kienx biżżejjed ladarba l-RSS għal kull proċess tkejjel direttament minflok ma
+ġie dedott. `tests/unit/docker-build-memory-budget.test.ts` jagħmel il-kalkoli
+abbażi tal-figura mkejla u jfalli jekk xi wieħed mill-kontrolli jaqbeż
+il-kapaċità tar-runner.
 
-Turbopack jikkompila f’memorja nattiva ta’ Rust li tinsab **barra** mill-heap ta’ V8, għalhekk
-`OMNIROUTE_BUILD_MEMORY_MB` ma jillimitahiex. Fuq host b’limitu tal-memorja,
-il-build imbagħad jiġi mitmum b’SIGKILL mill-OOM killer mingħajr ebda test ta’ żball — sempliċement
-jieqaf f’nofs `Creating an optimized production build`, u dan jidher bħal imblukkar aktar
-milli nuqqas ta’ memorja. Jekk il-host tal-build għandu riżorsi limitati, ibdel il-bundler:
+Turbopack jikkompila f’memorja nattiva ta’ Rust li tinsab **barra** mill-heap ta’
+V8, għalhekk `OMNIROUTE_BUILD_MEMORY_MB` ma jillimitahiex. Fuq host b’limitu
+tal-memorja, il-build imbagħad jiġi tterminat b’SIGKILL mill-OOM killer mingħajr
+ebda test ta’ żball — sempliċement jieqaf f’nofs `Creating an optimized production build`,
+u għalhekk jidher li weħel aktar milli spiċċa bla memorja. Għalhekk id-`Dockerfile`
+juża webpack bħala valur predefinit (`OMNIROUTE_USE_TURBOPACK=0`), għall-kuntrarju
+ta’ `npm run dev` / `npm run build`, fejn Turbopack huwa l-valur predefinit
+fil-kodiċi: `docker build .` sempliċi mingħajr argomenti tal-bini (kif iħaddmu
+Railway u hosts oħra ta’ klikk waħda) ma jistax jitwaqqaf fis-skiet fuq builder
+b’limitu tal-memorja. L-immaġnijiet ippubblikati diġà jgħaddu
+`OMNIROUTE_USE_TURBOPACK=0` b’mod espliċitu f’`docker-publish.yml`. Fuq builder
+b’ħafna RAM, agħżel Turbopack għal build aktar mgħaġġel:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` huwa attivat, għalhekk `next build` iħaddem proċess ġenitur **u** proċess
-worker, u kull wieħed jirrispetta `OMNIROUTE_BUILD_MEMORY_MB` separatament. Issettja l-limitu
-tal-container għal aktar minn bejn wieħed u ieħor id-doppju ta’ dak il-valur, mhux darba biss.
+`webpackBuildWorker` huwa attivat, għalhekk `next build` iħaddem proċess ewlieni
+**u** proċess worker, u kull wieħed jirrispetta `OMNIROUTE_BUILD_MEMORY_MB`
+separatament. Issettja l-limitu tal-container għal aktar minn bejn wieħed u ieħor
+id-doppju ta’ dak il-valur, mhux darba biss.
 
 Imkejjel fuq din is-siġra (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Limitu tal-container | Riżultat                                 |
-| --------- | -------------------- | ---------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB       | Mitmum mill-OOM fit-tnejn, fis-skiet     |
-| webpack   | 8 GiB                | Il-worker tal-build ġie mitmum b’SIGKILL |
-| webpack   | 12 GiB               | Irnexxa, u laħaq massimu ta’ 11.1 GiB    |
+| Bundler   | Limitu tal-container | Riżultat                              |
+| --------- | -------------------- | ------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB       | Twaqqaf mill-OOM fit-tnejn, fis-skiet |
+| webpack   | 8 GiB                | Il-build worker twaqqaf b’SIGKILL     |
+| webpack   | 12 GiB               | Irnexxa, b’massimu ta’ 11.1 GiB       |
 
-### Valuri awtomatiċi tar-runtime
+### Valuri predefiniti waqt l-eżekuzzjoni
 
-Valuri awtomatiċi esportati minn `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+Valuri predefiniti esportati minn `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Imġiba tal-memorja f’Docker:
 
 - L-immaġni tissettja `OMNIROUTE_MEMORY_MB=1024` u minnha tidderiva `NODE_OPTIONS=--max-old-space-size=1024`.
-- Il-proċess effettiv tas-server jinbeda mil-lanċjatur awtonomu, li jaqra `OMNIROUTE_MEMORY_MB` u jżid `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Il-proċess effettiv tas-server jinbeda mil-launcher standalone, li jaqra `OMNIROUTE_MEMORY_MB` u jżid `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
 - Node juża l-aħħar valur ripetut ta’ `--max-old-space-size`, għalhekk l-issettjar ta’ `OMNIROUTE_MEMORY_MB` jikkontrolla l-limitu effettiv tal-heap f’Docker.
-- Minħabba li l-immaġni dejjem tissettjah, il-valur alternattiv tal-lanċjatur stess, ikkalibrat skont ir-RAM, qatt ma japplika taħt Docker. Żidu b’mod espliċitu skont it-tagħbija tax-xogħol (it-tabella hawn taħt). `2048` xorta għadu żgħir wisq għal `/v1/responses` tal-aġenti tal-kodifikazzjoni.
+- Minħabba li l-immaġni dejjem tissettjah, il-valur alternattiv tal-launcher, ikkalibrat skont ir-RAM, qatt ma japplika taħt Docker. Żidu b’mod espliċitu skont it-tagħbija tax-xogħol (it-tabella hawn taħt). `2048` xorta huwa żgħir wisq għal `/v1/responses` ta’ aġenti tal-ipprogrammar.
 
-### RAM waqt l-eżekuzzjoni għall-aġenti tal-kodifikazzjoni
+### RAM waqt it-tħaddim għall-aġenti tal-ipprogrammar
 
-Il-valur predefinit ta’ 1 GiB f’Docker huwa minimu għal dashboard/chat ħafif, mhux daqs adattat għall-produzzjoni. Korpi twal ta’ `POST /v1/responses` (mijiet ta’ messaġġi, għexieren ta’ għodod) iżommu diversi graffs fil-memorja waqt il-kompressjoni. Żewġ talbiet li jikkoinċidu ta’ madwar ~3 MiB / ~750k token waqqfu V8 b’old-space ta’ **12 GiB** (`FATAL ERROR: Reached heap limit`) u laħqu wkoll OOM ta’ cgroup ta’ 16 GiB. Ara [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Il-valur predefinit ta’ 1 GiB f’Docker huwa l-minimu għal dashboard/chat ħafif, mhux daqs adattat għall-produzzjoni. Bodies twal ta’ `POST /v1/responses` (mijiet ta’ messaġġi, għexieren ta’ għodod) iżommu diversi graffs fil-memorja waqt il-kompressjoni. Żewġ talbiet li jikkoinċidu ta’ madwar 3 MiB / 750k token waqqfu V8 bi old-space ta’ **12 GiB** (`FATAL ERROR: Reached heap limit`) u laħqu wkoll OOM ta’ cgroup ta’ 16 GiB. Ara [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Issettja d-daqs ta’ **cgroup `--memory` ogħla mill-heap** — il-buffers nattivi, SQLite, u r-riżultati intermedji tal-kompressjoni jinsabu barra minn V8.
+Issettja **cgroup `--memory` għal valur ogħla mill-heap** — buffers nattivi, SQLite, u riżultati intermedji tal-kompressjoni jinsabu barra minn V8.
 
-| Tagħbija tax-xogħol                                 | `OMNIROUTE_MEMORY_MB`                 | Kontenitur / cgroup              | Noti                                                                                                                                 |
-| --------------------------------------------------- | ------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Dashboard, chat ħafif wieħed                        | `1024` (valur predefinit tal-immaġni) | ≥2 GiB                           |                                                                                                                                      |
-| Aġent tal-kodifikazzjoni wieħed (Claude/Codex/Grok) | `8192`                                | ≥10 GiB                          | Sessjoni waħda tipika ta’ `/v1/responses`                                                                                            |
-| Żewġ `/v1/responses` twal konkorrenti               | `10240`–`12288`                       | ≥12–16 GiB                       | Ġie mkejjel waqfien ta’ V8 b’heap ta’ madwar ~12 GiB                                                                                 |
-| Tliet kuntesti twal konkorrenti jew aktar           | tużax proċess wieħed                  | eżegwixxi f’sekwenza / aktar RAM | L-ammissjoni predefinita għal tagħbijiet tqal hija talba waħda għaddejja; jekk iżżidha mingħajr aktar RAM, terġa’ tikkawża l-waqfien |
+| Tagħbija tax-xogħol                               | `OMNIROUTE_MEMORY_MB`                 | Container / cgroup          | Noti                                                                                                                                       |
+| ------------------------------------------------- | ------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dashboard, chat ħafif wieħed                      | `1024` (valur predefinit tal-immaġni) | ≥2 GiB                      |                                                                                                                                            |
+| Aġent wieħed tal-ipprogrammar (Claude/Codex/Grok) | `8192`                                | ≥10 GiB                     | Sessjoni waħda tipika ta’ `/v1/responses`                                                                                                  |
+| Żewġ `/v1/responses` twal konkorrenti             | `10240`–`12288`                       | ≥12–16 GiB                  | Waqfien imkejjel ta’ V8 b’heap ta’ madwar 12 GiB                                                                                           |
+| Tliet kuntesti twal konkorrenti jew aktar         | tagħmilx hekk fi proċess wieħed       | isseljaliżżahom / aktar RAM | Il-limitu predefinit tad-dħul għal tagħbijiet tqal huwa talba waħda għaddejja; jekk tgħollih mingħajr aktar RAM, terġa’ tikkawża l-waqfien |
 
-`omniroute serve` fuq bare metal jikkalibra għal madwar ~35% tar-RAM (limitat għal `[512, 4096]`) meta `OMNIROUTE_MEMORY_MB` **ma jkunx issettjat**. Docker dejjem jissettja `1024`, għalhekk dik il-kalibrazzjoni qatt ma titħaddem fl-immaġni uffiċjali.
+`omniroute serve` fuq bare metal jikkalibra madwar 35% tar-RAM (limitat għal `[512, 4096]`) meta `OMNIROUTE_MEMORY_MB` **ma jkunx issettjat**. Docker dejjem jissettjah għal `1024`, għalhekk dik il-kalibrazzjoni qatt ma titħaddem fl-immaġni uffiċjali.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

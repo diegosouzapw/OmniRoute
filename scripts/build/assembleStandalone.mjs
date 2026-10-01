@@ -112,7 +112,7 @@ export const NATIVE_ASSET_ENTRIES = [
 ];
 
 /** @type {{label:string, src:string[], dest:string[]}[]} */
-const EXTRA_MODULE_ENTRIES = [
+export const EXTRA_MODULE_ENTRIES = [
   {
     // tlsClient.ts intentionally resolves wreq-js through a runtime-dynamic
     // require so Turbopack cannot rewrite the package name to a hashed external.
@@ -163,6 +163,93 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["node_modules", "pino-pretty"],
   },
   { label: "split2", src: ["node_modules", "split2"], dest: ["node_modules", "split2"] },
+  {
+    // The esbuild-bundled compression worker (colocate-standalone.mjs,
+    // --packages=external) keeps these as runtime imports, but the Next.js
+    // standalone tracer never traverses that separate entry point, so none
+    // of them land in the standalone tree on their own. Without them the
+    // worker spawn fails with ERR_MODULE_NOT_FOUND and every compression
+    // silently falls back to synchronous in-process execution — 600k-token
+    // agent histories then materialize in the main-thread V8 heap and trip
+    // the resourcePressure guard (503 resource_pressure). Diagnosed
+    // 2026-09-25 on omniroute:3.8.51-local. Dep closure included
+    // (gpt-tokenizer, regexp-tree, ip-address, smart-buffer, buffer-crc32).
+    label: "compression worker external: uuid",
+    src: ["node_modules", "uuid"],
+    dest: ["node_modules", "uuid"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: @toon-format/toon",
+    src: ["node_modules", "@toon-format", "toon"],
+    dest: ["node_modules", "@toon-format", "toon"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: omniglyph",
+    src: ["node_modules", "omniglyph"],
+    dest: ["node_modules", "omniglyph"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: gpt-tokenizer",
+    src: ["node_modules", "gpt-tokenizer"],
+    dest: ["node_modules", "gpt-tokenizer"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: safe-regex",
+    src: ["node_modules", "safe-regex"],
+    dest: ["node_modules", "safe-regex"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: regexp-tree",
+    src: ["node_modules", "regexp-tree"],
+    dest: ["node_modules", "regexp-tree"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: smol-toml",
+    src: ["node_modules", "smol-toml"],
+    dest: ["node_modules", "smol-toml"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: socks",
+    src: ["node_modules", "socks"],
+    dest: ["node_modules", "socks"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: ip-address",
+    src: ["node_modules", "ip-address"],
+    dest: ["node_modules", "ip-address"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: smart-buffer",
+    src: ["node_modules", "smart-buffer"],
+    dest: ["node_modules", "smart-buffer"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: xxhash-wasm",
+    src: ["node_modules", "xxhash-wasm"],
+    dest: ["node_modules", "xxhash-wasm"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: yazl",
+    src: ["node_modules", "yazl"],
+    dest: ["node_modules", "yazl"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: buffer-crc32",
+    src: ["node_modules", "buffer-crc32"],
+    dest: ["node_modules", "buffer-crc32"],
+  },
   {
     // ioredis is a deliberately LAZY dependency (Redis is optional — see the
     // #6559 comment in src/shared/utils/rateLimiter.ts) — reached only via a

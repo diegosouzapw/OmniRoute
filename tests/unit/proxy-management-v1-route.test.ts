@@ -152,6 +152,13 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
     assert.equal(deleteAuthRes.status, 401);
   });
 
+  // The INITIAL_PASSWORD block above persisted setupComplete=true (headless-deploy
+  // bootstrap in getSettings()). Since #15044, requireManagementAuth no longer inherits
+  // the public-route shortcut, so a setup-complete install without a password requires
+  // management auth even from loopback. Start the unauthenticated CRUD branches below
+  // from a fresh, pre-onboarding install, as this test originally intended.
+  await resetStorage();
+
   const providerConn = await providersDb.createProviderConnection({
     provider: "openai",
     authType: "apikey",

@@ -20,6 +20,7 @@ import {
   withEarlyStreamKeepalive,
   OPENAI_RESPONSES_ERROR_FRAME,
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import { createStreamDeadlineSignal } from "@omniroute/open-sse/utils/streamDeadlineSignal";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import { OPENAI_RESPONSES_IN_PROGRESS_FRAME } from "@omniroute/open-sse/utils/sseHeartbeat";
 
@@ -98,6 +99,8 @@ export async function withCodexPreferredModel(
  * Handled by the unified chat handler (openai-responses format auto-detected).
  */
 async function postHandler(request: any) {
+  // Keep the framework Request untouched until the route has parsed enough state
+  // to know this is a streaming response. Deadline lifecycle belongs to that branch.
   const sessionId = resolveSessionId(request);
   const admissionResult = await admitChatRequest(request, {
     sessionId,
@@ -185,13 +188,16 @@ async function postHandler(request: any) {
     if (wantsStreaming) {
       const thresholdMs = resolveKeepaliveThreshold(resolvedBody?.model);
       const correlationId = generateRequestId();
+      const { signal: streamSignal, deadlineController } = createStreamDeadlineSignal(
+        request.signal
+      );
       const handlerResponse = releaseChatAdmissionAfterHandler(
-        handleChat(resolved, null, resolvedBody, correlationId),
+        handleChat(resolved, null, resolvedBody, correlationId, streamSignal),
         admission.lease,
-        { signal: request.signal }
+        { signal: streamSignal }
       );
       return await withEarlyStreamKeepalive(handlerResponse, {
-        signal: request.signal,
+        signal: streamSignal,
         thresholdMs,
         startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
         applicationKeepalive: {
@@ -200,6 +206,7 @@ async function postHandler(request: any) {
         },
         errorFrame: OPENAI_RESPONSES_ERROR_FRAME,
         correlationId,
+        deadlineController,
       });
     }
 

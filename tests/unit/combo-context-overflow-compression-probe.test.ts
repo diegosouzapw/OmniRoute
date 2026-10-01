@@ -237,7 +237,13 @@ async function invokeChatCoreCapturingUpstream(body: Record<string, unknown>) {
   const originalFetch = globalThis.fetch;
   let dispatched = false;
   let sentBodyJson: string | null = null;
-  globalThis.fetch = async (_url: RequestInfo | URL, init: RequestInit = {}) => {
+  globalThis.fetch = async (url: RequestInfo | URL, init: RequestInit = {}) => {
+    // Stacked compression reports each engine step to the dashboard live feed through a
+    // loopback `/__omniroute_event` POST (#14529 made header-less requests stacked). That is
+    // internal telemetry, not upstream dispatch — only a provider request counts here.
+    if (String(url instanceof Request ? url.url : url).includes("/__omniroute_event")) {
+      return new Response(null, { status: 204 });
+    }
     dispatched = true;
     sentBodyJson = init.body ? String(init.body) : null;
     return new Response(

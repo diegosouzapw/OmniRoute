@@ -9,6 +9,7 @@ import {
   cleanupPidFile,
   waitForServer,
   findListeningPids,
+  probePortFree,
   resolveReadyTimeoutMs,
 } from "../utils/pid.mjs";
 import {
@@ -245,7 +246,7 @@ export async function runServe(opts = {}) {
   // BEFORE any pid file is written or any child is spawned. Otherwise the
   // doomed child's EADDRINUSE arrives only after this process has rewritten
   // the pid files of the healthy instance that actually owns the port.
-  const busyPids = await findListeningPids(dashboardPort);
+  const busyPids = await resolveServeBusyPids(dashboardPort);
   if (busyPids.length > 0) {
     reportPortInUse(dashboardPort, busyPids);
     process.exit(1);
@@ -330,11 +331,47 @@ export async function runServe(opts = {}) {
 }
 
 /**
+ * Listeners blocking `serve` on `port`. Discovery returning null means the
+ * tool is missing (#14518); the bind probe then decides. A free port is an
+ * empty list — leaving null throws on the caller's `.length` (#14800).
+ *
+ * @param {number} port
+ * @param {object} [deps]
+ * @param {typeof findListeningPids} [deps.findListeningPids]
+ * @param {typeof probePortFree} [deps.probePortFree]
+ * @returns {Promise<Array<number|null>>}
+ */
+export async function resolveServeBusyPids(port, deps = {}) {
+  const discover = deps.findListeningPids ?? findListeningPids;
+  const probe = deps.probePortFree ?? probePortFree;
+  // findListeningPids() returning null means the discovery tool itself is
+  // missing or unusable (Termux, slim containers, #14518) — fall back to a
+  // bind probe so the guard still answers before spawning the doomed child.
+  let busyPids = await discover(port);
+  if (busyPids === null) {
+    // Discovery tool missing/unusable (#14518): the bind probe is the guard.
+    if (!(await probe(port))) busyPids = [null];
+    else busyPids = [];
+  } else if (busyPids.length === 0) {
+    // Discovery ran and saw nothing, but that window can race a starting
+    // instance; a bind probe costs nothing and doubles as confirmation.
+    if (!(await probe(port))) busyPids = [null];
+  }
+  return busyPids;
+}
+
+/**
  * Explain a port conflict in terms the operator can act on: who owns the port,
  * and the two ways out. Exported for unit tests.
  */
 export function reportPortInUse(port, pids = []) {
-  const owner = pids.length === 1 ? `PID ${pids[0]}` : `PIDs ${pids.join(", ")}`;
+  const known = pids.filter((pid) => Number.isFinite(pid) && pid > 0);
+  const owner =
+    known.length === 0
+      ? "an unknown process"
+      : known.length === 1
+        ? `PID ${known[0]}`
+        : `PIDs ${known.join(", ")}`;
   console.error(`\n\x1b[31m✖ Port ${port} is already in use by ${owner}.\x1b[0m`);
   console.error(
     `  Another OmniRoute is most likely already serving there, so open` +

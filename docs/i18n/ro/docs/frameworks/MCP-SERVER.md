@@ -289,12 +289,80 @@ Atât transportul SSE, cât și transportul HTTP cu streaming sunt blocate pân�
 
 ---
 
-## Autentificare și domenii de acces
+## Autentificare și Scopes
 
-Instrumentele MCP sunt autentificate prin domeniile de acces ale cheii API. Aplicarea domeniilor de acces este centralizată în
-`open-sse/mcp-server/scopeEnforcement.ts`. Fiecare instrument necesită anumite domenii de acces:
+Instrumentul MCP citește șirurile de scope de la apelant. Această verificare este unul dintre cele trei spații de nume independente. O trecere de la un verificator nu este o trecere de la ceilalți. Regulile sunt [Trei spații de nume pentru scope](#trei-spații-de-nume-pentru-scope). Catalogul de instrumente este [Scopes pentru instrumentul MCP](#scopes-pentru-instrumentul-mcp).
 
-| Domeniu               | Instrumente                                                                                                                                                                             |
+### Trei spații de nume pentru scope
+
+`manage` pe o cheie API, `read:compression` pe un instrument MCP și `read` pe un token de acces `oma_live_…` sunt trei granturi diferite. Apelanții care trimit un token de acces `read` către o rută de management care modifică datele primesc HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` Acest rang este `scopeSatisfies`. Nu consultă tabelul MCP, iar potrivitorul MCP nu îl consultă.
+
+| Spațiu de nume        | Credențial                                                       | Verificator            | O trecere permite                                            |
+| :-------------------- | :--------------------------------------------------------------- | :--------------------- | :----------------------------------------------------------- |
+| Management cheie API  | `api_keys.scopes`                                                | `hasManageScope`       | REST de management pentru acea cheie Bearer                  |
+| Aditiv cheie API      | același array, un șir exact                                      | ajutorul numit mai jos | Doar acea capacitate                                         |
+| Scopes instrument MCP | același array, altfel MCP `_meta`, altfel `OMNIROUTE_MCP_SCOPES` | `scopeMatches`         | Acel instrument, odată ce aplicarea este activată            |
+| Token de acces        | `oma_live_…`                                                     | `scopeSatisfies`       | Ruta de management a cărei metodă și cale necesită acel rang |
+
+Crearea fiecărui credențial este acoperită în [Autentificare Management](../guides/MANAGEMENT-AUTH.md).
+
+#### Scopes cheie API
+
+Un array `api_keys.scopes` alimentează două sarcini. Acestea utilizează funcții diferite.
+
+**REST de management.** `manage` și `admin` sunt membrii `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`). `hasManageScope` este ceea ce autorizează rutele de management pentru acea cheie. `admin` are capacități de management pe acele rute. Cuvântul `admin` aici nu este rangul tokenului de acces și nu se extinde în scopes-urile instrumentului MCP.
+
+**Șiruri aditive.** Fiecare este un test de membru exact, și fiecare rămâne în afara `MANAGEMENT_API_KEY_SCOPES`.
+
+| Scope                          | O trecere permite                                                                                                                                                          |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Excepția non-loopback `/api/mcp/` LOCAL_ONLY (`hasMcpConnectOrManageScope`). O cheie cu `manage` sau `admin` trece totuși de acea excepție.                                |
+| `self:usage`                   | `GET /api/v1/me/status` pentru această cheie (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` adaugă acest scope la creare (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Cotele de cont upstream în acel payload de stare (`src/lib/usage/apiKeySelfService.ts`). Ruta de stare necesită în continuare `self:usage`.                                |
+| `policy:bypass-provider-quota` | Apelurile de inferență ale acestei chei sar peste politica de cotă a furnizorului (`hasProviderQuotaBypassScope` în `src/sse/handlers/chat.ts`).                           |
+
+#### Potrivire
+
+Catalogul este tabelul de sub [Scopes pentru instrumentul MCP](#scopes-pentru-instrumentul-mcp). Nu tratați `MCP_SCOPE_LIST` din `src/shared/constants/mcpScopes.ts` ca acel catalog: este subsetul tipizat original. Instrumentele ulterioare declară scopes suplimentare pe lângă acesta (`read:notion`, `read:skills`, `read:local-corpus` și restul tabelului).
+
+`evaluateToolScopes` din `open-sse/mcp-server/scopeEnforcement.ts` permite un apel atunci când fiecare scope necesar se potrivește cu un scope acordat:
+
+- `*` se potrivește cu fiecare scope necesar.
+- Un scope acordat care se termină cu `*` se potrivește cu un scope necesar care începe cu prefixul dinaintea asteriscului. `read:*` se potrivește cu `read:compression`.
+- Fiecare alt scope acordat se potrivește doar cu șirul necesar identic.
+
+O cheie ale cărei scopes sunt `["manage"]` eșuează `scopeMatches` pentru `read:compression`. Același apel eșuează pentru `admin`, `mcp:connect`, `read` și `write` atunci când acestea sunt singurele șiruri acordate. Nu există o ierarhie între scopes-urile instrumentului MCP dincolo de `*` final.
+
+Aplicarea este dezactivată dacă `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (implicit `false`). Cât timp este dezactivată, `evaluateToolScopes` permite apelul și sare peste catalog. Cât timp este activată, HTTP utilizează `api_keys.scopes` ale cheii Bearer ca `authInfo` (vezi [Legarea scope-ului HTTP per-cheie](#legarea-scope-ului-http-per-cheie-7895)). Când niciun scope de cheie nu se rezolvă, setul acordat trece la MCP `_meta`, apoi `OMNIROUTE_MCP_SCOPES`.
+
+#### Scopes token de acces
+
+Tokenurile `oma_live_…` (`src/lib/accessTokens/scopes.ts`) poartă `read`, `write` sau `admin`. `scopeSatisfies` este un rang: `admin` acoperă `write` și `read`, iar `write` acoperă `read`. Scopes-urile necunoscute nu acoperă nimic.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) compară acel rang cu `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD` și `OPTIONS` necesită `read`.
+- Fiecare altă metodă necesită `write`.
+- Căile din `ADMIN_SCOPE_PREFIXES` necesită `admin` pentru fiecare metodă. `/api/mcp` este pe acea listă, deci un token de acces `write` nu poate apela în continuare suprafața HTTP a MCP.
+- Căile din `ADMIN_MUTATION_PREFIXES` necesită `admin` doar pentru mutații.
+
+`PATCH /api/keys/{id}` este o mutație și nu se află pe acele liste de administratori, deci un token de
+`read` primește 403
+`Domeniul tokenului de acces 'read' este insuficient; este necesar 'write'.`
+Un token de acces `write` sau `admin` satisface această rută. Un JWT de tablou de bord,
+tokenul machine-id al CLI-ului loopback și o cheie API cu `manage` sau `admin` iau
+alte ramuri și nu sunt restrânse de acest rang.
+
+Un token de acces care trece `scopeSatisfies` pentru `/api/mcp` a trecut doar
+poarta de management. Apelurile instrumentelor rulează în continuare `scopeMatches`
+împotriva domeniilor cheilor API. Rangul tokenului de acces nu este o intrare pentru `scopeMatches`.
+
+### Domeniile instrumentelor MCP
+
+Aplicarea domeniului este centralizată în `open-sse/mcp-server/scopeEnforcement.ts`.
+Fiecare instrument necesită domenii specifice:
+
+| Scop                  | Instrumente                                                                                                                                                                             |
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                       |
 | `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                               |
@@ -330,35 +398,15 @@ Instrumentele MCP sunt autentificate prin domeniile de acces ale cheii API. Apli
 | `write:obsidian`      | 9 instrumente de scriere — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …               |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                       |
 
-Sunt acceptate domenii wildcard: `read:*` acordă toate domeniile de citire, iar `*` acordă acces deplin.
+Sunt acceptate scope-uri wildcard: `read:*` acordă toate scope-urile de citire, `*` acordă acces complet.
 
-### `mcp:connect` — capabilitate restrânsă pentru rută (#7895)
+### `mcp:connect` — capacitate de rută îngustă (#7895)
 
-Accesarea transportului HTTP/SSE MCP (`/api/mcp/*`) din afara interfeței loopback necesită
-excepția LOCAL_ONLY pentru `/api/mcp/` (consultați `docs/security/ROUTE_GUARD_TIERS.md`). În trecut,
-această excepție accepta doar o cheie API cu domeniul complet `manage`/`admin` — prea permisivă pentru un
-apelant care trebuie doar să comunice cu MCP. `src/shared/constants/managementScopes.ts` exportă acum
-`MCP_CONNECT_SCOPE = "mcp:connect"`: un domeniu suplimentar și restrâns (după același precedent ca
-`SELF_USAGE_SCOPE`) care autorizează NUMAI ocolirea pentru `/api/mcp/` în
-`src/server/authz/policies/management.ts` — acesta nu acordă acces la nicio altă rută de administrare
-și este menținut în mod deliberat ÎN AFARA `MANAGEMENT_API_KEY_SCOPES`. O cheie care deține `manage`/`admin`
-trece în continuare neschimbată de această excepție; `mcp:connect` este o alternativă cu privilegii mai reduse pentru
-apelanții de la distanță care folosesc exclusiv MCP, verificată prin `hasMcpConnectOrManageScope()`.
+Atingerea transportului HTTP/SSE MCP (`/api/mcp/*`) din afara loopback-ului necesită excepția LOCAL_ONLY `/api/mcp/` (vezi `docs/security/ROUTE_GUARD_TIERS.md`). Istoric, acea excepție accepta doar o cheie API cu scope `manage`/`admin` complet — prea largă pentru un apelant care are nevoie doar să comunice cu MCP. `src/shared/constants/managementScopes.ts` exportă acum `MCP_CONNECT_SCOPE = "mcp:connect"`: un scope aditiv, îngust (același precedent ca `SELF_USAGE_SCOPE`) care autorizează DOAR ocolirea `/api/mcp/` în `src/server/authz/policies/management.ts` — nu acordă niciun alt acces la rutele de management și este păstrat în mod deliberat ÎN AFARA `MANAGEMENT_API_KEY_SCOPES`. O cheie care deține `manage`/`admin` trece în continuare de excepție neschimbată; `mcp:connect` este o alternativă cu privilegii mai mici pentru apelurile MCP-only la distanță, verificată prin `hasMcpConnectOrManageScope()`.
 
-### Asocierea domeniilor HTTP per cheie (#7895)
+### Legarea scope-ului HTTP per-cheie (#7895)
 
-Prin HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` determină acum valorile reale
-`api_keys.scopes` ale apelantului prin `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-și le transmite către `transport.handleRequest(req, { authInfo })` din SDK-ul MCP, astfel încât
-`extra.authInfo.scopes` care ajunge la fiecare apel de instrument reflectă domeniile proprii ale cheii Bearer.
-`resolveCallerScopeContext()` din `scopeEnforcement.ts` prioritiza deja `authInfo` față de
-`_meta` și alternativa bazată pe variabila de mediu `OMNIROUTE_MCP_SCOPES` — această modificare doar completează acea primă
-sursă, cu cea mai mare prioritate, care anterior nu era alimentată prin HTTP. Atunci când nu este identificată nicio cheie API
-(lipsește antetul sau cheia este nevalidă), `authInfo` rămâne `undefined`, iar determinarea continuă prin
-lanțul existent `meta`/variabilă de mediu, fără modificări. Această schimbare NU inversează valoarea implicită a
-`OMNIROUTE_MCP_ENFORCE_SCOPES` — aplicarea trebuie în continuare activată explicit; modificarea doar face ca
-mecanismul per cheie să aibă prioritate odată ce este activat. stdio nu are o identitate per apelant (consultați
-`mcpCallerIdentity.ts`) și nu este afectat — continuă să utilizeze lanțul alternativ `_meta`/variabilă de mediu.
+Peste HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` rezolvă acum `api_keys.scopes` real al apelantului prin `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) și îl transmite către `transport.handleRequest(req, { authInfo })` al SDK-ului MCP, astfel încât `extra.authInfo.scopes` care ajunge la fiecare apel de instrument reflectă scope-urile cheii Bearer. `resolveCallerScopeContext()` din `scopeEnforcement.ts` a prioritizat deja `authInfo` față de `_meta` și fallback-ul de mediu `OMNIROUTE_MCP_SCOPES` — aceasta doar populează acea primă sursă, cu cea mai mare prioritate, care anterior nu era alimentată prin HTTP. Când nicio cheie API nu se rezolvă (fără antet, cheie invalidă), `authInfo` rămâne `undefined` și rezoluția trece la lanțul `meta`/env existent neschimbat. Aceasta NU inversează valoarea implicită a `OMNIROUTE_MCP_ENFORCE_SCOPES` — aplicarea trebuie încă activată explicit; această modificare face doar ca calea per-cheie să aibă prioritate odată ce este activată. stdio nu are identitate per-apelant (vezi `mcpCallerIdentity.ts`) și nu este afectat — rămâne pe lanțul de fallback `_meta`/env.
 
 ---
 

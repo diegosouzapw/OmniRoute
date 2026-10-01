@@ -345,7 +345,7 @@ export class GithubExecutor extends BaseExecutor {
     };
 
     // Per-call / per-conversation / per-turn correlation ids the @github/copilot
-    // CLI 1.0.81-6 puts on every inference request (MITM-captured). The machine
+    // CLI 1.0.88 puts on every inference request (MITM-captured). The machine
     // id (getGitHubCopilotMachineId) is stable per-install; these three are
     // fresh uuids. A Copilot-aware client may pin the session/task ids across a
     // conversation via its own headers — honor those when present, else mint.

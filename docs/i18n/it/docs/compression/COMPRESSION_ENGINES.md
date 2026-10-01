@@ -9,43 +9,39 @@ La compressione di OmniRoute è basata sui contratti dei motori. Una modalità p
 
 ## Modalità
 
-| Modalità     | Percorso del motore                             | Input previsto                                        |
-| ------------ | ----------------------------------------------- | ----------------------------------------------------- |
-| `off`        | nessuno                                         | Conservazione esatta del prompt                       |
-| `lite`       | Helper lite di Caveman                          | Pulizia sempre attiva a basso rischio                 |
-| `standard`   | Caveman                                         | Condensazione dei prompt in linguaggio naturale       |
-| `aggressive` | Caveman + riepilogatori di cronologia/strumenti | Lunghe sessioni di chat                               |
-| `ultra`      | Caveman + helper di potatura                    | Recupero dal limite di contesto                       |
-| `rtk`        | RTK                                             | Output di terminale, shell, build, test e git         |
-| `omniglyph`  | OmniGlyph                                       | Contesto come immagine sul canale nativo del provider |
-| `stacked`    | Pipeline, predefinita `rtk -> caveman`          | Log misti di strumenti e prosa, massimo risparmio     |
+| Modalità     | Percorso motore                                                                            | Input previsto                                      |
+| ------------ | ------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| `off`        | nessuno                                                                                    | Conservazione esatta del prompt                     |
+| `lite`       | Caveman lite helpers                                                                       | Pulizia a basso rischio sempre attiva               |
+| `standard`   | Caveman                                                                                    | Condensazione del prompt in linguaggio naturale     |
+| `aggressive` | Caveman + history/tool summarizers                                                         | Sessioni di chat lunghe                             |
+| `ultra`      | Caveman + pruning helpers                                                                  | Recupero limite di contesto                         |
+| `rtk`        | RTK                                                                                        | Output di terminale, shell, build, test e git       |
+| `omniglyph`  | OmniGlyph                                                                                  | Contesto come immagine sul wire del provider nativo |
+| `stacked`    | Pipeline. Il default della richiesta è `session-dedup -> lite`. `rtk -> caveman` è opt-in. | Log di strumenti misti e prosa, massimo risparmio   |
 
 ### Profili di compressione OmniGlyph
 
-Il motore `omniglyph` (pacchetto `omniglyph`, 1.4.0+) accetta un profilo semantico denominato, impostato
-globalmente tramite `omniglyph.profile` nelle impostazioni di compressione oppure per ogni passaggio tramite la
-configurazione del passaggio della pipeline impilata:
+Il motore `omniglyph` (pacchetto `omniglyph`, 1.4.0+) accetta un profilo semantico nominato, impostato
+globalmente tramite `omniglyph.profile` nelle impostazioni di compressione o per passo tramite la
+configurazione del passo della pipeline a stack:
 
-| Profilo       | Confine                                                                                                                                              |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Predefinito. La policy misurata dalle ricevute pubblicate — converte in immagini il sistema, la documentazione degli strumenti e la cronologia densa |
-| `balanced`    | Mantiene nativo lo stato attivo, protegge gli ultimi 8 turni e comprime la cronologia chiusa meno recente                                            |
-| `coding-safe` | Mantiene nativi autorità, schemi degli strumenti e output attivo degli strumenti e protegge gli ultimi 12 turni                                      |
-| `passthrough` | Instrada senza trasformare; il motore viene ignorato                                                                                                 |
+| Profilo       | Limite                                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Predefinito. La politica misurata dalle ricevute pubblicate — sistema di immagini, documentazione degli strumenti e cronologia densa |
+| `balanced`    | Mantiene lo stato live nativo, protegge le ultime 8 interazioni, comprime la cronologia chiusa più vecchia                           |
+| `coding-safe` | Mantiene l'autorità, gli schemi degli strumenti e l'output degli strumenti live nativi, protegge le ultime 12 interazioni            |
+| `passthrough` | Instrada senza trasformare; il motore viene saltato                                                                                  |
 
-Il profilo è un **limite massimo, non minimo**: `mergeCompressionProfileOptions` nel pacchetto
-impedisce a un override del chiamante di riaprire un canale con perdita chiuso dal profilo, quindi un
-`preserveSystemPrompt: false` per un singolo passaggio non può riattivare la compressione del sistema con `coding-safe`.
+Il profilo è un **soffitto, non un pavimento**: `mergeCompressionProfileOptions` nel pacchetto
+si rifiuta di consentire a un chiamante di sovrascrivere e riaprire un canale con perdita che il profilo ha chiuso, quindi un `preserveSystemPrompt: false` per passo
+non può riabilitare la compressione del sistema sotto `coding-safe`.
 
 Misurato su questa codebase: `coding-safe` e `balanced` aumentano `minCompressChars` al suo
-valore massimo e mantengono nativi il sistema, gli schemi degli strumenti e i risultati degli strumenti, quindi una sessione che non ha
-ancora accumulato cronologia si arresta a `below_min_chars` e il motore non trasforma nulla. Ecco
-perché il valore predefinito è `aggressive` anziché il profilo più sicuro.
+massimo e mantengono il sistema, gli schemi degli strumenti e i risultati degli strumenti nativi, quindi una sessione che non ha ancora accumulato cronologia si ferma a `below_min_chars` e il motore non trasforma nulla. Questo è il motivo per cui il default è `aggressive` piuttosto che il profilo più sicuro.
 
-Il pacchetto determina autonomamente l'ambito del modello e il profilo dalla propria configurazione dell'ambiente.
-OmniRoute non delega mai la decisione: l'adapter fissa il gate del modello all'ambito più
-restrittivo del pacchetto, quindi le impostazioni dell'ambiente host possono solo restringere l'elenco degli elementi consentiti, senza mai
-ampliarlo oltre le ricevute misurate da OmniRoute.
+Il pacchetto risolve il proprio ambito del modello e il profilo dalla sua configurazione ambientale.
+OmniRoute non delega mai la decisione: l'adattatore blocca il gate del modello all'ambito più restrittivo del pacchetto, quindi le impostazioni dell'ambiente host possono solo restringere la lista consentita, mai ampliarla oltre le ricevute misurate di OmniRoute.
 
 ## Registro degli engine
 
@@ -394,7 +390,7 @@ sensibili alla cache, ecc.).
 
 ## Validazione
 
-I controlli mirati per quest'area sono:
+I gate focalizzati per quest'area sono:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

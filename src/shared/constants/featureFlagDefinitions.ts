@@ -207,8 +207,20 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: "PROXY_SKIP_RECENTLY_FAILED",
     label: "Skip Recently Failed Proxies",
     description:
-      "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. Off by default: selection order is exactly the plain rotation.",
+      "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. On by default: selection order is exactly the plain rotation only with PROXY_SKIP_RECENTLY_FAILED=false.",
     descriptionI18nKey: "featureFlagProxySkipRecentlyFailedDescription",
+    category: "network",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "PROXY_POOL_SHARED_EGRESS_ORDER",
+    label: "Shared Egress Pool Order",
+    description:
+      "For providers whose quota is bucketed by egress address, rank a pool member sharing a recently refused member's observed egress address just below healthy members. Order only, never excluded. Needs PROXY_SKIP_RECENTLY_FAILED, which produces the refusal signal it reads. Off by default: selection order is exactly the plain rotation.",
+    descriptionI18nKey: "featureFlagProxyPoolSharedEgressOrderDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",
@@ -305,6 +317,30 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description:
       "For the OpenCode multi-account rotation, park the request after repeated transient 429s (or a fresh pool-strain marker) with a heartbeat, then replay one capped leg of up to 3 sequential accounts instead of fanning out the whole fleet. Off by default: every 429 rotates to the next account exactly as before.",
     descriptionI18nKey: "featureFlagOpencodeParkAndResumeDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "STREAM_READINESS_STALL_RETRY",
+    label: "Stream Readiness Stall Retry",
+    description:
+      "For streaming chat requests, when the first upstream body stalls before producing a usable event, issue one bounded second attempt through the same routing path with the same readiness budget and no account penalty. Off by default: a stalled first body fails the request without a retry.",
+    descriptionI18nKey: "featureFlagStreamReadinessStallRetryDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "OPENCODE_POOL_RESELECT",
+    label: "OpenCode 429 Pool Reselect",
+    description:
+      "For the OpenCode multi-account rotation, after a 429 from an egress-bucketed provider on a proxy-less account under an ambient pool context, ask the connection pool for another member for the next attempt instead of retrying the same egress address. Orders, never excludes: an exhausted pool keeps the current behavior. Off by default: every 429 rotates to the next account exactly as before.",
+    descriptionI18nKey: "featureFlagOpencodePoolReselectDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",
@@ -449,7 +485,9 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Enforce scope restrictions on MCP tool access",
     descriptionI18nKey: "featureFlagOmnirouteMcpEnforceScopesDescription",
     category: "runtime",
-    defaultValue: "true",
+    // Ships off: the gate rejects a caller that sends no scopes at all, so turning it on
+    // is an operator decision (.env.example has shipped `=false` since the gate landed).
+    defaultValue: "false",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",
@@ -909,10 +947,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: "XAI_OAUTH_LIVE_MODEL_DISCOVERY",
     label: "xAI OAuth Live Model Discovery",
     description:
-      "Fetch the live xAI model catalog for xai-oauth connections from https://api.x.ai/v1/models using the OAuth bearer token, instead of the frozen static seed. Off by default: xai-oauth keeps serving the static seed unchanged. On any resolution error, discovery falls back to the seed (unverified whether x.ai accepts an OAuth bearer at this endpoint).",
+      "Fetch the live xAI model catalog for xai-oauth connections from https://api.x.ai/v1/models using the OAuth bearer token, instead of the frozen static seed. On by default. Set the flag to false to keep serving the static seed. HTTP failures fall back to the seed in the discovery route; the flag getter itself does not issue HTTP.",
     descriptionI18nKey: "featureFlagXaiOauthLiveModelDiscoveryDescription",
     category: "runtime",
-    defaultValue: "false",
+    defaultValue: "true",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",

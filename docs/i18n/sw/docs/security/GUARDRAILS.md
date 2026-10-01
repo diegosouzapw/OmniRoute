@@ -17,12 +17,12 @@ Mfumo ni wa **fail-open**: ikiwa kizuizi cha ulinzi kitatupa hitilafu kinapoteke
 hurekodi hitilafu hiyo na kuendelea na kizuizi kinachofuata badala ya kusababisha
 ombi lishindwe. Kuzuia ni uamuzi wa moja kwa moja (`block: true`), kamwe si ajali.
 
-## Vizuizi vya Ulinzi Vilivyojengewa Ndani
+## Vizuwizi Vilivyojengwa Ndani
 
-Sajili hupakia kiotomatiki vizuizi sita vya ulinzi kwa mpangilio wa kipaumbele wakati wa kuleta
-(angalia `registry.ts` → `registerDefaultGuardrails()`):
+Rejista hupakia kiotomatiki vizuwizi sita kwa mpangilio wa kipaumbele wakati wa kuingiza
+(tazama `registry.ts` → `registerDefaultGuardrails()`):
 
-| Kipaumbele | Jina                | Hatua          | Faili                 |
+| Kipaumbele | Jina                | Hatua(s)       | Faili                 |
 | ---------- | ------------------- | -------------- | --------------------- |
 | `5`        | `vision-bridge`     | `preCall`      | `visionBridge.ts`     |
 | `6`        | `audio-bridge`      | `preCall`      | `audioBridge.ts`      |
@@ -31,521 +31,353 @@ Sajili hupakia kiotomatiki vizuizi sita vya ulinzi kwa mpangilio wa kipaumbele w
 | `20`       | `prompt-injection`  | `preCall`      | `promptInjection.ts`  |
 | `95`       | `credential-masker` | `pre` + `post` | `credentialMasker.ts` |
 
-Nambari ndogo za kipaumbele hutekelezwa **kwanza**.
+Namba za kipaumbele za chini huendeshwa **kwanza**.
 
-### Vision Bridge (`visionBridge.ts`) — Daraja la Modaliti PR-1
+### Daraja la Maono (`visionBridge.ts`) — Daraja la Modali PR-1
 
-Hunasa maombi yenye picha yanayoelekezwa kwa **miundo isiyotumia uwezo wa kuona** na ama
-huelekeza upya ombi zima kwa muundo wenye uwezo wa kuona au hubadilisha sehemu za picha
-kwa maelezo ya maandishi yanayotolewa na muundo wa kuona unaoweza kusanidiwa kabla ya
-mwito kwa mtoa huduma wa ngazi ya juu. Hii huwawezesha watoa huduma wa maandishi pekee kushughulikia
-data za modaliti nyingi bila mabadiliko yanayoonekana.
+Huzuia maombi yenye picha yanayolenga **mifumo isiyo ya maono** na ama huelekeza upya ombi zima kwa mfumo wenye uwezo wa maono au hubadilisha sehemu za picha na maelezo ya maandishi yanayotolewa na mfumo wa maono unaoweza kusanidiwa kabla ya wito wa juu. Hii inaruhusu watoa huduma wa maandishi pekee kushughulikia kwa uwazi mizigo ya modali nyingi.
 
-Mtiririko:
+Mfuatano:
 
-1. Ruka ikiwa muundo lengwa tayari unatumia uwezo wa kuona (isipokuwa ikiwa upo kwenye
-   orodha ya kulazimisha daraja `isVisionBridgeForcedModel`).
-2. Toa sehemu za picha kupitia `extractImageParts(messages)`
-   (`visionBridgeHelpers.ts`), ambayo hukabidhi kazi kwa **kitambuzi unganifu cha midia**
-   `detectMediaParts()` katika `open-sse/utils/mediaParts.ts` — chanzo
-   pekee rasmi kinachoshirikiwa na kichujio cha uoanifu wa combo.
-   Utoaji huruhusiwa tu kwa sehemu za kiwango cha juu zenye miundo ambayo
-   `replaceImageParts` inaweza kuingiza tena (mkataba wa kutoa↔kubadilisha): OpenAI
-   `image_url`, Anthropic base64 `source.type:"base64"`, Anthropic URL
-   `source.type:"url"`, na Responses API `input_image`. Vipengele vilivyopatikana ndani zaidi na
-   miundo ya viashiria pekee ni nyenzo za kichujio cha combo na kamwe havitolewi.
-   Ruka ikiwa hakuna vilivyopatikana.
-3. Bainisha usanidi wa wakati wa utekelezaji kupitia `resolveVisionBridgeRuntimeSettings()`
-   (`src/shared/constants/modalityBridgeDefaults.ts`): vitufe vipya vya mipangilio vya `modalityBridge*`
-   hupewa kipaumbele; vitufe vya zamani vya `visionBridge*` hubaki kama **njia mbadala ya mzunguko
-   mmoja** (dirisha la kurejesha nyuma). Ruka kabla ya kupitia midia yoyote wakati
-   daraja limezimwa.
-4. Kiteuzi cha modi (`modalityBridgeVisionMode`, angalia jedwali hapa chini) huamua
-   kati ya kuelekeza upya na kuelezea. Uelekezaji upya hurejesha `modifiedPayload` huku `model`
-   pekee ikiwa imebadilishwa, pamoja na metadata `{ rerouted, fromModel, toModel, imagesKept }`.
-5. Njia ya kuelezea: weka kikomo cha picha kuwa `maxImages`, unda kidokezo kinachozingatia jukumu,
-   kagua akiba ya maelezo, ita muundo wa kuona **kwa sambamba**
-   (`Promise.allSettled`), na uingize sehemu za maandishi za `[Image N]: <description>`
-   mahali pake. Maelezo yaliyoshindwa hutoa `null` na sehemu asili ya picha
-   **huhifadhiwa** (#4012) — isipokuwa katika njia ya kuelezea ya combo wakati kila
-   jaribio la kuelezea lilishindwa, ambapo mtoa huduma wa ngazi ya juu aliyethibitishwa kutokuwa na uwezo wa kuona hupokea kibadala cha
-   `(unavailable — no vision-capable provider connected)` badala yake (#8430).
-6. Rejesha `modifiedPayload` + metadata (`imagesProcessed`, `descriptions`,
-   `processingTimeMs`, `visionModel`).
+1.  Ruka ikiwa mfumo lengwa tayari unaunga mkono maono (isipokuwa kama inaonekana kwenye orodha ya daraja la kulazimishwa `isVisionBridgeForcedModel`).
+2.  Toa sehemu za picha kupitia `extractImageParts(messages)`
+    (`visionBridgeHelpers.ts`), ambayo inakabidhi kwa **kigunduzi cha media kilichounganishwa** `detectMediaParts()` katika `open-sse/utils/mediaParts.ts` — chanzo kimoja cha ukweli kinachoshirikiwa na kichujio cha utangamano cha combo.
+    Utoaji umeruhusiwa kwa sehemu za juu za maumbo
+    `replaceImageParts` inaweza kuunganisha tena (mkataba wa kutoa↔kubadilisha): OpenAI
+    `image_url`, Anthropic base64 `source.type:"base64"`, Anthropic URL
+    `source.type:"url"`, na Responses API `input_image`. Vipengele vilivyowekwa ndani na maumbo ya viashiria pekee ni nyenzo za kichujio cha combo na hazitolewi kamwe.
+    Ruka ikiwa hakuna kilichopatikana.
+3.  Tatua usanidi wa wakati wa utekelezaji kupitia `resolveVisionBridgeRuntimeSettings()`
+    (`src/shared/constants/modalityBridgeDefaults.ts`): vifunguo vipya vya mipangilio ya `modalityBridge*` hushinda; vifunguo vya zamani vya `visionBridge*` vinabaki kuwa **mbadala wa mzunguko mmoja** (dirisha la kurudisha nyuma). Ruka kabla ya upitaji wowote wa media wakati daraja limezimwa.
+4.  Kichagua hali (`modalityBridgeVisionMode`, tazama jedwali hapa chini) huamua kuelekeza upya dhidi ya kuelezea. Kuelekeza upya hurudisha `modifiedPayload` na `model` pekee iliyobadilishwa, pamoja na meta `{ rerouted, fromModel, toModel, imagesKept }`.
+5.  Njia ya kuelezea: punguza picha kwa `maxImages`, tunga kidokezo kinachozingatia kazi, angalia akiba ya maelezo, piga mfumo wa maono **sambamba**
+    (`Promise.allSettled`), na ingiza sehemu za maandishi `[Image N]: <description>` mahali pake. Maelezo yaliyoshindwa hutoa `null` na sehemu asili ya picha **inahifadhiwa** (#4012) — isipokuwa kwenye njia ya kuelezea ya combo wakati kila maelezo yalishindwa, ambapo mfumo wa juu usio wa maono uliothibitishwa hupata kiambishi `(haipatikani — hakuna mtoa huduma mwenye uwezo wa maono aliyeunganishwa)` badala yake (#8430).
+6.  Rudisha `modifiedPayload` + meta (`imagesProcessed`, `descriptions`,
+    `processingTimeMs`, `visionModel`).
 
-#### Kiteuzi cha modi (`modalityBridgeVisionMode`)
+#### Kichagua Hali (`modalityBridgeVisionMode`)
 
-| Modi       | Chaguo-msingi | Tabia                                                                                                                                                                                                                                                                                                               |
-| ---------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auto`     | ✔             | Mbinu ya zamani ya kiheuristiki, bila kubadilishwa (#6640/#7204): miundo isiyo ya combo/`auto/` huelekezwa upya kwa muundo bora zaidi wa kuona isipokuwa muundo asili tayari una vitambulisho vinavyoweza kutumika (kisha huelezewa); malengo ya combo daima huelezewa.                                             |
-| `describe` |               | Elezea kila wakati — kipengele cha kuelekeza upya hurukwa kabisa; muundo aliochagua mtumiaji ndio hujibu kila wakati.                                                                                                                                                                                               |
-| `reroute`  |               | Lazimisha kuelekeza upya: ulinzi wa kuhifadhi muundo wenye vitambulisho hupitwa. Ulinzi wa vitambulisho vya **lengo** la kuelekeza upya bado hutumika — wakati hakuna lengo la kuona linaloweza kutumika, ombi huendelea kwenye kuelezea ili picha ghafi zisifikie kamwe mfumo wa nyuma wa maandishi pekee (#8430). |
+| Hali       | Chaguo-msingi | Tabia                                                                                                                                                                                                                                                                                                                |
+| ---------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto`     | ✔             | Heuristiki ya zamani, haijaguswa (#6640/#7204): mifumo isiyo ya combo/`auto/` huelekeza upya kwa mfumo bora wa maono isipokuwa kama mfumo asili tayari una vitambulisho vinavyoweza kutumika (basi elezea); malengo ya combo daima huelezea.                                                                         |
+| `describe` |               | Daima elezea — kizuizi cha kuelekeza upya kinarukwa kabisa; mfumo uliochaguliwa na mtumiaji daima hujibu.                                                                                                                                                                                                            |
+| `reroute`  |               | Lazimisha kuelekeza upya: kizuizi cha mfumo ulio na vitambulisho kinapitwa. Kizuizi cha vitambulisho vya **lengo** la kuelekeza upya bado kinatumika — wakati hakuna lengo la maono linaloweza kutumika, ombi hupitia hadi kuelezea ili picha ghafi zisifike kamwe kwenye mfumo wa nyuma wa maandishi pekee (#8430). |
 
-Modi zilizolazimishwa hukatisha mchakato **kabla** ya mbinu ya kiheuristiki ya auto kutekelezwa; tabia ya `auto`
-inafanana baiti kwa baiti na kizuizi cha ulinzi cha kabla ya PR-1.
+Hali za kulazimishwa hupunguza mzunguko **kabla** ya heuristiki ya kiotomatiki kuendeshwa; tabia ya `auto` inafanana kabisa na guardrail ya kabla ya PR-1.
 
-#### Kidokezo cha maelezo kinachozingatia jukumu (`modalityBridgeVisionTaskAware`)
+#### Kidokezo cha kuelezea kinachozingatia kazi (`modalityBridgeVisionTaskAware`)
 
-Chaguo-msingi ni **true**. `composeVisionPrompt()` (`visionBridgeHelpers.ts`) huongeza
-maandishi ya **ujumbe wa mwisho wa mtumiaji** (yakikatwa hadi herufi 500) kwenye kidokezo msingi
-cha maelezo, kikielekeza maelezo kwenye kile ambacho mtumiaji aliuliza hasa
-(muundo wa codex-vision-proxy) na kuomba muundo wa kuona unukuu maandishi yanayoonekana.
-Kipengele hiki kikiwa kimezimwa — au ikiwa hakuna maandishi ya mtumiaji — kidokezo msingi hutumiwa bila kubadilishwa.
+Chaguo-msingi **kweli**. `composeVisionPrompt()` (`visionBridgeHelpers.ts`) huongeza maandishi ya **ujumbe wa mwisho wa mtumiaji** (yaliyopunguzwa hadi herufi 500) kwenye kidokezo cha msingi cha kuelezea, kuelekeza maelezo kuelekea kile mtumiaji aliuliza kweli (muundo wa codex-vision-proxy) na kuomba mfumo wa maono kunakili maandishi yanayoonekana. Bendera ikiwa imezimwa — au hakuna maandishi ya mtumiaji — kidokezo cha msingi kinatumika bila kubadilika.
 
-Ombi lenyewe linalooana na OpenAI la self-loop ya describe (`callVisionModelSingle()`
-katika `visionBridgeHelpers.ts`) daima huomba `image_url.detail: "high"` —
-bila masharti, kwa kila mwitaji/mtoa huduma, na bila kutegemea ishara yoyote ya mteja.
-Sampuli za kiwango cha chini cha maelezo hupunguza usahihi wa OCR kwa kazi hasa
-ya unukuzi wa maandishi ambayo kidokezo hiki kinaomba, kwa hivyo ombi lenyewe la describe
-daima huomba kiwango cha juu cha maelezo bila kujali kiwango cha maelezo kilichotumiwa
-na ombi asili linaloingia. Hili huathiri tu mwili wa ombi la ndani la describe; halibadilishi
-jinsi OmniRoute inavyopitisha `image_url.detail` ya mwitaji mwenyewe katika ombi kuu —
-thamani hiyo chaguomsingi hutumika kando, na kwa wateja wa OpenCode waliotambuliwa pekee,
-katika `defaultImageDetail()` (`open-sse/handlers/chatCore/upstreamBody.ts`). Tawi la
-muundo-wa-waya wa Anthropic la self-loop ya describe halina sehemu ya `detail`
-na haliathiriwi na thamani yoyote kati ya hizo chaguomsingi.
+Ombi la kujieleza la kitanzi cha kujitegemea linaloendana na OpenAI (`callVisionModelSingle()` katika `visionBridgeHelpers.ts`) huomba `image_url.detail: "high"` kila wakati — bila masharti, kwa kila mpigaji/mtoa huduma, bila kuzuiliwa na ishara yoyote ya mteja. Sampuli ya maelezo ya chini hupunguza usahihi wa OCR kwa kazi halisi ya unukuzi wa maandishi ambayo ombi hili linauliza, kwa hivyo simu ya kuelezea yenyewe huomba maelezo ya juu kila wakati bila kujali kiwango cha maelezo ambacho ombi la awali lililotumwa lilitumia. Hii huathiri tu mwili wa ombi la ndani la kuelezea; haibadilishi jinsi OmniRoute inavyosambaza `image_url.detail` ya mpigaji kwenye ombi kuu — chaguo-msingi hilo hutumika kando, na tu kwa wateja wa OpenCode waliogunduliwa, katika `defaultImageDetail()` (`open-sse/handlers/chatCore/upstreamBody.ts`). Tawi la umbizo la waya la Anthropic la kitanzi cha kujieleza halina sehemu ya `detail` na haliathiriwi na chaguo-msingi yoyote.
 
-#### Kikomo cha matokeo ya describe (`modalityBridgeVisionMaxChars`)
+#### Kikomo cha matokeo ya kuelezea (`modalityBridgeVisionMaxChars`)
 
-| Ufunguo                        | Chaguomsingi | Masafa           |
-| ------------------------------ | ------------ | ---------------- |
-| `modalityBridgeVisionMaxChars` | `0`          | `0` au 100–50000 |
+| Key                            | Default | Range            |
+| ------------------------------ | ------- | ---------------- |
+| `modalityBridgeVisionMaxChars` | `0`     | `0` au 100–50000 |
 
-`0` (chaguomsingi) humaanisha **hakuna kikomo** — maelezo yanayorudishwa na
-`callVisionModel()` hupitishwa bila kubadilishwa, hivyo kudumisha tabia iliyopo.
-Thamani yoyote katika masafa ya 100–50000 hukata maelezo na kuongeza kiambishi
-`…` kabla hayajaunganishwa tena kama `[Image N]: <description>`
-(`VisionBridgeGuardrail.preCall()` katika `src/lib/guardrails/visionBridge.ts`).
-Ongeza thamani hii kwa kazi za OCR zenye maelezo mengi ambapo modeli ya hatua inayofuata
-inahitaji unukuzi kamili; ipunguze ili kudhibiti matumizi ya tokeni kwa modeli za maono
-zenye majibu marefu. Sehemu ya dashibodi ipo katika paneli ya Advanced ya kichupo cha Vision
-(`modality-bridge-max-chars` katika `ModalityBridgeVisionTab.tsx`) na huinua thamani yoyote
-kati ya 1 na 99 hadi kiwango cha chini cha 100 huku ikiacha `0` iliyowekwa wazi
-bila kuguswa — `0` ni thamani halali ya Zod kwa haki yake yenyewe
-(`z.union([z.literal(0), z.number().int().min(100).max(50000)])`), si tu
-thamani chaguomsingi ya "haijawekwa".
+`0` (chaguo-msingi) inamaanisha **hakuna kikomo** — maelezo yanayorejeshwa na `callVisionModel()` hupitishwa bila kubadilishwa, yakihifadhi tabia iliyopo. Thamani yoyote katika safu ya 100–50000 hupunguza maelezo kwa kiambishi tamati cha `…` kabla hayajaunganishwa tena kama `[Image N]: <description>` (`VisionBridgeGuardrail.preCall()` katika `src/lib/guardrails/visionBridge.ts`). Ongeza hii kwa kazi za OCR zenye maelezo mengi ambapo modeli ya chini inahitaji unukuzi kamili; ipunguze ili kupunguza matumizi ya tokeni kwenye modeli za maono zenye mazungumzo mengi. Sehemu ya dashibodi iko kwenye paneli ya Advanced ya kichupo cha Vision (`modality-bridge-max-chars` katika `ModalityBridgeVisionTab.tsx`) na inabana thamani yoyote kati ya 1 na 99 hadi kiwango cha chini cha 100 huku ikiacha `0` wazi bila kuguswa — `0` ni thamani halali ya Zod yenyewe (`z.union([z.literal(0), z.number().int().min(100).max(50000)])`), si tu chaguo-msingi "isiyowekwa".
 
-#### Akiba ya describe (`modalityBridge/bridgeCache.ts`)
+#### Akiba ya kuelezea (`modalityBridge/bridgeCache.ts`)
 
-Akiba ya LRU + TTL ndani ya kumbukumbu kwa matokeo ya describe, inayoshirikiwa katika
-mchakato mzima. Ufunguo = `sha256(imageRef + composedPrompt + configuredBridgeModel)` ukiwa
-na upangaji wa fremu wenye kiambishi cha urefu (hakuna migongano ya mipaka ya sehemu).
-Kijenzi cha modeli ni modeli ya daraja **iliyosanidiwa**, si modeli iliyojibu kwa hakika —
-`callVisionModel` inaweza kutumia modeli mbadala ndani kwa ndani, na kuweka ufunguo kwa
-kila jaribio kungetawanya akiba. Describe zilizoshindwa kamwe hazihifadhiwi kwenye akiba.
-Mipangilio:
+Akiba ya LRU + TTL ya ndani ya kumbukumbu kwa matokeo ya kuelezea, inayoshirikiwa katika mchakato mzima. Ufunguo = `sha256(imageRef + composedPrompt + configuredBridgeModel)` na urefu wa kiambishi awali (hakuna migongano ya mipaka ya sehemu). Kipengele cha modeli ni modeli ya daraja **iliyosanidiwa**, si modeli iliyojibu kweli — `callVisionModel` inaweza kurudi nyuma ndani, na kuweka funguo kwa kila jaribio kunaweza kugawanya akiba. Maelezo yaliyoshindwa hayahifadhiwi kamwe. Mipangilio:
 
-| Ufunguo                         | Chaguomsingi | Masafa  |
-| ------------------------------- | ------------ | ------- |
-| `modalityBridgeCacheEnabled`    | `true`       | —       |
-| `modalityBridgeCacheTtlMinutes` | `60`         | 1–1440  |
-| `modalityBridgeCacheMaxEntries` | `200`        | 10–5000 |
+| Key                             | Default | Range   |
+| ------------------------------- | ------- | ------- |
+| `modalityBridgeCacheEnabled`    | `true`  | —       |
+| `modalityBridgeCacheTtlMinutes` | `60`    | 1–1440  |
+| `modalityBridgeCacheMaxEntries` | `200`   | 10–5000 |
 
-#### Urekebishaji wa picha za mbali (self-loop ya describe/uchotaji wa base64)
+#### Urekebishaji wa picha ya mbali (kujieleza kwa kitanzi/upatikanaji wa base64)
 
-Daraja linapochota picha ya **mbali** lenyewe — mwito binafsi wa describe wa Anthropic
-na ubadilishaji wa base64 wa muundo-wa-waya wa claude
-(`ensureBase64ImagesForClaudeWire`), yote kupitia
-`fetchRemoteImageAsDataUri()` katika `visionBridgeHelpers.ts` — URI ya data inayotokana
-hupitishwa kupitia `normalizeDataUri()`
-(`open-sse/utils/imageNormalize.ts`) kabla ya kupachikwa katika ombi la modeli ya maono.
-Picha kubwa kupita kiasi hupunguzwa hadi kuwa na **ukingo mrefu wa 2048px** (sawa na
-kikomo cha kubadilisha ukubwa ambacho OpenAI/Anthropic tayari hutumia upande wa seva),
-jambo linalopunguza baiti za upakiaji/ucheleweshaji bila kubadilisha kile ambacho modeli
-ya maono huona. Kubadilisha ukubwa hutumia `sharp`, inayopakiwa kupitia uingizaji dhabiti:
-kwenye jukwaa ambalo faili yake asilia ya binary inashindwa kupakiwa,
-`normalizeDataUri()` **kamwe haitupi hitilafu** — hurudi kwenye upitishaji wa baiti asili
-bila kubadilishwa, ili njia ya describe/ubadilishaji-wa-base64 iendelee kufanya kazi
-kila wakati. Baiti ambazo si picha (uchotaji ambao haukurudisha picha inayoweza
-kusimbuliwa) pia hupitishwa bila kuguswa. Urekebishaji huu unahusu tu picha ambazo daraja
-huchota kwa mwito wake binafsi — hautumiki kamwe kwa mzigo ghafi unaopitishwa moja kwa moja
-wa mwitaji, kulingana na kanuni ya ubadilishaji wa kujijumuisha-tu (Kanuni Ngumu #20).
+Wakati daraja linapochukua picha ya **mbali** yenyewe — simu ya kujieleza ya Anthropic na ubadilishaji wa base64 wa umbizo la waya la claude (`ensureBase64ImagesForClaudeWire`), zote kupitia `fetchRemoteImageAsDataUri()` katika `visionBridgeHelpers.ts` — URI ya data inayotokana hupitishwa kupitia `normalizeDataUri()` (`open-sse/utils/imageNormalize.ts`) kabla ya kupachikwa kwenye ombi la modeli ya maono. Picha kubwa hupunguzwa ukubwa hadi **kingo ndefu ya pikseli 2048** (ikilingana na kikomo cha ukubwa ambacho OpenAI/Anthropic tayari hutumia upande wa seva), ambayo hupunguza baiti za kupakia/kuchelewa bila kubadilisha kile ambacho modeli ya maono huona. Kupunguza ukubwa hutumia `sharp`, iliyopakiwa kupitia uingizaji wa nguvu: kwenye jukwaa ambapo binary yake asili inashindwa kupakia, `normalizeDataUri()` **haileti kosa kamwe** — inarudi kwenye upitishaji wa baiti asili, kwa hivyo njia ya ubadilishaji wa maelezo/base64 huendelea kufanya kazi kila wakati. Baiti zisizo za picha (upatikanaji ambao haukurejesha picha inayoweza kusimbuliwa) pia hupitishwa bila kuguswa. Urekebishaji huu unalenga picha ambazo daraja huchukua kwa simu yake ya kujitegemea — haitumiki kamwe kwa mzigo wa malipo wa mpigaji, kulingana na kanuni ya mabadiliko ya kuchagua tu (Kanuni Ngumu #20).
 
-#### Skema ya mipangilio + uhamishaji
+#### Mpangilio wa mipangilio + uhamiaji
 
-Funguo mpya za `modalityBridge*` huhakikiwa na Zod katika `updateSettingsSchema`
-(`src/shared/validation/settingsSchemas.ts`): `modalityBridgeVisionEnabled`,
-`modalityBridgeVisionMode`, `modalityBridgeVisionModel`,
-`modalityBridgeVisionTaskAware`, `modalityBridgeVisionPrompt`,
-`modalityBridgeVisionTimeout`, `modalityBridgeVisionMaxImages`,
-`modalityBridgeVisionMaxChars`, utatu wa `modalityBridgeCache*`, na kundi la
-`modalityBridgeAudio*` linalotumiwa na Audio Bridge. Uhamishaji
-`141_modality_bridge_settings.sql` hunakili thamani zilizopo za zamani za
-`visionBridge*` kwenda kwenye funguo mpya zinazolingana (unaweza kuendeshwa mara nyingi
-bila athari, na kamwe hauandiki juu ya thamani ya `modalityBridge*` iliyowekwa na
-mwendeshaji); funguo za zamani huendelea kukubaliwa kama chaguo la kusoma iwapo mpya
-hazipo kwa mzunguko mmoja wa toleo.
+Funguo mpya za `modalityBridge*` zimethibitishwa na Zod katika `updateSettingsSchema` (`src/shared/validation/settingsSchemas.ts`): `modalityBridgeVisionEnabled`, `modalityBridgeVisionMode`, `modalityBridgeVisionModel`, `modalityBridgeVisionTaskAware`, `modalityBridgeVisionPrompt`, `modalityBridgeVisionTimeout`, `modalityBridgeVisionMaxImages`, `modalityBridgeVisionMaxChars`, kundi la `modalityBridgeCache*`, na kundi la `modalityBridgeAudio*` linalotumiwa na Daraja la Sauti. Uhamiaji `141_modality_bridge_settings.sql` unakili thamani zilizopo za `visionBridge*` za zamani kwenye funguo mpya zinazolingana (idempotent, haibadilishi kamwe thamani ya `modalityBridge*` iliyowekwa na opereta); funguo za zamani hubaki kukubalika kama mbadala wa kusoma kwa mzunguko mmoja wa toleo.
 
-#### Kijajuu cha uwazi + takwimu
+#### Kichwa cha uwazi + takwimu
 
-Majibu yaliyobadilishwa na describe hubeba
-`x-omniroute-modality-bridge: image->text;model=<visionModel>;parts=<n>`
-(kinachoundwa na `buildModalityBridgeHeader()` katika `modalityBridge/bridgeStats.ts`,
-na kuwekwa na `withModalityBridgeHeader()` katika `src/sse/handlers/chatHelpers.ts`).
-Maombi yaliyobadilishiwa njia hayapati kijajuu **chochote** — mzigo haukuguswa na ubadilishaji
-wa modeli tayari unaonekana katika sehemu ya `model` ya mwili wa jibu.
+Majibu yaliyobadilishwa na maelezo hubeba `x-omniroute-modality-bridge: image->text;model=<visionModel>;parts=<n>` (iliyojengwa na `buildModalityBridgeHeader()` katika `modalityBridge/bridgeStats.ts`, iliyowekwa muhuri na `withModalityBridgeHeader()` katika `src/sse/handlers/chatHelpers.ts`). Maombi yaliyoelekezwa upya hayapati kichwa chochote — mzigo wa malipo haukuguswa na ubadilishaji wa modeli tayari unaonekana kwenye sehemu ya `model` ya mwili wa jibu.
 
-`GET /api/modality-bridge/stats` (uthibitishaji wa usimamizi, kiwango sawa na
-`GET /api/settings`) hurudisha vihesabio vya ndani ya kumbukumbu kwa kila modali
-`{ attempts, successes, bridged, cacheHits, failures, totalLatencyMs,
-latencySamples, averageLatencyMs, lastUsedAt }` kwa `vision`, `audio`, na
-`video`. `averageLatencyMs` hutumia `latencySamples`, si majaribio yote, kama
-kigawanyo chake; operesheni isiyo na kipimo cha muda haitengenezi sampuli bandia ya
-milisekunde sifuri. `bridged` hubaki kuwa jina mbadala linalooana na matoleo ya awali
-kwa ubadilishaji uliofanikiwa; majaribio yaliyoshindwa hayakiongezi.
-Vihesabio huwekwa upya mchakato unapoanzishwa upya kwa makusudi
-(telemetria, si uhasibu).
+`GET /api/modality-bridge/stats` (uthibitishaji wa usimamizi, kiwango sawa na `GET /api/settings`) hurejesha vihesabio vya ndani ya kumbukumbu kwa kila hali `{ attempts, successes, bridged, cacheHits, failures, totalLatencyMs, latencySamples, averageLatencyMs, lastUsedAt }` kwa `vision`, `audio`, na `video`. `averageLatencyMs` hutumia `latencySamples`, si majaribio yote, kama kigawanyo chake; operesheni isiyo na muda haitengenezi sampuli ya milisekunde sifuri. `bridged` inabaki kuwa jina mbadala linaloendana na matoleo ya nyuma kwa ubadilishaji uliofanikiwa; majaribio yaliyoshindwa hayaliongezi. Vihesabio huwekwa upya wakati mchakato unapoanzishwa upya kwa muundo (telemetry, si uhasibu).
 
-#### Usanidi wa dashibodi
+#### Usanidi wa Dashibodi
 
-Ukurasa mahususi wa dashibodi ni
+Ukurasa maalum wa dashibodi ni
 `/dashboard/settings/modality-bridge`. Vichupo vyake vya `Vision`, `Audio`,
-na `Video` vinavyoweza kufikiwa kupitia URL huhifadhi vigezo vya hoja wakati wa kubadilisha thamani ya `tab`.
-Kichupo cha Vision huonyesha uwezeshaji, modi, uteuzi wa modeli (ikiwemo chaguo-msingi
-la kiotomatiki), uundaji wa vidokezo unaozingatia kazi, vikomo vya kina vya muda wa kusubiri/picha/urefu wa maelezo/kache,
-vihesabio vya wakati wa utekelezaji,
-na ombi la mfano lenye ulinzi. Kichupo cha Audio pia kinafanya kazi: huonyesha
-uwezeshaji, kiteua modeli ya STT pekee chenye Auto, vikomo vya muda wa kusubiri/urefu wa juu wa klipu, vihesabio vya sauti,
-na jaribio la mfano la `input_audio`. Kichupo cha Video kinafanya kazi: huripoti
-hali ya wakati wa utekelezaji ya FFmpeg/ffprobe — mojawapo ya hali nne bayana za UI (`unknown` wakati
-uchunguzi unaendelea au haukuweza kukamilika, `restricted` kwenye kipangishi cha dashibodi kisicho cha loopback
-ambapo uchunguzi unarukwa upande wa mteja, `unavailable` baada ya kuchunguzwa
-na kuthibitishwa kuwa hakipo, au `available` pamoja na matoleo ya FFmpeg/ffprobe) — huhifadhi
-vikomo vya uwezeshaji/modeli/fremu/video/muda wa kusubiri, huchuja kiteua modeli ili kuonyesha modeli
-zenye uwezo wa maono, na huonyesha vihesabio vya video.
+na `Video` vinavyoweza kushughulikiwa na URL huhifadhi vigezo vya hoja wakati wa kubadilisha thamani ya `tab`.
+Kichupo cha Vision kinaonyesha uwezeshaji, hali, uteuzi wa modeli (pamoja na
+chaguo-msingi otomatiki), uombaji unaozingatia kazi, mipaka ya juu ya muda/picha/urefu wa maelezo/kache,
+vihesabio vya wakati wa kukimbia, na ombi la sampuli lililolindwa. Kichupo cha Audio pia kiko hai: kinaonyesha
+uwezeshaji, kiteua modeli cha STT-pekee chenye Auto, mipaka ya muda/klipu ya juu, vihesabio vya sauti,
+na jaribio la sampuli la `input_audio`. Kichupo cha Video kinafanya kazi: kinaripoti
+hali ya wakati wa kukimbia ya FFmpeg/ffprobe — mojawapo ya hali nne za wazi za UI (`unknown` wakati
+uchunguzi unaendelea au haukuweza kukamilika, `restricted` kwenye mwenyeji wa dashibodi isiyo ya loopback
+ambapo uchunguzi unarukwa upande wa mteja, `unavailable` mara tu baada ya kuchunguzwa
+na kuthibitishwa kukosekana, au `available` na matoleo ya FFmpeg/ffprobe) — huendeleza
+mipaka ya kuwezesha/modeli/fremu/video/muda, huchuja kiteua modeli kwa modeli zenye uwezo wa kuona,
+na huonyesha vihesabio vya video.
 
-Kadi ya zamani ya Vision Bridge chini ya mipangilio ya AI ni kiungo cha uoanifu kinachoelekeza kwenye
-ukurasa mpya; haimiliki tena nakala ya pili ya fomu. Media Providers pia
-huunganisha mitiririko ya kazi ya Picha-hadi-Matini na Matamshi-hadi-Matini na vichupo husika vya Modality
-Bridge bila kuondoa eneo la majaribio lililopo la Matamshi-hadi-Matini.
+Kadi ya zamani ya Vision Bridge chini ya mipangilio ya AI ni kiungo cha utangamano kwa
+ukurasa mpya; haimiliki tena nakala ya pili ya fomu. Watoa Huduma za Media pia
+huunganisha mtiririko wa kazi wa Image-to-Text na Speech-to-Text kwenye vichupo vinavyolingana vya Modality
+Bridge bila kuondoa uwanja wa michezo uliopo wa Speech-to-Text.
 
-**Upitaji wa udhibiti wa uingizaji kwa self-loop:** wakati ombi la maelezo linapopitishwa kupitia
-`/v1` self-loop ya OmniRoute yenyewe (modeli isiyo ya kawaida ya mtoa huduma), ombi dogo hutuma
-`x-omniroute-admission-bypass: internal` na huthibitishwa kwa kitambulisho kilichosuluhishwa
-cha self-loop — sentinel ya ndani ya `sk_omniroute` katika modi ya ndani, au ufunguo wa mazingira wa
-`OMNIROUTE_API_KEY` / `ROUTER_API_KEY` uliosanidiwa na mwendeshaji (#1350) ili
-utekelezaji wenye `REQUIRE_API_KEY=true` bado uweze kuendesha ombi la maelezo. Upitaji huo
-unakubaliwa tu kwa vitambulisho hivyo mahsusi, kwa hiyo wateja wa nje hawawezi kutumia
-kichwa hicho kuruka udhibiti wa uingizaji.
+**Kupita kwa kukubali kujirudia:** wakati simu ya kuelezea inapitia
+`/v1` ya OmniRoute yenyewe (modeli isiyo ya kawaida ya mtoa huduma), ombi dogo hutuma
+`x-omniroute-admission-bypass: internal` na inathibitishwa na kitambulisho cha kujirudia kilichotatuliwa
+— `sk_omniroute` ya ndani katika hali ya ndani, au `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` iliyosanidiwa na opereta
+( #1350) ili usambazaji wa `REQUIRE_API_KEY=true` bado uweze kuendesha simu ya kuelezea.
+Kupita kunazingatiwa tu kwa vitambulisho hivyo halisi, kwa hivyo wateja wa nje hawawezi kutumia
+kichwa kuruka kukubali.
 
-Chaguo-msingi za zamani zipo katika `src/shared/constants/visionBridgeDefaults.ts`;
-chaguo-msingi mpya za modi/uzingatiaji wa kazi/kache na kisuluhishi cha mipangilio zipo katika
-`src/shared/constants/modalityBridgeDefaults.ts`. Kinga huonyesha chaguo la kijenzi
-`deps` ili majaribio yaweze kuingiza utekelezaji bandia wa `getSettings` na
+Chaguo-msingi za urithi zipo katika `src/shared/constants/visionBridgeDefaults.ts`;
+chaguo-msingi mpya za hali/kazi-fahamu/kache na kirekebisha mipangilio zipo katika
+`src/shared/constants/modalityBridgeDefaults.ts`. Kinga inaonyesha
+chaguo la mjenzi wa `deps` ili majaribio yaweze kuingiza utekelezaji bandia wa `getSettings` na
 `callVisionModel`.
 
 ### Audio Bridge (`audioBridge.ts`) — Modality Bridge PR-3
 
-Hunasa maombi ya gumzo yenye sauti kabla hayajafikia lengo ambalo halijulikani
-kukubali ingizo la sauti. Kamwe haielekezi upya ombi la gumzo: sehemu za sauti
-hunukuliwa kupitia endpoint iliyopo ya multipart inayooana na OpenAI, na
-modeli ya gumzo iliyochaguliwa huendelea kwa nakala za maandishi.
+Inazuia maombi ya gumzo yenye sauti kabla hayajafikia lengo ambalo halijulikani
+kukubali ingizo la sauti. Haiwahi kuelekeza upya ombi la gumzo: sehemu za sauti
+zinanakiliwa kupitia sehemu ya mwisho ya multipart inayolingana na OpenAI na
+modeli ya gumzo iliyochaguliwa inaendelea na nakala za maandishi.
 
 Mtiririko:
 
-1. Suluhisha `supportsAudio` kupitia `getResolvedModelCapabilities()`. Metadata bayana ya
-   sajili ya mtoa huduma hupewa kipaumbele, ikifuatiwa na metadata tuli ya modeli, kisha
-   `modalities_input` iliyosawazishwa. Orodha iliyotangazwa ya ingizo isiyo na `audio` ni `false`; kutokuwepo kwa
-   ushahidi wa uwezo hubaki `null`. `false` na `null` zote huwasha
-   daraja la tahadhari, huku `true` ikilipita.
-2. Suluhisha mipangilio ya `modalityBridgeAudio*` na utoe sehemu za sauti za kiwango cha juu
-   zinazoweza kuunganishwa kutoka katika kila ujumbe kupitia kigunduzi cha pamoja cha `detectMediaParts()`.
-   Miundo ya waya inayotumika ni `input_audio` ya OpenAI, `audio_url`, na
-   `source.media_type: "audio/*"`. Sauti iliyopachikwa ndani hugunduliwa kwa ajili ya uelekezaji lakini
-   haiondolewi na njia ya uunganishaji. Kazi huwekewa kikomo na `modalityBridgeAudioMaxClips`;
-   sehemu zinazofuata huachwa bila kubadilishwa.
-3. Tumia `provider/model` iliyosanidiwa, au ruhusu `selectAudioBridgeModel()` kupitia
-   `AUDIO_TRANSCRIPTION_PROVIDERS` kwa mpangilio thabiti wa katalogi na kuchagua modeli ya kwanza
-   yenye kitambulisho kinachotumika cha mtoa huduma aliye hai.
+1. Tatua `supportsAudio` kupitia `getResolvedModelCapabilities()`. Metadata ya rejista ya mtoa huduma
+   iliyoelezwa wazi inashinda, kisha metadata ya modeli tuli, kisha `modalities_input` iliyosawazishwa.
+   Orodha ya ingizo iliyotangazwa bila `audio` ni `false`; hakuna ushahidi wa uwezo unabaki `null`.
+   Zote `false` na `null` huwasha daraja la kihafidhina, wakati `true` inalipita.
+2. Tatua mipangilio ya `modalityBridgeAudio*` na toa sehemu za sauti za kiwango cha juu zinazoweza kuunganishwa
+   kutoka kila ujumbe kupitia kigunduzi cha `detectMediaParts()` kilichoshirikiwa. Maumbo ya waya yanayoungwa mkono
+   ni OpenAI `input_audio`, `audio_url`, na `source.media_type: "audio/*"`. Sauti iliyowekwa ndani
+   inagunduliwa kwa kuelekeza lakini haiondolewi na njia ya kuunganisha. Kazi imefungwa na
+   `modalityBridgeAudioMaxClips`; sehemu za baadaye zinabaki bila kuguswa.
+3. Heshimu `provider/model` iliyosanidiwa, au ruhusu `selectAudioBridgeModel()` kutembea
+   `AUDIO_TRANSCRIPTION_PROVIDERS` kwa mpangilio thabiti wa katalogi na kuchagua
+   modeli ya kwanza yenye kitambulisho cha mtoa huduma kinachoweza kutumika.
 4. `callAudioTranscription()` hubadilisha sauti ya base64/data-URI kuwa `file` ya multipart,
-   au hupakua `audio_url` ya mbali kupitia ulinzi wa kutoka nje unaoruhusu anwani za umma pekee,
-   wenye ubandikaji wa DNS na kikomo cha MB 25. Kisha hutuma faili na modeli iliyochaguliwa kwa POST
-   kwenda kwenye self-loop ya ndani ya `/v1/audio/transcriptions`, iliyothibitishwa kwa
-   `resolveSelfLoopBearer()`. Njia iliyopo ya unukuzi hutekeleza utafutaji wa kawaida
-   wa kitambulisho, ushughulikiaji wa muda wa kusubiri/kikomo cha kasi, na usambazaji kwa mtoa huduma.
-5. Miito iliyofaulu hubadilisha sehemu zake kuwa `[Audio N]: <transcript>`. Miito
-   huendeshwa kwa `Promise.allSettled`: hitilafu ya simu moja huhifadhi sehemu hiyo asili
-   ya sauti (mkataba wa #4012). Ikiwa kila simu itashindwa na imethibitishwa kuwa lengo lina
-   `supportsAudio === false`, sehemu hizo hubadilika kuwa
+   au hupakua `audio_url` ya mbali kupitia kinga ya nje ya umma pekee na DNS pinning
+   na kikomo cha MB 25. Kisha inatuma faili na modeli iliyochaguliwa kwa
+   `/v1/audio/transcriptions` ya ndani, iliyothibitishwa na `resolveSelfLoopBearer()`.
+   Njia iliyopo ya kunakili hufanya utafutaji wa kawaida wa kitambulisho, utunzaji wa
+   cooldown/rate-limit, na usambazaji wa mtoa huduma.
+5. Simu zilizofanikiwa hubadilisha sehemu zao na `[Audio N]: <transcript>`. Simu
+   zinaendeshwa na `Promise.allSettled`: kushindwa kwa mtu binafsi huhifadhi sehemu hiyo ya asili
+   ya sauti (mkataba wa #4012). Ikiwa kila simu itashindwa na lengo limethibitishwa
+   `supportsAudio === false`, sehemu hizo zinakuwa
    `[Audio N]: (unavailable — no STT provider connected)` (mkataba wa #8430). Kwa
-   lengo lisilojulikana (`null`), matokeo ambayo yote yameshindwa huachwa bila kubadilishwa. Lengo
-   lililothibitishwa kuwa la maandishi pekee lisilo na kitambulisho cha STT kinachoweza kutumika hupokea ujumbe huo huo
-   bayana bila kutuma ombi la mtandao.
+   lengo lisilojulikana (`null`), matokeo ya kushindwa yote yanabaki bila kuguswa. Lengo
+   lililothibitishwa la maandishi pekee lisilo na kitambulisho cha STT kinachoweza kutumika hupokea
+   stub sawa wazi bila kutoa simu ya mtandao.
 
-Nakala zilizofaulu hutumia kache ya LRU/TTL ya Modality Bridge inayoshirikiwa na mchakato mzima.
-Ufunguo huunganisha rejeleo la sauti, lebo thabiti ya operesheni ya `audio-transcription`,
-na modeli ya STT iliyochaguliwa; hitilafu hazihifadhiwi kamwe kwenye kache. Majaribio ya sauti husasisha
-vihesabio vya pamoja vya `bridged`, `cacheHits`, `failures`, na `lastUsedAt`.
+Nakala zilizofanikiwa hutumia kache ya Modality Bridge LRU/TTL ya mchakato mzima.
+Ufunguo unachanganya rejeleo la sauti, lebo thabiti ya operesheni ya `audio-transcription`,
+na modeli ya STT iliyochaguliwa; kushindwa hakuhifadhiwi kamwe. Majaribio ya sauti husasisha
+vihesabio vya `bridged`, `cacheHits`, `failures`, na `lastUsedAt` vilivyoshirikiwa.
 Majibu yaliyobadilishwa hubeba
 `x-omniroute-modality-bridge: audio->text;model=<sttModel>;parts=<n>`; maombi
-yasiyobadilishwa hayapokei sehemu ya Audio Bridge.
+yasiyoguswa hayapokei sehemu ya Audio Bridge.
 
-Mipangilio ya wakati wa utekelezaji huhifadhiwa kwenye DB na huthibitishwa kwa Zod:
+Mipangilio ya wakati wa kukimbia inaungwa mkono na DB na imethibitishwa na Zod:
 
-| Ufunguo                       | Chaguo-msingi | Masafa            |
-| ----------------------------- | ------------- | ----------------- |
-| `modalityBridgeAudioEnabled`  | `true`        | —                 |
-| `modalityBridgeAudioModel`    | `""`          | Auto au ID ya STT |
-| `modalityBridgeAudioTimeout`  | `60000`       | 1000–300000       |
-| `modalityBridgeAudioMaxClips` | `3`           | 1–10              |
+| Ufunguo                       | Chaguo-msingi | Masafa         |
+| ----------------------------- | ------------- | -------------- |
+| `modalityBridgeAudioEnabled`  | `true`        | —              |
+| `modalityBridgeAudioModel`    | `""`          | Auto au STT ID |
+| `modalityBridgeAudioTimeout`  | `60000`       | 1000–300000    |
+| `modalityBridgeAudioMaxClips` | `3`           | 1–10           |
 
-Kache ya pamoja inaendelea kudhibitiwa na `modalityBridgeCacheEnabled`,
+Kache iliyoshirikiwa inabaki kudhibitiwa na `modalityBridgeCacheEnabled`,
 `modalityBridgeCacheTtlMinutes`, na `modalityBridgeCacheMaxEntries`.
 
 ### Video Bridge (`videoBridge.ts`, `videoBridgePipeline.ts`)
 
-Hunasa sehemu za video za kiwango cha juu katika `messages` za Chat Completions na `input` ya Responses API kabla ya kuitwa kwa lengo lisilo na usaidizi asilia wa video unaojulikana. Miundo inayotumika ni `input_video`, `video_url`, `video_source`, URL za HTTPS, na URI za data za `data:video/*;base64,...`. Majina ya faili ya kawaida yaliyo katika maandishi hayachukuliwi kuwa video.
+Inazuia sehemu za video za kiwango cha juu katika `messages` za Chat Completions na `input` ya Responses API kabla ya kulengwa bila usaidizi asilia wa video kujulikana kuitwa. Maumbo yanayotumika ni `input_video`, `video_url`, `video_source`, URL za HTTPS, na URI za data `data:video/*;base64,...`. Majina ya faili ya kawaida katika maandishi hayachukuliwi kama video.
 
-`VideoBridgeGuardrail.preCall` (`videoBridge.ts`) inasimamia upitiaji wa ombi, ukaguzi wa uwezo/sera, ujumlishaji wa kila ombi, na data ya majibu. Kazi za kila video — upataji, akiba ya matokeo yote, uelezaji wa mfuatano wa fremu (ambao huunganisha nakala yoyote ya sauti iliyotangazwa na mwitaji), pamoja na vipimo/ukatishaji/usafishaji wa kila jaribio — zimefichwa nyuma ya `processVideoPart` katika `videoBridgePipeline.ts`, ambayo huitwa mara moja kwa kila sehemu ya video ndani ya kitanzi cha `preCall`. Moduli hiyo pia hufafanua mipaka bayana ya milango `VideoMediaBrokerPort` (kupata baiti na kutoa fremu zilizochukuliwa kama sampuli), `VideoAudioTranscriptionPort` (kuunganisha nakala ya sauti iliyotangazwa na mwitaji na maelezo ya fremu zilizochukuliwa kama sampuli), na `VideoDrilldownPort` (mpaka wa uhifadhi wa uchunguzi wa kina wa fremu; bado haujaunganishwa katika `processVideoPart` — kwa sasa ni njia tofauti ya `/api/modality-bridge/video/drilldown` pekee inayoandika maingizo ya uchunguzi wa kina).
+`VideoBridgeGuardrail.preCall` (`videoBridge.ts`) inamiliki upitaji wa ombi, ukaguzi wa uwezo/sera, ujumlishaji wa kila ombi, na mzigo wa majibu. Kazi ya kila video — upatikanaji, akiba ya matokeo yote, kuelezea mlolongo wa fremu (ambayo huunganisha nakala yoyote ya sauti iliyotangazwa na mpigaji), na vipimo/kukatisha/kusafisha kwa kila jaribio — imefichwa nyuma ya `processVideoPart` katika `videoBridgePipeline.ts`, inayoitwa mara moja kwa kila sehemu ya video ndani ya kitanzi cha `preCall`. Moduli hiyo pia inafafanua mipaka ya bandari wazi `VideoMediaBrokerPort` (kupata baiti na kutoa fremu zilizochukuliwa), `VideoAudioTranscriptionPort` (kuunganisha nakala ya sauti iliyotangazwa na mpigaji na manukuu yaliyochukuliwa), na `VideoDrilldownPort` (mpaka wa kudumu wa uchunguzi wa fremu; bado haujaunganishwa kwenye `processVideoPart` — ni njia tofauti ya `/api/modality-bridge/video/drilldown` pekee inayoandika viingilio vya uchunguzi leo).
 
-Njia ya ombi ya umma ya `/v1` haiingizi wala kuanzisha mchakato-tanzu kamwe. Video za mbali hupakuliwa chini ya kikomo cha 50 MiB; video za base64 zilizo ndani ya ombi zina kikomo cha kihafidhina cha 36 MiB kilichosimbuliwa kwa kila video ili bahasha ya modeli/ujumbe/uundaji wa fremu ibaki ndani ya kikomo cha umma cha 50 MiB cha ukubali wa ombi la JSON. Urefu wa maudhui ya ndani na makadirio ya ukubwa uliosimbuliwa hukaguliwa kabla ya kutenga kumbukumbu. HTTPS inahitajika kwenye URL ya awali ya mbali na kila uelekezaji upya, kwa kutumia kizuizi kilichopo cha mawasiliano ya nje ya umma pekee chenye ubandikaji wa DNS. Kisha baiti hizo huvuka mpaka halisi wa ndani wa wakala wa `POST /api/modality-bridge/video/extract`. Njia hiyo ni `LOCAL_ONLY` na `SPAWN_CAPABLE`, hukubali tu ombi lililothibitishwa kwa kila mchakato kutoka kwenye loopback inayoaminika, na kamwe haikubali URL, njia ya mfumo wa faili, programu tekelezi, au orodha ya hoja. Msururu wa ukomo wa ukubwa wa mwili wa API na kisomaji cha mwili kinachoongezeka cha kishughulikiaji hutekeleza kila kimoja kikomo cha ingizo cha 50 MiB kwa wakala. Foleni yake yenye mipaka huendesha uchimbaji mmoja kwa wakati mmoja, huruhusu kazi nne zinazosubiri, na huweka kikomo cha ingizo linalosubiri kuwa 100 MiB.
+Njia ya ombi ya umma `/v1` haileti au kuita mchakato mdogo kamwe. Video za mbali zinapakuliwa chini ya kikomo cha 50 MiB; video za `base64` za ndani zina kikomo cha 36 MiB kilichosimbuliwa kwa kila video ili bahasha ya modeli/ujumbe/fremu iweze kubaki ndani ya kikomo cha kukubali ombi la umma la JSON cha 50 MiB. Urefu wa ndani na makadirio ya ukubwa uliosimbuliwa huangaliwa kabla ya ugawaji. HTTPS inahitajika kwenye URL ya awali ya mbali na kila uelekezaji upya, kwa kutumia ulinzi uliopo wa nje wa umma pekee na `DNS pinning`. Baiti kisha huvuka mpaka halisi wa ndani wa `POST /api/modality-bridge/video/extract` wa broker. Njia hiyo ni `LOCAL_ONLY` na `SPAWN_CAPABLE`, inakubali tu ombi lililothibitishwa kwa kila mchakato, la `trusted-loopback`, na haikubali kamwe URL, njia ya mfumo wa faili, inayoweza kutekelezwa, au orodha ya hoja. Bomba la ukubwa wa mwili wa API na kisomaji cha mwili kinachoongezeka cha kishughulikiaji hutekeleza kwa kujitegemea kikomo cha uingizaji cha broker cha 50 MiB. Foleni yake yenye mipaka huendesha uchimbaji mmoja kwa wakati mmoja, inaruhusu kazi nne zinazosubiri, na inaweka kikomo cha uingizaji unaosubiri kwa 100 MiB.
 
-Ndani ya wakala, `ffprobe` husoma faili ya faragha ya ndani; orodha isiyobadilika ya miundo inayoruhusiwa haijumuishi miundo ya orodha za kucheza na faili za maelezo. Kwa kontena zinazoruhusiwa za familia ya MOV, marejeleo ya data ya nje ya MOV hubaki yamezimwa kwa chaguomsingi, na amri isiyobadilika haiwashi matumizi yake. `ffprobe` na `ffmpeg` zote hutumia orodha ya itifaki inayoruhusu `file` pekee, uzi mmoja, safu zisizobadilika za hoja, bila shell, na programu tekelezi zinazotafutwa kutoka `PATH`. Mitiririko ya picha za jalada zilizoambatishwa si wagombea wanaoweza kuchezwa. Mitiririko yote inayoweza kuchezwa lazima itimize vikomo, na mtiririko chaguomsingi uliobainishwa hupendelewa kabla ya kutumia kwa uthabiti mtiririko wenye faharasa ya chini zaidi. Video zimewekewa kikomo cha sekunde 600, pikseli 8,192 kwa kila kipimo, na pikseli chanzo 33,554,432. FFmpeg huchukua sampuli za fremu 1–16 za JPEG katika sehemu za katikati, hupunguza ukingo mrefu hadi usiozidi pikseli 1,024 bila kuongeza ukubwa wa maingizo madogo, na kamwe haipokei URL. Uchukuaji wa sampuli ni `uniform` kwa chaguomsingi. Sera ya hiari ya `scene_aware` na sera ya majaribio ya `segment_aware` hufanya pitio moja la ziada lisilobadilika la FFmpeg kwenye mtiririko wa ndani ambao tayari umethibitishwa, huchagua mihuri ya muda ya matukio ya `showinfo` iliyo ndani ya mipaka, na hurudi kwa uthabiti kwenye sehemu zilezile za katikati zilizosambazwa sawasawa iwapo utambuzi utashindwa, muda utaisha, matokeo yatakuwa na muundo usio sahihi, au seti ya wagombea itakuwa tupu. Hali inayozingatia vipande hugawa sampuli za sehemu za katikati kwa uwiano wa vipindi vya matukio vilivyothibitishwa; ushahidi wa hali inayozingatia vipande na tabia ya kurudi kwenye mbinu mbadala zimeelezwa kwa kina hapa chini. Kikomo kisichoweza kuvukwa cha fremu 16 hutumika baada ya uteuzi katika kila sera. Wakati ombi linalozingatia matukio lina bajeti ya fremu moja pekee, hutumia sehemu ya katikati iliyosambazwa sawasawa ya dirisha amilifu la video nzima au la ulengaji na huripoti `policyEffective: uniform`: fremu moja ya tukio iliyochaguliwa haiwezi kuhifadhi ncha zote mbili za muda. Mwitiaji anaweza kutoa kwa hiari dirisha lenye ukomo la ulengaji (`start`/`end` kwa sekunde); mipaka hubanwa kwa muda wa media, madirisha yaliyogeuzwa au yasiyo na thamani yenye ukomo hukataliwa, na sera zote za uchukuaji sampuli hutekelezwa ndani ya kipindi kilichosawazishwa pekee. Dirisha linalotokana hujumuishwa katika metadata ya uchukuaji sampuli na katika kiambishi awali cha maelezo yasiyoaminika ili modeli za chini ya mchakato ziweze kutofautisha dondoo iliyolengwa na ratiba kamili ya muda.
+Ndani ya broker, `ffprobe` inasoma faili ya ndani ya faragha; orodha ya ruhusa ya umbizo maalum haijumuishi umbizo za orodha za kucheza na manifest. Kwa kontena zinazoruhusiwa za `MOV-family`, marejeleo ya data ya nje ya `MOV` hubaki yamezimwa kwa chaguo-msingi, na amri maalum haichagui kuyatumia. `ffprobe` na `ffmpeg` zote hutumia orodha nyeupe ya itifaki ya `file`-only, uzi mmoja, safu za hoja maalum, hakuna shell, na zinazoweza kutekelezwa zinazotatuliwa kutoka `PATH`. Mitiririko ya jalada ya picha iliyoambatishwa si wagombea wanaoweza kuchezwa. Mitiririko yote inayoweza kuchezwa lazima itimize vikomo, na mtiririko chaguomsingi wazi unapendelewa kabla ya kurudi nyuma kwa index ya chini kabisa. Video zimepunguzwa hadi sekunde 600, pikseli 8,192 kwa kila mwelekeo, na pikseli chanzo 33,554,432. `FFmpeg` huchukua sampuli za fremu za `JPEG` za katikati 1–16, hupunguza ukingo mrefu hadi pikseli zisizozidi 1,024 bila kukuza pembejeo ndogo, na haipokei kamwe URL. Sampuli ni `uniform` kwa chaguo-msingi. Sera za hiari za `scene_aware` na majaribio ya `segment_aware` hufanya pasi moja ya ziada ya `FFmpeg` juu ya mtiririko wa ndani uliothibitishwa tayari, huchagua mihuri ya muda ya `showinfo` yenye mipaka, na kurudi nyuma kwa uhakika kwenye sehemu za katikati zinazofanana za `uniform` ikiwa kigunduzi kitashindwa, muda kuisha, matokeo mabaya, au seti tupu ya wagombea. Hali ya `segment-aware` inagawa sampuli za katikati sawia na vipindi vya eneo vilivyothibitishwa; ushahidi wa `segment-aware` na tabia ya kurudi nyuma imeelezwa kwa undani hapa chini. Kikomo kigumu cha fremu 16 kinatumika baada ya uteuzi katika kila sera. Ombi la `scene-aware` linapokuwa na bajeti ya fremu moja tu, hutumia sehemu ya katikati ya `uniform` ya video kamili inayotumika au dirisha la kuzingatia na huripoti `policyEffective: uniform`: fremu moja iliyochaguliwa ya eneo haiwezi kuhifadhi ncha zote mbili za muda. Mpiga simu anaweza kwa hiari kutoa dirisha la kuzingatia lenye kikomo (sekunde `start`/`end`); mipaka imebanwa kwa muda wa media, madirisha yaliyogeuzwa au yasiyo na kikomo yanakataliwa, na sera zote za sampuli hufanywa tu ndani ya muda uliorekebishwa. Dirisha linalotokana linajumuishwa katika metadata ya sampuli na katika kiambishi awali cha maelezo kisichoaminika ili modeli za chini ziweze kutofautisha dondoo iliyolengwa kutoka kwenye ratiba kamili.
 
-Ulengaji wa kimaana wa maelezo ni mpangilio tofauti na bayana. Hali chaguomsingi ya uchanganuzi ya `full` huhifadhi kidokezo kilichopo cha fremu na kamwe haitumi maandishi ya ombi kwa modeli ya maelezo. Katika hali ya `focused`, daraja husoma tu `text`/`input_text` ya hivi karibuni isiyo tupu iliyoandikwa na mtumiaji kutoka kwenye kontena ileile ya Chat au Responses, huisawazisha kuwa NFC, hukusanya herufi dhibiti na nafasi nyeupe, na huiwekea kikomo cha pointi 500 za msimbo wa Unicode. Matokeo tupu hurudi kwenye kidokezo halisi cha `full`. Dokezo linaloweza kutumika huandikwa kama JSON katika bloku mahususi ya muktadha wa mtumiaji usioaminika na linaweza tu kutanguliza maelezo yanayoonekana; haliwezi kubatilisha onyo tofauti dhidi ya kufuata maagizo yanayoonekana au kusikika katika media. Ulengaji wa maandishi kamwe haukadirii `start`/`end` wala kubadilisha kichukua sampuli cha muda.
+Kuzingatia manukuu ya kisemantiki ni mpangilio tofauti, wazi. Hali chaguomsingi ya uchambuzi `full` huhifadhi kidokezo cha fremu kilichopo na haipeleki kamwe maandishi ya ombi kwa modeli ya manukuu. Katika hali ya `focused`, daraja husoma tu `text`/`input_text` ya hivi punde isiyo tupu iliyoandikwa na mtumiaji kutoka kwenye Chat au kontena la Responses, inairekebisha kuwa NFC, huangusha herufi za udhibiti na nafasi nyeupe, na kuiwekea kikomo cha `Unicode code points` 500. Matokeo tupu hurudi nyuma kwenye kidokezo halisi cha `full`. Kidokezo kinachoweza kutumika huwekwa katika mfuatano kama JSON katika kizuizi maalum cha `untrusted-user-context` na kinaweza tu kuweka kipaumbele maelezo yanayoonekana; hakiwezi kubatilisha onyo tofauti dhidi ya kufuata maagizo yanayoonekana au kusikika kwenye media. Kuzingatia maandishi hakudhani kamwe `start`/`end` au kubadilisha sampuli ya muda.
 
-#### Ushahidi wa vipande vya kimuundo wa FU-07
+#### FU-07 ushahidi wa sehemu ya kimuundo
 
-`segment_aware` hutumia pitio moja la uchanganuzi wa awali lenye mipaka kwenye mtiririko wa video ya ndani ambao tayari umethibitishwa. Msururu usiobadilika wa vichujio kwanza hupunguza ukubwa hadi upana wa pikseli 320 usiozidi, hutambua mabadiliko ya matukio na vipindi vilivyoganda, kisha huchukua sampuli kwa fremu 1 kwa sekunde ili kupima ukungu, wastani wa luma, na taarifa za anga/muda. Pitio hilo limewekewa kikomo cha sampuli 600 za kimuundo, uzi mmoja wa FFmpeg/kichujio, itifaki ileile inayoruhusu `file` pekee na orodha za kontena zinazoruhusiwa, kikomo cha 1 MiB cha matokeo ya mchakato, na muda usiozidi sekunde 30 ndani ya ukatishaji/kikomo cha muda kinachoshirikiwa cha wakala. Kamwe halikubali amri, kichujio, njia, au URL kutoka kwenye ombi.
+`segment_aware` inatumia pasi moja ya uchambuzi wa awali yenye mipaka juu ya mtiririko wa video wa ndani uliothibitishwa tayari. Mlolongo wa vichujio maalum kwanza hupunguza ukubwa hadi pikseli zisizozidi 320 kwa upana, hugundua mabadiliko ya eneo na vipindi vilivyoganda, kisha huchukua sampuli kwa fremu 1 kwa sekunde kwa ukungu, `luma` ya wastani, na habari ya anga/muda. Pasi hiyo imepunguzwa kwa sampuli za kimuundo 600, uzi mmoja wa `FFmpeg`/kichujio, itifaki sawa ya `file`-only na orodha za ruhusa za kontena, kikomo cha 1 MiB cha matokeo ya mchakato, na sekunde zisizozidi 30 ndani ya kukatisha/muda wa mwisho wa broker. Haikubali kamwe amri, kichujio, njia, au URL kutoka kwa ombi.
 
-Thamani za kimuundo ni ushahidi wa sampuli unaoweza kurudiwa kwa matokeo yaleyale, si uelewa wa kisemantiki wa video. Hazitambui mada, vitendo, maelezo ya picha, mazungumzo, au dhamira ya mtumiaji. Mipaka ya matukio na migando huunda sehemu; kiwango cha mgando, ukungu, mwangaza, undani wa anga, na mabadiliko ya muda huathiri tu jinsi bajeti iliyopo ya fremu 1–16 inavyogawanywa. Sehemu iliyoganda kikamilifu inawekewa kikomo cha fremu moja, huku sehemu zisizoganda zikishindania bajeti iliyobaki. Mipaka inapozidi idadi ya fremu, ufunikaji sawia wa ratiba ya muda huhifadhiwa ili mikato ya haraka ya mwanzo isiweze kuficha sehemu ndefu ya mwisho. Mipaka ya matukio iliyo ndani ya azimio la uchanganuzi la sekunde 1 kutoka kwenye mpaka wa mgando huunganishwa.
+Thamani za kimuundo ni ushahidi wa sampuli za kuamua, si uelewa wa video wa kisemantiki. Hazihusishi masomo, vitendo, manukuu, hotuba, au nia ya mtumiaji. Mipaka ya eneo na kuganda huunda sehemu; kufunika kwa kuganda, ukungu, mwangaza, maelezo ya anga, na mabadiliko ya muda huathiri tu jinsi bajeti ya fremu 1-16 iliyopo inavyotengwa. Sehemu iliyoganda kabisa imewekwa kikomo kwa fremu moja, wakati sehemu zisizoganda zinashindana kwa bajeti iliyobaki. Wakati mipaka inazidi fremu, kufunika sare ya ratiba huhifadhiwa ili kupunguzwa kwa haraka mapema kusiweze kuficha sehemu ndefu inayofuata. Mipaka ya eneo ndani ya azimio la sekunde 1 la uchambuzi wa mpaka wa kuganda huunganishwa.
 
-Vichujio vinavyokosekana, ushahidi wenye muundo usio sahihi/usio na kitu, hitilafu ya kigunduzi, au muda wa kusubiri wa uchanganuzi wa awali uliowekewa kikomo husababisha kurejea kwenye sera kamili ya pointi za katikati zilizosambazwa sawia. Kusitisha kwa mpigaji au kufikiwa kwa muda wa mwisho wa broker hakusababishi kurejea huko: hukatisha subprocess inayoendelea, huzuia uchimbaji wa fremu wa baadaye, na mti binafsi wa muda huondolewa katika `finally`.
+Kukosekana kwa vichungi, ushahidi usio sahihi/tupu, hitilafu ya kigunduzi, au muda uliowekwa wa uchambuzi wa awali hushindwa kufungua kwa sera kamili ya katikati sare. Ubatilishaji wa mpigaji simu au makataa ya broker haishindwi kufungua: inamaliza mchakato mdogo unaoendelea, inazuia uchimbaji wa fremu baadaye, na mti wa muda wa faragha huondolewa katika `finally`.
 
-`scripts/perf/video-bridge-fu07-eval.ts` huzalisha fixtures halisi za FFmpeg zenye matokeo yanayoweza kurudiwa kwa ajili ya upunguzaji wa miito ya maelezo ya picha baada ya uondoaji wa nakala, ugawaji wa bajeti kwa mwendo mwingi, ushahidi wa ukungu/mwangaza/SI-TI, mikato ya haraka yenye sehemu ndefu ya mwisho, na matokeo chanya ya uongo ya kufifia taratibu. Hurekodi muda halisi wa uchanganuzi wa awali na, pale ambapo `/usr/bin/time` inapatikana, CPU ya mchakato mtoto na kiwango cha juu zaidi cha RSS. Ukaguzi wake wa ubora ni vielelezo vya marejeleo vya kimuundo pekee. Ubora wa modeli halisi ya maelezo ya picha unabaki `HOLD` kwa sababu harness hii haina endpoint iliyoidhinishwa wala hakimu aliyefungiwa. Uokoaji wa fedha pia unabaki `HOLD` isipokuwa `--caption-cost-per-call-usd` itoe makadirio dhahiri chanya ya gharama kwa kila mwito; script kamwe haitungi mojawapo ya matokeo hayo.
+`scripts/perf/video-bridge-fu07-eval.ts` inazalisha vifaa halisi vya FFmpeg vya kuamua kwa ajili ya akiba ya simu za manukuu baada ya kuondoa marudio, ugawaji wa bajeti ya mwendo mnene, ushahidi wa ukungu/mwangaza/SI-TI, kupunguzwa kwa haraka na mkia mrefu, na chanya za uwongo za kufifia polepole. Inarekodi muda wa ukuta wa uchambuzi wa awali na, ambapo `/usr/bin/time` inapatikana, CPU ya mtoto na RSS ya kilele. Ukaguzi wake wa ubora ni oracles za kimuundo tu. Ubora halisi wa modeli ya manukuu unabaki `HOLD` kwa sababu kifaa hiki hakina kituo cha mwisho kilichoidhinishwa au jaji aliyeganda. Akiba ya kifedha pia inabaki `HOLD` isipokuwa `--caption-cost-per-call-usd` inatoa makadirio chanya ya wazi kwa kila simu; hati haitengenezi matokeo yoyote.
 
-Kila fremu imewekewa kikomo cha 4 MiB, fremu zote ghafi kwa pamoja zimewekewa kikomo cha 23 MiB, na jibu la broker lililosawazishwa limewekewa kikomo cha 32 MiB. Saraka binafsi ya muda huondolewa katika `finally`. OmniRoute haijumuishi FFmpeg na haikubali njia maalum ya executable. Kabla ya kutengeneza maelezo ya picha, bridge hutumia hatua ya tahadhari ya kuondoa nakala zinazofanana kimwonekano: kila JPEG hupunguzwa kuwa buffer ya grayscale ya 16×16 na hulinganishwa tu na fremu ya mwisho iliyohifadhiwa. Kwa bajeti ya maelezo ya picha iliyoombwa inayozidi fremu moja, uchimbaji hutoa mkusanyiko wa wagombea uliowekewa kikomo cha hadi mara mbili ya bajeti hiyo na kamwe hauzidi fremu 16. Kikomo kilichoombwa hutumika tu baada ya uondoaji wa nakala, huku wagombea wa kwanza na wa mwisho waliochaguliwa wakihifadhiwa wakati wa upunguzaji wa mwisho ikiwa bajeti ni angalau mbili. Sera yenye toleo
-`grayscale-16x16-mean-cells-v2` hutumia thamani kubwa kati ya tofauti ya wastani ya luma na uwiano wa seli za kijipicha ambazo tofauti yake iliyosawazishwa ni angalau 0.05. Kizingiti cha nakala ni thamani isiyobadilika ya 0.04, iliyochaguliwa kwa ajili ya utabirikaji badala ya kutolewa kama mpangilio wa wakati wa utekelezaji. Ishara hii ya pili yenye utofautishaji mkubwa huhifadhi mwendo mdogo na mabadiliko ya maandishi yanayoonekana ambayo ulinganisho wa wastani pekee unaweza kuficha. Hitilafu za kilinganishi au decoder husababisha kuendelea huku ufunikaji ukihifadhiwa. Metadata ya matokeo hutenganisha wagombea waliochimbwa, fremu zilizotumiwa kwa mafanikio, na nakala zinazofanana kimwonekano zilizoondolewa.
+Kila fremu imepunguzwa hadi 4 MiB, fremu zote ghafi pamoja hadi 23 MiB, na jibu la broker lililobadilishwa kuwa 32 MiB. Saraka ya muda ya faragha huondolewa katika `finally`. OmniRoute haijumuishi FFmpeg na haikubali njia maalum ya kutekeleza. Kabla ya kunukuu, daraja hutumia upitishaji wa kihafidhina wa kuondoa marudio ya kuona: kila JPEG inapunguzwa kuwa bafa ya kijivu ya 16x16 na inalinganishwa tu na fremu ya mwisho iliyohifadhiwa. Kwa bajeti ya manukuu iliyoombwa zaidi ya fremu moja, uchimbaji hutoa bwawa la wagombea lililowekwa kikomo hadi mara mbili ya bajeti hiyo na kamwe si zaidi ya fremu 16. Kikomo kilichoombwa kinatumika tu baada ya kuondoa marudio, na wagombea wa kwanza na wa mwisho waliochaguliwa huhifadhiwa wakati wa kupunguza mwisho wakati bajeti ni angalau mbili. Sera ya `grayscale-16x16-mean-cells-v2` iliyoboreshwa hutumia kubwa zaidi ya delta ya luma ya wastani na uwiano wa seli za vijipicha ambazo delta yao iliyorekebishwa ni angalau 0.05. Kizingiti cha marudio ni mara kwa mara 0.04, kilichochaguliwa kwa utabiri badala ya kufichuliwa kama mpangilio wa wakati wa kukimbia. Ishara hii ya pili ya utofautishaji wa juu huhifadhi mwendo mdogo na mabadiliko ya maandishi yanayoonekana ambayo kulinganisha kwa wastani tu kunaweza kuficha. Hitilafu za kulinganisha au avkodare hushindwa kufungua na kuweka chanjo. Metadata ya pato hutenganisha wagombea waliochimbwa, fremu zilizotumiwa kwa mafanikio, na marudio ya kuona yaliyodondoshwa.
 
-Sehemu ya video iliyowekwa alama wazi inaweza kuomba contact sheet yenye mihuri ya muda. Bridge huunda gridi ya JPEG yenye safu wima zisizozidi 4 na fremu zisizozidi 16. Kila seli ya pikseli 512 hupachika muhuri wa muda wa chanzo chake kwenye ukanda wa chini wenye utofautishaji mkubwa, huku mihuri hiyo hiyo ya muda ikibaki katika metadata ya maandishi kwa ajili ya uhusishaji na ukaguzi wa hatua zinazofuata. JPEG kamili hubaki na kikomo cha 32 MiB. Ikiwa `sharp` haiwezi kufumbua au kuunda gridi, bridge hurejea kwenye fremu mahususi za JPEG; usitishaji wa mteja bado huenezwa kupitia operesheni ya sheet.
+Sehemu ya video iliyowekwa alama wazi inaweza kuomba karatasi ya mawasiliano iliyowekwa muhuri wa muda. Daraja huunda gridi ya JPEG ya safu 4, fremu 16. Kila seli ya pikseli 512 huwasha muhuri wake wa muda wa chanzo kwenye bendi ya chini yenye utofautishaji wa juu, wakati muhuri huo wa muda unabaki kwenye metadata ya maandishi kwa ushirikiano na ukaguzi wa chini. JPEG kamili inabaki imepunguzwa hadi 32 MiB. Ikiwa `sharp` haiwezi kusimbua au kuunda gridi, daraja hurudi kwenye fremu za JPEG za kibinafsi; ubatilishaji wa mteja bado huenea kupitia operesheni ya karatasi.
 
-Ushahidi wa kupandishwa hadhi umetenganishwa kimakusudi na microbenchmark ya usanifu sintetiki. `scripts/perf/video-bridge-contact-sheet-eval.ts` hufafanua harness ya A/B yenye toleo la schema kwa modeli halisi za kuona zinazooana na OpenAI. Hupima tokeni zilizoripotiwa na provider, ucheleweshaji wa muda halisi kutoka mwanzo hadi mwisho (ukijumuisha uundaji wa sheet), idadi ya miito ya modeli, na uhifadhi wa hoja uliobainishwa na manifest. Majibu ghafi ya modeli hayaandikwi kwenye ripoti; ni digests za SHA-256 na IDs za hoja zilizolingana pekee zinazohifadhiwa. Harness haitoi mwito wowote wa mtandao au wa modeli inayolipiwa isipokuwa `--execute-real` ipitishwe na `--model`, `OMNIROUTE_BASE_URL`, na `OMNIROUTE_API_KEY` viwe vimesanidiwa. Bila utekelezaji huo halisi ulioidhinishwa wazi, uamuzi wake unaosomeka na mashine unabaki `HOLD`; vipimo vya payload/idadi ya miito vya sintetiki pekee si ushahidi wa kupandishwa hadhi.
+Ushahidi wa kukuza umetenganishwa kwa makusudi na microbenchmark ya utunzi wa synthetic. `scripts/perf/video-bridge-contact-sheet-eval.ts` inafafanua kifaa cha A/B kilichoboreshwa kwa mifano halisi ya maono inayolingana na OpenAI. Inapima tokeni zilizoripotiwa na mtoa huduma, muda wa mwisho hadi mwisho wa ukuta (pamoja na utunzi wa karatasi), hesabu ya simu za modeli, na uhifadhi wa ukweli uliofafanuliwa na manifest. Majibu ghafi ya modeli hayaandikwi kwenye ripoti; ni SHA-256 digests tu na vitambulisho vya ukweli vilivyolingana vinavyohifadhiwa. Kifaa hakifanyi simu ya mtandao au ya kulipia isipokuwa `--execute-real` imepitishwa na `--model`, `OMNIROUTE_BASE_URL`, na `OMNIROUTE_API_KEY` zimepangwa. Bila utekelezaji huo halisi wa wazi, uamuzi wake unaoweza kusomwa na mashine unabaki `HOLD`; vipimo vya malipo/hesabu ya simu pekee si ushahidi wa kukuza.
 
-Wapigaji wanaweza kuambatisha array ya hiari ya `transcript.cues` kwenye sehemu ya video inayotumika ikiwa tayari wana maandishi yaliyopangiliwa kwa muda. Kila cue lazima iwe na `text`, kipindi chenye kikomo cha `start`/`end` kilicho ndani ya muda uliokaguliwa, na `source` iliyoruhusiwa (`client`, `embedded`, au `audio-bridge`); `confidence` huwa `1` kwa chaguo-msingi na lazima ibaki kati ya `0` na `1`. Cues zinazofanana kabisa huunganishwa. OmniRoute kamwe haianzishi unukuzi kutokana na metadata hii: cues zilizothibitishwa hunakiliwa kwenye matokeo yaliyoelezwa pamoja na chanzo, kiwango cha kuaminika, na kipindi, na huwasilishwa kama uchunguzi usioaminika sambamba na maelezo ya fremu. Maandishi batili, yaliyo nje ya kipindi, au yasiyo na uthibitisho wa asili hukataliwa badala ya kuchanganywa kwenye mtiririko wa maelezo ya picha. Sehemu ya `source` kwa sasa hutangazwa na mpigaji, haijathibitishwa na server: OmniRoute huhakikisha kuwa thamani ni mojawapo ya strings tatu zinazoruhusiwa, lakini bado haithibitishi kwa mbinu za kriptografia kwamba lebo ya `embedded` au `audio-bridge` kwa kweli ilitoka kwenye uchimbaji unaomilikiwa na server. Ichukulie `source` kama kidokezo kisichoaminika hadi uthibitishaji huo utakapotekelezwa; usijenge maamuzi ya uidhinishaji juu yake.
+Wapiga simu wanaweza kuambatisha safu ya hiari ya `transcript.cues` kwenye sehemu ya video inayotumika wanapokuwa tayari na maandishi yaliyopangiliwa. Kila cue lazima iwe na `text`, muda wa `start`/`end` usio na kikomo ndani ya muda uliopimwa, na `source` iliyoidhinishwa (`client`, `embedded`, au `audio-bridge`); `confidence` inatokana na `1` na lazima ibaki kati ya `0` na `1`. Cues zinazofanana kabisa huunganishwa. OmniRoute haianzi kamwe unukuzi kutoka kwa metadata hii: cues zilizothibitishwa zinanakiliwa kwenye matokeo yaliyoelezwa na chanzo, uaminifu, na muda, na huonyeshwa kama uchunguzi usioaminika pamoja na manukuu ya fremu. Maandishi yasiyo sahihi, nje ya masafa, au yasiyo na asili yanakataliwa badala ya kuchanganywa kwenye mkondo wa manukuu. Sehemu ya `source` kwa sasa inatangazwa na mpigaji simu, si kuthibitishwa na seva: OmniRoute inahakikisha kuwa thamani ni mojawapo ya nyuzi tatu zinazoruhusiwa, lakini bado haithibitishi kwa njia ya kriptografia kwamba lebo ya `embedded` au `audio-bridge` ilitoka kwa uchimbaji unaomilikiwa na seva. Chukulie `source` kama kidokezo kisichoaminika hadi uthibitishaji huo utakapofika; usijenge maamuzi ya idhini juu yake.
 
-Mwitaji wa kiwango cha juu anaweza kutoa wimbo wa `audioTranscript` ambao tayari umeidhinishwa
-kwa video hiyo hiyo. Kiunganishi cha muunganisho huendesha uchunguzi wa picha na sauti chini ya
-kikomo kimoja cha muda na ishara moja ya kusitisha, huupanga kwenye ratiba moja ya muda, huunganisha
-nakala zinazofanana kabisa, na huripoti matokeo ya sehemu wakati upande mmoja pekee unafanikiwa.
-`audioTranscript` batili husababisha matokeo hayo ya sehemu — maelezo ya picha
-huhifadhiwa na tawi la sauti hurekodi msimbo wa hitilafu uliosafishwa —
-badala ya kusababisha video nzima ishindwe. Upatikanaji wa kila tawi, alama ya matokeo ya sehemu,
-na misimbo ya hitilafu iliyosafishwa huhifadhiwa katika matokeo yaliyoelezwa, katika
-metadata ya kinga (`audioFusionRuns`/`audioFusionPartials`/
-`audioFusionFailureCodes`), katika metadata ya akiba ya matokeo, na katika vihesabu vya
-muunganisho wa daraja. Njia chaguo-msingi ya Video Bridge haiombi ubadilishaji wa matamshi kuwa maandishi
-wala kupakua nakala ya pili ya media; bila wimbo huo uliotolewa waziwazi, inabaki
-ya video pekee.
+Mpigaji simu wa hali ya juu anaweza kutoa wimbo wa `audioTranscript` ulioidhinishwa tayari
+kwa video hiyo hiyo. Mshono wa muunganisho huendesha uchunguzi wa kuona na sauti chini ya
+tarehe ya mwisho moja na ishara ya kughairi, huyaagiza kwenye ratiba ya kawaida, huanguka
+nakala halisi, na huripoti matokeo ya sehemu wakati upande mmoja tu umefaulu.
+`audioTranscript` batili hudhoofika hadi matokeo hayo ya sehemu — maelezo ya kuona
+yanahifadhiwa na tawi la sauti hurekodi msimbo wa kushindwa uliosafishwa —
+badala ya kushindwa video nzima. Upatikanaji wa kila tawi, bendera ya sehemu,
+na misimbo ya kushindwa iliyosafishwa huhifadhiwa katika matokeo yaliyoelezwa, katika
+metadata ya ulinzi (`audioFusionRuns`/`audioFusionPartials`/
+`audioFusionFailureCodes`), katika metadata ya kache ya matokeo, na katika kaunta za
+muunganisho wa daraja. Njia chaguomsingi ya Daraja la Video haitumii hotuba-kwa-maandishi
+au kupakua nakala ya pili ya media; bila wimbo huo wazi, inabaki
+video-pekee.
 
-**Uhifadhi wa manukuu (#12150 P1).** Hili hutumika kiotomatiki kila wakati
-Video Bridge (ambayo yenyewe huhitaji kuwezeshwa kwa hiari) inapowasilisha kidokezo cha manukuu — hakuna
-alama tofauti ya uhifadhi. Ombi linapowasilisha kidokezo chochote cha manukuu (`transcript`
-iliyotangazwa na mwitaji au `audioTranscript` iliyounganishwa), kinga hukitia alama ya
-`videoBridgeObserved` na kuunda nakala iliyofichwa ya maelezo ya video —
-uwasilishaji unaofanana ambao maudhui huru ya kila kidokezo hubadilishwa na
-`[redacted-video-transcript]`, unaoundwa kwa kubadilisha sehemu ya kidokezo iliyopangwa
-kabla ya mfuatano wa herufi kuundwa (kamwe si kwa kuchanganua maandishi yaliyosawazishwa, ili maudhui yoyote ya
-kidokezo — ya kiadui au ya kawaida, yakiwemo maudhui yenye `]` kama vile
-`[inaudible]`/`[music]` — yasiweze kubaki). Mwili wa ombi katika kumbukumbu ya simu inayohifadhiwa
-hubadilisha kila sehemu ya maandishi iliyotokana na video kwa nakala hiyo iliyofichwa, kwa kuilinganisha kulingana na
-usawa wa maudhui; nanga ya `fullText` husomwa upya kutoka kwenye data ya kinga ya kabla ya simu
-iliyokamilika, hivyo ulinganishaji bado hufanikiwa baada ya kinga za baadaye katika msururu (vifichaji vya PII na
-vitambulisho vya siri, vyenye vipaumbele 10/95) kuandika upya maandishi ya maelezo moja kwa moja na
-baada ya udungaji wa kidokezo cha mfumo/makabidhiano/kumbukumbu kubadilisha muundo wa safu ya ujumbe. Mwili
-unaotumwa juu ya mkondo kwa modeli haubadilishwi. Ombi lililochunguzwa pia halijazi
-Memory yoyote ya kudumu (uchomoaji unaotokana na ombi na unaotokana na jibu hurukwa),
-ili jibu la modeli lenyewe lisiweze kunakili maandishi ya manukuu kwenda kwenye Memory.
+**Uhifadhi wa nakala (#12150 P1).** Hii inatumika kiotomatiki wakati wowote
+Daraja la Video (lenyewe la hiari) linapotoa kidokezo cha nakala — hakuna bendera tofauti
+ya uhifadhi. Ombi linapotoa kidokezo chochote cha nakala (kilichotangazwa na mpigaji simu
+`transcript` au `audioTranscript` iliyounganishwa), ulinzi huweka alama
+`videoBridgeObserved` na hutoa kivuli kilichofichwa cha maelezo ya video —
+utendaji sawa ambapo mwili wa maandishi huru wa kila kidokezo hubadilishwa na
+`[redacted-video-transcript]`, iliyoundwa kwa kubadilisha sehemu ya kidokezo iliyopangwa
+kabla ya kamba kuunganishwa (kamwe kwa kuchambua maandishi yaliyopunguzwa, kwa hivyo hakuna
+maudhui ya kidokezo — ya uhasama au ya kawaida, ikiwa ni pamoja na miili iliyo na `]` kama vile
+`[inaudible]`/`[music]` — yanaweza kuishi). Mwili wa ombi la kumbukumbu ya simu iliyohifadhiwa hubadilisha
+kila sehemu ya maandishi inayotokana na video kwa kivuli hicho kilichofichwa, kinacholingana na usawa wa maudhui;
+nanga ya `fullText` inasomwa upya kutoka kwa malipo ya ulinzi ya kabla ya simu yaliyokamilika,
+kwa hivyo mechi bado inafaulu baada ya walinzi wa mnyororo wa baadaye (PII na
+maskers za sifa, vipaumbele 10/95) kuandika upya maandishi ya maelezo mahali pake na
+baada ya mfumo-haraka/kukabidhi/sindano ya kumbukumbu kurekebisha safu ya ujumbe.
+Mwili uliotumwa juu kwa mfano haujabadilika. Ombi lililozingatiwa pia halijazi
+Kumbukumbu ya kudumu (uchimbaji unaotokana na ombi na majibu hurukwa),
+kwa hivyo jibu la mfano haliwezi kurudia maandishi ya nakala kwenye Kumbukumbu.
 
-Sehemu za uhifadhi ambazo bado ziko wazi, zinazofuatiliwa kwa kazi ya baadaye (**P2**, #12430): taswira ghafi
-ya ombi la mteja kabla ya kinga katika artefakti ya kumbukumbu ya kina;
-mwendelezo wa `previous_response_id` unaofungwa iwapo kutatokea hitilafu; utumaji wa ndani wa
-vidokezo vilivyotokana ambao hupachika manukuu ndani ya kidokezo cha mfuatano wa herufi kilichoundwa
-(hatua za mchakato, makabidhiano ya muktadha); na mwili wa jibu / nakala ya akiba ya kisemantiki
-ya jibu la modeli linalonukuu manukuu. Hizi ni sehemu za daraja la ghafi/jibu au
-zinazohitaji kuwezeshwa kwa hiari, zilizo nje ya wigo wa mwili wa ombi unaohifadhiwa + Memory wa P1.
+Nakala za ziada zilizohifadhiwa hutumia ishara sawa ya ombi lililozingatiwa.
+Picha ya mteja-ombi ya kabla ya ulinzi, ombi linalosubiri kwenye kumbukumbu, na
+kumbukumbu ya ombi lililokataliwa mapema hubadilisha sehemu za nakala katika sehemu za video;
+vidokezo vya kamba vilivyoundwa na hatua za bomba na kukabidhi muktadha hufichwa
+kwenye sinki la mwili wa ombi lililohifadhiwa. Alama ya `video_content_removed` iliyohifadhiwa
+hufanya mwendelezo wa `previous_response_id` ushindwe kufungwa badala ya kujenga upya
+maandishi yaliyotupwa kimakusudi. Ikiwa ombi lililozingatiwa litapoteza
+kivuli chake cha kuficha sehemu kabla ya kuingia, au hata moja ya vivuli kadhaa vya video
+itashindwa kulingana baada ya mabadiliko ya ombi ya baadaye, mwili wa ombi uliohifadhiwa
+huachwa kabisa badala ya kuhifadhi nakala iliyofichwa kwa sehemu.
 
-Mzunguko wa ndani wa `/api/modality-bridge/video/drilldown` ni mfumo tofauti wa akiba,
-unaothibitishwa kwa loopback/tokeni. Kila operesheni pia inahitaji
-kitambulisho sanifu kisichoeleza maelezo ya mhusika. Kabla ya mwitaji wa uzalishaji kuwezeshwa, lazima
-atoe kitambulisho hicho kutoka kwa mpangaji aliyethibitishwa na kamwe asipeleke thamani
-iliyochaguliwa na mteja. Funguo za akiba hufungamanisha mhusika huyo na vitambulisho sanifu vya kipindi na
-marejeleo ya video, huhifadhi tu funguo zake zilizotokana na SHA-256, na huwekea usomaji
-na ufutaji upeo wa mhusika huyo huyo. Akiba huhifadhi upeo wa fremu 16 za JPEG
-zilizotokana kwa kila ingizo, huziondoa baada ya dakika kumi, na huwezesha usomaji wenye mipaka wa
-`start`/`end` au ufutaji wa kipindi uliotolewa waziwazi.
+Kwa ombi lililozingatiwa, jibu la mfano linaweza kunukuu sehemu yoyote ya
+nakala bila mpaka wa kidokezo uliopangwa. Kumbukumbu yake ya simu iliyohifadhiwa
+`responseBody` kwa hivyo hubadilishwa na alama ya kuacha;
+artifact ya bomba ya kina (ambayo inaweza kujumuisha miili ya juu/mteja na vipande vya mkondo)
+haihifadhiwi. Kache za semantic, idempotency, na uchezaji wa hoja hupita
+kusoma na kuandika kwa ombi hilo. Ombi la mtoa huduma na
+jibu linaloonekana kwa mteja hubaki bila kubadilika. Bait za keepalive za mapema
+hutolewa kutoka kwenye bafa ya muda wakati artifact ya kina imeondolewa.
+Onyo la Kiro la EventStream lililoundwa vibaya huripoti tu idadi ya bait za malipo,
+kamwe maudhui yake au kosa ghafi la mchambuzi wa JSON.
+Hii haidai kwamba kila utambuzi usiohusiana wa mtoa huduma/programu-jalizi umekaguliwa;
+ufagio mpana wa sinki iliyohifadhiwa unafuatiliwa katika #11658.
 
-Kila mhusika ana kikomo cha maingizo 16 na MiB 64 za data sanifu ya JPEG. Vikomo hivyo
-vinajitegemea kutoka kwenye kikomo cha jumla cha maingizo 64/MiB 256: shinikizo la mgao wa mhusika
-huondoa tu maingizo ya mhusika huyo ambayo hayajatumiwa kwa muda mrefu zaidi kabla ya uondoaji wa
-LRU wa jumla kuzingatiwa. Maingizo yaliyokwisha muda huondolewa kwenye uhasibu wa mhusika na
-wa jumla wakati wa shughuli za akiba, huku kughairi na kushindwa kwa uthibitishaji
-kukiwa hakuhifadhi kibadala cha sehemu.
+Mzunguko wa maisha wa ndani wa `/api/modality-bridge/video/drilldown` ni
+substrate tofauti ya kache inayorudi nyuma/iliyothibitishwa kwa tokeni. Kila operesheni
+pia inahitaji kitambulisho cha mkuu kisichoeleweka. Kabla ya mpigaji simu wa uzalishaji
+kuwezeshwa, lazima atoe kitambulisho hicho kutoka kwa mpangaji aliyethibitishwa na
+kamwe asisambaze thamani iliyochaguliwa na mteja. Funguo za kache huunganisha
+mkuu huyo na vitambulisho vya kikao na marejeleo ya video, huhifadhi tu
+funguo zao zinazotokana na SHA-256, na hupunguza usomaji na ufutaji kwa
+mkuu huyo huyo. Kache huhifadhi fremu za JPEG zisizozidi 16 zilizotokana kwa kila
+ingizo, huzimaliza baada ya dakika kumi, na inasaidia usomaji wa `start`/`end`
+uliofungwa au ufutaji wa kikao wazi.
 
-Akiba hukataa Base64 isiyo sanifu, ujazaji wa ziada, media isiyo JPEG, JPEG zilizoharibika au
-zilizokatwa, na JPEG zinazosababisha onyo wakati wa usimbuaji wa picha nzima wenye mipaka wa `sharp`.
-Husimba upya kila picha iliyokubaliwa kama JPEG sanifu, hutoa upana na urefu
-kutoka kwenye baiti zilizosimbuliwa badala ya kuamini sehemu za mwitaji, na hutupa baiti zozote za ziada
-za polyglot badala ya kuzihifadhi. Ni bafa sanifu iliyobanwa na yenye mipaka pekee
-inayohesabiwa kwenye migawo yote miwili. Kikomo cha waya wa JSON kinajumuisha gharama ya ziada ya Base64 kwa kikomo cha
-ingizo lililosimbuliwa cha MiB 32. Kila
-data iliyotokana na kuhifadhiwa hurekodi umbizo/azimio lake la JPEG lililothibitishwa, sera ya usampulishaji,
-toleo la utengenezaji, muda wa kuundwa, heshi ya maudhui iliyokokotolewa na seva, na rejeleo kuu
-lililoheshiwa pamoja na heshi ya maudhui kuu ya mwitaji anayeaminika. Hali ya kughairi hukaguliwa
-kati ya awamu zisawazishaji za usimbuaji/hashi kabla ya kuhifadhi atomiki kwenye akiba.
+Kila mkuu ana kikomo cha ingizo 16 na 64 MiB ya data ya JPEG ya kawaida.
+Vikomo hivyo vinajitegemea kutoka kwa kikomo cha jumla cha ingizo 64/256 MiB:
+shinikizo la kiasi cha mkuu huondoa tu ingizo za mkuu huyo zilizotumika hivi karibuni
+kabla ya kuzingatiwa uondoaji wa LRU wa jumla. Ingizo zilizomalizika muda wake
+huondolewa kutoka kwa uhasibu wa mkuu na wa jumla kwenye shughuli za kache,
+wakati kughairi na kushindwa kwa uthibitishaji hakuhusishi uingizwaji wa sehemu.
 
-Sehemu hii ya kazi bado haiunganishi mzalishaji wa uzalishaji kwenye njia hiyo wala haitoi
-uteuzi wa vibadala vya maazimio mengi. Kwa hiyo, njia wazi ya ombi la Video Bridge
-haiongezi kazi yoyote, huku utoaji wa mhusika anayefungamanishwa na mpangaji na
-mzunguko kamili wa FU-08 wa maazimio mengi vikibaki kazi ya baadaye iliyoelezwa wazi badala ya
-kuandikwa kana kwamba ni tabia iliyokamilika.
+Kache inakataa Base64 isiyo ya kawaida, padding ya ziada, media isiyo ya JPEG, JPEG zilizoundwa vibaya au
+zilizokatwa, na JPEG zinazotoa onyo wakati wa upunguzaji wa `sharp` wa picha kamili.
+Inaweka upya kila picha iliyokubaliwa kama JPEG ya kawaida, hutoa upana na urefu
+kutoka kwa bait zilizopunguzwa badala ya kuamini sehemu za mpigaji simu, na hutupa
+bait zozote za polyglot zinazofuata badala ya kuzihifadhi. Ni bafa iliyobanwa ya kawaida
+iliyobanwa tu ndiyo inayotozwa kwa kiasi chote. Kikomo cha waya cha JSON kinajumuisha
+gharama ya Base64 kwa kikomo cha 32 MiB cha ingizo lililopunguzwa. Kila
+derivation iliyohifadhiwa hurekodi umbizo/azimio lake la JPEG lililothibitishwa, sera ya sampuli,
+toleo la derivation, wakati wa kuunda, hash ya maudhui iliyohesabiwa na seva, na hash ya
+marejeleo ya mzazi pamoja na hash ya maudhui ya mzazi ya mpigaji simu anayeaminika.
+Kughairi huangaliwa kati ya awamu za upunguzaji/hash zisizolingana kabla ya ahadi ya kache ya atomiki.
 
-Fremu zinawekewa maelezo kwa mfuatano kwa kutumia modeli ya Video iliyosanidiwa. Ubatilishaji tupu wa
-Video hurithi mpangilio wa Vision; ikiwa yote miwili ni tupu, kipanga-njia kiotomatiki cha Vision
-huchagua modeli madhubuti yenye uwezo wa kuona. Maelezo yaliyofanikiwa
-hubadilisha sehemu asili kwa kiambishi awali thabiti cha `[Video description:` ambacho pia
-huashiria maandishi kama uchunguzi usioaminika uliotokana na midia na kuziambia modeli za baadaye
-zisifuate maagizo yaliyopatikana kwenye midia. Funguo za akiba ya maelezo ya fremu
-hujumuisha baiti za JPEG, kidokezo, muhuri wa muda, na modeli madhubuti; ni maelezo
-yaliyofanikiwa pekee yanayowekwa akibani. Maingizo ya akiba huhifadhi modeli halisi ya mzalishaji aliyefanikiwa,
-ikiwemo modeli mbadala; daraja huripoti `mixed` wakati fremu tofauti
-zilitolewa na modeli tofauti. Kupatikana kwa ingizo akibani hutumia tena utambulisho huo wa mzalishaji
-badala ya kuupa upya lebo ya mpango wa uelekezaji ulioombwa. Akiba ya matokeo ya
-video nzima huwekewa ufunguo kulingana na kila ingizo linalobadilisha tokeo — kidokezo, modeli madhubuti,
-sera ya uchukuaji wa sampuli, idadi ya fremu, hali ya uchanganuzi wa kisemantiki, alama ya kidijitali ya SHA-256
-ya dokezo la lengo lililosawazishwa, dirisha la lengo, `transcript`,
-`audioTranscript`, na alama ya karatasi ya picha — hivyo kubadilisha mojawapo ya
-vipengele hivyo husababisha kutopatikana kwenye akiba, kamwe si kutumia tena data iliyopitwa na wakati. Toleo,
-kizingiti, na idadi yenye kikomo ya fremu teule za sera ya uondoaji wa nakala za picha pia zimebainishwa wazi katika
-ufunguo na metadata za akiba ya matokeo; kwa hivyo, badiliko la sera haliwezi kutumia tena
-maelezo ya video nzima yaliyopitwa na wakati. Metadata za v4 za akiba ya matokeo huhifadhi hali na
-alama ya kidijitali, kamwe si jukumu ghafi la mtumiaji. Metadata za kizuizi cha usalama huripoti hali zote mbili za
-uchanganuzi, iliyoombwa na madhubuti; hali ya `focused` iliyoombwa bila
-maandishi ya mtumiaji yanayoweza kutumika huripotiwa kuwa `full` kwa ufanisi.
+Kipande hiki bado hakiunganishi mzalishaji wa uzalishaji kwenye njia na hakitoi uteuzi wa lahaja za azimio nyingi. Njia ya ombi ya Video Bridge iliyo wazi kwa hivyo haileti kazi ya ziada, wakati upatikanaji wa mkuu unaofungamana na mpangaji na mzunguko kamili wa maisha wa azimio nyingi wa FU-08 unabaki kuwa kazi ya wazi ya kufuatilia badala ya kuandikwa kama tabia kamili.
 
-Kizuizi cha usalama hutoa kila sehemu ya video inayotumika lakini hakielezi zaidi ya
-`modalityBridgeVideoMaxVideos`. Kwa lengo lililothibitishwa kuwa na
-`supportsVideo === false`, video zilizoshindwa na zilizozidi kikomo hubadilishwa kuwa viashiria wazi vya maandishi
-salama ili hakuna video ghafi inayosalia. Wakati uwezo haujulikani, sehemu hizo
-hubaki bila kubadilishwa. Malengo yenye `supportsVideo === true` hupita daraja bila kushughulikiwa.
-Ishara ya kusitisha ombi la mteja huenezwa kupitia upakuaji, foleni ya wakala,
-michakato-tanzu, na miito ya kuweka maelezo; usitishaji husimamisha kati ya video na kamwe
-hauruhusu midia ghafi kupita baada ya hitilafu.
+Muafaka huwekewa maelezo mfululizo kwa kutumia modeli ya Video iliyosanidiwa. Ubatilishaji tupu wa Video hurithi mpangilio wa Vision; ikiwa zote mbili ni tupu, kipanga njia kiotomatiki cha Vision huchagua modeli yenye uwezo wa kuona inayofaa. Maelezo mafupi yaliyofanikiwa hubadilisha sehemu asili na kiambishi awali thabiti cha `[Video description:` ambacho pia huweka alama kwenye maandishi kama uchunguzi usioaminika uliotokana na media na huambia modeli za chini zisifuate maagizo yaliyopatikana kwenye media. Funguo za akiba za maelezo ya fremu hujumuisha baiti za JPEG, kidokezo, muhuri wa muda, na modeli inayofaa; maelezo mafupi yaliyofanikiwa pekee ndiyo huwekwa kwenye akiba. Viingilio vya akiba huhifadhi modeli halisi ya mzalishaji iliyofanikiwa, ikijumuisha modeli mbadala; daraja huripoti `mixed` wakati fremu tofauti zilitolewa na modeli tofauti. Hit ya akiba hutumia tena utambulisho huo wa mzalishaji badala ya kuuweka lebo upya kama mpango wa uelekezaji ulioombwa. Akiba ya matokeo ya video nzima huwekwa funguo kwa kila ingizo linalobadilisha matokeo — kidokezo, modeli inayofaa, sera ya sampuli, idadi ya fremu, hali ya uchambuzi wa kisemantiki, alama ya kidole ya SHA-256 ya kidokezo cha umakini kilichorekebishwa, dirisha la umakini, `transcript`, `audioTranscript`, na bendera ya karatasi ya mawasiliano — kwa hivyo kubadilisha kipimo chochote kati ya hivyo ni kukosa akiba, kamwe si matumizi tena yaliyopitwa na wakati. Toleo la sera ya kuondoa marudio ya kuona, kizingiti, na idadi ya fremu-mgombea zilizowekewa mipaka pia ziko wazi katika funguo ya akiba ya matokeo na metadata; mabadiliko ya sera kwa hivyo hayawezi kutumia tena maelezo ya video nzima yaliyopitwa na wakati. Metadata ya akiba ya matokeo v4 huhifadhi hali na alama ya kidole, kamwe si kazi halisi ya mtumiaji. Metadata ya Guardrail huripoti hali zote mbili za uchambuzi zilizoombwa na zinazofaa; hali ya `focused` iliyoombwa bila maandishi ya mtumiaji yanayoweza kutumika huripotiwa kama `full`.
 
-Mipangilio ya wakati wa utekelezaji huhifadhiwa kwenye DB na kuthibitishwa na Zod:
+Guardrail hutoa kila sehemu ya video inayotumika lakini haielezi zaidi ya `modalityBridgeVideoMaxVideos`. Kwa lengo lililothibitishwa kuwa na `supportsVideo === false`, video zilizoshindwa na zilizozidi kikomo huwa alama wazi za maandishi salama ili hakuna video ghafi inayobaki. Wakati uwezo haujulikani, sehemu hizo hubaki bila kuguswa. Malengo yenye `supportsVideo === true` hupita daraja. Ishara ya kughairi ombi la mteja huenea kupitia upakuaji, foleni ya broker, michakato midogo, na simu za maelezo; kughairi husitisha kati ya video na kamwe hakushindwi kufunguka kwa media ghafi.
 
-| Ufunguo                             | Chaguo-msingi | Masafa / tabia                                                                                                       |
-| ----------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `modalityBridgeVideoEnabled`        | `false`       | Hiari wakati wa utekelezaji, lazima iwashwe kwa makusudi                                                             |
-| `modalityBridgeVideoAnalysisMode`   | `"full"`      | `full` huhifadhi maelezo ya jumla; `focused` hutumia muktadha wenye kikomo, usioaminika wa mtumiaji wa hivi karibuni |
-| `modalityBridgeVideoModel`          | `""`          | Hurithi modeli ya Vision Bridge                                                                                      |
-| `modalityBridgeVideoFrameCount`     | `8`           | 1–16                                                                                                                 |
-| `modalityBridgeVideoSamplingPolicy` | `"uniform"`   | `uniform`, `scene_aware`, au `segment_aware` ya uwiano; kushindwa kwa kigunduzi hurudi kwenye `uniform`              |
-| `modalityBridgeVideoMaxVideos`      | `1`           | 1–4                                                                                                                  |
-| `modalityBridgeVideoTimeout`        | `120000`      | 1000–120000 ms                                                                                                       |
+Mipangilio ya wakati wa utekelezaji inaungwa mkono na DB na imethibitishwa na Zod:
 
-Thamani za muda wa kuisha wa Video zilizohifadhiwa zamani zinazozidi sekunde 120 hupunguzwa hadi
-kikomo cha muda cha wakala; uandikaji wa mipangilio mipya unaozidi kikomo hicho hukataliwa.
-`GET /api/modality-bridge/video/runtime` huhitaji eneo la loopback linaloaminika na lililotiwa muhuri
-kabla ya uthibitishaji au ukaguzi wa wakati wa utekelezaji, kisha huhitaji uthibitishaji wa usimamizi.
-Hurejesha tu `available`, matoleo yaliyosafishwa ya FFmpeg/ffprobe, na sababu isiyobadilika
-wakati mazingira ya utekelezaji hayapatikani. Sehemu ya mwisho ya ndani ya utoaji si
-API ya umma ya upakiaji: kujaa kwa foleni hurejesha `503` pamoja na `Retry-After`, kukatika kwa muunganisho wa
-mpigaji hurejesha `499`, na kikomo kisichobadilika cha muda cha wakala hurejesha `504`. Majibu yaliyobadilishwa huongeza
-`video->text;model=<visionModel>;parts=<videos>` kwenye kichwa kikuu cha
-`x-omniroute-modality-bridge` bila kuondoa sehemu za Vision au Audio.
+| Ufunguo                             | Chaguomsingi | Masafa / tabia                                                                                                          |
+| :---------------------------------- | :----------- | :---------------------------------------------------------------------------------------------------------------------- |
+| `modalityBridgeVideoEnabled`        | `false`      | Wakati wa utekelezaji wa hiari, chagua kuingia                                                                          |
+| `modalityBridgeVideoAnalysisMode`   | `"full"`     | `full` huhifadhi maelezo ya jumla; `focused` hutumia muktadha wa mtumiaji wa hivi karibuni, usioaminika, ulio na mipaka |
+| `modalityBridgeVideoModel`          | `""`         | Hurithi modeli ya Vision Bridge                                                                                         |
+| `modalityBridgeVideoFrameCount`     | `8`          | 1–16                                                                                                                    |
+| `modalityBridgeVideoSamplingPolicy` | `"uniform"`  | `uniform`, `scene_aware`, au `segment_aware` sawia; kushindwa kwa kigunduzi hurudi kwenye `uniform`                     |
+| `modalityBridgeVideoMaxVideos`      | `1`          | 1–4                                                                                                                     |
+| `modalityBridgeVideoTimeout`        | `120000`     | 1000–120000 ms                                                                                                          |
 
-### Kificha PII (`piiMasker.ts`)
+Thamani za muda wa Video zilizohifadhiwa za zamani zaidi ya sekunde 120 hupunguzwa hadi muda wa mwisho wa broker; uandishi mpya wa mipangilio zaidi ya kikomo hicho hukataliwa. `GET /api/modality-bridge/video/runtime` inahitaji eneo la kuaminika la loopback lililowekwa muhuri kabla ya uthibitishaji au uchunguzi wa wakati wa utekelezaji, kisha inahitaji uthibitishaji wa usimamizi. Inarudisha tu `available`, matoleo yaliyosafishwa ya FFmpeg/ffprobe, na sababu maalum wakati wakati wa utekelezaji haupatikani. Sehemu ya mwisho ya uchimbaji wa ndani si API ya upakiaji ya umma: msongamano wa foleni hurudisha `503` pamoja na `Retry-After`, kukatika kwa mpigaji hurudisha `499`, na muda wa mwisho wa broker hurudisha `504`. Majibu yaliyobadilishwa huongeza `video->text;model=<visionModel>;parts=<videos>` kwenye kichwa kikuu cha `x-omniroute-modality-bridge` bila kuondoa sehemu za Vision au Audio.
 
-Huendeshwa katika hatua **zote mbili**.
+### PII Masker (`piiMasker.ts`)
 
-- **`preCall`** hunakili payload, hupitia `system`, `messages`, `input`, na
-  `prompt` (ikiwemo vipengee vya mifuatano ya kawaida), na hutumia `processPII()` (kutoka
-  `@/shared/utils/inputSanitizer`) kwenye sehemu za mifuatano za `content`/`text`. Wakati
-  `PII_REDACTION_ENABLED=true`, PII iliyogunduliwa hufichwa katika payload
-  inayotumwa. Hili halitegemei `INPUT_SANITIZER_MODE` (ambayo hudhibiti tu
-  sera ya uingizaji wa kidokezo). Wakati ufichaji umezimwa, mwito hurekodi idadi ya ugunduzi
-  bila kuandika upya maudhui.
-- **`postCall`** hunakili jibu kwa kina, huendesha `sanitizePIIResponse()` pamoja na
-  kificha cha muundo wa Responses API (`maskResponsesOutput` — hushughulikia
-  `output_text` na `output[].content[].text`). Ikiwa ufichaji wowote utafanyika,
-  jibu lililobadilishwa huchukua nafasi ya lile la awali.
+Hutekelezwa kwenye hatua **zote mbili**.
 
-Kizuizi cha usalama hakizuii kamwe; huongeza tu ufafanuzi (`meta.detections`,
-`meta.redacted`) au huandika upya.
+- **`preCall`** huiga mzigo, hupitia `system`, `messages`, `input`, na `prompt` (ikijumuisha vipengee vya mfuatano wa kawaida), na hutumia `processPII()` (kutoka `@/shared/utils/inputSanitizer`) kwenye sehemu za mfuatano `content`/`text`. Wakati `PII_REDACTION_ENABLED=true`, PII iliyogunduliwa hufichwa kwenye mzigo unaotoka. Hii haitegemei `INPUT_SANITIZER_MODE` (ambayo hudhibiti tu sera ya sindano ya kidokezo). Wakati ufichaji umezimwa, simu hurekodi idadi ya ugunduzi bila kuandika upya maudhui.
+- **`postCall`** huiga kwa kina jibu, huendesha `sanitizePIIResponse()` pamoja na kinyago cha umbo la Responses-API (`maskResponsesOutput` — inashughulikia `output_text` na `output[].content[].text`). Ikiwa ufichaji wowote utatokea, jibu lililorekebishwa hubadilisha lile asili.
 
-### Uingizaji wa Kidokezo (`promptInjection.ts`)
+Guardrail haizuii kamwe; inaweka tu maelezo (`meta.detections`, `meta.redacted`) au kuandika upya.
 
-Hugundua miundo hasidi katika maudhui yaliyotolewa na mtumiaji na kutekeleza
-sera iliyosanidiwa. Tabia huamuliwa na vigezo vya mazingira na chaguo za kijenzi:
+### Prompt Injection (`promptInjection.ts`)
 
-| Mpangilio            | Kigezo cha mazingira                                                                                            | Chaguomsingi | Athari                                                                                                                                                                                                       |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Imewashwa            | `INPUT_SANITIZER_ENABLED`                                                                                       | `true`       | Ikiwa `false`, kinga hukatiza mchakato mara moja.                                                                                                                                                            |
-| Hali                 | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE`                                                                 | `warn`       | Sera ya udungaji: `block`, `warn`, au `log`. (`redact` inakubaliwa kwa utangamano wa nyuma lakini **haiondoi** maandishi ya udungaji; uandishi upya wa PII ya ombi unadhibitiwa na `PII_REDACTION_ENABLED`.) |
-| Kizingiti cha kuzuia | chaguo la `blockThreshold` / `INPUT_SANITIZER_BLOCK_THRESHOLD` (jina mbadala `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`       | Kiwango cha chini cha ukali kinachohitajika ili kuzuia. Kwa chaguomsingi, kiwango cha kati ni cha ufuatiliaji pekee.                                                                                         |
+Hugundua miundo pinzani katika maudhui yaliyotolewa na mtumiaji na inatekeleza sera iliyosanidiwa. Tabia huendeshwa na vigezo vya mazingira na chaguzi za mjenzi:
 
-**Kipaumbele cha hali** (`getMode`): `options.mode` ya mpigaji →
-**ubatilishaji wa alama ya kipengele kwenye DB** wa `INJECTION_GUARD_MODE` (Dashboard → Settings →
-Feature Flags) → kigezo cha mazingira cha `INJECTION_GUARD_MODE` → kigezo cha mazingira cha `INPUT_SANITIZER_MODE` →
-`warn`. Kwa hiyo, ubatilishaji wa dashibodi hupewa kipaumbele kuliko vigezo vya
-mazingira, hivyo UI ya Feature Flags hudhibiti kinga inayoendesha moja kwa moja
-(bila kuwasha upya). Usomaji wa DB ni salama unaposhindwa:
-ukitokea hitilafu, kinga hurudi kwenye tabia inayotegemea vigezo vya mazingira,
-na ikiwa hakuna ubatilishaji uliowekwa, tabia hufanana na utatuzi unaotumia
-vigezo vya mazingira pekee.
+| Mpangilio            | Env var                                                                                               | Chaguo-msingi | Athari                                                                                                                                                                                             |
+| -------------------- | ----------------------------------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Imewashwa            | `INPUT_SANITIZER_ENABLED`                                                                             | `true`        | Ikiwa `false`, kinga inazima moja kwa moja.                                                                                                                                                        |
+| Hali                 | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE`                                                       | `warn`        | Sera ya sindano: `block`, `warn`, au `log`. (`redact` inakubaliwa kwa utangamano wa nyuma lakini **haiondoi** maandishi ya sindano; uandishi upya wa PII unadhibitiwa na `PII_REDACTION_ENABLED`.) |
+| Kizingiti cha Kuzuia | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`        | Ukali wa chini unaohitajika kuzuia. Kati ni ya kutazama tu kwa chaguo-msingi.                                                                                                                      |
 
-Vyanzo vya utambuzi:
+**Upendeleo wa Hali** (`getMode`): mpigaji `options.mode` →
+`INJECTION_GUARD_MODE` **Ubatilishaji wa bendera ya kipengele cha DB** (Dashibodi → Mipangilio →
+Bendera za Vipengele) → `INJECTION_GUARD_MODE` env → `INPUT_SANITIZER_MODE` env →
+`warn`. Kwa hivyo, ubatilishaji wa dashibodi unashinda vigezo vya mazingira, hivyo UI ya Bendera za Vipengele inadhibiti kinga inayoendeshwa moja kwa moja (hakuna kuanzisha upya). Usomaji wa DB ni salama dhidi ya kushindwa: ikiwa kuna hitilafu, kinga inarudi kwenye tabia inayotegemea mazingira, na wakati hakuna ubatilishaji uliowekwa, tabia ni sawa na azimio la mazingira pekee.
 
-1. `sanitizeRequest()` kutoka `@/shared/utils/inputSanitizer` (mkusanyiko wa
-   vitambuzi vya pamoja unaotumiwa kwingine katika mchakato).
-2. `DEFAULT_GUARD_PATTERNS` zilizojengewa ndani (kwa sasa `system_override_inline` na
+Vyanzo vya kugundua:
+
+1. `sanitizeRequest()` kutoka `@/shared/utils/inputSanitizer` (seti ya vigunduzi vilivyoshirikiwa vinavyotumika mahali pengine kwenye bomba).
+2. `DEFAULT_GUARD_PATTERNS` zilizojengwa ndani (kwa sasa `system_override_inline` na
    `markdown_system_block`, zote zikiwa na ukali wa `high`).
-3. `customPatterns` za hiari zinazopitishwa kupitia machaguo ya constructor (strings, regex,
+3. `customPatterns` za hiari zilizopitishwa kupitia chaguzi za mjenzi (nyuzi, regex,
    au rekodi za `{ name, pattern, severity }`).
 
-Wakati `mode === "block"` **na** angalau utambuzi mmoja unafikia kizingiti cha
-ukali, `preCall` hurejesha `{ block: true, message: "Request rejected:
-suspicious content detected" }`. Katika hali za `warn`/`log`, kinga huandika
-kumbukumbu lakini huruhusu mwito. Kisaidizi cha pamoja `evaluatePromptInjection()` pia
-husafirishwa kwa wapigaji wanaohitaji kutathmini prompts bila kupitia registry.
+Wakati `mode === "block"` **na** angalau ugunduzi mmoja unafikia kizingiti cha ukali, `preCall` inarudisha `{ block: true, message: "Request rejected: suspicious content detected" }`. Katika hali za `warn` / `log`, kinga inaweka kumbukumbu lakini inaruhusu simu. Msaidizi wa pamoja `evaluatePromptInjection()` pia husafirishwa kwa wapigaji wanaohitaji kutathmini vidokezo bila kupitia rejista.
 
-**Kikomo cha uchanganuzi (v3.8.20):** kitambuzi hukagua tu **KB 16 za kwanza** za
-maandishi ya prompt yaliyounganishwa — `MAX_INJECTION_SCAN_BYTES = 16 * 1024` (baiti 16 384) katika
-`src/shared/utils/inputSanitizer.ts`. `detectInjection()` na
-`evaluatePromptInjection()` zote hutumia `slice(0, MAX_INJECTION_SCAN_BYTES)` kabla ya kuendesha
-kitanzi cha patterns. Maagizo ya udungaji huwa karibu na sehemu ya juu ya ingizo, hivyo hii
-huwekea kikomo matumizi ya CPU/GC ya regex kwenye payload zenye mamia ya KB bila kudhoofisha utambuzi (taz.
-#3932, #4041).
+**Kikomo cha Uchanganuzi (v3.8.20):** kigunduzi huchunguza tu **KB 16 za kwanza** za maandishi ya kidokezo yaliyounganishwa — `MAX_INJECTION_SCAN_BYTES = 16 * 1024` (baiti 16 384) katika `src/shared/utils/inputSanitizer.ts`. Zote mbili `detectInjection()` na `evaluatePromptInjection()` `slice(0, MAX_INJECTION_SCAN_BYTES)` kabla ya kuendesha kitanzi cha muundo. Maelekezo ya sindano hukaa karibu na juu ya ingizo, kwa hivyo hii inapunguza CPU/GC ya regex kwenye mizigo ya mamia ya KB bila kudhoofisha ugunduzi (linganisha #3932, #4041).
 
 ### Kificha Vitambulisho (`credentialMasker.ts`)
 
-Huendesha katika hatua **zote mbili**, ikiwa ya mwisho katika msururu chaguomsingi (kipaumbele `95`). Huficha
-patterns zinazojulikana za API-key / secret-token kutoka kwenye payload inayotumwa (maudhui ya
-ujumbe, hoja za tool-call, matokeo ya zana) **na** jibu la provider, ili
-kitambulisho kilichobandikwa kwenye prompt (au kurudiwa na matokeo ya zana) kisivuje
-kwenda kwa provider wa upstream au kurudi kwa client.
+Huendeshwa katika hatua **zote mbili**, wa mwisho katika mnyororo chaguo-msingi (kipaumbele `95`). Huficha mifumo inayojulikana ya funguo za API / tokeni za siri kutoka kwa mzigo wa nje (maudhui ya ujumbe, hoja za simu ya zana, matokeo ya zana) **na** jibu la mtoa huduma, ili kitambulisho kilichobandikwa kwenye kidokezo (au kurudishwa na matokeo ya zana) kisivujishwe kwa mtoa huduma wa juu au kurudi kwa mteja.
 
-- **Huwashwa kwa hiari pekee**, kwa utaratibu sawa na ufichaji wa PII (karibu na Kanuni Ngumu #20):
-  imezimwa isipokuwa `settings.credentialRedactionEnabled === true` **au**
-  `CREDENTIAL_REDACTION_ENABLED=true`. Ikiwa imezimwa, kinga haifanyi chochote —
-  haizuii kamwe wala kuandika upya.
-- `redactCredentials()` hupitia mti mzima wa payload/jibu (`walkValue()`,
-  salama dhidi ya uchafuzi wa prototype, salama dhidi ya mizunguko kupitia `WeakSet`) na hubadilisha zinazolingana kwa
-  kishikilia nafasi cha `[REDACTED:<type>]`, huku ikinakili matawi yaliyobadilika
-  pekee.
-- `CREDENTIAL_PATTERNS` hushughulikia funguo za LLM provider (OpenAI, OpenAI-proj,
-  Anthropic, Google, Hugging Face, Replicate), tokeni za VCS/SaaS (GitHub, Slack,
-  Linear, Notion, npm, Postman, Discord), funguo za malipo (Stripe, Square), funguo za
-  cloud (AWS access key, Twilio, SendGrid, Mailgun), funguo binafsi / JWTs,
-  connection strings zenye vitambulisho (`mongodb://user:pass@...`, n.k.), na
-  pattern ya jumla ya thamani ya header ya `Authorization`/`x-api-key`/`api-key`/`apikey`.
-  Funguo zenye muundo wa header (`authorization`, `x-api-key`, `api-key`,
-  `apikey`) hufichwa kimuundo (thamani pekee, huku kiambishi awali cha scheme kama
-  `Bearer `/`Basic ` kikihifadhiwa) badala ya kupitia regex ya jumla ya maandishi.
-- Kinga haizuii kamwe; huandika upya pekee (`modifiedPayload` /
-  `modifiedResponse`) na huweka maelezo ya ziada (`meta.credentialsRedacted`, `meta.count`).
+- **Kujiunga tu**, utaratibu sawa na ufichaji wa PII (Kanuni Ngumu #20-karibu): imezimwa isipokuwa `settings.credentialRedactionEnabled === true` **au** `CREDENTIAL_REDACTION_ENABLED=true`. Ikiwa imezimwa, kinga haifanyi kazi — haizuii kamwe na haiandiki upya kamwe.
+- `redactCredentials()` hupitia mti kamili wa mzigo/jibu (`walkValue()`, salama dhidi ya uchafuzi wa mfumo, salama dhidi ya mzunguko kupitia `WeakSet`) na hubadilisha vinavyolingana na kishika nafasi cha `[REDACTED:<type>]`, ikinakili tu matawi yaliyobadilika kweli.
+- `CREDENTIAL_PATTERNS` inajumuisha funguo za watoa huduma wa LLM (OpenAI, OpenAI-proj, Anthropic, Google, Hugging Face, Replicate), tokeni za VCS/SaaS (GitHub, Slack, Linear, Notion, npm, Postman, Discord), funguo za malipo (Stripe, Square), funguo za wingu (funguo ya kufikia AWS, Twilio, SendGrid, Mailgun), funguo za faragha / JWTs, nyuzi za muunganisho zenye vitambulisho (`mongodb://user:pass@...`, n.k.), na muundo wa jumla wa thamani ya kichwa cha `Authorization` / `x-api-key` / `api-key` / `apikey`. Funguo zenye umbo la kichwa (`authorization`, `x-api-key`, `api-key`, `apikey`) hufichwa kimuundo (thamani pekee, kiambishi awali cha mpango kama `Bearer ` / `Basic ` kimehifadhiwa) badala ya kupitia regex ya maandishi ya jumla.
+- Kinga haizuii kamwe; inaandika upya tu (`modifiedPayload` / `modifiedResponse`) na kuweka maelezo (`meta.credentialsRedacted`, `meta.count`).
 
-Kinga dhidi ya urejeaji nyuma: `tests/unit/credential-masker-guardrail.test.ts`.
+Kinga ya kurudi nyuma: `tests/unit/credential-masker-guardrail.test.ts`.
 
 ## Mkataba wa Msingi (`base.ts`)
 

@@ -4,27 +4,11 @@
 
 ---
 
-OmniRoute ní àkójọpọ̀ àwọn àṣẹ `setup-*` tí ń ṣètò CLI fún kíkọ kóòdù
-(Codex, Claude Code, OpenCode, Cline, …) láti lo OmniRoute gẹ́gẹ́ bí ẹ̀yìn rẹ̀ — nítorí náà,
-irinṣẹ́ náà máa ń bá ibi ìwọlé **kan ṣoṣo** sọ̀rọ̀, OmniRoute sì máa ń darí rẹ̀ sí olùpèsè tó yẹ
-pẹ̀lú ìyípadà aládàáṣe nígbà ìkùnà. Àṣẹ kọ̀ọ̀kan máa ń ka àkójọ awoṣe **tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́** láti inú
-OmniRoute tó ń ṣiṣẹ́ (ti agbègbè tàbí ti jíjìnnà), ó sì máa ń kọ fáìlì ìṣètò ti irinṣẹ́ náà fúnra rẹ̀ sórí ẹ̀rọ
-**rẹ**. A máa ń tọ́ka sí kọ́kọ́rọ́ API pẹ̀lú oníyí àyíká níbi gbogbo tí irinṣẹ́ náà bá
-ṣe àtìlẹ́yìn fún un. Àwọn àṣẹ tó ń tọ́jú fáìlì àyíká abẹ́lé irinṣẹ́ kan wà lábẹ́ yìí.
+OmniRoute n pese ebi awon pipaṣẹ `setup-*` ti o n ṣeto CLI koodu (Codex, Claude Code, OpenCode, Cline, …) lati lo OmniRoute gege bi ẹhin rẹ — nitorinaa ohun elo naa n ba **ojuami kan** sọrọ ati OmniRoute n tọka si olupese to tọ pẹlu atunṣe-ara-ẹni. Pipaṣẹ kọọkan n ka katalogi awoṣe **laaye** lati OmniRoute ti n ṣiṣẹ (agbegbe tabi latọna jijin) ati pe o n kọ faili iṣeto ohun elo naa si ori ẹrọ **rẹ**. Bọtini API naa ni a n tọka si nipasẹ oniyipada agbegbe nibikibi ti ohun elo naa ba ṣe atilẹyin rẹ. A ti ṣe akiyesi awọn pipaṣẹ ti o n tọju faili agbegbe ohun elo ni isalẹ.
 
-Olùpilẹ̀ṣẹ̀ gbogbogbò kan tún wà — `omniroute run <target>` — tó máa ń dá
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` tàbí `gemini` sílẹ̀ pẹ̀lú
-àyíká tó yẹ tí a ti fi sínú rẹ̀, láì kọ ìṣètò kankan rárá. Àwọn ibi-afẹ́ àti
-àwọn orúkọ ìnagijẹ wọn wá láti inú àkọsílẹ̀ àṣẹ `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), àti `omniroute completion` ń pèsè
-àwọn ọ̀rọ̀ ibi-afẹ́ kan náà tí a mú jáde láti inú àkọsílẹ̀ náà. Àwọn olùpilẹ̀ṣẹ̀ ẹyọ-ẹ̀rọ ti àtijọ́ —
-`omniroute launch` (Claude Code) àti `omniroute launch-codex` (Codex) — ṣì wà
-fún lílò.
+O tun wa ifilọlẹ gbogbogbo kan — `omniroute run <target>` — ti o n bẹrẹ `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` tabi `gemini` pẹlu agbegbe to tọ ti a fi sii, laisi kikọ iṣeto kankan rara. Awọn ibi-afẹde ati awọn orukọ-apeso wọn wa lati inu iwe-aṣẹ akọkọ `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), ati `omniroute completion` n pese awọn ọrọ ibi-afẹde kanna ti o jade lati inu iwe-aṣẹ naa. Awọn ifilọlẹ ohun elo-kọọkan atijọ — `omniroute launch` (Claude Code) ati `omniroute launch-codex` (Codex) — wa ni lilo.
 
-Fífi olùpèsè tuntun bẹ̀rẹ̀ tún wà láti inú àyíká agbègbè/jíjìnnà kan náà. Àwọn
-àṣẹ tó fi API sí ipò àkọ́kọ́ tó wà nísàlẹ̀ yìí máa ń ya ìfàṣẹsí ìṣàkóso sọ́tọ̀ kúrò lára àwọn ẹ̀rí ìdánimọ̀
-olùpèsè, wọn kì í sì í tẹ ẹ̀rí ìdánimọ̀ jáde nínú àbájáde tó ní ìṣètò:
+Ifilọlẹ olupese wa lati inu ipo agbegbe/latọna jijin kanna. Awọn pipaṣẹ API-akọkọ ni isalẹ n tọju ijẹrisi iṣakoso lọtọ si awọn iwe-ẹri olupese ati pe wọn ko tẹ iwe-ẹri jade ni ọna ti o ṣeto:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,19 +18,16 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Fún àwọn ìwé-àṣẹ, yan `--credential-stdin` tàbí `--credential-env`; a ṣì dá
-`--credential` dúró fún lílò agbègbè tí a ń ṣàkóso. `providers remove` nílò `--yes` lórí
-tẹ́mínà tí kì í ṣe ti ìbánisọ̀rọ̀, gbogbo àṣẹ márùn-ún sì máa ń tẹ̀lé àyíká tó ń ṣiṣẹ́ tàbí
-àwọn àṣàyàn gbogbogbò `--base-url`/`--api-key`.
+Fun awọn iwe afọwọkọ, fẹran `--credential-stdin` tabi `--credential-env`; a ti tọju `--credential` fun lilo agbegbe ti a ṣakoso. `providers remove` nilo `--yes` lori ebute ti kii ṣe ibaraẹnisọrọ, ati gbogbo awọn pipaṣẹ marun n bọwọ fun ipo ti n ṣiṣẹ tabi awọn aṣayan agbaye `--base-url`/`--api-key`.
 
-Fún ìṣètò ìpìlẹ̀ ọlọ́wọ́ tí a kọ lẹ́ẹ̀kan ṣoṣo fún àwọn ìṣọ̀kan méjì tó péye jù lọ, wo
-àwọn àlàyé jíjinlẹ̀ fún irinṣẹ́ kọ̀ọ̀kan:
+Awọn asayan olupese n kọ awọn asọtẹlẹ ID ti ko oye, awọn orukọ tabi awọn orukọ olupese; lo ID asopọ kikun nigbati ọpọlọpọ awọn asopọ ba baamu. Ṣiṣẹda ati ṣiṣatunṣe awọn pipaṣẹ n ka asopọ ti a ti fipamọ pada, ati yiyọ kuro n rii daju pe ko si ni kika mọ. Gbigbe wọle n foju kọja orisii olupese/orukọ ti o wa tẹlẹ. Awọn titẹ sii ti a gbe wọle ko le bori ojuami iṣakoso, ipo tabi awọn iwe-ẹri iṣakoso ti a pese si CLI.
 
-- [Ìṣètò Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
-- [Ìṣètò Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Ìpo Jíjìnnà](./REMOTE-MODE.md) — ṣàkóso OmniRoute jíjìnnà kan (VPS / Tailnet) láti kọ̀ǹpútà alágbèéká rẹ
-- [Ìfọ̀rọ̀wérọ̀ VS Code Copilot](./VSCODE-COPILOT.md) — àfikún OmniCopilot; ó tún lè ṣiṣẹ́ àwọn
-  àṣẹ `setup-*` wọ̀nyí fún ọ láti inú olóòtú náà
+Fun iṣeto ipilẹ ti a kọ pẹlu ọwọ, lẹẹkanṣoṣo ti awọn isọpọ meji ti o lọpọlọpọ julọ, wo awọn iwadii jinlẹ ohun elo-kọọkan:
+
+- [Iṣeto Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
+- [Iṣeto Codex CLI](./CODEX-CLI-CONFIGURATION.md)
+- [Ipo Latọna Jijin](./REMOTE-MODE.md) — wakọ OmniRoute latọna jijin (VPS / Tailnet) lati kọǹpútà alágbèéká rẹ
+- [Iwiregbe VS Code Copilot](./VSCODE-COPILOT.md) — amugbooro OmniCopilot; o tun le ṣiṣẹ awọn pipaṣẹ `setup-*` wọnyi fun ọ lati inu olootu
 
 ---
 

@@ -772,8 +772,9 @@ export async function resolveOmniRouteRuntimeAuth(
 }
 
 /**
- * Force-refresh OmniRoute catalog: clear memory + disk cache, re-fetch /v1/models
- * (and optional management endpoints), and repopulate the shared cache.
+ * Force-refresh OmniRoute catalog: re-fetch /v1/models (and optional management
+ * endpoints) and, only once the models fetch succeeds, replace the memory and
+ * disk caches. A failed models fetch leaves both caches untouched (#14926).
  * OpenCode equivalent of Pi `/omni sync`.
  */
 export async function forceSyncOmniRouteModels(args: {
@@ -838,19 +839,36 @@ export async function forceSyncOmniRouteModels(args: {
     };
   }
 
-  const clearedMemory = invalidateOmniRouteFetchCache(cache, auth.baseURL);
-  // Clear residual entries from prior baseURL history as well.
-  const clearedAll = invalidateOmniRouteFetchCache(cache);
-  let clearedDisk = false;
-  if (wantDiskCache) {
-    clearedDisk = await clearDiskSnapshot(resolved.providerId);
-    if (resolved.omnirouteProviderId !== resolved.providerId) {
-      clearedDisk = (await clearDiskSnapshot(resolved.omnirouteProviderId)) || clearedDisk;
-    }
+  // The models fetch is the only required call. Run it BEFORE touching any
+  // cache: invalidating memory or unlinking the disk snapshot first meant a
+  // single transient failure (e.g. the 10s abort) destroyed the last good
+  // catalog and left every later read hitting a server that was already
+  // slow (#14926). On failure both caches stay exactly as they were.
+  let rawModels: OmniRouteRawModelEntry[];
+  try {
+    rawModels = await fetcher(auth.baseURL, auth.apiKey, 10_000);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.warn(
+      `force sync: /v1/models fetch failed providerId=${resolved.providerId}; ` +
+        `keeping existing memory and disk cache: ${message}`
+    );
+    return {
+      ok: false,
+      count: 0,
+      combos: 0,
+      provider: resolved.omnirouteProviderId,
+      baseURL: auth.baseURL,
+      clearedMemory: 0,
+      clearedDisk: false,
+      error: message,
+    };
   }
 
+  let clearedMemory = 0;
+  let clearedAll = 0;
+  let clearedDisk = false;
   try {
-    const rawModels = await fetcher(auth.baseURL, auth.apiKey, 10_000);
     let rawCombos: OmniRouteRawCombo[] = [];
     if (wantCombos) {
       try {
@@ -912,9 +930,15 @@ export async function forceSyncOmniRouteModels(args: {
       expiresAt: t + resolved.modelCacheTtl,
     };
     const cacheKey = modelsCacheKey(auth.baseURL, `${auth.apiKey}\0${auth.managementReadToken}`);
+    // Only now, with a fresh catalog in hand, drop the old entries.
+    clearedMemory = invalidateOmniRouteFetchCache(cache, auth.baseURL);
+    // Clear residual entries from prior baseURL history as well.
+    clearedAll = invalidateOmniRouteFetchCache(cache);
     cache.set(cacheKey, entry);
 
     if (wantDiskCache) {
+      // Overwrite the snapshot instead of unlinking it first, so the old file
+      // is only replaced once a fresh catalog exists. The writer soft-fails.
       try {
         const fingerprint = diskSnapshotIdentityFingerprint(
           auth.baseURL,
@@ -923,8 +947,12 @@ export async function forceSyncOmniRouteModels(args: {
         );
         const { expiresAt: _expiresAt, ...diskEntry } = entry;
         await defaultDiskSnapshotWriter(resolved.providerId, diskEntry, fingerprint);
+        clearedDisk = true;
       } catch {
         /* soft-fail disk write */
+      }
+      if (resolved.omnirouteProviderId !== resolved.providerId) {
+        clearedDisk = (await clearDiskSnapshot(resolved.omnirouteProviderId)) || clearedDisk;
       }
     }
 
@@ -967,7 +995,8 @@ export function createOmniRouteSyncModelsTool(args: {
   return tool({
     description:
       "Force-refresh the OmniRoute model catalog (OpenCode equivalent of Pi `/omni sync`). " +
-      "Invalidates in-memory and disk caches, then re-fetches GET /v1/models (and combos when enabled).",
+      "Re-fetches GET /v1/models (and combos when enabled), then replaces the in-memory and disk " +
+      "caches; a failed fetch keeps the existing caches.",
     args: {
       reason: tool.schema
         .string()

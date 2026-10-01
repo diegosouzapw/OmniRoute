@@ -4,12 +4,12 @@
 
 ---
 
-> **Sumber rujukan utama:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Kemas kini terakhir:** 2026-06-28 — v3.8.40
+> **Sumber kebenaran:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Terakhir dikemas kini:** 2026-09-22 — ruang lingkup nama ruang merujuk kepada MCP-SERVER.md
 
-OmniRoute mempunyai saluran paip pengesahan kuasa yang peka terhadap laluan dan mengawal setiap permintaan API. Pengelasan adalah **deterministik** dan **gagal secara tertutup** — apa-apa yang tidak dapat dikelaskan akan dianggap sebagai `MANAGEMENT` dan memerlukan sesi atau token bertaraf pengurusan. Halaman ini menerangkan model tersebut untuk jurutera yang menyelenggara laluan atau mereka bentuk titik akhir baharu.
+OmniRoute mempunyai saluran paip kebenaran yang peka laluan yang mengawal setiap permintaan API. Pengelasan adalah **deterministik** dan **gagal-tertutup** — apa-apa yang tidak dapat dikelaskan akan berakhir sebagai `MANAGEMENT` dan memerlukan sesi atau token gred pengurusan. Halaman ini menerangkan model untuk jurutera yang menyelenggara laluan atau mereka bentuk titik akhir baharu.
 
-![Saluran paip AuthZ (3 kelas laluan + penilaian dasar)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
 > Sumber: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -200,26 +200,35 @@ Pilih set berdasarkan bentuk, bukan kemudahan. Satu laluan dimasukkan ke dalam `
 
 ## Skop
 
+Tiga ruang nama. Setiap penyemak hanya membaca rentetan sendiri. Perbandingan bersebelahan,
+termasuk mengapa `manage` gagal `scopeMatches` untuk `read:compression` dan mengapa token akses `read` tidak boleh `PATCH /api/keys/{id}`, adalah
+[Tiga ruang nama skop](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
 Kunci API membawa tatasusunan `scopes` (disimpan sebagai JSON dalam `api_keys.scopes`, lihat `src/lib/db/apiKeys.ts`).
 
 ### Skop pengurusan
 
-- `manage` / `admin` — memberikan kunci akses kepada titik akhir API pengurusan apabila dihantar sebagai Bearer.
+- `manage` / `admin` — `hasManageScope`. Akses pembawa ke laluan API pengurusan.
+- `mcp:connect`, `self:usage`, `self:account-quota`, dan
+  `policy:bypass-provider-quota` adalah skop padanan tepat tambahan. Ia berada
+  di luar `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` hanya membuka laluan
+  `/api/mcp/` yang bukan gelung balik.
 
-### Skop MCP (`src/shared/constants/mcpScopes.ts`)
+### Skop alat MCP
 
-Setiap alat MCP memerlukan skop tertentu melalui `MCP_TOOL_SCOPES`. Senarai penuh (`MCP_SCOPE_LIST`):
+Katalog dan peraturan padanan (rentetan yang sama, atau skop yang diberikan berakhir dengan `*`):
+[Skop alat MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` dalam `src/shared/constants/mcpScopes.ts` adalah subset bertaip asal,
+bukan katalog penuh itu. Penguatkuasaan berjalan dalam
+`open-sse/mcp-server/scopeEnforcement.ts` selepas `resolveCallerScopeContext()`
+menyelesaikan skop daripada maklumat pengesahan MCP, metadata permintaan, atau `OMNIROUTE_MCP_SCOPES`.
+Ia kekal tidak aktif melainkan `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Skop token akses
 
-Penguatkuasaan skop dalam `open-sse/mcp-server/server.ts` menghantar senarai skop setiap alat kepada
-`evaluateToolScopes()` selepas `resolveCallerScopeContext()` menyelesaikan skop daripada maklumat pengesahan MCP,
-metadata permintaan, atau `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` pada token `oma_live_…`, disenaraikan mengikut `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Peringkat ini hanya terpakai pada
+kelayakan token akses. Lihat [Pengesahan Pengurusan](../guides/MANAGEMENT-AUTH.md).
 
 ## Togol Pengesahan Diperlukan
 
@@ -269,5 +278,5 @@ Gunakan `assertAuth(req, expectedClass)` dalam pengendali — ia melontarkan `Au
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — penanda pengesahan bagi setiap titik akhir
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — log audit untuk peristiwa pengesahan
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — butiran penguatkuasaan skop MCP
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tiga ruang nama skop dan katalog skop alat MCP
 - Sumber: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

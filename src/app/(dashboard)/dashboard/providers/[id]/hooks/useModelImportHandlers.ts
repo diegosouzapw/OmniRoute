@@ -14,6 +14,7 @@
  */
 
 import React, { useState } from "react";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
 import { extractImportWarning } from "./modelImportWarning";
 
@@ -207,6 +208,7 @@ export function useModelImportHandlers({
       }));
 
       let importedCount = 0;
+      const failures: string[] = [];
       for (let i = 0; i < newModels.length; i++) {
         const model = newModels[i];
         const modelId = model.id || model.name || model.model;
@@ -221,7 +223,7 @@ export function useModelImportHandlers({
           logs: [...prev.logs, t("importingModelById", { modelId })],
         }));
 
-        await fetch("/api/provider-models", {
+        const createRes = await fetch("/api/provider-models", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -246,6 +248,20 @@ export function useModelImportHandlers({
             ...(typeof model.targetFormat === "string" ? { targetFormat: model.targetFormat } : {}),
           }),
         });
+        // A rejected row was not stored: do not alias it or count it as imported,
+        // otherwise the dialog reports success while nothing reached the catalog.
+        if (!createRes.ok) {
+          const reason = extractApiErrorMessage(
+            await createRes.json().catch(() => null),
+            `HTTP ${createRes.status}`
+          );
+          failures.push(reason);
+          setImportProgress((prev) => ({
+            ...prev,
+            logs: [...prev.logs, `✗ ${modelId}: ${reason}`],
+          }));
+          continue;
+        }
         if (!modelAliases[baseAlias]) {
           await handleSetAlias(modelId, baseAlias, providerStorageAlias);
         }
@@ -253,6 +269,18 @@ export function useModelImportHandlers({
       }
 
       await fetchAliases();
+
+      if (importedCount === 0 && failures.length > 0) {
+        setImportProgress((prev) => ({
+          ...prev,
+          phase: "error",
+          current: newModels.length,
+          status: t("failedImportModels"),
+          error: failures[0],
+          importedCount: 0,
+        }));
+        return;
+      }
 
       setImportProgress((prev) => ({
         ...prev,
@@ -267,11 +295,15 @@ export function useModelImportHandlers({
           importedCount > 0
             ? t("importDoneCount", { count: importedCount })
             : t("noNewModelsAdded"),
+          ...(failures.length > 0 ? [t("bulkFailedCount", { count: failures.length })] : []),
         ],
         importedCount,
       }));
 
-      if (importedCount > 0) {
+      if (importedCount > 0 && failures.length > 0) {
+        // A reload would wipe the failure lines before they can be read.
+        await fetchProviderModelMeta();
+      } else if (importedCount > 0) {
         setTimeout(() => {
           window.location.reload();
         }, 2000);

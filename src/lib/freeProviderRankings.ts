@@ -13,6 +13,7 @@ import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { listModelIntelligence } from "./db/modelIntelligence";
 import { getProviderConnections } from "./db/providers";
 import { getProviderUsageSince, type ProviderUsageRow } from "./db/callLogStats";
+import { familyCanonicalOf } from "./providerFamilyAgg";
 import { getCustomModels } from "./db/models";
 // Type-only: reuse the health vocabulary instead of forking it.
 import { RANGE_MS } from "./monitoring/providerHealthMatrix";
@@ -475,7 +476,7 @@ export function attachProviderUsage(
 ): FreeProviderRanking[] {
   const byProvider = new Map(usageRows.map((row) => [row.provider, row]));
   return rankings.map((ranking) => {
-    const row = byProvider.get(ranking.id);
+    const row = byProvider.get(ranking.id) ?? byProvider.get(familyCanonicalOf(ranking.id));
     if (!row || !ranking.reliability) return ranking;
     return {
       ...ranking,

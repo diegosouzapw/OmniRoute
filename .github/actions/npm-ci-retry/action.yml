@@ -35,7 +35,7 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: node_modules
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs', 'scripts/build/betterSqlitePrebuildTarget.mjs') }}
 
     - name: npm ci (with retry)
       if: steps.node-modules.outputs.cache-hit != 'true'
@@ -54,9 +54,10 @@ runs:
           # --no-audit: `audit:deps` is its own gate; the inline audit only adds latency.
           if npm ci --no-audit --no-fund; then
             exit 0
+          else
+            exit_code=$?
           fi
 
-          exit_code=$?
           if [ "$attempt" -eq "$max_attempts" ]; then
             exit "$exit_code"
           fi

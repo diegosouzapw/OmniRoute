@@ -86,15 +86,11 @@ Content-Type: application/json
 
 > **Ma’anar kuɗi idan an samu cache-hit:** idan semantic-cache ya yi HIT (`X-OmniRoute-Cache-Hit: true`), ba a yin kira zuwa upstream, saboda haka `X-OmniRoute-Response-Cost` yana zama `0.0000000000` (kuɗin **ƙarin** da aka kashe wajen bayar da hit ɗin). Ana bayar da rahoton kuɗin asali/da za a kashe daban a cikin `X-OmniRoute-Cost-Saved`. Masu amfani da bayanan billing su tara jimillar `X-OmniRoute-Response-Cost` (hits ba sa cin kuɗi); nazarin cache kuma zai iya tara jimillar `X-OmniRoute-Cost-Saved`.
 
-## Keɓantattun Hayar Zaman da Ake Sarrafawa
+## Keɓaɓɓun Yarjejeniyoyin Zama na Musamman
 
-Hayar keɓantaccen zaman da ake sarrafawa yarjejeniyar tura buƙatu ce ta zaɓi wadda ba ta dogara da nau'in abokin hulɗa ba: mai mallaka guda ɗaya mai aiki
-ne ke riƙe da haɗin OmniRoute guda ɗaya da ya cancanta. Ba ta hayar da wani samfuri, ba ta buƙatar OAuth, ba ta tantance
-wani takamaiman abokin hulɗa, kuma ba ta buƙatar wani takamaiman mai samarwa.
+Keɓaɓɓun yarjejeniyoyin zama na musamman kwangila ce ta zaɓi, mai zaman kanta daga abokin ciniki: mai mallakar aiki ɗaya yana riƙe da haɗin OmniRoute ɗaya mai cancanta. Ba ya ba da izinin samfuri, yana buƙatar OAuth, yana gano wani abokin ciniki na musamman, ko yana buƙatar wani mai bayarwa na musamman.
 
-Dole ne mabuɗin API da ake amfani da shi wajen tantancewa ya kasance da izinin `lease:exclusive` da kuma jerin
-`allowedConnections` da aka bayyana a sarari kuma ba fanko ba. Iyakar canjin bayanai ta rumbun bayanai tana tilasta amfani da duka filayen tare yayin
-ƙirƙirar mabuɗi da sabuntawa na ɓangare.
+Maɓallin API mai tabbatarwa dole ne ya sami iyakokin `lease:exclusive` da jerin `allowedConnections` marasa komai. Iyakokin canjin bayanai suna tilasta duka filayen tare a kan ƙirƙirar maɓalli da sabuntawa na ɓangare.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Amsoshin acquire, renew, da release da suka yi nasara suna bayyana tambarin lokaci, `state`, da ainihin
-`generation` mai ƙima tabbatacciya, amma ba sa taɓa bayyana haɗin da aka zaɓa ko bayanan shaidar shiga. Renew da release suna aika
-generation a cikin jikin JSON:
+Nasarar samu, sabuntawa, da sakin martani suna nuna lokutan, `state`, da ainihin `generation` mai kyau, amma ba zaɓaɓɓen haɗin ko takardun shaida ba. Sabuntawa da saki suna ba da ƙarni a cikin jikin JSON:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +111,7 @@ generation a cikin jikin JSON:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Mai mallakar haya mai aiki zai iya neman bayanan nuni masu kiyaye sirri kai tsaye don ɗaurinsa na yanzu:
+Mai mallakar yarjejeniya mai aiki zai iya neman bayanan nuni masu kare sirri a fili don haɗin sa na yanzu:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +131,22 @@ Mai mallakar haya mai aiki zai iya neman bayanan nuni masu kiyaye sirri kai tsay
 }
 ```
 
-Wannan aikin status na zaɓi ana killace shi ta hanyar mai mallaka marar bayyanannen ma'ana, mabuɗin API da ake sarrafawa wanda aka tantance, da ainihin
-generation mai aiki a cikin ma'amalar rumbun bayanai guda ɗaya. `displayName` sunan haɗin da aka saita ne kawai bayan an cire sararin da bai dace ba;
-yana zama `null` idan babu amintaccen suna da aka saita. OmniRoute ba ya taɓa maye gurbinsa da
-imel ko shaidar asusun da aka samar. Ƙimar provider lakabin nuni ne marar muhimmancin sirri kuma ba ta taɓa zama
-shaida da aka samar ta mai bayarwa mai dacewa ba. An cire bayanan shaidar shiga, tokens, cookies, ɗanyen haɗi ko
-ids na mabuɗin API, hashes na masu mallaka, sirrin killacewa, da bayanan tura buƙatu na ciki.
+Wannan aikin matsayi na zaɓi yana da shinge ta mai mallakar da ba a gani ba, maɓallin API mai sarrafawa, da ainihin ƙarni mai aiki a cikin ma'amala ɗaya ta bayanai. `displayName` shine kawai sunan haɗin da aka daidaita; yana `null` lokacin da babu sunan da aka daidaita mai aminci. OmniRoute ba ya taɓa maye gurbin imel ko asalin asusun da aka samar. Darajar mai bayarwa alama ce ta nuni mara mahimmanci kuma ba ta taɓa zama mai gano mai bayarwa mai dacewa ba. An cire takardun shaida, alamomi, kukis, haɗin kai tsaye ko ID na maɓallin API, hashes na mai mallaka, sirrin shinge, da bayanan hanyoyin ciki.
 
-Neman bayanai da ke da mabuɗin da ba daidai ba, mai mallaka da ba daidai ba, generation da ya tsufa, ya ɓace, ya ƙare, aka sake shi, ko aka soke shi duk suna
-mayar da kuskuren `409 LEASE_FENCE_STALE` iri ɗaya ba tare da bayanan haɗi ba. Abokin hulɗa da ya karɓi amsar jiran ƙarfin aiki ba shi da ɗauri mai aiki da zai bincika. Lokacin da tura buƙatu ta sauya wata haya mai aiki,
-generation ɗin nan ɗin yana ci gaba da aiki kuma status yana mayar da sabon ɗauri kai tsaye a matsayin aiki guda, ba tsohon ba.
-Abokan hulɗa na yanzu ba sa canzawa saboda amsoshin acquire, renew, release, da waiting suna riƙe da
-tsarinsu na baya.
+Maɓalli mara kyau, mai mallakar mara kyau, ƙarni mara kyau, ɓacewa, ƙarewa, saki, da bincike mara inganci duk suna dawo da kuskuren `409 LEASE_FENCE_STALE` iri ɗaya ba tare da bayanan haɗin ba. Abokin ciniki da ya karɓi martanin jira na iya ba shi da haɗin kai tsaye don dubawa. Lokacin da hanyar ta canza yarjejeniya mai aiki, ƙarni ɗaya ya kasance mai inganci kuma matsayi yana dawo da sabon haɗin kai tsaye, ba tsohon ba. Abokan ciniki da ke akwai sun kasance ba su canza ba saboda samu, sabuntawa, saki, da martani na jira suna riƙe da siffofinsu na baya.
 
-Wannan yarjejeniyar uwar garke ba ta canza daidaitaccen OpenAI Codex `/status` ba. A halin yanzu, daidaitaccen Codex yana bayar da rahoton
-mai samar da samfurinsa da yanayin tantancewa/asusun da aka gina a ciki, amma ba ya nuna bayanan asusun
-mai samarwa na musamman yadda aka ga dama; haɗin abokin hulɗa na gaba dole ne ya kira wannan aikin kuma ya yanke shawarar yadda zai
-nuna `connection.displayName`.
+Wannan kwangilar sabar ba ta canza stock OpenAI Codex `/status`. Stock Codex a halin yanzu yana ba da rahoton mai bayar da samfurinsa da tabbatarwa/yanayin asusun da aka gina amma ba ya nuna bayanan asusun mai bayarwa na musamman; haɗin abokin ciniki na gaba dole ne ya kira wannan aikin kuma ya yanke shawarar yadda za a nuna `connection.displayName`.
 
-Daga nan, kowace buƙatar inference da ake sarrafawa tana aika dukkan headers na sarrafawa guda biyu:
+Kowane buƙatar inference mai sarrafawa sannan yana ba da duka kanun sarrafawa:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Ana killace ainihin mai mallaka, generation, haɗin da ke aiki, da mabuɗin API da aka tantance nan take
-kafin kowace yunƙurin upstream da ake goyon baya. Sake amfani da mai mallaka da generation tare da wani mabuɗi yana gaza ko da
-wannan mabuɗin ya ba da izinin haɗin iri ɗaya. Ba a adana ɗanyen bayanan masu mallaka, rubuta su a log, riƙe su a cikin
-hoton buƙata, ko tura su upstream.
+Ainihin mai mallaka, ƙarni, haɗin aiki, da maɓallin API mai tabbatarwa an shinge su nan da nan kafin kowane yunƙurin sama mai goyan baya. Sake kunna mai mallaka da ƙarni tare da wani maɓalli yana gazawa ko da lokacin da wannan maɓalli ya ba da izinin haɗin ɗaya. Ba a adana masu mallaka na asali, ba a shigar da su, ba a riƙe su a cikin hoton buƙatar, ko a tura su sama.
 
-Cunkoso na ɗan lokaci yana mayar da HTTP `429` tare da `Retry-After` da:
+Rigima na ɗan lokaci yana dawo da HTTP `429` tare da `Retry-After` da:
 
 ```json
 {
@@ -178,36 +157,35 @@ Cunkoso na ɗan lokaci yana mayar da HTTP `429` tare da `Retry-After` da:
 }
 ```
 
-Wannan amsa tana nufin kawai cewa saitin cancanta na yau da kullum ba fanko ba ne kuma kowanne ɗan takara mai 'yanci
-yana ƙarƙashin wata haya mai aiki ta wani. Samfura/masu samarwa da ba a goyon baya, rashin dacewar manufofi, cooldown, quota,
-health, da sauran gazawar cancanta na yau da kullum suna riƙe da amsoshin OmniRoute da suke da su.
+Wannan martani yana nufin kawai cewa saitin da ya cancanta na yau da kullun ba shi da komai kuma kowane ɗan takara kyauta an riƙe shi ta hanyar yarjejeniya mai aiki na waje. Samfurori/masu bayarwa marasa goyan baya, rashin daidaituwar manufofi, sanyaya, ƙayyadaddun adadi, lafiya, da sauran gazawar cancanta na yau da kullun suna riƙe da martanin OmniRoute da ke akwai.
 
 ### `x-omniroute-compression`
 
-Sauya tsarin matsawa na kowace buƙata. Shi ne mafi fifiko — yana rinjayar sauyin routing-combo,
-active profile, auto-trigger, da Default na panel. Ƙimomi:
+Override na shirin matsa lamba na kowane buƙata. Mafi girman fifiko — yana doke override na haɗin hanyar, bayanin martaba mai aiki, auto-trigger, da Default na panel. Darajoji:
 
-| Ƙima          | Tasiri                                                                                              |
-| ------------- | --------------------------------------------------------------------------------------------------- |
-| `off`         | Babu matsawa ga wannan buƙatar.                                                                     |
-| `default`     | Default profile da aka samo daga panel (yana yin watsi da active profile).                          |
-| `engine:<id>` | Engine guda ɗaya idan an kunna shi, misali `engine:rtk`.                                            |
-| `<combo>`     | Combo mai suna, ana fara daidaita shi ta suna (ba tare da kula da girman haruffa ba), sannan ta id. |
+| Daraja        | Tasiri                                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Babu matsa lamba don wannan buƙatar.                                                                                      |
+| `default`     | Bayanin martaba na Default da aka samo daga panel (yana watsi da bayanin martaba mai aiki). An bar injunan asara a kashe. |
+| `safe`        | Dedup da ninka farin sarari kawai.                                                                                        |
+| `allow-lossy` | Rike shirin mai aiki don wannan buƙatar, gami da taƙaitawa da sake rubuta salo.                                           |
+| `engine:<id>` | Injin guda ɗaya lokacin da aka kunna, misali `engine:rtk`. Zaɓi na kowane buƙata don wannan injin.                        |
+| `<combo>`     | Haɗin da aka ambata, wanda aka daidaita ta suna (ba tare da la'akari da girman ba) da farko, sannan ta ID.                |
 
 Bayanan kula:
 
-- Ana yin watsi da ƙimomin da ba a sani ba (ba a taɓa ƙin buƙatar); warwarewa tana komawa ga tsarin fifikon mai aiki na yau da kullum.
-- Idan combos da yawa suna da suna iri ɗaya, aika **id** na combo don samun daidaitaccen zaɓi.
-- Ba za a iya zaɓar combo mai suna `off` ko `default` ta hanyar suna ba (ana fara fassara waɗannan kalmomin maɓalli); yi nuni da irin wannan combo ta amfani da id ɗinsa.
-- Babban makunnin matsawa ƙaƙƙarfan shinge ne: idan an kashe matsawa ga tsarin gaba ɗaya, wannan header ba zai iya kunna shi ba.
+- An yi watsi da darajoji marasa sani (ba a taɓa ƙin buƙatar ba); ƙuduri yana faɗuwa zuwa fifikon mai aiki na yau da kullun.
+- Idan haɗe-haɗe da yawa suna raba suna, wuce **ID** na haɗin don daidaitawa mai ƙayyadaddun.
+- Haɗin da sunansa `off` ko `default` ba za a iya zaɓe shi ta suna ba (an fassara waɗannan kalmomin da farko); koma zuwa irin wannan haɗin ta ID ɗin sa.
+- Babban maɓallin matsa lamba shinge ne mai wuya: lokacin da aka kashe matsa lamba a duniya, wannan kanun ba zai iya kunna shi ba.
 
-Ana maimaita tsarin da aka yi amfani da shi a cikin response header:
+An maimaita shirin da aka yi amfani da shi a cikin kanun martani:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-inda `<source>` yake ɗaya daga cikin `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, ko `off`.
+inda `<source>` ɗaya ne daga `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, ko `off`.
 
 ---
 
@@ -432,54 +410,54 @@ Yi amfani da wannan endpoint lokacin da sidecar ke gudana a wajen tsari kuma ba 
 
 ---
 
-## Endpoints na Daidaituwa
+## Wuraren Ƙarshe na Dacewa
 
-| Hanya | Path                                      | Tsari                                 |
-| ----- | ----------------------------------------- | ------------------------------------- |
-| POST  | `/v1/chat/completions`                    | OpenAI                                |
-| POST  | `/v1/messages`                            | Anthropic                             |
-| POST  | `/v1/responses`                           | OpenAI Responses                      |
-| POST  | `/v1/embeddings`                          | OpenAI                                |
-| POST  | `/v1/images/generations`                  | OpenAI Images                         |
-| POST  | `/v1/images/edits`                        | OpenAI Images (gyara/cike hoto)       |
-| POST  | `/v1/videos/generations`                  | Samar da bidiyo irin na OpenAI        |
-| POST  | `/v1/music/generations`                   | Samar da kiɗa irin na OpenAI          |
-| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                    |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (yana dawo da jikin sauti) |
-| POST  | `/v1/rerank`                              | Sake jeri irin na Cohere/Voyage       |
-| POST  | `/v1/classify`                            | Rarrabawar Jina (`api.jina.ai`)       |
-| POST  | `/v1/segment`                             | Mai rarraba Jina (`segment.jina.ai`)  |
-| POST  | `/v1/moderations`                         | OpenAI Moderations                    |
-| GET   | `/v1/models`                              | OpenAI                                |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                             |
-| GET   | `/v1beta/models`                          | Gemini                                |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                |
-| POST  | `/v1/api/chat`                            | Ollama                                |
-| GET   | `/api/v1/vscode/{token}/`                 | Madadin kundin OpenAI                 |
-| GET   | `/api/v1/vscode/{token}/models`           | Madadin models na OpenAI              |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | Madadin OpenAI mai token              |
-| POST  | `/api/v1/vscode/{token}/responses`        | Madadin OpenAI Responses mai token    |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Madadin Ollama mai token              |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Madadin tags na Ollama mai token      |
+| Hanyar | Hanyar                                    | Tsari                                     |
+| ------ | ----------------------------------------- | ----------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                    |
+| POST   | `/v1/messages`                            | Anthropic                                 |
+| POST   | `/v1/responses`                           | Amsoshin OpenAI                           |
+| POST   | `/v1/embeddings`                          | OpenAI                                    |
+| POST   | `/v1/images/generations`                  | Hotunan OpenAI                            |
+| POST   | `/v1/images/edits`                        | Hotunan OpenAI (gyara/cika)               |
+| POST   | `/v1/videos/generations`                  | Samar da bidiyo irin na OpenAI            |
+| POST   | `/v1/music/generations`                   | Samar da kiɗa irin na OpenAI              |
+| POST   | `/v1/audio/transcriptions`                | Sauti na OpenAI (STT)                     |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (yana dawo da jikin sauti)     |
+| POST   | `/v1/rerank`                              | Sake tsara irin na Cohere/Voyage          |
+| POST   | `/v1/classify`                            | Rarraba Jina (`api.jina.ai`)              |
+| POST   | `/v1/segment`                             | Mai raba Jina (`segment.jina.ai`)         |
+| POST   | `/v1/moderations`                         | Matsakaicin OpenAI                        |
+| GET    | `/v1/models`                              | OpenAI                                    |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                                 |
+| GET    | `/v1beta/models`                          | Gemini                                    |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                    |
+| POST   | `/v1/api/chat`                            | Ollama                                    |
+| GET    | `/api/v1/vscode/{token}/`                 | Sunan laƙabi na kundin OpenAI             |
+| GET    | `/api/v1/vscode/{token}/models`           | Sunan laƙabi na samfuran OpenAI           |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Sunan laƙabi na OpenAI mai alama          |
+| POST   | `/api/v1/vscode/{token}/responses`        | Sunan laƙabi na Amsoshin OpenAI mai alama |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Sunan laƙabi na Ollama mai alama          |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Sunan laƙabi na alamomin Ollama mai alama |
 
-Duk hanyoyin POST suna bin tsari iri ɗaya: `Bearer your-api-key` + jikin JSON da Zod ya tabbatar (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, da sauransu, duba `src/shared/validation/schemas.ts`). Ana dawo da 4xx idan tabbatar da schema ya gaza.
+Duk hanyoyin POST suna bin tsari ɗaya: `Bearer your-api-key` + jikin JSON mai inganci na Zod (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema`, da sauransu, duba `src/shared/validation/schemas.ts`). Ana dawo da 4xx idan tsarin ya gaza.
 
-Ga abokan ciniki waɗanda ba za su iya haɗa `Authorization: Bearer ...` ba, OmniRoute yana kuma karɓar maɓallan API a cikin URL ta hanyar dacewar query-string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ko kuma keɓaɓɓun endpoints na `/api/v1/vscode/{token}/...` da aka bayyana a ƙasa.
+Ga abokan ciniki waɗanda ba za su iya haɗa `Authorization: Bearer ...` ba, OmniRoute kuma yana karɓar maɓallan API a cikin URL ta hanyar dacewar tambaya-string (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) ko kuma ta hanyar keɓaɓɓun wuraren ƙarshe na `/api/v1/vscode/{token}/...` da aka rubuta a ƙasa.
 
 ```bash
-# Sake jeri (mai bayarwa daga rajistar cloud, ko node na mai bayarwa mai dacewa da OpenAI a matsayin "<prefix>/<model>")
+# Sake tsara (mai ba da sabis na rajistar girgije, ko kuma node mai dacewa da OpenAI a matsayin "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Rarrabawar Jina (bayanan shaidar Foundation API)
+# Rarraba Jina (takardun shaidar API na Foundation)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Mai rarrabawar Jina
+# Mai raba Jina
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Binciken Jina (s.jina.ai; madadan masu bayarwa: jina-search, jina-ai, jina)
+# Binciken Jina (s.jina.ai; sunayen laƙabi na mai bayarwa: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Tace abun ciki
+# Matsakaici
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — yana dawo da jikin audio/mpeg (ko tsarin da aka nema)
@@ -488,34 +466,31 @@ POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "all
 # Gyaran hoto (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Samar da bidiyo / kiɗa (ID na model mai ɗauke da prefix na mai bayarwa)
+# Samar da bidiyo / kiɗa (ID na samfurin mai bayarwa)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Nodes na mai bayarwa don sake jeri:** `POST /v1/rerank` yana kuma turawa zuwa nodes na masu bayarwa
-> masu dacewa da OpenAI (oMLX, vLLM, Infinity, TEI a bayan gateway, …) waɗanda ake adireshinsu da `<node-prefix>/<model>`. Nodes na loopback
-> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) koyaushe sun cancanta. Nodes da ke kan kowane host dabam
-> — na'ura a LAN ko takwarar Tailscale — suna cancanta ne kawai idan mai gudanarwa ya kunna
-> alamar fasalin `RERANK_REMOTE_PROVIDER_NODES` **kuma** tushen URL na node ɗin ya tsallake manufar URL mai fita ta mai bayarwa
-> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> ba a taɓa tura buƙata zuwa hosts na metadata na cloud. Matakin sake jeri na injin ƙwaƙwalwa yana kiran wannan route ta
-> loopback, don haka ƙa'ida ɗaya ce ke sarrafa `rerankProviderModel` a cikin saitunan Memory.
+> **Nodes masu ba da sabis na sake tsara:** POST `/v1/rerank` kuma yana kaiwa ga nodes masu ba da sabis masu dacewa da OpenAI
+> (oMLX, vLLM, Infinity, TEI a bayan ƙofa, …) waɗanda aka yi musu adireshin a matsayin `<node-prefix>/<model>`. Nodes na loopback
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) koyaushe suna da cancanta. Nodes a kan kowane mai masaukin baki — akwatin LAN ko abokin Tailscale — suna da cancanta ne kawai idan mai aiki ya kunna alamar fasalin
+> `RERANK_REMOTE_PROVIDER_NODES` **kuma** URL na tushe na node ya wuce manufar URL na waje na mai bayarwa (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
+> ba a taɓa tura masu masaukin girgije-metadata ba. Matakin sake tsara na injin ƙwaƙwalwa yana kiran wannan hanya ta hanyar loopback, don haka doka ɗaya ce ke tafiyar da `rerankProviderModel` a cikin saitunan Ƙwaƙwalwa.
 >
-> **Tsare-tsaren sabar gida:** ana kiran node ɗin a `<base>/v1/rerank`, kuma idan aka samu 404, a `<base>/rerank`
-> (Infinity, TEI). Jikin da ake aikawa upstream yana ɗauke da rubutun Cohere/OpenAI (`documents`,
-> `return_documents`) da kuma rubutun TEI (`texts`, `return_text`), sannan ana daidaita amsar upstream zuwa
-> envelope na Cohere: jerin TEI na kai tsaye `[{index, score, text}]`, `{results: [{index, score}]}`
-> daga gateways masu sauƙi, da kuma irin na Voyage `{data: [...]}` duk suna komawa ga abokin ciniki a matsayin
-> `{results: [{index, relevance_score, document?}]}`, a jere bisa score kuma an iyakance su zuwa `top_n`.
+> **Siffofin sabar gida:** ana kiran node a `<base>/v1/rerank` kuma, a kan 404, a `<base>/rerank`
+> (Infinity, TEI). Jikin sama yana ɗauke da rubutun Cohere/OpenAI (`documents`,
+> `return_documents`) da rubutun TEI (`texts`, `return_text`), kuma ana daidaita amsar sama zuwa
+> ambulaf ɗin Cohere: TEI's bare `[{index, score, text}]`, `{results: [{index, score}]}`
+> daga ƙofofin sirara, da kuma salon Voyage `{data: [...]}` duk suna dawowa ga abokin ciniki a matsayin
+> `{results: [{index, relevance_score, document?}]}`, an tsara su ta hanyar maki kuma an iyakance su a `top_n`.
 
-> **Gano kumburin mai samarwa:** samfura a kan kumburin mai samarwa mai dacewa da OpenAI suna bayyana a `GET /v1/models`
-> ƙarƙashin prefix ɗin kumburin. Layukan da ba su ɗauke da metadata na endpoint (wanda aka saba gani a jeri na gida na `/v1/models`)
-> suna gado `apiType` na kumburin, don haka samfuran kumburin `embeddings` suna zama `type: "embedding"` kuma
-> samfuran kumburin `rerank` suna zama `type: "rerank"` maimakon komawa zuwa chat ta tsohuwa; `supportedEndpoints` da aka fayyace
-> a kan layin da aka daidaita ko aka ƙara da hannu har yanzu shi ne ke da fifiko.
+> **Gano node na mai bayarwa:** samfuran a kan node mai ba da sabis mai dacewa da OpenAI suna bayyana a `GET /v1/models`
+> a ƙarƙashin prefix na node. Layukan da ba su ɗauke da metadata na wurin ƙarshe ba (na al'ada don jerin `/v1/models` na gida)
+> suna gadar `apiType` na node, don haka samfuran node na `embeddings` sune `type: "embedding"` kuma samfuran
+> node na `rerank` sune `type: "rerank"` maimakon komawa ga tattaunawa; `supportedEndpoints` bayyananne
+> a kan layin da aka daidaita ko aka ƙara da hannu har yanzu yana da fifiko.
 
-### Keɓaɓɓun Hanyoyin Mai Samarwa
+### Keɓaɓɓun Hanyoyin Mai Bayarwa
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -523,7 +498,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Ana ƙara prefix na mai samarwa ta atomatik idan babu shi. Samfuran da ba su dace ba suna mayar da `400`.
+Ana ƙara prefix na mai bayarwa ta atomatik idan babu shi. Samfuran da basu dace ba suna dawo da `400`.
 
 ---
 

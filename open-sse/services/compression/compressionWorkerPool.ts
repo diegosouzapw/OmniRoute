@@ -1,6 +1,8 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { Worker } from "node:worker_threads";
+import { sanitizeErrorMessage } from "../../utils/errorSanitization.ts";
+import { notifyCompressionFailOpen } from "./failOpenNotifier.ts";
 import type { CompressionResult } from "./types.ts";
 import type { StackedCompressionStep } from "./strategySelector.ts";
 import type {
@@ -98,6 +100,27 @@ export class CompressionWorkerError extends Error {
     this.retryInProcess = retryInProcess;
   }
 }
+
+/** Sanitized, single-line error text for fail-open log details. */
+function errorText(error: unknown): string {
+  return sanitizeErrorMessage(error instanceof Error ? error.message : error);
+}
+
+/**
+ * Only known path/module/configuration errors are structural. Unknown failures
+ * (including ERR_WORKER_INIT_FAILED) can be transient resource exhaustion and
+ * must be retried on the next wave rather than disabling compression forever.
+ */
+function isStructuralSpawnFailure(error: unknown): boolean {
+  const code = (error as NodeJS.ErrnoException | undefined)?.code;
+  return (
+    code === "MODULE_NOT_FOUND" ||
+    code === "ERR_MODULE_NOT_FOUND" ||
+    code === "ERR_WORKER_PATH" ||
+    code === "ERR_INVALID_ARG_TYPE" ||
+    code === "ERR_INVALID_ARG_VALUE"
+  );
+}
 interface PendingJob extends CompressionWorkerJob {
   originalBody: Record<string, unknown>;
   resolve: (result: CompressionResult) => void;
@@ -121,15 +144,32 @@ export class CompressionWorkerPool {
   private readonly size: number;
   private readonly timeoutMs: number;
   private readonly idleMs: number;
+  private readonly spawnWorker: () => Worker;
+  /**
+   * Set when spawn() throws synchronously (e.g. Turbopack's moduleContext
+   * MODULE_NOT_FOUND in the standalone build). A pool that cannot create a
+   * single worker is structurally broken — every subsequent run() fail-opens
+   * immediately instead of pushing jobs into a queue that can never drain
+   * (unbounded main-isolate heap leak, one full request body per job).
+   */
+  private broken = false;
 
   constructor({
     size = positiveInteger(process.env.OMNI_COMPRESSION_WORKERS, 2),
     timeoutMs = positiveInteger(process.env.OMNI_COMPRESSION_WORKER_TIMEOUT_MS, 120_000),
     idleMs = positiveInteger(process.env.OMNI_COMPRESSION_WORKER_IDLE_MS, 60_000),
-  }: { size?: number; timeoutMs?: number; idleMs?: number } = {}) {
+    workerFactory,
+  }: {
+    size?: number;
+    timeoutMs?: number;
+    idleMs?: number;
+    /** Test seam: replaces `new Worker(resolveWorkerFile())`. */
+    workerFactory?: () => Worker;
+  } = {}) {
     this.size = Math.max(1, Math.floor(size));
     this.timeoutMs = Math.max(1, Math.floor(timeoutMs));
     this.idleMs = Math.max(1, Math.floor(idleMs));
+    this.spawnWorker = workerFactory ?? (() => new Worker(resolveWorkerFile()));
   }
 
   run(
@@ -138,6 +178,13 @@ export class CompressionWorkerPool {
     options?: CompressionWorkerOptions,
     onEngineStep?: (step: StackedCompressionStep) => void
   ): Promise<CompressionResult> {
+    if (this.broken) {
+      // Without this the pool fails open silently forever after the one startup
+      // warn — exactly the invisibility that let issue #2 leak for hours.
+      const reason = "compression pool broken (worker spawn failed)";
+      notifyCompressionFailOpen(reason);
+      return Promise.reject(new CompressionWorkerError(reason, true));
+    }
     return new Promise((resolve, reject) => {
       this.queue.push({
         id: this.nextId++,
@@ -154,11 +201,16 @@ export class CompressionWorkerPool {
   }
   async close(): Promise<void> {
     for (const job of this.queue.splice(0)) job.resolve(unchanged(job.originalBody));
+    for (const slot of this.workers) {
+      const job = slot.job;
+      if (job) job.resolve(unchanged(job.originalBody));
+      slot.job = null;
+    }
     await Promise.all([...this.workers].map((slot) => this.remove(slot)));
   }
   private spawn(): PoolWorker {
     const slot: PoolWorker = {
-      worker: new Worker(resolveWorkerFile()),
+      worker: this.spawnWorker(),
       job: null,
       timeout: null,
       idle: null,
@@ -167,28 +219,52 @@ export class CompressionWorkerPool {
     slot.worker.on("message", (message: CompressionWorkerMessage) =>
       this.handleMessage(slot, message)
     );
-    slot.worker.on("error", (error) =>
-      this.fail(
-        slot,
-        `compression worker thread error: ${error instanceof Error ? error.message : String(error)}`
-      )
-    );
+    slot.worker.on("error", (error) => this.fail(slot, `worker error: ${errorText(error)}`));
     slot.worker.on("exit", (code) => {
-      if (this.workers.has(slot)) this.fail(slot, `compression worker exited (code ${code})`);
+      if (this.workers.has(slot)) this.fail(slot, `worker exit code ${code}`);
     });
     return slot;
+  }
+  private spawnOrFailOpen(): PoolWorker | null {
+    try {
+      return this.spawn();
+    } catch (error) {
+      // A synchronous spawn failure (bundler module-context miss, bad worker
+      // path, …) must never leave the queue stranded: nothing else would ever
+      // call dispatch() again, so the jobs — and their full request bodies —
+      // would be retained for the lifetime of the process.
+      const structural = isStructuralSpawnFailure(error);
+      // A structural failure is only pool-wide when no worker was ever created.
+      // Existing workers remain usable even if an attempt to add capacity fails.
+      const stranded = this.workers.size === 0;
+      this.broken = structural && stranded;
+      const reason = `worker spawn failed — pool failing open${this.broken ? " permanently" : " for this wave"}: ${errorText(error)}`;
+      notifyCompressionFailOpen(reason);
+      // Only a queue with no worker left to drain it is stranded. While any worker
+      // survives it is busy by construction (dispatch() only spawns once no idle
+      // slot exists), and its finish()/abort() re-enters dispatch() — so failing
+      // the backlog open here would needlessly drop compression for jobs a healthy
+      // worker is about to pick up. A spawn throw is a fast, pre-dispatch fault, so
+      // reject as retryable and let the caller preserve compression in-process.
+      if (stranded) {
+        for (const job of this.queue.splice(0)) {
+          job.reject(new CompressionWorkerError(reason, true));
+        }
+      }
+      return null;
+    }
   }
   private dispatch(): void {
     while (this.queue.length) {
       let slot = [...this.workers].find((candidate) => !candidate.job);
-      if (!slot && this.workers.size < this.size) slot = this.spawn();
+      if (!slot && this.workers.size < this.size) slot = this.spawnOrFailOpen() ?? undefined;
       if (!slot) return;
       if (slot.idle) clearTimeout(slot.idle);
       const job = this.queue.shift();
       if (!job) return;
       slot.job = job;
       slot.timeout = setTimeout(
-        () => this.fail(slot!, `compression worker timed out after ${this.timeoutMs}ms`, false),
+        () => this.fail(slot!, `worker job timeout after ${this.timeoutMs}ms`, false),
         this.timeoutMs
       );
       slot.timeout.unref();
@@ -202,7 +278,14 @@ export class CompressionWorkerPool {
         onEngineStep: _step,
         ...wireJob
       } = job;
-      slot.worker.postMessage(wireJob);
+      try {
+        slot.worker.postMessage(wireJob);
+      } catch (error) {
+        // A non-cloneable payload (DataCloneError) must not strand the slot until its
+        // timeout. The work never reached a worker, so retrying in-process is cheap.
+        this.fail(slot, `worker postMessage failed: ${errorText(error)}`);
+        return;
+      }
     }
   }
   private handleMessage(slot: PoolWorker, message: CompressionWorkerMessage): void {
@@ -250,8 +333,12 @@ export class CompressionWorkerPool {
   }
   /** #13145: release a slot and report the failure to the caller so it can fall back to
    *  in-process compression. Previously this resolved with the uncompressed body, which
-   *  turned every worker fault into a silent, unlogged no-op. */
+   *  turned every worker fault into a silent, unlogged no-op — the exact zero-log
+   *  condition that let issue #2 run for hours. The caller decides via
+   *  `retryInProcess` whether recovery is cheap; the notifier keeps every fault
+   *  visible either way. */
   private abort(slot: PoolWorker, error: CompressionWorkerError): void {
+    notifyCompressionFailOpen(`compression worker job failed open (${error.message})`);
     const job = slot.job;
     if (slot.timeout) clearTimeout(slot.timeout);
     slot.timeout = null;
@@ -270,14 +357,23 @@ export class CompressionWorkerPool {
 }
 
 let pool: CompressionWorkerPool | null = null;
+let workerFactoryOverride: (() => Worker) | undefined;
 export function runCompressionInWorker(
   body: Record<string, unknown>,
   mode: CompressionWorkerJob["mode"],
   options?: CompressionWorkerOptions,
   onEngineStep?: (step: StackedCompressionStep) => void
 ): Promise<CompressionResult> {
-  pool ??= new CompressionWorkerPool();
+  pool ??= new CompressionWorkerPool({ workerFactory: workerFactoryOverride });
   return pool.run(body, mode, options, onEngineStep);
+}
+/** Test seam: force the lazily created shared pool to use a factory that throws
+ *  synchronously (Turbopack moduleContext MODULE_NOT_FOUND) or serves fake workers. */
+export async function __setCompressionWorkerFactoryForTests(
+  factory: (() => Worker) | null
+): Promise<void> {
+  await closeCompressionWorkerPoolForTests();
+  workerFactoryOverride = factory ?? undefined;
 }
 export async function closeCompressionWorkerPoolForTests(): Promise<void> {
   const active = pool;

@@ -9,6 +9,10 @@ import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
 import { RESPONSES_FIRST_BYTE_TIMEOUT_CODE } from "../../open-sse/utils/firstByteWatchdog.ts";
 import { resetDbInstance } from "../../src/lib/db/core.ts";
+import {
+  __resetProxyRefusalMemoryForTesting,
+  __resetSlowOverrunsForTesting,
+} from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 // OPENCODE_RESPONSES_STALL_ROTATION gates the whole guard (#13484 rework): the flag is read at
 // the decision point through resolveFeatureFlag (DB override > env > default "false").
@@ -103,6 +107,11 @@ describe("OpencodeExecutor Responses first-byte stall", () => {
     process.env.RESPONSES_FIRST_BYTE_TIMEOUT_MS = "60";
     process.env[FLAG] = "true";
     calls = [];
+    // The proxy refusal memory is process-wide by design: the 429 case refuses the first
+    // member's proxy, and without a reset that set-aside leaks into the later cases, so the
+    // picker starts on the second member ("flag off" then sees ports[1], not ports[0]).
+    __resetProxyRefusalMemoryForTesting();
+    __resetSlowOverrunsForTesting();
   });
 
   afterEach(() => {

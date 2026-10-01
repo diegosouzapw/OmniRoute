@@ -12,8 +12,8 @@
  * The _activeExecutionCandidates registry Map MUST stay a single instance, so it
  * and its three mutators live together here.
  *
- * NOTE: buildAutoCandidates (and its two private-only helpers
- * calculateTargetContextAffinity / getBootstrapLatencyMs) deliberately stay in
+ * NOTE: buildAutoCandidates (and its private helper
+ * calculateTargetContextAffinity) deliberately stay in
  * combo.ts — it is the sole user of the internal reset-window helpers
  * (resolveResetWindowConfig / fetchResetAwareQuotaWithCache /
  * calculateResetWindowAffinity), so keeping it there avoids a combo ⇄ autoStrategy
@@ -505,11 +505,18 @@ export async function expandAutoComboCandidatePool(
         getCustomModels(providerId),
       ]);
       const syncedModels = filterChatSelectableModels(providerId, syncedModelsRaw);
+      // Custom rows include speech / transcription / image models imported from a
+      // media provider's local catalog or added by hand; they are not chat targets.
+      const chatCustomModels = filterChatSelectableModels(providerId, customModels);
       const hiddenModels = hiddenModelsMap.get(providerId);
       const userVisibleIds = new Set<string>();
       for (const m of syncedModels) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
-      for (const m of customModels) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
-      const hasUserModels = userVisibleIds.size > 0;
+      for (const m of chatCustomModels)
+        if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
+      // A provider whose custom rows are all non-chat still has user models, so it
+      // must not fall back to its static chat catalog.
+      const hasUserModels =
+        userVisibleIds.size > 0 || customModels.some((m) => m.id && !hiddenModels?.has(m.id));
       const expandIds = hasUserModels
         ? Array.from(userVisibleIds)
         : getProviderModels(providerId).map((m) => m.id);

@@ -7,6 +7,8 @@ const translate = (key: string) => key;
 
 vi.mock("next-intl", () => ({
   useTranslations: () => translate,
+  // #14466 / #14807: PoolSchedulesCard and ProxyHealthCell now call useLocale().
+  useLocale: () => "en",
 }));
 
 // Imported STATICALLY on purpose. With a dynamic `await import()` inside each

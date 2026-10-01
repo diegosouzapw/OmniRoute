@@ -4,12 +4,12 @@
 
 ---
 
-> **ପ୍ରାମାଣିକ ଉତ୍ସ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **ଶେଷ ଅଦ୍ୟତନ:** 2026-06-28 — v3.8.40
+> **ସତ୍ୟର ଉତ୍ସ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **ଶେଷ ଅପଡେଟ୍:** 2026-09-22 — ସ୍କୋପ୍ ନାମସ୍ପେସ୍ MCP-SERVER.md କୁ ସୂଚାଏ
 
-OmniRoute ପାଖରେ ଏକ ରୁଟ୍-ସଚେତନ ପ୍ରାଧିକରଣ ପାଇପ୍ଲାଇନ୍ ଅଛି, ଯାହା ପ୍ରତ୍ୟେକ API ଅନୁରୋଧକୁ ନିୟନ୍ତ୍ରଣ କରେ। ବର୍ଗୀକରଣ **ନିର୍ଦ୍ଧାରଣାତ୍ମକ** ଏବଂ **ବିଫଳତାରେ-ବନ୍ଦ** — ଯାହାକୁ ବର୍ଗୀକୃତ କରାଯାଇପାରେ ନାହିଁ, ତାହା ଶେଷରେ `MANAGEMENT` ଭାବେ ଗଣାଯାଏ ଏବଂ ଏକ ସେସନ୍ କିମ୍ବା ପରିଚାଳନା-ସ୍ତରୀୟ ଟୋକନ୍ ଆବଶ୍ୟକ କରେ। ରୁଟ୍ଗୁଡ଼ିକର ରକ୍ଷଣାବେକ୍ଷଣ କରୁଥିବା କିମ୍ବା ନୂଆ ଏଣ୍ଡପଏଣ୍ଟ ଡିଜାଇନ୍ କରୁଥିବା ଇଞ୍ଜିନିୟରମାନଙ୍କ ପାଇଁ ଏହି ପୃଷ୍ଠା ମଡେଲ୍ଟି ବ୍ୟାଖ୍ୟା କରେ।
+OmniRoute ରେ ଏକ ରୁଟ୍-ସଚେତନ ଅନୁମତି ପାଇପଲାଇନ୍ ଅଛି ଯାହା ପ୍ରତ୍ୟେକ API ଅନୁରୋଧକୁ ଗେଟ୍ କରେ। ବର୍ଗୀକରଣ **ନିର୍ଣ୍ଣାୟକ** ଏବଂ **ଫେଲ୍-କ୍ଲୋଜ୍ଡ** — ଯାହା ବର୍ଗୀକୃତ ହୋଇପାରିବ ନାହିଁ ତାହା `MANAGEMENT` ଭାବରେ ଶେଷ ହୁଏ ଏବଂ ଏକ ସେସନ୍ କିମ୍ବା ମ୍ୟାନେଜମେଣ୍ଟ-ଗ୍ରେଡ୍ ଟୋକେନ୍ ଆବଶ୍ୟକ କରେ। ଏହି ପୃଷ୍ଠାଟି ରୁଟ୍ ରକ୍ଷଣାବେକ୍ଷଣ କରୁଥିବା କିମ୍ବା ନୂତନ ଏଣ୍ଡପଏଣ୍ଟ୍ ଡିଜାଇନ୍ କରୁଥିବା ଇଞ୍ଜିନିୟରମାନଙ୍କ ପାଇଁ ମଡେଲ୍ ବ୍ୟାଖ୍ୟା କରେ।
 
-![AuthZ ପାଇପ୍ଲାଇନ୍ (3ଟି ରୁଟ୍ ଶ୍ରେଣୀ + ନୀତି ମୂଲ୍ୟାୟନ)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
 > ଉତ୍ସ: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -200,28 +200,35 @@ export async function POST(request: Request) {
 
 ସୁବିଧା ଅନୁସାରେ ନୁହେଁ, ଆକୃତି ଅନୁସାରେ ସେଟ୍ ବାଛନ୍ତୁ। ଗୋଟିଏ ରୁଟ୍ `PUBLIC_API_ROUTES_EXACT`ରେ ଯାଏ (କିମ୍ବା କେବଳ-GET ପାଇଁ `PUBLIC_READONLY_CORS_API_ROUTES`ରେ); କେବଳ ଏକ ପ୍ରକୃତ ଉପବୃକ୍ଷ `PUBLIC_API_ROUTE_PREFIXES`ରେ ଯାଏ, ଏବଂ ଏହା **`/`ରେ ଶେଷ ହେବା ଆବଶ୍ୟକ**। ଉପସର୍ଗ ତାଲିକାରେ ଗୋଟିଏ ଏକକ ରୁଟ୍ ରଖିବା ଦ୍ୱାରା ଏହାର ପ୍ରାରମ୍ଭିକ ଅକ୍ଷରଗୁଡ଼ିକ ସମାନ ଥିବା ପ୍ରତ୍ୟେକ ସଂଲଗ୍ନ ପଥ ମଧ୍ୟ ସାର୍ବଜନୀନ ହୋଇଯାଏ — ଏଥିରେ ପରେ ଯୋଡ଼ାଯାଇଥିବା ଡାଇନାମିକ୍-ସେଗମେଣ୍ଟ ସହୋଦର ରୁଟ୍ଗୁଡ଼ିକ ମଧ୍ୟ ଅନ୍ତର୍ଭୁକ୍ତ (GHSA-74g9-q8f6-793h)। `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` ଏବଂ `tests/unit/authz/classify.test.ts`ରେ ଥିବା ୟୁନିଟ୍ ପରୀକ୍ଷାଗୁଡ଼ିକୁ ଅଦ୍ୟତନ କରନ୍ତୁ।
 
-## ସ୍କୋପ୍ଗୁଡ଼ିକ
+## ସ୍କୋପ୍ସ
 
-API କୀଗୁଡ଼ିକ ଏକ `scopes` ଆରେ ବହନ କରେ (`api_keys.scopes`ରେ JSON ଭାବେ ସଂରକ୍ଷିତ, `src/lib/db/apiKeys.ts` ଦେଖନ୍ତୁ)।
+ତିନୋଟି ନାମସ୍ପେସ୍। ପ୍ରତ୍ୟେକ ଚେକର୍ କେବଳ ନିଜର ଷ୍ଟ୍ରିଙ୍ଗ୍ ପଢ଼େ। `manage` କାହିଁକି `read:compression` ପାଇଁ `scopeMatches` ରେ ବିଫଳ ହୁଏ ଏବଂ `read` ଆକ୍ସେସ୍ ଟୋକେନ୍ କାହିଁକି `PATCH /api/keys/{id}` କରିପାରିବ ନାହିଁ, ତାହା ସହିତ ପାର୍ଶ୍ୱ-ପାର୍ଶ୍ୱ ତୁଳନା [ତିନୋଟି ସ୍କୋପ୍ ନାମସ୍ପେସ୍](../frameworks/MCP-SERVER.md#three-scope-namespaces) ରେ ଦିଆଯାଇଛି।
+
+API କି'ଗୁଡ଼ିକ ଏକ `scopes` ଆରେ ଧାରଣ କରନ୍ତି (JSON ଭାବରେ `api_keys.scopes` ରେ ସଂରକ୍ଷିତ, `src/lib/db/apiKeys.ts` ଦେଖନ୍ତୁ)।
 
 ### ପରିଚାଳନା ସ୍କୋପ୍
 
-- `manage` / `admin` — Bearer ଭାବେ ପଠାଯିବାବେଳେ କୀକୁ ପରିଚାଳନା API ଏଣ୍ଡପଏଣ୍ଟଗୁଡ଼ିକରେ ପ୍ରବେଶ ଅନୁମତି ଦିଏ।
+- `manage` / `admin` — `hasManageScope`। ପରିଚାଳନା API ରୁଟ୍ଗୁଡ଼ିକୁ ବେୟରର୍ ଆକ୍ସେସ୍।
+- `mcp:connect`, `self:usage`, `self:account-quota`, ଏବଂ
+  `policy:bypass-provider-quota` ହେଉଛି ଯୋଗାତ୍ମକ ସଠିକ୍-ମେଳ ସ୍କୋପ୍ସ। ସେଗୁଡ଼ିକ
+  `MANAGEMENT_API_KEY_SCOPES` ବାହାରେ ରୁହନ୍ତି। `mcp:connect` କେବଳ
+  `/api/mcp/` ନନ୍-ଲୁପ୍ବ୍ୟାକ୍ କାର୍ଭ-ଆଉଟ୍ ଖୋଲିଥାଏ।
 
-### MCP ସ୍କୋପ୍ଗୁଡ଼ିକ (`src/shared/constants/mcpScopes.ts`)
+### MCP ଟୁଲ୍ ସ୍କୋପ୍ସ
 
-ପ୍ରତ୍ୟେକ MCP ଟୁଲ୍ ପାଇଁ `MCP_TOOL_SCOPES` ମାଧ୍ୟମରେ ନିର୍ଦ୍ଦିଷ୍ଟ ସ୍କୋପ୍ ଆବଶ୍ୟକ। ସମ୍ପୂର୍ଣ୍ଣ ତାଲିକା (`MCP_SCOPE_LIST`):
+କାଟାଲଗ୍ ଏବଂ ମେଳ ଖାଉଥିବା ନିୟମ (ସମାନ ଷ୍ଟ୍ରିଙ୍ଗ୍, କିମ୍ବା `*` ରେ ଶେଷ ହେଉଥିବା ଏକ ଅନୁମତିପ୍ରାପ୍ତ ସ୍କୋପ୍):
+[MCP ଟୁଲ୍ ସ୍କୋପ୍ସ](../frameworks/MCP-SERVER.md#mcp-tool-scopes)।
+`src/shared/constants/mcpScopes.ts` ରେ ଥିବା `MCP_SCOPE_LIST` ହେଉଛି ମୂଳ ଟାଇପ୍ କରାଯାଇଥିବା ସବ୍ସେଟ୍,
+ସମ୍ପୂର୍ଣ୍ଣ କାଟାଲଗ୍ ନୁହେଁ। `resolveCallerScopeContext()` MCP ଅଥ୍ ସୂଚନା, ଅନୁରୋଧ ମେଟାଡାଟା,
+କିମ୍ବା `OMNIROUTE_MCP_SCOPES` ରୁ ସ୍କୋପ୍ସ ସମାଧାନ କରିବା ପରେ
+`open-sse/mcp-server/scopeEnforcement.ts` ରେ ଏନଫୋର୍ସମେଣ୍ଟ ଚାଲିଥାଏ।
+`OMNIROUTE_MCP_ENFORCE_SCOPES=true` ନହେବା ପର୍ଯ୍ୟନ୍ତ ଏହା ବନ୍ଦ ରୁହେ।
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### ଆକ୍ସେସ୍-ଟୋକେନ୍ ସ୍କୋପ୍ସ
 
-`open-sse/mcp-server/server.ts`ରେ ସ୍କୋପ୍ ପ୍ରବର୍ତ୍ତନ, `resolveCallerScopeContext()` ଦ୍ୱାରା MCP ପ୍ରମାଣୀକରଣ ସୂଚନା,
-ଅନୁରୋଧ ମେଟାଡାଟା କିମ୍ବା `OMNIROUTE_MCP_SCOPES`ରୁ ସ୍କୋପ୍ଗୁଡ଼ିକ ସମାଧାନ କରାଯିବା ପରେ, ପ୍ରତ୍ୟେକ ଟୁଲ୍ର ସ୍କୋପ୍ ତାଲିକାକୁ
-`evaluateToolScopes()`କୁ ପଠାଏ।
+`oma_live_…` ଟୋକେନ୍ଗୁଡ଼ିକ ଉପରେ `read` / `write` / `admin`, `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) ଦ୍ୱାରା ମାନ୍ୟତାପ୍ରାପ୍ତ। ଏହି ମାନ୍ୟତା କେବଳ
+ଆକ୍ସେସ୍-ଟୋକେନ୍ କ୍ରେଡେନ୍ସିଆଲ୍ ପାଇଁ ପ୍ରଯୁଜ୍ୟ। [ପରିଚାଳନା ପ୍ରମାଣୀକରଣ](../guides/MANAGEMENT-AUTH.md) ଦେଖନ୍ତୁ।
 
 ## ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ ଟଗଲ୍
 
@@ -269,7 +276,7 @@ x-omniroute-auth-scopes:    comma-separated list
 
 ## ଏହା ମଧ୍ୟ ଦେଖନ୍ତୁ
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ପ୍ରତ୍ୟେକ ଏଣ୍ଡପଏଣ୍ଟ ପାଇଁ ପ୍ରମାଣୀକରଣ ଚିହ୍ନକ
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ପ୍ରମାଣୀକରଣ ଇଭେଣ୍ଟଗୁଡ଼ିକ ପାଇଁ ଅଡିଟ୍ ଲଗ୍
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP ସ୍କୋପ୍ ପ୍ରବର୍ତ୍ତନ ବିବରଣୀ
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ପ୍ରତି ଏଣ୍ଡପଏଣ୍ଟ ପାଇଁ ଅଥ୍ ମାର୍କର୍
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — ଅଥ୍ ଇଭେଣ୍ଟଗୁଡ଼ିକ ପାଇଁ ଅଡିଟ୍ ଲଗ୍
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ତିନୋଟି ସ୍କୋପ୍ ନେମସ୍ପେସ୍ ଏବଂ MCP ଟୁଲ୍-ସ୍କୋପ୍ କାଟାଲଗ୍
 - ଉତ୍ସ: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

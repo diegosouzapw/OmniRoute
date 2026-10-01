@@ -4,12 +4,12 @@
 
 ---
 
-> **प्रामाणिक स्रोत:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **अंतिम अपडेट:** 2026-06-28 — v3.8.40
+> **सत्य का स्रोत:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **अंतिम बार अपडेट किया गया:** 2026-09-22 — स्कोप नेमस्पेस MCP-SERVER.md की ओर इशारा करते हैं
 
-OmniRoute में एक रूट-जागरूक प्राधिकरण पाइपलाइन है, जो प्रत्येक API अनुरोध को नियंत्रित करती है। वर्गीकरण **नियतात्मक** और **फेल-क्लोज़्ड** है — जिसका भी वर्गीकरण नहीं किया जा सकता, वह `MANAGEMENT` में चला जाता है और उसके लिए सेशन या प्रबंधन-स्तरीय टोकन आवश्यक होता है। यह पृष्ठ रूट का रखरखाव करने वाले या नए एंडपॉइंट डिज़ाइन करने वाले इंजीनियरों के लिए इस मॉडल की व्याख्या करता है।
+ओम्नीराउट में एक रूट-जागरूक प्रमाणीकरण पाइपलाइन है जो हर एपीआई अनुरोध को नियंत्रित करती है। वर्गीकरण **निर्धारित** और **फेल-क्लोज्ड** है — जो कुछ भी वर्गीकृत नहीं किया जा सकता है वह `MANAGEMENT` के रूप में समाप्त होता है और एक सत्र या प्रबंधन-ग्रेड टोकन की मांग करता है। यह पृष्ठ उन इंजीनियरों के लिए मॉडल की व्याख्या करता है जो रूट्स का रखरखाव कर रहे हैं या नए एंडपॉइंट्स डिज़ाइन कर रहे हैं।
 
-![AuthZ पाइपलाइन (3 रूट वर्ग + नीति मूल्यांकन)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ पाइपलाइन (3 रूट क्लास + नीति मूल्यांकन)](../diagrams/exported/authz-pipeline.svg)
 
 > स्रोत: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -199,28 +199,30 @@ export async function POST(request: Request) {
 
 set को सुविधा के आधार पर नहीं, बल्कि आकार के आधार पर चुनें। एक route को `PUBLIC_API_ROUTES_EXACT` में रखें (या केवल GET के लिए `PUBLIC_READONLY_CORS_API_ROUTES` में); केवल वास्तविक subtree को `PUBLIC_API_ROUTE_PREFIXES` में रखें, और वह **`/` पर समाप्त होना ही चाहिए**। किसी एकल route को prefix सूची में रखने से समान आरंभिक वर्णों वाला हर निकटवर्ती path भी सार्वजनिक हो जाता है — इसमें बाद में जोड़े गए dynamic-segment siblings भी शामिल हैं (GHSA-74g9-q8f6-793h)। `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` और `tests/unit/authz/classify.test.ts` में unit tests अपडेट करें।
 
-## स्कोप
+## स्कोप्स
 
-API कुंजियों में एक `scopes` ऐरे होता है (`api_keys.scopes` में JSON के रूप में संग्रहीत, देखें `src/lib/db/apiKeys.ts`)।
+तीन नेमस्पेस। प्रत्येक चेकर केवल अपनी स्ट्रिंग्स पढ़ता है। साइड-बाय-साइड तुलना, जिसमें यह भी शामिल है कि `manage` `read:compression` के लिए `scopeMatches` में क्यों विफल होता है और एक `read` एक्सेस टोकन `PATCH /api/keys/{id}` क्यों नहीं कर सकता, [तीन स्कोप नेमस्पेस](../frameworks/MCP-SERVER.md#three-scope-namespaces) में है।
+
+एपीआई कुंजियों में एक `scopes` ऐरे होता है (जो `api_keys.scopes` में JSON के रूप में संग्रहीत होता है, देखें `src/lib/db/apiKeys.ts`)।
 
 ### प्रबंधन स्कोप
 
-- `manage` / `admin` — Bearer के रूप में भेजे जाने पर कुंजी को प्रबंधन API एंडपॉइंट तक पहुँच प्रदान करता है।
+- `manage` / `admin` — `hasManageScope`। प्रबंधन एपीआई राउट्स तक बेयरर एक्सेस।
+- `mcp:connect`, `self:usage`, `self:account-quota`, और
+  `policy:bypass-provider-quota` योगात्मक सटीक-मैच स्कोप्स हैं। वे `MANAGEMENT_API_KEY_SCOPES` के बाहर स्थित हैं। `mcp:connect` केवल `/api/mcp/` नॉन-लूपबैक कार्व-आउट खोलता है।
 
-### MCP स्कोप (`src/shared/constants/mcpScopes.ts`)
+### MCP टूल स्कोप्स
 
-प्रत्येक MCP टूल को `MCP_TOOL_SCOPES` के माध्यम से विशिष्ट स्कोप की आवश्यकता होती है। पूरी सूची (`MCP_SCOPE_LIST`):
+कैटलॉग और मिलान नियम (समान स्ट्रिंग, या `*` में समाप्त होने वाला एक स्वीकृत स्कोप):
+[MCP टूल स्कोप्स](../frameworks/MCP-SERVER.md#mcp-tool-scopes)।
+`src/shared/constants/mcpScopes.ts` में `MCP_SCOPE_LIST` मूल टाइप किया गया सबसेट है, न कि वह पूरा कैटलॉग। प्रवर्तन
+`open-sse/mcp-server/scopeEnforcement.ts` में `resolveCallerScopeContext()` द्वारा MCP प्रमाणीकरण जानकारी, अनुरोध मेटाडेटा, या `OMNIROUTE_MCP_SCOPES` से स्कोप्स को हल करने के बाद चलता है।
+यह तब तक बंद रहता है जब तक `OMNIROUTE_MCP_ENFORCE_SCOPES=true` नहीं होता।
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### एक्सेस-टोकन स्कोप्स
 
-`open-sse/mcp-server/server.ts` में स्कोप प्रवर्तन, `resolveCallerScopeContext()` द्वारा MCP प्रमाणीकरण जानकारी,
-अनुरोध मेटाडेटा, या `OMNIROUTE_MCP_SCOPES` से स्कोप निर्धारित किए जाने के बाद, प्रत्येक टूल की स्कोप सूची को
-`evaluateToolScopes()` में भेजता है।
+`oma_live_…` टोकन पर `read` / `write` / `admin`, `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) द्वारा रैंक किए गए। यह रैंक केवल एक्सेस-टोकन क्रेडेंशियल पर लागू होती है। देखें [प्रबंधन प्रमाणीकरण](../guides/MANAGEMENT-AUTH.md)।
 
 ## प्रमाणीकरण आवश्यक टॉगल
 
@@ -266,9 +268,9 @@ x-omniroute-auth-scopes:    कॉमा से अलग की गई सू�
 
 हैंडलर के अंदर `assertAuth(req, expectedClass)` का उपयोग करें — यदि मिडलवेयर को बायपास किया गया हो, तो यह `AUTHZ_NOT_INITIALIZED` कोड के साथ `AuthzAssertionError` थ्रो करता है (परीक्षणों में कॉन्फ़िगरेशन रिग्रेशन पकड़ने के लिए उपयोगी)।
 
-## यह भी देखें
+## इन्हें भी देखें
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — प्रत्येक एंडपॉइंट के लिए प्रमाणीकरण मार्कर
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — प्रति एंडपॉइंट प्रमाणीकरण मार्कर
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — प्रमाणीकरण घटनाओं के लिए ऑडिट लॉग
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP स्कोप प्रवर्तन का विवरण
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — तीन स्कोप नेमस्पेस और एमसीपी टूल-स्कोप कैटलॉग
 - स्रोत: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

@@ -298,6 +298,8 @@ curl https://localhost:20128/api/usage/token-limits \
 
 POST usage › token limits
 
+Save a per-key token limit. A key holds one limit per scope and reset interval, so daily, weekly and monthly limits for the same scope coexist. Without `id`, a new limit is added (or the key's limit for the same scope and interval is updated); with `id`, that limit is updated.
+
 ```bash
 curl -X POST https://localhost:20128/api/usage/token-limits \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
