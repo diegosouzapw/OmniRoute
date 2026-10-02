@@ -143,8 +143,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // If we are in docker-compose mode, use the detached shell script background updates
-  if (config.mode === "docker-compose") {
+  // docker-compose and command modes hand the work to a detached background process
+  if (config.mode === "docker-compose" || config.mode === "command") {
     const launched = await launchAutoUpdate({ latest });
     if (!launched.started) {
       return NextResponse.json(
@@ -161,7 +161,10 @@ export async function POST(req: NextRequest) {
     clearLatestVersionCache();
     return NextResponse.json({
       success: true,
-      message: `Update to v${latest} started. Docker rebuild is running in the background.`,
+      message:
+        config.mode === "command"
+          ? `Update to v${latest} started. The configured update command is running in the background; the server restarts when it finishes.`
+          : `Update to v${latest} started. Docker rebuild is running in the background.`,
       from: current,
       to: latest,
       channel: launched.channel,

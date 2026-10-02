@@ -1,0 +1,1 @@
+- **feat(api):** `AUTO_UPDATE_MODE=command` lets the dashboard Update button run an operator-provided `AUTO_UPDATE_COMMAND` (detached, target version as its only argument) so launchd/systemd deployments and customized forks can rebuild and restart themselves ([#15321](https://github.com/diegosouzapw/OmniRoute/pull/15321))

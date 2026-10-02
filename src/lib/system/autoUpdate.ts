@@ -48,7 +48,7 @@ const FALLBACK_CWD = process.env.HOME || homedir() || "/tmp";
 export const PROJECT_ROOT: string = resolveProjectRoot(FALLBACK_CWD);
 
 type ComposeCommand = "docker compose" | "docker-compose";
-export type AutoUpdateMode = "npm" | "docker-compose" | "source";
+export type AutoUpdateMode = "npm" | "docker-compose" | "source" | "command";
 
 type ExecFileLike = typeof execFileAsync;
 type SpawnLike = typeof spawn;
@@ -62,6 +62,8 @@ export type AutoUpdateConfig = {
   gitRemote: string;
   patchCommits: string[];
   logPath: string;
+  /** AUTO_UPDATE_MODE=command: executable run as `<command> <version>` (launchd/systemd/forks). */
+  command: string;
 };
 
 export type AutoUpdateValidation = {
@@ -79,7 +81,7 @@ export type AutoUpdateLaunchResult = {
 };
 
 function normalizeMode(raw: string | undefined): AutoUpdateMode {
-  if (raw === "docker-compose" || raw === "source") {
+  if (raw === "docker-compose" || raw === "source" || raw === "command") {
     return raw;
   }
   return "npm";
@@ -217,6 +219,7 @@ export function getAutoUpdateConfig(
     gitRemote: env.AUTO_UPDATE_GIT_REMOTE || "origin",
     patchCommits: parsePatchCommits(env.AUTO_UPDATE_PATCH_COMMITS),
     logPath: env.AUTO_UPDATE_LOG_PATH || path.join(dataDir, "logs", "auto-update.log"),
+    command: (env.AUTO_UPDATE_COMMAND || "").trim(),
   };
 }
 
@@ -238,11 +241,36 @@ export async function detectComposeCommand(
   }
 }
 
+async function validateCommandMode(
+  command: string,
+  existsImpl: (targetPath: string) => Promise<boolean>
+): Promise<AutoUpdateValidation> {
+  if (!command) {
+    return {
+      supported: false,
+      reason: "AUTO_UPDATE_MODE=command needs AUTO_UPDATE_COMMAND (an executable path).",
+      composeCommand: null,
+    };
+  }
+  if (!(await existsImpl(command))) {
+    return {
+      supported: false,
+      reason: `Update command not found: ${command}`,
+      composeCommand: null,
+    };
+  }
+  return { supported: true, reason: null, composeCommand: null };
+}
+
 export async function validateAutoUpdateRuntime(
   config: AutoUpdateConfig,
   execFileImpl: ExecFileLike = execFileAsync,
   existsImpl: (targetPath: string) => Promise<boolean> = pathExists
 ): Promise<AutoUpdateValidation> {
+  if (config.mode === "command") {
+    return validateCommandMode(config.command, existsImpl);
+  }
+
   if (config.mode === "source") {
     const gitDir = path.join(PROJECT_ROOT, ".git");
     if (!(await existsImpl(gitDir))) {
@@ -336,6 +364,15 @@ export async function ensureGitTagExists(
   }
 }
 
+/**
+ * AUTO_UPDATE_MODE=command: hand the update to an operator-provided executable (e.g. a launchd or
+ * systemd job that rebuilds a customized fork). It receives the target version as its only argument
+ * and owns the build, restart and rollback; OmniRoute only starts it detached.
+ */
+export function buildCommandUpdateScript(latest: string, command: string): string {
+  return ["set -eu", `exec ${shellQuote(command)} ${shellQuote(latest)}`].join("\n");
+}
+
 export function buildNpmUpdateScript(latest: string): string {
   return [
     "set -eu",
@@ -422,6 +459,12 @@ export function buildDockerComposeUpdateScript({
   ].join("\n");
 }
 
+function buildModeUpdateScript(latest: string, config: AutoUpdateConfig): string {
+  if (config.mode === "source") return buildSourceUpdateScript(latest, config.gitRemote);
+  if (config.mode === "command") return buildCommandUpdateScript(latest, config.command);
+  return buildNpmUpdateScript(latest);
+}
+
 export async function launchAutoUpdate({
   latest,
   env = process.env,
@@ -455,9 +498,7 @@ export async function launchAutoUpdate({
           config,
           composeCommand: validation.composeCommand || "docker-compose",
         })
-      : config.mode === "source"
-        ? buildSourceUpdateScript(latest, config.gitRemote)
-        : buildNpmUpdateScript(latest);
+      : buildModeUpdateScript(latest, config);
 
   mkdirSync(path.dirname(config.logPath), { recursive: true });
   const logFd = openSync(config.logPath, "a");
