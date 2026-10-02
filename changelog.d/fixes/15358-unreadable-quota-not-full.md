@@ -1,0 +1,1 @@
+- **fix(auto-combo):** a malformed provider quota snapshot (no parseable window or `percentUsed`, including `percentUsed: null`) no longer scores as a full quota in auto-combo; it ranks strictly below any real reading without being blocked or evicted ([#15358](https://github.com/diegosouzapw/OmniRoute/pull/15358)) — thanks @shannonlowder
