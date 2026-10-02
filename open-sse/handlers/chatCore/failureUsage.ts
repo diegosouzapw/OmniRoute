@@ -9,6 +9,7 @@
  */
 
 import { buildErrorBody } from "../../utils/error.ts";
+import { type AgentContext } from "./agentContext.ts";
 
 export { readCpaAuthIndex } from "./cpaTraceAuthIndex.ts";
 
@@ -69,6 +70,7 @@ export function buildFailureUsageRecord(opts: {
   endpoint?: string | null | undefined;
   cpaAuthIndex?: string | null | undefined;
   aggregate?: FailureUsageAggregate | null;
+  agentContext?: AgentContext | null;
 }) {
   return {
     provider: opts.provider || "unknown",
@@ -93,5 +95,6 @@ export function buildFailureUsageRecord(opts: {
     comboStrategy: opts.isCombo ? opts.comboStrategy || undefined : undefined,
     endpoint: opts.endpoint || undefined,
     cpaAuthIndex: opts.cpaAuthIndex || undefined,
+    agentContext: opts.agentContext ?? null,
   };
 }
