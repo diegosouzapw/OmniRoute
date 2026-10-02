@@ -252,6 +252,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
+    key: "PROXY_OPERATOR_EGRESS_ENABLED",
+    label: "Proxy Operator Egress",
+    description:
+      "Accept operator-pushed dated observed addresses per pool member and merge them with the journal read for display and pool order. Off by default: the push route answers 404 and pool reads behave exactly as before.",
+    descriptionI18nKey: "featureFlagProxyOperatorEgressDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
     key: "OPENCODE_RESPONSES_STALL_ROTATION",
     label: "OpenCode Responses Stall Rotation",
     description:

@@ -71,6 +71,38 @@ describe("PoolMemberEgressLines", () => {
     );
   });
 
+  it("shows the operator-provided line for operator observations, dated", async () => {
+    const { element } = await renderWith(() =>
+      jsonResponse({
+        windowHours: 24,
+        members: [
+          {
+            host: "10.9.1.3",
+            port: 21003,
+            egressIp: "203.0.113.3",
+            at: "2026-09-21T00:00:00Z",
+            source: "operator",
+          },
+        ],
+      })
+    );
+    const lines = element.querySelectorAll("p");
+    expect(lines.length).toBe(1);
+    expect(lines[0].textContent).toBe(
+      'poolMemberEgressOperator:{"host":"10.9.1.3","port":21003,"egressIp":"203.0.113.3","date":"2026-09-21T00:00:00Z"}'
+    );
+  });
+
+  it("still renders bodies without a source (forward compat)", async () => {
+    const { element } = await renderWith(() =>
+      jsonResponse({
+        windowHours: 24,
+        members: [{ host: "10.9.1.4", port: 21004, egressIp: "203.0.113.4", at: "x" }],
+      })
+    );
+    expect(element.querySelectorAll("p").length).toBe(1);
+  });
+
   it("renders nothing when the route answers null", async () => {
     const { element } = await renderWith(() => jsonResponse(null));
     expect(element.textContent).toBe("");
