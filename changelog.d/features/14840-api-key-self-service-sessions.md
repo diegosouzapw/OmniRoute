@@ -1,0 +1,1 @@
+- **feat(api):** add `/v1/me/sessions` self-service API key endpoints to list and inspect agent sessions with project, client, date, and sorting filters ([#14840](https://github.com/diegosouzapw/OmniRoute/pull/14840)) — thanks @fouadSalkini
