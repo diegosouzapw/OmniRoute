@@ -9,6 +9,7 @@ type MemberEgress = {
   port: number;
   egressIp: string | null;
   at: string | null;
+  source?: "operator" | "observed" | null;
 };
 
 type MemberEgressBody = {
@@ -145,7 +146,12 @@ function isMemberEgressBody(value: unknown): value is MemberEgressBody {
       (typeof (member as Record<string, unknown>).egressIp === "string" ||
         (member as Record<string, unknown>).egressIp === null) &&
       (typeof (member as Record<string, unknown>).at === "string" ||
-        (member as Record<string, unknown>).at === null)
+        (member as Record<string, unknown>).at === null) &&
+      // Forward compat: older bodies carry no `source` — accept the absence.
+      ((member as Record<string, unknown>).source === undefined ||
+        (member as Record<string, unknown>).source === null ||
+        (member as Record<string, unknown>).source === "operator" ||
+        (member as Record<string, unknown>).source === "observed")
   );
 }
 
@@ -208,12 +214,19 @@ export function PoolMemberEgressLines({ query }: { query: string }) {
           title={t("poolMemberEgressHint")}
         >
           {member.egressIp
-            ? t("poolMemberEgress", {
-                host: member.host,
-                port: member.port,
-                egressIp: member.egressIp,
-                hours: body.windowHours,
-              })
+            ? member.source === "operator"
+              ? t("poolMemberEgressOperator", {
+                  host: member.host,
+                  port: member.port,
+                  egressIp: member.egressIp,
+                  date: member.at ?? "",
+                })
+              : t("poolMemberEgress", {
+                  host: member.host,
+                  port: member.port,
+                  egressIp: member.egressIp,
+                  hours: body.windowHours,
+                })
             : t("poolMemberEgressEmpty", {
                 host: member.host,
                 port: member.port,
