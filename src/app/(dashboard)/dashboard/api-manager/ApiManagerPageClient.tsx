@@ -28,6 +28,10 @@ import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/s
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { hasProviderQuotaBypassScope } from "@/shared/constants/apiKeyPolicyScopes";
 import { UsageLimitSettings } from "./components/UsageLimitSettings";
+import { SelfServiceQuotaSettings } from "./components/SelfServiceQuotaSettings";
+import { ApiKeyDetailsLink } from "./components/ApiKeyDetailsLink";
+import { quotaProviderOptions, readSelfServiceQuota } from "./selfServiceQuota";
+import type { SelfServiceQuota } from "./selfServiceQuota";
 import { ChaosModeAccessToggle } from "./components/ChaosModeAccessToggle";
 import { BypassProviderQuotaToggle } from "./components/BypassProviderQuotaToggle";
 import { ApiKeyCompressionToggle } from "./components/ApiKeyCompressionToggle";
@@ -119,7 +123,7 @@ interface AccessSchedule {
 
 type StreamDefaultMode = "legacy" | "json";
 
-interface ApiKey {
+interface ApiKey extends Partial<SelfServiceQuota> {
   id: string;
   name: string;
   key: string;
@@ -822,7 +826,8 @@ export default function ApiManagerPageClient() {
     blockedModels: string[],
     chaosModeEnabled: boolean,
     modelAccessMode: "all" | "restricted",
-    connectionAccessMode?: "all" | "restricted"
+    connectionAccessMode?: "all" | "restricted",
+    selfServiceQuota?: SelfServiceQuota
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -899,6 +904,7 @@ export default function ApiManagerPageClient() {
           dailyUsageLimitUsd,
           weeklyUsageLimitUsd,
           chaosModeEnabled,
+          ...selfServiceQuota,
         }),
       });
 
@@ -1382,6 +1388,7 @@ export default function ApiManagerPageClient() {
                     {new Date(key.createdAt).toLocaleDateString()}
                   </div>
                   <div className="col-span-2 flex items-center justify-end gap-1">
+                    <ApiKeyDetailsLink keyId={key.id} keyName={key.name} />
                     <a
                       href={`/dashboard/costs?range=all&apiKeyIds=${encodeURIComponent(key.id)}&groupBy=model`}
                       className="p-2 hover:bg-emerald-500/10 rounded text-text-muted hover:text-emerald-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
@@ -1753,7 +1760,8 @@ const PermissionsModal = memo(function PermissionsModal({
     blockedModels: string[],
     chaosModeEnabled: boolean,
     modelAccessMode: "all" | "restricted",
-    connectionAccessMode?: "all" | "restricted"
+    connectionAccessMode?: "all" | "restricted",
+    selfServiceQuota?: SelfServiceQuota
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -1810,6 +1818,7 @@ const PermissionsModal = memo(function PermissionsModal({
   const [selfAccountQuotaEnabled, setSelfAccountQuotaEnabled] = useState(
     Array.isArray(apiKey?.scopes) && apiKey.scopes.includes(SELF_ACCOUNT_QUOTA_SCOPE)
   );
+  const [selfServiceQuota, setSelfServiceQuota] = useState(() => readSelfServiceQuota(apiKey));
   const [bypassProviderQuotaPolicyEnabled, setBypassProviderQuotaPolicyEnabled] = useState(
     hasProviderQuotaBypassScope(apiKey?.scopes)
   );
@@ -2051,7 +2060,8 @@ const PermissionsModal = memo(function PermissionsModal({
       blockedModels,
       chaosModeEnabled,
       modelAccess.modelAccessMode,
-      allowAllConnections ? "all" : "restricted"
+      allowAllConnections ? "all" : "restricted",
+      selfServiceQuota
     );
   }, [
     onSave,
@@ -2094,6 +2104,7 @@ const PermissionsModal = memo(function PermissionsModal({
     blockedClaudeCodeFamilies,
     initialBlockedModels,
     chaosModeEnabled,
+    selfServiceQuota,
     apiKey?.scopes,
     t,
   ]);
@@ -2685,6 +2696,15 @@ const PermissionsModal = memo(function PermissionsModal({
             {selfAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
           </button>
           <p className="text-xs text-text-muted">{t("sharedAccountQuotaVisibilityDesc")}</p>
+          <SelfServiceQuotaSettings
+            value={selfServiceQuota}
+            onChange={setSelfServiceQuota}
+            showProviderPicker={selfAccountQuotaEnabled}
+            providerOptions={quotaProviderOptions(
+              allConnections,
+              allowAllConnections ? null : selectedConnections
+            )}
+          />
           <button
             type="button"
             role="switch"
