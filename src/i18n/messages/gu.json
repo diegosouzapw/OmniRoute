@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "સબ્સ્ક્રિપ્શનમાંથી કોઈ ઉપયોગી નોડ્સ મળ્યા નથી (http/https/socks5 અથવા લોકલ કોર એન્ડપોઇન્ટવાળા નોડ્સ).",
         "SELECTOR_SWITCH_FAILED": "પ્રોક્સી-કોર નિયંત્રણ કૉલ નિષ્ફળ ગયો; અગાઉનો માર્ગ સક્રિય રહે છે. નિયંત્રણ URL અને સીક્રેટ તપાસો, પછી રિફ્રેશ કરો.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "તમારી પ્રોક્સી સબ્સ્ક્રિપ્શન લિંક પેસ્ટ કરો. એકવાર સક્ષમ થયા પછી, ટ્રાફિકને વૈશ્વિક અથવા નિયમ (ઉલ્લેખિત પ્રદાતા) મોડમાં પ્રોક્સી પૂલ દ્વારા રૂટ કરવામાં આવે છે. સબ્સ્ક્રિપ્શન નોડ્સ પ્રોક્સી પૂલમાં આપમેળે સમન્વયિત થાય છે અને હાલના મતદાન, આરોગ્ય-તપાસ અને એન્ટી-લીક મિકેનિઝમનો ફરીથી ઉપયોગ કરે છે.",
       "addSubscription": "સબ્સ્ક્રિપ્શન ઉમેરો",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "બલ્ક હેલ્થચેક",
     "bulkHealthcheckDesc": "કયા પ્રોક્સી કાર્ય કરે છે તે જાણવા માટે બધા કૉન્ફિગર કરેલા પ્રોક્સીઓને લક્ષ્ય URL સામે ચકાસો.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} નિષ્ક્રિય",
     "dbOverrideCount": "{count} DB ઓવરરાઇડ્સ",
     "searchPlaceholder": "ફ્લેગ્સ શોધો...",
-    "descriptionModeLabel": "વર્ણન દૃશ્ય",
-    "descriptionModeHint": "હોવર પર: કાર્ડ્સ સંક્ષિપ્ત રહે છે અને વર્ણન પર હોવર કરવાથી સંપૂર્ણ લખાણ દેખાય છે. સંપૂર્ણ લખાણ: હંમેશા સંપૂર્ણ વર્ણન બતાવો.",
-    "descriptionModeHover": "હોવર પર",
-    "descriptionModeFull": "સંપૂર્ણ લખાણ",
     "categories": {
       "all": "બધા",
       "security": "સુરક્ષા",

@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Langganan tidak menghasilkan node yang dapat digunakan (http/https/socks5 atau node dengan endpoint core lokal).",
         "SELECTOR_SWITCH_FAILED": "Panggilan kontrol proxy-core gagal; rute sebelumnya tetap aktif. Periksa URL dan secret kontrol, lalu muat ulang.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Tempelkan tautan berlangganan proksi Anda. Setelah diaktifkan, lalu lintas dirutekan melalui kumpulan proksi dalam mode global atau aturan (Penyedia tertentu). Node langganan secara otomatis disinkronkan ke kumpulan proksi dan menggunakan kembali mekanisme polling, pemeriksaan kesehatan, dan anti-kebocoran yang ada.",
       "addSubscription": "Tambahkan Langganan",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Pemeriksaan Kesehatan Massal",
     "bulkHealthcheckDesc": "Uji semua proksi yang dikonfigurasi terhadap URL target untuk mengetahui mana yang berfungsi.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} tidak aktif",
     "dbOverrideCount": "{count} override DB",
     "searchPlaceholder": "Cari flag...",
-    "descriptionModeLabel": "Tampilan deskripsi",
-    "descriptionModeHint": "Saat diarahkan: kartu tetap ringkas dan mengarahkan kursor ke deskripsi akan menampilkan teks lengkap. Teks lengkap: selalu tampilkan deskripsi secara utuh.",
-    "descriptionModeHover": "Saat diarahkan",
-    "descriptionModeFull": "Teks lengkap",
     "categories": {
       "all": "Semua",
       "security": "Keamanan",

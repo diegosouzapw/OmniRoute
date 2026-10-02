@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Abonnementet gav ingen brugbare noder (http/https/socks5 eller noder med et lokalt core-slutpunkt).",
         "SELECTOR_SWITCH_FAILED": "Proxy-coreens styreopkald mislykkedes; den forrige rute forbliver aktiv. Kontrollér styre-URL og hemmelighed, og opdatér derefter.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Indsæt dit proxy-abonnementslink. Når den er aktiveret, dirigeres trafik gennem proxypuljen i global tilstand eller regel (specificeret udbyder). Abonnementsnoder synkroniseres automatisk til proxypuljen og genbruger eksisterende polling-, sundhedstjek- og anti-lækagemekanismer.",
       "addSubscription": "Tilføj abonnement",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Samlet sundhedstjek",
     "bulkHealthcheckDesc": "Test alle konfigurerede proxyer mod en destinations-URL for at finde ud af, hvilke der virker.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} inaktive",
     "dbOverrideCount": "{count} DB-tilsidesættelser",
     "searchPlaceholder": "Søg i flag...",
-    "descriptionModeLabel": "Beskrivelsesvisning",
-    "descriptionModeHint": "Ved markering: Kortene forbliver kompakte, og når markøren holdes over en beskrivelse, vises hele teksten. Fuld tekst: Vis altid hele beskrivelsen.",
-    "descriptionModeHover": "Ved markering",
-    "descriptionModeFull": "Fuld tekst",
     "categories": {
       "all": "Alle",
       "security": "Sikkerhed",

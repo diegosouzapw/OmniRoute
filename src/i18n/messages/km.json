@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "ការជាវនេះមិនមាន node ដែលអាចប្រើបានទេ (http/https/socks5 ឬ node ដែលមានចំណុចបញ្ចប់ local core)។",
         "SELECTOR_SWITCH_FAILED": "ការហៅបញ្ជា proxy-core បានបរាជ័យ; ផ្លូវមុននៅតែសកម្ម។ សូមពិនិត្យ URL និង secret បញ្ជា រួចផ្ទុកឡើងវិញ។",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "បិទភ្ជាប់តំណការជាវប្រូកស៊ីរបស់អ្នក។ នៅពេលបើកដំណើរការ ចរាចរណ៍នឹងត្រូវបានកំណត់ផ្លូវតាមបណ្តុំប្រូកស៊ី ក្នុងរបៀបសកល ឬរបៀបតាមច្បាប់ (Provider ដែលបានបញ្ជាក់)។ node នៃការជាវនឹងត្រូវបានធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិទៅក្នុងបណ្តុំប្រូកស៊ី និងប្រើឡើងវិញនូវយន្តការស្ទង់ពិនិត្យ ការពិនិត្យសុខភាព និងការការពារការលេចធ្លាយដែលមានស្រាប់។",
       "addSubscription": "បន្ថែមការជាវ",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "ការពិនិត្យស្ថានភាពជាក្រុម",
     "bulkHealthcheckDesc": "សាកល្បងប្រូកស៊ីដែលបានកំណត់រចនាសម្ព័ន្ធទាំងអស់ជាមួយ URL គោលដៅ ដើម្បីរកមើលថាតើមួយណាដំណើរការ។",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "អសកម្ម {count}",
     "dbOverrideCount": "ការកំណត់ជំនួស DB ចំនួន {count}",
     "searchPlaceholder": "ស្វែងរកទង់...",
-    "descriptionModeLabel": "ទិដ្ឋភាពពិពណ៌នា",
-    "descriptionModeHint": "ពេលដាក់ព្រួញពីលើ៖ កាតនៅតែបង្រួម ហើយការដាក់ព្រួញពីលើការពិពណ៌នានឹងបង្ហាញអត្ថបទពេញលេញ។ អត្ថបទពេញលេញ៖ បង្ហាញការពិពណ៌នាទាំងស្រុងជានិច្ច។",
-    "descriptionModeHover": "ពេលដាក់ព្រួញពីលើ",
-    "descriptionModeFull": "អត្ថបទពេញលេញ",
     "categories": {
       "all": "ទាំងអស់",
       "security": "សុវត្ថិភាព",

@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Subskrypcja nie zwróciła żadnych użytecznych węzłów (http/https/socks5 lub węzłów z punktem końcowym lokalnego rdzenia).",
         "SELECTOR_SWITCH_FAILED": "Wywołanie sterujące rdzenia proxy nie powiodło się; poprzednia trasa pozostaje aktywna. Sprawdź adres URL i sekret sterowania, a następnie odśwież.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "Wygenerowana konfiguracja nie mogła zastąpić przyjętego pliku; zachowano kopię obok."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Wklej link do subskrypcji proxy. Po włączeniu ruch jest kierowany przez pulę proxy w trybie globalnym lub regułowym (określony dostawca). Węzły subskrypcyjne są automatycznie synchronizowane z pulą proxy i ponownie wykorzystują istniejące mechanizmy odpytywania, sprawdzania stanu i zapobiegania wyciekom.",
       "addSubscription": "Dodaj subskrypcję",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Ścieżka pliku binarnego rdzenia",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opcjonalnie: weryfikuje wygenerowany plik binarką rdzenia przed zastąpieniem przyjętego pliku. Pozostaw puste, aby nadal zapisywać obok. Katalog jest tworzony, gdy go brakuje."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Zbiorczy Healthcheck",
     "bulkHealthcheckDesc": "Testowanie wszystkich skonfigurowanych proxy pod kątem docelowego URL w celu znalezienia działających.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} nieaktywnych",
     "dbOverrideCount": "{count} nadpisań bazy danych",
     "searchPlaceholder": "Wyszukaj flagi...",
-    "descriptionModeLabel": "Widok opisu",
-    "descriptionModeHint": "Po najechaniu: karty pozostają kompaktowe, a najechanie kursorem na opis powoduje wyświetlenie pełnego tekstu. Pełny tekst: zawsze wyświetlaj cały opis.",
-    "descriptionModeHover": "Po najechaniu",
-    "descriptionModeFull": "Pełny tekst",
     "categories": {
       "all": "Wszystkie",
       "security": "Bezpieczeństwo",

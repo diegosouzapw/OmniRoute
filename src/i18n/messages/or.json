@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "ସବସ୍କ୍ରିପ୍ସନ୍ରୁ କୌଣସି ବ୍ୟବହାରଯୋଗ୍ୟ ନୋଡ୍ ମିଳିଲା ନାହିଁ (http/https/socks5 କିମ୍ବା ସ୍ଥାନୀୟ କୋର୍ ଏଣ୍ଡପଏଣ୍ଟ ଥିବା ନୋଡ୍)।",
         "SELECTOR_SWITCH_FAILED": "ପ୍ରୋକ୍ସି-କୋର୍ ନିୟନ୍ତ୍ରଣ କଲ୍ ବିଫଳ ହେଲା; ପୂର୍ବ ମାର୍ଗ ସକ୍ରିୟ ରହେ। ନିୟନ୍ତ୍ରଣ URL ଓ ଗୁପ୍ତ ଯାଞ୍ଚ କରି ରିଫ୍ରେଶ୍ କରନ୍ତୁ।",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "ଆପଣଙ୍କ ପ୍ରକ୍ସି ସବସ୍କ୍ରିପ୍ସନ୍ ଲିଙ୍କ୍ ପେଷ୍ଟ କରନ୍ତୁ। ସକ୍ଷମ ହେବା ପରେ, ଟ୍ରାଫିକ୍ ଗ୍ଲୋବାଲ୍ କିମ୍ବା ନିୟମ (ନିର୍ଦ୍ଦିଷ୍ଟ ପ୍ରଦାନକାରୀ) ମୋଡ୍ରେ ପ୍ରକ୍ସି ପୁଲ୍ ମାଧ୍ୟମରେ ରୁଟ୍ ହୁଏ। ସବସ୍କ୍ରିପ୍ସନ୍ ନୋଡ୍ଗୁଡ଼ିକ ପ୍ରକ୍ସି ପୁଲ୍ରେ ସ୍ୱୟଂଚାଳିତ ଭାବେ ସିଙ୍କ୍ ହୁଏ ଏବଂ ବିଦ୍ୟମାନ ପୋଲିଂ, ସ୍ୱାସ୍ଥ୍ୟ-ଯାଞ୍ଚ ଏବଂ ଆଣ୍ଟି-ଲିକ୍ ବ୍ୟବସ୍ଥାକୁ ପୁନଃବ୍ୟବହାର କରେ।",
       "addSubscription": "ସବସ୍କ୍ରିପ୍ସନ୍ ଯୋଡ଼ନ୍ତୁ",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "ସମୂହ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ",
     "bulkHealthcheckDesc": "କେଉଁଗୁଡ଼ିକ କାର୍ଯ୍ୟ କରୁଛି ଜାଣିବା ପାଇଁ ସମସ୍ତ ବିନ୍ୟାସିତ ପ୍ରକ୍ସିକୁ ଏକ ଲକ୍ଷ୍ୟ URL ସହିତ ପରୀକ୍ଷା କରନ୍ତୁ।",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count}ଟି ନିଷ୍କ୍ରିୟ",
     "dbOverrideCount": "{count}ଟି DB ଓଭରରାଇଡ୍",
     "searchPlaceholder": "ଫ୍ଲାଗ୍ଗୁଡ଼ିକ ଖୋଜନ୍ତୁ...",
-    "descriptionModeLabel": "ବର୍ଣ୍ଣନା ଦୃଶ୍ୟ",
-    "descriptionModeHint": "ହୋଭର୍ କଲେ: କାର୍ଡଗୁଡ଼ିକ ସଂକ୍ଷିପ୍ତ ରହେ ଏବଂ ବର୍ଣ୍ଣନା ଉପରେ ହୋଭର୍ କଲେ ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ ଦେଖାଯାଏ। ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ: ସବୁବେଳେ ପୂର୍ଣ୍ଣ ବର୍ଣ୍ଣନା ଦେଖାନ୍ତୁ।",
-    "descriptionModeHover": "ହୋଭର୍ କଲେ",
-    "descriptionModeFull": "ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ",
     "categories": {
       "all": "ସମସ୍ତ",
       "security": "ସୁରକ୍ଷା",

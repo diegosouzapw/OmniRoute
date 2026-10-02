@@ -41,3 +41,40 @@ means no generation: sync behaves exactly as before.
 - Without any selector group the model stays empty: nodes are neither
   rendered nor listed. The switch reason shows as a generic label (quota,
   unreachable, transport, slow).
+
+  activity is also visible in the application log under [SelectorControl].
+
+- Without any selector group the model stays empty: nodes are neither
+  rendered nor listed. The switch reason shows as a generic label (quota,
+  unreachable, transport, slow).
+
+## Reloading the core after a verified replacement
+
+A replacement only reloads the core when two conditions hold: the verified
+apply step reported `replaced`, and the rendered member digest changed
+(same member tags with different node parameters reload nothing; a
+beside-write without replacement reloads nothing either).
+
+Exactly one reload channel must be declared, in this order:
+
+1. **Control API** — a control URL is set on the subscription and the
+   active core offers an API reload. Only Clash-compatible cores qualify
+   (`PUT <controlUrl>/configs?force=true`, body `{"path": "<file>"}`);
+   sing-box offers no such endpoint and reloads through the command below.
+2. **Command** — `OMNIROUTE_PROXY_CORE_RELOAD_COMMAND` holds a JSON
+   argument array, e.g.
+   `["/usr/bin/systemctl","--user","reload","sing-box"]`. It runs via
+   `execFile` with no shell and a 30 s timeout, so trapped arguments
+   (`$(…)`, spaces) pass through verbatim. Never stored in the database
+   nor exposed via the API.
+3. **External observer** — the same variable holds exactly `external`:
+   nothing runs, the outside watcher applies the file.
+
+With nothing declared after a replacement, the sync stays `ok` with a
+warning naming the three options (warning code CORE_RELOAD_UNDECLARED). A
+failing command keeps the sync `ok` (warning code CORE_RELOAD_FAILED). Reloads are paced at
+most once per 60 s per subscription; a second replacement inside the window
+runs once at the deadline. Deleting the subscription clears its pending
+state. The record exposes `coreReloadMode`
+(`api`/`command`/`external`/`undeclared`, computed, never stored), shown in
+the UI as "Applied by: …". The core is never restarted automatically.

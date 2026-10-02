@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "การสมัครสมาชิกไม่พบโหนดที่ใช้งานได้ (http/https/socks5 หรือโหนดที่มีปลายทาง local core)",
         "SELECTOR_SWITCH_FAILED": "การเรียกควบคุมพร็อกซีคอร์ล้มเหลว เส้นทางเดิมยังคงใช้งานได้ โปรดตรวจสอบ URL และซีเคร็ตควบคุมแล้วรีเฟรช",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "วางลิงก์การสมัครพร็อกซีของคุณ เมื่อเปิดใช้งานแล้ว การรับส่งข้อมูลจะถูกส่งผ่านพร็อกซีพูลในโหมดส่วนกลางหรือโหมดกฎ (ผู้ให้บริการที่ระบุ) โหนดการสมัครใช้งานจะซิงค์กับพร็อกซีพูลโดยอัตโนมัติ และนำกลไกการโพล การตรวจสอบสภาพ และการป้องกันการรั่วไหลที่มีอยู่กลับมาใช้ใหม่",
       "addSubscription": "เพิ่มการสมัครสมาชิก",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "ตรวจสอบสถานะพร้อมกันทั้งหมด",
     "bulkHealthcheckDesc": "ทดสอบพร็อกซีที่กำหนดค่าทั้งหมดกับ URL เป้าหมาย เพื่อค้นหาพร็อกซีที่ใช้งานได้",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} ไม่ได้ใช้งาน",
     "dbOverrideCount": "{count} การแทนที่ DB",
     "searchPlaceholder": "ค้นหาแฟล็ก...",
-    "descriptionModeLabel": "มุมมองคำอธิบาย",
-    "descriptionModeHint": "เมื่อวางเมาส์เหนือ: การ์ดจะยังคงมีขนาดกะทัดรัด และเมื่อวางเมาส์เหนือคำอธิบายจะแสดงข้อความทั้งหมด ข้อความทั้งหมด: แสดงคำอธิบายฉบับสมบูรณ์เสมอ",
-    "descriptionModeHover": "เมื่อวางเมาส์เหนือ",
-    "descriptionModeFull": "ข้อความทั้งหมด",
     "categories": {
       "all": "ทั้งหมด",
       "security": "ความปลอดภัย",

@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Az előfizetés nem eredményezett használható csomópontokat (http/https/socks5 vagy helyi core végponttal rendelkező csomópontok).",
         "SELECTOR_SWITCH_FAILED": "A proxy-core vezérlőhívása sikertelen; az előző útvonal aktív marad. Ellenőrizze a vezérlő URL-t és titkot, majd frissítsen.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Illessze be a proxy előfizetési linkjét. Ha engedélyezve van, a forgalom a proxykészleten keresztül globális vagy szabály (meghatározott szolgáltató) módban kerül átirányításra. Az előfizetési csomópontok automatikusan szinkronizálódnak a proxykészlettel, és újra felhasználják a meglévő lekérdezési, állapot-ellenőrzési és szivárgásgátló mechanizmusokat.",
       "addSubscription": "Előfizetés hozzáadása",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Tömeges állapotellenőrzés",
     "bulkHealthcheckDesc": "Az összes beállított proxy tesztelése egy cél-URL-en annak megállapításához, hogy melyek működnek.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} inaktív",
     "dbOverrideCount": "{count} DB-felülbírálás",
     "searchPlaceholder": "Flag-ek keresése...",
-    "descriptionModeLabel": "Leírásnézet",
-    "descriptionModeHint": "Rámutatáskor: a kártyák kompaktak maradnak, és a leírás fölé mutatva megjelenik a teljes szöveg. Teljes szöveg: mindig a teljes leírás jelenik meg.",
-    "descriptionModeHover": "Rámutatáskor",
-    "descriptionModeFull": "Teljes szöveg",
     "categories": {
       "all": "Összes",
       "security": "Biztonság",

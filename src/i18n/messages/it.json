@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "La sottoscrizione non ha prodotto nodi utilizzabili (http/https/socks5 o nodi con un endpoint del core locale).",
         "SELECTOR_SWITCH_FAILED": "La chiamata di controllo del proxy-core non è riuscita; il percorso precedente resta attivo. Controlla URL e secret di controllo, quindi aggiorna.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "La configurazione generata non ha potuto sostituire il file adottato; è stata conservata la copia accanto."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Incolla il link di iscrizione al proxy. Una volta abilitato, il traffico viene instradato attraverso il pool proxy in modalità globale o regola (provider specificato). I nodi di sottoscrizione vengono automaticamente sincronizzati nel pool proxy e riutilizzano i meccanismi di polling, controllo dello stato e anti-leak esistenti.",
       "addSubscription": "Aggiungi abbonamento",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Percorso del binario del core",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Facoltativo: verifica il file generato con il binario del core prima di sostituire il file adottato. Lasciare vuoto per continuare a scrivere accanto. La directory viene creata se mancante."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Controllo integrità in blocco",
     "bulkHealthcheckDesc": "Testa tutti i proxy configurati con un URL di destinazione per individuare quelli funzionanti.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} inattive",
     "dbOverrideCount": "{count} override del DB",
     "searchPlaceholder": "Cerca flag...",
-    "descriptionModeLabel": "Vista descrizione",
-    "descriptionModeHint": "Al passaggio del mouse: le schede rimangono compatte e passando il mouse su una descrizione viene mostrato il testo completo. Testo completo: mostra sempre la descrizione completa.",
-    "descriptionModeHover": "Al passaggio del mouse",
-    "descriptionModeFull": "Testo completo",
     "categories": {
       "all": "Tutte",
       "security": "Sicurezza",

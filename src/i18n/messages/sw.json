@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Usajili haukutoa nodi zozote zinazoweza kutumika (http/https/socks5 au nodi zilizo na mwisho wa local core).",
         "SELECTOR_SWITCH_FAILED": "Mwito wa kudhibiti wa proxy-core umeshindwa; njia iliyotangulia inaendelea kufanya kazi. Angalia URL na siri ya kudhibiti, kisha onyesha upya.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Bandika kiungo cha usajili wako wa wakala. Mara baada ya kuwezeshwa, trafiki hupitishwa kupitia hifadhi ya seva mbadala katika hali ya kimataifa au sheria (Mtoa huduma aliyebainishwa). Nodi za usajili husawazishwa kiotomatiki kwenye hifadhi ya seva mbadala na kutumia tena mbinu zilizopo za upigaji kura, ukaguzi wa afya na kuzuia kuvuja.",
       "addSubscription": "Ongeza Usajili",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Ukaguzi wa Afya kwa Wingi",
     "bulkHealthcheckDesc": "Jaribu proksi zote zilizosanidiwa dhidi ya URL lengwa ili kubaini zinazofanya kazi.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} zisizo hai",
     "dbOverrideCount": "Ubatilishaji {count} wa DB",
     "searchPlaceholder": "Tafuta bendera...",
-    "descriptionModeLabel": "Mwonekano wa maelezo",
-    "descriptionModeHint": "Unapoelea juu: kadi hubaki fupi na kuelea juu ya maelezo huonyesha maandishi yote. Maandishi yote: huonyesha maelezo kamili kila wakati.",
-    "descriptionModeHover": "Unapoelea juu",
-    "descriptionModeFull": "Maandishi yote",
     "categories": {
       "all": "Zote",
       "security": "Usalama",

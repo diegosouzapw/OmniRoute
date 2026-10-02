@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Abonelik kullanılabilir hiçbir düğüm sağlamadı (http/https/socks5 veya yerel çekirdek uç noktasına sahip düğümler).",
         "SELECTOR_SWITCH_FAILED": "Proxy-core denetim çağrısı başarısız oldu; önceki rota etkin kalır. Denetim URL'sini ve parolasını denetleyip yenileyin.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "Oluşturulan çekirdek yapılandırması benimsenen dosyanın yerine geçemedi; yandaki kopya korundu."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Proxy abonelik bağlantınızı yapıştırın. Etkinleştirildiğinde trafik, genel veya kural (belirtilen Sağlayıcı) modunda proxy havuzu üzerinden yönlendirilir. Abonelik düğümleri otomatik olarak proxy havuzuyla senkronize edilir ve mevcut yoklama, durum kontrolü ve sızıntı önleme mekanizmalarını yeniden kullanır.",
       "addSubscription": "Abonelik Ekle",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Çekirdek ikili yolu",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "İsteğe bağlı: benimsenen dosyayı değiştirmeden önce oluşturulan dosyayı çekirdek ikilisiyle doğrular. Yanına yazmaya devam etmek için boş bırakın. Dizin yoksa oluşturulur."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Toplu Durum Denetimi",
     "bulkHealthcheckDesc": "Hangilerinin çalıştığını belirlemek için yapılandırılmış tüm proxy'leri bir hedef URL ile test edin.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} pasif",
     "dbOverrideCount": "{count} DB geçersiz kılması",
     "searchPlaceholder": "Bayrakları ara...",
-    "descriptionModeLabel": "Açıklama görünümü",
-    "descriptionModeHint": "Üzerine gelindiğinde: Kartlar kompakt kalır ve bir açıklamanın üzerine gelindiğinde metnin tamamı gösterilir. Tam metin: Açıklamanın tamamını her zaman gösterir.",
-    "descriptionModeHover": "Üzerine gelindiğinde",
-    "descriptionModeFull": "Tam metin",
     "categories": {
       "all": "Tümü",
       "security": "Güvenlik",

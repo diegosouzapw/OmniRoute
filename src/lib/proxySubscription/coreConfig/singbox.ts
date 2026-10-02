@@ -14,6 +14,7 @@
  * already shaped for this core, point the subscription at it instead.
  */
 import { OWNED_TAG_PREFIX, type CoreListener, type CoreModel } from "./model";
+import { createHash } from "node:crypto";
 import type { RenderRefused, RenderResult } from "./renderers";
 
 export function isSingBoxShape(value: unknown): value is Record<string, unknown> {
@@ -172,5 +173,8 @@ export function renderSingBox(model: CoreModel, existingText: string | null): Re
   if (route) out.route = route;
 
   const text = `${JSON.stringify(out, null, 2)}\n`;
-  return { ok: true, text, unchanged: text === existingText, skipped };
+  const membersDigest = createHash("sha256")
+    .update([...renderedTags].sort().join("\n"), "utf8")
+    .digest("hex");
+  return { ok: true, text, unchanged: text === existingText, skipped, membersDigest };
 }

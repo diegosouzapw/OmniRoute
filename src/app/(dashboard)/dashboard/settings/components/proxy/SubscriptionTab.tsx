@@ -16,6 +16,7 @@ interface SubscriptionRecord {
   updateIntervalMinutes: number;
   controlUrl: string | null;
   coreConfigPath: string | null;
+  coreReloadMode?: "api" | "command" | "external" | "undeclared" | null;
   hasControlSecret: boolean;
   selectorMinGapSeconds: number;
   selectorLastSwitchAt: string | null;
@@ -618,6 +619,13 @@ export default function SubscriptionTab() {
                   )}
                   {describeSwitch(sub) && (
                     <p className="text-xs text-text-muted mt-1">{describeSwitch(sub)}</p>
+                  )}
+                  {sub.coreConfigPath && (
+                    <p className="text-xs text-text-muted mt-1">
+                      {t("proxySubscription.coreReloadAppliedBy", {
+                        mode: sub.coreReloadMode ?? "undeclared",
+                      })}
+                    </p>
                   )}
                   {showCoreHint && (
                     <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 space-y-1.5">

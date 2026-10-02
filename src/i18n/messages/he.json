@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "המנוי לא הניב צמתים שמישים (http/https/socks5 או צמתים עם נקודת קצה של ליבה מקומית).",
         "SELECTOR_SWITCH_FAILED": "קריאת הבקרה של proxy-core נכשלה; המסלול הקודם נשאר פעיל. בדקו את כתובת הבקרה ואת הסוד, ואז רעננו.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "הדבק את קישור המנוי שלך ל-proxy. לאחר ההפעלה, התעבורה מנותבת דרך מאגר ה-proxy במצב גלובלי או כלל (ספק שצוין). צמתי מנוי מסונכרנים אוטומטית לתוך מאגר ה-proxy ומשתמשים מחדש במנגנוני סקר, בדיקת תקינות ומניעת דליפות קיימים.",
       "addSubscription": "הוסף מנוי",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "בדיקת תקינות מרוכזת",
     "bulkHealthcheckDesc": "בדיקת כל שרתי ה-proxy שהוגדרו מול כתובת URL יעד כדי לגלות אילו מהם פועלים.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} לא פעילים",
     "dbOverrideCount": "{count} דריסות DB",
     "searchPlaceholder": "חיפוש דגלים...",
-    "descriptionModeLabel": "תצוגת תיאור",
-    "descriptionModeHint": "במעבר עכבר: הכרטיסים נשארים קומפקטיים, ומעבר עם העכבר מעל תיאור מציג את הטקסט המלא. טקסט מלא: הצגת התיאור המלא תמיד.",
-    "descriptionModeHover": "במעבר עכבר",
-    "descriptionModeFull": "טקסט מלא",
     "categories": {
       "all": "הכל",
       "security": "אבטחה",

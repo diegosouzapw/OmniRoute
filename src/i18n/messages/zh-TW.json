@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "訂閱未產生可用節點（http/https/socks5 或具有本機 core 端點的節點）。",
         "SELECTOR_SWITCH_FAILED": "代理核心控制呼叫失敗；上一條路由保持有效。請檢查控制 URL 和密鑰，然後重新整理。",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "產生的核心設定無法取代已採用檔案；已保留旁邊副本。"
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "貼上您的代理訂閱連結。啟用後，流量將透過代理程式池以全域或規則（指定提供者）模式路由。訂閱節點會自動同步到代理程式池中，並重複使用現有的輪詢、健康檢查和防洩漏機制。",
       "addSubscription": "新增訂閱",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "核心二進位路徑",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "選用：在取代已採用檔案之前，先以核心二進位檔驗證產生的檔案。留空則繼續寫在旁邊。若目錄不存在會自動建立。"
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "批次健康檢查",
     "bulkHealthcheckDesc": "針對目標 URL 測試所有已設定代理，找出可用代理。",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} 個未啟用",
     "dbOverrideCount": "{count} 個資料庫覆寫",
     "searchPlaceholder": "搜尋旗標...",
-    "descriptionModeLabel": "描述檢視",
-    "descriptionModeHint": "滑鼠懸停時：卡片維持精簡，將滑鼠懸停在描述上即可顯示完整文字。完整文字：一律顯示完整描述。",
-    "descriptionModeHover": "滑鼠懸停時",
-    "descriptionModeFull": "完整文字",
     "categories": {
       "all": "全部",
       "security": "安全性",

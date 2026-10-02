@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "サブスクリプションから使用可能なノードが得られませんでした（http/https/socks5 またはローカルコアエンドポイントを持つノード）。",
         "SELECTOR_SWITCH_FAILED": "プロキシコアの制御呼び出しに失敗しました。以前のルートは有効のままです。制御URLとシークレットを確認してから更新してください。",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "生成されたコア設定は採用ファイルを置換できませんでした。横の複製を保持しました。"
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "プロキシ サブスクリプション リンクを貼り付けます。有効にすると、トラフィックはグローバル モードまたはルール (指定されたプロバイダー) モードでプロキシ プールを介してルーティングされます。サブスクリプション ノードはプロキシ プールに自動的に同期され、既存のポーリング、ヘルスチェック、および漏洩防止メカニズムを再利用します。",
       "addSubscription": "サブスクリプションの追加",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "コアバイナリのパス",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "任意：採用ファイルの置換前に、コアバイナリで生成ファイルを検証します。空欄のままにすると横に書き込み続けます。ディレクトリが無い場合は作成されます。"
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "一括ヘルスチェック",
     "bulkHealthcheckDesc": "設定済みのすべてのプロキシを対象URLに対してテストし、動作するものを確認します。",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} 非アクティブ",
     "dbOverrideCount": "{count} DBオーバーライド",
     "searchPlaceholder": "フラグを検索...",
-    "descriptionModeLabel": "説明表示",
-    "descriptionModeHint": "ホバー時：カードはコンパクトなままで、説明にカーソルを合わせると全文が表示されます。全文：説明全体を常に表示します。",
-    "descriptionModeHover": "ホバー時",
-    "descriptionModeFull": "全文",
     "categories": {
       "all": "すべて",
       "security": "セキュリティ",

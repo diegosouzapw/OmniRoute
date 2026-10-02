@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Pretplata nije dala nijedan upotrebljiv čvor (http/https/socks5 ili čvorove s lokalnom krajnjom točkom za core).",
         "SELECTOR_SWITCH_FAILED": "Upravljački poziv proxy-corea nije uspio; prethodna ruta ostaje aktivna. Provjerite upravljački URL i tajnu, a zatim osvježite.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Zalijepite vezu pretplate za proxy. Nakon omogućavanja promet se usmjerava kroz skup proxyja u globalnom načinu ili načinu pravila (određeni Pružatelj). Čvorovi pretplate automatski se sinkroniziraju sa skupom proxyja i koriste postojeće mehanizme periodičkog dohvaćanja, provjere stanja i sprječavanja curenja.",
       "addSubscription": "Dodaj pretplatu",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Skupna provjera stanja",
     "bulkHealthcheckDesc": "Testirajte sve konfigurirane proxyje na ciljnom URL-u kako biste utvrdili koji rade.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} neaktivnih",
     "dbOverrideCount": "{count} nadjačavanja u DB-u",
     "searchPlaceholder": "Pretraži zastavice...",
-    "descriptionModeLabel": "Prikaz opisa",
-    "descriptionModeHint": "Pri prelasku pokazivačem: kartice ostaju sažete, a prelazak pokazivačem preko opisa prikazuje cijeli tekst. Cijeli tekst: uvijek prikazuje potpuni opis.",
-    "descriptionModeHover": "Pri prelasku pokazivačem",
-    "descriptionModeFull": "Cijeli tekst",
     "categories": {
       "all": "Sve",
       "security": "Sigurnost",

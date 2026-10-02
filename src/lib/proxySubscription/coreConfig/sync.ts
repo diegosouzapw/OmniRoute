@@ -21,6 +21,7 @@ import { applyRendered, type ApplyBesideReason } from "./apply";
 import { buildCoreModel } from "./model";
 import { isCoreBinaryPathAllowed } from "./pathGuard";
 import { DEFAULT_CORE, RENDERERS, type RenderRefused } from "./renderers";
+import { getLastMembersDigest, setLastMembersDigest } from "./reload";
 
 export interface CoreConfigSub {
   coreConfigPath: string | null;
@@ -58,14 +59,14 @@ function renderAndLog(
   sub: CoreConfigSub,
   model: ReturnType<typeof buildCoreModel>,
   existingText: string | null
-): string | null | { text: string } {
+): string | null | { text: string; digest?: string } {
   const target = (sub.coreConfigPath ?? "").trim();
   const renderer = RENDERERS[DEFAULT_CORE];
   const result = renderer(model, existingText);
   if (!result.ok) return warn((result as RenderRefused).reason);
   if (result.unchanged) return null;
   logSkippedCounts(model, result, (sub as { id?: string }).id ?? target);
-  return { text: result.text };
+  return { text: result.text, digest: result.membersDigest };
 }
 
 /**
@@ -80,33 +81,99 @@ function renderAndLog(
  * `<path>.generated` beside it and warns). Without one, the beside-file is
  * written directly as before.
  */
+export interface CoreConfigIntention {
+  /** Sync-side path: `replaced` means the adopted file changed, `none` means no reload call. */
+  status: "replaced" | "none";
+  digestChanged: boolean;
+  configPath: string;
+  membersDigest?: string;
+  warning: string | null;
+}
+
+/** Warning-only wrapper (kept for existing callers and tests). */
 export async function generateForSubscription(
   sub: CoreConfigSub,
   parsed: ParsedSubscription
 ): Promise<string | null> {
+  return (await generateCoreConfigIntention(sub, parsed)).warning;
+}
+
+/**
+ * Render and apply the beside-file for one subscription, returning the reload
+ * intention alongside the warning. After a `replaced` apply with a changed
+ * member digest the caller reloads the core; anything else means no call.
+ * The digest is stored on sight, even when the later reload fails.
+ */
+export async function generateCoreConfigIntention(
+  sub: CoreConfigSub,
+  parsed: ParsedSubscription
+): Promise<CoreConfigIntention> {
+  const blank = (configPath: string): CoreConfigIntention => ({
+    status: "none",
+    digestChanged: false,
+    configPath,
+    warning: null,
+  });
   const target = (sub.coreConfigPath ?? "").trim();
-  if (!target) return null;
+  if (!target) return blank(target);
 
   const existingText = readExisting(target);
-  if (existingText.failed) return warn("read_failed");
+  if (existingText.failed) return { ...blank(target), warning: warn("read_failed") };
 
   const model = buildCoreModel(parseLocalCoreEndpoints(sub.localCoreEndpoint), [
     ...parsed.nodes,
     ...parsed.needsCore,
   ]);
   const rendered = renderAndLog(sub, model, existingText.text);
-  if (typeof rendered === "string") return rendered;
-  if (rendered === null) return null;
+  if (typeof rendered === "string") return { ...blank(target), warning: rendered };
+  if (rendered === null) return blank(target);
+  const digest = typeof rendered.digest === "string" ? rendered.digest : undefined;
 
   const dir = path.dirname(`${target}.generated`);
   try {
-    if (!fs.statSync(dir).isDirectory()) return warn("write_failed");
+    if (!fs.statSync(dir).isDirectory()) return { ...blank(target), warning: warn("write_failed") };
   } catch {
-    return warn("write_failed");
+    return { ...blank(target), warning: warn("write_failed") };
   }
   const binaryPath = configuredCoreBinary(sub.id ?? target);
-  if (binaryPath) return applyVerified(sub, target, binaryPath, rendered.text);
-  return writeBeside(target, rendered.text);
+  if (binaryPath) return finishVerified(sub, target, binaryPath, rendered.text, digest);
+  return finishBeside(sub, target, rendered.text, digest);
+}
+
+/** Record the digest and report the beside-write outcome as an intention. */
+function finishBeside(
+  sub: CoreConfigSub,
+  target: string,
+  text: string,
+  digest: string | undefined
+): CoreConfigIntention {
+  if (sub.id && digest) setLastMembersDigest(sub.id, digest);
+  return {
+    status: "none",
+    digestChanged: false,
+    configPath: target,
+    warning: writeBeside(target, text),
+  };
+}
+
+/** Record the digest and report the verified-apply outcome as an intention. */
+async function finishVerified(
+  sub: CoreConfigSub,
+  target: string,
+  binaryPath: string,
+  renderedText: string,
+  digest: string | undefined
+): Promise<CoreConfigIntention> {
+  const warning = await applyVerified(sub, target, binaryPath, renderedText);
+  const replaced = warning === null;
+  let digestChanged = false;
+  if (replaced && sub.id) {
+    const previous = digest ? getLastMembersDigest(sub.id) : undefined;
+    if (digest) setLastMembersDigest(sub.id, digest);
+    digestChanged = !digest || previous !== digest;
+  }
+  if (!replaced) return { status: "none", digestChanged: false, configPath: target, warning };
+  return { status: "replaced", digestChanged, configPath: target, membersDigest: digest, warning };
 }
 
 /** Host environment variable naming the core binary used for the native check. */

@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Walang naibigay na magagamit na mga node ang subscription (http/https/socks5 o mga node na may lokal na core endpoint).",
         "SELECTOR_SWITCH_FAILED": "Nabigo ang control call ng proxy-core; nananatiling aktibo ang nakaraang ruta. Suriin ang control URL at secret, saka mag-refresh.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "I-paste ang link ng iyong proxy na subscription. Kapag na-enable na, iruruta ang trapiko sa proxy pool sa pandaigdigang mode o panuntunan (tinukoy na Provider). Awtomatikong sini-sync ang mga node ng subscription sa proxy pool at muling ginagamit ang mga umiiral nang mekanismo ng botohan, pagsusuri sa kalusugan, at anti-leak.",
       "addSubscription": "Magdagdag ng Subscription",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Maramihang Pagsusuri sa Kalagayan",
     "bulkHealthcheckDesc": "Subukan ang lahat ng naka-configure na proxy gamit ang isang target na URL upang malaman kung alin ang gumagana.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} hindi aktibo",
     "dbOverrideCount": "{count} na DB override",
     "searchPlaceholder": "Maghanap ng mga flag...",
-    "descriptionModeLabel": "View ng paglalarawan",
-    "descriptionModeHint": "Kapag naka-hover: mananatiling compact ang mga card at makikita ang buong teksto kapag nag-hover sa isang paglalarawan. Buong teksto: palaging ipakita ang kumpletong paglalarawan.",
-    "descriptionModeHover": "Kapag naka-hover",
-    "descriptionModeFull": "Buong teksto",
     "categories": {
       "all": "Lahat",
       "security": "Seguridad",

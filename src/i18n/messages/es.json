@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "La suscripción no produjo ningún nodo utilizable (http/https/socks5 o nodos con un endpoint de núcleo local).",
         "SELECTOR_SWITCH_FAILED": "La llamada de control del proxy-core falló; la ruta anterior sigue activa. Compruebe la URL y el secreto de control y actualice.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "La configuración generada no pudo reemplazar el archivo adoptado; se conservó la copia lateral."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Pegue su enlace de suscripción de proxy. Una vez habilitado, el tráfico se enruta a través del grupo de proxy en modo global o de regla (Proveedor especificado). Los nodos de suscripción se sincronizan automáticamente con el grupo de proxy y reutilizan los mecanismos existentes de sondeo, verificación de estado y antifugas.",
       "addSubscription": "Agregar suscripción",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Ruta del binario del núcleo",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opcional: verifica el archivo generado con el binario del núcleo antes de reemplazar el archivo adoptado. Déjelo vacío para seguir escribiendo al lado. El directorio se crea si falta."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Comprobación de estado masiva",
     "bulkHealthcheckDesc": "Prueba todos los proxies configurados con una URL de destino para determinar cuáles funcionan.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} inactivas",
     "dbOverrideCount": "{count} sobrescrituras de DB",
     "searchPlaceholder": "Buscar flags...",
-    "descriptionModeLabel": "Vista de descripción",
-    "descriptionModeHint": "Al pasar el cursor: las tarjetas permanecen compactas y, al pasar el cursor sobre una descripción, se muestra el texto completo. Texto completo: muestra siempre la descripción completa.",
-    "descriptionModeHover": "Al pasar el cursor",
-    "descriptionModeFull": "Texto completo",
     "categories": {
       "all": "Todas",
       "security": "Seguridad",

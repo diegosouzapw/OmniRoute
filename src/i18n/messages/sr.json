@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Претплата није дала употребљиве чворове (http/https/socks5 или чворове са локалном крајњом тачком језгра).",
         "SELECTOR_SWITCH_FAILED": "Управљачки позив proxy-core-а није успео; претходна рута остаје активна. Проверите управљачки URL и тајну, па освежите.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Налепите везу за прокси претплату. Када се активира, саобраћај се рутира кроз прокси пул у глобалном режиму или режиму правила (одабрани провајдер). Чворови из претплате се аутоматски синхронизују у прокси пул и користе постојеће механизме циклирања, провере исправности и заштите од цурења.",
       "addSubscription": "Додај претплату",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Масовна провера исправности",
     "bulkHealthcheckDesc": "Тестирајте све конфигурисане проксије на циљном URL-у да бисте открили који раде.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} неактивних",
     "dbOverrideCount": "{count} прегажених вредности у DB",
     "searchPlaceholder": "Претражите ознаке...",
-    "descriptionModeLabel": "Приказ описа",
-    "descriptionModeHint": "При преласку курсором: картице остају сажете, а прелазак курсором преко описа приказује цео текст. Цео текст: увек приказује комплетан опис.",
-    "descriptionModeHover": "При преласку курсором",
-    "descriptionModeFull": "Цео текст",
     "categories": {
       "all": "Све",
       "security": "Безбедност",

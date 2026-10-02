@@ -24,7 +24,14 @@ import { randomUUID } from "crypto";
 import fs from "node:fs";
 import { getDbInstance } from "../db/core";
 import { backupDbFile } from "../db/backup";
-import { encrypt } from "../db/encryption";
+import { decrypt, encrypt } from "../db/encryption";
+import {
+  clearCoreReloadState,
+  reloadCore,
+  resolveRecordReloadMode,
+  type SecretProvider,
+} from "./coreConfig/reload";
+import { generateCoreConfigIntention } from "./coreConfig/sync";
 import {
   addProxiesToScopePool,
   bumpProxyRegistryGeneration,
@@ -43,7 +50,6 @@ import { isProxyReachable } from "../proxyHealth";
 import { resolveTargetScopes } from "./scopes";
 import { clampSelectorGapSeconds, setAnyControlUrlConfigured } from "./selectorTrigger";
 import { stripSelectorSuffix } from "./selectorEndpoint";
-import { generateForSubscription } from "./coreConfig/sync";
 import { removeSubscriptionSideFiles } from "./coreConfig/apply";
 import {
   isSubscriptionFetchUrlAllowed,
@@ -72,7 +78,12 @@ export type ProxySubscriptionErrorCode =
   | "NEEDS_CORE_NOT_CONFIGURED"
   | "NO_USABLE_NODES"
   | "SELECTOR_SWITCH_FAILED"
-  | "CORE_CONFIG_NOT_APPLIED";
+  | "CORE_CONFIG_NOT_APPLIED"
+  | "CORE_RELOAD_UNDECLARED"
+  | "CORE_RELOAD_FAILED";
+
+import type { CoreReloadMode as CoreReloadModeValue } from "./coreConfig/reload";
+export type { CoreReloadModeValue };
 
 /** Encode a user-facing error as `{ code, detail? }` for i18n on the client. */
 export function subscriptionErrorCode(code: ProxySubscriptionErrorCode, detail?: string): string {
@@ -200,6 +211,7 @@ function mapSubscriptionRow(row: unknown): ProxySubscriptionRecord {
   return {
     ...readSelectorBase(r),
     ...readControlMeta(r),
+    coreReloadMode: resolveRecordReloadMode(r),
     mode: r.mode === "rule" ? "rule" : "global",
     ruleProviders: parseList(r.rule_providers),
     localCoreEndpoint: typeof r.local_core_endpoint === "string" ? r.local_core_endpoint : null,
@@ -458,6 +470,7 @@ export async function deleteSubscription(id: string): Promise<boolean> {
       // ignore individual failures
     }
   }
+  clearCoreReloadState(id);
   const res = db.prepare("DELETE FROM proxy_subscriptions WHERE id = ?").run(id);
   // Best-effort: remove the side files this subscription owned. A missing
   // or locked file must not fail the delete (row already gone).
@@ -910,8 +923,10 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
   // stale beside-file never goes silent.
   if (sub.coreConfigPath) {
     if (!warning) {
-      const generated = await generateForSubscription(sub, parsed);
-      if (generated) warning = generated;
+      const intention = await generateCoreConfigIntention({ ...sub, id }, parsed);
+      if (intention.warning) warning = intention.warning;
+      else if (intention.status === "replaced" && intention.digestChanged)
+        warning = await reloadAfterReplace(id, sub.controlUrl, intention.configPath);
     } else {
       console.warn(`[ProxySubscription] core config generation skipped for ${id}`);
     }
@@ -988,6 +1003,67 @@ export async function syncSubscription(id: string): Promise<SyncResult> {
   });
   syncInFlight.set(id, run);
   return run;
+}
+
+/** Control secret for one subscription (deferred reloads re-read via this). */
+function readControlSecret(id: string): string | null {
+  try {
+    const row = getDbInstance()
+      .prepare("SELECT control_secret_enc FROM proxy_subscriptions WHERE id = ?")
+      .get(id) as { control_secret_enc?: unknown } | undefined;
+    const enc = row?.control_secret_enc;
+    if (typeof enc !== "string" || !enc) return null;
+    try {
+      const dec = decrypt(enc);
+      return typeof dec === "string" && dec.length > 0 ? dec : null;
+    } catch {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+}
+
+/** Encode a reload failure as a sync warning; the sync itself stays `ok`. */
+function encodeReloadWarning(
+  code: "CORE_RELOAD_FAILED" | "CORE_RELOAD_UNDECLARED",
+  detail?: string
+): string {
+  return JSON.stringify(detail ? { code, detail } : { code });
+}
+
+/**
+ * Reload the core after a verified replacement. The secret is read now and
+ * re-read at a deferred deadline via the async provider. Never throws.
+ */
+async function reloadAfterReplace(
+  subscriptionId: string,
+  controlUrl: string | null,
+  configPath: string
+): Promise<string | null> {
+  const secretProvider: SecretProvider = async () => {
+    try {
+      return readControlSecret(subscriptionId);
+    } catch {
+      return null;
+    }
+  };
+  let outcome;
+  try {
+    outcome = await reloadCore({
+      subscriptionId,
+      controlUrl,
+      secret: readControlSecret(subscriptionId),
+      configPath,
+      secretProvider,
+    });
+  } catch {
+    return encodeReloadWarning("CORE_RELOAD_FAILED", "exit-code");
+  }
+  if (outcome.kind === "undeclared") return encodeReloadWarning("CORE_RELOAD_UNDECLARED");
+  if (outcome.kind === "failed")
+    return encodeReloadWarning("CORE_RELOAD_FAILED", outcome.reason ?? "exit-code");
+  return null;
 }
 
 /** Read the standing switch-failure warning for a subscription, if any.

@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "سبسکرپشن سے کوئی قابل استعمال نوڈز حاصل نہیں ہوئے (http/https/socks5 یا لوکل کور اینڈ پوائنٹ والے نوڈز)۔",
         "SELECTOR_SWITCH_FAILED": "پروکسی-کور کنٹرول کال ناکام رہی؛ پچھلا راستہ فعال رہتا ہے۔ کنٹرول URL اور سیکرٹ چیک کریں، پھر ریفریش کریں۔",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "اپنا پراکسی سبسکرپشن لنک چسپاں کریں۔ ایک بار فعال ہونے کے بعد، ٹریفک کو پراکسی پول کے ذریعے عالمی یا اصول (مخصوص فراہم کنندہ) موڈ میں روٹ کیا جاتا ہے۔ سبسکرپشن نوڈس خود بخود پراکسی پول میں مطابقت پذیر ہو جاتے ہیں اور موجودہ پولنگ، ہیلتھ چیک، اور اینٹی لیک میکانزم کو دوبارہ استعمال کرتے ہیں۔",
       "addSubscription": "سبسکرپشن شامل کریں۔",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "اجتماعی ہیلتھ چیک",
     "bulkHealthcheckDesc": "تمام ترتیب شدہ پراکسیز کو ہدف URL پر جانچیں تاکہ معلوم ہو سکے کہ کون سی کام کرتی ہیں۔",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} غیر فعال",
     "dbOverrideCount": "{count} DB اوور رائیڈز",
     "searchPlaceholder": "فلیگز تلاش کریں...",
-    "descriptionModeLabel": "تفصیل کا منظر",
-    "descriptionModeHint": "ہوور کرنے پر: کارڈز مختصر رہتے ہیں اور تفصیل پر ہوور کرنے سے مکمل متن دکھائی دیتا ہے۔ مکمل متن: ہمیشہ پوری تفصیل دکھائیں۔",
-    "descriptionModeHover": "ہوور کرنے پر",
-    "descriptionModeFull": "مکمل متن",
     "categories": {
       "all": "تمام",
       "security": "سیکیورٹی",

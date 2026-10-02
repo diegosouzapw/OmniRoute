@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "L-abbonament ma pproduċa l-ebda nodu li jista’ jintuża (http/https/socks5 jew nodi b’endpoint ta’ core lokali).",
         "SELECTOR_SWITCH_FAILED": "Is-sejħa ta' kontroll tal-proxy-core falliet; ir-rotta ta' qabel tibqa attiva. Iċċekkja l-URL u s-sigriet tal-kontroll, imbagħad aġġorna.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Waħħal il-link tal-abbonament tal-proxy tiegħek. Ladarba jiġi attivat, it-traffiku jiġi direzzjonat permezz tal-grupp ta’ proxies fil-modalità globali jew tar-regoli (Fornitur speċifikat). In-nodi tal-abbonament jiġu sinkronizzati awtomatikament mal-grupp ta’ proxies u jużaw mill-ġdid il-mekkaniżmi eżistenti ta’ polling, kontroll tas-saħħa u kontra t-tnixxija.",
       "addSubscription": "Żid Abbonament",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Kontroll tas-Saħħa tal-Massa",
     "bulkHealthcheckDesc": "Ittestja l-proxies konfigurati kollha ma' URL fil-mira biex issib liema minnhom jaħdmu.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} inattivi",
     "dbOverrideCount": "{count} sostituzzjonijiet tad-DB",
     "searchPlaceholder": "Fittex fost il-flags...",
-    "descriptionModeLabel": "Dehra tad-deskrizzjoni",
-    "descriptionModeHint": "Meta tgħaddi l-maws fuqha: il-kards jibqgħu kompatti u meta tgħaddi l-maws fuq deskrizzjoni jintwera t-test sħiħ. Test sħiħ: dejjem uri d-deskrizzjoni kompluta.",
-    "descriptionModeHover": "Meta tgħaddi l-maws fuqha",
-    "descriptionModeFull": "Test sħiħ",
     "categories": {
       "all": "Kollha",
       "security": "Sigurtà",

@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Абонаментът не предостави използваеми възли (http/https/socks5 или възли с крайна точка на локалното ядро).",
         "SELECTOR_SWITCH_FAILED": "Контролното извикване на proxy-core се провали; предишният маршрут остава активен. Проверете контролния URL и тайната, след което опреснете.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Поставете вашата връзка за абонамент за прокси. След като бъде активиран, трафикът се насочва през прокси пула в глобален режим или режим на правило (посочен доставчик). Абонаментните възли се синхронизират автоматично в прокси пула и използват повторно съществуващите механизми за анкетиране, проверка на изправността и анти-течове.",
       "addSubscription": "Добавяне на абонамент",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Групова проверка на изправността",
     "bulkHealthcheckDesc": "Тествайте всички конфигурирани проксита спрямо целеви URL адрес, за да установите кои работят.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} неактивни",
     "dbOverrideCount": "{count} DB презаписвания",
     "searchPlaceholder": "Търсене на флагове...",
-    "descriptionModeLabel": "Изглед на описанието",
-    "descriptionModeHint": "При посочване: картите остават компактни, а при посочване върху описание се показва пълният текст. Пълен текст: винаги се показва цялото описание.",
-    "descriptionModeHover": "При посочване",
-    "descriptionModeFull": "Пълен текст",
     "categories": {
       "all": "Всички",
       "security": "Сигурност",

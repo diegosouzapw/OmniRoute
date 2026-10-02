@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "စာရင်းသွင်းမှုမှ အသုံးပြုနိုင်သော node များ မရရှိပါ (http/https/socks5 သို့မဟုတ် စက်တွင်း core endpoint ပါသော node များ)။",
         "SELECTOR_SWITCH_FAILED": "proxy-core ထိန်းချုပ်ခေါ်ဆိုမှု မအောင်မြင်ပါ။ ယခင်လမ်းကြောင်းဆက်လက်အသက်ဝင်နေသည်။ ထိန်းချုပ် URL နှင့် လျှို့ဝှက်ချက်စစ်ဆေးပြီး ပြန်လည်ဆန်းသစ်ပါ။",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "သင့် proxy စာရင်းသွင်းမှုလင့်ခ်ကို ကူးထည့်ပါ။ ဖွင့်ပြီးသည်နှင့် အသွားအလာကို ကမ္ဘာလုံးဆိုင်ရာ သို့မဟုတ် စည်းမျဉ်း (သတ်မှတ်ထားသော Provider) မုဒ်တွင် proxy အစုမှတစ်ဆင့် လမ်းကြောင်းပို့မည်။ စာရင်းသွင်းမှု node များကို proxy အစုထဲသို့ အလိုအလျောက် ထပ်တူပြုပြီး လက်ရှိ polling၊ အခြေအနေစစ်ဆေးမှုနှင့် ယိုစိမ့်မှုတားဆီးရေး ယန္တရားများကို ပြန်လည်အသုံးပြုမည်။",
       "addSubscription": "စာရင်းသွင်းမှု ထည့်ရန်",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "အစုလိုက် အခြေအနေစစ်ဆေးမှု",
     "bulkHealthcheckDesc": "အလုပ်လုပ်သည့် ပရောက်စီများကို ရှာဖွေရန် စီစဉ်သတ်မှတ်ထားသော ပရောက်စီအားလုံးကို ပစ်မှတ် URL တစ်ခုဖြင့် စမ်းသပ်ပါ။",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} ခု ပိတ်ထားသည်",
     "dbOverrideCount": "DB အစားထိုးသတ်မှတ်ချက် {count} ခု",
     "searchPlaceholder": "အလံများကို ရှာဖွေပါ...",
-    "descriptionModeLabel": "ဖော်ပြချက် မြင်ကွင်း",
-    "descriptionModeHint": "မောက်စ်တင်သည့်အခါ- ကတ်များကို ကျစ်လျစ်စွာထားပြီး ဖော်ပြချက်တစ်ခုပေါ် မောက်စ်တင်ပါက စာသားအပြည့်အစုံကို ပြသသည်။ စာသားအပြည့်အစုံ- ဖော်ပြချက်အပြည့်အစုံကို အမြဲပြသသည်။",
-    "descriptionModeHover": "မောက်စ်တင်သည့်အခါ",
-    "descriptionModeFull": "စာသားအပြည့်အစုံ",
     "categories": {
       "all": "အားလုံး",
       "security": "လုံခြုံရေး",

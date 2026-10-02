@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "సబ్‌స్క్రిప్షన్ ఉపయోగించదగిన నోడ్‌లను దేనినీ అందించలేదు (http/https/socks5 లేదా లోకల్ కోర్ ఎండ్‌పాయింట్ కలిగిన నోడ్‌లు).",
         "SELECTOR_SWITCH_FAILED": "ప్రాక్సీ-కోర్ నియంత్రణ కాల్ విఫలమైంది; మునుపటి మార్గం చురుకుగా ఉంటుంది. నియంత్రణ URL మరియు రహస్యాన్ని తనిఖీ చేసి రిఫ్రెష్ చేయండి.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "మీ ప్రాక్సీ సబ్‌స్క్రిప్షన్ లింక్‌ను అతికించండి. ప్రారంభించిన తర్వాత, ట్రాఫిక్ గ్లోబల్ లేదా రూల్ (పేర్కొన్న ప్రొవైడర్) మోడ్‌లో ప్రాక్సీ పూల్ ద్వారా మళ్లించబడుతుంది. సబ్‌స్క్రిప్షన్ నోడ్‌లు స్వయంచాలకంగా ప్రాక్సీ పూల్‌లోకి సమకాలీకరించబడతాయి మరియు ఇప్పటికే ఉన్న పోలింగ్, ఆరోగ్య తనిఖీ మరియు యాంటీ లీక్ మెకానిజమ్‌లను మళ్లీ ఉపయోగిస్తాయి.",
       "addSubscription": "సభ్యత్వాన్ని జోడించండి",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "బల్క్ హెల్త్చెక్",
     "bulkHealthcheckDesc": "పనిచేసే ప్రాక్సీలను గుర్తించడానికి కాన్ఫిగర్ చేసిన అన్ని ప్రాక్సీలను లక్ష్య URLతో పరీక్షించండి.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} ఇన్‌యాక్టివ్",
     "dbOverrideCount": "{count} DB ఓవర్‌రైడ్‌లు",
     "searchPlaceholder": "ఫ్లాగ్‌లను శోధించండి...",
-    "descriptionModeLabel": "వివరణ వీక్షణ",
-    "descriptionModeHint": "హోవర్ చేసినప్పుడు: కార్డ్లు సంక్షిప్తంగా ఉంటాయి మరియు వివరణపై హోవర్ చేస్తే పూర్తి వచనం కనిపిస్తుంది. పూర్తి వచనం: ఎల్లప్పుడూ సంపూర్ణ వివరణను చూపుతుంది.",
-    "descriptionModeHover": "హోవర్ చేసినప్పుడు",
-    "descriptionModeFull": "పూర్తి వచనం",
     "categories": {
       "all": "అన్నీ",
       "security": "భద్రత",

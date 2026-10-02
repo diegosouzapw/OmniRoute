@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Abonements nenodrošināja nevienu izmantojamu mezglu (http/https/socks5 vai mezglus ar vietējā kodola galapunktu).",
         "SELECTOR_SWITCH_FAILED": "Starpniekservera kodola vadības izsaukums neizdevās; iepriekšējais maršruts paliek aktīvs. Pārbaudiet vadības URL un noslēpumu, pēc tam atsvaidziniet.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Ielīmējiet savu proxy abonementa saiti. Pēc iespējošanas datplūsma tiek maršrutēta caur proxy kopu globālajā vai kārtulu režīmā (norādītajiem pakalpojumu sniedzējiem). Abonementa mezgli tiek automātiski sinhronizēti ar proxy kopu un izmanto esošos aptaujas, darbspējas pārbaudes un aizsardzības pret noplūdēm mehānismus.",
       "addSubscription": "Pievienot abonementu",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Masveida darbspējas pārbaude",
     "bulkHealthcheckDesc": "Pārbaudi visus konfigurētos starpniekserverus, izmantojot mērķa URL, lai noskaidrotu, kuri darbojas.",

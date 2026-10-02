@@ -12,6 +12,8 @@ export type RenderOk = {
   text: string;
   unchanged: boolean;
   skipped: Array<{ node: string; reason: string }>;
+  /** Stable digest of the rendered member tags (tags only, never parameters). */
+  membersDigest?: string;
 };
 
 export type RenderRefused = {
@@ -21,10 +23,13 @@ export type RenderRefused = {
 
 export type RenderResult = RenderOk | RenderRefused;
 
-export type CoreRenderer = (model: CoreModel, existingText: string | null) => RenderResult;
+export type CoreRenderer = ((model: CoreModel, existingText: string | null) => RenderResult) & {
+  /** Whether this core offers an HTTP config-reload API. Defaults to false. */
+  apiReload?: boolean;
+};
 
 export const RENDERERS: Record<string, CoreRenderer> = {
-  "sing-box": renderSingBox,
+  "sing-box": Object.assign(renderSingBox, { apiReload: false as const }),
 };
 
 /** Core rendered when a subscription doesn't name one (only entry so far). */

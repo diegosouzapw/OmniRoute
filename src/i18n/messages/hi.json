@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "सदस्यता से कोई उपयोगी नोड्स प्राप्त नहीं हुए (http/https/socks5 या स्थानीय कोर एंडपॉइंट वाले नोड्स)।",
         "SELECTOR_SWITCH_FAILED": "प्रॉक्सी-कोर नियंत्रण कॉल विफल रहा; पिछला मार्ग सक्रिय रहता है। नियंत्रण URL और सीक्रेट जाँचें, फिर रीफ़्रेश करें।",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "जनरेट किया गया कोर कॉन्फ़िगरेशन अपनाई गई फ़ाइल को बदल नहीं सका; बगल की प्रति रखी गई।"
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "अपना प्रॉक्सी सदस्यता लिंक चिपकाएँ. एक बार सक्षम होने पर, ट्रैफ़िक को प्रॉक्सी पूल के माध्यम से वैश्विक या नियम (निर्दिष्ट प्रदाता) मोड में रूट किया जाता है। सदस्यता नोड्स स्वचालित रूप से प्रॉक्सी पूल में सिंक हो जाते हैं और मौजूदा मतदान, स्वास्थ्य-जांच और एंटी-लीक तंत्र का पुन: उपयोग करते हैं।",
       "addSubscription": "सदस्यता जोड़ें",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "कोर बाइनरी पथ",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "वैकल्पिक: अपनाई गई फ़ाइल को बदलने से पहले कोर बाइनरी से जनरेट की गई फ़ाइल सत्यापित करता है। बगल में लिखना जारी रखने के लिए खाली छोड़ें। निर्देशिका अनुपस्थित होने पर बनाई जाती है।"
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "सामूहिक स्वास्थ्य जाँच",
     "bulkHealthcheckDesc": "यह पता लगाने के लिए कि कौन-से प्रॉक्सी काम करते हैं, सभी कॉन्फ़िगर किए गए प्रॉक्सी का लक्ष्य URL के विरुद्ध परीक्षण करें।",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} निष्क्रिय",
     "dbOverrideCount": "{count} DB ओवरराइड",
     "searchPlaceholder": "फ़्लैग खोजें...",
-    "descriptionModeLabel": "विवरण दृश्य",
-    "descriptionModeHint": "होवर करने पर: कार्ड संक्षिप्त रहते हैं और किसी विवरण पर होवर करने से पूरा टेक्स्ट दिखाई देता है। पूरा टेक्स्ट: हमेशा संपूर्ण विवरण दिखाएँ।",
-    "descriptionModeHover": "होवर करने पर",
-    "descriptionModeFull": "पूरा टेक्स्ट",
     "categories": {
       "all": "सभी",
       "security": "सुरक्षा",

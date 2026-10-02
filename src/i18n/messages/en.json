@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Subscription yielded no usable nodes (http/https/socks5 or nodes with a local core endpoint).",
         "SELECTOR_SWITCH_FAILED": "The proxy-core control call failed; the previous route stays active. Check the control URL and secret, then refresh.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Paste your proxy subscription link. Once enabled, traffic is routed through the proxy pool in global or rule (specified Provider) mode. Subscription nodes are automatically synced into the proxy pool and reuse existing polling, health-check, and anti-leak mechanisms.",
       "addSubscription": "Add Subscription",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Bulk Healthcheck",
     "bulkHealthcheckDesc": "Test all configured proxies against a target URL to find which ones work.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} inactive",
     "dbOverrideCount": "{count} DB overrides",
     "searchPlaceholder": "Search flags...",
-    "descriptionModeLabel": "Description view",
-    "descriptionModeHint": "On hover: cards stay compact and hovering a description shows the full text. Full text: always show the complete description.",
-    "descriptionModeHover": "On hover",
-    "descriptionModeFull": "Full text",
     "categories": {
       "all": "All",
       "security": "Security",

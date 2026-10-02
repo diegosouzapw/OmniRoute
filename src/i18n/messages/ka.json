@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "გამოწერამ გამოსაყენებელი კვანძები ვერ დააბრუნა (http/https/socks5 ან ლოკალური ბირთვის საბოლოო წერტილის მქონე კვანძები).",
         "SELECTOR_SWITCH_FAILED": "პროქსი-ბირთვის სამართავი ზარი ვერ შესრულდა; წინა მარშრუტი აქტიური რჩება. შეამოწმეთ სამართავი URL და საიდუმლო, შემდეგ განაახლეთ.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "ჩასვით თქვენი პროქსი-გამოწერის ბმული. ჩართვის შემდეგ ტრაფიკი პროქსი-პულის გავლით გლობალურ ან წესების (მითითებული პროვაიდერის) რეჟიმში მარშრუტიზდება. გამოწერის კვანძები ავტომატურად სინქრონდება პროქსი-პულში და იყენებს არსებულ პერიოდული შემოწმების, მდგომარეობის შემოწმებისა და გაჟონვის საწინააღმდეგო მექანიზმებს.",
       "addSubscription": "გამოწერის დამატება",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "ხელმისაწვდომობის მასობრივი შემოწმება",
     "bulkHealthcheckDesc": "შეამოწმეთ ყველა კონფიგურირებული პროქსი სამიზნე URL-თან მიმართებით, რათა დაადგინოთ, რომელი მუშაობს.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} არააქტიური",
     "dbOverrideCount": "{count} DB-ის გადაფარვა",
     "searchPlaceholder": "ალმების ძიება...",
-    "descriptionModeLabel": "აღწერილობის ხედი",
-    "descriptionModeHint": "მაუსის გადატარებისას: ბარათები კომპაქტური რჩება, ხოლო აღწერილობაზე მაუსის გადატარებისას სრული ტექსტი გამოჩნდება. სრული ტექსტი: ყოველთვის გამოჩნდეს სრული აღწერილობა.",
-    "descriptionModeHover": "მაუსის გადატარებისას",
-    "descriptionModeFull": "სრული ტექსტი",
     "categories": {
       "all": "ყველა",
       "security": "უსაფრთხოება",

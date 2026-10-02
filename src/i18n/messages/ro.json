@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Abonamentul nu a returnat noduri utilizabile (http/https/socks5 sau noduri cu un endpoint local-core).",
         "SELECTOR_SWITCH_FAILED": "Apelul de control al proxy-core a eșuat; ruta anterioară rămâne activă. Verificați URL-ul și secretul de control, apoi reîmprospătați.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Lipiți linkul de abonare proxy. Odată activat, traficul este direcționat prin grupul de proxy în modul global sau cu reguli (furnizor specificat). Nodurile de abonament sunt sincronizate automat în pool-ul de proxy și reutilizează mecanismele existente de sondare, verificare a stării de sănătate și anti-scurgere.",
       "addSubscription": "Adăugați abonament",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Core binary path",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Verificare în bloc a stării",
     "bulkHealthcheckDesc": "Testează toate proxy-urile configurate folosind un URL țintă pentru a identifica proxy-urile funcționale.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} inactive",
     "dbOverrideCount": "{count} suprascrieri DB",
     "searchPlaceholder": "Caută flaguri...",
-    "descriptionModeLabel": "Vizualizare descriere",
-    "descriptionModeHint": "La trecerea cursorului: cardurile rămân compacte, iar trecerea cursorului peste o descriere afișează textul integral. Text integral: afișează întotdeauna descrierea completă.",
-    "descriptionModeHover": "La trecerea cursorului",
-    "descriptionModeFull": "Text integral",
     "categories": {
       "all": "Toate",
       "security": "Securitate",

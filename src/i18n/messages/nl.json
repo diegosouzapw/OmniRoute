@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Abonnement heeft geen bruikbare nodes opgeleverd (http/https/socks5 of nodes met een lokaal core-eindpunt).",
         "SELECTOR_SWITCH_FAILED": "De besturingsaanroep van de proxy-core is mislukt; de vorige route blijft actief. Controleer de besturings-URL en het geheim en vernieuw daarna.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "De gegenereerde kernconfiguratie kon het overgenomen bestand niet vervangen; de kopie ernaast is behouden."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Plak uw proxy-abonnementslink. Eenmaal ingeschakeld, wordt het verkeer door de proxypool gerouteerd in de globale of regelmodus (gespecificeerde provider). Abonnementknooppunten worden automatisch gesynchroniseerd met de proxypool en hergebruiken bestaande polling-, statuscheck- en anti-lekmechanismen.",
       "addSubscription": "Abonnement toevoegen",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Binair pad van de kern",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optioneel: verifieert het gegenereerde bestand met het kernbinair bestand voordat het overgenomen bestand wordt vervangen. Laat leeg om ernaast te blijven schrijven. De map wordt aangemaakt als deze ontbreekt."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Bulkstatuscontrole",
     "bulkHealthcheckDesc": "Test alle geconfigureerde proxy's met een doel-URL om te bepalen welke werken.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} inactief",
     "dbOverrideCount": "{count} DB-overrides",
     "searchPlaceholder": "Flags zoeken...",
-    "descriptionModeLabel": "Beschrijvingweergave",
-    "descriptionModeHint": "Bij aanwijzen: kaarten blijven compact en wanneer u de aanwijzer op een beschrijving plaatst, wordt de volledige tekst weergegeven. Volledige tekst: toon altijd de complete beschrijving.",
-    "descriptionModeHover": "Bij aanwijzen",
-    "descriptionModeFull": "Volledige tekst",
     "categories": {
       "all": "Alles",
       "security": "Beveiliging",

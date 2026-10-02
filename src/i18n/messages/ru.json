@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "Подписка не вернула доступных узлов (http/https/socks5 или узлов с локальным эндпоинтом ядра).",
         "SELECTOR_SWITCH_FAILED": "Вызов управления прокси-ядра не удался; предыдущий маршрут остаётся активным. Проверьте URL и секрет управления, затем обновите.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "Сгенерированная конфигурация не смогла заменить принятый файл; соседняя копия сохранена."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Вставьте ссылку на подписку на прокси. После включения трафик маршрутизируется через пул прокси-серверов в глобальном режиме или режиме правила (указанного поставщика). Узлы подписки автоматически синхронизируются с пулом прокси-серверов и повторно используют существующие механизмы опроса, проверки работоспособности и защиты от утечек.",
       "addSubscription": "Добавить подписку",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "Путь к бинарному файлу ядра",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Необязательно: проверяет сгенерированный файл бинарным файлом ядра перед заменой принятого файла. Оставьте пустым, чтобы продолжать записывать рядом. Каталог создаётся при отсутствии."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Массовая проверка здоровья",
     "bulkHealthcheckDesc": "Проверьте все настроенные прокси по целевому URL, чтобы определить рабочие.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} неактивных",
     "dbOverrideCount": "{count} переопределений в БД",
     "searchPlaceholder": "Поиск флагов...",
-    "descriptionModeLabel": "Вид описания",
-    "descriptionModeHint": "При наведении: карточки остаются компактными, а при наведении на описание отображается полный текст. Полный текст: всегда показывать описание целиком.",
-    "descriptionModeHover": "При наведении",
-    "descriptionModeFull": "Полный текст",
     "categories": {
       "all": "Все",
       "security": "Безопасность",

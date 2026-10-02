@@ -6875,7 +6875,8 @@
         "NO_USABLE_NODES": "لم ينتج عن الاشتراك أي عقد صالحة للاستخدام (http/https/socks5 أو عقد تحتوي على نقطة نهاية للنواة المحلية).",
         "SELECTOR_SWITCH_FAILED": "فشل استدعاء التحكم في نواة الوكيل؛ ويظل المسار السابق نشطًا. تحقق من عنوان URL والسر الخاص بالتحكم، ثم حدّث.",
         "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
-        "CORE_CONFIG_NOT_APPLIED": "تعذّر استبدال الملف المعتمد بالتكوين المُولّد؛ تم الاحتفاظ بالنسخة الجانبية."
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "الصق رابط اشتراك الوكيل الخاص بك. بمجرد التمكين، يتم توجيه حركة المرور عبر تجمع الوكيل في الوضع العام أو وضع القاعدة (الموفر المحدد). تتم مزامنة عقد الاشتراك تلقائيًا في تجمع الوكيل وإعادة استخدام آليات الاستقصاء والفحص الصحي ومكافحة التسرب الموجودة.",
       "addSubscription": "إضافة الاشتراك",
@@ -6972,9 +6973,7 @@
         "transport": "transport",
         "slow": "slow"
       },
-      "coreBinaryPath": "مسار ثنائية النواة",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "اختياري: يتحقق من الملف المُولّد باستخدام ثنائية النواة قبل استبدال الملف المعتمد. اتركه فارغًا للاستمرار في الكتابة بجانبه. يُنشأ الدليل عند غيابه."
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "الفحص الصحي بالجملة",
     "bulkHealthcheckDesc": "اختبر جميع الوكلاء الذين تم تكوينهم مقابل عنوان URL المستهدف للعثور على الوكلاء الذين يعملون.",
@@ -13067,10 +13066,6 @@
     "inactiveCount": "{count} غير نشط",
     "dbOverrideCount": "{count} من تجاوزات قاعدة البيانات",
     "searchPlaceholder": "البحث في العلامات...",
-    "descriptionModeLabel": "عرض الوصف",
-    "descriptionModeHint": "عند التمرير: تظل البطاقات مضغوطة، ويؤدي تمرير المؤشر فوق الوصف إلى عرض النص كاملًا. النص الكامل: عرض الوصف كاملًا دائمًا.",
-    "descriptionModeHover": "عند التمرير",
-    "descriptionModeFull": "النص الكامل",
     "categories": {
       "all": "الكل",
       "security": "الأمان",
