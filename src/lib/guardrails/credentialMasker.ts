@@ -21,6 +21,15 @@ export interface CredentialRedactionResult {
   modified: boolean;
 }
 
+/** Credential redaction switch shared by the pre/post-call hooks and stored session turns. */
+export async function isCredentialRedactionEnabled(): Promise<boolean> {
+  const settings = await getSettings();
+  return (
+    settings.credentialRedactionEnabled === true ||
+    process.env.CREDENTIAL_REDACTION_ENABLED === "true"
+  );
+}
+
 export function redactCredentials(text: string): CredentialRedactionResult {
   if (typeof text !== "string" || !text) return { text, detections: [], modified: false };
   let result = text;
@@ -139,11 +148,7 @@ export class CredentialMaskerGuardrail extends BaseGuardrail {
     payload: unknown,
     _context: GuardrailContext
   ): Promise<GuardrailResult<unknown> | void> {
-    const _s = await getSettings();
-    if (!(
-      _s.credentialRedactionEnabled === true || process.env.CREDENTIAL_REDACTION_ENABLED === "true"
-    ))
-      return { block: false };
+    if (!(await isCredentialRedactionEnabled())) return { block: false };
     const detections: Array<{ type: string; count: number }> = [];
     const { modified, payload: next } = redactPayload(payload, detections);
     if (!modified) return { block: false };
@@ -158,11 +163,7 @@ export class CredentialMaskerGuardrail extends BaseGuardrail {
     response: unknown,
     _context: GuardrailContext
   ): Promise<GuardrailResult<unknown> | void> {
-    const _s = await getSettings();
-    if (!(
-      _s.credentialRedactionEnabled === true || process.env.CREDENTIAL_REDACTION_ENABLED === "true"
-    ))
-      return { block: false };
+    if (!(await isCredentialRedactionEnabled())) return { block: false };
     const detections: Array<{ type: string; count: number }> = [];
     const { modified, response: next } = redactResponse(response, detections);
     if (!modified) return { block: false };

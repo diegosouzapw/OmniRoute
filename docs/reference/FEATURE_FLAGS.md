@@ -46,7 +46,7 @@ A boolean flag is considered **enabled** when its effective value is `"true"`,
 
 ## Flag Catalog
 
-80 flags across 6 categories. **Default** is the definition default — the value
+81 flags across 6 categories. **Default** is the definition default — the value
 used when neither a DB override nor an environment variable is present.
 
 ### Security (10)
@@ -91,15 +91,16 @@ used when neither a DB override nor an environment variable is present.
 | `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`           | boolean | `true`  |         | Allow adding/validating providers on local/private addresses (127.0.0.1, localhost, LAN). On by default (local-first); disable for strict public-only blocking. Cloud-metadata stays blocked.                                                                                                                                                                                                                                                           |
 | `ENABLE_CC_COMPATIBLE_PROVIDER`                 | boolean | `false` | ✓       | Enable Claude Code compatible provider mode.                                                                                                                                                                                                                                                                                                                                                                                                            |
 
-### Policies (5)
+### Policies (6)
 
-| Key                             | Type    | Default    | Description                                                                                                                                                                                                                      |
-| ------------------------------- | ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TOOL_POLICY_MODE`              | enum    | `disabled` | Tool-use policy enforcement mode. Values: `disabled`, `warn`, `block`.                                                                                                                                                           |
-| `RATE_LIMIT_AUTO_ENABLE`        | boolean | `false`    | Automatically enable rate limiting based on usage patterns.                                                                                                                                                                      |
-| `DISABLE_CONTEXT_WINDOW_CHECKS` | boolean | `false`    | Skip OmniRoute's local context-window / max-input-token check for direct single-model requests. Upstream limits still apply.                                                                                                     |
-| `CAPABILITY_FILTER_ENABLED`     | boolean | `false`    | Reject requests before dispatch when the target model lacks required capabilities (vision, tools, structured output, context window). Protects direct single-provider requests that bypass the combo-layer compatibility filter. |
-| `RADAR_ENABLED`                 | boolean | `false`    | Enable the OmniRoute Radar module (catalog feed screens and sync). Off by default; enabling only unlocks the UI — data sync remains a separate opt-in.                                                                           |
+| Key                              | Type    | Default    | Description                                                                                                                                                                                                                                            |
+| -------------------------------- | ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `TOOL_POLICY_MODE`               | enum    | `disabled` | Tool-use policy enforcement mode. Values: `disabled`, `warn`, `block`.                                                                                                                                                                                 |
+| `RATE_LIMIT_AUTO_ENABLE`         | boolean | `false`    | Automatically enable rate limiting based on usage patterns.                                                                                                                                                                                            |
+| `DISABLE_CONTEXT_WINDOW_CHECKS`  | boolean | `false`    | Skip OmniRoute's local context-window / max-input-token check for direct single-model requests. Upstream limits still apply.                                                                                                                           |
+| `CAPABILITY_FILTER_ENABLED`      | boolean | `false`    | Reject requests before dispatch when the target model lacks required capabilities (vision, tools, structured output, context window). Protects direct single-provider requests that bypass the combo-layer compatibility filter.                       |
+| `RADAR_ENABLED`                  | boolean | `false`    | Enable the OmniRoute Radar module (catalog feed screens and sync). Off by default; enabling only unlocks the UI — data sync remains a separate opt-in.                                                                                                 |
+| `AGENT_SESSION_MESSAGES_ENABLED` | boolean | `false`    | Capture simplified conversation turns (user prompt, assistant response, called tools) for coding-agent sessions and expose them through `GET /v1/me/sessions/{id}/messages` to the session owner. Off by default. Never captured for `noLog` API keys. |
 
 ### Runtime (33)
 

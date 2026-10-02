@@ -11,7 +11,7 @@ type PiiDetection = {
 
 type JsonRecord = Record<string, unknown>;
 
-function isRequestPiiMaskingEnabled() {
+export function isRequestPiiMaskingEnabled() {
   // Request PII redaction is controlled by PII_REDACTION_ENABLED feature flag (DB > env > default).
   // INPUT_SANITIZER_MODE only governs prompt-injection policy (warn/block/log).
   return isFeatureFlagEnabled("PII_REDACTION_ENABLED");

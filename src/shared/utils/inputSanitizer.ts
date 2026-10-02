@@ -206,7 +206,7 @@ function collectPartText(part, contents) {
 }
 
 function extractMessageContents(body) {
-  const contents = [];
+  const contents: string[] = [];
 
   const messageSource = body.messages !== undefined ? body.messages : body.input;
   const messages = Array.isArray(messageSource)
@@ -283,7 +283,7 @@ function buildInjectionScanText(text) {
  * @returns {Array<{pattern: string, severity: string, match: string}>}
  */
 function detectInjection(text) {
-  const detections = [];
+  const detections: Array<{ pattern: string; severity: string; match: string }> = [];
   const scanText = buildInjectionScanText(text);
   for (const rule of INJECTION_PATTERNS) {
     const match = scanText.match(rule.pattern);
@@ -305,7 +305,7 @@ function detectInjection(text) {
  * @returns {{ text: string, detections: Array<{type: string, count: number}> }}
  */
 function processPII(text, redact = false) {
-  const detections = [];
+  const detections: Array<{ type: string; count: number }> = [];
   let processed = text;
 
   for (const rule of PII_PATTERNS) {
@@ -331,7 +331,13 @@ function processPII(text, redact = false) {
 export function sanitizeRequest(body, logger = console) {
   const config = getConfig();
 
-  const result = {
+  const result: {
+    blocked: boolean;
+    modified: boolean;
+    detections: Array<{ pattern: string; severity: string; match: string }>;
+    piiDetections: Array<{ type: string; count: number }>;
+    sanitizedBody: Record<string, unknown> | null;
+  } = {
     blocked: false,
     modified: false,
     detections: [],
