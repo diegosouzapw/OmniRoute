@@ -11,9 +11,10 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-// Import Card/Toggle from their direct module paths rather than the @/shared/components
+// Import Card/Toggle/Button from their direct module paths rather than the @/shared/components
 // barrel: the barrel transitively pulls a heavy/Node-only module that hangs the
 // vitest/jsdom component test. Direct imports resolve identically under Next.js.
+import Button from "@/shared/components/Button";
 import Card from "@/shared/components/Card";
 import Toggle from "@/shared/components/Toggle";
 import {
@@ -206,6 +207,7 @@ function AdaptiveContextBudgetDial({
 
 export default function CompressionPanel() {
   const t = useTranslations("settings");
+  const tCommon = useTranslations("common");
   // D-A6/§7: locale-gated styles (e.g. terse-cjk → zh) are only OFFERED under their locale.
   // Compare the UI language base ("zh-CN" → "zh") against the style's `locale`.
   const uiLang = (useLocale() || "en").split("-")[0];
@@ -218,6 +220,10 @@ export default function CompressionPanel() {
   // default so the grid stays scannable.
   const [expandedGuidance, setExpandedGuidance] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+  // Saves write over stored fields, so the controls wait for a GET that succeeds. A failed
+  // load shows a retry, which bumps loadAttempt to re-run the loads.
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
   const configRef = useRef(config);
@@ -244,8 +250,9 @@ export default function CompressionPanel() {
           lastConfirmedRef.current = hydrated;
           setConfig(hydrated);
         }
+        setLoadFailed(!data);
       })
-      .catch(() => {})
+      .catch(() => setLoadFailed(true))
       .finally(() => setLoading(false));
 
     fetch("/api/settings/compression/mcp-accessibility")
@@ -264,7 +271,7 @@ export default function CompressionPanel() {
         setNamedCombos(map);
       })
       .catch(() => {});
-  }, []);
+  }, [loadAttempt]);
 
   // Persist a merge-patch. The DB persists `engines` as one whole row, so callers that
   // touch an engine pass the full engines map to avoid dropping the other engines.
@@ -385,6 +392,28 @@ export default function CompressionPanel() {
     return (
       <Card className="p-6">
         <p className="text-sm text-text-muted">{t("loading")}</p>
+      </Card>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-between gap-4">
+          <p role="alert" className="text-sm text-red-500">
+            {t("compressionTitle")}: {tCommon("failedToLoad")}
+          </p>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setLoading(true);
+              setLoadAttempt((attempt) => attempt + 1);
+            }}
+          >
+            {t("retry")}
+          </Button>
+        </div>
       </Card>
     );
   }

@@ -220,3 +220,69 @@ describe("CompressionPanel", () => {
     expect(preview?.textContent).not.toContain("caveman");
   });
 });
+
+describe("CompressionPanel when the settings GET fails", () => {
+  // The panel's first request is the settings GET. It answers 500, as while the server
+  // restarts; later requests, including a retried GET, reach the stored config.
+  function failFirstSettingsGet() {
+    const { puts } = setupFetchMock();
+    vi.mocked(globalThis.fetch).mockImplementationOnce(
+      async () => new Response(JSON.stringify({ error: "unavailable" }), { status: 500 })
+    );
+    // The mcp-accessibility toggle writes its own store, not the settings row.
+    return () => puts.filter((p) => !p.url.includes("mcp-accessibility")).map((p) => p.body);
+  }
+
+  async function mountPanel() {
+    const { default: CompressionPanel } =
+      await import("../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mount(<CompressionPanel />);
+    });
+    await flush();
+    return container;
+  }
+
+  it("offers no control that would save defaults over the stored settings", async () => {
+    const settingsPuts = failFirstSettingsGet();
+    const container = await mountPanel();
+
+    // Without a loaded config the panel holds defaults: engines {}, outputStyles [], and the
+    // default contextBudget. A switch it still offers would PUT those defaults over the
+    // stored row, so press every one in page order.
+    for (const control of container.querySelectorAll<HTMLButtonElement>('[role="switch"]')) {
+      await act(async () => control.click());
+      await flush();
+    }
+
+    expect(settingsPuts(), "a save before any GET succeeds overwrites stored settings").toEqual([]);
+    expect(container.querySelectorAll("select, input")).toHaveLength(0);
+  });
+
+  it("shows a retry that loads the stored settings before the controls return", async () => {
+    const settingsPuts = failFirstSettingsGet();
+    const container = await mountPanel();
+
+    expect(container.textContent).toContain("failedToLoad");
+    const retry = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "retry"
+    );
+    expect(retry, "the load error offers a retry").toBeTruthy();
+
+    await act(async () => retry!.click());
+    await flush();
+
+    const rtkLevel = container.querySelector(
+      `[data-testid="engine-row-rtk"] select`
+    ) as HTMLSelectElement | null;
+    expect(rtkLevel?.value, "the retried GET loads the stored rtk level").toBe("standard");
+    // Saves go out again once a GET has succeeded.
+    const master = container.querySelector(
+      `[data-testid="compression-panel"] [role="switch"]`
+    ) as HTMLButtonElement;
+    await act(async () => master.click());
+    await flush();
+    expect(settingsPuts()).toEqual([{ enabled: false }]);
+  });
+});

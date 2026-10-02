@@ -274,3 +274,26 @@ describe("CompressionSettingsTab saves only what changed", () => {
     expect(screen.getByText("saveFailed")).toBeTruthy();
   });
 });
+
+describe("CompressionSettingsTab when the settings GET fails", () => {
+  it("shows a retry in place of default settings, then loads the stored ones", async () => {
+    startServer();
+    // The tab's first request is the settings GET. It answers 500, as while the server
+    // restarts; the retried GET reaches the stored row.
+    vi.mocked(fetch).mockImplementationOnce(
+      async () => new Response(JSON.stringify({ error: "unavailable" }), { status: 500 })
+    );
+    await renderTab();
+
+    // The defaults would report every compression layer as off.
+    expect(screen.queryByText("tokenSaverTitle")).toBeNull();
+    expect(screen.getByText(/failedToLoad/)).toBeTruthy();
+
+    fireEvent.click(screen.getByText("retry"));
+    await settle();
+
+    expect(screen.queryByText(/failedToLoad/)).toBeNull();
+    // The stored row has compression enabled, which the defaults do not.
+    expect(inputFor("compressionCacheTTL")).toBeTruthy();
+  });
+});

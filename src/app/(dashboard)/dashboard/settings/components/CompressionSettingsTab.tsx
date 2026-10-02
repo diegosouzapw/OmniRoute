@@ -171,6 +171,7 @@ const ROLE_OPTIONS: { value: "user" | "assistant" | "system"; labelKey: string }
 
 export default function CompressionSettingsTab() {
   const t = useTranslations("settings");
+  const tCommon = useTranslations("common");
   const [config, setConfig] = useState<CompressionConfig>({
     enabled: false,
     defaultMode: "off",
@@ -228,6 +229,10 @@ export default function CompressionSettingsTab() {
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  // The defaults above are not the stored settings, so the form waits for a GET that
+  // succeeds. A failed load shows a retry, which bumps loadAttempt to re-run the loads.
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
   const [ruleMetadata, setRuleMetadata] = useState<RuleMetadata[]>([]);
   // A save sends only the fields it changes, so it never writes back a stale copy of settings
@@ -246,8 +251,9 @@ export default function CompressionSettingsTab() {
           savedRef.current = data;
           setConfig(data);
         }
+        setLoadFailed(!data);
       })
-      .catch(() => {})
+      .catch(() => setLoadFailed(true))
       .finally(() => setLoading(false));
     fetch("/api/compression/rules")
       .then((r) => (r.ok ? r.json() : null))
@@ -255,7 +261,7 @@ export default function CompressionSettingsTab() {
         if (Array.isArray(data?.rules)) setRuleMetadata(data.rules);
       })
       .catch(() => {});
-  }, []);
+  }, [loadAttempt]);
 
   const save = (updates: SettingsPatch<CompressionConfig>) => {
     const showQueued = () =>
@@ -329,6 +335,28 @@ export default function CompressionSettingsTab() {
     return (
       <Card className="p-6">
         <p className="text-sm text-text-muted">{t("loading")}</p>
+      </Card>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-between gap-4">
+          <p role="alert" className="text-sm text-red-500">
+            {t("compressionTitle")}: {tCommon("failedToLoad")}
+          </p>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setLoading(true);
+              setLoadAttempt((attempt) => attempt + 1);
+            }}
+          >
+            {t("retry")}
+          </Button>
+        </div>
       </Card>
     );
   }
