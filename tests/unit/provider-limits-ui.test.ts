@@ -538,5 +538,8 @@ test("grok-cli exposes the redeem button when banked reset credits are present",
   });
   assert.equal(providerLimitUtils.computeCanRedeemResetCredit("grok-cli", parsed), true);
   assert.equal(providerLimitUtils.computeCanRedeemResetCredit("codex", parsed), true);
-  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("claude", parsed), false);
+  // Claude reset credits (banked usage grants + weekly session reset) redeem through the
+  // same picker as of #14728 — a genuinely unsupported provider stays the negative control.
+  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("claude", parsed), true);
+  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("openai", parsed), false);
 });

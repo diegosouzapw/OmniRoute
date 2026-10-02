@@ -39,7 +39,7 @@ interface QuotaCardProps {
         plan?: string | null;
         message?: string | null;
         billing?: ProviderBillingStatus | null;
-        raw?: { billing?: ProviderBillingStatus | null };
+        raw?: { billing?: ProviderBillingStatus | null; bankedResetCredits?: number };
         stale?: { since?: string; reason?: string } | null;
       }
     | undefined;
@@ -128,7 +128,10 @@ export default function QuotaCard({
   const hasStaleData = !!quota?.stale;
   const displayRefreshedAt = quota?.stale?.since || refreshedAt;
   const canEditCutoff = computeCanEditCutoff(quotas);
-  const canRedeemResetCredit = computeCanRedeemResetCredit(connection.provider, quotas);
+  const canRedeemResetCredit = computeCanRedeemResetCredit(connection.provider, quotas, {
+    raw: quota?.raw,
+    authType: connection.authType,
+  });
 
   return (
     <Card
