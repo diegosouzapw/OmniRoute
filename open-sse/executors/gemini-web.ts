@@ -17,6 +17,9 @@ import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { isMissingBrowserExecutable } from "./browserExecutableCheck.ts";
 import { normalizeGeminiCookieInput } from "../utils/geminiCookies.ts";
+import { isRelayType } from "../utils/proxyDispatcher.ts";
+import { currentProxyContextConfig, resolveProxyForRequest } from "../utils/proxyFetch.ts";
+import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import {
@@ -407,6 +410,58 @@ function resolveGeminiWebCookie(credentials: ExecuteInput["credentials"]): strin
     .join("; ");
 }
 
+type GeminiBrowserProxy = NonNullable<import("playwright").LaunchOptions["proxy"]>;
+type ProviderProxyRecord = { type?: string; host: string; port: number } | null | undefined;
+
+const GEMINI_RELAY_UNSUPPORTED =
+  "gemini-web loads Gemini in a real browser, which cannot use an edge relay (vercel, deno, " +
+  "cloudflare) as its proxy. Assign an HTTP proxy, or a SOCKS5 proxy without a username, to " +
+  "this connection or provider, set the connection to Direct (bypass proxy), or set " +
+  "PROXY_FAIL_OPEN=true to load Gemini directly.";
+
+/**
+ * #15076: Chromium does not go through the patched fetch and this one runs outside the browser
+ * pool, so its context gets the proxy here. The request's own proxy wins: the chat path resolves
+ * it (key, connection, provider, combo or global) and runs execute() inside it, and a request
+ * sent direct stays direct. Outside any request context, the provider or global proxy applies,
+ * as in the browser pool. An edge relay on either path comes back as `relay`: only fetch can
+ * use one, and swapping it for a less specific proxy would break per-account pinning.
+ */
+async function resolveGeminiBrowserProxy(): Promise<{ proxy?: GeminiBrowserProxy; relay?: true }> {
+  const requestProxy = currentProxyContextConfig() as { type?: string } | null | undefined;
+  if (requestProxy === undefined) {
+    const { resolvePlaywrightProxy } = await import("../services/browserPool.ts");
+    let relay = false;
+    const proxy = await resolvePlaywrightProxy("gemini-web", {
+      // Read the record first: the pool's helper would pass a relay on as http://host:port.
+      resolveProxy: async (providerId) => {
+        const { resolveProxyForProvider } = await import("../../src/lib/db/proxies");
+        const record = (await resolveProxyForProvider(providerId)) as ProviderProxyRecord;
+        relay = isRelayType(record?.type);
+        return relay ? null : record;
+      },
+    });
+    return relay ? { relay: true } : { proxy };
+  }
+  if (!requestProxy) return {};
+  if (isRelayType(requestProxy.type)) return { relay: true };
+  // The URL fetch would use for this request (null when NO_PROXY covers Gemini).
+  const { proxyUrl } = resolveProxyForRequest(GEMINI_URL);
+  if (!proxyUrl) return {};
+  const parsed = new URL(proxyUrl);
+  const proxy: GeminiBrowserProxy = { server: `${parsed.protocol}//${parsed.host}` };
+  if (parsed.username) {
+    proxy.username = decodeUserinfo(parsed.username);
+    proxy.password = parsed.password ? decodeUserinfo(parsed.password) : "";
+  }
+  return { proxy };
+}
+
+/** The #6246 opt-out from fail-closed proxies, read the way src/sse/handlers/chatHelpers.ts does. */
+function isProxyFailOpen(): boolean {
+  return (process.env.PROXY_FAIL_OPEN ?? "").trim().toLowerCase() === "true";
+}
+
 // ─── Executor ───────────────────────────────────────────────────────────────
 
 export class GeminiWebExecutor extends BaseExecutor {
@@ -569,13 +624,48 @@ export class GeminiWebExecutor extends BaseExecutor {
       }
       const { chromium } = await import("playwright");
       const { acquireGeminiBrowser } = await import("./gemini-web/browserLease.ts");
+      const { proxy, relay } = await resolveGeminiBrowserProxy();
+      // An edge relay fails closed like any assigned proxy that cannot carry the request
+      // (#6246), with the connection-cooldown hint the missing-browser path uses (#3516).
+      if (relay && !isProxyFailOpen()) {
+        log?.warn?.("GEMINI-WEB", "Rejected request: its proxy is an edge relay");
+        return {
+          response: new Response(
+            JSON.stringify(
+              buildErrorBody(503, GEMINI_RELAY_UNSUPPORTED, null, {
+                type: "server_error",
+                code: "proxy_unavailable",
+              })
+            ),
+            {
+              status: 503,
+              headers: {
+                "Content-Type": "application/json",
+                "X-Omni-Fallback-Hint": "connection_cooldown",
+              },
+            }
+          ),
+          url: GEMINI_URL,
+          headers: {},
+          transformedBody: body,
+        };
+      }
+      if (relay) {
+        log?.warn?.(
+          "GEMINI-WEB",
+          "PROXY_FAIL_OPEN=true: the edge relay cannot carry browser traffic, loading Gemini directly"
+        );
+      }
       browser = await acquireGeminiBrowser((options) => chromium.launch(options));
       abortBrowser = () => {
         void context?.close().catch(() => {});
       };
       signal?.addEventListener("abort", abortBrowser, { once: true });
 
-      context = await browser.newContext({ userAgent: GEMINI_USER_AGENT });
+      context = await browser.newContext({
+        userAgent: GEMINI_USER_AGENT,
+        ...(proxy ? { proxy } : {}),
+      });
 
       // Parse cookies — strips attributes like Path, Domain, Expires
       const cookiePairs = parseCookies(cookie);

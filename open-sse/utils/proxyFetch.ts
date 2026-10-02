@@ -118,7 +118,6 @@ const TLS_PROVIDER_PROFILE: Record<string, { browser: string; os: string }> = {
 
 type TlsProfileResult = { browserProfile?: string; os?: string };
 function tlsProfileForProvider(provider: string | null | undefined): TlsProfileResult {
-
   if (!provider) return {};
   const p = TLS_PROVIDER_PROFILE[provider.trim().toLowerCase()];
   return p ? { browserProfile: p.browser, os: p.os } : {};
@@ -807,6 +806,12 @@ export function runWithDirectFetchContext<T>(fn: () => T): T {
 export function hasAmbientProxyContext(): boolean {
   const store = proxyContext.getStore();
   return Boolean(store) && store !== DIRECT_PROXY_CONTEXT;
+}
+
+/** The proxy config the request context pins: null when it runs direct, undefined outside one. */
+export function currentProxyContextConfig(): unknown {
+  const store = proxyContext.getStore();
+  return store === DIRECT_PROXY_CONTEXT ? null : store;
 }
 
 /**

@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_09_30_15076_gemini_web_request_proxy": "PR for #15076 own growth: open-sse/utils/proxyFetch.ts 1404->1409 (+5 = currentProxyContextConfig(), a 6-line read-only view of the private proxy-context store next to hasAmbientProxyContext(), less one stray blank line in tlsProfileForProvider that Prettier drops on commit). gemini-web runs its own Chromium, which cannot use the patched fetch, so it needs the config of the request's proxy context itself: its type (an edge relay only works through fetch) and whether a context exists at all (a request the chat path sends direct must stay direct), neither of which the URL from resolveProxyForRequest() shows. The selection itself lives in open-sse/executors/gemini-web.ts (under cap). Covered by tests/unit/15076-gemini-web-proxy.test.ts.",
   "_rebaseline_2026_09_29_14973_cursor_conversation_cache": "PR #14973 own growth: open-sse/utils/cursorAgentProtobuf.ts 1619->1622 (+3 over the 1619-line tip after #15036 = the single-line import of the new open-sse/utils/cursorAgentProtobuf/ttft.ts, the TtftBreakdownDelta member of DecodedDelta, and the one-line pushTtftBreakdown call in decodeAgentServerMessage; the turn_ended entry is rewritten at the same length to keep its end signal when the usage body is malformed). The ttft_breakdown decoder, its type and the safely() telemetry helper live in ttft.ts, under cap. open-sse/executors/cursor.ts stays under its 1868 ceiling. Covered by tests/unit/cursor-conversation-cache.test.ts.",
   "_rebaseline_2026_09_29_15036_cursor_read_range": "PR #15036 (QuangBlue) own growth: open-sse/utils/cursorAgentProtobuf.ts 1588->1619 (+31 = ReadArgs offset/limit field constants, the two optional fields on the exec_read event type, and createReadExecEvent, which decodes them next to the shared path-event decoder it reuses and cannot move out without exporting the file's private varint helpers). The bridge-side range check lives in open-sse/executors/cursor/builtinToolBridge.ts (under cap). Covered by tests/unit/cursor-agent-exec-router.test.ts and tests/unit/cursor-builtin-tool-bridge.test.ts.",
   "_rebaseline_2026_09_29_15050_timing_safe_env_key": "PR #15050 (HouMinXi) own growth: src/sse/services/auth.ts 3622->3623 (+1 = the timingSafeCompare import; the env passthrough-key check in isValidApiKey swaps `===` for the constant-time helper on its existing line). Irreducible. Covered by tests/unit/secret-compare-constant-time.test.ts.",
@@ -533,7 +534,7 @@
     "open-sse/services/combo/executeTargetAttempt.ts": 1273,
     "open-sse/translator/response/openai-responses.ts": 1536,
     "open-sse/utils/cursorAgentProtobuf.ts": 1622,
-    "open-sse/utils/proxyFetch.ts": 1404,
+    "open-sse/utils/proxyFetch.ts": 1409,
     "open-sse/utils/stream.ts": 3298,
     "open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/browser-worker.ts": 4398,
     "open-sse/vendor/codex-chatgpt-web/bridge.ts": 1335,
