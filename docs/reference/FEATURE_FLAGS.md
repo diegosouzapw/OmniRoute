@@ -46,7 +46,7 @@ A boolean flag is considered **enabled** when its effective value is `"true"`,
 
 ## Flag Catalog
 
-80 flags across 6 categories. **Default** is the definition default — the value
+81 flags across 6 categories. **Default** is the definition default — the value
 used when neither a DB override nor an environment variable is present.
 
 ### Security (10)
@@ -91,7 +91,7 @@ used when neither a DB override nor an environment variable is present.
 | `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`           | boolean | `true`  |         | Allow adding/validating providers on local/private addresses (127.0.0.1, localhost, LAN). On by default (local-first); disable for strict public-only blocking. Cloud-metadata stays blocked.                                                                                                                                                                                                                                                           |
 | `ENABLE_CC_COMPATIBLE_PROVIDER`                 | boolean | `false` | ✓       | Enable Claude Code compatible provider mode.                                                                                                                                                                                                                                                                                                                                                                                                            |
 
-### Policies (5)
+### Policies (6)
 
 | Key                             | Type    | Default    | Description                                                                                                                                                                                                                      |
 | ------------------------------- | ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -99,6 +99,7 @@ used when neither a DB override nor an environment variable is present.
 | `RATE_LIMIT_AUTO_ENABLE`        | boolean | `false`    | Automatically enable rate limiting based on usage patterns.                                                                                                                                                                      |
 | `DISABLE_CONTEXT_WINDOW_CHECKS` | boolean | `false`    | Skip OmniRoute's local context-window / max-input-token check for direct single-model requests. Upstream limits still apply.                                                                                                     |
 | `CAPABILITY_FILTER_ENABLED`     | boolean | `false`    | Reject requests before dispatch when the target model lacks required capabilities (vision, tools, structured output, context window). Protects direct single-provider requests that bypass the combo-layer compatibility filter. |
+| `USAGE_LIMIT_IGNORE_UNPRICED`   | boolean | `false`    | Count usage of models that have no price as $0 in per-key USD usage quotas instead of treating the quota as exceeded. Off by default: an unpriced model or routing alias can hide real spend, so the quota fails closed.         |
 | `RADAR_ENABLED`                 | boolean | `false`    | Enable the OmniRoute Radar module (catalog feed screens and sync). Off by default; enabling only unlocks the UI — data sync remains a separate opt-in.                                                                           |
 
 ### Runtime (33)
