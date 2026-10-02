@@ -76,6 +76,12 @@ export const STATUS_SOFT_DEPRIORITIZE_FACTOR = Number(
   process.env.STATUS_SOFT_DEPRIORITIZE_FACTOR ?? "0.5"
 );
 
+// #15347: unreadable-quota soft-deprioritization factor.
+// A candidate whose quota snapshot is present but malformed (quotaUnreadable) already
+// scores 0 on the quota axis; this multiplier makes it strictly lower than even a real
+// exhausted reading with otherwise identical factors, without blocking or evicting it.
+export const UNREADABLE_QUOTA_SOFT_DEPRIORITIZE_FACTOR = 0.5;
+
 // G2: Module-level registry of active combo execution candidates.
 // Maps executionKey → Map<stepId, candidate mutable ref>.
 // Populated by buildAutoCandidates registrations; cleaned up after each execution.
@@ -405,6 +411,10 @@ export function scoreAutoTargets(
       // score would tie a healthy provider's. The penalty pushes it strictly below.
       if ("statusPenalty" in candidate && candidate.statusPenalty === true) {
         score *= STATUS_SOFT_DEPRIORITIZE_FACTOR;
+      }
+      // #15347: malformed quota snapshot — penalise, never block.
+      if ("quotaUnreadable" in candidate && candidate.quotaUnreadable === true) {
+        score *= UNREADABLE_QUOTA_SOFT_DEPRIORITIZE_FACTOR;
       }
       return {
         target,

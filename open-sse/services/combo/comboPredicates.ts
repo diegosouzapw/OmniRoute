@@ -7,7 +7,7 @@
  */
 
 import { EXECUTOR_CONTRACT_VIOLATION_CODE } from "../../config/constants.ts";
-import { remainingPercentFromQuotaWindows } from "../antigravityQuotaFamily.ts";
+import { finitePercentUsed, remainingPercentFromQuotaWindows } from "../antigravityQuotaFamily.ts";
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
 import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
@@ -580,11 +580,23 @@ export function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
+/**
+ * Remaining quota (0..100) from a fetched quota snapshot, or `null` when a snapshot
+ * IS present but unreadable: not an object, or an object with no parseable window and
+ * no finite `percentUsed` (#15347). Callers decide how that ranks; this function never
+ * pretends a malformed snapshot is a full quota.
+ *
+ * A missing snapshot (`null` / `undefined`) is NOT unreadable: every quota fetcher
+ * returns `null` to fail open ("no signal, proceed") for unlimited plans, message-only
+ * usage payloads, missing credentials and upstream errors alike, so it keeps scoring as
+ * full quota.
+ */
 export function quotaRemainingPercentFromQuota(
   quota: unknown,
   scope?: { provider?: string | null; requestedModel?: string | null }
-): number {
-  if (!quota || typeof quota !== "object") return 100;
+): number | null {
+  if (quota == null) return 100;
+  if (typeof quota !== "object") return null;
   const record = quota as Record<string, unknown>;
 
   const windows = record.windows;
@@ -595,9 +607,9 @@ export function quotaRemainingPercentFromQuota(
 
   if (record.limitReached === true) return 0;
 
-  const percentUsed = Number(record.percentUsed);
-  if (Number.isFinite(percentUsed)) return clampPercent((1 - percentUsed) * 100);
-  return 100;
+  const percentUsed = finitePercentUsed(record.percentUsed);
+  if (percentUsed !== null) return clampPercent((1 - percentUsed) * 100);
+  return null;
 }
 
 export const QUOTA_BLOCKING_CONNECTION_STATUSES = new Set([

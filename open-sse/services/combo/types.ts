@@ -206,6 +206,13 @@ export type AutoProviderCandidate = ProviderCandidate & {
   statusPenalty?: boolean;
   /** Diagnostic reason for statusPenalty (the connection testStatus that triggered it). */
   statusPenaltyReason?: string;
+  /**
+   * #15347: true when the quota fetcher returned a snapshot that is present but
+   * unreadable (malformed, no finite percentUsed). The candidate is NOT blocked or
+   * evicted: scoring multiplies it by UNREADABLE_QUOTA_SOFT_DEPRIORITIZE_FACTOR so it
+   * ranks strictly below any real reading.
+   */
+  quotaUnreadable?: boolean;
 };
 
 export type ResolvedComboTarget = {
