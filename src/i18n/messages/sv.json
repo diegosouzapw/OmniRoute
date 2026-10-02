@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokal proxy-core-slutpunkt är ogiltig; SS/VMess/Trojan/VLESS-noder ignorerades.",
         "NEEDS_CORE_NOT_CONFIGURED": "Denna prenumeration har noder som behöver en lokal proxy-core (SS/VMess/Trojan/VLESS); de dirigeras inte förrän du konfigurerar local-core SOCKS5-slutpunkten.",
         "NO_USABLE_NODES": "Prenumerationen gav inga användbara noder (http/https/socks5 eller noder med en lokal core-slutpunkt).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-cores styranrop misslyckades; den tidigare rutten förblir aktiv. Kontrollera styr-URL och hemlighet och uppdatera sedan."
+        "SELECTOR_SWITCH_FAILED": "Proxy-cores styranrop misslyckades; den tidigare rutten förblir aktiv. Kontrollera styr-URL och hemlighet och uppdatera sedan.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Klistra in din proxy-prenumerationslänk. När den har aktiverats dirigeras trafiken genom proxypoolen i globalt läge eller regel (specificerad leverantör). Prenumerationsnoder synkroniseras automatiskt till proxypoolen och återanvänder befintliga polling-, hälsokontroll- och anti-läckmekanismer.",
       "addSubscription": "Lägg till prenumeration",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Inga byten registrerade ännu",
       "lastSwitchMember": "Betjänande medlem",
       "nextSwitch": "Nästa möjliga byte",
-      "nextSwitchNow": "Nu"
+      "nextSwitchNow": "Nu",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Samlad hälsokontroll",
     "bulkHealthcheckDesc": "Testa alla konfigurerade proxyservrar mot en mål-URL för att se vilka som fungerar.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} inaktiva",
     "dbOverrideCount": "{count} DB-överskrivningar",
     "searchPlaceholder": "Sök flaggor...",
-    "descriptionModeLabel": "Beskrivningsvy",
-    "descriptionModeHint": "Vid hovring: korten förblir kompakta och när du hovrar över en beskrivning visas hela texten. Fullständig text: visa alltid hela beskrivningen.",
-    "descriptionModeHover": "Vid hovring",
-    "descriptionModeFull": "Fullständig text",
     "categories": {
       "all": "Alla",
       "security": "Säkerhet",

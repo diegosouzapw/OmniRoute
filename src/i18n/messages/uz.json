@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Mahalliy proxy-core endpoint noto‘g‘ri; SS/VMess/Trojan/VLESS tugunlari e’tiborga olinmadi.",
         "NEEDS_CORE_NOT_CONFIGURED": "Bu obunada mahalliy proksi yadrosini talab qiladigan tugunlar mavjud (SS/VMess/Trojan/VLESS); mahalliy yadro uchun SOCKS5 endpoint sozlanmaguncha ular orqali trafik yo‘naltirilmaydi.",
         "NO_USABLE_NODES": "Obunada foydalanish mumkin bo‘lgan tugunlar topilmadi (http/https/socks5 yoki mahalliy yadro endpointiga ega tugunlar).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-core boshqaruv chaqiruvi bajarilmadi; avvalgi marshrut faol qoladi. Boshqaruv URL va sirrini tekshirib, yangilang."
+        "SELECTOR_SWITCH_FAILED": "Proxy-core boshqaruv chaqiruvi bajarilmadi; avvalgi marshrut faol qoladi. Boshqaruv URL va sirrini tekshirib, yangilang.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Proksi obunangiz havolasini kiriting. Yoqilgach, trafik global yoki qoida (belgilangan Provider) rejimida proksi havzasi orqali yo‘naltiriladi. Obuna tugunlari avtomatik ravishda proksi havzasiga sinxronlanadi hamda mavjud davriy so‘rov, ishlash holatini tekshirish va sizib chiqishga qarshi mexanizmlardan foydalanadi.",
       "addSubscription": "Obuna qo‘shish",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Hali qayd etilgan o'tish yo'q",
       "lastSwitchMember": "Xizmat ko'rsatuvchi a'zo",
       "nextSwitch": "Keyingi mumkin bo'lgan o'tish",
-      "nextSwitchNow": "Hozir"
+      "nextSwitchNow": "Hozir",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Holatni ommaviy tekshirish",
     "bulkHealthcheckDesc": "Ishlaydiganlarini aniqlash uchun barcha sozlangan proksilarni maqsadli URL orqali sinab koʻring.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} ta faol emas",
     "dbOverrideCount": "{count} ta DB ustuvor sozlamasi",
     "searchPlaceholder": "Bayroqlarni qidirish...",
-    "descriptionModeLabel": "Tavsif ko‘rinishi",
-    "descriptionModeHint": "Kursor olib borilganda: kartalar ixchamligicha qoladi va tavsif ustiga kursor olib borilganda to‘liq matn ko‘rsatiladi. To‘liq matn: har doim tavsifni to‘liq ko‘rsatadi.",
-    "descriptionModeHover": "Kursor olib borilganda",
-    "descriptionModeFull": "To‘liq matn",
     "categories": {
       "all": "Barchasi",
       "security": "Xavfsizlik",

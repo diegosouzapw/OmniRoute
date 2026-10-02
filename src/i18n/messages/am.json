@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "የአካባቢው proxy-core መዳረሻ ነጥብ ልክ አይደለም፤ የSS/VMess/Trojan/VLESS ኖዶች ችላ ተብለዋል።",
         "NEEDS_CORE_NOT_CONFIGURED": "ይህ ምዝገባ የአካባቢ proxy core (SS/VMess/Trojan/VLESS) የሚያስፈልጋቸው ኖዶች አሉት፤ የlocal-core SOCKS5 መዳረሻ ነጥቡን እስኪያዋቅሩ ድረስ አይዘዋወሩም።",
         "NO_USABLE_NODES": "ምዝገባው ጥቅም ላይ የሚውሉ ኖዶችን አላመጣም (http/https/socks5 ወይም የአካባቢ core መዳረሻ ነጥብ ያላቸው ኖዶች)።",
-        "SELECTOR_SWITCH_FAILED": "የፕሮክሲ-ኮር መቆጣጠሪያ ጥሪ አልተሳካም; የቀደመው መስመር ንቁ ሆኖ ይቆያል። የመቆጣጠሪያ URL እና ሚስጥር ያረጋግጡ፣ ከዚያ ያድሱ።"
+        "SELECTOR_SWITCH_FAILED": "የፕሮክሲ-ኮር መቆጣጠሪያ ጥሪ አልተሳካም; የቀደመው መስመር ንቁ ሆኖ ይቆያል። የመቆጣጠሪያ URL እና ሚስጥር ያረጋግጡ፣ ከዚያ ያድሱ።",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "የፕሮክሲ ምዝገባ አገናኝዎን ይለጥፉ። አንዴ ከነቃ፣ ትራፊክ በዓለም አቀፍ ወይም በደንብ (የተወሰነ Provider) ሁነታ በፕሮክሲ ስብስቡ በኩል ይዘዋወራል። የምዝገባ ኖዶች በራስ-ሰር ወደ ፕሮክሲ ስብስቡ ይመሳሰላሉ፣ እንዲሁም ነባሮቹን የየጊዜው ማጣሪያ፣ የጤና ፍተሻ እና ፍሳሽ መከላከያ ዘዴዎች እንደገና ይጠቀማሉ።",
       "addSubscription": "ምዝገባ ያክሉ",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "ገና ምንም መቀያየር አልተመዘገበም",
       "lastSwitchMember": "የሚያገለግል አባል",
       "nextSwitch": "ቀጣይ የሚቻል መቀያየር",
-      "nextSwitchNow": "አሁን"
+      "nextSwitchNow": "አሁን",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "የጅምላ ጤና ምርመራ",
     "bulkHealthcheckDesc": "የትኞቹ እንደሚሰሩ ለማወቅ ሁሉንም የተዋቀሩ ፕሮክሲዎች በዒላማ URL ላይ ይሞክሩ።",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} ንቁ ያልሆኑ",
     "dbOverrideCount": "{count} DB ልዩ ቅንብሮች",
     "searchPlaceholder": "ጠቋሚዎችን ይፈልጉ...",
-    "descriptionModeLabel": "የመግለጫ እይታ",
-    "descriptionModeHint": "ሲያንዣብቡ፦ ካርዶች የታመቁ ሆነው ይቆያሉ፣ እና በመግለጫ ላይ ሲያንዣብቡ ሙሉው ጽሑፍ ይታያል። ሙሉ ጽሑፍ፦ ሁልጊዜ ሙሉውን መግለጫ ያሳያል።",
-    "descriptionModeHover": "ሲያንዣብቡ",
-    "descriptionModeFull": "ሙሉ ጽሑፍ",
     "categories": {
       "all": "ሁሉም",
       "security": "ደህንነት",

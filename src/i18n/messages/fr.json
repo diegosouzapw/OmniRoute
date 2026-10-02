@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Le point de terminaison du proxy-core local est invalide ; les nœuds SS/VMess/Trojan/VLESS ont été ignorés.",
         "NEEDS_CORE_NOT_CONFIGURED": "Cet abonnement contient des nœuds qui nécessitent un proxy core local (SS/VMess/Trojan/VLESS) ; ils ne sont pas routés tant que vous n'avez pas configuré le point de terminaison SOCKS5 du local-core.",
         "NO_USABLE_NODES": "L'abonnement n'a renvoyé aucun nœud utilisable (http/https/socks5 ou nœuds avec un point de terminaison de core local).",
-        "SELECTOR_SWITCH_FAILED": "L'appel de contrôle du proxy-core a échoué ; la route précédente reste active. Vérifiez l'URL et le secret de contrôle, puis actualisez."
+        "SELECTOR_SWITCH_FAILED": "L'appel de contrôle du proxy-core a échoué ; la route précédente reste active. Vérifiez l'URL et le secret de contrôle, puis actualisez.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Collez votre lien d'abonnement proxy. Une fois activé, le trafic est acheminé via le pool de proxy en mode global ou en mode règle (fournisseur spécifié). Les nœuds d'abonnement sont automatiquement synchronisés avec le pool de proxy et réutilisent les mécanismes d'interrogation, de contrôle de santé et anti-fuite existants.",
       "addSubscription": "Ajouter un abonnement",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Aucune bascule enregistrée",
       "lastSwitchMember": "Membre desservi",
       "nextSwitch": "Prochaine bascule possible",
-      "nextSwitchNow": "Maintenant"
+      "nextSwitchNow": "Maintenant",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Vérification groupée de l’état",
     "bulkHealthcheckDesc": "Testez tous les proxys configurés avec une URL cible afin d’identifier ceux qui fonctionnent.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} inactifs",
     "dbOverrideCount": "{count} surcharges DB",
     "searchPlaceholder": "Rechercher des indicateurs...",
-    "descriptionModeLabel": "Affichage de la description",
-    "descriptionModeHint": "Au survol : les cartes restent compactes et le survol d’une description affiche le texte intégral. Texte intégral : affiche toujours la description complète.",
-    "descriptionModeHover": "Au survol",
-    "descriptionModeFull": "Texte intégral",
     "categories": {
       "all": "Tous",
       "security": "Sécurité",

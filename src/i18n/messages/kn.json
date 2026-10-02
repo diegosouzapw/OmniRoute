@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "ಸ್ಥಳೀಯ proxy-core ಎಂಡ್ಪಾಯಿಂಟ್ ಅಮಾನ್ಯವಾಗಿದೆ; SS/VMess/Trojan/VLESS ನೋಡ್ಗಳನ್ನು ನಿರ್ಲಕ್ಷಿಸಲಾಗಿದೆ.",
         "NEEDS_CORE_NOT_CONFIGURED": "ಈ ಚಂದಾದಾರಿಕೆಯಲ್ಲಿ ಸ್ಥಳೀಯ ಪ್ರಾಕ್ಸಿ ಕೋರ್ ಅಗತ್ಯವಿರುವ ನೋಡ್ಗಳಿವೆ (SS/VMess/Trojan/VLESS); ನೀವು local-core SOCKS5 ಎಂಡ್ಪಾಯಿಂಟ್ ಅನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡುವವರೆಗೆ ಅವುಗಳ ಮೂಲಕ ರೂಟಿಂಗ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ.",
         "NO_USABLE_NODES": "ಚಂದಾದಾರಿಕೆಯಿಂದ ಬಳಸಬಹುದಾದ ಯಾವುದೇ ನೋಡ್ಗಳು ದೊರೆತಿಲ್ಲ (http/https/socks5 ಅಥವಾ ಸ್ಥಳೀಯ ಕೋರ್ ಎಂಡ್ಪಾಯಿಂಟ್ ಹೊಂದಿರುವ ನೋಡ್ಗಳು).",
-        "SELECTOR_SWITCH_FAILED": "ಪ್ರಾಕ್ಸಿ-ಕೋರ್ ನಿಯಂತ್ರಣ ಕರೆ ವಿಫಲವಾಯಿತು; ಹಿಂದಿನ ಮಾರ್ಗ ಸಕ್ರಿಯವಾಗಿರುತ್ತದೆ. ನಿಯಂತ್ರಣ URL ಮತ್ತು ರಹಸ್ಯವನ್ನು ಪರಿಶೀಲಿಸಿ, ನಂತರ ರಿಫ್ರೆಶ್ ಮಾಡಿ."
+        "SELECTOR_SWITCH_FAILED": "ಪ್ರಾಕ್ಸಿ-ಕೋರ್ ನಿಯಂತ್ರಣ ಕರೆ ವಿಫಲವಾಯಿತು; ಹಿಂದಿನ ಮಾರ್ಗ ಸಕ್ರಿಯವಾಗಿರುತ್ತದೆ. ನಿಯಂತ್ರಣ URL ಮತ್ತು ರಹಸ್ಯವನ್ನು ಪರಿಶೀಲಿಸಿ, ನಂತರ ರಿಫ್ರೆಶ್ ಮಾಡಿ.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "ನಿಮ್ಮ ಪ್ರಾಕ್ಸಿ ಚಂದಾದಾರಿಕೆ ಲಿಂಕ್ ಅನ್ನು ಅಂಟಿಸಿ. ಸಕ್ರಿಯಗೊಳಿಸಿದ ನಂತರ, ಟ್ರಾಫಿಕ್ ಅನ್ನು ಜಾಗತಿಕ ಅಥವಾ ನಿಯಮ (ನಿರ್ದಿಷ್ಟ Provider) ಮೋಡ್ನಲ್ಲಿ ಪ್ರಾಕ್ಸಿ ಪೂಲ್ ಮೂಲಕ ರೂಟ್ ಮಾಡಲಾಗುತ್ತದೆ. ಚಂದಾದಾರಿಕೆಯ ನೋಡ್ಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪ್ರಾಕ್ಸಿ ಪೂಲ್ಗೆ ಸಿಂಕ್ ಆಗುತ್ತವೆ ಮತ್ತು ಈಗಿರುವ ಪೋಲಿಂಗ್, ಆರೋಗ್ಯ ಪರಿಶೀಲನೆ ಹಾಗೂ ಸೋರಿಕೆ-ವಿರೋಧಿ ಕಾರ್ಯವಿಧಾನಗಳನ್ನು ಮರುಬಳಕೆ ಮಾಡುತ್ತವೆ.",
       "addSubscription": "ಚಂದಾದಾರಿಕೆಯನ್ನು ಸೇರಿಸಿ",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "ಇನ್ನೂ ಯಾವುದೇ ಬದಲಾವಣೆ ದಾಖಲಾಗಿಲ್ಲ",
       "lastSwitchMember": "ಸೇವೆ ಸಲ್ಲಿಸುತ್ತಿರುವ ಸದಸ್ಯ",
       "nextSwitch": "ಮುಂದಿನ ಸಂಭಾವ್ಯ ಬದಲಾವಣೆ",
-      "nextSwitchNow": "ಈಗ"
+      "nextSwitchNow": "ಈಗ",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "ಸಾಮೂಹಿಕ ಆರೋಗ್ಯ ಪರಿಶೀಲನೆ",
     "bulkHealthcheckDesc": "ಯಾವವು ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತವೆ ಎಂಬುದನ್ನು ಕಂಡುಹಿಡಿಯಲು ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾದ ಎಲ್ಲಾ ಪ್ರಾಕ್ಸಿಗಳನ್ನು ಗುರಿ URL ವಿರುದ್ಧ ಪರೀಕ್ಷಿಸಿ.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} ನಿಷ್ಕ್ರಿಯ",
     "dbOverrideCount": "{count} DB ಓವರ್ರೈಡ್ಗಳು",
     "searchPlaceholder": "ಫ್ಲ್ಯಾಗ್ಗಳನ್ನು ಹುಡುಕಿ...",
-    "descriptionModeLabel": "ವಿವರಣೆ ನೋಟ",
-    "descriptionModeHint": "ಹೋವರ್ ಮಾಡಿದಾಗ: ಕಾರ್ಡ್ಗಳು ಸಾಂದ್ರವಾಗಿಯೇ ಇರುತ್ತವೆ ಮತ್ತು ವಿವರಣೆಯ ಮೇಲೆ ಹೋವರ್ ಮಾಡಿದಾಗ ಪೂರ್ಣ ಪಠ್ಯ ಕಾಣಿಸುತ್ತದೆ. ಪೂರ್ಣ ಪಠ್ಯ: ಯಾವಾಗಲೂ ಸಂಪೂರ್ಣ ವಿವರಣೆಯನ್ನು ತೋರಿಸಿ.",
-    "descriptionModeHover": "ಹೋವರ್ ಮಾಡಿದಾಗ",
-    "descriptionModeFull": "ಪೂರ್ಣ ಪಠ್ಯ",
     "categories": {
       "all": "ಎಲ್ಲಾ",
       "security": "ಭದ್ರತೆ",

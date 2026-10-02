@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Paikallinen välityspalvelinytimen päätepiste on virheellinen; SS/VMess/Trojan/VLESS-solmut ohitettiin.",
         "NEEDS_CORE_NOT_CONFIGURED": "Tässä tilauksessa on solmuja, jotka tarvitsevat paikallisen välityspalvelinytimen (SS/VMess/Trojan/VLESS); niitä ei reititetä ennen kuin määrität paikallisen ytimen SOCKS5-päätepisteen.",
         "NO_USABLE_NODES": "Tilaus ei tuottanut käyttökelpoisia solmuja (http/https/socks5 tai solmuja, joilla on paikallisen ytimen päätepiste).",
-        "SELECTOR_SWITCH_FAILED": "Välitysymen ohjauskutsu epäonnistui; edellinen reitti pysyy käytössä. Tarkista ohjaus-URL ja salaisuus ja päivitä sitten."
+        "SELECTOR_SWITCH_FAILED": "Välitysymen ohjauskutsu epäonnistui; edellinen reitti pysyy käytössä. Tarkista ohjaus-URL ja salaisuus ja päivitä sitten.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Liitä välityspalvelimen tilauslinkki. Kun tämä on otettu käyttöön, liikenne reititetään välityspalvelimen kautta yleisessä tai sääntötilassa (määritetty toimittaja). Tilaussolmut synkronoidaan automaattisesti välityspalvelinpooliin, ja ne käyttävät uudelleen olemassa olevia kysely-, kuntotarkastus- ja vuodonestomekanismeja.",
       "addSubscription": "Lisää tilaus",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Vaihtoja ei ole vielä kirjattu",
       "lastSwitchMember": "Palveleva jäsen",
       "nextSwitch": "Seuraava mahdollinen vaihto",
-      "nextSwitchNow": "Nyt"
+      "nextSwitchNow": "Nyt",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Kuntotarkistus joukkona",
     "bulkHealthcheckDesc": "Testaa kaikki määritetyt välityspalvelimet kohde-URL-osoitetta vasten selvittääksesi, mitkä niistä toimivat.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} ei-aktiivista",
     "dbOverrideCount": "{count} tietokannan yliajoa",
     "searchPlaceholder": "Hae lippuja...",
-    "descriptionModeLabel": "Kuvausnäkymä",
-    "descriptionModeHint": "Kohdistettaessa: kortit pysyvät tiiviinä, ja kuvauksen päälle vieminen näyttää koko tekstin. Koko teksti: näytä aina täydellinen kuvaus.",
-    "descriptionModeHover": "Kohdistettaessa",
-    "descriptionModeFull": "Koko teksti",
     "categories": {
       "all": "Kaikki",
       "security": "Tietoturva",

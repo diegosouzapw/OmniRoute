@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Kohaliku puhverserverituuma lõpp-punkt on vigane; SS/VMess/Trojan/VLESS-sõlmi eirati.",
         "NEEDS_CORE_NOT_CONFIGURED": "Sellel tellimusel on sõlmi, mis vajavad kohalikku puhverserverituuma (SS/VMess/Trojan/VLESS); neid ei marsruudita enne, kui konfigureerite kohaliku tuuma SOCKS5 lõpp-punkti.",
         "NO_USABLE_NODES": "Tellimus ei tagastanud ühtegi kasutatavat sõlme (http/https/socks5 või kohaliku tuuma lõpp-punktiga sõlmed).",
-        "SELECTOR_SWITCH_FAILED": "Puhversüdamiku juhtkõne ebaõnnestus; eelmine marsruut jääb aktiivseks. Kontrollige juht-URL-i ja saladust, seejärel värskendage."
+        "SELECTOR_SWITCH_FAILED": "Puhversüdamiku juhtkõne ebaõnnestus; eelmine marsruut jääb aktiivseks. Kontrollige juht-URL-i ja saladust, seejärel värskendage.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Kleepige siia oma puhverserveri tellimuse link. Pärast lubamist marsruuditakse liiklus puhverserverite kogumi kaudu globaalses või reeglipõhises (määratud teenusepakkuja) režiimis. Tellimuse sõlmed sünkroonitakse automaatselt puhverserverite kogumisse ning nende puhul kasutatakse olemasolevaid küsitlus-, seisundikontrolli- ja lekkekaitsemehhanisme.",
       "addSubscription": "Lisa tellimus",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Ühtegi vahetust pole veel salvestatud",
       "lastSwitchMember": "Teenindav liige",
       "nextSwitch": "Järgmine võimalik vahetus",
-      "nextSwitchNow": "Nüüd"
+      "nextSwitchNow": "Nüüd",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Hulgiviisiline seisundikontroll",
     "bulkHealthcheckDesc": "Testige kõiki seadistatud puhverservereid siht-URL-iga, et teha kindlaks, millised neist töötavad.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "Mitteaktiivseid: {count}",
     "dbOverrideCount": "DB-alistusi: {count}",
     "searchPlaceholder": "Otsi lippe...",
-    "descriptionModeLabel": "Kirjelduse vaade",
-    "descriptionModeHint": "Kursoriga üle liikudes: kaardid jäävad kompaktseks ja kirjelduse kohal kursorit hoides kuvatakse täistekst. Täistekst: kuva alati täielik kirjeldus.",
-    "descriptionModeHover": "Kursoriga üle liikudes",
-    "descriptionModeFull": "Täistekst",
     "categories": {
       "all": "Kõik",
       "security": "Turvalisus",

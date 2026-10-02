@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Titik akhir teras proksi tempatan tidak sah; nod SS/VMess/Trojan/VLESS telah diabaikan.",
         "NEEDS_CORE_NOT_CONFIGURED": "Langganan ini mempunyai nod yang memerlukan teras proksi tempatan (SS/VMess/Trojan/VLESS); nod tersebut tidak dihalakan sehingga anda mengkonfigurasi titik akhir SOCKS5 teras tempatan.",
         "NO_USABLE_NODES": "Langganan tidak menghasilkan nod yang boleh digunakan (http/https/socks5 atau nod dengan titik akhir teras tempatan).",
-        "SELECTOR_SWITCH_FAILED": "Panggilan kawalan proxy-core gagal; laluan sebelumnya kekal aktif. Semak URL dan rahsia kawalan, kemudian muat semula."
+        "SELECTOR_SWITCH_FAILED": "Panggilan kawalan proxy-core gagal; laluan sebelumnya kekal aktif. Semak URL dan rahsia kawalan, kemudian muat semula.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Tampalkan pautan langganan proksi anda. Setelah didayakan, trafik dihalakan melalui kumpulan proksi dalam mod global atau peraturan (Pembekal yang ditentukan). Nod langganan disegerakkan secara automatik ke dalam kumpulan proksi dan menggunakan semula mekanisme pengundian, pemeriksaan kesihatan dan anti-kebocoran sedia ada.",
       "addSubscription": "Tambah Langganan",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Belum ada pertukaran direkodkan",
       "lastSwitchMember": "Ahli yang berkhidmat",
       "nextSwitch": "Pertukaran seterusnya yang mungkin",
-      "nextSwitchNow": "Sekarang"
+      "nextSwitchNow": "Sekarang",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Pemeriksaan Kesihatan Pukal",
     "bulkHealthcheckDesc": "Uji semua proksi yang dikonfigurasikan terhadap URL sasaran untuk mengenal pasti proksi yang berfungsi.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} tidak aktif",
     "dbOverrideCount": "{count} tindihan DB",
     "searchPlaceholder": "Cari bendera...",
-    "descriptionModeLabel": "Paparan perihalan",
-    "descriptionModeHint": "Apabila dituding: kad kekal padat dan menuding pada perihalan akan memaparkan teks penuh. Teks penuh: sentiasa paparkan perihalan lengkap.",
-    "descriptionModeHover": "Apabila dituding",
-    "descriptionModeFull": "Teks penuh",
     "categories": {
       "all": "Semua",
       "security": "Keselamatan",

@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokalna proxy-core krajnja tačka je nevažeća; SS/VMess/Trojan/VLESS čvorovi su ignorisani.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ova pretplata ima čvorove kojima je potreban lokalni proxy core (SS/VMess/Trojan/VLESS); oni neće biti rutirani dok ne konfigurišete lokalni-core SOCKS5 endpoint.",
         "NO_USABLE_NODES": "Pretplata nije pružila nijedan upotrebljiv čvor (http/https/socks5 ili čvorovi sa lokalnom core krajnjom tačkom).",
-        "SELECTOR_SWITCH_FAILED": "Upravljački poziv proxy-corea nije uspio; prethodna ruta ostaje aktivna. Provjerite upravljački URL i tajnu, pa osvježite."
+        "SELECTOR_SWITCH_FAILED": "Upravljački poziv proxy-corea nije uspio; prethodna ruta ostaje aktivna. Provjerite upravljački URL i tajnu, pa osvježite.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Zalijepite link vaše proxy pretplate. Kada se omogući, saobraćaj se rutira kroz proxy pool u globalnom ili rule (specifični Provider) režimu. Čvorovi pretplate se automatski sinhronizuju u proxy pool i koriste postojeće mehanizme polling-a, provjere zdravlja i anti-leak zaštite.",
       "addSubscription": "Dodaj Pretplatu",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Još nema evidentiranog prebacivanja",
       "lastSwitchMember": "Član koji opslužuje",
       "nextSwitch": "Sljedeće moguće prebacivanje",
-      "nextSwitchNow": "Sada"
+      "nextSwitchNow": "Sada",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Masovna provjera zdravlja",
     "bulkHealthcheckDesc": "Testirajte sve konfigurisane proksije protiv ciljanog URL-a kako biste saznali koji rade.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} neaktivno",
     "dbOverrideCount": "{count} DB nadjačavanja",
     "searchPlaceholder": "Pretraži zastavice.",
-    "descriptionModeLabel": "Prikaz opisa",
-    "descriptionModeHint": "Pri prelasku mišem: kartice ostaju kompaktne, a prelazak mišem preko opisa prikazuje cijeli tekst. Cijeli tekst: uvijek prikaži potpuni opis.",
-    "descriptionModeHover": "Pri prelasku mišem",
-    "descriptionModeFull": "Cijeli tekst",
     "categories": {
       "all": "Sve",
       "security": "Sigurnost",
