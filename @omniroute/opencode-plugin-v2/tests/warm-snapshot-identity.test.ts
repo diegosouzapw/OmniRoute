@@ -32,7 +32,7 @@ describe("warm snapshot is read under the credential actually in use", () => {
       await writeDiskSnapshot(
         "warmid",
         {
-          models: [{ id: "m-snap" }],
+          models: [{ id: "m-snap", capabilities: { tool_calling: true } }],
           combos: [],
           autoCombos: [],
           providers: [],
@@ -65,7 +65,10 @@ describe("warm snapshot is read under the credential actually in use", () => {
       };
       await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
       const published = new Map<string, Record<string, unknown>>();
-      for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+      for (const entry of added as Array<{
+        info: { id: string };
+        models: Array<Record<string, unknown>>;
+      }>) {
         for (const m of entry.models) published.set(`${entry.info.id}/${String(m.id)}`, m);
       }
       assert.ok(
