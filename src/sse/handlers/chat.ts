@@ -32,11 +32,7 @@ import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts"
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { resolveCcDiscoveryAliasStrip } from "@/lib/ccDiscoveryAliasResolve";
-import {
-  handleComboChat,
-  resolveComboTargets,
-  shouldSkipConnDisable,
-} from "@omniroute/open-sse/services/combo.ts";
+import { handleComboChat, shouldSkipConnDisable } from "@omniroute/open-sse/services/combo.ts";
 import type { ComboLike, SingleModelTarget } from "@omniroute/open-sse/services/combo/types.ts";
 import { mergeAbortSignals } from "@omniroute/open-sse/executors/base.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
@@ -80,6 +76,9 @@ import {
 } from "@/lib/db/sessionAccountAffinity";
 import { dispatchChatWithAffinityEviction } from "./chatDispatch";
 import { getCachedSettings, getCombosCacheVersion } from "@/lib/db/readCache";
+import { intersectAllowedConnectionIds } from "./chat/allowedConnectionIds.ts";
+import { isManagedComboUnsupported } from "./chat/managedComboSupport.ts";
+import * as muse from "./chat/museOwnership.ts";
 import { comboCheckProvider, ghComboGate } from "./chat/githubLiveCatalogFilter.ts";
 import { markEmergencyFallback } from "./emergencyFallbackHeader.ts";
 import { comboTargetPassesKeyModelPolicy } from "./chat/comboTargetKeyPolicy.ts";
@@ -112,8 +111,7 @@ import {
   withConversationId,
 } from "./chatHelpers";
 import { buildModalityBridgeHeader } from "@/lib/guardrails/modalityBridge/bridgeStats";
-import type { VideoBridgeLogRedactionEntry } from "@/lib/guardrails/videoBridge";
-import { reanchorVideoBridgeRedaction } from "@/lib/guardrails/videoBridge";
+import { type VideoBridgeLog, deriveVideoBridgeLog } from "./chat/videoBridgeLog.ts";
 import { resolveConversationId } from "@omniroute/open-sse/services/conversationTracker.ts";
 import {
   classifyProviderBreakerResult,
@@ -322,95 +320,6 @@ async function getCombosCachedForChat(): Promise<ComboLike[]> {
   combosCacheVersionSnapshot = getCombosCacheVersion();
   combosCachePromise = getCombos().catch(() => []) as Promise<ComboLike[]>;
   return combosCachePromise;
-}
-
-function normalizeAllowedConnectionIds(value: unknown): string[] | null {
-  if (!Array.isArray(value)) return null;
-  const ids = value.filter(
-    (entry): entry is string => typeof entry === "string" && entry.trim().length > 0
-  );
-  return ids.length > 0 ? ids : null;
-}
-
-function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): string[] | null {
-  const first = normalizeAllowedConnectionIds(primary);
-  const second = normalizeAllowedConnectionIds(secondary);
-
-  if (first && second) {
-    return first.filter((id) => second.includes(id));
-  }
-
-  return first || second || null;
-}
-
-/** Shape of the videoBridgeLog param threaded to executeChatWithBreaker -> handleChatCore (#12150 P1b). */
-type VideoBridgeLog = { observed: boolean; redaction: VideoBridgeLogRedactionEntry[] };
-
-/**
- * #12150 P1b: derive the video-bridge log/Memory shadow from
- * preCallGuardrails.results. Returns undefined only when the video-bridge
- * guardrail did not run (disabled, no video parts, or the request was
- * blocked/failed before meta was set); a replaced ordinary video returns
- * `{ observed: false, redaction: [] }`. So every non-video request threads
- * `undefined` through the dispatch chain, byte-identical to before this param
- * existed.
- *
- * `finalBody` is the payload AFTER the whole pre-call chain
- * (`preCallGuardrails.payload`): #12150 P1 final-review fix re-anchors each
- * redaction entry's `fullText` from it so the log sink's content-match still
- * finds the part after the PII/credential maskers (priorities 10/95) rewrote
- * the description text in place.
- *
- * `results` is typed as a structural subset of GuardrailExecutionResult
- * (src/lib/guardrails/base.ts), the same "no type dependency on the
- * guardrail core" pattern already used by buildModalityBridgeHeader
- * (modalityBridge/bridgeStats.ts).
- */
-function deriveVideoBridgeLog(
-  results: Array<{ guardrail: string; meta?: Record<string, unknown> | null }>,
-  finalBody: unknown
-): VideoBridgeLog | undefined {
-  const entry = results.find((r) => r.guardrail === "video-bridge");
-  const meta = entry?.meta;
-  if (!meta || typeof meta.videoBridgeObserved !== "boolean") return undefined;
-  const rawRedaction = Array.isArray(meta.videoBridgeLogRedaction)
-    ? (meta.videoBridgeLogRedaction as VideoBridgeLogRedactionEntry[])
-    : [];
-  const redaction = reanchorVideoBridgeRedaction(rawRedaction, finalBody);
-  return { observed: meta.videoBridgeObserved, redaction };
-}
-
-function isManagedComboUnsupported(
-  combo: ComboLike,
-  settings: Record<string, unknown>,
-  allCombos: ComboLike[],
-  visited = new Set<string>()
-): boolean {
-  if (visited.has(combo.name)) return false;
-  visited.add(combo.name);
-  const strategy = combo.strategy ?? "priority";
-  const config = resolveComboConfig(combo, settings) as Record<string, unknown>;
-  const resolvedTargets = resolveComboTargets(combo, allCombos);
-  const pipeline =
-    strategy === "pipeline" ||
-    (strategy === "auto" && (config.pipeline_enabled === true || combo.name === "auto/smart"));
-  const nestedUnsafe = (combo.models as Array<{ kind?: string; comboName?: string }>).some(
-    (step) => {
-      if (step?.kind !== "combo-ref" || !step.comboName) return false;
-      const nested = allCombos.find((candidate) => candidate.name === step.comboName);
-      return Boolean(nested && isManagedComboUnsupported(nested, settings, allCombos, visited));
-    }
-  );
-  return (
-    strategy === "fusion" ||
-    strategy === "context-relay" ||
-    (config.chaos as { enabled?: boolean } | undefined)?.enabled === true ||
-    (config.shadowRouting as { enabled?: boolean } | undefined)?.enabled === true ||
-    (config.zeroLatencyOptimizationsEnabled === true && config.hedging === true) ||
-    (resolvedTargets.length > 1 &&
-      (pipeline || resolvedTargets.some((target) => Boolean(target.connectionId?.trim())))) ||
-    nestedUnsafe
-  );
 }
 
 const managedComboRejection = () =>
@@ -1682,6 +1591,18 @@ async function handleSingleModelChat(
   // ANTIGRAVITY_ACCOUNT_LEASE_ENABLED (#10011 re-land): off ⇒ every `agy.*` branch is inert
   // and selection/dispatch behave exactly as before. `attempted` survives a loop restart.
   const agy = agyLease.startAntigravityLeaseRequest(provider, runtimeOptions.correlationId);
+  const museOwner = await muse.claimMuseOwner({
+    provider,
+    model,
+    body: body as Record<string, unknown>,
+    headers: request?.headers,
+    apiKeyId: apiKeyInfo?.id ?? null,
+    forcedConnectionId,
+    preselectedConnectionId: initialPreselectedCredentials?.connectionId,
+    allowedConnections: effectiveAllowedConnections,
+    allowUnavailable: runtimeOptions.allowRateLimitedConnection === true || forceLiveComboTest,
+  });
+  if (museOwner instanceof Response) return museOwner;
 
   requestAttemptLoop: while (true) {
     const excludedConnectionIds = new Set<string>(agy.on ? agy.attempted : []);
@@ -1693,15 +1614,15 @@ async function handleSingleModelChat(
 
     while (true) {
       const credentials =
-        preselectedCredentials && excludedConnectionIds.size === 0 && !agy.on
+        preselectedCredentials && excludedConnectionIds.size === 0 && !agy.on && !museOwner
           ? preselectedCredentials
           : await getProviderCredentialsWithQuotaPreflight(
               provider,
               null,
-              effectiveAllowedConnections,
+              museOwner ? [museOwner.connectionId] : effectiveAllowedConnections,
               model,
               {
-                sessionKey: occupancySessionKey,
+                sessionKey: museOwner ? null : occupancySessionKey,
                 reserveOAuthSession: true,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
                 ...(agy.on
@@ -1733,11 +1654,17 @@ async function handleSingleModelChat(
                     isQuotaExhausted: () => false,
                     isQuotaPolicyBlocked: () => false,
                   });
-                  return effectiveForcedId ? { forcedConnectionId: effectiveForcedId } : {};
+                  return museOwner
+                    ? { forcedConnectionId: museOwner.connectionId }
+                    : effectiveForcedId
+                      ? { forcedConnectionId: effectiveForcedId }
+                      : {};
                 })(),
               }
             );
       preselectedCredentials = null;
+      const museUnavailable = museOwner && muse.museOwnerUnavailable(museOwner, credentials);
+      if (museUnavailable) return museUnavailable;
 
       if (credentials && "leaseUnavailable" in credentials && credentials.leaseUnavailable) {
         excludedConnectionIds.add(agyLease.trackAntigravityLeaseBusy(agy, credentials));
@@ -1941,6 +1868,13 @@ async function handleSingleModelChat(
         releaseOAuthSession();
         throw error;
       }
+      const museBindFailure =
+        museOwner &&
+        muse.bindMuseOwner(museOwner, credentials, refreshedCredentials, () => {
+          releaseOAuthSession();
+          agyLease.release(leaseId);
+        });
+      if (museBindFailure) return museBindFailure;
       const storeEnabled = isOpenAIResponsesStoreEnabled(
         refreshedCredentials?.providerSpecificData ?? credentials?.providerSpecificData
       );
@@ -2038,6 +1972,8 @@ async function handleSingleModelChat(
             videoBridgeLog: runtimeOptions.videoBridgeLog,
             previousResponseResumed: runtimeOptions.previousResponseResumed,
             fallbackAttempts: runtimeOptions.fallbackAttempts,
+            beforeUpstreamAttempt:
+              museOwner && muse.museBeforeUpstreamAttempt(museOwner, credentials),
             forcedConnectionId: hasForcedConnection ? forcedConnectionId : null, // #14116
           },
           runtimeOptions
@@ -2108,7 +2044,7 @@ async function handleSingleModelChat(
         if (telemetry) telemetry.startPhase("finalize");
         if (telemetry) telemetry.endPhase();
         const successResponse = withSelectedConnectionHeader(
-          result.response,
+          museOwner ? muse.museRecordOutput(museOwner, result.response) : result.response,
           credentials?.connectionId
         );
         if (requestBody.stream === true) {
@@ -2116,6 +2052,40 @@ async function handleSingleModelChat(
         }
         releaseOAuthSession();
         return successResponse;
+      }
+      // Never let generic account fallback or affinity eviction move a Muse caller.
+      if (museOwner) {
+        const museDelayMs = muse.museRetryDelay(
+          museOwner,
+          result,
+          `${provider}/${model}`,
+          requestSignal?.aborted === true
+        );
+        if (museDelayMs !== null) {
+          await new Promise((resolve) => setTimeout(resolve, museDelayMs));
+          continue;
+        }
+        if (muse.museFailureMarksAccount(result)) {
+          await markAccountUnavailable(
+            credentials.connectionId,
+            result.status,
+            String(result.rawMessage ?? result.error ?? ""),
+            provider,
+            model,
+            providerProfile,
+            buildExhaustionOptions(runtimeOptions.correlationId ?? null, {
+              isCombo,
+              headers: result.response.headers,
+            })
+          );
+          if (
+            !(await shouldIsolateProbeFailures()) &&
+            classifyProviderBreakerResult(result, isCombo, forceLiveComboTest) === "failure"
+          ) {
+            breaker._onFailure();
+          }
+        }
+        return muse.museFailureResponse(museOwner, result);
       }
 
       // A final hard-lease fence rejection is authoritative. It must never mutate

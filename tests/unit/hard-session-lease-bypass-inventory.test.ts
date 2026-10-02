@@ -239,6 +239,11 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/warmupScheduler.ts": 1,
     "src/shared/services/codexCatalogRevalidation.ts": 2,
     "src/shared/services/modelSyncScheduler.ts": 1,
+    // #15234: Muse session ownership lists the active muse-code OAuth connections only to
+    // pick/validate the session's owner account. It selects nothing for dispatch — every
+    // attempt still resolves credentials through the class-A path in chat.ts, pinned to that
+    // owner's connection id — so this is a state read (class C).
+    "src/sse/handlers/chat/museOwnership.ts": 1,
     "src/sse/handlers/chatHelpers.ts": 1,
     "src/sse/services/auth.ts": 4,
   },

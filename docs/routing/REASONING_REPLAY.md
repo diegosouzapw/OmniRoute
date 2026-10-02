@@ -4,8 +4,6 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# Reasoning Replay Cache
-
 > **Source of truth:** `src/lib/db/reasoningCache.ts`, `open-sse/services/reasoningCache.ts`
 > **Last updated:** 2026-06-28 — v3.8.40
 
@@ -162,6 +160,22 @@ The cache exposes two endpoints under `src/app/api/cache/reasoning/route.ts`. Bo
 - **No reasoning, no cache:** `cacheReasoningFromAssistantMessage` returns `0` when the assistant message has no `reasoning_content` / `reasoning` field, so non-thinking responses cost nothing.
 - **Write is gated too:** both call sites in `chatCore.ts` (non-streaming and streaming) only call `cacheReasoningFromAssistantMessage()` when `requiresReasoningReplay(provider, model)` is `true` — the same predicate the read side checks. Installs that never touch a replay provider stop paying for the write, the index update, and the try/catch on every reasoning-bearing response.
 - **Non-strict providers:** When `requiresReasoningReplay` is `false` and the target format is OpenAI, the translator **strips** any `reasoning_content` field from outgoing messages — OpenAI Chat Completions does not accept it.
+
+## Muse Opaque-Reasoning Ownership
+
+Muse (`muse-code`) returns caller-bound opaque reasoning (`encrypted_content`). Replaying it under a different account or reminted credential fails upstream, so native OAuth requests use session-level ownership instead of per-request rotation (`src/sse/services/museSessionOwnership.ts`, enforced in `src/sse/handlers/chat.ts`). Explicitly selected API-key connections and API-key-only configurations retain their existing routing without this ownership mode.
+
+- Supply a stable session ID on every turn: `x-omniroute-session-id`, `x-omniroute-session`, `x-session-id`, or `x-codex-session-id`; alternatively use `prompt_cache_key`, `session_id`, `conversation_id`, or `metadata.session_id` in the body (in that precedence order). Missing or blank IDs return 400. The scope includes the caller's OmniRoute API-key ID.
+- Fresh independent sessions round-robin across active native OAuth accounts permitted by the API-key connection policy, ordered by connection ID. Round-robin skips accounts in connection cooldown, with a terminal status (`banned`, `expired`, `credits_exhausted`), or model-locked for the requested model; Muse upstream failures record cooldown and breaker state like other providers. An explicitly forced connection bypasses round-robin for a new session but cannot override an existing owner.
+- Until the owner serves a successful response, a session whose owner has become unavailable is re-claimed onto a healthy account. After the first successful response, the session is pinned permanently.
+- Every continuation and tool-result turn stays pinned to the session owner: connection, account identity, and inference-credential generation, checked again before upstream attempts, including credential-refresh retries. Responses call IDs/item references and Chat Completions tool-call IDs must have been recorded for that session and generation.
+- SQLite `key_value` records in the `muse_session_ownership` namespace persist ownership and the rotation cursor across restarts. Records contain connection IDs and hashes of account identity, credentials, opaque content, and continuation references, not secrets or conversation history. Clients must retain and send their full history and opaque reasoning.
+- Unknown or foreign opaque reasoning, a missing owner, an unavailable owner account, or a generation change with recorded history fails closed with an explicit 4xx/503 — never silent cross-account failover and never dropped reasoning.
+- A reminted same-account key is adopted only when the session recorded no replayable history; recorded sessions keep failing closed until started fresh.
+- An empty upstream response (`upstream_empty_response` / `empty_response`, nothing emitted to the caller) is retried at most twice on the same owner, after 0.5 s then 1.5 s (`MUSE_EMPTY_RESPONSE_RETRY_DELAYS_MS`). If all attempts are empty, the original 502 is returned without cooldown or breaker marking, so a flaky reply never locks out the owner.
+- All `muse-code` requests bypass semantic-cache reads and writes, including streaming writes, so cached opaque output cannot acquire a different session owner.
+
+Regression guards: `tests/unit/muse-session-ownership.test.ts`, `tests/unit/muse-empty-response-retry.test.ts`, and `tests/unit/chatcore-semantic-cache.test.ts`.
 
 ## See Also
 

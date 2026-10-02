@@ -14,7 +14,9 @@ const core = await import("../../src/lib/db/core.ts");
 // Seeding the real cache (no mock.module under the Stryker tap-runner) lets us drive the
 // HIT branch deterministically: setCachedResponse populates the in-memory cache that
 // getCachedResponse checks first, so the signature checkSemanticCache rebuilds resolves.
-const { generateSignature, setCachedResponse, clearCache } =
+const { storeSemanticCacheResponse } =
+  await import("../../open-sse/handlers/chatCore/semanticCacheStore.ts");
+const { generateSignature, setCachedResponse, getCachedResponse, clearCache } =
   await import("../../src/lib/semanticCache.ts");
 const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
 const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
@@ -140,6 +142,59 @@ test("checkSemanticCache MISS also works for the Responses-API `input` body shap
 
   assert.equal(result, null);
   assert.equal(persistCalls.length, 0);
+});
+
+test("Muse fresh sessions neither reuse cached opaque output nor store their own", async () => {
+  const model = "muse-spark";
+  const apiKeyId = "muse-cache-regression";
+  const input = [{ role: "user", content: "Muse cache ownership regression" }];
+  const signature = generateSignature(model, input, 0, undefined, apiKeyId);
+  const staleOutput = {
+    output: [{ type: "reasoning", encrypted_content: "another-account-opaque" }],
+  };
+  setCachedResponse(signature, model, staleOutput, 0);
+
+  const served: unknown[] = [];
+  for (const sessionId of ["fresh-account-a", "fresh-account-b"]) {
+    const body = { input, temperature: 0, session_id: sessionId };
+    const { args } = makeBaseArgs({
+      semanticCacheEnabled: true,
+      provider: "muse-code",
+      model,
+      apiKeyId,
+      body,
+    });
+    const hit = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+    assert.equal(hit, null, "each fresh session must dispatch instead of serving cached reasoning");
+    const upstreamOutput = {
+      output: [{ type: "reasoning", encrypted_content: `${sessionId}-opaque` }],
+    };
+    storeSemanticCacheResponse({
+      enabled: true,
+      provider: "muse-code",
+      model,
+      apiKeyId,
+      body,
+      headers: {},
+      translatedResponse: upstreamOutput,
+    });
+    served.push(upstreamOutput);
+    assert.deepEqual(getCachedResponse(signature), staleOutput, "Muse must not overwrite cache");
+  }
+  assert.notDeepEqual(served[0], served[1]);
+
+  const uncachedInput = [{ role: "user", content: "uncached Muse reasoning" }];
+  const uncachedSignature = generateSignature(model, uncachedInput, 0, undefined, apiKeyId);
+  storeSemanticCacheResponse({
+    enabled: true,
+    provider: "muse-code",
+    model,
+    apiKeyId,
+    body: { input: uncachedInput, temperature: 0 },
+    headers: {},
+    translatedResponse: served[0],
+  });
+  assert.equal(getCachedResponse(uncachedSignature), null, "Muse must not create cache entries");
 });
 
 // ─── HIT path ────────────────────────────────────────────────────────────────
@@ -706,4 +761,28 @@ test("#12734: identical tool_choice/tools/response_format across requests still 
   const result = await checkSemanticCache(readArgs as Parameters<typeof checkSemanticCache>[0]);
 
   assert.ok(result, "identical tool_choice/tools/response_format must still HIT");
+});
+
+test("Muse successful streaming completions never create or overwrite cache entries", async () => {
+  const { storeStreamingSemanticCacheResponse } =
+    await import("../../open-sse/handlers/chatCore/streamingSemanticCacheStore.ts");
+  for (const seeded of [false, true]) {
+    const input = [{ role: "user", content: `stream muse ${seeded}` }];
+    const signature = generateSignature("muse-spark", input, 0, undefined, "stream-client");
+    const old = { choices: [{ message: { content: "old opaque output" }, finish_reason: "stop" }] };
+    if (seeded) setCachedResponse(signature, "muse-spark", old, 1);
+    storeStreamingSemanticCacheResponse({
+      enabled: true,
+      provider: "muse-code",
+      model: "muse-spark",
+      apiKeyId: "stream-client",
+      body: { input, temperature: 0 },
+      headers: {},
+      streamStatus: 200,
+      streamResponseBody: {
+        choices: [{ message: { content: "new opaque output" }, finish_reason: "stop" }],
+      },
+    });
+    assert.deepEqual(getCachedResponse(signature), seeded ? old : null);
+  }
 });

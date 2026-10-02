@@ -48,7 +48,7 @@ export async function checkSemanticCache({
   cacheDefaultMode?: "legacy" | "bypass" | null;
   videoTranscriptSensitive?: boolean;
 }) {
-  if (videoTranscriptSensitive) return null;
+  if (provider === "muse-code" || videoTranscriptSensitive) return null;
   // Per-key bypass: skip cache lookup entirely when the API key opts out.
   if (cacheDefaultMode === "bypass") return null;
   if (semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers)) {

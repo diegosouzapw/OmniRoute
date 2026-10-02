@@ -109,6 +109,7 @@ export function storeStreamingSemanticCacheResponse(
   deps: StreamingSemanticCacheStoreDeps = DEFAULT_DEPS
 ): void {
   if (
+    args.provider === "muse-code" ||
     args.videoTranscriptSensitive ||
     !args.enabled ||
     args.streamStatus !== 200 ||

@@ -60,6 +60,8 @@ import {
   normalizeGigachatChatUrl,
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
+import { floorMuseOutputTokens, responsesUrlForModel } from "./default/museCode.ts";
+import { defaultPerplexityAgentMaxOutputTokens } from "./default/perplexityAgentDefaults.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 import { normalizePoolConfig, rejectStrictPool } from "./default/poolConfig.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
@@ -68,26 +70,6 @@ import { xiaomiAlternateUrl, xiaomiMimoChatUrl } from "./default/xiaomiTokenPlan
 import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 
 const NVIDIA_TOOL_CALL_ID_PATTERN = /^[A-Za-z0-9]{9}$/;
-const PERPLEXITY_AGENT_DEFAULT_MAX_OUTPUT_TOKENS = 4096;
-
-function defaultPerplexityAgentMaxOutputTokens<T>(body: T): T {
-  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
-
-  const record = body as Record<string, unknown>;
-  if (
-    record.max_output_tokens !== undefined ||
-    record.max_completion_tokens !== undefined ||
-    record.max_tokens !== undefined
-  ) {
-    return body;
-  }
-
-  return {
-    ...record,
-    max_output_tokens: PERPLEXITY_AGENT_DEFAULT_MAX_OUTPUT_TOKENS,
-  } as T;
-}
-
 const ZAI_GLM_53_OPENAI_MODEL_PATTERN = /^glm-5\.3(?:-flash)?$/i;
 const ZAI_GLM_53_EFFORT_MODEL_PATTERN = /^(glm-5\.3(?:-flash)?)-(low|high|max)$/i;
 
@@ -461,7 +443,7 @@ export class DefaultExecutor extends BaseExecutor {
             : null;
         const isOpenAIFormat = !this.config.format || this.config.format === "openai";
         if (customBaseUrl && isOpenAIFormat) {
-          return normalizeOpenAIChatUrl(customBaseUrl);
+          return responsesUrlForModel(normalizeOpenAIChatUrl(customBaseUrl), this.provider, model);
         }
         const url = this.config.baseUrl;
         const entry = getRegistryEntry(this.provider);
@@ -816,6 +798,7 @@ export class DefaultExecutor extends BaseExecutor {
     if (this.provider === "perplexity-agent") {
       withDefaults = defaultPerplexityAgentMaxOutputTokens(withDefaults);
     }
+    if (this.provider === "muse-code") withDefaults = floorMuseOutputTokens(withDefaults);
 
     if (this.provider === "nvidia") {
       normalizeNvidiaToolCallIds(withDefaults);
