@@ -36,7 +36,9 @@ function stubFetch(
       ok: true,
       status: 200,
       statusText: "OK",
-      json: async () => ({ data: modelIds.map((id) => ({ id })) }),
+      json: async () => ({
+        data: modelIds.map((id) => ({ id, capabilities: { tool_calling: true } })),
+      }),
     };
   }) as typeof fetch;
 }
@@ -89,7 +91,10 @@ async function setupPlugin(opts: CtxOpts): Promise<{
 
 function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
   const published = new Map<string, Record<string, unknown>>();
-  for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+  for (const entry of added as Array<{
+    info: { id: string };
+    models: Array<Record<string, unknown>>;
+  }>) {
     for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
   }
   return published;

@@ -54,7 +54,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
 
   function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
     const published = new Map<string, Record<string, unknown>>();
-    for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+    for (const entry of added as Array<{
+      info: { id: string };
+      models: Array<Record<string, unknown>>;
+    }>) {
       for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
     }
     return published;
@@ -102,7 +105,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       }
       if (href.includes("/api/pricing")) return ok({});
       if (href.includes("/api/free-tier/summary")) return ok({});
-      return ok({ data: [{ id: "m1" }] });
+      return ok({ data: [{ id: "m1", capabilities: { tool_calling: true } }] });
     }) as typeof fetch;
   }
 
@@ -232,7 +235,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       }
       if (href.includes("/api/pricing")) return ok({});
       if (href.includes("/api/free-tier/summary")) return ok({});
-      return ok({ data: [{ id: "m1" }] });
+      return ok({ data: [{ id: "m1", capabilities: { tool_calling: true } }] });
     }) as unknown as typeof fetch;
     const reloads = { count: 0 };
     const { added, ctx } = setupCtx("staged-ttl", reloads);
@@ -328,7 +331,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       }
       if (href.includes("/api/pricing")) return ok({});
       if (href.includes("/api/free-tier/summary")) return ok({});
-      return ok({ data: [{ id: "m1" }] });
+      return ok({ data: [{ id: "m1", capabilities: { tool_calling: true } }] });
     }) as unknown as typeof fetch;
     const reloads = { count: 0 };
     const { added, ctx } = setupCtx("staged-enrich-down", reloads);
@@ -378,7 +381,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       if (down) {
         return { ok: false, status: 500, statusText: "Down", json: async () => ({}) };
       }
-      return ok({ data: [{ id: "m1" }] });
+      return ok({ data: [{ id: "m1", capabilities: { tool_calling: true } }] });
     }) as unknown as typeof fetch;
     const reloads = { count: 0 };
     const { added: _addedU, ctx } = setupCtx("staged-unreachable", reloads);
@@ -419,10 +422,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
           });
           return Promise.resolve({ dispose: async () => {} });
         },
-        },
-        model: {
-          transform: () => Promise.resolve({ dispose: async () => {} }),
-        },
+      },
+      model: {
+        transform: () => Promise.resolve({ dispose: async () => {} }),
+      },
       integration: {
         transform: () => {
           throw new Error("host says no");
