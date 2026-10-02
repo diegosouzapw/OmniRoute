@@ -54,3 +54,25 @@ export function isOpencodeFreeTierSkipped(
 export function clearOpencodeFreeTierSkips(): void {
   skips.clear();
 }
+
+/**
+ * Remaining pause time in ms for an opencode* provider, or null when no
+ * active pause covers it. Read-only companion to `isOpencodeFreeTierSkipped`:
+ * a single map lookup per call; an expired entry is dropped lazily, so a
+ * null/negative remainder hands the connection back instead of a zero-second
+ * cooldown.
+ */
+export function getOpencodeFreeTierSkipRemainingMs(
+  provider: string | null | undefined,
+  now: number = Date.now()
+): number | null {
+  if (!isOpencodeProvider(provider)) return null;
+  const key = String(provider).toLowerCase();
+  const until = skips.get(key);
+  if (until === undefined) return null;
+  if (until <= now) {
+    skips.delete(key);
+    return null;
+  }
+  return until - now;
+}

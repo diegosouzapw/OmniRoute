@@ -65,7 +65,7 @@ import {
   persistAntigravityFamilyCooldownIfQuota,
 } from "@omniroute/open-sse/services/antigravityFamilyCooldown.ts";
 import { markQuotaPreflightAccountUnavailable } from "./quotaPreflightUnavailable.ts";
-import { buildNoAuthModelCooldown } from "./noAuthModelCooldown.ts";
+import { buildNoAuthModelCooldown, pauseCooldownIfPaused } from "./noAuthModelCooldown.ts";
 import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import { preferAntigravityConnectionsWithStoredProject } from "@omniroute/open-sse/services/antigravityProjectPersistence.ts";
 import {
@@ -784,17 +784,19 @@ function isAnonymousFallbackOnlyProvider(providerId: string): boolean {
 async function maybeSyntheticNoAuthFallback(
   providerId: string,
   excludedConnectionIds: Set<string>,
-  allowedConnections: string[] | null = null
+  allowedConnections: string[] | null = null,
+  pauseAsCooldown = false
 ) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
   // #9057: a restricted key must NOT reach free providers (OpenCode Free, etc.) through the
   // synthetic "noauth" connection unless its allowedConnections names it.
   if (!allowlistPermitsSyntheticNoAuth(allowedConnections)) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
-  // #14313: a free-tier refusal just paused this keyless path — do not re-select
-  // the synthetic noauth connection until the short TTL expires.
-  if (isOpencodeFreeTierSkipped(providerId)) {
-    log.info("AUTH", `${providerId} | no-auth fallback skipped (OpenCode free-tier pause)`);
+  if (pauseAsCooldown) {
+    const paused = pauseCooldownIfPaused(providerId, SYNTHETIC_NOAUTH_CONNECTION_ID);
+    if (paused) return paused;
+  } else if (isOpencodeFreeTierSkipped(providerId)) {
+    log.info("AUTH", `${providerId} | no-auth fallback skipped (OpenCode free-tier pause)`); // #14313
     return null;
   }
   if (
@@ -1244,7 +1246,7 @@ export async function getProviderCredentials(
               )
             : null;
         }
-        return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
+        return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth, null, true);
       }
     }
 
