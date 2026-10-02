@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokalt proxy-core-slutpunkt er ugyldigt; SS/VMess/Trojan/VLESS-noder blev ignoreret.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dette abonnement har noder, der kræver en lokal proxy-core (SS/VMess/Trojan/VLESS); de routes ikke, før du konfigurerer local-core SOCKS5-slutpunktet.",
         "NO_USABLE_NODES": "Abonnementet gav ingen brugbare noder (http/https/socks5 eller noder med et lokalt core-slutpunkt).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-coreens styreopkald mislykkedes; den forrige rute forbliver aktiv. Kontrollér styre-URL og hemmelighed, og opdatér derefter."
+        "SELECTOR_SWITCH_FAILED": "Proxy-coreens styreopkald mislykkedes; den forrige rute forbliver aktiv. Kontrollér styre-URL og hemmelighed, og opdatér derefter.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Indsæt dit proxy-abonnementslink. Når den er aktiveret, dirigeres trafik gennem proxypuljen i global tilstand eller regel (specificeret udbyder). Abonnementsnoder synkroniseres automatisk til proxypuljen og genbruger eksisterende polling-, sundhedstjek- og anti-lækagemekanismer.",
       "addSubscription": "Tilføj abonnement",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "Ingen skift registreret endnu",
       "lastSwitchMember": "Betjenende medlem",
       "nextSwitch": "Næste mulige skift",
-      "nextSwitchNow": "Nu"
+      "nextSwitchNow": "Nu",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Samlet sundhedstjek",
     "bulkHealthcheckDesc": "Test alle konfigurerede proxyer mod en destinations-URL for at finde ud af, hvilke der virker.",

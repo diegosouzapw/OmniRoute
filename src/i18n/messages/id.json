@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Endpoint proxy-core lokal tidak valid; node SS/VMess/Trojan/VLESS diabaikan.",
         "NEEDS_CORE_NOT_CONFIGURED": "Langganan ini memiliki node yang memerlukan proxy core lokal (SS/VMess/Trojan/VLESS); node tersebut tidak akan dirutekan sampai Anda mengonfigurasi endpoint SOCKS5 local-core.",
         "NO_USABLE_NODES": "Langganan tidak menghasilkan node yang dapat digunakan (http/https/socks5 atau node dengan endpoint core lokal).",
-        "SELECTOR_SWITCH_FAILED": "Panggilan kontrol proxy-core gagal; rute sebelumnya tetap aktif. Periksa URL dan secret kontrol, lalu muat ulang."
+        "SELECTOR_SWITCH_FAILED": "Panggilan kontrol proxy-core gagal; rute sebelumnya tetap aktif. Periksa URL dan secret kontrol, lalu muat ulang.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Tempelkan tautan berlangganan proksi Anda. Setelah diaktifkan, lalu lintas dirutekan melalui kumpulan proksi dalam mode global atau aturan (Penyedia tertentu). Node langganan secara otomatis disinkronkan ke kumpulan proksi dan menggunakan kembali mekanisme polling, pemeriksaan kesehatan, dan anti-kebocoran yang ada.",
       "addSubscription": "Tambahkan Langganan",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "Belum ada peralihan tercatat",
       "lastSwitchMember": "Anggota yang melayani",
       "nextSwitch": "Peralihan berikutnya yang mungkin",
-      "nextSwitchNow": "Sekarang"
+      "nextSwitchNow": "Sekarang",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Pemeriksaan Kesehatan Massal",
     "bulkHealthcheckDesc": "Uji semua proksi yang dikonfigurasi terhadap URL target untuk mengetahui mana yang berfungsi.",

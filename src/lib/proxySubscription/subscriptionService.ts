@@ -21,6 +21,7 @@
  */
 import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import { randomUUID } from "crypto";
+import fs from "node:fs";
 import { getDbInstance } from "../db/core";
 import { backupDbFile } from "../db/backup";
 import { encrypt } from "../db/encryption";
@@ -42,6 +43,8 @@ import { isProxyReachable } from "../proxyHealth";
 import { resolveTargetScopes } from "./scopes";
 import { clampSelectorGapSeconds, setAnyControlUrlConfigured } from "./selectorTrigger";
 import { stripSelectorSuffix } from "./selectorEndpoint";
+import { generateForSubscription } from "./coreConfig/sync";
+import { removeSubscriptionSideFiles } from "./coreConfig/apply";
 import {
   isSubscriptionFetchUrlAllowed,
   isIpLiteral,
@@ -64,10 +67,12 @@ export type ProxySubscriptionStatus = "ok" | "error" | "empty";
  * column (as JSON) so the dashboard can localize them via i18n instead of
  * showing server-side strings. */
 export type ProxySubscriptionErrorCode =
+  | "CORE_CONFIG_NOT_GENERATED"
   | "LOCAL_CORE_ENDPOINT_INVALID"
   | "NEEDS_CORE_NOT_CONFIGURED"
   | "NO_USABLE_NODES"
-  | "SELECTOR_SWITCH_FAILED";
+  | "SELECTOR_SWITCH_FAILED"
+  | "CORE_CONFIG_NOT_APPLIED";
 
 /** Encode a user-facing error as `{ code, detail? }` for i18n on the client. */
 export function subscriptionErrorCode(code: ProxySubscriptionErrorCode, detail?: string): string {
@@ -84,11 +89,13 @@ export interface ProxySubscriptionRecord {
   localCoreEndpoint: string | null;
   updateIntervalMinutes: number;
   controlUrl: string | null;
+  coreConfigPath: string | null;
   hasControlSecret: boolean;
   selectorMinGapSeconds: number;
   selectorLastSwitchAt: string | null;
   selectorLastSwitchResult: string | null;
   selectorLastSwitchMember: string | null;
+  selectorLastSwitchKind: string | null;
   lastFetchedAt: string | null;
   status: ProxySubscriptionStatus;
   error: string | null;
@@ -108,6 +115,7 @@ export interface ProxySubscriptionPayload {
   localCoreEndpoint?: string | null;
   updateIntervalMinutes?: number;
   controlUrl?: string | null;
+  coreConfigPath?: string | null;
   controlSecret?: string | null;
   selectorMinGapSeconds?: number;
 }
@@ -142,17 +150,20 @@ function readSelectorBase(r: Record<string, unknown>): {
 
 function readControlMeta(r: Record<string, unknown>): {
   controlUrl: string | null;
+  coreConfigPath: string | null;
   hasControlSecret: boolean;
   selectorMinGapSeconds: number;
   selectorLastSwitchAt: string | null;
   selectorLastSwitchResult: string | null;
   selectorLastSwitchMember: string | null;
+  selectorLastSwitchKind: string | null;
 } {
   // control_secret_enc is write-only: exposed only as a presence bit, never
   // in clear. Any future writer of control_url MUST update the selector
   // trigger cache (selectorTrigger.setAnyControlUrlConfigured).
   return {
     controlUrl: typeof r.control_url === "string" ? r.control_url : null,
+    coreConfigPath: typeof r.core_config_path === "string" ? r.core_config_path : null,
     hasControlSecret: typeof r.control_secret_enc === "string" && r.control_secret_enc.length > 0,
     selectorMinGapSeconds: clampSelectorGapSeconds(r.selector_min_gap_seconds),
     selectorLastSwitchAt:
@@ -161,6 +172,8 @@ function readControlMeta(r: Record<string, unknown>): {
       typeof r.selector_last_switch_result === "string" ? r.selector_last_switch_result : null,
     selectorLastSwitchMember:
       typeof r.selector_last_switch_member === "string" ? r.selector_last_switch_member : null,
+    selectorLastSwitchKind:
+      typeof r.selector_last_switch_kind === "string" ? r.selector_last_switch_kind : null,
   };
 }
 
@@ -208,7 +221,7 @@ export async function listSubscriptions(): Promise<ProxySubscriptionRecord[]> {
   const db = getDbInstance();
   const rows = db
     .prepare(
-      "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions ORDER BY datetime(updated_at) DESC, name ASC"
+      "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, core_config_path, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, selector_last_switch_kind, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions ORDER BY datetime(updated_at) DESC, name ASC"
     )
     .all();
   return rows.map(mapSubscriptionRow);
@@ -218,7 +231,7 @@ export async function getSubscriptionById(id: string): Promise<ProxySubscription
   const db = getDbInstance();
   const row = db
     .prepare(
-      "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions WHERE id = ?"
+      "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, core_config_path, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, selector_last_switch_kind, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions WHERE id = ?"
     )
     .get(id);
   return row ? mapSubscriptionRow(row) : null;
@@ -232,6 +245,7 @@ export async function createSubscription(
   const enabled = payload.enabled === true ? 1 : 0;
   const db = getDbInstance();
   const controlUrl = payload.controlUrl ?? null;
+  const coreConfigPath = payload.coreConfigPath ?? null;
   const controlSecretEnc =
     payload.controlSecret != null && payload.controlSecret.length > 0
       ? ((encrypt(payload.controlSecret) ?? null) as string | null)
@@ -239,8 +253,8 @@ export async function createSubscription(
   const gapSeconds = clampSelectorGapSeconds(payload.selectorMinGapSeconds ?? 60);
   db.prepare(
     `INSERT INTO proxy_subscriptions
-      (id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, control_secret_enc, selector_min_gap_seconds, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'empty', ?, ?)`
+      (id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, core_config_path, control_secret_enc, selector_min_gap_seconds, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'empty', ?, ?)`
   ).run(
     id,
     payload.name,
@@ -251,6 +265,7 @@ export async function createSubscription(
     payload.localCoreEndpoint || null,
     payload.updateIntervalMinutes || 60,
     controlUrl,
+    coreConfigPath,
     controlSecretEnc,
     gapSeconds,
     now,
@@ -294,6 +309,7 @@ function persistSubscriptionRow(
     localCoreEndpoint: string | null;
     updateIntervalMinutes: number;
     controlUrl: string | null;
+    coreConfigPath: string | null;
     controlSecretEnc: string | null | undefined;
     gapSeconds: number;
     now: string;
@@ -302,7 +318,7 @@ function persistSubscriptionRow(
   if (args.controlSecretEnc === undefined) {
     db.prepare(
       `UPDATE proxy_subscriptions
-         SET name = ?, url = ?, enabled = ?, mode = ?, rule_providers = ?, local_core_endpoint = ?, update_interval_minutes = ?, control_url = ?, selector_min_gap_seconds = ?, updated_at = ?
+         SET name = ?, url = ?, enabled = ?, mode = ?, rule_providers = ?, local_core_endpoint = ?, update_interval_minutes = ?, control_url = ?, core_config_path = ?, selector_min_gap_seconds = ?, updated_at = ?
        WHERE id = ?`
     ).run(
       args.name,
@@ -313,6 +329,7 @@ function persistSubscriptionRow(
       args.localCoreEndpoint || null,
       args.updateIntervalMinutes,
       args.controlUrl,
+      args.coreConfigPath,
       args.gapSeconds,
       args.now,
       args.id
@@ -320,7 +337,7 @@ function persistSubscriptionRow(
   } else {
     db.prepare(
       `UPDATE proxy_subscriptions
-         SET name = ?, url = ?, enabled = ?, mode = ?, rule_providers = ?, local_core_endpoint = ?, update_interval_minutes = ?, control_url = ?, control_secret_enc = ?, selector_min_gap_seconds = ?, updated_at = ?
+         SET name = ?, url = ?, enabled = ?, mode = ?, rule_providers = ?, local_core_endpoint = ?, update_interval_minutes = ?, control_url = ?, core_config_path = ?, control_secret_enc = ?, selector_min_gap_seconds = ?, updated_at = ?
        WHERE id = ?`
     ).run(
       args.name,
@@ -331,6 +348,7 @@ function persistSubscriptionRow(
       args.localCoreEndpoint || null,
       args.updateIntervalMinutes,
       args.controlUrl,
+      args.coreConfigPath,
       args.controlSecretEnc,
       args.gapSeconds,
       args.now,
@@ -356,7 +374,8 @@ async function refreshAfterUpdate(
     } else if (
       enabledChanged ||
       payload.url !== undefined ||
-      payload.localCoreEndpoint !== undefined
+      payload.localCoreEndpoint !== undefined ||
+      payload.coreConfigPath !== undefined
     ) {
       // Same scopes: just refresh nodes (re-applies idempotently to same scopes).
       await syncSubscription(id);
@@ -382,9 +401,10 @@ export async function updateSubscription(
     payload.enabled !== undefined ? (payload.enabled ? 1 : 0) : existing.enabled ? 1 : 0;
 
   // The SET lists ONLY the columns this writer owns plus the three
-  // selector-control columns — every other column is untouched (byte-identical
-  // off opt-in). Secret is write-only: payload.controlSecret replaces
-  // control_secret_enc when present (encrypt at rest); absent leaves it.
+  // selector-control columns and the opt-in core-config path — every other
+  // column is untouched (byte-identical off opt-in). Secret is write-only:
+  // payload.controlSecret replaces control_secret_enc when present (encrypt
+  // at rest); absent leaves it.
   const controlSecretEnc = encryptSecretField(payload.controlSecret);
   persistSubscriptionRow(db, {
     id,
@@ -400,6 +420,8 @@ export async function updateSubscription(
         : existing.localCoreEndpoint,
     updateIntervalMinutes: payload.updateIntervalMinutes ?? existing.updateIntervalMinutes,
     controlUrl,
+    coreConfigPath:
+      payload.coreConfigPath !== undefined ? payload.coreConfigPath : existing.coreConfigPath,
     controlSecretEnc,
     gapSeconds,
     now,
@@ -423,6 +445,9 @@ export async function deleteSubscription(id: string): Promise<boolean> {
   await unapplySubscription(id);
   // Remove subscription-sourced proxy rows (force-clears their assignments).
   const db = getDbInstance();
+  const doomed = db
+    .prepare("SELECT core_config_path FROM proxy_subscriptions WHERE id = ?")
+    .get(id) as { core_config_path?: unknown } | undefined;
   const rows = db
     .prepare("SELECT id FROM proxy_registry WHERE subscription_id = ?")
     .all(id) as Array<{ id: string }>;
@@ -434,6 +459,11 @@ export async function deleteSubscription(id: string): Promise<boolean> {
     }
   }
   const res = db.prepare("DELETE FROM proxy_subscriptions WHERE id = ?").run(id);
+  // Best-effort: remove the side files this subscription owned. A missing
+  // or locked file must not fail the delete (row already gone).
+  if (typeof doomed?.core_config_path === "string") {
+    removeSubscriptionSideFiles(fs, doomed.core_config_path, id);
+  }
   // Cache maintenance: a delete may have removed the last
   // control_url — reset to lazy so the next trigger re-reads (never stale-true).
   if (res.changes > 0) setAnyControlUrlConfigured(null);
@@ -872,6 +902,21 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
 
   const lastNodes = redactedNodeSummary(parsed);
 
+  // Opt-in core-config generation. Without OMNIROUTE_PROXY_CORE_BINARY_PATH
+  // the beside-file is written directly, never the adopted file. With it, the rendered
+  // text is verified with the native check before replacing the adopted
+  // file (miss → beside-file + warning). Skipped when an earlier warning
+  // already owns the `error` column — the skip is logged server-side so a
+  // stale beside-file never goes silent.
+  if (sub.coreConfigPath) {
+    if (!warning) {
+      const generated = await generateForSubscription(sub, parsed);
+      if (generated) warning = generated;
+    } else {
+      console.warn(`[ProxySubscription] core config generation skipped for ${id}`);
+    }
+  }
+
   // A failed control-call switch leaves a standing warning on the
   // subscription: the sync rewrites `error` from its own `warning` alone, so
   // without this merge the switch outcome would vanish on the next refresh.
@@ -967,11 +1012,13 @@ export function readStaleSwitchWarning(subscriptionId: string): string | null {
 /** Record a switch outcome on the subscription row (columns from the
  * selector-control migration). On failure also sets `error` directly —
  * without touching `status` — so the warning shows before the next sync.
- * Never throws. */
+ * The kind (the refusal motive that fired the switch) is recorded on both
+ * outcomes: a failed attempt still documents why it was tried. Never throws. */
 export async function recordSelectorSwitchOutcome(args: {
   subscriptionId: string;
   result: string;
   member?: string | null;
+  kind?: string | null;
 }): Promise<void> {
   try {
     const db = getDbInstance();
@@ -979,9 +1026,9 @@ export async function recordSelectorSwitchOutcome(args: {
     db.prepare(
       `UPDATE proxy_subscriptions
           SET selector_last_switch_at = ?, selector_last_switch_result = ?,
-              selector_last_switch_member = ?, updated_at = ?
+              selector_last_switch_member = ?, selector_last_switch_kind = ?, updated_at = ?
         WHERE id = ?`
-    ).run(now, args.result, args.member ?? null, now, args.subscriptionId);
+    ).run(now, args.result, args.member ?? null, args.kind ?? null, now, args.subscriptionId);
     if (args.result !== "ok") {
       db.prepare(
         `UPDATE proxy_subscriptions SET error = ?, updated_at = ? WHERE id = ? AND status = 'ok'`

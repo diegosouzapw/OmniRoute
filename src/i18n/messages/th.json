@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "ปลายทาง proxy-core ภายในเครื่องไม่ถูกต้อง; โหนด SS/VMess/Trojan/VLESS ถูกละเว้น",
         "NEEDS_CORE_NOT_CONFIGURED": "การสมัครสมาชิกนี้มีโหนดที่ต้องใช้ proxy core ภายในเครื่อง (SS/VMess/Trojan/VLESS); โหนดเหล่านั้นจะไม่ถูกกำหนดเส้นทางจนกว่าคุณจะกำหนดค่าปลายทาง SOCKS5 ของ local-core",
         "NO_USABLE_NODES": "การสมัครสมาชิกไม่พบโหนดที่ใช้งานได้ (http/https/socks5 หรือโหนดที่มีปลายทาง local core)",
-        "SELECTOR_SWITCH_FAILED": "การเรียกควบคุมพร็อกซีคอร์ล้มเหลว เส้นทางเดิมยังคงใช้งานได้ โปรดตรวจสอบ URL และซีเคร็ตควบคุมแล้วรีเฟรช"
+        "SELECTOR_SWITCH_FAILED": "การเรียกควบคุมพร็อกซีคอร์ล้มเหลว เส้นทางเดิมยังคงใช้งานได้ โปรดตรวจสอบ URL และซีเคร็ตควบคุมแล้วรีเฟรช",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "วางลิงก์การสมัครพร็อกซีของคุณ เมื่อเปิดใช้งานแล้ว การรับส่งข้อมูลจะถูกส่งผ่านพร็อกซีพูลในโหมดส่วนกลางหรือโหมดกฎ (ผู้ให้บริการที่ระบุ) โหนดการสมัครใช้งานจะซิงค์กับพร็อกซีพูลโดยอัตโนมัติ และนำกลไกการโพล การตรวจสอบสภาพ และการป้องกันการรั่วไหลที่มีอยู่กลับมาใช้ใหม่",
       "addSubscription": "เพิ่มการสมัครสมาชิก",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "ยังไม่มีการสลับที่บันทึกไว้",
       "lastSwitchMember": "สมาชิกที่ให้บริการ",
       "nextSwitch": "การสลับครั้งถัดไปที่ทำได้",
-      "nextSwitchNow": "ตอนนี้"
+      "nextSwitchNow": "ตอนนี้",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "ตรวจสอบสถานะพร้อมกันทั้งหมด",
     "bulkHealthcheckDesc": "ทดสอบพร็อกซีที่กำหนดค่าทั้งหมดกับ URL เป้าหมาย เพื่อค้นหาพร็อกซีที่ใช้งานได้",

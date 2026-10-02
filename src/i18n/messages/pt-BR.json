@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "O endpoint do core local é inválido; nós SS/VMess/Trojan/VLESS foram ignorados.",
         "NEEDS_CORE_NOT_CONFIGURED": "Esta assinatura tem nós que precisam de um core local (SS/VMess/Trojan/VLESS); eles não são roteados até você configurar o endpoint SOCKS5 do core local.",
         "NO_USABLE_NODES": "A assinatura não retornou nós utilizáveis (http/https/socks5 ou nós com endpoint de core local).",
-        "SELECTOR_SWITCH_FAILED": "A chamada de controle do proxy-core falhou; a rota anterior continua ativa. Verifique a URL e o segredo de controle e atualize."
+        "SELECTOR_SWITCH_FAILED": "A chamada de controle do proxy-core falhou; a rota anterior continua ativa. Verifique a URL e o segredo de controle e atualize.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "A configuração gerada não pôde substituir o arquivo adotado; a cópia ao lado foi mantida."
       },
       "description": "Cole o link de assinatura do seu proxy. Uma vez ativado, o tráfego é roteado através do pool de proxy no modo global ou de regra (Provedor especificado). Os nós de assinatura são sincronizados automaticamente no pool de proxy e reutilizam mecanismos existentes de pesquisa, verificação de integridade e antivazamento.",
       "addSubscription": "Adicionar assinatura",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "Nenhuma troca registrada",
       "lastSwitchMember": "Membro em atendimento",
       "nextSwitch": "Próxima troca possível",
-      "nextSwitchNow": "Agora"
+      "nextSwitchNow": "Agora",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Caminho do binário do núcleo",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcional: verifica o arquivo gerado com o binário do núcleo antes de substituir o arquivo adotado. Deixe vazio para continuar escrevendo ao lado. O diretório é criado se estiver ausente."
     },
     "bulkHealthcheck": "Verificação de integridade em massa",
     "bulkHealthcheckDesc": "Teste todos os proxies configurados contra uma URL de destino para encontrar quais funcionam.",

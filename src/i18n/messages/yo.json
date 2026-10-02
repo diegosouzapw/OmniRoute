@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Ojú-ọ̀nà local proxy-core kò tọ́; a foju kọ àwọn node SS/VMess/Trojan/VLESS.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ìforúkọsílẹ̀ yìí ní àwọn node tó nílò local proxy core (SS/VMess/Trojan/VLESS); a kò ní darí wọn títí tí o fi ṣètò ojú-ọ̀nà SOCKS5 local-core.",
         "NO_USABLE_NODES": "Ìforúkọsílẹ̀ kò mú node tó ṣeé lò kankan jáde (http/https/socks5 tàbí àwọn node tó ní ojú-ọ̀nà local core).",
-        "SELECTOR_SWITCH_FAILED": "Ìpè ìṣàkóso proxy-core kùnà; ọ̀nà àtijọ́ wà ni íṣiṣẹ́. Ṣàyẹ̀wò URL àti àṣírí ìṣàkóso, lẹ́yìn náà ṣe àtúnsọ."
+        "SELECTOR_SWITCH_FAILED": "Ìpè ìṣàkóso proxy-core kùnà; ọ̀nà àtijọ́ wà ni íṣiṣẹ́. Ṣàyẹ̀wò URL àti àṣírí ìṣàkóso, lẹ́yìn náà ṣe àtúnsọ.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Lẹ̀ ìjápọ̀ ìforúkọsílẹ̀ aṣojú rẹ síbí. Nígbà tí o bá mú un ṣiṣẹ́, a máa darí ìrìn-àjò dátà gba inú àkójọpọ̀ aṣojú ní ipò àgbáyé tàbí ipò òfin (Olùpèsè tí a yàn). A máa mú àwọn node ìforúkọsílẹ̀ ṣiṣẹ́pọ̀ láìfọwọ́yí sínú àkójọpọ̀ aṣojú, wọ́n á sì tún lo àwọn ọ̀nà ìṣàyẹ̀wò déédéé, àyẹ̀wò ìlera, àti ìdènà ìjò dátà tó ti wà.",
       "addSubscription": "Ṣàfikún Ìforúkọsílẹ̀",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "A kò tíì ṣe àkọsílẹ̀ ìyípadà kankan",
       "lastSwitchMember": "Ọmọ ẹgbẹ́ tó ń sin",
       "nextSwitch": "Ìyípadà tó ṣeéṣe tó kàn",
-      "nextSwitchNow": "Nísinsìnyí"
+      "nextSwitchNow": "Nísinsìnyí",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Ìṣàyẹ̀wò ìlera ọ̀pọ̀lọpọ̀",
     "bulkHealthcheckDesc": "Ṣàyẹ̀wò gbogbo àwọn aṣojú tí a ti ṣètò pẹ̀lú URL àfojúsùn kan láti mọ àwọn tó ń ṣiṣẹ́.",

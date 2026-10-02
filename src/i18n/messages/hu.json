@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "A helyi proxy-core végpont érvénytelen; az SS/VMess/Trojan/VLESS csomópontok figyelmen kívül lettek hagyva.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ez az előfizetés olyan csomópontokat tartalmaz, amelyeknek helyi proxy-core-ra (SS/VMess/Trojan/VLESS) van szükségük; ezek nincsenek irányítva, amíg be nem állítja a helyi core SOCKS5 végpontot.",
         "NO_USABLE_NODES": "Az előfizetés nem eredményezett használható csomópontokat (http/https/socks5 vagy helyi core végponttal rendelkező csomópontok).",
-        "SELECTOR_SWITCH_FAILED": "A proxy-core vezérlőhívása sikertelen; az előző útvonal aktív marad. Ellenőrizze a vezérlő URL-t és titkot, majd frissítsen."
+        "SELECTOR_SWITCH_FAILED": "A proxy-core vezérlőhívása sikertelen; az előző útvonal aktív marad. Ellenőrizze a vezérlő URL-t és titkot, majd frissítsen.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Illessze be a proxy előfizetési linkjét. Ha engedélyezve van, a forgalom a proxykészleten keresztül globális vagy szabály (meghatározott szolgáltató) módban kerül átirányításra. Az előfizetési csomópontok automatikusan szinkronizálódnak a proxykészlettel, és újra felhasználják a meglévő lekérdezési, állapot-ellenőrzési és szivárgásgátló mechanizmusokat.",
       "addSubscription": "Előfizetés hozzáadása",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "Még nincs rögzített váltás",
       "lastSwitchMember": "Kiszolgáló tag",
       "nextSwitch": "Következő lehetséges váltás",
-      "nextSwitchNow": "Most"
+      "nextSwitchNow": "Most",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Tömeges állapotellenőrzés",
     "bulkHealthcheckDesc": "Az összes beállított proxy tesztelése egy cél-URL-en annak megállapításához, hogy melyek működnek.",

@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "स्थानीय प्रॉक्सी-कोर एंडपॉइंट अमान्य है; SS/VMess/Trojan/VLESS नोड्स को अनदेखा कर दिया गया।",
         "NEEDS_CORE_NOT_CONFIGURED": "इस सदस्यता में ऐसे नोड्स हैं जिन्हें स्थानीय प्रॉक्सी कोर (SS/VMess/Trojan/VLESS) की आवश्यकता है; जब तक आप स्थानीय-कोर SOCKS5 एंडपॉइंट को कॉन्फ़िगर नहीं करते, तब तक उन्हें रूट नहीं किया जाएगा।",
         "NO_USABLE_NODES": "सदस्यता से कोई उपयोगी नोड्स प्राप्त नहीं हुए (http/https/socks5 या स्थानीय कोर एंडपॉइंट वाले नोड्स)।",
-        "SELECTOR_SWITCH_FAILED": "प्रॉक्सी-कोर नियंत्रण कॉल विफल रहा; पिछला मार्ग सक्रिय रहता है। नियंत्रण URL और सीक्रेट जाँचें, फिर रीफ़्रेश करें।"
+        "SELECTOR_SWITCH_FAILED": "प्रॉक्सी-कोर नियंत्रण कॉल विफल रहा; पिछला मार्ग सक्रिय रहता है। नियंत्रण URL और सीक्रेट जाँचें, फिर रीफ़्रेश करें।",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "जनरेट किया गया कोर कॉन्फ़िगरेशन अपनाई गई फ़ाइल को बदल नहीं सका; बगल की प्रति रखी गई।"
       },
       "description": "अपना प्रॉक्सी सदस्यता लिंक चिपकाएँ. एक बार सक्षम होने पर, ट्रैफ़िक को प्रॉक्सी पूल के माध्यम से वैश्विक या नियम (निर्दिष्ट प्रदाता) मोड में रूट किया जाता है। सदस्यता नोड्स स्वचालित रूप से प्रॉक्सी पूल में सिंक हो जाते हैं और मौजूदा मतदान, स्वास्थ्य-जांच और एंटी-लीक तंत्र का पुन: उपयोग करते हैं।",
       "addSubscription": "सदस्यता जोड़ें",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "अभी तक कोई स्विच दर्ज नहीं",
       "lastSwitchMember": "सेवारत सदस्य",
       "nextSwitch": "अगला संभावित स्विच",
-      "nextSwitchNow": "अभी"
+      "nextSwitchNow": "अभी",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "कोर बाइनरी पथ",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "वैकल्पिक: अपनाई गई फ़ाइल को बदलने से पहले कोर बाइनरी से जनरेट की गई फ़ाइल सत्यापित करता है। बगल में लिखना जारी रखने के लिए खाली छोड़ें। निर्देशिका अनुपस्थित होने पर बनाई जाती है।"
     },
     "bulkHealthcheck": "सामूहिक स्वास्थ्य जाँच",
     "bulkHealthcheckDesc": "यह पता लगाने के लिए कि कौन-से प्रॉक्सी काम करते हैं, सभी कॉन्फ़िगर किए गए प्रॉक्सी का लक्ष्य URL के विरुद्ध परीक्षण करें।",

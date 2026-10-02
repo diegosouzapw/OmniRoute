@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokaler Proxy-Core-Endpunkt ist ungültig; SS/VMess/Trojan/VLESS-Knoten wurden ignoriert.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dieses Abonnement enthält Knoten, die einen lokalen Proxy-Core benötigen (SS/VMess/Trojan/VLESS); sie werden nicht geroutet, bis Sie den lokalen Core-SOCKS5-Endpunkt konfigurieren.",
         "NO_USABLE_NODES": "Abonnement lieferte keine nutzbaren Knoten (http/https/socks5 oder Knoten mit einem lokalen Core-Endpunkt).",
-        "SELECTOR_SWITCH_FAILED": "Der Steueraufruf des Proxy-Cores ist fehlgeschlagen; die bisherige Route bleibt aktiv. Prüfen Sie Steuer-URL und Secret und aktualisieren Sie dann."
+        "SELECTOR_SWITCH_FAILED": "Der Steueraufruf des Proxy-Cores ist fehlgeschlagen; die bisherige Route bleibt aktiv. Prüfen Sie Steuer-URL und Secret und aktualisieren Sie dann.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Die erzeugte Kernkonfiguration konnte die übernommene Datei nicht ersetzen; die Beikopie wurde behalten."
       },
       "description": "Fügen Sie Ihren Proxy-Abonnement-Link ein. Nach der Aktivierung wird der Datenverkehr im globalen Modus oder im Regelmodus (angegebener Anbieter) über den Proxy-Pool weitergeleitet. Abonnementknoten werden automatisch mit dem Proxy-Pool synchronisiert und nutzen vorhandene Abfrage-, Gesundheitsprüfungs- und Anti-Leak-Mechanismen wieder.",
       "addSubscription": "Abonnement hinzufügen",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "Noch keine Umschaltung verzeichnet",
       "lastSwitchMember": "Bedienendes Mitglied",
       "nextSwitch": "Nächste mögliche Umschaltung",
-      "nextSwitchNow": "Jetzt"
+      "nextSwitchNow": "Jetzt",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Kern-Binärpfad",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: prüft die erzeugte Datei mit der Kern-Binärdatei, bevor die übernommene Datei ersetzt wird. Leer lassen, um weiterhin daneben zu schreiben. Das Verzeichnis wird bei Bedarf erstellt."
     },
     "bulkHealthcheck": "Massenprüfung des Zustands",
     "bulkHealthcheckDesc": "Alle konfigurierten Proxys anhand einer Ziel-URL testen, um festzustellen, welche funktionieren.",

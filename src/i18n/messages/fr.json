@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Le point de terminaison du proxy-core local est invalide ; les nœuds SS/VMess/Trojan/VLESS ont été ignorés.",
         "NEEDS_CORE_NOT_CONFIGURED": "Cet abonnement contient des nœuds qui nécessitent un proxy core local (SS/VMess/Trojan/VLESS) ; ils ne sont pas routés tant que vous n'avez pas configuré le point de terminaison SOCKS5 du local-core.",
         "NO_USABLE_NODES": "L'abonnement n'a renvoyé aucun nœud utilisable (http/https/socks5 ou nœuds avec un point de terminaison de core local).",
-        "SELECTOR_SWITCH_FAILED": "L'appel de contrôle du proxy-core a échoué ; la route précédente reste active. Vérifiez l'URL et le secret de contrôle, puis actualisez."
+        "SELECTOR_SWITCH_FAILED": "L'appel de contrôle du proxy-core a échoué ; la route précédente reste active. Vérifiez l'URL et le secret de contrôle, puis actualisez.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "La configuration générée n'a pas pu remplacer le fichier adopté ; la copie à côté a été conservée."
       },
       "description": "Collez votre lien d'abonnement proxy. Une fois activé, le trafic est acheminé via le pool de proxy en mode global ou en mode règle (fournisseur spécifié). Les nœuds d'abonnement sont automatiquement synchronisés avec le pool de proxy et réutilisent les mécanismes d'interrogation, de contrôle de santé et anti-fuite existants.",
       "addSubscription": "Ajouter un abonnement",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "Aucune bascule enregistrée",
       "lastSwitchMember": "Membre desservi",
       "nextSwitch": "Prochaine bascule possible",
-      "nextSwitchNow": "Maintenant"
+      "nextSwitchNow": "Maintenant",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Chemin du binaire du cœur",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optionnel : vérifie le fichier généré avec le binaire du cœur avant de remplacer le fichier adopté. Laissez vide pour continuer à écrire à côté. Le répertoire est créé s'il manque."
     },
     "bulkHealthcheck": "Vérification groupée de l’état",
     "bulkHealthcheckDesc": "Testez tous les proxys configurés avec une URL cible afin d’identifier ceux qui fonctionnent.",

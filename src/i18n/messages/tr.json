@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Yerel proxy çekirdeği uç noktası geçersiz; SS/VMess/Trojan/VLESS düğümleri yoksayıldı.",
         "NEEDS_CORE_NOT_CONFIGURED": "Bu abonelikte yerel bir proxy çekirdeğine (SS/VMess/Trojan/VLESS) ihtiyaç duyan düğümler var; yerel çekirdek SOCKS5 uç noktasını yapılandırana kadar bunlar yönlendirilmez.",
         "NO_USABLE_NODES": "Abonelik kullanılabilir hiçbir düğüm sağlamadı (http/https/socks5 veya yerel çekirdek uç noktasına sahip düğümler).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-core denetim çağrısı başarısız oldu; önceki rota etkin kalır. Denetim URL'sini ve parolasını denetleyip yenileyin."
+        "SELECTOR_SWITCH_FAILED": "Proxy-core denetim çağrısı başarısız oldu; önceki rota etkin kalır. Denetim URL'sini ve parolasını denetleyip yenileyin.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Oluşturulan çekirdek yapılandırması benimsenen dosyanın yerine geçemedi; yandaki kopya korundu."
       },
       "description": "Proxy abonelik bağlantınızı yapıştırın. Etkinleştirildiğinde trafik, genel veya kural (belirtilen Sağlayıcı) modunda proxy havuzu üzerinden yönlendirilir. Abonelik düğümleri otomatik olarak proxy havuzuyla senkronize edilir ve mevcut yoklama, durum kontrolü ve sızıntı önleme mekanizmalarını yeniden kullanır.",
       "addSubscription": "Abonelik Ekle",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "Henüz kayıtlı geçiş yok",
       "lastSwitchMember": "Hizmet veren üye",
       "nextSwitch": "Sonraki olası geçiş",
-      "nextSwitchNow": "Şimdi"
+      "nextSwitchNow": "Şimdi",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Çekirdek ikili yolu",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "İsteğe bağlı: benimsenen dosyayı değiştirmeden önce oluşturulan dosyayı çekirdek ikilisiyle doğrular. Yanına yazmaya devam etmek için boş bırakın. Dizin yoksa oluşturulur."
     },
     "bulkHealthcheck": "Toplu Durum Denetimi",
     "bulkHealthcheckDesc": "Hangilerinin çalıştığını belirlemek için yapılandırılmış tüm proxy'leri bir hedef URL ile test edin.",

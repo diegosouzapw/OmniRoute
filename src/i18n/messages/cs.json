@@ -6873,7 +6873,9 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokální koncový bod proxy jádra je neplatný; uzly SS/VMess/Trojan/VLESS byly ignorovány.",
         "NEEDS_CORE_NOT_CONFIGURED": "Tento odběr obsahuje uzly, které vyžadují lokální proxy jádro (SS/VMess/Trojan/VLESS); nebudou směrovány, dokud nenakonfigurujete SOCKS5 koncový bod lokálního jádra.",
         "NO_USABLE_NODES": "Odběr neposkytl žádné použitelné uzly (http/https/socks5 nebo uzly s koncovým bodem lokálního jádra).",
-        "SELECTOR_SWITCH_FAILED": "Řídicí volání proxy-core selhalo; předchozí trasa zůstává aktivní. Zkontrolujte řídicí URL a tajný klíč a obnovte."
+        "SELECTOR_SWITCH_FAILED": "Řídicí volání proxy-core selhalo; předchozí trasa zůstává aktivní. Zkontrolujte řídicí URL a tajný klíč a obnovte.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Vložte odkaz na předplatné proxy. Po povolení je provoz směrován přes fond proxy v globálním režimu nebo režimu pravidel (zadaný poskytovatel). Uzly předplatného se automaticky synchronizují do fondu proxy a znovu používají existující mechanismy dotazování, kontroly stavu a ochrany proti úniku.",
       "addSubscription": "Přidat předplatné",
@@ -6959,7 +6961,20 @@
       "lastSwitchNever": "Zatím žádné zaznamenané přepnutí",
       "lastSwitchMember": "Obsluhující člen",
       "nextSwitch": "Další možné přepnutí",
-      "nextSwitchNow": "Nyní"
+      "nextSwitchNow": "Nyní",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Hromadná kontrola stavu",
     "bulkHealthcheckDesc": "Otestovat všechny nakonfigurované proxy servery vůči cílové URL a zjistit, které fungují.",

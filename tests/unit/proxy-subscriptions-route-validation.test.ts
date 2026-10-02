@@ -347,3 +347,115 @@ test("PATCH proxy-subscriptions/:id — unknown id still 404s past body validati
   const body = (await res.json()) as { error?: string };
   assert.equal(body.error, "Subscription not found");
 });
+
+test("POST proxy-subscriptions — five bad coreConfigPath values return 400 with reason", async () => {
+  const bad: Array<[string, string]> = [
+    ["relative/path.json", "not_absolute"],
+    ["/adopted/../escape.json", "dotdot_segment"],
+    ["no-extension", "not_absolute"],
+    [`/${"a".repeat(2000)}.json`, "too_long"],
+    ["\0null.json", "nul_byte"],
+  ];
+  for (const [coreConfigPath, reason] of bad) {
+    const req = jsonRequest("http://localhost/api/v1/management/proxy-subscriptions", {
+      name: `bad-path-${reason}`,
+      url: "https://example.com/feed",
+      coreConfigPath,
+    });
+    const res = await collectionRoute.POST(req);
+    assert.equal(res.status, 400, `expected 400 for ${reason}`);
+    const body = (await res.json()) as { error?: string };
+    assert.ok(
+      body.error === `coreConfigPath is not allowed (${reason})`,
+      `unexpected message: ${body.error}`
+    );
+  }
+});
+
+test("POST proxy-subscriptions — absolute non-json path returns 400 bad_extension", async () => {
+  const req = jsonRequest("http://localhost/api/v1/management/proxy-subscriptions", {
+    name: "bad-ext",
+    url: "https://example.com/feed",
+    coreConfigPath: "/adopted/core.txt",
+  });
+  const res = await collectionRoute.POST(req);
+  assert.equal(res.status, 400);
+  const body = (await res.json()) as { error?: string };
+  assert.equal(body.error, "coreConfigPath is not allowed (bad_extension)");
+});
+
+test("PATCH proxy-subscriptions/:id — bad coreConfigPath returns 400", async () => {
+  const fixture = await createValidSubscription("patch-bad-path");
+  const req = jsonRequest(
+    `http://localhost/api/v1/management/proxy-subscriptions/${fixture.id}`,
+    { coreConfigPath: "relative.json" },
+    "PATCH"
+  );
+  const res = await itemRoute.PATCH(req, { params: Promise.resolve({ id: fixture.id }) });
+  assert.equal(res.status, 400);
+  const body = (await res.json()) as { error?: string };
+  assert.equal(body.error, "coreConfigPath is not allowed (not_absolute)");
+});
+// ═════════════════════════════════════════════════════════════════════════════
+// coreBinaryPath — the binary is executed, so the API never accepts it (Hard Rule #15);
+// it comes from OMNIROUTE_PROXY_CORE_BINARY_PATH on the host only
+// ═════════════════════════════════════════════════════════════════════════════
+
+const COLLECTION_URL = "http://localhost/api/v1/management/proxy-subscriptions";
+
+async function listedNames(): Promise<string[]> {
+  const res = await collectionRoute.GET(new Request(COLLECTION_URL));
+  return ((await res.json()) as { items: Array<{ name: string }> }).items.map((it) => it.name);
+}
+
+test("POST proxy-subscriptions — a coreBinaryPath in the body is refused (400) and nothing is created", async () => {
+  for (const [index, value] of [
+    "/usr/bin/sing-box",
+    "/tmp/attacker/sing-box",
+    "relative/sing-box",
+    "",
+    null,
+  ].entries()) {
+    const name = `core-binary-refused-${index}`;
+    const res = await collectionRoute.POST(
+      jsonRequest(COLLECTION_URL, {
+        name,
+        url: "https://example.com/sub.txt",
+        coreBinaryPath: value,
+      })
+    );
+    assert.equal(res.status, 400, String(value));
+    const body = (await res.json()) as { error?: string };
+    assert.match(body.error ?? "", /coreBinaryPath cannot be set through the API/);
+    assert.match(body.error ?? "", /OMNIROUTE_PROXY_CORE_BINARY_PATH/);
+    assert.ok(!(await listedNames()).includes(name), `${name} must not be created`);
+  }
+});
+
+test("PATCH proxy-subscriptions/:id — a coreBinaryPath in the body is refused (400) and nothing changes", async () => {
+  const fixture = await createValidSubscription("core-binary-patch-refused");
+  const res = await itemRoute.PATCH(
+    jsonRequest(
+      `${COLLECTION_URL}/${fixture.id}`,
+      { name: "renamed-by-refused-patch", coreBinaryPath: "/tmp/attacker/sing-box" },
+      "PATCH"
+    ),
+    { params: Promise.resolve({ id: fixture.id }) }
+  );
+  assert.equal(res.status, 400);
+  const body = (await res.json()) as { error?: string };
+  assert.match(body.error ?? "", /coreBinaryPath cannot be set through the API/);
+
+  const names = await listedNames();
+  assert.ok(names.includes("core-binary-patch-refused"));
+  assert.ok(!names.includes("renamed-by-refused-patch"));
+});
+
+test("proxy-subscription records never carry a coreBinaryPath field", async () => {
+  const fixture = await createValidSubscription("core-binary-absent-field");
+  const res = await itemRoute.GET(new Request(`${COLLECTION_URL}/${fixture.id}`), {
+    params: Promise.resolve({ id: fixture.id }),
+  });
+  assert.equal(res.status, 200);
+  assert.ok(!("coreBinaryPath" in ((await res.json()) as Record<string, unknown>)));
+});
