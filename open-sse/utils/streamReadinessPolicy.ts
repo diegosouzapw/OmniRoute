@@ -229,3 +229,18 @@ export function resolveStreamReadinessTimeout(
 
   return { timeoutMs, baseTimeoutMs, maxTimeoutMs, reasons };
 }
+
+/**
+ * #15260: budget for the content-stall watchdog — a different quantity from the
+ * first-event readiness budget above (extended thinking legitimately runs long
+ * AFTER the first event). Defaults to the same adaptive value, but operators
+ * can set STREAM_CONTENT_STALL_TIMEOUT_MS (0 = watchdog disabled) to tune it
+ * without touching readiness. Invalid values fall back to the adaptive budget.
+ */
+export function resolveContentStallTimeoutMs(adaptiveTimeoutMs: number): number {
+  const raw = process.env.STREAM_CONTENT_STALL_TIMEOUT_MS;
+  if (raw === undefined || raw.trim() === "") return adaptiveTimeoutMs;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) return adaptiveTimeoutMs;
+  return Math.floor(parsed);
+}

@@ -161,7 +161,10 @@ import {
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { requestTtftMs, streamEmittedOutput } from "../utils/streamTiming.ts";
 import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
-import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
+import {
+  resolveStreamReadinessTimeout,
+  resolveContentStallTimeoutMs,
+} from "../utils/streamReadinessPolicy.ts";
 import { resolveAgentGoalPolicy } from "../utils/agentGoalPolicy.ts";
 import { hasActiveClaudeThinking } from "../utils/thinkingBudget.ts";
 import { createStreamController } from "../utils/streamHandler.ts";
@@ -6399,8 +6402,11 @@ async function handleChatCoreInner({
       // Same adaptive budget the pre-handoff readiness gate above just used —
       // reasoning models that legitimately take a while to say anything keep
       // that same patience for their first REAL content, not just their first
-      // lifecycle frame. See pipeWithDisconnect's own doc comment.
-      contentStallTimeoutMs: streamReadinessPolicy.timeoutMs,
+      // lifecycle frame. #15260: STREAM_CONTENT_STALL_TIMEOUT_MS overrides this
+      // budget (0 = watchdog off) without touching the readiness budget, and
+      // the watchdog now disarms on any model-generated delta — an extended
+      // thinking phase is liveness, not a stall.
+      contentStallTimeoutMs: resolveContentStallTimeoutMs(streamReadinessPolicy.timeoutMs),
     });
     const clientFacingStream = wrapReadableStreamWithFinalize(
       finalStream,

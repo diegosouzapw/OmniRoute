@@ -4,7 +4,11 @@ import { FORMATS } from "../translator/formats.ts";
 import { buildErrorBody } from "./error.ts";
 import { PENDING_REQUEST_CLEARED_MARKER } from "./stream.ts";
 import { createCompletedResponsesToolHandoffWatcher } from "./responsesToolHandoff.ts";
-import { createStreamContentWatcher, type StreamContentWatcher } from "./streamReadiness.ts";
+import {
+  createStreamContentWatcher,
+  createStreamLivenessWatcher,
+  type StreamContentWatcher,
+} from "./streamReadiness.ts";
 import { hasOpenReasoning } from "./emptyTurnRetry.ts";
 
 // Stream handler with disconnect detection - shared for all providers
@@ -988,6 +992,13 @@ export function pipeWithDisconnect(
   // for its own end-of-stream #8649 empty-content check.
   let contentStallTimer: ReturnType<typeof setTimeout> | null = null;
   let contentStallFired = false;
+  // #15260: the stall watchdog disarms on the first MODEL signal (any
+  // model-generated delta, even an empty/encrypted/signature-only thinking
+  // one) — not on `sawContent`, whose strict non-empty-readable-string rule
+  // misread healthy extended-thinking phases as stalled and killed them.
+  // The strict content watcher below stays for the end-of-stream empty-turn
+  // check and keeps updating while the stall scan is still active.
+  const upstreamLivenessWatcher = createStreamLivenessWatcher();
   const upstreamContentWatcher = createStreamContentWatcher();
   const upstreamContentDecoder = new TextDecoder();
   // Stall diagnostics: what the upstream had sent when the content watchdog
@@ -1141,14 +1152,15 @@ export function pipeWithDisconnect(
     },
     transform(chunk, controller) {
       armStall();
-      if (contentStallTimeoutMs > 0 && !upstreamContentWatcher.sawContent()) {
+      if (contentStallTimeoutMs > 0 && !upstreamLivenessWatcher.sawModelSignal()) {
         // Second pass over the already-decoded text, not a second decode:
         // the watcher below keeps only booleans, so counting needs its own scan.
         const decoded = upstreamContentDecoder.decode(chunk, { stream: true });
         stallBytes += chunk.byteLength;
         noteStallText(decoded);
+        upstreamLivenessWatcher.note(decoded);
         upstreamContentWatcher.note(decoded);
-        if (upstreamContentWatcher.sawContent()) clearContentStall();
+        if (upstreamLivenessWatcher.sawModelSignal()) clearContentStall();
       }
       controller.enqueue(chunk);
     },

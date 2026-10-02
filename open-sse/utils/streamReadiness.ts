@@ -127,6 +127,158 @@ function isPingEventType(type: string): boolean {
   return /^(?:ping|keepalive|heartbeat)$/i.test(type);
 }
 
+// ─── #15260: content-stall liveness, distinct from the #8649 content check ───
+//
+// The content-stall watchdog must only kill streams that send exclusively
+// lifecycle or ping frames. `hasUsefulValue` above is the wrong predicate for
+// that: it demands a non-empty readable string, so long reasoning phases whose
+// frames carry only signatures, empty/redacted thinking deltas or encrypted
+// reasoning items read as "no model output" — and healthy Claude/Responses/
+// Gemini thinking streams were aborted mid-think at the stall budget.
+//
+// A model signal is ANY model-generated frame: any `*_delta` event (even with
+// an empty, encrypted or signature-only string), a content block starting, an
+// open reasoning item, a non-empty Gemini part, or a chat delta carrying any
+// key other than a bare role announcement. Only pings, lifecycle-only events
+// and error-only frames stay silent.
+
+const LIFECYCLE_ONLY_STREAM_TYPES = new Set([
+  "message_start",
+  "message_stop",
+  "content_block_stop",
+  "response.created",
+  "response.in_progress",
+  "response.queued",
+]);
+
+function deltaCarriesModelSignal(delta: unknown): boolean {
+  if (Array.isArray(delta)) return delta.some(deltaCarriesModelSignal);
+  if (!isRecord(delta)) return false;
+  // A role-only start chunk ({delta:{role:"assistant"}}) is lifecycle; any
+  // other key — including empty-string reasoning_content — is model output.
+  return Object.keys(delta).some((key) => key !== "role");
+}
+
+function hasModelSignal(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(hasModelSignal);
+  if (!isRecord(value)) return false;
+
+  const type = typeof value.type === "string" ? value.type : "";
+  if (type) {
+    if (isPingEventType(type) || LIFECYCLE_ONLY_STREAM_TYPES.has(type)) return false;
+    if (type === "error" || type === "response.failed") return false;
+    if (/_delta$/.test(type)) return true;
+    if (type === "content_block_start") return true;
+    // Responses events carry the `response.` prefix (response.output_item.added);
+    // a raw `output_item.*` type is accepted too for translated streams.
+    if (type.endsWith("output_item.added") || type.endsWith("output_item.done")) {
+      const item = isRecord(value.item) ? value.item : {};
+      return item.type === "reasoning" || item.item_type === "reasoning";
+    }
+  }
+
+  if ("delta" in value && deltaCarriesModelSignal(value.delta)) return true;
+
+  // Gemini-style parts: any non-empty part (text, thought or thoughtSignature)
+  // is model output — hasUsefulValue demands a non-empty text string.
+  const candidates = Array.isArray(value.candidates) ? value.candidates : null;
+  if (candidates) {
+    for (const candidate of candidates) {
+      if (!isRecord(candidate)) continue;
+      const content = isRecord(candidate.content) ? candidate.content : null;
+      const parts = content && Array.isArray(content.parts) ? content.parts : [];
+      if (parts.some((part) => isRecord(part) && Object.keys(part).length > 0)) return true;
+    }
+  }
+
+  // OpenRouter-style encrypted reasoning entries.
+  if (Array.isArray(value.reasoning_details) && value.reasoning_details.length > 0) return true;
+
+  for (const nested of Object.values(value)) {
+    if (Array.isArray(nested) || isRecord(nested)) {
+      if (hasModelSignal(nested)) return true;
+    }
+  }
+  return false;
+}
+
+function hasModelSignalPayload(payload: unknown, eventType = ""): boolean {
+  const type = getPayloadType(payload, eventType);
+  if (isPingEventType(eventType) || isPingEventType(type)) return false;
+  if (isRecord(payload) && isErrorOnlyStructuredPayload(payload)) return false;
+  return hasModelSignal(payload);
+}
+
+export type StreamLivenessWatcher = {
+  /** Feed a decoded slice of the upstream stream. Safe to call with partial frames. */
+  note: (text: string) => void;
+  /** Flush any buffered trailing frame; call once the stream is done. */
+  finish: () => void;
+  /** True once any frame carried a model-generated signal (see module comment). */
+  sawModelSignal: () => boolean;
+};
+
+/**
+ * Watch the raw upstream stream for whether the MODEL is alive — separate from
+ * {@link createStreamContentWatcher}, whose `sawContent` stays the strict
+ * user-visible-output check the #8649 empty-turn guard relies on. The
+ * content-stall watchdog disarms on the first model signal, so a healthy
+ * extended-thinking stream is never aborted mid-think (#15260).
+ */
+export function createStreamLivenessWatcher(): StreamLivenessWatcher {
+  const MAX_BUFFERED = 64 * 1024;
+  let pending = "";
+  let signal = false;
+
+  const inspect = (frame: string, eventType = ""): void => {
+    if (!frame || signal) return;
+    for (const line of frame.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith(":")) continue;
+      let lineEvent = eventType;
+      if (trimmed.startsWith("event:")) {
+        lineEvent = trimmed.slice(6).trim();
+        continue;
+      }
+      if (!trimmed.startsWith("data:")) continue;
+      const data = trimmed.slice(5).trim();
+      if (!data || data === "[DONE]") continue;
+      try {
+        if (hasModelSignalPayload(JSON.parse(data), lineEvent)) {
+          signal = true;
+          return;
+        }
+      } catch {
+        // Non-JSON data line: not a signal (structured checks all parse JSON;
+        // unparseable frames are not provably model output, and the strict
+        // content watcher below still handles the user-visible case).
+      }
+    }
+  };
+
+  return {
+    note(text: string): void {
+      if (!text || signal) return;
+      pending += text;
+      for (;;) {
+        const boundary = pending.search(/\r?\n\r?\n/);
+        if (boundary === -1) break;
+        inspect(pending.slice(0, boundary));
+        pending = pending.slice(boundary).replace(/^\r?\n\r?\n/, "");
+      }
+      if (!signal && pending.length > MAX_BUFFERED) {
+        inspect(pending);
+        pending = "";
+      }
+    },
+    finish(): void {
+      inspect(pending);
+      pending = "";
+    },
+    sawModelSignal: () => signal,
+  };
+}
+
 function getPayloadType(payload: unknown, eventType = ""): string {
   if (!isRecord(payload)) return eventType;
   const type = payload.type ?? payload.event ?? payload.object;
