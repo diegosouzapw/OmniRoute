@@ -164,7 +164,7 @@ describe("deprecated anthropicPrefixes", () => {
           enrichmentFetcher: async () => new Map(),
         }
       );
-      assert.deepEqual(collected.counts, { models: 1, combos: 0, autoCombos: 0 });
+      assert.deepEqual(collected.counts, { models: 1, combos: 0 });
       const payload = buildProviderPayload(collected, {
         providerId: "omniroute",
         baseURL: GW,

@@ -53,16 +53,11 @@ const stubCombos = async () => [
     ],
   },
 ];
-const stubAutos = async () => [
-  { id: "auto", candidatePool: ["cc", "alpha"] },
-  { id: "auto/solo", variant: "solo" as never, candidatePool: ["alpha"] },
-];
 
 function baseFetchers() {
   return {
     models: stubModels,
     combos: stubCombos,
-    autoCombos: stubAutos,
     providers: async () => [],
     enrichment: async () => enrichmentOf(["cc", "claude"], ["alpha", "alpha"]),
   };
@@ -80,7 +75,7 @@ describe("provider filter integration (real option resolution)", () => {
       );
       assert.equal(collected.counts.models, 2);
       assert.equal(collected.counts.combos, 1);
-      assert.equal(collected.counts.autoCombos, 2);
+      assert.deepEqual(collected.counts, { models: 2, combos: 1 });
       assert.equal(
         warns.filter((w) => w.includes("providersAllow") || w.includes("provider filter")).length,
         0
@@ -88,7 +83,7 @@ describe("provider filter integration (real option resolution)", () => {
     }
   });
 
-  it("single provider keeps only its models/combos/auto-combos via alias", async () => {
+  it("single provider keeps only its models and combos via alias", async () => {
     const warns: string[] = [];
     const collected = await collectCatalog(
       resolvedWith({ providersAllow: ["claude"] }, warns, {
@@ -100,8 +95,7 @@ describe("provider filter integration (real option resolution)", () => {
     assert.ok([...collected.entries.keys()].some((k) => k.endsWith("/cc/a")));
     // Mixed combo survives: one member resolves through the alias.
     assert.equal(collected.counts.combos, 1);
-    // The pool naming the alias survives; the alpha-only auto drops.
-    assert.equal(collected.counts.autoCombos, 1);
+    assert.deepEqual(collected.counts, { models: 1, combos: 1 });
   });
 
   it("keeps the full catalog when the allowlist names nothing known", async () => {
@@ -117,7 +111,7 @@ describe("provider filter integration (real option resolution)", () => {
     const first = await collectCatalog(opts, baseFetchers());
     assert.equal(first.counts.models, 2);
     assert.equal(first.counts.combos, 1);
-    assert.equal(first.counts.autoCombos, 2);
+    assert.deepEqual(first.counts, { models: 2, combos: 1 });
     assert.equal(warns.filter((w) => w.includes("unknown provider")).length, 1);
     const second = await collectCatalog(opts, baseFetchers());
     assert.equal(second.counts.models, 2);
@@ -136,7 +130,7 @@ describe("provider filter integration (real option resolution)", () => {
     const first = await collectCatalog(opts, baseFetchers());
     assert.equal(first.counts.models, 1);
     assert.equal(first.counts.combos, 1);
-    assert.equal(first.counts.autoCombos, 1);
+    assert.deepEqual(first.counts, { models: 1, combos: 1 });
     assert.equal(warns.filter((w) => w.includes("unknown provider")).length, 1);
     const second = await collectCatalog(opts, baseFetchers());
     assert.equal(second.counts.models, 1);
@@ -155,7 +149,6 @@ describe("provider filter integration (real option resolution)", () => {
       {
         models: async () => [{ id: "cc/a" }],
         combos: async () => [],
-        autoCombos: async () => [],
         providers: async () => [],
         enrichment: async () => enrichmentOf(["cc", "claude"], ["alpha", "alpha"]),
       }
@@ -175,7 +168,6 @@ describe("provider filter integration (real option resolution)", () => {
         combos: async () => [
           { id: "cc-only", name: "CcOnly", models: [{ kind: "model", model: "cc/a" }] },
         ],
-        autoCombos: async () => [],
         providers: async () => [],
         enrichment: async () => enrichmentOf(["cc", "claude"], ["alpha", "alpha"]),
       }
@@ -196,7 +188,6 @@ describe("provider filter integration (real option resolution)", () => {
           { id: "child", name: "Child", models: [{ kind: "model", model: "cc/a" }] },
           { id: "parent", name: "Parent", models: [{ kind: "combo-ref", comboName: "Child" }] },
         ],
-        autoCombos: async () => [],
         providers: async () => [],
         enrichment: async () => enrichmentOf(["cc", "claude"]),
       }
@@ -225,7 +216,6 @@ describe("provider filter integration (real option resolution)", () => {
       {
         models: async () => [],
         combos: async () => [],
-        autoCombos: async () => [],
         providers: async () => [],
         enrichment: async () => enrichmentOf(["cc", "claude"]),
       }
@@ -243,7 +233,6 @@ describe("provider filter integration (real option resolution)", () => {
       {
         models: async () => [{ id: "cc/a" }, { id: "alpha/b" }],
         combos: async () => [],
-        autoCombos: async () => [],
         providers: async () => [],
         enrichment: async () => new Map(),
       }
@@ -253,7 +242,7 @@ describe("provider filter integration (real option resolution)", () => {
     assert.equal(warns.filter((w) => w.includes("unknown provider")).length, 0);
   });
 
-  it("drops an auto-combo whose candidate pool is excluded", async () => {
+  it("ignores a retired fetcher entry the refresh no longer reads", async () => {
     const warns: string[] = [];
     const collected = await collectCatalog(
       resolvedWith({ providersAllow: ["claude"] }, warns, {
@@ -265,10 +254,10 @@ describe("provider filter integration (real option resolution)", () => {
         autoCombos: async () => [{ id: "auto", candidatePool: ["alpha"] }],
         providers: async () => [],
         enrichment: async () => enrichmentOf(["cc", "claude"], ["alpha", "alpha"]),
-      }
+      } as never
     );
     assert.equal(collected.counts.models, 1);
-    assert.equal(collected.counts.autoCombos, 0);
+    assert.deepEqual(collected.counts, { models: 1, combos: 0 });
   });
 
   it("scales N+N models through the real pipeline", async () => {
@@ -284,7 +273,6 @@ describe("provider filter integration (real option resolution)", () => {
       {
         models: async () => models,
         combos: async () => [],
-        autoCombos: async () => [],
         providers: async () => [],
         enrichment: async () => enrichmentOf(["cc", "claude"], ["alpha", "alpha"]),
       }

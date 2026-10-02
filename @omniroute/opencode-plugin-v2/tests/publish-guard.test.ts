@@ -43,9 +43,6 @@ describe("plugin-v2 publish guard (mapper/host throws)", () => {
   function stubFetch(): typeof fetch {
     return (async (url: unknown) => {
       const href = String(url);
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -91,6 +88,46 @@ describe("plugin-v2 publish guard (mapper/host throws)", () => {
         warns.some((w) => w.includes("catalog publish failed") && w.includes("host boom")),
         `expected a publish-guard warn, got: ${JSON.stringify(warns)}`
       );
+    } finally {
+      globalThis.fetch = origFetch;
+      restoreDisk();
+    }
+  });
+
+  it("requests exactly the declared refresh routes, never the retired one", async () => {
+    const { isDeclaredRefreshPath } = await import("../src/catalog.js");
+    const restoreDisk = isolateDisk();
+    const { ctx } = setupCtx(() => {});
+    const requested: string[] = [];
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = (async (url: unknown) => {
+      const href = String(url);
+      requested.push(new URL(href).pathname);
+      if (href.includes("/api/combos")) {
+        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
+      }
+      if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
+        return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({ data: [{ id: "m1" }] }),
+      };
+    }) as typeof fetch;
+    try {
+      await silenceConsole(async () => {
+        await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
+      });
+      assert.ok(requested.length > 0, "setup must issue refresh requests");
+      for (const pathname of requested) {
+        assert.equal(
+          isDeclaredRefreshPath(pathname),
+          true,
+          `unexpected refresh path ${pathname} in ${JSON.stringify(requested)}`
+        );
+      }
     } finally {
       globalThis.fetch = origFetch;
       restoreDisk();

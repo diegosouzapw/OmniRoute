@@ -82,13 +82,10 @@ export function resolveManagementReadToken(optionValue: string | undefined): str
 
 /** Per-endpoint timeout defaults (v1 parity). `timeoutMs` is the global fallback. */
 export const DEFAULT_TIMEOUT_MS = 10_000 as const;
-/** Auto-combos keep the v1 5s budget; the field is resolved now for the P3 port. */
-export const DEFAULT_AUTO_COMBOS_TIMEOUT_MS = 5_000 as const;
 
 export interface EndpointTimeouts {
   models: number;
   combos: number;
-  autoCombos: number;
   enrichment: number;
 }
 
@@ -100,7 +97,6 @@ export function resolveTimeouts(
   return {
     models: opts.timeouts?.models ?? fallback,
     combos: opts.timeouts?.combos ?? fallback,
-    autoCombos: opts.timeouts?.autoCombos ?? DEFAULT_AUTO_COMBOS_TIMEOUT_MS,
     enrichment: opts.timeouts?.enrichment ?? fallback,
   };
 }

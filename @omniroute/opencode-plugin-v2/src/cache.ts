@@ -6,7 +6,6 @@ import type {
   OmniRouteEnrichmentEntry,
   OmniRouteEnrichmentMap,
   OmniRouteProviderConnection,
-  OmniRouteRawAutoCombo,
   OmniRouteRawCombo,
   OmniRouteRawModelEntry,
 } from "./shared/index.js";
@@ -25,7 +24,6 @@ export const UNREACHABLE_COOLDOWN_MS = 15_000 as const;
 export interface CatalogSnapshot {
   models: OmniRouteRawModelEntry[];
   combos: OmniRouteRawCombo[];
-  autoCombos: OmniRouteRawAutoCombo[];
   providers?: OmniRouteProviderConnection[];
   enrichment?: OmniRouteEnrichmentMap;
   fetchedAt: number;
@@ -61,7 +59,6 @@ interface DiskSnapshotV2 {
   identityFingerprint: string;
   models: OmniRouteRawModelEntry[];
   combos: OmniRouteRawCombo[];
-  autoCombos?: OmniRouteRawAutoCombo[];
   providers?: OmniRouteProviderConnection[];
   /**
    * Display names, provider labels, pricing and free-tier budgets, as
@@ -135,7 +132,12 @@ export async function readDiskSnapshot(
 ): Promise<CatalogSnapshot | undefined> {
   try {
     const body = await readFile(diskSnapshotPath(providerId), "utf8");
-    const parsed = JSON.parse(body) as Partial<DiskSnapshotV2>;
+    // A retired snapshot field survives JSON.parse as an unknown key and is
+    // never read back, so legacy snapshots load with it ignored.
+    const parsed = JSON.parse(body) as Partial<DiskSnapshotV2> & {
+      autoCombos?: unknown;
+    };
+    void (parsed as { autoCombos?: unknown }).autoCombos;
     if (
       !parsed ||
       typeof parsed.v !== "number" ||
@@ -163,9 +165,6 @@ export async function readDiskSnapshot(
     return {
       models,
       combos: parsed.combos as OmniRouteRawCombo[],
-      autoCombos: Array.isArray(parsed.autoCombos)
-        ? (parsed.autoCombos as OmniRouteRawAutoCombo[])
-        : [],
       providers: Array.isArray(parsed.providers)
         ? (parsed.providers as OmniRouteProviderConnection[])
         : [],
@@ -202,7 +201,6 @@ export async function writeDiskSnapshot(
       identityFingerprint,
       models: snapshot.models,
       combos: snapshot.combos,
-      autoCombos: snapshot.autoCombos,
       providers: snapshot.providers ?? [],
       enrichment: snapshot.enrichment ? [...snapshot.enrichment.entries()] : undefined,
       writtenAt: Date.now(),
