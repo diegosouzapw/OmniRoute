@@ -3,6 +3,10 @@ import {
   DEFAULT_CODEX_CLIENT_VERSION,
   getCodexCliRsHeaders as buildCodexCliRsHeaders,
 } from "@/shared/constants/codexClient";
+import {
+  getCliVersionOverride,
+  type CliVersionSource,
+} from "@/shared/constants/cliVersions";
 
 export {
   DEFAULT_CODEX_CLIENT_VERSION,
@@ -28,9 +32,22 @@ function getSafeEnvValue(name: string, pattern: RegExp): string | null {
 
 export function getCodexClientVersion(): string {
   return (
+    getCliVersionOverride("codex") ||
     getSafeEnvValue(CODEX_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN) ||
     DEFAULT_CODEX_CLIENT_VERSION
   );
+}
+
+/**
+ * Which layer produced `getCodexClientVersion()` right now. Resolution is
+ * dashboard override -> `CODEX_CLIENT_VERSION` env -> the captured default.
+ * Note this is the NON-caller-aware chain; see resolveCodexClientVersion for the
+ * inference path, which additionally forwards the caller's own version.
+ */
+export function getCodexClientVersionSource(): CliVersionSource {
+  if (getCliVersionOverride("codex")) return "settings";
+  if (getSafeEnvValue(CODEX_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN)) return "env";
+  return "default";
 }
 
 /**
@@ -80,6 +97,32 @@ export function getCodexClientVersionFromHeaders(
 
   const version = match[1];
   return SAFE_HEADER_TOKEN_PATTERN.test(version) ? version : null;
+}
+
+/**
+ * The version to advertise on the chatgpt.com/backend-api inference face.
+ *
+ * Precedence, highest first:
+ *   1. the dashboard override (`settings.cliVersionOverrides.codex`), which is an
+ *      explicit operator choice and therefore outranks the caller;
+ *   2. the version the CALLER reported (see getCodexClientVersionFromHeaders);
+ *   3. `CODEX_CLIENT_VERSION` env;
+ *   4. the captured default.
+ *
+ * Layer 2 exists because the ChatGPT backend gates newer models on the client
+ * version, so forwarding what the caller actually runs keeps a stale pin from
+ * locking operators out of a model their own CLI supports. Step 1 was added
+ * later so an operator can force one advertised version regardless of what the
+ * caller sends.
+ */
+export function resolveCodexClientVersion(
+  clientHeaders?: Record<string, string> | null
+): string {
+  return (
+    getCliVersionOverride("codex") ||
+    getCodexClientVersionFromHeaders(clientHeaders) ||
+    getCodexClientVersion()
+  );
 }
 
 export function getCodexUserAgent(versionOverride?: string | null): string {
