@@ -10,7 +10,14 @@
  * (callers gate writes and decisions on it) and it stays free of the proxy dispatcher, so
  * the DB layer can consult it without loading undici or the SOCKS connector.
  */
-import { notifyProxyTransition } from "./proxyTransitionListeners.ts";
+import { notifyProxyTransition, getSharedRefusalStore } from "./proxyTransitionListeners.ts";
+import type {
+  RefusalState,
+  SharedRefusalStore,
+  SlowOverrun,
+  TransportFailure,
+  TransportSuccess,
+} from "./proxyTransitionListeners.ts";
 import { stripIpv6Brackets } from "./proxyFamily.ts";
 
 // Field trends show a refused egress rarely recovers within minutes, so the
@@ -81,8 +88,10 @@ export const REFUSAL_POLICIES: {
 
 export type ProxyRefusalKind = keyof typeof REFUSAL_POLICIES;
 
-// `seq` orders set-aside events so a cache can tell whether it already saw this one.
-type RefusalState = { streak: number; until: number; seq: number };
+// Shared across duplicated server module copies (see getSharedRefusalStore):
+// rebind on each module evaluation so HMR keeps the same object.
+const store: SharedRefusalStore = getSharedRefusalStore();
+const memory: Map<string, RefusalState> = store.memory;
 
 const MAX_ENTRIES = 1000;
 const REFUSAL_KINDS = Object.keys(REFUSAL_POLICIES) as ProxyRefusalKind[];
@@ -90,9 +99,6 @@ const REFUSAL_KINDS = Object.keys(REFUSAL_POLICIES) as ProxyRefusalKind[];
 const DEFAULT_PORTS: Record<string, string> = { http: "8080", https: "443", socks5: "1080" };
 const RELAY_TYPES = new Set(["vercel", "deno", "cloudflare"]);
 const FAMILY_MARKER = /\?family=(ipv4|ipv6)$/;
-
-const memory = new Map<string, RefusalState>();
-let refusalSeq = 0;
 
 const textField = (value: unknown): string => (typeof value === "string" ? value : "");
 
@@ -201,7 +207,7 @@ function insertState(key: string, kind: ProxyRefusalKind, nowMs: number): number
   const periodMs = Math.min(policy.baseMs * 2 ** (streak - 1), policy.maxMs);
   const id = entryId(key, kind);
   memory.delete(id);
-  memory.set(id, { streak, until: nowMs + periodMs, seq: ++refusalSeq });
+  memory.set(id, { streak, until: nowMs + periodMs, seq: ++store.seq.value });
   if (memory.size > MAX_ENTRIES) {
     const oldest = memory.keys().next().value;
     if (oldest !== undefined) memory.delete(oldest);
@@ -391,7 +397,7 @@ export function listEntryMembers(entryKey: string | null): string[] {
 
 /** Sequence number of the last set-aside event recorded in this process (0 = none yet). */
 export function getProxyRefusalSeq(): number {
-  return refusalSeq;
+  return store.seq.value;
 }
 
 /**
@@ -488,11 +494,8 @@ export const TRANSPORT_EVIDENCE_WINDOW_MS = 300_000;
 export const TRANSPORT_EVIDENCE_THRESHOLD = 3;
 const MAX_TRANSPORT_EVIDENCE = 1000;
 
-type TransportFailure = { key: string; destination: string; at: number };
-type TransportSuccess = { destination: string; key: string; at: number };
-
-const transportFailures: TransportFailure[] = [];
-const transportSuccesses: TransportSuccess[] = [];
+const transportFailures: TransportFailure[] = store.transportFailures;
+const transportSuccesses: TransportSuccess[] = store.transportSuccesses;
 
 // Lazy purge mirrors readState: entries older than the evidence window plus
 // twice the transport cap can no longer contribute, so drop them on read.
@@ -577,9 +580,7 @@ export const SLOW_OVERRUN_WINDOW_MS = 300_000;
 export const SLOW_OVERRUN_THRESHOLD = 3;
 const MAX_SLOW_OVERRUNS = 1000;
 
-type SlowOverrun = { key: string; at: number };
-
-const slowOverruns: SlowOverrun[] = [];
+const slowOverruns: SlowOverrun[] = store.slowOverruns;
 
 // Lazy purge mirrors readState: entries older than the evidence window plus
 // twice the slow cap can no longer contribute, so drop them on record.
