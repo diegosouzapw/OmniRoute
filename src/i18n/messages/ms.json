@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Langganan ini mempunyai nod yang memerlukan teras proksi tempatan (SS/VMess/Trojan/VLESS); nod tersebut tidak dihalakan sehingga anda mengkonfigurasi titik akhir SOCKS5 teras tempatan.",
         "NO_USABLE_NODES": "Langganan tidak menghasilkan nod yang boleh digunakan (http/https/socks5 atau nod dengan titik akhir teras tempatan).",
         "SELECTOR_SWITCH_FAILED": "Panggilan kawalan proxy-core gagal; laluan sebelumnya kekal aktif. Semak URL dan rahsia kawalan, kemudian muat semula.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Tampalkan pautan langganan proksi anda. Setelah didayakan, trafik dihalakan melalui kumpulan proksi dalam mod global atau peraturan (Pembekal yang ditentukan). Nod langganan disegerakkan secara automatik ke dalam kumpulan proksi dan menggunakan semula mekanisme pengundian, pemeriksaan kesihatan dan anti-kebocoran sedia ada.",
       "addSubscription": "Tambah Langganan",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Pemeriksaan Kesihatan Pukal",
     "bulkHealthcheckDesc": "Uji semua proksi yang dikonfigurasikan terhadap URL sasaran untuk mengenal pasti proksi yang berfungsi.",

@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Ta naročnina vsebuje vozlišča, ki potrebujejo lokalno jedro posredniškega strežnika (SS/VMess/Trojan/VLESS); promet se prek njih ne usmerja, dokler ne konfigurirate končne točke SOCKS5 lokalnega jedra.",
         "NO_USABLE_NODES": "Naročnina ni vrnila nobenega uporabnega vozlišča (http/https/socks5 ali vozlišč s končno točko lokalnega jedra).",
         "SELECTOR_SWITCH_FAILED": "Krmilni klic proxy-core ni uspel; prejšnja pot ostane dejavna. Preverite krmilni URL in skrivnost, nato osvežite.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Prilepite povezavo do svoje naročnine na posredniške strežnike. Ko je omogočena, se promet usmerja prek zbirke posredniških strežnikov v globalnem načinu ali načinu pravil (določeni ponudnik). Vozlišča naročnine se samodejno sinhronizirajo z zbirko posredniških strežnikov ter uporabljajo obstoječe mehanizme periodičnega preverjanja, preverjanja stanja in preprečevanja uhajanja podatkov.",
       "addSubscription": "Dodaj naročnino",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Množično preverjanje stanja",
     "bulkHealthcheckDesc": "Preizkusite vse konfigurirane posredniške strežnike z dostopom do ciljnega URL-ja, da ugotovite, kateri delujejo.",

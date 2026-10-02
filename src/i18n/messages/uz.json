@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Bu obunada mahalliy proksi yadrosini talab qiladigan tugunlar mavjud (SS/VMess/Trojan/VLESS); mahalliy yadro uchun SOCKS5 endpoint sozlanmaguncha ular orqali trafik yo‘naltirilmaydi.",
         "NO_USABLE_NODES": "Obunada foydalanish mumkin bo‘lgan tugunlar topilmadi (http/https/socks5 yoki mahalliy yadro endpointiga ega tugunlar).",
         "SELECTOR_SWITCH_FAILED": "Proxy-core boshqaruv chaqiruvi bajarilmadi; avvalgi marshrut faol qoladi. Boshqaruv URL va sirrini tekshirib, yangilang.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Proksi obunangiz havolasini kiriting. Yoqilgach, trafik global yoki qoida (belgilangan Provider) rejimida proksi havzasi orqali yo‘naltiriladi. Obuna tugunlari avtomatik ravishda proksi havzasiga sinxronlanadi hamda mavjud davriy so‘rov, ishlash holatini tekshirish va sizib chiqishga qarshi mexanizmlardan foydalanadi.",
       "addSubscription": "Obuna qo‘shish",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Holatni ommaviy tekshirish",
     "bulkHealthcheckDesc": "Ishlaydiganlarini aniqlash uchun barcha sozlangan proksilarni maqsadli URL orqali sinab koʻring.",

@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "اس سبسکرپشن میں ایسے نوڈز ہیں جنہیں لوکل پراکسی کور (SS/VMess/Trojan/VLESS) کی ضرورت ہے؛ جب تک آپ local-core SOCKS5 اینڈ پوائنٹ کنفیگر نہیں کرتے، انہیں روٹ نہیں کیا جائے گا۔",
         "NO_USABLE_NODES": "سبسکرپشن سے کوئی قابل استعمال نوڈز حاصل نہیں ہوئے (http/https/socks5 یا لوکل کور اینڈ پوائنٹ والے نوڈز)۔",
         "SELECTOR_SWITCH_FAILED": "پروکسی-کور کنٹرول کال ناکام رہی؛ پچھلا راستہ فعال رہتا ہے۔ کنٹرول URL اور سیکرٹ چیک کریں، پھر ریفریش کریں۔",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "اپنا پراکسی سبسکرپشن لنک چسپاں کریں۔ ایک بار فعال ہونے کے بعد، ٹریفک کو پراکسی پول کے ذریعے عالمی یا اصول (مخصوص فراہم کنندہ) موڈ میں روٹ کیا جاتا ہے۔ سبسکرپشن نوڈس خود بخود پراکسی پول میں مطابقت پذیر ہو جاتے ہیں اور موجودہ پولنگ، ہیلتھ چیک، اور اینٹی لیک میکانزم کو دوبارہ استعمال کرتے ہیں۔",
       "addSubscription": "سبسکرپشن شامل کریں۔",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "اجتماعی ہیلتھ چیک",
     "bulkHealthcheckDesc": "تمام ترتیب شدہ پراکسیز کو ہدف URL پر جانچیں تاکہ معلوم ہو سکے کہ کون سی کام کرتی ہیں۔",

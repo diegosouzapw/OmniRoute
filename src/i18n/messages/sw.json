@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Usajili huu una nodi zinazohitaji proxy core ya ndani (SS/VMess/Trojan/VLESS); hazitaelekezwa hadi usanidi mwisho wa SOCKS5 wa local-core.",
         "NO_USABLE_NODES": "Usajili haukutoa nodi zozote zinazoweza kutumika (http/https/socks5 au nodi zilizo na mwisho wa local core).",
         "SELECTOR_SWITCH_FAILED": "Mwito wa kudhibiti wa proxy-core umeshindwa; njia iliyotangulia inaendelea kufanya kazi. Angalia URL na siri ya kudhibiti, kisha onyesha upya.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Bandika kiungo cha usajili wako wa wakala. Mara baada ya kuwezeshwa, trafiki hupitishwa kupitia hifadhi ya seva mbadala katika hali ya kimataifa au sheria (Mtoa huduma aliyebainishwa). Nodi za usajili husawazishwa kiotomatiki kwenye hifadhi ya seva mbadala na kutumia tena mbinu zilizopo za upigaji kura, ukaguzi wa afya na kuzuia kuvuja.",
       "addSubscription": "Ongeza Usajili",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Ukaguzi wa Afya kwa Wingi",
     "bulkHealthcheckDesc": "Jaribu proksi zote zilizosanidiwa dhidi ya URL lengwa ili kubaini zinazofanya kazi.",

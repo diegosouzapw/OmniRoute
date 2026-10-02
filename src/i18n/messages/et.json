@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Sellel tellimusel on sõlmi, mis vajavad kohalikku puhverserverituuma (SS/VMess/Trojan/VLESS); neid ei marsruudita enne, kui konfigureerite kohaliku tuuma SOCKS5 lõpp-punkti.",
         "NO_USABLE_NODES": "Tellimus ei tagastanud ühtegi kasutatavat sõlme (http/https/socks5 või kohaliku tuuma lõpp-punktiga sõlmed).",
         "SELECTOR_SWITCH_FAILED": "Puhversüdamiku juhtkõne ebaõnnestus; eelmine marsruut jääb aktiivseks. Kontrollige juht-URL-i ja saladust, seejärel värskendage.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Kleepige siia oma puhverserveri tellimuse link. Pärast lubamist marsruuditakse liiklus puhverserverite kogumi kaudu globaalses või reeglipõhises (määratud teenusepakkuja) režiimis. Tellimuse sõlmed sünkroonitakse automaatselt puhverserverite kogumisse ning nende puhul kasutatakse olemasolevaid küsitlus-, seisundikontrolli- ja lekkekaitsemehhanisme.",
       "addSubscription": "Lisa tellimus",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Hulgiviisiline seisundikontroll",
     "bulkHealthcheckDesc": "Testige kõiki seadistatud puhverservereid siht-URL-iga, et teha kindlaks, millised neist töötavad.",

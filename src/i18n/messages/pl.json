@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Ta subskrypcja zawiera węzły, które wymagają lokalnego rdzenia proxy (SS/VMess/Trojan/VLESS); nie są one trasowane, dopóki nie skonfigurujesz punktu końcowego SOCKS5 lokalnego rdzenia.",
         "NO_USABLE_NODES": "Subskrypcja nie zwróciła żadnych użytecznych węzłów (http/https/socks5 lub węzłów z punktem końcowym lokalnego rdzenia).",
         "SELECTOR_SWITCH_FAILED": "Wywołanie sterujące rdzenia proxy nie powiodło się; poprzednia trasa pozostaje aktywna. Sprawdź adres URL i sekret sterowania, a następnie odśwież.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Wygenerowana konfiguracja nie mogła zastąpić przyjętego pliku; zachowano kopię obok."
       },
       "description": "Wklej link do subskrypcji proxy. Po włączeniu ruch jest kierowany przez pulę proxy w trybie globalnym lub regułowym (określony dostawca). Węzły subskrypcyjne są automatycznie synchronizowane z pulą proxy i ponownie wykorzystują istniejące mechanizmy odpytywania, sprawdzania stanu i zapobiegania wyciekom.",
       "addSubscription": "Dodaj subskrypcję",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Ścieżka pliku binarnego rdzenia",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcjonalnie: weryfikuje wygenerowany plik binarką rdzenia przed zastąpieniem przyjętego pliku. Pozostaw puste, aby nadal zapisywać obok. Katalog jest tworzony, gdy go brakuje."
     },
     "bulkHealthcheck": "Zbiorczy Healthcheck",
     "bulkHealthcheckDesc": "Testowanie wszystkich skonfigurowanych proxy pod kątem docelowego URL w celu znalezienia działających.",

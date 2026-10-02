@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "ಈ ಚಂದಾದಾರಿಕೆಯಲ್ಲಿ ಸ್ಥಳೀಯ ಪ್ರಾಕ್ಸಿ ಕೋರ್ ಅಗತ್ಯವಿರುವ ನೋಡ್ಗಳಿವೆ (SS/VMess/Trojan/VLESS); ನೀವು local-core SOCKS5 ಎಂಡ್ಪಾಯಿಂಟ್ ಅನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡುವವರೆಗೆ ಅವುಗಳ ಮೂಲಕ ರೂಟಿಂಗ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ.",
         "NO_USABLE_NODES": "ಚಂದಾದಾರಿಕೆಯಿಂದ ಬಳಸಬಹುದಾದ ಯಾವುದೇ ನೋಡ್ಗಳು ದೊರೆತಿಲ್ಲ (http/https/socks5 ಅಥವಾ ಸ್ಥಳೀಯ ಕೋರ್ ಎಂಡ್ಪಾಯಿಂಟ್ ಹೊಂದಿರುವ ನೋಡ್ಗಳು).",
         "SELECTOR_SWITCH_FAILED": "ಪ್ರಾಕ್ಸಿ-ಕೋರ್ ನಿಯಂತ್ರಣ ಕರೆ ವಿಫಲವಾಯಿತು; ಹಿಂದಿನ ಮಾರ್ಗ ಸಕ್ರಿಯವಾಗಿರುತ್ತದೆ. ನಿಯಂತ್ರಣ URL ಮತ್ತು ರಹಸ್ಯವನ್ನು ಪರಿಶೀಲಿಸಿ, ನಂತರ ರಿಫ್ರೆಶ್ ಮಾಡಿ.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "ನಿಮ್ಮ ಪ್ರಾಕ್ಸಿ ಚಂದಾದಾರಿಕೆ ಲಿಂಕ್ ಅನ್ನು ಅಂಟಿಸಿ. ಸಕ್ರಿಯಗೊಳಿಸಿದ ನಂತರ, ಟ್ರಾಫಿಕ್ ಅನ್ನು ಜಾಗತಿಕ ಅಥವಾ ನಿಯಮ (ನಿರ್ದಿಷ್ಟ Provider) ಮೋಡ್ನಲ್ಲಿ ಪ್ರಾಕ್ಸಿ ಪೂಲ್ ಮೂಲಕ ರೂಟ್ ಮಾಡಲಾಗುತ್ತದೆ. ಚಂದಾದಾರಿಕೆಯ ನೋಡ್ಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪ್ರಾಕ್ಸಿ ಪೂಲ್ಗೆ ಸಿಂಕ್ ಆಗುತ್ತವೆ ಮತ್ತು ಈಗಿರುವ ಪೋಲಿಂಗ್, ಆರೋಗ್ಯ ಪರಿಶೀಲನೆ ಹಾಗೂ ಸೋರಿಕೆ-ವಿರೋಧಿ ಕಾರ್ಯವಿಧಾನಗಳನ್ನು ಮರುಬಳಕೆ ಮಾಡುತ್ತವೆ.",
       "addSubscription": "ಚಂದಾದಾರಿಕೆಯನ್ನು ಸೇರಿಸಿ",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "ಸಾಮೂಹಿಕ ಆರೋಗ್ಯ ಪರಿಶೀಲನೆ",
     "bulkHealthcheckDesc": "ಯಾವವು ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತವೆ ಎಂಬುದನ್ನು ಕಂಡುಹಿಡಿಯಲು ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾದ ಎಲ್ಲಾ ಪ್ರಾಕ್ಸಿಗಳನ್ನು ಗುರಿ URL ವಿರುದ್ಧ ಪರೀಕ್ಷಿಸಿ.",

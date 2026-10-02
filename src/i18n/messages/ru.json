@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Эта подписка содержит узлы, которым требуется локальное прокси-ядро (SS/VMess/Trojan/VLESS); они не будут маршрутизироваться, пока вы не настроите SOCKS5-эндпоинт локального ядра.",
         "NO_USABLE_NODES": "Подписка не вернула доступных узлов (http/https/socks5 или узлов с локальным эндпоинтом ядра).",
         "SELECTOR_SWITCH_FAILED": "Вызов управления прокси-ядра не удался; предыдущий маршрут остаётся активным. Проверьте URL и секрет управления, затем обновите.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Сгенерированная конфигурация не смогла заменить принятый файл; соседняя копия сохранена."
       },
       "description": "Вставьте ссылку на подписку на прокси. После включения трафик маршрутизируется через пул прокси-серверов в глобальном режиме или режиме правила (указанного поставщика). Узлы подписки автоматически синхронизируются с пулом прокси-серверов и повторно используют существующие механизмы опроса, проверки работоспособности и защиты от утечек.",
       "addSubscription": "Добавить подписку",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Путь к бинарному файлу ядра",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Необязательно: проверяет сгенерированный файл бинарным файлом ядра перед заменой принятого файла. Оставьте пустым, чтобы продолжать записывать рядом. Каталог создаётся при отсутствии."
     },
     "bulkHealthcheck": "Массовая проверка здоровья",
     "bulkHealthcheckDesc": "Проверьте все настроенные прокси по целевому URL, чтобы определить рабочие.",

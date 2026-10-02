@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Wannan biyan kuɗin yana da nodes waɗanda ke buƙatar proxy core na gida (SS/VMess/Trojan/VLESS); ba za a bi da zirga-zirga ta cikinsu ba har sai ka saita endpoint na SOCKS5 na local-core.",
         "NO_USABLE_NODES": "Biyan kuɗin bai samar da nodes da za a iya amfani da su ba (http/https/socks5 ko nodes masu local core endpoint).",
         "SELECTOR_SWITCH_FAILED": "Kiran sarrafa proxy-core ya gaza; tsohuwar hanya tana nan. Duba URL da sirrin sarrafawa, sannan ka sabunta.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Liƙa mahaɗin biyan kuɗin proxy ɗinka. Da zarar an kunna shi, za a bi da zirga-zirga ta cikin rukunin proxy a yanayin duniya ko na ƙa'ida (Provider da aka ƙayyade). Ana daidaita nodes na biyan kuɗi ta atomatik cikin rukunin proxy, kuma suna sake amfani da hanyoyin polling, health-check, da anti-leak da ake da su.",
       "addSubscription": "Ƙara Biyan Kuɗi",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Gwajin Lafiya na Gungu",
     "bulkHealthcheckDesc": "Gwada duk proxies da aka saita da URL da aka nufa domin gano waɗanda suke aiki.",

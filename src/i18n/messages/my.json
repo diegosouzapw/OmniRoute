@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "ဤစာရင်းသွင်းမှုတွင် စက်တွင်း proxy core လိုအပ်သည့် node များ (SS/VMess/Trojan/VLESS) ပါရှိသည်။ local-core SOCKS5 endpoint ကို သတ်မှတ်မပြီးမချင်း ၎င်းတို့မှတစ်ဆင့် လမ်းကြောင်းမပို့ပါ။",
         "NO_USABLE_NODES": "စာရင်းသွင်းမှုမှ အသုံးပြုနိုင်သော node များ မရရှိပါ (http/https/socks5 သို့မဟုတ် စက်တွင်း core endpoint ပါသော node များ)။",
         "SELECTOR_SWITCH_FAILED": "proxy-core ထိန်းချုပ်ခေါ်ဆိုမှု မအောင်မြင်ပါ။ ယခင်လမ်းကြောင်းဆက်လက်အသက်ဝင်နေသည်။ ထိန်းချုပ် URL နှင့် လျှို့ဝှက်ချက်စစ်ဆေးပြီး ပြန်လည်ဆန်းသစ်ပါ။",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "သင့် proxy စာရင်းသွင်းမှုလင့်ခ်ကို ကူးထည့်ပါ။ ဖွင့်ပြီးသည်နှင့် အသွားအလာကို ကမ္ဘာလုံးဆိုင်ရာ သို့မဟုတ် စည်းမျဉ်း (သတ်မှတ်ထားသော Provider) မုဒ်တွင် proxy အစုမှတစ်ဆင့် လမ်းကြောင်းပို့မည်။ စာရင်းသွင်းမှု node များကို proxy အစုထဲသို့ အလိုအလျောက် ထပ်တူပြုပြီး လက်ရှိ polling၊ အခြေအနေစစ်ဆေးမှုနှင့် ယိုစိမ့်မှုတားဆီးရေး ယန္တရားများကို ပြန်လည်အသုံးပြုမည်။",
       "addSubscription": "စာရင်းသွင်းမှု ထည့်ရန်",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "အစုလိုက် အခြေအနေစစ်ဆေးမှု",
     "bulkHealthcheckDesc": "အလုပ်လုပ်သည့် ပရောက်စီများကို ရှာဖွေရန် စီစဉ်သတ်မှတ်ထားသော ပရောက်စီအားလုံးကို ပစ်မှတ် URL တစ်ခုဖြင့် စမ်းသပ်ပါ။",

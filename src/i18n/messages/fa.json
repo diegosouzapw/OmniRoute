@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "این اشتراک دارای گره‌هایی است که به یک هسته پروکسی محلی (SS/VMess/Trojan/VLESS) نیاز دارند؛ تا زمانی که نقطه پایانی SOCKS5 هسته محلی را پیکربندی نکنید، آن‌ها مسیریابی نمی‌شوند.",
         "NO_USABLE_NODES": "اشتراک هیچ گره قابل استفاده‌ای ارائه نداد (http/https/socks5 یا گره‌هایی با نقطه پایانی هسته محلی).",
         "SELECTOR_SWITCH_FAILED": "فراخوانی کنترل هستهٔ پروکسی ناموفق بود؛ مسیر قبلی همچنان فعال است. نشانی و راز کنترل را بررسی کنید، سپس تازه‌سازی کنید.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "پیوند اشتراک پروکسی خود را جایگذاری کنید. پس از فعال شدن، ترافیک از طریق استخر پروکسی در حالت جهانی یا قانون (ارائه‌دهنده مشخص) هدایت می‌شود. گره های اشتراک به طور خودکار در استخر پروکسی همگام می شوند و از مکانیسم های نظرسنجی، بررسی سلامت و ضد نشت موجود استفاده مجدد می کنند.",
       "addSubscription": "اضافه کردن اشتراک",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "بررسی سلامت گروهی",
     "bulkHealthcheckDesc": "همه پروکسیهای پیکربندیشده را با یک URL هدف آزمایش کنید تا مشخص شود کدامیک کار میکنند.",

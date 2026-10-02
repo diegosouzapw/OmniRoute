@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Gói đăng ký này có các nút cần một proxy core cục bộ (SS/VMess/Trojan/VLESS); chúng sẽ không được định tuyến cho đến khi bạn cấu hình điểm cuối SOCKS5 của core cục bộ.",
         "NO_USABLE_NODES": "Gói đăng ký không tạo ra nút nào có thể sử dụng (http/https/socks5 hoặc các nút có điểm cuối core cục bộ).",
         "SELECTOR_SWITCH_FAILED": "Lệnh gọi điều khiển proxy-core thất bại; tuyến hiện tại vẫn được giữ. Kiểm tra URL và secret điều khiển, rồi làm mới.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Dán liên kết đăng ký proxy của bạn. Sau khi được bật, lưu lượng truy cập sẽ được định tuyến qua nhóm proxy ở chế độ chung hoặc quy tắc (Nhà cung cấp được chỉ định). Các nút đăng ký được tự động đồng bộ hóa vào nhóm proxy và sử dụng lại các cơ chế bỏ phiếu, kiểm tra tình trạng và chống rò rỉ hiện có.",
       "addSubscription": "Thêm đăng ký",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Kiểm tra tình trạng hàng loạt",
     "bulkHealthcheckDesc": "Kiểm tra tất cả proxy đã cấu hình với một URL đích để xác định proxy nào hoạt động.",

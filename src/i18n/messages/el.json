@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Αυτή η συνδρομή έχει κόμβους που χρειάζονται τοπικό πυρήνα διακομιστή μεσολάβησης (SS/VMess/Trojan/VLESS)· δεν δρομολογούνται έως ότου ρυθμίσετε το τοπικό τελικό σημείο SOCKS5 του πυρήνα.",
         "NO_USABLE_NODES": "Η συνδρομή δεν απέδωσε χρησιμοποιήσιμους κόμβους (http/https/socks5 ή κόμβους με τοπικό τελικό σημείο πυρήνα).",
         "SELECTOR_SWITCH_FAILED": "Η κλήση ελέγχου του proxy-core απέτυχε· η προηγούμενη διαδρομή παραμένει ενεργή. Ελέγξτε το URL και το μυστικό ελέγχου και ανανεώστε.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Επικολλήστε τον σύνδεσμο συνδρομής διακομιστή μεσολάβησης. Μόλις ενεργοποιηθεί, η κυκλοφορία δρομολογείται μέσω της δεξαμενής διακομιστών μεσολάβησης σε καθολική λειτουργία ή λειτουργία κανόνων (καθορισμένος Πάροχος). Οι κόμβοι συνδρομής συγχρονίζονται αυτόματα στη δεξαμενή και επαναχρησιμοποιούν τους υπάρχοντες μηχανισμούς κυκλικής εναλλαγής, ελέγχου εύρυθμης λειτουργίας και αποτροπής διαρροών.",
       "addSubscription": "Προσθήκη Συνδρομής",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Μαζικός έλεγχος εύρυθμης λειτουργίας",
     "bulkHealthcheckDesc": "Δοκιμάστε όλους τους διαμορφωμένους διακομιστές μεσολάβησης με μια διεύθυνση URL-στόχο, για να βρείτε ποιοι λειτουργούν.",

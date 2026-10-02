@@ -21,6 +21,7 @@
  */
 import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import { randomUUID } from "crypto";
+import fs from "node:fs";
 import { getDbInstance } from "../db/core";
 import { backupDbFile } from "../db/backup";
 import { encrypt } from "../db/encryption";
@@ -43,6 +44,7 @@ import { resolveTargetScopes } from "./scopes";
 import { clampSelectorGapSeconds, setAnyControlUrlConfigured } from "./selectorTrigger";
 import { stripSelectorSuffix } from "./selectorEndpoint";
 import { generateForSubscription } from "./coreConfig/sync";
+import { removeSubscriptionSideFiles } from "./coreConfig/apply";
 import {
   isSubscriptionFetchUrlAllowed,
   isIpLiteral,
@@ -69,7 +71,8 @@ export type ProxySubscriptionErrorCode =
   | "LOCAL_CORE_ENDPOINT_INVALID"
   | "NEEDS_CORE_NOT_CONFIGURED"
   | "NO_USABLE_NODES"
-  | "SELECTOR_SWITCH_FAILED";
+  | "SELECTOR_SWITCH_FAILED"
+  | "CORE_CONFIG_NOT_APPLIED";
 
 /** Encode a user-facing error as `{ code, detail? }` for i18n on the client. */
 export function subscriptionErrorCode(code: ProxySubscriptionErrorCode, detail?: string): string {
@@ -442,6 +445,9 @@ export async function deleteSubscription(id: string): Promise<boolean> {
   await unapplySubscription(id);
   // Remove subscription-sourced proxy rows (force-clears their assignments).
   const db = getDbInstance();
+  const doomed = db
+    .prepare("SELECT core_config_path FROM proxy_subscriptions WHERE id = ?")
+    .get(id) as { core_config_path?: unknown } | undefined;
   const rows = db
     .prepare("SELECT id FROM proxy_registry WHERE subscription_id = ?")
     .all(id) as Array<{ id: string }>;
@@ -453,6 +459,11 @@ export async function deleteSubscription(id: string): Promise<boolean> {
     }
   }
   const res = db.prepare("DELETE FROM proxy_subscriptions WHERE id = ?").run(id);
+  // Best-effort: remove the side files this subscription owned. A missing
+  // or locked file must not fail the delete (row already gone).
+  if (typeof doomed?.core_config_path === "string") {
+    removeSubscriptionSideFiles(fs, doomed.core_config_path, id);
+  }
   // Cache maintenance: a delete may have removed the last
   // control_url — reset to lazy so the next trigger re-reads (never stale-true).
   if (res.changes > 0) setAnyControlUrlConfigured(null);
@@ -891,9 +902,12 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
 
   const lastNodes = redactedNodeSummary(parsed);
 
-  // Opt-in core-config generation (beside-file only, never the adopted
-  // file). Skipped when an earlier warning already owns the `error` column —
-  // the skip is logged server-side so a stale beside-file never goes silent.
+  // Opt-in core-config generation. Without OMNIROUTE_PROXY_CORE_BINARY_PATH
+  // the beside-file is written directly, never the adopted file. With it, the rendered
+  // text is verified with the native check before replacing the adopted
+  // file (miss → beside-file + warning). Skipped when an earlier warning
+  // already owns the `error` column — the skip is logged server-side so a
+  // stale beside-file never goes silent.
   if (sub.coreConfigPath) {
     if (!warning) {
       const generated = await generateForSubscription(sub, parsed);

@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "במנוי זה ישנם צמתים הזקוקים לליבת פרוקסי מקומית (SS/VMess/Trojan/VLESS); הם לא ינותבו עד שתגדיר את נקודת הקצה SOCKS5 של הליבה המקומית.",
         "NO_USABLE_NODES": "המנוי לא הניב צמתים שמישים (http/https/socks5 או צמתים עם נקודת קצה של ליבה מקומית).",
         "SELECTOR_SWITCH_FAILED": "קריאת הבקרה של proxy-core נכשלה; המסלול הקודם נשאר פעיל. בדקו את כתובת הבקרה ואת הסוד, ואז רעננו.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "הדבק את קישור המנוי שלך ל-proxy. לאחר ההפעלה, התעבורה מנותבת דרך מאגר ה-proxy במצב גלובלי או כלל (ספק שצוין). צמתי מנוי מסונכרנים אוטומטית לתוך מאגר ה-proxy ומשתמשים מחדש במנגנוני סקר, בדיקת תקינות ומניעת דליפות קיימים.",
       "addSubscription": "הוסף מנוי",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "בדיקת תקינות מרוכזת",
     "bulkHealthcheckDesc": "בדיקת כל שרתי ה-proxy שהוגדרו מול כתובת URL יעד כדי לגלות אילו מהם פועלים.",

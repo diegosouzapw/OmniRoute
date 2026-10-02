@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Dette abonnementet har noder som krever en lokal proxykjerne (SS/VMess/Trojan/VLESS); de rutes ikke før du konfigurerer SOCKS5-endepunktet for den lokale kjernen.",
         "NO_USABLE_NODES": "Abonnementet ga ingen brukbare noder (http/https/socks5 eller noder med et lokalt kjerne-endepunkt).",
         "SELECTOR_SWITCH_FAILED": "Proxy-coreens styrekall mislyktes; den forrige ruten forblir aktiv. Kontroller styre-URL og hemmelighet, og oppdater deretter.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Lim inn koblingen for proxy-abonnement. Når den er aktivert, rutes trafikken gjennom proxy-poolen i global modus eller regel (spesifisert leverandør). Abonnementsnoder synkroniseres automatisk inn i proxy-poolen og gjenbruker eksisterende polling-, helsesjekk- og anti-lekkasjemekanismer.",
       "addSubscription": "Legg til abonnement",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Samlet tilstandskontroll",
     "bulkHealthcheckDesc": "Test alle konfigurerte proxyer mot en mål-URL for å finne ut hvilke som fungerer.",

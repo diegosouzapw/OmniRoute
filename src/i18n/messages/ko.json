@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "이 구독에는 로컬 프록시 코어(SS/VMess/Trojan/VLESS)가 필요한 노드가 있습니다. local-core SOCKS5 엔드포인트를 구성하기 전까지는 라우팅되지 않습니다.",
         "NO_USABLE_NODES": "구독에서 사용할 수 있는 노드(http/https/socks5 또는 로컬 코어 엔드포인트가 있는 노드)가 반환되지 않았습니다.",
         "SELECTOR_SWITCH_FAILED": "프록시 코어 제어 호출에 실패했습니다. 이전 경로는 계속 유효합니다. 제어 URL과 시크릿을 확인한 뒤 새로고침하세요.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "생성된 코어 구성이 채택된 파일을 교체하지 못했습니다. 옆 복사본을 유지했습니다."
       },
       "description": "프록시 구독 링크를 붙여넣으세요. 활성화되면 트래픽은 전역 또는 규칙(지정된 공급자) 모드에서 프록시 풀을 통해 라우팅됩니다. 구독 노드는 프록시 풀에 자동으로 동기화되며 기존 폴링, 상태 확인 및 누출 방지 메커니즘을 재사용합니다.",
       "addSubscription": "구독 추가",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "코어 바이너리 경로",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "선택 사항: 채택된 파일을 교체하기 전에 코어 바이너리로 생성된 파일을 검증합니다. 비워 두면 옆에 계속 씁니다. 디렉터리가 없으면 생성됩니다."
     },
     "bulkHealthcheck": "일괄 상태 확인",
     "bulkHealthcheckDesc": "구성된 모든 프록시를 대상 URL에 대해 테스트하여 작동하는 프록시를 찾습니다.",

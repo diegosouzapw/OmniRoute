@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Dan l-abbonament għandu nodi li jeħtieġu proxy core lokali (SS/VMess/Trojan/VLESS); dawn ma jiġux direzzjonati sakemm tikkonfigura l-endpoint SOCKS5 tal-core lokali.",
         "NO_USABLE_NODES": "L-abbonament ma pproduċa l-ebda nodu li jista’ jintuża (http/https/socks5 jew nodi b’endpoint ta’ core lokali).",
         "SELECTOR_SWITCH_FAILED": "Is-sejħa ta' kontroll tal-proxy-core falliet; ir-rotta ta' qabel tibqa attiva. Iċċekkja l-URL u s-sigriet tal-kontroll, imbagħad aġġorna.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Waħħal il-link tal-abbonament tal-proxy tiegħek. Ladarba jiġi attivat, it-traffiku jiġi direzzjonat permezz tal-grupp ta’ proxies fil-modalità globali jew tar-regoli (Fornitur speċifikat). In-nodi tal-abbonament jiġu sinkronizzati awtomatikament mal-grupp ta’ proxies u jużaw mill-ġdid il-mekkaniżmi eżistenti ta’ polling, kontroll tas-saħħa u kontra t-tnixxija.",
       "addSubscription": "Żid Abbonament",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Kontroll tas-Saħħa tal-Massa",
     "bulkHealthcheckDesc": "Ittestja l-proxies konfigurati kollha ma' URL fil-mira biex issib liema minnhom jaħdmu.",

@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "ఈ సబ్‌స్క్రిప్షన్‌లో లోకల్ ప్రోక్సీ కోర్ (SS/VMess/Trojan/VLESS) అవసరమైన నోడ్‌లు ఉన్నాయి; మీరు లోకల్-కోర్ SOCKS5 ఎండ్‌పాయింట్‌ను కాన్ఫిగర్ చేసే వరకు అవి రూట్ చేయబడవు.",
         "NO_USABLE_NODES": "సబ్‌స్క్రిప్షన్ ఉపయోగించదగిన నోడ్‌లను దేనినీ అందించలేదు (http/https/socks5 లేదా లోకల్ కోర్ ఎండ్‌పాయింట్ కలిగిన నోడ్‌లు).",
         "SELECTOR_SWITCH_FAILED": "ప్రాక్సీ-కోర్ నియంత్రణ కాల్ విఫలమైంది; మునుపటి మార్గం చురుకుగా ఉంటుంది. నియంత్రణ URL మరియు రహస్యాన్ని తనిఖీ చేసి రిఫ్రెష్ చేయండి.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "మీ ప్రాక్సీ సబ్‌స్క్రిప్షన్ లింక్‌ను అతికించండి. ప్రారంభించిన తర్వాత, ట్రాఫిక్ గ్లోబల్ లేదా రూల్ (పేర్కొన్న ప్రొవైడర్) మోడ్‌లో ప్రాక్సీ పూల్ ద్వారా మళ్లించబడుతుంది. సబ్‌స్క్రిప్షన్ నోడ్‌లు స్వయంచాలకంగా ప్రాక్సీ పూల్‌లోకి సమకాలీకరించబడతాయి మరియు ఇప్పటికే ఉన్న పోలింగ్, ఆరోగ్య తనిఖీ మరియు యాంటీ లీక్ మెకానిజమ్‌లను మళ్లీ ఉపయోగిస్తాయి.",
       "addSubscription": "సభ్యత్వాన్ని జోడించండి",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "బల్క్ హెల్త్చెక్",
     "bulkHealthcheckDesc": "పనిచేసే ప్రాక్సీలను గుర్తించడానికి కాన్ఫిగర్ చేసిన అన్ని ప్రాక్సీలను లక్ష్య URLతో పరీక్షించండి.",

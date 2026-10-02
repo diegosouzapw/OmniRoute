@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "يحتوي هذا الاشتراك على عقد تحتاج إلى نواة وكيل محلي (SS/VMess/Trojan/VLESS)؛ لن يتم توجيهها حتى تقوم بتكوين نقطة نهاية SOCKS5 للنواة المحلية.",
         "NO_USABLE_NODES": "لم ينتج عن الاشتراك أي عقد صالحة للاستخدام (http/https/socks5 أو عقد تحتوي على نقطة نهاية للنواة المحلية).",
         "SELECTOR_SWITCH_FAILED": "فشل استدعاء التحكم في نواة الوكيل؛ ويظل المسار السابق نشطًا. تحقق من عنوان URL والسر الخاص بالتحكم، ثم حدّث.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "تعذّر استبدال الملف المعتمد بالتكوين المُولّد؛ تم الاحتفاظ بالنسخة الجانبية."
       },
       "description": "الصق رابط اشتراك الوكيل الخاص بك. بمجرد التمكين، يتم توجيه حركة المرور عبر تجمع الوكيل في الوضع العام أو وضع القاعدة (الموفر المحدد). تتم مزامنة عقد الاشتراك تلقائيًا في تجمع الوكيل وإعادة استخدام آليات الاستقصاء والفحص الصحي ومكافحة التسرب الموجودة.",
       "addSubscription": "إضافة الاشتراك",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "مسار ثنائية النواة",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "اختياري: يتحقق من الملف المُولّد باستخدام ثنائية النواة قبل استبدال الملف المعتمد. اتركه فارغًا للاستمرار في الكتابة بجانبه. يُنشأ الدليل عند غيابه."
     },
     "bulkHealthcheck": "الفحص الصحي بالجملة",
     "bulkHealthcheckDesc": "اختبر جميع الوكلاء الذين تم تكوينهم مقابل عنوان URL المستهدف للعثور على الوكلاء الذين يعملون.",

@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Esta subscrição tem nós que necessitam de um núcleo de proxy local (SS/VMess/Trojan/VLESS); não serão encaminhados até configurar o endpoint SOCKS5 do núcleo local.",
         "NO_USABLE_NODES": "A subscrição não resultou em nós utilizáveis (http/https/socks5 ou nós com um endpoint do núcleo local).",
         "SELECTOR_SWITCH_FAILED": "A chamada de controlo do proxy-core falhou; a rota anterior continua ativa. Verifique o URL e o segredo de controlo e atualize.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "A configuração gerada não pôde substituir o ficheiro adotado; a cópia ao lado foi mantida."
       },
       "description": "Cole o link de assinatura do seu proxy. Uma vez ativado, o tráfego é roteado através do pool de proxy no modo global ou de regra (Provedor especificado). Os nós de assinatura são sincronizados automaticamente no pool de proxy e reutilizam mecanismos existentes de pesquisa, verificação de integridade e antivazamento.",
       "addSubscription": "Adicionar assinatura",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Caminho do binário do núcleo",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcional: verifica o ficheiro gerado com o binário do núcleo antes de substituir o ficheiro adotado. Deixe vazio para continuar a escrever ao lado. O diretório é criado se faltar."
     },
     "bulkHealthcheck": "Verificação de Saúde em Massa",
     "bulkHealthcheckDesc": "Testa todos os proxies configurados contra um URL alvo para descobrir quais funcionam.",

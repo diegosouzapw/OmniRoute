@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Ndenye aha a nwere node ndị chọrọ proxy core mpaghara (SS/VMess/Trojan/VLESS); agaghị ebugharị ha ruo mgbe ị haziri endpoint SOCKS5 nke local-core.",
         "NO_USABLE_NODES": "Ndenye aha ahụ enyeghị node ọ bụla enwere ike iji (http/https/socks5 ma ọ bụ node nwere endpoint core mpaghara).",
         "SELECTOR_SWITCH_FAILED": "Oku njikwa proxy-core dara; ụzọ gara aga na-anọgide na-arụ ọrụ. Lelee URL na nzuzo njikwa, wee mee ka ọ dị ọhụrụ.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Mado njikọ ndenye aha proxy gị. Ozugbo enyere ya ohere, a ga-ebufe okporo ụzọ site na nchịkọta proxy n'ọnọdụ zuru ụwa ọnụ ma ọ bụ ọnọdụ iwu (Provider akọwapụtara). A na-emekọrịta node ndenye aha na-akpaghị aka n'ime nchịkọta proxy, a na-ejikwa usoro polling, nyocha ahụike, na mgbochi ntapu ndị dịbu adị.",
       "addSubscription": "Tinye ndenye aha",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Nnyocha ahụike n'ìgwè",
     "bulkHealthcheckDesc": "Nwalee proxy niile ahaziri megide URL ebumnuche iji chọpụta ndị na-arụ ọrụ.",

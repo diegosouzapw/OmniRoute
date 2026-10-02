@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Този абонамент съдържа възли, които изискват локално прокси ядро (SS/VMess/Trojan/VLESS); те не се маршрутизират, докато не конфигурирате SOCKS5 крайната точка на локалното ядро.",
         "NO_USABLE_NODES": "Абонаментът не предостави използваеми възли (http/https/socks5 или възли с крайна точка на локалното ядро).",
         "SELECTOR_SWITCH_FAILED": "Контролното извикване на proxy-core се провали; предишният маршрут остава активен. Проверете контролния URL и тайната, след което опреснете.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Поставете вашата връзка за абонамент за прокси. След като бъде активиран, трафикът се насочва през прокси пула в глобален режим или режим на правило (посочен доставчик). Абонаментните възли се синхронизират автоматично в прокси пула и използват повторно съществуващите механизми за анкетиране, проверка на изправността и анти-течове.",
       "addSubscription": "Добавяне на абонамент",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Групова проверка на изправността",
     "bulkHealthcheckDesc": "Тествайте всички конфигурирани проксита спрямо целеви URL адрес, за да установите кои работят.",

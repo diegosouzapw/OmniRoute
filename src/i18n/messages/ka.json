@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "ამ გამოწერაში არის კვანძები, რომლებსაც ლოკალური პროქსი-ბირთვი სჭირდებათ (SS/VMess/Trojan/VLESS); მარშრუტიზაცია არ მოხდება, სანამ ლოკალური ბირთვის SOCKS5 საბოლოო წერტილს არ დააკონფიგურირებთ.",
         "NO_USABLE_NODES": "გამოწერამ გამოსაყენებელი კვანძები ვერ დააბრუნა (http/https/socks5 ან ლოკალური ბირთვის საბოლოო წერტილის მქონე კვანძები).",
         "SELECTOR_SWITCH_FAILED": "პროქსი-ბირთვის სამართავი ზარი ვერ შესრულდა; წინა მარშრუტი აქტიური რჩება. შეამოწმეთ სამართავი URL და საიდუმლო, შემდეგ განაახლეთ.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "ჩასვით თქვენი პროქსი-გამოწერის ბმული. ჩართვის შემდეგ ტრაფიკი პროქსი-პულის გავლით გლობალურ ან წესების (მითითებული პროვაიდერის) რეჟიმში მარშრუტიზდება. გამოწერის კვანძები ავტომატურად სინქრონდება პროქსი-პულში და იყენებს არსებულ პერიოდული შემოწმების, მდგომარეობის შემოწმებისა და გაჟონვის საწინააღმდეგო მექანიზმებს.",
       "addSubscription": "გამოწერის დამატება",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "ხელმისაწვდომობის მასობრივი შემოწმება",
     "bulkHealthcheckDesc": "შეამოწმეთ ყველა კონფიგურირებული პროქსი სამიზნე URL-თან მიმართებით, რათა დაადგინოთ, რომელი მუშაობს.",

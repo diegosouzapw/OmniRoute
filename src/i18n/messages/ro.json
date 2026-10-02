@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Acest abonament are noduri care necesită un proxy-core local (SS/VMess/Trojan/VLESS); acestea nu sunt rutate până când nu configurați endpoint-ul SOCKS5 local-core.",
         "NO_USABLE_NODES": "Abonamentul nu a returnat noduri utilizabile (http/https/socks5 sau noduri cu un endpoint local-core).",
         "SELECTOR_SWITCH_FAILED": "Apelul de control al proxy-core a eșuat; ruta anterioară rămâne activă. Verificați URL-ul și secretul de control, apoi reîmprospătați.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Lipiți linkul de abonare proxy. Odată activat, traficul este direcționat prin grupul de proxy în modul global sau cu reguli (furnizor specificat). Nodurile de abonament sunt sincronizate automat în pool-ul de proxy și reutilizează mecanismele existente de sondare, verificare a stării de sănătate și anti-scurgere.",
       "addSubscription": "Adăugați abonament",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Verificare în bloc a stării",
     "bulkHealthcheckDesc": "Testează toate proxy-urile configurate folosind un URL țintă pentru a identifica proxy-urile funcționale.",

@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Այս բաժանորդագրությունն ունի հանգույցներ, որոնց անհրաժեշտ է տեղային proxy core (SS/VMess/Trojan/VLESS)․ դրանք չեն երթուղավորվի, մինչև չկարգավորեք local-core SOCKS5 վերջնակետը։",
         "NO_USABLE_NODES": "Բաժանորդագրությունը չի տրամադրել օգտագործելի հանգույցներ (http/https/socks5 կամ տեղային core վերջնակետ ունեցող հանգույցներ)։",
         "SELECTOR_SWITCH_FAILED": "Proxy-core-ի կառավարման կանչը ձախողվեց. նախորդ երթը մնում է ակտիվ։ Ստուգեք կառավարման URL-ն ու գաղտնիքը, ապա թարմացրեք։",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Տեղադրեք ձեր պրոքսի բաժանորդագրության հղումը։ Միացնելուց հետո թրաֆիկը կուղղվի պրոքսիների պուլի միջոցով՝ գլոբալ կամ կանոնային (նշված Provider) ռեժիմում։ Բաժանորդագրության հանգույցներն ավտոմատ համաժամացվում են պրոքսիների պուլի հետ և վերօգտագործում առկա պարբերական հարցման, վիճակի ստուգման և արտահոսքի կանխարգելման մեխանիզմները։",
       "addSubscription": "Ավելացնել բաժանորդագրություն",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Զանգվածային հասանելիության ստուգում",
     "bulkHealthcheckDesc": "Ստուգել բոլոր կարգավորված պրոքսիները թիրախային URL-ի նկատմամբ՝ պարզելու, թե որոնք են աշխատում։",

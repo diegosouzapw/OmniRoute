@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Bu abunəlikdə yerli proksi-nüvəyə (SS/VMess/Trojan/VLESS) ehtiyacı olan qovşaqlar var; yerli nüvənin SOCKS5 son nöqtəsini konfiqurasiya edənə qədər onlar yönləndirilməyəcək.",
         "NO_USABLE_NODES": "Abunəlik heç bir istifadəyə yararlı qovşaq vermədi (http/https/socks5 və ya yerli nüvə son nöqtəsi olan qovşaqlar).",
         "SELECTOR_SWITCH_FAILED": "Proxy-core idarəetmə çağırışı uğursuz oldu; əvvəlki marşrut aktiv qalır. İdarəetmə URL-ni və sirri yoxlayıb yeniləyin.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "Proksi abunə linkinizi yapışdırın. Aktivləşdirildikdən sonra trafik qlobal və ya qayda (müəyyən edilmiş Provayder) rejimində proksi hovuzu vasitəsilə yönləndirilir. Abunə qovşaqları avtomatik olaraq proksi hovuzuna sinxronlaşdırılır və mövcud sorğu, sağlamlıq yoxlanışı və sızma əleyhinə mexanizmlərdən yenidən istifadə edir.",
       "addSubscription": "Abunəlik əlavə edin",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Toplu sağlamlıq yoxlaması",
     "bulkHealthcheckDesc": "Hansılarının işlədiyini müəyyən etmək üçün bütün konfiqurasiya edilmiş proksiləri hədəf URL-də sınaqdan keçirin.",

@@ -43,6 +43,21 @@ function checkControlUrl(
   return controlUrl;
 }
 
+/**
+ * The core binary is executed with `execFile`, so it is never taken from a request body: it comes
+ * from the host environment only (OMNIROUTE_PROXY_CORE_BINARY_PATH, Hard Rule #15). A body that
+ * carries the field is refused instead of silently dropped.
+ */
+function refuseCoreBinaryPath(b: Record<string, unknown>, ctx: z.RefinementCtx): boolean {
+  if (b.coreBinaryPath === undefined) return false;
+  ctx.addIssue({
+    code: z.ZodIssueCode.custom,
+    message:
+      "coreBinaryPath cannot be set through the API; set OMNIROUTE_PROXY_CORE_BINARY_PATH on the host",
+  });
+  return true;
+}
+
 function readControlSecret(b: Record<string, unknown>): string | null | undefined {
   if (b.controlSecret === undefined) return undefined;
   if (typeof b.controlSecret !== "string" || b.controlSecret.length === 0) return null;
@@ -109,6 +124,17 @@ function requireRuleProviders(
   return ruleProviders;
 }
 
+/** Read + validate the optional core config path; a body carrying a binary path is refused. */
+function checkCorePaths(
+  b: Record<string, unknown>,
+  ctx: z.RefinementCtx
+): { coreConfigPath: string | null } | null {
+  if (refuseCoreBinaryPath(b, ctx)) return null;
+  const coreConfigPath = checkCoreConfigPath(readCoreConfigPath(b), ctx);
+  if (coreConfigPath === z.NEVER) return null;
+  return { coreConfigPath: coreConfigPath ?? null };
+}
+
 /** POST /api/v1/management/proxy-subscriptions body — mirrors the removed `parsePayload()`. */
 export const proxySubscriptionCreateSchema = z
   .unknown()
@@ -133,8 +159,8 @@ export const proxySubscriptionCreateSchema = z
 
     const controlUrl = checkControlUrl(readControlUrl(b), ctx);
     if (controlUrl === z.NEVER) return z.NEVER;
-    const coreConfigPath = checkCoreConfigPath(readCoreConfigPath(b), ctx);
-    if (coreConfigPath === z.NEVER) return z.NEVER;
+    const corePaths = checkCorePaths(b, ctx);
+    if (!corePaths) return z.NEVER;
     const controlSecret = readControlSecret(b);
     const selectorMinGapSeconds = readGap(b);
 
@@ -147,7 +173,7 @@ export const proxySubscriptionCreateSchema = z
       updateIntervalMinutes,
       enabled,
       controlUrl: controlUrl ?? null,
-      coreConfigPath: coreConfigPath ?? null,
+      coreConfigPath: corePaths.coreConfigPath,
       controlSecret: controlSecret ?? null,
       selectorMinGapSeconds,
     };
@@ -198,6 +224,7 @@ export const proxySubscriptionUpdateSchema = z
       if (coreConfigPath === z.NEVER) return z.NEVER;
       payload.coreConfigPath = coreConfigPath ?? null;
     }
+    if (refuseCoreBinaryPath(b, ctx)) return z.NEVER;
 
     return payload;
   });

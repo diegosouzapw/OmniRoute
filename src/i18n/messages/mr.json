@@ -6874,7 +6874,8 @@
         "NEEDS_CORE_NOT_CONFIGURED": "या सदस्यतेमध्ये असे नोड्स आहेत ज्यांना स्थानिक proxy core (SS/VMess/Trojan/VLESS) ची आवश्यकता आहे; जोपर्यंत तुम्ही local-core SOCKS5 endpoint कॉन्फिगर करत नाही तोपर्यंत ते रूट केले जात नाहीत.",
         "NO_USABLE_NODES": "सदस्यतेमधून कोणतेही वापरण्यायोग्य नोड्स मिळाले नाहीत (http/https/socks5 किंवा स्थानिक core endpoint असलेले नोड्स).",
         "SELECTOR_SWITCH_FAILED": "प्रॉक्सी-कोर नियंत्रण कॉल अयशस्वी; मागील मार्ग सक्रिय राहतो. नियंत्रण URL व सीक्रेट तपासा, मग रिफ्रेश करा.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh."
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead."
       },
       "description": "तुमची प्रॉक्सी सदस्यता लिंक पेस्ट करा. एकदा सक्षम केल्यानंतर, ट्रॅफिक प्रॉक्सी पूलद्वारे जागतिक किंवा नियम (निर्दिष्ट प्रदाता) मोडमध्ये मार्गस्थ केले जाते. सबस्क्रिप्शन नोड्स आपोआप प्रॉक्सी पूलमध्ये सिंक केले जातात आणि विद्यमान मतदान, आरोग्य-तपासणी आणि अँटी-लीक यंत्रणा पुन्हा वापरतात.",
       "addSubscription": "सदस्यता जोडा",
@@ -6970,7 +6971,10 @@
         "proxy_unreachable": "unreachable",
         "transport": "transport",
         "slow": "slow"
-      }
+      },
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "सामूहिक आरोग्य तपासणी",
     "bulkHealthcheckDesc": "कोणते प्रॉक्सी कार्यरत आहेत हे शोधण्यासाठी सर्व कॉन्फिगर केलेले प्रॉक्सी लक्ष्य URL वर तपासा.",
