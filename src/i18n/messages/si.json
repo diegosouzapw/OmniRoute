@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "දේශීය proxy-core අන්ත ලක්ෂ්යය වලංගු නොවේ; SS/VMess/Trojan/VLESS නෝඩ නොසලකා හරින ලදී.",
         "NEEDS_CORE_NOT_CONFIGURED": "මෙම දායකත්වයේ දේශීය ප්රොක්සි කෝරයක් අවශ්ය නෝඩ ඇත (SS/VMess/Trojan/VLESS); ඔබ local-core SOCKS5 අන්ත ලක්ෂ්යය වින්යාස කරන තෙක් ඒවා මාර්ගගත නොකෙරේ.",
         "NO_USABLE_NODES": "දායකත්වයෙන් භාවිත කළ හැකි නෝඩ කිසිවක් නොලැබුණි (http/https/socks5 හෝ දේශීය කෝර අන්ත ලක්ෂ්යයක් සහිත නෝඩ).",
-        "SELECTOR_SWITCH_FAILED": "ප්‍රොක්සි-කෝර් පාලන ඇමතුම අසාර්ථක විය; පෙර මාර්ගය සක්‍රීයව පවතී. පාලන URL සහ රහස පරීක්ෂා කර නැවුම් කරන්න."
+        "SELECTOR_SWITCH_FAILED": "ප්‍රොක්සි-කෝර් පාලන ඇමතුම අසාර්ථක විය; පෙර මාර්ගය සක්‍රීයව පවතී. පාලන URL සහ රහස පරීක්ෂා කර නැවුම් කරන්න.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "ඔබේ ප්රොක්සි දායකත්ව සබැඳිය අලවන්න. සබල කළ පසු, ගමනාගමනය ගෝලීය හෝ රීති (නිශ්චිත Provider) ප්රකාරයේදී ප්රොක්සි සංචිතය හරහා මාර්ගගත කෙරේ. දායකත්ව නෝඩ ස්වයංක්රීයව ප්රොක්සි සංචිතයට සමමුහුර්ත කර, පවතින polling, health-check සහ anti-leak යාන්ත්රණ නැවත භාවිත කරයි.",
       "addSubscription": "දායකත්වයක් එක් කරන්න",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "තවම මාරුවක් සටහන් වී නැත",
       "lastSwitchMember": "සේවය කරන සාමාජිකයා",
       "nextSwitch": "ඊළඟ විය හැකි මාරුව",
-      "nextSwitchNow": "දැන්"
+      "nextSwitchNow": "දැන්",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "සමූහ සෞඛ්ය පරීක්ෂාව",
     "bulkHealthcheckDesc": "ක්රියා කරන ඒවා හඳුනා ගැනීමට වින්යාස කර ඇති සියලුම ප්රොක්සි ඉලක්ක URL එකක් සමඟ පරීක්ෂා කරන්න.",

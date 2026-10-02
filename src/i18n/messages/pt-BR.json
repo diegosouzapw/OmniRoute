@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "O endpoint do core local é inválido; nós SS/VMess/Trojan/VLESS foram ignorados.",
         "NEEDS_CORE_NOT_CONFIGURED": "Esta assinatura tem nós que precisam de um core local (SS/VMess/Trojan/VLESS); eles não são roteados até você configurar o endpoint SOCKS5 do core local.",
         "NO_USABLE_NODES": "A assinatura não retornou nós utilizáveis (http/https/socks5 ou nós com endpoint de core local).",
-        "SELECTOR_SWITCH_FAILED": "A chamada de controle do proxy-core falhou; a rota anterior continua ativa. Verifique a URL e o segredo de controle e atualize."
+        "SELECTOR_SWITCH_FAILED": "A chamada de controle do proxy-core falhou; a rota anterior continua ativa. Verifique a URL e o segredo de controle e atualize.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Cole o link de assinatura do seu proxy. Uma vez ativado, o tráfego é roteado através do pool de proxy no modo global ou de regra (Provedor especificado). Os nós de assinatura são sincronizados automaticamente no pool de proxy e reutilizam mecanismos existentes de pesquisa, verificação de integridade e antivazamento.",
       "addSubscription": "Adicionar assinatura",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Nenhuma troca registrada",
       "lastSwitchMember": "Membro em atendimento",
       "nextSwitch": "Próxima troca possível",
-      "nextSwitchNow": "Agora"
+      "nextSwitchNow": "Agora",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Verificação de integridade em massa",
     "bulkHealthcheckDesc": "Teste todos os proxies configurados contra uma URL de destino para encontrar quais funcionam.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} inativo",
     "dbOverrideCount": "{count} Substituições de banco de dados",
     "searchPlaceholder": "Pesquisar sinalizadores...",
-    "descriptionModeLabel": "Visualização da descrição",
-    "descriptionModeHint": "Ao passar o mouse: os cartões permanecem compactos e, ao passar o mouse sobre uma descrição, o texto completo é exibido. Texto completo: sempre exibe a descrição completa.",
-    "descriptionModeHover": "Ao passar o mouse",
-    "descriptionModeFull": "Texto completo",
     "categories": {
       "all": "Todos",
       "security": "Segurança",

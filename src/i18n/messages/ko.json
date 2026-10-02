@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "로컬 proxy-core 엔드포인트가 유효하지 않습니다. SS/VMess/Trojan/VLESS 노드가 무시되었습니다.",
         "NEEDS_CORE_NOT_CONFIGURED": "이 구독에는 로컬 프록시 코어(SS/VMess/Trojan/VLESS)가 필요한 노드가 있습니다. local-core SOCKS5 엔드포인트를 구성하기 전까지는 라우팅되지 않습니다.",
         "NO_USABLE_NODES": "구독에서 사용할 수 있는 노드(http/https/socks5 또는 로컬 코어 엔드포인트가 있는 노드)가 반환되지 않았습니다.",
-        "SELECTOR_SWITCH_FAILED": "프록시 코어 제어 호출에 실패했습니다. 이전 경로는 계속 유효합니다. 제어 URL과 시크릿을 확인한 뒤 새로고침하세요."
+        "SELECTOR_SWITCH_FAILED": "프록시 코어 제어 호출에 실패했습니다. 이전 경로는 계속 유효합니다. 제어 URL과 시크릿을 확인한 뒤 새로고침하세요.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "프록시 구독 링크를 붙여넣으세요. 활성화되면 트래픽은 전역 또는 규칙(지정된 공급자) 모드에서 프록시 풀을 통해 라우팅됩니다. 구독 노드는 프록시 풀에 자동으로 동기화되며 기존 폴링, 상태 확인 및 누출 방지 메커니즘을 재사용합니다.",
       "addSubscription": "구독 추가",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "기록된 전환이 아직 없음",
       "lastSwitchMember": "서비스 중인 멤버",
       "nextSwitch": "다음 전환 가능",
-      "nextSwitchNow": "지금"
+      "nextSwitchNow": "지금",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "일괄 상태 확인",
     "bulkHealthcheckDesc": "구성된 모든 프록시를 대상 URL에 대해 테스트하여 작동하는 프록시를 찾습니다.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count}개 비활성",
     "dbOverrideCount": "{count}개 DB 재정의",
     "searchPlaceholder": "플래그 검색...",
-    "descriptionModeLabel": "설명 보기",
-    "descriptionModeHint": "마우스 오버 시: 카드는 간결하게 유지되며 설명 위에 마우스를 올리면 전체 텍스트가 표시됩니다. 전체 텍스트: 항상 전체 설명을 표시합니다.",
-    "descriptionModeHover": "마우스 오버 시",
-    "descriptionModeFull": "전체 텍스트",
     "categories": {
       "all": "전체",
       "security": "보안",

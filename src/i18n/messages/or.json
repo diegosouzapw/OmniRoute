@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "ସ୍ଥାନୀୟ proxy-core ଏଣ୍ଡପଏଣ୍ଟ ଅବୈଧ; SS/VMess/Trojan/VLESS ନୋଡ୍ଗୁଡ଼ିକୁ ଅଣଦେଖା କରାଗଲା।",
         "NEEDS_CORE_NOT_CONFIGURED": "ଏହି ସବସ୍କ୍ରିପ୍ସନ୍ରେ ସ୍ଥାନୀୟ ପ୍ରକ୍ସି କୋର୍ (SS/VMess/Trojan/VLESS) ଆବଶ୍ୟକ କରୁଥିବା ନୋଡ୍ ଅଛି; ଆପଣ local-core SOCKS5 ଏଣ୍ଡପଏଣ୍ଟ ବିନ୍ୟାସ ନ କରିବା ପର୍ଯ୍ୟନ୍ତ ସେଗୁଡ଼ିକ ମାଧ୍ୟମରେ ଟ୍ରାଫିକ୍ ରୁଟ୍ ହେବ ନାହିଁ।",
         "NO_USABLE_NODES": "ସବସ୍କ୍ରିପ୍ସନ୍ରୁ କୌଣସି ବ୍ୟବହାରଯୋଗ୍ୟ ନୋଡ୍ ମିଳିଲା ନାହିଁ (http/https/socks5 କିମ୍ବା ସ୍ଥାନୀୟ କୋର୍ ଏଣ୍ଡପଏଣ୍ଟ ଥିବା ନୋଡ୍)।",
-        "SELECTOR_SWITCH_FAILED": "ପ୍ରୋକ୍ସି-କୋର୍ ନିୟନ୍ତ୍ରଣ କଲ୍ ବିଫଳ ହେଲା; ପୂର୍ବ ମାର୍ଗ ସକ୍ରିୟ ରହେ। ନିୟନ୍ତ୍ରଣ URL ଓ ଗୁପ୍ତ ଯାଞ୍ଚ କରି ରିଫ୍ରେଶ୍ କରନ୍ତୁ।"
+        "SELECTOR_SWITCH_FAILED": "ପ୍ରୋକ୍ସି-କୋର୍ ନିୟନ୍ତ୍ରଣ କଲ୍ ବିଫଳ ହେଲା; ପୂର୍ବ ମାର୍ଗ ସକ୍ରିୟ ରହେ। ନିୟନ୍ତ୍ରଣ URL ଓ ଗୁପ୍ତ ଯାଞ୍ଚ କରି ରିଫ୍ରେଶ୍ କରନ୍ତୁ।",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "ଆପଣଙ୍କ ପ୍ରକ୍ସି ସବସ୍କ୍ରିପ୍ସନ୍ ଲିଙ୍କ୍ ପେଷ୍ଟ କରନ୍ତୁ। ସକ୍ଷମ ହେବା ପରେ, ଟ୍ରାଫିକ୍ ଗ୍ଲୋବାଲ୍ କିମ୍ବା ନିୟମ (ନିର୍ଦ୍ଦିଷ୍ଟ ପ୍ରଦାନକାରୀ) ମୋଡ୍ରେ ପ୍ରକ୍ସି ପୁଲ୍ ମାଧ୍ୟମରେ ରୁଟ୍ ହୁଏ। ସବସ୍କ୍ରିପ୍ସନ୍ ନୋଡ୍ଗୁଡ଼ିକ ପ୍ରକ୍ସି ପୁଲ୍ରେ ସ୍ୱୟଂଚାଳିତ ଭାବେ ସିଙ୍କ୍ ହୁଏ ଏବଂ ବିଦ୍ୟମାନ ପୋଲିଂ, ସ୍ୱାସ୍ଥ୍ୟ-ଯାଞ୍ଚ ଏବଂ ଆଣ୍ଟି-ଲିକ୍ ବ୍ୟବସ୍ଥାକୁ ପୁନଃବ୍ୟବହାର କରେ।",
       "addSubscription": "ସବସ୍କ୍ରିପ୍ସନ୍ ଯୋଡ଼ନ୍ତୁ",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ସୁଇଚ୍ ଲିପିବଦ୍ଧ ନାହିଁ",
       "lastSwitchMember": "ସେବାକାରୀ ସଦସ୍ୟ",
       "nextSwitch": "ପରବର୍ତ୍ତୀ ସମ୍ଭାବ୍ୟ ସୁଇଚ୍",
-      "nextSwitchNow": "ବର୍ତ୍ତମାନ"
+      "nextSwitchNow": "ବର୍ତ୍ତମାନ",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "ସମୂହ ସ୍ୱାସ୍ଥ୍ୟ ଯାଞ୍ଚ",
     "bulkHealthcheckDesc": "କେଉଁଗୁଡ଼ିକ କାର୍ଯ୍ୟ କରୁଛି ଜାଣିବା ପାଇଁ ସମସ୍ତ ବିନ୍ୟାସିତ ପ୍ରକ୍ସିକୁ ଏକ ଲକ୍ଷ୍ୟ URL ସହିତ ପରୀକ୍ଷା କରନ୍ତୁ।",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count}ଟି ନିଷ୍କ୍ରିୟ",
     "dbOverrideCount": "{count}ଟି DB ଓଭରରାଇଡ୍",
     "searchPlaceholder": "ଫ୍ଲାଗ୍ଗୁଡ଼ିକ ଖୋଜନ୍ତୁ...",
-    "descriptionModeLabel": "ବର୍ଣ୍ଣନା ଦୃଶ୍ୟ",
-    "descriptionModeHint": "ହୋଭର୍ କଲେ: କାର୍ଡଗୁଡ଼ିକ ସଂକ୍ଷିପ୍ତ ରହେ ଏବଂ ବର୍ଣ୍ଣନା ଉପରେ ହୋଭର୍ କଲେ ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ ଦେଖାଯାଏ। ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ: ସବୁବେଳେ ପୂର୍ଣ୍ଣ ବର୍ଣ୍ଣନା ଦେଖାନ୍ତୁ।",
-    "descriptionModeHover": "ହୋଭର୍ କଲେ",
-    "descriptionModeFull": "ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ",
     "categories": {
       "all": "ସମସ୍ତ",
       "security": "ସୁରକ୍ଷା",

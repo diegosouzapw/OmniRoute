@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Το τοπικό τελικό σημείο proxy-core δεν είναι έγκυρο· οι κόμβοι SS/VMess/Trojan/VLESS αγνοήθηκαν.",
         "NEEDS_CORE_NOT_CONFIGURED": "Αυτή η συνδρομή έχει κόμβους που χρειάζονται τοπικό πυρήνα διακομιστή μεσολάβησης (SS/VMess/Trojan/VLESS)· δεν δρομολογούνται έως ότου ρυθμίσετε το τοπικό τελικό σημείο SOCKS5 του πυρήνα.",
         "NO_USABLE_NODES": "Η συνδρομή δεν απέδωσε χρησιμοποιήσιμους κόμβους (http/https/socks5 ή κόμβους με τοπικό τελικό σημείο πυρήνα).",
-        "SELECTOR_SWITCH_FAILED": "Η κλήση ελέγχου του proxy-core απέτυχε· η προηγούμενη διαδρομή παραμένει ενεργή. Ελέγξτε το URL και το μυστικό ελέγχου και ανανεώστε."
+        "SELECTOR_SWITCH_FAILED": "Η κλήση ελέγχου του proxy-core απέτυχε· η προηγούμενη διαδρομή παραμένει ενεργή. Ελέγξτε το URL και το μυστικό ελέγχου και ανανεώστε.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Επικολλήστε τον σύνδεσμο συνδρομής διακομιστή μεσολάβησης. Μόλις ενεργοποιηθεί, η κυκλοφορία δρομολογείται μέσω της δεξαμενής διακομιστών μεσολάβησης σε καθολική λειτουργία ή λειτουργία κανόνων (καθορισμένος Πάροχος). Οι κόμβοι συνδρομής συγχρονίζονται αυτόματα στη δεξαμενή και επαναχρησιμοποιούν τους υπάρχοντες μηχανισμούς κυκλικής εναλλαγής, ελέγχου εύρυθμης λειτουργίας και αποτροπής διαρροών.",
       "addSubscription": "Προσθήκη Συνδρομής",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Δεν έχει καταγραφεί εναλλαγή",
       "lastSwitchMember": "Μέλος που εξυπηρετεί",
       "nextSwitch": "Επόμενη δυνατή εναλλαγή",
-      "nextSwitchNow": "Τώρα"
+      "nextSwitchNow": "Τώρα",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Μαζικός έλεγχος εύρυθμης λειτουργίας",
     "bulkHealthcheckDesc": "Δοκιμάστε όλους τους διαμορφωμένους διακομιστές μεσολάβησης με μια διεύθυνση URL-στόχο, για να βρείτε ποιοι λειτουργούν.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} ανενεργές",
     "dbOverrideCount": "{count} παρακάμψεις ΒΔ",
     "searchPlaceholder": "Αναζήτηση σημαιών...",
-    "descriptionModeLabel": "Προβολή περιγραφής",
-    "descriptionModeHint": "Κατά την αιώρηση: οι κάρτες παραμένουν συμπαγείς και η αιώρηση πάνω από μια περιγραφή εμφανίζει το πλήρες κείμενο. Πλήρες κείμενο: εμφανίζεται πάντα ολόκληρη η περιγραφή.",
-    "descriptionModeHover": "Κατά την αιώρηση",
-    "descriptionModeFull": "Πλήρες κείμενο",
     "categories": {
       "all": "Όλα",
       "security": "Ασφάλεια",

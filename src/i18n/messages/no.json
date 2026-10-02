@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokalt endepunkt for proxykjernen er ugyldig; SS/VMess/Trojan/VLESS-noder ble ignorert.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dette abonnementet har noder som krever en lokal proxykjerne (SS/VMess/Trojan/VLESS); de rutes ikke før du konfigurerer SOCKS5-endepunktet for den lokale kjernen.",
         "NO_USABLE_NODES": "Abonnementet ga ingen brukbare noder (http/https/socks5 eller noder med et lokalt kjerne-endepunkt).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-coreens styrekall mislyktes; den forrige ruten forblir aktiv. Kontroller styre-URL og hemmelighet, og oppdater deretter."
+        "SELECTOR_SWITCH_FAILED": "Proxy-coreens styrekall mislyktes; den forrige ruten forblir aktiv. Kontroller styre-URL og hemmelighet, og oppdater deretter.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Lim inn koblingen for proxy-abonnement. Når den er aktivert, rutes trafikken gjennom proxy-poolen i global modus eller regel (spesifisert leverandør). Abonnementsnoder synkroniseres automatisk inn i proxy-poolen og gjenbruker eksisterende polling-, helsesjekk- og anti-lekkasjemekanismer.",
       "addSubscription": "Legg til abonnement",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Ingen bytter registrert ennå",
       "lastSwitchMember": "Betjenende medlem",
       "nextSwitch": "Neste mulige bytte",
-      "nextSwitchNow": "Nå"
+      "nextSwitchNow": "Nå",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Samlet tilstandskontroll",
     "bulkHealthcheckDesc": "Test alle konfigurerte proxyer mot en mål-URL for å finne ut hvilke som fungerer.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} inaktive",
     "dbOverrideCount": "{count} DB-overstyringer",
     "searchPlaceholder": "Søk i flagg...",
-    "descriptionModeLabel": "Beskrivelsesvisning",
-    "descriptionModeHint": "Ved markering: Kortene forblir kompakte, og når du holder pekeren over en beskrivelse, vises hele teksten. Full tekst: Vis alltid hele beskrivelsen.",
-    "descriptionModeHover": "Ved markering",
-    "descriptionModeFull": "Full tekst",
     "categories": {
       "all": "Alle",
       "security": "Sikkerhet",

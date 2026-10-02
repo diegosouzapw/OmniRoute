@@ -6873,7 +6873,10 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Endpoint proxy-core mpaghara adịghị mma; e leghaara node SS/VMess/Trojan/VLESS anya.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ndenye aha a nwere node ndị chọrọ proxy core mpaghara (SS/VMess/Trojan/VLESS); agaghị ebugharị ha ruo mgbe ị haziri endpoint SOCKS5 nke local-core.",
         "NO_USABLE_NODES": "Ndenye aha ahụ enyeghị node ọ bụla enwere ike iji (http/https/socks5 ma ọ bụ node nwere endpoint core mpaghara).",
-        "SELECTOR_SWITCH_FAILED": "Oku njikwa proxy-core dara; ụzọ gara aga na-anọgide na-arụ ọrụ. Lelee URL na nzuzo njikwa, wee mee ka ọ dị ọhụrụ."
+        "SELECTOR_SWITCH_FAILED": "Oku njikwa proxy-core dara; ụzọ gara aga na-anọgide na-arụ ọrụ. Lelee URL na nzuzo njikwa, wee mee ka ọ dị ọhụrụ.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh."
       },
       "description": "Mado njikọ ndenye aha proxy gị. Ozugbo enyere ya ohere, a ga-ebufe okporo ụzọ site na nchịkọta proxy n'ọnọdụ zuru ụwa ọnụ ma ọ bụ ọnọdụ iwu (Provider akọwapụtara). A na-emekọrịta node ndenye aha na-akpaghị aka n'ime nchịkọta proxy, a na-ejikwa usoro polling, nyocha ahụike, na mgbochi ntapu ndị dịbu adị.",
       "addSubscription": "Tinye ndenye aha",
@@ -6959,7 +6962,18 @@
       "lastSwitchNever": "Enwebeghị mgbanwe ọ bụla",
       "lastSwitchMember": "Onye otu na-eje ozi",
       "nextSwitch": "Mgbanwe ọzọ enwere ike",
-      "nextSwitchNow": "Ugbu a"
+      "nextSwitchNow": "Ugbu a",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}"
     },
     "bulkHealthcheck": "Nnyocha ahụike n'ìgwè",
     "bulkHealthcheckDesc": "Nwalee proxy niile ahaziri megide URL ebumnuche iji chọpụta ndị na-arụ ọrụ.",
@@ -13052,10 +13066,6 @@
     "inactiveCount": "{count} anaghị arụ ọrụ",
     "dbOverrideCount": "{count} ntọala DB ndị nọchiri ndabara",
     "searchPlaceholder": "Chọọ ọkọlọtọ...",
-    "descriptionModeLabel": "Nlele nkọwa",
-    "descriptionModeHint": "Mgbe a na-efegharị òké n'elu: kaadị na-anọgide nkenke, ma ịfegharị òké n'elu nkọwa na-egosi ederede niile. Ederede niile: na-egosi nkọwa zuru ezu mgbe niile.",
-    "descriptionModeHover": "Mgbe a na-efegharị òké n'elu",
-    "descriptionModeFull": "Ederede niile",
     "categories": {
       "all": "Ha niile",
       "security": "Nchedo",
