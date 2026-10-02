@@ -25,6 +25,8 @@ export type ApplyBesideReason =
 export interface ApplyOutcome {
   status: "replaced" | "beside";
   beside?: ApplyBesideReason;
+  /** Tag of the node the core check named, with a generic detail token. */
+  offending?: { tag: string; detail: string };
 }
 
 /** Native check runner. The validated path travels as a single argument. */
@@ -41,6 +43,21 @@ export interface ApplyRenderedOptions {
   subscriptionId: string;
   runCheck?: RunCheck;
   timeoutMs?: number;
+  /**
+   * Offending-node resolution for a failed check: the core-agnostic hook
+   * the prune loop passes down (resolver + the renderer's owned-position
+   * table). Absent, a failed check reports `check_failed` as before.
+   */
+  offending?: {
+    resolve: (
+      stderr: string,
+      ownedIndex: Array<string | null>
+    ) => {
+      tag: string;
+      token: string;
+    } | null;
+    table: Array<string | null>;
+  };
   /** Filesystem hooks, injectable so tests can fault renames without chmod. */
   fsHooks?: {
     renameSync?: (from: string, to: string) => void;
@@ -202,6 +219,21 @@ async function runNativeCheck(
       opts.subscriptionId,
       `native check failed (${stderrHead((error as { stderr?: unknown }).stderr) || (error as Error).message})`
     );
+    const raw = (error as { stderr?: unknown }).stderr;
+    const mark =
+      opts.offending && typeof raw === "string"
+        ? opts.offending.resolve(raw, opts.offending.table)
+        : null;
+    if (mark) {
+      return {
+        ok: false,
+        outcome: {
+          status: "beside",
+          beside: "check_failed",
+          offending: { tag: mark.tag, detail: mark.token.slice(0, STDERR_HEAD_LENGTH) },
+        },
+      };
+    }
     return { ok: false, outcome: { status: "beside", beside: "check_failed" } };
   }
   return { ok: true };

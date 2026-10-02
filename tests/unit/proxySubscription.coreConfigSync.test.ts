@@ -16,10 +16,12 @@ test("empty path writes nothing and never calls the renderer", async () => {
     return orig;
   };
   try {
-    const res = await sync.generateForSubscription(
-      { coreConfigPath: "", localCoreEndpoint: "socks5://127.0.0.1:1080 selector=g" },
-      { nodes: [], needsCore: [], format: "empty" }
-    );
+    const res = (
+      await sync.generateCoreConfigIntention(
+        { coreConfigPath: "", localCoreEndpoint: "socks5://127.0.0.1:1080 selector=g" },
+        { nodes: [], needsCore: [], format: "empty" }
+      )
+    ).warning;
     assert.equal(res, null);
     assert.equal(calls, 0);
     assert.deepEqual(fs.readdirSync(dir), []);
@@ -61,10 +63,12 @@ test("writes beside-file once per subscription, leaves the adopted file alone", 
     warned.push(args.map(String).join(" "));
   };
   try {
-    const res = await sync.generateForSubscription(
-      { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
-      singBoxFeed()
-    );
+    const res = (
+      await sync.generateCoreConfigIntention(
+        { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
+        singBoxFeed()
+      )
+    ).warning;
     assert.equal(res, null);
   } finally {
     console.warn = origWarn;
@@ -89,10 +93,10 @@ test("second identical run writes nothing (mtime unchanged)", async () => {
   const target = path.join(dir, "core.json");
   const sub = { coreConfigPath: target, localCoreEndpoint: ENDPOINTS };
   fs.writeFileSync(target, JSON.stringify({ inbounds: [], outbounds: [] }));
-  await sync.generateForSubscription(sub, singBoxFeed());
+  (await sync.generateCoreConfigIntention(sub, singBoxFeed())).warning;
   const first = fs.statSync(`${target}.generated`).mtimeMs;
   await new Promise((r) => setTimeout(r, 20));
-  const res = await sync.generateForSubscription(sub, singBoxFeed());
+  const res = (await sync.generateCoreConfigIntention(sub, singBoxFeed())).warning;
   assert.equal(res, null);
   assert.equal(fs.statSync(`${target}.generated`).mtimeMs, first);
   fs.rmSync(dir, { recursive: true, force: true });
@@ -100,13 +104,15 @@ test("second identical run writes nothing (mtime unchanged)", async () => {
 
 test("missing directory warns without throwing", async () => {
   const sync = await import("../../src/lib/proxySubscription/coreConfig/sync.ts");
-  const res = await sync.generateForSubscription(
-    {
-      coreConfigPath: path.join(os.tmpdir(), "omniroute-no-such-dir-xyz", "core.json"),
-      localCoreEndpoint: ENDPOINTS,
-    },
-    singBoxFeed()
-  );
+  const res = (
+    await sync.generateCoreConfigIntention(
+      {
+        coreConfigPath: path.join(os.tmpdir(), "omniroute-no-such-dir-xyz", "core.json"),
+        localCoreEndpoint: ENDPOINTS,
+      },
+      singBoxFeed()
+    )
+  ).warning;
   assert.ok(res?.includes("CORE_CONFIG_NOT_GENERATED"));
 });
 
@@ -116,10 +122,12 @@ test("unparseable adopted file warns and is never modified", async () => {
   const target = path.join(dir, "core.json");
   fs.writeFileSync(target, "not json{{{");
   const before = fs.readFileSync(target, "utf8");
-  const res = await sync.generateForSubscription(
-    { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
-    singBoxFeed()
-  );
+  const res = (
+    await sync.generateCoreConfigIntention(
+      { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
+      singBoxFeed()
+    )
+  ).warning;
   assert.ok(res?.includes("CORE_CONFIG_NOT_GENERATED"));
   assert.equal(fs.readFileSync(target, "utf8"), before);
   assert.ok(!fs.existsSync(`${target}.generated`));
@@ -148,10 +156,12 @@ test("end to end: adopted dns and log survive into the beside-file", async () =>
       route: { rules: [] },
     })
   );
-  const res = await sync.generateForSubscription(
-    { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
-    singBoxFeed()
-  );
+  const res = (
+    await sync.generateCoreConfigIntention(
+      { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
+      singBoxFeed()
+    )
+  ).warning;
   assert.equal(res, null);
   const generated = JSON.parse(fs.readFileSync(`${target}.generated`, "utf8"));
   assert.deepEqual(generated.dns, { servers: ["https://1.1.1.1/dns-query"] });
@@ -162,9 +172,10 @@ test("end to end: adopted dns and log survive into the beside-file", async () =>
 
 test("earlier warning wins: generation skipped, skip logged, prior error kept", async () => {
   const sync = await import("../../src/lib/proxySubscription/coreConfig/sync.ts");
-  // Unit-level: generateForSubscription itself returns null for empty path —
-  // the skip-when-warning branch lives in the service caller (covered below
-  // by code inspection of the warn-on-skip line in subscriptionService.ts).
+  // Unit-level: generateCoreConfigIntention itself reports a null warning for
+  // empty path — the skip-when-warning branch lives in the service caller
+  // (covered below by code inspection of the warn-on-skip line in
+  // subscriptionService.ts).
   const src = fs.readFileSync(
     new URL("../../src/lib/proxySubscription/subscriptionService.ts", import.meta.url),
     "utf8"
@@ -206,10 +217,12 @@ test("unassigned groups log one empty_group line per group", async () => {
   fs.writeFileSync(target, JSON.stringify({ inbounds: [], outbounds: [] }));
   const cap = captureWarn();
   try {
-    const res = await sync.generateForSubscription(
-      { coreConfigPath: target, localCoreEndpoint: THREE_ENDPOINTS },
-      uriFeed(1)
-    );
+    const res = (
+      await sync.generateCoreConfigIntention(
+        { coreConfigPath: target, localCoreEndpoint: THREE_ENDPOINTS },
+        uriFeed(1)
+      )
+    ).warning;
     assert.equal(res, null);
   } finally {
     cap.restore();
@@ -226,10 +239,12 @@ test("fully populated generation stays silent", async () => {
   fs.writeFileSync(target, JSON.stringify({ inbounds: [], outbounds: [] }));
   const cap = captureWarn();
   try {
-    const res = await sync.generateForSubscription(
-      { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
-      singBoxFeed()
-    );
+    const res = (
+      await sync.generateCoreConfigIntention(
+        { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
+        singBoxFeed()
+      )
+    ).warning;
     assert.equal(res, null);
   } finally {
     cap.restore();
@@ -244,10 +259,10 @@ test("identical rerun stays silent (unchanged)", async () => {
   const target = path.join(dir, "core.json");
   fs.writeFileSync(target, JSON.stringify({ inbounds: [], outbounds: [] }));
   const sub = { coreConfigPath: target, localCoreEndpoint: THREE_ENDPOINTS };
-  await sync.generateForSubscription(sub, uriFeed(1));
+  (await sync.generateCoreConfigIntention(sub, uriFeed(1))).warning;
   const cap = captureWarn();
   try {
-    const res = await sync.generateForSubscription(sub, uriFeed(1));
+    const res = (await sync.generateCoreConfigIntention(sub, uriFeed(1))).warning;
     assert.equal(res, null);
   } finally {
     cap.restore();
@@ -263,10 +278,12 @@ test("skip line carries counts only, never node names or servers", async () => {
   fs.writeFileSync(target, JSON.stringify({ inbounds: [], outbounds: [] }));
   const cap = captureWarn();
   try {
-    await sync.generateForSubscription(
-      { coreConfigPath: target, localCoreEndpoint: THREE_ENDPOINTS },
-      uriFeed(2, "leakcheck-name")
-    );
+    (
+      await sync.generateCoreConfigIntention(
+        { coreConfigPath: target, localCoreEndpoint: THREE_ENDPOINTS },
+        uriFeed(2, "leakcheck-name")
+      )
+    ).warning;
   } finally {
     cap.restore();
   }
@@ -283,10 +300,12 @@ test("repeated generations leave no accumulated state", async () => {
     for (let i = 0; i < 5; i += 1) {
       const target = path.join(dir, `core-${i}.json`);
       fs.writeFileSync(target, JSON.stringify({ inbounds: [], outbounds: [] }));
-      const res = await sync.generateForSubscription(
-        { coreConfigPath: target, localCoreEndpoint: THREE_ENDPOINTS },
-        uriFeed(1)
-      );
+      const res = (
+        await sync.generateCoreConfigIntention(
+          { coreConfigPath: target, localCoreEndpoint: THREE_ENDPOINTS },
+          uriFeed(1)
+        )
+      ).warning;
       assert.equal(res, null);
     }
   } finally {
@@ -313,10 +332,12 @@ test("host env binary routes through the native check (pass replaces, miss warns
   fs.writeFileSync(target, JSON.stringify({ inbounds: [], outbounds: [] }));
   try {
     // No binary: beside-file written directly, adopted untouched.
-    const plain = await sync.generateForSubscription(
-      { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
-      singBoxFeed()
-    );
+    const plain = (
+      await sync.generateCoreConfigIntention(
+        { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
+        singBoxFeed()
+      )
+    ).warning;
     assert.equal(plain, null);
     assert.ok(fs.existsSync(`${target}.generated`));
     // Binary configured on the host env: applyRendered runs (fake binary that always passes).
@@ -327,10 +348,12 @@ test("host env binary routes through the native check (pass replaces, miss warns
     fs.writeFileSync(fakeBin, "#!/bin/sh\nexit 0\n");
     fs.chmodSync(fakeBin, 0o755);
     process.env.OMNIROUTE_PROXY_CORE_BINARY_PATH = fakeBin;
-    const verified = await sync.generateForSubscription(
-      { coreConfigPath: target, localCoreEndpoint: ENDPOINTS, id: "sub-verify" },
-      singBoxFeed()
-    );
+    const verified = (
+      await sync.generateCoreConfigIntention(
+        { coreConfigPath: target, localCoreEndpoint: ENDPOINTS, id: "sub-verify" },
+        singBoxFeed()
+      )
+    ).warning;
     assert.equal(verified, null);
     assert.ok(fs.readFileSync(target, "utf8").includes("omniroute-probe"));
     assert.ok(!fs.existsSync(`${target}.generated`));
@@ -356,10 +379,12 @@ test("a host env binary that fails the guard is ignored: beside-file only, adopt
   try {
     for (const value of [trapped, "relative/sing-box", "/opt/sb/../sing-box"]) {
       process.env.OMNIROUTE_PROXY_CORE_BINARY_PATH = value;
-      const res = await sync.generateForSubscription(
-        { coreConfigPath: target, localCoreEndpoint: ENDPOINTS, id: "sub-badbin" },
-        singBoxFeed()
-      );
+      const res = (
+        await sync.generateCoreConfigIntention(
+          { coreConfigPath: target, localCoreEndpoint: ENDPOINTS, id: "sub-badbin" },
+          singBoxFeed()
+        )
+      ).warning;
       assert.equal(res, null, value);
       assert.equal(fs.readFileSync(target, "utf8"), adopted, value);
       assert.ok(fs.existsSync(`${target}.generated`), value);

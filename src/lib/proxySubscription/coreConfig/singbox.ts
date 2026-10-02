@@ -149,6 +149,7 @@ export function renderSingBox(model: CoreModel, existingText: string | null): Re
       skipped.push({ node: node.tag, reason: "source_not_singbox_shape" });
   }
 
+  const operatorCount = keptOutbounds.length;
   const emittedTags = selectorOutbounds(model, renderedTags, keptOutbounds);
   const emittedGroupTags = new Set(emittedTags);
 
@@ -161,6 +162,18 @@ export function renderSingBox(model: CoreModel, existingText: string | null): Re
     if (group.members.some((m) => renderedTags.has(m))) continue;
     skipped.push({ node: group.tag, reason: "empty_group" });
   }
+  // Owned-position table, aligned with the final `outbounds` array:
+  // operator entries (kept) and selectors (appended by selectorOutbounds
+  // after the node entries) are unowned; node entries carry the model tag.
+  // Positional, never prefix-matched, so selector tags sharing the owned
+  // prefix can never resolve to a node.
+  const renderableTags = model.nodes.filter((n) => renderedTags.has(n.tag)).map((n) => n.tag);
+  const ownedIndex: Array<string | null> = keptOutbounds.map((_, i) => {
+    const nodePos = i - operatorCount;
+    return nodePos >= 0 && nodePos < renderableTags.length
+      ? (renderableTags[nodePos] as string)
+      : null;
+  });
 
   for (const listener of model.listeners) {
     if (!emittedGroupTags.has(listener.group)) continue;
@@ -176,5 +189,23 @@ export function renderSingBox(model: CoreModel, existingText: string | null): Re
   const membersDigest = createHash("sha256")
     .update([...renderedTags].sort().join("\n"), "utf8")
     .digest("hex");
-  return { ok: true, text, unchanged: text === existingText, skipped, membersDigest };
+  return { ok: true, text, unchanged: text === existingText, skipped, ownedIndex, membersDigest };
+}
+
+/**
+ * Map a failed check's raw output to the owned node tag it names, via the
+ * renderer's owned-position table. First `outbound[i]` match wins (a check
+ * names one position per run); unowned, out-of-range or absent positions
+ * resolve to null and keep the previous behaviour upstream.
+ */
+export function resolveOffendingTag(
+  stderr: string,
+  ownedIndex: Array<string | null>
+): { tag: string; token: string } | null {
+  const match = /outbound\[(\d{1,6})\]/.exec(stderr);
+  if (!match) return null;
+  const index = Number(match[1]);
+  const tag = Number.isSafeInteger(index) ? ownedIndex[index] : null;
+  if (typeof tag !== "string" || !tag) return null;
+  return { tag, token: `offending-pattern:outbound[${match[1]}]` };
 }

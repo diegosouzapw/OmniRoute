@@ -17,10 +17,16 @@ import path from "node:path";
 import { readPrivateConfigFile, writePrivateConfigFile } from "@/lib/cli-helper/privateConfigFile";
 import { parseLocalCoreEndpoints } from "../coreEndpoint";
 import type { ParsedSubscription } from "../parse";
-import { applyRendered, type ApplyBesideReason } from "./apply";
-import { buildCoreModel } from "./model";
+import { applyRendered, type ApplyBesideReason, type RunCheck } from "./apply";
+import { buildCoreModel, type CoreModel } from "./model";
 import { isCoreBinaryPathAllowed } from "./pathGuard";
-import { DEFAULT_CORE, RENDERERS, type RenderRefused } from "./renderers";
+import {
+  DEFAULT_CORE,
+  OFFENDING_RESOLVERS,
+  RENDERERS,
+  type RenderOk,
+  type RenderRefused,
+} from "./renderers";
 import { getLastMembersDigest, setLastMembersDigest } from "./reload";
 
 export interface CoreConfigSub {
@@ -59,14 +65,27 @@ function renderAndLog(
   sub: CoreConfigSub,
   model: ReturnType<typeof buildCoreModel>,
   existingText: string | null
-): string | null | { text: string; digest?: string } {
+): string | null | { text: string; digest?: string; ownedIndex?: Array<string | null> } {
   const target = (sub.coreConfigPath ?? "").trim();
   const renderer = RENDERERS[DEFAULT_CORE];
   const result = renderer(model, existingText);
   if (!result.ok) return warn((result as RenderRefused).reason);
   if (result.unchanged) return null;
   logSkippedCounts(model, result, (sub as { id?: string }).id ?? target);
-  return { text: result.text, digest: result.membersDigest };
+  return {
+    text: result.text,
+    ...(result.membersDigest ? { digest: result.membersDigest } : {}),
+    ...(result.ownedIndex ? { ownedIndex: result.ownedIndex } : {}),
+  };
+}
+
+/** Maximum nodes pruned after a rejected verification (bounded retries). */
+export const MAX_PRUNE_ATTEMPTS = 8;
+
+/** Test-only overrides. The service caller passes none of these. */
+export interface GenerateOptions {
+  runCheck?: RunCheck;
+  maxPruneAttempts?: number;
 }
 
 /**
@@ -90,14 +109,6 @@ export interface CoreConfigIntention {
   warning: string | null;
 }
 
-/** Warning-only wrapper (kept for existing callers and tests). */
-export async function generateForSubscription(
-  sub: CoreConfigSub,
-  parsed: ParsedSubscription
-): Promise<string | null> {
-  return (await generateCoreConfigIntention(sub, parsed)).warning;
-}
-
 /**
  * Render and apply the beside-file for one subscription, returning the reload
  * intention alongside the warning. After a `replaced` apply with a changed
@@ -106,7 +117,8 @@ export async function generateForSubscription(
  */
 export async function generateCoreConfigIntention(
   sub: CoreConfigSub,
-  parsed: ParsedSubscription
+  parsed: ParsedSubscription,
+  opts?: GenerateOptions
 ): Promise<CoreConfigIntention> {
   const blank = (configPath: string): CoreConfigIntention => ({
     status: "none",
@@ -136,8 +148,71 @@ export async function generateCoreConfigIntention(
     return { ...blank(target), warning: warn("write_failed") };
   }
   const binaryPath = configuredCoreBinary(sub.id ?? target);
-  if (binaryPath) return finishVerified(sub, target, binaryPath, rendered.text, digest);
+  if (binaryPath)
+    return finishVerifiedPrune(
+      sub,
+      target,
+      binaryPath,
+      model,
+      existingText.text,
+      rendered,
+      digest,
+      opts
+    );
   return finishBeside(sub, target, rendered.text, digest);
+}
+
+/** Verified-apply with prune retries, reporting the reload intention.
+ * Runs the prune loop (bounded by MAX_PRUNE_ATTEMPTS) then maps the
+ * warning to the reload intention: a clean pass (null warning) means replaced
+ * with the rendered digest; anything else means no reload call. */
+async function finishVerifiedPrune(
+  sub: CoreConfigSub,
+  target: string,
+  binaryPath: string,
+  model: CoreModel,
+  existingText: string | null,
+  rendered: { text: string; digest?: string; ownedIndex?: Array<string | null> },
+  digest: string | undefined,
+  opts?: GenerateOptions
+): Promise<CoreConfigIntention> {
+  const fresh = RENDERERS[DEFAULT_CORE](model, existingText);
+  if (!fresh.ok || fresh.unchanged)
+    return {
+      status: "none",
+      digestChanged: false,
+      configPath: target,
+      warning: warn("check_failed"),
+    };
+  // A fresh render without an owned-position table (mocked renderer in
+  // tests) cannot attribute a rejection: fall back to the initial render's
+  // table, or proceed without one so the check outcome decides alone.
+  const ownedIndex = fresh.ownedIndex ?? rendered.ownedIndex;
+  const warning = await applyVerified(
+    sub,
+    target,
+    binaryPath,
+    model,
+    existingText,
+    {
+      ok: true,
+      text: rendered.text,
+      unchanged: false,
+      skipped: model.skipped,
+      ...(digest ? { membersDigest: digest } : {}),
+      ...(ownedIndex ? { ownedIndex } : {}),
+    } as RenderOk,
+    opts
+  );
+  if (warning !== null)
+    return { status: "none", digestChanged: false, configPath: target, warning };
+  let digestChanged = false;
+  if (sub.id) {
+    const previous = digest ? getLastMembersDigest(sub.id) : undefined;
+    if (digest) setLastMembersDigest(sub.id, digest);
+    digestChanged = !digest || previous !== digest;
+  }
+  return { status: "replaced", digestChanged, configPath: target, membersDigest: digest, warning };
 }
 
 /** Record the digest and report the beside-write outcome as an intention. */
@@ -154,26 +229,6 @@ function finishBeside(
     configPath: target,
     warning: writeBeside(target, text),
   };
-}
-
-/** Record the digest and report the verified-apply outcome as an intention. */
-async function finishVerified(
-  sub: CoreConfigSub,
-  target: string,
-  binaryPath: string,
-  renderedText: string,
-  digest: string | undefined
-): Promise<CoreConfigIntention> {
-  const warning = await applyVerified(sub, target, binaryPath, renderedText);
-  const replaced = warning === null;
-  let digestChanged = false;
-  if (replaced && sub.id) {
-    const previous = digest ? getLastMembersDigest(sub.id) : undefined;
-    if (digest) setLastMembersDigest(sub.id, digest);
-    digestChanged = !digest || previous !== digest;
-  }
-  if (!replaced) return { status: "none", digestChanged: false, configPath: target, warning };
-  return { status: "replaced", digestChanged, configPath: target, membersDigest: digest, warning };
 }
 
 /** Host environment variable naming the core binary used for the native check. */
@@ -224,25 +279,148 @@ function writeBeside(target: string, text: string): string | null {
  * Verify the rendered text with the core's native check before replacing
  * the adopted file: a pass swaps it in atomically, a miss writes
  * `<path>.generated` beside it and warns. Never throws.
+ *
+ * When the check names an offending node, that node is pruned from the model
+ * (recorded in `skipped` with reason `core_rejected`), the candidate is
+ * re-rendered and the check runs again — bounded by MAX_PRUNE_ATTEMPTS
+ * (1 initial check + up to 8 prune rounds). Pruned-away successes still warn
+ * (`pruned:<n>:core_rejected`) so the removal surfaces in the subscription
+ * warning; anything unattributable keeps the previous behaviour.
  */
 async function applyVerified(
   sub: CoreConfigSub,
   target: string,
   binaryPath: string,
-  renderedText: string
+  model: CoreModel,
+  existingText: string | null,
+  first: RenderOk,
+  opts?: GenerateOptions
 ): Promise<string | null> {
+  const limit = opts?.maxPruneAttempts ?? MAX_PRUNE_ATTEMPTS;
+  const pruned: Array<{ node: string; detail: string }> = [];
+  let current = first;
+  for (let round = 0; ; round += 1) {
+    const outcome = await runVerifiedRound(sub, target, binaryPath, current, opts);
+    if (outcome === null) return prunedWarning(pruned);
+    if (outcome.done) return outcome.warning;
+    const failed = outcome as {
+      done: false;
+      tag: string;
+      detail: string | undefined;
+      beside: ApplyBesideReason | undefined;
+    };
+    if (round >= limit) return warn(applyReason(failed.beside));
+    const next = advancePruneRound(model, existingText, failed.tag, failed.detail, pruned);
+    if (next === null) {
+      // Drained model: never serve an empty replacement — previous behaviour.
+      if (model.nodes.length === 0) return warn("check_failed");
+      return pruned.length > 0 ? prunedWarning(pruned) : warn("check_failed");
+    }
+    current = next;
+    console.warn(
+      `[ProxySubscription] core apply ${sub.id ?? ""}: pruned ${pruned.length} rejected nodes in ${round + 1} attempts`
+    );
+  }
+}
+
+/** Success-with-prunes still warns so the removal surfaces; clean pass is null. */
+function prunedWarning(done: Array<{ node: string; detail: string }>): string | null {
+  return done.length > 0 ? warn(`pruned:${done.length}:core_rejected`) : null;
+}
+
+/** One check round: replaced → null, beside without a tag → terminal warning. */
+async function runVerifiedRound(
+  sub: CoreConfigSub,
+  target: string,
+  binaryPath: string,
+  current: RenderOk,
+  opts?: GenerateOptions
+): Promise<
+  | null
+  | { done: true; warning: string }
+  | { done: false; tag: string; detail: string | undefined; beside: ApplyBesideReason | undefined }
+> {
+  let outcome;
   try {
-    const outcome = await applyRendered({
+    outcome = await applyRendered({
       adoptedPath: target,
       binaryPath,
-      renderedText,
+      renderedText: current.text,
       subscriptionId: sub.id ?? "",
+      ...(opts?.runCheck ? { runCheck: opts.runCheck } : {}),
+      ...resolveHook(current),
     });
-    if (outcome.status === "replaced") return null;
-    return warn(applyReason(outcome.beside));
   } catch {
-    return warn("write_failed");
+    return { done: true, warning: warn("write_failed") };
   }
+  if (outcome.status === "replaced") return null;
+  const tag = outcome.offending?.tag;
+  if (!tag) return { done: true, warning: warn(applyReason(outcome.beside)) };
+  return { done: false, tag, detail: outcome.offending?.detail, beside: outcome.beside };
+}
+
+/**
+ * Consume one named tag: model prune, then re-render. Returns the next
+ * candidate, or null when the loop must stop (no-op prune, empty model,
+ * refused or unchanged re-render).
+ */
+function advancePruneRound(
+  model: CoreModel,
+  existingText: string | null,
+  tag: string,
+  detail: string | undefined,
+  pruned: Array<{ node: string; detail: string }>
+): RenderOk | null {
+  if (!pruneModel(model, tag, detail, pruned)) return null;
+  if (model.nodes.length === 0) return null;
+  const next = RENDERERS[DEFAULT_CORE](model, existingText);
+  if (!next.ok) return null;
+  if (next.unchanged) return null;
+  return next;
+}
+
+/**
+ * Resolve the offending-node hook for one rendered candidate: the resolver
+ * registered for the default core plus this render's owned-position table.
+ * Absent either, the check reports `check_failed` as before.
+ */
+function resolveHook(rendered: RenderOk):
+  | {
+      offending: {
+        resolve: (
+          stderr: string,
+          owned: Array<string | null>
+        ) => { tag: string; token: string } | null;
+        table: Array<string | null>;
+      };
+    }
+  | Record<string, never> {
+  const resolve = OFFENDING_RESOLVERS[DEFAULT_CORE];
+  const table = rendered.ownedIndex;
+  if (!resolve || !table) return {};
+  return { offending: { resolve, table } };
+}
+
+/**
+ * Drop one rejected node from the model: filter nodes and group members,
+ * record the removal in `skipped` with reason `core_rejected` and the masked
+ * generic detail in the loop-local pruned list. False when the tag removes
+ * nothing (unknown or duplicate tag) — the loop then keeps the previous
+ * behaviour instead of spinning.
+ */
+function pruneModel(
+  model: CoreModel,
+  tag: string,
+  detail: string | undefined,
+  pruned: Array<{ node: string; detail: string }>
+): boolean {
+  const before = model.nodes.length;
+  model.nodes = model.nodes.filter((n) => n.tag !== tag);
+  for (const group of model.groups) group.members = group.members.filter((m) => m !== tag);
+  if (model.nodes.length === before) return false;
+  model.skipped.push({ node: tag, reason: "core_rejected" });
+  pruned.push({ node: tag, detail: (detail ?? "offending-pattern:unknown").slice(0, 500) });
+  return true;
 }
 
 /**
