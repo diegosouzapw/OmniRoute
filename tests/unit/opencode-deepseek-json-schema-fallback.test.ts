@@ -46,7 +46,10 @@ describe("OpenCode DeepSeek json_schema fallback", () => {
     assert.deepEqual(result.response_format, { type: "json_object" });
 
     const system = result.messages.find(
-      (message: Record<string, unknown>) => message.role === "system"
+      (message: Record<string, unknown>) =>
+        message.role === "system" &&
+        typeof message.content === "string" &&
+        /strictly follows this JSON schema/i.test(message.content)
     );
 
     assert.ok(system);
@@ -84,7 +87,11 @@ describe("OpenCode DeepSeek json_schema fallback", () => {
     assert.deepEqual(result.response_format, { type: "json_object" });
 
     assert.equal(
-      result.messages.some((message: Record<string, unknown>) => message.role === "system"),
+      result.messages.some(
+        (message: Record<string, unknown>) =>
+          typeof message.content === "string" &&
+          /strictly follows this JSON schema/i.test(message.content)
+      ),
       false
     );
   });
@@ -205,7 +212,11 @@ describe("OpenCode DeepSeek json_schema fallback", () => {
     assert.equal(result.response_format, undefined);
 
     assert.equal(
-      result.messages.some((message: Record<string, unknown>) => message.role === "system"),
+      result.messages.some(
+        (message: Record<string, unknown>) =>
+          typeof message.content === "string" &&
+          /strictly follows this JSON schema/i.test(message.content)
+      ),
       false
     );
   });

@@ -246,8 +246,7 @@ import {
   isStreamRecoveryExplicitlyConfigured,
 } from "@/lib/resilience/settings";
 import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
-import { isOpencodeFreeTierRefusalForProvider } from "../executors/opencodeGeoBlock.ts";
-import { noteOpencodeFreeTierSkip } from "../services/opencodeFreeTierSkip.ts";
+import { armOpencodeFreeTierSkipAfterRefusal } from "../executors/opencodeFreeTierContract.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
@@ -637,7 +636,6 @@ async function handleChatCoreInner({
     };
   };
   let tokensCompressed: number | null = null;
-  // ── Per-endpoint custom system prompt (port of upstream #2063) ──
   // Reads from cachedSettings if available (passed in from combo/chat layer)
   // to avoid an extra DB read on the hot path. Falls through to getCachedSettings()
   // only when this function is called outside the normal chat dispatch.
@@ -652,7 +650,6 @@ async function handleChatCoreInner({
       log?.debug?.("CUSTOMSP", "custom system prompt injected");
     }
   }
-  // ── Plugin onRequest hook ──
   // Dynamic import cached by Node.js after first call — minimal overhead
   const pluginGate = await runPluginOnRequestHook({
     requestId: traceId,
@@ -752,17 +749,16 @@ async function handleChatCoreInner({
     copilotCompatibleReasoning,
     clientResponseFormat,
   } = resolveChatCoreRequestFormat({ clientRawRequest, body, provider, userAgent });
-  // ── Phase 9.2: Idempotency check ──
   // Resolve the idempotency key once here and reuse it at the Phase 9.2 save site below,
   // rather than re-deriving it. (#3821-review LEDGER-6)
   const { hit: idempotencyHit, idempotencyKey } = await checkIdempotencyCache({
     clientRawRequest,
     provider,
     model,
-    // NEXA fusion-idempotency fix: body.messages feeds the key digest so combo-internal
-    // sub-requests (fusion panel + judge re-enter chatCore sharing the client's headers)
-    // can never collide on the raw Idempotency-Key/x-request-id header key.
+    // NEXA fusion-idempotency fix: body.messages feeds the key digest so combo-internal sub-requests
+    // (fusion panel + judge share the client's headers) never collide on the raw header key.
     body,
+    apiKeyId: apiKeyInfo?.id ?? null,
     effectiveServiceTier,
     startTime,
     log,
@@ -4072,12 +4068,16 @@ async function handleChatCoreInner({
           );
           // #14313: free-tier refusal on the keyless path — record a short TTL
           // skip so auto-combo / noauth fallback stop re-picking it immediately.
-          if (
-            errorConnectionId === "noauth" &&
-            isOpencodeFreeTierRefusalForProvider(provider, statusCode, message)
-          ) {
-            noteOpencodeFreeTierSkip(provider);
-          }
+          // #14977: arm decision is shape-aware — only non-contract refusals arm the pause.
+          armOpencodeFreeTierSkipAfterRefusal(
+            errorConnectionId,
+            provider,
+            statusCode,
+            message,
+            clientRawRequest?.body ?? body,
+            getExecutorClientHeaders(),
+            targetModel || model
+          );
         } else if (errorType === PROVIDER_ERROR_TYPES.GEO_BLOCKED) {
           // Google regional refusal: account-independent, non-terminal; park the connection
           // until egress uses a supported region; probes skip the day-long cooldown (#9817).

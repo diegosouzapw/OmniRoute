@@ -158,13 +158,17 @@ function buildOpencodeRules(): ProviderErrorRule[] {
     {
       id: "opencode-400-model-unavailable",
       match: ({ status, body }) => {
-        if (status !== 400) return null;
+        if (![400, 500, 502, 503, 504].includes(status)) return null;
         const text = JSON.stringify(body ?? "").toLowerCase();
-        if (!text.includes("upstream request failed: model is unavailable.")) return null;
+        if (
+          !text.includes("upstream request failed: model is unavailable.") &&
+          !(status >= 500 && /upstream error from|upstream request failed/.test(text))
+        )
+          return null;
         return {
           reason: "model_capacity",
           scope: "model",
-          cooldownMs: 3_600_000,
+          cooldownMs: status === 400 ? 3_600_000 : 120_000,
         };
       },
     },
@@ -535,7 +539,11 @@ export function getOpencodeModelUnavailableMatch(
   headers: Headers | Record<string, string> | null | undefined,
   errorText: unknown
 ): ProviderErrorRuleMatch | null {
-  if (status !== 400 || !provider || !OPENCODE_RULE_FAMILY.includes(provider.toLowerCase())) {
+  if (
+    ![400, 500, 502, 503, 504].includes(status) ||
+    !provider ||
+    !OPENCODE_RULE_FAMILY.includes(provider.toLowerCase())
+  ) {
     return null;
   }
   const match = getProviderErrorRuleMatch(provider, status, headers, errorText);

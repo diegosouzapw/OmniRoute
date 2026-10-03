@@ -1253,7 +1253,6 @@ export class OpencodeExecutor extends BaseExecutor {
     body?: unknown
   ) {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
-    // #8467: honor Extra API Keys rotation via BaseExecutor.resolveEffectiveKey.
     // Fall back to accessToken only when no apiKey/extras resolve to a key.
     const key = credentials
       ? this.resolveEffectiveKey(credentials) || credentials.accessToken
@@ -1265,6 +1264,10 @@ export class OpencodeExecutor extends BaseExecutor {
       } else {
         headers["Authorization"] = `Bearer ${key}`;
       }
+    }
+
+    if (!key && model && isGatedFreeTierRequest(this._surface(), this.provider, model)) {
+      headers["Authorization"] = "Bearer public";
     }
 
     if (this._requestFormat === "claude") {
@@ -1390,9 +1393,6 @@ export class OpencodeExecutor extends BaseExecutor {
   ): any {
     let modifiedBody = super.transformRequest(model, body, stream, credentials);
     modifiedBody = this.applyDeepSeekJsonSchemaFallback(model, modifiedBody);
-    // Free-tier request contract (see opencodeFreeTierContract.ts): streaming plus a
-    // non-empty tools array, in the shape of the surface this model is served on. Paid
-    // models on the same host are not gated and stay untouched.
     const prepared = prepareFreeTierRequest(
       modifiedBody,
       this._requestFormat ?? resolveOpencodeTargetFormat(this.provider, model),
@@ -1400,7 +1400,8 @@ export class OpencodeExecutor extends BaseExecutor {
       this.provider,
       model,
       this._clientSession,
-      body
+      body,
+      true
     );
     modifiedBody = prepared.body;
     // 9router#1442: OpenCode upstreams (e.g. kimi-k2.6 via opencode-go) return
@@ -1447,7 +1448,6 @@ export class OpencodeExecutor extends BaseExecutor {
     // (DeepSeek V4 Flash, Kimi, MiniMax, ...) require reasoning_content echoed
     // back on assistant messages, or they 400 with "reasoning_content must be
     // passed back". OpenAI clients drop it across turns, so we inject a
-    // placeholder for the affected model families.
     if (isThinkingMessageModel(model)) {
       modifiedBody = injectReasoningContentForThinkingModel(modifiedBody);
     }

@@ -1204,6 +1204,8 @@ export async function executeTargetAttempt(opts: {
       provider !== "unknown" &&
       !scopedFailure &&
       !isModelScopedClaudeQuota &&
+      fallbackResult.ruleScope !== "model" &&
+      result.headers.get("X-OmniRoute-Local-Cooldown") !== "model" &&
       !((result.status === 500 || result.status === 429) && hasPerModelQuota(provider, rawModel))
     ) {
       recordProviderCooldown(

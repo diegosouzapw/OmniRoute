@@ -257,11 +257,12 @@ describe("OpencodeExecutor", () => {
       assert.equal(result.headers["Accept"], "text/event-stream");
     });
 
-    it("omits authorization when credentials are missing", async () => {
+    it("uses native public authorization for free models when credentials are missing", async () => {
       const result = await zenExecutor.execute(createInput("minimax-m2.5-free", true, null));
 
       assert.deepEqual(result.headers, {
         "Content-Type": "application/json",
+        Authorization: "Bearer public",
         Accept: "text/event-stream",
       });
       assert.deepEqual(fetchCalls[0].options.headers, result.headers);

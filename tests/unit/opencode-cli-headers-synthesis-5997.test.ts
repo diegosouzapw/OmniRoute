@@ -44,7 +44,11 @@ const CLI_DEFAULTS = { userAgent: "opencode/1.18.31", client: "cli", project: "d
 // PR #10571's new synthesized defaults for OpencodeExecutor.buildHeaders() itself.
 // The user-agent default carries a version since 2026-09-17: the free tier refuses a
 // bare `opencode` and answers 426 below version 1.17.
-const OPENCODE_DEFAULTS = { userAgent: "opencode/1.18.31", client: "desktop", project: "global" };
+const OPENCODE_DEFAULTS = {
+  userAgent: "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14",
+  client: "desktop",
+  project: "global",
+};
 
 function withEnv(key: string, value: string | undefined, fn: () => void) {
   const saved = process.env[key];

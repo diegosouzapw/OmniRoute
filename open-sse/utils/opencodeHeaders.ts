@@ -11,7 +11,8 @@ import {
  * exists to be recent enough, not to impersonate a build: any `opencode/<>=1.17>` passes.
  * Overridable through the existing OPENCODE_USER_AGENT (or <PROVIDER>_USER_AGENT) knob.
  */
-export const DEFAULT_OPENCODE_USER_AGENT = "opencode/1.18.31";
+export const DEFAULT_OPENCODE_USER_AGENT =
+  "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14";
 
 /** Canonical OpenCode session id shape: `ses_` + 12 hex + 14 base62. */
 export const OPENCODE_SESSION_PATTERN = /^ses_[0-9a-f]{12}[0-9A-Za-z]{14}$/;
@@ -69,7 +70,7 @@ export function resolveOpencodeCliDefaults(
       configuredUA && (!gated || satisfiesOpencodeUserAgentContract(configuredUA))
         ? configuredUA
         : DEFAULT_OPENCODE_USER_AGENT,
-    client: process.env.OPENCODE_CLIENT?.trim() || "desktop",
+    client: process.env.OPENCODE_CLIENT?.trim() || (gated ? "cli" : "desktop"),
     project: process.env.OPENCODE_PROJECT?.trim() || "global",
   };
 }
@@ -240,9 +241,12 @@ function applyCliDefaults(
       ? clientRequestId
       : canonicalId("msg_", clientRequestId || undefined);
   const clientSessionId = headers["x-opencode-session"]?.trim();
-  headers["x-opencode-session"] = clientSessionId
+  const finalSessionId = clientSessionId
     ? OPENCODE_SESSION_PATTERN.test(clientSessionId)
       ? clientSessionId
       : canonicalId("ses_", clientSessionId)
     : canonicalId("ses_", generateSessionId(sessionBody ?? null) ?? undefined);
+  headers["x-session-id"] = finalSessionId;
+  headers["x-session-affinity"] = finalSessionId;
+  headers["x-opencode-session"] = finalSessionId;
 }

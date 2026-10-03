@@ -339,7 +339,7 @@ test("transformRequest: the contract is applied for a free model and skipped for
     null as never
   ) as Record<string, unknown>;
   assert.equal(free.stream, true);
-  assert.equal((free.tools as unknown[]).length, 1);
+  assert.equal((free.tools as unknown[]).length, 11);
 
   const paid = executor.transformRequest(
     "gpt-5.6-luna",
@@ -381,7 +381,7 @@ test("a JSON caller gets a JSON body back even though the upstream request was s
     })) as { response: Response };
 
     assert.equal(seen[0]?.stream, true, "the upstream request was streamed");
-    assert.equal((seen[0]?.tools as unknown[]).length, 1, "and carried the placeholder tool");
+    assert.equal((seen[0]?.tools as unknown[]).length, 11, "and carried the captured CLI tools");
     assert.match(result.response.headers.get("content-type") ?? "", /application\/json/);
     const json = (await result.response.json()) as {
       choices?: Array<{ message?: { content?: string } }>;
@@ -831,4 +831,23 @@ test("mergeClientToolsWithObserved: leaves the body untouched when nothing obser
     mergeClientToolsWithObserved(body, "openai", "opencode", "big-pickle", undefined, []),
     body
   );
+});
+
+test("free-tier adaptation preserves client messages without injecting title instructions", () => {
+  for (const messages of [
+    [{ role: "user", content: "Quanto é 2 + 2?" }],
+    [
+      { role: "system", content: "Responda como assistente." },
+      { role: "user", content: "Oi" },
+    ],
+    [
+      { role: "system", content: "You are a title generator." },
+      { role: "user", content: "Oi" },
+    ],
+  ]) {
+    const original = structuredClone(messages);
+    const result = applyFreeTierRequestContract({ model: "big-pickle", messages }, "openai");
+    assert.deepEqual(result.messages, original);
+    assert.deepEqual(messages, original);
+  }
 });

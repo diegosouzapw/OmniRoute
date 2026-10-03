@@ -524,8 +524,6 @@ export function isOAuthInvalidToken(errorText: string): boolean {
   return OAUTH_INVALID_TOKEN_SIGNALS.some((sig) => lower.includes(sig));
 }
 
-// ─── Resilience Profile Helper ──────────────────────────────────────────────
-
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -590,7 +588,6 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
   }
 }
 
-// ─── Per-Model Lockout Tracking ─────────────────────────────────────────────
 // In-memory map: "provider:connectionId:model" → { reason, until, lockedAt }
 const modelLockouts = new Map<string, ModelLockoutEntry>();
 const modelFailureState = new Map<string, ModelFailureState>();
@@ -1127,7 +1124,6 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
   return active;
 }
 
-// ─── Provider Breaker Compatibility Wrappers ────────────────────────────────
 // Legacy helpers now delegate to the shared provider circuit breaker.
 
 type ProviderBreakerProfile = {
@@ -1870,6 +1866,9 @@ export function checkFallbackError(
       reason,
     };
   }
+
+  const modelCapacity = getOpencodeModelUnavailableMatch(provider, status, headers, errorStr);
+  if (modelCapacity) return ruleScopedResult(modelCapacity);
 
   const isRateLimitStatus = status === HTTP_STATUS.RATE_LIMITED;
   const preserveQuota429 = shouldPreserveQuotaSignals(provider, errorText);

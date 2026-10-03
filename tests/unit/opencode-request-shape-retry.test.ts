@@ -15,6 +15,16 @@
  */
 import { test, beforeEach, afterEach, before, after } from "node:test";
 import net from "node:net";
+
+// Exercise the legacy adaptive shape fallback with native CLI adaptation disabled.
+const previousCliCompat = process.env.OPENCODE_CLI_COMPAT;
+before(() => {
+  process.env.OPENCODE_CLI_COMPAT = "off";
+});
+after(() => {
+  if (previousCliCompat === undefined) delete process.env.OPENCODE_CLI_COMPAT;
+  else process.env.OPENCODE_CLI_COMPAT = previousCliCompat;
+});
 import assert from "node:assert/strict";
 import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
 import type { ProviderCredentials } from "../../open-sse/executors/base.ts";

@@ -123,7 +123,9 @@ export function isModelCapacityOverloadError(error: unknown): boolean {
   const message =
     typeof error === "string" ? error : typeof errObj?.message === "string" ? errObj.message : "";
   if (!message) return false;
-  return /\boverloaded(?:_error)?\b/i.test(message);
+  return /\boverloaded(?:_error)?\b|upstream request failed: model is unavailable|upstream error from|upstream request failed/i.test(
+    message
+  );
 }
 
 export const STATE = {
