@@ -216,6 +216,22 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   /**
+   * Note the outcome of a forced-stream response without reading its body: a success
+   * confirms the borrowed shape, anything else carries no verdict (the paths that hold
+   * the verdict note it explicitly where they already read it).
+   */
+  private noteForcedStreamOutcome(input: ExecuteInput, result: ExecutorExecuteResult): void {
+    const attempt = attemptFor(input.body);
+    const response =
+      result instanceof Response ? result : "response" in result ? result.response : null;
+    noteFreeTierOutcome(attempt, {
+      ok: !!response?.ok,
+      status: response?.ok ? (response.status ?? null) : null,
+      bodyText: null,
+    });
+  }
+
+  /**
    * The target format and the client session of the request being served. While `execute()`
    * runs they live in that request's own context (this instance is shared and requests
    * overlap); outside it they fall back to plain fields, which is how `buildHeaders`,
@@ -351,14 +367,42 @@ export class OpencodeExecutor extends BaseExecutor {
     input: ExecuteInput,
     result: ExecutorExecuteResult
   ): ExecutorExecuteResult {
-    noteFreeTierOutcome(attemptFor(input.body), "response" in result && !!result.response?.ok);
+    this.noteForcedStreamOutcome(input, result);
     if (input.stream) return result;
-    if (!("response" in result) || !result.response) return result;
+    if (!(result instanceof Response)) {
+      if (!("response" in result) || !result.response) return result;
+    }
     // Non-null exactly when the contract applied: stands in for the old surface/model guard.
     const model = attemptFor(input.body)?.model;
     if (!model) return result;
-    const response = rebuildJsonFromForcedStream(result.response, this._requestFormat, model);
-    return response === result.response ? result : { ...result, response };
+    if (result instanceof Response) {
+      const rebuilt = rebuildJsonFromForcedStream(result, this._requestFormat, model);
+      return rebuilt === result ? result : rebuilt;
+    }
+    const rebuilt = rebuildJsonFromForcedStream(result.response, this._requestFormat, model);
+    return rebuilt === result.response ? result : { ...result, response: rebuilt };
+  }
+
+  /**
+   * Count a refusal that says something about the borrowed tools, on a path
+   * that already holds the verdict. Only 403/451 carry that verdict, so only
+   * they pay for a body read — anything else leaves the store alone.
+   */
+  private async noteFreeTierRefusal(
+    input: ExecuteInput,
+    response: Response,
+    log: ExecuteInput["log"]
+  ): Promise<void> {
+    const attempt = attemptFor(input.body);
+    if (!attempt || !attempt.borrowed || attempt.probe) return;
+    if (response.status !== 403 && response.status !== 451) return;
+    let bodyText: string | null = null;
+    try {
+      bodyText = await response.clone().text();
+    } catch {
+      log?.debug?.("OPENCODE", "body read failed on borrowed-shape check");
+    }
+    noteFreeTierOutcome(attempt, { ok: false, status: response.status, bodyText });
   }
 
   private normalizeMuseSparkResponse(
@@ -598,10 +642,14 @@ export class OpencodeExecutor extends BaseExecutor {
             ) as unknown as Promise<HttpExecuteResult>
         );
         if (retryAfterRefusal) {
+          await this.noteFreeTierRefusal(input, retryAfterRefusal.response, log);
           return this.finalizeForcedStream(
             input,
             this.normalizeMuseSparkResponse(input, retryAfterRefusal)
           );
+        }
+        if (single.response.status === 403 || single.response.status === 451) {
+          await this.noteFreeTierRefusal(input, single.response, log);
         }
         if (single.response.status === 400) {
           let bodyText: string | null = null;
@@ -1112,6 +1160,11 @@ export class OpencodeExecutor extends BaseExecutor {
             // request shape), not this account. Handled in opencodeFreeTierRetry.ts
             // (one bounded retry with observed tools appended, then unchanged return).
             if (bodyText !== null && isOpencodeFreeTierRefusal(status, bodyText)) {
+              noteFreeTierOutcome(attemptFor(input.body), {
+                ok: false,
+                status,
+                bodyText,
+              });
               if (attributionOn && skippedCooldown.size > 0) {
                 this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
               }
