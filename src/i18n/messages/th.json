@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "สิ่งที่ GET /v1/models แสดงสำหรับคีย์นี้ การจำกัดรายการให้แคบลงจะไม่เปลี่ยนแปลงสิ่งที่คีย์สามารถเรียกใช้ได้",
     "catalogScopeAll": "ทั้งสองอย่าง",
     "catalogScopeCombos": "เฉพาะคอมโบ",
-    "catalogScopeModels": "เฉพาะโมเดล"
+    "catalogScopeModels": "เฉพาะโมเดล",
+    "resilienceTokenRefreshTitle": "ตัวเบรกการรีเฟรชโทเค็น",
+    "resilienceTokenRefreshDesc": "หยุดการลองรีเฟรชโทเคนหลังจากล้มเหลวหลายครั้ง ขอบเขตการเชื่อมต่อแต่ละรายการจะแยกบัญชีที่ตายแล้วหนึ่งบัญชีออก เพื่อให้บัญชีที่ยังทำงานได้บนผู้ให้บริการเดียวกันยังคงรีเฟรชต่อไป",
+    "resilienceTokenRefreshScope": "ความพยายามในการรีเฟรชโทเคนสำหรับผู้ให้บริการหนึ่งราย",
+    "resilienceTokenRefreshTrigger": "ความพยายามรีเฟรชที่ล้มเหลวติดต่อกัน",
+    "resilienceTokenRefreshEffect": "หยุดความพยายามในการรีเฟรชชั่วคราวในช่วงคูลดาวน์",
+    "resilienceTokenRefreshScopeLabel": "ขอบเขต",
+    "resilienceTokenRefreshScopeProvider": "ผู้ให้บริการ (บัญชีทั้งหมดใช้ตัวเบรกเกอร์เดียวกัน)",
+    "resilienceTokenRefreshScopeConnection": "การเชื่อมต่อ (แต่ละบัญชีมีตัวเบรกเกอร์ของตัวเอง)",
+    "resilienceTokenRefreshThreshold": "ความล้มเหลวก่อนหยุดชั่วคราว",
+    "resilienceTokenRefreshCooldown": "หยุดชั่วคราวหลังจากกระตุ้น"
   },
   "contextRtk": {
     "title": "RTK Engine",

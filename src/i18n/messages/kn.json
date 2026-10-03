@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "ಈ ಕೀಲಿಗಾಗಿ GET /v1/models ಏನನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ. ಪಟ್ಟಿಯನ್ನು ಸೀಮಿತಗೊಳಿಸುವುದರಿಂದ ಕೀಲಿಯು ಯಾವುದನ್ನು ಕರೆ ಮಾಡಬಹುದು ಎಂಬುದು ಎಂದಿಗೂ ಬದಲಾಗುವುದಿಲ್ಲ.",
     "catalogScopeAll": "ಎರಡೂ",
     "catalogScopeCombos": "ಕಾಂಬೊಗಳು ಮಾತ್ರ",
-    "catalogScopeModels": "ಮಾದರಿಗಳು ಮಾತ್ರ"
+    "catalogScopeModels": "ಮಾದರಿಗಳು ಮಾತ್ರ",
+    "resilienceTokenRefreshTitle": "ಟೋಕನ್ ರೀಫ್ರೆಶ್ ಬ್ರೇಕರ್",
+    "resilienceTokenRefreshDesc": "ಪುನರಾವೃತ ವೈಫಲ್ಯಗಳ ನಂತರ ಟೋಕನ್ ರಿಫ್ರೆಶ್ ಮಾಡಲು ಮರುಪ್ರಯತ್ನಿಸುವುದನ್ನು ನಿಲ್ಲಿಸುತ್ತದೆ. ಪ್ರತಿ ಸಂಪರ್ಕದ ವ್ಯಾಪ್ತಿಯು ಒಂದು ಸತ್ತ ಖಾತೆಯನ್ನು ಬೇರ್ಪಡಿಸುತ್ತದೆ, ಆದ್ದರಿಂದ ಅದೇ ಪೂರೈಕೆದಾರರಲ್ಲಿ ಆರೋಗ್ಯಕರ ಖಾತೆಗಳು ಮುಂದುವರಿಯುತ್ತವೆ.",
+    "resilienceTokenRefreshScope": "ಒಂದು ಪೂರೈಕೆದಾರರಿಗಾಗಿ ಟೋಕನ್ ನವೀಕರಣ ಪ್ರಯತ್ನಗಳು",
+    "resilienceTokenRefreshTrigger": "ಸತತ ವಿಫಲ ನವೀಕರಣ ಪ್ರಯತ್ನಗಳು",
+    "resilienceTokenRefreshEffect": "ತಣಿಸುವ ಸಮಯದಲ್ಲಿ ರಿಫ್ರೆಶ್ ಪ್ರಯತ್ನಗಳನ್ನು ವಿರಾಮಗೊಳಿಸುತ್ತದೆ",
+    "resilienceTokenRefreshScopeLabel": "ವ್ಯಾಪ್ತಿ",
+    "resilienceTokenRefreshScopeProvider": "ಪೂರೈಕೆದಾರ (ಎಲ್ಲಾ ಖಾತೆಗಳು ಒಂದೇ ಬ್ರೇಕರ್ ಅನ್ನು ಹಂಚಿಕೊಳ್ಳುತ್ತವೆ)",
+    "resilienceTokenRefreshScopeConnection": "ಸಂಪರ್ಕ (ಪ್ರತಿ ಖಾತೆಗೂ ತನ್ನದೇ ಆದ ಬ್ರೇಕರ್ ಇದೆ)",
+    "resilienceTokenRefreshThreshold": "ವಿರಾಮ ತೆಗೆದುಕೊಳ್ಳುವ ಮೊದಲು ವಿಫಲತೆಗಳು",
+    "resilienceTokenRefreshCooldown": "ಟ್ರಿಪ್ ಆದ ನಂತರ ವಿರಾಮ"
   },
   "contextRtk": {
     "title": "RTK ಎಂಜಿನ್",

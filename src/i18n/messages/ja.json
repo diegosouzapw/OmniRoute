@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "このキーに対して GET /v1/models が表示する内容です。一覧を絞り込んでも、キーが呼び出せる対象は変わりません。",
     "catalogScopeAll": "両方",
     "catalogScopeCombos": "コンボのみ",
-    "catalogScopeModels": "モデルのみ"
+    "catalogScopeModels": "モデルのみ",
+    "resilienceTokenRefreshTitle": "トークン更新ブレーカー",
+    "resilienceTokenRefreshDesc": "トークンの更新が複数回失敗した場合、更新の再試行を停止します。接続ごとのスコープにより、無効なアカウントを分離し、同じプロバイダーの正常なアカウントは更新を継続できます。",
+    "resilienceTokenRefreshScope": "プロバイダー1つあたりのトークン更新の試行",
+    "resilienceTokenRefreshTrigger": "連続したリフレッシュ失敗の試行",
+    "resilienceTokenRefreshEffect": "クールダウン中は更新の試行を一時停止します",
+    "resilienceTokenRefreshScopeLabel": "スコープ",
+    "resilienceTokenRefreshScopeProvider": "プロバイダー（すべてのアカウントが1つのブレーカーを共有）",
+    "resilienceTokenRefreshScopeConnection": "接続（各アカウントにはそれぞれのブレーカーがあります）",
+    "resilienceTokenRefreshThreshold": "一時停止までの失敗回数",
+    "resilienceTokenRefreshCooldown": "トリップ後の一時停止"
   },
   "contextRtk": {
     "title": "RTKエンジン",

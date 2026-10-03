@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "GET /v1/models 为此密钥公开的内容。缩小列表范围绝不会改变此密钥可以调用的模型。",
     "catalogScopeAll": "两者",
     "catalogScopeCombos": "仅组合",
-    "catalogScopeModels": "仅模型"
+    "catalogScopeModels": "仅模型",
+    "resilienceTokenRefreshTitle": "令牌刷新断路器",
+    "resilienceTokenRefreshDesc": "多次失败后停止重试刷新令牌。按连接范围隔离一个失效账户，使同一提供者上的健康账户继续刷新。",
+    "resilienceTokenRefreshScope": "针对单个提供程序的令牌刷新尝试",
+    "resilienceTokenRefreshTrigger": "连续失败的刷新尝试",
+    "resilienceTokenRefreshEffect": "在冷却期间暂停刷新尝试",
+    "resilienceTokenRefreshScopeLabel": "范围",
+    "resilienceTokenRefreshScopeProvider": "提供程序（所有帐户共享一个断路器）",
+    "resilienceTokenRefreshScopeConnection": "连接（每个账户都有自己的熔断器）",
+    "resilienceTokenRefreshThreshold": "暂停前的失败次数",
+    "resilienceTokenRefreshCooldown": "触发后暂停"
   },
   "contextRtk": {
     "title": "命令输出过滤引擎",

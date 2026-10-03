@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "ଏହି କୀ ପାଇଁ GET /v1/models କ’ଣ ପ୍ରଦର୍ଶିତ କରେ। ତାଲିକାକୁ ସୀମିତ କଲେ ମଧ୍ୟ କୀ କେଉଁ ମଡେଲ୍କୁ କଲ୍ କରିପାରିବ ତାହା କେବେ ବଦଳେ ନାହିଁ।",
     "catalogScopeAll": "ଉଭୟ",
     "catalogScopeCombos": "କେବଳ କମ୍ବୋଗୁଡ଼ିକ",
-    "catalogScopeModels": "କେବଳ ମଡେଲ୍ଗୁଡ଼ିକ"
+    "catalogScopeModels": "କେବଳ ମଡେଲ୍ଗୁଡ଼ିକ",
+    "resilienceTokenRefreshTitle": "ଟୋକେନ୍ ରିଫ୍ରେସ୍ ବ୍ରେକର",
+    "resilienceTokenRefreshDesc": "ବାରମ୍ବାର ବିଫଳ ପରେ ଟୋକେନ ରିଫ୍ରେସ ପୁଣି ଚେଷ୍ଟା କରିବା ବନ୍ଦ କରେ। ପ୍ରତି ସଂଯୋଗର ପରିସର ଏକ ମୃତ ଖାତାକୁ ପୃଥକ କରେ, ଯାହା ଦ୍ୱାରା ସମାନ ପ୍ରଦାତାରେ ସୁସ୍ଥ ଖାତାଗୁଡ଼ିକ ରିଫ୍ରେସ ହେବା ଜାରି ରଖେ।",
+    "resilienceTokenRefreshScope": "ଗୋଟିଏ ପ୍ରୋଭାଇଡର ପାଇଁ ଟୋକେନ ରିଫ୍ରେସ ପ୍ରୟାସ",
+    "resilienceTokenRefreshTrigger": "ପରପର ହାରାହାରି ବିଫଳ ରିଫ୍ରେସ ପ୍ରୟାସ",
+    "resilienceTokenRefreshEffect": "କୁଲଡାଉନ୍ ପାଇଁ ରିଫ୍ରେସ୍ ପ୍ରୟାସକୁ ବିରତି ଦିଏ",
+    "resilienceTokenRefreshScopeLabel": "ପରିସର",
+    "resilienceTokenRefreshScopeProvider": "ପ୍ରୋଭାଇଡର (ସମସ୍ତ ଖାତା ଗୋଟିଏ ବ୍ରେକର ଅଂଶୀଦାର କରନ୍ତି)",
+    "resilienceTokenRefreshScopeConnection": "ସଂଯୋଗ (ପ୍ରତ୍ୟେକ ଖାତା ନିଜର ଏକ ବ୍ରେକର ରଖେ)",
+    "resilienceTokenRefreshThreshold": "ବିରତି ଦେବା ପୂର୍ବରୁ ବିଫଳତା",
+    "resilienceTokenRefreshCooldown": "ଟ୍ରିପ୍ ପରେ ବିରତି ନିଅନ୍ତୁ"
   },
   "contextRtk": {
     "title": "RTK ଇଞ୍ଜିନ୍",

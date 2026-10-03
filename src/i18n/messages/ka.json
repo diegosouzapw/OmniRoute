@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "რას აჩვენებს GET /v1/models ამ გასაღებისთვის. სიის შევიწროება არასოდეს ცვლის იმას, თუ რისი გამოძახება შეუძლია გასაღებს.",
     "catalogScopeAll": "ორივე",
     "catalogScopeCombos": "მხოლოდ კომბოები",
-    "catalogScopeModels": "მხოლოდ მოდელები"
+    "catalogScopeModels": "მხოლოდ მოდელები",
+    "resilienceTokenRefreshTitle": "ტოკენის განახლების გამთიშელი",
+    "resilienceTokenRefreshDesc": "განმეორებითი წარუმატებლობების შემდეგ აჩერებს ტოკენის განახლების ცდებს. კავშირის მასშტაბი გამოყოფს ერთ მკვდარ ანგარიშს, რათა იმავე პროვაიდერის ჯანსაღი ანგარიშებმა განაგრძონ განახლება.",
+    "resilienceTokenRefreshScope": "ტოკენის განახლების მცდელობები ერთი პროვაიდერისთვის",
+    "resilienceTokenRefreshTrigger": "ზედიზედ ჩავარდნილი განახლების მცდელობები",
+    "resilienceTokenRefreshEffect": "განაახლებს მცდელობებს გაგრილების პერიოდისთვის",
+    "resilienceTokenRefreshScopeLabel": "მოცვილობა",
+    "resilienceTokenRefreshScopeProvider": "პროვაიდერი (ყველა ანგარიში იყენებს ერთ გამთიშელს)",
+    "resilienceTokenRefreshScopeConnection": "კავშირი (თითოეულ ანგარიშს აქვს საკუთარი გამთიშელი)",
+    "resilienceTokenRefreshThreshold": "შეჩერებამდე დაშვებული მარცხების რაოდენობა",
+    "resilienceTokenRefreshCooldown": "შეჩერება გამორთვის შემდეგ"
   },
   "contextRtk": {
     "title": "RTK ძრავა",

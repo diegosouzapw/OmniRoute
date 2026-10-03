@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "An méid a fhógraíonn GET /v1/models don eochair seo. Ní athraíonn cúngú an liosta na samhlacha ar féidir leis an eochair glaoch orthu.",
     "catalogScopeAll": "An dá cheann",
     "catalogScopeCombos": "Teaglamaí amháin",
-    "catalogScopeModels": "Samhlacha amháin"
+    "catalogScopeModels": "Samhlacha amháin",
+    "resilienceTokenRefreshTitle": "Tosaíodh Athnuachan Token",
+    "resilienceTokenRefreshDesc": "Stadaidh sé iarracht athnuachan an tokain a dhéanamh tar éis teipthe arís is arís eile. Scarann scóip an naisc amach cuntas marbh amháin ionas go leanfaidh cuntais sláintiúla an soláthraí chéanna ag athnuachan.",
+    "resilienceTokenRefreshScope": "Iarrachtaí athnuachan toicin do sholáthraí amháin",
+    "resilienceTokenRefreshTrigger": "Iarrachtaí teagmhála as a chéile a dteipheadh orthu",
+    "resilienceTokenRefreshEffect": "Cuireann sé iarratais athnuachaithe ar moill le haghaidh an tréimhse fuaraithe",
+    "resilienceTokenRefreshScopeLabel": "Scóip",
+    "resilienceTokenRefreshScopeProvider": "Soláthraí (roinneann gach cuntas amháon bhriseoir)",
+    "resilienceTokenRefreshScopeConnection": "Ceangal (tá meitneoir féin ag gach cuntas)",
+    "resilienceTokenRefreshThreshold": "Teipimhí roimh an sos",
+    "resilienceTokenRefreshCooldown": "Sos tar éis an rith a thosú"
   },
   "contextRtk": {
     "title": "Inneall RTK",

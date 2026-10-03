@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Yang ditampilkan oleh GET /v1/models untuk kunci ini. Mempersempit daftar tidak akan mengubah model yang dapat dipanggil oleh kunci tersebut.",
     "catalogScopeAll": "Keduanya",
     "catalogScopeCombos": "Hanya kombinasi",
-    "catalogScopeModels": "Hanya model"
+    "catalogScopeModels": "Hanya model",
+    "resilienceTokenRefreshTitle": "Pemutus Penyegaran Token",
+    "resilienceTokenRefreshDesc": "Menghentikan upaya penyegaran token setelah beberapa kali gagal. Cakupan per koneksi mengisolasi satu akun mati sehingga akun sehat pada penyedia yang sama tetap menyegarkan.",
+    "resilienceTokenRefreshScope": "Percobaan penyegaran token untuk satu penyedia",
+    "resilienceTokenRefreshTrigger": "Percobaan penyegaran berurutan yang gagal",
+    "resilienceTokenRefreshEffect": "Menjeda upaya penyegaran selama masa tunggu",
+    "resilienceTokenRefreshScopeLabel": "Cakupan",
+    "resilienceTokenRefreshScopeProvider": "Penyedia (semua akun berbagi satu pemutus)",
+    "resilienceTokenRefreshScopeConnection": "Koneksi (setiap akun memiliki pemutusnya sendiri)",
+    "resilienceTokenRefreshThreshold": "Kegagalan sebelum dijeda",
+    "resilienceTokenRefreshCooldown": "Jeda setelah terpicu"
   },
   "contextRtk": {
     "title": "Mesin RTK",

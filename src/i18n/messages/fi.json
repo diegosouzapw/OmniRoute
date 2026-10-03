@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Mitä GET /v1/models ilmoittaa tälle avaimelle. Luettelon rajaaminen ei koskaan muuta sitä, mitä avain voi kutsua.",
     "catalogScopeAll": "Molemmat",
     "catalogScopeCombos": "Vain yhdistelmät",
-    "catalogScopeModels": "Vain mallit"
+    "catalogScopeModels": "Vain mallit",
+    "resilienceTokenRefreshTitle": "Tokenin päivityksen katkaisija",
+    "resilienceTokenRefreshDesc": "Lopettaa tokenin päivityksen yrittämisen toistuvien epäonnistumisten jälkeen. Yhteyden kohta-alue erottaa yhden kuolleen tilin, jotta saman palveluntarjoajan terveet tilit jatkavat päivitystä.",
+    "resilienceTokenRefreshScope": "Tokenin päivitysyritykset yhdelle palveluntarjoajalle",
+    "resilienceTokenRefreshTrigger": "Peräkkäiset epäonnistuneet päivitysyritykset",
+    "resilienceTokenRefreshEffect": "Keskeyttää päivitysyritykset jäähdytysajaksi",
+    "resilienceTokenRefreshScopeLabel": "Laajuus",
+    "resilienceTokenRefreshScopeProvider": "Palveluntarjoaja (kaikki tilit jakavat yhden katkaisijan)",
+    "resilienceTokenRefreshScopeConnection": "Yhteys (jokaisella tilillä on oma katkaisija)",
+    "resilienceTokenRefreshThreshold": "Virheitä ennen tauottamista",
+    "resilienceTokenRefreshCooldown": "Tauko laukeamisen jälkeen"
   },
   "contextRtk": {
     "title": "RTK Engine",

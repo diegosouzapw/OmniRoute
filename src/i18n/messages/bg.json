@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Какво обявява GET /v1/models за този ключ. Ограничаването на списъка никога не променя какво може да извиква ключът.",
     "catalogScopeAll": "И двете",
     "catalogScopeCombos": "Само комбинации",
-    "catalogScopeModels": "Само модели"
+    "catalogScopeModels": "Само модели",
+    "resilienceTokenRefreshTitle": "Прекъсвач на опресняване на токена",
+    "resilienceTokenRefreshDesc": "Спира повторните опити за опресняване на токена след многократни неуспехи. Обхватът за всяка връзка изолира един мъртъв акаунт, така че здравословните акаунти на същия доставчик да продължават да се опресняват.",
+    "resilienceTokenRefreshScope": "Опити за опресняване на токен за един доставчик",
+    "resilienceTokenRefreshTrigger": "Последователни неуспешни опити за опресняване",
+    "resilienceTokenRefreshEffect": "Спира опитите за опресняване по време на периода на изчакване",
+    "resilienceTokenRefreshScopeLabel": "Обхват",
+    "resilienceTokenRefreshScopeProvider": "Доставчик (всички акаунти споделят един прекъсвач)",
+    "resilienceTokenRefreshScopeConnection": "Връзка (всеки акаунт има собствен прекъсвач)",
+    "resilienceTokenRefreshThreshold": "Неуспехи преди пауза",
+    "resilienceTokenRefreshCooldown": "Пауза след задействане"
   },
   "contextRtk": {
     "title": "RTK Engine",

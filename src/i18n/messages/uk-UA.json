@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Що GET /v1/models показує для цього ключа. Звуження списку ніколи не змінює того, які моделі може викликати ключ.",
     "catalogScopeAll": "Обидва",
     "catalogScopeCombos": "Лише комбінації",
-    "catalogScopeModels": "Лише моделі"
+    "catalogScopeModels": "Лише моделі",
+    "resilienceTokenRefreshTitle": "Переривач оновлення токена",
+    "resilienceTokenRefreshDesc": "Припиняє спроби оновлення токена після повторних невдач. Обсяг одного з'єднання ізолює один мертвий обліковий запис, щоб здорові облікові записи на тому самому провайдері продовжували оновлюватися.",
+    "resilienceTokenRefreshScope": "Спроби оновлення маркера для одного провайдера",
+    "resilienceTokenRefreshTrigger": "Послідовні невдалі спроби оновлення",
+    "resilienceTokenRefreshEffect": "Призупиняє спроби оновлення на час очікування",
+    "resilienceTokenRefreshScopeLabel": "Обсяг",
+    "resilienceTokenRefreshScopeProvider": "Провайдер (усі облікові записи використовують один розривач)",
+    "resilienceTokenRefreshScopeConnection": "З'єднання (кожен обліковий запис має власний автомат)",
+    "resilienceTokenRefreshThreshold": "Помилки перед призупиненням",
+    "resilienceTokenRefreshCooldown": "Пауза після спрацювання"
   },
   "contextRtk": {
     "title": "Двигун RTK",

@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Ko GET /v1/models uzrāda šai atslēgai. Saraksta sašaurināšana nekad nemaina to, ko atslēga var izsaukt.",
     "catalogScopeAll": "Abi",
     "catalogScopeCombos": "Tikai kombinācijas",
-    "catalogScopeModels": "Tikai modeļi"
+    "catalogScopeModels": "Tikai modeļi",
+    "resilienceTokenRefreshTitle": "Tokena atjaunošanas pārtraucējs",
+    "resilienceTokenRefreshDesc": "Pārtrauc mēģināt atjaunināt žetonu pēc atkārtotām neveiksmēm. Savienojuma mērogs izolē vienu mirušu kontu, lai veselīgie konti tajā pašā pakalpojuma sniedzējā turpinātu atjaunināšanu.",
+    "resilienceTokenRefreshScope": "Viena pakalpojuma sniedzēja žetona atjaunošanas mēģinājumi",
+    "resilienceTokenRefreshTrigger": "Secīgi neveiksmīgi atjaunošanas mēģinājumi",
+    "resilienceTokenRefreshEffect": "Aptur atjaunošanas mēģinājumus atdzesēšanas laikā",
+    "resilienceTokenRefreshScopeLabel": "Pārklājums",
+    "resilienceTokenRefreshScopeProvider": "Pakalpojuma sniedzējs (visi konti koplieto vienu pārtraucēju)",
+    "resilienceTokenRefreshScopeConnection": "Savienojums (katram kontam ir sava pārtraucēja)",
+    "resilienceTokenRefreshThreshold": "Neveiksmes pirms pauzes",
+    "resilienceTokenRefreshCooldown": "Pauze pēc darbības sākšanas"
   },
   "contextRtk": {
     "title": "RTK dzinējs",

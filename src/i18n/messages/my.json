@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "ဤ key အတွက် GET /v1/models က ဖော်ပြပေးသည့်အရာ။ စာရင်းကို ကျဉ်းမြောင်းစေခြင်းသည် key က ခေါ်ဆိုနိုင်သည့်အရာကို မည်သည့်အခါမျှ ပြောင်းလဲစေမည်မဟုတ်ပါ။",
     "catalogScopeAll": "နှစ်မျိုးလုံး",
     "catalogScopeCombos": "ပေါင်းစပ်မှုများသာ",
-    "catalogScopeModels": "Models များသာ"
+    "catalogScopeModels": "Models များသာ",
+    "resilienceTokenRefreshTitle": "တိုကင် ပြန်လည်သစ်မှု ဖြတ်တောက်သူ",
+    "resilienceTokenRefreshDesc": "တကြိမ်ပြီးတကြိမ် မအောင်မြင်ပြီးနောက် တိုကင် ပြန်လည်သစ်မှု ပြုလုပ်ခြင်းကို ရပ်တန့်ပါသည်။ ချိတ်ဆက်မှုတစ်ခုချင်းစီ၏ အတိုင်းအတာက သေဆုံးနေသော အကောင့်တစ်ခုကို ခွဲခြားထားပြီး၊ တူညီသော ပံ့ပိုးသူပေါ်တွင် ကျန်းမာသော အကောင့်များ ဆက်လက် ပြန်လည်သစ်မှု ရရှိစေပါသည်။",
+    "resilienceTokenRefreshScope": "ပံ့ပိုးသူတစ်ခုအတွက် တိုကင် ပြန်လည်သစ်မြှောက်ရန် ကြိုးစားမှုများ",
+    "resilienceTokenRefreshTrigger": "ဆက်တိုက် မအောင်မြင်သော ပြန်လည်သစ်ဆန်း ကြိုးစားမှုများ",
+    "resilienceTokenRefreshEffect": "အေးချမ်းစဉ် ပြန်လည်သစ်မြည်းကြည့်ခြင်းကို ရပ်တန့်စေသည်",
+    "resilienceTokenRefreshScopeLabel": "အတိုင်းအတာ",
+    "resilienceTokenRefreshScopeProvider": "ပေးသွင်းသူ (အကောင့်အားလုံးသည် တစ်ခုတည်းသော ပြတ်တောက်စက်ကို မျှဝေသည်)",
+    "resilienceTokenRefreshScopeConnection": "ချိတ်ဆက်မှု (အကောင့်တိုင်းတွင် ၎င်း၏ breaker ရှိသည်)",
+    "resilienceTokenRefreshThreshold": "ရပ်တန့်မှုမပြုမီ မအောင်မြင်မှုများ",
+    "resilienceTokenRefreshCooldown": "ချောင်းဆိုးပြီးနောက် အနားယူပါ"
   },
   "contextRtk": {
     "title": "RTK Engine",

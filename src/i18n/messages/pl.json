@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Modele udostępniane dla tego klucza przez GET /v1/models. Zawężenie listy nie zmienia modeli, które można wywołać za pomocą klucza.",
     "catalogScopeAll": "Oba",
     "catalogScopeCombos": "Tylko kombinacje",
-    "catalogScopeModels": "Tylko modele"
+    "catalogScopeModels": "Tylko modele",
+    "resilienceTokenRefreshTitle": "Wyłącznik odświeżania tokenu",
+    "resilienceTokenRefreshDesc": "Zatrzymuje ponawianie odświeżania tokena po wielu niepowodzeniach. Zakres per-connection izoluje jedno martwe konto, aby zdrowe konta na tym samym dostawcy mogły się nadal odświeżać.",
+    "resilienceTokenRefreshScope": "Próby odświeżania tokenu dla jednego dostawcy",
+    "resilienceTokenRefreshTrigger": "Kolejne nieudane próby odświeżania",
+    "resilienceTokenRefreshEffect": "Wstrzymuje próby odświeżania na czas kary",
+    "resilienceTokenRefreshScopeLabel": "Zakres",
+    "resilienceTokenRefreshScopeProvider": "Dostawca (wszystkie konta współdzieli jeden wyłącznik)",
+    "resilienceTokenRefreshScopeConnection": "Połączenie (każde konto ma własny wyłącznik)",
+    "resilienceTokenRefreshThreshold": "Liczba błędów przed wstrzymaniem",
+    "resilienceTokenRefreshCooldown": "Pauza po wyzwoleniu"
   },
   "contextRtk": {
     "title": "Silnik RTK",

@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "यस कुञ्जीका लागि GET /v1/models ले के देखाउँछ। सूची सीमित गर्दा पनि कुञ्जीले कल गर्न सक्ने कुरामा कहिल्यै परिवर्तन हुँदैन।",
     "catalogScopeAll": "दुवै",
     "catalogScopeCombos": "कम्बोहरू मात्र",
-    "catalogScopeModels": "मोडेलहरू मात्र"
+    "catalogScopeModels": "मोडेलहरू मात्र",
+    "resilienceTokenRefreshTitle": "टोकन रिफ्रेस ब्रेकर",
+    "resilienceTokenRefreshDesc": "पटकपटक असफल भएपछि टोकन रिफ्रेश फेरि प्रयास गर्न रोक्छ। प्रत्येक कनेक्सनको क्षेत्रले एउटा मृत खातालाई छुट्याउँछ, त्यसैले उही प्रोभाइडरमा स्वस्थ खाताहरू रिफ्रेस हुँदै जान्छन्।",
+    "resilienceTokenRefreshScope": "एक प्रोभाइडरका लागि टोकन रिफ्रेश प्रयासहरू",
+    "resilienceTokenRefreshTrigger": "लगातार असफल रिफ्रेश प्रयासहरू",
+    "resilienceTokenRefreshEffect": "कूलडाउनको लागि रिफ्रेश प्रयासहरू रोक्छ",
+    "resilienceTokenRefreshScopeLabel": "दायरा",
+    "resilienceTokenRefreshScopeProvider": "प्रोभाइडर (सबै खाताहरूले एउटै ब्रेकर साझा गर्छन्)",
+    "resilienceTokenRefreshScopeConnection": "जडान (प्रत्येक खातासँग आफ्नै ब्रेकर हुन्छ)",
+    "resilienceTokenRefreshThreshold": "रोक्नु अघिको असफलताहरू",
+    "resilienceTokenRefreshCooldown": "ट्रिप भएपछि विश्राम गर्नुहोस्"
   },
   "contextRtk": {
     "title": "RTK इन्जिन",

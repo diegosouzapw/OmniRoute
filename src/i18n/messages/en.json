@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "What GET /v1/models advertises for this key. Narrowing the list never changes what the key can call.",
     "catalogScopeAll": "Both",
     "catalogScopeCombos": "Combos only",
-    "catalogScopeModels": "Models only"
+    "catalogScopeModels": "Models only",
+    "resilienceTokenRefreshTitle": "Token Refresh Breaker",
+    "resilienceTokenRefreshDesc": "Stops retrying token refresh after repeated failures. Per-connection scope isolates one dead account so healthy accounts on the same provider keep refreshing.",
+    "resilienceTokenRefreshScope": "Token refresh attempts for one provider",
+    "resilienceTokenRefreshTrigger": "Consecutive failed refresh attempts",
+    "resilienceTokenRefreshEffect": "Pauses refresh attempts for the cooldown",
+    "resilienceTokenRefreshScopeLabel": "Scope",
+    "resilienceTokenRefreshScopeProvider": "Provider (all accounts share one breaker)",
+    "resilienceTokenRefreshScopeConnection": "Connection (each account has its own breaker)",
+    "resilienceTokenRefreshThreshold": "Failures before pausing",
+    "resilienceTokenRefreshCooldown": "Pause after tripping"
   },
   "contextRtk": {
     "title": "RTK Engine",

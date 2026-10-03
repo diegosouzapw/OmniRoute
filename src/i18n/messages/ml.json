@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "ഈ കീയ്ക്കായി GET /v1/models പ്രദർശിപ്പിക്കുന്നത്. ലിസ്റ്റ് ചുരുക്കുന്നത് കീയ്ക്ക് വിളിക്കാനാകുന്നവയെ ഒരിക്കലും മാറ്റില്ല.",
     "catalogScopeAll": "രണ്ടും",
     "catalogScopeCombos": "കോംബോകൾ മാത്രം",
-    "catalogScopeModels": "മോഡലുകൾ മാത്രം"
+    "catalogScopeModels": "മോഡലുകൾ മാത്രം",
+    "resilienceTokenRefreshTitle": "ടോക്കൺ റിഫ്രഷ് ബ്രേക്കർ",
+    "resilienceTokenRefreshDesc": "തുടർച്ചയായ പരാജയങ്ങൾക്ക് ശേഷം ടോക്കൺ പുതുക്കൽ വീണ്ടും ശ്രമിക്കുന്നത് നിർത്തുന്നു. കണക്ഷൻ വിഭാഗം ഒരു മരണപ്പെട്ട അക്കൗണ്ടിനെ ഒറ്റപ്പെടുത്തുന്നു, അതേ പ്രൊവൈഡറിലെ ആരോഗ്യമുള്ള അക്കൗണ്ടുകൾ തുടർന്ന് പുതുക്കുന്നു.",
+    "resilienceTokenRefreshScope": "ഒരു പ്രൊവൈഡറിനുള്ള ടോക്കൺ റിഫ്രഷ് ശ്രമങ്ങൾ",
+    "resilienceTokenRefreshTrigger": "തുടർച്ചയായ പരാജയപ്പെട്ട പുനഃക്രമീകരണ ശ്രമങ്ങൾ",
+    "resilienceTokenRefreshEffect": "കൂളിംഗ് ഔട്ട് സമയത്ത് റിഫ്രഷ് ശ്രമങ്ങൾ താൽക്കാലികമായി നിർത്തുന്നു",
+    "resilienceTokenRefreshScopeLabel": "പരിധി",
+    "resilienceTokenRefreshScopeProvider": "പ്രൊവൈഡർ (എല്ലാ അക്കൗണ്ടുകളും ഒരു ബ്രേക്കർ പങ്കിടുന്നു)",
+    "resilienceTokenRefreshScopeConnection": "കണക്ഷൻ (രോ അക്കൗണ്ടിനും സ്വന്തം ബ്രേക്കർ ഉണ്ട്)",
+    "resilienceTokenRefreshThreshold": "പരാജയങ്ങൾ താൽക്കാലികമായി നിർത്തുന്നതിന് മുമ്പുള്ളവ",
+    "resilienceTokenRefreshCooldown": "ട്രിപ്പ് ചെയ്തതിന് ശേഷം വിശ്രമിക്കുക"
   },
   "contextRtk": {
     "title": "RTK എഞ്ചിൻ",

@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Abin da GET /v1/models ke nuna wa wannan maɓalli. Taƙaita jerin ba ya taɓa canza abin da maɓallin zai iya kira.",
     "catalogScopeAll": "Duka biyun",
     "catalogScopeCombos": "Haɗe-haɗe kawai",
-    "catalogScopeModels": "Samfura kawai"
+    "catalogScopeModels": "Samfura kawai",
+    "resilienceTokenRefreshTitle": "Masarar Sabunta Alama",
+    "resilienceTokenRefreshDesc": "Yana dakewa ƙarin gwaji na sabunta alamar bayanai bayan fashewa da yawa. Kusancin kowane haɗin yana raba ɗaya daga asusun da ba su da aiki don asusun lafiya a kan mai ba da sabis ɗin ƙarshe su ci gaba da sabuntawa.",
+    "resilienceTokenRefreshScope": "Ƙoƙawar sabunta alama ga ɗaya mai bayarwa",
+    "resilienceTokenRefreshTrigger": "Gurbin ƙariya na bin-ɗan-baya na sabuntawa wanda ya gaza",
+    "resilienceTokenRefreshEffect": "Yana tsayar da ƙoƙarin sabuntawa na lokacin sanyaya",
+    "resilienceTokenRefreshScopeLabel": "Fad",
+    "resilienceTokenRefreshScopeProvider": "Mai bayarwa (duk asusuna raba ɗaya mai katsewa)",
+    "resilienceTokenRefreshScopeConnection": "Muhuji (kowane asusu na da na'sa na musu)",
+    "resilienceTokenRefreshThreshold": "Kuskuren kafin tsayawa",
+    "resilienceTokenRefreshCooldown": "Huta bayan kuskuro"
   },
   "contextRtk": {
     "title": "Injin RTK",

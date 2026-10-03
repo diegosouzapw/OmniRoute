@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Vad GET /v1/models visar för denna nyckel. Att begränsa listan ändrar aldrig vad nyckeln kan anropa.",
     "catalogScopeAll": "Båda",
     "catalogScopeCombos": "Endast kombinationer",
-    "catalogScopeModels": "Endast modeller"
+    "catalogScopeModels": "Endast modeller",
+    "resilienceTokenRefreshTitle": "Tokenuppdateringsbrytare",
+    "resilienceTokenRefreshDesc": "Stoppar försök att uppdatera token efter upprepade fel. Omfattningen per-connection isolerar ett dött konto så att friska konton hos samma leverantör fortsätter att uppdateras.",
+    "resilienceTokenRefreshScope": "Försök att uppdatera token för en leverantör",
+    "resilienceTokenRefreshTrigger": "Varandra påföljande misslyckade försök att uppdatera",
+    "resilienceTokenRefreshEffect": "Pausar försök att uppdatera under kylperioden",
+    "resilienceTokenRefreshScopeLabel": "Omfång",
+    "resilienceTokenRefreshScopeProvider": "Leverantör (alla konton delar en enda strömbrytare)",
+    "resilienceTokenRefreshScopeConnection": "Anslutning (varje konto har egen strömbrytare)",
+    "resilienceTokenRefreshThreshold": "Misslyckanden innan paus",
+    "resilienceTokenRefreshCooldown": "Paus efter utlösnings"
   },
   "contextRtk": {
     "title": "RTK-motor",

@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "இந்த விசைக்காக GET /v1/models எவற்றை அறிவிக்கிறது. பட்டியலைக் குறைப்பது, இந்த விசை எவற்றை அழைக்க முடியும் என்பதை ஒருபோதும் மாற்றாது.",
     "catalogScopeAll": "இரண்டும்",
     "catalogScopeCombos": "சேர்க்கைகள் மட்டும்",
-    "catalogScopeModels": "மாதிரிகள் மட்டும்"
+    "catalogScopeModels": "மாதிரிகள் மட்டும்",
+    "resilienceTokenRefreshTitle": "டோக்கன் புதுப்பிப்பு பிரேக்கர்",
+    "resilienceTokenRefreshDesc": "தொடர் தோல்விகளுக்குப் பிறகு டோக்கன் புதுப்பித்தலை முயற்சிப்பதை நிறுத்துகிறது. ஒரு இணைப்பு அளவில் பிரித்தல் ஒரு இறந்த கணக்கைத் தனிமைப்படுத்துகிறது, அதே வழங்குநரில் ஆரோக்கியமான கணக்குகள் தொடர்ந்து புதுப்பிக்கப்படும்.",
+    "resilienceTokenRefreshScope": "ஒரு வழங்குநருக்கான டோக்கன் புதுப்பிப்பு முயற்சிகள்",
+    "resilienceTokenRefreshTrigger": "தொடர்ச்சியான தோல்வியுற்ற புதுப்பிப்பு முயற்சிகள்",
+    "resilienceTokenRefreshEffect": "மீள்விசை கால அளவை மீட்டமைக்கும் முயற்சிகளை குளிர்கால அளவில் இடைநிறுத்துகிறது",
+    "resilienceTokenRefreshScopeLabel": "அளவிடை",
+    "resilienceTokenRefreshScopeProvider": "வழங்குநர் (அனைத்து கணக்குகளும் ஒரே பிரேக்கரைப் பகிர்ந்துகொள்கின்றன)",
+    "resilienceTokenRefreshScopeConnection": "இணைப்பு (ஒவ்வொரு கணக்கிற்கும் தனி பிரேக்கர் உள்ளது)",
+    "resilienceTokenRefreshThreshold": "இடைநிறுத்துவதற்கு முன் தோல்விகள்",
+    "resilienceTokenRefreshCooldown": "தாவல் பின் இடைநிறுத்தம்"
   },
   "contextRtk": {
     "title": "RTK எஞ்சின்",

@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "এই কী-এর জন্য GET /v1/models যা প্রদর্শন করে। তালিকা সীমিত করলেও কী-টি কী কল করতে পারবে তা কখনোই পরিবর্তিত হয় না।",
     "catalogScopeAll": "উভয়ই",
     "catalogScopeCombos": "শুধু কম্বো",
-    "catalogScopeModels": "শুধু মডেল"
+    "catalogScopeModels": "শুধু মডেল",
+    "resilienceTokenRefreshTitle": "টোকেন রিফ্রেশ ব্রেকার",
+    "resilienceTokenRefreshDesc": "বারবার ব্যর্থতার পর টোকেন রিফ্রেশ করার পুনরায় চেষ্টা বন্ধ করে। সংযোগ-প্রতি পরিধি একটি মৃত অ্যাকাউন্টকে বিচ্ছিন্ন করে, যাতে একই প্রোভাইডারের সুস্থ অ্যাকাউন্টগুলি রিফ্রেশ চালিয়ে যায়।",
+    "resilienceTokenRefreshScope": "একটি প্রদানকারীর জন্য টোকেন রিফ্রেশ প্রচেষ্টা",
+    "resilienceTokenRefreshTrigger": "পরপর ব্যর্থ রিফ্রেশ প্রচেষ্টা",
+    "resilienceTokenRefreshEffect": "কুলডাউনের জন্য রিফ্রেশ প্রচেষ্টা সাময়িকভাবে বন্ধ করে",
+    "resilienceTokenRefreshScopeLabel": "পরিধি",
+    "resilienceTokenRefreshScopeProvider": "প্রদানকারী (সমস্ত অ্যাকাউন্ট একটি ব্রেকার ভাগ করে নেয়)",
+    "resilienceTokenRefreshScopeConnection": "সংযোগ (প্রতিটি অ্যাকাউন্টের নিজস্ব ব্রেকার আছে)",
+    "resilienceTokenRefreshThreshold": "বিরতি নেওয়ার আগে ব্যর্থতা",
+    "resilienceTokenRefreshCooldown": "ট্রিপ হওয়ার পরে বিরতি"
   },
   "contextRtk": {
     "title": "RTK ইঞ্জিন",

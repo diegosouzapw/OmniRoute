@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "આ કી માટે GET /v1/models શું દર્શાવે છે. સૂચિને મર્યાદિત કરવાથી કી કયા મોડલને કૉલ કરી શકે છે તેમાં ક્યારેય ફેરફાર થતો નથી.",
     "catalogScopeAll": "બંને",
     "catalogScopeCombos": "ફક્ત કોમ્બોઝ",
-    "catalogScopeModels": "ફક્ત મોડલ્સ"
+    "catalogScopeModels": "ફક્ત મોડલ્સ",
+    "resilienceTokenRefreshTitle": "ટોકન રિફ્રેશ બ્રેકર",
+    "resilienceTokenRefreshDesc": "વારંવાર નિષ્ફળતા પછી ટોકન રિફ્રેશ કરવાનો પ્રયાસ કરવાનું બંધ કરે છે. દરેક કનેક્શનનો વ્યાપ એક મૃત એકાઉન્ટને અલગ કરે છે, જેથી સમાન પ્રોવાઇડર પરના સ્વસ્થ એકાઉન્ટ્સ રિફ્રેશ કરવાનું ચાલુ રાખી શકે.",
+    "resilienceTokenRefreshScope": "એક પ્રદાતા માટે ટોકન રિફ્રેશ પ્રયાસો",
+    "resilienceTokenRefreshTrigger": "સળંગ નિષ્ફળ રિફ્રેશ પ્રયાસો",
+    "resilienceTokenRefreshEffect": "ઠંડક સમય માટે રિફ્રેશ પ્રયાસો અટકાવે છે",
+    "resilienceTokenRefreshScopeLabel": "અવકાશ",
+    "resilienceTokenRefreshScopeProvider": "પ્રદાતા (બધા ખાતાઓ એક જ બ્રેકર શેર કરે છે)",
+    "resilienceTokenRefreshScopeConnection": "કનેક્શન (દરેક એકાઉન્ટનું પોતાનું બ્રેકર છે)",
+    "resilienceTokenRefreshThreshold": "થંભાવતા પહેલાં નિષ્ફળતાઓ",
+    "resilienceTokenRefreshCooldown": "ટ્રિપ થયા પછી વિરામ"
   },
   "contextRtk": {
     "title": "RTK એન્જિન",

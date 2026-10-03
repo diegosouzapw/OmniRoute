@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Co GET /v1/models uvádí pro tento klíč. Zúžení seznamu nikdy nezmění, které modely může klíč volat.",
     "catalogScopeAll": "Obojí",
     "catalogScopeCombos": "Pouze komba",
-    "catalogScopeModels": "Pouze modely"
+    "catalogScopeModels": "Pouze modely",
+    "resilienceTokenRefreshTitle": "Přerušovač obnovy tokenu",
+    "resilienceTokenRefreshDesc": "Po opakovaných selháních zastavuje opakované obnovování tokenu. Rozsah pro jedno připojení izoluje jeden mrtvý účet, aby zdravé účty u stejného poskytovatele mohly pokračovat v obnovování.",
+    "resilienceTokenRefreshScope": "Pokusy o obnovení tokenu pro jednoho poskytovatele",
+    "resilienceTokenRefreshTrigger": "Opakované neúspěšné pokusy o obnovení",
+    "resilienceTokenRefreshEffect": "Pozastavuje pokusy o obnovení během ochlazovacího období",
+    "resilienceTokenRefreshScopeLabel": "Rozsah",
+    "resilienceTokenRefreshScopeProvider": "Poskytovatel (všechny účty sdílejí jeden přerušovač)",
+    "resilienceTokenRefreshScopeConnection": "Připojení (každý účet má vlastní jistič)",
+    "resilienceTokenRefreshThreshold": "Neúspěchy před pozastavením",
+    "resilienceTokenRefreshCooldown": "Pauza po spuštění"
   },
   "contextRtk": {
     "title": "Modul RTK",

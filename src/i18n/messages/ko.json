@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "GET /v1/models가 이 키에 대해 표시하는 항목입니다. 목록을 제한해도 키가 호출할 수 있는 대상은 변경되지 않습니다.",
     "catalogScopeAll": "둘 다",
     "catalogScopeCombos": "콤보만",
-    "catalogScopeModels": "모델만"
+    "catalogScopeModels": "모델만",
+    "resilienceTokenRefreshTitle": "토큰 새로 고침 차단기",
+    "resilienceTokenRefreshDesc": "반복된 실패 후 토큰 새로 고침을 다시 시도하지 않습니다. 연결별 범위는 하나의 비활성 계정을 격리하여 동일한 제공업체의 정상 계정이 계속 새로 고쳐집니다.",
+    "resilienceTokenRefreshScope": "하나의 공급자에 대한 토큰 새로 고침 시도",
+    "resilienceTokenRefreshTrigger": "연속된 갱신 실패 시도",
+    "resilienceTokenRefreshEffect": "쿨다운 동안 갱신 시도를 일시 중지합니다",
+    "resilienceTokenRefreshScopeLabel": "범위",
+    "resilienceTokenRefreshScopeProvider": "공급자(모든 계정이 하나의 차단기를 공유)",
+    "resilienceTokenRefreshScopeConnection": "연결(각 계정마다 고유한 차단기가 있습니다)",
+    "resilienceTokenRefreshThreshold": "일시 중지 전 실패 횟수",
+    "resilienceTokenRefreshCooldown": "작동 후 일시 중지"
   },
   "contextRtk": {
     "title": "RTK 엔진",

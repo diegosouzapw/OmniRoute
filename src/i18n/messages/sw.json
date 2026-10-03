@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Kile ambacho GET /v1/models hutangaza kwa ufunguo huu. Kupunguza orodha hakubadilishi kamwe kile ambacho ufunguo unaweza kuita.",
     "catalogScopeAll": "Zote mbili",
     "catalogScopeCombos": "Mijumuisho pekee",
-    "catalogScopeModels": "Modeli pekee"
+    "catalogScopeModels": "Modeli pekee",
+    "resilienceTokenRefreshTitle": "Kikata cha Kusasisha Tokeni",
+    "resilienceTokenRefreshDesc": "Inasimisha majaribio ya kusasisha tokeni baada ya kushindwa mara kwa mara. Upeo wa kwa muunganisho hutenganisha akaunti moisha ili akaunti zenye afya kwa mtoaji ule ule ziendelee kusasishwa.",
+    "resilienceTokenRefreshScope": "Majaribio ya kusasisha tokeni kwa mtoaji mmoja",
+    "resilienceTokenRefreshTrigger": "Majaribio mfululizo yaliyoshindwa ya kusasisha",
+    "resilienceTokenRefreshEffect": "Inasimamisha majaribio ya kusasisha wakati wa kipindi cha kugandisha",
+    "resilienceTokenRefreshScopeLabel": "Upeo",
+    "resilienceTokenRefreshScopeProvider": "Mtoaji (akaunti zote zinashiriki kipochi kimoja)",
+    "resilienceTokenRefreshScopeConnection": "Muunganisho (kila akaunti ina kipochi chake cha kuzima)",
+    "resilienceTokenRefreshThreshold": "Kushindwa kabla ya kusimamisha",
+    "resilienceTokenRefreshCooldown": "Mapumziko baada ya kuamilishwa"
   },
   "contextRtk": {
     "title": "Injini ya RTK",

@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "អ្វីដែល GET /v1/models បង្ហាញសម្រាប់សោនេះ។ ការបង្រួមបញ្ជីមិនផ្លាស់ប្តូរអ្វីដែលសោនេះអាចហៅប្រើបានឡើយ។",
     "catalogScopeAll": "ទាំងពីរ",
     "catalogScopeCombos": "តែបន្សំប៉ុណ្ណោះ",
-    "catalogScopeModels": "តែម៉ូដែលប៉ុណ្ណោះ"
+    "catalogScopeModels": "តែម៉ូដែលប៉ុណ្ណោះ",
+    "resilienceTokenRefreshTitle": "ស៊ីឡាំងសម្រាប់ការធ្វើបច្ចុប្បន្នភាពតូខែន",
+    "resilienceTokenRefreshDesc": "បញ្ឈប់ការព្យាយាមធ្វើឲ្យថូខែនស្អាតឡើងវិញបន្ទាប់ពីបរាជ័យជាបន្តបន្ទាប់។ វិសាលភាពក្នុងមួយការតភ្ជាប់ដាច់ដោយឡែកគណនីដែលស្លាប់មួយ ដូច្នេះគណនីដែលមានសុខភាពល្អនៅលើអ្នកផ្តល់សេវាដដែលបន្តធ្វើឲ្យស្អាត។",
+    "resilienceTokenRefreshScope": "ការព្យាយាមធ្វើឱ្យថូខែនថ្មីសម្រាប់អ្នកផ្គត់ផ្គង់មួយ",
+    "resilienceTokenRefreshTrigger": "ការព្យាយាមធ្វើឱ្យស្រស់បន្តបន្ទាប់ដែលបរាជ័យ",
+    "resilienceTokenRefreshEffect": "ផ្អាកការព្យាយាមធ្វើឱ្យថ្មីឡើងវិញសម្រាប់រយៈពេលរង់ចាំ",
+    "resilienceTokenRefreshScopeLabel": "វិសាលភាព",
+    "resilienceTokenRefreshScopeProvider": "អ្នកផ្គត់ផ្គង់ (គណនីទាំងអស់ចែករំលែកប៊្រីកឃើរតែមួយ)",
+    "resilienceTokenRefreshScopeConnection": "ការតភ្ជាប់ (គណនីនីមួយៗមានឧបករណ៍ផ្ទុះផ្ទាល់ខ្លួន)",
+    "resilienceTokenRefreshThreshold": "ការបរាជ័យមុនពេលផ្អាក",
+    "resilienceTokenRefreshCooldown": "ផ្អាកបន្ទាប់ពីដំណើរការ"
   },
   "contextRtk": {
     "title": "ម៉ាស៊ីន RTK",

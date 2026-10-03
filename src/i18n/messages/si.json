@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "මෙම යතුර සඳහා GET /v1/models මඟින් ප්රචාරය කරන දේ. ලැයිස්තුව සීමා කිරීමෙන් යතුරට ඇමතිය හැකි දේ කිසිවිටෙක වෙනස් නොවේ.",
     "catalogScopeAll": "දෙකම",
     "catalogScopeCombos": "සංයෝජන පමණි",
-    "catalogScopeModels": "ආකෘති පමණි"
+    "catalogScopeModels": "ආකෘති පමණි",
+    "resilienceTokenRefreshTitle": "ටෝකන් යාවත්කාලීන කිරීමේ බ්‍රේකරය",
+    "resilienceTokenRefreshDesc": "නැවත නැවත අසාර්ථක වීමෙන් පසු ටෝකන් නැවත නැවුම් කිරීමේ උත්සාහයන් නතර කරයි. සම්බන්ධතාවයකට අදාළ වන පරාසය මිය ගිය ගිණුමක් වෙන් කරයි, එමඟින් එකම සපයන්නා යටතේ ඇති සෞඛ්‍ය සම්පන්න ගිණුම් නැවත නැවුම් වීම දිගටම සිදු වේ.",
+    "resilienceTokenRefreshScope": "එක් සපයන්නෙකු සඳහා ටෝකන් නැවුම් කිරීමේ උත්සාහයන්",
+    "resilienceTokenRefreshTrigger": "එකිනෙක අසාර්ථක නැවුම් කිරීම් උත්සාහ",
+    "resilienceTokenRefreshEffect": "තත්පර සමය තුළ නැවුම් කිරීමේ උත්සාහ තාවකාලිකව නවත්වයි",
+    "resilienceTokenRefreshScopeLabel": "විෂය පථය",
+    "resilienceTokenRefreshScopeProvider": "සැපයුම්කරු (සියලු ගිණුම් එක් බ්‍රේකරයක් බෙදා ගනී)",
+    "resilienceTokenRefreshScopeConnection": "සම්බන්ධතාවය (සෑම ගිණුමකටම එහිම බ්‍රේකරය ඇත)",
+    "resilienceTokenRefreshThreshold": "විරාමයකට පෙර අසාර්ථකතා",
+    "resilienceTokenRefreshCooldown": "සක්‍රීය වූ පසු විරාමය"
   },
   "contextRtk": {
     "title": "RTK එන්ජිම",

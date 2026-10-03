@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "O que GET /v1/models anuncia para esta chave. Restringir a lista nunca altera o que a chave pode chamar.",
     "catalogScopeAll": "Ambos",
     "catalogScopeCombos": "Somente combos",
-    "catalogScopeModels": "Somente modelos"
+    "catalogScopeModels": "Somente modelos",
+    "resilienceTokenRefreshTitle": "Disjuntor de Atualização de Token",
+    "resilienceTokenRefreshDesc": "Interrompe as tentativas de atualização do token após falhas repetidas. O escopo por conexão isola uma conta inativa, permitindo que as contas saudáveis no mesmo provedor continuem sendo atualizadas.",
+    "resilienceTokenRefreshScope": "Tentativas de atualização de token para um provedor",
+    "resilienceTokenRefreshTrigger": "Tentativas consecutivas de atualização com falha",
+    "resilienceTokenRefreshEffect": "Pausa as tentativas de atualização durante o período de espera",
+    "resilienceTokenRefreshScopeLabel": "Escopo",
+    "resilienceTokenRefreshScopeProvider": "Provedor (todas as contas compartilham um único disjuntor)",
+    "resilienceTokenRefreshScopeConnection": "Conexão (cada conta tem seu próprio disjuntor)",
+    "resilienceTokenRefreshThreshold": "Falhas antes de pausar",
+    "resilienceTokenRefreshCooldown": "Pausa após acionamento"
   },
   "contextRtk": {
     "title": "Motor RTK",

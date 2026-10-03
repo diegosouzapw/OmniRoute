@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Was GET /v1/models für diesen Schlüssel ausgibt. Eine Einschränkung der Liste ändert niemals, welche Modelle der Schlüssel aufrufen kann.",
     "catalogScopeAll": "Beides",
     "catalogScopeCombos": "Nur Kombos",
-    "catalogScopeModels": "Nur Modelle"
+    "catalogScopeModels": "Nur Modelle",
+    "resilienceTokenRefreshTitle": "Token-Aktualisierungsunterbrecher",
+    "resilienceTokenRefreshDesc": "Stoppt erneute Versuche, das Token zu aktualisieren, nach wiederholten Fehlern. Der Bereich pro Verbindung isoliert ein totes Konto, sodass gesunde Konten beim selben Anbieter weiterhin aktualisiert werden.",
+    "resilienceTokenRefreshScope": "Token-Aktualisierungsversuche für einen Anbieter",
+    "resilienceTokenRefreshTrigger": "Aufeinanderfolgende fehlgeschlagene Aktualisierungsversuche",
+    "resilienceTokenRefreshEffect": "Pausiert Aktualisierungsversuche während der Abklingzeit",
+    "resilienceTokenRefreshScopeLabel": "Geltungsbereich",
+    "resilienceTokenRefreshScopeProvider": "Anbieter (alle Konten teilen sich einen Unterbrecher)",
+    "resilienceTokenRefreshScopeConnection": "Verbindung (jedes Konto hat eigenen Schutzschalter)",
+    "resilienceTokenRefreshThreshold": "Fehler vor der Pause",
+    "resilienceTokenRefreshCooldown": "Pause nach Auslösung"
   },
   "contextRtk": {
     "title": "RTK-Engine",

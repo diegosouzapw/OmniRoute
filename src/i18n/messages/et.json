@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Mida GET /v1/models selle võtme kohta avaldab. Loendi kitsendamine ei muuda kunagi seda, milliseid mudeleid võti saab kutsuda.",
     "catalogScopeAll": "Mõlemad",
     "catalogScopeCombos": "Ainult kombinatsioonid",
-    "catalogScopeModels": "Ainult mudelid"
+    "catalogScopeModels": "Ainult mudelid",
+    "resilienceTokenRefreshTitle": "Tokeni värskenduse katkesti",
+    "resilienceTokenRefreshDesc": "Peatab tokeni värskendamise korduva ebaõnnestumise korral. Ühenduse ulatus eraldab ühe surnud konto, et sama teenusepakkuja terved kontod jätkaksid värskendamist.",
+    "resilienceTokenRefreshScope": "Ühe pakkuja jaoks tehtavad tokeni värskenduskatsed",
+    "resilienceTokenRefreshTrigger": "Järjestikused nurjunud värskenduskatsed",
+    "resilienceTokenRefreshEffect": "Peatab värskenduskatsete ajaks jahutusaja",
+    "resilienceTokenRefreshScopeLabel": "Ulatus",
+    "resilienceTokenRefreshScopeProvider": "Pakkuja (kõik kontod jagavad ühte piirajat)",
+    "resilienceTokenRefreshScopeConnection": "Ühendus (igal kontol on oma katkesti)",
+    "resilienceTokenRefreshThreshold": "Tõrgete arv enne peatamist",
+    "resilienceTokenRefreshCooldown": "Paus pärast käivitumist"
   },
   "contextRtk": {
     "title": "RTK Engine",

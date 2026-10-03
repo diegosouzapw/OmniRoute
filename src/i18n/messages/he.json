@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "מה ש-GET /v1/models מפרסם עבור מפתח זה. צמצום הרשימה לעולם אינו משנה את המודלים שהמפתח יכול לקרוא להם.",
     "catalogScopeAll": "שניהם",
     "catalogScopeCombos": "שילובים בלבד",
-    "catalogScopeModels": "מודלים בלבד"
+    "catalogScopeModels": "מודלים בלבד",
+    "resilienceTokenRefreshTitle": "מפסק רענון אסימון",
+    "resilienceTokenRefreshDesc": "מפסיק לנסות לרענן את האסימון לאחר כישלונות חוזרים. היקף לכל חיבור מבודד חשבון מת אחד, כך שחשבונות בריאים באותו ספק ימשיכו להתרענן.",
+    "resilienceTokenRefreshScope": "ניסיונות רענון טוקן עבור ספק אחד",
+    "resilienceTokenRefreshTrigger": "ניסיונות רענון כושלים רצופים",
+    "resilienceTokenRefreshEffect": "מפסיק ניסיונות רענון למשך תקופת הצינון",
+    "resilienceTokenRefreshScopeLabel": "היקף",
+    "resilienceTokenRefreshScopeProvider": "ספק (כל החשבונות חולקים מפסק אחד)",
+    "resilienceTokenRefreshScopeConnection": "חיבור (לכל חשבון יש מפסיק משלו)",
+    "resilienceTokenRefreshThreshold": "כשלים לפני השהיה",
+    "resilienceTokenRefreshCooldown": "השהיה לאחר הפעלה"
   },
   "contextRtk": {
     "title": "מנוע RTK",

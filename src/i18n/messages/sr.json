@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Шта GET /v1/models приказује за овај кључ. Сужавање листе никада не мења шта кључ може да позове.",
     "catalogScopeAll": "Оба",
     "catalogScopeCombos": "Само комбинације",
-    "catalogScopeModels": "Само модели"
+    "catalogScopeModels": "Само модели",
+    "resilienceTokenRefreshTitle": "Прекидач освежавања токена",
+    "resilienceTokenRefreshDesc": "Зауставља поновљене покушаје освежавања токена после више неуспеха. Обим per-connection изолира један мртви налог, тако да здрави налози код истог провајдера настављају да се освежавају.",
+    "resilienceTokenRefreshScope": "Покушаји освежавања токена за једног провајдера",
+    "resilienceTokenRefreshTrigger": "Узастопни неуспели покушаји освежавања",
+    "resilienceTokenRefreshEffect": "Привремено заустава покушаје освежавања током периода хлађења",
+    "resilienceTokenRefreshScopeLabel": "Област",
+    "resilienceTokenRefreshScopeProvider": "Провајдер (сви налогови деле један прекидач)",
+    "resilienceTokenRefreshScopeConnection": "Веза (сваки налог има свој прекидач)",
+    "resilienceTokenRefreshThreshold": "Неуспеси пре паузирања",
+    "resilienceTokenRefreshCooldown": "Пауза после активирања"
   },
   "contextRtk": {
     "title": "RTK Engine",

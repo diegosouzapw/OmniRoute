@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Perkara yang diiklankan oleh GET /v1/models untuk kunci ini. Mengecilkan senarai tidak akan mengubah perkara yang boleh dipanggil oleh kunci tersebut.",
     "catalogScopeAll": "Kedua-duanya",
     "catalogScopeCombos": "Kombo sahaja",
-    "catalogScopeModels": "Model sahaja"
+    "catalogScopeModels": "Model sahaja",
+    "resilienceTokenRefreshTitle": "Pemutus Muat Semula Token",
+    "resilienceTokenRefreshDesc": "Menghentikan percubaan menyegarkan token selepas kegagalan berulang. Skop per-sambungan mengasingkan satu akaun mati supaya akaun sihat pada pembekal yang sama terus disegarkan.",
+    "resilienceTokenRefreshScope": "Percubaan segar semula token untuk satu pembekal",
+    "resilienceTokenRefreshTrigger": "Percubaan segar semula berturut-turut yang gagal",
+    "resilienceTokenRefreshEffect": "Menjeda percubaan segar semasa tempoh penyejukan",
+    "resilienceTokenRefreshScopeLabel": "Skop",
+    "resilienceTokenRefreshScopeProvider": "Penyedia (semua akaun berkongsi satu pemutus)",
+    "resilienceTokenRefreshScopeConnection": "Sambungan (setiap akaun mempunyai pemutus litar sendiri)",
+    "resilienceTokenRefreshThreshold": "Kegagalan sebelum menjeda",
+    "resilienceTokenRefreshCooldown": "Jeda selepas terpicu"
   },
   "contextRtk": {
     "title": "Enjin RTK",

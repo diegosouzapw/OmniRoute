@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Dak li GET /v1/models jiddikjara għal din iċ-ċavetta. It-tidjiq tal-lista qatt ma jibdel dak li ċ-ċavetta tista' ssejjaħ.",
     "catalogScopeAll": "It-tnejn",
     "catalogScopeCombos": "Kombinazzjonijiet biss",
-    "catalogScopeModels": "Mudelli biss"
+    "catalogScopeModels": "Mudelli biss",
+    "resilienceTokenRefreshTitle": "Breaker tal-Refresh tat-Token",
+    "resilienceTokenRefreshDesc": "Jwaq l-iskjar tal-token wara fallimenti ripetuti. L-iskop għal kull-konnessjoni jisolva kont mejjeb wieħed biex kontijiet b'saħħithom fuq l-istess fornitur jibqgħu jiġu aġġornati.",
+    "resilienceTokenRefreshScope": "Tentativi ta' refresh tat-token għal provider wieħed",
+    "resilienceTokenRefreshTrigger": "Tentativi ta' refresh konsekuttivi falliti",
+    "resilienceTokenRefreshEffect": "Jieqaf l-attempts ta' refresh għall-cooldown",
+    "resilienceTokenRefreshScopeLabel": "Skop",
+    "resilienceTokenRefreshScopeProvider": "Provider (l-kontijiet kollha jaqsmu breaker wieħed)",
+    "resilienceTokenRefreshScopeConnection": "Konnessjoni (kull kont għandu l-breaker tiegħu)",
+    "resilienceTokenRefreshThreshold": "Fallimenti qabel ma jieqaf",
+    "resilienceTokenRefreshCooldown": "Waqqaf wara li tinstab"
   },
   "contextRtk": {
     "title": "Magna RTK",

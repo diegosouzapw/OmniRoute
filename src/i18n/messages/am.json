@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "GET /v1/models ለዚህ ቁልፍ የሚያሳየው። ዝርዝሩን ማጥበብ ቁልፉ ሊጠራቸው የሚችላቸውን በፍጹም አይቀይርም።",
     "catalogScopeAll": "ሁለቱም",
     "catalogScopeCombos": "ጥምረቶች ብቻ",
-    "catalogScopeModels": "ሞዴሎች ብቻ"
+    "catalogScopeModels": "ሞዴሎች ብቻ",
+    "resilienceTokenRefreshTitle": "የቶክን እንደገና መሙላት ተቋራጭ",
+    "resilienceTokenRefreshDesc": "ከተደጋጋ መሳሰሎች በኋላ የቶከን እንደገና ማደስ ያቆማል። በአገናኝ ደረጃ የሚሰጠው አካባቢ አንድ የሞተ መለያን ይለያያል፣ በተመሳሳይ አቅራቢ ላይ ያሉ ጤናማ መለያዎች እንደገና ሲደሱ ይቀጥላሉ።",
+    "resilienceTokenRefreshScope": "አንድ ሰጪ ላለው የቶክን እንደገና መቀየር ሙከራዎች",
+    "resilienceTokenRefreshTrigger": "ተከታታይ የተሳሳቱ የማደስ ሙከራዎች",
+    "resilienceTokenRefreshEffect": "የመመለስ ሙከራዎችን ለአረፍት ጊዜ ያቁማል",
+    "resilienceTokenRefreshScopeLabel": "ክልው",
+    "resilienceTokenRefreshScopeProvider": "አቅራቢ (ሁሉም መለያዎች አንድ መበረታች ይጋራሉ)",
+    "resilienceTokenRefreshScopeConnection": "አገናኝ (እያንዳንዱ መለያ የራሱ መበረታቸው አለው)",
+    "resilienceTokenRefreshThreshold": "ማቆሚያዎ ከመጠበቅ በፊት የሚደረጉ መሳሮች",
+    "resilienceTokenRefreshCooldown": "ከመዘጋት በኋላ ይታቀኑ"
   },
   "contextRtk": {
     "title": "RTK ሞተር",

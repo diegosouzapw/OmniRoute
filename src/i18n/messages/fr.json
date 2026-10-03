@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Ce que GET /v1/models annonce pour cette clé. Restreindre la liste ne modifie jamais ce que la clé peut appeler.",
     "catalogScopeAll": "Les deux",
     "catalogScopeCombos": "Combos uniquement",
-    "catalogScopeModels": "Modèles uniquement"
+    "catalogScopeModels": "Modèles uniquement",
+    "resilienceTokenRefreshTitle": "Disjoncteur de rafraîchissement de jeton",
+    "resilienceTokenRefreshDesc": "Arrête de réessayer le rafraîchissement du jeton après des échecs répétés. La portée par connexion isole un compte mort afin que les comptes sains du même fournisseur continuent d'être rafraîchis.",
+    "resilienceTokenRefreshScope": "Tentatives de rafraîchissement du jeton pour un fournisseur",
+    "resilienceTokenRefreshTrigger": "Tentatives de rafraîchissement consécutives échouées",
+    "resilienceTokenRefreshEffect": "Suspend les tentatives de rafraîchissement pendant le délai de refroidissement",
+    "resilienceTokenRefreshScopeLabel": "Portée",
+    "resilienceTokenRefreshScopeProvider": "Fournisseur (tous les comptes partagent un seul disjoncteur)",
+    "resilienceTokenRefreshScopeConnection": "Connexion (chaque compte a son propre disjoncteur)",
+    "resilienceTokenRefreshThreshold": "Échecs avant la mise en pause",
+    "resilienceTokenRefreshCooldown": "Pause après déclenchement"
   },
   "contextRtk": {
     "title": "Moteur RTK",

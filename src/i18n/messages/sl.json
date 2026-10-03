@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Kaj GET /v1/models prikazuje za ta ključ. Omejitev seznama nikoli ne spremeni, kaj lahko ključ kliče.",
     "catalogScopeAll": "Oboje",
     "catalogScopeCombos": "Samo kombinacije",
-    "catalogScopeModels": "Samo modeli"
+    "catalogScopeModels": "Samo modeli",
+    "resilienceTokenRefreshTitle": "Stikalo za osveževanje žetona",
+    "resilienceTokenRefreshDesc": "Po večkratnih neuspehih ustavi poskuse osveževanja žetona. Obseg per-connection izolira en mrtvi račun, da zdravi računi pri istem ponudniku še naprej osvežujejo.",
+    "resilienceTokenRefreshScope": "Poskusi osvežitve žetona za enega ponudnika",
+    "resilienceTokenRefreshTrigger": "Zaporedni neusposni poskusi osveževanja",
+    "resilienceTokenRefreshEffect": "Začasno ustavi poskuse osveževanja v času ohlajanja",
+    "resilienceTokenRefreshScopeLabel": "Obseg",
+    "resilienceTokenRefreshScopeProvider": "Ponudnik (vsi računi si delijo eno stikalo)",
+    "resilienceTokenRefreshScopeConnection": "Povezava (vsak račun ima svoj odklopnik)",
+    "resilienceTokenRefreshThreshold": "Neuspehi pred začasnim zaustavitvijo",
+    "resilienceTokenRefreshCooldown": "Pavza po sprožitvi"
   },
   "contextRtk": {
     "title": "Pogon RTK",

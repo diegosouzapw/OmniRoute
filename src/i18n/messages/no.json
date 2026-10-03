@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Hva GET /v1/models oppgir for denne nøkkelen. Å begrense listen endrer aldri hva nøkkelen kan kalle.",
     "catalogScopeAll": "Begge",
     "catalogScopeCombos": "Bare kombinasjoner",
-    "catalogScopeModels": "Bare modeller"
+    "catalogScopeModels": "Bare modeller",
+    "resilienceTokenRefreshTitle": "Tokenfornyelsesvern",
+    "resilienceTokenRefreshDesc": "Stopper med å forsøke på nytt å fornye token etter gjentatte feil. Omfang per kobling isolerer én død konto, slik at friske kontoer på samme leverandør fortsetter å fornyes.",
+    "resilienceTokenRefreshScope": "Forsøk på å fornye token for én leverandør",
+    "resilienceTokenRefreshTrigger": "Påfølgende mislykkede oppdateringsforsøk",
+    "resilienceTokenRefreshEffect": "Pauserer oppdateringsforsøk i nedkjølingsperioden",
+    "resilienceTokenRefreshScopeLabel": "Omfang",
+    "resilienceTokenRefreshScopeProvider": "Provider (alle kontoer deler én breaker)",
+    "resilienceTokenRefreshScopeConnection": "Tilkobling (hver konto har sin egen breaker)",
+    "resilienceTokenRefreshThreshold": "Feil før pausing",
+    "resilienceTokenRefreshCooldown": "Pause etter utløsning"
   },
   "contextRtk": {
     "title": "RTK-motor",

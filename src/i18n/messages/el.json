@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Τι εμφανίζει το GET /v1/models για αυτό το κλειδί. Ο περιορισμός της λίστας δεν αλλάζει ποτέ τα μοντέλα που μπορεί να καλέσει το κλειδί.",
     "catalogScopeAll": "Και τα δύο",
     "catalogScopeCombos": "Μόνο συνδυασμοί",
-    "catalogScopeModels": "Μόνο μοντέλα"
+    "catalogScopeModels": "Μόνο μοντέλα",
+    "resilienceTokenRefreshTitle": "Διακόπτης Ανανέωσης Εκπέμποντος",
+    "resilienceTokenRefreshDesc": "Σταματά τις επαναλαμβανόμενες προσπάθειες ανανέωσης του token μετά από επαναλαμβανόμενες αποτυχίες. Το πεδίο ανά σύνδεση απομονώνει έναν νεκρό λογαριασμό, ώστε οι υγιείς λογαριασμοί στον ίδιο πάροχο να συνεχίζουν την ανανέωση.",
+    "resilienceTokenRefreshScope": "Προσπάθειες ανανέωσης ενδείξεων για έναν πάροχο",
+    "resilienceTokenRefreshTrigger": "Διαδοχικές αποτυχημένες προσπάθειες ανανέωσης",
+    "resilienceTokenRefreshEffect": "Παύση των προσπαθειών ανανέωσης κατά τη διάρκεια της περιόδου κατάψυξης",
+    "resilienceTokenRefreshScopeLabel": "Περιοχή εφαρμογής",
+    "resilienceTokenRefreshScopeProvider": "Πάροχος (όλοι οι λογαριασμοί μοιράζονται έναν διακόπτη)",
+    "resilienceTokenRefreshScopeConnection": "Σύνδεση (κάθε λογαριασμός έχει τον δικό του διακόπτη)",
+    "resilienceTokenRefreshThreshold": "Αποτυχίες πριν από την παύση",
+    "resilienceTokenRefreshCooldown": "Παύση μετά την ενεργοποίηση"
   },
   "contextRtk": {
     "title": "Μηχανή RTK",

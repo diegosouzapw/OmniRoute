@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Kung ano ang inilalabas ng GET /v1/models para sa key na ito. Ang pagpapaliit ng listahan ay hindi kailanman nagbabago sa kung ano ang maaaring tawagin ng key.",
     "catalogScopeAll": "Pareho",
     "catalogScopeCombos": "Mga combo lamang",
-    "catalogScopeModels": "Mga modelo lamang"
+    "catalogScopeModels": "Mga modelo lamang",
+    "resilienceTokenRefreshTitle": "Token Refresh Breaker",
+    "resilienceTokenRefreshDesc": "Tumitigil sa pagsubok na i-refresh ang token pagkatapos ng paulit-ulit na kabiguan. Inihihiwalay ng saklaw bawat koneksyon ang isang patay na account upang manatiling nagre-refresh ang mga malusog na account sa parehong provider.",
+    "resilienceTokenRefreshScope": "Mga pagsusubik na i-refresh ang token para sa isang provider",
+    "resilienceTokenRefreshTrigger": "Sunod-sunod na nabibigong refresh attempts",
+    "resilienceTokenRefreshEffect": "Nagpapause ng mga refresh attempt para sa cooldown",
+    "resilienceTokenRefreshScopeLabel": "Saklaw",
+    "resilienceTokenRefreshScopeProvider": "Provider (lahat ng mga account ay nagbabahagi ng iisang breaker)",
+    "resilienceTokenRefreshScopeConnection": "Koneksyon (bawat account ay may sariling breaker)",
+    "resilienceTokenRefreshThreshold": "Mga kabiguan bago magpahinto",
+    "resilienceTokenRefreshCooldown": "Magpahinga pagkatapos ma-trigger"
   },
   "contextRtk": {
     "title": "Engine ng RTK",

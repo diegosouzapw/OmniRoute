@@ -8455,7 +8455,17 @@
     "catalogScopeDesc": "Ce afișează GET /v1/models pentru această cheie. Restrângerea listei nu modifică niciodată ce poate apela cheia.",
     "catalogScopeAll": "Ambele",
     "catalogScopeCombos": "Doar combinații",
-    "catalogScopeModels": "Doar modele"
+    "catalogScopeModels": "Doar modele",
+    "resilienceTokenRefreshTitle": "Întrerupător de reîmprospătare a tokenului",
+    "resilienceTokenRefreshDesc": "Oprește reîncercarea reînnoirii tokenului după eșecuri repetate. Domeniul per-connection izolează un cont mort, astfel încât conturile sănătoase de pe același furnizor să continue reînnoirea.",
+    "resilienceTokenRefreshScope": "Încercări de reîmprospătare a tokenului pentru un furnizor",
+    "resilienceTokenRefreshTrigger": "Încercări consecutive de reîmprospătare eșuate",
+    "resilienceTokenRefreshEffect": "Oprește temporar încercările de reîmprospătare pe durata perioadei de așteptare",
+    "resilienceTokenRefreshScopeLabel": "Domeniu",
+    "resilienceTokenRefreshScopeProvider": "Furnizor (toate conturile împart un singur întrerupător)",
+    "resilienceTokenRefreshScopeConnection": "Conexiune (fiecare cont are propriul său întrerupător)",
+    "resilienceTokenRefreshThreshold": "Eșecuri înainte de pauză",
+    "resilienceTokenRefreshCooldown": "Pauză după declanșare"
   },
   "contextRtk": {
     "title": "Motor RTK",

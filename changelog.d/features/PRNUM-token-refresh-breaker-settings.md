@@ -1,0 +1,1 @@
+- **feat(dashboard):** token refresh failures can pause per account instead of blocking the whole provider ([#PRNUM](https://github.com/diegosouzapw/OmniRoute/pull/PRNUM)) — thanks @maxmad64bis (with thanks to @xiaoyaner0201 for the scope proposal in #15444)

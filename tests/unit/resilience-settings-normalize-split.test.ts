@@ -105,6 +105,8 @@ describe("resilience/settings normalize split-guard", () => {
       "quotaShareConcurrencyLimit",
       "requestQueue",
       "streamRecovery",
+      // Token-refresh breaker scope + thresholds (per-connection isolation opt-in).
+      "tokenRefreshBreaker",
       "waitForCooldown",
     ]);
   });
