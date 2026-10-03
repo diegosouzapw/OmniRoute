@@ -376,6 +376,7 @@
       "tests/unit/opencode-muse-spark-min-output.test.ts",
       "tests/unit/opencode-v2-config-11070.test.ts",
       "tests/unit/openrouter-free-model-credits-exhausted.test.ts",
+      "tests/unit/openrouter-credits-exhausted-catalog-access.test.ts",
       "tests/unit/openrouter-passthrough-models.test.ts",
       "tests/unit/openrouter-quota-6842.test.ts",
       "tests/unit/permanent-failure-hammering-other-providers.test.ts",
