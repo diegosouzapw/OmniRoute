@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_10_03_15443_per_model_pause": "Per-model pause own growth: src/sse/services/auth.ts 3623->3640 (+17 = one optional model param + one relayed pause call + one model-aware skip read + four Prettier-split model-threading callsites, irreducible wiring; a shared-helper variant was tried and measured +14 net, reverted). Covered by tests/unit/opencode-free-tier-per-model-pause.test.ts (14). PR #15443.",
   "_rebaseline_2026_09_29_14973_cursor_conversation_cache": "PR #14973 own growth: open-sse/utils/cursorAgentProtobuf.ts 1619->1622 (+3 over the 1619-line tip after #15036 = the single-line import of the new open-sse/utils/cursorAgentProtobuf/ttft.ts, the TtftBreakdownDelta member of DecodedDelta, and the one-line pushTtftBreakdown call in decodeAgentServerMessage; the turn_ended entry is rewritten at the same length to keep its end signal when the usage body is malformed). The ttft_breakdown decoder, its type and the safely() telemetry helper live in ttft.ts, under cap. open-sse/executors/cursor.ts stays under its 1868 ceiling. Covered by tests/unit/cursor-conversation-cache.test.ts.",
   "_rebaseline_2026_09_29_15036_cursor_read_range": "PR #15036 (QuangBlue) own growth: open-sse/utils/cursorAgentProtobuf.ts 1588->1619 (+31 = ReadArgs offset/limit field constants, the two optional fields on the exec_read event type, and createReadExecEvent, which decodes them next to the shared path-event decoder it reuses and cannot move out without exporting the file's private varint helpers). The bridge-side range check lives in open-sse/executors/cursor/builtinToolBridge.ts (under cap). Covered by tests/unit/cursor-agent-exec-router.test.ts and tests/unit/cursor-builtin-tool-bridge.test.ts.",
   "_rebaseline_2026_09_29_15050_timing_safe_env_key": "PR #15050 (HouMinXi) own growth: src/sse/services/auth.ts 3622->3623 (+1 = the timingSafeCompare import; the env passthrough-key check in isValidApiKey swaps `===` for the constant-time helper on its existing line). Irreducible. Covered by tests/unit/secret-compare-constant-time.test.ts.",
@@ -563,7 +564,7 @@
     "src/shared/constants/providers/apikey/gateways.ts": 1544,
     "src/shared/services/cliRuntime.ts": 1296,
     "src/sse/handlers/chat.ts": 2586,
-    "src/sse/services/auth.ts": 3623,
+    "src/sse/services/auth.ts": 3640,
     "tests/unit/account-fallback-service.test.ts": 2453,
     "tests/unit/provider-validation-specialty.test.ts": 4656,
     "open-sse/services/autoCombo/virtualFactory.ts": 1258,
