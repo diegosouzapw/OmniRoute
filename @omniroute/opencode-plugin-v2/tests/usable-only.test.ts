@@ -106,6 +106,7 @@ describe("catalog usableOnly gating", () => {
     );
     assert.equal(providersCalls, 0);
     assert.equal(res.models, 3);
+    assert.deepEqual(res, { models: 3, combos: 0 });
     assert.ok(models.has("omniroute/cc/keep-me"));
     assert.ok(models.has("omniroute/dead/drop-me"));
   });
@@ -171,6 +172,7 @@ describe("catalog usableOnly gating", () => {
       }
     );
     assert.equal(res.combos, 1);
+    assert.deepEqual(res, { models: 1, combos: 1 });
     assert.ok(models.has("omniroute/good"));
     assert.ok(!models.has("omniroute/bad"));
   });
@@ -181,9 +183,6 @@ describe("catalog usableOnly gating", () => {
     globalThis.fetch = (async (url: unknown) => {
       const href = String(url);
       seen.push(href);
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -230,6 +229,10 @@ describe("catalog usableOnly gating", () => {
       assert.ok(
         !seen.some((href) => href.includes("/api/providers")),
         `no providers fetch expected, got: ${JSON.stringify(seen)}`
+      );
+      assert.ok(
+        !seen.some((href) => new URL(href).pathname === "/api/combos/auto"),
+        `retired route must never be requested, got: ${JSON.stringify(seen)}`
       );
     } finally {
       globalThis.fetch = origFetch;

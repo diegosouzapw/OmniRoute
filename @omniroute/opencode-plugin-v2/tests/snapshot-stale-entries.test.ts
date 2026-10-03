@@ -99,9 +99,6 @@ function downFetch(): typeof fetch {
     if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
       return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
     }
-    if (href.includes("/api/combos/auto")) {
-      return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-    }
     if (href.includes("/api/combos")) {
       return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
     }
@@ -133,7 +130,6 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
           { id: "good-1", context_length: 128000 },
         ],
         combos: [],
-        autoCombos: [],
         providers: [],
         writtenAt: Date.now(),
       })
@@ -178,13 +174,16 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
       })
     );
     const origFetch = globalThis.fetch;
+    const { collectCatalog: collect } = await import("../src/catalog.js");
     globalThis.fetch = (async (url: unknown) => {
       const href = String(url);
+      assert.equal(
+        new URL(href).pathname === "/api/combos/auto",
+        false,
+        "retired route must never be requested"
+      );
       if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
-      }
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
@@ -210,6 +209,23 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
           `unversioned snapshot must be ignored, got: ${JSON.stringify([...published.keys()])}`
         );
       });
+      const collected = await collect(
+        {
+          providerId,
+          baseURL: "https://gw.example.com",
+          apiKey: "k-snapfix",
+          timeoutMs: 1000,
+          modelCacheTtlMs: 300000,
+          usableOnly: false,
+        },
+        {
+          models: async () => [{ id: "fresh-1" }],
+          combos: async () => [],
+          providers: async () => [],
+          enrichment: async () => new Map(),
+        }
+      );
+      assert.deepEqual(collected.counts, { models: 1, combos: 0 });
     } finally {
       globalThis.fetch = origFetch;
       disk.restore();
@@ -284,5 +300,40 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
     );
     // No api block at all stays publishable: it is synthesized at publish time.
     assert.equal(isStaleSnapshotModel({ id: "a/b" }), false);
+  });
+
+  it("snapshot carrying a retired field still loads the valid entry", async () => {
+    const disk = isolateDisk();
+    const providerId = "snapfix-retired-field";
+    mkdirSync(join(disk.dir, "plugins"), { recursive: true });
+    writeFileSync(
+      diskSnapshotPath(providerId),
+      JSON.stringify({
+        v: 2,
+        identityFingerprint: fingerprint,
+        models: [{ id: "good-1" }],
+        combos: [],
+        autoCombos: [{ id: "auto" }],
+        providers: [],
+        writtenAt: Date.now(),
+      })
+    );
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = downFetch();
+    try {
+      const { added, ctx } = setupCtx(providerId);
+      const { warns } = await silenceConsole(async () => {
+        await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
+        const published = publishedOf(added);
+        assert.ok(
+          published.has(`${providerId}/good-1`),
+          `valid entry must load past the retired field, got: ${JSON.stringify([...published.keys()])}`
+        );
+      });
+      void warns;
+    } finally {
+      globalThis.fetch = origFetch;
+      disk.restore();
+    }
   });
 });
