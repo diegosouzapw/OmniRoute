@@ -112,6 +112,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 - [`POST /api/v1/responses/{path}`](references/endpoints.md#post-apiv1responsespath)
 - [`GET /api/v1/search/analytics`](references/endpoints.md#get-apiv1searchanalytics)
 - [`POST /api/v1/segment`](references/endpoints.md#post-apiv1segment)
+- [`POST /api/v1/systemone`](references/endpoints.md#post-apiv1systemone)
 - [`GET /api/v1/video-bridge/drilldown`](references/endpoints.md#get-apiv1video-bridgedrilldown)
 - [`DELETE /api/v1/video-bridge/drilldown`](references/endpoints.md#delete-apiv1video-bridgedrilldown)
 - [`GET /api/v1/videos/generations`](references/endpoints.md#get-apiv1videosgenerations)
