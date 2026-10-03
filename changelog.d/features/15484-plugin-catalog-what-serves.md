@@ -1,0 +1,1 @@
+- **feat(plugin):** publish useful models by default, full catalog on request ([#15484](https://github.com/diegosouzapw/OmniRoute/pull/15484)) — thanks @maxmad64bis
