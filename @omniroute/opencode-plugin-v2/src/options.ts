@@ -44,6 +44,7 @@ const pluginOptionsSchema = z
     modelCacheTtlMs: z.number().positive().optional(),
     visibleModels: z.array(z.string()).optional(),
     hiddenModels: z.array(z.string()).optional(),
+    providersAllow: z.array(z.string()).optional(),
     usableOnly: z.boolean().default(false),
     // v1 parity: enrichment overlay on by default (names + pricing).
     enrichment: z.boolean().default(true),

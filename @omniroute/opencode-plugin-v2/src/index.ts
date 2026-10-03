@@ -63,7 +63,7 @@ interface RefreshState {
   unreachableUntil: number;
 }
 
-function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
+export function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
   return {
     providerId: parsed.providerId,
     baseURL: parsed.baseURL,
@@ -82,6 +82,7 @@ function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
     apiFormat: parsed.apiFormat,
     visibleModels: parsed.visibleModels,
     hiddenModels: parsed.hiddenModels,
+    providersAllow: parsed.providersAllow,
     usableOnly: parsed.usableOnly,
     enrichment: parsed.enrichment,
   };
