@@ -36,6 +36,7 @@ import {
   withCodexFingerprintCredentials,
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { isUnrecoverableRefreshError } from "../services/tokenRefresh/shared.ts";
 import { sanitizeCodexResponsesInput } from "../services/responsesInputSanitizer.ts";
 import { applyReasoningInputPolicy } from "../services/reasoningInputPolicy.ts";
 import { getForcedReasoningEffort } from "../utils/reasoningRuleContext.ts";
@@ -1217,6 +1218,11 @@ export class CodexExecutor extends BaseExecutor {
         "TOKEN_REFRESH",
         `Codex: token refresh failed (${result.error}) — re-authentication required`
       );
+      // A dead refresh token is terminal for this connection, not a provider
+      // outage: surface it so the retry helper skips retries and leaves the
+      // provider breaker alone. Other connections keep serving (the proactive
+      // path drops this shape before spreading it onto live credentials).
+      if (isUnrecoverableRefreshError(result)) return result;
       // Return null (not the error-only object): base.ts spreads any truthy
       // result onto activeCredentials and persists it via onCredentialsRefreshed.
       // Spreading `{ error }` would keep the stale/expired accessToken in place
