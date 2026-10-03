@@ -385,7 +385,7 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
-    process.versions.bun ? process.execPath : "node",
+    process.execPath,
     [
       ...(process.versions.bun
         ? ["--preload", BUN_PRELOAD_PATH]
@@ -410,7 +410,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
-    process.versions.bun ? process.execPath : "node",
+    process.execPath,
     [
       ...(process.versions.bun
         ? ["--preload", BUN_PRELOAD_PATH]

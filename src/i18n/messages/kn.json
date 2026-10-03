@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ನಿಷ್ಕ್ರಿಯ",
     "dbOverrideCount": "{count} DB ಓವರ್ರೈಡ್ಗಳು",
     "searchPlaceholder": "ಫ್ಲ್ಯಾಗ್ಗಳನ್ನು ಹುಡುಕಿ...",
+    "descriptionModeLabel": "ವಿವರಣೆ ನೋಟ",
+    "descriptionModeHint": "ಹೋವರ್ ಮಾಡಿದಾಗ: ಕಾರ್ಡ್ಗಳು ಸಾಂದ್ರವಾಗಿಯೇ ಇರುತ್ತವೆ ಮತ್ತು ವಿವರಣೆಯ ಮೇಲೆ ಹೋವರ್ ಮಾಡಿದಾಗ ಪೂರ್ಣ ಪಠ್ಯ ಕಾಣಿಸುತ್ತದೆ. ಪೂರ್ಣ ಪಠ್ಯ: ಯಾವಾಗಲೂ ಸಂಪೂರ್ಣ ವಿವರಣೆಯನ್ನು ತೋರಿಸಿ.",
+    "descriptionModeHover": "ಹೋವರ್ ಮಾಡಿದಾಗ",
+    "descriptionModeFull": "ಪೂರ್ಣ ಪಠ್ಯ",
     "categories": {
       "all": "ಎಲ್ಲಾ",
       "security": "ಭದ್ರತೆ",

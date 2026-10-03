@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count}ଟି ନିଷ୍କ୍ରିୟ",
     "dbOverrideCount": "{count}ଟି DB ଓଭରରାଇଡ୍",
     "searchPlaceholder": "ଫ୍ଲାଗ୍ଗୁଡ଼ିକ ଖୋଜନ୍ତୁ...",
+    "descriptionModeLabel": "ବର୍ଣ୍ଣନା ଦୃଶ୍ୟ",
+    "descriptionModeHint": "ହୋଭର୍ କଲେ: କାର୍ଡଗୁଡ଼ିକ ସଂକ୍ଷିପ୍ତ ରହେ ଏବଂ ବର୍ଣ୍ଣନା ଉପରେ ହୋଭର୍ କଲେ ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ ଦେଖାଯାଏ। ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ: ସବୁବେଳେ ପୂର୍ଣ୍ଣ ବର୍ଣ୍ଣନା ଦେଖାନ୍ତୁ।",
+    "descriptionModeHover": "ହୋଭର୍ କଲେ",
+    "descriptionModeFull": "ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ",
     "categories": {
       "all": "ସମସ୍ତ",
       "security": "ସୁରକ୍ଷା",

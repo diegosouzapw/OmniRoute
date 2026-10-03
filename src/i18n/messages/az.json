@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} qeyri-aktiv",
     "dbOverrideCount": "{count} DB override-ı",
     "searchPlaceholder": "Bayraqlarda axtar...",
+    "descriptionModeLabel": "Təsvir görünüşü",
+    "descriptionModeHint": "Üzərinə gətirdikdə: kartlar yığcam qalır və təsvirin üzərinə gətirdikdə tam mətn göstərilir. Tam mətn: təsviri həmişə tam şəkildə göstərir.",
+    "descriptionModeHover": "Üzərinə gətirdikdə",
+    "descriptionModeFull": "Tam mətn",
     "categories": {
       "all": "Hamısı",
       "security": "Təhlükəsizlik",

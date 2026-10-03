@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} anaghị arụ ọrụ",
     "dbOverrideCount": "{count} ntọala DB ndị nọchiri ndabara",
     "searchPlaceholder": "Chọọ ọkọlọtọ...",
+    "descriptionModeLabel": "Nlele nkọwa",
+    "descriptionModeHint": "Mgbe a na-efegharị òké n'elu: kaadị na-anọgide nkenke, ma ịfegharị òké n'elu nkọwa na-egosi ederede niile. Ederede niile: na-egosi nkọwa zuru ezu mgbe niile.",
+    "descriptionModeHover": "Mgbe a na-efegharị òké n'elu",
+    "descriptionModeFull": "Ederede niile",
     "categories": {
       "all": "Ha niile",
       "security": "Nchedo",

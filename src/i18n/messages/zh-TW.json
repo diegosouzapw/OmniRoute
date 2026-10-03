@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} 個未啟用",
     "dbOverrideCount": "{count} 個資料庫覆寫",
     "searchPlaceholder": "搜尋旗標...",
+    "descriptionModeLabel": "描述檢視",
+    "descriptionModeHint": "滑鼠懸停時：卡片維持精簡，將滑鼠懸停在描述上即可顯示完整文字。完整文字：一律顯示完整描述。",
+    "descriptionModeHover": "滑鼠懸停時",
+    "descriptionModeFull": "完整文字",
     "categories": {
       "all": "全部",
       "security": "安全性",

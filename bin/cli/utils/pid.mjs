@@ -68,8 +68,11 @@ export function isPidRunning(pid) {
 // server/.pid deleted outright).
 //
 // Discovery mirrors killByPort() in bin/cli/commands/stop.mjs (netstat on
-// win32, lsof elsewhere); the two are worth consolidating next time stop.mjs
-// is touched.
+// win32, lsof elsewhere). Both now scope discovery to LISTEN sockets: a bare
+// `lsof -ti :PORT` also returns every client connected to the port, so a
+// client socket (for example a long-lived gateway connection left in
+// CLOSE_WAIT after its peer exited) made the preflight report a free port as
+// busy and drove omniroute.service into a restart crash-loop.
 export async function findListeningPids(port, deps = {}) {
   const platform = deps.platform || process.platform;
   let exec = deps.execFileAsync;
@@ -83,7 +86,7 @@ export async function findListeningPids(port, deps = {}) {
       const { stdout } = await exec("netstat", ["-ano"]);
       return parseNetstatListeningPids(stdout, port);
     }
-    const { stdout } = await exec("lsof", ["-ti", `:${port}`]);
+    const { stdout } = await exec("lsof", ["-nP", "-t", `-iTCP:${port}`, "-sTCP:LISTEN"]);
     return stdout
       .trim()
       .split("\n")

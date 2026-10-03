@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} לא פעילים",
     "dbOverrideCount": "{count} דריסות DB",
     "searchPlaceholder": "חיפוש דגלים...",
+    "descriptionModeLabel": "תצוגת תיאור",
+    "descriptionModeHint": "במעבר עכבר: הכרטיסים נשארים קומפקטיים, ומעבר עם העכבר מעל תיאור מציג את הטקסט המלא. טקסט מלא: הצגת התיאור המלא תמיד.",
+    "descriptionModeHover": "במעבר עכבר",
+    "descriptionModeFull": "טקסט מלא",
     "categories": {
       "all": "הכל",
       "security": "אבטחה",

@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count}개 비활성",
     "dbOverrideCount": "{count}개 DB 재정의",
     "searchPlaceholder": "플래그 검색...",
+    "descriptionModeLabel": "설명 보기",
+    "descriptionModeHint": "마우스 오버 시: 카드는 간결하게 유지되며 설명 위에 마우스를 올리면 전체 텍스트가 표시됩니다. 전체 텍스트: 항상 전체 설명을 표시합니다.",
+    "descriptionModeHover": "마우스 오버 시",
+    "descriptionModeFull": "전체 텍스트",
     "categories": {
       "all": "전체",
       "security": "보안",

@@ -13052,6 +13052,10 @@
     "inactiveCount": "Mitteaktiivseid: {count}",
     "dbOverrideCount": "DB-alistusi: {count}",
     "searchPlaceholder": "Otsi lippe...",
+    "descriptionModeLabel": "Kirjelduse vaade",
+    "descriptionModeHint": "Kursoriga üle liikudes: kaardid jäävad kompaktseks ja kirjelduse kohal kursorit hoides kuvatakse täistekst. Täistekst: kuva alati täielik kirjeldus.",
+    "descriptionModeHover": "Kursoriga üle liikudes",
+    "descriptionModeFull": "Täistekst",
     "categories": {
       "all": "Kõik",
       "security": "Turvalisus",

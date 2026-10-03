@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} inactive",
     "dbOverrideCount": "{count} suprascrieri DB",
     "searchPlaceholder": "Caută flaguri...",
+    "descriptionModeLabel": "Vizualizare descriere",
+    "descriptionModeHint": "La trecerea cursorului: cardurile rămân compacte, iar trecerea cursorului peste o descriere afișează textul integral. Text integral: afișează întotdeauna descrierea completă.",
+    "descriptionModeHover": "La trecerea cursorului",
+    "descriptionModeFull": "Text integral",
     "categories": {
       "all": "Toate",
       "security": "Securitate",

@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} செயலற்றது",
     "dbOverrideCount": "{count} DB மேலெழுதல்கள்",
     "searchPlaceholder": "கொடிகளைத் தேடுக...",
+    "descriptionModeLabel": "விளக்கக் காட்சி",
+    "descriptionModeHint": "சுட்டியை மேலே நகர்த்தும்போது: அட்டைகள் சுருக்கமாகவே இருக்கும்; விளக்கத்தின் மீது சுட்டியை நகர்த்தினால் முழு உரை காட்டப்படும். முழு உரை: எப்போதும் முழுமையான விளக்கத்தைக் காட்டு.",
+    "descriptionModeHover": "சுட்டியை மேலே நகர்த்தும்போது",
+    "descriptionModeFull": "முழு உரை",
     "categories": {
       "all": "அனைத்தும்",
       "security": "பாதுகாப்பு",

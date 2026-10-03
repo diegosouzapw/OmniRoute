@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} غیر فعال",
     "dbOverrideCount": "{count} DB اوور رائیڈز",
     "searchPlaceholder": "فلیگز تلاش کریں...",
+    "descriptionModeLabel": "تفصیل کا منظر",
+    "descriptionModeHint": "ہوور کرنے پر: کارڈز مختصر رہتے ہیں اور تفصیل پر ہوور کرنے سے مکمل متن دکھائی دیتا ہے۔ مکمل متن: ہمیشہ پوری تفصیل دکھائیں۔",
+    "descriptionModeHover": "ہوور کرنے پر",
+    "descriptionModeFull": "مکمل متن",
     "categories": {
       "all": "تمام",
       "security": "سیکیورٹی",

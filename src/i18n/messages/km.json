@@ -13052,6 +13052,10 @@
     "inactiveCount": "អសកម្ម {count}",
     "dbOverrideCount": "ការកំណត់ជំនួស DB ចំនួន {count}",
     "searchPlaceholder": "ស្វែងរកទង់...",
+    "descriptionModeLabel": "ទិដ្ឋភាពពិពណ៌នា",
+    "descriptionModeHint": "ពេលដាក់ព្រួញពីលើ៖ កាតនៅតែបង្រួម ហើយការដាក់ព្រួញពីលើការពិពណ៌នានឹងបង្ហាញអត្ថបទពេញលេញ។ អត្ថបទពេញលេញ៖ បង្ហាញការពិពណ៌នាទាំងស្រុងជានិច្ច។",
+    "descriptionModeHover": "ពេលដាក់ព្រួញពីលើ",
+    "descriptionModeFull": "អត្ថបទពេញលេញ",
     "categories": {
       "all": "ទាំងអស់",
       "security": "សុវត្ថិភាព",

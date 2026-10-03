@@ -778,7 +778,7 @@ OPENAI_API_KEY: "{{apiKey}}"`,
     configType: "custom",
     category: "agent",
     vendor: "OSS",
-    acpSpawnable: true,
+    acpSpawnable: false,
     baseUrlSupport: "full",
     defaultCommand: "omp",
     notes: [

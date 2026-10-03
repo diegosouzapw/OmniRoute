@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} არააქტიური",
     "dbOverrideCount": "{count} DB-ის გადაფარვა",
     "searchPlaceholder": "ალმების ძიება...",
+    "descriptionModeLabel": "აღწერილობის ხედი",
+    "descriptionModeHint": "მაუსის გადატარებისას: ბარათები კომპაქტური რჩება, ხოლო აღწერილობაზე მაუსის გადატარებისას სრული ტექსტი გამოჩნდება. სრული ტექსტი: ყოველთვის გამოჩნდეს სრული აღწერილობა.",
+    "descriptionModeHover": "მაუსის გადატარებისას",
+    "descriptionModeFull": "სრული ტექსტი",
     "categories": {
       "all": "ყველა",
       "security": "უსაფრთხოება",

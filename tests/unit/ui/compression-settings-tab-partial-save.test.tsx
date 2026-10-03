@@ -138,11 +138,37 @@ async function renderTab() {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
 describe("CompressionSettingsTab saves only what changed", () => {
+  it("clears the saved-badge timer when the tab unmounts", async () => {
+    startServer();
+    const nativeSetTimeout = globalThis.setTimeout;
+    const badgeTimers: unknown[] = [];
+    vi.spyOn(globalThis, "setTimeout").mockImplementation(((
+      fn: TimerHandler,
+      ms?: number,
+      ...args: unknown[]
+    ) => {
+      const id = nativeSetTimeout(fn as () => void, ms, ...(args as []));
+      if (ms === 2000) badgeTimers.push(id);
+      return id;
+    }) as typeof setTimeout);
+    const clearSpy = vi.spyOn(globalThis, "clearTimeout");
+
+    const view = render(<CompressionSettingsTab />);
+    await settle();
+    fireEvent.change(inputFor("compressionCacheTTL"), { target: { value: "10" } });
+    await settle();
+    expect(badgeTimers).toHaveLength(1);
+
+    view.unmount();
+    expect(clearSpy).toHaveBeenCalledWith(badgeTimers[0]);
+  });
+
   // Rendering the whole caveman page takes over 5 seconds on a cold run.
   it(
     "keeps Auto-Clarity off on the caveman page when the embedded tab saves",

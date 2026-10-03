@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} inaktiv",
     "dbOverrideCount": "{count} DB-Überschreibungen",
     "searchPlaceholder": "Flags suchen...",
+    "descriptionModeLabel": "Beschreibungsansicht",
+    "descriptionModeHint": "Beim Darüberfahren: Karten bleiben kompakt, und beim Darüberfahren über eine Beschreibung wird der vollständige Text angezeigt. Vollständiger Text: Zeigt immer die komplette Beschreibung an.",
+    "descriptionModeHover": "Beim Darüberfahren",
+    "descriptionModeFull": "Vollständiger Text",
     "categories": {
       "all": "Alle",
       "security": "Sicherheit",

@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} neamhghníomhach",
     "dbOverrideCount": "{count} sárú DB",
     "searchPlaceholder": "Cuardaigh bratacha...",
+    "descriptionModeLabel": "Amharc tuairisce",
+    "descriptionModeHint": "Ar ainliú: fanann cártaí dlúth agus taispeántar an téacs iomlán nuair a ainlítear thar thuairisc. Téacs iomlán: taispeáin an tuairisc iomlán i gcónaí.",
+    "descriptionModeHover": "Ar ainliú",
+    "descriptionModeFull": "Téacs iomlán",
     "categories": {
       "all": "Gach ceann",
       "security": "Slándáil",

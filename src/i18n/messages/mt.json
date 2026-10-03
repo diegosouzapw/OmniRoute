@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} inattivi",
     "dbOverrideCount": "{count} sostituzzjonijiet tad-DB",
     "searchPlaceholder": "Fittex fost il-flags...",
+    "descriptionModeLabel": "Dehra tad-deskrizzjoni",
+    "descriptionModeHint": "Meta tgħaddi l-maws fuqha: il-kards jibqgħu kompatti u meta tgħaddi l-maws fuq deskrizzjoni jintwera t-test sħiħ. Test sħiħ: dejjem uri d-deskrizzjoni kompluta.",
+    "descriptionModeHover": "Meta tgħaddi l-maws fuqha",
+    "descriptionModeFull": "Test sħiħ",
     "categories": {
       "all": "Kollha",
       "security": "Sigurtà",

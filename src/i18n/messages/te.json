@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ఇన్‌యాక్టివ్",
     "dbOverrideCount": "{count} DB ఓవర్‌రైడ్‌లు",
     "searchPlaceholder": "ఫ్లాగ్‌లను శోధించండి...",
+    "descriptionModeLabel": "వివరణ వీక్షణ",
+    "descriptionModeHint": "హోవర్ చేసినప్పుడు: కార్డ్లు సంక్షిప్తంగా ఉంటాయి మరియు వివరణపై హోవర్ చేస్తే పూర్తి వచనం కనిపిస్తుంది. పూర్తి వచనం: ఎల్లప్పుడూ సంపూర్ణ వివరణను చూపుతుంది.",
+    "descriptionModeHover": "హోవర్ చేసినప్పుడు",
+    "descriptionModeFull": "పూర్తి వచనం",
     "categories": {
       "all": "అన్నీ",
       "security": "భద్రత",

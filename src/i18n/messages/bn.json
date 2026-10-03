@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count}টি নিষ্ক্রিয়",
     "dbOverrideCount": "{count}টি DB ওভাররাইড",
     "searchPlaceholder": "ফ্ল্যাগ খুঁজুন...",
+    "descriptionModeLabel": "বিবরণের দৃশ্য",
+    "descriptionModeHint": "হোভার করলে: কার্ডগুলো সংক্ষিপ্ত থাকে এবং কোনো বিবরণের ওপর হোভার করলে সম্পূর্ণ লেখাটি দেখা যায়। সম্পূর্ণ লেখা: সর্বদা সম্পূর্ণ বিবরণ দেখান।",
+    "descriptionModeHover": "হোভার করলে",
+    "descriptionModeFull": "সম্পূর্ণ লেখা",
     "categories": {
       "all": "সব",
       "security": "নিরাপত্তা",

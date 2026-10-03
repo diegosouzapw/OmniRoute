@@ -4,16 +4,27 @@
 
 ---
 
-Dziękujemy za zainteresowanie współtworzeniem projektu! Ten przewodnik zawiera wszystko, czego potrzebujesz, aby zacząć.
+Dziękujemy za zainteresowanie współtworzeniem projektu! Ten przewodnik zawiera wszystko, czego potrzebujesz, aby rozpocząć.
+
+Oficjalny proces dotyczący poszczególnych zmian opisano w
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md). Dokument ten przyporządkowuje zmiany dotyczące dostawców, routingu,
+UI/UX, i18n, CLI, bazy danych oraz kompilacji/wdrażania do odpowiednich kontraktów, ukierunkowanych testów, zakresu CI
+i kroków uzgadniania.
 
 ---
 
-## Konfiguracja środowiska deweloperskiego
+## Konfiguracja środowiska programistycznego
 
 ### Wymagania wstępne
 
-- **Node.js** `>=22.22.3 <23`, lub `>=24.0.0 <27` (zalecane: 24 LTS)
+- **Node.js** `>=22.22.3 <23` lub `>=24.0.0 <27` (zalecane: 24 LTS)
 - **npm** 10+
+
+> **Użytkownicy npm v11+ (Node 24+):** Po wykonaniu `npm install` sprawdź, czy moduły natywne zostały zainstalowane:
+> `node -e "require('better-sqlite3')"`. Jeśli polecenie zakończy się błędem `MODULE_NOT_FOUND`,
+> uruchom `npm approve-scripts better-sqlite3 && npm install`. Zobacz
+> [Rozwiązywanie problemów](docs/guides/TROUBLESHOOTING.md#npm-v11-better-sqlite3-not-installed-cannot-find-module).
+
 - **Git**
 
 ### Klonowanie i instalacja
@@ -27,230 +38,250 @@ npm install
 ### Zmienne środowiskowe
 
 ```bash
-# Create your .env from the template
+# Utwórz plik .env na podstawie szablonu
 cp .env.example .env
 
-# Generate required secrets
+# Wygeneruj wymagane sekrety
 echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Kluczowe zmienne na potrzeby developmentu:
+Najważniejsze zmienne używane podczas programowania:
 
-| Zmienna                | Domyślna (dev)           | Opis                        |
-| ---------------------- | ------------------------ | --------------------------- |
-| `PORT`                 | `20128`                  | Port serwera                |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Bazowy URL frontendu        |
-| `JWT_SECRET`           | (wygeneruj powyżej)      | Sekret do podpisywania JWT  |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | Hasło pierwszego logowania  |
-| `APP_LOG_LEVEL`        | `info`                   | Poziom szczegółowości logów |
+| Zmienna                | Domyślna wartość deweloperska | Opis                               |
+| ---------------------- | ----------------------------- | ---------------------------------- |
+| `PORT`                 | `20128`                       | Port serwera                       |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128`      | Bazowy adres URL interfejsu        |
+| `JWT_SECRET`           | (wygeneruj powyżej)           | Sekret do podpisywania tokenów JWT |
+| `INITIAL_PASSWORD`     | `CHANGEME`                    | Hasło pierwszego logowania         |
+| `APP_LOG_LEVEL`        | `info`                        | Poziom szczegółowości dzienników   |
 
-### Ustawienia dashboardu
+### Ustawienia panelu
 
-Dashboard udostępnia przełączniki UI dla funkcji, które można też konfigurować przez zmienne środowiskowe:
+Panel udostępnia przełączniki interfejsu dla funkcji, które można również konfigurować za pomocą zmiennych środowiskowych:
 
-| Lokalizacja ustawienia | Przełącznik        | Opis                              |
-| ---------------------- | ------------------ | --------------------------------- |
-| Settings → Advanced    | Debug Mode         | Włącz logi debugowania żądań (UI) |
-| Settings → General     | Sidebar Visibility | Pokaż/ukryj sekcje paska bocznego |
+| Lokalizacja ustawienia    | Przełącznik               | Opis                                           |
+| ------------------------- | ------------------------- | ---------------------------------------------- |
+| Ustawienia → Zaawansowane | Tryb debugowania          | Włącza dzienniki debugowania żądań (interfejs) |
+| Ustawienia → Ogólne       | Widoczność paska bocznego | Pokazuje/ukrywa sekcje paska bocznego          |
 
-Te ustawienia są przechowywane w bazie danych i utrzymują się po restarcie, nadpisując domyślne wartości env var, gdy są ustawione.
+Ustawienia te są przechowywane w bazie danych i zachowywane po ponownym uruchomieniu, zastępując domyślne wartości zmiennych środowiskowych, jeśli zostały ustawione.
 
-### Uruchamianie lokalnie
+### Uruchamianie lokalne
 
 ```bash
-# Development mode (hot reload)
+# Tryb programistyczny (automatyczne przeładowywanie)
 npm run dev
 
-# Production build
-npm run build    # next build → .build/next/ then assembleStandalone → dist/
+# Kompilacja produkcyjna
+npm run build    # next build → .build/next/, następnie assembleStandalone → dist/
 npm run start
 
-# Release build (clean rebuild + HEAD sentinel — required for deploy)
-npm run build:release   # rm -rf .build dist && build + writes dist/BUILD_SHA
+# Szybka kompilacja tylko backendu/API na potrzeby zmian wprowadzanych przez współtwórców
+npm run build:contributor
 
-# Common port configuration
+# Kompilacja wydania (czysta ponowna kompilacja + znacznik HEAD — wymagana do wdrożenia)
+npm run build:release   # rm -rf .build dist && build + zapisuje dist/BUILD_SHA
+
+# Typowa konfiguracja portu
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-### Układ artefaktów builda
+Kompilacja dla współtwórców przeprowadza wyłącznie walidację kompilacji: nie tworzy samodzielnej
+dystrybucji ani opcjonalnych natywnych zasobów pakietu. Użyj standardowej kompilacji produkcyjnej,
+gdy musisz zweryfikować pakiet gotowy do dystrybucji.
 
-| Katalog   | Zawartość                                                                    | Śledzony |
-| --------- | ---------------------------------------------------------------------------- | -------- |
-| `src/`    | Kod źródłowy aplikacji (TypeScript / TSX)                                    | Tak      |
-| `.build/` | Pliki pośrednie — wyjście `next build` (gitignored, `distDir = .build/next`) | Nie      |
-| `dist/`   | Pakiet do dystrybucji — składany przez `assembleStandalone` (gitignored)     | Nie      |
+### Układ wyników kompilacji
 
-Pipeline builda to jedno przejście:
+| Katalog   | Zawartość                                                                                 | Śledzony |
+| --------- | ----------------------------------------------------------------------------------------- | -------- |
+| `src/`    | Kod źródłowy aplikacji (TypeScript / TSX)                                                 | Tak      |
+| `.build/` | Pliki pośrednie — wynik `next build` (ignorowany przez Git, `distDir = .build/next`)      | Nie      |
+| `dist/`   | Pakiet gotowy do dystrybucji — tworzony przez `assembleStandalone` (ignorowany przez Git) | Nie      |
+
+Potok kompilacji przebiega w jednym przejściu:
 
 ```
 npm run build
-  └─ next build → .build/next/standalone  (Next.js output)
-  └─ assembleStandalone()                 (copies standalone + static + public + native assets)
-       └─ output: dist/                   (server.js, .next/static/, public/, node_modules/)
+  └─ next build → .build/next/standalone  (wynik Next.js)
+  └─ assembleStandalone()                 (kopiuje wersję samodzielną + pliki statyczne + publiczne + zasoby natywne)
+       └─ wynik: dist/                    (server.js, .next/static/, public/, node_modules/)
 ```
 
 `npm run build:release` dodatkowo najpierw czyści oba katalogi i zapisuje
-`dist/BUILD_SHA` (= `git rev-parse --short HEAD`) jako sentinel integralności deployu.
+`dist/BUILD_SHA` (= `git rev-parse --short HEAD`) jako znacznik integralności wdrożenia.
 
-> **Uwaga o deployu VPS:** zdalny katalog obrazu `/usr/lib/node_modules/omniroute/app/`
-> pozostaje bez zmian. Skille deployu robią rsync zawartości `dist/` do tego katalogu.
-> Zmieniła się tylko ścieżka wyjścia builda w repozytorium (`app/` → `dist/`).
+`npm run build:contributor` korzysta z profilu kompilacji obejmującego wyłącznie backend. Podczas kompilacji tymczasowo zastępuje
+pliki interfejsu panelu atrapami, zachowuje procedury obsługi tras API, a po kompilacji przywraca oryginalne pliki.
+Użyj `npm run build` w przypadku zmian wpływających na interfejs panelu lub do pełnej
+walidacji wydania; profil dla współtwórców nie zastępuje kompilacji wydania.
 
-Domyślne URL-e:
+> **Uwaga dotycząca wdrażania na VPS:** katalog obrazu zdalnego `/usr/lib/node_modules/omniroute/app/`
+> pozostaje bez zmian. Narzędzia wdrożeniowe synchronizują do niego zawartość katalogu `dist/` za pomocą rsync.
+> Zmieniła się jedynie ścieżka wynikowa kompilacji w repozytorium (`app/` → `dist/`).
 
-- **Dashboard**: `http://localhost:20128/dashboard`
+Domyślne adresy URL:
+
+- **Panel**: `http://localhost:20128/dashboard`
 - **API**: `http://localhost:20128/v1`
 
 ---
 
-## Przepływ pracy Git
+## Przepływ pracy z Git
 
-> ⚠️ **NIGDY nie commituj bezpośrednio do `main`.** Zawsze używaj branchy funkcyjnych.
+> ⚠️ **NIGDY nie wykonuj commitów bezpośrednio do `main`.** Zawsze używaj gałęzi funkcjonalnych.
 >
-> **Baza PR:** celuj w aktywny branch `release/vX.Y.Z` (nie `main`). Zobacz
-> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) dla modelu
-> release-per-branch + tag-at-ship.
+> **Gałąź bazowa PR:** wybierz aktywną gałąź `release/vX.Y.Z` (nie `main`). Zobacz
+> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md), aby poznać model
+> osobnej gałęzi dla każdego wydania oraz tworzenia tagu podczas publikacji.
 
 ```bash
-# Branch from the active release tip (example: release/v3.8.49)
+# Utwórz gałąź od najnowszego commita aktywnej gałęzi wydania (przykład: release/v3.8.49)
 git fetch origin
 git checkout -b feat/your-feature-name origin/release/v3.8.49
-# ... make changes ...
-git commit -m "feat: describe your change"
+# ... wprowadź zmiany ...
+git commit -m "feat: opisz swoją zmianę"
 git push -u origin feat/your-feature-name
-# Open a Pull Request with base = release/v3.8.49
+# Otwórz Pull Request z base = release/v3.8.49
 ```
 
-### Nazewnictwo branchy
+### Nazewnictwo gałęzi
 
-| Prefiks     | Przeznaczenie             |
-| ----------- | ------------------------- |
-| `feat/`     | Nowe funkcje              |
-| `fix/`      | Poprawki błędów           |
-| `refactor/` | Restrukturyzacja kodu     |
-| `docs/`     | Zmiany w dokumentacji     |
-| `test/`     | Dodawanie/poprawki testów |
-| `chore/`    | Tooling, CI, zależności   |
+| Prefiks     | Przeznaczenie                |
+| ----------- | ---------------------------- |
+| `feat/`     | Nowe funkcje                 |
+| `fix/`      | Poprawki błędów              |
+| `refactor/` | Restrukturyzacja kodu        |
+| `docs/`     | Zmiany w dokumentacji        |
+| `test/`     | Dodawanie/poprawianie testów |
+| `chore/`    | Narzędzia, CI, zależności    |
 
 ### Komunikaty commitów
 
-Stosuj [Conventional Commits](https://www.conventionalcommits.org/):
+Stosuj standard [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update SECURITY.md with PII protection
-test: add observability unit tests
-refactor(db): consolidate rate limit tables
+feat: dodaj wyłącznik awaryjny dla wywołań dostawców
+fix: rozwiąż przypadek brzegowy walidacji sekretu JWT
+docs: zaktualizuj SECURITY.md o ochronę danych PII
+test: dodaj testy jednostkowe obserwowalności
+refactor(db): skonsoliduj tabele limitów szybkości
 ```
 
-Scopes (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`, `cloud-agent`, `guardrails`, `compression`, `auto-combo`, `resilience`, `providers`, `executors`, `translator`, `domain`, `authz`.
+Zakresy (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`, `cloud-agent`, `guardrails`, `compression`, `auto-combo`, `resilience`, `providers`, `executors`, `translator`, `domain`, `authz`.
 
 ---
 
 ## Uruchamianie testów
 
 ```bash
-# All tests (unit + vitest + ecosystem + e2e)
+# Wszystkie testy (jednostkowe + vitest + ekosystemowe + e2e)
 npm run test:all
 
-# Single test file (Node.js native test runner — most tests use this)
+# Pojedynczy plik testowy (natywny mechanizm uruchamiania testów Node.js — korzysta z niego większość testów)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest (MCP server, autoCombo, cache)
+# Tylko testy jednostkowe, na które wpływa Twoja zmiana (ten sam selektor TIA co w bramce CI, #8084)
+npm run test:scoped            # zmiany w ostatnim commicie (lub w drzewie roboczym)
+npm run test:scoped:staged     # tylko przygotowane zmiany — dobrze współpracuje z uruchomieniem przed commitem
+npm run test:scoped:full       # najpierw przebuduj mapę grafu importów (po dodaniu/przeniesieniu plików)
+# Kod wyjścia 1 + „uruchom pełny zestaw” oznacza, że zmienił się plik centralny (tsconfig, package.json, …)
+# lub nieodwzorowany plik źródłowy — selektor działa bezpiecznie i nigdy nie pomija niczego po cichu.
+
+# Vitest (serwer MCP, autoCombo, pamięć podręczna)
 npm run test:vitest
 
-# E2E tests (requires Playwright)
+# Testy E2E (wymagają Playwright)
 npm run test:e2e
 
-# Protocol clients E2E (MCP transports, A2A)
+# Testy E2E klientów protokołów (transporty MCP, A2A)
 npm run test:protocols:e2e
 
-# Ecosystem compatibility tests
+# Testy zgodności z ekosystemem
 npm run test:ecosystem
 
-# Coverage gate: 60% statements/lines/functions/branches
+# Bramka pokrycia: 60% instrukcji/wierszy/funkcji/gałęzi
 npm run test:coverage
 npm run coverage:report
 
-# Lint + format check
+# Lintowanie + sprawdzanie formatowania
 npm run lint
 npm run check
 
-# Gated real-upstream combo smoke (requires VPS access + real provider credits)
-# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
-# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
+# Warunkowo uruchamiany test dymny kombinacji z rzeczywistymi usługami upstream (wymaga dostępu do VPS + środków u rzeczywistych dostawców)
+# Korzysta z RZECZYWISTYCH dostawców — generuje niewielkie koszty. NIGDY nie jest uruchamiany w CI. Bez warunku jest prawidłowo pomijany.
+# Wymaga: dostępu ssh root@192.168.0.15 (pobiera z VPS migawkę bazy danych tylko do odczytu).
 RUN_COMBO_LIVE=1 npm run test:combo:live
 
-# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
-# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
-# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
-# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
-npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
-npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
+# Test dymny na żywo VPS fazy 3 — zwykłe skrypty Node ESM komunikujące się bezpośrednio z działającym serwerem .15.
+# Wymaga: dostępu ssh root@192.168.0.15 (kombinacje są tworzone/usuwane przez SSH sqlite).
+# Korzysta z RZECZYWISTYCH dostawców (niewielki koszt). Tworzy/usuwa tylko kombinacje __live_test__*. NIGDY nie jest uruchamiany w CI.
+# REQUIRE_API_KEY=false na .15, więc klucz API nie jest potrzebny, ale respektuje COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY, jeśli je ustawiono.
+npm run test:combo:live:vps              # 7 scenariuszy HTTP (priorytet/cykliczny/ważony/koszt/fuzja/automatyczny + kondycja)
+npm run test:combo:live:vps:failover     # dodaje rzeczywisty scenariusz przełączania awaryjnego między dostawcami (łącznie 8)
 ```
 
-Uwagi o coverage:
+Uwagi dotyczące pokrycia:
 
-- `npm run test:coverage` mierzy pokrycie źródeł głównego pakietu testów jednostkowych, wyklucza `tests/**` i obejmuje `open-sse/**`
-- Pull requesty muszą utrzymywać próg coverage na poziomie **60%+** statements/lines/functions/branches
-- Jeśli PR zmienia kod produkcyjny w `src/`, `open-sse/`, `electron/` lub `bin/`, musi dodać lub zaktualizować automatyczne testy w tym samym PR
-- `npm run coverage:report` wypisuje szczegółowy raport plik po pliku z ostatniego uruchomienia coverage
-- `npm run test:coverage:legacy` zachowuje starszą metrykę do porównań historycznych
-- Zobacz `docs/ops/COVERAGE_PLAN.md` dla etapowego planu poprawy coverage
+- `npm run test:coverage` mierzy pokrycie kodu źródłowego przez główny zestaw testów jednostkowych, wyklucza `tests/**` i obejmuje `open-sse/**`
+- Pull requesty muszą utrzymywać próg pokrycia na poziomie **60%+** instrukcji/wierszy/funkcji/gałęzi
+- Jeśli PR zmienia kod produkcyjny w `src/`, `open-sse/`, `electron/` lub `bin/`, musi w tym samym PR dodawać lub aktualizować testy automatyczne
+- `npm run coverage:report` wyświetla szczegółowy raport dla poszczególnych plików z ostatniego uruchomienia testów pokrycia
+- `npm run test:coverage:legacy` zachowuje starszą metrykę na potrzeby porównań historycznych
+- Zobacz `docs/ops/COVERAGE_PLAN.md`, aby poznać etapowy plan poprawy pokrycia
 
-### Wymagania wobec pull requestów
+### Wymagania dotyczące Pull Requestów
 
-Przed otwarciem PR uruchom skupioną pętlę dla tego, co zmieniłeś. Pełny pakiet testów
-jednostkowych (4 shardy CI), Vitest, próg coverage **60%+** oraz build produkcyjny to
-odpowiedzialność CI — lokalne ich uruchamianie nie daje sygnału, którego nie dadzą już
-checki PR, a na mniejszych maszynach może nasycić host (#8084):
+Przed otwarciem PR skorzystaj z
+[zalecanej ścieżki wnoszenia wkładu](docs/ops/CONTRIBUTION_GOLDEN_PATH.md), aby uruchomić ukierunkowaną pętlę dla
+wprowadzonych zmian. Za pełny zestaw testów jednostkowych (4 fragmenty CI), Vitest, bramkę pokrycia **60%+** oraz
+kompilację produkcyjną odpowiada CI — uruchamianie ich lokalnie nie dostarcza żadnych dodatkowych informacji ponad to,
+co i tak zapewnią kontrole PR, a na słabszych maszynach może przeciążyć hosta (#8084):
 
-- Uruchom pliki testów obejmujące Twoją zmianę: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Uruchom pliki testowe obejmujące Twoją zmianę: `node --import tsx/esm --test tests/unit/<file>.test.ts`
 - Uruchom `npm run lint`
-- Dołącz lub zaktualizuj automatyczne testy w tym samym PR przy każdej zmianie kodu produkcyjnego
-- W opisie PR wymień zmienione lub dodane pliki testów, gdy zmieniał się kod produkcyjny
-- Sprawdź wynik SonarQube na PR, gdy sekrety projektu są skonfigurowane w CI
+- Za każdym razem, gdy zmienia się kod produkcyjny, dodaj lub zaktualizuj testy automatyczne w tym samym PR
+- Jeśli zmienił się kod produkcyjny, wymień zmienione lub dodane pliki testowe w opisie PR
+- Sprawdź wynik SonarQube w PR, gdy sekrety projektu są skonfigurowane w CI
 
-Aktualny status testów: **122 pliki testów jednostkowych** obejmujące:
+Aktualny stan testów: **122 pliki testów jednostkowych** obejmujące:
 
-- Translatory providerów i konwersję formatów
-- Rate limiting, circuit breaker i resilience
-- Semantic cache, idempotency, śledzenie postępu
+- Translatory dostawców i konwersję formatów
+- Ograniczanie szybkości, wyłącznik awaryjny i odporność
+- Semantyczną pamięć podręczną, idempotencję i śledzenie postępu
 - Operacje na bazie danych i schemat (21 modułów DB)
 - Przepływy OAuth i uwierzytelnianie
-- Walidację endpointów API (Zod v4)
-- Narzędzia serwera MCP i egzekwowanie scope’ów
+- Walidację punktów końcowych API (Zod v4)
+- Narzędzia serwera MCP i wymuszanie zakresów
 - Systemy Memory i Skills
 
 ---
 
 ## Styl kodu
 
-- **ESLint** — Uruchom `npm run lint` przed commitem
-- **Prettier** — Autoformatowanie przez `lint-staged` przy commicie (2 spacje, średniki, podwójne cudzysłowy, szerokość 100 znaków, przecinki końcowe es5)
-- **TypeScript** — Cały kod w `src/` używa `.ts`/`.tsx`; `open-sse/` używa `.ts`/`.js`; dokumentuj przez TSDoc (`@param`, `@returns`, `@throws`)
-- **Bez `eval()`** — ESLint egzekwuje `no-eval`, `no-implied-eval`, `no-new-func`
-- **Walidacja Zod** — Używaj schematów Zod v4 do walidacji wszystkich wejść API
-- **Nazewnictwo**: Pliki = camelCase/kebab-case, komponenty = PascalCase, stałe = UPPER_SNAKE
+- **ESLint** — uruchom `npm run lint` przed zatwierdzeniem zmian
+- **Prettier** — automatyczne formatowanie za pomocą `lint-staged` podczas zatwierdzania zmian (2 spacje, średniki, podwójne cudzysłowy, szerokość 100 znaków, końcowe przecinki zgodne z es5)
+- **TypeScript** — cały kod w `src/` używa `.ts`/`.tsx`; `open-sse/` używa `.ts`/`.js`; dokumentuj za pomocą TSDoc (`@param`, `@returns`, `@throws`)
+- **Bez `eval()`** — ESLint wymusza `no-eval`, `no-implied-eval`, `no-new-func`
+- **Walidacja Zod** — używaj schematów Zod v4 do walidacji wszystkich danych wejściowych API
+- **Nazewnictwo**: pliki = camelCase/kebab-case, komponenty = PascalCase, stałe = UPPER_SNAKE
 
 ### Obsługa błędów / puste bloki catch
 
-Nigdy nie zostawiaj `catch` bez wyjaśnienia. Przypisz go do jednego z dwóch kubełków (operacjonalizuje
-twardą regułę „nigdy nie połykaj po cichu błędów w strumieniach SSE”):
+Nigdy nie pozostawiaj bloku `catch` bez wyjaśnienia. Przypisz go do jednej z dwóch kategorii (stanowi to praktyczne zastosowanie
+bezwzględnej zasady „nigdy nie ignoruj po cichu błędów w strumieniach SSE”):
 
-- **Zamierzone (nasze własne best-effort cleanup/telemetry)** — awaria tutaj jest oczekiwana i
-  nieszkodliwa; dodaj jednoliniowy komentarz z uzasadnieniem, bez logowania (logowanie przy każdym
-  żądaniu to szum, którego ta konwencja unika).
+- **Celowe (nasze własne czyszczenie/telemetria typu best-effort)** — błąd w tym miejscu jest oczekiwany i
+  nieszkodliwy; dodaj jednowierszowy komentarz z uzasadnieniem, bez logowania (ta konwencja pozwala uniknąć
+  szumu wynikającego z logowania każdego żądania).
 
   ```ts
-  } catch {} // closing an already-closed controller after client disconnect is expected
+  } catch {} // zamknięcie już zamkniętego kontrolera po rozłączeniu klienta jest oczekiwane
   ```
 
-- **Należy zalogować (kod zewnętrzny/dostarczony przez wywołującego, albo połykanie zmienia flow sterowania)** — zachowaj
-  catch (nigdy nie pozwól mu przerwać streamu), ale wyemituj kontekstowy `console.debug`/`warn`, aby
-  awaria była wykrywalna.
+- **Należy logować (kod zewnętrzny/dostarczony przez wywołującego albo zignorowanie błędu zmienia przepływ sterowania)** — zachowaj
+  blok catch (nigdy nie pozwalaj, aby przerwał strumień), ale wyemituj kontekstowy wpis `console.debug`/`warn`, aby
+  błąd można było wykryć.
 
   ```ts
   } catch (e) {
@@ -258,7 +289,7 @@ twardą regułę „nigdy nie połykaj po cichu błędów w strumieniach SSE”)
   }
   ```
 
-Zobacz `open-sse/utils/stream.ts` i `open-sse/utils/streamHandler.ts` jako zastosowane przykłady.
+Przykłady zastosowania znajdują się w `open-sse/utils/stream.ts` i `open-sse/utils/streamHandler.ts`.
 
 ---
 
@@ -266,27 +297,27 @@ Zobacz `open-sse/utils/stream.ts` i `open-sse/utils/streamHandler.ts` jako zasto
 
 ```
 src/                        # TypeScript (.ts / .tsx)
-├── app/                    # Next.js 16 App Router
+├── app/                    # App Router Next.js 16
 │   ├── (dashboard)/        # Strony panelu (23 sekcje)
 │   ├── api/                # Trasy API (51 katalogów)
 │   └── login/              # Strony uwierzytelniania (.tsx)
 ├── domain/                 # Silnik zasad (policyEngine, comboResolver, costRules itd.)
 ├── lib/                    # Podstawowa logika biznesowa (.ts)
 │   ├── a2a/                # Serwer protokołu Agent-to-Agent v0.3
-│   ├── acp/                # Rejestr protokołu Agent Communication Protocol
+│   ├── acp/                # Rejestr Agent Communication Protocol
 │   ├── compliance/         # Silnik zasad zgodności
 │   ├── db/                 # Moduły domenowe SQLite + 130 migracji
 │   ├── memory/             # Trwała pamięć konwersacyjna
-│   ├── oauth/              # Dostawcy OAuth, usługi i narzędzia
+│   ├── oauth/              # Dostawcy, usługi i narzędzia OAuth
 │   ├── skills/             # Rozszerzalny framework umiejętności
 │   ├── usage/              # Śledzenie użycia i obliczanie kosztów
-│   └── localDb.ts          # Wyłącznie warstwa reeksportu — nigdy nie dodawaj tutaj logiki
+│   └── localDb.ts          # Wyłącznie warstwa ponownego eksportu — nigdy nie dodawaj tutaj logiki
 ├── middleware/              # Oprogramowanie pośredniczące żądań (promptInjectionGuard)
-├── mitm/                   # Serwer proxy MITM (certyfikaty, DNS, routing docelowy)
+├── mitm/                   # Proxy MITM (certyfikaty, DNS, routing docelowy)
 ├── shared/
 │   ├── components/         # Komponenty React (.tsx)
 │   ├── constants/          # Definicje dostawców (329), zakresy MCP, 19 strategii routingu
-│   ├── utils/              # Wyłącznik obwodu, narzędzie oczyszczające, funkcje pomocnicze uwierzytelniania
+│   ├── utils/              # Wyłącznik obwodu, sanityzator, narzędzia uwierzytelniania
 │   └── validation/         # Schematy Zod v4
 └── sse/                    # Potok proxy SSE
 
@@ -297,62 +328,62 @@ open-sse/                   # Przestrzeń robocza @omniroute/open-sse
 ├── services/               # 178 usług najwyższego poziomu (combo, autoCombo, rateLimitManager itd.)
 ├── translator/             # Translatory formatów (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
 ├── transformer/            # Transformator Responses API
-└── utils/                  # 22 moduły narzędziowe (strumień, TLS, proxy, rejestrowanie)
+└── utils/                  # 22 moduły narzędziowe (strumień, TLS, proxy, logowanie)
 
-electron/                   # Wieloplatformowa aplikacja desktopowa Electron
+electron/                   # Wieloplatformowa aplikacja komputerowa Electron
 
 tests/
-├── unit/                   # Moduł uruchamiający testy Node.js (1574 pliki testowe)
+├── unit/                   # Mechanizm uruchamiania testów Node.js (1 574 pliki testowe)
 ├── integration/            # Testy integracyjne
 ├── e2e/                    # Testy Playwright
 ├── security/               # Testy bezpieczeństwa
-├── translator/             # Testy specyficzne dla translatora
+├── translator/             # Testy dotyczące translatora
 └── load/                   # Testy obciążeniowe
 
 docs/
 ├── adr/                     # Rejestry decyzji architektonicznych
 ├── architecture/            # Architektura i odporność systemu
-├── comparison/              # OmniRoute a rozwiązania alternatywne
+├── comparison/              # OmniRoute w porównaniu z alternatywami
 ├── compression/             # Przewodniki i reguły kompresji
 ├── dev/                     # Przewodniki programistyczne
 ├── diagrams/                # Diagramy architektury
-├── frameworks/              # MCP, A2A, OpenCode, pamięć, umiejętności
+├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
 ├── guides/                  # Podręcznik użytkownika, Docker, konfiguracja, rozwiązywanie problemów
-├── i18n/                    # Umiędzynarodowione tłumaczenia README
+├── i18n/                    # Międzynarodowe tłumaczenia README
 ├── marketing/               # Materiały marketingowe
-├── ops/                     # Wdrażanie, proxy, pokrycie testami, wydania
-├── providers/               # Dokumentacja poszczególnych dostawców
+├── ops/                     # Wdrażanie, proxy, pokrycie, wydania
+├── providers/               # Dokumentacja dotycząca dostawców
 ├── reference/               # Dokumentacja API, zmienne środowiskowe, narzędzia CLI, bezpłatne plany
 ├── releases/                # Informacje o wydaniach
-├── routing/                 # Silnik auto-combo, odtwarzanie rozumowania
+├── routing/                 # Silnik automatycznego łączenia, odtwarzanie rozumowania
 ├── screenshots/             # Zrzuty ekranu panelu
-├── security/                # Mechanizmy ochronne, zgodność, tryb dyskretny, tokeny
+├── security/                # Mechanizmy ochronne, zgodność, ukrywanie, tokeny
 └── specs/                   # Specyfikacje projektowe
 ```
 
 ---
 
-## Dodawanie nowego providera
+## Dodawanie nowego dostawcy
 
-### Krok 1: Zarejestruj stałe providera
+### Krok 1: Zarejestruj stałe dostawcy
 
-Dodaj do `src/shared/constants/providers.ts` — walidacja Zod przy ładowaniu modułu.
+Dodaj je do `src/shared/constants/providers.ts` — są walidowane przez Zod podczas ładowania modułu.
 
-### Krok 2: Dodaj executor (jeśli potrzebna logika niestandardowa)
+### Krok 2: Dodaj executor (jeśli wymagana jest niestandardowa logika)
 
-Utwórz executor w `open-sse/executors/your-provider.ts` rozszerzający bazowy executor.
+Utwórz executor w `open-sse/executors/your-provider.ts`, rozszerzający bazowy executor.
 
-### Krok 3: Dodaj translator (jeśli format inny niż OpenAI)
+### Krok 3: Dodaj translator (jeśli format jest niezgodny z OpenAI)
 
-Utwórz translatory request/response w `open-sse/translator/`.
+Utwórz translatory żądań/odpowiedzi w `open-sse/translator/`.
 
-### Krok 4: Dodaj konfigurację OAuth (jeśli oparty o OAuth)
+### Krok 4: Dodaj konfigurację OAuth (jeśli dostawca korzysta z OAuth)
 
-Dodaj poświadczenia OAuth w `src/lib/oauth/constants/oauth.ts` oraz serwis w `src/lib/oauth/services/`.
+Dodaj dane uwierzytelniające OAuth w `src/lib/oauth/constants/oauth.ts` oraz usługę w `src/lib/oauth/services/`.
 
-Jeśli upstream provider dystrybuuje publiczny OAuth client_id/secret lub klucz Firebase Web API w swoim publicznym CLI / pakiecie przeglądarkowym, **nie** osadzaj go jako literału stringowego. Użyj `resolvePublicCred()` z `open-sse/utils/publicCreds.ts` i dodaj zamaskowany wpis bajtowy do `EMBEDDED_DEFAULTS`. Pełny obowiązkowy workflow jest udokumentowany w [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
+Jeśli dostawca nadrzędny rozpowszechnia publiczny OAuth client_id/secret lub klucz Firebase Web API w swoim publicznym CLI / pakiecie przeglądarkowym, **nie** osadzaj go jako literału ciągu znaków. Użyj `resolvePublicCred()` z `open-sse/utils/publicCreds.ts` i dodaj zamaskowany wpis bajtowy do `EMBEDDED_DEFAULTS`. Pełny obowiązkowy proces opisano w [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-Wewnątrz handlers/executors komunikaty błędów docierające do klienta muszą przechodzić przez `buildErrorBody()` / `sanitizeErrorMessage()` z `open-sse/utils/error.ts` — nigdy nie umieszczaj surowego `err.stack` ani `err.message` w ciele Response. Zobacz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
+W handlerach/executorach komunikaty o błędach przekazywane klientowi muszą przechodzić przez `buildErrorBody()` / `sanitizeErrorMessage()` z `open-sse/utils/error.ts` — nigdy nie umieszczaj nieprzetworzonego `err.stack` ani `err.message` w treści Response. Zobacz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
 ### Krok 5: Zarejestruj modele
 
@@ -360,40 +391,40 @@ Dodaj definicje modeli w `open-sse/config/providerRegistry.ts`.
 
 ### Krok 6: Dodaj testy
 
-Napisz testy jednostkowe w `tests/unit/` obejmujące co najmniej:
+Napisz testy jednostkowe w `tests/unit/`, obejmujące co najmniej:
 
-- Rejestrację providera
-- Translację request/response
+- Rejestrację dostawcy
+- Translację żądań/odpowiedzi
 - Obsługę błędów
 
 ---
 
-## Checklista pull requesta
+## Lista kontrolna pull requestu
 
 - [ ] Testy przechodzą (`npm test`)
-- [ ] Linting przechodzi (`npm run lint`)
-- [ ] Build się udaje (`npm run build`)
-- [ ] Dodane typy TypeScript dla nowych publicznych funkcji i interfejsów
-- [ ] Brak zahardkodowanych sekretów lub wartości fallback
-- [ ] Publiczne poświadczenia upstream osadzone przez `resolvePublicCred()` (zobacz [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nigdy jako literały
-- [ ] Odpowiedzi błędów idą przez `buildErrorBody()` / `sanitizeErrorMessage()` — bez surowych stack trace’ów w ciałach odpowiedzi (zobacz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Komendy powłoki (`exec` / `spawn`) przekazują wartości runtime przez `env`, nie przez interpolację stringów
-- [ ] Wszystkie wejścia walidowane schematami Zod
-- [ ] Dodany **fragment** changelogu w `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` dla zmian widocznych dla użytkownika (zobacz [`changelog.d/README.md`](./changelog.d/README.md)) — **nie** edytuj `CHANGELOG.md` bezpośrednio; fragmenty są agregowane w czasie release i nigdy nie kolidują między PR-ami
-- [ ] Zaktualizowana dokumentacja (jeśli dotyczy)
-- [ ] Brak nowych alertów CodeQL / Secret-Scanning, albo każdy odrzucony z technicznym uzasadnieniem odwołującym się do odpowiedniego dokumentu w `docs/security/`
-- [ ] Trasy uruchamiające procesy potomne (`/api/mcp/`, `/api/cli-tools/runtime/`) sklasyfikowane jako `isLocalOnlyPath()` w `src/server/authz/routeGuard.ts` — zobacz [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Brak trailerów `Co-Authored-By` w komunikatach commitów — commity muszą figurować wyłącznie pod tożsamością Git właściciela repozytorium (Hard Rule #16)
+- [ ] Lintowanie przechodzi (`npm run lint`)
+- [ ] Kompilacja kończy się powodzeniem (`npm run build`)
+- [ ] Dodano typy TypeScript dla nowych publicznych funkcji i interfejsów
+- [ ] Brak zakodowanych na stałe sekretów lub wartości zapasowych
+- [ ] Publiczne dane uwierzytelniające dostawcy nadrzędnego osadzono za pomocą `resolvePublicCred()` (zobacz [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nigdy jako literały
+- [ ] Odpowiedzi o błędach przechodzą przez `buildErrorBody()` / `sanitizeErrorMessage()` — brak nieprzetworzonych śladów stosu w treściach odpowiedzi (zobacz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Polecenia powłoki (`exec` / `spawn`) przekazują wartości środowiska wykonawczego przez `env`, a nie przez interpolację ciągów znaków
+- [ ] Wszystkie dane wejściowe są walidowane za pomocą schematów Zod
+- [ ] Dodano **fragment** dziennika zmian w `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` dla zmian widocznych dla użytkownika (zobacz [`changelog.d/README.md`](./changelog.d/README.md)) — **nie** edytuj bezpośrednio `CHANGELOG.md`; fragmenty są agregowane podczas wydania i nigdy nie powodują konfliktów między pull requestami
+- [ ] Zaktualizowano dokumentację (jeśli dotyczy)
+- [ ] Nie utworzono żadnych nowych alertów CodeQL / Secret-Scanning albo każdy z nich odrzucono z uzasadnieniem technicznym odwołującym się do odpowiedniego dokumentu w `docs/security/`
+- [ ] Trasy uruchamiające procesy potomne (`/api/mcp/`, `/api/cli-tools/runtime/`) sklasyfikowano jako `isLocalOnlyPath()` w `src/server/authz/routeGuard.ts` — zobacz [Twarda reguła #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Brak wpisów końcowych `Co-Authored-By` w komunikatach commitów — commity muszą być przypisane wyłącznie do tożsamości Git właściciela repozytorium (Twarda reguła #16)
 
 ---
 
 ## Wydawanie wersji
 
-Wydania są zarządzane przez workflow `/generate-release`. Gdy tworzony jest nowy GitHub Release, pakiet jest **automatycznie publikowany do npm** przez GitHub Actions.
+Wydania są zarządzane za pomocą przepływu pracy `/generate-release`. Po utworzeniu nowego wydania GitHub pakiet jest **automatycznie publikowany w npm** za pośrednictwem GitHub Actions.
 
-Do deployów VPS używaj `npm run build:release` (nie `npm run build`) — wykonuje czysty
-rebuild, składa pakiet do `dist/` i zapisuje sentinel `dist/BUILD_SHA`.
-Następnie użyj skilli `/deploy-vps-*-cc`, które robią rsync `dist/` do zdalnego katalogu `app/`.
+W przypadku wdrożeń na VPS użyj `npm run build:release` (zamiast `npm run build`) — polecenie wykonuje czystą
+przebudowę, przygotowuje pakiet w katalogu `dist/` i zapisuje plik kontrolny `dist/BUILD_SHA`.
+Następnie użyj umiejętności `/deploy-vps-*-cc`, które synchronizują katalog `dist/` zdalnie za pomocą rsync do katalogu `app/`.
 
 ---
 

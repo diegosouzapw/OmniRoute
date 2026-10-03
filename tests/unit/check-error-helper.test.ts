@@ -245,6 +245,101 @@ test("6A.8: does NOT flag api route.ts that imports utils/error", () => {
   assert.deepEqual(result, []);
 });
 
+// --- G-11 (#15159): MCP tool-result shapes the gate historically could not see ---
+
+test("G-11: flags an MCP tool result built from an alias-laundered raw error", () => {
+  // The exact advancedTools.ts catch shape: `const msg = err.message` on one line,
+  // then `${msg}` interpolated into the client-facing tool result on a later line.
+  const src = `export async function handleThing(args: unknown) {
+  try {
+    return await apiFetch("/api/x");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { content: [{ type: "text" as const, text: \`Error: \${msg}\` }], isError: true };
+  }
+}`;
+  const path = "open-sse/mcp-server/tools/advancedTools.ts";
+  assert.deepEqual(find([{ path, source: src } as FileEntry], EMPTY), [path]);
+});
+
+test("G-11: flags a raw-error ternary in a tool-result error field", () => {
+  // The handleTestCombo per-provider shape (advancedTools.ts:574): the raw error
+  // sits on its own `error:` line inside a returned result object — no builder call.
+  const src = `export async function runModel() {
+  try {
+    return await apiFetch("/v1/chat/completions");
+  } catch (err) {
+    return {
+      provider: "p",
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}`;
+  const path = "open-sse/mcp-server/tools/advancedTools.ts";
+  assert.deepEqual(find([{ path, source: src } as FileEntry], EMPTY), [path]);
+});
+
+test("G-11: does NOT flag a tool result whose alias went through toSafeMcpErrorMessage", () => {
+  const src = `import { toSafeMcpErrorMessage } from "../errorMessage.ts";
+export async function handleThing() {
+  try {
+    return await apiFetch("/api/x");
+  } catch (err) {
+    const msg = toSafeMcpErrorMessage(err, "Tool failed");
+    return { content: [{ type: "text" as const, text: \`Error: \${msg}\` }], isError: true };
+  }
+}`;
+  const path = "open-sse/mcp-server/tools/advancedTools.ts";
+  assert.deepEqual(find([{ path, source: src } as FileEntry], EMPTY), []);
+});
+
+test("G-11: does NOT flag a tainted alias sanitized at the interpolation site", () => {
+  const src = `export async function handleThing() {
+  try {
+    return await apiFetch("/api/x");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { content: [{ type: "text" as const, text: \`Error: \${sanitizeErrorMessage(msg)}\` }], isError: true };
+  }
+}`;
+  const path = "open-sse/mcp-server/tools/advancedTools.ts";
+  assert.deepEqual(find([{ path, source: src } as FileEntry], EMPTY), []);
+});
+
+// --- G-11 false-positive guards (found by running the tightened gate on the repo) ---
+
+test("G-11: does NOT read a ternary `err.message : String(err)` as a field named message", () => {
+  // `err.message : String(err)` contains the text `message :`, which looks exactly
+  // like an object field named `message` to a naive field matcher. A member access
+  // is not a field: the leading `.` must disqualify it. Without this the tightened
+  // gate flags every internal helper that merely formats an error message.
+  const src = `export function describeError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  return err instanceof Error ? err.message : String(err);
+}`;
+  const path = "open-sse/mcp-server/audit.ts";
+  assert.deepEqual(find([{ path, source: src } as FileEntry], EMPTY), []);
+});
+
+test("G-11: does NOT flag a raw error inside a logToolCall audit row", () => {
+  // logToolCall writes the MCP audit DB row — the same internal-sink class the gate
+  // already exempts for saveCallLog. The handler re-throws, so nothing client-facing
+  // is built from errorMessage here.
+  const src = `export async function handleThing(args: unknown) {
+  try {
+    return await doThing();
+  } catch (error) {
+    const duration = Date.now() - start;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    await logToolCall("omniroute_thing", args, { error: errorMessage }, duration, false, "ERROR");
+    throw error;
+  }
+}`;
+  const path = "open-sse/mcp-server/tools/compressionTools.ts";
+  assert.deepEqual(find([{ path, source: src } as FileEntry], EMPTY), []);
+});
+
 // --- 6A.8: stale-allowlist enforcement ---
 
 // @ts-expect-error — reportStaleEntries exported from the gate module

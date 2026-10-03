@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} inactivas",
     "dbOverrideCount": "{count} sobrescrituras de DB",
     "searchPlaceholder": "Buscar flags...",
+    "descriptionModeLabel": "Vista de descripción",
+    "descriptionModeHint": "Al pasar el cursor: las tarjetas permanecen compactas y, al pasar el cursor sobre una descripción, se muestra el texto completo. Texto completo: muestra siempre la descripción completa.",
+    "descriptionModeHover": "Al pasar el cursor",
+    "descriptionModeFull": "Texto completo",
     "categories": {
       "all": "Todas",
       "security": "Seguridad",

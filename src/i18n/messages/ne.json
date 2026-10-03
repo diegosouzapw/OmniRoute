@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} निष्क्रिय",
     "dbOverrideCount": "{count} DB ओभरराइड",
     "searchPlaceholder": "फ्ल्यागहरू खोज्नुहोस्...",
+    "descriptionModeLabel": "विवरण दृश्य",
+    "descriptionModeHint": "होभर गर्दा: कार्डहरू संक्षिप्त रहन्छन् र विवरणमाथि होभर गर्दा पूर्ण पाठ देखिन्छ। पूर्ण पाठ: सधैं पूरा विवरण देखाउनुहोस्।",
+    "descriptionModeHover": "होभर गर्दा",
+    "descriptionModeFull": "पूर्ण पाठ",
     "categories": {
       "all": "सबै",
       "security": "सुरक्षा",

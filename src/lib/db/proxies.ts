@@ -520,9 +520,51 @@ export async function getProxyWhereUsed(proxyId: string) {
     .all(proxyId)
     .map(mapAssignmentRow);
 
+  const connectionRows = db
+    .prepare("SELECT id, provider, provider_specific_data FROM provider_connections ORDER BY rowid")
+    .all() as Array<{
+    id?: string;
+    provider?: string;
+    provider_specific_data?: string | null;
+  }>;
+  const accountReferences: Array<{
+    connectionId: string;
+    provider: string;
+    accountCount: number;
+  }> = [];
+  let accountReferenceCount = 0;
+  for (const connection of connectionRows) {
+    if (typeof connection.id !== "string" || typeof connection.provider !== "string") continue;
+    let providerSpecificData: unknown;
+    try {
+      providerSpecificData = connection.provider_specific_data
+        ? JSON.parse(connection.provider_specific_data)
+        : null;
+    } catch {
+      continue;
+    }
+    if (!providerSpecificData || typeof providerSpecificData !== "object") continue;
+    const accountProxies = (providerSpecificData as { accountProxies?: unknown }).accountProxies;
+    if (!Array.isArray(accountProxies)) continue;
+    const accountCount = accountProxies.filter(
+      (entry) =>
+        !!entry && typeof entry === "object" && (entry as { proxyId?: unknown }).proxyId === proxyId
+    ).length;
+    if (accountCount === 0) continue;
+    accountReferenceCount += accountCount;
+    accountReferences.push({
+      connectionId: connection.id,
+      provider: connection.provider,
+      accountCount,
+    });
+  }
+
   return {
-    count: rows.length,
+    count: rows.length + accountReferenceCount,
+    assignmentCount: rows.length,
     assignments: rows,
+    accountReferenceCount,
+    accountReferences,
   };
 }
 
@@ -704,17 +746,22 @@ export async function deleteProxyById(id: string, options?: { force?: boolean })
 
   if (!force && usage.count > 0) {
     const err = new Error(
-      "Proxy is still assigned. Remove assignments first or use force=true"
+      "Proxy is still in use. Remove assignments or account references first, or use force=true"
     ) as Error & {
       status?: number;
       code?: string;
+      details?: unknown;
     };
     err.status = 409;
     err.code = "proxy_in_use";
+    err.details = usage;
     throw err;
   }
 
   if (force && usage.count > 0) {
+    // Account proxyId references intentionally remain as unresolved required bindings.
+    // Only an explicit account edit may unbind them; clearing them here would make
+    // the next request silently fall back to direct egress.
     db.prepare("DELETE FROM proxy_assignments WHERE proxy_id = ?").run(id);
   }
 

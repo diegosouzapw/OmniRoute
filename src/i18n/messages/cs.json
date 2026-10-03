@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} neaktivních",
     "dbOverrideCount": "{count} přepsání v DB",
     "searchPlaceholder": "Hledat flagy...",
+    "descriptionModeLabel": "Zobrazení popisu",
+    "descriptionModeHint": "Při najetí myší: karty zůstanou kompaktní a po najetí na popis se zobrazí celý text. Celý text: vždy zobrazí úplný popis.",
+    "descriptionModeHover": "Při najetí myší",
+    "descriptionModeFull": "Celý text",
     "categories": {
       "all": "Vše",
       "security": "Zabezpečení",

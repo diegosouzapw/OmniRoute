@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} inactief",
     "dbOverrideCount": "{count} DB-overrides",
     "searchPlaceholder": "Flags zoeken...",
+    "descriptionModeLabel": "Beschrijvingweergave",
+    "descriptionModeHint": "Bij aanwijzen: kaarten blijven compact en wanneer u de aanwijzer op een beschrijving plaatst, wordt de volledige tekst weergegeven. Volledige tekst: toon altijd de complete beschrijving.",
+    "descriptionModeHover": "Bij aanwijzen",
+    "descriptionModeFull": "Volledige tekst",
     "categories": {
       "all": "Alles",
       "security": "Beveiliging",

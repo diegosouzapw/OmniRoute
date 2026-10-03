@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} hindi aktibo",
     "dbOverrideCount": "{count} na DB override",
     "searchPlaceholder": "Maghanap ng mga flag...",
+    "descriptionModeLabel": "View ng paglalarawan",
+    "descriptionModeHint": "Kapag naka-hover: mananatiling compact ang mga card at makikita ang buong teksto kapag nag-hover sa isang paglalarawan. Buong teksto: palaging ipakita ang kumpletong paglalarawan.",
+    "descriptionModeHover": "Kapag naka-hover",
+    "descriptionModeFull": "Buong teksto",
     "categories": {
       "all": "Lahat",
       "security": "Seguridad",

@@ -22,13 +22,14 @@
 // --update regrava o baseline com o estado atual (use só para REMOVER religados;
 // adições novas devem ser corrigidas, não congeladas — esse é o ponto do gate).
 //
-// Limitações documentadas (v1):
-//  - `exclude` de arquivo individual em vitest configs não é modelado (1 caso hoje:
-//    providerDiversity.test.ts — coletado pelo include, deliberadamente excluído).
+// Limitações documentadas:
+//  - Vitest exclude deve ser literal; expressões dinâmicas falham fechadas.
+//  - Quarentena tem coletor separado e nunca conta como execução ativa/saudável.
 //  - @omniroute/* ficam fora do walk (têm CI próprio: opencode-*-ci.yml).
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { parseVitestExcludes, validateQuarantine } from "../quality/quarantine-contract.mjs";
 
 const ROOT = process.cwd();
 const BASELINE_PATH = path.resolve(
@@ -205,8 +206,20 @@ export function globToRegExp(glob) {
 
 /** Arquivos de teste não casados por NENHUM glob de collector (ordem preservada). */
 export function findOrphans(files, globs) {
-  const regexes = globs.map(globToRegExp);
-  return files.filter((f) => !regexes.some((re) => re.test(f)));
+  const collectors = globs.map((entry) => {
+    const collector = typeof entry === "string" ? { glob: entry } : entry;
+    return {
+      include: globToRegExp(collector.glob),
+      exclude: (collector.exclude ?? []).map(globToRegExp),
+    };
+  });
+  return files.filter(
+    (file) =>
+      !collectors.some(
+        (collector) =>
+          collector.include.test(file) && !collector.exclude.some((exclude) => exclude.test(file))
+      )
+  );
 }
 
 /**
@@ -279,10 +292,30 @@ function main() {
 
   // 2) órfãos vs baseline
   const files = collectTestFiles();
-  const orphans = findOrphans(
-    files,
-    COLLECTORS.map((c) => c.glob)
+  const modeled = COLLECTORS.map((collector) => {
+    const config = collector.sources.find((source) => /^vitest.*\.config\.ts$/.test(source));
+    return { ...collector, exclude: config ? parseVitestExcludes(contents[config]) : [] };
+  });
+  const inventory = JSON.parse(
+    fs.readFileSync(path.join(ROOT, "config/quality/vitest-exclusions.json"), "utf8")
   );
+  const quarantineErrors = validateQuarantine(inventory.excluded);
+  const quarantineConfig = fs.readFileSync(path.join(ROOT, "vitest.quarantine.config.ts"), "utf8");
+  const quarantineWorkflow = fs.readFileSync(
+    path.join(ROOT, ".github/workflows/test-quarantine.yml"),
+    "utf8"
+  );
+  if (
+    !quarantineConfig.includes("inventory.excluded.map") ||
+    !quarantineWorkflow.includes("vitest run --config vitest.quarantine.config.ts")
+  ) {
+    quarantineErrors.push("quarantine execution wiring missing");
+  }
+  if (quarantineErrors.length) drift.push(...quarantineErrors);
+  const quarantined = new Set(inventory.excluded.map((entry) => entry.file));
+  const inactive = findOrphans(files, modeled);
+  // Only a valid, wired quarantine may account for a non-active file.
+  const orphans = inactive.filter((file) => quarantineErrors.length || !quarantined.has(file));
   if (!fs.existsSync(BASELINE_PATH) && !UPDATE) {
     console.error(
       `[test-discovery] FAIL — ${path.basename(BASELINE_PATH)} ausente. Bootstrap:\n` +
@@ -299,6 +332,12 @@ function main() {
       };
   const { newOrphans, stale } = evaluateAgainstBaseline(orphans, baseline.orphans || []);
 
+  if (UPDATE && newOrphans.length > 0) {
+    console.error(
+      `[test-discovery] FAIL — --update cannot freeze ${newOrphans.length} new orphan(s); wire their runner instead.`
+    );
+    process.exit(1);
+  }
   if (UPDATE && drift.length === 0) {
     baseline.orphans = orphans;
     fs.writeFileSync(BASELINE_PATH, JSON.stringify(baseline, null, 2) + "\n");
@@ -326,7 +365,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `[test-discovery] OK — ${files.length} arquivos de teste, ${COLLECTORS.length} collectors, ${(baseline.orphans || []).length} órfão(s) congelado(s) (dívida rastreada, só decresce)`
+    `[test-discovery] OK — ${files.length} arquivos de teste, ${COLLECTORS.length} collectors, ${quarantined.size} arquivo(s) inventariado(s) em quarentena (não é PASS ativo), ${(baseline.orphans || []).length} órfão(s) congelado(s) (dívida rastreada, só decresce)`
   );
 }
 

@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} неактивных",
     "dbOverrideCount": "{count} переопределений в БД",
     "searchPlaceholder": "Поиск флагов...",
+    "descriptionModeLabel": "Вид описания",
+    "descriptionModeHint": "При наведении: карточки остаются компактными, а при наведении на описание отображается полный текст. Полный текст: всегда показывать описание целиком.",
+    "descriptionModeHover": "При наведении",
+    "descriptionModeFull": "Полный текст",
     "categories": {
       "all": "Все",
       "security": "Безопасность",

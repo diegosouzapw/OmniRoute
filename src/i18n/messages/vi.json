@@ -11436,10 +11436,10 @@
       "compressed": "Nén",
       "tps": "TPS",
       "duration": "Thời lượng",
+      "addedWait": "Thời gian chờ thêm",
       "time": "Thời gian",
       "conversation": "Cuộc trò chuyện",
-      "ttft": "TTFT",
-      "addedWait": "Thời gian chờ thêm"
+      "ttft": "TTFT"
     },
     "loadingLogs": "Đang tải nhật ký...",
     "noLogs": "Chưa có nhật ký nào. Hãy thực hiện một số cuộc gọi API để xem chúng ở đây.",
@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} không hoạt động",
     "dbOverrideCount": "{count} ghi đè DB",
     "searchPlaceholder": "Tìm kiếm cờ...",
+    "descriptionModeLabel": "Chế độ xem mô tả",
+    "descriptionModeHint": "Khi di chuột: các thẻ vẫn thu gọn và khi di chuột lên phần mô tả sẽ hiển thị toàn bộ văn bản. Toàn văn: luôn hiển thị mô tả đầy đủ.",
+    "descriptionModeHover": "Khi di chuột",
+    "descriptionModeFull": "Toàn văn",
     "categories": {
       "all": "Tất cả",
       "security": "Bảo mật",

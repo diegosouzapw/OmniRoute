@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} غير نشط",
     "dbOverrideCount": "{count} من تجاوزات قاعدة البيانات",
     "searchPlaceholder": "البحث في العلامات...",
+    "descriptionModeLabel": "عرض الوصف",
+    "descriptionModeHint": "عند التمرير: تظل البطاقات مضغوطة، ويؤدي تمرير المؤشر فوق الوصف إلى عرض النص كاملًا. النص الكامل: عرض الوصف كاملًا دائمًا.",
+    "descriptionModeHover": "عند التمرير",
+    "descriptionModeFull": "النص الكامل",
     "categories": {
       "all": "الكل",
       "security": "الأمان",

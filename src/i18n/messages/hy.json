@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ոչ ակտիվ",
     "dbOverrideCount": "{count} DB վերասահմանում",
     "searchPlaceholder": "Որոնել դրոշակներ...",
+    "descriptionModeLabel": "Նկարագրության տեսք",
+    "descriptionModeHint": "Սավառնելիս՝ քարտերը մնում են կոմպակտ, իսկ նկարագրության վրա սավառնելիս ցուցադրվում է ամբողջ տեքստը։ Ամբողջական տեքստ՝ միշտ ցուցադրել ամբողջ նկարագրությունը։",
+    "descriptionModeHover": "Սավառնելիս",
+    "descriptionModeFull": "Ամբողջական տեքստ",
     "categories": {
       "all": "Բոլորը",
       "security": "Անվտանգություն",

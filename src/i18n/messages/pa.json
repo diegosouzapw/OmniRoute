@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ਅਕਿਰਿਆਸ਼ੀਲ",
     "dbOverrideCount": "{count} DB ਓਵਰਰਾਈਡ",
     "searchPlaceholder": "ਫਲੈਗ ਖੋਜੋ...",
+    "descriptionModeLabel": "ਵੇਰਵਾ ਦ੍ਰਿਸ਼",
+    "descriptionModeHint": "ਹੋਵਰ ਕਰਨ 'ਤੇ: ਕਾਰਡ ਸੰਖੇਪ ਰਹਿੰਦੇ ਹਨ ਅਤੇ ਵੇਰਵੇ ਉੱਤੇ ਹੋਵਰ ਕਰਨ ਨਾਲ ਪੂਰਾ ਟੈਕਸਟ ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ। ਪੂਰਾ ਟੈਕਸਟ: ਹਮੇਸ਼ਾਂ ਪੂਰਾ ਵੇਰਵਾ ਦਿਖਾਓ।",
+    "descriptionModeHover": "ਹੋਵਰ ਕਰਨ 'ਤੇ",
+    "descriptionModeFull": "ਪੂਰਾ ਟੈਕਸਟ",
     "categories": {
       "all": "ਸਾਰੇ",
       "security": "ਸੁਰੱਖਿਆ",

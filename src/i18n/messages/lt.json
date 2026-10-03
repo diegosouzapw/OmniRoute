@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} neaktyvios",
     "dbOverrideCount": "{count} DB perrašymų",
     "searchPlaceholder": "Ieškoti žymų...",
+    "descriptionModeLabel": "Aprašo rodinys",
+    "descriptionModeHint": "Užvedus žymeklį: kortelės išlieka kompaktiškos, o užvedus žymeklį ant aprašo rodomas visas tekstas. Visas tekstas: visada rodyti visą aprašą.",
+    "descriptionModeHover": "Užvedus žymeklį",
+    "descriptionModeFull": "Visas tekstas",
     "categories": {
       "all": "Visos",
       "security": "Saugumas",

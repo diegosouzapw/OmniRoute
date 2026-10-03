@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} inaktív",
     "dbOverrideCount": "{count} DB-felülbírálás",
     "searchPlaceholder": "Flag-ek keresése...",
+    "descriptionModeLabel": "Leírásnézet",
+    "descriptionModeHint": "Rámutatáskor: a kártyák kompaktak maradnak, és a leírás fölé mutatva megjelenik a teljes szöveg. Teljes szöveg: mindig a teljes leírás jelenik meg.",
+    "descriptionModeHover": "Rámutatáskor",
+    "descriptionModeFull": "Teljes szöveg",
     "categories": {
       "all": "Összes",
       "security": "Biztonság",

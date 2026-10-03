@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} marasa aiki",
     "dbOverrideCount": "{count} keɓantattun sauye-sauyen DB",
     "searchPlaceholder": "Nemo tutoci...",
+    "descriptionModeLabel": "Duban bayani",
+    "descriptionModeHint": "Lokacin shawagi: katuna suna nan a taƙaice, kuma idan aka shawaga kan bayani, cikakken rubutun yana bayyana. Cikakken rubutu: a koyaushe a nuna cikakken bayanin.",
+    "descriptionModeHover": "Lokacin shawagi",
+    "descriptionModeFull": "Cikakken rubutu",
     "categories": {
       "all": "Duka",
       "security": "Tsaro",

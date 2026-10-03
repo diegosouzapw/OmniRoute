@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} zisizo hai",
     "dbOverrideCount": "Ubatilishaji {count} wa DB",
     "searchPlaceholder": "Tafuta bendera...",
+    "descriptionModeLabel": "Mwonekano wa maelezo",
+    "descriptionModeHint": "Unapoelea juu: kadi hubaki fupi na kuelea juu ya maelezo huonyesha maandishi yote. Maandishi yote: huonyesha maelezo kamili kila wakati.",
+    "descriptionModeHover": "Unapoelea juu",
+    "descriptionModeFull": "Maandishi yote",
     "categories": {
       "all": "Zote",
       "security": "Usalama",

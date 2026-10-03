@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} inativos",
     "dbOverrideCount": "{count} sobreposições de BD",
     "searchPlaceholder": "Pesquisar sinalizadores...",
+    "descriptionModeLabel": "Vista da descrição",
+    "descriptionModeHint": "Ao passar o cursor: os cartões mantêm-se compactos e, ao passar o cursor sobre uma descrição, é apresentado o texto completo. Texto completo: apresenta sempre a descrição completa.",
+    "descriptionModeHover": "Ao passar o cursor",
+    "descriptionModeFull": "Texto completo",
     "categories": {
       "all": "Todos",
       "security": "Segurança",

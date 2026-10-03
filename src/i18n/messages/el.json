@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ανενεργές",
     "dbOverrideCount": "{count} παρακάμψεις ΒΔ",
     "searchPlaceholder": "Αναζήτηση σημαιών...",
+    "descriptionModeLabel": "Προβολή περιγραφής",
+    "descriptionModeHint": "Κατά την αιώρηση: οι κάρτες παραμένουν συμπαγείς και η αιώρηση πάνω από μια περιγραφή εμφανίζει το πλήρες κείμενο. Πλήρες κείμενο: εμφανίζεται πάντα ολόκληρη η περιγραφή.",
+    "descriptionModeHover": "Κατά την αιώρηση",
+    "descriptionModeFull": "Πλήρες κείμενο",
     "categories": {
       "all": "Όλα",
       "security": "Ασφάλεια",

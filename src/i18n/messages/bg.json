@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} неактивни",
     "dbOverrideCount": "{count} DB презаписвания",
     "searchPlaceholder": "Търсене на флагове...",
+    "descriptionModeLabel": "Изглед на описанието",
+    "descriptionModeHint": "При посочване: картите остават компактни, а при посочване върху описание се показва пълният текст. Пълен текст: винаги се показва цялото описание.",
+    "descriptionModeHover": "При посочване",
+    "descriptionModeFull": "Пълен текст",
     "categories": {
       "all": "Всички",
       "security": "Сигурност",

@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ไม่ได้ใช้งาน",
     "dbOverrideCount": "{count} การแทนที่ DB",
     "searchPlaceholder": "ค้นหาแฟล็ก...",
+    "descriptionModeLabel": "มุมมองคำอธิบาย",
+    "descriptionModeHint": "เมื่อวางเมาส์เหนือ: การ์ดจะยังคงมีขนาดกะทัดรัด และเมื่อวางเมาส์เหนือคำอธิบายจะแสดงข้อความทั้งหมด ข้อความทั้งหมด: แสดงคำอธิบายฉบับสมบูรณ์เสมอ",
+    "descriptionModeHover": "เมื่อวางเมาส์เหนือ",
+    "descriptionModeFull": "ข้อความทั้งหมด",
     "categories": {
       "all": "ทั้งหมด",
       "security": "ความปลอดภัย",

@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} inaktive",
     "dbOverrideCount": "{count} DB-tilsidesættelser",
     "searchPlaceholder": "Søg i flag...",
+    "descriptionModeLabel": "Beskrivelsesvisning",
+    "descriptionModeHint": "Ved markering: Kortene forbliver kompakte, og når markøren holdes over en beskrivelse, vises hele teksten. Fuld tekst: Vis altid hele beskrivelsen.",
+    "descriptionModeHover": "Ved markering",
+    "descriptionModeFull": "Fuld tekst",
     "categories": {
       "all": "Alle",
       "security": "Sikkerhed",

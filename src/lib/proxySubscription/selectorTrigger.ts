@@ -38,6 +38,7 @@ import {
   isSelectorMemberAvoided,
   leastRecentlySetAside,
   noteProxyMemberRefusal,
+  type ProxyRefusalKind,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
 import { parseSelectorTag } from "./selectorEndpoint";
 import { getGroupMembers, switchSelector, type SelectorSwitchReason } from "./selectorClient";
@@ -352,7 +353,8 @@ function readSwitchSecret(secretEnc: string | null): string | null {
 async function runSwitch(
   hit: { controlUrl: string; selector: string; secretEnc: string | null; subscriptionId: string },
   setAsideKey: string,
-  now: number
+  now: number,
+  kind: ProxyRefusalKind
 ): Promise<SelectorTriggerResult> {
   const throttleKey = `${hit.subscriptionId} ${hit.selector}`;
   // Reserve the slot BEFORE the await: two concurrent triggers for the same
@@ -392,7 +394,7 @@ async function runSwitch(
   // key, so the repeat doubles from that key's own streak).
   const live = await currentSelectorChoice(hit.controlUrl, secret, hit.selector);
   const currentName = live?.current ?? null;
-  if (currentName) noteProxyMemberRefusal(setAsideKey, currentName, "ip_quota_429", now);
+  if (currentName) noteProxyMemberRefusal(setAsideKey, currentName, kind, now);
   const res = await switchSelector(
     {
       controlUrl: hit.controlUrl,
@@ -432,7 +434,7 @@ function restoreSlot(throttleKey: string, prev: number | undefined): void {
  */
 export async function maybeSwitchOnSetAside(
   setAsideKey: string,
-  opts?: { nowMs?: number }
+  opts?: { nowMs?: number; kind?: ProxyRefusalKind }
 ): Promise<SelectorTriggerResult> {
   try {
     if (!isProxySkipRecentlyFailedEnabled()) return { switched: false, reason: "flag-off" };
@@ -450,7 +452,7 @@ export async function maybeSwitchOnSetAside(
     if (isThrottled(hit, now)) {
       return { switched: false, reason: "throttled" };
     }
-    return runSwitch(hit, setAsideKey, now);
+    return runSwitch(hit, setAsideKey, now, opts?.kind ?? "ip_quota_429");
   } catch {
     return { switched: false, reason: "network-error" };
   }

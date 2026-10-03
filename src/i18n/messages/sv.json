@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} inaktiva",
     "dbOverrideCount": "{count} DB-överskrivningar",
     "searchPlaceholder": "Sök flaggor...",
+    "descriptionModeLabel": "Beskrivningsvy",
+    "descriptionModeHint": "Vid hovring: korten förblir kompakta och när du hovrar över en beskrivning visas hela texten. Fullständig text: visa alltid hela beskrivningen.",
+    "descriptionModeHover": "Vid hovring",
+    "descriptionModeFull": "Fullständig text",
     "categories": {
       "all": "Alla",
       "security": "Säkerhet",

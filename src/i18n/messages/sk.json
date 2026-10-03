@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} neaktívnych",
     "dbOverrideCount": "{count} prepísaní DB",
     "searchPlaceholder": "Hľadať príznaky...",
+    "descriptionModeLabel": "Zobrazenie popisu",
+    "descriptionModeHint": "Pri umiestnení kurzora: karty zostanú kompaktné a pri umiestnení kurzora na popis sa zobrazí celý text. Celý text: vždy sa zobrazí kompletný popis.",
+    "descriptionModeHover": "Pri umiestnení kurzora",
+    "descriptionModeFull": "Celý text",
     "categories": {
       "all": "Všetky",
       "security": "Bezpečnosť",

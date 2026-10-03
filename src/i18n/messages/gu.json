@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} નિષ્ક્રિય",
     "dbOverrideCount": "{count} DB ઓવરરાઇડ્સ",
     "searchPlaceholder": "ફ્લેગ્સ શોધો...",
+    "descriptionModeLabel": "વર્ણન દૃશ્ય",
+    "descriptionModeHint": "હોવર પર: કાર્ડ્સ સંક્ષિપ્ત રહે છે અને વર્ણન પર હોવર કરવાથી સંપૂર્ણ લખાણ દેખાય છે. સંપૂર્ણ લખાણ: હંમેશા સંપૂર્ણ વર્ણન બતાવો.",
+    "descriptionModeHover": "હોવર પર",
+    "descriptionModeFull": "સંપૂર્ણ લખાણ",
     "categories": {
       "all": "બધા",
       "security": "સુરક્ષા",

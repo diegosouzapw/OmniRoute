@@ -329,6 +329,66 @@ export function snapshotProxySetAside(
   return snapshot;
 }
 
+/**
+ * Read-only snapshot of the set-aside state still in force for one
+ * (entry, selector member) pair, or null when the member is not set aside.
+ * Same shape as snapshotProxySetAside so the pool visibility route can reuse
+ * one view. Never mutates the memory (expired entries are dropped by
+ * readMemberState as usual).
+ */
+export function snapshotMemberSetAside(
+  entryKey: string | null,
+  member: string | null,
+  nowMs: number = Date.now()
+): ProxySetAsideSnapshot | null {
+  if (entryKey === null || member === null || memory.size === 0) return null;
+  let latest: (ProxySetAsideSnapshot & { seq: number }) | null = null;
+  for (const kind of REFUSAL_KINDS) {
+    const state = readMemberState(entryKey, member, kind, nowMs);
+    if (!state || state.until <= nowMs || (latest !== null && state.seq <= latest.seq)) continue;
+    const policy = REFUSAL_POLICIES[kind];
+    const periodMs = Math.min(policy.baseMs * 2 ** (state.streak - 1), policy.maxMs);
+    latest = {
+      kind,
+      setAsideAt: state.until - periodMs,
+      endsAt: state.until,
+      streak: state.streak,
+      seq: state.seq,
+    };
+  }
+  if (!latest) return null;
+  const { seq: _seq, ...snapshot } = latest;
+  return snapshot;
+}
+
+/**
+ * Distinct selector member names recorded for one entry key, in insertion
+ * order. Memory-only enumeration: parses composite keys back (strip the
+ * `${kind} ` prefix BEFORE JSON.parse, skip entry-level keys that do not
+ * parse as [entryKey, member]). Never throws; order is not stable across
+ * restarts or post-purge reinsertion.
+ */
+export function listEntryMembers(entryKey: string | null): string[] {
+  if (entryKey === null || memory.size === 0) return [];
+  const seen = new Set<string>();
+  for (const kind of REFUSAL_KINDS) {
+    const prefix = `${kind} `;
+    for (const id of memory.keys()) {
+      if (!id.startsWith(prefix)) continue;
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(id.slice(prefix.length));
+      } catch {
+        continue;
+      }
+      if (!Array.isArray(parsed) || parsed[0] !== entryKey || typeof parsed[1] !== "string")
+        continue;
+      seen.add(parsed[1]);
+    }
+  }
+  return [...seen];
+}
+
 /** Sequence number of the last set-aside event recorded in this process (0 = none yet). */
 export function getProxyRefusalSeq(): number {
   return refusalSeq;

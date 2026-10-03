@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} неактивних",
     "dbOverrideCount": "{count} прегажених вредности у DB",
     "searchPlaceholder": "Претражите ознаке...",
+    "descriptionModeLabel": "Приказ описа",
+    "descriptionModeHint": "При преласку курсором: картице остају сажете, а прелазак курсором преко описа приказује цео текст. Цео текст: увек приказује комплетан опис.",
+    "descriptionModeHover": "При преласку курсором",
+    "descriptionModeFull": "Цео текст",
     "categories": {
       "all": "Све",
       "security": "Безбедност",

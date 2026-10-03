@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} nieaktywnych",
     "dbOverrideCount": "{count} nadpisań bazy danych",
     "searchPlaceholder": "Wyszukaj flagi...",
+    "descriptionModeLabel": "Widok opisu",
+    "descriptionModeHint": "Po najechaniu: karty pozostają kompaktowe, a najechanie kursorem na opis powoduje wyświetlenie pełnego tekstu. Pełny tekst: zawsze wyświetlaj cały opis.",
+    "descriptionModeHover": "Po najechaniu",
+    "descriptionModeFull": "Pełny tekst",
     "categories": {
       "all": "Wszystkie",
       "security": "Bezpieczeństwo",

@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} tidak aktif",
     "dbOverrideCount": "{count} override DB",
     "searchPlaceholder": "Cari flag...",
+    "descriptionModeLabel": "Tampilan deskripsi",
+    "descriptionModeHint": "Saat diarahkan: kartu tetap ringkas dan mengarahkan kursor ke deskripsi akan menampilkan teks lengkap. Teks lengkap: selalu tampilkan deskripsi secara utuh.",
+    "descriptionModeHover": "Saat diarahkan",
+    "descriptionModeFull": "Teks lengkap",
     "categories": {
       "all": "Semua",
       "security": "Keamanan",

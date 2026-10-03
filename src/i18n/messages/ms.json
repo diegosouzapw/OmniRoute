@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} tidak aktif",
     "dbOverrideCount": "{count} tindihan DB",
     "searchPlaceholder": "Cari bendera...",
+    "descriptionModeLabel": "Paparan perihalan",
+    "descriptionModeHint": "Apabila dituding: kad kekal padat dan menuding pada perihalan akan memaparkan teks penuh. Teks penuh: sentiasa paparkan perihalan lengkap.",
+    "descriptionModeHover": "Apabila dituding",
+    "descriptionModeFull": "Teks penuh",
     "categories": {
       "all": "Semua",
       "security": "Keselamatan",

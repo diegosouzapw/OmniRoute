@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} kò ṣiṣẹ́",
     "dbOverrideCount": "{count} àtúnṣe DB tó borí ìṣètò",
     "searchPlaceholder": "Ṣàwárí àwọn àsìá...",
+    "descriptionModeLabel": "Ìfihàn àpèjúwe",
+    "descriptionModeHint": "Nígbà tí atọ́ka bá wà lórí: àwọn káàdì á wà ní ṣókí, fífi atọ́ka sí orí àpèjúwe yóò sì fi gbogbo ọ̀rọ̀ hàn. Gbogbo ọ̀rọ̀: máa fi àpèjúwe kíkún hàn nígbà gbogbo.",
+    "descriptionModeHover": "Nígbà tí atọ́ka bá wà lórí",
+    "descriptionModeFull": "Gbogbo ọ̀rọ̀",
     "categories": {
       "all": "Gbogbo",
       "security": "Ààbò",

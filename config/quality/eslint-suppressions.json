@@ -54,11 +54,6 @@
       "count": 1
     }
   },
-  "open-sse/executors/base.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 5
-    }
-  },
   "open-sse/executors/blackbox-web.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -3012,11 +3007,6 @@
     }
   },
   "tests/unit/cli/alias-resolver-7791.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/cli/cli-manifest-drift.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }

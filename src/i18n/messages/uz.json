@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ta faol emas",
     "dbOverrideCount": "{count} ta DB ustuvor sozlamasi",
     "searchPlaceholder": "Bayroqlarni qidirish...",
+    "descriptionModeLabel": "Tavsif ko‘rinishi",
+    "descriptionModeHint": "Kursor olib borilganda: kartalar ixchamligicha qoladi va tavsif ustiga kursor olib borilganda to‘liq matn ko‘rsatiladi. To‘liq matn: har doim tavsifni to‘liq ko‘rsatadi.",
+    "descriptionModeHover": "Kursor olib borilganda",
+    "descriptionModeFull": "To‘liq matn",
     "categories": {
       "all": "Barchasi",
       "security": "Xavfsizlik",

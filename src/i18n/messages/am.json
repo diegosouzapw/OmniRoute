@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ንቁ ያልሆኑ",
     "dbOverrideCount": "{count} DB ልዩ ቅንብሮች",
     "searchPlaceholder": "ጠቋሚዎችን ይፈልጉ...",
+    "descriptionModeLabel": "የመግለጫ እይታ",
+    "descriptionModeHint": "ሲያንዣብቡ፦ ካርዶች የታመቁ ሆነው ይቆያሉ፣ እና በመግለጫ ላይ ሲያንዣብቡ ሙሉው ጽሑፍ ይታያል። ሙሉ ጽሑፍ፦ ሁልጊዜ ሙሉውን መግለጫ ያሳያል።",
+    "descriptionModeHover": "ሲያንዣብቡ",
+    "descriptionModeFull": "ሙሉ ጽሑፍ",
     "categories": {
       "all": "ሁሉም",
       "security": "ደህንነት",

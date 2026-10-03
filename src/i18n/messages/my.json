@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ခု ပိတ်ထားသည်",
     "dbOverrideCount": "DB အစားထိုးသတ်မှတ်ချက် {count} ခု",
     "searchPlaceholder": "အလံများကို ရှာဖွေပါ...",
+    "descriptionModeLabel": "ဖော်ပြချက် မြင်ကွင်း",
+    "descriptionModeHint": "မောက်စ်တင်သည့်အခါ- ကတ်များကို ကျစ်လျစ်စွာထားပြီး ဖော်ပြချက်တစ်ခုပေါ် မောက်စ်တင်ပါက စာသားအပြည့်အစုံကို ပြသသည်။ စာသားအပြည့်အစုံ- ဖော်ပြချက်အပြည့်အစုံကို အမြဲပြသသည်။",
+    "descriptionModeHover": "မောက်စ်တင်သည့်အခါ",
+    "descriptionModeFull": "စာသားအပြည့်အစုံ",
     "categories": {
       "all": "အားလုံး",
       "security": "လုံခြုံရေး",

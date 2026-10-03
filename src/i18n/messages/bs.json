@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} neaktivno",
     "dbOverrideCount": "{count} DB nadjačavanja",
     "searchPlaceholder": "Pretraži zastavice.",
+    "descriptionModeLabel": "Prikaz opisa",
+    "descriptionModeHint": "Pri prelasku mišem: kartice ostaju kompaktne, a prelazak mišem preko opisa prikazuje cijeli tekst. Cijeli tekst: uvijek prikaži potpuni opis.",
+    "descriptionModeHover": "Pri prelasku mišem",
+    "descriptionModeFull": "Cijeli tekst",
     "categories": {
       "all": "Sve",
       "security": "Sigurnost",

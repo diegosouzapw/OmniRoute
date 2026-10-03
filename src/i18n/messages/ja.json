@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} 非アクティブ",
     "dbOverrideCount": "{count} DBオーバーライド",
     "searchPlaceholder": "フラグを検索...",
+    "descriptionModeLabel": "説明表示",
+    "descriptionModeHint": "ホバー時：カードはコンパクトなままで、説明にカーソルを合わせると全文が表示されます。全文：説明全体を常に表示します。",
+    "descriptionModeHover": "ホバー時",
+    "descriptionModeFull": "全文",
     "categories": {
       "all": "すべて",
       "security": "セキュリティ",

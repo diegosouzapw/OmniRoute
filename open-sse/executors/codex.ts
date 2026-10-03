@@ -45,6 +45,7 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 import { projectCodexPublicError } from "../utils/codexPublicError.ts";
 import { errorResponse } from "../utils/error.ts";
 import { buildSyntheticResponsesFailedEvent } from "../utils/responsesSequence.ts";
+import { hasCodexSsePeekProgress } from "./codex/ssePeekProgress.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
@@ -663,12 +664,9 @@ export async function peekCodexSseTransientError(
         matched = hit;
         break;
       }
-      // A real content/completion event this early means the response is
-      // healthy — stop peeking so we do not needlessly buffer a long stream.
-      if (
-        lower.includes('"type":"response.output_text.delta"') ||
-        lower.includes('"type":"response.completed"')
-      ) {
+      // Hand off actual text/reasoning/tool progress, but retain the early
+      // error window across lifecycle-only frames such as response.created.
+      if (hasCodexSsePeekProgress(text)) {
         break;
       }
     }

@@ -13052,6 +13052,10 @@
     "inactiveCount": "{count} ei-aktiivista",
     "dbOverrideCount": "{count} tietokannan yliajoa",
     "searchPlaceholder": "Hae lippuja...",
+    "descriptionModeLabel": "Kuvausnäkymä",
+    "descriptionModeHint": "Kohdistettaessa: kortit pysyvät tiiviinä, ja kuvauksen päälle vieminen näyttää koko tekstin. Koko teksti: näytä aina täydellinen kuvaus.",
+    "descriptionModeHover": "Kohdistettaessa",
+    "descriptionModeFull": "Koko teksti",
     "categories": {
       "all": "Kaikki",
       "security": "Tietoturva",
