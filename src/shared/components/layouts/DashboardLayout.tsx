@@ -92,29 +92,23 @@ export default function DashboardLayout({ children }) {
         />
       )}
 
-      {/* Sidebar - Desktop: keep visibility independent from Tailwind hidden/lg:flex ordering. */}
-      <div className="dashboard-sidebar-desktop">
-        <Sidebar
-          collapsed={collapsed}
-          onToggleCollapse={handleToggleCollapse}
-          isMacElectron={isMacElectron}
-        />
-      </div>
-
-      {/* Sidebar - Mobile: full viewport height with proper scroll containment */}
+      {/* One responsive sidebar shell. It is a static rail on desktop and the
+          same DOM node becomes the mobile drawer below 1024px. */}
       <div
-        id="mobile-sidebar"
-        className={`fixed inset-y-0 start-0 z-50 transform lg:hidden transition-transform duration-300 ease-in-out h-dvh overflow-y-auto ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
-        }`}
+        id="dashboard-sidebar"
+        className="dashboard-sidebar-shell"
         style={{
           top: "var(--ios-safe-top, 0px)",
           bottom: "var(--ios-safe-bottom, 0px)",
         }}
-        aria-hidden={!sidebarOpen}
-        inert={!sidebarOpen ? true : undefined}
+        data-open={sidebarOpen ? "true" : "false"}
       >
-        <Sidebar onClose={() => setSidebarOpen(false)} isMacElectron={isMacElectron} />
+        <Sidebar
+          collapsed={collapsed}
+          onToggleCollapse={handleToggleCollapse}
+          onClose={() => setSidebarOpen(false)}
+          isMacElectron={isMacElectron}
+        />
       </div>
 
       {/* Main content */}

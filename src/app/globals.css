@@ -526,15 +526,30 @@ select option {
   --xy-controls-button-border-color: var(--color-border);
 }
 
-/* Desktop sidebar visibility must not depend on Tailwind's hidden/lg:flex cascade
-   (ordering/specificity can collapse it). Explicit class + 1024px media query. */
-.dashboard-sidebar-desktop {
-  display: none;
+/* The dashboard owns exactly one sidebar DOM node. It is a rail on desktop
+   and becomes the mobile drawer below the desktop breakpoint. */
+.dashboard-sidebar-shell {
+  display: flex;
   min-height: 0;
+  flex-shrink: 0;
+}
+@media (max-width: 1023px) {
+  .dashboard-sidebar-shell {
+    position: fixed;
+    inset-inline-start: 0;
+    z-index: 50;
+    height: 100dvh;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 300ms ease-in-out;
+  }
+  .dashboard-sidebar-shell[data-open="true"] {
+    transform: translateX(0);
+  }
 }
 @media (min-width: 1024px) {
-  .dashboard-sidebar-desktop {
-    display: flex;
+  .dashboard-sidebar-shell {
+    position: relative;
   }
 }
 

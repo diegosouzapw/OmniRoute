@@ -10,55 +10,34 @@ function readSrc(path: string): string {
   return readFileSync(join(ROOT, path), "utf8");
 }
 
-// Regression guard: the desktop dashboard sidebar must stay visible on desktop.
-// The old `hidden ... lg:flex` Tailwind cascade is fragile — class ordering /
-// specificity can collapse the `lg:flex` and leave the sidebar permanently
-// hidden. The fix moves visibility into an explicit `.dashboard-sidebar-desktop`
-// class backed by a 1024px media query in globals.css.
+// Regression guard: the dashboard shell must have one Sidebar DOM mount.
+// Responsive behavior is implemented by changing that node's positioning,
+// not by rendering separate desktop and mobile sidebars.
 
-test("DashboardLayout desktop sidebar uses the explicit visibility class, not the hidden/lg:flex cascade", () => {
+test("DashboardLayout uses one sidebar shell instead of the old dual responsive wrappers", () => {
   const source = readSrc("src/shared/components/layouts/DashboardLayout.tsx");
-
-  // The desktop sidebar wrapper must reference the dedicated class.
-  assert.match(
-    source,
-    /className="dashboard-sidebar-desktop"/,
-    "Desktop sidebar wrapper must use the dashboard-sidebar-desktop class"
-  );
-
-  // The fragile Tailwind cascade must be gone.
+  assert.match(source, /id="dashboard-sidebar"/);
   assert.doesNotMatch(
     source,
-    /className="hidden[^"]*lg:flex"/,
-    "Desktop sidebar wrapper must not rely on the hidden/lg:flex Tailwind cascade"
+    /dashboard-sidebar-desktop|mobile-sidebar|className="hidden[^"]*lg:flex"/
   );
 });
 
-test("globals.css defines dashboard-sidebar-desktop hidden by default and flex at >=1024px", () => {
+test("DashboardLayout renders exactly one Sidebar and one Header", () => {
+  const source = readSrc("src/shared/components/layouts/DashboardLayout.tsx");
+  assert.equal((source.match(/<Sidebar\b/g) ?? []).length, 1);
+  assert.equal((source.match(/<Header\b/g) ?? []).length, 1);
+});
+
+test("DashboardLayout uses one responsive sidebar shell", () => {
+  const source = readSrc("src/shared/components/layouts/DashboardLayout.tsx");
+  assert.match(source, /id="dashboard-sidebar"/);
+  assert.doesNotMatch(source, /mobile-sidebar|dashboard-sidebar-desktop/);
+});
+
+test("globals.css defines one shell that is static on desktop and a drawer below 1024px", () => {
   const css = readSrc("src/app/globals.css");
-
-  // Class exists.
-  assert.match(
-    css,
-    /\.dashboard-sidebar-desktop\s*\{/,
-    "globals.css must define .dashboard-sidebar-desktop"
-  );
-
-  // Hidden by default (mobile-first), then shown via a 1024px desktop media query.
-  const classIndex = css.indexOf(".dashboard-sidebar-desktop");
-  const desktopRule =
-    /@media\s*\(min-width:\s*1024px\)\s*\{[^}]*\.dashboard-sidebar-desktop\s*\{[^}]*display:\s*flex/;
-  assert.match(
-    css.slice(classIndex - 200),
-    desktopRule,
-    "globals.css must show .dashboard-sidebar-desktop with display:flex at min-width:1024px"
-  );
-
-  // Default state hides it (display:none) so mobile is unaffected.
-  const baseRule = /\.dashboard-sidebar-desktop\s*\{[^}]*display:\s*none/;
-  assert.match(
-    css,
-    baseRule,
-    "globals.css must hide .dashboard-sidebar-desktop by default (display:none)"
-  );
+  assert.match(css, /\.dashboard-sidebar-shell\s*\{[\s\S]*display:\s*flex/);
+  assert.match(css, /@media\s*\(max-width:\s*1023px\)[\s\S]*position:\s*fixed/);
+  assert.match(css, /@media\s*\(min-width:\s*1024px\)[\s\S]*position:\s*relative/);
 });
