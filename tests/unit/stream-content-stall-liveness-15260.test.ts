@@ -24,8 +24,115 @@ const { resolveContentStallTimeoutMs } =
   await import("../../open-sse/utils/streamReadinessPolicy.ts");
 const { pipeWithDisconnect, createStreamController } =
   await import("../../open-sse/utils/streamHandler.ts");
+const { createSSETransformStreamWithLogger } =
+  await import("../../open-sse/utils/stream.ts");
 
 const encoder = new TextEncoder();
+
+const sseFrame = (type: string, fields: Record<string, unknown> = {}) =>
+  `event: ${type}\ndata: ${JSON.stringify({ type, ...fields })}\n\n`;
+
+async function runPipe({
+  format = "openai-responses",
+  initial = "",
+  repeat = null as string | null,
+  repeatMs = 10,
+  closeAt = null as number | null,
+  closeFrame = "",
+  active = 500,
+  contentStall = 50,
+}: {
+  format?: string;
+  initial?: string;
+  repeat?: string | null;
+  repeatMs?: number;
+  closeAt?: number | null;
+  closeFrame?: string;
+  active?: number;
+  contentStall?: number;
+}) {
+  const timers: Array<ReturnType<typeof setInterval>> = [];
+  let stopped = false;
+  let sourceController: ReadableStreamDefaultController | null = null;
+  const cleanup = () => {
+    stopped = true;
+    for (const t of timers) {
+      clearTimeout(t as unknown as ReturnType<typeof setTimeout>);
+      clearInterval(t as unknown as ReturnType<typeof setInterval>);
+    }
+  };
+  const push = (s: string) => {
+    if (stopped || !sourceController) return;
+    try {
+      sourceController.enqueue(encoder.encode(s));
+    } catch {
+      // closed or errored; watchdog cleanup owns the rest
+    }
+  };
+  const source = new ReadableStream({
+    start(c) {
+      sourceController = c;
+      if (initial) push(initial);
+      if (repeat) timers.push(setInterval(() => push(repeat), repeatMs));
+      if (closeAt !== null) {
+        timers.push(
+          setTimeout(() => {
+            if (stopped) return;
+            if (closeFrame) push(closeFrame);
+            try {
+              sourceController?.close();
+            } catch {
+              // already closed
+            }
+            cleanup();
+          }, closeAt)
+        );
+      }
+    },
+    cancel() {
+      cleanup();
+    },
+  });
+  const errors: string[] = [];
+  const sc = createStreamController({
+    provider: "test",
+    model: "synthetic",
+    clientResponseFormat: format,
+    onError(e: { message: string }) {
+      errors.push(e.message);
+      return true;
+    },
+  });
+  const transform =
+    format === "openai"
+      ? createSSETransformStreamWithLogger(
+          "openai-responses",
+          "openai",
+          "codex",
+          null,
+          null,
+          "synthetic"
+        )
+      : new TransformStream();
+  const stream = pipeWithDisconnect(new Response(source), transform, sc, {
+    stallTimeoutMs: 1000,
+    activeTimeoutMs: active,
+    contentStallTimeoutMs: contentStall,
+  });
+  let output = "";
+  const decoder = new TextDecoder();
+  try {
+    for await (const chunk of stream) {
+      output += decoder.decode(chunk, { stream: true });
+    }
+    output += decoder.decode();
+  } catch {
+    // onError returning true should suppress; drain defensively
+  } finally {
+    cleanup();
+  }
+  return { errors, output };
+}
 
 function assertStrictVsLiveness(frames: string, expectStrictContent: boolean) {
   const strict = createStreamContentWatcher();
@@ -123,17 +230,17 @@ test("the watchdog stands down on a thinking stream and fires on lifecycle-only 
             'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"EqAB"}}\n\n'
         )
       );
-      // Keep the thinking phase alive past the budget, then finish the turn
-      // with real text — the healthy shape the issue describes (a long think
-      // followed by visible output), so the downstream #8649 empty-turn check
-      // (a different guard) has nothing to say either.
+      // Keep the thinking phase alive with activity inside the sliding budget,
+      // then finish the turn with real text — the healthy shape the issue
+      // describes (a long think followed by visible output), so the downstream
+      // #8649 empty-turn check (a different guard) has nothing to say either.
       setTimeout(() => {
         controller.enqueue(
           encoder.encode(
             'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":""}}\n\n'
           )
         );
-      }, 120);
+      }, 50);
       setTimeout(() => {
         controller.enqueue(
           encoder.encode(
@@ -143,7 +250,7 @@ test("the watchdog stands down on a thinking stream and fires on lifecycle-only 
           )
         );
         controller.close();
-      }, 220);
+      }, 100);
     },
   });
   let onErrorEvent: { message: string } | null = null;
@@ -162,6 +269,116 @@ test("the watchdog stands down on a thinking stream and fires on lifecycle-only 
     /* drain */
   }
   assert.equal(onErrorEvent, null, "a thinking stream must never trip the content-stall watchdog");
+
+  // Lifecycle-only streams must still trip the watchdog: no model signal,
+  // only lifecycle frames and keepalive.
+  const lifecycle = await runPipe({
+    format: "openai-responses",
+    initial:
+      sseFrame("response.created", { response: { id: "resp_lifecycle" } }) +
+      sseFrame("response.in_progress", { response: { status: "in_progress" } }),
+    repeat: ": keepalive\n\n",
+    active: 2000,
+    contentStall: 80,
+  });
+  assert.match(
+    lifecycle.errors[0] ?? "",
+    /stream content stall/,
+    "a lifecycle-only stream must trip the content-stall watchdog"
+  );
+});
+
+test("Responses dot-delta events alone count as activity without preceding reasoning", () => {
+  const types = [
+    "response.output_text.delta",
+    "response.reasoning_summary_text.delta",
+    "response.function_call_arguments.delta",
+  ];
+  for (const type of types) {
+    const strict = createStreamContentWatcher();
+    const liveness = createStreamLivenessWatcher();
+    const frame = sseFrame(type, { delta: "" });
+    strict.note(frame);
+    strict.finish();
+    liveness.note(frame);
+    liveness.finish();
+    assert.equal(strict.sawContent(), false, `${type}: empty delta is not user-visible content`);
+    assert.equal(liveness.sawModelSignal(), true, `${type}: empty delta must read as alive`);
+    assert.equal(liveness.activityCount(), 1, `${type}: activity counter must advance`);
+  }
+});
+
+test("SSE event header identifies a reasoning item without JSON type", () => {
+  const frame =
+    "event: response.output_item.added\ndata: " +
+    JSON.stringify({
+      output_index: 0,
+      item: { id: "rs_test", type: "reasoning", encrypted_content: "synthetic-opaque" },
+    }) +
+    "\n\n";
+  const liveness = createStreamLivenessWatcher();
+  liveness.note(frame);
+  liveness.finish();
+  assert.equal(liveness.sawModelSignal(), true, "event header type must count as activity");
+});
+
+for (const format of ["openai-responses", "openai"]) {
+  test(`Active Responses text survives first-content budget: ${format}`, async () => {
+    const created = sseFrame("response.created", {
+      response: { id: "resp_test", status: "in_progress", output: [] },
+    });
+    const text = sseFrame("response.output_text.delta", {
+      item_id: "msg_test",
+      output_index: 1,
+      content_index: 0,
+      delta: "hello",
+    });
+    const completed = sseFrame("response.completed", {
+      response: {
+        id: "resp_test",
+        status: "completed",
+        output: [
+          {
+            id: "msg_test",
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text: "hello" }],
+          },
+        ],
+        usage: { input_tokens: 1, output_tokens: 1 },
+      },
+    });
+    const r = await runPipe({
+      format,
+      initial: created + text,
+      repeat: text,
+      closeAt: 130,
+      closeFrame: completed,
+      active: 500,
+      contentStall: 50,
+    });
+    assert.deepEqual(r.errors, []);
+    assert.ok(r.output.includes("hello"));
+  });
+}
+
+test("Reasoning item then keepalive-only stalls one activity budget later", async () => {
+  const created = sseFrame("response.created", {
+    response: { id: "resp_test", status: "in_progress", output: [] },
+  });
+  const added = sseFrame("response.output_item.added", {
+    output_index: 0,
+    item: { id: "rs_test", type: "reasoning", encrypted_content: "synthetic-opaque" },
+  });
+  const r = await runPipe({
+    format: "openai-responses",
+    initial: created + added,
+    repeat: ": keepalive\n\n",
+    active: 2000,
+    contentStall: 50,
+  });
+  assert.match(r.errors[0] ?? "", /stream content stall/);
+  assert.ok(!r.output.includes("hello"));
 });
 
 test("STREAM_CONTENT_STALL_TIMEOUT_MS overrides the adaptive budget; 0 disables; junk is ignored", () => {

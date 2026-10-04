@@ -992,15 +992,18 @@ export function pipeWithDisconnect(
   // for its own end-of-stream #8649 empty-content check.
   let contentStallTimer: ReturnType<typeof setTimeout> | null = null;
   let contentStallFired = false;
-  // #15260: the stall watchdog disarms on the first MODEL signal (any
-  // model-generated delta, even an empty/encrypted/signature-only thinking
-  // one) — not on `sawContent`, whose strict non-empty-readable-string rule
-  // misread healthy extended-thinking phases as stalled and killed them.
-  // The strict content watcher below stays for the end-of-stream empty-turn
-  // check and keeps updating while the stall scan is still active.
+  // #15260: sliding liveness window. Strict `sawContent` still disarms the
+  // stall watchdog for good (it proves user-visible output); otherwise each
+  // new MODEL signal (any model-generated delta, even an empty/encrypted/
+  // signature-only thinking one) re-arms the budget. Lifecycle/ping/keepalive
+  // alone leave the timer running. The strict content watcher below stays for
+  // the end-of-stream empty-turn check and keeps updating while the stall
+  // scan is still active.
   const upstreamLivenessWatcher = createStreamLivenessWatcher();
   const upstreamContentWatcher = createStreamContentWatcher();
   const upstreamContentDecoder = new TextDecoder();
+  let contentStallDisarmed = false;
+  let lastLivenessCount = 0;
   // Stall diagnostics: what the upstream had sent when the content watchdog
   // trips. Counters live at this tap because it is the only point seeing raw
   // upstream bytes (the sibling client-side contentWatcher in
@@ -1139,8 +1142,9 @@ export function pipeWithDisconnect(
   };
 
   // Inert tap that resets the byte-stall timer on every raw upstream chunk
-  // and (independently) clears the content-stall timer the first time a
-  // chunk carries real output. Sits between the provider body and the SSE
+  // and (independently) runs the sliding content-stall window: strict content
+  // disarms for good, new model activity re-arms the budget, lifecycle/ping
+  // alone leave the timer running. Sits between the provider body and the SSE
   // transform so reasoning models that buffer many raw bytes into a single
   // emitted event do not look stalled to either watchdog.
   const upstreamTap = new TransformStream<Uint8Array, Uint8Array>({
@@ -1152,7 +1156,7 @@ export function pipeWithDisconnect(
     },
     transform(chunk, controller) {
       armStall();
-      if (contentStallTimeoutMs > 0 && !upstreamLivenessWatcher.sawModelSignal()) {
+      if (contentStallTimeoutMs > 0 && !contentStallDisarmed) {
         // Second pass over the already-decoded text, not a second decode:
         // the watcher below keeps only booleans, so counting needs its own scan.
         const decoded = upstreamContentDecoder.decode(chunk, { stream: true });
@@ -1160,7 +1164,17 @@ export function pipeWithDisconnect(
         noteStallText(decoded);
         upstreamLivenessWatcher.note(decoded);
         upstreamContentWatcher.note(decoded);
-        if (upstreamLivenessWatcher.sawModelSignal()) clearContentStall();
+        if (upstreamContentWatcher.sawContent()) {
+          contentStallDisarmed = true;
+          clearContentStall();
+        } else {
+          const current = upstreamLivenessWatcher.activityCount();
+          if (current > lastLivenessCount) {
+            lastLivenessCount = current;
+            clearContentStall();
+            armContentStall();
+          }
+        }
       }
       controller.enqueue(chunk);
     },

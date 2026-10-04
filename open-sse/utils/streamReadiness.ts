@@ -167,11 +167,14 @@ function hasModelSignal(value: unknown): boolean {
   if (type) {
     if (isPingEventType(type) || LIFECYCLE_ONLY_STREAM_TYPES.has(type)) return false;
     if (type === "error" || type === "response.failed") return false;
-    if (/_delta$/.test(type)) return true;
+    if (/(?:\.|_)delta$/.test(type)) return true;
     if (type === "content_block_start") return true;
     // Responses events carry the `response.` prefix (response.output_item.added);
     // a raw `output_item.*` type is accepted too for translated streams.
-    if (type.endsWith("output_item.added") || type.endsWith("output_item.done")) {
+    // A materialized output_item.done of any item type (message, function_call,
+    // reasoning, ...) is model activity; added opens a reasoning item only.
+    if (type.endsWith("output_item.done")) return true;
+    if (type.endsWith("output_item.added")) {
       const item = isRecord(value.item) ? value.item : {};
       return item.type === "reasoning" || item.item_type === "reasoning";
     }
@@ -206,6 +209,9 @@ function hasModelSignalPayload(payload: unknown, eventType = ""): boolean {
   const type = getPayloadType(payload, eventType);
   if (isPingEventType(eventType) || isPingEventType(type)) return false;
   if (isRecord(payload) && isErrorOnlyStructuredPayload(payload)) return false;
+  if (isRecord(payload) && type && payload.type !== type) {
+    return hasModelSignal({ ...payload, type });
+  }
   return hasModelSignal(payload);
 }
 
@@ -216,37 +222,39 @@ export type StreamLivenessWatcher = {
   finish: () => void;
   /** True once any frame carried a model-generated signal (see module comment). */
   sawModelSignal: () => boolean;
+  /** Monotonic count of model-signal data lines seen; drives the sliding window. */
+  activityCount: () => number;
 };
 
 /**
  * Watch the raw upstream stream for whether the MODEL is alive — separate from
  * {@link createStreamContentWatcher}, whose `sawContent` stays the strict
  * user-visible-output check the #8649 empty-turn guard relies on. The
- * content-stall watchdog disarms on the first model signal, so a healthy
- * extended-thinking stream is never aborted mid-think (#15260).
+ * content-stall watchdog re-arms on each new model signal (sliding window) and
+ * disarms for good on strict content, so a healthy extended-thinking stream is
+ * never aborted mid-think (#15260).
  */
 export function createStreamLivenessWatcher(): StreamLivenessWatcher {
   const MAX_BUFFERED = 64 * 1024;
   let pending = "";
-  let signal = false;
+  let count = 0;
 
   const inspect = (frame: string, eventType = ""): void => {
-    if (!frame || signal) return;
+    if (!frame) return;
+    let currentEvent = eventType;
     for (const line of frame.split(/\r?\n/)) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith(":")) continue;
-      let lineEvent = eventType;
       if (trimmed.startsWith("event:")) {
-        lineEvent = trimmed.slice(6).trim();
+        currentEvent = trimmed.slice(6).trim();
         continue;
       }
       if (!trimmed.startsWith("data:")) continue;
       const data = trimmed.slice(5).trim();
       if (!data || data === "[DONE]") continue;
       try {
-        if (hasModelSignalPayload(JSON.parse(data), lineEvent)) {
-          signal = true;
-          return;
+        if (hasModelSignalPayload(JSON.parse(data), currentEvent)) {
+          count += 1;
         }
       } catch {
         // Non-JSON data line: not a signal (structured checks all parse JSON;
@@ -258,7 +266,7 @@ export function createStreamLivenessWatcher(): StreamLivenessWatcher {
 
   return {
     note(text: string): void {
-      if (!text || signal) return;
+      if (!text) return;
       pending += text;
       for (;;) {
         const boundary = pending.search(/\r?\n\r?\n/);
@@ -266,7 +274,7 @@ export function createStreamLivenessWatcher(): StreamLivenessWatcher {
         inspect(pending.slice(0, boundary));
         pending = pending.slice(boundary).replace(/^\r?\n\r?\n/, "");
       }
-      if (!signal && pending.length > MAX_BUFFERED) {
+      if (pending.length > MAX_BUFFERED) {
         inspect(pending);
         pending = "";
       }
@@ -275,7 +283,8 @@ export function createStreamLivenessWatcher(): StreamLivenessWatcher {
       inspect(pending);
       pending = "";
     },
-    sawModelSignal: () => signal,
+    sawModelSignal: () => count > 0,
+    activityCount: () => count,
   };
 }
 
