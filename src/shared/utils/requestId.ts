@@ -21,7 +21,15 @@ type RequestLike = {
   headers?: HeaderReader | null;
 } | null;
 
-const requestIdStore = new AsyncLocalStorage<string>();
+const REQUEST_ID_STORE_KEY = Symbol.for("omniroute.requestId.store");
+type GlobalWithRequestIdStore = typeof globalThis & {
+  [REQUEST_ID_STORE_KEY]?: AsyncLocalStorage<string>;
+};
+
+function getRequestIdStore(): AsyncLocalStorage<string> {
+  return ((globalThis as GlobalWithRequestIdStore)[REQUEST_ID_STORE_KEY] ??=
+    new AsyncLocalStorage<string>());
+}
 
 function getHeaderValue(request: RequestLike, name: string): string | null {
   const value = request?.headers?.get?.(name);
@@ -35,7 +43,7 @@ function getHeaderValue(request: RequestLike, name: string): string | null {
  * @returns {string | null}
  */
 export function getRequestId() {
-  return requestIdStore.getStore() || null;
+  return getRequestIdStore().getStore() || null;
 }
 
 /**
@@ -54,7 +62,7 @@ export async function withRequestId<T>(
 ): Promise<T> {
   const existingId = getHeaderValue(request, "x-request-id");
   const requestId = existingId || randomUUID();
-  return requestIdStore.run(requestId, handler);
+  return getRequestIdStore().run(requestId, handler);
 }
 
 /**

@@ -25,6 +25,7 @@ import {
   proxyEgressKey,
   recordSlowOverrun,
 } from "../utils/proxyRefusalMemory.ts";
+import { stripIpv6Brackets } from "../utils/proxyFamily.ts";
 
 export const DIRECT_EGRESS_SENTINEL = "direct";
 
@@ -110,6 +111,53 @@ export function resolveEgressThrottleConfig(
 /** Egress key for an account proxy; `direct` accounts share one sentinel (shared egress). */
 export function egressKeyOf(proxy: { host: string; port: number } | null): string {
   return proxyEgressKey(proxy) ?? DIRECT_EGRESS_SENTINEL;
+}
+
+/** Port written in the authority, which `new URL()` drops at the scheme default. */
+function explicitEgressPortOf(url: string): string | null {
+  const start = url.indexOf("://");
+  if (start === -1) return null;
+  const rest = url.slice(start + 3);
+  const slash = rest.indexOf("/");
+  const authority = slash === -1 ? rest : rest.slice(0, slash);
+  const colon = authority.lastIndexOf(":");
+  if (colon === -1 || colon < authority.lastIndexOf("@") || colon < authority.lastIndexOf("]")) {
+    return null;
+  }
+  const port = authority.slice(colon + 1);
+  if (!/^\d+$/.test(port)) return null;
+  const n = Number(port);
+  return n >= 1 && n <= 65535 ? String(n) : null;
+}
+
+/**
+ * Log label for the egress really applied to one attempt: `(proxy <host>:<port>)`
+ * with host and port only, `(proxy direct)` when no proxy applies. Parses the
+ * applied key directly (it already holds `scheme://`); only the extracted
+ * hostname and port are ever printed, so member keys carrying user info cannot
+ * leak. Fail-open: any unusable key reports direct, never throws.
+ */
+export function egressLabel(
+  account: AppliedEgressAccount,
+  readApplied?: AppliedEgressReader | null
+): string {
+  let key: string;
+  try {
+    key = resolveAppliedEgressKey(account, readApplied);
+  } catch {
+    return "(proxy direct)";
+  }
+  if (!key || key === DIRECT_EGRESS_SENTINEL) return "(proxy direct)";
+  try {
+    const bare = key.replace(/\?family=(ipv4|ipv6)$/, "");
+    const parsed = new URL(bare);
+    const port = explicitEgressPortOf(bare) || parsed.port || null;
+    const host = stripIpv6Brackets(parsed.hostname).toLowerCase();
+    if (!host || !port || !/^\d+$/.test(port)) return "(proxy direct)";
+    return `(proxy ${host}:${port})`;
+  } catch {
+    return "(proxy direct)";
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -588,19 +636,23 @@ export function log429Outcome(
   cid: string,
   arm: "stop" | "park" | "rotate",
   masked: string,
-  setAsideMs: number | null
+  setAsideMs: number | null,
+  label: string
 ): void {
   if (arm === "stop") {
-    log?.warn?.("OPENCODE", `${cid}rate-limited 429 on account ${masked}, stopping the wave`);
+    log?.warn?.(
+      "OPENCODE",
+      `${cid}rate-limited 429 on account ${masked} ${label}, stopping the wave`
+    );
   } else if (arm === "park") {
     log?.warn?.(
       "OPENCODE",
-      `${cid}fleet backing off: slot budget used, parking (returning last answer)`
+      `${cid}fleet backing off ${label}: slot budget used, parking (returning last answer)`
     );
   } else {
     log?.warn?.(
       "OPENCODE",
-      `${cid}burst 429 on account ${masked}` +
+      `${cid}burst 429 on account ${masked} ${label}` +
         (setAsideMs ? `, member set aside for ${Math.round(setAsideMs / 1000)}s` : "") +
         ", rotating to next…"
     );
