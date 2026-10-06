@@ -50,8 +50,11 @@ export const KNOWN_DUPLICATE_VERSIONS = new Set([
 // (149_api_key_combo_access.sql) — nenhuma das duas é mais um gap. O
 // stale-enforcement exige que cada reserva seja removida quando os arquivos
 // correspondentes aterrissarem na release.
+// 197/198 ficam com #15564, 199 com #15314 e 200 com #15435. Este branch só
+// aterrissa o drop dos índices não lidos em 201 (#15354); cada reserva sai
+// da allowlist quando o arquivo correspondente chegar (stale-enforcement).
 // ---------------------------------------------------------------------------
-export const KNOWN_GAPS = new Set(["026", "055", "121"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12); 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
+export const KNOWN_GAPS = new Set(["026", "055", "121", "197", "198", "199", "200"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12); 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
 
 function pad3(n) {
   return String(n).padStart(3, "0");

@@ -1,4 +1,4 @@
--- 197_drop_unused_turn_node_indexes.sql
+-- 201_drop_unused_turn_node_indexes.sql
 -- conversation_turn_nodes carries two indexes no query reads. Migration 156
 -- created idx_turn_nodes_parent(parent_id) and
 -- idx_turn_nodes_content_hash(conversation_id, content_hash) for an anchor

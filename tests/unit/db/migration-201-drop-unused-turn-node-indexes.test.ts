@@ -1,6 +1,6 @@
 // Conversation turn nodes carry two indexes no query reads: lookups filter
 // on conversation_id and retention sweeps on last_seen_at, while anchor
-// search runs in memory after a bulk load. Migration 197 drops them.
+// search runs in memory after a bulk load. Migration 201 drops them.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -14,12 +14,12 @@ const repoMigrations = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../../src/lib/db/migrations"
 );
-const migrationsDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-migration-197-"));
+const migrationsDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-migration-201-"));
 for (const file of [
   "155_agentic_conversations.sql",
   "156_conversation_turn_nodes.sql",
   "186_conversation_turn_nodes_last_seen_index.sql",
-  "197_drop_unused_turn_node_indexes.sql",
+  "201_drop_unused_turn_node_indexes.sql",
 ]) {
   fs.copyFileSync(path.join(repoMigrations, file), path.join(migrationsDir, file));
 }
@@ -72,7 +72,7 @@ function planDetails(db: SqliteAdapter, sql: string, ...params: unknown[]): stri
 
 const CUTOFF = "2026-06-01";
 
-test("migration 197 drops the two unread indexes and keeps the used ones", () => {
+test("migration 201 drops the two unread indexes and keeps the used ones", () => {
   const db = openDb();
   try {
     assert.equal(runMigrations(db, { isNewDb: true }), 4);
@@ -98,7 +98,7 @@ test("a second run is a no-op", () => {
       { version: "155", name: "agentic_conversations" },
       { version: "156", name: "conversation_turn_nodes" },
       { version: "186", name: "conversation_turn_nodes_last_seen_index" },
-      { version: "197", name: "drop_unused_turn_node_indexes" },
+      { version: "201", name: "drop_unused_turn_node_indexes" },
     ]);
   } finally {
     db.close();
