@@ -164,6 +164,14 @@ test("verified path keeps the same detail as the beside path", async (t) => {
       intention.warning?.includes("CORE_CONFIG_ENTRIES_SKIPPED"),
       `got: ${intention.warning}`
     );
+    // model.skipped is the array already spread into initialSkipped. Counting
+    // both reports 6 (empty_group=3, invalid_endpoint=2) instead of 4.
+    assert.equal(
+      JSON.parse(intention.warning!).detail,
+      "skipped:4:empty_group=2,invalid_endpoint=1,source_not_singbox_shape=1",
+      "model.skipped is already inside initialSkipped; the warning must not count it twice"
+    );
+    delete process.env.OMNIROUTE_PROXY_CORE_BINARY_PATH;
     const beside = await generateCoreConfigIntention(
       {
         coreConfigPath: path.join(dir, "core-beside.json"),

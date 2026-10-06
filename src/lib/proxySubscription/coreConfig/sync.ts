@@ -378,7 +378,7 @@ async function applyVerified(
   let current = first;
   for (let round = 0; ; round += 1) {
     const outcome = await runVerifiedRound(sub, target, binaryPath, current, opts);
-    if (outcome === null) return verifiedWarning(initialSkipped, model, pruned.length);
+    if (outcome === null) return verifiedWarning(initialSkipped, pruned.length);
     if (outcome.done) return outcome.warning;
     const failed = outcome as {
       done: false;
@@ -391,7 +391,7 @@ async function applyVerified(
     if (next === null) {
       // Drained model: never serve an empty replacement — previous behaviour.
       if (model.nodes.length === 0) return warn("check_failed");
-      return verifiedWarning(initialSkipped, model, pruned.length) ?? warn("check_failed");
+      return verifiedWarning(initialSkipped, pruned.length) ?? warn("check_failed");
     }
     current = next;
     console.warn(
@@ -400,15 +400,14 @@ async function applyVerified(
   }
 }
 
-/** Skipped entries warn once so the removal surfaces; a clean pass is null. */
-function verifiedWarning(
-  initialSkipped: Array<{ reason: string }>,
-  model: CoreModel,
-  pruned: number
-): string | null {
-  const base = [...initialSkipped, ...model.skipped].filter(
-    (entry) => entry.reason !== "core_rejected"
-  );
+/**
+ * Skipped entries warn once so the removal surfaces; a clean pass is null.
+ * `initialSkipped` already holds the render's model and result skips — the
+ * model array is that same snapshot and must not be added again. `pruned`
+ * is the only extra count (core_rejected removals).
+ */
+function verifiedWarning(initialSkipped: Array<{ reason: string }>, pruned: number): string | null {
+  const base = initialSkipped.filter((entry) => entry.reason !== "core_rejected");
   const summary = summarizeSkipped({ skipped: base }, { skipped: [] }, pruned);
   return summary ? entriesSkippedWarning(summary) : null;
 }
