@@ -442,32 +442,69 @@ function normalizeBaseUrlForDedup(value: unknown): string {
   return typeof value === "string" ? value.trim().replace(/\/+$/, "") : "";
 }
 
+/**
+ * Find the cookie connection an incoming import should overwrite.
+ *
+ * #15159 / B-01 — the credential is the identity; `name` is not. This used to try
+ * the name FIRST ("name-based upsert for parity with the apikey path"), so
+ * re-importing under an existing name returned that row and the caller's
+ * `merged = { ...decryptedExisting, ...data }` wrote the new cookie over it.
+ * Because `name` is a user-editable display label, two different accounts
+ * legitimately share one — and the second import silently destroyed the first
+ * account's stored session, unrecoverably.
+ *
+ * This is the same hazard the OAuth branch of this file already fixed
+ * (:532-540): "two different IdPs ... can share the same email address; matching
+ * on email alone would silently overwrite the other account's connection on the
+ * second login." The cookie branch was never given the same treatment.
+ *
+ * The name lookup is now only a fallback for rows with no derivable credential
+ * key — there the name is genuinely all there is to match on. Every other import
+ * matches on its credential, and one with a different credential gets its own row.
+ *
+ * Trade-off, stated plainly: a *rotated* cookie under a stable name now creates a
+ * second row instead of updating in place. That is the intended direction of the
+ * error — a caller can delete a stale row, but cannot recover a session that was
+ * already overwritten. #3368's actual goal (same cookie under a different name
+ * dedupes) is unaffected: that was always the credential loop's job.
+ */
 function findExistingCookieConnection(
   db: DbLike,
   provider: unknown,
   name: unknown,
   normalizedProviderSpecificData: unknown
 ): JsonRecord | null {
-  // 1) Name-based upsert for parity with the apikey path.
-  if (name) {
+  // 1) Credential-value dedup — the authoritative identity for a web session.
+  const newCredKey = webSessionCredentialKey(normalizedProviderSpecificData);
+  if (newCredKey) {
+    const cookieRows = db
+      .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie'")
+      .all(provider) as JsonRecord[];
+    for (const row of cookieRows) {
+      const psd = parseProviderSpecificData(row.provider_specific_data);
+      if (psd && webSessionCredentialKey(psd) === newCredKey) return row;
+    }
+  }
+
+  // 2) Name fallback, only when this import carries no credential to compare
+  //    against AND the candidate row itself has none. Matching a credential-less
+  //    import onto a row that *does* hold a credential would clobber it with
+  //    nothing — the same data loss, reached from the other direction.
+  if (name && !newCredKey) {
     const byName =
       (db
         .prepare(
           "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie' AND name = ?"
         )
         .get(provider, name) as JsonRecord | undefined) || null;
-    if (byName) return byName;
+    if (
+      byName &&
+      !webSessionCredentialKey(parseProviderSpecificData(byName.provider_specific_data))
+    ) {
+      return byName;
+    }
   }
-  // 2) Credential-value dedup against existing cookie rows.
-  const newCredKey = webSessionCredentialKey(normalizedProviderSpecificData);
-  if (!newCredKey) return null;
-  const cookieRows = db
-    .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie'")
-    .all(provider) as JsonRecord[];
-  for (const row of cookieRows) {
-    const psd = parseProviderSpecificData(row.provider_specific_data);
-    if (psd && webSessionCredentialKey(psd) === newCredKey) return row;
-  }
+
   return null;
 }
 

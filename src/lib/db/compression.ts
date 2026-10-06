@@ -114,22 +114,19 @@ function normalizeCavemanConfig(value: unknown): CavemanConfig {
   };
 }
 
-function normalizeCavemanOutputModeConfig(value: unknown): CavemanOutputModeConfig {
+function normalizeCavemanOutputModeConfig(
+  value: unknown,
+  fallback: CavemanOutputModeConfig = DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG
+): CavemanOutputModeConfig {
   const record = toRecord(value);
   return {
-    ...DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG,
-    enabled:
-      typeof record.enabled === "boolean"
-        ? record.enabled
-        : DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG.enabled,
+    enabled: typeof record.enabled === "boolean" ? record.enabled : fallback.enabled,
     intensity:
       record.intensity === "lite" || record.intensity === "full" || record.intensity === "ultra"
         ? record.intensity
-        : DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG.intensity,
+        : fallback.intensity,
     autoClarity:
-      typeof record.autoClarity === "boolean"
-        ? record.autoClarity
-        : DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG.autoClarity,
+      typeof record.autoClarity === "boolean" ? record.autoClarity : fallback.autoClarity,
   };
 }
 
@@ -566,6 +563,22 @@ function mergeLiteSettingsForWrite(
   };
 }
 
+// Partial cavemanOutputMode writes replace the whole JSON row, and the read path fills
+// missing fields with defaults. Take each missing or invalid field from the stored row instead.
+function mergeCavemanOutputModeForWrite(
+  db: ReturnType<typeof getDbInstance>,
+  value: unknown
+): CavemanOutputModeConfig {
+  const existingRow = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(NAMESPACE, "cavemanOutputMode") as { value: unknown } | undefined;
+  // getCompressionSettings skips non-text (BLOB) rows, so treat them as absent here too.
+  const existing = normalizeCavemanOutputModeConfig(
+    typeof existingRow?.value === "string" ? parseJsonSafe(existingRow.value) : undefined
+  );
+  return normalizeCavemanOutputModeConfig(value, existing);
+}
+
 // Read the stored `engines` JSON row, keeping only well-formed `{enabled, level?}` entries for
 // known engine ids. Returns null when no usable row exists so the caller falls back to deriving
 // the map from the legacy fields (B-backfill, migration 102).
@@ -926,6 +939,10 @@ export async function updateCompressionSettings(
       }
       if (key === "lite") {
         insert.run(NAMESPACE, key, JSON.stringify(mergeLiteSettingsForWrite(db, value)));
+        continue;
+      }
+      if (key === "cavemanOutputMode") {
+        insert.run(NAMESPACE, key, JSON.stringify(mergeCavemanOutputModeForWrite(db, value)));
         continue;
       }
       insert.run(NAMESPACE, key, JSON.stringify(value));

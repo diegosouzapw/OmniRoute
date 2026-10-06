@@ -11,6 +11,7 @@
  *   OMNIROUTE_TRANSLATION_API_KEY     bearer token
  *   OMNIROUTE_TRANSLATION_MODEL       model id
  *   OMNIROUTE_TRANSLATION_TIMEOUT_MS  per-request timeout (default 60000)
+ *   OMNIROUTE_TRANSLATION_REASONING_EFFORT  optional, sent as-is when set
  *
  * Two translation modes are exposed:
  *   - `translateString(en, localeEntry, backend)` — one request per string.
@@ -45,10 +46,21 @@ export function backendConfig() {
   const apiKey = requireEnv("OMNIROUTE_TRANSLATION_API_KEY");
   const model = requireEnv("OMNIROUTE_TRANSLATION_MODEL");
   const timeoutMs = Number(process.env.OMNIROUTE_TRANSLATION_TIMEOUT_MS || 60000);
-  return { apiUrl, apiKey, model, timeoutMs };
+  const reasoningEffort = process.env.OMNIROUTE_TRANSLATION_REASONING_EFFORT?.trim();
+  return {
+    apiUrl,
+    apiKey,
+    model,
+    timeoutMs,
+    ...(reasoningEffort ? { reasoningEffort } : {}),
+  };
 }
 
-export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry = 0) {
+export async function callChat(
+  messages,
+  { apiUrl, apiKey, model, timeoutMs, reasoningEffort },
+  retry = 0
+) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
@@ -63,6 +75,7 @@ export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, r
         messages,
         temperature: 0.15,
         stream: false,
+        ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
       }),
       signal: ctrl.signal,
     });
@@ -73,7 +86,7 @@ export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, r
         const wait = 1500 + retry * 1500;
         logWarn(`upstream ${res.status} — retrying after ${wait}ms`);
         await new Promise((r) => setTimeout(r, wait));
-        return callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry + 1);
+        return callChat(messages, { apiUrl, apiKey, model, timeoutMs, reasoningEffort }, retry + 1);
       }
       throw new Error(`upstream ${res.status}: ${text.slice(0, 200)}`);
     }
@@ -87,7 +100,7 @@ export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, r
     if (err?.name === "AbortError") {
       if (retry < 1) {
         logWarn(`timeout after ${timeoutMs}ms — retrying`);
-        return callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry + 1);
+        return callChat(messages, { apiUrl, apiKey, model, timeoutMs, reasoningEffort }, retry + 1);
       }
       throw new Error(`timeout after ${timeoutMs}ms`);
     }
@@ -98,7 +111,7 @@ export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, r
     ) {
       logWarn(`network error: ${err.message} — retrying`);
       await new Promise((r) => setTimeout(r, 1500));
-      return callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry + 1);
+      return callChat(messages, { apiUrl, apiKey, model, timeoutMs, reasoningEffort }, retry + 1);
     }
     throw err;
   } finally {

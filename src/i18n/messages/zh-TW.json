@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "位置順序",
     "poolHealthRankingOff": "健康排名已關閉",
     "transportRate": "{rate}%傳輸",
+    "slowAbandoned": "{count} 緩慢放棄",
+    "clientAborted": "{count} 客戶端中止",
+    "slowAbandonedHint": "在標頭等待閾值之後被放棄，未計入傳輸速率",
     "previousSuccessRate": "此前{rate}%成功",
-    "upstreamRefusals": "{count}次上游拒絕",
     "connectionTestsCount": "{count}次連線測試",
-    "notMeasured": "未測量"
+    "notMeasured": "未測量",
+    "upstream4xx": "{count} 上游客戶端錯誤",
+    "upstream5xx": "{count} 上游伺服器錯誤",
+    "uniformEgressLine": "{affected} 中的 {exits} 個出口在 {provider} 上同時失敗 (最後 {hours} 小時) — 不是出口問題"
   },
   "playground": {
     "title": "模型演練場",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} 個未啟用",
     "dbOverrideCount": "{count} 個資料庫覆寫",
     "searchPlaceholder": "搜尋旗標...",
+    "descriptionModeLabel": "描述檢視",
+    "descriptionModeHint": "滑鼠懸停時：卡片維持精簡，將滑鼠懸停在描述上即可顯示完整文字。完整文字：一律顯示完整描述。",
+    "descriptionModeHover": "滑鼠懸停時",
+    "descriptionModeFull": "完整文字",
     "categories": {
       "all": "全部",
       "security": "安全性",

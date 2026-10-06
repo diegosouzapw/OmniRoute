@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Usoro ọnọdụ",
     "poolHealthRankingOff": "Ogo ahụike agbanyụrụ",
     "transportRate": "{rate}% mbugharị",
+    "slowAbandoned": "{count} nke na-ewu oge na-eche echiche",
+    "clientAborted": "{count} ndị ahịa na-eme ka o kwụsị",
+    "slowAbandonedHint": "Eche echiche ka o kwụsị mgbe o chee oge nke isiokwu, na-ekpughe na ọnụ ọgụgụ nke ịgwọ ụgbọ",
     "previousSuccessRate": "Na mbụ {rate}% ịga nke ọma",
-    "upstreamRefusals": "{count} ọjụjụ upstream",
     "connectionTestsCount": "{count} nnwale njikọ",
-    "notMeasured": "A tụghị"
+    "notMeasured": "A tụghị",
+    "upstream4xx": "{count} njehie onye ahịa n'elu",
+    "upstream5xx": "{count} njehie sava n'elu",
+    "uniformEgressLine": "{affected} n'ime {exits} ụzọ ọpụpụ na-ada ọnụ na {provider} (n'ime {hours}h gara aga) — ọ bụghị nsogbu ụzọ ọpụpụ"
   },
   "playground": {
     "title": "Ebe Nnwale Model",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} anaghị arụ ọrụ",
     "dbOverrideCount": "{count} ntọala DB ndị nọchiri ndabara",
     "searchPlaceholder": "Chọọ ọkọlọtọ...",
+    "descriptionModeLabel": "Nlele nkọwa",
+    "descriptionModeHint": "Mgbe a na-efegharị òké n'elu: kaadị na-anọgide nkenke, ma ịfegharị òké n'elu nkọwa na-egosi ederede niile. Ederede niile: na-egosi nkọwa zuru ezu mgbe niile.",
+    "descriptionModeHover": "Mgbe a na-efegharị òké n'elu",
+    "descriptionModeFull": "Ederede niile",
     "categories": {
       "all": "Ha niile",
       "security": "Nchedo",

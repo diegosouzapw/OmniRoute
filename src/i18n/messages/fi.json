@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Sijaintijärjestys",
     "poolHealthRankingOff": "Terveysjärjestys pois päältä",
     "transportRate": "{rate} % siirtoa",
+    "slowAbandoned": "{count} hidasta keskeytystä",
+    "clientAborted": "{count} asiakkaan keskeytystä",
+    "slowAbandonedHint": "Keskeytetty otsikoiden odotusajan rajan jälkeen, ei huomioida kuljetusnopeudessa",
     "previousSuccessRate": "Aiemmin {rate} % onnistumisia",
-    "upstreamRefusals": "{count} upstream-hylkäystä",
     "connectionTestsCount": "{count} yhteystestiä",
-    "notMeasured": "Ei mitattu"
+    "notMeasured": "Ei mitattu",
+    "upstream4xx": "{count} ylävirta-asiakasvirheet",
+    "upstream5xx": "{count} ylävirta-palvelinvirheet",
+    "uniformEgressLine": "{affected} kpl {exits} poistoa epäonnistuu yhdessä {provider} (viimeisen {hours}h) — ei ole poistoprobleema"
   },
   "playground": {
     "title": "Title",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} ei-aktiivista",
     "dbOverrideCount": "{count} tietokannan yliajoa",
     "searchPlaceholder": "Hae lippuja...",
+    "descriptionModeLabel": "Kuvausnäkymä",
+    "descriptionModeHint": "Kohdistettaessa: kortit pysyvät tiiviinä, ja kuvauksen päälle vieminen näyttää koko tekstin. Koko teksti: näytä aina täydellinen kuvaus.",
+    "descriptionModeHover": "Kohdistettaessa",
+    "descriptionModeFull": "Koko teksti",
     "categories": {
       "all": "Kaikki",
       "security": "Tietoturva",

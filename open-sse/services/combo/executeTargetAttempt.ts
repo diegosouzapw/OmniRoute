@@ -935,6 +935,7 @@ export async function executeTargetAttempt(opts: {
         status: result.status,
         error: errorText || String(result.status),
         kind: classifyComboOutcome(result.status, errorText),
+        code: structuredError?.code,
       });
       state.lastStatus = result.status;
       if (i > 0) state.fallbackCount++;
@@ -1160,6 +1161,7 @@ export async function executeTargetAttempt(opts: {
       status: result.status,
       error: errorText || String(result.status),
       kind: classifyComboOutcome(result.status, errorText),
+      code: structuredError?.code,
     });
     state.lastStatus = result.status;
     if (i > 0) state.fallbackCount++;

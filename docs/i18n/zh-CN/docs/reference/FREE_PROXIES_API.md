@@ -5,27 +5,28 @@
 ---
 
 OmniRoute 在 `free_proxies` 表中提供了一组精选的免费代理，
-这些代理从外部提供者（1proxy、proxifly、iplocate、webshare）同步而来。
-仪表板会在 **设置 → 免费代理** 下显示这些代理。本文档介绍了列表路由所提供的
+这些代理会从外部提供者（1proxy、proxifly、iplocate、webshare）同步。仪表板会在
+**设置 → 免费代理** 下显示这些代理。本文档介绍列表路由所提供的
 服务端筛选、排序、计数和同步错误报告功能。
 
 ## 列表路由 — `GET /api/settings/free-proxies`
 
-返回经过筛选、排序和分页的数据切片以及总数。筛选和计数均在 SQL 中完成，
-因此 UI 无需将所有行加载到内存中即可显示实际总数（例如 `总计：0`）。
+返回经过筛选、排序和分页的数据切片以及总数。筛选和
+计数均在 SQL 中完成，因此 UI 无需将每一行加载到内存中，
+即可显示真实总数（例如 `总计：0`）。
 
 ### 查询参数
 
-| 参数              | 类型                               | 默认值    | 含义                                                                                             |
-| ----------------- | ---------------------------------- | --------- | ------------------------------------------------------------------------------------------------ |
-| `search`          | 字符串                             | `""`      | 对主机（及来源）列执行区分大小写的 `LIKE` 查询。                                                 |
-| `protocol`        | 字符串                             | `""`      | `type` 筛选器：`http` / `https` / `socks4` / `socks5`。留空 = 全部。                             |
-| `country`         | 字符串                             | `""`      | `countryCode` 筛选器（ISO-2）。留空 = 全部。                                                     |
-| `minQuality`      | 数字                               | `0`       | 仅返回 `qualityScore >= minQuality` 的行。`0` = 不设下限。                                       |
-| `disabledSources` | 字符串                             | `""`      | 要排除的来源 ID，以逗号分隔（例如 `proxifly,webshare`）。                                        |
-| `sortBy`          | `quality` \| `latency` \| `recent` | `quality` | `quality` = 按分数降序；`latency` = 按延迟升序（空值最后）；`recent` = 按 `lastValidated` 降序。 |
-| `offset`          | 数字                               | `0`       | 分页起始位置。                                                                                   |
-| `limit`           | 数字                               | `50`      | 页面大小（服务端设有上限）。                                                                     |
+| 参数              | 类型                               | 默认值    | 含义                                                                                      |
+| ----------------- | ---------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
+| `search`          | 字符串                             | `""`      | 对主机（以及来源）列执行区分大小写的 `LIKE` 查询。                                        |
+| `protocol`        | 字符串                             | `""`      | `type` 筛选器：`http` / `https` / `socks4` / `socks5`。为空 = 全部。                      |
+| `country`         | 字符串                             | `""`      | `countryCode` 筛选器（ISO-2）。为空 = 全部。                                              |
+| `minQuality`      | 数字                               | `0`       | 仅返回 `qualityScore >= minQuality` 的行。`0` = 不设下限。                                |
+| `disabledSources` | 字符串                             | `""`      | 要排除的来源 ID，以逗号分隔（例如 `proxifly,webshare`）。                                 |
+| `sortBy`          | `quality` \| `latency` \| `recent` | `quality` | `quality` = 分数降序；`latency` = 延迟升序（空值置后）；`recent` = `lastValidated` 降序。 |
+| `offset`          | 数字                               | `0`       | 分页起始位置。                                                                            |
+| `limit`           | 数字                               | `50`      | 页面大小（服务端设有上限）。                                                              |
 
 ### 响应
 
@@ -45,28 +46,29 @@ OmniRoute 在 `free_proxies` 表中提供了一组精选的免费代理，
     "lastSyncAt": "2026-07-11T09:30:00.000Z"
   },
   "syncErrors": {
-    "proxifly": ["上游返回 HTTP 429"],
-    "webshare": ["网络超时"]
+    "proxifly": ["HTTP 429 from upstream"],
+    "webshare": ["network timeout"]
   }
 }
 ```
 
 `total` 表示分页**之前**经过筛选的总数，因此 UI 可以独立渲染
-`总计：N` 和 `hasMore`。`syncErrors` 以来源 ID 为键，并且仅包含上次同步失败的来源——
-即使结果为 `总计：0`，也绝不会不提供任何说明。
+`总计：N` 和 `hasMore`。`syncErrors` 以来源 ID 为键，
+并且仅为上次同步失败的来源填充内容，因此 `总计：0` 的结果
+绝不会在没有说明的情况下出现。
 
 ## 添加到代理池 — `POST /api/settings/free-proxies/[id]/add-to-pool`
 
-将免费代理添加到托管的 `proxy_registry` 代理池中。该路由会先验证上游代理；
-成功后返回新的代理池代理 ID 和测得的延迟。
+将免费代理添加到受管理的 `proxy_registry` 代理池中。首先验证
+上游代理；成功后返回新代理池中的代理 ID 和测得的延迟。
 
 ## 同步 — `POST /api/settings/free-proxies/sync`
 
 重新拉取所有已启用的来源（或 `{ "sources": [...] }` 中指定的来源子集）。每个
-来源均独立同步；同步失败的来源会记录在 `syncErrors` 中，其他来源仍会继续完成，
-因此部分同步绝不会清除之前的有效数据。
+来源独立同步；失败的来源会记录在 `syncErrors` 中，而其他来源仍会
+继续完成同步，因此部分同步失败绝不会清除之前的有效数据。
 
 ## 统计信息 — `GET /api/settings/free-proxies/stats`
 
 返回 `total / inPool / avgQuality / bySource / lastSyncAt` 聚合数据，
-但不包含行数据——供仪表板标题区域的组件使用。
+不包含行数据载荷，供仪表板顶部的小组件使用。

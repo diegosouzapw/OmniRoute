@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "स्थिति क्रम",
     "poolHealthRankingOff": "स्वास्थ्य श्रेणी बन्द",
     "transportRate": "{rate}% ढुवानी",
+    "slowAbandoned": "{count} ढिलो परित्यागहरू",
+    "clientAborted": "{count} क्लाइन्टको रद्दीकरणहरू",
+    "slowAbandonedHint": "हेडर प्रतीक्षा सीमा पछि परित्याग गरियो, ट्रान्सपोर्ट दरबाट बहिष्कृत",
     "previousSuccessRate": "पहिले {rate}% सफलता",
-    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृति",
     "connectionTestsCount": "{count} जडान परीक्षण",
-    "notMeasured": "मापन गरिएको छैन"
+    "notMeasured": "मापन गरिएको छैन",
+    "upstream4xx": "{count} अपस्ट्रीम क्लाइन्ट त्रुटिहरू",
+    "upstream5xx": "{count} अपस्ट्रीम सर्भर त्रुटिहरू",
+    "uniformEgressLine": "{provider} मा {exits} एक्जिटहरूमध्ये {affected} वटा सँगै असफल (पछिल्लो {hours}h) — एक्जिट समस्या होइन"
   },
   "playground": {
     "title": "मोडेल प्लेग्राउन्ड",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} निष्क्रिय",
     "dbOverrideCount": "{count} DB ओभरराइड",
     "searchPlaceholder": "फ्ल्यागहरू खोज्नुहोस्...",
+    "descriptionModeLabel": "विवरण दृश्य",
+    "descriptionModeHint": "होभर गर्दा: कार्डहरू संक्षिप्त रहन्छन् र विवरणमाथि होभर गर्दा पूर्ण पाठ देखिन्छ। पूर्ण पाठ: सधैं पूरा विवरण देखाउनुहोस्।",
+    "descriptionModeHover": "होभर गर्दा",
+    "descriptionModeFull": "पूर्ण पाठ",
     "categories": {
       "all": "सबै",
       "security": "सुरक्षा",

@@ -1,1 +1,0 @@
-- **feat(proxy):** a local-core entry can steer its selector to the next member when the existing set-aside sets it aside, without restarting the core ([#14752](https://github.com/diegosouzapw/OmniRoute/pull/14752)) — thanks @maxmad64bis

@@ -1,1 +1,0 @@
-- fix(security): stop trusting a world-writable opencode pool-strain marker in /tmp (#14487)

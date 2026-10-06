@@ -47,6 +47,18 @@ function hasNonEmptyString(value: unknown): boolean {
   return typeof value === "string" && value.length > 0;
 }
 
+// A Claude thinking or signature delta is proof the model is working, even
+// when its payload carries no readable text (encrypted reasoning, empty
+// signature envelope). Presence of a non-empty `thinking` or `signature`
+// string on a typed delta object counts as liveness — never as user-visible
+// output. Plain `signature: ""` bootstraps stay excluded: only a non-empty
+// value passes.
+function hasThinkingLiveness(value: Record<string, unknown>): boolean {
+  const deltaType = value.type;
+  if (deltaType !== "thinking_delta" && deltaType !== "signature_delta") return false;
+  return hasNonEmptyString(value.thinking) || hasNonEmptyString(value.signature);
+}
+
 function hasUsefulValue(value: unknown): boolean {
   if (hasNonEmptyString(value)) return true;
   if (Array.isArray(value)) return value.some(hasUsefulValue);
@@ -59,6 +71,8 @@ function hasUsefulValue(value: unknown): boolean {
   // tripping the #8649 empty-content guard.
   // This shape is specific to Responses streams; chat-completion frames do not produce it.
   if (value.type === "compaction" && hasNonEmptyString(value.encrypted_content)) return true;
+
+  if (hasThinkingLiveness(value)) return true;
 
   for (const key of [
     "content",

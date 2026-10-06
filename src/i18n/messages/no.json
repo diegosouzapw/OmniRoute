@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Posisjonsrekkefølge",
     "poolHealthRankingOff": "Helserangering av",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} langsomme forlatelser",
+    "clientAborted": "{count} klientavbrudd",
+    "slowAbandonedHint": "Forlatt etter overskriftsventetidspunktet, ekskludert fra transportrate",
     "previousSuccessRate": "Tidligere {rate} % suksess",
-    "upstreamRefusals": "{count} upstream-avvisninger",
     "connectionTestsCount": "{count} tilkoblingstester",
-    "notMeasured": "Ikke målt"
+    "notMeasured": "Ikke målt",
+    "upstream4xx": "{count} oppstrøms klientfeil",
+    "upstream5xx": "{count} oppstrøms serverfeil",
+    "uniformEgressLine": "{affected} av {exits} utganger feiler sammen på {provider} (siste {hours}t) — ikke et utgangsproblem"
   },
   "playground": {
     "title": "Title",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} inaktive",
     "dbOverrideCount": "{count} DB-overstyringer",
     "searchPlaceholder": "Søk i flagg...",
+    "descriptionModeLabel": "Beskrivelsesvisning",
+    "descriptionModeHint": "Ved markering: Kortene forblir kompakte, og når du holder pekeren over en beskrivelse, vises hele teksten. Full tekst: Vis alltid hele beskrivelsen.",
+    "descriptionModeHover": "Ved markering",
+    "descriptionModeFull": "Full tekst",
     "categories": {
       "all": "Alle",
       "security": "Sikkerhet",

@@ -1272,21 +1272,21 @@ Metryki kanoniczne na dzień 2026-08-24: **1.029 unikalnych filmów** · **11.13
 <table>
   <tr><th align="left">Warstwa</th><th align="left">Technologia</th></tr>
   <tr><td nowrap><b>Środowisko uruchomieniowe</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Język</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> w <code>src/</code> i <code>open-sse/</code> (zero <code>any</code> w rdzeniu od v2.0)</td></tr>
+  <tr><td nowrap><b>Język</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> w <code>src/</code> i <code>open-sse/</code> (zero <code>any</code> w rdzeniu od wersji v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Baza danych</b></td><td>better-sqlite3 (SQLite, kronikowanie WAL) + LowDB (starszy format JSON) — 136 modułów domenowych, 193 migracje</td></tr>
-  <tr><td nowrap><b>Pamięć</b></td><td>Pełnotekstowe wyszukiwanie SQLite FTS5 + embeddingi wektorowe kwantyzowane do int8, typowany zanik</td></tr>
+  <tr><td nowrap><b>Baza danych</b></td><td>better-sqlite3 (SQLite, rejestrowanie WAL) + LowDB (starszy format JSON) — 137 modułów domenowych, 193 migracje</td></tr>
+  <tr><td nowrap><b>Pamięć</b></td><td>Wyszukiwanie pełnotekstowe SQLite FTS5 + wektorowe reprezentacje osadzone skwantyzowane do int8, typowany zanik</td></tr>
   <tr><td nowrap><b>Schematy</b></td><td>Zod 4 — walidacja wejścia/wyjścia narzędzi MCP + kontrakty API</td></tr>
   <tr><td nowrap><b>Protokoły</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Strumieniowanie</b></td><td>Server-Sent Events (SSE) + most WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Kompresja</b></td><td>Potok z 12 silnikami — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Uwierzytelnianie i bezpieczeństwo</b></td><td>OAuth 2.0 (PKCE) + JWT + klucze API + uwierzytelnianie MCP z zakresami · AES-256-GCM dla danych w spoczynku · DOMPurify</td></tr>
-  <tr><td nowrap><b>Kamuflaż</b></td><td>wreq-js — imitowanie odcisków TLS JA3 / JA4, 3-poziomowe proxy</td></tr>
-  <tr><td nowrap><b>Odporność</b></td><td>Wyłącznik automatyczny, wykładnicze ponawianie z opóźnieniem, ochrona przed efektem lawinowym, samonaprawianie auto-combo</td></tr>
-  <tr><td nowrap><b>Rejestrowanie</b></td><td>pino — ustrukturyzowane dzienniki JSON z kontekstem żądania</td></tr>
-  <tr><td nowrap><b>Testowanie</b></td><td>Moduł testowy Node.js + Vitest — <b>ponad 39 000 statycznych deklaracji testów</b> w ponad 5 100 śledzonych plikach testowych (testy jednostkowe, integracyjne, E2E, bezpieczeństwa i ekosystemu)</td></tr>
+  <tr><td nowrap><b>Kompresja</b></td><td>Potok złożony z 12 silników — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Uwierzytelnianie i bezpieczeństwo</b></td><td>OAuth 2.0 (PKCE) + JWT + klucze API + uwierzytelnianie MCP o ograniczonym zakresie · AES-256-GCM dla danych w spoczynku · DOMPurify</td></tr>
+  <tr><td nowrap><b>Maskowanie</b></td><td>wreq-js — imitowanie odcisków TLS JA3 / JA4, 3-poziomowe proxy</td></tr>
+  <tr><td nowrap><b>Odporność</b></td><td>Wyłącznik obwodu, wykładnicze opóźnianie ponownych prób, ochrona przed efektem „thundering herd”, samonaprawianie auto-combo</td></tr>
+  <tr><td nowrap><b>Rejestrowanie</b></td><td>pino — ustrukturyzowane logi JSON z kontekstem żądania</td></tr>
+  <tr><td nowrap><b>Testowanie</b></td><td>Moduł uruchamiający testy Node.js + Vitest — <b>ponad 39 000 statycznych deklaracji testów</b> w ponad 5 100 śledzonych plikach testowych (testy jednostkowe, integracyjne, E2E, bezpieczeństwa i ekosystemu)</td></tr>
   <tr><td nowrap><b>Platformy</b></td><td>Komputery stacjonarne (Electron) · Android (Termux) · PWA (dowolna przeglądarka)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatyczna publikacja w npm i Docker Hub przy wydaniu</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatyczne publikowanie w npm i Docker Hub przy wydaniu</td></tr>
   <tr><td nowrap><b>Łącza</b></td><td><a href="https://omniroute.online">Witryna internetowa</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1738,7 +1738,7 @@ Licencja MIT — szczegółowe informacje znajdziesz w pliku [LICENSE](LICENSE).
 
 **[⬆ Powrót na górę](#-omniroute)** · Stworzone z ❤️ dla społeczności open source zajmującej się AI.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · Licencja MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · Licencja MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions włączone na potrzeby pytań i odpowiedzi społeczności -->

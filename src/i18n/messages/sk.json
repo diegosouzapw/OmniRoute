@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Poradie pozícií",
     "poolHealthRankingOff": "Hodnotenie stavu vypnuté",
     "transportRate": "{rate} % prenosu",
+    "slowAbandoned": "{count} pomalých opustení",
+    "clientAborted": "{count} klientských prerušení",
+    "slowAbandonedHint": "Opustené po prekročení limitu čakania na hlavičky, vynechané z miery prenosu",
     "previousSuccessRate": "Predtým {rate} % úspešnosť",
-    "upstreamRefusals": "{count} odmietnutí upstream",
     "connectionTestsCount": "{count} testov pripojenia",
-    "notMeasured": "Nemerané"
+    "notMeasured": "Nemerané",
+    "upstream4xx": "{count} chyby klienta",
+    "upstream5xx": "{count} chyby servera",
+    "uniformEgressLine": "{affected} z {exits} exitov zlyhávajú súčasne na {provider} (za posledných {hours} h) — nejde o problém exitu"
   },
   "playground": {
     "title": "Title",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} neaktívnych",
     "dbOverrideCount": "{count} prepísaní DB",
     "searchPlaceholder": "Hľadať príznaky...",
+    "descriptionModeLabel": "Zobrazenie popisu",
+    "descriptionModeHint": "Pri umiestnení kurzora: karty zostanú kompaktné a pri umiestnení kurzora na popis sa zobrazí celý text. Celý text: vždy sa zobrazí kompletný popis.",
+    "descriptionModeHover": "Pri umiestnení kurzora",
+    "descriptionModeFull": "Celý text",
     "categories": {
       "all": "Všetky",
       "security": "Bezpečnosť",

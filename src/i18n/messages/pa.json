@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "ਸਥਿਤੀ ਕ੍ਰਮ",
     "poolHealthRankingOff": "ਸਿਹਤ ਦਰਜਾਬੰਦੀ ਬੰਦ",
     "transportRate": "{rate}% ਟਰਾਂਸਪੋਰਟ",
+    "slowAbandoned": "{count} ਹੌਲੀ ਛੱਡਣੀਆਂ",
+    "clientAborted": "{count} ਕਲਾਇੰਟ ਰੱਦਾਂ",
+    "slowAbandonedHint": "ਹੈਡਰ ਉਡੀਕ ਸੀਮਾ ਤੋਂ ਬਾਅਦ ਛੱਡਿਆ ਗਿਆ, ਟਰਾਂਸਪੋਰਟ ਦਰ ਤੋਂ ਬਾਹਰ ਰੱਖਿਆ ਗਿਆ",
     "previousSuccessRate": "ਪਹਿਲਾਂ {rate}% ਸਫਲਤਾ",
-    "upstreamRefusals": "{count} ਅੱਪਸਟ੍ਰੀਮ ਅਸਵੀਕਾਰ",
     "connectionTestsCount": "{count} ਕਨੈਕਸ਼ਨ ਜਾਂਚਾਂ",
-    "notMeasured": "ਮਾਪਿਆ ਨਹੀਂ ਗਿਆ"
+    "notMeasured": "ਮਾਪਿਆ ਨਹੀਂ ਗਿਆ",
+    "upstream4xx": "{count} ਅੱਗੇ ਕਲਾਈਂਟ ਗਲਤੀਆਂ",
+    "upstream5xx": "{count} ਅੱਗੇ ਸਰਵਰ ਗਲਤੀਆਂ",
+    "uniformEgressLine": "{exits} ਐਗਜ਼ਿਟਾਂ ਵਿੱਚੋਂ {affected} {provider} ਉੱਤੇ ਇਕੱਠੇ ਫੇਲ ਹੋ ਰਹੇ ਹਨ (ਪਿਛਲੇ {hours} ਘੰਟਿਆਂ ਵਿੱਚ) — ਇਹ ਐਗਜ਼ਿਟ ਦੀ ਸਮੱਸਿਆ ਨਹੀਂ ਹੈ"
   },
   "playground": {
     "title": "ਮਾਡਲ ਪਲੇਗ੍ਰਾਊਂਡ",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} ਅਕਿਰਿਆਸ਼ੀਲ",
     "dbOverrideCount": "{count} DB ਓਵਰਰਾਈਡ",
     "searchPlaceholder": "ਫਲੈਗ ਖੋਜੋ...",
+    "descriptionModeLabel": "ਵੇਰਵਾ ਦ੍ਰਿਸ਼",
+    "descriptionModeHint": "ਹੋਵਰ ਕਰਨ 'ਤੇ: ਕਾਰਡ ਸੰਖੇਪ ਰਹਿੰਦੇ ਹਨ ਅਤੇ ਵੇਰਵੇ ਉੱਤੇ ਹੋਵਰ ਕਰਨ ਨਾਲ ਪੂਰਾ ਟੈਕਸਟ ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ। ਪੂਰਾ ਟੈਕਸਟ: ਹਮੇਸ਼ਾਂ ਪੂਰਾ ਵੇਰਵਾ ਦਿਖਾਓ।",
+    "descriptionModeHover": "ਹੋਵਰ ਕਰਨ 'ਤੇ",
+    "descriptionModeFull": "ਪੂਰਾ ਟੈਕਸਟ",
     "categories": {
       "all": "ਸਾਰੇ",
       "security": "ਸੁਰੱਖਿਆ",

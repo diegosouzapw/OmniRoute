@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Ordre de position",
     "poolHealthRankingOff": "Classement de santé désactivé",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} abandons lents",
+    "clientAborted": "{count} annulations par le client",
+    "slowAbandonedHint": "Abandonné après dépassement du délai d'attente des en-têtes, exclu du taux de transport",
     "previousSuccessRate": "Précédemment {rate} % de réussite",
-    "upstreamRefusals": "{count} refus en amont",
     "connectionTestsCount": "{count} tests de connexion",
-    "notMeasured": "Non mesuré"
+    "notMeasured": "Non mesuré",
+    "upstream4xx": "{count} erreurs client en amont",
+    "upstream5xx": "{count} erreurs de serveur en amont",
+    "uniformEgressLine": "{affected} sur {exits} sorties échouent simultanément sur {provider} (dernières {hours}h) — pas un problème de sortie"
   },
   "playground": {
     "title": "Title",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} inactifs",
     "dbOverrideCount": "{count} surcharges DB",
     "searchPlaceholder": "Rechercher des indicateurs...",
+    "descriptionModeLabel": "Affichage de la description",
+    "descriptionModeHint": "Au survol : les cartes restent compactes et le survol d’une description affiche le texte intégral. Texte intégral : affiche toujours la description complète.",
+    "descriptionModeHover": "Au survol",
+    "descriptionModeFull": "Texte intégral",
     "categories": {
       "all": "Tous",
       "security": "Sécurité",

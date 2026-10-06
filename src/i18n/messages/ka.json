@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "პოზიციის თანმიმდევრობა",
     "poolHealthRankingOff": "ჯანმრთელობის რეიტინგი გამორთულია",
     "transportRate": "{rate}% ტრანსპორტი",
+    "slowAbandoned": "{count} ნელი უარისთვის ჩაბარება",
+    "clientAborted": "{count} კლიენტის უარისთვის ჩაბარება",
+    "slowAbandonedHint": "უარი თქმულია სათაურების ლოდინის ზღვრის გადალახვის შემდეგ, გამორიცხულია სატრანსპორტო განაკვეთიდან",
     "previousSuccessRate": "ადრე {rate}% წარმატება",
-    "upstreamRefusals": "{count} upstream უარყოფა",
     "connectionTestsCount": "{count} კავშირის ტესტი",
-    "notMeasured": "არ არის გაზომილი"
+    "notMeasured": "არ არის გაზომილი",
+    "upstream4xx": "{count} ზედა კლიენტის შეცდომები",
+    "upstream5xx": "{count} ზემოდან მომავალი სერვერის შეცდომები",
+    "uniformEgressLine": "{affected} {exits} ეგზიტიდან {provider}-ზე ერთად ვარდება (ბოლო {hours}სთ) — ეს ეგზიტის პრობლემა არ არის"
   },
   "playground": {
     "title": "მოდელების სატესტო გარემო",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} არააქტიური",
     "dbOverrideCount": "{count} DB-ის გადაფარვა",
     "searchPlaceholder": "ალმების ძიება...",
+    "descriptionModeLabel": "აღწერილობის ხედი",
+    "descriptionModeHint": "მაუსის გადატარებისას: ბარათები კომპაქტური რჩება, ხოლო აღწერილობაზე მაუსის გადატარებისას სრული ტექსტი გამოჩნდება. სრული ტექსტი: ყოველთვის გამოჩნდეს სრული აღწერილობა.",
+    "descriptionModeHover": "მაუსის გადატარებისას",
+    "descriptionModeFull": "სრული ტექსტი",
     "categories": {
       "all": "ყველა",
       "security": "უსაფრთხოება",

@@ -145,9 +145,11 @@ test("measureViaFileStat: config ausente retorna allMissing=true e total=0", () 
 // runSizeLimit — comportamento quando o binário não existe
 // ---------------------------------------------------------------------------
 
-test("runSizeLimit: lança com code SL_NO_BIN quando binário não existe", () => {
+test("runSizeLimit: lança com code SL_NO_BIN quando size-limit não está instalado", () => {
+  // The gate resolves node_modules/<pkg>/package.json → its bin entry (the .bin
+  // shim is unusable on Windows — see G-04). A root with neither is "not installed".
   assert.throws(
-    () => runSizeLimit("/tmp", "/nonexistent/path/size-limit"),
+    () => runSizeLimit("/nonexistent/omniroute-root-4242"),
     (err: unknown) => {
       assert.ok(err instanceof Error);
       assert.equal((err as NodeJS.ErrnoException & { code?: string }).code, "SL_NO_BIN");

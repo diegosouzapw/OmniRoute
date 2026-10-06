@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "ترتیب موقعیت",
     "poolHealthRankingOff": "رتبه‌بندی سلامت خاموش",
     "transportRate": "{rate}٪ انتقال",
+    "slowAbandoned": "{count} رها کردن‌های کند",
+    "clientAborted": "{count} لغو کردن‌های مشتری",
+    "slowAbandonedHint": "پس از گذشت زمان انتظار هدرها، رها شد و از نرخ انتقال حذف گردید.",
     "previousSuccessRate": "قبلاً {rate}٪ موفقیت",
-    "upstreamRefusals": "{count} رد بالادستی",
     "connectionTestsCount": "{count} آزمون اتصال",
-    "notMeasured": "اندازه‌گیری نشده"
+    "notMeasured": "اندازه‌گیری نشده",
+    "upstream4xx": "{count} خطای سرویس گیرنده بالادست",
+    "upstream5xx": "{count} خطای سرویس دهنده بالادست",
+    "uniformEgressLine": "{affected} از {exits} خروجی به‌طور همزمان در {provider} دچار خطا می‌شوند (در {hours} ساعت گذشته) — مشکل از خروجی نیست"
   },
   "playground": {
     "title": "محیط آزمایش مدل",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} غیرفعال",
     "dbOverrideCount": "{count} بازنویسی دیتابیس",
     "searchPlaceholder": "جستجوی فلگ‌ها...",
+    "descriptionModeLabel": "نمای توضیحات",
+    "descriptionModeHint": "هنگام نگهداشتن نشانگر: کارتها فشرده میمانند و با نگهداشتن نشانگر روی توضیحات، متن کامل نمایش داده میشود. متن کامل: همیشه توضیحات را بهطور کامل نمایش میدهد.",
+    "descriptionModeHover": "هنگام نگهداشتن نشانگر",
+    "descriptionModeFull": "متن کامل",
     "categories": {
       "all": "همه",
       "security": "امنیت",

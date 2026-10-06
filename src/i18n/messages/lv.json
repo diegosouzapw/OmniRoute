@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Pozīciju secība",
     "poolHealthRankingOff": "Veselības ranžēšana izslēgta",
     "transportRate": "{rate} % transporta",
+    "slowAbandoned": "{count} lēnas atteikšanās",
+    "clientAborted": "{count} klienta pārtraukumi",
+    "slowAbandonedHint": "Atteikta pēc galvenes gaidīšanas sliekšņa, izslēgta no transporta likmes",
     "previousSuccessRate": "Iepriekš {rate} % sekmju",
-    "upstreamRefusals": "{count} augšupējos noraidījumus",
     "connectionTestsCount": "{count} savienojuma testus",
-    "notMeasured": "Nav izmērīts"
+    "notMeasured": "Nav izmērīts",
+    "upstream4xx": "{count} upstream klienta kļūdas",
+    "upstream5xx": "{count} upstream servera kļūdas",
+    "uniformEgressLine": "{affected} no {exits} izejām neizdodas vienlaikus pie {provider} (pēdējo {hours} h laikā) — tā nav izejas problēma"
   },
   "playground": {
     "title": "Modeļu testēšanas vide",
@@ -11522,8 +11527,8 @@
       "compressed": "Saspiests: {from} → {to} (ietaupīts {percent}%)",
       "output": "Izvade",
       "totalOut": "Kopā izvadē: {value}",
-      "reasoningObserved": "{value} · novērotas {chars} rakstzīmes",
       "reasoning": "Spriešana: {value}",
+      "reasoningObserved": "{value} · novērotas {chars} rakstzīmes",
       "requestedModel": "Pieprasītais modelis",
       "requestProtocol": "Pieprasījuma protokols",
       "cacheSource": "Kešatmiņas avots",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "Neaktīvi: {count}",
     "dbOverrideCount": "DB pārrakstījumi: {count}",
     "searchPlaceholder": "Meklēt karodziņus...",
+    "descriptionModeLabel": "Apraksta skats",
+    "descriptionModeHint": "Novietojot kursoru: kartītes paliek kompaktas, un, novietojot kursoru virs apraksta, tiek parādīts pilns teksts. Pilns teksts: vienmēr rādīt visu aprakstu.",
+    "descriptionModeHover": "Novietojot kursoru",
+    "descriptionModeFull": "Pilns teksts",
     "categories": {
       "all": "Visi",
       "security": "Drošība",

@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Ilana ipo",
     "poolHealthRankingOff": "Ipo ilera pa",
     "transportRate": "{rate}% gbigbe",
+    "slowAbandoned": "{count} ìfọkànsí tó lọ́ra",
+    "clientAborted": "{count} ìdákẹ́jẹ́ oníbàárà",
+    "slowAbandonedHint": "Ti kọ́ silẹ̀ lẹ́yìn àkókò ìdúró àkóónú, a yọ kúrò nínú oṣuwọn ìkópa",
     "previousSuccessRate": "Ni iṣaaju {rate}% aṣeyọri",
-    "upstreamRefusals": "{count} kikọ upstream",
     "connectionTestsCount": "{count} idanwo asopọ",
-    "notMeasured": "A ko wọn"
+    "notMeasured": "A ko wọn",
+    "upstream4xx": "{count} ìwà àwọn àkàntà ní àwọn àkàntà",
+    "upstream5xx": "{count} ìwà àwọn àkàntà ní àwọn àkàntà",
+    "uniformEgressLine": "{affected} ya ka {exits} ẹjọ kò rí nipa {provider} (lẹhin {hours}h) — kò si ẹjọ"
   },
   "playground": {
     "title": "Pápá Ìdánwò Àwòṣe",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} kò ṣiṣẹ́",
     "dbOverrideCount": "{count} àtúnṣe DB tó borí ìṣètò",
     "searchPlaceholder": "Ṣàwárí àwọn àsìá...",
+    "descriptionModeLabel": "Ìfihàn àpèjúwe",
+    "descriptionModeHint": "Nígbà tí atọ́ka bá wà lórí: àwọn káàdì á wà ní ṣókí, fífi atọ́ka sí orí àpèjúwe yóò sì fi gbogbo ọ̀rọ̀ hàn. Gbogbo ọ̀rọ̀: máa fi àpèjúwe kíkún hàn nígbà gbogbo.",
+    "descriptionModeHover": "Nígbà tí atọ́ka bá wà lórí",
+    "descriptionModeFull": "Gbogbo ọ̀rọ̀",
     "categories": {
       "all": "Gbogbo",
       "security": "Ààbò",

@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "സ്ഥാന ക്രമം",
     "poolHealthRankingOff": "ആരോഗ്യ റാങ്കിംഗ് ഓഫ്",
     "transportRate": "{rate}% ഗതാഗതം",
+    "slowAbandoned": "{count} മന്ദഗതിയിലുള്ള ഉപേക്ഷണങ്ങൾ",
+    "clientAborted": "{count} ക്ലയന്റ് റദ്ദാക്കലുകൾ",
+    "slowAbandonedHint": "ഹെഡറുകൾ കാത്തിരിപ്പ് പരിധിക്ക് ശേഷം ഉപേക്ഷിക്കപ്പെട്ടത്, ട്രാൻസ്പോർട്ട് നിരക്കിൽ നിന്ന് ഒഴിവാക്കിയിരിക്കുന്നു",
     "previousSuccessRate": "മുമ്പ് {rate}% വിജയം",
-    "upstreamRefusals": "{count} അപ്സ്ട്രീം നിരസിക്കലുകൾ",
     "connectionTestsCount": "{count} കണക്ഷൻ പരിശോധനകൾ",
-    "notMeasured": "അളന്നിട്ടില്ല"
+    "notMeasured": "അളന്നിട്ടില്ല",
+    "upstream4xx": "{count} ഉപ്‌സ്‌ട്രീം ക്ലയന്റ് പിശകുകൾ",
+    "upstream5xx": "{count} ഉപ്‌സ്‌ട്രീം സെർവർ പിശകുകൾ",
+    "uniformEgressLine": "{provider}-ൽ {exits} എക്സിറ്റുകളിൽ {affected} എണ്ണം ഒരുമിച്ച് പരാജയപ്പെടുന്നു (കഴിഞ്ഞ {hours} മണിക്കൂറിൽ) — ഇത് എക്സിറ്റ് പ്രശ്നമല്ല"
   },
   "playground": {
     "title": "മോഡൽ പ്ലേഗ്രൗണ്ട്",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} നിഷ്ക്രിയം",
     "dbOverrideCount": "{count} DB ഓവർറൈഡുകൾ",
     "searchPlaceholder": "ഫ്ലാഗുകൾ തിരയുക...",
+    "descriptionModeLabel": "വിവരണ കാഴ്ച",
+    "descriptionModeHint": "ഹോവർ ചെയ്യുമ്പോൾ: കാർഡുകൾ ഒതുക്കമുള്ളതായി തുടരും, ഒരു വിവരണത്തിന് മുകളിൽ ഹോവർ ചെയ്യുമ്പോൾ പൂർണ്ണമായ വാചകം കാണിക്കും. പൂർണ്ണമായ വാചകം: എല്ലായ്പ്പോഴും സമ്പൂർണ്ണ വിവരണം കാണിക്കുക.",
+    "descriptionModeHover": "ഹോവർ ചെയ്യുമ്പോൾ",
+    "descriptionModeFull": "പൂർണ്ണമായ വാചകം",
     "categories": {
       "all": "എല്ലാം",
       "security": "സുരക്ഷ",

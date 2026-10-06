@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Mövqe sırası",
     "poolHealthRankingOff": "Sağlamlıq reytinqi kapalı",
     "transportRate": "{rate}% nəqliyyat",
+    "slowAbandoned": "{count} yavaş tərk etmələr",
+    "clientAborted": "{count} müştəri ləğv etmələri",
+    "slowAbandonedHint": "Başlıqların gözləmə həddindən sonra tərk edildi, daşınma dərəcəsindən çıxarılıb",
     "previousSuccessRate": "Əvvəlcə {rate}% uğur",
-    "upstreamRefusals": "{count} upstream rəddi",
     "connectionTestsCount": "{count} bağlantı testi",
-    "notMeasured": "Ölçülməyib"
+    "notMeasured": "Ölçülməyib",
+    "upstream4xx": "{count} yuxarı axın müştəri səhvləri",
+    "upstream5xx": "{count} yuxarı axın server səhvləri",
+    "uniformEgressLine": "{affected} of {exits} çıxışları {provider} üzərində eyni anda uğursuz oldu (son {hours} saat) — çıxış problemi deyil"
   },
   "playground": {
     "title": "Model sınaq meydanı",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} qeyri-aktiv",
     "dbOverrideCount": "{count} DB override-ı",
     "searchPlaceholder": "Bayraqlarda axtar...",
+    "descriptionModeLabel": "Təsvir görünüşü",
+    "descriptionModeHint": "Üzərinə gətirdikdə: kartlar yığcam qalır və təsvirin üzərinə gətirdikdə tam mətn göstərilir. Tam mətn: təsviri həmişə tam şəkildə göstərir.",
+    "descriptionModeHover": "Üzərinə gətirdikdə",
+    "descriptionModeFull": "Tam mətn",
     "categories": {
       "all": "Hamısı",
       "security": "Təhlükəsizlik",

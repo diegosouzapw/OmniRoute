@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Ayos ng posisyon",
     "poolHealthRankingOff": "Naka-off ang ranggo ng kalusugan",
     "transportRate": "{rate}% transport",
+    "slowAbandoned": "{count} mabagal na pag-abandona",
+    "clientAborted": "{count} abort ng kliyente",
+    "slowAbandonedHint": "Inabandona matapos ang threshold ng paghihintay ng mga header, hindi isinama sa rate ng transport",
     "previousSuccessRate": "Dati {rate}% tagumpay",
-    "upstreamRefusals": "{count} pagtanggi ng upstream",
     "connectionTestsCount": "{count} pagsubok ng koneksyon",
-    "notMeasured": "Hindi nasukat"
+    "notMeasured": "Hindi nasukat",
+    "upstream4xx": "{count} mga error ng upstream client",
+    "upstream5xx": "{count} mga error ng upstream server",
+    "uniformEgressLine": "{affected} sa {exits} na mga exit ay sabay-sabay na nabigo sa {provider} (huling {hours}h) — hindi problema ng exit"
   },
   "playground": {
     "title": "Title",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} hindi aktibo",
     "dbOverrideCount": "{count} na DB override",
     "searchPlaceholder": "Maghanap ng mga flag...",
+    "descriptionModeLabel": "View ng paglalarawan",
+    "descriptionModeHint": "Kapag naka-hover: mananatiling compact ang mga card at makikita ang buong teksto kapag nag-hover sa isang paglalarawan. Buong teksto: palaging ipakita ang kumpletong paglalarawan.",
+    "descriptionModeHover": "Kapag naka-hover",
+    "descriptionModeFull": "Buong teksto",
     "categories": {
       "all": "Lahat",
       "security": "Seguridad",

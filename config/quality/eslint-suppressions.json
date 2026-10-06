@@ -54,11 +54,6 @@
       "count": 1
     }
   },
-  "open-sse/executors/base.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 5
-    }
-  },
   "open-sse/executors/blackbox-web.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -625,11 +620,6 @@
       "count": 1
     }
   },
-  "open-sse/translator/request/openai-to-cursor.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
   "open-sse/translator/request/openai-to-gemini.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 5
@@ -945,11 +935,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/settings/components/SystemStorageTab.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentList.tsx": {
     "no-restricted-syntax": {
       "count": 3
@@ -1228,22 +1213,12 @@
       "count": 1
     }
   },
-  "src/app/api/v1/vscode/[token]/combos/route.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/api/v1/vscode/[token]/models/route.ts": {
     "no-restricted-syntax": {
       "count": 1
     }
   },
   "src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/api/v1/vscode/raw/[token]/combos/route.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -1546,11 +1521,6 @@
       "count": 1
     }
   },
-  "src/lib/oauth/providers/ghe-copilot.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/oauth/providers/kiro.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 3
@@ -1647,11 +1617,6 @@
     }
   },
   "src/lib/tailscaleTunnel.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/telegram/initData.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -3046,11 +3011,6 @@
       "count": 1
     }
   },
-  "tests/unit/cli/cli-manifest-drift.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/cli/setup-continue.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -3355,11 +3315,6 @@
   "tests/unit/copilot-free-quota-not-inverted.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
-    }
-  },
-  "tests/unit/cursor-agent-session.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/unit/cursor-usage-fetcher.test.ts": {

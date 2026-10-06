@@ -96,7 +96,11 @@ export function extractUserToken(credentials: Record<string, unknown>): string |
 function errorResponse(status: number, message: string, dsCode?: number): Response {
   return new Response(
     JSON.stringify({
-      error: { message, type: "upstream_error", code: dsCode ?? `HTTP_${status}` },
+      error: {
+        message: sanitizeErrorMessage(message),
+        type: "upstream_error",
+        code: dsCode ?? `HTTP_${status}`,
+      },
     }),
     { status, headers: { "Content-Type": "application/json" } }
   );
@@ -908,8 +912,8 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       return {
         response: errorResponse(
           400,
-          "Invalid credentials: paste your userToken from DeepSeek localStorage " +
-            "(DevTools → Application → Local Storage → chat.deepseek.com → userToken)"
+          "Missing userToken \u2014 paste it from DeepSeek localStorage " +
+            "(DevTools \u2192 Application \u2192 Local Storage \u2192 chat.deepseek.com \u2192 userToken)"
         ),
         url: COMPLETION_URL,
         headers: {},

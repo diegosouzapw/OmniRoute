@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Positievolgorde",
     "poolHealthRankingOff": "Gezondheidsrangschikking uit",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} trage afwijzingen",
+    "clientAborted": "{count} clientafbrekingen",
+    "slowAbandonedHint": "Verlaten na de headers-wachttijd, uitgesloten van het transporttarief",
     "previousSuccessRate": "Eerder {rate} % succes",
-    "upstreamRefusals": "{count} upstream-weigeringen",
     "connectionTestsCount": "{count} verbindingstests",
-    "notMeasured": "Niet gemeten"
+    "notMeasured": "Niet gemeten",
+    "upstream4xx": "{count} upstream clientfouten",
+    "upstream5xx": "{count} upstream serverfouten",
+    "uniformEgressLine": "{affected} van {exits} exits falen tegelijk op {provider} (laatste {hours}u) — geen exit-probleem"
   },
   "playground": {
     "title": "Title",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} inactief",
     "dbOverrideCount": "{count} DB-overrides",
     "searchPlaceholder": "Flags zoeken...",
+    "descriptionModeLabel": "Beschrijvingweergave",
+    "descriptionModeHint": "Bij aanwijzen: kaarten blijven compact en wanneer u de aanwijzer op een beschrijving plaatst, wordt de volledige tekst weergegeven. Volledige tekst: toon altijd de complete beschrijving.",
+    "descriptionModeHover": "Bij aanwijzen",
+    "descriptionModeFull": "Volledige tekst",
     "categories": {
       "all": "Alles",
       "security": "Beveiliging",

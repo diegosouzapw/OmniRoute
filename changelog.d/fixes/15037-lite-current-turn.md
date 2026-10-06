@@ -1,1 +1,0 @@
-- **fix(compression):** Lite no longer truncates the results of the latest tool calls, so OpenAI-format agents (Cursor IDE, Kilo/OpenCode) stop re-reading a file whose content was cut to 2000 characters every time ([#15037](https://github.com/diegosouzapw/OmniRoute/pull/15037)).

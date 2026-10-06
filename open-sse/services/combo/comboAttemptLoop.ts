@@ -33,6 +33,7 @@ import {
   formatComboOutcomes,
   buildRedactedSummary,
   resolveComboTerminalStatus,
+  resolveComboTerminalCode,
 } from "./comboErrorAggregation.ts";
 import {
   resolveComboCooldownWaitDecision,
@@ -698,7 +699,8 @@ export async function dispatchWithCooldownRetry(opts: {
         errorResponseWithComboDiagnostics(
           status,
           msg,
-          buildComboDiag(state, deps.traceInvocationId, terminalReason, retryAfterSeconds)
+          buildComboDiag(state, deps.traceInvocationId, terminalReason, retryAfterSeconds),
+          { code: resolveComboTerminalCode(state.comboErrors, status) }
         ),
         state.observedFailure ? state.allObservedFailuresQuota : null
       );

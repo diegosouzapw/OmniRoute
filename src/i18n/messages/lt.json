@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Pozicijų tvarka",
     "poolHealthRankingOff": "Sveikatos reitingavimas išjungtas",
     "transportRate": "{rate} % transporto",
+    "slowAbandoned": "{count} lėtos atšaukimų",
+    "clientAborted": "{count} kliento nutraukimų",
+    "slowAbandonedHint": "Panaikinta po antraštės laukimo ribos, neįtraukiama į perdavimo greitį",
     "previousSuccessRate": "Anksčiau {rate} % sėkmės",
-    "upstreamRefusals": "{count} aukštesnio lygio atmetimų",
     "connectionTestsCount": "{count} ryšio testus",
-    "notMeasured": "Neišmatuota"
+    "notMeasured": "Neišmatuota",
+    "upstream4xx": "{count} kliento klaidos",
+    "upstream5xx": "{count} serverio klaidos",
+    "uniformEgressLine": "{affected} iš {exits} išėjimų genda kartu tinkle {provider} (per paskutines {hours}h) — ne išėjimo problema"
   },
   "playground": {
     "title": "Modelių bandymų aplinka",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} neaktyvios",
     "dbOverrideCount": "{count} DB perrašymų",
     "searchPlaceholder": "Ieškoti žymų...",
+    "descriptionModeLabel": "Aprašo rodinys",
+    "descriptionModeHint": "Užvedus žymeklį: kortelės išlieka kompaktiškos, o užvedus žymeklį ant aprašo rodomas visas tekstas. Visas tekstas: visada rodyti visą aprašą.",
+    "descriptionModeHover": "Užvedus žymeklį",
+    "descriptionModeFull": "Visas tekstas",
     "categories": {
       "all": "Visos",
       "security": "Saugumas",

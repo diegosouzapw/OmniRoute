@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
+// After the chatCore decomposition the wire-send path lives in
+// chatCore/executeProviderRequest.ts; the barrel only wires it up.
 const source = readFileSync(
-  new URL("../../open-sse/handlers/chatCore.ts", import.meta.url),
+  new URL("../../open-sse/handlers/chatCore/executeProviderRequest.ts", import.meta.url),
   "utf8"
 );
 
@@ -11,6 +13,17 @@ const pipeline = readFileSync(
   new URL("../../open-sse/handlers/chatCore/providerExecutionPipeline.ts", import.meta.url),
   "utf8"
 );
+
+const legs = [
+  readFileSync(
+    new URL("../../open-sse/handlers/chatCore/nonStreamingResponse.ts", import.meta.url),
+    "utf8"
+  ),
+  readFileSync(
+    new URL("../../open-sse/handlers/chatCore/streamingResponse.ts", import.meta.url),
+    "utf8"
+  ),
+];
 
 test("chatCore acquires cumulative gates immediately before withRateLimit", () => {
   const acquire = source.indexOf("await acquireConcurrencyGates(");
@@ -35,7 +48,7 @@ test("chatCore acquires cumulative gates immediately before withRateLimit", () =
 // single index check covered it; the loop is now split across two files, so the
 // guard checks both halves of the same invariant.
 test("each rotated account attempt acquires and releases a fresh composite slot", () => {
-  const sendFn = source.indexOf("const executeProviderRequest = async (");
+  const sendFn = source.indexOf("export async function executeProviderRequest(");
   const attemptLoop = source.indexOf("while (attempts < maxAttempts)", sendFn);
   const acquire = source.indexOf("await acquireConcurrencyGates(", attemptLoop);
   const release = source.indexOf("releaseAccountSemaphore();", acquire);
@@ -52,10 +65,12 @@ test("each rotated account attempt acquires and releases a fresh composite slot"
     "a throwing attempt must release the composite slot"
   );
 
-  const sendWirings =
-    source.match(
-      /sendProviderAttempt: \(modelToCall, allowDedup\) =>\s*executeProviderRequest\(modelToCall, allowDedup\)/g
-    ) ?? [];
+  const sendWirings = legs.flatMap(
+    (leg) =>
+      leg.match(
+        /sendProviderAttempt: \(modelToCall, allowDedup\) =>\s*executeProviderRequest\(modelToCall, allowDedup\)/g
+      ) ?? []
+  );
   assert.equal(sendWirings.length, 2, "both legs send every pipeline attempt through the gate");
 
   const rotationLoop = pipeline.search(/while \(\s*attempts < maxAttempts\b/);

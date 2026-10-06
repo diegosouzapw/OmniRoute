@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Mpangilio wa nafasi",
     "poolHealthRankingOff": "Kiwango cha afya kimezimwa",
     "transportRate": "{rate}% usafiri",
+    "slowAbandoned": "{count} uacha polepole",
+    "clientAborted": "{count} mteja amegoma",
+    "slowAbandonedHint": "Imewekwa kando baada ya kufikia kikomo cha kusubiri vichwa, imefutwa kutoka kwa kiwango cha usafirishaji",
     "previousSuccessRate": "Awali {rate}% mafanikio",
-    "upstreamRefusals": "{count} kukataliwa kwa upstream",
     "connectionTestsCount": "{count} majaribio ya muunganisho",
-    "notMeasured": "Haijapimwa"
+    "notMeasured": "Haijapimwa",
+    "upstream4xx": "{count} makosa ya mteja kaskazini",
+    "upstream5xx": "{count} makosa ya server kaskazini",
+    "uniformEgressLine": "{affected} kati ya {exits} milango yanashindwa pamoja kwenye {provider} (masaa {hours} yaliyopita) — si shida la kilango"
   },
   "playground": {
     "title": "Mazingira ya Majaribio ya Modeli",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} zisizo hai",
     "dbOverrideCount": "Ubatilishaji {count} wa DB",
     "searchPlaceholder": "Tafuta bendera...",
+    "descriptionModeLabel": "Mwonekano wa maelezo",
+    "descriptionModeHint": "Unapoelea juu: kadi hubaki fupi na kuelea juu ya maelezo huonyesha maandishi yote. Maandishi yote: huonyesha maelezo kamili kila wakati.",
+    "descriptionModeHover": "Unapoelea juu",
+    "descriptionModeFull": "Maandishi yote",
     "categories": {
       "all": "Zote",
       "security": "Usalama",

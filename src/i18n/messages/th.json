@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "ลำดับตำแหน่ง",
     "poolHealthRankingOff": "ปิดการจัดอันดับสุขภาพ",
     "transportRate": "{rate}% การขนส่ง",
+    "slowAbandoned": "{count} การละทิ้งที่ช้า",
+    "clientAborted": "{count} การยกเลิกของไคลเอนต์",
+    "slowAbandonedHint": "ถูกละทิ้งหลังจากเกณฑ์การรอหัวข้อ, ไม่รวมในอัตราการขนส่ง",
     "previousSuccessRate": "ก่อนหน้านี้ {rate}% สำเร็จ",
-    "upstreamRefusals": "{count} การปฏิเสธต้นน้ำ",
     "connectionTestsCount": "{count} การทดสอบการเชื่อมต่อ",
-    "notMeasured": "ยังไม่ได้วัด"
+    "notMeasured": "ยังไม่ได้วัด",
+    "upstream4xx": "{count} ข้อผิดพลาดไคลเอนต์ต้นทาง",
+    "upstream5xx": "{count} ข้อผิดพลาดเซิร์ฟเวอร์ต้นทาง",
+    "uniformEgressLine": "{affected} จาก {exits} ช่องทางออก ล้มเหลวพร้อมกันบน {provider} (ในช่วง {hours} ชั่วโมงที่ผ่านมา) — ไม่ใช่ปัญหาของช่องทางออก"
   },
   "playground": {
     "title": "Title",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} ไม่ได้ใช้งาน",
     "dbOverrideCount": "{count} การแทนที่ DB",
     "searchPlaceholder": "ค้นหาแฟล็ก...",
+    "descriptionModeLabel": "มุมมองคำอธิบาย",
+    "descriptionModeHint": "เมื่อวางเมาส์เหนือ: การ์ดจะยังคงมีขนาดกะทัดรัด และเมื่อวางเมาส์เหนือคำอธิบายจะแสดงข้อความทั้งหมด ข้อความทั้งหมด: แสดงคำอธิบายฉบับสมบูรณ์เสมอ",
+    "descriptionModeHover": "เมื่อวางเมาส์เหนือ",
+    "descriptionModeFull": "ข้อความทั้งหมด",
     "categories": {
       "all": "ทั้งหมด",
       "security": "ความปลอดภัย",

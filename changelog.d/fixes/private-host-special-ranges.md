@@ -1,1 +1,0 @@
-- **fix(network):** the outbound URL guard recognises internal addresses written as trailing-dot names (`localhost.`, `metadata.google.internal.`) and as IPv6 embeddings of an IPv4 address (NAT64, 6to4, IPv4-compatible), plus site-local and multicast IPv6, multicast IPv4, `192.0.0.0/24` and the Azure and Oracle metadata addresses

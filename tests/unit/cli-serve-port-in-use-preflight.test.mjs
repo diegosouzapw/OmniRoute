@@ -74,6 +74,32 @@ test("findListeningPids reports the PID holding the port (posix lsof)", async ()
   assert.deepEqual(pids, [4242, 4243]);
 });
 
+// A bare `lsof -ti :PORT` matches every socket carrying that port, not just
+// listening ones, so a client connection alone made the preflight report the
+// port as busy. Observed live: a hermes client socket left in CLOSE_WAIT on
+// 127.0.0.1:20128 (its peer had exited) made omniroute.service crash-loop with
+// "Port 20128 is already in use by PID <hermes>" while `ss -ltn` showed the
+// port free — a gateway that could not restart because something else had once
+// connected to it. Same defect class already fixed in stop.mjs::killByPortPosix.
+test(
+  "findListeningPids asks lsof for LISTEN sockets only, not every client on the port",
+  async () => {
+    const calls = [];
+    await findListeningPids(20128, {
+      platform: "linux",
+      execFileAsync: async (_cmd, args) => {
+        calls.push(args);
+        return { stdout: "" };
+      },
+    });
+    assert.deepEqual(
+      calls[0],
+      ["-nP", "-t", "-iTCP:20128", "-sTCP:LISTEN"],
+      "must scope discovery to TCP listeners so client sockets cannot fake a conflict"
+    );
+  }
+);
+
 test("findListeningPids treats an empty lsof result as a free port", async () => {
   const noMatch = Object.assign(new Error("lsof exited with no matches"), {
     code: 1,

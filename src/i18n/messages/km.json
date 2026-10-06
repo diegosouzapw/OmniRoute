@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "លំដាប់ទីតាំង",
     "poolHealthRankingOff": "ចំណាត់ថ្នាក់សុខភាពបិទ",
     "transportRate": "{rate}% ការដឹកជញ្ជូន",
+    "slowAbandoned": "{count} ការបាត់បង់យ៉ាងយឺត",
+    "clientAborted": "{count} ការបញ្ឈប់ដោយអតិថិជន",
+    "slowAbandonedHint": "ត្រូវបានបាត់បង់បន្ទាប់ពីកម្រិតរង់ចាំប៉ុស្តិ៍ ត្រូវបានលុបចេញពីកម្រិតផ្ទេរ",
     "previousSuccessRate": "ពីមុន {rate}% ជោគជ័យ",
-    "upstreamRefusals": "{count} ការបដិសេធ upstream",
     "connectionTestsCount": "{count} ការធ្វើតេស្តការតភ្ជាប់",
-    "notMeasured": "មិនបានវាស់"
+    "notMeasured": "មិនបានវាស់",
+    "upstream4xx": "កំហុសអតិថិជន {count}",
+    "upstream5xx": "កំហុសម៉ាស៊ីនមេ {count}",
+    "uniformEgressLine": "{affected} ក្នុងចំណោម {exits} ច្រកចេញបានបរាជ័យជាមួយគ្នានៅលើ {provider} (ក្នុង {hours}ម៉ោងចុងក្រោយ) — មិនមែនជាបញ្ហាច្រកចេញទេ"
   },
   "playground": {
     "title": "កន្លែងសាកល្បងម៉ូដែល",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "អសកម្ម {count}",
     "dbOverrideCount": "ការកំណត់ជំនួស DB ចំនួន {count}",
     "searchPlaceholder": "ស្វែងរកទង់...",
+    "descriptionModeLabel": "ទិដ្ឋភាពពិពណ៌នា",
+    "descriptionModeHint": "ពេលដាក់ព្រួញពីលើ៖ កាតនៅតែបង្រួម ហើយការដាក់ព្រួញពីលើការពិពណ៌នានឹងបង្ហាញអត្ថបទពេញលេញ។ អត្ថបទពេញលេញ៖ បង្ហាញការពិពណ៌នាទាំងស្រុងជានិច្ច។",
+    "descriptionModeHover": "ពេលដាក់ព្រួញពីលើ",
+    "descriptionModeFull": "អត្ថបទពេញលេញ",
     "categories": {
       "all": "ទាំងអស់",
       "security": "សុវត្ថិភាព",

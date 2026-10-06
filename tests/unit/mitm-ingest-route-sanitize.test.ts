@@ -76,3 +76,38 @@ test("ingest rejects a wrong token with 403 (and does not buffer)", async () => 
   assert.equal(res.status, 403);
   assert.equal(globalTrafficBuffer.list().length, 0);
 });
+
+test("ingest preserves capture labels and defaults absent optional bodies", async () => {
+  const { POST } = await import("@/app/api/tools/traffic-inspector/internal/ingest/route");
+  const { globalTrafficBuffer } = await import("@/mitm/inspector/buffer");
+  for (const agent of ["unknown", "ghe-copilot"]) {
+    globalTrafficBuffer.clear();
+    const entry = {
+      id: "33333333-3333-4333-8333-333333333333",
+      source: "agent-bridge",
+      agent,
+      timestamp: "2026-09-21T00:00:00.000Z",
+      method: "POST",
+      host: "localhost",
+      path: "/fixture",
+      requestHeaders: {},
+      requestSize: 0,
+      responseHeaders: {},
+      responseSize: 0,
+      status: 200,
+    };
+    const response = await POST(
+      new Request(INGEST_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${INGEST_TOKEN}` },
+        body: JSON.stringify(entry),
+      })
+    );
+    assert.equal(response.status, 200);
+    const [stored] = globalTrafficBuffer.list();
+    assert.equal(stored.agent, agent);
+    assert.equal(stored.requestBody, null);
+    assert.equal(stored.responseBody, null);
+  }
+  globalTrafficBuffer.clear();
+});

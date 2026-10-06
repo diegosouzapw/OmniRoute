@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import plugin from "../src/index.js";
+import { collectCatalog } from "../src/catalog.js";
 import { snapshotIdentityFingerprint, writeDiskSnapshot } from "../src/cache.js";
 
 /**
@@ -34,7 +35,6 @@ describe("warm snapshot is read under the credential actually in use", () => {
         {
           models: [{ id: "m-snap" }],
           combos: [],
-          autoCombos: [],
           providers: [],
           fetchedAt: Date.now(),
         } as never,
@@ -65,13 +65,38 @@ describe("warm snapshot is read under the credential actually in use", () => {
       };
       await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
       const published = new Map<string, Record<string, unknown>>();
-      for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+      for (const entry of added as Array<{
+        info: { id: string };
+        models: Array<Record<string, unknown>>;
+      }>) {
         for (const m of entry.models) published.set(`${entry.info.id}/${String(m.id)}`, m);
       }
       assert.ok(
         [...published.keys()].some((k) => k.endsWith("/m-snap")),
         `the snapshot must survive the credential switch, published: ${JSON.stringify([...published.keys()])}`
       );
+      assert.equal(
+        [...published.keys()].some((k) => k.endsWith("/auto")),
+        false,
+        `no retired entry may be served from disk, got: ${JSON.stringify([...published.keys()])}`
+      );
+      const collected = await collectCatalog(
+        {
+          providerId: "warmid",
+          baseURL,
+          apiKey: hostKey,
+          timeoutMs: 1000,
+          modelCacheTtlMs: 300000,
+          usableOnly: false,
+        },
+        {
+          models: async () => [{ id: "m-snap" }],
+          combos: async () => [],
+          providers: async () => [],
+          enrichment: async () => new Map(),
+        }
+      );
+      assert.deepEqual(collected.counts, { models: 1, combos: 0 });
     } finally {
       globalThis.fetch = origFetch;
       console.warn = warn;

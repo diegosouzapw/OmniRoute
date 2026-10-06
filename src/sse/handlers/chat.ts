@@ -136,6 +136,7 @@ import {
 } from "./reasoningRouting";
 import { createVirtualAutoCombo, resolveAutoRoutingState } from "./autoRouting";
 import { getComboFailureLogError } from "./comboFailureLogging";
+import { logAdmissionRejection } from "./admissionRejectionLog";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -788,7 +789,17 @@ async function handleChatImplementation(
   }
 
   const admissionRejection = await admissionContext.acquire(apiKeyInfo?.id, { signal }, body);
-  if (admissionRejection) return admissionRejection;
+  if (admissionRejection) {
+    void logAdmissionRejection(admissionRejection, {
+      path: new URL(request.url).pathname,
+      model: typeof body?.model === "string" && body.model ? body.model : "-",
+      requestBody: body ?? null,
+      apiKeyId: apiKeyInfo?.id ?? null,
+      apiKeyName: apiKeyInfo?.name ?? null,
+      correlationId: reqId,
+    });
+    return admissionRejection;
+  }
   clientRawRequest = chatAdmission.resolveClientRawAfterAdmission(clientRawRequest, () =>
     deferredClientRawBody.withClientBody((b) => buildClientRawRequest(request, b, signal))
   );
@@ -1507,7 +1518,7 @@ async function handleSingleModelChat(
           {
             sessionId: "", // safety-net redirect doesn't have session context
             forceLiveComboTest: false,
-            forcedConnectionId: null,
+            forcedConnectionId: runtimeOptions?.forcedConnectionId ?? null,
             allowedConnectionIds: null,
             comboStepId: null,
             comboExecutionKey: null,

@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Positionsreihenfolge",
     "poolHealthRankingOff": "Health-Ranking aus",
     "transportRate": "{rate} % Transport",
+    "slowAbandoned": "{count} langsame Abbrüche",
+    "clientAborted": "{count} Client-Abbrüche",
+    "slowAbandonedHint": "Nach Erreichen der Wartezeit‑Grenze für Header abgebrochen, aus der Transportrate ausgeschlossen",
     "previousSuccessRate": "Zuvor {rate} % Erfolg",
-    "upstreamRefusals": "{count} Upstream-Ablehnungen",
     "connectionTestsCount": "{count} Verbindungstests",
-    "notMeasured": "Nicht gemessen"
+    "notMeasured": "Nicht gemessen",
+    "upstream4xx": "{count} Upstream-Client-Fehler",
+    "upstream5xx": "{count} Upstream-Server-Fehler",
+    "uniformEgressLine": "{affected} von {exits} Ausgängen fallen gemeinsam auf {provider} aus (letzte {hours}h) — kein Ausgangsproblem"
   },
   "playground": {
     "title": "Title",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} inaktiv",
     "dbOverrideCount": "{count} DB-Überschreibungen",
     "searchPlaceholder": "Flags suchen...",
+    "descriptionModeLabel": "Beschreibungsansicht",
+    "descriptionModeHint": "Beim Darüberfahren: Karten bleiben kompakt, und beim Darüberfahren über eine Beschreibung wird der vollständige Text angezeigt. Vollständiger Text: Zeigt immer die komplette Beschreibung an.",
+    "descriptionModeHover": "Beim Darüberfahren",
+    "descriptionModeFull": "Vollständiger Text",
     "categories": {
       "all": "Alle",
       "security": "Sicherheit",

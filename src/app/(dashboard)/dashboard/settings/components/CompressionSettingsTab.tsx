@@ -237,6 +237,16 @@ export default function CompressionSettingsTab() {
   const savedRef = useRef(config);
   const queuedRef = useRef<SettingsPatch<CompressionConfig>[]>([]);
   const saveQueueRef = useRef(Promise.resolve());
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // The "saved" badge clears itself after 2s; a timer that outlives the tab fires into an
+  // unmounted (or torn-down) React tree.
+  useEffect(
+    () => () => {
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    },
+    []
+  );
 
   useEffect(() => {
     fetch("/api/settings/compression")
@@ -301,7 +311,13 @@ export default function CompressionSettingsTab() {
       // A failure stays on screen until the next edit, so a queued success or an earlier
       // save's timeout cannot hide a field that just rolled back.
       setStatus((shown) => (ok ? (shown === "error" ? shown : "saved") : "error"));
-      if (ok) setTimeout(() => setStatus((shown) => (shown === "saved" ? "" : shown)), 2000);
+      if (ok) {
+        if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+        statusTimerRef.current = setTimeout(
+          () => setStatus((shown) => (shown === "saved" ? "" : shown)),
+          2000
+        );
+      }
     });
   };
 

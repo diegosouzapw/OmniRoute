@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "ಸ್ಥಾನ ಕ್ರಮ",
     "poolHealthRankingOff": "ಆರೋಗ್ಯ ಶ್ರೇಯಾಂಕ ಆಫ್",
     "transportRate": "{rate}% ಸಾರಿಗೆ",
+    "slowAbandoned": "{count} ನಿಧಾನ ತ್ಯಜಿಸುವಿಕೆಗಳು",
+    "clientAborted": "{count} ಕ್ಲೈಂಟ್ ರದ್ದುಗೊಳಿಸುವಿಕೆಗಳು",
+    "slowAbandonedHint": "ಶೀರ್ಷಿಕೆಗಳ ನಿರೀಕ್ಷಾ ಮಿತಿ ನಂತರ ತ್ಯಜಿಸಲಾಗಿದೆ, ಸಾರಿಗೆ ದರದಿಂದ ಹೊರಗಿಡಲಾಗಿದೆ",
     "previousSuccessRate": "ಹಿಂದೆ {rate}% ಯಶಸ್ಸು",
-    "upstreamRefusals": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ನಿರಾಕರಣೆಗಳು",
     "connectionTestsCount": "{count} ಸಂಪರ್ಕ ಪರೀಕ್ಷೆಗಳು",
-    "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ"
+    "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ",
+    "upstream4xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಕ್ಲೈಂಟ್ ದೋಷಗಳು",
+    "upstream5xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಸರ್ವರ್ ದೋಷಗಳು",
+    "uniformEgressLine": "{provider} ನಲ್ಲಿ {exits} ಎಕ್ಸಿಟ್‌ಗಳ ಪೈಕಿ {affected} ಒಟ್ಟಿಗೆ ವಿಫಲವಾಗಿವೆ (ಕಳೆದ {hours}ಗಂ) — ಎಕ್ಸಿಟ್ ಸಮಸ್ಯೆಯಲ್ಲ"
   },
   "playground": {
     "title": "ಮಾದರಿ ಪ್ರಯೋಗಾಂಗಣ",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} ನಿಷ್ಕ್ರಿಯ",
     "dbOverrideCount": "{count} DB ಓವರ್ರೈಡ್ಗಳು",
     "searchPlaceholder": "ಫ್ಲ್ಯಾಗ್ಗಳನ್ನು ಹುಡುಕಿ...",
+    "descriptionModeLabel": "ವಿವರಣೆ ನೋಟ",
+    "descriptionModeHint": "ಹೋವರ್ ಮಾಡಿದಾಗ: ಕಾರ್ಡ್ಗಳು ಸಾಂದ್ರವಾಗಿಯೇ ಇರುತ್ತವೆ ಮತ್ತು ವಿವರಣೆಯ ಮೇಲೆ ಹೋವರ್ ಮಾಡಿದಾಗ ಪೂರ್ಣ ಪಠ್ಯ ಕಾಣಿಸುತ್ತದೆ. ಪೂರ್ಣ ಪಠ್ಯ: ಯಾವಾಗಲೂ ಸಂಪೂರ್ಣ ವಿವರಣೆಯನ್ನು ತೋರಿಸಿ.",
+    "descriptionModeHover": "ಹೋವರ್ ಮಾಡಿದಾಗ",
+    "descriptionModeFull": "ಪೂರ್ಣ ಪಠ್ಯ",
     "categories": {
       "all": "ಎಲ್ಲಾ",
       "security": "ಭದ್ರತೆ",

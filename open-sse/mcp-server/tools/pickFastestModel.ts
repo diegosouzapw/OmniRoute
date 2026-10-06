@@ -1,4 +1,5 @@
 import { logToolCall } from "../audit.ts";
+import { toSafeMcpErrorMessage } from "../errorMessage.ts";
 import { getMcpHttpAuthHeadersForInternalFetch } from "../httpAuthContext.ts";
 import { getInternalServiceAuthHeaders } from "../../../src/lib/api/internalServiceAuth.ts";
 import { normalizeQuotaResponse } from "../../../src/shared/contracts/quota.ts";
@@ -310,7 +311,7 @@ export async function handlePickFastestModel(args: PickFastestModelArgs) {
     await logToolCall("omniroute_pick_fastest_model", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_pick_fastest_model", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }

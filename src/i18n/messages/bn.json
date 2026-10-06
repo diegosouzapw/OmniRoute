@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "অবস্থান ক্রম",
     "poolHealthRankingOff": "স্বাস্থ্য র‍্যাঙ্কিং বন্ধ",
     "transportRate": "{rate}% ট্রান্সপোর্ট",
+    "slowAbandoned": "{count} ধীর ত্যাগ",
+    "clientAborted": "{count} ক্লায়েন্ট বাতিল",
+    "slowAbandonedHint": "হেডার অপেক্ষা থ্রেশহোল্ডের পরে ত্যাগ করা হয়েছে, ট্রান্সপোর্ট রেট থেকে বাদ দেওয়া হয়েছে",
     "previousSuccessRate": "পূর্বে {rate}% সাফল্য",
-    "upstreamRefusals": "{count} আপস্ট্রিম প্রত্যাখ্যান",
     "connectionTestsCount": "{count} সংযোগ পরীক্ষা",
-    "notMeasured": "পরিমাপ করা হয়নি"
+    "notMeasured": "পরিমাপ করা হয়নি",
+    "upstream4xx": "{count} উপস্ট্রিম ক্লায়েন্ট ত্রুটি",
+    "upstream5xx": "{count} উপস্ট্রিম সার্ভার ত্রুটি",
+    "uniformEgressLine": "{affected} টি {exits} এক্সিট একসাথে ব্যর্থ হয়েছে {provider} এ (শেষ {hours} ঘন্টা) — এটি এক্সিট সমস্যা নয়"
   },
   "playground": {
     "title": "মডেল প্লেগ্রাউন্ড",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count}টি নিষ্ক্রিয়",
     "dbOverrideCount": "{count}টি DB ওভাররাইড",
     "searchPlaceholder": "ফ্ল্যাগ খুঁজুন...",
+    "descriptionModeLabel": "বিবরণের দৃশ্য",
+    "descriptionModeHint": "হোভার করলে: কার্ডগুলো সংক্ষিপ্ত থাকে এবং কোনো বিবরণের ওপর হোভার করলে সম্পূর্ণ লেখাটি দেখা যায়। সম্পূর্ণ লেখা: সর্বদা সম্পূর্ণ বিবরণ দেখান।",
+    "descriptionModeHover": "হোভার করলে",
+    "descriptionModeFull": "সম্পূর্ণ লেখা",
     "categories": {
       "all": "সব",
       "security": "নিরাপত্তা",

@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Σειρά θέσης",
     "poolHealthRankingOff": "Η κατάταξη υγείας απενεργοποιημένη",
     "transportRate": "{rate} % μεταφορά",
+    "slowAbandoned": "{count} αργές εγκαταλείψεις",
+    "clientAborted": "{count} διακοπές πελάτη",
+    "slowAbandonedHint": "Εγκαταλείφθηκε μετά το όριο αναμονής επικεφαλίδων, εξαιρείται από το ποσοστό μεταφοράς",
     "previousSuccessRate": "Προηγουμένως {rate} % επιτυχία",
-    "upstreamRefusals": "{count} απορρίψεις upstream",
     "connectionTestsCount": "{count} δοκιμές σύνδεσης",
-    "notMeasured": "Δεν μετρήθηκε"
+    "notMeasured": "Δεν μετρήθηκε",
+    "upstream4xx": "{count} σφάλματα πελάτη πάνω από",
+    "upstream5xx": "{count} σφάλματα διακομιστή πάνω από",
+    "uniformEgressLine": "{affected} από {exits} εξόδους αποτυγχάνουν μαζί στο {provider} (τις τελευταίες {hours} ώρες) — όχι πρόβλημα εξόδου"
   },
   "playground": {
     "title": "Περιβάλλον δοκιμών μοντέλων",
@@ -13052,6 +13057,10 @@
     "inactiveCount": "{count} ανενεργές",
     "dbOverrideCount": "{count} παρακάμψεις ΒΔ",
     "searchPlaceholder": "Αναζήτηση σημαιών...",
+    "descriptionModeLabel": "Προβολή περιγραφής",
+    "descriptionModeHint": "Κατά την αιώρηση: οι κάρτες παραμένουν συμπαγείς και η αιώρηση πάνω από μια περιγραφή εμφανίζει το πλήρες κείμενο. Πλήρες κείμενο: εμφανίζεται πάντα ολόκληρη η περιγραφή.",
+    "descriptionModeHover": "Κατά την αιώρηση",
+    "descriptionModeFull": "Πλήρες κείμενο",
     "categories": {
       "all": "Όλα",
       "security": "Ασφάλεια",

@@ -1,1 +1,0 @@
-- **fix(db):** proxy health stats separate transport health from upstream refusals, with connection tests counted apart ([#14794](https://github.com/diegosouzapw/OmniRoute/pull/14794)) — thanks @maxmad64bis

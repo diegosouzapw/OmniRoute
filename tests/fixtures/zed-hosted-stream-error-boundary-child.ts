@@ -313,6 +313,7 @@ test("zed-hosted partial failure reaches stream finalization and persistence as 
       message: "Zed upstream stream failed",
       code: "stream_pipeline_error",
       type: "stream_error",
+      outputEmitted: false,
     },
   ]);
   assert.deepEqual(pipelineErrors, [{ message: "Zed upstream stream failed", statusCode: 502 }]);
