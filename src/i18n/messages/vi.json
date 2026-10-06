@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Những gì GET /v1/models hiển thị cho khóa này. Thu hẹp danh sách không làm thay đổi những gì khóa có thể gọi.",
     "catalogScopeAll": "Cả hai",
     "catalogScopeCombos": "Chỉ combo",
-    "catalogScopeModels": "Chỉ mô hình"
+    "catalogScopeModels": "Chỉ mô hình",
+    "resilienceTokenRefreshTitle": "Cầu dao làm mới Token",
+    "resilienceTokenRefreshDesc": "Dừng việc thử làm mới token sau nhiều lần thất bại. Phạm vi mỗi kết nối sẽ cách ly một tài khoản chết để các tài khoản khỏe mạnh trên cùng nhà cung cấp vẫn tiếp tục được làm mới.",
+    "resilienceTokenRefreshScope": "Các lần thử làm mới mã thông báo cho một nhà cung cấp",
+    "resilienceTokenRefreshTrigger": "Các lần làm mới liên tiếp thất bại",
+    "resilienceTokenRefreshEffect": "Tạm dừng các lần thử làm mới trong thời gian chờ",
+    "resilienceTokenRefreshScopeLabel": "Phạm vi",
+    "resilienceTokenRefreshScopeProvider": "Nhà cung cấp (tất cả tài khoản dùng chung một cầu chì)",
+    "resilienceTokenRefreshScopeConnection": "Kết nối (mỗi tài khoản có cầu chì riêng)",
+    "resilienceTokenRefreshThreshold": "Lỗi trước khi tạm dừng",
+    "resilienceTokenRefreshCooldown": "Tạm dừng sau khi kích hoạt"
   },
   "contextRtk": {
     "title": "Công cụ RTK",

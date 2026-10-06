@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Amit a GET /v1/models ennél a kulcsnál elérhetőként jelez. A lista szűkítése soha nem módosítja, hogy a kulcs mely modelleket hívhatja meg.",
     "catalogScopeAll": "Mindkettő",
     "catalogScopeCombos": "Csak kombinációk",
-    "catalogScopeModels": "Csak modellek"
+    "catalogScopeModels": "Csak modellek",
+    "resilienceTokenRefreshTitle": "Token frissítési megszakító",
+    "resilienceTokenRefreshDesc": "Leállítja a token frissítésének újrapróbálását több kudarc után. Kapcsolatonkénti hatókör elszigetel egy elhalt fiókot, hogy a szolgáltató egészséges fiókjai továbbra is frissüljenek.",
+    "resilienceTokenRefreshScope": "Token-frissítési kísérletek egyetlen szolgáltató számára",
+    "resilienceTokenRefreshTrigger": "Egymást követő sikertelen frissítési kísérletek",
+    "resilienceTokenRefreshEffect": "Szünetelteti a frissítési kísérleteket a hűtési időszak alatt",
+    "resilienceTokenRefreshScopeLabel": "Hatókör",
+    "resilienceTokenRefreshScopeProvider": "Szolgáltató (minden fiók egyetlen megszakítót oszt meg)",
+    "resilienceTokenRefreshScopeConnection": "Kapcsolat (minden fióknak saját megszakítója van)",
+    "resilienceTokenRefreshThreshold": "Sikertelen próbálkozások a szüneteltetés előtt",
+    "resilienceTokenRefreshCooldown": "Szünet a kioldás után"
   },
   "contextRtk": {
     "title": "RTK-motor",

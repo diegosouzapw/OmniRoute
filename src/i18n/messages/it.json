@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Ciò che GET /v1/models mostra per questa chiave. Limitare l'elenco non modifica mai ciò che la chiave può chiamare.",
     "catalogScopeAll": "Entrambi",
     "catalogScopeCombos": "Solo combo",
-    "catalogScopeModels": "Solo modelli"
+    "catalogScopeModels": "Solo modelli",
+    "resilienceTokenRefreshTitle": "Interruttore di aggiornamento token",
+    "resilienceTokenRefreshDesc": "Smette di riprovare ad aggiornare il token dopo ripetuti fallimenti. L'ambito per connessione isola un account morto in modo che gli account sani sullo stesso provider continuino ad aggiornarsi.",
+    "resilienceTokenRefreshScope": "Tentativi di aggiornamento del token per un provider",
+    "resilienceTokenRefreshTrigger": "Tentativi di aggiornamento consecutivi falliti",
+    "resilienceTokenRefreshEffect": "Sospende i tentativi di aggiornamento durante il periodo di attesa",
+    "resilienceTokenRefreshScopeLabel": "Ambito",
+    "resilienceTokenRefreshScopeProvider": "Provider (tutti gli account condividono un unico interruttore)",
+    "resilienceTokenRefreshScopeConnection": "Connessione (ogni account ha il proprio circuit breaker)",
+    "resilienceTokenRefreshThreshold": "Fallimenti prima della pausa",
+    "resilienceTokenRefreshCooldown": "Pausa dopo l'attivazione"
   },
   "contextRtk": {
     "title": "Motore RTK",

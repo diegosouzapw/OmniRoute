@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "या कीसाठी GET /v1/models काय दर्शवते. सूची मर्यादित केल्याने ही की काय कॉल करू शकते, यात कधीही बदल होत नाही.",
     "catalogScopeAll": "दोन्ही",
     "catalogScopeCombos": "फक्त कॉम्बो",
-    "catalogScopeModels": "फक्त मॉडेल्स"
+    "catalogScopeModels": "फक्त मॉडेल्स",
+    "resilienceTokenRefreshTitle": "टोकन रिफ्रेश ब्रेकर",
+    "resilienceTokenRefreshDesc": "सलग सातत्याने अपयश झाल्यानंतर टोकन रिफ्रेश पुन्हा प्रयत्न करणे थांबवते. प्रत्येक कनेक्शनचा क्षेत्र एक मृत खाते वेगळे करतो, त्यामुळे त्याच प्रोव्हाइडरवरील निरोगी खाती रिफ्रेश होत राहतात.",
+    "resilienceTokenRefreshScope": "एका प्रोव्हाइडरसाठी टोकन रिफ्रेश प्रयत्न",
+    "resilienceTokenRefreshTrigger": "सलग सातड्या अपयशी रिफ्रेश प्रयत्न",
+    "resilienceTokenRefreshEffect": "कूलडाऊन दरम्यान रिफ्रेश प्रयत्न थांबवते",
+    "resilienceTokenRefreshScopeLabel": "व्याप्ती",
+    "resilienceTokenRefreshScopeProvider": "प्रोव्हाइडर (सर्व खाती एकाच ब्रेकर शेअर करतात)",
+    "resilienceTokenRefreshScopeConnection": "कनेक्शन (प्रत्येक खात्याला स्वतःचा ब्रेकर असतो)",
+    "resilienceTokenRefreshThreshold": "थांबवण्यापूर्वी अपयशी",
+    "resilienceTokenRefreshCooldown": "ट्रिप झाल्यानंतर थांबा"
   },
   "contextRtk": {
     "title": "RTK इंजिन",

@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Ką GET /v1/models nurodo šiam raktui. Sąrašo susiaurinimas niekada nekeičia, ką raktas gali iškviesti.",
     "catalogScopeAll": "Abu",
     "catalogScopeCombos": "Tik deriniai",
-    "catalogScopeModels": "Tik modeliai"
+    "catalogScopeModels": "Tik modeliai",
+    "resilienceTokenRefreshTitle": "Pertraukiklis atnaujinti žetoną",
+    "resilienceTokenRefreshDesc": "Nustoja bandyti atnaujinti žetoną po pakartotinių nesėkmių. Ryšio apimtis izoliuoja vieną negyvą paskyrą, kad sveikos to paties teikėjo paskyros ir toliau būtų atnaujinamos.",
+    "resilienceTokenRefreshScope": "Vieno teikėjo žetono atnaujinimo bandymai",
+    "resilienceTokenRefreshTrigger": "Iš eilės nesėkmingi atnaujinimo bandymai",
+    "resilienceTokenRefreshEffect": "Sustabdo atnaujinimo bandymus atvėsimo laikotarpiu",
+    "resilienceTokenRefreshScopeLabel": "Apimtis",
+    "resilienceTokenRefreshScopeProvider": "Tiekėjas (visos paskyros dalijasi vienu pertrauktuvu)",
+    "resilienceTokenRefreshScopeConnection": "Ryšys (kiekviena paskyra turi savo pertraukiklį)",
+    "resilienceTokenRefreshThreshold": "Nesėkmės prieš pristabdant",
+    "resilienceTokenRefreshCooldown": "Pauzė po suveikimo"
   },
   "contextRtk": {
     "title": "RTK variklis",

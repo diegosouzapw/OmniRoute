@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "ఈ కీ కోసం GET /v1/models చూపించేవి. జాబితాను పరిమితం చేయడం వల్ల ఈ కీ కాల్ చేయగలిగేవి ఎప్పటికీ మారవు.",
     "catalogScopeAll": "రెండూ",
     "catalogScopeCombos": "కాంబోలు మాత్రమే",
-    "catalogScopeModels": "మోడళ్లు మాత్రమే"
+    "catalogScopeModels": "మోడళ్లు మాత్రమే",
+    "resilienceTokenRefreshTitle": "టోకెన్ రిఫ్రెష్ బ్రేకర్",
+    "resilienceTokenRefreshDesc": "పదే పదే విఫలమైన తర్వాత టోకెన్ రీఫ్రెష్‌ను పునరావృతం చేయడం ఆపివేస్తుంది. ఒక్కో కనెక్షన్ పరిధి ఒక చనిపోయిన ఖాతాను వేరు చేస్తుంది, అదే ప్రొవైడర్‌లో ఆరోగ్యకరమైన ఖాతాలు కొనసాగి రీఫ్రెష్ అవుతాయి.",
+    "resilienceTokenRefreshScope": "ఒక ప్రొవైడర్ కోసం టోకెన్ రిఫ్రెష్ ప్రయత్నాలు",
+    "resilienceTokenRefreshTrigger": "వరుసగా విఫలమైన రీఫ్రెష్ ప్రయత్నాలు",
+    "resilienceTokenRefreshEffect": "కూల్‌డౌన్ కోసం రీఫ్రెష్ ప్రయత్నాలను నిలిపివేస్తుంది",
+    "resilienceTokenRefreshScopeLabel": "పరిధి",
+    "resilienceTokenRefreshScopeProvider": "ప్రొవైడర్ (అన్ని ఖాతాలు ఒకే బ్రేకర్‌ను పంచుకుంటాయి)",
+    "resilienceTokenRefreshScopeConnection": "కనెక్షన్ (ప్రతి ఖాతాకు దాని సొంత బ్రేకర్ ఉంటుంది)",
+    "resilienceTokenRefreshThreshold": "నిలిపివేయడానికి ముందు వైఫల్యాలు",
+    "resilienceTokenRefreshCooldown": "తావు తర్వాత విరామం"
   },
   "contextRtk": {
     "title": "RTK ఇంజిన్",

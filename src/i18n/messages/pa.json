@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "ਇਸ ਕੁੰਜੀ ਲਈ GET /v1/models ਕੀ ਦਰਸਾਉਂਦਾ ਹੈ। ਸੂਚੀ ਨੂੰ ਸੀਮਤ ਕਰਨ ਨਾਲ ਇਹ ਕਦੇ ਨਹੀਂ ਬਦਲਦਾ ਕਿ ਕੁੰਜੀ ਕਿਹੜੇ ਮਾਡਲ ਨੂੰ ਕਾਲ ਕਰ ਸਕਦੀ ਹੈ।",
     "catalogScopeAll": "ਦੋਵੇਂ",
     "catalogScopeCombos": "ਸਿਰਫ਼ ਕੌਂਬੋ",
-    "catalogScopeModels": "ਸਿਰਫ਼ ਮਾਡਲ"
+    "catalogScopeModels": "ਸਿਰਫ਼ ਮਾਡਲ",
+    "resilienceTokenRefreshTitle": "ਟੋਕਨ ਰਿਫਰੈਸ਼ ਬ੍ਰੇਕਰ",
+    "resilienceTokenRefreshDesc": "ਲਗਾਤਾਰ ਅਸਫਲਤਾਵਾਂ ਤੋਂ ਬਾਅਦ ਟੋਕਨ ਰੀਫ੍ਰੈਸ਼ ਦੀ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰਨਾ ਬੰਦ ਕਰ ਦਿੰਦਾ ਹੈ। ਪ੍ਰਤੀ-ਕਨੈਕਸ਼ਨ ਸਕੋਪ ਇੱਕ ਮਰੇ ਹੋਏ ਖਾਤੇ ਨੂੰ ਵੱਖ ਕਰਦਾ ਹੈ, ਤਾਂ ਜੋ ਉਸੇ ਪ੍ਰੋਵਾਈਡਰ 'ਤੇ ਸਿਹਤਮੰਦ ਖਾਤੇ ਰੀਫ੍ਰੈਸ਼ ਹੁੰਦੇ ਰਹਿਣ।",
+    "resilienceTokenRefreshScope": "ਇੱਕ ਪ੍ਰੋਵਾਈਡਰ ਲਈ ਟੋਕਨ ਰੀਫ੍ਰੈਸ਼ ਦੀਆਂ ਕੋਸ਼ਿਸ਼ਾਂ",
+    "resilienceTokenRefreshTrigger": "ਲਗਾਤਾਰ ਅਸਫਲ ਰੀਫ੍ਰੈਸ਼ ਕੋਸ਼ਿਸ਼ਾਂ",
+    "resilienceTokenRefreshEffect": "ਕੂਲਡਾਊਨ ਲਈ ਰਿਫਰੇਸ਼ ਕੋਸ਼ਿਸ਼ਾਂ ਨੂੰ ਰੋਕਦਾ ਹੈ",
+    "resilienceTokenRefreshScopeLabel": "ਦਾਇਰਾ",
+    "resilienceTokenRefreshScopeProvider": "ਪ੍ਰੋਵਾਈਡਰ (ਸਾਰੇ ਖਾਤੇ ਇੱਕ ਬ੍ਰੇਕਰ ਸਾਂਝਾ ਕਰਦੇ ਹਨ)",
+    "resilienceTokenRefreshScopeConnection": "ਕਨੈਕਸ਼ਨ (ਹਰ ਖਾਤੇ ਦਾ ਆਪਣਾ ਬ੍ਰੇਕਰ ਹੈ)",
+    "resilienceTokenRefreshThreshold": "ਰੋਕਣ ਤੋਂ ਪਹਿਲਾਂ ਅਸਫਲਤਾਵਾਂ",
+    "resilienceTokenRefreshCooldown": "ਟ੍ਰਿੱਪ ਹੋਣ ਤੋਂ ਬਾਅਦ ਵਿਰਾਮ ਦਿਓ"
   },
   "contextRtk": {
     "title": "RTK ਇੰਜਣ",

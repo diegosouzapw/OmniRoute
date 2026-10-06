@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Что GET /v1/models возвращает для этого ключа. Сокращение списка не влияет на то, какие модели может вызывать ключ.",
     "catalogScopeAll": "Оба варианта",
     "catalogScopeCombos": "Только комбо",
-    "catalogScopeModels": "Только модели"
+    "catalogScopeModels": "Только модели",
+    "resilienceTokenRefreshTitle": "Автоматический выключатель обновления токена",
+    "resilienceTokenRefreshDesc": "Останавливает повторные попытки обновления токена после нескольких неудач. Область per-connection изолирует один мёртвый аккаунт, чтобы здоровые аккаунты у того же провайдера продолжали обновляться.",
+    "resilienceTokenRefreshScope": "Попытки обновления токена для одного провайдера",
+    "resilienceTokenRefreshTrigger": "Последовательные неудачные попытки обновления",
+    "resilienceTokenRefreshEffect": "Приостанавливает попытки обновления на время периода ожидания",
+    "resilienceTokenRefreshScopeLabel": "Область",
+    "resilienceTokenRefreshScopeProvider": "Провайдер (все аккаунты используют один предохранитель)",
+    "resilienceTokenRefreshScopeConnection": "Подключение (у каждого аккаунта свой автоматический выключатель)",
+    "resilienceTokenRefreshThreshold": "Количество сбоев до приостановки",
+    "resilienceTokenRefreshCooldown": "Пауза после срабатывания"
   },
   "contextRtk": {
     "title": "RTK Engine",

@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Ohun tí GET /v1/models fi hàn fún kọ́kọ́rọ́ yìí. Dídín àkójọ náà kù kì í yí ohun tí kọ́kọ́rọ́ náà lè pè padà.",
     "catalogScopeAll": "Méjèèjì",
     "catalogScopeCombos": "Àwọn àkópọ̀ nìkan",
-    "catalogScopeModels": "Àwọn àwòṣe nìkan"
+    "catalogScopeModels": "Àwọn àwòṣe nìkan",
+    "resilienceTokenRefreshTitle": "Aṣàlàyé Ìtuntọ Token",
+    "resilienceTokenRefreshDesc": "Dá àtúnwò àtúnṣe àmì lọ́wọ́ lẹ́yìn ìṣẹ̀lẹ̀ àìṣẹ́lẹ̀ púpọ̀. Àpèjú ìsopọ̀ kan yí ìwé àkàǹtì kan jáde kí ìwé àkàǹtì alágbàra lórí àṣàpèjú kan tún tẹ̀síwájú.",
+    "resilienceTokenRefreshScope": "Ìgbìyànjú tuntun fún àmì fún olùpèsè kan",
+    "resilienceTokenRefreshTrigger": "Àwọn ìgbìyànjú tuntun tí kù níṣẹ̀ láìtẹ́síwájú",
+    "resilienceTokenRefreshEffect": "Dín dà àwọn ìgbìyànjú àtúnṣe nínú àkókò ìdádúró",
+    "resilienceTokenRefreshScopeLabel": "Àfikún",
+    "resilienceTokenRefreshScopeProvider": "Olùpese (gbogbo àkàǹtì pín kan pàtàkì kan)",
+    "resilienceTokenRefreshScopeConnection": "Isopọ (ọ̀kọ̀ọ̀kọ̀ àkàǹtì ní breaker ti ara rẹ̀)",
+    "resilienceTokenRefreshThreshold": "Àìṣẹ́ ṣáájì kí a dúró dẹ́",
+    "resilienceTokenRefreshCooldown": "Duro nigba to ba din"
   },
   "contextRtk": {
     "title": "Ẹ́ńjìnnì RTK",

@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "यह कुंजी GET /v1/models में क्या दिखाती है। सूची को सीमित करने से यह कभी नहीं बदलता कि कुंजी किन्हें कॉल कर सकती है।",
     "catalogScopeAll": "दोनों",
     "catalogScopeCombos": "केवल कॉम्बो",
-    "catalogScopeModels": "केवल मॉडल"
+    "catalogScopeModels": "केवल मॉडल",
+    "resilienceTokenRefreshTitle": "टोकन रिफ्रेश ब्रेकर",
+    "resilienceTokenRefreshDesc": "बार-बार विफल होने के बाद टोकन रिफ्रेश करने का प्रयास बंद कर देता है। प्रति-कनेक्शन स्कोप एक मृत खाते को अलग करता है, ताकि उसी प्रदाता पर स्वस्थ खाते रिफ्रेश होते रहें।",
+    "resilienceTokenRefreshScope": "एक प्रदाता के लिए टोकन रिफ्रेश प्रयास",
+    "resilienceTokenRefreshTrigger": "लगातार असफल रीफ्रेश प्रयास",
+    "resilienceTokenRefreshEffect": "ठंडन की अवधि के लिए रिफ्रेश प्रयासों को रोकता है",
+    "resilienceTokenRefreshScopeLabel": "दायरा",
+    "resilienceTokenRefreshScopeProvider": "प्रदाता (सभी खाते एक ही ब्रेकर साझा करते हैं)",
+    "resilienceTokenRefreshScopeConnection": "कनेक्शन (प्रत्येक खाते का अपना ब्रेकर है)",
+    "resilienceTokenRefreshThreshold": "रोकने से पहले विफलताएँ",
+    "resilienceTokenRefreshCooldown": "ट्रिप होने के बाद विराम"
   },
   "contextRtk": {
     "title": "RTK इंजन",

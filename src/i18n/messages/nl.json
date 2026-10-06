@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Wat GET /v1/models voor deze sleutel weergeeft. Het beperken van de lijst verandert nooit welke modellen met de sleutel kunnen worden aangeroepen.",
     "catalogScopeAll": "Beide",
     "catalogScopeCombos": "Alleen combo's",
-    "catalogScopeModels": "Alleen modellen"
+    "catalogScopeModels": "Alleen modellen",
+    "resilienceTokenRefreshTitle": "Tokenvernieuwingsonderbreker",
+    "resilienceTokenRefreshDesc": "Stopt met het opnieuw proberen van tokenvernieuwing na herhaalde mislukkingen. Bereik per verbinding isoleert één dood account, zodat gezonde accounts bij dezelfde aanbieder blijven vernieuwen.",
+    "resilienceTokenRefreshScope": "Pogingen om tokens bij te werken voor één provider",
+    "resilienceTokenRefreshTrigger": "Opeenvolgende mislukte verversingspogingen",
+    "resilienceTokenRefreshEffect": "Pauzeert vernieuwingspogingen tijdens de cooldown",
+    "resilienceTokenRefreshScopeLabel": "Bereik",
+    "resilienceTokenRefreshScopeProvider": "Provider (alle accounts delen één breaker)",
+    "resilienceTokenRefreshScopeConnection": "Verbinding (elk account heeft zijn eigen breaker)",
+    "resilienceTokenRefreshThreshold": "Mislukkingen vóór pauzeren",
+    "resilienceTokenRefreshCooldown": "Pauzeer na het uitschakelen"
   },
   "contextRtk": {
     "title": "RTK Engine",

@@ -3206,7 +3206,13 @@ async function handleChatCoreInner({
         ),
       3,
       log,
-      provider
+      provider,
+      {
+        ...(casConnectionId ? { connectionId: casConnectionId } : {}),
+        scope: resilienceSettings.tokenRefreshBreaker.scope,
+        failureThreshold: resilienceSettings.tokenRefreshBreaker.failureThreshold,
+        cooldownMs: resilienceSettings.tokenRefreshBreaker.cooldownMs,
+      }
     )) as null | Record<string, unknown>;
 
     if (newCredentials?.accessToken || newCredentials?.copilotToken) {
@@ -3613,6 +3619,7 @@ async function handleChatCoreInner({
       provider,
       providerRequestCapture,
       reqLogger,
+      resilienceSettings,
       sessionAffinityKey,
       skillRequestId,
       sourceFormat,

@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "ما تعرضه GET /v1/models لهذا المفتاح. لا يؤدي تضييق القائمة مطلقًا إلى تغيير ما يمكن للمفتاح استدعاؤه.",
     "catalogScopeAll": "كلاهما",
     "catalogScopeCombos": "التركيبات فقط",
-    "catalogScopeModels": "النماذج فقط"
+    "catalogScopeModels": "النماذج فقط",
+    "resilienceTokenRefreshTitle": "قاطع تحديث الرمز",
+    "resilienceTokenRefreshDesc": "يوقف إعادة محاولة تحديث الرمز بعد فشل متكرر. يعزل نطاق لكل اتصال حسابًا ميتًا واحدًا حتى تستمر الحسابات السليمة على نفس المزود في التحديث.",
+    "resilienceTokenRefreshScope": "محاولات تحديث الرمز لأحد المزودين",
+    "resilienceTokenRefreshTrigger": "محاولات تحديث فاشلة متتالية",
+    "resilienceTokenRefreshEffect": "يوقف محاولات التحديث لمدة التهدئة",
+    "resilienceTokenRefreshScopeLabel": "النطاق",
+    "resilienceTokenRefreshScopeProvider": "المزوّد (جميع الحسابات تشترك في قاطع واحد)",
+    "resilienceTokenRefreshScopeConnection": "الاتصال (لكل حساب قاطع خاص به)",
+    "resilienceTokenRefreshThreshold": "عدد الفشل قبل الإيقاف",
+    "resilienceTokenRefreshCooldown": "الوقفة بعد التفعيل"
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",

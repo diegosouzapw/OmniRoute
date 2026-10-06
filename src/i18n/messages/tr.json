@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "GET /v1/models uç noktasının bu anahtar için gösterdiği modeller. Listeyi daraltmak, anahtarın çağırabileceği modelleri değiştirmez.",
     "catalogScopeAll": "Her ikisi",
     "catalogScopeCombos": "Yalnızca kombinasyonlar",
-    "catalogScopeModels": "Yalnızca modeller"
+    "catalogScopeModels": "Yalnızca modeller",
+    "resilienceTokenRefreshTitle": "Jeton Yenileme Kesici",
+    "resilienceTokenRefreshDesc": "Tekrarlanan hatalardan sonra jeton yenilemeyi denemeyi durdurur. Bağlantı kapsamı, aynı sağlayıcıdaki sağlıklı hesapların yenilenmeye devam etmesi için ölü bir hesabı izole eder.",
+    "resilienceTokenRefreshScope": "Bir sağlayıcı için jeton yenileme denemeleri",
+    "resilienceTokenRefreshTrigger": "Üst üste başarısız yenileme denemeleri",
+    "resilienceTokenRefreshEffect": "Bekleme süresi boyunca yenileme denemelerini duraklatır",
+    "resilienceTokenRefreshScopeLabel": "Kapsam",
+    "resilienceTokenRefreshScopeProvider": "Sağlayıcı (tüm hesaplar tek bir kesiciyi paylaşır)",
+    "resilienceTokenRefreshScopeConnection": "Bağlantı (her hesabın kendi kesici devresi vardır)",
+    "resilienceTokenRefreshThreshold": "Duraklatmadan önceki hatalar",
+    "resilienceTokenRefreshCooldown": "Tetiklendikten sonra duraklat"
   },
   "contextRtk": {
     "title": "RTK Motoru",

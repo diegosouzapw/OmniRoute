@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "GET /v1/models sorğusunun bu açar üçün göstərdiyi siyahı. Siyahının daraldılması açarın hansı modelləri çağıra biləcəyini heç vaxt dəyişmir.",
     "catalogScopeAll": "Hər ikisi",
     "catalogScopeCombos": "Yalnız kombinasiyalar",
-    "catalogScopeModels": "Yalnız modellər"
+    "catalogScopeModels": "Yalnız modellər",
+    "resilienceTokenRefreshTitle": "Token Yeniləmə Söndürücüsü",
+    "resilienceTokenRefreshDesc": "Dəfələrlə uğursuzluqdan sonra token yeniləməsini cəhd etməyi dayandırır. Hər bir bağlantı üçün sahə ölü bir hesabı təcrid edir ki, eyni provayderdəki sağlam hesablar yeniləməyə davam etsin.",
+    "resilienceTokenRefreshScope": "Bir provayder üçün token yeniləmə cəhdləri",
+    "resilienceTokenRefreshTrigger": "Ardıcıl uğursuz yeniləmə cəhdləri",
+    "resilienceTokenRefreshEffect": "Yeniləmə cəhdlərini soyuma müddəti üçün dayandırır",
+    "resilienceTokenRefreshScopeLabel": "Fəaliyyət sahəsi",
+    "resilienceTokenRefreshScopeProvider": "Təminatçı (bütün hesablar bir açarla bölüşür)",
+    "resilienceTokenRefreshScopeConnection": "Bağlantı (hər hesabın öz açarı var)",
+    "resilienceTokenRefreshThreshold": "Fasilə verilmədən əvvəl uğursuzluqlar",
+    "resilienceTokenRefreshCooldown": "İşə düşdükdən sonra fasilə"
   },
   "contextRtk": {
     "title": "RTK Mühərriki",

@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "یہ کلید GET /v1/models میں کیا ظاہر کرتی ہے۔ فہرست محدود کرنے سے کبھی بھی اس بات پر اثر نہیں پڑتا کہ کلید کن ماڈلز کو کال کر سکتی ہے۔",
     "catalogScopeAll": "دونوں",
     "catalogScopeCombos": "صرف کومبوز",
-    "catalogScopeModels": "صرف ماڈلز"
+    "catalogScopeModels": "صرف ماڈلز",
+    "resilienceTokenRefreshTitle": "ٹوکن ریفریش بریکر",
+    "resilienceTokenRefreshDesc": "بار بار ناکامیوں کے بعد ٹوکن کی تازہ کوششیں بند کر دیتا ہے۔ فی کنکشن کے دائرے میں ایک مردہ اکاؤنٹ کو الگ کر دیتا ہے تاکہ اسی پروویڈر پر صحت مند اکاؤنٹس تازہ ہوتے رہیں۔",
+    "resilienceTokenRefreshScope": "ایک فراہم کنندے کے لیے ٹوکن ریفریش کی کوششیں",
+    "resilienceTokenRefreshTrigger": "مسلسلہ ناکام تازہ کرنے کی کوششیں",
+    "resilienceTokenRefreshEffect": "کول ڈاؤن کے دوران ریفریش کی کوششوں کو روک دیتا ہے",
+    "resilienceTokenRefreshScopeLabel": "حصہ",
+    "resilienceTokenRefreshScopeProvider": "فراہم کنندہ (تمام اکاؤنٹس ایک ہی بریکر کا اشتراک کرتے ہیں)",
+    "resilienceTokenRefreshScopeConnection": "کنکشن (ہر اکاؤنٹ کا اپنا بریکر ہوتا ہے)",
+    "resilienceTokenRefreshThreshold": "روکنے سے پہلے ناکامیاں",
+    "resilienceTokenRefreshCooldown": "ٹرپ ہونے کے بعد وقفہ"
   },
   "contextRtk": {
     "title": "RTK انجن",

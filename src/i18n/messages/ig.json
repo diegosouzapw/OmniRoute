@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Ihe GET /v1/models na-egosi maka igodo a. Ibelata ndepụta ahụ anaghị agbanwe ụdịdị igodo ahụ nwere ike ịkpọ.",
     "catalogScopeAll": "Ha abụọ",
     "catalogScopeCombos": "Ngwakọta naanị",
-    "catalogScopeModels": "Ụdịdị naanị"
+    "catalogScopeModels": "Ụdịdị naanị",
+    "resilienceTokenRefreshTitle": "Mgbaji Igbanwe Token",
+    "resilienceTokenRefreshDesc": "Kwụsị ịnwale ịhazharị token mgbe ndọghachi egbuola n'otu n'otu. Njikọta nke nke bụrụ na-akwado otu akara dị mgbagwoju anya ka akara dị mma na nke ahụ na-ahazharị.",
+    "resilienceTokenRefreshScope": "Njikwa njikwa ịhazharị token maka onye nnye otu",
+    "resilienceTokenRefreshTrigger": "Njikọ njikọ njikọ njikọ njikọ njikọ njikọ njikọ njikọ njikọ njikọ",
+    "resilienceTokenRefreshEffect": "Na-egosi mmemme ọhụrụ maka oge mkpachi",
+    "resilienceTokenRefreshScopeLabel": "Nkpokọta",
+    "resilienceTokenRefreshScopeProvider": "Onye nnye (akkaunt niile dabere na otu breaker)",
+    "resilienceTokenRefreshScopeConnection": "Njikọ (ọ bụrụ na ngwaọrụ ọ bụla nwere ya nke ya)",
+    "resilienceTokenRefreshThreshold": "Njefọ n'ihu ka a ga-egbu oge",
+    "resilienceTokenRefreshCooldown": "Egwu mgbe e tinyere"
   },
   "contextRtk": {
     "title": "Injin RTK",

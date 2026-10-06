@@ -14,6 +14,7 @@ import type {
   RequestQueueSettings,
   ConnectionCooldownProfileSettings,
   ProviderBreakerProfileSettings,
+  TokenRefreshBreakerSettings,
   WaitForCooldownSettings,
   ComboCooldownWaitSettings,
   QuotaShareConcurrencyLimitSettings,
@@ -232,6 +233,26 @@ export function normalizeLegacyConnectionCooldownProfile(
     maxBackoffSteps: toInteger(record.maxBackoffLevel, fallback.maxBackoffSteps, {
       min: 0,
       max: 32,
+    }),
+  };
+}
+
+export function normalizeTokenRefreshBreakerSettings(
+  next: unknown,
+  fallback: TokenRefreshBreakerSettings
+): TokenRefreshBreakerSettings {
+  const record = asRecord(next);
+  const scope: TokenRefreshBreakerSettings["scope"] =
+    record.scope === "connection" ? "connection" : "provider";
+  return {
+    scope,
+    failureThreshold: toInteger(record.failureThreshold, fallback.failureThreshold, {
+      min: 1,
+      max: 100,
+    }),
+    cooldownMs: toInteger(record.cooldownMs, fallback.cooldownMs, {
+      min: 60_000,
+      max: 24 * 60 * 60 * 1000,
     }),
   };
 }

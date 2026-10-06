@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Hvad GET /v1/models viser for denne nøgle. En begrænsning af listen ændrer aldrig, hvad nøglen kan kalde.",
     "catalogScopeAll": "Begge",
     "catalogScopeCombos": "Kun kombinationer",
-    "catalogScopeModels": "Kun modeller"
+    "catalogScopeModels": "Kun modeller",
+    "resilienceTokenRefreshTitle": "Tokenopdateringsafbryder",
+    "resilienceTokenRefreshDesc": "Stopper forsøg på at forny token efter gentagne fejl. Omfang pr. forbindelse isolerer én død konto, så sunde konti på den samme udbyder fortsætter med at forny.",
+    "resilienceTokenRefreshScope": "Forsøg på at forny token for én udbyder",
+    "resilienceTokenRefreshTrigger": "Succesive mislykkede forsøg på fornyelse",
+    "resilienceTokenRefreshEffect": "Sætter forsøg på opdatering på pause i nedkølingsperioden",
+    "resilienceTokenRefreshScopeLabel": "Omfang",
+    "resilienceTokenRefreshScopeProvider": "Udbyder (alle konti deler én afbryder)",
+    "resilienceTokenRefreshScopeConnection": "Forbindelse (hver konto har sin egen afbryder)",
+    "resilienceTokenRefreshThreshold": "Fejl før pause",
+    "resilienceTokenRefreshCooldown": "Pause efter udløsning"
   },
   "contextRtk": {
     "title": "RTK Engine",

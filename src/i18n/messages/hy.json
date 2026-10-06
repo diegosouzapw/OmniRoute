@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Ինչ է GET /v1/models-ը ցուցադրում այս բանալիի համար։ Ցանկի սահմանափակումը երբեք չի փոխում այն, թե ինչ կարող է կանչել բանալին։",
     "catalogScopeAll": "Երկուսն էլ",
     "catalogScopeCombos": "Միայն կոմբինացիաները",
-    "catalogScopeModels": "Միայն մոդելները"
+    "catalogScopeModels": "Միայն մոդելները",
+    "resilienceTokenRefreshTitle": "Թոկենի թարմացման ընդհատիչ",
+    "resilienceTokenRefreshDesc": "Կանգնեցնում է հաստատման նշանի թարմացման կրկնակի փորձերը բազմակի անհաջողություններից հետո: Միակապ ծավալը մեկուսացնում է մահացած հաշիվը, որպեսզի նույն մատակարարի առողջ հաշիվները շարունակեն թարմացվել:",
+    "resilienceTokenRefreshScope": "Մեկ մատակարարի համար թոքենի թարմացման փորձեր",
+    "resilienceTokenRefreshTrigger": "Կապակցված հաջորդական անհաջող թարմացման փորձեր",
+    "resilienceTokenRefreshEffect": "Հետաձգում է թարմացման փորձերը սառեցման ժամանակահատվածի համար",
+    "resilienceTokenRefreshScopeLabel": "Ընդգրկույթ",
+    "resilienceTokenRefreshScopeProvider": "Մատակարար (բոլոր հաշիվները կիսում են մեկ ընդհատիչ)",
+    "resilienceTokenRefreshScopeConnection": "Կապ (յուրաքանչյուր հաշիվ ունի իր ընդհատիչը)",
+    "resilienceTokenRefreshThreshold": "Հաջողությունից առաջ կանգնեցնելու համար պարտություններ",
+    "resilienceTokenRefreshCooldown": "Կանգ առնել անջատվելուց հետո"
   },
   "contextRtk": {
     "title": "RTK շարժիչ",

@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Ono što GET /v1/models oglašava za ovaj ključ. Sužavanje liste nikada ne mijenja ono što ključ može pozvati.",
     "catalogScopeAll": "Oba",
     "catalogScopeCombos": "Samo kombinacije",
-    "catalogScopeModels": "Samo modeli"
+    "catalogScopeModels": "Samo modeli",
+    "resilienceTokenRefreshTitle": "Prekidač osvježavanja tokena",
+    "resilienceTokenRefreshDesc": "Zaustavlja ponovne pokušaje osvježavanja tokena nakon višestrukih neuspjeha. Opseg po vezi izoluje jedan mrtav nalog tako da zdravi nalozi na istom provajderu nastavljaju osvježavanje.",
+    "resilienceTokenRefreshScope": "Pokušaji osvježavanja tokena za jednog pružaoca",
+    "resilienceTokenRefreshTrigger": "Uzastopni neuspješni pokušaji osvježavanja",
+    "resilienceTokenRefreshEffect": "Pauzira pokušaje osvježavanja tokom perioda hlađenja",
+    "resilienceTokenRefreshScopeLabel": "Opseg",
+    "resilienceTokenRefreshScopeProvider": "Pružalac (svi nalozi dijele jedan prekidač)",
+    "resilienceTokenRefreshScopeConnection": "Veza (svaki nalog ima vlastiti prekidač)",
+    "resilienceTokenRefreshThreshold": "Neuspjesi prije pauze",
+    "resilienceTokenRefreshCooldown": "Pauza nakon aktiviranja"
   },
   "contextRtk": {
     "title": "RTK pogon",

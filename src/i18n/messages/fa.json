@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "مواردی که GET /v1/models برای این کلید اعلام میکند. محدود کردن فهرست هرگز مدلهایی را که کلید میتواند فراخوانی کند تغییر نمیدهد.",
     "catalogScopeAll": "هر دو",
     "catalogScopeCombos": "فقط ترکیبها",
-    "catalogScopeModels": "فقط مدلها"
+    "catalogScopeModels": "فقط مدلها",
+    "resilienceTokenRefreshTitle": "قاطع تازه‌سازی توکن",
+    "resilienceTokenRefreshDesc": "پس از شکست‌های مکرر، تلاش برای تازه‌سازی توکن را متوقف می‌کند. دامنه هر اتصال، یک حساب مرده را جدا می‌کند تا حساب‌های سالم در همان ارائه‌دهنده به تازه‌سازی ادامه دهند.",
+    "resilienceTokenRefreshScope": "تلاش‌های تازه‌سازی توکن برای یک ارائه‌دهنده",
+    "resilienceTokenRefreshTrigger": "تلاش‌های متوالی ناموفق برای تازه‌سازی",
+    "resilienceTokenRefreshEffect": "تلاش‌های تازه‌سازی را برای دوره خنک‌سازی متوقف می‌کند",
+    "resilienceTokenRefreshScopeLabel": "دامنه",
+    "resilienceTokenRefreshScopeProvider": "ارائه‌دهنده (همه حساب‌ها یک قطع‌کننده مشترک دارند)",
+    "resilienceTokenRefreshScopeConnection": "اتصال (هر حساب کلید قطع کننده خود را دارد)",
+    "resilienceTokenRefreshThreshold": "تعداد خطاها قبل از توقف",
+    "resilienceTokenRefreshCooldown": "مکث پس از فعال شدن"
   },
   "contextRtk": {
     "title": "موتور RTK",

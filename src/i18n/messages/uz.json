@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "GET /v1/models ushbu kalit uchun nimalarni koʻrsatishi. Roʻyxatni qisqartirish kalit qaysi modellarni chaqira olishiga taʼsir qilmaydi.",
     "catalogScopeAll": "Ikkalasi ham",
     "catalogScopeCombos": "Faqat kombinatsiyalar",
-    "catalogScopeModels": "Faqat modellar"
+    "catalogScopeModels": "Faqat modellar",
+    "resilienceTokenRefreshTitle": "Token yangilash uzgichi",
+    "resilienceTokenRefreshDesc": "Bir necha marta muvaffaqiyatsizlikdan so'ng tokenni yangilash urinishlarini to'xtatadi. Ulanish doirasi bitta o'lik hisobni ajratib turadi, shu provayderdagi sog'lom hisoblar yangilanishda davom etishi uchun.",
+    "resilienceTokenRefreshScope": "Bir ta'minotchi uchun token yangilash urinishlari",
+    "resilienceTokenRefreshTrigger": "Ketma-ket muvaffaqiyatsiz yangilash urinishlari",
+    "resilienceTokenRefreshEffect": "Sovutish davri davomida yangilash urinishlarini to'xtatadi",
+    "resilienceTokenRefreshScopeLabel": "Qamrov",
+    "resilienceTokenRefreshScopeProvider": "Taʼminotchi (barcha hisoblar bitta kesgichni ulashadi)",
+    "resilienceTokenRefreshScopeConnection": "Ulanish (har bir hisobning o'z uzgichi bor)",
+    "resilienceTokenRefreshThreshold": "To'xtatishdan oldingi xatolar",
+    "resilienceTokenRefreshCooldown": "Ishga tushgach pauza"
   },
   "contextRtk": {
     "title": "RTK mexanizmi",

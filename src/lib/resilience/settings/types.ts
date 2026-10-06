@@ -74,6 +74,22 @@ export interface ConnectionCooldownProfileSettings {
   maxBackoffSteps: number;
 }
 
+/**
+ * Scope of the token-refresh breaker. `provider` keeps the current
+ * provider-wide behavior; `connection` isolates failures per connection so
+ * one dead account does not block healthy accounts on the same provider.
+ */
+export type TokenRefreshBreakerScope = "provider" | "connection";
+
+export interface TokenRefreshBreakerSettings {
+  /** Breaker scope. Default "provider" (current behavior). */
+  scope: TokenRefreshBreakerScope;
+  /** Consecutive failures before tripping. Default 5. Bounded 1-100. */
+  failureThreshold: number;
+  /** Pause after tripping, in ms. Default 1800000 (30 min). Bounded 60000-86400000. */
+  cooldownMs: number;
+}
+
 export interface ProviderBreakerProfileSettings {
   failureThreshold: number;
   degradationThreshold: number;
@@ -249,6 +265,7 @@ export interface ResilienceSettings {
   requestQueue: RequestQueueSettings;
   connectionCooldown: Record<AuthCategory, ConnectionCooldownProfileSettings>;
   providerBreaker: Record<AuthCategory, ProviderBreakerProfileSettings>;
+  tokenRefreshBreaker: TokenRefreshBreakerSettings;
   waitForCooldown: WaitForCooldownSettings;
   comboCooldownWait: ComboCooldownWaitSettings;
   quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
@@ -264,6 +281,7 @@ export interface ResilienceSettingsPatch {
   requestQueue?: Partial<RequestQueueSettings>;
   connectionCooldown?: Partial<Record<AuthCategory, Partial<ConnectionCooldownProfileSettings>>>;
   providerBreaker?: Partial<Record<AuthCategory, Partial<ProviderBreakerProfileSettings>>>;
+  tokenRefreshBreaker?: Partial<TokenRefreshBreakerSettings>;
   waitForCooldown?: Partial<WaitForCooldownSettings>;
   comboCooldownWait?: Partial<ComboCooldownWaitSettings>;
   quotaShareConcurrencyLimit?: Partial<QuotaShareConcurrencyLimitSettings>;

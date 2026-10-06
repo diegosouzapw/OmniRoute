@@ -8453,7 +8453,17 @@
     "catalogScopeDesc": "Čo GET /v1/models uvádza pre tento kľúč. Zúženie zoznamu nikdy nemení, čo môže kľúč volať.",
     "catalogScopeAll": "Oboje",
     "catalogScopeCombos": "Iba kombinácie",
-    "catalogScopeModels": "Iba modely"
+    "catalogScopeModels": "Iba modely",
+    "resilienceTokenRefreshTitle": "Poistka obnovenia tokenu",
+    "resilienceTokenRefreshDesc": "Zastaví opakované obnovovanie tokenu po viacerých zlyhaniach. Rozsah per-connection izoluje jednu mŕtvu účet, aby zdravé účty u rovnakého poskytovateľa mohli naďalej obnovovať.",
+    "resilienceTokenRefreshScope": "Pokusy o obnovenie tokenu pre jedného poskytovateľa",
+    "resilienceTokenRefreshTrigger": "Po sebe idúce neúspešné pokusy o obnovenie",
+    "resilienceTokenRefreshEffect": "Pozastavuje pokusy o obnovenie počas ochladzovacej doby",
+    "resilienceTokenRefreshScopeLabel": "Rozsah",
+    "resilienceTokenRefreshScopeProvider": "Poskytovateľ (všetky účty zdieľajú jeden istič)",
+    "resilienceTokenRefreshScopeConnection": "Pripojenie (každý účet má vlastný vypínač)",
+    "resilienceTokenRefreshThreshold": "Zlyhania pred pozastavením",
+    "resilienceTokenRefreshCooldown": "Pauza po spustení"
   },
   "contextRtk": {
     "title": "RTK Engine",
