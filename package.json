@@ -372,7 +372,7 @@
     "safe-regex": "^2.1.1",
     "selfsigned": "^5.5.0",
     "sharp": "^0.35.4",
-    "smol-toml": "1.8.0",
+    "smol-toml": "1.9.0",
     "socks": "^2.8.7",
     "sql.js": "^1.14.2",
     "tailwind-merge": "^3.6.0",
