@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "Դիրքի կարգ",
     "poolHealthRankingOff": "Առողջության վարկանիշն անջատված է",
     "transportRate": "{rate}% փոխադրում",
+    "slowAbandoned": "{count} դանդաղ լքումներ",
+    "clientAborted": "{count} հաճախորդի չեղարկումներ",
+    "slowAbandonedHint": "Լքվել է վերնագրերի սպասման շեմից հետո, չի ներառվում տրանսպորտի դասին",
     "previousSuccessRate": "Նախկինում {rate}% հաջողություն",
-    "upstreamRefusals": "{count} upstream մերժում",
     "connectionTestsCount": "{count} կապի թեստ",
-    "notMeasured": "Չի չափվել"
+    "notMeasured": "Չի չափվել",
+    "upstream4xx": "{count} վերահոսքային հաճախորդի սխալներ",
+    "upstream5xx": "{count} վերահոսքային սերվերի սխալներ",
+    "uniformEgressLine": "{affected}-ը {exits} ելքերից միասին ձախողվում են {provider}-ում (վերջին {hours}ժ) — ելքի խնդիր չէ"
   },
   "playground": {
     "title": "Մոդելների փորձարկման հարթակ",

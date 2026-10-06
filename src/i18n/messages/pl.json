@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "Kolejność pozycji",
     "poolHealthRankingOff": "Ranking kondycji wyłączony",
     "transportRate": "{rate}% transportu",
+    "slowAbandoned": "{count} wolne porzucenia",
+    "clientAborted": "{count} przerwań klienta",
+    "slowAbandonedHint": "Porzucone po przekroczeniu progu czasu oczekiwania na nagłówki, wyłączone z wskaźnika transportu",
     "previousSuccessRate": "Wcześniej {rate}% skuteczności",
-    "upstreamRefusals": "{count} odmów upstream",
     "connectionTestsCount": "{count} testów połączenia",
-    "notMeasured": "Nie zmierzono"
+    "notMeasured": "Nie zmierzono",
+    "upstream4xx": "{count} błędów klienta upstream",
+    "upstream5xx": "{count} błędów serwera upstream",
+    "uniformEgressLine": "{affected} z {exits} wyjść przestają działać jednocześnie u {provider} (ostatnie {hours} h) — to nie problem wyjścia"
   },
   "playground": {
     "title": "Środowisko testowe modeli",

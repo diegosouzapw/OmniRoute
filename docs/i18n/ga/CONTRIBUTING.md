@@ -404,18 +404,18 @@ Scríobh tástálacha aonaid in `tests/unit/` a chlúdaíonn, ar a laghad:
 
 - [ ] Éiríonn leis na tástálacha (`npm test`)
 - [ ] Éiríonn leis an lintáil (`npm run lint`)
-- [ ] Éiríonn leis an tógáil (`npm run build`)
+- [ ] Éiríonn leis an tiomsú (`npm run build`)
 - [ ] Cineálacha TypeScript curtha leis le haghaidh feidhmeanna agus comhéadain phoiblí nua
 - [ ] Gan aon rúin ná luachanna cúltaca crua-chódaithe
-- [ ] Dintiúir phoiblí réamhtheachtacha leabaithe trí `resolvePublicCred()` (féach [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), agus ní mar theaghráin litriúla choíche
-- [ ] Freagairtí earráide seolta trí `buildErrorBody()` / `sanitizeErrorMessage()` — gan aon lorg cruachta amh i gcoirp freagartha (féach [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Tugann orduithe bhlaosc (`exec` / `spawn`) luachanna ama rite ar aghaidh trí `env`, agus ní trí idirshuíomh teaghrán
+- [ ] Dintiúir phoiblí réamhtheachtacha leabaithe trí `resolvePublicCred()` (féach [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), agus ní mar litearáil riamh
+- [ ] Freagraí earráide seolta trí `buildErrorBody()` / `sanitizeErrorMessage()` — gan aon rianta amhchruaiche i gcorp na bhfreagraí (féach [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Orduithe blaoisce (`exec` / `spawn`) a chuireann luachanna ama rite ar aghaidh trí `env`, ní trí idirshuíomh teaghrán
 - [ ] Gach ionchur bailíochtaithe le scéimeanna Zod
-- [ ] **Blúire** den loga athruithe curtha faoi `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` le haghaidh athruithe atá le feiceáil ag úsáideoirí (féach [`changelog.d/README.md`](./changelog.d/README.md)) — **ná** cuir `CHANGELOG.md` in eagar go díreach; déantar na blúirí a chomhiomlánú tráth eisiúna agus ní bhíonn coinbhleacht eatarthu idir iarratais tarraingthe choíche
+- [ ] **Blúire** den loga athruithe curtha leis faoi `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` le haghaidh athruithe atá infheicthe ag úsáideoirí (féach [`changelog.d/README.md`](./changelog.d/README.md)) — ná cuir `CHANGELOG.md` in eagar go díreach; déantar na blúirí a chomhiomlánú tráth an eisiúna agus ní bhíonn coinbhleacht eatarthu riamh i measc PRanna
 - [ ] Doiciméadacht nuashonraithe (más infheidhme)
-- [ ] Gan aon fholáirimh nua CodeQL / Secret-Scanning oscailte, nó gach ceann díobh diúltaithe le bonn cirt teicniúil a thagraíonn don doiciméad ábhartha in `docs/security/`
+- [ ] Gan aon fholáirimh nua CodeQL / Secret-Scanning oscailte, nó gach ceann acu diúltaithe le bonn cirt teicniúil a thagraíonn don doiciméad ábhartha in `docs/security/`
 - [ ] Bealaí a sceitheann próisis mhac (`/api/mcp/`, `/api/cli-tools/runtime/`) aicmithe mar `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — féach [Riail Dhocht #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Gan aon leantóirí `Co-Authored-By` i dteachtaireachtaí tiomantais — ní mór do thiomantais a bheith le feiceáil faoi aitheantas Git úinéir na stórtha amháin (Riail Dhocht #16)
+- [ ] Gan aon leantóirí `Co-authored-by` ó IS/róbónna i dteachtaireachtaí tiomantais (Riail Dhocht #16) — tugtar aitheantas do chomhoibrithe daonna a n-athúsáidtear a gcuid oibre le leantóirí caighdeánacha `Co-authored-by: Name <email>`
 
 ---
 

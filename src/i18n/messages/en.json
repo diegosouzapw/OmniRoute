@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "Position order",
     "poolHealthRankingOff": "Health ranking off",
     "transportRate": "{rate}% transport",
+    "slowAbandoned": "{count} slow abandonments",
+    "clientAborted": "{count} client aborts",
+    "slowAbandonedHint": "Abandoned after the headers wait threshold, excluded from the transport rate",
     "previousSuccessRate": "Previously {rate}% success",
-    "upstreamRefusals": "{count} upstream refusals",
     "connectionTestsCount": "{count} connection tests",
-    "notMeasured": "Not measured"
+    "notMeasured": "Not measured",
+    "upstream4xx": "{count} upstream client errors",
+    "upstream5xx": "{count} upstream server errors",
+    "uniformEgressLine": "{affected} of {exits} exits fail together on {provider} (last {hours}h) — not an exit problem"
   },
   "playground": {
     "title": "Model Playground",

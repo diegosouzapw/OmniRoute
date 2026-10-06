@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "ସ୍ଥିତି କ୍ରମ",
     "poolHealthRankingOff": "ସ୍ୱାସ୍ଥ୍ୟ ରାଙ୍କିଙ୍ଗ ବନ୍ଦ",
     "transportRate": "{rate}% ପରିବହନ",
+    "slowAbandoned": "{count} ଧୀର ତ୍ୟାଗ",
+    "clientAborted": "{count} ଗ୍ରାହକ ବିଚ୍ଛିନ୍ନ",
+    "slowAbandonedHint": "ହେଡର ଅପେକ୍ଷା ଥ୍ରେଶହୋଲ୍ଡ ପରେ ତ୍ୟାଗ ହୋଇଛି, ଟ୍ରାନ୍ସପୋର୍ଟ ହାରରୁ ବାହାର ରଖାଯାଇଛି",
     "previousSuccessRate": "ପୂର୍ବରୁ {rate}% ସଫଳତା",
-    "upstreamRefusals": "{count} ଅପଷ୍ଟ୍ରିମ୍ ପ୍ରତ୍ୟାଖ୍ୟାନ",
     "connectionTestsCount": "{count} ସଂଯୋଗ ପରୀକ୍ଷା",
-    "notMeasured": "ମାପ କରାଯାଇନାହିଁ"
+    "notMeasured": "ମାପ କରାଯାଇନାହିଁ",
+    "upstream4xx": "{count} ଉପରି ଗ୍ରାହକ ତ୍ରୁଟିଗୁଡ଼ିକ",
+    "upstream5xx": "{count} ଉପରି ସର୍ଭର ତ୍ରୁଟିଗୁଡ଼ିକ",
+    "uniformEgressLine": "{provider}ରେ {exits}ଟି ଏକ୍ଜିଟ୍ ମଧ୍ୟରୁ {affected}ଟି ଏକାଠି ବିଫଳ ହେଉଛି (ଗତ {hours}ଘଣ୍ଟା) — ଏହା ଏକ୍ଜିଟ୍ ସମସ୍ୟା ନୁହେଁ"
   },
   "playground": {
     "title": "ମଡେଲ୍ ପ୍ଲେଗ୍ରାଉଣ୍ଡ",

@@ -19,17 +19,72 @@ export interface ProxyTransition {
 
 export type ProxyTransitionListener = (transition: ProxyTransition) => void;
 
-const listeners = new Set<ProxyTransitionListener>();
+export interface SharedRefusalStore {
+  memory: Map<string, RefusalState>;
+  seq: { value: number };
+  transportFailures: TransportFailure[];
+  transportSuccesses: TransportSuccess[];
+  slowOverruns: SlowOverrun[];
+  listeners: Set<ProxyTransitionListener>;
+  listenerKeys: Map<string, ProxyTransitionListener>;
+}
 
-export function onProxyTransition(listener: ProxyTransitionListener): () => void {
-  listeners.add(listener);
+export type RefusalState = { streak: number; until: number; seq: number };
+export type TransportFailure = { key: string; destination: string; at: number };
+export type TransportSuccess = { destination: string; key: string; at: number };
+export type SlowOverrun = { key: string; at: number };
+
+const SHARED_STORE_KEY = Symbol.for("omniroute.proxyRefusalMemory");
+
+/**
+ * Process-wide refusal store, shared across duplicated server module copies.
+ * Lazy `??=` init mirrors getPatchState in proxyFetch.ts: data only, no
+ * closures, so re-evaluation (HMR) rebinds the same object.
+ */
+export function getSharedRefusalStore(): SharedRefusalStore {
+  const holder = globalThis as unknown as Record<symbol, SharedRefusalStore | undefined>;
+  let store = holder[SHARED_STORE_KEY];
+  if (!store) {
+    store = {
+      memory: new Map<string, RefusalState>(),
+      seq: { value: 0 },
+      transportFailures: [],
+      transportSuccesses: [],
+      slowOverruns: [],
+      listeners: new Set<ProxyTransitionListener>(),
+      listenerKeys: new Map<string, ProxyTransitionListener>(),
+    };
+    holder[SHARED_STORE_KEY] = store;
+  }
+  return store;
+}
+
+export function onProxyTransition(listener: ProxyTransitionListener, key?: string): () => void {
+  const store = getSharedRefusalStore();
+  if (key !== undefined) {
+    const existing = store.listenerKeys.get(key);
+    if (existing !== undefined) {
+      const current = existing;
+      return () => {
+        store.listeners.delete(current);
+        if (store.listenerKeys.get(key) === current) store.listenerKeys.delete(key);
+      };
+    }
+    store.listeners.add(listener);
+    store.listenerKeys.set(key, listener);
+    return () => {
+      store.listeners.delete(listener);
+      if (store.listenerKeys.get(key) === listener) store.listenerKeys.delete(key);
+    };
+  }
+  store.listeners.add(listener);
   return () => {
-    listeners.delete(listener);
+    store.listeners.delete(listener);
   };
 }
 
 export function notifyProxyTransition(transition: ProxyTransition): void {
-  for (const listener of listeners) {
+  for (const listener of getSharedRefusalStore().listeners) {
     try {
       listener(transition);
     } catch (err) {
@@ -40,10 +95,12 @@ export function notifyProxyTransition(transition: ProxyTransition): void {
 
 /** Test-only: number of registered listeners. */
 export function __listenerCountForTesting(): number {
-  return listeners.size;
+  return getSharedRefusalStore().listeners.size;
 }
 
 /** Test-only: forget all listeners. */
 export function __resetProxyTransitionListenersForTesting(): void {
-  listeners.clear();
+  const store = getSharedRefusalStore();
+  store.listeners.clear();
+  store.listenerKeys.clear();
 }

@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "የአቀማመጥ ቅደም ተከተል",
     "poolHealthRankingOff": "የጤና ደረጃ አሰጣጥ ጠፍቷል",
     "transportRate": "{rate}% ትራንስፖርት",
+    "slowAbandoned": "{count} በቀስታ የሚተው ልውውጥ",
+    "clientAborted": "{count} የደንበኛ ማቆም",
+    "slowAbandonedHint": "የራስ ምልክቶች የመጠባበቅ ኪስ በላይ በኋላ ተተው, ከመጓጓዣ ፍጥነት ውጭ ተሰርዘዋል",
     "previousSuccessRate": "ከዚህ በፊት {rate}% ስኬት",
-    "upstreamRefusals": "{count} upstream ውድቅዎች",
     "connectionTestsCount": "{count} የግንኙነት ሙከራዎች",
-    "notMeasured": "አልተለካም"
+    "notMeasured": "አልተለካም",
+    "upstream4xx": "{count} ከላይ ደንበኛ ስህተቶች",
+    "upstream5xx": "{count} የላይ ሰርቨር ስህተቶች",
+    "uniformEgressLine": "{affected} የ{exits} ውጦች በ{provider} ላይ በአንድ ጊዜ ይተፋሉ (የቅርብ {hours}h) — የውጤት ችግኝ አይደለም"
   },
   "playground": {
     "title": "የሞዴል መሞከሪያ",

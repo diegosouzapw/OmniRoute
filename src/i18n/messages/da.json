@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "Positionsrækkefølge",
     "poolHealthRankingOff": "Sundhedsrangering fra",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} langsomme opgivelser",
+    "clientAborted": "{count} klientafbrydelser",
+    "slowAbandonedHint": "Opgivet efter headerventetærsklen, udelukket fra transporthastigheden",
     "previousSuccessRate": "Tidligere {rate} % succes",
-    "upstreamRefusals": "{count} upstream-afvisninger",
     "connectionTestsCount": "{count} forbindelsestests",
-    "notMeasured": "Ikke målt"
+    "notMeasured": "Ikke målt",
+    "upstream4xx": "{count} opstrøms klientfejl",
+    "upstream5xx": "{count} opstrøms serverfejl",
+    "uniformEgressLine": "{affected} af {exits} udgange fejler sammen på {provider} (seneste {hours} t) — ikke et udgangsproblem"
   },
   "playground": {
     "title": "Title",

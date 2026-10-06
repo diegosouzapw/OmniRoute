@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "Редослед позиција",
     "poolHealthRankingOff": "Рангирање здравља искључено",
     "transportRate": "{rate} % преноса",
+    "slowAbandoned": "{count} sporih napuštanja",
+    "clientAborted": "{count} odustajanja klijenta",
+    "slowAbandonedHint": "Napusteno nakon praga čekanja zaglavlja, izuzeto iz transportne stope",
     "previousSuccessRate": "Раније {rate} % успеха",
-    "upstreamRefusals": "{count} upstream одбијања",
     "connectionTestsCount": "{count} тестова везе",
-    "notMeasured": "Није мерено"
+    "notMeasured": "Није мерено",
+    "upstream4xx": "{count} grešaka klijenta na upstream-u",
+    "upstream5xx": "{count} grešaka servera na upstream-u",
+    "uniformEgressLine": "{affected} od {exits} izlaza padaju zajedno na {provider} (poslednjih {hours} сати) — nije problem izlaza"
   },
   "playground": {
     "title": "Окружење за тестирање модела",

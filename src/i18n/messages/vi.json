@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "Thứ tự vị trí",
     "poolHealthRankingOff": "Xếp hạng tình trạng tắt",
     "transportRate": "{rate}% vận chuyển",
+    "slowAbandoned": "{count} lần hủy bỏ chậm",
+    "clientAborted": "{count} lần hủy bỏ bởi client",
+    "slowAbandonedHint": "Hủy bỏ sau ngưỡng chờ tiêu đề, không được tính vào tỷ lệ vận chuyển",
     "previousSuccessRate": "Trước đây {rate}% thành công",
-    "upstreamRefusals": "{count} từ chối từ máy chủ",
     "connectionTestsCount": "{count} kiểm tra kết nối",
-    "notMeasured": "Chưa đo"
+    "notMeasured": "Chưa đo",
+    "upstream4xx": "{count} lỗi phía client",
+    "upstream5xx": "{count} lỗi máy chủ",
+    "uniformEgressLine": "{affected} trên {exits} exit cùng lỗi trên {provider} (trong {hours} giờ qua) — không phải vấn đề exit"
   },
   "playground": {
     "title": "Khu thử nghiệm mô hình",

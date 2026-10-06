@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "Positievolgorde",
     "poolHealthRankingOff": "Gezondheidsrangschikking uit",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} trage afwijzingen",
+    "clientAborted": "{count} clientafbrekingen",
+    "slowAbandonedHint": "Verlaten na de headers-wachttijd, uitgesloten van het transporttarief",
     "previousSuccessRate": "Eerder {rate} % succes",
-    "upstreamRefusals": "{count} upstream-weigeringen",
     "connectionTestsCount": "{count} verbindingstests",
-    "notMeasured": "Niet gemeten"
+    "notMeasured": "Niet gemeten",
+    "upstream4xx": "{count} upstream clientfouten",
+    "upstream5xx": "{count} upstream serverfouten",
+    "uniformEgressLine": "{affected} van {exits} exits falen tegelijk op {provider} (laatste {hours}u) — geen exit-probleem"
   },
   "playground": {
     "title": "Title",

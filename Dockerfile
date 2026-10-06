@@ -45,7 +45,7 @@ RUN set -eux; \
   npm install -g npm@latest; \
   npm install --prefix /tmp/npm-cve-patch --no-audit --no-fund --ignore-scripts \
     --install-strategy=nested \
-    brace-expansion@5.0.9 ip-address@10.7.2 tar@7.5.22 undici@6.28.0; \
+    brace-expansion@5.0.12 ip-address@10.7.3 tar@7.5.22 undici@6.29.0; \
   for pkg in brace-expansion ip-address tar undici; do \
     test -d "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \
     rm -rf "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \

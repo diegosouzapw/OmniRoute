@@ -126,7 +126,7 @@ describe("v1-vs-v2 catalog parity", () => {
     const counts = await publishCatalog(draft, TEST_OPTS, { fetcher, combosFetcher });
     assert.equal(counts.models, 5);
     assert.equal(counts.combos, 2);
-    assert.equal(counts.autoCombos, 0);
+    assert.deepEqual(counts, { models: 5, combos: 2 });
 
     // Final converted Record<string, any> shape (legacy→info boundary in
     // src/catalog.ts assignModelFields): api resolves to the

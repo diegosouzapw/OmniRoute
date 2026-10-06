@@ -11,7 +11,7 @@
  * (`WeakMap`), never on the executor: it is a shared instance and requests overlap.
  */
 import { createHash } from "node:crypto";
-import { isOpencodeFreeTierRefusal } from "./opencodeGeoBlock.ts";
+import { isOpencodeFreeTierRefusal, isOpencodeQuotaShapeRefusal } from "./opencodeGeoBlock.ts";
 import type { ExecuteInput, ExecutorExecuteResult } from "./base.ts";
 
 export type RequestShape = "tools" | "bare";
@@ -140,7 +140,11 @@ function responseOf(result: ExecutorExecuteResult): Response | null {
 async function isShapeRefusal(response: Response, log: ExecuteInput["log"]): Promise<boolean> {
   if (response.status !== 403 && response.status !== 451) return false;
   try {
-    return isOpencodeFreeTierRefusal(response.status, await response.clone().text());
+    const text = await response.clone().text();
+    return (
+      isOpencodeFreeTierRefusal(response.status, text) ||
+      isOpencodeQuotaShapeRefusal(response.status, text)
+    );
   } catch {
     // Unreadable body: treated as "not a shape refusal", so the response is returned as-is.
     log?.debug?.("OPENCODE", "refusal body unreadable, no replay");

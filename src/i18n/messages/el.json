@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "Σειρά θέσης",
     "poolHealthRankingOff": "Η κατάταξη υγείας απενεργοποιημένη",
     "transportRate": "{rate} % μεταφορά",
+    "slowAbandoned": "{count} αργές εγκαταλείψεις",
+    "clientAborted": "{count} διακοπές πελάτη",
+    "slowAbandonedHint": "Εγκαταλείφθηκε μετά το όριο αναμονής επικεφαλίδων, εξαιρείται από το ποσοστό μεταφοράς",
     "previousSuccessRate": "Προηγουμένως {rate} % επιτυχία",
-    "upstreamRefusals": "{count} απορρίψεις upstream",
     "connectionTestsCount": "{count} δοκιμές σύνδεσης",
-    "notMeasured": "Δεν μετρήθηκε"
+    "notMeasured": "Δεν μετρήθηκε",
+    "upstream4xx": "{count} σφάλματα πελάτη πάνω από",
+    "upstream5xx": "{count} σφάλματα διακομιστή πάνω από",
+    "uniformEgressLine": "{affected} από {exits} εξόδους αποτυγχάνουν μαζί στο {provider} (τις τελευταίες {hours} ώρες) — όχι πρόβλημα εξόδου"
   },
   "playground": {
     "title": "Περιβάλλον δοκιμών μοντέλων",

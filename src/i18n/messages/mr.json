@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "स्थान क्रम",
     "poolHealthRankingOff": "आरोग्य क्रमवारी बंद",
     "transportRate": "{rate}% वाहतूक",
+    "slowAbandoned": "{count} धीमे परित्याग",
+    "clientAborted": "{count} क्लायंट रद्दीकरणे",
+    "slowAbandonedHint": "हेडर्स प्रतीक्षा मर्यादेनंतर परित्यक्त, ट्रान्सपोर्ट दरातून वगळलेले",
     "previousSuccessRate": "यापूर्वी {rate}% यश",
-    "upstreamRefusals": "{count} अपस्ट्रीम नकार",
     "connectionTestsCount": "{count} कनेक्शन चाचण्या",
-    "notMeasured": "मोजले नाही"
+    "notMeasured": "मोजले नाही",
+    "upstream4xx": "{count} अपस्ट्रीम क्लायंट त्रुटी",
+    "upstream5xx": "{count} अपस्ट्रीम सर्व्हर त्रुटी",
+    "uniformEgressLine": "{provider} वर {exits} पैकी {affected} एक्झिट्स एकत्र अयशस्वी (गेल्या {hours} तासांत) — ही एक्झिट समस्या नाही"
   },
   "playground": {
     "title": "मॉडेल प्लेग्राउंड",

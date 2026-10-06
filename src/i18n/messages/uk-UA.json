@@ -11095,10 +11095,15 @@
     "poolSignalPosition": "Порядок позицій",
     "poolHealthRankingOff": "Рейтинг здоровʼя вимкнено",
     "transportRate": "{rate}% транспорту",
+    "slowAbandoned": "{count} повільних відмов",
+    "clientAborted": "{count} відмов клієнта",
+    "slowAbandonedHint": "Відкинуто після порогу очікування заголовків, виключено з швидкості транспорту",
     "previousSuccessRate": "Раніше {rate}% успіху",
-    "upstreamRefusals": "{count} відмов апастріму",
     "connectionTestsCount": "{count} перевірок зʼєднання",
-    "notMeasured": "Не виміряно"
+    "notMeasured": "Не виміряно",
+    "upstream4xx": "{count} верхніх помилок клієнта",
+    "upstream5xx": "{count} помилки верхнього сервера",
+    "uniformEgressLine": "{affected} з {exits} виходів одночасно виходять з ладу на {provider} (останні {hours} год.) — це не проблема виходу"
   },
   "playground": {
     "title": "Title",
