@@ -275,6 +275,64 @@ test("skip line carries counts only, never node names or servers", async () => {
   assert.ok(!cap.lines[0].includes("10.9.0."));
 });
 
+test("model or render failure reports internal_error and does not throw", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-core-internal-"));
+  const sync = await import("../../src/lib/proxySubscription/coreConfig/sync.ts");
+  const renderers = await import("../../src/lib/proxySubscription/coreConfig/renderers.ts");
+  const orig = renderers.RENDERERS[renderers.DEFAULT_CORE];
+  (renderers.RENDERERS as Record<string, unknown>)[renderers.DEFAULT_CORE] = () => {
+    throw new Error("boom sb-node-9 203.0.113.9");
+  };
+  const target = path.join(dir, "core.json");
+  fs.writeFileSync(target, JSON.stringify({ inbounds: [], outbounds: [] }));
+  const cap = captureWarn();
+  try {
+    const intention = await sync.generateCoreConfigIntention(
+      { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
+      singBoxFeed()
+    );
+    assert.equal(intention.status, "none");
+    assert.ok(intention.warning?.includes("internal_error"), `got: ${intention.warning}`);
+    assert.equal(cap.lines.length, 1);
+    assert.equal(cap.lines[0], "[ProxySubscription] core config generation failed");
+    assert.ok(!cap.lines[0].includes("sb-node-"));
+    assert.ok(!cap.lines[0].includes("203.0.113."));
+  } finally {
+    cap.restore();
+    (renderers.RENDERERS as Record<string, unknown>)[renderers.DEFAULT_CORE] = orig;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("disk failure still reports the write reason", async () => {
+  const sync = await import("../../src/lib/proxySubscription/coreConfig/sync.ts");
+  const missing = await sync.generateForSubscription(
+    {
+      coreConfigPath: path.join(os.tmpdir(), "omniroute-no-such-dir-xyz", "core.json"),
+      localCoreEndpoint: ENDPOINTS,
+    },
+    singBoxFeed()
+  );
+  assert.ok(missing?.includes("write_failed"));
+  assert.ok(!missing?.includes("internal_error"));
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-core-readonly-"));
+  const target = path.join(dir, "core.json");
+  fs.writeFileSync(target, JSON.stringify({ inbounds: [], outbounds: [] }));
+  fs.chmodSync(dir, 0o555);
+  try {
+    const res = await sync.generateForSubscription(
+      { coreConfigPath: target, localCoreEndpoint: ENDPOINTS },
+      singBoxFeed()
+    );
+    assert.ok(res?.includes("write_failed"), `got: ${res}`);
+    assert.ok(!res?.includes("internal_error"));
+  } finally {
+    fs.chmodSync(dir, 0o755);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("repeated generations leave no accumulated state", async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-core-bounded-"));
   const sync = await import("../../src/lib/proxySubscription/coreConfig/sync.ts");

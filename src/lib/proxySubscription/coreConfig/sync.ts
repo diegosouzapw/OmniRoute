@@ -187,41 +187,49 @@ export async function generateCoreConfigIntention(
     configPath,
     warning: null,
   });
-  const target = (sub.coreConfigPath ?? "").trim();
-  if (!target) return blank(target);
-
-  const existingText = readExisting(target);
-  if (existingText.failed) return { ...blank(target), warning: warn("read_failed") };
-
-  const model = buildCoreModel(parseLocalCoreEndpoints(sub.localCoreEndpoint), [
-    ...parsed.nodes,
-    ...parsed.needsCore,
-  ]);
-  const rendered = renderAndLog(sub, model, existingText.text);
-  if (typeof rendered === "string") return { ...blank(target), warning: rendered };
-  if (rendered === null) return blank(target);
-  const digest = typeof rendered.digest === "string" ? rendered.digest : undefined;
-
-  const dir = path.dirname(`${target}.generated`);
+  let target = "";
   try {
-    if (!fs.statSync(dir).isDirectory()) return { ...blank(target), warning: warn("write_failed") };
+    target = (sub.coreConfigPath ?? "").trim();
+    if (!target) return blank(target);
+
+    const existingText = readExisting(target);
+    if (existingText.failed) return { ...blank(target), warning: warn("read_failed") };
+
+    const model = buildCoreModel(parseLocalCoreEndpoints(sub.localCoreEndpoint), [
+      ...parsed.nodes,
+      ...parsed.needsCore,
+    ]);
+    const rendered = renderAndLog(sub, model, existingText.text);
+    if (typeof rendered === "string") return { ...blank(target), warning: rendered };
+    if (rendered === null) return blank(target);
+    const digest = typeof rendered.digest === "string" ? rendered.digest : undefined;
+
+    const dir = path.dirname(`${target}.generated`);
+    try {
+      if (!fs.statSync(dir).isDirectory())
+        return { ...blank(target), warning: warn("write_failed") };
+    } catch {
+      return { ...blank(target), warning: warn("write_failed") };
+    }
+    const binaryPath = configuredCoreBinary(sub.id ?? target);
+    if (binaryPath)
+      return finishVerifiedPrune(
+        sub,
+        target,
+        binaryPath,
+        model,
+        existingText.text,
+        rendered,
+        digest,
+        [...model.skipped, ...rendered.resultSkipped],
+        opts
+      );
+    return finishBeside(sub, target, rendered.text, digest, rendered.skippedSummary);
   } catch {
-    return { ...blank(target), warning: warn("write_failed") };
+    // Fixed text only: the thrown message can carry node names or addresses.
+    console.warn("[ProxySubscription] core config generation failed");
+    return { ...blank(target), warning: warn("internal_error") };
   }
-  const binaryPath = configuredCoreBinary(sub.id ?? target);
-  if (binaryPath)
-    return finishVerifiedPrune(
-      sub,
-      target,
-      binaryPath,
-      model,
-      existingText.text,
-      rendered,
-      digest,
-      [...model.skipped, ...rendered.resultSkipped],
-      opts
-    );
-  return finishBeside(sub, target, rendered.text, digest, rendered.skippedSummary);
 }
 
 /** Verified-apply with prune retries, reporting the reload intention.
