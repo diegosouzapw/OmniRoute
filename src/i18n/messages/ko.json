@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "이보다 짧은 메시지는 압축되지 않습니다. 낮음 = 더 많은 압축.",
     "tooltipMinSavings": "최소한 이만큼의 토큰을 절약할 수 있는 경우에만 압축합니다.",
     "ultraSettings": "울트라 설정",
-    "ultraSettingsDesc": "SLM 기반 의미 압축",
-    "preview": {
-      "lite": "간결하게 응답하세요. 기술 용어, 코드, 오류, URL 및 식별자는 그대로 유지하세요.",
-      "full": "짧고 압축적으로 응답하세요. 모든 기술적 내용을 유지하세요.",
-      "ultra": "일반적인 기술 약어를 사용해 극도로 짧게 응답하세요. 정확한 기호를 그대로 유지하세요."
-    }
+    "ultraSettingsDesc": "SLM 기반 의미 압축"
   },
   "translator": {
     "title": "번역기",

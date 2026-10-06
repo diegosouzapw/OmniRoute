@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Ziņas, kas īsākas par šo, netiek saspiestas. Zemāks = vairāk saspiešanas.",
     "tooltipMinSavings": "Saspiest tikai tad, ja tas ietaupa vismaz šo tokenu skaitu.",
     "ultraSettings": "Ultra iestatījumi",
-    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana",
-    "preview": {
-      "lite": "Atbildi kodolīgi. Saglabā tehniskos terminus, kodu, kļūdas, URL un identifikatorus.",
-      "full": "Atbildi lakoniski un kompakti. Saglabā visu tehnisko saturu.",
-      "ultra": "Atbildi īpaši lakoniski, izmantojot izplatītus tehniskos saīsinājumus. Saglabā precīzus simbolus."
-    }
+    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana"
   },
   "translator": {
     "title": "Tulkotājs",

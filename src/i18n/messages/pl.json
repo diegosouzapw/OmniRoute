@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Wiadomości krótsze niż ta wartość nie są kompresowane. Niższa = większa kompresja.",
     "tooltipMinSavings": "Kompresuj tylko wtedy, gdy pozwala to zaoszczędzić co najmniej tyle tokens.",
     "ultraSettings": "Ustawienia Ultra",
-    "ultraSettingsDesc": "Kompresja semantyczna oparta na SLM",
-    "preview": {
-      "lite": "Odpowiadaj zwięźle. Zachowuj terminy techniczne, kod, błędy, adresy URL i identyfikatory.",
-      "full": "Odpowiadaj krótko i zwięźle. Zachowuj całą treść merytoryczną.",
-      "ultra": "Odpowiadaj ultra zwięźle przy użyciu powszechnych skrótów technicznych. Zachowuj dokładne symbole."
-    }
+    "ultraSettingsDesc": "Kompresja semantyczna oparta na SLM"
   },
   "translator": {
     "title": "Tłumacz",

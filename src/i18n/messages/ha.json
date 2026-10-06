@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Ba a matse saƙonnin da suka fi wannan gajarta. Ƙasa = ƙarin matsewa.",
     "tooltipMinSavings": "A matse kawai idan zai adana aƙalla wannan adadin token.",
     "ultraSettings": "Saitunan Ultra",
-    "ultraSettingsDesc": "Matsewar ma'ana mai amfani da SLM",
-    "preview": {
-      "lite": "Ba da amsa a taƙaice. Kiyaye kalmomin fasaha, code, kurakurai, URLs, da alamomin ganewa.",
-      "full": "Ba da amsa a taƙaice kuma a dunƙule. Kiyaye dukkan muhimman bayanan fasaha.",
-      "ultra": "Ba da amsa mai matuƙar taƙaitawa tare da gajerun kalmomin fasaha da aka saba amfani da su. Kiyaye ainihin alamomi."
-    }
+    "ultraSettingsDesc": "Matsewar ma'ana mai amfani da SLM"
   },
   "translator": {
     "title": "Mai Fassara",

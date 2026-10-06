@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Messaġġi iqsar minn dan ma jiġux ikkompressati. Inqas = aktar kompressjoni.",
     "tooltipMinSavings": "Ikkompressa biss jekk tiffranka mill-inqas dan l-għadd ta’ tokens.",
     "ultraSettings": "Konfigurazzjoni Ultra",
-    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM",
-    "preview": {
-      "lite": "Wieġeb fil-qosor. Ippreserva t-termini tekniċi, il-kodiċi, l-iżbalji, il-URLs, u l-identifikaturi.",
-      "full": "Wieġeb b’mod konċiż u kompatt. Ippreserva s-sustanza teknika kollha.",
-      "ultra": "Wieġeb bl-aktar mod konċiż possibbli b’abbrevjazzjonijiet tekniċi komuni. Ippreserva s-simboli eżatti."
-    }
+    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM"
   },
   "translator": {
     "title": "Traduttur",

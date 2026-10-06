@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Bundan daha kısa mesajlar sıkıştırılmaz. Daha düşük = daha fazla sıkıştırma.",
     "tooltipMinSavings": "Yalnızca en az bu kadar jeton tasarrufu sağlıyorsa sıkıştırın.",
     "ultraSettings": "Ultra Ayarlar",
-    "ultraSettingsDesc": "SLM destekli anlamsal sıkıştırma",
-    "preview": {
-      "lite": "Kısa yanıt ver. Teknik terimleri, kodu, hataları, URL'leri ve tanımlayıcıları koru.",
-      "full": "Kısa ve öz yanıt ver. Tüm teknik içeriği koru.",
-      "ultra": "Yaygın teknik kısaltmalarla son derece kısa yanıt ver. Sembolleri aynen koru."
-    }
+    "ultraSettingsDesc": "SLM destekli anlamsal sıkıştırma"
   },
   "translator": {
     "title": "Çeviri",

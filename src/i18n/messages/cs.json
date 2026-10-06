@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Zprávy kratší než toto nejsou komprimovány. Nižší = větší komprese.",
     "tooltipMinSavings": "Komprimujte pouze v případě, že uložíte alespoň tolik tokenů.",
     "ultraSettings": "Ultra nastavení",
-    "ultraSettingsDesc": "Sémantická komprese poháněná SLM",
-    "preview": {
-      "lite": "Odpovídej stručně. Zachovej technické termíny, kód, chyby, URL a identifikátory.",
-      "full": "Odpovídej stroze a úsporně. Zachovej veškerý technický obsah.",
-      "ultra": "Odpovídej maximálně stroze a používej běžné technické zkratky. Zachovej přesné symboly."
-    }
+    "ultraSettingsDesc": "Sémantická komprese poháněná SLM"
   },
   "translator": {
     "title": "Překladatel",

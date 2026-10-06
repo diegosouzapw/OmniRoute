@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Ní chomhbhrúitear teachtaireachtaí atá níos giorra ná seo. Níos ísle = tuilleadh comhbhrúite.",
     "tooltipMinSavings": "Ná comhbhrú ach amháin má shábháiltear an líon seo comharthaí ar a laghad.",
     "ultraSettings": "Socruithe Ultra",
-    "ultraSettingsDesc": "Comhbhrú séimeantach faoi thiomáint ag SLM",
-    "preview": {
-      "lite": "Freagair go gonta. Caomhnaigh téarmaí teicniúla, cód, earráidí, URLanna agus aitheantóirí.",
-      "full": "Freagair go lom agus go dlúth. Caomhnaigh an t-ábhar teicniúil ar fad.",
-      "ultra": "Freagair go fíorghonta agus úsáid giorrúcháin theicniúla choitianta. Caomhnaigh na siombailí beachta."
-    }
+    "ultraSettingsDesc": "Comhbhrú séimeantach faoi thiomáint ag SLM"
   },
   "translator": {
     "title": "Aistritheoir",

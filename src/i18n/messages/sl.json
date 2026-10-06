@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Sporočila, krajša od te vrednosti, se ne stisnejo. Nižja vrednost = več stiskanja.",
     "tooltipMinSavings": "Stisni le, če se prihrani vsaj toliko žetonov.",
     "ultraSettings": "Nastavitve Ultra",
-    "ultraSettingsDesc": "Semantično stiskanje, ki ga poganja SLM",
-    "preview": {
-      "lite": "Odgovarjaj jedrnato. Ohrani tehnične izraze, kodo, napake, URL-je in identifikatorje.",
-      "full": "Odgovarjaj skopo in zgoščeno. Ohrani vso tehnično vsebino.",
-      "ultra": "Odgovarjaj izjemno skopo z običajnimi tehničnimi okrajšavami. Ohrani natančne simbole."
-    }
+    "ultraSettingsDesc": "Semantično stiskanje, ki ga poganja SLM"
   },
   "translator": {
     "title": "Prevajalnik",

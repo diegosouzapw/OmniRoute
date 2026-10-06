@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Az ennél rövidebb üzenetek nincsenek tömörítve. Alacsonyabb = nagyobb tömörítés.",
     "tooltipMinSavings": "Csak akkor tömörítse, ha legalább ennyi tokent megtakarít.",
     "ultraSettings": "Ultra beállítások",
-    "ultraSettingsDesc": "SLM-alapú szemantikai tömörítés",
-    "preview": {
-      "lite": "Válaszolj tömören. Őrizd meg a technikai kifejezéseket, kódokat, hibákat, URL-eket és azonosítókat.",
-      "full": "Válaszolj röviden és tömören. Őrizd meg a teljes technikai tartalmat.",
-      "ultra": "Válaszolj rendkívül tömören, általános technikai rövidítésekkel. Őrizd meg pontosan a szimbólumokat."
-    }
+    "ultraSettingsDesc": "SLM-alapú szemantikai tömörítés"
   },
   "translator": {
     "title": "Fordító",

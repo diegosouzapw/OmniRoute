@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Bundan qisqa xabarlar siqilmaydi. Pastroq = ko‘proq siqish.",
     "tooltipMinSavings": "Faqat kamida shuncha token tejalsa, siqiladi.",
     "ultraSettings": "Ultra sozlamalar",
-    "ultraSettingsDesc": "SLM asosidagi semantik siqish",
-    "preview": {
-      "lite": "Qisqa javob bering. Texnik atamalar, kod, xatolar, URL manzillar va identifikatorlarni saqlang.",
-      "full": "Juda qisqa va ixcham javob bering. Barcha texnik mazmunni saqlang.",
-      "ultra": "Keng tarqalgan texnik qisqartmalardan foydalanib, o‘ta qisqa javob bering. Belgilarni aynan saqlang."
-    }
+    "ultraSettingsDesc": "SLM asosidagi semantik siqish"
   },
   "translator": {
     "title": "Tarjimon",

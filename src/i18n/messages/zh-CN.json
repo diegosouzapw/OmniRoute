@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "比这短的消息不会被压缩。更低=更多压缩。",
     "tooltipMinSavings": "仅当至少保存这么多令牌时才进行压缩。",
     "ultraSettings": "超级设置",
-    "ultraSettingsDesc": "SLM 支持的语义压缩",
-    "preview": {
-      "lite": "回复要简洁。保留技术术语、代码、错误、URL 和标识符。",
-      "full": "回复要简短紧凑。保留所有技术实质。",
-      "ultra": "用常见技术缩写进行极简回复。保留精确符号。"
-    }
+    "ultraSettingsDesc": "SLM 支持的语义压缩"
   },
   "translator": {
     "title": "翻译器",

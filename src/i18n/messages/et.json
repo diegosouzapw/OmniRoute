@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Sellest lühemaid sõnumeid ei tihendata. Väiksem = rohkem tihendamist.",
     "tooltipMinSavings": "Tihenda ainult siis, kui see säästab vähemalt nii palju tokeneid.",
     "ultraSettings": "Ultraseaded",
-    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine",
-    "preview": {
-      "lite": "Vasta lühidalt. Säilita tehnilised terminid, kood, vead, URL-id ja identifikaatorid.",
-      "full": "Vasta napilt ja kompaktselt. Säilita kogu tehniline sisu.",
-      "ultra": "Vasta ülilühidalt, kasutades levinud tehnilisi lühendeid. Säilita täpsed sümbolid."
-    }
+    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine"
   },
   "translator": {
     "title": "Tõlkija",

@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Meddelanden kortare än detta komprimeras inte. Lägre = mer kompression.",
     "tooltipMinSavings": "Komprimera bara om det sparar åtminstone så många tokens.",
     "ultraSettings": "Ultrainställningar",
-    "ultraSettingsDesc": "SLM-driven semantisk komprimering",
-    "preview": {
-      "lite": "Svara kortfattat. Bevara tekniska termer, kod, fel, URL:er och identifierare.",
-      "full": "Svara koncist och kompakt. Bevara allt tekniskt innehåll.",
-      "ultra": "Svara extremt kortfattat med vanliga tekniska förkortningar. Bevara exakta symboler."
-    }
+    "ultraSettingsDesc": "SLM-driven semantisk komprimering"
   },
   "translator": {
     "title": "Översättare",

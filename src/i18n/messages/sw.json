@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Ujumbe mfupi kuliko huu haujabanwa. Chini = compression zaidi.",
     "tooltipMinSavings": "Finyaza tu ikiwa itaokoa angalau ishara hizi nyingi.",
     "ultraSettings": "Mipangilio ya Juu",
-    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM",
-    "preview": {
-      "lite": "Jibu kwa ufupi. Hifadhi istilahi za kiufundi, msimbo, hitilafu, URLs na vitambulisho.",
-      "full": "Jibu kwa maneno machache na kwa ufupi. Hifadhi maudhui yote ya kiufundi.",
-      "ultra": "Jibu kwa ufupi sana ukitumia vifupisho vya kawaida vya kiufundi. Hifadhi alama halisi."
-    }
+    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM"
   },
   "translator": {
     "title": "Mtafsiri",

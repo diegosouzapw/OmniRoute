@@ -5,6 +5,11 @@ import { useTranslations } from "next-intl";
 import { SegmentedControl } from "@/shared/components";
 import CompressionSettingsTab from "@/app/(dashboard)/dashboard/settings/components/CompressionSettingsTab";
 import { outputStyleLanguages } from "../../../../../../open-sse/services/compression/outputStyles/catalog.ts";
+import {
+  buildOutputStylesInstruction,
+  resolveOutputStyleLanguage,
+} from "../../../../../../open-sse/services/compression/outputStyles/apply.ts";
+import { resolveOutputStyleSelection } from "../../../../../../open-sse/services/compression/outputStyles/backCompat.ts";
 
 type AnalyticsSummary = {
   totalRequests: number;
@@ -149,7 +154,12 @@ export default function CavemanContextPageClient() {
     [t("savingsPercent"), `${cavemanStats?.avgSavingsPct ?? analytics?.avgSavingsPct ?? 0}%`],
     [t("avgLatency"), `${analytics?.avgDurationMs ?? 0}ms`],
   ];
-  const previewPrompt = `[OmniRoute Caveman Output Mode]\n${t(`preview.${outputMode.intensity}`)}`;
+  // The block requests carry while output mode is on, built by the injector itself.
+  // An empty body gives auto-detect nothing to read, so it shows the fallback language.
+  const previewPrompt = buildOutputStylesInstruction(
+    resolveOutputStyleSelection({ cavemanOutputMode: { ...outputMode, enabled: true } }),
+    resolveOutputStyleLanguage(languageConfig, {})
+  );
 
   // Rule packs drive the input engines; output styles can instruct in more
   // languages (e.g. vi has no pack). The default-language selector offers both.

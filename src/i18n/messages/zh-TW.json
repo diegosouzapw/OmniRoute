@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "比這短的訊息不會被壓縮。更低=更多壓縮。",
     "tooltipMinSavings": "僅當至少儲存這麼多權杖時才進行壓縮。",
     "ultraSettings": "超級設定",
-    "ultraSettingsDesc": "SLM 支援的語義壓縮",
-    "preview": {
-      "lite": "回覆要簡潔。保留技術術語、程式碼、錯誤、URL 和識別符號。",
-      "full": "回覆要簡短緊湊。保留所有技術實質。",
-      "ultra": "用常見技術縮寫進行極簡回覆。保留精確符號。"
-    }
+    "ultraSettingsDesc": "SLM 支援的語義壓縮"
   },
   "translator": {
     "title": "翻譯器",

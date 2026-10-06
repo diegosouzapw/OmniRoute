@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Mensagens menores que isso não são compactadas. Menor = mais compressão.",
     "tooltipMinSavings": "Compacte apenas se salvar pelo menos esse número de tokens.",
     "ultraSettings": "Configurações Ultra",
-    "ultraSettingsDesc": "Compressão semântica alimentada por SLM",
-    "preview": {
-      "lite": "Responda conciso. Preserve termos tecnicos, codigo, erros, URLs e identificadores.",
-      "full": "Responda seco e compacto. Preserve todo conteudo tecnico.",
-      "ultra": "Responda ultra compacto com abreviacoes tecnicas comuns. Preserve simbolos exatos."
-    }
+    "ultraSettingsDesc": "Compressão semântica alimentada por SLM"
   },
   "translator": {
     "title": "Tradutor",

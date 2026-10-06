@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "A naghị eme mkpakọ n’ozi ndị dị mkpụmkpụ karịa nke a. Nke dị ala = mkpakọ karịa.",
     "tooltipMinSavings": "Mee mkpakọ naanị ma ọ bụrụ na ọ na-echekwa opekata mpe token ole a.",
     "ultraSettings": "Ntọala Ultra",
-    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado",
-    "preview": {
-      "lite": "Zaa nkenke. Debe okwu teknụzụ, code, njehie, URLs, na ihe njirimara.",
-      "full": "Zaa nkenke ma dị mkpụmkpụ. Debe ọdịnaya teknụzụ niile.",
-      "ultra": "Zaa n’ụzọ dị nnọọ nkenke site na iji ndebiri teknụzụ ndị a na-ahụkarị. Debe akara niile otu ha dị."
-    }
+    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado"
   },
   "translator": {
     "title": "Onye Ntụgharị",

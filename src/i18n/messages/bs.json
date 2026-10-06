@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Poruke kraće od ovoga se ne kompresuju. Niže = više kompresije.",
     "tooltipMinSavings": "Kompresuj samo ako uštedi najmanje toliko tokena.",
     "ultraSettings": "Ultra postavke",
-    "ultraSettingsDesc": "Semantička kompresija zasnovana na SLM-u",
-    "preview": {
-      "lite": "Odgovaraj koncizno. Zadrži tehničke termine, kod, greške, URL-ove i identifikatore.",
-      "full": "Odgovaraj kratko i kompaktno. Zadrži svu tehničku suštinu.",
-      "ultra": "Odgovaraj ultra kratko uz uobičajene tehničke skraćenice. Zadrži tačne simbole."
-    }
+    "ultraSettingsDesc": "Semantička kompresija zasnovana na SLM-u"
   },
   "translator": {
     "title": "Prevodilac",

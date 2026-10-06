@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Les messages plus courts ne sont pas compressés. Plus faible = plus de compression.",
     "tooltipMinSavings": "Compressez uniquement si vous enregistrez au moins autant de jetons.",
     "ultraSettings": "Paramètres ultra",
-    "ultraSettingsDesc": "Compression sémantique basée sur SLM",
-    "preview": {
-      "lite": "Répondez de manière concise. Préservez les termes techniques, le code, les erreurs, les URLs et les identifiants.",
-      "full": "Répondez de manière laconique et compacte. Préservez tout le contenu technique.",
-      "ultra": "Répondez de manière ultra-laconique avec des abréviations techniques courantes. Préservez les symboles exacts."
-    }
+    "ultraSettingsDesc": "Compression sémantique basée sur SLM"
   },
   "translator": {
     "title": "Traducteur",

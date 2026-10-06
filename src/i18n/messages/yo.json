@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "A kì í fún àwọn ìfiránṣẹ́ tó kúrú ju èyí lọ pọ̀. Tó bá kéré = ìfúnpọ̀ púpọ̀ sí i.",
     "tooltipMinSavings": "Fún un pọ̀ nìkan bí ó bá fi iye token yìí tàbí jù bẹ́ẹ̀ lọ pamọ́.",
     "ultraSettings": "Àwọn Ààtò Ultra",
-    "ultraSettingsDesc": "Ìfúnpọ̀ ìtumọ̀ tí SLM ń ṣe",
-    "preview": {
-      "lite": "Dáhùn ní ṣókí. Pa àwọn ọ̀rọ̀ ìmọ̀ ẹ̀rọ, code, àwọn àṣìṣe, URLs, àti identifiers mọ́.",
-      "full": "Dáhùn ní kúkúrú àti ní ṣókí. Pa gbogbo àkóónú ìmọ̀ ẹ̀rọ mọ́.",
-      "ultra": "Dáhùn ní kúkúrú gan-an pẹ̀lú àwọn àkótán ìmọ̀ ẹ̀rọ tó wọ́pọ̀. Pa àwọn àmì gangan mọ́."
-    }
+    "ultraSettingsDesc": "Ìfúnpọ̀ ìtumọ̀ tí SLM ń ṣe"
   },
   "translator": {
     "title": "Olùtumọ̀",

@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Pesan yang lebih pendek dari ini tidak dikompresi. Lebih rendah = lebih banyak kompresi.",
     "tooltipMinSavings": "Hanya kompres jika menyimpan setidaknya token sebanyak ini.",
     "ultraSettings": "Pengaturan Ultra",
-    "ultraSettingsDesc": "Kompresi semantik bertenaga SLM",
-    "preview": {
-      "lite": "Berikan respons ringkas. Pertahankan istilah teknis, kode, kesalahan, URL, dan pengidentifikasi.",
-      "full": "Berikan respons singkat dan padat. Pertahankan seluruh substansi teknis.",
-      "ultra": "Berikan respons sangat singkat dengan singkatan teknis umum. Pertahankan simbol secara persis."
-    }
+    "ultraSettingsDesc": "Kompresi semantik bertenaga SLM"
   },
   "translator": {
     "title": "Penerjemah",

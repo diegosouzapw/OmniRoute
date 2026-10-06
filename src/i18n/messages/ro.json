@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Mesajele mai scurte decât aceasta nu sunt comprimate. Mai jos = compresie mai mare.",
     "tooltipMinSavings": "Comprimați doar dacă salvează cel puțin atât de multe jetoane.",
     "ultraSettings": "Setări Ultra",
-    "ultraSettingsDesc": "Compresie semantică alimentată de SLM",
-    "preview": {
-      "lite": "Răspundeți concis. Păstrați termenii tehnici, codul, erorile, URL-urile și identificatorii.",
-      "full": "Răspundeți succint și compact. Păstrați integral conținutul tehnic.",
-      "ultra": "Răspundeți extrem de succint, folosind abrevieri tehnice uzuale. Păstrați simbolurile exacte."
-    }
+    "ultraSettingsDesc": "Compresie semantică alimentată de SLM"
   },
   "translator": {
     "title": "Traducător",

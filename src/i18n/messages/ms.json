@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Mesej yang lebih pendek daripada ini tidak dimampatkan. Rendah = lebih mampatan.",
     "tooltipMinSavings": "Hanya mampatkan jika ia menjimatkan sekurang-kurangnya token sebanyak ini.",
     "ultraSettings": "Tetapan Ultra",
-    "ultraSettingsDesc": "Pemampatan semantik berkuasa SLM",
-    "preview": {
-      "lite": "Berikan respons ringkas. Kekalkan istilah teknikal, kod, ralat, URL dan pengecam.",
-      "full": "Berikan respons padat dan ringkas. Kekalkan semua kandungan teknikal.",
-      "ultra": "Berikan respons amat ringkas dengan singkatan teknikal lazim. Kekalkan simbol yang tepat."
-    }
+    "ultraSettingsDesc": "Pemampatan semantik berkuasa SLM"
   },
   "translator": {
     "title": "Penterjemah",

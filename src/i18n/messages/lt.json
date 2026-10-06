@@ -9027,12 +9027,7 @@
     "tooltipMinLength": "Trumpesni pranešimai neglaudinami. Mažesnis = daugiau glaudinimo.",
     "tooltipMinSavings": "Glaudinti tik tada, jei sutaupoma bent tiek tokenų.",
     "ultraSettings": "„Ultra“ nustatymai",
-    "ultraSettingsDesc": "SLM grindžiamas semantinis glaudinimas",
-    "preview": {
-      "lite": "Atsakykite glaustai. Išsaugokite techninius terminus, kodą, klaidas, URL ir identifikatorius.",
-      "full": "Atsakykite labai glaustai ir kompaktiškai. Išsaugokite visą techninę esmę.",
-      "ultra": "Atsakykite itin glaustai, naudodami įprastas technines santrumpas. Išsaugokite tikslius simbolius."
-    }
+    "ultraSettingsDesc": "SLM grindžiamas semantinis glaudinimas"
   },
   "translator": {
     "title": "Vertėjas",
