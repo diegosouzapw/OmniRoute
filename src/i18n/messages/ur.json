@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "پراکسی تک رسائی نہیں ہو سکی",
     "poolSetAsideKindIpQuota429": "IP شرح کی حد (429)",
     "poolSetAsideKindSlow": "سست جوابات",
+    "poolSetAsideKindGeoBlocked": "علاقہ مسدود (403/451)",
     "poolSetAsideUntil": "روٹیشن میں واپس {endsAt}",
     "poolSetAsideRepeat": "الگ رکھا گیا {count, plural, one {# بار} other {# بار}}",
     "poolUnknownAddress": "نامعلوم پتہ",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "مقام کی ترتیب",
     "poolHealthRankingOff": "ہیلتھ رینکنگ آف",
     "transportRate": "{rate}% ٹرانسپورٹ",
+    "slowAbandoned": "{count} سست ترکیاں",
+    "clientAborted": "{count} کلائنٹ منسوخیاں",
+    "slowAbandonedHint": "ہیڈرز کے انتظار کی حد کے بعد ترک کر دیا گیا، ٹرانسپورٹ کی شرح سے خارج",
     "previousSuccessRate": "پہلے {rate}% کامیابی",
-    "upstreamRefusals": "{count} اپ اسٹریم مسترد",
     "connectionTestsCount": "{count} کنکشن ٹیسٹ",
-    "notMeasured": "پیمائش نہیں ہوئی"
+    "notMeasured": "پیمائش نہیں ہوئی",
+    "upstream4xx": "{count} اپسٹریم کلائنٹ کی خرابیاں",
+    "upstream5xx": "{count} اپسٹریم سرور کی خرابیاں",
+    "uniformEgressLine": "{affected} آؤٹ میں سے {exits} آؤٹ {provider} پر ایک ساتھ ناکام ہو جاتے ہیں (آخری {hours} گھنٹے) — ایک آؤٹ مسئلہ نہیں ہے"
   },
   "playground": {
     "title": "ماڈل پلے گراؤنڈ",

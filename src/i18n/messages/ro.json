@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy inaccesibil",
     "poolSetAsideKindIpQuota429": "limită de rată pe IP (429)",
     "poolSetAsideKindSlow": "răspunsuri lente",
+    "poolSetAsideKindGeoBlocked": "blocare regiune (403/451)",
     "poolSetAsideUntil": "Înapoi în rotație {endsAt}",
     "poolSetAsideRepeat": "Pus deoparte {count, plural, one {# dată} other {# ori}}",
     "poolUnknownAddress": "Adresă necunoscută",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "Ordinea pozițiilor",
     "poolHealthRankingOff": "Clasificarea stării dezactivată",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} abandonări lente",
+    "clientAborted": "{count} abandonări ale clientului",
+    "slowAbandonedHint": "Abandonat după pragul de așteptare a antetelor, exclus din rata de transport",
     "previousSuccessRate": "Anterior {rate} % succes",
-    "upstreamRefusals": "{count} refuzuri upstream",
     "connectionTestsCount": "{count} teste de conexiune",
-    "notMeasured": "Nemăsurat"
+    "notMeasured": "Nemăsurat",
+    "upstream4xx": "{count} erori de client upstream",
+    "upstream5xx": "{count} erori de server upstream",
+    "uniformEgressLine": "{affected} din {exits} exit-uri eșuează împreună pe {provider} (ultimele {hours}h) — nu este o problemă de exit"
   },
   "playground": {
     "title": "Title",

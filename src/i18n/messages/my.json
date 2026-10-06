@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy သို့ မရောက်နိုင်ပါ",
     "poolSetAsideKindIpQuota429": "IP နှုန်းကန့်သတ်ချက် (429)",
     "poolSetAsideKindSlow": "နှေးကွေးသော တုံ့ပြန်ချက်များ",
+    "poolSetAsideKindGeoBlocked": "ဒေသကတားမြစ်ထားသည် (403/451)",
     "poolSetAsideUntil": "အလှည့်သို့ ပြန်ရောက်မည် {endsAt}",
     "poolSetAsideRepeat": "ဖယ်ထားသည် {count, plural, one {# ကြိမ်} other {# ကြိမ်}}",
     "poolUnknownAddress": "မသိသောလိပ်စာ",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "အနေအထားအစီအစဉ်",
     "poolHealthRankingOff": "ကျန်းမာရေးအဆင့် ပိတ်ထားသည်",
     "transportRate": "{rate}% သယ်ယူပို့ဆောင်မှု",
+    "slowAbandoned": "{count} အလျင်အမြန် ပယ်သွားမှုများ",
+    "clientAborted": "{count} ဖောက်သည် ပယ်သွားမှုများ",
+    "slowAbandonedHint": "Headers များစောင့်ရှောင်မှုကန့်သတ်ချက်အပြီး ပယ်သွားပြီး၊ သယ်ယူပို့ဆောင်မှုနှုန်းထဲမှ ဖယ်ရှားထားသည်",
     "previousSuccessRate": "အစက {rate}% အောင်မြင်မှု",
-    "upstreamRefusals": "{count} upstream ငြင်းပယ်မှုများ",
     "connectionTestsCount": "{count} ချိတ်ဆက်မှု စမ်းသပ်မှုများ",
-    "notMeasured": "မတိုင်းတာရသေးပါ"
+    "notMeasured": "မတိုင်းတာရသေးပါ",
+    "upstream4xx": "{count} ကလိန်းအတွက် အမှားအယွင်းများ",
+    "upstream5xx": "{count} ဆာဗာအတွက် အမှားအယွင်းများ",
+    "uniformEgressLine": "{provider} ပေါ်ရှိ exit {exits} ခုအနက် {affected} ခု တစ်ပြိုင်နက် ကျရှုံးနေသည် (နောက်ဆုံး {hours} နာရီအတွင်း) — exit ပြဿနာ မဟုတ်ပါ"
   },
   "playground": {
     "title": "မော်ဒယ် စမ်းသပ်ခန်း",

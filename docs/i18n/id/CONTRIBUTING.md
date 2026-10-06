@@ -405,16 +405,16 @@ Tulis pengujian unit di `tests/unit/` yang sekurang-kurangnya mencakup:
 - [ ] Linting lulus (`npm run lint`)
 - [ ] Build berhasil (`npm run build`)
 - [ ] Tipe TypeScript ditambahkan untuk fungsi dan antarmuka publik baru
-- [ ] Tidak ada secret atau nilai fallback yang di-hardcode
-- [ ] Kredensial upstream publik disematkan melalui `resolvePublicCred()` (lihat [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), jangan pernah sebagai literal
-- [ ] Respons kesalahan diproses melalui `buildErrorBody()` / `sanitizeErrorMessage()` — tidak ada stack trace mentah dalam body respons (lihat [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Tidak ada rahasia atau nilai fallback yang di-hardcode
+- [ ] Kredensial upstream publik disematkan melalui `resolvePublicCred()` (lihat [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), tidak pernah sebagai literal
+- [ ] Respons kesalahan diproses melalui `buildErrorBody()` / `sanitizeErrorMessage()` — tidak ada stack trace mentah dalam isi respons (lihat [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Perintah shell (`exec` / `spawn`) meneruskan nilai runtime melalui `env`, bukan melalui interpolasi string
 - [ ] Semua input divalidasi dengan skema Zod
-- [ ] **Fragmen** changelog ditambahkan di bawah `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` untuk perubahan yang terlihat oleh pengguna (lihat [`changelog.d/README.md`](./changelog.d/README.md)) — **jangan** mengedit `CHANGELOG.md` secara langsung; fragmen digabungkan saat rilis dan tidak pernah menimbulkan konflik antar-PR
+- [ ] **Fragmen** changelog ditambahkan di bawah `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` untuk perubahan yang terlihat oleh pengguna (lihat [`changelog.d/README.md`](./changelog.d/README.md)) — **jangan** mengedit `CHANGELOG.md` secara langsung; fragmen diagregasikan saat rilis dan tidak pernah berkonflik antar-PR
 - [ ] Dokumentasi diperbarui (jika berlaku)
-- [ ] Tidak ada peringatan CodeQL / Secret-Scanning baru yang dibuka, atau setiap peringatan telah ditutup dengan justifikasi teknis yang merujuk pada dokumen `docs/security/` yang relevan
-- [ ] Route yang menjalankan proses anak (`/api/mcp/`, `/api/cli-tools/runtime/`) diklasifikasikan sebagai `isLocalOnlyPath()` di `src/server/authz/routeGuard.ts` — lihat [Aturan Ketat #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Tidak ada trailer `Co-Authored-By` dalam pesan commit — commit harus ditampilkan hanya di bawah identitas Git pemilik repositori (Aturan Ketat #16)
+- [ ] Tidak ada peringatan CodeQL / Secret-Scanning baru yang dibuka, atau setiap peringatan ditolak dengan justifikasi teknis yang merujuk pada dokumen `docs/security/` yang relevan
+- [ ] Rute yang menjalankan proses turunan (`/api/mcp/`, `/api/cli-tools/runtime/`) diklasifikasikan sebagai `isLocalOnlyPath()` dalam `src/server/authz/routeGuard.ts` — lihat [Aturan Ketat #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Tidak ada trailer `Co-authored-by` dari AI/bot dalam pesan commit (Aturan Ketat #16) — kolaborator manusia yang karyanya digunakan kembali diberi kredit dengan trailer standar `Co-authored-by: Name <email>`
 
 ---
 

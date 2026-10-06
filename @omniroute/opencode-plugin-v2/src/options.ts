@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { DEFAULT_MODEL_CACHE_TTL_MS } from "./cache.js";
+import type { ResolvedOptions } from "./catalog.js";
 import { isHttpUrl } from "./shared/models-map.js";
 
 const apiFormatSchema = z
@@ -44,6 +46,7 @@ const pluginOptionsSchema = z
     modelCacheTtlMs: z.number().positive().optional(),
     visibleModels: z.array(z.string()).optional(),
     hiddenModels: z.array(z.string()).optional(),
+    providersAllow: z.array(z.string()).optional(),
     usableOnly: z.boolean().default(false),
     // v1 parity: enrichment overlay on by default (names + pricing).
     enrichment: z.boolean().default(true),
@@ -81,13 +84,10 @@ export function resolveManagementReadToken(optionValue: string | undefined): str
 
 /** Per-endpoint timeout defaults (v1 parity). `timeoutMs` is the global fallback. */
 export const DEFAULT_TIMEOUT_MS = 10_000 as const;
-/** Auto-combos keep the v1 5s budget; the field is resolved now for the P3 port. */
-export const DEFAULT_AUTO_COMBOS_TIMEOUT_MS = 5_000 as const;
 
 export interface EndpointTimeouts {
   models: number;
   combos: number;
-  autoCombos: number;
   enrichment: number;
 }
 
@@ -99,7 +99,6 @@ export function resolveTimeouts(
   return {
     models: opts.timeouts?.models ?? fallback,
     combos: opts.timeouts?.combos ?? fallback,
-    autoCombos: opts.timeouts?.autoCombos ?? DEFAULT_AUTO_COMBOS_TIMEOUT_MS,
     enrichment: opts.timeouts?.enrichment ?? fallback,
   };
 }
@@ -122,6 +121,37 @@ export function parsePluginOptions(raw: unknown): PluginOptions {
     return unknown !== undefined ? `unknown option "${unknown}"` : `${at}: ${issue.message}`;
   });
   throw new Error(`[omniroute-v2] invalid plugin options — ${problems.join("; ")}`);
+}
+
+/**
+ * Map parsed options to the catalog's runtime shape. Lives here (not
+ * index.ts) so tests reach it without importing the plugin entrypoint, whose
+ * `@opencode/plugin` runtime import is a devDependency absent from the
+ * caller's tree — importing index.ts fails at module load there.
+ */
+export function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
+  return {
+    providerId: parsed.providerId,
+    baseURL: parsed.baseURL,
+    apiKey: parsed.apiKey ?? process.env.OMNIROUTE_API_KEY ?? "",
+    managementReadToken: resolveManagementReadToken(parsed.managementReadToken),
+    timeoutMs: parsed.timeoutMs,
+    timeouts: parsed.timeouts,
+    logLevel: parsed.logLevel,
+    startupDebug: parsed.startupDebug,
+    providerTag: parsed.providerTag,
+    modelCacheTtlMs:
+      typeof parsed.modelCacheTtlMs === "number" && parsed.modelCacheTtlMs > 0
+        ? parsed.modelCacheTtlMs
+        : DEFAULT_MODEL_CACHE_TTL_MS,
+    displayName: parsed.displayName,
+    apiFormat: parsed.apiFormat,
+    visibleModels: parsed.visibleModels,
+    hiddenModels: parsed.hiddenModels,
+    providersAllow: parsed.providersAllow,
+    usableOnly: parsed.usableOnly,
+    enrichment: parsed.enrichment,
+  };
 }
 
 /**

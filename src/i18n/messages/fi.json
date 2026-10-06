@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "välityspalvelin ei tavoitettavissa",
     "poolSetAsideKindIpQuota429": "IP-nopeusrajoitus (429)",
     "poolSetAsideKindSlow": "hitaat vastaukset",
+    "poolSetAsideKindGeoBlocked": "alue estetty (403/451)",
     "poolSetAsideUntil": "Takaisin kierrossa {endsAt}",
     "poolSetAsideRepeat": "Syrjään {count, plural, one {# kerran} other {# kertaa}}",
     "poolUnknownAddress": "Tuntematon osoite",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "Sijaintijärjestys",
     "poolHealthRankingOff": "Terveysjärjestys pois päältä",
     "transportRate": "{rate} % siirtoa",
+    "slowAbandoned": "{count} hidasta keskeytystä",
+    "clientAborted": "{count} asiakkaan keskeytystä",
+    "slowAbandonedHint": "Keskeytetty otsikoiden odotusajan rajan jälkeen, ei huomioida kuljetusnopeudessa",
     "previousSuccessRate": "Aiemmin {rate} % onnistumisia",
-    "upstreamRefusals": "{count} upstream-hylkäystä",
     "connectionTestsCount": "{count} yhteystestiä",
-    "notMeasured": "Ei mitattu"
+    "notMeasured": "Ei mitattu",
+    "upstream4xx": "{count} ylävirta-asiakasvirheet",
+    "upstream5xx": "{count} ylävirta-palvelinvirheet",
+    "uniformEgressLine": "{affected} kpl {exits} poistoa epäonnistuu yhdessä {provider} (viimeisen {hours}h) — ei ole poistoprobleema"
   },
   "playground": {
     "title": "Title",

@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "проксито е недостъпно",
     "poolSetAsideKindIpQuota429": "ограничение на скоростта по IP (429)",
     "poolSetAsideKindSlow": "бавни отговори",
+    "poolSetAsideKindGeoBlocked": "регион блокиран (403/451)",
     "poolSetAsideUntil": "Обратно в ротация {endsAt}",
     "poolSetAsideRepeat": "Оставено настрана {count, plural, one {# път} other {# пъти}}",
     "poolUnknownAddress": "Неизвестен адрес",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "Ред на позициите",
     "poolHealthRankingOff": "Класирането по здраве е изключено",
     "transportRate": "{rate}% транспорт",
+    "slowAbandoned": "{count} бавни изоставяния",
+    "clientAborted": "{count} прекъсвания от клиента",
+    "slowAbandonedHint": "Изоставено след прага на изчакване на хедърите, изключено от транспортната скорост",
     "previousSuccessRate": "Преди {rate}% успех",
-    "upstreamRefusals": "{count} отказа от upstream",
     "connectionTestsCount": "{count} теста на връзката",
-    "notMeasured": "Не е измерено"
+    "notMeasured": "Не е измерено",
+    "upstream4xx": "{count} грешки от клиентски заявки",
+    "upstream5xx": "{count} грешки от горния сървър",
+    "uniformEgressLine": "{affected} от {exits} изхода не успяват заедно на {provider} (последните {hours}ч) — не е проблем с изхода"
   },
   "playground": {
     "title": "Title",

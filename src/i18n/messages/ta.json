@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "ப்ராக்ஸியை அணுக முடியவில்லை",
     "poolSetAsideKindIpQuota429": "IP விகித வரம்பு (429)",
     "poolSetAsideKindSlow": "மெதுவான பதில்கள்",
+    "poolSetAsideKindGeoBlocked": "பகுதி தடைசெய்யப்பட்டது (403/451)",
     "poolSetAsideUntil": "சுழற்சிக்கு திரும்பு {endsAt}",
     "poolSetAsideRepeat": "ஒதுக்கி வைக்கப்பட்டது {count, plural, one {# முறை} other {# முறை}}",
     "poolUnknownAddress": "தெரியாத முகவரி",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "நிலை வரிசை",
     "poolHealthRankingOff": "சுகாதார தரவரிசை நிறுத்தம்",
     "transportRate": "{rate}% போக்குவரத்து",
+    "slowAbandoned": "{count} மெதுவான கைவிடல்கள்",
+    "clientAborted": "{count} வாடிக்கையாளர் நிறுத்தங்கள்",
+    "slowAbandonedHint": "தலைப்புகள் காத்திருப்பு வரம்புக்குப் பிறகு கைவிடப்பட்டது, போக்குவரத்து விகிதத்தில் இருந்து நீக்கப்பட்டது",
     "previousSuccessRate": "முன்பு {rate}% வெற்றி",
-    "upstreamRefusals": "{count} அப்ஸ்ட்ரீம் மறுப்புகள்",
     "connectionTestsCount": "{count} இணைப்பு சோதனைகள்",
-    "notMeasured": "அளவிடப்படவில்லை"
+    "notMeasured": "அளவிடப்படவில்லை",
+    "upstream4xx": "{count} மேல்நிலை கிளையண்ட் பிழைகள்",
+    "upstream5xx": "{count} மேல்நிலை சர்வர் பிழைகள்",
+    "uniformEgressLine": "{provider} இல் {exits} வெளியேற்றங்களில் {affected} ஒன்றாகத் தோல்வியடைகின்றன (கடந்த {hours} மணிநேரம்) — வெளியேற்றப் பிரச்சினை அல்ல"
   },
   "playground": {
     "title": "மாதிரி சோதனைக்களம்",

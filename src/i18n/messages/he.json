@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "לא ניתן להגיע לפרוקסי",
     "poolSetAsideKindIpQuota429": "הגבלת קצב לפי IP ‏(429)",
     "poolSetAsideKindSlow": "תגובות איטיות",
+    "poolSetAsideKindGeoBlocked": "אזור חסום (403/451)",
     "poolSetAsideUntil": "חוזר לרוטציה {endsAt}",
     "poolSetAsideRepeat": "הושם בצד {count, plural, one {# פעם} other {# פעמים}}",
     "poolUnknownAddress": "כתובת לא ידועה",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "סדר מיקומים",
     "poolHealthRankingOff": "דירוג בריאות כבוי",
     "transportRate": "{rate}% תעבורה",
+    "slowAbandoned": "{count} נטישות איטיות",
+    "clientAborted": "{count} ביטולים על ידי הלקוח",
+    "slowAbandonedHint": "ננטש לאחר חריגה מסף ההמתנה לכותרות, לא נכלל בחישוב קצב ההובלה",
     "previousSuccessRate": "בעבר {rate}% הצלחה",
-    "upstreamRefusals": "{count} דחיות upstream",
     "connectionTestsCount": "{count} בדיקות חיבור",
-    "notMeasured": "לא נמדד"
+    "notMeasured": "לא נמדד",
+    "upstream4xx": "{count} שגיאות קליינט עליון",
+    "upstream5xx": "{count} שגיאות שרת עליון",
+    "uniformEgressLine": "{affected} מתוך {exits} יציאות נכשלות יחד ב-{provider} (ב-({hours}h)) — אינו בעיית יציאה"
   },
   "playground": {
     "title": "Title",

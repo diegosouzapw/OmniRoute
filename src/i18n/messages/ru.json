@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "прокси недоступен",
     "poolSetAsideKindIpQuota429": "ограничение частоты по IP (429)",
     "poolSetAsideKindSlow": "медленные ответы",
+    "poolSetAsideKindGeoBlocked": "заблокировано по региону (403/451)",
     "poolSetAsideUntil": "Снова в ротации {endsAt}",
     "poolSetAsideRepeat": "Отложен {count, plural, one {# раз} other {# раз}}",
     "poolUnknownAddress": "Неизвестный адрес",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "Порядок позиций",
     "poolHealthRankingOff": "Рейтинг здоровья выкл",
     "transportRate": "{rate}% транспорта",
+    "slowAbandoned": "{count} медленных отказов",
+    "clientAborted": "{count} прерываний клиента",
+    "slowAbandonedHint": "Отказано после порога ожидания заголовков, исключено из транспортной скорости",
     "previousSuccessRate": "Ранее {rate}% успеха",
-    "upstreamRefusals": "{count} отказов апстрима",
     "connectionTestsCount": "{count} проверок соединения",
-    "notMeasured": "Не измерено"
+    "notMeasured": "Не измерено",
+    "upstream4xx": "{count} ошибки клиента вверху",
+    "upstream5xx": "{count} ошибки сервера вверху",
+    "uniformEgressLine": "{affected} из {exits} выходов одновременно дают сбой у {provider} (за последние {hours} ч) — проблема не в выходе"
   },
   "playground": {
     "title": "Title",

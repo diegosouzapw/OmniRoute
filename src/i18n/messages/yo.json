@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "kò lè dé proxy",
     "poolSetAsideKindIpQuota429": "ìdíwọ̀n ìyára IP (429)",
     "poolSetAsideKindSlow": "ìdáhùn tó lọ́ra",
+    "poolSetAsideKindGeoBlocked": "agbègbè dídínà (403/451)",
     "poolSetAsideUntil": "Pada si yiyi {endsAt}",
     "poolSetAsideRepeat": "A ya sọtọ {count, plural, one {# igba} other {# igba}}",
     "poolUnknownAddress": "Adirẹsi aimọ",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "Ilana ipo",
     "poolHealthRankingOff": "Ipo ilera pa",
     "transportRate": "{rate}% gbigbe",
+    "slowAbandoned": "{count} ìfọkànsí tó lọ́ra",
+    "clientAborted": "{count} ìdákẹ́jẹ́ oníbàárà",
+    "slowAbandonedHint": "Ti kọ́ silẹ̀ lẹ́yìn àkókò ìdúró àkóónú, a yọ kúrò nínú oṣuwọn ìkópa",
     "previousSuccessRate": "Ni iṣaaju {rate}% aṣeyọri",
-    "upstreamRefusals": "{count} kikọ upstream",
     "connectionTestsCount": "{count} idanwo asopọ",
-    "notMeasured": "A ko wọn"
+    "notMeasured": "A ko wọn",
+    "upstream4xx": "{count} ìwà àwọn àkàntà ní àwọn àkàntà",
+    "upstream5xx": "{count} ìwà àwọn àkàntà ní àwọn àkàntà",
+    "uniformEgressLine": "{affected} ya ka {exits} ẹjọ kò rí nipa {provider} (lẹhin {hours}h) — kò si ẹjọ"
   },
   "playground": {
     "title": "Pápá Ìdánwò Àwòṣe",

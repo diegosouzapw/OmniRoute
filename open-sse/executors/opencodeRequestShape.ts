@@ -11,7 +11,7 @@
  * (`WeakMap`), never on the executor: it is a shared instance and requests overlap.
  */
 import { createHash } from "node:crypto";
-import { isOpencodeFreeTierRefusal } from "./opencodeGeoBlock.ts";
+import { isOpencodeFreeTierRefusal, isOpencodeQuotaShapeRefusal } from "./opencodeGeoBlock.ts";
 import type { ExecuteInput, ExecutorExecuteResult } from "./base.ts";
 import type { FreeTierOutcome } from "./opencodeFreeTierContract.ts";
 
@@ -157,7 +157,10 @@ async function readVerdict(response: Response, log: ExecuteInput["log"]): Promis
 async function isShapeRefusal(verdict: FreeTierOutcome): Promise<boolean> {
   if (verdict.status !== 403 && verdict.status !== 451) return false;
   if (verdict.bodyText === null) return false;
-  return isOpencodeFreeTierRefusal(verdict.status, verdict.bodyText);
+  return (
+    isOpencodeFreeTierRefusal(verdict.status, verdict.bodyText) ||
+    isOpencodeQuotaShapeRefusal(verdict.status, verdict.bodyText)
+  );
 }
 
 /**

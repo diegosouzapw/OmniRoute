@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "ప్రాక్సీని చేరుకోలేకపోయింది",
     "poolSetAsideKindIpQuota429": "IP రేట్ పరిమితి (429)",
     "poolSetAsideKindSlow": "నెమ్మదిగా స్పందనలు",
+    "poolSetAsideKindGeoBlocked": "ప్రాంతం-నిరోధించబడింది (403/451)",
     "poolSetAsideUntil": "రొటేషన్‌లోకి తిరిగి {endsAt}",
     "poolSetAsideRepeat": "పక్కన పెట్టబడింది {count, plural, one {# సారి} other {# సార్లు}}",
     "poolUnknownAddress": "తెలియని చిరునామా",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "స్థాన క్రమం",
     "poolHealthRankingOff": "ఆరోగ్య ర్యాంకింగ్ ఆఫ్",
     "transportRate": "{rate}% రవాణా",
+    "slowAbandoned": "{count} నెమ్మదిగా వదిలివేయబడినవి",
+    "clientAborted": "{count} క్లయింట్ రద్దులు",
+    "slowAbandonedHint": "హెడర్లు వేచి ఉండే పరిమితి తర్వాత వదిలివేయబడింది, ట్రాన్స్‌పోర్ట్ రేటు నుండి మినహాయించబడింది",
     "previousSuccessRate": "గతంలో {rate}% విజയം",
-    "upstreamRefusals": "{count} అప్‌స్ట్రీమ్ నిరాకరణలు",
     "connectionTestsCount": "{count} కనెక్షన్ పరీక్షలు",
-    "notMeasured": "కొలవబడలేదు"
+    "notMeasured": "కొలవబడలేదు",
+    "upstream4xx": "{count} అప్స్ట్రీమ్ క్లయింట్ పొరపాట్లు",
+    "upstream5xx": "{count} అప్స్ట్రీమ్ సర్వర్ పొరపాట్లు",
+    "uniformEgressLine": "{provider}లో {exits} ఎగ్జిట్లలో {affected} కలిసి విఫలమవుతున్నాయి (గత {hours} గంటల్లో) — ఎగ్జిట్ సమస్య కాదు"
   },
   "playground": {
     "title": "మోడల్ ప్లేగ్రౌండ్",

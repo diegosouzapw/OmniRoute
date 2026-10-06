@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "a proxy nem érhető el",
     "poolSetAsideKindIpQuota429": "IP-alapú sebességkorlát (429)",
     "poolSetAsideKindSlow": "lassú válaszok",
+    "poolSetAsideKindGeoBlocked": "régió blokkolva (403/451)",
     "poolSetAsideUntil": "Vissza a rotációba {endsAt}",
     "poolSetAsideRepeat": "Félretéve {count, plural, one {# alkalommal} other {# alkalommal}}",
     "poolUnknownAddress": "Ismeretlen cím",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "Pozíciósorrend",
     "poolHealthRankingOff": "Állapot-rangsorolás kikapcsolva",
     "transportRate": "{rate}% átvitel",
+    "slowAbandoned": "{count} lassú elhagyás",
+    "clientAborted": "{count} kliens által megszakítva",
+    "slowAbandonedHint": "A fejlécek várakozási időkorlát után elhagyva, kizárva a szállítási sebességből",
     "previousSuccessRate": "Korábban {rate}% siker",
-    "upstreamRefusals": "{count} upstream-elutasítás",
     "connectionTestsCount": "{count} kapcsolati teszt",
-    "notMeasured": "Nem mért"
+    "notMeasured": "Nem mért",
+    "upstream4xx": "{count} upstream klienshiba",
+    "upstream5xx": "{count} upstream szerverhiba",
+    "uniformEgressLine": "{affected} a {exits} exit közül együtt meghibásodik a {provider} szolgáltatónál (utolsó {hours} órában) — nem exit-hiba"
   },
   "playground": {
     "title": "Title",

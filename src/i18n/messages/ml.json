@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "പ്രോക്സിയിൽ എത്താനാകുന്നില്ല",
     "poolSetAsideKindIpQuota429": "IP നിരക്ക് പരിധി (429)",
     "poolSetAsideKindSlow": "മന്ദഗതിയുള്ള പ്രതികരണങ്ങൾ",
+    "poolSetAsideKindGeoBlocked": "പ്രദേശം നിരോധിച്ചത് (403/451)",
     "poolSetAsideUntil": "റൊട്ടേഷനിലേക്ക് തിരികെ {endsAt}",
     "poolSetAsideRepeat": "മാറ്റിവച്ചു {count, plural, one {# തവണ} other {# തവണ}}",
     "poolUnknownAddress": "അജ്ഞാത വിലാസം",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "സ്ഥാന ക്രമം",
     "poolHealthRankingOff": "ആരോഗ്യ റാങ്കിംഗ് ഓഫ്",
     "transportRate": "{rate}% ഗതാഗതം",
+    "slowAbandoned": "{count} മന്ദഗതിയിലുള്ള ഉപേക്ഷണങ്ങൾ",
+    "clientAborted": "{count} ക്ലയന്റ് റദ്ദാക്കലുകൾ",
+    "slowAbandonedHint": "ഹെഡറുകൾ കാത്തിരിപ്പ് പരിധിക്ക് ശേഷം ഉപേക്ഷിക്കപ്പെട്ടത്, ട്രാൻസ്പോർട്ട് നിരക്കിൽ നിന്ന് ഒഴിവാക്കിയിരിക്കുന്നു",
     "previousSuccessRate": "മുമ്പ് {rate}% വിജയം",
-    "upstreamRefusals": "{count} അപ്സ്ട്രീം നിരസിക്കലുകൾ",
     "connectionTestsCount": "{count} കണക്ഷൻ പരിശോധനകൾ",
-    "notMeasured": "അളന്നിട്ടില്ല"
+    "notMeasured": "അളന്നിട്ടില്ല",
+    "upstream4xx": "{count} ഉപ്‌സ്‌ട്രീം ക്ലയന്റ് പിശകുകൾ",
+    "upstream5xx": "{count} ഉപ്‌സ്‌ട്രീം സെർവർ പിശകുകൾ",
+    "uniformEgressLine": "{provider}-ൽ {exits} എക്സിറ്റുകളിൽ {affected} എണ്ണം ഒരുമിച്ച് പരാജയപ്പെടുന്നു (കഴിഞ്ഞ {hours} മണിക്കൂറിൽ) — ഇത് എക്സിറ്റ് പ്രശ്നമല്ല"
   },
   "playground": {
     "title": "മോഡൽ പ്ലേഗ്രൗണ്ട്",

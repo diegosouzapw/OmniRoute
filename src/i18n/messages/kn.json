@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "ಪ್ರಾಕ್ಸಿ ತಲುಪಲಾಗುತ್ತಿಲ್ಲ",
     "poolSetAsideKindIpQuota429": "IP ದರ ಮಿತಿ (429)",
     "poolSetAsideKindSlow": "ಮಂದ ಪ್ರತಿಕ್ರಿಯೆಗಳು",
+    "poolSetAsideKindGeoBlocked": "ಪ್ರದೇಶ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ (403/451)",
     "poolSetAsideUntil": "ತಿರುಗುವಿಕೆಗೆ ಹಿಂತಿರುಗಿ {endsAt}",
     "poolSetAsideRepeat": "ಪಕ್ಕಕ್ಕೆ ಇರಿಸಲಾಗಿದೆ {count, plural, one {# ಬಾರಿ} other {# ಬಾರಿ}}",
     "poolUnknownAddress": "ಅಜ್ಞಾತ ವಿಳಾಸ",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "ಸ್ಥಾನ ಕ್ರಮ",
     "poolHealthRankingOff": "ಆರೋಗ್ಯ ಶ್ರೇಯಾಂಕ ಆಫ್",
     "transportRate": "{rate}% ಸಾರಿಗೆ",
+    "slowAbandoned": "{count} ನಿಧಾನ ತ್ಯಜಿಸುವಿಕೆಗಳು",
+    "clientAborted": "{count} ಕ್ಲೈಂಟ್ ರದ್ದುಗೊಳಿಸುವಿಕೆಗಳು",
+    "slowAbandonedHint": "ಶೀರ್ಷಿಕೆಗಳ ನಿರೀಕ್ಷಾ ಮಿತಿ ನಂತರ ತ್ಯಜಿಸಲಾಗಿದೆ, ಸಾರಿಗೆ ದರದಿಂದ ಹೊರಗಿಡಲಾಗಿದೆ",
     "previousSuccessRate": "ಹಿಂದೆ {rate}% ಯಶಸ್ಸು",
-    "upstreamRefusals": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ನಿರಾಕರಣೆಗಳು",
     "connectionTestsCount": "{count} ಸಂಪರ್ಕ ಪರೀಕ್ಷೆಗಳು",
-    "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ"
+    "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ",
+    "upstream4xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಕ್ಲೈಂಟ್ ದೋಷಗಳು",
+    "upstream5xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಸರ್ವರ್ ದೋಷಗಳು",
+    "uniformEgressLine": "{provider} ನಲ್ಲಿ {exits} ಎಕ್ಸಿಟ್‌ಗಳ ಪೈಕಿ {affected} ಒಟ್ಟಿಗೆ ವಿಫಲವಾಗಿವೆ (ಕಳೆದ {hours}ಗಂ) — ಎಕ್ಸಿಟ್ ಸಮಸ್ಯೆಯಲ್ಲ"
   },
   "playground": {
     "title": "ಮಾದರಿ ಪ್ರಯೋಗಾಂಗಣ",

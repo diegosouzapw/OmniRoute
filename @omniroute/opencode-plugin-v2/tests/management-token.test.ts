@@ -66,9 +66,6 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
     globalThis.fetch = (async (url: unknown, init?: { headers?: Record<string, string> }) => {
       const href = String(url);
       seen.set(href, String(init?.headers?.Authorization ?? ""));
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -88,7 +85,9 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
         managementReadToken: "mgmt-key",
       });
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-      const ids = (added as Array<{ models: Array<{ id: string }> }>).flatMap((a) => a.models.map((m) => m.id));
+      const ids = (added as Array<{ models: Array<{ id: string }> }>).flatMap((a) =>
+        a.models.map((m) => m.id)
+      );
       assert.ok(ids.includes("m1"));
       assert.equal(seen.get(COMBOS_URL), "Bearer mgmt-key");
       assert.equal(seen.get(MODELS_URL), "Bearer chat-key");
@@ -104,9 +103,6 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
     globalThis.fetch = (async (url: unknown, init?: { headers?: Record<string, string> }) => {
       const href = String(url);
       seen.set(href, String(init?.headers?.Authorization ?? ""));
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -156,7 +152,7 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
       }
     );
     const res = collected.counts;
-    assert.deepEqual(res, { models: 1, combos: 0, autoCombos: 0 });
+    assert.deepEqual(res, { models: 1, combos: 0 });
     assert.deepEqual(calls, [
       ["models", "chat-key"],
       ["combos", "mgmt-key"],
@@ -176,9 +172,6 @@ describe("plugin-v2 fail-closed models (F2)", () => {
     const origFetch = globalThis.fetch;
     globalThis.fetch = (async (url: unknown) => {
       const href = String(url);
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -214,7 +207,9 @@ describe("plugin-v2 fail-closed models (F2)", () => {
         integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
       };
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(firstCtx);
-      const firstIds = (firstAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) => a.models.map((m) => m.id));
+      const firstIds = (firstAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) =>
+        a.models.map((m) => m.id)
+      );
       assert.ok(firstIds.includes("m1"), "first refresh must publish m1");
       const { setTimeout: sleep } = await import("node:timers/promises");
       await sleep(5);
@@ -239,7 +234,9 @@ describe("plugin-v2 fail-closed models (F2)", () => {
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(secondCtx);
       if (prevDataDir === undefined) delete process.env.OPENCODE_DATA_DIR;
       else process.env.OPENCODE_DATA_DIR = prevDataDir;
-      const secondIds = (secondAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) => a.models.map((m) => m.id));
+      const secondIds = (secondAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) =>
+        a.models.map((m) => m.id)
+      );
       assert.ok(secondIds.includes("m1"), "empty models fetch must reuse last-known catalog");
       assert.ok(
         guard.warns.some((w) => w.includes("keeping last-known catalog")),
