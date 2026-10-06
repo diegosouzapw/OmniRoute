@@ -22,7 +22,7 @@ export async function isTrustedEmptyTurn(
     if (data != null && (typeof data !== "object" || Array.isArray(data))) return false;
     const baseUrl = (data as Record<string, unknown> | null)?.baseUrl;
     if (baseUrl != null && typeof baseUrl !== "string") return false;
-    return isOfficialAnthropicBaseUrl(baseUrl || "");
+    return isOfficialAnthropicBaseUrl(typeof baseUrl === "string" ? baseUrl : "");
   } catch {
     return false;
   }
