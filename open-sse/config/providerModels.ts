@@ -286,6 +286,18 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   // executor actually sends the request (same pattern as the openai "-pro" heuristic above,
   // #5842).
   if ((alias === "gh" || alias === "ghe-copilot") && /claude/i.test(bareModelId)) return "claude";
+  // #15499: GheCopilotExecutor.buildUrl sends any unregistered `gpt-6*` id to
+  // /responses (`/^gpt-6/i`, same gate as supportsResponsesEndpoint). A missing
+  // catalog tag otherwise leaves the body on the provider's chat-completions
+  // format (`messages` / `max_tokens`), which /responses rejects. github.com
+  // Copilot does not use that URL regex, so this stays ghe-copilot-only.
+  if (
+    alias === "ghe-copilot" &&
+    /^gpt-6/i.test(bareModelId) &&
+    !/gemini|claude/i.test(bareModelId)
+  ) {
+    return "openai-responses";
+  }
   // Model-level targetFormat is provider-scoped: a catalog entry declares how THIS
   // provider's endpoint serves the model — do NOT import another provider's tag.
   // #9994 scoped this for providers WITH a catalog; #10072 extends it to catalogless
