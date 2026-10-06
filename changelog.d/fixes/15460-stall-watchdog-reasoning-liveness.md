@@ -1,0 +1,1 @@
+- **fix(sse):** treat reasoning deltas as stream liveness without weakening content checks ([#15460](https://github.com/diegosouzapw/OmniRoute/pull/15460)) — thanks @skygunner, @kalpakprod
