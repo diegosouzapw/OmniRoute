@@ -491,7 +491,7 @@
   },
   "overrides": {
     "browserslist": "^4.28.8",
-    "joi": "^18.2.8",
+    "joi": "^18.2.9",
     "onnxruntime-node": "1.30.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "fast-xml-parser": "^5.10.1",
