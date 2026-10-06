@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy tidak dapat dijangkau",
     "poolSetAsideKindIpQuota429": "batas laju IP (429)",
     "poolSetAsideKindSlow": "respon lambat",
+    "poolSetAsideKindGeoBlocked": "wilayah diblokir (403/451)",
     "poolSetAsideUntil": "Kembali ke rotasi {endsAt}",
     "poolSetAsideRepeat": "Disisihkan {count, plural, one {# kali} other {# kali}}",
     "poolUnknownAddress": "Alamat tidak dikenal",

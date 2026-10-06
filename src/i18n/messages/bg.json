@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "проксито е недостъпно",
     "poolSetAsideKindIpQuota429": "ограничение на скоростта по IP (429)",
     "poolSetAsideKindSlow": "бавни отговори",
+    "poolSetAsideKindGeoBlocked": "регион блокиран (403/451)",
     "poolSetAsideUntil": "Обратно в ротация {endsAt}",
     "poolSetAsideRepeat": "Оставено настрана {count, plural, one {# път} other {# пъти}}",
     "poolUnknownAddress": "Неизвестен адрес",

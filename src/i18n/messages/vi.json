@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "không thể kết nối proxy",
     "poolSetAsideKindIpQuota429": "giới hạn tốc độ theo IP (429)",
     "poolSetAsideKindSlow": "phản hồi chậm",
+    "poolSetAsideKindGeoBlocked": "bị chặn theo khu vực (403/451)",
     "poolSetAsideUntil": "Trở lại {endsAt}",
     "poolSetAsideRepeat": "Đã tạm ngưng {count} lần",
     "poolUnknownAddress": "Địa chỉ không xác định",

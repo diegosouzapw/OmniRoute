@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy inaccesibil",
     "poolSetAsideKindIpQuota429": "limită de rată pe IP (429)",
     "poolSetAsideKindSlow": "răspunsuri lente",
+    "poolSetAsideKindGeoBlocked": "blocare regiune (403/451)",
     "poolSetAsideUntil": "Înapoi în rotație {endsAt}",
     "poolSetAsideRepeat": "Pus deoparte {count, plural, one {# dată} other {# ori}}",
     "poolUnknownAddress": "Adresă necunoscută",

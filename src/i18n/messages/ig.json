@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "enweghị ike iru proxy",
     "poolSetAsideKindIpQuota429": "oke ọsọ IP (429)",
     "poolSetAsideKindSlow": "nzaghachi nwayọ",
+    "poolSetAsideKindGeoBlocked": "egbochiri mpaghara (403/451)",
     "poolSetAsideUntil": "Laghachi na ntụgharị {endsAt}",
     "poolSetAsideRepeat": "E wepụrụ {count, plural, one {# ugboro} other {# ugboro}}",
     "poolUnknownAddress": "Adreesị amaghị",

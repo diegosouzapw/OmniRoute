@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "starpniekserveris nav sasniedzams",
     "poolSetAsideKindIpQuota429": "IP pieprasījumu ierobežojums (429)",
     "poolSetAsideKindSlow": "lēnas atbildes",
+    "poolSetAsideKindGeoBlocked": "reģiona bloķēts (403/451)",
     "poolSetAsideUntil": "Atpakaļ rotācijā {endsAt}",
     "poolSetAsideRepeat": "Nolikts malā {count, plural, one {# reizi} other {# reizes}}",
     "poolUnknownAddress": "Nezināma adrese",

@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy non raggiungibile",
     "poolSetAsideKindIpQuota429": "limite di frequenza per IP (429)",
     "poolSetAsideKindSlow": "risposte lente",
+    "poolSetAsideKindGeoBlocked": "bloccato per regione (403/451)",
     "poolSetAsideUntil": "Di nuovo in rotazione {endsAt}",
     "poolSetAsideRepeat": "Accantonato {count, plural, one {# volta} other {# volte}}",
     "poolUnknownAddress": "Indirizzo sconosciuto",

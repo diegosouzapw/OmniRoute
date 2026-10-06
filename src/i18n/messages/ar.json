@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "تعذّر الوصول إلى الوكيل",
     "poolSetAsideKindIpQuota429": "تقييد معدل عنوان IP ‏(429)",
     "poolSetAsideKindSlow": "استجابات بطيئة",
+    "poolSetAsideKindGeoBlocked": "منطقة محظورة (403/451)",
     "poolSetAsideUntil": "يعود إلى التناوب {endsAt}",
     "poolSetAsideRepeat": "مستبعد {count, plural, one {# مرة} other {# مرات}}",
     "poolUnknownAddress": "عنوان غير معروف",

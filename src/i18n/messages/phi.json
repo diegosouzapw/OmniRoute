@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "hindi maabot ang proxy",
     "poolSetAsideKindIpQuota429": "limitasyon sa rate ng IP (429)",
     "poolSetAsideKindSlow": "mabagal na mga tugon",
+    "poolSetAsideKindGeoBlocked": "binalaan ng rehiyon (403/451)",
     "poolSetAsideUntil": "Balik sa pag-ikot {endsAt}",
     "poolSetAsideRepeat": "Isinantabi {count, plural, one {# beses} other {# beses}}",
     "poolUnknownAddress": "Hindi kilalang address",

@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proksiyə çatmaq mümkün deyil",
     "poolSetAsideKindIpQuota429": "IP sürət limiti (429)",
     "poolSetAsideKindSlow": "yavaş cavablar",
+    "poolSetAsideKindGeoBlocked": "region bloklanıb (403/451)",
     "poolSetAsideUntil": "Rotasiyaya qayıtdı {endsAt}",
     "poolSetAsideRepeat": "Kənara qoyuldu {count, plural, one {# dəfə} other {# dəfə}}",
     "poolUnknownAddress": "Naməlum ünvan",

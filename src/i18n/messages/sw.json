@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proksi haifikiki",
     "poolSetAsideKindIpQuota429": "kikomo cha kasi cha IP (429)",
     "poolSetAsideKindSlow": "majibu polepole",
+    "poolSetAsideKindGeoBlocked": "kuzuiliwa kwa mkoa (403/451)",
     "poolSetAsideUntil": "Kurudi kwenye mzunguko {endsAt}",
     "poolSetAsideRepeat": "Imewekwa kando {count, plural, one {# mara} other {# mara}}",
     "poolUnknownAddress": "Anwani isiyojulikana",

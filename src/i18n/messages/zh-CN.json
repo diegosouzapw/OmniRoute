@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "代理不可达",
     "poolSetAsideKindIpQuota429": "IP 速率限制 (429)",
     "poolSetAsideKindSlow": "响应缓慢",
+    "poolSetAsideKindGeoBlocked": "地区受限 (403/451)",
     "poolSetAsideUntil": "{endsAt}恢复轮换",
     "poolSetAsideRepeat": "已搁置{count, plural, one {#次} other {#次}}",
     "poolUnknownAddress": "未知地址",

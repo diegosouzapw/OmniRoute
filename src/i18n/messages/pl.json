@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "serwer proxy nieosiągalny",
     "poolSetAsideKindIpQuota429": "limit szybkości dla IP (429)",
     "poolSetAsideKindSlow": "powolne odpowiedzi",
+    "poolSetAsideKindGeoBlocked": "zablokowany region (403/451)",
     "poolSetAsideUntil": "Z powrotem w rotacji {endsAt}",
     "poolSetAsideRepeat": "Odłożony {count, plural, one {# raz} other {# razy}}",
     "poolUnknownAddress": "Nieznany adres",

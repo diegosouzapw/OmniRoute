@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "պրոքսին անհասանելի է",
     "poolSetAsideKindIpQuota429": "IP արագության սահմանափակում (429)",
     "poolSetAsideKindSlow": "դանդաղ պատասխաններ",
+    "poolSetAsideKindGeoBlocked": "Տարածաշրջանարգելված (403/451)",
     "poolSetAsideUntil": "Վերադարձ ռոտացիայի {endsAt}",
     "poolSetAsideRepeat": "Մի կողմ դրված {count, plural, one {# անգամ} other {# անգամ}}",
     "poolUnknownAddress": "Անհայտ հասցե",

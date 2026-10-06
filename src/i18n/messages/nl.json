@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy onbereikbaar",
     "poolSetAsideKindIpQuota429": "IP-snelheidslimiet (429)",
     "poolSetAsideKindSlow": "trage reacties",
+    "poolSetAsideKindGeoBlocked": "regio geblokkeerd (403/451)",
     "poolSetAsideUntil": "Terug in rotatie {endsAt}",
     "poolSetAsideRepeat": "Terzijde gesteld {count, plural, one {# keer} other {# keer}}",
     "poolUnknownAddress": "Onbekend adres",

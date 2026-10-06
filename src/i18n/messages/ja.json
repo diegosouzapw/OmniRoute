@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "プロキシに到達できません",
     "poolSetAsideKindIpQuota429": "IP レート制限 (429)",
     "poolSetAsideKindSlow": "遅い応答",
+    "poolSetAsideKindGeoBlocked": "地域ブロック (403/451)",
     "poolSetAsideUntil": "{endsAt}にローテーション復帰",
     "poolSetAsideRepeat": "除外{count, plural, one {#回} other {#回}}",
     "poolUnknownAddress": "不明なアドレス",

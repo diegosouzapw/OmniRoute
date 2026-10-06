@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "ba a iya isa ga proxy ba",
     "poolSetAsideKindIpQuota429": "iyakar saurin IP (429)",
     "poolSetAsideKindSlow": "amsoshi masu jinkiri",
+    "poolSetAsideKindGeoBlocked": "Yankin an toshe (403/451)",
     "poolSetAsideUntil": "Komawa cikin juyawa {endsAt}",
     "poolSetAsideRepeat": "An ajiye a gefe {count, plural, one {# sau} other {# sau}}",
     "poolUnknownAddress": "Adireshi mara sani",

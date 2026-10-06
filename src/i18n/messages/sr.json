@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "прокси недоступан",
     "poolSetAsideKindIpQuota429": "ограничење брзине по IP адреси (429)",
     "poolSetAsideKindSlow": "спори одговори",
+    "poolSetAsideKindGeoBlocked": "regionalno blokirano (403/451)",
     "poolSetAsideUntil": "Назад у ротацији {endsAt}",
     "poolSetAsideRepeat": "По страни {count, plural, one {# пут} other {# пута}}",
     "poolUnknownAddress": "Непозната адреса",

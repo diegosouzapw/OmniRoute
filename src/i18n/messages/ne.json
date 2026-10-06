@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "प्रोक्सीमा पुग्न सकिएन",
     "poolSetAsideKindIpQuota429": "IP दर सीमा (429)",
     "poolSetAsideKindSlow": "ढिलो प्रतिक्रिया",
+    "poolSetAsideKindGeoBlocked": "क्षेत्र-रोकिएको (403/451)",
     "poolSetAsideUntil": "रोटेसनमा फर्कियो {endsAt}",
     "poolSetAsideRepeat": "छेउमा राखियो {count, plural, one {# पटक} other {# पटक}}",
     "poolUnknownAddress": "अज्ञात ठेगाना",

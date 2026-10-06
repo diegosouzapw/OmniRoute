@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy je nedostupná",
     "poolSetAsideKindIpQuota429": "omezení rychlosti podle IP (429)",
     "poolSetAsideKindSlow": "pomalé odpovědi",
+    "poolSetAsideKindGeoBlocked": "blokovaný region (403/451)",
     "poolSetAsideUntil": "Zpět v rotaci {endsAt}",
     "poolSetAsideRepeat": "Odloženo {count, plural, one {#krát} other {#krát}}",
     "poolUnknownAddress": "Neznámá adresa",

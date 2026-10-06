@@ -13,6 +13,7 @@
 import { createHash } from "node:crypto";
 import { isOpencodeFreeTierRefusal, isOpencodeQuotaShapeRefusal } from "./opencodeGeoBlock.ts";
 import type { ExecuteInput, ExecutorExecuteResult } from "./base.ts";
+import type { FreeTierOutcome } from "./opencodeFreeTierContract.ts";
 
 export type RequestShape = "tools" | "bare";
 
@@ -23,8 +24,12 @@ export interface InjectionContext {
   readonly key: string;
   /** False when a refusal is final for this request: its outcome is noted as it happens. */
   readonly probe: boolean;
-  /** Replays the outcome note that was deferred while a replay was still possible. */
-  readonly replayNote: () => void;
+  /**
+   * Replays the outcome note that was deferred while a replay was still possible. The
+   * verdict travels with the note, so a refusal that says something about the borrowed
+   * tools still counts once no replay can rescue it.
+   */
+  readonly replayNote: (verdict: FreeTierOutcome) => void;
 }
 
 /** Prompt classes that the upstream accepts bare. Bounded; least recently confirmed goes first. */
@@ -137,19 +142,25 @@ function responseOf(result: ExecutorExecuteResult): Response | null {
   return result && "response" in result && result.response ? result.response : null;
 }
 
-async function isShapeRefusal(response: Response, log: ExecuteInput["log"]): Promise<boolean> {
-  if (response.status !== 403 && response.status !== 451) return false;
+async function readVerdict(response: Response, log: ExecuteInput["log"]): Promise<FreeTierOutcome> {
+  const status = response.status;
+  if (status !== 403 && status !== 451) return { ok: false, status, bodyText: null };
   try {
-    const text = await response.clone().text();
-    return (
-      isOpencodeFreeTierRefusal(response.status, text) ||
-      isOpencodeQuotaShapeRefusal(response.status, text)
-    );
+    return { ok: false, status, bodyText: await response.clone().text() };
   } catch {
     // Unreadable body: treated as "not a shape refusal", so the response is returned as-is.
     log?.debug?.("OPENCODE", "refusal body unreadable, no replay");
-    return false;
+    return { ok: false, status, bodyText: null };
   }
+}
+
+async function isShapeRefusal(verdict: FreeTierOutcome): Promise<boolean> {
+  if (verdict.status !== 403 && verdict.status !== 451) return false;
+  if (verdict.bodyText === null) return false;
+  return (
+    isOpencodeFreeTierRefusal(verdict.status, verdict.bodyText) ||
+    isOpencodeQuotaShapeRefusal(verdict.status, verdict.bodyText)
+  );
 }
 
 /**
@@ -160,10 +171,10 @@ async function isShapeRefusal(response: Response, log: ExecuteInput["log"]): Pro
  * shape. A request whose tools the client declared is never touched (no context recorded).
  */
 /** What a replay taught: the shape that worked is remembered, two refusals pause the class. */
-function learnFromReplay(ctx: InjectionContext, accepted: boolean): void {
+function learnFromReplay(ctx: InjectionContext, accepted: boolean, verdict: FreeTierOutcome): void {
   if (!accepted) {
     pause(ctx.key);
-    ctx.replayNote();
+    ctx.replayNote(verdict);
   } else if (ctx.shape === "tools") {
     rememberBare(ctx.key);
   } else {
@@ -179,16 +190,17 @@ async function replayInOtherShape(
   refused: Response,
   origin: object
 ): Promise<ExecutorExecuteResult> {
+  const verdict = await readVerdict(refused, input.log);
   await refused.body?.cancel().catch(() => undefined);
   forced.set(origin, ctx.shape === "bare" ? "tools" : "bare");
   let second: ExecutorExecuteResult;
   try {
     second = await run(input);
   } catch (error) {
-    ctx.replayNote();
+    ctx.replayNote(verdict);
     throw error;
   }
-  learnFromReplay(ctx, responseOf(second)?.ok === true);
+  learnFromReplay(ctx, responseOf(second)?.ok === true, verdict);
   return second;
 }
 
@@ -209,8 +221,9 @@ export async function withRequestShapeRetry(
     const ctx = isObject(origin) ? contexts.get(origin) : undefined;
     const response = responseOf(first);
     if (!ctx || !isObject(origin) || !response || response.ok || !ctx.probe) return first;
-    if (input.signal?.aborted || !(await isShapeRefusal(response, input.log))) {
-      ctx.replayNote();
+    const verdict = await readVerdict(response, input.log);
+    if (input.signal?.aborted || !(await isShapeRefusal(verdict))) {
+      ctx.replayNote(verdict);
       return first;
     }
     return await replayInOtherShape(input, run, ctx, response, origin);

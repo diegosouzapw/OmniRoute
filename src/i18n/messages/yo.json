@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "kò lè dé proxy",
     "poolSetAsideKindIpQuota429": "ìdíwọ̀n ìyára IP (429)",
     "poolSetAsideKindSlow": "ìdáhùn tó lọ́ra",
+    "poolSetAsideKindGeoBlocked": "agbègbè dídínà (403/451)",
     "poolSetAsideUntil": "Pada si yiyi {endsAt}",
     "poolSetAsideRepeat": "A ya sọtọ {count, plural, one {# igba} other {# igba}}",
     "poolUnknownAddress": "Adirẹsi aimọ",

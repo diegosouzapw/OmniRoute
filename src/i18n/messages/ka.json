@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "პროქსი მიუწვდომელია",
     "poolSetAsideKindIpQuota429": "IP სიჩქარის ლიმიტი (429)",
     "poolSetAsideKindSlow": "ნელი პასუხები",
+    "poolSetAsideKindGeoBlocked": "რეგიონი დაბლოკილია (403/451)",
     "poolSetAsideUntil": "როტაციაში დაბრუნება {endsAt}",
     "poolSetAsideRepeat": "გვერდზე გადადებული {count, plural, one {# ჯერ} other {# ჯერ}}",
     "poolUnknownAddress": "უცნობი მისამართი",

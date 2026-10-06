@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "прокси недоступен",
     "poolSetAsideKindIpQuota429": "ограничение частоты по IP (429)",
     "poolSetAsideKindSlow": "медленные ответы",
+    "poolSetAsideKindGeoBlocked": "заблокировано по региону (403/451)",
     "poolSetAsideUntil": "Снова в ротации {endsAt}",
     "poolSetAsideRepeat": "Отложен {count, plural, one {# раз} other {# раз}}",
     "poolUnknownAddress": "Неизвестный адрес",
