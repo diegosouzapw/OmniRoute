@@ -120,6 +120,8 @@ Dostop prek: WhatsApp, Telegram, Slack, Discord, iMessage, Signal ...
 
 ## 📖 Nastavitev ponudnikov
 
+Za množično dodajanje povezav s ključi API iz datoteke CSV ali JSON uporabite **Nadzorna plošča → Ponudniki → Uvozi iz datoteke**. Stolpci so določeni glede na položaj (`provider,name,apiKey,baseUrl,priority`); `provider` mora že obstajati kot upravljani ponudnik ali združljivo vozlišče. Glejte [Uvoz ponudnikov iz datoteke CSV ali JSON](../providers/CSV-IMPORT.md).
+
 ### 🔐 Naročniški ponudniki
 
 #### Claude Code (Pro/Max)
@@ -135,18 +137,18 @@ Modeli:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profesionalni nasvet:** Za zahtevne naloge uporabite Opus, za hitrost pa Sonnet. OmniRoute spremlja kvoto za vsak model posebej!
+**Profesionalni nasvet:** Za zapletene naloge uporabite Opus, za hitrost pa Sonnet. OmniRoute spremlja kvoto za vsak model posebej!
 
-Poti, združljive s Claude in Claude Code, ohranijo raven miselnega napora `max` za modele Opus in Sonnet.
-Modeli Haiku ne sprejemajo ravni napora `max`, zato OmniRoute pred pošiljanjem nadrejenemu ponudniku
-zahtevo zniža na visok proračun za razmišljanje.
+Na gostitelju OmniRoute ni brskalnika? Zaženite `claude setup-token` kjer koli, kjer ste prijavljeni v Claude Code, in enoletni žeton prilepite na zavihek **Žeton za nastavitev**. Glejte [Claude Code z žetonom za nastavitev](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Poti, združljive s Claude in Claude Code, ohranijo raven napora razmišljanja `max` za modele Opus in Sonnet. Modeli Haiku ne sprejemajo ravni napora `max`, zato OmniRoute pred pošiljanjem nadrejenemu ponudniku takšno zahtevo zniža na visok proračun za razmišljanje.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Nadzorna plošča → Ponudniki → Poveži Codex
 → Prijava OAuth (vrata 1455)
-→ 5-urna in tedenska ponastavitev
+→ Ponastavitev vsakih 5 ur in tedensko
 
 Modeli:
   cx/gpt-5.5
@@ -160,7 +162,7 @@ Modeli:
 ```bash
 Nadzorna plošča → Ponudniki → Poveži GitHub
 → OAuth prek GitHub
-→ Mesečna ponastavitev (1. v mesecu)
+→ Mesečna ponastavitev (1. dan v mesecu)
 
 Modeli:
   gh/gpt-5.5
@@ -170,29 +172,29 @@ Modeli:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Cenovno ugodni ponudniki
+### 💰 Poceni ponudniki
 
-#### GLM-4.7 (Dnevna ponastavitev, $0.6/1M)
+#### GLM-4.7 (dnevna ponastavitev, 0,6 USD/1M)
 
 1. Registrirajte se: [Zhipu AI](https://open.bigmodel.cn)
-2. Pridobite ključ API iz Coding Plan
+2. Pridobite ključ API iz paketa Coding Plan
 3. Nadzorna plošča → Dodaj ključ API: Ponudnik: `glm`, ključ API: `your-key`
 
-**Uporaba:** `glm/glm-4.7` — **Profesionalni nasvet:** Coding Plan ponuja 3-kratno kvoto za 1/7 cene! Ponastavitev vsak dan ob 10.00.
+**Uporaba:** `glm/glm-4.7` — **Profesionalni nasvet:** Coding Plan ponuja 3-krat večjo kvoto za 1/7 cene! Dnevna ponastavitev ob 10.00.
 
-#### MiniMax M2.1 (5-urna ponastavitev, $0.20/1M)
+#### MiniMax M2.1 (ponastavitev na 5 ur, 0,20 USD/1M)
 
 1. Registrirajte se: [MiniMax](https://www.minimax.io)
 2. Pridobite ključ API → Nadzorna plošča → Dodaj ključ API
 
 **Uporaba:** `minimax/MiniMax-M2.1` — **Profesionalni nasvet:** Najcenejša možnost za dolg kontekst (1M žetonov)!
 
-#### Kimi K2 (fiksno $9/mesec)
+#### Kimi K2 (fiksno 9 USD/mesec)
 
 1. Naročite se: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Pridobite ključ API → Nadzorna plošča → Dodaj ključ API
 
-**Uporaba:** `kimi/kimi-k2.5` — **Profesionalni nasvet:** Fiksnih $9/mesec za 10M žetonov pomeni dejansko ceno $0.90/1M!
+**Uporaba:** `kimi/kimi-k2.5` — **Profesionalni nasvet:** Fiksnih 9 USD/mesec za 10M žetonov pomeni dejanski strošek 0,90 USD/1M!
 
 #### Baidu Qianfan / ERNIE
 
@@ -203,14 +205,12 @@ Modeli:
 
 ### 🆓 BREZPLAČNI ponudniki
 
-Ponudniki brez preverjanja pristnosti imajo na svoji strani stikalo ob možnosti **Preverjanje pristnosti ni potrebno**.
-Če ga izklopite, onemogočite tega ponudnika, ga odstranite iz konfiguriranih/strnjenih pogledov ponudnikov in
-njegove modele odstranite iz `/v1/models`.
+Brezplačni ponudniki brez preverjanja pristnosti imajo na svoji strani ponudnika stikalo ob možnosti **Preverjanje pristnosti ni potrebno**. Če ga izklopite, se ta ponudnik onemogoči in odstrani iz nastavljenih ter strnjenih pogledov Ponudniki, njegovi modeli pa se odstranijo iz `/v1/models`.
 
 #### Qoder (9 BREZPLAČNIH modelov)
 
 ```bash
-Nadzorna plošča → Poveži Qoder → Prijava OAuth → Za dostop veljajo trenutne omejitve ponudnika
+Nadzorna plošča → Poveži Qoder → Prijava OAuth → Dostop je odvisen od trenutnih omejitev ponudnika
 
 Modeli: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
