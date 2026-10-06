@@ -178,4 +178,34 @@ describe("PoolMemberEgressLines", () => {
     expect(text).toContain('poolSetAsideReason:{"kind":"poolSetAsideKindSlow"}');
     expect(text).not.toContain('"kind":"slow"');
   });
+
+  it("labels a region refusal instead of printing the raw kind", async () => {
+    const { element } = await renderWith((url: unknown) =>
+      String(url).startsWith("/api/admin/proxy-pool-visibility")
+        ? jsonResponse({
+            rankedBy: "health",
+            members: [
+              {
+                id: "p1",
+                name: "pool-a",
+                display: "http://10.9.1.1:21001",
+                userMasked: null,
+                opaque: false,
+                rank: 1,
+                signal: "set-aside",
+                setAside: {
+                  kind: "geo_blocked",
+                  since: "2026-09-25T12:00:00.000Z",
+                  endsAt: "2026-09-25T12:34:00.000Z",
+                  streak: 1,
+                },
+              },
+            ],
+          })
+        : jsonResponse(null)
+    );
+    const text = element.textContent ?? "";
+    expect(text).toContain('poolSetAsideReason:{"kind":"poolSetAsideKindGeoBlocked"}');
+    expect(text).not.toContain('"kind":"geo_blocked"');
+  });
 });

@@ -5636,7 +5636,7 @@
     "accountName": "שם חשבון",
     "email": "דוא\"ל",
     "healthCheckMinutes": "בדיקת בריאות (דקה)",
-    "healthCheckHint": "מרווח רענון אסימון פרואקטיבי. 0 = מושבת.",
+    "healthCheckHint": "ערך ייעודי לחיבור זה. ריק = לפי ברירת המחדל הגלובלית (הגדרות › חוסן). 0 = לעולם לא לבדוק חיבור זה. מקסימום 1440 (24 שעות).",
     "deselectAllModels": "ביטול הבחירה בהכול",
     "modelsActiveCount": "{active}/{total} פעילים",
     "noModelsMatch": "אין מודלים התואמים ל-\"{filter}\"",
@@ -6197,7 +6197,7 @@
       "bluesminds": "קבל את מפתח ה-API שלך ב-https://www.bluesminds.com — נקודת קצה תואמת OpenAI ב-https://api.bluesminds.com/v1 עם קרדיטים יומיים בחינם. מודלי VIP (Claude Opus 4.5, Gemini 2.5 Pro) צורכים קרדיטים מסוג pi.",
       "byteplus": "חבר את BytePlus ModelArk באמצעות מפתח API.",
       "bytez": "$1 קרדיט חינם, מתחדש כל 4 שבועות",
-      "cerebras": "ניסיון חינם: 1M טוקנים/יום, 30K TPM, 5 RPM — ללא כרטיס אשראי.",
+      "cerebras": "זיכוי חד-פעמי של ‎$5 בהרשמה (בתוקף ל-30 יום); נדרש אמצעי תשלום. אין זו שכבה חינמית מתחדשת.",
       "charm-hyper": "צור מפתח API ב-https://hyper.charm.land, ולאחר מכן הדבק אותו כאן כטוקן Bearer.",
       "chutes": "מפתח API מסוג Bearer עבור השער התואם ל-OpenAI של Chutes.",
       "clarifai": "Clarifai חושף צ'אט, תגובות ו-/models תואמי OpenAI ב-/v2/ext/openai/v1. מודלים ציבוריים/קהילתיים דורשים בדרך כלל PAT; מפתחות ברמת האפליקציה פועלים רק עבור משאבים בתוך אותה אפליקציה.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "כל תעבורת הספק עוברת דרך מאגר ה-proxy של מנוי זה.",
       "ruleModeDesc": "רק התעבורה של ספקים נבחרים עוברת דרך ה-proxy; השאר מתחברים ישירות.",
       "localCoreEndpoint": "נקודת קצה מקומית Core SOCKS5/HTTP (אופציונלי)",
-      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "מקבל רק 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS דורשים ליבת sing-box/clash מקומית).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "אחד בכל שורה. מקבל רק 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS דורשים ליבת sing-box/clash מקומית).",
       "routeByProvider": "מסלול לפי ספק (רב בחירה)",
       "loadingProviders": "טוען רשימת ספקים...",
       "autoRefreshInterval": "מרווח רענון אוטומטי (דקות)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "דחיסת תיאור MCP",
     "mcpAccessibilityTitle": "פלט נגישות MCP",
     "compressionSettingsCavemanIntensity": "עוצמת איש המערות",
-    "compressionSettingsCavemanOutputMode": "מצב פלט איש מערות",
     "compressionSettingsOutputStyles": "סגנונות פלט",
     "compressionStylesTileTitle": "סגנונות פלט",
     "compressionSettingsOutputIntensity": "עוצמת הפלט",
-    "compressionSettingsAutoClarityBypass": "מעקף בהירות אוטומטי",
     "compressionEffectivePipeline": "צינור עיבוד אפקטיבי:",
     "compressionDerivedOff": "כבוי",
     "compressionDerivedRuns": "הרצות: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "מינימום שורות לכיווץ",
         "description": "מספר השורות המינימלי במערך JSON הומוגני הנדרש להפעלת כיווץ טבלאי. ברירת מחדל: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "שמור על הנחיית המערכת"
-      },
       "summarizerEnabled": {
         "label": "הפעל מסכם"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "הודעות קצרות מזה אינן דחוסות. נמוך יותר = יותר דחיסה.",
     "tooltipMinSavings": "דחוס רק אם זה חוסך לפחות כל כך הרבה אסימונים.",
     "ultraSettings": "הגדרות אולטרה",
-    "ultraSettingsDesc": "דחיסה סמנטית המופעלת על ידי SLM",
-    "preview": {
-      "lite": "השב בקצרה. שמור על מונחים טכניים, קוד, שגיאות, כתובות URL ומזהים.",
-      "full": "השב בתמציתיות ובקיצור. שמור על כל התוכן הטכני.",
-      "ultra": "השב בקיצור מרבי עם קיצורים טכניים נפוצים. שמור על הסמלים המדויקים."
-    }
+    "ultraSettingsDesc": "דחיסה סמנטית המופעלת על ידי SLM"
   },
   "translator": {
     "title": "מתרגם",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "מימוש איפוס",
     "manageResetCredits": "הצג קרדיטים",
     "viewResetCredits": "הצג קרדיטים לאיפוס",
-    "resetCreditsModalTitle": "קרדיטים לאיפוס של Codex",
+    "resetCreditsModalTitle": "קרדיטים לאיפוס",
     "resetCreditsModalExplainer": "הקרדיטים מסודרים לפי תאריך תפוגה. מימוש אוטומטי תמיד משתמש בקרדיט שתוקפו פג ראשון.",
     "resetCreditsLoadFailed": "טעינת הקרדיטים לאיפוס נכשלה",
     "resetCreditsDetailsUnavailable": "פרטי הקרדיטים אינם זמינים כעת. רענן ונסה שוב.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "ללא תאריך תפוגה",
     "redeemThisResetCredit": "מימוש",
     "confirmRedeemResetCreditTitle": "לממש קרדיט איפוס זה?",
-    "confirmRedeemResetCredit": "המימוש מאפס באופן מיידי את חלונות השימוש הזכאים של Codex ומנצל קרדיט זה לצמיתות.",
+    "confirmRedeemResetCredit": "המימוש מאפס באופן מיידי את חלונות השימוש הזכאים ומנצל קרדיט זה לצמיתות.",
     "confirmRedeemResetCreditButton": "מימוש קרדיט",
     "resetCreditRedeemed": "האיפוס מומש",
     "resetCreditRedeemFailed": "מימוש קרדיט האיפוס נכשל",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "לא ניתן להגיע לפרוקסי",
     "poolSetAsideKindIpQuota429": "הגבלת קצב לפי IP ‏(429)",
     "poolSetAsideKindSlow": "תגובות איטיות",
+    "poolSetAsideKindGeoBlocked": "אזור חסום (403/451)",
     "poolSetAsideUntil": "חוזר לרוטציה {endsAt}",
     "poolSetAsideRepeat": "הושם בצד {count, plural, one {# פעם} other {# פעמים}}",
     "poolUnknownAddress": "כתובת לא ידועה",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "סדר מיקומים",
     "poolHealthRankingOff": "דירוג בריאות כבוי",
     "transportRate": "{rate}% תעבורה",
+    "slowAbandoned": "{count} נטישות איטיות",
+    "clientAborted": "{count} ביטולים על ידי הלקוח",
+    "slowAbandonedHint": "ננטש לאחר חריגה מסף ההמתנה לכותרות, לא נכלל בחישוב קצב ההובלה",
     "previousSuccessRate": "בעבר {rate}% הצלחה",
-    "upstreamRefusals": "{count} דחיות upstream",
     "connectionTestsCount": "{count} בדיקות חיבור",
-    "notMeasured": "לא נמדד"
+    "notMeasured": "לא נמדד",
+    "upstream4xx": "{count} שגיאות קליינט עליון",
+    "upstream5xx": "{count} שגיאות שרת עליון",
+    "uniformEgressLine": "{affected} מתוך {exits} יציאות נכשלות יחד ב-{provider} (ב-({hours}h)) — אינו בעיית יציאה"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} לא פעילים",
     "dbOverrideCount": "{count} דריסות DB",
     "searchPlaceholder": "חיפוש דגלים...",
+    "descriptionModeLabel": "תצוגת תיאור",
+    "descriptionModeHint": "במעבר עכבר: הכרטיסים נשארים קומפקטיים, ומעבר עם העכבר מעל תיאור מציג את הטקסט המלא. טקסט מלא: הצגת התיאור המלא תמיד.",
+    "descriptionModeHover": "במעבר עכבר",
+    "descriptionModeFull": "טקסט מלא",
     "categories": {
       "all": "הכל",
       "security": "אבטחה",

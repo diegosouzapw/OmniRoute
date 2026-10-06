@@ -1,1 +1,0 @@
-- **services:** restrict `resolvePortPid`'s lsof probe to TCP listeners only, preventing connected clients from being returned instead of the listening process (#14722).

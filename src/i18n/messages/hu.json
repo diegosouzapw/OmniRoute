@@ -5636,7 +5636,7 @@
     "accountName": "Fiók neve",
     "email": "E-mail",
     "healthCheckMinutes": "állapotfelmérés (perc)",
-    "healthCheckHint": "Proaktív token frissítési időköz. 0 = letiltva.",
+    "healthCheckHint": "Egyedi érték ehhez a kapcsolathoz. Üres = a globális alapértelmezés követése (Beállítások › Rugalmasság). 0 = ezt a kapcsolatot soha ne ellenőrizze. Legfeljebb 1440 (24 óra).",
     "deselectAllModels": "Összes kijelölésének megszüntetése",
     "modelsActiveCount": "{active}/{total} aktív",
     "noModelsMatch": "Egyetlen modell sem felel meg ennek: „{filter}”",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Szerezze be API-kulcsát a https://www.bluesminds.com oldalon — OpenAI-kompatibilis végpont a https://api.bluesminds.com/v1 címen ingyenes napi kreditekkel. A VIP modellek (Claude Opus 4.5, Gemini 2.5 Pro) pi krediteket fogyasztanak.",
       "byteplus": "Csatlakoztassa a BytePlus ModelArk szolgáltatást egy API-kulccsal.",
       "bytez": "1 $ ingyenes kredit, 4 hetente megújul",
-      "cerebras": "Ingyenes próbaverzió: 1M token/nap, 30K TPM, 5 RPM — bankkártya nélkül.",
+      "cerebras": "Egyszeri 5 dolláros regisztrációs jóváírás (30 napig érvényes); fizetési mód szükséges. Nem ismétlődő ingyenes szint.",
       "charm-hyper": "Hozzon létre egy API-kulcsot a https://hyper.charm.land oldalon, majd illessze be ide Bearer tokenként.",
       "chutes": "Bearer API-kulcs a Chutes OpenAI-kompatibilis átjáróhoz.",
       "clarifai": "A Clarifai OpenAI-kompatibilis csevegést, válaszokat és /models végpontot tesz elérhetővé a /v2/ext/openai/v1 címen. A nyilvános/közösségi modellekhez általában PAT szükséges; az alkalmazás hatókörű kulcsok csak az adott alkalmazáson belüli erőforrásokhoz működnek.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Az összes szolgáltatói forgalom az előfizetés proxykészletén megy keresztül.",
       "ruleModeDesc": "Csak a kiválasztott Szolgáltatók forgalma megy keresztül a proxyn; a többi közvetlenül kapcsolódik.",
       "localCoreEndpoint": "Local Core SOCKS5/HTTP végpont (opcionális)",
-      "localCoreEndpointPlaceholder": "zokni5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Csak 127.0.0.1 / localhost fogadja el (az SS/VMess/Trojan/VLESS helyi sing-box/clash magot igényel).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Soronként egy. Csak 127.0.0.1 / localhost fogadható el (az SS/VMess/Trojan/VLESS helyi sing-box/clash magot igényel).",
       "routeByProvider": "Útvonal a szolgáltató szerint (többszörös választás)",
       "loadingProviders": "Szolgáltató lista betöltése…",
       "autoRefreshInterval": "Automatikus frissítési időköz (perc)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP leírás tömörítés",
     "mcpAccessibilityTitle": "MCP akadálymentességi kimenet",
     "compressionSettingsCavemanIntensity": "Barlangos ember intenzitása",
-    "compressionSettingsCavemanOutputMode": "Caveman kimeneti mód",
     "compressionSettingsOutputStyles": "Kimeneti stílusok",
     "compressionStylesTileTitle": "Kimeneti stílusok",
     "compressionSettingsOutputIntensity": "Kimeneti intenzitás",
-    "compressionSettingsAutoClarityBypass": "Automatikus tisztaság bypass",
     "compressionEffectivePipeline": "Érvényes pipeline:",
     "compressionDerivedOff": "kikapcsolva",
     "compressionDerivedRuns": "futtatás: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Tömörítendő sorok minimális száma",
         "description": "Egy homogén JSON-tömb minimális sorszáma a táblázatos tömörítés indításához. Alapértelmezett: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Rendszerüzenet megőrzése"
-      },
       "summarizerEnabled": {
         "label": "Összegző engedélyezése"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Az ennél rövidebb üzenetek nincsenek tömörítve. Alacsonyabb = nagyobb tömörítés.",
     "tooltipMinSavings": "Csak akkor tömörítse, ha legalább ennyi tokent megtakarít.",
     "ultraSettings": "Ultra beállítások",
-    "ultraSettingsDesc": "SLM-alapú szemantikai tömörítés",
-    "preview": {
-      "lite": "Válaszolj tömören. Őrizd meg a technikai kifejezéseket, kódokat, hibákat, URL-eket és azonosítókat.",
-      "full": "Válaszolj röviden és tömören. Őrizd meg a teljes technikai tartalmat.",
-      "ultra": "Válaszolj rendkívül tömören, általános technikai rövidítésekkel. Őrizd meg pontosan a szimbólumokat."
-    }
+    "ultraSettingsDesc": "SLM-alapú szemantikai tömörítés"
   },
   "translator": {
     "title": "Fordító",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Visszaállítás beváltása",
     "manageResetCredits": "Kreditek megtekintése",
     "viewResetCredits": "Visszaállítási kreditek megtekintése",
-    "resetCreditsModalTitle": "Codex visszaállítási kreditek",
+    "resetCreditsModalTitle": "Visszaállítási kreditek",
     "resetCreditsModalExplainer": "A kreditek lejárati idő szerint vannak rendezve. Az automatikus beváltás mindig a leghamarabb lejáró kreditet használja fel.",
     "resetCreditsLoadFailed": "Nem sikerült betölteni a visszaállítási krediteket",
     "resetCreditsDetailsUnavailable": "A kreditadatok jelenleg nem érhetők el. Frissítsen, és próbálja újra.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Nincs lejárati dátum",
     "redeemThisResetCredit": "Beváltás",
     "confirmRedeemResetCreditTitle": "Beváltja ezt a visszaállítási kreditet?",
-    "confirmRedeemResetCredit": "A beváltás azonnal visszaállítja a jogosult Codex használati időszakokat, és véglegesen felhasználja ezt a kreditet.",
+    "confirmRedeemResetCredit": "A beváltás azonnal visszaállítja a jogosult használati időszakokat, és véglegesen felhasználja ezt a kreditet.",
     "confirmRedeemResetCreditButton": "Kredit beváltása",
     "resetCreditRedeemed": "Visszaállítás beváltva",
     "resetCreditRedeemFailed": "Nem sikerült beváltani a visszaállítási kreditet",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "a proxy nem érhető el",
     "poolSetAsideKindIpQuota429": "IP-alapú sebességkorlát (429)",
     "poolSetAsideKindSlow": "lassú válaszok",
+    "poolSetAsideKindGeoBlocked": "régió blokkolva (403/451)",
     "poolSetAsideUntil": "Vissza a rotációba {endsAt}",
     "poolSetAsideRepeat": "Félretéve {count, plural, one {# alkalommal} other {# alkalommal}}",
     "poolUnknownAddress": "Ismeretlen cím",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Pozíciósorrend",
     "poolHealthRankingOff": "Állapot-rangsorolás kikapcsolva",
     "transportRate": "{rate}% átvitel",
+    "slowAbandoned": "{count} lassú elhagyás",
+    "clientAborted": "{count} kliens által megszakítva",
+    "slowAbandonedHint": "A fejlécek várakozási időkorlát után elhagyva, kizárva a szállítási sebességből",
     "previousSuccessRate": "Korábban {rate}% siker",
-    "upstreamRefusals": "{count} upstream-elutasítás",
     "connectionTestsCount": "{count} kapcsolati teszt",
-    "notMeasured": "Nem mért"
+    "notMeasured": "Nem mért",
+    "upstream4xx": "{count} upstream klienshiba",
+    "upstream5xx": "{count} upstream szerverhiba",
+    "uniformEgressLine": "{affected} a {exits} exit közül együtt meghibásodik a {provider} szolgáltatónál (utolsó {hours} órában) — nem exit-hiba"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inaktív",
     "dbOverrideCount": "{count} DB-felülbírálás",
     "searchPlaceholder": "Flag-ek keresése...",
+    "descriptionModeLabel": "Leírásnézet",
+    "descriptionModeHint": "Rámutatáskor: a kártyák kompaktak maradnak, és a leírás fölé mutatva megjelenik a teljes szöveg. Teljes szöveg: mindig a teljes leírás jelenik meg.",
+    "descriptionModeHover": "Rámutatáskor",
+    "descriptionModeFull": "Teljes szöveg",
     "categories": {
       "all": "Összes",
       "security": "Biztonság",

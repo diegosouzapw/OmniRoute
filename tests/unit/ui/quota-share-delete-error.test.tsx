@@ -20,7 +20,11 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+  // #14466 / #14807: PoolSchedulesCard and ProxyHealthCell now call useLocale().
+  useLocale: () => "en",
+}));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
 
 vi.mock("@/shared/components", () => ({
@@ -77,11 +81,13 @@ vi.mock(
 
 const fetchMock = vi.fn();
 vi.stubGlobal("fetch", fetchMock);
-vi.stubGlobal("confirm", vi.fn(() => true));
-
-const { default: QuotaSharePageClient } = await import(
-  "../../../src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient"
+vi.stubGlobal(
+  "confirm",
+  vi.fn(() => true)
 );
+
+const { default: QuotaSharePageClient } =
+  await import("../../../src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient");
 
 let container: HTMLDivElement | null = null;
 let root: ReturnType<typeof createRoot> | null = null;
@@ -159,7 +165,11 @@ describe("quota-share — deleting a pool", { timeout: 15000 }, () => {
   });
 
   it("shows nothing and still refreshes when the DELETE succeeds", async () => {
-    fetchMock.mockResolvedValue({ ok: true, status: 204, json: () => Promise.resolve({}) } as unknown as Response);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: () => Promise.resolve({}),
+    } as unknown as Response);
 
     await renderComponent();
     await clickDelete();
@@ -193,7 +203,11 @@ describe("quota-share — deleting a pool", { timeout: 15000 }, () => {
     await clickDelete();
     expect(document.body.innerHTML).toContain("removeFailed");
 
-    fetchMock.mockResolvedValue({ ok: true, status: 204, json: () => Promise.resolve({}) } as unknown as Response);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: () => Promise.resolve({}),
+    } as unknown as Response);
     await clickDelete();
     expect(document.body.innerHTML).not.toContain("removeFailed");
   });

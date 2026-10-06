@@ -208,30 +208,29 @@ ga-esi chịkọta nzere otu n'otu ebe. Ndozi ahụ na-eme ka threat model doo a
 
 ---
 
-## Profaịlụ build: `minimal`
+## Profaịlụ nrụpụta: `minimal`
 
-Maka ndị ọrụ chọrọ artifact dakọtara na Socket, jiri nke a mee build:
+Maka ndị ọrụ chọrọ artifakt dabara na Socket, jiri nke a rụpụta ya:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack `NormalModuleReplacementPlugin` na-eme alias modul anọ ka ha bụrụ stub:
+Webpack `NormalModuleReplacementPlugin` na-eji stọb dochie modul anọ:
 
-| Modul                                       | Stub                                             |
+| Modul                                       | Stọb                                             |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Stub ọ bụla na-export otu interface ahụ, mana function ọ bụla na-atụpụ
-`featureDisabledError(name)` n'oge runtime. Route ndị dabere na modul agbanyụrụ
-na-eweghachi HTTP 503 nwere ozi doro anya kama ịgbalite
-ụzọ code ahụ nwere mmetụta pụrụ iche.
+Stọb ọ bụla na-ebupụta otu interface ahụ, mana ọrụ ọ bụla na-atụpụ
+`featureDisabledError(name)` n'oge ọ na-arụ ọrụ. Ụzọ ndị dabere na modul
+agbanyụrụ na-eweghachi HTTP 503 yana ozi doro anya kama ịgbalite ụzọ
+koodu nwere mmetụta dị elu.
 
-Ezubere bundle sitere na ya ka e bipụta ya dịka `omniroute-secure`. Lee
-`docs/ops/PUBLISHING_SECURE.md` maka usoro mbipụta.
+Ezubere ngwugwu e nwetara ka e bipụta ya dịka `omniroute-secure`.
 
 ---
 

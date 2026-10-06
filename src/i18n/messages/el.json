@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Συμπίεση περιγραφής MCP",
     "mcpAccessibilityTitle": "Έξοδος προσβασιμότητας MCP",
     "compressionSettingsCavemanIntensity": "Ένταση Caveman",
-    "compressionSettingsCavemanOutputMode": "Λειτουργία εξόδου Caveman",
     "compressionSettingsOutputStyles": "Στυλ εξόδου",
     "compressionStylesTileTitle": "Στυλ εξόδου",
     "compressionSettingsOutputIntensity": "Ένταση εξόδου",
-    "compressionSettingsAutoClarityBypass": "Αυτόματη παράκαμψη σαφήνειας",
     "compressionEffectivePipeline": "Ενεργή αλυσίδα επεξεργασίας:",
     "compressionDerivedOff": "ανενεργό",
     "compressionDerivedRuns": "εκτελέσεις: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Ελάχιστες γραμμές για συμπαγοποίηση",
         "description": "Ελάχιστος αριθμός γραμμών σε έναν ομοιογενή πίνακα JSON που απαιτείται για την ενεργοποίηση της συμπαγοποίησης σε μορφή πίνακα. Προεπιλογή: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Διατήρηση του system prompt"
-      },
       "summarizerEnabled": {
         "label": "Ενεργοποίηση σύνοψης"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Τα μηνύματα που είναι μικρότερα από αυτό το μήκος δεν συμπιέζονται. Χαμηλότερο = περισσότερη συμπίεση.",
     "tooltipMinSavings": "Συμπίεση μόνο αν εξοικονομείται τουλάχιστον αυτός ο αριθμός tokens.",
     "ultraSettings": "Ultra ρυθμίσεις",
-    "ultraSettingsDesc": "Σημασιολογική συμπίεση με τεχνολογία SLM",
-    "preview": {
-      "lite": "Απαντήστε συνοπτικά. Διατηρήστε τεχνικούς όρους, κώδικα, σφάλματα, URLs και αναγνωριστικά.",
-      "full": "Απαντήστε σύντομα και περιεκτικά. Διατηρήστε ακέραιο όλο το τεχνικό περιεχόμενο.",
-      "ultra": "Απαντήστε εξαιρετικά συνοπτικά με κοινές τεχνικές συντομογραφίες. Διατηρήστε τα ακριβή σύμβολα."
-    }
+    "ultraSettingsDesc": "Σημασιολογική συμπίεση με τεχνολογία SLM"
   },
   "translator": {
     "title": "Μεταφραστής",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "ο διακομιστής μεσολάβησης δεν είναι προσβάσιμος",
     "poolSetAsideKindIpQuota429": "όριο ρυθμού ανά IP (429)",
     "poolSetAsideKindSlow": "αργές απαντήσεις",
+    "poolSetAsideKindGeoBlocked": "αποκλεισμός περιοχής (403/451)",
     "poolSetAsideUntil": "Πίσω σε rotation {endsAt}",
     "poolSetAsideRepeat": "Στην άκρη {count, plural, one {# φορά} other {# φορές}}",
     "poolUnknownAddress": "Άγνωστη διεύθυνση",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Σειρά θέσης",
     "poolHealthRankingOff": "Η κατάταξη υγείας απενεργοποιημένη",
     "transportRate": "{rate} % μεταφορά",
+    "slowAbandoned": "{count} αργές εγκαταλείψεις",
+    "clientAborted": "{count} διακοπές πελάτη",
+    "slowAbandonedHint": "Εγκαταλείφθηκε μετά το όριο αναμονής επικεφαλίδων, εξαιρείται από το ποσοστό μεταφοράς",
     "previousSuccessRate": "Προηγουμένως {rate} % επιτυχία",
-    "upstreamRefusals": "{count} απορρίψεις upstream",
     "connectionTestsCount": "{count} δοκιμές σύνδεσης",
-    "notMeasured": "Δεν μετρήθηκε"
+    "notMeasured": "Δεν μετρήθηκε",
+    "upstream4xx": "{count} σφάλματα πελάτη πάνω από",
+    "upstream5xx": "{count} σφάλματα διακομιστή πάνω από",
+    "uniformEgressLine": "{affected} από {exits} εξόδους αποτυγχάνουν μαζί στο {provider} (τις τελευταίες {hours} ώρες) — όχι πρόβλημα εξόδου"
   },
   "playground": {
     "title": "Περιβάλλον δοκιμών μοντέλων",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} ανενεργές",
     "dbOverrideCount": "{count} παρακάμψεις ΒΔ",
     "searchPlaceholder": "Αναζήτηση σημαιών...",
+    "descriptionModeLabel": "Προβολή περιγραφής",
+    "descriptionModeHint": "Κατά την αιώρηση: οι κάρτες παραμένουν συμπαγείς και η αιώρηση πάνω από μια περιγραφή εμφανίζει το πλήρες κείμενο. Πλήρες κείμενο: εμφανίζεται πάντα ολόκληρη η περιγραφή.",
+    "descriptionModeHover": "Κατά την αιώρηση",
+    "descriptionModeFull": "Πλήρες κείμενο",
     "categories": {
       "all": "Όλα",
       "security": "Ασφάλεια",

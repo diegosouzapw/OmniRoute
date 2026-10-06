@@ -11,24 +11,11 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitizatio
 import { sanitizeTimingMs } from "@omniroute/open-sse/utils/timingMs.ts";
 import { getDbInstance, isCloud, isBuildPhase } from "./db/core";
 import { ensureProxyLogsColumns } from "./db/schemaColumns";
+import { normalizeProxyHostForLog } from "./proxyLogHost";
 
-/**
- * Canonical host normalization for proxy log writes and (host, port) lookups:
- * trim, strip exactly one pair of surrounding brackets from IPv6 literals
- * ("[2001:db8::1]"), re-trim, lowercase. Anything that is not a non-empty
- * string normalizes to null so readers can fall back to today's behavior.
- */
-export function normalizeProxyHostForLog(host: unknown): string | null {
-  if (typeof host !== "string") return null;
-  const trimmed = host.trim();
-  if (!trimmed) return null;
-  const unbracketed =
-    trimmed.startsWith("[") && trimmed.endsWith("]") && trimmed.length > 2
-      ? trimmed.slice(1, -1).trim()
-      : trimmed;
-  if (!unbracketed) return null;
-  return unbracketed.toLowerCase();
-}
+// Re-exported for existing callers; the helper lives in a zero-import leaf so DB modules
+// can use it without loading this module (which hydrates from SQLite at import time).
+export { normalizeProxyHostForLog };
 
 const shouldPersistToDisk = !isCloud && !isBuildPhase;
 

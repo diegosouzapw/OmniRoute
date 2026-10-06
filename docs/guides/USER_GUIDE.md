@@ -1,7 +1,7 @@
 ---
 title: "User Guide"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.52
+lastUpdated: 2026-10-05
 ---
 
 # User Guide
@@ -584,28 +584,28 @@ post_install() {
 
 ### Environment Variables
 
-| Variable                                | Default                              | Description                                                                                               |
-| --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                                                             |
-| `INITIAL_PASSWORD`                      | `CHANGEME`                           | First login password                                                                                      |
-| `DATA_DIR`                              | `~/.omniroute`                       | Data directory (db, usage, logs)                                                                          |
-| `PORT`                                  | framework default                    | Service port (`20128` in examples)                                                                        |
-| `HOSTNAME`                              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
-| `NODE_ENV`                              | runtime default                      | Set `production` for deploy                                                                               |
-| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | Public base URL surfaced to the dashboard and exposed to the server (replaces legacy `BASE_URL`)          |
-| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud sync endpoint base URL (replaces legacy `CLOUD_URL`)                                                |
-| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
-| `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
-| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow authenticated dashboard users to reveal full stored API key values on demand                        |
-| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync |
-| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                |
-| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
-| `AUTH_COOKIE_SECURE`                    | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                                   |
-| `CLOUDFLARED_BIN`                       | unset                                | Use an existing `cloudflared` binary instead of managed download                                          |
-| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | Transport for managed Quick Tunnels (`http2`, `quic`, or `auto`)                                          |
-| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js heap limit in MB                                                                                  |
-| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Max prompt cache entries                                                                                  |
-| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Max semantic cache entries                                                                                |
+| Variable                                | Default                  | Description                                                                                                                            |
+| --------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`                            | _(auto-generated)_       | JWT signing secret — auto-generated on first run and persisted to `server.env`; set it explicitly when the data directory is ephemeral |
+| `INITIAL_PASSWORD`                      | _(unset)_                | First login password. npm/source installs start with `CHANGEME`: replace it. Unset: onboarding wizard                                  |
+| `DATA_DIR`                              | `~/.omniroute`           | Data directory (db, usage, logs)                                                                                                       |
+| `PORT`                                  | framework default        | Service port (`20128` in examples)                                                                                                     |
+| `HOSTNAME`                              | framework default        | Bind host (Docker defaults to `0.0.0.0`)                                                                                               |
+| `NODE_ENV`                              | runtime default          | Set `production` for deploy                                                                                                            |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128` | Public base URL surfaced to the dashboard and exposed to the server (replaces legacy `BASE_URL`)                                       |
+| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`  | Cloud sync endpoint base URL (replaces legacy `CLOUD_URL`)                                                                             |
+| `API_KEY_SECRET`                        | _(auto-generated)_       | HMAC secret for generated API keys — auto-generated on first run and persisted to `server.env`                                         |
+| `REQUIRE_API_KEY`                       | `false`                  | Enforce Bearer API key on `/v1/*`                                                                                                      |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                  | Allow authenticated dashboard users to reveal full stored API key values on demand                                                     |
+| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                     | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync                              |
+| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                  | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                                             |
+| `APP_LOG_TO_FILE`                       | `true`                   | Enables application and audit log output to disk                                                                                       |
+| `AUTH_COOKIE_SECURE`                    | `false`                  | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                                                                |
+| `CLOUDFLARED_BIN`                       | unset                    | Use an existing `cloudflared` binary instead of managed download                                                                       |
+| `CLOUDFLARED_PROTOCOL`                  | `http2`                  | Transport for managed Quick Tunnels (`http2`, `quic`, or `auto`)                                                                       |
+| `OMNIROUTE_MEMORY_MB`                   | `512`                    | Node.js heap limit in MB                                                                                                               |
+| `PROMPT_CACHE_MAX_SIZE`                 | `50`                     | Max prompt cache entries                                                                                                               |
+| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                    | Max semantic cache entries                                                                                                             |
 
 For the full environment variable reference, see the [README](../README.md).
 

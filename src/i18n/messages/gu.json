@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP વર્ણન સંકોચન",
     "mcpAccessibilityTitle": "MCP ઍક્સેસિબિલિટી આઉટપુટ",
     "compressionSettingsCavemanIntensity": "કેવમેનની તીવ્રતા",
-    "compressionSettingsCavemanOutputMode": "કેવમેન આઉટપુટ મોડ",
     "compressionSettingsOutputStyles": "આઉટપુટ સ્ટાઇલ્સ",
     "compressionStylesTileTitle": "આઉટપુટ સ્ટાઇલ્સ",
     "compressionSettingsOutputIntensity": "આઉટપુટ તીવ્રતા",
-    "compressionSettingsAutoClarityBypass": "સ્વતઃ સ્પષ્ટતા બાયપાસ",
     "compressionEffectivePipeline": "અસરકારક પાઇપલાઇન:",
     "compressionDerivedOff": "બંધ",
     "compressionDerivedRuns": "રન: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "કમ્પેક્ટ કરવા માટે ન્યૂનતમ પંક્તિઓ",
         "description": "ટેબ્યુલર કમ્પેક્શન ટ્રિગર કરવા માટે સજાતીય JSON એરેમાં જરૂરી ન્યૂનતમ પંક્તિઓ. ડિફોલ્ટ: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "સિસ્ટમ પ્રોમ્પ્ટ સાચવો"
-      },
       "summarizerEnabled": {
         "label": "સમરાઇઝર સક્ષમ કરો"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "આના કરતાં ટૂંકા સંદેશાઓ સંકુચિત નથી. લોઅર = વધુ સંકોચન.",
     "tooltipMinSavings": "માત્ર સંકુચિત કરો જો તે ઓછામાં ઓછા આટલા બધા ટોકન્સ બચાવે.",
     "ultraSettings": "અલ્ટ્રા સેટિંગ્સ",
-    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન",
-    "preview": {
-      "lite": "સંક્ષિપ્ત જવાબ આપો. તકનીકી શબ્દો, કોડ, ભૂલો, URLs અને ઓળખકર્તાઓ જાળવી રાખો.",
-      "full": "ટૂંકો અને સંક્ષિપ્ત જવાબ આપો. તમામ તકનીકી સામગ્રી જાળવી રાખો.",
-      "ultra": "સામાન્ય તકનીકી સંક્ષેપો સાથે અત્યંત સંક્ષિપ્ત જવાબ આપો. ચોક્કસ પ્રતીકો જાળવો."
-    }
+    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન"
   },
   "translator": {
     "title": "અનુવાદક",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "પ્રોક્સી સુધી પહોંચી શકાતું નથી",
     "poolSetAsideKindIpQuota429": "IP દર મર્યાદા (429)",
     "poolSetAsideKindSlow": "ધીમા પ્રતિસાદો",
+    "poolSetAsideKindGeoBlocked": "પ્રદેશ અવરોધિત (403/451)",
     "poolSetAsideUntil": "રોટેશનમાં પાછા {endsAt}",
     "poolSetAsideRepeat": "બાજુએ રાખેલ {count, plural, one {# વખત} other {# વખત}}",
     "poolUnknownAddress": "અજ્ઞાત સરનામું",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "સ્થાન ક્રમ",
     "poolHealthRankingOff": "આરોગ્ય રેન્કિંગ બંધ",
     "transportRate": "{rate}% ટ્રાન્સપોર્ટ",
+    "slowAbandoned": "{count} ધીમી છોડી દેવાની ઘટનાઓ",
+    "clientAborted": "{count} ક્લાયન્ટ દ્વારા રદ કરવામાં આવેલી ઘટનાઓ",
+    "slowAbandonedHint": "હેડર્સની રાહ જોવાની સીમા પછી છોડી દેવામાં આવી, ટ્રાન્સપોર્ટ રેટમાંથી બાકાત કરવામાં આવી",
     "previousSuccessRate": "અગાઉ {rate}% સફળતા",
-    "upstreamRefusals": "{count} અપસ્ટ્રીમ અસ્વીકાર",
     "connectionTestsCount": "{count} કનેક્શન પરીક્ષણો",
-    "notMeasured": "માપેલ નથી"
+    "notMeasured": "માપેલ નથી",
+    "upstream4xx": "{count} અપસ્ટ્રીમ ક્લાયન્ટ ત્રુટિઓ",
+    "upstream5xx": "{count} અપસ્ટ્રીમ સર્વર ત્રુટિઓ",
+    "uniformEgressLine": "{affected} માંથી {exits} એક્સિટ્સ એકસાથે {provider} પર નિષ્ફળ થાય છે (છેલ્લા {hours} કલાક) — એ એક્સિટનો સમસ્યા નથી"
   },
   "playground": {
     "title": "મોડેલ પ્લેગ્રાઉન્ડ",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} નિષ્ક્રિય",
     "dbOverrideCount": "{count} DB ઓવરરાઇડ્સ",
     "searchPlaceholder": "ફ્લેગ્સ શોધો...",
+    "descriptionModeLabel": "વર્ણન દૃશ્ય",
+    "descriptionModeHint": "હોવર પર: કાર્ડ્સ સંક્ષિપ્ત રહે છે અને વર્ણન પર હોવર કરવાથી સંપૂર્ણ લખાણ દેખાય છે. સંપૂર્ણ લખાણ: હંમેશા સંપૂર્ણ વર્ણન બતાવો.",
+    "descriptionModeHover": "હોવર પર",
+    "descriptionModeFull": "સંપૂર્ણ લખાણ",
     "categories": {
       "all": "બધા",
       "security": "સુરક્ષા",

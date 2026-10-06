@@ -1,0 +1,1 @@
+- **fix(proxies):** Share the set-aside store across duplicated server module copies, so a `connection reset` or `429` recorded through one copy keeps that egress set aside for every reader ([#15316](https://github.com/diegosouzapw/OmniRoute/pull/15316)) — thanks @maxmad64bis

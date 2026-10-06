@@ -17,59 +17,61 @@ Ang OmniRoute ay may pipeline ng awtorisasyon na may kamalayan sa ruta na nagbab
 
 ### 1. API Key (Bearer)
 
-Ginagamit para sa mga client API na compatible sa OpenAI/Anthropic/Gemini at sa ilang management route kapag may `manage` scope ang key.
+Ginagamit para sa mga client API na compatible sa OpenAI/Anthropic/Gemini at ilang management route kapag may scope na `manage` ang key.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Bine-validate ng `isValidApiKey()` / `extractApiKey()` sa `src/sse/services/auth.ts` at muling ine-export sa pamamagitan ng `src/shared/utils/apiAuth.ts`. Tinatanggap din ng validator ang mga env var na `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` bilang mga persistent passthrough key (isyu #1350).
+Bine-validate ng `isValidApiKey()` / `extractApiKey()` sa `src/sse/services/auth.ts` at muling ini-export sa pamamagitan ng `src/shared/utils/apiAuth.ts`. Tinatanggap din ng validator ang mga env var na `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` bilang mga persistent passthrough key (isyu #1350).
 
 ### 2. Dashboard Session (auth_token cookie)
 
-Para sa mga pahina ng dashboard at mga operasyong pang-admin.
+Para sa mga dashboard page at admin operation.
 
 ```
 Cookie: auth_token=<JWT na nilagdaan gamit ang JWT_SECRET>
 ```
 
-Ang isang cookie ay maituturing lamang na session kapag napatunayan ang JWT **at** naglalaman ito ng `authenticated: true`
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Ang bawat
-gumagamit ng cookie (route guard, pag-refresh ng authz pipeline, WebSocket handshake, live
+Session lamang ang isang cookie kapag na-verify ang JWT **at** taglay nito ang `authenticated: true`
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Bawat
+gumagamit ng cookie (dashboard route guard (`isDashboardSessionAuthenticated()`), pag-refresh ng authz pipeline, WebSocket handshake, live
 server, `/api/settings/require-login`, `/api/auth/status`) ay dumaraan sa helper na iyon.
-May iba pang JWT na nilagdaan gamit ang `JWT_SECRET` — ang Cursor CLI passthrough ay lumilikha ng
-mga token na `iss "omniroute" / aud "cursor-cli"` para sa mga may hawak ng key — at hindi kailanman
-itinuturing na mga session (#13298).
+May iba pang JWT na nilagdaan gamit ang `JWT_SECRET` — ang Cursor CLI passthrough ay gumagawa ng
+mga token na `iss "omniroute" / aud "cursor-cli"` para sa mga may hawak ng key — at hindi kailanman itinuturing na mga session
+(#13298).
 
-Bine-verify ng `isDashboardSessionAuthenticated()` sa `src/shared/utils/apiAuth.ts`. Awtomatikong nire-refresh ng pipeline ang JWT kapag wala pang 7 araw ang natitira sa 30-araw nitong bisa.
+Bine-verify ng `isDashboardSessionAuthenticated()` sa `src/shared/utils/apiAuth.ts`. Awtomatikong nire-refresh ng pipeline ang JWT kapag wala pang 7 araw ang natitira sa 30-araw na bisa nito.
 
-Tumatanggap ang ilang management route ng **alinman** sa dalawang mode: cookie O `Bearer <key>` kapag may `manage` (o `admin`) scope ang API key. Ito ang nagbibigay-daan sa workflow na "nako-configure sa pamamagitan ng mga API call" na idinagdag sa v3.8.
+Maaari ring matapos ang isang session bago makumpleto ang 30 araw nito, dahil ang bawat tagagawa ng token ay dumaraan sa `mintDashboardSessionToken` (may issue time na `iat` at id na `jti`) at sinusuri ng verifier ang dalawang setting: `sessionsValidAfter`, na itinatakda kapag binago ang password upang hindi na ma-verify ang lahat ng session na inilabas bago nito (makakatanggap ng bagong cookie ang browser na ginamit sa pagpapalit ng password), at `revokedDashboardSessions`, kung saan idinaragdag ng `POST /api/auth/logout` ang `jti` ng session na nag-sign out. Ang mga session na ginawa ng mas lumang release ay walang alinman sa mga claim na ito at mananatiling valid hanggang sa unang pagpapalit ng password. Kung hindi mabasa ang mga setting, hindi pagkakatiwalaan ang session.
+
+Tinatanggap ng ilang management route ang **alinman** sa dalawang mode: cookie O `Bearer <key>` kapag may scope na `manage` (o `admin`) ang API key. Ito ang nagbibigay-daan sa workflow na "nako-configure sa pamamagitan ng mga API call" na idinagdag sa v3.8.
 
 #### Opsyonal na OIDC login gate (#6973)
 
-Sinusuportahan din ng dashboard admin login ang isang **opt-in** na daloy ng OIDC (OpenID Connect)
+Sinusuportahan din ng dashboard admin login ang isang **opt-in** na OIDC (OpenID Connect) flow
 kasabay ng default na password login — hindi kailanman inaalis ang password login, dinaragdagan
 lamang ito:
 
-- Naka-disable maliban kung `settings.oidcEnabled === true` **at** naka-configure ang lahat ng
-  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` (Settings → Auth).
-  Kung hindi, nagbabalik ang `GET /api/auth/oidc/login` ng `400`.
+- Naka-disable maliban kung `settings.oidcEnabled === true` **at** naka-configure ang lahat ng `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` (Settings → Auth).
+  Kung hindi, magbabalik ang `GET /api/auth/oidc/login` ng `400`.
 - Tinutuklas ng `GET /api/auth/oidc/login` ang `authorization_endpoint` mula sa
-  `/.well-known/openid-configuration` ng issuer (bumabalik sa
-  `<issuer>/authorize` bilang fallback), binubuo ang redirect URI mula sa papasok na kahilingan
+  `/.well-known/openid-configuration` ng issuer (gagamitin ang
+  `<issuer>/authorize` bilang fallback), binubuo ang redirect URI mula sa papasok na request
   (isinasaalang-alang ang `x-forwarded-proto`), at nagre-redirect sa IdP gamit ang random na `state`
   na nakaimbak sa isang `httpOnly` na `oidc_state` cookie.
 - Bine-validate ng `GET /api/auth/oidc/callback` ang `state`, ipinagpapalit ang authorization
   code, at bine-verify ang signature ng ID token sa pamamagitan ng JWKS ng issuer
-  (`createRemoteJWKSet` ng `jose`, naka-cache bawat JWKS URI) na may mga pagsusuri sa `issuer`/`audience`.
-  Itinutugma ng isang opsyonal na allowlist na `oidcAllowedSubjects` ang `sub` claim
-  ng token o ang `email` claim nito — kinikilala lamang ang email claim kapag
-  `email_verified === true`, kaya hindi kailanman makalalampas sa gate ang isang hindi na-verify
-  na email sa IdP.
-- Kapag matagumpay, lumilikha ito ng **eksaktong kaparehong** 30-araw na `auth_token` JWT na ibinibigay
-  ng password login (`src/app/api/auth/login/route.ts`), kaya nananatiling hindi nagbabago ang iba pang
-  bahagi ng dashboard session pipeline (awtomatikong pag-refresh, mga cookie flag) —
-  pinapalitan lamang ng OIDC kung paano nalilikha ang cookie, hindi kung ano ang mga pahintulot na ibinibigay nito.
+  (`createRemoteJWKSet` ng `jose`, naka-cache ayon sa JWKS URI) gamit ang mga check sa `issuer`/`audience`.
+  Itinutugma ng opsyonal na allowlist na `oidcAllowedSubjects` ang
+  `sub` claim o `email` claim ng token — kikilalanin lamang ang email claim kapag
+  `email_verified === true`, kaya hindi kailanman makakalampas sa
+  gate ang isang hindi na-verify na email sa IdP.
+- Kapag matagumpay, gumagawa ito ng **eksaktong kaparehong** 30-araw na `auth_token` JWT na inilalabas ng password
+  login (`src/app/api/auth/login/route.ts`), kaya hindi nagbabago ang natitirang bahagi ng
+  dashboard session pipeline (auto-refresh, mga cookie flag) —
+  pinapalitan lamang ng OIDC ang paraan ng paggawa ng cookie, hindi ang mga pahintulot na ibinibigay nito.
 
 ## Mga Klase ng Route
 

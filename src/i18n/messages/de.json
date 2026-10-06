@@ -5636,7 +5636,7 @@
     "accountName": "Kontoname",
     "email": "E-Mail",
     "healthCheckMinutes": "Gesundheitscheck (Min.)",
-    "healthCheckHint": "Proaktives Token-Aktualisierungsintervall. 0 = deaktiviert.",
+    "healthCheckHint": "Überschreibung für diese Verbindung. Leer = globalen Standard verwenden (Einstellungen › Resilienz). 0 = diese Verbindung nie prüfen. Maximal 1440 (24 h).",
     "deselectAllModels": "Auswahl aufheben",
     "modelsActiveCount": "{active}/{total} aktiv",
     "noModelsMatch": "Keine Modelle entsprechen „{filter}“",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Holen Sie sich Ihren API-Schlüssel unter https://www.bluesminds.com – OpenAI-kompatibler Endpunkt unter https://api.bluesminds.com/v1 mit kostenlosem täglichen Guthaben. VIP-Modelle (Claude Opus 4.5, Gemini 2.5 Pro) verbrauchen pi-Guthaben.",
       "byteplus": "BytePlus ModelArk mit einem API-Schlüssel verbinden.",
       "bytez": "1 $ kostenloses Guthaben, wird alle 4 Wochen erneuert",
-      "cerebras": "Kostenlose Testversion: 1 Mio. Token/Tag, 30K TPM, 5 RPM – keine Kreditkarte.",
+      "cerebras": "Einmaliges Startguthaben von 5 $ (30 Tage gültig); eine Zahlungsmethode ist erforderlich. Keine wiederkehrende kostenlose Stufe.",
       "charm-hyper": "Erstellen Sie einen API-Schlüssel unter https://hyper.charm.land und fügen Sie ihn hier als Bearer-Token ein.",
       "chutes": "Bearer-API-Schlüssel für das OpenAI-kompatible Gateway von Chutes.",
       "clarifai": "Clarifai stellt OpenAI-kompatiblen Chat, Antworten und /models unter /v2/ext/openai/v1 bereit. Öffentliche/Community-Modelle erfordern in der Regel ein PAT; App-bezogene Schlüssel funktionieren nur für Ressourcen innerhalb dieser App.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Der gesamte Datenverkehr des Anbieters läuft über den Proxy-Pool dieses Abonnements.",
       "ruleModeDesc": "Nur der Datenverkehr ausgewählter Anbieter wird über den Proxy geleitet. der Rest verbindet sich direkt.",
       "localCoreEndpoint": "Lokaler Core-SOCKS5/HTTP-Endpunkt (optional)",
-      "localCoreEndpointPlaceholder": "Socken5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Akzeptiert nur 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS erfordern einen lokalen Sing-Box/Clash-Kern).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Einer pro Zeile. Akzeptiert nur 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS erfordern einen lokalen sing-box/clash-Kern).",
       "routeByProvider": "Route nach Anbieter (Mehrfachauswahl)",
       "loadingProviders": "Anbieterliste wird geladen…",
       "autoRefreshInterval": "Automatisches Aktualisierungsintervall (Minuten)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Komprimierung der MCP-Beschreibung",
     "mcpAccessibilityTitle": "MCP-Barrierefreiheitsausgabe",
     "compressionSettingsCavemanIntensity": "Höhlenmensch-Intensität",
-    "compressionSettingsCavemanOutputMode": "Caveman-Ausgabemodus",
     "compressionSettingsOutputStyles": "Ausgabestile",
     "compressionStylesTileTitle": "Ausgabestile",
     "compressionSettingsOutputIntensity": "Ausgangsintensität",
-    "compressionSettingsAutoClarityBypass": "Umgehung der automatischen Klarheit",
     "compressionEffectivePipeline": "Effektive Pipeline:",
     "compressionDerivedOff": "aus",
     "compressionDerivedRuns": "Ausführungen: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimale Zeilen zum Komprimieren",
         "description": "Mindestanzahl an Zeilen in einem homogenen JSON-Array, die erforderlich ist, um eine tabellarische Komprimierung auszulösen. Standard: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "System-Prompt beibehalten"
-      },
       "summarizerEnabled": {
         "label": "Summarizer aktivieren"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Nachrichten, die kürzer sind, werden nicht komprimiert. Niedriger = mehr Komprimierung.",
     "tooltipMinSavings": "Komprimieren Sie nur, wenn dadurch mindestens so viele Token eingespart werden.",
     "ultraSettings": "Ultra-Einstellungen",
-    "ultraSettingsDesc": "SLM-gestützte semantische Komprimierung",
-    "preview": {
-      "lite": "Antworte prägnant. Behalte technische Begriffe, Code, Fehler, URLs und Bezeichner bei.",
-      "full": "Antworte knapp und kompakt. Behalte alle technischen Inhalte bei.",
-      "ultra": "Antworte extrem knapp und verwende gängige technische Abkürzungen. Behalte alle Symbole exakt bei."
-    }
+    "ultraSettingsDesc": "SLM-gestützte semantische Komprimierung"
   },
   "translator": {
     "title": "Übersetzer",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Reset einlösen",
     "manageResetCredits": "Credits anzeigen",
     "viewResetCredits": "Reset-Credits anzeigen",
-    "resetCreditsModalTitle": "Codex-Reset-Credits",
+    "resetCreditsModalTitle": "Reset-Credits",
     "resetCreditsModalExplainer": "Die Credits sind nach Ablaufdatum sortiert. Bei der automatischen Einlösung wird immer der Credit verwendet, der als Nächstes abläuft.",
     "resetCreditsLoadFailed": "Reset-Credits konnten nicht geladen werden",
     "resetCreditsDetailsUnavailable": "Die Details der Credits sind derzeit nicht verfügbar. Bitte aktualisieren und erneut versuchen.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Kein Ablaufdatum",
     "redeemThisResetCredit": "Einlösen",
     "confirmRedeemResetCreditTitle": "Diesen Reset-Credit einlösen?",
-    "confirmRedeemResetCredit": "Durch das Einlösen werden die berechtigten Codex-Nutzungsfenster sofort zurückgesetzt und dieser Credit dauerhaft verbraucht.",
+    "confirmRedeemResetCredit": "Durch das Einlösen werden die berechtigten Nutzungsfenster sofort zurückgesetzt und dieser Credit dauerhaft verbraucht.",
     "confirmRedeemResetCreditButton": "Credit einlösen",
     "resetCreditRedeemed": "Reset eingelöst",
     "resetCreditRedeemFailed": "Reset-Credit konnte nicht eingelöst werden",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "Proxy nicht erreichbar",
     "poolSetAsideKindIpQuota429": "IP-Ratenlimit (429)",
     "poolSetAsideKindSlow": "langsame Antworten",
+    "poolSetAsideKindGeoBlocked": "regionen-blockiert (403/451)",
     "poolSetAsideUntil": "Zurück in Rotation {endsAt}",
     "poolSetAsideRepeat": "Zurückgestellt {count, plural, one {# Mal} other {# Mal}}",
     "poolUnknownAddress": "Unbekannte Adresse",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Positionsreihenfolge",
     "poolHealthRankingOff": "Health-Ranking aus",
     "transportRate": "{rate} % Transport",
+    "slowAbandoned": "{count} langsame Abbrüche",
+    "clientAborted": "{count} Client-Abbrüche",
+    "slowAbandonedHint": "Nach Erreichen der Wartezeit‑Grenze für Header abgebrochen, aus der Transportrate ausgeschlossen",
     "previousSuccessRate": "Zuvor {rate} % Erfolg",
-    "upstreamRefusals": "{count} Upstream-Ablehnungen",
     "connectionTestsCount": "{count} Verbindungstests",
-    "notMeasured": "Nicht gemessen"
+    "notMeasured": "Nicht gemessen",
+    "upstream4xx": "{count} Upstream-Client-Fehler",
+    "upstream5xx": "{count} Upstream-Server-Fehler",
+    "uniformEgressLine": "{affected} von {exits} Ausgängen fallen gemeinsam auf {provider} aus (letzte {hours}h) — kein Ausgangsproblem"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inaktiv",
     "dbOverrideCount": "{count} DB-Überschreibungen",
     "searchPlaceholder": "Flags suchen...",
+    "descriptionModeLabel": "Beschreibungsansicht",
+    "descriptionModeHint": "Beim Darüberfahren: Karten bleiben kompakt, und beim Darüberfahren über eine Beschreibung wird der vollständige Text angezeigt. Vollständiger Text: Zeigt immer die komplette Beschreibung an.",
+    "descriptionModeHover": "Beim Darüberfahren",
+    "descriptionModeFull": "Vollständiger Text",
     "categories": {
       "all": "Alle",
       "security": "Sicherheit",

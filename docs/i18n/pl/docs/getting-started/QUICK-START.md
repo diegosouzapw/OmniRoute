@@ -1,6 +1,10 @@
-# Szybki start: uruchom OmniRoute w 3 minuty
+# Quick Start: Get OmniRoute Running in 3 Minutes (Polski)
 
-> **TL;DR**: Zainstaluj → Podłącz darmowego providera → Skieruj IDE na OmniRoute. Gotowe.
+🌐 **Languages:** 🇺🇸 [English](../../../../getting-started/QUICK-START.md) · 🇪🇹 [am](../../../am/docs/getting-started/QUICK-START.md) · 🇸🇦 [ar](../../../ar/docs/getting-started/QUICK-START.md) · 🇦🇿 [az](../../../az/docs/getting-started/QUICK-START.md) · 🇧🇬 [bg](../../../bg/docs/getting-started/QUICK-START.md) · 🇧🇩 [bn](../../../bn/docs/getting-started/QUICK-START.md) · 🇧🇦 [bs](../../../bs/docs/getting-started/QUICK-START.md) · 🇨🇿 [cs](../../../cs/docs/getting-started/QUICK-START.md) · 🇩🇰 [da](../../../da/docs/getting-started/QUICK-START.md) · 🇩🇪 [de](../../../de/docs/getting-started/QUICK-START.md) · 🇬🇷 [el](../../../el/docs/getting-started/QUICK-START.md) · 🇪🇸 [es](../../../es/docs/getting-started/QUICK-START.md) · 🇪🇪 [et](../../../et/docs/getting-started/QUICK-START.md) · 🇮🇷 [fa](../../../fa/docs/getting-started/QUICK-START.md) · 🇫🇮 [fi](../../../fi/docs/getting-started/QUICK-START.md) · 🇫🇷 [fr](../../../fr/docs/getting-started/QUICK-START.md) · 🇮🇪 [ga](../../../ga/docs/getting-started/QUICK-START.md) · 🇮🇳 [gu](../../../gu/docs/getting-started/QUICK-START.md) · 🇳🇬 [ha](../../../ha/docs/getting-started/QUICK-START.md) · 🇮🇱 [he](../../../he/docs/getting-started/QUICK-START.md) · 🇮🇳 [hi](../../../hi/docs/getting-started/QUICK-START.md) · 🇭🇷 [hr](../../../hr/docs/getting-started/QUICK-START.md) · 🇭🇺 [hu](../../../hu/docs/getting-started/QUICK-START.md) · 🇦🇲 [hy](../../../hy/docs/getting-started/QUICK-START.md) · 🇮🇩 [id](../../../id/docs/getting-started/QUICK-START.md) · 🇳🇬 [ig](../../../ig/docs/getting-started/QUICK-START.md) · 🇮🇹 [it](../../../it/docs/getting-started/QUICK-START.md) · 🇯🇵 [ja](../../../ja/docs/getting-started/QUICK-START.md) · 🇬🇪 [ka](../../../ka/docs/getting-started/QUICK-START.md) · 🇰🇭 [km](../../../km/docs/getting-started/QUICK-START.md) · 🇮🇳 [kn](../../../kn/docs/getting-started/QUICK-START.md) · 🇰🇷 [ko](../../../ko/docs/getting-started/QUICK-START.md) · 🇱🇹 [lt](../../../lt/docs/getting-started/QUICK-START.md) · 🇱🇻 [lv](../../../lv/docs/getting-started/QUICK-START.md) · 🇮🇳 [ml](../../../ml/docs/getting-started/QUICK-START.md) · 🇮🇳 [mr](../../../mr/docs/getting-started/QUICK-START.md) · 🇲🇾 [ms](../../../ms/docs/getting-started/QUICK-START.md) · 🇲🇹 [mt](../../../mt/docs/getting-started/QUICK-START.md) · 🇲🇲 [my](../../../my/docs/getting-started/QUICK-START.md) · 🇳🇵 [ne](../../../ne/docs/getting-started/QUICK-START.md) · 🇳🇱 [nl](../../../nl/docs/getting-started/QUICK-START.md) · 🇳🇴 [no](../../../no/docs/getting-started/QUICK-START.md) · 🇮🇳 [or](../../../or/docs/getting-started/QUICK-START.md) · 🇮🇳 [pa](../../../pa/docs/getting-started/QUICK-START.md) · 🇵🇭 [phi](../../../phi/docs/getting-started/QUICK-START.md) · 🇵🇹 [pt](../../../pt/docs/getting-started/QUICK-START.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/getting-started/QUICK-START.md) · 🇷🇴 [ro](../../../ro/docs/getting-started/QUICK-START.md) · 🇷🇺 [ru](../../../ru/docs/getting-started/QUICK-START.md) · 🇱🇰 [si](../../../si/docs/getting-started/QUICK-START.md) · 🇸🇰 [sk](../../../sk/docs/getting-started/QUICK-START.md) · 🇸🇮 [sl](../../../sl/docs/getting-started/QUICK-START.md) · 🇷🇸 [sr](../../../sr/docs/getting-started/QUICK-START.md) · 🇸🇪 [sv](../../../sv/docs/getting-started/QUICK-START.md) · 🇰🇪 [sw](../../../sw/docs/getting-started/QUICK-START.md) · 🇮🇳 [ta](../../../ta/docs/getting-started/QUICK-START.md) · 🇮🇳 [te](../../../te/docs/getting-started/QUICK-START.md) · 🇹🇭 [th](../../../th/docs/getting-started/QUICK-START.md) · 🇹🇷 [tr](../../../tr/docs/getting-started/QUICK-START.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/getting-started/QUICK-START.md) · 🇵🇰 [ur](../../../ur/docs/getting-started/QUICK-START.md) · 🇺🇿 [uz](../../../uz/docs/getting-started/QUICK-START.md) · 🇻🇳 [vi](../../../vi/docs/getting-started/QUICK-START.md) · 🇳🇬 [yo](../../../yo/docs/getting-started/QUICK-START.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/getting-started/QUICK-START.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/getting-started/QUICK-START.md)
+
+---
+
+> **W skrócie**: Zainstaluj → Połącz z darmowym dostawcą → Skieruj swoje IDE do OmniRoute. Gotowe.
 
 ---
 
@@ -8,7 +12,7 @@
 
 Wybierz preferowaną metodę:
 
-### Opcja A: npm (zalecane)
+### Opcja A: npm (zalecana)
 
 ```bash
 npm install -g omniroute
@@ -19,6 +23,8 @@ npm install -g omniroute
 ```bash
 docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
 ```
+
+`:latest` oznacza najnowszą **opublikowaną** stabilną wersję SemVer. Nie śledzi gałęzi git `main`. W przypadku GitOps przypnij wersję `diegosouzapw/omniroute:X.Y.Z`. Zobacz [Tagi obrazów / kanały wydań](../guides/DOCKER_GUIDE.md#release-channels).
 
 ### Opcja C: Ze źródeł
 
@@ -37,68 +43,68 @@ npm run dev
 omniroute
 ```
 
-OmniRoute startuje pod adresem `http://localhost:20128`. Dashboard otwiera się automatycznie.
+OmniRoute uruchomi się pod adresem `http://localhost:20128`. Panel zostanie otwarty automatycznie.
 
 ---
 
-## Krok 3: Podłącz darmowego providera
+## Krok 3: Połącz z darmowym dostawcą
 
-Możesz korzystać z OmniRoute **bez żadnych opłat**, podłączając darmowego providera.
+Możesz korzystać z OmniRoute **całkowicie bezpłatnie**, łącząc się z darmowym dostawcą.
 
 ### Opcja A: Kiro (darmowy Claude — bez karty kredytowej)
 
-1. Otwórz dashboard pod adresem `http://localhost:20128`
-2. Przejdź do **Providers** → **Add Provider**
+1. Otwórz panel pod adresem `http://localhost:20128`
+2. Przejdź do **Dostawcy** → **Dodaj dostawcę**
 3. Wybierz **Kiro AI**
-4. Kliknij **Connect** (klucz API nie jest potrzebny!)
-5. Gotowe! Masz darmowy dostęp do modeli Claude.
+4. Kliknij **Połącz** (klucz API nie jest wymagany!)
+5. Gotowe! Masz teraz bezpłatny dostęp do modeli Claude.
 
-### Opcja B: OpenCode Free (bez autoryzacji)
+### Opcja B: OpenCode Free (bez uwierzytelniania)
 
-1. Otwórz dashboard pod adresem `http://localhost:20128`
-2. Przejdź do **Providers** → **Add Provider**
+1. Otwórz panel pod adresem `http://localhost:20128`
+2. Przejdź do **Dostawcy** → **Dodaj dostawcę**
 3. Wybierz **OpenCode Free**
-4. Kliknij **Connect** (klucz API nie jest potrzebny!)
-5. Gotowe! Masz darmowy dostęp do wielu modeli.
+4. Kliknij **Połącz** (klucz API nie jest wymagany!)
+5. Gotowe! Masz teraz bezpłatny dostęp do wielu modeli.
 
 ### Opcja C: Pollinations (bez klucza)
 
-1. Otwórz dashboard pod adresem `http://localhost:20128`
-2. Przejdź do **Providers** → **Add Provider**
+1. Otwórz panel pod adresem `http://localhost:20128`
+2. Przejdź do **Dostawcy** → **Dodaj dostawcę**
 3. Wybierz **Pollinations**
-4. Kliknij **Connect** (klucz API nie jest potrzebny!)
-5. Gotowe! Masz darmowy dostęp do GPT-5, Claude, Gemini i innych.
+4. Kliknij **Połącz** (klucz API nie jest wymagany!)
+5. Gotowe! Masz teraz bezpłatny dostęp do GPT-5, Claude, Gemini i innych modeli.
 
 ---
 
-## Krok 4: Sprawdź, czy działa
+## Krok 4: Sprawdź, czy wszystko działa
 
-W [API Keys](http://localhost:20128/dashboard/api-manager) utwórz nowy klucz. Zapisz go — nie pojawi się ponownie. Pamiętaj: ten klucz służy narzędziom do dostępu do OmniRoute, a nie do upstreamowych providerów.
+Na stronie [Klucze API](http://localhost:20128/dashboard/api-manager) utwórz nowy klucz. Zachowaj go, ponieważ nie zostanie wyświetlony ponownie. Pamiętaj, że ten klucz służy narzędziom do uzyskiwania dostępu do OmniRoute, a nie do dostawców nadrzędnych.
 
 ```bash
 curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 ```
 
-Powinieneś zobaczyć listę podłączonych modeli.
+Powinna zostać wyświetlona lista połączonych modeli.
 
 ---
 
-## Krok 5: Skieruj IDE lub CLI na OmniRoute
+## Krok 5: Skieruj swoje IDE lub CLI do OmniRoute
 
 W swoim IDE lub narzędziu CLI ustaw:
 
 ```
-Base URL: http://localhost:20128/v1
-API Key:  [skopiuj z Dashboard → Endpoints]
-Model:    auto
+Bazowy adres URL: http://localhost:20128/v1
+Klucz API:         [skopiuj z Panel → Punkty końcowe]
+Model:             auto
 ```
 
-To wszystko! Twoje IDE korzysta teraz z OmniRoute z automatycznym wyborem providera.
+To wszystko! Twoje IDE korzysta teraz z OmniRoute z automatycznym wyborem dostawcy.
 
 ### Przykład IDE: VSCode/Continue.dev
 
 1. W VSCode zainstaluj rozszerzenie [Continue.dev](https://marketplace.visualstudio.com/items?itemName=Continue.continue).
-2. Zaktualizuj `~/.continue/config.yaml`, dodając następujące linie:
+2. Zaktualizuj plik `~/.continue/config.yaml`, dodając następujące wiersze:
 
 ```
   - name: OmniRoute - Auto
@@ -108,75 +114,77 @@ To wszystko! Twoje IDE korzysta teraz z OmniRoute z automatycznym wyborem provid
     apiKey: <YOUR_KEY>
 ```
 
-3. W panelu czatu Continue.dev wybierz `OmniRoute - Auto` — żądania będą szły do OmniRoute.
-4. (Opcjonalnie) Ćwiczenie dla czytelnika — niech Twoje IDE uzupełni `config.yaml` o pozostałe gotowe konfiguracje 😊
+3. W panelu czatu Continue.dev wybierz `OmniRoute - Auto`, aby wysyłać żądania do OmniRoute.
+4. (Opcjonalnie) Ćwiczenie dla czytelnika — poproś swoje IDE o zaktualizowanie pliku `config.yaml` o wszystkie pozostałe gotowe konfiguracje 😊
 
 ### Przykład CLI: Codex CLI
 
-1. Ustaw trwale zmienną środowiskową w systemie operacyjnym.
-   Na macOS/Linux (dodaj do `~/.bashrc` lub `~/.zshrc`):
+1. Ustaw zmienną środowiskową na stałe w swoim systemie operacyjnym.
+   W systemie macOS/Linux (dodaj do `~/.bashrc` lub `~/.zshrc`):
 
 ```bash
 export OMNIROUTE_API_KEY="<YOUR_KEY>"
 ```
 
-Dla Windows (Command Prompt):
+W systemie Windows (Wiersz polecenia):
 
 ```
 setx OMNIROUTE_API_KEY <YOUR_KEY>
 ```
 
-2. Uruchom Codex skonfigurowany pod OmniRoute. Wpisz:
+2. Uruchommy teraz Codex skonfigurowany do współpracy z OmniRoute. Wykonaj:
 
 ```
 omniroute launch-codex --model auto
 ```
 
-Możesz to zrobić ręcznie przez `codex` i parametry wiersza poleceń wskazujące endpoint oraz klucz API, ale powyższa komenda sprawia, że OmniRoute zajmuje się wszystkim za Ciebie.
+Możesz zrobić to ręcznie za pomocą polecenia `codex` oraz parametrów wiersza poleceń określających punkt końcowy i klucz API, ale powyższe polecenie sprawia, że OmniRoute zajmuje się wszystkim za Ciebie.
+
+Takie samo uruchamianie jednym poleceniem działa z innymi narzędziami CLI za pośrednictwem ogólnego programu uruchamiającego — `omniroute run <target>` obsługuje `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` i `gemini` (zobacz [Integracje CLI](../guides/CLI-INTEGRATIONS.md)).
 
 3. CLI powinno teraz wysyłać żądania do OmniRoute.
 
-### Potwierdź, że narzędzie routuje przez OmniRoute
+### Sprawdź, czy Twoje narzędzie kieruje ruch do OmniRoute
 
-Szczegóły żądania zobaczysz, klikając [Monitoring/Logs](http://localhost:20128/dashboard/logs) na lewym pasku bocznym. Kliknięcie wpisu pokazuje więcej szczegółów. Przy okazji zobaczysz, jakie informacje wysyła Twój ulubiony harness — przydatne edukacyjnie i przy debugowaniu.
+Szczegóły żądania możesz zobaczyć, klikając [Monitorowanie/Dzienniki](http://localhost:20128/dashboard/logs) na lewym pasku bocznym. Klikając poszczególne pozycje, zobaczysz więcej informacji. Przy okazji możesz sprawdzić, jakie dane są wysyłane przez Twoje ulubione narzędzie. Jest to pomocne zarówno w nauce, jak i podczas debugowania.
 
 ---
 
 ## Co dalej?
 
-- **[Auto-Combo Guide](./AUTO-COMBO-GUIDE.md)** — Pozwól OmniRoute wybrać najlepsze AI za Ciebie
-- **[Providers Guide](./PROVIDERS-GUIDE.md)** — Podłącz więcej providerów (darmowych i płatnych)
-- **[Free Tiers Guide](./FREE-TIERS-GUIDE.md)** — Darmowe AI bez karty kredytowej
-- **[Troubleshooting](./TROUBLESHOOTING.md)** — Rozwiązywanie typowych problemów
+- **[Przewodnik po Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Pozwól OmniRoute wybrać dla Ciebie najlepszą AI
+- **[Przewodnik po dostawcach](./PROVIDERS-GUIDE.md)** — Połącz więcej dostawców (darmowych i płatnych)
+- **[Przewodnik po darmowych planach](./FREE-TIERS-GUIDE.md)** — Korzystaj z AI za darmo i bez karty kredytowej
+- **[Rozwiązywanie problemów](../guides/TROUBLESHOOTING.md)** — Rozwiąż typowe problemy
 
 ---
 
-## Częste pytania
+## Często zadawane pytania
 
-### „Czy potrzebuję klucza API?"
+### „Czy potrzebuję klucza API?”
 
-**Nie!** Możesz korzystać z darmowych providerów (Kiro, OpenCode Free, Pollinations) bez żadnego klucza API. Wystarczy podłączyć je w dashboardzie.
+**Nie!** Możesz korzystać z darmowych dostawców (Kiro, OpenCode Free, Pollinations) bez żadnego klucza API. Wystarczy połączyć ich w panelu.
 
-### „Czym jest `auto`?"
+### „Co oznacza `auto`?”
 
-`auto` każe OmniRoute automatycznie wybrać najlepszego providera dla każdego żądania. Uwzględnia szybkość, koszt, jakość i dostępność. Szczegóły w [Auto-Combo Guide](./AUTO-COMBO-GUIDE.md).
+`auto` nakazuje OmniRoute automatycznie wybierać najlepszego dostawcę dla każdego żądania. Uwzględnia szybkość, koszt, jakość i dostępność. Szczegółowe informacje znajdziesz w [Przewodniku po Auto-Combo](./AUTO-COMBO-GUIDE.md).
 
-### „Ile to kosztuje?"
+### „Ile to kosztuje?”
 
-Sam OmniRoute jest **darmowy i open-source**. Płacisz tylko za providerów, z których korzystasz. Wiele ma darmowe limity — zobacz [Free Tiers Guide](./FREE-TIERS-GUIDE.md).
+Sam OmniRoute jest **bezpłatny i ma otwarty kod źródłowy**. Płacisz tylko za dostawców, z których korzystasz. Wielu dostawców oferuje darmowe plany — zobacz [Przewodnik po darmowych planach](./FREE-TIERS-GUIDE.md).
 
-### „Czy działa z Claude Code / Cursor / Copilot?"
+### „Czy mogę używać go z Claude Code / Cursor / Copilot?”
 
-**Tak!** OmniRoute działa z każdym narzędziem obsługującym format OpenAI. Ustaw base URL na `http://localhost:20128/v1`. Konkretne instrukcje znajdziesz w [CLI Tools Guide](../reference/CLI-TOOLS.md).
+**Tak!** OmniRoute współpracuje z każdym narzędziem obsługującym format OpenAI. Wystarczy ustawić bazowy adres URL na `http://localhost:20128/v1`. Szczegółowe instrukcje konfiguracji znajdziesz w [Przewodniku po narzędziach CLI](../reference/CLI-TOOLS.md).
 
-### „Co jeśli provider padnie?"
+### „Co się stanie, jeśli dostawca przestanie działać?”
 
-OmniRoute automatycznie pomija niedziałających providerów i próbuje kolejnego. Nic nie musisz robić. Szczegóły w [Auto-Combo Guide](./AUTO-COMBO-GUIDE.md).
+OmniRoute automatycznie pomija niedziałających dostawców i próbuje skorzystać z kolejnego. Nie musisz nic robić. Szczegółowe informacje znajdziesz w [Przewodniku po Auto-Combo](./AUTO-COMBO-GUIDE.md).
 
 ---
 
 ## Potrzebujesz pomocy?
 
-- **[Troubleshooting](./TROUBLESHOOTING.md)** — Typowe problemy i rozwiązania
+- **[Rozwiązywanie problemów](../guides/TROUBLESHOOTING.md)** — Typowe problemy i rozwiązania
 - **[Discord](https://discord.gg/U47eFqAXCn)** — Wsparcie społeczności
-- **[GitHub Issues](https://github.com/diegosouzapw/OmniRoute/issues)** — Zgłaszanie błędów
+- **[Zgłoszenia GitHub](https://github.com/diegosouzapw/OmniRoute/issues)** — Zgłaszanie błędów

@@ -1,1 +1,0 @@
-- **fix(search):** A successful web search now clears the connection's recorded error (stale failed test, elapsed 429 cooldown), so the dashboard stops showing a serving search connection as failed.

@@ -129,21 +129,25 @@ uudelleenkäynnistystä.
 
 ## Esimerkki: käänteinen välityspalvelin OmniRouten edessä
 
-OmniRoute valvoo CORS-käytäntöä itse, joten välityspalvelimen ei yleensä pidä **lisätä**
-tai muokata `Access-Control-*`-otsakkeita (päällekkäiset otsakkeet rikkovat selainten
-toiminnan). Päätä TLS-yhteys ja välitä liikenne — anna OmniRouten vastata esitarkistuspyyntöön:
+OmniRoute valvoo CORS-käytäntöä itse, joten välityspalvelimen ei yleensä pidä **lisätä** tai
+muuttaa `Access-Control-*`-otsakkeita (päällekkäiset otsakkeet aiheuttavat ongelmia selaimissa). Päätä TLS-yhteys
+ja välitä liikenne eteenpäin — anna OmniRouten vastata ennakkotarkistuspyyntöön:
 
 ```nginx
-# nginx — välitä OmniRoutelle; ÄLÄ lisää Access-Control-*-otsakkeita tässä
+# nginx — välitä OmniRoutelle; ÄLÄ lisää Access-Control-* -otsakkeita tässä
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # ÄLÄ aseta X-Forwarded-For-otsakkeen arvoksi 127.0.0.1 — se ohittaa loopback-reittisuojauksen.
+    # Säilytä edelleenlähetysotsakkeet: samalla isäntäkoneella oleva välityspalvelin muodostaa yhteyden loopback-osoitteesta,
+    # ja nämä otsakkeet kertovat OmniRoutelle, ettei kutsuja ole paikallinen ylläpitäjä. Jos välityspalvelin ei lisää niistä mitään,
+    # kaikki etäkutsujat näyttävät paikallisilta. Älä myöskään koskaan aseta X-Forwarded-For-otsakkeen arvoksi 127.0.0.1.
 }
 ```
 
-Aseta sallitut selainalkuperät OmniRoutessa (`CORS_ALLOWED_ORIGINS` tai
+Määritä selaimille sallitut alkuperät OmniRoutessa (`CORS_ALLOWED_ORIGINS` tai
 Security-välilehti), älä välityspalvelimessa.
 
 ## Lähdetiedostot

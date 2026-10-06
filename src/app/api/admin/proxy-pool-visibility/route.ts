@@ -7,9 +7,15 @@ import { isScopeIdMissing } from "@/lib/db/proxies/mappers";
 import { rankPoolCandidates } from "@/lib/db/proxies/rotation";
 import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
 import {
+  countTransportEvidenceFor,
+  getRefusalStoreInstance,
   isProxyAvoided,
+  isSelectorMemberAvoided,
+  listEntryMembers,
   proxyEgressKey,
+  snapshotMemberSetAside,
   snapshotProxySetAside,
+  TRANSPORT_EVIDENCE_WINDOW_MS,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
 
 // Read-only pool visibility: per-member set-aside state (motive, start, expected
@@ -46,11 +52,31 @@ function displayEndpoint(row: MemberRow): string | null {
   return `${type}://${bracketed}${portSuffix}`;
 }
 
-function toMemberView(row: MemberRow, rank: number) {
+function toMemberView(row: MemberRow, rank: number, now: number = Date.now()) {
   const key = proxyEgressKey(row);
-  const snapshot = snapshotProxySetAside(key);
+  const snapshot = snapshotProxySetAside(key, now);
   const display = displayEndpoint(row);
   const username = textField(row.username);
+  const memberSetAside =
+    key === null
+      ? []
+      : listEntryMembers(key).map((member) => {
+          const memberSnapshot = snapshotMemberSetAside(key, member, now);
+          return {
+            member,
+            avoided: isSelectorMemberAvoided(key, member, now),
+            setAside: memberSnapshot
+              ? {
+                  kind: memberSnapshot.kind,
+                  since: new Date(memberSnapshot.setAsideAt).toISOString(),
+                  endsAt: new Date(memberSnapshot.endsAt).toISOString(),
+                  streak: memberSnapshot.streak,
+                }
+              : null,
+            storeInstance: getRefusalStoreInstance(),
+          };
+        });
+  const evidence = countTransportEvidenceFor(key, now);
   return {
     id: typeof row.id === "string" ? row.id : null,
     name: typeof row.name === "string" ? row.name : null,
@@ -58,7 +84,7 @@ function toMemberView(row: MemberRow, rank: number) {
     userMasked: username ? "***" : null,
     opaque: display === null || key === null,
     rank,
-    signal: key !== null && isProxyAvoided(key) ? "set-aside" : "position",
+    signal: key !== null && isProxyAvoided(key, now) ? "set-aside" : "position",
     setAside: snapshot
       ? {
           kind: snapshot.kind,
@@ -67,6 +93,13 @@ function toMemberView(row: MemberRow, rank: number) {
           streak: snapshot.streak,
         }
       : null,
+    memberSetAside,
+    transportEvidence: {
+      failures: evidence.failures,
+      crossSuccesses: evidence.crossSuccesses,
+      windowMs: TRANSPORT_EVIDENCE_WINDOW_MS,
+    },
+    storeInstance: getRefusalStoreInstance(),
   };
 }
 
@@ -82,6 +115,7 @@ export async function GET(request: Request) {
   if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
+    const now = Date.now();
     const proxyId = searchParams.get("proxyId");
     if (proxyId?.trim()) {
       // Single-entry view for accounts bound to one proxy. Unknown ids answer
@@ -94,7 +128,8 @@ export async function GET(request: Request) {
         strategy: null,
         rankedBy,
         processMemory: true,
-        members: ordered.length > 0 ? [toMemberView(ordered[0], 1)] : [toMemberView({}, 1)],
+        members:
+          ordered.length > 0 ? [toMemberView(ordered[0], 1, now)] : [toMemberView({}, 1, now)],
         total: 1,
       });
     }
@@ -129,9 +164,9 @@ export async function GET(request: Request) {
       processMemory: true,
       members: ordered.map((row, index) => {
         try {
-          return toMemberView(row, index + 1);
+          return toMemberView(row, index + 1, now);
         } catch {
-          return toMemberView({}, index + 1);
+          return toMemberView({}, index + 1, now);
         }
       }),
       total: ordered.length,

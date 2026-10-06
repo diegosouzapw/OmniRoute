@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP ဖော်ပြချက် ချုံ့ခြင်း",
     "mcpAccessibilityTitle": "MCP အသုံးပြုနိုင်စွမ်းဆိုင်ရာ အထွက်",
     "compressionSettingsCavemanIntensity": "Caveman ပြင်းအား",
-    "compressionSettingsCavemanOutputMode": "Caveman အထွက်မုဒ်",
     "compressionSettingsOutputStyles": "အထွက်ပုံစံများ",
     "compressionStylesTileTitle": "အထွက်ပုံစံများ",
     "compressionSettingsOutputIntensity": "အထွက်ပြင်းအား",
-    "compressionSettingsAutoClarityBypass": "အလိုအလျောက် ရှင်းလင်းမှု ကျော်လွှားခြင်း",
     "compressionEffectivePipeline": "အမှန်တကယ် အသုံးပြုသည့် pipeline:",
     "compressionDerivedOff": "ပိတ်ထားသည်",
     "compressionDerivedRuns": "လုပ်ဆောင်သည်- {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "ကျစ်လျစ်စေရန် အနည်းဆုံးအတန်းအရေအတွက်",
         "description": "ဇယားပုံစံ ကျစ်လျစ်မှုကို စတင်ရန် တစ်သမတ်တည်းဖြစ်သော JSON အခင်းအကျင်းတစ်ခုတွင် လိုအပ်သည့် အနည်းဆုံးအတန်းအရေအတွက်။ မူလသတ်မှတ်ချက်: 8။"
       },
-      "preserveSystemPrompt": {
-        "label": "စနစ်ညွှန်ကြားချက်ကို ထိန်းသိမ်းပါ"
-      },
       "summarizerEnabled": {
         "label": "အနှစ်ချုပ်စနစ်ကို ဖွင့်ပါ"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "ဤအရွယ်အစားထက်တိုသော မက်ဆေ့ချ်များကို မချုံ့ပါ။ နိမ့်လေလေ = ပိုမိုချုံ့လေလေ။",
     "tooltipMinSavings": "အနည်းဆုံး ဤမျှသော token အရေအတွက်ကို ချွေတာနိုင်မှသာ ချုံ့ပါ။",
     "ultraSettings": "အလွန်ပြင်းထန်သော ဆက်တင်များ",
-    "ultraSettingsDesc": "SLM ဖြင့် လုပ်ဆောင်သော အဓိပ္ပာယ်အခြေပြု ချုံ့ခြင်း",
-    "preview": {
-      "lite": "တိုတိုတုတ်တုတ် တုံ့ပြန်ပါ။ နည်းပညာဆိုင်ရာ ဝေါဟာရများ၊ code၊ error များ၊ URLs နှင့် identifiers များကို မပြောင်းလဲဘဲ ထိန်းသိမ်းပါ။",
-      "full": "အလွန်တိုတောင်းကျစ်လျစ်စွာ တုံ့ပြန်ပါ။ နည်းပညာဆိုင်ရာ အကြောင်းအရာအားလုံးကို ထိန်းသိမ်းပါ။",
-      "ultra": "အသုံးများသော နည်းပညာဆိုင်ရာ အတိုကောက်များဖြင့် အလွန်တိုတောင်းစွာ တုံ့ပြန်ပါ။ သင်္ကေတအတိအကျကို ထိန်းသိမ်းပါ။"
-    }
+    "ultraSettingsDesc": "SLM ဖြင့် လုပ်ဆောင်သော အဓိပ္ပာယ်အခြေပြု ချုံ့ခြင်း"
   },
   "translator": {
     "title": "ဘာသာပြန်ကိရိယာ",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy သို့ မရောက်နိုင်ပါ",
     "poolSetAsideKindIpQuota429": "IP နှုန်းကန့်သတ်ချက် (429)",
     "poolSetAsideKindSlow": "နှေးကွေးသော တုံ့ပြန်ချက်များ",
+    "poolSetAsideKindGeoBlocked": "ဒေသကတားမြစ်ထားသည် (403/451)",
     "poolSetAsideUntil": "အလှည့်သို့ ပြန်ရောက်မည် {endsAt}",
     "poolSetAsideRepeat": "ဖယ်ထားသည် {count, plural, one {# ကြိမ်} other {# ကြိမ်}}",
     "poolUnknownAddress": "မသိသောလိပ်စာ",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "အနေအထားအစီအစဉ်",
     "poolHealthRankingOff": "ကျန်းမာရေးအဆင့် ပိတ်ထားသည်",
     "transportRate": "{rate}% သယ်ယူပို့ဆောင်မှု",
+    "slowAbandoned": "{count} အလျင်အမြန် ပယ်သွားမှုများ",
+    "clientAborted": "{count} ဖောက်သည် ပယ်သွားမှုများ",
+    "slowAbandonedHint": "Headers များစောင့်ရှောင်မှုကန့်သတ်ချက်အပြီး ပယ်သွားပြီး၊ သယ်ယူပို့ဆောင်မှုနှုန်းထဲမှ ဖယ်ရှားထားသည်",
     "previousSuccessRate": "အစက {rate}% အောင်မြင်မှု",
-    "upstreamRefusals": "{count} upstream ငြင်းပယ်မှုများ",
     "connectionTestsCount": "{count} ချိတ်ဆက်မှု စမ်းသပ်မှုများ",
-    "notMeasured": "မတိုင်းတာရသေးပါ"
+    "notMeasured": "မတိုင်းတာရသေးပါ",
+    "upstream4xx": "{count} ကလိန်းအတွက် အမှားအယွင်းများ",
+    "upstream5xx": "{count} ဆာဗာအတွက် အမှားအယွင်းများ",
+    "uniformEgressLine": "{provider} ပေါ်ရှိ exit {exits} ခုအနက် {affected} ခု တစ်ပြိုင်နက် ကျရှုံးနေသည် (နောက်ဆုံး {hours} နာရီအတွင်း) — exit ပြဿနာ မဟုတ်ပါ"
   },
   "playground": {
     "title": "မော်ဒယ် စမ်းသပ်ခန်း",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} ခု ပိတ်ထားသည်",
     "dbOverrideCount": "DB အစားထိုးသတ်မှတ်ချက် {count} ခု",
     "searchPlaceholder": "အလံများကို ရှာဖွေပါ...",
+    "descriptionModeLabel": "ဖော်ပြချက် မြင်ကွင်း",
+    "descriptionModeHint": "မောက်စ်တင်သည့်အခါ- ကတ်များကို ကျစ်လျစ်စွာထားပြီး ဖော်ပြချက်တစ်ခုပေါ် မောက်စ်တင်ပါက စာသားအပြည့်အစုံကို ပြသသည်။ စာသားအပြည့်အစုံ- ဖော်ပြချက်အပြည့်အစုံကို အမြဲပြသသည်။",
+    "descriptionModeHover": "မောက်စ်တင်သည့်အခါ",
+    "descriptionModeFull": "စာသားအပြည့်အစုံ",
     "categories": {
       "all": "အားလုံး",
       "security": "လုံခြုံရေး",

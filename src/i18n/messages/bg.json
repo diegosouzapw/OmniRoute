@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Компресиране на MCP описание",
     "mcpAccessibilityTitle": "Изход за достъпност на MCP",
     "compressionSettingsCavemanIntensity": "Интензивност на пещерния човек",
-    "compressionSettingsCavemanOutputMode": "Режим на изход Caveman",
     "compressionSettingsOutputStyles": "Стилове на изхода",
     "compressionStylesTileTitle": "Стилове на изхода",
     "compressionSettingsOutputIntensity": "Изходен интензитет",
-    "compressionSettingsAutoClarityBypass": "Автоматично заобикаляне на яснотата",
     "compressionEffectivePipeline": "Ефективен конвейер:",
     "compressionDerivedOff": "изключено",
     "compressionDerivedRuns": "изпълнения: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Минимален брой редове за компактизиране",
         "description": "Минимален брой редове в хомогенен JSON масив, необходими за задействане на таблично компактизиране. По подразбиране: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Запазване на системната подкана"
-      },
       "summarizerEnabled": {
         "label": "Активиране на обобщаването"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Съобщенията, по-кратки от това, не се компресират. По-ниска = повече компресия.",
     "tooltipMinSavings": "Компресирайте само ако спестява поне толкова токени.",
     "ultraSettings": "Ултра настройки",
-    "ultraSettingsDesc": "Захранвана от SLM семантична компресия",
-    "preview": {
-      "lite": "Отговаряй кратко. Запазвай техническите термини, кода, грешките, URL адресите и идентификаторите.",
-      "full": "Отговаряй лаконично и стегнато. Запазвай цялото техническо съдържание.",
-      "ultra": "Отговаряй свръхлаконично с общоприети технически съкращения. Запазвай точните символи."
-    }
+    "ultraSettingsDesc": "Захранвана от SLM семантична компресия"
   },
   "translator": {
     "title": "Преводач",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "проксито е недостъпно",
     "poolSetAsideKindIpQuota429": "ограничение на скоростта по IP (429)",
     "poolSetAsideKindSlow": "бавни отговори",
+    "poolSetAsideKindGeoBlocked": "регион блокиран (403/451)",
     "poolSetAsideUntil": "Обратно в ротация {endsAt}",
     "poolSetAsideRepeat": "Оставено настрана {count, plural, one {# път} other {# пъти}}",
     "poolUnknownAddress": "Неизвестен адрес",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Ред на позициите",
     "poolHealthRankingOff": "Класирането по здраве е изключено",
     "transportRate": "{rate}% транспорт",
+    "slowAbandoned": "{count} бавни изоставяния",
+    "clientAborted": "{count} прекъсвания от клиента",
+    "slowAbandonedHint": "Изоставено след прага на изчакване на хедърите, изключено от транспортната скорост",
     "previousSuccessRate": "Преди {rate}% успех",
-    "upstreamRefusals": "{count} отказа от upstream",
     "connectionTestsCount": "{count} теста на връзката",
-    "notMeasured": "Не е измерено"
+    "notMeasured": "Не е измерено",
+    "upstream4xx": "{count} грешки от клиентски заявки",
+    "upstream5xx": "{count} грешки от горния сървър",
+    "uniformEgressLine": "{affected} от {exits} изхода не успяват заедно на {provider} (последните {hours}ч) — не е проблем с изхода"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} неактивни",
     "dbOverrideCount": "{count} DB презаписвания",
     "searchPlaceholder": "Търсене на флагове...",
+    "descriptionModeLabel": "Изглед на описанието",
+    "descriptionModeHint": "При посочване: картите остават компактни, а при посочване върху описание се показва пълният текст. Пълен текст: винаги се показва цялото описание.",
+    "descriptionModeHover": "При посочване",
+    "descriptionModeFull": "Пълен текст",
     "categories": {
       "all": "Всички",
       "security": "Сигурност",

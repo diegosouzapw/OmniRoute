@@ -324,7 +324,11 @@ export function getModelTimeoutMs(aliasOrId: string, modelId: string): number | 
 }
 
 const CLAUDE_MODEL_PATTERN = /(?:^|[\/._-])claude(?:[._-]|$)/;
-const CLAUDE_MAX_EFFORT_UNSUPPORTED_FAMILY_PATTERNS = [/(?:^|[\/._-])haiku(?:[._-]|$)/] as const;
+const CLAUDE_MAX_EFFORT_UNSUPPORTED_FAMILY_PATTERNS = [
+  /(?:^|[\/._-])haiku(?:[._-]|$)/,
+  // Sonnet 5.5 caps effort at xhigh; max returns a 400.
+  /(?:^|[\/._-])claude-sonnet-5-5(?:[._-]|$)/,
+] as const;
 const ANTHROPIC_COMPATIBLE_PREFIX = "anthropic-compatible-";
 
 export function supportsClaudeMaxEffort(modelId: string | null | undefined): boolean {

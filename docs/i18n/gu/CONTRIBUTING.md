@@ -387,20 +387,20 @@ docs/                       # Documentation
 
 ## Pull Request ચેકલિસ્ટ
 
-- [ ] પરીક્ષણો સફળ થાય છે (`npm test`)
-- [ ] લિન્ટિંગ સફળ થાય છે (`npm run lint`)
+- [ ] ટેસ્ટ્સ પાસ થાય છે (`npm test`)
+- [ ] લિન્ટિંગ પાસ થાય છે (`npm run lint`)
 - [ ] બિલ્ડ સફળ થાય છે (`npm run build`)
-- [ ] નવા જાહેર ફંક્શન્સ અને ઇન્ટરફેસ માટે TypeScript પ્રકારો ઉમેર્યા છે
-- [ ] કોઈ હાર્ડકોડ કરેલા સિક્રેટ્સ અથવા ફૉલબૅક મૂલ્યો નથી
-- [ ] જાહેર અપસ્ટ્રીમ ક્રેડેન્શિયલ્સ `resolvePublicCred()` દ્વારા એમ્બેડ કર્યાં છે ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) જુઓ), ક્યારેય લિટરલ્સ તરીકે નહીં
-- [ ] ભૂલ પ્રતિસાદો `buildErrorBody()` / `sanitizeErrorMessage()` મારફતે જાય છે — પ્રતિસાદ બોડીમાં કોઈ કાચા સ્ટૅક ટ્રેસ નથી ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) જુઓ)
-- [ ] શેલ કમાન્ડ્સ (`exec` / `spawn`) રનટાઇમ મૂલ્યોને સ્ટ્રિંગ ઇન્ટરપોલેશન દ્વારા નહીં, પરંતુ `env` દ્વારા પસાર કરે છે
-- [ ] તમામ ઇનપુટ્સ Zod સ્કીમા વડે માન્ય કર્યાં છે
-- [ ] વપરાશકર્તાને અસર કરતા ફેરફારો માટે `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` હેઠળ ચેન્જલૉગ **ફ્રૅગમેન્ટ** ઉમેર્યું છે ([`changelog.d/README.md`](./changelog.d/README.md) જુઓ) — `CHANGELOG.md` ને સીધું સંપાદિત **કરશો નહીં**; ફ્રૅગમેન્ટ્સ રિલીઝ સમયે એકત્રિત થાય છે અને PR વચ્ચે ક્યારેય સંઘર્ષ કરતા નથી
+- [ ] નવા સાર્વજનિક ફંક્શન્સ અને ઇન્ટરફેસ માટે TypeScript પ્રકારો ઉમેર્યા છે
+- [ ] કોઈ હાર્ડકોડેડ સિક્રેટ્સ અથવા ફૉલબૅક મૂલ્યો નથી
+- [ ] સાર્વજનિક અપસ્ટ્રીમ ક્રેડેન્શિયલ્સ `resolvePublicCred()` મારફતે એમ્બેડ કર્યાં છે ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) જુઓ), ક્યારેય લિટરલ્સ તરીકે નહીં
+- [ ] ભૂલ પ્રતિસાદો `buildErrorBody()` / `sanitizeErrorMessage()` મારફતે રૂટ થાય છે — પ્રતિસાદ બોડીમાં કોઈ કાચા સ્ટૅક ટ્રેસ નથી ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) જુઓ)
+- [ ] શેલ કમાન્ડ્સ (`exec` / `spawn`) રનટાઇમ મૂલ્યોને સ્ટ્રિંગ ઇન્ટરપોલેશન મારફતે નહીં, પરંતુ `env` મારફતે પસાર કરે છે
+- [ ] બધા ઇનપુટ્સ Zod સ્કીમા વડે માન્ય કરેલા છે
+- [ ] વપરાશકર્તાને અસર કરતા ફેરફારો માટે `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` હેઠળ ચેન્જલૉગ **ફ્રેગમેન્ટ** ઉમેર્યો છે ([`changelog.d/README.md`](./changelog.d/README.md) જુઓ) — `CHANGELOG.md`ને સીધું સંપાદિત કરશો **નહીં**; ફ્રેગમેન્ટ્સને રિલીઝ સમયે એકત્રિત કરવામાં આવે છે અને PRs વચ્ચે ક્યારેય સંઘર્ષ થતો નથી
 - [ ] દસ્તાવેજીકરણ અપડેટ કર્યું છે (જો લાગુ પડતું હોય)
-- [ ] કોઈ નવા CodeQL / Secret-Scanning અલર્ટ ખોલાયા નથી, અથવા દરેકને સંબંધિત `docs/security/` દસ્તાવેજનો સંદર્ભ આપતા તકનીકી વાજબીકરણ સાથે રદ કર્યો છે
-- [ ] ચાઇલ્ડ પ્રોસેસ શરૂ કરતા રૂટ્સ (`/api/mcp/`, `/api/cli-tools/runtime/`) ને `src/server/authz/routeGuard.ts` માં `isLocalOnlyPath()` તરીકે વર્ગીકૃત કર્યા છે — [કડક નિયમ #15](docs/security/ROUTE_GUARD_TIERS.md) જુઓ
-- [ ] કમિટ સંદેશાઓમાં કોઈ `Co-Authored-By` ટ્રેલર્સ નથી — કમિટ્સ ફક્ત રિપોઝિટરી માલિકની Git ઓળખ હેઠળ જ દેખાવા જોઈએ (કડક નિયમ #16)
+- [ ] કોઈ નવી CodeQL / Secret-Scanning ચેતવણીઓ ખોલવામાં આવી નથી, અથવા દરેકને સંબંધિત `docs/security/` દસ્તાવેજનો સંદર્ભ આપતા ટેક્નિકલ વાજબીકરણ સાથે રદ કરવામાં આવી છે
+- [ ] ચાઇલ્ડ પ્રોસેસ શરૂ કરતા રૂટ્સ (`/api/mcp/`, `/api/cli-tools/runtime/`)ને `src/server/authz/routeGuard.ts`માં `isLocalOnlyPath()` તરીકે વર્ગીકૃત કર્યા છે — [કડક નિયમ #15](docs/security/ROUTE_GUARD_TIERS.md) જુઓ
+- [ ] કમિટ સંદેશાઓમાં AI/બોટ `Co-authored-by` ટ્રેલર્સ નથી (કડક નિયમ #16) — જે માનવીય સહયોગીઓના કાર્યનો પુનઃઉપયોગ થયો છે તેમને પ્રમાણભૂત `Co-authored-by: Name <email>` ટ્રેલર્સ દ્વારા શ્રેય આપવામાં આવ્યો છે
 
 ---
 
@@ -415,6 +415,5 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **આર્કિટેક્ચર**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) જુઓ
 - **API સંદર્ભ**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) જુઓ
 - **સુરક્ષા દસ્તાવેજો**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **ઑપરેશન્સ દસ્તાવેજો**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **ઓપરેશન્સ દસ્તાવેજો**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **સમસ્યાઓ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: આર્કિટેક્ચરલ નિર્ણયોના રેકોર્ડ માટે `docs/adr/` જુઓ

@@ -5636,7 +5636,7 @@
     "accountName": "Jina la akaunti",
     "email": "Email",
     "healthCheckMinutes": "Ukaguzi wa Hali (dak.)",
-    "healthCheckHint": "Proactive token refresh interval. 0 = disabled.",
+    "healthCheckHint": "Thamani maalum kwa muunganisho huu. Tupu = fuata chaguo-msingi la jumla (Mipangilio › Ustahimilivu). 0 = usiwahi kukagua muunganisho huu. Upeo 1440 (saa 24).",
     "deselectAllModels": "Ondoa chaguo zote",
     "modelsActiveCount": "{active}/{total} zinazotumika",
     "noModelsMatch": "Hakuna modeli zinazolingana na \"{filter}\"",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Pata ufunguo wako wa API kwenye https://www.bluesminds.com — endpoint inayooana na OpenAI kwenye https://api.bluesminds.com/v1 yenye salio la bure la kila siku. Miundo ya VIP (Claude Opus 4.5, Gemini 2.5 Pro) inatumia salio la pi.",
       "byteplus": "Unganisha BytePlus ModelArk kwa ufunguo wa API.",
       "bytez": "Salio la bure la $1, linasasishwa kila baada ya wiki 4",
-      "cerebras": "Majaribio ya Bure: tokeni 1M/siku, 30K TPM, 5 RPM — hakuna kadi ya mkopo.",
+      "cerebras": "Mkopo wa mara moja wa $5 wakati wa kujisajili (halali kwa siku 30); njia ya malipo inahitajika. Si kiwango cha bure kinachojirudia.",
       "charm-hyper": "Fungua ufunguo wa API kwenye https://hyper.charm.land, kisha ubandike hapa kama tokeni ya Bearer.",
       "chutes": "Ufunguo wa API wa Bearer kwa lango linalooana na OpenAI la Chutes.",
       "clarifai": "Clarifai hutoa gumzo, majibu na /models zinazoendana na OpenAI kwenye /v2/ext/openai/v1. Miundo ya umma/jumuiya kwa kawaida huhitaji PAT; funguo zenye upeo wa programu hufanya kazi tu kwa rasilimali zilizo ndani ya programu hiyo.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Trafiki yote ya Watoa Huduma hupitia hifadhi ya seva mbadala ya usajili huu.",
       "ruleModeDesc": "Trafiki ya Watoa Huduma waliochaguliwa pekee ndiyo hupitia proksi; wengine kuungana moja kwa moja.",
       "localCoreEndpoint": "Local Core SOCKS5/HTTP Endpoint (Si lazima)",
-      "localCoreEndpointPlaceholder": "soksi5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Inakubali 127.0.0.1 / localhost pekee (SS/VMess/Trojan/VLESS inahitaji kisanduku cha kuimba/mgongano wa ndani).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Moja kwa kila mstari. Inakubali 127.0.0.1 / localhost pekee (SS/VMess/Trojan/VLESS zinahitaji kiini cha sing-box/clash cha ndani).",
       "routeByProvider": "Njia kwa Mtoa Huduma (chaguo nyingi)",
       "loadingProviders": "Inapakia orodha ya Watoa Huduma...",
       "autoRefreshInterval": "Muda wa Kuonyesha Kiotomatiki (dakika)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Mfinyazo wa maelezo ya MCP",
     "mcpAccessibilityTitle": "Matokeo ya ufikiaji wa MCP",
     "compressionSettingsCavemanIntensity": "Nguvu ya Caveman",
-    "compressionSettingsCavemanOutputMode": "Njia ya pato la Caveman",
     "compressionSettingsOutputStyles": "Mitindo ya matokeo",
     "compressionStylesTileTitle": "Mitindo ya matokeo",
     "compressionSettingsOutputIntensity": "Nguvu ya pato",
-    "compressionSettingsAutoClarityBypass": "Njia ya uwazi wa kiotomatiki",
     "compressionEffectivePipeline": "Pipeline inayofanya kazi:",
     "compressionDerivedOff": "imezimwa",
     "compressionDerivedRuns": "uendeshaji: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Kiwango cha chini cha safu mlalo za kubana",
         "description": "Kiwango cha chini cha safu mlalo katika safu ya JSON inayofanana inayohitajika ili kuanzisha ubana wa jedwali. Chaguo-msingi: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Hifadhi kidokezo cha mfumo"
-      },
       "summarizerEnabled": {
         "label": "Wezesha kifupishaji"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Ujumbe mfupi kuliko huu haujabanwa. Chini = compression zaidi.",
     "tooltipMinSavings": "Finyaza tu ikiwa itaokoa angalau ishara hizi nyingi.",
     "ultraSettings": "Mipangilio ya Juu",
-    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM",
-    "preview": {
-      "lite": "Jibu kwa ufupi. Hifadhi istilahi za kiufundi, msimbo, hitilafu, URLs na vitambulisho.",
-      "full": "Jibu kwa maneno machache na kwa ufupi. Hifadhi maudhui yote ya kiufundi.",
-      "ultra": "Jibu kwa ufupi sana ukitumia vifupisho vya kawaida vya kiufundi. Hifadhi alama halisi."
-    }
+    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM"
   },
   "translator": {
     "title": "Mtafsiri",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Komboa uwekaji upya",
     "manageResetCredits": "Tazama krediti",
     "viewResetCredits": "Tazama krediti za kuweka upya",
-    "resetCreditsModalTitle": "Krediti za kuweka upya za Codex",
+    "resetCreditsModalTitle": "Krediti za kuweka upya",
     "resetCreditsModalExplainer": "Krediti zimepangwa kulingana na muda wa kuisha. Ukombozi wa kiotomatiki hutumia kila wakati krediti inayoisha muda wake kwanza.",
     "resetCreditsLoadFailed": "Imeshindwa kupakia krediti za kuweka upya",
     "resetCreditsDetailsUnavailable": "Maelezo ya krediti hayapatikani kwa sasa. Burudisha na ujaribu tena.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Hakuna tarehe ya kuisha muda",
     "redeemThisResetCredit": "Komboa",
     "confirmRedeemResetCreditTitle": "Komboa mkopo huu wa kuweka upya?",
-    "confirmRedeemResetCredit": "Kukomboa kunaweka upya mara moja madirisha ya matumizi ya Codex yanayostahiki na kutumia kabisa mkopo huu.",
+    "confirmRedeemResetCredit": "Kukomboa kunaweka upya mara moja madirisha ya matumizi yanayostahiki na kutumia kabisa mkopo huu.",
     "confirmRedeemResetCreditButton": "Komboa mkopo",
     "resetCreditRedeemed": "Uwekaji upya umekombolewa",
     "resetCreditRedeemFailed": "Imeshindwa kukomboa mkopo wa kuweka upya",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proksi haifikiki",
     "poolSetAsideKindIpQuota429": "kikomo cha kasi cha IP (429)",
     "poolSetAsideKindSlow": "majibu polepole",
+    "poolSetAsideKindGeoBlocked": "kuzuiliwa kwa mkoa (403/451)",
     "poolSetAsideUntil": "Kurudi kwenye mzunguko {endsAt}",
     "poolSetAsideRepeat": "Imewekwa kando {count, plural, one {# mara} other {# mara}}",
     "poolUnknownAddress": "Anwani isiyojulikana",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Mpangilio wa nafasi",
     "poolHealthRankingOff": "Kiwango cha afya kimezimwa",
     "transportRate": "{rate}% usafiri",
+    "slowAbandoned": "{count} uacha polepole",
+    "clientAborted": "{count} mteja amegoma",
+    "slowAbandonedHint": "Imewekwa kando baada ya kufikia kikomo cha kusubiri vichwa, imefutwa kutoka kwa kiwango cha usafirishaji",
     "previousSuccessRate": "Awali {rate}% mafanikio",
-    "upstreamRefusals": "{count} kukataliwa kwa upstream",
     "connectionTestsCount": "{count} majaribio ya muunganisho",
-    "notMeasured": "Haijapimwa"
+    "notMeasured": "Haijapimwa",
+    "upstream4xx": "{count} makosa ya mteja kaskazini",
+    "upstream5xx": "{count} makosa ya server kaskazini",
+    "uniformEgressLine": "{affected} kati ya {exits} milango yanashindwa pamoja kwenye {provider} (masaa {hours} yaliyopita) — si shida la kilango"
   },
   "playground": {
     "title": "Mazingira ya Majaribio ya Modeli",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} zisizo hai",
     "dbOverrideCount": "Ubatilishaji {count} wa DB",
     "searchPlaceholder": "Tafuta bendera...",
+    "descriptionModeLabel": "Mwonekano wa maelezo",
+    "descriptionModeHint": "Unapoelea juu: kadi hubaki fupi na kuelea juu ya maelezo huonyesha maandishi yote. Maandishi yote: huonyesha maelezo kamili kila wakati.",
+    "descriptionModeHover": "Unapoelea juu",
+    "descriptionModeFull": "Maandishi yote",
     "categories": {
       "all": "Zote",
       "security": "Usalama",

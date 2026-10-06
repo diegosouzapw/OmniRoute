@@ -5636,7 +5636,7 @@
     "accountName": "帳戶名稱",
     "email": "電子郵件",
     "healthCheckMinutes": "健康檢查（分鐘）",
-    "healthCheckHint": "主動權杖重新整理間隔。 0 = 停用。",
+    "healthCheckHint": "此連線的個別設定。留空 = 沿用全域預設值（設定 › 韌性）。0 = 永不檢查此連線。最大 1440（24 小時）。",
     "deselectAllModels": "取消全選",
     "modelsActiveCount": "{active}/{total} 已啟用",
     "noModelsMatch": "沒有匹配 \"{filter}\" 的模型",
@@ -6011,7 +6011,7 @@
     "validationModelIdPlaceholder": "輸入用於測試的模型 ID",
     "vertexCredentialLabel": "API 金鑰或服務帳戶 JSON",
     "vertexCredentialHint": "API 金鑰會使用精選的專案目錄。服務帳戶 JSON 則可啟用即時 Model Garden 探索。",
-    "vertexServiceAccountPlaceholder": "貼上 Service Account JSON（{\"type\":\"service_account\"...}）或 OAuth access_token",
+    "vertexServiceAccountPlaceholder": "貼上 API 金鑰、Service Account JSON（{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}）或 OAuth 存取權杖",
     "webCookieProviders": "Web Cookie Provider",
     "weeklyShort": "每週",
     "xiaomiMimoBaseUrlHint": "小米 Mimo 服務的 Base URL。",
@@ -6197,7 +6197,7 @@
       "bluesminds": "在 https://www.bluesminds.com 取得你的 API 金鑰 — OpenAI 相容端點為 https://api.bluesminds.com/v1，附每日免費額度。VIP 模型（Claude Opus 4.5、Gemini 2.5 Pro）會消耗 pi 額度。",
       "byteplus": "使用 API 金鑰連線 BytePlus ModelArk。",
       "bytez": "$1 美元免費額度，每 4 週更新",
-      "cerebras": "免費試用：每天 100 萬 tokens、每分鐘 3 萬 TPM、每分鐘 5 次請求 — 無需信用卡。",
+      "cerebras": "註冊時一次性贈送 $5 額度（有效期 30 天）；需要綁定付款方式。並非週期性免費方案。",
       "charm-hyper": "在 https://hyper.charm.land 建立 API 金鑰，然後在此貼上作為 Bearer token。",
       "chutes": "Chutes OpenAI 相容閘道的 Bearer API 金鑰。",
       "clarifai": "Clarifai 在 /v2/ext/openai/v1 提供 OpenAI 相容的聊天、回應和 /models 端點。公開/社群模型通常需要 PAT；應用程式範圍的金鑰僅適用於該應用程式內的資源。",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "所有提供者流量都經過此訂閱的代理池。",
       "ruleModeDesc": "只有選定的提供者的流量才會經過代理；其餘的直接連線。",
       "localCoreEndpoint": "本機核心 SOCKS5/HTTP 端點（可選）",
-      "localCoreEndpointPlaceholder": "襪子5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "僅接受 127.0.0.1 / localhost（SS/VMess/Trojan/VLESS 需要本地 sing-box/clash 核心）。",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "每行一個。僅接受 127.0.0.1 / localhost（SS/VMess/Trojan/VLESS 需要本地 sing-box/clash 核心）。",
       "routeByProvider": "按提供者劃分的路線（多選）",
       "loadingProviders": "正在載入提供者清單...",
       "autoRefreshInterval": "自動刷新間隔（分鐘）",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP描述壓縮",
     "mcpAccessibilityTitle": "MCP 無障礙輸出",
     "compressionSettingsCavemanIntensity": "穴居人強度",
-    "compressionSettingsCavemanOutputMode": "穴居人輸出模式",
     "compressionSettingsOutputStyles": "輸出樣式",
     "compressionStylesTileTitle": "輸出樣式",
     "compressionSettingsOutputIntensity": "輸出強度",
-    "compressionSettingsAutoClarityBypass": "自動清晰度旁路",
     "compressionEffectivePipeline": "有效管線：",
     "compressionDerivedOff": "關閉",
     "compressionDerivedRuns": "執行：{pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "最小壓縮行數",
         "description": "觸發表格壓縮所需的同質 JSON 陣列最小行數。預設值：8。"
       },
-      "preserveSystemPrompt": {
-        "label": "保留系統提示詞"
-      },
       "summarizerEnabled": {
         "label": "啟用摘要器"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "比這短的訊息不會被壓縮。更低=更多壓縮。",
     "tooltipMinSavings": "僅當至少儲存這麼多權杖時才進行壓縮。",
     "ultraSettings": "超級設定",
-    "ultraSettingsDesc": "SLM 支援的語義壓縮",
-    "preview": {
-      "lite": "回覆要簡潔。保留技術術語、程式碼、錯誤、URL 和識別符號。",
-      "full": "回覆要簡短緊湊。保留所有技術實質。",
-      "ultra": "用常見技術縮寫進行極簡回覆。保留精確符號。"
-    }
+    "ultraSettingsDesc": "SLM 支援的語義壓縮"
   },
   "translator": {
     "title": "翻譯器",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "兌換重置",
     "manageResetCredits": "檢視額度",
     "viewResetCredits": "檢視重置額度",
-    "resetCreditsModalTitle": "Codex 重置額度",
+    "resetCreditsModalTitle": "重置額度",
     "resetCreditsModalExplainer": "額度依到期日排序。自動兌換一律使用最先到期的額度。",
     "resetCreditsLoadFailed": "載入重置額度失敗",
     "resetCreditsDetailsUnavailable": "額度詳細資料目前無法使用。請重新整理後再試一次。",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "無到期日",
     "redeemThisResetCredit": "兌換",
     "confirmRedeemResetCreditTitle": "要兌換此重置額度嗎？",
-    "confirmRedeemResetCredit": "兌換後將立即重置符合資格的 Codex 用量區間，並永久消耗此額度。",
+    "confirmRedeemResetCredit": "兌換後將立即重置符合資格的用量區間，並永久消耗此額度。",
     "confirmRedeemResetCreditButton": "兌換額度",
     "resetCreditRedeemed": "重置已兌換",
     "resetCreditRedeemFailed": "兌換重置額度失敗",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "代理無法連線",
     "poolSetAsideKindIpQuota429": "IP 速率限制 (429)",
     "poolSetAsideKindSlow": "回應緩慢",
+    "poolSetAsideKindGeoBlocked": "區域封鎖 (403/451)",
     "poolSetAsideUntil": "{endsAt}恢復輪換",
     "poolSetAsideRepeat": "已擱置{count, plural, one {#次} other {#次}}",
     "poolUnknownAddress": "未知位址",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "位置順序",
     "poolHealthRankingOff": "健康排名已關閉",
     "transportRate": "{rate}%傳輸",
+    "slowAbandoned": "{count} 緩慢放棄",
+    "clientAborted": "{count} 客戶端中止",
+    "slowAbandonedHint": "在標頭等待閾值之後被放棄，未計入傳輸速率",
     "previousSuccessRate": "此前{rate}%成功",
-    "upstreamRefusals": "{count}次上游拒絕",
     "connectionTestsCount": "{count}次連線測試",
-    "notMeasured": "未測量"
+    "notMeasured": "未測量",
+    "upstream4xx": "{count} 上游客戶端錯誤",
+    "upstream5xx": "{count} 上游伺服器錯誤",
+    "uniformEgressLine": "{affected} 中的 {exits} 個出口在 {provider} 上同時失敗 (最後 {hours} 小時) — 不是出口問題"
   },
   "playground": {
     "title": "模型演練場",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} 個未啟用",
     "dbOverrideCount": "{count} 個資料庫覆寫",
     "searchPlaceholder": "搜尋旗標...",
+    "descriptionModeLabel": "描述檢視",
+    "descriptionModeHint": "滑鼠懸停時：卡片維持精簡，將滑鼠懸停在描述上即可顯示完整文字。完整文字：一律顯示完整描述。",
+    "descriptionModeHover": "滑鼠懸停時",
+    "descriptionModeFull": "完整文字",
     "categories": {
       "all": "全部",
       "security": "安全性",

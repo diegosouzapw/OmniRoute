@@ -1,1 +1,0 @@
-- **fix(mcp):** move `sanitizeTimingMs` to the zero-import leaf `open-sse/utils/timingMs.ts` so `src/lib/db/proxyLogs.ts` no longer pulls `upstreamStatusCapture → providerRequestLogging → usage/migrations` (top-level await) into every DB module; the per-attempt timing import from #14892 deadlocked the esbuild MCP bundle again

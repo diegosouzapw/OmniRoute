@@ -130,22 +130,26 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
 
 ## ตัวอย่าง: reverse proxy ที่อยู่หน้า OmniRoute
 
-OmniRoute เป็นผู้บังคับใช้ CORS เอง ดังนั้นโดยทั่วไป proxy **ไม่ควร** เพิ่มหรือ
-เขียนส่วนหัว `Access-Control-*` ใหม่ (ส่วนหัวที่ซ้ำกันทำให้เบราว์เซอร์ทำงานผิดพลาด) ให้ยุติการเชื่อมต่อ TLS
-และส่งต่อคำขอ โดยปล่อยให้ OmniRoute ตอบคำขอ preflight:
+OmniRoute บังคับใช้ CORS ด้วยตัวเอง ดังนั้นโดยทั่วไป proxy จึง **ไม่ควร** เพิ่มหรือ
+เขียนทับ header `Access-Control-*` (header ที่ซ้ำกันทำให้เบราว์เซอร์ทำงานผิดพลาด) ให้ยุติการเชื่อมต่อ TLS
+แล้วส่งต่อ — ปล่อยให้ OmniRoute ตอบคำขอ preflight:
 
 ```nginx
-# nginx — ส่งต่อไปยัง OmniRoute; ห้ามแทรก Access-Control-* ที่นี่
+# nginx — ส่งต่อไปยัง OmniRoute; อย่าแทรก Access-Control-* ที่นี่
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # ห้ามตั้งค่า X-Forwarded-For เป็น 127.0.0.1 เพราะจะทำให้ตัวป้องกันเส้นทาง loopback ใช้การไม่ได้
+    # เก็บ header การส่งต่อไว้: proxy บนโฮสต์เดียวกันจะเชื่อมต่อจาก loopback และ header เหล่านี้
+    # จะบอก OmniRoute ว่าผู้เรียกไม่ใช่ผู้ดูแลระบบภายในเครื่อง หาก proxy ไม่เพิ่ม header เหล่านี้เลย
+    # ผู้เรียกจากระยะไกลทุกคนจะดูเหมือนเป็นผู้เรียกภายในเครื่อง และอย่าตั้ง X-Forwarded-For เป็น 127.0.0.1 เช่นกัน
 }
 ```
 
-ตั้งค่าต้นทางของเบราว์เซอร์ที่อนุญาตใน OmniRoute (`CORS_ALLOWED_ORIGINS` หรือ
-แท็บ Security) ไม่ใช่ใน proxy
+กำหนด origin ของเบราว์เซอร์ที่อนุญาตใน OmniRoute (`CORS_ALLOWED_ORIGINS` หรือ
+แท็บความปลอดภัย) ไม่ใช่ใน proxy
 
 ## ไฟล์ต้นฉบับ
 

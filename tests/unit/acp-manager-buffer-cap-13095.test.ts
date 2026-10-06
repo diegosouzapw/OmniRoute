@@ -12,14 +12,6 @@ const CAP = 1_048_576;
  * so the buffers can be inspected while the session is still running.
  */
 function makeAgent(stream: "stdout" | "stderr", bytes: number) {
-  setCustomAgents([
-    {
-      id: AGENT_ID,
-      name: "Buffer cap probe",
-      binary: process.execPath,
-      acpSpawnable: true,
-    },
-  ]);
   const script = `
     const chunk = "x".repeat(64 * 1024);
     let written = 0;
@@ -30,7 +22,21 @@ function makeAgent(stream: "stdout" | "stderr", bytes: number) {
     }
     setInterval(() => {}, 1000);
   `;
-  return ["-e", script];
+  registerScript(script);
+}
+
+function registerScript(script: string) {
+  setCustomAgents([
+    {
+      id: AGENT_ID,
+      name: "Buffer cap probe",
+      binary: process.execPath,
+      versionCommand: "--version",
+      providerAlias: "fixture",
+      protocol: "stdio",
+      spawnArgs: ["-e", script],
+    },
+  ]);
 }
 
 async function waitForOutput(session: { stdoutBuffer: string; stderrBuffer: string }) {
@@ -44,7 +50,8 @@ async function waitForOutput(session: { stdoutBuffer: string; stderrBuffer: stri
 
 test("stdout buffer stays bounded when an agent floods it (#13095)", async () => {
   const mgr = new AcpManager();
-  const session = mgr.spawn(AGENT_ID, process.execPath, makeAgent("stdout", 4 * CAP));
+  makeAgent("stdout", 4 * CAP);
+  const session = mgr.spawn(AGENT_ID);
   try {
     await waitForOutput(session);
     assert.ok(
@@ -62,7 +69,8 @@ test("stdout buffer stays bounded when an agent floods it (#13095)", async () =>
 
 test("stderr buffer stays bounded when an agent floods it (#13095)", async () => {
   const mgr = new AcpManager();
-  const session = mgr.spawn(AGENT_ID, process.execPath, makeAgent("stderr", 4 * CAP));
+  makeAgent("stderr", 4 * CAP);
+  const session = mgr.spawn(AGENT_ID);
   try {
     await waitForOutput(session);
     assert.ok(
@@ -79,14 +87,6 @@ test("stderr buffer stays bounded when an agent floods it (#13095)", async () =>
 });
 
 test("truncation keeps the most recent output, not the oldest (#13095)", async () => {
-  setCustomAgents([
-    {
-      id: AGENT_ID,
-      name: "Buffer cap probe",
-      binary: process.execPath,
-      acpSpawnable: true,
-    },
-  ]);
   const script = `
     const chunk = "x".repeat(64 * 1024);
     let written = 0;
@@ -95,7 +95,8 @@ test("truncation keeps the most recent output, not the oldest (#13095)", async (
     setInterval(() => {}, 1000);
   `;
   const mgr = new AcpManager();
-  const session = mgr.spawn(AGENT_ID, process.execPath, ["-e", script]);
+  registerScript(script);
+  const session = mgr.spawn(AGENT_ID);
   try {
     await waitForOutput(session);
     // The tail is the part callers use: sendPrompt resolves with stdout, and
@@ -111,14 +112,6 @@ test("truncation keeps the most recent output, not the oldest (#13095)", async (
 });
 
 test("stderr is reset between prompts so diagnostics are per-prompt (#13095)", async () => {
-  setCustomAgents([
-    {
-      id: AGENT_ID,
-      name: "Buffer cap probe",
-      binary: process.execPath,
-      acpSpawnable: true,
-    },
-  ]);
   // Echoes stdin back on stdout, and writes a fixed line to stderr per prompt.
   const script = `
     process.stdin.on("data", (d) => {
@@ -128,7 +121,8 @@ test("stderr is reset between prompts so diagnostics are per-prompt (#13095)", a
     setInterval(() => {}, 1000);
   `;
   const mgr = new AcpManager();
-  const session = mgr.spawn(AGENT_ID, process.execPath, ["-e", script]);
+  registerScript(script);
+  const session = mgr.spawn(AGENT_ID);
   try {
     await mgr.sendPrompt(session.id, "first", 6000);
     await mgr.sendPrompt(session.id, "second", 6000);

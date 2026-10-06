@@ -349,6 +349,12 @@ export async function registerNodejs(): Promise<void> {
   // Subscribe the proxy set-aside webhook bridge (side-effect import only).
   await import("@/lib/proxyEvents/proxyTransitionBridge");
 
+  // Steer the local core selector off every set-aside member, whatever the
+  // refusal kind (explicit idempotent registration; safe to call twice).
+  const { registerSelectorTransitionSubscriber } =
+    await import("@/lib/proxySubscription/proxyTransitionSubscriber");
+  registerSelectorTransitionSubscriber();
+
   // Register quota fetchers early so combo routing can use real quota-aware
   // scoring for generic providers in the App Router production runtime.
   await registerQuotaFetchers();

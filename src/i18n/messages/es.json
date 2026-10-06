@@ -5636,7 +5636,7 @@
     "accountName": "Nombre de cuenta",
     "email": "Correo electrónico",
     "healthCheckMinutes": "Control de salud (min)",
-    "healthCheckHint": "Intervalo de actualización de token proactivo. 0 = deshabilitado.",
+    "healthCheckHint": "Valor específico para esta conexión. Vacío = usar el valor global predeterminado (Configuración › Resiliencia). 0 = no comprobar nunca esta conexión. Máximo 1440 (24 h).",
     "deselectAllModels": "Deseleccionar todo",
     "modelsActiveCount": "{active}/{total} activos",
     "noModelsMatch": "Ningún modelo coincide con «{filter}»",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Todo el tráfico del proveedor pasa por el grupo de proxy de esta suscripción.",
       "ruleModeDesc": "Sólo el tráfico de los Proveedores seleccionados pasa por el proxy; el resto se conecta directamente.",
       "localCoreEndpoint": "Punto final local SOCKS5/HTTP (opcional)",
-      "localCoreEndpointPlaceholder": "calcetines5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Solo acepta 127.0.0.1/localhost (SS/VMess/Trojan/VLESS requieren un núcleo sing-box/clash local).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Uno por línea. Solo acepta 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS requieren un núcleo sing-box/clash local).",
       "routeByProvider": "Ruta por proveedor (selección múltiple)",
       "loadingProviders": "Cargando lista de proveedores…",
       "autoRefreshInterval": "Intervalo de actualización automática (minutos)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Compresión de descripción MCP",
     "mcpAccessibilityTitle": "Salida de accesibilidad de MCP",
     "compressionSettingsCavemanIntensity": "Intensidad cavernícola",
-    "compressionSettingsCavemanOutputMode": "Modo de salida cavernícola",
     "compressionSettingsOutputStyles": "Estilos de salida",
     "compressionStylesTileTitle": "Estilos de salida",
     "compressionSettingsOutputIntensity": "Intensidad de salida",
-    "compressionSettingsAutoClarityBypass": "Bypass de claridad automática",
     "compressionEffectivePipeline": "Canalización efectiva:",
     "compressionDerivedOff": "desactivada",
     "compressionDerivedRuns": "ejecuta: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Filas mínimas para compactar",
         "description": "Número mínimo de filas de una matriz JSON homogénea necesario para activar la compactación tabular. Valor predeterminado: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Conservar el prompt del sistema"
-      },
       "summarizerEnabled": {
         "label": "Activar el generador de resúmenes"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Los mensajes más cortos que esto no se comprimen. Más bajo = más compresión.",
     "tooltipMinSavings": "Comprima solo si guarda al menos esta cantidad de tokens.",
     "ultraSettings": "Configuración ultra",
-    "ultraSettingsDesc": "Compresión semántica impulsada por SLM",
-    "preview": {
-      "lite": "Responde de forma concisa. Conserva los términos técnicos, el código, los errores, las URL y los identificadores.",
-      "full": "Responde de forma escueta y compacta. Conserva todo el contenido técnico.",
-      "ultra": "Responde de forma extremadamente escueta usando abreviaturas técnicas comunes. Conserva los símbolos exactos."
-    }
+    "ultraSettingsDesc": "Compresión semántica impulsada por SLM"
   },
   "translator": {
     "title": "Traductor",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy inaccesible",
     "poolSetAsideKindIpQuota429": "límite de tasa por IP (429)",
     "poolSetAsideKindSlow": "respuestas lentas",
+    "poolSetAsideKindGeoBlocked": "región bloqueada (403/451)",
     "poolSetAsideUntil": "De vuelta en rotación {endsAt}",
     "poolSetAsideRepeat": "Apartado {count, plural, one {# vez} other {# veces}}",
     "poolUnknownAddress": "Dirección desconocida",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Orden de posición",
     "poolHealthRankingOff": "Clasificación de salud desactivada",
     "transportRate": "{rate} % transporte",
+    "slowAbandoned": "{count} abandonos lentos",
+    "clientAborted": "{count} abortos de cliente",
+    "slowAbandonedHint": "Abandonado tras el umbral de espera de encabezados, excluido de la tasa de transporte",
     "previousSuccessRate": "Anteriormente {rate} % de éxito",
-    "upstreamRefusals": "{count} rechazos aguas arriba",
     "connectionTestsCount": "{count} pruebas de conexión",
-    "notMeasured": "No medido"
+    "notMeasured": "No medido",
+    "upstream4xx": "{count} errores de cliente upstream",
+    "upstream5xx": "{count} errores de servidor upstream",
+    "uniformEgressLine": "{affected} de {exits} salidas fallan juntas en {provider} (últimas {hours}h) — no es un problema de salida"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inactivas",
     "dbOverrideCount": "{count} sobrescrituras de DB",
     "searchPlaceholder": "Buscar flags...",
+    "descriptionModeLabel": "Vista de descripción",
+    "descriptionModeHint": "Al pasar el cursor: las tarjetas permanecen compactas y, al pasar el cursor sobre una descripción, se muestra el texto completo. Texto completo: muestra siempre la descripción completa.",
+    "descriptionModeHover": "Al pasar el cursor",
+    "descriptionModeFull": "Texto completo",
     "categories": {
       "all": "Todas",
       "security": "Seguridad",

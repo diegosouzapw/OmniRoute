@@ -1,1 +1,0 @@
-- **startup**: `OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1` now also skips the boot-time model-catalog warmup, so no OpenRouter catalog fetch runs when background services are disabled (#14076, #14147 — thanks @rafacpti23)

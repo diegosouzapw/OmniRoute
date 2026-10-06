@@ -5636,7 +5636,7 @@
     "accountName": "Názov účtu",
     "email": "Email",
     "healthCheckMinutes": "Kontrola stavu (min)",
-    "healthCheckHint": "Interval proaktívneho obnovenia tokenu. 0 = vypnuté.",
+    "healthCheckHint": "Prepísanie pre toto pripojenie. Prázdne = riadiť sa globálnym predvoleným nastavením (Nastavenia › Odolnosť). 0 = toto pripojenie nikdy nekontrolovať. Maximum 1440 (24 h).",
     "deselectAllModels": "Zrušiť výber všetkých",
     "modelsActiveCount": "Aktívne: {active}/{total}",
     "noModelsMatch": "Filtru „{filter}“ nezodpovedajú žiadne modely",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Získajte svoj API kľúč na https://www.bluesminds.com — koncový bod kompatibilný s OpenAI na https://api.bluesminds.com/v1 s bezplatnými dennými kreditmi. VIP modely (Claude Opus 4.5, Gemini 2.5 Pro) spotrebúvajú pi kredity.",
       "byteplus": "Pripojte BytePlus ModelArk pomocou API kľúča.",
       "bytez": "Bezplatný kredit 1 $, obnovuje sa každé 4 týždne",
-      "cerebras": "Bezplatná skúšobná verzia: 1M tokenov/deň, 30K TPM, 5 RPM — bez kreditnej karty.",
+      "cerebras": "Jednorazový kredit 5 $ pri registrácii (platnosť 30 dní); vyžaduje sa platobná metóda. Nejde o opakujúcu sa bezplatnú úroveň.",
       "charm-hyper": "Vytvorte API kľúč na https://hyper.charm.land, potom ho sem vložte ako Bearer token.",
       "chutes": "Bearer API kľúč pre bránu Chutes kompatibilnú s OpenAI.",
       "clarifai": "Clarifai sprístupňuje chat, odpovede a /models kompatibilné s OpenAI na /v2/ext/openai/v1. Verejné/komunitné modely zvyčajne vyžadujú PAT; kľúče s rozsahom aplikácie fungujú iba pre zdroje v rámci danej aplikácie.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Všetka prevádzka poskytovateľa prechádza cez fond proxy tohto predplatného.",
       "ruleModeDesc": "Cez proxy prechádza iba návštevnosť vybraných poskytovateľov; zvyšok sa pripája priamo.",
       "localCoreEndpoint": "Lokálny koncový bod SOCKS5/HTTP (voliteľné)",
-      "localCoreEndpointPlaceholder": "ponožky5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Akceptuje iba 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vyžadujú lokálne sing-box/clash jadro).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Jeden na riadok. Akceptuje iba 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vyžadujú lokálne sing-box/clash jadro).",
       "routeByProvider": "Trasa podľa poskytovateľa (výber viacerých možností)",
       "loadingProviders": "Načítava sa zoznam poskytovateľov…",
       "autoRefreshInterval": "Interval automatického obnovenia (minúty)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Kompresia popisu MCP",
     "mcpAccessibilityTitle": "Výstup prístupnosti MCP",
     "compressionSettingsCavemanIntensity": "Intenzita jaskynného muža",
-    "compressionSettingsCavemanOutputMode": "Výstupný režim Caveman",
     "compressionSettingsOutputStyles": "Štýly výstupu",
     "compressionStylesTileTitle": "Štýly výstupu",
     "compressionSettingsOutputIntensity": "Výstupná intenzita",
-    "compressionSettingsAutoClarityBypass": "Obtok automatického jasu",
     "compressionEffectivePipeline": "Efektívna pipeline:",
     "compressionDerivedOff": "vypnuté",
     "compressionDerivedRuns": "spustenia: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimálny počet riadkov na zhustenie",
         "description": "Minimálny počet riadkov v homogénnom JSON poli potrebný na spustenie tabuľkového zhustenia. Predvolené: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Zachovať systémový prompt"
-      },
       "summarizerEnabled": {
         "label": "Povoliť sumarizátor"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Správy kratšie ako toto nie sú komprimované. Nižšia = väčšia kompresia.",
     "tooltipMinSavings": "Komprimujte iba vtedy, ak uložíte aspoň toľko tokenov.",
     "ultraSettings": "Ultra nastavenia",
-    "ultraSettingsDesc": "Sémantická kompresia poháňaná SLM",
-    "preview": {
-      "lite": "Odpovedaj stručne. Zachovaj technické termíny, kód, chyby, adresy URL a identifikátory.",
-      "full": "Odpovedaj úsečne a kompaktne. Zachovaj všetok technický obsah.",
-      "ultra": "Odpovedaj maximálne úsečne s použitím bežných technických skratiek. Zachovaj presné symboly."
-    }
+    "ultraSettingsDesc": "Sémantická kompresia poháňaná SLM"
   },
   "translator": {
     "title": "Prekladateľ",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Uplatniť resetovanie",
     "manageResetCredits": "Zobraziť kredity",
     "viewResetCredits": "Zobraziť resetovacie kredity",
-    "resetCreditsModalTitle": "Codex resetovacie kredity",
+    "resetCreditsModalTitle": "Resetovacie kredity",
     "resetCreditsModalExplainer": "Kredity sú zoradené podľa dátumu expirácie. Pri automatickom uplatnení sa vždy použije kredit, ktorý expiruje ako prvý.",
     "resetCreditsLoadFailed": "Nepodarilo sa načítať resetovacie kredity",
     "resetCreditsDetailsUnavailable": "Podrobnosti o kreditoch sú momentálne nedostupné. Obnovte stránku a skúste to znova.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Bez dátumu expirácie",
     "redeemThisResetCredit": "Uplatniť",
     "confirmRedeemResetCreditTitle": "Uplatniť tento resetovací kredit?",
-    "confirmRedeemResetCredit": "Uplatnením sa okamžite resetujú príslušné okná používania Codexu a tento kredit sa natrvalo spotrebuje.",
+    "confirmRedeemResetCredit": "Uplatnením sa okamžite resetujú príslušné okná používania a tento kredit sa natrvalo spotrebuje.",
     "confirmRedeemResetCreditButton": "Uplatniť kredit",
     "resetCreditRedeemed": "Vynulovať uplatnené",
     "resetCreditRedeemFailed": "Nepodarilo sa uplatniť kredit na reset",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy je nedostupná",
     "poolSetAsideKindIpQuota429": "obmedzenie rýchlosti podľa IP (429)",
     "poolSetAsideKindSlow": "pomalé odpovede",
+    "poolSetAsideKindGeoBlocked": "blokovaný región (403/451)",
     "poolSetAsideUntil": "Späť v rotácii {endsAt}",
     "poolSetAsideRepeat": "Odložené {count, plural, one {#krát} other {#krát}}",
     "poolUnknownAddress": "Neznáma adresa",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Poradie pozícií",
     "poolHealthRankingOff": "Hodnotenie stavu vypnuté",
     "transportRate": "{rate} % prenosu",
+    "slowAbandoned": "{count} pomalých opustení",
+    "clientAborted": "{count} klientských prerušení",
+    "slowAbandonedHint": "Opustené po prekročení limitu čakania na hlavičky, vynechané z miery prenosu",
     "previousSuccessRate": "Predtým {rate} % úspešnosť",
-    "upstreamRefusals": "{count} odmietnutí upstream",
     "connectionTestsCount": "{count} testov pripojenia",
-    "notMeasured": "Nemerané"
+    "notMeasured": "Nemerané",
+    "upstream4xx": "{count} chyby klienta",
+    "upstream5xx": "{count} chyby servera",
+    "uniformEgressLine": "{affected} z {exits} exitov zlyhávajú súčasne na {provider} (za posledných {hours} h) — nejde o problém exitu"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} neaktívnych",
     "dbOverrideCount": "{count} prepísaní DB",
     "searchPlaceholder": "Hľadať príznaky...",
+    "descriptionModeLabel": "Zobrazenie popisu",
+    "descriptionModeHint": "Pri umiestnení kurzora: karty zostanú kompaktné a pri umiestnení kurzora na popis sa zobrazí celý text. Celý text: vždy sa zobrazí kompletný popis.",
+    "descriptionModeHover": "Pri umiestnení kurzora",
+    "descriptionModeFull": "Celý text",
     "categories": {
       "all": "Všetky",
       "security": "Bezpečnosť",

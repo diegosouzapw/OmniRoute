@@ -324,9 +324,32 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
     log("   These providers will not work until configured.");
   }
 
-  // ── Warn about default password ────────────────────────────────────────────
-  if (merged.INITIAL_PASSWORD === "CHANGEME" || !merged.INITIAL_PASSWORD?.trim()) {
-    log("⚠️  INITIAL_PASSWORD is not set — using default 'CHANGEME'. Change it in Settings!");
+  // ── Warn about the initial dashboard password ──────────────────────────────
+  // Bootstrap reads process.env, one .env file, and server.env. Next.js can still fill
+  // an unset INITIAL_PASSWORD from its own .env files, so the unset notice hedges.
+  const initialPassword = merged.INITIAL_PASSWORD;
+  // Placeholder variants (" changeme ", "Changeme") become equally guessable passwords,
+  // so the comparison normalizes case and surrounding whitespace.
+  const isPlaceholderLike =
+    typeof initialPassword === "string" && initialPassword.trim().toUpperCase() === "CHANGEME";
+  if (isPlaceholderLike) {
+    log("⚠️  INITIAL_PASSWORD matches the .env.example placeholder 'CHANGEME', a publicly known");
+    log("   password. If no dashboard password is saved yet, that value becomes the password.");
+    log("   Set your own INITIAL_PASSWORD before first boot. In Docker, do it before the");
+    log("   container's first start: a host browser reaches the container as a remote client,");
+    log("   and the login refuses the exact placeholder CHANGEME from remote clients (case or");
+    log("   whitespace variants are not refused remotely). Elsewhere, change the password");
+    log("   right away: sign in from localhost and use Dashboard → Settings → Security, or run");
+    log("   `omniroute reset-password` (`node bin/reset-password.mjs` in a source checkout)");
+    log("   with DATA_DIR set to this server's data directory.");
+  } else if (!initialPassword) {
+    log("ℹ️  INITIAL_PASSWORD is unset here. Unless a .env file that Next.js loads sets it,");
+    log("   a fresh install asks you to create the dashboard password in the onboarding wizard.");
+  } else if (!initialPassword.trim()) {
+    log("⚠️  INITIAL_PASSWORD is only whitespace. If no dashboard password is saved yet, that");
+    log("   whitespace becomes the password, and it works from any address. Set a real");
+    log("   INITIAL_PASSWORD before first boot, or change the password right away in");
+    log("   Dashboard → Settings → Security.");
   }
 
   // ── Decrypt-probe: verify STORAGE_ENCRYPTION_KEY matches encrypted data (#1622) ─

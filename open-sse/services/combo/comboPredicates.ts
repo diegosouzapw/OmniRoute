@@ -323,6 +323,29 @@ export function isRequestScopedUpstreamFailure(error?: {
   );
 }
 
+export function isComboTargetTimeoutFailure(error?: {
+  code?: string | null;
+  type?: string | null;
+}): boolean {
+  const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
+  const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
+  return code === "combo_target_timeout" || type === "combo_target_timeout";
+}
+
+/**
+ * Model lockout is per model, not per provider. A local target timeout must
+ * lock that model so the next request does not spend another gate wait on it.
+ * Other request-scoped failures (context length, local queue) stay unlocked.
+ * The provider breaker still uses the request-scoped flag and does not see this.
+ */
+export function shouldRecordModelLockoutForComboFailure(
+  requestScopedFailure: boolean,
+  error?: { code?: string | null; type?: string | null }
+): boolean {
+  if (!requestScopedFailure) return true;
+  return isComboTargetTimeoutFailure(error);
+}
+
 /** Request-scoped classification that also has access to the HTTP body. */
 export function isComboRequestScopedFailure(
   response: Response,

@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Stiskanje opisov MCP",
     "mcpAccessibilityTitle": "Izhod MCP za dostopnost",
     "compressionSettingsCavemanIntensity": "Intenzivnost jamskega načina",
-    "compressionSettingsCavemanOutputMode": "Jamski način izpisa",
     "compressionSettingsOutputStyles": "Slogi izpisa",
     "compressionStylesTileTitle": "Slogi izpisa",
     "compressionSettingsOutputIntensity": "Intenzivnost izpisa",
-    "compressionSettingsAutoClarityBypass": "Samodejni obvod jasnosti",
     "compressionEffectivePipeline": "Dejanski potek obdelave:",
     "compressionDerivedOff": "izklopljeno",
     "compressionDerivedRuns": "izvaja se: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Najmanjše število vrstic za stiskanje",
         "description": "Najmanjše število vrstic v homogenem polju JSON, potrebno za sprožitev tabelaričnega stiskanja. Privzeto: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Ohrani sistemski poziv"
-      },
       "summarizerEnabled": {
         "label": "Omogoči povzemalnik"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Sporočila, krajša od te vrednosti, se ne stisnejo. Nižja vrednost = več stiskanja.",
     "tooltipMinSavings": "Stisni le, če se prihrani vsaj toliko žetonov.",
     "ultraSettings": "Nastavitve Ultra",
-    "ultraSettingsDesc": "Semantično stiskanje, ki ga poganja SLM",
-    "preview": {
-      "lite": "Odgovarjaj jedrnato. Ohrani tehnične izraze, kodo, napake, URL-je in identifikatorje.",
-      "full": "Odgovarjaj skopo in zgoščeno. Ohrani vso tehnično vsebino.",
-      "ultra": "Odgovarjaj izjemno skopo z običajnimi tehničnimi okrajšavami. Ohrani natančne simbole."
-    }
+    "ultraSettingsDesc": "Semantično stiskanje, ki ga poganja SLM"
   },
   "translator": {
     "title": "Prevajalnik",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "posredniški strežnik ni dosegljiv",
     "poolSetAsideKindIpQuota429": "omejitev hitrosti po IP (429)",
     "poolSetAsideKindSlow": "počasni odzivi",
+    "poolSetAsideKindGeoBlocked": "regionalno blokirano (403/451)",
     "poolSetAsideUntil": "Nazaj v rotaciji {endsAt}",
     "poolSetAsideRepeat": "Odloženo {count, plural, one {#krat} other {#krat}}",
     "poolUnknownAddress": "Neznan naslov",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Vrstni red položajev",
     "poolHealthRankingOff": "Razvrščanje zdravja izklopljeno",
     "transportRate": "{rate} % prenosa",
+    "slowAbandoned": "{count} počasnih opustitev",
+    "clientAborted": "{count} prekinitve odjemalca",
+    "slowAbandonedHint": "Opustitev po presežku praga čakanja glave, izključeno iz hitrosti prenosa",
     "previousSuccessRate": "Prej {rate} % uspešnosti",
-    "upstreamRefusals": "{count} zavrnitev upstream",
     "connectionTestsCount": "{count} preskusov povezave",
-    "notMeasured": "Ni izmerjeno"
+    "notMeasured": "Ni izmerjeno",
+    "upstream4xx": "{count} napake stranke na gornjem",
+    "upstream5xx": "{count} napake strežnika na gornjem",
+    "uniformEgressLine": "Sočasen izpad {affected} od {exits} izhodov pri {provider} (zadnjih {hours}h) — ni težava izhoda"
   },
   "playground": {
     "title": "Preizkusno okolje za modele",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} neaktivnih",
     "dbOverrideCount": "{count} preglasitev DB",
     "searchPlaceholder": "Poiščite zastavice ...",
+    "descriptionModeLabel": "Pogled opisa",
+    "descriptionModeHint": "Ob prehodu miške: kartice ostanejo strnjene, ob prehodu miške čez opis pa se prikaže celotno besedilo. Celotno besedilo: vedno prikaži celoten opis.",
+    "descriptionModeHover": "Ob prehodu miške",
+    "descriptionModeFull": "Celotno besedilo",
     "categories": {
       "all": "Vse",
       "security": "Varnost",

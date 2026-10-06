@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP विवरण सङ्कुचन",
     "mcpAccessibilityTitle": "MCP पहुँचयोग्यता आउटपुट",
     "compressionSettingsCavemanIntensity": "केभम्यान तीव्रता",
-    "compressionSettingsCavemanOutputMode": "केभम्यान आउटपुट मोड",
     "compressionSettingsOutputStyles": "आउटपुट शैलीहरू",
     "compressionStylesTileTitle": "आउटपुट शैलीहरू",
     "compressionSettingsOutputIntensity": "आउटपुट तीव्रता",
-    "compressionSettingsAutoClarityBypass": "स्वतः स्पष्टता बाइपास",
     "compressionEffectivePipeline": "प्रभावकारी पाइपलाइन:",
     "compressionDerivedOff": "बन्द",
     "compressionDerivedRuns": "रनहरू: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "सङ्कुचित गर्न आवश्यक न्यूनतम पङ्क्तिहरू",
         "description": "तालिकागत सङ्कुचन सुरु गर्न एकरूप JSON एरेमा आवश्यक न्यूनतम पङ्क्तिहरू। पूर्वनिर्धारित: 8।"
       },
-      "preserveSystemPrompt": {
-        "label": "प्रणाली प्रम्प्ट सुरक्षित राख्नुहोस्"
-      },
       "summarizerEnabled": {
         "label": "सारांशकर्ता सक्षम गर्नुहोस्"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "यसभन्दा छोटा सन्देशहरू सङ्कुचित गरिँदैनन्। कम = बढी सङ्कुचन।",
     "tooltipMinSavings": "कम्तीमा यति टोकन बचत हुने भए मात्र सङ्कुचित गर्नुहोस्।",
     "ultraSettings": "अल्ट्रा सेटिङहरू",
-    "ultraSettingsDesc": "SLM-सञ्चालित अर्थगत सङ्कुचन",
-    "preview": {
-      "lite": "संक्षिप्त रूपमा जवाफ दिनुहोस्। प्राविधिक शब्दहरू, code, errors, URLs, र identifiers जस्ताको तस्तै राख्नुहोस्।",
-      "full": "अत्यन्त छोटो र सङ्क्षिप्त जवाफ दिनुहोस्। सबै प्राविधिक सार सुरक्षित राख्नुहोस्।",
-      "ultra": "प्रचलित प्राविधिक संक्षिप्त रूपहरू प्रयोग गरी अत्यन्त छोटो जवाफ दिनुहोस्। ठ्याक्कै उही चिह्नहरू सुरक्षित राख्नुहोस्।"
-    }
+    "ultraSettingsDesc": "SLM-सञ्चालित अर्थगत सङ्कुचन"
   },
   "translator": {
     "title": "अनुवादक",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "प्रोक्सीमा पुग्न सकिएन",
     "poolSetAsideKindIpQuota429": "IP दर सीमा (429)",
     "poolSetAsideKindSlow": "ढिलो प्रतिक्रिया",
+    "poolSetAsideKindGeoBlocked": "क्षेत्र-रोकिएको (403/451)",
     "poolSetAsideUntil": "रोटेसनमा फर्कियो {endsAt}",
     "poolSetAsideRepeat": "छेउमा राखियो {count, plural, one {# पटक} other {# पटक}}",
     "poolUnknownAddress": "अज्ञात ठेगाना",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "स्थिति क्रम",
     "poolHealthRankingOff": "स्वास्थ्य श्रेणी बन्द",
     "transportRate": "{rate}% ढुवानी",
+    "slowAbandoned": "{count} ढिलो परित्यागहरू",
+    "clientAborted": "{count} क्लाइन्टको रद्दीकरणहरू",
+    "slowAbandonedHint": "हेडर प्रतीक्षा सीमा पछि परित्याग गरियो, ट्रान्सपोर्ट दरबाट बहिष्कृत",
     "previousSuccessRate": "पहिले {rate}% सफलता",
-    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृति",
     "connectionTestsCount": "{count} जडान परीक्षण",
-    "notMeasured": "मापन गरिएको छैन"
+    "notMeasured": "मापन गरिएको छैन",
+    "upstream4xx": "{count} अपस्ट्रीम क्लाइन्ट त्रुटिहरू",
+    "upstream5xx": "{count} अपस्ट्रीम सर्भर त्रुटिहरू",
+    "uniformEgressLine": "{provider} मा {exits} एक्जिटहरूमध्ये {affected} वटा सँगै असफल (पछिल्लो {hours}h) — एक्जिट समस्या होइन"
   },
   "playground": {
     "title": "मोडेल प्लेग्राउन्ड",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} निष्क्रिय",
     "dbOverrideCount": "{count} DB ओभरराइड",
     "searchPlaceholder": "फ्ल्यागहरू खोज्नुहोस्...",
+    "descriptionModeLabel": "विवरण दृश्य",
+    "descriptionModeHint": "होभर गर्दा: कार्डहरू संक्षिप्त रहन्छन् र विवरणमाथि होभर गर्दा पूर्ण पाठ देखिन्छ। पूर्ण पाठ: सधैं पूरा विवरण देखाउनुहोस्।",
+    "descriptionModeHover": "होभर गर्दा",
+    "descriptionModeFull": "पूर्ण पाठ",
     "categories": {
       "all": "सबै",
       "security": "सुरक्षा",

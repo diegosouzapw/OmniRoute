@@ -263,16 +263,23 @@ verdi. Returnerer `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Nød-budsjett-tilbakefall
+## Reserveløsning for nødbudsjett
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (kategori `runtime`, standard `true`) kontrollerer
-nød-fri-tilbakefallsbanen i
+`OMNIROUTE_EMERGENCY_FALLBACK` (kategori `runtime`, standardverdi `true`) styrer
+den kostnadsfrie reservebanen for nødstilfeller i
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Når aktivert, rutes forespørsler som tømmer budsjettet sitt til en gratis tilbakefallsleverandør/modell
-i stedet for å feile fullstendig. Sett den til `false` (eller `0`) — via
-dashboard-veksleren, en DB-overstyring, eller `OMNIROUTE_EMERGENCY_FALLBACK`
-miljøvariabelen — for å deaktivere oppførselen og la budsjett-tømte forespørsler feile.
-(Fremhevet som en dashboard-veksler i PR #3741 / #3752.)
+Når den er aktivert, rutes forespørsler som har brukt opp budsjettet sitt, til en
+kostnadsfri reserveleverandør/-modell i stedet for å mislykkes umiddelbart. Sett
+den til `false` (eller `0`) — via bryteren i kontrollpanelet, en overstyring i
+databasen eller miljøvariabelen `OMNIROUTE_EMERGENCY_FALLBACK` — for å deaktivere
+denne virkemåten og la forespørsler med oppbrukt budsjett mislykkes. (Tilgjengelig
+som en bryter i kontrollpanelet i PR-er #3741 / #3752.)
+
+Et svar levert av denne reserveløsningen inneholder
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, slik
+at en klient kan se at forespørselen ble omdirigert uten å sammenligne
+`X-OmniRoute-Provider` med den opprinnelige forespørselen. Headeren finnes ikke i
+noen andre svar.
 
 ---
 

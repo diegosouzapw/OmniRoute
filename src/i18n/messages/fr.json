@@ -5636,7 +5636,7 @@
     "accountName": "Nom du compte",
     "email": "Courriel",
     "healthCheckMinutes": "Bilan de santé (min)",
-    "healthCheckHint": "Intervalle d’actualisation proactif des jetons. 0 = désactivé.",
+    "healthCheckHint": "Valeur propre à cette connexion. Vide = suivre la valeur globale par défaut (Paramètres › Résilience). 0 = ne jamais vérifier cette connexion. Maximum 1440 (24 h).",
     "deselectAllModels": "Tout désélectionner",
     "modelsActiveCount": "{active}/{total} actifs",
     "noModelsMatch": "Aucun modèle ne correspond à « {filter} »",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Obtenez votre clé API sur https://www.bluesminds.com — point de terminaison compatible OpenAI sur https://api.bluesminds.com/v1 avec des crédits quotidiens gratuits. Les modèles VIP (Claude Opus 4.5, Gemini 2.5 Pro) consomment des crédits pi.",
       "byteplus": "Connectez BytePlus ModelArk avec une clé API.",
       "bytez": "1 $ de crédits gratuits, renouvelés toutes les 4 semaines",
-      "cerebras": "Essai gratuit : 1M de tokens/jour, 30K TPM, 5 RPM — sans carte de crédit.",
+      "cerebras": "Crédit unique de 5 $ à l'inscription (valable 30 jours) ; un moyen de paiement est requis. Pas un niveau gratuit récurrent.",
       "charm-hyper": "Créez une clé API sur https://hyper.charm.land, puis collez-la ici en tant que jeton Bearer.",
       "chutes": "Clé API Bearer pour la passerelle compatible OpenAI de Chutes.",
       "clarifai": "Clarifai expose un chat, des réponses et /models compatibles avec OpenAI sur /v2/ext/openai/v1. Les modèles publics/communautaires nécessitent généralement un PAT ; les clés limitées à l'application ne fonctionnent que pour les ressources au sein de cette application.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Tout le trafic du fournisseur passe par le pool de proxy de cet abonnement.",
       "ruleModeDesc": "Seul le trafic des fournisseurs sélectionnés passe par le proxy ; le reste se connecte directement.",
       "localCoreEndpoint": "Point de terminaison local Core SOCKS5/HTTP (facultatif)",
-      "localCoreEndpointPlaceholder": "chaussettes5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "N'accepte que 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS nécessitent un noyau sing-box/clash local).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Un par ligne. N'accepte que 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS nécessitent un noyau sing-box/clash local).",
       "routeByProvider": "Itinéraire par fournisseur (sélection multiple)",
       "loadingProviders": "Chargement de la liste des fournisseurs…",
       "autoRefreshInterval": "Intervalle de rafraîchissement automatique (minutes)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Compression des descriptions MCP",
     "mcpAccessibilityTitle": "Sortie d'accessibilité MCP",
     "compressionSettingsCavemanIntensity": "Intensité de l'homme des cavernes",
-    "compressionSettingsCavemanOutputMode": "Mode de sortie homme des cavernes",
     "compressionSettingsOutputStyles": "Styles de sortie",
     "compressionStylesTileTitle": "Styles de sortie",
     "compressionSettingsOutputIntensity": "Intensité de sortie",
-    "compressionSettingsAutoClarityBypass": "Contournement automatique de la clarté",
     "compressionEffectivePipeline": "Pipeline effectif :",
     "compressionDerivedOff": "désactivé",
     "compressionDerivedRuns": "exécutions : {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Lignes minimales à compacter",
         "description": "Nombre minimum de lignes dans un tableau JSON homogène requis pour déclencher le compactage tabulaire. Par défaut : 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Préserver le prompt système"
-      },
       "summarizerEnabled": {
         "label": "Activer le résumeur"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Les messages plus courts ne sont pas compressés. Plus faible = plus de compression.",
     "tooltipMinSavings": "Compressez uniquement si vous enregistrez au moins autant de jetons.",
     "ultraSettings": "Paramètres ultra",
-    "ultraSettingsDesc": "Compression sémantique basée sur SLM",
-    "preview": {
-      "lite": "Répondez de manière concise. Préservez les termes techniques, le code, les erreurs, les URLs et les identifiants.",
-      "full": "Répondez de manière laconique et compacte. Préservez tout le contenu technique.",
-      "ultra": "Répondez de manière ultra-laconique avec des abréviations techniques courantes. Préservez les symboles exacts."
-    }
+    "ultraSettingsDesc": "Compression sémantique basée sur SLM"
   },
   "translator": {
     "title": "Traducteur",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Utiliser la réinitialisation",
     "manageResetCredits": "Afficher les crédits",
     "viewResetCredits": "Afficher les crédits de réinitialisation",
-    "resetCreditsModalTitle": "Crédits de réinitialisation Codex",
+    "resetCreditsModalTitle": "Crédits de réinitialisation",
     "resetCreditsModalExplainer": "Les crédits sont triés par date d'expiration. L'utilisation automatique consomme toujours le crédit qui expire en premier.",
     "resetCreditsLoadFailed": "Échec du chargement des crédits de réinitialisation",
     "resetCreditsDetailsUnavailable": "Les détails des crédits sont actuellement indisponibles. Actualisez et réessayez.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Pas de date d'expiration",
     "redeemThisResetCredit": "Utiliser",
     "confirmRedeemResetCreditTitle": "Utiliser ce crédit de réinitialisation ?",
-    "confirmRedeemResetCredit": "L'utilisation réinitialise immédiatement les fenêtres d'utilisation Codex éligibles et consomme définitivement ce crédit.",
+    "confirmRedeemResetCredit": "L'utilisation réinitialise immédiatement les fenêtres d'utilisation éligibles et consomme définitivement ce crédit.",
     "confirmRedeemResetCreditButton": "Utiliser le crédit",
     "resetCreditRedeemed": "Réinitialisation effectuée",
     "resetCreditRedeemFailed": "Échec de l'utilisation du crédit de réinitialisation",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy injoignable",
     "poolSetAsideKindIpQuota429": "limite de débit par IP (429)",
     "poolSetAsideKindSlow": "réponses lentes",
+    "poolSetAsideKindGeoBlocked": "région bloquée (403/451)",
     "poolSetAsideUntil": "De retour en rotation {endsAt}",
     "poolSetAsideRepeat": "Écarté {count, plural, one {# fois} other {# fois}}",
     "poolUnknownAddress": "Adresse inconnue",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Ordre de position",
     "poolHealthRankingOff": "Classement de santé désactivé",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} abandons lents",
+    "clientAborted": "{count} annulations par le client",
+    "slowAbandonedHint": "Abandonné après dépassement du délai d'attente des en-têtes, exclu du taux de transport",
     "previousSuccessRate": "Précédemment {rate} % de réussite",
-    "upstreamRefusals": "{count} refus en amont",
     "connectionTestsCount": "{count} tests de connexion",
-    "notMeasured": "Non mesuré"
+    "notMeasured": "Non mesuré",
+    "upstream4xx": "{count} erreurs client en amont",
+    "upstream5xx": "{count} erreurs de serveur en amont",
+    "uniformEgressLine": "{affected} sur {exits} sorties échouent simultanément sur {provider} (dernières {hours}h) — pas un problème de sortie"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inactifs",
     "dbOverrideCount": "{count} surcharges DB",
     "searchPlaceholder": "Rechercher des indicateurs...",
+    "descriptionModeLabel": "Affichage de la description",
+    "descriptionModeHint": "Au survol : les cartes restent compactes et le survol d’une description affiche le texte intégral. Texte intégral : affiche toujours la description complète.",
+    "descriptionModeHover": "Au survol",
+    "descriptionModeFull": "Texte intégral",
     "categories": {
       "all": "Tous",
       "security": "Sécurité",

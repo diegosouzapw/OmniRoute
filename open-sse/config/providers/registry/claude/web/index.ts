@@ -34,6 +34,7 @@ export const claude_webProvider: RegistryEntry = {
     { id: "claude-opus-4-7", name: "Claude Opus 4.7 (web)", toolCalling: false },
     { id: "claude-opus-4-6", name: "Claude Opus 4.6 (web)", toolCalling: false },
     { id: "claude-sonnet-5", name: "Claude Sonnet 5 (web)", toolCalling: false },
+    { id: "claude-sonnet-5-5", name: "Claude Sonnet 5.5 (web)", toolCalling: false },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 (web)", toolCalling: false },
     {
       id: "claude-haiku-4-5-20251001",

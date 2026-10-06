@@ -33,6 +33,7 @@ import { getModelPreserveVideoUrl } from "@/lib/db/models/modelPreserveVideoUrl"
 import { getResolvedModelCapabilities, supportsReasoning } from "../services/modelCapabilities.ts";
 import { normalizeRoles } from "../services/roleNormalizer.ts";
 import { hoistLeadingSystemMessage } from "./helpers/strictSystemHoist.ts";
+import { ensurePoeUserTurnHasText } from "./helpers/poeImageOnlyUserTurn.ts";
 import {
   buildAssistantMessageCacheKey,
   lookupReasoning,
@@ -873,6 +874,9 @@ export function translateRequest(
   // prompt-cache prefixes stay stable.
   if (targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {
     result.messages = hoistLeadingSystemMessage(result.messages, provider);
+    // Poe rejects image-only user turns (400 "invalid request error"); give them a
+    // text part. Poe-only — every other provider keeps the exact same payload.
+    result.messages = ensurePoeUserTurnHasText(result.messages, provider);
   }
 
   return result;

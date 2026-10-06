@@ -60,6 +60,7 @@ import {
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
   isComboRequestScopedFailure as isScopedFailure,
+  shouldRecordModelLockoutForComboFailure,
   isStreamReadinessFailureErrorBody,
   isStreamEarlyEofErrorBody,
   isLocalKeyPolicyBreachErrorBody,
@@ -935,6 +936,7 @@ export async function executeTargetAttempt(opts: {
         status: result.status,
         error: errorText || String(result.status),
         kind: classifyComboOutcome(result.status, errorText),
+        code: structuredError?.code,
       });
       state.lastStatus = result.status;
       if (i > 0) state.fallbackCount++;
@@ -1076,7 +1078,7 @@ export async function executeTargetAttempt(opts: {
         provider &&
         rawModel &&
         retry === 0 &&
-        !scopedFailure &&
+        shouldRecordModelLockoutForComboFailure(scopedFailure, structuredError) &&
         !isConnectionScopedClaudeQuota
       ) {
         const mlSettings = resolveModelLockoutSettings(deps.settings);
@@ -1160,12 +1162,18 @@ export async function executeTargetAttempt(opts: {
       status: result.status,
       error: errorText || String(result.status),
       kind: classifyComboOutcome(result.status, errorText),
+      code: structuredError?.code,
     });
     state.lastStatus = result.status;
     if (i > 0) state.fallbackCount++;
     // Wire combo failures into the resilience dashboard (model-level lockout)
     // alongside the provider-level cooldown below — they govern different scopes.
-    if (provider && rawModel && !scopedFailure && !isConnectionScopedClaudeQuota) {
+    if (
+      provider &&
+      rawModel &&
+      shouldRecordModelLockoutForComboFailure(scopedFailure, structuredError) &&
+      !isConnectionScopedClaudeQuota
+    ) {
       const mlSettings = resolveModelLockoutSettings(deps.settings);
       if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
         recordModelLockoutFailure(

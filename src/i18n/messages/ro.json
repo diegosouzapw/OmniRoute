@@ -5636,7 +5636,7 @@
     "accountName": "Numele contului",
     "email": "E-mail",
     "healthCheckMinutes": "Verificare de sănătate (min)",
-    "healthCheckHint": "Interval proactiv de reîmprospătare a simbolului. 0 = dezactivat.",
+    "healthCheckHint": "Valoare specifică acestei conexiuni. Gol = urmează valoarea globală implicită (Setări › Reziliență). 0 = nu verifica niciodată această conexiune. Maximum 1440 (24 h).",
     "deselectAllModels": "Deselectează tot",
     "modelsActiveCount": "{active}/{total} active",
     "noModelsMatch": "Niciun model nu corespunde filtrului „{filter}”",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Obține cheia API la https://www.bluesminds.com — endpoint compatibil cu OpenAI la https://api.bluesminds.com/v1 cu credite zilnice gratuite. Modelele VIP (Claude Opus 4.5, Gemini 2.5 Pro) consumă credite pi.",
       "byteplus": "Conectează BytePlus ModelArk cu o cheie API.",
       "bytez": "Credite gratuite de 1 $, se reînnoiesc la fiecare 4 săptămâni",
-      "cerebras": "Încercare gratuită: 1M tokenuri/zi, 30K TPM, 5 RPM — fără card de credit.",
+      "cerebras": "Credit unic de 5 $ la înregistrare (valabil 30 de zile); este necesară o metodă de plată. Nu este un nivel gratuit recurent.",
       "charm-hyper": "Creează o cheie API la https://hyper.charm.land, apoi insereaz-o aici ca token Bearer.",
       "chutes": "Cheie API Bearer pentru gateway-ul Chutes compatibil cu OpenAI.",
       "clarifai": "Clarifai expune chat, răspunsuri și /models compatibile cu OpenAI la /v2/ext/openai/v1. Modelele publice/comunitare necesită de obicei un PAT; cheile cu domeniu de aplicare la nivel de aplicație funcționează doar pentru resursele din acea aplicație.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Tot traficul furnizorului trece prin grupul de proxy al acestui abonament.",
       "ruleModeDesc": "Doar traficul Furnizorilor selectați trece prin proxy; restul se conectează direct.",
       "localCoreEndpoint": "Punct final local de bază SOCKS5/HTTP (opțional)",
-      "localCoreEndpointPlaceholder": "ciorapi5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Acceptă doar 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS necesită un sing-box/clash core local).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Unul pe linie. Acceptă doar 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS necesită un core sing-box/clash local).",
       "routeByProvider": "Rută după furnizor (selectare multiplă)",
       "loadingProviders": "Se încarcă lista de furnizori...",
       "autoRefreshInterval": "Interval de reîmprospătare automată (minute)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Comprimarea descrierii MCP",
     "mcpAccessibilityTitle": "Ieșire accesibilitate MCP",
     "compressionSettingsCavemanIntensity": "Intensitatea cavernelor",
-    "compressionSettingsCavemanOutputMode": "Modul de ieșire Caveman",
     "compressionSettingsOutputStyles": "Stiluri de ieșire",
     "compressionStylesTileTitle": "Stiluri de ieșire",
     "compressionSettingsOutputIntensity": "Intensitatea ieșirii",
-    "compressionSettingsAutoClarityBypass": "Ocolire automată a clarității",
     "compressionEffectivePipeline": "Pipeline efectiv:",
     "compressionDerivedOff": "dezactivat",
     "compressionDerivedRuns": "rulări: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Număr minim de rânduri de compactat",
         "description": "Numărul minim de rânduri dintr-un tablou JSON omogen necesar pentru a declanșa compactarea tabulară. Implicit: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Păstrează promptul de sistem"
-      },
       "summarizerEnabled": {
         "label": "Activează rezumatorul"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Mesajele mai scurte decât aceasta nu sunt comprimate. Mai jos = compresie mai mare.",
     "tooltipMinSavings": "Comprimați doar dacă salvează cel puțin atât de multe jetoane.",
     "ultraSettings": "Setări Ultra",
-    "ultraSettingsDesc": "Compresie semantică alimentată de SLM",
-    "preview": {
-      "lite": "Răspundeți concis. Păstrați termenii tehnici, codul, erorile, URL-urile și identificatorii.",
-      "full": "Răspundeți succint și compact. Păstrați integral conținutul tehnic.",
-      "ultra": "Răspundeți extrem de succint, folosind abrevieri tehnice uzuale. Păstrați simbolurile exacte."
-    }
+    "ultraSettingsDesc": "Compresie semantică alimentată de SLM"
   },
   "translator": {
     "title": "Traducător",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Revendică resetarea",
     "manageResetCredits": "Vizualizează creditele",
     "viewResetCredits": "Vizualizează creditele de resetare",
-    "resetCreditsModalTitle": "Credite de resetare Codex",
+    "resetCreditsModalTitle": "Credite de resetare",
     "resetCreditsModalExplainer": "Creditele sunt ordonate după data expirării. Revendicarea automată utilizează întotdeauna creditul care expiră primul.",
     "resetCreditsLoadFailed": "Nu s-au putut încărca creditele de resetare",
     "resetCreditsDetailsUnavailable": "Detaliile despre credite nu sunt disponibile momentan. Reîmprospătați și încercați din nou.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Fără dată de expirare",
     "redeemThisResetCredit": "Revendică",
     "confirmRedeemResetCreditTitle": "Revendicați acest credit de resetare?",
-    "confirmRedeemResetCredit": "Revendicarea resetează imediat ferestrele de utilizare Codex eligibile și consumă definitiv acest credit.",
+    "confirmRedeemResetCredit": "Revendicarea resetează imediat ferestrele de utilizare eligibile și consumă definitiv acest credit.",
     "confirmRedeemResetCreditButton": "Revendică creditul",
     "resetCreditRedeemed": "Resetare valorificată",
     "resetCreditRedeemFailed": "Nu s-a putut valorifica creditul de resetare",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy inaccesibil",
     "poolSetAsideKindIpQuota429": "limită de rată pe IP (429)",
     "poolSetAsideKindSlow": "răspunsuri lente",
+    "poolSetAsideKindGeoBlocked": "blocare regiune (403/451)",
     "poolSetAsideUntil": "Înapoi în rotație {endsAt}",
     "poolSetAsideRepeat": "Pus deoparte {count, plural, one {# dată} other {# ori}}",
     "poolUnknownAddress": "Adresă necunoscută",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Ordinea pozițiilor",
     "poolHealthRankingOff": "Clasificarea stării dezactivată",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} abandonări lente",
+    "clientAborted": "{count} abandonări ale clientului",
+    "slowAbandonedHint": "Abandonat după pragul de așteptare a antetelor, exclus din rata de transport",
     "previousSuccessRate": "Anterior {rate} % succes",
-    "upstreamRefusals": "{count} refuzuri upstream",
     "connectionTestsCount": "{count} teste de conexiune",
-    "notMeasured": "Nemăsurat"
+    "notMeasured": "Nemăsurat",
+    "upstream4xx": "{count} erori de client upstream",
+    "upstream5xx": "{count} erori de server upstream",
+    "uniformEgressLine": "{affected} din {exits} exit-uri eșuează împreună pe {provider} (ultimele {hours}h) — nu este o problemă de exit"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inactive",
     "dbOverrideCount": "{count} suprascrieri DB",
     "searchPlaceholder": "Caută flaguri...",
+    "descriptionModeLabel": "Vizualizare descriere",
+    "descriptionModeHint": "La trecerea cursorului: cardurile rămân compacte, iar trecerea cursorului peste o descriere afișează textul integral. Text integral: afișează întotdeauna descrierea completă.",
+    "descriptionModeHover": "La trecerea cursorului",
+    "descriptionModeFull": "Text integral",
     "categories": {
       "all": "Toate",
       "security": "Securitate",

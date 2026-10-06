@@ -6,6 +6,7 @@ import Card from "./Card";
 import Button from "./Button";
 import DistributeProxiesButton from "./DistributeProxiesButton";
 import NoAuthProviderToggle from "./NoAuthProviderToggle";
+import { resolveNoAuthBannerDescription } from "./NoAuthProviderCard";
 
 interface NoAuthAccountCardProps {
   providerId: string;
@@ -257,7 +258,10 @@ export default function NoAuthAccountCard({
   onManualApiKeyAdd,
 }: NoAuthAccountCardProps) {
   const t = useTranslations("noAuthProvider");
-  const resolvedDescription = description || t("accountDescription");
+  const resolvedDescription = resolveNoAuthBannerDescription(
+    providerId,
+    description || t("accountDescription")
+  );
   const resolvedAddLabel = addLabel || t("addAccount");
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);

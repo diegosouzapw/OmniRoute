@@ -4,24 +4,27 @@
 
 ---
 
-Az OmniRoute jeleket keres a felsőbb szintű szolgáltatók hibaválaszaiban, amelyek arra utalnak, hogy egy szolgáltatói
-**fiók véglegesen használhatatlanná vált** (felfüggesztették / deaktiválták / az ÁSZF megsértése miatt letiltották), és egyezés
-esetén a kapcsolatot egy **végleges `banned` állapotba** helyezi, így az a
-továbbiakban nem lesz kiválasztva a kérésekhez. Ezt konfigurálja a **Security → Banned Keywords**
-beállítási kártya („További kulcsszavak, amelyek kiváltják a végleges fiókletiltás
-észlelését. A beépített kulcsszavak mindig érvényesek.”).
+Az OmniRoute olyan jeleket keres a felsőbb szintű szolgáltatók hibaválaszaiban, amelyek arra utalnak, hogy egy szolgáltatói
+**fiók véglegesen használhatatlanná vált** (felfüggesztették / deaktiválták / az ÁSZF megsértése miatt kitiltották), és egyezés
+esetén az adott kapcsolatot egy **végleges `banned` állapotba** helyezi, így az többé nem
+lesz kiválasztva a kérésekhez. Ezt konfigurálja a **Security → Banned Keywords**
+beállítási kártya („További kulcsszavak, amelyek aktiválják a fiók végleges
+kitiltásának észlelését. A beépített kulcsszavak mindig érvényesek.”).
 
-Ez az oldal dokumentálja a beépített listát, az észlelési folyamatot, annak hatókörét, az
-egyéni kulcsszavak biztonságos hozzáadásának módját, valamint a megjelölt kapcsolat helyreállítását. Maga a végleges
+Ez az oldal dokumentálja a beépített listát, az észlelési folyamatot, annak hatókörét, az egyéni
+kulcsszavak biztonságos hozzáadását, valamint a megjelölt kapcsolat helyreállításának módját. Maga a végleges
 állapot a hibatűrési modell része — lásd:
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Végleges állapotok”).
 
 **Hiteles forrás:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+valamint `open-sse/services/errorClassifier.ts` a nem végleges ellenőrzési osztályhoz
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) és az azt
+felhasználó 403-as ághoz.
 
 ## Beépített kulcsszavak
 
-Ez a 8 karakterláncrészlet mindig érvényes (kis- és nagybetűktől függetlenül), az egyéni listától függetlenül:
+Ez a 7 részkarakterlánc mindig érvényes (kis- és nagybetűktől függetlenül), az egyéni listáktól függetlenül:
 
 ```
 account_deactivated
@@ -29,24 +32,49 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Ez a lista a szolgáltatók letiltási szövegezésének változásával együtt fejlődik. A hiteles
-> példány az `ACCOUNT_DEACTIVATED_SIGNALS` az `open-sse/services/accountFallback.ts` fájlban;
-> a fenti blokkot pillanatfelvételként kell kezelni.
+> Ez a lista a szolgáltatók tiltási szövegezésének változásával együtt fejlődik. A hiteles
+> példány az `ACCOUNT_DEACTIVATED_SIGNALS` az `open-sse/services/accountFallback.ts`
+> fájlban; a fenti blokkot pillanatfelvételként kezelje.
 
-Ugyanebben a fájlban két szomszédos, **különálló** jelzéstábla található, amelyek _nem_ részei
-a tiltott kulcsszavak észlelésének:
+### Nem tiltás: operátori beavatkozással megoldható ellenőrzési felszólítások
 
-- `CREDITS_EXHAUSTED_SIGNALS` — a számlázási keret/kvóta kimerült (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → végleges `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **nem végleges**; a token frissítése helyreállíthatja.
+A `verify your account to continue` **korábban szerepelt** a fenti listában. Ez nem tiltási
+jelzés, és most az `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` része, amely helyreállítható
+`PROJECT_ROUTE_ERROR` hibaként osztályozza, ahelyett hogy véglegesen lezárná a kapcsolatot.
+
+A Google Cloud Code / Antigravity ezt `403 VALIDATION_REQUIRED` formában adja vissza. Ez
+**átmeneti, és egészséges, teljes kvótával rendelkező fiókoknál is előfordul** — egy élő
+telepítésen mérve (2026-09-25, `proxy_logs`): egy Antigravity-kapcsolat 10 percen belül 33
+ilyen 403-as választ adott vissza, és `active` állapotban maradt, miközben egy másik kapcsolat,
+amely mind a 17 időablakban kvótájának 100 %-ával rendelkezett, egy **egyetlen** ilyen válasz
+miatt véglegesen tiltásra került. Az egyetlen különbség az volt, hogy éppen melyik próbálkozást
+szolgálta ki a rendszer.
+
+A megkülönböztetés azért fontos, mert egy terminális egyezés `permanent: true` értékű (1 éves
+várakozási idő, nincs automatikus helyreállítás), míg az operátor böngészőben tudja elvégezni
+az ellenőrzési felszólításban kért műveletet. Ha a kifejezés a tiltási listában marad, azzal a
+helyreállítható cloud-code 403-as ága is elérhetetlenné válik a `classifyProviderError`
+függvényben ennél a szövegezésnél, mivel az `accountDeactivated` kiértékelése történik meg
+először — így a Gemini Code Assist számára a
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) és a
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) változtatásban hozzáadott
+projektútvonal-helyreállítás soha nem tudott lefutni.
+
+A három kapcsolódó, **különálló** jelzéstábla _nem_ része a tiltási kulcsszavak észlelésének:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — elfogyott számlázási egyenleg/kvóta (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → terminális `credits_exhausted`.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **nem terminális**; a token frissítésével helyreállítható.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **nem terminális**; az operátornak újra kell
+  ellenőriznie a fiókot a felsőbb szolgáltatónál. Az `open-sse/services/errorClassifier.ts`
+  fájlban található (a másik kettő az `accountFallback.ts` fájlban). Lásd a fenti szakaszt.
 
 Megjegyzés: az olyan gyakori átmeneti kifejezéseket, mint a **`rate limit`** / `429`, a
-sebességkorlátozási / kapcsolat-várakoztatási folyamat kezeli, és ezek **nem** letiltási jelzések.
+sebességkorlátozási / kapcsolat-várakoztatási útvonal kezeli, és ezek **nem** tiltási jelzések.
 
 ## Észlelési folyamat
 

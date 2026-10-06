@@ -4,30 +4,30 @@
 
 ---
 
-Seolann OmniRoute linn choimeádta de sheachfhreastalaithe saor in aisce sa tábla `free_proxies`,
-sioncronaithe ó sholáthraithe seachtracha (1proxy, proxifly, iplocate, webshare). Taispeánann an
+Soláthraíonn OmniRoute linn choimeádta de sheachfhreastalaithe saor in aisce sa tábla `free_proxies`,
+atá sioncronaithe ó sholáthraithe seachtracha (1proxy, proxifly, iplocate, webshare). Taispeánann an
 deais iad seo faoi **Socruithe → Seachfhreastalaithe Saor in Aisce**. Clúdaíonn an cháipéis seo
-an scagadh, an sórtáil, an comhaireamh agus tuairisciú earráidí sioncronaithe ar thaobh an fhreastalaí
-a nochtann bealach an liosta.
+an scagadh, an sórtáil, an comhaireamh agus an tuairisciú ar earráidí sioncronaithe ar thaobh an
+fhreastalaí a chuireann an bealach liosta ar fáil.
 
 ## Bealach liosta — `GET /api/settings/free-proxies`
 
-Filleann sé slisne scagtha, sórtáilte agus leathanacháilte chomh maith le comhaireamh iomlán. Déantar an scagadh agus
-an comhaireamh in SQL, ionas gur féidir leis an gcomhéadan úsáideora an fíoriomlán a thaispeáint (m.sh. `Iomlán: 0`)
-gan gach ró a lódáil isteach sa chuimhne.
+Filleann sé slisne scagtha, sórtáilte agus leathanachaithe mar aon le comhaireamh iomlán. Tarlaíonn
+an scagadh agus an comhaireamh in SQL, ionas gur féidir leis an gcomhéadan úsáideora an fíoriomlán
+a thaispeáint (m.sh. `Iomlán: 0`) gan gach ró a lódáil isteach sa chuimhne.
 
 ### Paraiméadair iarratais
 
-| Paraiméadar       | Cineál                             | Réamhshocrú | Brí                                                                                                                                         |
-| ----------------- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `search`          | teaghrán                           | `""`        | `LIKE` cásíogair ar an gcolún óstach (agus foinse).                                                                                         |
-| `protocol`        | teaghrán                           | `""`        | Scagaire `type`: `http` / `https` / `socks4` / `socks5`. Folamh = gach ceann.                                                               |
-| `country`         | teaghrán                           | `""`        | Scagaire `countryCode` (ISO-2). Folamh = gach ceann.                                                                                        |
-| `minQuality`      | uimhir                             | `0`         | Rónna le `qualityScore >= minQuality` amháin. `0` = gan íosteorainn.                                                                        |
-| `disabledSources` | teaghrán                           | `""`        | Aitheantais foinse scartha le camóga le heisiamh (m.sh. `proxifly,webshare`).                                                               |
-| `sortBy`          | `quality` \| `latency` \| `recent` | `quality`   | `quality` = scór íslitheach; `latency` = aga folaigh ardaitheach (luachanna nialasacha ar deireadh); `recent` = `lastValidated` íslitheach. |
-| `offset`          | uimhir                             | `0`         | Tús na leathanachála.                                                                                                                       |
-| `limit`           | uimhir                             | `50`        | Méid an leathanaigh (uasteorainn curtha i bhfeidhm ar thaobh an fhreastalaí).                                                               |
+| Paraiméadar       | Cineál                             | Réamhshocrú | Brí                                                                                                          |
+| ----------------- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------ |
+| `search`          | teaghrán                           | `""`        | `LIKE` cásíogair ar an gcolún óstach (agus foinse).                                                          |
+| `protocol`        | teaghrán                           | `""`        | Scagaire `type`: `http` / `https` / `socks4` / `socks5`. Folamh = gach ceann.                                |
+| `country`         | teaghrán                           | `""`        | Scagaire `countryCode` (ISO-2). Folamh = gach ceann.                                                         |
+| `minQuality`      | uimhir                             | `0`         | Rónna le `qualityScore >= minQuality` amháin. `0` = gan íosteorainn.                                         |
+| `disabledSources` | teaghrán                           | `""`        | Aitheantais foinse, scartha le camóga, le heisiamh (m.sh. `proxifly,webshare`).                              |
+| `sortBy`          | `quality` \| `latency` \| `recent` | `quality`   | `quality` = scór anuas; `latency` = aga folaigh suas (`null` ar deireadh); `recent` = `lastValidated` anuas. |
+| `offset`          | uimhir                             | `0`         | Tús an leathanaithe.                                                                                         |
+| `limit`           | uimhir                             | `50`        | Méid an leathanaigh (teorannaithe ar thaobh an fhreastalaí).                                                 |
 
 ### Freagra
 
@@ -48,26 +48,27 @@ gan gach ró a lódáil isteach sa chuimhne.
   },
   "syncErrors": {
     "proxifly": ["HTTP 429 ón bhfoinse réamhtheachtach"],
-    "webshare": ["chuaigh an líonra thar am"]
+    "webshare": ["teorainn ama líonra sáraithe"]
   }
 }
 ```
 
-Léiríonn `total` an t-iomlán scagtha **roimh** an leathanachú, ionas gur féidir leis an gcomhéadan úsáideora
-`Iomlán: N` agus `hasMore` a rindreáil go neamhspleách. Úsáideann `syncErrors` aitheantas na foinse mar eochair agus
-ní líontar é ach le haghaidh foinsí ar theip ar a sioncronú deireanach — ní bhíonn toradh `Iomlán: 0`
-ina thost riamh.
+Léiríonn `total` an t-iomlán scagtha **roimh** an leathanú, ionas gur féidir leis an gcomhéadan úsáideora
+`Iomlán: N` agus `hasMore` a rindreáil go neamhspleách. Tá `syncErrors` eochraithe de réir aitheantas
+foinse agus ní líontar é ach i gcás foinsí ar theip ar a sioncronú deireanach — ní bhíonn toradh
+`Iomlán: 0` ina thost riamh.
 
-## Cuir leis an linn — `POST /api/settings/free-proxies/[id]/add-to-pool`
+## Cur leis an linn — `POST /api/settings/free-proxies/[id]/add-to-pool`
 
-Ardaíonn sé seachfhreastalaí saor in aisce isteach sa linn bhainistithe `proxy_registry`. Bailíochtaíonn sé an
-fhoinse réamhtheachtach ar dtús; má éiríonn leis, filleann sé aitheantas nua sheachfhreastalaí na linne agus an t-aga folaigh tomhaiste.
+Ardaíonn sé seachfhreastalaí saor in aisce isteach sa linn bhainistithe `proxy_registry`. Déanann sé
+an fhoinse réamhtheachtach a bhailíochtú ar dtús; má éiríonn leis, filleann sé aitheantas nua an
+tseachfhreastalaí sa linn agus an t-aga folaigh tomhaiste.
 
 ## Sioncronú — `POST /api/settings/free-proxies/sync`
 
-Ath-tharraingíonn sé gach foinse chumasaithe (nó an fothacar in `{ "sources": [...] }`). Sioncronaíonn gach
-foinse go neamhspleách; taifeadtar foinse a dteipeann uirthi in `syncErrors` agus críochnaíonn na
-foinsí eile fós, mar sin ní scriosann sioncronuithe páirteacha sonraí maithe a bhí ann cheana.
+Aththarraingíonn sé na foinsí cumasaithe uile (nó an fo-thacar in `{ "sources": [...] }`). Sioncronaítear
+gach foinse go neamhspleách; taifeadtar foinse a dteipeann uirthi in `syncErrors` agus críochnaíonn
+na cinn eile fós, mar sin ní scriosann sioncronuithe páirteacha sonraí maithe a bhí ann cheana.
 
 ## Staitisticí — `GET /api/settings/free-proxies/stats`
 

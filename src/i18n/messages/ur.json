@@ -5636,7 +5636,7 @@
     "accountName": "اکاؤنٹ کا نام",
     "email": "Email",
     "healthCheckMinutes": "ہیلتھ چیک (منٹ)",
-    "healthCheckHint": "Proactive token refresh interval. 0 = disabled.",
+    "healthCheckHint": "اس کنکشن کے لیے مخصوص قدر۔ خالی = عالمی ڈیفالٹ پر عمل کریں (ترتیبات › لچک)۔ 0 = اس کنکشن کو کبھی چیک نہ کریں۔ زیادہ سے زیادہ 1440 (24 گھنٹے)۔",
     "deselectAllModels": "سب کا انتخاب ختم کریں",
     "modelsActiveCount": "{active}/{total} فعال",
     "noModelsMatch": "کوئی ماڈل \"{filter}\" سے مماثل نہیں",
@@ -6197,7 +6197,7 @@
       "bluesminds": "اپنی API کلید https://www.bluesminds.com پر حاصل کریں — مفت روزانہ کریڈٹس کے ساتھ OpenAI سے مطابقت رکھنے والا اینڈ پوائنٹ https://api.bluesminds.com/v1 پر ہے۔ VIP ماڈلز (Claude Opus 4.5، Gemini 2.5 Pro) pi کریڈٹس استعمال کرتے ہیں۔",
       "byteplus": "BytePlus ModelArk کو ایک API کلید کے ساتھ منسلک کریں۔",
       "bytez": "$1 کے مفت کریڈٹس، ہر 4 ہفتوں بعد ریفریش ہوتے ہیں",
-      "cerebras": "مفت ٹرائل: 1M ٹوکنز/دن، 30K TPM، 5 RPM — کوئی کریڈٹ کارڈ نہیں۔",
+      "cerebras": "سائن اپ پر ایک بار $5 کا کریڈٹ (30 دن کے لیے کارآمد)؛ ادائیگی کا طریقہ درکار ہے۔ یہ بار بار ملنے والا مفت درجہ نہیں ہے۔",
       "charm-hyper": "https://hyper.charm.land پر ایک API کلید بنائیں، پھر اسے یہاں Bearer ٹوکن کے طور پر پیسٹ کریں۔",
       "chutes": "Chutes OpenAI سے مطابقت رکھنے والے گیٹ وے کے لیے Bearer API کلید۔",
       "clarifai": "Clarifai /v2/ext/openai/v1 پر OpenAI-compatible چیٹ، جوابات اور /models فراہم کرتا ہے۔ عوامی/کمیونٹی ماڈلز کے لیے عام طور پر ایک PAT درکار ہوتا ہے؛ ایپ اسکوپڈ کیز صرف اسی ایپ کے اندر موجود وسائل کے لیے کام کرتی ہیں۔",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "تمام فراہم کنندہ ٹریفک اس سبسکرپشن کے پراکسی پول سے گزرتا ہے۔",
       "ruleModeDesc": "صرف منتخب فراہم کنندگان کی ٹریفک پراکسی سے گزرتی ہے۔ باقی براہ راست جڑیں.",
       "localCoreEndpoint": "لوکل کور SOCKS5/HTTP اینڈ پوائنٹ (اختیاری)",
-      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "صرف 127.0.0.1 / لوکل ہوسٹ کو قبول کرتا ہے (SS/VMess/Trojan/VLESS کو مقامی سنگ باکس/کلاش کور کی ضرورت ہوتی ہے)۔",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "ہر سطر میں ایک۔ صرف 127.0.0.1 / localhost قبول کرتا ہے (SS/VMess/Trojan/VLESS کے لیے مقامی sing-box/clash کور درکار ہے)۔",
       "routeByProvider": "فراہم کنندہ کے ذریعہ راستہ (ملٹی سلیکٹ)",
       "loadingProviders": "فراہم کنندہ کی فہرست لوڈ ہو رہی ہے…",
       "autoRefreshInterval": "آٹو ریفریش وقفہ (منٹ)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP تفصیل کمپریشن",
     "mcpAccessibilityTitle": "MCP رسائی آؤٹ پٹ",
     "compressionSettingsCavemanIntensity": "کیو مین کی شدت",
-    "compressionSettingsCavemanOutputMode": "کیو مین آؤٹ پٹ موڈ",
     "compressionSettingsOutputStyles": "آؤٹ پٹ اسٹائلز",
     "compressionStylesTileTitle": "آؤٹ پٹ اسٹائلز",
     "compressionSettingsOutputIntensity": "آؤٹ پٹ کی شدت",
-    "compressionSettingsAutoClarityBypass": "آٹو کلیئرٹی بائی پاس",
     "compressionEffectivePipeline": "مؤثر پائپ لائن:",
     "compressionDerivedOff": "بند",
     "compressionDerivedRuns": "رنز: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "کمپیکٹ کرنے کے لیے کم از کم قطاریں",
         "description": "ٹیبلر کمپیکشن کو متحرک کرنے کے لیے ایک یکساں JSON اری میں مطلوبہ کم از کم قطاریں۔ ڈیفالٹ: 8۔"
       },
-      "preserveSystemPrompt": {
-        "label": "سسٹم پرامپٹ کو محفوظ رکھیں"
-      },
       "summarizerEnabled": {
         "label": "سمرائزر کو فعال کریں"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "اس سے چھوٹے پیغامات کو کمپریس نہیں کیا جاتا ہے۔ کم = زیادہ کمپریشن۔",
     "tooltipMinSavings": "صرف اس صورت میں کمپریس کریں جب یہ کم از کم اتنے ٹوکن بچاتا ہے۔",
     "ultraSettings": "الٹرا سیٹنگز",
-    "ultraSettingsDesc": "SLM سے چلنے والا سیمنٹک کمپریشن",
-    "preview": {
-      "lite": "مختصر جواب دیں۔ تکنیکی اصطلاحات، کوڈ، خرابیوں، URLs اور شناخت کنندگان کو برقرار رکھیں۔",
-      "full": "انتہائی مختصر اور جامع جواب دیں۔ تمام تکنیکی مواد برقرار رکھیں۔",
-      "ultra": "عام تکنیکی مخففات کے ساتھ انتہائی مختصر جواب دیں۔ علامات کو جوں کا توں برقرار رکھیں۔"
-    }
+    "ultraSettingsDesc": "SLM سے چلنے والا سیمنٹک کمپریشن"
   },
   "translator": {
     "title": "مترجم",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "ری سیٹ ریڈیم کریں",
     "manageResetCredits": "کریڈٹس دیکھیں",
     "viewResetCredits": "ری سیٹ کریڈٹس دیکھیں",
-    "resetCreditsModalTitle": "Codex ری سیٹ کریڈٹس",
+    "resetCreditsModalTitle": "ری سیٹ کریڈٹس",
     "resetCreditsModalExplainer": "کریڈٹس کو میعاد ختم ہونے کی تاریخ کے لحاظ سے ترتیب دیا گیا ہے۔ خودکار ریڈیمپشن ہمیشہ اس کریڈٹ کو استعمال کرتی ہے جس کی میعاد سب سے پہلے ختم ہوتی ہے۔",
     "resetCreditsLoadFailed": "ری سیٹ کریڈٹس لوڈ کرنے میں ناکامی",
     "resetCreditsDetailsUnavailable": "کریڈٹ کی تفصیلات فی الحال دستیاب نہیں ہیں۔ ریفریش کریں اور دوبارہ کوشش کریں۔",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "ختم ہونے کی کوئی تاریخ نہیں",
     "redeemThisResetCredit": "ریڈیم کریں",
     "confirmRedeemResetCreditTitle": "کیا یہ ری سیٹ کریڈٹ ریڈیم کرنا چاہتے ہیں؟",
-    "confirmRedeemResetCredit": "فوری طور پر ریڈیم کرنے سے اہل Codex استعمال کی ونڈوز ری سیٹ ہو جائیں گی اور یہ کریڈٹ مستقل طور پر استعمال ہو جائے گا۔",
+    "confirmRedeemResetCredit": "ریڈیم کرنے سے اہل استعمال کی ونڈوز فوری طور پر ری سیٹ ہو جائیں گی اور یہ کریڈٹ مستقل طور پر استعمال ہو جائے گا۔",
     "confirmRedeemResetCreditButton": "کریڈٹ ریڈیم کریں",
     "resetCreditRedeemed": "ری سیٹ ریڈیم کر دیا گیا",
     "resetCreditRedeemFailed": "ری سیٹ کریڈٹ ریڈیم کرنے میں ناکام",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "پراکسی تک رسائی نہیں ہو سکی",
     "poolSetAsideKindIpQuota429": "IP شرح کی حد (429)",
     "poolSetAsideKindSlow": "سست جوابات",
+    "poolSetAsideKindGeoBlocked": "علاقہ مسدود (403/451)",
     "poolSetAsideUntil": "روٹیشن میں واپس {endsAt}",
     "poolSetAsideRepeat": "الگ رکھا گیا {count, plural, one {# بار} other {# بار}}",
     "poolUnknownAddress": "نامعلوم پتہ",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "مقام کی ترتیب",
     "poolHealthRankingOff": "ہیلتھ رینکنگ آف",
     "transportRate": "{rate}% ٹرانسپورٹ",
+    "slowAbandoned": "{count} سست ترکیاں",
+    "clientAborted": "{count} کلائنٹ منسوخیاں",
+    "slowAbandonedHint": "ہیڈرز کے انتظار کی حد کے بعد ترک کر دیا گیا، ٹرانسپورٹ کی شرح سے خارج",
     "previousSuccessRate": "پہلے {rate}% کامیابی",
-    "upstreamRefusals": "{count} اپ اسٹریم مسترد",
     "connectionTestsCount": "{count} کنکشن ٹیسٹ",
-    "notMeasured": "پیمائش نہیں ہوئی"
+    "notMeasured": "پیمائش نہیں ہوئی",
+    "upstream4xx": "{count} اپسٹریم کلائنٹ کی خرابیاں",
+    "upstream5xx": "{count} اپسٹریم سرور کی خرابیاں",
+    "uniformEgressLine": "{affected} آؤٹ میں سے {exits} آؤٹ {provider} پر ایک ساتھ ناکام ہو جاتے ہیں (آخری {hours} گھنٹے) — ایک آؤٹ مسئلہ نہیں ہے"
   },
   "playground": {
     "title": "ماڈل پلے گراؤنڈ",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} غیر فعال",
     "dbOverrideCount": "{count} DB اوور رائیڈز",
     "searchPlaceholder": "فلیگز تلاش کریں...",
+    "descriptionModeLabel": "تفصیل کا منظر",
+    "descriptionModeHint": "ہوور کرنے پر: کارڈز مختصر رہتے ہیں اور تفصیل پر ہوور کرنے سے مکمل متن دکھائی دیتا ہے۔ مکمل متن: ہمیشہ پوری تفصیل دکھائیں۔",
+    "descriptionModeHover": "ہوور کرنے پر",
+    "descriptionModeFull": "مکمل متن",
     "categories": {
       "all": "تمام",
       "security": "سیکیورٹی",

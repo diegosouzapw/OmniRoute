@@ -190,14 +190,14 @@ Autentifikasiya: istəyə bağlıdır (`REQUIRE_API_KEY`). Xətalar `buildErrorB
 
 ## Nasazlıqların aradan qaldırılması
 
-| Əlamət                                      | Səbəb                                   | Həll yolu                                                                                                          |
-| ------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Monaco redaktoru API vərəqində görünmür     | SSR Monaco-nu yükləyib                  | `ApiTab` komponentinin `dynamic(..., { ssr: false })` istifadə etdiyini yoxlayın                                   |
-| Müqayisə axınları ardıcıl işə düşür         | `Promise.all` yanlış istifadə olunur    | Bütün axın başladılmaları bir `Promise.all` çağırışında göndərilməlidir                                            |
-| Metrikalarda TTFT `null` göstərilir         | İlk fraqment emalçısı qoşulmayıb        | SSE oxuyucu dövründə `useStreamMetrics.onFirstChunk()` çağırıldığını yoxlayın                                      |
-| Əvvəlcədən təyin edilmiş seçim saxlanmır    | DB miqrasiyası işə salınmayıb           | `npm run db:migrate` əmrini icra edin və ya serveri yenidən başladın (miqrasiya başlanğıcda avtomatik icra olunur) |
-| Sorğunun təkmilləşdirilməsi 502 qaytarır    | Config bölməsində model təyin edilməyib | İstifadəçi təkmilləşdirmədən əvvəl Config panelində model adını daxil etməlidir                                    |
-| İxrac edilən kod `MISSING_API_KEY` göstərir | Doldurucu əlavə edilməyib               | `codeExport.ts` həmişə `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` istifadə edir                                  |
+| Əlamət                                        | Səbəb                                   | Həll                                                                              |
+| --------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------- |
+| Monaco redaktoru API tabında göstərilmir      | SSR Monaco-nu yükləyib                  | `ApiTab` komponentinin `dynamic(..., { ssr: false })` istifadə etdiyini yoxlayın  |
+| Müqayisə axınları ardıcıl işə düşür           | `Promise.all` yanlış istifadə olunur    | Bütün axın başlanğıcları bir `Promise.all` çağırışında başladılmalıdır            |
+| Metrikalarda TTFT `null` göstərilir           | İlk fraqment işləyicisi qoşulmayıb      | SSE oxuyucu dövrəsində `useStreamMetrics.onFirstChunk()` çağırıldığını yoxlayın   |
+| Əvvəlcədən təyin edilmiş parametr saxlanılmır | DB miqrasiyası icra edilməyib           | Serveri yenidən başladın: miqrasiyalar başlanğıcda avtomatik icra olunur          |
+| Sorğunun təkmilləşdirilməsi 502 qaytarır      | Config bölməsində model təyin edilməyib | Təkmilləşdirmədən əvvəl istifadəçi Config panelində model adını daxil etməlidir   |
+| Eksport kodunda `MISSING_API_KEY` göstərilir  | Əvəzedici daxil edilməyib               | `codeExport.ts` həmişə `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` istifadə edir |
 
 ---
 

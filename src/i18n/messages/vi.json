@@ -5636,7 +5636,7 @@
     "accountName": "Tên tài khoản",
     "email": "Email",
     "healthCheckMinutes": "Kiểm tra sức khỏe (phút)",
-    "healthCheckHint": "Khoảng thời gian chủ động làm mới token. 0 = vô hiệu hóa.",
+    "healthCheckHint": "Giá trị riêng cho kết nối này. Để trống = theo mặc định chung (Cài đặt › Khả năng phục hồi). 0 = không bao giờ kiểm tra kết nối này. Tối đa 1440 (24 giờ).",
     "deselectAllModels": "Bỏ chọn tất cả",
     "modelsActiveCount": "{active}/{total} đang hoạt động",
     "noModelsMatch": "Không có mô hình nào khớp với \"{filter}\"",
@@ -6011,7 +6011,7 @@
     "validationModelIdPlaceholder": "Ví dụ: meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key or Service Account JSON",
     "vertexCredentialHint": "Khóa API sử dụng danh mục dự án được tuyển chọn. JSON của Service Account cho phép khám phá Model Garden theo thời gian thực.",
-    "vertexServiceAccountPlaceholder": "Dán JSON Tài khoản dịch vụ của bạn ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) hoặc access_token OAuth",
+    "vertexServiceAccountPlaceholder": "Dán khóa API, JSON Tài khoản dịch vụ ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) hoặc token truy cập OAuth",
     "webCookieProviders": "Nhà cung cấp Web Cookie",
     "weeklyShort": "Hàng tuần",
     "xiaomiMimoBaseUrlHint": "Gợi ý URL cơ sở Xiaomi Mimo",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Lấy khóa API tại https://www.bluesminds.com — endpoint tương thích OpenAI tại https://api.bluesminds.com/v1 kèm tín dụng miễn phí hằng ngày. Mô hình VIP (Claude Opus 4.5, Gemini 2.5 Pro) tiêu thụ tín dụng pi.",
       "byteplus": "Kết nối BytePlus ModelArk bằng khóa API.",
       "bytez": "1 USD tín dụng miễn phí, làm mới mỗi 4 tuần",
-      "cerebras": "Dùng thử miễn phí: 1 triệu token/ngày, 30 nghìn TPM, 5 RPM — không cần thẻ tín dụng.",
+      "cerebras": "Tín dụng đăng ký một lần $5 (hiệu lực 30 ngày); yêu cầu phương thức thanh toán. Không phải gói miễn phí định kỳ.",
       "charm-hyper": "Tạo khóa API tại https://hyper.charm.land, rồi dán vào đây dưới dạng token Bearer.",
       "chutes": "Khóa API Bearer cho cổng Chutes tương thích OpenAI.",
       "clarifai": "Clarifai cung cấp trò chuyện, Responses và /models tương thích OpenAI tại /v2/ext/openai/v1. Mô hình công khai/cộng đồng thường yêu cầu PAT; khóa theo phạm vi ứng dụng chỉ dùng được cho tài nguyên trong ứng dụng đó.",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Nén mô tả MCP",
     "mcpAccessibilityTitle": "Đầu ra trợ năng MCP",
     "compressionSettingsCavemanIntensity": "Cường độ Caveman",
-    "compressionSettingsCavemanOutputMode": "Chế độ đầu ra Caveman",
     "compressionSettingsOutputStyles": "Kiểu đầu ra",
     "compressionStylesTileTitle": "Kiểu đầu ra",
     "compressionSettingsOutputIntensity": "Cường độ đầu ra",
-    "compressionSettingsAutoClarityBypass": "Bỏ qua tính năng tự động làm rõ",
     "compressionEffectivePipeline": "Quy trình có hiệu lực:",
     "compressionDerivedOff": "đã tắt",
     "compressionDerivedRuns": "chạy: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Số hàng tối thiểu để nén",
         "description": "Số hàng tối thiểu trong một mảng JSON đồng nhất để kích hoạt nén dạng bảng. Mặc định: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Giữ nguyên prompt hệ thống"
-      },
       "summarizerEnabled": {
         "label": "Bật trình tóm tắt"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Tin nhắn ngắn hơn mức này sẽ không được nén. Thấp hơn = nén nhiều hơn.",
     "tooltipMinSavings": "Chỉ nén nếu tiết kiệm được ít nhất ngần này token.",
     "ultraSettings": "Cài đặt tối đa",
-    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM",
-    "preview": {
-      "lite": "Phản hồi ngắn gọn. Giữ nguyên thuật ngữ kỹ thuật, mã, lỗi, URL và mã định danh.",
-      "full": "Phản hồi cực ngắn và gọn. Giữ nguyên toàn bộ nội dung kỹ thuật.",
-      "ultra": "Phản hồi siêu ngắn gọn với các từ viết tắt kỹ thuật phổ biến. Giữ nguyên các ký hiệu chính xác."
-    }
+    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM"
   },
   "translator": {
     "title": "Trình dịch",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Đổi lượt đặt lại",
     "manageResetCredits": "Xem tín dụng",
     "viewResetCredits": "Xem tín dụng đặt lại",
-    "resetCreditsModalTitle": "Tín dụng đặt lại Codex",
+    "resetCreditsModalTitle": "Tín dụng đặt lại",
     "resetCreditsModalExplainer": "Tín dụng được sắp xếp theo ngày hết hạn. Việc đổi tự động luôn dùng tín dụng hết hạn sớm nhất.",
     "resetCreditsLoadFailed": "Không thể tải tín dụng đặt lại",
     "resetCreditsDetailsUnavailable": "Chi tiết tín dụng hiện không khả dụng. Hãy làm mới và thử lại.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Không có ngày hết hạn",
     "redeemThisResetCredit": "Đổi",
     "confirmRedeemResetCreditTitle": "Đổi tín dụng đặt lại này?",
-    "confirmRedeemResetCredit": "Đổi một tín dụng đặt lại Codex cho tài khoản này? Thao tác này sẽ tiêu tốn một tín dụng đặt lại.",
+    "confirmRedeemResetCredit": "Đổi sẽ ngay lập tức đặt lại các khung sử dụng đủ điều kiện và tiêu hao vĩnh viễn tín dụng này.",
     "confirmRedeemResetCreditButton": "Đổi tín dụng",
     "resetCreditRedeemed": "Đã đổi lượt đặt lại",
     "resetCreditRedeemFailed": "Không thể đổi tín dụng đặt lại",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "không thể kết nối proxy",
     "poolSetAsideKindIpQuota429": "giới hạn tốc độ theo IP (429)",
     "poolSetAsideKindSlow": "phản hồi chậm",
+    "poolSetAsideKindGeoBlocked": "bị chặn theo khu vực (403/451)",
     "poolSetAsideUntil": "Trở lại {endsAt}",
     "poolSetAsideRepeat": "Đã tạm ngưng {count} lần",
     "poolUnknownAddress": "Địa chỉ không xác định",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Thứ tự vị trí",
     "poolHealthRankingOff": "Xếp hạng tình trạng tắt",
     "transportRate": "{rate}% vận chuyển",
+    "slowAbandoned": "{count} lần hủy bỏ chậm",
+    "clientAborted": "{count} lần hủy bỏ bởi client",
+    "slowAbandonedHint": "Hủy bỏ sau ngưỡng chờ tiêu đề, không được tính vào tỷ lệ vận chuyển",
     "previousSuccessRate": "Trước đây {rate}% thành công",
-    "upstreamRefusals": "{count} từ chối từ máy chủ",
     "connectionTestsCount": "{count} kiểm tra kết nối",
-    "notMeasured": "Chưa đo"
+    "notMeasured": "Chưa đo",
+    "upstream4xx": "{count} lỗi phía client",
+    "upstream5xx": "{count} lỗi máy chủ",
+    "uniformEgressLine": "{affected} trên {exits} exit cùng lỗi trên {provider} (trong {hours} giờ qua) — không phải vấn đề exit"
   },
   "playground": {
     "title": "Khu thử nghiệm mô hình",
@@ -11439,10 +11435,10 @@
       "compressed": "Nén",
       "tps": "TPS",
       "duration": "Thời lượng",
+      "addedWait": "Thời gian chờ thêm",
       "time": "Thời gian",
       "conversation": "Cuộc trò chuyện",
-      "ttft": "TTFT",
-      "addedWait": "Thời gian chờ thêm"
+      "ttft": "TTFT"
     },
     "loadingLogs": "Đang tải nhật ký...",
     "noLogs": "Chưa có nhật ký nào. Hãy thực hiện một số cuộc gọi API để xem chúng ở đây.",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} không hoạt động",
     "dbOverrideCount": "{count} ghi đè DB",
     "searchPlaceholder": "Tìm kiếm cờ...",
+    "descriptionModeLabel": "Chế độ xem mô tả",
+    "descriptionModeHint": "Khi di chuột: các thẻ vẫn thu gọn và khi di chuột lên phần mô tả sẽ hiển thị toàn bộ văn bản. Toàn văn: luôn hiển thị mô tả đầy đủ.",
+    "descriptionModeHover": "Khi di chuột",
+    "descriptionModeFull": "Toàn văn",
     "categories": {
       "all": "Tất cả",
       "security": "Bảo mật",

@@ -105,6 +105,23 @@ export function setOperatorProviderErrorRules(
 function buildOpencodeRules(): ProviderErrorRule[] {
   return [
     {
+      // A 400/429 reading "endpoint is unavailable" fails over to a short model-scope
+      // cooldown so the next request skips the refused model instead of
+      // retrying it. First: the body marker is the most specific signal and
+      // wins over the generic header/counter rules below on conflicts.
+      id: "opencode-endpoint-unavailable",
+      match: ({ status, body }) => {
+        if (status !== 400 && status !== 429) return null;
+        const text = JSON.stringify(body ?? "").toLowerCase();
+        if (!text.includes("endpoint is unavailable")) return null;
+        return {
+          reason: "model_capacity",
+          scope: "model",
+          cooldownMs: 300_000,
+        };
+      },
+    },
+    {
       id: "opencode-monthly-quota-resets-in",
       match: ({ status, body }) => {
         if (status !== 429) return null;
@@ -525,7 +542,7 @@ export function parseResetCountdownMs(text: string): number | null {
 }
 
 /**
- * Opencode-family "Upstream request failed: Model is unavailable." 400: the rule's
+ * Opencode-family "Upstream request failed: Model is unavailable." 400/429: the rule's
  * model-scope match, or null for any other provider, status or rule. Takes the raw
  * error text so it stays independent of FULL_TEXT_RULE_PROVIDERS (#10880).
  */
@@ -535,7 +552,11 @@ export function getOpencodeModelUnavailableMatch(
   headers: Headers | Record<string, string> | null | undefined,
   errorText: unknown
 ): ProviderErrorRuleMatch | null {
-  if (status !== 400 || !provider || !OPENCODE_RULE_FAMILY.includes(provider.toLowerCase())) {
+  if (
+    (status !== 400 && status !== 429) ||
+    !provider ||
+    !OPENCODE_RULE_FAMILY.includes(provider.toLowerCase())
+  ) {
     return null;
   }
   const match = getProviderErrorRuleMatch(provider, status, headers, errorText);

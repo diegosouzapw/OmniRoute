@@ -9,7 +9,12 @@ import {
   verifyManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { checkLoginGuard, clearLoginAttempts, recordLoginFailure } from "@/server/auth/loginGuard";
+import {
+  beginLoginAttempt,
+  clearLoginAttempts,
+  endLoginAttempt,
+  recordLoginFailure,
+} from "@/server/auth/loginGuard";
 import {
   getLoginLockoutKey,
   getLoginSourceScope,
@@ -41,6 +46,10 @@ const connectSchema = z.object({
 
 export async function POST(request: Request) {
   const auditContext = getAuditRequestContext(request);
+  // The guard reserves a failure slot while the password is being verified; release it on
+  // every exit so an aborted request cannot leak budget.
+  let heldSlotKey: string | null | undefined;
+  let holdsSlot = false;
 
   try {
     let rawBody: unknown;
@@ -64,7 +73,7 @@ export async function POST(request: Request) {
     // would hand out a fresh attempt budget on every request.
     const lockoutKey = getLoginLockoutKey(request, clientIp);
 
-    const guardCheck = checkLoginGuard(lockoutKey, { enabled: bruteForceEnabled });
+    const guardCheck = beginLoginAttempt(lockoutKey, { enabled: bruteForceEnabled });
     if (!guardCheck.allowed) {
       logAuditEvent({
         action: "cli.connect.locked",
@@ -86,6 +95,9 @@ export async function POST(request: Request) {
         }
       );
     }
+
+    holdsSlot = true;
+    heldSlotKey = lockoutKey;
 
     const passwordState = await ensurePersistentManagementPasswordHash({
       settings,
@@ -195,5 +207,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[CLI] connect failed:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } finally {
+    if (holdsSlot) endLoginAttempt(heldSlotKey);
   }
 }

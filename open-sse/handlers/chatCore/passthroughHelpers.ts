@@ -152,18 +152,77 @@ export function shouldUseNativeOpenAICompatibleResponsesPassthrough({
  * responses. The redaction is therefore both unnecessary and the cause of the
  * regression, so the blocks are now returned verbatim. The `signature` parameter
  * is kept for call-site compatibility.
+ *
+ * The one exception is a block that carries no signature at all (see
+ * {@link dropUnsignedPassthroughThinkingBlocks}): it was never issued by Anthropic,
+ * so it is dropped instead of forwarded.
  */
 export function redactPassthroughThinkingSignatures(
   messages: unknown,
   _signature: string
 ): unknown {
-  return messages;
+  // Signed blocks stay verbatim; only blocks Anthropic never issued are dropped (#12917).
+  return dropUnsignedPassthroughThinkingBlocks(messages);
 }
 
 type MessageLike = {
   role?: unknown;
   content?: unknown;
 };
+
+/**
+ * True for an assistant `thinking` / `redacted_thinking` block that carries no
+ * signature (`thinking`) or no payload (`redacted_thinking`). Such a block was
+ * never issued by Anthropic — typically an OpenAI-compatible leg's reasoning that
+ * the response translator relayed as `thinking` — so a real Anthropic upstream can
+ * only answer 400 "Invalid signature in thinking block" when it is replayed.
+ */
+function isUnsignedThinkingBlock(block: unknown): boolean {
+  if (!block || typeof block !== "object") return false;
+  const { type, signature, data } = block as {
+    type?: unknown;
+    signature?: unknown;
+    data?: unknown;
+  };
+  const hasText = (value: unknown) => typeof value === "string" && value.trim().length > 0;
+  if (type === "thinking") return !hasText(signature);
+  if (type === "redacted_thinking") return !hasText(data);
+  return false;
+}
+
+/**
+ * Drop assistant thinking blocks that no Anthropic upstream could have signed
+ * (see {@link isUnsignedThinkingBlock}) before the history is replayed to a
+ * genuine Anthropic endpoint. Signed blocks are never touched — Anthropic rejects
+ * any modification of a valid one — and an assistant turn left with no content is
+ * removed (consecutive same-role turns are accepted by the Messages API).
+ *
+ * This is the proactive complement of the exact-error one-shot recovery
+ * (`executeWithAnthropicThinkingSignatureRecovery`), which cannot help when the
+ * unsigned block sits in the still-open tool-use cycle. Returns the original
+ * reference when nothing needs dropping; never mutates its input.
+ */
+export function dropUnsignedPassthroughThinkingBlocks(messages: unknown): unknown {
+  if (!Array.isArray(messages)) return messages;
+
+  let changed = false;
+  const kept: unknown[] = [];
+  for (const message of messages as MessageLike[]) {
+    if (
+      !message ||
+      message.role !== "assistant" ||
+      !Array.isArray(message.content) ||
+      !message.content.some(isUnsignedThinkingBlock)
+    ) {
+      kept.push(message);
+      continue;
+    }
+    changed = true;
+    const content = message.content.filter((block) => !isUnsignedThinkingBlock(block));
+    if (content.length > 0) kept.push({ ...message, content });
+  }
+  return changed ? kept : messages;
+}
 
 type ThinkingSignatureError = {
   provider?: string | null;

@@ -5,6 +5,7 @@ import { buildNoAuthModelsResponse } from "../../src/app/api/providers/[id]/mode
 import { isDegradedDiscovery } from "../../src/app/api/providers/[id]/sync-models/degradedLocalCatalog";
 import { NOAUTH_PROVIDERS } from "../../src/shared/constants/providers/noauth";
 import { getModelsByProviderId } from "../../src/shared/constants/models";
+import { getRegistryEntry } from "../../open-sse/config/providerRegistry.ts";
 
 /**
  * A no-auth provider whose registry entry exposes no remote models endpoint has
@@ -23,6 +24,13 @@ function catalogOnlyNoAuthProviders(): string[] {
   for (const id of Object.keys(NOAUTH_PROVIDERS)) {
     // Only providers that actually ship a catalog can be asserted on.
     if (!(getModelsByProviderId(id) || []).length) continue;
+    // A provider that declares `modelsUrl` is NOT catalog-only: its catalog is a
+    // fallback, and an untagged local_catalog answer after a failed live fetch is
+    // the genuine degradation the sync guard must keep rejecting. Including it
+    // made this test hit the network and fail wherever that endpoint is
+    // unreachable (uncloseai on CI, 2026-09-29).
+    const modelsUrl = getRegistryEntry(id)?.modelsUrl;
+    if (typeof modelsUrl === "string" && modelsUrl.length > 0) continue;
     ids.push(id);
   }
   return ids;

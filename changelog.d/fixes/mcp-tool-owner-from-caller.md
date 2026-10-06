@@ -1,1 +1,0 @@
-- **fix(mcp):** the memory and skill MCP tools now act as the authenticated caller instead of an `apiKeyId` written into the tool arguments, so an MCP client can no longer read or change another tenant's memories or enable and run another tenant's or the global skills

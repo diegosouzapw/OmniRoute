@@ -7,52 +7,52 @@
 OmniRoute har **to** prosesslokale lane-systemer med ulike virkeområder. De er
 komplementære; operatører bør vite hvilket system de ser på.
 
-## 1. Prosessomfattende adgangskontroll på bytenivå (`chatBodyAdmission.ts`)
+## 1. Prosessomfattende tilgangskontroll på bytenivå (`chatBodyAdmission.ts`)
 
-- **Omfang:** banen for bufret body/heap for `POST /v1/chat/completions`,
+- **Omfang:** banen for bufrede forespørselskropper/minneheap for `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses` og de andre chat-lignende rutene. Beskytter
-  mot heap-forsterkning fra store bodies fra kodeagenter (#4380).
+  mot heap-forsterkning fra store forespørselskropper fra kodeagenter (#4380).
 - **Én prosessglobal kontroller, ikke separate baner per nøkkel (#10110).** Hver API-nøkkel
-  (hashet) eller `anonymous`-økt får adgang basert på det **samme** delte budsjettet —
-  den hash-baserte økt-ID-en brukes KUN som planleggingsnøkkel for rettferdighet (round-robin-
-  fordeling blant ventende), aldri som en kapasitetspartisjon. En tidligere versjon av dette
-  dokumentet beskrev separate baner per nøkkel med uavhengig kapasitet. Denne modellen ble
-  fjernet i #10110 fordi den lot uautentiserte, falske legitimasjonsopplysninger multiplisere
-  den prosessomfattende grensen.
+  (hashet) eller `anonymous`-økt får tilgang mot det **samme** delte budsjettet —
+  den hashede økt-ID-en brukes BARE som en planleggingsnøkkel for rettferdighet
+  (round-robin-fordeling mellom ventende), aldri som en kapasitetsinndeling. En tidligere
+  versjon av dette dokumentet beskrev separate baner per nøkkel med uavhengig kapasitet;
+  denne modellen ble fjernet i #10110 fordi den lot uautentiserte, falske
+  tilgangsopplysninger mangedoble den prosessomfattende grensen.
 - **Port (#503-fanout): et automatisk utledet BYTE-budsjett for inntak, ikke et fast antall
   forespørsler.** Den eldre grensen `CHAT_MAX_HEAVY_IN_FLIGHT` for antall forespørsler (standardverdi `1`
-  før denne rettelsen) reduserte fan-out for kodeagenter (flere underagenter/CLI-er,
-  bodies rutinemessig > 256 KB) til en effektiv samtidighet på ~1, noe som ga 503
-  under helt normal belastning. Den er nå bare bindende når en operatør eksplisitt
-  angir `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Når den ikke er angitt, styres adgang i stedet
-  av `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — et budsjett som automatisk utledes fra
+  før denne rettelsen) reduserte utviftingen fra kodeagenter (flere underagenter/CLI-er,
+  forespørselskropper rutinemessig > 256 KB) til en effektiv samtidighet på ~1, noe som ga
+  503-feil under helt normal belastning. Den setter nå bare en grense når en operatør eksplisitt
+  angir `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Når den ikke er angitt, styres tilgangen i stedet
+  av `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — et budsjett som utledes automatisk fra
   prosessens faktiske minnegrense (`src/shared/middleware/admissionBudget.ts`):
-  25 % av den strengeste av V8-heapgrensen og en eventuell cgroup-/containergrense,
-  delt på en faktor på 8x for midlertidig forsterkning, begrenset til mellom 8 MiB og
-  2 GiB. Eksplisitte overstyringer bruker de samme grensene. Dette skalerer automatisk fra en
-  512 MB-container til en stasjonær maskin med 32 GB uten miljøvariabeljustering. En body som ikke
+  25 % av den strengeste av V8-heapgrensen og enhver cgroup-/containergrense,
+  dividert med en faktor på 8x for midlertidig forsterkning, begrenset til mellom 8 MiB og
+  2 GiB. Eksplisitte overstyringer bruker de samme grensene. Dette skaleres automatisk fra en
+  container på 512 MB til en stasjonær maskin med 32 GB uten justering av miljøvariabler. En forespørselskropp som ikke
   får plass innenfor det effektive budsjettet, avvises umiddelbart med `413 body_exceeds_budget`;
-  bare konkurranse mellom bodies som hver for seg kan betjenes, går inn i den begrensede
-  rettferdighetskøen. En aktiv ressurspresstracker med flere signaler (V8-heapandel,
+  bare ressurskonflikter mellom forespørselskropper som hver for seg kan behandles, går inn i den avgrensede
+  rettferdighetskøen. En aktiv ressurspresstracker med flere signaler (V8-heapforhold,
   cgroup, PSI, OOM-hendelser — `open-sse/utils/resourcePressurePolicy.ts`) forkorter
-  den begrensede ventetiden ved `high` press og avviser umiddelbart med
-  `503 resource_pressure` ved `critical` press, før noen bytes i det hele tatt
-  leses inn. PSI leses fra denne enhetens cgroup `memory.pressure` når den finnes
+  den avgrensede ventetiden ved `high` press og avviser umiddelbart med
+  `503 resource_pressure` ved `critical` press, før noen byte i det hele tatt
+  leses inn. PSI leses fra denne enhetens cgroup-`memory.pressure` når den finnes
   (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` gjelder
-  hele verten og brukes bare som reserve på ren maskinvare / cgroup v1, slik at en vert
-  som bruker swap, ikke kan gi en inaktiv container 503.
+  hele verten og brukes bare som reserve på fysisk maskinvare / cgroup v1, slik at en vert
+  som bruker vekslingsminne, ikke kan gi en inaktiv container en 503-feil.
 - **Justering:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — overstyring av det automatisk utledede bytebudsjettet
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — eldre grense for antall forespørsler, kun ved aktivt valg
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — ventetid i kø før 503 (standardverdi 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — heap-ventil for bytes i kø (standardverdi 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — avviklet
-    uten virkning siden #10110 (godtas for konfigurasjonskompatibilitet, men ignoreres)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — eldre grense for antall forespørsler, kun ved eksplisitt aktivering
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — ventetid i kø før 503 (standard er `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — heapventil for byte i kø (standard 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — utfaset
+    og uten effekt siden #10110 (godtas for konfigurasjonskompatibilitet, men ignoreres)
 - **Rapporter:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — inkludert
   tilleggene fra #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` og `countCapEnabled`
-  (false i en standarddistribusjon — bekrefter at bytebudsjettet, ikke den eldre
-  antallsgrensen, faktisk er bindende).
+  (false i en standarddistribusjon — bekrefter at det er bytebudsjettet, ikke den eldre
+  antallsgrensen, som faktisk er begrensende).
 
 ## 2. Adaptive virtuelle kjørefelt under kjøring (`open-sse/services/admission`)
 

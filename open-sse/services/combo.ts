@@ -5,7 +5,7 @@
  * context-optimized, context-relay, and fusion strategies
  */
 
-import { errorResponseWithComboDiagnostics } from "../utils/error.ts";
+import { errorResponse, errorResponseWithComboDiagnostics } from "../utils/error.ts";
 
 import { recordComboFailure } from "./combo/failureTracker.ts";
 import { buildRecoveryHint } from "./combo/pinRecovery.ts";
@@ -93,8 +93,11 @@ import {
   canAutoResumeNativeCodexTurn,
   createPinnedModelUnavailableResponse,
   getNativeCodexTurnPin,
+  describePinnedTargetsLock,
   releaseNativeCodexTurnPin,
+  resolvePinnedTargetsLockWaitMs,
 } from "./combo/nativeCodexTurnPin.ts";
+import { waitForCooldownAwareRetry } from "../../src/sse/services/cooldownAwareRetry.ts";
 import {
   pinIsDurablyUnhealthy,
   tryFusionDispatch,
@@ -175,6 +178,9 @@ export {
   validateComboDAG,
 } from "./combo/comboStructure.ts";
 
+// The lock check is `until > now`; waking exactly at `until` can still read locked.
+const PINNED_LOCK_WAIT_SLACK_MS = 50;
+
 /**
  * #6692: release a session-stickiness pin the moment its bound connection is
  * the one that just failed. applySessionStickiness() only re-checks health on
@@ -233,20 +239,40 @@ export function poolMedianP95Ms(
 }
 
 const BOOTSTRAP_WARN_WINDOW_MS = 3600_000;
-export let bootstrapLatencyHits = 0; // exported for testability (reset in tests)
-export let bootstrapLatencyTotal = 0;
+export type BootstrapSource = "table" | "pool-median" | "constant";
+export const bootstrapSourceCounts: Record<BootstrapSource, number> = {
+  table: 0,
+  "pool-median": 0,
+  constant: 0,
+};
 let bootstrapWarnedAt = 0;
 export function resetBootstrapCounters(): void {
-  bootstrapLatencyHits = 0;
-  bootstrapLatencyTotal = 0;
+  bootstrapSourceCounts.table = 0;
+  bootstrapSourceCounts["pool-median"] = 0;
+  bootstrapSourceCounts.constant = 0;
   bootstrapWarnedAt = 0;
 }
+// Table lookup shared by the bootstrap provenance helpers below. Exact
+// normalization only (no provider/ prefix strip): callers pass parsed.model,
+// so stripping here would be dead code. Pricing strips prefixes; combo does not.
+function lookupTable(model: string): number | undefined {
+  return DEFAULT_MODEL_P95_MS[String(model || "").toLowerCase()];
+}
+// Single provenance authority: classifies a pre-resolved table value plus the
+// pool median. bootstrapMs routes through it so the hot path performs
+// exactly one table lookup on every call.
+export function bootstrapSourceFromTable(
+  table: number | undefined,
+  poolMedian: number | undefined
+): BootstrapSource {
+  if (table !== undefined) return "table";
+  if (poolMedian !== undefined) return "pool-median";
+  return "constant";
+}
 export function bootstrapMs(model: string, poolMedian: number | undefined): number {
-  bootstrapLatencyTotal++;
-  const table = DEFAULT_MODEL_P95_MS[String(model || "").toLowerCase()];
-  if (table !== undefined) return table;
-  bootstrapLatencyHits++;
-  return poolMedian ?? 1500;
+  const table = lookupTable(model);
+  bootstrapSourceCounts[bootstrapSourceFromTable(table, poolMedian)]++;
+  return table ?? poolMedian ?? 1500;
 }
 
 // Pure and testable without timers: the throttled 1h warn + cold-start exemption live here.
@@ -262,11 +288,22 @@ export function shouldWarnBootstrap(
   return now - lastWarn >= BOOTSTRAP_WARN_WINDOW_MS;
 }
 
-function maybeWarnBootstrapDominant(hasStats: boolean): void {
+// Deterministic on the module counters (not pure): reads bootstrapSourceCounts.
+// Table hits stay in the denominator to preserve the 30% threshold semantics
+// but out of the message — only estimates are reported.
+export function formatBootstrapWarning(): string {
+  const { table, "pool-median": pm, constant } = bootstrapSourceCounts;
+  const total = table + pm + constant;
+  const hits = pm + constant;
+  return `[combo] bootstrap latency dominant (${hits}/${total}, pool-median: ${pm}, constant: ${constant}) — scoring runs on guesses`;
+}
+
+export function maybeWarnBootstrapDominant(hasStats: boolean): void {
+  const { table, "pool-median": pm, constant } = bootstrapSourceCounts;
   if (
     !shouldWarnBootstrap(
-      bootstrapLatencyHits,
-      bootstrapLatencyTotal,
+      pm + constant,
+      table + pm + constant,
       hasStats,
       Date.now(),
       bootstrapWarnedAt
@@ -274,9 +311,7 @@ function maybeWarnBootstrapDominant(hasStats: boolean): void {
   )
     return;
   bootstrapWarnedAt = Date.now();
-  console.warn(
-    `[combo] bootstrap latency dominant (${bootstrapLatencyHits}/${bootstrapLatencyTotal}) — scoring runs on guesses`
-  );
+  console.warn(formatBootstrapWarning());
 }
 
 export async function buildAutoCandidates(
@@ -858,6 +893,7 @@ async function handleComboChatInner({
   let orderedTargets = targetResolution.orderedTargets;
   const quotaCutoffResetWindowConfig = resolveResetWindowConfig(config as Record<string, unknown>);
 
+  let pinnedLockWaitMs = 0;
   if (activeNativeTurnPin) {
     const pinnedTargets = applyNativeCodexTurnPin(orderedTargets, activeNativeTurnPin);
     if (pinnedTargets.length === 0) {
@@ -917,7 +953,7 @@ async function handleComboChatInner({
           targetResolution.quotaShareRelease?.();
           log.warn(
             "COMBO",
-            `Native Codex turn cannot continue: pinned model ${activeNativeTurnPin.modelStr} is unavailable (model-scoped); auto-resume rejected (${autoResumeEligibility.reason}); preserving turn pin and terminating turn`
+            `Native Codex turn cannot continue: pinned model ${activeNativeTurnPin.modelStr} is unavailable (model-scoped); auto-resume rejected (${autoResumeEligibility.reason}); model lock: ${describePinnedTargetsLock(pinnedTargets)}; preserving turn pin and terminating turn`
           );
           return createPinnedModelUnavailableResponse();
         } else {
@@ -939,6 +975,21 @@ async function handleComboChatInner({
           "COMBO",
           `Native Codex turn pinned to ${activeNativeTurnPin.modelStr} on connection ${activeNativeTurnPin.connectionId.slice(0, 8)}`
         );
+        pinnedLockWaitMs = resolvePinnedTargetsLockWaitMs(pinnedTargets, resilienceSettings);
+        if (pinnedLockWaitMs > 0) {
+          log.info(
+            "COMBO",
+            `Native Codex turn pin: ${activeNativeTurnPin.modelStr} has a short transient lockout — waiting ${Math.ceil(pinnedLockWaitMs / 1000)}s before dispatch instead of terminating the turn`
+          );
+          const completed = await waitForCooldownAwareRetry(
+            pinnedLockWaitMs + PINNED_LOCK_WAIT_SLACK_MS,
+            signal
+          );
+          if (!completed) {
+            targetResolution.quotaShareRelease?.();
+            return errorResponse(499, "Request aborted");
+          }
+        }
       }
     }
   }
@@ -992,8 +1043,14 @@ async function handleComboChatInner({
     strategy,
     resilienceSettings.comboCooldownWait
   );
-  const comboCooldownAttempt = { current: 0 };
-  const comboCooldownBudgetLeftMs = { current: resilienceSettings.comboCooldownWait.budgetMs };
+  const comboCooldownAttempt = { current: pinnedLockWaitMs > 0 ? 1 : 0 };
+  const comboCooldownBudgetLeftMs = {
+    current: Math.max(
+      0,
+      resilienceSettings.comboCooldownWait.budgetMs -
+        (pinnedLockWaitMs > 0 ? pinnedLockWaitMs + PINNED_LOCK_WAIT_SLACK_MS : 0)
+    ),
+  };
   const comboTimeoutMs = config.comboTimeoutMs || 0;
   const comboStartTime = Date.now();
 

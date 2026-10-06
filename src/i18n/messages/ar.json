@@ -5636,7 +5636,7 @@
     "accountName": "اسم الحساب",
     "email": "البريد الإلكتروني",
     "healthCheckMinutes": "فحص الصحة (دقيقة)",
-    "healthCheckHint": "الفاصل الزمني لتحديث الرمز المميز. 0 = معطل.",
+    "healthCheckHint": "تجاوز لهذا الاتصال. فارغ = اتباع القيمة الافتراضية العامة (الإعدادات › المرونة). 0 = عدم فحص هذا الاتصال أبدًا. الحد الأقصى 1440 (24 ساعة).",
     "deselectAllModels": "قم بإلغاء تحديد الكل",
     "modelsActiveCount": "{active}/{total} نشط",
     "noModelsMatch": "لا توجد نماذج مطابقة \"{filter}\"",
@@ -6011,7 +6011,7 @@
     "validationModelIdPlaceholder": "مثال: gpt-4o-mini",
     "vertexCredentialLabel": "مفتاح API أو JSON لحساب الخدمة",
     "vertexCredentialHint": "تستخدم مفاتيح API كتالوج المشروع المنسّق. يتيح JSON لحساب الخدمة الاكتشاف المباشر في Model Garden.",
-    "vertexServiceAccountPlaceholder": "ألصق JSON لحساب الخدمة ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) أو OAuth access_token",
+    "vertexServiceAccountPlaceholder": "ألصق مفتاح API أو JSON لحساب الخدمة ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) أو رمز وصول OAuth",
     "webCookieProviders": "مزودو ملفات تعريف ارتباط الويب",
     "weeklyShort": "أسبوعي",
     "xiaomiMimoBaseUrlHint": "عنوان URL الأساسي لـ Xiaomi MiMo",
@@ -6197,7 +6197,7 @@
       "bluesminds": "احصل على مفتاح API الخاص بك من https://www.bluesminds.com — نقطة نهاية متوافقة مع OpenAI على https://api.bluesminds.com/v1 مع أرصدة يومية مجانية. تستهلك نماذج VIP (مثل Claude Opus 4.5 و Gemini 2.5 Pro) أرصدة pi.",
       "byteplus": "ربط BytePlus ModelArk بمفتاح API.",
       "bytez": "رصيد مجاني بقيمة $1، يتجدد كل 4 أسابيع",
-      "cerebras": "تجربة مجانية: 1 مليون رمز يوميًا، 30 ألف TPM، 5 RPM — بدون بطاقة ائتمان.",
+      "cerebras": "رصيد تسجيل لمرة واحدة بقيمة 5 دولارات (صالح 30 يومًا)؛ يلزم إدخال وسيلة دفع. ليست فئة مجانية متجددة.",
       "charm-hyper": "أنشئ مفتاح API على https://hyper.charm.land، ثم الصقه هنا كرمز Bearer.",
       "chutes": "مفتاح Bearer API لبوابة Chutes المتوافقة مع OpenAI.",
       "clarifai": "توفر Clarifai دردشة واستجابات و /models متوافقة مع OpenAI على /v2/ext/openai/v1. تتطلب النماذج العامة/المجتمعية عادةً رمز PAT؛ بينما تعمل المفاتيح المخصصة للتطبيق فقط مع الموارد الموجودة داخل هذا التطبيق.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "تمر كل حركة مرور الموفر عبر تجمع الوكيل لهذا الاشتراك.",
       "ruleModeDesc": "تمر حركة مرور مقدمي الخدمة المحددين فقط عبر الوكيل؛ الباقي يتصل مباشرة.",
       "localCoreEndpoint": "نقطة نهاية SOCKS5/HTTP الأساسية المحلية (اختياري)",
-      "localCoreEndpointPlaceholder": "الجوارب5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "يقبل فقط 127.0.0.1 / localhost (يتطلب SS/VMess/Trojan/VLESS صندوق غناء محلي/clash core).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "واحد في كل سطر. يقبل فقط 127.0.0.1 / localhost (تتطلب SS/VMess/Trojan/VLESS نواة sing-box/clash محلية).",
       "routeByProvider": "المسار حسب الموفر (اختيار متعدد)",
       "loadingProviders": "جارٍ تحميل قائمة الموفرين…",
       "autoRefreshInterval": "الفاصل الزمني للتحديث التلقائي (بالدقائق)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "ضغط وصف MCP",
     "mcpAccessibilityTitle": "مخرجات إمكانية الوصول لـ MCP",
     "compressionSettingsCavemanIntensity": "شدة Caveman",
-    "compressionSettingsCavemanOutputMode": "وضع إخراج Caveman",
     "compressionSettingsOutputStyles": "أنماط المخرجات",
     "compressionStylesTileTitle": "أنماط المخرجات",
     "compressionSettingsOutputIntensity": "كثافة الإخراج",
-    "compressionSettingsAutoClarityBypass": "تجاوز الوضوح التلقائي",
     "compressionEffectivePipeline": "المسار الفعال:",
     "compressionDerivedOff": "معطل",
     "compressionDerivedRuns": "عمليات التشغيل: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "الحد الأدنى للصفوف لضغطها",
         "description": "الحد الأدنى للصفوف في مصفوفة JSON متجانسة المطلوبة لتشغيل الضغط الجدولي. الافتراضي: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "الحفاظ على توجيه النظام"
-      },
       "summarizerEnabled": {
         "label": "تمكين الملخص"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "لا يتم ضغط الرسائل الأقصر من ذلك. أقل = المزيد من الضغط.",
     "tooltipMinSavings": "قم بالضغط فقط إذا كان يحفظ هذا العدد من الرموز المميزة على الأقل.",
     "ultraSettings": "إعدادات الترا",
-    "ultraSettingsDesc": "الضغط الدلالي الذي يعمل بنظام SLM",
-    "preview": {
-      "lite": "أجب بإيجاز. حافظ على المصطلحات التقنية والشيفرة والأخطاء وعناوين URL والمعرّفات.",
-      "full": "أجب باقتضاب وبصيغة مضغوطة مع الحفاظ على كامل المضمون التقني.",
-      "ultra": "أجب بأقصى إيجاز باستخدام الاختصارات التقنية الشائعة، وحافظ على الرموز كما هي."
-    }
+    "ultraSettingsDesc": "الضغط الدلالي الذي يعمل بنظام SLM"
   },
   "translator": {
     "title": "مترجم",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "استرداد إعادة التعيين",
     "manageResetCredits": "عرض الأرصدة",
     "viewResetCredits": "عرض أرصدة إعادة التعيين",
-    "resetCreditsModalTitle": "أرصدة إعادة تعيين Codex",
+    "resetCreditsModalTitle": "أرصدة إعادة التعيين",
     "resetCreditsModalExplainer": "يتم ترتيب الأرصدة حسب تاريخ انتهاء الصلاحية. يستخدم الاسترداد التلقائي دائمًا الرصيد الذي تنتهي صلاحيته أولاً.",
     "resetCreditsLoadFailed": "فشل تحميل أرصدة إعادة التعيين",
     "resetCreditsDetailsUnavailable": "تفاصيل الرصيد غير متوفرة حاليًا. يُرجى التحديث والمحاولة مرة أخرى.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "بلا تاريخ انتهاء صلاحية",
     "redeemThisResetCredit": "استرداد",
     "confirmRedeemResetCreditTitle": "هل تريد استرداد رصيد إعادة التعيين هذا؟",
-    "confirmRedeemResetCredit": "يؤدي الاسترداد إلى إعادة تعيين نوافذ استخدام Codex المؤهلة فورًا واستهلاك هذا الرصيد نهائيًا.",
+    "confirmRedeemResetCredit": "يؤدي الاسترداد إلى إعادة تعيين نوافذ الاستخدام المؤهلة فورًا واستهلاك هذا الرصيد نهائيًا.",
     "confirmRedeemResetCreditButton": "استرداد الرصيد",
     "resetCreditRedeemed": "تم استرداد إعادة التعيين",
     "resetCreditRedeemFailed": "فشل استرداد رصيد إعادة التعيين",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "تعذّر الوصول إلى الوكيل",
     "poolSetAsideKindIpQuota429": "تقييد معدل عنوان IP ‏(429)",
     "poolSetAsideKindSlow": "استجابات بطيئة",
+    "poolSetAsideKindGeoBlocked": "منطقة محظورة (403/451)",
     "poolSetAsideUntil": "يعود إلى التناوب {endsAt}",
     "poolSetAsideRepeat": "مستبعد {count, plural, one {# مرة} other {# مرات}}",
     "poolUnknownAddress": "عنوان غير معروف",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "ترتيب المواضع",
     "poolHealthRankingOff": "ترتيب الصحة متوقف",
     "transportRate": "{rate}% نقل",
+    "slowAbandoned": "{count} عمليات تخلٍّ بطيئة",
+    "clientAborted": "{count} عمليات إلغاء من العميل",
+    "slowAbandonedHint": "تم التخلي بعد عتبة انتظار الترويسات، مستبعد من معدل النقل",
     "previousSuccessRate": "سابقًا {rate}% نجاح",
-    "upstreamRefusals": "{count} رفضًا من الخادم الأعلى",
     "connectionTestsCount": "{count} اختبارات اتصال",
-    "notMeasured": "غير مقاس"
+    "notMeasured": "غير مقاس",
+    "upstream4xx": "{count} أخطاء عميل من المصدر العلوي",
+    "upstream5xx": "{count} أخطاء الخادم العلوي",
+    "uniformEgressLine": "فشل {affected} من {exits} مخرجًا معًا على {provider} (آخر {hours}h) — ليس مشكلة خروج"
   },
   "playground": {
     "title": "العنوان",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} غير نشط",
     "dbOverrideCount": "{count} من تجاوزات قاعدة البيانات",
     "searchPlaceholder": "البحث في العلامات...",
+    "descriptionModeLabel": "عرض الوصف",
+    "descriptionModeHint": "عند التمرير: تظل البطاقات مضغوطة، ويؤدي تمرير المؤشر فوق الوصف إلى عرض النص كاملًا. النص الكامل: عرض الوصف كاملًا دائمًا.",
+    "descriptionModeHover": "عند التمرير",
+    "descriptionModeFull": "النص الكامل",
     "categories": {
       "all": "الكل",
       "security": "الأمان",

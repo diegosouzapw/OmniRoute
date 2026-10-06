@@ -262,16 +262,13 @@ curl -X PUT http://localhost:20128/api/settings/feature-flags \
 
 ---
 
-## מנגנון חירום חלופי לתקציב
+## מעבר חירום חלופי במקרה של חריגה מהתקציב
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (בקטגוריה `runtime`, ברירת המחדל `true`) שולט בנתיב
-החלופי החינמי לשעת חירום שבקובץ
-[`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-כאשר הוא מופעל, בקשות שממצות את התקציב שלהן מנותבות לספק/מודל חלופי
-וחינמי במקום להיכשל לחלוטין. הגדירו אותו כ-`false` (או `0`) — באמצעות המתג
-בלוח הבקרה, דריסה במסד הנתונים או משתנה הסביבה `OMNIROUTE_EMERGENCY_FALLBACK`
-— כדי להשבית את ההתנהגות ולאפשר לבקשות שמיצו את התקציב
-להיכשל. (מוצג כמתג בלוח הבקרה ב-PRs #3741 / #3752.)
+`OMNIROUTE_EMERGENCY_FALLBACK` (קטגוריה `runtime`, ברירת מחדל `true`) שולט בנתיב החירום למעבר לספק חלופי חינמי ב-[`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
+כאשר האפשרות מופעלת, בקשות שממצות את התקציב שלהן מנותבות לספק/מודל חלופי חינמי במקום להיכשל לחלוטין. הגדירו אותה כ-`false` (או `0`) — באמצעות המתג בלוח הבקרה, דריסה במסד הנתונים או משתנה הסביבה `OMNIROUTE_EMERGENCY_FALLBACK` — כדי להשבית התנהגות זו ולאפשר לבקשות שמיצו את התקציב להיכשל. (מוצג כמתג בלוח הבקרה ב-PRs #3741 / #3752.)
+
+תגובה שהתקבלה באמצעות מנגנון חלופי זה כוללת את הכותרת
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, כך שלקוח יכול לדעת שהבקשה נותבה מחדש מבלי להשוות את `X-OmniRoute-Provider` לבקשה שלו. הכותרת אינה קיימת באף תגובה אחרת.
 
 ---
 

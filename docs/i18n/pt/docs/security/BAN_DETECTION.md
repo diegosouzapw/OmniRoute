@@ -4,24 +4,27 @@
 
 ---
 
-O OmniRoute analisa as respostas de erro dos serviços a montante em busca de sinais que indiquem que uma
-**conta de fornecedor está permanentemente inutilizável** (suspensa / desativada / banida por violação dos Termos de Serviço) e, quando
-encontra uma correspondência, move essa ligação para um **estado terminal `banned`**, para que deixe de ser
-selecionada para pedidos. É isto que configura o cartão de definições **Security → Banned Keywords**
-("Palavras-chave adicionais que acionam a deteção de banimento permanente da
+O OmniRoute analisa as respostas de erro dos serviços a montante à procura de sinais que indiquem que uma
+**conta de fornecedor está permanentemente inativa** (suspensa / desativada / banida por violação dos Termos de Serviço) e, quando
+é encontrada uma correspondência, coloca essa ligação num **estado terminal `banned`**, para que deixe de
+ser selecionada para pedidos. É isto que o cartão de definições **Segurança → Palavras-chave de banimento**
+configura ("Palavras-chave adicionais que acionam a deteção de banimento permanente da
 conta. As palavras-chave incorporadas aplicam-se sempre.").
 
 Esta página documenta a lista incorporada, o fluxo de deteção, o respetivo âmbito, como adicionar
-palavras-chave personalizadas de forma segura e como recuperar uma ligação sinalizada. O próprio estado
-terminal faz parte do modelo de resiliência — consulte
+palavras-chave personalizadas em segurança e como recuperar uma ligação sinalizada. O próprio estado terminal
+faz parte do modelo de resiliência — consulte
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Estados terminais").
 
 **Fonte fidedigna:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+bem como `open-sse/services/errorClassifier.ts` para a classe de verificação não terminal
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) e para
+o ramo 403 que a utiliza.
 
 ## Palavras-chave incorporadas
 
-Estas 8 substrings aplicam-se sempre (sem distinção entre maiúsculas e minúsculas), independentemente de qualquer lista personalizada:
+Estas 7 subcadeias são sempre aplicadas (sem distinção entre maiúsculas e minúsculas), independentemente de qualquer lista personalizada:
 
 ```
 account_deactivated
@@ -29,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Esta lista evolui à medida que os fornecedores alteram a terminologia dos banimentos. A cópia
-> fidedigna é `ACCOUNT_DEACTIVATED_SIGNALS` em `open-sse/services/accountFallback.ts`;
-> considere o bloco acima como uma captura pontual.
+> Esta lista evolui à medida que os fornecedores alteram a formulação das suas mensagens de bloqueio. A
+> cópia oficial é `ACCOUNT_DEACTIVATED_SIGNALS` em `open-sse/services/accountFallback.ts`;
+> considere o bloco acima como uma captura instantânea.
 
-Existem duas tabelas de sinais adjacentes e **separadas** no mesmo ficheiro, que _não_ fazem parte
-da deteção por palavras-chave de banimento:
+### Não é um bloqueio: pedidos de verificação que requerem intervenção do operador
+
+`verify your account to continue` **fazia anteriormente parte** da lista acima. Não é um sinal de
+bloqueio e encontra-se agora em `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, que o classifica como
+`PROJECT_ROUTE_ERROR` recuperável, em vez de tornar a ligação terminal.
+
+O Google Cloud Code / Antigravity devolve-o como `403 VALIDATION_REQUIRED`. É
+**transitório e ocorre em contas saudáveis e com a quota totalmente disponível** — medido numa
+implementação em produção (2026-09-25, `proxy_logs`): uma ligação do Antigravity devolveu 33 destes
+erros 403 num período de 10 minutos e permaneceu `active`, enquanto uma ligação associada que mantinha 100 % da
+sua quota em todas as 17 janelas foi permanentemente bloqueada por **um único** erro destes. A única
+diferença foi a tentativa que, por acaso, foi processada.
+
+A distinção é importante porque uma correspondência terminal é `permanent: true` (período de suspensão de 1 ano,
+sem recuperação automática), enquanto o operador resolve um pedido de verificação num navegador.
+Manter a frase na lista de bloqueios também tornava inacessível o ramo recuperável de erro 403 do cloud-code em
+`classifyProviderError` para esta formulação, porque `accountDeactivated` é
+avaliado primeiro — pelo que a recuperação da rota do projeto adicionada para o Gemini Code Assist em
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) e
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) nunca podia ser executada.
+
+Três tabelas de sinais adjacentes e **separadas** _não_ fazem parte da deteção de palavras-chave de bloqueio:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — faturação/quota esgotada (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → estado terminal `credits_exhausted`.
+  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` terminal.
 - `OAUTH_INVALID_TOKEN_SIGNALS` — **não terminal**; uma atualização do token pode permitir a recuperação.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **não terminal**; o operador tem de
+  voltar a verificar a conta no fornecedor. Encontra-se em `open-sse/services/errorClassifier.ts`
+  (as outras duas encontram-se em `accountFallback.ts`). Consulte a secção acima.
 
 Nota: expressões transitórias comuns como **`rate limit`** / `429` são processadas pelo
-fluxo de limitação de pedidos / período de espera da ligação e **não** são sinais de banimento.
+mecanismo de limite de pedidos / período de suspensão da ligação e **não** são sinais de bloqueio.
 
 ## Fluxo de deteção
 

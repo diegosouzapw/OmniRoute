@@ -8,124 +8,124 @@
 
 > Isehallatavad mudeliahelad adaptiivse hindamise ja seadistamisvaba automaatse marsruutimisega
 
-## Null-konfiguratsiooniga auto-suunamine (`auto/` eesliide)
+## Nullkonfiguratsiooniga automaatne marsruutimine (`auto/` prefiks)
 
-> **UUS:** Combode loomine pole vaja. Kasutage otse `auto/` eesliidet igas kliendis.
+> **UUS:** Kombinatsiooni pole vaja luua. Kasutage `auto/` prefiksit otse mis tahes kliendis.
 
-### Kiired näited
+### Kiirnäited
 
-| Mudeli ID      | Variant   | Käitumine                                                                   |
-| -------------- | --------- | --------------------------------------------------------------------------- |
-| `auto`         | vaikimisi | Kõik ühendused pakkujad, LKGP strateegia, tasakaalustatud kaalud            |
-| `auto/coding`  | coding    | Kvaliteedipõhised kaalud, sobib koodigeneraadiks                            |
-| `auto/fast`    | fast      | Madala latentsusega kaaluga valik                                           |
-| `auto/cheap`   | cheap     | Kulude optimeeritud suunamine (madalaim kulu esikohale)                     |
-| `auto/offline` | offline   | Eelistab pakkujaid kõrgeima kvoodi kättesaadavusega                         |
-| `auto/smart`   | smart     | Kvaliteedipõhine + kõrgema avastamise määr (10%) paremaks mudelipakkumiseks |
-| `auto/lkgp`    | lkgp      | Eksplitsiitne LKGP (sama mis vaikimisi `auto`)                              |
-| `auto/chaos`   | chaos     | Tõrgete süstimise kaalud vastupidavuse testimiseks (kaoseinseneeria)        |
+| Mudeli ID      | Variant   | Käitumine                                                                     |
+| -------------- | --------- | ----------------------------------------------------------------------------- |
+| `auto`         | vaikimisi | Kõik ühendatud pakkujad, LKGP strateegia, tasakaalustatud kaalud              |
+| `auto/coding`  | coding    | Kvaliteeti eelistavad kaalud, sobib koodi genereerimiseks                     |
+| `auto/fast`    | fast      | Madala latentsusega kaalutud valik                                            |
+| `auto/cheap`   | cheap     | Kulude järgi optimeeritud marsruutimine (esmalt madalaim hind)                |
+| `auto/offline` | offline   | Eelistab suurima saadaoleva kvoodiga pakkujaid                                |
+| `auto/smart`   | smart     | Kvaliteeti eelistav + suurem uurimismäär (10%) mudelite paremaks avastamiseks |
+| `auto/lkgp`    | lkgp      | Eksplitsiitne LKGP (sama mis vaikimisi `auto`)                                |
+| `auto/chaos`   | chaos     | Paralleelne hargnemine, üks mudel pakkuja kohta (mitte tõrgete tekitamine)    |
 
-### Kategooria × Tase koostis (`auto/<category>:<tier>`)
+### Kategooria × taseme kompositsioon (`auto/<category>:<tier>`)
 
-OpenRouteri stiilis liited eraldavad **millist liiki marsruuti** (kategooria) sellest, **kuidas seda optimeerida** (tase), nii saate neid vabalt kombineerida (#4235 Faas B, `open-sse/services/autoCombo/suffixComposition.ts`):
+OpenRouteri-laadsed sufiksid eraldavad **marsruudi liigi** (kategooria) sellest, **kuidas seda optimeerida** (tase), et neid saaks vabalt kombineerida (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Kategooriad** (filtreerivad kandidaatide basseini võimete järgi): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` hoiab nägemisvõimalustega mudeleid; `reasoning` hoiab mõtlemismudeleid.
-- **Tasemed** (valivad skoorimise kaalud / basseini filtrid): `fast` (kiire tarnimine) · `cheap` (alias `floor`, kulude säästja) · `reliable` (ahelaületaja tervis + latentsuse stabiilsus) · `free` / `pro` (filtreerib basseini mudeli taseme järgi läbi `classifyTier` — tasuta tase vs. preemium).
+- **Kategooriad** (filtreerivad kandidaatide kogumit võimekuse alusel): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` säilitavad nägemisvõimekusega mudelid; `reasoning` säilitab arutlus-/mõtlemismudelid.
+- **Tasemed** (määravad hindamiskaalud / kogumi filtri): `fast` (kiire väljastamine) · `cheap` (alias `floor`, kulusäästlik) · `reliable` (kaitselüliti seisund + latentsuse stabiilsus) · `free` / `pro` (filtreerivad kogumit mudeli taseme järgi funktsiooni `classifyTier` kaudu — tasuta tase vs. premium-tase).
 
-| Näide                  | Lahendub järgmiselt                                                |
-| ---------------------- | ------------------------------------------------------------------ |
-| `auto/coding:fast`     | coding bassein, madala latentsusega kaalud                         |
-| `auto/coding:cheap`    | coding bassein, kulude optimeeritud (alias `auto/coding:floor`)    |
-| `auto/reasoning:pro`   | ainult reasoning/mõtlemismudelid, preemium tase                    |
-| `auto/vision`          | nägemisvõimalustega mudelid (tase puudub → tasakaalustatud kaalud) |
-| `auto/multimodal:free` | mitmevõimalustega mudelid, ainult tasuta tase                      |
+| Näide                  | Lahendub järgmiselt                                                  |
+| ---------------------- | -------------------------------------------------------------------- |
+| `auto/coding:fast`     | koodimiskogum, madala latentsusega kaalud                            |
+| `auto/coding:cheap`    | koodimiskogum, kulude järgi optimeeritud (alias `auto/coding:floor`) |
+| `auto/reasoning:pro`   | ainult arutlus-/mõtlemismudelid, premium-tase                        |
+| `auto/vision`          | nägemisvõimekusega mudelid (tase puudub → tasakaalustatud kaalud)    |
+| `auto/multimodal:free` | multimodaalse võimekusega mudelid, ainult tasuta tase                |
 
-Iga kehtiv `auto/<category>[:<tier>]` lahendatakse nõudmisel; kureeritud alamhulk on reklaamitud `/v1/models` ja töölaual (`AUTO_SUFFIX_VARIANTS` failis `open-sse/services/autoCombo/builtinCatalog.ts`). Filtreerimine on **avatud ebaõnnestumise** tüüpi — kui piirang ei vasta ühelegi ühendatud mudelile, kasutatakse täisbasseini, nii et suunamine ei katke. Põhiline skoorija (`combo.ts`) on muutmatu; kategooria/tase filter rakendatakse `buildAutoCandidates`.
+Kõik kehtivad `auto/<category>[:<tier>]` variandid lahendatakse nõudmisel; valitud alamhulka reklaamitakse `/v1/models` kaudu ja juhtpaneelil (`AUTO_SUFFIX_VARIANTS` failis `open-sse/services/autoCombo/builtinCatalog.ts`). Filtreerimine on **tõrke korral avatud** — kui ühelegi ühendatud mudelile piirang ei vasta, kasutatakse täielikku kogumit, et marsruutimine ei katkeks. Põhihindaja (`combo.ts`) jääb muutmata; kategooria-/tasemefilter rakendatakse funktsioonis `buildAutoCandidates`.
 
-> **Reaalajas mudeliintelligents:** auto-suunamise sobivus põhineb reaalajas **Arena ELO** edetabelitel + **models.dev** taseme andmetel, kui lipp `ARENA_ELO_SYNC_ENABLED` on sees (muidu kasutatakse staatilist sobivuskaarti).
+> **Reaalajas mudeliteave:** kui lipp `ARENA_ELO_SYNC_ENABLED` on sisse lülitatud, kasutab automaatne marsruutimine sobivuse hindamiseks reaalajas **Arena ELO** edetabeleid ja **models.dev** tasemeandmeid (vastasel juhul kasutatakse staatilist sobivuskaarti).
 
-**Kasutusviis:**
+**Kasutamine:**
 
 ```bash
-# Igasugune IDE või CLI tööriist, mis toetab OpenAI vormingut
-Base URL: http://localhost:20128/v1
-API Key:  <your-endpoint-key>
+# Mis tahes IDE või CLI-tööriist, mis toetab OpenAI vormingut
+Baas-URL: http://localhost:20128/v1
+API-võti: <teie-lõpp-punkti-võti>
 
-# Oma koodis/konfiguratsioonis seadke mudeliks:
-model: "auto"                 # tasakaalustatud vaikimisi
-model: "auto/coding"          # parim koodiülesanneteks
-model: "auto/fast"            # kiireim kättesaadav
-model: "auto/cheap"           # odavaim tokni kohta
+# Määrake oma koodis/konfiguratsioonis mudeliks:
+model: "auto"                 # tasakaalustatud vaikeseade
+model: "auto/coding"          # parim koodimisülesannete jaoks
+model: "auto/fast"            # kiireim saadaolev
+model: "auto/cheap"           # odavaim tokeni kohta
 ```
 
-**Mis juhtub:**
+**Mis toimub:**
 
-1. OmniRoute tuvastab `auto/` eesliidi failis `src/sse/handlers/chat.ts`
-2. Pärib kõik **aktiivsed pakkujaühendused** andmebaasist
-3. Filtreerib need, millel on kehtiv tõendus (API võti või OAuth token)
-4. Määrab igaühenduse jaoks mudeli (`connection.defaultModel` või pakkuja esimene mudel)
-5. Ehitab **virtuaalse combo** mälus (ei salvestata andmebaasi)
-6. Suunab valitud variandi kaaluprofiili + LKGP strateegia abil
+1. OmniRoute tuvastab `auto/` prefiksi failis `src/sse/handlers/chat.ts`
+2. Pärib andmebaasist kõik **aktiivsed pakkujaühendused**
+3. Filtreerib välja need, millel on kehtivad mandaadid (API-võti või OAuthi token)
+4. Määrab mudeli ühenduse kohta (`connection.defaultModel` või pakkuja esimene mudel)
+5. Koostab mälus **virtuaalse kombinatsiooni** (seda ei salvestata andmebaasi)
+6. Marsruudib valitud variandi kaaluprofiili ja LKGP strateegia abil
 
 **Põhiomadused:**
 
-- ✅ **Alati sees:** Lüliti pole vaja, combot pole vaja luua, konfiguratsioon pole vajalik
-- ✅ **Dünaamiline:** Kajastab praegu ühendatud pakkujaid automaatselt
-- ✅ **Seansi kleepuvus:** LKGP tagab, et viimane edukas pakkuja on eelisjärjekorras
-- ✅ **Mitmekontoteadlik:** Iga pakkujaühendus saab eraldi kandidaadiks
-- ✅ **Andmebaasi kirjutusi pole:** Virtuaalne combo eksisteerib ainult päringu jaoks, null püsivuskulu
+- ✅ **Alati aktiivne:** Pole vaja lülitit, kombinatsiooni loomist ega konfigureerimist
+- ✅ **Dünaamiline:** Kajastab automaatselt praegu ühendatud pakkujaid
+- ✅ **Seansi püsivus:** LKGP tagab viimase eduka pakkuja eelistamise
+- ✅ **Mitme konto tugi:** Igast pakkujaühendusest saab eraldi kandidaat
+- ✅ **Andmebaasi ei kirjutata:** Virtuaalne kombinatsioon eksisteerib ainult päringu ajal, püsisalvestuse üldkulu puudub
 
-### Võtmepõhine kandidaatide kontroll (#7819, Tase 1+2)
+### Võtmepõhine kandidaatide juhtimine (#7819, Level 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = `auto/` järeltulev liide või
-täpne `auto` baaskanali jaoks) on **ainult lugemise** lõpppunkt, mis loendab
-`auto/*` kanali praeguse kandidaatide basseini, kaunistatuna reaalajas kättesaadavusega, taaskasutades
-olemasolevaid vastupidavuse lugemisi (mitte kunagi tooret ülekoormuslüliti `state`):
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = sufiks pärast `auto/` osa või
+literaal `auto` baaskanali puhul) on **kirjutuskaitstud** lõpp-punkt, mis loetleb
+`auto/*` kanali praeguse kandidaatide kogumi koos reaalajas kättesaadavuse andmetega,
+kasutades uuesti olemasolevaid töökindlusnäite (mitte kunagi kaitselüliti töötlemata
+`state` väärtust):
 
-- pakkuja ahelaületaja — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- ühenduse jahtumisperiood — `rateLimitedUntil` / `testStatus` lahendatud
-  `provider_connections` reas
-- mudeli blokeerimine — `isModelLocked(provider, connectionId, model)`
+- pakkuja kaitselüliti — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- ühenduse ooteaeg — `rateLimitedUntil` / `testStatus` lahendatud
+  `provider_connections` real
+- mudeli lukustus — `isModelLocked(provider, connectionId, model)`
 
-Igal kandidaadil on ka selle API võtme `excluded` lipp. Välistused salvestatakse
-API võtme kohta (`auto_candidate_overrides` tabel, migratsioon `128`) — OmniRoute on
-üürniku-ülene, `users` tabelit pole, seega `apiKeyId` on lähim reaalne kõneleja identiteet —
-ja need jõustatakse kandidaatide basseini kitsaskohas
-`open-sse/services/autoCombo/virtualFactory.ts` puhta, üksiktestitud
-`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`) abil.
-Filter on **avatud ebaõnnestumise** tüüpi: määramata apiKeyId/channel või andmebaasi otsingu ebaõnnestumine jätab
-basseini filtreerimata, nii et üksusel, kellel pole ülevaateid konfigureeritud, on suunamine
-byte-identne enne seda funktsiooni.
+Igal kandidaadil on ka selle API-võtme `excluded` lipp. Välistused salvestatakse
+API-võtme kohta eraldi (`auto_candidate_overrides` tabel, migratsioon `128`) — OmniRoute
+on ühe rentnikuga ning sellel puudub `users` tabel, seega on `apiKeyId` lähim tegelik
+helistajapõhine identiteet — ja need jõustatakse kandidaatide kogumi kontrollpunktis
+failis `open-sse/services/autoCombo/virtualFactory.ts` puhta, ühiktestitud
+funktsiooni `filterExcludedCandidates()` kaudu (`open-sse/services/autoCombo/candidateOverrides.ts`).
+Filter on **tõrke korral avatud**: määramata apiKeyId/channel või andmebaasiotsingu tõrge
+jätavad mõlemad kogumi filtreerimata, seega näeb ilma seadistatud alistusteta operaator
+marsruutimist, mis on bait-baidi haaval identne selle funktsiooni eelse käitumisega.
 
-**Edasi lükkub järgmisse issue-sse:** kandidaatide kaalud + eksplitsiitne järjestus (Tase 3
-— söödab olemasolevaid kaaluga/prioriteetsuse strateegia radu) ja konkreetse
-`combo.ts` strateegia kinnitamine `auto/*` kanali kohta (Tase 4). Vaadake #7819 plaani avatud
-küsimuse kohta, kas ülevaated peaksid jääma API võtme kohta või muutuma globaalseteks antud
-üürniku mudeli tõttu.
+**Edasi lükatud järelteemasse:** kandidaadipõhised kaalud + eksplitsiitne järjestus (tase 3
+— suunatakse olemasolevatesse kaalutud/prioriteedipõhise strateegia voogudesse) ning konkreetse
+`combo.ts` strateegia kinnistamine iga `auto/*` kanali jaoks (tase 4). Vt #7819 plaani lahtise
+küsimuse kohta, kas ühe rentnikuga mudelit arvestades peaksid alistused jääma API-võtme põhiseks või muutuma globaalseks.
 
-**Tagaaplaanil:**
+**Taustal toimuv:**
 
 ```txt
 Päring: { model: "auto/coding" }
    ↓
-src/sse/handlers/chat.ts tuvastab eesliidi
+src/sse/handlers/chat.ts tuvastab prefiksi
    ↓
-createVirtualAutoCombo('coding') → kandidaatide bassein aktiivsetest ühendustest
+createVirtualAutoCombo('coding') → candidatePool aktiivsetest ühendustest
    ↓
-handleComboChat (sama mootor kui salvestatud combodel)
+handleComboChat (sama mootor nagu salvestatud kombinatsioonidel)
    ↓
-Automaatne skoorimine valib iga päringu jaoks parima pakkuja/mudeli
+Automaatne hindamine valib iga päringu jaoks parima pakkuja/mudeli
 ```
 
-**Implementatsioonifailid:**
+**Teostusfailid:**
 
-| Fail                                                      | Eesmärk                                     |
-| --------------------------------------------------------- | ------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Eesliidi parser (`parseAutoPrefix`)         |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Loob virtuaalseid `AutoComboConfig` objekte |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testi konks pakkuja registri mockimiseks    |
-| `src/sse/handlers/chat.ts`                                | Integratsioon: auto eesliidi lühistamine    |
-| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` süsteemi sissekanne |
+| Fail                                                      | Otstarve                                          |
+| --------------------------------------------------------- | ------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefiksi parser (`parseAutoPrefix`)               |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Loob virtuaalsed `AutoComboConfig` objektid       |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testikonks pakkujate registri jäljendamiseks      |
+| `src/sse/handlers/chat.ts`                                | Integratsioon: automaatse prefiksi korral otsetee |
+| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` süsteemikirje             |
 
 ## Kombo nimed, mis vastavad tegelikule mudeli ID-le
 
@@ -198,7 +198,7 @@ Auto-Combo mootor valib iga päringu jaoks dünaamiliselt parima teenusepakkuja/
 
 ## Režiimipaketid
 
-6 eelmääratletud kaaluprofiili failis `open-sse/services/autoCombo/modePacks.ts`. Iga pakett asendab vaikekaalud täielikult, et kallutada valikut ühe eesmärgi poole. Iga paketi summa on juba `1.0` (nelja kümnendkohaga kuvatuna `0.9999`), seega pole funktsioonil `normalizeScoringWeights()` paketi aktiivsuse korral midagi sisulist parandada — alltoodud väärtused on ümardamist arvestades need, mida hindaja rakendab.
+Failis `open-sse/services/autoCombo/modePacks.ts` on 6 eelmääratletud kaaluprofiili. Iga pakett asendab vaikekaalud täielikult, et kallutada valikut ühe eesmärgi poole. Iga paketi summa on juba `1.0` (nelja kümnendkohaga kuvatuna `0.9999`), seega pole funktsioonil `normalizeScoringWeights()` aktiivse paketi korral midagi sisulist parandada — alltoodud väärtused on ümardamist arvestades need, mida hindaja rakendab.
 
 | Tegur                 | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -220,32 +220,31 @@ Auto-Combo mootor valib iga päringu jaoks dünaamiliselt parima teenusepakkuja/
 
 Märkused:
 
-- **Paketid sisaldavad väärtusi `quality` ja `reliability`** (`quality 0.02`, paketis `quality-first 0.03`; `reliability 0.03`, paketis `reliability-first 0.04`) ning asendavad kaalude kaardi täielikult (`weights = pack`, mitte liitmine). `DEFAULT_WEIGHTS` sisaldab väärtusi `quality 0.03 / reliability 0`; valiku `balanced`/`default` korral säilivad need vaikeväärtused, paketi valimisel kasutatakse ülaltoodud paketi väärtusi. Külma kogumi korral (vaatlusi pole veel tehtud, seega `quality 0.5` ja `reliability 1`) lisavad need kaks tegurit üldise paketi puhul `+0.04` (`0.03 + 0.01`), paketi `quality-first` puhul `+0.045` ja paketi `reliability-first` puhul `+0.05`.
-- `tierAffinity`, `specificityMatch` ja `resetWindowAffinity` on igas paketis sõnaselgelt määratud väärtusele `0`.
+- **Paketid sisaldavad `quality` ja `reliability` kaale** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) ning asendavad kaalukaardi tervikuna (`weights = pack`, mitte liitmine). `DEFAULT_WEIGHTS` sisaldab väärtusi `quality 0.03 / reliability 0`; valiku `balanced`/`default` korral säilivad need vaikeväärtused, paketi valimisel kasutatakse ülaltoodud paketi väärtusi. Külma kogumi puhul (vaatlusi pole veel tehtud, seega `quality 0.5` ja `reliability 1`) lisavad need kaks tegurit üldise paketi korral `+0.04` (`0.03 + 0.01`), paketi `quality-first` korral `+0.045` ja paketi `reliability-first` korral `+0.05`.
+- `tierAffinity`, `specificityMatch` ja `resetWindowAffinity` on igas paketis selgesõnaliselt seatud väärtusele `0`.
 - Iga paketi rõhuasetus lühidalt:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (väikese latentsusega, heas seisukorras ühendused)
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (väikese latentsusega, töökorras ühendused)
   - **cost-saver** → costInv 0.3324 (võidavad odavaimad tokenid)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, kõigist pakettidest kõrgeim (ülesande jaoks parim ja järjepidev mudel)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (maksimaalne varu kiirusest/kulust olenemata)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, kõigist pakettidest kõrgeim (ülesande jaoks parim mudel, järjepidev)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (maksimaalne varu kiirusest/kulust sõltumata)
   - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, kõigist pakettidest kõrgeim (kõige vähem üllatusi)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (tõrgete sisestamise profiil)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (kaalupakett, mille `auto/chaos` määrab oma paneeli liikmetele; paralleelne hargtäitmine neid kaale ei loe ja see pole tõrgete sisestamise profiil, vt [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Päringupõhised juhtseaded (päised) — #6023 / #6024 / #6025 / #3470
+### Päringupõhised juhtelemendid (päised) — #6023 / #6024 / #6025 / #3470
 
 Kombot `auto` saab **iga päringu puhul eraldi** juhtida kolme päise kaudu, muutmata
-kombo salvestatud konfiguratsiooni. Need rakenduvad ainult strateegiale `auto` ja ainult neid
-sisaldavale päringule; päise puudumisel kasutatakse kombo salvestatud väärtusi
-`modePack`/`budgetCap`/`budgetFallback`.
+kombo salvestatud konfiguratsiooni. Need rakenduvad ainult strateegiale `auto` ja ainult päringule,
+mis neid sisaldab; päise puudumisel kasutatakse kombo salvestatud väärtusi `modePack`/`budgetCap`/`budgetFallback`.
 
-| Päis                          | Aktsepteerib                                                                                                                                                                                        | Mõju                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `X-OmniRoute-Mode`            | eelseadistuse alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) või töötlemata paketinimi (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Alistab selle päringu hindamiskaalud. `balanced`/`default` sunnivad kasutama vaikekaalusid (paketti ei kasutata). Tundmatuid väärtusi eiratakse (konfiguratsioon säilitatakse).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `X-OmniRoute-Budget`          | positiivne arv (maksimaalne USD päringu kohta)                                                                                                                                                      | Range kulupiirang: kandidaadid, mille hinnanguline maksumus seda ületab, filtreeritakse enne valimist välja. Allpool olev `X-OmniRoute-Budget-Fallback` määrab, mis juhtub siis, kui **kõik** kandidaadid seda ületavad.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (vaikeväärtus, aliased: `cheapest-viable`, `soft`) või `strict` (aliased: `block`, `hard`)                                                                                               | `cheapest`: kasutab varuvariandina üldiselt kõige odavamat kandidaati, kuigi ka see ületab piirmäära (pärandkäitumine). `strict`: keeldub valikut tegemast — päring nurjub kohe veaga `HTTP 402`, selle asemel et märkamatult eelarvet ületada. Tundmatuid väärtusi eiratakse.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `X-OmniRoute-Effort`          | `auto` (muud väärtused on reserveeritud)                                                                                                                                                            | Kohanduv mõtlemiseelarve: kui päring ei sisalda **üheski vormis** arutlusvälja (`reasoning_effort`, `reasoning`, `thinking`), tuletab lüüs väärtusest `auto` deterministlike päringustruktuuri signaalide alusel väärtuse `low`/`medium`/`high` (viimase kasutajasõnumi pikkus, konteksti maht kuni viimase kasutajasõnumini, varasemad tööriistatulemused, tööriistatsükli sügavus). Signaalid piirduvad praeguse vooruga — kõike pärast viimast kasutajasõnumit eiratakse — seega tuletatakse tööriistatsükli igale päringule sama tase (olekuta voorupõhine fikseerimine, seansi olek puudub, tsükli keskel ei toimu eskaleerimist, mis lõhuks ülesvoolu viibapuhvri prefiksid). Kliendi selgesõnaliselt määratud arutlusväli on alati ülimuslik. Kehtib päringutele, mille ülesvoolu suunamine kasutab OpenAI Chat Completionsi kuju (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` on OpenAI-kujuline väli, mistõttu ei avalda päis Claude'ile või Geminile suunatud päringule mõju (vt `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Päis                          | Aktsepteerib                                                                                                                                                                                  | Mõju                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `X-OmniRoute-Mode`            | eelseadistuse alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) või paketi toornimi (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Alistab selle päringu hindamiskaalud. `balanced`/`default` sunnivad kasutama vaikimisi kaale (paketti ei kasutata). Tundmatuid väärtusi eiratakse (konfiguratsioon säilitatakse).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `X-OmniRoute-Budget`          | positiivne arv (maksimaalne USD summa päringu kohta)                                                                                                                                          | Range kululagi: kandidaadid, mille hinnanguline maksumus seda ületab, filtreeritakse enne valimist välja. Seda, mis juhtub siis, kui **kõik** kandidaadid seda ületavad, juhib allpool kirjeldatud `X-OmniRoute-Budget-Fallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (vaikimisi, aliased: `cheapest-viable`, `soft`) või `strict` (aliased: `block`, `hard`)                                                                                            | `cheapest`: varuvariandina valitakse globaalselt odavaim kandidaat, kuigi ka see ületab ülempiiri (varasem käitumine). `strict`: keeldub valikut tegemast — päring nurjub kohe vastusega `HTTP 402`, selle asemel et märkamatult eelarvet ületada. Tundmatuid väärtusi eiratakse.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `X-OmniRoute-Effort`          | `auto` (muud väärtused on reserveeritud)                                                                                                                                                      | Kohanduv mõtlemiseelarve: kui päring ei sisalda **üheski vormis** arutlusvälja (`reasoning_effort`, `reasoning`, `thinking`), teisendab lüüs väärtuse `auto` deterministlike päringu struktuuri signaalide põhjal väärtuseks `low`/`medium`/`high` (viimase kasutajasõnumi pikkus, konteksti maht kuni viimase kasutajasõnumini, varasemad tööriistatulemused, tööriistatsükli sügavus). Signaalid piirduvad praeguse pöördega — kõike pärast viimast kasutajasõnumit eiratakse — seega määratakse tööriistatsükli igale päringule sama tase (olekuta pöördepõhine fikseerimine, seansiolek puudub ja tsükli keskel ei toimu eskaleerimist, mis rikuks ülesvoolu viipade vahemälu prefikseid). Kliendi selgesõnaliselt määratud arutlusväli on alati ülimuslik. Kehtib päringutele, mille ülesvoolu suunamine kasutab OpenAI Chat Completionsi vormingut (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` on OpenAI vormingule omane väli, mistõttu ei avalda päis Claude'ile või Geminile suunatud päringule mõju (vt `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Sunni kasutama kiireimat profiili, piira selle päringu kulu 0,05 dollariga ja blokeeri rangelt, selle asemel et eelarvet ületada
+# Sunni kasutama kiireimat profiili, piira selle päringu maksumus 0,05 dollariga ja blokeeri ülekulu lubamise asemel rangelt
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -256,7 +255,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 Lahendamine on puhas funktsioon (`open-sse/services/autoCombo/requestControls.ts`);
 lahendatud väärtused edastatakse mootori olemasolevatele sisenditele `config.modePack` / `config.budgetCap` /
-`config.budgetFallback`. Kombinatsiooni salvestatud `config.budgetFallback` ("strict" |
+`config.budgetFallback`. Kombinatsioonis salvestatud `config.budgetFallback` ("strict" |
 "cheapest") määrab püsiva poliitika; päis kirjutab selle ühe päringu jaoks üle.
 
 ## Kõik marsruutimisstrateegiad
@@ -707,13 +706,18 @@ Lisaks paljale `auto` (vaikimisi) väärtusele ja 6 `AutoVariant` väärtusele, 
 
 (`AutoVariant` ise loetleb 6 väärtust; 7. võimalus on "varianti pole" — paljas `auto` — mida käsitlus `parseAutoPrefix()` funktsioonis `variant: undefined` kujul.)
 
-## Kuidas tasemed Auto-Kompossse sobivad
+## Kuidas tasemed Auto-Comboga sobituvad
 
-16-teguriline hindamisfunktsioon (`open-sse/services/autoCombo/scoring.ts`) käsitleb taseme liikmelisust kahe signaalina: `tierPriority` (0.0476) ja `tierAffinity` (0.0476). Täieliku `DEFAULT_WEIGHTS` komplekti jaoks vt. ülalolevat kanonilist [hindamistegurite tabelit](#how-it-works-persisted-auto-combos) — paketiülesed kaalud (ship-fast/cost-saver/quality-first/ offline-friendly) on loetletud "Kaaluprofiilid paketi järgi" tabelis.
+16 teguriga hindamisfunktsioon (`open-sse/services/autoCombo/scoring.ts`) käsitleb tasemesse
+kuulumist kahe signaalina: `tierPriority` (0.0476) ja `tierAffinity` (0.0476). Täieliku
+`DEFAULT_WEIGHTS` komplekti leiate eespool olevast kanoonilisest [hindamistegurite tabelist](#how-it-works-persisted-auto-combos) — paketipõhised alistused (ship-fast/cost-saver/quality-first/
+offline-friendly) on loetletud tabelis „Kaaluprofiilid pakettide kaupa“.
 
-Tase üksi **ei** sunni Tier 1-i esimesena — kui Tier 1 viivitus on halb või kvaliteedi-hinna suhe on optimaalne, võidab Tier 2. Järjestuse sundimiseks kasuta kombo strateegiat `priority` ja järjestuse pakkujaid taseme järgi.
+Ainuüksi tase **ei** sunni 1. taset esimeseks — kui 1. taseme latentsus on halb või
+kulu ja kvaliteedi suhe pole optimaalne, võidab 2. tase. Tasemete järjestuse jõustamiseks kasutage kombinatsiooni
+strateegiat `priority` ja järjestage pakkujad taseme järgi.
 
-Tier 1 (telliga) tugevaks eelistamiseks suurenda `tierPriority` kaalu:
+1. taseme (tellimuse) tugevaks eelistamiseks suurendage `tierPriority` kaalu:
 
 ```json
 {
@@ -722,7 +726,7 @@ Tier 1 (telliga) tugevaks eelistamiseks suurenda `tierPriority` kaalu:
 }
 ```
 
-Tasemete määratluste ja pakkujate klassifikatsiooni jaoks vt. `docs/marketing/TIERS.md`.
+Tasemete määratlusi ja pakkujate klassifikatsiooni vaadake failist [`docs/guides/TIERS.md`](../guides/TIERS.md).
 
 ## Testimine ja Katvus
 

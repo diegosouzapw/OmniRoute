@@ -17,57 +17,61 @@ Az OmniRoute útvonal-érzékeny engedélyezési folyamattal rendelkezik, amely 
 
 ### 1. API-kulcs (Bearer)
 
-Az OpenAI-/Anthropic-/Gemini-kompatibilis kliens-API-khoz, valamint néhány kezelési útvonalhoz használatos, ha a kulcs rendelkezik `manage` hatókörrel.
+Az OpenAI-/Anthropic-/Gemini-kompatibilis kliens API-khoz, valamint néhány felügyeleti útvonalhoz használatos, ha a kulcs rendelkezik `manage` hatókörrel.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-A `src/sse/services/auth.ts` fájlban található `isValidApiKey()` / `extractApiKey()` ellenőrzi, és a `src/shared/utils/apiAuth.ts` fájl exportálja újra. Az ellenőrző az `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` környezeti változókat is elfogadja állandó átengedési kulcsokként (#1350. probléma).
+Az ellenőrzést az `isValidApiKey()` / `extractApiKey()` végzi a `src/sse/services/auth.ts` fájlban, majd ezek újra exportálásra kerülnek a `src/shared/utils/apiAuth.ts` fájlon keresztül. Az ellenőrző az `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` környezeti változókat is elfogadja állandó továbbítási kulcsként (#1350. probléma).
 
-### 2. Irányítópult-munkamenet (auth_token cookie)
+### 2. Vezérlőpult-munkamenet (auth_token cookie)
 
-Az irányítópult oldalaihoz és a rendszergazdai műveletekhez.
+A vezérlőpult oldalaihoz és az adminisztrátori műveletekhez.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Egy cookie csak akkor számít munkamenetnek, ha a JWT ellenőrzése sikeres, **és** tartalmazza az `authenticated: true` értéket
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). A cookie minden
-felhasználója (útvonalőr, az authz-folyamat frissítése, WebSocket-kézfogás, élő
-szerver, `/api/settings/require-login`, `/api/auth/status`) ezen a segédfüggvényen halad keresztül.
-Léteznek más, `JWT_SECRET` használatával aláírt JWT-k is — a Cursor CLI átengedési mechanizmusa
-`iss "omniroute" / aud "cursor-cli"` tokeneket bocsát ki a kulcsok birtokosai számára —, ezek azonban soha nem minősülnek munkamenetnek
+Egy cookie csak akkor számít munkamenetnek, ha a JWT ellenőrzése sikeres, **és** tartalmazza az `authenticated: true`
+értéket (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). A cookie minden
+felhasználója (a vezérlőpult útvonalvédelme (`isDashboardSessionAuthenticated()`), az authz-folyamat frissítése, a WebSocket-kézfogás, az élő
+szerver, `/api/settings/require-login`, `/api/auth/status`) ezen a segédfüggvényen keresztül működik.
+Léteznek más, `JWT_SECRET` használatával aláírt JWT-k is — a Cursor CLI-továbbítás
+`iss "omniroute" / aud "cursor-cli"` tokeneket állít ki a kulcsok birtokosai számára —, de ezek soha nem minősülnek munkamenetnek
 (#13298).
 
-A `src/shared/utils/apiAuth.ts` fájlban található `isDashboardSessionAuthenticated()` ellenőrzi. A folyamat automatikusan frissíti a JWT-t, ha a 30 napos élettartamából kevesebb mint 7 nap van hátra.
+Az ellenőrzést az `isDashboardSessionAuthenticated()` végzi a `src/shared/utils/apiAuth.ts` fájlban. A folyamat automatikusan frissíti a JWT-t, ha annak 30 napos élettartamából kevesebb mint 7 nap van hátra.
 
-Egyes kezelési útvonalak **mindkét** módot elfogadják: cookie VAGY `Bearer <key>`, ha az API-kulcs rendelkezik `manage` (vagy `admin`) hatókörrel. Ez teszi lehetővé a v3.8-ban bevezetett, „API-hívásokon keresztül konfigurálható” munkafolyamatot.
+Egy munkamenet a 30 nap letelte előtt is véget érhet, mivel minden kibocsátás a `mintDashboardSessionToken` függvényen keresztül történik (egy kibocsátási idővel, `iat`, és egy azonosítóval, `jti`), az ellenőrző pedig két beállítást vizsgál: a `sessionsValidAfter` értéket, amelyet egy jelszóváltoztatás állít be, így az előtte kibocsátott összes munkamenet ellenőrzése sikertelen lesz (a jelszót módosító böngésző friss cookie-t kap), valamint a `revokedDashboardSessions` értéket, amelyhez a `POST /api/auth/logout` hozzáadja a kijelentkeztetett munkamenet `jti` értékét. A régebbi kiadás által létrehozott munkamenetek egyik állítást sem tartalmazzák, és az első jelszóváltoztatásig érvényesek maradnak. Ha a beállítások nem olvashatók, a munkamenet nem tekinthető megbízhatónak.
 
-#### Opcionális OIDC-bejelentkezési védelem (#6973)
+Egyes felügyeleti útvonalak **bármelyik** módot elfogadják: cookie VAGY `Bearer <key>`, ha az API-kulcs rendelkezik `manage` (vagy `admin`) hatókörrel. Ez teszi lehetővé a v3.8 verzióban hozzáadott, „API-hívásokon keresztül konfigurálható” munkafolyamatot.
 
-Az irányítópult rendszergazdai bejelentkezése az alapértelmezett jelszavas bejelentkezés mellett egy **külön engedélyezhető** OIDC- (OpenID Connect-) folyamatot is támogat — a jelszavas bejelentkezés soha nem szűnik meg, csak kiegészül:
+#### Opcionális OIDC-bejelentkezési kapu (#6973)
 
-- Letiltva marad, hacsak a `settings.oidcEnabled === true` feltétel **és** az `oidcIssuer` /
+A vezérlőpult adminisztrátori bejelentkezése egy **külön engedélyezhető** OIDC- (OpenID Connect-) folyamatot is támogat
+az alapértelmezett jelszavas bejelentkezés mellett — a jelszavas bejelentkezés soha nem kerül eltávolításra, csak
+kiegészítésre:
+
+- Letiltva marad, hacsak a `settings.oidcEnabled === true` feltétel nem teljesül, **és** az `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` nincs mind konfigurálva (Beállítások → Hitelesítés).
   Ellenkező esetben a `GET /api/auth/oidc/login` `400` választ ad vissza.
-- A `GET /api/auth/oidc/login` felderíti az `authorization_endpoint` értékét a kibocsátó
-  `/.well-known/openid-configuration` végpontjáról (ennek hiányában az
-  `<issuer>/authorize` útvonalat használja), a bejövő kérésből összeállítja az átirányítási URI-t
+- A `GET /api/auth/oidc/login` lekéri az `authorization_endpoint` értékét a
+  kibocsátó `/.well-known/openid-configuration` végpontjáról (sikertelenség esetén az
+  `<issuer>/authorize` értéket használja), összeállítja az átirányítási URI-t a bejövő kérésből
   (figyelembe véve az `x-forwarded-proto` fejlécet), majd átirányít az IdP-hez egy véletlenszerű `state`
-  értékkel, amelyet egy `httpOnly` attribútumú `oidc_state` cookie tárol.
-- A `GET /api/auth/oidc/callback` ellenőrzi a `state` értékét, beváltja az engedélyezési
-  kódot, majd a kibocsátó JWKS-készletével ellenőrzi az ID-token aláírását
-  (a `jose` `createRemoteJWKSet` függvényével, JWKS URI-nként gyorsítótárazva), továbbá elvégzi az `issuer`/`audience`
-  ellenőrzéseket. Az opcionális `oidcAllowedSubjects` engedélyezési lista a token
-  `sub` jogcímével vagy `email` jogcímével keres egyezést — az e-mail-jogcímet csak akkor fogadja el,
-  ha `email_verified === true`, így az IdP-nél nem ellenőrzött e-mail-cím soha nem juthat át
-  a védelmen.
-- Siker esetén **pontosan ugyanazt** a 30 napos `auth_token` JWT-t bocsátja ki, mint a jelszavas
-  bejelentkezés (`src/app/api/auth/login/route.ts`), így az irányítópult
-  munkamenet-folyamatának többi része (automatikus frissítés, cookie-attribútumok) változatlan marad —
-  az OIDC csak a cookie kibocsátásának módját helyettesíti, nem az általa biztosított jogosultságokat.
+  értékkel, amelyet egy `httpOnly` `oidc_state` cookie tárol.
+- A `GET /api/auth/oidc/callback` ellenőrzi a `state` értéket, beváltja az engedélyezési
+  kódot, és ellenőrzi az ID-token aláírását a kibocsátó JWKS-én keresztül
+  (a `jose` `createRemoteJWKSet` függvényével, JWKS URI-nként gyorsítótárazva), `issuer`/`audience`
+  ellenőrzésekkel. Egy opcionális `oidcAllowedSubjects` engedélyezési lista illeszkedik a token
+  `sub` állítására vagy annak `email` állítására — az e-mail-címre vonatkozó állítás csak akkor vehető figyelembe, ha
+  `email_verified === true`, így az IdP-nél nem ellenőrzött e-mail-cím soha nem juthat át
+  a kapun.
+- Siker esetén **pontosan ugyanazt** a 30 napos `auth_token` JWT-t állítja ki, mint a jelszavas
+  bejelentkezés (`src/app/api/auth/login/route.ts`), így a vezérlőpult
+  munkamenet-folyamatának többi része (automatikus frissítés, cookie-jelzők) változatlan marad —
+  az OIDC csak azt váltja fel, hogy miként történik a cookie kiállítása, azt nem, hogy milyen jogosultságokat biztosít.
 
 ## Útvonalosztályok
 

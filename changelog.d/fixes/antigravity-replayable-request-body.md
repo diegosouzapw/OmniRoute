@@ -1,1 +1,0 @@
-- **fix(antigravity):** send the finite JSON upload as a replayable fixed request body even when the upstream response is streamed, avoiding the one-shot `ReadableStream`/`duplex` upload path and keeping retries replay-safe under large Codex/Responses payloads.

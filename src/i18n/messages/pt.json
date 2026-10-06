@@ -5636,7 +5636,7 @@
     "accountName": "Nome da conta",
     "email": "E-mail",
     "healthCheckMinutes": "Verificação de integridade (min)",
-    "healthCheckHint": "Intervalo de atualização de token proativo. 0 = desabilitado.",
+    "healthCheckHint": "Valor específico desta ligação. Vazio = seguir a predefinição global (Definições › Resiliência). 0 = nunca verificar esta ligação. Máximo 1440 (24 h).",
     "deselectAllModels": "Desmarcar todos",
     "modelsActiveCount": "{active}/{total} ativos",
     "noModelsMatch": "Nenhum modelo corresponde a \"{filter}\"",
@@ -6011,7 +6011,7 @@
     "validationModelIdPlaceholder": "Validation Model Id Placeholder",
     "vertexCredentialLabel": "Chave de API ou JSON da conta de serviço",
     "vertexCredentialHint": "As chaves de API utilizam o catálogo de projetos selecionado. O JSON da conta de serviço permite a deteção em tempo real no Model Garden.",
-    "vertexServiceAccountPlaceholder": "Cola o teu JSON de Service Account ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"})",
+    "vertexServiceAccountPlaceholder": "Cola uma chave de API, o JSON de Service Account ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) ou um token de acesso OAuth",
     "webCookieProviders": "Fornecedores de Cookies Web",
     "weeklyShort": "Semanal",
     "xiaomiMimoBaseUrlHint": "Dica de URL Base do Xiaomi Mimo",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Obtenha a sua chave de API em https://www.bluesminds.com — endpoint compatível com OpenAI em https://api.bluesminds.com/v1 com créditos diários gratuitos. Os modelos VIP (Claude Opus 4.5, Gemini 2.5 Pro) consomem créditos pi.",
       "byteplus": "Ligue o BytePlus ModelArk com uma chave de API.",
       "bytez": "$1 em créditos gratuitos, renova a cada 4 semanas",
-      "cerebras": "Avaliação gratuita: 1M tokens/dia, 30K TPM, 5 RPM — sem cartão de crédito.",
+      "cerebras": "Crédito único de 5 $ no registo (válido durante 30 dias); é necessário um método de pagamento. Não é um nível gratuito recorrente.",
       "charm-hyper": "Crie uma chave de API em https://hyper.charm.land e, em seguida, cole-a aqui como um token Bearer.",
       "chutes": "Chave de API Bearer para o gateway compatível com OpenAI da Chutes.",
       "clarifai": "O Clarifai expõe chat, respostas e /models compatíveis com OpenAI em /v2/ext/openai/v1. Os modelos públicos/da comunidade requerem normalmente um PAT; as chaves com âmbito de aplicação só funcionam para recursos dentro dessa aplicação.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Todo o tráfego do Provedor passa pelo pool de proxy desta assinatura.",
       "ruleModeDesc": "Apenas o tráfego dos Provedores selecionados passa pelo proxy; o resto se conecta diretamente.",
       "localCoreEndpoint": "Ponto final SOCKS5/HTTP de núcleo local (opcional)",
-      "localCoreEndpointPlaceholder": "meias5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Aceita apenas 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS requerem um núcleo sing-box/clash local).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Um por linha. Aceita apenas 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS requerem um núcleo sing-box/clash local).",
       "routeByProvider": "Rota por provedor (seleção múltipla)",
       "loadingProviders": "Carregando lista de provedores…",
       "autoRefreshInterval": "Intervalo de atualização automática (minutos)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Compressão de descrição MCP",
     "mcpAccessibilityTitle": "Saída de acessibilidade MCP",
     "compressionSettingsCavemanIntensity": "Intensidade do homem das cavernas",
-    "compressionSettingsCavemanOutputMode": "Modo de saída do homem das cavernas",
     "compressionSettingsOutputStyles": "Estilos de saída",
     "compressionStylesTileTitle": "Estilos de saída",
     "compressionSettingsOutputIntensity": "Intensidade de saída",
-    "compressionSettingsAutoClarityBypass": "Desvio de clareza automática",
     "compressionEffectivePipeline": "Pipeline efetivo:",
     "compressionDerivedOff": "desativado",
     "compressionDerivedRuns": "execuções: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Mínimo de linhas a compactar",
         "description": "Número mínimo de linhas num array JSON homogéneo necessário para acionar a compactação tabular. Predefinição: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Preservar prompt do sistema"
-      },
       "summarizerEnabled": {
         "label": "Ativar resumidor"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Mensagens menores que isso não são compactadas. Menor = mais compressão.",
     "tooltipMinSavings": "Compacte apenas se salvar pelo menos esse número de tokens.",
     "ultraSettings": "Configurações Ultra",
-    "ultraSettingsDesc": "Compressão semântica alimentada por SLM",
-    "preview": {
-      "lite": "Responde de forma concisa. Preserva termos técnicos, código, erros, URLs e identificadores.",
-      "full": "Responde de forma curta e compacta. Preserva toda a substância técnica.",
-      "ultra": "Responde de forma ultra curta com abreviaturas técnicas comuns. Preserva símbolos exatos."
-    }
+    "ultraSettingsDesc": "Compressão semântica alimentada por SLM"
   },
   "translator": {
     "title": "Tradutor",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Resgatar reposição",
     "manageResetCredits": "Ver créditos",
     "viewResetCredits": "Ver créditos de reposição",
-    "resetCreditsModalTitle": "Créditos de reposição do Codex",
+    "resetCreditsModalTitle": "Créditos de reposição",
     "resetCreditsModalExplainer": "Os créditos são ordenados por expiração. O resgate automático utiliza sempre o crédito que expira primeiro.",
     "resetCreditsLoadFailed": "Falha ao carregar os créditos de reposição",
     "resetCreditsDetailsUnavailable": "Os detalhes dos créditos estão indisponíveis de momento. Atualize e tente novamente.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Sem data de expiração",
     "redeemThisResetCredit": "Resgatar",
     "confirmRedeemResetCreditTitle": "Resgatar este crédito de reposição?",
-    "confirmRedeemResetCredit": "O resgate repõe imediatamente as janelas de utilização elegíveis do Codex e consome permanentemente este crédito.",
+    "confirmRedeemResetCredit": "O resgate repõe imediatamente as janelas de utilização elegíveis e consome permanentemente este crédito.",
     "confirmRedeemResetCreditButton": "Resgatar crédito",
     "resetCreditRedeemed": "Reposição resgatada",
     "resetCreditRedeemFailed": "Falha ao resgatar o crédito de reposição",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy inacessível",
     "poolSetAsideKindIpQuota429": "limite de taxa por IP (429)",
     "poolSetAsideKindSlow": "respostas lentas",
+    "poolSetAsideKindGeoBlocked": "região bloqueada (403/451)",
     "poolSetAsideUntil": "De volta à rotação {endsAt}",
     "poolSetAsideRepeat": "Afastado {count, plural, one {# vez} other {# vezes}}",
     "poolUnknownAddress": "Endereço desconhecido",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Ordem de posição",
     "poolHealthRankingOff": "Classificação de saúde desativada",
     "transportRate": "{rate} % transporte",
+    "slowAbandoned": "{count} abandonos lentos",
+    "clientAborted": "{count} abortos de cliente",
+    "slowAbandonedHint": "Abandonado após o limite de espera dos cabeçalhos, excluído da taxa de transporte",
     "previousSuccessRate": "Anteriormente {rate} % de sucesso",
-    "upstreamRefusals": "{count} recusas upstream",
     "connectionTestsCount": "{count} testes de ligação",
-    "notMeasured": "Não medido"
+    "notMeasured": "Não medido",
+    "upstream4xx": "{count} erros de cliente upstream",
+    "upstream5xx": "{count} erros de servidor upstream",
+    "uniformEgressLine": "{affected} de {exits} saídas falham em conjunto em {provider} (últimas {hours}h) — não é um problema de saída"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inativos",
     "dbOverrideCount": "{count} sobreposições de BD",
     "searchPlaceholder": "Pesquisar sinalizadores...",
+    "descriptionModeLabel": "Vista da descrição",
+    "descriptionModeHint": "Ao passar o cursor: os cartões mantêm-se compactos e, ao passar o cursor sobre uma descrição, é apresentado o texto completo. Texto completo: apresenta sempre a descrição completa.",
+    "descriptionModeHover": "Ao passar o cursor",
+    "descriptionModeFull": "Texto completo",
     "categories": {
       "all": "Todos",
       "security": "Segurança",

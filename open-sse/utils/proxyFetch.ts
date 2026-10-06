@@ -118,7 +118,6 @@ const TLS_PROVIDER_PROFILE: Record<string, { browser: string; os: string }> = {
 
 type TlsProfileResult = { browserProfile?: string; os?: string };
 function tlsProfileForProvider(provider: string | null | undefined): TlsProfileResult {
-
   if (!provider) return {};
   const p = TLS_PROVIDER_PROFILE[provider.trim().toLowerCase()];
   return p ? { browserProfile: p.browser, os: p.os } : {};
@@ -379,6 +378,8 @@ const TLS_ALLOWED_OPTION_KEYS: Record<string, true> = {
   method: true,
   redirect: true,
   signal: true,
+  // Next.js cache/revalidation metadata. It is not forwarded to wreq.
+  next: true,
 };
 
 function isWreqBodySupported(body: unknown): boolean {

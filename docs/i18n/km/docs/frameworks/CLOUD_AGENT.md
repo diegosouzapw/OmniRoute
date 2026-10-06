@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 អ្នកផ្តល់សេវា upstream ទេ — មិនមាន abort RPC នៅក្នុង `CloudAgentBase`។ ដើម្បីបញ្ឈប់ការគិតថ្លៃ
 នៅ upstream សូមបញ្ចប់កិច្ចការនៅក្នុង console ផ្ទាល់ខ្លួនរបស់អ្នកផ្តល់សេវា។
 
-## REST API — ហេដ្ឋារចនាសម្ព័ន្ធតភ្ជាប់ Cloud Provider
+## REST API — ការតភ្ជាប់ទៅកាន់អ្នកផ្តល់សេវា Cloud
 
 Endpoint ជំនួយទាំងនេះនៅក្រោម `src/app/api/cloud/` ត្រូវបានប្រើដោយ client ពីចម្ងាយ
-(ដូចជា CLI, កម្មវិធី Electron ឬ sync worker) ដើម្បីអាន metadata នៃការតភ្ជាប់ provider
-និងដោះស្រាយ model alias។ ពួកវាត្រូវបានផ្ទៀងផ្ទាត់ដោយប្រើ **API key ធម្មតា**
-(តាមរយៈ `validateApiKey`) មិនមែនការផ្ទៀងផ្ទាត់សម្រាប់ការគ្រប់គ្រងដែលប្រើដោយ task endpoint នោះទេ។
+(CLI, កម្មវិធី Electron ឬ sync worker) ដើម្បីអាន metadata នៃការតភ្ជាប់របស់អ្នកផ្តល់សេវា
+និងដោះស្រាយ alias របស់ model។ ពួកវាត្រូវបានផ្ទៀងផ្ទាត់អត្តសញ្ញាណដោយប្រើ **API key**
+(តាមរយៈ `validateApiKey`) មិនមែនការផ្ទៀងផ្ទាត់អត្តសញ្ញាណសម្រាប់ការគ្រប់គ្រងដែលប្រើដោយ endpoint របស់ task នោះទេ។ អ្វីដែល
+`/api/cloud/auth` ត្រឡប់មកវិញ អាស្រ័យលើ scope របស់ key (សូមមើលខាងក្រោម)។
 
-| វិធីសាស្ត្រ | Path                            | គោលបំណង                                                                        |
-| ----------- | ------------------------------- | ------------------------------------------------------------------------------ |
-| POST        | `/api/cloud/auth`               | ផ្ទៀងផ្ទាត់ API key ហើយត្រឡប់ metadata នៃការតភ្ជាប់ដែលបានបិទបាំង + model alias |
-| PUT         | `/api/cloud/credentials/update` | ធ្វើឱ្យ `accessToken` / `refreshToken` / `expiresAt` ទាន់សម័យ                  |
-| POST        | `/api/cloud/model/resolve`      | ដោះស្រាយ model alias ទៅជា `{ provider, model }`                                |
-| GET         | `/api/cloud/models/alias`       | រាយបញ្ជី model alias ទាំងអស់                                                   |
-| PUT         | `/api/cloud/models/alias`       | កំណត់ model alias (និង sync ដោយស្វ័យប្រវត្តិទៅ Cloud ប្រសិនបើបានបើកប្រើ)       |
+| វិធីសាស្ត្រ | Path                            | គោលបំណង                                                                             |
+| ----------- | ------------------------------- | ----------------------------------------------------------------------------------- |
+| POST        | `/api/cloud/auth`               | ផ្ទៀងផ្ទាត់ API key និងត្រឡប់ metadata នៃការតភ្ជាប់ដែលបានបិទបាំង + alias របស់ model |
+| PUT         | `/api/cloud/credentials/update` | ធ្វើឱ្យ `accessToken` / `refreshToken` / `expiresAt` ថ្មីឡើងវិញ                     |
+| POST        | `/api/cloud/model/resolve`      | ដោះស្រាយ alias របស់ model ទៅជា `{ provider, model }`                                |
+| GET         | `/api/cloud/models/alias`       | រាយ alias របស់ model ទាំងអស់                                                        |
+| PUT         | `/api/cloud/models/alias`       | កំណត់ alias របស់ model (និង sync ទៅ Cloud ដោយស្វ័យប្រវត្តិ ប្រសិនបើបានបើក)          |
 
 `/api/cloud/auth` មិនដែលត្រឡប់ `apiKey` / `accessToken` / `refreshToken` ដើមឡើយ។ វា
-ត្រឡប់ `hasApiKey`, `hasAccessToken`, `hasRefreshToken` និងការមើលជាមុនដែលបានបិទបាំង
-(`maskedApiKey`: 4 តួដំបូង + `****` + 4 តួចុងក្រោយ)។
+ត្រឡប់ `hasApiKey`, `hasAccessToken`, `hasRefreshToken` សម្រាប់ការតភ្ជាប់សកម្មដែល key
+អាចប្រើបាន (key ដែលត្រូវបានដាក់កម្រិតដោយ `allowedConnections` មើលឃើញតែការតភ្ជាប់ទាំងនោះប៉ុណ្ណោះ)។ សម្រាប់ API key ដែលមាន
+scope `manage` ឬ `admin` រួមទាំង deployment key ពី `OMNIROUTE_API_KEY` វាក៏
+ត្រឡប់ការបង្ហាញជាមុនដែលបានបិទបាំង (`maskedApiKey`: រហូតដល់ 4 តួអក្សរនៅចុងសងខាង តិចជាងនេះសម្រាប់
+key ខ្លី និងមិនបង្ហាញសោះសម្រាប់ key ដែលមាន 8 តួអក្សរ ឬតិចជាងនេះ) និង `projectId` របស់ការតភ្ជាប់។ Field ទាំងពីរនេះត្រូវបានដកចេញ
+ពី response សម្រាប់ key ផ្សេងទៀតទាំងអស់។
 
 ## ការដោះស្រាយ Credentials
 

@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP විස්තර සම්පීඩනය",
     "mcpAccessibilityTitle": "MCP ප්රවේශ්යතා ප්රතිදානය",
     "compressionSettingsCavemanIntensity": "Caveman තීව්රතාව",
-    "compressionSettingsCavemanOutputMode": "Caveman ප්රතිදාන ප්රකාරය",
     "compressionSettingsOutputStyles": "ප්රතිදාන ශෛලීන්",
     "compressionStylesTileTitle": "ප්රතිදාන ශෛලීන්",
     "compressionSettingsOutputIntensity": "ප්රතිදාන තීව්රතාව",
-    "compressionSettingsAutoClarityBypass": "ස්වයංක්රීය පැහැදිලිතා මඟහැරීම",
     "compressionEffectivePipeline": "ක්රියාත්මක ක්රියාදාම පෙළ:",
     "compressionDerivedOff": "අක්රියයි",
     "compressionDerivedRuns": "ධාවනය වේ: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "සංක්ෂිප්ත කිරීමට අවශ්ය අවම පේළි ගණන",
         "description": "වගුමය සංක්ෂිප්තකරණය ක්රියාත්මක කිරීමට අවශ්ය සමජාතීය JSON අරාවක අවම පේළි ගණන. පෙරනිමිය: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "පද්ධති ප්රේරකය සංරක්ෂණය කරන්න"
-      },
       "summarizerEnabled": {
         "label": "සාරාංශකාරකය සබල කරන්න"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "මෙයට වඩා කෙටි පණිවිඩ සම්පීඩනය නොකෙරේ. අඩු = වැඩි සම්පීඩනයක්.",
     "tooltipMinSavings": "අවම වශයෙන් මෙම ටෝකන ගණනවත් ඉතිරි කරන්නේ නම් පමණක් සම්පීඩනය කරන්න.",
     "ultraSettings": "Ultra සැකසුම්",
-    "ultraSettingsDesc": "SLM මඟින් බලගැන්වෙන අර්ථමය සම්පීඩනය",
-    "preview": {
-      "lite": "සංක්ෂිප්තව ප්රතිචාර දක්වන්න. තාක්ෂණික පද, code, errors, URLs සහ identifiers එලෙසම තබාගන්න.",
-      "full": "ඉතා කෙටියෙන් හා සංක්ෂිප්තව ප්රතිචාර දක්වන්න. සියලු තාක්ෂණික අන්තර්ගතය සුරකින්න.",
-      "ultra": "පොදු තාක්ෂණික කෙටි යෙදුම් භාවිතයෙන් අතිශයින් කෙටියෙන් ප්රතිචාර දක්වන්න. නිශ්චිත සංකේත එලෙසම තබාගන්න."
-    }
+    "ultraSettingsDesc": "SLM මඟින් බලගැන්වෙන අර්ථමය සම්පීඩනය"
   },
   "translator": {
     "title": "පරිවර්තකය",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "ප්‍රොක්සියට ළඟා විය නොහැක",
     "poolSetAsideKindIpQuota429": "IP අනුපාත සීමාව (429)",
     "poolSetAsideKindSlow": "මන්දගාමී ප්‍රතිචාර",
+    "poolSetAsideKindGeoBlocked": "කලාප-අවහිර (403/451)",
     "poolSetAsideUntil": "භ්‍රමණයට ආපසු {endsAt}",
     "poolSetAsideRepeat": "වෙන්කර ඇත {count, plural, one {# වතාවක්} other {# වතාවක්}}",
     "poolUnknownAddress": "නොදන්නා ලිපිනය",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "ස්ථාන අනුපිළිවෙල",
     "poolHealthRankingOff": "සෞඛ්‍ය ශ්‍රේණිගත කිරීම අක්‍රිය",
     "transportRate": "{rate}% ප්‍රවාහනය",
+    "slowAbandoned": "{count} ස්වල්ප අත්හිටුවීම්",
+    "clientAborted": "{count} ක්ලයින්ට් අවම් කිරීම්",
+    "slowAbandonedHint": "හෙඩර්ස් අත්හිටුවීමේ තරම පසුව අත්හිටුවීම, තොග අනුපාතයෙන් අභාවිත කරනු ලැබීම",
     "previousSuccessRate": "පෙර {rate}% සාර්ථකත්වය",
-    "upstreamRefusals": "{count} upstream ප්‍රතික්ෂේප",
     "connectionTestsCount": "{count} සම්බන්ධතා පරීක්ෂණ",
-    "notMeasured": "මනින ලද්දේ නැත"
+    "notMeasured": "මනින ලද්දේ නැත",
+    "upstream4xx": "{count} උපරිම ක්‍රීඩා ප්‍රදේශය තුළ දෝෂ",
+    "upstream5xx": "{count} උපරිම සර්වර දෝෂ",
+    "uniformEgressLine": "{affected} {exits} ඕත්තු සමග අසාධුවෙයි හි {provider} (පැමිණීම {hours} පැය) — ඕත්තු ගැටළුවක් නොවේ"
   },
   "playground": {
     "title": "ආකෘති අත්හදා බැලීමේ පරිසරය",
@@ -11525,8 +11521,8 @@
       "compressed": "සම්පීඩිතයි: {from} → {to} ({percent}% ඉතිරි විය)",
       "output": "ප්රතිදානය",
       "totalOut": "මුළු ප්රතිදානය: {value}",
-      "reasoningObserved": "{value} · අක්ෂර {chars}ක් නිරීක්ෂණය විය",
       "reasoning": "තාර්කිකකරණය: {value}",
+      "reasoningObserved": "{value} · අක්ෂර {chars}ක් නිරීක්ෂණය විය",
       "requestedModel": "ඉල්ලා ඇති මාදිලිය",
       "requestProtocol": "ඉල්ලීම් ප්රොටෝකෝලය",
       "cacheSource": "කෑෂ් මූලාශ්රය",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count}ක් අක්රියයි",
     "dbOverrideCount": "DB අතික්රමණ {count}ක්",
     "searchPlaceholder": "සලකුණු සොයන්න...",
+    "descriptionModeLabel": "විස්තර දසුන",
+    "descriptionModeHint": "කර්සරය මත තැබූ විට: කාඩ්පත් සංක්ෂිප්තව පවතින අතර, විස්තරයක් මත කර්සරය තැබූ විට සම්පූර්ණ පෙළ පෙන්වයි. සම්පූර්ණ පෙළ: සෑම විටම සම්පූර්ණ විස්තරය පෙන්වන්න.",
+    "descriptionModeHover": "කර්සරය මත තැබූ විට",
+    "descriptionModeFull": "සම්පූර්ණ පෙළ",
     "categories": {
       "all": "සියල්ල",
       "security": "ආරක්ෂාව",

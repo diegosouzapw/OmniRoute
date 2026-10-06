@@ -261,16 +261,23 @@ Rensar **alla** DB-åsidosättningar på en gång, och återställer varje flagg
 
 ---
 
-## Reservlösning vid akut budgetbrist
+## Reservlösning för nödbudget
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (kategori `runtime`, standardvärde `true`) styr den
-kostnadsfria reservvägen vid akuta situationer i
+`OMNIROUTE_EMERGENCY_FALLBACK` (kategori `runtime`, standardvärde `true`) styr
+den kostnadsfria reservlösningen för nödsituationer i
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-När den är aktiverad dirigeras förfrågningar som förbrukat hela sin budget till en kostnadsfri
-reservleverantör/-modell i stället för att misslyckas direkt. Ange den som `false` (eller `0`) — via
-kontrollpanelens växlingsknapp, en DB-åsidosättning eller miljövariabeln
-`OMNIROUTE_EMERGENCY_FALLBACK` — för att inaktivera beteendet och låta förfrågningar
-som förbrukat sin budget misslyckas. (Exponerades som en växlingsknapp i kontrollpanelen i PR:erna #3741 / #3752.)
+När den är aktiverad dirigeras förfrågningar som har förbrukat hela sin budget
+till en kostnadsfri reservleverantör/-modell i stället för att misslyckas direkt.
+Sätt den till `false` (eller `0`) – via reglaget i kontrollpanelen, en
+åsidosättning i databasen eller miljövariabeln
+`OMNIROUTE_EMERGENCY_FALLBACK` – för att inaktivera beteendet och låta
+förfrågningar med förbrukad budget misslyckas. (Tillgänglig som ett reglage i
+kontrollpanelen i PR:er #3741 / #3752.)
+
+Ett svar som levereras via denna reservlösning innehåller
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, så
+att en klient kan se att det omdirigerades utan att jämföra
+`X-OmniRoute-Provider` med sin förfrågan. Headern saknas i alla andra svar.
 
 ---
 

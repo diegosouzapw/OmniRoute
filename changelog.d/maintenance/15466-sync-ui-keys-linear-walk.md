@@ -1,0 +1,1 @@
+- **perf(i18n):** syncing UI keys across locales no longer rebuilds each target node per key — missing keys merge in linear time with identical output ([#15466](https://github.com/diegosouzapw/OmniRoute/pull/15466)) — thanks @maxmad64bis

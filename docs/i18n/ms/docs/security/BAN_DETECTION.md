@@ -6,22 +6,25 @@
 
 OmniRoute mengimbas respons ralat huluan untuk mencari isyarat yang menunjukkan bahawa
 **akaun penyedia telah mati secara kekal** (digantung / dinyahaktifkan / disekat kerana ToS) dan, apabila
-padanan ditemui, memindahkan sambungan tersebut kepada **keadaan terminal `banned`** supaya ia tidak
-lagi dipilih untuk permintaan. Inilah yang dikonfigurasikan oleh kad tetapan **Security → Banned Keywords**
-("Kata kunci tambahan yang mencetuskan pengesanan sekatan akaun kekal. Kata kunci terbina dalam
-sentiasa digunakan.").
+padanan ditemui, memindahkan sambungan tersebut ke dalam **keadaan terminal `banned`** supaya ia tidak
+lagi dipilih untuk permintaan. Inilah yang dikonfigurasikan oleh kad tetapan
+**Keselamatan → Kata Kunci Larangan** ("Kata kunci tambahan yang mencetuskan pengesanan
+sekatan akaun kekal. Kata kunci terbina dalam sentiasa digunakan.").
 
-Halaman ini mendokumentasikan senarai terbina dalam, aliran pengesanan, skopnya, cara menambahkan
-kata kunci tersuai dengan selamat dan cara memulihkan sambungan yang ditandai. Keadaan terminal
-itu sendiri merupakan sebahagian daripada model ketahanan — lihat
+Halaman ini mendokumenkan senarai terbina dalam, aliran pengesanan, skopnya, cara menambahkan
+kata kunci tersuai dengan selamat, dan cara memulihkan sambungan yang ditandai. Keadaan terminal
+itu sendiri merupakan sebahagian daripada model daya tahan — lihat
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Keadaan terminal").
 
 **Sumber rujukan utama:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+serta `open-sse/services/errorClassifier.ts` untuk kelas pengesahan bukan terminal
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) dan untuk
+cabang 403 yang menggunakannya.
 
 ## Kata kunci terbina dalam
 
-8 subrentetan ini sentiasa digunakan (tanpa mengira huruf besar atau kecil), tanpa mengira sebarang senarai tersuai:
+7 subrentetan ini sentiasa diguna pakai (tanpa mengira huruf besar atau kecil), tanpa mengira sebarang senarai tersuai:
 
 ```
 account_deactivated
@@ -29,21 +32,43 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Senarai ini berkembang apabila penyedia mengubah kata-kata yang digunakan untuk sekatan. Salinan
-> berwibawa ialah `ACCOUNT_DEACTIVATED_SIGNALS` dalam `open-sse/services/accountFallback.ts`;
+> Senarai ini berubah apabila penyedia menukar ungkapan sekatan mereka. Salinan
+> muktamad ialah `ACCOUNT_DEACTIVATED_SIGNALS` dalam `open-sse/services/accountFallback.ts`;
 > anggap blok di atas sebagai petikan semasa.
 
-Dua jadual isyarat bersebelahan yang **berasingan** berada dalam fail yang sama dan _bukan_ sebahagian
-daripada pengesanan kata kunci sekatan:
+### Bukan sekatan: gesaan pengesahan yang boleh ditangani oleh pengendali
 
-- `CREDITS_EXHAUSTED_SIGNALS` — pengebilan/kuota habis (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → terminal `credits_exhausted`.
+`verify your account to continue` **pernah** berada dalam senarai di atas. Ia bukan isyarat
+sekatan dan kini berada dalam `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, yang diklasifikasikan sebagai
+`PROJECT_ROUTE_ERROR` yang boleh dipulihkan dan bukannya menamatkan sambungan.
+
+Google Cloud Code / Antigravity mengembalikannya sebagai `403 VALIDATION_REQUIRED`. Ia
+**bersifat sementara dan berlaku pada akaun yang sihat serta mempunyai kuota penuh** — berdasarkan ukuran pada penggunaan
+langsung (2026-09-25, `proxy_logs`): satu sambungan Antigravity mengembalikan 33 daripada
+ralat 403 ini dalam masa 10 minit dan kekal `active`, manakala satu sambungan setara yang mempunyai 100 % daripada
+kuotanya pada kesemua 17 tetingkap telah disekat secara kekal oleh **satu** ralat sedemikian. Satu-satunya
+perbezaan ialah percubaan yang kebetulan dilayan.
+
+Perbezaan ini penting kerana padanan terminal ialah `permanent: true` (tempoh bertenang 1 tahun,
+tidak pernah pulih secara automatik), manakala pengendali boleh menyelesaikan gesaan pengesahan dalam pelayar.
+Mengekalkan frasa tersebut dalam senarai sekatan juga menyebabkan cabang 403 cloud-code yang boleh dipulihkan dalam
+`classifyProviderError` tidak dapat dicapai bagi ungkapan ini, kerana `accountDeactivated`
+dinilai terlebih dahulu — maka pemulihan laluan projek yang ditambahkan untuk Gemini Code Assist dalam
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) dan
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) tidak mungkin dapat dijalankan.
+
+Tiga jadual isyarat bersebelahan yang **berasingan** _bukan_ sebahagian daripada pengesanan kata kunci sekatan:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — pengebilan/kuota telah habis (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` terminal.
 - `OAUTH_INVALID_TOKEN_SIGNALS` — **bukan terminal**; penyegaran token boleh memulihkannya.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **bukan terminal**; pengendali perlu
+  mengesahkan semula akaun di huluan. Terletak dalam `open-sse/services/errorClassifier.ts`
+  (dua yang lain terletak dalam `accountFallback.ts`). Lihat bahagian di atas.
 
 Nota: frasa sementara yang lazim seperti **`rate limit`** / `429` dikendalikan oleh
 laluan had kadar / tempoh bertenang sambungan dan **bukan** isyarat sekatan.

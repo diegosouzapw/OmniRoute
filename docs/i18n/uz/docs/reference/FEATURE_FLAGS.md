@@ -266,16 +266,24 @@ qiymatiga qaytaradi. `{ cleared: <count>, message: "..." }` ni qaytaradi.
 
 ---
 
-## Favqulodda budjet zaxira mexanizmi
+## Favqulodda byudjet zaxira mexanizmi
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (`runtime` turkumi, standart qiymati `true`)
+`OMNIROUTE_EMERGENCY_FALLBACK` (`runtime` toifasi, standart qiymati `true`)
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts)
-faylidagi favqulodda bepul zaxira yo‘lini boshqaradi.
-Yoqilganida, budjeti tugagan so‘rovlar darhol xatolik bilan yakunlanish o‘rniga bepul zaxira
-provayder/modelga yo‘naltiriladi. Bu xatti-harakatni o‘chirib, budjeti tugagan so‘rovlarning
-xatolik bilan yakunlanishiga ruxsat berish uchun uni — boshqaruv panelidagi almashtirgich,
-DB ustuvor qiymati yoki `OMNIROUTE_EMERGENCY_FALLBACK` muhit o‘zgaruvchisi orqali —
-`false` (yoki `0`) qiymatiga o‘rnating. (PR #3741 / #3752 da boshqaruv paneli almashtirgichi sifatida taqdim etilgan.)
+faylidagi favqulodda bepul zaxira yoʻlini boshqaradi. U yoqilganida, byudjeti
+tugagan soʻrovlar butunlay muvaffaqiyatsiz yakunlanish oʻrniga bepul zaxira
+provayder/modelga yoʻnaltiriladi. Bu xatti-harakatni oʻchirib qoʻyish va byudjeti
+tugagan soʻrovlarning muvaffaqiyatsiz yakunlanishiga ruxsat berish uchun boshqaruv
+panelidagi almashtirgich, maʼlumotlar bazasidagi ustuvor sozlama yoki
+`OMNIROUTE_EMERGENCY_FALLBACK` muhit oʻzgaruvchisi orqali uni `false` (yoki `0`)
+qiymatiga oʻrnating. (PR #3741 / #3752 da boshqaruv paneli almashtirgichi
+sifatida taqdim etilgan.)
+
+Ushbu zaxira mexanizmi orqali taqdim etilgan javobda
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`
+sarlavhasi boʻladi, shuning uchun mijoz `X-OmniRoute-Provider` qiymatini oʻz
+soʻrovi bilan taqqoslamasdan turib, soʻrov qayta yoʻnaltirilganini aniqlay oladi.
+Boshqa barcha javoblarda bu sarlavha mavjud boʻlmaydi.
 
 ---
 

@@ -5636,7 +5636,7 @@
     "accountName": "Kontonavn",
     "email": "E-mail",
     "healthCheckMinutes": "Sundhedstjek (min)",
-    "healthCheckHint": "Proaktivt token-opdateringsinterval. 0 = deaktiveret.",
+    "healthCheckHint": "Tilsidesættelse for denne forbindelse. Tom = følg den globale standard (Indstillinger › Robusthed). 0 = kontrollér aldrig denne forbindelse. Maks. 1440 (24 t).",
     "deselectAllModels": "Fravælg alle",
     "modelsActiveCount": "{active}/{total} aktive",
     "noModelsMatch": "Ingen modeller matcher \"{filter}\"",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Få din API-nøgle på https://www.bluesminds.com — OpenAI-kompatibelt slutpunkt på https://api.bluesminds.com/v1 med gratis daglige kreditter. VIP-modeller (Claude Opus 4.5, Gemini 2.5 Pro) forbruger pi-kreditter.",
       "byteplus": "Forbind BytePlus ModelArk med en API-nøgle.",
       "bytez": "$1 gratis kreditter, fornys hver 4. uge",
-      "cerebras": "Gratis prøveperiode: 1M tokens/dag, 30K TPM, 5 RPM — intet kreditkort.",
+      "cerebras": "Engangskredit på $5 ved tilmelding (gyldig i 30 dage); kræver en betalingsmetode. Ikke et tilbagevendende gratis niveau.",
       "charm-hyper": "Opret en API-nøgle på https://hyper.charm.land, og indsæt den derefter her som et Bearer-token.",
       "chutes": "Bearer API-nøgle til den Chutes OpenAI-kompatible gateway.",
       "clarifai": "Clarifai eksponerer OpenAI-kompatibel chat, svar og /models på /v2/ext/openai/v1. Offentlige/community-modeller kræver typisk en PAT; app-scopede nøgler virker kun for ressourcer i den app.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Al udbydertrafik går gennem dette abonnements proxy-pulje.",
       "ruleModeDesc": "Kun udvalgte udbyderes trafik går gennem proxyen; resten forbinder direkte.",
       "localCoreEndpoint": "Lokalt Core SOCKS5/HTTP-endepunkt (valgfrit)",
-      "localCoreEndpointPlaceholder": "sokker5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Accepterer kun 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS kræver en lokal sing-box/clash-kerne).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Én pr. linje. Accepterer kun 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS kræver en lokal sing-box/clash-kerne).",
       "routeByProvider": "Rute efter udbyder (multi-select)",
       "loadingProviders": "Indlæser udbyderliste...",
       "autoRefreshInterval": "Automatisk opdateringsinterval (minutter)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP beskrivelse komprimering",
     "mcpAccessibilityTitle": "MCP-tilgængelighedsoutput",
     "compressionSettingsCavemanIntensity": "Hulemands intensitet",
-    "compressionSettingsCavemanOutputMode": "Hulemands-outputtilstand",
     "compressionSettingsOutputStyles": "Output-stile",
     "compressionStylesTileTitle": "Output-stile",
     "compressionSettingsOutputIntensity": "Output intensitet",
-    "compressionSettingsAutoClarityBypass": "Automatisk klarhed bypass",
     "compressionEffectivePipeline": "Effektiv pipeline:",
     "compressionDerivedOff": "fra",
     "compressionDerivedRuns": "kørsler: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimum rækker til komprimering",
         "description": "Minimum antal rækker i et homogent JSON-array, der kræves for at udløse tabelkomprimering. Standard: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Bevar systemprompt"
-      },
       "summarizerEnabled": {
         "label": "Aktivér opsummering"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Beskeder, der er kortere end dette, komprimeres ikke. Lavere = mere kompression.",
     "tooltipMinSavings": "Komprimer kun, hvis det sparer mindst så mange tokens.",
     "ultraSettings": "Ultra-indstillinger",
-    "ultraSettingsDesc": "SLM-drevet semantisk komprimering",
-    "preview": {
-      "lite": "Svar kortfattet. Bevar tekniske termer, kode, fejl, URLs og identifikatorer.",
-      "full": "Svar kort og kompakt. Bevar alt teknisk indhold.",
-      "ultra": "Svar ultrakort med almindelige tekniske forkortelser. Bevar de nøjagtige symboler."
-    }
+    "ultraSettingsDesc": "SLM-drevet semantisk komprimering"
   },
   "translator": {
     "title": "Oversætter",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Indløs nulstilling",
     "manageResetCredits": "Vis kreditter",
     "viewResetCredits": "Vis nulstillingskreditter",
-    "resetCreditsModalTitle": "Codex-nulstillingskreditter",
+    "resetCreditsModalTitle": "Nulstillingskreditter",
     "resetCreditsModalExplainer": "Kreditter er sorteret efter udløbsdato. Automatisk indløsning bruger altid den kredit, der udløber først.",
     "resetCreditsLoadFailed": "Kunne ikke indlæse nulstillingskreditter",
     "resetCreditsDetailsUnavailable": "Kreditoplysninger er i øjeblikket utilgængelige. Opdater og prøv igen.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Ingen udløbsdato",
     "redeemThisResetCredit": "Indløs",
     "confirmRedeemResetCreditTitle": "Indløs denne nulstillingskredit?",
-    "confirmRedeemResetCredit": "Indløsning nulstiller øjeblikkeligt de kvalificerede Codex-forbrugsvinduer og forbruger denne kredit permanent.",
+    "confirmRedeemResetCredit": "Indløsning nulstiller øjeblikkeligt de kvalificerede forbrugsvinduer og forbruger denne kredit permanent.",
     "confirmRedeemResetCreditButton": "Indløs kredit",
     "resetCreditRedeemed": "Nulstilling indløst",
     "resetCreditRedeemFailed": "Kunne ikke indløse nulstillingskredit",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy kan ikke nås",
     "poolSetAsideKindIpQuota429": "IP-hastighedsbegrænsning (429)",
     "poolSetAsideKindSlow": "langsomme svar",
+    "poolSetAsideKindGeoBlocked": "region-blokeret (403/451)",
     "poolSetAsideUntil": "Tilbage i rotation {endsAt}",
     "poolSetAsideRepeat": "Sat til side {count, plural, one {# gang} other {# gange}}",
     "poolUnknownAddress": "Ukendt adresse",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Positionsrækkefølge",
     "poolHealthRankingOff": "Sundhedsrangering fra",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} langsomme opgivelser",
+    "clientAborted": "{count} klientafbrydelser",
+    "slowAbandonedHint": "Opgivet efter headerventetærsklen, udelukket fra transporthastigheden",
     "previousSuccessRate": "Tidligere {rate} % succes",
-    "upstreamRefusals": "{count} upstream-afvisninger",
     "connectionTestsCount": "{count} forbindelsestests",
-    "notMeasured": "Ikke målt"
+    "notMeasured": "Ikke målt",
+    "upstream4xx": "{count} opstrøms klientfejl",
+    "upstream5xx": "{count} opstrøms serverfejl",
+    "uniformEgressLine": "{affected} af {exits} udgange fejler sammen på {provider} (seneste {hours} t) — ikke et udgangsproblem"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inaktive",
     "dbOverrideCount": "{count} DB-tilsidesættelser",
     "searchPlaceholder": "Søg i flag...",
+    "descriptionModeLabel": "Beskrivelsesvisning",
+    "descriptionModeHint": "Ved markering: Kortene forbliver kompakte, og når markøren holdes over en beskrivelse, vises hele teksten. Fuld tekst: Vis altid hele beskrivelsen.",
+    "descriptionModeHover": "Ved markering",
+    "descriptionModeFull": "Fuld tekst",
     "categories": {
       "all": "Alle",
       "security": "Sikkerhed",

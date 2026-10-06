@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Стиснення опису MCP",
     "mcpAccessibilityTitle": "Вивід доступності MCP",
     "compressionSettingsCavemanIntensity": "Інтенсивність печерної людини",
-    "compressionSettingsCavemanOutputMode": "Режим виведення Caveman",
     "compressionSettingsOutputStyles": "Стилі виводу",
     "compressionStylesTileTitle": "Стилі виводу",
     "compressionSettingsOutputIntensity": "Вихідна інтенсивність",
-    "compressionSettingsAutoClarityBypass": "Автоматичний обхід чіткості",
     "compressionEffectivePipeline": "Фактичний конвеєр:",
     "compressionDerivedOff": "вимкнено",
     "compressionDerivedRuns": "запуски: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Мінімальна кількість рядків для компактності",
         "description": "Мінімальна кількість рядків в однорідному масиві JSON, необхідна для запуску табличного ущільнення. За замовчуванням: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Зберігати системний промпт"
-      },
       "summarizerEnabled": {
         "label": "Увімкнути резюмувальник"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Коротші повідомлення не стискаються. Нижче = більше стиснення.",
     "tooltipMinSavings": "Стискайте лише якщо це зберігає принаймні таку кількість токенів.",
     "ultraSettings": "Ультра налаштування",
-    "ultraSettingsDesc": "Семантичне стиснення на основі SLM",
-    "preview": {
-      "lite": "Відповідайте стисло. Зберігайте технічні терміни, код, помилки, URL-адреси та ідентифікатори.",
-      "full": "Відповідайте лаконічно й компактно. Зберігайте всю технічну суть.",
-      "ultra": "Відповідайте максимально стисло, використовуючи загальноприйняті технічні скорочення. Зберігайте точні символи."
-    }
+    "ultraSettingsDesc": "Семантичне стиснення на основі SLM"
   },
   "translator": {
     "title": "Перекладач",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "проксі недоступний",
     "poolSetAsideKindIpQuota429": "обмеження частоти за IP (429)",
     "poolSetAsideKindSlow": "повільні відповіді",
+    "poolSetAsideKindGeoBlocked": "заблоковано за регіоном (403/451)",
     "poolSetAsideUntil": "Знову в ротації {endsAt}",
     "poolSetAsideRepeat": "Відкладено {count, plural, one {# раз} other {# разів}}",
     "poolUnknownAddress": "Невідома адреса",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Порядок позицій",
     "poolHealthRankingOff": "Рейтинг здоровʼя вимкнено",
     "transportRate": "{rate}% транспорту",
+    "slowAbandoned": "{count} повільних відмов",
+    "clientAborted": "{count} відмов клієнта",
+    "slowAbandonedHint": "Відкинуто після порогу очікування заголовків, виключено з швидкості транспорту",
     "previousSuccessRate": "Раніше {rate}% успіху",
-    "upstreamRefusals": "{count} відмов апастріму",
     "connectionTestsCount": "{count} перевірок зʼєднання",
-    "notMeasured": "Не виміряно"
+    "notMeasured": "Не виміряно",
+    "upstream4xx": "{count} верхніх помилок клієнта",
+    "upstream5xx": "{count} помилки верхнього сервера",
+    "uniformEgressLine": "{affected} з {exits} виходів одночасно виходять з ладу на {provider} (останні {hours} год.) — це не проблема виходу"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} неактивних",
     "dbOverrideCount": "{count} перевизначень БД",
     "searchPlaceholder": "Пошук прапорців...",
+    "descriptionModeLabel": "Перегляд опису",
+    "descriptionModeHint": "При наведенні: картки залишаються компактними, а наведення на опис показує повний текст. Повний текст: завжди показувати весь опис.",
+    "descriptionModeHover": "При наведенні",
+    "descriptionModeFull": "Повний текст",
     "categories": {
       "all": "Усі",
       "security": "Безпека",

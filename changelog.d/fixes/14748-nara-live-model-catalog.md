@@ -1,1 +1,0 @@
-- **fix(providers):** NaraRouter model imports use the live model catalog while retaining the pinned catalog when discovery is unavailable.

@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-kirjelduste tihendamine",
     "mcpAccessibilityTitle": "MCP ligipääsetavuse väljund",
     "compressionSettingsCavemanIntensity": "Koopainimese stiili intensiivsus",
-    "compressionSettingsCavemanOutputMode": "Koopainimese väljundrežiim",
     "compressionSettingsOutputStyles": "Väljundstiilid",
     "compressionStylesTileTitle": "Väljundstiilid",
     "compressionSettingsOutputIntensity": "Väljundi intensiivsus",
-    "compressionSettingsAutoClarityBypass": "Automaatne selgusekontrollist möödahiilimine",
     "compressionEffectivePipeline": "Rakenduv töötlusahel:",
     "compressionDerivedOff": "väljas",
     "compressionDerivedRuns": "käivitatakse: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimaalne tihendatavate ridade arv",
         "description": "Homogeense JSON-massiivi minimaalne ridade arv, mis on vajalik tabeltihenduse käivitamiseks. Vaikimisi: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Säilita süsteemiviip"
-      },
       "summarizerEnabled": {
         "label": "Luba kokkuvõtja"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Sellest lühemaid sõnumeid ei tihendata. Väiksem = rohkem tihendamist.",
     "tooltipMinSavings": "Tihenda ainult siis, kui see säästab vähemalt nii palju tokeneid.",
     "ultraSettings": "Ultraseaded",
-    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine",
-    "preview": {
-      "lite": "Vasta lühidalt. Säilita tehnilised terminid, kood, vead, URL-id ja identifikaatorid.",
-      "full": "Vasta napilt ja kompaktselt. Säilita kogu tehniline sisu.",
-      "ultra": "Vasta ülilühidalt, kasutades levinud tehnilisi lühendeid. Säilita täpsed sümbolid."
-    }
+    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine"
   },
   "translator": {
     "title": "Tõlkija",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "puhverserver pole kättesaadav",
     "poolSetAsideKindIpQuota429": "IP päringupiirang (429)",
     "poolSetAsideKindSlow": "aeglased vastused",
+    "poolSetAsideKindGeoBlocked": "regiooniblokeeritud (403/451)",
     "poolSetAsideUntil": "Tagasi rotatsioonis {endsAt}",
     "poolSetAsideRepeat": "Kõrvale pandud {count, plural, one {# kord} other {# korda}}",
     "poolUnknownAddress": "Tundmatu aadress",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Positsioonijärjekord",
     "poolHealthRankingOff": "Tervise järjestus väljas",
     "transportRate": "{rate} % transporti",
+    "slowAbandoned": "{count} aeglased katkestused",
+    "clientAborted": "{count} kliendi katkestused",
+    "slowAbandonedHint": "Katkestatud pärast päiste oote läve ületamist, transpordimäärast välja arvatud",
     "previousSuccessRate": "Varem {rate} % edukust",
-    "upstreamRefusals": "{count} upstream-keeldumist",
     "connectionTestsCount": "{count} ühenduse testi",
-    "notMeasured": "Mõõtmata"
+    "notMeasured": "Mõõtmata",
+    "upstream4xx": "{count} ülespoole kliendivigad",
+    "upstream5xx": "{count} ülespoole serverivigad",
+    "uniformEgressLine": "{affected} {exits} väljumistest ebaõnnestuvad koos {provider} (viimased {hours}h) — mitte väljumisprobleem"
   },
   "playground": {
     "title": "Mudelite testkeskkond",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "Mitteaktiivseid: {count}",
     "dbOverrideCount": "DB-alistusi: {count}",
     "searchPlaceholder": "Otsi lippe...",
+    "descriptionModeLabel": "Kirjelduse vaade",
+    "descriptionModeHint": "Kursoriga üle liikudes: kaardid jäävad kompaktseks ja kirjelduse kohal kursorit hoides kuvatakse täistekst. Täistekst: kuva alati täielik kirjeldus.",
+    "descriptionModeHover": "Kursoriga üle liikudes",
+    "descriptionModeFull": "Täistekst",
     "categories": {
       "all": "Kõik",
       "security": "Turvalisus",

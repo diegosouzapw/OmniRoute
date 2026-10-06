@@ -87,7 +87,7 @@ import {
 import { restoreClaudeToolName } from "../services/claudeCodeToolRemapper.ts";
 import { normalizeFinalOpenAIStreamChunk } from "./openAIStreamChunk.ts";
 import { collectClaudeDelta } from "./streamClaudeDelta.ts";
-import { createStreamTiming, type StreamTiming } from "./streamTiming.ts";
+import { createStreamTiming, registerStreamTiming, type StreamTiming } from "./streamTiming.ts";
 import { buildUsageOnlyChunk } from "./usageOnlyChunk.ts";
 
 /**
@@ -464,19 +464,21 @@ type ClaudeEmptyResponseLifecycle = {
   hasMessageDelta: boolean;
   hasMessageStop: boolean;
   hasError: boolean;
+  stopReason: string | null;
   syntheticContentInjected: boolean;
   warningLogged: boolean;
 };
 
 const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT = "";
 
-function createClaudeEmptyResponseLifecycle(): ClaudeEmptyResponseLifecycle {
+export function createClaudeEmptyResponseLifecycle(): ClaudeEmptyResponseLifecycle {
   return {
     hasMessageStart: false,
     hasContentBlock: false,
     hasMessageDelta: false,
     hasMessageStop: false,
     hasError: false,
+    stopReason: null,
     syntheticContentInjected: false,
     warningLogged: false,
   };
@@ -492,7 +494,7 @@ function isClaudeEventPayload(payload: unknown): boolean {
   return getClaudeEventType(payload) !== null;
 }
 
-function updateClaudeEmptyResponseLifecycle(
+export function updateClaudeEmptyResponseLifecycle(
   lifecycle: ClaudeEmptyResponseLifecycle,
   payload: unknown
 ) {
@@ -510,6 +512,12 @@ function updateClaudeEmptyResponseLifecycle(
       break;
     case "message_delta":
       lifecycle.hasMessageDelta = true;
+      {
+        const delta = (payload as JsonRecord).delta;
+        const reason =
+          delta && typeof delta === "object" ? (delta as JsonRecord).stop_reason : null;
+        if (typeof reason === "string" && reason) lifecycle.stopReason = reason;
+      }
       break;
     case "message_stop":
       lifecycle.hasMessageStop = true;
@@ -904,9 +912,15 @@ export function createSSEStream(options: StreamOptions = {}) {
   // both translate mode (openai-responses → claude/openai) and Responses passthrough.
   let lastSeenResponsesSequenceNumber = -1;
   const isDuplicateResponsesSequence = (value: unknown): boolean => {
-    if (typeof value !== "number" || !Number.isFinite(value)) return false;
-    if (value <= lastSeenResponsesSequenceNumber) return true;
-    lastSeenResponsesSequenceNumber = value;
+    const numeric =
+      typeof value === "number"
+        ? value
+        : typeof value === "string" && /^(?:0|[1-9]\d*)$/.test(value)
+          ? Number(value)
+          : NaN;
+    if (!Number.isSafeInteger(numeric)) return false;
+    if (numeric <= lastSeenResponsesSequenceNumber) return true;
+    lastSeenResponsesSequenceNumber = numeric;
     return false;
   };
   const streamStartedAt = Date.now();
@@ -1356,7 +1370,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     return true;
   };
 
-  return new TransformStream(
+  const sseStream = new TransformStream(
     {
       start(controller) {
         // Start idle watchdog — checks every 10s if provider has stopped sending
@@ -1787,18 +1801,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                       parsed.response.output
                     );
                   }
-                  // #7936 — restore `namespace` + `name` fields on passthrough
-                  // Responses function_call items for downstream Codex clients.
-                  if (
-                    parsed.type === "response.output_item.added" ||
-                    parsed.type === "response.output_item.done" ||
-                    parsed.type === "response.completed"
-                  ) {
+                  // #7936 - restore `namespace` + `name` on passthrough Responses
+                  // function_call items. The restoration mutates `parsed`, so a
+                  // real change must be re-serialized; otherwise the client still
+                  // receives the flattened wire name.
+                  const responsesIdentityRestored =
+                    (parsed.type === "response.output_item.added" ||
+                      parsed.type === "response.output_item.done" ||
+                      parsed.type === "response.completed") &&
                     restoreResponsesPassthroughFunctionCallIdentity(
                       parsed as JsonRecord,
                       requestToolIdentityMap
                     );
-                  }
                   if (
                     parsed.type === "response.completed" &&
                     passthroughResponsesPendingFunctionCalls.size > 0
@@ -1843,7 +1857,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                     textualToolCallBackfilled ||
                     responsesIdsNormalized ||
                     usageNormalized ||
-                    responsesCommentaryStrippedFromCompleted
+                    responsesCommentaryStrippedFromCompleted ||
+                    responsesIdentityRestored
                   ) {
                     output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
@@ -3218,6 +3233,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     { highWaterMark: streamBufferBytes },
     { highWaterMark: streamBufferBytes }
   );
+  return registerStreamTiming(sseStream, timing);
 }
 
 export default createSSEStream;

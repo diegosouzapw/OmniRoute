@@ -5636,7 +5636,7 @@
     "accountName": "Hesab adı",
     "email": "Email",
     "healthCheckMinutes": "Sağlamlıq yoxlaması (dəq)",
-    "healthCheckHint": "Proactive token refresh interval. 0 = disabled.",
+    "healthCheckHint": "Bu bağlantı üçün xüsusi dəyər. Boş = qlobal standartı izlə (Parametrlər › Dayanıqlıq). 0 = bu bağlantını heç vaxt yoxlama. Maksimum 1440 (24 saat).",
     "deselectAllModels": "Bütün seçimləri ləğv et",
     "modelsActiveCount": "{active}/{total} aktiv",
     "noModelsMatch": "Heç bir model \"{filter}\" filtrinə uyğun gəlmir",
@@ -6197,7 +6197,7 @@
       "bluesminds": "API açarınızı https://www.bluesminds.com ünvanından əldə edin — OpenAI ilə uyğun gələn son nöqtə: https://api.bluesminds.com/v1. VIP modellər (Claude Opus 4.5, Gemini 2.5 Pro) pi kreditləri istehlak edir.",
       "byteplus": "BytePlus ModelArk-ı API açarı ilə qoşun.",
       "bytez": "$1 pulsuz kredit, hər 4 həftədən bir yenilənir",
-      "cerebras": "Pulsuz Sınaq: 1M token/gün, 30K TPM, 5 RPM — kredit kartı yoxdur.",
+      "cerebras": "Qeydiyyat zamanı birdəfəlik $5 kredit (30 gün etibarlıdır); ödəniş üsulu tələb olunur. Təkrarlanan pulsuz səviyyə deyil.",
       "charm-hyper": "https://hyper.charm.land ünvanında API açarı yaradın, sonra onu bura Bearer tokeni kimi yapışdırın.",
       "chutes": "Chutes OpenAI ilə uyğun gələn şlüz üçün Bearer API açarı.",
       "clarifai": "Clarifai /v2/ext/openai/v1 üzərində OpenAI ilə uyğun söhbət, cavablar və /models təqdim edir. İctimai/icma modelləri adətən PAT tələb edir; tətbiq miqyaslı açarlar yalnız həmin tətbiqin daxilindəki resurslar üçün işləyir.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Bütün Provayder trafiki bu abunəliyin proksi hovuzundan keçir.",
       "ruleModeDesc": "Yalnız seçilmiş Provayderlərin trafiki proxy vasitəsilə keçir; qalanları birbaşa bağlanır.",
       "localCoreEndpoint": "Local Core SOCKS5/HTTP Endpoint (Könüllü)",
-      "localCoreEndpointPlaceholder": "corablar5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Yalnız 127.0.0.1 / localhost qəbul edir (SS/VMess/Trojan/VLESS yerli sing-box/clash core tələb edir).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Hər sətirdə bir. Yalnız 127.0.0.1 / localhost qəbul edir (SS/VMess/Trojan/VLESS yerli sing-box/clash core tələb edir).",
       "routeByProvider": "Provayder tərəfindən marşrut (çox seçimli)",
       "loadingProviders": "Provayder siyahısı yüklənir...",
       "autoRefreshInterval": "Avtomatik yeniləmə intervalı (dəqiqə)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP təsvirinin sıxılması",
     "mcpAccessibilityTitle": "MCP əlçatanlıq çıxışı",
     "compressionSettingsCavemanIntensity": "Mağara adamının intensivliyi",
-    "compressionSettingsCavemanOutputMode": "Caveman çıxış rejimi",
     "compressionSettingsOutputStyles": "Çıxış üslubları",
     "compressionStylesTileTitle": "Çıxış üslubları",
     "compressionSettingsOutputIntensity": "Çıxış intensivliyi",
-    "compressionSettingsAutoClarityBypass": "Avtomatik aydınlıq bypass",
     "compressionEffectivePipeline": "Effektiv pipeline:",
     "compressionDerivedOff": "qapalı",
     "compressionDerivedRuns": "işəsalmalar: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Kompaktlaşdırmaq üçün minimum sətir sayı",
         "description": "Cədvəl kompaktlaşdırmasını işə salmaq üçün tələb olunan bircins JSON massivindəki minimum sətir sayı. Standart: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Sistem promptunu qoru"
-      },
       "summarizerEnabled": {
         "label": "Xülasələndiricini aktivləşdir"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Bundan qısa mesajlar sıxılmır. Aşağı = daha çox sıxılma.",
     "tooltipMinSavings": "Yalnız ən azı bu qədər token saxlasa sıxışdırın.",
     "ultraSettings": "Ultra Parametrlər",
-    "ultraSettingsDesc": "SLM ilə dəstəklənən semantik sıxılma",
-    "preview": {
-      "lite": "Yığcam cavab verin. Texniki terminləri, kodu, xətaları, URL-ləri və identifikatorları qoruyun.",
-      "full": "Qısa və yığcam cavab verin. Bütün texniki məzmunu qoruyun.",
-      "ultra": "Ümumi texniki ixtisarlardan istifadə edərək son dərəcə qısa cavab verin. Simvolları olduğu kimi qoruyun."
-    }
+    "ultraSettingsDesc": "SLM ilə dəstəklənən semantik sıxılma"
   },
   "translator": {
     "title": "Tərcüməçi",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Sıfırlamadan istifadə et",
     "manageResetCredits": "Kreditlərə bax",
     "viewResetCredits": "Sıfırlama kreditlərinə bax",
-    "resetCreditsModalTitle": "Codex sıfırlama kreditləri",
+    "resetCreditsModalTitle": "Sıfırlama kreditləri",
     "resetCreditsModalExplainer": "Kreditlər son istifadə tarixinə görə sıralanır. Avtomatik istifadə zamanı həmişə vaxtı ilk bitən kreditdən istifadə olunur.",
     "resetCreditsLoadFailed": "Sıfırlama kreditlərini yükləmək mümkün olmadı",
     "resetCreditsDetailsUnavailable": "Kredit təfərrüatları hazırda mövcud deyil. Yeniləyin və yenidən cəhd edin.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Son istifadə tarixi yoxdur",
     "redeemThisResetCredit": "İstifadə et",
     "confirmRedeemResetCreditTitle": "Bu sıfırlama kreditindən istifadə edilsin?",
-    "confirmRedeemResetCredit": "İstifadə etmək uyğun Codex istifadə pəncərələrini dərhal sıfırlayır və bu krediti birdəfəlik sərf edir.",
+    "confirmRedeemResetCredit": "İstifadə etmək uyğun istifadə pəncərələrini dərhal sıfırlayır və bu krediti birdəfəlik sərf edir.",
     "confirmRedeemResetCreditButton": "Krediti istifadə et",
     "resetCreditRedeemed": "Sıfırlama istifadə edildi",
     "resetCreditRedeemFailed": "Sıfırlama kreditini istifadə etmək mümkün olmadı",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proksiyə çatmaq mümkün deyil",
     "poolSetAsideKindIpQuota429": "IP sürət limiti (429)",
     "poolSetAsideKindSlow": "yavaş cavablar",
+    "poolSetAsideKindGeoBlocked": "region bloklanıb (403/451)",
     "poolSetAsideUntil": "Rotasiyaya qayıtdı {endsAt}",
     "poolSetAsideRepeat": "Kənara qoyuldu {count, plural, one {# dəfə} other {# dəfə}}",
     "poolUnknownAddress": "Naməlum ünvan",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Mövqe sırası",
     "poolHealthRankingOff": "Sağlamlıq reytinqi kapalı",
     "transportRate": "{rate}% nəqliyyat",
+    "slowAbandoned": "{count} yavaş tərk etmələr",
+    "clientAborted": "{count} müştəri ləğv etmələri",
+    "slowAbandonedHint": "Başlıqların gözləmə həddindən sonra tərk edildi, daşınma dərəcəsindən çıxarılıb",
     "previousSuccessRate": "Əvvəlcə {rate}% uğur",
-    "upstreamRefusals": "{count} upstream rəddi",
     "connectionTestsCount": "{count} bağlantı testi",
-    "notMeasured": "Ölçülməyib"
+    "notMeasured": "Ölçülməyib",
+    "upstream4xx": "{count} yuxarı axın müştəri səhvləri",
+    "upstream5xx": "{count} yuxarı axın server səhvləri",
+    "uniformEgressLine": "{affected} of {exits} çıxışları {provider} üzərində eyni anda uğursuz oldu (son {hours} saat) — çıxış problemi deyil"
   },
   "playground": {
     "title": "Model sınaq meydanı",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} qeyri-aktiv",
     "dbOverrideCount": "{count} DB override-ı",
     "searchPlaceholder": "Bayraqlarda axtar...",
+    "descriptionModeLabel": "Təsvir görünüşü",
+    "descriptionModeHint": "Üzərinə gətirdikdə: kartlar yığcam qalır və təsvirin üzərinə gətirdikdə tam mətn göstərilir. Tam mətn: təsviri həmişə tam şəkildə göstərir.",
+    "descriptionModeHover": "Üzərinə gətirdikdə",
+    "descriptionModeFull": "Tam mətn",
     "categories": {
       "all": "Hamısı",
       "security": "Təhlükəsizlik",

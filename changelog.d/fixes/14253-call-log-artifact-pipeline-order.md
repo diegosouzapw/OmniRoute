@@ -1,1 +1,0 @@
-- **fix(logging):** keep the provider reply when a call-log artifact only overflows through its request body ([#14253](https://github.com/diegosouzapw/OmniRoute/pull/14253)) — thanks @maxmad64bis

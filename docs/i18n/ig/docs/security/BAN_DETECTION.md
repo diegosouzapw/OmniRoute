@@ -4,24 +4,27 @@
 
 ---
 
-OmniRoute na-enyocha nzaghachi njehie sitere n'aka ndị na-eweta ọrụ dị n'elu maka akara ndị na-egosi na
-**akaụntụ anwụọla kpamkpam** (a kwụsịtụrụ ya / agbanyụrụ ya / amachibidoro ya n'ihi ToS), ma mgbe
-ọ hụrụ akara kwekọrọ, ọ na-ebuga njikọ ahụ n'ọnọdụ njedebe **`banned`** ka a ghara
-ịhọrọ ya ọzọ maka arịrịọ. Nke a bụ ihe kaadị ntọala **Security → Banned Keywords**
-na-ahazi ("Mkpụrụokwu ndị ọzọ na-akpalite nchọpụta mmachibido akaụntụ na-adịgide adịgide.
-Mkpụrụokwu arụnyere n'ime sistemụ na-emetụta mgbe niile.").
+OmniRoute na-enyocha nzaghachi njehie sitere n’aka ndị na-enye ọrụ maka ihe mgbaàmà na-egosi na
+**akaụntụ anwụọla kpamkpam** (a kwụsịtụrụ ya / gbanyụọ ya / machibido ya n’ihi ToS), ma, mgbe
+ọ dabara, ọ na-ebuga njikọ ahụ n’ime **ọnọdụ njedebe `banned`** ka a ghara
+ịhọrọzi ya maka arịrịọ. Nke a bụ ihe kaadị ntọala **Nchekwa → Okwu Ndị A Machibidoro**
+na-ahazi ("Okwu ndị ọzọ na-akpalite nchọpụta mmachibido akaụntụ
+na-adịgide adịgide. Okwu ndị arụnyere n’ime sistemụ na-emetụta mgbe niile.").
 
-Ibe a na-akọwa ndepụta arụnyere n'ime sistemụ, usoro nchọpụta, oke ebe ọ na-emetụta, otu esi etinye
-mkpụrụokwu omenala n'enweghị nsogbu, na otu esi weghachite njikọ e nyere akara. Ọnọdụ njedebe
-n'onwe ya bụ akụkụ nke usoro nkwụsi ike — lee
+Ibe a na-akọwa ndepụta arụnyere n’ime sistemụ, usoro nchọpụta, ókè ọ na-emetụta, otu esi etinye
+okwu ahaziri iche n’enweghị nsogbu, na otu esi weghachite njikọ e tinyere akara. Ọnọdụ
+njedebe ahụ n’onwe ya bụ akụkụ nke usoro nkwụsi ike — lee
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Ọnọdụ njedebe").
 
-**Isi mmalite nke eziokwu:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Isi mmalite eziokwu:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+tinyere `open-sse/services/errorClassifier.ts` maka klaasị nkwenye na-abụghị nke njedebe
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) nakwa maka
+ngalaba 403 nke na-eji ya.
 
-## Mkpụrụokwu arụnyere n'ime sistemụ
+## Okwu igodo arụnyere n'ime ya
 
-Ahịrịokwu nta 8 ndị a na-emetụta mgbe niile (n'agbanyeghị nnukwu mkpụrụedemede ma ọ bụ obere mkpụrụedemede), n'agbanyeghị ndepụta omenala ọ bụla:
+Ụdọ nta 7 ndị a na-emetụta mgbe niile (n'agbanyeghị mkpụrụedemede ukwu ma ọ bụ nta), n'agbanyeghị ndepụta ahaziri iche ọ bụla:
 
 ```
 account_deactivated
@@ -29,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Ndepụta a na-agbanwe ka ndị na-eweta ọrụ na-agbanwe okwu ha ji egosi mmachibido. Ụdị
-> ikike kachasị elu bụ `ACCOUNT_DEACTIVATED_SIGNALS` dị na `open-sse/services/accountFallback.ts`;
-> were ngọngọ dị n'elu dịka oyiri e sere n'otu oge.
+> Ndepụta a na-agbanwe ka ndị na-eweta ọrụ na-agbanwe mkpụrụokwu ha ji egosi mmachibido. Ụdị
+> a tụkwasịrị obi bụ `ACCOUNT_DEACTIVATED_SIGNALS` dị na `open-sse/services/accountFallback.ts`;
+> were ngọngọ dị n'elu dịka foto ọnọdụ ya n'otu oge.
 
-Tebụl akara abụọ dị n'akụkụ ya, ma **dị iche**, dị n'otu faịlụ ahụ ma ha _abụghị_ akụkụ
-nke nchọpụta mkpụrụokwu mmachibido:
+### Ọ bụghị mmachibido: arịrịọ nkwenye onye njikwa nwere ike ime ihe banyere ha
 
-- `CREDITS_EXHAUSTED_SIGNALS` — ego/oke ojiji agwụla (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → ọnọdụ njedebe `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **ọ bụghị ọnọdụ njedebe**; imegharị token nwere ike iweghachite ya.
+`verify your account to continue` **dịbu** na ndepụta dị n'elu. Ọ bụghị akara
+mmachibido, ma ọ dị ugbu a na `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, nke na-ekewa ya dịka
+`PROJECT_ROUTE_ERROR` enwere ike idozi kama imechi njikọ ahụ kpamkpam.
 
-Rịba ama: a na-edozi ahịrịokwu nsogbu nwa oge ndị a na-ahụkarị dịka **`rate limit`** / `429` site na
-ụzọ rate-limit / oge nchere njikọ, ha **abụghịkwa** akara mmachibido.
+Google Cloud Code / Antigravity na-eweghachi ya dịka `403 VALIDATION_REQUIRED`. Ọ bụ
+**nke na-adịru nwa oge ma na-eme na akaụntụ dị mma, ndị nwere oke ojiji ha zuru ezu** — dịka e tụrụ na
+ntinye ọrụ dị ndụ (2026-09-25, `proxy_logs`): otu njikọ Antigravity weghachiri 33 n'ime
+403 ndị a n'ime nkeji 10 ma nọgide bụrụ `active`, ebe njikọ ibe ya nke nwere 100 % nke
+oke ojiji ya na windo 17 niile ka otu nke **naanị otu** machibidoro kpamkpam. Naanị
+ihe dị iche bụ mbọ nke e mere ka sava zaa n'oge ahụ.
+
+Ọdịiche a dị mkpa n'ihi na ndakọrịta ikpeazụ bụ `permanent: true` (oge nchere otu afọ,
+ọ naghị agbake n'onwe ya ma ọlị), ebe onye njikwa na-edozi arịrịọ nkwenye n'ime ihe nchọgharị.
+Ịhapụ nkebiokwu ahụ na ndepụta mmachibido mekwara ka ngalaba cloud-code 403 enwere ike idozi dị na
+`classifyProviderError` bụrụ nke a na-apụghị iru maka mkpụrụokwu a, n'ihi na a na-enyocha `accountDeactivated`
+mbụ — ya mere mgbake ụzọ ọrụ ahụ agbakwunyere maka Gemini Code Assist na
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) na
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) enweghị ike ịrụ ọrụ ma ọlị.
+
+Tebụl akara atọ ndị dị ya nso, ma **dị iche**, abụghị akụkụ nke nchọpụta okwu igodo mmachibido:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — ego ịkwụ ụgwọ/oke ojiji agwụla (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` ikpeazụ.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **ọ bụghị nke ikpeazụ**; ime ka token dị ọhụrụ nwere ike idozi ya.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **ọ bụghị nke ikpeazụ**; onye njikwa ga-
+  ekwenyeghachi akaụntụ ahụ n'akụkụ onye na-eweta ọrụ. Ọ dị na `open-sse/services/errorClassifier.ts`
+  (abụọ ndị ọzọ dị na `accountFallback.ts`). Lee ngalaba dị n'elu.
+
+Rịba ama: a na-ejikwa nkebiokwu ndị na-adịru nwa oge dịka **`rate limit`** / `429` site na
+ụzọ rate-limit / oge-nchere njikọ, ha **abụghịkwa** akara mmachibido.
 
 ## Usoro nchọpụta
 

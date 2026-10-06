@@ -482,7 +482,17 @@ export function sanitizeReasoningEffortForProvider(
   // that providers whose thinking defaults ON actually turn it off.
   // Map both to the closest supported value (`low`) for command-code only;
   // other providers (codex etc.) keep their native `minimal` handling.
-  if (isCommandCodeProvider(provider) && (effortStr === "minimal" || effortStr === "none")) {
+  // Exception: a Responses-shaped body (`input`, no `messages`) is routed to
+  // /provider/v1/responses (#14692), which DOES honor `reasoning.effort: "none"`
+  // (verified live 2026-09-24: reasoning_tokens 0) — keep `none` there, or a
+  // no-thinking request silently turns reasoning back on.
+  const commandCodeResponsesNone =
+    effortStr === "none" && b.input !== undefined && b.messages === undefined;
+  if (
+    isCommandCodeProvider(provider) &&
+    (effortStr === "minimal" || effortStr === "none") &&
+    !commandCodeResponsesNone
+  ) {
     log?.info?.(
       "REASONING_SANITIZE",
       `${provider}/${modelStr}: mapped reasoning_effort ${effortStr} → low`

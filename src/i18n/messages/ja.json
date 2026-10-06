@@ -5636,7 +5636,7 @@
     "accountName": "アカウント名",
     "email": "電子メール",
     "healthCheckMinutes": "ヘルスチェック (分)",
-    "healthCheckHint": "プロアクティブなトークンの更新間隔。 0 = 無効。",
+    "healthCheckHint": "この接続専用の設定です。空欄 = グローバルの既定値に従う（設定 › レジリエンス）。0 = この接続を一切チェックしない。最大 1440（24 時間）。",
     "deselectAllModels": "すべての選択を解除",
     "modelsActiveCount": "{active}/{total}件が有効",
     "noModelsMatch": "「{filter}」に一致するモデルはありません",
@@ -6197,7 +6197,7 @@
       "bluesminds": "https://www.bluesminds.com でAPIキーを取得 — 毎日の無料クレジット付きのOpenAI互換エンドポイント（https://api.bluesminds.com/v1）。VIPモデル（Claude Opus 4.5、Gemini 2.5 Pro）はpiクレジットを消費します。",
       "byteplus": "APIキーでBytePlus ModelArkに接続します。",
       "bytez": "1ドルの無料クレジット、4週間ごとに更新",
-      "cerebras": "無料トライアル: 1日あたり100万トークン、30K TPM、5 RPM — クレジットカード不要。",
+      "cerebras": "登録時に 1 回限りの $5 クレジット（有効期間 30 日）。支払い方法の登録が必要です。継続的な無料枠ではありません。",
       "charm-hyper": "https://hyper.charm.land でAPIキーを作成し、ここにBearerトークンとして貼り付けます。",
       "chutes": "Chutes OpenAI互換ゲートウェイ用のBearer APIキー。",
       "clarifai": "Clarifaiは/v2/ext/openai/v1でOpenAI互換のチャット、レスポンス、/modelsを公開しています。パブリック/コミュニティモデルには通常PATが必要です。アプリスコープのキーはそのアプリ内のリソースに対してのみ機能します。",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "すべてのプロバイダー トラフィックは、このサブスクリプションのプロキシ プールを経由します。",
       "ruleModeDesc": "選択されたプロバイダーのトラフィックのみがプロキシを通過します。残りは直接接続します。",
       "localCoreEndpoint": "ローカルコア SOCKS5/HTTP エンドポイント (オプション)",
-      "localCoreEndpointPlaceholder": "靴下5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "127.0.0.1 / localhost のみを受け入れます (SS/VMess/Trojan/VLESS にはローカルのシングボックス/クラッシュ コアが必要です)。",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "1 行に 1 つ。127.0.0.1 / localhost のみ受け付けます（SS/VMess/Trojan/VLESS にはローカルの sing-box/clash コアが必要です）。",
       "routeByProvider": "プロバイダーによるルート (複数選択)",
       "loadingProviders": "プロバイダーリストを読み込み中…",
       "autoRefreshInterval": "自動更新間隔 (分)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP 記述圧縮",
     "mcpAccessibilityTitle": "MCPアクセシビリティ出力",
     "compressionSettingsCavemanIntensity": "穴居人の激しさ",
-    "compressionSettingsCavemanOutputMode": "穴居人出力モード",
     "compressionSettingsOutputStyles": "出力スタイル",
     "compressionStylesTileTitle": "出力スタイル",
     "compressionSettingsOutputIntensity": "出力強度",
-    "compressionSettingsAutoClarityBypass": "自動明瞭度バイパス",
     "compressionEffectivePipeline": "有効なパイプライン:",
     "compressionDerivedOff": "オフ",
     "compressionDerivedRuns": "実行: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "圧縮する最小行数",
         "description": "表形式の圧縮をトリガーするために必要な、同質なJSON配列の最小行数。デフォルト: 8。"
       },
-      "preserveSystemPrompt": {
-        "label": "システムプロンプトを保持"
-      },
       "summarizerEnabled": {
         "label": "要約機能を有効化"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "これより短いメッセージは圧縮されません。低い = 圧縮が高くなります。",
     "tooltipMinSavings": "少なくともこの数のトークンを保存する場合にのみ圧縮してください。",
     "ultraSettings": "ウルトラ設定",
-    "ultraSettingsDesc": "SLM を利用したセマンティック圧縮",
-    "preview": {
-      "lite": "簡潔に回答してください。技術用語、コード、エラー、URL、識別子は保持してください。",
-      "full": "簡潔かつコンパクトに回答してください。技術的な内容はすべて保持してください。",
-      "ultra": "一般的な技術略語を使用して、極めて簡潔に回答してください。記号は正確に保持してください。"
-    }
+    "ultraSettingsDesc": "SLM を利用したセマンティック圧縮"
   },
   "translator": {
     "title": "翻訳者",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "リセットを引き換える",
     "manageResetCredits": "クレジットを表示",
     "viewResetCredits": "リセットクレジットを表示",
-    "resetCreditsModalTitle": "Codexリセットクレジット",
+    "resetCreditsModalTitle": "リセットクレジット",
     "resetCreditsModalExplainer": "クレジットは有効期限順に並んでいます。自動引き換えでは、常に有効期限が最も早いクレジットが使用されます。",
     "resetCreditsLoadFailed": "リセットクレジットの読み込みに失敗しました",
     "resetCreditsDetailsUnavailable": "クレジットの詳細は現在利用できません。更新してもう一度お試しください。",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "有効期限なし",
     "redeemThisResetCredit": "引き換える",
     "confirmRedeemResetCreditTitle": "このリセットクレジットを引き換えますか？",
-    "confirmRedeemResetCredit": "引き換えると、対象のCodex利用枠が即座にリセットされ、このクレジットは完全に消費されます。",
+    "confirmRedeemResetCredit": "引き換えると、対象の利用枠が即座にリセットされ、このクレジットは完全に消費されます。",
     "confirmRedeemResetCreditButton": "クレジットを引き換える",
     "resetCreditRedeemed": "引き換え済みのリセット",
     "resetCreditRedeemFailed": "リセットクレジットの引き換えに失敗しました",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "プロキシに到達できません",
     "poolSetAsideKindIpQuota429": "IP レート制限 (429)",
     "poolSetAsideKindSlow": "遅い応答",
+    "poolSetAsideKindGeoBlocked": "地域ブロック (403/451)",
     "poolSetAsideUntil": "{endsAt}にローテーション復帰",
     "poolSetAsideRepeat": "除外{count, plural, one {#回} other {#回}}",
     "poolUnknownAddress": "不明なアドレス",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "位置順序",
     "poolHealthRankingOff": "ヘルスランキング無効",
     "transportRate": "{rate}％トランスポート",
+    "slowAbandoned": "{count} 回の遅延による中断",
+    "clientAborted": "{count} 回のクライアントによる中断",
+    "slowAbandonedHint": "ヘッダー待ち時間の閾値を超過した後に中断され、転送レートから除外されました",
     "previousSuccessRate": "以前は{rate}％成功",
-    "upstreamRefusals": "{count}件のアップストリーム拒否",
     "connectionTestsCount": "{count}件の接続テスト",
-    "notMeasured": "未測定"
+    "notMeasured": "未測定",
+    "upstream4xx": "{count}件の上流クライアントエラー",
+    "upstream5xx": "{count}件の上流サーバーエラー",
+    "uniformEgressLine": "{affected}個の{exits}エグジットが、過去{hours}時間に{provider}上で同時に障害を起こしています — エグジット側の問題ではありません"
   },
   "playground": {
     "title": "Title",
@@ -12582,7 +12578,7 @@
       },
       "omni-mcp": {
         "name": "MCPサーバー",
-        "description": "OmniRoute MCPサーバー（37のツール、3つのトランスポート：SSE/stdio/HTTP）に接続します。16の権限スコープにわたるルーティング、キャッシュ、圧縮、メモリ、スキル、プロバイダー、および監査ツールをカバーします。"
+        "description": "OmniRoute MCPサーバー（110のツール、3つのトランスポート：SSE/stdio/HTTP）に接続します。33の権限スコープにわたるルーティング、キャッシュ、圧縮、メモリ、スキル、プロバイダー、および監査ツールをカバーします。"
       },
       "omni-agents-a2a": {
         "name": "エージェント＆A2Aプロトコル",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} 非アクティブ",
     "dbOverrideCount": "{count} DBオーバーライド",
     "searchPlaceholder": "フラグを検索...",
+    "descriptionModeLabel": "説明表示",
+    "descriptionModeHint": "ホバー時：カードはコンパクトなままで、説明にカーソルを合わせると全文が表示されます。全文：説明全体を常に表示します。",
+    "descriptionModeHover": "ホバー時",
+    "descriptionModeFull": "全文",
     "categories": {
       "all": "すべて",
       "security": "セキュリティ",

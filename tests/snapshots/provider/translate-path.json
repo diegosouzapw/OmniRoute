@@ -2269,8 +2269,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.freetheai.xyz/v1/chat/completions",
-      "stream": "https://api.freetheai.xyz/v1/chat/completions"
+      "nonStream": "https://api.freetheai.org/v1/chat/completions",
+      "stream": "https://api.freetheai.org/v1/chat/completions"
     }
   },
   "friendliai": {

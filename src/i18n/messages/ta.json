@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP விளக்கம் சுருக்கம்",
     "mcpAccessibilityTitle": "MCP அணுகல்தன்மை வெளியீடு",
     "compressionSettingsCavemanIntensity": "கேவ்மேன் தீவிரம்",
-    "compressionSettingsCavemanOutputMode": "கேவ்மேன் வெளியீட்டு முறை",
     "compressionSettingsOutputStyles": "வெளியீட்டு பாணிகள்",
     "compressionStylesTileTitle": "வெளியீட்டு பாணிகள்",
     "compressionSettingsOutputIntensity": "வெளியீட்டு தீவிரம்",
-    "compressionSettingsAutoClarityBypass": "தானியங்கு தெளிவு பைபாஸ்",
     "compressionEffectivePipeline": "செயல்திறன்மிக்க பைப்லைன்:",
     "compressionDerivedOff": "ஆஃப்",
     "compressionDerivedRuns": "இயக்கங்கள்: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "சுருக்குவதற்கான குறைந்தபட்ச வரிசைகள்",
         "description": "அட்டவணை சுருக்கத்தைத் தூண்டுவதற்கு ஒரே மாதிரியான JSON வரிசையில் தேவைப்படும் குறைந்தபட்ச வரிசைகள். இயல்புநிலை: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "சிஸ்டம் பிராம்ப்ட்டைப் பாதுகாக்கவும்"
-      },
       "summarizerEnabled": {
         "label": "சுருக்கியை இயக்கு"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "இதை விட குறைவான செய்திகள் சுருக்கப்படாது. கீழ் = அதிக சுருக்கம்.",
     "tooltipMinSavings": "குறைந்தபட்சம் இத்தனை டோக்கன்களைச் சேமித்தால் மட்டுமே சுருக்கவும்.",
     "ultraSettings": "அல்ட்ரா அமைப்புகள்",
-    "ultraSettingsDesc": "SLM-இயங்கும் சொற்பொருள் சுருக்கம்",
-    "preview": {
-      "lite": "சுருக்கமாகப் பதிலளிக்கவும். தொழில்நுட்பச் சொற்கள், code, errors, URLs மற்றும் identifiers ஆகியவற்றை மாற்றாமல் வைத்திருக்கவும்.",
-      "full": "சுருக்கமாகவும் செறிவாகவும் பதிலளிக்கவும். அனைத்து தொழில்நுட்ப உள்ளடக்கத்தையும் பாதுகாக்கவும்.",
-      "ultra": "பொதுவான தொழில்நுட்பச் சுருக்கங்களைப் பயன்படுத்தி மிகச் சுருக்கமாகப் பதிலளிக்கவும். துல்லியமான குறியீடுகளைப் பாதுகாக்கவும்."
-    }
+    "ultraSettingsDesc": "SLM-இயங்கும் சொற்பொருள் சுருக்கம்"
   },
   "translator": {
     "title": "மொழிபெயர்ப்பி",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "ப்ராக்ஸியை அணுக முடியவில்லை",
     "poolSetAsideKindIpQuota429": "IP விகித வரம்பு (429)",
     "poolSetAsideKindSlow": "மெதுவான பதில்கள்",
+    "poolSetAsideKindGeoBlocked": "பகுதி தடைசெய்யப்பட்டது (403/451)",
     "poolSetAsideUntil": "சுழற்சிக்கு திரும்பு {endsAt}",
     "poolSetAsideRepeat": "ஒதுக்கி வைக்கப்பட்டது {count, plural, one {# முறை} other {# முறை}}",
     "poolUnknownAddress": "தெரியாத முகவரி",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "நிலை வரிசை",
     "poolHealthRankingOff": "சுகாதார தரவரிசை நிறுத்தம்",
     "transportRate": "{rate}% போக்குவரத்து",
+    "slowAbandoned": "{count} மெதுவான கைவிடல்கள்",
+    "clientAborted": "{count} வாடிக்கையாளர் நிறுத்தங்கள்",
+    "slowAbandonedHint": "தலைப்புகள் காத்திருப்பு வரம்புக்குப் பிறகு கைவிடப்பட்டது, போக்குவரத்து விகிதத்தில் இருந்து நீக்கப்பட்டது",
     "previousSuccessRate": "முன்பு {rate}% வெற்றி",
-    "upstreamRefusals": "{count} அப்ஸ்ட்ரீம் மறுப்புகள்",
     "connectionTestsCount": "{count} இணைப்பு சோதனைகள்",
-    "notMeasured": "அளவிடப்படவில்லை"
+    "notMeasured": "அளவிடப்படவில்லை",
+    "upstream4xx": "{count} மேல்நிலை கிளையண்ட் பிழைகள்",
+    "upstream5xx": "{count} மேல்நிலை சர்வர் பிழைகள்",
+    "uniformEgressLine": "{provider} இல் {exits} வெளியேற்றங்களில் {affected} ஒன்றாகத் தோல்வியடைகின்றன (கடந்த {hours} மணிநேரம்) — வெளியேற்றப் பிரச்சினை அல்ல"
   },
   "playground": {
     "title": "மாதிரி சோதனைக்களம்",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} செயலற்றது",
     "dbOverrideCount": "{count} DB மேலெழுதல்கள்",
     "searchPlaceholder": "கொடிகளைத் தேடுக...",
+    "descriptionModeLabel": "விளக்கக் காட்சி",
+    "descriptionModeHint": "சுட்டியை மேலே நகர்த்தும்போது: அட்டைகள் சுருக்கமாகவே இருக்கும்; விளக்கத்தின் மீது சுட்டியை நகர்த்தினால் முழு உரை காட்டப்படும். முழு உரை: எப்போதும் முழுமையான விளக்கத்தைக் காட்டு.",
+    "descriptionModeHover": "சுட்டியை மேலே நகர்த்தும்போது",
+    "descriptionModeFull": "முழு உரை",
     "categories": {
       "all": "அனைத்தும்",
       "security": "பாதுகாப்பு",

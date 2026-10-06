@@ -5636,7 +5636,7 @@
     "accountName": "Kontonamn",
     "email": "E-post",
     "healthCheckMinutes": "Hälsokontroll (min)",
-    "healthCheckHint": "Proaktivt uppdateringsintervall för token. 0 = inaktiverad.",
+    "healthCheckHint": "Åsidosättning för den här anslutningen. Tom = följ den globala standarden (Inställningar › Motståndskraft). 0 = kontrollera aldrig den här anslutningen. Max 1440 (24 h).",
     "deselectAllModels": "Avmarkera alla",
     "modelsActiveCount": "{active}/{total} aktiva",
     "noModelsMatch": "Inga modeller matchar \"{filter}\"",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Hämta din API-nyckel på https://www.bluesminds.com — OpenAI-kompatibel slutpunkt på https://api.bluesminds.com/v1 med dagliga gratiskrediter. VIP-modeller (Claude Opus 4.5, Gemini 2.5 Pro) förbrukar pi-krediter.",
       "byteplus": "Anslut BytePlus ModelArk med en API-nyckel.",
       "bytez": "$1 i gratiskrediter, förnyas var 4:e vecka",
-      "cerebras": "Kostnadsfri provperiod: 1M tokens/dag, 30K TPM, 5 RPM — inget kreditkort.",
+      "cerebras": "Engångskredit på $5 vid registrering (giltig i 30 dagar); en betalningsmetod krävs. Inte en återkommande gratisnivå.",
       "charm-hyper": "Skapa en API-nyckel på https://hyper.charm.land och klistra sedan in den här som en Bearer-token.",
       "chutes": "Bearer API-nyckel för den OpenAI-kompatibla Chutes-gatewayen.",
       "clarifai": "Clarifai exponerar OpenAI-kompatibel chatt, svar och /models på /v2/ext/openai/v1. Offentliga/community-modeller kräver vanligtvis en PAT; app-begränsade nycklar fungerar endast för resurser inom den appen.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "All leverantörstrafik går genom denna prenumerations proxypool.",
       "ruleModeDesc": "Endast utvalda leverantörers trafik går genom proxyn; resten ansluter direkt.",
       "localCoreEndpoint": "Local Core SOCKS5/HTTP-slutpunkt (valfritt)",
-      "localCoreEndpointPlaceholder": "strumpor5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Accepterar endast 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS kräver en lokal sing-box/clash-kärna).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "En per rad. Accepterar endast 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS kräver en lokal sing-box/clash-kärna).",
       "routeByProvider": "Rutt efter leverantör (multi-select)",
       "loadingProviders": "Laddar leverantörslista...",
       "autoRefreshInterval": "Autouppdateringsintervall (minuter)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-beskrivningskomprimering",
     "mcpAccessibilityTitle": "MCP-tillgänglighetsutdata",
     "compressionSettingsCavemanIntensity": "Grottmänniska intensitet",
-    "compressionSettingsCavemanOutputMode": "Grottmansutgångsläge",
     "compressionSettingsOutputStyles": "Utdatastilar",
     "compressionStylesTileTitle": "Utdatastilar",
     "compressionSettingsOutputIntensity": "Utgångsintensitet",
-    "compressionSettingsAutoClarityBypass": "Automatisk förbikoppling av klarhet",
     "compressionEffectivePipeline": "Effektiv pipeline:",
     "compressionDerivedOff": "av",
     "compressionDerivedRuns": "körningar: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minsta antal rader att komprimera",
         "description": "Minsta antal rader i en homogen JSON-array som krävs för att utlösa tabellkomprimering. Standard: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Bevara systemprompt"
-      },
       "summarizerEnabled": {
         "label": "Aktivera sammanfattare"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Meddelanden kortare än detta komprimeras inte. Lägre = mer kompression.",
     "tooltipMinSavings": "Komprimera bara om det sparar åtminstone så många tokens.",
     "ultraSettings": "Ultrainställningar",
-    "ultraSettingsDesc": "SLM-driven semantisk komprimering",
-    "preview": {
-      "lite": "Svara kortfattat. Bevara tekniska termer, kod, fel, URL:er och identifierare.",
-      "full": "Svara koncist och kompakt. Bevara allt tekniskt innehåll.",
-      "ultra": "Svara extremt kortfattat med vanliga tekniska förkortningar. Bevara exakta symboler."
-    }
+    "ultraSettingsDesc": "SLM-driven semantisk komprimering"
   },
   "translator": {
     "title": "Översättare",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Lös in återställning",
     "manageResetCredits": "Visa krediter",
     "viewResetCredits": "Visa återställningskrediter",
-    "resetCreditsModalTitle": "Codex-återställningskrediter",
+    "resetCreditsModalTitle": "Återställningskrediter",
     "resetCreditsModalExplainer": "Krediter sorteras efter utgångsdatum. Automatisk inlösen använder alltid den kredit som går ut först.",
     "resetCreditsLoadFailed": "Misslyckades med att läsa in återställningskrediter",
     "resetCreditsDetailsUnavailable": "Kreditinformation är för närvarande inte tillgänglig. Uppdatera och försök igen.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Inget utgångsdatum",
     "redeemThisResetCredit": "Lös in",
     "confirmRedeemResetCreditTitle": "Lös in denna återställningskredit?",
-    "confirmRedeemResetCredit": "Inlösen återställer omedelbart de berättigade Codex-användningsfönstren och förbrukar denna kredit permanent.",
+    "confirmRedeemResetCredit": "Inlösen återställer omedelbart de berättigade användningsfönstren och förbrukar denna kredit permanent.",
     "confirmRedeemResetCreditButton": "Lös in kredit",
     "resetCreditRedeemed": "Återställ inlösta",
     "resetCreditRedeemFailed": "Misslyckades med att lösa in återställningskredit",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxyn går inte att nå",
     "poolSetAsideKindIpQuota429": "IP-hastighetsbegränsning (429)",
     "poolSetAsideKindSlow": "långsamma svar",
+    "poolSetAsideKindGeoBlocked": "regionsblockerad (403/451)",
     "poolSetAsideUntil": "Tillbaka i rotation {endsAt}",
     "poolSetAsideRepeat": "Åsidosatt {count, plural, one {# gång} other {# gånger}}",
     "poolUnknownAddress": "Okänd adress",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Positionsordning",
     "poolHealthRankingOff": "Hälsorankning av",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} långsamma övergivanden",
+    "clientAborted": "{count} klientavbrott",
+    "slowAbandonedHint": "Övergivna efter rubrikväntetidgränsen, exkluderade från transporttalet",
     "previousSuccessRate": "Tidigare {rate} % lyckade",
-    "upstreamRefusals": "{count} upstream-avvisningar",
     "connectionTestsCount": "{count} anslutningstester",
-    "notMeasured": "Inte mätt"
+    "notMeasured": "Inte mätt",
+    "upstream4xx": "{count} uppströms klientfel",
+    "upstream5xx": "{count} uppströms serverfel",
+    "uniformEgressLine": "{affected} av {exits} utgångar fallerar samtidigt hos {provider} (senaste {hours}h) — inte ett utgångsproblem"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inaktiva",
     "dbOverrideCount": "{count} DB-överskrivningar",
     "searchPlaceholder": "Sök flaggor...",
+    "descriptionModeLabel": "Beskrivningsvy",
+    "descriptionModeHint": "Vid hovring: korten förblir kompakta och när du hovrar över en beskrivning visas hela texten. Fullständig text: visa alltid hela beskrivningen.",
+    "descriptionModeHover": "Vid hovring",
+    "descriptionModeFull": "Fullständig text",
     "categories": {
       "all": "Alla",
       "security": "Säkerhet",

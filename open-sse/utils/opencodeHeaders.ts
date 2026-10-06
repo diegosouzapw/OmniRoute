@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID } from "crypto";
 import { setUserAgentHeader } from "../executors/base.ts";
 import { generateSessionId } from "../services/sessionManager.ts";
+import { getCachedOpencodeCliVersion, refreshOpencodeCliVersion } from "./opencodeCliVersion.ts";
 import {
   resolveOpencodeSessionIdentity,
   type OpencodeSessionBody,
@@ -64,11 +65,18 @@ export function resolveOpencodeCliDefaults(
   }
   const envUAKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
   const configuredUA = process.env[envUAKey]?.trim() || process.env.OPENCODE_USER_AGENT?.trim();
+  // Auto-refresh the live CLI version in the background (coalesced, 6h TTL, never
+  // throws); the default below reads the cache synchronously so synthesis never blocks.
+  // Skipped under test runners: their globalThis.fetch stubs count dispatches, and the
+  // registry lookup would be counted as one (same guard as adobeFireflySession).
+  if (!process.env.NODE_TEST_CONTEXT && !process.env.VITEST && process.env.NODE_ENV !== "test") {
+    void refreshOpencodeCliVersion();
+  }
   return {
     userAgent:
       configuredUA && (!gated || satisfiesOpencodeUserAgentContract(configuredUA))
         ? configuredUA
-        : DEFAULT_OPENCODE_USER_AGENT,
+        : `opencode/${getCachedOpencodeCliVersion()}`,
     client: process.env.OPENCODE_CLIENT?.trim() || "desktop",
     project: process.env.OPENCODE_PROJECT?.trim() || "global",
   };

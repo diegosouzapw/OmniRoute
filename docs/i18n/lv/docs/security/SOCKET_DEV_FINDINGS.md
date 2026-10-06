@@ -215,13 +215,13 @@ var centralizēti pārvaldīt komandas akreditācijas datus. Labojums padara apd
 
 ## Būvējuma profils: `minimal`
 
-Lietotājiem, kuriem nepieciešams ar Socket saderīgs artefakts, jāveido ar:
+Lietotājiem, kuriem nepieciešams ar Socket saderīgs artefakts, būvējiet ar:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack `NormalModuleReplacementPlugin` aizstāj četrus moduļus ar aizstājējmoduļiem:
+Webpack spraudnis `NormalModuleReplacementPlugin` aizstāj četrus moduļus ar aizstājējmoduļiem:
 
 | Modulis                                     | Aizstājējmodulis                                 |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -232,11 +232,10 @@ Webpack `NormalModuleReplacementPlugin` aizstāj četrus moduļus ar aizstājēj
 
 Katrs aizstājējmodulis eksportē to pašu saskarni, taču izpildlaikā katra funkcija izmet
 `featureDisabledError(name)`. Maršruti, kas ir atkarīgi no atspējotā
-moduļa, atgriež HTTP 503 ar skaidru ziņojumu, nevis aktivizē sensitīvo
-koda ceļu.
+moduļa, atgriež HTTP 503 ar skaidru ziņojumu, nevis aktivizē
+sensitīvo koda ceļu.
 
-Iegūtais komplekts ir paredzēts publicēšanai kā `omniroute-secure`. Publicēšanas norādījumus
-skatiet `docs/ops/PUBLISHING_SECURE.md`.
+Iegūto komplektu paredzēts publicēt kā `omniroute-secure`.
 
 ---
 

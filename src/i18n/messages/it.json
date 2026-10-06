@@ -5636,7 +5636,7 @@
     "accountName": "Nome utente",
     "email": "E-mail",
     "healthCheckMinutes": "Controllo dello stato (min)",
-    "healthCheckHint": "Intervallo di aggiornamento del token proattivo. 0 = disabilitato.",
+    "healthCheckHint": "Valore specifico per questa connessione. Vuoto = segui il valore globale predefinito (Impostazioni › Resilienza). 0 = non controllare mai questa connessione. Massimo 1440 (24 h).",
     "deselectAllModels": "Deseleziona tutto",
     "modelsActiveCount": "{active}/{total} attivi",
     "noModelsMatch": "Nessun modello corrisponde a \"{filter}\"",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Ottieni la tua chiave API su https://www.bluesminds.com — endpoint compatibile con OpenAI su https://api.bluesminds.com/v1 con crediti giornalieri gratuiti. I modelli VIP (Claude Opus 4.5, Gemini 2.5 Pro) consumano crediti pi.",
       "byteplus": "Connetti BytePlus ModelArk con una chiave API.",
       "bytez": "$1 di crediti gratuiti, si rinnova ogni 4 settimane",
-      "cerebras": "Prova gratuita: 1M di token/giorno, 30K TPM, 5 RPM — nessuna carta di credito.",
+      "cerebras": "Credito una tantum di 5 $ all'iscrizione (valido 30 giorni); è richiesto un metodo di pagamento. Non è un livello gratuito ricorrente.",
       "charm-hyper": "Crea una chiave API su https://hyper.charm.land, quindi incollala qui come token Bearer.",
       "chutes": "Chiave API Bearer per il gateway compatibile con OpenAI di Chutes.",
       "clarifai": "Clarifai espone chat, risposte e /models compatibili con OpenAI su /v2/ext/openai/v1. I modelli pubblici/della community richiedono in genere un PAT; le chiavi con ambito app funzionano solo per le risorse all'interno di quell'app.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Tutto il traffico del provider passa attraverso il pool proxy di questo abbonamento.",
       "ruleModeDesc": "Solo il traffico dei Provider selezionati passa attraverso il proxy; il resto si collega direttamente.",
       "localCoreEndpoint": "Endpoint Core locale SOCKS5/HTTP (facoltativo)",
-      "localCoreEndpointPlaceholder": "calzini5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Accetta solo 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS richiedono un core sing-box/clash locale).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Uno per riga. Accetta solo 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS richiedono un core sing-box/clash locale).",
       "routeByProvider": "Itinerario per Provider (selezione multipla)",
       "loadingProviders": "Caricamento elenco fornitori…",
       "autoRefreshInterval": "Intervallo di aggiornamento automatico (minuti)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Compressione della descrizione MCP",
     "mcpAccessibilityTitle": "Output di accessibilità MCP",
     "compressionSettingsCavemanIntensity": "Intensità da cavernicolo",
-    "compressionSettingsCavemanOutputMode": "Modalità di uscita cavernicolo",
     "compressionSettingsOutputStyles": "Stili di output",
     "compressionStylesTileTitle": "Stili di output",
     "compressionSettingsOutputIntensity": "Intensità di uscita",
-    "compressionSettingsAutoClarityBypass": "Bypass automatico della chiarezza",
     "compressionEffectivePipeline": "Pipeline effettiva:",
     "compressionDerivedOff": "disattivato",
     "compressionDerivedRuns": "esecuzioni: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Righe minime da compattare",
         "description": "Numero minimo di righe in un array JSON omogeneo richiesto per attivare la compattazione tabulare. Predefinito: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Preserva prompt di sistema"
-      },
       "summarizerEnabled": {
         "label": "Abilita summarizer"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "I messaggi più brevi di questo non vengono compressi. Più basso = maggiore compressione.",
     "tooltipMinSavings": "Comprimi solo se salva almeno questo numero di token.",
     "ultraSettings": "Impostazioni ultra",
-    "ultraSettingsDesc": "Compressione semantica basata su SLM",
-    "preview": {
-      "lite": "Rispondi in modo conciso. Mantieni invariati termini tecnici, codice, errori, URL e identificatori.",
-      "full": "Rispondi in modo succinto e compatto. Mantieni tutto il contenuto tecnico.",
-      "ultra": "Rispondi in modo estremamente succinto usando abbreviazioni tecniche comuni. Mantieni invariati i simboli esatti."
-    }
+    "ultraSettingsDesc": "Compressione semantica basata su SLM"
   },
   "translator": {
     "title": "Traduttore",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Riscatta ripristino",
     "manageResetCredits": "Visualizza crediti",
     "viewResetCredits": "Visualizza crediti di ripristino",
-    "resetCreditsModalTitle": "Crediti di ripristino Codex",
+    "resetCreditsModalTitle": "Crediti di ripristino",
     "resetCreditsModalExplainer": "I crediti sono ordinati per scadenza. Il riscatto automatico utilizza sempre il credito che scade per primo.",
     "resetCreditsLoadFailed": "Impossibile caricare i crediti di ripristino",
     "resetCreditsDetailsUnavailable": "I dettagli del credito non sono attualmente disponibili. Aggiorna e riprova.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Nessuna data di scadenza",
     "redeemThisResetCredit": "Riscatta",
     "confirmRedeemResetCreditTitle": "Riscattare questo credito di ripristino?",
-    "confirmRedeemResetCredit": "Il riscatto azzera immediatamente le finestre di utilizzo di Codex idonee e consuma permanentemente questo credito.",
+    "confirmRedeemResetCredit": "Il riscatto azzera immediatamente le finestre di utilizzo idonee e consuma permanentemente questo credito.",
     "confirmRedeemResetCreditButton": "Riscatta credito",
     "resetCreditRedeemed": "Ripristino riscattato",
     "resetCreditRedeemFailed": "Impossibile riscattare il credito di ripristino",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy non raggiungibile",
     "poolSetAsideKindIpQuota429": "limite di frequenza per IP (429)",
     "poolSetAsideKindSlow": "risposte lente",
+    "poolSetAsideKindGeoBlocked": "bloccato per regione (403/451)",
     "poolSetAsideUntil": "Di nuovo in rotazione {endsAt}",
     "poolSetAsideRepeat": "Accantonato {count, plural, one {# volta} other {# volte}}",
     "poolUnknownAddress": "Indirizzo sconosciuto",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Ordine di posizione",
     "poolHealthRankingOff": "Classificazione salute disattivata",
     "transportRate": "{rate} % trasporto",
+    "slowAbandoned": "{count} abbandoni lenti",
+    "clientAborted": "{count} interruzioni da parte del client",
+    "slowAbandonedHint": "Abbandonato dopo aver superato la soglia di attesa delle intestazioni, escluso dalla tariffa di trasporto",
     "previousSuccessRate": "In precedenza {rate} % di successo",
-    "upstreamRefusals": "{count} rifiuti upstream",
     "connectionTestsCount": "{count} test di connessione",
-    "notMeasured": "Non misurato"
+    "notMeasured": "Non misurato",
+    "upstream4xx": "{count} errori del client a monte",
+    "upstream5xx": "{count} errori del server a monte",
+    "uniformEgressLine": "{affected} di {exits} uscite falliscono insieme su {provider} (ultime {hours}h) — non è un problema di uscita"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inattive",
     "dbOverrideCount": "{count} override del DB",
     "searchPlaceholder": "Cerca flag...",
+    "descriptionModeLabel": "Vista descrizione",
+    "descriptionModeHint": "Al passaggio del mouse: le schede rimangono compatte e passando il mouse su una descrizione viene mostrato il testo completo. Testo completo: mostra sempre la descrizione completa.",
+    "descriptionModeHover": "Al passaggio del mouse",
+    "descriptionModeFull": "Testo completo",
     "categories": {
       "all": "Tutte",
       "security": "Sicurezza",

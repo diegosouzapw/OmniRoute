@@ -5636,7 +5636,7 @@
     "accountName": "Pangalan ng account",
     "email": "Email",
     "healthCheckMinutes": "Pagsusuri sa Kalagayan (min)",
-    "healthCheckHint": "Proactive token refresh interval. 0 = hindi pinagana.",
+    "healthCheckHint": "Override para sa koneksyong ito. Walang laman = sundin ang global na default (Settings › Resilience). 0 = huwag kailanman suriin ang koneksyong ito. Maximum na 1440 (24 oras).",
     "deselectAllModels": "Alisin ang pagkakapili sa lahat",
     "modelsActiveCount": "{active}/{total} ang aktibo",
     "noModelsMatch": "Walang modelong tumutugma sa \"{filter}\"",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Kumuha ng iyong API key sa https://www.bluesminds.com — OpenAI-compatible na endpoint sa https://api.bluesminds.com/v1 na may mga libreng pang-araw-araw na credit. Ang mga VIP na modelo (Claude Opus 4.5, Gemini 2.5 Pro) ay kumokonsumo ng pi credit.",
       "byteplus": "Ikonekta ang BytePlus ModelArk gamit ang isang API key.",
       "bytez": "$1 na libreng credit, nagre-refresh kada 4 na linggo",
-      "cerebras": "Libreng Trial: 1M token/araw, 30K TPM, 5 RPM — walang credit card.",
+      "cerebras": "Isang beses na $5 na credit sa pag-sign up (valid nang 30 araw); kailangan ng paraan ng pagbabayad. Hindi ito paulit-ulit na libreng tier.",
       "charm-hyper": "Gumawa ng API key sa https://hyper.charm.land, pagkatapos ay i-paste ito rito bilang isang Bearer token.",
       "chutes": "Bearer API key para sa Chutes OpenAI-compatible gateway.",
       "clarifai": "Inilalantad ng Clarifai ang OpenAI-compatible na chat, mga tugon at /models sa /v2/ext/openai/v1. Karaniwang nangangailangan ng PAT ang mga pampubliko/komunidad na modelo; gumagana lang ang mga app-scoped key para sa mga resource sa loob ng app na iyon.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Ang lahat ng trapiko ng Provider ay dumadaan sa proxy pool ng subscription na ito.",
       "ruleModeDesc": "Tanging ang trapiko ng mga napiling Provider ang dumaan sa proxy; ang iba ay direktang kumonekta.",
       "localCoreEndpoint": "Lokal na Core SOCKS5/HTTP Endpoint (Opsyonal)",
-      "localCoreEndpointPlaceholder": "medyas5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Tumatanggap lamang ng 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS ay nangangailangan ng lokal na sing-box/clash core).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Isa bawat linya. Tumatanggap lamang ng 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS ay nangangailangan ng lokal na sing-box/clash core).",
       "routeByProvider": "Ruta ayon sa Provider (multi-select)",
       "loadingProviders": "Nilo-load ang listahan ng Provider...",
       "autoRefreshInterval": "Auto Refresh Interval (minuto)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "compression ng paglalarawan ng MCP",
     "mcpAccessibilityTitle": "Output ng accessibility ng MCP",
     "compressionSettingsCavemanIntensity": "Ang intensity ng Caveman",
-    "compressionSettingsCavemanOutputMode": "Output mode ng Caveman",
     "compressionSettingsOutputStyles": "Mga istilo ng output",
     "compressionStylesTileTitle": "Mga istilo ng output",
     "compressionSettingsOutputIntensity": "Intensidad ng output",
-    "compressionSettingsAutoClarityBypass": "Awtomatikong pag-bypass batay sa kalinawan",
     "compressionEffectivePipeline": "Epektibong pipeline:",
     "compressionDerivedOff": "naka-off",
     "compressionDerivedRuns": "mga pagtakbo: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimum na row na iko-compact",
         "description": "Minimum na row sa isang homogeneous na JSON array na kinakailangan upang ma-trigger ang tabular compaction. Default: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Panatilihin ang system prompt"
-      },
       "summarizerEnabled": {
         "label": "Paganahin ang summarizer"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Ang mga mensaheng mas maikli kaysa dito ay hindi na-compress. Mas mababa = mas maraming compression.",
     "tooltipMinSavings": "I-compress lamang kung nakakatipid ito ng kahit gaano karaming token.",
     "ultraSettings": "Mga Ultra Setting",
-    "ultraSettingsDesc": "Semantic compression na pinapagana ng SLM",
-    "preview": {
-      "lite": "Sumagot nang maikli. Panatilihin ang mga teknikal na termino, code, error, URL, at identifier.",
-      "full": "Sumagot nang maigsi at siksik. Panatilihin ang lahat ng teknikal na nilalaman.",
-      "ultra": "Sumagot nang napakaigsi gamit ang mga karaniwang teknikal na daglat. Panatilihin ang eksaktong mga simbolo."
-    }
+    "ultraSettingsDesc": "Semantic compression na pinapagana ng SLM"
   },
   "translator": {
     "title": "Tagasalin",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "I-redeem ang reset",
     "manageResetCredits": "Tingnan ang credits",
     "viewResetCredits": "Tingnan ang mga reset credit",
-    "resetCreditsModalTitle": "Mga Codex reset credit",
+    "resetCreditsModalTitle": "Mga reset credit",
     "resetCreditsModalExplainer": "Nakaayos ang mga credit ayon sa expiration. Palaging ginagamit sa awtomatikong pag-redeem ang credit na unang mag-eexpire.",
     "resetCreditsLoadFailed": "Hindi ma-load ang mga reset credit",
     "resetCreditsDetailsUnavailable": "Kasalukuyang hindi available ang mga detalye ng credit. Mag-refresh at subukang muli.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Walang petsa ng expiration",
     "redeemThisResetCredit": "I-redeem",
     "confirmRedeemResetCreditTitle": "I-redeem ang reset credit na ito?",
-    "confirmRedeemResetCredit": "Ang pag-redeem ay agad na magre-reset sa mga kwalipikadong window ng paggamit ng Codex at permanenteng gagamitin ang credit na ito.",
+    "confirmRedeemResetCredit": "Ang pag-redeem ay agad na magre-reset sa mga kwalipikadong window ng paggamit at permanenteng gagamitin ang credit na ito.",
     "confirmRedeemResetCreditButton": "I-redeem ang credit",
     "resetCreditRedeemed": "I-reset ang na-redeem",
     "resetCreditRedeemFailed": "Bigo sa pag-redeem ng reset credit",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "hindi maabot ang proxy",
     "poolSetAsideKindIpQuota429": "limitasyon sa rate ng IP (429)",
     "poolSetAsideKindSlow": "mabagal na mga tugon",
+    "poolSetAsideKindGeoBlocked": "binalaan ng rehiyon (403/451)",
     "poolSetAsideUntil": "Balik sa pag-ikot {endsAt}",
     "poolSetAsideRepeat": "Isinantabi {count, plural, one {# beses} other {# beses}}",
     "poolUnknownAddress": "Hindi kilalang address",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Ayos ng posisyon",
     "poolHealthRankingOff": "Naka-off ang ranggo ng kalusugan",
     "transportRate": "{rate}% transport",
+    "slowAbandoned": "{count} mabagal na pag-abandona",
+    "clientAborted": "{count} abort ng kliyente",
+    "slowAbandonedHint": "Inabandona matapos ang threshold ng paghihintay ng mga header, hindi isinama sa rate ng transport",
     "previousSuccessRate": "Dati {rate}% tagumpay",
-    "upstreamRefusals": "{count} pagtanggi ng upstream",
     "connectionTestsCount": "{count} pagsubok ng koneksyon",
-    "notMeasured": "Hindi nasukat"
+    "notMeasured": "Hindi nasukat",
+    "upstream4xx": "{count} mga error ng upstream client",
+    "upstream5xx": "{count} mga error ng upstream server",
+    "uniformEgressLine": "{affected} sa {exits} na mga exit ay sabay-sabay na nabigo sa {provider} (huling {hours}h) — hindi problema ng exit"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} hindi aktibo",
     "dbOverrideCount": "{count} na DB override",
     "searchPlaceholder": "Maghanap ng mga flag...",
+    "descriptionModeLabel": "View ng paglalarawan",
+    "descriptionModeHint": "Kapag naka-hover: mananatiling compact ang mga card at makikita ang buong teksto kapag nag-hover sa isang paglalarawan. Buong teksto: palaging ipakita ang kumpletong paglalarawan.",
+    "descriptionModeHover": "Kapag naka-hover",
+    "descriptionModeFull": "Buong teksto",
     "categories": {
       "all": "Lahat",
       "security": "Seguridad",

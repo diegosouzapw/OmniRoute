@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP description compression",
     "mcpAccessibilityTitle": "MCP accessibility output",
     "compressionSettingsCavemanIntensity": "Caveman intensity",
-    "compressionSettingsCavemanOutputMode": "Caveman output mode",
     "compressionSettingsOutputStyles": "Output styles",
     "compressionStylesTileTitle": "Output styles",
     "compressionSettingsOutputIntensity": "Output intensity",
-    "compressionSettingsAutoClarityBypass": "Auto clarity bypass",
     "compressionEffectivePipeline": "Effective pipeline:",
     "compressionDerivedOff": "off",
     "compressionDerivedRuns": "runs: {pipeline}",
@@ -8544,6 +8542,7 @@
   "compressionEngineConfig": {
     "loading": "Loading…",
     "loadFailed": "Failed to load engine information.",
+    "settingsLoadFailed": "Failed to load the saved settings. The fields show defaults, and Save stays off until the page reloads.",
     "engineNotFound": "Engine \"{engine}\" not found.",
     "saveFailed": "Failed to save configuration.",
     "previewFailed": "Preview failed.",
@@ -8638,9 +8637,6 @@
       "minRows": {
         "label": "Minimum rows to compact",
         "description": "Minimum rows in a homogeneous JSON array required to trigger tabular compaction. Default: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Preserve system prompt"
       },
       "summarizerEnabled": {
         "label": "Enable summarizer"
@@ -9029,12 +9025,7 @@
     "tooltipMinLength": "Messages shorter than this are not compressed. Lower = more compression.",
     "tooltipMinSavings": "Only compress if it saves at least this many tokens.",
     "ultraSettings": "Ultra Settings",
-    "ultraSettingsDesc": "SLM-powered semantic compression",
-    "preview": {
-      "lite": "Respond concise. Preserve technical terms, code, errors, URLs, and identifiers.",
-      "full": "Respond terse and compact. Preserve all technical substance.",
-      "ultra": "Respond ultra terse with common technical abbreviations. Preserve exact symbols."
-    }
+    "ultraSettingsDesc": "SLM-powered semantic compression"
   },
   "translator": {
     "title": "Translator",
@@ -11089,6 +11080,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy unreachable",
     "poolSetAsideKindIpQuota429": "IP rate-limited (429)",
     "poolSetAsideKindSlow": "slow responses",
+    "poolSetAsideKindGeoBlocked": "region-blocked (403/451)",
     "poolSetAsideUntil": "Back in rotation {endsAt}",
     "poolSetAsideRepeat": "Set aside {count, plural, one {# time} other {# times}}",
     "poolUnknownAddress": "Unknown address",
@@ -11097,10 +11089,15 @@
     "poolSignalPosition": "Position order",
     "poolHealthRankingOff": "Health ranking off",
     "transportRate": "{rate}% transport",
+    "slowAbandoned": "{count} slow abandonments",
+    "clientAborted": "{count} client aborts",
+    "slowAbandonedHint": "Abandoned after the headers wait threshold, excluded from the transport rate",
     "previousSuccessRate": "Previously {rate}% success",
-    "upstreamRefusals": "{count} upstream refusals",
     "connectionTestsCount": "{count} connection tests",
-    "notMeasured": "Not measured"
+    "notMeasured": "Not measured",
+    "upstream4xx": "{count} upstream client errors",
+    "upstream5xx": "{count} upstream server errors",
+    "uniformEgressLine": "{affected} of {exits} exits fail together on {provider} (last {hours}h) — not an exit problem"
   },
   "playground": {
     "title": "Model Playground",
@@ -13055,6 +13052,10 @@
     "inactiveCount": "{count} inactive",
     "dbOverrideCount": "{count} DB overrides",
     "searchPlaceholder": "Search flags...",
+    "descriptionModeLabel": "Description view",
+    "descriptionModeHint": "On hover: cards stay compact and hovering a description shows the full text. Full text: always show the complete description.",
+    "descriptionModeHover": "On hover",
+    "descriptionModeFull": "Full text",
     "categories": {
       "all": "All",
       "security": "Security",

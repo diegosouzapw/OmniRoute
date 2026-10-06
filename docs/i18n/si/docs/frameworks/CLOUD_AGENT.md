@@ -302,24 +302,25 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 `cancel` මඟින් දේශීය DB හි `status` අගය `"cancelled"` ලෙස වෙනස් කරන නමුත්
 upstream සපයන්නා කැඳවීමක් **නොකරයි** — `CloudAgentBase` තුළ නවතා දැමීම සඳහා RPC එකක් නොමැත. Upstream බිල්කරණය නැවැත්වීමට, සපයන්නාගේම කොන්සෝලය තුළ කාර්යය අවසන් කරන්න.
 
-## REST API — Cloud සපයන්නා සම්බන්ධ කිරීම
+## REST API — Cloud Provider සම්බන්ධකරණය
 
-`src/app/api/cloud/` යටතේ ඇති මෙම සහායක endpoints, දුරස්ථ clients
-(CLI, Electron app එක, හෝ sync workers) විසින් සපයන්නාගේ සම්බන්ධතා metadata කියවීමට
-සහ model aliases විසඳීමට භාවිත කරයි. මේවා task endpoints භාවිත කරන management auth මඟින් නොව,
-**සාමාන්ය API key එකක්** මඟින් (`validateApiKey` හරහා) සත්යාපනය කෙරේ.
+`src/app/api/cloud/` යටතේ ඇති මෙම සහායක endpoints, provider සම්බන්ධතා metadata කියවීමට සහ model aliases නිරාකරණය කිරීමට දුරස්ථ clients
+(CLI, Electron app, හෝ sync workers) විසින් භාවිත කරනු ලැබේ. මේවා task endpoints භාවිත කරන management auth වෙනුවට **API key** එකක් මඟින්
+(`validateApiKey` හරහා) සත්යාපනය කරනු ලැබේ; `/api/cloud/auth` ආපසු ලබා දෙන දේ key එකේ scope එක මත රඳා පවතී (පහත බලන්න).
 
-| ක්රමය | Path                            | අරමුණ                                                                         |
-| ----- | ------------------------------- | ----------------------------------------------------------------------------- |
-| POST  | `/api/cloud/auth`               | API key එක වලංගු කර, masked සම්බන්ධතා metadata + model aliases ආපසු ලබා දීම   |
-| PUT   | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` නැවුම් කිරීම                     |
-| POST  | `/api/cloud/model/resolve`      | model alias එකක් `{ provider, model }` වෙත විසඳීම                             |
-| GET   | `/api/cloud/models/alias`       | සියලු model aliases ලැයිස්තුගත කිරීම                                          |
-| PUT   | `/api/cloud/models/alias`       | model alias එකක් සැකසීම (සක්රීය නම් Cloud වෙත ස්වයංක්රීයව sync කිරීමද ඇතුළුව) |
+| ක්රමය | Path                            | අරමුණ                                                                                |
+| ----- | ------------------------------- | ------------------------------------------------------------------------------------ |
+| POST  | `/api/cloud/auth`               | API key එක වලංගු කර, ආවරණය කළ සම්බන්ධතා metadata + model aliases ආපසු ලබා දීම        |
+| PUT   | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` නැවුම් කිරීම                            |
+| POST  | `/api/cloud/model/resolve`      | model alias එකක් `{ provider, model }` වෙත නිරාකරණය කිරීම                            |
+| GET   | `/api/cloud/models/alias`       | සියලු model aliases ලැයිස්තුගත කිරීම                                                 |
+| PUT   | `/api/cloud/models/alias`       | model alias එකක් සැකසීම (සක්රිය කර ඇත්නම් Cloud වෙත ස්වයංක්රීයව sync කිරීම ද ඇතුළුව) |
 
-`/api/cloud/auth` කිසිවිටෙකත් අමු `apiKey` / `accessToken` / `refreshToken` ආපසු ලබා නොදේ. එය
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken`, සහ masked පෙරදසුනක්
-(`maskedApiKey`: මුල් අක්ෂර 4 + `****` + අවසාන අක්ෂර 4) ආපසු ලබා දෙයි.
+`/api/cloud/auth` කිසිවිටෙකත් අමු `apiKey` / `accessToken` / `refreshToken` ආපසු ලබා නොදේ. එය key එකට භාවිත කළ හැකි සක්රිය සම්බන්ධතා සඳහා
+`hasApiKey`, `hasAccessToken`, `hasRefreshToken` ආපසු ලබා දෙයි (`allowedConnections` සමඟ සීමා කර ඇති key එකකට පෙනෙන්නේ ඒවා පමණි). `manage` හෝ `admin` scope සහිත API key එකක් සඳහා,
+`OMNIROUTE_API_KEY` වෙතින් ලැබෙන deployment key එක ද ඇතුළුව, එය ආවරණය කළ පෙරදසුනක් (`maskedApiKey`: එක් එක් කෙළවරේ අක්ෂර 4ක් දක්වා, කෙටි
+key එකක් සඳහා ඊට අඩුවෙන්, අක්ෂර 8ක් හෝ ඊට අඩු නම් කිසිවක් නොමැතිව) සහ සම්බන්ධතාවයේ `projectId` ද ආපසු ලබා දෙයි. වෙනත් ඕනෑම key එකක් සඳහා මෙම fields දෙකම
+response එකෙන් ඉවත් කරනු ලැබේ.
 
 ## Credentials විසඳීම
 

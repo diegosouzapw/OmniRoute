@@ -179,7 +179,7 @@ rawBody)`）。如果已设置密钥，则必须提供签名。如果未设置�
 
 ## 构建配置：`minimal`
 
-需要对 Socket 友好的构建产物时，请使用以下命令构建：
+对于需要 Socket 友好型构建产物的用户，请使用以下命令构建：
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
@@ -194,12 +194,11 @@ webpack 的 `NormalModuleReplacementPlugin` 会将四个模块别名映射到存
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-每个存根都导出相同的接口，但每个函数在运行时都会抛出
+每个存根均导出相同的接口，但每个函数都会在运行时抛出
 `featureDisabledError(name)`。依赖已禁用模块的路由会返回 HTTP 503
-以及清晰的消息，而不会激活敏感代码路径。
+及清晰的消息，而不会激活敏感代码路径。
 
-生成的捆绑包将以 `omniroute-secure` 的名称发布。有关发布流程，请参阅
-`docs/ops/PUBLISHING_SECURE.md`。
+生成的捆绑包旨在以 `omniroute-secure` 的名称发布。
 
 ---
 

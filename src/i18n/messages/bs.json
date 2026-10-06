@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Kompresija MCP opisa",
     "mcpAccessibilityTitle": "MCP izlaz pristupačnosti",
     "compressionSettingsCavemanIntensity": "Intenzitet pećinskog čovjeka",
-    "compressionSettingsCavemanOutputMode": "Način izlaza pećinskog čovjeka",
     "compressionSettingsOutputStyles": "Stilovi izlaza",
     "compressionStylesTileTitle": "Stilovi izlaza",
     "compressionSettingsOutputIntensity": "Intenzitet izlaza",
-    "compressionSettingsAutoClarityBypass": "Automatsko zaobilaženje jasnoće",
     "compressionEffectivePipeline": "Efektivni pipeline:",
     "compressionDerivedOff": "isključeno",
     "compressionDerivedRuns": "pokretanja: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimalni redovi za kompaktiranje",
         "description": "Minimalni broj redova u homogenom JSON nizu potreban za pokretanje tabularnog kompaktiranja. Podrazumijevano: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Zadrži sistemski prompt"
-      },
       "summarizerEnabled": {
         "label": "Omogući sumarizator"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Poruke kraće od ovoga se ne kompresuju. Niže = više kompresije.",
     "tooltipMinSavings": "Kompresuj samo ako uštedi najmanje toliko tokena.",
     "ultraSettings": "Ultra postavke",
-    "ultraSettingsDesc": "Semantička kompresija zasnovana na SLM-u",
-    "preview": {
-      "lite": "Odgovaraj koncizno. Zadrži tehničke termine, kod, greške, URL-ove i identifikatore.",
-      "full": "Odgovaraj kratko i kompaktno. Zadrži svu tehničku suštinu.",
-      "ultra": "Odgovaraj ultra kratko uz uobičajene tehničke skraćenice. Zadrži tačne simbole."
-    }
+    "ultraSettingsDesc": "Semantička kompresija zasnovana na SLM-u"
   },
   "translator": {
     "title": "Prevodilac",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy nedostupan",
     "poolSetAsideKindIpQuota429": "ograničenje brzine po IP-u (429)",
     "poolSetAsideKindSlow": "spori odgovori",
+    "poolSetAsideKindGeoBlocked": "regija blokirana (403/451)",
     "poolSetAsideUntil": "Nazad u rotaciji {endsAt}",
     "poolSetAsideRepeat": "Sklonjeno {count, plural, one {# put} other {# puta}}",
     "poolUnknownAddress": "Nepoznata adresa",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Redoslijed pozicija",
     "poolHealthRankingOff": "Rangiranje zdravlja isključeno",
     "transportRate": "{rate} % transporta",
+    "slowAbandoned": "{count} sporih napuštanja",
+    "clientAborted": "{count} klijentskih prekida",
+    "slowAbandonedHint": "Napušteno nakon praga čekanja zaglavlja, isključeno iz stope prijenosa",
     "previousSuccessRate": "Ranije {rate} % uspjeha",
-    "upstreamRefusals": "{count} upstream odbijanja",
     "connectionTestsCount": "{count} testova konekcije",
-    "notMeasured": "Nije mjereno"
+    "notMeasured": "Nije mjereno",
+    "upstream4xx": "{count} grešaka klijenta na izvoru",
+    "upstream5xx": "{count} grešaka servera na izvoru",
+    "uniformEgressLine": "{affected} od {exits} izlaza neuspješno zajedno na {provider} (posljednjih {hours}h) — nije problem izlaza"
   },
   "playground": {
     "title": "Testno okruženje za modele",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} neaktivno",
     "dbOverrideCount": "{count} DB nadjačavanja",
     "searchPlaceholder": "Pretraži zastavice.",
+    "descriptionModeLabel": "Prikaz opisa",
+    "descriptionModeHint": "Pri prelasku mišem: kartice ostaju kompaktne, a prelazak mišem preko opisa prikazuje cijeli tekst. Cijeli tekst: uvijek prikaži potpuni opis.",
+    "descriptionModeHover": "Pri prelasku mišem",
+    "descriptionModeFull": "Cijeli tekst",
     "categories": {
       "all": "Sve",
       "security": "Sigurnost",

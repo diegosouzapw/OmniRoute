@@ -436,7 +436,7 @@ const { messages: aged, saved } = applyAging(messages, {
 `messages`가 있는 본문에서 콘텐츠 우회 (`open-sse/services/compression/outputMode.ts`의
 `shouldBypassCavemanOutputMode()`)는 마지막 세 메시지를 확인하고, 해당 보안, 되돌릴 수 없는 작업,
 명확화 또는 순서에 민감한 키워드와 일치할 경우 전체 턴에 대한 스타일을 건너뜁니다.
-이 우회는 대시보드의 **자동 명확성 우회** 토글 (`cavemanOutputMode.autoClarity`) 설정과 관계없이 실행됩니다.
+이 우회는 대시보드의 **자동 명확성 우회** 토글 (`cavemanOutputMode.autoClarity`) 이 켜져 있는 동안 실행되며, 이것이 기본값입니다. 토글이 꺼져 있으면 선택한 스타일이 해당 턴에도 적용됩니다.
 
 우회가 턴을 통과시키면, `placeSystemInstruction()` (동일 파일)은 새 `messages[0]`를
 절대 생성하지 않으며, 다음 중 첫 번째로 발견되는 위치에 블록을 배치합니다.

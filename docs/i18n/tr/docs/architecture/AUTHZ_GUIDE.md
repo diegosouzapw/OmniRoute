@@ -17,58 +17,59 @@ OmniRoute, her API isteğini denetleyen rota-farkındalıklı bir yetkilendirme 
 
 ### 1. API Anahtarı (Bearer)
 
-OpenAI/Anthropic/Gemini uyumlu istemci API'leri ve anahtarın `manage` kapsamına sahip olduğu birkaç yönetim rotası için kullanılır.
+OpenAI/Anthropic/Gemini uyumlu istemci API'leri ve anahtarın `manage` kapsamına sahip olduğu bazı yönetim rotaları için kullanılır.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` içindeki `isValidApiKey()` / `extractApiKey()` tarafından doğrulanır ve `src/shared/utils/apiAuth.ts` üzerinden yeniden dışa aktarılır. Doğrulayıcı ayrıca `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ortam değişkenlerini kalıcı doğrudan geçiş anahtarları olarak kabul eder (sorun #1350).
+`src/sse/services/auth.ts` içindeki `isValidApiKey()` / `extractApiKey()` tarafından doğrulanır ve `src/shared/utils/apiAuth.ts` üzerinden yeniden dışa aktarılır. Doğrulayıcı, kalıcı doğrudan geçiş anahtarları olarak `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ortam değişkenlerini de kabul eder (sorun #1350).
 
 ### 2. Pano Oturumu (auth_token çerezi)
 
-Pano sayfaları ve yönetici işlemleri için kullanılır.
+Pano sayfaları ve yönetici işlemleri içindir.
 
 ```
 Cookie: auth_token=<JWT_SECRET ile imzalanmış JWT>
 ```
 
-Bir çerez yalnızca JWT doğrulandığında **ve** `authenticated: true` taşıdığında oturum olarak kabul edilir
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Çerezin her
-tüketicisi (rota koruması, authz işlem hattı yenilemesi, WebSocket el sıkışması, canlı
+Bir çerez, yalnızca JWT doğrulandığında **ve** `authenticated: true` taşıdığında oturum olarak kabul edilir
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Çerezi
+kullanan her bileşen (pano rota koruması (`isDashboardSessionAuthenticated()`), yetkilendirme işlem hattı yenilemesi, WebSocket el sıkışması, canlı
 sunucu, `/api/settings/require-login`, `/api/auth/status`) bu yardımcıdan geçer.
 `JWT_SECRET` ile imzalanmış başka JWT'ler de vardır — Cursor CLI doğrudan geçişi,
-anahtar sahipleri için `iss "omniroute" / aud "cursor-cli"` belirteçleri oluşturur — ve bunlar hiçbir zaman oturum
-olarak kabul edilmez (#13298).
+anahtar sahipleri için `iss "omniroute" / aud "cursor-cli"` belirteçleri oluşturur — ve bunlar hiçbir zaman oturum olarak kabul edilmez
+(#13298).
 
-`src/shared/utils/apiAuth.ts` içindeki `isDashboardSessionAuthenticated()` tarafından doğrulanır. İşlem hattı, 30 günlük kullanım ömrünün bitmesine 7 günden az kaldığında JWT'yi otomatik olarak yeniler.
+`src/shared/utils/apiAuth.ts` içindeki `isDashboardSessionAuthenticated()` tarafından doğrulanır. İşlem hattı, 30 günlük kullanım süresinin bitmesine 7 günden az kaldığında JWT'yi otomatik olarak yeniler.
 
-Bazı yönetim rotaları **iki** modu da kabul eder: API anahtarı `manage` (veya `admin`) kapsamına sahipse çerez VEYA `Bearer <key>`. v3.8'de eklenen “API çağrıları aracılığıyla yapılandırılabilir” iş akışını mümkün kılan budur.
+Her belirteç oluşturucu `mintDashboardSessionToken` üzerinden geçtiği (bir oluşturulma zamanı `iat` ve bir kimlik `jti`) ve doğrulayıcı iki ayarı kontrol ettiği için bir oturum 30 günlük süresi dolmadan da sona erebilir: `sessionsValidAfter`, parola değişikliğiyle ayarlanır ve bu tarihten önce oluşturulan tüm oturumların artık doğrulanmamasını sağlar (parolayı değiştiren tarayıcıya yeni bir çerez verilir); `revokedDashboardSessions` ise `POST /api/auth/logout` tarafından çıkış yapılan oturumun `jti` değerinin eklendiği listedir. Daha eski bir sürüm tarafından oluşturulan oturumlar bu istemlerin hiçbirini taşımaz ve ilk parola değişikliğine kadar geçerli kalır. Ayarlar okunamazsa oturuma güvenilmez.
+
+Bazı yönetim rotaları **iki** modu da kabul eder: çerez VEYA API anahtarı `manage` (ya da `admin`) kapsamına sahip olduğunda `Bearer <key>`. v3.8 sürümünde eklenen "API çağrılarıyla yapılandırılabilir" iş akışını mümkün kılan budur.
 
 #### İsteğe bağlı OIDC oturum açma geçidi (#6973)
 
-Pano yöneticisi oturum açma işlemi, varsayılan parola ile oturum açma yönteminin yanında
-**isteğe bağlı** bir OIDC (OpenID Connect) akışını da destekler — parola ile oturum açma hiçbir zaman
-kaldırılmaz, yalnızca desteklenir:
+Pano yönetici oturum açma işlemi, varsayılan parola ile oturum açmanın yanında **isteğe bağlı olarak etkinleştirilebilen** bir OIDC (OpenID Connect) akışını da destekler — parola ile oturum açma hiçbir zaman kaldırılmaz, yalnızca
+tamamlanır:
 
 - Yalnızca `settings.oidcEnabled === true` olduğunda **ve** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` değerlerinin tümü yapılandırıldığında etkinleştirilir (Ayarlar → Kimlik Doğrulama).
-  Aksi durumda `GET /api/auth/oidc/login`, `400` döndürür.
+  `oidcClientId` / `oidcClientSecret` değerlerinin tümü yapılandırıldığında etkindir (Ayarlar → Kimlik Doğrulama).
+  Aksi takdirde `GET /api/auth/oidc/login`, `400` döndürür.
 - `GET /api/auth/oidc/login`, sağlayıcının
-  `/.well-known/openid-configuration` adresinden `authorization_endpoint` değerini keşfeder (bulamazsa
-  `<issuer>/authorize` değerini kullanır), yönlendirme URI'sini gelen istekten
-  (`x-forwarded-proto` dikkate alınarak) oluşturur ve rastgele bir `state`
-  değerini `httpOnly` özellikli `oidc_state` çerezinde saklayarak IdP'ye yönlendirir.
+  `/.well-known/openid-configuration` adresinden `authorization_endpoint` değerini keşfeder (bulunamazsa
+  `<issuer>/authorize` kullanılır), yönlendirme URI'sini gelen istekten
+  (`x-forwarded-proto` dikkate alınarak) oluşturur ve bir `httpOnly` `oidc_state` çerezinde saklanan rastgele bir `state`
+  ile IdP'ye yönlendirir.
 - `GET /api/auth/oidc/callback`, `state` değerini doğrular, yetkilendirme
   kodunu takas eder ve ID belirtecinin imzasını sağlayıcının JWKS'si aracılığıyla
-  (`jose` paketinin `createRemoteJWKSet` işlevi; her JWKS URI'si için önbelleğe alınır), `issuer`/`audience`
+  (`jose` paketinin `createRemoteJWKSet` işlevi; JWKS URI'si başına önbelleğe alınır), `issuer`/`audience`
   kontrolleriyle doğrular. İsteğe bağlı `oidcAllowedSubjects` izin listesi, belirtecin
-  `sub` talebiyle veya `email` talebiyle eşleşir — e-posta talebi yalnızca
-  `email_verified === true` olduğunda dikkate alınır; böylece IdP'deki doğrulanmamış bir e-posta
-  bu geçitten hiçbir zaman geçemez.
-- Başarılı olduğunda, parola ile oturum açma işleminin oluşturduğu **tamamen aynı** 30 günlük `auth_token`
-  JWT'sini oluşturur (`src/app/api/auth/login/route.ts`); dolayısıyla
-  pano oturum işlem hattının geri kalanı (otomatik yenileme, çerez bayrakları) değişmeden kalır —
+  `sub` istemiyle veya `email` istemiyle eşleşir — e-posta istemi yalnızca
+  `email_verified === true` olduğunda dikkate alınır; dolayısıyla IdP'deki doğrulanmamış bir e-posta hiçbir zaman
+  geçidi aşamaz.
+- Başarılı olduğunda, parola ile oturum açma işleminin oluşturduğu **tam olarak aynı** 30 günlük `auth_token` JWT'sini
+  oluşturur (`src/app/api/auth/login/route.ts`); böylece pano
+  oturum işlem hattının geri kalanı (otomatik yenileme, çerez bayrakları) değişmeden kalır —
   OIDC yalnızca çerezin nasıl oluşturulduğunu değiştirir, verdiği yetkileri değil.
 
 ## Rota Sınıfları

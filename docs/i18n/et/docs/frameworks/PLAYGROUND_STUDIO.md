@@ -188,14 +188,14 @@ Autentimine: valikuline (`REQUIRE_API_KEY`). Vead tagastatakse funktsiooni `buil
 
 ## Tõrkeotsing
 
-| Sümptom                                        | Põhjus                                   | Lahendus                                                                                                 |
-| ---------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Monaco redaktorit ei kuvata API vahekaardil    | SSR laadis Monaco                        | Veenduge, et `ApiTab` kasutaks konstruktsiooni `dynamic(..., { ssr: false })`                            |
-| Võrdlusvood käivituvad järjestikku             | `Promise.all` vale kasutus               | Kõik vood tuleb käivitada ühe `Promise.all`-i väljakutsega                                               |
-| Mõõdikud näitavad TTFT väärtuseks `null`       | Esimese andmeosa töötleja pole ühendatud | Kontrollige, et SSE-lugeri tsüklis kutsutaks välja `useStreamMetrics.onFirstChunk()`                     |
-| Eelseadistus ei säili                          | Andmebaasi migratsiooni pole käivitatud  | Käivitage `npm run db:migrate` või taaskäivitage server (migratsioon käivitub käivitamisel automaatselt) |
-| Viiba täiustamine tagastab 502                 | Mudel pole seadistuses määratud          | Kasutaja peab enne täiustamist sisestama seadistuspaanil mudeli nime                                     |
-| Eksporditud koodis kuvatakse `MISSING_API_KEY` | Kohatäitjat pole lisatud                 | `codeExport.ts` kasutab alati väärtust `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                      |
+| Sümptom                                     | Põhjus                                 | Lahendus                                                                             |
+| ------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------ |
+| Monaco redaktorit ei kuvata API vahekaardil | SSR laadis Monaco                      | Veenduge, et `ApiTab` kasutaks `dynamic(..., { ssr: false })`                        |
+| Võrdlusvood käivituvad järjestikku          | `Promise.all`-i vale kasutus           | Kõik vood tuleb käivitada ühe `Promise.all`-i kutsega                                |
+| Mõõdikud näitavad TTFT väärtusena `null`    | Esimese osa töötleja pole ühendatud    | Kontrollige, et SSE-lugeri tsüklis kutsutaks välja `useStreamMetrics.onFirstChunk()` |
+| Eelseadistus ei säili                       | Andmebaasi migratsioon pole käivitatud | Taaskäivitage server: migratsioonid käivituvad käivitamisel automaatselt             |
+| Viiba täiustamine tagastab 502              | Mudel pole konfiguratsioonis määratud  | Kasutaja peab enne täiustamist sisestama konfiguratsioonipaanil mudeli nime          |
+| Eksporditud kood näitab `MISSING_API_KEY`   | Kohatäitjat pole lisatud               | `codeExport.ts` kasutab alati `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`           |
 
 ---
 

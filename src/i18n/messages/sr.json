@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Компресија MCP описа",
     "mcpAccessibilityTitle": "MCP излаз за приступачност",
     "compressionSettingsCavemanIntensity": "Интензитет Caveman режима",
-    "compressionSettingsCavemanOutputMode": "Режим Caveman излаза",
     "compressionSettingsOutputStyles": "Стилови излаза",
     "compressionStylesTileTitle": "Стилови излаза",
     "compressionSettingsOutputIntensity": "Интензитет излаза",
-    "compressionSettingsAutoClarityBypass": "Аутоматско заобилажење јасности",
     "compressionEffectivePipeline": "Ефективни пајплајн:",
     "compressionDerivedOff": "искључено",
     "compressionDerivedRuns": "покреће: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Минималан број редова за компакцију",
         "description": "Минималан број редова у хомогеном JSON низу потребан за покретање табеларне компакције. Подразумевано: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Очувај системски промпт"
-      },
       "summarizerEnabled": {
         "label": "Активирај сумаризатор"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Поруке краће од овога се не компримују. Мање = више компресије.",
     "tooltipMinSavings": "Компримуј само ако се уштеди бар оволико токена.",
     "ultraSettings": "Ултра подешавања",
-    "ultraSettingsDesc": "Семантичка компресија коју покреће SLM",
-    "preview": {
-      "lite": "Одговарај сажето. Сачувај техничке термине, код, грешке, URL адресе и идентификаторе.",
-      "full": "Одговарај кратко и сажето. Задржи сву техничку суштину.",
-      "ultra": "Одговарај изузетно кратко уз уобичајене техничке скраћенице. Задржи тачне симболе."
-    }
+    "ultraSettingsDesc": "Семантичка компресија коју покреће SLM"
   },
   "translator": {
     "title": "Преводилац",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "прокси недоступан",
     "poolSetAsideKindIpQuota429": "ограничење брзине по IP адреси (429)",
     "poolSetAsideKindSlow": "спори одговори",
+    "poolSetAsideKindGeoBlocked": "regionalno blokirano (403/451)",
     "poolSetAsideUntil": "Назад у ротацији {endsAt}",
     "poolSetAsideRepeat": "По страни {count, plural, one {# пут} other {# пута}}",
     "poolUnknownAddress": "Непозната адреса",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Редослед позиција",
     "poolHealthRankingOff": "Рангирање здравља искључено",
     "transportRate": "{rate} % преноса",
+    "slowAbandoned": "{count} sporih napuštanja",
+    "clientAborted": "{count} odustajanja klijenta",
+    "slowAbandonedHint": "Napusteno nakon praga čekanja zaglavlja, izuzeto iz transportne stope",
     "previousSuccessRate": "Раније {rate} % успеха",
-    "upstreamRefusals": "{count} upstream одбијања",
     "connectionTestsCount": "{count} тестова везе",
-    "notMeasured": "Није мерено"
+    "notMeasured": "Није мерено",
+    "upstream4xx": "{count} grešaka klijenta na upstream-u",
+    "upstream5xx": "{count} grešaka servera na upstream-u",
+    "uniformEgressLine": "{affected} od {exits} izlaza padaju zajedno na {provider} (poslednjih {hours} сати) — nije problem izlaza"
   },
   "playground": {
     "title": "Окружење за тестирање модела",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} неактивних",
     "dbOverrideCount": "{count} прегажених вредности у DB",
     "searchPlaceholder": "Претражите ознаке...",
+    "descriptionModeLabel": "Приказ описа",
+    "descriptionModeHint": "При преласку курсором: картице остају сажете, а прелазак курсором преко описа приказује цео текст. Цео текст: увек приказује комплетан опис.",
+    "descriptionModeHover": "При преласку курсором",
+    "descriptionModeFull": "Цео текст",
     "categories": {
       "all": "Све",
       "security": "Безбедност",

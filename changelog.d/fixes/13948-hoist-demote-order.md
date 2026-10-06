@@ -1,1 +1,0 @@
-- fix(sse): stop reordering demoted mid-array system messages in Claude->OpenAI strict-provider requests (#13948)

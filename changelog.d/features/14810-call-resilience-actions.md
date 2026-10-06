@@ -1,1 +1,0 @@
-- **feat(call-logs):** show per-request recovery actions in the request log ([#14810](https://github.com/diegosouzapw/OmniRoute/pull/14810)) — thanks @maxmad64bis

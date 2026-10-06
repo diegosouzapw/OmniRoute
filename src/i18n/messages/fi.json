@@ -5636,7 +5636,7 @@
     "accountName": "Tilin nimi",
     "email": "Sähköposti",
     "healthCheckMinutes": "Terveystarkastus (min)",
-    "healthCheckHint": "Ennakoiva tunnuksen päivitysväli. 0 = pois käytöstä.",
+    "healthCheckHint": "Tämän yhteyden ohitusarvo. Tyhjä = käytä yleistä oletusta (Asetukset › Vikasietoisuus). 0 = älä koskaan tarkista tätä yhteyttä. Enintään 1440 (24 h).",
     "deselectAllModels": "Poista kaikki valinnat",
     "modelsActiveCount": "{active}/{total} aktiivisena",
     "noModelsMatch": "Mikään malli ei vastaa suodatinta ”{filter}”",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Hanki API-avaimesi osoitteesta https://www.bluesminds.com — OpenAI-yhteensopiva päätepiste osoitteessa https://api.bluesminds.com/v1 ilmaisilla päivittäisillä saldoilla. VIP-mallit (Claude Opus 4.5, Gemini 2.5 Pro) kuluttavat pi-saldoja.",
       "byteplus": "Yhdistä BytePlus ModelArk API-avaimella.",
       "bytez": "1 $ ilmaista saldoa, uusiutuu 4 viikon välein",
-      "cerebras": "Ilmainen kokeilu: 1M tokenia/päivä, 30K TPM, 5 RPM — ei luottokorttia.",
+      "cerebras": "Kertaluonteinen 5 $:n rekisteröitymishyvitys (voimassa 30 päivää); maksutapa vaaditaan. Ei toistuva ilmaistaso.",
       "charm-hyper": "Luo API-avain osoitteessa https://hyper.charm.land ja liitä se tähän Bearer-tokenina.",
       "chutes": "Bearer API -avain Chutes OpenAI-yhteensopivalle yhdyskäytävälle.",
       "clarifai": "Clarifai tarjoaa OpenAI-yhteensopivan chatin, vastaukset ja /models-päätepisteen osoitteessa /v2/ext/openai/v1. Julkiset/yhteisömallit vaativat yleensä PAT-tunnisteen; sovelluskohtaiset avaimet toimivat vain kyseisen sovelluksen sisäisille resursseille.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Kaikki Palveluntarjoajan liikenne kulkee tämän tilauksen välityspalvelimen kautta.",
       "ruleModeDesc": "Vain valittujen Palveluntarjoajien liikenne kulkee välityspalvelimen kautta; loput kytkeytyvät suoraan.",
       "localCoreEndpoint": "Local Core SOCKS5/HTTP-päätepiste (valinnainen)",
-      "localCoreEndpointPlaceholder": "sukat5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Hyväksyy vain 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vaativat paikallisen sing-box/clash-ytimen).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Yksi per rivi. Hyväksyy vain 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vaativat paikallisen sing-box/clash-ytimen).",
       "routeByProvider": "Reitti palveluntarjoajan mukaan (monivalinta)",
       "loadingProviders": "Ladataan tarjoajaluetteloa…",
       "autoRefreshInterval": "Automaattisen päivityksen aikaväli (minuutteja)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-kuvauksen pakkaus",
     "mcpAccessibilityTitle": "MCP-saavutettavuustuloste",
     "compressionSettingsCavemanIntensity": "Luolamiesten intensiteetti",
-    "compressionSettingsCavemanOutputMode": "Caveman-lähtötila",
     "compressionSettingsOutputStyles": "Tulostetyylit",
     "compressionStylesTileTitle": "Tulostetyylit",
     "compressionSettingsOutputIntensity": "Tulostuksen intensiteetti",
-    "compressionSettingsAutoClarityBypass": "Automaattinen selkeyden ohitus",
     "compressionEffectivePipeline": "Voimassa oleva liukuhihna:",
     "compressionDerivedOff": "pois päältä",
     "compressionDerivedRuns": "ajot: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Tiivistettävien rivien vähimmäismäärä",
         "description": "Homogeenisen JSON-taulukon rivien vähimmäismäärä taulukkomaisen tiivistämisen käynnistämiseksi. Oletus: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Säilytä järjestelmäkehote"
-      },
       "summarizerEnabled": {
         "label": "Ota tiivistäjä käyttöön"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Tätä lyhyempiä viestejä ei pakata. Alempi = enemmän pakkausta.",
     "tooltipMinSavings": "Pakkaa vain, jos se säästää vähintään näin monta merkkiä.",
     "ultraSettings": "Ultra-asetukset",
-    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus",
-    "preview": {
-      "lite": "Vastaa ytimekkäästi. Säilytä tekniset termit, koodi, virheet, URL-osoitteet ja tunnisteet.",
-      "full": "Vastaa lyhyesti ja tiiviisti. Säilytä kaikki tekninen asiasisältö.",
-      "ultra": "Vastaa erittäin lyhyesti käyttäen yleisiä teknisiä lyhenteitä. Säilytä symbolit täsmälleen."
-    }
+    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus"
   },
   "translator": {
     "title": "Kääntäjä",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Lunasta nollaus",
     "manageResetCredits": "Näytä krediitit",
     "viewResetCredits": "Näytä nollauskrediitit",
-    "resetCreditsModalTitle": "Codex-nollauskrediitit",
+    "resetCreditsModalTitle": "Nollauskrediitit",
     "resetCreditsModalExplainer": "Krediitit on järjestetty vanhentumisajan mukaan. Automaattinen lunastus käyttää aina ensin vanhentuvaa krediittiä.",
     "resetCreditsLoadFailed": "Nollauskrediittien lataaminen epäonnistui",
     "resetCreditsDetailsUnavailable": "Krediittitiedot eivät ole tällä hetkellä saatavilla. Päivitä ja yritä uudelleen.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Ei vanhenemispäivää",
     "redeemThisResetCredit": "Lunasta",
     "confirmRedeemResetCreditTitle": "Lunastetaanko tämä nollaushyvitys?",
-    "confirmRedeemResetCredit": "Lunastaminen nollaa soveltuvat Codex-käyttöikkunat välittömästi ja kuluttaa tämän hyvityksen pysyvästi.",
+    "confirmRedeemResetCredit": "Lunastaminen nollaa soveltuvat käyttöikkunat välittömästi ja kuluttaa tämän hyvityksen pysyvästi.",
     "confirmRedeemResetCreditButton": "Lunasta hyvitys",
     "resetCreditRedeemed": "Nollaus lunastettu",
     "resetCreditRedeemFailed": "Nollaushyvityksen lunastaminen epäonnistui",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "välityspalvelin ei tavoitettavissa",
     "poolSetAsideKindIpQuota429": "IP-nopeusrajoitus (429)",
     "poolSetAsideKindSlow": "hitaat vastaukset",
+    "poolSetAsideKindGeoBlocked": "alue estetty (403/451)",
     "poolSetAsideUntil": "Takaisin kierrossa {endsAt}",
     "poolSetAsideRepeat": "Syrjään {count, plural, one {# kerran} other {# kertaa}}",
     "poolUnknownAddress": "Tuntematon osoite",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Sijaintijärjestys",
     "poolHealthRankingOff": "Terveysjärjestys pois päältä",
     "transportRate": "{rate} % siirtoa",
+    "slowAbandoned": "{count} hidasta keskeytystä",
+    "clientAborted": "{count} asiakkaan keskeytystä",
+    "slowAbandonedHint": "Keskeytetty otsikoiden odotusajan rajan jälkeen, ei huomioida kuljetusnopeudessa",
     "previousSuccessRate": "Aiemmin {rate} % onnistumisia",
-    "upstreamRefusals": "{count} upstream-hylkäystä",
     "connectionTestsCount": "{count} yhteystestiä",
-    "notMeasured": "Ei mitattu"
+    "notMeasured": "Ei mitattu",
+    "upstream4xx": "{count} ylävirta-asiakasvirheet",
+    "upstream5xx": "{count} ylävirta-palvelinvirheet",
+    "uniformEgressLine": "{affected} kpl {exits} poistoa epäonnistuu yhdessä {provider} (viimeisen {hours}h) — ei ole poistoprobleema"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} ei-aktiivista",
     "dbOverrideCount": "{count} tietokannan yliajoa",
     "searchPlaceholder": "Hae lippuja...",
+    "descriptionModeLabel": "Kuvausnäkymä",
+    "descriptionModeHint": "Kohdistettaessa: kortit pysyvät tiiviinä, ja kuvauksen päälle vieminen näyttää koko tekstin. Koko teksti: näytä aina täydellinen kuvaus.",
+    "descriptionModeHover": "Kohdistettaessa",
+    "descriptionModeFull": "Koko teksti",
     "categories": {
       "all": "Kaikki",
       "security": "Tietoturva",

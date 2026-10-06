@@ -5636,7 +5636,7 @@
     "accountName": "Accountnaam",
     "email": "E-mail",
     "healthCheckMinutes": "Gezondheidscontrole (min)",
-    "healthCheckHint": "Proactief tokenvernieuwingsinterval. 0 = uitgeschakeld.",
+    "healthCheckHint": "Overschrijving voor deze verbinding. Leeg = volg de globale standaard (Instellingen › Veerkracht). 0 = deze verbinding nooit controleren. Maximaal 1440 (24 u).",
     "deselectAllModels": "Alles deselecteren",
     "modelsActiveCount": "{active}/{total} actief",
     "noModelsMatch": "Geen modellen komen overeen met \"{filter}\"",
@@ -6197,7 +6197,7 @@
       "bluesminds": "Haal je API-sleutel op via https://www.bluesminds.com — OpenAI-compatibel eindpunt op https://api.bluesminds.com/v1 met gratis dagelijks tegoed. VIP-modellen (Claude Opus 4.5, Gemini 2.5 Pro) verbruiken pi-tegoed.",
       "byteplus": "Verbind BytePlus ModelArk met een API-sleutel.",
       "bytez": "$1 gratis tegoed, wordt elke 4 weken vernieuwd",
-      "cerebras": "Gratis proefperiode: 1M tokens/dag, 30K TPM, 5 RPM — geen creditcard.",
+      "cerebras": "Eenmalig tegoed van $5 bij aanmelding (30 dagen geldig); een betaalmethode is vereist. Geen terugkerende gratis laag.",
       "charm-hyper": "Maak een API-sleutel aan op https://hyper.charm.land en plak deze hier als een Bearer-token.",
       "chutes": "Bearer API-sleutel voor de Chutes OpenAI-compatibele gateway.",
       "clarifai": "Clarifai stelt OpenAI-compatibele chat, antwoorden en /models beschikbaar op /v2/ext/openai/v1. Openbare/community-modellen vereisen doorgaans een PAT; sleutels met app-bereik werken alleen voor resources binnen die app.",
@@ -6889,8 +6889,8 @@
       "globalModeDesc": "Al het providerverkeer loopt via de proxypool van dit abonnement.",
       "ruleModeDesc": "Alleen het verkeer van geselecteerde providers gaat via de proxy; de rest sluit rechtstreeks aan.",
       "localCoreEndpoint": "Lokaal kern SOCKS5/HTTP-eindpunt (optioneel)",
-      "localCoreEndpointPlaceholder": "sokken5://127.0.0.1:1080",
-      "localCoreEndpointDesc": "Accepteert alleen 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vereist een lokale sing-box/clash core).",
+      "localCoreEndpointPlaceholder": "socks5://127.0.0.1:1080\nsocks5://127.0.0.1:1081",
+      "localCoreEndpointDesc": "Eén per regel. Accepteert alleen 127.0.0.1 / localhost (SS/VMess/Trojan/VLESS vereisen een lokale sing-box/clash-core).",
       "routeByProvider": "Route per aanbieder (multi-select)",
       "loadingProviders": "Providerlijst laden...",
       "autoRefreshInterval": "Interval automatisch vernieuwen (minuten)",
@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-beschrijving compressie",
     "mcpAccessibilityTitle": "MCP-toegankelijkheidsuitvoer",
     "compressionSettingsCavemanIntensity": "De intensiteit van de holbewoner",
-    "compressionSettingsCavemanOutputMode": "Holbewoner-uitvoermodus",
     "compressionSettingsOutputStyles": "Uitvoerstijlen",
     "compressionStylesTileTitle": "Uitvoerstijlen",
     "compressionSettingsOutputIntensity": "Uitgangsintensiteit",
-    "compressionSettingsAutoClarityBypass": "Automatische helderheidsbypass",
     "compressionEffectivePipeline": "Effectieve pipeline:",
     "compressionDerivedOff": "uit",
     "compressionDerivedRuns": "uitvoeringen: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimum aantal rijen om te compacteren",
         "description": "Minimum aantal rijen in een homogene JSON-array dat vereist is om tabulaire compactie te activeren. Standaard: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Systeemprompt behouden"
-      },
       "summarizerEnabled": {
         "label": "Samenvatter inschakelen"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Berichten die korter zijn dan dit, worden niet gecomprimeerd. Lager = meer compressie.",
     "tooltipMinSavings": "Alleen comprimeren als het minstens zoveel tokens bespaart.",
     "ultraSettings": "Ultra-instellingen",
-    "ultraSettingsDesc": "SLM-aangedreven semantische compressie",
-    "preview": {
-      "lite": "Antwoord bondig. Behoud technische termen, code, fouten, URLs en identificatiecodes.",
-      "full": "Antwoord beknopt en compact. Behoud alle technische inhoud.",
-      "ultra": "Antwoord uiterst beknopt met gangbare technische afkortingen. Behoud exacte symbolen."
-    }
+    "ultraSettingsDesc": "SLM-aangedreven semantische compressie"
   },
   "translator": {
     "title": "Vertaler",
@@ -9576,7 +9566,7 @@
     "redeemResetCredit": "Reset inwisselen",
     "manageResetCredits": "Credits bekijken",
     "viewResetCredits": "Reset-credits bekijken",
-    "resetCreditsModalTitle": "Codex-reset-credits",
+    "resetCreditsModalTitle": "Reset-credits",
     "resetCreditsModalExplainer": "Credits zijn gesorteerd op verloopdatum. Automatisch inwisselen gebruikt altijd de credit die het eerst verloopt.",
     "resetCreditsLoadFailed": "Laden van reset-credits mislukt",
     "resetCreditsDetailsUnavailable": "Creditdetails zijn momenteel niet beschikbaar. Vernieuw en probeer het opnieuw.",
@@ -9587,7 +9577,7 @@
     "resetCreditNoExpiry": "Geen verloopdatum",
     "redeemThisResetCredit": "Inwisselen",
     "confirmRedeemResetCreditTitle": "Deze reset-credit inwisselen?",
-    "confirmRedeemResetCredit": "Inwisselen reset onmiddellijk de in aanmerking komende Codex-gebruiksvensters en verbruikt deze credit permanent.",
+    "confirmRedeemResetCredit": "Inwisselen reset onmiddellijk de in aanmerking komende gebruiksvensters en verbruikt deze credit permanent.",
     "confirmRedeemResetCreditButton": "Credit inwisselen",
     "resetCreditRedeemed": "Inwisseling gereset",
     "resetCreditRedeemFailed": "Inwisselen van reset-tegoed mislukt",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy onbereikbaar",
     "poolSetAsideKindIpQuota429": "IP-snelheidslimiet (429)",
     "poolSetAsideKindSlow": "trage reacties",
+    "poolSetAsideKindGeoBlocked": "regio geblokkeerd (403/451)",
     "poolSetAsideUntil": "Terug in rotatie {endsAt}",
     "poolSetAsideRepeat": "Terzijde gesteld {count, plural, one {# keer} other {# keer}}",
     "poolUnknownAddress": "Onbekend adres",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Positievolgorde",
     "poolHealthRankingOff": "Gezondheidsrangschikking uit",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} trage afwijzingen",
+    "clientAborted": "{count} clientafbrekingen",
+    "slowAbandonedHint": "Verlaten na de headers-wachttijd, uitgesloten van het transporttarief",
     "previousSuccessRate": "Eerder {rate} % succes",
-    "upstreamRefusals": "{count} upstream-weigeringen",
     "connectionTestsCount": "{count} verbindingstests",
-    "notMeasured": "Niet gemeten"
+    "notMeasured": "Niet gemeten",
+    "upstream4xx": "{count} upstream clientfouten",
+    "upstream5xx": "{count} upstream serverfouten",
+    "uniformEgressLine": "{affected} van {exits} exits falen tegelijk op {provider} (laatste {hours}u) — geen exit-probleem"
   },
   "playground": {
     "title": "Title",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} inactief",
     "dbOverrideCount": "{count} DB-overrides",
     "searchPlaceholder": "Flags zoeken...",
+    "descriptionModeLabel": "Beschrijvingweergave",
+    "descriptionModeHint": "Bij aanwijzen: kaarten blijven compact en wanneer u de aanwijzer op een beschrijving plaatst, wordt de volledige tekst weergegeven. Volledige tekst: toon altijd de complete beschrijving.",
+    "descriptionModeHover": "Bij aanwijzen",
+    "descriptionModeFull": "Volledige tekst",
     "categories": {
       "all": "Alles",
       "security": "Beveiliging",

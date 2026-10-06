@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Comhbhrú tuairiscí MCP",
     "mcpAccessibilityTitle": "Aschur inrochtaineachta MCP",
     "compressionSettingsCavemanIntensity": "Déine stíl an fhir uaimhe",
-    "compressionSettingsCavemanOutputMode": "Mód aschuir an fhir uaimhe",
     "compressionSettingsOutputStyles": "Stíleanna aschuir",
     "compressionStylesTileTitle": "Stíleanna aschuir",
     "compressionSettingsOutputIntensity": "Déine aschuir",
-    "compressionSettingsAutoClarityBypass": "Seachbhóthar soiléire uathoibríoch",
     "compressionEffectivePipeline": "Píblíne éifeachtach:",
     "compressionDerivedOff": "as",
     "compressionDerivedRuns": "ritheanna: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Íoslíon sraitheanna le comhdhlúthú",
         "description": "Íoslíon sraitheanna a chaithfidh a bheith in eagar JSON aonchineálach chun comhdhlúthú táblaíoch a spreagadh. Réamhshocrú: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Caomhnaigh leid an chórais"
-      },
       "summarizerEnabled": {
         "label": "Cumasaigh achoimreoir"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Ní chomhbhrúitear teachtaireachtaí atá níos giorra ná seo. Níos ísle = tuilleadh comhbhrúite.",
     "tooltipMinSavings": "Ná comhbhrú ach amháin má shábháiltear an líon seo comharthaí ar a laghad.",
     "ultraSettings": "Socruithe Ultra",
-    "ultraSettingsDesc": "Comhbhrú séimeantach faoi thiomáint ag SLM",
-    "preview": {
-      "lite": "Freagair go gonta. Caomhnaigh téarmaí teicniúla, cód, earráidí, URLanna agus aitheantóirí.",
-      "full": "Freagair go lom agus go dlúth. Caomhnaigh an t-ábhar teicniúil ar fad.",
-      "ultra": "Freagair go fíorghonta agus úsáid giorrúcháin theicniúla choitianta. Caomhnaigh na siombailí beachta."
-    }
+    "ultraSettingsDesc": "Comhbhrú séimeantach faoi thiomáint ag SLM"
   },
   "translator": {
     "title": "Aistritheoir",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "níl teacht ar an seachfhreastalaí",
     "poolSetAsideKindIpQuota429": "teorainn ráta IP (429)",
     "poolSetAsideKindSlow": "freagraí mall",
+    "poolSetAsideKindGeoBlocked": "réigiún blocáilte (403/451)",
     "poolSetAsideUntil": "Ar ais sa rothlú {endsAt}",
     "poolSetAsideRepeat": "Curtha ar leataobh {count, plural, one {# uair} other {# uair}}",
     "poolUnknownAddress": "Seoladh anaithnid",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Ord suímh",
     "poolHealthRankingOff": "Rangú sláinte múchta",
     "transportRate": "{rate}% iompair",
+    "slowAbandoned": "{count} tréigtheann malla",
+    "clientAborted": "{count} cliant ag scor",
+    "slowAbandonedHint": "Tréigthe tar éis an tairseach fanadh ceannteideal, eisiata ón ráta iompair",
     "previousSuccessRate": "Roimhe seo {rate}% rath",
-    "upstreamRefusals": "{count} diúltú in aghaidh srutha",
     "connectionTestsCount": "{count} tástáil nasctha",
-    "notMeasured": "Gan tomhas"
+    "notMeasured": "Gan tomhas",
+    "upstream4xx": "{count} earráidí cliente ar an gceann chlé",
+    "upstream5xx": "{count} earráidí seirbhís ar an gceann chlé",
+    "uniformEgressLine": "{affected} de {exits} éits bailiú le chéile ar {provider} (deis {hours}h) — níl ceist éit"
   },
   "playground": {
     "title": "Clós Súgartha Múnlaí",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} neamhghníomhach",
     "dbOverrideCount": "{count} sárú DB",
     "searchPlaceholder": "Cuardaigh bratacha...",
+    "descriptionModeLabel": "Amharc tuairisce",
+    "descriptionModeHint": "Ar ainliú: fanann cártaí dlúth agus taispeántar an téacs iomlán nuair a ainlítear thar thuairisc. Téacs iomlán: taispeáin an tuairisc iomlán i gcónaí.",
+    "descriptionModeHover": "Ar ainliú",
+    "descriptionModeFull": "Téacs iomlán",
     "categories": {
       "all": "Gach ceann",
       "security": "Slándáil",

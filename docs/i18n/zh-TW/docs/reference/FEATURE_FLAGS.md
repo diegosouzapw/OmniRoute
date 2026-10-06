@@ -260,11 +260,16 @@ curl -X PUT http://localhost:20128/api/settings/feature-flags \
 
 `OMNIROUTE_EMERGENCY_FALLBACK`（類別為 `runtime`，預設值為 `true`）控制
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts)
-中的緊急免費備援路徑。啟用後，預算耗盡的請求會被路由至免費的備援
-提供者／模型，而非直接失敗。若要停用此行為，並讓預算耗盡的請求失敗，
-可透過儀表板切換開關、DB 覆寫值，或 `OMNIROUTE_EMERGENCY_FALLBACK`
-環境變數將其設為 `false`（或 `0`）。（已在 PR #3741 / #3752 中顯示為
-儀表板切換開關。）
+中的緊急免費備援路徑。啟用時，預算耗盡的請求會被路由至免費的備援
+提供者/模型，而非直接失敗。若要停用此行為，並讓預算耗盡的請求
+失敗，請透過儀表板切換開關、資料庫覆寫或
+`OMNIROUTE_EMERGENCY_FALLBACK` 環境變數，將其設為 `false`（或 `0`）。
+（已在 PR #3741 / #3752 中以儀表板切換開關的形式提供。）
+
+由此備援機制提供的回應會帶有
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`，
+因此用戶端無須將 `X-OmniRoute-Provider` 與其請求進行比對，即可得知請求已被重新路由。
+其他所有回應均不會包含此標頭。
 
 ---
 

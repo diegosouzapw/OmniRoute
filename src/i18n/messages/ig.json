@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Mkpakọ nkọwa MCP",
     "mcpAccessibilityTitle": "Mmepụta nnweta MCP",
     "compressionSettingsCavemanIntensity": "Ike ụdị onye ọgba",
-    "compressionSettingsCavemanOutputMode": "Ụdị mmepụta onye ọgba",
     "compressionSettingsOutputStyles": "Ụdịdị mmepụta",
     "compressionStylesTileTitle": "Ụdịdị mmepụta",
     "compressionSettingsOutputIntensity": "Ike mmepụta",
-    "compressionSettingsAutoClarityBypass": "Ngafe idoanya akpaka",
     "compressionEffectivePipeline": "Pipeline dị irè:",
     "compressionDerivedOff": "agbanyụrụ",
     "compressionDerivedRuns": "ngagharị: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Ahịrị kacha nta a ga-akpakọ",
         "description": "Ọnụọgụ ahịrị kacha nta achọrọ n'ime usoro JSON nwere otu nhazi iji malite mkpakọ tebụl. Ndabara: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Chekwaa system prompt"
-      },
       "summarizerEnabled": {
         "label": "Kwado summarizer"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "A naghị eme mkpakọ n’ozi ndị dị mkpụmkpụ karịa nke a. Nke dị ala = mkpakọ karịa.",
     "tooltipMinSavings": "Mee mkpakọ naanị ma ọ bụrụ na ọ na-echekwa opekata mpe token ole a.",
     "ultraSettings": "Ntọala Ultra",
-    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado",
-    "preview": {
-      "lite": "Zaa nkenke. Debe okwu teknụzụ, code, njehie, URLs, na ihe njirimara.",
-      "full": "Zaa nkenke ma dị mkpụmkpụ. Debe ọdịnaya teknụzụ niile.",
-      "ultra": "Zaa n’ụzọ dị nnọọ nkenke site na iji ndebiri teknụzụ ndị a na-ahụkarị. Debe akara niile otu ha dị."
-    }
+    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado"
   },
   "translator": {
     "title": "Onye Ntụgharị",
@@ -11089,6 +11079,7 @@
     "poolSetAsideKindProxyUnreachable": "enweghị ike iru proxy",
     "poolSetAsideKindIpQuota429": "oke ọsọ IP (429)",
     "poolSetAsideKindSlow": "nzaghachi nwayọ",
+    "poolSetAsideKindGeoBlocked": "egbochiri mpaghara (403/451)",
     "poolSetAsideUntil": "Laghachi na ntụgharị {endsAt}",
     "poolSetAsideRepeat": "E wepụrụ {count, plural, one {# ugboro} other {# ugboro}}",
     "poolUnknownAddress": "Adreesị amaghị",
@@ -11097,10 +11088,15 @@
     "poolSignalPosition": "Usoro ọnọdụ",
     "poolHealthRankingOff": "Ogo ahụike agbanyụrụ",
     "transportRate": "{rate}% mbugharị",
+    "slowAbandoned": "{count} nke na-ewu oge na-eche echiche",
+    "clientAborted": "{count} ndị ahịa na-eme ka o kwụsị",
+    "slowAbandonedHint": "Eche echiche ka o kwụsị mgbe o chee oge nke isiokwu, na-ekpughe na ọnụ ọgụgụ nke ịgwọ ụgbọ",
     "previousSuccessRate": "Na mbụ {rate}% ịga nke ọma",
-    "upstreamRefusals": "{count} ọjụjụ upstream",
     "connectionTestsCount": "{count} nnwale njikọ",
-    "notMeasured": "A tụghị"
+    "notMeasured": "A tụghị",
+    "upstream4xx": "{count} njehie onye ahịa n'elu",
+    "upstream5xx": "{count} njehie sava n'elu",
+    "uniformEgressLine": "{affected} n'ime {exits} ụzọ ọpụpụ na-ada ọnụ na {provider} (n'ime {hours}h gara aga) — ọ bụghị nsogbu ụzọ ọpụpụ"
   },
   "playground": {
     "title": "Ebe Nnwale Model",
@@ -13055,6 +13051,10 @@
     "inactiveCount": "{count} anaghị arụ ọrụ",
     "dbOverrideCount": "{count} ntọala DB ndị nọchiri ndabara",
     "searchPlaceholder": "Chọọ ọkọlọtọ...",
+    "descriptionModeLabel": "Nlele nkọwa",
+    "descriptionModeHint": "Mgbe a na-efegharị òké n'elu: kaadị na-anọgide nkenke, ma ịfegharị òké n'elu nkọwa na-egosi ederede niile. Ederede niile: na-egosi nkọwa zuru ezu mgbe niile.",
+    "descriptionModeHover": "Mgbe a na-efegharị òké n'elu",
+    "descriptionModeFull": "Ederede niile",
     "categories": {
       "all": "Ha niile",
       "security": "Nchedo",
