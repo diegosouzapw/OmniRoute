@@ -12877,7 +12877,10 @@
     "inheritedPool": "Manto savienojumu pūlu ({count})",
     "poolEmptyBlocked": "Pūls tukšs — pieprasījumi neizdodas (ne tieši)",
     "directEgress": "Tiešs (bez starpniekservera)",
-    "ownProxy": "Savs starpniekserveris"
+    "ownProxy": "Savs starpniekserveris",
+    "freeTierPause": "Modelis {model} pauzēts (429), atgriezīsies {time}",
+    "freeTierPauseProvider": "Pauzēts (429), atgriezīsies {time}",
+    "freeTierPauseNote": "Process pārtraukums šajā instancē"
   },
   "gamification": {
     "leaderboardScopes": {

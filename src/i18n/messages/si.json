@@ -12877,7 +12877,10 @@
     "inheritedPool": "සම්බන්ධතා තටාකය උරුම වේ ({count})",
     "poolEmptyBlocked": "තටාකය හිස් — ඉල්ලීම් අසාර්ථකයි (සෘජු නොවේ)",
     "directEgress": "සෘජු (ප්‍රොක්සි නැතිව)",
-    "ownProxy": "ස්වකීය ප්‍රොක්සිය"
+    "ownProxy": "ස්වකීය ප්‍රොක්සිය",
+    "freeTierPause": "දේශය {model} නතර කළා (429), {time} දී නැවත එයි",
+    "freeTierPauseProvider": "නතර කළා (429), {time} දී නැවත එයි",
+    "freeTierPauseNote": "මෙම ස්ථාපනයේ ඇතුළත ක්‍රියාත්මක නැවතීම"
   },
   "gamification": {
     "leaderboardScopes": {

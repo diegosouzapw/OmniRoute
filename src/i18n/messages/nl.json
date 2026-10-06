@@ -12877,7 +12877,10 @@
     "inheritedPool": "Erft verbindingspool ({count})",
     "poolEmptyBlocked": "Pool leeg — verzoeken mislukken (niet direct)",
     "directEgress": "Direct (geen proxy)",
-    "ownProxy": "Eigen proxy"
+    "ownProxy": "Eigen proxy",
+    "freeTierPause": "Model {model} gepauzeerd (429), terug om {time}",
+    "freeTierPauseProvider": "Gepauzeerd (429), terug om {time}",
+    "freeTierPauseNote": "Pauze in proces op deze instantie"
   },
   "gamification": {
     "leaderboardScopes": {

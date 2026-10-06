@@ -12877,7 +12877,10 @@
     "inheritedPool": "Pärib ühenduste kogumi ({count})",
     "poolEmptyBlocked": "Kogum tühi — päringud ebaõnnestuvad (mitte otse)",
     "directEgress": "Otse (puhverserverita)",
-    "ownProxy": "Oma puhverserver"
+    "ownProxy": "Oma puhverserver",
+    "freeTierPause": "Mudel {model} on pausil (429), tagasi {time}",
+    "freeTierPauseProvider": "Pausil (429), tagasi {time}",
+    "freeTierPauseNote": "Protsessisisene paus selles instantsis"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12877,7 +12877,10 @@
     "inheritedPool": "Paveldi ryšių telkinį ({count})",
     "poolEmptyBlocked": "Telkinys tuščias — užklausos nepavyksta (ne tiesiogiai)",
     "directEgress": "Tiesiogiai (be tarpinio serverio)",
-    "ownProxy": "Nuosavas tarpinis serveris"
+    "ownProxy": "Nuosavas tarpinis serveris",
+    "freeTierPause": "Modelis {model} pristabdytas (429), grįš {time}",
+    "freeTierPauseProvider": "Pristabdyta (429), grįš {time}",
+    "freeTierPauseNote": "Pertraukimas procese šiame egzemplioriuje"
   },
   "gamification": {
     "leaderboardScopes": {

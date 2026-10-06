@@ -12877,7 +12877,10 @@
     "inheritedPool": "ಸಂಪರ್ಕ ಪೂಲ್ ಅನ್ನು ಆನುವಂಶಿಕವಾಗಿ ({count})",
     "poolEmptyBlocked": "ಪೂಲ್ ಖಾಲಿ — ವಿನಂತಿಗಳು ವಿಫಲವಾಗುತ್ತವೆ (ನೇರವಲ್ಲ)",
     "directEgress": "ನೇರ (ಪ್ರಾಕ್ಸಿ ಇಲ್ಲದೆ)",
-    "ownProxy": "ಸ್ವಂತ ಪ್ರಾಕ್ಸಿ"
+    "ownProxy": "ಸ್ವಂತ ಪ್ರಾಕ್ಸಿ",
+    "freeTierPause": "ಮಾಡೆಲ್ {model} ವಿರಾಮಗೊಂಡಿದೆ (429), {time} ಗೆ ಮರಳುತ್ತದೆ",
+    "freeTierPauseProvider": "ವಿರಾಮಗೊಂಡಿದೆ (429), {time} ಗೆ ಮರಳುತ್ತದೆ",
+    "freeTierPauseNote": "ಈ ಇನ್‌ಸ್ಟೆನ್ಸ್‌ನಲ್ಲಿ ಪ್ರಕ್ರಿಯೆಯೊಳಗಿನ ವಿರಾಮ"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12877,7 +12877,10 @@
     "inheritedPool": "ទទួលមរតកបណ្តុំការតភ្ជាប់ ({count})",
     "poolEmptyBlocked": "បណ្តុំទទេ — សំណើបរាជ័យ (មិនផ្ទាល់)",
     "directEgress": "ផ្ទាល់ (គ្មានប្រូកស៊ី)",
-    "ownProxy": "ប្រូកស៊ីផ្ទាល់ខ្លួន"
+    "ownProxy": "ប្រូកស៊ីផ្ទាល់ខ្លួន",
+    "freeTierPause": "ម៉ូឌែល {model} បានផ្អាក (429) នឹងត្រឡប់មកវិញនៅ {time}",
+    "freeTierPauseProvider": "បានផ្អាក (429) នឹងត្រឡប់មកវិញនៅ {time}",
+    "freeTierPauseNote": "ការផ្អាកក្នុងដំណើរការនៅក្នុងវត្ថុនេះ"
   },
   "gamification": {
     "leaderboardScopes": {

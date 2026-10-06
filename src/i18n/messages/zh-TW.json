@@ -12877,7 +12877,10 @@
     "inheritedPool": "繼承連線集區({count})",
     "poolEmptyBlocked": "集區為空——請求將失敗(非直連)",
     "directEgress": "直連(無代理)",
-    "ownProxy": "自有代理"
+    "ownProxy": "自有代理",
+    "freeTierPause": "模型 {model} 已暫停 (429)，將於 {time} 恢復",
+    "freeTierPauseProvider": "已暫停 (429)，將於 {time} 恢復",
+    "freeTierPauseNote": "此實例上的進程暫停"
   },
   "gamification": {
     "leaderboardScopes": {

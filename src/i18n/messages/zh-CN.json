@@ -12877,7 +12877,10 @@
     "inheritedPool": "继承连接池({count})",
     "poolEmptyBlocked": "连接池为空——请求将失败(非直连)",
     "directEgress": "直连(无代理)",
-    "ownProxy": "自有代理"
+    "ownProxy": "自有代理",
+    "freeTierPause": "模型 {model} 已暂停 (429)，将于 {time} 恢复",
+    "freeTierPauseProvider": "已暂停 (429)，将于 {time} 恢复",
+    "freeTierPauseNote": "该实例上的进程内暂停"
   },
   "gamification": {
     "leaderboardScopes": {

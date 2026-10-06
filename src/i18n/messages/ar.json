@@ -12877,7 +12877,10 @@
     "inheritedPool": "يرث تجمع الاتصالات ({count})",
     "poolEmptyBlocked": "التجمع فارغ — تفشل الطلبات (ليس مباشرًا)",
     "directEgress": "مباشر (بدون وكيل)",
-    "ownProxy": "وكيل خاص"
+    "ownProxy": "وكيل خاص",
+    "freeTierPause": "تم إيقاف النموذج {model} مؤقتًا (429)، وسيعود في {time}",
+    "freeTierPauseProvider": "تم الإيقاف مؤقتًا (429)، وسيعود في {time}",
+    "freeTierPauseNote": "إيقاف مؤقت داخل العملية على هذه النسخة"
   },
   "gamification": {
     "leaderboardScopes": {

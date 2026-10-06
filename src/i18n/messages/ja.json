@@ -12877,7 +12877,10 @@
     "inheritedPool": "接続プールを継承({count})",
     "poolEmptyBlocked": "プールが空—リクエストは失敗します(直接ではありません)",
     "directEgress": "直接(プロキシなし)",
-    "ownProxy": "独自プロキシ"
+    "ownProxy": "独自プロキシ",
+    "freeTierPause": "モデル {model} は一時停止しました (429)、{time} に再開します",
+    "freeTierPauseProvider": "一時停止中 (429)、{time} に再開します",
+    "freeTierPauseNote": "このインスタンスでプロセス内一時停止"
   },
   "gamification": {
     "leaderboardScopes": {

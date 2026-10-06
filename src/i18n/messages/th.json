@@ -12877,7 +12877,10 @@
     "inheritedPool": "สืบทอดพูลการเชื่อมต่อ ({count})",
     "poolEmptyBlocked": "พูลว่าง — คำขอจะล้มเหลว (ไม่โดยตรง)",
     "directEgress": "โดยตรง (ไม่มีพร็อกซี)",
-    "ownProxy": "พร็อกซีของตัวเอง"
+    "ownProxy": "พร็อกซีของตัวเอง",
+    "freeTierPause": "โมเดล {model} ถูกหยุดชั่วคราว (429) จะกลับมาที่ {time}",
+    "freeTierPauseProvider": "หยุดชั่วคราว (429) จะกลับมาที่ {time}",
+    "freeTierPauseNote": "การหยุดชั่วคราวภายในโพรเซสบนอินสแตนซ์นี้"
   },
   "gamification": {
     "leaderboardScopes": {

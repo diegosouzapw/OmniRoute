@@ -12877,7 +12877,10 @@
     "inheritedPool": "Ulanishlar hovuzini meros oladi ({count})",
     "poolEmptyBlocked": "Hovuz bo‘sh — so‘rovlar muvaffaqiyatsiz (to‘g‘ridan-to‘g‘ri emas)",
     "directEgress": "To‘g‘ridan-to‘g‘ri (proksisiz)",
-    "ownProxy": "Shaxsiy proksi"
+    "ownProxy": "Shaxsiy proksi",
+    "freeTierPause": "{model} modeli to'xtatildi (429), {time} da qaytadi",
+    "freeTierPauseProvider": "To'xtatildi (429), {time} da qaytadi",
+    "freeTierPauseNote": "Ushbu instance ichidagi jarayonni to‘xtatish"
   },
   "gamification": {
     "leaderboardScopes": {

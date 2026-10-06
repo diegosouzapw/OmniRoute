@@ -12877,7 +12877,10 @@
     "inheritedPool": "Inarithi dimbwi la miunganisho ({count})",
     "poolEmptyBlocked": "Dimbwi tupu — maombi yanashindwa (siyo moja kwa moja)",
     "directEgress": "Moja kwa moja (bila proksi)",
-    "ownProxy": "Proksi yako"
+    "ownProxy": "Proksi yako",
+    "freeTierPause": "Modeli {model} imesimamishwa (429), itarudi {time}",
+    "freeTierPauseProvider": "Imesisitishwa (429), itarudi saa {time}",
+    "freeTierPauseNote": "Susamisho la mchakato katika mfano huu"
   },
   "gamification": {
     "leaderboardScopes": {

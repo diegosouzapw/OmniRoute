@@ -12877,7 +12877,10 @@
     "inheritedPool": "Успадковує пул зʼєднань ({count})",
     "poolEmptyBlocked": "Пул порожній — запити не вдаються (не напряму)",
     "directEgress": "Напряму (без проксі)",
-    "ownProxy": "Власний проксі"
+    "ownProxy": "Власний проксі",
+    "freeTierPause": "Модель {model} призупинено (429), повернення о {time}",
+    "freeTierPauseProvider": "Призупинено (429), повернення о {time}",
+    "freeTierPauseNote": "Пауза в процесі на цьому екземплярі"
   },
   "gamification": {
     "leaderboardScopes": {

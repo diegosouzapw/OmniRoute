@@ -12877,7 +12877,10 @@
     "inheritedPool": "Ժառանգում է կապերի խումբը ({count})",
     "poolEmptyBlocked": "Խումբը դատարկ է — հարցումները ձախողվում են (ոչ ուղիղ)",
     "directEgress": "Ուղիղ (առանց պրոքսիի)",
-    "ownProxy": "Սեփական պրոքսի"
+    "ownProxy": "Սեփական պրոքսի",
+    "freeTierPause": "Մոդել {model} կանգնեցված է (429), կվերադառնա {time}",
+    "freeTierPauseProvider": "Կանգնեցված է (429), կվերադառնա {time}",
+    "freeTierPauseNote": "Գործընթացի ներսում կանգնեցում այս օրինակի համար"
   },
   "gamification": {
     "leaderboardScopes": {

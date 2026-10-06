@@ -12877,7 +12877,10 @@
     "inheritedPool": "Bağlantı havuzunu devralır ({count})",
     "poolEmptyBlocked": "Havuz boş — istekler başarısız olur (doğrudan değil)",
     "directEgress": "Doğrudan (proxy yok)",
-    "ownProxy": "Kendi proxy'n"
+    "ownProxy": "Kendi proxy'n",
+    "freeTierPause": "{model} modeli duraklatıldı (429), dönüş: {time}",
+    "freeTierPauseProvider": "Duraklatıldı (429), dönüş: {time}",
+    "freeTierPauseNote": "Bu örnekte süreç içi duraklatma"
   },
   "gamification": {
     "leaderboardScopes": {

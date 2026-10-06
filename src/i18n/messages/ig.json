@@ -12877,7 +12877,10 @@
     "inheritedPool": "Na-eketa ọdọ njikọ ({count})",
     "poolEmptyBlocked": "Ọdọ tọgbọrọ — arịrịọ na-ada (ọ bụghị ozugbo)",
     "directEgress": "Ozugbo (enweghị proxy)",
-    "ownProxy": "Proxy nke gị"
+    "ownProxy": "Proxy nke gị",
+    "freeTierPause": "Model {model} edagbakwuru (429), ga-alọta {time}",
+    "freeTierPauseProvider": "Edagbakwuru (429), ga-alọta {time}",
+    "freeTierPauseNote": "Njikwa ọganihu na usoro a na nke a"
   },
   "gamification": {
     "leaderboardScopes": {

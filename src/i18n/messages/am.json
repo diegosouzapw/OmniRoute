@@ -12877,7 +12877,10 @@
     "inheritedPool": "የግንኙነት ፑል ይወርሳል ({count})",
     "poolEmptyBlocked": "ፑል ባዶ — ጥያቄዎች ይሳናሉ (ቀጥተኛ አይደለም)",
     "directEgress": "ቀጥተኛ (ፕሮክሲ የሌለው)",
-    "ownProxy": "የራስ ፕሮክሲ"
+    "ownProxy": "የራስ ፕሮክሲ",
+    "freeTierPause": "ሞዴል {model} ተቋርጧል (429), በ {time} ይመለሳል",
+    "freeTierPauseProvider": "ተቋርጧል (429), በ {time} ይመለሳል",
+    "freeTierPauseNote": "በሂደት ላይ ያለ ላ ጊዜያዊ ማቁም"
   },
   "gamification": {
     "leaderboardScopes": {

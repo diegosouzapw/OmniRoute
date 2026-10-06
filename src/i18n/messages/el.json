@@ -12877,7 +12877,10 @@
     "inheritedPool": "Κληρονομεί το pool συνδέσεων ({count})",
     "poolEmptyBlocked": "Το pool άδειο — τα αιτήματα αποτυγχάνουν (όχι απευθείας)",
     "directEgress": "Απευθείας (χωρίς proxy)",
-    "ownProxy": "Δικός σας διακομιστής μεσολάβησης"
+    "ownProxy": "Δικός σας διακομιστής μεσολάβησης",
+    "freeTierPause": "Το μοντέλο {model} σταμάτησε (429), θα επιστρέψει στις {time}",
+    "freeTierPauseProvider": "Σταμάτησε (429), θα επιστρέψει στις {time}",
+    "freeTierPauseNote": "Παύση εντός διεργασίας σε αυτό το στοιχείο"
   },
   "gamification": {
     "leaderboardScopes": {

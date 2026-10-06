@@ -12877,7 +12877,10 @@
     "inheritedPool": "Podeduje bazen povezav ({count})",
     "poolEmptyBlocked": "Bazen prazen — zahteve ne uspejo (ne neposredno)",
     "directEgress": "Neposredno (brez proxyja)",
-    "ownProxy": "Lasten posredniški strežnik"
+    "ownProxy": "Lasten posredniški strežnik",
+    "freeTierPause": "Model {model} je začasno ustavljen (429), nazaj ob {time}",
+    "freeTierPauseProvider": "Začasno ustavljeno (429), nazaj ob {time}",
+    "freeTierPauseNote": "Premor znotraj procesa na tem primerku"
   },
   "gamification": {
     "leaderboardScopes": {

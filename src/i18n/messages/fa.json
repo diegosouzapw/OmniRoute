@@ -12877,7 +12877,10 @@
     "inheritedPool": "استخر اتصال را به ارث می‌برد ({count})",
     "poolEmptyBlocked": "استخر خالی است — درخواست‌ها ناموفق می‌شوند (نه مستقیم)",
     "directEgress": "مستقیم (بدون پروکسی)",
-    "ownProxy": "پراکسی اختصاصی"
+    "ownProxy": "پراکسی اختصاصی",
+    "freeTierPause": "مدل {model} متوقف شد (429)، در {time} بازمی‌گردد",
+    "freeTierPauseProvider": "متوقف شد (429)، در {time} بازمی‌گردد",
+    "freeTierPauseNote": "توقف داخلی در این نمونه"
   },
   "gamification": {
     "leaderboardScopes": {

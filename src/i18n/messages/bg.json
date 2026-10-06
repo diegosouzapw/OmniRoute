@@ -12877,7 +12877,10 @@
     "inheritedPool": "Наследява пула от връзки ({count})",
     "poolEmptyBlocked": "Пулът е празен — заявките се провалят (не директно)",
     "directEgress": "Директно (без прокси)",
-    "ownProxy": "Собствено прокси"
+    "ownProxy": "Собствено прокси",
+    "freeTierPause": "Моделът {model} е на пауза (429), връща се в {time}",
+    "freeTierPauseProvider": "На пауза (429), връща се в {time}",
+    "freeTierPauseNote": "Пауза в процеса на този инстанс"
   },
   "gamification": {
     "leaderboardScopes": {

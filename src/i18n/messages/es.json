@@ -12877,7 +12877,10 @@
     "inheritedPool": "Hereda el grupo de conexiones ({count})",
     "poolEmptyBlocked": "Grupo vacío — las solicitudes fallan (no directo)",
     "directEgress": "Directo (sin proxy)",
-    "ownProxy": "Proxy propio"
+    "ownProxy": "Proxy propio",
+    "freeTierPause": "Modelo {model} en pausa (429), volverá a las {time}",
+    "freeTierPauseProvider": "En pausa (429), volverá a las {time}",
+    "freeTierPauseNote": "Pausa en proceso en esta instancia"
   },
   "gamification": {
     "leaderboardScopes": {

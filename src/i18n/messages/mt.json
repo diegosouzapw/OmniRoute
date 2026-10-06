@@ -12877,7 +12877,10 @@
     "inheritedPool": "Jiret il-pool tal-konnessjonijiet ({count})",
     "poolEmptyBlocked": "Pool vojt — it-talbiet ifallu (mhux dirett)",
     "directEgress": "Dirett (bla proxy)",
-    "ownProxy": "Proxy proprju"
+    "ownProxy": "Proxy proprju",
+    "freeTierPause": "Il-mudell {model} ippawżat (429), lura fi {time}",
+    "freeTierPauseProvider": "Ippawżat (429), lura fi {time}",
+    "freeTierPauseNote": "Pawża fil-proċess fuq dan il-caż"
   },
   "gamification": {
     "leaderboardScopes": {

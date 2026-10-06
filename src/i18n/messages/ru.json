@@ -12877,7 +12877,10 @@
     "inheritedPool": "Наследует пул соединений ({count})",
     "poolEmptyBlocked": "Пул пуст — запросы завершаются ошибкой (не напрямую)",
     "directEgress": "Напрямую (без прокси)",
-    "ownProxy": "Собственный прокси"
+    "ownProxy": "Собственный прокси",
+    "freeTierPause": "Модель {model} приостановлена (429), возврат в {time}",
+    "freeTierPauseProvider": "Приостановлено (429), возврат в {time}",
+    "freeTierPauseNote": "Пауза в процессе на этом экземпляре"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12877,7 +12877,10 @@
     "inheritedPool": "जडान पुल उत्तराधिकार ({count})",
     "poolEmptyBlocked": "पुल खाली — अनुरोधहरू असफल हुन्छन् (प्रत्यक्ष होइन)",
     "directEgress": "प्रत्यक्ष (प्रोक्सी बिना)",
-    "ownProxy": "आफ्नै प्रोक्सी"
+    "ownProxy": "आफ्नै प्रोक्सी",
+    "freeTierPause": "मोडेल {model} रोकियो (४२९), {time} मा फर्किन्छ",
+    "freeTierPauseProvider": "रोकियो (४२९), {time} मा फर्किन्छ",
+    "freeTierPauseNote": "यस इन्स्टेन्समा इन-प्रोसेस पज"
   },
   "gamification": {
     "leaderboardScopes": {

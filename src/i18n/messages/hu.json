@@ -12877,7 +12877,10 @@
     "inheritedPool": "Örökölt kapcsolati készlet ({count})",
     "poolEmptyBlocked": "A készlet üres — a kérések meghiúsulnak (nem közvetlen)",
     "directEgress": "Közvetlen (proxy nélkül)",
-    "ownProxy": "Saját proxy"
+    "ownProxy": "Saját proxy",
+    "freeTierPause": "{model} modell szüneteltetve (429), visszatér: {time}",
+    "freeTierPauseProvider": "Szüneteltetve (429), visszatér: {time}",
+    "freeTierPauseNote": "Folyamatban lévő szüneteltetés ezen a példányon"
   },
   "gamification": {
     "leaderboardScopes": {

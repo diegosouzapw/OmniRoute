@@ -12877,7 +12877,10 @@
     "inheritedPool": "Bağlantı hovuzunu miras alır ({count})",
     "poolEmptyBlocked": "Hovuz boşdur — sorğular uğursuz olur (birbaşa deyil)",
     "directEgress": "Birbaşa (proksisiz)",
-    "ownProxy": "Öz proksi"
+    "ownProxy": "Öz proksi",
+    "freeTierPause": "Model {model} dayandırıldı (429), {time} qayıdacaq",
+    "freeTierPauseProvider": "Dayandırıldı (429), {time} qayıdacaq",
+    "freeTierPauseNote": "Bu nüsxədə prosesdaxili fasilə"
   },
   "gamification": {
     "leaderboardScopes": {

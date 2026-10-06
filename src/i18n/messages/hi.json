@@ -12877,7 +12877,10 @@
     "inheritedPool": "कनेक्शन पूल से विरासत ({count})",
     "poolEmptyBlocked": "पूल खाली — अनुरोध विफल होते हैं (प्रत्यक्ष नहीं)",
     "directEgress": "प्रत्यक्ष (बिना प्रॉक्सी)",
-    "ownProxy": "अपना प्रॉक्सी"
+    "ownProxy": "अपना प्रॉक्सी",
+    "freeTierPause": "मॉडल {model} रोका गया (429), {time} पर वापस",
+    "freeTierPauseProvider": "रोका गया (429), {time} पर वापस",
+    "freeTierPauseNote": "इस इंस्टेंस पर इन-प्रोसेस पॉज़"
   },
   "gamification": {
     "leaderboardScopes": {

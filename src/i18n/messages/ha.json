@@ -12877,7 +12877,10 @@
     "inheritedPool": "Yana gadon tafkin haɗi ({count})",
     "poolEmptyBlocked": "Tafkin babu kowa — buƙatun suna faduwa (ba kai tsaye ba)",
     "directEgress": "Kai tsaye (babu proxy)",
-    "ownProxy": "Proxy na kai"
+    "ownProxy": "Proxy na kai",
+    "freeTierPause": "An huta {model} (429), za a dawo a {time}",
+    "freeTierPauseProvider": "An huta (429), za a dawo a {time}",
+    "freeTierPauseNote": "Tsaya aiki a cikin wannan lami"
   },
   "gamification": {
     "leaderboardScopes": {

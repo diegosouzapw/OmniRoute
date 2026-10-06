@@ -12877,7 +12877,10 @@
     "inheritedPool": "Perii yhteyspoolin ({count})",
     "poolEmptyBlocked": "Pooli tyhjä — pyynnöt epäonnistuvat (ei suoraan)",
     "directEgress": "Suora (ei välityspalvelinta)",
-    "ownProxy": "Oma välityspalvelin"
+    "ownProxy": "Oma välityspalvelin",
+    "freeTierPause": "Malli {model} keskeytetty (429), palaa {time}",
+    "freeTierPauseProvider": "Keskeytetty (429), palaa {time}",
+    "freeTierPauseNote": "Prosessinsisäinen tauko tällä instanssilla"
   },
   "gamification": {
     "leaderboardScopes": {

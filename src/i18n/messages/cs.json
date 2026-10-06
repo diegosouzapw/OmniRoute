@@ -12877,7 +12877,10 @@
     "inheritedPool": "Dědí fond připojení ({count})",
     "poolEmptyBlocked": "Fond prázdný — požadavky selžou (ne přímo)",
     "directEgress": "Přímo (bez proxy)",
-    "ownProxy": "Vlastní proxy"
+    "ownProxy": "Vlastní proxy",
+    "freeTierPause": "Model {model} pozastaven (429), zpět v {time}",
+    "freeTierPauseProvider": "Pozastaveno (429), zpět v {time}",
+    "freeTierPauseNote": "Pozastavení v rámci procesu na této instanci"
   },
   "gamification": {
     "leaderboardScopes": {

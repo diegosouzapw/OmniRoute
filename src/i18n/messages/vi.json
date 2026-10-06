@@ -12877,7 +12877,10 @@
     "inheritedPool": "Kế thừa nhóm proxy của kết nối ({count})",
     "poolEmptyBlocked": "Nhóm proxy trống — yêu cầu thất bại (không phải trực tiếp)",
     "directEgress": "Kết nối trực tiếp (không dùng proxy)",
-    "ownProxy": "Proxy riêng"
+    "ownProxy": "Proxy riêng",
+    "freeTierPause": "Mô hình {model} đã tạm dừng (429), quay lại lúc {time}",
+    "freeTierPauseProvider": "Đã tạm dừng (429), quay lại lúc {time}",
+    "freeTierPauseNote": "Tạm dừng trong tiến trình trên phiên bản này"
   },
   "gamification": {
     "leaderboardScopes": {

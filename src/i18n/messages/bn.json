@@ -12877,7 +12877,10 @@
     "inheritedPool": "সংযোগ পুল থেকে উত্তরাধিকার ({count})",
     "poolEmptyBlocked": "পুল খালি — অনুরোধ ব্যর্থ হয় (সরাসরি নয়)",
     "directEgress": "সরাসরি (প্রক্সি ছাড়া)",
-    "ownProxy": "নিজস্ব প্রক্সি"
+    "ownProxy": "নিজস্ব প্রক্সি",
+    "freeTierPause": "মডেল {model} বিরতিতে (429), {time} ফিরে আসবে",
+    "freeTierPauseProvider": "বিরতিতে (429), {time} ফিরে আসবে",
+    "freeTierPauseNote": "এই ইনস্ট্যান্সে ইন-প্রসেস পজ"
   },
   "gamification": {
     "leaderboardScopes": {

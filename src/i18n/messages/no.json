@@ -12877,7 +12877,10 @@
     "inheritedPool": "Arver tilkoblingspool ({count})",
     "poolEmptyBlocked": "Pool tom — forespørsler mislykkes (ikke direkte)",
     "directEgress": "Direkte (ingen proxy)",
-    "ownProxy": "Egen proxy"
+    "ownProxy": "Egen proxy",
+    "freeTierPause": "Modell {model} pauset (429), tilbake kl. {time}",
+    "freeTierPauseProvider": "Pauset (429), tilbake kl. {time}",
+    "freeTierPauseNote": "Pause i prosessen på denne forekomsten"
   },
   "gamification": {
     "leaderboardScopes": {

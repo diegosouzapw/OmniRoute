@@ -12877,7 +12877,10 @@
     "inheritedPool": "Dziedziczy pulę połączeń ({count})",
     "poolEmptyBlocked": "Pula pusta — żądania nie powiodą się (nie bezpośrednio)",
     "directEgress": "Bezpośrednio (bez proxy)",
-    "ownProxy": "Własne proxy"
+    "ownProxy": "Własne proxy",
+    "freeTierPause": "Model {model} wstrzymany (429), powrót o {time}",
+    "freeTierPauseProvider": "Wstrzymano (429), powrót o {time}",
+    "freeTierPauseNote": "Pauza w procesie w tej instancji"
   },
   "gamification": {
     "leaderboardScopes": {

@@ -12877,7 +12877,10 @@
     "inheritedPool": "Moștenește pool-ul de conexiuni ({count})",
     "poolEmptyBlocked": "Pool gol — cererile eșuează (nu direct)",
     "directEgress": "Direct (fără proxy)",
-    "ownProxy": "Proxy propriu"
+    "ownProxy": "Proxy propriu",
+    "freeTierPause": "Modelul {model} este pus în pauză (429), revine la {time}",
+    "freeTierPauseProvider": "Pus în pauză (429), revine la {time}",
+    "freeTierPauseNote": "Pauză în proces pe această instanță"
   },
   "gamification": {
     "leaderboardScopes": {

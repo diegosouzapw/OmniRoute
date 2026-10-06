@@ -12877,7 +12877,10 @@
     "inheritedPool": "இணைப்பு தொகுப்பு மரபுரிமை ({count})",
     "poolEmptyBlocked": "தொகுப்பு காலி — கோரிக்கைகள் தோல்வி (நேரடி அல்ல)",
     "directEgress": "நேரடி (ப்ராக்ஸி இல்லை)",
-    "ownProxy": "சொந்த ப்ராக்ஸி"
+    "ownProxy": "சொந்த ப்ராக்ஸி",
+    "freeTierPause": "மாதிரி {model} இடைநிறுத்தப்பட்டது (429), {time} அன்று மீண்டும்",
+    "freeTierPauseProvider": "இடைநிறுத்தப்பட்டது (429), {time} அன்று மீண்டும்",
+    "freeTierPauseNote": "இந்த நிகழ்வில் செயல்முறை இடையே இடைநிறுத்தம்"
   },
   "gamification": {
     "leaderboardScopes": {

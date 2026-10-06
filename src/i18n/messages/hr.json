@@ -12877,7 +12877,10 @@
     "inheritedPool": "Nasljeđuje bazen veza ({count})",
     "poolEmptyBlocked": "Bazen prazan — zahtjevi ne uspijevaju (ne izravno)",
     "directEgress": "Izravno (bez proxyja)",
-    "ownProxy": "Vlastiti proxy"
+    "ownProxy": "Vlastiti proxy",
+    "freeTierPause": "Model {model} pauziran je (429), vraća se u {time}",
+    "freeTierPauseProvider": "Pauzirano (429), vraća se u {time}",
+    "freeTierPauseNote": "Pauza unutar procesa na ovoj instanci"
   },
   "gamification": {
     "leaderboardScopes": {

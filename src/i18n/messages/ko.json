@@ -12877,7 +12877,10 @@
     "inheritedPool": "연결 풀 상속({count})",
     "poolEmptyBlocked": "풀 비어 있음 — 요청 실패(직접 아님)",
     "directEgress": "직접(프록시 없음)",
-    "ownProxy": "자체 프록시"
+    "ownProxy": "자체 프록시",
+    "freeTierPause": "모델 {model} 일시 중지됨 (429), {time}에 복귀",
+    "freeTierPauseProvider": "일시 중지됨 (429), {time}에 복귀",
+    "freeTierPauseNote": "이 인스턴스에서 인프로세스 일시 중지"
   },
   "gamification": {
     "leaderboardScopes": {

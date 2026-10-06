@@ -12877,7 +12877,10 @@
     "inheritedPool": "Jogun adagun asopọ ({count})",
     "poolEmptyBlocked": "Adagun ṣofo — awọn ibeere kuna (kii ṣe taara)",
     "directEgress": "Taara (laisi proxy)",
-    "ownProxy": "Proxy tirẹ"
+    "ownProxy": "Proxy tirẹ",
+    "freeTierPause": "Ọ̀rọ̀ àwọnìwò {model} dúró (429), padà ní {time}",
+    "freeTierPauseProvider": "Dúró (429), padà ní {time}",
+    "freeTierPauseNote": "Ìdádúró inú ohun àtìjọṣọ lórí àfihàn yìí"
   },
   "gamification": {
     "leaderboardScopes": {

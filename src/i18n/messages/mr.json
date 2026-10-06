@@ -12877,7 +12877,10 @@
     "inheritedPool": "कनेक्शन पूल वारशाने ({count})",
     "poolEmptyBlocked": "पूल रिकामा — विनंत्या अयशस्वी होतात (थेट नाही)",
     "directEgress": "थेट (प्रॉक्सीशिवाय)",
-    "ownProxy": "स्वतःचा प्रॉक्सी"
+    "ownProxy": "स्वतःचा प्रॉक्सी",
+    "freeTierPause": "मॉडेल {model} थांबले (429), {time} ला परत येईल",
+    "freeTierPauseProvider": "थांबले (429), {time} ला परत येईल",
+    "freeTierPauseNote": "या इंस्टन्सवर प्रक्रियेतील थांबा"
   },
   "gamification": {
     "leaderboardScopes": {

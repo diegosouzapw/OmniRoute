@@ -12877,7 +12877,10 @@
     "inheritedPool": "കണക്ഷൻ പൂൾ പാരമ്പര്യമായി ({count})",
     "poolEmptyBlocked": "പൂൾ ശൂന്യം — അഭ്യർത്ഥനകൾ പരാജയപ്പെടുന്നു (നேരിട്ടല്ല)",
     "directEgress": "നേരിട്ട് (പ്രോക്സി ഇല്ലാതെ)",
-    "ownProxy": "സ്വന്തം പ്രോക്സി"
+    "ownProxy": "സ്വന്തം പ്രോക്സി",
+    "freeTierPause": "മോഡൽ {model} തൽക്കാലം നിർത്തി (429), {time}-യിൽ തിരിച്ചെത്തും",
+    "freeTierPauseProvider": "തടഞ്ഞു (429), {time}-ൽ തിരിച்சെത്തും",
+    "freeTierPauseNote": "ഈ ഇൻസ്റ്റൻസിൽ പ്രോസസ്സ് ഇൻ-പ്രോസസ്സ് പോസ്"
   },
   "gamification": {
     "leaderboardScopes": {

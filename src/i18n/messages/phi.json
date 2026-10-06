@@ -12877,7 +12877,10 @@
     "inheritedPool": "Nagmamana ng pool ng koneksyon ({count})",
     "poolEmptyBlocked": "Walang laman ang pool — nabibigo ang mga request (hindi direkta)",
     "directEgress": "Direkta (walang proxy)",
-    "ownProxy": "Sariling proxy"
+    "ownProxy": "Sariling proxy",
+    "freeTierPause": "Na-pause ang model {model} (429), babalik sa {time}",
+    "freeTierPauseProvider": "Na-pause (429), babalik sa {time}",
+    "freeTierPauseNote": "In-process na pagtigil sa instance na ito"
   },
   "gamification": {
     "leaderboardScopes": {

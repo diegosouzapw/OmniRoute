@@ -12878,7 +12878,10 @@
     "inheritedPool": "Inherits connection pool ({count})",
     "poolEmptyBlocked": "Pool empty — requests fail (not direct)",
     "directEgress": "Direct (no proxy)",
-    "ownProxy": "Own proxy"
+    "ownProxy": "Own proxy",
+    "freeTierPause": "Model {model} paused (429), back at {time}",
+    "freeTierPauseProvider": "Paused (429), back at {time}",
+    "freeTierPauseNote": "In-process pause on this instance"
   },
   "gamification": {
     "leaderboardScopes": {

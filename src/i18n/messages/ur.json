@@ -12877,7 +12877,10 @@
     "inheritedPool": "کنکشن پول وراثت میں ({count})",
     "poolEmptyBlocked": "پول خالی — درخواستیں ناکام ہوتی ہیں (براہ راست نہیں)",
     "directEgress": "براہ راست (بغیر پراکسی)",
-    "ownProxy": "اپنی پراکسی"
+    "ownProxy": "اپنی پراکسی",
+    "freeTierPause": "ماڈل {model} جاری (429), {time} پر واپس آئے گا",
+    "freeTierPauseProvider": "جاری (429), {time} پر واپس آئے گا",
+    "freeTierPauseNote": "اس انسٹینس پر ان پراسیس پاز"
   },
   "gamification": {
     "leaderboardScopes": {

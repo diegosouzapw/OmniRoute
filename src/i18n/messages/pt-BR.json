@@ -12877,7 +12877,10 @@
     "inheritedPool": "Herda o pool de conexões ({count})",
     "poolEmptyBlocked": "Pool vazio — as solicitações falham (não direto)",
     "directEgress": "Direto (sem proxy)",
-    "ownProxy": "Proxy próprio"
+    "ownProxy": "Proxy próprio",
+    "freeTierPause": "Modelo {model} pausado (429), volta às {time}",
+    "freeTierPauseProvider": "Pausado (429), volta às {time}",
+    "freeTierPauseNote": "Pausa interprocesso nesta instância"
   },
   "gamification": {
     "leaderboardScopes": {

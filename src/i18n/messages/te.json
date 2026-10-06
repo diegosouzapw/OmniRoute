@@ -12877,7 +12877,10 @@
     "inheritedPool": "కనెక్షన్ పూల్ వారసత్వం ({count})",
     "poolEmptyBlocked": "పూల్ ఖాళీ — అభ్యర్థనలు విఫలమవుతాయి (ప్రత్యక్షం కాదు)",
     "directEgress": "ప్రత్యక్షం (ప్రాక్సీ లేకుండా)",
-    "ownProxy": "సొంత ప్రాక్సీ"
+    "ownProxy": "సొంత ప్రాక్సీ",
+    "freeTierPause": "మోడల్ {model} నిలిపివేయబడింది (429), {time} న తిరిగి వస్తుంది",
+    "freeTierPauseProvider": "నిలిపివేయబడింది (429), {time} న తిరిగి వస్తుంది",
+    "freeTierPauseNote": "ఈ ఇన్‌స్టన్స్‌లో ప్రక్రియలోపు పాజ్"
   },
   "gamification": {
     "leaderboardScopes": {

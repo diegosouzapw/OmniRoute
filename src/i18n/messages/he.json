@@ -12877,7 +12877,10 @@
     "inheritedPool": "יורש את מאגר החיבורים ({count})",
     "poolEmptyBlocked": "המאגר ריק — בקשות נכשלות (לא ישיר)",
     "directEgress": "ישיר (ללא proxy)",
-    "ownProxy": "פרוקסי משלך"
+    "ownProxy": "פרוקסי משלך",
+    "freeTierPause": "הדגם {model} הושהה (429), יחזור ב-{time}",
+    "freeTierPauseProvider": "הושהה (429), יחזור ב-{time}",
+    "freeTierPauseNote": "השהיה בתוך התהליך במופע זה"
   },
   "gamification": {
     "leaderboardScopes": {

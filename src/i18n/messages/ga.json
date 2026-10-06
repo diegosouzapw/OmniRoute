@@ -12877,7 +12877,10 @@
     "inheritedPool": "Oidhreacht linn nasc ({count})",
     "poolEmptyBlocked": "Linn folamh — teipeann ar iarratais (ní díreach)",
     "directEgress": "Díreach (gan seachfhreastalaí)",
-    "ownProxy": "Seachfhreastalaí féin"
+    "ownProxy": "Seachfhreastalaí féin",
+    "freeTierPause": "Múnla {model} ar scoradh (429), ar ais ag {time}",
+    "freeTierPauseProvider": "Ar scoradh (429), ar ais ag {time}",
+    "freeTierPauseNote": "Cúramóir i bpróiseas ar an sampla seo"
   },
   "gamification": {
     "leaderboardScopes": {

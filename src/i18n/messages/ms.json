@@ -12877,7 +12877,10 @@
     "inheritedPool": "Mewarisi kolam sambungan ({count})",
     "poolEmptyBlocked": "Kolam kosong — permintaan gagal (bukan langsung)",
     "directEgress": "Langsung (tanpa proksi)",
-    "ownProxy": "Proksi sendiri"
+    "ownProxy": "Proksi sendiri",
+    "freeTierPause": "Model {model} dijeda (429), kembali pada {time}",
+    "freeTierPauseProvider": "Dijeda (429), kembali pada {time}",
+    "freeTierPauseNote": "Jeda dalam proses pada instance ini"
   },
   "gamification": {
     "leaderboardScopes": {

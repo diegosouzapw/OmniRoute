@@ -12877,7 +12877,10 @@
     "inheritedPool": "ချိတ်ဆက်မှု pool ကို အမွေခံသည် ({count})",
     "poolEmptyBlocked": "Pool လွတ်နေသည် — တောင်းဆိုမှုများ ကျရှုံးမည် (တိုက်ရိုက်မဟုတ်)",
     "directEgress": "တိုက်ရိုက် (proxy မပါ)",
-    "ownProxy": "ကိုယ်ပိုင် proxy"
+    "ownProxy": "ကိုယ်ပိုင် proxy",
+    "freeTierPause": "မော်ဒယ် {model} ကို ရပ်ထားပါသည် (429)，{time} တွင် ပြန်လည်စတင်ပါမည်",
+    "freeTierPauseProvider": "ရပ်ထားပါသည် (429)，{time} တွင် ပြန်လည်စတင်ပါမည်",
+    "freeTierPauseNote": "ဤဖြစ်စဉ်အတွင်း ခေတ္တရပ်နားခြင်း"
   },
   "gamification": {
     "leaderboardScopes": {

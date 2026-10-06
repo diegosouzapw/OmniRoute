@@ -12877,7 +12877,10 @@
     "inheritedPool": "Mewarisi pool koneksi ({count})",
     "poolEmptyBlocked": "Pool kosong — permintaan gagal (bukan langsung)",
     "directEgress": "Langsung (tanpa proxy)",
-    "ownProxy": "Proxy sendiri"
+    "ownProxy": "Proxy sendiri",
+    "freeTierPause": "Model {model} dijeda (429), kembali pada {time}",
+    "freeTierPauseProvider": "Dijeda (429), kembali pada {time}",
+    "freeTierPauseNote": "Jeda dalam proses pada instan ini"
   },
   "gamification": {
     "leaderboardScopes": {

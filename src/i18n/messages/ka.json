@@ -12877,7 +12877,10 @@
     "inheritedPool": "მემკვიდრეობს კავშირების პულს ({count})",
     "poolEmptyBlocked": "პული ცარიელია — მოთხოვნები ვარდება (არა პირდაპირ)",
     "directEgress": "პირდაპირ (პროქსის გარეშე)",
-    "ownProxy": "საკუთარი პროქსი"
+    "ownProxy": "საკუთარი პროქსი",
+    "freeTierPause": "მოდელი {model} შეჩერებულია (429), დაბრუნდება {time}-ზე",
+    "freeTierPauseProvider": "შეჩერებულია (429), დაბრუნდება {time}-ზე",
+    "freeTierPauseNote": "პროცესში შეჩერება ამ ინსტანციაზე"
   },
   "gamification": {
     "leaderboardScopes": {

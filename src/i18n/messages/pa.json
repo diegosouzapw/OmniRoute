@@ -12877,7 +12877,10 @@
     "inheritedPool": "ਕਨੈਕਸ਼ਨ ਪੂਲ ਵਿਰਾਸਤ ({count})",
     "poolEmptyBlocked": "ਪੂਲ ਖਾਲੀ — ਬੇਨਤੀਆਂ ਅਸਫਲ (ਸਿੱਧਾ ਨਹੀਂ)",
     "directEgress": "ਸਿੱਧਾ (ਬਿਨਾਂ ਪ੍ਰੌਕਸੀ)",
-    "ownProxy": "ਆਪਣੀ ਪ੍ਰੌਕਸੀ"
+    "ownProxy": "ਆਪਣੀ ਪ੍ਰੌਕਸੀ",
+    "freeTierPause": "ਮਾਡਲ {model} ਰੋਕਿਆ ਗਿਆ (429), {time} ਨੂੰ ਵਾਪਸ ਆਵੇਗਾ",
+    "freeTierPauseProvider": "ਰੋਕਿਆ ਗਿਆ (429), {time} ਨੂੰ ਵਾਪਸ ਆਵੇਗਾ",
+    "freeTierPauseNote": "ਇਸ ਇੰਸਟੰਸ 'ਤੇ ਪ੍ਰੋਸੈਸ ਅੰਦਰਲੀ ਰੁਕਾਵਟ"
   },
   "gamification": {
     "leaderboardScopes": {

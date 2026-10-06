@@ -12877,7 +12877,10 @@
     "inheritedPool": "Ärver anslutningspool ({count})",
     "poolEmptyBlocked": "Poolen tom — förfrågningar misslyckas (inte direkt)",
     "directEgress": "Direkt (ingen proxy)",
-    "ownProxy": "Egen proxy"
+    "ownProxy": "Egen proxy",
+    "freeTierPause": "Modellen {model} pausades (429), tillbaka {time}",
+    "freeTierPauseProvider": "Pausat (429), tillbaka {time}",
+    "freeTierPauseNote": "Paus i processen på denna instans"
   },
   "gamification": {
     "leaderboardScopes": {
