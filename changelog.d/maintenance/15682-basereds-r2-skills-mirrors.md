@@ -1,0 +1,1 @@
+- **chore(skills):** regenerate the drifted `omni-auth` SKILL.md and `omni-settings` endpoints reference mirrors, so the `Merge integrity (changelog + generated skills)` job stops failing for every release PR, same class as #15652 (#15682)
