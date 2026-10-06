@@ -168,7 +168,8 @@ export function getProviderPrefixes(
  */
 export function getComboTargetModelId(
   maps: AliasMaps,
-  target: ProviderPrefixedTarget
+  target: ProviderPrefixedTarget,
+  providerNodeIdByPrefix: Record<string, string> = {}
 ): { providerId: string; modelId: string } | null {
   const rawProvider =
     typeof target.providerId === "string"
@@ -176,8 +177,16 @@ export function getComboTargetModelId(
       : typeof target.provider === "string"
         ? target.provider.trim()
         : "";
-  const modelStr = typeof target.modelStr === "string" ? target.modelStr.trim() : "";
+  let modelStr = typeof target.modelStr === "string" ? target.modelStr.trim() : "";
   if (!rawProvider || rawProvider === "unknown" || !modelStr) return null;
+
+  // Builder steps retain the node ID for connection selection but use its public
+  // model prefix. Normalize only a prefix whose selected node matches that ID.
+  // Keep the model qualified so the existing resolver strips exactly one prefix.
+  const slashIndex = modelStr.indexOf("/");
+  if (slashIndex > 0 && providerNodeIdByPrefix[modelStr.slice(0, slashIndex)] === rawProvider) {
+    modelStr = `${rawProvider}${modelStr.slice(slashIndex)}`;
+  }
 
   const providerId = resolveCanonicalProviderId(maps.aliasToProviderId, rawProvider);
   if (!providerId || providerId === "unknown") return null;
