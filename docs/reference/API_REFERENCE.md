@@ -315,7 +315,26 @@ Content-Type: application/json
 }
 ```
 
-Available providers: OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (local), ComfyUI (local).
+Available providers include OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, **ZenMux**, SD WebUI (local), ComfyUI (local).
+
+ZenMux reuses the existing API-key connection and accepts `zenmux/` or `zm/` prefixes:
+
+- `zenmux/openai/gpt-image-2` uses ZenMux's OpenAI Images API. Options include `size`,
+  `quality`, `n`, `output_format`, `output_compression`, `background`, and `response_format`.
+- Other publishers, such as `zm/meta/muse-image-1.0`, use ZenMux's Vertex AI `:predict`
+  endpoint. `n` maps to `sampleCount`, `aspect_ratio` to `aspectRatio`, and `image_size`
+  (`1K`, `2K`, `4K`) to `sampleImageSize`. A pixel `size` supplies only an aspect ratio,
+  not guaranteed pixel dimensions. Supported ratios, resolutions, and counts vary by model.
+- `zm/inclusionai/ming-image-0.1-design` chooses its own dimensions. Omit `size`,
+  `aspect_ratio`, and `image_size`; explicit values return HTTP 400. PNG, JPEG, and WebP
+  can be requested with `output_format`.
+
+This integration supports text-to-image generation, not reference-image editing. Vertex
+output is normalized to `data[].b64_json`; `response_format: "url"` returns an upstream
+HTTPS URL or a base64 data URL when only image bytes are available. Empty/filtered outputs
+return an error rather than an empty success. Model access depends on the ZenMux account.
+See [ZenMux's Vertex API](https://docs.zenmux.ai/api/vertexai/generate-images) and
+[OpenAI Images API](https://docs.zenmux.ai/api/openai/generate-an-image).
 
 ```bash
 # List all image models
