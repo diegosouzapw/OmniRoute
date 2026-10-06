@@ -1,1 +1,0 @@
-- fix(context): guard estimates are calibrated against provider-reported usage.prompt_tokens (per provider/model, tools vs no-tools EMA, cold-start identical) instead of a flat chars/4 that over-counted tool-schema JSON up to 5x (#14931 — thanks @skygunner)
