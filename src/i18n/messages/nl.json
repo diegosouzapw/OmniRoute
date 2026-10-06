@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokaal proxy-core-eindpunt is ongeldig; SS/VMess/Trojan/VLESS-nodes zijn genegeerd.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dit abonnement bevat nodes die een lokale proxy-core vereisen (SS/VMess/Trojan/VLESS); ze worden niet gerouteerd totdat u het SOCKS5-eindpunt van de lokale core configureert.",
         "NO_USABLE_NODES": "Abonnement heeft geen bruikbare nodes opgeleverd (http/https/socks5 of nodes met een lokaal core-eindpunt).",
-        "SELECTOR_SWITCH_FAILED": "De besturingsaanroep van de proxy-core is mislukt; de vorige route blijft actief. Controleer de besturings-URL en het geheim en vernieuw daarna."
+        "SELECTOR_SWITCH_FAILED": "De besturingsaanroep van de proxy-core is mislukt; de vorige route blijft actief. Controleer de besturings-URL en het geheim en vernieuw daarna.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "De gegenereerde kernconfiguratie kon het overgenomen bestand niet vervangen; in plaats daarvan is de ernaast gemaakte kopie behouden.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Sommige items zijn overgeslagen tijdens het genereren. Zie de serverlog."
       },
       "description": "Plak uw proxy-abonnementslink. Eenmaal ingeschakeld, wordt het verkeer door de proxypool gerouteerd in de globale of regelmodus (gespecificeerde provider). Abonnementknooppunten worden automatisch gesynchroniseerd met de proxypool en hergebruiken bestaande polling-, statuscheck- en anti-lekmechanismen.",
       "addSubscription": "Abonnement toevoegen",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "Nog geen wisseling vastgelegd",
       "lastSwitchMember": "Bedienend lid",
       "nextSwitch": "Volgende mogelijke wisseling",
-      "nextSwitchNow": "Nu"
+      "nextSwitchNow": "Nu",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Pad van kernbinaire bestand",
+      "coreBinaryPathHelp": "Optioneel: verifieert het gegenereerde bestand met het kernbinaire bestand voordat het overgenomen bestand wordt vervangen. Leeg laten om ernaast te blijven schrijven. De map wordt aangemaakt als deze ontbreekt.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Bulkstatuscontrole",
     "bulkHealthcheckDesc": "Test alle geconfigureerde proxy's met een doel-URL om te bepalen welke werken.",
@@ -13063,8 +13082,8 @@
     "inactiveCount": "{count} inactief",
     "dbOverrideCount": "{count} DB-overrides",
     "searchPlaceholder": "Flags zoeken...",
-    "descriptionModeLabel": "Beschrijvingweergave",
-    "descriptionModeHint": "Bij aanwijzen: kaarten blijven compact en wanneer u de aanwijzer op een beschrijving plaatst, wordt de volledige tekst weergegeven. Volledige tekst: toon altijd de complete beschrijving.",
+    "descriptionModeLabel": "Beschrijvingsweergave",
+    "descriptionModeHint": "Bij aanwijzen: kaarten blijven compact en het aanwijzen van een beschrijving toont de volledige tekst. Volledige tekst: toon altijd de volledige beschrijving.",
     "descriptionModeHover": "Bij aanwijzen",
     "descriptionModeFull": "Volledige tekst",
     "categories": {

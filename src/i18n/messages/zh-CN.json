@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "本地代理核心端点无效；已忽略 SS/VMess/Trojan/VLESS 节点。",
         "NEEDS_CORE_NOT_CONFIGURED": "此订阅包含需要本地代理核心 (SS/VMess/Trojan/VLESS) 的节点；在配置本地核心 SOCKS5 端点之前，它们不会被路由。",
         "NO_USABLE_NODES": "订阅未产生可用节点 (http/https/socks5 或具有本地核心端点的节点)。",
-        "SELECTOR_SWITCH_FAILED": "代理核心控制调用失败；上一条路由保持有效。请检查控制 URL 和密钥，然后刷新。"
+        "SELECTOR_SWITCH_FAILED": "代理核心控制调用失败；上一条路由保持有效。请检查控制 URL 和密钥，然后刷新。",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "生成的核心配置无法替换已采纳的文件；已改为保留旁边的副本。",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "生成期间跳过了某些条目。请查看服务器日志。"
       },
       "description": "粘贴你的代理订阅链接，开启后即可按全局或规则（指定 Provider）模式走代理。订阅节点会自动同步进代理池，并复用既有的轮询、健康检查与防泄漏机制。",
       "addSubscription": "新增订阅",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "尚未记录切换",
       "lastSwitchMember": "服务中的成员",
       "nextSwitch": "下次可切换",
-      "nextSwitchNow": "现在"
+      "nextSwitchNow": "现在",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "核心二进制文件路径",
+      "coreBinaryPathHelp": "可选：在替换已采纳的文件之前，使用核心二进制文件验证生成的文件。留空则继续写入到旁边。目录不存在时会自动创建。",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "批量健康检查",
     "bulkHealthcheckDesc": "针对目标 URL 测试所有已配置代理，找出可用代理。",
@@ -13064,7 +13083,7 @@
     "dbOverrideCount": "{count} 个数据库覆盖",
     "searchPlaceholder": "搜索标志...",
     "descriptionModeLabel": "描述视图",
-    "descriptionModeHint": "悬停时：卡片保持紧凑，悬停在描述上时显示完整文本。完整文本：始终显示完整描述。",
+    "descriptionModeHint": "悬停时：卡片保持紧凑，悬停在描述上会显示完整文本。完整文本：始终显示完整的描述。",
     "descriptionModeHover": "悬停时",
     "descriptionModeFull": "完整文本",
     "categories": {

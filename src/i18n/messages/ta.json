@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "உள்ளூர் proxy-core எண்ட்பாயிண்ட் செல்லாதது; SS/VMess/Trojan/VLESS முனைகள் புறக்கணிக்கப்பட்டன.",
         "NEEDS_CORE_NOT_CONFIGURED": "இந்த சந்தாவில் உள்ளூர் proxy core (SS/VMess/Trojan/VLESS) தேவைப்படும் முனைகள் உள்ளன; நீங்கள் local-core SOCKS5 எண்ட்பாயிண்ட்டை உள்ளமைக்கும் வரை அவை வழிநடத்தப்படாது.",
         "NO_USABLE_NODES": "சந்தா பயன்படுத்தக்கூடிய முனைகள் எதையும் வழங்கவில்லை (http/https/socks5 அல்லது உள்ளூர் core எண்ட்பாயிண்ட் கொண்ட முனைகள்).",
-        "SELECTOR_SWITCH_FAILED": "ப்ராக்ஸி-கோர் கட்டுப்பாட்டு அழைப்பு தோல்வியடைந்தது; முந்தைய வழி செயலில் உள்ளது. கட்டுப்பாட்டு URL மற்றும் ரகசியத்தைச் சரிபார்த்துப் புதுப்பிக்கவும்."
+        "SELECTOR_SWITCH_FAILED": "ப்ராக்ஸி-கோர் கட்டுப்பாட்டு அழைப்பு தோல்வியடைந்தது; முந்தைய வழி செயலில் உள்ளது. கட்டுப்பாட்டு URL மற்றும் ரகசியத்தைச் சரிபார்த்துப் புதுப்பிக்கவும்.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "உருவாக்கப்பட்ட மூல கட்டமைப்பு ஏற்றுக்கொள்ளப்பட்ட கோப்பை மாற்ற இயலவில்லை; அதற்குப் பதிலாக அருகிலுள்ள நகலே வைக்கப்பட்டது.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "உருவாக்கத்தின் போது சில உள்ளீடுகள் தவிர்க்கப்பட்டன. சேவையக பதிவைப் பாருங்கள்."
       },
       "description": "உங்கள் ப்ராக்ஸி சந்தா இணைப்பை ஒட்டவும். இயக்கப்பட்டதும், உலகளாவிய அல்லது விதி (குறிப்பிடப்பட்ட வழங்குநர்) பயன்முறையில் ப்ராக்ஸி பூல் மூலம் போக்குவரத்து அனுப்பப்படும். சந்தா முனைகள் தானாகவே ப்ராக்ஸி குளத்தில் ஒத்திசைக்கப்படும் மற்றும் ஏற்கனவே உள்ள வாக்குப்பதிவு, சுகாதார சோதனை மற்றும் கசிவு எதிர்ப்பு வழிமுறைகளை மீண்டும் பயன்படுத்துகின்றன.",
       "addSubscription": "சந்தாவைச் சேர்க்கவும்",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "இன்னும் மாற்றம் பதிவாகவில்லை",
       "lastSwitchMember": "சேவை செய்யும் உறுப்பினர்",
       "nextSwitch": "அடுத்த சாத்தியமான மாற்றம்",
-      "nextSwitchNow": "இப்போது"
+      "nextSwitchNow": "இப்போது",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "மூல பைனரி பாதை",
+      "coreBinaryPathHelp": "விருப்பம்: ஏற்றுக்கொள்ளப்பட்ட கோப்பை மாற்றுவதற்கு முன், உருவாக்கப்பட்ட கோப்பை மூல பைனரியுடன் சரிபார்க்கிறது. அருகிலேயே எழுதுவதைத் தொடர, காலியாக விடவும். இல்லாவிட்டால் கோப்புறை உருவாக்கப்படும்.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "தொகுதி செயல்நிலைச் சோதனை",
     "bulkHealthcheckDesc": "இலக்கு URL-க்கு எதிராக உள்ளமைக்கப்பட்ட அனைத்து ப்ராக்ஸிகளையும் சோதித்து, செயல்படுபவற்றைக் கண்டறியவும்.",
@@ -13063,9 +13082,9 @@
     "inactiveCount": "{count} செயலற்றது",
     "dbOverrideCount": "{count} DB மேலெழுதல்கள்",
     "searchPlaceholder": "கொடிகளைத் தேடுக...",
-    "descriptionModeLabel": "விளக்கக் காட்சி",
-    "descriptionModeHint": "சுட்டியை மேலே நகர்த்தும்போது: அட்டைகள் சுருக்கமாகவே இருக்கும்; விளக்கத்தின் மீது சுட்டியை நகர்த்தினால் முழு உரை காட்டப்படும். முழு உரை: எப்போதும் முழுமையான விளக்கத்தைக் காட்டு.",
-    "descriptionModeHover": "சுட்டியை மேலே நகர்த்தும்போது",
+    "descriptionModeLabel": "விளக்னக் காட்சி",
+    "descriptionModeHint": "வெல் மீது வரும்போது: அட்டைகள் சிறியதாகவே இருக்கும், மேலும் விளக்கத்தின் மீது வெல் செய்யும்போது முழு உரை காட்டப்படும். முழு உரை: முழு விளக்கத்தையும் எப்போதும் காட்டு.",
+    "descriptionModeHover": "வெல் மீது",
     "descriptionModeFull": "முழு உரை",
     "categories": {
       "all": "அனைத்தும்",

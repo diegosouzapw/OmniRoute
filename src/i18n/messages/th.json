@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "ปลายทาง proxy-core ภายในเครื่องไม่ถูกต้อง; โหนด SS/VMess/Trojan/VLESS ถูกละเว้น",
         "NEEDS_CORE_NOT_CONFIGURED": "การสมัครสมาชิกนี้มีโหนดที่ต้องใช้ proxy core ภายในเครื่อง (SS/VMess/Trojan/VLESS); โหนดเหล่านั้นจะไม่ถูกกำหนดเส้นทางจนกว่าคุณจะกำหนดค่าปลายทาง SOCKS5 ของ local-core",
         "NO_USABLE_NODES": "การสมัครสมาชิกไม่พบโหนดที่ใช้งานได้ (http/https/socks5 หรือโหนดที่มีปลายทาง local core)",
-        "SELECTOR_SWITCH_FAILED": "การเรียกควบคุมพร็อกซีคอร์ล้มเหลว เส้นทางเดิมยังคงใช้งานได้ โปรดตรวจสอบ URL และซีเคร็ตควบคุมแล้วรีเฟรช"
+        "SELECTOR_SWITCH_FAILED": "การเรียกควบคุมพร็อกซีคอร์ล้มเหลว เส้นทางเดิมยังคงใช้งานได้ โปรดตรวจสอบ URL และซีเคร็ตควบคุมแล้วรีเฟรช",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "การตั้งค่าหลักที่สร้างขึ้นไม่สามารถแทนที่ไฟล์ที่ยอมรับได้ จึงเก็บสำเนาที่อยู่ข้างๆ ไว้แทน",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "บางรายการถูกข้ามระหว่างการสร้าง ดูบันทึกของเซิร์ฟเวอร์"
       },
       "description": "วางลิงก์การสมัครพร็อกซีของคุณ เมื่อเปิดใช้งานแล้ว การรับส่งข้อมูลจะถูกส่งผ่านพร็อกซีพูลในโหมดส่วนกลางหรือโหมดกฎ (ผู้ให้บริการที่ระบุ) โหนดการสมัครใช้งานจะซิงค์กับพร็อกซีพูลโดยอัตโนมัติ และนำกลไกการโพล การตรวจสอบสภาพ และการป้องกันการรั่วไหลที่มีอยู่กลับมาใช้ใหม่",
       "addSubscription": "เพิ่มการสมัครสมาชิก",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "ยังไม่มีการสลับที่บันทึกไว้",
       "lastSwitchMember": "สมาชิกที่ให้บริการ",
       "nextSwitch": "การสลับครั้งถัดไปที่ทำได้",
-      "nextSwitchNow": "ตอนนี้"
+      "nextSwitchNow": "ตอนนี้",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "เส้นทางไบนารีหลัก",
+      "coreBinaryPathHelp": "ไม่บังคับ: ตรวจสอบไฟล์ที่สร้างขึ้นด้วยไบนารีหลักก่อนแทนที่ไฟล์ที่ยอมรับ ปล่อยว่างไว้เพื่อเขียนไว้ข้างๆ ต่อไป ไดเรกทอรีจะถูกสร้างขึ้นหากไม่มี",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "ตรวจสอบสถานะพร้อมกันทั้งหมด",
     "bulkHealthcheckDesc": "ทดสอบพร็อกซีที่กำหนดค่าทั้งหมดกับ URL เป้าหมาย เพื่อค้นหาพร็อกซีที่ใช้งานได้",
@@ -13064,9 +13083,9 @@
     "dbOverrideCount": "{count} การแทนที่ DB",
     "searchPlaceholder": "ค้นหาแฟล็ก...",
     "descriptionModeLabel": "มุมมองคำอธิบาย",
-    "descriptionModeHint": "เมื่อวางเมาส์เหนือ: การ์ดจะยังคงมีขนาดกะทัดรัด และเมื่อวางเมาส์เหนือคำอธิบายจะแสดงข้อความทั้งหมด ข้อความทั้งหมด: แสดงคำอธิบายฉบับสมบูรณ์เสมอ",
-    "descriptionModeHover": "เมื่อวางเมาส์เหนือ",
-    "descriptionModeFull": "ข้อความทั้งหมด",
+    "descriptionModeHint": "เมื่อนำเมาส์ไปวาง: การ์ดจะคงขนาดเล็กกะทัดรัด และการวางเมาส์เหนือคำอธิบายจะแสดงข้อความเต็ม ข้อความเต็ม: แสดงคำอธิบายทั้งหมดเสมอ",
+    "descriptionModeHover": "เมื่อนำเมาส์ไปวาง",
+    "descriptionModeFull": "ข้อความเต็ม",
     "categories": {
       "all": "ทั้งหมด",
       "security": "ความปลอดภัย",

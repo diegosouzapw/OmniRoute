@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "লোকাল প্রক্সি-কোর এন্ডপয়েন্ট অবৈধ; SS/VMess/Trojan/VLESS নোডগুলো উপেক্ষা করা হয়েছে।",
         "NEEDS_CORE_NOT_CONFIGURED": "এই সাবস্ক্রিপশনে এমন নোড রয়েছে যার জন্য একটি লোকাল প্রক্সি কোর (SS/VMess/Trojan/VLESS) প্রয়োজন; আপনি লোকাল-কোর SOCKS5 এন্ডপয়েন্ট কনফিগার না করা পর্যন্ত সেগুলো রাউট করা হবে না।",
         "NO_USABLE_NODES": "সাবস্ক্রিপশন থেকে কোনো ব্যবহারযোগ্য নোড পাওয়া যায়নি (http/https/socks5 বা লোকাল কোর এন্ডপয়েন্ট বিশিষ্ট নোড)।",
-        "SELECTOR_SWITCH_FAILED": "প্রক্সি-কোর নিয়ন্ত্রণ কল ব্যর্থ হয়েছে; আগের রুট সক্রিয় থাকে। নিয়ন্ত্রণ URL ও সিক্রেট পরীক্ষা করে রিফ্রেশ করুন।"
+        "SELECTOR_SWITCH_FAILED": "প্রক্সি-কোর নিয়ন্ত্রণ কল ব্যর্থ হয়েছে; আগের রুট সক্রিয় থাকে। নিয়ন্ত্রণ URL ও সিক্রেট পরীক্ষা করে রিফ্রেশ করুন।",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "তৈরি করা কোর কনফিগারেশন গ্রহণকৃত ফাইলটি প্রতিস্থাপন করতে পারেনি; পাশে রাখা কপিটি রাখা হয়েছে।",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "জেনারেশনের সময় কিছু এন্ট্রি বাদ পড়েছে। সার্ভার লগ দেখুন।"
       },
       "description": "আপনার প্রক্সি সদস্যতা লিঙ্ক আটকান. একবার সক্ষম হলে, ট্রাফিককে প্রক্সি পুলের মাধ্যমে বিশ্বব্যাপী বা নিয়ম (নির্দিষ্ট প্রদানকারী) মোডে রুট করা হয়। সাবস্ক্রিপশন নোডগুলি স্বয়ংক্রিয়ভাবে প্রক্সি পুলে সিঙ্ক করা হয় এবং বিদ্যমান পোলিং, স্বাস্থ্য-পরীক্ষা এবং অ্যান্টি-লিক প্রক্রিয়াগুলি পুনরায় ব্যবহার করে।",
       "addSubscription": "সদস্যতা যোগ করুন",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "এখনও কোনো সুইচ রেকর্ড হয়নি",
       "lastSwitchMember": "সেবারত সদস্য",
       "nextSwitch": "পরবর্তী সম্ভাব্য সুইচ",
-      "nextSwitchNow": "এখন"
+      "nextSwitchNow": "এখন",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "কোর বাইনারি পাথ",
+      "coreBinaryPathHelp": "ঐচ্ছিক: গ্রহণকৃত ফাইলটি প্রতিস্থাপন করার আগে কোর বাইনারি দিয়ে তৈরি করা ফাইলটি যাচাই করে। পাশেই লেখা চালিয়ে যেতে হলে খালি রাখুন। ডিরেক্টরি না থাকলে তৈরি করা হয়।",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "বাল্ক স্বাস্থ্য পরীক্ষা",
     "bulkHealthcheckDesc": "কোনগুলো কাজ করে তা জানতে একটি লক্ষ্য URL-এর বিপরীতে কনফিগার করা সব প্রক্সি পরীক্ষা করুন।",
@@ -13063,8 +13082,8 @@
     "inactiveCount": "{count}টি নিষ্ক্রিয়",
     "dbOverrideCount": "{count}টি DB ওভাররাইড",
     "searchPlaceholder": "ফ্ল্যাগ খুঁজুন...",
-    "descriptionModeLabel": "বিবরণের দৃশ্য",
-    "descriptionModeHint": "হোভার করলে: কার্ডগুলো সংক্ষিপ্ত থাকে এবং কোনো বিবরণের ওপর হোভার করলে সম্পূর্ণ লেখাটি দেখা যায়। সম্পূর্ণ লেখা: সর্বদা সম্পূর্ণ বিবরণ দেখান।",
+    "descriptionModeLabel": "বিবরণ দৃশ্য",
+    "descriptionModeHint": "হোভার করলে: কার্ড কমপক্ষে থাকে এবং বিবরণের ওপর হোভার করলে সম্পূর্ণ লেখা দেখানো হয়। সম্পূর্ণ লেখা: সবসময় সম্পূর্ণ বিবরণ দেখান।",
     "descriptionModeHover": "হোভার করলে",
     "descriptionModeFull": "সম্পূর্ণ লেখা",
     "categories": {

@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokalna končna točka jedra posredniškega strežnika ni veljavna; vozlišča SS/VMess/Trojan/VLESS so bila prezrta.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ta naročnina vsebuje vozlišča, ki potrebujejo lokalno jedro posredniškega strežnika (SS/VMess/Trojan/VLESS); promet se prek njih ne usmerja, dokler ne konfigurirate končne točke SOCKS5 lokalnega jedra.",
         "NO_USABLE_NODES": "Naročnina ni vrnila nobenega uporabnega vozlišča (http/https/socks5 ali vozlišč s končno točko lokalnega jedra).",
-        "SELECTOR_SWITCH_FAILED": "Krmilni klic proxy-core ni uspel; prejšnja pot ostane dejavna. Preverite krmilni URL in skrivnost, nato osvežite."
+        "SELECTOR_SWITCH_FAILED": "Krmilni klic proxy-core ni uspel; prejšnja pot ostane dejavna. Preverite krmilni URL in skrivnost, nato osvežite.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Generirana osnovna konfiguracija ni mogla zamenjati sprejeto datoteko; namesto tega je bila ohranjena kopija ob njej.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Nekateri vnosi so bili med ustvarjanjem izpuščeni. Oglejte si dnevnik strežnika."
       },
       "description": "Prilepite povezavo do svoje naročnine na posredniške strežnike. Ko je omogočena, se promet usmerja prek zbirke posredniških strežnikov v globalnem načinu ali načinu pravil (določeni ponudnik). Vozlišča naročnine se samodejno sinhronizirajo z zbirko posredniških strežnikov ter uporabljajo obstoječe mehanizme periodičnega preverjanja, preverjanja stanja in preprečevanja uhajanja podatkov.",
       "addSubscription": "Dodaj naročnino",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "Še ni zabeleženega preklopa",
       "lastSwitchMember": "Član, ki streže",
       "nextSwitch": "Naslednji mogoči preklop",
-      "nextSwitchNow": "Zdaj"
+      "nextSwitchNow": "Zdaj",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Pot osnovne izvorne datoteke",
+      "coreBinaryPathHelp": "Neobvezno: pred zamenjavo sprejete datoteke preveri generirano datoteko z osnovno izvorno datoteko. Pustite prazno, da bo še naprej pisalo ob njej. Imenik se ustvari, če ne obstaja.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Množično preverjanje stanja",
     "bulkHealthcheckDesc": "Preizkusite vse konfigurirane posredniške strežnike z dostopom do ciljnega URL-ja, da ugotovite, kateri delujejo.",
@@ -13064,9 +13083,9 @@
     "dbOverrideCount": "{count} preglasitev DB",
     "searchPlaceholder": "Poiščite zastavice ...",
     "descriptionModeLabel": "Pogled opisa",
-    "descriptionModeHint": "Ob prehodu miške: kartice ostanejo strnjene, ob prehodu miške čez opis pa se prikaže celotno besedilo. Celotno besedilo: vedno prikaži celoten opis.",
-    "descriptionModeHover": "Ob prehodu miške",
-    "descriptionModeFull": "Celotno besedilo",
+    "descriptionModeHint": "Ob lebdenju: kartice ostanejo majhne, lebdenje nad opisom pa prikaže besedilo v celoti. Besedilo v celoti: vedno prikaži celoten opis.",
+    "descriptionModeHover": "Ob lebdenju",
+    "descriptionModeFull": "Besedilo v celoti",
     "categories": {
       "all": "Vse",
       "security": "Varnost",

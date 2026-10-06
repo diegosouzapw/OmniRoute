@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "نقطه پایانی هسته پروکسی محلی نامعتبر است؛ گره‌های SS/VMess/Trojan/VLESS نادیده گرفته شدند.",
         "NEEDS_CORE_NOT_CONFIGURED": "این اشتراک دارای گره‌هایی است که به یک هسته پروکسی محلی (SS/VMess/Trojan/VLESS) نیاز دارند؛ تا زمانی که نقطه پایانی SOCKS5 هسته محلی را پیکربندی نکنید، آن‌ها مسیریابی نمی‌شوند.",
         "NO_USABLE_NODES": "اشتراک هیچ گره قابل استفاده‌ای ارائه نداد (http/https/socks5 یا گره‌هایی با نقطه پایانی هسته محلی).",
-        "SELECTOR_SWITCH_FAILED": "فراخوانی کنترل هستهٔ پروکسی ناموفق بود؛ مسیر قبلی همچنان فعال است. نشانی و راز کنترل را بررسی کنید، سپس تازه‌سازی کنید."
+        "SELECTOR_SWITCH_FAILED": "فراخوانی کنترل هستهٔ پروکسی ناموفق بود؛ مسیر قبلی همچنان فعال است. نشانی و راز کنترل را بررسی کنید، سپس تازه‌سازی کنید.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "پیکربندی هسته تولیدشده نتوانست فایل پذیرفته‌شده را جایگزین کند؛ به‌جای آن نسخهٔ کناری نگه داشته شد.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "برخی ورودی‌ها هنگام تولید نادیده گرفته شدند. لاگ سرور را ببینید."
       },
       "description": "پیوند اشتراک پروکسی خود را جایگذاری کنید. پس از فعال شدن، ترافیک از طریق استخر پروکسی در حالت جهانی یا قانون (ارائه‌دهنده مشخص) هدایت می‌شود. گره های اشتراک به طور خودکار در استخر پروکسی همگام می شوند و از مکانیسم های نظرسنجی، بررسی سلامت و ضد نشت موجود استفاده مجدد می کنند.",
       "addSubscription": "اضافه کردن اشتراک",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "هنوز جابه‌جایی ثبت نشده است",
       "lastSwitchMember": "عضو خدمت‌دهنده",
       "nextSwitch": "جابه‌جایی بعدی ممکن",
-      "nextSwitchNow": "اکنون"
+      "nextSwitchNow": "اکنون",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "مسیر فایل اجرایی هسته",
+      "coreBinaryPathHelp": "اختیاری: پیش از جایگزینی فایل پذیرفته‌شده، فایل تولیدشده را با فایل اجرایی هسته تأیید می‌کند. برای ادامهٔ نوشتن در کنار آن، خالی بگذارید. در صورت نبودِ پوشه، ساخته می‌شود.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "بررسی سلامت گروهی",
     "bulkHealthcheckDesc": "همه پروکسیهای پیکربندیشده را با یک URL هدف آزمایش کنید تا مشخص شود کدامیک کار میکنند.",
@@ -13063,9 +13082,9 @@
     "inactiveCount": "{count} غیرفعال",
     "dbOverrideCount": "{count} بازنویسی دیتابیس",
     "searchPlaceholder": "جستجوی فلگ‌ها...",
-    "descriptionModeLabel": "نمای توضیحات",
-    "descriptionModeHint": "هنگام نگهداشتن نشانگر: کارتها فشرده میمانند و با نگهداشتن نشانگر روی توضیحات، متن کامل نمایش داده میشود. متن کامل: همیشه توضیحات را بهطور کامل نمایش میدهد.",
-    "descriptionModeHover": "هنگام نگهداشتن نشانگر",
+    "descriptionModeLabel": "نمای توصیف",
+    "descriptionModeHint": "هنگام hover: کارت‌ها فشرده می‌مانند و hover روی یک توصیف، متن کامل را نشان می‌دهد. متن کامل: همیشه توصیف کامل را نمایش بده.",
+    "descriptionModeHover": "هنگام hover",
     "descriptionModeFull": "متن کامل",
     "categories": {
       "all": "همه",

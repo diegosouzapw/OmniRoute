@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "נקודת הקצה המקומית של proxy-core אינה תקינה; המערכת התעלמה מצומתי SS/VMess/Trojan/VLESS.",
         "NEEDS_CORE_NOT_CONFIGURED": "במנוי זה ישנם צמתים הזקוקים לליבת פרוקסי מקומית (SS/VMess/Trojan/VLESS); הם לא ינותבו עד שתגדיר את נקודת הקצה SOCKS5 של הליבה המקומית.",
         "NO_USABLE_NODES": "המנוי לא הניב צמתים שמישים (http/https/socks5 או צמתים עם נקודת קצה של ליבה מקומית).",
-        "SELECTOR_SWITCH_FAILED": "קריאת הבקרה של proxy-core נכשלה; המסלול הקודם נשאר פעיל. בדקו את כתובת הבקרה ואת הסוד, ואז רעננו."
+        "SELECTOR_SWITCH_FAILED": "קריאת הבקרה של proxy-core נכשלה; המסלול הקודם נשאר פעיל. בדקו את כתובת הבקרה ואת הסוד, ואז רעננו.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "לא ניתן היה להחליף את קובץ התצורה שנוצר עם הקובץ שאומץ; במקום זאת נשמרה ההעתקה שלצידו.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "רשומות מסוימות דולגו במהלך היצירה. ראה את יומן השרת."
       },
       "description": "הדבק את קישור המנוי שלך ל-proxy. לאחר ההפעלה, התעבורה מנותבת דרך מאגר ה-proxy במצב גלובלי או כלל (ספק שצוין). צמתי מנוי מסונכרנים אוטומטית לתוך מאגר ה-proxy ומשתמשים מחדש במנגנוני סקר, בדיקת תקינות ומניעת דליפות קיימים.",
       "addSubscription": "הוסף מנוי",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "טרם נרשם מעבר",
       "lastSwitchMember": "החבר המשרת",
       "nextSwitch": "המעבר הבא האפשרי",
-      "nextSwitchNow": "עכשיו"
+      "nextSwitchNow": "עכשיו",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "נתיב קובץ הבינארי של הליבה",
+      "coreBinaryPathHelp": "אופציונלי: מאמת את הקובץ שנוצר מול קובץ הבינארי של הליבה לפני החלפת הקובץ שאומץ. השאר ריק כדי להמשיך לכתוב לידו. התיקייה נוצרת אם אינה קיימת.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "בדיקת תקינות מרוכזת",
     "bulkHealthcheckDesc": "בדיקת כל שרתי ה-proxy שהוגדרו מול כתובת URL יעד כדי לגלות אילו מהם פועלים.",
@@ -13064,8 +13083,8 @@
     "dbOverrideCount": "{count} דריסות DB",
     "searchPlaceholder": "חיפוש דגלים...",
     "descriptionModeLabel": "תצוגת תיאור",
-    "descriptionModeHint": "במעבר עכבר: הכרטיסים נשארים קומפקטיים, ומעבר עם העכבר מעל תיאור מציג את הטקסט המלא. טקסט מלא: הצגת התיאור המלא תמיד.",
-    "descriptionModeHover": "במעבר עכבר",
+    "descriptionModeHint": "בהובר: הכרטיסים נשארים קומפקטיים והעברת הסמן מעל תיאור מציגה את הטקסט המלא. טקסט מלא: להציג תמיד את התיאור המלא.",
+    "descriptionModeHover": "בהובר",
     "descriptionModeFull": "טקסט מלא",
     "categories": {
       "all": "הכל",

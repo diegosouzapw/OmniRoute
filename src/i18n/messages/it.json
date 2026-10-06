@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "L'endpoint del core proxy locale non è valido; i nodi SS/VMess/Trojan/VLESS sono stati ignorati.",
         "NEEDS_CORE_NOT_CONFIGURED": "Questa sottoscrizione contiene nodi che richiedono un core proxy locale (SS/VMess/Trojan/VLESS); non verranno instradati finché non configuri l'endpoint SOCKS5 del core locale.",
         "NO_USABLE_NODES": "La sottoscrizione non ha prodotto nodi utilizzabili (http/https/socks5 o nodi con un endpoint del core locale).",
-        "SELECTOR_SWITCH_FAILED": "La chiamata di controllo del proxy-core non è riuscita; il percorso precedente resta attivo. Controlla URL e secret di controllo, quindi aggiorna."
+        "SELECTOR_SWITCH_FAILED": "La chiamata di controllo del proxy-core non è riuscita; il percorso precedente resta attivo. Controlla URL e secret di controllo, quindi aggiorna.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "La configurazione di base generata non ha potuto sostituire il file adottato; è stata mantenuta invece la copia affiancata.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Alcune voci sono state ignorate durante la generazione. Consulta il log del server."
       },
       "description": "Incolla il link di iscrizione al proxy. Una volta abilitato, il traffico viene instradato attraverso il pool proxy in modalità globale o regola (provider specificato). I nodi di sottoscrizione vengono automaticamente sincronizzati nel pool proxy e riutilizzano i meccanismi di polling, controllo dello stato e anti-leak esistenti.",
       "addSubscription": "Aggiungi abbonamento",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "Nessun cambio registrato",
       "lastSwitchMember": "Membro in servizio",
       "nextSwitch": "Prossimo cambio possibile",
-      "nextSwitchNow": "Adesso"
+      "nextSwitchNow": "Adesso",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Percorso del binario di base",
+      "coreBinaryPathHelp": "Opzionale: verifica il file generato con il binario di base prima di sostituire il file adottato. Lascia vuoto per continuare a scrivere accanto. La directory viene creata se mancante.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Controllo integrità in blocco",
     "bulkHealthcheckDesc": "Testa tutti i proxy configurati con un URL di destinazione per individuare quelli funzionanti.",
@@ -13064,7 +13083,7 @@
     "dbOverrideCount": "{count} override del DB",
     "searchPlaceholder": "Cerca flag...",
     "descriptionModeLabel": "Vista descrizione",
-    "descriptionModeHint": "Al passaggio del mouse: le schede rimangono compatte e passando il mouse su una descrizione viene mostrato il testo completo. Testo completo: mostra sempre la descrizione completa.",
+    "descriptionModeHint": "Al passaggio del mouse: le schede restano compatte e il passaggio del mouse su una descrizione mostra il testo completo. Testo completo: mostra sempre la descrizione intera.",
     "descriptionModeHover": "Al passaggio del mouse",
     "descriptionModeFull": "Testo completo",
     "categories": {

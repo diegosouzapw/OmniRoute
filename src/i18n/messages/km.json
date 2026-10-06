@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "ចំណុចបញ្ចប់ proxy-core ក្នុងម៉ាស៊ីនមិនត្រឹមត្រូវទេ ដូច្នេះ node SS/VMess/Trojan/VLESS មិនត្រូវបានយកមកប្រើទេ។",
         "NEEDS_CORE_NOT_CONFIGURED": "ការជាវនេះមាន node ដែលត្រូវការ proxy core ក្នុងម៉ាស៊ីន (SS/VMess/Trojan/VLESS)។ ពួកវានឹងមិនត្រូវបានកំណត់ផ្លូវទេ រហូតដល់អ្នកកំណត់រចនាសម្ព័ន្ធចំណុចបញ្ចប់ SOCKS5 របស់ local-core។",
         "NO_USABLE_NODES": "ការជាវនេះមិនមាន node ដែលអាចប្រើបានទេ (http/https/socks5 ឬ node ដែលមានចំណុចបញ្ចប់ local core)។",
-        "SELECTOR_SWITCH_FAILED": "ការហៅបញ្ជា proxy-core បានបរាជ័យ; ផ្លូវមុននៅតែសកម្ម។ សូមពិនិត្យ URL និង secret បញ្ជា រួចផ្ទុកឡើងវិញ។"
+        "SELECTOR_SWITCH_FAILED": "ការហៅបញ្ជា proxy-core បានបរាជ័យ; ផ្លូវមុននៅតែសកម្ម។ សូមពិនិត្យ URL និង secret បញ្ជា រួចផ្ទុកឡើងវិញ។",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "ការតភ្ជាប់គោលការណ៍ខ្នាតដែលបានបង្កើតមិនអាចជំនួសឯកសារដែលបានអនុម័តបានទេ។ មានការថតមួយនៅក្បែរនោះជំនួសវិញ។",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "ធាតុខ្លះត្រូវបានរំលងអំឡុងពេលបង្កើត។ មើលកំណត់ត្រាម៉ាស៊ីនមេ។"
       },
       "description": "បិទភ្ជាប់តំណការជាវប្រូកស៊ីរបស់អ្នក។ នៅពេលបើកដំណើរការ ចរាចរណ៍នឹងត្រូវបានកំណត់ផ្លូវតាមបណ្តុំប្រូកស៊ី ក្នុងរបៀបសកល ឬរបៀបតាមច្បាប់ (Provider ដែលបានបញ្ជាក់)។ node នៃការជាវនឹងត្រូវបានធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិទៅក្នុងបណ្តុំប្រូកស៊ី និងប្រើឡើងវិញនូវយន្តការស្ទង់ពិនិត្យ ការពិនិត្យសុខភាព និងការការពារការលេចធ្លាយដែលមានស្រាប់។",
       "addSubscription": "បន្ថែមការជាវ",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "មិនទាន់មានការប្តូរដែលបានកត់ត្រា",
       "lastSwitchMember": "សមាជិកកំពុងបម្រើ",
       "nextSwitch": "ការប្តូរបន្ទាប់ដែលអាចធ្វើបាន",
-      "nextSwitchNow": "ឥឡូវ"
+      "nextSwitchNow": "ឥឡូវ",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "ផ្លូវឯកសារគោលការណ៍ខ្នាត",
+      "coreBinaryPathHelp": "ជាការជ្រើសរើស៖ ផ្ទៀងផ្ទាត់ឯកសារដែលបានបង្កើតជាមួយឯកសារគោលការណ៍ខ្នាត មុននឹងជំនួសឯកសារដែលបានអនុម័ត។ ទុកឲ្យទំនេរដើម្បីបន្តសរសេរនៅក្បែរ។ ថតត្រូវបានបង្កើតប្រសិនបើមិនមាន។",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "ការពិនិត្យស្ថានភាពជាក្រុម",
     "bulkHealthcheckDesc": "សាកល្បងប្រូកស៊ីដែលបានកំណត់រចនាសម្ព័ន្ធទាំងអស់ជាមួយ URL គោលដៅ ដើម្បីរកមើលថាតើមួយណាដំណើរការ។",
@@ -13064,8 +13083,8 @@
     "dbOverrideCount": "ការកំណត់ជំនួស DB ចំនួន {count}",
     "searchPlaceholder": "ស្វែងរកទង់...",
     "descriptionModeLabel": "ទិដ្ឋភាពពិពណ៌នា",
-    "descriptionModeHint": "ពេលដាក់ព្រួញពីលើ៖ កាតនៅតែបង្រួម ហើយការដាក់ព្រួញពីលើការពិពណ៌នានឹងបង្ហាញអត្ថបទពេញលេញ។ អត្ថបទពេញលេញ៖ បង្ហាញការពិពណ៌នាទាំងស្រុងជានិច្ច។",
-    "descriptionModeHover": "ពេលដាក់ព្រួញពីលើ",
+    "descriptionModeHint": "នៅពេលកាន់កាប់៖ កាតនៅតែតូច ហើយកាន់ពិពណ៌នាមួយនឹងបង្ហាញអត្ថបទពេញលេញ។ អត្ថបទពេញលេញ៖ បង្ហាញពិពណ៌នាពេញលេញជានិច្ច។",
+    "descriptionModeHover": "នៅពេលកាន់កាប់",
     "descriptionModeFull": "អត្ថបទពេញលេញ",
     "categories": {
       "all": "ទាំងអស់",

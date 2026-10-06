@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Локальный эндпоинт прокси-ядра недействителен; узлы SS/VMess/Trojan/VLESS были проигнорированы.",
         "NEEDS_CORE_NOT_CONFIGURED": "Эта подписка содержит узлы, которым требуется локальное прокси-ядро (SS/VMess/Trojan/VLESS); они не будут маршрутизироваться, пока вы не настроите SOCKS5-эндпоинт локального ядра.",
         "NO_USABLE_NODES": "Подписка не вернула доступных узлов (http/https/socks5 или узлов с локальным эндпоинтом ядра).",
-        "SELECTOR_SWITCH_FAILED": "Вызов управления прокси-ядра не удался; предыдущий маршрут остаётся активным. Проверьте URL и секрет управления, затем обновите."
+        "SELECTOR_SWITCH_FAILED": "Вызов управления прокси-ядра не удался; предыдущий маршрут остаётся активным. Проверьте URL и секрет управления, затем обновите.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Сгенерированное базовое конфигурационное файл не смогло заменить принятый файл; вместо него была сохранена соседняя копия.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Некоторые записи были пропущены во время генерации. Смотрите журнал сервера."
       },
       "description": "Вставьте ссылку на подписку на прокси. После включения трафик маршрутизируется через пул прокси-серверов в глобальном режиме или режиме правила (указанного поставщика). Узлы подписки автоматически синхронизируются с пулом прокси-серверов и повторно используют существующие механизмы опроса, проверки работоспособности и защиты от утечек.",
       "addSubscription": "Добавить подписку",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "Переключения пока не записаны",
       "lastSwitchMember": "Обслуживающий участник",
       "nextSwitch": "Следующее возможное переключение",
-      "nextSwitchNow": "Сейчас"
+      "nextSwitchNow": "Сейчас",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Путь к основному исполняемому файлу",
+      "coreBinaryPathHelp": "Необязательно: проверяет созданный файл основным исполняемым файлом перед заменой принятого файла. Оставьте пустым, чтобы продолжать запись рядом. Каталог создается, если отсутствует.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Массовая проверка здоровья",
     "bulkHealthcheckDesc": "Проверьте все настроенные прокси по целевому URL, чтобы определить рабочие.",
@@ -13064,7 +13083,7 @@
     "dbOverrideCount": "{count} переопределений в БД",
     "searchPlaceholder": "Поиск флагов...",
     "descriptionModeLabel": "Вид описания",
-    "descriptionModeHint": "При наведении: карточки остаются компактными, а при наведении на описание отображается полный текст. Полный текст: всегда показывать описание целиком.",
+    "descriptionModeHint": "При наведении: карточки остаются компактными, а при наведении на описание показывается полный текст. Полный текст: всегда показывать описание целиком.",
     "descriptionModeHover": "При наведении",
     "descriptionModeFull": "Полный текст",
     "categories": {

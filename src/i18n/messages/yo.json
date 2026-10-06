@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Ojú-ọ̀nà local proxy-core kò tọ́; a foju kọ àwọn node SS/VMess/Trojan/VLESS.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ìforúkọsílẹ̀ yìí ní àwọn node tó nílò local proxy core (SS/VMess/Trojan/VLESS); a kò ní darí wọn títí tí o fi ṣètò ojú-ọ̀nà SOCKS5 local-core.",
         "NO_USABLE_NODES": "Ìforúkọsílẹ̀ kò mú node tó ṣeé lò kankan jáde (http/https/socks5 tàbí àwọn node tó ní ojú-ọ̀nà local core).",
-        "SELECTOR_SWITCH_FAILED": "Ìpè ìṣàkóso proxy-core kùnà; ọ̀nà àtijọ́ wà ni íṣiṣẹ́. Ṣàyẹ̀wò URL àti àṣírí ìṣàkóso, lẹ́yìn náà ṣe àtúnsọ."
+        "SELECTOR_SWITCH_FAILED": "Ìpè ìṣàkóso proxy-core kùnà; ọ̀nà àtijọ́ wà ni íṣiṣẹ́. Ṣàyẹ̀wò URL àti àṣírí ìṣàkóso, lẹ́yìn náà ṣe àtúnsọ.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Aṣẹ-ọ̀pọ̀ ti ṣe ko le yí iwe wọ́le tó ti hàn padà; àwọn lẹ́yìn rẹ̀ la fi páyà.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Àwọn ẹ̀kún míì ṣíṣẹ̀ kò sí nínú ìdádúró. Wo àkójọ síọ́njú."
       },
       "description": "Lẹ̀ ìjápọ̀ ìforúkọsílẹ̀ aṣojú rẹ síbí. Nígbà tí o bá mú un ṣiṣẹ́, a máa darí ìrìn-àjò dátà gba inú àkójọpọ̀ aṣojú ní ipò àgbáyé tàbí ipò òfin (Olùpèsè tí a yàn). A máa mú àwọn node ìforúkọsílẹ̀ ṣiṣẹ́pọ̀ láìfọwọ́yí sínú àkójọpọ̀ aṣojú, wọ́n á sì tún lo àwọn ọ̀nà ìṣàyẹ̀wò déédéé, àyẹ̀wò ìlera, àti ìdènà ìjò dátà tó ti wà.",
       "addSubscription": "Ṣàfikún Ìforúkọsílẹ̀",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "A kò tíì ṣe àkọsílẹ̀ ìyípadà kankan",
       "lastSwitchMember": "Ọmọ ẹgbẹ́ tó ń sin",
       "nextSwitch": "Ìyípadà tó ṣeéṣe tó kàn",
-      "nextSwitchNow": "Nísinsìnyí"
+      "nextSwitchNow": "Nísinsìnyí",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Ọ̀nà ẹrọ àkókò pàtàkì",
+      "coreBinaryPathHelp": "Àìṣe: yẹrí àwọn fáìlì tí a ṣe pẹ̀lú ẹrọ àkókò pàtàkì kí ọ yí iwe tó ti hàn padà. Fi òótó sí i láti tẹ̀síwájú kí o kọ̀ síbẹ̀. A ṣàkójọ tẹ́nu díẹ̀ bí ó bá kù.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Ìṣàyẹ̀wò ìlera ọ̀pọ̀lọpọ̀",
     "bulkHealthcheckDesc": "Ṣàyẹ̀wò gbogbo àwọn aṣojú tí a ti ṣètò pẹ̀lú URL àfojúsùn kan láti mọ àwọn tó ń ṣiṣẹ́.",
@@ -13063,10 +13082,10 @@
     "inactiveCount": "{count} kò ṣiṣẹ́",
     "dbOverrideCount": "{count} àtúnṣe DB tó borí ìṣètò",
     "searchPlaceholder": "Ṣàwárí àwọn àsìá...",
-    "descriptionModeLabel": "Ìfihàn àpèjúwe",
-    "descriptionModeHint": "Nígbà tí atọ́ka bá wà lórí: àwọn káàdì á wà ní ṣókí, fífi atọ́ka sí orí àpèjúwe yóò sì fi gbogbo ọ̀rọ̀ hàn. Gbogbo ọ̀rọ̀: máa fi àpèjúwe kíkún hàn nígbà gbogbo.",
-    "descriptionModeHover": "Nígbà tí atọ́ka bá wà lórí",
-    "descriptionModeFull": "Gbogbo ọ̀rọ̀",
+    "descriptionModeLabel": "Ítàn àpèjúwe",
+    "descriptionModeHint": "Nígbà tó bá wọ́lẹ̀: àwọn káàdì dúró pẹ́ àti pé kí àwọn wàhálà àpèjúwe hàn àkópọ̀ rẹ̀. Àkópọ̀ púpọ̀: fi àpèjúwe gòkè gbogbo hàn nígbà gbogbo.",
+    "descriptionModeHover": "Nígbà tó bá wọ́lẹ̀",
+    "descriptionModeFull": "Àkópọ̀ púpọ̀",
     "categories": {
       "all": "Gbogbo",
       "security": "Ààbò",

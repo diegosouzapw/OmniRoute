@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Endpoint na proxy-core na gida ba daidai ba ne; an yi watsi da nodes na SS/VMess/Trojan/VLESS.",
         "NEEDS_CORE_NOT_CONFIGURED": "Wannan biyan kuɗin yana da nodes waɗanda ke buƙatar proxy core na gida (SS/VMess/Trojan/VLESS); ba za a bi da zirga-zirga ta cikinsu ba har sai ka saita endpoint na SOCKS5 na local-core.",
         "NO_USABLE_NODES": "Biyan kuɗin bai samar da nodes da za a iya amfani da su ba (http/https/socks5 ko nodes masu local core endpoint).",
-        "SELECTOR_SWITCH_FAILED": "Kiran sarrafa proxy-core ya gaza; tsohuwar hanya tana nan. Duba URL da sirrin sarrafawa, sannan ka sabunta."
+        "SELECTOR_SWITCH_FAILED": "Kiran sarrafa proxy-core ya gaza; tsohuwar hanya tana nan. Duba URL da sirrin sarrafawa, sannan ka sabunta.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "An tsarin da aka ƙirƙira ba zai iya maye gurbin fayil ɗin da aka karɓa ba; ma'anonin da ke gefen shi ne aka riƙe a mahaqu.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Wasu shigarwa an wuce su wani lokacin samarwa. Duba jarin sarfa."
       },
       "description": "Liƙa mahaɗin biyan kuɗin proxy ɗinka. Da zarar an kunna shi, za a bi da zirga-zirga ta cikin rukunin proxy a yanayin duniya ko na ƙa'ida (Provider da aka ƙayyade). Ana daidaita nodes na biyan kuɗi ta atomatik cikin rukunin proxy, kuma suna sake amfani da hanyoyin polling, health-check, da anti-leak da ake da su.",
       "addSubscription": "Ƙara Biyan Kuɗi",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "Ba a rubuta sauyawa ba tukuna",
       "lastSwitchMember": "Memban da ke hidima",
       "nextSwitch": "Sauyawa ta gaba mai yiwuwa",
-      "nextSwitchNow": "Yanzu"
+      "nextSwitchNow": "Yanzu",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Hanyar bayanan tsarin",
+      "coreBinaryPathHelp": "Na zaɓi: yana tabbatar da fayil ɗin da aka ƙirƙira tare da bayanan tsarin kafin a maye gurbin fayil ɗin da aka karɓa. Bar shi da ruwan don ci gaba da rubuta shi a gefen shi. An ƙirƙiri da'ira idan babu.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Gwajin Lafiya na Gungu",
     "bulkHealthcheckDesc": "Gwada duk proxies da aka saita da URL da aka nufa domin gano waɗanda suke aiki.",
@@ -13063,10 +13082,10 @@
     "inactiveCount": "{count} marasa aiki",
     "dbOverrideCount": "{count} keɓantattun sauye-sauyen DB",
     "searchPlaceholder": "Nemo tutoci...",
-    "descriptionModeLabel": "Duban bayani",
-    "descriptionModeHint": "Lokacin shawagi: katuna suna nan a taƙaice, kuma idan aka shawaga kan bayani, cikakken rubutun yana bayyana. Cikakken rubutu: a koyaushe a nuna cikakken bayanin.",
-    "descriptionModeHover": "Lokacin shawagi",
-    "descriptionModeFull": "Cikakken rubutu",
+    "descriptionModeLabel": "View na bayani",
+    "descriptionModeHint": "Lokacin rufe: katunan suna ci gaba da ƙarfi, kuma rufe bayani yana nuna rubuce-ruce gaba ɗaya. Rubuce-ruce gaba ɗaya: nuna bayani gaba ɗaya kullum.",
+    "descriptionModeHover": "Lokacin rufe",
+    "descriptionModeFull": "Rubuce-ruce gaba ɗaya",
     "categories": {
       "all": "Duka",
       "security": "Tsaro",

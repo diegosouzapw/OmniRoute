@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Տեղային proxy-core վերջնակետն անվավեր է․ SS/VMess/Trojan/VLESS հանգույցներն անտեսվել են։",
         "NEEDS_CORE_NOT_CONFIGURED": "Այս բաժանորդագրությունն ունի հանգույցներ, որոնց անհրաժեշտ է տեղային proxy core (SS/VMess/Trojan/VLESS)․ դրանք չեն երթուղավորվի, մինչև չկարգավորեք local-core SOCKS5 վերջնակետը։",
         "NO_USABLE_NODES": "Բաժանորդագրությունը չի տրամադրել օգտագործելի հանգույցներ (http/https/socks5 կամ տեղային core վերջնակետ ունեցող հանգույցներ)։",
-        "SELECTOR_SWITCH_FAILED": "Proxy-core-ի կառավարման կանչը ձախողվեց. նախորդ երթը մնում է ակտիվ։ Ստուգեք կառավարման URL-ն ու գաղտնիքը, ապա թարմացրեք։"
+        "SELECTOR_SWITCH_FAILED": "Proxy-core-ի կառավարման կանչը ձախողվեց. նախորդ երթը մնում է ակտիվ։ Ստուգեք կառավարման URL-ն ու գաղտնիքը, ապա թարմացրեք։",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Գեներացված հիմնական կոնֆիգուրացիան չկարողացավ փոխարինել ընդունված ֆայլը. Փոխարենը պահպանվեց կողքի գտնվող պատճենը։",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Ընթացքում որոշ գրառումներ բաց են թողնվել։ Տեսեք սպասարկիչի տեղեկամատյանը։"
       },
       "description": "Տեղադրեք ձեր պրոքսի բաժանորդագրության հղումը։ Միացնելուց հետո թրաֆիկը կուղղվի պրոքսիների պուլի միջոցով՝ գլոբալ կամ կանոնային (նշված Provider) ռեժիմում։ Բաժանորդագրության հանգույցներն ավտոմատ համաժամացվում են պրոքսիների պուլի հետ և վերօգտագործում առկա պարբերական հարցման, վիճակի ստուգման և արտահոսքի կանխարգելման մեխանիզմները։",
       "addSubscription": "Ավելացնել բաժանորդագրություն",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "Անջատում դեռ գրանցված չէ",
       "lastSwitchMember": "Սպասարկող անդամ",
       "nextSwitch": "Հաջորդ հնարավոր անջատում",
-      "nextSwitchNow": "Հիմա"
+      "nextSwitchNow": "Հիմա",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Հիմնական բինարի ուղին",
+      "coreBinaryPathHelp": "Ընտրովի. ստուգում է գեներացված ֆայլը հիմնական բինարով նախքան ընդունված ֆայլի փոխարինումը. Դատարկ թողեք, որպեսզի շարունակի գրել նրա կողքին. Բացակայող հատուկ թղթապանակը ստեղծվում է։",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Զանգվածային հասանելիության ստուգում",
     "bulkHealthcheckDesc": "Ստուգել բոլոր կարգավորված պրոքսիները թիրախային URL-ի նկատմամբ՝ պարզելու, թե որոնք են աշխատում։",
@@ -13063,10 +13082,10 @@
     "inactiveCount": "{count} ոչ ակտիվ",
     "dbOverrideCount": "{count} DB վերասահմանում",
     "searchPlaceholder": "Որոնել դրոշակներ...",
-    "descriptionModeLabel": "Նկարագրության տեսք",
-    "descriptionModeHint": "Սավառնելիս՝ քարտերը մնում են կոմպակտ, իսկ նկարագրության վրա սավառնելիս ցուցադրվում է ամբողջ տեքստը։ Ամբողջական տեքստ՝ միշտ ցուցադրել ամբողջ նկարագրությունը։",
-    "descriptionModeHover": "Սավառնելիս",
-    "descriptionModeFull": "Ամբողջական տեքստ",
+    "descriptionModeLabel": "Նկարագրության դիտում",
+    "descriptionModeHint": "Կասկելիս՝ քարտերը մնում են սեղմ, և նկարագրության վրա կասկելիս ցուցադրվում է ամբողջ տեքստը. Ամբողջ տեքստ՝ միշտ ցուցադրել ամբողջ նկարագրությունը։",
+    "descriptionModeHover": "Կասկելիս",
+    "descriptionModeFull": "Ամբողջ տեքստ",
     "categories": {
       "all": "Բոլորը",
       "security": "Անվտանգություն",

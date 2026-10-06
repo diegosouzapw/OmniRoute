@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "L-endpoint lokali tal-proxy-core mhuwiex validu; in-nodi SS/VMess/Trojan/VLESS ġew injorati.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dan l-abbonament għandu nodi li jeħtieġu proxy core lokali (SS/VMess/Trojan/VLESS); dawn ma jiġux direzzjonati sakemm tikkonfigura l-endpoint SOCKS5 tal-core lokali.",
         "NO_USABLE_NODES": "L-abbonament ma pproduċa l-ebda nodu li jista’ jintuża (http/https/socks5 jew nodi b’endpoint ta’ core lokali).",
-        "SELECTOR_SWITCH_FAILED": "Is-sejħa ta' kontroll tal-proxy-core falliet; ir-rotta ta' qabel tibqa attiva. Iċċekkja l-URL u s-sigriet tal-kontroll, imbagħad aġġorna."
+        "SELECTOR_SWITCH_FAILED": "Is-sejħa ta' kontroll tal-proxy-core falliet; ir-rotta ta' qabel tibqa attiva. Iċċekkja l-URL u s-sigriet tal-kontroll, imbagħad aġġorna.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Il-konfigurazzjoni ċentrali mġenerata ma setgħetx tissostitixxi l-fajl adottat; in-nies kopja mit-taħt ġiet miżmuma minflok.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Xi entrati ġew injorati matul il-ġenerazzjoni. Ara l-log tal-server."
       },
       "description": "Waħħal il-link tal-abbonament tal-proxy tiegħek. Ladarba jiġi attivat, it-traffiku jiġi direzzjonat permezz tal-grupp ta’ proxies fil-modalità globali jew tar-regoli (Fornitur speċifikat). In-nodi tal-abbonament jiġu sinkronizzati awtomatikament mal-grupp ta’ proxies u jużaw mill-ġdid il-mekkaniżmi eżistenti ta’ polling, kontroll tas-saħħa u kontra t-tnixxija.",
       "addSubscription": "Żid Abbonament",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "L-ebda bidla rreġistrata s'issa",
       "lastSwitchMember": "Membru li qed iservi",
       "nextSwitch": "Il-bidla li jmiss possibbli",
-      "nextSwitchNow": "Issa"
+      "nextSwitchNow": "Issa",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Triq tal-binarju ċentrali",
+      "coreBinaryPathHelp": "Opzjonali: tivverifika l-fajl mġenerat bil-binarju ċentrali qabel ma tissostitixxi l-fajl adottat. Ħalli l-boxx biex tikteb minn taħtu. Id-direttorju jinħoloq jekk ma jkunx hemm.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Kontroll tas-Saħħa tal-Massa",
     "bulkHealthcheckDesc": "Ittestja l-proxies konfigurati kollha ma' URL fil-mira biex issib liema minnhom jaħdmu.",
@@ -13063,9 +13082,9 @@
     "inactiveCount": "{count} inattivi",
     "dbOverrideCount": "{count} sostituzzjonijiet tad-DB",
     "searchPlaceholder": "Fittex fost il-flags...",
-    "descriptionModeLabel": "Dehra tad-deskrizzjoni",
-    "descriptionModeHint": "Meta tgħaddi l-maws fuqha: il-kards jibqgħu kompatti u meta tgħaddi l-maws fuq deskrizzjoni jintwera t-test sħiħ. Test sħiħ: dejjem uri d-deskrizzjoni kompluta.",
-    "descriptionModeHover": "Meta tgħaddi l-maws fuqha",
+    "descriptionModeLabel": "Vista ta' deskrizzjoni",
+    "descriptionModeHint": "Fuq l-iskur: il-karti jibqgħu kompatti u l-iskur fuq deskrizzjoni juri t-test sħiħ. Test sħiħ: uri dejjem id-deskrizzjoni sħiħa.",
+    "descriptionModeHover": "Fuq l-iskur",
     "descriptionModeFull": "Test sħiħ",
     "categories": {
       "all": "Kollha",

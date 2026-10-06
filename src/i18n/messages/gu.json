@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "લોકલ પ્રોક્સી-કોર એન્ડપોઇન્ટ અમાન્ય છે; SS/VMess/Trojan/VLESS નોડ્સને અવગણવામાં આવ્યા હતા.",
         "NEEDS_CORE_NOT_CONFIGURED": "આ સબ્સ્ક્રિપ્શનમાં એવા નોડ્સ છે જેને લોકલ પ્રોક્સી કોર (SS/VMess/Trojan/VLESS) ની જરૂર છે; જ્યાં સુધી તમે લોકલ-કોર SOCKS5 એન્ડપોઇન્ટ કન્ફિગર ન કરો ત્યાં સુધી તેઓ રાઉટ થશે નહીં.",
         "NO_USABLE_NODES": "સબ્સ્ક્રિપ્શનમાંથી કોઈ ઉપયોગી નોડ્સ મળ્યા નથી (http/https/socks5 અથવા લોકલ કોર એન્ડપોઇન્ટવાળા નોડ્સ).",
-        "SELECTOR_SWITCH_FAILED": "પ્રોક્સી-કોર નિયંત્રણ કૉલ નિષ્ફળ ગયો; અગાઉનો માર્ગ સક્રિય રહે છે. નિયંત્રણ URL અને સીક્રેટ તપાસો, પછી રિફ્રેશ કરો."
+        "SELECTOR_SWITCH_FAILED": "પ્રોક્સી-કોર નિયંત્રણ કૉલ નિષ્ફળ ગયો; અગાઉનો માર્ગ સક્રિય રહે છે. નિયંત્રણ URL અને સીક્રેટ તપાસો, પછી રિફ્રેશ કરો.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "બનાવેલા કોર કન્ફિગરેશનથી અપનાવેલી ફાઇલને બદલી શકાયું નહીં; બાજુમાં રાખેલી નકલ રાખવામાં આવી હતી.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "જનરેશન દરમિયાન કેટલીક એન્ટ્રીઓ છોડી દેવામાં આવી હતી. સર્વર લૉગ જુઓ."
       },
       "description": "તમારી પ્રોક્સી સબ્સ્ક્રિપ્શન લિંક પેસ્ટ કરો. એકવાર સક્ષમ થયા પછી, ટ્રાફિકને વૈશ્વિક અથવા નિયમ (ઉલ્લેખિત પ્રદાતા) મોડમાં પ્રોક્સી પૂલ દ્વારા રૂટ કરવામાં આવે છે. સબ્સ્ક્રિપ્શન નોડ્સ પ્રોક્સી પૂલમાં આપમેળે સમન્વયિત થાય છે અને હાલના મતદાન, આરોગ્ય-તપાસ અને એન્ટી-લીક મિકેનિઝમનો ફરીથી ઉપયોગ કરે છે.",
       "addSubscription": "સબ્સ્ક્રિપ્શન ઉમેરો",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "હજુ કોઈ ફેરફાર નોંધાયો નથી",
       "lastSwitchMember": "સેવા આપતો સભ્ય",
       "nextSwitch": "આગામી શક્ય ફેરફાર",
-      "nextSwitchNow": "હમણાં"
+      "nextSwitchNow": "હમણાં",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "કોર બાઇનરી પાથ",
+      "coreBinaryPathHelp": "વૈકલ્પિક: અપનાવેલી ફાઇલને બદલતા પહેલાં કોર બાઇનરી સાથે બનાવેલી ફાઇલને ચકાસે છે. બાજુમાં જ લખવાનું ચાલુ રાખવા માટે ખાલી છોડો. ડિરેક્ટરી ન હોય તો બનાવવામાં આવે છે.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "બલ્ક હેલ્થચેક",
     "bulkHealthcheckDesc": "કયા પ્રોક્સી કાર્ય કરે છે તે જાણવા માટે બધા કૉન્ફિગર કરેલા પ્રોક્સીઓને લક્ષ્ય URL સામે ચકાસો.",
@@ -13064,8 +13083,8 @@
     "dbOverrideCount": "{count} DB ઓવરરાઇડ્સ",
     "searchPlaceholder": "ફ્લેગ્સ શોધો...",
     "descriptionModeLabel": "વર્ણન દૃશ્ય",
-    "descriptionModeHint": "હોવર પર: કાર્ડ્સ સંક્ષિપ્ત રહે છે અને વર્ણન પર હોવર કરવાથી સંપૂર્ણ લખાણ દેખાય છે. સંપૂર્ણ લખાણ: હંમેશા સંપૂર્ણ વર્ણન બતાવો.",
-    "descriptionModeHover": "હોવર પર",
+    "descriptionModeHint": "હોવર કરવા પર: કાર્ડ ટૂંકા રહે છે અને વર્ણન પર હોવર કરવાથી સંપૂર્ણ લખાણ દેખાય છે. સંપૂર્ણ લખાણ: હંમેશા સંપૂર્ણ વર્ણન બતાવો.",
+    "descriptionModeHover": "હોવર કરવા પર",
     "descriptionModeFull": "સંપૂર્ણ લખાણ",
     "categories": {
       "all": "બધા",

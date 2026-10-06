@@ -103,9 +103,9 @@ test("frozen allowlists match the documented legacy and stacked-series gaps", ()
   assert.ok((KNOWN_GAPS as Set<string>).has("026"));
   assert.ok((KNOWN_GAPS as Set<string>).has("055"));
   assert.ok((KNOWN_GAPS as Set<string>).has("121"));
-  // 197/198 stay reserved until #15564 lands. 199 (#15314), 200, and 201 (#15354) exist.
-  assert.ok((KNOWN_GAPS as Set<string>).has("197"));
-  assert.ok((KNOWN_GAPS as Set<string>).has("198"));
+  // #15564 landed 197 and 198. 199 (#15314), 200, and 201 (#15354) exist and are not gaps.
+  assert.equal((KNOWN_GAPS as Set<string>).has("197"), false);
+  assert.equal((KNOWN_GAPS as Set<string>).has("198"), false);
   assert.equal((KNOWN_GAPS as Set<string>).has("199"), false);
   assert.equal((KNOWN_GAPS as Set<string>).has("200"), false);
   assert.equal((KNOWN_GAPS as Set<string>).has("201"), false);

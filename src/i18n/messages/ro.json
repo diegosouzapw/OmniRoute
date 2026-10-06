@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Endpoint-ul local proxy-core este invalid; nodurile SS/VMess/Trojan/VLESS au fost ignorate.",
         "NEEDS_CORE_NOT_CONFIGURED": "Acest abonament are noduri care necesită un proxy-core local (SS/VMess/Trojan/VLESS); acestea nu sunt rutate până când nu configurați endpoint-ul SOCKS5 local-core.",
         "NO_USABLE_NODES": "Abonamentul nu a returnat noduri utilizabile (http/https/socks5 sau noduri cu un endpoint local-core).",
-        "SELECTOR_SWITCH_FAILED": "Apelul de control al proxy-core a eșuat; ruta anterioară rămâne activă. Verificați URL-ul și secretul de control, apoi reîmprospătați."
+        "SELECTOR_SWITCH_FAILED": "Apelul de control al proxy-core a eșuat; ruta anterioară rămâne activă. Verificați URL-ul și secretul de control, apoi reîmprospătați.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Configurația generată nu a putut înlocui fișierul adoptat; copia de alături a fost păstrată în schimb.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Unele intrări au fost omise în timpul generării. Consultați jurnalul serverului."
       },
       "description": "Lipiți linkul de abonare proxy. Odată activat, traficul este direcționat prin grupul de proxy în modul global sau cu reguli (furnizor specificat). Nodurile de abonament sunt sincronizate automat în pool-ul de proxy și reutilizează mecanismele existente de sondare, verificare a stării de sănătate și anti-scurgere.",
       "addSubscription": "Adăugați abonament",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "Nicio comutare înregistrată",
       "lastSwitchMember": "Membrul care deservește",
       "nextSwitch": "Următoarea comutare posibilă",
-      "nextSwitchNow": "Acum"
+      "nextSwitchNow": "Acum",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Cale binar de bază",
+      "coreBinaryPathHelp": "Opțional: verifică fișierul generat cu binarul de bază înainte de a înlocui fișierul adoptat. Lăsați gol pentru a scrie în continuare alături. Directorul este creat dacă lipsește.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Verificare în bloc a stării",
     "bulkHealthcheckDesc": "Testează toate proxy-urile configurate folosind un URL țintă pentru a identifica proxy-urile funcționale.",
@@ -13064,9 +13083,9 @@
     "dbOverrideCount": "{count} suprascrieri DB",
     "searchPlaceholder": "Caută flaguri...",
     "descriptionModeLabel": "Vizualizare descriere",
-    "descriptionModeHint": "La trecerea cursorului: cardurile rămân compacte, iar trecerea cursorului peste o descriere afișează textul integral. Text integral: afișează întotdeauna descrierea completă.",
-    "descriptionModeHover": "La trecerea cursorului",
-    "descriptionModeFull": "Text integral",
+    "descriptionModeHint": "La trecerea mouse-ului: cardurile rămân compacte, iar trecerea peste o descriere afișează textul complet. Text complet: afișați întotdeauna descrierea completă.",
+    "descriptionModeHover": "La trecerea mouse-ului",
+    "descriptionModeFull": "Text complet",
     "categories": {
       "all": "Toate",
       "security": "Securitate",

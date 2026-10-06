@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "စက်တွင်း proxy-core endpoint မမှန်ကန်သောကြောင့် SS/VMess/Trojan/VLESS node များကို လျစ်လျူရှုထားသည်။",
         "NEEDS_CORE_NOT_CONFIGURED": "ဤစာရင်းသွင်းမှုတွင် စက်တွင်း proxy core လိုအပ်သည့် node များ (SS/VMess/Trojan/VLESS) ပါရှိသည်။ local-core SOCKS5 endpoint ကို သတ်မှတ်မပြီးမချင်း ၎င်းတို့မှတစ်ဆင့် လမ်းကြောင်းမပို့ပါ။",
         "NO_USABLE_NODES": "စာရင်းသွင်းမှုမှ အသုံးပြုနိုင်သော node များ မရရှိပါ (http/https/socks5 သို့မဟုတ် စက်တွင်း core endpoint ပါသော node များ)။",
-        "SELECTOR_SWITCH_FAILED": "proxy-core ထိန်းချုပ်ခေါ်ဆိုမှု မအောင်မြင်ပါ။ ယခင်လမ်းကြောင်းဆက်လက်အသက်ဝင်နေသည်။ ထိန်းချုပ် URL နှင့် လျှို့ဝှက်ချက်စစ်ဆေးပြီး ပြန်လည်ဆန်းသစ်ပါ။"
+        "SELECTOR_SWITCH_FAILED": "proxy-core ထိန်းချုပ်ခေါ်ဆိုမှု မအောင်မြင်ပါ။ ယခင်လမ်းကြောင်းဆက်လက်အသက်ဝင်နေသည်။ ထိန်းချုပ် URL နှင့် လျှို့ဝှက်ချက်စစ်ဆေးပြီး ပြန်လည်ဆန်းသစ်ပါ။",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "ဖန်တီးထားသော အခြေခံ ပြင်ဆင်ချက်သည် လက်ခံထားသော ဖိုင်ကို အစားမထိုးနိုင်ခဲ့ပါ။ ၎င်းအစား ဘေးနားရှိ မိတ္တူကို သိမ်းဆည်းထားပါသည်။",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "မျိုးစုံ စာရင်းများ ဖန်တီးနေစဉ်အတွင်း ချန်ထားခဲ့ပါသည်။ ဆာဗာ မှတ်တမ်းကို ကြည့်ပါ။"
       },
       "description": "သင့် proxy စာရင်းသွင်းမှုလင့်ခ်ကို ကူးထည့်ပါ။ ဖွင့်ပြီးသည်နှင့် အသွားအလာကို ကမ္ဘာလုံးဆိုင်ရာ သို့မဟုတ် စည်းမျဉ်း (သတ်မှတ်ထားသော Provider) မုဒ်တွင် proxy အစုမှတစ်ဆင့် လမ်းကြောင်းပို့မည်။ စာရင်းသွင်းမှု node များကို proxy အစုထဲသို့ အလိုအလျောက် ထပ်တူပြုပြီး လက်ရှိ polling၊ အခြေအနေစစ်ဆေးမှုနှင့် ယိုစိမ့်မှုတားဆီးရေး ယန္တရားများကို ပြန်လည်အသုံးပြုမည်။",
       "addSubscription": "စာရင်းသွင်းမှု ထည့်ရန်",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "မှတ်တမ်းတင်ထားသောအပြောင်းအလဲမရှိသေးပါ",
       "lastSwitchMember": "ဝန်ဆောင်မှုပေးနေသောအဖွဲ့ဝင်",
       "nextSwitch": "နောက်ဖြစ်နိုင်သောအပြောင်းအလဲ",
-      "nextSwitchNow": "ယခု"
+      "nextSwitchNow": "ယခု",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "အခြေခံ binary လမ်းကြောင်း",
+      "coreBinaryPathHelp": "ရွေးချယ်နိုင်သည်: လက်ခံထားသော ဖိုင်ကို အစားမထိုးမီ အခြေခံ binary ဖြင့် ဖန်တီးထားသော ဖိုင်ကို စစ်ဆေးပါသည်။ ဘေးနားတွင် ဆက်လက် ရေးသားရန် ကွက်လပ်ထားပါ။ ဖိုင်တွဲမရှိပါက ဖန်တီးပါမည်။",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "အစုလိုက် အခြေအနေစစ်ဆေးမှု",
     "bulkHealthcheckDesc": "အလုပ်လုပ်သည့် ပရောက်စီများကို ရှာဖွေရန် စီစဉ်သတ်မှတ်ထားသော ပရောက်စီအားလုံးကို ပစ်မှတ် URL တစ်ခုဖြင့် စမ်းသပ်ပါ။",
@@ -13064,9 +13083,9 @@
     "dbOverrideCount": "DB အစားထိုးသတ်မှတ်ချက် {count} ခု",
     "searchPlaceholder": "အလံများကို ရှာဖွေပါ...",
     "descriptionModeLabel": "ဖော်ပြချက် မြင်ကွင်း",
-    "descriptionModeHint": "မောက်စ်တင်သည့်အခါ- ကတ်များကို ကျစ်လျစ်စွာထားပြီး ဖော်ပြချက်တစ်ခုပေါ် မောက်စ်တင်ပါက စာသားအပြည့်အစုံကို ပြသသည်။ စာသားအပြည့်အစုံ- ဖော်ပြချက်အပြည့်အစုံကို အမြဲပြသသည်။",
-    "descriptionModeHover": "မောက်စ်တင်သည့်အခါ",
-    "descriptionModeFull": "စာသားအပြည့်အစုံ",
+    "descriptionModeHint": "ခြေရာခံသောအခါ: ကတ်များ ကျစ်လစ်နေပြီး ဖော်ပြချက်တစ်ခုကို ခြေရာခံသောအခါ အပြည့်အစုံ စာသားကို ပြပါမည်။ အပြည့်အစုံ စာသား: ဖော်ပြချက်ကို အမြဲတမ်း အပြည့်အစုံ ပြပါ။",
+    "descriptionModeHover": "ခြေရာခံသောအခါ",
+    "descriptionModeFull": "အပြည့်အစုံ စာသား",
     "categories": {
       "all": "အားလုံး",
       "security": "လုံခြုံရေး",

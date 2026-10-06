@@ -6874,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Vietējā proxy-core galapunkta adrese nav derīga; SS/VMess/Trojan/VLESS mezgli tika ignorēti.",
         "NEEDS_CORE_NOT_CONFIGURED": "Šajā abonementā ir mezgli, kuriem nepieciešams vietējais proxy core (SS/VMess/Trojan/VLESS); tie netiks maršrutēti, kamēr nebūs konfigurēts local-core SOCKS5 galapunkts.",
         "NO_USABLE_NODES": "Abonements nenodrošināja nevienu izmantojamu mezglu (http/https/socks5 vai mezglus ar vietējā kodola galapunktu).",
-        "SELECTOR_SWITCH_FAILED": "Starpniekservera kodola vadības izsaukums neizdevās; iepriekšējais maršruts paliek aktīvs. Pārbaudiet vadības URL un noslēpumu, pēc tam atsvaidziniet."
+        "SELECTOR_SWITCH_FAILED": "Starpniekservera kodola vadības izsaukums neizdevās; iepriekšējais maršruts paliek aktīvs. Pārbaudiet vadības URL un noslēpumu, pēc tam atsvaidziniet.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Ģenerēto pamatkonfigurāciju neizdevās aizstāt pieņemto failu; tā vietā tika saglabāta kopija blakus.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Dažieraksti tika izlaisti ģenerēšanas laikā. Skatiet servera žurnālu."
       },
       "description": "Ielīmējiet savu proxy abonementa saiti. Pēc iespējošanas datplūsma tiek maršrutēta caur proxy kopu globālajā vai kārtulu režīmā (norādītajiem pakalpojumu sniedzējiem). Abonementa mezgli tiek automātiski sinhronizēti ar proxy kopu un izmanto esošos aptaujas, darbspējas pārbaudes un aizsardzības pret noplūdēm mehānismus.",
       "addSubscription": "Pievienot abonementu",
@@ -6960,7 +6965,21 @@
       "lastSwitchNever": "Vēl nav reģistrētas pārslēgšanas",
       "lastSwitchMember": "Apkalpojošais dalībnieks",
       "nextSwitch": "Nākamā iespējamā pārslēgšana",
-      "nextSwitchNow": "Tagad"
+      "nextSwitchNow": "Tagad",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Pamatbinārā fails",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Neobligāti: pārbauda ģenerēto failu ar pamatbināro failu pirms pieņemtā faila aizstāšanas. Atstājiet tukšu, lai turpinātu rakstīt blakus. Direktorijs, ja tā nav, tiek izveidots."
     },
     "bulkHealthcheck": "Masveida darbspējas pārbaude",
     "bulkHealthcheckDesc": "Pārbaudi visus konfigurētos starpniekserverus, izmantojot mērķa URL, lai noskaidrotu, kuri darbojas.",
