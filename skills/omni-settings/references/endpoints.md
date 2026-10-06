@@ -277,6 +277,8 @@ curl https://localhost:20128/api/settings/compression \
 
 Update global compression settings
 
+Partial update: only the sent top-level keys change. `engines` merges by engine id — an entry overwrites only the fields it sends, engines left out are kept as-is, and until an engines row is stored the merge base is the map derived from the legacy per-engine settings.
+
 ```bash
 curl -X PUT https://localhost:20128/api/settings/compression \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
