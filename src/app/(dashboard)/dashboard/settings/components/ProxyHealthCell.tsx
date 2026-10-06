@@ -18,6 +18,8 @@ interface HealthInfo {
   measured?: boolean;
   transportOk?: number;
   transportFailures?: number;
+  slowAbandoned?: number;
+  clientAborted?: number;
   upstream4xx?: number;
   upstream5xx?: number;
   connectionTests?: number;
@@ -91,6 +93,10 @@ export function ProxyHealthCell({ testResult, health }: ProxyHealthCellProps) {
             ? t("notMeasured")
             : t("transportRate", { rate: health.transportRate ?? 0 })}
         </span>
+        <span title={t("slowAbandonedHint")}>
+          {t("slowAbandoned", { count: health.slowAbandoned ?? 0 })}
+        </span>
+        <span>{t("clientAborted", { count: health.clientAborted ?? 0 })}</span>
         <span>{t("upstreamRefusals", { count: upstreamRefusals })}</span>
         <span>{t("connectionTestsCount", { count: health.connectionTests ?? 0 })}</span>
         <span>{t("avgLatency", { latency: health.avgLatencyMs ?? "-" })}</span>

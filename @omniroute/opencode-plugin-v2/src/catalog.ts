@@ -1,4 +1,16 @@
 import type { Model, Provider } from "@opencode/plugin";
+import {
+  buildProviderResolve,
+  compileProviderFilter,
+  filterAllUnknown,
+  passesProviderAutoCombo,
+  passesProviderCombo,
+  passesProviderFilter,
+  warnNoVocabulary,
+  warnUnknownProviders,
+  type ProviderFilter,
+  type ProviderResolve,
+} from "./provider-filter.js";
 import type { LegacyModel } from "./legacy-model.js";
 import {
   isHttpUrl,
@@ -61,6 +73,7 @@ export interface ResolvedOptions {
   apiFormat?: ApiFormatV2;
   visibleModels?: string[];
   hiddenModels?: string[];
+  providersAllow?: string[];
   usableOnly: boolean;
   enrichment?: OmniRouteEnrichmentMap | boolean;
   /**
@@ -450,6 +463,10 @@ interface PublishContext {
   hiddenFilter: ReturnType<typeof compileModelListFilter>;
   usable: ReturnType<typeof usableProviderAliasSet> | undefined;
   canonicalToAlias: ReturnType<typeof buildCanonicalToAliasMap>;
+  providerFilter: ProviderFilter | undefined;
+  providerResolve: ProviderResolve | undefined;
+  /** Precomputed once per publish: every allow entry sits outside the vocabulary. */
+  providerAllUnknown: boolean;
   combosFetcher: CatalogFetchers["combos"] | undefined;
   combosTimeout: number;
   /** Shared with the auto-combos pass: one collision warning per key, per run. */
@@ -464,10 +481,13 @@ interface PublishContext {
  * are dropped rather than published with a fabricated capability set, and
  * reported once.
  *
- * Returns the number published, or `undefined` when the combos fetch failed —
- * the caller then publishes a models-only catalog instead of an empty one.
+ * Returns the published and provider-dropped counts, or `undefined` when the
+ * combos fetch failed — the caller then publishes a models-only catalog
+ * instead of an empty one.
  */
-async function publishCombos(ctx: PublishContext): Promise<number | undefined> {
+async function publishCombos(
+  ctx: PublishContext
+): Promise<{ published: number; providerDropped: number } | undefined> {
   const {
     opts,
     log,
@@ -481,6 +501,9 @@ async function publishCombos(ctx: PublishContext): Promise<number | undefined> {
     hiddenFilter,
     usable,
     canonicalToAlias,
+    providerFilter,
+    providerResolve,
+    providerAllUnknown,
     combosFetcher,
     combosTimeout,
     warnedCombos,
@@ -499,6 +522,7 @@ async function publishCombos(ctx: PublishContext): Promise<number | undefined> {
   }
 
   let comboCount = 0;
+  let providerDropped = 0;
   // Ported from v1 (fixpoint 8 passes + warn once per (cacheKey, comboKey)
   // + intentional-dedup exception). Nested combo-refs resolve against the
   // friendly combo name; unresolvable combos are dropped (never published
@@ -512,6 +536,10 @@ async function publishCombos(ctx: PublishContext): Promise<number | undefined> {
     // Deny wins for combos too: a user who hides an id expects it gone from
     // the picker whether it is a model or a combo built on it.
     if (hiddenFilter && passesComboAllowlist(combo, hiddenFilter)) return false;
+    if (!passesProviderCombo(combo, providerFilter, providerResolve, providerAllUnknown)) {
+      if (providerFilter) providerDropped += 1;
+      return false;
+    }
     return true;
   });
   const resolvedByName = new Map<string, LegacyModel>();
@@ -598,7 +626,7 @@ async function publishCombos(ctx: PublishContext): Promise<number | undefined> {
       `[omniroute-v2] ${unresolved.length} combo(s) could not resolve all nested combo-refs after ${MAX_COMBO_PASSES} passes; dropped to avoid over-claiming.`
     );
   }
-  return comboCount;
+  return { published: comboCount, providerDropped };
 }
 
 /**
@@ -702,6 +730,29 @@ export async function collectCatalog(
     log
   );
 
+  // Provider allowlist (same seam as the allowlists above, applied last):
+  // compile once, resolve alias<->canonical once via the usable pass, then
+  // one predicate per collection point. `buildCanonicalToAliasMap` returns
+  // canonical->alias; the resolve table needs the inverse alias->canonical.
+  const warnedCombos = opts.collisionWarned ?? new Set<string>();
+  const providerFilter = compileProviderFilter(opts.providersAllow);
+  let providerResolve: ProviderResolve | undefined;
+  let providerAllUnknown = false;
+  if (providerFilter) {
+    const pairs: Array<{ alias?: string; canonical?: string }> = [];
+    for (const entry of enrichment.values()) {
+      pairs.push({ alias: entry.providerAlias, canonical: entry.providerCanonical });
+    }
+    for (const [canonical, alias] of canonicalToAlias) {
+      pairs.push({ alias, canonical });
+    }
+    providerResolve = buildProviderResolve(pairs, usable?.canonicals);
+    providerAllUnknown = filterAllUnknown(providerFilter, providerResolve);
+    if (providerResolve.known.size === 0)
+      warnNoVocabulary(providerFilter, providerResolve.known, warnedCombos, log);
+    else warnUnknownProviders(providerFilter, providerResolve.known, warnedCombos, log);
+  }
+
   const rawModelById = new Map<string, OmniRouteRawModelEntry>();
   for (const entry of rawModels) {
     if (entry.id) rawModelById.set(entry.id, entry);
@@ -714,11 +765,16 @@ export async function collectCatalog(
   const publishedModelIds = new Map<string, string>();
   const collected = new Map<string, LegacyModel>();
   let modelCount = 0;
+  let providerDroppedCount = 0;
   for (const entry of rawModels) {
     if (!entry.id) continue;
     if (canonicalDedup.has(entry.id)) continue;
     if (usable && !isUsableRawModelId(entry.id, usable)) continue;
     if (!passesModelAllowlist(entry.id, visibleFilter, hiddenFilter)) continue;
+    if (!passesProviderFilter(entry.id, providerFilter, providerResolve, providerAllUnknown)) {
+      providerDroppedCount += 1;
+      continue;
+    }
     const mapped = mapRawModelToModelV2(entry, {
       providerId: X,
       baseURL: opts.baseURL,
@@ -735,9 +791,8 @@ export async function collectCatalog(
     modelCount += 1;
   }
 
-  const warnedCombos = opts.collisionWarned ?? new Set<string>();
   const cacheKey = `${opts.baseURL}::${opts.providerId}`;
-  const comboCount = await publishCombos({
+  const comboResult = await publishCombos({
     opts,
     log,
     providerId: X,
@@ -750,13 +805,18 @@ export async function collectCatalog(
     hiddenFilter,
     usable,
     canonicalToAlias,
+    providerFilter,
+    providerResolve,
+    providerAllUnknown,
     combosFetcher,
     combosTimeout,
     warnedCombos,
     cacheKey,
   });
-  if (comboCount === undefined)
+  if (comboResult === undefined)
     return { entries: collected, counts: { models: modelCount, combos: 0, autoCombos: 0 } };
+  const comboCount = comboResult.published;
+  providerDroppedCount += comboResult.providerDropped;
 
   // Migration: v1 published opencode-X; v2 publishes X bare. Sessions pinned
   // opencode-X resolve ModelUnavailableError -- see RELEASE.md migration note.
@@ -792,6 +852,10 @@ export async function collectCatalog(
     // it. They used to skip both filters entirely.
     if (!passesModelAllowlist(autoCombo.id, visibleFilter, hiddenFilter)) continue;
     if (usable && !isUsableRawModelId(autoCombo.id, usable)) continue;
+    if (!passesProviderAutoCombo(autoCombo, providerFilter, providerResolve, providerAllUnknown)) {
+      providerDroppedCount += 1;
+      continue;
+    }
     const mapped = mapAutoComboToModelV2(autoCombo, X, opts.baseURL, opts.apiFormat);
     applyEnrichment(mapped, lookupEnrichment(autoCombo.id, enrichment, canonicalToAlias), {
       isCombo: true,
@@ -813,7 +877,28 @@ export async function collectCatalog(
     autoComboCount += 1;
   }
 
-  return { entries: collected, counts: { models: modelCount, combos: comboCount, autoCombos: autoComboCount } };
+  if (providerFilter && collected.size === 0 && providerDroppedCount > 0) {
+    warnProviderMatchedNothing(providerFilter, warnedCombos, log);
+  }
+
+  return {
+    entries: collected,
+    counts: { models: modelCount, combos: comboCount, autoCombos: autoComboCount },
+  };
+}
+
+function warnProviderMatchedNothing(
+  providerFilter: ProviderFilter | undefined,
+  warnedCombos: Set<string>,
+  log: Logger
+): void {
+  if (!providerFilter) return;
+  const key = `provider-matched-nothing::${[...providerFilter.allow].sort().join(",")}`;
+  if (warnedCombos.has(key)) return;
+  warnedCombos.add(key);
+  log.warn(
+    `[omniroute-v2] providersAllow [${providerFilter.originals.join(", ")}] matched nothing, publishing empty catalog.`
+  );
 }
 
 /**

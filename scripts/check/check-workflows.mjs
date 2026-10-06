@@ -40,6 +40,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { load as yamlLoad } from "js-yaml";
 import { findProvenanceOnSelfHosted, formatProvenanceFinding } from "./lib/provenanceRunner.mjs";
 
 const ROOT = process.cwd();
@@ -282,6 +283,112 @@ export function runZizmor(workflowsDir) {
 // Main
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Scheduled-run guard: scheduled executions stay in the upstream repository
+// ---------------------------------------------------------------------------
+
+const SCHEDULED_GUARD_EVENT = "github.event_name != 'schedule'";
+const SCHEDULED_GUARD_REPO = "github.repository";
+
+/**
+ * Reads the trigger section of a parsed workflow document. The `on` key is
+ * read defensively (`doc[true] ?? doc["on"]`) so both YAML 1.1 (boolean true)
+ * and YAML 1.2 (string "on") parses stay green across parser versions.
+ * @param {unknown} doc parsed workflow document
+ * @returns {unknown} the `on` section, or undefined
+ */
+function readTriggerSection(doc) {
+  if (!doc || typeof doc !== "object") return undefined;
+  const record = /** @type {Record<string|symbol, unknown>} */ (doc);
+  return record[true] ?? record["on"];
+}
+
+/**
+ * Whether a parsed trigger section declares a `schedule` trigger. Accepts the
+ * object form (`schedule:` with cron entries), the bare string form, and the
+ * array form of `on:`.
+ * @param {unknown} onSection parsed `on` section
+ * @returns {boolean}
+ */
+function hasScheduleTrigger(onSection) {
+  if (onSection == null) return false;
+  if (typeof onSection === "string") return onSection === "schedule";
+  if (Array.isArray(onSection)) return onSection.includes("schedule");
+  if (typeof onSection !== "object") return false;
+  return Object.prototype.hasOwnProperty.call(onSection, "schedule");
+}
+
+/**
+ * Whether a job-level `if` carries the upstream-only scheduled-run guard.
+ * @param {unknown} condition the job's `if` value
+ * @returns {boolean}
+ */
+function hasScheduledGuard(condition) {
+  return (
+    typeof condition === "string" &&
+    condition.includes(SCHEDULED_GUARD_EVENT) &&
+    condition.includes(SCHEDULED_GUARD_REPO)
+  );
+}
+
+/**
+ * Lists scheduled jobs missing the upstream-only guard. Fail-closed: an
+ * unreadable file, invalid YAML, or a document without a usable `jobs` map is
+ * reported, never silently accepted. A workflow without a `schedule` trigger
+ * reports nothing. Never throws for these cases; a non-array argument is a
+ * usage error and still throws.
+ * @param {string[]} files absolute workflow paths
+ * @returns {{ file: string, job: string, reason: string }[]}
+ */
+export function findScheduledJobsWithoutGuard(files) {
+  if (!Array.isArray(files)) throw new TypeError("files must be an array");
+  const findings = [];
+  for (const file of files) {
+    let text;
+    try {
+      text = fs.readFileSync(file, "utf8");
+    } catch {
+      findings.push({ file, job: "<unreadable>", reason: "unreadable or missing jobs" });
+      continue;
+    }
+    let doc;
+    try {
+      doc = yamlLoad(text);
+    } catch {
+      findings.push({ file, job: "<unreadable>", reason: "unreadable or missing jobs" });
+      continue;
+    }
+    if (!hasScheduleTrigger(readTriggerSection(doc))) continue;
+    const jobs = doc && typeof doc === "object" ? doc.jobs : undefined;
+    if (!jobs || typeof jobs !== "object" || Array.isArray(jobs)) {
+      findings.push({ file, job: "<unreadable>", reason: "unreadable or missing jobs" });
+      continue;
+    }
+    for (const [jobName, job] of Object.entries(jobs)) {
+      if (!job || typeof job !== "object" || Array.isArray(job)) {
+        findings.push({ file, job: jobName, reason: "unreadable or missing jobs" });
+        continue;
+      }
+      if (!hasScheduledGuard(job.if)) {
+        findings.push({ file, job: jobName, reason: "scheduled job without upstream guard" });
+      }
+    }
+  }
+  return findings;
+}
+
+/**
+ * Runs the scheduled-run guard over the given workflow files.
+ * @param {string[]} files absolute workflow paths
+ * @returns {{ file: string, job: string, reason: string }[]}
+ */
+export function runScheduledGuardCheck(files) {
+  return findScheduledJobsWithoutGuard(files).map((f) => ({
+    ...f,
+    file: path.relative(ROOT, f.file),
+  }));
+}
+
 /**
  * Hard rule (not a lint count): `--provenance` inside a job that runs on a
  * self-hosted runner. npm answers 422 at the registry, and in v3.8.50 that
@@ -383,11 +490,32 @@ function main() {
   // version that produced it. See zizmorVersion().
   process.stdout.write(`zizmorVersion=${scannerVersion}\n`);
   process.stdout.write(`provenanceRunnerFindings=${provenanceFindings.length}\n`);
+  const scheduledGuardFindings = runScheduledGuardCheck(workflowFiles);
+  if (scheduledGuardFindings.length > 0) {
+    console.error(
+      `[check-workflows] scheduled-guard: ${scheduledGuardFindings.length} finding(s) — HARD RULE:`
+    );
+    scheduledGuardFindings.forEach((f) =>
+      console.error(`  ${f.file}: job "${f.job}" — ${f.reason}`)
+    );
+  } else if (!QUIET) {
+    console.log("[check-workflows] scheduled-guard: OK (0 findings)");
+  }
+  process.stdout.write(`scheduledGuardFindings=${scheduledGuardFindings.length}\n`);
   if ((STRICT || RATCHET) && provenanceFindings.length > 0) {
     console.error(
       `\n[check-workflows] FAIL — ${provenanceFindings.length} job(s) publish with --provenance from a self-hosted runner.\n` +
         "  npm rejects that with 422 at the registry. Move the upload step to a github-hosted job\n" +
         "  (see .github/workflows/npm-publish.yml `stage-npm` for the pattern)."
+    );
+    process.exit(1);
+  }
+
+  if ((STRICT || RATCHET) && scheduledGuardFindings.length > 0) {
+    console.error(
+      `\n[check-workflows] FAIL — ${scheduledGuardFindings.length} scheduled job(s) without the upstream-only guard.\n` +
+        "  Scheduled runs must stay in diegosouzapw/OmniRoute: keep the job-level `if:` naming both\n" +
+        "  `github.event_name != 'schedule'` and `github.repository`."
     );
     process.exit(1);
   }
