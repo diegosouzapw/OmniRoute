@@ -110,6 +110,8 @@ import {
 import { validateAiHordeProvider } from "./validation/aihorde";
 import { validateDifyProvider } from "./validation/dify";
 import { validateZyloApiProvider } from "./validation/zylo";
+import { validateClineProvider } from "./validation/cline";
+import { validateKilocodeProvider } from "./validation/kilocode";
 import { validateAdobeFireflyProvider } from "./validation/adobeFirefly";
 import {
   validateV0VercelProvider,
@@ -266,6 +268,13 @@ export async function validateProviderApiKey({
     // the zylo/<model> routing ids), and the alias must not fall back to the open-catalog probe.
     // Same shape as the adobe-firefly/firefly pair above.
     zylo: validateZyloApiProvider,
+    // Cline and ClinePass serve unauthenticated GET /v1/models (open catalog returning 200 for any key)
+    // and require streaming + Cline client headers on /chat/completions. Probe the authenticated route.
+    cline: validateClineProvider,
+    clinepass: (args: any) => validateClineProvider({ ...args, provider: "clinepass" }),
+    // Kilo Code serves unauthenticated GET /models (open catalog returning 200 for any key).
+    // Authenticate against /chat/completions with the required X-KILOCODE-EDITORNAME header.
+    kilocode: validateKilocodeProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     "rev-ai": validateRevAiProvider,
