@@ -244,7 +244,7 @@ describe("EngineConfigForm", () => {
       numInput.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
-    expect(onChange).toHaveBeenCalledWith({ ...INITIAL_VALUE, maxTokens: 1.5 });
+    expect(onChange).toHaveBeenCalledWith("maxTokens", 1.5);
   });
 
   it("calls onChange with updated array when a multiselect option is checked", async () => {
