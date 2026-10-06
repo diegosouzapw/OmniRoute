@@ -25,7 +25,14 @@ function resolvedWith(
   // Real option resolution path: parse, then the catalog-shaping copy in
   // `../src/options.js` (re-exported by the entrypoint). Run with
   // `node --import tsx/esm --test` from the package directory.
-  const parsed = parsePluginOptions({ baseURL: "https://gw.example.com", ...raw });
+  // #14554: toolsOnly now defaults true and drops models without tool_calling.
+  // These cases assert the provider filter, so they opt out of that preset.
+  // A caller can still override by passing toolsOnly in `raw`.
+  const parsed = parsePluginOptions({
+    baseURL: "https://gw.example.com",
+    toolsOnly: false,
+    ...raw,
+  });
   const resolved = toResolvedOptions(parsed);
   resolved.logger = silentLogger(warns);
   resolved.modelCacheTtlMs = 300000;
