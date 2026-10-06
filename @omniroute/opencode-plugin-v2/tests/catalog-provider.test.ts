@@ -261,12 +261,13 @@ describe("provider filter integration (real option resolution)", () => {
 
   it("scales N+N models through the real pipeline", async () => {
     const N = 500;
+    // The default view now caps entries per provider (#15484); the scale case wants all N.
     const models: Array<{ id: string }> = [];
     for (let i = 0; i < N; i++) models.push({ id: `cc/m-${i}` });
     for (let i = 0; i < N; i++) models.push({ id: `alpha/m-${i}` });
     const warns: string[] = [];
     const collected = await collectCatalog(
-      resolvedWith({ providersAllow: ["claude"] }, warns, {
+      resolvedWith({ providersAllow: ["claude"], showcasePerOwner: N, freshPerOwner: N }, warns, {
         enrichment: enrichmentOf(["cc", "claude"], ["alpha", "alpha"]),
       }),
       {

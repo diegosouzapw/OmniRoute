@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP വിവരണ കംപ്രഷൻ",
     "mcpAccessibilityTitle": "MCP ആക്സസിബിലിറ്റി ഔട്ട്പുട്ട്",
     "compressionSettingsCavemanIntensity": "ഗുഹാമനുഷ്യ തീവ്രത",
-    "compressionSettingsCavemanOutputMode": "ഗുഹാമനുഷ്യ ഔട്ട്പുട്ട് മോഡ്",
     "compressionSettingsOutputStyles": "ഔട്ട്പുട്ട് ശൈലികൾ",
     "compressionStylesTileTitle": "ഔട്ട്പുട്ട് ശൈലികൾ",
     "compressionSettingsOutputIntensity": "ഔട്ട്പുട്ട് തീവ്രത",
-    "compressionSettingsAutoClarityBypass": "സ്വയമേവയുള്ള വ്യക്തത ബൈപാസ്",
     "compressionEffectivePipeline": "പ്രാബല്യത്തിലുള്ള പൈപ്പ്ലൈൻ:",
     "compressionDerivedOff": "ഓഫ്",
     "compressionDerivedRuns": "പ്രവർത്തനങ്ങൾ: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "കോംപാക്റ്റ് ചെയ്യാനുള്ള ഏറ്റവും കുറഞ്ഞ വരികൾ",
         "description": "ടാബുലാർ കോംപാക്ഷൻ പ്രവർത്തനക്ഷമമാക്കാൻ ഏകജാതീയ JSON അറേയിൽ ആവശ്യമായ ഏറ്റവും കുറഞ്ഞ വരികളുടെ എണ്ണം. ഡിഫോൾട്ട്: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "സിസ്റ്റം പ്രോംപ്റ്റ് സംരക്ഷിക്കുക"
-      },
       "summarizerEnabled": {
         "label": "സംഗ്രഹ സംവിധാനം പ്രവർത്തനക്ഷമമാക്കുക"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "ഇതിലും ചെറുതായ സന്ദേശങ്ങൾ കംപ്രസ് ചെയ്യില്ല. കുറഞ്ഞ മൂല്യം = കൂടുതൽ കംപ്രഷൻ.",
     "tooltipMinSavings": "കുറഞ്ഞത് ഇത്രയും ടോക്കണുകൾ ലാഭിക്കുമെങ്കിൽ മാത്രം കംപ്രസ് ചെയ്യുക.",
     "ultraSettings": "അൾട്രാ ക്രമീകരണങ്ങൾ",
-    "ultraSettingsDesc": "SLM അധിഷ്ഠിത സെമാന്റിക് കംപ്രഷൻ",
-    "preview": {
-      "lite": "സംക്ഷിപ്തമായി പ്രതികരിക്കുക. സാങ്കേതിക പദങ്ങൾ, കോഡ്, പിശകുകൾ, URLs, ഐഡന്റിഫയറുകൾ എന്നിവ മാറ്റമില്ലാതെ നിലനിർത്തുക.",
-      "full": "വളരെ ചുരുക്കമായും ഒതുക്കമായും പ്രതികരിക്കുക. എല്ലാ സാങ്കേതിക ഉള്ളടക്കവും നിലനിർത്തുക.",
-      "ultra": "സാധാരണ സാങ്കേതിക ചുരുക്കെഴുത്തുകൾ ഉപയോഗിച്ച് അത്യന്തം ചുരുക്കമായി പ്രതികരിക്കുക. കൃത്യമായ ചിഹ്നങ്ങൾ മാറ്റമില്ലാതെ നിലനിർത്തുക."
-    }
+    "ultraSettingsDesc": "SLM അധിഷ്ഠിത സെമാന്റിക് കംപ്രഷൻ"
   },
   "translator": {
     "title": "പരിഭാഷകൻ",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "പ്രോക്സിയിൽ എത്താനാകുന്നില്ല",
     "poolSetAsideKindIpQuota429": "IP നിരക്ക് പരിധി (429)",
     "poolSetAsideKindSlow": "മന്ദഗതിയുള്ള പ്രതികരണങ്ങൾ",
+    "poolSetAsideKindGeoBlocked": "പ്രദേശം നിരോധിച്ചത് (403/451)",
     "poolSetAsideUntil": "റൊട്ടേഷനിലേക്ക് തിരികെ {endsAt}",
     "poolSetAsideRepeat": "മാറ്റിവച്ചു {count, plural, one {# തവണ} other {# തവണ}}",
     "poolUnknownAddress": "അജ്ഞാത വിലാസം",

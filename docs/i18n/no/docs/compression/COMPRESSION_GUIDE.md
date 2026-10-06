@@ -454,8 +454,7 @@ inn i stedet for den engelske.
 I en body med `messages` kontrollerer en innholdsforbikobling (`shouldBypassCavemanOutputMode()` i
 `open-sse/services/compression/outputMode.ts`) de tre siste meldingene og hopper over
 stilene for hele runden når de samsvarer med nøkkelord for sikkerhet, irreversible handlinger,
-avklaringer eller rekkefølgefølsomhet. Forbikoblingen følger innstillingen til kontrollpanelets
-**Automatisk klarhetsforbikobling**-bryter (`cavemanOutputMode.autoClarity`).
+avklaringer eller rekkefølgefølsomhet. Forbikoblingen kjører mens kontrollpanelets **Automatisk klarhetsforbikobling**-bryter (`cavemanOutputMode.autoClarity`) er på, noe som er standard; med bryteren av gjelder de valgte stilene også i disse rundene.
 
 Når forbikoblingen slipper runden gjennom, plasserer `placeSystemInstruction()` (samme fil),
 som aldri oppretter en ny `messages[0]`, blokken på det første stedet nedenfor som finnes:

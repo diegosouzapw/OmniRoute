@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP aprakstu saspiešana",
     "mcpAccessibilityTitle": "MCP pieejamības izvade",
     "compressionSettingsCavemanIntensity": "Alu cilvēka intensitāte",
-    "compressionSettingsCavemanOutputMode": "Alu cilvēka izvades režīms",
     "compressionSettingsOutputStyles": "Izvades stili",
     "compressionStylesTileTitle": "Izvades stili",
     "compressionSettingsOutputIntensity": "Izvades intensitāte",
-    "compressionSettingsAutoClarityBypass": "Automātiskā skaidrības apiešana",
     "compressionEffectivePipeline": "Efektīvā apstrādes ķēde:",
     "compressionDerivedOff": "izslēgts",
     "compressionDerivedRuns": "darbojas: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimālais rindu skaits saspiešanai",
         "description": "Minimālais rindu skaits homogēnā JSON masīvā, kas nepieciešams tabulārās saspiešanas aktivizēšanai. Noklusējums: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Saglabāt sistēmas uzvedni"
-      },
       "summarizerEnabled": {
         "label": "Iespējot kopsavilkuma veidotāju"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Ziņas, kas īsākas par šo, netiek saspiestas. Zemāks = vairāk saspiešanas.",
     "tooltipMinSavings": "Saspiest tikai tad, ja tas ietaupa vismaz šo tokenu skaitu.",
     "ultraSettings": "Ultra iestatījumi",
-    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana",
-    "preview": {
-      "lite": "Atbildi kodolīgi. Saglabā tehniskos terminus, kodu, kļūdas, URL un identifikatorus.",
-      "full": "Atbildi lakoniski un kompakti. Saglabā visu tehnisko saturu.",
-      "ultra": "Atbildi īpaši lakoniski, izmantojot izplatītus tehniskos saīsinājumus. Saglabā precīzus simbolus."
-    }
+    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana"
   },
   "translator": {
     "title": "Tulkotājs",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "starpniekserveris nav sasniedzams",
     "poolSetAsideKindIpQuota429": "IP pieprasījumu ierobežojums (429)",
     "poolSetAsideKindSlow": "lēnas atbildes",
+    "poolSetAsideKindGeoBlocked": "reģiona bloķēts (403/451)",
     "poolSetAsideUntil": "Atpakaļ rotācijā {endsAt}",
     "poolSetAsideRepeat": "Nolikts malā {count, plural, one {# reizi} other {# reizes}}",
     "poolUnknownAddress": "Nezināma adrese",

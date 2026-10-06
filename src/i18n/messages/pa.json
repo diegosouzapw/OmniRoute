@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP ਵਰਣਨ ਸੰਕੁਚਨ",
     "mcpAccessibilityTitle": "MCP ਪਹੁੰਚਯੋਗਤਾ ਆਉਟਪੁੱਟ",
     "compressionSettingsCavemanIntensity": "ਕੇਵਮੈਨ ਤੀਬਰਤਾ",
-    "compressionSettingsCavemanOutputMode": "ਕੇਵਮੈਨ ਆਉਟਪੁੱਟ ਮੋਡ",
     "compressionSettingsOutputStyles": "ਆਉਟਪੁੱਟ ਸ਼ੈਲੀਆਂ",
     "compressionStylesTileTitle": "ਆਉਟਪੁੱਟ ਸ਼ੈਲੀਆਂ",
     "compressionSettingsOutputIntensity": "ਆਉਟਪੁੱਟ ਤੀਬਰਤਾ",
-    "compressionSettingsAutoClarityBypass": "ਆਟੋ ਸਪਸ਼ਟਤਾ ਬਾਈਪਾਸ",
     "compressionEffectivePipeline": "ਪ੍ਰਭਾਵੀ ਪਾਈਪਲਾਈਨ:",
     "compressionDerivedOff": "ਬੰਦ",
     "compressionDerivedRuns": "ਚੱਲਦਾ ਹੈ: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "ਸੰਕੁਚਿਤ ਕਰਨ ਲਈ ਘੱਟੋ-ਘੱਟ ਕਤਾਰਾਂ",
         "description": "ਟੇਬੁਲਰ ਸੰਕੁਚਨ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਇੱਕ ਸਮਰੂਪ JSON ਐਰੇ ਵਿੱਚ ਲੋੜੀਂਦੀਆਂ ਘੱਟੋ-ਘੱਟ ਕਤਾਰਾਂ। ਮੂਲ: 8।"
       },
-      "preserveSystemPrompt": {
-        "label": "ਸਿਸਟਮ ਪ੍ਰਾਂਪਟ ਸੁਰੱਖਿਅਤ ਰੱਖੋ"
-      },
       "summarizerEnabled": {
         "label": "ਸੰਖੇਪਕ ਨੂੰ ਸਮਰੱਥ ਕਰੋ"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "ਇਸ ਤੋਂ ਛੋਟੇ ਸੁਨੇਹੇ ਸੰਕੁਚਿਤ ਨਹੀਂ ਕੀਤੇ ਜਾਂਦੇ। ਘੱਟ = ਵਧੇਰੇ ਸੰਕੁਚਨ।",
     "tooltipMinSavings": "ਕੇਵਲ ਉਦੋਂ ਸੰਕੁਚਿਤ ਕਰੋ ਜੇ ਇਸ ਨਾਲ ਘੱਟੋ-ਘੱਟ ਇੰਨੇ ਟੋਕਨ ਬਚਦੇ ਹੋਣ।",
     "ultraSettings": "ਅਲਟਰਾ ਸੈਟਿੰਗਾਂ",
-    "ultraSettingsDesc": "SLM-ਸੰਚਾਲਿਤ ਅਰਥ-ਆਧਾਰਿਤ ਸੰਕੁਚਨ",
-    "preview": {
-      "lite": "ਸੰਖੇਪ ਜਵਾਬ ਦਿਓ। ਤਕਨੀਕੀ ਸ਼ਬਦਾਂ, ਕੋਡ, ਗਲਤੀਆਂ, URLs ਅਤੇ ਪਛਾਣਕਰਤਾਵਾਂ ਨੂੰ ਜਿਉਂ ਦਾ ਤਿਉਂ ਰੱਖੋ।",
-      "full": "ਬਹੁਤ ਸੰਖੇਪ ਅਤੇ ਸੰਕੁਚਿਤ ਜਵਾਬ ਦਿਓ। ਸਾਰੀ ਤਕਨੀਕੀ ਸਮੱਗਰੀ ਸੁਰੱਖਿਅਤ ਰੱਖੋ।",
-      "ultra": "ਆਮ ਤਕਨੀਕੀ ਸੰਖੇਪ-ਰੂਪਾਂ ਨਾਲ ਅਤਿਅੰਤ ਸੰਖੇਪ ਜਵਾਬ ਦਿਓ। ਸਟੀਕ ਚਿੰਨ੍ਹ ਸੁਰੱਖਿਅਤ ਰੱਖੋ।"
-    }
+    "ultraSettingsDesc": "SLM-ਸੰਚਾਲਿਤ ਅਰਥ-ਆਧਾਰਿਤ ਸੰਕੁਚਨ"
   },
   "translator": {
     "title": "ਅਨੁਵਾਦਕ",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "ਪ੍ਰੌਕਸੀ ਤੱਕ ਪਹੁੰਚ ਨਹੀਂ ਹੋ ਸਕੀ",
     "poolSetAsideKindIpQuota429": "IP ਦਰ ਸੀਮਾ (429)",
     "poolSetAsideKindSlow": "ਧੀਮੇ ਜਵਾਬ",
+    "poolSetAsideKindGeoBlocked": "ਖੇਤਰ-ਬਲੌਕ ਕੀਤਾ (403/451)",
     "poolSetAsideUntil": "ਰੋਟੇਸ਼ਨ ਵਿੱਚ ਵਾਪਸ {endsAt}",
     "poolSetAsideRepeat": "ਪਾਸੇ ਰੱਖਿਆ {count, plural, one {# ਵਾਰ} other {# ਵਾਰ}}",
     "poolUnknownAddress": "ਅਣਜਾਣ ਪਤਾ",

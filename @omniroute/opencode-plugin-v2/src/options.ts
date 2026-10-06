@@ -48,6 +48,16 @@ const pluginOptionsSchema = z
     hiddenModels: z.array(z.string()).optional(),
     providersAllow: z.array(z.string()).optional(),
     usableOnly: z.boolean().default(false),
+    // Per-provider showcase size: how many models each provider keeps in
+    // the default view. Absent means the catalog default below.
+    showcasePerOwner: z.number().positive().optional(),
+    freshPerOwner: z.number().positive().optional(),
+    // Freshness window in days: entries dated within it publish via the
+    // fresh branch. Absent means the catalog default below.
+    freshWindowDays: z.number().positive().optional(),
+    // Restore statically dropped entries named by 30-day usage analytics.
+    // On by default; needs a management token.
+    usageMemory: z.boolean().optional(),
     // v1 parity: enrichment overlay on by default (names + pricing).
     enrichment: z.boolean().default(true),
     // v1 parity: strip the JSON-Schema keywords Gemini rejects from tool
@@ -150,6 +160,10 @@ export function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
     hiddenModels: parsed.hiddenModels,
     providersAllow: parsed.providersAllow,
     usableOnly: parsed.usableOnly,
+    showcasePerOwner: parsed.showcasePerOwner,
+    freshPerOwner: parsed.freshPerOwner,
+    freshWindowDays: parsed.freshWindowDays,
+    usageMemory: parsed.usageMemory,
     enrichment: parsed.enrichment,
   };
 }

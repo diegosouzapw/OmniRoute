@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP বর্ণনা সংকোচন",
     "mcpAccessibilityTitle": "MCP অ্যাক্সেসিবিলিটি আউটপুট",
     "compressionSettingsCavemanIntensity": "গুহামানবের তীব্রতা",
-    "compressionSettingsCavemanOutputMode": "গুহামানব আউটপুট মোড",
     "compressionSettingsOutputStyles": "আউটপুট স্টাইল",
     "compressionStylesTileTitle": "আউটপুট স্টাইল",
     "compressionSettingsOutputIntensity": "আউটপুট তীব্রতা",
-    "compressionSettingsAutoClarityBypass": "স্বয়ংক্রিয় স্বচ্ছতা বাইপাস",
     "compressionEffectivePipeline": "কার্যকর পাইপলাইন:",
     "compressionDerivedOff": "বন্ধ",
     "compressionDerivedRuns": "রান: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "কম্প্যাক্ট করার জন্য ন্যূনতম সারি",
         "description": "ট্যাবুলার কম্প্যাকশন ট্রিগার করার জন্য একটি সমজাতীয় JSON অ্যারেতে প্রয়োজনীয় ন্যূনতম সারি। ডিফল্ট: 8।"
       },
-      "preserveSystemPrompt": {
-        "label": "সিস্টেম প্রম্পট সংরক্ষণ করুন"
-      },
       "summarizerEnabled": {
         "label": "সামারাইজার সক্ষম করুন"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "এর চেয়ে ছোট বার্তাগুলি সংকুচিত হয় না। নিম্ন = আরও সংকোচন।",
     "tooltipMinSavings": "শুধুমাত্র সংকুচিত করুন যদি এটি অন্তত এতগুলো টোকেন সংরক্ষণ করে।",
     "ultraSettings": "আল্ট্রা সেটিংস",
-    "ultraSettingsDesc": "SLM-চালিত শব্দার্থিক কম্প্রেশন",
-    "preview": {
-      "lite": "সংক্ষেপে উত্তর দিন। প্রযুক্তিগত পরিভাষা, কোড, ত্রুটি, URLs এবং শনাক্তকারী অপরিবর্তিত রাখুন।",
-      "full": "সংক্ষিপ্ত ও আঁটসাঁটভাবে উত্তর দিন। সব প্রযুক্তিগত তথ্য অক্ষুণ্ণ রাখুন।",
-      "ultra": "প্রচলিত প্রযুক্তিগত সংক্ষিপ্ত রূপ ব্যবহার করে অত্যন্ত সংক্ষেপে উত্তর দিন। প্রতীকগুলো হুবহু অপরিবর্তিত রাখুন।"
-    }
+    "ultraSettingsDesc": "SLM-চালিত শব্দার্থিক কম্প্রেশন"
   },
   "translator": {
     "title": "অনুবাদক",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "প্রক্সিতে পৌঁছানো যাচ্ছে না",
     "poolSetAsideKindIpQuota429": "IP রেট সীমা (429)",
     "poolSetAsideKindSlow": "ধীর প্রতিক্রিয়া",
+    "poolSetAsideKindGeoBlocked": "অঞ্চল ব্লকড (403/451)",
     "poolSetAsideUntil": "রোটেশনে ফিরেছে {endsAt}",
     "poolSetAsideRepeat": "সরিয়ে রাখা হয়েছে {count, plural, one {# বার} other {# বার}}",
     "poolUnknownAddress": "অজানা ঠিকানা",

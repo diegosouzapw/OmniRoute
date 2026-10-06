@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP beskrivelse komprimering",
     "mcpAccessibilityTitle": "MCP-tilgængelighedsoutput",
     "compressionSettingsCavemanIntensity": "Hulemands intensitet",
-    "compressionSettingsCavemanOutputMode": "Hulemands-outputtilstand",
     "compressionSettingsOutputStyles": "Output-stile",
     "compressionStylesTileTitle": "Output-stile",
     "compressionSettingsOutputIntensity": "Output intensitet",
-    "compressionSettingsAutoClarityBypass": "Automatisk klarhed bypass",
     "compressionEffectivePipeline": "Effektiv pipeline:",
     "compressionDerivedOff": "fra",
     "compressionDerivedRuns": "kørsler: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimum rækker til komprimering",
         "description": "Minimum antal rækker i et homogent JSON-array, der kræves for at udløse tabelkomprimering. Standard: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Bevar systemprompt"
-      },
       "summarizerEnabled": {
         "label": "Aktivér opsummering"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Beskeder, der er kortere end dette, komprimeres ikke. Lavere = mere kompression.",
     "tooltipMinSavings": "Komprimer kun, hvis det sparer mindst så mange tokens.",
     "ultraSettings": "Ultra-indstillinger",
-    "ultraSettingsDesc": "SLM-drevet semantisk komprimering",
-    "preview": {
-      "lite": "Svar kortfattet. Bevar tekniske termer, kode, fejl, URLs og identifikatorer.",
-      "full": "Svar kort og kompakt. Bevar alt teknisk indhold.",
-      "ultra": "Svar ultrakort med almindelige tekniske forkortelser. Bevar de nøjagtige symboler."
-    }
+    "ultraSettingsDesc": "SLM-drevet semantisk komprimering"
   },
   "translator": {
     "title": "Oversætter",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy kan ikke nås",
     "poolSetAsideKindIpQuota429": "IP-hastighedsbegrænsning (429)",
     "poolSetAsideKindSlow": "langsomme svar",
+    "poolSetAsideKindGeoBlocked": "region-blokeret (403/451)",
     "poolSetAsideUntil": "Tilbage i rotation {endsAt}",
     "poolSetAsideRepeat": "Sat til side {count, plural, one {# gang} other {# gange}}",
     "poolUnknownAddress": "Ukendt adresse",

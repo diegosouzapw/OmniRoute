@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Nén mô tả MCP",
     "mcpAccessibilityTitle": "Đầu ra trợ năng MCP",
     "compressionSettingsCavemanIntensity": "Cường độ Caveman",
-    "compressionSettingsCavemanOutputMode": "Chế độ đầu ra Caveman",
     "compressionSettingsOutputStyles": "Kiểu đầu ra",
     "compressionStylesTileTitle": "Kiểu đầu ra",
     "compressionSettingsOutputIntensity": "Cường độ đầu ra",
-    "compressionSettingsAutoClarityBypass": "Bỏ qua tính năng tự động làm rõ",
     "compressionEffectivePipeline": "Quy trình có hiệu lực:",
     "compressionDerivedOff": "đã tắt",
     "compressionDerivedRuns": "chạy: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Số hàng tối thiểu để nén",
         "description": "Số hàng tối thiểu trong một mảng JSON đồng nhất để kích hoạt nén dạng bảng. Mặc định: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Giữ nguyên prompt hệ thống"
-      },
       "summarizerEnabled": {
         "label": "Bật trình tóm tắt"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Tin nhắn ngắn hơn mức này sẽ không được nén. Thấp hơn = nén nhiều hơn.",
     "tooltipMinSavings": "Chỉ nén nếu tiết kiệm được ít nhất ngần này token.",
     "ultraSettings": "Cài đặt tối đa",
-    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM",
-    "preview": {
-      "lite": "Phản hồi ngắn gọn. Giữ nguyên thuật ngữ kỹ thuật, mã, lỗi, URL và mã định danh.",
-      "full": "Phản hồi cực ngắn và gọn. Giữ nguyên toàn bộ nội dung kỹ thuật.",
-      "ultra": "Phản hồi siêu ngắn gọn với các từ viết tắt kỹ thuật phổ biến. Giữ nguyên các ký hiệu chính xác."
-    }
+    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM"
   },
   "translator": {
     "title": "Trình dịch",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "không thể kết nối proxy",
     "poolSetAsideKindIpQuota429": "giới hạn tốc độ theo IP (429)",
     "poolSetAsideKindSlow": "phản hồi chậm",
+    "poolSetAsideKindGeoBlocked": "bị chặn theo khu vực (403/451)",
     "poolSetAsideUntil": "Trở lại {endsAt}",
     "poolSetAsideRepeat": "Đã tạm ngưng {count} lần",
     "poolUnknownAddress": "Địa chỉ không xác định",

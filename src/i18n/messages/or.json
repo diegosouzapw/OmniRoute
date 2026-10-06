@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP ବର୍ଣ୍ଣନା ସଂକୋଚନ",
     "mcpAccessibilityTitle": "MCP ପ୍ରବେଶଯୋଗ୍ୟତା ଆଉଟପୁଟ୍",
     "compressionSettingsCavemanIntensity": "ଗୁହାମାନବ ତୀବ୍ରତା",
-    "compressionSettingsCavemanOutputMode": "ଗୁହାମାନବ ଆଉଟପୁଟ୍ ମୋଡ୍",
     "compressionSettingsOutputStyles": "ଆଉଟପୁଟ୍ ଶୈଳୀଗୁଡ଼ିକ",
     "compressionStylesTileTitle": "ଆଉଟପୁଟ୍ ଶୈଳୀଗୁଡ଼ିକ",
     "compressionSettingsOutputIntensity": "ଆଉଟପୁଟ୍ ତୀବ୍ରତା",
-    "compressionSettingsAutoClarityBypass": "ସ୍ୱୟଂଚାଳିତ ସ୍ପଷ୍ଟତା ବାଇପାସ୍",
     "compressionEffectivePipeline": "କାର୍ଯ୍ୟକାରୀ ପାଇପଲାଇନ୍:",
     "compressionDerivedOff": "ବନ୍ଦ",
     "compressionDerivedRuns": "ଚାଲେ: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "ସଂକୁଚିତ କରିବା ପାଇଁ ସର୍ବନିମ୍ନ ଧାଡ଼ି ସଂଖ୍ୟା",
         "description": "ସାରଣୀବଦ୍ଧ ସଂକ୍ଷିପ୍ତକରଣ ଆରମ୍ଭ କରିବା ପାଇଁ ଏକ ସମଜାତୀୟ JSON ଆରେରେ ଆବଶ୍ୟକ ସର୍ବନିମ୍ନ ଧାଡ଼ି ସଂଖ୍ୟା। ଡିଫଲ୍ଟ: 8।"
       },
-      "preserveSystemPrompt": {
-        "label": "ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟ ସଂରକ୍ଷଣ କରନ୍ତୁ"
-      },
       "summarizerEnabled": {
         "label": "ସାରାଂଶକାରୀ ସକ୍ଷମ କରନ୍ତୁ"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "ଏହାଠାରୁ ଛୋଟ ସନ୍ଦେଶଗୁଡ଼ିକ ସଙ୍କୁଚିତ ହୁଏ ନାହିଁ। କମ୍ = ଅଧିକ ସଙ୍କୋଚନ।",
     "tooltipMinSavings": "ଅତି କମ୍ରେ ଏତିକି ଟୋକେନ୍ ସଞ୍ଚୟ ହେଲେ ମାତ୍ର ସଙ୍କୁଚିତ କରନ୍ତୁ।",
     "ultraSettings": "ଅଲ୍ଟ୍ରା ସେଟିଂସ୍",
-    "ultraSettingsDesc": "SLM-ଚାଳିତ ଅର୍ଥଗତ ସଙ୍କୋଚନ",
-    "preview": {
-      "lite": "ସଂକ୍ଷିପ୍ତ ଉତ୍ତର ଦିଅନ୍ତୁ। ପ୍ରାଯୁକ୍ତିକ ଶବ୍ଦ, କୋଡ୍, ତ୍ରୁଟି, URLs ଏବଂ ପରିଚୟକଗୁଡ଼ିକୁ ଅପରିବର୍ତ୍ତିତ ରଖନ୍ତୁ।",
-      "full": "ଅତ୍ୟନ୍ତ ସଂକ୍ଷିପ୍ତ ଓ ସୁସଂହତ ଉତ୍ତର ଦିଅନ୍ତୁ। ସମସ୍ତ ପ୍ରାଯୁକ୍ତିକ ସାରବସ୍ତୁକୁ ଅପରିବର୍ତ୍ତିତ ରଖନ୍ତୁ।",
-      "ultra": "ସାଧାରଣ ପ୍ରାଯୁକ୍ତିକ ସଂକ୍ଷିପ୍ତ ରୂପ ବ୍ୟବହାର କରି ଅତ୍ୟନ୍ତ ସଂକ୍ଷିପ୍ତ ଉତ୍ତର ଦିଅନ୍ତୁ। ପ୍ରତୀକଗୁଡ଼ିକୁ ଠିକ୍ ସେହିପରି ରଖନ୍ତୁ।"
-    }
+    "ultraSettingsDesc": "SLM-ଚାଳିତ ଅର୍ଥଗତ ସଙ୍କୋଚନ"
   },
   "translator": {
     "title": "ଅନୁବାଦକ",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "ପ୍ରକ୍ସିରେ ପହଞ୍ଚିହେଉନାହିଁ",
     "poolSetAsideKindIpQuota429": "IP ହାର ସୀମା (429)",
     "poolSetAsideKindSlow": "ଧୀର ପ୍ରତିକ୍ରିୟା",
+    "poolSetAsideKindGeoBlocked": "ଅଞ୍ଚଳ ଅବରୋଧିତ (403/451)",
     "poolSetAsideUntil": "ଘୂର୍ଣ୍ଣନକୁ ଫେରନ୍ତୁ {endsAt}",
     "poolSetAsideRepeat": "ଅଲଗା ରଖାଯାଇଛି {count, plural, one {# ଥର} other {# ଥର}}",
     "poolUnknownAddress": "ଅଜଣା ଠିକଣା",

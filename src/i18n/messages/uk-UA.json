@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Стиснення опису MCP",
     "mcpAccessibilityTitle": "Вивід доступності MCP",
     "compressionSettingsCavemanIntensity": "Інтенсивність печерної людини",
-    "compressionSettingsCavemanOutputMode": "Режим виведення Caveman",
     "compressionSettingsOutputStyles": "Стилі виводу",
     "compressionStylesTileTitle": "Стилі виводу",
     "compressionSettingsOutputIntensity": "Вихідна інтенсивність",
-    "compressionSettingsAutoClarityBypass": "Автоматичний обхід чіткості",
     "compressionEffectivePipeline": "Фактичний конвеєр:",
     "compressionDerivedOff": "вимкнено",
     "compressionDerivedRuns": "запуски: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Мінімальна кількість рядків для компактності",
         "description": "Мінімальна кількість рядків в однорідному масиві JSON, необхідна для запуску табличного ущільнення. За замовчуванням: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Зберігати системний промпт"
-      },
       "summarizerEnabled": {
         "label": "Увімкнути резюмувальник"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Коротші повідомлення не стискаються. Нижче = більше стиснення.",
     "tooltipMinSavings": "Стискайте лише якщо це зберігає принаймні таку кількість токенів.",
     "ultraSettings": "Ультра налаштування",
-    "ultraSettingsDesc": "Семантичне стиснення на основі SLM",
-    "preview": {
-      "lite": "Відповідайте стисло. Зберігайте технічні терміни, код, помилки, URL-адреси та ідентифікатори.",
-      "full": "Відповідайте лаконічно й компактно. Зберігайте всю технічну суть.",
-      "ultra": "Відповідайте максимально стисло, використовуючи загальноприйняті технічні скорочення. Зберігайте точні символи."
-    }
+    "ultraSettingsDesc": "Семантичне стиснення на основі SLM"
   },
   "translator": {
     "title": "Перекладач",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "проксі недоступний",
     "poolSetAsideKindIpQuota429": "обмеження частоти за IP (429)",
     "poolSetAsideKindSlow": "повільні відповіді",
+    "poolSetAsideKindGeoBlocked": "заблоковано за регіоном (403/451)",
     "poolSetAsideUntil": "Знову в ротації {endsAt}",
     "poolSetAsideRepeat": "Відкладено {count, plural, one {# раз} other {# разів}}",
     "poolUnknownAddress": "Невідома адреса",

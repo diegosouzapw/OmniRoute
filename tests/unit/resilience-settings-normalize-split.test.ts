@@ -105,6 +105,8 @@ describe("resilience/settings normalize split-guard", () => {
       "quotaShareConcurrencyLimit",
       "requestQueue",
       "streamRecovery",
+      // Whether a stream content stall cools down the account (default off).
+      "streamStallCooldown",
       "waitForCooldown",
     ]);
   });

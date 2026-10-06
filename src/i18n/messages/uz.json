@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP tavsifini siqish",
     "mcpAccessibilityTitle": "MCP maxsus imkoniyatlari uchun chiqish",
     "compressionSettingsCavemanIntensity": "Caveman intensivligi",
-    "compressionSettingsCavemanOutputMode": "Caveman chiqish rejimi",
     "compressionSettingsOutputStyles": "Chiqish uslublari",
     "compressionStylesTileTitle": "Chiqish uslublari",
     "compressionSettingsOutputIntensity": "Chiqish intensivligi",
-    "compressionSettingsAutoClarityBypass": "Aniqlikni avtomatik chetlab o‘tish",
     "compressionEffectivePipeline": "Amaldagi konveyer:",
     "compressionDerivedOff": "oʻchiq",
     "compressionDerivedRuns": "ishga tushirishlar: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Ixchamlash uchun eng kam satrlar soni",
         "description": "Jadval ko‘rinishida ixchamlashni ishga tushirish uchun bir xil tuzilishdagi JSON massivida talab qilinadigan eng kam satrlar soni. Standart: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Tizim ko‘rsatmasini saqlash"
-      },
       "summarizerEnabled": {
         "label": "Xulosalashni yoqish"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Bundan qisqa xabarlar siqilmaydi. Pastroq = ko‘proq siqish.",
     "tooltipMinSavings": "Faqat kamida shuncha token tejalsa, siqiladi.",
     "ultraSettings": "Ultra sozlamalar",
-    "ultraSettingsDesc": "SLM asosidagi semantik siqish",
-    "preview": {
-      "lite": "Qisqa javob bering. Texnik atamalar, kod, xatolar, URL manzillar va identifikatorlarni saqlang.",
-      "full": "Juda qisqa va ixcham javob bering. Barcha texnik mazmunni saqlang.",
-      "ultra": "Keng tarqalgan texnik qisqartmalardan foydalanib, o‘ta qisqa javob bering. Belgilarni aynan saqlang."
-    }
+    "ultraSettingsDesc": "SLM asosidagi semantik siqish"
   },
   "translator": {
     "title": "Tarjimon",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "proksiga ulanib bo'lmadi",
     "poolSetAsideKindIpQuota429": "IP tezlik cheklovi (429)",
     "poolSetAsideKindSlow": "sekin javoblar",
+    "poolSetAsideKindGeoBlocked": "hudud boʻyicha bloklangan (403/451)",
     "poolSetAsideUntil": "Rotatsiyaga qaytish {endsAt}",
     "poolSetAsideRepeat": "Chetga qo‘yilgan {count, plural, one {# marta} other {# marta}}",
     "poolUnknownAddress": "Noma’lum manzil",

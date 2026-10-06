@@ -51,7 +51,9 @@ export const KNOWN_DUPLICATE_VERSIONS = new Set([
 // stale-enforcement exige que cada reserva seja removida quando os arquivos
 // correspondentes aterrissarem na release.
 // ---------------------------------------------------------------------------
-export const KNOWN_GAPS = new Set(["026", "055", "121"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12); 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
+// 197/198 are #15564 and 199 is #15314, both still open. #15435 lands 200
+// first. Remove each number in the PR that adds its file (stale-enforcement).
+export const KNOWN_GAPS = new Set(["026", "055", "121", "197", "198", "199"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12); 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
 
 function pad3(n) {
   return String(n).padStart(3, "0");

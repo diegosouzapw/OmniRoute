@@ -424,6 +424,10 @@ function isStandardQuotaExhausted(entry: QuotaCacheEntry, now: number): boolean 
   return true;
 }
 
+function reportedClaudeQuotaRemaining(quota: QuotaInfo): boolean {
+  return quota.fractionReported !== false && quota.remainingPercentage > 0;
+}
+
 function isBlockingClaudeQuota(quota: QuotaInfo): boolean {
   const metadata = quota.claudeQuota;
   if (!metadata?.active) return false;
@@ -431,14 +435,25 @@ function isBlockingClaudeQuota(quota: QuotaInfo): boolean {
   return severity === null || severity === "critical";
 }
 
-function activeClaudeResetMs(quota: QuotaInfo, now: number): number | null {
-  if (!isBlockingClaudeQuota(quota) || !quota.resetAt) return null;
+function isPreflightBlockingClaudeQuota(quota: QuotaInfo): boolean {
+  // An active critical window with reported remaining quota is a predictive
+  // warning. It must not skip the upstream request, but a later real 429
+  // still classifies from the same active/critical metadata.
+  return isBlockingClaudeQuota(quota) && !reportedClaudeQuotaRemaining(quota);
+}
+
+function activeClaudeResetMs(
+  quota: QuotaInfo,
+  now: number,
+  blocking: (quota: QuotaInfo) => boolean = isBlockingClaudeQuota
+): number | null {
+  if (!blocking(quota) || !quota.resetAt) return null;
   const resetMs = parseDate(quota.resetAt);
   return resetMs !== null && resetMs > now ? resetMs : null;
 }
 
 function isActiveClaudeExhaustion(quota: QuotaInfo, now: number): boolean {
-  return activeClaudeResetMs(quota, now) !== null;
+  return activeClaudeResetMs(quota, now, isPreflightBlockingClaudeQuota) !== null;
 }
 
 function isClaudeQuotaExhaustedForRequest(
@@ -596,6 +611,26 @@ export function getCachedClaudeQuotaScopeDecision(input: {
   }
 
   return CONNECTION_SCOPED_CLAUDE_QUOTA;
+}
+
+export function getClaudeQuotaPreflightResetAt(
+  connectionId: string,
+  now = Date.now()
+): string | null {
+  const entry = getState().cache.get(connectionId);
+  if (!entry || resolveProviderId(entry.provider) !== "claude") return null;
+  const windows = [...Object.values(entry.quotas), ...Object.values(entry.modelQuotas)].filter(
+    (quota) => isPreflightBlockingClaudeQuota(quota)
+  );
+  let earliest: string | null = null;
+  let earliestMs = Infinity;
+  for (const quota of windows) {
+    const resetMs = activeClaudeResetMs(quota, now);
+    if (resetMs === null || !quota.resetAt || resetMs >= earliestMs) continue;
+    earliestMs = resetMs;
+    earliest = quota.resetAt;
+  }
+  return earliest;
 }
 
 export function isQuotaExhaustedForRequest(

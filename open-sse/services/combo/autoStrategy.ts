@@ -516,7 +516,8 @@ export async function expandAutoComboCandidatePool(
       // A provider whose custom rows are all non-chat still has user models, so it
       // must not fall back to its static chat catalog.
       const hasUserModels =
-        userVisibleIds.size > 0 || customModels.some((m) => m.id && !hiddenModels?.has(m.id));
+        userVisibleIds.size > 0 ||
+        customModels.some((m: { id?: string }) => m.id && !hiddenModels?.has(m.id));
       const expandIds = hasUserModels
         ? Array.from(userVisibleIds)
         : getProviderModels(providerId).map((m) => m.id);

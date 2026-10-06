@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Mfinyazo wa maelezo ya MCP",
     "mcpAccessibilityTitle": "Matokeo ya ufikiaji wa MCP",
     "compressionSettingsCavemanIntensity": "Nguvu ya Caveman",
-    "compressionSettingsCavemanOutputMode": "Njia ya pato la Caveman",
     "compressionSettingsOutputStyles": "Mitindo ya matokeo",
     "compressionStylesTileTitle": "Mitindo ya matokeo",
     "compressionSettingsOutputIntensity": "Nguvu ya pato",
-    "compressionSettingsAutoClarityBypass": "Njia ya uwazi wa kiotomatiki",
     "compressionEffectivePipeline": "Pipeline inayofanya kazi:",
     "compressionDerivedOff": "imezimwa",
     "compressionDerivedRuns": "uendeshaji: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Kiwango cha chini cha safu mlalo za kubana",
         "description": "Kiwango cha chini cha safu mlalo katika safu ya JSON inayofanana inayohitajika ili kuanzisha ubana wa jedwali. Chaguo-msingi: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Hifadhi kidokezo cha mfumo"
-      },
       "summarizerEnabled": {
         "label": "Wezesha kifupishaji"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Ujumbe mfupi kuliko huu haujabanwa. Chini = compression zaidi.",
     "tooltipMinSavings": "Finyaza tu ikiwa itaokoa angalau ishara hizi nyingi.",
     "ultraSettings": "Mipangilio ya Juu",
-    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM",
-    "preview": {
-      "lite": "Jibu kwa ufupi. Hifadhi istilahi za kiufundi, msimbo, hitilafu, URLs na vitambulisho.",
-      "full": "Jibu kwa maneno machache na kwa ufupi. Hifadhi maudhui yote ya kiufundi.",
-      "ultra": "Jibu kwa ufupi sana ukitumia vifupisho vya kawaida vya kiufundi. Hifadhi alama halisi."
-    }
+    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM"
   },
   "translator": {
     "title": "Mtafsiri",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "proksi haifikiki",
     "poolSetAsideKindIpQuota429": "kikomo cha kasi cha IP (429)",
     "poolSetAsideKindSlow": "majibu polepole",
+    "poolSetAsideKindGeoBlocked": "kuzuiliwa kwa mkoa (403/451)",
     "poolSetAsideUntil": "Kurudi kwenye mzunguko {endsAt}",
     "poolSetAsideRepeat": "Imewekwa kando {count, plural, one {# mara} other {# mara}}",
     "poolUnknownAddress": "Anwani isiyojulikana",

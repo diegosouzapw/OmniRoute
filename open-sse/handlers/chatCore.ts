@@ -226,8 +226,8 @@ import {
 import type { EnforceDecision } from "@/lib/quota/types";
 import { isCompressionExcluded } from "../services/compression/exclusions.ts";
 import {
+  defaultComboForRequest,
   isBuiltinStackedPipeline,
-  isStackedCompressionCombo,
   type RuntimeCompressionCombo,
 } from "./chatCore/compressionComboPredicates.ts";
 import { emitOutputStyleTelemetry } from "./chatCore/outputStyleTelemetry.ts";
@@ -1542,14 +1542,19 @@ async function handleChatCoreInner({
         try {
           const { getDefaultCompressionCombo } =
             await import("../../src/lib/db/compressionCombos.ts");
-          const defaultCompressionCombo = getDefaultCompressionCombo();
-          if (
-            isStackedCompressionCombo(defaultCompressionCombo as RuntimeCompressionCombo | null) &&
-            applyCompressionComboConfig(defaultCompressionCombo as RuntimeCompressionCombo | null)
-          ) {
+          const defaultCompressionCombo = defaultComboForRequest(
+            getDefaultCompressionCombo() as RuntimeCompressionCombo | null,
+            { config, header: compressionHeader, combos: namedCombos }
+          );
+          if (applyCompressionComboConfig(defaultCompressionCombo)) {
             log?.debug?.(
               "COMPRESSION",
               `Default compression combo applied: ${defaultCompressionCombo?.id}`
+            );
+          } else if (compressionHeader) {
+            log?.debug?.(
+              "COMPRESSION",
+              `Default compression combo not applied (header: ${compressionHeader})`
             );
           }
         } catch (err) {

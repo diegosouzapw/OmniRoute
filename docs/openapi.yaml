@@ -2755,6 +2755,11 @@ paths:
     put:
       tags: [Compression]
       summary: Update global compression settings
+      description: >-
+        Partial update: only the sent top-level keys change. `engines` merges by engine id —
+        an entry overwrites only the fields it sends, engines left out are kept as-is, and
+        until an engines row is stored the merge base is the map derived from the legacy
+        per-engine settings.
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -2775,6 +2780,19 @@ paths:
                 autoTriggerTokens:
                   type: integer
                   minimum: 0
+                engines:
+                  type: object
+                  description: >-
+                    Per-engine toggles, merged by engine id into the stored map. Each entry
+                    needs `enabled`; `level` survives an entry that omits it.
+                  additionalProperties:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                      level:
+                        type: string
+                    required: [enabled]
                 rtkConfig:
                   type: object
                   additionalProperties: true
@@ -4037,11 +4055,13 @@ paths:
           schema: { type: string }
       responses:
         "200":
-          description: Token revoked
+          description: Token revoked (alreadyRevoked is true when it was already revoked)
         "403":
           description: Insufficient scope
         "404":
-          description: Token not found or already revoked
+          description: Token not found
+        "409":
+          description: Prefix matches more than one live token; nothing revoked
 
   # ─── CLI Tools ─────────────────────────────────────────────────
 
@@ -6041,9 +6061,9 @@ paths:
       summary: Complete OIDC login for the dashboard admin gate
       description: |
         Validates the `state` cookie, exchanges the authorization `code` for tokens,
-        verifies the ID token against the issuer's JWKS (audience = client id), and —
-        if `oidcAllowedSubjects` is configured — checks the token's `sub`/`email` against
-        that allowlist. On success it mints the same 30-day `auth_token` dashboard-session
+        verifies the ID token against the issuer's JWKS (audience = client id), and
+        checks the token's `sub`/`email` against `oidcAllowedSubjects`, which must hold at
+        least one entry (an empty list ends in `not_configured`). On success it mints the same 30-day `auth_token` dashboard-session
         JWT used by password login and redirects to `/dashboard`.
       parameters:
         - name: code

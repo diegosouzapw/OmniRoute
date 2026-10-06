@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "การบีบอัดคำอธิบาย MCP",
     "mcpAccessibilityTitle": "ผลลัพธ์การเข้าถึงของ MCP",
     "compressionSettingsCavemanIntensity": "ความรุนแรงของมนุษย์ถ้ำ",
-    "compressionSettingsCavemanOutputMode": "โหมดเอาท์พุตมนุษย์ถ้ำ",
     "compressionSettingsOutputStyles": "รูปแบบผลลัพธ์",
     "compressionStylesTileTitle": "รูปแบบผลลัพธ์",
     "compressionSettingsOutputIntensity": "ความเข้มของเอาต์พุต",
-    "compressionSettingsAutoClarityBypass": "บายพาสความคมชัดอัตโนมัติ",
     "compressionEffectivePipeline": "ไปป์ไลน์ที่มีผล:",
     "compressionDerivedOff": "ปิด",
     "compressionDerivedRuns": "การรัน: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "จำนวนแถวขั้นต่ำที่จะกระชับข้อมูล",
         "description": "จำนวนแถวขั้นต่ำในอาร์เรย์ JSON ที่เป็นเนื้อเดียวกันซึ่งจำเป็นต่อการทริกเกอร์การกระชับข้อมูลแบบตาราง ค่าเริ่มต้น: 8"
       },
-      "preserveSystemPrompt": {
-        "label": "คงพรอมต์ระบบไว้"
-      },
       "summarizerEnabled": {
         "label": "เปิดใช้งานตัวสรุปย่อ"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "ข้อความที่สั้นกว่านี้จะไม่ถูกบีบอัด ต่ำ = บีบอัดมากขึ้น",
     "tooltipMinSavings": "บีบอัดเฉพาะในกรณีที่บันทึกโทเค็นได้อย่างน้อยเท่านี้",
     "ultraSettings": "การตั้งค่าอัลตร้า",
-    "ultraSettingsDesc": "การบีบอัดความหมายที่ขับเคลื่อนด้วย SLM",
-    "preview": {
-      "lite": "ตอบอย่างกระชับ คงคำศัพท์ทางเทคนิค โค้ด ข้อผิดพลาด URL และตัวระบุไว้",
-      "full": "ตอบให้สั้นและกะทัดรัด คงสาระสำคัญทางเทคนิคทั้งหมดไว้",
-      "ultra": "ตอบให้สั้นที่สุดโดยใช้คำย่อทางเทคนิคทั่วไป คงสัญลักษณ์ต่าง ๆ ไว้ตามต้นฉบับ"
-    }
+    "ultraSettingsDesc": "การบีบอัดความหมายที่ขับเคลื่อนด้วย SLM"
   },
   "translator": {
     "title": "นักแปล",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "ไม่สามารถเข้าถึงพร็อกซีได้",
     "poolSetAsideKindIpQuota429": "จำกัดอัตราตาม IP (429)",
     "poolSetAsideKindSlow": "การตอบสนองช้า",
+    "poolSetAsideKindGeoBlocked": "ถูกบล็อกตามภูมิภาค (403/451)",
     "poolSetAsideUntil": "กลับเข้าหมุนเวียน {endsAt}",
     "poolSetAsideRepeat": "กันไว้ {count, plural, one {# ครั้ง} other {# ครั้ง}}",
     "poolUnknownAddress": "ที่อยู่ไม่ทราบ",

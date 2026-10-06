@@ -195,7 +195,6 @@ import { registerOpenrouterQuotaFetcher } from "@omniroute/open-sse/services/ope
 import { registerOpencodeQuotaFetcher } from "@omniroute/open-sse/services/opencodeQuotaFetcher.ts";
 import { registerGrokWebQuotaFetcher } from "@omniroute/open-sse/services/grokQuotaFetcher.ts";
 import { registerGenericQuotaFetchers } from "@omniroute/open-sse/services/genericQuotaFetcher.ts";
-import "@omniroute/open-sse/services/quotaTrackersBatch.ts";
 import {
   disableCooldownAwareRetry,
   getCooldownAwareRetryDecision,

@@ -101,6 +101,13 @@ export const gheCopilotProvider: RegistryEntry = {
       maxOutputTokens: 64000,
     },
     {
+      id: "claude-sonnet-5-5",
+      name: "Claude Sonnet 5.5",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh"],
+    },
+    {
       id: "claude-sonnet-4.5",
       name: "Claude Sonnet 4.5",
       contextLength: 200000,

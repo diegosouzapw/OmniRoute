@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Kompresja opisów MCP",
     "mcpAccessibilityTitle": "Wyjście dostępności MCP",
     "compressionSettingsCavemanIntensity": "Intensywność Caveman",
-    "compressionSettingsCavemanOutputMode": "Tryb wyjściowy Caveman",
     "compressionSettingsOutputStyles": "Style wyjściowe",
     "compressionStylesTileTitle": "Style wyjściowe",
     "compressionSettingsOutputIntensity": "Intensywność wyjściowa",
-    "compressionSettingsAutoClarityBypass": "Automatyczne omijanie przejrzystości",
     "compressionEffectivePipeline": "Efektywny potok:",
     "compressionDerivedOff": "wył.",
     "compressionDerivedRuns": "uruchomienia: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimalna liczba wierszy do kompaktowania",
         "description": "Minimalna liczba wierszy w jednorodnej tablicy JSON wymagana do uruchomienia kompaktowania tabelarycznego. Domyślnie: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Zachowaj prompt systemowy"
-      },
       "summarizerEnabled": {
         "label": "Włącz moduł podsumowujący"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Wiadomości krótsze niż ta wartość nie są kompresowane. Niższa = większa kompresja.",
     "tooltipMinSavings": "Kompresuj tylko wtedy, gdy pozwala to zaoszczędzić co najmniej tyle tokens.",
     "ultraSettings": "Ustawienia Ultra",
-    "ultraSettingsDesc": "Kompresja semantyczna oparta na SLM",
-    "preview": {
-      "lite": "Odpowiadaj zwięźle. Zachowuj terminy techniczne, kod, błędy, adresy URL i identyfikatory.",
-      "full": "Odpowiadaj krótko i zwięźle. Zachowuj całą treść merytoryczną.",
-      "ultra": "Odpowiadaj ultra zwięźle przy użyciu powszechnych skrótów technicznych. Zachowuj dokładne symbole."
-    }
+    "ultraSettingsDesc": "Kompresja semantyczna oparta na SLM"
   },
   "translator": {
     "title": "Tłumacz",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "serwer proxy nieosiągalny",
     "poolSetAsideKindIpQuota429": "limit szybkości dla IP (429)",
     "poolSetAsideKindSlow": "powolne odpowiedzi",
+    "poolSetAsideKindGeoBlocked": "zablokowany region (403/451)",
     "poolSetAsideUntil": "Z powrotem w rotacji {endsAt}",
     "poolSetAsideRepeat": "Odłożony {count, plural, one {# raz} other {# razy}}",
     "poolUnknownAddress": "Nieznany adres",

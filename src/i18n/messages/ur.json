@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP تفصیل کمپریشن",
     "mcpAccessibilityTitle": "MCP رسائی آؤٹ پٹ",
     "compressionSettingsCavemanIntensity": "کیو مین کی شدت",
-    "compressionSettingsCavemanOutputMode": "کیو مین آؤٹ پٹ موڈ",
     "compressionSettingsOutputStyles": "آؤٹ پٹ اسٹائلز",
     "compressionStylesTileTitle": "آؤٹ پٹ اسٹائلز",
     "compressionSettingsOutputIntensity": "آؤٹ پٹ کی شدت",
-    "compressionSettingsAutoClarityBypass": "آٹو کلیئرٹی بائی پاس",
     "compressionEffectivePipeline": "مؤثر پائپ لائن:",
     "compressionDerivedOff": "بند",
     "compressionDerivedRuns": "رنز: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "کمپیکٹ کرنے کے لیے کم از کم قطاریں",
         "description": "ٹیبلر کمپیکشن کو متحرک کرنے کے لیے ایک یکساں JSON اری میں مطلوبہ کم از کم قطاریں۔ ڈیفالٹ: 8۔"
       },
-      "preserveSystemPrompt": {
-        "label": "سسٹم پرامپٹ کو محفوظ رکھیں"
-      },
       "summarizerEnabled": {
         "label": "سمرائزر کو فعال کریں"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "اس سے چھوٹے پیغامات کو کمپریس نہیں کیا جاتا ہے۔ کم = زیادہ کمپریشن۔",
     "tooltipMinSavings": "صرف اس صورت میں کمپریس کریں جب یہ کم از کم اتنے ٹوکن بچاتا ہے۔",
     "ultraSettings": "الٹرا سیٹنگز",
-    "ultraSettingsDesc": "SLM سے چلنے والا سیمنٹک کمپریشن",
-    "preview": {
-      "lite": "مختصر جواب دیں۔ تکنیکی اصطلاحات، کوڈ، خرابیوں، URLs اور شناخت کنندگان کو برقرار رکھیں۔",
-      "full": "انتہائی مختصر اور جامع جواب دیں۔ تمام تکنیکی مواد برقرار رکھیں۔",
-      "ultra": "عام تکنیکی مخففات کے ساتھ انتہائی مختصر جواب دیں۔ علامات کو جوں کا توں برقرار رکھیں۔"
-    }
+    "ultraSettingsDesc": "SLM سے چلنے والا سیمنٹک کمپریشن"
   },
   "translator": {
     "title": "مترجم",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "پراکسی تک رسائی نہیں ہو سکی",
     "poolSetAsideKindIpQuota429": "IP شرح کی حد (429)",
     "poolSetAsideKindSlow": "سست جوابات",
+    "poolSetAsideKindGeoBlocked": "علاقہ مسدود (403/451)",
     "poolSetAsideUntil": "روٹیشن میں واپس {endsAt}",
     "poolSetAsideRepeat": "الگ رکھا گیا {count, plural, one {# بار} other {# بار}}",
     "poolUnknownAddress": "نامعلوم پتہ",

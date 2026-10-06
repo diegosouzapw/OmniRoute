@@ -454,8 +454,7 @@ error strings, URLs និង identifiers ឱ្យនៅដដែល។
 លើ body ដែលមាន `messages`, content bypass (`shouldBypassCavemanOutputMode()` នៅក្នុង
 `open-sse/services/compression/outputMode.ts`) ពិនិត្យសារបីចុងក្រោយ ហើយរំលង
 រចនាប័ទ្មសម្រាប់ turn ទាំងមូល នៅពេលសារទាំងនោះត្រូវនឹង keywords ស្តីពីសុវត្ថិភាព, សកម្មភាពមិនអាចត្រឡប់វិញបាន,
-ការបញ្ជាក់ឱ្យច្បាស់ ឬលំដាប់ដែលមានសារៈសំខាន់។ bypass ដំណើរការតាមការកំណត់ toggle
-**Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) របស់ dashboard។
+ការបញ្ជាក់ឱ្យច្បាស់ ឬលំដាប់ដែលមានសារៈសំខាន់។ bypass ដំណើរការពេល toggle **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) របស់ dashboard បើក ដែលជាការកំណត់លំនាំដើម។ ពេល toggle បិទ រចនាប័ទ្មដែលបានជ្រើសរើសក៏អនុវត្តលើ turn ទាំងនោះដែរ។
 
 នៅពេល bypass អនុញ្ញាតឱ្យ turn ឆ្លងកាត់ `placeSystemInstruction()` (file ដដែល) ដែល
 មិនដែលបង្កើត `messages[0]` ថ្មី ដាក់ប្លុកទៅក្នុងទីតាំងដំបូងដែលវារកឃើញក្នុងចំណោម៖

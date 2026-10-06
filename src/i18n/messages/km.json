@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "ការបង្ហាប់សេចក្តីពិពណ៌នា MCP",
     "mcpAccessibilityTitle": "លទ្ធផលសម្រាប់ភាពងាយស្រួលចូលប្រើរបស់ MCP",
     "compressionSettingsCavemanIntensity": "កម្រិតបែបមនុស្សរូងភ្នំ",
-    "compressionSettingsCavemanOutputMode": "របៀបលទ្ធផលបែបមនុស្សរូងភ្នំ",
     "compressionSettingsOutputStyles": "រចនាប័ទ្មលទ្ធផល",
     "compressionStylesTileTitle": "រចនាប័ទ្មលទ្ធផល",
     "compressionSettingsOutputIntensity": "កម្រិតលទ្ធផល",
-    "compressionSettingsAutoClarityBypass": "ការរំលងភាពច្បាស់ដោយស្វ័យប្រវត្តិ",
     "compressionEffectivePipeline": "ខ្សែដំណើរការជាក់ស្តែង៖",
     "compressionDerivedOff": "បិទ",
     "compressionDerivedRuns": "ដំណើរការ៖ {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "ចំនួនជួរដេកអប្បបរមាដើម្បីបង្រួម",
         "description": "ចំនួនជួរដេកអប្បបរមាក្នុងអារេ JSON ដែលមានរចនាសម្ព័ន្ធដូចគ្នា ដើម្បីចាប់ផ្ដើមការបង្រួមជាតារាង។ លំនាំដើម៖ 8។"
       },
-      "preserveSystemPrompt": {
-        "label": "រក្សាទុកពាក្យបញ្ជាប្រព័ន្ធ"
-      },
       "summarizerEnabled": {
         "label": "បើកមុខងារសង្ខេប"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "សារដែលខ្លីជាងនេះមិនត្រូវបានបង្ហាប់ទេ។ ទាបជាង = បង្ហាប់ច្រើនជាង។",
     "tooltipMinSavings": "បង្ហាប់តែក្នុងករណីដែលវាសន្សំបានយ៉ាងហោចណាស់ចំនួនថូខឹននេះ។",
     "ultraSettings": "ការកំណត់ Ultra",
-    "ultraSettingsDesc": "ការបង្ហាប់តាមអត្ថន័យដែលដំណើរការដោយ SLM",
-    "preview": {
-      "lite": "ឆ្លើយឱ្យខ្លី។ រក្សាពាក្យបច្ចេកទេស កូដ កំហុស URLs និងអត្តសញ្ញាណសម្គាល់។",
-      "full": "ឆ្លើយឱ្យខ្លី និងបង្រួម។ រក្សាខ្លឹមសារបច្ចេកទេសទាំងអស់។",
-      "ultra": "ឆ្លើយឱ្យខ្លីបំផុត ដោយប្រើអក្សរកាត់បច្ចេកទេសទូទៅ។ រក្សានិមិត្តសញ្ញាឱ្យដូចដើម។"
-    }
+    "ultraSettingsDesc": "ការបង្ហាប់តាមអត្ថន័យដែលដំណើរការដោយ SLM"
   },
   "translator": {
     "title": "កម្មវិធីបកប្រែ",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "មិនអាចភ្ជាប់ទៅប្រូកស៊ីបាន",
     "poolSetAsideKindIpQuota429": "ដែនកំណត់អត្រា IP (429)",
     "poolSetAsideKindSlow": "ការឆ្លើយតបយឺត",
+    "poolSetAsideKindGeoBlocked": "តំបន់បានរារាំង (403/451)",
     "poolSetAsideUntil": "ត្រឡប់ទៅការបង្វិល {endsAt}",
     "poolSetAsideRepeat": "ដាក់ឡែក {count, plural, one {# ដង} other {# ដង}}",
     "poolUnknownAddress": "អាសយដ្ឋានមិនស្គាល់",

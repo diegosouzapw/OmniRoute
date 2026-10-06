@@ -113,6 +113,13 @@ export const quotaShareConcurrencyLimitSettingsSchema = z
   })
   .strict();
 
+// Whether a stream content stall cools down the account that served it (default off).
+export const streamStallCooldownSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+  })
+  .strict();
+
 // Quota preflight cutoff (auth-level account skipping). Thresholds use
 // "minimum remaining %" semantics to match the dashboard's quota bars, and the
 // per-(provider, window) defaults override the global default per window.
@@ -178,6 +185,7 @@ export const updateResilienceSchema = z
     waitForCooldown: waitForCooldownSettingsSchema.optional(),
     comboCooldownWait: comboCooldownWaitSettingsSchema.optional(),
     quotaShareConcurrencyLimit: quotaShareConcurrencyLimitSettingsSchema.optional(),
+    streamStallCooldown: streamStallCooldownSettingsSchema.optional(),
     providerCooldown: providerCooldownSettingsSchema.optional(),
     // Quota preflight cutoff (auth-level account skipping) — surfaced in the
     // Settings → Routing UI. Mirrors QuotaPreflightSettings in
@@ -218,6 +226,7 @@ export const updateResilienceSchema = z
       !value.waitForCooldown &&
       !value.comboCooldownWait &&
       !value.quotaShareConcurrencyLimit &&
+      !value.streamStallCooldown &&
       !value.providerCooldown &&
       !value.quotaPreflight &&
       !value.profiles &&

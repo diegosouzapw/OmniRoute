@@ -125,6 +125,16 @@ export interface QuotaShareConcurrencyLimitSettings {
   enabled: boolean;
 }
 
+/**
+ * Whether a stream content stall (the watchdog giving up on a stream that sent no
+ * model output in time) cools down the account that served it. Off by default: the
+ * stall is about one request — most often a long reasoning turn that had not produced
+ * output yet — so cooling the account took healthy capacity out of routing.
+ */
+export interface StreamStallCooldownSettings {
+  enabled: boolean;
+}
+
 export interface ProviderCooldownSettings {
   /**
    * Minimum cooldown (ms) before a failed provider/connection can be retried.
@@ -242,6 +252,7 @@ export interface ResilienceSettings {
   waitForCooldown: WaitForCooldownSettings;
   comboCooldownWait: ComboCooldownWaitSettings;
   quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
+  streamStallCooldown: StreamStallCooldownSettings;
   providerCooldown: ProviderCooldownSettings;
   quotaPreflight: QuotaPreflightSettings;
   streamRecovery: StreamRecoverySettings;
@@ -256,6 +267,7 @@ export interface ResilienceSettingsPatch {
   waitForCooldown?: Partial<WaitForCooldownSettings>;
   comboCooldownWait?: Partial<ComboCooldownWaitSettings>;
   quotaShareConcurrencyLimit?: Partial<QuotaShareConcurrencyLimitSettings>;
+  streamStallCooldown?: Partial<StreamStallCooldownSettings>;
   providerCooldown?: Partial<ProviderCooldownSettings>;
   quotaPreflight?: Partial<QuotaPreflightSettings>;
   streamRecovery?: Partial<StreamRecoverySettings>;

@@ -106,6 +106,8 @@ const SET_ASIDE_KIND_KEYS: Record<string, string> = {
   transport: "poolSetAsideKindProxyUnreachable",
   // Repeated waits for response headers through this egress: slow, not refused.
   slow: "poolSetAsideKindSlow",
+  // Region refusal through this member (403/451 with a region signal): set aside briefly.
+  geo_blocked: "poolSetAsideKindGeoBlocked",
 };
 
 function setAsideKindLabel(

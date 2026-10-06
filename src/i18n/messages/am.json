@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "የMCP መግለጫ መጭመቅ",
     "mcpAccessibilityTitle": "የMCP ተደራሽነት ውጤት",
     "compressionSettingsCavemanIntensity": "የCaveman ጥንካሬ",
-    "compressionSettingsCavemanOutputMode": "የCaveman ውጤት ሁነታ",
     "compressionSettingsOutputStyles": "የውጤት ቅጦች",
     "compressionStylesTileTitle": "የውጤት ቅጦች",
     "compressionSettingsOutputIntensity": "የውጤት ጥንካሬ",
-    "compressionSettingsAutoClarityBypass": "ራስ-ሰር የግልጽነት ማለፊያ",
     "compressionEffectivePipeline": "ተግባራዊ የሂደት ቅደም ተከተል፦",
     "compressionDerivedOff": "ጠፍቷል",
     "compressionDerivedRuns": "ሂደቶች፦ {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "ለማጠቃለል የሚያስፈልገው ዝቅተኛው የረድፎች ብዛት",
         "description": "የሰንጠረዥ ማጠቃለልን ለማስጀመር በተመሳሳይ መዋቅር ያለው JSON ድርድር ውስጥ የሚያስፈልገው ዝቅተኛው የረድፎች ብዛት። ነባሪ፦ 8።"
       },
-      "preserveSystemPrompt": {
-        "label": "የስርዓት መመሪያውን ጠብቅ"
-      },
       "summarizerEnabled": {
         "label": "ማጠቃለያ አመንጪውን አንቃ"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "ከዚህ ያጠሩ መልዕክቶች አይጨመቁም። ዝቅተኛ = የበለጠ ማመቂያ።",
     "tooltipMinSavings": "ቢያንስ ይህን ያህል ቶከኖች የሚቆጥብ ከሆነ ብቻ ይጨመቃል።",
     "ultraSettings": "እጅግ የላቁ ቅንብሮች",
-    "ultraSettingsDesc": "በSLM የሚከናወን የፍቺ ማመቅ",
-    "preview": {
-      "lite": "አጠር አድርገው ይመልሱ። ቴክኒካዊ ቃላትን፣ code፣ errors፣ URLs እና identifiers ሳይቀይሩ ያቆዩ።",
-      "full": "እጅግ አጭርና የታመቀ ምላሽ ይስጡ። ሁሉንም ቴክኒካዊ ይዘት ያቆዩ።",
-      "ultra": "የተለመዱ ቴክኒካዊ አህጽሮተ ቃላትን በመጠቀም እጅግ በጣም አጭር ምላሽ ይስጡ። ትክክለኛ ምልክቶችን ሳይቀይሩ ያቆዩ።"
-    }
+    "ultraSettingsDesc": "በSLM የሚከናወን የፍቺ ማመቅ"
   },
   "translator": {
     "title": "ተርጓሚ",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "ፕሮክሲው ሊደረስበት አልቻለም",
     "poolSetAsideKindIpQuota429": "የIP ፍጥነት ገደብ (429)",
     "poolSetAsideKindSlow": "ዝግታ ምላሾች",
+    "poolSetAsideKindGeoBlocked": "ክልል ተቋርጧል (403/451)",
     "poolSetAsideUntil": "ወደ ሽክርክር ተመልሷል {endsAt}",
     "poolSetAsideRepeat": "ወደ ጎን ተቀምጧል {count, plural, one {# ጊዜ} other {# ጊዜ}}",
     "poolUnknownAddress": "ያልታወቀ አድራሻ",

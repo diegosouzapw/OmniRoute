@@ -454,8 +454,7 @@ iniettata al posto dell'inglese.
 Su un corpo con `messages`, un bypass di contenuto (`shouldBypassCavemanOutputMode()` in
 `open-sse/services/compression/outputMode.ts`) controlla gli ultimi tre messaggi e salta
 gli stili per l'intera conversazione quando corrispondono alle sue parole chiave di sicurezza,
-azione irreversibile, chiarimento o sensibilità all'ordine. Il bypass viene eseguito indipendentemente
-dall'impostazione del toggle **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) della dashboard.
+azione irreversibile, chiarimento o sensibilità all'ordine. Il bypass viene eseguito finché il toggle **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) della dashboard è attivo, che è l'impostazione predefinita; con il toggle disattivato, gli stili selezionati si applicano anche in quei turni.
 
 Quando il bypass consente il passaggio, `placeSystemInstruction()` (stesso file), che
 non crea mai un nuovo `messages[0]`, posiziona il blocco nel primo di questi che trova:

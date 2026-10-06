@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Kompressjoni tad-deskrizzjoni MCP",
     "mcpAccessibilityTitle": "Output tal-aċċessibbiltà tal-MCP",
     "compressionSettingsCavemanIntensity": "Intensità tal-bniedem tal-għerien",
-    "compressionSettingsCavemanOutputMode": "Modalità tal-output tal-bniedem tal-għerien",
     "compressionSettingsOutputStyles": "Stili tal-output",
     "compressionStylesTileTitle": "Stili tal-output",
     "compressionSettingsOutputIntensity": "Intensità tal-output",
-    "compressionSettingsAutoClarityBypass": "Evitar awtomatiku abbażi taċ-ċarezza",
     "compressionEffectivePipeline": "Pipeline effettiv:",
     "compressionDerivedOff": "mitfi",
     "compressionDerivedRuns": "jitħaddem: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Għadd minimu ta' ringieli għall-kompattazzjoni",
         "description": "Għadd minimu ta' ringieli f'matriċi JSON omoġenja meħtieġ biex tinbeda l-kompattazzjoni tabulari. Valur predefinit: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Żomm il-prompt tas-sistema"
-      },
       "summarizerEnabled": {
         "label": "Ippermetti s-sommarizzatur"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Messaġġi iqsar minn dan ma jiġux ikkompressati. Inqas = aktar kompressjoni.",
     "tooltipMinSavings": "Ikkompressa biss jekk tiffranka mill-inqas dan l-għadd ta’ tokens.",
     "ultraSettings": "Konfigurazzjoni Ultra",
-    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM",
-    "preview": {
-      "lite": "Wieġeb fil-qosor. Ippreserva t-termini tekniċi, il-kodiċi, l-iżbalji, il-URLs, u l-identifikaturi.",
-      "full": "Wieġeb b’mod konċiż u kompatt. Ippreserva s-sustanza teknika kollha.",
-      "ultra": "Wieġeb bl-aktar mod konċiż possibbli b’abbrevjazzjonijiet tekniċi komuni. Ippreserva s-simboli eżatti."
-    }
+    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM"
   },
   "translator": {
     "title": "Traduttur",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "il-proxy mhux raġġungibbli",
     "poolSetAsideKindIpQuota429": "limitu tar-rata tal-IP (429)",
     "poolSetAsideKindSlow": "risposti bil-mod",
+    "poolSetAsideKindGeoBlocked": "blokkat fir-reġjun (403/451)",
     "poolSetAsideUntil": "Lura fir-rotazzjoni {endsAt}",
     "poolSetAsideRepeat": "Imwarrab {count, plural, one {# darba} other {# darbiet}}",
     "poolUnknownAddress": "Indirizz mhux magħruf",

@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Compressione della descrizione MCP",
     "mcpAccessibilityTitle": "Output di accessibilità MCP",
     "compressionSettingsCavemanIntensity": "Intensità da cavernicolo",
-    "compressionSettingsCavemanOutputMode": "Modalità di uscita cavernicolo",
     "compressionSettingsOutputStyles": "Stili di output",
     "compressionStylesTileTitle": "Stili di output",
     "compressionSettingsOutputIntensity": "Intensità di uscita",
-    "compressionSettingsAutoClarityBypass": "Bypass automatico della chiarezza",
     "compressionEffectivePipeline": "Pipeline effettiva:",
     "compressionDerivedOff": "disattivato",
     "compressionDerivedRuns": "esecuzioni: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Righe minime da compattare",
         "description": "Numero minimo di righe in un array JSON omogeneo richiesto per attivare la compattazione tabulare. Predefinito: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Preserva prompt di sistema"
-      },
       "summarizerEnabled": {
         "label": "Abilita summarizer"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "I messaggi più brevi di questo non vengono compressi. Più basso = maggiore compressione.",
     "tooltipMinSavings": "Comprimi solo se salva almeno questo numero di token.",
     "ultraSettings": "Impostazioni ultra",
-    "ultraSettingsDesc": "Compressione semantica basata su SLM",
-    "preview": {
-      "lite": "Rispondi in modo conciso. Mantieni invariati termini tecnici, codice, errori, URL e identificatori.",
-      "full": "Rispondi in modo succinto e compatto. Mantieni tutto il contenuto tecnico.",
-      "ultra": "Rispondi in modo estremamente succinto usando abbreviazioni tecniche comuni. Mantieni invariati i simboli esatti."
-    }
+    "ultraSettingsDesc": "Compressione semantica basata su SLM"
   },
   "translator": {
     "title": "Traduttore",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy non raggiungibile",
     "poolSetAsideKindIpQuota429": "limite di frequenza per IP (429)",
     "poolSetAsideKindSlow": "risposte lente",
+    "poolSetAsideKindGeoBlocked": "bloccato per regione (403/451)",
     "poolSetAsideUntil": "Di nuovo in rotazione {endsAt}",
     "poolSetAsideRepeat": "Accantonato {count, plural, one {# volta} other {# volte}}",
     "poolUnknownAddress": "Indirizzo sconosciuto",

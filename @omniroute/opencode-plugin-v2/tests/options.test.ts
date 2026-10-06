@@ -21,6 +21,104 @@ describe("parsePluginOptions", () => {
     const opts = parsePluginOptions({ baseURL: "https://gw.example.com", modelCacheTtlMs: 60000 });
     assert.equal(opts.modelCacheTtlMs, 60000);
   });
+  it("accepts a showcase size of seven", () => {
+    const opts = parsePluginOptions({
+      baseURL: "https://gw.example.com",
+      showcasePerOwner: 7,
+    });
+    assert.equal(opts.showcasePerOwner, 7);
+  });
+  it("leaves the showcase size unset when absent", () => {
+    const opts = parsePluginOptions({ baseURL: "https://gw.example.com" });
+    assert.equal(opts.showcasePerOwner, undefined);
+  });
+  it("accepts a custom showcase size", () => {
+    const opts = parsePluginOptions({ baseURL: "https://gw.example.com", showcasePerOwner: 3 });
+    assert.equal(opts.showcasePerOwner, 3);
+  });
+  it("rejects a non-positive showcase size", () => {
+    for (const showcasePerOwner of [0, -1, Number.NaN]) {
+      assert.throws(() =>
+        parsePluginOptions({ baseURL: "https://gw.example.com", showcasePerOwner })
+      );
+    }
+  });
+  it("rejects a non-numeric showcase size", () => {
+    assert.throws(() =>
+      parsePluginOptions({ baseURL: "https://gw.example.com", showcasePerOwner: "10" })
+    );
+  });
+  it("accepts a fresh cap of seven", () => {
+    const opts = parsePluginOptions({
+      baseURL: "https://gw.example.com",
+      freshPerOwner: 7,
+    });
+    assert.equal(opts.freshPerOwner, 7);
+  });
+  it("leaves the fresh cap unset when absent", () => {
+    const opts = parsePluginOptions({ baseURL: "https://gw.example.com" });
+    assert.equal(opts.freshPerOwner, undefined);
+  });
+  it("accepts a custom fresh cap", () => {
+    const opts = parsePluginOptions({ baseURL: "https://gw.example.com", freshPerOwner: 3 });
+    assert.equal(opts.freshPerOwner, 3);
+  });
+  it("accepts a freshness window of seven days", () => {
+    const opts = parsePluginOptions({
+      baseURL: "https://gw.example.com",
+      freshWindowDays: 7,
+    });
+    assert.equal(opts.freshWindowDays, 7);
+  });
+  it("leaves the usage memory unset when absent", () => {
+    const opts = parsePluginOptions({ baseURL: "https://gw.example.com" });
+    assert.equal(opts.usageMemory, undefined);
+  });
+  it("accepts usage memory true or false", () => {
+    assert.equal(
+      parsePluginOptions({ baseURL: "https://gw.example.com", usageMemory: true }).usageMemory,
+      true
+    );
+    assert.equal(
+      parsePluginOptions({ baseURL: "https://gw.example.com", usageMemory: false }).usageMemory,
+      false
+    );
+  });
+  it("rejects a non-boolean usage memory", () => {
+    for (const usageMemory of ["yes", 1]) {
+      assert.throws(() => parsePluginOptions({ baseURL: "https://gw.example.com", usageMemory }));
+    }
+  });
+  it("leaves the freshness window unset when absent", () => {
+    const opts = parsePluginOptions({ baseURL: "https://gw.example.com" });
+    assert.equal(opts.freshWindowDays, undefined);
+  });
+  it("accepts a wide freshness window", () => {
+    const opts = parsePluginOptions({ baseURL: "https://gw.example.com", freshWindowDays: 180 });
+    assert.equal(opts.freshWindowDays, 180);
+  });
+  it("rejects a non-positive freshness window", () => {
+    for (const freshWindowDays of [0, -1, Number.NaN]) {
+      assert.throws(() =>
+        parsePluginOptions({ baseURL: "https://gw.example.com", freshWindowDays })
+      );
+    }
+  });
+  it("rejects a non-numeric freshness window", () => {
+    assert.throws(() =>
+      parsePluginOptions({ baseURL: "https://gw.example.com", freshWindowDays: "90" })
+    );
+  });
+  it("rejects a non-positive fresh cap", () => {
+    for (const freshPerOwner of [0, -1, Number.NaN]) {
+      assert.throws(() => parsePluginOptions({ baseURL: "https://gw.example.com", freshPerOwner }));
+    }
+  });
+  it("rejects a non-numeric fresh cap", () => {
+    assert.throws(() =>
+      parsePluginOptions({ baseURL: "https://gw.example.com", freshPerOwner: "10" })
+    );
+  });
   it("rejects a non-positive modelCacheTtlMs", () => {
     assert.throws(() =>
       parsePluginOptions({ baseURL: "https://gw.example.com", modelCacheTtlMs: 0 })

@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP वर्णन कॉम्प्रेशन",
     "mcpAccessibilityTitle": "MCP ॲक्सेसिबिलिटी आउटपुट",
     "compressionSettingsCavemanIntensity": "केव्हमनची तीव्रता",
-    "compressionSettingsCavemanOutputMode": "केव्हमॅन आउटपुट मोड",
     "compressionSettingsOutputStyles": "आउटपुट शैली",
     "compressionStylesTileTitle": "आउटपुट शैली",
     "compressionSettingsOutputIntensity": "आउटपुट तीव्रता",
-    "compressionSettingsAutoClarityBypass": "स्वयं स्पष्टता बायपास",
     "compressionEffectivePipeline": "प्रभावी पाइपलाइन:",
     "compressionDerivedOff": "बंद",
     "compressionDerivedRuns": "रन्स: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "कॉम्पॅक्ट करण्यासाठी किमान ओळी",
         "description": "टॅब्युलर कॉम्पॅक्शन ट्रिगर करण्यासाठी एकसमान JSON ॲरेमध्ये आवश्यक असलेल्या किमान ओळी. डीफॉल्ट: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "सिस्टम प्रॉम्प्ट जतन करा"
-      },
       "summarizerEnabled": {
         "label": "समरायझर सक्षम करा"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "यापेक्षा लहान संदेश संकुचित केले जात नाहीत. लोअर = अधिक कॉम्प्रेशन.",
     "tooltipMinSavings": "कमीत कमी इतके टोकन वाचवले तरच संकुचित करा.",
     "ultraSettings": "अल्ट्रा सेटिंग्ज",
-    "ultraSettingsDesc": "SLM-चालित सिमेंटिक कॉम्प्रेशन",
-    "preview": {
-      "lite": "संक्षिप्त उत्तर द्या. तांत्रिक संज्ञा, कोड, त्रुटी, URLs आणि आयडेंटिफायर्स जसेच्या तसे ठेवा.",
-      "full": "अतिशय थोडक्यात आणि नेमके उत्तर द्या. सर्व तांत्रिक आशय जतन करा.",
-      "ultra": "सामान्य तांत्रिक संक्षेप वापरून अत्यंत थोडक्यात उत्तर द्या. अचूक चिन्हे जशीच्या तशी ठेवा."
-    }
+    "ultraSettingsDesc": "SLM-चालित सिमेंटिक कॉम्प्रेशन"
   },
   "translator": {
     "title": "भाषांतरक",
@@ -11086,6 +11076,7 @@
     "poolSetAsideKindProxyUnreachable": "प्रॉक्सीपर्यंत पोहोचता येत नाही",
     "poolSetAsideKindIpQuota429": "IP दर मर्यादा (429)",
     "poolSetAsideKindSlow": "हळू प्रतिसाद",
+    "poolSetAsideKindGeoBlocked": "क्षेत्र-अवरोधित (403/451)",
     "poolSetAsideUntil": "रोटेशनमध्ये परत {endsAt}",
     "poolSetAsideRepeat": "बाजूला ठेवले {count, plural, one {# वेळा} other {# वेळा}}",
     "poolUnknownAddress": "अज्ञात पत्ता",
