@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Ordine di posizione",
     "poolHealthRankingOff": "Classificazione salute disattivata",
     "transportRate": "{rate} % trasporto",
+    "slowAbandoned": "{count} abbandoni lenti",
+    "clientAborted": "{count} interruzioni da parte del client",
+    "slowAbandonedHint": "Abbandonato dopo aver superato la soglia di attesa delle intestazioni, escluso dalla tariffa di trasporto",
     "previousSuccessRate": "In precedenza {rate} % di successo",
-    "upstreamRefusals": "{count} rifiuti upstream",
     "connectionTestsCount": "{count} test di connessione",
-    "notMeasured": "Non misurato"
+    "notMeasured": "Non misurato",
+    "upstream4xx": "{count} errori del client a monte",
+    "upstream5xx": "{count} errori del server a monte",
+    "uniformEgressLine": "{affected} di {exits} uscite falliscono insieme su {provider} (ultime {hours}h) — non è un problema di uscita"
   },
   "playground": {
     "title": "Title",

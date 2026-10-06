@@ -97,7 +97,7 @@ describe("catalog provider template", () => {
       ],
       combosFetcher: async () => [],
     });
-    assert.deepEqual(res, { models: 2, combos: 0, autoCombos: 0 });
+    assert.deepEqual(res, { models: 2, combos: 0 });
     const m = draft.models.get("omniroute/gpt-x");
     assert.ok(m);
     assert.equal(m?.providerID, "omniroute");
@@ -160,7 +160,7 @@ describe("catalog fail-open", () => {
         },
         combosFetcher: async () => [],
       });
-      assert.deepEqual(res, { models: 0, combos: 0, autoCombos: 0 });
+      assert.deepEqual(res, { models: 0, combos: 0 });
     } finally {
       console.warn = origWarn;
     }
@@ -184,7 +184,7 @@ describe("catalog fail-open", () => {
           throw Object.assign(new Error("Not Found"), { status: 404 });
         },
       });
-      assert.deepEqual(res, { models: 1, combos: 0, autoCombos: 0 });
+      assert.deepEqual(res, { models: 1, combos: 0 });
     } finally {
       console.warn = origWarn;
     }
@@ -210,7 +210,7 @@ describe("catalog fail-open", () => {
           );
         },
       });
-      assert.deepEqual(res, { models: 1, combos: 0, autoCombos: 0 });
+      assert.deepEqual(res, { models: 1, combos: 0 });
     } finally {
       console.warn = origWarn;
     }
@@ -237,7 +237,7 @@ describe("catalog fail-open", () => {
           );
         },
       });
-      assert.deepEqual(res, { models: 1, combos: 0, autoCombos: 0 });
+      assert.deepEqual(res, { models: 1, combos: 0 });
     } finally {
       console.warn = origWarn;
     }
@@ -264,7 +264,7 @@ describe("catalog fail-open", () => {
           throw err;
         },
       });
-      assert.deepEqual(res, { models: 1, combos: 0, autoCombos: 0 });
+      assert.deepEqual(res, { models: 1, combos: 0 });
     } finally {
       console.warn = origWarn;
     }
@@ -299,7 +299,7 @@ describe("catalog combo vs combo", () => {
           },
         ],
       });
-      assert.deepEqual(res, { models: 1, combos: 2, autoCombos: 0 });
+      assert.deepEqual(res, { models: 1, combos: 2 });
     } finally {
       console.warn = origWarn;
     }
@@ -331,7 +331,7 @@ describe("catalog model bare vs combo", () => {
           },
         ],
       });
-      assert.deepEqual(res, { models: 1, combos: 1, autoCombos: 0 });
+      assert.deepEqual(res, { models: 1, combos: 1 });
     } finally {
       console.warn = origWarn;
     }

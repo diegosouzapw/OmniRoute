@@ -108,7 +108,7 @@ describe("catalog nested combo refs", () => {
           },
         ],
       });
-      assert.deepEqual(res, { models: 2, combos: 2, autoCombos: 0 });
+      assert.deepEqual(res, { models: 2, combos: 2 });
       const parent = c.models.get("omniroute/parent");
       assert.ok(parent);
       assert.equal(parent?.limit.context, 50000);
@@ -132,7 +132,7 @@ describe("catalog nested combo refs", () => {
           },
         ],
       });
-      assert.deepEqual(res, { models: 1, combos: 0, autoCombos: 0 });
+      assert.deepEqual(res, { models: 1, combos: 0 });
       assert.ok(!c.models.has("omniroute/orphan"));
       assert.ok(c.warns.some((w) => w.includes("could not resolve")));
     } finally {
@@ -215,7 +215,7 @@ describe("catalog collision dedupe", () => {
           },
         ],
       });
-      assert.deepEqual(res, { models: 1, combos: 1, autoCombos: 0 });
+      assert.deepEqual(res, { models: 1, combos: 1 });
       assert.ok(!c.warns.some((w) => w.includes("collides")));
       assert.equal(c.models.get("omniroute/Mirror Combo")?.name, "Mirror Combo");
     } finally {

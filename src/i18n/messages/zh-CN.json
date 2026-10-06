@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "位置顺序",
     "poolHealthRankingOff": "健康排名已关闭",
     "transportRate": "{rate}%传输",
+    "slowAbandoned": "{count} 次慢速放弃",
+    "clientAborted": "{count} 次客户端中止",
+    "slowAbandonedHint": "在达到头部等待阈值后放弃，未计入传输速率",
     "previousSuccessRate": "此前{rate}%成功",
-    "upstreamRefusals": "{count}次上游拒绝",
     "connectionTestsCount": "{count}次连接测试",
-    "notMeasured": "未测量"
+    "notMeasured": "未测量",
+    "upstream4xx": "{count} 上游客户端错误",
+    "upstream5xx": "{count} 上游服务器错误",
+    "uniformEgressLine": "{affected}/{exits} 个出口在 {provider} 上同时失败（最近 {hours} 小时）—— 不是出口问题"
   },
   "playground": {
     "title": "模型演练场",

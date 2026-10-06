@@ -1,4 +1,5 @@
 import { formatRetryAfter } from "@omniroute/open-sse/services/accountFallback.ts";
+import { getOpencodeFreeTierSkipRemainingMs } from "@omniroute/open-sse/services/opencodeFreeTierSkip.ts";
 import * as log from "../utils/logger";
 
 interface ActiveModelLockout {
@@ -21,20 +22,75 @@ export function buildNoAuthModelCooldown(
   lockout: ActiveModelLockout,
   connectionId: string
 ) {
-  const retryAfter = new Date(Date.now() + lockout.remainingMs).toISOString();
+  return buildNoAuthCooldownEnvelope({
+    provider,
+    connectionId,
+    remainingMs: lockout.remainingMs,
+    cooldownScope: "model",
+    cooldownModel: model,
+    lastError: null,
+    logDetail: `model ${model} locked (${lockout.reason})`,
+  });
+}
+
+/**
+ * Paused no-auth provider: the shared synthetic connection is temporarily out
+ * while a provider-scoped refusal pause covers it. Returns the same retryable
+ * envelope shape as the model lockout above (429 + Retry-After) scoped to the
+ * connection — or null when no active pause covers the provider (including an
+ * expired pause, whose entry the reader drops), so selection keeps hydrating.
+ */
+export function pauseCooldownIfPaused(
+  provider: string,
+  connectionId: string,
+  model?: string | null
+) {
+  const remainingMs = getOpencodeFreeTierSkipRemainingMs(provider, Date.now(), model);
+  if (remainingMs === null) return null;
+  if (remainingMs <= 0) return null;
+  return buildNoAuthPauseCooldown(provider, remainingMs, connectionId);
+}
+
+function buildNoAuthPauseCooldown(provider: string, remainingMs: number, connectionId: string) {
+  return buildNoAuthCooldownEnvelope({
+    provider,
+    connectionId,
+    remainingMs,
+    cooldownScope: "connection",
+    cooldownModel: null,
+    lastError: "The shared no-auth connection is in a refusal pause",
+    logDetail: "shared connection paused",
+  });
+}
+
+function buildNoAuthCooldownEnvelope({
+  provider,
+  connectionId,
+  remainingMs,
+  cooldownScope,
+  cooldownModel,
+  lastError,
+  logDetail,
+}: {
+  provider: string;
+  connectionId: string;
+  remainingMs: number;
+  cooldownScope: string;
+  cooldownModel: string | null;
+  lastError: string | null;
+  logDetail: string;
+}) {
+  const retryAfter = new Date(Date.now() + remainingMs).toISOString();
   const retryAfterHuman = formatRetryAfter(retryAfter);
-  log.warn(
-    "AUTH",
-    `${provider} | ${connectionId} model ${model} locked (${lockout.reason}), ${retryAfterHuman}`
-  );
+  log.warn("AUTH", `${provider} | ${connectionId} ${logDetail}, ${retryAfterHuman}`);
   return {
     allRateLimited: true,
     retryAfter,
     retryAfterHuman,
-    lastError: null,
+    lastError,
     lastErrorCode: 429,
-    cooldownScope: "model",
-    cooldownModel: model,
+    cooldownScope,
+    cooldownModel,
     connectionsCount: 1,
   };
 }

@@ -1,0 +1,1 @@
+- **fix(combo):** skip the redundant second LKGP write when a combo success already pins the combo-level key ([#15432](https://github.com/diegosouzapw/OmniRoute/pull/15432)) — thanks @maxmad64bis

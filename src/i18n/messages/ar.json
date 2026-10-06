@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "ترتيب المواضع",
     "poolHealthRankingOff": "ترتيب الصحة متوقف",
     "transportRate": "{rate}% نقل",
+    "slowAbandoned": "{count} عمليات تخلٍّ بطيئة",
+    "clientAborted": "{count} عمليات إلغاء من العميل",
+    "slowAbandonedHint": "تم التخلي بعد عتبة انتظار الترويسات، مستبعد من معدل النقل",
     "previousSuccessRate": "سابقًا {rate}% نجاح",
-    "upstreamRefusals": "{count} رفضًا من الخادم الأعلى",
     "connectionTestsCount": "{count} اختبارات اتصال",
-    "notMeasured": "غير مقاس"
+    "notMeasured": "غير مقاس",
+    "upstream4xx": "{count} أخطاء عميل من المصدر العلوي",
+    "upstream5xx": "{count} أخطاء الخادم العلوي",
+    "uniformEgressLine": "فشل {affected} من {exits} مخرجًا معًا على {provider} (آخر {hours}h) — ليس مشكلة خروج"
   },
   "playground": {
     "title": "العنوان",

@@ -386,22 +386,22 @@ OAuth 認証情報を `src/lib/oauth/constants/oauth.ts` に、サービスを `
 
 ---
 
-## プルリクエストチェックリスト
+## Pull Request チェックリスト
 
 - [ ] テストが成功する（`npm test`）
 - [ ] Lint が成功する（`npm run lint`）
 - [ ] ビルドが成功する（`npm run build`）
 - [ ] 新しい公開関数およびインターフェースに TypeScript の型が追加されている
 - [ ] ハードコードされたシークレットやフォールバック値がない
-- [ ] 公開アップストリーム認証情報は、リテラルではなく `resolvePublicCred()` を介して埋め込まれている（[`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) を参照）
-- [ ] エラーレスポンスは `buildErrorBody()` / `sanitizeErrorMessage()` を経由している — レスポンス本文に未加工のスタックトレースを含めない（[`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) を参照）
-- [ ] シェルコマンド（`exec` / `spawn`）では、実行時の値を文字列補間ではなく `env` 経由で渡している
+- [ ] 公開アップストリーム認証情報はリテラルではなく `resolvePublicCred()` を使用して埋め込まれている（[`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) を参照）
+- [ ] エラーレスポンスは `buildErrorBody()` / `sanitizeErrorMessage()` を経由している — レスポンス本文に未加工のスタックトレースが含まれていない（[`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) を参照）
+- [ ] シェルコマンド（`exec` / `spawn`）には、文字列補間ではなく `env` を介してランタイム値を渡している
 - [ ] すべての入力が Zod スキーマで検証されている
-- [ ] ユーザー向けの変更について、`changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` 以下に変更履歴の**フラグメント**が追加されている（[`changelog.d/README.md`](./changelog.d/README.md) を参照）— `CHANGELOG.md` を直接編集しては**ならない**。フラグメントはリリース時に集約され、PR 間で競合することはない
+- [ ] ユーザー向けの変更について、`changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` 配下に Changelog の**フラグメント**が追加されている（[`changelog.d/README.md`](./changelog.d/README.md) を参照）— `CHANGELOG.md` を直接編集してはならない。フラグメントはリリース時に集約され、PR 間で競合することはない
 - [ ] ドキュメントが更新されている（該当する場合）
-- [ ] 新しい CodeQL / Secret-Scanning アラートが発生していない。または、各アラートが関連する `docs/security/` ドキュメントを参照した技術的根拠とともに却下されている
-- [ ] 子プロセスを起動するルート（`/api/mcp/`、`/api/cli-tools/runtime/`）が `src/server/authz/routeGuard.ts` で `isLocalOnlyPath()` として分類されている — [ハードルール #15](docs/security/ROUTE_GUARD_TIERS.md) を参照
-- [ ] コミットメッセージに `Co-Authored-By` トレーラーがない — コミットはリポジトリ所有者の Git ID のみで作成されたものとして表示されなければならない（ハードルール #16）
+- [ ] 新しい CodeQL / Secret-Scanning アラートが発生していない、または各アラートが関連する `docs/security/` ドキュメントを参照した技術的根拠とともに却下されている
+- [ ] 子プロセスを起動するルート（`/api/mcp/`、`/api/cli-tools/runtime/`）が `src/server/authz/routeGuard.ts` 内で `isLocalOnlyPath()` として分類されている — [厳守ルール #15](docs/security/ROUTE_GUARD_TIERS.md) を参照
+- [ ] コミットメッセージに AI/bot の `Co-authored-by` トレーラーが含まれていない（厳守ルール #16）— 再利用した作業を行った人間の共同作業者は、標準の `Co-authored-by: Name <email>` トレーラーでクレジットされている
 
 ---
 
