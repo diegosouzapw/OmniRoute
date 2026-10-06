@@ -48,6 +48,7 @@ import { assembleStreamingPipeline } from "./streamingPipeline.ts";
 import { scheduleStreamingQuotaShareConsumption } from "./streamingQuotaShare.ts";
 import { assembleStreamingResponseHeaders } from "./streamingResponseHeaders.ts";
 import { storeStreamingSemanticCacheResponse } from "./streamingSemanticCacheStore.ts";
+import { recordFinalInputCalibration } from "./contextEstimation.ts";
 import { recordStreamingUsageStats } from "./streamingUsageStats.ts";
 import { maybeSyncClaudeExtraUsageState } from "./telemetryHelpers.ts";
 import { getExecutorTimeoutMs, resolveConnectionTimeoutMs } from "./upstreamTimeouts.ts";
@@ -70,6 +71,7 @@ export async function runStreamingTail(deps: StreamingTailDeps) {
     attachCompressionUsageReceiptAfterAnalytics,
     body,
     bodyForCacheWrite,
+    calibrationEstimatedInputTokens,
     claudePromptCacheLogMeta,
     clientRawRequest,
     clientResponseFormat,
@@ -84,6 +86,7 @@ export async function runStreamingTail(deps: StreamingTailDeps) {
     currentModel,
     customToolNames,
     echoModel,
+    effectiveModel,
     endpointPath,
     executeProviderRequest,
     executor,
@@ -426,6 +429,13 @@ export async function runStreamingTail(deps: StreamingTailDeps) {
         if (promptTokens > 0) incrementTokenUsage(model, promptTokens);
       }
     }
+    recordFinalInputCalibration(
+      body,
+      provider,
+      effectiveModel,
+      calibrationEstimatedInputTokens,
+      streamUsage
+    );
     recordStreamingUsageStats(streamUsage, {
       provider,
       model,
