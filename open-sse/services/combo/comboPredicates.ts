@@ -288,6 +288,12 @@ const REQUEST_SCOPED_UPSTREAM_ERROR_CODES: Record<string, true> = {
   // #10360: our own executor-result contract violation. An internal defect, not
   // a provider/account fault — it must never cool a connection or trip a breaker.
   [EXECUTOR_CONTRACT_VIOLATION_CODE]: true,
+  // Local memory-pressure guard sheds (resourcePressure.ts / heapPressure.ts).
+  // The 503 is decided before any upstream call based on this process's own
+  // V8/cgroup state — the connection was never dialed, so the shed is not a
+  // connection health signal and must never feed lockout/cooldown/disable.
+  resource_pressure: true,
+  heap_pressure: true,
 };
 
 /** Request/model-specific failures must not poison provider-wide resilience state. */
