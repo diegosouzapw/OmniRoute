@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Συμπίεση περιγραφής MCP",
     "mcpAccessibilityTitle": "Έξοδος προσβασιμότητας MCP",
     "compressionSettingsCavemanIntensity": "Ένταση Caveman",
-    "compressionSettingsCavemanOutputMode": "Λειτουργία εξόδου Caveman",
     "compressionSettingsOutputStyles": "Στυλ εξόδου",
     "compressionStylesTileTitle": "Στυλ εξόδου",
     "compressionSettingsOutputIntensity": "Ένταση εξόδου",
-    "compressionSettingsAutoClarityBypass": "Αυτόματη παράκαμψη σαφήνειας",
     "compressionEffectivePipeline": "Ενεργή αλυσίδα επεξεργασίας:",
     "compressionDerivedOff": "ανενεργό",
     "compressionDerivedRuns": "εκτελέσεις: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Ελάχιστες γραμμές για συμπαγοποίηση",
         "description": "Ελάχιστος αριθμός γραμμών σε έναν ομοιογενή πίνακα JSON που απαιτείται για την ενεργοποίηση της συμπαγοποίησης σε μορφή πίνακα. Προεπιλογή: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Διατήρηση του system prompt"
-      },
       "summarizerEnabled": {
         "label": "Ενεργοποίηση σύνοψης"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Τα μηνύματα που είναι μικρότερα από αυτό το μήκος δεν συμπιέζονται. Χαμηλότερο = περισσότερη συμπίεση.",
     "tooltipMinSavings": "Συμπίεση μόνο αν εξοικονομείται τουλάχιστον αυτός ο αριθμός tokens.",
     "ultraSettings": "Ultra ρυθμίσεις",
-    "ultraSettingsDesc": "Σημασιολογική συμπίεση με τεχνολογία SLM",
-    "preview": {
-      "lite": "Απαντήστε συνοπτικά. Διατηρήστε τεχνικούς όρους, κώδικα, σφάλματα, URLs και αναγνωριστικά.",
-      "full": "Απαντήστε σύντομα και περιεκτικά. Διατηρήστε ακέραιο όλο το τεχνικό περιεχόμενο.",
-      "ultra": "Απαντήστε εξαιρετικά συνοπτικά με κοινές τεχνικές συντομογραφίες. Διατηρήστε τα ακριβή σύμβολα."
-    }
+    "ultraSettingsDesc": "Σημασιολογική συμπίεση με τεχνολογία SLM"
   },
   "translator": {
     "title": "Μεταφραστής",

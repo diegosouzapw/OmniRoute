@@ -30,6 +30,7 @@ import {
 } from "../chatCore/responseHeaders.ts";
 
 import { maybeSyncClaudeExtraUsageState } from "../chatCore/telemetryHelpers.ts";
+import { recordFinalInputCalibration } from "./contextEstimation.ts";
 
 export {
   shouldUseNativeCodexPassthrough,
@@ -79,6 +80,7 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
     buildCostCtx,
     buildErrorBody,
     calculateCost,
+    calibrationEstimatedInputTokens,
     claudePromptCacheLogMeta: _claudePromptCacheLogMeta,
     clientRawRequest,
     comboStrategy,
@@ -637,6 +639,14 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
       log,
     });
     const usage = toolLoopUsage ?? extractUsageFromResponse(responseBody, provider);
+    recordFinalInputCalibration(
+      body,
+      provider,
+      effectiveModel,
+      calibrationEstimatedInputTokens,
+      usage,
+      toolLoopUsage != null
+    );
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     if (usage && typeof usage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(usage as Record<string, unknown>, "provider");
@@ -764,7 +774,12 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
         claudeCacheUsageMeta: cacheUsageLogMeta,
         cacheSource: "upstream",
       });
-      recordChatCallCost(apiKeyInfo, meteredBudgetCost(provider, estimatedCost), chatCostCtx, false);
+      recordChatCallCost(
+        apiKeyInfo,
+        meteredBudgetCost(provider, estimatedCost),
+        chatCostCtx,
+        false
+      );
       log?.warn?.(
         "GUARDRAIL",
         `Response blocked by ${postCallGuardrails.guardrail || "guardrail"}: ${guardrailMessage}`

@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP ဖော်ပြချက် ချုံ့ခြင်း",
     "mcpAccessibilityTitle": "MCP အသုံးပြုနိုင်စွမ်းဆိုင်ရာ အထွက်",
     "compressionSettingsCavemanIntensity": "Caveman ပြင်းအား",
-    "compressionSettingsCavemanOutputMode": "Caveman အထွက်မုဒ်",
     "compressionSettingsOutputStyles": "အထွက်ပုံစံများ",
     "compressionStylesTileTitle": "အထွက်ပုံစံများ",
     "compressionSettingsOutputIntensity": "အထွက်ပြင်းအား",
-    "compressionSettingsAutoClarityBypass": "အလိုအလျောက် ရှင်းလင်းမှု ကျော်လွှားခြင်း",
     "compressionEffectivePipeline": "အမှန်တကယ် အသုံးပြုသည့် pipeline:",
     "compressionDerivedOff": "ပိတ်ထားသည်",
     "compressionDerivedRuns": "လုပ်ဆောင်သည်- {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "ကျစ်လျစ်စေရန် အနည်းဆုံးအတန်းအရေအတွက်",
         "description": "ဇယားပုံစံ ကျစ်လျစ်မှုကို စတင်ရန် တစ်သမတ်တည်းဖြစ်သော JSON အခင်းအကျင်းတစ်ခုတွင် လိုအပ်သည့် အနည်းဆုံးအတန်းအရေအတွက်။ မူလသတ်မှတ်ချက်: 8။"
       },
-      "preserveSystemPrompt": {
-        "label": "စနစ်ညွှန်ကြားချက်ကို ထိန်းသိမ်းပါ"
-      },
       "summarizerEnabled": {
         "label": "အနှစ်ချုပ်စနစ်ကို ဖွင့်ပါ"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "ဤအရွယ်အစားထက်တိုသော မက်ဆေ့ချ်များကို မချုံ့ပါ။ နိမ့်လေလေ = ပိုမိုချုံ့လေလေ။",
     "tooltipMinSavings": "အနည်းဆုံး ဤမျှသော token အရေအတွက်ကို ချွေတာနိုင်မှသာ ချုံ့ပါ။",
     "ultraSettings": "အလွန်ပြင်းထန်သော ဆက်တင်များ",
-    "ultraSettingsDesc": "SLM ဖြင့် လုပ်ဆောင်သော အဓိပ္ပာယ်အခြေပြု ချုံ့ခြင်း",
-    "preview": {
-      "lite": "တိုတိုတုတ်တုတ် တုံ့ပြန်ပါ။ နည်းပညာဆိုင်ရာ ဝေါဟာရများ၊ code၊ error များ၊ URLs နှင့် identifiers များကို မပြောင်းလဲဘဲ ထိန်းသိမ်းပါ။",
-      "full": "အလွန်တိုတောင်းကျစ်လျစ်စွာ တုံ့ပြန်ပါ။ နည်းပညာဆိုင်ရာ အကြောင်းအရာအားလုံးကို ထိန်းသိမ်းပါ။",
-      "ultra": "အသုံးများသော နည်းပညာဆိုင်ရာ အတိုကောက်များဖြင့် အလွန်တိုတောင်းစွာ တုံ့ပြန်ပါ။ သင်္ကေတအတိအကျကို ထိန်းသိမ်းပါ။"
-    }
+    "ultraSettingsDesc": "SLM ဖြင့် လုပ်ဆောင်သော အဓိပ္ပာယ်အခြေပြု ချုံ့ခြင်း"
   },
   "translator": {
     "title": "ဘာသာပြန်ကိရိယာ",

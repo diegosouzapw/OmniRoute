@@ -164,14 +164,14 @@ test("event stream outage records the upstream status on the sink", async () => 
   }
 });
 
-test("event stream without a body records the received status on the sink", async () => {
+test("event stream 2xx without a body is not an upstream failure status", async () => {
   const { restore } = installMockFetch({ eventsStatus: 200, eventsBodyNull: true });
   const sink: AppliedProxySink = { proxy: null };
   try {
     const { response } = await runWithAppliedProxyCapture(sink, () =>
       new TraeExecutor().execute(executeInput())
     );
-    assert.equal(sink.upstreamStatus, 200);
+    assert.equal(sink.upstreamStatus, undefined);
     assert.equal(response.status, 502);
   } finally {
     restore();

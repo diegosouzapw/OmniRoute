@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Compression des descriptions MCP",
     "mcpAccessibilityTitle": "Sortie d'accessibilité MCP",
     "compressionSettingsCavemanIntensity": "Intensité de l'homme des cavernes",
-    "compressionSettingsCavemanOutputMode": "Mode de sortie homme des cavernes",
     "compressionSettingsOutputStyles": "Styles de sortie",
     "compressionStylesTileTitle": "Styles de sortie",
     "compressionSettingsOutputIntensity": "Intensité de sortie",
-    "compressionSettingsAutoClarityBypass": "Contournement automatique de la clarté",
     "compressionEffectivePipeline": "Pipeline effectif :",
     "compressionDerivedOff": "désactivé",
     "compressionDerivedRuns": "exécutions : {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Lignes minimales à compacter",
         "description": "Nombre minimum de lignes dans un tableau JSON homogène requis pour déclencher le compactage tabulaire. Par défaut : 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Préserver le prompt système"
-      },
       "summarizerEnabled": {
         "label": "Activer le résumeur"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Les messages plus courts ne sont pas compressés. Plus faible = plus de compression.",
     "tooltipMinSavings": "Compressez uniquement si vous enregistrez au moins autant de jetons.",
     "ultraSettings": "Paramètres ultra",
-    "ultraSettingsDesc": "Compression sémantique basée sur SLM",
-    "preview": {
-      "lite": "Répondez de manière concise. Préservez les termes techniques, le code, les erreurs, les URLs et les identifiants.",
-      "full": "Répondez de manière laconique et compacte. Préservez tout le contenu technique.",
-      "ultra": "Répondez de manière ultra-laconique avec des abréviations techniques courantes. Préservez les symboles exacts."
-    }
+    "ultraSettingsDesc": "Compression sémantique basée sur SLM"
   },
   "translator": {
     "title": "Traducteur",

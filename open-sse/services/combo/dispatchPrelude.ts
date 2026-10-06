@@ -51,6 +51,7 @@ import {
   releaseRejectedQualityResponse,
   validateResponseQuality,
 } from "./validateQuality.ts";
+import { isTrustedEmptyTurn } from "./emptyTurnTrust.ts";
 import type {
   ComboCollectionLike,
   ComboLike,
@@ -236,7 +237,9 @@ async function evaluatePinnedResponse(args: {
       pinnedClone,
       clientRequestedStream,
       log,
-      config.responseValidation
+      config.responseValidation,
+      null,
+      await isTrustedEmptyTurn(parseModel(pinnedModel).provider, pinnedResult)
     );
     releaseQualityClone(pinnedClone, pinnedResult, pinnedQuality);
     if (pinnedQuality.valid) return pinnedResult;

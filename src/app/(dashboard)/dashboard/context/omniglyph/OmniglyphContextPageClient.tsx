@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import Toggle from "@/shared/components/Toggle";
+import Button from "@/shared/components/Button";
 import { SAMPLE_BEFORE_TEXT, SAMPLE_PAGE_PNG_DATA_URI, SAMPLE_METRICS } from "./sampleData";
 
 interface CompressionConfigLite {
@@ -240,25 +241,62 @@ function EnableCard(props: {
   );
 }
 
+// Shown in place of the controls while the settings load has failed: a save built from the
+// defaults would write over the stored engines row.
+function LoadErrorCard(props: { onRetry: () => void }) {
+  const t = useTranslations("settings");
+  const tCommon = useTranslations("common");
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between gap-4">
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          {t("compressionTitle")}: {tCommon("failedToLoad")}
+        </p>
+        <Button size="sm" variant="secondary" onClick={props.onRetry}>
+          {t("retry")}
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 export default function OmniglyphContextPageClient() {
   const [enabled, setEnabled] = useState(false);
   const [profile, setProfile] = useState<ProfileId>("aggressive");
   const [loading, setLoading] = useState(true);
+  // The defaults above are not the stored engines, so the controls wait for a GET that
+  // succeeds. A failed load shows a retry, which bumps loadAttempt to re-run the load.
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
   const saveGenRef = useRef(0);
 
   useEffect(() => {
+    // A retry re-runs the load; answers that arrive for the run it replaced are rejected
+    // here and dropped by the catch, so they never reach the state setters.
+    let ignore = false;
     fetch("/api/settings/compression")
       .then((r) => (r.ok ? r.json() : null))
+      .then((data: CompressionConfigLite | null) =>
+        ignore ? Promise.reject(new Error("load superseded")) : data
+      )
       .then((data: CompressionConfigLite | null) => {
         setEnabled(data?.engines?.omniglyph?.enabled === true);
         const stored = data?.omniglyph?.profile;
         if (PROFILES.some((p) => p.id === stored)) setProfile(stored as ProfileId);
+        setLoadFailed(!data);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(() => {
+        if (!ignore) setLoadFailed(true);
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [loadAttempt]);
 
   // PUT one settings patch; a failed save runs `rollback`. The saved status clears after 2s
   // unless a later save has started since, so it never clears that save's error.
@@ -302,6 +340,17 @@ export default function OmniglyphContextPageClient() {
     setProfile(next);
     void save({ omniglyph: { profile: next } }, () => setProfile(previous));
   };
+
+  if (loadFailed) {
+    return (
+      <LoadErrorCard
+        onRetry={() => {
+          setLoading(true);
+          setLoadAttempt((attempt) => attempt + 1);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6" data-testid="omniglyph-page">

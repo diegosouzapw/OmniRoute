@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP aprašų glaudinimas",
     "mcpAccessibilityTitle": "MCP prieinamumo išvestis",
     "compressionSettingsCavemanIntensity": "Urvinio žmogaus intensyvumas",
-    "compressionSettingsCavemanOutputMode": "Urvinio žmogaus išvesties režimas",
     "compressionSettingsOutputStyles": "Išvesties stiliai",
     "compressionStylesTileTitle": "Išvesties stiliai",
     "compressionSettingsOutputIntensity": "Išvesties intensyvumas",
-    "compressionSettingsAutoClarityBypass": "Automatinis aiškumo patikros praleidimas",
     "compressionEffectivePipeline": "Faktinė apdorojimo seka:",
     "compressionDerivedOff": "išjungta",
     "compressionDerivedRuns": "vykdoma: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Mažiausias sutankinamų eilučių skaičius",
         "description": "Mažiausias vienarūšio JSON masyvo eilučių skaičius, reikalingas sutankinimui lentelės formatu pradėti. Numatytoji reikšmė: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Išsaugoti sistemos raginimą"
-      },
       "summarizerEnabled": {
         "label": "Įjungti santraukų kūrimą"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Trumpesni pranešimai neglaudinami. Mažesnis = daugiau glaudinimo.",
     "tooltipMinSavings": "Glaudinti tik tada, jei sutaupoma bent tiek tokenų.",
     "ultraSettings": "„Ultra“ nustatymai",
-    "ultraSettingsDesc": "SLM grindžiamas semantinis glaudinimas",
-    "preview": {
-      "lite": "Atsakykite glaustai. Išsaugokite techninius terminus, kodą, klaidas, URL ir identifikatorius.",
-      "full": "Atsakykite labai glaustai ir kompaktiškai. Išsaugokite visą techninę esmę.",
-      "ultra": "Atsakykite itin glaustai, naudodami įprastas technines santrumpas. Išsaugokite tikslius simbolius."
-    }
+    "ultraSettingsDesc": "SLM grindžiamas semantinis glaudinimas"
   },
   "translator": {
     "title": "Vertėjas",

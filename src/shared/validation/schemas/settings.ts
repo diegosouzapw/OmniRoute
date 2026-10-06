@@ -113,6 +113,13 @@ export const quotaShareConcurrencyLimitSettingsSchema = z
   })
   .strict();
 
+// Whether a stream content stall cools down the account that served it (default off).
+export const streamStallCooldownSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+  })
+  .strict();
+
 // Quota preflight cutoff (auth-level account skipping). Thresholds use
 // "minimum remaining %" semantics to match the dashboard's quota bars, and the
 // per-(provider, window) defaults override the global default per window.
@@ -178,6 +185,7 @@ export const updateResilienceSchema = z
     waitForCooldown: waitForCooldownSettingsSchema.optional(),
     comboCooldownWait: comboCooldownWaitSettingsSchema.optional(),
     quotaShareConcurrencyLimit: quotaShareConcurrencyLimitSettingsSchema.optional(),
+    streamStallCooldown: streamStallCooldownSettingsSchema.optional(),
     providerCooldown: providerCooldownSettingsSchema.optional(),
     // Quota preflight cutoff (auth-level account skipping) — surfaced in the
     // Settings → Routing UI. Mirrors QuotaPreflightSettings in
@@ -218,6 +226,7 @@ export const updateResilienceSchema = z
       !value.waitForCooldown &&
       !value.comboCooldownWait &&
       !value.quotaShareConcurrencyLimit &&
+      !value.streamStallCooldown &&
       !value.providerCooldown &&
       !value.quotaPreflight &&
       !value.profiles &&
@@ -306,6 +315,10 @@ export const guideSettingsSaveSchema = z
     model: z.string().trim().min(1, "Model is required").optional(),
     models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
     modelLabels: z.record(z.string(), z.string().trim().min(1)).optional(),
+    // OpenCode dashboard save forwards the /v1/models catalog the page already
+    // loaded. Unknown keys stay so context_length / capabilities are not stripped.
+    // Absent catalog keeps the writer's 128K/8K fallback.
+    catalog: z.array(z.object({ id: z.string().trim().min(1) }).passthrough()).optional(),
   })
   .refine((data) => !!data.model || !!data.models?.length, {
     message: "Model is required",

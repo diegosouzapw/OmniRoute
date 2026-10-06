@@ -205,9 +205,12 @@ export class TraeExecutor extends BaseExecutor {
     try {
       const res = await fetch(url, { method: "GET", headers, signal: ctrl.signal });
       if (!res.ok || !res.body) {
-        // Publish the received status so proxy health counts it as upstream.
-        const sink = currentAppliedProxySink();
-        if (sink) sink.upstreamStatus = res.status;
+        // A 2xx with no body is a local stream failure. Only a real HTTP
+        // error counts as an upstream status for proxy health.
+        if (!res.ok) {
+          const sink = currentAppliedProxySink();
+          if (sink) sink.upstreamStatus = res.status;
+        }
         throw new Error(`[${res.status}] events stream failed`);
       }
       const reader = res.body.getReader();

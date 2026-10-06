@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP açıklama sıkıştırması",
     "mcpAccessibilityTitle": "MCP erişilebilirlik çıktısı",
     "compressionSettingsCavemanIntensity": "Mağara adamı yoğunluğu",
-    "compressionSettingsCavemanOutputMode": "Mağara adamı çıkış modu",
     "compressionSettingsOutputStyles": "Çıktı stilleri",
     "compressionStylesTileTitle": "Çıktı stilleri",
     "compressionSettingsOutputIntensity": "Çıkış yoğunluğu",
-    "compressionSettingsAutoClarityBypass": "Otomatik netlik bypass'ı",
     "compressionEffectivePipeline": "Geçerli işlem hattı:",
     "compressionDerivedOff": "kapalı",
     "compressionDerivedRuns": "çalıştırmalar: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Sıkıştırılacak minimum satır sayısı",
         "description": "Tablosal sıkıştırmayı tetiklemek için homojen bir JSON dizisinde gereken minimum satır sayısı. Varsayılan: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Sistem istemini koru"
-      },
       "summarizerEnabled": {
         "label": "Özetleyiciyi etkinleştir"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Bundan daha kısa mesajlar sıkıştırılmaz. Daha düşük = daha fazla sıkıştırma.",
     "tooltipMinSavings": "Yalnızca en az bu kadar jeton tasarrufu sağlıyorsa sıkıştırın.",
     "ultraSettings": "Ultra Ayarlar",
-    "ultraSettingsDesc": "SLM destekli anlamsal sıkıştırma",
-    "preview": {
-      "lite": "Kısa yanıt ver. Teknik terimleri, kodu, hataları, URL'leri ve tanımlayıcıları koru.",
-      "full": "Kısa ve öz yanıt ver. Tüm teknik içeriği koru.",
-      "ultra": "Yaygın teknik kısaltmalarla son derece kısa yanıt ver. Sembolleri aynen koru."
-    }
+    "ultraSettingsDesc": "SLM destekli anlamsal sıkıştırma"
   },
   "translator": {
     "title": "Çeviri",

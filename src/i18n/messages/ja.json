@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP 記述圧縮",
     "mcpAccessibilityTitle": "MCPアクセシビリティ出力",
     "compressionSettingsCavemanIntensity": "穴居人の激しさ",
-    "compressionSettingsCavemanOutputMode": "穴居人出力モード",
     "compressionSettingsOutputStyles": "出力スタイル",
     "compressionStylesTileTitle": "出力スタイル",
     "compressionSettingsOutputIntensity": "出力強度",
-    "compressionSettingsAutoClarityBypass": "自動明瞭度バイパス",
     "compressionEffectivePipeline": "有効なパイプライン:",
     "compressionDerivedOff": "オフ",
     "compressionDerivedRuns": "実行: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "圧縮する最小行数",
         "description": "表形式の圧縮をトリガーするために必要な、同質なJSON配列の最小行数。デフォルト: 8。"
       },
-      "preserveSystemPrompt": {
-        "label": "システムプロンプトを保持"
-      },
       "summarizerEnabled": {
         "label": "要約機能を有効化"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "これより短いメッセージは圧縮されません。低い = 圧縮が高くなります。",
     "tooltipMinSavings": "少なくともこの数のトークンを保存する場合にのみ圧縮してください。",
     "ultraSettings": "ウルトラ設定",
-    "ultraSettingsDesc": "SLM を利用したセマンティック圧縮",
-    "preview": {
-      "lite": "簡潔に回答してください。技術用語、コード、エラー、URL、識別子は保持してください。",
-      "full": "簡潔かつコンパクトに回答してください。技術的な内容はすべて保持してください。",
-      "ultra": "一般的な技術略語を使用して、極めて簡潔に回答してください。記号は正確に保持してください。"
-    }
+    "ultraSettingsDesc": "SLM を利用したセマンティック圧縮"
   },
   "translator": {
     "title": "翻訳者",

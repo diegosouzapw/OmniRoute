@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-beskrivningskomprimering",
     "mcpAccessibilityTitle": "MCP-tillgänglighetsutdata",
     "compressionSettingsCavemanIntensity": "Grottmänniska intensitet",
-    "compressionSettingsCavemanOutputMode": "Grottmansutgångsläge",
     "compressionSettingsOutputStyles": "Utdatastilar",
     "compressionStylesTileTitle": "Utdatastilar",
     "compressionSettingsOutputIntensity": "Utgångsintensitet",
-    "compressionSettingsAutoClarityBypass": "Automatisk förbikoppling av klarhet",
     "compressionEffectivePipeline": "Effektiv pipeline:",
     "compressionDerivedOff": "av",
     "compressionDerivedRuns": "körningar: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minsta antal rader att komprimera",
         "description": "Minsta antal rader i en homogen JSON-array som krävs för att utlösa tabellkomprimering. Standard: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Bevara systemprompt"
-      },
       "summarizerEnabled": {
         "label": "Aktivera sammanfattare"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Meddelanden kortare än detta komprimeras inte. Lägre = mer kompression.",
     "tooltipMinSavings": "Komprimera bara om det sparar åtminstone så många tokens.",
     "ultraSettings": "Ultrainställningar",
-    "ultraSettingsDesc": "SLM-driven semantisk komprimering",
-    "preview": {
-      "lite": "Svara kortfattat. Bevara tekniska termer, kod, fel, URL:er och identifierare.",
-      "full": "Svara koncist och kompakt. Bevara allt tekniskt innehåll.",
-      "ultra": "Svara extremt kortfattat med vanliga tekniska förkortningar. Bevara exakta symboler."
-    }
+    "ultraSettingsDesc": "SLM-driven semantisk komprimering"
   },
   "translator": {
     "title": "Översättare",

@@ -149,6 +149,29 @@ function buildStyleBoundaries(resolved: OutputStyleSelectionEntry[], language: s
 }
 
 /**
+ * The block applyOutputStyles injects for a selection: marker line, style
+ * instructions, then the boundary block. "" when no style in the selection
+ * resolves. Pure / deterministic; exported so the dashboard preview renders
+ * the same string a request carries.
+ */
+export function buildOutputStylesInstruction(
+  selection: OutputStyleSelectionEntry[],
+  language = "en"
+): string {
+  const resolved = resolveStyles(selection ?? [], language);
+  if (resolved.length === 0) return "";
+
+  // The boundary block follows the instruction body with the spacing the last style's own
+  // text puts before SHARED_BOUNDARIES, so a legacy single-style (terse-prose) injection
+  // matches the old caveman output mode below the marker line in every legacy language
+  // (D-A5 back-compat): terse-prose declares no `boundaries`, so its block is exactly
+  // SHARED_BOUNDARIES as before.
+  // A style that declares one gets the shared clause AND its own, in catalog order.
+  const combined = `${buildStyleInstructions(resolved, language)}${buildStyleBoundaries(resolved, language)}`;
+  return `${OUTPUT_STYLE_MARKER}\n${combined}`;
+}
+
+/**
  * Inject one or more output styles deterministically and appended to the system prompt.
  * - Selection resolved in catalog order; unknown/locale-mismatched styles dropped.
  * - Boundary block appended once at the end: SHARED_BOUNDARIES plus the
@@ -169,14 +192,7 @@ export function applyOutputStyles(
     return { body, applied: false, skippedReason: "no_styles" };
   }
 
-  // The boundary block follows the instruction body with the spacing the last style's own
-  // text puts before SHARED_BOUNDARIES, so a legacy single-style (terse-prose) injection
-  // matches the old caveman output mode below the marker line in every legacy language
-  // (D-A5 back-compat): terse-prose declares no `boundaries`, so its block is exactly
-  // SHARED_BOUNDARIES as before.
-  // A style that declares one gets the shared clause AND its own, in catalog order.
-  const combined = `${buildStyleInstructions(resolved, language)}${buildStyleBoundaries(resolved, language)}`;
-  const instruction = `${OUTPUT_STYLE_MARKER}\n${combined}`;
+  const instruction = buildOutputStylesInstruction(resolved, language);
 
   const messages = Array.isArray(body.messages) ? body.messages : null;
   if (!messages || messages.length === 0) {

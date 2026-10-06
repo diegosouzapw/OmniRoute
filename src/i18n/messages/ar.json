@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "ضغط وصف MCP",
     "mcpAccessibilityTitle": "مخرجات إمكانية الوصول لـ MCP",
     "compressionSettingsCavemanIntensity": "شدة Caveman",
-    "compressionSettingsCavemanOutputMode": "وضع إخراج Caveman",
     "compressionSettingsOutputStyles": "أنماط المخرجات",
     "compressionStylesTileTitle": "أنماط المخرجات",
     "compressionSettingsOutputIntensity": "كثافة الإخراج",
-    "compressionSettingsAutoClarityBypass": "تجاوز الوضوح التلقائي",
     "compressionEffectivePipeline": "المسار الفعال:",
     "compressionDerivedOff": "معطل",
     "compressionDerivedRuns": "عمليات التشغيل: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "الحد الأدنى للصفوف لضغطها",
         "description": "الحد الأدنى للصفوف في مصفوفة JSON متجانسة المطلوبة لتشغيل الضغط الجدولي. الافتراضي: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "الحفاظ على توجيه النظام"
-      },
       "summarizerEnabled": {
         "label": "تمكين الملخص"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "لا يتم ضغط الرسائل الأقصر من ذلك. أقل = المزيد من الضغط.",
     "tooltipMinSavings": "قم بالضغط فقط إذا كان يحفظ هذا العدد من الرموز المميزة على الأقل.",
     "ultraSettings": "إعدادات الترا",
-    "ultraSettingsDesc": "الضغط الدلالي الذي يعمل بنظام SLM",
-    "preview": {
-      "lite": "أجب بإيجاز. حافظ على المصطلحات التقنية والشيفرة والأخطاء وعناوين URL والمعرّفات.",
-      "full": "أجب باقتضاب وبصيغة مضغوطة مع الحفاظ على كامل المضمون التقني.",
-      "ultra": "أجب بأقصى إيجاز باستخدام الاختصارات التقنية الشائعة، وحافظ على الرموز كما هي."
-    }
+    "ultraSettingsDesc": "الضغط الدلالي الذي يعمل بنظام SLM"
   },
   "translator": {
     "title": "مترجم",

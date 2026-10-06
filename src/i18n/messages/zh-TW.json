@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP描述壓縮",
     "mcpAccessibilityTitle": "MCP 無障礙輸出",
     "compressionSettingsCavemanIntensity": "穴居人強度",
-    "compressionSettingsCavemanOutputMode": "穴居人輸出模式",
     "compressionSettingsOutputStyles": "輸出樣式",
     "compressionStylesTileTitle": "輸出樣式",
     "compressionSettingsOutputIntensity": "輸出強度",
-    "compressionSettingsAutoClarityBypass": "自動清晰度旁路",
     "compressionEffectivePipeline": "有效管線：",
     "compressionDerivedOff": "關閉",
     "compressionDerivedRuns": "執行：{pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "最小壓縮行數",
         "description": "觸發表格壓縮所需的同質 JSON 陣列最小行數。預設值：8。"
       },
-      "preserveSystemPrompt": {
-        "label": "保留系統提示詞"
-      },
       "summarizerEnabled": {
         "label": "啟用摘要器"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "比這短的訊息不會被壓縮。更低=更多壓縮。",
     "tooltipMinSavings": "僅當至少儲存這麼多權杖時才進行壓縮。",
     "ultraSettings": "超級設定",
-    "ultraSettingsDesc": "SLM 支援的語義壓縮",
-    "preview": {
-      "lite": "回覆要簡潔。保留技術術語、程式碼、錯誤、URL 和識別符號。",
-      "full": "回覆要簡短緊湊。保留所有技術實質。",
-      "ultra": "用常見技術縮寫進行極簡回覆。保留精確符號。"
-    }
+    "ultraSettingsDesc": "SLM 支援的語義壓縮"
   },
   "translator": {
     "title": "翻譯器",

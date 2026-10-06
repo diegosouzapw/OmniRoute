@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Компресиране на MCP описание",
     "mcpAccessibilityTitle": "Изход за достъпност на MCP",
     "compressionSettingsCavemanIntensity": "Интензивност на пещерния човек",
-    "compressionSettingsCavemanOutputMode": "Режим на изход Caveman",
     "compressionSettingsOutputStyles": "Стилове на изхода",
     "compressionStylesTileTitle": "Стилове на изхода",
     "compressionSettingsOutputIntensity": "Изходен интензитет",
-    "compressionSettingsAutoClarityBypass": "Автоматично заобикаляне на яснотата",
     "compressionEffectivePipeline": "Ефективен конвейер:",
     "compressionDerivedOff": "изключено",
     "compressionDerivedRuns": "изпълнения: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Минимален брой редове за компактизиране",
         "description": "Минимален брой редове в хомогенен JSON масив, необходими за задействане на таблично компактизиране. По подразбиране: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Запазване на системната подкана"
-      },
       "summarizerEnabled": {
         "label": "Активиране на обобщаването"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Съобщенията, по-кратки от това, не се компресират. По-ниска = повече компресия.",
     "tooltipMinSavings": "Компресирайте само ако спестява поне толкова токени.",
     "ultraSettings": "Ултра настройки",
-    "ultraSettingsDesc": "Захранвана от SLM семантична компресия",
-    "preview": {
-      "lite": "Отговаряй кратко. Запазвай техническите термини, кода, грешките, URL адресите и идентификаторите.",
-      "full": "Отговаряй лаконично и стегнато. Запазвай цялото техническо съдържание.",
-      "ultra": "Отговаряй свръхлаконично с общоприети технически съкращения. Запазвай точните символи."
-    }
+    "ultraSettingsDesc": "Захранвана от SLM семантична компресия"
   },
   "translator": {
     "title": "Преводач",

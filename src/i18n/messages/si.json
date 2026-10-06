@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP විස්තර සම්පීඩනය",
     "mcpAccessibilityTitle": "MCP ප්රවේශ්යතා ප්රතිදානය",
     "compressionSettingsCavemanIntensity": "Caveman තීව්රතාව",
-    "compressionSettingsCavemanOutputMode": "Caveman ප්රතිදාන ප්රකාරය",
     "compressionSettingsOutputStyles": "ප්රතිදාන ශෛලීන්",
     "compressionStylesTileTitle": "ප්රතිදාන ශෛලීන්",
     "compressionSettingsOutputIntensity": "ප්රතිදාන තීව්රතාව",
-    "compressionSettingsAutoClarityBypass": "ස්වයංක්රීය පැහැදිලිතා මඟහැරීම",
     "compressionEffectivePipeline": "ක්රියාත්මක ක්රියාදාම පෙළ:",
     "compressionDerivedOff": "අක්රියයි",
     "compressionDerivedRuns": "ධාවනය වේ: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "සංක්ෂිප්ත කිරීමට අවශ්ය අවම පේළි ගණන",
         "description": "වගුමය සංක්ෂිප්තකරණය ක්රියාත්මක කිරීමට අවශ්ය සමජාතීය JSON අරාවක අවම පේළි ගණන. පෙරනිමිය: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "පද්ධති ප්රේරකය සංරක්ෂණය කරන්න"
-      },
       "summarizerEnabled": {
         "label": "සාරාංශකාරකය සබල කරන්න"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "මෙයට වඩා කෙටි පණිවිඩ සම්පීඩනය නොකෙරේ. අඩු = වැඩි සම්පීඩනයක්.",
     "tooltipMinSavings": "අවම වශයෙන් මෙම ටෝකන ගණනවත් ඉතිරි කරන්නේ නම් පමණක් සම්පීඩනය කරන්න.",
     "ultraSettings": "Ultra සැකසුම්",
-    "ultraSettingsDesc": "SLM මඟින් බලගැන්වෙන අර්ථමය සම්පීඩනය",
-    "preview": {
-      "lite": "සංක්ෂිප්තව ප්රතිචාර දක්වන්න. තාක්ෂණික පද, code, errors, URLs සහ identifiers එලෙසම තබාගන්න.",
-      "full": "ඉතා කෙටියෙන් හා සංක්ෂිප්තව ප්රතිචාර දක්වන්න. සියලු තාක්ෂණික අන්තර්ගතය සුරකින්න.",
-      "ultra": "පොදු තාක්ෂණික කෙටි යෙදුම් භාවිතයෙන් අතිශයින් කෙටියෙන් ප්රතිචාර දක්වන්න. නිශ්චිත සංකේත එලෙසම තබාගන්න."
-    }
+    "ultraSettingsDesc": "SLM මඟින් බලගැන්වෙන අර්ථමය සම්පීඩනය"
   },
   "translator": {
     "title": "පරිවර්තකය",

@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Komprimierung der MCP-Beschreibung",
     "mcpAccessibilityTitle": "MCP-Barrierefreiheitsausgabe",
     "compressionSettingsCavemanIntensity": "Höhlenmensch-Intensität",
-    "compressionSettingsCavemanOutputMode": "Caveman-Ausgabemodus",
     "compressionSettingsOutputStyles": "Ausgabestile",
     "compressionStylesTileTitle": "Ausgabestile",
     "compressionSettingsOutputIntensity": "Ausgangsintensität",
-    "compressionSettingsAutoClarityBypass": "Umgehung der automatischen Klarheit",
     "compressionEffectivePipeline": "Effektive Pipeline:",
     "compressionDerivedOff": "aus",
     "compressionDerivedRuns": "Ausführungen: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimale Zeilen zum Komprimieren",
         "description": "Mindestanzahl an Zeilen in einem homogenen JSON-Array, die erforderlich ist, um eine tabellarische Komprimierung auszulösen. Standard: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "System-Prompt beibehalten"
-      },
       "summarizerEnabled": {
         "label": "Summarizer aktivieren"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Nachrichten, die kürzer sind, werden nicht komprimiert. Niedriger = mehr Komprimierung.",
     "tooltipMinSavings": "Komprimieren Sie nur, wenn dadurch mindestens so viele Token eingespart werden.",
     "ultraSettings": "Ultra-Einstellungen",
-    "ultraSettingsDesc": "SLM-gestützte semantische Komprimierung",
-    "preview": {
-      "lite": "Antworte prägnant. Behalte technische Begriffe, Code, Fehler, URLs und Bezeichner bei.",
-      "full": "Antworte knapp und kompakt. Behalte alle technischen Inhalte bei.",
-      "ultra": "Antworte extrem knapp und verwende gängige technische Abkürzungen. Behalte alle Symbole exakt bei."
-    }
+    "ultraSettingsDesc": "SLM-gestützte semantische Komprimierung"
   },
   "translator": {
     "title": "Übersetzer",

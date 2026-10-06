@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-beschrijving compressie",
     "mcpAccessibilityTitle": "MCP-toegankelijkheidsuitvoer",
     "compressionSettingsCavemanIntensity": "De intensiteit van de holbewoner",
-    "compressionSettingsCavemanOutputMode": "Holbewoner-uitvoermodus",
     "compressionSettingsOutputStyles": "Uitvoerstijlen",
     "compressionStylesTileTitle": "Uitvoerstijlen",
     "compressionSettingsOutputIntensity": "Uitgangsintensiteit",
-    "compressionSettingsAutoClarityBypass": "Automatische helderheidsbypass",
     "compressionEffectivePipeline": "Effectieve pipeline:",
     "compressionDerivedOff": "uit",
     "compressionDerivedRuns": "uitvoeringen: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimum aantal rijen om te compacteren",
         "description": "Minimum aantal rijen in een homogene JSON-array dat vereist is om tabulaire compactie te activeren. Standaard: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Systeemprompt behouden"
-      },
       "summarizerEnabled": {
         "label": "Samenvatter inschakelen"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Berichten die korter zijn dan dit, worden niet gecomprimeerd. Lager = meer compressie.",
     "tooltipMinSavings": "Alleen comprimeren als het minstens zoveel tokens bespaart.",
     "ultraSettings": "Ultra-instellingen",
-    "ultraSettingsDesc": "SLM-aangedreven semantische compressie",
-    "preview": {
-      "lite": "Antwoord bondig. Behoud technische termen, code, fouten, URLs en identificatiecodes.",
-      "full": "Antwoord beknopt en compact. Behoud alle technische inhoud.",
-      "ultra": "Antwoord uiterst beknopt met gangbare technische afkortingen. Behoud exacte symbolen."
-    }
+    "ultraSettingsDesc": "SLM-aangedreven semantische compressie"
   },
   "translator": {
     "title": "Vertaler",

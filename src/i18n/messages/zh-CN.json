@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP描述压缩",
     "mcpAccessibilityTitle": "MCP 无障碍输出",
     "compressionSettingsCavemanIntensity": "穴居人强度",
-    "compressionSettingsCavemanOutputMode": "穴居人输出模式",
     "compressionSettingsOutputStyles": "输出样式",
     "compressionStylesTileTitle": "输出样式",
     "compressionSettingsOutputIntensity": "输出强度",
-    "compressionSettingsAutoClarityBypass": "自动清晰度旁路",
     "compressionEffectivePipeline": "生效的流水线：",
     "compressionDerivedOff": "关闭",
     "compressionDerivedRuns": "运行：{pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "压缩所需的最小行数",
         "description": "触发表格压缩所需的同构 JSON 数组的最小行数。默认值: 8。"
       },
-      "preserveSystemPrompt": {
-        "label": "保留系统提示词"
-      },
       "summarizerEnabled": {
         "label": "启用摘要生成器"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "比这短的消息不会被压缩。更低=更多压缩。",
     "tooltipMinSavings": "仅当至少保存这么多令牌时才进行压缩。",
     "ultraSettings": "超级设置",
-    "ultraSettingsDesc": "SLM 支持的语义压缩",
-    "preview": {
-      "lite": "回复要简洁。保留技术术语、代码、错误、URL 和标识符。",
-      "full": "回复要简短紧凑。保留所有技术实质。",
-      "ultra": "用常见技术缩写进行极简回复。保留精确符号。"
-    }
+    "ultraSettingsDesc": "SLM 支持的语义压缩"
   },
   "translator": {
     "title": "翻译器",

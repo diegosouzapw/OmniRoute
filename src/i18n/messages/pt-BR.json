@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Compressão de descrição MCP",
     "mcpAccessibilityTitle": "Saída de acessibilidade do MCP",
     "compressionSettingsCavemanIntensity": "Intensidade do homem das cavernas",
-    "compressionSettingsCavemanOutputMode": "Modo de saída do homem das cavernas",
     "compressionSettingsOutputStyles": "Estilos de saída",
     "compressionStylesTileTitle": "Estilos de saída",
     "compressionSettingsOutputIntensity": "Intensidade de saída",
-    "compressionSettingsAutoClarityBypass": "Desvio de clareza automática",
     "compressionEffectivePipeline": "Pipeline efetivo:",
     "compressionDerivedOff": "desligado",
     "compressionDerivedRuns": "executa: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Linhas mínimas para compactar",
         "description": "Número mínimo de linhas em um array JSON homogêneo necessário para acionar a compactação tabular. Padrão: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Preservar prompt de sistema"
-      },
       "summarizerEnabled": {
         "label": "Ativar resumidor"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Mensagens menores que isso não são compactadas. Menor = mais compressão.",
     "tooltipMinSavings": "Compacte apenas se salvar pelo menos esse número de tokens.",
     "ultraSettings": "Configurações Ultra",
-    "ultraSettingsDesc": "Compressão semântica alimentada por SLM",
-    "preview": {
-      "lite": "Responda conciso. Preserve termos tecnicos, codigo, erros, URLs e identificadores.",
-      "full": "Responda seco e compacto. Preserve todo conteudo tecnico.",
-      "ultra": "Responda ultra compacto com abreviacoes tecnicas comuns. Preserve simbolos exatos."
-    }
+    "ultraSettingsDesc": "Compressão semântica alimentada por SLM"
   },
   "translator": {
     "title": "Tradutor",

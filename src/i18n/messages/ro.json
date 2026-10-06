@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Comprimarea descrierii MCP",
     "mcpAccessibilityTitle": "Ieșire accesibilitate MCP",
     "compressionSettingsCavemanIntensity": "Intensitatea cavernelor",
-    "compressionSettingsCavemanOutputMode": "Modul de ieșire Caveman",
     "compressionSettingsOutputStyles": "Stiluri de ieșire",
     "compressionStylesTileTitle": "Stiluri de ieșire",
     "compressionSettingsOutputIntensity": "Intensitatea ieșirii",
-    "compressionSettingsAutoClarityBypass": "Ocolire automată a clarității",
     "compressionEffectivePipeline": "Pipeline efectiv:",
     "compressionDerivedOff": "dezactivat",
     "compressionDerivedRuns": "rulări: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Număr minim de rânduri de compactat",
         "description": "Numărul minim de rânduri dintr-un tablou JSON omogen necesar pentru a declanșa compactarea tabulară. Implicit: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Păstrează promptul de sistem"
-      },
       "summarizerEnabled": {
         "label": "Activează rezumatorul"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Mesajele mai scurte decât aceasta nu sunt comprimate. Mai jos = compresie mai mare.",
     "tooltipMinSavings": "Comprimați doar dacă salvează cel puțin atât de multe jetoane.",
     "ultraSettings": "Setări Ultra",
-    "ultraSettingsDesc": "Compresie semantică alimentată de SLM",
-    "preview": {
-      "lite": "Răspundeți concis. Păstrați termenii tehnici, codul, erorile, URL-urile și identificatorii.",
-      "full": "Răspundeți succint și compact. Păstrați integral conținutul tehnic.",
-      "ultra": "Răspundeți extrem de succint, folosind abrevieri tehnice uzuale. Păstrați simbolurile exacte."
-    }
+    "ultraSettingsDesc": "Compresie semantică alimentată de SLM"
   },
   "translator": {
     "title": "Traducător",

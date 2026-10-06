@@ -21,12 +21,6 @@ interface CavemanConfig {
   intensity: CavemanIntensity;
 }
 
-interface CavemanOutputModeConfig {
-  enabled: boolean;
-  intensity: CavemanIntensity;
-  autoClarity: boolean;
-}
-
 interface RtkConfig {
   enabled: boolean;
   intensity: RtkIntensity;
@@ -81,7 +75,6 @@ interface CompressionConfig extends CompressionTokenSaverConfig {
   mcpDescriptionCompressionEnabled?: boolean;
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
-  cavemanOutputMode?: CavemanOutputModeConfig;
   rtkConfig?: RtkConfig;
   codexResponsesConfig?: CodexResponsesConfig;
   aggressive?: AggressiveConfig;
@@ -190,7 +183,6 @@ export default function CompressionSettingsTab() {
     cavemanOutputMode: {
       enabled: false,
       intensity: "full",
-      autoClarity: true,
     },
     rtkConfig: {
       enabled: true,
@@ -653,44 +645,6 @@ export default function CompressionSettingsTab() {
               </>
             </div>
           )}
-
-        {config.enabled && config.cavemanOutputMode && (
-          <div className="space-y-3 pt-4 border-t border-border/30">
-            <div>
-              <h4 className="text-sm font-medium text-text-main">
-                {t("compressionSettingsCavemanOutputMode")}
-              </h4>
-              <p className="text-xs text-text-muted mt-0.5">
-                Injects terse response instructions without rewriting provider output. Its on/off
-                and level are set in the panel (/dashboard/context/settings).
-              </p>
-            </div>
-
-            <label className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">
-                {t("compressionSettingsAutoClarityBypass")}
-              </span>
-              <button
-                onClick={() =>
-                  save({
-                    cavemanOutputMode: {
-                      autoClarity: !config.cavemanOutputMode!.autoClarity,
-                    },
-                  })
-                }
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  config.cavemanOutputMode.autoClarity ? "bg-green-500" : "bg-border"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    config.cavemanOutputMode.autoClarity ? "left-5" : "left-0.5"
-                  }`}
-                />
-              </button>
-            </label>
-          </div>
-        )}
 
         {config.enabled && config.defaultMode === "aggressive" && config.aggressive && (
           <div className="space-y-3 pt-4 border-t border-border/30">

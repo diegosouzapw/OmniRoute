@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP აღწერის შეკუმშვა",
     "mcpAccessibilityTitle": "MCP-ის გამომავალი შედეგების ხელმისაწვდომობა",
     "compressionSettingsCavemanIntensity": "Caveman-ის ინტენსივობა",
-    "compressionSettingsCavemanOutputMode": "Caveman-ის გამოტანის რეჟიმი",
     "compressionSettingsOutputStyles": "გამოტანის სტილები",
     "compressionStylesTileTitle": "გამოტანის სტილები",
     "compressionSettingsOutputIntensity": "გამოტანის ინტენსივობა",
-    "compressionSettingsAutoClarityBypass": "სიცხადის ავტომატური გამოტოვება",
     "compressionEffectivePipeline": "ეფექტური კონვეიერი:",
     "compressionDerivedOff": "გამორთული",
     "compressionDerivedRuns": "გაშვებები: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "შესაკუმშავი მწკრივების მინიმალური რაოდენობა",
         "description": "ერთგვაროვან JSON მასივში მწკრივების მინიმალური რაოდენობა, რომელიც საჭიროა ტაბულარული შეკუმშვის გასააქტიურებლად. ნაგულისხმევი მნიშვნელობა: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "სისტემური მითითების შენარჩუნება"
-      },
       "summarizerEnabled": {
         "label": "შემაჯამებლის ჩართვა"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "ამაზე მოკლე შეტყობინებები არ იკუმშება. ნაკლები = მეტი შეკუმშვა.",
     "tooltipMinSavings": "შეკუმშვა მხოლოდ იმ შემთხვევაში, თუ მინიმუმ ამდენ ტოკენს დაზოგავს.",
     "ultraSettings": "ულტრა პარამეტრები",
-    "ultraSettingsDesc": "SLM-ზე დაფუძნებული სემანტიკური შეკუმშვა",
-    "preview": {
-      "lite": "უპასუხეთ მოკლედ. უცვლელად შეინარჩუნეთ ტექნიკური ტერმინები, კოდი, შეცდომები, URLs და იდენტიფიკატორები.",
-      "full": "უპასუხეთ ლაკონიურად და კომპაქტურად. შეინარჩუნეთ სრული ტექნიკური შინაარსი.",
-      "ultra": "უპასუხეთ უკიდურესად ლაკონიურად, გავრცელებული ტექნიკური აბრევიატურებით. ზუსტი სიმბოლოები უცვლელად შეინარჩუნეთ."
-    }
+    "ultraSettingsDesc": "SLM-ზე დაფუძნებული სემანტიკური შეკუმშვა"
   },
   "translator": {
     "title": "მთარგმნელი",

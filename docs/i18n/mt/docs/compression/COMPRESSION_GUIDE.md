@@ -468,8 +468,7 @@ l-istruzzjoni lokalizzata minflok dik bl-Ingliż.
 F’body b’`messages`, bypass tal-kontenut (`shouldBypassCavemanOutputMode()` f’
 `open-sse/services/compression/outputMode.ts`) jiċċekkja l-aħħar tliet messaġġi u jaqbeż
 l-istili għat-turn kollu meta dawn jaqblu mal-kliem ewlieni tiegħu dwar is-sigurtà, azzjonijiet irriversibbli,
-kjarifika, jew sensittività għall-ordni. Il-bypass jaħdem skont kif ikun issettjat it-toggle
-**Auto-Clarity Bypass** tad-dashboard (`cavemanOutputMode.autoClarity`).
+kjarifika, jew sensittività għall-ordni. Il-bypass jaħdem waqt li t-toggle **Auto-Clarity Bypass** tad-dashboard (`cavemanOutputMode.autoClarity`) tkun mixgħula, li huwa l-impostazzjoni prefissata; bit-toggle mitfi, l-istili magħżula japplikaw ukoll f'dawk it-turni.
 
 Meta l-bypass iħalli t-turn jgħaddi, `placeSystemInstruction()` (fl-istess fajl), li
 qatt ma joħloq `messages[0]` ġdid, ipoġġi l-blokka fl-ewwel wieħed minn dawn li jsib:

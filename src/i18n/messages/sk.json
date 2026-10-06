@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Kompresia popisu MCP",
     "mcpAccessibilityTitle": "Výstup prístupnosti MCP",
     "compressionSettingsCavemanIntensity": "Intenzita jaskynného muža",
-    "compressionSettingsCavemanOutputMode": "Výstupný režim Caveman",
     "compressionSettingsOutputStyles": "Štýly výstupu",
     "compressionStylesTileTitle": "Štýly výstupu",
     "compressionSettingsOutputIntensity": "Výstupná intenzita",
-    "compressionSettingsAutoClarityBypass": "Obtok automatického jasu",
     "compressionEffectivePipeline": "Efektívna pipeline:",
     "compressionDerivedOff": "vypnuté",
     "compressionDerivedRuns": "spustenia: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimálny počet riadkov na zhustenie",
         "description": "Minimálny počet riadkov v homogénnom JSON poli potrebný na spustenie tabuľkového zhustenia. Predvolené: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Zachovať systémový prompt"
-      },
       "summarizerEnabled": {
         "label": "Povoliť sumarizátor"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Správy kratšie ako toto nie sú komprimované. Nižšia = väčšia kompresia.",
     "tooltipMinSavings": "Komprimujte iba vtedy, ak uložíte aspoň toľko tokenov.",
     "ultraSettings": "Ultra nastavenia",
-    "ultraSettingsDesc": "Sémantická kompresia poháňaná SLM",
-    "preview": {
-      "lite": "Odpovedaj stručne. Zachovaj technické termíny, kód, chyby, adresy URL a identifikátory.",
-      "full": "Odpovedaj úsečne a kompaktne. Zachovaj všetok technický obsah.",
-      "ultra": "Odpovedaj maximálne úsečne s použitím bežných technických skratiek. Zachovaj presné symboly."
-    }
+    "ultraSettingsDesc": "Sémantická kompresia poháňaná SLM"
   },
   "translator": {
     "title": "Prekladateľ",

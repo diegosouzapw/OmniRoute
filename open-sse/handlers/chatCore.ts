@@ -18,8 +18,8 @@ import {
 } from "./chatCore/failureUsage.ts";
 import { createTranslationFailureResult } from "./chatCore/translationFailure.ts";
 import {
+  estimateCalibratedFinalInputTokens,
   estimateFinalInputTokenBreakdown,
-  estimateFinalInputTokens,
 } from "./chatCore/contextEstimation.ts";
 import {
   extractSystemRoleMessages,
@@ -2082,7 +2082,8 @@ async function handleChatCoreInner({
   // filtering is advisory and may preserve an all-incompatible pool; this is the
   // hard boundary that prevents a too-large prompt (or a negative token budget)
   // from reaching an OpenAI-compatible upstream such as NVIDIA NIM.
-  let finalEstimatedInputTokens = estimateFinalInputTokens(body as Record<string, unknown>);
+  // #14931: scaled by the learned actual/estimated ratio (factor 1.0 cold).
+  let finalEstimatedInputTokens = estimateCalibratedFinalInputTokens(body, provider, effectiveModel);
   // Reuse the already-resolved `contextLimit` (may have been narrowed to the
   // per-target combo window above, resolveComboContextLimit) instead of a bare
   // getTokenLimit(provider, effectiveModel) re-fetch, which would silently
@@ -2112,7 +2113,7 @@ async function handleChatCoreInner({
             dropMissingMappedItems: true,
           })
         : lastResortResult.body;
-      finalEstimatedInputTokens = estimateFinalInputTokens(body as Record<string, unknown>);
+      finalEstimatedInputTokens = estimateCalibratedFinalInputTokens(body, provider, effectiveModel);
       const finalInputBreakdown = estimateFinalInputTokenBreakdown(
         body as Record<string, unknown>
       );
@@ -2126,6 +2127,7 @@ async function handleChatCoreInner({
     }
   }
 
+  const calibrationEstimatedInputTokens = finalEstimatedInputTokens; // #14931 pairing
   const modelOutputCap = toPositiveInteger(
     getExplicitModelOutputCap({ provider, model: effectiveModel })
   );
@@ -3659,6 +3661,7 @@ async function handleChatCoreInner({
       buildCostCtx,
       buildErrorBody,
       calculateCost,
+      calibrationEstimatedInputTokens,
       claudePromptCacheLogMeta,
       clientRawRequest,
       clientRequestedResponsesStream,
@@ -3791,6 +3794,7 @@ async function handleChatCoreInner({
     attachCompressionUsageReceiptAfterAnalytics,
     body,
     bodyForCacheWrite,
+    calibrationEstimatedInputTokens,
     claudePromptCacheLogMeta,
     clientRawRequest,
     clientResponseFormat,
@@ -3805,6 +3809,7 @@ async function handleChatCoreInner({
     currentModel,
     customToolNames,
     echoModel,
+    effectiveModel,
     effectiveServiceTier,
     endpointPath,
     executeProviderRequest,

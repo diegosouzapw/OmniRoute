@@ -455,8 +455,7 @@ injektoidaan englannin sijaan.
 Rungossa, jossa on `messages`, sisällön ohitus (`shouldBypassCavemanOutputMode()` tiedostossa
 `open-sse/services/compression/outputMode.ts`) tarkistaa kolme viimeisintä viestiä ja ohittaa
 tyylit koko vuoron ajaksi, kun ne vastaavat sen turvallisuus-, peruuttamattoman toiminnan,
-selvennys- tai järjestysherkkiä avainsanoja. Ohitus suoritetaan riippumatta siitä, mihin
-hallintapaneelin **Auto-Clarity Bypass** -kytkin (`cavemanOutputMode.autoClarity`) on asetettu.
+selvennys- tai järjestysherkkiä avainsanoja. Ohitus suoritetaan, kun hallintapaneelin **Auto-Clarity Bypass** -kytkin (`cavemanOutputMode.autoClarity`) on päällä, mikä on oletus; kytkimen ollessa pois päältä valitut tyylit otetaan käyttöön myös näillä vuoroilla.
 
 Kun ohitus sallii vuoron läpi, `placeSystemInstruction()` (sama tiedosto), joka
 ei koskaan luo uutta `messages[0]`, sijoittaa lohkon ensimmäiseen näistä, jonka se löytää:

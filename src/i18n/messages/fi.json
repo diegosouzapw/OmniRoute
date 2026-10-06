@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-kuvauksen pakkaus",
     "mcpAccessibilityTitle": "MCP-saavutettavuustuloste",
     "compressionSettingsCavemanIntensity": "Luolamiesten intensiteetti",
-    "compressionSettingsCavemanOutputMode": "Caveman-lähtötila",
     "compressionSettingsOutputStyles": "Tulostetyylit",
     "compressionStylesTileTitle": "Tulostetyylit",
     "compressionSettingsOutputIntensity": "Tulostuksen intensiteetti",
-    "compressionSettingsAutoClarityBypass": "Automaattinen selkeyden ohitus",
     "compressionEffectivePipeline": "Voimassa oleva liukuhihna:",
     "compressionDerivedOff": "pois päältä",
     "compressionDerivedRuns": "ajot: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Tiivistettävien rivien vähimmäismäärä",
         "description": "Homogeenisen JSON-taulukon rivien vähimmäismäärä taulukkomaisen tiivistämisen käynnistämiseksi. Oletus: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Säilytä järjestelmäkehote"
-      },
       "summarizerEnabled": {
         "label": "Ota tiivistäjä käyttöön"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Tätä lyhyempiä viestejä ei pakata. Alempi = enemmän pakkausta.",
     "tooltipMinSavings": "Pakkaa vain, jos se säästää vähintään näin monta merkkiä.",
     "ultraSettings": "Ultra-asetukset",
-    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus",
-    "preview": {
-      "lite": "Vastaa ytimekkäästi. Säilytä tekniset termit, koodi, virheet, URL-osoitteet ja tunnisteet.",
-      "full": "Vastaa lyhyesti ja tiiviisti. Säilytä kaikki tekninen asiasisältö.",
-      "ultra": "Vastaa erittäin lyhyesti käyttäen yleisiä teknisiä lyhenteitä. Säilytä symbolit täsmälleen."
-    }
+    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus"
   },
   "translator": {
     "title": "Kääntäjä",

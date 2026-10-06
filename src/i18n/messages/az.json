@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP təsvirinin sıxılması",
     "mcpAccessibilityTitle": "MCP əlçatanlıq çıxışı",
     "compressionSettingsCavemanIntensity": "Mağara adamının intensivliyi",
-    "compressionSettingsCavemanOutputMode": "Caveman çıxış rejimi",
     "compressionSettingsOutputStyles": "Çıxış üslubları",
     "compressionStylesTileTitle": "Çıxış üslubları",
     "compressionSettingsOutputIntensity": "Çıxış intensivliyi",
-    "compressionSettingsAutoClarityBypass": "Avtomatik aydınlıq bypass",
     "compressionEffectivePipeline": "Effektiv pipeline:",
     "compressionDerivedOff": "qapalı",
     "compressionDerivedRuns": "işəsalmalar: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Kompaktlaşdırmaq üçün minimum sətir sayı",
         "description": "Cədvəl kompaktlaşdırmasını işə salmaq üçün tələb olunan bircins JSON massivindəki minimum sətir sayı. Standart: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Sistem promptunu qoru"
-      },
       "summarizerEnabled": {
         "label": "Xülasələndiricini aktivləşdir"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Bundan qısa mesajlar sıxılmır. Aşağı = daha çox sıxılma.",
     "tooltipMinSavings": "Yalnız ən azı bu qədər token saxlasa sıxışdırın.",
     "ultraSettings": "Ultra Parametrlər",
-    "ultraSettingsDesc": "SLM ilə dəstəklənən semantik sıxılma",
-    "preview": {
-      "lite": "Yığcam cavab verin. Texniki terminləri, kodu, xətaları, URL-ləri və identifikatorları qoruyun.",
-      "full": "Qısa və yığcam cavab verin. Bütün texniki məzmunu qoruyun.",
-      "ultra": "Ümumi texniki ixtisarlardan istifadə edərək son dərəcə qısa cavab verin. Simvolları olduğu kimi qoruyun."
-    }
+    "ultraSettingsDesc": "SLM ilə dəstəklənən semantik sıxılma"
   },
   "translator": {
     "title": "Tərcüməçi",

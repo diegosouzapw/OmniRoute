@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Компресија MCP описа",
     "mcpAccessibilityTitle": "MCP излаз за приступачност",
     "compressionSettingsCavemanIntensity": "Интензитет Caveman режима",
-    "compressionSettingsCavemanOutputMode": "Режим Caveman излаза",
     "compressionSettingsOutputStyles": "Стилови излаза",
     "compressionStylesTileTitle": "Стилови излаза",
     "compressionSettingsOutputIntensity": "Интензитет излаза",
-    "compressionSettingsAutoClarityBypass": "Аутоматско заобилажење јасности",
     "compressionEffectivePipeline": "Ефективни пајплајн:",
     "compressionDerivedOff": "искључено",
     "compressionDerivedRuns": "покреће: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Минималан број редова за компакцију",
         "description": "Минималан број редова у хомогеном JSON низу потребан за покретање табеларне компакције. Подразумевано: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Очувај системски промпт"
-      },
       "summarizerEnabled": {
         "label": "Активирај сумаризатор"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Поруке краће од овога се не компримују. Мање = више компресије.",
     "tooltipMinSavings": "Компримуј само ако се уштеди бар оволико токена.",
     "ultraSettings": "Ултра подешавања",
-    "ultraSettingsDesc": "Семантичка компресија коју покреће SLM",
-    "preview": {
-      "lite": "Одговарај сажето. Сачувај техничке термине, код, грешке, URL адресе и идентификаторе.",
-      "full": "Одговарај кратко и сажето. Задржи сву техничку суштину.",
-      "ultra": "Одговарај изузетно кратко уз уобичајене техничке скраћенице. Задржи тачне симболе."
-    }
+    "ultraSettingsDesc": "Семантичка компресија коју покреће SLM"
   },
   "translator": {
     "title": "Преводилац",

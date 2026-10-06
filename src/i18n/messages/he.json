@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "דחיסת תיאור MCP",
     "mcpAccessibilityTitle": "פלט נגישות MCP",
     "compressionSettingsCavemanIntensity": "עוצמת איש המערות",
-    "compressionSettingsCavemanOutputMode": "מצב פלט איש מערות",
     "compressionSettingsOutputStyles": "סגנונות פלט",
     "compressionStylesTileTitle": "סגנונות פלט",
     "compressionSettingsOutputIntensity": "עוצמת הפלט",
-    "compressionSettingsAutoClarityBypass": "מעקף בהירות אוטומטי",
     "compressionEffectivePipeline": "צינור עיבוד אפקטיבי:",
     "compressionDerivedOff": "כבוי",
     "compressionDerivedRuns": "הרצות: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "מינימום שורות לכיווץ",
         "description": "מספר השורות המינימלי במערך JSON הומוגני הנדרש להפעלת כיווץ טבלאי. ברירת מחדל: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "שמור על הנחיית המערכת"
-      },
       "summarizerEnabled": {
         "label": "הפעל מסכם"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "הודעות קצרות מזה אינן דחוסות. נמוך יותר = יותר דחיסה.",
     "tooltipMinSavings": "דחוס רק אם זה חוסך לפחות כל כך הרבה אסימונים.",
     "ultraSettings": "הגדרות אולטרה",
-    "ultraSettingsDesc": "דחיסה סמנטית המופעלת על ידי SLM",
-    "preview": {
-      "lite": "השב בקצרה. שמור על מונחים טכניים, קוד, שגיאות, כתובות URL ומזהים.",
-      "full": "השב בתמציתיות ובקיצור. שמור על כל התוכן הטכני.",
-      "ultra": "השב בקיצור מרבי עם קיצורים טכניים נפוצים. שמור על הסמלים המדויקים."
-    }
+    "ultraSettingsDesc": "דחיסה סמנטית המופעלת על ידי SLM"
   },
   "translator": {
     "title": "מתרגם",

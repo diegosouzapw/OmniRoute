@@ -558,7 +558,8 @@ test("resilience API only exposes configuration, not runtime breaker state", asy
   // Exact key set — this is the whole point of the test: configuration only.
   // `providerQuotaOverrides` joined the projection in #9871;
   // `quotaPreflight` joined in #12014 (Settings → Routing Quota Preflight card);
-  // `credentialHealthCheck` joined in #12043 (the sweep's intervalMinutes setting).
+  // `credentialHealthCheck` joined in #12043 (the sweep's intervalMinutes setting);
+  // `streamStallCooldown` decides whether a stream content stall cools the account.
   assert.deepEqual(Object.keys(json).sort(), [
     "comboCooldownWait",
     "connectionCooldown",
@@ -570,6 +571,7 @@ test("resilience API only exposes configuration, not runtime breaker state", asy
     "quotaPreflight",
     "quotaShareConcurrencyLimit",
     "requestQueue",
+    "streamStallCooldown",
     "waitForCooldown",
   ]);
   assert.equal("providerBreakers" in json, false);

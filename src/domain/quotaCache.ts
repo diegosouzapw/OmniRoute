@@ -40,6 +40,7 @@ import {
 } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import { selectAntigravityQuotaWindowNames } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
+import { isCodexQuotaFilteringDisabled } from "@/lib/providers/codexQuotaFiltering";
 import { resolveProviderId } from "@/shared/constants/providers";
 import {
   claudeQuotaMatchesModel,
@@ -57,8 +58,7 @@ import {
   isQuotaHealthy,
 } from "./quotaCacheState";
 
-// #14359 — re-exported so existing callers (chat.ts, tests) keep importing from here. Only
-// markQuotaHealthy has outside callers; the rest are internal and stay unexported (dead-code gate).
+// Keep markQuotaHealthy's public import path; the remaining leaf state stays internal.
 export { markQuotaHealthy } from "./quotaCacheState";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -639,8 +639,8 @@ export function isQuotaExhaustedForRequest(
   requestedModel: string | null = null,
   providerSpecificData?: unknown
 ): boolean {
-  // #14359 — a recent successful dispatch stands the predicates down for a park window.
   if (isQuotaHealthy(connectionId)) return false;
+  if (isCodexQuotaFilteringDisabled(provider, providerSpecificData)) return false;
   if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;

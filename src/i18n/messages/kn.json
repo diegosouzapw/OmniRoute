@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP ವಿವರಣೆ ಸಂಕುಚನ",
     "mcpAccessibilityTitle": "MCP ಪ್ರವೇಶಸಾಧ್ಯತಾ ಔಟ್ಪುಟ್",
     "compressionSettingsCavemanIntensity": "ಕೇವ್ಮ್ಯಾನ್ ತೀವ್ರತೆ",
-    "compressionSettingsCavemanOutputMode": "ಕೇವ್ಮ್ಯಾನ್ ಔಟ್ಪುಟ್ ಮೋಡ್",
     "compressionSettingsOutputStyles": "ಔಟ್ಪುಟ್ ಶೈಲಿಗಳು",
     "compressionStylesTileTitle": "ಔಟ್ಪುಟ್ ಶೈಲಿಗಳು",
     "compressionSettingsOutputIntensity": "ಔಟ್ಪುಟ್ ತೀವ್ರತೆ",
-    "compressionSettingsAutoClarityBypass": "ಸ್ವಯಂ ಸ್ಪಷ್ಟತೆ ಬೈಪಾಸ್",
     "compressionEffectivePipeline": "ಪರಿಣಾಮಕಾರಿ ಪೈಪ್ಲೈನ್:",
     "compressionDerivedOff": "ಆಫ್",
     "compressionDerivedRuns": "ಚಾಲನೆಗಳು: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "ಸಂಕುಚಿತಗೊಳಿಸಲು ಕನಿಷ್ಠ ಸಾಲುಗಳು",
         "description": "ಕೋಷ್ಟಕ ಸಂಕುಚನವನ್ನು ಪ್ರಚೋದಿಸಲು ಏಕರೂಪದ JSON ಅರೇಯಲ್ಲಿ ಅಗತ್ಯವಿರುವ ಕನಿಷ್ಠ ಸಾಲುಗಳು. ಪೂರ್ವನಿಯೋಜಿತ: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "ಸಿಸ್ಟಮ್ ಪ್ರಾಂಪ್ಟ್ ಅನ್ನು ಸಂರಕ್ಷಿಸಿ"
-      },
       "summarizerEnabled": {
         "label": "ಸಾರಾಂಶಕಾರಕವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "ಇದಕ್ಕಿಂತ ಚಿಕ್ಕ ಸಂದೇಶಗಳನ್ನು ಸಂಕುಚಿಸಲಾಗುವುದಿಲ್ಲ. ಕಡಿಮೆ = ಹೆಚ್ಚು ಸಂಕುಚನ.",
     "tooltipMinSavings": "ಕನಿಷ್ಠ ಇಷ್ಟು ಟೋಕನ್ಗಳನ್ನು ಉಳಿಸಿದರೆ ಮಾತ್ರ ಸಂಕುಚಿಸಿ.",
     "ultraSettings": "ಅಲ್ಟ್ರಾ ಸೆಟ್ಟಿಂಗ್ಗಳು",
-    "ultraSettingsDesc": "SLM-ಚಾಲಿತ ಅರ್ಥಾಧಾರಿತ ಸಂಕುಚನ",
-    "preview": {
-      "lite": "ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ತಾಂತ್ರಿಕ ಪದಗಳು, code, errors, URLs ಮತ್ತು identifiers ಅನ್ನು ಉಳಿಸಿ.",
-      "full": "ಅತ್ಯಂತ ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಮತ್ತು ಸಾಂದ್ರವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ಎಲ್ಲ ತಾಂತ್ರಿಕ ವಿಷಯವನ್ನು ಉಳಿಸಿ.",
-      "ultra": "ಸಾಮಾನ್ಯ ತಾಂತ್ರಿಕ ಸಂಕ್ಷೇಪಣಗಳೊಂದಿಗೆ ಅತ್ಯಂತ ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ನಿಖರ ಚಿಹ್ನೆಗಳನ್ನು ಉಳಿಸಿ."
-    }
+    "ultraSettingsDesc": "SLM-ಚಾಲಿತ ಅರ್ಥಾಧಾರಿತ ಸಂಕುಚನ"
   },
   "translator": {
     "title": "ಅನುವಾದಕ",

@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP વર્ણન સંકોચન",
     "mcpAccessibilityTitle": "MCP ઍક્સેસિબિલિટી આઉટપુટ",
     "compressionSettingsCavemanIntensity": "કેવમેનની તીવ્રતા",
-    "compressionSettingsCavemanOutputMode": "કેવમેન આઉટપુટ મોડ",
     "compressionSettingsOutputStyles": "આઉટપુટ સ્ટાઇલ્સ",
     "compressionStylesTileTitle": "આઉટપુટ સ્ટાઇલ્સ",
     "compressionSettingsOutputIntensity": "આઉટપુટ તીવ્રતા",
-    "compressionSettingsAutoClarityBypass": "સ્વતઃ સ્પષ્ટતા બાયપાસ",
     "compressionEffectivePipeline": "અસરકારક પાઇપલાઇન:",
     "compressionDerivedOff": "બંધ",
     "compressionDerivedRuns": "રન: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "કમ્પેક્ટ કરવા માટે ન્યૂનતમ પંક્તિઓ",
         "description": "ટેબ્યુલર કમ્પેક્શન ટ્રિગર કરવા માટે સજાતીય JSON એરેમાં જરૂરી ન્યૂનતમ પંક્તિઓ. ડિફોલ્ટ: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "સિસ્ટમ પ્રોમ્પ્ટ સાચવો"
-      },
       "summarizerEnabled": {
         "label": "સમરાઇઝર સક્ષમ કરો"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "આના કરતાં ટૂંકા સંદેશાઓ સંકુચિત નથી. લોઅર = વધુ સંકોચન.",
     "tooltipMinSavings": "માત્ર સંકુચિત કરો જો તે ઓછામાં ઓછા આટલા બધા ટોકન્સ બચાવે.",
     "ultraSettings": "અલ્ટ્રા સેટિંગ્સ",
-    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન",
-    "preview": {
-      "lite": "સંક્ષિપ્ત જવાબ આપો. તકનીકી શબ્દો, કોડ, ભૂલો, URLs અને ઓળખકર્તાઓ જાળવી રાખો.",
-      "full": "ટૂંકો અને સંક્ષિપ્ત જવાબ આપો. તમામ તકનીકી સામગ્રી જાળવી રાખો.",
-      "ultra": "સામાન્ય તકનીકી સંક્ષેપો સાથે અત્યંત સંક્ષિપ્ત જવાબ આપો. ચોક્કસ પ્રતીકો જાળવો."
-    }
+    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન"
   },
   "translator": {
     "title": "અનુવાદક",

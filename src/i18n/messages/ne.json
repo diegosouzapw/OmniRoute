@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP विवरण सङ्कुचन",
     "mcpAccessibilityTitle": "MCP पहुँचयोग्यता आउटपुट",
     "compressionSettingsCavemanIntensity": "केभम्यान तीव्रता",
-    "compressionSettingsCavemanOutputMode": "केभम्यान आउटपुट मोड",
     "compressionSettingsOutputStyles": "आउटपुट शैलीहरू",
     "compressionStylesTileTitle": "आउटपुट शैलीहरू",
     "compressionSettingsOutputIntensity": "आउटपुट तीव्रता",
-    "compressionSettingsAutoClarityBypass": "स्वतः स्पष्टता बाइपास",
     "compressionEffectivePipeline": "प्रभावकारी पाइपलाइन:",
     "compressionDerivedOff": "बन्द",
     "compressionDerivedRuns": "रनहरू: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "सङ्कुचित गर्न आवश्यक न्यूनतम पङ्क्तिहरू",
         "description": "तालिकागत सङ्कुचन सुरु गर्न एकरूप JSON एरेमा आवश्यक न्यूनतम पङ्क्तिहरू। पूर्वनिर्धारित: 8।"
       },
-      "preserveSystemPrompt": {
-        "label": "प्रणाली प्रम्प्ट सुरक्षित राख्नुहोस्"
-      },
       "summarizerEnabled": {
         "label": "सारांशकर्ता सक्षम गर्नुहोस्"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "यसभन्दा छोटा सन्देशहरू सङ्कुचित गरिँदैनन्। कम = बढी सङ्कुचन।",
     "tooltipMinSavings": "कम्तीमा यति टोकन बचत हुने भए मात्र सङ्कुचित गर्नुहोस्।",
     "ultraSettings": "अल्ट्रा सेटिङहरू",
-    "ultraSettingsDesc": "SLM-सञ्चालित अर्थगत सङ्कुचन",
-    "preview": {
-      "lite": "संक्षिप्त रूपमा जवाफ दिनुहोस्। प्राविधिक शब्दहरू, code, errors, URLs, र identifiers जस्ताको तस्तै राख्नुहोस्।",
-      "full": "अत्यन्त छोटो र सङ्क्षिप्त जवाफ दिनुहोस्। सबै प्राविधिक सार सुरक्षित राख्नुहोस्।",
-      "ultra": "प्रचलित प्राविधिक संक्षिप्त रूपहरू प्रयोग गरी अत्यन्त छोटो जवाफ दिनुहोस्। ठ्याक्कै उही चिह्नहरू सुरक्षित राख्नुहोस्।"
-    }
+    "ultraSettingsDesc": "SLM-सञ्चालित अर्थगत सङ्कुचन"
   },
   "translator": {
     "title": "अनुवादक",

@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Matse bayanin MCP",
     "mcpAccessibilityTitle": "Fitowar samun dama ta MCP",
     "compressionSettingsCavemanIntensity": "Ƙarfin Caveman",
-    "compressionSettingsCavemanOutputMode": "Yanayin fitowar Caveman",
     "compressionSettingsOutputStyles": "Salon fitarwa",
     "compressionStylesTileTitle": "Salon fitarwa",
     "compressionSettingsOutputIntensity": "Ƙarfin fitarwa",
-    "compressionSettingsAutoClarityBypass": "Tsallake fayyacewa ta atomatik",
     "compressionEffectivePipeline": "Tsarin sarrafawa mai aiki:",
     "compressionDerivedOff": "a kashe",
     "compressionDerivedRuns": "gudanarwa: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Mafi ƙarancin layuka don matsewa",
         "description": "Mafi ƙarancin layuka a cikin jerin JSON mai tsari iri ɗaya da ake buƙata don fara matsewa zuwa jadawali. Tsoho: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Kiyaye umarnin tsarin"
-      },
       "summarizerEnabled": {
         "label": "Kunna mai taƙaitawa"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Ba a matse saƙonnin da suka fi wannan gajarta. Ƙasa = ƙarin matsewa.",
     "tooltipMinSavings": "A matse kawai idan zai adana aƙalla wannan adadin token.",
     "ultraSettings": "Saitunan Ultra",
-    "ultraSettingsDesc": "Matsewar ma'ana mai amfani da SLM",
-    "preview": {
-      "lite": "Ba da amsa a taƙaice. Kiyaye kalmomin fasaha, code, kurakurai, URLs, da alamomin ganewa.",
-      "full": "Ba da amsa a taƙaice kuma a dunƙule. Kiyaye dukkan muhimman bayanan fasaha.",
-      "ultra": "Ba da amsa mai matuƙar taƙaitawa tare da gajerun kalmomin fasaha da aka saba amfani da su. Kiyaye ainihin alamomi."
-    }
+    "ultraSettingsDesc": "Matsewar ma'ana mai amfani da SLM"
   },
   "translator": {
     "title": "Mai Fassara",

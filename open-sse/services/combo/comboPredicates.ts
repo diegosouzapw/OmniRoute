@@ -7,7 +7,7 @@
  */
 
 import { EXECUTOR_CONTRACT_VIOLATION_CODE } from "../../config/constants.ts";
-import { remainingPercentFromQuotaWindows } from "../antigravityQuotaFamily.ts";
+import { finitePercentUsed, remainingPercentFromQuotaWindows } from "../antigravityQuotaFamily.ts";
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
 import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
@@ -603,12 +603,23 @@ export function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
+/**
+ * Remaining quota (0..100) from a fetched quota snapshot, or `null` when the snapshot is
+ * UNREADABLE: missing, not an object, or an object with no parseable window and no finite
+ * `percentUsed` (#15347). A telemetry failure is evidence about the telemetry, not the
+ * provider, so it must never be reported as full quota; callers decide how it ranks.
+ *
+ * `null` from a quota fetcher means "could not read it" (network error, missing credentials,
+ * message-only usage). A provider with no cap is NOT that: it reports `unlimited: true`
+ * (see `convertUsageToQuotaInfo`), which is a real reading of full headroom.
+ */
 export function quotaRemainingPercentFromQuota(
   quota: unknown,
   scope?: { provider?: string | null; requestedModel?: string | null }
-): number {
-  if (!quota || typeof quota !== "object") return 100;
+): number | null {
+  if (!quota || typeof quota !== "object") return null;
   const record = quota as Record<string, unknown>;
+  if (record.unlimited === true) return 100;
 
   const windows = record.windows;
   if (windows && typeof windows === "object" && !Array.isArray(windows)) {
@@ -618,9 +629,9 @@ export function quotaRemainingPercentFromQuota(
 
   if (record.limitReached === true) return 0;
 
-  const percentUsed = Number(record.percentUsed);
-  if (Number.isFinite(percentUsed)) return clampPercent((1 - percentUsed) * 100);
-  return 100;
+  const percentUsed = finitePercentUsed(record.percentUsed);
+  if (percentUsed !== null) return clampPercent((1 - percentUsed) * 100);
+  return null;
 }
 
 export const QUOTA_BLOCKING_CONNECTION_STATUSES = new Set([

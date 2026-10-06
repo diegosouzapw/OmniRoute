@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "Stiskanje opisov MCP",
     "mcpAccessibilityTitle": "Izhod MCP za dostopnost",
     "compressionSettingsCavemanIntensity": "Intenzivnost jamskega načina",
-    "compressionSettingsCavemanOutputMode": "Jamski način izpisa",
     "compressionSettingsOutputStyles": "Slogi izpisa",
     "compressionStylesTileTitle": "Slogi izpisa",
     "compressionSettingsOutputIntensity": "Intenzivnost izpisa",
-    "compressionSettingsAutoClarityBypass": "Samodejni obvod jasnosti",
     "compressionEffectivePipeline": "Dejanski potek obdelave:",
     "compressionDerivedOff": "izklopljeno",
     "compressionDerivedRuns": "izvaja se: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Najmanjše število vrstic za stiskanje",
         "description": "Najmanjše število vrstic v homogenem polju JSON, potrebno za sprožitev tabelaričnega stiskanja. Privzeto: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Ohrani sistemski poziv"
-      },
       "summarizerEnabled": {
         "label": "Omogoči povzemalnik"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Sporočila, krajša od te vrednosti, se ne stisnejo. Nižja vrednost = več stiskanja.",
     "tooltipMinSavings": "Stisni le, če se prihrani vsaj toliko žetonov.",
     "ultraSettings": "Nastavitve Ultra",
-    "ultraSettingsDesc": "Semantično stiskanje, ki ga poganja SLM",
-    "preview": {
-      "lite": "Odgovarjaj jedrnato. Ohrani tehnične izraze, kodo, napake, URL-je in identifikatorje.",
-      "full": "Odgovarjaj skopo in zgoščeno. Ohrani vso tehnično vsebino.",
-      "ultra": "Odgovarjaj izjemno skopo z običajnimi tehničnimi okrajšavami. Ohrani natančne simbole."
-    }
+    "ultraSettingsDesc": "Semantično stiskanje, ki ga poganja SLM"
   },
   "translator": {
     "title": "Prevajalnik",

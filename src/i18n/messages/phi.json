@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "compression ng paglalarawan ng MCP",
     "mcpAccessibilityTitle": "Output ng accessibility ng MCP",
     "compressionSettingsCavemanIntensity": "Ang intensity ng Caveman",
-    "compressionSettingsCavemanOutputMode": "Output mode ng Caveman",
     "compressionSettingsOutputStyles": "Mga istilo ng output",
     "compressionStylesTileTitle": "Mga istilo ng output",
     "compressionSettingsOutputIntensity": "Intensidad ng output",
-    "compressionSettingsAutoClarityBypass": "Awtomatikong pag-bypass batay sa kalinawan",
     "compressionEffectivePipeline": "Epektibong pipeline:",
     "compressionDerivedOff": "naka-off",
     "compressionDerivedRuns": "mga pagtakbo: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "Minimum na row na iko-compact",
         "description": "Minimum na row sa isang homogeneous na JSON array na kinakailangan upang ma-trigger ang tabular compaction. Default: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "Panatilihin ang system prompt"
-      },
       "summarizerEnabled": {
         "label": "Paganahin ang summarizer"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "Ang mga mensaheng mas maikli kaysa dito ay hindi na-compress. Mas mababa = mas maraming compression.",
     "tooltipMinSavings": "I-compress lamang kung nakakatipid ito ng kahit gaano karaming token.",
     "ultraSettings": "Mga Ultra Setting",
-    "ultraSettingsDesc": "Semantic compression na pinapagana ng SLM",
-    "preview": {
-      "lite": "Sumagot nang maikli. Panatilihin ang mga teknikal na termino, code, error, URL, at identifier.",
-      "full": "Sumagot nang maigsi at siksik. Panatilihin ang lahat ng teknikal na nilalaman.",
-      "ultra": "Sumagot nang napakaigsi gamit ang mga karaniwang teknikal na daglat. Panatilihin ang eksaktong mga simbolo."
-    }
+    "ultraSettingsDesc": "Semantic compression na pinapagana ng SLM"
   },
   "translator": {
     "title": "Tagasalin",

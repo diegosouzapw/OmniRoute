@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP description compression",
     "mcpAccessibilityTitle": "MCP accessibility output",
     "compressionSettingsCavemanIntensity": "Caveman intensity",
-    "compressionSettingsCavemanOutputMode": "Caveman output mode",
     "compressionSettingsOutputStyles": "Output styles",
     "compressionStylesTileTitle": "Output styles",
     "compressionSettingsOutputIntensity": "Output intensity",
-    "compressionSettingsAutoClarityBypass": "Auto clarity bypass",
     "compressionEffectivePipeline": "Effective pipeline:",
     "compressionDerivedOff": "off",
     "compressionDerivedRuns": "runs: {pipeline}",
@@ -8544,6 +8542,7 @@
   "compressionEngineConfig": {
     "loading": "Loading…",
     "loadFailed": "Failed to load engine information.",
+    "settingsLoadFailed": "Failed to load the saved settings. The fields show defaults, and Save stays off until the page reloads.",
     "engineNotFound": "Engine \"{engine}\" not found.",
     "saveFailed": "Failed to save configuration.",
     "previewFailed": "Preview failed.",
@@ -8638,9 +8637,6 @@
       "minRows": {
         "label": "Minimum rows to compact",
         "description": "Minimum rows in a homogeneous JSON array required to trigger tabular compaction. Default: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Preserve system prompt"
       },
       "summarizerEnabled": {
         "label": "Enable summarizer"
@@ -9029,12 +9025,7 @@
     "tooltipMinLength": "Messages shorter than this are not compressed. Lower = more compression.",
     "tooltipMinSavings": "Only compress if it saves at least this many tokens.",
     "ultraSettings": "Ultra Settings",
-    "ultraSettingsDesc": "SLM-powered semantic compression",
-    "preview": {
-      "lite": "Respond concise. Preserve technical terms, code, errors, URLs, and identifiers.",
-      "full": "Respond terse and compact. Preserve all technical substance.",
-      "ultra": "Respond ultra terse with common technical abbreviations. Preserve exact symbols."
-    }
+    "ultraSettingsDesc": "SLM-powered semantic compression"
   },
   "translator": {
     "title": "Translator",

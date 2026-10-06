@@ -7895,11 +7895,9 @@
     "compressionSettingsMcpDescriptionCompression": "एमसीपी विवरण संपीड़न",
     "mcpAccessibilityTitle": "MCP एक्सेसिबिलिटी आउटपुट",
     "compressionSettingsCavemanIntensity": "गुफामानव तीव्रता",
-    "compressionSettingsCavemanOutputMode": "केवमैन आउटपुट मोड",
     "compressionSettingsOutputStyles": "आउटपुट शैलियाँ",
     "compressionStylesTileTitle": "आउटपुट शैलियाँ",
     "compressionSettingsOutputIntensity": "आउटपुट तीव्रता",
-    "compressionSettingsAutoClarityBypass": "ऑटो स्पष्टता बायपास",
     "compressionEffectivePipeline": "प्रभावी पाइपलाइन:",
     "compressionDerivedOff": "बंद",
     "compressionDerivedRuns": "रन: {pipeline}",
@@ -8639,9 +8637,6 @@
         "label": "कॉम्पैक्ट करने के लिए न्यूनतम पंक्तियाँ",
         "description": "सारणीबद्ध कॉम्पैक्शन को ट्रिगर करने के लिए सजातीय JSON ऐरे में आवश्यक न्यूनतम पंक्तियाँ। डिफ़ॉल्ट: 8."
       },
-      "preserveSystemPrompt": {
-        "label": "सिस्टम प्रॉम्प्ट सुरक्षित रखें"
-      },
       "summarizerEnabled": {
         "label": "समराइज़र सक्षम करें"
       },
@@ -9029,12 +9024,7 @@
     "tooltipMinLength": "इससे छोटे संदेश संपीड़ित नहीं होते. कम = अधिक संपीड़न।",
     "tooltipMinSavings": "केवल तभी संपीड़ित करें यदि यह कम से कम इतने टोकन बचाता है।",
     "ultraSettings": "अल्ट्रा सेटिंग्स",
-    "ultraSettingsDesc": "एसएलएम-संचालित सिमेंटिक संपीड़न",
-    "preview": {
-      "lite": "संक्षिप्त उत्तर दें। तकनीकी शब्द, कोड, त्रुटियाँ, URLs और पहचानकर्ता अपरिवर्तित रखें।",
-      "full": "अत्यंत संक्षिप्त और सघन उत्तर दें। सभी तकनीकी तथ्य बनाए रखें।",
-      "ultra": "सामान्य तकनीकी संक्षेपों के साथ अत्यंत संक्षिप्त उत्तर दें। सटीक प्रतीकों को अपरिवर्तित रखें।"
-    }
+    "ultraSettingsDesc": "एसएलएम-संचालित सिमेंटिक संपीड़न"
   },
   "translator": {
     "title": "अनुवादक",

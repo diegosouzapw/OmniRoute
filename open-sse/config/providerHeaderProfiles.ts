@@ -6,11 +6,12 @@ import type { AntigravityClientProfile } from "@/shared/constants/antigravityCli
 // VS Code Copilot Chat extension. The CLI's `copilot-developer-cli` integration
 // id is the catalog-unlock lever: it exposes the full entitled model set
 // (gemini-3.x, gpt-5.4-nano, the full opus reasoning range) where `vscode-chat`
-// returns a narrower list. Version strings start at the live-captured CLI
-// 1.0.88 and follow a newer `@github/copilot` publish when the registry
-// answers. Copilot gates models on that version and 400s a pin that is behind.
+// returns a narrower list. The default version tracks the supported CLI
+// package (1.0.91) and follows a newer `@github/copilot` publish when the
+// registry answers. Copilot gates models on that version and 400s a pin
+// that is behind.
 export const GITHUB_COPILOT_API_VERSION = "2026-08-01";
-export const GITHUB_COPILOT_CLI_VERSION = "1.0.88";
+export const GITHUB_COPILOT_CLI_VERSION = "1.0.91";
 const GITHUB_COPILOT_VERSION_OVERRIDE_ENV = "GITHUB_COPILOT_CLI_VERSION";
 const SAFE_COPILOT_VERSION_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/;
 const COPILOT_DOTTED_TRIPLE_PATTERN = /^\d+\.\d+\.\d+$/;
@@ -64,7 +65,7 @@ function readFreshCopilotVersionCache(now = Date.now()): string | null {
 
 /**
  * Refresh the advertised Copilot CLI version from `@github/copilot` on npm.
- * A dotted triple newer than 1.0.88 replaces it; any failure, a non-triple,
+ * A dotted triple newer than 1.0.91 replaces it; any failure, a non-triple,
  * or an older publish keeps the pin. Cached for six hours. The fetch aborts
  * at 20s — registry responses from this host regularly exceed a few seconds.
  */
@@ -119,9 +120,13 @@ export function resetGitHubCopilotCliVersionCache(): void {
 
 /** Captured pin, overridable via GITHUB_COPILOT_CLI_VERSION (#12417). */
 export function getGitHubCopilotCliVersion(): string {
-  const override = getSafeCopilotEnvValue(GITHUB_COPILOT_VERSION_OVERRIDE_ENV, SAFE_COPILOT_VERSION_PATTERN);
+  const override = getSafeCopilotEnvValue(
+    GITHUB_COPILOT_VERSION_OVERRIDE_ENV,
+    SAFE_COPILOT_VERSION_PATTERN
+  );
   if (override) return override;
-  if (!process.env.NODE_TEST_CONTEXT && !readFreshCopilotVersionCache() && !copilotVersionInFlight) void resolveGitHubCopilotCliVersion();
+  if (!process.env.NODE_TEST_CONTEXT && !readFreshCopilotVersionCache() && !copilotVersionInFlight)
+    void resolveGitHubCopilotCliVersion();
   return pickCopilotVersionAtLeastPin(readFreshCopilotVersionCache());
 }
 
@@ -382,8 +387,8 @@ export function getGitHubCopilotChatHeaders(
   initiator = GITHUB_COPILOT_DEFAULT_INITIATOR,
   options: { vision?: boolean; intent?: string; integrationId?: string } = {}
 ): Record<string, string> {
-  // Matches the live @github/copilot CLI 1.0.88 inference request 1:1 (MITM-
-  // captured). NOTE the CLI does NOT send `editor-plugin-version` nor
+  // Header shape follows a live @github/copilot CLI 1.0.88 inference capture.
+  // NOTE the CLI does NOT send `editor-plugin-version` nor
   // `x-vscode-user-agent-library-version` on the inference path — those belong
   // to the VS Code Copilot Chat extension, not the CLI. Sending an incomplete
   // OR an over-complete header fingerprint is itself a flagging signal, so we
