@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} क्लाइंट रद्दीकरण",
     "slowAbandonedHint": "हेडर प्रतीक्षा सीमा के बाद परित्यक्त, परिवहन दर से बाहर रखा गया",
     "previousSuccessRate": "पहले {rate}% सफलता",
-    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृतियाँ",
     "connectionTestsCount": "{count} कनेक्शन परीक्षण",
-    "notMeasured": "मापा नहीं गया"
+    "notMeasured": "मापा नहीं गया",
+    "upstream4xx": "{count} उपरी क्लाइंट त्रुटियाँ",
+    "upstream5xx": "{count} उपरी सर्वर त्रुटियाँ",
+    "uniformEgressLine": "{exits} में से {affected} एग्ज़िट {provider} पर एक साथ विफल हो रहे हैं (पिछले {hours} घंटों में) — यह एग्ज़िट की समस्या नहीं है"
   },
   "playground": {
     "title": "Title",

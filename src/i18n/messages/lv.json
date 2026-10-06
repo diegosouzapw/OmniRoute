@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} klienta pārtraukumi",
     "slowAbandonedHint": "Atteikta pēc galvenes gaidīšanas sliekšņa, izslēgta no transporta likmes",
     "previousSuccessRate": "Iepriekš {rate} % sekmju",
-    "upstreamRefusals": "{count} augšupējos noraidījumus",
     "connectionTestsCount": "{count} savienojuma testus",
-    "notMeasured": "Nav izmērīts"
+    "notMeasured": "Nav izmērīts",
+    "upstream4xx": "{count} upstream klienta kļūdas",
+    "upstream5xx": "{count} upstream servera kļūdas",
+    "uniformEgressLine": "{affected} no {exits} izejām neizdodas vienlaikus pie {provider} (pēdējo {hours} h laikā) — tā nav izejas problēma"
   },
   "playground": {
     "title": "Modeļu testēšanas vide",

@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} penamatan klien",
     "slowAbandonedHint": "Ditinggalkan selepas ambang tunggu tajuk, tidak termasuk dalam kadar penghantaran",
     "previousSuccessRate": "Sebelum ini {rate}% berjaya",
-    "upstreamRefusals": "{count} penolakan huluan",
     "connectionTestsCount": "{count} ujian sambungan",
-    "notMeasured": "Belum diukur"
+    "notMeasured": "Belum diukur",
+    "upstream4xx": "{count} kesalahan klien atas aliran",
+    "upstream5xx": "{count} kesalahan pelayan atas aliran",
+    "uniformEgressLine": "{affected} daripada {exits} exit gagal serentak pada {provider} ({hours}j terakhir) — bukan masalah exit"
   },
   "playground": {
     "title": "Title",

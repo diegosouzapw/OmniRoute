@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} annulations par le client",
     "slowAbandonedHint": "Abandonné après dépassement du délai d'attente des en-têtes, exclu du taux de transport",
     "previousSuccessRate": "Précédemment {rate} % de réussite",
-    "upstreamRefusals": "{count} refus en amont",
     "connectionTestsCount": "{count} tests de connexion",
-    "notMeasured": "Non mesuré"
+    "notMeasured": "Non mesuré",
+    "upstream4xx": "{count} erreurs client en amont",
+    "upstream5xx": "{count} erreurs de serveur en amont",
+    "uniformEgressLine": "{affected} sur {exits} sorties échouent simultanément sur {provider} (dernières {hours}h) — pas un problème de sortie"
   },
   "playground": {
     "title": "Title",

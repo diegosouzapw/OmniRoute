@@ -84,8 +84,8 @@ import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
 // contract applies), and existing importers keep resolving it from the executor.
 export { isPremiumOpencodeModel };
 import {
-  guardResponsesStall,
   isResponsesFirstByteTimeout,
+  makeStallGuardedCall,
   setupStallGuard,
 } from "./opencodeResponsesStall.ts";
 import { discardResponseBody } from "./opencodeResponseBody.ts";
@@ -562,7 +562,14 @@ export class OpencodeExecutor extends BaseExecutor {
       const hasProxies = accounts.some((a) => a.proxy !== null);
       // Opt-in Responses first-byte stall guard; 0 = no-op.
       const stallWindowMs = setupStallGuard(input.stream, this._requestFormat, log, cid).windowMs;
-      const guardStall = <T>(r: T) => guardResponsesStall(r, stallWindowMs, input.signal);
+      const guardStall = makeStallGuardedCall(
+        input.stream,
+        this._requestFormat,
+        stallWindowMs,
+        input.signal,
+        log,
+        cid
+      );
       const headersWait = headersWaitState(
         input,
         this._requestFormat,

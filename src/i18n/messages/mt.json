@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} kansellazzjonijiet tal‑klijent",
     "slowAbandonedHint": "Abbandonat wara l‑threshold ta’ ħin ta’ ħruġ tal‑headers, eskluż mill‑rate tal‑trasport",
     "previousSuccessRate": "Qabel {rate}% suċċess",
-    "upstreamRefusals": "{count} rifjuti upstream",
     "connectionTestsCount": "{count} testijiet tal-konnessjoni",
-    "notMeasured": "Mhux imkejjel"
+    "notMeasured": "Mhux imkejjel",
+    "upstream4xx": "{count} għajn klijent erruri",
+    "upstream5xx": "{count} għajnħa server errors",
+    "uniformEgressLine": "{affected} minn {exits} ħruġijiet ifallu flimkien fuq {provider} (l-aħħar {hours}h) — mhix problema tal-ħruġ"
   },
   "playground": {
     "title": "Żona tal-Ittestjar tal-Mudelli",

@@ -85,7 +85,6 @@ export function ProxyHealthCell({ testResult, health }: ProxyHealthCellProps) {
   if (health) {
     const sweep = health.sweep;
     const blockedHistory = health.blockedHistory;
-    const upstreamRefusals = (health.upstream4xx ?? 0) + (health.upstream5xx ?? 0);
     return (
       <div className="flex flex-col gap-0.5">
         <span title={t("previousSuccessRate", { rate: health.successRate ?? 0 })}>
@@ -97,7 +96,8 @@ export function ProxyHealthCell({ testResult, health }: ProxyHealthCellProps) {
           {t("slowAbandoned", { count: health.slowAbandoned ?? 0 })}
         </span>
         <span>{t("clientAborted", { count: health.clientAborted ?? 0 })}</span>
-        <span>{t("upstreamRefusals", { count: upstreamRefusals })}</span>
+        <span>{t("upstream4xx", { count: health.upstream4xx ?? 0 })}</span>
+        <span>{t("upstream5xx", { count: health.upstream5xx ?? 0 })}</span>
         <span>{t("connectionTestsCount", { count: health.connectionTests ?? 0 })}</span>
         <span>{t("avgLatency", { latency: health.avgLatencyMs ?? "-" })}</span>
         {sweep ? (

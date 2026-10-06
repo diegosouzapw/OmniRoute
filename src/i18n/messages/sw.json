@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} mteja amegoma",
     "slowAbandonedHint": "Imewekwa kando baada ya kufikia kikomo cha kusubiri vichwa, imefutwa kutoka kwa kiwango cha usafirishaji",
     "previousSuccessRate": "Awali {rate}% mafanikio",
-    "upstreamRefusals": "{count} kukataliwa kwa upstream",
     "connectionTestsCount": "{count} majaribio ya muunganisho",
-    "notMeasured": "Haijapimwa"
+    "notMeasured": "Haijapimwa",
+    "upstream4xx": "{count} makosa ya mteja kaskazini",
+    "upstream5xx": "{count} makosa ya server kaskazini",
+    "uniformEgressLine": "{affected} kati ya {exits} milango yanashindwa pamoja kwenye {provider} (masaa {hours} yaliyopita) — si shida la kilango"
   },
   "playground": {
     "title": "Mazingira ya Majaribio ya Modeli",

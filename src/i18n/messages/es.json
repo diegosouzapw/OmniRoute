@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} abortos de cliente",
     "slowAbandonedHint": "Abandonado tras el umbral de espera de encabezados, excluido de la tasa de transporte",
     "previousSuccessRate": "Anteriormente {rate} % de éxito",
-    "upstreamRefusals": "{count} rechazos aguas arriba",
     "connectionTestsCount": "{count} pruebas de conexión",
-    "notMeasured": "No medido"
+    "notMeasured": "No medido",
+    "upstream4xx": "{count} errores de cliente upstream",
+    "upstream5xx": "{count} errores de servidor upstream",
+    "uniformEgressLine": "{affected} de {exits} salidas fallan juntas en {provider} (últimas {hours}h) — no es un problema de salida"
   },
   "playground": {
     "title": "Title",

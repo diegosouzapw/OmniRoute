@@ -16,7 +16,6 @@
  * matches `cc/...` rows.
  */
 
-import type { OmniRouteRawAutoCombo } from "./shared/auto-combos.js";
 import type { OmniRouteRawCombo } from "./shared/combos-map.js";
 import type { Logger } from "./shared/logger.js";
 
@@ -156,18 +155,6 @@ export function matchesAllow(
   return false;
 }
 
-/** Whether one provider NAME (allow entry or pool entry) resolves against the vocabulary. */
-export function matchesAllowName(
-  name: string,
-  filter: ProviderFilter | undefined,
-  resolve?: ProviderResolve
-): boolean {
-  if (!filter) return true;
-  const normalized = normalizeName(name);
-  if (normalized === undefined) return true;
-  return matchesAllow(normalized, filter, resolve);
-}
-
 /** Whether a raw model/combo id passes the provider filter. */
 export function passesProviderFilter(
   id: string,
@@ -228,41 +215,6 @@ export function passesProviderCombo(
   for (const member of members) {
     if (passesProviderFilter(member, filter, resolve, allUnknown)) return true;
   }
-  return false;
-}
-
-/**
- * Whether an auto combo passes: the candidate pool holds provider NAMES
- * (not ids), so each entry is compared as a name. Absent/empty pool keeps
- * (no information, not an exclusion). Unknown pool names keep (fail-open).
- */
-export function passesProviderAutoCombo(
-  auto: OmniRouteRawAutoCombo,
-  filter: ProviderFilter | undefined,
-  resolve?: ProviderResolve,
-  allUnknown?: boolean
-): boolean {
-  if (!filter) return true;
-  const pools: Array<string[] | undefined> = [auto.candidatePool, auto.config?.auto?.candidatePool];
-  let sawName = false;
-  for (const pool of pools) {
-    if (!Array.isArray(pool)) continue;
-    for (const entry of pool) {
-      if (typeof entry !== "string" || entry.trim().length === 0) continue;
-      sawName = true;
-      if (matchesAllowName(entry, filter, resolve)) return true;
-      if (resolve) {
-        const normalized = normalizeName(entry);
-        if (normalized !== undefined && !resolve.known.has(normalized)) return true;
-        // Same fail-open as model ids, limited to the all-unknown case: a
-        // lone unknown allow name leaves the whole filter inert.
-        if (allUnknown ?? filterAllUnknown(filter, resolve)) return true;
-      } else {
-        return true;
-      }
-    }
-  }
-  if (!sawName) return true;
   return false;
 }
 

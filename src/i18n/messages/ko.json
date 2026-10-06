@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} 클라이언트 중단",
     "slowAbandonedHint": "헤더 대기 임계값 이후 포기, 전송률에서 제외",
     "previousSuccessRate": "이전에 {rate}% 성공",
-    "upstreamRefusals": "{count}개 업스트림 거부",
     "connectionTestsCount": "{count}개 연결 테스트",
-    "notMeasured": "측정되지 않음"
+    "notMeasured": "측정되지 않음",
+    "upstream4xx": "{count} 상류 클라이언트 오류",
+    "upstream5xx": "{count}개의 업스트림 서버 오류",
+    "uniformEgressLine": "{provider}에서 {exits}개 exit 중 {affected}개가 함께 실패함 (최근 {hours}시간) — exit 문제가 아님"
   },
   "playground": {
     "title": "모델 플레이그라운드",

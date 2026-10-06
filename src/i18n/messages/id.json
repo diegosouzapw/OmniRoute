@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} pembatalan oleh klien",
     "slowAbandonedHint": "Ditinggalkan setelah melewati batas waktu tunggu header, tidak termasuk dalam tarif transportasi",
     "previousSuccessRate": "Sebelumnya {rate}% berhasil",
-    "upstreamRefusals": "{count} penolakan upstream",
     "connectionTestsCount": "{count} uji koneksi",
-    "notMeasured": "Belum diukur"
+    "notMeasured": "Belum diukur",
+    "upstream4xx": "{count} kesalahan klien upstream",
+    "upstream5xx": "{count} kesalahan server upstream",
+    "uniformEgressLine": "{affected} dari {exits} exit gagal bersamaan di {provider} ({hours} jam terakhir) — bukan masalah exit"
   },
   "playground": {
     "title": "Title",

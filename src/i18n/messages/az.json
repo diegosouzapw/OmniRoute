@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} müştəri ləğv etmələri",
     "slowAbandonedHint": "Başlıqların gözləmə həddindən sonra tərk edildi, daşınma dərəcəsindən çıxarılıb",
     "previousSuccessRate": "Əvvəlcə {rate}% uğur",
-    "upstreamRefusals": "{count} upstream rəddi",
     "connectionTestsCount": "{count} bağlantı testi",
-    "notMeasured": "Ölçülməyib"
+    "notMeasured": "Ölçülməyib",
+    "upstream4xx": "{count} yuxarı axın müştəri səhvləri",
+    "upstream5xx": "{count} yuxarı axın server səhvləri",
+    "uniformEgressLine": "{affected} of {exits} çıxışları {provider} üzərində eyni anda uğursuz oldu (son {hours} saat) — çıxış problemi deyil"
   },
   "playground": {
     "title": "Model sınaq meydanı",

@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} ਕਲਾਇੰਟ ਰੱਦਾਂ",
     "slowAbandonedHint": "ਹੈਡਰ ਉਡੀਕ ਸੀਮਾ ਤੋਂ ਬਾਅਦ ਛੱਡਿਆ ਗਿਆ, ਟਰਾਂਸਪੋਰਟ ਦਰ ਤੋਂ ਬਾਹਰ ਰੱਖਿਆ ਗਿਆ",
     "previousSuccessRate": "ਪਹਿਲਾਂ {rate}% ਸਫਲਤਾ",
-    "upstreamRefusals": "{count} ਅੱਪਸਟ੍ਰੀਮ ਅਸਵੀਕਾਰ",
     "connectionTestsCount": "{count} ਕਨੈਕਸ਼ਨ ਜਾਂਚਾਂ",
-    "notMeasured": "ਮਾਪਿਆ ਨਹੀਂ ਗਿਆ"
+    "notMeasured": "ਮਾਪਿਆ ਨਹੀਂ ਗਿਆ",
+    "upstream4xx": "{count} ਅੱਗੇ ਕਲਾਈਂਟ ਗਲਤੀਆਂ",
+    "upstream5xx": "{count} ਅੱਗੇ ਸਰਵਰ ਗਲਤੀਆਂ",
+    "uniformEgressLine": "{exits} ਐਗਜ਼ਿਟਾਂ ਵਿੱਚੋਂ {affected} {provider} ਉੱਤੇ ਇਕੱਠੇ ਫੇਲ ਹੋ ਰਹੇ ਹਨ (ਪਿਛਲੇ {hours} ਘੰਟਿਆਂ ਵਿੱਚ) — ਇਹ ਐਗਜ਼ਿਟ ਦੀ ਸਮੱਸਿਆ ਨਹੀਂ ਹੈ"
   },
   "playground": {
     "title": "ਮਾਡਲ ਪਲੇਗ੍ਰਾਊਂਡ",

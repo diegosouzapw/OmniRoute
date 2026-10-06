@@ -4,7 +4,6 @@ import {
   buildProviderResolve,
   compileProviderFilter,
   matchesAllow,
-  passesProviderAutoCombo,
   passesProviderCombo,
   passesProviderFilter,
   providerOf,
@@ -166,54 +165,6 @@ describe("passesProviderCombo", () => {
         resolveCcClaude()
       ),
       true
-    );
-  });
-});
-
-describe("passesProviderAutoCombo", () => {
-  it("pool names match via alias resolution", () => {
-    const filter = compileProviderFilter(["claude"]);
-    assert.ok(filter);
-    assert.equal(
-      passesProviderAutoCombo({ id: "auto", candidatePool: ["cc"] }, filter, resolveCcClaude()),
-      true
-    );
-  });
-
-  it("absent/empty pool keeps (no information, not an exclusion)", () => {
-    const filter = compileProviderFilter(["claude"]);
-    assert.ok(filter);
-    assert.equal(passesProviderAutoCombo({ id: "auto" }, filter, resolveCcClaude()), true);
-    assert.equal(
-      passesProviderAutoCombo({ id: "auto", candidatePool: [] }, filter, resolveCcClaude()),
-      true
-    );
-  });
-
-  it("pool typo keeps fail-open and the name is diagnosable as unknown", () => {
-    const filter = compileProviderFilter(["claud"]);
-    assert.ok(filter);
-    const resolve = resolveCcClaude();
-    assert.equal(
-      passesProviderAutoCombo({ id: "auto", candidatePool: ["claud"] }, filter, resolve),
-      true
-    );
-    assert.deepEqual(unknownProviders(filter, resolve.known), ["claud"]);
-  });
-
-  it("drops an auto-combo whose candidate pool is excluded", () => {
-    const resolve = buildProviderResolve(
-      [
-        { alias: "cc", canonical: "claude" },
-        { alias: "kiro", canonical: "kiro" },
-      ],
-      ["claude", "kiro"]
-    );
-    const filter = compileProviderFilter(["claude"]);
-    assert.ok(filter);
-    assert.equal(
-      passesProviderAutoCombo({ id: "auto", candidatePool: ["kiro"] }, filter, resolve),
-      false
     );
   });
 });

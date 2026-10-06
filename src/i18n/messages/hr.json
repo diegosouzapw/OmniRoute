@@ -11098,9 +11098,11 @@
     "clientAborted": "{count} odustajanja klijenta",
     "slowAbandonedHint": "Opušteno nakon prag čekanja zaglavlja, isključeno iz transportne stope",
     "previousSuccessRate": "Prije {rate} % uspjeha",
-    "upstreamRefusals": "{count} upstream odbijanja",
     "connectionTestsCount": "{count} testova veze",
-    "notMeasured": "Nije mjereno"
+    "notMeasured": "Nije mjereno",
+    "upstream4xx": "{count} grešaka klijenta na izvoru",
+    "upstream5xx": "{count} grešaka poslužitelja na izvoru",
+    "uniformEgressLine": "{affected} od {exits} izlaza neuspješno zajedno na {provider} (zadnjih {hours}h) — nije problem izlaza"
   },
   "playground": {
     "title": "Okruženje za isprobavanje modela",

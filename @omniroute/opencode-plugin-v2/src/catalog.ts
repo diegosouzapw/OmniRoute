@@ -3,7 +3,6 @@ import {
   buildProviderResolve,
   compileProviderFilter,
   filterAllUnknown,
-  passesProviderAutoCombo,
   passesProviderCombo,
   passesProviderFilter,
   warnNoVocabulary,
@@ -17,14 +16,12 @@ import {
   type ApiFormatV2,
   type LogLevel,
   type Logger,
-  type OmniRouteAutoCombosFetcher,
   type OmniRouteCombosFetcher,
   type OmniRouteEnrichmentFetcher,
   type OmniRouteEnrichmentMap,
   type OmniRouteModelsFetcher,
   type OmniRouteProviderConnection,
   type OmniRouteProvidersFetcher,
-  type OmniRouteRawAutoCombo,
   type OmniRouteRawCombo,
   type OmniRouteRawModelEntry,
   applyEnrichment,
@@ -37,7 +34,6 @@ import {
   isUsableCombo,
   isUsableRawModelId,
   lookupEnrichment,
-  mapAutoComboToModelV2,
   mapComboToModelV2,
   mapRawModelToModelV2,
   usableProviderAliasSet,
@@ -45,14 +41,12 @@ import {
 
 export type ModelsFetcher = OmniRouteModelsFetcher;
 export type CombosFetcher = OmniRouteCombosFetcher;
-export type AutoCombosFetcher = OmniRouteAutoCombosFetcher;
 export type ProvidersFetcher = OmniRouteProvidersFetcher;
 export type EnrichmentFetcher = OmniRouteEnrichmentFetcher;
 
 export interface EndpointTimeouts {
   models?: number;
   combos?: number;
-  autoCombos?: number;
   enrichment?: number;
 }
 
@@ -87,12 +81,10 @@ export interface ResolvedOptions {
 export interface CatalogFetchers {
   fetcher?: ModelsFetcher;
   combosFetcher?: CombosFetcher;
-  autoCombosFetcher?: AutoCombosFetcher;
   providersFetcher?: ProvidersFetcher;
   enrichmentFetcher?: EnrichmentFetcher;
   models?: ModelsFetcher;
   combos?: CombosFetcher;
-  autoCombos?: AutoCombosFetcher;
   providers?: ProvidersFetcher;
   enrichment?: EnrichmentFetcher;
   /**
@@ -105,6 +97,29 @@ export interface CatalogFetchers {
 
 export type StableModelInfo = Model.Info;
 export type StableProviderInfo = Provider.Info;
+
+/**
+ * Every path the refresh flow may request. The removed virtual-entries route
+ * is absent by construction: no fetcher may build it, and the route-guard
+ * test below asserts no stubbed call ever matches it.
+ */
+export const DECLARED_REFRESH_ROUTES = [
+  "/v1/models",
+  "/api/combos",
+  "/api/providers",
+  "/api/pricing/models",
+  "/api/pricing",
+  "/api/free-tier/summary",
+] as const;
+
+/**
+ * Whether a request pathname belongs to the declared refresh set. Exact
+ * equality on purpose: a prefix check would re-admit the removed route via
+ * its `/api/combos/` prefix.
+ */
+export function isDeclaredRefreshPath(pathname: string): boolean {
+  return (DECLARED_REFRESH_ROUTES as readonly string[]).includes(pathname);
+}
 
 /**
  * Structural mirror of the stable `ctx.provider.transform` editor, used as
@@ -182,9 +197,7 @@ export function legacyToStable(
     capabilities: { tools: m.capabilities.toolcall, input, output },
     variants,
     time: { released: Number.isNaN(parsed) ? 0 : parsed },
-    cost: [
-      { input: m.cost.input, output: m.cost.output, cache: { ...m.cost.cache } },
-    ],
+    cost: [{ input: m.cost.input, output: m.cost.output, cache: { ...m.cost.cache } }],
     status: m.status,
     enabled: true,
     limit: { ...m.limit },
@@ -275,7 +288,6 @@ function legacyToInfo(providerID: string, modelID: string, m: LegacyModel): Stab
 export interface PublishCounts {
   models: number;
   combos: number;
-  autoCombos: number;
 }
 
 export interface ModelListFilter {
@@ -469,7 +481,7 @@ interface PublishContext {
   providerAllUnknown: boolean;
   combosFetcher: CatalogFetchers["combos"] | undefined;
   combosTimeout: number;
-  /** Shared with the auto-combos pass: one collision warning per key, per run. */
+  /** Shared with the combos pass: one collision warning per key, per run. */
   warnedCombos: Set<string>;
   cacheKey: string;
 }
@@ -671,7 +683,7 @@ function synthesizeNestedMember(name: string, nested: LegacyModel): OmniRouteRaw
 }
 
 /**
- * Collect the full catalog (models + combos + auto-combos) as legacy entries
+ * Collect the full catalog (models + combos) as legacy entries
  * keyed `providerId/bareId`, then project them onto the stable contract in
  * `buildProviderPayload`. Collect-then-project keeps every fetch/filter/LCD
  * behavior identical to the beta path while the only host touchpoint is the
@@ -690,19 +702,14 @@ export async function collectCatalog(
   const log = opts.logger ?? createLogger(opts.startupDebug ? "debug" : (opts.logLevel ?? "warn"));
   const modelsTimeout = opts.timeouts?.models ?? opts.timeoutMs;
   const combosTimeout = opts.timeouts?.combos ?? opts.timeoutMs;
-  // v1 parity keeps the 5s auto-combos budget when no per-endpoint value is
-  // set (P2 resolves it in index.ts; direct publishCatalog callers may only
-  // pass timeoutMs).
-  const autoCombosTimeout = opts.timeouts?.autoCombos ?? 5_000;
 
   const modelsFetcher = fetchers?.fetcher ?? fetchers?.models;
   const combosFetcher = fetchers?.combosFetcher ?? fetchers?.combos;
-  const autoCombosFetcher = fetchers?.autoCombosFetcher ?? fetchers?.autoCombos;
   const providersFetcher = fetchers?.providersFetcher ?? fetchers?.providers;
 
   const empty: CollectedCatalog = {
     entries: new Map(),
-    counts: { models: 0, combos: 0, autoCombos: 0 },
+    counts: { models: 0, combos: 0 },
   };
   let rawModels: OmniRouteRawModelEntry[];
   try {
@@ -814,7 +821,7 @@ export async function collectCatalog(
     cacheKey,
   });
   if (comboResult === undefined)
-    return { entries: collected, counts: { models: modelCount, combos: 0, autoCombos: 0 } };
+    return { entries: collected, counts: { models: modelCount, combos: 0 } };
   const comboCount = comboResult.published;
   providerDroppedCount += comboResult.providerDropped;
 
@@ -823,67 +830,13 @@ export async function collectCatalog(
   // Re-publishing under "opencode-"+X here is FORBIDDEN: a double
   // publish would double chat entries in the picker.
 
-  // Auto combos: virtual server-side entries from /api/combos/auto, keyed
-  // "auto" / "auto/<variant>" (v1 parity). Fail-open: a fetcher throw keeps
-  // models + combos and only warns - old gateways may not serve the
-  // endpoint at all (the default fetcher maps 404 to [] itself).
-  let rawAutoCombos: OmniRouteRawAutoCombo[];
-  try {
-    rawAutoCombos = autoCombosFetcher
-      ? await autoCombosFetcher(
-          opts.baseURL,
-          opts.managementReadToken ?? opts.apiKey,
-          autoCombosTimeout
-        )
-      : [];
-  } catch (err) {
-    log.warn(
-      `[omniroute-v2] auto combos fetch failed, falling back to models+combos catalog: ${err instanceof Error ? err.message : String(err)}`
-    );
-    return { entries: collected, counts: { models: modelCount, combos: comboCount, autoCombos: 0 } };
-  }
-
-  let autoComboCount = 0;
-  for (const autoCombo of rawAutoCombos) {
-    if (!autoCombo || !autoCombo.id) continue;
-    if (autoCombo.isHidden === true) continue;
-    // Auto combos are catalog entries like any other: an id a user asked to
-    // hide must stay hidden, and an allowlist that excludes it must exclude
-    // it. They used to skip both filters entirely.
-    if (!passesModelAllowlist(autoCombo.id, visibleFilter, hiddenFilter)) continue;
-    if (usable && !isUsableRawModelId(autoCombo.id, usable)) continue;
-    if (!passesProviderAutoCombo(autoCombo, providerFilter, providerResolve, providerAllUnknown)) {
-      providerDroppedCount += 1;
-      continue;
-    }
-    const mapped = mapAutoComboToModelV2(autoCombo, X, opts.baseURL, opts.apiFormat);
-    applyEnrichment(mapped, lookupEnrichment(autoCombo.id, enrichment, canonicalToAlias), {
-      isCombo: true,
-      isAutoCombo: true,
-    });
-    const key = X + "/" + mapped.id;
-    if (publishedKeys.has(key)) {
-      const dedupeKey = `${cacheKey}::${key}`;
-      if (!warnedCombos.has(dedupeKey)) {
-        warnedCombos.add(dedupeKey);
-        log.warn(
-          `[omniroute-v2] auto combo key "${key}" collides with a model id; auto combo wins.`
-        );
-      }
-    }
-    collected.set(key, mapped);
-    publishedKeys.add(key);
-    publishedModelIds.set(key, mapped.id);
-    autoComboCount += 1;
-  }
-
   if (providerFilter && collected.size === 0 && providerDroppedCount > 0) {
     warnProviderMatchedNothing(providerFilter, warnedCombos, log);
   }
 
   return {
     entries: collected,
-    counts: { models: modelCount, combos: comboCount, autoCombos: autoComboCount },
+    counts: { models: modelCount, combos: comboCount },
   };
 }
 
@@ -961,7 +914,10 @@ export async function publishCatalog(
     const settings = (info.settings ?? {}) as Record<string, unknown>;
     const npm = String(info.package ?? "").replace("@opencode/ai/providers/", "@ai-sdk/");
     p["api"] = { type: "aisdk", package: npm, url: settings["baseURL"] };
-    p["request"] = { headers: (info.headers ?? {}) as Record<string, string>, body: (info.body ?? {}) as Record<string, unknown> };
+    p["request"] = {
+      headers: (info.headers ?? {}) as Record<string, string>,
+      body: (info.body ?? {}) as Record<string, unknown>,
+    };
   });
   for (const m of collected.entries.keys()) {
     const slash = m.indexOf("/");
