@@ -50,9 +50,9 @@ export const KNOWN_DUPLICATE_VERSIONS = new Set([
 // (149_api_key_combo_access.sql) — nenhuma das duas é mais um gap. O
 // stale-enforcement exige que cada reserva seja removida quando os arquivos
 // correspondentes aterrissarem na release.
-// 197 and 198 stay reserved for open PRs #15564 (197+198) and #15354 (197).
-// Operator egress from #15314 is 199 so those numbers stay free. Drop 197/198
-// from this set when those files land.
+// 197 and 198 stay reserved for #15564. #15354 lands at 201, above this file,
+// so it is not a hole on this branch. Operator egress from #15314 is 199.
+// Drop 197/198 from this set when those files land.
 // ---------------------------------------------------------------------------
 export const KNOWN_GAPS = new Set(["026", "055", "121", "197", "198"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12); 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
 
