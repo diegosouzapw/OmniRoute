@@ -94,6 +94,55 @@ const FAMILY_MARKER = /\?family=(ipv4|ipv6)$/;
 const memory = new Map<string, RefusalState>();
 let refusalSeq = 0;
 
+/**
+ * Credential-free label for one egress key (`scheme://user@host:port` as
+ * proxyEgressKey writes it): `scheme://host:port`. String surgery only, no
+ * `new URL` (empty userinfo and bare IPv6 break URL parsing). Never receives
+ * anything but egress keys, which never carry passwords or observed addresses.
+ */
+export function describeEgressForLog(key: string): string {
+  const bare = key.replace(FAMILY_MARKER, "");
+  const schemeEnd = bare.indexOf("://");
+  const scheme = (schemeEnd === -1 ? "http" : bare.slice(0, schemeEnd)).toLowerCase();
+  const rest = schemeEnd === -1 ? bare : bare.slice(schemeEnd + 3);
+  const at = rest.lastIndexOf("@");
+  const hostPort = at === -1 ? rest : rest.slice(at + 1);
+  const slash = hostPort.indexOf("/");
+  const authority = slash === -1 ? hostPort : hostPort.slice(0, slash);
+  const colon = authority.lastIndexOf(":");
+  const rawHost = colon === -1 ? authority : authority.slice(0, colon);
+  const port = colon === -1 ? "" : authority.slice(colon + 1);
+  const host = stripIpv6Brackets(rawHost).toLowerCase();
+  const bracketed = host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+  return port ? `${scheme}://${bracketed}:${port}` : `${scheme}://${bracketed}`;
+}
+
+// Instance proof: fixed at module load so two readers seeing different values
+// spot a duplicated store at a glance. Random hex, not the pid: two copies in
+// one process share the pid but not this value.
+const storeInstanceId = Math.floor(Math.random() * 0xffffffff)
+  .toString(16)
+  .padStart(8, "0");
+
+/** Opaque id of this store instance, set once at module load. */
+export function getRefusalStoreInstance(): string {
+  return storeInstanceId;
+}
+
+// Duplicate-load alarm: counts module loads on shared globalThis keys (plain
+// Symbol.for scalars, independent of any shared-store object) and warns once.
+const LOADS_KEY = Symbol.for("omniroute.proxyRefusalMemory.loads");
+const WARNED_KEY = Symbol.for("omniroute.proxyRefusalMemory.warned");
+{
+  const holder = globalThis as unknown as { [key: symbol]: unknown };
+  const loads = typeof holder[LOADS_KEY] === "number" ? (holder[LOADS_KEY] as number) : 0;
+  holder[LOADS_KEY] = loads + 1;
+  if (loads + 1 > 1 && !holder[WARNED_KEY]) {
+    holder[WARNED_KEY] = true;
+    console.warn("[ProxyRefusalMemory] module loaded more than once (duplicated bundle copy)");
+  }
+}
+
 const textField = (value: unknown): string => (typeof value === "string" ? value : "");
 
 // The port as proxyConfigToUrl() normalizes it: the scheme default when unset, null if invalid.
@@ -227,9 +276,14 @@ export function noteProxyRefusal(
   nowMs: number = Date.now()
 ): number | null {
   if (key === null) return null;
+  const before = readState(key, kind, nowMs);
   const periodMs = insertState(key, kind, nowMs);
   if (periodMs < 0) return null;
+  const streak = (before?.streak ?? 0) + 1;
   notifyProxyTransition({ key, kind, periodMs, until: nowMs + periodMs });
+  console.warn(
+    `[ProxyRefusalMemory] set aside ${describeEgressForLog(key)} kind=${kind} periodMs=${periodMs} streak=${streak}`
+  );
   return periodMs;
 }
 
@@ -247,8 +301,13 @@ export function noteProxyMemberRefusal(
   nowMs: number = Date.now()
 ): number | null {
   if (entryKey === null || member === null) return null;
+  const before = readMemberState(entryKey, member, kind, nowMs);
   const periodMs = insertState(keyForEntryMember(entryKey, member), kind, nowMs);
-  return periodMs < 0 ? null : periodMs;
+  if (periodMs < 0) return null;
+  console.warn(
+    `[ProxyRefusalMemory] set aside ${describeEgressForLog(entryKey)} member=${member} kind=${kind} periodMs=${periodMs} streak=${(before?.streak ?? 0) + 1}`
+  );
+  return periodMs;
 }
 
 /** The proxy answered again: end its period now, keep the streak so a repeat doubles. */
@@ -259,7 +318,14 @@ export function noteProxyRecovered(
 ): void {
   if (key === null) return;
   const state = readState(key, kind, nowMs);
-  if (state && state.until > nowMs) state.until = nowMs;
+  if (!state || state.until <= nowMs) return;
+  const policy = REFUSAL_POLICIES[kind];
+  const periodMs = Math.min(policy.baseMs * 2 ** (state.streak - 1), policy.maxMs);
+  const setAsideAt = state.until - periodMs;
+  console.warn(
+    `[ProxyRefusalMemory] recovered ${describeEgressForLog(key)} kind=${kind} setAsideMs=${nowMs - setAsideAt} streak=${state.streak}`
+  );
+  state.until = nowMs;
 }
 
 /** A response came back through this proxy: forget every refusal kind for it. */
@@ -561,6 +627,38 @@ export function hasTransportCrossEvidence(
 export function __resetTransportEvidenceForTesting(): void {
   transportFailures.length = 0;
   transportSuccesses.length = 0;
+}
+
+/**
+ * Read-only transport proof for one entry key: tagged failures through this
+ * egress plus successes to the same destinations through a different egress,
+ * both inside TRANSPORT_EVIDENCE_WINDOW_MS. Runs the existing lazy purge
+ * first (bounded and pre-existing, never a refusal write) so counts never
+ * grow stale.
+ */
+export function countTransportEvidenceFor(
+  key: string | null,
+  nowMs: number = Date.now()
+): { failures: number; crossSuccesses: number } {
+  if (key === null || (transportFailures.length === 0 && transportSuccesses.length === 0)) {
+    return { failures: 0, crossSuccesses: 0 };
+  }
+  purgeTransportEvidence(nowMs);
+  const from = nowMs - TRANSPORT_EVIDENCE_WINDOW_MS;
+  let failures = 0;
+  let destinations: string[] | null = null;
+  for (const f of transportFailures) {
+    if (f.key === key && f.at >= from) {
+      failures++;
+      (destinations ??= []).push(f.destination);
+    }
+  }
+  if (destinations === null) return { failures: 0, crossSuccesses: 0 };
+  let crossSuccesses = 0;
+  for (const s of transportSuccesses) {
+    if (s.key !== key && s.at >= from && destinations.includes(s.destination)) crossSuccesses++;
+  }
+  return { failures, crossSuccesses };
 }
 
 /** Test-only: current evidence store sizes. */

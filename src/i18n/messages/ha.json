@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Tsarin matsayi",
     "poolHealthRankingOff": "Matsayin lafiya a kashe",
     "transportRate": "{rate}% sufuri",
+    "slowAbandoned": "{count} mashiya waɗaɗa",
+    "clientAborted": "{count} mashiya aborts",
+    "slowAbandonedHint": "An abandoned after the headers wait threshold, excluded from the transport rate",
     "previousSuccessRate": "A baya {rate}% nasara",
-    "upstreamRefusals": "{count} kin amincewa daga sama",
     "connectionTestsCount": "{count} gwaje-gwajen haɗi",
-    "notMeasured": "Ba a auna ba"
+    "notMeasured": "Ba a auna ba",
+    "upstream4xx": "{count} kudin kudin kliyenti",
+    "upstream5xx": "{count} kudin kudin siriya",
+    "uniformEgressLine": "{affected} da {exits} exits sakawa suna na {provider} (suna {hours} saa) — suna sakawa"
   },
   "playground": {
     "title": "Filin Gwajin Model",

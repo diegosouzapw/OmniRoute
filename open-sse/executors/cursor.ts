@@ -13,6 +13,7 @@ declare const EdgeRuntime: string | undefined;
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import {
   buildAgentRequestBody,
   decodeAgentServerMessage,
@@ -1460,7 +1461,15 @@ export class CursorExecutor extends BaseExecutor {
         };
       }
       if (opened.status !== 200) {
-        const errBuf = await opened.consumeError();
+        // Publish the received status so proxy health counts it as upstream.
+        const sink = currentAppliedProxySink();
+        if (sink) sink.upstreamStatus = opened.status;
+        let errBuf: Buffer;
+        try {
+          errBuf = await opened.consumeError();
+        } catch {
+          errBuf = Buffer.alloc(0);
+        }
         const errText = errBuf.toString("utf8") || "Unknown error";
         if (opened.status === HTTP_STATUS.UNAUTHORIZED && isCursorApiKey(credentials.apiKey)) {
           invalidateCursorSessionToken(credentials.apiKey);
