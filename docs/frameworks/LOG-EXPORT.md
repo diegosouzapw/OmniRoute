@@ -68,13 +68,8 @@ already PII-sanitised and secret-redacted when they are written, and a call made
 `noLog` API key stores no payload at all, so there is nothing to export.
 
 Payloads are read per row from the filesystem artifact, so hydration only runs for destinations
-that asked for it. Body exports stop at the first row whose artifact write is still `pending`;
-subsequent rows remain behind the cursor until the write publishes `ready` or becomes terminal
-`missing`. If its worker or process never completes, the next body-export read after the
-five-minute insertion-time deadline marks it `missing`. A late writer cannot publish after its
-deadline, even before that recovery read. Summary-only exports
-do not wait for artifacts. A terminal missing or corrupt artifact exports its summary with null
-payloads rather than failing the batch and stranding the cursor.
+that asked for it. A missing or corrupt artifact exports its summary with null payloads rather
+than failing the batch and stranding the cursor.
 
 `maxBodyBytes` (default 262144) caps each field. Longer payloads are **truncated rather than
 dropped** — a clipped prompt still answers "what was asked" — and the row is flagged with
