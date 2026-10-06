@@ -11,7 +11,6 @@ import {
   type OmniRouteProviderConnection,
 } from "./shared/index.js";
 import type { OmniRouteRawCombo, OmniRouteRawModelEntry } from "./shared/index.js";
-import type { ResolvedOptions } from "./catalog.js";
 import { buildProviderPayload, collectCatalog } from "./catalog.js";
 import {
   UNREACHABLE_COOLDOWN_MS,
@@ -31,7 +30,6 @@ import {
   parsePluginOptions,
   resolveTimeouts,
   toResolvedOptions,
-  type PluginOptions,
 } from "./options.js";
 
 /**
@@ -41,6 +39,9 @@ import {
  * should be kept or dropped.
  */
 type SourceResult<T> = { ok: true; value: T } | { ok: false };
+
+/** Warn-once guard for the usage-memory startup notice (one warn per process). */
+let warnedMemoryNoToken = false;
 
 interface RefreshState {
   entries: Map<string, CatalogSnapshot>;
@@ -80,6 +81,16 @@ export default Plugin.define({
         `[omniroute-v2] no management token configured: management endpoints (/api/*) will reuse the inference key, ` +
           `which gateways usually reject with 401/403. Set "managementReadToken" in the plugin options ` +
           `or export ${MANAGEMENT_TOKEN_ENV_VAR}.`
+      );
+    }
+    if (
+      resolved.usageMemory !== false &&
+      resolved.managementReadToken === undefined &&
+      !warnedMemoryNoToken
+    ) {
+      warnedMemoryNoToken = true;
+      log.warn(
+        "[omniroute-v2] usage history inactive without management token: statically dropped models stay unpublished."
       );
     }
 
