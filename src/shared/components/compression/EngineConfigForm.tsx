@@ -29,6 +29,9 @@ export function EngineConfigForm({ schema, value, onChange: set }: EngineConfigF
                 placeholder={f.defaultValue != null ? String(f.defaultValue) : ""}
                 min={f.min}
                 max={f.max}
+                // Fractional settings (e.g. CCR retrievalRampFactor 1.5) must not fail
+                // the browser's step validation, whose default step is 1.
+                step="any"
                 onChange={(e) => {
                   // A browser reports badInput with an empty value for unparseable entries
                   // ("1e", "1,5" in a comma-decimal locale): keep the last valid value rather

@@ -125,6 +125,9 @@ describe("EngineConfigForm", () => {
     expect(numInput).toBeTruthy();
     expect(numInput?.getAttribute("min")).toBe("100");
     expect(numInput?.getAttribute("max")).toBe("8000");
+    // step=any so fractional settings (e.g. CCR retrievalRampFactor 1.5) pass
+    // browser step validation, whose default step is 1.
+    expect(numInput?.getAttribute("step")).toBe("any");
   });
 
   it("renders a text input for the string field", async () => {
@@ -218,6 +221,30 @@ describe("EngineConfigForm", () => {
     });
 
     expect(onChange).toHaveBeenCalledWith("maxTokens", 2048);
+  });
+
+  it("calls onChange with a fractional number when the number input changes", async () => {
+    const { EngineConfigForm } =
+      await import("../../../src/shared/components/compression/EngineConfigForm");
+    const onChange = vi.fn();
+    const container = mount(
+      <EngineConfigForm schema={SCHEMA} value={INITIAL_VALUE} onChange={onChange} />
+    );
+
+    const numInput = container.querySelector("input[type='number']") as HTMLInputElement;
+    expect(numInput).toBeTruthy();
+
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      "value"
+    )?.set;
+
+    act(() => {
+      nativeSetter?.call(numInput, "1.5");
+      numInput.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    expect(onChange).toHaveBeenCalledWith({ ...INITIAL_VALUE, maxTokens: 1.5 });
   });
 
   it("calls onChange with updated array when a multiselect option is checked", async () => {
