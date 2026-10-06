@@ -7231,7 +7231,7 @@
     "noFallbackChains": "대체 체인 없음",
     "noFallbackChainsDesc": "모델에 대한 공급자 대체 순서를 정의하는 체인을 만듭니다.",
     "loadingFallbackChains": "대체 체인 로드 중...",
-    "deleteChainConfirm": "'{model}'에 대한 대체 체인을 삭제하시겠습니까?",
+    "deleteChainConfirm": "''{model}''에 대한 대체 체인을 삭제하시겠습니까?",
     "chainCreated": "{model}용으로 생성된 체인",
     "chainDeleted": "{model}에 대한 체인이 삭제되었습니다.",
     "failedCreateChain": "체인을 생성하지 못했습니다.",
