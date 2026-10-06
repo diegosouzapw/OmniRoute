@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Pozitsiya tartibi",
     "poolHealthRankingOff": "Salomatlik reytingi o‘chiq",
     "transportRate": "{rate}% transport",
+    "slowAbandoned": "{count} sekin tark etishlar",
+    "clientAborted": "{count} mijoz bekor qilishlari",
+    "slowAbandonedHint": "Sarlavhalar kutish chegarasidan keyin tark etildi, transport tezligidan chiqarildi",
     "previousSuccessRate": "Oldin {rate}% muvaffaqiyat",
-    "upstreamRefusals": "{count} ta yuqori rad etish",
     "connectionTestsCount": "{count} ulanish testi",
-    "notMeasured": "O‘lchanmagan"
+    "notMeasured": "O‘lchanmagan",
+    "upstream4xx": "{count} murojaat tashqarisidagi xatolar",
+    "upstream5xx": "{count} server tashqarisidagi xatolar",
+    "uniformEgressLine": "{provider} da {exits} ta chiqishdan {affected} tasi birga ishlamayapti (soʻnggi {hours} soat) — chiqish muammosi emas"
   },
   "playground": {
     "title": "Model sinov maydoni",

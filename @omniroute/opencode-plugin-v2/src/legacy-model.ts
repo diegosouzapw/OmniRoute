@@ -1,8 +1,8 @@
 /**
  * Vendored legacy catalog shape (beta `Model`), kept dependency-free.
  *
- * The shared mappers (`models-map`, `combos-map`, `auto-combos`, `enrich`)
- * speak the rich legacy catalog shape: nested boolean capabilities, a
+ * The shared mappers (`models-map`, `combos-map`, `enrich`)
+ * speak the rich legacy catalog shape (`auto-combos` retired): nested boolean capabilities, a
  * single-object cost block, `options`/`headers` escape hatches, a string
  * `release_date`, and variants as a record. It was previously imported from
  * `@opencode-ai/sdk/v2`; vendoring it removes the beta SDK dependency while

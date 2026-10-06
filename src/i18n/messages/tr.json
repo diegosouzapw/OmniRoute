@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Konum sırası",
     "poolHealthRankingOff": "Sağlık sıralaması kapalı",
     "transportRate": "{rate}% taşıma",
+    "slowAbandoned": "{count} yavaş terk etmeler",
+    "clientAborted": "{count} istemci iptalleri",
+    "slowAbandonedHint": "Başlıkların bekleme eşiğinden sonra terk edildi, taşıma oranından hariç tutuldu",
     "previousSuccessRate": "Önceden {rate}% başarı",
-    "upstreamRefusals": "{count} yukarı akış reddi",
     "connectionTestsCount": "{count} bağlantı testi",
-    "notMeasured": "Ölçülmedi"
+    "notMeasured": "Ölçülmedi",
+    "upstream4xx": "{count} upstream istemci hatası",
+    "upstream5xx": "{count} upstream sunucu hatası",
+    "uniformEgressLine": "{exits} çıkışın {affected} tanesi {provider} üzerinde birlikte başarısız oluyor (son {hours} sa) — çıkış sorunu değil"
   },
   "playground": {
     "title": "Title",
