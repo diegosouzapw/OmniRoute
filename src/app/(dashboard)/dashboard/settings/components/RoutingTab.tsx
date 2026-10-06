@@ -1530,8 +1530,8 @@ export default function RoutingTab() {
           <div className="flex-1">
             <h3 className="text-lg font-semibold">Search timeouts</h3>
             <p className="text-sm text-text-muted mt-1">
-              How long a search waits before it is cut off. Leave a field empty to keep
-              the default: 15 seconds overall, and each provider's own limit.
+              How long a search waits before it is cut off. Leave a field empty to keep the default:
+              15 seconds overall, and each provider&apos;s own limit.
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
               <label className="flex flex-col gap-1 text-xs text-text-muted">
@@ -1551,30 +1551,28 @@ export default function RoutingTab() {
                   className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm text-text-main"
                 />
               </label>
-              {["exa-search", "tavily-search", "firecrawl", "context7", "jina-search"].map(
-                (id) => (
-                  <label key={id} className="flex flex-col gap-1 text-xs text-text-muted">
-                    {id} (ms)
-                    <input
-                      type="number"
-                      min={1}
-                      max={120000}
-                      defaultValue={settings.searchProviderTimeoutsMs?.[id] ?? ""}
-                      placeholder="default"
-                      onBlur={(e) => {
-                        const raw = e.target.value.trim();
-                        const parsed = raw === "" ? undefined : Number.parseInt(raw, 10);
-                        if (parsed !== undefined && Number.isNaN(parsed)) return;
-                        const next = { ...(settings.searchProviderTimeoutsMs ?? {}) };
-                        if (parsed === undefined) delete next[id];
-                        else next[id] = parsed;
-                        updateSetting({ searchProviderTimeoutsMs: next });
-                      }}
-                      className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm text-text-main"
-                    />
-                  </label>
-                )
-              )}
+              {["exa-search", "tavily-search", "firecrawl", "context7", "jina-search"].map((id) => (
+                <label key={id} className="flex flex-col gap-1 text-xs text-text-muted">
+                  {id} (ms)
+                  <input
+                    type="number"
+                    min={1}
+                    max={120000}
+                    defaultValue={settings.searchProviderTimeoutsMs?.[id] ?? ""}
+                    placeholder="default"
+                    onBlur={(e) => {
+                      const raw = e.target.value.trim();
+                      const parsed = raw === "" ? undefined : Number.parseInt(raw, 10);
+                      if (parsed !== undefined && Number.isNaN(parsed)) return;
+                      const next = { ...(settings.searchProviderTimeoutsMs ?? {}) };
+                      if (parsed === undefined) delete next[id];
+                      else next[id] = parsed;
+                      updateSetting({ searchProviderTimeoutsMs: next });
+                    }}
+                    className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm text-text-main"
+                  />
+                </label>
+              ))}
             </div>
           </div>
         </div>
