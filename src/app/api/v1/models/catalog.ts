@@ -563,7 +563,19 @@ async function buildUnifiedModelsResponseCore(
       getProviderPrefixesFromMaps(aliasMaps, providerId, rawProvider);
 
     const getComboTargetModelId = (target: ComboCatalogTarget) => {
-      const resolved = getComboTargetModelIdFromMaps(aliasMaps, target);
+      // Builder steps retain the node ID for connection selection while `modelStr`
+      // uses its public prefix. Normalize only a prefix that resolves to that same node;
+      // another provider's prefix must not change this target's identity.
+      const rawProvider = (target.providerId ?? target.provider)?.trim();
+      const prefix = rawProvider ? providerIdToPrefix[rawProvider] : undefined;
+      const modelStr = target.modelStr?.trim();
+      const normalizedTarget =
+        prefix &&
+        providerNodeIdByPrefix[prefix] === rawProvider &&
+        modelStr?.startsWith(`${prefix}/`)
+          ? { ...target, modelStr: `${rawProvider}${modelStr.slice(prefix.length)}` }
+          : target;
+      const resolved = getComboTargetModelIdFromMaps(aliasMaps, normalizedTarget);
       if (!resolved) return null;
       const nodeId = providerNodeIdByPrefix[resolved.providerId];
       return nodeId ? { ...resolved, providerId: nodeId } : resolved;
