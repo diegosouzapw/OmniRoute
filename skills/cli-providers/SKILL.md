@@ -298,7 +298,7 @@ omniroute combo delete <name>                        # Delete a combo
 omniroute combo suggest --task "code review"         # Ask OmniRoute to recommend a combo
 ```
 
-For the full REST API for combos see [omniroute-routing skill](https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-routing/SKILL.md).
+For the full REST API for combos see [omni-combos-routing skill](https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omni-combos-routing/SKILL.md).
 
 ## Quota & usage
 
