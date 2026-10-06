@@ -297,3 +297,139 @@ describe("OmniglyphContextPage", () => {
     expect(puts[0]!.body.engines).toBeUndefined();
   });
 });
+
+describe("OmniglyphContextPage when the settings GET fails", () => {
+  // The page's only load is the settings GET, and it fails as it does while the server
+  // restarts. Later requests, including a retried GET, reach the stored row.
+  const FAILURES = {
+    "a 500": async () => new Response(JSON.stringify({ error: "unavailable" }), { status: 500 }),
+    "a network error": async () => {
+      throw new TypeError("Failed to fetch");
+    },
+  };
+
+  function failFirstSettingsGet(failure: keyof typeof FAILURES) {
+    const { puts } = setupFetchMock();
+    vi.mocked(globalThis.fetch).mockImplementationOnce(FAILURES[failure]);
+    return puts;
+  }
+
+  async function mountPage() {
+    const { default: Page } =
+      await import("../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mount(<Page />);
+    });
+    await flush();
+    return container;
+  }
+
+  function retryButton(container: HTMLElement) {
+    return Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Retry"
+    );
+  }
+
+  function toggleButton(container: HTMLElement) {
+    return container.querySelector(
+      '[data-testid="omniglyph-enable-toggle"] button'
+    ) as HTMLButtonElement | null;
+  }
+
+  it.each(Object.keys(FAILURES) as Array<keyof typeof FAILURES>)(
+    "offers no control that would save defaults over the stored engines after %s",
+    async (failure) => {
+      const puts = failFirstSettingsGet(failure);
+      const container = await mountPage();
+
+      // The failed load leaves engines {}: a toggle still on the page PUTs
+      // {omniglyph:{enabled:true}} alone, and the store keeps only that engine.
+      const toggle = toggleButton(container);
+      if (toggle) {
+        await act(async () => toggle.click());
+        await flush();
+      }
+
+      expect(puts, "a save before any GET succeeds overwrites the stored engines").toEqual([]);
+      expect(container.querySelector('[data-testid="omniglyph-profile-select"]')).toBeNull();
+      expect(container.textContent).toContain("Failed To Load");
+      expect(retryButton(container), "the load error offers a retry").toBeTruthy();
+    }
+  );
+
+  it("shows a retry that loads the stored settings before the controls return", async () => {
+    const puts = failFirstSettingsGet("a 500");
+    const container = await mountPage();
+    expect(container.textContent).toContain("Failed To Load");
+
+    // The retried GET stays open, and the controls stay out until it answers.
+    let release!: () => Promise<void>;
+    vi.mocked(globalThis.fetch).mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          release = async () => {
+            await act(async () =>
+              resolve(
+                new Response(
+                  JSON.stringify({
+                    enabled: true,
+                    engines: {
+                      rtk: { enabled: true, level: "standard" },
+                      caveman: { enabled: false },
+                    },
+                  }),
+                  { status: 200, headers: { "Content-Type": "application/json" } }
+                )
+              )
+            );
+            await flush();
+          };
+        })
+    );
+    await act(async () => retryButton(container)!.click());
+    await flush();
+    expect(toggleButton(container), "the controls wait for the retried GET").toBeNull();
+
+    await release();
+    expect(toggleButton(container)).toBeTruthy();
+    // Saves go out again once a GET has succeeded. The server merges engines by id,
+    // so the page sends only the engine this toggle changed.
+    await act(async () => toggleButton(container)!.click());
+    await flush();
+    expect(puts[0]!.body).toEqual({ engines: { omniglyph: { enabled: true } } });
+  });
+
+  it("ignores an answer from the load that a retry superseded", async () => {
+    failFirstSettingsGet("a 500");
+    const container = await mountPage();
+
+    // The retried GET stays open, so a second retry can start while it is pending.
+    let releaseStale!: () => Promise<void>;
+    vi.mocked(globalThis.fetch).mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          releaseStale = async () => {
+            await act(async () =>
+              resolve(
+                new Response(JSON.stringify({ engines: { omniglyph: { enabled: true } } }), {
+                  status: 200,
+                  headers: { "Content-Type": "application/json" },
+                })
+              )
+            );
+            await flush();
+          };
+        })
+    );
+    await act(async () => retryButton(container)!.click());
+    await flush();
+    await act(async () => retryButton(container)!.click());
+    await flush();
+
+    // The first retry's answer lands after the second retry's; it must be dropped.
+    await releaseStale();
+    const toggle = toggleButton(container);
+    expect(toggle?.getAttribute("aria-checked"), "the superseded answer is dropped").toBe("false");
+  });
+});
