@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy inacessível",
     "poolSetAsideKindIpQuota429": "limite de taxa por IP (429)",
     "poolSetAsideKindSlow": "respostas lentas",
+    "poolSetAsideKindGeoBlocked": "bloqueado por região (403/451)",
     "poolSetAsideUntil": "De volta à rotação {endsAt}",
     "poolSetAsideRepeat": "Afastado {count, plural, one {# vez} other {# vezes}}",
     "poolUnknownAddress": "Endereço desconhecido",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "Ordem de posição",
     "poolHealthRankingOff": "Classificação de integridade desativada",
     "transportRate": "{rate} % transporte",
+    "slowAbandoned": "{count} abandonos lentos",
+    "clientAborted": "{count} abortos de cliente",
+    "slowAbandonedHint": "Abandonado após o limite de espera dos cabeçalhos, excluído da taxa de transporte",
     "previousSuccessRate": "Anteriormente {rate} % de êxito",
-    "upstreamRefusals": "{count} recusas upstream",
     "connectionTestsCount": "{count} testes de conexão",
-    "notMeasured": "Não medido"
+    "notMeasured": "Não medido",
+    "upstream4xx": "{count} erros de cliente upstream",
+    "upstream5xx": "{count} erros de servidor upstream",
+    "uniformEgressLine": "{affected} de {exits} saídas falham juntas em {provider} (últimas {hours}h) — não é um problema de saída"
   },
   "playground": {
     "title": "Title",

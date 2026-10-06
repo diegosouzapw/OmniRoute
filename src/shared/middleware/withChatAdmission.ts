@@ -13,6 +13,8 @@ import {
   resolveSessionId,
   type ChatAdmissionController,
 } from "./chatBodyAdmission";
+import { logAdmissionRejection } from "@/sse/handlers/admissionRejectionLog";
+import { resolveIncomingCorrelationId } from "@/shared/utils/correlationPreserve.ts";
 
 type RouteHandler = (request: Request, ...args: any[]) => Promise<Response> | Response;
 
@@ -34,7 +36,17 @@ export function withChatAdmission(
       largeBodyBytes: options.largeBodyBytes,
       hardMaxBytes: options.hardMaxBytes,
     });
-    if (admission.admit === false) return admission.response;
+    if (admission.admit === false) {
+      void logAdmissionRejection(admission.response, {
+        path: new URL(request.url).pathname,
+        model: "-",
+        requestBody: null,
+        apiKeyId: null,
+        apiKeyName: null,
+        correlationId: resolveIncomingCorrelationId(request.headers.get("x-correlation-id")),
+      });
+      return admission.response;
+    }
     try {
       return await releaseChatAdmissionAfterHandler(
         Promise.resolve(handler(admission.request, ...args)),

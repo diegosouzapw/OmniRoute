@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "ไม่สามารถเข้าถึงพร็อกซีได้",
     "poolSetAsideKindIpQuota429": "จำกัดอัตราตาม IP (429)",
     "poolSetAsideKindSlow": "การตอบสนองช้า",
+    "poolSetAsideKindGeoBlocked": "ถูกบล็อกตามภูมิภาค (403/451)",
     "poolSetAsideUntil": "กลับเข้าหมุนเวียน {endsAt}",
     "poolSetAsideRepeat": "กันไว้ {count, plural, one {# ครั้ง} other {# ครั้ง}}",
     "poolUnknownAddress": "ที่อยู่ไม่ทราบ",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "ลำดับตำแหน่ง",
     "poolHealthRankingOff": "ปิดการจัดอันดับสุขภาพ",
     "transportRate": "{rate}% การขนส่ง",
+    "slowAbandoned": "{count} การละทิ้งที่ช้า",
+    "clientAborted": "{count} การยกเลิกของไคลเอนต์",
+    "slowAbandonedHint": "ถูกละทิ้งหลังจากเกณฑ์การรอหัวข้อ, ไม่รวมในอัตราการขนส่ง",
     "previousSuccessRate": "ก่อนหน้านี้ {rate}% สำเร็จ",
-    "upstreamRefusals": "{count} การปฏิเสธต้นน้ำ",
     "connectionTestsCount": "{count} การทดสอบการเชื่อมต่อ",
-    "notMeasured": "ยังไม่ได้วัด"
+    "notMeasured": "ยังไม่ได้วัด",
+    "upstream4xx": "{count} ข้อผิดพลาดไคลเอนต์ต้นทาง",
+    "upstream5xx": "{count} ข้อผิดพลาดเซิร์ฟเวอร์ต้นทาง",
+    "uniformEgressLine": "{affected} จาก {exits} ช่องทางออก ล้มเหลวพร้อมกันบน {provider} (ในช่วง {hours} ชั่วโมงที่ผ่านมา) — ไม่ใช่ปัญหาของช่องทางออก"
   },
   "playground": {
     "title": "Title",

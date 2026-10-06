@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "プロキシに到達できません",
     "poolSetAsideKindIpQuota429": "IP レート制限 (429)",
     "poolSetAsideKindSlow": "遅い応答",
+    "poolSetAsideKindGeoBlocked": "地域ブロック (403/451)",
     "poolSetAsideUntil": "{endsAt}にローテーション復帰",
     "poolSetAsideRepeat": "除外{count, plural, one {#回} other {#回}}",
     "poolUnknownAddress": "不明なアドレス",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "位置順序",
     "poolHealthRankingOff": "ヘルスランキング無効",
     "transportRate": "{rate}％トランスポート",
+    "slowAbandoned": "{count} 回の遅延による中断",
+    "clientAborted": "{count} 回のクライアントによる中断",
+    "slowAbandonedHint": "ヘッダー待ち時間の閾値を超過した後に中断され、転送レートから除外されました",
     "previousSuccessRate": "以前は{rate}％成功",
-    "upstreamRefusals": "{count}件のアップストリーム拒否",
     "connectionTestsCount": "{count}件の接続テスト",
-    "notMeasured": "未測定"
+    "notMeasured": "未測定",
+    "upstream4xx": "{count}件の上流クライアントエラー",
+    "upstream5xx": "{count}件の上流サーバーエラー",
+    "uniformEgressLine": "{affected}個の{exits}エグジットが、過去{hours}時間に{provider}上で同時に障害を起こしています — エグジット側の問題ではありません"
   },
   "playground": {
     "title": "Title",

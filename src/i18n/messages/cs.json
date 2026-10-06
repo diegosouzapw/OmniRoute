@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy je nedostupná",
     "poolSetAsideKindIpQuota429": "omezení rychlosti podle IP (429)",
     "poolSetAsideKindSlow": "pomalé odpovědi",
+    "poolSetAsideKindGeoBlocked": "blokovaný region (403/451)",
     "poolSetAsideUntil": "Zpět v rotaci {endsAt}",
     "poolSetAsideRepeat": "Odloženo {count, plural, one {#krát} other {#krát}}",
     "poolUnknownAddress": "Neznámá adresa",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "Pořadí pozic",
     "poolHealthRankingOff": "Hodnocení zdraví vypnuto",
     "transportRate": "{rate} % přenosu",
+    "slowAbandoned": "{count} pomalých opuštění",
+    "clientAborted": "{count} přerušení klienta",
+    "slowAbandonedHint": "Opuštěno po překročení prahu čekání na hlavičky, vyloučeno z transportní míry",
     "previousSuccessRate": "Dříve {rate} % úspěšnost",
-    "upstreamRefusals": "{count} odmítnutí upstream",
     "connectionTestsCount": "{count} testů připojení",
-    "notMeasured": "Neměřeno"
+    "notMeasured": "Neměřeno",
+    "upstream4xx": "{count} chyby klienta ve výstupním směru",
+    "upstream5xx": "{count} chyby serveru ve výstupním směru",
+    "uniformEgressLine": "{affected} z {exits} výstupů selhávají společně na {provider} (posledních {hours}h) — nejedná se o problém výstupu"
   },
   "playground": {
     "title": "Title",

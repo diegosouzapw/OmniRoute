@@ -11086,6 +11086,7 @@
     "poolSetAsideKindProxyUnreachable": "প্রক্সিতে পৌঁছানো যাচ্ছে না",
     "poolSetAsideKindIpQuota429": "IP রেট সীমা (429)",
     "poolSetAsideKindSlow": "ধীর প্রতিক্রিয়া",
+    "poolSetAsideKindGeoBlocked": "অঞ্চল ব্লকড (403/451)",
     "poolSetAsideUntil": "রোটেশনে ফিরেছে {endsAt}",
     "poolSetAsideRepeat": "সরিয়ে রাখা হয়েছে {count, plural, one {# বার} other {# বার}}",
     "poolUnknownAddress": "অজানা ঠিকানা",
@@ -11094,10 +11095,15 @@
     "poolSignalPosition": "অবস্থান ক্রম",
     "poolHealthRankingOff": "স্বাস্থ্য র‍্যাঙ্কিং বন্ধ",
     "transportRate": "{rate}% ট্রান্সপোর্ট",
+    "slowAbandoned": "{count} ধীর ত্যাগ",
+    "clientAborted": "{count} ক্লায়েন্ট বাতিল",
+    "slowAbandonedHint": "হেডার অপেক্ষা থ্রেশহোল্ডের পরে ত্যাগ করা হয়েছে, ট্রান্সপোর্ট রেট থেকে বাদ দেওয়া হয়েছে",
     "previousSuccessRate": "পূর্বে {rate}% সাফল্য",
-    "upstreamRefusals": "{count} আপস্ট্রিম প্রত্যাখ্যান",
     "connectionTestsCount": "{count} সংযোগ পরীক্ষা",
-    "notMeasured": "পরিমাপ করা হয়নি"
+    "notMeasured": "পরিমাপ করা হয়নি",
+    "upstream4xx": "{count} উপস্ট্রিম ক্লায়েন্ট ত্রুটি",
+    "upstream5xx": "{count} উপস্ট্রিম সার্ভার ত্রুটি",
+    "uniformEgressLine": "{affected} টি {exits} এক্সিট একসাথে ব্যর্থ হয়েছে {provider} এ (শেষ {hours} ঘন্টা) — এটি এক্সিট সমস্যা নয়"
   },
   "playground": {
     "title": "মডেল প্লেগ্রাউন্ড",
