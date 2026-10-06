@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Ord suímh",
     "poolHealthRankingOff": "Rangú sláinte múchta",
     "transportRate": "{rate}% iompair",
+    "slowAbandoned": "{count} tréigtheann malla",
+    "clientAborted": "{count} cliant ag scor",
+    "slowAbandonedHint": "Tréigthe tar éis an tairseach fanadh ceannteideal, eisiata ón ráta iompair",
     "previousSuccessRate": "Roimhe seo {rate}% rath",
-    "upstreamRefusals": "{count} diúltú in aghaidh srutha",
     "connectionTestsCount": "{count} tástáil nasctha",
-    "notMeasured": "Gan tomhas"
+    "notMeasured": "Gan tomhas",
+    "upstream4xx": "{count} earráidí cliente ar an gceann chlé",
+    "upstream5xx": "{count} earráidí seirbhís ar an gceann chlé",
+    "uniformEgressLine": "{affected} de {exits} éits bailiú le chéile ar {provider} (deis {hours}h) — níl ceist éit"
   },
   "playground": {
     "title": "Clós Súgartha Múnlaí",

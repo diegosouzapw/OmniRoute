@@ -23,6 +23,7 @@ const { noteOpencodeFreeTierSkip, clearOpencodeFreeTierSkips, getOpencodeFreeTie
   await import("../../open-sse/services/opencodeFreeTierSkip.ts");
 const { pauseCooldownIfPaused } = await import("../../src/sse/services/noAuthModelCooldown.ts");
 const { clearAllModelLockouts } = await import("../../open-sse/services/accountFallback.ts");
+const { checkFallbackError } = await import("../../open-sse/services/accountFallback.ts");
 
 const PROVIDER = "opencode";
 const MODEL = "muse-spark-1.3-contributor-free";
@@ -216,6 +217,41 @@ test("a refusal arms the pause and the next selection answers the retryable cool
   const res = handleNoCredentials(next, null, PROVIDER, MODEL, null, null);
   assert.equal(res.status, 429);
   assert.ok(res.headers.get("Retry-After"), "429 carries Retry-After");
+});
+
+test("combo: paused target answers a retryable 429 and selection passes to the next target", async () => {
+  noteOpencodeFreeTierSkip(PROVIDER);
+  const pausedTarget = (await auth.getProviderCredentials(
+    PROVIDER,
+    null,
+    null,
+    MODEL
+  )) as SelectionOutcome;
+  assert.ok(pausedTarget?.allRateLimited, "paused combo target must answer a cooldown, not null");
+  assert.equal(pausedTarget?.lastErrorCode, 429);
+  const pausedRes = handleNoCredentials(pausedTarget, null, PROVIDER, MODEL, null, null, [], true);
+  assert.equal(pausedRes.status, 429);
+  assert.ok(pausedRes.headers.get("Retry-After"), "paused combo target carries Retry-After");
+  const pausedBody = (await pausedRes.json()) as { error?: { message?: string } };
+  assert.ok(
+    typeof pausedBody.error?.message === "string" &&
+      pausedBody.error.message.includes("refusal pause"),
+    "paused combo target names the refusal pause"
+  );
+  const retryAfterMs = Date.parse(pausedTarget?.retryAfter ?? "") - Date.now();
+  assert.ok(
+    retryAfterMs > 0 && retryAfterMs <= 3 * 60 * 1000 + 2000,
+    `paused combo target Retry-After near the pause end, not a full 180 s wait (${retryAfterMs}ms)`
+  );
+  const fallback = checkFallbackError(
+    pausedRes.status,
+    pausedBody.error?.message ?? "",
+    0,
+    null,
+    PROVIDER,
+    pausedRes.headers
+  );
+  assert.equal(fallback.shouldFallback, true);
 });
 
 test("storage returns to its starting size after pauses expire", () => {

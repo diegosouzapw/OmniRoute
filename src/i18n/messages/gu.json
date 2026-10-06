@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "સ્થાન ક્રમ",
     "poolHealthRankingOff": "આરોગ્ય રેન્કિંગ બંધ",
     "transportRate": "{rate}% ટ્રાન્સપોર્ટ",
+    "slowAbandoned": "{count} ધીમી છોડી દેવાની ઘટનાઓ",
+    "clientAborted": "{count} ક્લાયન્ટ દ્વારા રદ કરવામાં આવેલી ઘટનાઓ",
+    "slowAbandonedHint": "હેડર્સની રાહ જોવાની સીમા પછી છોડી દેવામાં આવી, ટ્રાન્સપોર્ટ રેટમાંથી બાકાત કરવામાં આવી",
     "previousSuccessRate": "અગાઉ {rate}% સફળતા",
-    "upstreamRefusals": "{count} અપસ્ટ્રીમ અસ્વીકાર",
     "connectionTestsCount": "{count} કનેક્શન પરીક્ષણો",
-    "notMeasured": "માપેલ નથી"
+    "notMeasured": "માપેલ નથી",
+    "upstream4xx": "{count} અપસ્ટ્રીમ ક્લાયન્ટ ત્રુટિઓ",
+    "upstream5xx": "{count} અપસ્ટ્રીમ સર્વર ત્રુટિઓ",
+    "uniformEgressLine": "{affected} માંથી {exits} એક્સિટ્સ એકસાથે {provider} પર નિષ્ફળ થાય છે (છેલ્લા {hours} કલાક) — એ એક્સિટનો સમસ્યા નથી"
   },
   "playground": {
     "title": "મોડેલ પ્લેગ્રાઉન્ડ",

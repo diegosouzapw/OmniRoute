@@ -40,8 +40,12 @@ export function buildNoAuthModelCooldown(
  * connection — or null when no active pause covers the provider (including an
  * expired pause, whose entry the reader drops), so selection keeps hydrating.
  */
-export function pauseCooldownIfPaused(provider: string, connectionId: string) {
-  const remainingMs = getOpencodeFreeTierSkipRemainingMs(provider);
+export function pauseCooldownIfPaused(
+  provider: string,
+  connectionId: string,
+  model?: string | null
+) {
+  const remainingMs = getOpencodeFreeTierSkipRemainingMs(provider, Date.now(), model);
   if (remainingMs === null) return null;
   if (remainingMs <= 0) return null;
   return buildNoAuthPauseCooldown(provider, remainingMs, connectionId);
