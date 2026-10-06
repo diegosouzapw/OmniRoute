@@ -53,7 +53,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
 
   function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
     const published = new Map<string, Record<string, unknown>>();
-    for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+    for (const entry of added as Array<{
+      info: { id: string };
+      models: Array<Record<string, unknown>>;
+    }>) {
       for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
     }
     return published;
@@ -64,10 +67,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
    * signal — the shape of a gateway that accepts the connection and then
    * goes quiet.
    */
-  function stubFetch(opts: {
-    combosHangs?: boolean;
-    enrichmentDelayMs?: number;
-  }): typeof fetch {
+  function stubFetch(opts: { combosHangs?: boolean; enrichmentDelayMs?: number }): typeof fetch {
     return (async (url: unknown) => {
       const href = String(url);
       const ok = (body: unknown) => ({
@@ -422,10 +422,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
           });
           return Promise.resolve({ dispose: async () => {} });
         },
-        },
-        model: {
-          transform: () => Promise.resolve({ dispose: async () => {} }),
-        },
+      },
+      model: {
+        transform: () => Promise.resolve({ dispose: async () => {} }),
+      },
       integration: {
         transform: () => {
           throw new Error("host says no");

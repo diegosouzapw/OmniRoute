@@ -331,14 +331,20 @@ describe("OpencodeExecutor headers-wait rotation (seam)", () => {
     }) as typeof globalThis.fetch;
   }
 
-  function run(exec: OpencodeExecutor, model: string, creds: ProviderCredentials, stream = true) {
+  function run(
+    exec: OpencodeExecutor,
+    model: string,
+    creds: ProviderCredentials,
+    stream = true,
+    log: { debug(): void; info(): void; warn(): void; error(): void } = HW_LOG
+  ) {
     return exec.execute({
       model,
       body: { input: [{ role: "user", content: "hi" }], stream },
       stream,
       signal: null,
       credentials: creds,
-      log: HW_LOG,
+      log,
     }) as Promise<{ response: Response }>;
   }
 
@@ -348,10 +354,23 @@ describe("OpencodeExecutor headers-wait rotation (seam)", () => {
     async () => {
       const exec = new OpencodeExecutor("opencode-zen");
       installHangThenOk();
-      const result = await run(exec, HW_RESPONSES_MODEL, hwProxiedCredentials(2));
+      const warns: string[] = [];
+      const spyLog = {
+        debug() {},
+        info() {},
+        warn(_tag: unknown, message: string) {
+          warns.push(String(message));
+        },
+        error() {},
+      };
+      const result = await run(exec, HW_RESPONSES_MODEL, hwProxiedCredentials(2), true, spyLog);
       assert.equal(result.response.status, 200);
       assert.deepEqual(calls, [String(hwPorts[0]), String(hwPorts[1])]);
       await result.response.body?.cancel();
+      assert.ok(
+        warns.some((l) => new RegExp(`\\(proxy 127\\.0\\.0\\.1:${hwPorts[0]}\\)`).test(l)),
+        `headers-wait warn must name the applied egress, got=${JSON.stringify(warns)}`
+      );
     }
   );
 

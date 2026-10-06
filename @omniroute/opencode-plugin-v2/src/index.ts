@@ -14,7 +14,6 @@ import type { OmniRouteRawCombo, OmniRouteRawModelEntry } from "./shared/index.j
 import type { ResolvedOptions } from "./catalog.js";
 import { buildProviderPayload, collectCatalog } from "./catalog.js";
 import {
-  DEFAULT_MODEL_CACHE_TTL_MS,
   UNREACHABLE_COOLDOWN_MS,
   memoryCacheKey,
   readDiskSnapshot,
@@ -30,8 +29,8 @@ import {
   MANAGEMENT_TOKEN_ENV_VAR,
   PLUGIN_ID,
   parsePluginOptions,
-  resolveManagementReadToken,
   resolveTimeouts,
+  toResolvedOptions,
   type PluginOptions,
 } from "./options.js";
 
@@ -58,30 +57,7 @@ interface RefreshState {
   unreachableUntil: number;
 }
 
-export function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
-  return {
-    providerId: parsed.providerId,
-    baseURL: parsed.baseURL,
-    apiKey: parsed.apiKey ?? process.env.OMNIROUTE_API_KEY ?? "",
-    managementReadToken: resolveManagementReadToken(parsed.managementReadToken),
-    timeoutMs: parsed.timeoutMs,
-    timeouts: parsed.timeouts,
-    logLevel: parsed.logLevel,
-    startupDebug: parsed.startupDebug,
-    providerTag: parsed.providerTag,
-    modelCacheTtlMs:
-      typeof parsed.modelCacheTtlMs === "number" && parsed.modelCacheTtlMs > 0
-        ? parsed.modelCacheTtlMs
-        : DEFAULT_MODEL_CACHE_TTL_MS,
-    displayName: parsed.displayName,
-    apiFormat: parsed.apiFormat,
-    visibleModels: parsed.visibleModels,
-    hiddenModels: parsed.hiddenModels,
-    providersAllow: parsed.providersAllow,
-    usableOnly: parsed.usableOnly,
-    enrichment: parsed.enrichment,
-  };
-}
+export { toResolvedOptions } from "./options.js";
 
 export default Plugin.define({
   id: PLUGIN_ID,

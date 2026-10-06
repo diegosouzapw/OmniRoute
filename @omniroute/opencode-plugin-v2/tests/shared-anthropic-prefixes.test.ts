@@ -173,7 +173,9 @@ describe("deprecated anthropicPrefixes", () => {
         modelCacheTtlMs: 300000,
         usableOnly: false,
       });
-      const m = payload.models.find((x) => String((x as unknown as { id: string }).id) === "cc/claude-x") as unknown as Record<string, any>;
+      const m = payload.models.find(
+        (x) => String((x as unknown as { id: string }).id) === "cc/claude-x"
+      ) as unknown as Record<string, any>;
       assert.ok(m);
       assert.equal(m?.package, "@opencode/ai/providers/anthropic");
     } finally {

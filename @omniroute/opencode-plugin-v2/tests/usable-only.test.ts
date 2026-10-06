@@ -208,10 +208,10 @@ describe("catalog usableOnly gating", () => {
             });
             return Promise.resolve({ dispose: async () => {} });
           },
-          },
-          model: {
-            transform: () => Promise.resolve({ dispose: async () => {} }),
-          },
+        },
+        model: {
+          transform: () => Promise.resolve({ dispose: async () => {} }),
+        },
         integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
       });
       const { mkdtempSync } = await import("node:fs");

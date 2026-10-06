@@ -1,0 +1,1 @@
+- **fix(sse):** keep thinking-only streams alive past the content-stall budget ([#15433](https://github.com/diegosouzapw/OmniRoute/pull/15433)) — thanks @maxmad64bis

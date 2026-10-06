@@ -4076,7 +4076,7 @@ async function handleChatCoreInner({
             errorConnectionId === "noauth" &&
             isOpencodeFreeTierRefusalForProvider(provider, statusCode, message)
           ) {
-            noteOpencodeFreeTierSkip(provider);
+            noteOpencodeFreeTierSkip(provider, Date.now(), undefined, targetModel);
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.GEO_BLOCKED) {
           // Google regional refusal: account-independent, non-terminal; park the connection

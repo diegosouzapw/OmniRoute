@@ -110,10 +110,10 @@ function setupHarness(options: Record<string, unknown>) {
         });
         return Promise.resolve({ dispose: async () => {} });
       },
-      },
-      model: {
-        transform: () => Promise.resolve({ dispose: async () => {} }),
-      },
+    },
+    model: {
+      transform: () => Promise.resolve({ dispose: async () => {} }),
+    },
     integration: {
       transform: () => Promise.resolve({ dispose: async () => {} }),
     },

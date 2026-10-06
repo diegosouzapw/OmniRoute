@@ -1,8 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { collectCatalog, type ResolvedOptions } from "../src/catalog.js";
-import { parsePluginOptions } from "../src/options.js";
-import { toResolvedOptions } from "../src/index.js";
+import { parsePluginOptions, toResolvedOptions } from "../src/options.js";
 import type { Logger } from "../src/shared/logger.js";
 
 function silentLogger(warns: string[]): Logger {
@@ -23,8 +22,8 @@ function resolvedWith(
   warns: string[],
   extra?: Partial<ResolvedOptions>
 ): ResolvedOptions {
-  // Real option resolution path: parse, then the exported setup copy from
-  // `../src/index.js` wired with the resolved options below. Run with
+  // Real option resolution path: parse, then the catalog-shaping copy in
+  // `../src/options.js` (re-exported by the entrypoint). Run with
   // `node --import tsx/esm --test` from the package directory.
   const parsed = parsePluginOptions({ baseURL: "https://gw.example.com", ...raw });
   const resolved = toResolvedOptions(parsed);

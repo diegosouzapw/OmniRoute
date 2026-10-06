@@ -65,7 +65,7 @@ jobs:
     name: Validate active release branch
     # On a push, only run for release/* pushes — a push to main is handled by the
     # main-green job below. Schedule/dispatch always run (they validate the highest release).
-    if: ${{ github.event_name != 'push' || startsWith(github.ref_name, 'release/') }}
+    if: ${{ (github.event_name != 'push' || startsWith(github.ref_name, 'release/')) && (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') }}
     # Dynamic runner: with USE_VPS_RUNNER=true (release window / on-demand pre-flight)
     # this runs on the dedicated VPS runner — clean env (no operator OMNIROUTE_API_KEY,
     # no local noauth CLIs => zero machine-specific false positives) and no contention.
@@ -275,7 +275,7 @@ jobs:
     name: Validate main branch
     # On a push, only run for a push to main — a push to release/* is handled by
     # release-green above. Schedule/dispatch always run (they also sweep main).
-    if: ${{ github.event_name != 'push' || github.ref_name == 'main' }}
+    if: ${{ (github.event_name != 'push' || github.ref_name == 'main') && (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') }}
     runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-build"]')) || 'ubuntu-latest' }}
     env:
       JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
@@ -436,7 +436,7 @@ jobs:
   # walk each time. Detection stays on push (release-green above); banking is batched.
   bank-ratchet-shrinks:
     name: Bank ratchet shrinks
-    if: ${{ github.event_name != 'push' }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -567,7 +567,7 @@ jobs:
   # first red PR. Advisory: never fails the workflow.
   baseline-headroom:
     name: Baseline headroom
-    if: ${{ github.event_name != 'push' }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') }}
     timeout-minutes: 60
     runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-light"]')) || 'ubuntu-latest' }}
     permissions:

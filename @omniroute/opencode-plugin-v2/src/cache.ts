@@ -159,7 +159,9 @@ export async function readDiskSnapshot(
       (entry) => !isStaleSnapshotModel(entry)
     );
     if (stale > 0) {
-      logger?.warn(`[omniroute-v2] dropping ${stale} stale snapshot entries with an unusable api block`);
+      logger?.warn(
+        `[omniroute-v2] dropping ${stale} stale snapshot entries with an unusable api block`
+      );
     }
     if (models.length === 0) return undefined;
     return {

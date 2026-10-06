@@ -85,7 +85,9 @@ describe("plugin-v2 managementReadToken wiring (F1)", () => {
         managementReadToken: "mgmt-key",
       });
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-      const ids = (added as Array<{ models: Array<{ id: string }> }>).flatMap((a) => a.models.map((m) => m.id));
+      const ids = (added as Array<{ models: Array<{ id: string }> }>).flatMap((a) =>
+        a.models.map((m) => m.id)
+      );
       assert.ok(ids.includes("m1"));
       assert.equal(seen.get(COMBOS_URL), "Bearer mgmt-key");
       assert.equal(seen.get(MODELS_URL), "Bearer chat-key");
@@ -205,7 +207,9 @@ describe("plugin-v2 fail-closed models (F2)", () => {
         integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
       };
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(firstCtx);
-      const firstIds = (firstAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) => a.models.map((m) => m.id));
+      const firstIds = (firstAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) =>
+        a.models.map((m) => m.id)
+      );
       assert.ok(firstIds.includes("m1"), "first refresh must publish m1");
       const { setTimeout: sleep } = await import("node:timers/promises");
       await sleep(5);
@@ -230,7 +234,9 @@ describe("plugin-v2 fail-closed models (F2)", () => {
       await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(secondCtx);
       if (prevDataDir === undefined) delete process.env.OPENCODE_DATA_DIR;
       else process.env.OPENCODE_DATA_DIR = prevDataDir;
-      const secondIds = (secondAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) => a.models.map((m) => m.id));
+      const secondIds = (secondAdded as Array<{ models: Array<{ id: string }> }>).flatMap((a) =>
+        a.models.map((m) => m.id)
+      );
       assert.ok(secondIds.includes("m1"), "empty models fetch must reuse last-known catalog");
       assert.ok(
         guard.warns.some((w) => w.includes("keeping last-known catalog")),
