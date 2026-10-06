@@ -1,4 +1,4 @@
--- 197: operator-provided dated egress observations per pool member.
+-- 199: operator-provided dated egress observations per pool member.
 --
 -- A pool member's observed address today comes only from the echo probe
 -- journal (proxy_logs): wrong as soon as a member changes exit behind its

@@ -13,7 +13,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 
-const MIGRATION_FILE = "197_proxy_operator_egress.sql";
+const MIGRATION_FILE = "199_proxy_operator_egress.sql";
 const MIGRATION_DIR = path.join(process.cwd(), "src", "lib", "db", "migrations");
 
 function resetStorage() {
