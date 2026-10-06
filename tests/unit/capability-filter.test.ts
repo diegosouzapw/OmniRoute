@@ -23,15 +23,17 @@ import {
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 /** Minimal capabilities shape for filter testing. */
-function caps(overrides: Partial<{
-  supportsTools: boolean | null;
-  toolCalling: boolean;
-  supportsVision: boolean | null;
-  structuredOutput: boolean | null;
-  contextWindow: number | null;
-  maxInputTokens: number | null;
-  maxOutputTokens: number | null;
-}> = {}) {
+function caps(
+  overrides: Partial<{
+    supportsTools: boolean | null;
+    toolCalling: boolean;
+    supportsVision: boolean | null;
+    structuredOutput: boolean | null;
+    contextWindow: number | null;
+    maxInputTokens: number | null;
+    maxOutputTokens: number | null;
+  }> = {}
+) {
   return {
     supportsTools: overrides.supportsTools ?? null,
     toolCalling: overrides.toolCalling ?? true,
@@ -43,7 +45,9 @@ function caps(overrides: Partial<{
   };
 }
 
-function req(overrides: Partial<RequestCapabilityRequirements> = {}): RequestCapabilityRequirements {
+function req(
+  overrides: Partial<RequestCapabilityRequirements> = {}
+): RequestCapabilityRequirements {
   return {
     requiresTools: false,
     requiresVision: false,
@@ -113,12 +117,12 @@ test("checkRequestCapabilityFit: tools OK when model supports tools", () => {
 });
 
 test("checkRequestCapabilityFit: tools bypassed for emulated-tool provider", () => {
-  // chatgpt-web has toolCalling: "emulated" in the provider registry,
+  // gemini-web has toolCalling: "emulated" in the provider registry,
   // so the filter must not reject it even when capabilities report false.
   const result = checkRequestCapabilityFit(
     caps({ supportsTools: false, toolCalling: false }),
     req({ requiresTools: true }),
-    "chatgpt-web"
+    "gemini-web"
   );
   assert.equal(result.compatible, true);
   assert.deepEqual(result.failures, []);
@@ -205,7 +209,10 @@ test("deriveRequestCapabilityRequirements: detects tools from body", () => {
 test("deriveRequestCapabilityRequirements: detects vision from image_url", () => {
   const requirements = deriveRequestCapabilityRequirements({
     messages: [
-      { role: "user", content: [{ type: "image_url", image_url: { url: "https://example.com/img.jpg" } }] },
+      {
+        role: "user",
+        content: [{ type: "image_url", image_url: { url: "https://example.com/img.jpg" } }],
+      },
     ],
   });
   assert.equal(requirements.requiresVision, true);
@@ -230,9 +237,7 @@ test("feature flag CAPABILITY_FILTER_ENABLED defaults to false", () => {
   // opt-in. The default value must be "false" per the plan.
   import("../../src/shared/constants/featureFlagDefinitions.ts").then(
     ({ FEATURE_FLAG_DEFINITIONS }) => {
-      const flag = FEATURE_FLAG_DEFINITIONS.find(
-        (d) => d.key === "CAPABILITY_FILTER_ENABLED"
-      );
+      const flag = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "CAPABILITY_FILTER_ENABLED");
       assert.ok(flag, "CAPABILITY_FILTER_ENABLED flag must be defined");
       assert.equal(flag.defaultValue, "false");
       assert.equal(flag.type, "boolean");

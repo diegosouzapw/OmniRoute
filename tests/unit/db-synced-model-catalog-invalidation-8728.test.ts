@@ -14,7 +14,7 @@ const readCache = await import("../../src/lib/db/readCache.ts");
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -45,7 +45,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("replace invalidates only for canonical persisted changes", async () => {
@@ -89,7 +89,7 @@ test("replace invalidates only for canonical persisted changes", async () => {
   assert.equal(catalogVersion(), beforeIdenticalVersion + 2, "content changes are persisted");
 });
 
-test("replace handles empty and deleted-model normalization without phantom writes", async () => {
+test("replace handles empty and normalized models without phantom writes", async () => {
   const startVersion = catalogVersion();
   const startChanges = totalChanges();
 
@@ -97,18 +97,15 @@ test("replace handles empty and deleted-model normalization without phantom writ
   assert.equal(totalChanges(), startChanges, "absent-to-empty replacement must be a no-op");
   assert.equal(catalogVersion(), startVersion);
 
-  models.mergeModelCompatOverride("openai", "trashed", {
-    isDeleted: true,
-    isHidden: true,
-  });
-
-  const beforeDeletedAbsent = totalChanges();
-  const beforeDeletedVersion = catalogVersion();
   await models.replaceSyncedAvailableModelsForConnection("openai", "absent", [
-    { id: "trashed", name: "Trashed" },
+    { id: "restored", name: "Restored" },
   ]);
-  assert.equal(totalChanges(), beforeDeletedAbsent, "filtered deleted models must stay absent");
-  assert.equal(catalogVersion(), beforeDeletedVersion);
+  assert.deepEqual(
+    (await models.getSyncedAvailableModelsForConnection("openai", "absent")).map(
+      (model) => model.id
+    ),
+    ["restored"]
+  );
 
   seedSynced("openai", "present", [{ id: "existing", name: "Existing" }]);
   const beforeDeleteVersion = catalogVersion();

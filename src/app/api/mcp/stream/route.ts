@@ -33,7 +33,7 @@ async function guardEnabled(): Promise<NextResponse | null> {
 }
 
 export async function POST(request: NextRequest) {
-  const authError = await requireManagementAuth(request);
+  const authError = await requireManagementAuth(request, { acceptMcpConnectScope: true });
   if (authError) return authError;
   const blocked = await guardEnabled();
   if (blocked) return blocked;
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const authError = await requireManagementAuth(request);
+  const authError = await requireManagementAuth(request, { acceptMcpConnectScope: true });
   if (authError) return authError;
   const blocked = await guardEnabled();
   if (blocked) return blocked;
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const authError = await requireManagementAuth(request);
+  const authError = await requireManagementAuth(request, { acceptMcpConnectScope: true });
   if (authError) return authError;
   const blocked = await guardEnabled();
   if (blocked) return blocked;

@@ -18,5 +18,3 @@
 #
 # Keep this list SHORT and reviewed every release. Prefer fixing (rebuild on a
 # patched base / bump the dep) over suppressing. Stale entries are debt.
-#
-# (No accepted-risk suppressions at present — ignore-unfixed covers the noise.)

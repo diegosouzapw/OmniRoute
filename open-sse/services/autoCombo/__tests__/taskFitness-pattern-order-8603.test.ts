@@ -46,8 +46,11 @@ describe("#8603 static fitness table matches longest pattern first", () => {
   });
 
   it("falls back to the default table for an unknown task type", () => {
-    // "claude-sonnet" is absent from a nonexistent table but present in `default`.
-    expect(getStaticFitnessTableScore("claude-sonnet", "no-such-task")).toBe(0.85);
+    // "gpt-4o" is absent from a nonexistent table but present in `default`, where it
+    // scores 0.85 rather than the 0.9 it gets for `coding`.
+    // (#11503 swapped the probe from the version-less "claude-sonnet" row, which that
+    // PR removed from the table; the fallback behaviour under test is unchanged.)
+    expect(getStaticFitnessTableScore("gpt-4o", "no-such-task")).toBe(0.85);
   });
 
   it("returns null when nothing matches", () => {

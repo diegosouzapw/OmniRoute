@@ -72,8 +72,8 @@ const {
 test.after(() => {
   process.env.PATH = originalPath;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.rmSync(FAKE_BIN_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  fs.rmSync(FAKE_BIN_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("install creates package.json structure", async () => {

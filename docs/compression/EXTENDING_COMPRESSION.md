@@ -568,6 +568,40 @@ gate (`check:compression-budget`).
 
 ---
 
+## Adding an Output Style
+
+Output styles (see the [guide's catalog table](./COMPRESSION_GUIDE.md#output-styles-catalog))
+are the response-side counterpart of the input engines: instead of compressing what you
+send, they instruct the model to produce cheaper output. The registry is
+`OUTPUT_STYLE_CATALOG` in `open-sse/services/compression/outputStyles/catalog.ts`, and
+**one catalog entry is the entire feature**: the injector, the dashboard settings panel,
+persistence and telemetry all enumerate the catalog — there is no other list to update.
+
+1. **Add one entry to `OUTPUT_STYLE_CATALOG`** with `id`, `label`, `description` and the
+   three English `levels` (`lite`, `full`, `ultra`). Every level must end with
+   `${SHARED_BOUNDARIES}` so code, paths, commands, errors and URLs stay verbatim.
+   The instruction text must be **static and deterministic** per
+   `(id, level, language)` — `${SHARED_BOUNDARIES}` is the only interpolation allowed.
+2. **Translate it.** Ship at least a `pt-BR` block under `i18n`; `ponytail` and
+   `i-have-adhd` (en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi) are the reference shape. A deliberately
+   single-language style sets `locale` instead (like `terse-cjk` → `zh`) and is then
+   only offered under that locale.
+3. **Update the matrix guard** — add the style's languages to `BASELINE_LANGUAGES` in
+   `tests/unit/compression/output-styles-i18n-matrix.test.ts`. The gate fails any new
+   non-locale-gated style without the required translations unless it carries an
+   explicit `KNOWN_ENGLISH_ONLY` entry with a tracking issue.
+4. **Add a per-style test** modeled on
+   `tests/unit/compression/i-have-adhd-catalog.test.ts`: catalog shape, boundaries
+   clause per level, and an anchor asserting each translation is written in its own
+   language rather than copied English.
+5. **Attribution**: if the style is adapted from an upstream project, credit it in a
+   source comment on the entry (e.g. `i-have-adhd` → ayghri/i-have-adhd, MIT) — same
+   rule as "Proposing an upstream-inspired improvement" above.
+
+No UI, schema or telemetry change is needed — those surfaces render from the catalog.
+
+---
+
 ## Best Practices
 
 ### Engine Development

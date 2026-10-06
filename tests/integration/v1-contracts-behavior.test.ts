@@ -3,6 +3,31 @@ import assert from "node:assert/strict";
 
 const BASE_URL = "http://localhost:20128";
 
+// #9320 (`fix(security): require auth for /v1/models when management auth is
+// configured`) inverted the default: the `/v1` catalog reads are now gated
+// whenever `isAuthRequired()` is true instead of only when
+// `settings.requireAuthForModels === true`. The integration CI job sets
+// `INITIAL_PASSWORD`, which flips `isAuthRequired()` on, so unauthenticated
+// catalog reads answer 401 there while they answer 200 on a bare dev box.
+// These are SHAPE contracts, so authenticate them with the deployment env key
+// (`isConfiguredEnvApiKey` → `validateApiKey` returns true) and let
+// tests/unit/v1-models-auth-leak-9320.test.ts own the auth-gate contract.
+const TEST_API_KEY = "sk-v1-contracts-behavior-test-key";
+const previousEnvApiKey = process.env.OMNIROUTE_API_KEY;
+process.env.OMNIROUTE_API_KEY = TEST_API_KEY;
+
+test.after(() => {
+  if (previousEnvApiKey === undefined) delete process.env.OMNIROUTE_API_KEY;
+  else process.env.OMNIROUTE_API_KEY = previousEnvApiKey;
+});
+
+function authedRequest(path: string): Request {
+  return new Request(`${BASE_URL}${path}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${TEST_API_KEY}` },
+  });
+}
+
 test("contract: /api/v1 OPTIONS exposes CORS and allowed methods", async () => {
   const { OPTIONS } = await import("../../src/app/api/v1/route.ts");
   const response = await OPTIONS();
@@ -29,8 +54,8 @@ test("contract: /api/v1 and /api/v1/models return consistent model IDs", async (
   ]);
 
   const [v1Response, v1ModelsResponse] = await Promise.all([
-    getV1(new Request(`${BASE_URL}/api/v1`, { method: "GET" })),
-    getV1Models(new Request(`${BASE_URL}/api/v1/models`, { method: "GET" })),
+    getV1(authedRequest("/api/v1")),
+    getV1Models(authedRequest("/api/v1/models")),
   ]);
 
   assert.equal(v1Response.status, 200);
@@ -52,7 +77,7 @@ test("contract: /api/v1 and /api/v1/models return consistent model IDs", async (
 
 test("contract: /api/v1/models returns OpenAI-compatible model shape", async () => {
   const { GET: getV1Models } = await import("../../src/app/api/v1/models/route.ts");
-  const response = await getV1Models(new Request(`${BASE_URL}/api/v1/models`, { method: "GET" }));
+  const response = await getV1Models(authedRequest("/api/v1/models"));
 
   assert.equal(response.status, 200);
   const body = (await response.json()) as any;
@@ -72,7 +97,7 @@ test("contract: /api/v1/models returns OpenAI-compatible model shape", async () 
 
 test("contract: /api/v1/embeddings GET returns embedding model listing shape", async () => {
   const { GET: getEmbeddings } = await import("../../src/app/api/v1/embeddings/route.ts");
-  const response = await getEmbeddings();
+  const response = await getEmbeddings(authedRequest("/api/v1/embeddings"));
 
   assert.equal(response.status, 200);
   const body = (await response.json()) as any;
@@ -91,7 +116,7 @@ test("contract: /api/v1/embeddings GET returns embedding model listing shape", a
 
 test("contract: /api/v1/images/generations GET returns image model listing shape", async () => {
   const { GET: getImageModels } = await import("../../src/app/api/v1/images/generations/route.ts");
-  const response = await getImageModels();
+  const response = await getImageModels(authedRequest("/api/v1/images/generations"));
 
   assert.equal(response.status, 200);
   const body = (await response.json()) as any;

@@ -29,15 +29,15 @@ test("Codex catalog exposes the GPT-5.6 lineup in configured priority order", ()
   ];
 
   assert.deepEqual(
-    models.slice(0, expectedIds.length).map((model) => model.id),
+    models.filter((model) => model.id.startsWith("gpt-5.6-")).map((model) => model.id),
     expectedIds
   );
 
   for (const modelId of expectedIds) {
     const model = models.find((entry) => entry.id === modelId);
     assert.ok(model, `codex must expose ${modelId}`);
-    assert.equal(model.contextLength, 1050000);
-    assert.equal(model.maxInputTokens, 922000);
+    assert.equal(model.contextLength, 872000);
+    assert.equal(model.maxInputTokens, 872000);
     assert.equal(model.maxOutputTokens, 128000);
     assert.equal(model.targetFormat, "openai-responses");
     assert.equal(model.toolCalling, true);

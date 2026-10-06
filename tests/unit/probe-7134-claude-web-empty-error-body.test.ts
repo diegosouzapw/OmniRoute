@@ -1,25 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { writeFile } from "node:fs/promises";
 
 // Issue #7134 — claude-web reported "Claude Web API error (400) with no
 // response body" even when Claude's upstream DID send a real JSON error body.
 //
-// Root cause: tlsFetchStreaming() streams the upstream response to a temp
-// file via tls-client-node's `streamOutputPath` mode. For a non-SSE,
-// non-2xx response, the native binding resolves with an EMPTY in-memory
-// `body` field (it only populates `body` for its non-streaming mode) even
-// though the real error bytes were already written to the temp file and
-// even peeked (`looksLikeSse`) to decide the response wasn't SSE. The old
-// code read the empty `r.body` instead of the file it just peeked, throwing
-// away the real upstream error detail.
+// The browser transport must peek a requested stream to distinguish SSE from
+// an upstream JSON error. Once it decides the response is not SSE, it must
+// buffer the same native body stream without discarding the bytes it peeked.
 //
 // This test injects a fake `client` (matching the `{ request }` shape
-// tlsFetchStreaming already accepts for DI) that reproduces the exact
-// tls-client-node contract under `streamOutputPath`: write bytes to the file,
-// resolve with an empty `body`. No `--experimental-test-module-mocks` flag
-// needed — this exercises the real, unmodified `tlsFetchStreaming` via
-// dependency injection instead of module-mocking `tls-client-node`.
+// tlsFetchStreaming accepts for DI). No experimental module mocks are needed:
+// the test exercises the production wreq response-stream path directly.
 
 const { tlsFetchStreaming } = await import("../../open-sse/services/claudeTlsClient.ts");
 
@@ -33,21 +24,16 @@ const REAL_CLAUDE_ERROR_BODY = JSON.stringify({
 
 function makeFakeClient(status: number, bodyOnFile: string) {
   return {
-    request: async (_url: string, opts: Record<string, unknown>) => {
-      const streamOutputPath = opts.streamOutputPath as string;
-      await writeFile(streamOutputPath, bodyOnFile);
-      return {
-        status,
-        headers: {},
-        // tls-client-node does not populate `body` for streamed requests —
-        // this is the exact defect condition.
-        body: "",
-        cookies: {},
-        text: async () => "",
-        json: async () => ({}),
-        bytes: async () => new Uint8Array(),
-      };
-    },
+    request: async () =>
+      new Response(
+        new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(bodyOnFile));
+            controller.close();
+          },
+        }),
+        { status }
+      ),
   };
 }
 
@@ -73,19 +59,11 @@ test("issue #7134: tlsFetchStreaming surfaces the real error body for a non-SSE 
 
 test("issue #7134: tlsFetchStreaming still uses r.body when the native client DOES populate it", async () => {
   const client = {
-    request: async (_url: string, opts: Record<string, unknown>) => {
-      const streamOutputPath = opts.streamOutputPath as string;
-      await writeFile(streamOutputPath, "{}");
-      return {
-        status: 403,
-        headers: {},
-        body: "populated body from native client",
-        cookies: {},
-        text: async () => "",
-        json: async () => ({}),
-        bytes: async () => new Uint8Array(),
-      };
-    },
+    request: async () => ({
+      status: 403,
+      headers: {},
+      body: "populated body from native client",
+    }),
   };
 
   const result = await tlsFetchStreaming(

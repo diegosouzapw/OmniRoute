@@ -145,13 +145,16 @@ export function runNpm(
   options: { cwd?: string; timeoutMs?: number; prefix?: string } = {}
 ): Promise<NpmRunResult> {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  // On Windows, npm is npm.cmd; on Unix it's npm.
-  const npmBin = process.platform === "win32" ? "npm.cmd" : "npm";
+  const isBun = Boolean(process.versions.bun);
+  const npmBin = process.platform === "win32"
+    ? (isBun ? "bun.exe" : "npm.cmd")
+    : (isBun ? "bun" : "npm");
+  const execArgs = isBun && args[0] === "install" ? ["add", ...args.slice(1)] : args;
 
   return new Promise((resolve, reject) => {
     execFile(
       npmBin,
-      args,
+      execArgs,
       buildNpmExecOptions(process.platform, {
         cwd: options.cwd,
         timeoutMs,

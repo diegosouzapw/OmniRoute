@@ -36,12 +36,12 @@ test("thinking.levels is parsed into supportedThinkingEfforts", () => {
   assert.deepEqual(detectSupportedThinkingEfforts(record), ["medium", "high"]);
 });
 
-test("duplicates are deduped, max canonicalizes to xhigh, unknown native tier retained", () => {
+test("duplicates are deduped, max is canonical, unknown native tier retained", () => {
   const record = {
     id: "model-d",
     supported_reasoning_levels: [{ effort: "max" }, { effort: "max" }, { effort: "ultra" }],
   };
-  assert.deepEqual(detectSupportedThinkingEfforts(record), ["xhigh", "ultra"]);
+  assert.deepEqual(detectSupportedThinkingEfforts(record), ["max", "ultra"]);
 });
 
 test("a malformed entry inside an otherwise-valid array is dropped, the rest survive, no throw", () => {
@@ -104,6 +104,64 @@ test("thinking.levels alone still populates supportedThinkingEfforts via normali
   ]);
   assert.deepEqual(models[0].supportedThinkingEfforts, ["high"]);
 });
+test("CrofAI reasoning_effort true maps to the supported effort tiers", () => {
+  const [model] = normalizeDiscoveredModels(
+    [{ id: "crof-reasoning-model", reasoning_effort: true }],
+    "crof"
+  );
+  assert.equal(model.supportsThinking, true);
+  assert.deepEqual(model.supportedThinkingEfforts, ["none", "low", "medium", "high", "max"]);
+});
+
+test("Command Code discovery supplies provider-wide effort tiers when /models omits them", () => {
+  const [model] = normalizeDiscoveredModels(
+    [{ id: "command-code-live-model", name: "Command Code Live Model" }],
+    "command-code"
+  );
+  assert.equal(model.supportsThinking, true);
+  assert.deepEqual(model.supportedThinkingEfforts, ["low", "medium", "high", "xhigh", "max"]);
+});
+
+test("CrofAI false or absent reasoning_effort adds no reasoning metadata", () => {
+  const models = normalizeDiscoveredModels(
+    [{ id: "crof-no-reasoning", reasoning_effort: false }, { id: "crof-unknown-reasoning" }],
+    "crof"
+  );
+  for (const model of models) {
+    assert.equal(model.supportsThinking, undefined);
+    assert.equal("supportedThinkingEfforts" in model, false);
+  }
+});
+
+test("reasoning_effort boolean remains provider-scoped", () => {
+  assert.deepEqual(
+    normalizeDiscoveredModels(
+      [{ id: "other-provider-model", reasoning_effort: true, custom_reasoning: true }],
+      "other-provider"
+    ),
+    [{ id: "other-provider-model", name: "other-provider-model", source: "imported" }]
+  );
+});
+
+test("explicit effort tiers take precedence over the CrofAI boolean fallback", () => {
+  const models = normalizeDiscoveredModels(
+    [
+      {
+        id: "crof-flat-tiers",
+        reasoning_effort: true,
+        supportedThinkingEfforts: ["low", "high"],
+      },
+      {
+        id: "crof-nested-tiers",
+        reasoning_effort: true,
+        reasoning: { supported_efforts: ["medium"] },
+      },
+    ],
+    "crof"
+  );
+  assert.deepEqual(models[0].supportedThinkingEfforts, ["low", "high"]);
+  assert.deepEqual(models[1].supportedThinkingEfforts, ["medium"]);
+});
 
 test("client_version is absent from the model-list URL by default", () => {
   const url = buildProviderModelsUrl("https://example.com/v1/models", undefined);
@@ -126,4 +184,40 @@ test("client_version opt-in without an explicit version still defaults off (no g
     discoveryClientVersion: "1.2.3",
   });
   assert.ok(!url.includes("client_version"));
+});
+
+test("metadata.reasoning.supported_efforts (neuralwatt shape) is parsed into supportedThinkingEfforts", () => {
+  const [model] = normalizeDiscoveredModels([
+    {
+      id: "neuralwatt/glm-5.2",
+      metadata: {
+        reasoning: { supported_efforts: ["max", "high", "none"] },
+        capabilities: { reasoning_effort: true },
+      },
+    },
+  ]);
+  // `max` is a first-class canonical tier (#11875) and is preserved as-is.
+  assert.deepEqual(model.supportedThinkingEfforts, ["max", "high", "none"]);
+});
+
+test("metadata.reasoning.supported_efforts does not override a top-level declared tier list", () => {
+  const [model] = normalizeDiscoveredModels([
+    {
+      id: "both-shapes",
+      reasoning: { supported_efforts: ["medium"] },
+      metadata: { reasoning: { supported_efforts: ["max", "none"] } },
+    },
+  ]);
+  assert.deepEqual(model.supportedThinkingEfforts, ["medium"]);
+});
+
+test("malformed metadata.reasoning shape degrades to undefined, does not throw", () => {
+  const models = normalizeDiscoveredModels([
+    { id: "bad-metadata-1", metadata: { reasoning: { supported_efforts: "not-an-array" } } },
+    { id: "bad-metadata-2", metadata: { reasoning: 42 } },
+    { id: "bad-metadata-3", metadata: null },
+  ]);
+  for (const model of models) {
+    assert.equal("supportedThinkingEfforts" in model, false);
+  }
 });

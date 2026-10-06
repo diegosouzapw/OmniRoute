@@ -8,12 +8,12 @@ import { resolveChatCoreTargetFormat } from "../../open-sse/handlers/chatCore/ta
 // ghe-copilot catalog. getModelTargetFormat falls back to getGlobalModel() when
 // the provider's own catalog lacks the model id, importing the DECLARING
 // provider's endpoint semantics into every other provider serving the same id.
-// command-code's chat-shaped /alpha/generate executor then received a
+// command-code's chat-shaped executor then received a
 // Responses-format body (input, not messages) and shipped `messages: []`
 // upstream — upstream rejected with "Invalid prompt: messages must not be empty"
 // (502). Model-level targetFormat is provider-scoped: it must not leak.
 test("model-level targetFormat does not leak across provider catalogs", () => {
-  // command-code serves gpt-5.6-luna over its chat-shaped /alpha/generate endpoint
+  // command-code serves gpt-5.6-luna over its chat-shaped provider endpoint
   assert.equal(getModelTargetFormat("cmd", "gpt-5.6-luna"), null);
   // raw provider id form behaves identically (alias resolution)
   assert.equal(getModelTargetFormat("command-code", "gpt-5.6-luna"), null);

@@ -7,6 +7,7 @@
  */
 
 import { markServerReady, markServerStarting } from "@/lib/serverLifecycle";
+import { normalizeBootError } from "@/lib/instrumentationBootError";
 
 function getRandomBytes(byteLength: number): Uint8Array {
   const bytes = new Uint8Array(byteLength);
@@ -37,23 +38,13 @@ export function renameProcessTitle(currentTitle: string): string {
   return `omniroute${currentTitle.slice("next-server".length)}`;
 }
 
-/**
- * Normalize any thrown/rejected value into a real `Error` instance.
- *
- * Next.js's own `registerInstrumentation()` wrapper (see
- * `node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js`)
- * unconditionally does `err.message = \`...${err.message}\`` on whatever our
- * `register()` export rejects with, assuming it is always an `Error`. If a raw
- * non-Error primitive bubbles up instead (e.g. sql.js's WASM adapter throws the
- * bare string `"Database closed"` — see `./lib/db/adapters/sqljsAdapter.ts`),
- * that assignment throws `TypeError: Cannot create property 'message' on
- * string '...'` in strict mode, masking the original error and crashing the
- * whole server on every boot (#6560). Normalizing before it leaves our code
- * guarantees Next always receives something `.message`-assignable.
- */
-export function normalizeBootError(err: unknown): Error {
-  return err instanceof Error ? err : new Error(String(err));
-}
+// `normalizeBootError` now lives in `@/lib/instrumentationBootError` (imported
+// above) — shared, dependency-free, and reused by `src/instrumentation.ts`'s
+// outermost boot boundary (#10171) so both boot-failure logging sites agree
+// on the same normalization instead of maintaining two copies of the same
+// one-liner. Re-exported here so existing callers/tests importing it from
+// this module keep working unchanged.
+export { normalizeBootError };
 
 // Matches sql.js's raw `throw "Database closed"` (and similarly-worded
 // variants) thrown when a query runs against an already-closed WASM handle —
@@ -111,7 +102,7 @@ export async function ensureDbReadyForBoot(
   }
 }
 
-function isBackgroundServicesDisabled(): boolean {
+export function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
   return new Set(["1", "true", "yes", "on"]).has(raw.trim().toLowerCase());
@@ -242,6 +233,100 @@ export async function scanComboModelNameCollisionsAtBoot(): Promise<void> {
   }
 }
 
+/**
+ * #9654 U7: fold a dashboard DB toggle for the adaptive virtual-lanes flag into
+ * the process-global admission runtime's env at boot. Env-wins: no-op when the
+ * operator's OMNIROUTE_CHAT_VIRTUAL_LANES env var is set (the lazy runtime
+ * already reads process.env correctly). The runtime reads env only at
+ * construction, so this must run before the first request touches it — hence
+ * awaited here, after ensureDbReadyForBoot(). Non-fatal.
+ *
+ * Exported (rather than inline in registerNodejs()) so it can be unit tested
+ * directly without exercising the rest of the startup sequence.
+ */
+export async function warmAdaptiveVirtualLanesIntoRuntime(): Promise<void> {
+  try {
+    const { warmAdaptiveVirtualLanesIntoRuntime: warm } =
+      await import("@/lib/admissionVirtualLanes");
+    const materialized = await warm();
+    if (materialized) {
+      console.log(
+        "[STARTUP] Adaptive virtual lanes flag materialized from dashboard override (#9654)"
+      );
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not warm adaptive virtual lanes flag (non-fatal):", msg);
+  }
+}
+
+/**
+ * Register bespoke + generic quota fetchers once at Node.js boot. The legacy
+ * `src/sse/handlers/chat.ts` path registered these at module load, but the
+ * Next.js App Router production entry (`registerNodejs`) never did, leaving
+ * `quotaFetcherRegistry` empty for generic providers (antigravity, claude,
+ * etc.) and causing reset-aware scoring to fall back to the 0.5 dead score.
+ *
+ * Each registration call is idempotent; bespoke fetchers are registered first
+ * so the generic registrar skips providers that already have a dedicated
+ * fetcher.
+ */
+export async function registerQuotaFetchers(): Promise<void> {
+  // Side-effect registrations for agentrouter, freeModel, grokCli, xaiOauth,
+  // firecrawl (same ordering as the legacy chat.ts path).
+  await import("@omniroute/open-sse/services/quotaTrackersBatch.ts");
+
+  const [
+    { registerCodexQuotaFetcher },
+    { registerBailianCodingPlanQuotaFetcher },
+    { registerQwenTokenPlanQuotaFetcher },
+    { registerCrofUsageFetcher },
+    { registerDeepseekQuotaFetcher },
+    { registerMoonshotQuotaFetcher, registerMoonshotFetchersForNodes },
+    { registerOpenrouterQuotaFetcher },
+    { registerOpencodeQuotaFetcher },
+    { registerGrokWebQuotaFetcher },
+    { registerGenericQuotaFetchers },
+  ] = await Promise.all([
+    import("@omniroute/open-sse/services/codexQuotaFetcher"),
+    import("@omniroute/open-sse/services/bailianQuotaFetcher"),
+    import("@omniroute/open-sse/services/qwenTokenPlanQuotaFetcher"),
+    import("@omniroute/open-sse/services/crofUsageFetcher"),
+    import("@omniroute/open-sse/services/deepseekQuotaFetcher"),
+    import("@omniroute/open-sse/services/moonshotQuotaFetcher"),
+    import("@omniroute/open-sse/services/openrouterQuotaFetcher"),
+    import("@omniroute/open-sse/services/opencodeQuotaFetcher"),
+    import("@omniroute/open-sse/services/grokQuotaFetcher"),
+    import("@omniroute/open-sse/services/genericQuotaFetcher"),
+  ]);
+
+  registerCodexQuotaFetcher();
+  registerBailianCodingPlanQuotaFetcher();
+  registerQwenTokenPlanQuotaFetcher();
+  registerCrofUsageFetcher();
+  registerDeepseekQuotaFetcher();
+  registerMoonshotQuotaFetcher();
+  try {
+    const { getProviderNodes } = await import("@/lib/db/providers");
+    const nodes = await getProviderNodes();
+    registerMoonshotFetchersForNodes(
+      (Array.isArray(nodes) ? nodes : []).map((node) => ({
+        id: typeof node.id === "string" ? node.id : null,
+        prefix: typeof node.prefix === "string" ? node.prefix : null,
+        baseUrl: typeof node.baseUrl === "string" ? node.baseUrl : null,
+      }))
+    );
+  } catch (error) {
+    console.warn("[STARTUP] Moonshot custom-node fetcher scan skipped:", error);
+  }
+  registerOpenrouterQuotaFetcher();
+  registerOpencodeQuotaFetcher();
+  registerGrokWebQuotaFetcher();
+  registerGenericQuotaFetchers();
+
+  console.log("[STARTUP] Quota fetchers registered");
+}
+
 export async function registerNodejs(): Promise<void> {
   markServerStarting();
 
@@ -249,9 +334,30 @@ export async function registerNodejs(): Promise<void> {
   // of the generic "next-server" standalone server name.
   process.title = renameProcessTitle(process.title);
 
+  // #13695: the inference API and `/v1/models` follow DIFFERENT auth settings,
+  // so `GET /v1/models` answering 401 does not mean inference is protected.
+  // #12568 added this warning for the API bridge and live-WS servers, but not
+  // for the Next server that actually answers `/v1/chat/completions` and
+  // `/v1/responses` — and that one binds every interface by default. Runs
+  // before the DB work below so it is not buried under the boot log.
+  (await import("@/lib/startup/nonLoopbackApiKeyGuard")).warnIfInferenceServerExposed();
+
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
-  await import("@omniroute/open-sse/index.ts");
+  await import("@omniroute/open-sse/utils/proxyFetch.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
+
+  // Subscribe the proxy set-aside webhook bridge (side-effect import only).
+  await import("@/lib/proxyEvents/proxyTransitionBridge");
+
+  // Steer the local core selector off every set-aside member, whatever the
+  // refusal kind (explicit idempotent registration; safe to call twice).
+  const { registerSelectorTransitionSubscriber } =
+    await import("@/lib/proxySubscription/proxyTransitionSubscriber");
+  registerSelectorTransitionSubscriber();
+
+  // Register quota fetchers early so combo routing can use real quota-aware
+  // scoring for generic providers in the App Router production runtime.
+  await registerQuotaFetchers();
 
   // Guarantee the SQLite singleton — including a sql.js WASM pre-init when
   // both synchronous drivers (better-sqlite3, node:sqlite) are unavailable —
@@ -295,6 +401,7 @@ export async function registerNodejs(): Promise<void> {
   }
 
   await scanComboModelNameCollisionsAtBoot();
+  await warmAdaptiveVirtualLanesIntoRuntime();
 
   const [
     { initGracefulShutdown },
@@ -452,8 +559,12 @@ export async function registerNodejs(): Promise<void> {
   // instrumentation startup), NOT in the unused src/server-init.ts.
   try {
     const { initCredentialHealthCheck } = await import("@/lib/credentialHealth/scheduler");
-    initCredentialHealthCheck();
-    console.log("[STARTUP] Credential health scheduler started");
+    const started = initCredentialHealthCheck();
+    console.log(
+      started
+        ? "[STARTUP] Credential health scheduler started"
+        : "[STARTUP] Credential health scheduler disabled"
+    );
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[STARTUP] Could not start credential health scheduler:", msg);
@@ -502,12 +613,12 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[STARTUP] Could not start cleanup scheduler (non-fatal):", msg);
   }
 
-  // Warm the model catalog's durable, apiKey-independent sub-caches at
-  // startup — see warmModelCatalogCache() for why the top-level Response
-  // cache alone doesn't deliver this. Fire-and-forget, non-fatal.
-  void warmModelCatalogCache();
-
   if (!isBackgroundServicesDisabled()) {
+    // Warm the model catalog's durable, apiKey-independent sub-caches at
+    // startup — see warmModelCatalogCache() for why the top-level Response
+    // cache alone doesn't deliver this. Fire-and-forget, non-fatal.
+    void warmModelCatalogCache();
+
     // All services are independent — run in parallel for faster cold start.
     await Promise.allSettled([
       import("@/lib/services/bootstrap")
@@ -536,12 +647,14 @@ export async function registerNodejs(): Promise<void> {
 
       // Conductor bridge (PRD Conductor RF1): mirrors OmniConductor hub tasks into the
       // A2A TaskManager via the hub SSE. Opt-in — self-gated on CONDUCTOR_HUB_URL.
-      import("@/lib/conductor/boot").then((m) => {
-        if (m.initConductorBridge()) console.log("[STARTUP] Conductor bridge started");
-      }).catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.warn("[STARTUP] Conductor bridge failed to start (non-fatal):", msg);
-      }),
+      import("@/lib/conductor/boot")
+        .then((m) => {
+          if (m.initConductorBridge()) console.log("[STARTUP] Conductor bridge started");
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] Conductor bridge failed to start (non-fatal):", msg);
+        }),
 
       // Proactive connection-cooldown recovery (#8): re-validate connections whose
       // transient `rate_limited_until` window has elapsed OUTSIDE the request hot path,

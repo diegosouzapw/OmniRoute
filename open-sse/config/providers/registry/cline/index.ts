@@ -27,7 +27,7 @@ export const clineProvider: RegistryEntry = {
   // the official free bucket and text-output models advertised as zero-cost.
   models: [
     {
-      id: "zai/glm-5.2",
+      id: "z-ai/glm-5.2",
       name: "GLM 5.2",
       toolCalling: true,
       supportsReasoning: true,
@@ -74,6 +74,7 @@ export const clineProvider: RegistryEntry = {
       contextLength: 1000000,
       maxInputTokens: 1000000,
       maxOutputTokens: 128000,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
     {
       id: "openrouter/free",

@@ -23,6 +23,18 @@ test("grok-cli exposes the authenticated grok-build model catalog", () => {
     })),
     [
       {
+        id: "grok-4.7",
+        name: "Grok 4.7",
+        contextLength: 500000,
+        targetFormat: "openai-responses",
+      },
+      {
+        id: "grok-4.6",
+        name: "Grok 4.6",
+        contextLength: 500000,
+        targetFormat: "openai-responses",
+      },
+      {
         id: "grok-4.5",
         name: "Grok 4.5",
         contextLength: 500000,
@@ -36,13 +48,15 @@ test("grok-cli exposes the authenticated grok-build model catalog", () => {
       },
     ]
   );
+  assert.equal(getModelTargetFormat("gc", "grok-4.6"), "openai-responses");
   assert.equal(getModelTargetFormat("gc", "grok-4.5"), "openai-responses");
   assert.equal(getModelTargetFormat("gc", "grok-composer-2.5-fast"), "openai-responses");
   assert.equal(grok_cliProvider.modelsUrl, GROK_BUILD_MODELS_URL);
 });
 
-test("grok-cli routes both models to the Responses endpoint", () => {
+test("grok-cli routes its catalog models to the Responses endpoint", () => {
   const executor = new GrokCliExecutor();
+  assert.equal(executor.buildUrl("grok-4.6", true), "https://cli-chat-proxy.grok.com/v1/responses");
   assert.equal(executor.buildUrl("grok-4.5", true), "https://cli-chat-proxy.grok.com/v1/responses");
   assert.equal(
     executor.buildUrl("grok-composer-2.5-fast", false),
@@ -101,9 +115,24 @@ test("grok-cli renders the official Windows platform name in its user agent", ()
   assert.match(getGrokBuildUserAgent(), /\(windows; /);
 });
 
-test("grok-cli inherits BaseExecutor transport instead of buffering its own response", () => {
-  assert.equal(Object.hasOwn(GrokCliExecutor.prototype, "execute"), false);
-  assert.equal(new GrokCliExecutor().execute, BaseExecutor.prototype.execute);
+test("grok-cli inherits BaseExecutor transport instead of buffering its own response", async () => {
+  const originalExecute = BaseExecutor.prototype.execute;
+  const upstream = new Response("data: {}\n\n", {
+    headers: { "Content-Type": "text/event-stream" },
+  });
+  BaseExecutor.prototype.execute = async () => ({ response: upstream });
+  try {
+    const result = await new GrokCliExecutor().execute({
+      model: "grok-4.6",
+      body: { input: "hi" },
+      stream: true,
+      credentials: {},
+    });
+    // Without namespace or custom tools the upstream Response is returned as-is.
+    assert.equal((result as { response: Response }).response, upstream);
+  } finally {
+    BaseExecutor.prototype.execute = originalExecute;
+  }
 });
 
 test("grok-cli live model discovery uses the authenticated session contract", () => {
@@ -169,6 +198,7 @@ test("grok-cli live model discovery uses the authenticated session contract", ()
       owned_by: "grok-cli",
       inputTokenLimit: 500000,
       supportsThinking: true,
+      supportedThinkingEfforts: ["low", "medium", "high"],
       apiFormat: "responses",
       supportedEndpoints: ["responses"],
     },

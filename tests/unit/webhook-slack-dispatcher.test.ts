@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { WEBHOOK_EVENT_VALUES } from "../../src/lib/webhooks/eventDescriptions.ts";
 
 const { buildSlackPayload } = await import("../../src/lib/webhooks/integrations/slack.ts");
 
@@ -30,8 +31,8 @@ test("buildSlackPayload — test.ping produces a ping/test message", () => {
   );
 });
 
-test("buildSlackPayload — provider.error includes provider context", () => {
-  const payload = buildSlackPayload("provider.error", { provider: "openai", model: "gpt-4" });
+test("buildSlackPayload — request.failed includes provider context", () => {
+  const payload = buildSlackPayload("request.failed", { provider: "openai" });
   const combined = JSON.stringify(payload);
   assert.ok(
     combined.includes("Provider") ||
@@ -43,15 +44,7 @@ test("buildSlackPayload — provider.error includes provider context", () => {
 });
 
 test("buildSlackPayload — all WEBHOOK_EVENTS produce valid payloads with text field", () => {
-  const events = [
-    "request.completed",
-    "request.failed",
-    "provider.error",
-    "provider.recovered",
-    "quota.exceeded",
-    "combo.switched",
-    "test.ping",
-  ] as const;
+  const events = WEBHOOK_EVENT_VALUES;
   for (const event of events) {
     const payload = buildSlackPayload(event, {});
     assert.ok(

@@ -1,3 +1,5 @@
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
+
 /**
  * Rerank Provider Registry
  *
@@ -71,8 +73,10 @@ export const RERANK_PROVIDERS = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
+      { id: "jina-reranker-v3.5", name: "Jina Reranker v3.5" },
       { id: "jina-reranker-v3", name: "Jina Reranker v3" },
       { id: "jina-reranker-m0", name: "Jina Reranker m0" },
+      { id: "jina-reranker-v2-base-multilingual", name: "Jina Reranker v2 Base Multilingual" },
     ],
   },
 
@@ -166,7 +170,7 @@ export function getRerankProvider(providerId) {
  * Returns { provider, model }
  */
 export function parseRerankModel(modelStr) {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
 
   const slashIdx = modelStr.indexOf("/");
   if (slashIdx > 0) {
@@ -215,4 +219,30 @@ export function getAllRerankModels() {
     }
   }
   return models;
+}
+
+/**
+ * Derive a Cohere-compatible rerank config for a chat provider that has NO
+ * curated RERANK_PROVIDERS entry. Works for any registry provider whose base
+ * URL ends in /chat/completions by swapping that suffix for /rerank (groq,
+ * mistral, vercel-ai-gateway, ...). Dynamic-URL providers (no usable static
+ * base, e.g. dynamic account-scoped hosts) derive to null — they need bespoke
+ * URL handling.
+ *
+ * This is a FALLBACK only: callers must check getRerankProvider() first so
+ * curated entries keep their specialized configuration and format adapters.
+ */
+export function deriveRerankProviderForChatProvider(providerId, chatEntry) {
+  if (!chatEntry) return null;
+  const rawBase = Array.isArray(chatEntry.baseUrl) ? chatEntry.baseUrl[0] : chatEntry.baseUrl;
+  if (!rawBase || typeof rawBase !== "string") return null;
+  const base = rawBase.replace(/\/+$/, "");
+  if (!base.endsWith("/chat/completions")) return null;
+  return {
+    id: providerId,
+    baseUrl: `${base.slice(0, -"/chat/completions".length)}/rerank`,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+  };
 }

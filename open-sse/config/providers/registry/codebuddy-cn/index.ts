@@ -1,3 +1,4 @@
+import { CODEBUDDY_CN_USER_AGENT } from "../../../providerHeaderProfiles.ts";
 import type { RegistryEntry } from "../../shared.ts";
 
 /**
@@ -20,7 +21,7 @@ export const codebuddy_cnProvider: RegistryEntry = {
   authType: "oauth",
   authHeader: "bearer",
   headers: {
-    "User-Agent": "CLI/2.108.1 CodeBuddy/2.108.1",
+    "User-Agent": CODEBUDDY_CN_USER_AGENT,
     "X-Product": "SaaS",
     "X-IDE-Type": "CLI",
     "X-IDE-Name": "CLI",
@@ -68,13 +69,6 @@ export const codebuddy_cnProvider: RegistryEntry = {
       supportsVision: true,
     },
     {
-      id: "glm-4.7",
-      name: "GLM-4.7",
-      contextLength: 200000,
-      maxOutputTokens: 48000,
-      supportsReasoning: true,
-    },
-    {
       id: "minimax-m3",
       name: "MiniMax-M3",
       contextLength: 512000,
@@ -117,6 +111,14 @@ export const codebuddy_cnProvider: RegistryEntry = {
     {
       id: "hy3-preview",
       name: "Hy3 Preview",
+      contextLength: 192000,
+      maxOutputTokens: 64000,
+      supportsReasoning: true,
+      supportsVision: true,
+    },
+    {
+      id: "hy3",
+      name: "Hy3",
       contextLength: 192000,
       maxOutputTokens: 64000,
       supportsReasoning: true,

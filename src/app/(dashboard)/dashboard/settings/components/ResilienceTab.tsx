@@ -13,7 +13,13 @@ type RequestQueueSettings = {
   requestsPerMinute: number;
   minTimeBetweenRequestsMs: number;
   concurrentRequests: number;
+  globalConcurrentRequests: number;
   maxWaitMs: number;
+  executionMaxWaitMs: number;
+};
+
+type CredentialHealthCheckSettings = {
+  intervalMinutes: number;
 };
 
 type ConnectionCooldownProfileSettings = {
@@ -68,6 +74,7 @@ type ResilienceResponse = {
   comboCooldownWait: ComboCooldownWaitSettings;
   quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
   providerCooldown: ProviderCooldownSettings;
+  credentialHealthCheck?: CredentialHealthCheckSettings;
 };
 
 function toResilienceResponse(json: ResilienceResponse): ResilienceResponse {
@@ -79,6 +86,9 @@ function toResilienceResponse(json: ResilienceResponse): ResilienceResponse {
     comboCooldownWait: json.comboCooldownWait,
     quotaShareConcurrencyLimit: json.quotaShareConcurrencyLimit,
     providerCooldown: json.providerCooldown,
+    // Older servers do not send the credential-health section; keep undefined
+    // so the card can hide itself instead of showing a bogus default.
+    credentialHealthCheck: json.credentialHealthCheck,
   };
 }
 
@@ -178,10 +188,12 @@ function RequestQueueCard({
   const t = useTranslations("settings");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
+  if (prevValue !== value) {
+    setPrevValue(value);
     setDraft(value);
-  }, [value]);
+  }
 
   return (
     <Card className="p-6">
@@ -240,11 +252,19 @@ function RequestQueueCard({
               }
             />
             <NumberField
-              label={t("resilienceConcurrentRequests")}
+              label={t("resilienceConnectionScopeConcurrentRequests")}
               value={draft.concurrentRequests}
               min={1}
               onChange={(concurrentRequests) =>
                 setDraft((prev) => ({ ...prev, concurrentRequests }))
+              }
+            />
+            <NumberField
+              label={t("resilienceGlobalConcurrentRequests")}
+              value={draft.globalConcurrentRequests}
+              min={0}
+              onChange={(globalConcurrentRequests) =>
+                setDraft((prev) => ({ ...prev, globalConcurrentRequests }))
               }
             />
             <NumberField
@@ -253,6 +273,15 @@ function RequestQueueCard({
               min={1}
               suffix="ms"
               onChange={(maxWaitMs) => setDraft((prev) => ({ ...prev, maxWaitMs }))}
+            />
+            <NumberField
+              label={t("resilienceMaxExecutionWait")}
+              value={draft.executionMaxWaitMs}
+              min={1}
+              suffix="ms"
+              onChange={(executionMaxWaitMs) =>
+                setDraft((prev) => ({ ...prev, executionMaxWaitMs }))
+              }
             />
           </>
         ) : (
@@ -278,15 +307,31 @@ function RequestQueueCard({
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">{t("resilienceConcurrentRequests")}</div>
+              <div className="text-xs text-text-muted">
+                {t("resilienceConnectionScopeConcurrentRequests")}
+              </div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.concurrentRequests}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">
+                {t("resilienceGlobalConcurrentRequests")}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {value.globalConcurrentRequests || t("statusDisabled")}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
               <div className="text-xs text-text-muted">{t("resilienceMaxQueueWait")}</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {formatMs(value.maxWaitMs)}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">{t("resilienceMaxExecutionWait")}</div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {formatMs(value.executionMaxWaitMs)}
               </div>
             </div>
           </>
@@ -308,10 +353,12 @@ function ConnectionCooldownCard({
   const t = useTranslations("settings");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
+  if (prevValue !== value) {
+    setPrevValue(value);
     setDraft(value);
-  }, [value]);
+  }
 
   const renderProfile = (key: "oauth" | "apikey", title: string, icon: string) => {
     const current = editing ? draft[key] : value[key];
@@ -491,10 +538,12 @@ function ProviderBreakerCard({
   const t = useTranslations("settings");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
+  if (prevValue !== value) {
+    setPrevValue(value);
     setDraft(value);
-  }, [value]);
+  }
 
   const renderProfile = (key: "oauth" | "apikey", title: string, icon: string) => {
     const current = editing ? draft[key] : value[key];
@@ -601,10 +650,12 @@ function WaitForCooldownCard({
   const t = useTranslations("settings");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
+  if (prevValue !== value) {
+    setPrevValue(value);
     setDraft(value);
-  }, [value]);
+  }
 
   return (
     <Card className="p-6">
@@ -697,10 +748,12 @@ function ComboCooldownWaitCard({
   const t = useTranslations("settings");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
+  if (prevValue !== value) {
+    setPrevValue(value);
     setDraft(value);
-  }, [value]);
+  }
 
   const title = t("resilienceComboCooldownWaitTitle");
   const desc =
@@ -807,10 +860,12 @@ function QuotaShareConcurrencyLimitCard({
   const t = useTranslations("settings");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
+  if (prevValue !== value) {
+    setPrevValue(value);
     setDraft(value);
-  }, [value]);
+  }
 
   const title = t("resilienceQuotaShareConcurrencyTitle");
   const desc =
@@ -877,10 +932,12 @@ export function ProviderCooldownCard({
   const t = useTranslations("settings");
   const [editing, setEditing] = useState(value);
   const [isEditing, setIsEditing] = useState(false);
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
+  if (prevValue !== value) {
+    setPrevValue(value);
     setEditing(value);
-  }, [value]);
+  }
 
   return (
     <Card className="p-6">
@@ -964,6 +1021,99 @@ export function ProviderCooldownCard({
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {formatMs(value.maxRetryCooldownMs)}
               </div>
+            </div>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function CredentialHealthCheckCard({
+  value,
+  onSave,
+  saving,
+}: {
+  value: CredentialHealthCheckSettings;
+  onSave: (next: CredentialHealthCheckSettings) => Promise<void>;
+  saving: boolean;
+}) {
+  const t = useTranslations("settings");
+  const [editing, setEditing] = useState(value);
+  const [isEditing, setIsEditing] = useState(false);
+  const [prevValue, setPrevValue] = useState(value);
+
+  if (prevValue !== value) {
+    setPrevValue(value);
+    setEditing(value);
+  }
+
+  const disabled = editing.intervalMinutes <= 0;
+
+  return (
+    <Card className="p-6">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-xl text-primary">
+              health_and_safety
+            </span>
+            <h2 className="text-lg font-bold">{t("resilienceCredentialHealthTitle")}</h2>
+          </div>
+          <SectionDescription
+            scope={t("resilienceCredentialHealthScope")}
+            trigger={t("resilienceCredentialHealthTrigger")}
+            effect={t("resilienceCredentialHealthEffect")}
+          />
+        </div>
+        <ActionRow
+          editing={isEditing}
+          saving={saving}
+          onEdit={() => setIsEditing(true)}
+          onCancel={() => {
+            setEditing(value);
+            setIsEditing(false);
+          }}
+          onSave={async () => {
+            await onSave(editing);
+            setIsEditing(false);
+          }}
+        />
+      </div>
+
+      <p className="mb-4 text-sm text-text-muted">{t("resilienceCredentialHealthDesc")}</p>
+
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {isEditing ? (
+          <>
+            <NumberField
+              label={t("resilienceCredentialHealthInterval")}
+              value={editing.intervalMinutes}
+              min={0}
+              max={1440}
+              suffix="min"
+              onChange={(intervalMinutes) => setEditing((prev) => ({ ...prev, intervalMinutes }))}
+            />
+            <div className="rounded-xl border border-border bg-bg-subtle p-4 text-xs text-text-muted">
+              {t("resilienceCredentialHealthHint")}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">
+                {t("resilienceCredentialHealthInterval")}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {disabled
+                  ? t("statusDisabled")
+                  : t("resilienceCredentialHealthEveryMinutes", {
+                      minutes: value.intervalMinutes,
+                    })}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4 text-xs text-text-muted">
+              {t("resilienceCredentialHealthHint")}
             </div>
           </>
         )}
@@ -1105,6 +1255,15 @@ export default function ResilienceTab() {
         saving={savingSection === "providerCooldown"}
         onSave={(providerCooldown) => savePatch("providerCooldown", { providerCooldown })}
       />
+      {data.credentialHealthCheck && (
+        <CredentialHealthCheckCard
+          value={data.credentialHealthCheck}
+          saving={savingSection === "credentialHealthCheck"}
+          onSave={(credentialHealthCheck) =>
+            savePatch("credentialHealthCheck", { credentialHealthCheck })
+          }
+        />
+      )}
       <ModelLockoutCard />
     </div>
   );

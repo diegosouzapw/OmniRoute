@@ -50,7 +50,7 @@ if (args[0] === "status") {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function writeFakeCursorAgentBinary(destPath: string): void {
@@ -72,7 +72,7 @@ test.after(() => {
   if (originalUserProfile !== undefined) process.env.USERPROFILE = originalUserProfile;
   else delete process.env.USERPROFILE;
   delete process.env.FAKE_CURSOR_AGENT_STATUS_MODE;
-  fs.rmSync(tmpHome, { recursive: true, force: true });
+  fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("returns {cursorAgentAvailable: false} and ONLY that field when cursor-agent is unauthenticated", async () => {

@@ -21,7 +21,7 @@ test("FreeInference exposes an OpenAI-compatible Bearer registry", () => {
   assert.equal(freeinferenceProvider.passthroughModels, true);
 });
 
-test("FreeInference uses DefaultExecutor without specialized behavior", () => {
+test("FreeInference uses DefaultExecutor without specialized behavior", async () => {
   assert.equal(hasSpecializedExecutor("freeinference"), false);
-  assert.ok(getExecutor("freeinference") instanceof DefaultExecutor);
+  assert.ok(await getExecutor("freeinference") instanceof DefaultExecutor);
 });

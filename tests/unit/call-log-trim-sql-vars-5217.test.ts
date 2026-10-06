@@ -4,6 +4,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { useDecollidedMigrationsDir } from "./helpers/decollidedMigrationsDir.ts";
+
+useDecollidedMigrationsDir();
 /**
  * #5217 — `trimCallLogsToMaxRows()` deleted up to batchSize=5000 ids in a single
  * `DELETE … IN (?, ?, …)` via `deleteCallLogRowsByIds`. SQLite caps a statement at
@@ -34,13 +37,13 @@ function insertCallLog(id: string, timestamp: string) {
 
 test.beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("trimCallLogsToMaxRows deletes >999 rows in one pass without 'too many SQL variables'", () => {

@@ -12,6 +12,10 @@
 
 import { Memory } from "./types";
 import { logger } from "../../../open-sse/utils/logger.ts";
+import {
+  isAnthropicCompatibleProvider,
+  isClaudeCodeCompatibleProvider,
+} from "../../shared/constants/providers";
 
 const log = logger("MEMORY_INJECTION");
 
@@ -24,7 +28,8 @@ export interface ChatMessage {
 export interface ChatRequest {
   model: string;
   messages: ChatMessage[];
-  system?: string;
+  /** Anthropic-shaped bodies carry the system prompt here, as a string or text blocks (#13425). */
+  system?: string | Array<{ type: string; text?: string; [key: string]: unknown }>;
   temperature?: number;
   max_tokens?: number;
   stream?: boolean;
@@ -65,7 +70,11 @@ export function providerSupportsSystemMessage(provider: string | null | undefine
  *
  * Populated with the Xiaomi MiMo endpoint (provider id `xiaomi-mimo`, registry
  * alias `mimo`, serving mimo-v2.5) confirmed live to 400 on a non-first system
- * message. Add other providers here only when they are documented as strict.
+ * message, and the TokenRouter gateway (provider id `tokenrouter`), confirmed
+ * live on 2026-08-22 to reject mid-array system messages — including the
+ * compression notice spliced by purifyHistory() before that splice was fixed to
+ * merge into the leading system message. Add other providers here only when
+ * they are documented as strict.
  *
  * Self-hosted deployments can extend this list without a source change via
  * OMNIROUTE_STRICT_SYSTEM_PROVIDERS (comma-separated provider ids,
@@ -73,15 +82,13 @@ export function providerSupportsSystemMessage(provider: string | null | undefine
  * self-hosted Qwen3.5+/3.6 model, whose chat template enforces the same
  * single-leading-system-message constraint as xiaomi-mimo.
  */
-const BUILTIN_PROVIDERS_SYSTEM_MUST_BE_FIRST = new Set(["xiaomi-mimo", "mimo"]);
+const BUILTIN_PROVIDERS_SYSTEM_MUST_BE_FIRST = new Set(["xiaomi-mimo", "mimo", "tokenrouter"]);
 
 /**
  * Parses OMNIROUTE_STRICT_SYSTEM_PROVIDERS into a normalized id list.
  * Exported for tests; not expected to be called directly by other modules.
  */
-export function parseStrictSystemProvidersEnv(
-  env: NodeJS.ProcessEnv = process.env,
-): string[] {
+export function parseStrictSystemProvidersEnv(env: NodeJS.ProcessEnv = process.env): string[] {
   const raw = env.OMNIROUTE_STRICT_SYSTEM_PROVIDERS ?? "";
   return raw
     .split(",")
@@ -102,7 +109,7 @@ function resolveProvidersSystemMustBeFirst(env: NodeJS.ProcessEnv = process.env)
  */
 export function systemMessageMustBeFirst(
   provider: string | null | undefined,
-  env: NodeJS.ProcessEnv = process.env,
+  env: NodeJS.ProcessEnv = process.env
 ): boolean {
   if (!provider) return false;
   const normalized = provider.toLowerCase().trim();
@@ -162,8 +169,55 @@ function injectSystemFirst(
     const merged: ChatMessage = { ...first, content: `${memoryText}\n${first.content}` };
     return { ...request, messages: [merged, ...messages.slice(1)] };
   }
+  // #13425: Anthropic-shaped bodies carry the system prompt in the top-level
+  // `system` field, not in messages[0]. Unshifting a `{role:"system"}` at
+  // messages[0] triggers a 400 ("use the top-level 'system' parameter").
+  // Merge the memory text into the top-level field instead.
+  if (typeof request.system === "string") {
+    return { ...request, system: `${memoryText}\n${request.system}` };
+  }
+  if (Array.isArray(request.system)) {
+    return { ...request, system: [{ type: "text", text: memoryText }, ...request.system] };
+  }
   const memorySystemMessage: ChatMessage = { role: "system", content: memoryText };
   return { ...request, messages: [memorySystemMessage, ...messages] };
+}
+
+/**
+ * #11290: providers in the Claude family (direct Anthropic, and any
+ * anthropic-compatible / Claude-Code-compatible passthrough connection) — the
+ * ones affected by the stricter Opus 5 message-ordering validation described
+ * below. Deliberately narrower than `systemMessageMustBeFirst()`'s strict-set:
+ * this only gates the cache-safe mid-array splice, not the leading-system-message
+ * requirement, so non-Claude providers keep the #3890 cache-hit optimization
+ * unconditionally.
+ */
+function isClaudeFamilyProvider(provider: string | null | undefined): boolean {
+  if (!provider) return false;
+  const normalized = provider.toLowerCase().trim();
+  return (
+    normalized === "claude" ||
+    normalized === "anthropic" ||
+    isClaudeCodeCompatibleProvider(provider) ||
+    isAnthropicCompatibleProvider(provider)
+  );
+}
+
+/**
+ * True when an assistant message's content ends in a server-side tool result
+ * block (e.g. `web_search_tool_result`, `code_execution_tool_result`,
+ * `mcp_tool_result` — any Anthropic content block whose type ends in
+ * `_tool_result`, produced by a server-executed tool rather than a
+ * client-executed one). `content` is typed as `string` on `ChatMessage` for
+ * the common case, but the Claude-native wire shape carries an array of
+ * content blocks — this only recognizes that richer shape.
+ */
+function endsWithServerToolResult(message: ChatMessage | undefined): boolean {
+  if (!message || message.role !== "assistant") return false;
+  const content = message.content as unknown;
+  if (!Array.isArray(content) || content.length === 0) return false;
+  const lastBlock = content[content.length - 1] as { type?: unknown } | null | undefined;
+  return typeof lastBlock?.type === "string" && lastBlock.type.endsWith("_tool_result");
 }
 
 /**
@@ -216,6 +270,35 @@ export function injectMemory(
   // first (extracted to injectSystemFirst to keep this function flat).
   if (supportsSystem && systemMessageMustBeFirst(provider)) {
     return injectSystemFirst(request, messages, memoryText, memories.length);
+  }
+
+  // #11290: Claude Opus 5 tightened server-side validation of the cache-safe
+  // mid-array splice — a system message spliced right after a plain-text assistant
+  // turn is rejected with HTTP 400 (the immediately preceding message must end in a
+  // server-side tool result for a following system message to be accepted). Rather
+  // than adding "claude"/"anthropic" outright to `systemMessageMustBeFirst()` (which
+  // would revert the #3890 cache-hit optimization for every Claude request, including
+  // the ones that work fine today), only fall back to the leading-system-message
+  // placement for the specific requests where the turn right before the splice point
+  // isn't a server tool result.
+  if (
+    supportsSystem &&
+    cacheSafeIndex >= 0 &&
+    isClaudeFamilyProvider(provider) &&
+    !endsWithServerToolResult(messages[cacheSafeIndex - 1])
+  ) {
+    return injectSystemFirst(request, messages, memoryText, memories.length);
+  }
+
+  // #13425: Anthropic-shaped bodies carry the system prompt in the top-level
+  // `system` field, not in messages[0]. If supportsSystem is true and the
+  // request already has a top-level `system` field, merge memory there instead
+  // of prepending a `{role:"system"}` at messages[0] — Anthropic rejects that.
+  if (supportsSystem && (typeof request.system === "string" || Array.isArray(request.system))) {
+    if (typeof request.system === "string") {
+      return { ...request, system: `${memoryText}\n${request.system}` };
+    }
+    return { ...request, system: [{ type: "text", text: memoryText }, ...request.system] };
   }
 
   // Strategy 1 (system): prepend before existing system messages, preserving the

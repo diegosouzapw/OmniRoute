@@ -22,6 +22,12 @@ const QuerySchema = z.object({
   // Additive filters (default off → current behavior). `availableOnly` implies configured.
   configuredOnly: boolParam,
   availableOnly: boolParam,
+  // Opt-in usage reporting: costs one aggregate query, so it is never implicit.
+  withUsage: boolParam,
+  // Rejected rather than silently coerced: a typo must not quietly return a
+  // different window than the caller asked for.
+  usageRange: z.enum(["1h", "24h", "7d", "30d"]).optional(),
+  sortBy: z.enum(["elo", "reliability"]).optional(),
 });
 
 export async function OPTIONS() {
@@ -35,6 +41,9 @@ export async function GET(request: NextRequest) {
     limit: url.searchParams.get("limit") || undefined,
     configuredOnly: url.searchParams.get("configuredOnly") || undefined,
     availableOnly: url.searchParams.get("availableOnly") || undefined,
+    withUsage: url.searchParams.get("withUsage") || undefined,
+    usageRange: url.searchParams.get("usageRange") || undefined,
+    sortBy: url.searchParams.get("sortBy") || undefined,
   });
 
   if (!parsed.success) {
@@ -44,10 +53,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { category, limit, configuredOnly, availableOnly } = parsed.data;
+  const { category, limit, configuredOnly, availableOnly, withUsage, usageRange, sortBy } =
+    parsed.data;
   const rankings = await computeFreeProviderRankings(category, limit, {
     configuredOnly,
     availableOnly,
+    withUsage,
+    usageRange,
+    sortBy,
   });
 
   return NextResponse.json({ rankings }, { headers: CORS_HEADERS });

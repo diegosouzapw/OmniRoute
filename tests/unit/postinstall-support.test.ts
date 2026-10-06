@@ -13,7 +13,7 @@ test("hasStandaloneAppBundle returns false for source checkout without standalon
     mkdirSync(join(root, "src", "app"), { recursive: true });
     assert.equal(hasStandaloneAppBundle(root), false);
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -25,7 +25,7 @@ test("hasStandaloneAppBundle returns true for published standalone app bundle", 
     writeFileSync(join(root, "app", "server.js"), "export {};\n");
     assert.equal(hasStandaloneAppBundle(root), true);
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 

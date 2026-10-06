@@ -28,11 +28,23 @@ function seedServers() {
   db.prepare(
     `INSERT OR REPLACE INTO community_servers (id, name, url, api_key_hash, status)
      VALUES (?, ?, ?, ?, ?)`
-  ).run("srv-connected", "Connected Server", "https://connected.example", "hash-connected", "connected");
+  ).run(
+    "srv-connected",
+    "Connected Server",
+    "https://connected.example",
+    "hash-connected",
+    "connected"
+  );
   db.prepare(
     `INSERT OR REPLACE INTO community_servers (id, name, url, api_key_hash, status)
      VALUES (?, ?, ?, ?, ?)`
-  ).run("srv-disconnected", "Disconnected Server", "https://disconnected.example", "hash-disconnected", "disconnected");
+  ).run(
+    "srv-disconnected",
+    "Disconnected Server",
+    "https://disconnected.example",
+    "hash-disconnected",
+    "disconnected"
+  );
 }
 
 test.after(async () => {
@@ -42,7 +54,12 @@ test.after(async () => {
     const tryRm = (attempts: number) => {
       try {
         if (fs.existsSync(TEST_DATA_DIR)) {
-          fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+          fs.rmSync(TEST_DATA_DIR, {
+            recursive: true,
+            force: true,
+            maxRetries: 5,
+            retryDelay: 100,
+          });
         }
         resolve();
       } catch (err: any) {
@@ -73,9 +90,5 @@ test("getConnectedServerByKeyHash returns undefined for an unknown hash", () => 
 test("getConnectedServerByKeyHash returns undefined for a disconnected server (status filter)", () => {
   seedServers();
   const result = gamifDb.getConnectedServerByKeyHash("hash-disconnected");
-  assert.equal(
-    result,
-    undefined,
-    "should not return a server whose status is not 'connected'"
-  );
+  assert.equal(result, undefined, "should not return a server whose status is not 'connected'");
 });

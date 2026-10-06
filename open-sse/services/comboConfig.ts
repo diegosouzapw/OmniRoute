@@ -114,6 +114,11 @@ const DEFAULT_COMBO_CONFIG = {
   handoffProviders: ["codex"],
   maxMessagesForSummary: 30,
   maxComboDepth: 3,
+  // #11134: shared per-request combo attempt budget. Previously the hardcoded
+  // MAX_GLOBAL_ATTEMPTS with no override — operators could neither fail fast on
+  // a dead pool nor raise it for large combos. Clamped by clampGlobalAttempts to
+  // [1, MAX_GLOBAL_ATTEMPTS_HARD_CAP] at every read site.
+  maxGlobalAttempts: 30,
   nestedComboMode: "flatten",
   trackMetrics: true,
   reasoningTokenBufferEnabled: true,
@@ -126,6 +131,23 @@ const DEFAULT_COMBO_CONFIG = {
   resetAwareWeeklyWeight: 0.65,
   resetAwareTieBandPercent: 5,
   resetAwareExhaustionGuardPercent: 10,
+  quotaWeightedFloorPercent: 1,
+  // Historical default (predates #2417/#10217) — true. This value feeds TWO
+  // independent mechanisms and must stay true-by-default for one of them:
+  //   1. skipUpstreamRetry (src/sse/handlers/chat.ts:859,1126) — the
+  //      lower-level executor retry skip. Always default-on; changing this
+  //      default flips that mechanism's behavior for every combo, not just
+  //      opted-in ones.
+  //   2. The #10217 same-model retry guard in this file's combo.ts callers
+  //      (priority/auto + round-robin loops) — meant to be OPT-IN only. That
+  //      guard must NOT read this field directly; it consults the sibling
+  //      `failoverBeforeRetryExplicit` flag computed below in
+  //      resolveComboConfig/resolveComboSetupConfig, which is true only when
+  //      an actual cascade layer (combo/provider/global) set the flag to
+  //      true, not merely inherited from this default. See round-4 base-red
+  //      bisect (06f41cda63 vs d2fd88dfbc) — flipping THIS default to false
+  //      "fixed" mechanism 2 but silently broke mechanism 1's default-on
+  //      behavior for every combo without an explicit opt-in.
   failoverBeforeRetry: true,
   // Feature 4985: configurable response-body validation predicate (per-combo). When set,
   // a 200 OK whose body fails the predicate fails over to the next target.
@@ -173,6 +195,9 @@ const DEFAULT_COMBO_CONFIG = {
     latencyWeight: 0.15,
     cacheTtlMs: 60000,
   },
+  // Connection-aware expansion for group-B combo strategies is opt-in.
+  connectionAwareExpansion: false,
+  connectionAwareExpansionMaxPerTarget: 8,
   // Context window requirements for combo target filtering/sorting (undefined by
   // default — declared here so resolveComboSetupConfig's inferred return type
   // includes the key; combo.ts reads config.contextRequirements).
@@ -284,15 +309,32 @@ export function resolveComboConfig(
       )
     );
 
+  const cleanGlobal = clean(global);
+  const cleanProviderOverride = clean(providerOverride);
+  const cleanComboConfig = clean(comboConfig);
+
   const merged = {
     ...DEFAULT_COMBO_CONFIG,
-    ...clean(global),
-    ...clean(providerOverride),
-    ...clean(comboConfig),
+    ...cleanGlobal,
+    ...cleanProviderOverride,
+    ...cleanComboConfig,
   };
+
+  // #10217 round-4 fix: `failoverBeforeRetry` defaults to true (see comment on
+  // DEFAULT_COMBO_CONFIG above) and feeds two independent mechanisms. Callers
+  // that gate the OPT-IN same-model retry guard (combo.ts) must NOT read
+  // `merged.failoverBeforeRetry` directly — that stays true unless a layer
+  // explicitly disables it, which can't distinguish "inherited default" from
+  // "operator opted in". This flag is true only when some cascade layer
+  // literally set the value to true, i.e. a genuine opt-in.
+  const failoverBeforeRetryExplicit =
+    cleanComboConfig.failoverBeforeRetry === true ||
+    cleanProviderOverride.failoverBeforeRetry === true ||
+    cleanGlobal.failoverBeforeRetry === true;
 
   return {
     ...merged,
+    failoverBeforeRetryExplicit,
     shadowRouting: {
       ...DEFAULT_COMBO_CONFIG.shadowRouting,
       ...(isRecord(global.shadowRouting) ? clean(global.shadowRouting) : {}),
@@ -312,7 +354,13 @@ export function resolveComboConfig(
  * Get the default combo config (used when no overrides exist)
  */
 export function getDefaultComboConfig() {
-  return { ...DEFAULT_COMBO_CONFIG };
+  return {
+    ...DEFAULT_COMBO_CONFIG,
+    // Mirror resolveComboConfig's opt-in flag so a deepEqual against the
+    // default stays consistent (#10217 round-4 fix). With no cascade layer
+    // setting the flag, it is a genuine non-opt-in → false.
+    failoverBeforeRetryExplicit: false,
+  };
 }
 
 /**
@@ -322,7 +370,14 @@ export function getDefaultComboConfig() {
  * return type is the single source of truth for ComboContext.config (combo/context.ts).
  */
 export function resolveComboSetupConfig(combo: ComboConfigLike, settings: ComboSettingsLike) {
-  return settings
-    ? resolveComboConfig(combo, settings)
-    : { ...getDefaultComboConfig(), ...((combo?.config as Record<string, unknown>) || {}) };
+  if (settings) return resolveComboConfig(combo, settings);
+  const comboConfig = (combo?.config as Record<string, unknown>) || {};
+  return {
+    ...getDefaultComboConfig(),
+    ...comboConfig,
+    // See resolveComboConfig's failoverBeforeRetryExplicit comment — same
+    // distinction applies here (no `settings`, so only the combo's own config
+    // can opt in).
+    failoverBeforeRetryExplicit: comboConfig.failoverBeforeRetry === true,
+  };
 }

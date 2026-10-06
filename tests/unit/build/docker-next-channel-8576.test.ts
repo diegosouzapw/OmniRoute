@@ -72,18 +72,19 @@ test("the current default release branch resolves to next", () => {
   );
 });
 
-test("a stale release branch cannot overwrite next", () => {
-  assert.throws(
-    () =>
-      resolveVersion(
-        "push",
-        "branch",
-        "release/v3.8.49",
-        "",
-        "release/v3.8.50",
-      ),
-    /Refusing to publish next from non-default release branch/,
+test("a stale release branch skips without overwriting next", () => {
+  assert.equal(
+    resolveVersion(
+      "push",
+      "branch",
+      "release/v3.8.49",
+      "",
+      "release/v3.8.50",
+    ),
+    "skip",
   );
+  assert.match(WORKFLOW, /\[ "\$VERSION" = "skip" \]/);
+  assert.match(WORKFLOW, /echo "skip=true" >> "\$GITHUB_OUTPUT"/);
 });
 
 test("existing main, tag, dispatch, and release behavior is preserved", () => {

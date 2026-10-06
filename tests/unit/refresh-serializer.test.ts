@@ -109,4 +109,6 @@ test("wasRefreshTokenRotated: true only when the DB token changed to a non-empty
   assert.equal(wasRefreshTokenRotated("rt-old", ""), false, "empty DB token = deactivate");
   assert.equal(wasRefreshTokenRotated(null, "rt-new"), false, "unknown attempted = deactivate");
   assert.equal(wasRefreshTokenRotated(undefined, undefined), false);
+  assert.equal(wasRefreshTokenRotated("rt-old", { token: "rt-new" }), false);
+  assert.equal(wasRefreshTokenRotated(42, "rt-new"), false);
 });

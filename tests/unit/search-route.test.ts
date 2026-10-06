@@ -13,7 +13,7 @@ const searchRoute = await import("../../src/app/api/v1/search/route.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -42,7 +42,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("v1 search GET lists all search providers", async () => {
@@ -52,13 +52,14 @@ test("v1 search GET lists all search providers", async () => {
 
   assert.equal(response.status, 200);
   assert.equal(body.object, "list");
-  assert.equal(body.data.length, 14);
+  assert.equal(body.data.length, 20);
   assert.deepEqual(ids, [
     "serper-search",
     "brave-search",
     "perplexity-search",
     "exa-search",
     "tavily-search",
+    "nimble-search",
     "firecrawl",
     "google-pse-search",
     "linkup-search",
@@ -67,7 +68,12 @@ test("v1 search GET lists all search providers", async () => {
     "searxng-search",
     "ollama-search",
     "zai-search",
+    "jina-search",
+    "context7",
     "duckduckgo-free",
+    "x-search",
+    "xquik-search",
+    "anysearch-search",
   ]);
 });
 
@@ -315,12 +321,16 @@ test("v1 search POST accepts authless SearXNG with provider_options baseUrl", as
   }
 });
 
-test("v1 search POST accepts authless SearXNG with the built-in default base URL", async () => {
+test("v1 search POST rejects authless SearXNG on the unconfigured catalog default base URL (#10976)", async () => {
+  // #10976/#10981 (already merged on this base): the catalog-default
+  // localhost:8888 always fails in Docker/K8s, so it's now skipped unless a
+  // request/connection baseUrl override resolves it to a real URL. This
+  // replaces the older "default URL is attempted as-is" expectation.
   const originalFetch = globalThis.fetch;
-  let capturedUrl = "";
+  let fetchCalled = false;
 
   globalThis.fetch = async (url) => {
-    capturedUrl = String(url);
+    fetchCalled = true;
     return new Response(
       JSON.stringify({
         results: [
@@ -350,13 +360,9 @@ test("v1 search POST accepts authless SearXNG with the built-in default base URL
     );
     const body = (await response.json()) as any;
 
-    assert.equal(response.status, 200);
-    assert.equal(
-      capturedUrl,
-      "http://localhost:8888/search?q=default+self+hosted+meta+search&format=json&categories=general"
-    );
-    assert.equal(body.provider, "searxng-search");
-    assert.equal(body.results[0].title, "Default SearXNG result");
+    assert.equal(response.status, 503);
+    assert.equal(fetchCalled, false);
+    assert.match(String(body.error?.message ?? body.error ?? ""), /catalog default/i);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -417,25 +423,24 @@ test("v1 search POST preserves stored SearXNG baseUrl for authless providers", a
   }
 });
 
-test("v1 search POST returns 400 when auto-select finds no configured provider (searxng-search is now fallbackOnly)", async () => {
+test("v1 search POST falls back to duckduckgo-free when no provider is configured (#11097)", async () => {
+  // Contract changed by PR #11097 ("fix(search): fall back to duckduckgo-free when
+  // no search provider is configured"): zero-credential /v1/search no longer returns
+  // 400 — it promotes the fallback-only duckduckgo-free provider so out-of-the-box
+  // search works. This test pins the NEW contract.
   const originalFetch = globalThis.fetch;
   let capturedUrl = "";
 
+  // DuckDuckGo lite HTML shape: result link + snippet cell (see
+  // open-sse/services/freeWebSearch.ts parseDuckDuckGoLite).
+  const liteHtml = `<html><body>
+    <a href="https://example.com/auto-result" class='result-link'>Auto-selected DuckDuckGo result</a>
+    <td class='result-snippet'>Fallback free search snippet</td>
+  </body></html>`;
+
   globalThis.fetch = async (url) => {
     capturedUrl = String(url);
-    return new Response(
-      JSON.stringify({
-        results: [
-          {
-            title: "Auto-selected SearXNG result",
-            url: "https://searx.example/auto",
-            content: "Auto-selected self-hosted response",
-            engines: ["duckduckgo"],
-          },
-        ],
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
+    return new Response(liteHtml, { status: 200, headers: { "content-type": "text/html" } });
   };
 
   try {
@@ -451,14 +456,15 @@ test("v1 search POST returns 400 when auto-select finds no configured provider (
     );
     const body = (await response.json()) as any;
 
-    assert.equal(response.status, 400);
-    assert.equal(capturedUrl, "", "fallback-only SearXNG must not receive an upstream request");
-    assert.ok(body.error?.message || body.error);
-    assert.match(
-      String(body.error?.message ?? body.error),
-      /provider|configured/i,
-      "the response must explain that no provider was selected"
+    assert.equal(response.status, 200);
+    assert.equal(
+      capturedUrl,
+      "https://lite.duckduckgo.com/lite/",
+      "the fallback must call the DuckDuckGo lite endpoint"
     );
+    assert.equal(body.provider, "duckduckgo-free");
+    assert.equal(body.results[0].title, "Auto-selected DuckDuckGo result");
+    assert.equal(body.results[0].url, "https://example.com/auto-result");
   } finally {
     globalThis.fetch = originalFetch;
   }

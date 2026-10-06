@@ -1,12 +1,12 @@
 ---
 title: "Release Checklist"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.51
+lastUpdated: 2026-08-28
 ---
 
 # Release Checklist
 
-> **Last updated:** 2026-06-28 — v3.8.40
+> **Last updated:** 2026-08-28 — v3.8.51
 > Streamlined release flow that leverages Claude Code skills for automation.
 >
 > **Keep the queue/branch green between releases:** see [RELEASE_GREEN.md](./RELEASE_GREEN.md)
@@ -37,7 +37,21 @@ npm run test:e2e           # optional but recommended
 /capture-release-evidences-cc
 ```
 
-## npm Staged Publishing (default since v3.8.49 — WS1.3/D2)
+## npm Trusted Publishing (default since v3.8.51) — staged on request, direct as fallback
+
+`npm-publish.yml` publishes through **npm Trusted Publishing (OIDC)** by default: the
+`stage-npm` job (github-hosted) exchanges GitHub's id-token for a short-lived npm
+credential for that run — no long-lived npm token in the repository secrets, no 2FA prompt, provenance attached.
+That is the bypass npm sanctions now that tokens which skip 2FA are being retired;
+it restores the fully automatic flow the project had up to v3.8.48 while keeping the
+WS1.3 guarantee (a leaked token cannot publish alone — there is no token).
+
+**One-time setup (owner):** npmjs.com → package `omniroute` → Settings → _Trusted
+Publisher_ → GitHub: owner `diegosouzapw`, repo `OmniRoute`, workflow `npm-publish.yml`
+(environment: none). Until that exists, the automatic step fails with `ENEEDAUTH`:
+re-dispatch with `publish_mode=staged` (below) or `direct`.
+
+### Staged publishing (on request — `publish_mode=staged`)
 
 The npm-publish workflow no longer publishes directly: it boots the packed tarball
 (`check:pack-boot`) and then runs `npm stage publish` — the exact bytes are parked on
@@ -65,6 +79,16 @@ directly from anywhere — CI can only stage; only the owner's 2FA releases.
 as the default reflex (minutes, reversible); `npm unpublish` only inside the 72h/no-dependents
 window and never as the first move. Docker: never rewrite a version tag — rollback is
 repointing `latest` to the last good digest.
+
+**Docker Hub `latest` (required on every stable SemVer publish):** the
+`docker-publish` workflow must tag **both** `X.Y.Z` and, when
+`should-promote-latest.sh` agrees this is the highest stable SemVer, `:latest`
+with the **same digest**. After the job: Hub `latest` digest equals the new
+SemVer digest and `last_updated` moved. Do not leave `:latest` on an older
+build while release notes talk about fixes that only exist on git. Compose
+quickstarts use `:latest`; GitOps should keep pinning `X.Y.Z`. See
+[Docker release channels](../guides/DOCKER_GUIDE.md#release-channels) and #10317.
+
 ## Hotfix Fast-Lane (label `hotfix`)
 
 A PR labeled `hotfix` skips the heavy CI matrix (9-shard E2E, coverage ratchet,
@@ -169,7 +193,7 @@ Breaking changes: add `BREAKING CHANGE:` footer or `!` after the scope (e.g. `fe
 
 - [ ] `npm run i18n:check` exits 0 — translation state (`.i18n-state.json`) in sync with source docs (no drifted sources in strict mode; warn-mode advisory is acceptable for last-minute doc touch-ups, but should be 0 before tagging)
 - [ ] `npm run i18n:check-ui-coverage` exits 0 — every UI locale at or above the 80% coverage floor
-- [ ] `npm run i18n:sync-ui:dry` reports 0 missing keys across all 43 locales
+- [ ] `npm run i18n:sync-ui:dry` reports 0 missing keys across all 42 locales
 - [ ] If source English docs changed, run `npm run i18n:run` (requires `OMNIROUTE_TRANSLATION_API_KEY` in `.env`) before tagging
 - [ ] Translation contributions can be deferred to next release if minor (track in CHANGELOG)
 
@@ -276,6 +300,22 @@ Deploy skills use the light rsync flow — no `npm pack`, no `npm i -g`:
 - [ ] Open milestone for next version
 - [ ] If critical: pin discussion or post in `news.json` for in-app banner
 
+### Radar public-launch gate
+
+The Radar announcement is intentionally committed with `active: false`. Activation is a separate
+change after every item below is evidenced:
+
+- [ ] All stacked Radar PRs are merged and the release-tip CI is green
+- [ ] Deploy and smoke the OSS Radar routes with `RADAR_ENABLED` still off by default
+- [ ] Smoke `GET /planos`, `/termos`, `/privacidade`, and `/reembolso` on the named Radar host
+- [ ] Record operator identity/contact/address and owner-approved legal review in the private service
+- [ ] Exercise Stripe Checkout and the signed webhook in test mode only
+- [ ] Exercise one encrypted transactional-email delivery with the approved sender/domain
+- [ ] Prove backup restore and one supervised, budget-capped research run
+- [ ] Approve the BRL/PIX review policy before accepting donation evidence
+- [ ] Enable public Checkout only after the preceding gates, then activate the new `news.json` ID
+- [ ] Verify the Home banner uses localized copy and a new ID reappears after an older ID is dismissed
+
 ## Embedded Services smoke (v3.8.4+)
 
 Before shipping any release that includes embedded services changes, verify:
@@ -325,14 +365,12 @@ Before shipping any v3.8.x release, verify these additional items:
 - [ ] `npm install -g omniroute@<this-version>` runs postinstall without fatal exit
 - [ ] Update path keeps optional deps: `omniroute update --apply` and the auto-updater
       run `npm install -g … --include=optional` so `optionalDependencies` (better-sqlite3,
-      keytar, tls-client, and the llmlingua SLM stack: `@atjsh/llmlingua-2`,
-      `@huggingface/transformers@3.5.2`, `@tensorflow/tfjs`, `js-tiktoken`) survive an update.
-      `@huggingface/transformers` stays optional so its `onnxruntime-node` CUDA provider postinstall
-      cannot abort installation on CUDA 11 hosts. The ultra `modelPath` SLM tier also needs the
+      keytar, tls-client, and the llmlingua SLM stack: `@atjsh/llmlingua-2@2.0.5`,
+      `js-tiktoken`) survive an update. The ultra `modelPath` SLM tier also needs the
       tinybert model, auto-downloaded to `${DATA_DIR}/models/llmlingua` on first use. Postinstall
       (`scripts/build/colocateOptionals.mjs`) then co-locates the SLM optional closure into
-      `dist/node_modules` so the worker resolves a SINGLE `@huggingface/transformers` 3.5.2
-      optional instance — the standalone trace bundles only transformers, not the dynamically-imported
+      `dist/node_modules` so the worker resolves a SINGLE `@huggingface/transformers` ^4.2.0
+      instance — the standalone trace bundles only transformers, not the dynamically-imported
       optionals, so without this the worker would load llmlingua-2 against the root's transformers
       and the SLM tier would silently fail-open.
 - [ ] `omniroute status` works with no `.env` (CLI token path, loopback only)

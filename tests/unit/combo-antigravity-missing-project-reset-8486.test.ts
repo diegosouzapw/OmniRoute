@@ -66,7 +66,18 @@ async function runScenario(models: string[]) {
   return { result, modelsCalled };
 }
 
-test("#8486 Part B: combo unavailableResponse must not attach an unrelated target's long retryAfter to the antigravity missing-projectId 422", async () => {
+// #10314/#10501 superseded the original "one target's message wins, silently
+// drops the sibling's reason" contract these two tests pinned: combo terminal
+// aggregation now DELIBERATELY lists every distinct per-target reason (#10314)
+// and normalizes a heterogeneous failure mix to a 5xx-class status instead of a
+// bare `lastStatus` (#10501 — see comboErrorAggregation.ts::resolveComboTerminalStatus).
+// The underlying #8486 concern — a config-class error getting the WRONG target's
+// long retry-after window stitched onto it — is still the thing under test, just
+// verified against the new contract: the response's `Retry-After` HEADER (the
+// actual out-of-band decoration #8486 was about) must never carry the unrelated
+// 21h47m window, in EITHER attempt order, regardless of which reasons appear in
+// the (now intentionally multi-reason) message body.
+test("#8486 Part B: heterogeneous rate_limit+config-class antigravity failure never attaches the unrelated 21h47m retryAfter as a response header", async () => {
   const { result, modelsCalled } = await runScenario([
     "antigravity/account-a-model",
     "antigravity/account-b-model",
@@ -78,17 +89,24 @@ test("#8486 Part B: combo unavailableResponse must not attach an unrelated targe
     `expected both targets to be tried, got: ${JSON.stringify(modelsCalled)}`
   );
 
-  const text = await result.clone().text();
-
-  assert.ok(
-    !/reset after/i.test(text) || !/missing google projectid/i.test(text),
-    "a config-class antigravity error (missing_project_id, no retryAfter of its own) " +
-      "must not be decorated with an unrelated target's long retry-after window — " +
-      `got body: ${text}`
+  // #10501: neither target's failure alone proves the CLIENT's request was
+  // invalid (one is a rate limit, the other a config/auth problem) — the
+  // heterogeneous mix must normalize to a 5xx infra/provider status.
+  assert.equal(result.status, 502);
+  assert.equal(
+    result.headers.get("Retry-After"),
+    null,
+    "the config-class 422 (no retryAfter of its own) must never end up decorated " +
+      "with account-a's unrelated 21h47m retry-after header"
   );
+
+  // #10314: both distinct reasons are now surfaced (never silently dropped).
+  const text = await result.clone().text();
+  assert.match(text, /reset after 21h47m32s/i);
+  assert.match(text, /missing google projectid/i);
 });
 
-test("#8486 Part B (reverse order): the config-class 422 must not swallow a genuinely rate-limited sibling's message either", async () => {
+test("#8486 Part B (reverse order): same result independent of which target failed first — both reasons present, no bogus Retry-After header", async () => {
   const { result, modelsCalled } = await runScenario([
     "antigravity/account-b-model",
     "antigravity/account-a-model",
@@ -100,14 +118,10 @@ test("#8486 Part B (reverse order): the config-class 422 must not swallow a genu
     `expected both targets to be tried, got: ${JSON.stringify(modelsCalled)}`
   );
 
-  const text = await result.clone().text();
+  assert.equal(result.status, 502, "attempt order must not change the terminal status");
+  assert.equal(result.headers.get("Retry-After"), null);
 
-  // The surfaced status/message pair must always originate from the SAME
-  // (last-attempted) target: here that's account-a (429, real retryAfter),
-  // so the response must carry ITS message and MAY carry its own retry-after
-  // — but must never resurrect the unrelated account-b 422 text alongside it.
-  assert.ok(
-    !/missing google projectid/i.test(text),
-    `expected the last target's (account-a, 429) own message, not the unrelated account-b 422 text — got body: ${text}`
-  );
+  const text = await result.clone().text();
+  assert.match(text, /reset after 21h47m32s/i);
+  assert.match(text, /missing google projectid/i);
 });

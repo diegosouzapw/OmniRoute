@@ -20,7 +20,7 @@ const {
 describe("db/interceptionRules — per-model interception rules (#3384)", () => {
   function resetDb() {
     core.resetDbInstance();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     fs.mkdirSync(tmpDir, { recursive: true });
   }
 
@@ -30,7 +30,7 @@ describe("db/interceptionRules — per-model interception rules (#3384)", () => 
 
   after(() => {
     core.resetDbInstance();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("returns null for an unconfigured provider", () => {

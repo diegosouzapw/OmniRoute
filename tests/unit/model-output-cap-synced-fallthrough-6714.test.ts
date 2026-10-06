@@ -78,7 +78,7 @@ function buildCapability(overrides: Record<string, unknown> = {}) {
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   // The synced-capabilities module keeps an in-memory cache across DB resets
   // (`cachedCapabilitiesLoadedAll`) — clear it too so each test starts from a
@@ -92,7 +92,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#6714 synced row present but limit_output missing falls through to the registry output cap", () => {

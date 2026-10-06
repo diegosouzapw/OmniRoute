@@ -27,15 +27,15 @@ process.env.API_KEY_SECRET = "test-quota-usage-provider-secret";
 process.env.QUOTA_STORE_DRIVER = "sqlite";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
-const { createPool, upsertAllocations, createProviderConnection } = localDb;
+const { createPool, upsertAllocations } = await import("@/lib/db/quotaPools");
+const { createProviderConnection } = await import("@/lib/db/providers");
 const { resetQuotaStoreSingleton } = await import("../../src/lib/quota/QuotaStore.ts");
 const usageRoute = await import("../../src/app/api/quota/pools/[id]/usage/route.ts");
 
 function resetDb() {
   core.resetDbInstance();
   resetQuotaStoreSingleton();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -46,7 +46,7 @@ test.beforeEach(() => {
 test.after(() => {
   core.resetDbInstance();
   resetQuotaStoreSingleton();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("GET /usage surfaces catalog dimensions for a catalog-only pool (provider resolved from connection)", async () => {

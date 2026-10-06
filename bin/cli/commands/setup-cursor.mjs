@@ -10,6 +10,7 @@
 
 import { printHeading, printInfo, printSuccess } from "../io.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
+import { isContainerRuntime } from "../utils/config-home-guard.mjs";
 
 function ensureV1(url) {
   const s = String(url || "").replace(/\/+$/, "");
@@ -71,7 +72,7 @@ async function fetchModelIds(apiBase, apiKey) {
     });
     if (!res.ok) return [];
     const body = await res.json();
-    const list = Array.isArray(body) ? body : body.data ?? body.models ?? [];
+    const list = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
     return list.map((m) => (typeof m === "string" ? m : m?.id)).filter(Boolean);
   } catch {
     return [];
@@ -84,19 +85,32 @@ export async function runSetupCursorCommand(opts = {}) {
   printInfo(`Server: ${apiBase}`);
 
   let models = [];
-  const only = opts.only ? opts.only.split(",").map((s) => s.trim()).filter(Boolean) : null;
+  const only = opts.only
+    ? opts.only
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : null;
   const ids = await fetchModelIds(apiBase, apiKey);
   models = only ? ids.filter((id) => only.some((f) => id.includes(f))) : ids;
 
   console.log("\n" + buildCursorInstructions({ apiBase, models }));
   printSuccess("\nCursor is configured manually (no file written — Cursor's storage is opaque).");
+  if (await isContainerRuntime()) {
+    printInfo(
+      "Note: this ran inside a container, so the base URL above is the container's own view. " +
+        "Use the address the host reaches OmniRoute on (e.g. the published port) in Cursor's settings."
+    );
+  }
   return 0;
 }
 
 export function registerSetupCursor(program) {
   program
     .command("setup-cursor")
-    .description("Print the steps to point Cursor at OmniRoute (chat panel; Cursor config is not file-writable)")
+    .description(
+      "Print the steps to point Cursor at OmniRoute (chat panel; Cursor config is not file-writable)"
+    )
     .option("--port <port>", "Local OmniRoute port (ignored when --remote is set)", "20128")
     .option("--remote <url>", "Remote OmniRoute URL, e.g. http://192.168.0.15:20128")
     .option("--api-key <key>", "OmniRoute API key (defaults to OMNIROUTE_API_KEY env var)")

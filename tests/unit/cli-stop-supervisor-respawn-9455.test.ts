@@ -140,7 +140,7 @@ test("Defect 1b: pid.mjs SERVICES array must include supervisor so killAllSubpro
     assert.equal(ok, true, "writePidFile('supervisor', ...) must succeed");
     assert.equal(readPidFile("supervisor"), 555555);
   } finally {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
     else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   }

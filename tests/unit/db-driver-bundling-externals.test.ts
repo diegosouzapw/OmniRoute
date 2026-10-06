@@ -36,7 +36,10 @@ test("sync driver cascade requires each SQLite module by literal specifier", () 
   // The production loader must be the literal-specifier wrapper, never `_require`
   // itself — passing `_require` through the `load` parameter is exactly what makes
   // webpack substitute its missing-module stub.
-  assert.match(driverFactory, /^const openSyncDriver = createSyncDriverFactory\(\w+\);$/m);
+  assert.match(
+    driverFactory,
+    /const openSyncDriver = createSyncDriverFactory\((?:requireSqliteDriver|\w+)(?:,\s*createBetterSqliteProbe\(\{\}\))?\)/
+  );
   assert.match(driverFactory, /^export function tryOpenSync\($/m);
   assert.doesNotMatch(driverFactory, /createSyncDriverFactory\(\s*_require\s*\)/);
 

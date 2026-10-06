@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import { getAggregatedSnapshots } from "@/lib/db/quotaSnapshots";
-import type { ProviderUtilizationResponse, UtilizationTimeRange } from "@/shared/types/utilization";
+import { getProviderConnectionById } from "@/lib/db/providers";
+import type {
+  ProviderUtilizationResponse,
+  UtilizationTimeRange,
+  ConnectionMetaEntry,
+} from "@/shared/types/utilization";
 import { BUCKET_SIZES } from "@/shared/types/utilization";
 
 const VALID_RANGES: UtilizationTimeRange[] = ["1h", "24h", "7d", "30d"];
+
+function asNullableString(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
 
 function getRangeStartIso(range: UtilizationTimeRange): string {
   const end = new Date();
@@ -55,11 +64,28 @@ export async function GET(request: Request) {
 
     const providers = Array.from(new Set(data.map((d) => d.provider)));
 
+    let connectionMeta: Record<string, ConnectionMetaEntry> | undefined;
+    if (aggregateBy === "connection") {
+      const uniqueConnectionIds = new Set(
+        data.map((d) => d.provider.split(":").slice(1).join(":")).filter(Boolean)
+      );
+      connectionMeta = {};
+      for (const cid of uniqueConnectionIds) {
+        const conn = await getProviderConnectionById(cid);
+        connectionMeta[cid] = {
+          email: asNullableString(conn?.email),
+          name: asNullableString(conn?.name),
+          displayName: asNullableString(conn?.displayName),
+        };
+      }
+    }
+
     const response: ProviderUtilizationResponse = {
       timeRange: range,
       bucketSizeMinutes: bucketMinutes,
       providers,
       data,
+      connectionMeta,
     };
 
     return NextResponse.json(response);

@@ -16,10 +16,7 @@ export interface DiscordPayload {
 const EVENT_COLORS: Partial<Record<WebhookEvent, number>> = {
   "request.completed": 0x22c55e,
   "request.failed": 0xef4444,
-  "provider.error": 0xf97316,
-  "provider.recovered": 0x22c55e,
   "quota.exceeded": 0xeab308,
-  "combo.switched": 0x3b82f6,
   "test.ping": 0x8b5cf6,
 };
 

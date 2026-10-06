@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { render, Box, Text, useInput } from "ink";
 import Spinner from "ink-spinner";
+import { apiFetch } from "../api.mjs";
 import { DataTable } from "../tui-components/DataTable.jsx";
 import { ProgressBar } from "../tui-components/ProgressBar.jsx";
 
@@ -31,22 +32,20 @@ const TABLE_SCHEMA = [
   { key: "error", header: "Error", width: 28, formatter: (v) => (v ? v.slice(0, 26) : "") },
 ];
 
-async function testOne(provider, model, baseUrl, apiKey) {
-  const headers = {
-    "Content-Type": "application/json",
-    ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-  };
+async function testOne(connectionId, model, baseUrl, apiKey) {
   const start = Date.now();
   try {
-    const res = await fetch(`${baseUrl}/api/v1/providers/test`, {
+    const res = await apiFetch(`/api/providers/${encodeURIComponent(connectionId)}/test`, {
       method: "POST",
-      headers,
-      body: JSON.stringify({ provider, model }),
-      signal: AbortSignal.timeout(30000),
+      body: model ? { validationModelId: model } : {},
+      baseUrl,
+      token: apiKey,
+      timeout: 30000,
+      acceptNotOk: true,
     });
     const latencyMs = Date.now() - start;
-    const data = res.ok ? await res.json() : { success: false, error: `HTTP ${res.status}` };
-    return { status: data.success ? STATUS.PASS : STATUS.FAIL, latencyMs, error: data.error };
+    const data = res.ok ? await res.json() : { valid: false, error: `HTTP ${res.status}` };
+    return { status: data.valid ? STATUS.PASS : STATUS.FAIL, latencyMs, error: data.error };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return {
@@ -63,6 +62,7 @@ function ProvidersTestAllApp({ providers, baseUrl, apiKey, concurrency = 4, onEx
   const [rows, setRows] = useState(() =>
     providers.map((p, i) => ({
       id: i,
+      connectionId: p.connectionId ?? p.id,
       provider: p.provider ?? p.id ?? String(p),
       model: p.model ?? p.defaultModel ?? "",
       status: STATUS.PENDING,
@@ -91,7 +91,7 @@ function ProvidersTestAllApp({ providers, baseUrl, apiKey, concurrency = 4, onEx
           const row = queue[cursor++];
           running++;
           update(row.id, { status: STATUS.RUNNING });
-          testOne(row.provider, row.model, resolved, apiKey).then((result) => {
+          testOne(row.connectionId, row.model, resolved, apiKey).then((result) => {
             update(row.id, result);
             running--;
             nextSlot();

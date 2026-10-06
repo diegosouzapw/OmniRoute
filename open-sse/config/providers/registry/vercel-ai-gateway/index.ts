@@ -10,4 +10,5 @@ export const vercel_ai_gatewayProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   models: CHAT_OPENAI_COMPAT_MODELS["vercel-ai-gateway"],
+  passthroughModels: true,
 };

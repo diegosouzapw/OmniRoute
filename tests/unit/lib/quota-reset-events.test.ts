@@ -25,7 +25,7 @@ const OBSERVED = "2026-01-15T00:05:00.000Z";
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("records a weekly window transition and getWindowStart returns the prior window start", () => {

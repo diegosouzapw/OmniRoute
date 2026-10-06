@@ -4,13 +4,17 @@ import {
   type ParsedProviderImportEntry,
   type ProviderImportParseError,
 } from "./parseProviderImportFile";
+import {
+  applyImportHttpOutcome,
+  networkImportFailure,
+  readImportResponse,
+  type ImportResult,
+} from "./providerImportFeedback";
 
-export type ImportResult = { success: number; failed: number; total: number };
+export type { ImportResult };
 
 /**
- * All state + handlers for `ImportProvidersFromFileModal`, split into a hook purely
- * to keep the component's own function under the repo's max-lines-per-function ratchet
- * (#6836). Behavior is unchanged — this is a pure extraction, not a refactor.
+ * State + handlers for ImportProvidersFromFileModal (#6836/#12071).
  */
 export function useImportProvidersFromFile(onImported: () => Promise<void>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -66,15 +70,19 @@ export function useImportProvidersFromFile(onImported: () => Promise<void>) {
     setImporting(true);
     try {
       const res = await fetch("/api/providers/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ entries: toImport }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setResult({ success: data.success ?? 0, failed: data.failed ?? 0, total: data.total ?? 0 });
-        await onImported();
+      const parsed = await readImportResponse(res);
+      const outcome = applyImportHttpOutcome(parsed, parsed.data);
+      setResult(outcome.result);
+      if (outcome.shouldRefresh) {
+        try {
+          await onImported();
+        } catch { /* refresh failure must not replace the import result */ }
       }
+    } catch (err) {
+      setResult(networkImportFailure(err));
     } finally {
       setImporting(false);
     }

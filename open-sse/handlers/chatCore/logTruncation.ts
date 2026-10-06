@@ -60,9 +60,9 @@ export function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
 
 /**
  * Truncate a large object for logging. If its JSON representation exceeds
- * the configured max body size (getChatLogMaxBodyBytes()), return a
- * lightweight summary instead of the full clone. This prevents
- * persistAttemptLogs from holding multi-MB references to translatedBody
+ * getChatLogMaxBodyBytes() (default 1MB; CHAT_LOG_MAX_BODY_KB env override),
+ * return a lightweight summary instead of the full clone. This prevents
+ * persistAttemptLogs from holding unbounded references to translatedBody
  * across 17 call sites per request.
  *
  * When the summarized object carries a `tools` definition, re-attach it
@@ -77,6 +77,9 @@ export function truncateForLog(value: unknown): Record<string, unknown> | null |
   if (value === null || value === undefined) return value as null | undefined;
   if (typeof value !== "object") return value as unknown as Record<string, unknown>;
   const maxBodyBytes = getChatLogMaxBodyBytes();
+  // Pass maxBodyBytes as the early-exit point — otherwise estimateSizeFast's
+  // own default 256KB early-exit caps what it can ever report, silently
+  // making any configured threshold above 256KB unreachable (#trunc-limit-config).
   const estimatedSize = estimateSizeFast(value, maxBodyBytes);
   if (estimatedSize <= maxBodyBytes) return value as Record<string, unknown>;
   // Object is too large — return a summary instead of a deep clone
@@ -88,6 +91,11 @@ export function truncateForLog(value: unknown): Record<string, unknown> | null |
   if (typeof obj.model === "string") summary.model = obj.model;
   if (typeof obj.provider === "string") summary.provider = obj.provider;
   if (Array.isArray(obj.messages)) summary.messageCount = obj.messages.length;
+  // Responses API bodies use `input[]`, not `messages[]` (OpenAI-chat/Gemini-only
+  // field name) — without this, a large /v1/responses request got summarized
+  // with no count at all, leaving the dashboard's "Full Conversation" panel
+  // nothing to base its "N messages not shown" placeholder on.
+  else if (Array.isArray(obj.input)) summary.messageCount = obj.input.length;
   if (Array.isArray(obj.contents)) summary.contentCount = obj.contents.length;
   if (typeof obj.stream === "boolean") summary.stream = obj.stream;
   if (Array.isArray(obj.tools)) summary.tools = cloneBoundedChatLogPayload(obj.tools);

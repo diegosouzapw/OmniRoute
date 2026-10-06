@@ -26,7 +26,7 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-replace-cus
 process.env.DATA_DIR = tmpDir;
 
 const { replaceCustomModels, mergeModelCompatOverride, getModelIsHidden, getModelCompatOverrides } =
-  await import("../../src/lib/localDb.ts");
+  await import("@/lib/db/models");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 before(() => {
@@ -35,7 +35,7 @@ before(() => {
 
 after(() => {
   resetDbInstance();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const PROVIDER = "llama-cpp-5086";

@@ -68,3 +68,34 @@ test("non-Hermes system prompt passes through byte-identical through the claude 
     "a normal operator system prompt with no third-party-agent anchors must pass through untouched"
   );
 });
+
+// #10484 — #8358 added "hermes" to DEFAULT_OBFUSCATE_WORDS. The ZWJ op
+// targets user messages with a case-insensitive, no-word-boundary regex, so
+// hostnames and ordinary mentions of the OmniRoute hermes CLI tool were
+// rewritten. System-prompt identity drops (#8350) must stay; user text must not
+// be mutated.
+test("user message containing hermes hostname stays byte-identical (#10484)", () => {
+  const body = {
+    system: [
+      {
+        type: "text",
+        text: "You are a helpful operator-configured assistant. Follow company policy X and always answer in English.",
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: "1. hermes\n2. hermes.example.ts.net\n3. Hermes on agent-001\n4. hermeS",
+      },
+    ],
+  };
+  const before = JSON.stringify(body);
+  applySystemTransformPipeline(PROVIDER_CLAUDE, body, DEFAULT_SYSTEM_TRANSFORMS_CONFIG);
+  assert.equal(
+    JSON.stringify(body),
+    before,
+    "user text containing the substring hermes must not receive ZWJ obfuscation"
+  );
+  const content = (body.messages[0] as { content: string }).content;
+  assert.equal(content.includes("\u200d"), false, "no zero-width joiner in user text");
+});

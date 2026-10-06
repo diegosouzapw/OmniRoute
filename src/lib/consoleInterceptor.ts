@@ -12,6 +12,7 @@
 
 import { appendFileSync, existsSync, mkdirSync } from "fs";
 import { dirname, resolve } from "path";
+import { format } from "util";
 import { getAppLogFilePath, getAppLogToFile } from "./logEnv";
 
 const logToFile = getAppLogToFile();
@@ -91,18 +92,55 @@ function ensureDir() {
   }
 }
 
+// Level tokens the in-repo tagged logger puts in front of the component. Keep in sync with
+// LEVELS in open-sse/utils/logger.ts — that module keeps the type internal, so the list
+// cannot be imported today.
+const LEVEL_TOKENS = new Set(["DEBUG", "INFO", "WARN", "WARNING", "ERROR", "FATAL", "TRACE"]);
+
 /**
  * Try to extract component name from message patterns like [COMPONENT] or [component].
+ *
+ * The tagged logger emits `[LEVEL] [TAG] message` (open-sse/utils/logger.ts), so taking the
+ * first bracket recorded the level as the component and dropped the real one — the log stopped
+ * being filterable by component, which is the point of the field. Level tokens are skipped; the
+ * level already travels in the entry's own `level` field.
  */
 function extractComponent(msg: string): string {
-  const match = msg.match(/^\[([^\]]+)\]/);
-  return match ? match[1] : "app";
+  let rest = msg;
+  // Bounded: a message never legitimately carries more than a level plus a tag.
+  for (let depth = 0; depth < 3; depth++) {
+    const match = rest.match(/^\s*\[([^\]]+)\]/);
+    if (!match) break;
+    const token = match[1].trim();
+    if (!LEVEL_TOKENS.has(token.toUpperCase())) return token;
+    rest = rest.slice(match[0].length);
+  }
+  return "app";
 }
 
 /**
  * Convert arguments to a string message, handling objects and errors.
+ *
+ * `console.*` takes a printf-style format string, and first-party callers rely on it:
+ * src/server/ws/liveServer.ts passes `%s`/`%d` deliberately, to keep client-supplied values out
+ * of the format slot (CWE-134). Joining the arguments instead of formatting them left the
+ * placeholders literal and the values trailing without their labels, so a reader had to open the
+ * source to know which value was which. `util.format` appends surplus arguments exactly like the
+ * join below, so calls without a format string keep their current output.
+ *
+ * Guarded against an Error in `rest`: many call sites build the first argument from dynamic,
+ * non-format-string content (e.g. `` `[TAG] Failed to compile hook "${row.name}":` ``) that can
+ * coincidentally contain a `%s`/`%d`-like substring. If a trailing arg is an Error, util.format
+ * would silently consume it as a substitution value and drop its stack — skip the printf path
+ * so that Error still gets the full `message\nstack` treatment below.
  */
 function argsToMessage(args: unknown[]): string {
+  const [first, ...rest] = args;
+  const hasFormatString = typeof first === "string" && /%[sdifjoOc%]/.test(first);
+  const restHasError = rest.some((arg) => arg instanceof Error);
+  if (hasFormatString && !restHasError) {
+    return format(first, ...rest);
+  }
   return args
     .map((arg) => {
       if (arg instanceof Error) return `${arg.message}\n${arg.stack || ""}`;

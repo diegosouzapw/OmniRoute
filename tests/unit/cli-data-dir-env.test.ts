@@ -38,7 +38,7 @@ async function withTempEnv(
     for (const [key, value] of Object.entries(originalEnv)) {
       process.env[key] = value;
     }
-    fs.rmSync(root, { recursive: true, force: true });
+    fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 
@@ -61,8 +61,5 @@ test("CLI env loader scans all env paths while preserving first value wins", () 
 
   assert.match(loaderSource, /for \(const envPath of envPaths\)/);
   assert.match(loaderSource, /if \(process\.env\[key\] === undefined\)/);
-  assert.doesNotMatch(
-    loaderSource,
-    /Loaded env from \$\{envPath\}[\s\S]{0,80}\breturn;/
-  );
+  assert.doesNotMatch(loaderSource, /Loaded env from \$\{envPath\}[\s\S]{0,80}\breturn;/);
 });

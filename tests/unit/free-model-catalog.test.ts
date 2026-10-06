@@ -82,11 +82,10 @@ test("deposit-unlock boost is reported separately, not folded into steady", () =
 test("2026-06-17 refresh: discontinued providers dropped, new free providers added", () => {
   const providers = new Set(FREE_MODEL_BUDGETS.map((m) => m.provider));
   // dead in 2026 — must be gone from the budget catalog
-  for (const dead of ["chutes", "phind", "kluster", "gitlawb", "aimlapi", "theoldllm"]) {
+  for (const dead of ["chutes", "phind", "kluster", "gitlawb", "aimlapi"]) {
     assert.ok(!providers.has(dead), `${dead} should be removed (discontinued)`);
   }
-  // qwen-web is kept because it uses its own cookie/web path.
-  assert.ok(providers.has("qwen-web"), "qwen-web must stay (cookie path still free)");
+  assert.equal(providers.has("qwen-web"), false, "retired qwen-web must stay out of routing");
   // discovered in the refresh — must be present
   for (const fresh of ["kilo-gateway", "opencode-zen", "glm-cn"]) {
     assert.ok(providers.has(fresh), `${fresh} should be added`);

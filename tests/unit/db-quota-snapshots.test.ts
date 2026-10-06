@@ -12,7 +12,7 @@ const quotaSnapshotsDb = await import("../../src/lib/db/quotaSnapshots.ts");
 
 async function resetStorage() {
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -22,7 +22,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("quotaSnapshots save and query rows with provider and connection filters", () => {

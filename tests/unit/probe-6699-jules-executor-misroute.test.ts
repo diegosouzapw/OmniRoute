@@ -16,7 +16,7 @@ test("#6699: jules has no specialized executor (falls through to DefaultExecutor
   assert.equal(hasSpecializedExecutor("jules"), false);
 });
 
-test("#6699: a chat-completion request routed to provider 'jules' must not silently hit OpenAI's endpoint", () => {
+test("#6699: a chat-completion request routed to provider 'jules' must not silently hit OpenAI's endpoint", async () => {
   // Desired behavior: the Jules provider (a cloud-agent, registered only in
   // CLOUD_AGENT_PROVIDERS/staticModels, never in the chat REGISTRY) must not silently
   // resolve to OpenAI's chat/completions endpoint when routed through the normal
@@ -27,9 +27,9 @@ test("#6699: a chat-completion request routed to provider 'jules' must not silen
   // genuine Jules key). Before the fix, getExecutor("jules") returned a working
   // executor whose buildUrl() resolved to OpenAI's endpoint -- this assertion FAILS on
   // unfixed release/v3.8.49 code because no error is thrown at all.
-  assert.throws(
-    () => getExecutor("jules"),
-    (err) => {
+  await assert.rejects(
+    getExecutor("jules"),
+    (err: Error & { status?: number }) => {
       assert.match(err.message, /cloud-agent provider/i);
       assert.match(err.message, /does not support direct chat completions/i);
       assert.equal(err.status, 400);

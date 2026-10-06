@@ -291,7 +291,9 @@ function ComboAutopilotPanel({ report }: { report: ComboAutopilotReport }) {
             icon="monitor_heart"
             label={t("comboHealthIssues")}
             value={report.summary.issueCount.toLocaleString()}
-            subValue={t("comboHealthActionable", { count: report.summary.actionableCount })}
+            subValue={t("comboHealthActionable", {
+              count: report.summary.suggestionCount ?? report.summary.actionableCount ?? 0,
+            })}
           />
           <MetricBlock
             icon="error"
@@ -524,7 +526,7 @@ function ComboHealthCard({
             <MetricBlock
               icon="battery_status_good"
               label={t("comboHealthWorstQuotaLeft")}
-              value={formatPercent(combo.quotaHealth.worstRemainingPct)}
+              value={formatPercentOrDash(combo.quotaHealth.worstRemainingPct)}
             />
             <MetricBlock
               icon="balance"
@@ -558,7 +560,8 @@ function ComboHealthCard({
           <div className="flex flex-col gap-3">
             {combo.quotaHealth.providers.map((provider) => {
               const trendMeta = getTrendMeta(provider.trend);
-              const width = `${Math.max(provider.remainingPct, provider.remainingPct > 0 ? 6 : 0)}%`;
+              const pct = provider.remainingPct;
+              const width = `${pct === null ? 0 : Math.max(pct, pct > 0 ? 6 : 0)}%`;
 
               return (
                 <div
@@ -572,7 +575,7 @@ function ComboHealthCard({
                       </div>
                       <div className="mt-1 text-xs text-text-muted">
                         {t("comboHealthRemainingQuota", {
-                          value: formatPercent(provider.remainingPct, 1),
+                          value: formatPercentOrDash(provider.remainingPct, 1),
                         })}
                       </div>
                     </div>
@@ -850,7 +853,9 @@ export default function ComboHealthTab() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchData(controller, false);
+    void (async () => {
+      await fetchData(controller, false);
+    })();
     return () => controller.abort();
   }, [fetchData]);
 

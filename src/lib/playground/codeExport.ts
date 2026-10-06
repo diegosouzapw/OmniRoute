@@ -73,7 +73,7 @@ export interface PlaygroundState {
   searchType?: "web" | "news";
   maxResults?: number;
   // Scrape-specific
-  fetchProvider?: "firecrawl" | "jina-reader" | "tavily-search";
+  fetchProvider?: "firecrawl" | "jina-reader" | "tavily-search" | "anysearch-search";
   fetchFormat?: "markdown" | "html" | "links" | "screenshot";
   fetchDepth?: 0 | 1 | 2;
   // Rerank-specific
@@ -110,7 +110,9 @@ export const PlaygroundStateSchema = z.object({
   searchProvider: z.string().optional(),
   searchType: z.enum(["web", "news"]).optional(),
   maxResults: z.number().int().optional(),
-  fetchProvider: z.enum(["firecrawl", "jina-reader", "tavily-search"]).optional(),
+  fetchProvider: z
+    .enum(["firecrawl", "jina-reader", "tavily-search", "anysearch-search"])
+    .optional(),
   fetchFormat: z.enum(["markdown", "html", "links", "screenshot"]).optional(),
   fetchDepth: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
   rerankModel: z.string().optional(),

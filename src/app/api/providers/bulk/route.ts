@@ -28,8 +28,10 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isManagedProviderConnectionId } from "@/lib/providers/catalog";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { validateProviderApiKey } from "@/lib/providers/validation";
-import { getProxyForLevel, resolveProxyForProvider } from "@/lib/localDb";
+import { getProxyForLevel } from "@/lib/db/settings";
+import { resolveProxyForProvider } from "@/lib/db/proxies";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 // POST /api/providers/bulk — create multiple API-key connections for a single provider.
 // Partial-failure semantics: each entry succeeds or fails independently; the
@@ -61,6 +63,9 @@ export async function POST(request: Request) {
     providerSpecificData: incomingPsd,
     validateKeys,
   } = validation.data;
+
+  const retirementResponse = rejectRetiredCommonChatGptWebProvider(provider);
+  if (retirementResponse) return retirementResponse;
 
   const isManagedOrCompatible =
     isManagedProviderConnectionId(provider) ||

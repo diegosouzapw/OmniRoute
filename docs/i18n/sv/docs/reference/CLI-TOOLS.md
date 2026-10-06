@@ -1,86 +1,300 @@
-# CLI Tools Setup Guide — OmniRoute (Svenska)
+# CLI Tools — OmniRoute (Svenska)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/CLI-TOOLS.md) · 🇸🇦 [ar](../../ar/docs/CLI-TOOLS.md) · 🇧🇬 [bg](../../bg/docs/CLI-TOOLS.md) · 🇧🇩 [bn](../../bn/docs/CLI-TOOLS.md) · 🇨🇿 [cs](../../cs/docs/CLI-TOOLS.md) · 🇩🇰 [da](../../da/docs/CLI-TOOLS.md) · 🇩🇪 [de](../../de/docs/CLI-TOOLS.md) · 🇪🇸 [es](../../es/docs/CLI-TOOLS.md) · 🇮🇷 [fa](../../fa/docs/CLI-TOOLS.md) · 🇫🇮 [fi](../../fi/docs/CLI-TOOLS.md) · 🇫🇷 [fr](../../fr/docs/CLI-TOOLS.md) · 🇮🇳 [gu](../../gu/docs/CLI-TOOLS.md) · 🇮🇱 [he](../../he/docs/CLI-TOOLS.md) · 🇮🇳 [hi](../../hi/docs/CLI-TOOLS.md) · 🇭🇺 [hu](../../hu/docs/CLI-TOOLS.md) · 🇮🇩 [id](../../id/docs/CLI-TOOLS.md) · 🇮🇹 [it](../../it/docs/CLI-TOOLS.md) · 🇯🇵 [ja](../../ja/docs/CLI-TOOLS.md) · 🇰🇷 [ko](../../ko/docs/CLI-TOOLS.md) · 🇮🇳 [mr](../../mr/docs/CLI-TOOLS.md) · 🇲🇾 [ms](../../ms/docs/CLI-TOOLS.md) · 🇳🇱 [nl](../../nl/docs/CLI-TOOLS.md) · 🇳🇴 [no](../../no/docs/CLI-TOOLS.md) · 🇵🇭 [phi](../../phi/docs/CLI-TOOLS.md) · 🇵🇱 [pl](../../pl/docs/CLI-TOOLS.md) · 🇵🇹 [pt](../../pt/docs/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/CLI-TOOLS.md) · 🇷🇴 [ro](../../ro/docs/CLI-TOOLS.md) · 🇷🇺 [ru](../../ru/docs/CLI-TOOLS.md) · 🇸🇰 [sk](../../sk/docs/CLI-TOOLS.md) · 🇸🇪 [sv](../../sv/docs/CLI-TOOLS.md) · 🇰🇪 [sw](../../sw/docs/CLI-TOOLS.md) · 🇮🇳 [ta](../../ta/docs/CLI-TOOLS.md) · 🇮🇳 [te](../../te/docs/CLI-TOOLS.md) · 🇹🇭 [th](../../th/docs/CLI-TOOLS.md) · 🇹🇷 [tr](../../tr/docs/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/CLI-TOOLS.md) · 🇵🇰 [ur](../../ur/docs/CLI-TOOLS.md) · 🇻🇳 [vi](../../vi/docs/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/CLI-TOOLS.md)
-
----
-
-This guide explains how to install and configure all supported AI coding CLI tools
-to use **OmniRoute** as the unified backend, giving you centralized key management,
-cost tracking, model switching, and request logging across every tool.
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
-## How It Works
+Senast uppdaterad: 2026-08-23
+
+OmniRoute integreras med tre kategorier av CLI-verktyg fördelade över tre dedikerade dashboardsidor:
+
+| Sida            | Rutt                    | Koncept                                                                       | Antal        |
+| --------------- | ----------------------- | ----------------------------------------------------------------------------- | ------------ |
+| **CLI-kod**     | `/dashboard/cli-code`   | Kodverktyg som du pekar mot OmniRoute (Klient → CLI → OmniRoute → Leverantör) | 26           |
+| **CLI-agenter** | `/dashboard/cli-agents` | Autonoma agenter som du pekar mot OmniRoute (samma flöde, bredare omfång)     | 10           |
+| **ACP-agenter** | `/dashboard/acp-agents` | CLI:er som OmniRoute startar som backend via stdio/ACP (omvänt flöde)         | se registret |
+
+Äldre rutter omdirigeras via 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
+
+---
+
+## Hur det fungerar
 
 ```
-Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
+CLI-kod / CLI-agenter (konsumeringsflöde):
+Claude / Codex / OpenCode / Cline / KiloCode / Continue / Hermes Agent / Goose / ...
            │
-           ▼  (all point to OmniRoute)
+           ▼  (alla pekar på OmniRoute)
     http://YOUR_SERVER:20128/v1
            │
-           ▼  (OmniRoute routes to the right provider)
+           ▼  (OmniRoute dirigerar till rätt leverantör)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
+
+ACP-agenter (omvänt skapande flöde):
+    Klientförfrågan → OmniRoute → skapar CLI via stdio/ACP → svar
 ```
 
-**Benefits:**
+**Fördelar:**
 
-- One API key to manage all tools
-- Cost tracking across all CLIs in the dashboard
-- Model switching without reconfiguring every tool
-- Works locally and on remote servers (VPS)
-
----
-
-## Supported Tools (Dashboard Source of Truth)
-
-The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
-Current list (v3.0.0-rc.16):
-
-| Tool               | ID            | Command    | Setup Mode | Install Method |
-| ------------------ | ------------- | ---------- | ---------- | -------------- |
-| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
-| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
-| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
-| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
-| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
-| **Cline**          | `cline`       | `cline`    | custom     | npm            |
-| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
-| **Continue**       | `continue`    | extension  | guide      | VS Code        |
-| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
-| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
-| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
-| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
-| **Qwen Code**      | `qwen`        | `qwen`     | custom     | npm            |
-
-### CLI fingerprint sync (Agents + Settings)
-
-`/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
-This keeps provider IDs aligned with CLI cards and legacy IDs.
-
-| CLI ID                                                                                               | Fingerprint Provider ID |
-| ---------------------------------------------------------------------------------------------------- | ----------------------- |
-| `kilo`                                                                                               | `kilocode`              |
-| `copilot`                                                                                            | `github`                |
-| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
-
-Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
+- Ett API-nyckel för att hantera alla verktyg
+- Kostnadsspårning över alla CLIs i instrumentpanelen
+- Modellbyte utan att omkonfigurera varje verktyg
+- Fungerar lokalt och på fjärrservrar (VPS, Docker, Akamai, Cloudflare Tunnel)
 
 ---
 
-## Step 1 — Get an OmniRoute API Key
+## Auto-konfigurera med `setup-*`
 
-1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
-2. Click **Create API Key**
-3. Give it a name (e.g. `cli-tools`) and select all permissions
-4. Copy the key — you'll need it for every CLI below
+Du behöver inte skriva varje verktygs konfiguration för hand. OmniRoute levereras med ett `setup-*`-kommando per CLI som stöds, vilket läser den **levande** modellkatalogen från en körande OmniRoute (lokal eller fjärr) och skriver verktygets egen konfiguration på din maskin:
 
-> Your key looks like: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+```bash
+omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
+omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
+omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
+omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
+```
+
+Varje kommando accepterar `--remote <url> --api-key <key>` (konfigurera ett lokalt verktyg mot en fjärr-OmniRoute), `--dry-run` (förhandsgranska utan att skriva) och `--port`. Verktyg utan automatisk modellupptäckt (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) tar `--model <id>` (och `--yes` för icke-interaktiva körningar). `setup-5dive` är det enda receptet som inte skriver under `$HOME`: det konfigurerar en 5dive-agentflotta genom att skriva en root-ägd autentiseringsprofil på flottans värd, så det körs om via `sudo` och har inget eget fjärrläge. För att starta ett CLI med rätt miljö injicerad och ingen konfiguration skriven alls, använd den generiska `omniroute run <target>`-startaren (claude, codex, aider, goose, opencode, qwen, gemini – mål och alias kommer från `bin/cli/cli-manifest.mjs`); de äldre startarna per verktyg `omniroute launch` (Claude Code) och `omniroute launch-codex` (Codex) är fortfarande tillgängliga. Gemini CLI är endast för start: det är ett `omniroute run`-mål men har inget `setup-*`/`configure`-recept.
+
+> **Fullständig referens:** huvudtabellen – vad varje kommando skriver, varje flagga, lokal kontra fjärr, och vilka verktyg som vill ha ett `/v1`-suffix – finns i **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
+
+### Köra dessa inuti en container
+
+Ett `setup-*`-kommando som körs inuti OmniRoute-containern skriver till containerns egen hemkatalog, som ingen värd-CLI läser och som försvinner med containern. OmniRoute upptäcker detta och avslutar med `2` och instruktioner istället för att skriva. Två stödda sätt att gå vidare – installera CLI på värden och `omniroute connect` till containern, eller bind-montera konfigurationskatalogerna och ställ in `CLI_CONFIG_HOME` (compose `host`-profilen). Varje `setup-*`-kommando, plus `omniroute configure` och `omniroute config set`, accepterar `--allow-container-write` när det är containerns egna CLI:er du faktiskt menade att konfigurera; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` gör detsamma för servern. Se [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+
+Instrumentpanelens **apply endpoint** (`POST /api/cli-tools/apply`) upprätthåller samma skydd: i en container svarar en skrivning vars mål inte är bind-monterat från värden med **`422`** med `containerEphemeralTarget: true`, den säkra feltexten och – för verktygen med ett värdrecept (claude, codex, opencode, cline, kilo, continue) – ett `hostSetupCommand` (t.ex. `omniroute setup-opencode`) att köra på värden istället; inget skrivs. `dryRun: true` fortsätter att fungera i containerläge och returnerar en redigerad förhandsgranskning + målsökväg utan att röra disken. Förhandsgranskningsinnehållet är inte en konfiguration som innehåller autentiseringsuppgifter att kopiera eller importera. Tillämpa med det ursprungliga verktyget/bas-URL:en/API-nyckeln/modellinmatningarna på värden, eller använd det angivna värdsidiga setup-kommandot. Se [CLI configuration security](../security/CLI-CONFIGURATION.md) för förhandsgranskningshuvudet och begäranskontraktet. Detta beteende är avsiktligt och regressionsskyddat av `tests/unit/api/cli-tools/apply-container-guard.test.ts` – "fixa" aldrig en 422 genom att ta bort skyddet.
 
 ---
 
-## Step 2 — Install CLI Tools
+## Källa till Sanning
 
-All npm-based tools require Node.js 18+:
+Den enhetliga katalogen finns i `src/shared/constants/cliTools.ts` som `CLI_TOOLS: Record<string, CliCatalogEntry>`.
+
+Varje post har dessa fält (definierade i `src/shared/schemas/cliCatalog.ts`):
+
+| Fält                                            | Typ                                                          | Beskrivning                                            |
+| ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
+| `category`                                      | `"code" \| "agent"`                                          | Vilken sida verktyget visas på                         |
+| `vendor`                                        | `string`                                                     | Verktygets ursprung ("Anthropic", "OSS (P. Gauthier)") |
+| `acpSpawnable`                                  | `boolean`                                                    | Kan också användas som en ACP-agent (badge visas)      |
+| `baseUrlSupport`                                | `"full" \| "partial" \| "none"`                              | Anpassad slutpunkt stöd nivå. `"none"` = MITM backlog  |
+| `configType`                                    | `"env" \| "custom" \| "guide" \| "custom-builder" \| "mitm"` | Konfigurationsmekanism                                 |
+| `id`, `name`, `color`, `description`, `docsUrl` | standard                                                     | Kärnvisningsfält                                       |
+
+Poster med `baseUrlSupport: "none"` visas **inte** på instrumentpanelens sidor — de registreras i MITM-backloggen för plan 11 (se `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md`).
+
+### Kapabilitetsskikt (katalogiserade × detekterbara × konfigurerbara × lanserbara)
+
+Inte varje katalogiserat verktyg är detekterbart, konfigurerbart eller lanserbart. Varje skikt har en
+deklarerande källa, och ett driftstest håller dem synkroniserade:
+
+| Skikt             | Betydelse                                                                               | Deklarerat i                                                      |
+| ----------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Katalogiserad** | Visas i instrumentpanelens katalog (namn, leverantör, dokumentation, konfigurationstyp) | `src/shared/constants/cliTools.ts` (`CLI_TOOLS`)                  |
+| **Detekterbar**   | Binär-/konfigurationsdetektion, hälsokontroller, konfigurationsvägar                    | `src/shared/services/cliRuntime.ts` (`CLI_TOOLS` runtime katalog) |
+| **Konfigurerbar** | Stöds av `omniroute configure <cli>` (installationsrecept finns)                        | `bin/cli/cli-manifest.mjs` (`configure: true`)                    |
+| **Lanserbar**     | Stöds av `omniroute run <target>` (miljö/argumentinjektion definierad)                  | `bin/cli/cli-manifest.mjs` (`run: true`)                          |
+
+`bin/cli/cli-manifest.mjs` är den kanoniska körbara manifesten för CLI-kommandon
+ytor: `run`, `configure` och shell-kompletteringsgeneratorer härleder alla sina
+målister, aliasupplösning (till exempel `kilocode`/`kilo-code`/`kilo_cli` → `kilo`)
+och `--model` flaggkopplingar från den. Driftvakten
+`tests/unit/cli/cli-manifest-drift.test.ts` säkerställer att manifestet, runtime
+katalogen, UI-katalogen och varje konsumentyta förblir synkroniserade — ett mål som läggs till
+en yta utan de andra misslyckas med sviten istället för att driva tyst.
+
+## 1. CLI Codes katalog (26 verktyg)
+
+Alla verktyg som visas i `/dashboard/cli-code`. De med `baseUrlSupport: none` ansluts via MITM eller en manuell guide i stället för en anpassad bas-URL:
+
+| id           | namn                    | leverantör                | stöd för bas-URL | konfigurationstyp | kan startas via ACP |
+| ------------ | ----------------------- | ------------------------- | ---------------- | ----------------- | ------------------- |
+| claude       | Claude Code             | Anthropic                 | fullständigt     | miljövariabler    | sant                |
+| codex        | OpenAI Codex CLI        | OpenAI                    | fullständigt     | anpassad          | sant                |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                      | inget            | anpassad          | falskt              |
+| cline        | Cline                   | OSS (tidigare Claude Dev) | fullständigt     | anpassad          | sant                |
+| kilo         | Kilo Code               | Kilo-Org                  | fullständigt     | anpassad          | falskt              |
+| roo          | Roo Code                | Roo (OSS)                 | fullständigt     | guide             | falskt              |
+| continue     | Continue                | continue.dev              | fullständigt     | guide             | falskt              |
+| aider        | Aider                   | OSS (P. Gauthier)         | fullständigt     | guide             | sant                |
+| forge        | ForgeCode               | Antinomy HQ               | fullständigt     | anpassad          | sant                |
+| jcode        | jcode                   | 1jehuang (OSS)            | fullständigt     | anpassad          | falskt              |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)         | fullständigt     | anpassad          | falskt              |
+| codewhale    | CodeWhale               | Hmbown (OSS)              | fullständigt     | anpassad          | falskt              |
+| opencode     | OpenCode                | Anomaly (tidigare SST)    | fullständigt     | guide             | sant                |
+| droid        | Factory Droid           | Factory AI                | partiellt        | guide             | falskt              |
+| copilot      | GitHub Copilot CLI      | GitHub/MS                 | fullständigt     | anpassad          | falskt              |
+| cursor-cli   | Cursor CLI              | Anysphere                 | partiellt        | guide             | sant                |
+| smelt        | Smelt                   | leonardcser (OSS)         | fullständigt     | anpassad          | falskt              |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)          | fullständigt     | anpassad          | falskt              |
+| grok-build   | Grok Build              | xAI                       | fullständigt     | anpassad          | falskt              |
+| crush        | Crush                   | OSS (Charm)               | fullständigt     | anpassad          | falskt              |
+| qwen         | Qwen Code               | Alibaba                   | fullständigt     | guide             | sant                |
+| cursor       | Cursor                  | Anysphere                 | inget            | guide             | falskt              |
+| antigravity  | Antigravity             | Google                    | inget            | mitm              | falskt              |
+| hermes       | Hermes                  | Nous Research             | inget            | guide             | falskt              |
+| kiro         | Kiro AI                 | Amazon                    | inget            | mitm              | falskt              |
+| custom       | Anpassad CLI            | —                         | fullständigt     | anpassad byggare  | falskt              |
+
+Verktyg med `baseUrlSupport: "partial"` visar märket "⚠ Partiell bas-URL" på kortet i kontrollpanelen.
+---
+
+## 2. CLI Agenter Katalog (8 verktyg)
+
+Autonoma agenter som visas i `/dashboard/cli-agents`:
+
+| id           | namn             | leverantör               | baseUrlSupport | acpSpawnable |
+| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
+| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
+| goose        | Goose            | Block / Linux Foundation | full           | true         |
+| interpreter  | Open Interpreter | OSS                      | full           | true         |
+| warp         | Warp AI          | Warp Inc.                | partial        | true         |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
+| omp          | Oh My Pi         | OSS                      | full           | true         |
+| letta        | Letta CLI        | Letta                    | full           | false        |
+
+---
+
+## 3. ACP Agenter (/dashboard/acp-agents)
+
+Denna sida (omdöpt från `/dashboard/agents`) visar CLIs som OmniRoute kan **skapa** som backend-exekveringsmotorer via stdio/ACP-protokollet. Katalogen underhålls separat i `src/lib/acp/registry.ts` och är **inte** densamma som `CLI_TOOLS`.
+
+---
+
+## 4. MITM Backlog (inte visad i dashboard)
+
+Följande CLIs stöder inte anpassad bas-URL nativt och är **inte listade** i CLI Code's eller CLI Agents sidor. De är kandidater för MITM-avlyssning i plan 11:
+
+| CLI                 | Orsak                                                            |
+| ------------------- | ---------------------------------------------------------------- |
+| windsurf            | BYOK begränsat till utvalda Claude-modeller + företags-URL/token |
+| amp                 | Stängt ekosystem (Sourcegraph)                                   |
+| amazon-q / kiro-cli | AWS SSO autentisering, ingen anpassad URL                        |
+| cowork              | Anthropic Desktop, ingen konfigurerbar slutpunkt                 |
+
+Se `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md` för den fullständiga korsreferensen.
+
+---
+
+## 5. Batch Detektering API
+
+All verktygsdetektering aggregeras via en enda slutpunkt:
+
+**`GET /api/cli-tools/all-statuses`**
+
+- Auth: `requireCliToolsAuth(request)` (samma som andra `/api/cli-tools/` rutter)
+- Återvänder: `Record<toolId, ToolBatchStatus>` (typ: `src/shared/types/cliBatchStatus.ts`)
+- Strategi: `Promise.all` över alla verktyg, 5s timeout per verktyg
+- Cache: i-minnet LRU indexerat av konfigurationsfil `mtime`. Cache ogiltigförklaras när mtime ändras. Återställs vid serveromstart.
+
+Svarform per verktyg:
+
+```ts
+interface ToolBatchStatus {
+  detection: {
+    installed: boolean;
+    runnable: boolean;
+    version?: string;
+    command?: string;
+    commandPath?: string;
+    reason?: string;
+  };
+  config: {
+    status: "configured" | "not_configured" | "not_installed" | "unknown" | "other";
+    endpoint?: string | null;
+    lastConfiguredAt?: string | null;
+  };
+  error?: string; // sanerat, inga stacktraces
+}
+```
+
+## 6. Inställningshanterare för Nya Verktyg
+
+Nya verktyg med `configType: "custom"` har dedikerade inställnings-API-rutter:
+
+| Rutt                                        | Verktyg                                                         |
+| ------------------------------------------- | --------------------------------------------------------------- |
+| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)                                         |
+| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)                                         |
+| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, legacy)                          |
+| `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, primär + legacy `~/.deepseek` synk) |
+| `POST /api/cli-tools/smelt-settings`        | Smelt                                                           |
+| `POST /api/cli-tools/pi-settings`           | Pi kodningsagent                                                |
+| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`)           |
+| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + dedikerad `.env` nyckel)   |
+
+Alla rutter använder `sanitizeErrorMessage()` för felmeddelanden (Hård Regel #12).
+
+---
+
+## 7. Dashboard-sidornas Arkitektur
+
+### CLI Kod (`/dashboard/cli-code`)
+
+- `src/app/(dashboard)/dashboard/cli-code/page.tsx` — serverkomponent
+- `src/app/(dashboard)/dashboard/cli-code/CliCodePageClient.tsx` — klientgrid
+- `src/app/(dashboard)/dashboard/cli-code/[id]/page.tsx` — verktygsdetaljsida
+- `src/app/(dashboard)/dashboard/cli-code/components/` — 12 specialiserade verktygskort + `ToolDetailClient.tsx`
+
+### CLI Agenter (`/dashboard/cli-agents`)
+
+- `src/app/(dashboard)/dashboard/cli-agents/page.tsx` — serverkomponent
+- `src/app/(dashboard)/dashboard/cli-agents/CliAgentsPageClient.tsx` — klientgrid
+- `src/app/(dashboard)/dashboard/cli-agents/[id]/page.tsx` — återanvänder `ToolDetailClient`
+
+### ACP Agenter (`/dashboard/acp-agents`)
+
+- `src/app/(dashboard)/dashboard/acp-agents/page.tsx` — serverkomponent (flyttad från `agents/`)
+
+### Delade UI-komponenter (`src/shared/components/cli/`)
+
+| Fil                     | Syfte                                                    |
+| ----------------------- | -------------------------------------------------------- |
+| `CliToolCard.tsx`       | Smart statuskort (detektion + konfiguration + slutpunkt) |
+| `CliConceptCard.tsx`    | För-sida konceptförklaringskort                          |
+| `CliComparisonCard.tsx` | Trefaldig jämförelse över CLI-typer                      |
+| `BaseUrlSelect.tsx`     | Slutpunkt nedrullningsmeny (Lokal/Moln/Egen)             |
+| `ApiKeySelect.tsx`      | API-nyckelväljare                                        |
+| `ManualConfigModal.tsx` | Kopierbar konfigurationssnutt modal                      |
+
+### Delad Hook (`src/shared/hooks/cli/`)
+
+| Fil                       | Syfte                                                                        |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| `useToolBatchStatuses.ts` | Hämtar `/api/cli-tools/all-statuses`, hanterar laddnings-/uppdateringsstatus |
+
+## 8. i18n
+
+Nya namnrymder tillagda i plan 14 F9:
+
+| Namnrymd    | Syfte                                                                                |
+| ----------- | ------------------------------------------------------------------------------------ |
+| `cliCommon` | Delade strängar (kortetiketter, koncept/jämförelsetexter, etiketter för detaljsidor) |
+| `cliCode`   | Strängar för CLI-kodens sidor                                                        |
+| `cliAgents` | Strängar för CLI-agenter sidor                                                       |
+| `acpAgents` | Strängar för ACP-agenter sidor                                                       |
+
+Fullständiga översättningar på PT-BR och EN tillhandahålls. 39 andra språk faller automatiskt tillbaka till EN via namnrymsnivåsammanfogning i `src/i18n/request.ts`.
+
+---
+
+## 9. Snabbstart
+
+### Steg 1 — Skaffa en OmniRoute API-nyckel
+
+1. Öppna `/dashboard/api-manager` → **Skapa API-nyckel**
+2. Ge den ett namn (t.ex. `cli-tools`) och välj alla behörigheter
+3. Kopiera nyckeln — du kommer att behöva den för varje CLI nedan
+
+> Din nyckel ser ut som: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+
+---
+
+### Steg 2 — Installera CLI-verktyg
+
+Alla npm-baserade verktyg kräver Node.js 22.22.2+ eller 24.x:
 
 ```bash
 # Claude Code (Anthropic)
@@ -98,96 +312,138 @@ npm install -g cline
 # KiloCode
 npm install -g kilocode
 
-# Kiro CLI (Amazon — requires curl + unzip)
-apt-get install -y unzip   # on Debian/Ubuntu
-curl -fsSL https://cli.kiro.dev/install | bash
-export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
-```
+# Qwen Code
+npm install -g @qwen-code/qwen-code
 
-**Verify:**
+# Google Gemini CLI (kan startas via `omniroute run gemini` → /v1beta surface)
+npm install -g @google/gemini-cli
 
-```bash
-claude --version     # 2.x.x
-codex --version      # 0.x.x
-opencode --version   # x.x.x
-cline --version      # 2.x.x
-kilocode --version   # x.x.x (or: kilo --version)
-kiro-cli --version   # 1.x.x
+# Aider
+pip install aider-chat
+
+# Smelt
+cargo install smelt  # Rust-baserad
+
+# Pi coding agent
+# se https://github.com/zechnerj/pi-coding-agent för installation
+
+# jcode
+# se https://github.com/1jehuang/jcode för installation
 ```
 
 ---
 
-## Step 3 — Set Global Environment Variables
+### Steg 3 — Konfigurera via Dashboard
 
-Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
+1. Gå till `http://localhost:20128/dashboard/cli-code`
+2. Hitta ditt verktyg i rutnätet
+3. Klicka på kortet för att öppna verktygets detaljsida
+4. Välj din API-nyckel och bas-URL
+5. Klicka på **Tillämpa konfiguration** eller kopiera den manuella konfigurationssnutten
+
+---
+
+### Steg 4 — Ställ in globala miljövariabler
 
 ```bash
 # OmniRoute Universal Endpoint
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
-export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
-export ANTHROPIC_API_KEY="sk-your-omniroute-key"
-export GEMINI_BASE_URL="http://localhost:20128/v1"
+export ANTHROPIC_BASE_URL="http://localhost:20128"
+export ANTHROPIC_AUTH_TOKEN="sk-your-omniroute-key"
+# Gemini CLI läser GOOGLE_GEMINI_BASE_URL vid ROOT (dess SDK lägger till /v1beta/... själv)
+export GOOGLE_GEMINI_BASE_URL="http://localhost:20128"
 export GEMINI_API_KEY="sk-your-omniroute-key"
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain,
-> e.g. `http://192.168.0.15:20128`.
+> För en **fjärrserver** ersätt `localhost:20128` med serverns IP eller domän,
+> t.ex. `http://<your-server-ip>:20128`.
 
 ---
 
-## Step 4 — Configure Each Tool
+### Steg 4 — Konfigurera varje verktyg
 
-### Claude Code
+#### Claude Code
 
 ```bash
-# Via CLI:
-claude config set --global api-base-url http://localhost:20128/v1
-
-# Or create ~/.claude/settings.json:
+# Skapa ~/.claude/settings.json:
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
-  "apiBaseUrl": "http://localhost:20128/v1",
-  "apiKey": "sk-your-omniroute-key"
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "ANTHROPIC_AUTH_TOKEN": "sk-your-omniroute-key"
+  }
 }
 EOF
 ```
+
+Använd den enhetliga Anthropic gateway-rooten för Claude Code. Lägg inte till `/v1` här.
 
 **Test:** `claude "say hello"`
 
 ---
 
-### OpenAI Codex
+#### OpenAI Codex
+
+Modern Codex (v0.137+) läser endast `~/.codex/config.toml` — den gamla
+`config.yaml` tillhör den äldre npm CLI och ignoreras tyst. API-nyckeln
+förblir i miljövariabeln `OMNIROUTE_API_KEY` (`env_key`), aldrig
+inuti filen:
 
 ```bash
-mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
-model: auto
-apiKey: sk-your-omniroute-key
-apiBaseUrl: http://localhost:20128/v1
+mkdir -p ~/.codex && cat > ~/.codex/config.toml << EOF
+model_provider = "omniroute"
+
+[model_providers.omniroute]
+name                 = "OmniRoute"
+base_url             = "http://localhost:20128/v1"
+env_key              = "OMNIROUTE_API_KEY"
+requires_openai_auth = false
 EOF
+export OMNIROUTE_API_KEY="sk-your-omniroute-key"
 ```
+
+Fullständig referens (profiler, `wire_api`, kontextfönster): [CODEX-CLI-CONFIGURATION.md](../guides/CODEX-CLI-CONFIGURATION.md).
 
 **Test:** `codex "what is 2+2?"`
 
 ---
 
-### OpenCode
+#### OpenCode
 
 ```bash
-mkdir -p ~/.config/opencode && cat > ~/.config/opencode/config.toml << EOF
-[provider.openai]
-base_url = "http://localhost:20128/v1"
-api_key = "sk-your-omniroute-key"
+mkdir -p ~/.config/opencode && cat > ~/.config/opencode/opencode.json << EOF
+{
+  "\$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "omniroute": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OmniRoute",
+      "options": {
+        "baseURL": "http://localhost:20128/v1",
+        "apiKey": "sk-your-omniroute-key"
+      },
+      "models": {
+        "claude-sonnet-4-5": { "name": "claude-sonnet-4-5" },
+        "claude-sonnet-4-5-thinking": { "name": "claude-sonnet-4-5-thinking" },
+        "gemini-3-flash": { "name": "gemini-3-flash" }
+      }
+    }
+  }
+}
 EOF
 ```
 
 **Test:** `opencode`
 
+> Använd `opencode run "your prompt" --model omniroute/claude-sonnet-4-5-thinking --variant high`
+> för att skicka tänkande varianter.
+
 ---
 
-### Cline (CLI or VS Code)
+#### Cline (CLI eller VS Code)
 
-**CLI mode:**
+**CLI-läge:**
 
 ```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
@@ -199,22 +455,22 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 EOF
 ```
 
-**VS Code mode:**
-Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
+**VS Code-läge:**
+Cline-tilläggsinställningar → API-leverantör: `OpenAI Compatible` → Bas-URL: `http://localhost:20128/v1`
 
-Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
+Eller använd OmniRoute-dashboarden → **CLI-verktyg → Cline → Tillämpa konfiguration**.
 
 ---
 
-### KiloCode (CLI or VS Code)
+#### KiloCode (CLI eller VS Code)
 
-**CLI mode:**
+**CLI-läge:**
 
 ```bash
 kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 ```
 
-**VS Code settings:**
+**VS Code-inställningar:**
 
 ```json
 {
@@ -223,13 +479,13 @@ kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 }
 ```
 
-Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
+Eller använd OmniRoute-dashboarden → **CLI-verktyg → KiloCode → Tillämpa konfiguration**.
 
 ---
 
-### Continue (VS Code Extension)
+#### Continue (VS Code-tillägg)
 
-Edit `~/.continue/config.yaml`:
+Redigera `~/.continue/config.yaml`:
 
 ```yaml
 models:
@@ -241,158 +497,257 @@ models:
     default: true
 ```
 
-Restart VS Code after editing.
+Starta om VS Code efter redigering.
 
 ---
 
-### Kiro CLI (Amazon)
+#### VS Code Insiders (`chatLanguageModels.json`)
+
+Använd detta när VS Code Insiders är konfigurerat för anpassade slutpunktsmodeller och du vill att OmniRoute ska fungera utan ett anpassat headerfält.
+
+**Rekommenderad plats:**
+
+- Linux: `~/.config/Code - Insiders/User/chatLanguageModels.json`
+- Windows: `%APPDATA%/Code - Insiders/User/chatLanguageModels.json`
+
+**Exempel med den tokeniserade OmniRoute-aliasen:**
+
+```json
+[
+  {
+    "vendor": "customendpoint",
+    "id": "auto",
+    "name": "OmniRoute Auto",
+    "family": "gpt-4",
+    "version": "1.0.0",
+    "url": "http://localhost:20128/api/v1/vscode/sk-your-omniroute-key/chat/completions",
+    "modelsUrl": "http://localhost:20128/api/v1/vscode/sk-your-omniroute-key/models",
+    "requestFormat": "openai-chat-completions",
+    "contextWindow": 256000,
+    "maxOutputTokens": 32768,
+    "auth": {
+      "type": "none"
+    }
+  }
+]
+```
+
+**Noter:**
+
+- Ersätt `sk-your-omniroute-key` med en API-nyckel skapad i OmniRoute.
+- Fältet `url` bör peka på `/api/v1/vscode/{token}/chat/completions`.
+- Fältet `modelsUrl` bör peka på `/api/v1/vscode/{token}/models`.
+- Föredra den normala `/v1` + Bearer-headerflödet när klienten stöder anpassade headers.
+- URL-inbäddade tokens är en kompatibilitetsåterställning och kan dyka upp i redigerarens loggar eller proxyhistorik.
+
+---
+
+#### Kiro CLI (Amazon)
 
 ```bash
-# Login to your AWS/Kiro account:
+# Logga in på ditt AWS/Kiro-konto:
 kiro-cli login
 
-# The CLI uses its own auth — OmniRoute is not needed as backend for Kiro CLI itself.
-# Use kiro-cli alongside OmniRoute for other tools.
+# CLI använder sin egen autentisering — OmniRoute behövs inte som backend för Kiro CLI själv.
+# Använd kiro-cli tillsammans med OmniRoute för andra verktyg.
 kiro-cli status
 ```
 
+För **Kiro IDE** skrivbordsapp, använd MITM-slutpunkten som exponeras av OmniRoute
+under `/dashboard/cli-tools → Kiro`.
+
 ---
 
-### Qwen Code (Alibaba)
+## 10. Internt OmniRoute-CLI
 
-Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
-
-**Option 1: Environment variables (`~/.qwen/.env`)**
+Binärfilen `omniroute` innehåller kommandon för serverns livscykel, konfiguration, diagnostik och leverantörshantering. Startpunkt: `bin/omniroute.mjs`.
 
 ```bash
-mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
-OPENAI_API_KEY="sk-your-omniroute-key"
-OPENAI_BASE_URL="http://localhost:20128/v1"
-OPENAI_MODEL="auto"
-EOF
+omniroute                              # Starta servern (standardport 20128)
+omniroute setup                        # Interaktiv konfigurationsguide
+omniroute doctor                       # Kontrollera konfiguration, databas, portar och körmiljö
+omniroute providers list               # Konfigurerade leverantörsanslutningar
+omniroute providers test-all           # Testa alla aktiva anslutningar
+omniroute reset-password               # Återställ administratörslösenordet
+omniroute logs                         # Strömma begärandeloggar
+omniroute health                       # Detaljerad hälsostatus (brytare, cache, minne)
+omniroute --version                    # Visa version
+omniroute --help                       # Visa alla kommandon
 ```
 
-**Option 2: `settings.json` with model providers**
-
-```json
-// ~/.qwen/settings.json
-{
-  "env": {
-    "OPENAI_API_KEY": "sk-your-omniroute-key",
-    "OPENAI_BASE_URL": "http://localhost:20128/v1"
-  },
-  "modelProviders": {
-    "openai": [
-      {
-        "id": "omniroute-default",
-        "name": "OmniRoute (Auto)",
-        "envKey": "OPENAI_API_KEY",
-        "baseUrl": "http://localhost:20128/v1"
-      }
-    ]
-  }
-}
-```
-
-**Option 3: Inline CLI flags**
+### Konfiguration och initiering
 
 ```bash
-OPENAI_BASE_URL="http://localhost:20128/v1" \
-OPENAI_API_KEY="sk-your-omniroute-key" \
-OPENAI_MODEL="auto" \
-qwen
+omniroute setup                        # Interaktiv konfigurationsguide
+omniroute setup --non-interactive      # CI-/automatiseringsläge (läser miljövariabler + flaggor)
+omniroute setup --password '<value>'   # Ange administratörslösenord direkt
+omniroute setup --add-provider \
+  --provider openai \
+  --api-key '<value>' \
+  --test-provider                      # Lägg till och testa en leverantör i ett enda steg
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain.
+Identifierade miljövariabler för icke-interaktiv konfiguration:
 
-**Test:** `qwen "say hello"`
+| Variabel            | Syfte                                                                     |
+| ------------------- | ------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Leverantörens API-nyckel (bunden till `--api-key` via Commander `.env()`) |
+| `DATA_DIR`          | Åsidosätt OmniRoutes datakatalog                                          |
 
-### Cursor (Desktop App)
+Alla andra icke-interaktiva indata skickas som flaggor, inte som miljövariabler:
+`--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
+(se alternativen för `omniroute setup` ovan).
 
-> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
-> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
+### Diagnostik
 
-Via GUI: **Settings → Models → OpenAI API Key**
+```bash
+omniroute doctor                       # Kontrollera konfiguration, databas, portar, körmiljö, minne och tillgänglighet
+omniroute doctor --json                # Maskinläsbar JSON
+omniroute doctor --no-liveness         # Hoppa över HTTP-hälsokontrollen
+omniroute doctor --host 0.0.0.0        # Åsidosätt värd för tillgänglighetskontroll
+omniroute doctor --liveness-url <url>  # Åsidosätt med fullständig URL till hälsoslutpunkten
+```
 
-- Base URL: `https://your-domain.com/v1`
-- API Key: your OmniRoute key
+Diagnostikverktyget kör följande kontroller: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory` och `Server liveness`. Det avslutas med en slutkod som inte är noll om någon kontroll har statusen `fail`.
+
+### Leverantörshantering
+
+```bash
+omniroute providers available                       # OmniRoutes leverantörskatalog
+omniroute providers available --search openai       # Filtrera katalogen efter id/namn/alias/kategori
+omniroute providers available --category api-key    # Filtrera efter kategori (api-key, oauth, free, ...)
+omniroute providers available --json                # Maskinläsbar JSON
+
+omniroute providers list                            # Konfigurerade leverantörsanslutningar
+omniroute providers list --json
+
+omniroute providers test <id|name>                  # Testa en konfigurerad anslutning
+omniroute providers test-all                        # Testa alla aktiva anslutningar
+omniroute providers validate                        # Strukturell validering endast lokalt
+omniroute providers add <provider> --credential-env PROVIDER_KEY
+omniroute providers import ./providers.json --dry-run --json
+omniroute providers auth <provider>                 # Befintligt OAuth-flöde
+omniroute providers edit <id|name> --default-model <model>
+omniroute providers remove <id|name> --yes
+```
+
+`providers add/import/auth/edit/remove` är API-baserade i första hand och fungerar därför mot
+den aktiva lokala eller fjärranslutna kontexten. Autentiseringsuppgifter bör anges med
+`--credential-stdin` eller `--credential-env`; `--dry-run --json` rapporterar endast
+maskerad förekomst/form. `providers available` läser OmniRoutes katalog;
+`providers list/test/test-all/validate` behåller sitt lokala SQLite-beteende och
+kräver inte att servern körs.
+
+### Återställning och nollställning
+
+```bash
+omniroute reset-password                # Återställ administratörslösenordet (även: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Visa varning + testkörning för återställning av krypterade autentiseringsuppgifter
+omniroute reset-encrypted-columns --force  # Nollställ faktiskt krypterade autentiseringsuppgifter i SQLite
+```
+
+### Export av autentiseringsuppgifter (⚠ hantera varsamt)
+
+```bash
+omniroute auth export                                 # Visa varning + bekräftelsesteg — ingen databasåtkomst
+omniroute auth export --force                          # Exportera ALLA anslutningars DEKRYPTERADE autentiseringsuppgifter till standardutdata som JSON
+omniroute auth export --force --id <id>                 # Exportera endast den matchande anslutningen
+omniroute auth export --force --format env               # Skriv ut rader i formatet OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Skriv till en fil (skapad med behörigheten 0600)
+```
+
+`auth export` är **endast lokalt** (direkt läsning från SQLite, ingen HTTP-rutt) och skriver avsiktligt ut
+**klartextvärden** för `apiKey`/`accessToken`/`refreshToken`/`idToken` — det är funktionen, inte ett
+fel. Ingenting läses från databasen och ingenting dekrypteras utan `--force`. En varningsbanner
+skrivs alltid till stderr innan någon klartext matas ut. Kräver att `STORAGE_ENCRYPTION_KEY` är
+angiven. Ett fält som inte kan dekrypteras (inaktuell nyckel, skadad chiffertext) rapporteras som
+`<field>DecryptFailed: true` i stället för att avbryta hela exporten eller läcka det underliggande felet.
+
+### Andra underkommandon
+
+Dessa förutsätter att en OmniRoute-server körs, om inget annat anges:
+
+```bash
+omniroute status                       # Omfattande körningsstatus
+omniroute logs                         # Strömma begärandeloggar (--json, --search, --follow)
+omniroute config list                  # Visa konfigurerade CLI-verktyg
+
+omniroute provider list                # Lista tillgängliga leverantörer (alias för providers list)
+omniroute provider add                 # Registrera OmniRoute som leverantör i ett verktyg
+omniroute keys add | list | remove     # Hantera API-nycklar
+omniroute models [provider]            # Lista modeller (--json, --search)
+omniroute combo list | switch | create | delete
+
+omniroute backup                       # Skapa en ögonblicksbild av konfigurationen och databasen
+omniroute restore                      # Återställ från en tidigare ögonblicksbild
+
+omniroute health                       # Detaljerad hälsostatus (kretsbrytare, cache, minne)
+omniroute quota                        # Leverantörernas kvotanvändning
+omniroute cache                        # Cachestatus
+omniroute cache clear                  # Rensa semantiska cacheminnen och signaturcacheminnen
+
+omniroute mcp status | restart         # MCP-serverstatus/omstart
+omniroute a2a status | card            # A2A-serverstatus/agentkort
+
+omniroute tunnel list | create | stop  # Hantera tunnlar (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Visa/ange miljövariabler (tillfälligt)
+
+omniroute test                         # Snabbtest av leverantörsanslutning
+omniroute update                       # Sök efter uppdateringar
+omniroute completion                   # Generera skalkomplettering
+```
+
+### Vanliga flaggor
+
+| Flagga              | Beskrivning                                       |
+| ------------------- | ------------------------------------------------- |
+| `--no-open`         | Öppna inte webbläsaren automatiskt vid start      |
+| `--port <n>`        | Åsidosätt API-porten (standardvärde 20128)        |
+| `--mcp`             | Kör som MCP-server via stdio (för IDE:er)         |
+| `--non-interactive` | CI-läge (inga frågor; läser från miljön/flaggor)  |
+| `--json`            | Maskinläsbar JSON-utdata (doctor, providers osv.) |
+| `--help`, `-h`      | Visa kommandospecifik hjälp                       |
+| `--version`, `-v`   | Skriv ut den installerade versionen               |
 
 ---
 
-## Dashboard Auto-Configuration
+## Tillgängliga API-slutpunkter
 
-The OmniRoute dashboard automates configuration for most tools:
+| Slutpunkt                  | Beskrivning                       | Används för                          |
+| -------------------------- | --------------------------------- | ------------------------------------ |
+| `/v1/chat/completions`     | Standardchatt (alla leverantörer) | Alla moderna verktyg                 |
+| `/v1/responses`            | Svar API (OpenAI-format)          | Codex, agentiska arbetsflöden        |
+| `/v1/completions`          | Legacy textkompletteringar        | Äldre verktyg som använder `prompt:` |
+| `/v1/embeddings`           | Textinbäddningar                  | RAG, sökning                         |
+| `/v1/images/generations`   | Bildgenerering                    | GPT-Image, Flux, etc.                |
+| `/v1/audio/speech`         | Text-till-tal                     | ElevenLabs, OpenAI TTS               |
+| `/v1/audio/transcriptions` | Tal-till-text                     | Deepgram, AssemblyAI                 |
 
-1. Go to `http://localhost:20128/dashboard/cli-tools`
-2. Expand any tool card
-3. Select your API key from the dropdown
-4. Click **Apply Config** (if tool is detected as installed)
-5. Or copy the generated config snippet manually
+Redo att klistra in exempel med en tokeniserad OmniRoute-URL:
 
----
+```txt
+Token exempel: sk-a3ab3c080beaee3a-69f4a4-070d71af
 
-## Built-in Agents: Droid & OpenClaw
-
-**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
-They run as internal routes and use OmniRoute's model routing automatically.
-
-- Access: `http://localhost:20128/dashboard/agents`
-- Configure: same combos and providers as all other tools
-- No API key or CLI install required
-
----
-
-## Available API Endpoints
-
-| Endpoint                   | Description                   | Use For                     |
-| -------------------------- | ----------------------------- | --------------------------- |
-| `/v1/chat/completions`     | Standard chat (all providers) | All modern tools            |
-| `/v1/responses`            | Responses API (OpenAI format) | Codex, agentic workflows    |
-| `/v1/completions`          | Legacy text completions       | Older tools using `prompt:` |
-| `/v1/embeddings`           | Text embeddings               | RAG, search                 |
-| `/v1/images/generations`   | Image generation              | GPT-Image, Flux, etc.       |
-| `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
-| `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
+Standard OpenAI bas: http://localhost:20128/v1
+VS Code-modeller: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/models
+VS Code chatt: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/chat/completions
+VS Code svar: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/responses
+Ollama-taggar: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/tags
+Ollama chatt: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/chat
+```
 
 ---
 
 ## Felsökning
 
-| Error                     | Cause                   | Fix                                        |
-| ------------------------- | ----------------------- | ------------------------------------------ |
-| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
-| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
-| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
-| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
-| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
-| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
-
----
-
-## Quick Setup Script (One Command)
-
-```bash
-# Install all CLIs and configure for OmniRoute (replace with your key and server URL)
-OMNIROUTE_URL="http://localhost:20128/v1"
-OMNIROUTE_KEY="sk-your-omniroute-key"
-
-npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
-
-# Kiro CLI
-apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash
-
-# Write configs
-mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
-
-cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
-cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
-cat >> ~/.bashrc << EOF
-export OPENAI_BASE_URL="$OMNIROUTE_URL"
-export OPENAI_API_KEY="$OMNIROUTE_KEY"
-export ANTHROPIC_BASE_URL="$OMNIROUTE_URL"
-export ANTHROPIC_API_KEY="$OMNIROUTE_KEY"
-EOF
-
-source ~/.bashrc
-echo "✅ All CLIs installed and configured for OmniRoute"
-```
+| Fel                                               | Orsak                          | Lösning                                                |
+| ------------------------------------------------- | ------------------------------ | ------------------------------------------------------ |
+| `Connection refused`                              | OmniRoute körs inte            | `omniroute serve`                                      |
+| `401 Unauthorized`                                | Fel API-nyckel                 | Kontrollera i `/dashboard/api-manager`                 |
+| `No combo configured`                             | Ingen aktiv routingkombination | Ställ in i `/dashboard/combos`                         |
+| CLI visar "not installed"                         | Binärfil inte i PATH           | Kontrollera `which <command>`                          |
+| Dashboard visar "not detected" efter installation | Cache föråldrad                | Klicka på "⟳ Uppdatera upptäckten" i instrumentpanelen |
+| Gammal länk `/dashboard/cli-tools`                | Bokmärke före v3.8.6           | Auto-omdirigerad till `/dashboard/cli-code` (308)      |
+| Gammal länk `/dashboard/agents`                   | Bokmärke före v3.8.6           | Auto-omdirigerad till `/dashboard/acp-agents` (308)    |

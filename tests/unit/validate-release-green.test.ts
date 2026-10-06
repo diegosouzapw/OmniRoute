@@ -7,6 +7,7 @@ const mod = await import("../../scripts/quality/validate-release-green.mjs");
 const {
   firstFailureLine,
   eslintCounts,
+  evaluateEslintRun,
   parseEslintJson,
   parseCognitiveCount,
   isDrift,
@@ -15,6 +16,9 @@ const {
   extractCiGates,
   FULL_CI_SKIP,
   fullCiTimeoutFor,
+  curatedEquivalentId,
+  fullCiKindFor,
+  ESLINT_TIMEOUT_MS,
 } = mod;
 
 const extract = extractCiGates as (
@@ -25,6 +29,22 @@ const extract = extractCiGates as (
 test("eslintCounts sums errors + warnings across files", () => {
   const parsed = [{ errorCount: 2, warningCount: 5 }, { errorCount: 0, warningCount: 3 }, {}];
   assert.deepEqual(eslintCounts(parsed), { errors: 2, warnings: 8 });
+});
+
+test("ESLint JSON with zero findings cannot hide a failed process", () => {
+  const results = evaluateEslintRun({ code: 42, out: '[{"errorCount":0,"warningCount":0}]' }, 0);
+  assert.equal(computeVerdict(results).releaseGreen, false);
+  assert.match(results[0].detail, /42/);
+});
+
+test("timeout diagnostics retain partial stdout and stderr", () => {
+  const result = classifyRunError(
+    { code: "ETIMEDOUT", stdout: "last completed test\n", stderr: "worker diagnostic\n" },
+    1000
+  );
+  assert.equal(result.code, 124);
+  assert.match(result.out, /last completed test/);
+  assert.match(result.out, /worker diagnostic/);
 });
 
 test("parseEslintJson tolerates a leading non-JSON banner", () => {
@@ -46,6 +66,22 @@ test("parseEslintJson tolerates ESLint's trailing unpruned-suppressions stderr s
   assert.deepEqual(parseEslintJson(eslintJsonReport + stderrTail), [
     { filePath: "open-sse/executors/example.ts", errorCount: 0, warningCount: 0, messages: [] },
   ]);
+});
+
+test("evaluateEslintRun preserves an ESLint timeout instead of misreporting invalid JSON", () => {
+  const timedOut = classifyRunError({ killed: true, code: "ETIMEDOUT" }, 30 * 60 * 1000);
+
+  assert.deepEqual(evaluateEslintRun(timedOut, 0), [
+    {
+      id: "lint",
+      label: "ESLint",
+      kind: "hard",
+      ok: false,
+      detail:
+        "gate exceeded its 1800s ceiling and was killed — treat as a hung/failed gate (e.g. an unreleased DB handle in the unit suite); does NOT pass",
+    },
+  ]);
+  assert.equal(ESLINT_TIMEOUT_MS, 60 * 60 * 1000, "cold release lint needs >30m headroom");
 });
 
 test("parseCognitiveCount reads the gate's count (en + pt)", () => {
@@ -201,6 +237,26 @@ test("pre-flight wires the test-masking PR-context gate against origin/main (v3.
   );
 });
 
+test("pre-flight reports pricing freshness as drift, not as a hard failure", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  // The gate reads git history (KNOWN_MODEL_PRICING untouched for 90 days), so it turns red
+  // by itself as time passes: a drift entry keeps it visible without blocking a release.
+  assert.match(
+    src,
+    /driftCmd\(\s*"pricing-freshness"[\s\S]*?"check:pricing-freshness"/,
+    "pricing-freshness must run check:pricing-freshness as a drift check"
+  );
+  assert.doesNotMatch(
+    src,
+    /hardCmd\(\s*"pricing-freshness"/,
+    "pricing-freshness must not be a HARD gate"
+  );
+});
+
 test("pre-flight --hermetic scrubs the live-test trigger vars (2026-07-05 false-positive fix)", async () => {
   const fs = await import("node:fs");
   const src = fs.readFileSync(
@@ -226,7 +282,8 @@ test("pre-flight runs the slow suites CONCURRENTLY (v3.8.45 perf — was ~1h ser
   // main() must be async and the slow suites (unit/vitest/integration/pack-artifact)
   // must run via a single Promise.all over runAsync — not four sequential hardCmd calls.
   assert.match(src, /async function main\(\)/, "main must be async to await the parallel wave");
-  assert.match(src, /const execFileAsync = promisify\(execFile\)/, "async runner must exist");
+  assert.match(src, /await runGateProcess\(/, "commands must use the asynchronous supervisor");
+  assert.match(src, /const runAsync = run/, "slow suites must use the same supervised runner");
   assert.match(src, /await Promise\.all\(\s*slow\.map\(/, "slow suites must run concurrently");
   // The four slow-gate ids must all be present in the parallel wave.
   for (const id of ["unit", "vitest", "integration", "pack-artifact"]) {
@@ -255,6 +312,33 @@ test("pre-flight runs tarball boot only after the package artifact builder compl
     /packArtifactResult[\s\S]*?check:pack-boot/,
     "pack-boot must be explicitly sequenced from the package-artifact result"
   );
+});
+
+test("pack gate builds, stamps dist/BUILD_SHA, then validates against the tree under test (#10427)", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  const gate = src.slice(src.indexOf("async function runPackArtifactGate"));
+  assert.ok(gate.length > 0, "the pack gate runner must exist");
+  const buildAt = gate.indexOf('"build:cli"');
+  const stampAt = gate.indexOf("scripts/build/write-build-sha.mjs");
+  const checkAt = gate.indexOf('"check:pack-artifact"');
+  // `build:cli` never writes dist/BUILD_SHA, so a bare `check:pack-artifact` always failed
+  // the provenance guard with "dist/BUILD_SHA is missing" — the same trap ci.yml avoids.
+  assert.ok(buildAt >= 0 && stampAt > buildAt, "BUILD_SHA must be stamped after build:cli");
+  assert.ok(checkAt > stampAt, "the artifact must be validated only after it is stamped");
+  assert.match(
+    gate.slice(checkAt, checkAt + 200),
+    /env: PACK_GATE_ENV/,
+    "a release-branch tip is never an ancestor of origin/main mid-cycle"
+  );
+  assert.match(src, /const PACK_GATE_ENV = \{ OMNIROUTE_RELEASE_REF: "HEAD" \}/);
+  // Both entry points (the parallel wave and --with-build --quick) must use it.
+  assert.equal(src.match(/runPackArtifactGate\b/g)?.length, 3);
+  assert.doesNotMatch(src, /runAsync\(npmCmd, \["run", "check:pack-artifact"\]/);
+  assert.doesNotMatch(src, /id: "pack-artifact",[^}]*args:/);
 });
 
 // ─── --full-ci gate extraction (P0, v3.8.46 post-mortem) ─────────────────────
@@ -360,4 +444,147 @@ test("extractCiGates: the REAL ci.yml yields the base-reds that leaked in v3.8.4
     assert.ok(ids.has(g), `real ci.yml must expose ${g} to --full-ci`);
   }
   assert.ok(ids.size >= 20, "the real gate set is substantial (>= 20 static gates)");
+});
+
+test("validate-release-green parses workflow YAML via the declared js-yaml dependency", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  assert.match(src, /from ["']js-yaml["']/);
+  assert.doesNotMatch(src, /from ["']yaml["']/);
+});
+
+// ─── Verdict accuracy (review of the #9985 release-green verdict) ────────────
+
+test("firstFailureLine never blames a PASSING line whose test FILE NAME contains 'fail' (#9985)", () => {
+  // Observed in the 2026-08-23 verdict: the reported "cause" of the unit red was
+  //   ✓ …fail-fast-concurrency-gate.test.ts (4 tests) 203ms
+  // i.e. a GREEN line, matched only because the unanchored /FAIL/i marker hit the
+  // substring "fail" inside the file name. The real ✖ line was three lines below.
+  const out = [
+    "> omniroute@3.8.50 test:unit",
+    " ✓ tests/unit/runtime/fail-fast-concurrency-gate.test.ts (4 tests) 203ms",
+    " ✓ tests/unit/router/failover-budget.test.ts (9 tests) 41ms",
+    " ✖ tests/unit/router/pricing.test.ts > picks the cheapest candidate",
+    "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal: 2 !== 3",
+  ].join("\n");
+  const hit = firstFailureLine(out);
+  assert.doesNotMatch(hit, /fail-fast-concurrency-gate/, "a green line is never the failure cause");
+  assert.doesNotMatch(hit, /failover-budget/, "a green line is never the failure cause");
+  assert.match(hit, /pricing\.test\.ts/, "the real failing line must be reported instead");
+});
+
+test("firstFailureLine still recognises every legitimate failure marker", () => {
+  const cases: [string, RegExp][] = [
+    ["ok 1 - warms up\nnot ok 2 - routes to the cheapest key\n", /not ok 2/],
+    ["Test Files 1 failed\nFAIL tests/unit/router/pricing.test.ts\n", /^FAIL /],
+    ["src/x.ts(10,5): error TS2322: Type 'string' is not assignable.", /error TS2322/],
+    ["✗ db-rules: raw sqlite handle left open", /db-rules/],
+    ["Error: ENOENT: no such file or directory, open 'dist/server.js'", /ENOENT/],
+    ["[cognitive-complexity] REGRESSÃO — 801 violações > baseline 797", /REGRESS/],
+    ["[file-size] REGRESSED: open-sse/router.ts 1204 > cap 1100", /REGRESSED/],
+  ];
+  for (const [out, expected] of cases) {
+    assert.match(firstFailureLine(out), expected, `marker lost for: ${out.slice(0, 40)}`);
+  }
+});
+
+test("firstFailureLine falls back to the last line when nothing matches", () => {
+  assert.equal(firstFailureLine("warming up\nall quiet\n"), "all quiet");
+  assert.equal(firstFailureLine(""), "failed");
+});
+
+test("curatedEquivalentId maps a ci.yml gate script onto the curated pass id (#9985)", () => {
+  assert.equal(curatedEquivalentId("check:file-size"), "file-size");
+  assert.equal(curatedEquivalentId("check:compression-budget"), "compression-budget");
+  // Curated ids that are NOT just the script name minus "check:".
+  assert.equal(curatedEquivalentId("check:workflows"), "workflow-lint");
+  assert.equal(curatedEquivalentId("check:complexity-ratchets"), "complexity");
+  assert.equal(curatedEquivalentId("lint"), "lint-errors");
+  // An uncurated gate keeps a stable, non-colliding identity.
+  assert.equal(curatedEquivalentId("check:route-validation:t06"), "route-validation:t06");
+});
+
+test("fullCiKindFor honours the curated classification of an already-known gate (#9985)", () => {
+  const curated = [
+    { id: "file-size", kind: "drift", ok: false },
+    { id: "compression-budget", kind: "drift", ok: false },
+    { id: "workflow-lint", kind: "drift", ok: false },
+    { id: "docs-all", kind: "hard", ok: true },
+    { id: "lint-errors", kind: "hard", ok: true },
+  ];
+  // Ratchets curated as DRIFT must stay drift when --full-ci re-runs them from ci.yml...
+  assert.equal(fullCiKindFor("check:file-size", curated), "drift");
+  assert.equal(fullCiKindFor("check:compression-budget", curated), "drift");
+  assert.equal(fullCiKindFor("check:workflows", curated), "drift");
+  // ...real-defect gates stay hard...
+  assert.equal(fullCiKindFor("check:docs-all", curated), "hard");
+  assert.equal(fullCiKindFor("lint", curated), "hard");
+  // ...and a gate the curated pass never ran defaults to hard (the --full-ci contract).
+  assert.equal(fullCiKindFor("check:bundle-size", curated), "hard");
+  assert.equal(fullCiKindFor("check:route-validation:t06", curated), "hard");
+});
+
+test("one gate can never land in BOTH verdict buckets of the same report (#9985)", () => {
+  // The 2026-08-23 verdict listed file-size and compression-budget as hard failures
+  // AND as drift, in the same table, because the --full-ci pass re-recorded every
+  // ci.yml gate as kind:"hard" and the dedupe only compared raw ids.
+  const curated = [
+    { id: "file-size", kind: "drift", ok: false },
+    { id: "compression-budget", kind: "drift", ok: false },
+  ];
+  const fromCiYaml = ["check:file-size", "check:compression-budget"].map((id) => ({
+    id,
+    kind: fullCiKindFor(id, curated),
+    ok: false,
+  }));
+  const v = computeVerdict([...curated, ...fromCiYaml]);
+  const hardGates = new Set(v.hardFailures.map((r) => curatedEquivalentId(r.id)));
+  const contradictions = v.drift
+    .map((r) => curatedEquivalentId(r.id))
+    .filter((id) => hardGates.has(id));
+  assert.deepEqual(
+    contradictions,
+    [],
+    "a gate reported as hard must not also be reported as drift"
+  );
+  assert.equal(
+    v.releaseGreen,
+    true,
+    "a curated-drift ratchet must not block the release via the --full-ci path"
+  );
+});
+
+test("the --full-ci loop classifies from the curated results, not a hardcoded kind (#9985)", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  assert.match(
+    src,
+    /kind:\s*fullCiKindFor\(g\.id,\s*results\)/,
+    "--full-ci must classify each ci.yml gate through fullCiKindFor()"
+  );
+});
+
+test("extractCiGates: skips steps guarded to pull_request events (no PR range outside a PR)", () => {
+  const yaml = `
+jobs:
+  lint:
+    steps:
+      - run: npm run check:public-creds
+      - name: AI attribution
+        if: github.event_name == 'pull_request'
+        run: |
+          printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.md"
+          npm run check:ai-attribution -- --range "$PR_BASE_SHA..$PR_HEAD_SHA"
+      - name: still local
+        if: github.event_name != 'pull_request'
+        run: npm run check:db-rules
+`;
+  const ids = extract(yaml).map((g) => g.id);
+  assert.deepEqual(ids, ["check:public-creds", "check:db-rules"]);
 });

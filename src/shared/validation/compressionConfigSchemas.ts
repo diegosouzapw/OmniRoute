@@ -71,6 +71,8 @@ export const rtkConfigSchema = z
     trustProjectFilters: z.boolean().optional(),
     rawOutputRetention: rtkRawOutputRetentionSchema.optional(),
     rawOutputMaxBytes: z.number().int().min(1024).max(10_000_000).optional(),
+    rawOutputMaxFiles: z.number().int().min(1).max(10_000_000).optional(),
+    rawOutputMaxAgeDays: z.number().int().min(1).max(3650).optional(),
     enableGrouping: z.boolean().optional(),
     groupingThreshold: z.number().int().min(2).max(100).optional(),
     stripCodeComments: z.boolean().optional(),
@@ -312,6 +314,8 @@ export const STACKED_PIPELINE_ENGINE_INTENSITIES: Record<string, readonly string
 export const liteConfigSchema = z
   .object({
     compressToolResults: z.boolean().optional(),
+    // null clears a stored cap so env/default can apply; omitting the key keeps it.
+    maxToolLength: z.union([z.number().int().min(256).max(1_000_000), z.null()]).optional(),
   })
   .strict();
 
@@ -346,6 +350,19 @@ export const contextBudgetConfigSchema = z
   })
   .strict();
 
+/**
+ * Perfil semântico do OmniGlyph. O perfil é um TETO: o pacote não deixa um
+ * override reabrir uma lane que o perfil fechou. `aggressive` é o default e a
+ * política que os recibos publicados mediram; `coding-safe`/`balanced` mantêm
+ * system, schemas de tools e tool results nativos, e não comprimem nada até a
+ * sessão acumular histórico.
+ */
+export const omniglyphConfigSchema = z
+  .object({
+    profile: z.enum(["coding-safe", "balanced", "aggressive", "passthrough"]),
+  })
+  .strict();
+
 export const compressionSettingsUpdateSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -373,6 +390,7 @@ export const compressionSettingsUpdateSchema = z
     ccr: ccrConfigSchema.optional(),
     contextBudget: contextBudgetConfigSchema.optional(),
     contextEditing: contextEditingConfigSchema.optional(),
+    omniglyph: omniglyphConfigSchema.optional(),
     liveZone: z.object({ enabled: z.boolean() }).strict().optional(),
     engines: z.record(z.string(), engineToggleSchema).optional(),
     enginesExplicit: z.boolean().optional(),

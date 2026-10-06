@@ -39,7 +39,9 @@ export function WebhookDeliveriesPanel({ webhookId, t }: WebhookDeliveriesPanelP
   }, [webhookId, t]);
 
   useEffect(() => {
-    void load();
+    void (async () => {
+      await load();
+    })();
   }, [load]);
 
   if (loading) {

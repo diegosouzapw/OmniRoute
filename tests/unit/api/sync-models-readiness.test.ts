@@ -1,4 +1,4 @@
-import { test, beforeEach } from "node:test";
+import { test, beforeEach, mock } from "node:test";
 import assert from "node:assert/strict";
 import {
   selfFetchWithRetry,
@@ -246,5 +246,137 @@ test("sanity: without readiness gate, 17 callers retry independently (amplificat
   assert.ok(
     modelFetchCalls > 17,
     "without gate, callers retry independently, got " + modelFetchCalls + " (expected >17)"
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Failure-memory tests: a rejected probe must not condemn the process
+// ---------------------------------------------------------------------------
+
+test("ensureLoopbackServerReady: a failed probe is re-attempted after the retry window (no permanent failure memory)", async () => {
+  __resetLoopbackReadinessForTests();
+  let probeCalls = 0;
+  let serverIsUp = false;
+  const mockFetch = async (_url) => {
+    probeCalls++;
+    if (!serverIsUp) throw new Error("ECONNREFUSED");
+    return new Response("", { status: 200 });
+  };
+
+  // First probe: server down -> rejection after maxWaitMs (no prior failure,
+  // so the default 30s retry window is inactive)
+  await assert.rejects(
+    () =>
+      ensureLoopbackServerReady({
+        fetch: mockFetch,
+        maxWaitMs: 50,
+        pollMs: 10,
+      }),
+    /loopback server not ready/
+  );
+  const callsAfterFirstFailure = probeCalls;
+
+  // Server comes up shortly after the first failure
+  setTimeout(() => {
+    serverIsUp = true;
+  }, 60);
+
+  // Inside the retry window: must reject WITHOUT re-probing (storm bound)
+  await assert.rejects(
+    () =>
+      ensureLoopbackServerReady({
+        fetch: mockFetch,
+        maxWaitMs: 50,
+        pollMs: 10,
+        minRetryIntervalMs: 500,
+      }),
+    /loopback server not ready/
+  );
+  assert.equal(
+    probeCalls,
+    callsAfterFirstFailure,
+    "callers inside the retry window must not re-probe"
+  );
+
+  // After the window: a fresh probe runs and succeeds (server is up)
+  await new Promise((r) => setTimeout(r, 15));
+  await ensureLoopbackServerReady({
+    fetch: mockFetch,
+    maxWaitMs: 500,
+    pollMs: 10,
+    minRetryIntervalMs: 5,
+  });
+  assert.ok(
+    probeCalls > callsAfterFirstFailure,
+    "a later caller must re-probe after the retry window"
+  );
+});
+
+test("ensureLoopbackServerReady: 54 concurrent callers inside the retry window share one rejection (no probe storm)", async () => {
+  __resetLoopbackReadinessForTests();
+  let probeCalls = 0;
+  const mockFetch = async (_url) => {
+    probeCalls++;
+    throw new Error("ECONNREFUSED");
+  };
+
+  await assert.rejects(
+    () =>
+      ensureLoopbackServerReady({
+        fetch: mockFetch,
+        maxWaitMs: 50,
+        pollMs: 10,
+        minRetryIntervalMs: 500,
+      }),
+    /loopback server not ready/
+  );
+  const afterFirst = probeCalls;
+
+  const results = await Promise.allSettled(
+    Array.from({ length: 54 }, () =>
+      ensureLoopbackServerReady({
+        fetch: mockFetch,
+        maxWaitMs: 50,
+        pollMs: 10,
+        minRetryIntervalMs: 500,
+      })
+    )
+  );
+
+  assert.equal(probeCalls, afterFirst, "54 callers inside the window must not launch 54 probes");
+  assert.ok(
+    results.every((r) => r.status === "rejected"),
+    "all burst callers reject immediately"
+  );
+});
+
+test("ensureLoopbackServerReady: readiness failure is logged once per probe, not once per caller", async () => {
+  __resetLoopbackReadinessForTests();
+  const warns: string[] = [];
+  const warnMock = mock.method(console, "warn", (...args: unknown[]) => {
+    warns.push(args.map(String).join(" "));
+  });
+  try {
+    const mockFetch = async (_url) => {
+      throw new Error("ECONNREFUSED");
+    };
+    await Promise.allSettled(
+      Array.from({ length: 17 }, () =>
+        ensureLoopbackServerReady({
+          fetch: mockFetch,
+          maxWaitMs: 50,
+          pollMs: 10,
+          minRetryIntervalMs: 500,
+        })
+      )
+    );
+  } finally {
+    warnMock.mock.restore();
+  }
+  const readinessWarns = warns.filter((w) => w.includes("readiness probe failed"));
+  assert.equal(
+    readinessWarns.length,
+    1,
+    `expected exactly 1 readiness warn, got ${readinessWarns.length}`
   );
 });

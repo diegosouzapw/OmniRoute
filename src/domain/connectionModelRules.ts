@@ -80,3 +80,26 @@ export function hasEligibleConnectionForModel(
     (connection) => !isModelExcludedByConnection(modelId, connection?.providerSpecificData)
   );
 }
+
+/**
+ * #11089: does this connection's *synced* inventory advertise the model?
+ *
+ * Unlike `excludedModels` (a manually maintained denylist) this reads the
+ * per-connection catalog written by model discovery, so a multi-host local
+ * provider never routes a model to a host that never had it. Ids are matched
+ * with the same candidate semantics as the denylist (provider prefix and the
+ * `[1m]` extended-context suffix are tolerated), but never as wildcard
+ * patterns — a synced id is a literal.
+ *
+ * Fails OPEN on an empty inventory: a host that has not been synced yet is
+ * "unknown", not "does not have it".
+ */
+export function isModelAdvertisedByConnection(
+  modelId: unknown,
+  advertisedModelIds: ReadonlySet<string> | null | undefined
+): boolean {
+  if (!advertisedModelIds || advertisedModelIds.size === 0) return true;
+  if (typeof modelId !== "string" || modelId.trim().length === 0) return true;
+
+  return getModelMatchCandidates(modelId).some((candidate) => advertisedModelIds.has(candidate));
+}

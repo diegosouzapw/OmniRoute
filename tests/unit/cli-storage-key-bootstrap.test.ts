@@ -41,7 +41,7 @@ function runCli(dataDir: string): { code: number | null; stderr: string } {
     });
     return { code: res.status, stderr: res.stderr ?? "" };
   } finally {
-    fs.rmSync(isolatedHome, { recursive: true, force: true });
+    fs.rmSync(isolatedHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 
@@ -63,7 +63,7 @@ test("CLI generates STORAGE_ENCRYPTION_KEY into DATA_DIR on first run (#1622)", 
       "key persisted into DATA_DIR/.env"
     );
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -79,6 +79,6 @@ test("CLI refuses to auto-generate a key when a database already exists (#1622)"
     assert.equal(hasKey, false, "must NOT generate a key when a DB already exists");
     assert.match(stderr, /already exists/i, "must warn that a database already exists");
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

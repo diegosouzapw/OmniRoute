@@ -23,8 +23,8 @@ export function computeRestartDelayMs(restartCount) {
   return Math.min(1000 * 2 ** (Math.max(1, restartCount) - 1), 10_000);
 }
 
-/** Resolve true when nothing is listening on `port` (so a restart won't hit EADDRINUSE). */
-export function isPortFree(port, host = "127.0.0.1") {
+/** Resolve true when `host:port` can be bound right now. */
+function canBind(port, host) {
   return new Promise((resolve) => {
     const tester = net.createServer();
     tester.once("error", (err) => {
@@ -36,6 +36,28 @@ export function isPortFree(port, host = "127.0.0.1") {
     });
     tester.listen(port, host);
   });
+}
+
+/**
+ * Resolve true when nothing is listening on `port` (so a restart won't hit EADDRINUSE).
+ *
+ * Probing a single address is not enough. Node sets `SO_REUSEADDR` on every listener it
+ * creates, and on macOS/BSD that lets a specific-address bind coexist with an existing
+ * wildcard bind (and vice versa) — unlike Linux, which keeps rejecting the overlap in
+ * LISTEN state. A gateway listening on `0.0.0.0:20128`, which is what `omniroute serve`
+ * binds by default, was therefore reported as "free" by the old loopback-only probe: the
+ * supervisor skipped its wait, the respawned child hit EADDRINUSE, and the crash loop
+ * that #4425 set out to fix kept running. Probe every address the server may have bound.
+ *
+ * @param port  Port to test.
+ * @param host  Additional address to test; wildcard and loopback are always included.
+ * @returns False as soon as any candidate address is occupied.
+ */
+export async function isPortFree(port, host = "127.0.0.1") {
+  for (const candidate of new Set([host, "0.0.0.0", "127.0.0.1"])) {
+    if (!(await canBind(port, candidate))) return false;
+  }
+  return true;
 }
 
 /**

@@ -1,5 +1,9 @@
 import { clearHealthCheckLogCache } from "@/lib/tokenHealthCheck";
 import { setCustomBannedSignals } from "@omniroute/open-sse/services/accountFallback.ts";
+import {
+  setOperatorProviderErrorRules,
+  type OperatorProviderErrorRule,
+} from "@omniroute/open-sse/config/providerErrorRules.ts";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 type JsonRecord = Record<string, unknown>;
@@ -17,6 +21,7 @@ export type RuntimeReloadSection =
   | "corsOrigins"
   | "ccBridgeTransforms"
   | "systemTransforms"
+  | "systemPrompt"
   | "authzBypass"
   | "bannedSignals";
 
@@ -44,8 +49,10 @@ interface RuntimeSettingsSnapshot {
   corsOrigins: string;
   ccBridgeTransforms: unknown;
   systemTransforms: unknown;
+  systemPrompt: unknown;
   authzBypass: AuthzBypassSnapshot;
   customBannedSignals: string[];
+  providerErrorRules: Record<string, OperatorProviderErrorRule[]> | null;
 }
 
 // Default bypass policy: kill-switch on, `/api/mcp/` bypassable. Mirrors the
@@ -70,23 +77,43 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   corsOrigins: "",
   ccBridgeTransforms: null,
   systemTransforms: null,
+  systemPrompt: null,
   authzBypass: DEFAULT_AUTHZ_BYPASS_SNAPSHOT,
   customBannedSignals: [],
+  providerErrorRules: null,
 };
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
 
-// Module-local mirror of the current bypass policy. Read by the route guard
-// on every non-loopback hit to a LOCAL_ONLY path via `getAuthzBypassSnapshot`.
+// Shared bypass-policy store, read by the route guard on every non-loopback hit
+// to a LOCAL_ONLY path via `getAuthzBypassSnapshot`. Backed by `globalThis` —
+// NOT a plain module-local `let` — so every Next.js standalone-build webpack
+// chunk that imports this module (e.g. the settings-PATCH route's bundle vs.
+// the proxy route-guard's bundle) shares one object. A module-local `let`
+// would leave a manage-scope-configured bypass prefix invisible to whichever
+// bundle evaluates the route guard (#13995), the same class of defect
+// previously fixed via globalThis in systemPrompt.ts (#2470) and
+// modelDeprecation.ts (#5777).
+const AUTHZ_BYPASS_GLOBAL_KEY = "__omniroute_authzBypass_config__";
+const _authzBypassStore = globalThis as unknown as Record<string, AuthzBypassSnapshot | undefined>;
+
 // Initialised to the default so cold-boot requests (before any
 // `applyRuntimeSettings` call) behave identically to PR #2473.
-let currentAuthzBypass: AuthzBypassSnapshot = DEFAULT_AUTHZ_BYPASS_SNAPSHOT;
+function getCurrentAuthzBypass(): AuthzBypassSnapshot {
+  if (!_authzBypassStore[AUTHZ_BYPASS_GLOBAL_KEY]) {
+    _authzBypassStore[AUTHZ_BYPASS_GLOBAL_KEY] = DEFAULT_AUTHZ_BYPASS_SNAPSHOT;
+  }
+  return _authzBypassStore[AUTHZ_BYPASS_GLOBAL_KEY]!;
+}
+
+function setCurrentAuthzBypass(snapshot: AuthzBypassSnapshot): void {
+  _authzBypassStore[AUTHZ_BYPASS_GLOBAL_KEY] = snapshot;
+}
 
 function isTruthyEnvFlag(value: string | undefined): boolean {
   if (typeof value !== "string") return false;
   return new Set(["1", "true", "yes", "on"]).has(value.trim().toLowerCase());
 }
-
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -136,6 +163,34 @@ function normalizeStringArray(value: unknown): string[] {
         .filter((entry) => entry.length > 0)
     )
   );
+}
+
+/**
+ * Defensive shape-check of operator-declared error rules pulled from settings.
+ * The settings schema already validates this on write; this guard prevents a
+ * malformed stored value (or an unexpected shape) from crashing the
+ * error-classification hot path. Returns null when the value is missing or not
+ * a record of non-empty rule arrays.
+ */
+function normalizeOperatorProviderErrorRules(
+  value: unknown
+): Record<string, OperatorProviderErrorRule[]> | null {
+  if (value === null || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const result: Record<string, OperatorProviderErrorRule[]> = {};
+  for (const [provider, list] of Object.entries(record)) {
+    if (!Array.isArray(list) || list.length === 0) continue;
+    const rules = list.filter(
+      (entry): entry is OperatorProviderErrorRule =>
+        !!entry &&
+        typeof entry === "object" &&
+        typeof (entry as OperatorProviderErrorRule).status === "number" &&
+        typeof (entry as OperatorProviderErrorRule).match === "string" &&
+        typeof (entry as OperatorProviderErrorRule).scope === "string"
+    );
+    if (rules.length > 0) result[provider.toLowerCase()] = rules;
+  }
+  return Object.keys(result).length > 0 ? result : null;
 }
 
 function normalizeStringRecord(value: unknown): Record<string, string> {
@@ -212,11 +267,11 @@ function normalizeAuthzBypass(settings: Record<string, unknown>): AuthzBypassSna
  * before the first `applyRuntimeSettings` call so cold-boot requests behave
  * identically to PR #2473. Mutated only by `applyAuthzBypassSection`.
  *
- * Hot-reload latency: <50 ms (no I/O, no async, pure read of module-local
- * state). Spec §Non-Functional Requirements / Performance.
+ * Hot-reload latency: <50 ms (no I/O, no async, pure read of the shared
+ * globalThis-backed store). Spec §Non-Functional Requirements / Performance.
  */
 export function getAuthzBypassSnapshot(): AuthzBypassSnapshot {
-  return currentAuthzBypass;
+  return getCurrentAuthzBypass();
 }
 
 export function buildRuntimeSettingsSnapshot(
@@ -242,8 +297,12 @@ export function buildRuntimeSettingsSnapshot(
     corsOrigins: typeof settings.corsOrigins === "string" ? settings.corsOrigins : "",
     ccBridgeTransforms: parseStoredJson(settings.ccBridgeTransforms, "ccBridgeTransforms"),
     systemTransforms: parseStoredJson(settings.systemTransforms, "systemTransforms"),
+    systemPrompt: settings.systemPrompt
+      ? parseStoredJson(settings.systemPrompt, "systemPrompt")
+      : null,
     authzBypass: normalizeAuthzBypass(settings),
     customBannedSignals: normalizeStringArray(settings.customBannedSignals),
+    providerErrorRules: normalizeOperatorProviderErrorRules(settings.providerErrorRules),
   };
 }
 
@@ -283,10 +342,11 @@ async function applyBackgroundDegradationSection(backgroundDegradation: JsonReco
 
   setBackgroundDegradationConfig({
     enabled: backgroundDegradation.enabled === true,
-    degradationMap: {
-      ...getDefaultDegradationMap(),
-      ...normalizeStringRecord(backgroundDegradation.degradationMap),
-    },
+    // #12424: a present stored record is authoritative for degradationMap — do NOT back-fill
+    // defaults, or a key the user deleted (absent from the stored map) resurrects on every
+    // apply/restart. Mirrors detectionPatterns below, which already treats a present stored
+    // value as authoritative and only falls back to defaults when it is empty.
+    degradationMap: normalizeStringRecord(backgroundDegradation.degradationMap),
     detectionPatterns:
       normalizeStringArray(backgroundDegradation.detectionPatterns).length > 0
         ? normalizeStringArray(backgroundDegradation.detectionPatterns)
@@ -350,7 +410,7 @@ async function applyCcBridgeTransformsSection(ccBridgeTransforms: unknown) {
  * (<50 ms hot-reload) is structurally satisfied by this shape.
  */
 function applyAuthzBypassSection(snapshot: AuthzBypassSnapshot) {
-  currentAuthzBypass = { enabled: snapshot.enabled, prefixes: [...snapshot.prefixes] };
+  setCurrentAuthzBypass({ enabled: snapshot.enabled, prefixes: [...snapshot.prefixes] });
 }
 
 async function applySystemTransformsSection(systemTransforms: unknown) {
@@ -369,23 +429,43 @@ async function applySystemTransformsSection(systemTransforms: unknown) {
   setSystemTransformsConfig(systemTransforms);
 }
 
+async function applySystemPromptSection(systemPrompt: unknown) {
+  const { setSystemPromptConfig } = await import("@omniroute/open-sse/services/systemPrompt.ts");
+
+  if (systemPrompt && typeof systemPrompt === "object") {
+    setSystemPromptConfig(systemPrompt as Record<string, unknown>);
+  } else {
+    setSystemPromptConfig({
+      enabled: false,
+      prefixPrompt: "",
+      suffixPrompt: "",
+      prompt: "",
+    });
+  }
+}
+
 async function applyModelsDevSyncSection(
   previousSnapshot: RuntimeSettingsSnapshot,
   currentSnapshot: RuntimeSettingsSnapshot,
   force: boolean
 ) {
-  const { startPeriodicSync, stopPeriodicSync } = await import("@/lib/modelsDevSync");
+  const {
+    startPeriodicSync,
+    stopPeriodicSync,
+    isModelsDevSyncEnvDisabled,
+    isModelsDevSyncEnvForcedOn,
+  } = await import("@/lib/modelsDevSync");
   const skipBackgroundSyncInTests =
     (isAutomatedTestProcess() && process.env.OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS !== "1") ||
     isTruthyEnvFlag(process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES);
 
-  if (skipBackgroundSyncInTests) {
+  if (skipBackgroundSyncInTests || isModelsDevSyncEnvDisabled()) {
     stopPeriodicSync();
     return;
   }
 
   const wasEnabled = previousSnapshot.modelsDevSyncEnabled === true;
-  const isEnabled = currentSnapshot.modelsDevSyncEnabled === true;
+  const isEnabled = isModelsDevSyncEnvForcedOn() || currentSnapshot.modelsDevSyncEnabled === true;
   const intervalChanged =
     previousSnapshot.modelsDevSyncInterval !== currentSnapshot.modelsDevSyncInterval;
 
@@ -521,6 +601,11 @@ export async function applyRuntimeSettings(
     markChanged("systemTransforms");
   }
 
+  if (force || hasChanged(currentSnapshot.systemPrompt, previousSnapshot.systemPrompt)) {
+    await applySystemPromptSection(currentSnapshot.systemPrompt);
+    markChanged("systemPrompt");
+  }
+
   if (force || hasChanged(currentSnapshot.authzBypass, previousSnapshot.authzBypass)) {
     applyAuthzBypassSection(currentSnapshot.authzBypass);
     markChanged("authzBypass");
@@ -534,11 +619,18 @@ export async function applyRuntimeSettings(
     markChanged("bannedSignals");
   }
 
+  if (
+    force ||
+    hasChanged(currentSnapshot.providerErrorRules, previousSnapshot.providerErrorRules)
+  ) {
+    setOperatorProviderErrorRules(currentSnapshot.providerErrorRules ?? undefined);
+  }
+
   lastAppliedSnapshot = currentSnapshot;
   return changes;
 }
 
 export function resetRuntimeSettingsStateForTests() {
   lastAppliedSnapshot = null;
-  currentAuthzBypass = DEFAULT_AUTHZ_BYPASS_SNAPSHOT;
+  setCurrentAuthzBypass(DEFAULT_AUTHZ_BYPASS_SNAPSHOT);
 }

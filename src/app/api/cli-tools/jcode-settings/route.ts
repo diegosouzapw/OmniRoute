@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { parse as parseToml } from "smol-toml";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import {
   ensureCliConfigWriteAllowed,
@@ -18,28 +19,61 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const TOOL_ID = "jcode";
 
+/**
+ * jcode reads named provider profiles from `[providers.<name>]` tables in
+ * ~/.jcode/config.toml (TOML, not JSON — the previous revision of this route
+ * wrote a ~/.jcode/config.json that jcode never reads). Reference:
+ * https://github.com/1jehuang/jcode#openai-compatible-providers
+ *
+ * The OmniRoute-managed profile is kept inside a marker-delimited block so
+ * apply/reset round-trips without disturbing the rest of the user's config.
+ */
+const MANAGED_BEGIN = "# >>> managed by OmniRoute (jcode provider profile) >>>";
+const MANAGED_END = "# <<< managed by OmniRoute <<<";
+
 const getJcodeConfigPath = (): string =>
-  getCliPrimaryConfigPath(TOOL_ID) ?? path.join(process.env.HOME ?? "~", ".jcode", "config.json");
+  getCliPrimaryConfigPath(TOOL_ID) ?? path.join(process.env.HOME ?? "~", ".jcode", "config.toml");
 
 const getJcodeDir = () => path.dirname(getJcodeConfigPath());
 
-/**
- * Check if the config file contains OmniRoute settings.
- */
-const hasOmniRouteConfig = (settings: Record<string, unknown> | null): boolean => {
-  if (!settings) return false;
-  return (
-    typeof settings.baseUrl === "string" &&
-    settings.baseUrl.length > 0 &&
-    settings._managedBy === "omniroute"
-  );
-};
+const tomlString = (value: string): string => JSON.stringify(String(value));
 
-// Read current config.json
-const readConfig = async (): Promise<Record<string, unknown> | null> => {
+/**
+ * Render the managed `[providers.omniroute]` block. The API key is stored
+ * inline via jcode's `api_key` field; `requires_api_key = false` keeps a
+ * keyless local gateway working.
+ */
+function renderManagedBlock(baseUrl: string, apiKey: string, model: string): string {
+  const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
+  const lines = [
+    MANAGED_BEGIN,
+    "[providers.omniroute]",
+    'type = "openai-compatible"',
+    `base_url = ${tomlString(normalizedBaseUrl)}`,
+  ];
+  if (apiKey) lines.push(`api_key = ${tomlString(apiKey)}`);
+  lines.push(`default_model = ${tomlString(model)}`, "requires_api_key = false", MANAGED_END);
+  return lines.join("\n");
+}
+
+const hasOmniRouteConfig = (content: string | null): boolean =>
+  Boolean(content && content.includes(MANAGED_BEGIN));
+
+/** Strip the managed block (including surrounding blank padding) from config text. */
+function stripManagedBlock(content: string): string {
+  const begin = content.indexOf(MANAGED_BEGIN);
+  if (begin === -1) return content;
+  const endMarker = content.indexOf(MANAGED_END, begin);
+  const end = endMarker === -1 ? content.length : endMarker + MANAGED_END.length;
+  const before = content.slice(0, begin).replace(/\n+$/, "\n");
+  const after = content.slice(end).replace(/^\n+/, "\n");
+  return (before + after).replace(/^\n+/, "");
+}
+
+// Read current config.toml
+const readConfig = async (): Promise<string | null> => {
   try {
-    const content = await fs.readFile(getJcodeConfigPath(), "utf-8");
-    return JSON.parse(content) as Record<string, unknown>;
+    return await fs.readFile(getJcodeConfigPath(), "utf-8");
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw err;
@@ -84,14 +118,11 @@ export async function GET(request: Request) {
       configPath: getJcodeConfigPath(),
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }
 
-// POST — write OmniRoute settings to jcode config.json
+// POST — write the OmniRoute provider profile into jcode's config.toml
 export async function POST(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -100,10 +131,7 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: { message: "Invalid JSON body" } },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: { message: "Invalid JSON body" } }, { status: 400 });
   }
 
   try {
@@ -131,26 +159,50 @@ export async function POST(request: Request) {
     // Backup current config before modifying
     await createBackup(TOOL_ID, configPath);
 
-    // Read existing config or start fresh
-    let existing: Record<string, unknown> = {};
+    // Read existing config (TOML text) or start fresh
+    let existing = "";
     try {
-      const raw = await fs.readFile(configPath, "utf-8");
-      existing = JSON.parse(raw) as Record<string, unknown>;
+      existing = await fs.readFile(configPath, "utf-8");
     } catch {
       /* No existing config */
     }
 
-    // Merge OmniRoute settings (jcode uses OpenAI-compatible config)
-    const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
-    const updated: Record<string, unknown> = {
-      ...existing,
-      baseUrl: normalizedBaseUrl,
-      apiKey,
-      model,
-      _managedBy: "omniroute",
-    };
+    // Refuse to double-define the table if the user hand-wrote a
+    // [providers.omniroute] profile outside our managed block — duplicate
+    // TOML tables would make the whole config unparseable for jcode.
+    const unmanaged = stripManagedBlock(existing);
+    try {
+      if (unmanaged.trim()) {
+        const parsed = parseToml(unmanaged) as { providers?: Record<string, unknown> };
+        if (parsed.providers && Object.hasOwn(parsed.providers, "omniroute")) {
+          return NextResponse.json(
+            {
+              error: {
+                message:
+                  "config.toml already defines [providers.omniroute] outside the OmniRoute-managed block; remove it or manage it manually",
+              },
+            },
+            { status: 409 }
+          );
+        }
+      }
+    } catch {
+      return NextResponse.json(
+        {
+          error: {
+            message:
+              "existing ~/.jcode/config.toml is not valid TOML; fix it before applying OmniRoute settings",
+          },
+        },
+        { status: 409 }
+      );
+    }
 
-    await fs.writeFile(configPath, JSON.stringify(updated, null, 2), "utf-8");
+    const base = unmanaged.trimEnd();
+    const block = renderManagedBlock(baseUrl, apiKey ?? "", model);
+    const updated = base ? `${base}\n\n${block}\n` : `${block}\n`;
+
+    await fs.writeFile(configPath, updated, "utf-8");
 
     // Persist last-configured timestamp
     try {
@@ -161,18 +213,16 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "jcode settings applied successfully!",
+      message:
+        "jcode settings applied! Start jcode with `jcode --provider-profile omniroute` or pick the profile with /model.",
       configPath,
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }
 
-// DELETE — remove OmniRoute settings from jcode config
+// DELETE — remove the OmniRoute-managed block from jcode's config.toml
 export async function DELETE(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -188,11 +238,9 @@ export async function DELETE(request: Request) {
     // Backup before modifying
     await createBackup(TOOL_ID, configPath);
 
-    // Read existing config
-    let existing: Record<string, unknown> = {};
+    let existing: string;
     try {
-      const raw = await fs.readFile(configPath, "utf-8");
-      existing = JSON.parse(raw) as Record<string, unknown>;
+      existing = await fs.readFile(configPath, "utf-8");
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === "ENOENT") {
         return NextResponse.json({ success: true, message: "No config file to reset" });
@@ -200,16 +248,12 @@ export async function DELETE(request: Request) {
       throw err;
     }
 
-    // Remove OmniRoute-managed fields
-    delete existing.baseUrl;
-    delete existing.apiKey;
-    delete existing.model;
-    delete existing._managedBy;
+    const remaining = stripManagedBlock(existing);
 
-    if (Object.keys(existing).length === 0) {
+    if (!remaining.trim()) {
       await fs.rm(configPath, { force: true });
     } else {
-      await fs.writeFile(configPath, JSON.stringify(existing, null, 2), "utf-8");
+      await fs.writeFile(configPath, remaining, "utf-8");
     }
 
     // Clear last-configured timestamp
@@ -221,9 +265,6 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true, message: "jcode OmniRoute settings removed" });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }

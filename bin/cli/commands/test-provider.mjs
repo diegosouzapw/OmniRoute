@@ -38,12 +38,19 @@ export async function runTestProviderCommand(provider, model, opts = {}) {
   }
 
   const targetProvider = provider || "anthropic";
-  const targetModel = model || "claude-haiku-4-5-20251001";
+  const connections = await _loadConnections();
+  if (!connections) return 1;
+  const connection = _resolveConnection(connections, targetProvider, model);
+  if (!connection) {
+    console.error(`Provider connection not found: ${targetProvider}`);
+    return 1;
+  }
+  const targetModel = model || connection.defaultModel;
   const repeat = opts.repeat && opts.repeat > 0 ? opts.repeat : 1;
 
   const results = [];
   for (let i = 0; i < repeat; i++) {
-    const result = await _runSingleTest(targetProvider, targetModel);
+    const result = await _runSingleTest(connection, targetModel);
     results.push(result);
   }
 
@@ -70,18 +77,10 @@ export async function runTestProviderCommand(provider, model, opts = {}) {
 }
 
 async function _runAllProviders(opts) {
-  const res = await apiFetch("/api/providers?limit=200", {
-    retry: false,
-    timeout: 5000,
-    acceptNotOk: true,
-  });
-  if (!res.ok) {
-    console.error(t("test.noServer"));
-    return 1;
-  }
-  const data = await res.json();
-  const connections = (data.providers ?? data.items ?? data).filter(
-    (c) => c.authType === "apikey" || c.testStatus !== "unavailable"
+  const loaded = await _loadConnections();
+  if (!loaded) return 1;
+  const connections = loaded.filter(
+    (c) => c.isActive !== false && (c.authType === "apikey" || c.testStatus !== "unavailable")
   );
   if (connections.length === 0) {
     console.log(t("test.noProviders"));
@@ -89,6 +88,7 @@ async function _runAllProviders(opts) {
   }
 
   const providers = connections.map((c) => ({
+    connectionId: c.id,
     provider: c.provider ?? c.id,
     model: c.defaultModel ?? c.model,
   }));
@@ -102,8 +102,8 @@ async function _runAllProviders(opts) {
   }
 
   const results = await Promise.all(
-    providers.map(async ({ provider, model }) => {
-      const r = await _runSingleTest(provider, model);
+    providers.map(async ({ connectionId, provider, model }) => {
+      const r = await _runSingleTest({ id: connectionId }, model);
       return { provider, model, ...r };
     })
   );
@@ -123,6 +123,13 @@ async function _runAllProviders(opts) {
 
 async function _runCompare(provider, opts) {
   const targetProvider = provider || "anthropic";
+  const connections = await _loadConnections();
+  if (!connections) return 1;
+  const connection = _resolveConnection(connections, targetProvider);
+  if (!connection) {
+    console.error(`Provider connection not found: ${targetProvider}`);
+    return 1;
+  }
   const models = opts.compare
     .split(",")
     .map((m) => m.trim())
@@ -138,7 +145,7 @@ async function _runCompare(provider, opts) {
   for (const model of models) {
     const results = [];
     for (let i = 0; i < repeat; i++) {
-      const result = await _runSingleTest(targetProvider, model);
+      const result = await _runSingleTest(connection, model);
       results.push(result);
     }
     rows.push({ model, ..._aggregate(results, true) });
@@ -180,19 +187,55 @@ async function _runCompare(provider, opts) {
   return rows.every((r) => r.success) ? 0 : 1;
 }
 
-async function _runSingleTest(provider, model) {
+async function _loadConnections() {
+  const res = await apiFetch("/api/providers?limit=200", {
+    retry: false,
+    timeout: 5000,
+    acceptNotOk: true,
+  });
+  if (!res.ok) {
+    console.error(t("test.noServer"));
+    return null;
+  }
+  const data = await res.json();
+  const connections = data.connections ?? data.providers ?? data.items ?? data;
+  if (!Array.isArray(connections)) {
+    console.error(t("test.noServer"));
+    return null;
+  }
+  return connections;
+}
+
+function _resolveConnection(connections, selector, model) {
+  const normalized = String(selector || "")
+    .trim()
+    .toLowerCase();
+  const active = connections.filter((connection) => connection.isActive !== false);
+  return (
+    active.find((connection) => String(connection.id || "").toLowerCase() === normalized) ??
+    active.find((connection) => String(connection.name || "").toLowerCase() === normalized) ??
+    active.find(
+      (connection) =>
+        String(connection.provider || "").toLowerCase() === normalized &&
+        (!model || connection.defaultModel === model || connection.model === model)
+    ) ??
+    active.find((connection) => String(connection.provider || "").toLowerCase() === normalized)
+  );
+}
+
+async function _runSingleTest(connection, model) {
   const startMs = Date.now();
   try {
-    const res = await apiFetch("/api/v1/providers/test", {
+    const res = await apiFetch(`/api/providers/${encodeURIComponent(connection.id)}/test`, {
       method: "POST",
-      body: { provider, model },
+      body: model ? { validationModelId: model } : {},
       retry: false,
       timeout: 30000,
       acceptNotOk: true,
     });
     const durationMs = Date.now() - startMs;
-    const data = res.ok ? await res.json() : { success: false, error: `HTTP ${res.status}` };
-    return { ...data, durationMs };
+    const data = res.ok ? await res.json() : { valid: false, error: `HTTP ${res.status}` };
+    return { ...data, success: data.valid === true, durationMs };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return {

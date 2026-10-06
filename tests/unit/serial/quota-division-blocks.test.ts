@@ -52,7 +52,11 @@ const core = await import("../../../src/lib/db/core.ts");
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    try { fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true }); } catch { /* ignore */ }
+    try {
+      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    } catch {
+      /* ignore */
+    }
   }
 });
 
@@ -66,98 +70,92 @@ const store = new SqliteQuotaStore();
 
 await test("quota-division-blocks: countable-unit enforcement (block + allow)", async (t) => {
   // ── Scenario A: pool total > effectiveLimit → block ──────────────────────
-  await t.test(
-    "[A] pool total > effectiveLimit → block (global-saturated)",
-    async () => {
-      const CONN = "conn-block-a";
-      const PROV = "test-provider-a2-block";
-      const KEY_A = "key-block-a1";
-      const KEY_B = "key-block-b1";
+  await t.test("[A] pool total > effectiveLimit → block (global-saturated)", async () => {
+    const CONN = "conn-block-a";
+    const PROV = "test-provider-a2-block";
+    const KEY_A = "key-block-a1";
+    const KEY_B = "key-block-b1";
 
-      // Seed plan: requests/hourly/limit=100
-      providerPlans.upsertPlan(
-        CONN,
-        PROV,
-        [{ unit: "requests", window: "hourly", limit: LIMIT }],
-        "manual"
-      );
+    // Seed plan: requests/hourly/limit=100
+    providerPlans.upsertPlan(
+      CONN,
+      PROV,
+      [{ unit: "requests", window: "hourly", limit: LIMIT }],
+      "manual"
+    );
 
-      // Create pool: 2 allocations at 50/50 hard
-      const pool = quotaPools.createPool({
-        connectionId: CONN,
-        name: "Block Pool A",
-        allocations: [
-          { apiKeyId: KEY_A, weight: 50, policy: "hard" },
-          { apiKeyId: KEY_B, weight: 50, policy: "hard" },
-        ],
-      });
+    // Create pool: 2 allocations at 50/50 hard
+    const pool = quotaPools.createPool({
+      connectionId: CONN,
+      name: "Block Pool A",
+      allocations: [
+        { apiKeyId: KEY_A, weight: 50, policy: "hard" },
+        { apiKeyId: KEY_B, weight: 50, policy: "hard" },
+      ],
+    });
 
-      const dim = { poolId: pool.id, unit: "requests" as const, window: "hourly" as const };
+    const dim = { poolId: pool.id, unit: "requests" as const, window: "hourly" as const };
 
-      // Consume: keyA=60, keyB=60 → poolTotal=120 > effectiveLimit=100
-      await store.consume(KEY_A, dim, 60);
-      await store.consume(KEY_B, dim, 60);
+    // Consume: keyA=60, keyB=60 → poolTotal=120 > effectiveLimit=100
+    await store.consume(KEY_A, dim, 60);
+    await store.consume(KEY_B, dim, 60);
 
-      const decision = await enforceQuotaShare({
-        apiKeyId: KEY_A,
-        connectionId: CONN,
-        provider: PROV,
-        estimatedCost: { requests: 1 },
-      });
+    const decision = await enforceQuotaShare({
+      apiKeyId: KEY_A,
+      connectionId: CONN,
+      provider: PROV,
+      estimatedCost: { requests: 1 },
+    });
 
-      assert.equal(
-        decision.kind,
-        "block",
-        `[A] Expected block when poolTotal(120) ≥ effectiveLimit(100); got: ${JSON.stringify(decision)}`
-      );
-    }
-  );
+    assert.equal(
+      decision.kind,
+      "block",
+      `[A] Expected block when poolTotal(120) ≥ effectiveLimit(100); got: ${JSON.stringify(decision)}`
+    );
+  });
 
   // ── Scenario B: pool total < effectiveLimit, key under fair-share → allow ─
-  await t.test(
-    "[B] pool total < effectiveLimit and key under fair-share → allow",
-    async () => {
-      const CONN = "conn-allow-b";
-      const PROV = "test-provider-a2-allow";
-      const KEY_A = "key-allow-a1";
-      const KEY_B = "key-allow-b1";
+  await t.test("[B] pool total < effectiveLimit and key under fair-share → allow", async () => {
+    const CONN = "conn-allow-b";
+    const PROV = "test-provider-a2-allow";
+    const KEY_A = "key-allow-a1";
+    const KEY_B = "key-allow-b1";
 
-      // Seed plan for separate connection: requests/hourly/limit=100
-      providerPlans.upsertPlan(
-        CONN,
-        PROV,
-        [{ unit: "requests", window: "hourly", limit: LIMIT }],
-        "manual"
-      );
+    // Seed plan for separate connection: requests/hourly/limit=100
+    providerPlans.upsertPlan(
+      CONN,
+      PROV,
+      [{ unit: "requests", window: "hourly", limit: LIMIT }],
+      "manual"
+    );
 
-      // Create pool: distinct from Scenario A (different poolId + connection)
-      const pool = quotaPools.createPool({
-        connectionId: CONN,
-        name: "Allow Pool B",
-        allocations: [
-          { apiKeyId: KEY_A, weight: 50, policy: "hard" },
-          { apiKeyId: KEY_B, weight: 50, policy: "hard" },
-        ],
-      });
+    // Create pool: distinct from Scenario A (different poolId + connection)
+    const pool = quotaPools.createPool({
+      connectionId: CONN,
+      name: "Allow Pool B",
+      allocations: [
+        { apiKeyId: KEY_A, weight: 50, policy: "hard" },
+        { apiKeyId: KEY_B, weight: 50, policy: "hard" },
+      ],
+    });
 
-      const dim = { poolId: pool.id, unit: "requests" as const, window: "hourly" as const };
+    const dim = { poolId: pool.id, unit: "requests" as const, window: "hourly" as const };
 
-      // Consume: keyA=20, keyB=20 → poolTotal=40 < effectiveLimit=100
-      await store.consume(KEY_A, dim, 20);
-      await store.consume(KEY_B, dim, 20);
+    // Consume: keyA=20, keyB=20 → poolTotal=40 < effectiveLimit=100
+    await store.consume(KEY_A, dim, 20);
+    await store.consume(KEY_B, dim, 20);
 
-      const decision = await enforceQuotaShare({
-        apiKeyId: KEY_A,
-        connectionId: CONN,
-        provider: PROV,
-        estimatedCost: { requests: 1 },
-      });
+    const decision = await enforceQuotaShare({
+      apiKeyId: KEY_A,
+      connectionId: CONN,
+      provider: PROV,
+      estimatedCost: { requests: 1 },
+    });
 
-      assert.equal(
-        decision.kind,
-        "allow",
-        `[B] Expected allow when poolTotal(40) < effectiveLimit(100); got: ${JSON.stringify(decision)}`
-      );
-    }
-  );
+    assert.equal(
+      decision.kind,
+      "allow",
+      `[B] Expected allow when poolTotal(40) < effectiveLimit(100); got: ${JSON.stringify(decision)}`
+    );
+  });
 });

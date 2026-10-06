@@ -1,6 +1,6 @@
 # Free Tiers Guide: Understand and Combine Free AI Access
 
-> **TL;DR**: OmniRoute registers 329 providers, with **155 catalog entries marked free/no-auth**. The stricter audited budget currently covers **43 recurring pools / 522 model budget entries**. Connect several suitable providers for broader fallback capacity; every quota, approval rule, privacy policy, and paid-overage condition still applies.
+> **TL;DR**: OmniRoute registers 357 provider IDs, with **152 provider-catalog entries marked `hasFree`**. The stricter audited free-model catalog covers **35 recurring pool keys / 482 entries** (475 active + 7 discontinued). Connect several suitable providers for broader fallback capacity; every quota, approval rule, privacy policy, and paid-overage condition still applies.
 
 ---
 
@@ -21,37 +21,37 @@ OmniRoute **aggregates** these free tiers into one endpoint. Instead of signing 
 
 These providers have a recurring, keyless, or uncapped free-access path in the audited catalog. “Uncapped” means no published token cap; rate, concurrency, account, regional, and policy limits can still apply:
 
-| Provider | Models | Quota | How to Connect |
-|----------|--------|-------|----------------|
-| **Kiro AI** | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, and others | Audited catalog estimates a 25K-token shared monthly pool | OAuth/account flow; ToS flagged `avoid` in the catalog |
-| **OpenCode Free** | Current `*-free` model set in the provider registry | Keyless; no published token cap | No provider credential; ToS flagged `avoid` |
-| **Pollinations** | Current keyless model set; some former models are discontinued or key-required | Keyless; no published token cap | No provider credential for the keyless models |
-| **Cloudflare AI** | Workers AI catalog | Audited pool estimates ~30M tokens/month from published usage units | Cloudflare account and API credentials |
-| **Gemini** | Gemini Flash family | Audited pool estimates ~60M tokens/month | Google AI Studio API key; rate limits apply |
-| **Groq** | Llama, GPT-OSS, and Qwen models | Audited pool estimates ~15M tokens/month | Groq API key; rate limits apply |
-| **Cerebras** | GLM 4.7 and GPT-OSS 120B | Audited pool estimates ~30M tokens/month | Cerebras API key; rate limits apply |
+| Provider          | Models                                                                         | Quota                                                                                                            | How to Connect                                                                           |
+| ----------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, and others                        | Audited catalog estimates a 25K-token shared monthly pool                                                        | OAuth/account flow; ToS flagged `avoid` in the catalog                                   |
+| **OpenCode Free** | Current `*-free` model set in the provider registry                            | Keyless; no published token cap                                                                                  | No provider credential; ToS flagged `avoid`                                              |
+| **Pollinations**  | Current keyless model set; some former models are discontinued or key-required | Keyless; no published token cap                                                                                  | No provider credential for the keyless models                                            |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, and more          | Free API key (no rate limits, no card); **every request is logged** for research (opt out at logfare.ai/consent) | Instant key at logfare.ai/register; ToS/privacy at logfare.ai/tos and logfare.ai/privacy |
+| **Cloudflare AI** | Workers AI catalog                                                             | Audited pool estimates ~30M tokens/month from published usage units                                              | Cloudflare account and API credentials                                                   |
+| **Gemini**        | Gemini Flash family                                                            | Audited pool estimates ~60M tokens/month                                                                         | Google AI Studio API key; rate limits apply                                              |
+| **Groq**          | Llama, GPT-OSS, and Qwen models                                                | Audited pool estimates ~15M tokens/month                                                                         | Groq API key; rate limits apply                                                          |
+| **Cerebras**      | GLM 4.7 and GPT-OSS 120B                                                       | Audited pool estimates ~30M tokens/month                                                                         | Cerebras API key; rate limits apply                                                      |
 
 ### Signup Grants and Provider-Specific Credits
 
 These providers give you **free credits** when you sign up:
 
-| Provider | Free Credits | Models | How to Get |
-|----------|-------------|--------|------------|
-| **DeepSeek** | 5M free tokens | DeepSeek V4 | Sign up at platform.deepseek.com |
-| **LongCat** | 10M-token one-time grant | LongCat 2.0 | API key + KYC; pay-as-you-go after the grant |
-| **Together** | $25 signup credit represented as ~25M tokens in the budget model | Provider catalog | Sign up and verify current terms |
+| Provider      | Free Credits                                                       | Models                    | How to Get                                                |
+| ------------- | ------------------------------------------------------------------ | ------------------------- | --------------------------------------------------------- |
+| **DeepSeek**  | 5M free tokens                                                     | DeepSeek V4               | Sign up at platform.deepseek.com                          |
+| **LongCat**   | 10M-token one-time grant                                           | LongCat 2.0               | API key + KYC; pay-as-you-go after the grant              |
 | **Vertex AI** | $300 signup credit represented as ~300M tokens in the budget model | Gemini and partner models | Google Cloud account; billing and eligibility rules apply |
 
 ### Other Limited Access
 
 These providers have **free tiers** with specific limits:
 
-| Provider | Free Limit | Models | Best For |
-|----------|-----------|--------|----------|
-| **GitHub Models** | Audited shared pool estimates ~18M tokens/month | Broad model evaluation |
-| **Hugging Face** | Small recurring monthly pool | Experiments and model variety |
-| **OpenRouter free models** | Shared request-limited pool; optional one-time top-up increases the recurring allowance | Broad fallback catalog |
-| **AI Horde** | Keyless community capacity; availability varies | Opportunistic distributed inference |
+| Provider                   | Free Limit                                                                              | Models                              | Best For |
+| -------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------- | -------- |
+| **GitHub Models**          | Audited shared pool estimates ~18M tokens/month                                         | Broad model evaluation              |
+| **Hugging Face**           | Small recurring monthly pool                                                            | Experiments and model variety       |
+| **OpenRouter free models** | Shared request-limited pool; optional one-time top-up increases the recurring allowance | Broad fallback catalog              |
+| **AI Horde**               | Keyless community capacity; availability varies                                         | Opportunistic distributed inference |
 
 ---
 
@@ -69,6 +69,7 @@ Connect several providers to reduce dependence on any single quota:
 4. **LongCat** — one-time signup grant (requires KYC)
 
 Then use `model: "auto"` and OmniRoute will:
+
 - Try the highest-ranked eligible connection first
 - If its quota or health check fails → try the next configured provider
 - If the keyless provider is unavailable → continue through the remaining targets
@@ -134,6 +135,7 @@ If one free provider is busy or down, OmniRoute automatically tries the next one
 ### 2. Smart Routing
 
 OmniRoute picks the **best free provider** for each request based on:
+
 - Speed — Which provider is fastest right now?
 - Quality — Which provider is best for this task?
 - Capacity — Which provider has quota remaining?
@@ -156,13 +158,13 @@ provider's quota or access policy.
 
 The live, pool-deduplicated catalog currently reports:
 
-| Metric | Current audited value | Interpretation |
-| --- | ---: | --- |
-| Recurring quantified grant | **~1.53B tokens/month** | Shared pools counted once; excludes uncapped providers from the sum |
-| First month with signup grants | **~2.15B tokens** | Recurring total plus one-time and recurring credits |
-| Quantified inventory | **43 pools / 522 model budget entries** | Budget-model coverage, not the full 329-provider catalog |
-| Recurring/keyless/uncapped providers represented | **58** | Provider presence in recurring forms of the audited budget catalog |
-| Free/no-auth discovery entries | **155** | Broader provider metadata; not all have a quantifiable recurring quota |
+| Metric                                               |                            Current audited value | Interpretation                                                                                                             |
+| ---------------------------------------------------- | -----------------------------------------------: | -------------------------------------------------------------------------------------------------------------------------- |
+| Recurring quantified grant                           |                          **~1.62B tokens/month** | Shared pools counted once; excludes uncapped providers from the sum                                                        |
+| First month with signup grants                       |                                **~2.22B tokens** | Recurring total plus one-time and recurring credits                                                                        |
+| Audited free-model inventory                         | **35 recurring pool keys / 482 catalog entries** | 475 active + 7 discontinued; distinct from the 357-provider catalog                                                        |
+| Recurring/keyless free-forever providers represented |                                           **53** | Unique providers across recurring daily/monthly/credit/uncapped and keyless catalog types, eligibility-gated rows excluded |
+| Provider catalog entries marked `hasFree`            |                                    **152 / 357** | Broader provider metadata; not all have a quantifiable recurring quota                                                     |
 
 These values are computed from `open-sse/config/freeModelCatalog.ts`; see the
 [Free Tiers Reference](../reference/FREE_TIERS.md) for pool deduplication, ToS flags,

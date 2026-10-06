@@ -37,9 +37,8 @@ const { createPool, upsertAllocations } = await import("../../src/lib/db/quotaPo
 const { setModelCap } = await import("../../src/lib/db/quotaModelCaps.ts");
 const { enforceQuotaShare } = await import("../../src/lib/quota/enforce.ts");
 const { resetQuotaStoreSingleton } = await import("../../src/lib/quota/storeFactory.ts");
-const { scheduleQuotaShareConsumption } = await import(
-  "../../open-sse/handlers/chatCore/quotaShareConsumption.ts"
-);
+const { scheduleQuotaShareConsumption } =
+  await import("../../open-sse/handlers/chatCore/quotaShareConsumption.ts");
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 const CONN_ID = "conn-model-cap-hotpath";
@@ -55,7 +54,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (err: unknown) {
@@ -76,7 +75,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function makePool() {
@@ -145,7 +144,13 @@ async function enforceUntil(
 // ---------------------------------------------------------------------------
 test("hot-path: model cap blocks after N consumptions driven through scheduleQuotaShareConsumption", async () => {
   const pool = makePool();
-  setModelCap({ poolId: pool.id, apiKeyId: KEY_A, model: MODEL_M, capValue: CAP_N, capUnit: "requests" });
+  setModelCap({
+    poolId: pool.id,
+    apiKeyId: KEY_A,
+    model: MODEL_M,
+    capValue: CAP_N,
+    capUnit: "requests",
+  });
 
   // Drive CAP_N consumptions through the REAL non-streaming hot-path hook.
   await consumeViaHotPath(MODEL_M, CAP_N);
@@ -164,7 +169,7 @@ test("hot-path: model cap blocks after N consumptions driven through scheduleQuo
   assert.equal(blocked.kind, "block", "model M must be blocked after N hot-path consumptions");
   assert.ok(
     "reason" in blocked && blocked.reason.includes("model-cap"),
-    `reason must mention model-cap; got: ${"reason" in blocked ? blocked.reason : "(no reason)"}`,
+    `reason must mention model-cap; got: ${"reason" in blocked ? blocked.reason : "(no reason)"}`
   );
 
   // A different model in the SAME pool (no cap) must still be allowed.
@@ -184,7 +189,13 @@ test("hot-path: model cap blocks after N consumptions driven through scheduleQuo
 // ---------------------------------------------------------------------------
 test("hot-path: enforce WITHOUT model never triggers model-cap block (fail-safe)", async () => {
   const pool = makePool();
-  setModelCap({ poolId: pool.id, apiKeyId: KEY_A, model: MODEL_M, capValue: 1, capUnit: "requests" });
+  setModelCap({
+    poolId: pool.id,
+    apiKeyId: KEY_A,
+    model: MODEL_M,
+    capValue: 1,
+    capUnit: "requests",
+  });
 
   // Consume via hot path WITH model so the bucket fills.
   await consumeViaHotPath(MODEL_M, 2);

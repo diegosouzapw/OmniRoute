@@ -22,7 +22,7 @@ const ATTACK = {
 describe("prompt injection guard — DB feature flag override (INJECTION_GUARD_MODE)", () => {
   function resetDb() {
     core.resetDbInstance();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     fs.mkdirSync(tmpDir, { recursive: true });
   }
 
@@ -36,7 +36,7 @@ describe("prompt injection guard — DB feature flag override (INJECTION_GUARD_M
 
   after(() => {
     core.resetDbInstance();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     delete process.env.INPUT_SANITIZER_ENABLED;
     delete process.env.INPUT_SANITIZER_MODE;
     delete process.env.INJECTION_GUARD_MODE;

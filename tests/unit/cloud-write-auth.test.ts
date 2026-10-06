@@ -20,7 +20,19 @@ type ProviderConnectionRecord = {
 };
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { resetApiKeyState, createApiKey } = await import("@/lib/db/apiKeys");
+const { updateSettings } = await import("@/lib/db/settings");
+const { createProviderConnection, getProviderConnections } = await import("@/lib/db/providers");
+const { setModelAlias, getModelAliases } = await import("@/lib/db/models");
+const localDb = {
+  resetApiKeyState,
+  updateSettings,
+  createApiKey,
+  createProviderConnection,
+  getProviderConnections,
+  setModelAlias,
+  getModelAliases,
+};
 const credentialsRoute = await import("../../src/app/api/cloud/credentials/update/route.ts");
 const aliasRoute = await import("../../src/app/api/cloud/models/alias/route.ts");
 
@@ -32,7 +44,7 @@ async function resetStorage() {
   process.env.API_KEY_SECRET = "cloud-write-auth-api-key-secret";
   core.resetDbInstance();
   localDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   await localDb.updateSettings({ requireLogin: true, password: "" });
 }
@@ -135,7 +147,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   localDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("PUT /api/cloud/credentials/update rejects valid API key without manage/admin scope and leaves credentials unchanged", async () => {

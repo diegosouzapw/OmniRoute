@@ -98,6 +98,52 @@ describe("compressToolResults", () => {
     const result = compressToolResults(body);
     assert.equal(result.applied, false);
   });
+
+  it("honors an explicit maxToolLength instead of the 2000-char default", () => {
+    const body = { messages: [{ role: "tool", content: "x".repeat(800) }] };
+    const result = compressToolResults(body, { maxToolLength: 500 });
+    assert.equal(result.applied, true);
+    const content = result.body.messages![0].content as string;
+    assert.ok(content.endsWith("\n...[truncated]"));
+    assert.ok(content.length < 800);
+    assert.ok(content.length <= 500 + "\n...[truncated]".length);
+  });
+
+  it("keeps a 1500-char tool result when maxToolLength is 4000", () => {
+    const body = { messages: [{ role: "tool", content: "x".repeat(1500) }] };
+    const result = compressToolResults(body, { maxToolLength: 4000 });
+    assert.equal(result.applied, false);
+    assert.equal(result.body.messages![0].content, "x".repeat(1500));
+  });
+
+  it("reads OMNIROUTE_LITE_MAX_TOOL_LENGTH when no option is passed", () => {
+    const previous = process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH;
+    process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH = "400";
+    try {
+      const body = { messages: [{ role: "tool", content: "x".repeat(800) }] };
+      const result = compressToolResults(body);
+      assert.equal(result.applied, true);
+      const content = result.body.messages![0].content as string;
+      assert.ok(content.endsWith("\n...[truncated]"));
+      assert.ok(content.length <= 400 + "\n...[truncated]".length);
+    } finally {
+      if (previous === undefined) delete process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH;
+      else process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH = previous;
+    }
+  });
+
+  it("an explicit maxToolLength wins over the env fallback", () => {
+    const previous = process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH;
+    process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH = "400";
+    try {
+      const body = { messages: [{ role: "tool", content: "x".repeat(800) }] };
+      const result = compressToolResults(body, { maxToolLength: 4000 });
+      assert.equal(result.applied, false);
+    } finally {
+      if (previous === undefined) delete process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH;
+      else process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH = previous;
+    }
+  });
 });
 
 describe("removeRedundantContent", () => {
@@ -263,6 +309,26 @@ describe("stacked Lite precedence (global config vs explicit step)", () => {
     assert.ok(!result.stats?.techniquesUsed.includes("tool-compress"));
   });
 
+  it("non-boolean step compressToolResults falls through to global config", () => {
+    // stepConfig is Record<string, unknown> — a malformed (non-boolean) step value must
+    // not override; it falls through to global config.lite (false → no truncation).
+    const result = applyCompression(
+      { messages: [{ role: "tool", content: toolContent }] },
+      "stacked",
+      {
+        config: {
+          ...baseConfig,
+          lite: { compressToolResults: false },
+          stackedPipeline: [{ engine: "lite", config: { compressToolResults: "yes" } }],
+        },
+      }
+    );
+    const messages = result.body.messages as Array<{ content: string }>;
+    assert.equal(messages[0].content, toolContent.trimEnd());
+    assert.doesNotMatch(messages[0].content, /\[truncated\]/);
+    assert.ok(!result.stats?.techniquesUsed.includes("tool-compress"));
+  });
+
   it("stacked default (no lite config) keeps truncation enabled", () => {
     const result = applyCompression(
       { messages: [{ role: "tool", content: toolContent }] },
@@ -271,6 +337,31 @@ describe("stacked Lite precedence (global config vs explicit step)", () => {
     );
     const messages = result.body.messages as Array<{ content: string }>;
     assert.match(messages[0].content, /\.\.\.\[truncated\]$/);
+  });
+
+  it("an out-of-range step maxToolLength does not hide a valid global cap", () => {
+    const previous = process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH;
+    process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH = "400";
+    try {
+      const longTool = "x".repeat(3000);
+      const result = applyCompression(
+        { messages: [{ role: "tool", content: longTool }] },
+        "stacked",
+        {
+          config: {
+            ...baseConfig,
+            lite: { compressToolResults: true, maxToolLength: 8000 },
+            stackedPipeline: [{ engine: "lite", config: { maxToolLength: 10 } }],
+          },
+        }
+      );
+      const messages = result.body.messages as Array<{ content: string }>;
+      assert.equal(messages[0].content, longTool);
+      assert.ok(!result.stats?.techniquesUsed.includes("tool-compress"));
+    } finally {
+      if (previous === undefined) delete process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH;
+      else process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH = previous;
+    }
   });
 });
 

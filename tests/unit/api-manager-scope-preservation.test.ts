@@ -81,3 +81,14 @@ test("permission scope merge toggles provider quota policy bypass without droppi
 
   assert.deepEqual(disabled, ["custom:scope"]);
 });
+
+test("permission scope merge retains lease:exclusive scope through permission updates", () => {
+  const scopes = mergeApiKeyPermissionScopes(["lease:exclusive", SELF_USAGE_SCOPE], {
+    manageEnabled: true,
+    selfUsageEnabled: true,
+    selfAccountQuotaEnabled: false,
+    bypassProviderQuotaPolicyEnabled: false,
+  });
+
+  assert.deepEqual(scopes, ["lease:exclusive", SELF_USAGE_SCOPE, "manage"]);
+});

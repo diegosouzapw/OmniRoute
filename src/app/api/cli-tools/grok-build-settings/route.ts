@@ -1,300 +1,268 @@
 "use server";
 
-import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
-import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
-import {
-  ensureCliConfigWriteAllowed,
-  getCliPrimaryConfigPath,
-  getCliRuntimeStatus,
-} from "@/shared/services/cliRuntime";
-import { createBackup } from "@/shared/services/backupService";
-import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
-import { cliModelConfigSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { resolveApiKey } from "@/shared/services/apiKeyResolver";
+import fs from "node:fs/promises";
+import path from "node:path";
+
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { NextResponse } from "next/server";
+import pino from "pino";
+import { z } from "zod";
 
+import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
+import { guardCliConfigWrite } from "@/lib/api/cliConfigWriteGuard";
+import { deleteCliToolLastConfigured, saveCliToolLastConfigured } from "@/lib/db/cliToolState";
+import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
+import { resolveApiKey } from "@/shared/services/apiKeyResolver";
+import { createBackup } from "@/shared/services/backupService";
+import { getCliConfigHome, getCliRuntimeStatus } from "@/shared/services/cliRuntime";
+import {
+  applyGrokBuildConfig,
+  GrokBuildConfigConflictError,
+  GROK_SUBAGENT_TYPES,
+  parseGrokBuildConfig,
+  resetGrokBuildConfig,
+  resolveGrokBuildConfigPath,
+  type GrokBuildApplyOptions,
+  type GrokSubagentType,
+} from "@/shared/services/grokBuildConfig";
+
+const logger = pino({ name: "grok-build-settings-api" });
 const TOOL_ID = "grok-build";
-const MODEL_SLOT = "omniroute";
-// Grok Build ships with a built-in default model id; restored on Reset when no
-// prior custom default was recorded.
-const BUILTIN_DEFAULT_MODEL = "grok-build";
+const DEFAULT_CONTEXT_WINDOW = 200000;
 
-const getGrokBuildConfigPath = (): string =>
-  getCliPrimaryConfigPath(TOOL_ID) ?? path.join(process.env.HOME ?? "~", ".grok", "config.toml");
+const modelSelectionSchema = z.object({
+  model: z.string().trim().min(1),
+  contextWindow: z.number().int().positive().optional(),
+});
 
-const getGrokBuildDir = () => path.dirname(getGrokBuildConfigPath());
+const grokBuildConfigSchema = z.object({
+  baseUrl: z
+    .string()
+    .trim()
+    .url()
+    .refine((value) => ["http:", "https:"].includes(new URL(value).protocol), {
+      message: "baseUrl must use HTTP or HTTPS",
+    }),
+  apiKey: z.string().nullable().optional(),
+  keyId: z.string().trim().min(1).nullable().optional(),
+  model: z.string().trim().min(1),
+  contextWindow: z.number().int().positive().optional(),
+  subagentModels: z
+    .object({
+      "general-purpose": modelSelectionSchema.optional(),
+      explore: modelSelectionSchema.optional(),
+      plan: modelSelectionSchema.optional(),
+    })
+    .optional(),
+});
 
-// [model.omniroute] ... until the next [section] header or EOF
-const MODEL_SECTION_RE = new RegExp(
-  `^\\[model\\.${MODEL_SLOT}\\][ \\t]*\\r?\\n(?:(?!\\[)[^\\r\\n]*\\r?\\n?)*`,
-  "m"
-);
-const MODELS_SECTION_RE = /^\[models\][ \t]*\r?\n((?:(?!\[)[^\r\n]*\r?\n?)*)/m;
-// Marker written on Apply so Reset can restore the previously configured default.
-const PREV_DEFAULT_RE = /^# omniroute-prev-default = "([^"]*)"[ \t]*\r?\n?/m;
+/** Resolve Grok Build config.toml from GROK_HOME or the CLI config home. */
+function getGrokBuildConfigPath(
+  env: NodeJS.ProcessEnv = process.env,
+  configHome = getCliConfigHome()
+): string {
+  return resolveGrokBuildConfigPath(env, configHome);
+}
 
-const getTomlField = (body: string, key: string): string | null => {
-  const m = body.match(new RegExp(`^[ \\t]*${key}[ \\t]*=[ \\t]*"([^"]*)"`, "m"));
-  return m ? m[1] : null;
-};
-
-type GrokModelSection = {
-  model: string | null;
-  base_url: string | null;
-  name: string | null;
-  api_key: string | null;
-  api_backend: string | null;
-};
-
-/**
- * Parse the `~/.grok/config.toml` produced by the Grok Build CLI (a subset of
- * TOML — flat `key = "value"` pairs inside `[section]` headers). Grok Build's
- * config format is not guaranteed to be quote-escaped or nested, so this reads
- * only the flat string fields OmniRoute itself writes.
- */
-const parseModelSection = (toml: string): GrokModelSection | null => {
-  const match = toml.match(MODEL_SECTION_RE);
-  if (!match) return null;
-  const body = match[0].replace(/^\[model\.[^\]]+\][ \t]*\r?\n/, "");
-  return {
-    model: getTomlField(body, "model"),
-    base_url: getTomlField(body, "base_url"),
-    name: getTomlField(body, "name"),
-    api_key: getTomlField(body, "api_key"),
-    api_backend: getTomlField(body, "api_backend"),
-  };
-};
-
-const parseModelsDefault = (toml: string): string | null => {
-  const match = toml.match(MODELS_SECTION_RE);
-  if (!match) return null;
-  return getTomlField(match[1] || "", "default");
-};
-
-const escapeTomlString = (value: string): string => value.replace(/["\\]/g, "\\$&");
-
-const buildModelSection = (model: string, baseUrl: string, apiKey: string): string => {
-  const lines = [
-    `[model.${MODEL_SLOT}]`,
-    `model = "${escapeTomlString(model)}"`,
-    `base_url = "${escapeTomlString(baseUrl)}"`,
-    `name = "OmniRoute"`,
-    `description = "Routed via OmniRoute gateway"`,
-    `api_backend = "chat_completions"`,
-  ];
-  if (apiKey) lines.push(`api_key = "${escapeTomlString(apiKey)}"`);
-  return `${lines.join("\n")}\n`;
-};
-
-/** Insert/replace the `[model.omniroute]` section, preserving the rest of the file. */
-const upsertModelSection = (toml: string, section: string): string => {
-  if (MODEL_SECTION_RE.test(toml)) return toml.replace(MODEL_SECTION_RE, section);
-  const needsNl = toml.length > 0 && !toml.endsWith("\n");
-  return `${toml}${needsNl ? "\n" : ""}\n${section}`;
-};
-
-const removeModelSection = (toml: string): string =>
-  toml.replace(MODEL_SECTION_RE, "").replace(/\n{3,}/g, "\n\n");
-
-/** Set or insert `default = "..."` inside an existing `[models]`, or create the section. */
-const setModelsDefault = (toml: string, value: string): string => {
-  const match = toml.match(MODELS_SECTION_RE);
-  if (match) {
-    const body = match[1] || "";
-    const newBody = /^[ \t]*default[ \t]*=/m.test(body)
-      ? body.replace(/^[ \t]*default[ \t]*=[ \t]*"[^"]*"/m, `default = "${value}"`)
-      : `default = "${value}"\n${body}`;
-    return toml.replace(match[0], `[models]\n${newBody}`);
-  }
-  const block = `[models]\ndefault = "${value}"\n\n`;
-  return toml.length > 0 ? block + toml : block;
-};
-
-/** Remember the previous default once so re-Apply never clobbers it with our own slot. */
-const rememberPrevDefault = (toml: string): string => {
-  if (PREV_DEFAULT_RE.test(toml)) return toml;
-  const current = parseModelsDefault(toml);
-  if (!current || current === MODEL_SLOT) return toml;
-  const marker = `# omniroute-prev-default = "${current}"\n`;
-  if (MODEL_SECTION_RE.test(toml)) {
-    return toml.replace(MODEL_SECTION_RE, (section) => marker + section);
-  }
-  const needsNl = toml.length > 0 && !toml.endsWith("\n");
-  return `${toml}${needsNl ? "\n" : ""}${marker}`;
-};
-
-/** If `[models].default` still points at our slot, restore the remembered default. */
-const clearModelsDefaultIfOurs = (toml: string): string => {
-  const prevMatch = toml.match(PREV_DEFAULT_RE);
-  const restoreTo = prevMatch?.[1] || BUILTIN_DEFAULT_MODEL;
-  let next = toml.replace(PREV_DEFAULT_RE, "");
-  const current = parseModelsDefault(next);
-  if (current === MODEL_SLOT) {
-    next = setModelsDefault(next, restoreTo);
-  }
-  return next;
-};
-
-const hasOmniRouteConfig = (modelCfg: GrokModelSection | null): boolean =>
-  Boolean(modelCfg?.base_url);
-
-// Read current config.toml
-const readConfigToml = async (): Promise<string> => {
+const readConfigToml = async (configPath: string): Promise<string> => {
   try {
-    return await fs.readFile(getGrokBuildConfigPath(), "utf-8");
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return "";
-    throw err;
+    return await fs.readFile(configPath, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return "";
+    throw error;
   }
 };
 
-// GET — check Grok Build CLI and return current [model.omniroute] config
-export async function GET(request: Request) {
+const writeAtomic = async (filePath: string, content: string): Promise<void> => {
+  const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  const mode = process.platform === "win32" ? undefined : 0o600;
+  try {
+    await fs.writeFile(tempPath, content, { encoding: "utf8", mode });
+    if (mode !== undefined) await fs.chmod(tempPath, mode);
+    await fs.rename(tempPath, filePath);
+  } catch (error) {
+    await fs.unlink(tempPath).catch(() => undefined);
+    throw error;
+  }
+};
+
+const normalizeBaseUrl = (baseUrl: string): string => {
+  const url = new URL(baseUrl);
+  url.pathname = `${url.pathname.replace(/(?:\/v1)*\/?$/, "")}/v1`.replace(/\/+/g, "/");
+  url.search = "";
+  url.hash = "";
+  return url.toString().replace(/\/$/, "");
+};
+
+const resolveContextWindow = (value: number | undefined, model: string): number => {
+  if (value !== undefined) return value;
+  return getResolvedModelCapabilities(model).contextWindow ?? DEFAULT_CONTEXT_WINDOW;
+};
+
+const normalizeApplyOptions = (
+  data: z.infer<typeof grokBuildConfigSchema>,
+  apiKey: string
+): GrokBuildApplyOptions => {
+  const options: GrokBuildApplyOptions = {
+    baseUrl: normalizeBaseUrl(data.baseUrl),
+    apiKey,
+    model: data.model,
+    contextWindow: resolveContextWindow(data.contextWindow, data.model),
+  };
+  if (data.subagentModels !== undefined) {
+    options.subagentModels = {};
+    for (const type of GROK_SUBAGENT_TYPES) {
+      const selected = data.subagentModels[type];
+      if (!selected) continue;
+      options.subagentModels[type] = {
+        model: selected.model,
+        contextWindow: resolveContextWindow(selected.contextWindow, selected.model),
+      };
+    }
+  }
+  return options;
+};
+
+const omitApiKey = <T extends { api_key: string | null }>(model: T): Omit<T, "api_key"> => {
+  const { api_key: _apiKey, ...publicModel } = model;
+  return publicModel;
+};
+
+const omitApiKeys = (settings: ReturnType<typeof parseGrokBuildConfig>) => ({
+  ...settings,
+  model: settings.model ? omitApiKey(settings.model) : null,
+  subagentModels: Object.fromEntries(
+    GROK_SUBAGENT_TYPES.map((type) => [
+      type,
+      settings.subagentModels[type] ? omitApiKey(settings.subagentModels[type]) : null,
+    ])
+  ) as Record<
+    GrokSubagentType,
+    Omit<NonNullable<(typeof settings.subagentModels)[GrokSubagentType]>, "api_key"> | null
+  >,
+});
+
+const hasOmniRouteConfig = (settings: GrokBuildSettings): boolean =>
+  settings.default === "omniroute" &&
+  settings.model?.base_url !== null &&
+  settings.model?.api_backend === "chat_completions";
+
+/** Return Grok Build runtime and OmniRoute config status. */
+export async function GET(request: Request): Promise<Response> {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
 
   try {
-    const runtime = await getCliRuntimeStatus(TOOL_ID);
-
-    if (!runtime.installed || !runtime.runnable) {
-      return NextResponse.json({
-        installed: runtime.installed,
-        runnable: runtime.runnable,
-        command: runtime.command,
-        commandPath: runtime.commandPath,
-        runtimeMode: runtime.runtimeMode,
-        reason: runtime.reason,
-        config: null,
-        message:
-          runtime.installed && !runtime.runnable
-            ? "Grok Build is installed but not runnable"
-            : "Grok Build is not installed",
-      });
-    }
-
-    const toml = await readConfigToml();
-    const model = parseModelSection(toml);
-    const defaultModel = parseModelsDefault(toml);
+    const configPath = getGrokBuildConfigPath();
+    const [runtime, toml] = await Promise.all([
+      getCliRuntimeStatus(TOOL_ID),
+      readConfigToml(configPath),
+    ]);
+    const settings = parseGrokBuildConfig(toml);
+    const publicSettings = omitApiKeys(settings);
+    const apiKeyConfigured = Boolean(
+      settings.model?.api_key ||
+      GROK_SUBAGENT_TYPES.some((type) => settings.subagentModels[type]?.api_key)
+    );
 
     return NextResponse.json({
-      installed: runtime.installed,
-      runnable: runtime.runnable,
-      command: runtime.command,
-      commandPath: runtime.commandPath,
-      runtimeMode: runtime.runtimeMode,
-      reason: runtime.reason,
-      config: { model, default: defaultModel },
-      hasOmniRoute: hasOmniRouteConfig(model),
-      configPath: getGrokBuildConfigPath(),
+      ...runtime,
+      config: publicSettings,
+      settings: publicSettings,
+      hasOmniRoute: hasOmniRouteConfig(settings),
+      apiKeyConfigured,
+      configPath,
     });
-  } catch (err) {
-    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
+  } catch (error) {
+    logger.error({ err: error }, "Failed to read Grok Build settings");
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }
 
-// POST — write the [model.omniroute] section into ~/.grok/config.toml and set it default
-export async function POST(request: Request) {
+/** Apply OmniRoute model slots to Grok Build. */
+export async function POST(request: Request): Promise<Response> {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
 
-  let rawBody;
+  let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: { message: "Invalid JSON body" } }, { status: 400 });
   }
 
+  const validation = grokBuildConfigSchema.safeParse(rawBody);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: { message: "Invalid request", details: validation.error.issues } },
+      { status: 400 }
+    );
+  }
+
   try {
-    const writeGuard = ensureCliConfigWriteAllowed();
-    if (writeGuard) {
-      return NextResponse.json({ error: writeGuard }, { status: 403 });
-    }
-
-    // Extract keyId BEFORE Zod validation — Zod strips unknown fields
-    const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
-
-    const validation = validateBody(cliModelConfigSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-    const { baseUrl, model } = validation.data;
-    const apiKey = await resolveApiKey(keyId, validation.data.apiKey);
-
     const configPath = getGrokBuildConfigPath();
-    const grokDir = getGrokBuildDir();
+    const writeError = guardCliConfigWrite(configPath, { toolLabel: "Grok Build" });
+    if (writeError) return writeError;
 
-    await fs.mkdir(grokDir, { recursive: true });
+    const apiKey = await resolveApiKey(validation.data.keyId, validation.data.apiKey);
+    const toml = applyGrokBuildConfig(
+      await readConfigToml(configPath),
+      normalizeApplyOptions(validation.data, apiKey)
+    );
+
+    await fs.mkdir(path.dirname(configPath), { recursive: true });
     await createBackup(TOOL_ID, configPath);
-
-    const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
-
-    let toml = await readConfigToml();
-    toml = rememberPrevDefault(toml);
-    toml = upsertModelSection(toml, buildModelSection(model, normalizedBaseUrl, apiKey || ""));
-    toml = setModelsDefault(toml, MODEL_SLOT);
-
-    await fs.writeFile(configPath, toml, "utf-8");
-
+    await writeAtomic(configPath, toml);
     try {
       saveCliToolLastConfigured(TOOL_ID);
     } catch {
-      /* non-critical */
+      logger.warn("Failed to record Grok Build config time");
     }
 
     return NextResponse.json({
       success: true,
       message: "Grok Build settings applied successfully!",
       configPath,
-      modelSlot: MODEL_SLOT,
+      modelSlot: "omniroute",
     });
-  } catch (err) {
-    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
+  } catch (error) {
+    if (error instanceof GrokBuildConfigConflictError) {
+      return NextResponse.json({ error: { message: error.message } }, { status: 409 });
+    }
+    logger.error({ err: error }, "Failed to apply Grok Build settings");
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }
 
-// DELETE — remove the [model.omniroute] section and restore the previous default
-export async function DELETE(request: Request) {
+/** Remove OmniRoute model slots from Grok Build. */
+export async function DELETE(request: Request): Promise<Response> {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
 
   try {
-    const writeGuard = ensureCliConfigWriteAllowed();
-    if (writeGuard) {
-      return NextResponse.json({ error: writeGuard }, { status: 403 });
-    }
-
     const configPath = getGrokBuildConfigPath();
+    const writeError = guardCliConfigWrite(configPath, { toolLabel: "Grok Build" });
+    if (writeError) return writeError;
 
-    let toml: string;
-    try {
-      toml = await fs.readFile(configPath, "utf-8");
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-        return NextResponse.json({ success: true, message: "No config file to reset" });
-      }
-      throw err;
+    const current = await readConfigToml(configPath);
+    if (!current) {
+      return NextResponse.json({ success: true, message: "No config file to reset" });
     }
 
     await createBackup(TOOL_ID, configPath);
-
-    toml = removeModelSection(toml);
-    toml = clearModelsDefaultIfOurs(toml);
-    await fs.writeFile(configPath, toml, "utf-8");
-
+    await writeAtomic(configPath, resetGrokBuildConfig(current));
     try {
       deleteCliToolLastConfigured(TOOL_ID);
     } catch {
-      /* non-critical */
+      logger.warn("Failed to clear Grok Build config time");
     }
 
     return NextResponse.json({
       success: true,
-      message: "OmniRoute model slot removed from Grok Build",
+      message: "OmniRoute model slots removed from Grok Build",
     });
-  } catch (err) {
-    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
+  } catch (error) {
+    logger.error({ err: error }, "Failed to reset Grok Build settings");
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }

@@ -4,6 +4,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+// #10603 made upstream model sync opt-in (isAutoFetchModelsEnabled() now requires
+// providerSpecificData.autoFetchModels === true) so remote discovery doesn't overwrite
+// manual catalog overrides by default. Every connection below sets it explicitly so the
+// mocked `fetch` in each test actually gets called — without it, the route short-circuits
+// to the local/cached catalog before ever reaching the network call these tests assert on.
+
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-glm-models-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -13,13 +19,13 @@ const modelsRoute = await import("../../src/app/api/providers/[id]/models/route.
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("GLM import uses international coding endpoint when apiRegion is international", async () => {
@@ -29,7 +35,7 @@ test("GLM import uses international coding endpoint when apiRegion is internatio
     authType: "apikey",
     name: "glm-intl",
     apiKey: "glm-key",
-    providerSpecificData: { apiRegion: "international" },
+    providerSpecificData: { apiRegion: "international", autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -88,7 +94,7 @@ test("GLM import normalizes custom coding models URLs without duplicating endpoi
         authType: "apikey",
         name: `glm-custom-${index}`,
         apiKey: testCase.apiKey,
-        providerSpecificData: { baseUrl: testCase.baseUrl },
+        providerSpecificData: { baseUrl: testCase.baseUrl, autoFetchModels: true },
       })
     );
   }
@@ -129,7 +135,7 @@ test("GLM import falls back to Anthropic model discovery when coding discovery f
     authType: "apikey",
     name: "glm-discovery-fallback",
     apiKey: "glm-key",
-    providerSpecificData: { apiRegion: "international" },
+    providerSpecificData: { apiRegion: "international", autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -178,7 +184,7 @@ test("GLM import preserves auth failures instead of falling back across transpor
     authType: "apikey",
     name: "glm-auth-fail",
     apiKey: "bad-key",
-    providerSpecificData: { apiRegion: "international" },
+    providerSpecificData: { apiRegion: "international", autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -207,7 +213,7 @@ test("GLMT import shares the GLM coding models endpoint and surfaces provider me
     authType: "apikey",
     name: "glmt-intl",
     apiKey: "glmt-key",
-    providerSpecificData: { apiRegion: "international" },
+    providerSpecificData: { apiRegion: "international", autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -241,7 +247,7 @@ test("GLM import uses China coding endpoint when apiRegion is china", async () =
     authType: "apikey",
     name: "glm-cn",
     apiKey: "glm-cn-key",
-    providerSpecificData: { apiRegion: "china" },
+    providerSpecificData: { apiRegion: "china", autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -272,7 +278,7 @@ test("GLM China provider import uses the specialized GLM discovery path", async 
     authType: "apikey",
     name: "glm-cn-provider",
     apiKey: "glm-cn-key",
-    providerSpecificData: {},
+    providerSpecificData: { autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -304,7 +310,7 @@ test("GLM import defaults to international endpoint when apiRegion is missing", 
     authType: "apikey",
     name: "glm-default",
     apiKey: "glm-key",
-    providerSpecificData: {},
+    providerSpecificData: { autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -331,7 +337,7 @@ test("GLM import defaults to international endpoint when apiRegion is invalid", 
     authType: "apikey",
     name: "glm-bogus",
     apiKey: "glm-key",
-    providerSpecificData: { apiRegion: "bogus" },
+    providerSpecificData: { apiRegion: "bogus", autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -359,7 +365,7 @@ test("GLM import prefers apiKey over accessToken and sends only Authorization Be
     name: "glm-both-tokens",
     apiKey: "glm-api-key",
     accessToken: "glm-access-token",
-    providerSpecificData: { apiRegion: "international" },
+    providerSpecificData: { apiRegion: "international", autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -387,7 +393,7 @@ test("GLM import falls back to accessToken when apiKey is absent", async () => {
     authType: "apikey",
     name: "glm-access-only",
     accessToken: "glm-access-token",
-    providerSpecificData: { apiRegion: "international" },
+    providerSpecificData: { apiRegion: "international", autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;
@@ -414,7 +420,7 @@ test("GLM import falls back to the local catalog on upstream non-OK status codes
     authType: "apikey",
     name: "glm-error",
     apiKey: "glm-key",
-    providerSpecificData: { apiRegion: "international" },
+    providerSpecificData: { apiRegion: "international", autoFetchModels: true },
   });
 
   const originalFetch = globalThis.fetch;

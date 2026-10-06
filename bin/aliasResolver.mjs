@@ -176,13 +176,14 @@ function isWithinRoot(ancestor, candidate) {
  * Register the ESM resolve hook for the current process. Safe to call multiple
  * times — subsequent calls are no-ops once the hook is installed.
  *
- * Uses Node's stable `module.register()` API (available since Node 20.6,
- * required Node 22+ here). The hook runs in a worker thread but only reads the
- * captured `root`, so no shared-state hazards.
+ * Modern runtimes import the hook module in-thread, initialize its root with a
+ * plain function call, and register its synchronous resolver through
+ * `module.registerHooks()`. Runtimes without that API (notably Bun) retain the
+ * `module.register()` worker-thread loader lifecycle path.
  *
  * @param {string} root  Absolute path to the package root.
  * @returns {Promise<boolean>}  Resolves `true` once registered (or if already
- *   registered), `false` on environments where `module.register` is unavailable.
+ *   registered), `false` when neither registration API is usable.
  */
 let _registered = false;
 export async function registerAliasResolver(root) {
@@ -201,7 +202,7 @@ export async function registerAliasResolver(root) {
   }
 
   try {
-    const { register } = await import("node:module");
+    const mod = await import("node:module");
     // #7808: load the hook from a real file on disk via pathToFileURL() instead
     // of building a `data:text/javascript,...` URL dynamically. CodeQL's
     // `js/incomplete-url-substring-sanitization` flagged the interpolated
@@ -211,14 +212,21 @@ export async function registerAliasResolver(root) {
     // package.json "files": ["bin/"].
     const hookPath = join(__dirname, "aliasResolverHook.mjs");
     const hookUrl = pathToFileURL(hookPath);
-    register(hookUrl, { data: { root } });
+    if (typeof mod.registerHooks === "function") {
+      const hook = await import(hookUrl.href);
+      hook.initialize({ root });
+      mod.registerHooks({ resolve: hook.resolve });
+      _registered = true;
+      return true;
+    }
+    mod.register(hookUrl, { data: { root } });
     _registered = true;
     return true;
   } catch {
-    // Older Node or sandboxed env without module.register — fall back to the
-    // default resolver. The bug will resurface only in the exact global-install
-    // scenario, which is what we explicitly patched; other entry points still
-    // work because they import via relative paths.
+    // Runtime or sandboxed env without a usable module hook API — fall back to
+    // the default resolver. The bug will resurface only in the exact
+    // global-install scenario, which is what we explicitly patched; other entry
+    // points still work because they import via relative paths.
     return false;
   }
 }

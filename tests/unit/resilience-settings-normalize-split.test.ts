@@ -96,6 +96,8 @@ describe("resilience/settings normalize split-guard", () => {
     assert.deepEqual(keys, [
       "comboCooldownWait",
       "connectionCooldown",
+      // Global default cadence for the background credential health check sweep.
+      "credentialHealthCheck",
       "providerBreaker",
       "providerCooldown",
       "providerQuotaOverrides",

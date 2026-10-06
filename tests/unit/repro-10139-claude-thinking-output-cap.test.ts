@@ -45,7 +45,7 @@ const THINKING_BUDGET = 131072; // effortBudgetMap.high
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#10139: a provider-scoped-only output cap is invisible without a provider argument", () => {

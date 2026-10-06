@@ -42,6 +42,17 @@ function load(p) {
 
 const baseline = load(BASELINE);
 const metrics = load(METRICS);
+// Velocity phase (relax-baselines.mjs writes `_policy`): while it is active the
+// --require-tighten gate is advisory — the baselines were loosened on purpose, so
+// "measured better than baseline" is the expected state, not a forgotten tighten.
+// Closing the phase (v4.0) deletes `_policy` and the flag bites again.
+const POLICY = baseline._policy && typeof baseline._policy === "object" ? baseline._policy : null;
+const TIGHTEN_ENFORCED = REQUIRE_TIGHTEN && !(POLICY && POLICY.requireTighten === false);
+if (REQUIRE_TIGHTEN && !TIGHTEN_ENFORCED) {
+  console.log(
+    `[quality-ratchet] --require-tighten advisory: velocity phase active (phase=${POLICY.phase}, until ${POLICY.until}, relax ${POLICY.relaxPct}%)`
+  );
+}
 const failures = [];
 const tightenFailures = [];
 const improvements = [];
@@ -142,7 +153,7 @@ if (failures.length) {
 }
 
 // Behavior 1: --require-tighten gate (only triggers when there are no regressions and no --update).
-if (REQUIRE_TIGHTEN && !UPDATE && tightenFailures.length > 0) {
+if (TIGHTEN_ENFORCED && !UPDATE && tightenFailures.length > 0) {
   console.error(
     "[quality-ratchet] FALHOU (--require-tighten): métrica(s) melhoraram mas o baseline não foi apertado:\n" +
       tightenFailures.map((f) => "  ✗ " + f).join("\n")

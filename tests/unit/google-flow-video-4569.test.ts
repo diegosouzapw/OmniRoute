@@ -24,7 +24,12 @@ import {
   resolveVideoCredentialProvider,
 } from "../../open-sse/handlers/videoGeneration/googleFlow.ts";
 
-import { getVideoProvider, parseVideoModel } from "../../open-sse/config/videoRegistry.ts";
+import {
+  getAllVideoModels,
+  getVideoProvider,
+  parseVideoModel,
+} from "../../open-sse/config/videoRegistry.ts";
+import { handleGoogleFlowVideoGeneration } from "../../open-sse/handlers/videoGeneration/googleFlowHandler.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -181,12 +186,40 @@ test("resolveFlowAccessToken: prefers accessToken, falls back to apiKey", () => 
   assert.equal(resolveFlowAccessToken({}), null);
 });
 
-test("videoRegistry: googleflow provider is registered with oauth + google-flow format", () => {
+test("videoRegistry: googleflow provider is registered with oauth + google-flow format, flagged unsupported", () => {
   const provider = getVideoProvider("googleflow");
   assert.ok(provider, "googleflow provider must exist");
   assert.equal(provider.format, "google-flow");
   assert.equal(provider.authType, "oauth");
   assert.ok(provider.models.length > 0, "must expose at least one Veo model");
+  // #10285 — the submit/poll endpoints are live-confirmed wrong and no server-side
+  // OAuth bearer can satisfy the working endpoint (aisandbox-pa rejects it). Until a
+  // viable transport exists the provider must not be presented as functional.
+  assert.equal(provider.unsupported, true, "googleflow must be flagged unsupported (#10285)");
+  assert.match(provider.unsupportedReason ?? "", /browser-session|not supported/i);
+});
+
+test("videoRegistry: getAllVideoModels excludes the unsupported googleflow provider (#10285)", () => {
+  const models = getAllVideoModels();
+  const flowModels = models.filter(
+    (m) => m.provider === "googleflow" || m.id.startsWith("googleflow/") || m.id.startsWith("flow/")
+  );
+  assert.deepEqual(flowModels, [], "googleflow must not be advertised in /v1/models until fixed");
+  // Sanity: other providers are still listed, so exclusion is targeted, not global.
+  assert.ok(models.some((m) => m.provider === "vertex"), "unrelated providers must stay listed");
+});
+
+test("handleGoogleFlowVideoGeneration: fails fast with a clear diagnostic instead of the wrong path (#10285)", async () => {
+  const result = await handleGoogleFlowVideoGeneration({
+    model: "veo-3.1-generate",
+    providerConfig: { baseUrl: "https://aisandbox-pa.googleapis.com" },
+    body: { prompt: "a cat surfing" },
+    credentials: { accessToken: "tok", projectId: "proj-1" },
+  });
+  assert.equal(result.success, false);
+  assert.equal(result.status, 501);
+  assert.match(result.error ?? "", /browser-session|not supported/i);
+  assert.doesNotMatch(result.error ?? "", /<!DOCTYPE/i, "must not surface a raw HTML 404 body");
 });
 
 test("videoRegistry: parseVideoModel resolves googleflow/<model> and its alias", () => {

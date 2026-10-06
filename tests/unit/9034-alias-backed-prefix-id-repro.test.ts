@@ -29,7 +29,8 @@ type CoreModule = typeof import("../../src/lib/db/core.ts");
 type ProvidersDbModule = typeof import("../../src/lib/db/providers.ts");
 type ModelsDbModule = typeof import("../../src/lib/db/models.ts");
 type CatalogModule = typeof import("../../src/app/api/v1/models/catalog.ts");
-type ManagedAvailableModelsModule = typeof import("../../src/lib/providerModels/managedAvailableModels.ts");
+type ManagedAvailableModelsModule =
+  typeof import("../../src/lib/providerModels/managedAvailableModels.ts");
 
 let core: CoreModule;
 let providersDb: ProvidersDbModule;
@@ -45,7 +46,7 @@ const MODEL_NAME = "kimi-k2";
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
@@ -61,7 +62,7 @@ test.before(async () => {
 
 test.after(async () => {
   if (core) core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#9034: alias-backed model id must use the configured prefix, not the raw provider-node UUID", async () => {

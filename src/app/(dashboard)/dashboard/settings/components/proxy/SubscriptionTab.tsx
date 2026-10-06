@@ -14,6 +14,12 @@ interface SubscriptionRecord {
   ruleProviders: string[] | null;
   localCoreEndpoint: string | null;
   updateIntervalMinutes: number;
+  controlUrl: string | null;
+  hasControlSecret: boolean;
+  selectorMinGapSeconds: number;
+  selectorLastSwitchAt: string | null;
+  selectorLastSwitchResult: string | null;
+  selectorLastSwitchMember: string | null;
   lastFetchedAt: string | null;
   status: "ok" | "error" | "empty";
   error: string | null;
@@ -34,6 +40,9 @@ type FormState = {
   mode: "global" | "rule";
   ruleProviders: string[];
   localCoreEndpoint: string;
+  controlUrl: string;
+  controlSecret: string;
+  selectorMinGapSeconds: number;
   updateIntervalMinutes: number;
   enabled: boolean;
 };
@@ -44,9 +53,43 @@ const EMPTY_FORM: FormState = {
   mode: "global",
   ruleProviders: [],
   localCoreEndpoint: "",
+  controlUrl: "",
+  controlSecret: "",
+  selectorMinGapSeconds: 60,
   updateIntervalMinutes: 60,
   enabled: true,
 };
+
+/** Next possible switch from the persisted last-switch time + gap. Pure. */
+function nextSwitchLabel(
+  sub: {
+    selectorLastSwitchAt: string | null;
+    selectorMinGapSeconds: number;
+  },
+  nowMs: number = Date.now()
+): string {
+  if (!sub.selectorLastSwitchAt) return "now";
+  const at = Date.parse(sub.selectorLastSwitchAt);
+  if (!Number.isFinite(at)) return "now";
+  const next = at + Math.max(0, sub.selectorMinGapSeconds || 0) * 1000;
+  if (next <= nowMs) return "now";
+  return new Date(next).toISOString();
+}
+
+type SubscriptionsFetchResult = { items?: SubscriptionRecord[]; error?: string };
+
+async function fetchSubscriptionsResult(
+  loadFailedMessage: string
+): Promise<SubscriptionsFetchResult> {
+  try {
+    const res = await fetch("/api/v1/management/proxy-subscriptions");
+    if (!res.ok) throw new Error(loadFailedMessage);
+    const data = await res.json();
+    return { items: Array.isArray(data.items) ? data.items : [] };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
 
 export default function SubscriptionTab() {
   const [subs, setSubs] = useState<SubscriptionRecord[]>([]);
@@ -83,43 +126,46 @@ export default function SubscriptionTab() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const applyLoadResult = useCallback((result: SubscriptionsFetchResult) => {
+    if (result.items) setSubs(result.items);
+    if (result.error !== undefined) setError(result.error);
+    setLoading(false);
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const res = await fetch("/api/v1/management/proxy-subscriptions");
-      if (!res.ok) throw new Error(t("proxySubscription.loadFailed"));
-      const data = await res.json();
-      setSubs(Array.isArray(data.items) ? data.items : []);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  const loadProviders = useCallback(async () => {
-    try {
-      const res = await fetch("/api/providers");
-      if (!res.ok) return;
-      const data = await res.json();
-      const connections = Array.isArray(data.connections) ? data.connections : [];
-      setProviders(
-        connections.map((c: Record<string, unknown>) => ({
-          id: String(c.id),
-          name: typeof c.name === "string" && c.name ? c.name : String(c.provider),
-          provider: String(c.provider),
-        }))
-      );
-    } catch {
-      /* non-fatal: rule mode just won't offer a provider picker */
-    }
-  }, []);
+    applyLoadResult(await fetchSubscriptionsResult(t("proxySubscription.loadFailed")));
+  }, [applyLoadResult, t]);
 
   useEffect(() => {
-    load();
-    loadProviders();
-  }, [load, loadProviders]);
+    let cancelled = false;
+    void (async () => {
+      const result = await fetchSubscriptionsResult(t("proxySubscription.loadFailed"));
+      if (!cancelled) applyLoadResult(result);
+    })();
+    void (async () => {
+      try {
+        const res = await fetch("/api/providers");
+        if (!res.ok) return;
+        const data = await res.json();
+        const connections = Array.isArray(data.connections) ? data.connections : [];
+        if (cancelled) return;
+        setProviders(
+          connections.map((c: Record<string, unknown>) => ({
+            id: String(c.id),
+            name: typeof c.name === "string" && c.name ? c.name : String(c.provider),
+            provider: String(c.provider),
+          }))
+        );
+      } catch {
+        /* non-fatal: rule mode just won't offer a provider picker */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [applyLoadResult, t]);
 
   const resetForm = () => {
     setForm(EMPTY_FORM);
@@ -136,6 +182,9 @@ export default function SubscriptionTab() {
       mode: sub.mode,
       ruleProviders: sub.ruleProviders ?? [],
       localCoreEndpoint: sub.localCoreEndpoint ?? "",
+      controlUrl: sub.controlUrl ?? "",
+      controlSecret: "",
+      selectorMinGapSeconds: sub.selectorMinGapSeconds ?? 60,
       updateIntervalMinutes: sub.updateIntervalMinutes,
       enabled: sub.enabled,
     });
@@ -151,15 +200,18 @@ export default function SubscriptionTab() {
       if (form.mode === "rule" && form.ruleProviders.length === 0) {
         throw new Error(t("proxySubscription.ruleModeProviderRequired"));
       }
-      const payload = {
+      const payload: Record<string, unknown> = {
         name: form.name.trim(),
         url: form.url.trim(),
         mode: form.mode,
         ruleProviders: form.mode === "rule" ? form.ruleProviders : null,
         localCoreEndpoint: form.localCoreEndpoint.trim() || null,
+        controlUrl: form.controlUrl.trim() || null,
+        selectorMinGapSeconds: Number(form.selectorMinGapSeconds) || 60,
         updateIntervalMinutes: Number(form.updateIntervalMinutes) || 60,
         enabled: form.enabled,
       };
+      if (form.controlSecret.length > 0) payload.controlSecret = form.controlSecret;
       const res = editingId
         ? await fetch(`/api/v1/management/proxy-subscriptions/${editingId}`, {
             method: "PATCH",
@@ -231,6 +283,27 @@ export default function SubscriptionTab() {
       setBusyId(null);
     }
   };
+
+  // Last switch state comes from the subscription row columns (persisted by
+  // the trigger, surfaced by the list API) — the screen never calls the core
+  // at open time.
+  const describeSwitch = useCallback(
+    (sub: SubscriptionRecord): string | null => {
+      if (!sub.controlUrl) return null;
+      if (!sub.selectorLastSwitchAt) return t("proxySubscription.lastSwitchNever");
+      const result =
+        sub.selectorLastSwitchResult && sub.selectorLastSwitchResult !== "ok"
+          ? ` (${sub.selectorLastSwitchResult})`
+          : "";
+      const member = sub.selectorLastSwitchMember
+        ? ` · ${t("proxySubscription.lastSwitchMember")}: ${sub.selectorLastSwitchMember}`
+        : "";
+      const next = nextSwitchLabel(sub);
+      const nextText = next === "now" ? t("proxySubscription.nextSwitchNow") : next;
+      return `${t("proxySubscription.lastSwitch")}: ${sub.selectorLastSwitchAt}${result}${member} · ${t("proxySubscription.nextSwitch")}: ${nextText}`;
+    },
+    [t]
+  );
 
   const statusBadge: Record<SubscriptionRecord["status"], string> = {
     ok: "bg-green-500/15 text-green-600 border-green-500/30",
@@ -320,7 +393,8 @@ export default function SubscriptionTab() {
 
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-text-muted">{t("proxySubscription.localCoreEndpoint")}</span>
-              <input
+              <textarea
+                rows={3}
                 className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
                 value={form.localCoreEndpoint}
                 onChange={(e) => setForm({ ...form, localCoreEndpoint: e.target.value })}
@@ -369,6 +443,53 @@ export default function SubscriptionTab() {
               )}
             </div>
           )}
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-text-muted">{t("proxySubscription.controlUrl")}</span>
+              <input
+                className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
+                value={form.controlUrl}
+                onChange={(e) => setForm({ ...form, controlUrl: e.target.value })}
+                placeholder={t("proxySubscription.controlUrlPlaceholder")}
+                inputMode="url"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-text-muted">{t("proxySubscription.controlSecret")}</span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
+                value={form.controlSecret}
+                onChange={(e) => setForm({ ...form, controlSecret: e.target.value })}
+                placeholder={t("proxySubscription.controlSecretPlaceholder")}
+              />
+              <span className="text-xs text-text-muted">
+                {editingId
+                  ? t("proxySubscription.controlSecretSaved")
+                  : t("proxySubscription.controlSecretNotSet")}
+              </span>
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-text-muted">{t("proxySubscription.selectorMinGap")}</span>
+              <input
+                type="number"
+                min={0}
+                max={3600}
+                className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
+                value={form.selectorMinGapSeconds}
+                onChange={(e) =>
+                  setForm({ ...form, selectorMinGapSeconds: Number(e.target.value) || 0 })
+                }
+              />
+              <span className="text-xs text-text-muted">{t("proxySubscription.selectorHelp")}</span>
+            </label>
+          </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm">
@@ -456,6 +577,9 @@ export default function SubscriptionTab() {
                     <p className="text-xs text-amber-600 mt-1 break-words">
                       {resolveSubError(sub.error)}
                     </p>
+                  )}
+                  {describeSwitch(sub) && (
+                    <p className="text-xs text-text-muted mt-1">{describeSwitch(sub)}</p>
                   )}
                   {showCoreHint && (
                     <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 space-y-1.5">

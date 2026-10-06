@@ -19,24 +19,29 @@
  * only when the base model's own `supportedThinkingEfforts` actually declares that tier —
  * never a blind string match.
  *
- * Skipped entirely for `codex` and `kimi`-owned models: both already own a conflicting
- * native `-{effort}` suffix mechanism (`splitCodexReasoningSuffix` /
- * `getKimiCodeStaticThinkingPolicy`), so double-registering here would collide with their
- * own alias resolution. Also skipped for any model whose id already ends in a token that
- * matches a canonical effort value, to avoid colliding with a model that legitimately ends
- * in an effort-like token (e.g. a model literally named "...-high").
+ * Skipped entirely for `codex`, `kimi`-owned, and GLM (`glm`, `glm-cn`, `glmt`) models:
+ * they already own conflicting `-{effort}` aliases (`splitCodexReasoningSuffix`,
+ * `getKimiCodeStaticThinkingPolicy`, or `GlmExecutor::parseGlmEffortTier`), so generating
+ * another layer here would create invalid nested ids. Also skipped for any model whose id
+ * already ends in a token that matches a canonical effort value, to avoid colliding with a
+ * model that legitimately ends in an effort-like token (e.g. a model named "...-high").
  */
 import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization.ts";
+import { isDevinLiteralModelIdProvider } from "./devinLiteralModelIds.ts";
 
-/** Provider ids that already own a native `-{effort}` suffix mechanism — never double-register. */
-export const SYNCED_EFFORT_SKIP_PROVIDERS = new Set(["codex"]);
+/** Provider ids with dedicated `-{effort}` aliases — never synthesize another suffix layer. */
+export const SYNCED_EFFORT_SKIP_PROVIDERS = new Set(["codex", "glm", "glm-cn", "glmt"]);
 /** Provider-id prefixes covering that mechanism's multiple connection variants (kimi-coding, kimi-coding-apikey). */
 const SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES = ["kimi"];
 
-function isSkippedEffortProvider(ownedBy: string): boolean {
+/** Whether `ownedBy` already owns its own `-{effort}` suffix mechanism (never synthesize/expose another). */
+export function isSkippedEffortProvider(ownedBy: string): boolean {
   return (
     SYNCED_EFFORT_SKIP_PROVIDERS.has(ownedBy) ||
-    SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES.some((prefix) => ownedBy.startsWith(prefix))
+    SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES.some((prefix) => ownedBy.startsWith(prefix)) ||
+    // Devin CLI catalogs (devin-cli / devin-cli-agentic / devin-desktop, aliases
+    // dv / dva) embed the tier in the id itself — no variant layer on top.
+    isDevinLiteralModelIdProvider(ownedBy)
   );
 }
 

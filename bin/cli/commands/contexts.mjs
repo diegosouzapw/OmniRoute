@@ -1,12 +1,25 @@
 import { t } from "../i18n.mjs";
 import { emit } from "../output.mjs";
-import { loadContexts, saveContexts, resolveActiveContext } from "../contexts.mjs";
+import { writePrivateFileAtomic } from "../private-file.mjs";
+import {
+  loadContexts,
+  loadContextsForExport,
+  saveContextsSecure,
+  deleteContextCredential,
+  migrateContextCredentials,
+  resolveActiveContext,
+} from "../contexts.mjs";
 
 /** Auth label for a context: prefers the scoped accessToken over the legacy apiKey. */
 function authLabel(c) {
   if (c?.accessToken) return "token";
   if (c?.apiKey) return "key";
+  if (c?.credentialRef) return "keychain";
   return "✗";
+}
+
+function contextMap(config) {
+  return config.contexts || config.profiles || {};
 }
 
 export async function confirm(msg) {
@@ -15,7 +28,9 @@ export async function confirm(msg) {
   // "unsettled top-level await" at exit. Decline cleanly instead and point at the
   // non-interactive escape hatch so scripted callers fail safe rather than hang.
   if (!process.stdin.isTTY) {
-    process.stderr.write(`${msg} [y/N] (non-interactive stdin — declined; pass --yes to confirm)\n`);
+    process.stderr.write(
+      `${msg} [y/N] (non-interactive stdin — declined; pass --yes to confirm)\n`
+    );
     return false;
   }
   const readline = await import("node:readline");
@@ -31,6 +46,18 @@ function maskKey(k) {
   return `${k.slice(0, 6)}***${k.slice(-4)}`;
 }
 
+/** Return an export-safe copy without legacy or canonical context credentials. */
+export function redactContextSecrets(config) {
+  const out = JSON.parse(JSON.stringify(config || {}));
+  for (const collection of [out.contexts, out.profiles]) {
+    for (const context of Object.values(collection || {})) {
+      context.apiKey = null;
+      delete context.accessToken;
+    }
+  }
+  return out;
+}
+
 export function registerContexts(program) {
   const ctx = program
     .command("contexts")
@@ -43,7 +70,7 @@ export function registerContexts(program) {
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       const cfg = loadContexts();
-      const rows = Object.entries(cfg.contexts || {}).map(([name, c]) => ({
+      const rows = Object.entries(contextMap(cfg)).map(([name, c]) => ({
         active: name === (cfg.currentContext || "default") ? "●" : "",
         name,
         baseUrl: c.baseUrl || "",
@@ -73,7 +100,7 @@ export function registerContexts(program) {
     .option("--description <d>", "Context description")
     .action(async (name, opts) => {
       const cfg = loadContexts();
-      if (cfg.contexts?.[name]) {
+      if (contextMap(cfg)[name]) {
         process.stderr.write(`Context '${name}' already exists. Remove or rename first.\n`);
         process.exit(2);
       }
@@ -86,29 +113,29 @@ export function registerContexts(program) {
         if (opts.accessTokenStdin) accessToken = value;
         else apiKey = value;
       }
-      cfg.contexts = cfg.contexts || {};
-      cfg.contexts[name] = {
+      const contexts = contextMap(cfg);
+      contexts[name] = {
         baseUrl: opts.url,
         accessToken: accessToken || undefined,
         apiKey,
         scope: opts.scope || undefined,
         description: opts.description || undefined,
       };
-      saveContexts(cfg);
+      await saveContextsSecure(cfg);
       process.stdout.write(`Added context '${name}'\n`);
     });
 
   ctx
     .command("use <name>")
     .description("Switch active context")
-    .action((name) => {
+    .action(async (name) => {
       const cfg = loadContexts();
-      if (!cfg.contexts?.[name]) {
+      if (!contextMap(cfg)[name]) {
         process.stderr.write(`No such context: ${name}\n`);
         process.exit(2);
       }
       cfg.currentContext = name;
-      saveContexts(cfg);
+      await saveContextsSecure(cfg);
       process.stdout.write(`Active context: ${name}\n`);
     });
 
@@ -143,7 +170,7 @@ export function registerContexts(program) {
     .action((name, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       const cfg = loadContexts();
-      const c = cfg.contexts?.[name];
+      const c = contextMap(cfg)[name];
       if (!c) {
         process.stderr.write(`No such context: ${name}\n`);
         process.exit(2);
@@ -151,6 +178,8 @@ export function registerContexts(program) {
       const display = {
         name,
         baseUrl: c.baseUrl,
+        auth: authLabel(c),
+        credentialRef: c.credentialRef || null,
         accessToken: maskKey(c.accessToken),
         apiKey: maskKey(c.apiKey),
         scope: c.scope,
@@ -172,7 +201,7 @@ export function registerContexts(program) {
         }
       }
       const cfg = loadContexts();
-      if (!cfg.contexts?.[name]) {
+      if (!contextMap(cfg)[name]) {
         process.stderr.write(`No such context: ${name}\n`);
         process.exit(2);
       }
@@ -180,29 +209,37 @@ export function registerContexts(program) {
         process.stderr.write("Cannot remove default context.\n");
         process.exit(2);
       }
-      delete cfg.contexts[name];
+      const contexts = contextMap(cfg);
+      const deletedCredential = await deleteContextCredential(name, contexts[name]);
+      if (contexts[name].credentialRef && !deletedCredential) {
+        process.stderr.write(
+          "Warning: could not remove the OS-keychain entry; the context reference was removed locally.\n"
+        );
+      }
+      delete contexts[name];
       if (cfg.currentContext === name) cfg.currentContext = "default";
-      saveContexts(cfg);
+      await saveContextsSecure(cfg);
       process.stdout.write(`Removed context '${name}'\n`);
     });
 
   ctx
     .command("rename <old> <new>")
     .description("Rename a context")
-    .action((oldName, newName) => {
+    .action(async (oldName, newName) => {
       const cfg = loadContexts();
-      if (!cfg.contexts?.[oldName]) {
+      const contexts = contextMap(cfg);
+      if (!contexts[oldName]) {
         process.stderr.write(`No such context: ${oldName}\n`);
         process.exit(2);
       }
-      if (cfg.contexts[newName]) {
+      if (contexts[newName]) {
         process.stderr.write(`Context '${newName}' already exists.\n`);
         process.exit(2);
       }
-      cfg.contexts[newName] = cfg.contexts[oldName];
-      delete cfg.contexts[oldName];
+      contexts[newName] = contexts[oldName];
+      delete contexts[oldName];
       if (cfg.currentContext === oldName) cfg.currentContext = newName;
-      saveContexts(cfg);
+      await saveContextsSecure(cfg);
       process.stdout.write(`Renamed '${oldName}' → '${newName}'\n`);
     });
 
@@ -210,20 +247,15 @@ export function registerContexts(program) {
     .command("export")
     .description("Export contexts to JSON")
     .option("--out <path>", "Output file path (default: stdout)")
-    .option("--no-secrets", "Omit API keys from export")
+    .option("--no-secrets", "Omit credentials from export (safe default)")
+    .option("--include-secrets", "Explicitly include plaintext credentials in the export")
     .action(async (opts, cmd) => {
-      const cfg = loadContexts();
-      const out = JSON.parse(JSON.stringify(cfg));
-      if (opts.noSecrets) {
-        for (const c of Object.values(out.contexts || {})) {
-          c.apiKey = null;
-          delete c.accessToken;
-        }
-      }
+      const includeSecrets = opts.includeSecrets === true && opts.secrets !== false;
+      const cfg = await loadContextsForExport({ includeSecrets });
+      const out = includeSecrets ? cfg : redactContextSecrets(cfg);
       const json = JSON.stringify(out, null, 2);
       if (opts.out) {
-        const { writeFileSync } = await import("node:fs");
-        writeFileSync(opts.out, json);
+        writePrivateFileAtomic(opts.out, json);
         process.stdout.write(`Exported to ${opts.out}\n`);
       } else {
         process.stdout.write(json + "\n");
@@ -248,7 +280,12 @@ export function registerContexts(program) {
       const cfg = opts.merge
         ? loadContexts()
         : { version: 1, currentContext: "default", contexts: {} };
-      const incoming = imported.contexts || {};
+      if (!cfg.contexts && cfg.profiles) {
+        cfg.contexts = cfg.profiles;
+        delete cfg.profiles;
+      }
+      cfg.contexts = cfg.contexts || {};
+      const incoming = imported.contexts || imported.profiles || {};
       let count = 0;
       for (const [name, raw] of Object.entries(incoming)) {
         if (typeof name !== "string" || !name) continue;
@@ -265,7 +302,38 @@ export function registerContexts(program) {
       if (!opts.merge && typeof imported.currentContext === "string") {
         cfg.currentContext = imported.currentContext;
       }
-      saveContexts(cfg);
+      await saveContextsSecure(cfg);
       process.stdout.write(`Imported ${count} context(s)\n`);
+    });
+
+  ctx
+    .command("migrate")
+    .description("Move legacy plaintext context credentials to the OS keychain")
+    .option("--yes", "Confirm migration in non-interactive scripts")
+    .action(async (opts) => {
+      const cfg = loadContexts();
+      const pending = Object.entries(cfg.contexts || cfg.profiles || {}).filter(
+        ([, context]) => context?.accessToken || context?.apiKey
+      );
+      if (!pending.length) {
+        process.stdout.write("No plaintext context credentials found.\n");
+        return;
+      }
+      if (
+        !opts.yes &&
+        !(await confirm(`Migrate ${pending.length} context credential(s) to keychain?`))
+      ) {
+        process.stdout.write("Cancelled.\n");
+        return;
+      }
+      const result = await migrateContextCredentials();
+      if (!result.migrated) {
+        process.stderr.write(
+          "OS keychain unavailable; credentials remain in config.json mode 0600.\n"
+        );
+        process.exitCode = 2;
+        return;
+      }
+      process.stdout.write(`Migrated ${pending.length} context credential(s) to keychain.\n`);
     });
 }

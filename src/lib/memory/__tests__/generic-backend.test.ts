@@ -369,7 +369,7 @@ describe("GenericMemoryBackend", () => {
 
     test("applies custom query param names", async () => {
       const b = createBackend({
-        queryParams: { apiKeyId: "owner", limit: "count" },
+        queryParams: { apiKeyId: "owner", category: "memoryCategory", limit: "count" },
       });
       const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (url: string) => {
         if (url.toString().endsWith("/health")) {
@@ -378,14 +378,16 @@ describe("GenericMemoryBackend", () => {
         return new Response(JSON.stringify({ data: [], total: 0, byType: {} }), { status: 200 });
       });
 
-      await b.list({ apiKeyId: "key-1", limit: 5 });
+      await b.list({ apiKeyId: "key-1", category: "codegraph", limit: 5 });
       const listUrl = fetchMock.mock.calls.find(
         ([url]) => !url.toString().endsWith("/health")
       )![0] as string;
 
       expect(listUrl).toContain("owner=key-1");
+      expect(listUrl).toContain("memoryCategory=codegraph");
       expect(listUrl).toContain("count=5");
       expect(listUrl).not.toContain("apiKeyId=");
+      expect(listUrl).not.toContain("category=");
     });
   });
 

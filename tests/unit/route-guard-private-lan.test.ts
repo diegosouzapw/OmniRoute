@@ -95,16 +95,37 @@ test("management policy must NOT derive locality from the spoofable Host header"
     join(import.meta.dirname, "../../src/server/authz/policies/management.ts"),
     "utf8"
   );
+  // `requestPeerAddress` and friends moved to authz/peerContext.ts when the PUBLIC
+  // policy had to share the very same verdict (check:pack-boot / #11040 follow-up).
+  // The guard follows the implementation instead of the filename: neither module may
+  // read the Host header, and the module that OWNS peer resolution must resolve the
+  // token-stamped peer IP.
+  const peerSrc = readFileSync(
+    join(import.meta.dirname, "../../src/server/authz/peerContext.ts"),
+    "utf8"
+  );
   // Regression guard: a prior fix read the client-controlled Host header for the
   // LOCAL_ONLY decision, letting `Host: 127.0.0.1` bypass the gate. Locality must
   // come from the token-stamped peer IP instead.
+  for (const [name, text] of [
+    ["management.ts", src],
+    ["peerContext.ts", peerSrc],
+  ] as const) {
+    assert.ok(
+      !text.includes('get?.("host")') && !text.includes('get("host")'),
+      `${name} must NOT read the Host header for locality`
+    );
+  }
   assert.ok(
-    !src.includes('get?.("host")') && !src.includes('get("host")'),
-    "requestPeerAddress must NOT read the Host header"
-  );
-  assert.ok(
-    src.includes("resolveStampedPeer") && src.includes("PEER_IP_HEADER"),
+    peerSrc.includes("resolveStampedPeer") && peerSrc.includes("PEER_IP_HEADER"),
     "requestPeerAddress must resolve the trusted token-stamped peer IP"
+  );
+  // Positive anchor: management.ts must still route its locality decision through
+  // the shared helpers, so this guard cannot pass by the policy quietly growing its
+  // own Host-based path again.
+  assert.ok(
+    src.includes("peerContext") && src.includes("isLoopbackRequest"),
+    "management policy must delegate locality to authz/peerContext"
   );
 });
 

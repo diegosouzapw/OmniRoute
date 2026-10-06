@@ -22,7 +22,7 @@ async function resetStorage() {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
@@ -47,7 +47,7 @@ test.after(() => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("chatCore rejects a shutdown OpenAI model before an upstream request", async () => {
@@ -115,7 +115,12 @@ test("unified catalog suppresses stale OpenAI chat rows but retains typed media"
   assert.equal(ids.has("openai/gpt-5.2-codex"), false);
   assert.equal(ids.has("openai/sora-2"), false);
   assert.equal(ids.has("openai/sora-2-pro"), false);
-  assert.equal(ids.has("openai/gpt-5.6-sol"), true);
+  // Since #11919 (fixes #11829) an authoritative live catalog REPLACES the static
+  // registry: a static-only row like gpt-5.6-sol that the synced catalog does not
+  // list is suppressed instead of leaking into /v1/models. The lifecycle contract
+  // this file guards (#8627: stale chat rows suppressed, typed media retained)
+  // is unchanged — only the "static rows survive a sync" expectation moved.
+  assert.equal(ids.has("openai/gpt-5.6-sol"), false);
   assert.equal(body.data.find((item) => item.id === "openai/gpt-image-2")?.type, "image");
 });
 

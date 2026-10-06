@@ -20,7 +20,7 @@ function makeReq(body: unknown) {
 test.beforeEach(() => core.resetDbInstance());
 test.after(() => {
   core.resetDbInstance();
-  rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("headroom engine carries encoderComparison with one array and a valid winner", async () => {

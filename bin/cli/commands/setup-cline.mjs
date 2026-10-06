@@ -11,11 +11,13 @@
  * same provider/model. The key goes in secrets.json (Cline has no env ref).
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError, createPrompt } from "../io.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
+import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
+import { writePrivateFileAtomic } from "../private-file.mjs";
 
 function stripToRoot(url) {
   let s = String(url || "").replace(/\/+$/, "");
@@ -28,11 +30,14 @@ export function resolveClineTarget(opts = {}) {
   if (opts.remote) baseUrl = stripToRoot(opts.remote);
   else {
     try {
-      baseUrl = stripToRoot(resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT)?.baseUrl);
+      baseUrl = stripToRoot(
+        resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT)?.baseUrl
+      );
     } catch {
       /* none */
     }
-    if (!baseUrl) baseUrl = `http://localhost:${Number(opts.port ?? process.env.PORT ?? 20128) || 20128}`;
+    if (!baseUrl)
+      baseUrl = `http://localhost:${Number(opts.port ?? process.env.PORT ?? 20128) || 20128}`;
   }
   let apiKey = opts.apiKey ?? opts["api-key"];
   if (!apiKey) {
@@ -81,7 +86,7 @@ async function fetchModelIds(baseUrl, apiKey) {
     const res = await fetch(`${baseUrl}/v1/models`, { headers, signal: AbortSignal.timeout(8000) });
     if (!res.ok) return [];
     const body = await res.json();
-    const list = Array.isArray(body) ? body : body.data ?? body.models ?? [];
+    const list = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
     return list.map((m) => (typeof m === "string" ? m : m?.id)).filter(Boolean);
   } catch {
     return [];
@@ -92,6 +97,14 @@ export async function runSetupClineCommand(opts = {}) {
   const { baseUrl, apiKey } = resolveClineTarget(opts);
   const dryRun = Boolean(opts.dryRun ?? opts["dry-run"]);
   const clineDir = opts.clineDir ?? opts["cline-dir"] ?? join(os.homedir(), ".cline", "data");
+
+  const guard = await guardHostConfigTarget(clineDir, {
+    toolLabel: "Cline",
+    hostCommand: "omniroute setup-cline",
+    allowContainerWrite: Boolean(opts.allowContainerWrite ?? opts["allow-container-write"]),
+    dryRun,
+  });
+  if (guard !== 0) return guard;
 
   printHeading("OmniRoute → Cline (OpenAI-compatible)");
   printInfo(`Server: ${baseUrl}`);
@@ -122,18 +135,30 @@ export async function runSetupClineCommand(opts = {}) {
 
   if (dryRun) {
     console.log(`\n── [dry-run] ${gsPath} ──`);
-    console.log(JSON.stringify({ actModeApiProvider: globalState.actModeApiProvider, planModeApiProvider: globalState.planModeApiProvider, openAiBaseUrl: globalState.openAiBaseUrl, openAiModelId: globalState.openAiModelId }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          actModeApiProvider: globalState.actModeApiProvider,
+          planModeApiProvider: globalState.planModeApiProvider,
+          openAiBaseUrl: globalState.openAiBaseUrl,
+          openAiModelId: globalState.openAiModelId,
+        },
+        null,
+        2
+      )
+    );
     console.log(`\n── [dry-run] ${secPath} ── (openAiApiKey: ${apiKey ? "set" : "sk_omniroute"})`);
   } else {
-    if (!existsSync(clineDir)) mkdirSync(clineDir, { recursive: true });
-    writeFileSync(gsPath, JSON.stringify(globalState, null, 2) + "\n", "utf8");
-    writeFileSync(secPath, JSON.stringify(secrets, null, 2) + "\n", "utf8");
+    writePrivateFileAtomic(gsPath, JSON.stringify(globalState, null, 2) + "\n");
+    writePrivateFileAtomic(secPath, JSON.stringify(secrets, null, 2) + "\n");
     printSuccess(`Wrote ${gsPath}`);
     printSuccess(`Wrote ${secPath}`);
   }
 
   // The VS Code extension uses opaque globalStorage — can't be file-written.
-  printInfo("\nFor the Cline VS Code extension, set these in its Settings → API (OpenAI Compatible):");
+  printInfo(
+    "\nFor the Cline VS Code extension, set these in its Settings → API (OpenAI Compatible):"
+  );
   printInfo(`  Base URL:  ${baseUrl}        (NOT /v1 — Cline appends it)`);
   printInfo(`  API Key:   <your OMNIROUTE_API_KEY>`);
   printInfo(`  Model:     ${model}`);
@@ -153,6 +178,10 @@ export function registerSetupCline(program) {
     .option("--cline-dir <dir>", "Cline data dir (default: ~/.cline/data)")
     .option("--yes", "Non-interactive: do not prompt (requires --model)")
     .option("--dry-run", "Print what would be written without touching the filesystem")
+    .option(
+      "--allow-container-write",
+      "Write even when the target is inside a container and not mounted from the host"
+    )
     .action(async (opts) => {
       const code = await runSetupClineCommand(opts);
       if (code !== 0) process.exit(code);

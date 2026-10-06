@@ -9,10 +9,13 @@ import { discoverPlugins } from "../plugins.mjs";
 // (instead of string-interpolating into `execSync`) prevents a malicious plugin
 // name like `foo; rm -rf ~` or `` foo`id` `` from being interpreted by the shell.
 function runNpm(args) {
-  const res = spawnSync("npm", args, { stdio: "inherit", shell: false });
+  const isBun = Boolean(process.versions.bun);
+  const pm = isBun ? "bun" : "npm";
+  const cmdArgs = isBun && args[0] === "install" ? ["add", ...args.slice(1)] : args;
+  const res = spawnSync(pm, cmdArgs, { stdio: "inherit", shell: false });
   if (res.error) throw res.error;
   if (typeof res.status === "number" && res.status !== 0) {
-    throw new Error(`npm exited with code ${res.status}`);
+    throw new Error(`${pm} exited with code ${res.status}`);
   }
 }
 

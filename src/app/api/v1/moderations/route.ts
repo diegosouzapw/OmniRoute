@@ -68,7 +68,7 @@ async function postHandler(request, context) {
 
   const response = await handleModeration({ body: { ...body, model }, credentials });
   if (response?.ok) {
-    await clearRecoveredProviderState(credentials);
+    await clearRecoveredProviderState(credentials as Record<string, unknown>);
   }
   return response;
 }

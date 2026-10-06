@@ -76,6 +76,6 @@ test("syncCodexProfilesFromModels writes compatible profiles and skips media", a
       /ENOENT/
     );
   } finally {
-    await fs.rm(codexHome, { recursive: true, force: true });
+    await fs.rm(codexHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

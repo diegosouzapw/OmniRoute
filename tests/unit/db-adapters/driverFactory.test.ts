@@ -3,10 +3,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../../_setup/tempDataDir.ts";
 import { createRequire } from "node:module";
+import type * as NodePath from "node:path";
+import { runtimeRequire } from "../../../src/lib/db/adapters/runtimeRequire.ts";
 
 const {
   createSyncDriverFactory,
+  createBetterSqliteProbe,
   isPackBootForcedSqlJsSmoke,
   tryOpenSync,
   openDatabaseAsync,
@@ -29,11 +33,15 @@ function forceNodeSqlite() {
 function createTempDatabasePath(t: TestContext) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-node-sqlite-"));
   const databasePath = path.join(dir, "database.sqlite");
-  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  t.after(async () => await cleanupTempDataDir(dir));
   return databasePath;
 }
 
 describe("driverFactory", () => {
+  test("runtimeRequire loads Node built-ins outside webpack", () => {
+    const nodePath = runtimeRequire("node:path") as typeof NodePath;
+    assert.equal(nodePath.basename("/tmp/omniroute.sqlite"), "omniroute.sqlite");
+  });
   test("tryOpenSync retorna adapter síncrono ou null", () => {
     const adapter = tryOpenSync(":memory:");
     if (adapter) {
@@ -72,6 +80,55 @@ describe("driverFactory", () => {
         adapter.close();
       }
     );
+
+    test("rejected probe skips better-sqlite3 and falls through to node:sqlite", (t) => {
+      const databasePath = createTempDatabasePath(t);
+      const openWithoutBrokenAddon = createSyncDriverFactory(
+        (moduleName: string) => {
+          if (moduleName === "better-sqlite3") {
+            throw new Error("better-sqlite3 must not load when the probe rejects it");
+          }
+          return require(moduleName);
+        },
+        () => false
+      );
+
+      const adapter = openWithoutBrokenAddon(databasePath);
+      assert.ok(adapter);
+      assert.equal(adapter.driver, "node:sqlite");
+      adapter.exec("CREATE TABLE items (value TEXT)");
+      adapter.prepare("INSERT INTO items VALUES (?)").run("ok");
+      assert.equal(
+        (adapter.prepare("SELECT value FROM items").get() as { value: string }).value,
+        "ok"
+      );
+      adapter.close();
+    });
+
+    test("passed probe still prefers better-sqlite3 in the cascade", () => {
+      let betterSqliteRequested = false;
+      const openWithPassedProbe = createSyncDriverFactory(
+        (moduleName: string) => {
+          if (moduleName === "better-sqlite3") {
+            betterSqliteRequested = true;
+            return function FakeBetterSqlite() {
+              return { close() {}, name: ":memory:", open: true };
+            };
+          }
+          if (moduleName === "node:sqlite") {
+            throw new Error("node:sqlite must not load when better-sqlite3 passes the probe");
+          }
+          throw new Error(`unexpected driver load: ${moduleName}`);
+        },
+        () => true
+      );
+
+      const adapter = openWithPassedProbe(":memory:");
+      assert.ok(adapter);
+      assert.equal(adapter.driver, "better-sqlite3");
+      assert.equal(betterSqliteRequested, true);
+      adapter.close();
+    });
 
     test("prefers better-sqlite3 before node:sqlite in the driver cascade", () => {
       const fakeBetterSqlite = {
@@ -328,6 +385,74 @@ describe("driverFactory", () => {
       reader.close();
     });
   }
+
+  // #10627 — the Windows driver-hang guard. On Windows a mismatched-ABI
+  // better-sqlite3 addon can HANG inside DllMain instead of throwing, so the
+  // cascade's try/catch never fires and the fallback never runs. The probe
+  // loads the addon in a child process with a bounded timeout, turning a hang
+  // into a cached "bad" verdict that skips the branch.
+  test("probe: non-Windows platforms skip the child probe and report ok", () => {
+    let spawned = 0;
+    const probe = createBetterSqliteProbe({
+      platform: "linux",
+      execPath: "node",
+      spawn: () => {
+        spawned += 1;
+        return { status: 0 };
+      },
+    });
+    assert.equal(probe(), true);
+    assert.equal(probe(), true);
+    assert.equal(spawned, 0, "POSIX must not spawn a probe child process");
+  });
+
+  test("probe: successful child probe is cached (spawned at most once)", () => {
+    let spawned = 0;
+    const probe = createBetterSqliteProbe({
+      platform: "win32",
+      execPath: "node",
+      spawn: () => {
+        spawned += 1;
+        return { status: 0 };
+      },
+    });
+    assert.equal(probe(), true);
+    assert.equal(probe(), true);
+    assert.equal(probe(), true);
+    assert.equal(spawned, 1, "verdict must be cached per process");
+  });
+
+  test("probe: non-zero child exit rejects better-sqlite3", () => {
+    const probe = createBetterSqliteProbe({
+      platform: "win32",
+      execPath: "node",
+      spawn: () => ({ status: 1 }),
+    });
+    assert.equal(probe(), false);
+    assert.equal(probe(), false);
+  });
+
+  test("probe: child spawn throw rejects better-sqlite3", () => {
+    const probe = createBetterSqliteProbe({
+      platform: "win32",
+      execPath: "node",
+      spawn: () => {
+        throw new Error("spawn failed");
+      },
+    });
+    assert.equal(probe(), false);
+  });
+
+  test("probe: timed-out child (status null) rejects better-sqlite3 — the #10627 hang case", () => {
+    // status === null is exactly what spawnSync returns when the child is
+    // killed by the timeout — i.e. the DllMain hang that never throws.
+    const probe = createBetterSqliteProbe({
+      platform: "win32",
+      execPath: "node",
+      spawn: () => ({ status: null }),
+    });
+    assert.equal(probe(), false);
+  });
 
   test("retains the existing cascade when native drivers are unavailable", () => {
     const openWithoutNativeDrivers = createSyncDriverFactory(() => {

@@ -22,7 +22,9 @@ import {
   addBufferToUsage as defaultAddBuffer,
   filterUsageForFormat as defaultFilterUsage,
   estimateUsage as defaultEstimateUsage,
+  isEmptyUsage,
   sanitizeProviderUsageForRequest,
+  type UsageLike,
 } from "../../utils/usageTracking.ts";
 
 type ResponseLike =
@@ -44,35 +46,6 @@ const DEFAULT_DEPS: ClientUsageBufferDeps = {
   filterUsageForFormat: defaultFilterUsage,
   estimateUsage: defaultEstimateUsage,
 };
-
-/** True when a usage object is present but every token field is zero/absent.
- * Web/unofficial providers often emit `{prompt_tokens:0,completion_tokens:0,total_tokens:0}`
- * because the upstream has no metering. Treating that as "has usage" makes
- * `addBufferToUsage` turn zeros into a constant `USAGE_TOKEN_BUFFER` (default 2000),
- * so every request shows exactly 2000 tokens. Prefer estimating instead. */
-function isEmptyUsage(usage: unknown): boolean {
-  if (!usage || typeof usage !== "object" || Array.isArray(usage)) return true;
-  const u = usage as Record<string, unknown>;
-  const fields = [
-    "prompt_tokens",
-    "completion_tokens",
-    "total_tokens",
-    "input_tokens",
-    "output_tokens",
-    "promptTokenCount",
-    "candidatesTokenCount",
-    "totalTokenCount",
-  ];
-  let sawNumber = false;
-  for (const key of fields) {
-    const v = u[key];
-    if (typeof v !== "number" || !Number.isFinite(v)) continue;
-    sawNumber = true;
-    if (v > 0) return false;
-  }
-  // No positive counts (or no numeric fields at all) → treat as empty.
-  return true;
-}
 
 /** context_budget_* → visible-field mapping folded back in for Claude-Code-compatible
  * responses only (see module docstring above). */
@@ -106,15 +79,18 @@ export function applyClientUsageBuffer(
   const { preserveContextBudgetInVisibleUsage = false } = options;
   if (translatedResponse?.usage) {
     translatedResponse.usage = sanitizeProviderUsageForRequest(
-      translatedResponse.usage,
+      translatedResponse.usage as UsageLike,
       body,
       clientResponseFormat
     );
   }
 
   // Add buffer and filter usage for client (to prevent CLI context errors)
-  if (translatedResponse?.usage && !isEmptyUsage(translatedResponse.usage)) {
-    const buffered = deps.addBufferToUsage(translatedResponse.usage) as Record<string, unknown>;
+  if (translatedResponse?.usage && !isEmptyUsage(translatedResponse.usage as UsageLike)) {
+    const buffered = deps.addBufferToUsage(translatedResponse.usage as UsageLike) as Record<
+      string,
+      unknown
+    >;
     if (preserveContextBudgetInVisibleUsage) {
       foldContextBudgetIntoVisibleUsage(buffered);
     }

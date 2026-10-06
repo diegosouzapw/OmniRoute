@@ -103,18 +103,32 @@ export function setReasoningCache(
  */
 export function getReasoningCache(
   toolCallId: string
-): { reasoning: string; provider: string; model: string } | null {
+): { reasoning: string; provider: string; model: string; expiresAt: string } | null {
   const db = getDbInstance();
   const row = db
     .prepare(
-      `SELECT reasoning, provider, model FROM reasoning_cache
+      `SELECT reasoning, provider, model, expires_at FROM reasoning_cache
        WHERE tool_call_id = ? AND ${EXPIRES_AT_EPOCH_SQL} > unixepoch('now')`
     )
-    .get(toolCallId) as { reasoning: string; provider: string; model: string } | undefined;
+    .get(toolCallId) as
+    | {
+        reasoning: string;
+        provider: string;
+        model: string;
+        expires_at: number | string;
+      }
+    | undefined;
 
   const PLACEHOLDER = "(prior reasoning summary unavailable)";
-  if (row && row.reasoning && row.reasoning.trim() === PLACEHOLDER) return null; // ponytail: never replay the placeholder
-  return row ?? null;
+  if (row && row.reasoning && row.reasoning.trim() === PLACEHOLDER) return null;
+  return row
+    ? {
+        reasoning: row.reasoning,
+        provider: row.provider,
+        model: row.model,
+        expiresAt: epochSecondsToIso(row.expires_at),
+      }
+    : null;
 }
 
 /**

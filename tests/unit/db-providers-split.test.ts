@@ -52,26 +52,38 @@ describe("providers/columns — normalizeBooleanColumn", () => {
 });
 
 describe("providers/columns — sanitizeRateLimitOverrides", () => {
-  it("returns null for nullish / non-object / array input", () => {
-    assert.equal(sanitizeRateLimitOverrides(null), null);
-    assert.equal(sanitizeRateLimitOverrides(undefined), null);
-    assert.equal(sanitizeRateLimitOverrides("x"), null);
-    assert.equal(sanitizeRateLimitOverrides([1, 2]), null);
+  it("returns {sanitized:null,rejected:[]} for nullish / non-object / array input", () => {
+    assert.deepEqual(sanitizeRateLimitOverrides(null), { sanitized: null, rejected: [] });
+    assert.deepEqual(sanitizeRateLimitOverrides(undefined), { sanitized: null, rejected: [] });
+    assert.deepEqual(sanitizeRateLimitOverrides("x"), { sanitized: null, rejected: [] });
+    assert.deepEqual(sanitizeRateLimitOverrides([1, 2]), { sanitized: null, rejected: [] });
   });
-  it("keeps only allowed keys with non-negative integers", () => {
-    assert.deepEqual(sanitizeRateLimitOverrides({ rpm: 10, bogus: 5, tpm: -1 }), { rpm: 10 });
+  it("keeps only allowed keys with non-negative integers, reports the rest as rejected", () => {
+    assert.deepEqual(sanitizeRateLimitOverrides({ rpm: 10, bogus: 5, tpm: -1 }), {
+      sanitized: { rpm: 10 },
+      rejected: ["bogus", "tpm"],
+    });
   });
-  it("returns null when nothing valid remains", () => {
-    assert.equal(sanitizeRateLimitOverrides({ rpm: 1.5, nope: 3 }), null);
+  it("returns {sanitized:null} when nothing valid remains, with rejected keys", () => {
+    assert.deepEqual(sanitizeRateLimitOverrides({ rpm: 1.5, nope: 3 }), {
+      sanitized: null,
+      rejected: ["rpm", "nope"],
+    });
   });
 });
 
 describe("providers/columns — sanitizeQuotaWindowThresholds", () => {
-  it("keeps only 0-100 integers", () => {
-    assert.deepEqual(sanitizeQuotaWindowThresholds({ a: 50, b: 120, c: 0 }), { a: 50, c: 0 });
+  it("keeps only 0-100 integers, reports the rest as rejected", () => {
+    assert.deepEqual(sanitizeQuotaWindowThresholds({ a: 50, b: 120, c: 0 }), {
+      sanitized: { a: 50, c: 0 },
+      rejected: ["b"],
+    });
   });
-  it("returns null when empty", () => {
-    assert.equal(sanitizeQuotaWindowThresholds({ a: 200 }), null);
+  it("returns {sanitized:null} when nothing valid remains, with rejected keys", () => {
+    assert.deepEqual(sanitizeQuotaWindowThresholds({ a: 200 }), {
+      sanitized: null,
+      rejected: ["a"],
+    });
   });
 });
 

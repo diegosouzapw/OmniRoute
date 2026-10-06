@@ -1,0 +1,1340 @@
+{
+  "common": {
+    "error": "ስህተት፦ {message}",
+    "serverOffline": "የOmniRoute አገልጋይ ከመስመር ውጭ ነው። በዚህ ያስጀምሩት፦ omniroute serve",
+    "authRequired": "ማረጋገጫ ያስፈልጋል። OMNIROUTE_API_KEY ያዘጋጁ ወይም ይህን ያስኪዱ፦ omniroute setup",
+    "rateLimited": "የጥያቄ መጠን ገደቡ አልፏል። ከ{seconds} ሰከንድ በኋላ እንደገና ይሞክሩ።",
+    "timeout": "ጥያቄው ከ{ms} ሚሊሰከንድ በኋላ ጊዜው አልፏል።",
+    "success": "ተጠናቋል።",
+    "yes": "አዎ",
+    "no": "አይ",
+    "confirm": "እርግጠኛ ነዎት? (አዎ/አይ)",
+    "dryRun": "[dry-run] {action} ይደረግ ነበር",
+    "cancelled": "ተሰርዟል።",
+    "jsonOpt": "ውጤቱን እንደ JSON አቅርብ",
+    "yesOpt": "የማረጋገጫ ጥያቄውን ዝለል"
+  },
+  "setup": {
+    "title": "የOmniRoute ማዋቀር",
+    "passwordPrompt": "የአስተዳዳሪ የይለፍ ቃል",
+    "providerPrompt": "ነባሪ አቅራቢ (ለመዝለል ባዶ ይተዉት)",
+    "done": "ማዋቀሩ ተጠናቋል",
+    "passwordSet": "የአስተዳዳሪ የይለፍ ቃል ተዋቅሯል",
+    "providerSet": "አቅራቢው ተዋቅሯል፦ {name}",
+    "testingProvider": "የአቅራቢውን ግንኙነት በመሞከር ላይ፦ {name}",
+    "testPassed": "የአቅራቢው ሙከራ ተሳክቷል",
+    "testFailed": "የአቅራቢው ሙከራ አልተሳካም፦ {error}",
+    "loginEnabled": "መግቢያ፦ ነቅቷል (የይለፍ ቃሉ ዘምኗል)",
+    "loginDisabled": "መግቢያ፦ ቦዝኗል",
+    "providerInfo": "አቅራቢ፦ {info}",
+    "opencode": "ከOpenCode ጋር የተካተተውን @omniroute/opencode-plugin ጫን እና አዋቅር"
+  },
+  "doctor": {
+    "title": "OmniRoute ዶክተር",
+    "dbOk": "የውሂብ ጎታ፦ ደህና ({path})",
+    "dbMissing": "የውሂብ ጎታ፦ አልተጀመረም — `omniroute setup` ያስኪዱ",
+    "portOk": "ወደብ {port}፦ ይገኛል",
+    "portConflict": "ወደብ {port}፦ በሌላ ሂደት ጥቅም ላይ ነው",
+    "encryptionOk": "የምስጠራ ቁልፍ፦ ተዋቅሯል",
+    "encryptionMissing": "የምስጠራ ቁልፍ የለም — `omniroute setup` ያስኪዱ",
+    "allGood": "ሁሉም ምርመራዎች ተሳክተዋል።",
+    "warnings": "{count} ማስጠንቀቂያ(ዎች) — ከላይ ይመልከቱ።"
+  },
+  "providers": {
+    "title": "አቅራቢዎች",
+    "noProviders": "ምንም አቅራቢ አልተዋቀረም። ይህን ያስኪዱ፦ omniroute setup",
+    "testing": "{name}ን በመሞከር ላይ...",
+    "available": "{count} አቅራቢ(ዎች) ይገኛሉ",
+    "connected": "ተገናኝቷል",
+    "disconnected": "ግንኙነቱ ተቋርጧል",
+    "validationFailed": "ማረጋገጫው አልተሳካም፦ {error}",
+    "metrics": {
+      "description": "የአቅራቢውን የአፈጻጸም መለኪያዎች (የምላሽ ጊዜ፣ የስኬት መጠን፣ ወጪ) አሳይ",
+      "provider": "በአቅራቢ ID አጣራ",
+      "connection_id": "በግንኙነት ID አጣራ",
+      "period": "የጊዜ ክልል፦ 1h|6h|24h|7d|30d (ነባሪ፦ 24h)",
+      "metric": "በተወሰነ የመለኪያ መስክ ላይ አተኩር",
+      "sort": "በመስክ ደርድር (ከከፍተኛ ወደ ዝቅተኛ)",
+      "limit": "ከፍተኛው የረድፎች ብዛት (ነባሪ፦ 50)",
+      "watch": "በየ5s አድስ (የቀጥታ ሁነታ)",
+      "compare": "ጎን ለጎን ለማነጻጸር በኮማ የተለዩ የአቅራቢ IDዎች"
+    },
+    "metric_single": {
+      "description": "ለአንድ የተወሰነ ግንኙነት አንድ የመለኪያ እሴት አግኝ"
+    },
+    "rotate": {
+      "description": "ለአቅራቢ ግንኙነት የውጫዊውን API ቁልፍ ቀይር",
+      "newKeyOpt": "አዲስ የAPI ቁልፍ እሴት (ይህን ከመጠቀም ይቆጠቡ፤ --from-env ይመረጣል)",
+      "fromEnvOpt": "አዲሱን ቁልፍ ከአካባቢ ተለዋዋጭ VAR አንብብ",
+      "oauthOpt": "በምትኩ የOAuth ዳግም ማረጋገጫ ሂደትን ጀምር",
+      "skipTestOpt": "ከቁልፍ ለውጡ በኋላ የሚደረገውን የግንኙነት ሙከራ ዝለል",
+      "dryRunOpt": "ምንም ሳይጻፍ የሚቀየረውን አትም",
+      "confirmPrompt": "ለግንኙነት \"{name}\" ({id}) የAPI ቁልፉ ይተካ? [y/N]",
+      "dryRunResult": "[dry-run] ለ\"{name}\" ({id}) ቁልፉ ይቀየር ነበር። ምንም ለውጥ አልተደረገም።",
+      "oauthHint": "የOAuth ግንኙነት — ይህን ያሂዱ፦ omniroute oauth {provider}",
+      "envVarEmpty": "የአካባቢ ተለዋዋጭ {var} አልተዋቀረም ወይም ባዶ ነው።",
+      "success": "ለ\"{name}\" ቁልፉ ተቀይሯል። ለማረጋገጥ `providers test {id}` ያሂዱ።",
+      "testPassed": "ከቁልፍ ለውጡ በኋላ የተደረገው ሙከራ ተሳክቷል።",
+      "testFailed": "ከቁልፍ ለውጡ በኋላ የተደረገው ሙከራ አልተሳካም፦ {error}"
+    },
+    "status": {
+      "description": "ለሁሉም የአቅራቢ ግንኙነቶች የቁልፍ ሁኔታን (ዕድሜ፣ የሚያበቃበት ጊዜ፣ የእፎይታ ጊዜ) አሳይ",
+      "providerOpt": "በአቅራቢ ስም አጣራ",
+      "header": "ID         አቅራቢ       ስም                     የማብቂያ ሁኔታ  የሙከራ ሁኔታ  የእፎይታ ጊዜ እስከ",
+      "noData": "ምንም የአቅራቢ ግንኙነት ውሂብ የለም።",
+      "requiresServer": "providers status የOmniRoute አገልጋይ እየሰራ እንዲሆን ይፈልጋል።"
+    }
+  },
+  "keys": {
+    "title": "የAPI ቁልፎች",
+    "addDescription": "ለአቅራቢ የAPI ቁልፍ ጨምር ወይም አዘምን",
+    "listDescription": "ሁሉንም የተዋቀሩ የAPI ቁልፎች ዘርዝር",
+    "removeDescription": "የአቅራቢውን የAPI ቁልፍ አስወግድ",
+    "regenerateDescription": "የOmniRoute API ቁልፍን እንደገና ፍጠር",
+    "revokeDescription": "የOmniRoute API ቁልፍን ሻር",
+    "revealDescription": "ያልተሸፈነውን የAPI ቁልፍ እሴት አሳይ",
+    "usageDescription": "ለአንድ የAPI ቁልፍ የቅርብ ጊዜ አጠቃቀምን አሳይ",
+    "usageLimitOpt": "የቅርብ ጊዜ ጥያቄዎች ብዛት",
+    "rotateDescription": "አዲስ ቁልፍ ፍጠርና አሮጌውን ዋጋ አልባ አድርግ",
+    "graceOpt": "የድሮው ቁልፍ ከመሰረዙ በፊት ያለው የእፎይታ ጊዜ (ms)",
+    "stdinOpt": "API ቁልፉን ከነጋሪ እሴት ይልቅ ከ stdin አንብብ",
+    "added": "ለ{provider} ቁልፍ ታክሏል።",
+    "removed": "ቁልፉ ተወግዷል።",
+    "listed": "{count} ቁልፍ(ዎች)።",
+    "noKeys": "ምንም ቁልፎች አልተዋቀሩም።",
+    "noUsage": "ምንም የአጠቃቀም ውሂብ አልተገኘም።",
+    "confirmRemove": "ቁልፍ {id} ይወገድ?",
+    "confirmRegenerate": "ቁልፍ {id} እንደገና ይፈጠር?",
+    "confirmRevoke": "ቁልፍ {id} ይሰረዝ?",
+    "confirmRotate": "ቁልፍ {id} ይቀየር? (የድሮው ቁልፍ ከእፎይታ ጊዜው በኋላ ይሰረዛል)",
+    "regenerated": "እንደገና ተፈጥሯል። አዲስ ቁልፍ፦ {key}",
+    "revoked": "ቁልፍ {id} ተሰርዟል።",
+    "rotated": "ቁልፍ {id} ተቀይሯል። የአዲሱ ቁልፍ መታወቂያ፦ {newId}",
+    "revealWarning": "⚠  ይህ ያልተሸፈነውን ሙሉ ቁልፍ ያሳያል። ማያዎ የግል መሆኑን ያረጋግጡ።",
+    "providerRequired": "አቅራቢ ያስፈልጋል።",
+    "keyRequired": "API ቁልፍ ያስፈልጋል።",
+    "stdinEmpty": "በ stdin በኩል ምንም API ቁልፍ አልቀረበም።",
+    "unknownProvider": "ያልታወቀ አቅራቢ፦ {provider}",
+    "policy": {
+      "title": "የቁልፍ ፖሊሲ",
+      "showDescription": "የአንድን ቁልፍ የጥያቄ መጠን/ወጪ ፖሊሲ አሳይ",
+      "setDescription": "ለአንድ ቁልፍ የጥያቄ መጠን/ወጪ ፖሊሲ አዘጋጅ",
+      "rateLimitOpt": "በደቂቃ ከፍተኛው የጥያቄዎች ብዛት",
+      "maxCostOpt": "በቀን ከፍተኛው ወጪ (USD)",
+      "allowedModelsOpt": "በነጠላ ሰረዝ የተለዩ የተፈቀዱ ሞዴሎች ዝርዝር",
+      "nothingToSet": "ምንም የፖሊሲ መስኮች አልቀረቡም። --rate-limit፣ --max-cost ወይም --allowed-models ይጠቀሙ።",
+      "updated": "ፖሊሲው ዘምኗል።"
+    },
+    "expiration": {
+      "title": "የቁልፍ ጊዜ ማብቂያ",
+      "listDescription": "በቅርቡ ጊዜያቸው የሚያበቃ ቁልፎችን ዘርዝር",
+      "daysOpt": "በN ቀናት ውስጥ ጊዜያቸው የሚያበቃ ቁልፎችን አሳይ",
+      "none": "በ{days} ቀናት ውስጥ ጊዜያቸው የሚያበቃ ቁልፎች የሉም።",
+      "listTitle": "በ{days} ቀናት ውስጥ ጊዜያቸው የሚያበቃ ቁልፎች፦"
+    }
+  },
+  "authExport": {
+    "description": "ዲክሪፕት የተደረጉ የአቅራቢ ማረጋገጫዎችን ወደ ውጭ ላክ (ለአካባቢያዊ አጠቃቀም ብቻ፣ ግልጽ ጽሑፍ ውጤት)",
+    "idOpt": "ከዚህ id/name/provider ጋር የሚዛመደውን ግንኙነት ብቻ ወደ ውጭ ላክ",
+    "formatOpt": "የውጤት ቅርጸት፦ json ወይም env",
+    "outOpt": "ውጤቱን ወደ stdout ከመላክ ይልቅ ወደ ፋይል ጻፍ (በ0600 ፈቃዶች ይጻፋል)",
+    "forceOpt": "ይህ ግልጽ ጽሑፍ ሚስጥሮችን እንደሚያትም/እንደሚጽፍ መረዳትዎን ያረጋግጡ",
+    "warning": "⚠ ይህ ዲክሪፕት የተደረጉ ግልጽ ጽሑፍ API ቁልፎችን እና OAuth ቶከኖችን ያትማል/ይጽፋል። ማያዎ፣ የሼል ታሪክዎ እና ማንኛውም የውጤት ፋይል የግል ሆነው መቆየታቸውን ያረጋግጡ።",
+    "confirmHeading": "⚠ ማስጠንቀቂያ፦ ይህ ዲክሪፕት የተደረጉ የአቅራቢ ማረጋገጫዎችን በግልጽ ጽሑፍ ወደ ውጭ ይልካል",
+    "confirmBody": "ይህ ትዕዛዝ ለተመረጠው ግንኙነት(ነቶች) apiKey፣ accessToken፣ refreshToken እና\nidTokenን ዲክሪፕት አድርጎ ያትማል/ይጽፋል። ውጤቱን እንደ ሚስጥር ይያዙ።",
+    "confirmFooter": "ለማረጋገጥ፣ ይህን ያስኪዱ፦\n  omniroute auth export --force",
+    "missingKey": "የመግቢያ ማረጋገጫዎችን ወደ ውጭ ለመላክ STORAGE_ENCRYPTION_KEY ያስፈልጋል።",
+    "notFound": "ግንኙነቱ አልተገኘም፦ {id}",
+    "invalidFormat": "ልክ ያልሆነ ቅርጸት፦ {format}። json ወይም env ይጠቀሙ።"
+  },
+  "stream": {
+    "description": "የውይይት ምላሽን በSSE ምርመራ ሁነታዎች በቀጥታ ያሰራጩ",
+    "file": "ጥያቄውን ከፋይል ያንብቡ",
+    "stdin": "ጥያቄውን ከstdin ያንብቡ",
+    "model": "የሞዴል መታወቂያ (ነባሪ፦ auto)",
+    "system": "የስርዓት ጥያቄ",
+    "combo": "የተወሰነ combo በስሙ እንዲጠቀም ያስገድዱ",
+    "max_tokens": "በምላሹ ውስጥ የሚኖሩ ከፍተኛው የቶከኖች ብዛት",
+    "responses_api": "ከ/v1/chat/completions ይልቅ /v1/responses ይጠቀሙ",
+    "raw": "እንደደረሱ ያልተቀነባበሩ የSSE መስመሮችን ያትሙ",
+    "debug": "የእያንዳንዱን ቁራጭ የጊዜ መረጃ ወደ stderr ያትሙ",
+    "save": "ሁሉንም የSSE ክስተቶች ወደ .jsonl ፋይል ያስቀምጡ",
+    "error": {
+      "empty_prompt": "ስህተት፦ ጥያቄ ያስፈልጋል (positional arg፣ --file ወይም --stdin)"
+    }
+  },
+  "usage": {
+    "description": "የአጠቃቀም ትንታኔ፣ በጀቶች፣ ኮታዎች እና ምዝግቦች",
+    "analytics": {
+      "description": "የተጠቃለለ የአጠቃቀም ትንታኔ አሳይ",
+      "period": "የጊዜ ክልል፦ 1d|7d|30d|90d|ytd|all (ነባሪ፦ 30d)",
+      "provider": "በአቅራቢ መታወቂያ አጣራ"
+    },
+    "budget": {
+      "description": "የወጪ በጀቶችን ያስተዳድሩ",
+      "set": {
+        "scope": "የበጀት ወሰን (ነባሪ፦ global)",
+        "period": "የበጀት ጊዜ፦ daily|weekly|monthly (ነባሪ፦ monthly)"
+      }
+    },
+    "quota": {
+      "description": "የአቅራቢውን የኮታ አጠቃቀም አሳይ",
+      "provider": "በአቅራቢ መታወቂያ አጣራ",
+      "check": "ለአዲስ ጥያቄ ኮታ መኖሩን አሳይ"
+    },
+    "logs": {
+      "description": "የጥያቄ ጥሪ ምዝግቦችን አሳይ",
+      "limit": "የሚመለሱ የምዝግብ ግቤቶች ብዛት (ነባሪ፦ 100)",
+      "search": "ምዝግቦችን ለማጣራት የፍለጋ መጠይቅ",
+      "since": "ከዚህ የጊዜ ማህተም ጀምሮ ያሉ ምዝግቦችን መልስ",
+      "follow": "አዳዲስ የምዝግብ ግቤቶችን ያለማቋረጥ ተከታተል",
+      "api_key": "ምዝግቦችን በAPI ቁልፍ አጣራ"
+    },
+    "utilization": {
+      "description": "የAPI ቁልፍ አጠቃቀም መለኪያዎችን አሳይ",
+      "api_key": "በAPI ቁልፍ አጣራ"
+    },
+    "history": {
+      "description": "የጥያቄ ታሪክን አሳይ",
+      "limit": "የታሪክ ግቤቶች ብዛት (ነባሪ፦ 100)"
+    },
+    "proxy_logs": {
+      "description": "የፕሮክሲ ደረጃ የጥያቄ ምዝግቦችን አሳይ",
+      "limit": "የፕሮክሲ ምዝግብ ግቤቶች ብዛት (ነባሪ፦ 100)"
+    }
+  },
+  "cost": {
+    "description": "በአቅራቢ፣ ሞዴል፣ combo ወይም API ቁልፍ የተከፋፈለ የወጪ ሪፖርት አሳይ",
+    "period": "የጊዜ ክልል፦ 1d|7d|30d|90d|ytd|all (ነባሪ፦ 30d)",
+    "since": "የመጀመሪያ ቀን (ISO ቅርጸት፣ ለምሳሌ 2026-01-01) — --periodን ይሽራል",
+    "until": "የመጨረሻ ቀን (ISO ቅርጸት)",
+    "group_by": "ውጤቶችን በሚከተሉት ይመድቡ፦ provider|model|api-key|combo|day (ነባሪ፦ provider)",
+    "api_key_filter": "በተወሰነ API ቁልፍ ያጣሩ",
+    "limit": "የሚታዩ ረድፎች ከፍተኛ ብዛት (ነባሪ፦ 100)"
+  },
+  "simulate": {
+    "description": "ጥሪዎችን ወደ upstream ሳይልኩ የሚመረጡትን አቅራቢዎች የሚያሳይ የማዘዋወር ደረቅ ሙከራ",
+    "file": "ሙሉውን የጥያቄ ይዘት ከJSON ፋይል ይጫኑ",
+    "model": "የሞዴል መለያ (ነባሪ፦ auto)",
+    "combo": "አንድ የተወሰነ combo በስሙ በግድ ይጠቀሙ",
+    "reasoning": "የማመዛዘን ጥረት ደረጃ (low|medium|high)",
+    "thinking": "የተራዘመ የማሰብ token በጀት",
+    "explain": "የfallback ዛፍን እና የወጪ ክልሉን ወደ stderr ያትሙ",
+    "noCombo": "ምንም ተዛማጅ combo አልተገኘም። በሚከተለው አንድ ያዋቅሩ፦ omniroute combo create"
+  },
+  "chat": {
+    "description": "የአንድ ጊዜ የውይይት ጥያቄ ወደ OmniRoute ይላኩ",
+    "file": "ጥያቄውን ከፋይል ያንብቡ",
+    "stdin": "ጥያቄውን ከstdin ያንብቡ",
+    "system": "የስርዓት ጥያቄ",
+    "model": "የሞዴል መለያ (ነባሪ፦ auto)",
+    "max_tokens": "በምላሹ ውስጥ የሚኖሩ ከፍተኛ token ብዛት",
+    "temperature": "የናሙና ምርጫ ሙቀት (0–2)",
+    "top_p": "የTop-p nucleus ናሙና ምርጫ",
+    "reasoning_effort": "የማመዛዘን ጥረት ደረጃ (low|medium|high)",
+    "thinking_budget": "የተራዘመ የማሰብ token በጀት",
+    "combo": "አንድ የተወሰነ combo በስሙ በግድ ይጠቀሙ",
+    "responses_api": "ከ/v1/chat/completions ይልቅ /v1/responsesን ይጠቀሙ",
+    "stream": "ምላሹን ቀስ በቀስ በዥረት ይላኩ",
+    "no_history": "ወደ ~/.omniroute/cli-history.jsonl አያስቀምጡ",
+    "error": {
+      "empty_prompt": "ስህተት፦ ጥያቄ ያስፈልጋል (positional arg፣ --file ወይም --stdin)"
+    }
+  },
+  "serve": {
+    "description": "የOmniRoute አገልጋይን ያስጀምሩ (ነባሪ እርምጃ)",
+    "starting": "የOmniRoute አገልጋይ በport {port} ላይ እየተጀመረ ነው...",
+    "ready": "በhttp://localhost:{port} ላይ ዝግጁ ነው",
+    "stopping": "አገልጋዩ እየቆመ ነው (PID {pid})...",
+    "stopped": "አገልጋዩ ቆሟል።",
+    "notRunning": "አገልጋዩ እየሰራ አይደለም።",
+    "port": "የሚያዳምጥበት port (ነባሪ፦ 20128)",
+    "no_open": "አሳሹን በራስ-ሰር አይክፈቱ",
+    "daemon": "አገልጋዩን እንደ የጀርባ daemon ያስኪዱ",
+    "log": "የአገልጋይ ምዝግቦችን inline ያሳዩ",
+    "no_recovery": "በብልሽት ጊዜ በራስ-ሰር ዳግም መጀመርን ያሰናክሉ (debugging mode)",
+    "max_restarts": "ከመተው በፊት በ30s ውስጥ የሚፈቀደው ከፍተኛ የብልሽት ዳግም መጀመር ብዛት (ነባሪ፦ 2)",
+    "tray": "በስርዓት ትሪ ውስጥ አስጀምር (ለዴስክቶፕ ብቻ፣ በፈቃድ)",
+    "no_tray": "የስርዓት ትሪ አዶን አሰናክል",
+    "ready_timeout": "የዝግጁነት ምርመራ ጊዜ ማብቂያ በሚሊሰከንድ (እንዲሁም OMNIROUTE_READY_TIMEOUT_MS፣ ነባሪ 60000)",
+    "tls_cert": "HTTPSን ለማቅረብ የTLS ሰርተፍኬት (PEM) ዱካ (OMNIROUTE_TLS_CERTም ጭምር)",
+    "tls_key": "HTTPSን ለማቅረብ የTLS የግል ቁልፍ (PEM) ዱካ (OMNIROUTE_TLS_KEYም ጭምር)"
+  },
+  "backup": {
+    "title": "ምትኬ",
+    "description": "የOmniRoute ውሂብ ምትኬ ፍጠር",
+    "creating": "ምትኬ በመፍጠር ላይ...",
+    "done": "ምትኬው ወደ {path} ተቀምጧል",
+    "noFiles": "ምትኬ የሚቀመጥላቸው ፋይሎች የሉም (የውሂብ ጎታው አልተጀመረም)",
+    "failed": "ምትኬው አልተሳካም፦ {error}",
+    "restoring": "ከ{path} በመመለስ ላይ...",
+    "restored": "መመለሱ ተጠናቋል።",
+    "restoreDescription": "ከምትኬ መልስ",
+    "listTitle": "የሚገኙ ምትኬዎች",
+    "noBackups": "ምንም ምትኬ አልተገኘም።",
+    "notFound": "ምትኬው አልተገኘም፦ {name}",
+    "confirmRestore": "የአሁኑ ውሂብ በ{ts} ምትኬ እንዲተካ ይደረግ?",
+    "createDescription": "የOmniRoute ውሂብ ምትኬ ፍጠር",
+    "nameOpt": "ብጁ የምትኬ ስም",
+    "cloudOpt": "ምትኬውን ወደ ደመና ማከማቻ ስቀል",
+    "encryptOpt": "ምትኬውን በAES-256-GCM አመስጥር",
+    "keyFileOpt": "የማመስጠሪያ የይለፍ ሐረግ የያዘው ፋይል ዱካ",
+    "excludeOpt": "ከስርዓተ ጥለቱ ጋር የሚዛመድ ፋይልን አያካትት (ሊደገም ይችላል)",
+    "retentionOpt": "የመጨረሻዎቹን N ምትኬዎች ብቻ አቆይ",
+    "passphrasePrompt": "የማመስጠሪያ የይለፍ ሐረግ፦",
+    "noPassphrase": "ለተመሰጠረ ምትኬ የይለፍ ሐረግ ያስፈልጋል።",
+    "cloudFailed": "ማስጠንቀቂያ፦ ወደ ደመና መስቀሉ አልተሳካም። አካባቢያዊው ምትኬ ተቀምጧል።",
+    "cloudUploaded": "የደመና ምትኬው ተሰቅሏል፦ {url}",
+    "auto": {
+      "title": "የምትኬ መርሐግብር",
+      "enableDescription": "መርሐግብር የተያዘላቸውን ራስ-ሰር ምትኬዎች አንቃ",
+      "disableDescription": "መርሐግብር የተያዘላቸውን ራስ-ሰር ምትኬዎች አሰናክል",
+      "statusDescription": "የአሁኑን የምትኬ መርሐግብር ሁኔታ አሳይ",
+      "cronOpt": "የመርሐግብሩ Cron አገላለጽ (ነባሪ፦ በየቀኑ ከጠዋቱ 3 ሰዓት)",
+      "enabled": "ራስ-ሰር ምትኬ ነቅቷል (cron፦ {cron})።",
+      "hint": "መርሐግብሩ ሲጀመር omniroute serve ያነበዋል።",
+      "disabled": "ራስ-ሰር ምትኬ ተሰናክሏል።",
+      "notConfigured": "ምንም የምትኬ መርሐግብር አልተዋቀረም።"
+    }
+  },
+  "health": {
+    "description": "የአገልጋዩን ጤንነትና የክፍሎቹን ሁኔታ ፈትሽ",
+    "noServer": "አገልጋዩ እየሰራ አይደለም። በዚህ ያስጀምሩ፦ omniroute serve",
+    "title": "ጤንነት",
+    "status": "ሁኔታ፦ {status}",
+    "uptime": "የሥራ ጊዜ፦ {uptime}",
+    "requests": "ጥያቄዎች (24 ሰዓት)፦ {count}",
+    "cost": "ወጪ (24 ሰዓት)፦ ${cost}"
+  },
+  "quota": {
+    "description": "የአቅራቢውን ኮታ አጠቃቀም አሳይ",
+    "noServer": "ሰርቨሩ እየሰራ አይደለም። በዚህ ያስጀምሩ፦ omniroute serve",
+    "noData": "ምንም የኮታ መረጃ የለም።"
+  },
+  "cache": {
+    "description": "የምላሽ መሸጎጫን ያስተዳድሩ",
+    "noServer": "ሰርቨሩ እየሰራ አይደለም። በዚህ ያስጀምሩ፦ omniroute serve",
+    "cleared": "መሸጎጫው ጸድቷል።",
+    "clearFailed": "መሸጎጫውን ማጽዳት አልተሳካም።"
+  },
+  "redis": {
+    "description": "ለOmniRoute መሸጎጫ እና ኮታ ክትትል የሚያገለግል አካባቢያዊ Redis ኮንቴይነርን (Podman ወይም Docker) በአንድ ጠቅታ ያስጀምሩ"
+  },
+  "test": {
+    "description": "የአቅራቢ ግንኙነትን ይፈትሹ",
+    "noServer": "ሰርቨሩ እየሰራ አይደለም። በዚህ ያስጀምሩ፦ omniroute serve",
+    "testing": "{provider} / {model} በመፈተሽ ላይ...",
+    "passed": "ግንኙነቱ ተሳክቷል!",
+    "failed": "ግንኙነቱ አልተሳካም፦ {error}",
+    "allProvidersOpt": "ሁሉንም የተዋቀሩ አቅራቢዎች ይፈትሹ",
+    "latencyOpt": "የመዘግየት መለኪያዎችን አሳይ (አማካይ/ዝቅተኛ/ከፍተኛ ms)",
+    "repeatOpt": "ፈተናውን N ጊዜ ይድገሙ እና ውጤቶቹን ያጠቃልሉ",
+    "compareOpt": "በነጠላ ሰረዝ የተለዩ ለማወዳደር የሚፈለጉ ሞዴሎች (ለምሳሌ gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "ውጤቶቹን ወደ JSON ፋይል ያስቀምጡ",
+    "saved": "ውጤቶቹ ወደ {path} ተቀምጠዋል",
+    "compareTitle": "የሞዴሎች ንጽጽር",
+    "compareMinTwo": "ለ--compare ቢያንስ ሁለት ሞዴሎች ያስፈልጋሉ (በነጠላ ሰረዝ የተለዩ)",
+    "noProviders": "ምንም አቅራቢ አልተዋቀረም። በዚህ አንድ ያክሉ፦ omniroute keys add"
+  },
+  "update": {
+    "checking": "ዝማኔዎችን በመፈለግ ላይ...",
+    "upToDate": "አስቀድሞ የዘመነ ነው ({version})።",
+    "available": "ዝማኔ አለ፦ {current} → {latest}",
+    "installing": "{latest}ን በመጫን ላይ...",
+    "done": "ወደ {latest} ዘምኗል። ለመተግበር ሰርቨሩን እንደገና ያስጀምሩ።"
+  },
+  "mcp": {
+    "title": "MCP ሰርቨር",
+    "running": "MCP ሰርቨር እየሰራ ነው ({transport})",
+    "stopped": "MCP ሰርቨር ቆሟል።",
+    "restarted": "MCP ሰርቨር እንደገና ተጀምሯል።",
+    "stoppedHint": "ለማብራት `omniroute mcp enable`ን ያሂዱ።",
+    "enabled": "MCP አገልጋይ ነቅቷል።",
+    "disabled": "MCP አገልጋይ ተሰናክሏል።",
+    "enable": {
+      "description": "MCP አገልጋዩን አንቃ",
+      "transport": "ጥቅም ላይ የሚውል ማጓጓዣ፦ stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP አገልጋዩን አሰናክል"
+    },
+    "call": {
+      "description": "የMCP መሣሪያን በቀጥታ ይጥሩ",
+      "args": "የJSON ነጋሪ እሴቶች ኦብጀክት (በቦታው)",
+      "args_file": "የJSON ነጋሪ እሴቶች ፋይል ዱካ",
+      "stream": "የዥረት መገናኛ ነጥብን ይጠቀሙ (/api/mcp/stream)",
+      "scope": "አስፈላጊ ወሰን (ሊደገም የሚችል፣ ለምሳሌ read:health)"
+    },
+    "scopes": {
+      "description": "ያሉትን MCP ወሰኖች ዘርዝር",
+      "tool": "በተወሰነ መሣሪያ የሚፈለጉትን ወሰኖች አሳይ"
+    },
+    "tools": {
+      "description": "የMCP መሣሪያዎችን መርምር",
+      "list": {
+        "description": "ሁሉንም የMCP መሣሪያዎች ዘርዝር",
+        "scope": "በወሰን አጣራ"
+      },
+      "info": {
+        "description": "ለMCP መሣሪያ ሜታዳታን አሳይ"
+      },
+      "schema": {
+        "description": "ለMCP መሣሪያ የግብዓት/ውጤት JSON ንድፍን አሳይ",
+        "io": "የንድፍ ዓይነት፦ input|output (ነባሪ፦ input)"
+      }
+    },
+    "audit": {
+      "description": "የMCP ኦዲት ምዝግብ (ለ audit --source mcp ተለዋጭ ስም)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "ከወኪሉ ካርድ የሚገኙትን A2A ክህሎቶች ዘርዝር"
+    },
+    "invoke": {
+      "description": "የA2A ክህሎትን ጥራ እና የተግባሩን ID መልስ",
+      "input": "የJSON ግብዓት ነገር",
+      "input_file": "ወደ JSON ግብዓት ፋይል የሚወስድ ዱካ",
+      "wait": "ከመመለስ በፊት ተግባሩ እስኪጠናቀቅ ድረስ ጠብቅ",
+      "timeout": "ማጠናቀቅን ለመጠበቅ የሚፈቀደው ጊዜ በms (ነባሪ፦ 60000)"
+    },
+    "tasks": {
+      "description": "የA2A ተግባራትን አስተዳድር",
+      "list": {
+        "status": "በሁኔታ አጣራ",
+        "skill": "በክህሎት ID አጣራ"
+      },
+      "watch": {
+        "description": "እስኪጠናቀቅ ድረስ የተግባሩን ሁኔታ በየጊዜው ፈትሽ"
+      },
+      "stream": {
+        "description": "የተግባር አፈጻጸም ክስተቶችን በSSE በቀጥታ አስተላልፍ"
+      },
+      "logs": {
+        "description": "የተግባር መልዕክቶችን እና ቅርሶችን አሳይ"
+      }
+    }
+  },
+  "policy": {
+    "description": "የOmniRoute ፈቃድ አሰጣጥ ፖሊሲዎችን አስተዳድር",
+    "list": {
+      "description": "ፖሊሲዎችን ዘርዝር",
+      "kind": "በዓይነት አጣራ (allow|deny|rate-limit|cost-cap)",
+      "scope": "በወሰን አጣራ (global|api-key|provider)"
+    },
+    "get": {
+      "description": "በID የፖሊሲ ዝርዝሮችን አግኝ"
+    },
+    "create": {
+      "description": "ከJSON ፋይል ፖሊሲ ፍጠር",
+      "file": "ወደ ፖሊሲ JSON ፋይል የሚወስድ ዱካ"
+    },
+    "update": {
+      "description": "ከJSON ፋይል ፖሊሲን አዘምን",
+      "file": "ወደ ፖሊሲ JSON ፋይል የሚወስድ ዱካ"
+    },
+    "delete": {
+      "description": "ፖሊሲን በID ሰርዝ",
+      "yes": "የማረጋገጫ ጥያቄን ዝለል"
+    },
+    "evaluate": {
+      "description": "ፖሊሲን ሳይተገብሩ ገምግም (exit 0=allowed, 4=denied)",
+      "api_key": "የሚገመገመው API ቁልፍ",
+      "action": "የሚፈተሸው ድርጊት (ለምሳሌ፦ chat, embed, admin)",
+      "resource": "የሀብት ዱካ ወይም መለያ",
+      "context": "ተጨማሪ ዐውድ እንደ JSON ነገር"
+    },
+    "export": {
+      "description": "ሁሉንም ፖሊሲዎች ወደ JSON ፋይል ላክ"
+    },
+    "import": {
+      "description": "ፖሊሲዎችን ከJSON ፋይል አስገባ",
+      "overwrite": "ተመሳሳይ ID ያላቸውን ነባር ፖሊሲዎች ተክተህ ጻፍ"
+    }
+  },
+  "compression": {
+    "description": "የOmniRoute መጭመቂያ ሂደትን ያዋቅሩ እና ይመርምሩ",
+    "status": {
+      "description": "የአሁኑን የመጭመቂያ ሁኔታ እና ቅንብሮች አሳይ"
+    },
+    "configure": {
+      "description": "የመጭመቂያ ቅንብሮችን ያዋቅሩ",
+      "engine": "የመጭመቂያ ሞተር (caveman|rtk|hybrid|none)",
+      "caveman_agg": "የCaveman ጥብቅነት 0.0–1.0",
+      "rtk_budget": "የRTK ቶከን በጀት",
+      "language_pack": "የሚነቃው የቋንቋ ጥቅል"
+    },
+    "engine": {
+      "description": "ንቁውን የመጭመቂያ ሞተር ያግኙ ወይም ያዘጋጁ"
+    },
+    "combos": {
+      "description": "የመጭመቂያ ጥምረቶች ስታቲስቲክስን ያስተዳድሩ"
+    },
+    "rules": {
+      "description": "የመጭመቂያ ደንቦችን ያስተዳድሩ",
+      "add": {
+        "pattern": "የሚዛመድ ስርዓተ ጥለት (regex ወይም field:pattern)",
+        "action": "ድርጊት፦ drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "የሚገኙ የመጭመቂያ ቋንቋ ጥቅሎችን ዘርዝር"
+    },
+    "preview": {
+      "description": "መጭመቅ በጥያቄው ላይ የሚኖረውን ውጤት አስቀድመው ይመልከቱ",
+      "file": "ወደ ጥያቄው JSON ፋይል የሚወስድ ዱካ"
+    }
+  },
+  "tunnel": {
+    "title": "ቱነሎች",
+    "listDescription": "ንቁ ቱነሎችን ዘርዝር",
+    "createDescription": "ቱነል ይፍጠሩ",
+    "created": "ቱነል ተፈጥሯል፦ {url}",
+    "stopped": "ቱነሉ ቆሟል።",
+    "confirmStop": "ቱነል {id} ይቁም?",
+    "stopDescription": "ቱነል ያቁሙ",
+    "statusDescription": "የአንድን ቱነል ዝርዝር ሁኔታ አሳይ",
+    "logsDescription": "የአንድን ቱነል ምዝግቦች አሳይ",
+    "infoDescription": "የአንድን ቱነል የውቅር ዝርዝሮች አሳይ",
+    "rotateDescription": "አዲስ የቱነል URL ይፍጠሩ",
+    "tailOpt": "የሚታዩ የምዝግብ መስመሮች ብዛት",
+    "typeRequired": "የቱነል ዓይነት ያስፈልጋል።",
+    "noLogs": "ምንም ምዝግቦች አይገኙም።",
+    "notAvailable": "የቱነል መረጃ አይገኝም።",
+    "noTunnels": "ምንም ንቁ ቱነሎች የሉም።",
+    "infoTitle": "የቱነል መረጃ፦ {type}",
+    "rotated": "የቱነል URL ተቀይሯል፦ {url}",
+    "confirmRotate": "ቱነል {type} ይቀየር? (አዲስ URL ይፈጠራል)"
+  },
+  "stop": {
+    "description": "የOmniRoute ሰርቨርን ያቁሙ",
+    "stopping": "ሰርቨሩ እየቆመ ነው (PID {pid})...",
+    "stopped": "ሰርቨሩ ቆሟል።",
+    "notRunning": "ምንም ሰርቨር እየሰራ አይደለም።",
+    "portFallback": "ምንም PID ፋይል አልተገኘም፤ በፖርት ላይ የተመሠረተ ማቆም እየተሞከረ ነው..."
+  },
+  "restart": {
+    "description": "የOmniRoute ሰርቨርን እንደገና ያስጀምሩ",
+    "restarting": "የOmniRoute አገልጋይ እንደገና እየተጀመረ ነው..."
+  },
+  "dashboard": {
+    "description": "የOmniRoute ዳሽቦርድን በድር አሳሽ ውስጥ ይክፈቱ",
+    "opening": "ዳሽቦርዱ በ{url} እየተከፈተ ነው",
+    "urlOnly": "የድር አሳሽ ሳይከፈት የዳሽቦርዱን URL ብቻ አትም",
+    "tui": "በይነተገናኝ TUI ዳሽቦርድን ክፈት (የተርሚናል በይነገጽ፣ 7 ትሮች)"
+  },
+  "models": {
+    "description": "ያሉትን ሞዴሎች ዘርዝር (አገልጋይ ያስፈልጋል)",
+    "search": "ሞዴሎችን በid፣ በስም፣ በአቅራቢ ወይም በመግለጫ አጣራ",
+    "noServer": "አገልጋዩ እየሰራ አይደለም። በዚህ ያስጀምሩ፦ omniroute serve",
+    "noModels": "ምንም ሞዴሎች አልተገኙም።"
+  },
+  "audit": {
+    "description": "የተገዢነት እና MCP ኦዲት ምዝግቦችን ይድረሱባቸው",
+    "source": "የምዝግብ ምንጭ፦ all|compliance|mcp (ነባሪ፦ all)",
+    "since": "ከዚህ የጊዜ ማህተም ጀምሮ ያሉ ግቤቶችን መልስ (ISO 8601)",
+    "until": "እስከዚህ የጊዜ ማህተም ያሉ ግቤቶችን መልስ (ISO 8601)",
+    "tail": {
+      "description": "የቅርብ ጊዜ የኦዲት ምዝግብ ግቤቶችን አሳይ",
+      "follow": "አዳዲስ ግቤቶችን ያለማቋረጥ ተከታተል (የ2s ምርመራ)",
+      "limit": "የሚታዩ ከፍተኛው የግቤቶች ብዛት (ነባሪ፦ 100)"
+    },
+    "search": {
+      "description": "የኦዲት ምዝግብ ግቤቶችን በቁልፍ ቃል ፈልግ",
+      "limit": "ከፍተኛው የውጤቶች ብዛት (ነባሪ፦ 200)",
+      "actor": "በተዋናይ ID አጣራ",
+      "action": "በድርጊት ስም አጣራ"
+    },
+    "export": {
+      "description": "የኦዲት ምዝግብን ወደ ፋይል ላክ",
+      "format": "የውጤት ቅርጸት፦ jsonl|csv (ነባሪ፦ jsonl)"
+    },
+    "stats": {
+      "description": "የኦዲት ምዝግብ ስታቲስቲክስን አሳይ",
+      "period": "የጊዜ ክልል፦ 1d|7d|30d (ነባሪ፦ 7d)"
+    },
+    "get": {
+      "description": "አንድ የኦዲት ምዝግብ ግቤትን በID አግኝ"
+    }
+  },
+  "skills": {
+    "description": "የOmniRoute ክህሎቶችን አስተዳድር (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "የተጫኑ ክህሎቶችን ዘርዝር",
+      "type": "በዓይነት አጣራ (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "የነቁ ክህሎቶችን ብቻ አሳይ",
+      "disabled": "የቦዘኑ ክህሎቶችን ብቻ አሳይ",
+      "api_key": "በAPI ቁልፍ አጣራ"
+    },
+    "get": {
+      "description": "የአንድን ክህሎት ዝርዝር በID አግኝ"
+    },
+    "install": {
+      "description": "ክህሎትን ከፋይል ወይም URL ጫን",
+      "from_file": "ወደ ክህሎት JSON ትርጉም ፋይል የሚወስድ ዱካ",
+      "from_url": "የርቀት ክህሎት ትርጉም URL",
+      "type": "የክህሎት ዓይነት (sandbox|custom|hybrid)",
+      "enable": "ከተጫነ በኋላ ክህሎቱን አንቃ"
+    },
+    "enable": {
+      "description": "ክህሎትን በID አንቃ"
+    },
+    "disable": {
+      "description": "ክህሎትን በID አቦዝን",
+      "yes": "የማረጋገጫ ጥያቄውን ዝለል"
+    },
+    "delete": {
+      "description": "ችሎታን በID ሰርዝ",
+      "yes": "የማረጋገጫ ጥያቄውን ዝለል"
+    },
+    "execute": {
+      "description": "ችሎታን በID አስፈጽም",
+      "input": "የJSON ግቤት ኦብጀክት",
+      "input_file": "ወደ JSON ግቤት ፋይል የሚወስድ ዱካ",
+      "timeout": "የማስፈጸሚያ ጊዜ ገደብ በms (ነባሪ፦ 30000)"
+    },
+    "executions": {
+      "description": "የችሎታ ማስፈጸሚያ ታሪክን ዘርዝር",
+      "skill": "በችሎታ ID አጣራ",
+      "limit": "ከፍተኛው የውጤቶች ብዛት (ነባሪ፦ 50)",
+      "status": "በሁኔታ አጣራ (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "በSSH የተጫኑ ችሎታዎችን አስተዳድር"
+    },
+    "marketplace": {
+      "description": "ከገበያ ቦታው ችሎታዎችን ያስሱ እና ይጫኑ"
+    },
+    "mp": {
+      "search": {
+        "description": "የገበያ ቦታ ጥቅሎችን ፈልግ",
+        "category": "በምድብ አጣራ",
+        "tag": "በመለያ አጣራ",
+        "limit": "ከፍተኛው የውጤቶች ብዛት (ነባሪ፦ 30)",
+        "sort": "ደርድር በ፦ downloads|rating|recent"
+      },
+      "info": {
+        "description": "የጥቅል ዝርዝሮችን እና readmeን አሳይ"
+      },
+      "install": {
+        "description": "የገበያ ቦታ ጥቅል ጫን",
+        "version": "የጥቅል ስሪት (ነባሪ፦ latest)",
+        "enable": "ከተጫነ በኋላ አንቃ",
+        "yes": "የማረጋገጫ ጥያቄውን ዝለል"
+      },
+      "categories": {
+        "description": "የገበያ ቦታ ምድቦችን ዘርዝር"
+      },
+      "featured": {
+        "description": "ተለይተው የቀረቡ የገበያ ቦታ ጥቅሎችን አሳይ"
+      }
+    }
+  },
+  "memory": {
+    "description": "የOmniRoute የውይይት ማህደረ ትውስታን አስተዳድር (FTS5 + vector)",
+    "search": {
+      "description": "የፍቺ ጥያቄን በመጠቀም የማህደረ ትውስታ ግቤቶችን ፈልግ",
+      "type": "በማህደረ ትውስታ ዓይነት አጣራ (user|feedback|project|reference)",
+      "limit": "ከፍተኛው የውጤቶች ብዛት (ነባሪ፦ 20)",
+      "api_key": "በAPI ቁልፍ አጣራ",
+      "token_budget": "በውጤቶች ውስጥ ያሉትን ጠቅላላ ቶከኖች ገድብ"
+    },
+    "add": {
+      "description": "አዲስ የማህደረ ትውስታ ግቤት ጨምር",
+      "content": "የማህደረ ትውስታ ጽሑፍ ይዘት",
+      "file": "ይዘትን ከፋይል አንብብ",
+      "type": "የማህደረ ትውስታ ዓይነት (ነባሪ፦ user)",
+      "metadata": "የJSON ሜታዳታ ኦብጀክት",
+      "api_key": "ከAPI ቁልፍ ጋር አያይዝ"
+    },
+    "clear": {
+      "description": "ከማጣሪያዎች ጋር የሚዛመዱ የማህደረ ትውስታ ግቤቶችን ሰርዝ",
+      "type": "በዓይነት አጣራ",
+      "older": "ከተጠቀሰው ቆይታ የሚበልጥ ዕድሜ ያላቸውን ግቤቶች ሰርዝ (30d, 6m, 1y)",
+      "api_key": "በAPI ቁልፍ አጣራ",
+      "yes": "የማረጋገጫ ጥያቄውን ዝለል"
+    },
+    "list": {
+      "description": "የማስታወሻ ግቤቶችን ያለ ፍለጋ ደረጃ አሰጣጥ ዘርዝር",
+      "type": "በዓይነት አጣራ",
+      "limit": "ከፍተኛው የውጤቶች ብዛት (ነባሪ፦ 100)",
+      "api_key": "በAPI ቁልፍ አጣራ"
+    },
+    "get": {
+      "description": "አንድ የማስታወሻ ግቤት በID አግኝ"
+    },
+    "delete": {
+      "description": "አንድ የማስታወሻ ግቤት በID ሰርዝ",
+      "yes": "የማረጋገጫ ጥያቄውን ዝለል"
+    },
+    "health": {
+      "description": "የማስታወሻ ንዑስ ስርዓቱን ጤና (FTS5 + Qdrant) አሳይ"
+    }
+  },
+  "oauth": {
+    "description": "የOAuth አቅራቢ ግንኙነቶችን አስተዳድር",
+    "providers": {
+      "description": "OAuthን የሚደግፉ አቅራቢዎችን እና የፍሰት ዓይነቶቻቸውን ዘርዝር"
+    },
+    "start": {
+      "description": "ለአቅራቢ OAuth የፈቃድ ሂደትን ጀምር",
+      "provider": "የአቅራቢ ID (gemini, copilot, cursor, …)",
+      "no_browser": "URLን ብቻ አትም — አሳሹን አትክፈት",
+      "import_system": "ማረጋገጫዎችን ከአካባቢያዊ የስርዓት ውቅር በራስ-ሰር አስመጣ",
+      "social": "የማህበራዊ መግቢያ አቅራቢ (google|github) — ለkiro ያስፈልጋል",
+      "timeout": "ፈቃድን ለመጠበቅ የጊዜ ገደብ በms (ነባሪ፦ 300000)"
+    },
+    "status": {
+      "description": "ንቁ የOAuth ግንኙነቶችን ዘርዝር",
+      "provider": "በአቅራቢ ID አጣራ"
+    },
+    "revoke": {
+      "description": "የOAuth ግንኙነትን ሻር",
+      "provider": "የሚሻረው የአቅራቢ ID",
+      "connection_id": "አንድን የተወሰነ ግንኙነት በID ሻር",
+      "yes": "የማረጋገጫ ጥያቄውን ዝለል"
+    }
+  },
+  "cloud": {
+    "description": "የደመና AI ወኪል ተግባራትን (codex, devin, jules) አስተዳድር",
+    "agents": {
+      "description": "ያሉትን የደመና ወኪሎች ዘርዝር"
+    },
+    "agent": {
+      "description": "የ{agent} የደመና ወኪል ተግባራትን አስተዳድር",
+      "auth": {
+        "description": "ለ{agent} በOAuth በኩል ፈቃድ ስጥ"
+      }
+    },
+    "task": {
+      "description": "የደመና ወኪል ተግባራትን አስተዳድር",
+      "create": {
+        "description": "አዲስ የወኪል ተግባር ፍጠር",
+        "title": "የተግባር ርዕስ (በነባሪ የጥያቄውን የመጀመሪያ 80 ቁምፊዎች ይጠቀማል)",
+        "prompt": "የተግባር ጥያቄ ጽሑፍ",
+        "prompt_file": "ጥያቄውን ከፋይል አንብብ",
+        "repo": "ለተግባሩ የሚባዛው የማከማቻ URL",
+        "branch": "የሚጠቀመው የቅርንጫፍ ስም",
+        "metadata": "የJSON ዲበ ውሂብ ነገር"
+      },
+      "list": {
+        "description": "የወኪል ተግባራትን ዘርዝር",
+        "status": "በሁኔታ አጣራ (running|completed|failed|cancelled)",
+        "limit": "ከፍተኛው የውጤቶች ብዛት (ነባሪ፦ 50)"
+      },
+      "get": {
+        "description": "የተግባር ዝርዝሮችን በID አግኝ"
+      },
+      "status": {
+        "description": "የተግባሩን ሁኔታ (running|completed|failed|cancelled) አትም"
+      },
+      "cancel": {
+        "description": "በሂደት ላይ ያለ ተግባርን ሰርዝ",
+        "yes": "የማረጋገጫ ጥያቄን ዝለል"
+      },
+      "approve": {
+        "description": "አፈጻጸሙን ለመጀመር የወኪሉን ዕቅድ አጽድቅ"
+      },
+      "message": {
+        "description": "በሂደት ላይ ላለ ተግባር መልዕክት ላክ"
+      }
+    },
+    "sources": {
+      "description": "በአንድ ተግባር የተፈጠሩ የምንጭ ፋይሎችን ዘርዝር"
+    }
+  },
+  "eval": {
+    "description": "የግምገማ ስብስቦችን እና አሂዶችን አስተዳድር",
+    "suites": {
+      "description": "የግምገማ ስብስቦችን አስተዳድር",
+      "list": {
+        "description": "የግምገማ ስብስቦችን ዘርዝር"
+      },
+      "get": {
+        "description": "የግምገማ ስብስብ ዝርዝሮችን በID አግኝ"
+      },
+      "create": {
+        "description": "ከJSON ፋይል የግምገማ ስብስብ ፍጠር",
+        "file": "የስብስብ መግለጫ JSON ፋይል ዱካ"
+      }
+    },
+    "run": {
+      "description": "ለአንድ ስብስብ የግምገማ አሂድ ጀምር",
+      "model": "የሚገመገመው የሞዴል ID (ነባሪ፦ auto)",
+      "combo": "አንድ የተወሰነ combo በስም አስገድድ",
+      "concurrency": "በተመሳሳይ ጊዜ የሚከናወኑ ናሙናዎች ብዛት (ነባሪ፦ 4)",
+      "tag": "በኋላ ለማጣራት ይህን አሂድ በመለያ ምልክት አድርግ",
+      "watch": "እስኪጠናቀቅ ድረስ የአሂዱን ሂደት ተከታተል"
+    },
+    "list": {
+      "description": "የግምገማ አሂዶችን ዘርዝር",
+      "suite": "በስብስብ ID አጣራ",
+      "status": "በሁኔታ አጣራ",
+      "since": "ከዚህ የጊዜ ማህተም ጀምሮ ያሉ አሂዶችን መልስ",
+      "limit": "ከፍተኛው የውጤቶች ብዛት (ነባሪ፦ 50)"
+    },
+    "get": {
+      "description": "የግምገማ አሂድ ዝርዝሮችን በID አግኝ"
+    },
+    "results": {
+      "description": "ለግምገማ አሂድ የናሙና ውጤቶችን አሳይ",
+      "failed": "ያልተሳኩ ናሙናዎችን ብቻ አሳይ"
+    },
+    "cancel": {
+      "description": "በሂደት ላይ ያለ ግምገማን ሰርዝ",
+      "yes": "የማረጋገጫ ጥያቄን ዝለል"
+    },
+    "scorecard": {
+      "description": "ለተጠናቀቀ የግምገማ አሂድ የውጤት ሰሌዳን አሳይ"
+    }
+  },
+  "webhooks": {
+    "description": "የOmniRoute webhooksን አስተዳድር",
+    "events": {
+      "description": "ሁሉንም የሚገኙ የwebhook ክስተት አይነቶች ዘርዝር"
+    },
+    "list": {
+      "description": "የተዋቀሩ webhooksን ዘርዝር"
+    },
+    "get": {
+      "description": "የwebhook ዝርዝሮችን በID አግኝ"
+    },
+    "add": {
+      "description": "አዲስ webhook መዝግብ",
+      "url": "መድረሻ URL",
+      "events": "በኮማ የተለየ የክስተት አይነቶች ዝርዝር",
+      "secret": "የHMAC ፊርማ ሚስጥር",
+      "header": "ተጨማሪ ራስጌ በkey=value ቅርጸት (ሊደገም የሚችል)",
+      "no_enabled": "webhookን በቦዘነ ሁኔታ ፍጠር"
+    },
+    "update": {
+      "description": "ነባር webhookን አዘምን",
+      "enabled": "የነቃ ሁኔታን አዘጋጅ (true|false)"
+    },
+    "remove": {
+      "description": "ዌብሁክ ሰርዝ",
+      "yes": "የማረጋገጫ ጥያቄን ዝለል"
+    },
+    "test": {
+      "description": "የሙከራ ክስተት ወደ ዌብሁክ ላክ",
+      "event": "ለማስመሰል የክስተት ዓይነት (ነባሪ፦ request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — ራስ-ሰር ተተኪ ያለው ብልህ AI ራውተር",
+    "version": "ስሪቱን አትምና ውጣ",
+    "output": "የውጤት ቅርጸት (table, json, jsonl, csv)",
+    "quiet": "አስፈላጊ ያልሆነ ውጤትን አፍን",
+    "no_color": "ባለቀለም ውጤትን አሰናክል",
+    "timeout": "የHTTP ጥያቄ የጊዜ ገደብ በሚሊሰከንድ",
+    "api_key": "ለOmniRoute አገልጋይ የAPI ቁልፍ",
+    "base_url": "የOmniRoute አገልጋይ መሠረታዊ URL",
+    "context": "ለዚህ ትዕዛዝ የሚያገለግል የአገልጋይ ዐውድ/መገለጫ",
+    "lang": "የCLI ማሳያ ቋንቋን አዘጋጅ (OMNIROUTE_LANGን ይሽራል)"
+  },
+  "files": {
+    "description": "ፋይሎችን አስተዳድር (ስቀል፣ ዘርዝር፣ አግኝ፣ አውርድ፣ ሰርዝ)",
+    "list": {
+      "purpose": "በዓላማ አጣራ",
+      "limit": "ከፍተኛው የውጤቶች ብዛት"
+    },
+    "get": {
+      "description": "የፋይል ሜታዳታን አግኝ"
+    },
+    "upload": {
+      "description": "ፋይል ስቀል",
+      "purpose": "የፋይል ዓላማ (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "የፋይል ይዘትን አውርድ",
+      "out": "ወደ ዱካ አስቀምጥ (ነባሪ፦ stdout)"
+    },
+    "delete": {
+      "yes": "ማረጋገጫን ዝለል"
+    }
+  },
+  "batches": {
+    "description": "ከOpenAI ጋር ተኳሃኝ የቡድን ሥራዎችን አስተዳድር",
+    "list": {
+      "status": "በሁኔታ አጣራ",
+      "limit": "ከፍተኛው የውጤቶች ብዛት"
+    },
+    "create": {
+      "description": "የቡድን ሥራ ፍጠር",
+      "inputFile": "የግቤት ፋይል ID",
+      "endpoint": "የታለመ endpoint",
+      "window": "የማጠናቀቂያ ጊዜ መስኮት",
+      "metadata": "ሜታዳታ key=value አክል"
+    },
+    "submit": {
+      "description": "JSONL ፋይል ስቀልና የቡድን ሥራ ፍጠር",
+      "jsonl": "ወደ JSONL ፋይል የሚወስድ ዱካ",
+      "endpoint": "የታለመ endpoint",
+      "wait": "እስኪጠናቀቅ ጠብቅ"
+    },
+    "cancel": {
+      "yes": "ማረጋገጫን ዝለል"
+    },
+    "wait": {
+      "timeout": "የጊዜ ገደብ በms"
+    },
+    "output": {
+      "out": "ውጤቱን ወደ ዱካ አስቀምጥ"
+    },
+    "errors": {
+      "out": "ስህተቶችን ወደ ዱካ አስቀምጥ"
+    }
+  },
+  "translator": {
+    "description": "የጥያቄ አካሎችን በLLM ቅርጸቶች መካከል ተርጉም",
+    "detect": {
+      "description": "የይዘቱን ቅርጸት ለይ"
+    },
+    "translate": {
+      "description": "ይዘቱን ከአንድ ቅርጸት ወደ ሌላ ቀይር"
+    },
+    "send": {
+      "description": "ተርጉምና ወደ ላይኛው ምንጭ ላክ"
+    },
+    "stream": {
+      "description": "የጥያቄውን ይዘት በዥረት ተርጉም"
+    },
+    "from": "የምንጭ ቅርጸት (openai|anthropic|gemini|cohere)",
+    "to": "የመድረሻ ቅርጸት (openai|anthropic|gemini|cohere)",
+    "file": "የጥያቄ ይዘት JSON ፋይል ዱካ",
+    "out": "ውጤቱን ወደ ፋይል አስቀምጥ",
+    "model": "ሞዴሉን ተካ",
+    "history": {
+      "limit": "ከፍተኛው የውጤቶች ብዛት"
+    }
+  },
+  "pricing": {
+    "description": "የሞዴሎችን የዋጋ መረጃ አስተዳድር",
+    "sync": {
+      "description": "ዋጋዎችን ከላይኛው ምንጮች ጋር አመሳስል",
+      "provider": "በአቅራቢ አጣራ",
+      "force": "እንደገና ማመሳሰልን አስገድድ"
+    },
+    "list": {
+      "provider": "በአቅራቢ አጣራ",
+      "model": "በሞዴል አጣራ",
+      "limit": "ከፍተኛው የውጤቶች ብዛት"
+    },
+    "defaults": {
+      "description": "ነባሪ ዋጋዎችን አስተዳድር",
+      "input": "የግብዓት ወጪ በ1M ቶከኖች (USD)",
+      "output": "የውጤት ወጪ በ1M ቶከኖች (USD)",
+      "cacheRead": "የመሸጎጫ ንባብ ወጪ በ1M ቶከኖች (USD)",
+      "cacheWrite": "የመሸጎጫ ጽሑፍ ወጪ በ1M ቶከኖች (USD)"
+    },
+    "diff": {
+      "description": "ከላይኛው ምንጭ ዋጋዎች ያለውን ልዩነት አሳይ",
+      "model": "በሞዴል አጣራ"
+    }
+  },
+  "radar": {
+    "description": "የአካባቢያዊ Radar ካታሎግ ምግቦችን መርምርና አመሳስል",
+    "status": "የአካባቢያዊ Radar ቅንብሮችን እና የምግብ መሸጎጫ ሁኔታን አሳይ",
+    "sync": "ካታሎግን፣ ሪፈራሎችን፣ ቅናሾችን እና Intelን በአካባቢያዊ አገልጋዩ በኩል አመሳስል"
+  },
+  "resilience": {
+    "description": "የጽናት ስልቶችን መርምርና አስተዳድር",
+    "status": {
+      "provider": "በአቅራቢ አጣራ"
+    },
+    "breakers": {
+      "provider": "በአቅራቢ አጣራ"
+    },
+    "cooldowns": {
+      "provider": "በአቅራቢ አጣራ",
+      "connectionId": "በግንኙነት ID አጣራ"
+    },
+    "lockouts": {
+      "provider": "በአቅራቢ አጣራ",
+      "model": "በሞዴል አጣራ"
+    },
+    "reset": {
+      "description": "የመቋረጫ/የማቀዝቀዣ ሁኔታን ዳግም አስጀምር",
+      "provider": "ዳግም የሚጀመር አቅራቢ",
+      "connectionId": "ዳግም የሚጀመር የግንኙነት ID",
+      "model": "መቆለፊያው ዳግም የሚጀመርለት ሞዴል",
+      "allCooldowns": "ለአቅራቢው ሁሉንም የማቀዝቀዣ ጊዜያት ዳግም አስጀምር",
+      "yes": "ማረጋገጫን ዝለል"
+    },
+    "profile": {
+      "description": "የመቋቋም ፕሮፋይልን ያስተዳድሩ",
+      "name": "የፕሮፋይል ስም"
+    },
+    "config": {
+      "description": "የመቋቋም ውቅረትን ያስተዳድሩ",
+      "threshold": "የውድቀት ገደብ",
+      "resetTimeout": "የዳግም ማስጀመሪያ ጊዜ ገደብ በms",
+      "baseCooldown": "መሠረታዊ የማቀዝቀዣ ጊዜ በms"
+    }
+  },
+  "nodes": {
+    "description": "የአቅራቢ ኖዶችን (endpoints) ያስተዳድሩ",
+    "list": {
+      "provider": "በአቅራቢ ያጣሩ",
+      "enabled": "የነቁ ኖዶችን ብቻ አሳይ"
+    },
+    "add": {
+      "provider": "የአቅራቢ ስም",
+      "baseUrl": "የኖዱ Base URL",
+      "name": "የኖድ ስም",
+      "weight": "የጭነት ማመጣጠኛ ክብደት",
+      "region": "የክልል መለያ",
+      "authHeader": "ብጁ የማረጋገጫ ራስጌ (key=value)"
+    },
+    "update": {
+      "baseUrl": "አዲስ base URL",
+      "name": "አዲስ ስም",
+      "weight": "አዲስ ክብደት",
+      "region": "አዲስ ክልል",
+      "enabled": "አንቃ ወይም አሰናክል (true|false)"
+    },
+    "remove": {
+      "yes": "ማረጋገጫውን ዝለል"
+    },
+    "validate": {
+      "baseUrl": "የሚረጋገጠው URL",
+      "provider": "የማረጋገጫ ንጽጽር የሚደረግበት አቅራቢ"
+    },
+    "test": {
+      "description": "የሙከራ ጥያቄ ወደ ኖዱ ይላኩ"
+    },
+    "metrics": {
+      "description": "የኖድ መለኪያዎችን አሳይ",
+      "period": "የጊዜ ክልል (ለምሳሌ 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "የአውድ ምህንድስና ፓይፕላይንን (Caveman, RTK) ያዋቅሩ",
+    "analytics": {
+      "period": "የጊዜ ክልል (ለምሳሌ 7d, 30d)"
+    },
+    "caveman": {
+      "description": "የCaveman አውድ መጭመቂያን ያስተዳድሩ",
+      "config": {
+        "description": "የCaveman ውቅረትን አሳይ ወይም አዘምን",
+        "aggressiveness": "የጨመቃ ጥንካሬ 0.0–1.0",
+        "maxShrinkPct": "ከፍተኛው የመጨመቅ መቶኛ",
+        "preserveTags": "በነጠላ ሰረዝ የተለዩ እንዲጠበቁ የሚፈለጉ መለያዎች"
+      }
+    },
+    "rtk": {
+      "description": "የRTK አውድ አመቻችን ያስተዳድሩ",
+      "config": {
+        "description": "የRTK ውቅረትን አሳይ ወይም አዘምን",
+        "tokenBudget": "ለRTK የቶከን በጀት",
+        "reservePct": "የመጠባበቂያ መቶኛ"
+      },
+      "filters": {
+        "description": "የRTK ማጣሪያዎችን ያስተዳድሩ",
+        "pattern": "የማጣሪያ ንድፍ (regex)",
+        "priority": "የማጣሪያ ቅድሚያ (ነባሪ፦ 100)",
+        "action": "የማጣሪያ እርምጃ፦ drop|shrink|replace",
+        "yes": "ማረጋገጫን ዝለል"
+      },
+      "test": {
+        "file": "የጥያቄ JSON ፋይል ዱካ"
+      }
+    },
+    "combos": {
+      "description": "ከአውድ ጋር የተጣጣመ የጥምረት አስተዳደር"
+    }
+  },
+  "sessions": {
+    "description": "ንቁ ክፍለ-ጊዜዎችን መርምር እና አስተዳድር",
+    "list": {
+      "user": "በተጠቃሚ አጣራ",
+      "kind": "በዓይነት አጣራ (dashboard|api-key|mcp|a2a)",
+      "active": "ንቁ ክፍለ-ጊዜዎችን ብቻ አሳይ",
+      "limit": "ከፍተኛው የውጤቶች ብዛት (ነባሪ፦ 100)"
+    },
+    "expire": {
+      "yes": "ማረጋገጫን ዝለል"
+    },
+    "expireAll": {
+      "user": "ክፍለ-ጊዜዎቹ እንዲያበቁ የሚደረግለት ተጠቃሚ",
+      "yes": "ማረጋገጫን ዝለል"
+    }
+  },
+  "tags": {
+    "description": "የሀብት መለያዎችን አስተዳድር",
+    "add": {
+      "color": "የመለያ ቀለም (hex ወይም ስም)",
+      "description": "የመለያ መግለጫ"
+    },
+    "remove": {
+      "yes": "ማረጋገጫን ዝለል"
+    },
+    "assign": {
+      "tag": "የመለያ ስም",
+      "to": "የታለመው ሀብት በ type:id ቅርጽ (ለምሳሌ provider:openai)"
+    },
+    "unassign": {
+      "tag": "የመለያ ስም",
+      "from": "የምንጭ ሀብት በ type:id ቅርጽ"
+    }
+  },
+  "openapi": {
+    "description": "የOmniRoute OpenAPI ዝርዝር መግለጫን ይድረሱበት እና ይፈትሹ",
+    "dump": {
+      "description": "የOpenAPI ዝርዝር መግለጫን ወደ stdout ወይም ፋይል አውጣ",
+      "format": "የውጤት ቅርጸት፦ yaml|json (ነባሪ፦ yaml)",
+      "out": "ወደ ፋይል ዱካ አስቀምጥ"
+    },
+    "validate": {
+      "description": "የOpenAPI ዝርዝር መግለጫን አረጋግጥ"
+    },
+    "try": {
+      "description": "API endpointን በዝርዝር መግለጫው በኩል ፈትሽ",
+      "method": "HTTP ዘዴ (ነባሪ፦ GET)",
+      "body": "የጥያቄ ይዘት JSON ፋይል ዱካ",
+      "query": "የመጠይቅ መለኪያ በ key=value ቅርጽ (ሊደገም የሚችል)",
+      "header": "ራስጌ በ key=value ቅርጽ (ሊደገም የሚችል)"
+    },
+    "endpoints": {
+      "description": "ሁሉንም API endpoints ዘርዝር",
+      "search": "በዱካ ወይም ማጠቃለያ አጣራ"
+    },
+    "paths": {
+      "description": "ሁሉንም API ዱካዎች ዘርዝር"
+    }
+  },
+  "combo": {
+    "title": "ጥምረቶች",
+    "switched": "ንቁ ጥምረት፦ {name}",
+    "created": "ጥምረት ተፈጥሯል፦ {name}",
+    "deleted": "ጥምረት ተሰርዟል፦ {name}",
+    "noCombos": "ምንም ጥምረት አልተዋቀረም።",
+    "confirmDelete": "ጥምረቱ {name} ይሰረዝ?",
+    "suggest": {
+      "description": "የAI ውጤት አሰጣጥን በመጠቀም ለአንድ ተግባር ምርጡን ጥምረት ጠቁም",
+      "task": "የተግባር መግለጫ",
+      "maxCost": "ለእያንዳንዱ ጥያቄ በUSD የሚፈቀደው ከፍተኛ ወጪ",
+      "maxLatencyMs": "ከፍተኛው የመዘግየት ጊዜ በሚሊሰከንድ",
+      "weights": "የJSON የውጤት አሰጣጥ ክብደቶች፣ ለምሳሌ {\"latency\":0.7,\"cost\":0.3}",
+      "top": "የሚታዩ ከፍተኛ እጩዎች ብዛት (ነባሪ፦ 5)",
+      "explain": "ምክንያቱን ወደ stderr አትም",
+      "switch": "ከፍተኛ ደረጃ ያገኘውን ጥምረት አግብር"
+    }
+  },
+  "oneproxy": {
+    "description": "የOneProxy የወራጅ አገልጋዮች ስብስብን አስተዳድር",
+    "stats": {
+      "provider": "በአቅራቢ አጣራ",
+      "period": "የጊዜ ክልል (ነባሪ፦ 24h)"
+    },
+    "fetch": {
+      "description": "ከስብስቡ ፕሮክሲዎችን አምጣ",
+      "count": "የሚመጡ ፕሮክሲዎች ብዛት (ነባሪ፦ 1)",
+      "type": "የፕሮክሲ አይነት፦ http|socks5 (ነባሪ፦ http)"
+    },
+    "rotate": {
+      "description": "የፕሮክሲ ማዞርን አስገድድ",
+      "provider": "የሚዞርለት አቅራቢ",
+      "connectionId": "የሚዞር የተወሰነ የግንኙነት ID"
+    },
+    "config": {
+      "description": "የOneProxy ውቅርን አሳይ ወይም አዘምን",
+      "enabled": "የፕሮክሲ ስብስብን አንቃ (true|false)",
+      "poolSize": "የስብስብ መጠን",
+      "providerSource": "የፕሮክሲ አቅራቢ URL",
+      "rotationPolicy": "የማዞር ፖሊሲ፦ sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "የአሁኑን የፕሮክሲ ስብስብ ከመለኪያዎቹ ጋር ዘርዝር"
+    }
+  },
+  "open": {
+    "description": "የተወሰነ የOmniRoute ዳሽቦርድ ገጽን በአሳሹ ውስጥ ክፈት",
+    "url": "URLን ብቻ አትም፤ አሳሹን አትክፈት"
+  },
+  "telemetry": {
+    "description": "የተጠቃለለ የቴሌሜትሪ ውሂብን ይድረሱበት",
+    "summary": {
+      "description": "የተጠቃለለ የቴሌሜትሪ ማጠቃለያን አሳይ",
+      "period": "የጊዜ ክልል፦ 24h|7d|30d (ነባሪ፦ 24h)",
+      "compareTo": "ከቀዳሚው የጊዜ ክልል ጋር አወዳድር"
+    },
+    "export": {
+      "description": "የቴሌሜትሪ ክስተቶችን ወደ JSONL ላክ",
+      "out": "የውጤት ፋይል ዱካ (ነባሪ፦ telemetry.jsonl)",
+      "period": "ለመላክ የጊዜ ክልል (ነባሪ፦ 7d)"
+    }
+  },
+  "sync": {
+    "description": "በOmniRoute ኢንስታንሶች መካከል ውቅርን አመሳስል",
+    "push": {
+      "description": "ውቅሩን ወደ ደመና ወይም የርቀት ኢንስታንስ ግፋ",
+      "target": "መድረሻ (cloud ወይም context:name)",
+      "bundle": "የሚመሳሰሉ የጥቅል ክፍሎች",
+      "dryRun": "ሳይተገበር ቅድመ ዕይታ አሳይ"
+    },
+    "pull": {
+      "description": "ውቅሩን ከደመና ወይም ከርቀት ኢንስታንስ ጎትት",
+      "source": "ምንጭ (cloud ወይም context:name)",
+      "merge": "ከነባሩ ውቅር ጋር አዋህድ",
+      "replace": "ነባሩን ውቅር ተካ",
+      "dryRun": "ሳይተገበር ቅድመ ዕይታ አሳይ"
+    },
+    "diff": {
+      "source": "የምንጭ አውድ",
+      "target": "የመድረሻ አውድ"
+    },
+    "bundle": {
+      "description": "ውቅሩን እንደ ጥቅል ፋይል ላክ",
+      "include": "የሚካተቱ ክፍሎች (በኮማ የተለዩ)"
+    },
+    "import": {
+      "description": "የጥቅል ፋይል አስመጣ",
+      "dryRun": "ሳይተገበር አረጋግጥ"
+    },
+    "initialize": {
+      "fromCloud": "ከደመና ምትኬ አስጀምር"
+    },
+    "tokens": {
+      "description": "የማመሳሰያ ቶከኖችን አስተዳድር",
+      "create": {
+        "name": "የቶከን ስም",
+        "scope": "የቶከን ወሰን",
+        "ttl": "የቶከን TTL (ለምሳሌ 30d)"
+      },
+      "revoke": {
+        "yes": "ማረጋገጫን ዝለል"
+      }
+    },
+    "resolve": {
+      "description": "የማመሳሰያ ግጭቶችን በይነተገናኝ ሁኔታ ፍታ"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "የአገልጋይ አውዶችን/መገለጫዎችን አስተዳድር (ጨምር፣ ተጠቀም፣ ዘርዝር፣ አሳይ፣ አስወግድ፣ ዳግም ሰይም፣ ላክ፣ አስመጣ)"
+    },
+    "lang": {
+      "description": "የCLI ማሳያ ቋንቋን አስተዳድር",
+      "getDescription": "አሁን ገቢር የሆነውን የቋንቋ ኮድ አሳይ",
+      "setDescription": "የማሳያ ቋንቋውን አዘጋጅና ወደ ውቅሩ አስቀምጥ",
+      "listDescription": "ሁሉንም የሚገኙ ቋንቋዎች ዘርዝር",
+      "listTitle": "የሚገኙ ቋንቋዎች",
+      "current": "ቋንቋ፦ {code} ({name})",
+      "saved": "ቋንቋው ወደ {code} ({name}) ተዘጋጅቷል።",
+      "noCode": "የቋንቋ ኮድ ያስፈልጋል። የሚገኙ ኮዶችን ለማየት 'omniroute config lang list' ያሂዱ።",
+      "unknown": "ያልታወቀ የቋንቋ ኮድ፦ {code}። የሚገኙ ኮዶችን ለማየት 'omniroute config lang list' ያሂዱ።",
+      "alreadySet": "ቋንቋው ቀድሞውኑ ወደ {code} ተዘጋጅቷል።",
+      "envHint": "ጠቃሚ ምክር፦ በአካባቢዎ ውስጥ OMNIROUTE_LANG={code} ማዘጋጀትም ይችላሉ።"
+    }
+  },
+  "completion": {
+    "description": "የሼል ማጠናቀቂያ ስክሪፕቶችን ፍጠር ወይም ጫን",
+    "zsh": "የzsh ማጠናቀቂያ ስክሪፕትን አትም",
+    "bash": "የbash ማጠናቀቂያ ስክሪፕትን አትም",
+    "fish": "የfish ማጠናቀቂያ ስክሪፕትን አትም",
+    "install": "ለተገኘው ሼል የማጠናቀቂያ ስክሪፕቱን በስርዓቱ አቀፍ ደረጃ ጫን",
+    "refresh": "የጥምረቶችን/አቅራቢዎችን/ሞዴሎችን መሸጎጫ አድስ"
+  },
+  "logs": {
+    "description": "የጥያቄ ምዝግቦችን በቀጥታ አሳይ ወይም ላክ",
+    "follow": "ምዝግቦችን በቅጽበት አሳይ",
+    "filter": "በደረጃ አጣራ (error,warn,info) — በኮማ የተለዩ",
+    "lines": "የሚመጡ መስመሮች ብዛት",
+    "timeout": "የግንኙነት የጊዜ ገደብ በms",
+    "baseUrl": "የOmniRoute API መሠረታዊ URL",
+    "requestId": "በጥያቄ ID አጣራ",
+    "apiKey": "በAPI ቁልፍ አጣራ",
+    "combo": "በኮምቦ ስም አጣራ",
+    "status": "በHTTP ሁኔታ ኮድ አጣራ",
+    "durationMin": "ዝቅተኛው የጥያቄ ቆይታ በms",
+    "durationMax": "ከፍተኛው የጥያቄ ቆይታ በms",
+    "export": "ሎጎችን ወደ ፋይል አስቀምጥ (json/jsonl/csv)",
+    "exported": "ሎጎች ወደ {path} ተቀምጠዋል",
+    "stopped": "የሎግ ዥረት ቆሟል።",
+    "streamError": "የሎግ ዥረት ስህተት፦ {message}"
+  },
+  "tray": {
+    "description": "የስርዓት ትሪ አዶውን ይቆጣጠሩ",
+    "show": "የትሪ አዶውን አሳይ (ሰርቨሩ በ--tray እየሰራ ከሆነ)",
+    "hide": "የትሪ አዶውን ደብቅ",
+    "quit": "OmniRouteን በትሪ በኩል ዝጋ"
+  },
+  "autostart": {
+    "description": "OmniRoute ስርዓቱ ሲነሳ በራስ-ሰር እንዲጀምር ያስተዳድሩ (Linux፦ systemd የተጠቃሚ አገልግሎት)",
+    "enable": "ስርዓቱ ሲነሳ በራስ-ሰር መጀመርን አንቃ",
+    "disable": "ስርዓቱ ሲነሳ በራስ-ሰር መጀመርን አሰናክል",
+    "toggle": "ስርዓቱ ሲነሳ በራስ-ሰር መጀመርን ቀያይር",
+    "status": "የራስ-ሰር መጀመር ሁኔታን አሳይ"
+  },
+  "runtime": {
+    "description": "የአገርኛ runtime ጥገኞችን ያስተዳድሩ",
+    "check": "በruntime ማውጫ ውስጥ ያሉ የአገርኛ ጥገኞችን ሁኔታ ያረጋግጡ",
+    "repair": "በruntime ማውጫ ውስጥ ያሉ የአገርኛ ጥገኞችን እንደገና ጫን",
+    "repair_force": "ትክክለኛ ቢሆኑም እንኳ እንደገና በግድ ጫን",
+    "clean": "የruntime ማውጫውን አስወግድ (የዲስክ ቦታ ያስለቅቃል)",
+    "clean_yes": "ማረጋገጫን ዝለል"
+  },
+  "repl": {
+    "description": "ከLLM ጋር በይነተገናኝ ባለብዙ-ዙር REPL",
+    "model": "የሚጠቀሙበት ሞዴል (ነባሪ፦ auto)",
+    "combo": "የሚጠቀሙበት የኮምቦ ስም",
+    "system": "የስርዓት መጠየቂያ",
+    "resume": "የተቀመጠ ክፍለ ጊዜን በስም ከቆመበት ቀጥል"
+  },
+  "plugin": {
+    "description": "የCLI ተሰኪዎችን ያስተዳድሩ (omniroute-cmd-*)",
+    "list": "የተጫኑ ተሰኪዎችን ዘርዝር",
+    "install": "ከnpm ወይም ከአካባቢያዊ ዱካ ተሰኪ ጫን",
+    "remove": "የተጫነ ተሰኪን አስወግድ",
+    "info": "ስለተጫነ ተሰኪ ዝርዝሮችን አሳይ",
+    "search": "የሚገኙ ተሰኪዎችን በnpm መዝገብ ውስጥ ፈልግ",
+    "update": "የተጫኑ ተሰኪዎችን አዘምን",
+    "scaffold": "ለአዲስ ተሰኪ መነሻ መዋቅር ፍጠር"
+  },
+  "launch": {
+    "description": "ወደ OmniRoute የተጠቆመ Claude Codeን አስጀምር (አካባቢያዊ ወይም የርቀት፣ በ--profile)",
+    "token": "የClaude ደንበኛው መላክ ያለበት ቶከን (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute በ{port} ላይ ሊደረስበት አልቻለም። በ'omniroute serve' ያስጀምሩት።",
+    "notFound": "'claude' CLI በPATH ውስጥ አልተገኘም።"
+  },
+  "run": {
+    "description": "በOmniRoute በኩል የሚደገፍ CLI ዒላማ ያስጀምሩ"
+  },
+  "setupClaude": {
+    "description": "ከOmniRoute ሞዴል ካታሎግ የ~/.claude/profiles Claude Code መገለጫዎችን ይፍጠሩ"
+  },
+  "connect": {
+    "description": "ከርቀት OmniRoute አገልጋይ ጋር ይገናኙ እና ወደ የርቀት ሁነታ ይግቡ"
+  },
+  "tokens": {
+    "description": "የተወሰነ ወሰን ያላቸውን የCLI መዳረሻ ቶከኖች ያስተዳድሩ (የርቀት ሁነታ)"
+  },
+  "configure": {
+    "description": "ከንቁው አገልጋይ አቅራቢና ሞዴል ይምረጡ እና የሚደገፍ የአካባቢ CLI ያዋቅሩ"
+  },
+  "launchCodex": {
+    "description": "ወደ OmniRoute (አካባቢያዊ ወይም የርቀት VPS) የሚያመለክተውን Codex CLI ያስጀምሩ"
+  },
+  "setupCodex": {
+    "description": "ከOmniRoute የቀጥታ ሞዴል ካታሎግ የ~/.codex መገለጫ ፋይሎችን ይፍጠሩ"
+  },
+  "packs": {
+    "description": "አማራጭ የአሂድ ጊዜ ጥቅሎችን ያስተዳድሩ (ML / የአሳሽ አውቶሜሽን)",
+    "listDescription": "አማራጭ ጥቅሎችንና የመጫኛ ሁኔታቸውን ዘርዝሩ",
+    "installDescription": "አማራጭ ጥቅልን ወደ DATA_DIR ይጫኑ",
+    "verifyDescription": "የተጫኑ ጥቅሎችን ከተካተተው የቼክሰም ማውጫ ጋር ያረጋግጡ",
+    "removeDescription": "የተጫነ አማራጭ ጥቅልን ያስወግዱ",
+    "sourceOpt": "የጥቅል ይዘቶችንና የጥቅል ማውጫውን የያዘ ማውጫ",
+    "warnNoIndex": "optional-packs.index.json አልተገኘም — በዚህ checkout ውስጥ መጫን/ማረጋገጥ አይገኝም (የዴስክቶፕ ጥቅሎች ያካትቱታል)",
+    "errUnknown": "ያልታወቀ ጥቅል፦ {name}",
+    "errNoIndex": "የጥቅል ማውጫ አልተገኘም፤ የጥቅሉን ይዘት የያዘውን --source <dir> ያስገቡ (የዴስክቶፕ ጥቅሎች ከመተግበሪያው አጠገብ ያካትቱታል)",
+    "installed": "ጥቅል \"{name}\" በ{dir} ተጭኗል እና ተረጋግጧል",
+    "restartHint": "የአሂድ ጊዜ ስርዓቱ ጥቅሉን እንዲያውቀው የOmniRoute አገልጋዩን (ወይም የዴስክቶፕ መተግበሪያውን) እንደገና ያስጀምሩ",
+    "removed": "ጥቅል \"{name}\" ተወግዷል",
+    "notInstalled": "ጥቅል \"{name}\" አልተጫነም ነበር",
+    "verifyOk": "ሁሉም የተጫኑ ጥቅሎች ተረጋግጠዋል",
+    "verifyFailed": "የ{count} ጥቅል(ሎች) ማረጋገጫ አልተሳካም",
+    "noneInstalled": "ምንም አማራጭ ጥቅል አልተጫነም"
+  }
+}

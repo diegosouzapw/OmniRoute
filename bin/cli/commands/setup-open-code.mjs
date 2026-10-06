@@ -30,6 +30,7 @@ import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { t } from "../i18n.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
+import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -316,6 +317,13 @@ export async function runSetupOpenCodeCommand(opts = {}) {
   printInfo(`OpenCode config dir: ${opencodeConfigDir}`);
   printInfo(`OpenCode data dir:   ${opencodeDataDir}`);
 
+  const guard = await guardHostConfigTarget(opencodeConfigDir, {
+    toolLabel: "OpenCode",
+    hostCommand: "omniroute setup opencode",
+    allowContainerWrite: Boolean(opts.allowContainerWrite ?? opts["allow-container-write"]),
+  });
+  if (guard !== 0) return { exitCode: guard };
+
   // 1. Resolve bundled plugin
   let pluginInfo;
   try {
@@ -420,6 +428,10 @@ export function registerSetupOpenCode(setupCommand) {
       false
     )
     .option("--non-interactive", "Do not prompt; skip the auth login step", false)
+    .option(
+      "--allow-container-write",
+      "Write even when the target is inside a container and not mounted from the host"
+    )
     .action(async (opts, cmd) => {
       // The parent `setup` command uses cmd.optsWithGlobals(); we mirror
       // that here so global flags (--json, --base-url, --api-key) still

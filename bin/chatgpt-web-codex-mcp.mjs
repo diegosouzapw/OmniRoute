@@ -32,17 +32,20 @@ export function resolveChatGptWebCodexMcpEntry(rootDir = root, exists = existsSy
   return candidates.find((candidate) => exists(candidate)) ?? null;
 }
 
+export async function loadChatGptWebCodexMcpModule(entry) {
+  if (entry.endsWith(".ts")) {
+    await import("tsx/esm");
+  }
+  return import(pathToFileURL(entry).href);
+}
+
 export async function startChatGptWebCodexMcp(args = process.argv.slice(2), rootDir = root) {
   const socketIndex = args.indexOf("--broker-socket");
   const brokerSocketPath = socketIndex >= 0 ? args[socketIndex + 1] : undefined;
   if (!brokerSocketPath) throw new Error("--broker-socket is required");
   const entry = resolveChatGptWebCodexMcpEntry(rootDir);
   if (!entry) throw new Error("ChatGPT Web (Codex) MCP entrypoint was not found");
-  if (entry.endsWith(".ts")) {
-    const { register } = await import("node:module");
-    register("tsx/esm", pathToFileURL(`${rootDir}/`));
-  }
-  const module = await import(pathToFileURL(entry).href);
+  const module = await loadChatGptWebCodexMcpModule(entry);
   await module.runChatGptMcpServer({ brokerSocketPath });
 }
 

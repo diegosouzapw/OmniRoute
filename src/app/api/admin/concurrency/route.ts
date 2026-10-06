@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import { getAllRateLimitStatus } from "@omniroute/open-sse/services/rateLimitManager.ts";
 import {
   getStats as getSemaphoreStats,

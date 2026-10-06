@@ -300,7 +300,9 @@ export default function ProviderHealthMatrixCard() {
   }, [onlyIssues, providerFilter, range]);
 
   useEffect(() => {
-    fetchMatrix();
+    void (async () => {
+      await fetchMatrix();
+    })();
     const id = setInterval(fetchMatrix, 30000);
     return () => clearInterval(id);
   }, [fetchMatrix]);

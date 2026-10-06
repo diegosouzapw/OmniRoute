@@ -1,7 +1,7 @@
-// Tests for the international Kimi web executor (www.kimi.com Connect-RPC API).
+// Tests for the international Kimi web executor (www.kimi.ai Connect-RPC API).
 //
 // Previously this provider targeted kimi.moonshot.cn; that domain now redirects
-// every non-CN visitor to www.kimi.com, which uses a Connect-RPC streaming API.
+// every non-CN visitor to www.kimi.ai, which uses a Connect-RPC streaming API.
 // These tests pin the parser behavior of the Connect envelope framing and the
 // JSON event-delta extractor.
 
@@ -31,7 +31,7 @@ describe("KimiWebExecutor", () => {
     assert.match(body.error.code, /HTTP_400|400/);
   });
 
-  it("execute targets www.kimi.com (not kimi.moonshot.cn)", async () => {
+  it("execute targets www.kimi.ai (not kimi.moonshot.cn)", async () => {
     const executor = new mod.KimiWebExecutor();
     let capturedUrl = "";
     const originalFetch = globalThis.fetch;
@@ -50,7 +50,7 @@ describe("KimiWebExecutor", () => {
         credentials: { apiKey: "opaque-kimi-access-token" },
         signal: null,
       } as never);
-      assert.ok(capturedUrl.startsWith("https://www.kimi.com/"), `got ${capturedUrl}`);
+      assert.ok(capturedUrl.startsWith("https://www.kimi.ai/"), `got ${capturedUrl}`);
       assert.ok(!capturedUrl.includes("moonshot.cn"));
     } finally {
       globalThis.fetch = originalFetch;
@@ -238,10 +238,7 @@ describe("extractKimiAccessToken", () => {
   });
 
   it("strips a leading Authorization: Bearer label", () => {
-    assert.equal(
-      extractKimiAccessToken("Authorization: Bearer current-token"),
-      "current-token"
-    );
+    assert.equal(extractKimiAccessToken("Authorization: Bearer current-token"), "current-token");
   });
 
   it("returns empty when no Kimi token is present", () => {

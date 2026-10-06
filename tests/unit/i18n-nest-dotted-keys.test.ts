@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 
 // The shipped helper is `normalizeComplianceEventTypes` (#3185); it nests dotted
 // keys under `compliance.eventTypes` and is a no-op for messages without that path.
@@ -46,4 +48,28 @@ test("nestDottedKeys ignores prototype-pollution segments", () => {
   const out = nestDottedKeys({ "__proto__.polluted": "x", safe: "y" }) as any;
   assert.equal(out.safe, "y");
   assert.equal(({} as any).polluted, undefined);
+});
+
+test("all shipped locale catalogs are valid next-intl message trees after normalization", () => {
+  const messagesDir = join(process.cwd(), "src", "i18n", "messages");
+  const invalidKeys: string[] = [];
+
+  function visit(value: unknown, path: string): void {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) return;
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      const qualified = path ? `${path}.${key}` : key;
+      if (key.includes(".")) invalidKeys.push(qualified);
+      visit(child, qualified);
+    }
+  }
+
+  for (const fileName of readdirSync(messagesDir).filter((name) => name.endsWith(".json"))) {
+    const raw = JSON.parse(readFileSync(join(messagesDir, fileName), "utf8")) as Record<
+      string,
+      unknown
+    >;
+    visit(nestDottedKeys(raw), fileName);
+  }
+
+  assert.deepEqual(invalidKeys, []);
 });

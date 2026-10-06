@@ -15,15 +15,22 @@ const { countTextTokens } = await import("../../../src/shared/utils/tiktokenCoun
 
 function makeReq(body: unknown) {
   return new Request("http://localhost/api/compression/preview", {
-    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
   });
 }
 test.beforeEach(() => core.resetDbInstance());
-test.after(() => { core.resetDbInstance(); rmSync(TEST_DATA_DIR, { recursive: true, force: true }); });
+test.after(() => {
+  core.resetDbInstance();
+  rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
 
 test("originalTokens equals countTextTokens, not the *1.33 estimate", async () => {
   const text = "the quick brown fox jumps over the lazy dog repeatedly and often";
-  const res = await route.POST(makeReq({ messages: [{ role: "user", content: text }], mode: "off" }));
+  const res = await route.POST(
+    makeReq({ messages: [{ role: "user", content: text }], mode: "off" })
+  );
   assert.equal(res.status, 200);
   const body = await res.json();
   assert.equal(body.originalTokens, countTextTokens(body.original));

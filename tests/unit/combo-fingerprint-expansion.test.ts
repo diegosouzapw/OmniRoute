@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// #5521 — A mimocode connection with multiple fingerprints in
+// #5521 — An opencode connection with multiple fingerprints in
 // provider_specific_data.fingerprints was treated as a single combo target,
 // so only one fingerprint (one IP) was used per request.  The combo system
 // must now expand each fingerprint into its own target so all of them
@@ -17,13 +17,6 @@ const {
 
 // ── isFingerprintProvider ────────────────────────────────────────────────────
 
-test("isFingerprintProvider: mimocode returns true", () => {
-  assert.equal(isFingerprintProvider("mimocode"), true);
-});
-
-test("isFingerprintProvider: mcode returns true", () => {
-  assert.equal(isFingerprintProvider("mcode"), true);
-});
 
 test("isFingerprintProvider: opencode returns true", () => {
   assert.equal(isFingerprintProvider("opencode"), true);
@@ -136,8 +129,8 @@ function makeTarget(overrides: Record<string, unknown> = {}) {
     kind: "model" as const,
     stepId: "step-0",
     executionKey: "step-0",
-    modelStr: "mimocode/mimo-auto",
-    provider: "mimocode",
+    modelStr: "opencode/kimi-k2",
+    provider: "opencode",
     providerId: null,
     connectionId: "conn-1",
     weight: 0,
@@ -149,7 +142,7 @@ function makeTarget(overrides: Record<string, unknown> = {}) {
 function makeConnection(fps: string[]) {
   return {
     id: "conn-1",
-    provider: "mimocode",
+    provider: "opencode",
     providerSpecificData: { fingerprints: fps },
   };
 }
@@ -196,7 +189,7 @@ test("expandTargetsByFingerprints: preserves all target properties across copies
   const fps = ["fp-aaa", "fp-bbb", "fp-ccc"];
   const conn = makeConnection(fps);
   const targets = [
-    makeTarget({ connectionId: "conn-1", modelStr: "mimocode/mimo-auto", weight: 5 }),
+    makeTarget({ connectionId: "conn-1", modelStr: "opencode/kimi-k2", weight: 5 }),
   ];
   const connById = new Map([["conn-1", conn]]);
   const result = expandTargetsByFingerprints(targets, connById, (t) => t.provider);
@@ -204,8 +197,8 @@ test("expandTargetsByFingerprints: preserves all target properties across copies
   for (const r of result) {
     assert.equal(r.kind, "model");
     assert.equal(r.connectionId, "conn-1");
-    assert.equal(r.modelStr, "mimocode/mimo-auto");
-    assert.equal(r.provider, "mimocode");
+    assert.equal(r.modelStr, "opencode/kimi-k2");
+    assert.equal(r.provider, "opencode");
     assert.equal(r.weight, 5);
   }
 });
@@ -242,23 +235,6 @@ test("expandTargetsByFingerprints: empty input returns empty array", () => {
   assert.equal(result.length, 0);
 });
 
-test("expandTargetsByFingerprints: mcode provider expands correctly", () => {
-  const fps = ["mfp-1", "mfp-2", "mfp-3"];
-  const conn = {
-    id: "conn-m",
-    provider: "mcode",
-    providerSpecificData: { fingerprints: fps },
-  };
-  const targets = [
-    makeTarget({ provider: "mcode", modelStr: "mcode/auto", connectionId: "conn-m" }),
-  ];
-  const connById = new Map([["conn-m", conn]]);
-  const result = expandTargetsByFingerprints(targets, connById, (t) => t.provider);
-  assert.equal(result.length, 3);
-  assert.equal(result[0].executionKey, "step-0");
-  assert.equal(result[1].executionKey, "step-0@fp:mfp-2");
-  assert.equal(result[2].executionKey, "step-0@fp:mfp-3");
-});
 
 test("expandTargetsByFingerprints: multiple targets each expand independently", () => {
   const conn1 = makeConnection(["fp-a1", "fp-a2"]);

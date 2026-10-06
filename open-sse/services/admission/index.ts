@@ -33,5 +33,6 @@ export {
   type AdmissionReleaseOutcome,
   type AdmissionRequest,
   type AdmissionSnapshot,
+  type PerTargetAdmissionHook,
   type ShadowDecision,
 } from "./types.ts";

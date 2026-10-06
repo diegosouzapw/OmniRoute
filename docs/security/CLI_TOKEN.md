@@ -20,28 +20,47 @@ password on every invocation.
    (falls back to an empty string on failure, disabling CLI auth).
 2. It computes `HMAC-SHA256(machine_id, salt)` and returns the full 64-char
    hex digest — a deterministic, non-reversible token tied to this machine.
-3. The CLI sends the token as `x-omniroute-cli-token` on every request to
-   `http://localhost:<port>/api/...`.
+3. The CLI sends the token as `x-omniroute-cli-token` only when the resolved
+   destination is an explicit loopback URL (`localhost`, `127.0.0.0/8`, or
+   loopback IPv6). Requests carrying the token use `redirect: error`, so a local
+   redirect cannot forward it to another origin. Remote contexts use scoped
+   access tokens instead. If derivation is unavailable, the CLI omits the header
+   and `omniroute doctor` reports the failure instead of treating an empty token
+   as valid.
 4. The server (`src/server/authz/policies/management.ts`) recomputes the
    expected token with the same salt and compares via `timingSafeEqual` to
    prevent timing-based extraction.
 
 ## Security properties
 
-| Property                         | Detail                                                                                                                              |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Loopback-only**                | Accepted only when `Host` is `localhost`, `127.0.0.1`, or `::1`.                                                                    |
-| **Constant-time compare**        | `crypto.timingSafeEqual` prevents timing attacks.                                                                                   |
-| **Non-reversible**               | HMAC output cannot recover the machine-id.                                                                                          |
-| **No `always`-protected bypass** | `isAlwaysProtectedPath()` is evaluated before the CLI token check. `/api/shutdown` and `/api/settings/database` always require JWT. |
-| **Non-exportable**               | Token is never written to disk or logged.                                                                                           |
+| Property                         | Detail                                                                                                                                                                                 |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Loopback-only**                | Accepted only when the server's trusted peer-locality stamp (derived from the real TCP peer address) says loopback. The client-controlled `Host` header is never trusted for locality. |
+| **Constant-time compare**        | `crypto.timingSafeEqual` prevents timing attacks.                                                                                                                                      |
+| **Non-reversible**               | HMAC output cannot recover the machine-id.                                                                                                                                             |
+| **No `always`-protected bypass** | `isAlwaysProtectedPath()` is evaluated before the CLI token check. `/api/shutdown` and `/api/settings/database` always require JWT.                                                    |
+| **Non-exportable**               | Token is never written to disk or logged.                                                                                                                                              |
+
+## Default salt (random per install)
+
+When `OMNIROUTE_CLI_SALT` is not set, the salt is a random 64-char hex string
+generated once and persisted at `<DATA_DIR>/cli-token-salt.json` (mode `0600`) —
+not the checked-in literal `omniroute-cli-auth-v1`. Both `getActiveSalt()` in
+`src/lib/machineToken.ts` and its mirror in `bin/cli/utils/cliToken.mjs` read the
+same file, so the server and every CLI invocation on this install converge on the
+same value; the checked-in literal is used only as a last-resort fallback when no
+persisted or env salt can be established yet (for example a fresh CLI-only install
+before the server has ever run). This closes a weakness of the old fixed literal
+default: `/etc/machine-id` is commonly world-readable, so any local user could
+otherwise derive the same token for every install that never set
+`OMNIROUTE_CLI_SALT`.
 
 ## Salt rotation
 
-Set `OMNIROUTE_CLI_SALT` to rotate the derived token without code changes.
-After rotation, all CLI processes on this machine will use the new token
-automatically. Useful after a process-list leak that may have exposed the
-previous derived value.
+Set `OMNIROUTE_CLI_SALT` to rotate the derived token without code changes — it
+always takes priority over the persisted per-install salt. After rotation, all CLI
+processes on this machine will use the new token automatically. Useful after a
+process-list leak that may have exposed the previous derived value.
 
 ```bash
 # Persistent rotation (add to shell profile)
@@ -50,8 +69,6 @@ export OMNIROUTE_CLI_SALT="my-secret-salt-2026"
 # Verify new token is in use
 omniroute status
 ```
-
-Default salt: `omniroute-cli-auth-v1`
 
 ## Legacy format (SHA-256, 32-char) — still accepted
 
@@ -76,6 +93,8 @@ user on the same host could compute the same token.
 | File                                      | Purpose                                  |
 | ----------------------------------------- | ---------------------------------------- |
 | `src/lib/machineToken.ts`                 | Token derivation (`getMachineTokenSync`) |
+| `bin/cli/utils/cliToken.mjs`              | CLI-side mirror of the same derivation   |
+| `<DATA_DIR>/cli-token-salt.json`          | Persisted random per-install salt        |
 | `src/server/authz/headers.ts`             | `CLI_TOKEN_HEADER` constant              |
 | `src/server/authz/policies/management.ts` | Server-side verification                 |
 | `src/server/authz/routeGuard.ts`          | Loopback host check (`isLoopbackHost`)   |

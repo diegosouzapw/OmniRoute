@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 // #6696 — the combo builder's "pin a specific account" feature for fingerprint
-// providers (mimocode/mcode/opencode) builds a composite connectionId of the
+// providers (opencode) builds a composite connectionId of the
 // form `${rowId}|fp|${fingerprint}` (src/lib/combos/builderOptions.ts:251), but
 // nothing in the combo execution path ever splits that composite id back into
 // a real rowId + a selected fingerprint. This test proves the pin is inert:
@@ -27,8 +27,8 @@ function makeTarget(overrides: Record<string, unknown> = {}) {
     kind: "model" as const,
     stepId: "step-0",
     executionKey: "step-0",
-    modelStr: "mimocode/mimo-auto",
-    provider: "mimocode",
+    modelStr: "opencode/kimi-k2",
+    provider: "opencode",
     providerId: null,
     connectionId: "conn-1",
     weight: 0,
@@ -41,7 +41,7 @@ test("#6696: fp-pinned composite connectionId is never resolved to the real conn
   const realConnectionId = "conn-1";
   const conn = {
     id: realConnectionId,
-    provider: "mimocode",
+    provider: "opencode",
     providerSpecificData: { fingerprints: ["fp-aaa", "fp-bbb"] },
   };
   const connById = new Map([[realConnectionId, conn]]);
@@ -81,7 +81,7 @@ test("#6696: composite connectionId never matches connectionById (root cause of 
   const realConnectionId = "conn-1";
   const conn = {
     id: realConnectionId,
-    provider: "mimocode",
+    provider: "opencode",
     providerSpecificData: { fingerprints: ["fp-aaa", "fp-bbb"] },
   };
   const connById = new Map([[realConnectionId, conn]]);

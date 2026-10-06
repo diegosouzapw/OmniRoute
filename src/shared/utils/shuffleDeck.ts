@@ -138,6 +138,33 @@ export function getNextFromDeckSync(namespace: string, itemIds: readonly string[
   return newOrder[0];
 }
 
+/** Plan a deck selection without advancing shared state until commit. */
+export function planNextFromDeckSync(namespace: string, itemIds: readonly string[]) {
+  if (itemIds.length === 0) return { selectedId: "", commit: () => {} };
+  if (itemIds.length === 1) return { selectedId: itemIds[0], commit: () => {} };
+
+  const idsKey = [...itemIds].sort().join(",");
+  const existing = decks.get(namespace);
+  if (existing && existing.idsKey === idsKey && existing.index < existing.order.length) {
+    const selectedId = existing.order[existing.index];
+    return {
+      selectedId,
+      commit: () => decks.set(namespace, { ...existing, index: existing.index + 1 }),
+    };
+  }
+
+  const lastUsedId =
+    existing && existing.idsKey === idsKey && existing.order.length > 0
+      ? existing.order[existing.order.length - 1]
+      : undefined;
+  const order = fisherYatesShuffle(itemIds);
+  if (lastUsedId !== undefined && order[0] === lastUsedId && order.length > 1) {
+    const swapIdx = 1 + secureRandomInt(order.length - 1);
+    [order[0], order[swapIdx]] = [order[swapIdx], order[0]];
+  }
+  return { selectedId: order[0], commit: () => decks.set(namespace, { order, index: 1, idsKey }) };
+}
+
 // ─── Test helpers ───────────────────────────────────────────────────────────
 
 /** Reset all decks — for testing only. */

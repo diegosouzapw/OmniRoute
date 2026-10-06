@@ -13,7 +13,7 @@ const core = await import("../../src/lib/db/core.ts");
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("Test 1: migrateFromJson handles empty db.json and renames it", () => {

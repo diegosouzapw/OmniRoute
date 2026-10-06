@@ -31,7 +31,7 @@ const auth = await import("../../src/sse/services/auth.ts");
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -56,7 +56,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("codex session affinity wins over a per-request reset-aware forcedConnectionId (#5903)", async () => {
@@ -73,7 +73,11 @@ test("codex session affinity wins over a per-request reset-aware forcedConnectio
     sessionKey: "session-S",
     forcedConnectionId: connectionA.id,
   });
-  assert.equal(request1?.connectionId, connectionA.id, "request 1 should pin to the scored winner A");
+  assert.equal(
+    request1?.connectionId,
+    connectionA.id,
+    "request 1 should pin to the scored winner A"
+  );
   assert.equal(
     affinityDb.getSessionAccountAffinity("session-S", "codex", 60_000)?.connectionId,
     connectionA.id,
@@ -105,7 +109,11 @@ test("codex session affinity wins over a per-request reset-aware forcedConnectio
     sessionKey: "session-S2",
     forcedConnectionId: connectionB.id,
   });
-  assert.equal(request3?.connectionId, connectionB.id, "a new session must honor the fresh re-scored pick");
+  assert.equal(
+    request3?.connectionId,
+    connectionB.id,
+    "a new session must honor the fresh re-scored pick"
+  );
   assert.equal(
     affinityDb.getSessionAccountAffinity("session-S2", "codex", 60_000)?.connectionId,
     connectionB.id,

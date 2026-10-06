@@ -132,6 +132,119 @@ test("handleAudioSpeech rejects invalid ElevenLabs voice identifiers", async () 
   }
 });
 
+test("handleAudioSpeech maps OpenAI stock voice name alloy to a real ElevenLabs voice_id", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl;
+
+  globalThis.fetch = async (url) => {
+    capturedUrl = String(url);
+    return new Response(new Uint8Array([1, 2, 3]), {
+      status: 200,
+      headers: { "content-type": "audio/mpeg" },
+    });
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: {
+        model: "elevenlabs/eleven_multilingual_v2",
+        input: "hello",
+        voice: "alloy",
+      },
+      credentials: { apiKey: "xi-key" },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(capturedUrl, "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioSpeech resolves ElevenLabs display name 'rachel' case-insensitively", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl;
+
+  globalThis.fetch = async (url) => {
+    capturedUrl = String(url);
+    return new Response(new Uint8Array([1, 2, 3]), {
+      status: 200,
+      headers: { "content-type": "audio/mpeg" },
+    });
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: {
+        model: "elevenlabs/eleven_multilingual_v2",
+        input: "hello",
+        voice: "rachel",
+      },
+      credentials: { apiKey: "xi-key" },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(capturedUrl, "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioSpeech defaults to Rachel's voice_id when voice is omitted", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl;
+
+  globalThis.fetch = async (url) => {
+    capturedUrl = String(url);
+    return new Response(new Uint8Array([1, 2, 3]), {
+      status: 200,
+      headers: { "content-type": "audio/mpeg" },
+    });
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: {
+        model: "elevenlabs/eleven_multilingual_v2",
+        input: "hello",
+      },
+      credentials: { apiKey: "xi-key" },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(capturedUrl, "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioSpeech returns 400 for an unresolvable ElevenLabs voice name instead of forwarding upstream", async () => {
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    throw new Error("should not fetch");
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: {
+        model: "elevenlabs/eleven_turbo_v2_5",
+        input: "unknown voice",
+        voice: "totally-not-a-voice",
+      },
+      credentials: { apiKey: "xi-key" },
+    });
+    const payload = (await response.json()) as { error: { message: string } };
+
+    assert.equal(response.status, 400);
+    assert.match(payload.error.message, /Unknown ElevenLabs voice/);
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleAudioSpeech maps Cartesia voice and wav output settings", async () => {
   const originalFetch = globalThis.fetch;
   let captured;
@@ -420,9 +533,25 @@ test("handleAudioSpeech routes Nvidia TTS providers with default voice", async (
 });
 
 test("handleAudioSpeech validates HuggingFace model identifiers", async () => {
-  const response = await handleAudioSpeech({
+  // #15067 moved dot-segment rejection into model parsing (hasUnsafeModelIdSyntax), so
+  // "huggingface/../escape" no longer resolves to a provider at all — still a 400.
+  const traversal = await handleAudioSpeech({
     body: {
       model: "huggingface/../escape",
+      input: "bad model",
+    },
+    credentials: { apiKey: "hf-key" },
+  });
+  const traversalPayload = (await traversal.json()) as { error: { message: string } };
+
+  assert.equal(traversal.status, 400);
+  assert.match(traversalPayload.error.message, /^No speech provider found for model/);
+
+  // Ids the parser accepts but the HuggingFace path guard still refuses keep the
+  // handler-level "Invalid model ID" answer (defense in depth).
+  const response = await handleAudioSpeech({
+    body: {
+      model: "huggingface/facebook//mms-tts-eng",
       input: "bad model",
     },
     credentials: { apiKey: "hf-key" },

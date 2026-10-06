@@ -4,6 +4,11 @@ import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { getProviderConnections } from "@/lib/db/providers";
 import { getCircuitBreaker } from "@/shared/utils/circuitBreaker";
 import { getModelLockoutInfo } from "@omniroute/open-sse/services/accountFallback.ts";
+import {
+  createCodexAccountPool,
+  inspectCodexAccount,
+  resolveCodexAccount,
+} from "@omniroute/open-sse/services/codexAccount/index.ts";
 import type {
   ResilienceAccountExplanation,
   ResilienceExplainState,
@@ -71,22 +76,6 @@ function retryAfter(until: string | null | undefined, now: number): number | nul
 
 function isTerminalStatus(status: string): boolean {
   return status === "credits_exhausted" || status === "banned" || status === "expired";
-}
-
-function getCodexModelScope(model: string | null | undefined): "gpt-5" | "gpt-5-codex" {
-  const normalized = String(model || "").toLowerCase();
-  return normalized.includes("codex") ? "gpt-5-codex" : "gpt-5";
-}
-
-function getCodexScopeRateLimitedUntil(
-  providerSpecificData: unknown,
-  model: string | null | undefined
-): string | null {
-  if (!model) return null;
-  const data = asRecord(providerSpecificData);
-  const scopeMap = asRecord(data.codexScopeRateLimitedUntil);
-  const value = scopeMap[getCodexModelScope(model)];
-  return toStringOrNull(value);
 }
 
 function buildProviderExplanation(provider: string): {
@@ -274,10 +263,20 @@ function accountReason(
     };
   }
 
-  const codexUntil =
+  const codexPool =
     options.provider === "codex"
-      ? getCodexScopeRateLimitedUntil(connection.providerSpecificData, options.model)
+      ? createCodexAccountPool({
+          id: connectionId,
+          provider: options.provider,
+          providerSpecificData: asRecord(connection.providerSpecificData),
+        })
       : null;
+  const codexAccount = codexPool ? resolveCodexAccount(codexPool, options.model) : null;
+  const codexState =
+    codexPool && codexAccount?.kind === "child"
+      ? inspectCodexAccount(codexPool, codexAccount, options.now)
+      : null;
+  const codexUntil = codexState?.kind === "child" ? codexState.rateLimitedUntil : null;
   const codexCooldownMs = retryAfter(codexUntil, options.now);
   if (codexCooldownMs !== null && codexCooldownMs > 0) {
     return {
@@ -288,7 +287,7 @@ function accountReason(
         connectionId,
         message: `Codex scope for ${options.model} is in cooldown until ${codexUntil}.`,
         retryAfterMs: codexCooldownMs,
-        evidence: { rateLimitedUntil: codexUntil, scope: getCodexModelScope(options.model) },
+        evidence: { rateLimitedUntil: codexUntil, scope: codexState?.scope ?? null },
       },
     };
   }

@@ -11,15 +11,43 @@ OmniRoute compression is built around engine contracts. A mode can run one engin
 
 ## Modes
 
-| Mode         | Engine path                        | Intended input                               |
-| ------------ | ---------------------------------- | -------------------------------------------- |
-| `off`        | none                               | Exact prompt preservation                    |
-| `lite`       | Caveman lite helpers               | Low-risk always-on cleanup                   |
-| `standard`   | Caveman                            | Natural-language prompt condensation         |
-| `aggressive` | Caveman + history/tool summarizers | Long chat sessions                           |
-| `ultra`      | Caveman + pruning helpers          | Context-limit recovery                       |
-| `rtk`        | RTK                                | Terminal, shell, build, test, and git output |
-| `stacked`    | Pipeline, default `rtk -> caveman` | Mixed tool logs and prose, max savings       |
+| Mode         | Engine path                                                                           | Intended input                               |
+| ------------ | ------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `off`        | none                                                                                  | Exact prompt preservation                    |
+| `lite`       | Caveman lite helpers                                                                  | Low-risk always-on cleanup                   |
+| `standard`   | Caveman                                                                               | Natural-language prompt condensation         |
+| `aggressive` | Caveman + history/tool summarizers                                                    | Long chat sessions                           |
+| `ultra`      | Caveman + pruning helpers                                                             | Context-limit recovery                       |
+| `rtk`        | RTK                                                                                   | Terminal, shell, build, test, and git output |
+| `omniglyph`  | OmniGlyph                                                                             | Context-as-image on the native provider wire |
+| `stacked`    | Pipeline. The request default is `session-dedup -> lite`. `rtk -> caveman` is opt-in. | Mixed tool logs and prose, max savings       |
+
+### OmniGlyph compression profiles
+
+The `omniglyph` engine (package `omniglyph`, 1.4.0+) accepts a named semantic profile, set
+globally through `omniglyph.profile` in the compression settings or per step through the
+stacked pipeline's step config:
+
+| Profile       | Boundary                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Default. The policy the published receipts measured — images system, tool docs and dense history |
+| `balanced`    | Keeps live state native, protects the last 8 turns, collapses older closed history               |
+| `coding-safe` | Keeps authority, tool schemas and live tool output native, protects the last 12 turns            |
+| `passthrough` | Routes without transforming; the engine is skipped                                               |
+
+The profile is a **ceiling, not a floor**: `mergeCompressionProfileOptions` in the package
+refuses to let a caller override reopen a lossy lane the profile closed, so a per-step
+`preserveSystemPrompt: false` cannot re-enable system compression under `coding-safe`.
+
+Measured on this codebase: `coding-safe` and `balanced` raise `minCompressChars` to its
+maximum and keep system, tool schemas and tool results native, so a session that has not
+accumulated history yet stops at `below_min_chars` and the engine transforms nothing. That
+is why the default is `aggressive` rather than the safest profile.
+
+The package resolves its own model scope and profile from its environment configuration.
+OmniRoute never delegates the decision: the adapter pins the model gate to the package's
+most restrictive scope, so host environment settings can only narrow the allowlist, never
+widen it past OmniRoute's measured receipts.
 
 ## Engine Registry
 
@@ -142,22 +170,22 @@ override points it at a local copy instead (offline / air-gapped installs).
 
 ### Optional dependencies & on-demand install
 
-The prunable LLMLingua runtime peer stack is **optional**. Three packages are declared as
+The prunable LLMLingua runtime peer stack is **optional**. Two packages are declared as
 `optionalDependencies` in `package.json` and kept **external** by the production build
 (`scripts/build/prepublish.ts` does not bundle them):
 
-| Package              | Version (pin) | Notes                                          |
-| -------------------- | ------------- | ---------------------------------------------- |
-| `@atjsh/llmlingua-2` | `2.0.3`       | Entry package; declares the others as peers    |
-| `@tensorflow/tfjs`   | `4.22.0`      | Heaviest dep — dominates the ~800 MB footprint |
-| `js-tiktoken`        | `^1.0.20`     | Tokenizer                                      |
+| Package              | Version (pin) | Notes                                       |
+| -------------------- | ------------- | ------------------------------------------- |
+| `@atjsh/llmlingua-2` | `2.0.5`       | Entry package; declares the others as peers |
+| `js-tiktoken`        | `^1.0.20`     | Tokenizer                                   |
 
-`@huggingface/transformers` is pinned at `3.5.2` as an **optional** dependency (shared with
-the local embeddings path and also traced into the standalone bundle). Keeping it optional prevents
-`onnxruntime-node` CUDA provider postinstall failures on CUDA 11 hosts from aborting the whole
-OmniRoute install; when the optional stack is absent, LLMLingua still fail-opens. Only the three
-packages above are prunable SLM peers. A standard `npm install` (dev) installs the optional stack
-automatically unless optional dependencies are omitted.
+`@huggingface/transformers` is pinned at `^4.2.0` (shared with the local embeddings path and
+also traced into the standalone bundle); `@atjsh/llmlingua-2@2.0.5` peers on it with
+`"^3.5.2 || ^4.0.0"`, so both Transformers.js v3 and v4 are supported. Since 2.0.4,
+`@atjsh/llmlingua-2` no longer requires `@tensorflow/tfjs`, which removed the largest single
+contributor (TensorFlow.js) from the SLM stack. Only the two packages above are prunable SLM
+peers. A standard `npm install` (dev) installs the optional stack automatically unless optional
+dependencies are omitted.
 
 **Why on-demand:** the npm-published package, the standalone bundle, and the Docker image
 ship **without** these deps to stay slim. When they are absent, the worker's dependency
@@ -167,11 +195,12 @@ error logged). To activate it in a pruned environment, install the optional stac
 
 ```bash
 # pin to the versions declared in package.json optionalDependencies
-npm install @atjsh/llmlingua-2@2.0.3 @tensorflow/tfjs@4.22.0 js-tiktoken
+npm install @atjsh/llmlingua-2@2.0.5 js-tiktoken
 ```
 
-Roughly **~800 MB** total: the TensorFlow.js + transformers runtimes dominate; the
-TinyBERT model adds ~57 MB downloaded at first use (not via npm).
+The `@tensorflow/tfjs` removal (2.0.4+) eliminates the previously dominant ~800 MB
+contributor — the remaining footprint is the transformers.js + onnxruntime-node runtimes,
+plus the TinyBERT model (~57 MB) downloaded at first use (not via npm).
 
 Per environment:
 

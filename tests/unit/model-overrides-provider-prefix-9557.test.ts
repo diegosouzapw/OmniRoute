@@ -22,14 +22,14 @@ const sseModel = await import("../../src/sse/services/model.ts");
 
 beforeEach(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(moduleDataDir, { recursive: true, force: true });
+  fs.rmSync(moduleDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(moduleDataDir, { recursive: true });
   coreDb.getDbInstance();
 });
 
 after(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(moduleDataDir, { recursive: true, force: true });
+  fs.rmSync(moduleDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const NODE_ID = "openai-compatible-chat-02669115-2545-4896-b003-cb4dac09d441";

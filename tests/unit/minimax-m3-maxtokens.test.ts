@@ -31,17 +31,14 @@ const { getModelSpec } = await import("../../src/shared/constants/modelSpecs.ts"
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const DEFAULT_CAP = 8192;
 
 test("#3141 MiniMax-M3 max_tokens is not capped to the 8192 default", () => {
   const cap = modelCapabilities.capMaxOutputTokens({ provider: "minimax", model: "MiniMax-M3" });
-  assert.ok(
-    cap > DEFAULT_CAP,
-    `expected MiniMax-M3 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`
-  );
+  assert.ok(cap > DEFAULT_CAP, `expected MiniMax-M3 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`);
 });
 
 test("#3141 MiniMaxAI/MiniMax-M3 (prefixed id) resolves above the 8192 default", () => {

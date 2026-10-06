@@ -3,9 +3,7 @@ import assert from "node:assert/strict";
 
 import { parseGeminiModelsList } from "../../src/lib/providerModels/geminiModelsParser";
 
-// A representative slice of the live generativelanguage v1beta/models response — including the
-// image models (gemini-*-image via generateContent, imagen-* via predict) that the Vertex catalog
-// must surface dynamically.
+// A representative slice of the live generativelanguage v1beta/models response.
 const SAMPLE = {
   models: [
     {
@@ -17,14 +15,19 @@ const SAMPLE = {
       thinking: true,
     },
     {
+      name: "models/gemini-3.5-flash",
+      displayName: "Gemini 3.5 Flash",
+      supportedGenerationMethods: ["generateContent"],
+    },
+    {
+      name: "models/gemini-3.5-flash-lite",
+      displayName: "Gemini 3.5 Flash Lite",
+      supportedGenerationMethods: ["generateContent"],
+    },
+    {
       name: "models/gemini-3-pro-image-preview",
       displayName: "Gemini 3 Pro Image Preview",
       supportedGenerationMethods: ["generateContent", "countTokens"],
-    },
-    {
-      name: "models/imagen-4.0-generate-001",
-      displayName: "Imagen 4.0",
-      supportedGenerationMethods: ["predict"],
     },
     {
       name: "models/text-embedding-004",
@@ -41,13 +44,6 @@ const SAMPLE = {
       displayName: "Veo 3.0",
       supportedGenerationMethods: ["predictLongRunning"],
     },
-    {
-      // Defensive: an Imagen model exposed via a long-running method must stay
-      // "images", never "video".
-      name: "models/imagen-future-preview",
-      displayName: "Imagen Future",
-      supportedGenerationMethods: ["predictLongRunning"],
-    },
   ],
 };
 
@@ -62,6 +58,12 @@ test("parseGeminiModelsList strips the models/ prefix and maps display name", ()
   assert.deepEqual(flash!.supportedEndpoints, ["chat"]);
 });
 
+test("parseGeminiModelsList excludes retired Gemini 3.5 Flash but keeps Flash Lite", () => {
+  const ids = parseGeminiModelsList(SAMPLE).map((model) => model.id);
+  assert.equal(ids.includes("gemini-3.5-flash"), false);
+  assert.equal(ids.includes("gemini-3.5-flash-lite"), true);
+});
+
 test("parseGeminiModelsList maps generateContent image models to the chat endpoint", () => {
   const models = parseGeminiModelsList(SAMPLE);
   const proImage = models.find((m) => m.id === "gemini-3-pro-image-preview");
@@ -70,35 +72,28 @@ test("parseGeminiModelsList maps generateContent image models to the chat endpoi
   assert.deepEqual(proImage!.supportedEndpoints, ["chat"]);
 });
 
-test("parseGeminiModelsList maps Imagen predict models to the images endpoint", () => {
-  const models = parseGeminiModelsList(SAMPLE);
-  const imagen = models.find((m) => m.id === "imagen-4.0-generate-001");
-  assert.ok(imagen, "imagen-4.0-generate-001 should be present");
-  assert.deepEqual(imagen!.supportedEndpoints, ["images"]);
-});
-
-test("parseGeminiModelsList maps embedContent and bidiGenerateContent", () => {
+test("parseGeminiModelsList maps embeddings without advertising unsupported Gemini Live", () => {
   const models = parseGeminiModelsList(SAMPLE);
   assert.deepEqual(models.find((m) => m.id === "text-embedding-004")!.supportedEndpoints, [
     "embeddings",
   ]);
-  assert.deepEqual(models.find((m) => m.id === "gemini-live-2.5-flash")!.supportedEndpoints, [
-    "audio",
-  ]);
+  assert.equal(models.some((m) => m.id === "gemini-live-2.5-flash"), false);
+  const [hybrid] = parseGeminiModelsList({
+    models: [
+      {
+        name: "models/gemini-live-hybrid",
+        supportedGenerationMethods: ["generateContent", "bidiGenerateContent"],
+      },
+    ],
+  });
+  assert.deepEqual(hybrid.supportedEndpoints, ["chat"]);
 });
 
-test("parseGeminiModelsList maps Veo predictLongRunning models to the video endpoint", () => {
+test("parseGeminiModelsList maps Veo predictLongRunning models to the videos endpoint", () => {
   const models = parseGeminiModelsList(SAMPLE);
   const veo = models.find((m) => m.id === "veo-3.0-generate-001");
   assert.ok(veo, "veo-3.0-generate-001 should be present");
-  assert.deepEqual(veo!.supportedEndpoints, ["video"]);
-});
-
-test("parseGeminiModelsList keeps Imagen as images even via a long-running method", () => {
-  const models = parseGeminiModelsList(SAMPLE);
-  const imagen = models.find((m) => m.id === "imagen-future-preview");
-  assert.ok(imagen, "imagen-future-preview should be present");
-  assert.deepEqual(imagen!.supportedEndpoints, ["images"]);
+  assert.deepEqual(veo!.supportedEndpoints, ["videos"]);
 });
 
 test("parseGeminiModelsList defaults to chat and tolerates empty/missing input", () => {

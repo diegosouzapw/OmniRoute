@@ -67,19 +67,123 @@ export function patchJsonManifestFile(filePath, basePath) {
 }
 
 const BASE_PATH_LITERAL_RE =
-  /basePath\s*:\s*(?:""|''|`{2})|basePath\s*:\s*void 0|"basePath"\s*:\s*""/g;
+  /(?:basePath|assetPrefix)\s*:\s*(?:""|''|``)|(?:basePath|assetPrefix)\s*:\s*void 0|"(?:basePath|assetPrefix)"\s*:\s*""|"NEXT_PUBLIC_OMNIROUTE_BASE_PATH"\s*:\s*""|NEXT_PUBLIC_OMNIROUTE_BASE_PATH\s*:\s*""/g;
 
 /**
+ * Rewrite the bare config literals Next bakes into the standalone output:
+ *   - `basePath` (routing + server-rendered links) — the original scope;
+ *   - `assetPrefix` (Next 16 app-router renders SSR asset URLs from
+ *     `assetPrefix` ALONE — basePath only affects routing, so a subpath
+ *     deploy must mirror it or every `/_next/static` shell reference 404s);
+ *   - the `NEXT_PUBLIC_OMNIROUTE_BASE_PATH` env mirror in the inline
+ *     nextConfig (server.js) so server-side env reads stay consistent.
+ *
  * @param {string} content
  * @param {string} basePath
  */
 export function patchBasePathLiterals(content, basePath) {
   const escaped = basePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   return content.replace(BASE_PATH_LITERAL_RE, (match) => {
-    if (match.startsWith('"basePath"')) return `"basePath":"${escaped}"`;
-    if (match.includes("void 0")) return `basePath:"${escaped}"`;
-    return `basePath:"${escaped}"`;
+    if (match.startsWith('"NEXT_PUBLIC_OMNIROUTE_BASE_PATH"')) {
+      return `"NEXT_PUBLIC_OMNIROUTE_BASE_PATH":"${escaped}"`;
+    }
+    if (match.startsWith("NEXT_PUBLIC_OMNIROUTE_BASE_PATH")) {
+      return `NEXT_PUBLIC_OMNIROUTE_BASE_PATH:"${escaped}"`;
+    }
+    if (match.startsWith('"')) {
+      // `"basePath":""` / `"assetPrefix":""` (JSON-ish inline config)
+      const key = match.slice(1, match.indexOf('"', 1));
+      return `"${key}":"${escaped}"`;
+    }
+    // `basePath:""` / `basePath:void 0` / `assetPrefix:""` (minified code)
+    const key = match.slice(0, match.indexOf(":")).trim();
+    return `${key}:"${escaped}"`;
   });
+}
+
+/**
+ * Turbopack's client `process` shim ships an empty env object (`.env={}`).
+ * Next 16's client code reads NEXT_PUBLIC_* / OMNIROUTE_BASE_PATH from it at
+ * runtime, so without this the client never learns the subpath and the
+ * dashboard's fetch/EventSource rewriting (basePathFetch) silently stays on
+ * the root path. Populate the two keys the app reads.
+ *
+ * @param {string} content
+ * @param {string} basePath
+ */
+export function patchProcessEnvShim(content, basePath) {
+  const escaped = basePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return content.replace(/\.env=\{\}/g, () => {
+    const keys = `OMNIROUTE_BASE_PATH:"${escaped}",NEXT_PUBLIC_OMNIROUTE_BASE_PATH:"${escaped}"`;
+    return `.env={${keys}}`;
+  });
+}
+
+/**
+ * Rewrite baked absolute asset URLs (`"/_next/static/..."`) to the subpath.
+ * Covers the client-reference-manifest chunk lists (they are serialized into
+ * the RSC flight payload verbatim) and the client/server chunk media imports
+ * — every `/ _next/static` reference must be prefixed because the standalone
+ * server only serves assets under basePath.
+ *
+ * @param {string} content
+ * @param {string} basePath
+ */
+export function patchBakedAssetUrls(content, basePath) {
+  const escaped = basePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return content.replace(
+    /(["'`])\/_next\/static/g,
+    (_match, quote) => `${quote}${escaped}/_next/static`
+  );
+}
+
+/**
+ * Rewrite the client chunk-loader base (#9124). The root-built bundle bakes
+ * the lazy-chunk base as a bare "/_next/" literal:
+ *   - webpack runtime: `i.p="/_next/"` (`__webpack_require__.p`, publicPath);
+ *   - Turbopack runtime: `TURBOPACK_CHUNK_BASE_PATH:"/_next/"` fallback;
+ *   - webpack client-reference manifests: `"moduleLoading":{"prefix":"/_next/"}`
+ *     (SSR emits the client-chunk <script> tags from this prefix, not from
+ *     assetPrefix).
+ * Left unpatched, the <script> tags are prefixed but every lazily loaded chunk
+ * is requested from `/_next/...`, which 404s behind a non-stripping subpath
+ * proxy and leaves the dashboard un-hydrated with no console error (Turbopack)
+ * or a MIME-type refusal (webpack). Only these two assignment shapes are
+ * touched: the `indexOf("/_next/")` probe that derives the asset prefix from a
+ * script src and `assetPrefix + "/_next/"` joins must stay as they are.
+ *
+ * @param {string} content
+ * @param {string} basePath
+ */
+export function patchChunkLoaderBase(content, basePath) {
+  const escaped = basePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return content
+    .replace(
+      /(\b[A-Za-z_$][\w$]*\.p\s*=\s*)(["'])\/_next\/\2/g,
+      (_match, lhs, quote) => `${lhs}${quote}${escaped}/_next/${quote}`
+    )
+    .replace(
+      /(TURBOPACK_CHUNK_BASE_PATH\s*:\s*)(["'])\/_next\/\2/g,
+      (_match, lhs, quote) => `${lhs}${quote}${escaped}/_next/${quote}`
+    )
+    .replace(
+      /("moduleLoading"\s*:\s*\{\s*"prefix"\s*:\s*)"\/_next\/"/g,
+      (_match, lhs) => `${lhs}"${escaped}/_next/"`
+    );
+}
+
+/**
+ * Rewrite `url(/_next/static/...)` references in compiled CSS (fonts, images).
+ * CSS minifiers drop the quotes, so `patchBakedAssetUrls` never sees them.
+ *
+ * @param {string} content
+ * @param {string} basePath
+ */
+export function patchCssAssetUrls(content, basePath) {
+  return content.replace(
+    /url\((\s*["']?)\/_next\/static/g,
+    (_match, open) => `url(${open}${basePath}/_next/static`
+  );
 }
 
 /**
@@ -98,9 +202,13 @@ function walkAndPatchTextFiles(rootDir, basePath) {
         stack.push(full);
         continue;
       }
-      if (!/\.(?:js|json|cjs|mjs)$/.test(entry.name)) continue;
+      const isCss = entry.name.endsWith(".css");
+      if (!isCss && !/\.(?:js|json|cjs|mjs|html)$/.test(entry.name)) continue;
       const before = fs.readFileSync(full, "utf8");
-      const after = patchBasePathLiterals(before, basePath);
+      const patches = isCss
+        ? [patchCssAssetUrls, patchBakedAssetUrls]
+        : [patchBasePathLiterals, patchProcessEnvShim, patchBakedAssetUrls, patchChunkLoaderBase];
+      const after = patches.reduce((content, patch) => patch(content, basePath), before);
       if (after !== before) {
         fs.writeFileSync(full, after);
         patchedFiles += 1;

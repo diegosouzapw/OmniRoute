@@ -16,31 +16,27 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 // Boot DB so migrations run
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
 
-const hostsRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/hosts/route.ts"
-);
-const hostDetailRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/hosts/[host]/route.ts"
-);
+const hostsRoute = await import("../../src/app/api/tools/traffic-inspector/hosts/route.ts");
+const hostDetailRoute =
+  await import("../../src/app/api/tools/traffic-inspector/hosts/[host]/route.ts");
 
 test.beforeEach(async () => {
   resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   // Re-init DB with fresh migrations
   await import("../../src/lib/db/core.ts").then((m) => m.getDbInstance());
 });
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("GET /hosts: returns empty list initially", async () => {
   const res = await hostsRoute.GET();
   assert.equal(res.status, 200);
-  const body = await res.json() as { hosts: unknown[] };
+  const body = (await res.json()) as { hosts: unknown[] };
   assert.deepEqual(body.hosts, []);
 });
 
@@ -52,13 +48,13 @@ test("POST /hosts: adds a host", async () => {
   });
   const res = await hostsRoute.POST(req);
   assert.equal(res.status, 201);
-  const body = await res.json() as { ok: boolean; host: string };
+  const body = (await res.json()) as { ok: boolean; host: string };
   assert.equal(body.ok, true);
   assert.equal(body.host, "api.openai.com");
 
   // Verify it appears in list
   const listRes = await hostsRoute.GET();
-  const list = await listRes.json() as { hosts: Array<{ host: string }> };
+  const list = (await listRes.json()) as { hosts: Array<{ host: string }> };
   assert.ok(list.hosts.some((h) => h.host === "api.openai.com"));
 });
 
@@ -70,7 +66,7 @@ test("POST /hosts: rejects empty host string", async () => {
   });
   const res = await hostsRoute.POST(req);
   assert.equal(res.status, 400);
-  const body = await res.json() as { error: { message: string } };
+  const body = (await res.json()) as { error: { message: string } };
   assert.ok(!body.error.message.includes("at /"), "must not leak stack trace");
 });
 
@@ -94,15 +90,14 @@ test("DELETE /hosts/[host]: removes existing host", async () => {
   await hostsRoute.POST(addReq);
 
   // Now delete it
-  const delRes = await hostDetailRoute.DELETE(
-    new Request("http://localhost/"),
-    { params: Promise.resolve({ host: "remove-me.example.com" }) }
-  );
+  const delRes = await hostDetailRoute.DELETE(new Request("http://localhost/"), {
+    params: Promise.resolve({ host: "remove-me.example.com" }),
+  });
   assert.equal(delRes.status, 204);
 
   // Verify gone
   const listRes = await hostsRoute.GET();
-  const list = await listRes.json() as { hosts: Array<{ host: string }> };
+  const list = (await listRes.json()) as { hosts: Array<{ host: string }> };
   assert.ok(!list.hosts.some((h) => h.host === "remove-me.example.com"));
 });
 
@@ -125,7 +120,7 @@ test("PATCH /hosts/[host]: toggles enabled flag", async () => {
     { params: Promise.resolve({ host: "toggle-me.example.com" }) }
   );
   assert.equal(patchRes.status, 200);
-  const body = await patchRes.json() as { enabled: boolean };
+  const body = (await patchRes.json()) as { enabled: boolean };
   assert.equal(body.enabled, false);
 });
 

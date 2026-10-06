@@ -101,7 +101,7 @@ function restoreEnv() {
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -142,7 +142,7 @@ test.afterEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test.describe("modelsDevSync-extended", { concurrency: 1 }, async () => {
@@ -259,6 +259,45 @@ test.describe("modelsDevSync-extended", { concurrency: 1 }, async () => {
 
     modelsDev.clearModelsDevPricing();
     assert.deepEqual(modelsDev.getModelsDevPricing(), {});
+  });
+
+  test("getModelsDevPricing memoizes until save/clear (#9685)", async () => {
+    const modelsDev = await importFresh("pricing-memo");
+    const pricing = modelsDev.transformModelsDevToPricing(MOCK_MODELS_DEV_DATA);
+    modelsDev.saveModelsDevPricing(pricing);
+
+    const first = modelsDev.getModelsDevPricing();
+    const second = modelsDev.getModelsDevPricing();
+    assert.equal(first, second, "repeated reads must return the same memoized object");
+
+    // Mutating DB under the cache must not be visible until invalidation.
+    const db = core.getDbInstance();
+    db.prepare("DELETE FROM key_value WHERE namespace = 'models_dev_pricing'").run();
+    assert.equal(
+      modelsDev.getModelsDevPricing(),
+      first,
+      "raw SQL without save/clear must not bypass the memo"
+    );
+
+    modelsDev.clearModelsDevPricing();
+    assert.deepEqual(modelsDev.getModelsDevPricing(), {});
+
+    modelsDev.saveModelsDevPricing(pricing);
+    const afterSave = modelsDev.getModelsDevPricing();
+    assert.notEqual(afterSave, first, "save must invalidate the memo");
+    assert.equal(afterSave.openai["gpt-4o"].input, 2.5);
+
+    // Copilot review: DB reset must invalidate the memo so import/restore doesn't serve stale pricing.
+    const beforeReset = modelsDev.getModelsDevPricing();
+    core.resetDbInstance();
+    const afterReset = modelsDev.getModelsDevPricing();
+    assert.notEqual(
+      afterReset,
+      beforeReset,
+      "resetDbInstance must invalidate the memo (Copilot #10055)"
+    );
+    // Data is still on disk after resetDbInstance(), but the cache was cleared and re-read from fresh DB.
+    assert.equal(afterReset.openai["gpt-4o"].input, 2.5, "DB reset re-reads from fresh connection");
   });
 
   test("modelsDev capabilities helpers create the table, persist rows, filter by provider/model, and expose context limits", async () => {
@@ -671,7 +710,7 @@ test("the usual truthy spellings all start the sync, and nothing else does", asy
         // then never fetched anything; pin the fetch actually having run
         // for each truthy spelling, not just the first one.
         assert.ok(
-          await waitFor(() => modelsDev.getSyncStatus().lastSync !== null),
+          await waitFor(() => modelsDev.getSyncStatus().lastSync !== null, 2000),
           `MODELS_DEV_SYNC_ENABLED=${JSON.stringify(value)} should have completed a sync`
         );
       }
@@ -744,5 +783,48 @@ test("an unset MODELS_DEV_SYNC_ENABLED still defers to a stored setting of true"
     modelsDev.stopPeriodicSync();
     if (previous === undefined) delete process.env.MODELS_DEV_SYNC_ENABLED;
     else process.env.MODELS_DEV_SYNC_ENABLED = previous;
+  }
+});
+
+test("MODELS_DEV_SYNC_ENABLED=0 is a hard kill switch that wins over the setting", async () => {
+  const previous = process.env.MODELS_DEV_SYNC_ENABLED;
+  process.env.MODELS_DEV_SYNC_ENABLED = "0";
+  try {
+    const modelsDev = await importFresh("env-kill-switch-0");
+    mockFetchWith(MOCK_MODELS_DEV_DATA);
+
+    const pricing = modelsDev.transformModelsDevToPricing(MOCK_MODELS_DEV_DATA);
+    modelsDev.saveModelsDevPricing(pricing);
+    assert.deepEqual(
+      modelsDev.getModelsDevPricing(),
+      {},
+      "kill switch skips the SQL/JSON pricing scan entirely"
+    );
+
+    await settingsDb.updateSettings({
+      modelsDevSyncEnabled: true,
+      modelsDevSyncInterval: 15,
+    });
+    await modelsDev.initModelsDevSync();
+    assert.equal(
+      modelsDev.getSyncStatus().enabled,
+      false,
+      "kill switch must prevent the periodic sync even when the setting is on"
+    );
+
+    assert.equal(modelsDev.readModelsDevSyncEnvFlag("0"), "false");
+    assert.equal(modelsDev.readModelsDevSyncEnvFlag("false"), "false");
+    assert.equal(modelsDev.readModelsDevSyncEnvFlag("off"), "false");
+    assert.equal(modelsDev.readModelsDevSyncEnvFlag("no"), "false");
+    assert.equal(modelsDev.readModelsDevSyncEnvFlag(""), "unset");
+    assert.equal(modelsDev.readModelsDevSyncEnvFlag("maybe"), "unset");
+    assert.equal(modelsDev.readModelsDevSyncEnvFlag("1"), "true");
+  } finally {
+    if (previous === undefined) delete process.env.MODELS_DEV_SYNC_ENABLED;
+    else process.env.MODELS_DEV_SYNC_ENABLED = previous;
+    await settingsDb.updateSettings({
+      modelsDevSyncEnabled: false,
+      modelsDevSyncInterval: 15,
+    });
   }
 });

@@ -1,6 +1,7 @@
 import { createInterface } from "node:readline";
 import { Argument } from "commander";
 import { apiFetch } from "../api.mjs";
+import { mcpCallTool } from "../mcpClient.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
@@ -166,14 +167,7 @@ export function registerResilience(program) {
       ])
     )
     .action(async (name, opts, cmd) => {
-      const res = await apiFetch("/api/mcp/tools/call", {
-        method: "POST",
-        body: { name: "omniroute_set_resilience_profile", arguments: { profile: name } },
-      });
-      if (!res.ok) {
-        process.stderr.write(`Error: ${res.status}\n`);
-        process.exit(1);
-      }
+      await mcpCallTool("omniroute_set_resilience_profile", { profile: name });
       process.stdout.write(`Profile: ${name}\n`);
     });
 

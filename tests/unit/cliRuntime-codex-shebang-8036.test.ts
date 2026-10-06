@@ -69,5 +69,5 @@ test("#8036: codex is reported runnable even when the launcher PATH omits node's
 });
 
 test.after(async () => {
-  await fsp.rm(sandboxHome, { recursive: true, force: true });
+  await fsp.rm(sandboxHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });

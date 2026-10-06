@@ -5,6 +5,7 @@ import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolveDataDir } from "../data-dir.mjs";
 import { registerContexts } from "./contexts.mjs";
+import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
 
 function ensureBackup(configPath) {
   if (!fs.existsSync(configPath)) return;
@@ -13,6 +14,29 @@ function ensureBackup(configPath) {
   const backupPath = path.join(backupDir, path.basename(configPath) + ".bak");
   fs.copyFileSync(configPath, backupPath);
   return backupPath;
+}
+
+function mergeClaudeSettings(existingContent, generatedContent) {
+  const generated = JSON.parse(generatedContent);
+  let current = {};
+  if (existingContent && existingContent.trim()) {
+    current = JSON.parse(existingContent);
+    if (!current || typeof current !== "object" || Array.isArray(current)) current = {};
+  }
+  return JSON.stringify(
+    {
+      ...current,
+      ...generated,
+      env: {
+        ...(current.env && typeof current.env === "object" && !Array.isArray(current.env)
+          ? current.env
+          : {}),
+        ...(generated.env || {}),
+      },
+    },
+    null,
+    2
+  );
 }
 
 async function runConfigListCommand(opts = {}) {
@@ -87,6 +111,13 @@ async function runConfigSetCommand(toolId, opts = {}) {
     return 1;
   }
 
+  const guard = await guardHostConfigTarget(result.configPath, {
+    toolLabel: toolId,
+    hostCommand: `omniroute config set ${toolId}`,
+    allowContainerWrite: Boolean(opts.allowContainerWrite ?? opts["allow-container-write"]),
+  });
+  if (guard !== 0) return guard;
+
   const nonInteractive = opts.nonInteractive || opts.yes;
 
   if (!nonInteractive) {
@@ -112,7 +143,12 @@ async function runConfigSetCommand(toolId, opts = {}) {
   const backupPath = ensureBackup(result.configPath);
   if (backupPath) printInfo(`Backup saved to: ${backupPath}`);
 
-  fs.writeFileSync(result.configPath, result.content, "utf-8");
+  let content = result.content;
+  if (toolId === "claude" && fs.existsSync(result.configPath)) {
+    content = mergeClaudeSettings(fs.readFileSync(result.configPath, "utf-8"), result.content);
+  }
+
+  fs.writeFileSync(result.configPath, content, "utf-8");
   printSuccess(`Config written to ${result.configPath}`);
   return 0;
 }
@@ -271,6 +307,10 @@ export function registerConfig(program) {
     .option("--model <model>", "Model identifier (where applicable)")
     .option("--non-interactive", "Do not prompt for confirmation")
     .option("--yes", "Skip confirmation prompt")
+    .option(
+      "--allow-container-write",
+      "Write the config even when OmniRoute runs in a container and the target is not mounted from the host"
+    )
     .action(async (tool, opts, cmd) => {
       const globalOpts = cmd.parent.optsWithGlobals();
       const exitCode = await runConfigSetCommand(tool, {
@@ -306,6 +346,10 @@ export function registerConfig(program) {
     .option("--model <model>", "Model identifier")
     .option("--non-interactive", "Do not prompt for confirmation")
     .option("--yes", "Skip confirmation prompt")
+    .option(
+      "--allow-container-write",
+      "Write the config even when OmniRoute runs in a container and the target is not mounted from the host"
+    )
     .action(async (opts, cmd) => {
       const globalOpts = cmd.parent.optsWithGlobals();
       const exitCode = await runConfigSetCommand("opencode", {

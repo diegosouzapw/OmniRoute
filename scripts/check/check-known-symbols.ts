@@ -142,8 +142,8 @@ export function diffComboStrategies(
  * getExecutor() na função main().
  */
 export function extractExecutorAliases(indexSource: string): string[] {
-  const start = indexSource.indexOf("const executors = {");
-  if (start < 0) throw new Error("could not find `const executors = {` in executors/index.ts");
+  const start = indexSource.indexOf("const lazyExecutors");
+  if (start < 0) throw new Error("could not find 'const lazyExecutors' in executors/index.ts");
   const end = indexSource.indexOf("\n};", start);
   if (end < 0) throw new Error("could not find end of executors map (`\\n};`)");
   const block = indexSource.slice(start, end);
@@ -166,17 +166,34 @@ export type ExecutorLike = {
  * Dada a lista de aliases e um resolvedor (getExecutor), retorna os aliases que NÃO
  * resolvem para um BaseExecutor válido (não é instância, ou falta execute/getProvider).
  * isInstance é injetado para manter a função pura/testável com inputs sintéticos.
+ *
+ * O resolvedor é aguardado: desde #11421 o registro é lazy e `getExecutor()` devolve
+ * uma Promise (a classe só é importada e construída no primeiro uso). Sem o await,
+ * TODO alias reprova — uma Promise nunca é `instanceof BaseExecutor` — e a checagem
+ * deixa de proteger qualquer coisa. Uma rejeição também conta como não-conforme: com
+ * carregamento lazy o import de um alias pode falhar em runtime, e esse é exatamente
+ * o símbolo morto que esta sub-checagem existe para achar.
  */
-export function findNonConformingExecutors(
+export async function findNonConformingExecutors(
   aliases: string[],
-  resolve: (alias: string) => ExecutorLike | null | undefined,
+  resolve: (
+    alias: string
+  ) => PromiseLike<ExecutorLike | null | undefined> | ExecutorLike | null | undefined,
   isInstance: (value: unknown) => boolean
-): string[] {
-  return aliases.filter((alias) => {
-    const ex = resolve(alias);
-    if (!ex || !isInstance(ex)) return true;
-    return typeof ex.execute !== "function" || typeof ex.getProvider !== "function";
-  });
+): Promise<string[]> {
+  const verdicts = await Promise.all(
+    aliases.map(async (alias) => {
+      let ex: ExecutorLike | null | undefined;
+      try {
+        ex = await resolve(alias);
+      } catch {
+        return true; // o alias não carrega — símbolo morto
+      }
+      if (!ex || !isInstance(ex)) return true;
+      return typeof ex.execute !== "function" || typeof ex.getProvider !== "function";
+    })
+  );
+  return aliases.filter((_alias, index) => verdicts[index]);
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -194,6 +211,8 @@ export const KNOWN_TRANSLATOR_PAIRS: readonly string[] = [
   "antigravity:openai",
   "claude:gemini",
   "claude:openai",
+  // Naver CLOVA Studio Chat Completions v3 (native envelope, model in URL path).
+  "clova:openai",
   "cursor:openai",
   "gemini:claude",
   "gemini:openai",
@@ -201,6 +220,7 @@ export const KNOWN_TRANSLATOR_PAIRS: readonly string[] = [
   "openai-responses:openai",
   "openai:antigravity",
   "openai:claude",
+  "openai:clova",
   "openai:cursor",
   "openai:gemini",
   "openai:kiro",
@@ -263,7 +283,7 @@ export function findNewMcpTools(frozen: readonly string[], live: Set<string>): s
  * the reason in the commit message.
  *
  * Sources:
- *   - MCP_TOOLS (33 base tools: omniroute_* + compression + agent_skills)
+ *   - MCP_TOOLS (34 base tools: omniroute_* + compression + agent_skills)
  *   - memoryTools (3): omniroute_memory_*
  *   - skillTools (4): omniroute_skills_*
  *   - gamificationTools (8): gamification_*
@@ -273,7 +293,7 @@ export function findNewMcpTools(frozen: readonly string[], live: Set<string>): s
  * agentSkillTools and compressionTools are included in MCP_TOOLS (deduped by RESERVED_MCP_NAMES).
  */
 export const KNOWN_MCP_TOOL_NAMES: readonly string[] = [
-  // MCP_TOOLS base (33)
+  // MCP_TOOLS base (34)
   "omniroute_get_health",
   "omniroute_list_combos",
   "omniroute_get_combo_metrics",
@@ -283,6 +303,7 @@ export const KNOWN_MCP_TOOL_NAMES: readonly string[] = [
   "omniroute_cost_report",
   "omniroute_list_models_catalog",
   "omniroute_web_search",
+  "omniroute_x_search",
   "omniroute_simulate_route",
   "omniroute_set_budget_guard",
   "omniroute_set_routing_strategy",
@@ -459,7 +480,7 @@ async function main(): Promise<void> {
 
   // ── (1) Executor conformance ──────────────────────────────────────────────
   const executorsMod = await import("@omniroute/open-sse/executors/index.ts");
-  const getExecutor = executorsMod.getExecutor as (alias: string) => ExecutorLike;
+  const getExecutor = executorsMod.getExecutor as (alias: string) => Promise<ExecutorLike>;
   const BaseExecutor = executorsMod.BaseExecutor as new (...args: never[]) => unknown;
   const indexSource = readFileSync(resolvePath(REPO_ROOT, "open-sse/executors/index.ts"), "utf8");
   const aliases = extractExecutorAliases(indexSource);
@@ -469,7 +490,7 @@ async function main(): Promise<void> {
     );
   }
   const isExecutorInstance = (value: unknown) => value instanceof BaseExecutor;
-  const badExecutors = findNonConformingExecutors(aliases, getExecutor, isExecutorInstance);
+  const badExecutors = await findNonConformingExecutors(aliases, getExecutor, isExecutorInstance);
   if (badExecutors.length) {
     failures.push(
       `[executor] ${badExecutors.length} alias(es) registrado(s) não resolvem para um BaseExecutor válido (instância + execute() + getProvider()):\n` +

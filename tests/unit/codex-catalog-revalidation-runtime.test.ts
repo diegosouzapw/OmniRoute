@@ -25,7 +25,7 @@ const originalEnv = {
 async function resetStorage() {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -43,7 +43,7 @@ test.beforeEach(async () => {
 test.after(() => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   for (const [key, value] of Object.entries(originalEnv)) {
     if (value === undefined) delete process.env[key];
     else process.env[key] = value;

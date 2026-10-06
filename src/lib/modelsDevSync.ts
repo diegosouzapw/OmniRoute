@@ -14,12 +14,11 @@
  *   3. LiteLLM sync (`pricing_synced` namespace)
  *   4. Hardcoded defaults (`pricing.ts`)
  *
- * Opt-in, default off. Enabled either from Dashboard > Settings > AI or with
- * MODELS_DEV_SYNC_ENABLED, which wins over that setting whenever it is set to
- * anything non-empty, in either direction, so a deployment can pin the sync on
- * or off regardless of what is stored. Unset or empty, it defers to the
- * setting. On for "1", "true", "yes" or "on" in any casing; every other value
- * is off.
+ * Settings UI (`modelsDevSyncEnabled`) controls the periodic sync by default.
+ * `MODELS_DEV_SYNC_ENABLED=0|false|off|no` is a hard kill switch: it wins over
+ * the DB setting so an operator can recover a wedged process (dashboard /
+ * /healthz frozen on the same event loop — #10052) without the UI. Unset =
+ * honor settings. `1|true|on|yes` forces sync on even if the setting is off.
  */
 
 import { getDbInstance } from "./db/core";
@@ -76,11 +75,33 @@ interface SyncResult {
 
 const MODELS_DEV_API_URL = "https://models.dev/api.json";
 
-const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
-
 const parsedInterval = parseInt(process.env.MODELS_DEV_SYNC_INTERVAL || "86400", 10);
 const SYNC_INTERVAL_MS =
   Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval * 1000 : 86400 * 1000;
+
+/** Parse MODELS_DEV_SYNC_ENABLED. Invalid / empty → unset (honor DB settings). */
+export function readModelsDevSyncEnvFlag(
+  value: string | undefined = process.env.MODELS_DEV_SYNC_ENABLED
+): "true" | "false" | "unset" {
+  if (value == null) return "unset";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "") return "unset";
+  if (normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on") {
+    return "true";
+  }
+  if (normalized === "0" || normalized === "false" || normalized === "no" || normalized === "off") {
+    return "false";
+  }
+  return "unset";
+}
+
+export function isModelsDevSyncEnvDisabled(): boolean {
+  return readModelsDevSyncEnvFlag() === "false";
+}
+
+export function isModelsDevSyncEnvForcedOn(): boolean {
+  return readModelsDevSyncEnvFlag() === "true";
+}
 
 // ─── Periodic sync state ─────────────────────────────────
 
@@ -212,8 +233,15 @@ let pricingMemoVersion = -1; // -1: never equals a real cacheVersion (starts at 
 
 /**
  * Read synced pricing from `models_dev_pricing` namespace.
+ * Results are memoized until `saveModelsDevPricing` / `clearModelsDevPricing`.
  */
 export function getModelsDevPricing(): PricingByProvider {
+  // Kill switch: skip the SQL + JSON.parse scan entirely so a leftover
+  // models_dev_pricing namespace cannot pin the event loop (#9685 / #10052).
+  if (isModelsDevSyncEnvDisabled()) {
+    return {};
+  }
+
   const currentVersion = getModelCatalogCacheVersion();
   if (pricingMemo !== null && pricingMemoVersion === currentVersion) {
     return pricingMemo;
@@ -517,6 +545,84 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
 }
 
 /**
+ * Insert-or-replace one provider's capability rows without wiping the table.
+ * Used by the OpenRouter live catalog walk so architecture.input_modalities
+ * survive into the next combo LCD (#12613).
+ */
+export function upsertSyncedCapabilities(
+  provider: string,
+  models: Record<string, ModelCapabilityEntry>
+): void {
+  if (!provider || Object.keys(models).length === 0) return;
+  const db = getDbInstance();
+  ensureCapabilitiesTable();
+  const insert = db.prepare(`
+    INSERT INTO model_capabilities (
+      provider, model_id, tool_call, reasoning, attachment, structured_output,
+      temperature, modalities_input, modalities_output, knowledge_cutoff,
+      release_date, last_updated, status, family, open_weights,
+      limit_context, limit_input, limit_output, interleaved_field, last_synced
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(provider, model_id) DO UPDATE SET
+      tool_call=excluded.tool_call,
+      reasoning=excluded.reasoning,
+      attachment=excluded.attachment,
+      structured_output=excluded.structured_output,
+      temperature=excluded.temperature,
+      modalities_input=excluded.modalities_input,
+      modalities_output=excluded.modalities_output,
+      knowledge_cutoff=excluded.knowledge_cutoff,
+      release_date=excluded.release_date,
+      last_updated=excluded.last_updated,
+      status=excluded.status,
+      family=excluded.family,
+      open_weights=excluded.open_weights,
+      limit_context=excluded.limit_context,
+      limit_input=excluded.limit_input,
+      limit_output=excluded.limit_output,
+      interleaved_field=excluded.interleaved_field,
+      last_synced=excluded.last_synced
+  `);
+  const now = new Date().toISOString();
+  let changed = false;
+  const tx = db.transaction(() => {
+    for (const [modelId, cap] of Object.entries(models)) {
+      const info = insert.run(
+        provider,
+        modelId,
+        cap.tool_call === null ? null : cap.tool_call ? 1 : 0,
+        cap.reasoning === null ? null : cap.reasoning ? 1 : 0,
+        cap.attachment === null ? null : cap.attachment ? 1 : 0,
+        cap.structured_output === null ? null : cap.structured_output ? 1 : 0,
+        cap.temperature === null ? null : cap.temperature ? 1 : 0,
+        cap.modalities_input,
+        cap.modalities_output,
+        cap.knowledge_cutoff,
+        cap.release_date,
+        cap.last_updated,
+        cap.status,
+        cap.family,
+        cap.open_weights === null ? null : cap.open_weights ? 1 : 0,
+        cap.limit_context,
+        cap.limit_input,
+        cap.limit_output,
+        cap.interleaved_field,
+        now
+      );
+      if (info.changes > 0) changed = true;
+    }
+  });
+  tx();
+  if (cachedCapabilities) {
+    cachedCapabilities[provider] = {
+      ...(cachedCapabilities[provider] || {}),
+      ...models,
+    };
+  }
+  if (changed) invalidateDbCache("model-capabilities");
+}
+
+/**
  * Clear all synced capability data.
  */
 export function clearModelsDevCapabilities(): void {
@@ -731,41 +837,22 @@ export function getSyncStatus(): SyncStatus {
   };
 }
 
-// ─── Init (called from server-init.ts) ───────────────────
+// ─── Init (called from instrumentation-node.ts) ───────────────────
 
 /**
  * Initialize models.dev sync if enabled.
  */
 export async function initModelsDevSync(): Promise<void> {
-  const { getSettings } = await import("./localDb");
+  if (isModelsDevSyncEnvDisabled()) {
+    console.log("[MODELS_DEV] Disabled (MODELS_DEV_SYNC_ENABLED=0)");
+    return;
+  }
+
+  const { getSettings } = await import("@/lib/db/settings");
   const settings = await getSettings();
 
-  // Until now the docblock above advertised MODELS_DEV_SYNC_ENABLED and nothing
-  // read it: the only control was the stored setting, so an operator following
-  // that line got silence whichever value they set. This makes the variable real.
-  //
-  // An explicit env value decides, in either direction, and only an unset or
-  // empty one defers to the setting. That means a deployment can pin the sync
-  // off from its compose file or unit even when a previous operator left the
-  // dashboard toggle on, which is the case a force-on-only variable cannot
-  // express and the reason for choosing this shape.
-  //
-  // It is worth being plain that this is a third resolution pattern rather than
-  // a reuse of an existing one, because the two in the tree solve different
-  // problems: shared/utils/featureFlags.ts::resolveFeatureFlag puts the DB
-  // override ABOVE the env var, so a deployment cannot override an operator's
-  // stored choice at all; db/ccDiscoveryAliases.ts::getCcAliasGlobalState reads
-  // only "1" and "true" and can force a flag ON, letting every other value
-  // including "false" fall through to the DB. Neither can turn a
-  // dashboard-enabled switch off from the environment. Following either one
-  // here would leave the variable unable to do the thing it is being added for.
-  const envValue = process.env.MODELS_DEV_SYNC_ENABLED?.trim();
-  const enabled = envValue
-    ? TRUE_ENV_VALUES.has(envValue.toLowerCase())
-    : settings.modelsDevSyncEnabled === true;
-
-  if (!enabled) {
-    console.log("[MODELS_DEV] Disabled (enable via Settings > AI or MODELS_DEV_SYNC_ENABLED=true)");
+  if (!isModelsDevSyncEnvForcedOn() && settings.modelsDevSyncEnabled !== true) {
+    console.log("[MODELS_DEV] Disabled (enable via Settings > AI or MODELS_DEV_SYNC_ENABLED=1)");
     return;
   }
 

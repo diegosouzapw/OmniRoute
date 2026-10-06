@@ -43,13 +43,10 @@ function makeVec(...values: number[]): Float32Array {
   return new Float32Array(values);
 }
 
-function insertMemory(
-  db: ReturnType<typeof core.getDbInstance>,
-  id: string,
-) {
+function insertMemory(db: ReturnType<typeof core.getDbInstance>, id: string) {
   db.prepare(
     `INSERT INTO memories (id, api_key_id, type, key, content, created_at)
-     VALUES (?, 'key1', 'factual', ?, ?, datetime('now'))`,
+     VALUES (?, 'key1', 'factual', ?, ?, datetime('now'))`
   ).run(id, `key-${id}`, `content-${id}`);
 }
 
@@ -58,7 +55,7 @@ function cleanup() {
   _resetVectorStoreSingleton();
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -70,7 +67,7 @@ test.afterEach(() => {
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 

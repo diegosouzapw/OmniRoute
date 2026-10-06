@@ -2,7 +2,7 @@
 
 // Issue #3501 strangler-fig decomposition — Phase 1t (final push)
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Card, Button, CardSkeleton } from "@/shared/components";
@@ -31,7 +31,11 @@ import { normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
-import { resolveDashboardProviderInfo, resolveProviderHeaderLink } from "../providerPageUtils";
+import {
+  resolveDashboardProviderInfo,
+  resolveProviderHeaderLink,
+  resolveProviderOAuthBackendId,
+} from "../providerPageUtils";
 import { findDefaultReferral } from "@/lib/radar/referrals";
 import { type ConnectionRowConnection } from "./components/ConnectionRow";
 import { useProviderConnections } from "./hooks/useProviderConnections";
@@ -53,6 +57,7 @@ import CustomModelsSection from "./components/CustomModelsSection";
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
 import CoolingConnectionsPanel from "./components/CoolingConnectionsPanel";
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
+import VolcengineConnectModal from "./components/VolcengineConnectModal";
 import ProviderAccountRoutingCard from "../../settings/components/ProviderAccountRoutingCard";
 import ZedImportCard from "./components/ZedImportCard";
 import CursorAgentNudge from "./components/CursorAgentNudge";
@@ -68,12 +73,14 @@ import AnonymousFallbackToggle from "./components/AnonymousFallbackToggle";
 
 export default function ProviderDetailPageClient() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const providerId = params.id as string;
 
   // ── UI-only modal state (not owned by hooks) ─────────────────────────────
   const [showOAuthModal, _setShowOAuthModal] = useState(false);
   const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
   const [showKimiAuthMethodModal, setShowKimiAuthMethodModal] = useState(false);
+  const [showVolcengineConnectModal, setShowVolcengineConnectModal] = useState(false);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
   const [showSiliconFlowEndpointModal, setShowSiliconFlowEndpointModal] = useState(false);
   const [siliconFlowInitialBaseUrl, setSiliconFlowInitialBaseUrl] = useState<string | undefined>();
@@ -87,6 +94,7 @@ export default function ProviderDetailPageClient() {
   const [importClaudeModalOpen, setImportClaudeModalOpen] = useState(false);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
   const [importGrokCliModalOpen, setImportGrokCliModalOpen] = useState(false);
+  const [connectingVolcengineAccount, setConnectingVolcengineAccount] = useState(false);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isCommandCode = providerId === "command-code";
@@ -109,6 +117,8 @@ export default function ProviderDetailPageClient() {
     providerNode,
     loading,
     retestingId,
+    handleClearCooldown,
+    clearingCooldownId,
     batchTesting,
     batchTestResults,
     selectedIds,
@@ -134,7 +144,7 @@ export default function ProviderDetailPageClient() {
     setBatchTestResults,
     setProviderNode,
     fetchConnections,
-    fetchProxyConfig,
+    refreshProxyState,
     deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
@@ -182,6 +192,7 @@ export default function ProviderDetailPageClient() {
   const {
     modelMeta,
     syncedAvailableModels,
+    syncedCatalogAuthoritative,
     modelAliases,
     fetchProviderModelMeta,
     fetchAliases,
@@ -253,8 +264,11 @@ export default function ProviderDetailPageClient() {
     providerInfo?.website,
     referralUrl
   );
+  const oauthProviderId = resolveProviderOAuthBackendId(providerId, providerInfo);
   const providerSupportsOAuth =
-    providerInfo?.toggleAuthType === "oauth" || providerInfo?.toggleAuthType === "free";
+    providerInfo?.toggleAuthType === "oauth" ||
+    providerInfo?.toggleAuthType === "free" ||
+    oauthProviderId !== providerId;
   const subscriptionRisk = providerInfo?.subscriptionRisk === true;
 
   // ── Phase 1t.3: connection gate + risk-notice modal state ───────────────
@@ -273,21 +287,20 @@ export default function ProviderDetailPageClient() {
     NOAUTH_PROVIDERS[providerId]?.noAuth === true ||
     getProviderById(providerId)?.managedAccount === true;
   const registryModels = getModelsByProviderId(providerId);
-  // Prefer synced API-discovered models when available, then merge built-ins
-  // and user-managed custom models without duplicating IDs. Cursor exclusive
-  // listing drops the static registry entirely when synced is non-empty.
+  // Use the server's active-catalog authority decision for display and Test All.
+  // Registry entries supply metadata/fallback; operator custom models remain.
   const models = useMemo(() => {
     return mergeProviderModelListing({
       providerId,
       registryModels,
       syncedModels: syncedAvailableModels,
-      customModels: (modelMeta.customModels || []).map(
-        (cm: { id: string; name?: string; source?: string }) => ({
-          id: cm.id,
-          name: cm.name || cm.id,
-          source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
-        })
-      ),
+      syncedCatalogAuthoritative,
+      customModels: (modelMeta.customModels || []).map((cm) => ({
+        ...cm,
+        id: cm.id,
+        name: cm.name || cm.id,
+        source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
+      })),
       usesCuratedModelsOnly,
     });
   }, [
@@ -295,6 +308,7 @@ export default function ProviderDetailPageClient() {
     registryModels,
     syncedAvailableModels,
     modelMeta.customModels,
+    syncedCatalogAuthoritative,
     usesCuratedModelsOnly,
   ]);
   const isUpstreamProxyProvider = providerInfo?.category === "upstream-proxy";
@@ -308,13 +322,16 @@ export default function ProviderDetailPageClient() {
     showImportModal,
     importProgress,
     togglingAutoSync,
+    togglingAutoFetchModels,
     canImportModels,
     isAutoSyncEnabled,
+    isAutoFetchModelsEnabled,
     setShowImportModal,
     setImportProgress,
     handleImportModels,
     handleCompatibleImportWithProgress,
     handleToggleAutoSync,
+    handleToggleAutoFetchModels,
   } = useModelImportHandlers({
     providerId,
     models,
@@ -358,6 +375,10 @@ export default function ProviderDetailPageClient() {
     setShowAddApiKeyModal(true);
   }, [providerId]);
 
+  useEffect(() => {
+    if (searchParams.get("action") === "add-api-key") gateConnectionFlow(openApiKeyAddFlow);
+  }, [searchParams, gateConnectionFlow, openApiKeyAddFlow]);
+
   const openPrimaryAddFlow = useCallback(() => {
     if (providerId === "kimi-coding") return setShowKimiAuthMethodModal(true);
     if (isOAuth) {
@@ -366,6 +387,43 @@ export default function ProviderDetailPageClient() {
     }
     openApiKeyAddFlow();
   }, [providerId, isOAuth, openApiKeyAddFlow]);
+
+  // Legacy manual flow: headful browser login on the machine running OmniRoute.
+  // Kept as the fallback for the phone/SMS auto-login modal.
+  const connectVolcengineAccountManually = useCallback(async () => {
+    setConnectingVolcengineAccount(true);
+    try {
+      const response = await fetch("/api/providers/volcengine-plan/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ timeout: 300_000 }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to connect Volcano account");
+      }
+      const results = Array.isArray(data?.binding?.results) ? data.binding.results : [];
+      const connected = results.filter((item: any) => item?.ok).length;
+      const failed = results.filter((item: any) => item && item.ok === false && item.available);
+      if (connected > 0) {
+        notify.success(`Connected ${connected} Volcano plan${connected > 1 ? "s" : ""}`);
+      }
+      if (failed.length > 0) {
+        notify.error(
+          failed.map((item: any) => `${item.plan}: ${item.error || "failed"}`).join("; ")
+        );
+      }
+      await fetchConnections();
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : "Failed to connect Volcano account");
+    } finally {
+      setConnectingVolcengineAccount(false);
+    }
+  }, [fetchConnections, notify]);
+
+  const connectVolcengineAccount = useCallback(() => {
+    setShowVolcengineConnectModal(true);
+  }, []);
 
   const {
     commandCodeAuthState,
@@ -540,7 +598,7 @@ export default function ProviderDetailPageClient() {
           providerName={providerInfo?.name || providerId}
         />
       )}
-      {!isUpstreamProxyProvider && !isFreeNoAuth && (
+      {!isUpstreamProxyProvider && (!isFreeNoAuth || providerSupportsPat) && (
         <Card>
           <ProviderAccountRoutingCard
             providerKey={providerId}
@@ -581,6 +639,8 @@ export default function ProviderDetailPageClient() {
             gateConnectionFlow={gateConnectionFlow}
             openApiKeyAddFlow={openApiKeyAddFlow}
             openPrimaryAddFlow={openPrimaryAddFlow}
+            connectVolcengineAccount={connectVolcengineAccount}
+            connectingVolcengineAccount={connectingVolcengineAccount}
             openExternalLinkFlow={openExternalLinkFlow}
             handleOpenCommandCodeConnect={handleOpenCommandCodeConnect}
             commandCodeAuthState={commandCodeAuthState}
@@ -615,7 +675,11 @@ export default function ProviderDetailPageClient() {
             />
           ) : (
             <>
-              <CoolingConnectionsPanel connections={connections} />
+              <CoolingConnectionsPanel
+                connections={connections}
+                onClearCooldown={handleClearCooldown}
+                clearingCooldownId={clearingCooldownId}
+              />
               <ConnectionsListPanel
                 connections={connections}
                 providerId={providerId}
@@ -708,6 +772,7 @@ export default function ProviderDetailPageClient() {
             modelMeta={modelMeta}
             modelAliases={modelAliases}
             syncedAvailableModels={syncedAvailableModels}
+            syncedCatalogAuthoritative={syncedCatalogAuthoritative}
             compatibleFallbackModels={compatibleFallbackModels}
             copied={copied}
             onCopy={copy}
@@ -722,6 +787,9 @@ export default function ProviderDetailPageClient() {
             isAutoSyncEnabled={isAutoSyncEnabled}
             togglingAutoSync={togglingAutoSync}
             handleToggleAutoSync={handleToggleAutoSync}
+            isAutoFetchModelsEnabled={isAutoFetchModelsEnabled}
+            togglingAutoFetchModels={togglingAutoFetchModels}
+            handleToggleAutoFetchModels={handleToggleAutoFetchModels}
             handleCompatibleImportWithProgress={handleCompatibleImportWithProgress}
             compatSavingModelId={compatSavingModelId}
             togglingModelId={togglingModelId}
@@ -759,6 +827,7 @@ export default function ProviderDetailPageClient() {
             copied={copied}
             onCopy={copy}
             onModelsChanged={fetchProviderModelMeta}
+            syncedModelIds={syncedAvailableModels.map((model) => model.id)}
           />
         </Card>
       )}
@@ -778,7 +847,7 @@ export default function ProviderDetailPageClient() {
         isCommandCode={isCommandCode}
         isUpstreamProxyProvider={isUpstreamProxyProvider}
         subscriptionRisk={subscriptionRisk}
-        existingConnectionCount={connections.length}
+        existingConnectionNames={connections.map((c) => c.name ?? "").filter(Boolean)}
         showRiskNoticeModal={showRiskNoticeModal}
         handleConfirmRiskNotice={handleConfirmRiskNotice}
         handleCancelRiskNotice={handleCancelRiskNotice}
@@ -842,12 +911,22 @@ export default function ProviderDetailPageClient() {
         emailsVisible={emailsVisible}
         proxyTarget={proxyTarget}
         setProxyTarget={setProxyTarget}
-        fetchProxyConfig={fetchProxyConfig}
+        refreshProxyState={refreshProxyState}
         importProgress={importProgress}
         showImportModal={showImportModal}
         setShowImportModal={setShowImportModal}
         showTutorialModal={showTutorialModal}
         setShowTutorialModal={setShowTutorialModal}
+        t={t}
+      />
+
+      {/* Volcano Engine console phone/SMS auto-login (falls back to manual browser login) */}
+      <VolcengineConnectModal
+        isOpen={showVolcengineConnectModal}
+        onClose={() => setShowVolcengineConnectModal(false)}
+        onFallbackManual={connectVolcengineAccountManually}
+        onConnected={fetchConnections}
+        notify={notify}
         t={t}
       />
     </div>

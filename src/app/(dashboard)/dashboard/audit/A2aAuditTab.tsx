@@ -64,7 +64,9 @@ export default function A2aAuditTab() {
   }, [offset, skillFilter, stateFilter]);
 
   useEffect(() => {
-    void fetchTasks();
+    void (async () => {
+      await fetchTasks();
+    })();
   }, [fetchTasks]);
 
   return (

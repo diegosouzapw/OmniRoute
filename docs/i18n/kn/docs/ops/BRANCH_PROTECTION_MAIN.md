@@ -1,0 +1,23 @@
+# Branch protection — `main` (OpenSSF Scorecard: Branch-Protection) (ಕನ್ನಡ)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/BRANCH_PROTECTION_MAIN.md) · 🇪🇹 [am](../../../am/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇸🇦 [ar](../../../ar/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇦🇿 [az](../../../az/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇧🇬 [bg](../../../bg/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇧🇩 [bn](../../../bn/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇧🇦 [bs](../../../bs/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇨🇿 [cs](../../../cs/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇩🇰 [da](../../../da/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇩🇪 [de](../../../de/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇬🇷 [el](../../../el/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇪🇸 [es](../../../es/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇪🇪 [et](../../../et/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇷 [fa](../../../fa/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇫🇮 [fi](../../../fi/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇫🇷 [fr](../../../fr/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇪 [ga](../../../ga/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇳 [gu](../../../gu/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇳🇬 [ha](../../../ha/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇱 [he](../../../he/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇳 [hi](../../../hi/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇭🇷 [hr](../../../hr/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇭🇺 [hu](../../../hu/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇦🇲 [hy](../../../hy/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇩 [id](../../../id/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇳🇬 [ig](../../../ig/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇹 [it](../../../it/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇯🇵 [ja](../../../ja/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇬🇪 [ka](../../../ka/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇰🇭 [km](../../../km/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇰🇷 [ko](../../../ko/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇱🇹 [lt](../../../lt/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇱🇻 [lv](../../../lv/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇳 [ml](../../../ml/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇳 [mr](../../../mr/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇲🇾 [ms](../../../ms/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇲🇹 [mt](../../../mt/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇲🇲 [my](../../../my/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇳🇵 [ne](../../../ne/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇳🇱 [nl](../../../nl/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇳🇴 [no](../../../no/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇳 [or](../../../or/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇳 [pa](../../../pa/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇵🇭 [phi](../../../phi/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇵🇱 [pl](../../../pl/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇵🇹 [pt](../../../pt/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇷🇴 [ro](../../../ro/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇷🇺 [ru](../../../ru/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇱🇰 [si](../../../si/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇸🇰 [sk](../../../sk/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇸🇮 [sl](../../../sl/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇷🇸 [sr](../../../sr/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇸🇪 [sv](../../../sv/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇰🇪 [sw](../../../sw/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇳 [ta](../../../ta/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇮🇳 [te](../../../te/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇹🇭 [th](../../../th/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇹🇷 [tr](../../../tr/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇵🇰 [ur](../../../ur/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇺🇿 [uz](../../../uz/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇻🇳 [vi](../../../vi/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇳🇬 [yo](../../../yo/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/BRANCH_PROTECTION_MAIN.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/BRANCH_PROTECTION_MAIN.md)
+
+---
+
+ಮಾಲೀಕರ ಕ್ರಮ. Settings → Branches → Add rule ಮೂಲಕ ಅನ್ವಯಿಸಿ, ಅಥವಾ:
+
+```bash
+gh api -X PUT repos/diegosouzapw/OmniRoute/branches/main/protection \
+  --input - <<'JSON'
+{ "required_status_checks": { "strict": true, "contexts": ["Quality Ratchet", "Quality Gates (Extended)", "Fast Quality Gates"] },
+  "enforce_admins": false,
+  "required_pull_request_reviews": { "required_approving_review_count": 0, "dismiss_stale_reviews": true },
+  "restrictions": null,
+  "required_linear_history": false,
+  "allow_force_pushes": false,
+  "allow_deletions": false }
+JSON
+```
+
+ಇದು Scorecard Branch-Protection ಅಂಕವನ್ನು 0 ರಿಂದ ಹೆಚ್ಚಿಸುತ್ತದೆ. `enforce_admins:false` ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ
+ಮುಂದಕ್ಕೆ-ವಿಲೀನಗೊಳಿಸುವ ಹರಿವನ್ನು ಕಾರ್ಯಸಾಧ್ಯವಾಗಿರಿಸುತ್ತದೆ; ಸ್ಥಿರವಾದ ನಂತರ ಅದನ್ನು `true` ಗೆ ಬಿಗಿಗೊಳಿಸಿ.

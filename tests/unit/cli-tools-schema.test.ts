@@ -11,6 +11,8 @@ test("CLI_TOOLS registry contains all expected tools including rebuilt Qwen Code
   //   (CodeWhale is the actively-maintained successor to DeepSeek TUI).
   // omp + letta added by #6318 (agent-category CLI integrations).
   // grok-build added — xAI Grok Build TUI coding agent (ported from upstream decolua/9router#2571).
+  // prime-agent added by #11166 (PrimeIntellect-ai/prime-agent, agent category).
+  // 5dive added by #11578 (5dive-ai/5dive agent fleets, agent category).
   const expected = [
     "claude",
     "codex",
@@ -45,6 +47,9 @@ test("CLI_TOOLS registry contains all expected tools including rebuilt Qwen Code
     "crush",
     "grok-build",
     "qwen",
+    "zcode",
+    "prime-agent",
+    "5dive",
   ];
   for (const id of expected) {
     assert.ok(id in CLI_TOOLS, `Missing tool: ${id}`);

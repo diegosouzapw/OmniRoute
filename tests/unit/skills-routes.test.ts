@@ -23,7 +23,7 @@ function clearSkillRegistry() {
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(tmpDir, { recursive: true });
   clearSkillRegistry();
   core.getDbInstance();
@@ -60,7 +60,7 @@ test.after(() => {
   core.resetDbInstance();
   clearSkillRegistry();
   process.env.DATA_DIR = originalDataDir;
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("skills route GET loads skills from the database and lists them", async () => {

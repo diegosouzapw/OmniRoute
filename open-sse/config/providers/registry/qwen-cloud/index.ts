@@ -1,6 +1,7 @@
 import type { RegistryEntry, RegistryModel } from "../../shared.ts";
 
 export const QWEN_CLOUD_TEXT_MODELS: RegistryModel[] = [
+  { id: "qwen3.8-max", name: "Qwen3.8 Max" },
   { id: "qwen3.7-max-2026-06-08", name: "Qwen3.7 Max (2026-06-08)" },
   { id: "qwen3.7-plus", name: "Qwen3.7 Plus" },
   { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },

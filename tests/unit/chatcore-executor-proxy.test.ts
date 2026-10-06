@@ -17,13 +17,11 @@ process.env.DATA_DIR = testDataDir;
 // Dynamic imports AFTER DATA_DIR is set so core.ts picks up the temp path.
 const coreDb = await import("../../src/lib/db/core.ts");
 const upstreamProxyDb = await import("../../src/lib/db/upstreamProxy.ts");
-const { resolveExecutorWithProxy } = await import(
-  "../../open-sse/handlers/chatCore/executorProxy.ts"
-);
+const { resolveExecutorWithProxy } =
+  await import("../../open-sse/handlers/chatCore/executorProxy.ts");
 const { getExecutor } = await import("../../open-sse/executors/index.ts");
-const { clearUpstreamProxyConfigCache } = await import(
-  "../../open-sse/handlers/chatCore/comboContextCache.ts"
-);
+const { clearUpstreamProxyConfigCache } =
+  await import("../../open-sse/handlers/chatCore/comboContextCache.ts");
 
 before(async () => {
   await coreDb.ensureDbInitialized();
@@ -35,13 +33,13 @@ beforeEach(() => {
 
 after(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(testDataDir, { recursive: true, force: true });
+  fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("no config (disabled by default) returns the provider's own executor", async () => {
   clearUpstreamProxyConfigCache("openai");
   const exec = await resolveExecutorWithProxy("openai");
-  assert.equal(exec, getExecutor("openai"));
+  assert.equal(exec, await getExecutor("openai"));
 });
 
 test("mode 'native' returns the provider's own executor", async () => {
@@ -52,7 +50,7 @@ test("mode 'native' returns the provider's own executor", async () => {
   });
   clearUpstreamProxyConfigCache("openai");
   const exec = await resolveExecutorWithProxy("openai");
-  assert.equal(exec, getExecutor("openai"));
+  assert.equal(exec, await getExecutor("openai"));
 });
 
 test("mode 'cliproxyapi' returns the CLIProxyAPI passthrough executor", async () => {
@@ -63,7 +61,7 @@ test("mode 'cliproxyapi' returns the CLIProxyAPI passthrough executor", async ()
   });
   clearUpstreamProxyConfigCache("anthropic");
   const exec = await resolveExecutorWithProxy("anthropic");
-  assert.equal(exec, getExecutor("cliproxyapi"));
+  assert.equal(exec, await getExecutor("cliproxyapi"));
 });
 
 test("mode 'fallback' returns a distinct wrapper owning its own execute()", async () => {
@@ -74,8 +72,8 @@ test("mode 'fallback' returns a distinct wrapper owning its own execute()", asyn
   });
   clearUpstreamProxyConfigCache("openai");
   const exec = await resolveExecutorWithProxy("openai");
-  assert.notEqual(exec, getExecutor("openai"));
-  assert.notEqual(exec, getExecutor("cliproxyapi"));
+  assert.notEqual(exec, await getExecutor("openai"));
+  assert.notEqual(exec, await getExecutor("cliproxyapi"));
   assert.equal(typeof exec.execute, "function");
 });
 
@@ -94,7 +92,7 @@ test("connection override 'claude-native' selects CLIProxyAPI even when provider
   const exec = await resolveExecutorWithProxy("openai", undefined, {
     cliproxyapiMode: "claude-native",
   });
-  assert.equal(exec, getExecutor("cliproxyapi"));
+  assert.equal(exec, await getExecutor("cliproxyapi"));
 });
 
 test("connection override 'claude-native' selects CLIProxyAPI even with no provider config (default)", async () => {
@@ -102,7 +100,7 @@ test("connection override 'claude-native' selects CLIProxyAPI even with no provi
   const exec = await resolveExecutorWithProxy("anthropic", undefined, {
     cliproxyapiMode: "claude-native",
   });
-  assert.equal(exec, getExecutor("cliproxyapi"));
+  assert.equal(exec, await getExecutor("cliproxyapi"));
 });
 
 test("no connection override + provider mode native → native executor (unchanged)", async () => {
@@ -115,13 +113,13 @@ test("no connection override + provider mode native → native executor (unchang
   const exec = await resolveExecutorWithProxy("openai", undefined, {
     someOtherField: "x",
   });
-  assert.equal(exec, getExecutor("openai"));
+  assert.equal(exec, await getExecutor("openai"));
 });
 
 test("connection override absent (undefined providerSpecificData) preserves default behaviour", async () => {
   clearUpstreamProxyConfigCache("openai");
   const exec = await resolveExecutorWithProxy("openai");
-  assert.equal(exec, getExecutor("openai"));
+  assert.equal(exec, await getExecutor("openai"));
 });
 
 test("connection override wins over provider mode 'fallback'", async () => {
@@ -135,5 +133,115 @@ test("connection override wins over provider mode 'fallback'", async () => {
     cliproxyapiMode: "claude-native",
   });
   // Connection override short-circuits to the passthrough executor, not the fallback wrapper.
-  assert.equal(exec, getExecutor("cliproxyapi"));
+  assert.equal(exec, await getExecutor("cliproxyapi"));
+});
+
+test("connection proxy overrides cannot bypass Microsoft Designer retirement", async () => {
+  for (const providerId of ["microsoft-designer-web", "  MSDESIGNER\t"]) {
+    for (const providerSpecificData of [
+      { cliproxyapiMode: "claude-native" },
+      { darioMode: "claude-native" },
+    ]) {
+      await assert.rejects(
+        () => resolveExecutorWithProxy(providerId, undefined, providerSpecificData),
+        (error: unknown) => {
+          assert.ok(error instanceof Error);
+          assert.equal((error as Error & { status?: number }).status, 410);
+          assert.equal(error.message, "Provider has been retired from OmniRoute runtime.");
+          return true;
+        }
+      );
+    }
+  }
+});
+
+test("retired Felo ids cannot bypass the tombstone through a connection proxy", async () => {
+  for (const providerId of ["felo-web", "felo", " FeLo-Web ", "\tFELO\n"]) {
+    await assert.rejects(
+      resolveExecutorWithProxy(providerId, undefined, {
+        cliproxyapiMode: "claude-native",
+      }),
+      (error: unknown) => {
+        const typed = error as Error & { code?: string; status?: number };
+        assert.equal(typed.code, "PROVIDER_RETIRED");
+        assert.equal(typed.status, 410);
+        assert.match(typed.message, /retired/i);
+        return true;
+      }
+    );
+  }
+
+  const openAi = await resolveExecutorWithProxy("openai", undefined, {
+    cliproxyapiMode: "claude-native",
+  });
+  assert.equal(openAi, await getExecutor("cliproxyapi"));
+});
+
+test("retired Qwen Web ids cannot bypass the tombstone through a connection proxy", async () => {
+  for (const providerId of ["qwen-web", "qw", " QwEn-WeB ", "\tQW\n"]) {
+    await assert.rejects(
+      resolveExecutorWithProxy(providerId, undefined, {
+        cliproxyapiMode: "claude-native",
+      }),
+      (error: unknown) => {
+        const typed = error as Error & { code?: string; status?: number };
+        assert.equal(typed.code, "PROVIDER_RETIRED");
+        assert.equal(typed.status, 410);
+        assert.match(typed.message, /retired/i);
+        return true;
+      }
+    );
+  }
+
+  const qwenCloud = await resolveExecutorWithProxy("qwen-cloud", undefined, {
+    cliproxyapiMode: "claude-native",
+  });
+  assert.equal(qwenCloud, await getExecutor("cliproxyapi"));
+});
+
+test("retired Gemini CLI cannot bypass the tombstone through proxy overrides", async () => {
+  for (const providerSpecificData of [
+    { cliproxyapiMode: "claude-native" },
+    { darioMode: "claude-native" },
+  ]) {
+    await assert.rejects(
+      resolveExecutorWithProxy("gemini-cli", undefined, providerSpecificData),
+      (error: unknown) => {
+        const typed = error as Error & { code?: string; status?: number };
+        assert.equal(typed.code, "PROVIDER_RETIRED");
+        assert.equal(typed.status, 410);
+        return true;
+      }
+    );
+  }
+
+  for (const mode of ["native", "cliproxyapi", "dario", "fallback"] as const) {
+    await upstreamProxyDb.upsertUpstreamProxyConfig({
+      providerId: "gemini-cli",
+      mode,
+      enabled: true,
+    });
+    clearUpstreamProxyConfigCache("gemini-cli");
+    await assert.rejects(resolveExecutorWithProxy("gemini-cli"), {
+      code: "PROVIDER_RETIRED",
+      status: 410,
+    });
+  }
+});
+
+test("retired common ChatGPT Web alias cannot bypass retirement through proxy overrides", async () => {
+  for (const providerId of ["cgpt-web"]) {
+    await assert.rejects(
+      () =>
+        resolveExecutorWithProxy(providerId, undefined, {
+          cliproxyapiMode: "claude-native",
+        }),
+      (error: unknown) => {
+        const typed = error as Error & { code?: string; status?: number };
+        assert.equal(typed.code, "PROVIDER_RETIRED");
+        assert.equal(typed.status, 410);
+        return true;
+      }
+    );
+  }
 });

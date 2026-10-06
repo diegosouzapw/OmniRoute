@@ -1,4 +1,9 @@
+# Gamification & Leaderboard System (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/GAMIFICATION.md) · 🇪🇹 [am](../../../am/docs/frameworks/GAMIFICATION.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/GAMIFICATION.md) · 🇦🇿 [az](../../../az/docs/frameworks/GAMIFICATION.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/GAMIFICATION.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/GAMIFICATION.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/GAMIFICATION.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/GAMIFICATION.md) · 🇩🇰 [da](../../../da/docs/frameworks/GAMIFICATION.md) · 🇩🇪 [de](../../../de/docs/frameworks/GAMIFICATION.md) · 🇬🇷 [el](../../../el/docs/frameworks/GAMIFICATION.md) · 🇪🇸 [es](../../../es/docs/frameworks/GAMIFICATION.md) · 🇪🇪 [et](../../../et/docs/frameworks/GAMIFICATION.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/GAMIFICATION.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/GAMIFICATION.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/GAMIFICATION.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/GAMIFICATION.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/GAMIFICATION.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/GAMIFICATION.md) · 🇮🇱 [he](../../../he/docs/frameworks/GAMIFICATION.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/GAMIFICATION.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/GAMIFICATION.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/GAMIFICATION.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/GAMIFICATION.md) · 🇮🇩 [id](../../../id/docs/frameworks/GAMIFICATION.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/GAMIFICATION.md) · 🇮🇹 [it](../../../it/docs/frameworks/GAMIFICATION.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/GAMIFICATION.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/GAMIFICATION.md) · 🇰🇭 [km](../../../km/docs/frameworks/GAMIFICATION.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/GAMIFICATION.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/GAMIFICATION.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/GAMIFICATION.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/GAMIFICATION.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/GAMIFICATION.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/GAMIFICATION.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/GAMIFICATION.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/GAMIFICATION.md) · 🇲🇲 [my](../../../my/docs/frameworks/GAMIFICATION.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/GAMIFICATION.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/GAMIFICATION.md) · 🇳🇴 [no](../../../no/docs/frameworks/GAMIFICATION.md) · 🇮🇳 [or](../../../or/docs/frameworks/GAMIFICATION.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/GAMIFICATION.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/GAMIFICATION.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/GAMIFICATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/GAMIFICATION.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/GAMIFICATION.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/GAMIFICATION.md) · 🇱🇰 [si](../../../si/docs/frameworks/GAMIFICATION.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/GAMIFICATION.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/GAMIFICATION.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/GAMIFICATION.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/GAMIFICATION.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/GAMIFICATION.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/GAMIFICATION.md) · 🇮🇳 [te](../../../te/docs/frameworks/GAMIFICATION.md) · 🇹🇭 [th](../../../th/docs/frameworks/GAMIFICATION.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/GAMIFICATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/GAMIFICATION.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/GAMIFICATION.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/GAMIFICATION.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/GAMIFICATION.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/GAMIFICATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/GAMIFICATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/GAMIFICATION.md)
+
 ---
+
 title: "System grywalizacji i rankingów"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -57,15 +62,15 @@ tokenów, nagrody za zaproszenia).
 
 ## Architektura
 
-### Przepływ wysokopoziomowy
+### Przepływ wysokiego poziomu
 
 ```
-Client Request
+Żądanie klienta
   → /v1/chat/completions
     → handleChatCore()                      [open-sse/handlers/chatCore.ts]
-      → ... (existing pipeline) ...
-      → upstream response sent to client
-      → setImmediate (fire-and-forget):
+      → ... (istniejący potok) ...
+      → odpowiedź nadrzędna wysłana do klienta
+      → setImmediate (uruchom i zapomnij):
         → emitGamificationEvent()           [src/lib/gamification/events.ts]
           → awardXp()                       [src/lib/gamification/xp.ts]
           → updateStreak()                  [src/lib/gamification/streaks.ts]
@@ -74,40 +79,40 @@ Client Request
           → checkAnomalies()                [src/lib/gamification/antiCheat.ts]
 ```
 
-Emitter zdarzeń jest jedynym punktem integracji. `chatCore.ts` wywołuje
-`emitGamificationEvent()` po wysłaniu odpowiedzi; moduł zdarzeń rozprowadza
-wywołania do podsystemów XP, streak, badge, leaderboard i anti-cheat.
+Emiter zdarzeń stanowi pojedynczy punkt integracji. `chatCore.ts` wywołuje
+`emitGamificationEvent()` po wysłaniu odpowiedzi; moduł zdarzeń przekazuje
+ją do podsystemów XP, serii aktywności, odznak, tabeli wyników i ochrony przed oszustwami.
 
 ### Graf zależności modułów
 
 ```
 src/lib/gamification/
-  events.ts          ← entry point (called from chatCore.ts)
-    ├── xp.ts        ← XP calculation & level resolution
-    ├── streaks.ts   ← daily active streak tracking
-    ├── badges.ts    ← badge criteria evaluation
-    ├── leaderboard.ts ← rank computation & SSE broadcasting
-    ├── antiCheat.ts ← rate limiting & anomaly detection
-    ├── sharing.ts   ← token transfer ledger
-    ├── invites.ts   ← invite/redeem code management
-    ├── servers.ts   ← community server federation
-    └── notifications.ts ← SSE notification stream
+  events.ts          ← punkt wejścia (wywoływany z chatCore.ts)
+    ├── xp.ts        ← obliczanie XP i ustalanie poziomu
+    ├── streaks.ts   ← śledzenie codziennej serii aktywności
+    ├── badges.ts    ← ocena kryteriów odznak
+    ├── leaderboard.ts ← obliczanie pozycji i rozgłaszanie przez SSE
+    ├── antiCheat.ts ← ograniczanie częstotliwości i wykrywanie anomalii
+    ├── sharing.ts   ← rejestr transferów tokenów
+    ├── invites.ts   ← zarządzanie kodami zaproszeń i ich realizacją
+    ├── servers.ts   ← federacja serwerów społecznościowych
+    └── notifications.ts ← strumień powiadomień SSE
 
 src/lib/db/
-  gamification.ts    ← all CRUD operations (8 tables)
+  gamification.ts    ← wszystkie operacje CRUD (8 tabel)
 
 src/app/api/gamification/
-  leaderboard/       ← GET rankings, POST manual refresh
-  leaderboard/stream ← SSE real-time updates
-  transfer/          ← GET history, POST send tokens
-  invite/            ← GET/POST codes, DELETE revoke
-  invite/redeem/     ← POST redeem a code
-  servers/           ← GET/POST/DELETE community servers
-  federation/score/  ← POST push score to server
-  federation/leaderboard/ ← GET pull leaderboard from server
-  notifications/     ← SSE badge/level-up notifications
-  anomalies/         ← GET anomaly reports (admin)
-  rotate/            ← POST rotate invite token secrets
+  leaderboard/       ← GET rankingi, POST ręczne odświeżenie
+  leaderboard/stream ← aktualizacje w czasie rzeczywistym przez SSE
+  transfer/          ← GET historia, POST wysyłanie tokenów
+  invite/            ← GET/POST kody, DELETE unieważnienie
+  invite/redeem/     ← POST realizacja kodu
+  servers/           ← GET/POST/DELETE serwery społecznościowe
+  federation/score/  ← POST przekazanie wyniku do serwera
+  federation/leaderboard/ ← GET pobranie tabeli wyników z serwera
+  notifications/     ← powiadomienia SSE o odznakach/awansach na wyższy poziom
+  anomalies/         ← GET raporty anomalii (administrator)
+  rotate/            ← POST rotacja sekretów tokenów zaproszeń
 ```
 
 ---
@@ -204,54 +209,52 @@ Kluczowe funkcje:
 
 ## System XP / poziomów
 
-**File:** `src/lib/gamification/xp.ts`
+**Plik:** `src/lib/gamification/xp.ts`
 
 ### Krzywa poziomów
 
-XP wymagane do osiągnięcia poziomu `n` podąża za krzywą wielomianową:
+Liczba XP wymagana do osiągnięcia poziomu `n` jest określona krzywą wielomianową:
 
 ```
 xp_for_level(n) = floor(100 * n^1.5)
 ```
 
-| Level | XP to Next | Cumulative XP | Title    |
-| ----- | ---------- | ------------- | -------- |
-| 1     | 100        | 100           | Beginner |
-| 5     | 1,118      | 2,415         | Beginner |
-| 10    | 3,162      | 10,523        | Explorer |
-| 25    | 12,500     | 86,024        | Explorer |
-| 50    | 35,355     | 345,529       | Expert   |
-| 75    | 64,952     | 948,683       | Master   |
-| 100   | 100,000    | 2,050,000     | Legend   |
+| Poziom | XP do następnego poziomu | Łączne XP | Tytuł        |
+| ------ | ------------------------ | --------- | ------------ |
+| 1      | 100                      | 100       | Początkujący |
+| 5      | 1,118                    | 2,415     | Początkujący |
+| 10     | 3,162                    | 10,523    | Odkrywca     |
+| 25     | 12,500                   | 86,024    | Odkrywca     |
+| 50     | 35,355                   | 345,529   | Ekspert      |
+| 75     | 64,952                   | 948,683   | Mistrz       |
+| 100    | 100,000                  | 2,050,000 | Legenda      |
 
 ### Tytuły
 
-| Level Range | Title    |
-| ----------- | -------- |
-| 1 – 9       | Beginner |
-| 10 – 24     | Explorer |
-| 25 – 49     | Expert   |
-| 50 – 74     | Master   |
-| 75 – 100    | Legend   |
+| Zakres poziomów | Tytuł        |
+| --------------- | ------------ |
+| 1 – 9           | Początkujący |
+| 10 – 24         | Odkrywca     |
+| 25 – 49         | Ekspert      |
+| 50 – 74         | Mistrz       |
+| 75 – 100        | Legenda      |
 
 ### Nagrody XP
 
-| Action             | XP  | Description                                                       |
-| ------------------ | --- | ----------------------------------------------------------------- |
-| `request`          | 1   | Za każde udane żądanie LLM                                        |
-| `provider_switch`  | 5   | Przełączenie na innego providera                                  |
-| `combo_create`     | 10  | Utworzenie nowej konfiguracji combo                               |
-| `combo_use`        | 2   | Użycie combo (za każde trafienie targetu)                         |
-| `badge_earned`     | 25  | Zdobycie dowolnej odznaki                                         |
-| `streak_milestone` | 15  | Osiągnięcie milowego kamienia serii (7, 14, 30, 60, 90, 180, 365) |
-| `referral`         | 50  | Udane polecenie nowego użytkownika                                |
-| `token_share`      | 5   | Udostępnienie tokenów innemu użytkownikowi                        |
-| `daily_login`      | 3   | Pierwsze żądanie dnia                                             |
-| `model_diversity`  | 3   | Użycie modelu nieużywanego przez ostatnie 7 dni                   |
-| `compression_use`  | 2   | Użycie kompresji promptu                                          |
-| `skill_use`        | 2   | Wykonanie skillu przez MCP                                        |
+| Działanie         | XP  | Opis                                                         |
+| ----------------- | --- | ------------------------------------------------------------ |
+| `request`         | 1   | Za każde żądanie API kierowane przez OmniRoute               |
+| `provider_switch` | 5   | Przełączenie na innego dostawcę                              |
+| `model_switch`    | 3   | Przełączenie na inny model                                   |
+| `combo_create`    | 10  | Utworzenie nowego zestawu                                    |
+| `combo_use`       | 2   | Użycie zestawu dla żądania                                   |
+| `token_share`     | 1   | Za każde 1 000 tokenów udostępnionych innemu użytkownikowi   |
+| `invite_redeem`   | 50  | Wykorzystanie kodu zaproszenia                               |
+| `daily_login`     | 5   | Codzienna aktywność (raz dziennie)                           |
+| `streak_bonus`    | 2   | Za każdy kolejny dzień serii (pomnożone przez długość serii) |
+| `badge_unlock`    | 10  | Odblokowanie odznaki                                         |
 
-### Przepływ przyznawania
+### Przebieg przyznawania
 
 ```typescript
 export async function awardXp(
@@ -261,21 +264,21 @@ export async function awardXp(
 ): Promise<{ xp: number; level: number; title: string; levelUp: boolean }>;
 ```
 
-1. Wyszukaj `XP_REWARDS[action]`, by uzyskać kwotę XP.
-2. Przejdź przez `checkRateLimit()` (anti-cheat: max 1000 XP/min na klucz).
+1. Odczytaj `XP_REWARDS[action]`, aby uzyskać liczbę XP.
+2. Przekaż przez `checkRateLimit()` (ochrona przed oszustwami: maks. 1000 XP/min na klucz).
 3. Otwórz transakcję:
    - Odczytaj bieżący wiersz `user_levels`.
-   - Dodaj XP; przelicz poziom przez `levelFromXp(totalXp)`.
+   - Dodaj XP; ponownie oblicz poziom za pomocą `levelFromXp(totalXp)`.
    - Jeśli poziom się zmienił, ustaw `levelUp = true`.
    - Zaktualizuj wiersz `user_levels`.
-   - Wstaw do `xp_audit_log`.
-4. Zwróć wynik. Caller obsługuje powiadomienia.
+   - Wstaw wpis do `xp_audit_log`.
+4. Zwróć wynik. Kod wywołujący obsługuje powiadomienia.
 
-### Helper: `levelFromXp(totalXp)`
+### Funkcja pomocnicza: `levelFromXp(totalXp)`
 
-Iteruje poziomy 1..100, sumując `xp_for_level(n)`, aż skumulowane XP
-przekroczy `totalXp`. Zwraca najwyższy poziom, którego próg został spełniony.
-To jest O(100) — akceptowalne, bo poziomy są ograniczone do 100.
+Iteruje po poziomach 1..100, sumując `xp_for_level(n)`, aż łączna liczba XP
+przekroczy `totalXp`. Zwraca najwyższy poziom, którego próg został osiągnięty.
+Złożoność wynosi O(100) — jest to akceptowalne, ponieważ maksymalny poziom to 100.
 
 ---
 
@@ -810,19 +813,19 @@ Route → CORS preflight → Body validation (Zod) → Auth (extractApiKey)
 
 ## Narzędzia MCP (8)
 
-Zarejestrowane w `open-sse/mcp-server/` obok istniejących narzędzi. W zakresie
-uprawnień `gamification`.
+Zarejestrowane w `open-sse/mcp-server/` obok istniejących narzędzi. Objęte zakresem uprawnień
+`gamification`.
 
-| Tool | Description | Input Schema |
-| -------------------------- | ------------------------------------- | ---------------------------- | --------- |
-| `gamification_leaderboard` | Pobierz ranking dla scope/period | `{ scope, period?, limit? }` |
-| `gamification_rank` | Pobierz rangę wywołującego i sąsiadów | `{ scope }` |
-| `gamification_profile` | Pobierz podsumowanie XP, poziomu, tytułu, serii | `{}` |
-| `gamification_badges` | Lista zdobytych odznak lub wszystkich definicji | `{ earned?: boolean }` |
-| `gamification_transfer` | Wyślij tokeny do innego użytkownika | `{ to, amount }` |
-| `gamification_invite` | Generuj lub listuj kody zaproszeń | `{ action: "create"          | "list" }` |
-| `gamification_servers` | Listuj lub połącz serwery społecznościowe | `{ action, token? }` |
-| `gamification_anomalies` | Raporty anomalii (zakres admin) | `{ limit?, since? }` |
+| Narzędzie                  | Opis                                                | Schemat danych wejściowych   |           |
+| -------------------------- | --------------------------------------------------- | ---------------------------- | --------- |
+| `gamification_leaderboard` | Pobierz tabelę wyników dla zakresu/okresu           | `{ scope, period?, limit? }` |
+| `gamification_rank`        | Pobierz pozycję wywołującego i jego sąsiadów        | `{ scope }`                  |
+| `gamification_profile`     | Pobierz podsumowanie XP, poziomu, tytułu i serii    | `{}`                         |
+| `gamification_badges`      | Wyświetl zdobyte odznaki lub wszystkie definicje    | `{ earned?: boolean }`       |
+| `gamification_transfer`    | Wyślij tokeny innemu użytkownikowi                  | `{ to, amount }`             |
+| `gamification_invite`      | Wygeneruj lub wyświetl kody zaproszeń               | `{ action: "create"          | "list" }` |
+| `gamification_servers`     | Wyświetl serwery społeczności lub połącz się z nimi | `{ action, token? }`         |
+| `gamification_anomalies`   | Wyświetl raporty anomalii (zakres administratora)   | `{ limit?, since? }`         |
 
 ---
 
@@ -985,39 +988,39 @@ src/
   lib/
     db/
       migrations/
-        060_create_gamification.sql    # All 8 tables + indexes
-      gamification.ts                  # Domain CRUD module
+        060_create_gamification.sql    # Wszystkie 8 tabel i indeksy
+      gamification.ts                  # Moduł CRUD domeny
     gamification/
-      xp.ts                           # XP calculation, level curve, titles
-      badges.ts                       # Badge definitions, criteria, evaluation
-      streaks.ts                      # Daily streak tracking
-      leaderboard.ts                  # Rank computation, SSE, rotation
-      antiCheat.ts                    # Rate limiting, z-score, audit
-      sharing.ts                      # Token transfer ledger
-      invites.ts                      # Invite/redeem codes
-      servers.ts                      # Community server federation
-      events.ts                       # Event emitter (integration point)
-      notifications.ts                # SSE notification stream
+      xp.ts                           # Obliczanie XP, krzywa poziomów, tytuły
+      badges.ts                       # Definicje odznak, kryteria, ocena
+      streaks.ts                      # Śledzenie codziennych serii
+      leaderboard.ts                  # Obliczanie pozycji, SSE, rotacja
+      antiCheat.ts                    # Ograniczanie częstotliwości, z-score, audyt
+      sharing.ts                      # Rejestr transferów tokenów
+      invites.ts                      # Kody zaproszeń i realizacji
+      servers.ts                      # Federacja serwerów społecznościowych
+      events.ts                       # Emiter zdarzeń (punkt integracji)
+      notifications.ts                # Strumień powiadomień SSE
   app/
     api/
       gamification/
-        leaderboard/route.ts          # GET/POST leaderboard
-        leaderboard/stream/route.ts   # SSE real-time updates
-        transfer/route.ts             # GET/POST transfers
-        invite/route.ts               # GET/POST/DELETE invite codes
-        invite/redeem/route.ts        # POST redeem code
-        servers/route.ts              # GET/POST/DELETE servers
-        federation/score/route.ts     # POST push score
-        federation/leaderboard/route.ts # GET pull leaderboard
-        notifications/route.ts        # SSE notifications
-        anomalies/route.ts            # GET anomaly reports
-        rotate/route.ts               # POST rotate secrets
+        leaderboard/route.ts          # GET/POST rankingu
+        leaderboard/stream/route.ts   # Aktualizacje w czasie rzeczywistym przez SSE
+        transfer/route.ts             # GET/POST transferów
+        invite/route.ts               # GET/POST/DELETE kodów zaproszeń
+        invite/redeem/route.ts        # POST realizacji kodu
+        servers/route.ts              # GET/POST/DELETE serwerów
+        federation/score/route.ts     # POST przesyłania wyniku
+        federation/leaderboard/route.ts # GET pobierania rankingu
+        notifications/route.ts        # Powiadomienia SSE
+        anomalies/route.ts            # GET raportów anomalii
+        rotate/route.ts               # POST rotacji sekretów
     (dashboard)/
       dashboard/
-        leaderboard/page.tsx           # Rankings page
-        profile/page.tsx               # XP/badges/streaks page
-        tokens/page.tsx                # Balance/transfers/invites page
-        gamification/admin/page.tsx    # Admin anomaly monitoring
+        leaderboard/page.tsx           # Strona rankingu
+        profile/page.tsx               # Strona XP, odznak i serii
+        tokens/page.tsx                # Strona salda, transferów i zaproszeń
+        gamification/admin/page.tsx    # Monitorowanie anomalii przez administratora
   shared/
     constants/
       gamification.ts                  # XP_REWARDS, TITLES, BADGE_DEFS, LIMITS
@@ -1036,7 +1039,7 @@ tests/
 
 docs/
   frameworks/
-    GAMIFICATION.md                    # This document
+    GAMIFICATION.md                    # Ten dokument
 ```
 
 ---

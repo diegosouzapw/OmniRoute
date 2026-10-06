@@ -22,6 +22,15 @@ const THINK_OPEN = "<think>";
 const THINK_CLOSE = "</think>";
 
 /**
+ * Every proper prefix of `<think>` ("<", "<t", ... "<think"), derived from the
+ * tag itself so the list cannot drift out of sync with it.
+ */
+const THINK_OPEN_PARTIALS: readonly string[] = Array.from(
+  { length: THINK_OPEN.length - 1 },
+  (_, i) => THINK_OPEN.slice(0, i + 1)
+);
+
+/**
  * Create the mutable streaming-parse context for one SSE stream.
  * `enabled` decides whether the caller should attempt think-tag parsing at
  * all for this stream (passthrough mode + a provider/model that is known to
@@ -52,10 +61,7 @@ export function initThinkState(isPassthroughMode: boolean, provider?: unknown, m
  * @returns {boolean}
  */
 export function containsOrMayEndWithThinkOpenTag(value: string): boolean {
-  return (
-    value.includes(THINK_OPEN) ||
-    ["<", "<t", "<th", "<thi", "<thin"].some((suffix) => value.endsWith(suffix))
-  );
+  return value.includes(THINK_OPEN) || THINK_OPEN_PARTIALS.some((suffix) => value.endsWith(suffix));
 }
 
 /**

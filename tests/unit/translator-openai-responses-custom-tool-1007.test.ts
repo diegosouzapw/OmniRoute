@@ -8,9 +8,10 @@ const { openaiToOpenAIResponsesResponse } =
 const { initState } = await import("../../open-sse/translator/index.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
-function collectEvents(chunks, customToolNames = new Set()) {
+function collectEvents(chunks, customToolNames = new Set(), toolSchemas = null) {
   const state = initState(FORMATS.OPENAI_RESPONSES);
   state.customToolNames = customToolNames;
+  if (toolSchemas) state.toolSchemas = toolSchemas;
   const events = [];
   for (const chunk of chunks) {
     const result = openaiToOpenAIResponsesResponse(chunk, state);
@@ -46,6 +47,40 @@ test("Responses -> Chat: custom tool is normalized to a { input: string } functi
   // The regression: without normalization, parameters is undefined / empty and the model
   // invokes apply_patch with {}, breaking the Codex runtime.
   assert.deepEqual(tool.function.parameters, {
+    type: "object",
+    properties: { input: { type: "string" } },
+    required: ["input"],
+    additionalProperties: false,
+  });
+});
+
+test("Responses -> Chat: forced custom tool_choice maps to the normalized function tool", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-5.6-sol",
+    {
+      input: 'Call functions__exec with exactly: text("ok")',
+      tools: [
+        {
+          type: "custom",
+          name: "functions__exec",
+          description: "Execute freeform code",
+        },
+      ],
+      tool_choice: {
+        type: "custom",
+        name: "functions__exec",
+      },
+    },
+    false,
+    {}
+  );
+
+  assert.deepEqual(result.tool_choice, {
+    type: "function",
+    function: { name: "functions__exec" },
+  });
+  assert.equal(result.tools[0].function.name, "functions__exec");
+  assert.deepEqual(result.tools[0].function.parameters, {
     type: "object",
     properties: { input: { type: "string" } },
     required: ["input"],
@@ -164,6 +199,130 @@ test("OpenAI -> Responses: apply_patch streams as custom_tool_call with raw inpu
   const customItem = completed.data.response.output.find((o) => o.type === "custom_tool_call");
   assert.ok(customItem, "final snapshot should carry the custom_tool_call item");
   assert.equal(customItem.input, "PATCH_BODY");
+});
+
+// Regression (live incident): a client (OpenClaw) that explicitly declares apply_patch
+// as a plain `type:"function"` tool with its own `{input:string}` JSON-schema parameters
+// must get a `function_call` item back with `arguments` as the raw JSON string it
+// registered — NOT the apply_patch-is-always-custom fallback below. PR #7905 ("Restore
+// Responses API custom tool calls") states this precedence should already hold ("...
+// while preserving explicit function-tool precedence") but its `toolName ===
+// "apply_patch"` unconditional OR never actually implemented that carve-out for
+// apply_patch specifically. Forcing custom_tool_call onto a client that registered a
+// function tool means the client's own dispatcher — which only knows how to handle
+// function_call items for a name it declared as type:"function" — never recognizes the
+// item at all: no error, no execution, no follow-up request with the tool result.
+test("OpenAI -> Responses: apply_patch streams as function_call when the client declared it as a function tool (with tool defined)", () => {
+  const toolSchemas = new Map([
+    [
+      "apply_patch",
+      {
+        type: "object",
+        properties: { input: { type: "string" } },
+        required: ["input"],
+      },
+    ],
+  ]);
+  const events = collectEvents(
+    [
+      {
+        id: "chatcmpl-fn-apply-patch",
+        model: "big-pickle",
+        choices: [
+          {
+            index: 0,
+            delta: {
+              tool_calls: [
+                {
+                  index: 0,
+                  id: "call_1",
+                  type: "function",
+                  function: { name: "apply_patch", arguments: '{"input":"PATCH_BODY"}' },
+                },
+              ],
+            },
+            finish_reason: "tool_calls",
+          },
+        ],
+      },
+      null,
+    ],
+    new Set(), // client did not declare apply_patch as type:"custom"
+    toolSchemas // ...but DID declare it as type:"function" with a parameters schema
+  );
+
+  const added = events.find((e) => e.event === "response.output_item.added");
+  assert.ok(added);
+  assert.equal(
+    added.data.item.type,
+    "function_call",
+    "explicit function-tool declaration must win over the apply_patch-is-custom fallback"
+  );
+  assert.equal(added.data.item.name, "apply_patch");
+
+  assert.ok(
+    events.some((e) => e.event === "response.function_call_arguments.delta"),
+    "expected function_call_arguments.delta events, not custom_tool_call_input.*"
+  );
+  assert.ok(!events.some((e) => e.event === "response.custom_tool_call_input.delta"));
+
+  const done = events.find(
+    (e) => e.event === "response.output_item.done" && e.data.item.type === "function_call"
+  );
+  assert.ok(done);
+  // arguments must stay the raw JSON string the model produced — NOT unwrapped to the
+  // bare patch text the way a genuine custom tool call would be.
+  assert.equal(done.data.item.arguments, '{"input":"PATCH_BODY"}');
+
+  const completed = events.find((e) => e.event === "response.completed");
+  const finalItem = completed.data.response.output.find((o) => o.name === "apply_patch");
+  assert.equal(finalItem.type, "function_call");
+  assert.equal(finalItem.arguments, '{"input":"PATCH_BODY"}');
+});
+
+// Sibling of the test above (without tool defined): when the client's request never
+// declares apply_patch as a tool at all (native Codex CLI convention — the model just
+// emits it), the original #1007 fallback behavior must be unchanged: still custom_tool_call
+// with the raw patch string unwrapped from the model's {"input":"..."} JSON.
+test("OpenAI -> Responses: apply_patch still streams as custom_tool_call when the client never declared it (without tool defined)", () => {
+  const events = collectEvents(
+    [
+      {
+        id: "chatcmpl-no-decl-apply-patch",
+        model: "gpt-5.3-codex",
+        choices: [
+          {
+            index: 0,
+            delta: {
+              tool_calls: [
+                {
+                  index: 0,
+                  id: "call_1",
+                  type: "function",
+                  function: { name: "apply_patch", arguments: '{"input":"PATCH_BODY"}' },
+                },
+              ],
+            },
+            finish_reason: "tool_calls",
+          },
+        ],
+      },
+      null,
+    ]
+    // no customToolNames, no toolSchemas — apply_patch was never declared by the client
+  );
+
+  const added = events.find((e) => e.event === "response.output_item.added");
+  assert.ok(added);
+  assert.equal(added.data.item.type, "custom_tool_call");
+  assert.equal(added.data.item.name, "apply_patch");
+  assert.ok(events.some((e) => e.event === "response.custom_tool_call_input.delta"));
+
+  const done = events.find(
+    (e) => e.event === "response.output_item.done" && e.data.item.type === "custom_tool_call"
+  );
+  assert.ok(done);
+  assert.equal(done.data.item.input, "PATCH_BODY");
 });
 
 test("OpenAI -> Responses: declared custom tools round-trip through the active translator", () => {

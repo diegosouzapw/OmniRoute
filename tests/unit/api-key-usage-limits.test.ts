@@ -9,7 +9,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "usage-limit-test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updatePricing } = await import("@/lib/db/settings");
+const localDb = { updatePricing };
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const usageLimits = await import("../../src/lib/usage/apiKeyUsageLimits.ts");
@@ -20,7 +21,7 @@ async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
   usageHistory.clearPendingRequests();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -31,7 +32,7 @@ test.beforeEach(async () => {
 test.after(() => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("API key USD usage limits persist and default off", async () => {
@@ -412,7 +413,36 @@ test("buildApiKeyUsageLimitRejection can hide USD amounts for client-facing poli
   );
 });
 
-test("buildApiKeyUsageLimitRejection uses 400 so Claude Code does not trigger login", () => {
+test("buildApiKeyUsageLimitRejection returns structured reset timing to non-Anthropic clients", async () => {
+  const resetAt = new Date(Date.now() + 5 * 60_000).toISOString();
+  const response = usageLimits.buildApiKeyUsageLimitRejection(
+    new Request("http://localhost/v1/chat/completions"),
+    {
+      enabled: true,
+      dailyLimitUsd: 10,
+      weeklyLimitUsd: null,
+      dailySpentUsd: 12,
+      weeklySpentUsd: 12,
+      dailyWindowStartIso: new Date(Date.now() - 60_000).toISOString(),
+      dailyResetAtIso: resetAt,
+      weeklyWindowStartIso: null,
+      weeklyResetAtIso: null,
+      dailyExceeded: true,
+      weeklyExceeded: false,
+    }
+  );
+
+  assert.equal(response.status, 429);
+  const body = (await response.json()) as {
+    error: { code?: string; retry_after?: number; reset_at?: string };
+  };
+  assert.equal(body.error.code, "usage_limit_exceeded");
+  assert.equal(body.error.reset_at, resetAt);
+  assert.ok(body.error.retry_after! >= 299 && body.error.retry_after! <= 300);
+  assert.equal(response.headers.get("Retry-After"), String(body.error.retry_after));
+});
+
+test("buildApiKeyUsageLimitRejection uses 400 so Claude Code does not trigger login", async () => {
   const response = usageLimits.buildApiKeyUsageLimitRejection(
     new Request("http://localhost/v1/messages", {
       headers: { "anthropic-version": "2023-06-01" },
@@ -423,14 +453,20 @@ test("buildApiKeyUsageLimitRejection uses 400 so Claude Code does not trigger lo
       weeklyLimitUsd: 50,
       dailySpentUsd: 12,
       weeklySpentUsd: 20,
-      dailyWindowStartIso: "2026-06-19T03:00:00.000Z",
-      dailyResetAtIso: "2026-06-20T03:00:00.000Z",
-      weeklyWindowStartIso: "2026-06-12T20:00:00.000Z",
-      weeklyResetAtIso: "2026-06-19T20:00:00.000Z",
+      dailyWindowStartIso: new Date(Date.now() - 60_000).toISOString(),
+      dailyResetAtIso: new Date(Date.now() + 5 * 60_000).toISOString(),
+      weeklyWindowStartIso: new Date(Date.now() - 60_000).toISOString(),
+      weeklyResetAtIso: new Date(Date.now() + 7 * 60_000).toISOString(),
       dailyExceeded: true,
       weeklyExceeded: false,
     }
   );
 
   assert.equal(response.status, 400);
+  const body = (await response.json()) as {
+    error: { type?: string; retry_after?: number; reset_at?: string };
+  };
+  assert.equal(body.error.type, "invalid_request_error");
+  assert.ok(body.error.reset_at);
+  assert.ok(body.error.retry_after! >= 299 && body.error.retry_after! <= 300);
 });

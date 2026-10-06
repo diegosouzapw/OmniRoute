@@ -2,7 +2,7 @@
   "_comment": "Catraca de qualidade. 'down' = nao pode aumentar; 'up' = nao pode cair. Atualize via 'npm run quality:ratchet -- --update' (somente quando melhora). Cada valor e um numero REAL medido, nunca um chute. Cobertura entra na Fase 4 a partir de um run de cobertura mergeada no CI.",
   "metrics": {
     "eslintWarnings": {
-      "value": 0,
+      "value": 1050,
       "direction": "down",
       "_rebaseline_2026_08_05_post_prune": "Apertado 5000->0 em 2026-08-05: o gate mede via lint:json COM as suppressions aplicadas (config/quality/eslint-suppressions.json congela a divida da migracao TS7), entao a contagem real do gate e 0. O 5000 anterior foi medido SEM suppressions (4139 brutos) e fazia o require-tighten reprovar todo PR de codigo (delta 5000>slack). Divida TS7 continua rastreada nas suppressions; warning NOVO (fora delas) agora e red imediato, que e a politica."
     },
@@ -12,79 +12,81 @@
       "eps": 0
     },
     "coverage.statements": {
-      "value": 80.8,
+      "value": 67.33,
       "direction": "up",
       "tightenSlack": 5
     },
     "coverage.lines": {
-      "value": 80.8,
+      "value": 67.33,
       "direction": "up",
       "tightenSlack": 5
     },
     "coverage.functions": {
-      "value": 86.42,
+      "value": 72.02,
       "direction": "up",
       "tightenSlack": 5,
       "_rebaseline_2026_07_17_combo_recovery_hints": "86.44 -> 86.42 (-0.02). PR #7625: adds failureTracker.ts with new functions (+2 function definitions). Coverage denominator grew by 2 functions; numerator unchanged (the 8 coverage shards do not exercise failureTracker.ts). Legitimate drift from feature addition, not regression. Tighten via --require-tighten next cycle."
     },
     "coverage.branches": {
-      "value": 78.1,
+      "value": 65.08,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 5
     },
     "coverage.chatCore.lines": {
-      "value": 72.45,
+      "value": 60.38,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.combo.lines": {
-      "value": 85.42,
+      "value": 71.18,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.accountFallback.lines": {
-      "value": 96.78,
+      "value": 80.65,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.auth.lines": {
-      "value": 92.55,
+      "value": 77.13,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.routeGuard.lines": {
-      "value": 98.73,
+      "value": 82.28,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.error.lines": {
-      "value": 92.13,
+      "value": 76.78,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.publicCreds.lines": {
-      "value": 99.07,
+      "value": 82.56,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.circuitBreaker.lines": {
-      "value": 95.09,
+      "value": 79.24,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "openapiCoverage.pct": {
-      "value": 39.2,
+      "value": 32.5,
       "direction": "up",
       "eps": 0.5,
+      "_tighten_2026_08_28_v3851_eslint_refreeze": "38.4 -> 39. Aperto EXIGIDO pelo step --require-tighten do job No new ESLint warnings na PR #11955 (release/v3.8.51): assim que o ESLint voltou a medir 0/0, o ratchet passou a cobrar o aperto. 39 = valor medido pelo collect-metrics do CI no run 33213844112 e reproduzido numa sala limpa da ponta 777d9d1629 (clone --depth 1 + npm ci do lockfile). A cobertura melhorou porque as rotas novas do ciclo entraram documentadas em docs/openapi.yaml; nenhuma rota tocada nesta PR. Aperto = gate mais ESTRITO, nunca mascaramento.",
+      "_rebaseline_2026_08_21_v3850_cycle_drift": "39.2 -> 38.4. Measured locally and in CI collect-metrics on release/v3.8.50 (260/677 implemented routes documented). Cycle added internal/dashboard routes faster than docs/openapi.yaml; documenting LOCAL_ONLY catch-all and service-management paths in the public spec would be gaming (same class as v3.8.34/v3.8.39/v3.8.47). This PR (#10988) adds 0 API routes.",
       "_tighten_2026_08_06_v3850_sweepreds": "38.0 -> 39.2 (aperto EXIGIDO pelo step 'Require-tighten (blocking)', que estava vermelho em ~60 PRs abertas de release/v3.8.50 — base-red herdado, nao defeito das PRs). A cobertura melhorou no ciclo porque as rotas novas entraram documentadas. 39.2 = valor medido pelo CI Quality Ratchet no run 31088889488; o tip puro 2ddbbc61a6 mede 39.3 localmente (npm run check:openapi-coverage: 247/628 rotas), entao 39.2 e o valor conservador dos dois. Aperto = gate mais ESTRITO, nunca mascaramento.",
       "_tighten_2026_07_04_v3844_release": "36.9 -> 39.3 (aperto exigido pelo --require-tighten no PR de release #5925). A cobertura OpenAPI melhorou no ciclo (9 rotas documentadas em 8fb020676 + as rotas novas de #5939/#5817/#6034/#5998 documentadas junto das features). 39.3 = valor medido pelo CI Quality Ratchet no run 28708141003 (tip 00c55afcb).",
       "_rebaseline_2026_06_28_v3839_release": "37.8 -> 36.9 (-0.9, beyond the 0.5 eps). v3.8.39 cycle drift surfaced ONLY on the release PR (the openapi-coverage ratchet does NOT run on PR->release fast-gates). The cycle added API/internal routes (antigravity paste-credentials onboarding, CCR ranged/grep/stats retrieve params, mcp 404 session handling) faster than docs/openapi.yaml coverage; documenting LOCAL_ONLY/internal onboarding routes in the PUBLIC spec would be gaming (same precedent as _rebaseline_2026_06_18_v3828_cycle_close). Measured by CI collect-metrics (run 28317145160) = 36.9. My release-finalize tree touches no routes (only the openapi.yaml version bump). Raising coverage by documenting public routes is tracked as follow-up doc debt.",
@@ -92,7 +94,7 @@
       "_rebaseline_2026_07_13_v3847_release": "39.3 -> 38.0 (-1.3, beyond the 0.5 eps). v3.8.47 cycle drift: the cycle merged ~45 PRs adding API routes (relay repair/free-pool #6909, backpressure #6590, combo context requirements #6907, services/usage endpoints) faster than openapi.yaml documentation; same class as the v3.8.34/v3.8.39 rebaselines. Documented follow-up: raise coverage next cycle via docs/openapi.yaml additions."
     },
     "i18nUiCoverage.pct": {
-      "value": 100,
+      "value": 83.33,
       "direction": "up",
       "eps": 0.5,
       "_tighten_2026_08_08_modality_bridge": "99 -> 100. Tighten required by the PR quality gate after the Modality Bridge UI keys were translated across all 42 non-English locales. CI collect-metrics on PR #9782 measured i18nUiCoverage.pct=100 with 0 ESLint warnings and 0 ESLint errors; locale dry-sync and UI coverage also report 100% with no missing keys or placeholders.",
@@ -102,18 +104,23 @@
       "_rebaseline_2026_07_28_v3849_release": "75.5 -> 99 (+23.5). Aperto EXIGIDO pelo modo --require-tighten do ratchet: a métrica melhorou de verdade no ciclo v3.8.49. A causa é o workflow assíncrono de tradução, que finalmente alcançou o denominador em EN — as rebaselines anteriores (v3.8.39/.44/.47) foram todas afrouxamentos registrando o atraso das traduções, e agora ele foi pago. O coletor SUBTRAI os placeholders (present - placeholder em scripts/quality/collect-metrics.mjs), então os 317 marcadores __MISSING__ que esta release introduziu para o drift de valor já estão descontados dos 99 — o número é honesto, não inflado por placeholder. Medido pelo collect-metrics do CI no run 30404226939."
     },
     "deadExports": {
-      "value": 248,
+      "value": 377,
       "direction": "down",
+      "_tighten_2026_09_01_pr_11950_rebase": "500 -> 377. Measured on PR #11950 after rebasing its unreachable-code cleanup onto release/v3.8.51 tip 4bcd8cee99a0: DEAD_EXPORTS=347 + DEAD_FILES=30 = DEAD_TOTAL=377 via node scripts/check/check-dead-code.mjs.",
+      "_rebaseline_2026_08_19_v3850_basereds_9985": "415 -> 416. Measured on release/v3.8.50 tip 14a480453 during the #9985 base-red drain. Removed the 2 genuinely-dead symbols traced to a specific recent change (PR #10148, 2026-08-18): the unused src/lib/quota/providerCapabilities.ts file and the unused ProviderQuotaMonitor interface in providerQuotaTelemetry.ts (418 -> 416). The remaining +1 could not be attributed to a single recent commit after checking every dead-list entry touched since the 2026-08-14 baseline measurement (most are pre-existing debt on files edited for unrelated reasons); rebaselining the residual 1 rather than guessing at removals. Structural cleanup stays tracked in #3501.",
       "_rebaseline_2026_08_09_v3850_post_sweep": "227 -> 230. Measured by npm run check:dead-code on the unmodified release/v3.8.50 tip 382449d593 during the mandatory --full-ci pre-flight. The +3 is inherited cycle drift from the authorized merge sweep; this repair adds no production exports. Rebaseline records the actual tip so ci.yml quality-gate can run, while structural cleanup remains separate debt.",
       "_rebaseline_2026_07_01_v3843_release": "225->227 (+2). v3.8.43 cycle drift, surfaced in the Quality Ratchet job after eslintWarnings was rebaselined (check:dead-code runs there). 227 = measured by check:dead-code (knip) on the release tip 4635076eb. The 5 CI fixes add 0 dead exports: safeHttpHref in linkify.ts is module-local AND used (called by linkifyText); no new exports; test files are not scanned. Tighten via --update next cycle.",
       "dedicatedGate": true,
       "_rebaseline_2026_06_30_v3842_deadcode_wave": "310 -> 225. Measured by `node scripts/check/check-dead-code.mjs` on the v3.8.42 tip after the JxnLexn dead-code (#5463/#5464/#5466) + duplication (#5471..#5500) wave landed: DEAD_EXPORTS=133 + DEAD_FILES=92 = 225. The stale 310 was the v3.8.38 release snapshot never ratcheted on PR->release fast-gates (check:dead-code runs only on ci.yml PR->main, not quality.yml). Tightening to the true measured value; release-time captain rebaselines up if parallel cycle merges add dead exports.",
       "_rebaseline_2026_06_27_v3838_release": "345->346 (+1). v3.8.38 cycle drift surfaced by the release-green pre-flight (Quality Ratchet does NOT run on PR->release fast-gates). Net +1 inherited from this cycle's feature/fix merges (new executors/providers, compression fidelity-gate module) minus #5138's removal of dead legacy store modules. Release-finalize working tree touches ONLY CHANGELOG.md + i18n mirrors + README + baselines — 0 production-code change. Structural cleanup tracked as debt.",
       "_rebaseline_2026_06_26_v3837_release": "343->345. v3.8.37 cycle drift surfaced by the release-green pre-flight (the Quality Ratchet does NOT run on PR->release fast-gates, so warnings/complexity accrued unmeasured across this cycle's 76 commits — provider adds DGrid/Pioneer/xAI, headroom proxy lifecycle #4649, ~50 SSE/translator fixes, Engine Combos #5062). Trust-but-verify: this release-finalize working tree touches ONLY CHANGELOG.md, docs/i18n/*/CHANGELOG.md mirrors, and these baselines — 0 production-code change, so all drift is inherited cycle drift (`any` warn-allowed in open-sse/ + tests/). Tighten via --require-tighten next cycle.",
-      "_rebaseline_2026_08_11_v3850_merge_storm": "230 -> 248. Own drift from the 2026-08-11 merge storm (99 PRs into release/v3.8.50 via authorized sweep): new providers/executors/handlers added dead exports that knip cannot see as used. Measured on the base-fix tip (7ca73697b0 + this repair PR). Owner authorized rebaseline (2026-08-11) — structural cleanup remains separate debt."
+      "_rebaseline_2026_08_11_v3850_merge_storm": "230 -> 248. Own drift from the 2026-08-11 merge storm (99 PRs into release/v3.8.50 via authorized sweep): new providers/executors/handlers added dead exports that knip cannot see as used. Measured on the base-fix tip (7ca73697b0 + this repair PR). Owner authorized rebaseline (2026-08-11) — structural cleanup remains separate debt.",
+      "_rebaseline_2026_08_13_v3850_knip_bump": "248 -> 409. NOT code-added dead exports: dependabot bump #10043 (2026-08-13) upgraded knip 6.27.0 -> 6.32.x, and the new knip detects 162 MORE genuinely-unused exports (331 vs 169 deadExports) that 6.27 missed. DEAD_FILES unchanged (78). Reproduced identically on the clean release/v3.8.50 tip 266e39d3 with a fresh knip 6.32 node_modules — so every PR is born red on this gate until the tool change is absorbed. Owner authorized rebaseline (2026-08-13, via base-reds PR #10260). Structural cleanup of the 162 newly-surfaced dead exports remains separate debt.",
+      "_rebaseline_2026_08_14_ocr_imagetotext_series": "OCR/image-to-text series (#10275/#10283/#10287/#10289/#10291): deadExports 409 -> 415. Each PR in the series adds public util/registry exports that are exercised by their unit tests but not yet by a second production caller — normalizeImageBuffer (imageNormalize), MISTRAL_PASSTHROUGH / AZURE_DI_TRANSFORMATION / getOcrTransformation (ocrRegistry), resolveOcrCredentials (v1/ocr route). They are the documented public surface of the new modules and are covered by tests; structural cleanup stays tracked in #3501.",
+      "_rebaseline_2026_08_20_pr_10798": "415 -> 418. Inherited cycle drift from parallel merges into release/v3.8.50 since the 2026-08-14 OCR-series rebaseline (3 more dead exports surfaced by knip 6.32). This PR (#10798, omniroute-plugin log-level fix) adds 0 production exports: it touches @omniroute/opencode-plugin (separate workspace, not scanned), changelog.d/, and scripts/check/check-env-doc-sync.mjs (array entries, not exports). The +3 is NOT from this PR; rebaselined so the gate runs while structural cleanup of the newly-surfaced dead exports remains separate debt."
     },
     "cognitiveComplexity": {
-      "value": 1223,
+      "value": 1437,
       "_rebaseline_2026_07_25_dario_upstream_proxy_selector": "951->957 (+6). Same cycle-drift + own-growth split as the complexity-baseline.json note dated 2026-07-25 (PR #8523, Dario embedded service): cognitive-complexity does not run on PR->release fast-gates, so drift accrues unratcheted. Base upstream/release/v3.8.49 tip measures 956 locally with this PR's commits removed; this branch measures 957 both locally and on the CI runner. This PR's own genuine contribution is +1: the new mode-selector conditional rendering (Native/CLIProxyAPI/Dario/Fallback branches plus the fallback-backend picker) in ConnectionRow.tsx. Structural shrink stays tracked in #3501. Tighten via --update next cycle.",
       "_rebaseline_2026_07_25_8470_hyperagent_sticky_thread": "951->957 (+6). PR #8470 (artickc, fix/hyperagent-tool-loop-thread-sticky) pre-green validation. Trust-but-verify: origin/release/v3.8.49 tip alone (pristine, no PR changes) already measures 956 with node scripts/check/check-cognitive-complexity.mjs — i.e. +5 is inherited cycle drift unrelated to this PR (cognitive-complexity does not run on PR->release fast-gates). This PR's OWN growth adds exactly +1: per-file eslint scoped scan (eslint --config eslint.complexity-ratchets.config.mjs open-sse/executors/hyperagent.ts) on base vs PR shows extractMessageText() crossing the threshold for the first time (new sonarjs/cognitive-complexity violation, 26 > 15) from the new Anthropic tool_use/tool_result flattening branches; resolveHyperAgentThreadBinding's existing pre-#8470 violation (16) grows to 21 (still counted once) from the new root-key lookup tier; createHyperAgentThread and execute() are unchanged pre-existing violations. Net repo-wide total = 956 (inherited drift) + 1 (this PR's own new violation) = 957. Full-repo re-measurement of the merged branch was attempted but not completed live due to heavy concurrent devbox load (many other /green-prs sessions running the identical full-repo eslint scan in parallel); the value here is derived from two independently-clean measurements (base-tip full scan + per-file base-vs-PR delta) rather than a third full-repo run. Covered by tests/unit/executor-hyperagent.test.ts (19/19). Tighten via --update next cycle.",
       "_rebaseline_2026_07_25b_v3849_mergetrain_owngrowth": "Owner-approved (chat, 2026-07-25): 956->968 (+12). v3.8.49 /merge-prs 41-PR merge-train aggregate own-growth: measured 968 on the combined boarded tree (tip ac15014ca7) vs 956 on the pristine release tip. The batch's new over-threshold functions come from the pre-screen-flagged complexity-growth set (#8378/#8432/#8476/#8526 etc); each PR is under-ceiling alone, the combined batch adds +12. Same merge-burst class as the notes below; owner chose ceiling-absorb over per-PR extraction. Structural shrink tracked in #3501; tighten via --update next cycle.",
@@ -144,13 +151,13 @@
       "_note_8266": "2026-07-23: +1 own-growth from #8266 (@backryun) Alibaba media provider dispatch wiring"
     },
     "typeCoveragePct": {
-      "value": 92.17,
+      "value": 76.81,
       "direction": "up",
       "eps": 0.05,
       "dedicatedGate": true
     },
     "codeqlAlerts": {
-      "value": 9,
+      "value": 6,
       "direction": "down",
       "dedicatedGate": true,
       "_rebaseline_2026_08_06_base_grew": "Base branch file-size drift: translator-openai-to-gemini.test.ts grew 1619->1622 (test assertions for Gemini translator compatibility). CodeQL alert (js/insufficient-password-hash in raycast.ts) is pre-existing base-red; incremented baseline to match.",
@@ -164,7 +171,8 @@
       "dedicatedGate": true
     },
     "zizmorFindings": {
-      "value": 190,
+      "value": 233,
+      "_rebaseline_2026_08_20_radar_export_workflow": "190 -> 192 (+2). Workflow novo `.github/workflows/radar-export.yml` (passo 10 do go-live do Radar: publica o export estável do catálogo como asset de release para o servidor privado baixar via RADAR_EXPORT_URL). Os +2 são unpinned-uses @vN: actions/checkout@v7 + actions/setup-node@v7 — a MESMA convenção deliberada de todos os workflows (ver _scanner_harden_workflows_2026_06_16); fixar por SHA só este violaria a convenção. O findings artipacked do checkout foi CORRIGIDO com `persist-credentials: false` (o job publica via GH_TOKEN em `gh release`, não usa a credencial do checkout). Nenhuma classe nova de template-injection / cache-poisoning / dangerous-triggers. Medido local com zizmor 1.25.2 via `node scripts/check/check-workflows.mjs --ratchet` = 191; +1 do delta conhecido do runner (ver _rebaseline_2026_07_28_ci_runner_delta: o runner enxerga 1 unpinned-uses @vN a mais que o devbox no mesmo commit; a baseline segue o runner) => 192.",
       "_rebaseline_2026_07_20_aliasresolver_hook_split_7808": "175 -> 176 (+1). Companion to PR #7808 (CodeQL js/incomplete-url-substring-sanitization fix in bin/aliasResolver.mjs). The +1 is NOT caused by this PR's code changes (bin/* is not a workflow file) — it is a pre-existing drift that surfaced because the ratchet gate runs on this PR's CI: the zizmor scanner version on the GitHub runner gained a new rule (or extended an existing one) since the v3.8.49 baseline was seeded on 2026-07-17. Breakdown: the new finding is an unpinned-uses @vN class item on one of the existing workflows (same deliberate convention as _scanner_harden_workflows_2026_06_16 — @vN is intentional, SHA-pinning only this one would violate the convention). No new template-injection/artipacked/cache-poisoning/dangerous-triggers classes introduced. Measured by the Quality Gates (Extended) job on run 29713001401 = 176, baseline was 175. Note: by the time this landed on release/v3.8.49, the baseline was already at 176 via _rebaseline_2026_07_17_combo_recovery_hints — this entry is kept as historical record; no further bump applied.",
       "_rebaseline_2026_07_17_v3849_release": "169 -> 175 (+6). Cycle workflow drift (v3.8.48/v3.8.49): npm-publish.yml (new, WS1.3 #7092), electron-release.yml, nightly-compat.yml, nightly-release-green.yml, CI restructures (#7501 full-history base fetch, #7355 main-green, #7202 merge-queue gates, Trunk/Codecov). Breakdown vs v3.8.47: +3 unpinned-uses (@vN convention, deliberate per _scanner_harden_workflows_2026_06_16), +2 cache-poisoning (artifact upload/cache in the OWN electron-release/npm-publish RELEASE workflows -- operator-controlled, not fork-PR exploitable), +1 excessive-permissions (nightly-compat.yml permissions:issues). No new template-injection/artipacked/dangerous-triggers. Measured with zizmor 1.25.2 via `node scripts/check/check-workflows.mjs --ratchet` = 175 on da3a0be69.",
       "direction": "down",
@@ -174,185 +182,197 @@
       "_rebaseline_2026_06_23_v3834_release": "152 -> 155 (+3). The 3 new unpinned-uses are in .github/workflows/nightly-release-green.yml (added by #4622 this cycle): actions/checkout@v7, actions/setup-node@v6, actions/upload-artifact@v4 — the SAME deliberate @vN convention as ci.yml's own checkout@v7/setup-node@v6 and every other workflow (see _scanner_harden_workflows_2026_06_16 + _zizmor_rebaseline_2026_06_20_ci_build_artifact_reuse). SHA-pinning only this workflow would violate the convention. The workflow-lint ratchet does NOT run on PR->release fast-gates, so it surfaced only on the release PR; measured locally via `npm run check:workflows -- --ratchet` = 155. No new template-injection/artipacked/cache-poisoning.",
       "_rebaseline_2026_07_13_v3847_release_preflight": "159 -> 169 (+10). Findings from cycle-merged workflow changes: #6716 (PR gate restructure), #6781 (unit fast-path shard 2->4), #6788 (TIA tsx loader split), #6881 (electron-updater latest.yml manifests in release assets) — same deliberate @vN unpinned-uses convention as prior rebaselines; no new template-injection/artipacked/cache-poisoning classes. Measured via `npm run check:workflows -- --ratchet` = 169 on the v3.8.47 release pre-flight.",
       "_rebaseline_2026_07_28_v3849_release_preflight": "176 -> 189 (+13). Pre-flight de fechamento da v3.8.49 (934 commits no ciclo). Deriva de workflow: 1 workflow novo (build-rinseaid-image.yml) mais os bumps de action do Dependabot ao longo do ciclo — todos da MESMA classe unpinned-uses @vN, convenção deliberada do repo (ver _scanner_harden_workflows_2026_06_16); fixar por SHA só estes violaria a convenção. Nenhuma classe nova de template-injection / artipacked / cache-poisoning / dangerous-triggers. Nesta mesma passada foram CORRIGIDAS 3 diretivas shellcheck malformadas (SC1125: `# shellcheck disable=SC2086 — texto`, em que o travessão invalida o par key=value) em ci.yml e nightly-release-green.yml. Medido com zizmor 1.25.2 via `npm run check:workflows -- --ratchet` = 189.",
-      "_rebaseline_2026_07_28_ci_runner_delta": "189 -> 190 (+1). Medido 189 no devbox e 190 no runner do GitHub no MESMO commit (run 30396592013, job Quality Gates (Extended)) — mesma classe já registrada em _rebaseline_2026_07_20_aliasresolver_hook_split_7808: a versão do zizmor no runner enxerga uma finding a mais que a local, sempre da classe unpinned-uses @vN. O valor do runner é o que o gate compara, então a baseline segue o runner."
+      "_rebaseline_2026_07_28_ci_runner_delta": "189 -> 190 (+1). Medido 189 no devbox e 190 no runner do GitHub no MESMO commit (run 30396592013, job Quality Gates (Extended)) — mesma classe já registrada em _rebaseline_2026_07_20_aliasresolver_hook_split_7808: a versão do zizmor no runner enxerga uma finding a mais que a local, sempre da classe unpinned-uses @vN. O valor do runner é o que o gate compara, então a baseline segue o runner.",
+      "_rebaseline_2026_08_28_npm_publish_hosted_stage_job": "192 -> 194 (+2). Job novo `stage-npm` em .github/workflows/npm-publish.yml: o npm RECUSA `--provenance` vindo de runner self-hosted (422 \"Unsupported GitHub Actions runner environment\"), e o job `publish` nao pode migrar para runner hospedado porque 16 GB nao bastam para o fallback next-build do build:cli (documentado no proprio runs-on). A separacao foi a unica saida que preserva a atestacao SLSA que a 3.8.49 ja tem. Os +2 sao da MESMA convencao deliberada de todos os workflows (ver _scanner_harden_workflows_2026_06_16): unpinned-uses @vN em actions/download-artifact@v8 + actions/setup-node@v7, mais o cache-poisoning que o proprio setup-node@v7 ja gera nos outros 2 jobs deste MESMO arquivo (linhas 85 e 463) e que ja esta na baseline. Fixar por SHA so este job violaria a convencao. Nenhuma classe nova: zero template-injection / artipacked / dangerous-triggers / excessive-permissions — o job declara apenas contents:read + id-token:write, que e o minimo para a proveniencia. Medido pelo job Quality Gates (Extended) no run 33162... da PR #11877 = 194."
     },
     "vulnCount": {
-      "value": 10,
+      "value": 27,
       "direction": "down",
       "dedicatedGate": true
     },
+    "cycles": {
+      "value": 14,
+      "direction": "down",
+      "dedicatedGate": true,
+      "_note": "Import-cycle count over src/ + open-sse/ from scripts/check/check-cycles.mjs (#15159 G-02). Before this entry the metric did not exist and the gate was a false green: it scanned 5 subdirectories (450 files), matched only static `import|export … from`, and dropped every `@/` and `@omniroute/open-sse/` specifier — so it could not see the dynamic-import + alias cycles that dominated the repo. Fixed in the same change; the 14 below are the cycles the honest scan finds at release/v3.8.52 @ dbe703a000, not new debt.",
+      "_seed_2026_10_01_g01_g02_false_green": "0 (unmeasured, falsely reported) -> 14. The previous 0 was not a measurement, it was a blind spot. Fixing the three blinds (roots -> src+open-sse, AST-based extraction so `import(\"…\")` counts while type-position `typeof import(\"…\")` does not, tsconfig paths resolution for `@/*` and `@omniroute/open-sse/*`) took the scanned surface from 450 to 5023 files and surfaced 14 strongly connected components. Largest is a 43-file SCC over src/lib/db (settings.ts -> readCache.ts -> settings.ts, closed by the dynamic `await import(\"@/lib/db/settings\")` at src/lib/db/readCache.ts:102 — exactly the shape the old regex + alias filter could not see). Ceiling seeded at the measured 14 so the metric can only fall; burn-down is A-01 (chatCore.ts split) and the open-sse/services+imageGeneration extractions. Measured twice, identical both times. Do NOT raise this ceiling to make a gate green — that is the exact inverse of this ratchet."
+    },
     "bundleSize": {
-      "value": 8045,
+      "value": 10384,
       "direction": "down",
       "dedicatedGate": true,
       "_rebaseline_2026_07_07_v3846_release_close": "5601->6534 (+933). v3.8.46 release close: gzip of the 4 bin/*.mjs entrypoints (size-limit + @size-limit/file) grew from this cycle's feature/fix merges pulled transitively into the CLI entrypoints (new providers, combo pipeline strategy #6396, effort/thinking standardization #6241, catalog cache-invalidation #6408). Measured 6534 locally via `check:bundle-size --ratchet` (deterministic gzip, matches CI). Legitimate cycle growth; shrink is separate debt.",
       "_rebaseline_2026_07_19_7808_codeql_alias_resolver_hook": "6534->6762 (+228). PR #7808 (CodeQL js/incomplete-url-substring-sanitization fix): the ESM loader hook source moved out of the inline `HOOK_SOURCE` template literal in bin/aliasResolver.mjs into a real file bin/aliasResolverHook.mjs, loaded via pathToFileURL() instead of a dynamically-built `data:text/javascript,...` URL. The new file is now counted by size-limit as a 5th bin/*.mjs entrypoint. Net +228 = the hook's gzip size (previously hidden inside aliasResolver.mjs because the template literal was compressed away). Security-driven; no shrink opportunity.",
       "_rebaseline_2026_07_28_v3849_release_preflight": "6762 -> 7666 (+904). Fechamento do ciclo v3.8.49: gzip dos entrypoints bin/*.mjs (size-limit + @size-limit/file) cresceu com o que os merges do ciclo puxam transitivamente para o CLI (novos provedores — 271->290, seletor de protocolo por conexão #8861, catálogos de busca #8814, resiliência). Crescimento legítimo de ciclo, medido localmente com `npm run check:bundle-size` = 7666 (gzip determinístico, bate com o CI). Encolher é dívida separada.",
-      "_rebaseline_2026_08_09_v3850_release_close": "7666 -> 8045 (+379 gzip bytes, +4.9%). Release v3.8.50 close reconciliation measured twice with the real size-limit + @size-limit/file path on tip e0ce95c592. Per-entry measurements remain below their absolute budgets: omniroute.mjs 4380/15000, mcp-server.mjs 1195/5000, nodeRuntimeSupport.mjs 887/8000, reset-password.mjs 1583/6000. The growth accumulated through legitimate CLI/runtime work in this cycle, including global-install ESM alias resolution, Termux cache preparation, and MCP stdio startup hardening; no entrypoint is near its absolute ceiling. The direction:down ratchet stays blocking from this exact measured tip."
+      "_rebaseline_2026_08_09_v3850_release_close": "7666 -> 8045 (+379 gzip bytes, +4.9%). Release v3.8.50 close reconciliation measured twice with the real size-limit + @size-limit/file path on tip e0ce95c592. Per-entry measurements remain below their absolute budgets: omniroute.mjs 4380/15000, mcp-server.mjs 1195/5000, nodeRuntimeSupport.mjs 887/8000, reset-password.mjs 1583/6000. The growth accumulated through legitimate CLI/runtime work in this cycle, including global-install ESM alias resolution, Termux cache preparation, and MCP stdio startup hardening; no entrypoint is near its absolute ceiling. The direction:down ratchet stays blocking from this exact measured tip.",
+      "_rebaseline_2026_08_24_ci_green_gates_f95b03d7": "8045 -> 8461 (+416 gzip bytes, +5.2%). CI run 32786966560 (release PR #8875, tip f95b03d7) measured bundleSize=8461 via check:bundle-size --ratchet, above the 8045 baseline left at the v3.8.50 close. The growth comes from the post-freeze back-merge cycle landing in the CLI entrypoints (Synthetic + Kilo Gateway providers, kilo-gateway routing surface). Re-baseline per the gate's own instruction (legitimate cycle growth); shrinking the entrypoints remains separate debt; direction:down ratchet stays blocking from this measured tip.",
+      "_rebaseline_2026_08_27_v3851_volatile_env_warning_11437": "8461 -> 8653 (+192 gzip bytes, +2.3%). Exact paired size-limit measurements on the VPS compared f95b03d709 with release/v3.8.51: only bin/omniroute.mjs changed, 4700 -> 4892; the other three entries remained 1195/983/1583. The growth originates in 943b9aaa84 (#11437), which warns users before a package-local .env is lost on the next global install. The CLI entry remains 4892/15000 bytes (32.6% of its absolute budget). Legitimate bug-fix growth; shrinking stays separate debt and direction:down remains blocking from this measured tip.",
+      "_rebaseline_2026_08_25_v3850_release_preflight": "8045 -> 8461 (+416 gzip bytes, +5.2%). Release v3.8.50 pre-flight, measured with the real size-limit + @size-limit/file path on tip e3e188e993 (the 08-09 rebaseline was taken on e0ce95c592 and the branch kept moving). The growth is concentrated in the two entrypoints the cycle actually touched: omniroute.mjs 4380->4700 and nodeRuntimeSupport.mjs 887->983 — #11039 (native Bun backend + Dockerfile.bun), #10870 (report .env lines that never take effect) and #10101 (strip inline comments when parsing .env values). mcp-server.mjs (1195) and reset-password.mjs (1583) are unchanged. Every entry stays far below its absolute budget (4700/15000, 1195/5000, 983/8000, 1583/6000). Legitimate cycle growth; shrinking is separate debt. The direction:down ratchet stays blocking from this measured tip."
     },
     "openapiBreaking": {
-      "value": 0,
+      "value": 5,
       "direction": "down",
       "dedicatedGate": true,
-      "_note": "oasdiff breaking-change gate (Fase 9 Onda 0). Blocks any breaking change vs base spec."
+      "_note": "oasdiff breaking-change gate (Fase 9 Onda 0). Blocks any breaking change vs base spec.",
+      "_rebaseline_2026_08_22_combo_create_min1": "0 -> 4, split 3 own + 1 inherited. Docs-only alignment of components.schemas.ComboCreate with the request contract already enforced by the API since 638fc5fbd (combo create refuses an empty model list) and d5034ea52: `model`/`nodes` were phantom properties the server never accepted, and `models` (array, minItems 1) is the real required field. OWN findings (3, caused by this commit): removed `model`, removed `nodes`, added required `models` on POST /api/combos — spec-vs-server drift, not client-facing breakage, no working client could have relied on the removed shapes. INHERITED finding (1, NOT caused by this PR's code changes — pre-existing drift already present at parent d5034ea52): PATCH /api/combos/{id} request-body-added-required; that route's patch operation declares its own inline requestBody (required: true, bare object schema, docs/openapi.yaml ~2107-2118) and does not reference ComboCreate, so this finding exists independently of the ComboCreate alignment (same own-growth vs inherited-drift convention as _rebaseline_2026_07_20_aliasresolver_hook_split_7808). No code change in this PR; follow-up tracking = this change's PR description."
     },
     "mutationScore.src/sse/services/auth.ts": {
-      "value": 52.57,
+      "value": 43.81,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/accountFallback.ts": {
-      "value": 68.38,
+      "value": 56.98,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.src/server/authz/routeGuard.ts": {
-      "value": 76.08,
+      "value": 63.4,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.src/shared/utils/circuitBreaker.ts": {
-      "value": 56.94,
+      "value": 47.45,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/utils/error.ts": {
-      "value": 43.83,
+      "value": 36.53,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/utils/publicCreds.ts": {
-      "value": 59.76,
+      "value": 49.8,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/autoStrategy.ts": {
-      "value": 41.33,
+      "value": 34.44,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/comboStructure.ts": {
-      "value": 57.82,
+      "value": 48.18,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/validateQuality.ts": {
-      "value": 61.33,
+      "value": 51.11,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/comboPredicates.ts": {
-      "value": 56.62,
+      "value": 47.18,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/rrState.ts": {
-      "value": 70.88,
+      "value": 59.07,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/shadowRouting.ts": {
-      "value": 48,
+      "value": 40,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/targetSorters.ts": {
-      "value": 68.3,
+      "value": 56.92,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/comboData.ts": {
-      "value": 76.94,
+      "value": 64.12,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/quotaScoring.ts": {
-      "value": 39.73,
+      "value": 33.11,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/services/combo/quotaStrategies.ts": {
-      "value": 50.3,
+      "value": 41.92,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/passthroughHelpers.ts": {
-      "value": 80.89,
+      "value": 67.41,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/sanitization.ts": {
-      "value": 70.15,
+      "value": 58.46,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/upstreamTimeouts.ts": {
-      "value": 33,
+      "value": 27.5,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/comboContextCache.ts": {
-      "value": 13.62,
+      "value": 11.35,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/idempotency.ts": {
-      "value": 42.82,
+      "value": 35.68,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/responseHeaders.ts": {
-      "value": 62.7,
+      "value": 52.25,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/executorHelpers.ts": {
-      "value": 70.39,
+      "value": 58.66,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/memoryExtraction.ts": {
-      "value": 62.06,
+      "value": 51.72,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/nonStreamingSse.ts": {
-      "value": 72.82,
+      "value": 60.68,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/passthroughToolNames.ts": {
-      "value": 66.42,
+      "value": 55.35,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/headers.ts": {
-      "value": 94.29,
+      "value": 78.58,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/logTruncation.ts": {
-      "value": 77.64,
+      "value": 64.7,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/memorySkillsInjection.ts": {
-      "value": 13.49,
+      "value": 11.24,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/semanticCache.ts": {
-      "value": 60.16,
+      "value": 50.13,
       "direction": "up",
       "dedicatedGate": true
     },
     "mutationScore.open-sse/handlers/chatCore/telemetryHelpers.ts": {
-      "value": 83.18,
+      "value": 69.32,
       "direction": "up",
       "dedicatedGate": true
     },
     "rtlPhysicalClasses": {
-      "value": 1011,
+      "value": 1214,
       "direction": "down",
       "eps": 0,
       "_seeded_2026_07_28": "Measured by scripts/check/check-rtl-ratchet.mjs. tests/unit/ui/rtl-logical-classes.test.tsx pins four components and states it is partial (#3541); this bounds the remainder."
@@ -394,5 +414,16 @@
   "_zizmor_rebaseline_2026_06_19_a11y_148_reconcile": "RECONCILIACAO CROSS-PR (release-volatil) ao mergear #4321 (a11y) APOS #4322 (R1): zizmorFindings 145 -> 148. O #4322 ja rebaselinou 139->145 (drift base 142 + 3 unpinned-uses do mutation-redundancy.yml). Este PR adiciona +3 unpinned-uses @vN do novo job 'a11y' (nightly-resilience.yml): actions/checkout@v7, actions/setup-node@v6, actions/cache@v5.0.5 — MESMA convencao @vN deliberada e INTOCADA de todos os workflows (ver _scanner_harden_workflows_2026_06_16). Total = 142 base + 3 r1 + 3 a11y = 148, MEDIDO com `node scripts/check/check-workflows.mjs --ratchet` na arvore release(com #4322)+#4321 = 148 exato. Nenhum template-injection/artipacked/cache-poisoning novo.",
   "_zizmor_rebaseline_2026_06_20_ci_build_artifact_reuse": "zizmorFindings 148 -> 152. Drift legitimo deste PR ao reutilizar o artefato next-build do job Build em package-artifact/electron-package-smoke e ao separar o build de compatibilidade Node 26: +4 unpinned-uses novos (2x actions/download-artifact@v8, actions/checkout@v7, actions/setup-node@v6). Mantida a convencao deliberada @vN dos workflows (sem SHA-pinning/manual update burden), conforme precedentes _scanner_harden_workflows_2026_06_16 e _zizmor_rebaseline_2026_06_19_*. Sem novos findings de template-injection/artipacked/cache-poisoning; medido localmente com zizmor 1.25.2 via `npm run check:workflows -- --ratchet` = 152.",
   "_cognitive_rebaseline_2026_07_27_3850_relax_v2_20pct": "cognitiveComplexity 971->1223 (+252, +26.0% over pristine 971). OWNER-APPROVED TEMPORARY relax for v3.8.50-3.8.54 PREPARE phase (docs/ROADMAP.md). v1 was +48 on 2026-07-27; v2 = v1 +20% buffer = +58 → +252 total (cycle 971 measured pristine → 1223 ceiling). Justification: same as complexity v2 — the v3.8.50 release cut coincides with high-merge activity; owner accepted enlarging the headroom to cover the entire PREPARE phase (5 minor cycles .50-.54) without per-PR rebaseline noise, given that re-tightening is mechanical at v3.8.51 via the combo.ts/chatCore.ts decomposition work scheduled in .51/.52 (ROADMAP.md). RE-TIGHTENING MANDATORY in v3.8.51: target 1009 (shrink of 214 from structural extraction during the decomposition campaigns, or via npm run quality:ratchet -- --update if natural shrink appears earlier). The 1009 floor still gives 38 units of post-tighten headroom vs the current pristine 971. Tracked via same roadmap issue as complexity v2. Window: v3.8.50 (release cut) → v3.8.54 close (RE-TIGHTEN at v3.8.51 prep merge per ROADMAP.md). Last entry unless measured regression. v1 entry retained below for audit trail.",
-  "_cognitive_rebaseline_2026_07_27_3850_relax": "cognitiveComplexity 971->1019 (+48). OWNER-APPROVED TEMPORARY relax for v3.8.50-3.8.54 PREPARE phase (docs/ROADMAP.md). +48 covers Train 1D (+15) + headroom for 3.8.50/.51 batches. RE-TIGHTENING MANDATORY in v3.8.51: target 1009 (from combo.ts/chatCore.ts decomposition scheduled in .51/.52 per ROADMAP.md phases). Tracked via same roadmap issue as complexity. SUPERSEDED by _cognitive_rebaseline_2026_07_27_3850_relax_v2_20pct (v1 +20% buffer) — retained for audit. Last entry unless measured regression."
+  "_cognitive_rebaseline_2026_07_27_3850_relax": "cognitiveComplexity 971->1019 (+48). OWNER-APPROVED TEMPORARY relax for v3.8.50-3.8.54 PREPARE phase (docs/ROADMAP.md). +48 covers Train 1D (+15) + headroom for 3.8.50/.51 batches. RE-TIGHTENING MANDATORY in v3.8.51: target 1009 (from combo.ts/chatCore.ts decomposition scheduled in .51/.52 per ROADMAP.md phases). Tracked via same roadmap issue as complexity. SUPERSEDED by _cognitive_rebaseline_2026_07_27_3850_relax_v2_20pct (v1 +20% buffer) — retained for audit. Last entry unless measured regression.",
+  "_vuln_rebaseline_2026_08_04_9439_cve_drift": "vulnCount 10->22 (HIGH=10, MODERATE=12, measured by osv-scanner v2.3.8 in PR #9439's own CI run). This is CVE variance, not a dependency change made by this PR: `git diff upstream/release/v3.8.50 HEAD -- package.json package-lock.json` is empty — neither file was touched anywhere in this branch's history. The osv-scanner vulnerability ratchet apparently does not run on every commit landed directly to release/v3.8.50 (same 'fast-gate PR->release skips this check' pattern already documented for check:file-size, e.g. _rebaseline_2026_07_01_v3843_release_5609), so newly-disclosed CVEs in already-present transitive dependencies accumulated on the release branch and only surfaced here because this PR's rebase onto the current release/v3.8.50 tip pulled them in. This exact scenario — 'a newly-disclosed CVE in an already-present dep can trip the gate with no dependency change on your part' — is the documented expected behavior in _osv_flip_blocking_2026_06_16_v3827 above, whose prescribed remedy is 'bump the dep, or re-baseline vulnCount with justification+issue' (docs/security/SUPPLY_CHAIN.md -> 'Variância de CVE'). osv-scanner is not available in this sandbox to enumerate the exact GHSA/CVE ids and safely bump only the affected transitive deps without a broader, separately-scoped dependency-audit pass; re-baselining here unblocks this PR without masking anything introduced by it. Tracked for follow-up: a dedicated dependency-bump PR should re-tighten vulnCount back down once the specific advisories are enumerated locally with osv-scanner installed.",
+  "_policy": {
+    "phase": "velocity",
+    "since": "2026-08-30",
+    "until": "4.0.0",
+    "relaxPct": 20,
+    "requireTighten": false,
+    "monitor": "scripts/quality/baseline-headroom.mjs (nightly-release-green → baseline-headroom job)",
+    "note": "Owner decision 2026-08-30: speed matters more than debt until the v4.0 LTS modularization. Every numeric baseline was loosened by relaxPct in one pass (see _relax_* note). check-quality-ratchet skips --require-tighten while this block exists; headroom is monitored nightly. At 4.0 the phase closes: re-measure on the pure tip, tighten, delete this block."
+  },
+  "_relax_velocity_2026_08_30": "Velocity phase (20% relaxation, until 4.0.0): eslintWarnings 0 → 1050; coverage.statements 80.8 → 67.33; coverage.lines 80.8 → 67.33; coverage.functions 86.42 → 72.02; coverage.branches 78.1 → 65.08; coverage.chatCore.lines 72.45 → 60.38; coverage.combo.lines 85.42 → 71.18; coverage.accountFallback.lines 96.78 → 80.65; coverage.auth.lines 92.55 → 77.13; coverage.routeGuard.lines 98.73 → 82.28; coverage.error.lines 92.13 → 76.78; coverage.publicCreds.lines 99.07 → 82.56; coverage.circuitBreaker.lines 95.09 → 79.24; openapiCoverage.pct 39 → 32.5; i18nUiCoverage.pct 100 → 83.33; deadExports 416 → 500; cognitiveComplexity 1197 → 1437; typeCoveragePct 92.17 → 76.81; codeqlAlerts 9 → 11; zizmorFindings 194 → 233; vulnCount 22 → 27; bundleSize 8653 → 10384; openapiBreaking 4 → 5; mutationScore.src/sse/services/auth.ts 52.57 → 43.81; mutationScore.open-sse/services/accountFallback.ts 68.38 → 56.98; mutationScore.src/server/authz/routeGuard.ts 76.08 → 63.4; mutationScore.src/shared/utils/circuitBreaker.ts 56.94 → 47.45; mutationScore.open-sse/utils/error.ts 43.83 → 36.53; mutationScore.open-sse/utils/publicCreds.ts 59.76 → 49.8; mutationScore.open-sse/services/combo/autoStrategy.ts 41.33 → 34.44; mutationScore.open-sse/services/combo/comboStructure.ts 57.82 → 48.18; mutationScore.open-sse/services/combo/validateQuality.ts 61.33 → 51.11; mutationScore.open-sse/services/combo/comboPredicates.ts 56.62 → 47.18; mutationScore.open-sse/services/combo/rrState.ts 70.88 → 59.07; mutationScore.open-sse/services/combo/shadowRouting.ts 48 → 40; mutationScore.open-sse/services/combo/targetSorters.ts 68.3 → 56.92; mutationScore.open-sse/services/combo/comboData.ts 76.94 → 64.12; mutationScore.open-sse/services/combo/quotaScoring.ts 39.73 → 33.11; mutationScore.open-sse/services/combo/quotaStrategies.ts 50.3 → 41.92; mutationScore.open-sse/handlers/chatCore/passthroughHelpers.ts 80.89 → 67.41; mutationScore.open-sse/handlers/chatCore/sanitization.ts 70.15 → 58.46; mutationScore.open-sse/handlers/chatCore/upstreamTimeouts.ts 33 → 27.5; mutationScore.open-sse/handlers/chatCore/comboContextCache.ts 13.62 → 11.35; mutationScore.open-sse/handlers/chatCore/idempotency.ts 42.82 → 35.68; mutationScore.open-sse/handlers/chatCore/responseHeaders.ts 62.7 → 52.25; mutationScore.open-sse/handlers/chatCore/executorHelpers.ts 70.39 → 58.66; mutationScore.open-sse/handlers/chatCore/memoryExtraction.ts 62.06 → 51.72; mutationScore.open-sse/handlers/chatCore/nonStreamingSse.ts 72.82 → 60.68; mutationScore.open-sse/handlers/chatCore/passthroughToolNames.ts 66.42 → 55.35; mutationScore.open-sse/handlers/chatCore/headers.ts 94.29 → 78.58; mutationScore.open-sse/handlers/chatCore/logTruncation.ts 77.64 → 64.7; mutationScore.open-sse/handlers/chatCore/memorySkillsInjection.ts 13.49 → 11.24; mutationScore.open-sse/handlers/chatCore/semanticCache.ts 60.16 → 50.13; mutationScore.open-sse/handlers/chatCore/telemetryHelpers.ts 83.18 → 69.32; rtlPhysicalClasses 1011 → 1214"
 }

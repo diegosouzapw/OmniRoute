@@ -1,8 +1,15 @@
 import http from "http";
-import type { IncomingMessage, ServerResponse } from "http";
+import type { IncomingHttpHeaders, IncomingMessage, ServerResponse } from "http";
 import net from "net";
+import { classifyIpScope } from "@/lib/ipUtils";
 import { getRuntimePorts } from "@/lib/runtime/ports";
+import { warnIfNonLoopbackWithoutApiKey } from "@/lib/startup/nonLoopbackApiKeyGuard";
+import { getTrustProxyMode } from "@/server/origin/trustProxyMode";
 import { getApiBridgeTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
+import {
+  attachRequestStreamGuards,
+  installProcessCrashGuard,
+} from "@/shared/utils/httpClientAbortGuard.mjs";
 
 const API_BRIDGE_TIMEOUTS = getApiBridgeTimeoutConfig(process.env, (message) => {
   console.warn(`[API Bridge] ${message}`);
@@ -36,6 +43,58 @@ function getProxyTimeoutMs(req: IncomingMessage): number {
   return Math.max(API_BRIDGE_TIMEOUTS.proxyTimeoutMs, API_BRIDGE_TIMEOUTS.serverRequestTimeoutMs);
 }
 
+// The dashboard tells a local caller from a remote one by the socket peer plus whether
+// forwarding headers are present. This relay always connects from loopback, so a remote
+// client has to be reported through them or it would be taken for the host itself.
+//
+//   local          loopback peer: its headers pass through, as for any local caller.
+//   trusted-proxy  private-LAN peer that OMNIROUTE_TRUST_PROXY=private|lan names as a
+//                  proxy: its headers pass through and its own address is appended.
+//   remote         anyone else: everything it sent about forwarding is dropped and it
+//                  is reported by the address of its connection.
+type ClientPolicy =
+  { kind: "local" } | { kind: "trusted-proxy"; peer: string } | { kind: "remote"; peer: string };
+
+// Headers a client can use to claim an address, host or scheme other than its own.
+const FORWARDING_HEADERS = new Set([
+  "forwarded",
+  "x-forwarded-for",
+  "x-forwarded-host",
+  "x-forwarded-proto",
+  "x-forwarded-port",
+  "x-real-ip",
+  "cf-connecting-ip",
+  "true-client-ip",
+  "x-client-ip",
+]);
+
+function resolveClientPolicy(remoteAddress: string | undefined): ClientPolicy {
+  const scope = classifyIpScope(remoteAddress);
+  if (scope === "loopback") return { kind: "local" };
+  const peer = remoteAddress ? remoteAddress.replace(/^::ffff:/, "") : "unknown";
+  if (scope === "private" && getTrustProxyMode() === "private") {
+    return { kind: "trusted-proxy", peer };
+  }
+  return { kind: "remote", peer };
+}
+
+export function buildBridgeRequestHeaders(
+  headers: IncomingHttpHeaders,
+  remoteAddress: string | undefined,
+  dashboardPort: number
+): IncomingHttpHeaders {
+  const relayed: IncomingHttpHeaders = { ...headers, host: `127.0.0.1:${dashboardPort}` };
+  const policy = resolveClientPolicy(remoteAddress);
+  if (policy.kind === "remote") {
+    for (const name of FORWARDING_HEADERS) delete relayed[name];
+    relayed["x-forwarded-for"] = policy.peer;
+  } else if (policy.kind === "trusted-proxy") {
+    const chain = [headers["x-forwarded-for"], policy.peer].flat().filter(Boolean);
+    relayed["x-forwarded-for"] = chain.join(", ");
+  }
+  return relayed;
+}
+
 function proxyRequest(req: IncomingMessage, res: ServerResponse, dashboardPort: number): void {
   const proxyTimeoutMs = getProxyTimeoutMs(req);
   const targetReq = http.request(
@@ -44,10 +103,7 @@ function proxyRequest(req: IncomingMessage, res: ServerResponse, dashboardPort: 
       port: dashboardPort,
       method: req.method,
       path: req.url,
-      headers: {
-        ...req.headers,
-        host: `127.0.0.1:${dashboardPort}`,
-      },
+      headers: buildBridgeRequestHeaders(req.headers, req.socket.remoteAddress, dashboardPort),
       timeout: proxyTimeoutMs,
     },
     (targetRes) => {
@@ -107,34 +163,59 @@ function writeUpgradeProxyError(socket: net.Socket, status: number, body: string
   socket.end(buffer);
 }
 
+/** Header lines for an upgrade request relayed to the dashboard, from the client's raw headers. */
+export function buildBridgeUpgradeHeaderLines(
+  rawHeaders: string[],
+  remoteAddress: string | undefined,
+  dashboardPort: number
+): string[] {
+  const policy = resolveClientPolicy(remoteAddress);
+  const headerLines: string[] = [];
+  const forwardedFor: string[] = [];
+  let wroteHost = false;
+
+  for (let index = 0; index < rawHeaders.length; index += 2) {
+    const name = rawHeaders[index];
+    const rawValue = rawHeaders[index + 1] || "";
+    const lowerName = name.toLowerCase();
+    if (lowerName === "host") {
+      headerLines.push(`Host: 127.0.0.1:${dashboardPort}`);
+      wroteHost = true;
+    } else if (policy.kind === "remote" && FORWARDING_HEADERS.has(lowerName)) {
+      continue;
+    } else if (policy.kind === "trusted-proxy" && lowerName === "x-forwarded-for") {
+      forwardedFor.push(rawValue);
+    } else {
+      headerLines.push(`${name}: ${rawValue}`);
+    }
+  }
+
+  if (!wroteHost) {
+    headerLines.push(`Host: 127.0.0.1:${dashboardPort}`);
+  }
+  if (policy.kind === "remote") {
+    headerLines.push(`X-Forwarded-For: ${policy.peer}`);
+  } else if (policy.kind === "trusted-proxy") {
+    headerLines.push(`X-Forwarded-For: ${[...forwardedFor, policy.peer].join(", ")}`);
+  }
+  return headerLines;
+}
+
 function proxyUpgrade(
   req: IncomingMessage,
   socket: net.Socket,
   head: Buffer,
   dashboardPort: number
 ) {
+  // Built now: once the client disconnects, the socket no longer reports its address.
+  const requestLine = `${req.method || "GET"} ${req.url || "/"} HTTP/${req.httpVersion || "1.1"}`;
+  const headerLines = [
+    requestLine,
+    ...buildBridgeUpgradeHeaderLines(req.rawHeaders, req.socket.remoteAddress, dashboardPort),
+  ];
   const upstream = net.connect(dashboardPort, "127.0.0.1");
 
   upstream.on("connect", () => {
-    const requestLine = `${req.method || "GET"} ${req.url || "/"} HTTP/${req.httpVersion || "1.1"}`;
-    const headerLines: string[] = [requestLine];
-    let wroteHost = false;
-
-    for (let index = 0; index < req.rawHeaders.length; index += 2) {
-      const name = req.rawHeaders[index];
-      const rawValue = req.rawHeaders[index + 1] || "";
-      if (name.toLowerCase() === "host") {
-        headerLines.push(`Host: 127.0.0.1:${dashboardPort}`);
-        wroteHost = true;
-      } else {
-        headerLines.push(`${name}: ${rawValue}`);
-      }
-    }
-
-    if (!wroteHost) {
-      headerLines.push(`Host: 127.0.0.1:${dashboardPort}`);
-    }
-
     upstream.write(`${headerLines.join("\r\n")}\r\n\r\n`);
     if (head.length > 0) {
       upstream.write(head);
@@ -168,15 +249,12 @@ declare global {
   var __omnirouteApiBridgeStarted: boolean | undefined;
 }
 
-export function initApiBridgeServer(): void {
-  if (globalThis.__omnirouteApiBridgeStarted) return;
-
-  const { apiPort, dashboardPort } = getRuntimePorts();
-  if (apiPort === dashboardPort) return;
-
-  const host = process.env.API_HOST || "127.0.0.1";
-
+export function createApiBridgeServer(dashboardPort: number): http.Server {
   const server = http.createServer((req, res) => {
+    // Absorb client-abort errors (browser closes the socket during navigation/
+    // HMR/bfcache) on the request/response streams so they never surface as an
+    // uncaughtException that kills the server (#fix-dev-server-aborted).
+    attachRequestStreamGuards(req, res);
     const rawUrl = req.url || "/";
     const pathname = rawUrl.split("?")[0] || "/";
 
@@ -215,7 +293,24 @@ export function initApiBridgeServer(): void {
 
     proxyUpgrade(req, socket, head, dashboardPort);
   });
+  return server;
+}
 
+export function initApiBridgeServer(): void {
+  // Safety net: a client aborting a connection can emit `Error: aborted`/
+  // ECONNRESET on the request stream; without this the single missed listener
+  // becomes an uncaughtException that kills the server. Benign aborts are
+  // swallowed; genuine errors still crash loudly (#fix-dev-server-aborted).
+  installProcessCrashGuard();
+  if (globalThis.__omnirouteApiBridgeStarted) return;
+
+  const { apiPort, dashboardPort } = getRuntimePorts();
+  if (apiPort === dashboardPort) return;
+
+  const host = process.env.API_HOST || "127.0.0.1";
+  warnIfNonLoopbackWithoutApiKey("API bridge", host);
+
+  const server = createApiBridgeServer(dashboardPort);
   server.on("error", (error: NodeJS.ErrnoException) => {
     if (error?.code === "EADDRINUSE") {
       console.warn(

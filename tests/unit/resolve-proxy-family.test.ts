@@ -12,7 +12,12 @@ describe("resolved proxy config → URL family encoding", () => {
     assert.ok(url!.endsWith("?family=ipv6"), url!);
   });
   it("omits family marker when auto", () => {
-    const url = proxyConfigToUrl({ type: "http", host: "p.example.com", port: 8080, family: "auto" });
+    const url = proxyConfigToUrl({
+      type: "http",
+      host: "p.example.com",
+      port: 8080,
+      family: "auto",
+    });
     assert.ok(!url!.includes("family="), url!);
   });
 });
@@ -32,13 +37,13 @@ async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("account-level registry proxy carries family=ipv6 through resolveProxyForConnection", async () => {

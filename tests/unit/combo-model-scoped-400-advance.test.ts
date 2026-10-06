@@ -26,6 +26,16 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-model-400-test-secret";
 
 const { handleComboChat, isModelScoped400 } = await import("../../open-sse/services/combo.ts");
+const { clearAllModelLockouts } = await import("../../open-sse/services/accountFallback.ts");
+
+// Reused "github/claude-fable-5" across sub-tests below now persists a
+// cross-request model lockout on a 400 "model not supported" (matches
+// production combo.ts behavior). Reset it between tests so each sub-test
+// still exercises a fresh dispatch instead of being skipped by a lockout
+// left over from a previous sub-test in this file.
+test.beforeEach(() => {
+  clearAllModelLockouts();
+});
 
 const noop = () => {};
 const log = { info: noop, warn: noop, debug: noop, error: noop };
@@ -53,7 +63,10 @@ test("isModelScoped400 recognizes model-not-supported shapes (incl. invalid/Bad 
   assert.equal(isModelScoped400("Bad Request: The model is not supported"), true);
   assert.equal(isModelScoped400("model claude-fable-5 does not support Responses API."), true);
   assert.equal(isModelScoped400("unsupported_api_for_model"), true);
-  assert.equal(isModelScoped400("The model `x` does not exist or you do not have access to it."), true);
+  assert.equal(
+    isModelScoped400("The model `x` does not exist or you do not have access to it."),
+    true
+  );
   // Genuinely body-specific — must NOT be treated as model-scoped
   assert.equal(isModelScoped400("Invalid message format: the request body is malformed."), false);
   assert.equal(isModelScoped400("malformed JSON in request body"), false);
@@ -68,7 +81,10 @@ async function assertAdvancesOn(errorMessage: string, label: string) {
     handleSingleModel: async (_body: unknown, modelStr: string) => {
       modelsCalled.push(modelStr);
       if (modelStr === "github/claude-fable-5") {
-        return Response.json({ error: { message: errorMessage, type: "invalid_request_error" } }, { status: 400 });
+        return Response.json(
+          { error: { message: errorMessage, type: "invalid_request_error" } },
+          { status: 400 }
+        );
       }
       return okResponse(modelStr);
     },
@@ -128,6 +144,10 @@ test("combo still STOPS on genuinely body-specific invalid message format", asyn
     allCombos: [],
   });
 
-  assert.equal(modelsCalled.length, 1, `body-specific 400 must stop at target 1; tried: ${modelsCalled.join(", ")}`);
+  assert.equal(
+    modelsCalled.length,
+    1,
+    `body-specific 400 must stop at target 1; tried: ${modelsCalled.join(", ")}`
+  );
   assert.equal(response.status, 400, "body-specific 400 must surface to the client");
 });

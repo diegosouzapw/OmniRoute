@@ -1,8 +1,8 @@
 import type { RegistryEntry } from "../../shared.ts";
 
-// g4f.space/api/gemini — no-key reverse proxy to Gemini (gpt4free project, issue #6650).
-// Distinct auth mechanism from the existing gemini-web (browser cookie): this is a
-// plain no-key HTTP proxy. Same OpenAI-compatible shape as the other no-key gateways.
+// g4f.space/api/gemini — optional-auth remote Gemini gateway (gpt4free, issue #6650).
+// Unlike gemini-web's browser cookie, anonymous requests use proof-of-work cake credits;
+// a member API key is the alternative. The wire format is standard OpenAI-compatible HTTP.
 export const g4f_geminiProvider: RegistryEntry = {
   id: "g4f-gemini",
   alias: "g4fgem",

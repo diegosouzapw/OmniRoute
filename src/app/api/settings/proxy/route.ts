@@ -4,10 +4,12 @@ import {
   getProxyForLevel,
   deleteProxyForLevel,
   resolveProxyForConnection,
-  getProxyAssignments,
-  getProxyById,
-} from "../../../../lib/localDb";
-import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
+} from "@/lib/db/settings";
+import { getProxyAssignments, getProxyById } from "@/lib/db/proxies";
+import {
+  clearDispatcherCache,
+  isSocks5ProxyEnabled,
+} from "@omniroute/open-sse/utils/proxyDispatcher";
 import { updateProxyConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
@@ -30,21 +32,15 @@ const PROXY_LEVEL_TO_REGISTRY_SCOPE = {
   key: "account",
 } as const;
 
-function isSocks5Enabled() {
-  // Default ON (opt-out): only an explicit falsey value disables SOCKS5.
-  const raw = (process.env.ENABLE_SOCKS5_PROXY ?? "").trim().toLowerCase();
-  return !["false", "0", "no", "off"].includes(raw);
-}
-
 function getSupportedProxyTypes() {
-  if (isSocks5Enabled()) {
+  if (isSocks5ProxyEnabled()) {
     return new Set([...BASE_SUPPORTED_PROXY_TYPES, "socks5"]);
   }
   return BASE_SUPPORTED_PROXY_TYPES;
 }
 
 function supportedTypesMessage() {
-  return isSocks5Enabled() ? "http, https, or socks5" : "http or https";
+  return isSocks5ProxyEnabled() ? "http, https, or socks5" : "http or https";
 }
 
 function createInvalidProxyError(message: string): ApiRouteError {
@@ -68,9 +64,7 @@ function getRegistryScopeForLevel(
     return undefined;
   }
 
-  return PROXY_LEVEL_TO_REGISTRY_SCOPE[
-    level as keyof typeof PROXY_LEVEL_TO_REGISTRY_SCOPE
-  ];
+  return PROXY_LEVEL_TO_REGISTRY_SCOPE[level as keyof typeof PROXY_LEVEL_TO_REGISTRY_SCOPE];
 }
 
 async function getRegistryProxyForLevel(level: string, id: string | null) {
@@ -107,7 +101,7 @@ function normalizeAndValidateProxy(
   }
 
   const type = String(proxy.type || "http").toLowerCase() as NonNullable<ProxyConfigInput["type"]>;
-  if (type === "socks5" && !isSocks5Enabled()) {
+  if (type === "socks5" && !isSocks5ProxyEnabled()) {
     throw createInvalidProxyError(
       "SOCKS5 proxy is disabled (remove ENABLE_SOCKS5_PROXY=false to enable — it is ON by default)"
     );

@@ -28,7 +28,7 @@ const PASSTHROUGH_PROVIDERS = new Set(
 );
 
 // Wrap isValidModel with passthrough providers
-export function isValidModel(aliasOrId, modelId) {
+export function isValidModel(aliasOrId: string, modelId: string) {
   if (isOpenAICompatibleProvider(aliasOrId)) return true;
   if (isAnthropicCompatibleProvider(aliasOrId)) return true;
   if (PASSTHROUGH_PROVIDERS.has(aliasOrId)) return true;

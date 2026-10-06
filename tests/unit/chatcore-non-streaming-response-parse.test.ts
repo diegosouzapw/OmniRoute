@@ -62,6 +62,18 @@ test("invalid JSON → invalid_json with short message + detailed error", async 
   assert.equal(res.looksLikeSSE, false);
 });
 
+test("valid JSON with a non-object root → invalid_json", async () => {
+  for (const body of ["null", '"text"', "[]"]) {
+    const res = await parseNonStreamingResponseBody({
+      ...baseOpts,
+      providerResponse: makeResponse(body, "application/json"),
+    });
+    assert.equal(res.kind, "invalid_json");
+    if (res.kind !== "invalid_json") continue;
+    assert.match(res.detailedError, /expected an object payload/);
+  }
+});
+
 test("valid SSE payload (by content-type) → ok with SSE-derived format", async () => {
   const sse =
     'data: {"id":"c1","object":"chat.completion.chunk","choices":[{"delta":{"content":"hello"},"index":0,"finish_reason":null}]}\n\n' +

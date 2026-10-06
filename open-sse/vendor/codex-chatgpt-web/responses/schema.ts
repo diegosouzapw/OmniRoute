@@ -1,4 +1,4 @@
-/* Adapted from miuuyy/codex-chatgpt-web commit 55592fca0ba19a27f1b769cec8fff61ff340a785 (MIT). */
+/* Adapted from miuuyy/codex-chatgpt-web commit 09877fa21ffdbf20979623ef501046fc02a750d7 (MIT). */
 import * as z from "zod/v4";
 
 const inputTextSchema = z.object({ type: z.literal("input_text"), text: z.string() });
@@ -14,12 +14,22 @@ const inputImageBlockSchema = z
   .refine((v) => typeof v.image_url === "string" || typeof v.file_id === "string", {
     message: "input_image requires at least one of image_url or file_id",
   });
-const inputFileBlockSchema = z.object({
-  type: z.literal("input_file"),
-  file_id: z.string().optional(),
-  filename: z.string().optional(),
-  file_data: z.string().optional(),
-});
+const inputFileBlockSchema = z
+  .object({
+    type: z.literal("input_file"),
+    file_id: z.string().optional(),
+    filename: z.string().optional(),
+    file_data: z.string().optional(),
+    file_url: z.string().optional(),
+    detail: z.enum(["auto", "low", "high"]).optional(),
+  })
+  .refine(
+    (value) =>
+      typeof value.file_data === "string" ||
+      typeof value.file_url === "string" ||
+      typeof value.file_id === "string",
+    { message: "input_file requires at least one of file_data, file_url, or file_id" }
+  );
 const outputTextSchema = z.object({ type: z.literal("output_text"), text: z.string() });
 const outputRefusalSchema = z.object({ type: z.literal("refusal"), refusal: z.string() });
 const summaryTextSchema = z.object({ type: z.literal("summary_text"), text: z.string() });
@@ -64,6 +74,19 @@ const assistantMessageItemSchema = z.object({
   content: z.union([z.string(), z.array(outputContentBlockSchema)]).optional(),
   phase: z.enum(["commentary", "final_answer"]).optional(),
 });
+const agentMessageItemSchema = z
+  .object({
+    type: z.literal("agent_message"),
+    author: z.string().optional(),
+    recipient: z.string().optional(),
+    // MultiAgent V1 sends normal input content. V2 may send only encrypted_content; accept that
+    // shape so the HTTP boundary can reject it before constructing a browser adapter instead of
+    // silently manufacturing an empty task or starting a retryable SSE stream.
+    content: z
+      .union([z.string(), z.array(z.union([inputContentBlockSchema, encryptedContentBlockSchema]))])
+      .optional(),
+  })
+  .loose();
 const reasoningItemSchema = z.object({
   type: z.literal("reasoning"),
   id: z.string().optional(),
@@ -103,6 +126,7 @@ export const inputItemSchema = z.union([
   userMessageItemSchema,
   systemMessageItemSchema,
   assistantMessageItemSchema,
+  agentMessageItemSchema,
   reasoningItemSchema,
   functionCallItemSchema,
   functionCallOutputItemSchema,

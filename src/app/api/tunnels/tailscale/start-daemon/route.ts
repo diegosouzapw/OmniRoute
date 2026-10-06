@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTailscaleTunnelStatus, startTailscaleDaemon } from "@/lib/tailscaleTunnel";
+import { toPublicSafeTunnelError } from "@/lib/api/publicSafeTunnelError";
 import { parseOptionalJsonBody, requireTailscaleAuth, tailscaleSudoSchema } from "../routeUtils";
 
 export const dynamic = "force-dynamic";
@@ -19,9 +20,11 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Failed to start the Tailscale daemon",
-      },
+      toPublicSafeTunnelError(
+        error,
+        "Failed to start the Tailscale daemon.",
+        "tunnels/tailscale/start-daemon POST"
+      ),
       { status: 500 }
     );
   }

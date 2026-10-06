@@ -7,7 +7,7 @@
 import { isRetiredGitHubCopilotModelId } from "@omniroute/open-sse/config/providers/registry/github/retiredModels.ts";
 
 import { getDbInstance } from "./core";
-import { getProviderConnectionsCount } from "./providers";
+import { getProviderConnectionsCount, touchConnectionSyncedModelsAt } from "./providers";
 import { type JsonRecord, getKeyValue } from "./models/shared";
 import {
   normalizeSyncedAvailableModels,
@@ -15,6 +15,7 @@ import {
   type SyncedAvailableModelInput,
 } from "./models/synced";
 import {
+  deleteSyncedAvailableModelsForProvider as deleteSyncedAvailableModelsForProviderInternal,
   finishSyncedAvailableModelsWrite,
   persistCanonicalSyncedAvailableModels,
 } from "./models/syncedAvailableModelPersistence";
@@ -27,6 +28,8 @@ import {
   isCompatProtocolKey,
   sanitizeUpstreamHeadersMap,
   removeModelCompatOverride,
+  mergeModelCompatOverride,
+  isOverrideHiddenForModality,
   type CompatByProtocolMap,
   type ModelCompatProtocolKey,
   type ModelCompatOverride,
@@ -49,11 +52,39 @@ export {
   setModelAlias,
   deleteModelAlias,
   deleteModelAliasesForProvider,
+  getManagedModelAliasNames,
+  markManagedModelAlias,
+  unmarkManagedModelAlias,
 } from "./models/aliases";
 export { getMitmAlias, setMitmAliasAll } from "./models/mitmAlias";
 export type { SyncedAvailableModel } from "./models/synced";
+export {
+  getCustomModelVisionOverride,
+  listCustomModelVisionOverrides,
+  type CustomModelVisionOverrideMap,
+  type CustomModelVisionDatabase,
+  type CustomModelVisionOverrideReadOptions,
+} from "./models/customVisionOverride";
+export {
+  getSyncedAvailableModelVision,
+  listSyncedAvailableModelVision,
+  type SyncedAvailableModelVisionMap,
+  type SyncedAvailableModelVisionDatabase,
+  type SyncedAvailableModelVisionReadOptions,
+} from "./models/syncedAvailableModelVision";
 
 // ──────────────── Custom Models ────────────────
+
+function notifyQuotaCombosForProvider(providerId: string): void {
+  void (async () => {
+    try {
+      const { syncQuotaCombosForProvider } = await import("./quotaPools");
+      await syncQuotaCombosForProvider(providerId);
+    } catch {
+      // Non-fatal: quota combo sync errors should not break model operations
+    }
+  })();
+}
 
 export async function getCustomModels(providerId?: string) {
   const db = getDbInstance();
@@ -102,7 +133,8 @@ export async function addCustomModel(
     | "rerank"
     | "audio-transcriptions"
     | "audio-speech"
-    | "images-generations" = "chat-completions",
+    | "images-generations"
+    | "video" = "chat-completions",
   supportedEndpoints: string[] = ["chat"],
   // #2905: optional per-model wire format override (e.g. "claude" for an
   // opencode-go custom model). When unset, routing falls back to the provider
@@ -117,7 +149,13 @@ export async function addCustomModel(
   // #9820: optional video-generation job preset (e.g. "agnes-video-job") for
   // custom OpenAI-compatible video models. Persisted on the model row; the
   // /v1/videos/generations handler reads it back to pick the job/poll path.
-  generationConfig?: { preset: string }
+  generationConfig?: { preset: string },
+  isFree?: boolean,
+  extraMeta?: {
+    dimensions?: number;
+    supportedInputTypes?: string[];
+    modelType?: "chat" | "embedding" | "image" | "rerank";
+  }
 ) {
   const db = getDbInstance();
   const row = db
@@ -143,13 +181,22 @@ export async function addCustomModel(
       ? { outputTokenLimit: tokenLimits.outputTokenLimit }
       : {}),
     ...(typeof supportsVision === "boolean" ? { supportsVision } : {}),
+    ...(typeof isFree === "boolean" ? { isFree } : {}),
     ...(generationConfig && generationConfig.preset ? { generationConfig } : {}),
+    ...(typeof extraMeta?.dimensions === "number" && extraMeta.dimensions > 0
+      ? { dimensions: extraMeta.dimensions }
+      : {}),
+    ...(Array.isArray(extraMeta?.supportedInputTypes)
+      ? { supportedInputTypes: extraMeta.supportedInputTypes }
+      : {}),
+    ...(typeof extraMeta?.modelType === "string" ? { modelType: extraMeta.modelType } : {}),
   };
   models.push(model);
   db.prepare(
-    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)",
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
   ).run(providerId, JSON.stringify(models));
   finishModelCatalogWriteWithBackup();
+  notifyQuotaCombosForProvider(providerId);
   return model;
 }
 
@@ -171,8 +218,9 @@ export async function replaceCustomModels(
     supportsThinking?: boolean;
     targetFormat?: string;
     generationConfig?: { preset?: string };
+    isFree?: boolean;
   }>,
-  { allowEmpty = false }: { allowEmpty?: boolean } = {},
+  { allowEmpty = false }: { allowEmpty?: boolean } = {}
 ) {
   // Guard: skip destructive clear when the caller hasn't explicitly opted in.
   // This prevents callers from wiping manually added models when the
@@ -194,7 +242,15 @@ export async function replaceCustomModels(
   // Merge: keep existing per-model compat flags if model still exists
   const merged = models.map((m) => {
     const prev = existingMap.get(m.id);
+    // `customModels` is also the user-owned metadata overlay for a same-id
+    // synced model. Preserve every defined field instead of maintaining a
+    // lossy allowlist here (for example supportsVision and future capabilities).
+    const definedModelMetadata = Object.fromEntries(
+      Object.entries(m).filter(([, value]) => value !== undefined)
+    );
     return {
+      ...(prev || {}),
+      ...definedModelMetadata,
       id: m.id,
       name: m.name || m.id,
       source: m.source || "auto-sync",
@@ -252,15 +308,16 @@ export async function replaceCustomModels(
 
   if (merged.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = 'customModels' AND key = ?").run(
-      providerId,
+      providerId
     );
   } else {
     db.prepare(
-      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)",
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
     ).run(providerId, JSON.stringify(merged));
   }
 
   finishModelCatalogWriteWithBackup();
+  notifyQuotaCombosForProvider(providerId);
   return merged;
 }
 
@@ -290,20 +347,21 @@ export async function deleteImportedCustomModels(providerId: string): Promise<st
 
   if (retained.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = 'customModels' AND key = ?").run(
-      providerId,
+      providerId
     );
   } else {
     db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'customModels' AND key = ?").run(
       JSON.stringify(retained),
-      providerId,
+      providerId
     );
   }
 
   const removedIds = removed.flatMap((model) =>
-    typeof model.id === "string" && model.id ? [model.id] : [],
+    typeof model.id === "string" && model.id ? [model.id] : []
   );
   for (const modelId of removedIds) removeModelCompatOverride(providerId, modelId);
   finishModelCatalogWriteWithBackup();
+  notifyQuotaCombosForProvider(providerId);
   return removedIds;
 }
 
@@ -324,17 +382,18 @@ export async function removeCustomModel(providerId: string, modelId: string) {
 
   if (filtered.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = 'customModels' AND key = ?").run(
-      providerId,
+      providerId
     );
   } else {
     db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'customModels' AND key = ?").run(
       JSON.stringify(filtered),
-      providerId,
+      providerId
     );
   }
 
   removeModelCompatOverride(providerId, modelId);
   finishModelCatalogWriteWithBackup();
+  notifyQuotaCombosForProvider(providerId);
   return true;
 }
 
@@ -348,7 +407,7 @@ export async function removeCustomModel(providerId: string, modelId: string) {
  */
 export async function getSyncedAvailableModelsForConnection(
   providerId: string,
-  connectionId: string,
+  connectionId: string
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
@@ -369,12 +428,12 @@ export async function getSyncedAvailableModelsForConnection(
  * Get all synced available models for a provider, unioned across all connections.
  */
 export async function getSyncedAvailableModels(
-  providerId: string,
+  providerId: string
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const rows = db
     .prepare(
-      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?",
+      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?"
     )
     .all(`${providerId}:%`);
   const map = new Map<string, SyncedAvailableModel>();
@@ -389,20 +448,27 @@ export async function getSyncedAvailableModels(
   return Array.from(map.values());
 }
 
+export const SYNCED_AVAILABLE_MODELS_MALFORMED = Symbol("syncedAvailableModelsMalformed");
+export type SyncedAvailableModelsByConnection = Record<string, SyncedAvailableModel[]> & {
+  [SYNCED_AVAILABLE_MODELS_MALFORMED]?: true;
+};
+
 /**
  * Get synced available models for a provider grouped by connection id.
+ * A non-enumerable symbol marks malformed persisted rows so strict callers can
+ * fail closed without changing the existing Record-shaped API.
  */
 export async function getSyncedAvailableModelsByConnection(
-  providerId: string,
-): Promise<Record<string, SyncedAvailableModel[]>> {
+  providerId: string
+): Promise<SyncedAvailableModelsByConnection> {
   const db = getDbInstance();
   const prefix = `${providerId}:`;
   const rows = db
     .prepare(
-      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?",
+      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?"
     )
     .all(`${prefix}%`);
-  const result: Record<string, SyncedAvailableModel[]> = {};
+  const result: SyncedAvailableModelsByConnection = {};
   for (const row of rows) {
     const { key, value } = getKeyValue(row);
     if (!key || value === null || !key.startsWith(prefix)) continue;
@@ -410,7 +476,10 @@ export async function getSyncedAvailableModelsByConnection(
       const connectionId = key.slice(prefix.length);
       result[connectionId] = normalizeSyncedAvailableModels(JSON.parse(value), providerId);
     } catch {
-      // Ignore malformed legacy entries.
+      Object.defineProperty(result, SYNCED_AVAILABLE_MODELS_MALFORMED, {
+        value: true,
+        enumerable: false,
+      });
     }
   }
   return result;
@@ -470,9 +539,22 @@ export async function getActiveProvidersWithSyncedModel(modelId: string): Promis
            json_extract(synced_model.value, '$.id'),
            json_extract(synced_model.value, '$.name'),
            json_extract(synced_model.value, '$.model')
-         ) = ?`,
+         ) = ?
+       UNION
+       SELECT DISTINCT pc.provider AS provider
+       FROM provider_connections pc
+       JOIN key_value kv
+         ON kv.namespace = 'customModels'
+        AND kv.key = pc.provider
+       JOIN json_each(CASE WHEN json_valid(kv.value) THEN kv.value ELSE '[]' END) custom_model
+       WHERE pc.is_active = 1
+         AND COALESCE(
+           json_extract(custom_model.value, '$.id'),
+           json_extract(custom_model.value, '$.name'),
+           json_extract(custom_model.value, '$.model')
+         ) = ?`
     )
-    .all(modelId) as Array<{ provider?: unknown }>;
+    .all(modelId, modelId) as Array<{ provider?: unknown }>;
 
   return rows
     .map((row) => row.provider)
@@ -487,20 +569,16 @@ export async function getActiveProvidersWithSyncedModel(modelId: string): Promis
 export async function replaceSyncedAvailableModelsForConnection(
   providerId: string,
   connectionId: string,
-  models: SyncedAvailableModelInput[],
+  models: SyncedAvailableModelInput[]
 ): Promise<SyncedAvailableModel[]> {
   const key = `${providerId}:${connectionId}`;
-  // #3199: drop ids the operator DELETED (trash) so a re-fetch does not re-import
-  // a model that was explicitly removed.
-  // #3782: key ONLY on the distinct `isDeleted` marker — NOT on `isHidden`.
-  // Eye/visibility-hidden models (`isHidden:true`, no `isDeleted`) must stay in
-  // the synced store so they remain listed-but-hidden across re-syncs instead of
-  // churning back on through the managed-alias path ("Auto Sync Enabling all
-  // Models"). See getModelIsDeleted for the legacy-row caveat.
-  const normalizedModels = normalizeSyncedAvailableModels(models, providerId).filter(
-    (m) => !getModelIsDeleted(providerId, m.id)
-  );
+  const normalizedModels = normalizeSyncedAvailableModels(models, providerId);
   persistCanonicalSyncedAvailableModels(key, normalizedModels, normalizeSyncedAvailableModels);
+  notifyQuotaCombosForProvider(providerId);
+  // #12849: stamp the sync time on every successful sync — even a re-sync that
+  // returns an unchanged list proves the catalog is still current, so staleness
+  // gating in getActiveSyncedCatalog must not treat it as aging regardless.
+  if (connectionId) await touchConnectionSyncedModelsAt(connectionId);
   // Return the full unioned list for the provider
   return getSyncedAvailableModels(providerId);
 }
@@ -511,13 +589,13 @@ export async function replaceSyncedAvailableModelsForConnection(
  */
 export async function removeSyncedAvailableModel(
   providerId: string,
-  modelId: string,
+  modelId: string
 ): Promise<boolean> {
   const db = getDbInstance();
   const prefix = `${providerId}:`;
   const rows = db
     .prepare(
-      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?",
+      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?"
     )
     .all(`${prefix}%`);
 
@@ -541,11 +619,11 @@ export async function removeSyncedAvailableModel(
         removedAny = true;
         if (filtered.length === 0) {
           db.prepare(
-            "DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?",
+            "DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?"
           ).run(key);
         } else {
           db.prepare(
-            "UPDATE key_value SET value = ? WHERE namespace = 'syncedAvailableModels' AND key = ?",
+            "UPDATE key_value SET value = ? WHERE namespace = 'syncedAvailableModels' AND key = ?"
           ).run(JSON.stringify(filtered), key);
         }
       }
@@ -553,7 +631,10 @@ export async function removeSyncedAvailableModel(
   });
 
   removeModel();
-  if (removedAny) finishSyncedAvailableModelsWrite();
+  if (removedAny) {
+    finishSyncedAvailableModelsWrite();
+    notifyQuotaCombosForProvider(providerId);
+  }
   return removedAny;
 }
 
@@ -563,14 +644,17 @@ export async function removeSyncedAvailableModel(
  */
 export async function deleteSyncedAvailableModelsForConnection(
   providerId: string,
-  connectionId: string,
+  connectionId: string
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
   const result = db
     .prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?")
     .run(key);
-  if (result.changes > 0) finishSyncedAvailableModelsWrite();
+  if (result.changes > 0) {
+    finishSyncedAvailableModelsWrite();
+    notifyQuotaCombosForProvider(providerId);
+  }
   return getSyncedAvailableModels(providerId);
 }
 
@@ -580,7 +664,7 @@ export async function deleteSyncedAvailableModelsForConnection(
  */
 export async function cleanupProviderModelsAfterConnectionDelete(
   providerId: string,
-  connectionId: string,
+  connectionId: string
 ): Promise<{
   remainingConnections: number;
   removedImportedModelIds: string[];
@@ -588,7 +672,7 @@ export async function cleanupProviderModelsAfterConnectionDelete(
 }> {
   const remainingSyncedModels = await deleteSyncedAvailableModelsForConnection(
     providerId,
-    connectionId,
+    connectionId
   );
   const remainingConnections = getProviderConnectionsCount({ provider: providerId });
   const removedImportedModelIds =
@@ -602,15 +686,8 @@ export async function cleanupProviderModelsAfterConnectionDelete(
  * Returns the number of connection-scoped synced model lists removed.
  */
 export async function deleteSyncedAvailableModelsForProvider(providerId: string): Promise<number> {
-  const db = getDbInstance();
-  const keyPrefix = `${providerId}:`;
-  const result = db
-    .prepare(
-      "DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND substr(key, 1, ?) = ?",
-    )
-    .run(keyPrefix.length, keyPrefix);
-  const changes = Number(result.changes || 0);
-  if (changes > 0) finishSyncedAvailableModelsWrite();
+  const changes = await deleteSyncedAvailableModelsForProviderInternal(providerId);
+  if (changes > 0) notifyQuotaCombosForProvider(providerId);
   return changes;
 }
 
@@ -620,7 +697,7 @@ export async function deleteSyncedAvailableModelsForProvider(providerId: string)
  */
 export async function pruneStaleSyncedAvailableModelsForProvider(
   providerId: string,
-  allowedConnectionIds: string[],
+  allowedConnectionIds: string[]
 ): Promise<number> {
   const db = getDbInstance();
   if (allowedConnectionIds.length === 0) {
@@ -631,11 +708,14 @@ export async function pruneStaleSyncedAvailableModelsForProvider(
   const allowedKeys = allowedConnectionIds.map((id) => `${providerId}:${id}`);
   const result = db
     .prepare(
-      `DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ? AND key NOT IN (${placeholders})`,
+      `DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ? AND key NOT IN (${placeholders})`
     )
     .run(`${keyPrefix}%`, ...allowedKeys);
   const changes = Number(result.changes || 0);
-  if (changes > 0) finishSyncedAvailableModelsWrite();
+  if (changes > 0) {
+    finishSyncedAvailableModelsWrite();
+    notifyQuotaCombosForProvider(providerId);
+  }
   return changes;
 }
 
@@ -648,7 +728,7 @@ export async function pruneStaleSyncedAvailableModelsForProvider(
 function applyTriStateBooleanOverride(
   next: JsonRecord,
   updates: Record<string, unknown>,
-  field: string,
+  field: string
 ): void {
   if (!Object.prototype.hasOwnProperty.call(updates, field)) return;
   if (updates[field] === null) {
@@ -662,19 +742,36 @@ export async function updateCustomModel(
   providerId: string,
   modelId: string,
   updates: Record<string, unknown> = {},
+  options: { createIfMissing?: boolean } = {}
 ) {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
     .get(providerId);
-  if (!row) return null;
 
-  const value = getKeyValue(row).value;
-  if (!value) return null;
+  const value = row ? getKeyValue(row).value : null;
+  const models: JsonRecord[] = value ? JSON.parse(value) : [];
+  let index = models.findIndex((m: JsonRecord) => m.id === modelId);
 
-  const models = JSON.parse(value);
-  const index = models.findIndex((m: JsonRecord) => m.id === modelId);
-  if (index === -1) return null;
+  if (index === -1) {
+    if (!options.createIfMissing) return null;
+    // A model discovered via sync/passthrough (syncedAvailableModels) has no
+    // customModels row until an operator explicitly overrides one of its
+    // fields -- PUT /api/provider-models is exactly that "set an override"
+    // action, so upsert here (same default shape as addCustomModel()) instead
+    // of 404ing on the very save it exists to serve. Observed live: a
+    // llama.cpp connection's auto-discovered embedding model had no way to be
+    // marked "supports embeddings" because it had never been explicitly
+    // imported as a custom model first.
+    models.push({
+      id: modelId,
+      name: modelId,
+      source: "manual",
+      apiFormat: "chat-completions",
+      supportedEndpoints: ["chat"],
+    });
+    index = models.length - 1;
+  }
 
   const current = models[index];
   const currentCompat = (current as JsonRecord).compatByProtocol as CompatByProtocolMap | undefined;
@@ -689,7 +786,7 @@ export async function updateCustomModel(
       currentCompat,
       updates.compatByProtocol as Partial<
         Record<ModelCompatProtocolKey, Partial<ModelCompatPerProtocol>>
-      >,
+      >
     );
     if (!compatByProtocolHasEntries(mergedCompat)) mergedCompat = undefined;
   }
@@ -711,6 +808,7 @@ export async function updateCustomModel(
   // #1904: manual vision-capability override — `null` clears back to the
   // id-based heuristic in getCustomVisionCapabilityFields().
   applyTriStateBooleanOverride(next, updates, "supportsVision");
+  applyTriStateBooleanOverride(next, updates, "isFree");
   if (updates.compatByProtocol !== undefined) {
     if (mergedCompat && compatByProtocolHasEntries(mergedCompat)) {
       next.compatByProtocol = mergedCompat;
@@ -744,10 +842,12 @@ export async function updateCustomModel(
 
   models[index] = next;
 
-  db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'customModels' AND key = ?").run(
-    JSON.stringify(models),
-    providerId,
-  );
+  // INSERT OR REPLACE (not UPDATE): the createIfMissing path above may be
+  // writing this provider's customModels row for the first time, and an
+  // UPDATE...WHERE would silently match zero rows in that case.
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
+  ).run(providerId, JSON.stringify(models));
 
   finishModelCatalogWriteWithBackup();
   return next;
@@ -778,7 +878,7 @@ function getCustomModelRow(providerId: string, modelId: string): JsonRecord | nu
           typeof x === "object" &&
           !Array.isArray(x) &&
           typeof (x as { id?: string }).id === "string" &&
-          ((x as { id: string }).id as string).toLowerCase() === modelId.toLowerCase(),
+          ((x as { id: string }).id as string).toLowerCase() === modelId.toLowerCase()
       )) as JsonRecord | undefined;
     return m ?? null;
   } catch {
@@ -795,7 +895,7 @@ function getCustomModelRow(providerId: string, modelId: string): JsonRecord | nu
 export function getModelNormalizeToolCallId(
   providerId: string,
   modelId: string,
-  sourceFormat?: string | null,
+  sourceFormat?: string | null
 ): boolean {
   const m = getCustomModelRow(providerId, modelId);
   const protocol = sourceFormat && isCompatProtocolKey(sourceFormat) ? sourceFormat : null;
@@ -828,7 +928,7 @@ export function getModelNormalizeToolCallId(
 export function getModelPreserveOpenAIDeveloperRole(
   providerId: string,
   modelId: string,
-  sourceFormat?: string | null,
+  sourceFormat?: string | null
 ): boolean | undefined {
   const m = getCustomModelRow(providerId, modelId);
   const protocol = sourceFormat && isCompatProtocolKey(sourceFormat) ? sourceFormat : null;
@@ -860,22 +960,30 @@ export function getModelPreserveOpenAIDeveloperRole(
 
 /**
  * Check if the model is flagged as hidden from the public catalog.
+ * `modality` (default "chat") scopes the check to one endpoint/registry — see
+ * {@link isOverrideHiddenForModality} — so an identically-ID'd model in a different
+ * modality's registry (e.g. Chat vs Image, #12172) is not silently suppressed too.
  */
-export function getModelIsHidden(providerId: string, modelId: string): boolean {
+export function getModelIsHidden(
+  providerId: string,
+  modelId: string,
+  modality: string = "chat"
+): boolean {
   const m = getCustomModelRow(providerId, modelId);
   if (m && Object.prototype.hasOwnProperty.call(m, "isHidden")) {
     return Boolean(m.isHidden);
   }
   const co = readCompatList(providerId).find((e) => e.id === modelId);
-  return Boolean(co?.isHidden);
+  return isOverrideHiddenForModality(co, modality);
 }
 
 /**
  * Get a map of provider ID → set of hidden model IDs from all modelCompatOverrides
- * and customModels. Used by auto-combo candidate building to skip user-hidden models.
- * Single bulk DB query — not N+1 per model.
+ * and customModels, scoped to one `modality` (default "chat", matching every
+ * pre-#12172 caller's original chat-only intent). Used by auto-combo candidate
+ * building to skip user-hidden models. Single bulk DB query — not N+1 per model.
  */
-export function getHiddenModelsByProvider(): Map<string, Set<string>> {
+export function getHiddenModelsByProvider(modality: string = "chat"): Map<string, Set<string>> {
   const db = getDbInstance();
   const visibilityByProvider = new Map<string, Map<string, boolean>>();
   const rows = db
@@ -894,13 +1002,32 @@ export function getHiddenModelsByProvider(): Map<string, Set<string>> {
           if (!entry || typeof entry !== "object") continue;
           const modelId = (entry as { id?: unknown }).id;
           if (typeof modelId !== "string" || modelId.length === 0) continue;
-          if (!Object.prototype.hasOwnProperty.call(entry, "isHidden")) continue;
+          const record = entry as { isHidden?: unknown; hiddenModalities?: unknown };
+          const hasHiddenInfo =
+            Object.prototype.hasOwnProperty.call(record, "isHidden") ||
+            (namespace === "modelCompatOverrides" &&
+              record.hiddenModalities &&
+              typeof record.hiddenModalities === "object");
+          if (!hasHiddenInfo) continue;
+          // #12172: customModels rows have no modality scope (single user-managed
+          // entry) — legacy global isHidden applies to every modality unchanged.
+          const isHidden =
+            namespace === "modelCompatOverrides"
+              ? isOverrideHiddenForModality(
+                  {
+                    isHidden: Boolean(record.isHidden),
+                    hiddenModalities: record.hiddenModalities as
+                      Record<string, boolean> | undefined,
+                  },
+                  modality
+                )
+              : Boolean(record.isHidden);
           let visibility = visibilityByProvider.get(row.key);
           if (!visibility) {
             visibility = new Map<string, boolean>();
             visibilityByProvider.set(row.key, visibility);
           }
-          visibility.set(modelId, Boolean((entry as { isHidden?: unknown }).isHidden));
+          visibility.set(modelId, isHidden);
         }
       } catch {
         // Skip malformed entries
@@ -919,33 +1046,16 @@ export function getHiddenModelsByProvider(): Map<string, Set<string>> {
 }
 
 /**
- * #3782 — Check if a model was DELETED (trash) rather than merely eye-hidden.
- *
- * Only the DELETE route sets `isDeleted`. The sync re-import filter keys on this
- * (not on `isHidden`) so eye-hidden models survive a re-sync while deleted ones
- * stay dropped.
- *
- * Legacy caveat: rows written by the DELETE route BEFORE this change carry only
- * `isHidden:true` (no `isDeleted`). Treating bare legacy `isHidden:true` as
- * deleted here would resurrect the #3782 bug for eye-hidden models; treating it
- * as "kept" would resurrect previously-deleted models. Resurrecting a deleted
- * model is the less-surprising, recoverable outcome (the operator can re-hide or
- * re-delete it), whereas silently dropping an eye-hidden model is the reported
- * regression — so we deliberately key ONLY on the explicit `isDeleted` flag and
- * accept that a handful of pre-existing deleted rows may reappear once after the
- * upgrade. Going forward both paths write the correct distinct markers.
- */
-export function getModelIsDeleted(providerId: string, modelId: string): boolean {
-  const co = readCompatList(providerId).find((e) => e.id === modelId);
-  return Boolean(co?.isDeleted);
-}
-
-/**
  * Persist the hidden flag for a model. Stores the override on the custom-model
  * row when one exists, otherwise on the compat-override list. Setting
  * `hidden = false` is a no-op when the model is already visible.
  */
-export function setModelIsHidden(providerId: string, modelId: string, hidden: boolean): void {
+export function setModelIsHidden(
+  providerId: string,
+  modelId: string,
+  hidden: boolean,
+  modality?: string
+): void {
   const customRow = getCustomModelRow(providerId, modelId);
   if (customRow) {
     if (hidden) {
@@ -953,6 +1063,14 @@ export function setModelIsHidden(providerId: string, modelId: string, hidden: bo
     } else if (Object.prototype.hasOwnProperty.call(customRow, "isHidden")) {
       updateCustomModel(providerId, modelId, { isHidden: false });
     }
+    return;
+  }
+
+  // #12172: a modality-scoped write never touches the legacy all-modalities
+  // `isHidden` flag — it only sets/clears that one modality's override, so an
+  // identically-ID'd model in a different modality's registry is unaffected.
+  if (modality) {
+    mergeModelCompatOverride(providerId, modelId, { isHidden: hidden, modality });
     return;
   }
 
@@ -980,7 +1098,7 @@ export function setModelIsHidden(providerId: string, modelId: string, hidden: bo
 
 function readUpstreamFromJsonRecord(
   row: JsonRecord | null | undefined,
-  key: "upstreamHeaders",
+  key: "upstreamHeaders"
 ): Record<string, string> | undefined {
   if (!row) return undefined;
   const raw = row[key];
@@ -1002,7 +1120,7 @@ function readUpstreamFromJsonRecord(
 export function getModelUpstreamExtraHeaders(
   providerId: string,
   modelId: string,
-  sourceFormat?: string | null,
+  sourceFormat?: string | null
 ): Record<string, string> {
   const protocol = sourceFormat && isCompatProtocolKey(sourceFormat) ? sourceFormat : null;
   const m = getCustomModelRow(providerId, modelId);
@@ -1029,8 +1147,8 @@ export function getModelUpstreamExtraHeaders(
     Object.assign(
       base,
       sanitizeUpstreamHeadersMap(
-        co.compatByProtocol[protocol]!.upstreamHeaders as Record<string, unknown>,
-      ),
+        co.compatByProtocol[protocol]!.upstreamHeaders as Record<string, unknown>
+      )
     );
   }
   return base;

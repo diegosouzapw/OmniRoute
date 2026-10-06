@@ -7,11 +7,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const providers = await import("../../src/shared/constants/providers.ts");
-const featuredProviders = await import(
-  "../../src/app/(dashboard)/dashboard/providers/featuredProviders.ts"
-);
+const featuredProviders =
+  await import("../../src/app/(dashboard)/dashboard/providers/featuredProviders.ts");
 
-const KIMI_CODING_AFF_URL = "https://www.kimi.com/code?aff=omniroute";
+const KIMI_CODING_AFF_URL = "https://www.kimi.ai/code?aff=omniroute";
 const KIMI_PLATFORM_AFF_URL = "https://platform.kimi.ai?aff=omniroute";
 
 test("moonshot: id/alias/routing untouched, display name rebranded to 'Kimi'", () => {
@@ -33,11 +32,11 @@ test("kimi-coding (Kimi Code CLI) top-of-page link: the Kimi Coding Plan aff lin
   assert.equal(kimiCoding.website, KIMI_CODING_AFF_URL);
 });
 
-test("kimi-web (Kimi Web) top-of-page link: the Kimi Coding Plan aff link (was the bare kimi.com domain)", () => {
+test("kimi-web (Kimi Web) top-of-page link: points to www.kimi.ai", () => {
   const kimiWeb = providers.WEB_COOKIE_PROVIDERS["kimi-web"];
   assert.ok(kimiWeb, "kimi-web must still exist in the web-cookie catalog");
   assert.equal(kimiWeb.name, "Kimi Web", "display name is unchanged by the rename");
-  assert.equal(kimiWeb.website, KIMI_CODING_AFF_URL);
+  assert.equal(kimiWeb.website, "https://www.kimi.ai");
 });
 
 test("kimi-coding-apikey (hidden, folds into kimi-coding card) also carries the aff link", () => {
@@ -69,8 +68,6 @@ test("no visible Kimi provider website field still points at the unattributed pl
 test("runtime endpoints are untouched by the rename/aff-link changes (moonshot API base URL still api.moonshot.ai)", async () => {
   // Guard against the aff-link change ever leaking into a runtime executor
   // config — website is a UI navigation field only, never a fetch target.
-  const registry = await import(
-    "../../open-sse/config/providers/registry/moonshot/index.ts"
-  );
+  const registry = await import("../../open-sse/config/providers/registry/moonshot/index.ts");
   assert.equal(registry.moonshotProvider.baseUrl, "https://api.moonshot.ai/v1/chat/completions");
 });

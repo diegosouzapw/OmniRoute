@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import {
   clearReasoningCacheAll,

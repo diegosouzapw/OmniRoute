@@ -12,28 +12,25 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {
-  makeManagementSessionRequest,
-} from "../helpers/managementSession.ts";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-summarize-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret-summarize";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const memoryStore = await import("../../src/lib/memory/store.ts");
 
-const summarizeRoute = await import(
-  "../../src/app/api/memory/summarize/route.ts"
-);
+const summarizeRoute = await import("../../src/app/api/memory/summarize/route.ts");
 const { POST } = summarizeRoute;
 
 // ── Helpers ──
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -61,7 +58,7 @@ async function seedOldMemory(daysAgo: number, apiKeyId = "api-key-1") {
   db.prepare("UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?").run(
     oldTs,
     oldTs,
-    mem.id,
+    mem.id
   );
   return mem;
 }
@@ -75,7 +72,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── Tests ──

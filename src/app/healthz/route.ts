@@ -1,4 +1,5 @@
 import { getServerLifecyclePhase } from "@/lib/serverLifecycle";
+import { observeHealthzEventLoopLag } from "@/lib/healthzLag";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ function createHealthResponse(method: "GET" | "HEAD"): Response {
 }
 
 export function GET(): Response {
+  observeHealthzEventLoopLag();
   return createHealthResponse("GET");
 }
 

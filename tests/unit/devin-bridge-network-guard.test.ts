@@ -125,7 +125,7 @@ test("HTTP proxy overwrites Host and strips proxy and hop-by-hop credentials", a
   } finally {
     await close(proxy);
     await close(upstream);
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -163,7 +163,7 @@ test("CONNECT rejects mismatched SNI before opening an upstream socket", async (
     assert.match(fs.readFileSync(logPath, "utf8"), /"reason":"sni_mismatch"/);
   } finally {
     await close(proxy);
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -212,6 +212,6 @@ test("CONNECT forwards only after matching SNI is validated", async () => {
   } finally {
     await close(proxy);
     await close(upstream);
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

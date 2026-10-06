@@ -12,9 +12,17 @@ const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const route = await import("../../src/app/api/settings/require-login/route.ts");
 
+type BootstrapResponse = {
+  nodeVersion: string;
+  nodeCompatible: boolean;
+  oidcEnabled: boolean;
+  oidcDisablePasswordLogin: boolean;
+  error?: { message: string; details?: { field: string; message: string }[] };
+};
+
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -30,28 +38,29 @@ test.afterEach(() => {
 test.after(() => {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const originalHash = bcrypt.hash;
 
-test("public login bootstrap route exposes the metadata the login page consumes", async () => {
+test("public login bootstrap route exposes metadata login page consumes", async () => {
   await settingsDb.updateSettings({
     requireLogin: true,
     setupComplete: true,
   });
 
   const response = await route.GET();
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body, {
-    // #9491 added `authenticated` so /login can redirect an active session.
+    // #9491 added `authenticated` to help /login redirect if active session.
     authenticated: false,
     requireLogin: true,
     hasPassword: false,
     setupComplete: true,
     oidcEnabled: false,
+    oidcDisablePasswordLogin: false,
     nodeVersion: body.nodeVersion,
     nodeCompatible: body.nodeCompatible,
   });
@@ -66,22 +75,23 @@ test("public login bootstrap route reports env-provided bootstrap password metad
   });
 
   const response = await route.GET();
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body, {
-    // #9491 added `authenticated` so /login can redirect an active session.
+    // #9491 added `authenticated` to help /login redirect if active session.
     authenticated: false,
     requireLogin: true,
     hasPassword: true,
     setupComplete: true,
     oidcEnabled: false,
+    oidcDisablePasswordLogin: false,
     nodeVersion: body.nodeVersion,
     nodeCompatible: body.nodeCompatible,
   });
 });
 
-test("public login bootstrap route reports stored password metadata and disabled auth state", async () => {
+test("public login bootstrap route reports stored password metadata in disabled auth state", async () => {
   await settingsDb.updateSettings({
     requireLogin: false,
     password: "hashed-password",
@@ -89,19 +99,36 @@ test("public login bootstrap route reports stored password metadata and disabled
   });
 
   const response = await route.GET();
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body, {
-    // #9491 added `authenticated` so /login can redirect an active session.
+    // #9491 added `authenticated` to help /login redirect if active session.
     authenticated: false,
     requireLogin: false,
     hasPassword: true,
     setupComplete: true,
     oidcEnabled: false,
+    oidcDisablePasswordLogin: false,
     nodeVersion: body.nodeVersion,
     nodeCompatible: body.nodeCompatible,
   });
+});
+
+test("public login bootstrap route reports oidcDisablePasswordLogin when oidc is enabled and flag is set", async () => {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    setupComplete: true,
+    oidcEnabled: true,
+    oidcDisablePasswordLogin: true,
+  });
+
+  const response = await route.GET();
+  const body = (await response.json()) as BootstrapResponse;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.oidcEnabled, true);
+  assert.equal(body.oidcDisablePasswordLogin, true);
 });
 
 test("public login bootstrap route POST rejects invalid JSON bodies", async () => {
@@ -112,7 +139,7 @@ test("public login bootstrap route POST rejects invalid JSON bodies", async () =
   });
 
   const response = await route.POST(request);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
 
   assert.equal(response.status, 400);
   assert.equal(body.error.message, "Invalid request");
@@ -127,7 +154,7 @@ test("public login bootstrap route POST rejects empty updates", async () => {
   });
 
   const response = await route.POST(request);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
 
   assert.equal(response.status, 400);
   assert.equal(body.error.message, "Invalid request");
@@ -142,7 +169,7 @@ test("public login bootstrap route POST updates requireLogin without forcing pas
   });
 
   const response = await route.POST(request);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
   const settings = await settingsDb.getSettings();
 
   assert.equal(response.status, 200);
@@ -160,7 +187,7 @@ test("public login bootstrap route POST hashes and stores passwords", async () =
   });
 
   const response = await route.POST(request);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
   const settings = await settingsDb.getSettings();
 
   assert.equal(response.status, 200);
@@ -185,7 +212,7 @@ test("login bootstrap route POST rejects unauthenticated writes after setup is c
   });
 
   const response = await route.POST(request);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
   const settings = await settingsDb.getSettings();
 
   assert.equal(response.status, 401);
@@ -207,7 +234,7 @@ test("login bootstrap route POST allows first password creation after setup comp
   });
 
   const response = await route.POST(request);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
   const settings = await settingsDb.getSettings();
 
   assert.equal(response.status, 200);
@@ -229,7 +256,7 @@ test("public login bootstrap route POST returns 500 when hashing fails", async (
   });
 
   const response = await route.POST(request);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as BootstrapResponse;
 
   assert.equal(response.status, 500);
   assert.deepEqual(body, { error: "hash failed" });

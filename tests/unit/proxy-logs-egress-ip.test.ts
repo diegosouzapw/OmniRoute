@@ -20,7 +20,7 @@ const proxyLogger = await import("../../src/lib/proxyLogger.ts");
 function resetStorage() {
   proxyLogger.clearProxyLogs();
   core.closeDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -30,7 +30,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.closeDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("fresh install exposes egress_ip and the reconciler is idempotent", async () => {
@@ -48,6 +48,7 @@ test("logProxyEvent persists egressIp into proxy_logs.egress_ip", () => {
     targetUrl: "codex/gpt-5.5",
     egressIp: "203.0.113.9",
   });
+  proxyLogger.flushProxyLogsSync(); // persist the enqueued batch before the synchronous read
   const db = core.getDbInstance();
   const row = db.prepare("SELECT egress_ip FROM proxy_logs ORDER BY rowid DESC LIMIT 1").get() as {
     egress_ip: string | null;
@@ -61,6 +62,7 @@ test("egress_ip survives a DB close/reopen cycle (on-disk)", () => {
     provider: "openai",
     egressIp: "198.51.100.7",
   });
+  proxyLogger.flushProxyLogsSync(); // persist to disk BEFORE the close/reopen cycle
   core.closeDbInstance();
   const db = core.getDbInstance();
   const row = db.prepare("SELECT egress_ip FROM proxy_logs ORDER BY rowid DESC LIMIT 1").get() as {
@@ -71,6 +73,7 @@ test("egress_ip survives a DB close/reopen cycle (on-disk)", () => {
 
 test("egress_ip is NULL when not provided (never synthesized)", () => {
   proxyLogger.logProxyEvent({ status: "success", provider: "claude" });
+  proxyLogger.flushProxyLogsSync(); // persist the enqueued batch before the synchronous read
   const db = core.getDbInstance();
   const row = db.prepare("SELECT egress_ip FROM proxy_logs ORDER BY rowid DESC LIMIT 1").get() as {
     egress_ip: string | null;

@@ -1070,7 +1070,7 @@ async function wsChat(
 
     const fail = (error: string) => finish({ content: "", deltas: [], error });
 
-    timeout = setTimeout(() => fail("Meta AI WebSocket timed out"), 30000);
+    timeout = setTimeout(() => fail(`Meta AI WS timed out (readyState=${ws.readyState})`), 30000);
     abortHandler = () => fail("Request aborted");
     signal?.addEventListener("abort", abortHandler, { once: true });
 

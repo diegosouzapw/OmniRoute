@@ -11,6 +11,13 @@ import { getModelPricing } from "@/lib/playground/types";
 import type { ConfigState } from "../StudioConfigPane";
 import type { StreamMetrics } from "@/shared/schemas/playground";
 import { buildReasoningRequestFields } from "../reasoningControlUtils";
+import {
+  buildNonChatRequestBody,
+  formatNonChatResponse,
+  isChatCompletionsEndpoint,
+  lastUserContent,
+  resolveChatTabRequestPath,
+} from "./chatTabEndpointRequest";
 
 interface Message {
   role: "system" | "user" | "assistant";
@@ -127,11 +134,19 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
 
     try {
       const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      const chatEndpoint = isChatCompletionsEndpoint(configState.endpoint);
+      const requestBody = chatEndpoint
+        ? buildRequestBody(chatMessages)
+        : buildNonChatRequestBody(
+            configState.endpoint,
+            lastUserContent(chatMessages),
+            configState.model
+          );
 
-      const res = await fetch("/api/v1/chat/completions", {
+      const res = await fetch(resolveChatTabRequestPath(configState.endpoint), {
         method: "POST",
         headers: fetchHeaders,
-        body: JSON.stringify(buildRequestBody(chatMessages)),
+        body: JSON.stringify(requestBody),
         signal: controller.signal,
       });
 
@@ -146,6 +161,20 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
         setMessages((prev) => prev.slice(0, targetIndex));
         setLoading(false);
         setResponseDuration(Date.now() - startTime);
+        streamMetrics.reset();
+        return;
+      }
+
+      if (!chatEndpoint) {
+        const rawText = await res.text();
+        setMessages((prev) => {
+          const next = [...prev];
+          const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
+          next[idx] = { ...next[idx], content: formatNonChatResponse(rawText) };
+          return next;
+        });
+        setResponseDuration(Date.now() - startTime);
+        setLoading(false);
         streamMetrics.reset();
         return;
       }

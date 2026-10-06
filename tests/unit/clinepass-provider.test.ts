@@ -68,6 +68,7 @@ test("ClinePass fallback is the official subscription-only catalog", () => {
     "cline-pass/kimi-k2.7-code",
     "cline-pass/mimo-v2.5-pro",
     "cline-pass/mimo-v2.5",
+    "cline-pass/qwen3.8-max",
     "cline-pass/qwen3.7-max",
     "cline-pass/qwen3.7-plus",
   ]);
@@ -86,7 +87,7 @@ test("ClinePass fallback is the official subscription-only catalog", () => {
 test("Cline fallback owns recommended/free models and excludes the ClinePass namespace", () => {
   const ids = providerRegistry.cline.models.map((model: { id: string }) => model.id);
   assert.deepEqual(ids, [
-    "zai/glm-5.2",
+    "z-ai/glm-5.2",
     "x-ai/grok-4.5",
     "openai/gpt-5.6-sol",
     "moonshotai/kimi-k3",

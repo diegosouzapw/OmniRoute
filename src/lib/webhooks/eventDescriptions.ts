@@ -1,11 +1,19 @@
 export type WebhookEvent =
   | "request.completed"
   | "request.failed"
-  | "provider.error"
-  | "provider.recovered"
   | "quota.exceeded"
-  | "combo.switched"
+  | "proxy.set_aside"
+  | "proxy.pool.exhausted"
   | "test.ping";
+
+export const WEBHOOK_EVENT_VALUES = [
+  "request.completed",
+  "request.failed",
+  "quota.exceeded",
+  "proxy.set_aside",
+  "proxy.pool.exhausted",
+  "test.ping",
+] as const;
 
 export interface EventDescription {
   label: string;
@@ -38,33 +46,34 @@ export const EVENT_DESCRIPTIONS: Record<WebhookEvent, EventDescription> = {
       attempts: 3,
     },
   },
-  "provider.error": {
-    label: "Provider Error",
-    emoji: "⚠️",
-    description: "A provider tripped the circuit breaker due to repeated failures.",
-    exampleData: { provider: "openai", model: "gpt-4o", errorCode: 503, consecutiveFailures: 3 },
-  },
-  "provider.recovered": {
-    label: "Provider Recovered",
-    emoji: "✅",
-    description: "A provider recovered from a circuit-breaker OPEN state.",
-    exampleData: { provider: "openai", recoveredAfterMs: 60000 },
-  },
   "quota.exceeded": {
     label: "Quota Exceeded",
     emoji: "📊",
     description: "A usage threshold (e.g. 95% of quota) was reached.",
     exampleData: { quota: "daily_tokens", used: 950000, limit: 1000000, pct: 95 },
   },
-  "combo.switched": {
-    label: "Combo Switched",
-    emoji: "🔄",
-    description: "Combo routing switched to a different target.",
+  "proxy.set_aside": {
+    label: "Proxy Set Aside",
+    emoji: "🚧",
+    description:
+      "Triggered when a pool member is temporarily set aside after repeated refusals. Transition only, never per request.",
     exampleData: {
-      combo: "auto-fallback",
-      fromModel: "gpt-4o",
-      toModel: "claude-opus-4-7",
-      reason: "provider.error",
+      reason: "ip_quota_429",
+      setAsideUntil: "2026-09-24T12:40:00.000Z",
+      durationMs: 60000,
+      egressKeyMasked: "https://u***@ho***le:8080",
+    },
+  },
+  "proxy.pool.exhausted": {
+    label: "Proxy Pool Exhausted",
+    emoji: "🪫",
+    description:
+      "Triggered when every member of a pool scope is set aside and selection falls back to fail-closed serving.",
+    exampleData: {
+      scope: "global",
+      poolSize: 3,
+      setAsideCount: 3,
+      fallback: "fail-closed-serve",
     },
   },
   "test.ping": {

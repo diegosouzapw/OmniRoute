@@ -14,19 +14,20 @@ const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const proxiesRoute = await import("../../src/app/api/settings/proxies/route.ts");
-const { createProxyRegistrySchema } = await import("../../src/shared/validation/schemas.ts");
+const { createProxyRegistrySchema, updateProxyRegistrySchema } =
+  await import("../../src/shared/validation/schemas.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("proxy registry blocks delete when proxy is still assigned", async () => {
@@ -521,6 +522,15 @@ test("createProxyRegistrySchema accepts type:vercel and source:vercel-relay (sch
     assert.equal(result.data.type, "vercel");
     assert.equal(result.data.source, "vercel-relay");
   }
+});
+
+test("updateProxyRegistrySchema accepts dead status for dashboard round-trip", () => {
+  const result = updateProxyRegistrySchema.safeParse({
+    id: "dead-proxy",
+    status: "dead",
+  });
+
+  assert.equal(result.success, true, "auto-disabled proxies must remain editable");
 });
 
 test("createProxy persists type:vercel and source:vercel-relay to DB (schema gap-06)", async () => {

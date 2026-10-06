@@ -1,7 +1,14 @@
 // #2942 — rolling-window prompt memory for deepseek-web. The web API takes only a single
-// `prompt` string, so multi-turn context must be stitched into that prompt. With the
-// window disabled (default) the legacy behavior (system + last user only) is preserved;
-// with a window > 0, the last N turns are stitched into a role-tagged transcript.
+// `prompt` string, so multi-turn context must be stitched into that prompt. With an
+// explicit `historyWindow > 0`, the last N turns are stitched into a role-tagged
+// transcript.
+//
+// #10527 — with the window unset/<=0 (default), a genuinely multi-turn conversation
+// (any assistant turn present, or more than one user turn) now auto-replays a bounded
+// trajectory instead of the old "system + last user only" behavior, which silently
+// dropped the original task for agentic clients (Cline) that never send OpenAI-native
+// `tools[]`. Only a genuinely single-turn request (one user message, no assistant turns)
+// keeps the minimal "system + last user only" prompt.
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -14,18 +21,27 @@ const CONVO = [
   { role: "user", content: "second question" },
 ];
 
-test("window 0 (default) keeps legacy behavior: system + last user only", () => {
+test("window 0 (default) on a multi-turn conversation auto-replays the bounded trajectory (#10527)", () => {
   const prompt = messagesToPrompt(CONVO, 0);
   assert.ok(prompt.includes("You are helpful."), "system prompt present");
   assert.ok(prompt.includes("second question"), "last user message present");
-  assert.ok(!prompt.includes("first question"), "earlier user turn must be dropped");
-  assert.ok(!prompt.includes("first answer"), "assistant turn must be dropped");
+  assert.ok(prompt.includes("first question"), "earlier user turn must survive (#10527)");
+  assert.ok(prompt.includes("first answer"), "assistant turn must survive (#10527)");
 });
 
-test("default call (no window arg) behaves like window 0", () => {
+test("default call (no window arg) on a multi-turn conversation behaves like window 0 (#10527)", () => {
   const prompt = messagesToPrompt(CONVO);
   assert.ok(prompt.includes("second question"));
-  assert.ok(!prompt.includes("first answer"));
+  assert.ok(prompt.includes("first answer"), "assistant turn must survive (#10527)");
+});
+
+test("window 0 (default) on a genuinely single-turn request keeps the minimal system + last-user-only prompt", () => {
+  const singleTurn = [
+    { role: "system", content: "You are helpful." },
+    { role: "user", content: "second question" },
+  ];
+  const prompt = messagesToPrompt(singleTurn, 0);
+  assert.equal(prompt, "You are helpful.\n\nsecond question");
 });
 
 test("window > 0 stitches recent turns into a role-tagged transcript", () => {

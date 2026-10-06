@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import { diagnoseAllEgressIps, validateProxyPool } from "@/lib/proxyEgress";
+import {
+  diagnoseAllEgressIps,
+  getRecentEgressSharingSummary,
+  validateProxyPool,
+} from "@/lib/proxyEgress";
 
 /**
  * GET  /api/settings/proxies/egress — diagnose the egress IP of every OAuth
@@ -17,8 +21,11 @@ export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
   try {
-    const diagnostic = await diagnoseAllEgressIps();
-    return NextResponse.json(diagnostic);
+    const [diagnostic, { summary }] = await Promise.all([
+      diagnoseAllEgressIps(),
+      getRecentEgressSharingSummary(),
+    ]);
+    return NextResponse.json({ ...diagnostic, summary });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to diagnose egress IPs");
   }

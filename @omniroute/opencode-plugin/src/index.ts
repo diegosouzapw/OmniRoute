@@ -57,7 +57,12 @@ import type { AuthHook, Config, Plugin, PluginOptions, ProviderHook } from "@ope
 import { tool } from "@opencode-ai/plugin";
 import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
 import { z } from "zod";
-import { logger as _logger, setLogLevel, type LogLevel as _LogLevel } from "./logger.js";
+import {
+  createLogger,
+  logger as _logger,
+  type Logger as _Logger,
+  type LogLevel as _LogLevel,
+} from "./logger.js";
 import {
   PROVIDER_TAG_SEPARATOR as _PROVIDER_TAG_SEPARATOR,
   shortProviderLabel as _shortProviderLabel,
@@ -70,6 +75,18 @@ import {
   AUTO_VARIANT_DESCRIPTIONS,
   type FreeModelFreeType,
 } from "./naming.js";
+import { applyOmniRouteInferenceTelemetry } from "./telemetry.js";
+
+/**
+ * Minimal leveled logger sink accepted by the default fetchers and the static
+ * catalog builder. A full `Logger` satisfies it structurally; the config hook
+ * injects the same partial shape (see `createOmniRouteConfigHook` deps).
+ */
+type OmniRouteLoggerSink = {
+  error?: (message: string, ...args: unknown[]) => void;
+  warn: (message: string, ...args: unknown[]) => void;
+  debug?: (message: string, ...args: unknown[]) => void;
+};
 
 /**
  * Zod schema for plugin options accepted as the second element of the
@@ -180,6 +197,13 @@ const featuresSchema = z
     visibleModels: z.array(z.string().min(1)).optional(),
     hiddenModels: z.array(z.string().min(1)).optional(),
     diskCache: z.boolean().optional(),
+    /**
+     * Opt-in max age for a disk-cache fallback snapshot, in milliseconds.
+     * Unset or `0` keeps the historical unbounded default: a stale snapshot
+     * is still served. A positive bound does not refuse the snapshot; the
+     * fallback log escalates from warn to error once the snapshot is older.
+     */
+    diskCacheMaxAgeMs: z.number().nonnegative().optional(),
     providerTag: z.boolean().optional(),
     debugLog: z.boolean().optional(),
     startupDebug: z.boolean().optional(),
@@ -203,7 +227,11 @@ const optionsSchema = z
      * to 60000. Default when unset: 300000.
      */
     autoSyncIntervalMs: z.number().int().nonnegative().optional(),
-    baseURL: z.string().url().optional(),
+    baseURL: z
+      .string()
+      .trim()
+      .refine(isHttpUrl, "baseURL must be an http(s) URL, for example http://localhost:20128")
+      .optional(),
     managementReadToken: z.string().min(1).optional(),
     features: featuresSchema.optional(),
   })
@@ -460,11 +488,48 @@ function coercePluginOptions(opts?: PluginOptions): OmniRoutePluginOptions {
 export const DEFAULT_ANTHROPIC_PREFIXES = ["cc", "claude", "anthropic", "kiro", "kr"];
 
 /**
+ * First-class OmniRoute catalog suffixes (`GET /v1/models`). The Anthropic
+ * Messages translator looks these up as `claude-<model>` on provider
+ * `claude` and 404s. Keep them on openai-compatible `/v1` so the full
+ * catalog id (`cc/claude-haiku-4-5-20251001-low`) is sent unchanged.
+ */
+export const OPENAI_COMPAT_EFFORT_TIER_SUFFIXES = [
+  "-low",
+  "-medium",
+  "-high",
+  "-xhigh",
+  "-thinking",
+  "-minimal",
+  "-max",
+] as const;
+
+function hasOpenAiCompatEffortTierSuffix(modelId: string): boolean {
+  const lower = modelId.toLowerCase();
+  return OPENAI_COMPAT_EFFORT_TIER_SUFFIXES.some((suffix) => lower.endsWith(suffix));
+}
+
+/**
  * Ensure a baseURL ends with `/v1` so the OpenAI-compat SDK constructs
  * `/v1/chat/completions` correctly. The Anthropic SDK does NOT want `/v1`
  * (it appends `/v1/messages` automatically), so callers should branch on
  * format first.
  */
+/**
+ * A url the AI SDK can actually call. `new URL()` alone is not enough: it
+ * parses `localhost:20128` as the scheme `localhost:` and `ftp://host` as ftp,
+ * both of which reach `fetch` and fail there. Mirrors the `isHttpUrl` guard the
+ * settings schema applies to `headroomUrl`.
+ */
+export function isHttpUrl(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  try {
+    const { protocol } = new URL(value);
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function ensureV1Suffix(url: string): string {
   const trimmed = trimTrailingSlashes(url);
   return trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
@@ -474,7 +539,12 @@ export function ensureV1Suffix(url: string): string {
  * Resolve the API block (id + url + npm package) for a given model id.
  *
  * Decision matrix:
- * - If the model id's prefix (the substring before the first `/`) is in
+ * - If the model id ends with a first-class OmniRoute effort-tier suffix
+ *   (`-low` / `-medium` / `-high` / `-xhigh` / `-thinking` / `-minimal` /
+ *   `-max`), return the OpenAI-compat block even when the prefix is
+ *   Anthropic. Those ids exist only in `GET /v1/models`; the Anthropic
+ *   Messages path 404s them as `claude-<name>` on provider `claude`.
+ * - Else if the model id's prefix (the substring before the first `/`) is in
  *   `apiFormat.anthropicPrefixes` (or the default list), return the
  *   Anthropic SDK block: `id: "anthropic"`, `url: baseURL` (no `/v1`),
  *   `npm: "@ai-sdk/anthropic"`.
@@ -493,7 +563,7 @@ export function resolveApiBlock(
   const prefixes = apiFormat?.anthropicPrefixes ?? DEFAULT_ANTHROPIC_PREFIXES;
   const slash = modelId.indexOf("/");
   const prefix = slash === -1 ? modelId : modelId.slice(0, slash);
-  const isAnthropic = prefixes.includes(prefix);
+  const isAnthropic = prefixes.includes(prefix) && !hasOpenAiCompatEffortTierSuffix(modelId);
   return isAnthropic
     ? {
         id: "anthropic",
@@ -702,8 +772,9 @@ export async function resolveOmniRouteRuntimeAuth(
 }
 
 /**
- * Force-refresh OmniRoute catalog: clear memory + disk cache, re-fetch /v1/models
- * (and optional management endpoints), and repopulate the shared cache.
+ * Force-refresh OmniRoute catalog: re-fetch /v1/models (and optional management
+ * endpoints) and, only once the models fetch succeeds, replace the memory and
+ * disk caches. A failed models fetch leaves both caches untouched (#14926).
  * OpenCode equivalent of Pi `/omni sync`.
  */
 export async function forceSyncOmniRouteModels(args: {
@@ -717,6 +788,7 @@ export async function forceSyncOmniRouteModels(args: {
   compressionMetaFetcher?: OmniRouteCompressionMetaFetcher;
   providersFetcher?: OmniRouteProvidersFetcher;
   now?: () => number;
+  logger?: _Logger;
 }): Promise<{
   ok: boolean;
   count: number;
@@ -737,6 +809,11 @@ export async function forceSyncOmniRouteModels(args: {
   const compressionMetaFetcher =
     args.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
   const providersFetcher = args.providersFetcher ?? defaultOmniRouteProvidersFetcher;
+  const logger =
+    args.logger ??
+    createLogger(
+      resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn")
+    );
   const features = resolved.features ?? {};
   const wantCombos = features.combos !== false;
   const wantAutoCombos = features.autoCombos !== false;
@@ -762,31 +839,53 @@ export async function forceSyncOmniRouteModels(args: {
     };
   }
 
-  const clearedMemory = invalidateOmniRouteFetchCache(cache, auth.baseURL);
-  // Clear residual entries from prior baseURL history as well.
-  const clearedAll = invalidateOmniRouteFetchCache(cache);
-  let clearedDisk = false;
-  if (wantDiskCache) {
-    clearedDisk = await clearDiskSnapshot(resolved.providerId);
-    if (resolved.omnirouteProviderId !== resolved.providerId) {
-      clearedDisk = (await clearDiskSnapshot(resolved.omnirouteProviderId)) || clearedDisk;
-    }
+  // The models fetch is the only required call. Run it BEFORE touching any
+  // cache: invalidating memory or unlinking the disk snapshot first meant a
+  // single transient failure (e.g. the 10s abort) destroyed the last good
+  // catalog and left every later read hitting a server that was already
+  // slow (#14926). On failure both caches stay exactly as they were.
+  let rawModels: OmniRouteRawModelEntry[];
+  try {
+    rawModels = await fetcher(auth.baseURL, auth.apiKey, 10_000);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.warn(
+      `force sync: /v1/models fetch failed providerId=${resolved.providerId}; ` +
+        `keeping existing memory and disk cache: ${message}`
+    );
+    return {
+      ok: false,
+      count: 0,
+      combos: 0,
+      provider: resolved.omnirouteProviderId,
+      baseURL: auth.baseURL,
+      clearedMemory: 0,
+      clearedDisk: false,
+      error: message,
+    };
   }
 
+  let clearedMemory = 0;
+  let clearedAll = 0;
+  let clearedDisk = false;
   try {
-    const rawModels = await fetcher(auth.baseURL, auth.apiKey, 10_000);
     let rawCombos: OmniRouteRawCombo[] = [];
     if (wantCombos) {
       try {
         rawCombos = await combosFetcher(auth.baseURL, auth.managementReadToken, 10_000);
       } catch (err) {
-        console.warn("[omniroute-plugin] force sync: combos fetch failed", err);
+        logger.warn("force sync: combos fetch failed", err);
       }
     }
     let rawAutoCombos: OmniRouteRawAutoCombo[] = [];
     if (wantAutoCombos) {
       try {
-        rawAutoCombos = await autoCombosFetcher(auth.baseURL, auth.managementReadToken, 5_000);
+        rawAutoCombos = await autoCombosFetcher(
+          auth.baseURL,
+          auth.managementReadToken,
+          5_000,
+          logger
+        );
       } catch {
         /* soft-fail */
       }
@@ -831,9 +930,15 @@ export async function forceSyncOmniRouteModels(args: {
       expiresAt: t + resolved.modelCacheTtl,
     };
     const cacheKey = modelsCacheKey(auth.baseURL, `${auth.apiKey}\0${auth.managementReadToken}`);
+    // Only now, with a fresh catalog in hand, drop the old entries.
+    clearedMemory = invalidateOmniRouteFetchCache(cache, auth.baseURL);
+    // Clear residual entries from prior baseURL history as well.
+    clearedAll = invalidateOmniRouteFetchCache(cache);
     cache.set(cacheKey, entry);
 
     if (wantDiskCache) {
+      // Overwrite the snapshot instead of unlinking it first, so the old file
+      // is only replaced once a fresh catalog exists. The writer soft-fails.
       try {
         const fingerprint = diskSnapshotIdentityFingerprint(
           auth.baseURL,
@@ -842,13 +947,17 @@ export async function forceSyncOmniRouteModels(args: {
         );
         const { expiresAt: _expiresAt, ...diskEntry } = entry;
         await defaultDiskSnapshotWriter(resolved.providerId, diskEntry, fingerprint);
+        clearedDisk = true;
       } catch {
         /* soft-fail disk write */
       }
+      if (resolved.omnirouteProviderId !== resolved.providerId) {
+        clearedDisk = (await clearDiskSnapshot(resolved.omnirouteProviderId)) || clearedDisk;
+      }
     }
 
-    console.warn(
-      `[omniroute-plugin] force sync ok providerId=${resolved.providerId} ` +
+    logger.info(
+      `force sync ok providerId=${resolved.providerId} ` +
         `models=${rawModels.length} combos=${rawCombos.length} ` +
         `clearedMemory=${clearedMemory + clearedAll} disk=${clearedDisk}`
     );
@@ -880,12 +989,14 @@ export async function forceSyncOmniRouteModels(args: {
 export function createOmniRouteSyncModelsTool(args: {
   resolved: ResolvedOmniRoutePluginOptions;
   cache: OmniRouteFetchCache;
+  logger?: _Logger;
 }): ReturnType<typeof tool> {
   const { resolved, cache } = args;
   return tool({
     description:
       "Force-refresh the OmniRoute model catalog (OpenCode equivalent of Pi `/omni sync`). " +
-      "Invalidates in-memory and disk caches, then re-fetches GET /v1/models (and combos when enabled).",
+      "Re-fetches GET /v1/models (and combos when enabled), then replaces the in-memory and disk " +
+      "caches; a failed fetch keeps the existing caches.",
     args: {
       reason: tool.schema
         .string()
@@ -893,7 +1004,7 @@ export function createOmniRouteSyncModelsTool(args: {
         .describe("Optional reason for the sync (logging only)"),
     },
     async execute(toolArgs) {
-      const result = await forceSyncOmniRouteModels({ resolved, cache });
+      const result = await forceSyncOmniRouteModels({ resolved, cache, logger: args.logger });
       const reason = toolArgs.reason ? ` reason=${toolArgs.reason}` : "";
       if (!result.ok) {
         return {
@@ -932,10 +1043,16 @@ export function startOmniRouteAutoSync(args: {
   resolved: ResolvedOmniRoutePluginOptions;
   cache: OmniRouteFetchCache;
   intervalMs?: number;
+  logger?: _Logger;
 }): () => void {
   const resolved = args.resolved;
   const cache = args.cache;
   const intervalMs = args.intervalMs ?? resolved.autoSyncIntervalMs;
+  const logger =
+    args.logger ??
+    createLogger(
+      resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn")
+    );
   if (!intervalMs || intervalMs <= 0) {
     return () => {};
   }
@@ -948,11 +1065,9 @@ export function startOmniRouteAutoSync(args: {
     if (stopped) return;
     if (inFlight) return;
     inFlight = (async () => {
-      const result = await forceSyncOmniRouteModels({ resolved, cache });
+      const result = await forceSyncOmniRouteModels({ resolved, cache, logger });
       if (!result.ok) {
-        console.warn(
-          `[omniroute-plugin] auto-sync failed providerId=${resolved.providerId}: ${result.error}`
-        );
+        logger.error(`auto-sync failed providerId=${resolved.providerId}: ${result.error}`);
         return;
       }
       if (lastCount === undefined) {
@@ -960,15 +1075,15 @@ export function startOmniRouteAutoSync(args: {
         return;
       }
       if (result.count !== lastCount) {
-        console.warn(
-          `[omniroute-plugin] auto-sync catalog size changed ${lastCount} → ${result.count} ` +
+        logger.info(
+          `auto-sync catalog size changed ${lastCount} → ${result.count} ` +
             `(providerId=${resolved.providerId})`
         );
         lastCount = result.count;
       }
     })()
       .catch((err) => {
-        console.warn("[omniroute-plugin] auto-sync tick error", err);
+        logger.error(`auto-sync tick error: ${err instanceof Error ? err.message : String(err)}`);
       })
       .finally(() => {
         inFlight = null;
@@ -982,9 +1097,7 @@ export function startOmniRouteAutoSync(args: {
     timer.unref();
   }
 
-  console.warn(
-    `[omniroute-plugin] auto-sync enabled intervalMs=${intervalMs} providerId=${resolved.providerId}`
-  );
+  logger.info(`auto-sync enabled intervalMs=${intervalMs} providerId=${resolved.providerId}`);
 
   return () => {
     stopped = true;
@@ -994,6 +1107,9 @@ export function startOmniRouteAutoSync(args: {
 
 export const OmniRoutePlugin: Plugin = async (_input, options) => {
   const resolved = resolveOmniRoutePluginOptions(coercePluginOptions(options));
+  const logger = createLogger(
+    resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn")
+  );
   // T-07: a single per-plugin-instance cache shared between the provider
   // hook (T-03/T-05) and the config-shim hook (T-07). On OC ≥1.14.49 both
   // hooks fire within the same Plugin invocation, so a shared cache keeps
@@ -1010,7 +1126,7 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
   const _hash: string =
     ((globalThis as Record<string, unknown>).__PLUGIN_GIT_HASH__ as string) ?? "unknown";
   const _prefixes = resolved.features?.apiFormat?.anthropicPrefixes ?? DEFAULT_ANTHROPIC_PREFIXES;
-  _logger.always(
+  logger.info(
     `v${_ver} (${_hash}) initialized` +
       ` providerId=${resolved.providerId}` +
       ` baseURL=${resolved.baseURL ?? "(from auth.json)"}` +
@@ -1020,14 +1136,11 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
       ` logLevel=${resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn")}`
   );
 
-  // Wire log level: startupDebug:true → "debug", explicit logLevel wins.
-  setLogLevel(resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn"));
-
   // Background auto-discovery while the harness is running (Pi parity).
   // Interval 0 disables. TTL on-demand discovery still works via modelCacheTtl.
-  startOmniRouteAutoSync({ resolved, cache: sharedCache });
+  startOmniRouteAutoSync({ resolved, cache: sharedCache, logger });
 
-  const syncTool = createOmniRouteSyncModelsTool({ resolved, cache: sharedCache });
+  const syncTool = createOmniRouteSyncModelsTool({ resolved, cache: sharedCache, logger });
   const bareProviderId = resolved.omnirouteProviderId;
 
   // Config hook: keep existing catalog shim, and register slash command
@@ -1035,6 +1148,7 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
   // Pi-style registerCommand API; tools + command templates are the native path).
   const baseConfigHook = createOmniRouteConfigHook(resolved, {
     cache: sharedCache,
+    logger,
     diskSnapshotReader: defaultDiskSnapshotReader,
     diskSnapshotWriter: defaultDiskSnapshotWriter,
   });
@@ -1074,7 +1188,7 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
 
   return {
     auth: createOmniRouteAuthHook(resolved),
-    provider: createOmniRouteProviderHook(resolved, { cache: sharedCache }),
+    provider: createOmniRouteProviderHook(resolved, { cache: sharedCache, logger }),
     config: configWithSyncCommand,
     tool: {
       omniroute_sync_models: syncTool,
@@ -1130,6 +1244,8 @@ export interface OmniRouteRawModelEntry {
     attachment?: boolean;
     structured_output?: boolean;
     temperature?: boolean;
+    /** Runtime-learned or synced reasoning tiers (server-gated, blind-mapped). */
+    effort_tiers?: string[];
   };
   release_date?: string;
   last_updated?: string;
@@ -1166,7 +1282,7 @@ export type OmniRouteModelsFetcher = (
 export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 10_000
+  timeoutMs = 30_000
 ) => {
   if (!apiKey) throw new Error("@omniroute/opencode-plugin: apiKey required to fetch /v1/models");
   if (!baseURL) throw new Error("@omniroute/opencode-plugin: baseURL required to fetch /v1/models");
@@ -1188,9 +1304,12 @@ export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
       signal: controller.signal,
     });
     if (!res.ok) {
-      throw new Error(
+      const err = new Error(
         `@omniroute/opencode-plugin: GET ${url} failed: ${res.status} ${res.statusText}`
-      );
+      ) as Error & { statusCode: number; status: number };
+      err.statusCode = res.status;
+      err.status = res.status;
+      throw err;
     }
     const body = (await res.json()) as unknown;
     const rawList: unknown[] = Array.isArray(body)
@@ -1271,6 +1390,18 @@ export function mapRawModelToModelV2(
   ctx: { providerId: string; baseURL: string; apiFormat?: { anthropicPrefixes?: string[] } }
 ): ModelV2 {
   const caps = raw.capabilities ?? {};
+  // effort_tiers loop: server-declared tiers become ModelV2 variants so the
+  // UI offers exactly the tiers OmniRoute vouches for (instead of opencode's
+  // invented [low, medium, high] fallback). Blind: filtering/exclusion rules
+  // live server-side. Absent/empty/malformed => key omitted ENTIRELY (an
+  // empty variants object would suppress opencode's fallback for this model).
+  const declaredTiers = Array.isArray(caps.effort_tiers)
+    ? caps.effort_tiers.filter((t): t is string => typeof t === "string" && t.length > 0)
+    : [];
+  const variants =
+    declaredTiers.length > 0
+      ? Object.fromEntries(declaredTiers.map((tier) => [tier, { reasoningEffort: tier }]))
+      : undefined;
   const inMods = new Set(raw.input_modalities ?? ["text"]);
   const outMods = new Set(raw.output_modalities ?? ["text"]);
 
@@ -1279,10 +1410,12 @@ export function mapRawModelToModelV2(
     // `(providerID, modelID)`. If the raw id is already provider-prefixed
     // (e.g. `cc/claude-opus-4-7` from the `cc` Claude Code alias, or
     // `nvidia/llama-3-70b` from a provider that ships prefixed ids), leave
-    // it as-is — double-prefixing breaks OC's lookup. Otherwise prefix with
-    // the resolved `providerId` so a bare key like `claude-opus-4` parses as
-    // `(omniroute, claude-opus-4)` and the credentials resolve correctly.
-    id: raw.id.includes("/") ? raw.id : `${ctx.providerId}/${raw.id}`,
+    // it as-is — double-prefixing breaks OC's lookup. Bare **combo** ids
+    // (`owned_by: "combo"`, e.g. `gpt-5.6-sol`) must also stay unprefixed:
+    // OpenCode looks up `-m <plugin>/<combo>` as model id `<combo>` under
+    // the plugin provider (#10345). Other bare ids still prefix with
+    // `providerId` so credentials resolve as `(omniroute, model)`.
+    id: raw.id.includes("/") || raw.owned_by === "combo" ? raw.id : `${ctx.providerId}/${raw.id}`,
     /**
      * Display name. Falls back to raw.id when no enrichment is available;
      * the caller (`createOmniRouteProviderHook`) overlays
@@ -1321,6 +1454,7 @@ export function mapRawModelToModelV2(
       ...(typeof raw.max_input_tokens === "number" ? { input: raw.max_input_tokens } : {}),
       output: typeof raw.max_output_tokens === "number" ? raw.max_output_tokens : 0,
     },
+    ...(variants ? { variants } : {}),
     status: "active",
     options: {},
     headers: {},
@@ -1656,7 +1790,8 @@ export interface OmniRouteRawAutoCombo {
 export type OmniRouteAutoCombosFetcher = (
   baseURL: string,
   apiKey: string,
-  timeoutMs?: number
+  timeoutMs?: number,
+  logger?: OmniRouteLoggerSink
 ) => Promise<OmniRouteRawAutoCombo[]>;
 
 /**
@@ -1668,9 +1803,11 @@ export type OmniRouteAutoCombosFetcher = (
 export const defaultOmniRouteAutoCombosFetcher: OmniRouteAutoCombosFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 5_000
+  timeoutMs = 5_000,
+  logger?: OmniRouteLoggerSink
 ) => {
   if (!apiKey || !baseURL) return [];
+  const log = logger ?? _logger;
 
   const trimmed = trimTrailingSlashes(baseURL);
   const root = trimmed.replace(/\/v\d+$/, "");
@@ -1689,15 +1826,11 @@ export const defaultOmniRouteAutoCombosFetcher: OmniRouteAutoCombosFetcher = asy
     });
     // 404 = endpoint not deployed yet — expected during rollout
     if (res.status === 404) {
-      console.warn(
-        `[omniroute-plugin] /api/combos/auto not available (404) — auto combos disabled`
-      );
+      log.warn(`/api/combos/auto not available (404) — auto combos disabled`);
       return [];
     }
     if (!res.ok) {
-      console.warn(
-        `[omniroute-plugin] /api/combos/auto failed: ${res.status} ${res.statusText} — auto combos disabled`
-      );
+      log.warn(`/api/combos/auto failed: ${res.status} ${res.statusText} — auto combos disabled`);
       return [];
     }
     const body = (await res.json()) as unknown;
@@ -1715,8 +1848,8 @@ export const defaultOmniRouteAutoCombosFetcher: OmniRouteAutoCombosFetcher = asy
     return out;
   } catch (err) {
     // Network error, timeout, abort — all non-fatal
-    console.warn(
-      `[omniroute-plugin] /api/combos/auto fetch failed: ${err instanceof Error ? err.message : String(err)} — auto combos disabled`
+    log.warn(
+      `/api/combos/auto fetch failed: ${err instanceof Error ? err.message : String(err)} — auto combos disabled`
     );
     return [];
   } finally {
@@ -2915,10 +3048,7 @@ export function passesModelAllowlist(
  * filter is set, all combos pass. Combos with zero resolvable members pass
  * (mirrors `isUsableCombo` semantics).
  */
-export function passesComboAllowlist(
-  combo: OmniRouteRawCombo,
-  visible?: ModelListFilter
-): boolean {
+export function passesComboAllowlist(combo: OmniRouteRawCombo, visible?: ModelListFilter): boolean {
   if (!visible) return true;
   const steps = Array.isArray(combo.models) ? combo.models : [];
   if (steps.length === 0) return true;
@@ -3110,9 +3240,15 @@ export function createOmniRouteProviderHook(
     providersFetcher?: OmniRouteProvidersFetcher;
     now?: () => number;
     cache?: OmniRouteFetchCache;
+    logger?: _Logger;
   } = {}
 ): ProviderHook {
   const resolved = resolveOmniRoutePluginOptions(opts);
+  const logger =
+    deps.logger ??
+    createLogger(
+      resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn")
+    );
   const fetcher = deps.fetcher ?? defaultOmniRouteModelsFetcher;
   // T-05: combo discovery merges `/api/combos` entries into the same map as
   // `/v1/models`. Default fetcher is declared further down the file; the
@@ -3186,8 +3322,8 @@ export function createOmniRouteProviderHook(
           : undefined) ??
         "";
       if (!baseURL) {
-        console.warn(
-          `[omniroute-plugin] provider.models(${resolved.providerId}): ` +
+        logger.error(
+          `provider.models(${resolved.providerId}): ` +
             `no baseURL resolvable — checked plugin opts, auth.json, and provider config. ` +
             `Set baseURL in opencode.json plugin options or run \`opencode connect ${resolved.providerId}\` with a baseURL.`
         );
@@ -3218,8 +3354,8 @@ export function createOmniRouteProviderHook(
         rawModels = await fetcher(baseURL, apiKey, 10_000);
 
         // T-05: combos fetch is best-effort, gated by features.combos.
-        // Soft-fail on any error: emit a console.warn and fall back to a
-        // models-only catalog. Rationale: /api/combos requires a
+        // Soft-fail on any error: emit a warn-level diagnostic and fall back
+        // to a models-only catalog. Rationale: /api/combos requires a
         // management-scoped key and OmniRoute may not have any combos
         // provisioned. Hard-failing when combos are optional would
         // silently hide the whole provider from OC's picker.
@@ -3228,10 +3364,7 @@ export function createOmniRouteProviderHook(
           try {
             rawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
-            console.warn(
-              "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
-              err
-            );
+            logger.warn("combos fetch failed, falling back to models-only catalog", err);
           }
         }
 
@@ -3241,7 +3374,7 @@ export function createOmniRouteProviderHook(
         rawAutoCombos = [];
         if (wantAutoCombos) {
           try {
-            rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
+            rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000, logger);
           } catch {
             // Already handled inside the default fetcher — this catch
             // is belt-and-suspenders for injected stubs.
@@ -3255,10 +3388,7 @@ export function createOmniRouteProviderHook(
           try {
             rawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
-            console.warn(
-              "[omniroute-plugin] enrichment fetch failed, falling back to raw ids",
-              err
-            );
+            logger.warn("enrichment fetch failed, falling back to raw ids", err);
           }
         }
 
@@ -3273,7 +3403,7 @@ export function createOmniRouteProviderHook(
               10_000
             );
           } catch (err) {
-            console.warn("[omniroute-plugin] compression-metadata fetch failed", err);
+            logger.warn("compression-metadata fetch failed", err);
           }
         }
 
@@ -3287,8 +3417,8 @@ export function createOmniRouteProviderHook(
           try {
             rawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
-            console.warn(
-              "[omniroute-plugin] /api/providers fetch failed; usableOnly filter disabled for this refresh",
+            logger.warn(
+              "/api/providers fetch failed; usableOnly filter disabled for this refresh",
               err
             );
           }
@@ -3307,8 +3437,9 @@ export function createOmniRouteProviderHook(
         // Debug breadcrumb: surface fetch result so operators can confirm
         // the dynamic pipeline fired and how much catalog OmniRoute returned.
         // Emitted once per cache miss (TTL refresh) — quiet on cache hits.
-        console.warn(
-          `[omniroute-plugin] catalog refreshed for providerId=${resolved.providerId} baseURL=${baseURL}: ` +
+        // Info-level: hidden at the default `warn` level (see #8982).
+        logger.info(
+          `catalog refreshed for providerId=${resolved.providerId} baseURL=${baseURL}: ` +
             `${rawModels.length} models + ${rawCombos.length} combos + ` +
             `${rawEnrichment.size} enrichment entries + ` +
             `${rawCompressionCombos.length} compression combos + ` +
@@ -3432,7 +3563,7 @@ export function createOmniRouteProviderHook(
 
       // ── Combo LCD across nested combo-refs (T-NN) ───────────────────────
       // Combos can nest other combos via `kind: "combo-ref"` members
-      // (e.g. MASTER-LIGHT contains OldLLM, KIRO, Opecode Zen FREE). The
+      // (e.g. MASTER-LIGHT contains LEGACY, KIRO, Opecode Zen FREE). The
       // nested combo's own `limit.context` is computed below in this same
       // loop, so we need a fixpoint iteration: if a combo-ref points at a
       // combo not yet processed, defer this combo and try again after the
@@ -3588,9 +3719,7 @@ export function createOmniRouteProviderHook(
               const dedupeKey = `${cacheKey}::${comboKey}`;
               if (!collisionWarned.has(dedupeKey)) {
                 collisionWarned.add(dedupeKey);
-                console.warn(
-                  `[omniroute-plugin] combo key "${comboKey}" collides with a model id; combo wins.`
-                );
+                logger.warn(`combo key "${comboKey}" collides with a model id; combo wins.`);
               }
             }
           }
@@ -3608,8 +3737,8 @@ export function createOmniRouteProviderHook(
       }
 
       if (pending.length > 0) {
-        console.warn(
-          `[omniroute-plugin] ${pending.length} combo(s) could not resolve all nested combo-refs after ${MAX_COMBO_PASSES} passes; they will advertise context=0 to avoid over-claiming.`
+        logger.warn(
+          `${pending.length} combo(s) could not resolve all nested combo-refs after ${MAX_COMBO_PASSES} passes; they will advertise context=0 to avoid over-claiming.`
         );
       }
 
@@ -3723,6 +3852,8 @@ export function createOmniRouteFetchInterceptor(config: {
     baseOrigin = baseUrl.origin;
     const basePath = ensureV1Suffix(baseUrl.pathname);
     inferencePaths.add(`${basePath}/chat/completions`);
+    inferencePaths.add(`${basePath}/responses`);
+    inferencePaths.add(`${basePath}/messages`);
     inferencePaths.add(`${basePath}/models`);
   } catch {
     // Credential-attached base URLs are not schema-validated. A malformed
@@ -3766,7 +3897,7 @@ export function createOmniRouteFetchInterceptor(config: {
       headers.set("Content-Type", "application/json");
     }
 
-    return fetch(input, { ...init, headers });
+    return applyOmniRouteInferenceTelemetry(await fetch(input, { ...init, headers }));
   };
 }
 
@@ -4253,9 +4384,12 @@ export function buildStaticProviderEntry(
   enrichment?: OmniRouteEnrichmentMap,
   compressionCombos?: OmniRouteCompressionCombo[],
   connections?: OmniRouteProviderConnection[],
-  rawAutoCombos?: OmniRouteRawAutoCombo[]
+  rawAutoCombos?: OmniRouteRawAutoCombo[],
+  logger?: OmniRouteLoggerSink
 ): OmniRouteStaticProviderEntry {
+  const log = logger ?? _logger;
   const models: Record<string, OmniRouteStaticModelEntry> = {};
+  const rawModelKeys = new Set<string>();
 
   // usableOnly filter — compute once when feature enabled AND we have
   // connection data to filter against. Soft-fail (empty connections list)
@@ -4412,7 +4546,9 @@ export function buildStaticProviderEntry(
     // provider prefix (`<providerId>/<raw-id>`) is unreachable. Keys are the
     // raw id verbatim; ids that already contain `/` (e.g. `cc/claude-opus-4-7`)
     // keep it because the slash is part of the upstream model id itself.
-    models[raw.id] = entry;
+    const key = raw.id;
+    models[key] = entry;
+    rawModelKeys.add(key);
   }
 
   // Combo entries → stripped LCD shape. Each combo is keyed as
@@ -4447,7 +4583,7 @@ export function buildStaticProviderEntry(
   // ── Combo LCD across nested combo-refs (T-NN mirror) ─────────────────
   // Mirror of the dynamic-catalog fixpoint iteration: combos can nest
   // other combos via `kind: "combo-ref"` members (e.g. MASTER-LIGHT
-  // contains OldLLM, KIRO, Opecode Zen FREE). The nested combo's own
+  // contains LEGACY, KIRO, Opecode Zen FREE). The nested combo's own
   // capabilities and limits are computed in this same loop, so we need
   // a fixpoint pass: if a combo-ref points at a combo not yet processed,
   // defer this combo and try again after the sibling combos catch up.
@@ -4557,9 +4693,21 @@ export function buildStaticProviderEntry(
           .map((m) => m.max_output_tokens)
           .filter((v): v is number => typeof v === "number" && v > 0);
 
-        if (contextValues.length > 0 && outputValues.length > 0) {
+        // Prefer the server-computed aggregate (accounts for explicit
+        // context_length overrides and members outside memberEntries, e.g.
+        // not yet resolved in /v1/models) over the raw Math.min(member)
+        // lower bound. Mirrors mapComboToModelV2's limit.context logic
+        // (#13000) so the static catalog and the dynamic hook agree.
+        const preferredContext =
+          typeof combo.computed_context_length === "number" && combo.computed_context_length > 0
+            ? combo.computed_context_length
+            : contextValues.length > 0
+              ? Math.min(...contextValues)
+              : undefined;
+
+        if (preferredContext !== undefined && outputValues.length > 0) {
           entry.limit = {
-            context: Math.min(...contextValues),
+            context: preferredContext,
             output: Math.min(...outputValues),
           };
         }
@@ -4609,8 +4757,9 @@ export function buildStaticProviderEntry(
       // (`opencode-omniroute/opencode-omniroute/<slug>`), and `parseModel()`
       // resolves credentials for the nonexistent provider `opencode-omniroute`
       // instead of `omniroute`. See #7976.
-      models[buildComboKey(combo, usedComboKeys, opts.omnirouteProviderId).split("/").pop()!] =
-        entry;
+      const key = buildComboKey(combo, usedComboKeys, opts.omnirouteProviderId).split("/").pop()!;
+      models[key] = entry;
+      rawModelKeys.delete(key);
 
       // Make this combo's resolved entry available to parent combos
       // that reference it via combo-ref. Use the friendly name since
@@ -4628,8 +4777,8 @@ export function buildStaticProviderEntry(
   }
 
   if (pendingStatic.length > 0) {
-    console.warn(
-      `[omniroute-plugin] ${pendingStatic.length} combo(s) in the static catalog could not resolve all nested combo-refs after ${MAX_STATIC_COMBO_PASSES} passes; they will be omitted.`
+    log.warn(
+      `${pendingStatic.length} combo(s) in the static catalog could not resolve all nested combo-refs after ${MAX_STATIC_COMBO_PASSES} passes; they will be omitted.`
     );
   }
 
@@ -4645,15 +4794,16 @@ export function buildStaticProviderEntry(
       // Use the variant as the key: "auto", "auto/coding", etc.
       const key = autoComboModelId(autoCombo.variant);
       if (models[key]) {
-        // Collision with a raw model or DB combo — auto combo wins (log once)
-        if (!reportedCollisions.has(key)) {
+        // `/v1/models` mirrors auto combos under the same stable id. Replacing
+        // that expected raw twin is silent; every other collision still warns.
+        const isExpectedRawTwin = autoCombo.id === key && rawModelKeys.has(key);
+        if (!isExpectedRawTwin && !reportedCollisions.has(key)) {
           reportedCollisions.add(key);
-          console.warn(
-            `[omniroute-plugin] auto combo key "${key}" collides with an existing model; auto combo wins.`
-          );
+          log.warn(`auto combo key "${key}" collides with an existing model; auto combo wins.`);
         }
       }
       models[key] = entry;
+      rawModelKeys.delete(key);
     }
   }
 
@@ -4918,11 +5068,80 @@ export function debugLogSetEnabled(providerId: string, enabled: boolean): void {
   }
 }
 
+/**
+ * Header names whose values must never be written to the debug JSONL on disk.
+ *
+ * Audit #15159 O-05: `createDebugLoggingFetch` copies every request and response
+ * header into the captured entry, and the entry was serialized to disk verbatim —
+ * so enabling `features.debugLog` persisted live bearer tokens (and session
+ * cookies) in plaintext, contradicting the AES-256-GCM-at-rest guarantee. The
+ * feature defaults to off, which limits exposure but does not remove it.
+ *
+ * Matched list: the explicit credential headers plus anything whose name looks
+ * like a credential (`token` / `secret` / `key`). The broad tail is deliberate —
+ * a debug log is the wrong place to be clever about which credential slipped
+ * through, and a false positive only costs one redacted header in a log whose
+ * purpose is troubleshooting. Non-credential headers (`content-type`, `accept`,
+ * …) are preserved so the log stays useful.
+ *
+ * Case-insensitive: `fetch` lowercases header names, but `debugLogAppend` is
+ * exported and entries can also be appended directly with original casing.
+ */
+const DEBUG_LOG_REDACTED = "[REDACTED]";
+const DEBUG_LOG_SENSITIVE_HEADER =
+  /^(?:authorization|proxy-authorization|cookie|set-cookie|x-api-key)$|token|secret|key/i;
+
+/**
+ * Credential shapes scrubbed out of free-form text before it is persisted —
+ * the `error` field, which carries an untrusted upstream message that routinely
+ * echoes the rejected credential back ("invalid Authorization: Bearer sk-…").
+ *
+ * Covers the three shapes that actually occur: an auth-scheme value, a labeled
+ * assignment, and credentials embedded in a URL's userinfo. Deliberately NOT a
+ * blanket "any long random string" rule: the debug log's purpose is reading
+ * error text, and an over-broad matcher would redact the message away while
+ * still missing secret shapes it did not anticipate.
+ */
+const DEBUG_LOG_AUTH_SCHEME = /\b(bearer|basic)\s+[^\s"',;}]+/gi;
+const DEBUG_LOG_LABELED_SECRET =
+  /\b((?:x-)?(?:api[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|auth[_-]?token|secret|password|passwd|token|key))(\s*[:=]\s*)("?)[^\s"',;}]+\3/gi;
+const DEBUG_LOG_URL_USERINFO = /(\b[a-z][a-z0-9+.-]*:\/\/)[^/\s:@]+:[^/\s@]+@/gi;
+
+/** Scrub credential-shaped substrings out of a free-form string (e.g. an error). */
+function redactDebugText(value: string): string {
+  return value
+    .replace(DEBUG_LOG_URL_USERINFO, `$1${DEBUG_LOG_REDACTED}@`)
+    .replace(DEBUG_LOG_AUTH_SCHEME, `$1 ${DEBUG_LOG_REDACTED}`)
+    .replace(DEBUG_LOG_LABELED_SECRET, `$1$2${DEBUG_LOG_REDACTED}`);
+}
+
+/**
+ * Copy a header map with every sensitive value replaced by `[REDACTED]`.
+ * Defensive about a missing map: this runs on the logging path, where throwing
+ * would silently drop the entry instead of writing it.
+ */
+function redactDebugHeaders(headers: Record<string, string> | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [name, value] of Object.entries(headers ?? {})) {
+    out[name] = DEBUG_LOG_SENSITIVE_HEADER.test(name) ? DEBUG_LOG_REDACTED : value;
+  }
+  return out;
+}
+
 export function debugLogAppend(entry: DebugLogEntry): void {
   try {
     const dir = debugLogDir();
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    appendFileSync(debugLogPath(entry.providerId), JSON.stringify(entry) + "\n", "utf8");
+    // Redact here rather than at the call sites: this is the only choke point
+    // every captured entry passes through, so no future caller can reintroduce
+    // the leak by forgetting to sanitize its own headers.
+    const safe: DebugLogEntry = {
+      ...entry,
+      reqHeaders: redactDebugHeaders(entry.reqHeaders),
+      resHeaders: redactDebugHeaders(entry.resHeaders),
+      ...(typeof entry.error === "string" ? { error: redactDebugText(entry.error) } : {}),
+    };
+    appendFileSync(debugLogPath(entry.providerId), JSON.stringify(safe) + "\n", "utf8");
   } catch (err) {
     console.warn(`[omniroute-plugin] debugLogAppend failed: ${(err as Error).message}`);
   }
@@ -5136,13 +5355,13 @@ export const defaultReadAuthJson: OmniRouteReadAuthJson = async () => {
  *           `auth.json[providerId].baseURL`),
  *       (e) `input.provider[providerId]` is ALREADY set (operator override
  *           wins — we never clobber manually-curated catalogs).
- *     Each no-op path emits ONE debug-level breadcrumb to `console.warn`
+ *     Each no-op path emits ONE debug-level breadcrumb through the leveled logger
  *     so the operator can diagnose without log spam. Malformed `auth.json`
  *     warns once and continues as if the file were missing.
  *   - Fail-open on fetcher errors: a `/v1/models` failure → still publish
  *     a stub `{models: {}}` provider block (so OC has a complete-shape
  *     entry to render). A `/api/combos` failure → publish models-only.
- *     Both paths emit ONE `console.warn`.
+ *     Both paths emit ONE error-level logger message.
  *   - When the provider hook (T-03/T-05) has ALREADY populated the shared
  *     cache for this (baseURL, apiKey) tuple, we reuse the raw payloads
  *     directly — no second fetch. (And vice-versa: the config hook fires
@@ -5165,8 +5384,8 @@ export const defaultReadAuthJson: OmniRouteReadAuthJson = async () => {
  *   - `cache`            — shared fetch-result cache (see
  *                          `OmniRouteFetchCache`). Pass the same Map the
  *                          provider hook owns to dedupe round-trips.
- *   - `logger`           — `{warn}` sink for breadcrumb capture in tests.
- *                          Defaults to `console`.
+ *   - `logger`           — injected sink for breadcrumb capture in tests.
+ *                          Defaults to the plugin's leveled logger.
  */
 export function createOmniRouteConfigHook(
   opts?: OmniRoutePluginOptions,
@@ -5182,7 +5401,11 @@ export function createOmniRouteConfigHook(
     diskSnapshotWriter?: OmniRouteDiskSnapshotWriter;
     now?: () => number;
     cache?: OmniRouteFetchCache;
-    logger?: { warn: (...args: unknown[]) => void };
+    logger?: {
+      error?: (message: string, ...args: unknown[]) => void;
+      warn: (message: string, ...args: unknown[]) => void;
+      debug?: (message: string, ...args: unknown[]) => void;
+    };
   } = {}
 ): (input: Config) => Promise<void> {
   const resolved = resolveOmniRoutePluginOptions(opts);
@@ -5198,8 +5421,13 @@ export function createOmniRouteConfigHook(
   const diskSnapshotWriter = deps.diskSnapshotWriter ?? noopDiskSnapshotWriter;
   const now = deps.now ?? Date.now;
   const cache: OmniRouteFetchCache = deps.cache ?? new Map();
-  const logger = deps.logger ?? console;
+  const logger = deps.logger ?? _logger;
+  const logAt = (level: "error" | "warn" | "debug", message: string): void => {
+    const sink = logger[level] ?? logger.warn;
+    sink.call(logger, message);
+  };
   const features = resolved.features ?? {};
+  const wantCombos = features.combos !== false;
   const wantAutoCombos = features.autoCombos !== false;
   const wantEnrichment = features.enrichment !== false;
   const wantCompressionMeta = features.compressionMetadata === true;
@@ -5213,9 +5441,7 @@ export function createOmniRouteConfigHook(
     // generated block. Detect-and-respect before any I/O.
     const existingProviders = (input as { provider?: Record<string, unknown> }).provider;
     if (existingProviders && existingProviders[resolved.providerId] !== undefined) {
-      logger.warn(
-        `[omniroute-plugin] config shim skipped: provider.${resolved.providerId} already set by user`
-      );
+      logAt("debug", `config shim skipped: provider.${resolved.providerId} already set by user`);
       return;
     }
 
@@ -5230,7 +5456,7 @@ export function createOmniRouteConfigHook(
     }
 
     if (authJson === null) {
-      logger.warn("[omniroute-plugin] config shim: auth.json failed to parse; treating as missing");
+      logAt("warn", "config shim: auth.json failed to parse; treating as missing");
       authJson = undefined;
     }
 
@@ -5257,9 +5483,7 @@ export function createOmniRouteConfigHook(
       // (c) no apiKey — silent no-op (with debug breadcrumb). The operator
       // hasn't run `/connect <providerId>` yet, OR the stored credential
       // isn't api-flavored. OC will handle the `/connect` flow at runtime.
-      logger.warn(
-        `[omniroute-plugin] config shim skipped: no apiKey for providerId=${resolved.providerId}`
-      );
+      logAt("debug", `config shim skipped: no apiKey for providerId=${resolved.providerId}`);
       return;
     }
     // Management-plane catalog reads may use a narrower read-only token.
@@ -5272,9 +5496,7 @@ export function createOmniRouteConfigHook(
     const storedBaseURL = entry && typeof entry.baseURL === "string" ? entry.baseURL : undefined;
     const baseURL = resolved.baseURL ?? storedBaseURL ?? "";
     if (!baseURL) {
-      logger.warn(
-        `[omniroute-plugin] config shim skipped: no baseURL for providerId=${resolved.providerId}`
-      );
+      logAt("debug", `config shim skipped: no baseURL for providerId=${resolved.providerId}`);
       return;
     }
 
@@ -5318,9 +5540,11 @@ export function createOmniRouteConfigHook(
           warmSnapshot = snapshotResult;
           // Log snapshot age (accept any age — instant beats empty).
           const age = (snapshotResult as { writtenAt?: number }).writtenAt;
-          const ageLabel = typeof age === "number" ? `${Math.round((Date.now() - age) / 3_600_000)}h` : "unknown";
-          logger.warn(
-            `[omniroute-plugin] config shim: warm startup from disk snapshot (${snapshotResult.rawModels.length} models, age ${ageLabel})`
+          const ageLabel =
+            typeof age === "number" ? `${Math.round((Date.now() - age) / 3_600_000)}h` : "unknown";
+          logAt(
+            "warn",
+            `config shim: warm startup from disk snapshot (${snapshotResult.rawModels.length} models, age ${ageLabel})`
           );
         }
       }
@@ -5344,11 +5568,11 @@ export function createOmniRouteConfigHook(
         // exact warn message so per-endpoint fallbacks are preserved.
         const doModels = async (): Promise<void> => {
           try {
-            localRawModels = await fetcher(baseURL, apiKey, 10_000);
+            localRawModels = await fetcher(baseURL, apiKey, 30_000);
           } catch (err) {
-            logger.warn(
-              "[omniroute-plugin] config shim: /v1/models fetch failed; publishing stub provider entry",
-              err
+            logAt(
+              "error",
+              `config shim: /v1/models fetch failed; publishing stub provider entry: ${err instanceof Error ? err.message : String(err)}`
             );
             localRawModels = [];
             modelsFetchThrew = true;
@@ -5356,12 +5580,13 @@ export function createOmniRouteConfigHook(
         };
 
         const doCombos = async (): Promise<void> => {
+          if (!wantCombos) return;
           try {
             localRawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
-            logger.warn(
-              "[omniroute-plugin] config shim: /api/combos fetch failed; publishing models-only static catalog",
-              err
+            logAt(
+              "error",
+              `config shim: /api/combos fetch failed; publishing models-only static catalog: ${err instanceof Error ? err.message : String(err)}`
             );
           }
         };
@@ -5369,7 +5594,12 @@ export function createOmniRouteConfigHook(
         const doAutoCombos = async (): Promise<void> => {
           if (!wantAutoCombos) return;
           try {
-            localRawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
+            localRawAutoCombos = await autoCombosFetcher(
+              baseURL,
+              managementReadToken,
+              5_000,
+              logger
+            );
           } catch {
             // Already handled inside the default fetcher
           }
@@ -5380,9 +5610,9 @@ export function createOmniRouteConfigHook(
           try {
             localRawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
-            logger.warn(
-              "[omniroute-plugin] config shim: /api/pricing/models fetch failed; publishing raw-id static catalog",
-              err
+            logAt(
+              "error",
+              `config shim: /api/pricing/models fetch failed; publishing raw-id static catalog: ${err instanceof Error ? err.message : String(err)}`
             );
           }
         };
@@ -5390,11 +5620,15 @@ export function createOmniRouteConfigHook(
         const doCompression = async (): Promise<void> => {
           if (!wantCompressionMeta) return;
           try {
-            localRawCompressionCombos = await compressionMetaFetcher(baseURL, managementReadToken, 10_000);
+            localRawCompressionCombos = await compressionMetaFetcher(
+              baseURL,
+              managementReadToken,
+              10_000
+            );
           } catch (err) {
-            logger.warn(
-              "[omniroute-plugin] config shim: /api/context/combos fetch failed; publishing combos without compression suffix",
-              err
+            logAt(
+              "error",
+              `config shim: /api/context/combos fetch failed; publishing combos without compression suffix: ${err instanceof Error ? err.message : String(err)}`
             );
           }
         };
@@ -5404,9 +5638,9 @@ export function createOmniRouteConfigHook(
           try {
             localRawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
-            logger.warn(
-              "[omniroute-plugin] config shim: /api/providers fetch failed; usableOnly filter disabled for this refresh",
-              err
+            logAt(
+              "error",
+              `config shim: /api/providers fetch failed; usableOnly filter disabled for this refresh: ${err instanceof Error ? err.message : String(err)}`
             );
           }
         };
@@ -5422,6 +5656,32 @@ export function createOmniRouteConfigHook(
 
         const modelsFetchOk = !modelsFetchThrew && localRawModels.length > 0;
 
+        // Snapshot backfill for computed_context_length: a live /api/combos
+        // response can come back without this field (server hasn't finished
+        // recomputing it yet, e.g. just after a restart) even though the
+        // combo's members and identity are otherwise unchanged. When that
+        // happens, prefer the last-known-good value from the warm disk
+        // snapshot over the Math.min(member) fallback in
+        // mapComboToModelV2() — never overwrite any other combo field
+        // (models/name/etc.) with stale data, only this one derived number.
+        if (warmSnapshot) {
+          const snapshotComboById = new Map(warmSnapshot.rawCombos.map((c) => [c.id, c]));
+          for (const combo of localRawCombos) {
+            const hasLive =
+              typeof combo.computed_context_length === "number" &&
+              combo.computed_context_length > 0;
+            if (hasLive) continue;
+            const stale = snapshotComboById.get(combo.id);
+            if (
+              stale &&
+              typeof stale.computed_context_length === "number" &&
+              stale.computed_context_length > 0
+            ) {
+              combo.computed_context_length = stale.computed_context_length;
+            }
+          }
+        }
+
         // Disk-cache fallback (cold first run, no warm snapshot): when the
         // live fetch returned no models AND features.diskCache !== false,
         // hydrate from the last-known-good snapshot so OC still surfaces a
@@ -5429,8 +5689,24 @@ export function createOmniRouteConfigHook(
         if (modelsFetchThrew && wantDiskCache && !warmSnapshot) {
           const snapshot = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
           if (snapshot && snapshot.rawModels.length > 0) {
-            logger.warn(
-              `[omniroute-plugin] config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models)`
+            // Report snapshot age like the warm-startup path already does:
+            // "stale" alone reads as a transient blip, so a week-old catalog
+            // is indistinguishable from a five-minute-old one.
+            const snapshotAge = snapshot.writtenAt;
+            const ageMs = typeof snapshotAge === "number" ? now() - snapshotAge : undefined;
+            const snapshotAgeLabel =
+              typeof ageMs === "number" ? `${Math.round(ageMs / 3_600_000)}h` : "unknown";
+            const maxAgeMs = features.diskCacheMaxAgeMs;
+            const pastMaxAge =
+              typeof maxAgeMs === "number" &&
+              maxAgeMs > 0 &&
+              typeof ageMs === "number" &&
+              ageMs > maxAgeMs;
+            logAt(
+              pastMaxAge ? "error" : "warn",
+              `config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models, age ${snapshotAgeLabel}${
+                pastMaxAge ? `, past diskCacheMaxAgeMs=${maxAgeMs}` : ""
+              })`
             );
             localRawModels = snapshot.rawModels;
             localRawCombos = snapshot.rawCombos;
@@ -5502,7 +5778,8 @@ export function createOmniRouteConfigHook(
             localRawEnrichment,
             localRawCompressionCombos,
             localRawConnections,
-            localRawAutoCombos
+            localRawAutoCombos,
+            logger
           );
           const inputWithProvider2 = input as { provider?: Record<string, unknown> };
           if (inputWithProvider2.provider) {
@@ -5530,7 +5807,10 @@ export function createOmniRouteConfigHook(
         } else {
           const refreshP = doRefresh()
             .catch((err: unknown) => {
-              logger.warn("[omniroute-plugin] config shim: background refresh failed", err);
+              logAt(
+                "error",
+                `config shim: background refresh failed: ${err instanceof Error ? err.message : String(err)}`
+              );
             })
             .finally(() => {
               _inflightRefresh.delete(cacheKey);
@@ -5556,7 +5836,10 @@ export function createOmniRouteConfigHook(
         } else {
           const refreshP = doRefresh()
             .catch((err: unknown) => {
-              logger.warn("[omniroute-plugin] config shim: refresh failed", err);
+              logAt(
+                "error",
+                `config shim: refresh failed: ${err instanceof Error ? err.message : String(err)}`
+              );
             })
             .finally(() => {
               _inflightRefresh.delete(cacheKey);
@@ -5586,7 +5869,8 @@ export function createOmniRouteConfigHook(
       rawEnrichment,
       rawCompressionCombos,
       rawConnections,
-      rawAutoCombos
+      rawAutoCombos,
+      logger
     );
 
     // Mutate the input.provider map. The Config type declares
@@ -5611,8 +5895,9 @@ export function createOmniRouteConfigHook(
     if (features.mcpAutoEmit === true) {
       const mcpKey = features.mcpToken ?? apiKey;
       if (!mcpKey) {
-        logger.warn(
-          `[omniroute-plugin] mcp auto-emit skipped: no Bearer token for providerId=${resolved.providerId}`
+        logAt(
+          "debug",
+          `mcp auto-emit skipped: no Bearer token for providerId=${resolved.providerId}`
         );
       } else {
         const inputWithMcp = input as { mcp?: Record<string, unknown> };
@@ -5620,9 +5905,7 @@ export function createOmniRouteConfigHook(
           inputWithMcp.mcp = {};
         }
         if (inputWithMcp.mcp[resolved.providerId] !== undefined) {
-          logger.warn(
-            `[omniroute-plugin] mcp auto-emit skipped: mcp.${resolved.providerId} already set by user`
-          );
+          logAt("debug", `mcp auto-emit skipped: mcp.${resolved.providerId} already set by user`);
         } else {
           // Strip a trailing `/v1` from baseURL when present so we land on
           // the MCP transport at /api/mcp/stream, not /v1/api/mcp/stream.

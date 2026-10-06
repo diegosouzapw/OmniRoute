@@ -241,6 +241,49 @@ describe("conn-modals (Phase 1c extraction)", () => {
     );
   });
 
+  it("AddApiKeyModal remaps Kimi Code bulk API-key additions to the admitted provider id", async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => ({ success: 1, failed: 0, total: 1, errors: [] }),
+        text: async () => "",
+      } as Response)
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const c = renderModal(
+      <AddApiKeyModal
+        isOpen={true}
+        provider="kimi-coding"
+        providerName="Kimi Code"
+        isCompatible={false}
+        onSave={vi.fn().mockResolvedValue(undefined)}
+        onClose={vi.fn()}
+      />
+    );
+
+    const bulkTab = Array.from(c.querySelectorAll("button")).find(
+      (button) => button.textContent === "providers.bulkTabBulkAdd"
+    );
+    act(() => bulkTab!.click());
+    const bulkInput = c.querySelector<HTMLTextAreaElement>("textarea");
+    setTextareaValue(bulkInput!, "main|sk-kimi-test");
+    const submitButton = Array.from(c.querySelectorAll("button")).find(
+      (button) => button.textContent === "providers.bulkAddAllKeys"
+    );
+    await act(async () => {
+      submitButton!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/providers/bulk",
+      expect.objectContaining({
+        body: expect.stringContaining('"provider":"kimi-coding-apikey"'),
+      })
+    );
+  });
+
   it("AddApiKeyModal does not infer a regional provider selection", () => {
     const c = renderModal(
       <AddApiKeyModal

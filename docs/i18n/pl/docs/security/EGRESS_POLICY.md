@@ -1,4 +1,9 @@
+# Egress IP Family Policy (IPv4/IPv6) (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../security/EGRESS_POLICY.md) · 🇪🇹 [am](../../../am/docs/security/EGRESS_POLICY.md) · 🇸🇦 [ar](../../../ar/docs/security/EGRESS_POLICY.md) · 🇦🇿 [az](../../../az/docs/security/EGRESS_POLICY.md) · 🇧🇬 [bg](../../../bg/docs/security/EGRESS_POLICY.md) · 🇧🇩 [bn](../../../bn/docs/security/EGRESS_POLICY.md) · 🇧🇦 [bs](../../../bs/docs/security/EGRESS_POLICY.md) · 🇨🇿 [cs](../../../cs/docs/security/EGRESS_POLICY.md) · 🇩🇰 [da](../../../da/docs/security/EGRESS_POLICY.md) · 🇩🇪 [de](../../../de/docs/security/EGRESS_POLICY.md) · 🇬🇷 [el](../../../el/docs/security/EGRESS_POLICY.md) · 🇪🇸 [es](../../../es/docs/security/EGRESS_POLICY.md) · 🇪🇪 [et](../../../et/docs/security/EGRESS_POLICY.md) · 🇮🇷 [fa](../../../fa/docs/security/EGRESS_POLICY.md) · 🇫🇮 [fi](../../../fi/docs/security/EGRESS_POLICY.md) · 🇫🇷 [fr](../../../fr/docs/security/EGRESS_POLICY.md) · 🇮🇪 [ga](../../../ga/docs/security/EGRESS_POLICY.md) · 🇮🇳 [gu](../../../gu/docs/security/EGRESS_POLICY.md) · 🇳🇬 [ha](../../../ha/docs/security/EGRESS_POLICY.md) · 🇮🇱 [he](../../../he/docs/security/EGRESS_POLICY.md) · 🇮🇳 [hi](../../../hi/docs/security/EGRESS_POLICY.md) · 🇭🇷 [hr](../../../hr/docs/security/EGRESS_POLICY.md) · 🇭🇺 [hu](../../../hu/docs/security/EGRESS_POLICY.md) · 🇦🇲 [hy](../../../hy/docs/security/EGRESS_POLICY.md) · 🇮🇩 [id](../../../id/docs/security/EGRESS_POLICY.md) · 🇳🇬 [ig](../../../ig/docs/security/EGRESS_POLICY.md) · 🇮🇹 [it](../../../it/docs/security/EGRESS_POLICY.md) · 🇯🇵 [ja](../../../ja/docs/security/EGRESS_POLICY.md) · 🇬🇪 [ka](../../../ka/docs/security/EGRESS_POLICY.md) · 🇰🇭 [km](../../../km/docs/security/EGRESS_POLICY.md) · 🇮🇳 [kn](../../../kn/docs/security/EGRESS_POLICY.md) · 🇰🇷 [ko](../../../ko/docs/security/EGRESS_POLICY.md) · 🇱🇹 [lt](../../../lt/docs/security/EGRESS_POLICY.md) · 🇱🇻 [lv](../../../lv/docs/security/EGRESS_POLICY.md) · 🇮🇳 [ml](../../../ml/docs/security/EGRESS_POLICY.md) · 🇮🇳 [mr](../../../mr/docs/security/EGRESS_POLICY.md) · 🇲🇾 [ms](../../../ms/docs/security/EGRESS_POLICY.md) · 🇲🇹 [mt](../../../mt/docs/security/EGRESS_POLICY.md) · 🇲🇲 [my](../../../my/docs/security/EGRESS_POLICY.md) · 🇳🇵 [ne](../../../ne/docs/security/EGRESS_POLICY.md) · 🇳🇱 [nl](../../../nl/docs/security/EGRESS_POLICY.md) · 🇳🇴 [no](../../../no/docs/security/EGRESS_POLICY.md) · 🇮🇳 [or](../../../or/docs/security/EGRESS_POLICY.md) · 🇮🇳 [pa](../../../pa/docs/security/EGRESS_POLICY.md) · 🇵🇭 [phi](../../../phi/docs/security/EGRESS_POLICY.md) · 🇵🇹 [pt](../../../pt/docs/security/EGRESS_POLICY.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/EGRESS_POLICY.md) · 🇷🇴 [ro](../../../ro/docs/security/EGRESS_POLICY.md) · 🇷🇺 [ru](../../../ru/docs/security/EGRESS_POLICY.md) · 🇱🇰 [si](../../../si/docs/security/EGRESS_POLICY.md) · 🇸🇰 [sk](../../../sk/docs/security/EGRESS_POLICY.md) · 🇸🇮 [sl](../../../sl/docs/security/EGRESS_POLICY.md) · 🇷🇸 [sr](../../../sr/docs/security/EGRESS_POLICY.md) · 🇸🇪 [sv](../../../sv/docs/security/EGRESS_POLICY.md) · 🇰🇪 [sw](../../../sw/docs/security/EGRESS_POLICY.md) · 🇮🇳 [ta](../../../ta/docs/security/EGRESS_POLICY.md) · 🇮🇳 [te](../../../te/docs/security/EGRESS_POLICY.md) · 🇹🇭 [th](../../../th/docs/security/EGRESS_POLICY.md) · 🇹🇷 [tr](../../../tr/docs/security/EGRESS_POLICY.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/EGRESS_POLICY.md) · 🇵🇰 [ur](../../../ur/docs/security/EGRESS_POLICY.md) · 🇺🇿 [uz](../../../uz/docs/security/EGRESS_POLICY.md) · 🇻🇳 [vi](../../../vi/docs/security/EGRESS_POLICY.md) · 🇳🇬 [yo](../../../yo/docs/security/EGRESS_POLICY.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/EGRESS_POLICY.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/EGRESS_POLICY.md)
+
 ---
+
 title: "Polityka rodziny IP egress (IPv4/IPv6)"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -131,7 +136,9 @@ W czasie budowy URL (`proxyConfigToUrl` / `normalizeProxyUrl` w `open-sse/utils/
 ```ts
 // open-sse/utils/proxyDispatcher.ts
 const fam = parseProxyFamily(config.family);
-const normalized = normalizeProxyUrl(proxyUrlStr, "context proxy", { allowSocks5 });
+const normalized = normalizeProxyUrl(proxyUrlStr, "context proxy", {
+  allowSocks5,
+});
 return fam === "auto" ? normalized : `${normalized}?family=${fam}`;
 ```
 
@@ -190,10 +197,7 @@ export function buildSocksFamilySocketOptions(family: 4 | 6 | null): Record<stri
 }
 ```
 
-`createProxyDispatcher` wybiera connector w zależności od tego, czy rodzina jest przypięta:
-
-- `family === null` (czyli `auto` nad hostname) → stockowe `socksDispatcher` z `fetch-socks`.
-- `family === 4 | 6` → `createSocksDispatcherWithFamily`, które przekazuje `socket_options` do `SocksClient.createConnection`, żeby Happy Eyeballs nie wybrał IPv4 przy polityce egress tylko-IPv6.
+Wszystkie dispatchery SOCKS5 przechodzą przez `createSocksDispatcherWithFamily` niezależnie od `family` (również `null` / `auto` nad hostname): `buildSocksFamilySocketOptions(null)` daje `{}`, a ta sama ścieżka `SocksClient.createConnection` + TLS `buildConnector` jest używana z przypięciem `socket_options`, żeby Happy Eyeballs nie wybrał IPv4 przy polityce egress tylko-IPv6.
 
 Sam support SOCKS5 jest domyślnie włączony (opt-out przez `ENABLE_SOCKS5_PROXY=false`); zob. [PROXY_GUIDE.md → Environment Variables](../ops/PROXY_GUIDE.md#environment-variables).
 
@@ -245,6 +249,6 @@ Gdy rozwiązany obiekt proxy niesie nie-`auto` `family`, `proxyConfigToUrl` dokl
 
 > 📖 **Powiązana dokumentacja:**
 >
-> - [Proxy Guide](../ops/PROXY_GUIDE.md) — pełny system proxy: CRUD rejestru, 4-poziomowa rezolucja, rotacja, health checking, referencja API
-> - [Stealth Guide](./STEALTH_GUIDE.md) — warstwy fingerprint TLS i CLI fingerprint jadące na wierzchu proxy
-> - [Route Guard Tiers](./ROUTE_GUARD_TIERS.md) — egzekwowanie loopback dla tras tylko-lokalnych
+> - [Przewodnik po proxy](../ops/PROXY_GUIDE.md) — kompletny system proxy: operacje CRUD rejestru, 4-poziomowe rozpoznawanie, rotacja, sprawdzanie kondycji, dokumentacja API
+> - `docs/security/STEALTH_GUIDE.md` (git; nie jest kompilowany do `/docs`) — warstwy odcisku palca TLS i odcisku palca CLI działające na bazie proxy
+> - [Poziomy ochrony tras](./ROUTE_GUARD_TIERS.md) — wymuszanie dostępu przez interfejs loopback dla tras dostępnych wyłącznie lokalnie

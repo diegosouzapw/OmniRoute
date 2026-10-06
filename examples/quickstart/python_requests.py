@@ -16,7 +16,7 @@ headers = {
 }
 
 data = {
-    "model": "felo/auto",  # Keyless, works out of the box — no sign-up needed
+    "model": "auto",  # Zero-config routing, works out of the box — no sign-up needed
     "stream": False,
     "messages": [
         {"role": "user", "content": "Hello! What can you do?"}
@@ -26,3 +26,8 @@ data = {
 response = requests.post(API_URL, headers=headers, json=data)
 response.raise_for_status()
 print(response.json()["choices"][0]["message"]["content"])
+
+# Fresh install, zero credentials — `auto` already works:
+# curl http://localhost:20128/v1/chat/completions \
+#   -H "Content-Type: application/json" \
+#   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'

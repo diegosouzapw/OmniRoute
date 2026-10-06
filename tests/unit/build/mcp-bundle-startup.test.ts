@@ -55,6 +55,6 @@ test("MCP server bundle imports successfully on Node 24", () => {
       });
     }, "the generated MCP bundle must be importable by the supported Node runtime");
   } finally {
-    rmSync(outDir, { recursive: true, force: true });
+    rmSync(outDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

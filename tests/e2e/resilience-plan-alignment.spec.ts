@@ -7,6 +7,7 @@ const resilienceSettings = {
     requestsPerMinute: 100,
     minTimeBetweenRequestsMs: 200,
     concurrentRequests: 10,
+    globalConcurrentRequests: 0,
     maxWaitMs: 120000,
   },
   connectionCooldown: {

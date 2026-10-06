@@ -1,8 +1,10 @@
 /**
  * GET /api/quota/pools/[id]/usage — pool consumption snapshot with dimensions
  *
- * Resolves the pool's provider plan to get dimensions, then calls
- * poolUsageWithDimensions on the QuotaStore interface.
+ * Resolves the pool's provider plan to get dimensions, scales each dimension
+ * limit by the pool's member-connection count (the same summed budget
+ * enforce.ts applies), then calls poolUsageWithDimensions on the QuotaStore
+ * interface.
  *
  * Auth: requireManagementAuth
  * Sanitization: all error responses via buildErrorBody (Hard Rule #12, B25)
@@ -13,7 +15,7 @@
 import { NextResponse } from "next/server";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { getPool } from "@/lib/localDb";
+import { getPool } from "@/lib/db/quotaPools";
 import { getQuotaStore } from "@/lib/quota/QuotaStore";
 import { resolvePlan } from "@/lib/quota/planResolver";
 import { resolveConnectionProvider } from "@/lib/quota/connectionProvider";
@@ -43,12 +45,27 @@ export async function GET(request: Request, { params }: RouteParams): Promise<Re
     const provider = await resolveConnectionProvider(pool.connectionId);
     const plan = resolvePlan(pool.connectionId, provider);
 
-    // 3. Get the quota store and call poolUsageWithDimensions (on the interface since v3.8.12)
+    // 3. Scale each dimension by the pool's member count, mirroring enforce.ts:
+    //    a pool with N same-type connections has an effective budget of
+    //    perAccountLimit × N per dimension. Without this the snapshot reports
+    //    per-account limits and fair shares while enforcement uses the summed
+    //    budget, so a multi-connection pool looks ~N× more utilised than it is
+    //    (and per-key `borrowing` flags trip N× too early).
+    const accountCount =
+      Array.isArray(pool.connectionIds) && pool.connectionIds.length > 0
+        ? pool.connectionIds.length
+        : 1;
+    const effectiveDimensions = plan.dimensions.map((dim) => ({
+      ...dim,
+      limit: dim.limit * accountCount,
+    }));
+
+    // 4. Get the quota store and call poolUsageWithDimensions (on the interface since v3.8.12)
     const store = await getQuotaStore();
 
     let snapshot: PoolUsageSnapshot;
-    if (plan.dimensions.length > 0) {
-      snapshot = await store.poolUsageWithDimensions(id, plan.dimensions);
+    if (effectiveDimensions.length > 0) {
+      snapshot = await store.poolUsageWithDimensions(id, effectiveDimensions);
     } else {
       // Fallback: no plan dimensions configured — return minimal snapshot
       snapshot = await store.poolUsage(id);

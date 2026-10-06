@@ -28,6 +28,14 @@ interface TaskPattern {
   userPatterns?: string[]; // in user message content
 }
 
+/**
+ * Per-task-type replacement for the built-in detection patterns (same config surface as
+ * taskModelMap). A provided `patterns`/`userPatterns` array replaces the built-in list for
+ * that task type — no merge. Omitting a task type, or a field within it, falls back to
+ * TASK_PATTERNS.
+ */
+export type TaskPatternOverrides = Partial<Record<TaskType, Partial<TaskPattern>>>;
+
 export interface TaskRoutingConfig {
   enabled: boolean;
   /**
@@ -35,6 +43,8 @@ export interface TaskRoutingConfig {
    * Empty string = use whatever was requested (no override).
    */
   taskModelMap: Record<TaskType, string>;
+  /** Operator-configurable detection patterns — see TaskPatternOverrides. */
+  patternOverrides?: TaskPatternOverrides;
   detectionEnabled: boolean;
   stats: { detected: number; routed: number };
 }
@@ -164,7 +174,7 @@ const TASK_PATTERNS: Record<TaskType, TaskPattern> = {
  *  - The list rotted. Those ids aged out by a generation or two, and every model
  *    release made them staler. Naming an intent instead removes the maintenance.
  *  - It bypassed the router. `applyTaskAwareRouting` overwrites `body.model`, so a
- *    literal target skipped auto-combo's 13-factor scoring (quota, circuit-breaker
+ *    literal target skipped auto-combo's 16-factor scoring (quota, circuit-breaker
  *    health, cost, latency, stability), connection cooldown and model lockout — and
  *    hard-failed for any operator who simply had no connection for that provider.
  *
@@ -274,6 +284,16 @@ export function getDefaultTaskModelMap(): Record<TaskType, string> {
   return { ...DEFAULT_TASK_MODEL_MAP };
 }
 
+/** Built-in detection patterns, before any operator patternOverrides — for the settings UI. */
+export function getDefaultTaskPatterns(): Record<TaskType, TaskPattern> {
+  return Object.fromEntries(
+    Object.entries(TASK_PATTERNS).map(([taskType, { patterns, userPatterns }]) => [
+      taskType,
+      { patterns: [...patterns], ...(userPatterns ? { userPatterns: [...userPatterns] } : {}) },
+    ])
+  ) as Record<TaskType, TaskPattern>;
+}
+
 // ── Detection ────────────────────────────────────────────────────────────────
 
 interface RequestMessage {
@@ -338,8 +358,13 @@ export function detectTaskType(body: any): TaskType {
     "creative",
   ];
 
+  const overrides = getConfig().patternOverrides;
+
   for (const taskType of priorityOrder) {
-    const { patterns, userPatterns } = TASK_PATTERNS[taskType];
+    const defaults = TASK_PATTERNS[taskType];
+    const override = overrides?.[taskType];
+    const patterns = override?.patterns ?? defaults.patterns;
+    const userPatterns = override?.userPatterns ?? defaults.userPatterns;
 
     // Check system prompt
     if (patterns.some((p) => systemText.includes(p.toLowerCase()))) {

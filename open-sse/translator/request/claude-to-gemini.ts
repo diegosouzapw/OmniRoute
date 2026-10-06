@@ -1,10 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import {
-  DEFAULT_SAFETY_SETTINGS,
-  tryParseJSON,
-  cleanJSONSchemaForAntigravity,
-} from "../helpers/geminiHelper.ts";
+import { DEFAULT_SAFETY_SETTINGS, cleanJSONSchemaForAntigravity } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 import {
   buildGeminiThoughtSignatureKey,
@@ -15,7 +11,36 @@ import { getModelSpec } from "../../../src/shared/constants/modelSpecs.ts";
 import {
   buildChangedToolNameMap,
   buildHistoricalToolResultContext,
+  mergeConsecutiveSameRoleContents,
+  ensureHistoryDoesNotOpenWithFunctionCall,
+  type GeminiContent,
 } from "./openai-to-gemini/helpers.ts";
+
+/**
+ * A Claude `image` block whose source is an HTTPS URL (`{ type: "url", url }`), the shape
+ * Claude accepts next to base64. HTTPS only, as `shared/validation/schemas/apiV1.ts` already
+ * requires of every media URL ("media URLs must use HTTPS") and as Gemini documents for an
+ * external fileUri. Anything else — an empty url, `http:`, a `data:` or `file:` URI — keeps
+ * falling through and being dropped, rather than reaching Gemini as a fileUri it will reject.
+ */
+function isUrlImageBlock(block) {
+  return (
+    block?.type === "image" &&
+    block.source?.type === "url" &&
+    typeof block.source.url === "string" &&
+    /^https:\/\//i.test(block.source.url)
+  );
+}
+
+/**
+ * Gemini cannot take a remote image as inlineData, which is base64-only, but its Part schema
+ * accepts `fileData: { fileUri }` and fetches the asset itself — the same mapping
+ * `helpers/geminiHelper.ts` uses for an OpenAI `image_url` that is a URL (#2807), including its
+ * `image/*` MIME placeholder, since a Claude URL source carries no media type.
+ */
+function urlImagePart(url) {
+  return { fileData: { fileUri: url, mimeType: "image/*" } };
+}
 
 /**
  * Direct Claude → Gemini request translator.
@@ -45,7 +70,7 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
       : null;
   const result: {
     model: string;
-    contents: Array<Record<string, unknown>>;
+    contents: GeminiContent[];
     generationConfig: Record<string, unknown>;
     safetySettings: unknown;
     systemInstruction?: { role: string; parts: Array<{ text: string }> };
@@ -80,6 +105,10 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     if (maxOutputTokens !== null) {
       result.generationConfig.maxOutputTokens = maxOutputTokens;
     }
+  }
+  if (body.stop_sequences !== undefined || body.stop !== undefined) {
+    const rawStop = body.stop_sequences ?? body.stop;
+    result.generationConfig.stopSequences = Array.isArray(rawStop) ? rawStop : [rawStop];
   }
 
   // ── System instruction ─────────────────────────────────────────
@@ -135,7 +164,10 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     const omittedToolCallIds = new Set<string>();
     for (const msg of body.messages) {
       const parts = [];
-      let shouldUseEmbeddedSignature = true;
+      // Images returned inside tool_result blocks go right after the last tool response,
+      // ahead of any text that follows it, as on the Claude -> OpenAI -> Gemini path.
+      const toolResultImageParts = [];
+      let afterLastToolResult = -1;
 
       if (Array.isArray(msg.content)) {
         for (const block of msg.content) {
@@ -159,15 +191,15 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                 break;
               }
 
-              const embeddedThoughtSignature = shouldUseEmbeddedSignature
-                ? signatureForToolCall
-                : undefined;
-              if (embeddedThoughtSignature) {
-                shouldUseEmbeddedSignature = false;
-              }
-
+              // #11510: each functionCall part carries its OWN resolved
+              // thoughtSignature — a parallel (multi tool_use) turn can have a
+              // real, individually-valid signature per tool call, and Gemini
+              // 3.x rejects the request if any functionCall in the turn is
+              // missing one. Previously only the first functionCall of the
+              // message kept its signature; this dropped valid signatures for
+              // every subsequent parallel tool call in the same turn.
               parts.push({
-                ...(embeddedThoughtSignature ? { thoughtSignature: embeddedThoughtSignature } : {}),
+                ...(signatureForToolCall ? { thoughtSignature: signatureForToolCall } : {}),
                 functionCall: {
                   ...(stripFunctionCallId ? {} : { id: block.id }),
                   name: sanitizeToolName(block.name),
@@ -180,17 +212,28 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
             case "tool_result": {
               let content = block.content;
               if (Array.isArray(content)) {
-                content = content
-                  .map((c) => (c.type === "text" ? c.text : JSON.stringify(c)))
-                  .join("\n");
+                // A base64 image (the Read tool on a PNG, an MCP screenshot) becomes an
+                // inlineData part, as claude-to-openai.ts lifts it into an image turn
+                // (#5100); JSON.stringify would hand Gemini the base64 as text.
+                const textParts = [];
+                let hasImage = false;
+                for (const c of content) {
+                  if (c.type === "image" && c.source?.type === "base64") {
+                    toolResultImageParts.push({
+                      inlineData: { mimeType: c.source.media_type, data: c.source.data },
+                    });
+                    hasImage = true;
+                  } else if (isUrlImageBlock(c)) {
+                    toolResultImageParts.push(urlImagePart(c.source.url));
+                    hasImage = true;
+                  } else {
+                    textParts.push(c.type === "text" ? c.text : JSON.stringify(c));
+                  }
+                }
+                content =
+                  textParts.join("\n") ||
+                  (hasImage ? "[tool returned an image; see attached]" : "");
               }
-              let parsedContent = tryParseJSON(content);
-              if (parsedContent === null) {
-                parsedContent = { result: content };
-              } else if (typeof parsedContent !== "object") {
-                parsedContent = { result: parsedContent };
-              }
-
               const toolUseId = block.tool_use_id;
               const name = toolUseNames[toolUseId] || "unknown";
 
@@ -201,6 +244,7 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                 parts.push({
                   text: buildHistoricalToolResultContext(name, content),
                 });
+                afterLastToolResult = parts.length;
                 break;
               }
 
@@ -208,9 +252,10 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                 functionResponse: {
                   ...(stripFunctionCallId ? {} : { id: toolUseId }),
                   name,
-                  response: { result: parsedContent },
+                  response: { result: content },
                 },
               });
+              afterLastToolResult = parts.length;
               break;
             }
 
@@ -223,12 +268,17 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                     data: block.source.data,
                   },
                 });
+              } else if (isUrlImageBlock(block)) {
+                parts.push(urlImagePart(block.source.url));
               }
               break;
           }
         }
       } else if (typeof msg.content === "string" && msg.content) {
         parts.push({ text: msg.content });
+      }
+      if (toolResultImageParts.length > 0) {
+        parts.splice(afterLastToolResult, 0, ...toolResultImageParts);
       }
 
       if (parts.length > 0) {
@@ -313,6 +363,14 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
   if (changedToolNameMap) {
     result._toolNameMap = changedToolNameMap;
   }
+
+  // Gemini strictly rejects requests containing consecutive messages with the same role
+  // (400 INVALID_ARGUMENT: "Request contains consecutive messages with the same role").
+  // Normalize adjacent same-role messages by concatenating their parts.
+  result.contents = mergeConsecutiveSameRoleContents(result.contents);
+  // Guard the one alternation violation the merge above cannot reach: history
+  // that opens with a functionCall-bearing turn instead of a user turn.
+  result.contents = ensureHistoryDoesNotOpenWithFunctionCall(result.contents);
 
   return result;
 }

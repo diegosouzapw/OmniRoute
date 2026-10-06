@@ -8,8 +8,12 @@ const geminiHelper = await import("../../open-sse/translator/helpers/geminiHelpe
 const toolCallHelper = await import("../../open-sse/translator/helpers/toolCallHelper.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { translateRequest } = await import("../../open-sse/translator/index.ts");
-const { cacheReasoningByKey, clearReasoningCacheAll, getReasoningCacheServiceStats } =
-  await import("../../open-sse/services/reasoningCache.ts");
+const {
+  buildAssistantMessageCacheKey,
+  cacheReasoningByKey,
+  clearReasoningCacheAll,
+  getReasoningCacheServiceStats,
+} = await import("../../open-sse/services/reasoningCache.ts");
 const { clearModelsDevCapabilities, saveModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
 
@@ -639,8 +643,13 @@ test("translateRequest replays cached reasoning-only messages when interleaved f
       }),
     },
   });
+  const scope = "api-key:test:session:helper-deepseek";
+  const messages = [
+    { role: "user", content: "solve this" },
+    { role: "assistant", content: "answer", reasoning_content: "" },
+  ];
   cacheReasoningByKey(
-    "request:req_reasoning_only:message:1",
+    buildAssistantMessageCacheKey(scope, messages, 1),
     "deepseek",
     "deepseek-v4-flash",
     "cached reasoning only"
@@ -650,16 +659,12 @@ test("translateRequest replays cached reasoning-only messages when interleaved f
     FORMATS.OPENAI,
     FORMATS.OPENAI,
     "deepseek-v4-flash",
-    {
-      _reasoningCacheRequestId: "req_reasoning_only",
-      messages: [
-        { role: "user", content: "solve this" },
-        { role: "assistant", content: "answer", reasoning_content: "" },
-      ],
-    },
+    { messages },
     false,
     null,
-    "deepseek"
+    "deepseek",
+    null,
+    { reasoningCacheScope: scope }
   );
 
   assert.equal(result.messages[1].reasoning_content, "cached reasoning only");
@@ -670,8 +675,13 @@ test("translateRequest replays cached reasoning-only messages when interleaved f
 
 test("translateRequest does not replay reasoning-only messages for non-DeepSeek models", () => {
   clearReasoningCacheAll();
+  const scope = "api-key:test:session:helper-kimi";
+  const messages = [
+    { role: "user", content: "solve this" },
+    { role: "assistant", content: "answer", reasoning_content: "" },
+  ];
   cacheReasoningByKey(
-    "request:req_kimi_reasoning_only:message:0",
+    buildAssistantMessageCacheKey(scope, messages, 1),
     "kimi",
     "kimi-k2.6",
     "cached kimi reasoning"
@@ -681,16 +691,12 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
     FORMATS.OPENAI,
     FORMATS.OPENAI,
     "kimi-k2.6",
-    {
-      _reasoningCacheRequestId: "req_kimi_reasoning_only",
-      messages: [
-        { role: "user", content: "solve this" },
-        { role: "assistant", content: "answer", reasoning_content: "" },
-      ],
-    },
+    { messages },
     false,
     null,
-    "kimi"
+    "kimi",
+    null,
+    { reasoningCacheScope: scope }
   );
 
   assert.equal(result.messages[1].reasoning_content, undefined);
@@ -806,7 +812,9 @@ test("translateRequest does NOT inject duplicate thinking for Claude-format mess
         {
           role: "assistant",
           content: [
-            { type: "thinking", thinking: "I already have this" },
+            // Signed: a thinking block without a signature is dropped by the request
+            // translator (#12105), which would leave nothing for this test to protect.
+            { type: "thinking", thinking: "I already have this", signature: "sig_existing" },
             { type: "tool_use", id: "toolu_existing", name: "read", input: {} },
           ],
         },
@@ -829,6 +837,59 @@ test("translateRequest does NOT inject duplicate thinking for Claude-format mess
     "original thinking should be preserved"
   );
   assert.equal(getReasoningCacheServiceStats().replays, 0);
+
+  clearReasoningCacheAll();
+});
+
+test("translateRequest replays cached reasoning when the client's Claude-format thinking block has no signature", () => {
+  // #12105: an unsigned thinking block cannot be replayed to Claude, so the request
+  // translator drops it instead of stamping a fabricated signature. For Kimi Coding the
+  // tool_use turn still needs a thinking precursor, and the reasoning cache (keyed by the
+  // tool_use id) is the authentic source — it must be re-hydrated exactly once.
+  clearReasoningCacheAll();
+  cacheReasoningByKey("toolu_unsigned", "kimi-coding-apikey", "k3-256k", "cached thinking");
+
+  const result = translateRequest(
+    FORMATS.OPENAI,
+    FORMATS.CLAUDE,
+    "k3-256k",
+    {
+      messages: [
+        { role: "user", content: "hi" },
+        {
+          role: "assistant",
+          content: [
+            { type: "thinking", thinking: "unsigned client thinking" },
+            { type: "tool_use", id: "toolu_unsigned", name: "read", input: {} },
+          ],
+        },
+        { role: "tool", tool_call_id: "toolu_unsigned", content: "data" },
+      ],
+    },
+    false,
+    null,
+    "kimi-coding-apikey"
+  );
+
+  const assistantMsg = result.messages.find((m) => m.role === "assistant");
+  const thinkingBlocks =
+    Array.isArray(assistantMsg.content) &&
+    assistantMsg.content.filter((b) => b?.type === "thinking");
+  assert.equal(thinkingBlocks?.length, 1, "should have exactly one thinking block (no duplicate)");
+  assert.equal(
+    thinkingBlocks[0].thinking,
+    "cached thinking",
+    "cached reasoning should be replayed"
+  );
+  assert.equal(
+    thinkingBlocks[0].signature,
+    undefined,
+    "replayed thinking must not carry a fabricated signature"
+  );
+  const thinkingIdx = assistantMsg.content.indexOf(thinkingBlocks[0]);
+  const toolUseIdx = assistantMsg.content.findIndex((b) => b?.type === "tool_use");
+  assert.ok(thinkingIdx < toolUseIdx, "thinking block should be before tool_use");
+  assert.equal(getReasoningCacheServiceStats().replays, 1);
 
   clearReasoningCacheAll();
 });

@@ -1,6 +1,7 @@
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry";
 
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
+import { isSecurityBlockError } from "@/lib/providers/validation/transport";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
   SafeOutboundFetchError,
@@ -27,6 +28,15 @@ const IMAGE_PROVIDER_VALIDATION_ENDPOINTS: Record<
   },
   topaz: {
     path: "/account/v1/credits/balance",
+  },
+  magnific: {
+    // GET /v1/ai/mystic is POST-only (task submission); once a key authenticates,
+    // routing to that unhandled GET 404s, reporting every valid key as invalid
+    // (#12927). GET /v1/ai/flows is a genuine read-only route that returns 200 for
+    // valid keys (team AND personal accounts) and 401 for invalid/missing keys,
+    // verified against a real Premium+ personal account by the issue reporter.
+    baseUrl: "https://api.magnific.com",
+    path: "/v1/ai/flows",
   },
 };
 
@@ -57,7 +67,7 @@ function toValidationErrorResult(error: unknown) {
     ...(error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
       ? { timeout: true }
       : {}),
-    ...(statusCode === 400 ? { securityBlocked: true } : {}),
+    ...(isSecurityBlockError(error) ? { securityBlocked: true } : {}),
   };
 }
 
@@ -86,9 +96,15 @@ function buildImageProviderValidationHeaders(
         break;
       case "none":
         break;
-      default:
-        headers.Authorization = `Bearer ${apiKey}`;
+      default: {
+        const headerName = String(imageProvider?.authHeader || "").trim();
+        if (headerName.toLowerCase().startsWith("x-")) {
+          headers[headerName] = apiKey;
+        } else {
+          headers.Authorization = `Bearer ${apiKey}`;
+        }
         break;
+      }
     }
   }
 
@@ -109,7 +125,9 @@ export async function validateImageProviderApiKey({
   providerSpecificData = {},
 }: any) {
   const imageProvider = getImageProvider(provider);
-  const validationConfig = IMAGE_PROVIDER_VALIDATION_ENDPOINTS[provider];
+  const validationConfig =
+    IMAGE_PROVIDER_VALIDATION_ENDPOINTS[imageProvider?.id] ||
+    IMAGE_PROVIDER_VALIDATION_ENDPOINTS[provider];
 
   if (!imageProvider || !validationConfig) {
     return { valid: false, error: "Provider validation not supported", unsupported: true };

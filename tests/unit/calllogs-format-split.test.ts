@@ -17,7 +17,6 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-
 import {
   asRecord,
   toNumber,
@@ -95,6 +94,15 @@ describe("callLogs/format — toStoredErrorSummary", () => {
     assert.equal(typeof out, "string");
     assert.ok(out.includes("kaboom"));
     assert.ok(out.includes("message"));
+  });
+  it("removes credentials, filesystem paths, and stack frames before persistence", () => {
+    const out = toStoredErrorSummary(
+      "Provider failed access_token=persisted-secret at /srv/private/provider.json\n" +
+        "    at dispatch (/srv/private/dispatcher.ts:42:7)"
+    );
+
+    assert.equal(typeof out, "string");
+    assert.doesNotMatch(out, /persisted-secret|srv\/private|dispatcher\.ts|\bat dispatch\b/i);
   });
 });
 

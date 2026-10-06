@@ -6,12 +6,15 @@
  * handleChatCore. Translates an upstream HTTP status into the in-memory key-health state
  * (apiKeyRotator) for the connection's currently-selected key, and persists the change to the
  * provider connection so it survives process restarts:
- *   - 401 → record a failure (warning, then invalid at the threshold), always persisted.
- *   - 402 → terminal (insufficient balance); mark the current key invalid immediately (#5239),
- *           persisted on the active→invalid transition.
+ *   - genuine 401/403 credential rejection → record a failure (warning, then invalid at the
+ *     threshold), always persisted.
+ *   - 402 → terminal (insufficient balance) on single-credential providers; mark the
+ *           current key invalid immediately (#5239), persisted on the active→invalid
+ *           transition. openai-compatible / per-model-quota gateways keep the key —
+ *           a 402 there is a per-model billing signal, not a dead credential.
  *   - 2xx → record a success, persisted only when recovering from a warning/invalid state.
- * Any other status only refreshes the tracked extra-key set. The handler binds its `log` once and
- * delegates here, keeping the existing call sites unchanged.
+ * Model availability failures remain model/routing telemetry even when an upstream reports them
+ * with 401/403. Any other status only refreshes the tracked extra-key set.
  */
 
 import {
@@ -21,6 +24,8 @@ import {
   trackConnectionExtraKeys,
   type KeyHealth,
 } from "../../services/apiKeyRotator.ts";
+import { isModelUnavailableError } from "../../services/modelFamilyFallback.ts";
+import { hasPerModelQuota } from "../../services/accountFallback.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
 
 type KeyHealthLog = {
@@ -28,11 +33,38 @@ type KeyHealthLog = {
   error?: (tag: string, message: string) => void;
 } | null;
 
+const CREDENTIAL_FAILURE_PATTERNS = [
+  /\b(?:invalid|incorrect|expired|missing|revoked)\s+api[\s_-]?key\b/i,
+  /\bapi[\s_-]?key\s+(?:is\s+)?(?:invalid|incorrect|expired|missing|revoked|not\s+valid)\b/i,
+  /\bauthentication[\s_-]+(?:failed|error|required)\b/i,
+  /\b(?:invalid|expired|missing|revoked)\s+(?:token|credentials?|bearer)\b/i,
+  /\bunauthorized\b/i,
+  /\bnot\s+authenticated\b/i,
+  /\bforbidden\b/i,
+  /\baccess\s+denied\b/i,
+];
+
+function isModelCapabilityFailure(status: number, failureDetail: string): boolean {
+  if (!failureDetail) return false;
+  const normalizedDetail = failureDetail.replace(/[_-]+/g, " ");
+  // Model-family fallback already owns these phrases. Use a model-capable status for
+  // classification because some aggregators misreport the same model rejection as 401.
+  return isModelUnavailableError(status === 401 ? 403 : status, normalizedDetail);
+}
+
+function isCredentialFailure(status: number, failureDetail: string): boolean {
+  if (status !== 401 && status !== 403) return false;
+  if (isModelCapabilityFailure(status, failureDetail)) return false;
+  if (status === 401) return true;
+  return CREDENTIAL_FAILURE_PATTERNS.some((pattern) => pattern.test(failureDetail));
+}
+
 export function recordKeyHealthStatus(
   status: number,
   creds: Record<string, unknown> | null | undefined,
   log?: KeyHealthLog,
-  transport?: string
+  transport?: string,
+  failureDetail = ""
 ): void {
   // CLIProxyAPI owns a shared external credential pool. Its auth failures cannot be
   // attributed to the native OmniRoute connection selected before proxy dispatch.
@@ -41,6 +73,13 @@ export function recordKeyHealthStatus(
   const connId = creds?.connectionId as string | undefined;
   if (!connId) return;
 
+  // #9827: a keyless (noauth) connection has no key to fail. Upstream 401s on
+  // the anonymous path (e.g. Pollinations premium models that require a key)
+  // must not poison the connection's key-health state — doing so flips the whole
+  // anonymous pool to "all accounts unavailable". Mirrors the cliproxyapi guard
+  // above: there is nothing to record when no key material exists.
+  if (!creds?.apiKey && !creds?.accessToken) return;
+
   const psd = creds.providerSpecificData as Record<string, unknown> | undefined;
   const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
   const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
@@ -48,11 +87,11 @@ export function recordKeyHealthStatus(
 
   trackConnectionExtraKeys(connId, extraKeys);
 
-  if (status === 401) {
+  if (isCredentialFailure(status, failureDetail)) {
     const updatedHealth = recordKeyFailure(connId, currentKeyId);
     log?.warn?.(
       "AUTH",
-      `401 on connection ${connId.slice(0, 8)} - key marked as failed (failure #${updatedHealth.failures})`
+      `${status} on connection ${connId.slice(0, 8)} - key marked as failed (failure #${updatedHealth.failures})`
     );
 
     // Persist health status to DB on every failure (not just invalid transitions)
@@ -73,11 +112,20 @@ export function recordKeyHealthStatus(
       });
     }
   } else if (status === 402) {
-    // 402 "Insufficient account balance" is terminal for this key — the balance
-    // won't recover mid-session, so mark the current key invalid immediately
-    // (don't wait for FAILURE_THRESHOLD) so the rotator stops returning it.
-    // The per-connection path already terminalizes 402 via credits_exhausted;
-    // this closes the per-KEY gap (#5239) for API Key Round-Robin connections.
+    // 402 "Insufficient account balance" is terminal for this key on
+    // single-credential providers — the balance won't recover mid-session
+    // (#5239). openai-compatible / per-model-quota gateways multiplex many
+    // upstreams behind one key: a 402 is a per-model billing signal and must
+    // not invalidate the credential used by sibling models.
+    const provider =
+      typeof creds.provider === "string"
+        ? creds.provider
+        : typeof connId === "string"
+          ? connId
+          : null;
+    if (hasPerModelQuota(provider)) {
+      return;
+    }
     const updatedHealth = recordKeyTerminal(connId, currentKeyId);
     log?.error?.(
       "AUTH",

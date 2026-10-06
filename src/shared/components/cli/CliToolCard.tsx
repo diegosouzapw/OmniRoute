@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
 import type { ToolBatchStatus } from "@/shared/types/cliBatchStatus";
@@ -38,12 +37,18 @@ export default function CliToolCard({
     <div className="flex items-center gap-2.5">
       {/* Icon / image */}
       {imageSrc ? (
-        <Image
+        // Plain <img> (not next/image): tool SVGs are non-square (opencode
+        // 234×42, cursor 467×532) and next/image's dev check warns whenever the
+        // rendered aspect-ratio size differs from the square width/height
+        // attributes. object-contain + max caps keep the logo at its true ratio.
+        // eslint-disable-next-line @next/next/no-img-element -- local static SVG asset
+        <img
           src={imageSrc}
           alt={tool.name}
           width={32}
           height={32}
           className="rounded-md object-contain flex-shrink-0"
+          style={{ width: "auto", height: "auto", maxWidth: 32, maxHeight: 32 }}
         />
       ) : (
         <span

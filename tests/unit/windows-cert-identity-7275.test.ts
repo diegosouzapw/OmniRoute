@@ -56,21 +56,23 @@ Object.defineProperty(process, "platform", { value: "win32", configurable: true 
 process.env.PATH = `${binDir}${path.delimiter}${originalPath}`;
 
 // Imported AFTER forcing win32: IS_WIN inside install.ts is a load-time const.
-const { checkCertInstalled, certutilThumbprint, buildWindowsDelstoreScript } = await import(
-  "../../src/mitm/cert/install.ts"
-);
+const { checkCertInstalled, certutilThumbprint, buildWindowsDelstoreScript } =
+  await import("../../src/mitm/cert/install.ts");
 
 test.after(() => {
   Object.defineProperty(process, "platform", originalPlatformDescriptor);
   process.env.PATH = originalPath;
-  fs.rmSync(tmpRoot, { recursive: true, force: true });
+  fs.rmSync(tmpRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function fakeCertFile(seed: string): string {
   const der = crypto.createHash("sha256").update(seed).digest();
   const pem =
     "-----BEGIN CERTIFICATE-----\n" +
-    der.toString("base64").match(/.{1,64}/g)!.join("\n") +
+    der
+      .toString("base64")
+      .match(/.{1,64}/g)!
+      .join("\n") +
     "\n-----END CERTIFICATE-----\n";
   const certPath = path.join(tmpRoot, `${seed}.crt`);
   fs.writeFileSync(certPath, pem);

@@ -89,7 +89,7 @@ function setup(combo: ComboInput) {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   if (ORIGINAL_API_KEY_SECRET === undefined) delete process.env.API_KEY_SECRET;
@@ -491,7 +491,7 @@ test("tryPinnedModelDispatch: expands the combo system_message template on the p
 });
 
 test("tryPinnedModelDispatch: fails over when the pinned model returns a transient status", async () => {
-  for (const status of [408, 429, 500, 502, 503, 504]) {
+  for (const status of [401, 408, 429, 500, 502, 503, 504]) {
     const ctx = pinCtx();
     const { res } = await dispatchHealthyPin(
       ctx,

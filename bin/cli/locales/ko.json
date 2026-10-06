@@ -14,6 +14,812 @@
     "jsonOpt": "JSON으로 출력",
     "yesOpt": "확인 건너뛰기"
   },
+  "setup": {
+    "title": "OmniRoute 설정",
+    "passwordPrompt": "관리자 비밀번호",
+    "providerPrompt": "기본 공급자(건너뛰려면 비워 두세요)",
+    "done": "설정 완료",
+    "passwordSet": "관리자 비밀번호가 구성되었습니다",
+    "providerSet": "구성된 공급자: {name}",
+    "testingProvider": "공급자 연결 테스트 중: {name}",
+    "testPassed": "공급자 테스트 통과",
+    "testFailed": "공급자 테스트 실패: {error}",
+    "loginEnabled": "로그인: 활성화됨(비밀번호 업데이트됨)",
+    "loginDisabled": "로그인: 비활성화됨",
+    "providerInfo": "공급자: {info}",
+    "opencode": "OpenCode용 번들 @omniroute/opencode-plugin 설치 및 구성"
+  },
+  "doctor": {
+    "title": "OmniRoute 진단",
+    "dbOk": "데이터베이스: 정상({path})",
+    "dbMissing": "데이터베이스: 초기화되지 않음 — `omniroute setup`을 실행하세요",
+    "portOk": "포트 {port}: 사용 가능",
+    "portConflict": "포트 {port}: 다른 프로세스에서 사용 중",
+    "encryptionOk": "암호화 키: 구성됨",
+    "encryptionMissing": "암호화 키 누락 — `omniroute setup`을 실행하세요",
+    "allGood": "모든 검사를 통과했습니다.",
+    "warnings": "경고 {count}개 — 위 내용을 확인하세요."
+  },
+  "providers": {
+    "title": "공급자",
+    "noProviders": "구성된 공급자가 없습니다. 다음을 실행하세요: omniroute setup",
+    "testing": "{name} 테스트 중...",
+    "available": "사용 가능한 공급자 {count}개",
+    "connected": "연결됨",
+    "disconnected": "연결 끊김",
+    "validationFailed": "유효성 검사 실패: {error}",
+    "metrics": {
+      "description": "공급자 성능 지표 표시(지연 시간, 성공률, 비용)",
+      "provider": "공급자 ID로 필터링",
+      "connection_id": "연결 ID로 필터링",
+      "period": "기간: 1h|6h|24h|7d|30d(기본값: 24h)",
+      "metric": "특정 지표 필드에 초점 맞추기",
+      "sort": "필드별 정렬(내림차순)",
+      "limit": "최대 행 수(기본값: 50)",
+      "watch": "5초마다 새로 고침(라이브 모드)",
+      "compare": "나란히 비교할 쉼표로 구분된 공급자 ID"
+    },
+    "metric_single": {
+      "description": "특정 연결의 단일 지표 값 가져오기"
+    },
+    "rotate": {
+      "description": "공급자 연결의 업스트림 API 키 교체",
+      "newKeyOpt": "새 API 키 값(권장하지 않음: --from-env 사용 권장)",
+      "fromEnvOpt": "환경 변수 VAR에서 새 키 읽기",
+      "oauthOpt": "대신 OAuth 재인증 절차 시작",
+      "skipTestOpt": "교체 후 연결 테스트 건너뛰기",
+      "dryRunOpt": "실제로 변경하지 않고 변경될 내용 출력",
+      "confirmPrompt": "연결 \"{name}\" ({id})의 API 키를 교체하시겠습니까? [y/N]",
+      "dryRunResult": "[dry-run] \"{name}\" ({id})의 키를 교체합니다. 변경 사항은 적용되지 않았습니다.",
+      "oauthHint": "OAuth 연결 — 실행: omniroute oauth {provider}",
+      "envVarEmpty": "환경 변수 {var}이(가) 설정되지 않았거나 비어 있습니다.",
+      "success": "\"{name}\"의 키가 교체되었습니다. 확인하려면 `providers test {id}`를 실행하세요.",
+      "testPassed": "교체 후 테스트를 통과했습니다.",
+      "testFailed": "교체 후 테스트 실패: {error}"
+    },
+    "status": {
+      "description": "모든 제공업체 연결의 키 상태 표시(사용 기간, 만료, 쿨다운)",
+      "providerOpt": "제공업체 이름으로 필터링",
+      "header": "ID         제공업체       이름                     만료 상태  테스트 상태  쿨다운 종료 시각",
+      "noData": "사용 가능한 제공업체 연결 데이터가 없습니다.",
+      "requiresServer": "providers status를 사용하려면 OmniRoute 서버가 실행 중이어야 합니다."
+    }
+  },
+  "keys": {
+    "title": "API 키",
+    "addDescription": "제공업체의 API 키 추가 또는 업데이트",
+    "listDescription": "구성된 모든 API 키 나열",
+    "removeDescription": "제공업체의 API 키 제거",
+    "regenerateDescription": "OmniRoute API 키 재생성",
+    "revokeDescription": "OmniRoute API 키 폐기",
+    "revealDescription": "마스킹되지 않은 API 키 값 표시",
+    "usageDescription": "API 키의 최근 사용 내역 표시",
+    "usageLimitOpt": "최근 요청 수",
+    "rotateDescription": "새 키를 생성하고 이전 키 무효화",
+    "graceOpt": "이전 키가 무효화되기 전 유예 기간(ms)",
+    "stdinOpt": "인수 대신 stdin에서 API 키 읽기",
+    "added": "{provider}의 키가 추가되었습니다.",
+    "removed": "키가 제거되었습니다.",
+    "listed": "키 {count}개.",
+    "noKeys": "구성된 키가 없습니다.",
+    "noUsage": "사용 데이터가 없습니다.",
+    "confirmRemove": "키 {id}을(를) 제거하시겠습니까?",
+    "confirmRegenerate": "키 {id}을(를) 재생성하시겠습니까?",
+    "confirmRevoke": "키 {id}을(를) 폐기하시겠습니까?",
+    "confirmRotate": "키 {id}을(를) 교체하시겠습니까? (이전 키는 유예 기간 후 무효화됩니다)",
+    "regenerated": "재생성되었습니다. 새 키: {key}",
+    "revoked": "키 {id}이(가) 폐기되었습니다.",
+    "rotated": "키 {id}가 교체되었습니다. 새 키 ID: {newId}",
+    "revealWarning": "⚠  마스킹되지 않은 전체 키가 표시됩니다. 화면이 다른 사람에게 보이지 않는지 확인하세요.",
+    "providerRequired": "제공자는 필수입니다.",
+    "keyRequired": "API 키는 필수입니다.",
+    "stdinEmpty": "stdin을 통해 제공된 API 키가 없습니다.",
+    "unknownProvider": "알 수 없는 제공자: {provider}",
+    "policy": {
+      "title": "키 정책",
+      "showDescription": "키의 요청 한도/비용 정책 표시",
+      "setDescription": "키의 요청 한도/비용 정책 설정",
+      "rateLimitOpt": "분당 최대 요청 수",
+      "maxCostOpt": "일일 최대 비용(USD)",
+      "allowedModelsOpt": "허용된 모델의 쉼표로 구분된 목록",
+      "nothingToSet": "제공된 정책 필드가 없습니다. --rate-limit, --max-cost 또는 --allowed-models를 사용하세요.",
+      "updated": "정책이 업데이트되었습니다."
+    },
+    "expiration": {
+      "title": "키 만료",
+      "listDescription": "곧 만료되는 키 목록 표시",
+      "daysOpt": "N일 이내에 만료되는 키 표시",
+      "none": "{days}일 이내에 만료되는 키가 없습니다.",
+      "listTitle": "{days}일 이내에 만료되는 키:"
+    }
+  },
+  "authExport": {
+    "description": "복호화된 제공자 자격 증명 내보내기(로컬 전용, 일반 텍스트 출력)",
+    "idOpt": "이 ID/이름/제공자와 일치하는 연결만 내보내기",
+    "formatOpt": "출력 형식: json 또는 env",
+    "outOpt": "stdout 대신 파일에 출력 쓰기(0600 권한으로 기록됨)",
+    "forceOpt": "일반 텍스트 비밀 정보가 출력되거나 기록됨을 이해했음을 확인",
+    "warning": "⚠ 복호화된 일반 텍스트 API 키와 OAuth 토큰이 출력되거나 기록됩니다. 화면, 셸 기록 및 모든 출력 파일이 노출되지 않도록 주의하세요.",
+    "confirmHeading": "⚠ 경고: 복호화된 제공자 자격 증명을 일반 텍스트로 내보냅니다.",
+    "confirmBody": "이 명령은 선택한 연결의 apiKey, accessToken, refreshToken 및\nidToken을 복호화하여 출력하거나 기록합니다. 출력 내용을 비밀 정보로 취급하세요.",
+    "confirmFooter": "확인하려면 다음을 실행하세요:\n  omniroute auth export --force",
+    "missingKey": "자격 증명을 내보내려면 STORAGE_ENCRYPTION_KEY가 필요합니다.",
+    "notFound": "연결을 찾을 수 없음: {id}",
+    "invalidFormat": "잘못된 형식: {format}. json 또는 env를 사용하세요."
+  },
+  "stream": {
+    "description": "SSE 검사 모드로 채팅 응답 스트리밍",
+    "file": "파일에서 프롬프트 읽기",
+    "stdin": "stdin에서 프롬프트 읽기",
+    "model": "모델 ID(기본값: auto)",
+    "system": "시스템 프롬프트",
+    "combo": "이름으로 특정 콤보 강제 지정",
+    "max_tokens": "응답의 최대 토큰 수",
+    "responses_api": "/v1/chat/completions 대신 /v1/responses 사용",
+    "raw": "수신된 원시 SSE 줄을 그대로 출력",
+    "debug": "청크별 타이밍 정보를 stderr에 출력",
+    "save": "모든 SSE 이벤트를 .jsonl 파일에 저장",
+    "error": {
+      "empty_prompt": "오류: 프롬프트가 필요합니다(위치 인수, --file 또는 --stdin)"
+    }
+  },
+  "usage": {
+    "description": "사용량 분석, 예산, 할당량 및 로그",
+    "analytics": {
+      "description": "집계된 사용량 분석 표시",
+      "period": "기간: 1d|7d|30d|90d|ytd|all (기본값: 30d)",
+      "provider": "제공자 ID로 필터링"
+    },
+    "budget": {
+      "description": "비용 예산 관리",
+      "set": {
+        "scope": "예산 범위(기본값: global)",
+        "period": "예산 기간: daily|weekly|monthly (기본값: monthly)"
+      }
+    },
+    "quota": {
+      "description": "제공자 할당량 사용량 표시",
+      "provider": "제공자 ID로 필터링",
+      "check": "새 요청에 할당량을 사용할 수 있는지 표시"
+    },
+    "logs": {
+      "description": "요청 호출 로그 표시",
+      "limit": "반환할 로그 항목 수(기본값: 100)",
+      "search": "로그 필터링을 위한 검색 쿼리",
+      "since": "이 타임스탬프 이후의 로그 반환",
+      "follow": "새 로그 항목을 지속적으로 추적",
+      "api_key": "API 키로 로그 필터링"
+    },
+    "utilization": {
+      "description": "API 키 사용률 지표 표시",
+      "api_key": "API 키로 필터링"
+    },
+    "history": {
+      "description": "요청 기록 표시",
+      "limit": "기록 항목 수(기본값: 100)"
+    },
+    "proxy_logs": {
+      "description": "프록시 수준 요청 로그 표시",
+      "limit": "프록시 로그 항목 수(기본값: 100)"
+    }
+  },
+  "cost": {
+    "description": "제공자, 모델, 콤보 또는 API 키별 세부 내역이 포함된 비용 보고서 표시",
+    "period": "기간: 1d|7d|30d|90d|ytd|all (기본값: 30d)",
+    "since": "시작 날짜(ISO 형식, 예: 2026-01-01) — --period보다 우선 적용",
+    "until": "종료 날짜(ISO 형식)",
+    "group_by": "결과 그룹화 기준: provider|model|api-key|combo|day (기본값: provider)",
+    "api_key_filter": "특정 API 키로 필터링",
+    "limit": "표시할 최대 행 수(기본값: 100)"
+  },
+  "simulate": {
+    "description": "드라이런 라우팅 시뮬레이션 — 업스트림을 호출하지 않고 선택될 제공자 표시",
+    "file": "JSON 파일에서 전체 요청 본문 불러오기",
+    "model": "모델 ID(기본값: auto)",
+    "combo": "이름으로 특정 콤보 강제 지정",
+    "reasoning": "추론 노력 수준(low|medium|high)",
+    "thinking": "확장 사고 토큰 예산",
+    "explain": "폴백 트리와 비용 범위를 stderr에 출력",
+    "noCombo": "일치하는 콤보를 찾을 수 없습니다. 다음 명령으로 구성하세요: omniroute combo create"
+  },
+  "chat": {
+    "description": "OmniRoute에 일회성 채팅 프롬프트 보내기",
+    "file": "파일에서 프롬프트 읽기",
+    "stdin": "표준 입력에서 프롬프트 읽기",
+    "system": "시스템 프롬프트",
+    "model": "모델 ID(기본값: auto)",
+    "max_tokens": "응답의 최대 토큰 수",
+    "temperature": "샘플링 온도(0–2)",
+    "top_p": "Top-p 핵 샘플링",
+    "reasoning_effort": "추론 노력 수준(low|medium|high)",
+    "thinking_budget": "확장 사고 토큰 예산",
+    "combo": "이름으로 특정 조합 강제 사용",
+    "responses_api": "/v1/chat/completions 대신 /v1/responses 사용",
+    "stream": "응답을 점진적으로 스트리밍",
+    "no_history": "~/.omniroute/cli-history.jsonl에 저장하지 않음",
+    "error": {
+      "empty_prompt": "오류: 프롬프트가 필요합니다(위치 인수, --file 또는 --stdin)"
+    }
+  },
+  "serve": {
+    "description": "OmniRoute 서버 시작(기본 동작)",
+    "starting": "포트 {port}에서 OmniRoute 서버를 시작하는 중...",
+    "ready": "http://localhost:{port}에서 준비 완료",
+    "stopping": "서버를 중지하는 중(PID {pid})...",
+    "stopped": "서버가 중지되었습니다.",
+    "notRunning": "서버가 실행 중이 아닙니다.",
+    "port": "수신 대기할 포트(기본값: 20128)",
+    "no_open": "브라우저를 자동으로 열지 않음",
+    "daemon": "서버를 백그라운드 데몬으로 실행",
+    "log": "서버 로그를 인라인으로 표시",
+    "no_recovery": "충돌 시 자동 재시작 비활성화(디버깅 모드)",
+    "max_restarts": "포기하기 전 30초 이내 최대 충돌 재시작 횟수(기본값: 2)",
+    "tray": "시스템 트레이에서 시작(데스크톱 전용, 선택 사항)",
+    "no_tray": "시스템 트레이 아이콘 비활성화",
+    "ready_timeout": "준비 상태 프로브 제한 시간(ms)(OMNIROUTE_READY_TIMEOUT_MS로도 설정 가능, 기본값: 60000)",
+    "tls_cert": "HTTPS 제공을 위한 TLS 인증서(PEM) 경로(OMNIROUTE_TLS_CERT로도 설정 가능)",
+    "tls_key": "HTTPS 제공을 위한 TLS 비공개 키(PEM) 경로(OMNIROUTE_TLS_KEY로도 설정 가능)"
+  },
+  "backup": {
+    "title": "백업",
+    "description": "OmniRoute 데이터 백업 생성",
+    "creating": "백업을 생성하는 중...",
+    "done": "백업이 {path}에 저장되었습니다.",
+    "noFiles": "백업할 파일이 없습니다(데이터베이스가 초기화되지 않음)",
+    "failed": "백업 실패: {error}",
+    "restoring": "{path}에서 복원하는 중...",
+    "restored": "복원이 완료되었습니다.",
+    "restoreDescription": "백업에서 복원",
+    "listTitle": "사용 가능한 백업",
+    "noBackups": "백업을 찾을 수 없습니다.",
+    "notFound": "백업을 찾을 수 없음: {name}",
+    "confirmRestore": "현재 데이터를 {ts}의 백업으로 덮어쓰시겠습니까?",
+    "createDescription": "OmniRoute 데이터 백업 생성",
+    "nameOpt": "사용자 지정 백업 이름",
+    "cloudOpt": "클라우드 스토리지에 백업 업로드",
+    "encryptOpt": "AES-256-GCM으로 백업 암호화",
+    "keyFileOpt": "암호화 암호가 포함된 파일의 경로",
+    "excludeOpt": "패턴과 일치하는 파일 제외(반복 가능)",
+    "retentionOpt": "최근 N개의 백업만 유지",
+    "passphrasePrompt": "암호화 암호:",
+    "noPassphrase": "암호화된 백업에는 암호가 필요합니다.",
+    "cloudFailed": "경고: 클라우드 업로드에 실패했습니다. 로컬 백업은 저장되었습니다.",
+    "cloudUploaded": "클라우드 백업 업로드됨: {url}",
+    "auto": {
+      "title": "백업 일정",
+      "enableDescription": "예약된 자동 백업 활성화",
+      "disableDescription": "예약된 자동 백업 비활성화",
+      "statusDescription": "현재 백업 일정 상태 표시",
+      "cronOpt": "일정의 Cron 표현식(기본값: 매일 오전 3시)",
+      "enabled": "자동 백업이 활성화되었습니다(Cron: {cron}).",
+      "hint": "시작 시 omniroute serve가 일정을 읽습니다.",
+      "disabled": "자동 백업이 비활성화되었습니다.",
+      "notConfigured": "구성된 백업 일정이 없습니다."
+    }
+  },
+  "health": {
+    "description": "서버 상태 및 구성 요소 상태 확인",
+    "noServer": "서버가 실행 중이 아닙니다. 다음 명령으로 시작하세요: omniroute serve",
+    "title": "상태",
+    "status": "상태: {status}",
+    "uptime": "가동 시간: {uptime}",
+    "requests": "요청 수(24시간): {count}",
+    "cost": "비용(24시간): ${cost}"
+  },
+  "quota": {
+    "description": "제공업체 할당량 사용량 표시",
+    "noServer": "서버가 실행 중이 아닙니다. 다음 명령으로 시작하세요: omniroute serve",
+    "noData": "사용 가능한 할당량 정보가 없습니다."
+  },
+  "cache": {
+    "description": "응답 캐시 관리",
+    "noServer": "서버가 실행 중이 아닙니다. 다음 명령으로 시작하세요: omniroute serve",
+    "cleared": "캐시가 삭제되었습니다.",
+    "clearFailed": "캐시를 삭제하지 못했습니다."
+  },
+  "redis": {
+    "description": "OmniRoute 캐싱 및 할당량 추적을 위한 로컬 Redis 컨테이너(Podman 또는 Docker)를 원클릭으로 실행"
+  },
+  "test": {
+    "description": "제공업체 연결 테스트",
+    "noServer": "서버가 실행 중이 아닙니다. 다음 명령으로 시작하세요: omniroute serve",
+    "testing": "{provider} / {model} 테스트 중...",
+    "passed": "연결에 성공했습니다!",
+    "failed": "연결에 실패했습니다: {error}",
+    "allProvidersOpt": "구성된 모든 제공자 테스트",
+    "latencyOpt": "지연 시간 측정값 표시(평균/최소/최대 ms)",
+    "repeatOpt": "테스트를 N회 반복하고 결과 집계",
+    "compareOpt": "비교할 모델을 쉼표로 구분하여 입력(예: gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "결과를 JSON 파일에 저장",
+    "saved": "결과가 {path}에 저장되었습니다",
+    "compareTitle": "모델 비교",
+    "compareMinTwo": "--compare에는 최소 두 개의 모델이 필요합니다(쉼표로 구분)",
+    "noProviders": "구성된 제공자가 없습니다. 다음 명령으로 추가하세요: omniroute keys add"
+  },
+  "update": {
+    "checking": "업데이트 확인 중...",
+    "upToDate": "이미 최신 버전입니다({version}).",
+    "available": "사용 가능한 업데이트: {current} → {latest}",
+    "installing": "{latest} 설치 중...",
+    "done": "{latest}(으)로 업데이트되었습니다. 적용하려면 서버를 다시 시작하세요."
+  },
+  "mcp": {
+    "title": "MCP 서버",
+    "running": "MCP 서버 실행 중({transport})",
+    "stopped": "MCP 서버가 중지되었습니다.",
+    "restarted": "MCP 서버가 다시 시작되었습니다.",
+    "stoppedHint": "활성화하려면 `omniroute mcp enable`을 실행하세요.",
+    "enabled": "MCP 서버가 활성화되었습니다.",
+    "disabled": "MCP 서버가 비활성화되었습니다.",
+    "enable": {
+      "description": "MCP 서버 활성화",
+      "transport": "사용할 전송 방식: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP 서버 비활성화"
+    },
+    "call": {
+      "description": "MCP 도구 직접 호출",
+      "args": "JSON 인수 객체(인라인)",
+      "args_file": "JSON 인수 파일 경로",
+      "stream": "스트리밍 엔드포인트 사용(/api/mcp/stream)",
+      "scope": "필수 범위(반복 가능, 예: read:health)"
+    },
+    "scopes": {
+      "description": "사용 가능한 MCP 범위 목록 표시",
+      "tool": "특정 도구에 필요한 범위 표시"
+    },
+    "tools": {
+      "description": "MCP 도구 검사",
+      "list": {
+        "description": "모든 MCP 도구 목록 표시",
+        "scope": "범위별 필터링"
+      },
+      "info": {
+        "description": "MCP 도구의 메타데이터 표시"
+      },
+      "schema": {
+        "description": "MCP 도구의 입력/출력 JSON 스키마 표시",
+        "io": "스키마 종류: input|output (기본값: input)"
+      }
+    },
+    "audit": {
+      "description": "MCP 감사 로그(audit --source mcp의 별칭)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "에이전트 카드에서 사용 가능한 A2A 스킬 목록 표시"
+    },
+    "invoke": {
+      "description": "A2A 스킬을 호출하고 작업 ID 반환",
+      "input": "JSON 입력 객체",
+      "input_file": "JSON 입력 파일 경로",
+      "wait": "반환하기 전에 작업이 완료될 때까지 대기",
+      "timeout": "완료 대기 시간 제한(ms)(기본값: 60000)"
+    },
+    "tasks": {
+      "description": "A2A 작업 관리",
+      "list": {
+        "status": "상태별 필터링",
+        "skill": "스킬 ID별 필터링"
+      },
+      "watch": {
+        "description": "완료될 때까지 작업 상태 폴링"
+      },
+      "stream": {
+        "description": "SSE를 통해 작업 실행 이벤트 스트리밍"
+      },
+      "logs": {
+        "description": "작업 메시지 및 아티팩트 표시"
+      }
+    }
+  },
+  "policy": {
+    "description": "OmniRoute 권한 부여 정책 관리",
+    "list": {
+      "description": "정책 목록 표시",
+      "kind": "종류별 필터링(allow|deny|rate-limit|cost-cap)",
+      "scope": "범위별 필터링(global|api-key|provider)"
+    },
+    "get": {
+      "description": "ID로 정책 세부 정보 가져오기"
+    },
+    "create": {
+      "description": "JSON 파일에서 정책 생성",
+      "file": "정책 JSON 파일 경로"
+    },
+    "update": {
+      "description": "JSON 파일에서 정책 업데이트",
+      "file": "정책 JSON 파일 경로"
+    },
+    "delete": {
+      "description": "ID로 정책 삭제",
+      "yes": "확인 프롬프트 건너뛰기"
+    },
+    "evaluate": {
+      "description": "정책 평가 시험 실행(종료 코드 0=허용, 4=거부)",
+      "api_key": "평가할 API 키",
+      "action": "확인할 작업(예: chat, embed, admin)",
+      "resource": "리소스 경로 또는 식별자",
+      "context": "JSON 객체 형식의 추가 컨텍스트"
+    },
+    "export": {
+      "description": "모든 정책을 JSON 파일로 내보내기"
+    },
+    "import": {
+      "description": "JSON 파일에서 정책 가져오기",
+      "overwrite": "동일한 ID의 기존 정책 덮어쓰기"
+    }
+  },
+  "compression": {
+    "description": "OmniRoute 압축 파이프라인 구성 및 검사",
+    "status": {
+      "description": "현재 압축 상태 및 설정 표시"
+    },
+    "configure": {
+      "description": "압축 설정 구성",
+      "engine": "압축 엔진(caveman|rtk|hybrid|none)",
+      "caveman_agg": "Caveman 적극성 0.0~1.0",
+      "rtk_budget": "RTK 토큰 예산",
+      "language_pack": "활성화할 언어 팩"
+    },
+    "engine": {
+      "description": "활성 압축 엔진 가져오기 또는 설정"
+    },
+    "combos": {
+      "description": "압축 조합 통계 관리"
+    },
+    "rules": {
+      "description": "압축 규칙 관리",
+      "add": {
+        "pattern": "일치시킬 패턴(regex 또는 field:pattern)",
+        "action": "작업: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "사용 가능한 압축 언어 팩 목록 표시"
+    },
+    "preview": {
+      "description": "요청에 대한 압축 효과 미리보기",
+      "file": "요청 JSON 파일 경로"
+    }
+  },
+  "tunnel": {
+    "title": "터널",
+    "listDescription": "활성 터널 목록 표시",
+    "createDescription": "터널 생성",
+    "created": "터널 생성됨: {url}",
+    "stopped": "터널이 중지되었습니다.",
+    "confirmStop": "터널 {id}을(를) 중지하시겠습니까?",
+    "stopDescription": "터널 중지",
+    "statusDescription": "터널의 상세 상태 표시",
+    "logsDescription": "터널 로그 표시",
+    "infoDescription": "터널의 구성 세부 정보 표시",
+    "rotateDescription": "새 터널 URL 생성",
+    "tailOpt": "표시할 로그 줄 수",
+    "typeRequired": "터널 유형이 필요합니다.",
+    "noLogs": "사용 가능한 로그가 없습니다.",
+    "notAvailable": "터널 정보를 사용할 수 없습니다.",
+    "noTunnels": "활성 터널이 없습니다.",
+    "infoTitle": "터널 정보: {type}",
+    "rotated": "터널 URL이 갱신되었습니다: {url}",
+    "confirmRotate": "터널 {type}을(를) 갱신하시겠습니까? (새 URL이 생성됩니다)"
+  },
+  "stop": {
+    "description": "OmniRoute 서버 중지",
+    "stopping": "서버를 중지하는 중(PID {pid})...",
+    "stopped": "서버가 중지되었습니다.",
+    "notRunning": "실행 중인 서버가 없습니다.",
+    "portFallback": "PID 파일을 찾을 수 없어 포트 기반 중지를 시도합니다..."
+  },
+  "restart": {
+    "description": "OmniRoute 서버 다시 시작",
+    "restarting": "OmniRoute 서버를 다시 시작하는 중..."
+  },
+  "dashboard": {
+    "description": "브라우저에서 OmniRoute 대시보드 열기",
+    "opening": "{url}에서 대시보드를 여는 중",
+    "urlOnly": "브라우저를 열지 않고 대시보드 URL 출력",
+    "tui": "대화형 TUI 대시보드 열기(터미널 UI, 탭 7개)"
+  },
+  "models": {
+    "description": "사용 가능한 모델 목록 표시(서버 필요)",
+    "search": "ID, 이름, 제공업체 또는 설명을 기준으로 모델 필터링",
+    "noServer": "서버가 실행 중이 아닙니다. 다음 명령으로 시작하세요: omniroute serve",
+    "noModels": "모델을 찾을 수 없습니다."
+  },
+  "audit": {
+    "description": "규정 준수 및 MCP 감사 로그에 액세스",
+    "source": "로그 소스: all|compliance|mcp (기본값: all)",
+    "since": "이 타임스탬프 이후의 항목 반환(ISO 8601)",
+    "until": "이 타임스탬프까지의 항목 반환(ISO 8601)",
+    "tail": {
+      "description": "최근 감사 로그 항목 표시",
+      "follow": "새 항목을 지속적으로 추적(2초 간격 폴링)",
+      "limit": "표시할 최대 항목 수(기본값: 100)"
+    },
+    "search": {
+      "description": "키워드로 감사 로그 항목 검색",
+      "limit": "최대 결과 수(기본값: 200)",
+      "actor": "행위자 ID로 필터링",
+      "action": "작업 이름으로 필터링"
+    },
+    "export": {
+      "description": "감사 로그를 파일로 내보내기",
+      "format": "출력 형식: jsonl|csv (기본값: jsonl)"
+    },
+    "stats": {
+      "description": "감사 로그 통계 표시",
+      "period": "기간: 1d|7d|30d (기본값: 7d)"
+    },
+    "get": {
+      "description": "ID로 단일 감사 로그 항목 가져오기"
+    }
+  },
+  "skills": {
+    "description": "OmniRoute 스킬 관리(sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "설치된 스킬 목록 표시",
+      "type": "유형별 필터링(sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "활성화된 스킬만 표시",
+      "disabled": "비활성화된 스킬만 표시",
+      "api_key": "API 키로 필터링"
+    },
+    "get": {
+      "description": "ID로 스킬 세부 정보 가져오기"
+    },
+    "install": {
+      "description": "파일 또는 URL에서 스킬 설치",
+      "from_file": "스킬 JSON 정의 파일 경로",
+      "from_url": "원격 스킬 정의 URL",
+      "type": "스킬 유형(sandbox|custom|hybrid)",
+      "enable": "설치 후 스킬 활성화"
+    },
+    "enable": {
+      "description": "ID로 스킬 활성화"
+    },
+    "disable": {
+      "description": "ID로 스킬 비활성화",
+      "yes": "확인 메시지 건너뛰기"
+    },
+    "delete": {
+      "description": "ID로 스킬 삭제",
+      "yes": "확인 메시지 건너뛰기"
+    },
+    "execute": {
+      "description": "ID로 스킬 실행",
+      "input": "JSON 입력 객체",
+      "input_file": "JSON 입력 파일 경로",
+      "timeout": "실행 제한 시간(ms)(기본값: 30000)"
+    },
+    "executions": {
+      "description": "스킬 실행 기록 목록 표시",
+      "skill": "스킬 ID로 필터링",
+      "limit": "최대 결과 수(기본값: 50)",
+      "status": "상태로 필터링(running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "SSH를 통해 설치된 스킬 관리"
+    },
+    "marketplace": {
+      "description": "마켓플레이스에서 스킬 탐색 및 설치"
+    },
+    "mp": {
+      "search": {
+        "description": "마켓플레이스 패키지 검색",
+        "category": "카테고리로 필터링",
+        "tag": "태그로 필터링",
+        "limit": "최대 결과 수(기본값: 30)",
+        "sort": "정렬 기준: downloads|rating|recent"
+      },
+      "info": {
+        "description": "패키지 세부 정보 및 readme 보기"
+      },
+      "install": {
+        "description": "마켓플레이스 패키지 설치",
+        "version": "패키지 버전(기본값: latest)",
+        "enable": "설치 후 활성화",
+        "yes": "확인 메시지 건너뛰기"
+      },
+      "categories": {
+        "description": "마켓플레이스 카테고리 목록 보기"
+      },
+      "featured": {
+        "description": "추천 마켓플레이스 패키지 보기"
+      }
+    }
+  },
+  "memory": {
+    "description": "OmniRoute 대화형 메모리 관리(FTS5 + vector)",
+    "search": {
+      "description": "의미론적 쿼리로 메모리 항목 검색",
+      "type": "메모리 유형으로 필터링(user|feedback|project|reference)",
+      "limit": "최대 결과 수(기본값: 20)",
+      "api_key": "API 키로 필터링",
+      "token_budget": "결과의 총 토큰 수 제한"
+    },
+    "add": {
+      "description": "새 메모리 항목 추가",
+      "content": "메모리 텍스트 콘텐츠",
+      "file": "파일에서 콘텐츠 읽기",
+      "type": "메모리 유형(기본값: user)",
+      "metadata": "JSON 메타데이터 객체",
+      "api_key": "API 키와 연결"
+    },
+    "clear": {
+      "description": "필터와 일치하는 메모리 항목 삭제",
+      "type": "유형으로 필터링",
+      "older": "지정된 기간보다 오래된 항목 삭제(30d, 6m, 1y)",
+      "api_key": "API 키로 필터링",
+      "yes": "확인 메시지 건너뛰기"
+    },
+    "list": {
+      "description": "검색 순위 없이 메모리 항목 목록 보기",
+      "type": "유형으로 필터링",
+      "limit": "최대 결과 수(기본값: 100)",
+      "api_key": "API 키로 필터링"
+    },
+    "get": {
+      "description": "ID로 단일 메모리 항목 가져오기"
+    },
+    "delete": {
+      "description": "ID로 메모리 항목 삭제",
+      "yes": "확인 프롬프트 건너뛰기"
+    },
+    "health": {
+      "description": "메모리 하위 시스템 상태 표시(FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "OAuth 제공자 연결 관리",
+    "providers": {
+      "description": "OAuth 지원 제공자 및 흐름 유형 목록 표시"
+    },
+    "start": {
+      "description": "제공자의 OAuth 인증 흐름 시작",
+      "provider": "제공자 ID (gemini, copilot, cursor, …)",
+      "no_browser": "URL만 출력 — 브라우저를 열지 않음",
+      "import_system": "로컬 시스템 설정에서 자격 증명 자동 가져오기",
+      "social": "소셜 로그인 제공자(google|github) — kiro에 필수",
+      "timeout": "인증 대기 시간 제한(ms, 기본값: 300000)"
+    },
+    "status": {
+      "description": "활성 OAuth 연결 목록 표시",
+      "provider": "제공자 ID로 필터링"
+    },
+    "revoke": {
+      "description": "OAuth 연결 해지",
+      "provider": "해지할 제공자 ID",
+      "connection_id": "ID로 특정 연결 해지",
+      "yes": "확인 프롬프트 건너뛰기"
+    }
+  },
+  "cloud": {
+    "description": "클라우드 AI 에이전트 작업 관리(codex, devin, jules)",
+    "agents": {
+      "description": "사용 가능한 클라우드 에이전트 목록 표시"
+    },
+    "agent": {
+      "description": "{agent} 클라우드 에이전트 작업 관리",
+      "auth": {
+        "description": "OAuth를 통해 {agent} 인증"
+      }
+    },
+    "task": {
+      "description": "클라우드 에이전트 작업 관리",
+      "create": {
+        "description": "새 에이전트 작업 생성",
+        "title": "작업 제목(기본값: 프롬프트의 처음 80자)",
+        "prompt": "작업 프롬프트 텍스트",
+        "prompt_file": "파일에서 프롬프트 읽기",
+        "repo": "작업용으로 복제할 저장소 URL",
+        "branch": "사용할 브랜치 이름",
+        "metadata": "JSON 메타데이터 객체"
+      },
+      "list": {
+        "description": "에이전트 작업 목록 표시",
+        "status": "상태별 필터링(running|completed|failed|cancelled)",
+        "limit": "최대 결과 수(기본값: 50)"
+      },
+      "get": {
+        "description": "ID로 작업 세부 정보 가져오기"
+      },
+      "status": {
+        "description": "작업 상태 출력(running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "실행 중인 작업 취소",
+        "yes": "확인 프롬프트 건너뛰기"
+      },
+      "approve": {
+        "description": "실행을 시작하도록 에이전트 계획 승인"
+      },
+      "message": {
+        "description": "실행 중인 작업에 메시지 보내기"
+      }
+    },
+    "sources": {
+      "description": "작업에서 생성된 소스 파일 목록 표시"
+    }
+  },
+  "eval": {
+    "description": "평가 스위트 및 실행 관리",
+    "suites": {
+      "description": "평가 스위트 관리",
+      "list": {
+        "description": "평가 스위트 목록 보기"
+      },
+      "get": {
+        "description": "ID로 평가 스위트 세부 정보 가져오기"
+      },
+      "create": {
+        "description": "JSON 파일에서 평가 스위트 만들기",
+        "file": "스위트 정의 JSON 파일 경로"
+      }
+    },
+    "run": {
+      "description": "스위트에 대한 평가 실행 시작",
+      "model": "평가할 모델 ID(기본값: auto)",
+      "combo": "이름으로 특정 조합 강제 지정",
+      "concurrency": "동시 실행 샘플 수(기본값: 4)",
+      "tag": "나중에 필터링할 수 있도록 이 실행에 태그 지정",
+      "watch": "완료될 때까지 실행 진행 상황 확인"
+    },
+    "list": {
+      "description": "평가 실행 목록 보기",
+      "suite": "스위트 ID로 필터링",
+      "status": "상태로 필터링",
+      "since": "이 타임스탬프 이후의 실행 반환",
+      "limit": "최대 결과 수(기본값: 50)"
+    },
+    "get": {
+      "description": "ID로 평가 실행 세부 정보 가져오기"
+    },
+    "results": {
+      "description": "평가 실행의 샘플 결과 보기",
+      "failed": "실패한 샘플만 보기"
+    },
+    "cancel": {
+      "description": "실행 중인 평가 취소",
+      "yes": "확인 프롬프트 건너뛰기"
+    },
+    "scorecard": {
+      "description": "완료된 평가 실행의 스코어카드 보기"
+    }
+  },
+  "webhooks": {
+    "description": "OmniRoute 웹훅 관리",
+    "events": {
+      "description": "사용 가능한 모든 웹훅 이벤트 유형 목록 보기"
+    },
+    "list": {
+      "description": "구성된 웹훅 목록 보기"
+    },
+    "get": {
+      "description": "ID로 웹훅 세부 정보 가져오기"
+    },
+    "add": {
+      "description": "새 웹훅 등록",
+      "url": "대상 URL",
+      "events": "쉼표로 구분된 이벤트 유형 목록",
+      "secret": "HMAC 서명 비밀 키",
+      "header": "key=value 형식의 추가 헤더(반복 가능)",
+      "no_enabled": "비활성화 상태로 웹훅 만들기"
+    },
+    "update": {
+      "description": "기존 웹훅 업데이트",
+      "enabled": "활성화 상태 설정(true|false)"
+    },
+    "remove": {
+      "description": "웹훅 삭제",
+      "yes": "확인 프롬프트 건너뛰기"
+    },
+    "test": {
+      "description": "웹훅에 테스트 이벤트 보내기",
+      "event": "시뮬레이션할 이벤트 유형(기본값: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — 자동 폴백 기능을 갖춘 스마트 AI 라우터",
     "version": "버전 출력 후 종료",
@@ -26,7 +832,509 @@
     "context": "이 명령에 사용할 서버 컨텍스트/프로필",
     "lang": "CLI 표시 언어 설정 (OMNIROUTE_LANG 재정의)"
   },
-  "redis": {
-    "description": "OmniRoute 캐싱 및 할당량 추적을 위한 로컬 Redis 컨테이너(Podman 또는 Docker)를 원클릭으로 실행"
+  "files": {
+    "description": "파일 관리(업로드, 목록 보기, 가져오기, 다운로드, 삭제)",
+    "list": {
+      "purpose": "용도별 필터링",
+      "limit": "최대 결과 수"
+    },
+    "get": {
+      "description": "파일 메타데이터 가져오기"
+    },
+    "upload": {
+      "description": "파일 업로드",
+      "purpose": "파일 용도 (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "파일 콘텐츠 다운로드",
+      "out": "저장 경로 (기본값: stdout)"
+    },
+    "delete": {
+      "yes": "확인 건너뛰기"
+    }
+  },
+  "batches": {
+    "description": "OpenAI 호환 배치 작업 관리",
+    "list": {
+      "status": "상태별 필터링",
+      "limit": "최대 결과 수"
+    },
+    "create": {
+      "description": "배치 작업 생성",
+      "inputFile": "입력 파일 ID",
+      "endpoint": "대상 엔드포인트",
+      "window": "완료 기간",
+      "metadata": "메타데이터 key=value 추가"
+    },
+    "submit": {
+      "description": "JSONL 파일 업로드 및 배치 생성",
+      "jsonl": "JSONL 파일 경로",
+      "endpoint": "대상 엔드포인트",
+      "wait": "완료될 때까지 대기"
+    },
+    "cancel": {
+      "yes": "확인 건너뛰기"
+    },
+    "wait": {
+      "timeout": "제한 시간(ms)"
+    },
+    "output": {
+      "out": "출력 저장 경로"
+    },
+    "errors": {
+      "out": "오류 저장 경로"
+    }
+  },
+  "translator": {
+    "description": "LLM 형식 간 요청 본문 변환",
+    "detect": {
+      "description": "본문 형식 감지"
+    },
+    "translate": {
+      "description": "본문을 한 형식에서 다른 형식으로 변환"
+    },
+    "send": {
+      "description": "변환 후 업스트림으로 전달"
+    },
+    "stream": {
+      "description": "요청 본문을 스트리밍 방식으로 변환"
+    },
+    "from": "소스 형식 (openai|anthropic|gemini|cohere)",
+    "to": "대상 형식 (openai|anthropic|gemini|cohere)",
+    "file": "요청 본문 JSON 파일 경로",
+    "out": "출력을 파일에 저장",
+    "model": "모델 재정의",
+    "history": {
+      "limit": "최대 결과 수"
+    }
+  },
+  "pricing": {
+    "description": "모델 가격 데이터 관리",
+    "sync": {
+      "description": "업스트림 소스에서 가격 동기화",
+      "provider": "제공업체별 필터링",
+      "force": "강제 재동기화"
+    },
+    "list": {
+      "provider": "제공업체별 필터링",
+      "model": "모델별 필터링",
+      "limit": "최대 결과 수"
+    },
+    "defaults": {
+      "description": "기본 요금 관리",
+      "input": "100만 토큰당 입력 비용(USD)",
+      "output": "100만 토큰당 출력 비용(USD)",
+      "cacheRead": "100만 토큰당 캐시 읽기 비용(USD)",
+      "cacheWrite": "100만 토큰당 캐시 쓰기 비용(USD)"
+    },
+    "diff": {
+      "description": "업스트림 가격과의 차이 표시",
+      "model": "모델로 필터링"
+    }
+  },
+  "radar": {
+    "description": "로컬 Radar 카탈로그 피드 검사 및 동기화",
+    "status": "로컬 Radar 설정 및 피드 캐시 상태 표시",
+    "sync": "로컬 서버를 통해 카탈로그, 추천, 혜택 및 Intel 동기화"
+  },
+  "resilience": {
+    "description": "복원력 메커니즘 검사 및 관리",
+    "status": {
+      "provider": "제공업체로 필터링"
+    },
+    "breakers": {
+      "provider": "제공업체로 필터링"
+    },
+    "cooldowns": {
+      "provider": "제공업체로 필터링",
+      "connectionId": "연결 ID로 필터링"
+    },
+    "lockouts": {
+      "provider": "제공업체로 필터링",
+      "model": "모델로 필터링"
+    },
+    "reset": {
+      "description": "차단기/쿨다운 상태 초기화",
+      "provider": "초기화할 제공업체",
+      "connectionId": "초기화할 연결 ID",
+      "model": "잠금 해제할 모델",
+      "allCooldowns": "제공업체의 모든 쿨다운 초기화",
+      "yes": "확인 건너뛰기"
+    },
+    "profile": {
+      "description": "복원력 프로필 관리",
+      "name": "프로필 이름"
+    },
+    "config": {
+      "description": "복원력 구성 관리",
+      "threshold": "실패 임계값",
+      "resetTimeout": "초기화 제한 시간(ms)",
+      "baseCooldown": "기본 쿨다운(ms)"
+    }
+  },
+  "nodes": {
+    "description": "제공업체 노드(엔드포인트) 관리",
+    "list": {
+      "provider": "제공업체로 필터링",
+      "enabled": "활성화된 노드만 표시"
+    },
+    "add": {
+      "provider": "제공업체 이름",
+      "baseUrl": "노드의 기본 URL",
+      "name": "노드 이름",
+      "weight": "부하 분산 가중치",
+      "region": "지역 태그",
+      "authHeader": "사용자 지정 인증 헤더(key=value)"
+    },
+    "update": {
+      "baseUrl": "새 기본 URL",
+      "name": "새 이름",
+      "weight": "새 가중치",
+      "region": "새 리전",
+      "enabled": "활성화 또는 비활성화(true|false)"
+    },
+    "remove": {
+      "yes": "확인 건너뛰기"
+    },
+    "validate": {
+      "baseUrl": "검증할 URL",
+      "provider": "검증에 사용할 제공업체"
+    },
+    "test": {
+      "description": "노드에 테스트 요청 보내기"
+    },
+    "metrics": {
+      "description": "노드 메트릭 표시",
+      "period": "기간(예: 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "컨텍스트 엔지니어링 파이프라인 구성(Caveman, RTK)",
+    "analytics": {
+      "period": "기간(예: 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Caveman 컨텍스트 압축기 관리",
+      "config": {
+        "description": "Caveman 구성 표시 또는 업데이트",
+        "aggressiveness": "적극성 0.0–1.0",
+        "maxShrinkPct": "최대 축소 비율",
+        "preserveTags": "보존할 태그(쉼표로 구분)"
+      }
+    },
+    "rtk": {
+      "description": "RTK 컨텍스트 최적화 도구 관리",
+      "config": {
+        "description": "RTK 구성 표시 또는 업데이트",
+        "tokenBudget": "RTK의 토큰 예산",
+        "reservePct": "예약 비율"
+      },
+      "filters": {
+        "description": "RTK 필터 관리",
+        "pattern": "필터 패턴(정규식)",
+        "priority": "필터 우선순위(기본값: 100)",
+        "action": "필터 작업: drop|shrink|replace",
+        "yes": "확인 건너뛰기"
+      },
+      "test": {
+        "file": "요청 JSON 파일 경로"
+      }
+    },
+    "combos": {
+      "description": "컨텍스트 인식 콤보 관리"
+    }
+  },
+  "sessions": {
+    "description": "활성 세션 검사 및 관리",
+    "list": {
+      "user": "사용자별 필터링",
+      "kind": "종류별 필터링(dashboard|api-key|mcp|a2a)",
+      "active": "활성 세션만 표시",
+      "limit": "최대 결과 수(기본값: 100)"
+    },
+    "expire": {
+      "yes": "확인 건너뛰기"
+    },
+    "expireAll": {
+      "user": "세션을 만료시킬 사용자",
+      "yes": "확인 건너뛰기"
+    }
+  },
+  "tags": {
+    "description": "리소스 태그 관리",
+    "add": {
+      "color": "태그 색상(16진수 또는 이름)",
+      "description": "태그 설명"
+    },
+    "remove": {
+      "yes": "확인 건너뛰기"
+    },
+    "assign": {
+      "tag": "태그 이름",
+      "to": "대상 리소스(type:id 형식, 예: provider:openai)"
+    },
+    "unassign": {
+      "tag": "태그 이름",
+      "from": "소스 리소스(type:id 형식)"
+    }
+  },
+  "openapi": {
+    "description": "OmniRoute OpenAPI 사양에 액세스하고 테스트",
+    "dump": {
+      "description": "OpenAPI 사양을 stdout 또는 파일로 덤프",
+      "format": "출력 형식: yaml|json (기본값: yaml)",
+      "out": "저장할 파일 경로"
+    },
+    "validate": {
+      "description": "OpenAPI 사양 검증"
+    },
+    "try": {
+      "description": "사양을 통해 API 엔드포인트 테스트",
+      "method": "HTTP 메서드(기본값: GET)",
+      "body": "요청 본문 JSON 파일 경로",
+      "query": "key=value 형식의 쿼리 매개변수(반복 가능)",
+      "header": "key=value 형식의 헤더(반복 가능)"
+    },
+    "endpoints": {
+      "description": "모든 API 엔드포인트 나열",
+      "search": "경로 또는 요약으로 필터링"
+    },
+    "paths": {
+      "description": "모든 API 경로 나열"
+    }
+  },
+  "combo": {
+    "title": "콤보",
+    "switched": "활성 콤보: {name}",
+    "created": "콤보가 생성되었습니다: {name}",
+    "deleted": "콤보가 삭제되었습니다: {name}",
+    "noCombos": "설정된 콤보가 없습니다.",
+    "confirmDelete": "콤보 {name}을(를) 삭제하시겠습니까?",
+    "suggest": {
+      "description": "AI 점수를 사용하여 작업에 가장 적합한 콤보 추천",
+      "task": "작업 설명",
+      "maxCost": "요청당 최대 비용(USD)",
+      "maxLatencyMs": "최대 지연 시간(밀리초)",
+      "weights": "JSON 점수 가중치(예: {\"latency\":0.7,\"cost\":0.3})",
+      "top": "표시할 상위 후보 수(기본값: 5)",
+      "explain": "근거를 stderr에 출력",
+      "switch": "가장 높은 순위의 콤보 활성화"
+    }
+  },
+  "oneproxy": {
+    "description": "OneProxy 업스트림 풀 관리",
+    "stats": {
+      "provider": "제공업체별 필터링",
+      "period": "기간(기본값: 24h)"
+    },
+    "fetch": {
+      "description": "풀에서 프록시 가져오기",
+      "count": "가져올 프록시 수(기본값: 1)",
+      "type": "프록시 유형: http|socks5 (기본값: http)"
+    },
+    "rotate": {
+      "description": "프록시 강제 교체",
+      "provider": "교체할 제공업체",
+      "connectionId": "교체할 특정 연결 ID"
+    },
+    "config": {
+      "description": "OneProxy 설정 표시 또는 업데이트",
+      "enabled": "프록시 풀 활성화 (true|false)",
+      "poolSize": "풀 크기",
+      "providerSource": "프록시 제공업체 URL",
+      "rotationPolicy": "로테이션 정책: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "현재 프록시 풀과 메트릭 목록 표시"
+    }
+  },
+  "open": {
+    "description": "브라우저에서 특정 OmniRoute 대시보드 페이지 열기",
+    "url": "URL만 출력하고 브라우저는 열지 않기"
+  },
+  "telemetry": {
+    "description": "집계된 텔레메트리 데이터에 액세스",
+    "summary": {
+      "description": "집계된 텔레메트리 요약 표시",
+      "period": "기간: 24h|7d|30d (기본값: 24h)",
+      "compareTo": "이전 기간과 비교"
+    },
+    "export": {
+      "description": "텔레메트리 이벤트를 JSONL로 내보내기",
+      "out": "출력 파일 경로 (기본값: telemetry.jsonl)",
+      "period": "내보내기 기간 (기본값: 7d)"
+    }
+  },
+  "sync": {
+    "description": "OmniRoute 인스턴스 간 구성 동기화",
+    "push": {
+      "description": "구성을 클라우드 또는 원격 인스턴스로 푸시",
+      "target": "대상 (cloud 또는 context:name)",
+      "bundle": "동기화할 번들 구성 요소",
+      "dryRun": "적용하지 않고 미리 보기"
+    },
+    "pull": {
+      "description": "클라우드 또는 원격에서 구성 가져오기",
+      "source": "소스 (cloud 또는 context:name)",
+      "merge": "기존 구성과 병합",
+      "replace": "기존 구성 교체",
+      "dryRun": "적용하지 않고 미리 보기"
+    },
+    "diff": {
+      "source": "소스 컨텍스트",
+      "target": "대상 컨텍스트"
+    },
+    "bundle": {
+      "description": "구성을 번들 파일로 내보내기",
+      "include": "포함할 구성 요소 (쉼표로 구분)"
+    },
+    "import": {
+      "description": "번들 파일 가져오기",
+      "dryRun": "적용하지 않고 유효성 검사"
+    },
+    "initialize": {
+      "fromCloud": "클라우드 백업에서 초기화"
+    },
+    "tokens": {
+      "description": "동기화 토큰 관리",
+      "create": {
+        "name": "토큰 이름",
+        "scope": "토큰 범위",
+        "ttl": "토큰 TTL (예: 30d)"
+      },
+      "revoke": {
+        "yes": "확인 건너뛰기"
+      }
+    },
+    "resolve": {
+      "description": "동기화 충돌을 대화형으로 해결"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "서버 컨텍스트/프로필 관리 (추가, 사용, 목록 표시, 상세 표시, 제거, 이름 변경, 내보내기, 가져오기)"
+    },
+    "lang": {
+      "description": "CLI 표시 언어 관리",
+      "getDescription": "현재 활성화된 언어 코드 표시",
+      "setDescription": "표시 언어를 설정하고 구성에 저장",
+      "listDescription": "사용 가능한 모든 언어 나열",
+      "listTitle": "사용 가능한 언어",
+      "current": "언어: {code} ({name})",
+      "saved": "언어가 {code}({name})(으)로 설정되었습니다.",
+      "noCode": "언어 코드가 필요합니다. 사용 가능한 코드를 확인하려면 'omniroute config lang list'를 실행하세요.",
+      "unknown": "알 수 없는 언어 코드: {code}. 사용 가능한 코드를 확인하려면 'omniroute config lang list'를 실행하세요.",
+      "alreadySet": "언어가 이미 {code}(으)로 설정되어 있습니다.",
+      "envHint": "팁: 환경에서 OMNIROUTE_LANG={code}로 설정할 수도 있습니다."
+    }
+  },
+  "completion": {
+    "description": "셸 자동 완성 스크립트 생성 또는 설치",
+    "zsh": "zsh 자동 완성 스크립트 출력",
+    "bash": "bash 자동 완성 스크립트 출력",
+    "fish": "fish 자동 완성 스크립트 출력",
+    "install": "감지된 셸의 자동 완성 스크립트를 전역으로 설치",
+    "refresh": "콤보/제공업체/모델 캐시 새로 고침"
+  },
+  "logs": {
+    "description": "요청 로그 스트리밍 또는 내보내기",
+    "follow": "실시간으로 로그 스트리밍",
+    "filter": "레벨별 필터링(error,warn,info) — 쉼표로 구분",
+    "lines": "가져올 줄 수",
+    "timeout": "연결 제한 시간(ms)",
+    "baseUrl": "OmniRoute API 기본 URL",
+    "requestId": "요청 ID로 필터링",
+    "apiKey": "API 키로 필터링",
+    "combo": "콤보 이름으로 필터링",
+    "status": "HTTP 상태 코드로 필터링",
+    "durationMin": "최소 요청 소요 시간(ms)",
+    "durationMax": "최대 요청 소요 시간(ms)",
+    "export": "로그를 파일로 저장(json/jsonl/csv)",
+    "exported": "로그가 {path}에 저장되었습니다.",
+    "stopped": "로그 스트리밍이 중지되었습니다.",
+    "streamError": "로그 스트리밍 오류: {message}"
+  },
+  "tray": {
+    "description": "시스템 트레이 아이콘 제어",
+    "show": "트레이 아이콘 표시(서버가 --tray 옵션으로 실행 중인 경우)",
+    "hide": "트레이 아이콘 숨기기",
+    "quit": "트레이를 통해 OmniRoute 종료"
+  },
+  "autostart": {
+    "description": "부팅 시 OmniRoute 자동 시작 관리(Linux: systemd 사용자 서비스)",
+    "enable": "부팅 시 자동 시작 활성화",
+    "disable": "부팅 시 자동 시작 비활성화",
+    "toggle": "부팅 시 자동 시작 전환",
+    "status": "자동 시작 상태 표시"
+  },
+  "runtime": {
+    "description": "네이티브 런타임 종속성 관리",
+    "check": "런타임 디렉터리의 네이티브 종속성 상태 확인",
+    "repair": "런타임 디렉터리에 네이티브 종속성 재설치",
+    "repair_force": "유효한 경우에도 강제로 재설치",
+    "clean": "런타임 디렉터리 제거(디스크 공간 확보)",
+    "clean_yes": "확인 건너뛰기"
+  },
+  "repl": {
+    "description": "LLM을 사용하는 대화형 멀티턴 REPL",
+    "model": "사용할 모델(기본값: auto)",
+    "combo": "사용할 콤보 이름",
+    "system": "시스템 프롬프트",
+    "resume": "이름으로 저장된 세션 재개"
+  },
+  "plugin": {
+    "description": "CLI 플러그인 관리(omniroute-cmd-*)",
+    "list": "설치된 플러그인 목록 표시",
+    "install": "npm 또는 로컬 경로에서 플러그인 설치",
+    "remove": "설치된 플러그인 제거",
+    "info": "설치된 플러그인의 세부 정보 표시",
+    "search": "npm 레지스트리에서 사용 가능한 플러그인 검색",
+    "update": "설치된 플러그인 업데이트",
+    "scaffold": "새 플러그인 보일러플레이트 생성"
+  },
+  "launch": {
+    "description": "OmniRoute를 가리키도록 Claude Code 실행(로컬 또는 원격, --profile 사용)",
+    "token": "Claude 클라이언트가 전송해야 하는 토큰(ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "{port}에서 OmniRoute에 연결할 수 없습니다. 'omniroute serve'로 시작하세요.",
+    "notFound": "PATH에서 'claude' CLI를 찾을 수 없습니다."
+  },
+  "run": {
+    "description": "OmniRoute를 통해 지원되는 CLI 대상 실행"
+  },
+  "setupClaude": {
+    "description": "OmniRoute 모델 카탈로그에서 ~/.claude/profiles Claude Code 프로필 생성"
+  },
+  "connect": {
+    "description": "원격 OmniRoute 서버에 연결하고 원격 모드로 전환"
+  },
+  "tokens": {
+    "description": "범위가 지정된 CLI 액세스 토큰 관리(원격 모드)"
+  },
+  "configure": {
+    "description": "활성 서버에서 제공자+모델을 선택하고 지원되는 로컬 CLI 구성"
+  },
+  "launchCodex": {
+    "description": "OmniRoute를 가리키도록 Codex CLI 실행(로컬 또는 원격 VPS)"
+  },
+  "setupCodex": {
+    "description": "OmniRoute 실시간 모델 카탈로그에서 ~/.codex 프로필 파일 생성"
+  },
+  "packs": {
+    "description": "선택적 런타임 팩 관리(ML / 브라우저 자동화)",
+    "listDescription": "선택적 팩과 설치 상태 목록 표시",
+    "installDescription": "DATA_DIR에 선택적 팩 설치",
+    "verifyDescription": "제공된 체크섬 인덱스를 기준으로 설치된 팩 검증",
+    "removeDescription": "설치된 선택적 팩 제거",
+    "sourceOpt": "팩 페이로드와 팩 인덱스가 있는 디렉터리",
+    "warnNoIndex": "optional-packs.index.json을 찾을 수 없습니다. 이 체크아웃에서는 설치/검증을 사용할 수 없습니다(데스크톱 번들에는 포함되어 있음).",
+    "errUnknown": "알 수 없는 팩: {name}",
+    "errNoIndex": "팩 인덱스를 찾을 수 없습니다. 팩 페이로드가 있는 --source <dir>을 전달하세요(데스크톱 번들에서는 앱 옆에 포함되어 있음).",
+    "installed": "팩 \"{name}\"이(가) {dir}에 설치되고 검증되었습니다.",
+    "restartHint": "런타임이 팩을 인식하도록 OmniRoute 서버(또는 데스크톱 앱)를 다시 시작하세요",
+    "removed": "팩 \"{name}\"이(가) 제거되었습니다",
+    "notInstalled": "팩 \"{name}\"은(는) 설치되어 있지 않았습니다",
+    "verifyOk": "설치된 모든 팩이 검증되었습니다",
+    "verifyFailed": "{count}개의 팩이 검증에 실패했습니다",
+    "noneInstalled": "설치된 선택적 팩이 없습니다"
   }
 }

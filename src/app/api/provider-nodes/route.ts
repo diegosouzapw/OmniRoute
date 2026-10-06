@@ -48,6 +48,27 @@ function sanitizeVibeProxyBaseUrl(baseUrl: string) {
   return `${base}/v1`;
 }
 
+async function registerMoonshotFetchersForCreatedNode(node: {
+  id?: unknown;
+  prefix?: unknown;
+  baseUrl?: unknown;
+}): Promise<void> {
+  try {
+    const { registerMoonshotFetchersForNodes } = await import(
+      "@omniroute/open-sse/services/moonshotQuotaFetcher.ts"
+    );
+    registerMoonshotFetchersForNodes([
+      {
+        id: typeof node.id === "string" ? node.id : null,
+        prefix: typeof node.prefix === "string" ? node.prefix : null,
+        baseUrl: typeof node.baseUrl === "string" ? node.baseUrl : null,
+      },
+    ]);
+  } catch (error) {
+    console.warn("Moonshot fetcher register after node create skipped:", error);
+  }
+}
+
 function sanitizeAnthropicBaseUrl(baseUrl: string) {
   return (baseUrl || "")
     .trim()
@@ -126,6 +147,8 @@ export async function POST(request) {
       modelsPath,
       customHeaders,
       iconUrl,
+      dailyQuotaResetTimezone,
+      dailyQuotaResetHour,
     } = validation.data;
 
     if (preset === "vibeproxy-openai") {
@@ -145,7 +168,11 @@ export async function POST(request) {
         modelsPath: modelsPath || null,
         iconUrl: iconUrl?.trim() || null,
         customHeaders: customHeaders || null,
+        dailyQuotaResetTimezone: dailyQuotaResetTimezone?.trim() || null,
+        dailyQuotaResetHour:
+          dailyQuotaResetHour === 0 || dailyQuotaResetHour != null ? dailyQuotaResetHour : null,
       });
+      await registerMoonshotFetchersForCreatedNode(node);
       return NextResponse.json({ node }, { status: 201 });
     }
 
@@ -170,7 +197,11 @@ export async function POST(request) {
         modelsPath: modelsPath || null,
         iconUrl: iconUrl?.trim() || null,
         customHeaders: customHeaders || null,
+        dailyQuotaResetTimezone: dailyQuotaResetTimezone?.trim() || null,
+        dailyQuotaResetHour:
+          dailyQuotaResetHour === 0 || dailyQuotaResetHour != null ? dailyQuotaResetHour : null,
       });
+      await registerMoonshotFetchersForCreatedNode(node);
       return NextResponse.json({ node }, { status: 201 });
     }
 
@@ -200,7 +231,11 @@ export async function POST(request) {
         modelsPath: compatMode === "cc" ? null : modelsPath || null,
         iconUrl: iconUrl?.trim() || null,
         customHeaders: customHeaders || null,
+        dailyQuotaResetTimezone: dailyQuotaResetTimezone?.trim() || null,
+        dailyQuotaResetHour:
+          dailyQuotaResetHour === 0 || dailyQuotaResetHour != null ? dailyQuotaResetHour : null,
       });
+      await registerMoonshotFetchersForCreatedNode(node);
       return NextResponse.json({ node }, { status: 201 });
     }
 

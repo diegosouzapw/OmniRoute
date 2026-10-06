@@ -18,7 +18,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: unknown) {
@@ -41,7 +41,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("disableNonPublicModels: set to true via updateApiKeyPermissions, read back via getApiKeyMetadata", async () => {
@@ -97,10 +97,7 @@ test("3 columns coexist: disableNonPublicModels, allowedQuotas, streamDefaultMod
   );
 
   // Verify streamDefaultMode is still present
-  assert.ok(
-    metadata.streamDefaultMode !== undefined,
-    "streamDefaultMode should be present"
-  );
+  assert.ok(metadata.streamDefaultMode !== undefined, "streamDefaultMode should be present");
   assert.equal(metadata.streamDefaultMode, "json", "streamDefaultMode should be 'json'");
 });
 

@@ -1,7 +1,6 @@
 import {
-  PUBLIC_READONLY_API_ROUTE_PREFIXES,
-  PUBLIC_READONLY_METHODS,
   isPublicApiRoute,
+  isPublicReadonlyCorsRoute,
 } from "../../shared/constants/publicApiRoutes";
 import type { ClassificationReason, RouteClassification } from "./types";
 
@@ -16,30 +15,39 @@ function normalizePathname(rawPath: string): { path: string; reason?: Classifica
   if (!path.startsWith("/")) path = "/" + path;
   if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
 
-  if (path === "/codex" || path.startsWith("/codex/")) {
+  // Client-API aliases are matched case-insensitively on the control segment.
+  // Next's rewrite layer accepts `/V1/...`, `/CODEX`, etc. and routes them to
+  // the client handler, so the classifier must recognize the same casing —
+  // otherwise an uppercase alias falls through to the management fallback and
+  // the request is treated as a different route class than it is actually
+  // dispatched to (GHSA-jvqc-mp9f-q936). Only the leading control segment is
+  // lowercased for detection; the original-case tail is preserved.
+  const lower = path.toLowerCase();
+
+  if (lower === "/codex" || lower.startsWith("/codex/")) {
     return { path: "/api/v1/responses", reason: "client_api_codex_alias" };
   }
 
-  if (path === "/v1/v1" || path.startsWith("/v1/v1/")) {
+  if (lower === "/v1/v1" || lower.startsWith("/v1/v1/")) {
     const tail = path.slice("/v1/v1".length) || "";
     return { path: "/api/v1" + tail, reason: "client_api_double_prefix" };
   }
 
-  if (path === "/v1beta" || path.startsWith("/v1beta/")) {
+  if (lower === "/v1beta" || lower.startsWith("/v1beta/")) {
     const tail = path.slice("/v1beta".length) || "";
     return { path: "/api/v1beta" + tail, reason: "client_api_alias" };
   }
 
-  if (path === "/v1" || path.startsWith("/v1/")) {
+  if (lower === "/v1" || lower.startsWith("/v1/")) {
     const tail = path.slice("/v1".length) || "";
     return { path: "/api/v1" + tail, reason: "client_api_alias" };
   }
 
   for (const { alias, canonical } of CLIENT_API_ALIAS_PREFIXES) {
-    if (path === alias) {
+    if (lower === alias) {
       return { path: canonical, reason: "client_api_alias" };
     }
-    if (path.startsWith(alias + "/")) {
+    if (lower.startsWith(alias + "/")) {
       return { path: canonical + path.slice(alias.length), reason: "client_api_alias" };
     }
   }
@@ -126,8 +134,9 @@ export function classifyRoute(rawPath: string, method: string = "GET"): RouteCla
 }
 
 function matchesReadonlyPublic(path: string, method: string): boolean {
-  if (!PUBLIC_READONLY_METHODS.has(String(method).toUpperCase())) return false;
-  return PUBLIC_READONLY_API_ROUTE_PREFIXES.some((p) => path.startsWith(p));
+  // Exact match, not startsWith: a prefix here would hand the CORS origin
+  // relaxation to every adjacent path too (GHSA-74g9-q8f6-793h).
+  return isPublicReadonlyCorsRoute(path, method);
 }
 
 function isClassifiedAsPublic(path: string, method: string): boolean {

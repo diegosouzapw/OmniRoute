@@ -40,7 +40,31 @@ const SMALL_TEXT = "Short content that should NOT be compressed.";
 const SYSTEM_TEXT = "You are a helpful assistant with system instructions.";
 
 function makeBody(messages: Array<{ role: string; content: string }>) {
-  return { model: "gpt-4", messages };
+  // #7746 follow-up: CCR now only compresses for callers that can reach
+  // omniroute_ccr_retrieve. These tests exercise the compression/marker logic
+  // itself, so advertise the retrieve tool to pass the caller gate.
+  return {
+    model: "gpt-4",
+    messages,
+    tools: [{ type: "function", function: { name: "omniroute_ccr_retrieve" } }],
+  };
+}
+
+// When the retrieve tool is advertised, a successful compression also injects a
+// leading [CCR protocol] system instruction, so the compressed user block is no
+// longer necessarily messages[0]. Return the content of the message that carries
+// the CCR retrieve marker (falls back to messages[0] when none is present).
+function markerContent(messages: Array<{ role: string; content: unknown }>): string {
+  const hit = messages.find(
+    (m) =>
+      typeof m.content === "string" &&
+      /\[CCR retrieve hash=[0-9a-f]{24} chars=\d+\]/.test(m.content)
+  );
+  return typeof hit?.content === "string"
+    ? hit.content
+    : typeof messages[0]?.content === "string"
+      ? (messages[0].content as string)
+      : "";
 }
 
 // ─── tests ────────────────────────────────────────────────────────────────────
@@ -71,7 +95,7 @@ describe("ccr engine", () => {
     assert.equal(result.compressed, true, "should report compressed=true");
 
     const messages = result.body.messages as Array<{ role: string; content: string }>;
-    const content = messages[0].content;
+    const content = markerContent(messages);
 
     // Marker must be present
     assert.match(
@@ -83,10 +107,14 @@ describe("ccr engine", () => {
     // Original large text must be gone
     assert.ok(!content.includes(LARGE_TEXT), "original large block text must be replaced");
 
-    // Body must be shorter
-    const originalLen = JSON.stringify(body).length;
-    const compressedLen = JSON.stringify(result.body).length;
-    assert.ok(compressedLen < originalLen, "compressed body must be shorter than original");
+    // The marker-bearing message must be shorter than the original block. (The
+    // total body also carries the injected [CCR protocol] instruction — a
+    // deliberate, one-time cost for retrievability — so we compare the replaced
+    // block against the original block, which is the compression property.)
+    assert.ok(
+      content.length < LARGE_TEXT.length,
+      "the replaced block must be shorter than the original text"
+    );
   });
 
   it("stores and retrieves the verbatim block by hash", () => {
@@ -95,7 +123,7 @@ describe("ccr engine", () => {
     const result = ccrEngine.apply(body as Record<string, unknown>);
 
     const messages = result.body.messages as Array<{ role: string; content: string }>;
-    const content = messages[0].content;
+    const content = markerContent(messages);
 
     // Extract hash from marker
     const match = content.match(/\[CCR retrieve hash=([0-9a-f]{24}) chars=\d+\]/);
@@ -153,7 +181,7 @@ describe("ccr engine", () => {
     const result = ccrEngine.apply(body as Record<string, unknown>);
 
     const messages = result.body.messages as Array<{ role: string; content: string }>;
-    const content = messages[0].content;
+    const content = markerContent(messages);
     const match = content.match(/\[CCR retrieve hash=([0-9a-f]{24}) chars=\d+\]/);
     assert.ok(match, "marker must be present");
     const hash = match[1];
@@ -193,6 +221,8 @@ describe("ccr engine", () => {
           ],
         },
       ],
+      // Advertise the retrieve tool so the #7746 caller gate lets compression run.
+      tools: [{ type: "function", function: { name: "omniroute_ccr_retrieve" } }],
     };
 
     const result = ccrEngine.apply(body as Record<string, unknown>);
@@ -202,13 +232,16 @@ describe("ccr engine", () => {
       role: string;
       content: Array<{ type: string; text: string }>;
     }>;
-    const largePart = messages[0].content[0];
+    // A leading [CCR protocol] instruction may be injected, so locate the
+    // multipart (array-content) user message rather than assuming index 0.
+    const multipart = messages.find((m) => Array.isArray(m.content))!;
+    const largePart = multipart.content[0];
     assert.ok(
       largePart.text.match(/\[CCR retrieve hash=[0-9a-f]{24} chars=\d+\]/),
       "large text part must be replaced by a CCR marker"
     );
     // Small part untouched
-    const smallPart = messages[0].content[1];
+    const smallPart = multipart.content[1];
     assert.equal(smallPart.text, "and a small follow-up");
   });
 });
@@ -220,7 +253,7 @@ describe("ccr MCP retrieve handler (pure function)", () => {
     const body = makeBody([{ role: "user", content: LARGE_TEXT }]);
     const result = ccrEngine.apply(body as Record<string, unknown>);
     const messages = result.body.messages as Array<{ role: string; content: string }>;
-    const match = messages[0].content.match(/\[CCR retrieve hash=([0-9a-f]{24}) chars=\d+\]/);
+    const match = markerContent(messages).match(/\[CCR retrieve hash=([0-9a-f]{24}) chars=\d+\]/);
     assert.ok(match, "marker must be present");
     const hash = match[1];
 

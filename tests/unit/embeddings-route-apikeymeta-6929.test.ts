@@ -44,12 +44,12 @@ const PLAYGROUND_KEY_ID_HEADER = "x-omniroute-playground-key-id";
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 async function sessionCookie(): Promise<string> {
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const jwt = await new SignJWT({ sub: "admin" })
+  const jwt = await new SignJWT({ authenticated: true, sub: "admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("1h")
     .sign(secret);

@@ -22,9 +22,8 @@ test(
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7494-mech-"));
     const sqliteFile = path.join(dataDir, "storage.sqlite");
     try {
-      const { preInitSqlJs, getSqlJsAdapter } = await import(
-        "../../src/lib/db/adapters/driverFactory"
-      );
+      const { preInitSqlJs, getSqlJsAdapter } =
+        await import("../../src/lib/db/adapters/driverFactory");
 
       const boot = await preInitSqlJs(sqliteFile);
       boot.exec("CREATE TABLE t (id INTEGER)");
@@ -32,9 +31,7 @@ test(
 
       const probe = getSqlJsAdapter(sqliteFile);
       probe!
-        .prepare(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'"
-        )
+        .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'")
         .get();
       probe!.close();
 
@@ -46,7 +43,7 @@ test(
         "sanity: confirms the underlying sql.js singleton mechanism this bug exploits"
       );
     } finally {
-      fs.rmSync(dataDir, { recursive: true, force: true });
+      fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   }
 );
@@ -59,9 +56,8 @@ test(
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7494-guard-"));
     const sqliteFile = path.join(dataDir, "storage.sqlite");
     try {
-      const { preInitSqlJs, getSqlJsAdapter } = await import(
-        "../../src/lib/db/adapters/driverFactory"
-      );
+      const { preInitSqlJs, getSqlJsAdapter } =
+        await import("../../src/lib/db/adapters/driverFactory");
       const { closeProbeIfSafe } = await import("../../src/lib/db/core");
 
       const boot = await preInitSqlJs(sqliteFile);
@@ -72,9 +68,7 @@ test(
       // the guarded helper instead of a raw .close() call.
       const probe = getSqlJsAdapter(sqliteFile);
       probe!
-        .prepare(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'"
-        )
+        .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'")
         .get();
       closeProbeIfSafe(probe);
 
@@ -94,7 +88,7 @@ test(
       // already-deleted path in the background.
       await new Promise((resolve) => setTimeout(resolve, 200));
     } finally {
-      fs.rmSync(dataDir, { recursive: true, force: true });
+      fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   }
 );
@@ -117,7 +111,7 @@ test(
 
       assert.equal(probe!.open, false, "closeProbeIfSafe() must still close non-sql.js adapters");
     } finally {
-      fs.rmSync(dataDir, { recursive: true, force: true });
+      fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   }
 );

@@ -25,7 +25,7 @@ test("loadOrCreateMitmCa: first call with an empty dir generates and persists a 
     assert.equal(fs.existsSync(path.join(certDir, "ca.key")), true);
     assert.equal(fs.existsSync(path.join(certDir, "ca.crt")), true);
   } finally {
-    fs.rmSync(certDir, { recursive: true, force: true });
+    fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -37,20 +37,24 @@ test("loadOrCreateMitmCa: a second call loads the same CA instead of regeneratin
     assert.equal(second.key, first.key);
     assert.equal(second.cert, first.cert);
   } finally {
-    fs.rmSync(certDir, { recursive: true, force: true });
+    fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
-test("loadOrCreateMitmCa: the written CA private key file mode is 0o600", { skip: process.platform === "win32" }, async () => {
-  const certDir = tmpCertDir();
-  try {
-    const ca = await loadOrCreateMitmCa(certDir);
-    const mode = fs.statSync(ca.keyPath).mode & 0o777;
-    assert.equal(mode, 0o600);
-  } finally {
-    fs.rmSync(certDir, { recursive: true, force: true });
+test(
+  "loadOrCreateMitmCa: the written CA private key file mode is 0o600",
+  { skip: process.platform === "win32" },
+  async () => {
+    const certDir = tmpCertDir();
+    try {
+      const ca = await loadOrCreateMitmCa(certDir);
+      const mode = fs.statSync(ca.keyPath).mode & 0o777;
+      assert.equal(mode, 0o600);
+    } finally {
+      fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    }
   }
-});
+);
 
 test("loadOrCreateMitmCa: the CA cert carries CA basicConstraints (matches generateMitmCa)", async () => {
   const certDir = tmpCertDir();
@@ -60,6 +64,6 @@ test("loadOrCreateMitmCa: the CA cert carries CA basicConstraints (matches gener
     const cert = new X509Certificate(ca.cert);
     assert.equal(cert.ca, true);
   } finally {
-    fs.rmSync(certDir, { recursive: true, force: true });
+    fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

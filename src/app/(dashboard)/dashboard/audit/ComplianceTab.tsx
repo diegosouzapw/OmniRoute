@@ -110,7 +110,9 @@ export default function ComplianceTab() {
   }, [actor, eventType, from, offset, t, to]);
 
   useEffect(() => {
-    void fetchEntries();
+    void (async () => {
+      await fetchEntries();
+    })();
   }, [fetchEntries]);
 
   const visibleEntries = useMemo(() => {
@@ -330,7 +332,9 @@ export default function ComplianceTab() {
                       </td>
                       <td className="px-4 py-3">
                         <span className="rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs text-text-main">
-                          {t.has(`eventTypes.${entry.action}`) ? t(`eventTypes.${entry.action}`) : entry.action}
+                          {t.has(`eventTypes.${entry.action}`)
+                            ? t(`eventTypes.${entry.action}`)
+                            : entry.action}
                         </span>
                       </td>
                       <td className="px-4 py-3">

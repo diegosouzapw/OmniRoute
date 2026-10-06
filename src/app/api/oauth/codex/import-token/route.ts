@@ -3,7 +3,7 @@ import { z } from "zod";
 import { extractCodexAccountInfo } from "@/lib/oauth/services/codexImport";
 import { parseCodexSessionJson } from "@/lib/oauth/utils/codexSessionImport";
 import { createProviderConnection } from "@/models";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 /**
@@ -93,10 +93,11 @@ async function parseRequestBody(
   return { ok: true, resolved: resolved.resolved };
 }
 
-async function requireAuth(request: Request): Promise<NextResponse | null> {
-  if (!(await isAuthRequired(request))) return null;
-  if (await isAuthenticated(request)) return null;
-  return NextResponse.json(buildErrorBody(401, "Unauthorized"), { status: 401 });
+async function requireAuth(request: Request): Promise<Response | null> {
+  // GHSA-mg76: importing a provider connection is a state-mutating admin action.
+  // Require management scope (or a dashboard session) rather than accepting any
+  // valid client key, which the PUBLIC /api/oauth/ classification otherwise allows.
+  return requireManagementAuth(request, { invalidApiKeyStatus: 401 });
 }
 
 export async function POST(request: Request) {

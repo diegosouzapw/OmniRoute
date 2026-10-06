@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { FEATURE_FLAG_DEFINITIONS } from "@/shared/constants/featureFlagDefinitions";
+import {
+  FEATURE_FLAG_DEFINITIONS,
+  type FeatureFlagDefinition,
+} from "@/shared/constants/featureFlagDefinitions";
+import {
+  ADAPTIVE_VIRTUAL_LANES_FLAG_KEY,
+  resolveAdaptiveVirtualLanesFlag,
+} from "@/lib/admissionVirtualLanes";
 import {
   getFeatureFlagOverrides,
   setFeatureFlagOverride,
@@ -21,6 +28,31 @@ function isActive(value: string): boolean {
 }
 
 /**
+ * Standard feature-flag payload shape for GET /api/settings/feature-flags.
+ * Flags whose gate resolves differently from the generic db-wins-over-env
+ * order pass their own effectiveValue/source (see the special cases below).
+ */
+function flagPayload(
+  definition: FeatureFlagDefinition,
+  effectiveValue: string,
+  source: "db" | "env" | "default"
+) {
+  return {
+    key: definition.key,
+    label: definition.label,
+    description: definition.description,
+    category: definition.category,
+    type: definition.type,
+    enumValues: definition.enumValues ?? null,
+    defaultValue: definition.defaultValue,
+    effectiveValue,
+    source,
+    requiresRestart: definition.requiresRestart,
+    warningLevel: definition.warningLevel,
+  };
+}
+
+/**
  * GET /api/settings/feature-flags
  * Returns all feature flags with their effective values and a summary.
  */
@@ -33,41 +65,22 @@ export async function GET(request: NextRequest) {
     const resolved = resolveAllFeatureFlags();
 
     const flags = resolved.map(({ key, effectiveValue, source, definition }) => {
-      // EXPOSE_CC_DISCOVERY_ALIASES resolves with env-wins-over-db precedence
-      // (see db/ccDiscoveryAliases.ts::getCcAliasGlobalState) — the opposite of
-      // resolveAllFeatureFlags' generic db-wins-over-env order. Override the
-      // reported effectiveValue/source with the gate's own resolution so the
-      // dashboard never shows a source that doesn't match actual gate behavior.
+      // Flags whose gate resolves with env-wins-over-db precedence (the
+      // opposite of resolveAllFeatureFlags' generic db-wins-over-env order)
+      // report the gate's own resolution so the dashboard never shows a source
+      // that doesn't match actual gate behavior.
       if (key === CC_DISCOVERY_ALIASES_FLAG_KEY) {
         const gateState = getCcAliasGlobalState();
-        return {
-          key,
-          label: definition.label,
-          description: definition.description,
-          category: definition.category,
-          type: definition.type,
-          enumValues: definition.enumValues ?? null,
-          defaultValue: definition.defaultValue,
-          effectiveValue: gateState.enabled ? "true" : "false",
-          source: gateState.source,
-          requiresRestart: definition.requiresRestart,
-          warningLevel: definition.warningLevel,
-        };
+        return flagPayload(definition, gateState.enabled ? "true" : "false", gateState.source);
       }
-
-      return {
-        key,
-        label: definition.label,
-        description: definition.description,
-        category: definition.category,
-        type: definition.type,
-        enumValues: definition.enumValues ?? null,
-        defaultValue: definition.defaultValue,
-        effectiveValue,
-        source,
-        requiresRestart: definition.requiresRestart,
-        warningLevel: definition.warningLevel,
-      };
+      // #9654 U7: the adaptive virtual-lanes gate reads env at runtime
+      // construction — env wins over any DB override, and a DB override gates
+      // at next boot (see lib/admissionVirtualLanes.ts).
+      if (key === ADAPTIVE_VIRTUAL_LANES_FLAG_KEY) {
+        const state = resolveAdaptiveVirtualLanesFlag();
+        return flagPayload(definition, state.enabled ? "true" : "false", state.source);
+      }
+      return flagPayload(definition, effectiveValue, source);
     });
 
     const total = flags.length;
@@ -152,10 +165,22 @@ export async function PUT(request: NextRequest) {
     const newEffectiveValue = updatedFlag?.effectiveValue ?? definition.defaultValue;
     const newSource = updatedFlag?.source ?? "default";
 
+    // Env-wins gates resolve with env > DB > default (the opposite of the
+    // generic db-wins helper above), so report their true resolution here too —
+    // the response must never tell an operator they enabled a gate that the env
+    // var still overrides (#9654 U7).
+    let reportedEffectiveValue = newEffectiveValue;
+    let reportedSource = newSource;
+    if (key === ADAPTIVE_VIRTUAL_LANES_FLAG_KEY) {
+      const state = resolveAdaptiveVirtualLanesFlag();
+      reportedEffectiveValue = state.enabled ? "true" : "false";
+      reportedSource = state.source;
+    }
+
     return NextResponse.json({
       key,
-      effectiveValue: newEffectiveValue,
-      source: newSource,
+      effectiveValue: reportedEffectiveValue,
+      source: reportedSource,
       previousValue,
       previousSource,
       requiresRestart: definition.requiresRestart,

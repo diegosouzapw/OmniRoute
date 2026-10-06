@@ -34,6 +34,7 @@ const {
   applySessionStickiness,
   recordStickyBinding,
   clearAllStickyBindings,
+  clearStickyBindingsForCombo,
   deriveMessageHash,
   resolveDisableSessionStickiness,
   __setStickinessHeadroomFetcherForTests,
@@ -230,4 +231,58 @@ test("flag explicit false (per-combo) also preserves stickiness", async () => {
   assert.equal(observe.called, 1, "per-combo false → stickiness still runs");
   assert.ok(result.stuck);
   assert.equal(result.targets[0].connectionId, "conn-B");
+});
+
+// ─── clearStickyBindingsForCombo (stale-pin eviction on stickiness disable) ──
+
+test("clearStickyBindingsForCombo evicts only the named combo's bindings", async () => {
+  const targets = [makeTarget("conn-A"), makeTarget("conn-B")];
+  const msgA = [{ role: "user", content: "conversation for combo A" }];
+  const msgB = [{ role: "user", content: "conversation for combo B" }];
+
+  injectSat({ util5h: 0.1, util7d: 0.1 });
+  // Production flow: applySessionStickiness derives the combo-scoped key and
+  // combo.ts records the binding with that SCOPED messageHash on success.
+  const probeA = await applySessionStickiness(targets, msgA, "combo-a");
+  const probeB = await applySessionStickiness(targets, msgB, "combo-b");
+  assert.ok(probeA.messageHash, "combo-a scoped key derived");
+  assert.ok(probeB.messageHash, "combo-b scoped key derived");
+  recordStickyBinding(probeA.messageHash!, "conn-B");
+  recordStickyBinding(probeB.messageHash!, "conn-A");
+
+  // Both bindings promote before the eviction.
+  const beforeA = await applySessionStickiness(targets, msgA, "combo-a");
+  const beforeB = await applySessionStickiness(targets, msgB, "combo-b");
+  assert.ok(beforeA.stuck, "combo-a binding promotes before eviction");
+  assert.ok(beforeB.stuck, "combo-b binding promotes before eviction");
+
+  clearStickyBindingsForCombo("combo-a");
+
+  const rA = await applySessionStickiness(targets, msgA, "combo-a");
+  const rB = await applySessionStickiness(targets, msgB, "combo-b");
+  assert.equal(rA.stuck, false, "combo-a binding evicted → no promotion");
+  assert.equal(rA.targets[0].connectionId, "conn-A", "combo-a keeps strategy order");
+  assert.ok(rB.stuck, "combo-b binding survives → still promoted");
+  assert.equal(rB.targets[0].connectionId, "conn-A");
+});
+
+test("clearStickyBindingsForCombo: a binding recorded before the namespace field existed is still evictable after one read", async () => {
+  const targets = [makeTarget("conn-A"), makeTarget("conn-B")];
+  const messages = [{ role: "user", content: "pre-namespace conversation" }];
+
+  injectSat({ util5h: 0.1, util7d: 0.1 });
+  // Production flow derives the scoped key; record the binding WITHOUT the
+  // namespace field being populated (older code path).
+  const probe = await applySessionStickiness(targets, messages, "combo-legacy");
+  recordStickyBinding(probe.messageHash!, "conn-B");
+  // The entry lacks namespace — the next namespaced read backfills the owner.
+  assert.equal(probe.stuck, false, "no binding yet at probe time");
+
+  const read = await applySessionStickiness(targets, messages, "combo-legacy");
+  assert.ok(read.stuck, "binding found on first namespaced read");
+  clearStickyBindingsForCombo("combo-legacy");
+
+  const after = await applySessionStickiness(targets, messages, "combo-legacy");
+  assert.equal(after.stuck, false, "legacy binding evicted after backfill");
+  assert.equal(after.targets[0].connectionId, "conn-A");
 });

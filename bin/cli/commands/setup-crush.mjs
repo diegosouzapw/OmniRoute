@@ -13,6 +13,7 @@ import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
 import { categoriseModel } from "./setup-codex.mjs";
+import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
 
 const API_KEY_REF = "$OMNIROUTE_API_KEY";
 
@@ -87,15 +88,29 @@ async function fetchModelIds(baseUrl, apiKey) {
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const body = await res.json();
-  const list = Array.isArray(body) ? body : body.data ?? body.models ?? [];
+  const list = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
   return list.map((m) => (typeof m === "string" ? m : m?.id)).filter(Boolean);
 }
 
 export async function runSetupCrushCommand(opts = {}) {
   const { baseUrl, apiKey } = resolveCrushTarget(opts);
   const dryRun = Boolean(opts.dryRun ?? opts["dry-run"]);
-  const only = opts.only ? opts.only.split(",").map((s) => s.trim()).filter(Boolean) : null;
-  const configPath = opts.configPath ?? opts["config-path"] ?? join(os.homedir(), ".config", "crush", "crush.json");
+  const only = opts.only
+    ? opts.only
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : null;
+  const configPath =
+    opts.configPath ?? opts["config-path"] ?? join(os.homedir(), ".config", "crush", "crush.json");
+
+  const guard = await guardHostConfigTarget(configPath, {
+    toolLabel: "Crush",
+    hostCommand: "omniroute setup-crush",
+    allowContainerWrite: Boolean(opts.allowContainerWrite ?? opts["allow-container-write"]),
+    dryRun,
+  });
+  if (guard !== 0) return guard;
 
   printHeading("OmniRoute → Crush (openai-compat)");
   printInfo(`base_url: ${baseUrl}`);
@@ -120,13 +135,17 @@ export async function runSetupCrushCommand(opts = {}) {
 
   if (dryRun) {
     console.log("\n" + (out.length > 3500 ? out.slice(0, 3500) + "\n… (truncated)" : out));
-    printInfo(`[dry-run] ${provider.models.length} model(s) under providers.omniroute → ${configPath}`);
+    printInfo(
+      `[dry-run] ${provider.models.length} model(s) under providers.omniroute → ${configPath}`
+    );
     return 0;
   }
   mkdirSync(join(configPath, ".."), { recursive: true });
   writeFileSync(configPath, out, "utf8");
   printSuccess(`Wrote ${configPath} (${provider.models.length} models under providers.omniroute)`);
-  printInfo("Provide the key (config references $OMNIROUTE_API_KEY):  export OMNIROUTE_API_KEY=...");
+  printInfo(
+    "Provide the key (config references $OMNIROUTE_API_KEY):  export OMNIROUTE_API_KEY=..."
+  );
   printInfo("Then run:  crush");
   return 0;
 }
@@ -141,6 +160,10 @@ export function registerSetupCrush(program) {
     .option("--only <patterns>", "Comma-separated substrings — keep only matching model IDs")
     .option("--config-path <path>", "crush.json path (default: ~/.config/crush/crush.json)")
     .option("--dry-run", "Print what would be written without touching the filesystem")
+    .option(
+      "--allow-container-write",
+      "Write even when the target is inside a container and not mounted from the host"
+    )
     .action(async (opts) => {
       const code = await runSetupCrushCommand(opts);
       if (code !== 0) process.exit(code);

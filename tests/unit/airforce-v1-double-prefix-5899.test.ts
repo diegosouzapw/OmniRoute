@@ -23,7 +23,7 @@ const modelsRoute = await import("../../src/app/api/providers/[id]/models/route.
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#5899 openai gateway baseUrl ending in /v1/chat/completions never probes /v1/v1/models", async () => {

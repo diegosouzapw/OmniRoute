@@ -28,7 +28,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: any) {
@@ -78,7 +78,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("window rollover: daily/weekly/monthly produce distinct windowStart", async () => {
@@ -151,7 +151,14 @@ test("seed-on-miss equals usage_history SUM for the active window", async () => 
   // Different month (excluded).
   insertUsage("k2", "openai", "gpt-4o", 999, 999, new Date(Date.UTC(2025, 11, 31)).toISOString());
   // Different model (excluded).
-  insertUsage("k2", "openai", "gpt-4o-mini", 777, 777, new Date(Date.UTC(2026, 0, 13)).toISOString());
+  insertUsage(
+    "k2",
+    "openai",
+    "gpt-4o-mini",
+    777,
+    777,
+    new Date(Date.UTC(2026, 0, 13)).toISOString()
+  );
 
   const expected = 100 + 50 + 30 + 20;
   assert.equal(counter.seedWindowUsageFromHistory(limit, NOW_JAN), expected);
@@ -194,11 +201,19 @@ test("seed total excludes cache tokens (no double-count) (FIX 2)", async () => {
 
   // tokens_input ALREADY INCLUDES cache_read + cache_creation (these columns are a
   // breakdown, per migration 012). Billable = input + output + reasoning ONLY.
-  insertUsage("k2c", "anthropic", "claude-sonnet", 500, 200, new Date(Date.UTC(2026, 0, 12)).toISOString(), {
-    cacheRead: 300,
-    cacheCreation: 100,
-    reasoning: 40,
-  });
+  insertUsage(
+    "k2c",
+    "anthropic",
+    "claude-sonnet",
+    500,
+    200,
+    new Date(Date.UTC(2026, 0, 12)).toISOString(),
+    {
+      cacheRead: 300,
+      cacheCreation: 100,
+      reasoning: 40,
+    }
+  );
 
   // 500 + 200 + 40 = 740. Must NOT add cacheRead/cacheCreation again (would be 1140).
   assert.equal(counter.seedWindowUsageFromHistory(limit, NOW_JAN), 740);

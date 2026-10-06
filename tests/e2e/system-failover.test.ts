@@ -366,7 +366,7 @@ test.after(async () => {
   await serverA.stop();
   await serverB.stop();
   core.closeDbInstance();
-  await fsp.rm(TEST_DATA_DIR, { recursive: true, force: true });
+  await fsp.rm(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("primary healthy: request routes to Server A only", async () => {

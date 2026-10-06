@@ -204,6 +204,35 @@ export function getComboModelProvider(value: unknown): string | null {
   );
 }
 
+/**
+ * A pin without an allowlist is still a pin. After 502/429 the credential
+ * loop drops forcedConnectionId; without a list it scans the whole provider
+ * pool. Treat a missing/undefined/empty allowlist as [connectionId] when a
+ * pin is present. With no pin, [] stays [] (comboStructure drops it, same
+ * as omitted: whole pool).
+ */
+export function implicitPinAllowlist(
+  connectionId: string | null | undefined,
+  allowedConnectionIds: string[] | null | undefined
+): string[] | null {
+  const pin = typeof connectionId === "string" ? connectionId.trim() : "";
+  if (Array.isArray(allowedConnectionIds) && allowedConnectionIds.length > 0) {
+    return allowedConnectionIds;
+  }
+  if (pin.length > 0) return [pin];
+  return Array.isArray(allowedConnectionIds) ? [] : null;
+}
+
+/** Combo steps pin-fail-closed. Header-forced connections keep sibling fallback. */
+export function comboPinAllowlist(
+  isCombo: boolean,
+  forcedConnectionId: string | null | undefined,
+  allowedConnectionIds: string[] | null | undefined
+): string[] | null {
+  if (!isCombo) return allowedConnectionIds ?? null;
+  return implicitPinAllowlist(forcedConnectionId, allowedConnectionIds);
+}
+
 export function getComboStepTarget(
   value: unknown,
   options: NormalizeComboStepOptions = {}

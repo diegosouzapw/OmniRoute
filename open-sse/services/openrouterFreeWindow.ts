@@ -120,12 +120,54 @@ function pruneRpmWindow(state: AccountWindowState, now: number): void {
 }
 
 /**
+ * Lifetime-purchase threshold (USD) unlocking OpenRouter's 1000/day
+ * `:free`-model tier instead of the 50/day base tier.
+ * See https://openrouter.ai/docs/limits (`GET /api/v1/key` -> `is_free_tier`,
+ * `GET /api/v1/credits` -> `total_credits`/`total_usage`).
+ */
+export const OPENROUTER_PURCHASED_TIER_THRESHOLD = 10;
+
+/**
  * Operator override: declare whether $10+ has been purchased all-time on this
  * account, unlocking the 1000/day tier instead of the 50/day default.
  */
 export function setPurchasedTier(accountKey: string, purchasedAtLeast10: boolean): void {
   const state = getOrInitState(accountKey, Date.now());
   state.purchasedAtLeast10 = purchasedAtLeast10;
+}
+
+/**
+ * Sync the 50-vs-1000/day tier from OpenRouter quota signals.
+ *
+ * Primary signal is `total_credits` (`GET /api/v1/credits` ->
+ * `data.total_credits`, lifetime USD purchased): a finite value sets the tier
+ * to `totalCredits >= OPENROUTER_PURCHASED_TIER_THRESHOLD`.
+ *
+ * `is_free_tier` (`GET /api/v1/key`) alone is deliberately NOT enough to
+ * unlock the tier — it only means "has paid something before", not
+ * ">= $10 lifetime", so an account that paid e.g. $1 would be wrongly
+ * promoted. When `total_credits` is absent the state is left untouched
+ * (fail open) so a partial quota response can never downgrade an already
+ * unlocked bucket.
+ *
+ * @returns true when the tier was set from `total_credits`, false otherwise.
+ */
+export function syncPurchasedTierFromQuota(
+  accountKey: string,
+  signals:
+    | {
+        totalCredits?: number | null;
+        isFreeTier?: boolean | null;
+      }
+    | null
+    | undefined
+): boolean {
+  const totalCredits = signals?.totalCredits;
+  if (typeof totalCredits === "number" && Number.isFinite(totalCredits)) {
+    setPurchasedTier(accountKey, totalCredits >= OPENROUTER_PURCHASED_TIER_THRESHOLD);
+    return true;
+  }
+  return false;
 }
 
 /**

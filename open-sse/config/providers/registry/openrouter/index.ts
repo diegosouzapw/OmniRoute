@@ -9,6 +9,11 @@ export const openrouterProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   defaultContextLength: 128000,
+  // #11226: OpenRouter's /api/v1/models is PUBLIC (200 with any or no key), so the
+  // generic /models probe validated every key — even garbage ones — and bad keys
+  // only surfaced later as upstream 401 "User not found." on real chat traffic.
+  // /api/v1/auth/key is the authenticated key-info endpoint: 200 = valid, 401 = invalid.
+  testKeyModelsUrl: "https://openrouter.ai/api/v1/auth/key",
   headers: {
     "HTTP-Referer": "https://endpoint-proxy.local",
     "X-Title": "Endpoint Proxy",

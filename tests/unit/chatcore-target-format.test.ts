@@ -58,6 +58,18 @@ test("delegates byte-identically for a normal model (no apiFormat / no custom ov
   assert.deepEqual(r, expected("openai", "gpt-4o", undefined, undefined, undefined));
 });
 
+test("provider-local target format does not leak from another provider", () => {
+  const r = resolveChatCoreTargetFormat({
+    provider: "openai-compatible-chat-example",
+    resolvedModel: "gpt-5.6-sol",
+    apiFormat: undefined,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    customModelTargetFormat: undefined,
+    providerSpecificData: undefined,
+  });
+  assert.equal(r.targetFormat, FORMATS.OPENAI);
+});
+
 test("customModelTargetFormat is used when the model has no registry target format", () => {
   const customModel = "totally-unknown-custom-model-xyz";
   // precondition: the registry has no target format for this unknown model
@@ -113,6 +125,18 @@ test("#8994: customModelTargetFormat takes precedence over apiFormat='responses'
   });
   // BUG: apiFormat short-circuits before customModelTargetFormat is checked
   assert.equal(r.targetFormat, "claude", "model-level targetFormat must win over apiFormat");
+});
+
+test("a declared connection alternate overrides the inbound Responses protocol", () => {
+  const r = resolveChatCoreTargetFormat({
+    provider: "deepseek",
+    resolvedModel: "deepseek-v4-pro",
+    apiFormat: "responses",
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    customModelTargetFormat: undefined,
+    providerSpecificData: { targetFormat: FORMATS.CLAUDE },
+  });
+  assert.equal(r.targetFormat, FORMATS.CLAUDE);
 });
 
 test("unmapped provider → alias falls back to the provider id", () => {

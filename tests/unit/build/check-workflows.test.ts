@@ -39,6 +39,58 @@ function readQualityWorkflow(): string {
   return fs.readFileSync(qualityWorkflowPath, "utf8");
 }
 
+test("admission workflows do not enable setup-node's redundant package-manager cache", () => {
+  for (const workflow of ["ci", "quality"]) {
+    const source = fs.readFileSync(
+      new URL(`../../../.github/workflows/${workflow}.yml`, import.meta.url),
+      "utf8"
+    );
+    const steps = [
+      ...source.matchAll(
+        /(?:^|\n)      - uses: actions\/setup-node@[^\n]+\n        with:\n((?:          [^\n]*\n)+)/g
+      ),
+    ];
+    assert.ok(steps.length > 0);
+    assert.equal(
+      steps.length,
+      [...source.matchAll(/^      - uses: actions\/setup-node@/gm)].length
+    );
+    for (const [step, inputs] of steps) {
+      assert.match(inputs, /package-manager-cache: false/, step);
+      assert.doesNotMatch(inputs, /^\s*cache:/m, step);
+    }
+    const admission = source
+      .slice(source.indexOf("\n  admission-verdict:\n"))
+      .split("\n  ci-summary:")[0];
+    for (const action of ["checkout", "setup-node", "upload-artifact"]) {
+      assert.match(admission, new RegExp(`actions/${action}@[a-f0-9]{40}`));
+    }
+  }
+});
+
+test("integration candidates never restore PR dependency, lint or browser caches", () => {
+  for (const workflow of ["ci", "quality"]) {
+    const source = fs.readFileSync(
+      new URL(`../../../.github/workflows/${workflow}.yml`, import.meta.url),
+      "utf8"
+    );
+    const steps = source.split(/^      - /m).slice(1);
+    const installers = steps.filter((step) =>
+      step.includes("uses: ./.github/actions/npm-ci-retry")
+    );
+    assert.ok(installers.length > 0);
+    for (const step of installers) {
+      assert.match(step, /cache: \$\{\{ github\.event_name == 'pull_request' \}\}/);
+    }
+    const caches = steps.filter((step) => /uses: actions\/cache(?:\/restore)?@/.test(step));
+    assert.ok(caches.length > 0);
+    for (const step of caches) {
+      assert.match(step, /if: github\.event_name == 'pull_request'/);
+      assert.match(step, /uses: actions\/cache@[a-f0-9]{40}/);
+    }
+  }
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // parseActionlintOutput
 // ─────────────────────────────────────────────────────────────────────────────
@@ -91,10 +143,8 @@ test("parseActionlintOutput: preserves finding text exactly (trimmed)", () => {
 // parseZizmorOutput
 // ─────────────────────────────────────────────────────────────────────────────
 
-test("parseZizmorOutput: empty string returns count=0", () => {
-  const result = parseZizmorOutput("");
-  assert.equal(result.count, 0);
-  assert.deepEqual(result.diagnostics, []);
+test("parseZizmorOutput: empty output is not a measured zero", () => {
+  assert.throws(() => parseZizmorOutput(""), /invalid.*JSON/);
 });
 
 test("parseZizmorOutput: JSON with empty diagnostics array returns count=0", () => {
@@ -128,24 +178,17 @@ test("parseZizmorOutput: bare JSON array (older zizmor format) counts correctly"
   assert.equal(result.diagnostics.length, 3);
 });
 
-test("parseZizmorOutput: invalid JSON falls back to line counting", () => {
-  // Non-JSON output (e.g. text format or error message) — each non-empty line = 1
+test("parseZizmorOutput: invalid JSON cannot be interpreted as frozen findings", () => {
   const textOutput = "warning: unpinned action\nerror: script injection risk\n";
-  const result = parseZizmorOutput(textOutput);
-  assert.equal(result.count, 2);
-  // diagnostics is empty array in fallback mode
-  assert.deepEqual(result.diagnostics, []);
+  assert.throws(() => parseZizmorOutput(textOutput), /invalid.*JSON/);
 });
 
-test("parseZizmorOutput: JSON with unknown shape returns count=0 (graceful)", () => {
-  // Unexpected but valid JSON — neither array nor { diagnostics }
-  const result = parseZizmorOutput(JSON.stringify({ errors: [], warnings: [] }));
-  assert.equal(result.count, 0);
+test("parseZizmorOutput: unknown schema is incomplete, not zero findings", () => {
+  assert.throws(() => parseZizmorOutput(JSON.stringify({ errors: [], warnings: [] })), /schema/);
 });
 
-test("parseZizmorOutput: whitespace-only returns count=0", () => {
-  const result = parseZizmorOutput("   \n\t\n   ");
-  assert.equal(result.count, 0);
+test("parseZizmorOutput: whitespace-only is not a measured zero", () => {
+  assert.throws(() => parseZizmorOutput("   \n\t\n   "), /invalid.*JSON/);
 });
 
 test("parseZizmorOutput: large diagnostics array counted correctly", () => {
@@ -179,7 +222,7 @@ test("collectWorkflowFiles: returns .yml files from directory", () => {
     assert.ok(files.some((f) => f.endsWith("deploy.yml")));
     assert.ok(!files.some((f) => f.endsWith("README.md")));
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -194,7 +237,7 @@ test("collectWorkflowFiles: also collects .yaml extension", () => {
     assert.ok(files.some((f) => f.endsWith(".yaml")));
     assert.ok(files.some((f) => f.endsWith(".yml")));
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -206,7 +249,7 @@ test("collectWorkflowFiles: returns absolute paths", () => {
     assert.equal(files.length, 1);
     assert.ok(path.isAbsolute(files[0]));
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -216,7 +259,7 @@ test("collectWorkflowFiles: empty directory returns empty array", () => {
     const files = collectWorkflowFiles(dir);
     assert.deepEqual(files, []);
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -282,7 +325,7 @@ function withTmpBaseline(content: string | null, fn: (p: string) => void) {
   try {
     fn(p);
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 
@@ -292,7 +335,7 @@ test("readBaselineZizmorValue: reads metrics.zizmorFindings.value", () => {
   });
 });
 
-test("readBaselineZizmorValue: missing file returns null (graceful SKIP)", () => {
+test("readBaselineZizmorValue: missing file returns null (caller must reject incomplete ratchet)", () => {
   assert.equal(readZizmorBaseline("/tmp/does-not-exist-88888/quality-baseline.json"), null);
 });
 
@@ -318,32 +361,22 @@ test("readBaselineZizmorValue: invalid JSON returns null (does not throw)", () =
 // quality.yml — release PR build gate regression coverage (#7307)
 // ─────────────────────────────────────────────────────────────────────────────
 
-test("#7307 quality.yml adds an advisory production build for release PR code changes", () => {
+test("quality admission covers both bases and delegates required build/package checks to CI", () => {
   const source = readQualityWorkflow();
-  const buildJob = source.match(/\n  build:\n[\s\S]*?\n  # Docs\/OpenAPI contract gates only/);
-
-  assert.match(source, /pull_request:\n\s+branches: \["release\/\*\*"\]/);
-  assert.ok(buildJob, "quality.yml must define the build job before docs-gates");
-  assert.match(buildJob[0], /name: Build \(advisory\)/);
-  assert.match(buildJob[0], /needs: changes/);
-  assert.match(buildJob[0], /needs\.changes\.outputs\.code == 'true'/);
-  assert.match(buildJob[0], /github\.event\.pull_request\.draft == false/);
-  assert.match(buildJob[0], /startsWith\(github\.head_ref, 'mergify\/merge-queue\/'\)/);
-  assert.match(
-    buildJob[0],
-    /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/
+  assert.match(source, /pull_request:\n\s+branches: \[main, "release\/\*\*"\]/);
+  assert.match(source, /merge_group:\n\s+types: \[checks_requested\]/);
+  assert.doesNotMatch(source, /\n  build:\n/, "no permanently skipped duplicate build job");
+  const ci = fs.readFileSync(new URL("../../../.github/workflows/ci.yml", import.meta.url), "utf8");
+  const policy = JSON.parse(
+    fs.readFileSync(
+      new URL("../../../config/quality/admission-policy.json", import.meta.url),
+      "utf8"
+    )
   );
-  assert.match(buildJob[0], /fromJSON\('\["self-hosted","omni-release"\]'\) \|\| 'ubuntu-latest'/);
-  assert.match(buildJob[0], /continue-on-error: true/);
-  assert.match(buildJob[0], /uses: actions\/checkout@[0-9a-f]{40} # v7/);
-  assert.match(buildJob[0], /uses: actions\/setup-node@[0-9a-f]{40} # v7/);
-  assert.match(buildJob[0], /uses: \.\/\.github\/actions\/npm-ci-retry/);
-  assert.match(buildJob[0], /npm run check:node-runtime/);
-  assert.match(buildJob[0], /npm run build/);
-  assert.match(buildJob[0], /OMNIROUTE_USE_TURBOPACK: "1"/);
-  assert.doesNotMatch(buildJob[0], /actions\/upload-artifact/);
-  assert.match(
-    buildJob[0],
-    /remove\s+# continue-on-error after the production-build signal is stable/
-  );
+  for (const job of ["build", "package-artifact", "electron-package-smoke"]) {
+    assert.equal(policy.profiles.ci.jobs[job].disposition, "required", job);
+    assert.match(ci, new RegExp("\\n  " + job + ":\\n"), "CI implements " + job);
+  }
+  assert.match(ci, /npm run build/);
+  assert.match(ci, /npm run check:pack-boot/);
 });

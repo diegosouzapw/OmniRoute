@@ -100,6 +100,7 @@ describe("pipelineEngineBreaker — pipeline integration", () => {
       name: "throwing test engine",
       targets: ["messages"],
       stackable: true,
+      metadata: { executionStages: ["pre-translation"] },
       apply() {
         calls += 1;
         throw new Error("boom");

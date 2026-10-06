@@ -12,6 +12,7 @@ import {
   type AdaptiveAdmissionFailureOutcome,
   type AdaptiveAdmissionRuntime,
 } from "@omniroute/open-sse/services/admission/runtime.ts";
+import type { PerTargetAdmissionHook } from "@omniroute/open-sse/services/admission/types.ts";
 
 /** Single fairness bucket for unauthenticated / keyless traffic. Opaque; never a raw key. */
 export const ANONYMOUS_ADMISSION_TENANT_KEY = "anonymous";
@@ -26,7 +27,100 @@ export type ChatAdmissionContext = {
     request: { signal?: AbortSignal | null },
     body: unknown
   ): Promise<Response | null>;
+  /**
+   * #9654 Wave 2: build a per-target lane-aware admission probe for combo /
+   * fusion fan-out dispatch. Strictly non-blocking (maxWaitMs 0 — skip, never
+   * queue), a no-op when virtual lanes are off, and keyed to the PARENT's
+   * tenantKey so it gates the same per-tenant lane as this request's lease.
+   */
+  createPerTargetAdmissionHook(
+    apiKeyId: string | null | undefined,
+    request: { signal?: AbortSignal | null }
+  ): PerTargetAdmissionHook;
 };
+
+/**
+ * #9654 Wave 2: per-target fan-out admission probe.
+ *
+ * Combo and fusion dispatch N targets without consulting the adaptive-admission
+ * layer — the parent request holds one lease, but every fan-out target is
+ * dispatched unconditionally. With virtual lanes on, a tenant whose lane is
+ * full should SKIP additional fan-out targets instead of piling more queued work
+ * onto an already-congested lane.
+ *
+ * Probe semantics:
+ *   - strictly non-blocking: maxWaitMs 0 — if the lane can't admit right now,
+ *     the target is skipped, never queued;
+ *   - release-on-admit: the probe is a capacity gate, not a hold — the parent's
+ *     lease covers the fan-out, so the probe lease is released immediately;
+ *   - lanes-off no-op: the shared queue is the only gate, and the parent already
+ *     holds one lease there — probing would double-count and reject combo targets.
+ */
+function createPerTargetAdmissionHookImpl(
+  runtime: AdaptiveAdmissionRuntime,
+  tenantKey: string,
+  signal?: AbortSignal | null
+): PerTargetAdmissionHook {
+  // Lanes-off no-op: never probe the shared queue for fan-out targets (the
+  // parent request already holds the one lease that matters there). The flag
+  // comes from startup config, so read it once here — building a snapshot per
+  // fan-out target would be pure overhead on the default (lanes-off) path.
+  const lanesEnabled = runtime.snapshot().virtualLanes === true;
+
+  return async (target) => {
+    if (!lanesEnabled) return true;
+
+    try {
+      const streaming =
+        target.body !== null &&
+        typeof target.body === "object" &&
+        (target.body as { stream?: unknown }).stream === true;
+
+      const result = await runtime.acquire({
+        tenantKey,
+        body: target.body,
+        signal: signal ?? undefined,
+        // Price the class of the request the target will actually dispatch: fusion
+        // panel bodies carry stream:false (non-streaming class), priority/RR carry
+        // the user's flag. Without this the probe would under-estimate cost and
+        // admit more fan-out targets than the lane can truly afford (#9654 Q4).
+        streaming,
+        maxWaitMs: 0,
+      });
+      if (result.status === "admitted") {
+        // Capacity gate only — release the probe lease immediately.
+        result.lease.release("success");
+        return true;
+      }
+      return false;
+    } catch {
+      // Fail-open: admission is a capacity gate, not the source of truth. A
+      // hiccup in the admission layer must not take down the fan-out — the
+      // target simply dispatches ungated.
+      return true;
+    }
+  };
+}
+
+/** Public factory — build a probe against an explicit runtime (test seam). */
+export const createPerTargetAdmissionHook = createPerTargetAdmissionHookImpl;
+
+/**
+ * Module-level convenience for paths without a ChatAdmissionContext in scope
+ * (e.g. the safety-net combo redirect inside handleSingleModelChat). Resolves
+ * the process-global runtime + tenant key from the API key id, like the
+ * context method does.
+ */
+export function createPerTargetAdmissionHookForRequest(
+  apiKeyId: string | null | undefined,
+  request: { signal?: AbortSignal | null }
+): PerTargetAdmissionHook {
+  return createPerTargetAdmissionHookImpl(
+    getAdaptiveAdmissionRuntime(),
+    resolveAdmissionTenantKey(apiKeyId),
+    request?.signal ?? null
+  );
+}
 
 type AdmittedState = {
   runtime: AdaptiveAdmissionRuntime;
@@ -164,6 +258,9 @@ export function createChatAdmissionContext(
       const result = await runtime.acquire({
         tenantKey: resolveAdmissionTenantKey(apiKeyId),
         body,
+        // Callers pass the lifecycle signal explicitly as `request.signal`
+        // (chat.ts forwards `{ signal }`, the deadline-aware lifecycle signal), so the stream
+        // deadline reaches the admission wait without rebuilding a Request.
         signal: request?.signal ?? undefined,
         streaming,
       });
@@ -175,6 +272,13 @@ export function createChatAdmissionContext(
       state = { runtime, admitted: result };
       return null;
     },
+    createPerTargetAdmissionHook(apiKeyId, request) {
+      return createPerTargetAdmissionHookImpl(
+        getRuntime(),
+        resolveAdmissionTenantKey(apiKeyId),
+        request?.signal ?? null
+      );
+    },
   };
 }
 
@@ -183,7 +287,8 @@ type HandleChatImplementation = (
   clientRawRequest: any,
   preParsedBody: any,
   correlationId: string | undefined,
-  admissionContext: ChatAdmissionContext
+  admissionContext: ChatAdmissionContext,
+  lifecycleSignal?: AbortSignal | null
 ) => Promise<Response>;
 
 export type WithChatAdmissionOptions = {
@@ -202,18 +307,21 @@ export function withChatAdmission(
     request: any,
     clientRawRequest: any = null,
     preParsedBody: any = null,
-    correlationId?: string
+    correlationId?: string,
+    lifecycleSignal?: AbortSignal | null
   ): Promise<Response> {
     const admissionContext = createChatAdmissionContext(
       options.getRuntime ?? getAdaptiveAdmissionRuntime
     );
+    const effectiveSignal = lifecycleSignal ?? request?.signal ?? undefined;
     try {
       const response = await implementation(
         request,
         clientRawRequest,
         preParsedBody,
         correlationId,
-        admissionContext
+        admissionContext,
+        effectiveSignal
       );
       const admittedState = admissionContext.getAdmittedState();
       if (!admittedState) return response;
@@ -221,7 +329,7 @@ export function withChatAdmission(
       const { runtime, admitted } = admittedState;
       return runtime.attachResponseLifecycle(response, admitted.lease, {
         admittedAtMs: admitted.admittedAtMs,
-        signal: request?.signal ?? undefined,
+        signal: effectiveSignal,
       });
     } catch (err) {
       const admittedState = admissionContext.getAdmittedState();
@@ -229,7 +337,7 @@ export function withChatAdmission(
         const { runtime, admitted } = admittedState;
         runtime.releaseHandlerFailure(
           admitted.lease,
-          classifyHandlerFailure(err, request?.signal),
+          classifyHandlerFailure(err, effectiveSignal),
           { admittedAtMs: admitted.admittedAtMs }
         );
       }

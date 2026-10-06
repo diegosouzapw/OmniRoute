@@ -3,20 +3,24 @@
  * @description Unit tests for withEarlyStreamKeepalive (fast/slow path, frames, abort).
  *
  * @changes
- * - [2026-07-28] [Cursor Grok 4.5] - Assert brand-neutral startup thinking text (✨)
+ * - [2026-08-16] - Assert Responses startup and recurring keepalives are neutral JSON events
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  __getDeadlineTokenRegistrySizeForTests,
+  getDeadlineController,
+  withDeadlineSignal,
   withEarlyStreamKeepalive,
   ANTHROPIC_PING_FRAME,
   OPENAI_KEEPALIVE_FRAME,
   OPENAI_STARTUP_FRAME,
-  RESPONSES_STARTUP_THINKING_FRAME,
   OPENAI_CHAT_ERROR_FRAME,
   OPENAI_RESPONSES_ERROR_FRAME,
 } from "../../open-sse/utils/earlyStreamKeepalive.ts";
+import { takeEarlyKeepaliveBytes } from "../../open-sse/utils/earlyKeepaliveByteBuffer.ts";
+import { OPENAI_RESPONSES_IN_PROGRESS_FRAME } from "../../open-sse/utils/sseHeartbeat.ts";
 
 async function readAll(response: Response): Promise<string> {
   const reader = response.body!.getReader();
@@ -173,69 +177,143 @@ test("startupFrame defaults to keepaliveFrame when omitted (no behavior change)"
   );
 });
 
-// #7360 follow-up round 2: OpenClaw calls via /v1/responses (Responses API
-// format), which only had the generic bare-comment keepalive — a live
-// incident showed it disconnecting after ~56s waiting on a slow gemma-4
-// response. RESPONSES_STARTUP_THINKING_FRAME gives Responses-API clients the
-// same real-content keepalive OpenAI chat/completions already got, as a
-// self-contained (opened AND closed within this one frame) synthetic
-// reasoning item — it never claims a response_id, so it can't collide with
-// the real response's own independent response.created lifecycle that follows.
-test("RESPONSES_STARTUP_THINKING_FRAME is a self-closed synthetic reasoning item with the expected text", () => {
-  const decoded = new TextDecoder().decode(RESPONSES_STARTUP_THINKING_FRAME);
-  const events = decoded
-    .split("\n\n")
-    .filter(Boolean)
-    .map((frame) => {
-      const [eventLine, dataLine] = frame.split("\n");
-      return {
-        event: eventLine.replace(/^event: /, ""),
-        data: JSON.parse(dataLine.replace(/^data: /, "")),
-      };
-    });
+// Responses clients need both frequent raw bytes and occasional parsed events while
+// upstream readiness is pending. Keep those cadences separate: comments cover the
+// short idle-read timeout, while sparse response.in_progress events reset parsers that
+// ignore comments without flooding the application event stream.
+test("slow Responses handler uses comments plus sparse in_progress events", async () => {
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse('data: {"type":"response.completed"}\n\n')), 900);
+  });
 
-  assert.deepEqual(
-    events.map((e) => e.event),
-    [
-      "response.output_item.added",
-      "response.reasoning_summary_part.added",
-      "response.reasoning_summary_text.delta",
-      "response.reasoning_summary_part.done",
-    ]
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 20,
+    intervalMs: 250,
+    startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+    applicationKeepalive: {
+      frame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+      intervalMs: 500,
+    },
+  });
+
+  const body = await readAll(result);
+  const frames = body.split("\n\n").filter(Boolean);
+  const earlyFrames = frames.slice(0, -1);
+  // #14330: the frame now carries a required `sequence_number` and `response`
+  // object so a strict Responses decoder does not abort on it.
+  assert.deepEqual(JSON.parse(earlyFrames[0].slice("data: ".length)), {
+    type: "response.in_progress",
+    sequence_number: 1,
+    response: { id: null, status: "in_progress" },
+  });
+  assert.ok(
+    earlyFrames.some((frame) => frame === ": keepalive"),
+    "transport ticks must remain lightweight SSE comments"
   );
-
-  const [added, partAdded, delta, partDone] = events;
-  assert.equal(added.data.item.type, "reasoning");
-  const itemId = added.data.item.id;
-  assert.ok(itemId, "reasoning item must have an id");
-
-  assert.equal(partAdded.data.item_id, itemId);
-  assert.equal(delta.data.item_id, itemId);
-  assert.equal(delta.data.delta, "✨");
-  assert.equal(partDone.data.item_id, itemId);
-  assert.equal(partDone.data.part.text, "✨");
+  const applicationFrames = earlyFrames.filter((frame) => frame.startsWith("data: "));
+  assert.ok(applicationFrames.length >= 2, "expected startup and sparse application keepalives");
+  for (const frame of applicationFrames) {
+    assert.deepEqual(JSON.parse(frame.slice("data: ".length)), {
+      type: "response.in_progress",
+      sequence_number: 1,
+      response: { id: null, status: "in_progress" },
+    });
+    assert.doesNotMatch(frame, /output_item|reasoning|✨/);
+  }
+  assert.ok(
+    applicationFrames.length < earlyFrames.length,
+    "application events must be sparser than transport heartbeats"
+  );
+  assert.match(body, /data: {"type":"response.completed"}/, "real upstream body forwarded");
 });
 
-test("slow handler emits the Responses API startup frame before the real body", async () => {
+test("a correlationId records the startup frame and keepalive ticks, but not the forwarded body", async () => {
+  const correlationId = "corr-record-test-1";
   const slow = new Promise<Response>((resolve) => {
     setTimeout(
       () => resolve(sseResponse("event: response.created\ndata: {}\n\ndata: [DONE]\n\n")),
-      120
+      650
     );
   });
 
   const result = await withEarlyStreamKeepalive(slow, {
     thresholdMs: 25,
-    intervalMs: 20,
-    startupFrame: RESPONSES_STARTUP_THINKING_FRAME,
+    intervalMs: 250,
+    startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+    applicationKeepalive: {
+      frame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+      intervalMs: 500,
+    },
+    correlationId,
+  });
+  await readAll(result);
+
+  const recorded = takeEarlyKeepaliveBytes(correlationId).join("");
+  assert.match(
+    recorded,
+    /data: {"type":"response\.in_progress","sequence_number":1,"response":/,
+    "startup frame must be recorded"
+  );
+  assert.match(recorded, /: keepalive/, "transport heartbeat must be recorded");
+  assert.doesNotMatch(
+    recorded,
+    /event: response\.created/,
+    "the verbatim-forwarded real body must NOT be recorded here — the handler's own reqLogger already captures it, and double-recording would duplicate it in the persisted artifact"
+  );
+});
+
+test("omitting correlationId leaves the buffer untouched (today's behavior, unchanged)", async () => {
+  const correlationId = "corr-record-test-omitted";
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("event: response.created\ndata: {}\n\n")), 65);
   });
 
-  const body = await readAll(result);
-  assert.match(body, /event: response\.output_item\.added/);
-  assert.match(body, /✨/);
-  assert.match(body, /event: response\.reasoning_summary_part\.done/);
-  assert.match(body, /event: response\.created/, "should forward the real upstream body");
-  assert.match(body, /data: \[DONE\]/);
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 20,
+    keepaliveFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+    startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+  });
+  await readAll(result);
+
+  assert.deepEqual(takeEarlyKeepaliveBytes(correlationId), []);
+});
+
+// A correlation id records the chat-frames variant (startup plus keepalive
+// ticks) but not the forwarded body — mirrors the responses-frames variant above
+// for the exact frames the /v1/chat/completions route passes.
+test("a correlationId records the chat startup frame and keepalive ticks", async () => {
+  const correlationId = "corr-record-chat-frames-1";
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse('data: {"id":"chatcmpl-real"}\n\ndata: [DONE]\n\n')), 650);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 250,
+    keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
+    startupFrame: OPENAI_STARTUP_FRAME,
+    errorFrame: OPENAI_CHAT_ERROR_FRAME,
+    correlationId,
+  });
+  await readAll(result);
+
+  const recorded = takeEarlyKeepaliveBytes(correlationId).join("");
+  assert.match(
+    recorded,
+    /data: \{"id":"chatcmpl-keepalive","object":"chat\.completion\.chunk"/,
+    "startup frame must be recorded"
+  );
+  assert.equal(
+    (recorded.match(/chatcmpl-keepalive/g) || []).length >= 2,
+    true,
+    "startup frame plus at least one recurring keepalive tick must be recorded"
+  );
+  assert.doesNotMatch(
+    recorded,
+    /chatcmpl-real/,
+    "the verbatim-forwarded real body must NOT be recorded here — the handler's own reqLogger already captures it, and double-recording would duplicate it in the persisted artifact"
+  );
 });
 
 test("slow handler emits the custom keepaliveFrame (Anthropic ping) before the body", async () => {
@@ -384,4 +462,272 @@ test("aborting the client signal stops the keepalive stream (#2544)", async () =
   })();
   const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000));
   assert.equal(await Promise.race([drained, timed]), true, "stream should close after abort");
+});
+
+// Last-resort slow-path deadline: a handler that never resolves must not hold the
+// client stream forever. At slowPathDeadlineMs the wrapper aborts the internal
+// deadline controller (observable here because the test wires the helper-built
+// controller straight into the wrapper), emits the route's errorFrame, closes the
+// stream, and records exactly one correlated warn.
+test("slow-path deadline emits errorFrame, aborts the deadline controller, warns once", async () => {
+  const { wrappedReq, deadlineController } = withDeadlineSignal(
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "m", stream: true }),
+    })
+  );
+  assert.equal(deadlineController.signal.aborted, false);
+  const warnings: Array<{ tag: string; message: string }> = [];
+  const never = new Promise<Response>(() => {
+    /* handler that never resolves */
+  });
+
+  const result = await withEarlyStreamKeepalive(never, {
+    thresholdMs: 10,
+    intervalMs: 15,
+    signal: wrappedReq.signal,
+    slowPathDeadlineMs: 50,
+    deadlineController,
+    errorFrame: OPENAI_CHAT_ERROR_FRAME,
+    correlationId: "test-corr-1",
+    log: { warn: (tag, message) => warnings.push({ tag, message }) },
+  });
+  assert.equal(result.status, 200);
+
+  const body = await readAll(result);
+  assert.match(body, /^data: /m, "deadline must emit the route error frame");
+  assert.match(body, /"error":/, "deadline frame must carry the error payload");
+  assert.equal(deadlineController.signal.aborted, true, "deadline must abort the controller");
+  assert.equal(warnings.length, 1, "exactly one warn at expiration");
+  assert.match(warnings[0]!.tag, /EARLY_KEEPALIVE/);
+  assert.match(warnings[0]!.message, /test-corr-1/);
+});
+
+// A handler that resolves under the deadline takes the normal path: verbatim
+// forward, no error frame, no warn, timer cleaned up.
+test("handler resolving under the deadline forwards with no error and no warn", async () => {
+  const { deadlineController } = withDeadlineSignal(
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "m", stream: true }),
+    })
+  );
+  const warnings: Array<{ tag: string; message: string }> = [];
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 60);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 10,
+    intervalMs: 15,
+    slowPathDeadlineMs: 5000,
+    deadlineController,
+    errorFrame: OPENAI_CHAT_ERROR_FRAME,
+    correlationId: "test-corr-2",
+    log: { warn: (tag, message) => warnings.push({ tag, message }) },
+  });
+  const body = await readAll(result);
+  assert.match(body, /data: \[DONE\]/, "real body must be forwarded");
+  assert.doesNotMatch(body, /"error":/, "no error frame when resolved in time");
+  assert.equal(warnings.length, 0, "no warn when resolved in time");
+  assert.equal(deadlineController.signal.aborted, false, "no abort when resolved in time");
+});
+
+// slowPathDeadlineMs <= 0 disables the deadline: a slow handler keeps the normal
+// slow path with no abort and no warn.
+test("slowPathDeadlineMs <= 0 disables the deadline", async () => {
+  const { deadlineController } = withDeadlineSignal(
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "m", stream: true }),
+    })
+  );
+  const warnings: Array<{ tag: string; message: string }> = [];
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 80);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 10,
+    intervalMs: 15,
+    slowPathDeadlineMs: 0,
+    deadlineController,
+    log: { warn: (tag, message) => warnings.push({ tag, message }) },
+  });
+  const body = await readAll(result);
+  assert.match(body, /data: \[DONE\]/);
+  assert.equal(warnings.length, 0, "disabled deadline must never warn");
+  assert.equal(deadlineController.signal.aborted, false, "disabled deadline must never abort");
+});
+
+// A client abort before the deadline keeps the existing disconnect path: no
+// error frame, no deadline warn, timer cleaned up.
+test("client abort before the deadline emits no error frame and no deadline warn", async () => {
+  const clientController = new AbortController();
+  const { wrappedReq, deadlineController } = withDeadlineSignal(
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "m", stream: true }),
+      signal: clientController.signal,
+    })
+  );
+  const warnings: Array<{ tag: string; message: string }> = [];
+  const never = new Promise<Response>(() => {
+    /* handler that never resolves */
+  });
+
+  const result = await withEarlyStreamKeepalive(never, {
+    thresholdMs: 10,
+    intervalMs: 15,
+    signal: wrappedReq.signal,
+    slowPathDeadlineMs: 5000,
+    deadlineController,
+    log: { warn: (tag, message) => warnings.push({ tag, message }) },
+  });
+  const reader = result.body!.getReader();
+  await reader.read();
+  clientController.abort();
+  const drained = (async () => {
+    while (true) {
+      const { done } = await reader.read();
+      if (done) return true;
+    }
+  })();
+  const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000));
+  assert.equal(await Promise.race([drained, timed]), true, "stream should close after abort");
+  assert.equal(warnings.length, 0, "client abort must not emit a deadline warn");
+  assert.equal(
+    deadlineController.signal.aborted,
+    false,
+    "client abort must not trip the deadline controller"
+  );
+});
+
+// The rebuild-fallback token map is keyed by strings, so without an explicit
+// release every streamed request left one entry behind forever. After N requests
+// through the wrapper — fast path, slow path, deadline expiry and client abort —
+// the map must be back to its original size, and the released token must no
+// longer resolve through a header-only lookup.
+test("deadline token registry returns to its original size after N requests", async () => {
+  const baseline = __getDeadlineTokenRegistrySizeForTests();
+  const makeReq = (signal?: AbortSignal) =>
+    new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+      signal,
+    });
+  const N = 20;
+  let lastHeaders: Headers | null = null;
+  for (let i = 0; i < N; i += 1) {
+    // fast path
+    {
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq());
+      lastHeaders = wrappedReq.headers;
+      const r = await withEarlyStreamKeepalive(Promise.resolve(sseResponse("data: [DONE]\n\n")), {
+        thresholdMs: 50,
+        signal: wrappedReq.signal,
+        deadlineController,
+      });
+      await readAll(r);
+    }
+    // slow path, handler resolves
+    {
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq());
+      const slow = new Promise<Response>((resolve) =>
+        setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 20)
+      );
+      const r = await withEarlyStreamKeepalive(slow, {
+        thresholdMs: 5,
+        intervalMs: 50,
+        signal: wrappedReq.signal,
+        deadlineController,
+      });
+      await readAll(r);
+    }
+    // deadline expiry
+    {
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq());
+      const r = await withEarlyStreamKeepalive(new Promise<Response>(() => {}), {
+        thresholdMs: 5,
+        intervalMs: 50,
+        signal: wrappedReq.signal,
+        slowPathDeadlineMs: 15,
+        deadlineController,
+        errorFrame: OPENAI_CHAT_ERROR_FRAME,
+      });
+      await readAll(r);
+    }
+    // client abort
+    {
+      const client = new AbortController();
+      const { wrappedReq, deadlineController } = withDeadlineSignal(makeReq(client.signal));
+      const r = await withEarlyStreamKeepalive(new Promise<Response>(() => {}), {
+        thresholdMs: 5,
+        intervalMs: 50,
+        signal: wrappedReq.signal,
+        slowPathDeadlineMs: 5000,
+        deadlineController,
+      });
+      const reader = r.body!.getReader();
+      await reader.read();
+      client.abort();
+      while (!(await reader.read()).done) {
+        /* drain */
+      }
+    }
+  }
+  assert.equal(
+    __getDeadlineTokenRegistrySizeForTests(),
+    baseline,
+    "every request must release its deadline token entry"
+  );
+  assert.equal(
+    getDeadlineController({ headers: lastHeaders! }),
+    null,
+    "a released token must not resolve through the header fallback"
+  );
+});
+
+// Regression guard for the #14808 incident (2026-09-26): under the Next.js
+// App Router, inbound route requests are Proxies around the real request
+// (dynamic "auto" rendering). `withDeadlineSignal` must NOT pass the proxy
+// itself as the `new Request` constructor input — undici reads `#state` on
+// the receiver and ECMAScript mandates that a Proxy has no private-field
+// slots, so the wrap throws
+// "TypeError: Cannot read private member #state from an object whose class
+// did not declare it". The wrap is built field-by-field instead; this test
+// pins that form. Bug-injection check: restoring `new Request(request, …)`
+// makes this test throw (verified during review).
+test("withDeadlineSignal wraps a Next-style proxied request without throwing", async () => {
+  const body = JSON.stringify({ model: "space-grok", messages: [{ role: "user", content: "hi" }] });
+  const req = new Request("http://localhost/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Custom": "keep-me" },
+    body,
+  });
+  // Mirror the Next.js app-route runtime trap: every get forwards with the
+  // receiver forced to the target (not the proxy), which is what makes
+  // property reads safe while native private-field access on the proxy
+  // receiver is not.
+  const proxied = new Proxy(req, {
+    get(target, prop, _receiver) {
+      return Reflect.get(target, prop, target);
+    },
+  });
+  const { wrappedReq, deadlineController } = withDeadlineSignal(proxied);
+  assert.equal(wrappedReq.method, "POST");
+  assert.equal(wrappedReq.url, "http://localhost/v1/chat/completions");
+  assert.equal(wrappedReq.headers.get("Content-Type"), "application/json");
+  assert.equal(wrappedReq.headers.get("X-Custom"), "keep-me");
+  assert.ok(wrappedReq.headers.get("x-deadline-token") !== null);
+  // Body survived the wrap and is readable end-to-end.
+  const text = await wrappedReq.text();
+  assert.equal(text, body);
+  // The deadline token mechanism still resolves the controller downstream.
+  assert.equal(getDeadlineController({ headers: wrappedReq.headers }), deadlineController);
 });

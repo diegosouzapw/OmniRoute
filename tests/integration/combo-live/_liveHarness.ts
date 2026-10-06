@@ -46,18 +46,18 @@ const IN_SCOPE_PROVIDERS = new Set([
 
 // Provider → sensible default model (fallback when default_model is null).
 const PROVIDER_DEFAULT_MODELS: Record<string, string> = {
-  "claude": "claude-3-5-haiku-20241022",
-  "glm": "glm-4-flash",
-  "minimax": "minimax-text-01",
+  claude: "claude-3-5-haiku-20241022",
+  glm: "glm-4-flash",
+  minimax: "minimax-text-01",
   "kimi-coding-apikey": "moonshot-v1-8k",
   "ollama-cloud": "llama3.2:3b",
   "opencode-go": "gpt-4o-mini",
-  "gemini": "gemini-2.0-flash-lite",
-  "deepseek": "deepseek-chat",
-  "groq": "llama-3.1-8b-instant",
-  "cerebras": "llama-3.1-8b",
-  "openrouter": "openai/gpt-4o-mini",
-  "together": "meta-llama/Llama-3-8b-chat-hf",
+  gemini: "gemini-2.0-flash-lite",
+  deepseek: "deepseek-chat",
+  groq: "llama-3.1-8b-instant",
+  cerebras: "llama-3.1-8b",
+  openrouter: "openai/gpt-4o-mini",
+  together: "meta-llama/Llama-3-8b-chat-hf",
 };
 
 // ---------------------------------------------------------------------------
@@ -79,9 +79,11 @@ export type ComboModelEntry = {
   connectionId: string;
 };
 
-export type LiveHarness = {
-  LIVE_ENABLED: false;
-} | LiveHarnessEnabled;
+export type LiveHarness =
+  | {
+      LIVE_ENABLED: false;
+    }
+  | LiveHarnessEnabled;
 
 export type LiveHarnessEnabled = {
   LIVE_ENABLED: true;
@@ -146,12 +148,12 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
       }
     }
   } catch (err: any) {
-    fs.rmSync(snapshotDir, { recursive: true, force: true });
+    fs.rmSync(snapshotDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     throw new Error(`[liveHarness] Failed to fetch VPS secrets via ssh: ${err.message}`);
   }
 
   if (!storageEncryptionKey || !apiKeySecret) {
-    fs.rmSync(snapshotDir, { recursive: true, force: true });
+    fs.rmSync(snapshotDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     throw new Error(
       "[liveHarness] Could not parse STORAGE_ENCRYPTION_KEY or API_KEY_SECRET from VPS .env"
     );
@@ -176,13 +178,11 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
   const snapshotDbPath = path.join(snapshotDir, "storage.sqlite");
 
   try {
-    execFileSync(
-      "scp",
-      ["root@192.168.0.15:/root/.omniroute/storage.sqlite", snapshotDbPath],
-      { timeout: 60_000 }
-    );
+    execFileSync("scp", ["root@192.168.0.15:/root/.omniroute/storage.sqlite", snapshotDbPath], {
+      timeout: 60_000,
+    });
   } catch (err: any) {
-    fs.rmSync(snapshotDir, { recursive: true, force: true });
+    fs.rmSync(snapshotDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     throw new Error(`[liveHarness] Failed to scp production DB: ${err.message}`);
   }
 
@@ -262,7 +262,10 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
     });
   }
 
-  function liveBody(model: string, overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  function liveBody(
+    model: string,
+    overrides: Record<string, unknown> = {}
+  ): Record<string, unknown> {
     return {
       model,
       stream: false,
@@ -400,7 +403,7 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
     resetAllCircuitBreakers();
     core.resetDbInstance();
     // Destroy the snapshot — targets only the temp dir, NEVER /root/.omniroute.
-    fs.rmSync(snapshotDir, { recursive: true, force: true });
+    fs.rmSync(snapshotDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 
   // Populate the map eagerly so servedProvider (sync) works right after

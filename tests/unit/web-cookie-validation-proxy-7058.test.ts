@@ -14,7 +14,7 @@
 // This test proves the cookie-validation probe reaches a local forward proxy
 // (via a real CONNECT tunnel — the same mechanism undici uses for both HTTP and
 // HTTPS targets) when one is configured via HTTP_PROXY, exactly like the
-// specialty web-cookie validators (chatgpt-web, grok-web, ...) already do via
+// specialty web-cookie validators (grok-web, perplexity-web, etc.) already do via
 // validationRead/validationWrite.
 import test from "node:test";
 import assert from "node:assert/strict";

@@ -2,8 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from "react";
-import dynamic from "next/dynamic";
+import { useState, useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
@@ -20,9 +19,7 @@ import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
 import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
 import { shouldShowProviderTopologyOnHome } from "./homeAppearance";
-
-const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
-import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
+import HomeRecentRequests from "../home/HomeRecentRequests";
 
 type UpdateStep = {
   step: string;
@@ -37,7 +34,6 @@ type VersionInfo = {
   channel: string;
   autoUpdateSupported: boolean;
   autoUpdateError?: string | null;
-  news?: NewsAnnouncement | null;
 };
 
 type HomePageClientProps = {
@@ -110,6 +106,12 @@ const INLINE_LINK = "text-primary hover:underline";
 const DOCS_LINK =
   "hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors";
 
+// Stable no-op subscription for useSyncExternalStore reads of never-changing
+// browser globals (location.origin does not change without a full navigation).
+function emptySubscribe() {
+  return () => {};
+}
+
 export default function HomePageClient({ machineId }: HomePageClientProps) {
   const router = useRouter();
   const isElectron = useIsElectron();
@@ -119,7 +121,13 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [providerConnections, setProviderConnections] = useState([]);
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [baseUrl, setBaseUrl] = useState("/v1");
+  // useSyncExternalStore keeps SSR/hydration consistent ("/v1" on the server,
+  // the real origin after hydration) without a setState-in-effect round-trip.
+  const baseUrl = useSyncExternalStore(
+    emptySubscribe,
+    () => `${globalThis.location.origin}/v1`,
+    () => "/v1"
+  );
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [providerMetrics, setProviderMetrics] = useState<Record<string, ProviderMetricSummary>>({});
   const [providerTopology, setProviderTopology] = useState({ lastProvider: "", errorProvider: "" });
@@ -139,36 +147,39 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   // Platform detection and download links for Electron
   const platform =
     typeof globalThis.window === "undefined" ? undefined : globalThis.window.electronAPI?.platform;
+  // Destructured to locals: `versionInfo?.current` in a dependency array trips
+  // the lint heuristic that treats any `.current` access as a mutable ref read.
+  const installedVersion = versionInfo?.current || "";
+  const latestVersion = versionInfo?.latest || "";
   const electronDownload = useMemo(() => {
-    const latest = versionInfo?.latest || "";
-    const cleanLatest = latest.replace(/^v/, "");
+    const cleanLatest = latestVersion.replace(/^v/, "");
     if (platform === "darwin") {
       return {
         label: t("downloadDmg"),
         url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute-${cleanLatest}.dmg`,
-        desc: t("downloadDmgDescription", { version: versionInfo?.current || "" }),
+        desc: t("downloadDmgDescription", { version: installedVersion }),
       };
     }
     if (platform === "win32") {
       return {
         label: t("downloadExe"),
         url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute.Setup.${cleanLatest}.exe`,
-        desc: t("downloadExeDescription", { version: versionInfo?.current || "" }),
+        desc: t("downloadExeDescription", { version: installedVersion }),
       };
     }
     if (platform === "linux") {
       return {
         label: t("downloadAppImage"),
         url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute-${cleanLatest}.AppImage`,
-        desc: t("downloadAppImageDescription", { version: versionInfo?.current || "" }),
+        desc: t("downloadAppImageDescription", { version: installedVersion }),
       };
     }
     return {
       label: t("downloadUpdate"),
       url: `https://github.com/diegosouzapw/OmniRoute/releases/tag/v${cleanLatest}`,
-      desc: t("downloadUpdateDescription", { version: versionInfo?.current || "" }),
+      desc: t("downloadUpdateDescription", { version: installedVersion }),
     };
-  }, [platform, t, versionInfo?.latest, versionInfo?.current]);
+  }, [platform, t, latestVersion, installedVersion]);
 
   // Electron internal auto-updater state and listeners
   const [electronUpdateStatus, setElectronUpdateStatus] = useState<{
@@ -204,13 +215,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [updatePhase, setUpdatePhase] = useState<"idle" | "running" | "done" | "failed">("idle");
 
   // Appearance settings for home page pinning
-  const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
   const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true); // default on
   // #4596: default hidden until appearance settings load, so the live-WS
   // topology connection is never opened before we know the user wants it.
   const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(false);
-  const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
-  const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
   const [appearanceSettingsLoaded, setAppearanceSettingsLoaded] = useState(false);
 
   useEffect(() => {
@@ -219,9 +227,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       .then((r) => (r.ok ? r.json() : {}))
       .then((data) => {
         if (data) {
-          if (typeof data.pinProviderQuotaToHome === "boolean") {
-            setPinProviderQuotaToHome(data.pinProviderQuotaToHome);
-          }
           if (typeof data.showQuickStartOnHome === "boolean") {
             setShowQuickStartOnHome(data.showQuickStartOnHome);
           }
@@ -234,12 +239,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           setShowProviderTopologyOnHome(
             shouldShowProviderTopologyOnHome(data.showProviderTopologyOnHome)
           );
-          if (typeof data.autoRefreshProviderQuota === "boolean") {
-            setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
-          }
-          if (typeof data.autoRefreshProviderQuotaInterval === "number") {
-            setAutoRefreshProviderQuotaInterval(data.autoRefreshProviderQuotaInterval);
-          }
         }
       })
       .catch(() => {
@@ -248,12 +247,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       .finally(() => {
         setAppearanceSettingsLoaded(true);
       });
-  }, []);
-
-  useEffect(() => {
-    if (typeof globalThis.window !== "undefined") {
-      setBaseUrl(`${globalThis.location.origin}/v1`);
-    }
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -283,7 +276,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    void (async () => {
+      await fetchData();
+    })();
   }, [fetchData]);
 
   // Fetch provider nodes for display labels (compat providers)
@@ -1047,47 +1042,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                 </div>
               )}
           </div>
-
-          {/* News Notification Banner */}
-          {versionInfo?.news && (
-            <div className="flex min-h-[64px] items-center justify-between rounded-lg border border-border bg-surface px-5 py-4">
-              <div className="flex min-w-0 items-center gap-4">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-bg text-text-muted">
-                  <span className="material-symbols-outlined text-[22px] text-primary">
-                    {versionInfo.news.icon || "campaign"}
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-text-main">{versionInfo.news.title}</p>
-                  <p className="mt-0.5 max-w-[560px] text-xs leading-relaxed text-text-muted">
-                    {versionInfo.news.message}
-                  </p>
-                </div>
-              </div>
-
-              {versionInfo.news.link && (
-                <a
-                  href={versionInfo.news.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-4 inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-bg px-4 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary/30 hover:text-primary"
-                >
-                  {versionInfo.news.linkLabel || t("readMore")}
-                  <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                </a>
-              )}
-            </div>
-          )}
         </div>
-      )}
-
-      {/* Pinned Provider Quota Limits */}
-      {pinProviderQuotaToHome && (
-        <Suspense fallback={<CardSkeleton />}>
-          <ProviderQuotaWidget
-            autoRefreshInterval={autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0}
-          />
-        </Suspense>
       )}
 
       {/* Quick Start (controlled by Appearance setting, default on) */}
@@ -1183,12 +1138,15 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       )}
 
       {showProviderTopologyOnHome && (
-        <HomeProviderTopologySection
-          providers={topologyProviders}
-          lastProvider={lastProvider}
-          errorProvider={errorProvider}
-          enabled={showProviderTopologyOnHome}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-3">
+          <HomeProviderTopologySection
+            providers={topologyProviders}
+            lastProvider={lastProvider}
+            errorProvider={errorProvider}
+            enabled={showProviderTopologyOnHome}
+          />
+          <HomeRecentRequests enabled={showProviderTopologyOnHome} />
+        </div>
       )}
 
       {/* Provider Models Modal */}

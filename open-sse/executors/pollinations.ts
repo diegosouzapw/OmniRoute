@@ -3,6 +3,29 @@ import { PROVIDERS } from "../config/constants.ts";
 import { DEFAULT_POOL_CONFIG } from "../services/sessionPool/types.ts";
 import type { ExecuteInput } from "./base.ts";
 
+/** Premium Pollinations models — upstream answers 401 UNAUTHORIZED without a key. */
+const PREMIUM_MODELS = new Set([
+  "claude",
+  "claude-fast",
+  "claude-large",
+  "gemini",
+  "gemini-fast",
+  "midijourney",
+  "midijourney-large",
+]);
+
+/** Build the actionable 401 error shown when a premium model is used without a key. */
+function premiumModelRequiresKeyError(model: string): Error {
+  const enhanced = new Error(
+    `Pollinations model "${model}" requires an API key. ` +
+      `Free keyless models: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. ` +
+      `Get a Pollinations API key at https://enter.pollinations.ai and add it in Settings → API Keys.`
+  );
+  (enhanced as any).status = 401;
+  (enhanced as any).type = "authentication_error";
+  return enhanced;
+}
+
 export class PollinationsExecutor extends BaseExecutor {
   constructor() {
     super("pollinations", PROVIDERS["pollinations"] || { format: "openai" });
@@ -11,9 +34,7 @@ export class PollinationsExecutor extends BaseExecutor {
 
   buildUrl(_model: string, _stream: boolean, urlIndex = 0, _credentials = null): string {
     const baseUrls = this.getBaseUrls();
-    return (
-      baseUrls[urlIndex] || baseUrls[0] || "https://gen.pollinations.ai/v1/chat/completions"
-    );
+    return baseUrls[urlIndex] || baseUrls[0] || "https://gen.pollinations.ai/v1/chat/completions";
   }
 
   buildHeaders(credentials: any, stream = true): Record<string, string> {
@@ -54,6 +75,15 @@ export class PollinationsExecutor extends BaseExecutor {
 
     if (!isAnonymous) {
       return super.execute(input);
+    }
+
+    // #9827 — premium models require a key upstream (verified: 401 UNAUTHORIZED).
+    // Fail fast with guidance instead of dispatching an anonymous request whose
+    // 401 would be recorded against the keyless connection's health and flip the
+    // anonymous pool to "all accounts unavailable".
+    const requestedModel = input.model || "";
+    if (PREMIUM_MODELS.has(requestedModel)) {
+      throw premiumModelRequiresKeyError(requestedModel);
     }
 
     const pool = this.getPool();
@@ -98,17 +128,9 @@ export class PollinationsExecutor extends BaseExecutor {
       }
       // Enhance 401 errors with actionable guidance
       if (err?.status === 401 || err?.statusCode === 401) {
-        const premiumModels = ["claude", "claude-fast", "claude-large", "gemini", "gemini-fast", "midijourney", "midijourney-large"];
         const model = input.model || "";
-        if (premiumModels.includes(model)) {
-          const enhanced = new Error(
-            `Pollinations model "${model}" requires an API key. ` +
-            `Free keyless models: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. ` +
-            `Get a Pollinations API key at https://enter.pollinations.ai and add it in Settings → API Keys.`
-          );
-          (enhanced as any).status = 401;
-          (enhanced as any).type = "authentication_error";
-          throw enhanced;
+        if (PREMIUM_MODELS.has(model)) {
+          throw premiumModelRequiresKeyError(model);
         }
       }
       throw err;

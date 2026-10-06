@@ -18,17 +18,26 @@ export function buildCacheUsageLogMeta(usage: Record<string, unknown> | null | u
     usage.prompt_tokens_details && typeof usage.prompt_tokens_details === "object"
       ? (usage.prompt_tokens_details as Record<string, unknown>)
       : undefined;
+  // `cache_write_tokens` is the cache-creation alias emitted by OpenRouter, Devin
+  // Desktop and the codex-chatgpt-web bridge; without it an OpenAI-shaped usage
+  // payload logged a cache write of 0 for a model that actually reported one.
   const hasCacheFields =
     "cache_read_input_tokens" in usage ||
     "cached_tokens" in usage ||
     "cache_creation_input_tokens" in usage ||
+    "cache_write_tokens" in usage ||
     (!!promptTokenDetails &&
-      ("cached_tokens" in promptTokenDetails || "cache_creation_tokens" in promptTokenDetails));
+      ("cached_tokens" in promptTokenDetails ||
+        "cache_creation_tokens" in promptTokenDetails ||
+        "cache_write_tokens" in promptTokenDetails));
   const cacheReadTokens = toPositiveNumber(
     usage.cache_read_input_tokens ?? usage.cached_tokens ?? promptTokenDetails?.cached_tokens
   );
   const cacheCreationTokens = toPositiveNumber(
-    usage.cache_creation_input_tokens ?? promptTokenDetails?.cache_creation_tokens
+    usage.cache_creation_input_tokens ??
+      promptTokenDetails?.cache_creation_tokens ??
+      promptTokenDetails?.cache_write_tokens ??
+      usage.cache_write_tokens
   );
   if (!hasCacheFields) return null;
   return {

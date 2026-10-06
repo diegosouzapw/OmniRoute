@@ -34,7 +34,12 @@ test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
     for (const entry of fs.readdirSync(TEST_DATA_DIR)) {
-      fs.rmSync(path.join(TEST_DATA_DIR, entry), { recursive: true, force: true });
+      fs.rmSync(path.join(TEST_DATA_DIR, entry), {
+        recursive: true,
+        force: true,
+        maxRetries: 5,
+        retryDelay: 100,
+      });
     }
   }
 });

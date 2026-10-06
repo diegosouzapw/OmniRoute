@@ -7,7 +7,12 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getServiceRow, updateServiceField, setToolStatus } from "@/lib/db/versionManager";
 import { RingBuffer } from "./ringBuffer";
 import { HealthChecker } from "./healthCheck";
-import { decidePreSpawn, probeBeforeSpawn, resolvePortPid } from "./portProbe";
+import {
+  decidePreSpawn,
+  isAdoptExistingEnabled,
+  probeBeforeSpawn,
+  resolvePortPid,
+} from "./portProbe";
 import type { ServiceConfig, ServiceState, ServiceStatus, LogLine, HealthState } from "./types";
 
 const CRASH_FAST_THRESHOLD_MS = 5_000;
@@ -111,7 +116,7 @@ export class ServiceSupervisor extends EventEmitter {
       // Opt-in per ServiceConfig so the default spawn path is unchanged.
       if (this.config.probeBeforeSpawn) {
         const probe = await probeBeforeSpawn(this.config.healthUrl(), this.config.port);
-        const decision = decidePreSpawn(probe, this.config.port);
+        const decision = decidePreSpawn(probe, this.config.port, isAdoptExistingEnabled());
 
         if (decision.action === "adopt") {
           // Something healthy already serves this port. We didn't spawn it,

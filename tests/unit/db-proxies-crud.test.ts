@@ -17,7 +17,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: any) {
@@ -38,7 +38,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("proxy CRUD redacts secrets by default and preserves stored credentials when omitted", async () => {
@@ -223,11 +223,22 @@ test("proxy health stats aggregate proxy_logs and force delete removes assignmen
     type: "http",
     host: "stats.local",
     port: 8080,
+    status: "active",
     totalRequests: 3,
     successCount: 1,
     errorCount: 1,
     timeoutCount: 1,
     successRate: 33.33,
+    connectionTests: 0,
+    connectionTestSuccess: 0,
+    realRequests: 3,
+    measuredRequests: 0,
+    measured: false,
+    transportOk: 1,
+    transportFailures: 2,
+    transportRate: null,
+    upstream4xx: 0,
+    upstream5xx: 0,
     avgLatencyMs: 250,
     lastSeenAt: now,
   });
@@ -258,7 +269,7 @@ test("assignProxyToScope normalizes key scope, supports removal, and blocks dele
 
   await assert.rejects(
     () => proxiesDb.deleteProxyById(proxy.id),
-    /Remove assignments first or use force=true/
+    /Remove assignments or account references first, or use force=true/
   );
 
   const removed = await proxiesDb.assignProxyToScope("key", (connection as any).id, null);

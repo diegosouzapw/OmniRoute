@@ -1,3 +1,4 @@
+import { flattenOpenAIToolRootAnyOf } from "../services/toolSchemaSanitizer.ts";
 import { DefaultExecutor } from "./default.ts";
 import type { ProviderCredentials } from "./base.ts";
 
@@ -103,6 +104,7 @@ export function normalizeMoonshotRequest(model: string, body: unknown): unknown 
   if (!normalizedModel.startsWith("kimi-")) return body;
 
   const next: JsonRecord = { ...record };
+  if (Array.isArray(next.tools)) next.tools = flattenOpenAIToolRootAnyOf(next.tools);
   const isK3 = /^kimi-k3(?:$|-)/.test(normalizedModel);
   const isK27 = /^kimi-k2\.7-code(?:$|-)/.test(normalizedModel);
   const isK26 = /^kimi-k2\.6(?:$|-)/.test(normalizedModel);

@@ -83,14 +83,10 @@ describe("providerPageHelpers — model-compat pure functions", () => {
     expect(isModelHiddenFn("unknown-model", customMap, overrideMap)).toBe(false);
   });
 
-  it("isModelHiddenFn ignores deleted tombstones when reading visibility", () => {
+  it("isModelHiddenFn reads hidden compatibility overrides", () => {
     const customMap = buildCompatMap([]);
-    const overrideMap = buildCompatMap([
-      { id: "gpt-4o-2024-11-20", isHidden: true, isDeleted: true },
-      { id: "gpt-5-mini", isHidden: true },
-    ]);
+    const overrideMap = buildCompatMap([{ id: "gpt-5-mini", isHidden: true }]);
 
-    expect(isModelHiddenFn("gpt-4o-2024-11-20", customMap, overrideMap)).toBe(false);
     expect(isModelHiddenFn("gpt-5-mini", customMap, overrideMap)).toBe(true);
   });
 

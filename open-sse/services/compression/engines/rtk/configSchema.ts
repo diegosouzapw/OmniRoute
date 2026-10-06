@@ -67,6 +67,22 @@ export const RTK_SCHEMA: EngineConfigField[] = [
     ],
   },
   {
+    key: "rawOutputMaxFiles",
+    type: "number",
+    label: "Max raw-output files (oldest purged beyond this)",
+    defaultValue: DEFAULT_RTK_CONFIG.rawOutputMaxFiles,
+    min: 1,
+    max: 10_000_000,
+  },
+  {
+    key: "rawOutputMaxAgeDays",
+    type: "number",
+    label: "Max raw-output age (days)",
+    defaultValue: DEFAULT_RTK_CONFIG.rawOutputMaxAgeDays,
+    min: 1,
+    max: 3650,
+  },
+  {
     key: "enableRenderers",
     type: "boolean",
     label: "Semantic renderers",
@@ -112,6 +128,11 @@ export function validateRtkEngineConfig(config: Record<string, unknown>): Engine
     config.rawOutputRetention !== "always"
   ) {
     errors.push("rawOutputRetention must be never, failures, or always");
+  }
+  for (const key of ["rawOutputMaxFiles", "rawOutputMaxAgeDays"]) {
+    if (config[key] !== undefined && (typeof config[key] !== "number" || config[key] < 1)) {
+      errors.push(`${key} must be a positive number`);
+    }
   }
   return { valid: errors.length === 0, errors };
 }

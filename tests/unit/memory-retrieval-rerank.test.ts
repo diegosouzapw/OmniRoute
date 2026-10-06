@@ -32,7 +32,7 @@ const core = await import("../../src/lib/db/core.ts");
 function cleanup() {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -40,7 +40,7 @@ function cleanup() {
 test.afterEach(() => cleanup());
 test.after(() => {
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -144,7 +144,12 @@ test("retrieveMemories: large result set is token-budget capped before any reran
   const db = core.getDbInstance();
   // Insert 20 memories
   for (let i = 1; i <= 20; i++) {
-    insertMemory(db, `large-${i}`, "api-large", `Content number ${i} with enough words to use tokens.`);
+    insertMemory(
+      db,
+      `large-${i}`,
+      "api-large",
+      `Content number ${i} with enough words to use tokens.`
+    );
   }
 
   const { retrieveMemories } = await import("../../src/lib/memory/retrieval.ts");

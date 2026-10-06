@@ -18,7 +18,7 @@
 export async function resolveConnectionProvider(connectionId: string): Promise<string> {
   try {
     // Lazy import — avoids circular deps and keeps the module loadable without a full DB.
-    const { getCachedProviderConnectionById } = await import("@/lib/localDb");
+    const { getCachedProviderConnectionById } = await import("@/lib/db/readCache");
     if (typeof getCachedProviderConnectionById === "function") {
       const conn = await getCachedProviderConnectionById(connectionId);
       if (conn && typeof (conn as { provider?: string }).provider === "string") {

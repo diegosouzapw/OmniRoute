@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { resolveProviderAlias } from "@omniroute/open-sse/services/model.ts";
+import { parseReasoningEffortsOverride } from "@/shared/reasoning/reasoningEffortsOverride";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import {
   listModelCapabilityOverrides,
   removeModelCapabilityOverride,
   setModelCapabilityOverride,
-  type ModelCapabilityOverride,
   type ModelCapabilityOverrideKey,
 } from "@/lib/db/modelCapabilityOverrides";
 import {
@@ -16,9 +16,21 @@ import {
 } from "@/lib/db/modelContextOverrides";
 import { getProviderPrefixIndex, type ProviderPrefixEntry } from "@/lib/providerNodePrefixes";
 
-const overrideKeySchema = z.enum(["context_length", "max_input_tokens", "max_output_tokens"]);
+const overrideKeySchema = z.enum([
+  "context_length",
+  "max_input_tokens",
+  "max_output_tokens",
+  "reasoning_efforts",
+]);
 type PublicOverrideKey = z.infer<typeof overrideKeySchema>;
-type PublicOverride = Omit<ModelCapabilityOverride, "key"> & { key: PublicOverrideKey };
+type PublicOverride = {
+  provider: string;
+  modelId: string;
+  target: string;
+  key: PublicOverrideKey;
+  value: number | string[];
+  refreshedAt: string;
+};
 
 /**
  * One-time per-request snapshot of the provider-node prefix index. Loaded once
@@ -79,11 +91,27 @@ async function listPublicOverrides(
     .sort((left, right) => right.refreshedAt.localeCompare(left.refreshedAt));
 }
 
-const upsertOverrideSchema = z.object({
-  target: z.string().min(3),
-  key: overrideKeySchema,
-  value: z.coerce.number().int().positive(),
+const reasoningEffortsValueSchema = z.string().transform((value, context) => {
+  const parsed = parseReasoningEffortsOverride(value);
+  if (!parsed.ok) {
+    context.addIssue({ code: "custom", message: parsed.error });
+    return z.NEVER;
+  }
+  return parsed.efforts;
 });
+
+const upsertOverrideSchema = z.discriminatedUnion("key", [
+  z.object({
+    target: z.string().min(3),
+    key: z.enum(["context_length", "max_input_tokens", "max_output_tokens"]),
+    value: z.coerce.number().int().positive(),
+  }),
+  z.object({
+    target: z.string().min(3),
+    key: z.literal("reasoning_efforts"),
+    value: reasoningEffortsValueSchema,
+  }),
+]);
 
 /**
  * Canonicalize a public `<prefix>/<model>` target to `<internalNodeId>/<model>`

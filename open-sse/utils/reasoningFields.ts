@@ -21,45 +21,61 @@ export function extractReasoningDetailsText(value: unknown): string {
     .join("");
 }
 
-export function getReadableReasoningValue(value: unknown): string {
+/**
+ * Consolidated reasoning field extraction - single pass returns all categories
+ * to avoid 3-5 separate object traversals per chunk.
+ */
+export interface ReasoningFields {
+  readable: string;
+  unsupported: string;
+  any: string;
+  hasUnsupportedSignal: boolean;
+  hasAnySignal: boolean;
+}
+
+export function extractReasoningFields(value: unknown): ReasoningFields {
   const record = asReasoningRecord(value);
-  return nonEmptyString(record.reasoning_content) || nonEmptyString(record.reasoning);
+
+  const readable = nonEmptyString(record.reasoning_content) || nonEmptyString(record.reasoning);
+  const reasoningText = nonEmptyString(record.reasoning_text);
+  const thinking = nonEmptyString(record.thinking);
+  const thought = nonEmptyString(record.thought);
+  const details = extractReasoningDetailsText(record);
+
+  const unsupported = reasoningText || thinking || thought || details;
+  const any = readable || unsupported;
+
+  const hasUnsupportedSignal = !!(
+    !readable &&
+    (reasoningText ||
+      thinking ||
+      thought ||
+      (Array.isArray(record.reasoning_details) && record.reasoning_details.length > 0))
+  );
+  const hasAnySignal = !!any;
+
+  return { readable, unsupported, any, hasUnsupportedSignal, hasAnySignal };
+}
+
+/** Back-compat wrappers for existing callers - delegate to consolidated extractor. */
+export function getReadableReasoningValue(value: unknown): string {
+  return extractReasoningFields(value).readable;
 }
 
 export function getUnsupportedReasoningValue(value: unknown): string {
-  const record = asReasoningRecord(value);
-  return (
-    nonEmptyString(record.reasoning_text) ||
-    nonEmptyString(record.thinking) ||
-    nonEmptyString(record.thought) ||
-    extractReasoningDetailsText(record)
-  );
+  return extractReasoningFields(value).unsupported;
 }
 
 export function getAnyReasoningValue(value: unknown): string {
-  return getReadableReasoningValue(value) || getUnsupportedReasoningValue(value);
+  return extractReasoningFields(value).any;
 }
 
 export function hasUnsupportedReasoningSignal(value: unknown): boolean {
-  const record = asReasoningRecord(value);
-  return Boolean(
-    !getReadableReasoningValue(record) &&
-    (nonEmptyString(record.reasoning_text) ||
-      nonEmptyString(record.thinking) ||
-      nonEmptyString(record.thought) ||
-      (Array.isArray(record.reasoning_details) && record.reasoning_details.length > 0))
-  );
+  return extractReasoningFields(value).hasUnsupportedSignal;
 }
 
 export function hasAnyReasoningSignal(value: unknown): boolean {
-  const record = asReasoningRecord(value);
-  return Boolean(
-    getReadableReasoningValue(record) ||
-    nonEmptyString(record.reasoning_text) ||
-    nonEmptyString(record.thinking) ||
-    nonEmptyString(record.thought) ||
-    (Array.isArray(record.reasoning_details) && record.reasoning_details.length > 0)
-  );
+  return extractReasoningFields(value).hasAnySignal;
 }
 
 const STRIPPABLE_REASONING_FIELDS = [
@@ -95,7 +111,14 @@ export function copyOpenAICompatibleReasoningFields(source: JsonRecord, target: 
   if (source.thinking !== undefined) target.thinking = source.thinking;
   if (source.thought !== undefined) target.thought = source.thought;
   if (Array.isArray(source.reasoning_details)) target.reasoning_details = source.reasoning_details;
-  if (!getReadableReasoningValue(target)) {
+  // Mirror unsupported reasoning aliases (reasoning_text / thinking / thought /
+  // reasoning_details[].text) into the client-readable reasoning_content field.
+  // Only the presence of an existing reasoning_content blocks this — NOT the
+  // `reasoning` string. OpenRouter thinking models return BOTH `reasoning` and
+  // `reasoning_details[].text`; previously `reasoning` alone short-circuited the
+  // promotion, so reasoning_content was never set and thinking traces were lost
+  // for clients (e.g. opencode) that only read reasoning_content.
+  if (!nonEmptyString(target.reasoning_content)) {
     const mirrored = getUnsupportedReasoningValue(source);
     if (mirrored) target.reasoning_content = mirrored;
   }

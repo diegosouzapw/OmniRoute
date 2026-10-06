@@ -20,6 +20,7 @@ import {
   normalizeQuotaPreflightSettings,
   normalizeStreamRecoverySettings,
   normalizeProviderQuotaOverrides,
+  normalizeCredentialHealthCheckSettings,
 } from "./settings/normalize";
 
 // Re-export the settings shape (moved to ./settings/types) so this module's
@@ -36,13 +37,24 @@ export type {
   StreamRecoverySettings,
   StreamThroughputWatchdogSettings,
   ProviderQuotaOverrideSettings,
+  CredentialHealthCheckSettings,
   ResilienceSettings,
   ResilienceSettingsPatch,
 } from "./settings/types";
 
 export const DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS = (() => {
-  const parsed = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || "15000");
-  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 15000;
+  const parsed = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || "30000");
+  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 30000;
+})();
+
+// Limiter-managed execution backstop (Bottleneck `expiration`). Deliberately
+// separate from the queue-wait budget: non-incremental gateways (Console Go /
+// Command Code) buffer whole generations before first bytes, so legitimate
+// executions run minutes. Default 10 min; the backstop only catches executors
+// without their own upstream timeout.
+export const DEFAULT_REQUEST_QUEUE_EXECUTION_MAX_WAIT_MS = (() => {
+  const parsed = Number(process.env.RATE_LIMIT_EXECUTION_MAX_WAIT_MS || "600000");
+  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 600000;
 })();
 
 // Issue #6593: opt-in admission cap on the local rate-limit queue depth.
@@ -58,7 +70,9 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     requestsPerMinute: DEFAULT_API_LIMITS.requestsPerMinute,
     minTimeBetweenRequestsMs: DEFAULT_API_LIMITS.minTimeBetweenRequests,
     concurrentRequests: DEFAULT_API_LIMITS.concurrentRequests,
+    globalConcurrentRequests: 0,
     maxWaitMs: DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS,
+    executionMaxWaitMs: DEFAULT_REQUEST_QUEUE_EXECUTION_MAX_WAIT_MS,
     maxQueueDepth: DEFAULT_REQUEST_QUEUE_MAX_DEPTH,
   },
   connectionCooldown: {
@@ -169,6 +183,13 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
   // provider registered in providerDefaultRateLimit.ts) uses its static
   // default until an operator adds an override here.
   providerQuotaOverrides: {},
+  // Global default cadence for the background credential health check sweep.
+  // 60 minutes: the sweep makes a real upstream probe against EVERY active
+  // connection, so the previous 5-minute default cost 12 requests/hour per
+  // connection. 0 disables the sweep entirely. Per-connection overrides win.
+  credentialHealthCheck: {
+    intervalMinutes: 60,
+  },
 };
 
 function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
@@ -208,7 +229,10 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
         DEFAULT_RESILIENCE_SETTINGS.requestQueue.concurrentRequests,
         { min: 1, max: 10_000 }
       ),
+      globalConcurrentRequests:
+        DEFAULT_RESILIENCE_SETTINGS.requestQueue.globalConcurrentRequests,
       maxWaitMs: DEFAULT_RESILIENCE_SETTINGS.requestQueue.maxWaitMs,
+      executionMaxWaitMs: DEFAULT_RESILIENCE_SETTINGS.requestQueue.executionMaxWaitMs,
       maxQueueDepth: DEFAULT_RESILIENCE_SETTINGS.requestQueue.maxQueueDepth,
     },
     connectionCooldown: {
@@ -267,6 +291,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
     quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
     streamRecovery: streamRecoveryDefaults,
     providerQuotaOverrides: DEFAULT_RESILIENCE_SETTINGS.providerQuotaOverrides,
+    credentialHealthCheck: DEFAULT_RESILIENCE_SETTINGS.credentialHealthCheck,
   };
 }
 
@@ -350,6 +375,10 @@ export function resolveResilienceSettings(
       current.providerQuotaOverrides,
       fallback.providerQuotaOverrides
     ),
+    credentialHealthCheck: normalizeCredentialHealthCheckSettings(
+      current.credentialHealthCheck,
+      fallback.credentialHealthCheck
+    ),
   };
 }
 
@@ -400,6 +429,10 @@ export function mergeResilienceSettings(
     providerQuotaOverrides: normalizeProviderQuotaOverrides(
       updates.providerQuotaOverrides,
       current.providerQuotaOverrides
+    ),
+    credentialHealthCheck: normalizeCredentialHealthCheckSettings(
+      updates.credentialHealthCheck,
+      current.credentialHealthCheck
     ),
   };
 }

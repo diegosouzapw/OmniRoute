@@ -1,5 +1,5 @@
 import { apiFetch } from "../api.mjs";
-import { loadContexts, saveContexts } from "../contexts.mjs";
+import { loadContexts, saveContextsSecure } from "../contexts.mjs";
 import { createPrompt, printSuccess, printError, printInfo } from "../io.mjs";
 import { t } from "../i18n.mjs";
 
@@ -31,7 +31,9 @@ export function normalizeBaseUrl(host, port) {
 
 /** Derive a clean context name from a host (strip scheme/port). */
 export function hostLabel(host) {
-  let value = String(host || "").trim().replace(/^https?:\/\//i, "");
+  let value = String(host || "")
+    .trim()
+    .replace(/^https?:\/\//i, "");
   value = value.split("/")[0].split(":")[0];
   return value || "remote";
 }
@@ -107,7 +109,7 @@ export async function runConnectCommand(host, opts = {}) {
     description: `Remote OmniRoute (${host})`,
   };
   cfg.currentContext = name;
-  saveContexts(cfg);
+  await saveContextsSecure(cfg);
 
   printSuccess(`Connected to ${baseUrl} — context '${name}' (scope: ${scope})`);
   printInfo("All commands now target this server.");

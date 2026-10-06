@@ -51,7 +51,7 @@ test("MCP server bundle has no top-level static import of ioredis", () => {
       bundled,
       /^import\s+.*["']ioredis["'];?\s*$/m,
       "MCP bundle must not eagerly (statically) import 'ioredis' at the top level — " +
-        "it must stay a lazy `await import(\"ioredis\")` (see src/lib/quota/redisQuotaStore.ts)"
+        'it must stay a lazy `await import("ioredis")` (see src/lib/quota/redisQuotaStore.ts)'
     );
 
     // The lazy dynamic import from redisQuotaStore.ts must still be present —
@@ -62,6 +62,6 @@ test("MCP server bundle has no top-level static import of ioredis", () => {
       "expected the existing lazy dynamic import of ioredis to remain in the bundle"
     );
   } finally {
-    rmSync(outDir, { recursive: true, force: true });
+    rmSync(outDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

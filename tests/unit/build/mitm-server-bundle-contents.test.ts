@@ -31,7 +31,7 @@ test("EXTRA_MODULE_ENTRIES ships every relative require() of MITM server.cjs (#9
       );
     }
   } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -69,6 +69,6 @@ test("EXTRA_MODULE_ENTRIES ships every dynamic import() of MITM _internal shims 
       );
     }
   } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

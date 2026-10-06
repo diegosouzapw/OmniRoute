@@ -43,7 +43,7 @@ function stubFetch(seen: { proxyUrl: string | null | undefined }[], gate?: () =>
 test.after(() => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#7350 handleRerank routes the upstream call through the connection's pinned proxy", async () => {

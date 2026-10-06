@@ -1,0 +1,661 @@
+{
+  "entries": {
+    "1min": {
+      "className": "OneMinAiExecutor",
+      "configSource": "oneminai",
+      "provider": "oneminai"
+    },
+    "9router": {
+      "className": "NineRouterExecutor",
+      "configSource": "<custom-config>",
+      "provider": "9router"
+    },
+    "adapta-web": {
+      "className": "AdaptaWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "adapta-web"
+    },
+    "adobe-firefly": {
+      "className": "AdobeFireflyExecutor",
+      "configSource": "<custom-config>",
+      "provider": "adobe-firefly"
+    },
+    "adp-web": {
+      "className": "AdaptaWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "adapta-web"
+    },
+    "agy": {
+      "className": "AntigravityExecutor",
+      "configSource": "antigravity",
+      "provider": "antigravity"
+    },
+    "amazon-q": {
+      "className": "KiroExecutor",
+      "configSource": "kiro",
+      "provider": "amazon-q"
+    },
+    "antigravity": {
+      "className": "AntigravityExecutor",
+      "configSource": "antigravity",
+      "provider": "antigravity"
+    },
+    "auggie": {
+      "className": "AuggieExecutor",
+      "configSource": "<custom-config>",
+      "provider": "auggie"
+    },
+    "azure-ai": {
+      "className": "AzureAiExecutor",
+      "configSource": "openai",
+      "provider": "azure-ai"
+    },
+    "azure-openai": {
+      "className": "AzureOpenAIExecutor",
+      "configSource": "openai",
+      "provider": "azure-openai"
+    },
+    "bb-web": {
+      "className": "BlackboxWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "blackbox-web"
+    },
+    "bedrock": {
+      "className": "BedrockExecutor",
+      "configSource": "bedrock",
+      "provider": "bedrock"
+    },
+    "blackbox-web": {
+      "className": "BlackboxWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "blackbox-web"
+    },
+    "cbcn": {
+      "className": "CodeBuddyCnExecutor",
+      "configSource": "codebuddy-cn",
+      "provider": "codebuddy-cn"
+    },
+    "cf": {
+      "className": "CloudflareAIExecutor",
+      "configSource": "cloudflare-ai",
+      "provider": "cloudflare-ai"
+    },
+    "cfp": {
+      "className": "CloudflarePlaygroundExecutor",
+      "configSource": "<custom-config>",
+      "provider": "cloudflare-playground"
+    },
+    "cgpt-codex": {
+      "className": "ChatGptWebCodexExecutor",
+      "configSource": "<custom-config>",
+      "provider": "chatgpt-web-codex"
+    },
+    "chatgpt-web": {
+      "className": "ChatGptWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "chatgpt-web"
+    },
+    "chatgpt-web-codex": {
+      "className": "ChatGptWebCodexExecutor",
+      "configSource": "<custom-config>",
+      "provider": "chatgpt-web-codex"
+    },
+    "cheaperinference": {
+      "className": "CheaperInferenceExecutor",
+      "configSource": "cheaperinference",
+      "provider": "cheaperinference"
+    },
+    "cinf": {
+      "className": "CheaperInferenceExecutor",
+      "configSource": "cheaperinference",
+      "provider": "cheaperinference"
+    },
+    "claude-web": {
+      "className": "ClaudeWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "claude-web"
+    },
+    "cliproxyapi": {
+      "className": "CliproxyapiExecutor",
+      "configSource": "<custom-config>",
+      "provider": "cliproxyapi"
+    },
+    "cloudflare-ai": {
+      "className": "CloudflareAIExecutor",
+      "configSource": "cloudflare-ai",
+      "provider": "cloudflare-ai"
+    },
+    "cloudflare-playground": {
+      "className": "CloudflarePlaygroundExecutor",
+      "configSource": "<custom-config>",
+      "provider": "cloudflare-playground"
+    },
+    "clova-studio": {
+      "className": "ClovaStudioExecutor",
+      "configSource": "clova-studio",
+      "provider": "clova-studio"
+    },
+    "cmd": {
+      "className": "CommandCodeExecutor",
+      "configSource": "<custom-config>",
+      "provider": "command-code"
+    },
+    "cnl": {
+      "className": "ConolWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "conol-web"
+    },
+    "codebuddy-cn": {
+      "className": "CodeBuddyCnExecutor",
+      "configSource": "codebuddy-cn",
+      "provider": "codebuddy-cn"
+    },
+    "codex": {
+      "className": "CodexExecutor",
+      "configSource": "codex",
+      "provider": "codex"
+    },
+    "codex-app-server": {
+      "className": "CodexAppServerExecutor",
+      "configSource": "codex-app-server",
+      "provider": "codex-app-server"
+    },
+    "command-code": {
+      "className": "CommandCodeExecutor",
+      "configSource": "<custom-config>",
+      "provider": "command-code"
+    },
+    "conol-web": {
+      "className": "ConolWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "conol-web"
+    },
+    "copilot": {
+      "className": "CopilotWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "copilot-web"
+    },
+    "copilot-m365-web": {
+      "className": "CopilotM365WebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "copilot-m365-web"
+    },
+    "copilot-web": {
+      "className": "CopilotWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "copilot-web"
+    },
+    "cpa": {
+      "className": "CliproxyapiExecutor",
+      "configSource": "<custom-config>",
+      "provider": "cliproxyapi"
+    },
+    "cu": {
+      "className": "CursorExecutor",
+      "configSource": "cursor",
+      "provider": "cursor"
+    },
+    "cua": {
+      "className": "CursorExecutor",
+      "configSource": "cursor-api",
+      "provider": "cursor-api"
+    },
+    "cursor": {
+      "className": "CursorExecutor",
+      "configSource": "cursor",
+      "provider": "cursor"
+    },
+    "cursor-api": {
+      "className": "CursorExecutor",
+      "configSource": "cursor-api",
+      "provider": "cursor-api"
+    },
+    "cw-web": {
+      "className": "ClaudeWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "claude-web"
+    },
+    "dario": {
+      "className": "DarioExecutor",
+      "configSource": "<custom-config>",
+      "provider": "dario"
+    },
+    "db": {
+      "className": "DoubaoWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "doubao-web"
+    },
+    "ddgw": {
+      "className": "DuckDuckGoWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "duckduckgo-web"
+    },
+    "deepseek-web": {
+      "className": "DeepSeekWebWithAutoRefreshExecutor",
+      "configSource": "<custom-config>",
+      "provider": "deepseek-web"
+    },
+    "devin": {
+      "className": "DevinCliExecutor",
+      "configSource": "<custom-config>",
+      "provider": "devin-cli"
+    },
+    "devin-cli": {
+      "className": "DevinCliExecutor",
+      "configSource": "<custom-config>",
+      "provider": "devin-cli"
+    },
+    "devin-cli-agentic": {
+      "className": "DevinCliAgenticExecutor",
+      "configSource": "<custom-config>",
+      "provider": "devin-cli-agentic"
+    },
+    "devin-desktop": {
+      "className": "DevinDesktopExecutor",
+      "configSource": "devin-desktop",
+      "provider": "devin-desktop"
+    },
+    "doubao-web": {
+      "className": "DoubaoWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "doubao-web"
+    },
+    "dr": {
+      "className": "DarioExecutor",
+      "configSource": "<custom-config>",
+      "provider": "dario"
+    },
+    "ds-web": {
+      "className": "DeepSeekWebWithAutoRefreshExecutor",
+      "configSource": "<custom-config>",
+      "provider": "deepseek-web"
+    },
+    "duckduckgo-web": {
+      "className": "DuckDuckGoWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "duckduckgo-web"
+    },
+    "fb": {
+      "className": "FreebuffExecutor",
+      "configSource": "freebuff",
+      "provider": "freebuff"
+    },
+    "firefly": {
+      "className": "AdobeFireflyExecutor",
+      "configSource": "<custom-config>",
+      "provider": "adobe-firefly"
+    },
+    "freebuff": {
+      "className": "FreebuffExecutor",
+      "configSource": "freebuff",
+      "provider": "freebuff"
+    },
+    "gc": {
+      "className": "GrokCliExecutor",
+      "configSource": "grok-cli",
+      "provider": "grok-cli"
+    },
+    "gemini-web": {
+      "className": "GeminiWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "gemini-web"
+    },
+    "ghe-copilot": {
+      "className": "GheCopilotExecutor",
+      "configSource": "<custom-config>",
+      "provider": "ghe-copilot"
+    },
+    "github": {
+      "className": "GithubExecutor",
+      "configSource": "github",
+      "provider": "github"
+    },
+    "gitlab": {
+      "className": "GitlabExecutor",
+      "configSource": "<custom-config>",
+      "provider": "gitlab"
+    },
+    "gitlab-duo": {
+      "className": "GitlabExecutor",
+      "configSource": "<custom-config>",
+      "provider": "gitlab-duo"
+    },
+    "glm": {
+      "className": "GlmExecutor",
+      "configSource": "glm",
+      "provider": "glm"
+    },
+    "glm-cn": {
+      "className": "GlmExecutor",
+      "configSource": "glm-cn",
+      "provider": "glm-cn"
+    },
+    "glmt": {
+      "className": "GlmExecutor",
+      "configSource": "glmt",
+      "provider": "glmt"
+    },
+    "grok-cli": {
+      "className": "GrokCliExecutor",
+      "configSource": "grok-cli",
+      "provider": "grok-cli"
+    },
+    "grok-web": {
+      "className": "GrokWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "grok-web"
+    },
+    "gweb": {
+      "className": "GeminiWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "gemini-web"
+    },
+    "ha": {
+      "className": "HyperAgentExecutor",
+      "configSource": "<custom-config>",
+      "provider": "hyperagent"
+    },
+    "hc": {
+      "className": "HuggingChatExecutor",
+      "configSource": "<custom-config>",
+      "provider": "huggingchat"
+    },
+    "huggingchat": {
+      "className": "HuggingChatExecutor",
+      "configSource": "<custom-config>",
+      "provider": "huggingchat"
+    },
+    "hyperagent": {
+      "className": "HyperAgentExecutor",
+      "configSource": "<custom-config>",
+      "provider": "hyperagent"
+    },
+    "in-ai": {
+      "className": "InnerAiExecutor",
+      "configSource": "<custom-config>",
+      "provider": "inner-ai"
+    },
+    "inner-ai": {
+      "className": "InnerAiExecutor",
+      "configSource": "<custom-config>",
+      "provider": "inner-ai"
+    },
+    "kimi": {
+      "className": "MoonshotExecutor",
+      "configSource": "kimi",
+      "provider": "kimi"
+    },
+    "kimi-coding": {
+      "className": "KimiExecutor",
+      "configSource": "kimi-coding",
+      "provider": "kimi-coding"
+    },
+    "kimi-coding-apikey": {
+      "className": "KimiExecutor",
+      "configSource": "kimi-coding-apikey",
+      "provider": "kimi-coding-apikey"
+    },
+    "kimi-web": {
+      "className": "KimiWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "kimi-web"
+    },
+    "kiro": {
+      "className": "KiroExecutor",
+      "configSource": "kiro",
+      "provider": "kiro"
+    },
+    "lma": {
+      "className": "LMArenaExecutor",
+      "configSource": "<custom-config>",
+      "provider": "lmarena"
+    },
+    "lmarena": {
+      "className": "LMArenaExecutor",
+      "configSource": "<custom-config>",
+      "provider": "lmarena"
+    },
+    "maxai": {
+      "className": "MaxAiExecutor",
+      "configSource": "maxai",
+      "provider": "maxai"
+    },
+    "moonshot": {
+      "className": "MoonshotExecutor",
+      "configSource": "moonshot",
+      "provider": "moonshot"
+    },
+    "ms-web": {
+      "className": "MuseSparkWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "muse-spark-web"
+    },
+    "muse-spark-web": {
+      "className": "MuseSparkWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "muse-spark-web"
+    },
+    "nlpcloud": {
+      "className": "NlpCloudExecutor",
+      "configSource": "nlpcloud",
+      "provider": "nlpcloud"
+    },
+    "notion-web": {
+      "className": "NotionWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "notion-web"
+    },
+    "nr": {
+      "className": "NineRouterExecutor",
+      "configSource": "<custom-config>",
+      "provider": "9router"
+    },
+    "nw": {
+      "className": "NotionWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "notion-web"
+    },
+    "oneminai": {
+      "className": "OneMinAiExecutor",
+      "configSource": "oneminai",
+      "provider": "oneminai"
+    },
+    "opencode": {
+      "className": "OpencodeExecutor",
+      "configSource": "opencode-zen",
+      "provider": "opencode-zen"
+    },
+    "opencode-go": {
+      "className": "OpencodeExecutor",
+      "configSource": "opencode-go",
+      "provider": "opencode-go"
+    },
+    "opencode-zen": {
+      "className": "OpencodeExecutor",
+      "configSource": "opencode-zen",
+      "provider": "opencode-zen"
+    },
+    "perplexity-web": {
+      "className": "PerplexityWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "perplexity-web"
+    },
+    "poe-web": {
+      "className": "PoeWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "poe-web"
+    },
+    "pol": {
+      "className": "PollinationsExecutor",
+      "configSource": "pollinations",
+      "provider": "pollinations"
+    },
+    "pollinations": {
+      "className": "PollinationsExecutor",
+      "configSource": "pollinations",
+      "provider": "pollinations"
+    },
+    "pplx-web": {
+      "className": "PerplexityWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "perplexity-web"
+    },
+    "pql": {
+      "className": "PromptQlExecutor",
+      "configSource": "<custom-config>",
+      "provider": "promptql"
+    },
+    "promptql": {
+      "className": "PromptQlExecutor",
+      "configSource": "<custom-config>",
+      "provider": "promptql"
+    },
+    "qoder": {
+      "className": "QoderExecutor",
+      "configSource": "qoder",
+      "provider": "qoder"
+    },
+    "t3-web": {
+      "className": "T3ChatWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "t3-web"
+    },
+    "t3chat": {
+      "className": "T3ChatWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "t3-web"
+    },
+    "tasw": {
+      "className": "TencentAIStudioWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "tencent-aistudio-web"
+    },
+    "tcw": {
+      "className": "TinyCmsExecutor",
+      "configSource": "<custom-config>",
+      "provider": "tinycms-web"
+    },
+    "tencent-aistudio-web": {
+      "className": "TencentAIStudioWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "tencent-aistudio-web"
+    },
+    "tinycms-web": {
+      "className": "TinyCmsExecutor",
+      "configSource": "<custom-config>",
+      "provider": "tinycms-web"
+    },
+    "trae": {
+      "className": "TraeExecutor",
+      "configSource": "trae",
+      "provider": "trae"
+    },
+    "uc": {
+      "className": "UcExecutor",
+      "configSource": "uc",
+      "provider": "uc"
+    },
+    "v0": {
+      "className": "V0VercelWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "v0-vercel-web"
+    },
+    "v0-vercel-web": {
+      "className": "V0VercelWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "v0-vercel-web"
+    },
+    "ven": {
+      "className": "VeniceWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "venice-web"
+    },
+    "venice-web": {
+      "className": "VeniceWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "venice-web"
+    },
+    "veo-free": {
+      "className": "VeoAIFreeWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "veoaifree-web"
+    },
+    "veoaifree-web": {
+      "className": "VeoAIFreeWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "veoaifree-web"
+    },
+    "vertex": {
+      "className": "VertexExecutor",
+      "configSource": "vertex",
+      "provider": "vertex"
+    },
+    "vertex-partner": {
+      "className": "VertexExecutor",
+      "configSource": "vertex",
+      "provider": "vertex"
+    },
+    "xai": {
+      "className": "XaiExecutor",
+      "configSource": "xai",
+      "provider": "xai"
+    },
+    "xai-oauth": {
+      "className": "XaiExecutor",
+      "configSource": "xai-oauth",
+      "provider": "xai-oauth"
+    },
+    "xao": {
+      "className": "XaiExecutor",
+      "configSource": "xai-oauth",
+      "provider": "xai-oauth"
+    },
+    "ybw": {
+      "className": "YuanbaoWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "yuanbao-web"
+    },
+    "yuanbao-web": {
+      "className": "YuanbaoWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "yuanbao-web"
+    },
+    "zai-web": {
+      "className": "ZaiWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "zai-web"
+    },
+    "zc": {
+      "className": "ZcodeExecutor",
+      "configSource": "<custom-config>",
+      "provider": "zcode"
+    },
+    "zcode": {
+      "className": "ZcodeExecutor",
+      "configSource": "<custom-config>",
+      "provider": "zcode"
+    },
+    "zed-hosted": {
+      "className": "ZedHostedExecutor",
+      "configSource": "zed-hosted",
+      "provider": "zed-hosted"
+    },
+    "zenmux-free": {
+      "className": "ZenmuxFreeExecutor",
+      "configSource": "<custom-config>",
+      "provider": "zenmux-free"
+    },
+    "zmf": {
+      "className": "ZenmuxFreeExecutor",
+      "configSource": "<custom-config>",
+      "provider": "zenmux-free"
+    },
+    "zw": {
+      "className": "ZaiWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "zai-web"
+    }
+  },
+  "keyCount": 131,
+  "sharedInstances": []
+}

@@ -3,7 +3,8 @@ import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
 // #7882 replaced this provider's free-text Base URL field with a region step:
 // the endpoint is now derived from the choice ("global-sg" ->
-// coding-intl.dashscope.aliyuncs.com, "china-beijing" -> coding.dashscope.aliyuncs.com,
+// token-plan.ap-southeast-1.maas.aliyuncs.com, "china-beijing" ->
+// token-plan.cn-beijing.maas.aliyuncs.com,
 // see src/shared/constants/alibabaProviderRegions.ts), so the modal persists
 // providerSpecificData.region instead of a baseUrl. A per-connection base-URL
 // override still exists, but it moved to Advanced in the edit-connection modal.
@@ -120,7 +121,7 @@ test.describe("Bailian Coding Plan Provider", () => {
   // free-text Base URL field, which #7882 removed for this provider — an invalid
   // URL is no longer reachable from this modal. Replaced with the other half of
   // the region contract: the China-mainland choice must persist as typed, since
-  // that is what selects the coding.dashscope.aliyuncs.com endpoint.
+  // that is what selects the token-plan.cn-beijing.maas.aliyuncs.com endpoint.
   test("region step persists the China-mainland (Beijing) choice", async ({ page }) => {
     const capturedPayloads: { createProvider?: Record<string, unknown> } = {};
 
@@ -222,6 +223,8 @@ test.describe("Bailian Coding Plan Provider", () => {
     expect(capturedPayloads.createProvider).toBeDefined();
     const payload = capturedPayloads.createProvider;
     expect(payload?.providerSpecificData).toBeDefined();
-    expect((payload?.providerSpecificData as Record<string, unknown>)?.region).toBe("china-beijing");
+    expect((payload?.providerSpecificData as Record<string, unknown>)?.region).toBe(
+      "china-beijing"
+    );
   });
 });

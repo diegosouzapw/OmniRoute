@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 
 const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-model-catalog-sources-8728-"),
+  path.join(os.tmpdir(), "omniroute-model-catalog-sources-8728-")
 );
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
@@ -22,7 +22,7 @@ const openRouterCatalog = await import("../../src/lib/catalog/openrouterCatalog.
 function resetStorage() {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -57,7 +57,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   restoreRealFetch();
 });
 
@@ -195,7 +195,7 @@ test("refreshOpenRouterCatalog invalidates only on success", async () => {
     assert.equal(
       catalogVersion(),
       beforeGet,
-      "ordinary get should not invalidate the model-catalog cache",
+      "ordinary get should not invalidate the model-catalog cache"
     );
 
     const beforeRefreshSuccess = catalogVersion();

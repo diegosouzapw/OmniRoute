@@ -35,7 +35,7 @@ test.beforeEach(() => {
 test.afterEach(() => {
   process.env.HOME = ORIGINAL_HOME;
   globalThis.fetch = ORIGINAL_FETCH;
-  if (tmpHome) fs.rmSync(tmpHome, { recursive: true, force: true });
+  if (tmpHome) fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("validateImportToken uses cached Builder ID client creds + OIDC refresh path", async () => {

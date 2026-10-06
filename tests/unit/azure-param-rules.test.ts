@@ -5,7 +5,8 @@ import {
   applyAzureParamRules,
   AZURE_COMPLETION_TOKEN_DEPLOYMENT,
 } from "../../open-sse/executors/azureParamRules.ts";
-import { getExecutor, AzureAiExecutor } from "../../open-sse/executors/index.ts";
+import { getExecutor } from "../../open-sse/executors/index.ts";
+import { AzureAiExecutor } from "../../open-sse/executors/azure-ai.ts";
 
 /**
  * Regression guards for two Azure 400s observed against a live Azure AI Foundry
@@ -42,6 +43,37 @@ test("gpt-5 family converts max_tokens too", () => {
     >;
     assert.equal(out.max_tokens, undefined, `${model} should drop max_tokens`);
     assert.equal(out.max_completion_tokens, 100, `${model} should set max_completion_tokens`);
+  }
+});
+
+test("generations after GPT-5 convert max_tokens too (#12981)", () => {
+  // The rule belongs to the generation, not to one release. gpt-6-astra is the
+  // deployment from the report; the rest are the next names Azure will use.
+  for (const model of ["gpt-6-astra", "gpt-6", "azure/gpt-7-mini", "gpt-9.1", "gpt-10-turbo"]) {
+    const out = applyAzureParamRules(model, { max_tokens: 100 }, { max_tokens: 100 }) as Record<
+      string,
+      unknown
+    >;
+    assert.equal(out.max_tokens, undefined, `${model} should drop max_tokens`);
+    assert.equal(out.max_completion_tokens, 100, `${model} should set max_completion_tokens`);
+  }
+});
+
+test("gpt-35-turbo is not a GPT-3.5 deployment caught by the generation range", () => {
+  // Azure's own name for GPT-3.5 has no dot, so a digit-run like `gpt-\d+`
+  // would match it and strip the max_tokens it actually requires. This is why
+  // the pattern is a range and stops at 19.
+  for (const model of ["gpt-35-turbo", "gpt-35-turbo-16k", "azure/gpt-35"]) {
+    assert.equal(
+      AZURE_COMPLETION_TOKEN_DEPLOYMENT.test(model),
+      false,
+      `${model} must keep max_tokens`
+    );
+    const out = applyAzureParamRules(model, { max_tokens: 100 }, { max_tokens: 100 }) as Record<
+      string,
+      unknown
+    >;
+    assert.equal(out.max_tokens, 100, `${model} should pass through untouched`);
   }
 });
 
@@ -87,8 +119,8 @@ test("the regex does not match unrelated names by accident", () => {
   assert.equal(AZURE_COMPLETION_TOKEN_DEPLOYMENT.test("Kimi-K2.7-Code"), false);
 });
 
-test("azure-ai resolves to AzureAiExecutor, not the bare DefaultExecutor", () => {
-  const executor = getExecutor("azure-ai");
+test("azure-ai resolves to AzureAiExecutor, not the bare DefaultExecutor", async () => {
+  const executor = await getExecutor("azure-ai");
   assert.ok(
     executor instanceof AzureAiExecutor,
     "azure-ai must have its own executor so it inherits the Azure param rules"

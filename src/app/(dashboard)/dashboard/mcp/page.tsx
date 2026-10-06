@@ -237,9 +237,10 @@ export default function McpPage() {
   const [baseUrl, setBaseUrl] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    void (async () => {
+      await Promise.resolve();
       setBaseUrl(`${window.location.protocol}//${window.location.host}`);
-    }
+    })();
   }, []);
 
   const patchSetting = useCallback(async (body: Record<string, unknown>) => {
@@ -277,7 +278,9 @@ export default function McpPage() {
   }, []);
 
   useEffect(() => {
-    void refreshStatus();
+    void (async () => {
+      await refreshStatus();
+    })();
     const interval = setInterval(() => void refreshStatus(), 30000);
     return () => clearInterval(interval);
   }, [refreshStatus]);

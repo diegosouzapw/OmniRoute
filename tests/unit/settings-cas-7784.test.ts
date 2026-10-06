@@ -22,13 +22,13 @@ const settingsRoute = await import("../../src/app/api/settings/route.ts");
 
 beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
 after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 describe("#7784 settings optimistic concurrency", () => {
@@ -41,6 +41,69 @@ describe("#7784 settings optimistic concurrency", () => {
     assert.equal(response.status, 200);
     assert.equal(typeof body.settingsRevision, "number");
     assert.equal(response.headers.get("ETag"), String(body.settingsRevision));
+  });
+
+  test("G17: GET exposes RADAR_ADMIN_URL to the authenticated dashboard owner only", async () => {
+    const original = process.env.RADAR_ADMIN_URL;
+    process.env.RADAR_ADMIN_URL = "https://radar-admin.example.test/ops";
+
+    try {
+      const ownerResponse = await settingsRoute.GET(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          method: "GET",
+          headers: {
+            "x-omniroute-auth-kind": "dashboard_session",
+            "x-omniroute-auth-id": "dashboard",
+          },
+        })
+      );
+      const ownerBody = (await ownerResponse.json()) as Record<string, unknown>;
+      assert.equal(ownerResponse.status, 200);
+      assert.equal(ownerBody.radarAdminUrl, "https://radar-admin.example.test/ops");
+
+      const anonymousResponse = await settingsRoute.GET(
+        new Request("http://localhost/api/settings", { method: "GET" })
+      );
+      const anonymousBody = (await anonymousResponse.json()) as Record<string, unknown>;
+      assert.equal(anonymousResponse.status, 200);
+      assert.equal(anonymousBody.radarAdminUrl, null);
+
+      const internalServiceUrl = await settingsRoute.resolveOwnerRadarAdminUrl(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          headers: {
+            "x-omniroute-auth-kind": "management_key",
+            "x-omniroute-auth-id": "internal-service",
+            "x-omniroute-peer-locality": "loopback",
+          },
+        })
+      );
+      assert.equal(internalServiceUrl, null);
+
+      const cliUrl = await settingsRoute.resolveOwnerRadarAdminUrl(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          headers: {
+            "x-omniroute-auth-kind": "management_key",
+            "x-omniroute-auth-id": "cli",
+            "x-omniroute-peer-locality": "loopback",
+          },
+        })
+      );
+      assert.equal(cliUrl, null);
+
+      const localBootstrapUrl = await settingsRoute.resolveOwnerRadarAdminUrl(
+        new Request("http://localhost/api/settings", {
+          headers: {
+            "x-omniroute-auth-kind": "anonymous",
+            "x-omniroute-auth-id": "anonymous",
+            "x-omniroute-peer-locality": "loopback",
+          },
+        })
+      );
+      assert.equal(localBootstrapUrl, "https://radar-admin.example.test/ops");
+    } finally {
+      if (original === undefined) delete process.env.RADAR_ADMIN_URL;
+      else process.env.RADAR_ADMIN_URL = original;
+    }
   });
 
   test("concurrent providerStrategies writes with CAS: second writer gets 409, first change kept", async () => {
@@ -149,7 +212,10 @@ describe("#7784 settings optimistic concurrency", () => {
       () => settingsDb.updateSettings({ debugMode: false }, { expectedRevision: revision }),
       (err: unknown) => {
         assert.ok(err instanceof settingsDb.SettingsRevisionConflictError);
-        assert.equal((err as settingsDb.SettingsRevisionConflictError).currentRevision, revision + 1);
+        assert.equal(
+          (err as settingsDb.SettingsRevisionConflictError).currentRevision,
+          revision + 1
+        );
         return true;
       }
     );

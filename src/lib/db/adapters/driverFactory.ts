@@ -1,5 +1,7 @@
-import { createRequire } from "node:module";
+import { runtimeRequire as _require } from "./runtimeRequire";
+import { isNextBuildPhase } from "../../buildPhase";
 import { existsSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { createBetterSqliteAdapter } from "./betterSqliteAdapter";
 import { createBunSqliteAdapter, type BunSqliteDatabaseLike } from "./bunSqliteAdapter";
 import {
@@ -8,9 +10,72 @@ import {
 } from "./nodeSqliteShared";
 import type { SqliteAdapter } from "./types";
 
-const _require = createRequire(import.meta.url);
 
 type DriverLoader = (moduleName: string) => unknown;
+
+type SpawnSyncLike = (
+  command: string,
+  args: string[],
+  options: { timeout: number; stdio: "ignore"; cwd: string; windowsHide: boolean }
+) => { status: number | null };
+
+/** Returns whether better-sqlite3 may be loaded in this process. */
+export type DriverProbe = () => boolean;
+
+/**
+ * #10627 — Windows driver-hang guard.
+ *
+ * The sync cascade's try/catch only covers drivers that THROW on load
+ * (ERR_DLOPEN_FAILED, "Module did not self-register", ...). On Windows, a
+ * mismatched-ABI native addon can HANG inside DllMain (loader lock) instead of
+ * throwing — a hang never reaches the catch, so the fallback to node:sqlite /
+ * sql.js never runs and the first DB touch in a runtime stalls forever at ~0%
+ * CPU (the exact #10627 symptom: every request hangs, 0 bytes, no logs).
+ *
+ * The probe answers "can better-sqlite3 load AND open a database?" by loading
+ * it in a CHILD PROCESS with a bounded timeout, so a hang becomes a timed-out
+ * probe (verdict "bad") instead of a process-level deadlock. The verdict is
+ * cached per process — the child spawn happens at most once.
+ *
+ * On POSIX this is a no-op returning true: broken addons throw there, which
+ * the existing cascade already handles, and we don't want to pay a subprocess
+ * spawn on every Linux/CI boot.
+ */
+export function createBetterSqliteProbe(options: {
+  platform?: string;
+  execPath?: string;
+  spawn?: SpawnSyncLike;
+  timeoutMs?: number;
+}): DriverProbe {
+  const {
+    platform = process.platform,
+    execPath = process.execPath,
+    spawn = spawnSync as unknown as SpawnSyncLike,
+    timeoutMs = 5_000,
+  } = options;
+
+  let verdict: boolean | null = null;
+  return () => {
+    if (verdict !== null) return verdict;
+    if (platform !== "win32") {
+      verdict = true;
+      return verdict;
+    }
+    try {
+      const result = spawn(execPath, ["-e", "require('better-sqlite3')(':memory:')"], {
+        timeout: timeoutMs,
+        stdio: "ignore",
+        cwd: process.cwd(),
+        windowsHide: true,
+      });
+      // status === null means the child was killed by the timeout — a hang.
+      verdict = result.status === 0;
+    } catch {
+      verdict = false;
+    }
+    return verdict;
+  };
+}
 
 /**
  * The production loader for the sync driver cascade.
@@ -138,13 +203,17 @@ function getSqlJsPendingCache(): Map<string, Promise<SqliteAdapter>> {
  * Builds the synchronous driver cascade. Keeping the loader injectable makes
  * the real node:sqlite branch testable without changing the public adapter API.
  */
-export function createSyncDriverFactory(load: DriverLoader) {
+export function createSyncDriverFactory(load: DriverLoader, betterSqliteProbe?: DriverProbe) {
+  // #10627: when a probe is supplied, the better-sqlite3 branch is gated on it
+  // so a Windows DllMain hang (which never throws, so never hits the catch)
+  // cannot stall the request path. Default: no probe — existing callers/tests
+  // keep the historical throw-only behavior.
+  const mayLoadBetterSqlite = betterSqliteProbe ?? (() => true);
   return function tryOpenSync(
     filePath: string,
     options?: Record<string, unknown>
   ): SqliteAdapter | null {
-    // Bun ships a supported SQLite implementation. Prefer it over the native
-    // Node addon, which Bun intentionally skips because its ABI is incompatible.
+    // 1. Bun native sqlite driver: preferred built-in driver when running under Bun
     if (process.versions.bun) {
       try {
         const { Database } = load("bun:sqlite") as {
@@ -153,19 +222,30 @@ export function createSyncDriverFactory(load: DriverLoader) {
         if (options?.fileMustExist === true && filePath !== ":memory:" && !existsSync(filePath)) {
           throw new Error(`SQLite file does not exist: ${filePath}`);
         }
-        const db = new Database(filePath, {
-          ...(options?.readonly === true
-            ? { readonly: true }
-            : { readwrite: true, create: options?.fileMustExist !== true }),
-        });
+        const bunOptions: Record<string, unknown> = {};
+        if (options?.readonly === true) bunOptions.readonly = true;
+        if (options?.create === false && filePath !== ":memory:") bunOptions.create = false;
+        const db =
+          Object.keys(bunOptions).length > 0
+            ? new Database(filePath, bunOptions)
+            : new Database(filePath);
         return createBunSqliteAdapter(db, filePath);
       } catch (err) {
         logSwallowedDriverError("bun:sqlite", err);
       }
     }
 
-    // better-sqlite3: rápido, nativo — skip em Bun
-    if (!process.versions.bun) {
+    // 2. better-sqlite3: preferred native driver on Node.js. Skipped on Bun and
+    // during the Next.js production build. Build workers sometimes lose
+    // NEXT_PHASE from process.env, so OMNIROUTE_BUILDING=1 (set by
+    // build-next-isolated.mjs and inherited by the build workers) is the primary
+    // build signal. Deliberately does NOT check isMainThread: at runtime many
+    // worker threads (pino thread-stream, compression workers) legitimately use
+    // better-sqlite3, and skipping it there would silently degrade to
+    // node:sqlite / sql.js in production. During the build the native addon
+    // cannot load: the Statement destructor aborts with SIGABRT on worker
+    // teardown (node::RemoveEnvironmentCleanupHook). (#10060)
+    if (!process.versions.bun && !isNextBuildPhase() && mayLoadBetterSqlite()) {
       try {
         const BetterSqlite = load("better-sqlite3") as {
           new (p: string, o?: object): import("better-sqlite3").Database;
@@ -173,7 +253,6 @@ export function createSyncDriverFactory(load: DriverLoader) {
         const db = new BetterSqlite(filePath, options);
         return createBetterSqliteAdapter(db);
       } catch (err) {
-        // continua para próximo driver
         logSwallowedDriverError("better-sqlite3", err);
       }
     }
@@ -205,7 +284,10 @@ export function createSyncDriverFactory(load: DriverLoader) {
   };
 }
 
-const openSyncDriver = createSyncDriverFactory(requireSqliteDriver);
+// Production wiring: the real probe (child-process, timed, cached) guards the
+// better-sqlite3 branch so a hang on Windows degrades to a failover instead of
+// a request-path deadlock (#10627).
+const openSyncDriver = createSyncDriverFactory(requireSqliteDriver, createBetterSqliteProbe({}));
 
 /**
  * The installed-tarball smoke uses this paired marker to exercise the sql.js tier

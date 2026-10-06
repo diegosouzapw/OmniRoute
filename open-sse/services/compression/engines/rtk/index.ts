@@ -9,8 +9,13 @@ import { matchRtkFilter } from "./filterLoader.ts";
 import { applyLineFilter } from "./lineFilter.ts";
 import { smartTruncate } from "./smartTruncate.ts";
 import { normalizeCodeLanguage, stripCode } from "./codeStripper.ts";
-import { maybePersistRtkRawOutput, type RtkRawOutputPointer } from "./rawOutput.ts";
+import {
+  maybePersistRtkRawOutput,
+  scheduleRtkRawOutputPurge,
+  type RtkRawOutputPointer,
+} from "./rawOutput.ts";
 import { applyRenderer } from "./renderers/index.ts";
+import { severityPattern } from "./severityVocabulary.ts";
 import { isTextBlock } from "../../messageContent.ts";
 import { adaptBodyForCompression } from "../../bodyAdapter.ts";
 import { isAnthropicToolResultBlock } from "../../toolResultCompressor.ts";
@@ -121,6 +126,14 @@ function mergeRtkConfig(base?: Partial<RtkConfig>, override?: Record<string, unk
       typeof merged.rawOutputMaxBytes === "number" && Number.isFinite(merged.rawOutputMaxBytes)
         ? Math.max(1024, Math.floor(merged.rawOutputMaxBytes))
         : DEFAULT_RTK_CONFIG.rawOutputMaxBytes,
+    rawOutputMaxFiles:
+      typeof merged.rawOutputMaxFiles === "number" && Number.isFinite(merged.rawOutputMaxFiles)
+        ? Math.max(1, Math.floor(merged.rawOutputMaxFiles))
+        : DEFAULT_RTK_CONFIG.rawOutputMaxFiles,
+    rawOutputMaxAgeDays:
+      typeof merged.rawOutputMaxAgeDays === "number" && Number.isFinite(merged.rawOutputMaxAgeDays)
+        ? Math.max(1, Math.floor(merged.rawOutputMaxAgeDays))
+        : DEFAULT_RTK_CONFIG.rawOutputMaxAgeDays,
   };
 }
 
@@ -247,7 +260,10 @@ export function processRtkText(
       if (config.enabledFilters.length === 0 || config.enabledFilters.includes(filter.id)) {
         const filtered = applyLineFilter(result, {
           ...filter,
-          maxLines: effectiveMaxLines(filter.maxLines || config.maxLinesPerResult, config.intensity),
+          maxLines: effectiveMaxLines(
+            filter.maxLines || config.maxLinesPerResult,
+            config.intensity
+          ),
         });
         result = filtered.text;
         if (filtered.appliedRules.length > 0) {
@@ -296,7 +312,13 @@ export function processRtkText(
     }
   }
 
-  const deduped = deduplicateRepeatedLines(result, { threshold: config.deduplicateThreshold });
+  // #13388: skip dedup for non-shell tool results (file reads, grep, glob, etc.)
+  // where repeated structural lines are semantically meaningful. Also skip when
+  // the content is a document-like read to avoid false-positive dedup on code files.
+  const shouldSkipDedup = Boolean(options.skipFilters);
+  const deduped = shouldSkipDedup
+    ? { text: result, collapsed: 0 }
+    : deduplicateRepeatedLines(result, { threshold: config.deduplicateThreshold });
   if (deduped.collapsed > 0) {
     result = deduped.text;
     techniquesUsed.push("rtk-dedup");
@@ -315,7 +337,11 @@ export function processRtkText(
     }
   }
 
-  const defaultPriorityPatterns: RegExp[] = [/error|failed|exception|traceback|TS\d{4}|FAIL|✖/i];
+  // One shared severity vocabulary (./severityVocabulary.ts). It used to be an inline regex
+  // here, a separate array in filterSchema.ts and a THIRD list in rawOutput.ts — three
+  // spellings of the same idea, so whether a diagnostic line survived depended on which
+  // layer happened to run. Everything below now derives from that single file.
+  const defaultPriorityPatterns: RegExp[] = [severityPattern()];
   const filterPriorityPatterns: RegExp[] = matchedFilterPatterns.flatMap((pattern) => {
     try {
       return [new RegExp(pattern, "i")];
@@ -325,6 +351,10 @@ export function processRtkText(
   });
   // #4559: skip the generic line/char hard-cap for document/file reads (see
   // isDocumentLikeRead above) so the middle of a code/prose read is not dropped.
+  // Non-shell results that are NOT document-like (grep/glob/search output) still
+  // get the generic cap — #13388 only exempted dedup, which is what corrupts
+  // structured JSON; unlimited truncation-skip would reopen the problem #4559 fixed
+  // for a different class of tools.
   const truncated = isDocumentLikeRead
     ? { text: result, truncated: false, droppedLines: 0 }
     : smartTruncate(result, {
@@ -351,6 +381,14 @@ export function processRtkText(
       rawOutputPointers.push(pointer);
       techniquesUsed.push("rtk-raw-output-retention");
       rulesApplied.push("rtk:raw-output-retention");
+    }
+    // #10659: bounded retention — schedule a throttled async purge whenever retention is
+    // on so the store cannot grow unbounded again. Never blocks the hot path.
+    if (config.rawOutputRetention !== "never") {
+      scheduleRtkRawOutputPurge({
+        maxFiles: config.rawOutputMaxFiles,
+        maxAgeDays: config.rawOutputMaxAgeDays,
+      });
     }
   }
   return {
@@ -634,6 +672,18 @@ export function applyRtkCompression(
       content: processed.content,
     };
   });
+
+  // Mirror the sibling stacked engines (headroom, session-dedup, ccr, relevance,
+  // ionizer, readLifecycle): skip the expensive createCompressionStats() pass
+  // (full JSON.stringify + tokenizer over the whole body, twice) when nothing
+  // actually changed. Untouched messages keep their original reference above,
+  // so a reference-identity scan is enough to detect the no-op case (#10765).
+  const anyMessageChanged = compressedMessages.some(
+    (message, index) => message !== messages[index]
+  );
+  if (!anyMessageChanged) {
+    return { body, compressed: false, stats: null };
+  }
 
   const compressedBody = { ...adapter.body, messages: compressedMessages };
   const stats = createCompressionStats(

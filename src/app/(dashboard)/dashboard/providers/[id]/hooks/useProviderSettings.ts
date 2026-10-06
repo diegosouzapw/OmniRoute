@@ -26,6 +26,32 @@ import {
   providerText,
 } from "../providerPageHelpers";
 
+// Shared /api/settings fetch with error-as-value semantics so the loaders
+// below only touch state after the await (no synchronous setState reachable
+// from the load effects).
+async function fetchSettingsPayload(): Promise<{
+  ok: boolean;
+  data?: Record<string, unknown>;
+  message?: string;
+}> {
+  try {
+    const response = await fetch("/api/settings", { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Settings request failed with HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    if (!data || typeof data !== "object") {
+      throw new Error("Settings response was empty");
+    }
+    return { ok: true, data };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Failed to load settings",
+    };
+  }
+}
+
 // ──── types ─────────────────────────────────────────────────────────────────
 
 export interface UseProviderSettingsReturn {
@@ -73,6 +99,19 @@ export function useProviderSettings(providerId: string): UseProviderSettingsRetu
   >(null);
   const [savingClaudeRoutingPreference, setSavingClaudeRoutingPreference] = useState(false);
 
+  // Reset the per-provider load flags when the provider changes — a
+  // render-phase adjustment guarded by the previous providerId (react.dev
+  // "adjusting state when a prop changes"), replacing the synchronous resets
+  // that used to run inside the load effects.
+  const [settingsProviderId, setSettingsProviderId] = useState(providerId);
+  if (settingsProviderId !== providerId) {
+    setSettingsProviderId(providerId);
+    setCodexSettingsLoaded(false);
+    setCodexSettingsLoadError(null);
+    setClaudeRoutingSettingsLoaded(false);
+    setClaudeRoutingSettingsLoadError(null);
+  }
+
   // ── derived ──────────────────────────────────────────────────────────────
   const codexGlobalServiceModeOptions = useMemo(
     () =>
@@ -89,75 +128,86 @@ export function useProviderSettings(providerId: string): UseProviderSettingsRetu
     codexSettingsRequestSeqRef.current = requestSeq;
     const isCurrentRequest = () => codexSettingsRequestSeqRef.current === requestSeq;
 
-    if (providerId !== "codex") {
+    // Non-codex providers keep the initial false/null flags (also restored by
+    // the render-phase reset above when providerId changes).
+    if (providerId !== "codex") return;
+
+    const outcome = await fetchSettingsPayload();
+    if (!isCurrentRequest()) return;
+    if (!outcome.ok) {
       setCodexSettingsLoaded(false);
-      setCodexSettingsLoadError(null);
+      setCodexSettingsLoadError(outcome.message);
       return;
     }
-
-    setCodexSettingsLoaded(false);
+    const resolvedCodexServiceTier = resolveCodexGlobalFastServiceTier(outcome.data);
+    setCodexGlobalServiceMode(getCodexGlobalServiceMode(outcome.data));
+    setCodexGlobalSupportedModels([...resolvedCodexServiceTier.supportedModels]);
     setCodexSettingsLoadError(null);
-
-    try {
-      const response = await fetch("/api/settings", { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error(`Settings request failed with HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      if (!data || typeof data !== "object") {
-        throw new Error("Settings response was empty");
-      }
-      if (!isCurrentRequest()) return;
-      const resolvedCodexServiceTier = resolveCodexGlobalFastServiceTier(data);
-      setCodexGlobalServiceMode(getCodexGlobalServiceMode(data));
-      setCodexGlobalSupportedModels([...resolvedCodexServiceTier.supportedModels]);
-      setCodexSettingsLoaded(true);
-    } catch (error) {
-      if (!isCurrentRequest()) return;
-      setCodexSettingsLoaded(false);
-      setCodexSettingsLoadError(error instanceof Error ? error.message : "Failed to load settings");
-    }
+    setCodexSettingsLoaded(true);
   }, [providerId]);
 
+  // The async work is duplicated INSIDE the effect (calling the exposed
+  // loadCodexSettings callback synchronously from an effect is rejected by the
+  // compiler rules); every setState here runs after the await.
   useEffect(() => {
-    void loadCodexSettings();
-  }, [loadCodexSettings]);
+    if (providerId !== "codex") return;
+    const requestSeq = codexSettingsRequestSeqRef.current + 1;
+    codexSettingsRequestSeqRef.current = requestSeq;
+    const isCurrentRequest = () => codexSettingsRequestSeqRef.current === requestSeq;
+    const run = async () => {
+      const outcome = await fetchSettingsPayload();
+      if (!isCurrentRequest()) return;
+      if (!outcome.ok) {
+        setCodexSettingsLoaded(false);
+        setCodexSettingsLoadError(outcome.message);
+        return;
+      }
+      const resolvedCodexServiceTier = resolveCodexGlobalFastServiceTier(outcome.data);
+      setCodexGlobalServiceMode(getCodexGlobalServiceMode(outcome.data));
+      setCodexGlobalSupportedModels([...resolvedCodexServiceTier.supportedModels]);
+      setCodexSettingsLoadError(null);
+      setCodexSettingsLoaded(true);
+    };
+    void run();
+  }, [providerId]);
 
   // ── Claude routing settings loader ───────────────────────────────────────
   const loadClaudeRoutingSettings = useCallback(async () => {
-    if (providerId !== "claude") {
+    // Non-claude providers keep the initial false/null flags (also restored by
+    // the render-phase reset above when providerId changes).
+    if (providerId !== "claude") return;
+
+    const outcome = await fetchSettingsPayload();
+    if (!outcome.ok) {
       setClaudeRoutingSettingsLoaded(false);
-      setClaudeRoutingSettingsLoadError(null);
+      setClaudeRoutingSettingsLoadError(outcome.message);
       return;
     }
-
-    setClaudeRoutingSettingsLoaded(false);
+    setPreferClaudeCodeForUnprefixedClaudeModels(
+      outcome.data.preferClaudeCodeForUnprefixedClaudeModels === true
+    );
     setClaudeRoutingSettingsLoadError(null);
-
-    try {
-      const response = await fetch("/api/settings", { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error(`Settings request failed with HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      if (!data || typeof data !== "object") {
-        throw new Error("Settings response was empty");
-      }
-      setPreferClaudeCodeForUnprefixedClaudeModels(
-        data.preferClaudeCodeForUnprefixedClaudeModels === true
-      );
-      setClaudeRoutingSettingsLoaded(true);
-    } catch (error) {
-      setClaudeRoutingSettingsLoaded(false);
-      setClaudeRoutingSettingsLoadError(
-        error instanceof Error ? error.message : "Failed to load settings"
-      );
-    }
+    setClaudeRoutingSettingsLoaded(true);
   }, [providerId]);
 
+  // Same inline-in-effect shape as the codex loader above.
   useEffect(() => {
-    void loadClaudeRoutingSettings();
-  }, [loadClaudeRoutingSettings]);
+    if (providerId !== "claude") return;
+    const run = async () => {
+      const outcome = await fetchSettingsPayload();
+      if (!outcome.ok) {
+        setClaudeRoutingSettingsLoaded(false);
+        setClaudeRoutingSettingsLoadError(outcome.message);
+        return;
+      }
+      setPreferClaudeCodeForUnprefixedClaudeModels(
+        outcome.data.preferClaudeCodeForUnprefixedClaudeModels === true
+      );
+      setClaudeRoutingSettingsLoadError(null);
+      setClaudeRoutingSettingsLoaded(true);
+    };
+    void run();
+  }, [providerId]);
 
   // ── Codex service mode handler ───────────────────────────────────────────
   const handleChangeCodexGlobalServiceMode = async (mode: CodexGlobalServiceMode) => {

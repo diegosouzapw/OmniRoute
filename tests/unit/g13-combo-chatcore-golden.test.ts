@@ -392,6 +392,6 @@ test("G13 golden detects a public behavior mutation", () => {
   } finally {
     if (previousUpdateGolden === undefined) delete process.env.UPDATE_GOLDEN;
     else process.env.UPDATE_GOLDEN = previousUpdateGolden;
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

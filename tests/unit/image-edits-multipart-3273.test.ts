@@ -40,7 +40,10 @@ test("#3273 /v1/images/edits forwards model as real multipart (undici-patched fe
     await handleOpenAIImageEdit({
       model: "gpt-image-2",
       provider: "customopenai",
-      credentials: { apiKey: "sk-test", providerSpecificData: { baseUrl: `http://127.0.0.1:${port}` } },
+      credentials: {
+        apiKey: "sk-test",
+        providerSpecificData: { baseUrl: `http://127.0.0.1:${port}` },
+      },
       prompt: "make it blue",
       imageBytes: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
       imageMime: "image/png",
@@ -68,7 +71,12 @@ test.after(() => {
     /* ignore */
   }
   try {
-    fs.rmSync(process.env.DATA_DIR as string, { recursive: true, force: true });
+    fs.rmSync(process.env.DATA_DIR as string, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
   } catch {
     /* ignore */
   }

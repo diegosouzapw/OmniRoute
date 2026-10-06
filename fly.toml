@@ -37,8 +37,16 @@ primary_region = 'sin'
 
 [env]
   TZ = "Asia/Shanghai"
-  
+
   # Bind to all interfaces for Fly runtime networking.
   HOST = "0.0.0.0"
   HOSTNAME = "0.0.0.0"
   BIND = "0.0.0.0"
+
+  # #13679: a Fly deployment is reachable over the public internet by design
+  # (force_https + Fly's edge proxy in [http_service] above) — unlike the
+  # docker-compose path, there is no loopback-bind option here. Require an
+  # API key by default so a `fly deploy` from this manifest is never keyless
+  # AND world-reachable at once. This does not change the npm/CLI local-dev
+  # default; it is specific to this published Fly manifest.
+  REQUIRE_API_KEY = "true"

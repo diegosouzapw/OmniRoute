@@ -101,6 +101,107 @@ export async function validateEmbeddingApiProvider({
   }
 }
 
+/**
+ * Jina Foundation API key probe.
+ *
+ * Dashboard Test used to POST rerank with jina-reranker-v3, which can 200
+ * while production Omni embed / rerank-v3.5 403. Prefer GET /v1/models
+ * (key validity). Embeddings fallback hits jina-embeddings-v5-omni-small
+ * so Test exercises the Omni SKU, not a text-only stand-in. Always report
+ * the endpoint and model that were hit.
+ */
+export async function validateJinaFoundationProvider({
+  apiKey,
+  providerSpecificData = {},
+}: {
+  apiKey: string;
+  providerSpecificData?: { validationModelId?: string; [key: string]: unknown };
+}) {
+  const modelsUrl = "https://api.jina.ai/v1/models";
+  const embeddingsUrl = "https://api.jina.ai/v1/embeddings";
+  const embeddingsModel =
+    providerSpecificData?.validationModelId || "jina-embeddings-v5-omni-small";
+
+  try {
+    const modelsRes = await validationRead(modelsUrl, {
+      method: "GET",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+    });
+
+    if (modelsRes.ok) {
+      return {
+        valid: true,
+        error: null,
+        method: "jina_models",
+        testedEndpoint: "GET https://api.jina.ai/v1/models",
+      };
+    }
+
+    if (modelsRes.status === 401 || modelsRes.status === 403) {
+      return {
+        valid: false,
+        error: `Invalid API key (GET https://api.jina.ai/v1/models)`,
+        method: "jina_models",
+        testedEndpoint: "GET https://api.jina.ai/v1/models",
+      };
+    }
+
+    const embedRes = await validationWrite(embeddingsUrl, {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: embeddingsModel,
+        input: ["test"],
+      }),
+    });
+
+    if (embedRes.status === 401 || embedRes.status === 403) {
+      return {
+        valid: false,
+        error: `Invalid API key (POST https://api.jina.ai/v1/embeddings model=${embeddingsModel})`,
+        method: "jina_embeddings",
+        testedEndpoint: "POST https://api.jina.ai/v1/embeddings",
+        testedModel: embeddingsModel,
+      };
+    }
+
+    if (
+      embedRes.ok ||
+      embedRes.status === 400 ||
+      embedRes.status === 422 ||
+      embedRes.status === 429
+    ) {
+      return {
+        valid: true,
+        error: null,
+        method: "jina_embeddings",
+        testedEndpoint: "POST https://api.jina.ai/v1/embeddings",
+        testedModel: embeddingsModel,
+      };
+    }
+
+    if (embedRes.status >= 500) {
+      return {
+        valid: false,
+        error: `Provider unavailable (${embedRes.status}) at POST https://api.jina.ai/v1/embeddings model=${embeddingsModel}`,
+        method: "jina_embeddings",
+        testedEndpoint: "POST https://api.jina.ai/v1/embeddings",
+        testedModel: embeddingsModel,
+      };
+    }
+
+    return {
+      valid: false,
+      error: `Validation failed: ${embedRes.status} (POST https://api.jina.ai/v1/embeddings model=${embeddingsModel})`,
+      method: "jina_embeddings",
+      testedEndpoint: "POST https://api.jina.ai/v1/embeddings",
+      testedModel: embeddingsModel,
+    };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateRerankApiProvider({ apiKey, providerSpecificData = {}, url, modelId }: any) {
   if (!url) {
     return { valid: false, error: "Missing rerank endpoint" };

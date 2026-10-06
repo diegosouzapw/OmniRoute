@@ -89,8 +89,18 @@ const TOOL_SHIMS: Record<string, ShimFn> = {
   },
 };
 
+function resolveToolCallShim(name: string | undefined | null): ShimFn | undefined {
+  if (typeof name !== "string" || !name) return undefined;
+  if (Object.prototype.hasOwnProperty.call(TOOL_SHIMS, name)) return TOOL_SHIMS[name];
+  const lower = name.toLowerCase();
+  for (const [key, fn] of Object.entries(TOOL_SHIMS)) {
+    if (key.toLowerCase() === lower) return fn;
+  }
+  return undefined;
+}
+
 export function hasToolCallShim(name: string | undefined | null): boolean {
-  return typeof name === "string" && Object.prototype.hasOwnProperty.call(TOOL_SHIMS, name);
+  return Boolean(resolveToolCallShim(name));
 }
 
 /**
@@ -100,7 +110,7 @@ export function hasToolCallShim(name: string | undefined | null): boolean {
  * the shim with `{}` as input (so required arrays still get injected).
  */
 export function applyToolCallShimToBuffer(name: string, raw: string): string {
-  const shim = TOOL_SHIMS[name];
+  const shim = resolveToolCallShim(name);
   if (!shim) return raw;
 
   let parsed: unknown;

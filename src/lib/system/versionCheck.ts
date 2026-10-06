@@ -36,7 +36,17 @@ const GITHUB_RELEASES_LATEST_URL =
   "https://api.github.com/repos/diegosouzapw/OmniRoute/releases/latest";
 
 const LOOKUP_TIMEOUT_MS = 10_000;
-const MAX_VERSION_RESPONSE_BYTES = 16 * 1024;
+// Bound on the version-metadata responses, so a misdirected or hostile URL
+// cannot make the banner pin memory. It has to sit ABOVE what the two HTTP
+// sources really send, or the fallbacks can never succeed at all: measured on
+// 2026-09-21 from the published package, the registry per-version document is
+// 29,609 bytes (it embeds the README) and GitHub's latest-release payload is
+// 154,002 bytes (its `assets` array). The old 16 KiB cap was below both, so
+// each body was cancelled mid-read, the throw was swallowed by the local
+// `catch`, and both paths returned null -- the #14339 "unavailable" banner.
+// 1 MiB keeps a real ceiling (~7x the largest observed payload) without
+// pretending to parse unbounded input.
+const MAX_VERSION_RESPONSE_BYTES = 1024 * 1024;
 const LATEST_VERSION_CACHE_TTL_MS = 10 * 60_000;
 const MAX_LATEST_VERSION_CACHE_TTL_MS = 10 * 60_000;
 
@@ -53,14 +63,26 @@ let latestVersionCacheGeneration = 0;
 // for back-compat with existing server-side importers.
 export { normalizeVersion, isNewer } from "./versionCompare";
 
-/** Latest published version via the `npm` CLI (fast when npm is on PATH, e.g. source installs). */
-export async function getLatestVersionFromNpmCli(): Promise<string | null> {
+/**
+ * Latest published version via the `npm` CLI (fast when npm is on PATH, e.g. source installs).
+ *
+ * `execFn` is injectable for tests (same pattern as the CLI's own
+ * `bin/cli/commands/update.mjs::getLatestVersion()`).
+ */
+export async function getLatestVersionFromNpmCli(
+  execFn: typeof execFileAsync = execFileAsync
+): Promise<string | null> {
   try {
     // #5542 — win32 npm is npm.cmd; execFile without a shell throws "spawn npm ENOENT"
     // on Node ≥24 (nodejs/node#52554). buildNpmExecOptions enables the shell on win32.
-    const { stdout } = await execFileAsync(
+    // #11885 — `--prefer-online` forces npm to revalidate its HTTP cache against the
+    // registry. Without it `npm info` can return a stale cached version, the same known
+    // bug class already fixed in the CLI's own copy for #4376 (see that fix's comment in
+    // bin/cli/commands/update.mjs::getLatestVersion()) but never mirrored here — this is
+    // the function backing the dashboard's "Update Available" banner.
+    const { stdout } = await execFn(
       "npm",
-      ["info", "omniroute", "version", "--json"],
+      ["info", "omniroute", "version", "--json", "--prefer-online"],
       buildNpmExecOptions(process.platform, { timeoutMs: LOOKUP_TIMEOUT_MS })
     );
     const parsed = JSON.parse(String(stdout).trim());
@@ -74,19 +96,26 @@ export async function getLatestVersionFromNpmCli(): Promise<string | null> {
  * Latest published version via the npm registry HTTP API. Needs only network access — no
  * `npm` binary — so it works in Docker / desktop / locked-down installs.
  */
-async function readBoundedJson(response: Response): Promise<unknown> {
-  const declaredLength = Number(response.headers.get("Content-Length"));
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_VERSION_RESPONSE_BYTES) {
-    await response.body?.cancel();
-    throw new Error("Version metadata response is too large");
-  }
-
-  if (!response.body) return response.json();
-  const reader = response.body.getReader();
+async function readStreamChunks(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  signal?: AbortSignal
+): Promise<{ chunks: Uint8Array[]; totalBytes: number }> {
   const chunks: Uint8Array[] = [];
   let totalBytes = 0;
+
+  const onAbort = () => {
+    reader.cancel().catch(() => {});
+  };
+
+  if (signal) {
+    signal.addEventListener("abort", onAbort, { once: true });
+  }
+
   try {
     while (true) {
+      if (signal?.aborted) {
+        throw new Error("Version metadata request aborted");
+      }
       const { done, value } = await reader.read();
       if (done) break;
       totalBytes += value.byteLength;
@@ -97,8 +126,16 @@ async function readBoundedJson(response: Response): Promise<unknown> {
       chunks.push(value);
     }
   } finally {
+    if (signal) {
+      signal.removeEventListener("abort", onAbort);
+    }
     reader.releaseLock();
   }
+
+  return { chunks, totalBytes };
+}
+
+function parseJsonFromChunks(chunks: Uint8Array[], totalBytes: number): unknown {
   const body = new Uint8Array(totalBytes);
   let offset = 0;
   for (const chunk of chunks) {
@@ -108,18 +145,40 @@ async function readBoundedJson(response: Response): Promise<unknown> {
   return JSON.parse(new TextDecoder().decode(body));
 }
 
+async function readBoundedJson(response: Response, signal?: AbortSignal): Promise<unknown> {
+  const declaredLength = Number(response.headers.get("Content-Length"));
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_VERSION_RESPONSE_BYTES) {
+    await response.body?.cancel();
+    throw new Error("Version metadata response is too large");
+  }
+
+  if (signal?.aborted) {
+    await response.body?.cancel();
+    throw new Error("Version metadata request aborted");
+  }
+
+  if (!response.body) return response.json();
+  const reader = response.body.getReader();
+  const { chunks, totalBytes } = await readStreamChunks(reader, signal);
+  return parseJsonFromChunks(chunks, totalBytes);
+}
+
 export async function getLatestVersionFromRegistry(
   fetchImpl: typeof fetch = fetch
 ): Promise<string | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
   try {
     const res = await fetchImpl(NPM_REGISTRY_LATEST_URL, {
-      signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
+      signal: controller.signal,
     });
     if (!res.ok) return null;
-    const data = (await readBoundedJson(res)) as { version?: unknown };
+    const data = (await readBoundedJson(res, controller.signal)) as { version?: unknown };
     return typeof data?.version === "string" && data.version ? data.version : null;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -133,9 +192,11 @@ export async function getLatestVersionFromRegistry(
 export async function getLatestVersionFromGitHub(
   fetchImpl: typeof fetch = fetch
 ): Promise<string | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
   try {
     const res = await fetchImpl(GITHUB_RELEASES_LATEST_URL, {
-      signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
+      signal: controller.signal,
       headers: {
         // GitHub's API rejects requests without a User-Agent.
         "User-Agent": "omniroute-version-check",
@@ -143,10 +204,12 @@ export async function getLatestVersionFromGitHub(
       },
     });
     if (!res.ok) return null;
-    const data = (await readBoundedJson(res)) as { tag_name?: unknown };
+    const data = (await readBoundedJson(res, controller.signal)) as { tag_name?: unknown };
     return typeof data?.tag_name === "string" && data.tag_name ? data.tag_name : null;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 

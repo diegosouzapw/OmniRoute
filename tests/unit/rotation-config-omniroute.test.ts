@@ -165,7 +165,7 @@ test("integration: 400 with rate-limit text still falls over under default confi
     "Detected high-frequency non-compliant requests from you.",
     0,
     null,
-    "mimocode"
+    "opencode"
   );
   assert.equal(res.shouldFallback, true);
   clearEnv();

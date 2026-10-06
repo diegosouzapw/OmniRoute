@@ -31,7 +31,7 @@ const engineRoute = await import("../../../src/app/api/context/analytics/engine/
 
 async function setupAuth(): Promise<void> {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   await settingsDb.updateSettings({
     requireLogin: true,
@@ -53,7 +53,7 @@ test.after(() => {
   if (originalJwtSecret === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = originalJwtSecret;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── tests ────────────────────────────────────────────────────────────────────

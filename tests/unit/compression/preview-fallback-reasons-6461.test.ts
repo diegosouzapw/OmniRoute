@@ -29,7 +29,7 @@ function makeReq(body: unknown) {
 test.beforeEach(() => core.resetDbInstance());
 test.after(() => {
   core.resetDbInstance();
-  rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#6461 preview exposes fallbackReasons and mirrors it into skippedReasons", async () => {

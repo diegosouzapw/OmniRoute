@@ -15,7 +15,7 @@ const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("createEmbeddingResponse emits X-OmniRoute-* cost telemetry headers on success", async () => {

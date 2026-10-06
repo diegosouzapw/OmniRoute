@@ -61,10 +61,19 @@ describe("normalizeCodexImportRecord", () => {
     assert.equal(payload.refreshToken, "refresh-xyz");
     assert.equal(payload.idToken, FULL_RECORD.id_token);
     assert.equal(payload.testStatus, "active");
+    assert.equal(payload.isActive, true);
+    assert.equal(payload.errorCode, null);
+    assert.equal(payload.lastError, null);
+    assert.equal(payload.lastErrorAt, null);
+    assert.equal(payload.lastErrorType, null);
+    assert.equal(payload.lastErrorSource, null);
+    assert.equal(payload.backoffLevel, 0);
+    assert.equal(payload.rateLimitedUntil, null);
     // JWT email wins over the record-level email.
     assert.equal(payload.email, "test-jwt@example.com");
     assert.deepEqual(payload.providerSpecificData, {
       chatgptAccountId: "acct-from-jwt",
+      workspaceId: "acct-from-jwt",
       chatgptPlanType: "plus",
     });
     // ISO-formatted, parses back to the right instant.
@@ -87,6 +96,7 @@ describe("normalizeCodexImportRecord", () => {
     if (!result.ok) return;
     assert.equal(result.payload.email, "fallback@example.com");
     assert.equal(result.payload.providerSpecificData?.chatgptAccountId, "x");
+    assert.equal(result.payload.providerSpecificData?.workspaceId, "x");
   });
 
   test("falls back to account_id when id_token is missing", () => {
@@ -99,6 +109,7 @@ describe("normalizeCodexImportRecord", () => {
     assert.equal(result.ok, true);
     if (!result.ok) return;
     assert.equal(result.payload.providerSpecificData?.chatgptAccountId, "acct-top-level");
+    assert.equal(result.payload.providerSpecificData?.workspaceId, "acct-top-level");
     assert.equal(result.payload.idToken, undefined);
   });
 
@@ -205,6 +216,7 @@ describe("normalizeCodexImportRecord", () => {
     assert.equal(result.payload.email, "cli@example.com");
     assert.deepEqual(result.payload.providerSpecificData, {
       chatgptAccountId: "acct-cli",
+      workspaceId: "acct-cli",
       chatgptPlanType: "free",
     });
     // Falls back to the access_token's `exp` claim when no `expired` field exists.
@@ -283,6 +295,7 @@ describe("9router camelCase Codex export (#6665)", () => {
     assert.equal(payload.email, "jwt-9r@example.com");
     assert.deepEqual(payload.providerSpecificData, {
       chatgptAccountId: "acct-jwt-9r",
+      workspaceId: "acct-jwt-9r",
       chatgptPlanType: "plus",
     });
     // camelCase `expiresAt` is honored as the expiry source.
@@ -301,6 +314,7 @@ describe("9router camelCase Codex export (#6665)", () => {
     assert.equal(result.payload.email, "no-jwt-9r@example.com");
     assert.deepEqual(result.payload.providerSpecificData, {
       chatgptAccountId: "acct-psd",
+      workspaceId: "acct-psd",
       chatgptPlanType: "team",
     });
   });

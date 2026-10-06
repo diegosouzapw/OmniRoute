@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import { getCompressionAnalyticsSummary } from "@/lib/db/compressionAnalytics";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 

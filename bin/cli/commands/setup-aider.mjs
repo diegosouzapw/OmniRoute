@@ -13,6 +13,7 @@ import { join } from "node:path";
 import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError, createPrompt } from "../io.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
+import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
 
 function stripToRoot(url) {
   const s = String(url || "").replace(/\/+$/, "");
@@ -25,7 +26,9 @@ export function resolveAiderTarget(opts = {}) {
   if (opts.remote) root = stripToRoot(opts.remote);
   else {
     try {
-      root = stripToRoot(resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT)?.baseUrl);
+      root = stripToRoot(
+        resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT)?.baseUrl
+      );
     } catch {
       /* none */
     }
@@ -78,7 +81,7 @@ async function fetchModelIds(apiBase, apiKey) {
     const res = await fetch(`${apiBase}/v1/models`, { headers, signal: AbortSignal.timeout(8000) });
     if (!res.ok) return [];
     const body = await res.json();
-    const list = Array.isArray(body) ? body : body.data ?? body.models ?? [];
+    const list = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
     return list.map((m) => (typeof m === "string" ? m : m?.id)).filter(Boolean);
   } catch {
     return [];
@@ -88,7 +91,16 @@ async function fetchModelIds(apiBase, apiKey) {
 export async function runSetupAiderCommand(opts = {}) {
   const { apiBase, apiKey } = resolveAiderTarget(opts);
   const dryRun = Boolean(opts.dryRun ?? opts["dry-run"]);
-  const configPath = opts.configPath ?? opts["config-path"] ?? join(os.homedir(), ".aider.conf.yml");
+  const configPath =
+    opts.configPath ?? opts["config-path"] ?? join(os.homedir(), ".aider.conf.yml");
+
+  const guard = await guardHostConfigTarget(configPath, {
+    toolLabel: "Aider",
+    hostCommand: "omniroute setup-aider",
+    allowContainerWrite: Boolean(opts.allowContainerWrite ?? opts["allow-container-write"]),
+    dryRun,
+  });
+  if (guard !== 0) return guard;
 
   printHeading("OmniRoute → Aider (openai-compatible via LiteLLM)");
   printInfo(`OPENAI_API_BASE: ${apiBase}   (no /v1 — LiteLLM appends it)`);
@@ -107,7 +119,9 @@ export async function runSetupAiderCommand(opts = {}) {
     }
   }
   if (!model) {
-    printError("A model is required. Pass --model <id> (the openai/ prefix is added automatically).");
+    printError(
+      "A model is required. Pass --model <id> (the openai/ prefix is added automatically)."
+    );
     return 2;
   }
 
@@ -139,6 +153,10 @@ export function registerSetupAider(program) {
     .option("--config-path <path>", ".aider.conf.yml path (default: ~/.aider.conf.yml)")
     .option("--yes", "Non-interactive: do not prompt (requires --model)")
     .option("--dry-run", "Print what would be written without touching the filesystem")
+    .option(
+      "--allow-container-write",
+      "Write even when the target is inside a container and not mounted from the host"
+    )
     .action(async (opts) => {
       const code = await runSetupAiderCommand(opts);
       if (code !== 0) process.exit(code);

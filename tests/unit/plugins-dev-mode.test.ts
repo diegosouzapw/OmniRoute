@@ -10,13 +10,17 @@ describe("devMode", () => {
 
   afterEach(() => {
     stopDevMode();
-    try { rmSync(testDir, { recursive: true, force: true }); } catch {}
+    try {
+      rmSync(testDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    } catch {}
   });
 
   it("startDevMode creates watcher without throwing", () => {
     mkdirSync(testDir, { recursive: true });
     let reloadCalled = false;
-    startDevMode(testDir, async () => { reloadCalled = true; });
+    startDevMode(testDir, async () => {
+      reloadCalled = true;
+    });
     // Watcher is active — no crash
     assert.ok(true);
   });

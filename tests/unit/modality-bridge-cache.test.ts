@@ -23,6 +23,37 @@ test("key framing prevents boundary-shift collisions between fields", () => {
   assert.notEqual(bridgeCacheKey("x", "yz", "m"), bridgeCacheKey("x", "y", "zm"));
 });
 
+test("video cache keys change with every visual dedup policy dimension", () => {
+  const base = {
+    dedupCandidateFrameCount: 16,
+    dedupPolicyVersion: "grayscale-16x16-mean-cells-v2",
+    dedupThreshold: 0.04,
+  };
+  const key = bridgeCacheKey("video", "describe", "gpt-4o-mini", base);
+
+  assert.notEqual(
+    key,
+    bridgeCacheKey("video", "describe", "gpt-4o-mini", {
+      ...base,
+      dedupPolicyVersion: "grayscale-16x16-mean-cells-v3",
+    })
+  );
+  assert.notEqual(
+    key,
+    bridgeCacheKey("video", "describe", "gpt-4o-mini", {
+      ...base,
+      dedupThreshold: 0.05,
+    })
+  );
+  assert.notEqual(
+    key,
+    bridgeCacheKey("video", "describe", "gpt-4o-mini", {
+      ...base,
+      dedupCandidateFrameCount: 8,
+    })
+  );
+});
+
 test("get/set roundtrip and TTL expiry", () => {
   let now = 1000;
   const cache = new BridgeCache({ maxEntries: 10, ttlMs: 500, now: () => now });

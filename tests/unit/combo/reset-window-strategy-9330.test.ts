@@ -42,7 +42,7 @@ const { registerQuotaFetcher } = await import("../../../open-sse/services/quotaP
 
 after(() => {
   dbCore.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
   } else {
@@ -200,8 +200,19 @@ test("#9330 canonically named windows keep their existing resolution (no regress
 test("#9330 orderTargetsByResetWindow dispatches the soonest-resetting account first", async () => {
   const antigravity = `agy-9330-${randomUUID()}`;
   const codex = `codex-9330-${randomUUID()}`;
-  const antigravityConnection = `agy-conn-${randomUUID()}`;
-  const codexConnection = `codex-conn-${randomUUID()}`;
+  const { createProviderConnection } = await import("../../../src/lib/db/providers.ts");
+  const { id: antigravityConnection } = (await createProviderConnection({
+    provider: antigravity,
+    authType: "oauth",
+    isActive: true,
+    testStatus: "active",
+  })) as { id: string };
+  const { id: codexConnection } = (await createProviderConnection({
+    provider: codex,
+    authType: "oauth",
+    isActive: true,
+    testStatus: "active",
+  })) as { id: string };
 
   registerQuotaFetcher(antigravity, async () => antigravityQuotaFresh);
   registerQuotaFetcher(codex, async () => codexQuota26Days);

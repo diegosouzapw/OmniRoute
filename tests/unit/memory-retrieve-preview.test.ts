@@ -28,7 +28,7 @@ const core = await import("../../src/lib/db/core.ts");
 function cleanup() {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -36,7 +36,7 @@ function cleanup() {
 test.afterEach(() => cleanup());
 test.after(() => {
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -51,6 +51,11 @@ function insertMemory(
     `INSERT INTO memories (id, api_key_id, session_id, type, key, content, metadata, created_at, updated_at, expires_at)
      VALUES (?, ?, ?, 'factual', ?, ?, '{}', datetime('now'), datetime('now'), NULL)`
   ).run(id, apiKeyId, "", key ?? `key-${id}`, content);
+
+  // Mirror production store.ts: keep memory_id in sync with the SQLite rowid so
+  // the FTS5 trigger (023) stores a matching rowid and the JOIN used by
+  // retrieval.ts returns rows. Without this, FTS MATCH finds nothing.
+  db.prepare("UPDATE memories SET memory_id = rowid WHERE id = ?").run(id);
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -126,8 +131,7 @@ test("retrievePreview: semantic strategy with no vec store → fallbackReason is
 
   // No embedding source configured → fallback
   assert.ok(
-    bundle.resolution.fallbackReason !== null ||
-      bundle.resolution.strategyUsed !== "semantic",
+    bundle.resolution.fallbackReason !== null || bundle.resolution.strategyUsed !== "semantic",
     "semantic preview with no vec store should indicate fallback"
   );
   assert.ok(Array.isArray(bundle.items), "items must be array even in fallback");
@@ -183,6 +187,33 @@ test("retrievePreview: empty DB returns empty items", async () => {
 
   assert.deepEqual(bundle.items, [], "empty DB should return empty items array");
   assert.equal(bundle.totalTokens, 0);
+});
+
+test("retrievePreview: semantic FTS fallback sanitizes adversarial query (no FTS5 syntax error, relevant rows only)", async () => {
+  const db = core.getDbInstance();
+  // Content includes the exact tokens that used to break the raw FTS5 MATCH when
+  // the preview path bound the user query unsanitized:
+  //   - `<`  → `fts5: syntax error near "<"`
+  //   - `CRITICAL` as a bare token → `no such column: CRITICAL`
+  insertMemory(db, "adv-1", "api-adv", "The server logs CRITICAL errors during a system reminder.");
+  insertMemory(db, "adv-2", "api-adv", "Unrelated content about baking bread.");
+  insertMemory(db, "adv-3", "api-adv-b3", "Other tenant memory mentioning CRITICAL systems.");
+
+  const { retrievePreview } = await import("../../src/lib/memory/retrieval.ts");
+
+  const bundle = await retrievePreview("api-adv", "<system-reminder> CRITICAL:", {
+    strategy: "semantic",
+    maxTokens: 2000,
+    limit: 10,
+  });
+
+  const ids = bundle.items.map((i) => i.memory.id);
+  assert.ok(
+    ids.includes("adv-1"),
+    "sanitized semantic preview must surface the CRITICAL/system/reminder memory"
+  );
+  assert.ok(!ids.includes("adv-2"), "unrelated memory must not be returned by FTS ranking");
+  assert.ok(!ids.includes("adv-3"), "other-tenant memory must not be returned (API-key scoping)");
 });
 
 test("retrievePreview: totalTokens equals sum of item.tokens", async () => {

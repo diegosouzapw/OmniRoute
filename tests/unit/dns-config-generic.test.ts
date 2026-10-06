@@ -227,15 +227,15 @@ test("addDNSEntries: calls exec with array-form args (Hard Rule #13 pattern)", a
   // The tee invocation must use array form: args array contains HOSTS_FILE as
   // a string argument, never template-interpolated into a shell string.
   assert.ok(
-    src.includes('"-S", "tee", "-a", HOSTS_FILE'),
-    "addDNSEntries must pass HOSTS_FILE as an argv element, not interpolated"
+    src.includes('"-S", "tee", "-a", hostsFilePath()'),
+    "addDNSEntries must pass hostsFilePath() as an argv element, not interpolated"
   );
 
-  // The remove invocation must pass HOSTS_FILE and hostname as process.argv,
+  // The remove invocation must pass the hosts path and hostname as process.argv,
   // not string-interpolated.
   assert.ok(
-    src.includes("REMOVE_HOSTS_ENTRY_SCRIPT, HOSTS_FILE, hostname"),
-    "removeDNSEntries must pass HOSTS_FILE and hostname as argv, not interpolated"
+    src.includes("REMOVE_HOSTS_ENTRY_SCRIPT, hostsFilePath(), hostname"),
+    "removeDNSEntries must pass hostsFilePath() and hostname as argv, not interpolated"
   );
 });
 
@@ -253,7 +253,7 @@ test("addDNSEntries: entry passed as stdin data, not shell-interpolated", () => 
   );
   assert.ok(
     src.includes(
-      'commands.execFileWithPassword(\n      "sudo",\n      ["-S", "tee", "-a", HOSTS_FILE],\n      sudoPassword,\n      data\n    )'
+      'commands.execFileWithPassword(\n      "sudo",\n      ["-S", "tee", "-a", hostsFilePath()],\n      sudoPassword,\n      data\n    )'
     ),
     "entry data must be passed as stdin to tee, not interpolated in args"
   );
@@ -272,7 +272,7 @@ test("addDNSEntries: generates both IPv4 and IPv6 lines per host", () => {
 // ---------------------------------------------------------------------------
 test.after(() => {
   try {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     // best effort
   }

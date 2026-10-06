@@ -56,7 +56,7 @@ function errorResponseWithConnectionId(status: number, connectionId: string) {
 
 test.afterEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("RATE_LIMIT_QUEUE_TIMEOUT lockout behaves correctly depending on connection ID header", async () => {

@@ -22,7 +22,7 @@ const { GET } = await import("../../src/app/api/providers/cursor/agent-availabil
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const FAKE_CURSOR_AGENT_SCRIPT = `#!/usr/bin/env node
@@ -46,7 +46,7 @@ test.after(() => {
   process.env.HOME = originalHome;
   if (originalUserProfile !== undefined) process.env.USERPROFILE = originalUserProfile;
   else delete process.env.USERPROFILE;
-  fs.rmSync(tmpHome, { recursive: true, force: true });
+  fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("returns {cursorAgentAvailable: true} and ONLY that field when cursor-agent is authenticated", async () => {

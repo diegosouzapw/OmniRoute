@@ -17,22 +17,30 @@ const { default: EditCompatibleNodeModal } =
 
 const containers: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElement }> = [];
 
-function render(node: Record<string, unknown>, onSave?: () => Promise<void>) {
+type ModalProps = React.ComponentProps<typeof EditCompatibleNodeModal>;
+
+type ModalNode = NonNullable<ModalProps["node"]>;
+
+function render(node: ModalNode, onSave?: ModalProps["onSave"]) {
   const el = document.createElement("div");
   document.body.appendChild(el);
   const root = createRoot(el);
-  act(() => {
-    root.render(
-      <EditCompatibleNodeModal
-        isOpen
-        node={node as any}
-        onSave={onSave || (async () => {})}
-        onClose={() => {}}
-      />
-    );
-  });
+  const renderProps = (props: Partial<ModalProps>) => {
+    act(() => {
+      root.render(
+        <EditCompatibleNodeModal
+          isOpen
+          node={node}
+          onSave={onSave || (async () => {})}
+          onClose={() => {}}
+          {...props}
+        />
+      );
+    });
+  };
+  renderProps({});
   containers.push({ root, el });
-  return el;
+  return { el, rerender: renderProps };
 }
 
 function inputByLabel(el: Element, label: string): HTMLInputElement {
@@ -85,7 +93,7 @@ const NODE = {
 describe("EditCompatibleNodeModal — iconUrl field-level validation", () => {
   it("shows an inline error for an unsafe scheme and does NOT call onSave", async () => {
     const onSave = vi.fn(async () => {});
-    const el = render({ ...NODE, iconUrl: "javascript:alert(1)" });
+    const { el } = render({ ...NODE, iconUrl: "javascript:alert(1)" });
     const modal = el.querySelector('[role="dialog"]')!;
 
     setInputValue(inputByLabel(modal, "iconUrlLabel"), "javascript:alert(1)");
@@ -100,7 +108,7 @@ describe("EditCompatibleNodeModal — iconUrl field-level validation", () => {
 
   it("shows an inline error for a non-image data URL and does NOT call onSave", async () => {
     const onSave = vi.fn(async () => {});
-    const el = render({ ...NODE, iconUrl: "data:text/html;base64,QUJD" });
+    const { el } = render({ ...NODE, iconUrl: "data:text/html;base64,QUJD" });
     const modal = el.querySelector('[role="dialog"]')!;
 
     setInputValue(inputByLabel(modal, "iconUrlLabel"), "data:text/html;base64,QUJD");
@@ -115,7 +123,7 @@ describe("EditCompatibleNodeModal — iconUrl field-level validation", () => {
 
   it("accepts a valid data:image/*;base64 iconUrl and calls onSave with it", async () => {
     const onSave = vi.fn(async () => {});
-    const el = render({ ...NODE, iconUrl: "" }, onSave);
+    const { el } = render({ ...NODE, iconUrl: "" }, onSave);
     const modal = el.querySelector('[role="dialog"]')!;
 
     setInputValue(inputByLabel(modal, "iconUrlLabel"), "data:image/png;base64,iVBORw0KGgo=");
@@ -127,5 +135,61 @@ describe("EditCompatibleNodeModal — iconUrl field-level validation", () => {
     expect(modal.textContent).not.toContain("iconUrlInvalid");
     const payload = onSave.mock.calls[0][0];
     expect(payload.iconUrl).toBe("data:image/png;base64,iVBORw0KGgo=");
+  });
+
+  it("shows an inline error for an over-limit data URL and does NOT call onSave", async () => {
+    const onSave = vi.fn(async () => {});
+    const { el } = render({ ...NODE, iconUrl: "" }, onSave);
+    const modal = el.querySelector('[role="dialog"]')!;
+    const tooLong = "data:image/png;base64," + "A".repeat(256 * 1024);
+
+    setInputValue(inputByLabel(modal, "iconUrlLabel"), tooLong);
+    const buttons = Array.from(modal.querySelectorAll<HTMLButtonElement>("button"));
+    const saveBtn = buttons.find((b) => b.textContent === "save");
+    act(() => saveBtn!.click());
+    await waitFor(() => modal.textContent?.includes("iconUrlInvalid") ?? false);
+
+    expect(modal.textContent).toContain("iconUrlInvalid");
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an error thrown by onSave instead of staying silent", async () => {
+    const onSave = vi.fn(async () => {
+      throw new Error("server said no");
+    });
+    const { el } = render({ ...NODE, iconUrl: "" }, onSave);
+    const modal = el.querySelector('[role="dialog"]')!;
+
+    setInputValue(inputByLabel(modal, "iconUrlLabel"), "data:image/png;base64,iVBORw0KGgo=");
+    const buttons = Array.from(modal.querySelectorAll<HTMLButtonElement>("button"));
+    const saveBtn = buttons.find((b) => b.textContent === "save");
+    act(() => saveBtn!.click());
+    await waitFor(() => modal.textContent?.includes("server said no") ?? false);
+
+    const alert = modal.querySelector('[role="alert"]');
+    expect(alert?.textContent).toContain("server said no");
+    expect(alert?.getAttribute("aria-live")).toBe("assertive");
+    expect(onSave).toHaveBeenCalledOnce();
+  });
+
+  it("clears a previous save error when the same node modal reopens", async () => {
+    const onSave = vi.fn(async () => {
+      throw new Error("server said no");
+    });
+    const { el, rerender } = render({ ...NODE, iconUrl: "" }, onSave);
+    let modal = el.querySelector('[role="dialog"]')!;
+
+    act(() =>
+      Array.from(modal.querySelectorAll("button"))
+        .find((button) => button.textContent === "save")!
+        .click()
+    );
+    await waitFor(() => modal.textContent?.includes("server said no") ?? false);
+
+    rerender({ isOpen: false });
+    rerender({ isOpen: true });
+    modal = el.querySelector('[role="dialog"]')!;
+    expect(modal.textContent).not.toContain("server said no");
+    expect(modal.querySelector('[role="alert"]')).toBeNull();
   });
 });

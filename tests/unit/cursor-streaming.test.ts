@@ -4,9 +4,13 @@ import {
   newStreamCtx,
   processFrame,
   buildCursorUsage,
+  emitCursorSseError,
   type StreamCtx,
 } from "../../open-sse/executors/cursor";
-
+import {
+  classifyCursorError,
+  CURSOR_EMPTY_TURN_MESSAGE,
+} from "../../open-sse/executors/cursor/cursorErrors.ts";
 // ─── Wire-format helpers (mirror the encoder's primitives) ─────────────────
 
 function v(n: number): Buffer {
@@ -38,6 +42,25 @@ function buildTurnEndedPayload(): Buffer {
   return lenPrefixed(1, iu);
 }
 
+function buildTurnEndedUsagePayload(
+  input: number,
+  output: number,
+  read: number,
+  write: number
+): Buffer {
+  const ended = Buffer.concat([
+    tag(1, 0),
+    v(input),
+    tag(2, 0),
+    v(output),
+    tag(3, 0),
+    v(read),
+    tag(4, 0),
+    v(write),
+  ]);
+  return lenPrefixed(1, lenPrefixed(14, ended));
+}
+
 // AgentServerMessage { interaction_update (1): { token_delta (8): { count (1): n } } }
 function buildTokenDeltaPayload(tokens: number): Buffer {
   const tokDelta = Buffer.concat([tag(1, 0), v(tokens)]);
@@ -55,6 +78,23 @@ function buildThinkingDeltaPayload(text: string): Buffer {
 // AgentServerMessage { kv_server_message (4): {...} } — empty body
 function buildKvServerMessagePayload(): Buffer {
   return lenPrefixed(4, Buffer.alloc(0));
+}
+
+// AgentServerMessage { exec_server_message (2): { id (1): 9, mcp_args (11): { tool_name (5): str } } }
+function buildExecMcpPayload(): Buffer {
+  const mcpArgs = lenPrefixed(5, Buffer.from("magic_tool"));
+  const esm = Buffer.concat([tag(1, 0), v(9), lenPrefixed(11, mcpArgs)]);
+  return lenPrefixed(2, esm);
+}
+
+// Faithful model of driveH2's per-frame endReason teardown (cursor.ts): after
+// each decoded frame a truthy endReason detaches listeners and stops reading,
+// so any frame still buffered after it is dropped.
+function driveFrames(ctx: StreamCtx, frames: Buffer[]): void {
+  for (const f of frames) {
+    processFrame(f, ctx, new Set());
+    if (ctx.endReason) return;
+  }
 }
 
 // JSON error payload (Connect-RPC error envelope)
@@ -117,12 +157,65 @@ test("processFrame accumulates token_delta", () => {
   assert.equal(ctx.tokenDelta, 55);
 });
 
-test("processFrame sets endReason on kv_server_message after text", () => {
-  const ctx = newStreamCtx("auto", () => {});
+test("processFrame sets endReason on kv_server_message after text for composer models", () => {
+  // Composer family keeps the plain-chat short-circuit: KV is the verified
+  // early end-of-turn signal and a tool call never follows kv_after_text.
+  const ctx = newStreamCtx("cursor/composer-2.5", () => {});
   processFrame(buildTextDeltaPayload("hi"), ctx, new Set());
   processFrame(buildKvServerMessagePayload(), ctx, new Set());
   assert.equal(ctx.endReason, "kv_after_text");
   assert.equal(ctx.kvAfterTextSeen, true);
+});
+
+test("processFrame does not end turn on kv_server_message for non-composer models", () => {
+  // Non-composer models (cursor/grok-4.5-high, auto) emit the KV checkpoint as
+  // a blob-store side-channel frame with no turn-completion semantics — it can
+  // arrive mid-stream before a pending exec_mcp. It must never terminate here;
+  // only the real terminal signals (turn_ended / tool_call_completed) decide.
+  for (const model of ["cursor/grok-4.5-high", "auto"]) {
+    const ctx = newStreamCtx(model, () => {});
+    processFrame(buildTextDeltaPayload("hi"), ctx, new Set());
+    processFrame(buildKvServerMessagePayload(), ctx, new Set());
+    assert.equal(ctx.endReason, null, `model ${model} must not end on kv_after_text`);
+    assert.equal(ctx.kvAfterTextSeen, true, `model ${model} still observes the KV checkpoint`);
+  }
+});
+
+test("REGRESSION #10215: non-composer kv_after_text before exec_mcp must not drop the tool call", () => {
+  // text → kv_server_message → exec_mcp must still process the tool call:
+  // the KV checkpoint (with no turn semantics on this family) must not tear the
+  // frame loop down before the pending exec_mcp is decoded. Prior to the fix
+  // this left ctx.toolCalls=0 → finish_reason "stop" (narration-only truncation).
+  for (const model of ["cursor/grok-4.5-high", "auto"]) {
+    const ctx = newStreamCtx(model, () => {});
+    driveFrames(ctx, [
+      buildTextDeltaPayload("a long preamble before the tool call"),
+      buildKvServerMessagePayload(),
+      buildExecMcpPayload(),
+    ]);
+    assert.equal(ctx.toolCalls.length, 1, `model ${model} must keep the pending tool call`);
+    assert.equal(ctx.endReason, "tool_calls", `model ${model} ends on the real tool signal`);
+    assert.equal(ctx.kvAfterTextSeen, true);
+  }
+});
+
+test("REGRESSION #10215: long preamble (>2.5K chars) then KV then exec_mcp keeps the tool call", () => {
+  // Covers the at-risk band the reporter identified (2505-2933 chars of text
+  // before the tool call on cursor/grok-4.5-high). A KV checkpoint arriving
+  // mid-preamble must not truncate the still-pending exec_mcp.
+  const longPreamble = "The model streams a lengthy preamble before invoking a tool. ".repeat(60);
+  assert.ok(longPreamble.length > 2500);
+  for (const model of ["cursor/grok-4.5-high", "auto"]) {
+    const ctx = newStreamCtx(model, () => {});
+    driveFrames(ctx, [
+      buildTextDeltaPayload(longPreamble),
+      buildKvServerMessagePayload(),
+      buildExecMcpPayload(),
+    ]);
+    assert.equal(ctx.toolCalls.length, 1, `model ${model} must keep the tool call`);
+    assert.equal(ctx.endReason, "tool_calls");
+    assert.ok(ctx.totalText.length > 2500);
+  }
 });
 
 test("buildCursorUsage degrades to prompt-only counts for an empty response", () => {
@@ -278,7 +371,7 @@ test("buildCursorUsage omits completion_tokens_details when no thinking", () => 
   assert.equal(usage.completion_tokens_details, undefined);
 });
 
-test("buildCursorUsage never emits cache fields (cursor doesn't expose them)", () => {
+test("buildCursorUsage omits cache fields when the upstream turn has no metering", () => {
   const ctx = newStreamCtx("auto", () => {});
   processFrame(buildThinkingDeltaPayload("thinking"), ctx, new Set());
   processFrame(buildTextDeltaPayload("text"), ctx, new Set());
@@ -287,4 +380,49 @@ test("buildCursorUsage never emits cache fields (cursor doesn't expose them)", (
   assert.equal(usage.cached_tokens, undefined);
   assert.equal(usage.cache_read_input_tokens, undefined);
   assert.equal(usage.cache_creation_input_tokens, undefined);
+});
+
+test("Cursor turn end exposes upstream cache reads and writes in OpenAI usage", () => {
+  const ctx = newStreamCtx("grok-4.7", () => {});
+  // TurnEndedUpdate `input` already includes the cache reads and writes, so they
+  // are not added on top of it.
+  processFrame(buildTurnEndedUsagePayload(12, 5, 8, 4), ctx, new Set());
+  const usage = buildCursorUsage(ctx, SAMPLE_BODY) as Record<string, unknown>;
+  assert.equal(usage.prompt_tokens, 12);
+  assert.equal(usage.completion_tokens, 5);
+  assert.equal(usage.total_tokens, 17);
+  assert.deepEqual(usage.prompt_tokens_details, {
+    cached_tokens: 8,
+    cache_creation_tokens: 4,
+  });
+  assert.equal(usage.estimated, undefined);
+});
+
+test("emitCursorSseError matches buildStreamErrorChunks OpenAI shape", () => {
+  const chunks: string[] = [];
+  const ctx = newStreamCtx("gpt-5.4-nano-xhigh", (s) => chunks.push(s));
+  const classified = classifyCursorError("not_found: AI Model Not Found");
+  emitCursorSseError(ctx, classified);
+
+  const joined = chunks.join("");
+  assert.match(joined, /"finish_reason":"error"/);
+  assert.match(joined, /AI Model Not Found/);
+  assert.match(joined, /rate_limit_error|rate limit/i);
+  assert.match(joined, /data: \[DONE\]/);
+  assert.doesNotMatch(joined, /"choices":\s*\[\]/);
+});
+
+test("emitCursorSseError surfaces empty-turn guidance message", () => {
+  const chunks: string[] = [];
+  const ctx = newStreamCtx("auto", (s) => chunks.push(s));
+  emitCursorSseError(ctx, {
+    kind: "upstream",
+    status: 502,
+    type: "api_error",
+    message: CURSOR_EMPTY_TURN_MESSAGE,
+  });
+  const joined = chunks.join("");
+  assert.match(joined, /"finish_reason":"error"/);
+  assert.match(joined, /empty turn/i);
+  assert.match(joined, /data: \[DONE\]/);
 });

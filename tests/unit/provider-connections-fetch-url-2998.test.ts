@@ -11,3 +11,7 @@ test("provider detail keeps alias-backed pages on the unfiltered request", () =>
   assert.equal(getProviderConnectionsRequestUrl("alibaba"), "/api/providers");
   assert.equal(getProviderConnectionsRequestUrl("kimi-coding"), "/api/providers");
 });
+
+test("unified xAI detail fetches all auth variants through the unfiltered request", () => {
+  assert.equal(getProviderConnectionsRequestUrl("xai"), "/api/providers");
+});

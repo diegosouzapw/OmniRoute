@@ -14,7 +14,7 @@ const combosDb = await import("../../src/lib/db/combos.ts");
 
 after(() => {
   dbCore.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
   } else {
@@ -210,7 +210,7 @@ test("priority combo: quota 429 on passthrough provider does not skip another mo
   const combo = await combosDb.createCombo({
     name: "passthrough-quota-scope",
     strategy: "priority",
-    models: ["antigravity/claude-opus-4-6-thinking", "antigravity/gemini-3-flash-agent"],
+    models: ["antigravity/claude-opus-4-6-thinking", "antigravity/gemini-3.7-flash-high"],
   });
 
   const response = await handleComboChat({
@@ -235,7 +235,7 @@ test("priority combo: quota 429 on passthrough provider does not skip another mo
   });
 
   assert.equal(response.status, 200);
-  assert.equal(calls.at(-1), "antigravity/gemini-3-flash-agent");
+  assert.equal(calls.at(-1), "antigravity/gemini-3.7-flash-high");
   assert.ok(
     calls.includes("antigravity/claude-opus-4-6-thinking"),
     "first passthrough model should be attempted before fallback"

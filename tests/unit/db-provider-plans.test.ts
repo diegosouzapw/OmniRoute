@@ -26,7 +26,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (err: any) {
@@ -46,7 +46,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ---------------------------------------------------------------------------
@@ -54,12 +54,7 @@ test.after(async () => {
 // ---------------------------------------------------------------------------
 
 test("upsertPlan creates a plan row", () => {
-  plansDb.upsertPlan(
-    "conn-1",
-    "codex",
-    [{ unit: "percent", window: "5h", limit: 100 }],
-    "auto"
-  );
+  plansDb.upsertPlan("conn-1", "codex", [{ unit: "percent", window: "5h", limit: 100 }], "auto");
 
   const all = plansDb.listPlans();
   assert.equal(all.length, 1);
@@ -204,7 +199,12 @@ test("upserting one plan does not affect other connection plans", () => {
   );
 
   // Update conn-x
-  plansDb.upsertPlan("conn-x", "openai", [{ unit: "usd", window: "monthly", limit: 100 }], "manual");
+  plansDb.upsertPlan(
+    "conn-x",
+    "openai",
+    [{ unit: "usd", window: "monthly", limit: 100 }],
+    "manual"
+  );
 
   const planY = plansDb.getPlan("conn-y");
   assert.ok(planY, "conn-y should still exist");

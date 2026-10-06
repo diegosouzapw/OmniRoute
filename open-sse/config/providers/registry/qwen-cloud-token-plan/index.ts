@@ -7,17 +7,18 @@ export const qwen_cloud_token_planProvider: RegistryEntry = {
   executor: "default",
   baseUrl:
     "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
+  modelsUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/models",
   authType: "apikey",
   authHeader: "bearer",
   models: [
     {
-      id: "qwen3.8-max-preview",
-      name: "Qwen3.8 Max Preview",
+      id: "qwen3.8-max",
+      name: "Qwen3.8 Max",
       supportsReasoning: true,
       supportsVision: true,
       toolCalling: true,
       contextLength: 1_000_000,
-      maxOutputTokens: 65_536,
+      maxOutputTokens: 131_072,
     },
     {
       id: "qwen3.7-max",
@@ -25,7 +26,7 @@ export const qwen_cloud_token_planProvider: RegistryEntry = {
       supportsReasoning: true,
       toolCalling: true,
       contextLength: 1_000_000,
-      maxOutputTokens: 65_536,
+      maxOutputTokens: 131_072,
     },
     {
       id: "qwen3.7-plus",
@@ -34,7 +35,17 @@ export const qwen_cloud_token_planProvider: RegistryEntry = {
       supportsVision: true,
       toolCalling: true,
       contextLength: 1_000_000,
-      maxOutputTokens: 65_536,
+      maxOutputTokens: 131_072,
+    },
+    {
+      // https://help.aliyun.com/en/model-studio/qwen3-8-flash (#14232)
+      id: "qwen3.8-flash",
+      name: "Qwen3.8 Flash",
+      supportsReasoning: true,
+      supportsVision: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 131_072,
     },
     {
       id: "qwen3.6-flash",
@@ -43,7 +54,7 @@ export const qwen_cloud_token_planProvider: RegistryEntry = {
       supportsVision: true,
       toolCalling: true,
       contextLength: 1_000_000,
-      maxOutputTokens: 32_768,
+      maxOutputTokens: 65_536,
     },
     {
       id: "glm-5.2",
@@ -51,15 +62,33 @@ export const qwen_cloud_token_planProvider: RegistryEntry = {
       supportsReasoning: true,
       toolCalling: true,
       contextLength: 1_000_000,
-      maxOutputTokens: 16_384,
+      maxOutputTokens: 131_072,
     },
     {
       id: "deepseek-v4-pro",
       name: "DeepSeek V4 Pro",
       supportsReasoning: true,
       toolCalling: true,
-      contextLength: 163_840,
-      maxOutputTokens: 32_768,
+      contextLength: 1_000_000,
+      maxOutputTokens: 393_216,
+    },
+    {
+      // https://help.aliyun.com/en/model-studio/deepseek-v4-1-flash (#14232)
+      id: "deepseek-v4.1-flash",
+      name: "DeepSeek V4.1 Flash",
+      supportsReasoning: true,
+      supportsVision: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 393_216,
+    },
+    {
+      id: "deepseek-v4-flash-0731",
+      name: "DeepSeek V4 Flash",
+      supportsReasoning: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 393_216,
     },
   ],
 };

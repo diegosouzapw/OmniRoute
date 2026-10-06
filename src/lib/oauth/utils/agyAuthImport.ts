@@ -2,13 +2,17 @@ import {
   getProviderConnections,
   createProviderConnection,
   updateProviderConnection,
-} from "@/lib/localDb";
+} from "@/lib/db/providers";
 import { AGY_CONFIG } from "@/lib/oauth/constants/oauth";
 import {
   getAntigravityContentHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { extractCodeAssistOnboardTierId } from "@omniroute/open-sse/services/codeAssistSubscription.ts";
+import {
+  antigravityDegradedProjectState,
+  antigravityPersistStatus,
+} from "@/lib/oauth/antigravityProjectGate";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -203,6 +207,11 @@ export async function createConnectionFromAgyToken(
         );
       }
 
+      const degradedProject = antigravityDegradedProjectState("agy", {
+        projectId: enriched.projectId ?? "",
+        providerSpecificData: { projectId: enriched.projectId ?? "", clientProfile: "cli" },
+      });
+
       const updated = await updateProviderConnection(existing.id as string, {
         accessToken: enriched.accessToken,
         refreshToken: enriched.refreshToken,
@@ -213,13 +222,23 @@ export async function createConnectionFromAgyToken(
           (existing.name as string | undefined) ||
           resolvedEmail ||
           "Antigravity CLI (imported)",
-        testStatus: "active",
+        ...antigravityPersistStatus(degradedProject),
         isActive: true,
         providerSpecificData: {
+          // Auto-sync default for newly discovered backends — see
+          // mapAntigravityTokens. Placed BEFORE the existing-data spread so a
+          // previously persisted operator choice (true or false) wins.
+          autoSync: true,
           ...toRecord(existing.providerSpecificData),
           clientProfile: "cli",
           tokenType: enriched.tokenType,
           authMethod: enriched.authMethod,
+          // CLI tokens are issued by the public Antigravity desktop client.
+          // A prior dashboard OAuth against ANTIGRAVITY_OAUTH_CLIENT_ID=web
+          // leaves oauthClient=custom:... on the row; spreading that marker
+          // would refresh the CLI token against the wrong Google client
+          // (401 unauthorized_client) after the imported access token expires.
+          oauthClient: "builtin",
           projectId: enriched.projectId ?? toRecord(existing.providerSpecificData).projectId,
           tier: enriched.tier ?? toRecord(existing.providerSpecificData).tier,
           importedAt: new Date().toISOString(),
@@ -237,6 +256,10 @@ export async function createConnectionFromAgyToken(
   }
 
   const name = options.name || resolvedEmail || "Antigravity CLI (imported)";
+  const degradedProject = antigravityDegradedProjectState("agy", {
+    projectId: enriched.projectId ?? "",
+    providerSpecificData: { projectId: enriched.projectId ?? "", clientProfile: "cli" },
+  });
 
   const connection = await createProviderConnection({
     provider: "agy",
@@ -247,11 +270,14 @@ export async function createConnectionFromAgyToken(
     refreshToken: enriched.refreshToken,
     expiresAt: enriched.expiresAt,
     isActive: true,
-    testStatus: "active",
+    ...antigravityPersistStatus(degradedProject),
     providerSpecificData: {
+      // Default new imports into model auto-sync — see mapAntigravityTokens.
+      autoSync: true,
       clientProfile: "cli",
       tokenType: enriched.tokenType,
       authMethod: enriched.authMethod,
+      oauthClient: "builtin",
       projectId: enriched.projectId,
       tier: enriched.tier,
       importedAt: new Date().toISOString(),

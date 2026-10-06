@@ -20,13 +20,15 @@ import assert from "node:assert/strict";
 const {
   GITHUB_COPILOT_MODELS_URL,
   GITHUB_COPILOT_MODEL_ALLOWLIST,
+  GITHUB_COPILOT_STATIC_FALLBACK_MODELS,
   parseGitHubCopilotModels,
   fetchGitHubCopilotModels,
 } = await import("../../open-sse/services/githubCopilotModels.ts");
 
 // A representative slice of a real Copilot /models response. The upstream list
-// includes selectable chat models plus utility/legacy models; OmniRoute imports
-// only the curated allowlist.
+// includes selectable chat models plus utility/legacy models; discovery now
+// keeps every entitled CHAT model (capability-driven) and drops only non-chat
+// rows (embeddings / completion).
 const MOCK_COPILOT_MODELS_RESPONSE = {
   data: [
     {
@@ -37,35 +39,69 @@ const MOCK_COPILOT_MODELS_RESPONSE = {
       capabilities: { type: "chat", limits: { max_context_window_tokens: 128000 } },
     },
     {
+      id: "disabled-by-policy",
+      name: "Disabled by policy",
+      model_picker_enabled: true,
+      policy: { state: "disabled" },
+      capabilities: { type: "chat" },
+    },
+    {
+      id: "hidden-from-picker",
+      name: "Hidden from picker",
+      model_picker_enabled: false,
+      policy: { state: "enabled" },
+      capabilities: { type: "chat" },
+    },
+    {
       id: "claude-sonnet-4.5",
       name: "Claude Sonnet 4.5",
       model_picker_enabled: true,
       capabilities: { type: "chat" },
     },
     {
-      // Embeddings model — present upstream but intentionally not in the curated chat list.
+      // Newly-entitled model NOT in any hardcoded list — must still be kept now
+      // that discovery is capability-driven (this is the whole point of the fix).
+      id: "grok-4.6",
+      name: "Grok 4.6",
+      model_picker_enabled: true,
+      capabilities: { type: "chat" },
+      supported_endpoints: ["/responses"],
+    },
+    {
+      // Embeddings model — present upstream but not a routable chat model.
       id: "text-embedding-3-small",
       name: "Embedding V3 small",
       capabilities: { type: "embeddings" },
     },
+    {
+      // Raw completion utility — also excluded.
+      id: "gpt-41-copilot",
+      name: "Copilot Completion",
+      capabilities: { type: "completion" },
+    },
   ],
 };
 
-test("#3120 parseGitHubCopilotModels maps data[].id into managed models", () => {
+test("#3120 parseGitHubCopilotModels keeps every entitled CHAT model (capability-driven)", () => {
   const models = parseGitHubCopilotModels(MOCK_COPILOT_MODELS_RESPONSE);
   const ids = models.map((m) => m.id);
-  assert.deepEqual(ids, ["gpt-5.4", "claude-sonnet-4.5"]);
+  // grok-4.6 is kept even though it is in no hardcoded allowlist — it's an
+  // entitled chat model in the live response.
+  assert.deepEqual(ids, ["gpt-5.4", "claude-sonnet-4.5", "grok-4.6"]);
   const gpt = models.find((m) => m.id === "gpt-5.4");
   assert.ok(gpt, "gpt-5.4 entry present");
   assert.equal(gpt.name, "GPT-5.4");
   assert.equal(gpt.owned_by, "github");
-  assert.ok(!ids.includes("text-embedding-3-small"), "non-allowlisted utility models are skipped");
+  assert.ok(!ids.includes("text-embedding-3-small"), "embeddings models are skipped");
+  assert.ok(!ids.includes("gpt-41-copilot"), "completion utility models are skipped");
+  assert.ok(!ids.includes("disabled-by-policy"), "policy.state=disabled is not routable");
+  assert.ok(!ids.includes("hidden-from-picker"), "model_picker_enabled=false is not routable");
 });
 
 test("#3121 a model NOT in the live response is not advertised (entitlement filtering)", () => {
   const models = parseGitHubCopilotModels(MOCK_COPILOT_MODELS_RESPONSE);
   const ids = models.map((m) => m.id);
-  // gemini-3.1-pro-preview is in the OLD static catalog but NOT entitled here.
+  // gemini-3.1-pro-preview is not entitled here (absent from the live response).
   assert.ok(
     !ids.includes("gemini-3.1-pro-preview"),
     "non-entitled gemini preview must NOT be advertised"
@@ -99,7 +135,7 @@ test("#3120 fetchGitHubCopilotModels does a live fetch and returns parsed models
   assert.ok(capturedHeaders["copilot-integration-id"], "must send Copilot integration header");
   assert.equal(result.source, "api");
   const ids = result.models.map((m) => m.id);
-  assert.deepEqual(ids, ["gpt-5.4", "claude-sonnet-4.5"]);
+  assert.deepEqual(ids, ["gpt-5.4", "claude-sonnet-4.5", "grok-4.6"]);
   assert.ok(!ids.includes("gemini-3.1-pro-preview"));
 });
 
@@ -125,38 +161,30 @@ test("#3120/#3121 fetch falls back to static catalog when the live fetch fails",
   );
 });
 
-test("curated Copilot allowlist contains the final approved model ids only", () => {
-  assert.deepEqual(
-    [...GITHUB_COPILOT_MODEL_ALLOWLIST],
-    [
-      "claude-fable-5",
-      "claude-opus-5",
-      "claude-opus-4.8-fast",
-      "claude-opus-4.8",
-      "claude-opus-4.7",
-      "claude-sonnet-4.6",
-      "claude-opus-4.5",
-      "claude-sonnet-5",
-      "claude-sonnet-4.5",
-      "claude-haiku-4.5",
-      "gemini-3.1-pro-preview",
-      "gemini-3.5-flash",
-      "gpt-5.6-sol",
-      "gpt-5.6-terra",
-      "gpt-5.6-luna",
-      "gpt-5.5",
-      "gpt-5.4",
-      "gpt-5.4-mini",
-      "gpt-5.3-codex",
-      "gpt-5-mini",
-      "gpt-4o-2024-11-20",
-      "gpt-4o-mini",
-      "gpt-4-0125-preview",
-      "kimi-k2.7-code",
-      "mai-code-1-flash",
-      "oswe-vscode-prime",
-    ]
-  );
+test("static fallback catalog is the alias of the allowlist and covers the approved chat ids", () => {
+  // Back-compat: the old name still points at the fallback catalog.
+  assert.equal(GITHUB_COPILOT_MODEL_ALLOWLIST, GITHUB_COPILOT_STATIC_FALLBACK_MODELS);
+  const set = new Set<string>(GITHUB_COPILOT_STATIC_FALLBACK_MODELS);
+  // The fallback must include the newly-entitled families so an offline import
+  // (which can only draw from this static list) still surfaces them.
+  for (const id of [
+    "claude-fable-5",
+    "claude-opus-5",
+    "claude-opus-4.8-fast",
+    "claude-opus-4.6",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gpt-5.4-nano",
+    "grok-4.6",
+    "grok-4.5",
+    "mai-code-1.1-flash",
+    "mai-code-1-flash-picker",
+  ]) {
+    assert.ok(set.has(id), `static fallback must include ${id}`);
+  }
+  // No embeddings / completion utilities belong in the chat fallback catalog.
+  assert.ok(!set.has("text-embedding-3-small"));
+  assert.ok(!set.has("gpt-41-copilot"));
 });
 
 test("newly approved Copilot models survive live and fallback discovery", async () => {

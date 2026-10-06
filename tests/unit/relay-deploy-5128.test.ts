@@ -30,7 +30,7 @@ const proxySchemas = await import("../../src/shared/validation/schemas/proxy.ts"
 test.after(() => {
   core.resetDbInstance();
   try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     /* best effort */
   }
@@ -208,12 +208,19 @@ test("#6416: Cloudflare worker script body is Service Worker syntax (no top-leve
       `Cloudflare worker script must be syntactically valid JavaScript (stderr: ${parseCheck.stderr.trim()})`
     );
 
-    const privateHostnameFnSource = capturedScriptBody.match(
-      /function isPrivateHostname\(h\) \{[\s\S]*?\n\}/
-    )?.[0];
-    assert.ok(privateHostnameFnSource, "emitted worker script should contain isPrivateHostname");
+    assert.ok(
+      capturedScriptBody.includes("isPrivateHostname"),
+      "emitted worker script should contain isPrivateHostname"
+    );
 
-    const assertionScript = `${privateHostnameFnSource}
+    // Exercise the guard exactly as the worker defines it, instead of slicing
+    // its source out by declaration shape: the guard may be a `function`
+    // statement or a `const` bound to a shared implementation, and either way
+    // the worker body itself is the authority. `addEventListener` is stubbed so
+    // only the top-level declarations run.
+    const assertionScript = `globalThis.addEventListener = () => {};
+${capturedScriptBody}
+if (typeof isPrivateHostname !== "function") throw new Error("worker must define isPrivateHostname");
 if (!isPrivateHostname("[::1]")) throw new Error("bracketed IPv6 loopback must stay blocked");
 if (!isPrivateHostname("[fd00::1]")) throw new Error("bracketed IPv6 ULA must stay blocked");
 `;
@@ -229,7 +236,7 @@ if (!isPrivateHostname("[fd00::1]")) throw new Error("bracketed IPv6 ULA must st
     );
   } finally {
     try {
-      fs.rmSync(tempDir, { recursive: true, force: true });
+      fs.rmSync(tempDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     } catch {
       /* best effort */
     }

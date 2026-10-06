@@ -236,6 +236,7 @@ export async function browserBackedChat(
     userAgent,
     locale,
     timezone,
+    headless,
     inputSelector,
     submitButtonSelector,
     submitButtonMode = "playwright",
@@ -257,11 +258,13 @@ export async function browserBackedChat(
     userAgent,
     locale,
     timezone,
+    headless,
   });
   const acquireContextMs = Date.now() - tAcquireStart;
 
   const page = await openPage(pooled);
   const observedPostUrls: string[] = [];
+  const observedPostResponses: Array<{ url: string; status: number }> = [];
   page.on("request", (request) => {
     if (request.method() !== "POST") return;
     try {
@@ -273,13 +276,28 @@ export async function browserBackedChat(
       // Ignore malformed/non-HTTP request URLs.
     }
   });
+  page.on("response", (response) => {
+    if (response.request().method() !== "POST") return;
+    try {
+      const url = new URL(response.url());
+      if (!url.hostname.endsWith(chatUrlMatchDomain)) return;
+      observedPostResponses.push({
+        url: `${url.origin}${url.pathname}`,
+        status: response.status(),
+      });
+    } catch {
+      // Ignore malformed/non-HTTP response URLs.
+    }
+  });
   try {
     const tNavStart = Date.now();
-    await page.goto(chatPageUrl, {
-      waitUntil: "domcontentloaded",
-      timeout: 60000,
-      signal: signal ?? undefined,
-    });
+    await withAbort(
+      page.goto(chatPageUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 60000,
+      }),
+      signal
+    );
     await waitWithSignal(2500, signal);
     const navigateMs = Date.now() - tNavStart;
 
@@ -377,6 +395,7 @@ export async function browserBackedChat(
       body,
       isStealth: pooled.isStealth,
       observedPostUrls,
+      observedPostResponses,
       timing: {
         acquireContextMs,
         navigateMs,
@@ -402,6 +421,7 @@ export async function browserBackedChat(
       body,
       isStealth: pooled.isStealth,
       observedPostUrls,
+      observedPostResponses,
       timing: {
         acquireContextMs,
         navigateMs: 0,
@@ -617,11 +637,13 @@ async function doCookieRefreshOnContext(
 ): Promise<string | null> {
   const page = await openPage(pooled);
   try {
-    await page.goto(chatPageUrl, {
-      waitUntil: "domcontentloaded",
-      timeout: 60000,
-      signal: signal ?? undefined,
-    });
+    await withAbort(
+      page.goto(chatPageUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 60000,
+      }),
+      signal
+    );
     return await waitForCookiesWithPolling(pooled.context, cookieDomain, signal);
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err;

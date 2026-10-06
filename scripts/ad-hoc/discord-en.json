@@ -1,0 +1,212 @@
+[
+  {
+    "bucket": "A",
+    "match": "failed to load external module playwright",
+    "text": "That error means the Playwright install shipped with OmniRoute is broken, not that you misconfigured anything. Reinstall with npm i -g omniroute and run npx playwright install chromium on the same host. See open-sse/executors/gemini-web.ts."
+  },
+  {
+    "bucket": "A",
+    "match": "duckduckgo ai chat error",
+    "text": "That ERR_BAD_REQUEST usually means the model you picked is retired or unknown in Duck.ai's lineup, or a reasoningEffort setting the lineup doesn't accept. Try a current model like gpt-5.4-mini. See open-sse/executors/duckduckgo-web.ts."
+  },
+  {
+    "bucket": "A",
+    "match": "what does endpoints do",
+    "text": "Endpoints are the OpenAI-compatible surface OmniRoute exposes. You point any client at base http://localhost:20128/v1 with your API key and it behaves like a normal provider. For opencode there is a dedicated guide at docs/frameworks/OPENCODE.md."
+  },
+  {
+    "bucket": "A",
+    "match": "setup omniroute in opencode",
+    "text": "You don't need /connect. Run 'omniroute config opencode --base-url http://localhost:20128 --api-key YOUR_KEY' and point opencode at it. The most common bug is ending with /v1/v1, so keep a single /v1. See docs/frameworks/OPENCODE.md."
+  },
+  {
+    "bucket": "A",
+    "match": "best way to integrate jules",
+    "text": "Use the Cloud Agents API: POST /api/v1/agents/tasks with providerId jules and OmniRoute spins a remote agent for that task. Selection is manual per task and control is via REST or the dashboard. See docs/frameworks/CLOUD_AGENT.md."
+  },
+  {
+    "bucket": "A",
+    "match": "codex cloud and devin",
+    "text": "Same API, just swap the providerId: jules, devin, codex-cloud or cursor-cloud. Antigravity and Qwen are chat providers, not cloud agents, so they stay on chat routes. The choice is manual per task. See docs/frameworks/CLOUD_AGENT.md."
+  },
+  {
+    "bucket": "A",
+    "match": "handle everything from claude",
+    "text": "Not quite. Cloud agents are controlled through the REST API and the dashboard, not through Claude Code or MCP. So keep them as separate tooling that talks to OmniRoute. See docs/frameworks/CLOUD_AGENT.md."
+  },
+  {
+    "bucket": "A",
+    "match": "huggingchat returned http 500",
+    "text": "A 500 is a passthrough from the upstream HuggingChat endpoint (huggingface.co/chat), not something in your config. Just retry; if it keeps failing the service itself is likely having trouble. See open-sse/executors/huggingchat.ts."
+  },
+  {
+    "bucket": "A",
+    "match": "use this on termux",
+    "text": "In Termux run 'pkg install nodejs' and then 'npx -y omniroute' to start the server. Your phone browser opens the dashboard over localhost afterwards. Walkthrough at docs/guides/TERMUX_GUIDE.md."
+  },
+  {
+    "bucket": "A",
+    "match": "run the entire thing im on android",
+    "text": "You run everything in Termux with no root: pkg install nodejs, then npx -y omniroute starts the server. The dashboard opens in your phone's browser and all of it stays on the device."
+  },
+  {
+    "bucket": "A",
+    "match": "i dont have omniroute",
+    "text": "Quick start: npm i -g omniroute on any machine with Node. Start it, open http://localhost:20128, and the auto model already answers so you don't even need an API key to try it."
+  },
+  {
+    "bucket": "A",
+    "match": "api endpoints allowed",
+    "text": "Endpoints are their own API surface: anyone with a valid API key can call them. To lock it down, set REQUIRE_API_KEY=true so only the keys you issue get access. See docs/getting-started/QUICK-START.md."
+  },
+  {
+    "bucket": "A",
+    "match": "need which host",
+    "text": "The host is wherever you run the server, localhost:20128 by default. Clients just need the base URL (http://host:20128/v1) plus an API key, so a VPS or Fly instance works the same."
+  },
+  {
+    "bucket": "A",
+    "match": "hosting web in cpanel",
+    "text": "Self-host anywhere Node runs: a VPS, Docker or Fly.io. cPanel usually can't keep a long-running Node process alive, so prefer a real server or container. See docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md."
+  },
+  {
+    "bucket": "A",
+    "match": "run fly.io docker file",
+    "text": "Use the repo's fly.toml: fly launch and then fly deploy, and the Dockerfile builds the image. Full steps and env vars are in docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md."
+  },
+  {
+    "bucket": "A",
+    "match": "website https://fly.io",
+    "text": "Yes, the site runs on Fly.io, that's the host. From the repo run fly launch and fly deploy, and the app gets a public URL on a domain you own."
+  },
+  {
+    "bucket": "A",
+    "match": "github are down",
+    "text": "You don't need GitHub to run OmniRoute. It installs straight from npm and you host it anywhere you want, a VPS, Docker, or Fly. GitHub matters only if you build from source."
+  },
+  {
+    "bucket": "A",
+    "match": "2000 models is there a better way",
+    "text": "With that many models, Auto-Combo is the way: set the model to auto, auto/coding, auto/fast or auto/cheap and OmniRoute scores every option per request. The 14-factor scorer is in docs/routing/AUTO-COMBO.md."
+  },
+  {
+    "bucket": "A",
+    "match": "is there a combo already",
+    "text": "Yes, there is a ready one for exactly this: auto/coding. It picks a good free coding model with no setup. The other auto strategies are explained in docs/routing/AUTO-COMBO.md."
+  },
+  {
+    "bucket": "A",
+    "match": "where do i put auto",
+    "text": "You set it as the model field on your client exactly like a model name: auto/coding, or auto/fast and auto/cheap for other strategies. Their differences are in docs/routing/AUTO-COMBO.md."
+  },
+  {
+    "bucket": "A",
+    "match": "dont see my combos as models",
+    "text": "Only auto/ combos are advertised in /v1/models. Custom combos are internal destinations that never appear in the list, so call them directly by the combo id you set up."
+  },
+  {
+    "bucket": "A",
+    "match": "where is my circuit breaker",
+    "text": "It lives in the dashboard Health tab, in the circuit breaker states section, one status per provider. The closed, open, half-open model is in docs/architecture/RESILIENCE_GUIDE.md."
+  },
+  {
+    "bucket": "A",
+    "match": "with claude desktop app",
+    "text": "Two ways: Claude Code pointed at OmniRoute via ANTHROPIC_BASE_URL plus setup-claude, or the Claude Desktop app as an MCP client via omniroute --mcp. Both are in docs/guides/CLAUDE-CODE-CONFIGURATION.md."
+  },
+  {
+    "bucket": "A",
+    "match": "retrying in 30s",
+    "text": "That is a 429 rate limit from the provider, so retrying is expected. OmniRoute applies the cooldown and can fall back to another key or model automatically, so you don't need to touch anything."
+  },
+  {
+    "bucket": "A",
+    "match": "cliproxyapi is configured",
+    "text": "It is informative, not an error. CLIProxyAPI is an upstream proxy layer, managed at runtime in the CLI Tools and toggled per provider between native, cliproxyapi and fallback modes. See docs/ops/PROXY_GUIDE.md."
+  },
+  {
+    "bucket": "A",
+    "match": "getaddrinfo enotfound",
+    "text": "That is a doubled URL in the proxy registry: the host field carries the scheme. Use type=http, host=127.0.0.1 with no scheme, and port=20130. Steps are in docs/ops/PROXY_GUIDE.md."
+  },
+  {
+    "bucket": "A",
+    "match": "proxy connection failed",
+    "text": "The registry expects type, host and port as separate fields, not one combined URL. Set host to 127.0.0.1 with no scheme and port to 20130, and the connection error clears. Same recipe in docs/ops/PROXY_GUIDE.md."
+  },
+  {
+    "bucket": "B",
+    "match": "only 14 providers out of the 50",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "music play when i enable modal",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "do you mean the global proxy",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "provider's limits from docs",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "combine deepseek",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "store limits within the app",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "manually write these limits",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "official omniroute doesn't support",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "set limits in omniroute for a provider",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "create a compact prompt",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "continue your answer from where you left off",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "i am android that sorry",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "B",
+    "match": "yes",
+    "text": "I don't know this one yet - I've flagged it for someone who does, they'll get back to you soon :)"
+  },
+  {
+    "bucket": "C",
+    "match": "no such tool available: bash",
+    "text": "Here I only help with OmniRoute questions :)"
+  },
+  {
+    "bucket": "C",
+    "match": "interupt the code",
+    "text": "Here I only help with OmniRoute questions :)"
+  }
+]

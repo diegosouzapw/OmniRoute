@@ -21,8 +21,19 @@ test("Fix A: getAccessToken accepts an onPersist parameter", async () => {
 
 test("Fix A: getAccessToken invokes onPersist INSIDE the per-connection mutex closure", async () => {
   const src = await read("open-sse/services/tokenRefresh.ts");
-  const closureMatch = src.match(/entry\.promise\s*=\s*\(async\s*\(\)\s*=>\s*\{([\s\S]+?)\}\)\(\)/);
+  // #15002 (#14970) moved the closure into `const work = (async () => {...})()` and made the
+  // shared `entry.promise` a bounded race over it; the closure is still the mutex body.
+  const closureMatch = src.match(
+    /(?:entry\.promise|const work)\s*=\s*\(async\s*\(\)\s*=>\s*\{([\s\S]+?)\}\)\(\)/
+  );
   assert.ok(closureMatch, "Per-connection mutex closure must use the (async () => {...})() form");
+  if (/const work\s*=/.test(closureMatch![0])) {
+    assert.match(
+      src,
+      /entry\.promise\s*=\s*Promise\.race\(\[\s*work,/,
+      "the shared mutex promise must be the raced `work` closure"
+    );
+  }
   const closureBody = closureMatch![1];
   assert.match(
     closureBody,
@@ -175,4 +186,28 @@ test("Imports: base.ts imports runWithOnPersist from open-sse tokenRefresh", asy
   const src = await read("open-sse/executors/base.ts");
   assert.match(src, /runWithOnPersist/);
   assert.match(src, /from\s+"\.\.\/services\/tokenRefresh\.ts"/);
+});
+
+test("serialized refresh re-checks rotation inside the lane, not before waiting", async () => {
+  const src = await read("open-sse/services/tokenRefresh.ts");
+  const start = src.indexOf("async function _getAccessTokenWithStalenessCheck");
+  const inner = src.indexOf("async function _refreshWithFreshCredentials");
+  assert.ok(start >= 0 && inner > start, "staleness helper must wrap the freshness re-check");
+  const wrapper = src.slice(start, inner);
+  assert.match(
+    wrapper,
+    // Whitespace-tolerant: #15002 added a `log` argument, so prettier wraps the call.
+    /serializeRefresh\(\s*provider,\s*\(\)\s*=>/,
+    "the network POST must stay behind serializeRefresh"
+  );
+  assert.match(wrapper, /_refreshWithFreshCredentials/);
+  assert.doesNotMatch(
+    wrapper,
+    /lookupRotation/,
+    "lookupRotation before serializeRefresh is the race that burns a Claude refresh token"
+  );
+  const body = src.slice(inner, inner + 2500);
+  assert.match(body, /lookupRotation\(/);
+  assert.match(body, /recordRotation\(/);
+  assert.match(body, /_getAccessTokenInternal\(/);
 });

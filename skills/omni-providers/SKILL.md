@@ -14,221 +14,78 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 
 ## Endpoints
 
-### GET /api/providers
-
-List provider connections
-
-```bash
-curl https://localhost:20128/api/providers \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/providers
-
-Create provider connection
-
-```bash
-curl -X POST https://localhost:20128/api/providers \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/providers/{id}
-
-Get provider connection
-
-```bash
-curl https://localhost:20128/api/providers/{id} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PATCH /api/providers/{id}
-
-Update provider connection
-
-```bash
-curl -X PATCH https://localhost:20128/api/providers/{id} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/providers/{id}
-
-Delete provider connection
-
-```bash
-curl -X DELETE https://localhost:20128/api/providers/{id} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/providers/{id}/test
-
-Test provider connection
-
-```bash
-curl -X POST https://localhost:20128/api/providers/{id}/test \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/providers/{id}/models
-
-List models for a provider
-
-```bash
-curl https://localhost:20128/api/providers/{id}/models \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/providers/cursor/agent-availability
-
-Check cursor-agent availability
-
-Credential-free, informational check for whether cursor-agent is installed and authenticated on this host — backs the dashboard's dismissible install-nudge banner. Returns only cursorAgentAvailable (boolean); never tokens or machineId.
-
-```bash
-curl https://localhost:20128/api/providers/cursor/agent-availability \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/providers/test-batch
-
-Test multiple providers at once
-
-```bash
-curl -X POST https://localhost:20128/api/providers/test-batch \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### POST /api/providers/validate
-
-Validate provider credentials
-
-```bash
-curl -X POST https://localhost:20128/api/providers/validate \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/providers/client
-
-Get client-side provider info
-
-```bash
-curl https://localhost:20128/api/providers/client \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/providers/agy-auth/import
-
-Import an Antigravity CLI (agy) token file as an `agy` connection
-
-```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/import \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### POST /api/providers/agy-auth/import-bulk
-
-Bulk-import multiple Antigravity CLI (agy) token files (up to 50)
-
-```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/import-bulk \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### POST /api/providers/agy-auth/zip-extract
-
-Extract `.json` token files from an uploaded ZIP for agy bulk import
-
-```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/zip-extract \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### POST /api/providers/agy-auth/apply-local
-
-Auto-detect and import the local Antigravity CLI (agy) login from disk
-
-```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/apply-local \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/provider-nodes
-
-List provider nodes
-
-```bash
-curl https://localhost:20128/api/provider-nodes \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/provider-nodes
-
-Create provider node
-
-```bash
-curl -X POST https://localhost:20128/api/provider-nodes \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### PATCH /api/provider-nodes/{id}
-
-Update provider node
-
-```bash
-curl -X PATCH https://localhost:20128/api/provider-nodes/{id} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/provider-nodes/{id}
-
-Delete provider node
-
-```bash
-curl -X DELETE https://localhost:20128/api/provider-nodes/{id} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/provider-nodes/validate
-
-Validate a provider node
-
-```bash
-curl -X POST https://localhost:20128/api/provider-nodes/validate \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/provider-models
-
-List provider models
-
-```bash
-curl https://localhost:20128/api/provider-models \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
+- [`GET /api/providers`](references/endpoints.md#get-apiproviders)
+- [`POST /api/providers`](references/endpoints.md#post-apiproviders)
+- [`GET /api/providers/{id}`](references/endpoints.md#get-apiprovidersid)
+- [`PATCH /api/providers/{id}`](references/endpoints.md#patch-apiprovidersid)
+- [`DELETE /api/providers/{id}`](references/endpoints.md#delete-apiprovidersid)
+- [`POST /api/providers/{id}/test`](references/endpoints.md#post-apiprovidersidtest)
+- [`GET /api/providers/{id}/models`](references/endpoints.md#get-apiprovidersidmodels)
+- [`GET /api/providers/cursor/agent-availability`](references/endpoints.md#get-apiproviderscursoragent-availability)
+- [`POST /api/providers/test-batch`](references/endpoints.md#post-apiproviderstest-batch)
+- [`POST /api/providers/validate`](references/endpoints.md#post-apiprovidersvalidate)
+- [`GET /api/providers/client`](references/endpoints.md#get-apiprovidersclient)
+- [`POST /api/providers/agy-auth/import`](references/endpoints.md#post-apiprovidersagy-authimport)
+- [`POST /api/providers/agy-auth/import-bulk`](references/endpoints.md#post-apiprovidersagy-authimport-bulk)
+- [`POST /api/providers/agy-auth/zip-extract`](references/endpoints.md#post-apiprovidersagy-authzip-extract)
+- [`POST /api/providers/agy-auth/apply-local`](references/endpoints.md#post-apiprovidersagy-authapply-local)
+- [`GET /api/provider-nodes`](references/endpoints.md#get-apiprovider-nodes)
+- [`POST /api/provider-nodes`](references/endpoints.md#post-apiprovider-nodes)
+- [`PATCH /api/provider-nodes/{id}`](references/endpoints.md#patch-apiprovider-nodesid)
+- [`DELETE /api/provider-nodes/{id}`](references/endpoints.md#delete-apiprovider-nodesid)
+- [`POST /api/provider-nodes/validate`](references/endpoints.md#post-apiprovider-nodesvalidate)
+- [`GET /api/provider-models`](references/endpoints.md#get-apiprovider-models)
+- [`POST /api/provider-models/validate-and-add`](references/endpoints.md#post-apiprovider-modelsvalidate-and-add)
+- [`GET /api/providers/{id}/cc-alias`](references/endpoints.md#get-apiprovidersidcc-alias)
+- [`PUT /api/providers/{id}/cc-alias`](references/endpoints.md#put-apiprovidersidcc-alias)
+- [`GET /api/providers/{id}/chatgpt-web-codex-doctor`](references/endpoints.md#get-apiprovidersidchatgpt-web-codex-doctor)
+- [`POST /api/providers/{id}/claude-auth/apply-local`](references/endpoints.md#post-apiprovidersidclaude-authapply-local)
+- [`POST /api/providers/{id}/claude-auth/export`](references/endpoints.md#post-apiprovidersidclaude-authexport)
+- [`POST /api/providers/{id}/codex-auth/apply-local`](references/endpoints.md#post-apiprovidersidcodex-authapply-local)
+- [`POST /api/providers/{id}/codex-auth/export`](references/endpoints.md#post-apiprovidersidcodex-authexport)
+- [`GET /api/providers/{id}/interception-rules`](references/endpoints.md#get-apiprovidersidinterception-rules)
+- [`PUT /api/providers/{id}/interception-rules`](references/endpoints.md#put-apiprovidersidinterception-rules)
+- [`DELETE /api/providers/{id}/interception-rules`](references/endpoints.md#delete-apiprovidersidinterception-rules)
+- [`POST /api/providers/{id}/login`](references/endpoints.md#post-apiprovidersidlogin)
+- [`GET /api/providers/{id}/param-filters`](references/endpoints.md#get-apiprovidersidparam-filters)
+- [`PUT /api/providers/{id}/param-filters`](references/endpoints.md#put-apiprovidersidparam-filters)
+- [`DELETE /api/providers/{id}/param-filters`](references/endpoints.md#delete-apiprovidersidparam-filters)
+- [`POST /api/providers/{id}/refresh`](references/endpoints.md#post-apiprovidersidrefresh)
+- [`POST /api/providers/{id}/refresh-cursor`](references/endpoints.md#post-apiprovidersidrefresh-cursor)
+- [`POST /api/providers/{id}/refresh-token`](references/endpoints.md#post-apiprovidersidrefresh-token)
+- [`POST /api/providers/{id}/sync-models`](references/endpoints.md#post-apiprovidersidsync-models)
+- [`POST /api/providers/bulk`](references/endpoints.md#post-apiprovidersbulk)
+- [`POST /api/providers/bulk-web-session`](references/endpoints.md#post-apiprovidersbulk-web-session)
+- [`POST /api/providers/claude-auth/import`](references/endpoints.md#post-apiprovidersclaude-authimport)
+- [`POST /api/providers/claude-auth/import-bulk`](references/endpoints.md#post-apiprovidersclaude-authimport-bulk)
+- [`POST /api/providers/claude-auth/zip-extract`](references/endpoints.md#post-apiprovidersclaude-authzip-extract)
+- [`POST /api/providers/codex-auth/import`](references/endpoints.md#post-apiproviderscodex-authimport)
+- [`POST /api/providers/codex-auth/import-bulk`](references/endpoints.md#post-apiproviderscodex-authimport-bulk)
+- [`POST /api/providers/codex-auth/zip-extract`](references/endpoints.md#post-apiproviderscodex-authzip-extract)
+- [`POST /api/providers/command-code/auth/apply`](references/endpoints.md#post-apiproviderscommand-codeauthapply)
+- [`POST /api/providers/command-code/auth/callback`](references/endpoints.md#post-apiproviderscommand-codeauthcallback)
+- [`POST /api/providers/command-code/auth/start`](references/endpoints.md#post-apiproviderscommand-codeauthstart)
+- [`GET /api/providers/command-code/auth/status`](references/endpoints.md#get-apiproviderscommand-codeauthstatus)
+- [`POST /api/providers/command-code/auth/status`](references/endpoints.md#post-apiproviderscommand-codeauthstatus)
+- [`GET /api/providers/expiration`](references/endpoints.md#get-apiprovidersexpiration)
+- [`GET /api/providers/free-onboarding`](references/endpoints.md#get-apiprovidersfree-onboarding)
+- [`POST /api/providers/free-onboarding`](references/endpoints.md#post-apiprovidersfree-onboarding)
+- [`GET /api/providers/health-autopilot`](references/endpoints.md#get-apiprovidershealth-autopilot)
+- [`POST /api/providers/health-autopilot/actions`](references/endpoints.md#post-apiprovidershealth-autopilotactions)
+- [`GET /api/providers/health-matrix`](references/endpoints.md#get-apiprovidershealth-matrix)
+- [`POST /api/providers/import`](references/endpoints.md#post-apiprovidersimport)
+- [`GET /api/providers/openrouter-stats`](references/endpoints.md#get-apiprovidersopenrouter-stats)
+- [`GET /api/providers/quota-windows`](references/endpoints.md#get-apiprovidersquota-windows)
+- [`POST /api/providers/volcengine-plan/connect`](references/endpoints.md#post-apiprovidersvolcengine-planconnect)
+- [`POST /api/providers/volcengine-plan/connect/{sessionId}/cancel`](references/endpoints.md#post-apiprovidersvolcengine-planconnectsessionidcancel)
+- [`POST /api/providers/volcengine-plan/connect/{sessionId}/code`](references/endpoints.md#post-apiprovidersvolcengine-planconnectsessionidcode)
+- [`POST /api/providers/volcengine-plan/connect/{sessionId}/identity`](references/endpoints.md#post-apiprovidersvolcengine-planconnectsessionididentity)
+- [`POST /api/providers/volcengine-plan/connect/{sessionId}/resend`](references/endpoints.md#post-apiprovidersvolcengine-planconnectsessionidresend)
+- [`GET /api/providers/volcengine-plan/connect/{sessionId}/status`](references/endpoints.md#get-apiprovidersvolcengine-planconnectsessionidstatus)
+- [`GET /api/providers/web-session-contract`](references/endpoints.md#get-apiprovidersweb-session-contract)
+- [`POST /api/providers/zed/discover`](references/endpoints.md#post-apiproviderszeddiscover)
+- [`POST /api/providers/zed/import`](references/endpoints.md#post-apiproviderszedimport)
+- [`POST /api/providers/zed/manual-import`](references/endpoints.md#post-apiproviderszedmanual-import)
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

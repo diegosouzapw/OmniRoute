@@ -13,6 +13,8 @@
  * - Optional human notes
  */
 
+import { getDbInstance } from "../lib/db/core";
+
 /** Types of configuration entities that can be audited */
 export type AuditTarget = "provider" | "combo" | "policy" | "connection" | "settings";
 
@@ -72,10 +74,8 @@ export interface ConfigSnapshot {
   data: Record<string, unknown>;
 }
 
-// ── In-memory store ──────────────────────────────────────────────────────────
-// In production, persist to SQLite alongside other domain state.
+// ── SQLite-backed store ───────────────────────────────────────────────────────
 
-let auditLog: ConfigAuditEntry[] = [];
 let idCounter = 0;
 
 function generateId(): string {
@@ -83,6 +83,40 @@ function generateId(): string {
   const ts = Date.now().toString(36);
   const seq = idCounter.toString(36).padStart(4, "0");
   return `audit-${ts}-${seq}`;
+}
+
+function db() {
+  return getDbInstance();
+}
+
+interface ConfigAuditRow {
+  id: string;
+  timestamp: string;
+  action: string;
+  target: string;
+  target_id: string;
+  target_name: string;
+  before_json: string | null;
+  after_json: string | null;
+  diff_json: string;
+  source: string;
+  note: string | null;
+}
+
+function rowToEntry(row: ConfigAuditRow): ConfigAuditEntry {
+  return {
+    id: row.id,
+    timestamp: row.timestamp,
+    action: row.action as AuditAction,
+    target: row.target as AuditTarget,
+    targetId: row.target_id,
+    targetName: row.target_name,
+    before: row.before_json === null ? null : (JSON.parse(row.before_json) as Record<string, unknown> | null),
+    after: row.after_json === null ? null : (JSON.parse(row.after_json) as Record<string, unknown> | null),
+    source: row.source as AuditSource,
+    diff: JSON.parse(row.diff_json) as ConfigDiff,
+    note: row.note,
+  };
 }
 
 /**
@@ -159,12 +193,24 @@ export function recordChange(
     note: note ?? null,
   };
 
-  auditLog.push(entry);
-
-  // Keep log bounded (max 1000 entries in memory)
-  if (auditLog.length > 1000) {
-    auditLog = auditLog.slice(-1000);
-  }
+  db().prepare(
+    `INSERT INTO config_audit_log
+       (id, timestamp, action, target, target_id, target_name, before_json, after_json, diff_json, source, note)
+     VALUES
+       (@id, @timestamp, @action, @target, @targetId, @targetName, @beforeJson, @afterJson, @diffJson, @source, @note)`
+  ).run({
+    id: entry.id,
+    timestamp: entry.timestamp,
+    action: entry.action,
+    target: entry.target,
+    targetId: entry.targetId,
+    targetName: entry.targetName,
+    beforeJson: before === null ? null : JSON.stringify(before),
+    afterJson: after === null ? null : JSON.stringify(after),
+    diffJson: JSON.stringify(entry.diff),
+    source: entry.source,
+    note: entry.note,
+  });
 
   return entry;
 }
@@ -181,42 +227,57 @@ export function getAuditLog(options?: {
   limit?: number;
   offset?: number;
 }): { entries: ConfigAuditEntry[]; total: number } {
-  let filtered = auditLog;
+  const where: string[] = [];
+  const params: Record<string, unknown> = {};
 
   if (options?.target) {
-    filtered = filtered.filter((e) => e.target === options.target);
+    where.push("target = @target");
+    params.target = options.target;
   }
   if (options?.targetId) {
-    filtered = filtered.filter((e) => e.targetId === options.targetId);
+    where.push("target_id = @targetId");
+    params.targetId = options.targetId;
   }
   if (options?.action) {
-    filtered = filtered.filter((e) => e.action === options.action);
+    where.push("action = @action");
+    params.action = options.action;
   }
   if (options?.source) {
-    filtered = filtered.filter((e) => e.source === options.source);
+    where.push("source = @source");
+    params.source = options.source;
   }
   if (options?.since) {
-    filtered = filtered.filter((e) => e.timestamp >= options.since!);
+    where.push("timestamp >= @since");
+    params.since = options.since;
   }
 
-  const total = filtered.length;
+  const whereSql = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
 
-  // Sort newest first
-  filtered = [...filtered].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  const totalRow = db()
+    .prepare(`SELECT COUNT(*) AS c FROM config_audit_log ${whereSql}`)
+    .get(params) as { c: number };
+  const total = totalRow.c;
 
-  // Paginate
   const offset = options?.offset ?? 0;
   const limit = options?.limit ?? 50;
-  filtered = filtered.slice(offset, offset + limit);
 
-  return { entries: filtered, total };
+  const rows = db()
+    .prepare(
+      `SELECT * FROM config_audit_log ${whereSql} ORDER BY datetime(timestamp) DESC, id DESC LIMIT @limit OFFSET @offset`
+    )
+    .all({ ...params, limit, offset }) as ConfigAuditRow[];
+
+  return { entries: rows.map(rowToEntry), total };
 }
 
 /**
  * Get a specific audit entry by ID.
  */
 export function getAuditEntry(id: string): ConfigAuditEntry | null {
-  return auditLog.find((e) => e.id === id) ?? null;
+  const row = db()
+    .prepare("SELECT * FROM config_audit_log WHERE id = @id")
+    .get({ id }) as ConfigAuditRow | undefined;
+  return row ? rowToEntry(row) : null;
 }
 
 /**
@@ -260,19 +321,23 @@ export function getAuditSummary(): {
   const byAction: Record<string, number> = {};
   const bySource: Record<string, number> = {};
 
-  for (const entry of auditLog) {
-    byTarget[entry.target] = (byTarget[entry.target] || 0) + 1;
-    byAction[entry.action] = (byAction[entry.action] || 0) + 1;
-    bySource[entry.source] = (bySource[entry.source] || 0) + 1;
+  const rows = db()
+    .prepare("SELECT * FROM config_audit_log ORDER BY datetime(timestamp) DESC, id DESC")
+    .all() as ConfigAuditRow[];
+
+  for (const row of rows) {
+    byTarget[row.target] = (byTarget[row.target] || 0) + 1;
+    byAction[row.action] = (byAction[row.action] || 0) + 1;
+    bySource[row.source] = (bySource[row.source] || 0) + 1;
   }
 
   return {
-    totalEntries: auditLog.length,
+    totalEntries: rows.length,
     byTarget,
     byAction,
     bySource,
-    oldestEntry: auditLog.length > 0 ? auditLog[0].timestamp : null,
-    newestEntry: auditLog.length > 0 ? auditLog[auditLog.length - 1].timestamp : null,
+    oldestEntry: rows.length > 0 ? rows[rows.length - 1].timestamp : null,
+    newestEntry: rows.length > 0 ? rows[0].timestamp : null,
   };
 }
 
@@ -280,6 +345,6 @@ export function getAuditSummary(): {
  * Reset the audit log. Useful for testing.
  */
 export function resetAuditLog(): void {
-  auditLog = [];
+  db().prepare("DELETE FROM config_audit_log").run();
   idCounter = 0;
 }

@@ -20,6 +20,11 @@ export const DEFAULT_ALLOWED_ORIGINS: readonly string[] = Object.freeze([
   "http://127.0.0.1:20128",
   "http://localhost:20128",
   "http://[::1]:20128",
+  // 0.0.0.0 is the "unspecified" address but browsers treat it as loopback
+  // when the user pastes it into the address bar; the dashboard is reachable
+  // at http://0.0.0.0:20128 and its WS Origin is exactly that string. Same
+  // local-only posture as the entries above — it never refers to a LAN host.
+  "http://0.0.0.0:20128",
 ]);
 
 /**
@@ -40,7 +45,17 @@ export function parseCsvEnv(value: string | undefined | null): Set<string> {
  */
 export function buildAllowedOrigins(env: NodeJS.ProcessEnv = process.env): Set<string> {
   const extra = parseCsvEnv(env.LIVE_WS_ALLOWED_ORIGINS);
-  return new Set([...DEFAULT_ALLOWED_ORIGINS, ...extra]);
+  const runtimePort = env.PORT || env.DASHBOARD_PORT;
+  const dynamicDefaults: string[] = [];
+  if (runtimePort && runtimePort !== "20128") {
+    dynamicDefaults.push(
+      `http://127.0.0.1:${runtimePort}`,
+      `http://localhost:${runtimePort}`,
+      `http://[::1]:${runtimePort}`,
+      `http://0.0.0.0:${runtimePort}`
+    );
+  }
+  return new Set([...DEFAULT_ALLOWED_ORIGINS, ...dynamicDefaults, ...extra]);
 }
 
 /**

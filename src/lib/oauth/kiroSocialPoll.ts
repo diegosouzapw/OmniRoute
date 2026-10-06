@@ -1,5 +1,7 @@
 export type KiroSocialPollData = {
   error?: unknown;
+  /** Kiro reports poll progress here (e.g. "authorization_pending"), not in `error`. */
+  status?: unknown;
   accessToken?: unknown;
   refreshToken?: unknown;
 };
@@ -26,8 +28,9 @@ export function classifyKiroSocialPoll(
   responseStatus: number,
   data: KiroSocialPollData
 ): KiroSocialPollOutcome {
-  if (data.error === "authorization_pending" || data.error === "slow_down") {
-    return { kind: "pending", error: data.error };
+  const progress = data.error ?? data.status;
+  if (progress === "authorization_pending" || progress === "slow_down") {
+    return { kind: "pending", error: progress as "authorization_pending" | "slow_down" };
   }
 
   if (!responseOk || data.error) {

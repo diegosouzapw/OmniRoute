@@ -6,12 +6,16 @@ import path from "node:path";
 
 const {
   CURSOR_AGENT_CLI_VERSION,
+  configureCursorAgentCliVersionForTests,
   detectCursorAgentCliVersionFromFs,
+  extractVersionIdFromInstallerScript,
   extractVersionIdFromResolvedPath,
   formatCursorAgentClientVersion,
   getCursorAgentCliVersion,
   newestVersionInDir,
+  refreshCursorAgentCliVersionFromInstaller,
   resetCursorAgentCliVersionCache,
+  resetCursorAgentCliVersionTestHooks,
 } = await import("../../open-sse/utils/cursorAgentCliVersion.ts");
 
 function withEnv(vars: Record<string, string | undefined>, fn: () => void) {
@@ -55,7 +59,7 @@ test("newestVersionInDir picks lexicographically newest matching child", () => {
     fs.mkdirSync(path.join(tmp, "3.9.0"));
     assert.equal(newestVersionInDir(tmp), "2026.07.08-0c04a8a");
   } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -75,7 +79,7 @@ test("detectCursorAgentCliVersionFromFs uses shim realpath under versions/<id>",
       assert.equal(detectCursorAgentCliVersionFromFs(home), id);
     });
   } finally {
-    fs.rmSync(home, { recursive: true, force: true });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -89,8 +93,8 @@ test("detectCursorAgentCliVersionFromFs uses CURSOR_DATA_DIR versions when no sh
       assert.equal(detectCursorAgentCliVersionFromFs(home), id);
     });
   } finally {
-    fs.rmSync(home, { recursive: true, force: true });
-    fs.rmSync(data, { recursive: true, force: true });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(data, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -119,7 +123,7 @@ test("getCursorAgentCliVersion ignores invalid env and uses pin when FS empty", 
     );
   } finally {
     resetCursorAgentCliVersionCache();
-    fs.rmSync(home, { recursive: true, force: true });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -151,15 +155,116 @@ test("getCursorAgentCliVersion reads CURSOR_DATA_DIR via isolated HOME", () => {
       () => {
         resetCursorAgentCliVersionCache();
         assert.equal(getCursorAgentCliVersion(), id);
-        assert.equal(
-          formatCursorAgentClientVersion(getCursorAgentCliVersion()),
-          `cli-${id}`
-        );
+        assert.equal(formatCursorAgentClientVersion(getCursorAgentCliVersion()), `cli-${id}`);
       }
     );
   } finally {
     resetCursorAgentCliVersionCache();
-    fs.rmSync(home, { recursive: true, force: true });
-    fs.rmSync(data, { recursive: true, force: true });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(data, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("extractVersionIdFromInstallerScript reads downloads.cursor.com/lab/<id>/", () => {
+  const script = `
+    BASE="https://downloads.cursor.com/lab/2026.08.01-deadbeef/linux/x64"
+    echo "$BASE"
+  `;
+  assert.equal(extractVersionIdFromInstallerScript(script), "2026.08.01-deadbeef");
+  assert.equal(extractVersionIdFromInstallerScript("no version here"), null);
+});
+
+test("disk cache hit serves immediately without blocking on network", async () => {
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-cache-hit-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-home-cache-"));
+  let fetchCalls = 0;
+  const cachedId = "2026.08.02-aabbcc1";
+  try {
+    configureCursorAgentCliVersionForTests({
+      cacheDir,
+      fetchImpl: (async () => {
+        fetchCalls += 1;
+        return new Response(`https://downloads.cursor.com/lab/2026.08.09-zzzzzzz/linux/x64/`, {
+          status: 200,
+        });
+      }) as typeof fetch,
+    });
+    fs.writeFileSync(
+      path.join(cacheDir, "cursor-agent-cli-version.json"),
+      JSON.stringify({ version: cachedId, fetchedAt: Date.now() })
+    );
+    withEnv(
+      {
+        HOME: home,
+        USERPROFILE: home,
+        CURSOR_AGENT_CLI_VERSION: undefined,
+        CURSOR_DATA_DIR: undefined,
+      },
+      () => {
+        resetCursorAgentCliVersionCache();
+        // Sync path returns disk cache immediately (oakimov SWR may refresh in background).
+        assert.equal(getCursorAgentCliVersion(), cachedId);
+        assert.equal(fetchCalls, 0, "must not block on network");
+      }
+    );
+  } finally {
+    resetCursorAgentCliVersionTestHooks();
+    fs.rmSync(cacheDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("refreshCursorAgentCliVersionFromInstaller writes disk cache from HTML", async () => {
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-cache-refresh-"));
+  const scrapedId = "2026.08.03-1122334";
+  try {
+    configureCursorAgentCliVersionForTests({
+      cacheDir,
+      fetchImpl: (async () =>
+        new Response(
+          `curl -fsSL https://downloads.cursor.com/lab/${scrapedId}/darwin/arm64/agent-cli-package.tar.gz`,
+          { status: 200 }
+        )) as typeof fetch,
+    });
+    resetCursorAgentCliVersionCache();
+    const id = await refreshCursorAgentCliVersionFromInstaller();
+    assert.equal(id, scrapedId);
+    const onDisk = JSON.parse(
+      fs.readFileSync(path.join(cacheDir, "cursor-agent-cli-version.json"), "utf8")
+    ) as { version: string };
+    assert.equal(onDisk.version, scrapedId);
+  } finally {
+    resetCursorAgentCliVersionTestHooks();
+    fs.rmSync(cacheDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("invalid installer HTML falls through to pin", async () => {
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-cache-invalid-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-home-invalid-"));
+  try {
+    configureCursorAgentCliVersionForTests({
+      cacheDir,
+      fetchImpl: (async () =>
+        new Response("<html>no lab url</html>", { status: 200 })) as typeof fetch,
+    });
+    withEnv(
+      {
+        HOME: home,
+        USERPROFILE: home,
+        CURSOR_AGENT_CLI_VERSION: undefined,
+        CURSOR_DATA_DIR: undefined,
+      },
+      () => {
+        resetCursorAgentCliVersionCache();
+        assert.equal(getCursorAgentCliVersion(), CURSOR_AGENT_CLI_VERSION);
+      }
+    );
+    const id = await refreshCursorAgentCliVersionFromInstaller();
+    assert.equal(id, null);
+  } finally {
+    resetCursorAgentCliVersionTestHooks();
+    fs.rmSync(cacheDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

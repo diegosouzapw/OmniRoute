@@ -5,6 +5,7 @@
 
 import { AdaptiveAdmissionController } from "./controller.ts";
 import { validateConfig } from "./config.ts";
+import { resolveCostConfig } from "./cost.ts";
 import { extractAdmissionCostFeatures } from "./requestFeatures.ts";
 import {
   type AdaptiveAdmissionConfig,
@@ -119,7 +120,7 @@ export function resolveAdaptiveAdmissionConfigFromEnv(
   // Shared pure validation — accept exact documented maxima, reject core-invalid configs.
   validateConfig(cfg);
 
-  // Per-connection virtual admission lanes (#9654) — opt-in via OMNIROUTE_CHAT_VIRTUAL_LANES.
+  // Per-tenant virtual admission lanes (#9654) — opt-in via OMNIROUTE_CHAT_VIRTUAL_LANES.
   const vlRaw = env.OMNIROUTE_CHAT_VIRTUAL_LANES;
   cfg.virtualLanes = vlRaw === "1" || vlRaw === "true";
 
@@ -323,6 +324,7 @@ function classifyHttpOutcome(status: number, signal?: AbortSignal): AdmissionRel
 
 class AdaptiveAdmissionRuntimeImpl implements AdaptiveAdmissionRuntime {
   private readonly controller: AdaptiveAdmissionController;
+  private readonly costConfig: ReturnType<typeof resolveCostConfig>;
   private readonly checkResourcePressure: () => ResourcePressureGuardResult | null;
   private readonly getResourcePressureObservation: () => ResourcePressureObservation;
   private readonly onPressureObserved?: (pressure: AdmissionPressure) => void;
@@ -338,6 +340,7 @@ class AdaptiveAdmissionRuntimeImpl implements AdaptiveAdmissionRuntime {
 
   constructor(options: AdaptiveAdmissionRuntimeOptions, config: AdaptiveAdmissionConfig) {
     this.controller = new AdaptiveAdmissionController(config, options.clock);
+    this.costConfig = resolveCostConfig(config.cost);
     this.checkResourcePressure = options.checkResourcePressure ?? checkResourcePressureGuard;
     this.getResourcePressureObservation =
       options.getResourcePressureObservation ?? getResourcePressureObservation;
@@ -372,7 +375,10 @@ class AdaptiveAdmissionRuntimeImpl implements AdaptiveAdmissionRuntime {
 
     const features = extractAdmissionCostFeatures(
       input.body,
-      input.streaming === undefined ? undefined : { streaming: input.streaming }
+      {
+        streaming: input.streaming,
+        cost: this.costConfig,
+      }
     );
     let result: AdmissionAcquireResult;
     try {

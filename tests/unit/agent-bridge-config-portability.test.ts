@@ -10,9 +10,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-agentbridge-config-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-agentbridge-config-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -22,7 +20,8 @@ async function resetStorage() {
   core.resetDbInstance();
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
-      if (fs.existsSync(TEST_DATA_DIR)) fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      if (fs.existsSync(TEST_DATA_DIR))
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       break;
     } catch (error: unknown) {
       const code = (error as { code?: string } | null)?.code;
@@ -39,7 +38,7 @@ test.beforeEach(async () => {
 });
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("AgentBridgeConfigSchema accepts a well-formed config", () => {
@@ -76,9 +75,7 @@ test("import then export roundtrips bypass + custom hosts + mappings", () => {
   const config = {
     version: 1 as const,
     bypassPatterns: ["*.bank.test", "literal.example.com"],
-    customHosts: [
-      { host: "api.internal.test", kind: "custom" as const, label: "Internal LLM" },
-    ],
+    customHosts: [{ host: "api.internal.test", kind: "custom" as const, label: "Internal LLM" }],
     agentMappings: {
       cursor: [{ source: "gpt-4o", target: "claude-sonnet-4-5" }],
     },

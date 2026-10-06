@@ -16,7 +16,7 @@ export function register_combos(parent) {
     });
   tag.command("post-api-combos")
     .description("Create routing combo")
-    .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
+    .requiredOption("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/combos";
@@ -30,20 +30,60 @@ export function register_combos(parent) {
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag.command("patch-api-combos-id-")
-    .description("Update combo")
+  tag.command("get-api-combos-id-")
+    .description("Get combo by ID")
+    .requiredOption("--id <id>", "")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/combos/{id}";
-      const res = await apiFetch(url, { method: "PATCH", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
+      url = url.replace("{id}", encodeURIComponent(opts.id ?? ""));
+      const res = await apiFetch(url, { method: "GET", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
+      const data = res.ok ? await res.json() : await res.text();
+      emit(data, gOpts);
+    });
+  tag.command("put-api-combos-id-")
+    .description("Update combo")
+    .requiredOption("--id <id>", "")
+    .requiredOption("--body <jsonOrPath>", "JSON body or @path/to/file.json")
+    .action(async (opts, cmd) => {
+      const gOpts = cmd.optsWithGlobals();
+      let url = "/api/combos/{id}";
+      url = url.replace("{id}", encodeURIComponent(opts.id ?? ""));
+      let body;
+      if (opts.body) {
+        body = opts.body.startsWith("@")
+          ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
+          : JSON.parse(opts.body);
+      }
+      const res = await apiFetch(url, { method: "PUT", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
+      const data = res.ok ? await res.json() : await res.text();
+      emit(data, gOpts);
+    });
+  tag.command("patch-api-combos-id-")
+    .description("Update combo")
+    .requiredOption("--id <id>", "")
+    .requiredOption("--body <jsonOrPath>", "JSON body or @path/to/file.json")
+    .action(async (opts, cmd) => {
+      const gOpts = cmd.optsWithGlobals();
+      let url = "/api/combos/{id}";
+      url = url.replace("{id}", encodeURIComponent(opts.id ?? ""));
+      let body;
+      if (opts.body) {
+        body = opts.body.startsWith("@")
+          ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
+          : JSON.parse(opts.body);
+      }
+      const res = await apiFetch(url, { method: "PATCH", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
   tag.command("delete-api-combos-id-")
     .description("Delete combo")
+    .requiredOption("--id <id>", "")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/combos/{id}";
+      url = url.replace("{id}", encodeURIComponent(opts.id ?? ""));
       const res = await apiFetch(url, { method: "DELETE", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
@@ -59,10 +99,17 @@ export function register_combos(parent) {
     });
   tag.command("post-api-combos-test")
     .description("Test a combo configuration")
+    .requiredOption("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/combos/test";
-      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
+      let body;
+      if (opts.body) {
+        body = opts.body.startsWith("@")
+          ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
+          : JSON.parse(opts.body);
+      }
+      const res = await apiFetch(url, { method: "POST", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });

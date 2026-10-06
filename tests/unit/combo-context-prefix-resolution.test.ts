@@ -33,10 +33,12 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { computeComboContextLength } = await import("../../src/lib/combos/comboContext.ts");
+const { setModelContextOverride, removeModelContextOverride } =
+  await import("../../src/lib/db/modelContextOverrides.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("computeComboContextLength resolves a registry-known, prefixed member (glm/glm-5.2) to its real context window", () => {
@@ -71,4 +73,18 @@ test("computeComboContextLength takes the minimum across multiple prefixed, regi
     "the minimum across all resolved (prefix-stripped) members should win, " +
       "matching the catalog's minKnownNumber semantics"
   );
+});
+
+test("computeComboContextLength honors a larger persisted Codex GPT-5.6 window", () => {
+  const modelId = "gpt-5.6-terra";
+  assert.equal(setModelContextOverride("codex", modelId, 500000, "manual"), true);
+  try {
+    assert.equal(
+      computeComboContextLength({ models: [`codex/${modelId}`] }, []),
+      500000,
+      "the combo aggregate must use the effective override instead of the Codex registry default"
+    );
+  } finally {
+    removeModelContextOverride("codex", modelId);
+  }
 });

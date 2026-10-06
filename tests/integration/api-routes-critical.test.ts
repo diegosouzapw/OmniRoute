@@ -11,7 +11,10 @@ process.env.API_KEY_SECRET = "test-api-key-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const { assignProxyToScope, createProxy } = await import("@/lib/db/proxies");
+const { createProviderConnection } = await import("@/lib/db/providers");
+const localDb = { updateSettings, assignProxyToScope, createProviderConnection, createProxy };
 const proxiesRoute = await import("../../src/app/api/v1/management/proxies/route.ts");
 const settingsProxyRoute = await import("../../src/app/api/settings/proxy/route.ts");
 const settingsMitmRoute = await import("../../src/app/api/settings/mitm/route.ts");
@@ -24,7 +27,7 @@ async function resetStorage() {
   delete process.env.ENABLE_SOCKS5_PROXY;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -59,7 +62,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("critical routes: v1 management proxies covers auth, lookup, where-used, patch, and delete branches", async () => {

@@ -1,0 +1,69 @@
+name: omniroute-vps
+
+services:
+  redis:
+    image: docker.io/library/redis:8.6.5-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "yes", "--loglevel", "warning"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  omniroute:
+    image: ${OMNIROUTE_IMAGE:?Set OMNIROUTE_IMAGE to a versioned tag or digest}
+    restart: unless-stopped
+    stop_grace_period: 40s
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "20128"
+      DASHBOARD_PORT: "20128"
+      HOSTNAME: 0.0.0.0
+      DATA_DIR: /app/data
+      REDIS_URL: redis://redis:6379
+      REQUIRE_API_KEY: ${REQUIRE_API_KEY:-true}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      API_KEY_SECRET: ${API_KEY_SECRET:?Set API_KEY_SECRET in .env}
+      INITIAL_PASSWORD: ${INITIAL_PASSWORD:?Set INITIAL_PASSWORD in .env}
+      OMNIROUTE_WS_BRIDGE_SECRET: ${OMNIROUTE_WS_BRIDGE_SECRET:?Set OMNIROUTE_WS_BRIDGE_SECRET in .env}
+    ports:
+      - "${OMNIROUTE_BIND_HOST:-127.0.0.1}:${OMNIROUTE_PORT:-20128}:20128"
+    volumes:
+      - omniroute-data:/app/data
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: ${OMNIROUTE_PIDS_LIMIT:-256}
+    mem_limit: ${OMNIROUTE_MEMORY_LIMIT:-1536m}
+    cpus: ${OMNIROUTE_CPUS:-1.0}
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.mjs"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  omniroute-data:
+  redis-data:

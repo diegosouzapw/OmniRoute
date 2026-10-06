@@ -17,10 +17,13 @@ const { resolveProxyForRequest } = await import("../../open-sse/utils/proxyFetch
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-async function withHttpServer(handler: http.RequestListener, fn: (baseUrl: string) => Promise<void>) {
+async function withHttpServer(
+  handler: http.RequestListener,
+  fn: (baseUrl: string) => Promise<void>
+) {
   const server = http.createServer(handler);
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);

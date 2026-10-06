@@ -51,6 +51,14 @@ test("#5108 genuinely empty Claude content:[] is still flagged malformed", () =>
   assert.equal(detectMalformedNonStream(claudeMsg([])), "empty_choices");
 });
 
+test("Claude Code /model probe: content:[] + max_tokens is not empty_choices", () => {
+  const body = {
+    ...claudeMsg([]),
+    stop_reason: "max_tokens",
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
 test("#5108/#9971 Claude thinking block with neither text nor signature is valid output (was empty_choices)", () => {
   const body = claudeMsg([{ type: "thinking", thinking: "", signature: "" }]);
   // #9971: an empty thinking block is valid structural output — the upstream can

@@ -1,7 +1,8 @@
 /**
  * Common scalar grammar for GCF (Graph Compact Format).
  * Vendored from gcf-typescript — generic profile only. Current with GCF spec v3.2
- * (nested object flattening) and the [N]: inline-array quoting fix.
+ * (nested object flattening), the [N]: inline-array quoting fix, the int64/2^53 numeric-
+ * domain rendering (SPEC 2.3.1), and the root-array surplus count check (SPEC 13).
  * https://github.com/blackwell-systems/gcf-typescript
  *
  * SPDX-License-Identifier: MIT
@@ -107,7 +108,12 @@ export function formatNumber(f: number): string {
   if (Object.is(f, -0)) return "-0";
   if (f === 0) return "0";
   const abs = Math.abs(f);
-  if (abs >= 1e-6 && abs < 1e21) {
+  // Plain decimal only below 2^53. Every double at or above 2^53 is integer-valued, so a
+  // plain rendering emits a bare-integer token: indistinguishable from an int64 on the wire
+  // and beyond a JavaScript decoder's safe-integer range (2^53-1), so it is rejected/misread
+  // on decode. Exponent shape keeps bare tokens int64 and decimal/exponent tokens doubles
+  // (SPEC 2.3.1). 2^53 = 9007199254740992.
+  if (abs >= 1e-6 && abs < 9007199254740992) {
     return toPreciseDecimal(f);
   }
   // Exponent notation.

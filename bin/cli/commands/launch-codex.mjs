@@ -2,6 +2,7 @@ import { spawn, execFileSync } from "node:child_process";
 import { t } from "../i18n.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
 import { quoteShellArgs } from "../utils/winShellArgs.mjs";
+import { buildSafeCliLaunchEnv } from "../launch-env.mjs";
 
 /**
  * Probe PATH for a Windows executable via `where.exe`, preferring a `.exe` over
@@ -157,8 +158,8 @@ async function healthCheck(baseUrl, timeoutMs = 3000) {
  * @param {string|undefined} authToken
  * @returns {Record<string,string>}
  */
-export function buildCodexEnv(baseEnv, authToken) {
-  const env = { ...baseEnv };
+export function buildCodexEnv(baseEnv, authToken, options = {}) {
+  const env = buildSafeCliLaunchEnv(baseEnv, { inheritEnv: Boolean(options.inheritEnv) });
   for (const key of STRIPPED_CODEX_ENV_KEYS) delete env[key];
   env.OMNIROUTE_API_KEY = (authToken && String(authToken).trim()) || NO_AUTH_SENTINEL;
   return env;
@@ -170,8 +171,8 @@ export function buildCodexEnv(baseEnv, authToken) {
  * @param {string} baseUrl  OmniRoute root URL (no /v1)
  * @returns {string[]}
  */
-export function buildCodexProviderArgs(baseUrl) {
-  return [
+export function buildCodexProviderArgs(baseUrl, model) {
+  const args = [
     "-c",
     tomlAssign("model_provider", "omniroute"),
     "-c",
@@ -185,6 +186,15 @@ export function buildCodexProviderArgs(baseUrl) {
     "-c",
     tomlAssign("model_providers.omniroute.requires_openai_auth", false),
   ];
+
+  if (model) {
+    const normalized = String(model).trim();
+    if (normalized) {
+      args.push("-c", tomlAssign("model", normalized));
+    }
+  }
+
+  return args;
 }
 
 /**
@@ -207,10 +217,10 @@ export async function runLaunchCodexCommand(opts = {}, codexArgs = []) {
 
   // Provider injected via -c (works without config.toml); then the profile (model),
   // then the user's pass-through args.
-  const providerArgs = buildCodexProviderArgs(baseUrl);
+  const providerArgs = buildCodexProviderArgs(baseUrl, opts.model);
   const profileArgs = opts.profile ? ["--profile", opts.profile] : [];
   const extraArgs = [...providerArgs, ...profileArgs, ...codexArgs];
-  const env = buildCodexEnv(process.env, authToken);
+  const env = buildCodexEnv(process.env, authToken, opts);
 
   const { command: codexLaunch, shell: shellValue } = await resolveCodexSpawn(process.platform);
 
@@ -220,18 +230,62 @@ export async function runLaunchCodexCommand(opts = {}, codexArgs = []) {
       stdio: "inherit",
       shell: shellValue,
     });
+    let settled = false;
+    let requestedSignalCode;
+    let escalationTimer;
+    const signalExitCode = { SIGINT: 130, SIGTERM: 143, SIGHUP: 129 };
+    const signalHandlers = {};
+    const cleanupSignalHandlers = () => {
+      for (const signal of Object.keys(signalExitCode)) {
+        process.removeListener(signal, signalHandlers[signal]);
+      }
+    };
+    const finish = (code) => {
+      if (settled) return;
+      settled = true;
+      if (escalationTimer) clearTimeout(escalationTimer);
+      cleanupSignalHandlers();
+      resolve(code);
+    };
+    for (const signal of Object.keys(signalExitCode)) {
+      signalHandlers[signal] = () => {
+        if (requestedSignalCode !== undefined) return;
+        requestedSignalCode = signalExitCode[signal];
+        try {
+          child.kill(signal);
+        } catch {
+          // The child may have already exited; its close event will settle.
+        }
+        const configuredTimeout = Number(
+          opts.signalTimeoutMs ?? process.env.OMNIROUTE_CHILD_SIGNAL_TIMEOUT_MS
+        );
+        const timeoutMs =
+          Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : 5000;
+        escalationTimer = setTimeout(() => {
+          try {
+            child.kill("SIGKILL");
+          } catch {
+            // A close event may have raced with escalation.
+          }
+        }, timeoutMs);
+        escalationTimer.unref?.();
+      };
+      process.once(signal, signalHandlers[signal]);
+    }
     child.on("error", (err) => {
       if (err?.code === "ENOENT") {
         console.error(
           "The 'codex' CLI was not found in PATH. Install with:\n  npm install -g @openai/codex"
         );
-        resolve(127);
+        finish(127);
       } else {
         console.error(String(err?.message || err));
-        resolve(1);
+        finish(1);
       }
     });
-    child.on("exit", (code) => resolve(code ?? 0));
+    child.on("close", (code, signalName) => {
+      finish(requestedSignalCode ?? code ?? signalExitCode[signalName] ?? 0);
+    });
   });
 }
 
@@ -251,6 +305,10 @@ export function registerLaunchCodex(program) {
     .option(
       "--api-key <key>",
       "OmniRoute API key (overrides OMNIROUTE_API_KEY env var for this invocation)"
+    )
+    .option(
+      "--inherit-env",
+      "Explicitly pass the full parent environment to Codex (may expose credentials)"
     )
     .allowUnknownOption(true)
     .allowExcessArguments(true)

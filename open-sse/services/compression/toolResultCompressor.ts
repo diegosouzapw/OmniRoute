@@ -11,7 +11,7 @@ const SHELL_PROMPT_RE = /\$\s/;
 const JSON_PREFIX_RE = /^\s*[{[]/;
 const COMPRESSED_MARKER_RE = /^\[COMPRESSED:/;
 
-function isCodeLikeLine(rawLine: string): boolean {
+export function isCodeLikeLine(rawLine: string): boolean {
   const line = rawLine.trimStart();
   return (
     line.startsWith("import ") ||

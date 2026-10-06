@@ -88,4 +88,17 @@ test("enable/disable macOS skip launchctl when the current process is the agent"
   const source = readFileSync(join(process.cwd(), "bin/cli/tray/autostart.mjs"), "utf8");
   assert.match(source, /isAgentSelfMac/);
   assert.match(source, /parseAgentSelfFromLaunchctl/);
+  assert.match(source, /isDetachedTrayWorker/);
+  assert.match(source, /process\.argv\.includes\("--tray-worker"\)/);
+});
+
+test("macOS autostart starts detached tray mode without a dashboard window", () => {
+  const source = readFileSync(join(process.cwd(), "bin/cli/tray/autostart.mjs"), "utf8");
+  const programArguments = source.match(/<key>ProgramArguments<\/key><array>([\s\S]*?)<\/array>/);
+
+  assert.ok(programArguments);
+  assert.match(programArguments[1], /<string>serve<\/string>/);
+  assert.match(programArguments[1], /<string>--tray<\/string>/);
+  assert.match(programArguments[1], /<string>--no-open<\/string>/);
+  assert.doesNotMatch(programArguments[1], /--tray-worker/);
 });

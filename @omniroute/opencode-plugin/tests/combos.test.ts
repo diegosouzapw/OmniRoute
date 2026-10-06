@@ -641,13 +641,13 @@ test("models(): combos fetcher receives the resolved baseURL + apiKey", async ()
 
 test("models(): nested combo-ref context is the min of nested + raw members", async () => {
   // Top-level combo MASTER-LIGHT has 1 raw model (claude-primary, 200k)
-  // and 2 combo-refs: OldLLM (8k member) and KIRO (32k member). The OLD
+  // and 2 combo-refs: LEGACY (8k member) and KIRO (32k member). The OLD
   // plugin would advertise 200k (only the raw model); the fix should
   // make it advertise 8k (the bottleneck across the member graph).
   const modelsFetcher = stubModelsFetcher([
     MODEL_PRIMARY,
     {
-      id: "oldllm-member-1",
+      id: "legacy-member-1",
       context_length: 8_000,
       max_output_tokens: 4_000,
       capabilities: {
@@ -677,9 +677,9 @@ test("models(): nested combo-ref context is the min of nested + raw members", as
   ]);
   const combosFetcher = stubCombosFetcher([
     {
-      id: "oldllm",
-      name: "OldLLM",
-      models: [{ id: "s1", kind: "model", model: "oldllm-member-1", weight: 100 }],
+      id: "legacy",
+      name: "LEGACY",
+      models: [{ id: "s1", kind: "model", model: "legacy-member-1", weight: 100 }],
     },
     {
       id: "kiro",
@@ -691,7 +691,7 @@ test("models(): nested combo-ref context is the min of nested + raw members", as
       name: "MASTER-LIGHT",
       models: [
         { id: "r1", kind: "model", model: "claude-primary", weight: 50 },
-        { id: "r2", kind: "combo-ref", comboName: "OldLLM", weight: 25 },
+        { id: "r2", kind: "combo-ref", comboName: "LEGACY", weight: 25 },
         { id: "r3", kind: "combo-ref", comboName: "KIRO", weight: 25 },
       ],
     },
@@ -706,6 +706,6 @@ test("models(): nested combo-ref context is the min of nested + raw members", as
   assert.equal(
     masterLight.limit.context,
     8_000,
-    `expected 8_000 (OldLLM bottleneck), got ${masterLight.limit.context}`
+    `expected 8_000 (LEGACY bottleneck), got ${masterLight.limit.context}`
   );
 });

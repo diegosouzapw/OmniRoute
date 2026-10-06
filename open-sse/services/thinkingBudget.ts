@@ -1,14 +1,23 @@
 /**
  * Thinking Budget Control — Phase 2
  *
- * Provides proxy-level control over AI thinking/reasoning budgets.
- * Modes: auto, passthrough, custom, adaptive
+ * Proxy-level control of **client thinking/reasoning request fields**
+ * (`reasoning`, `reasoning_effort`, Claude `thinking`, Gemini thinking_config).
+ *
+ * Modes (see Dashboard → Settings → AI → Thinking Budget):
+ * - passthrough: leave client fields unchanged (required for Codex visible thinking)
+ * - auto: STRIP all thinking/reasoning fields before upstream (not “auto-show thinking”)
+ * - custom: force a fixed token budget on every request
+ * - adaptive: scale budget from a base effort by request complexity
+ *
+ * Independent of compression, prompt cache, combo routing, and API-key token limits.
+ * Does **not** decrypt OpenAI/Codex `encrypted_content` reasoning blobs.
  */
 
 // Thinking budget modes
 export const ThinkingMode = {
-  AUTO: "auto", // Let provider decide (remove client's budget)
-  PASSTHROUGH: "passthrough", // No changes (current behavior)
+  AUTO: "auto", // Strip all client thinking/reasoning fields (provider invents defaults)
+  PASSTHROUGH: "passthrough", // No changes — client fully controls thinking
   CUSTOM: "custom", // Set fixed budget
   ADAPTIVE: "adaptive", // Scale based on request complexity
 };
@@ -27,6 +36,10 @@ import {
   getResolvedModelCapabilities,
   supportsReasoning,
 } from "@/lib/modelCapabilities";
+import {
+  jsonLengthStrippingBase64DataUris,
+  rawLengthStrippingBase64DataUris,
+} from "../utils/jsonSize.ts";
 
 // Effort → budget token mapping
 export const EFFORT_BUDGETS: Record<string, number> = {
@@ -247,7 +260,9 @@ export function applyThinkingBudget(
 }
 
 /**
- * AUTO mode: strip all thinking configuration, let provider decide
+ * AUTO mode: strip all thinking/reasoning configuration from the request body.
+ * Upstream then runs without client-requested effort/summary — this can hide
+ * thinking panels in Codex/Desktop and is the opposite of “show thinking”.
  */
 function stripThinkingConfig(body: unknown) {
   const result: JsonRecord = { ...toRecord(body) };
@@ -339,7 +354,8 @@ function applyAdaptiveBudget(body: unknown, cfg: Partial<ThinkingBudgetConfig>) 
   const tools = Array.isArray(bodyRecord.tools) ? bodyRecord.tools : [];
   const toolCount = tools.length;
 
-  // Get last user message length
+  // Get last user message length. Strip base64 data URIs so an inline image in the prompt
+  // doesn't inflate lastMsgLength and silently bump the complexity multiplier.
   let lastMsgLength = 0;
   for (let i = messages.length - 1; i >= 0; i--) {
     const msg = messages[i];
@@ -347,8 +363,8 @@ function applyAdaptiveBudget(body: unknown, cfg: Partial<ThinkingBudgetConfig>) 
     if (msgRecord.role === "user") {
       lastMsgLength =
         typeof msgRecord.content === "string"
-          ? msgRecord.content.length
-          : JSON.stringify(msgRecord.content || "").length;
+          ? rawLengthStrippingBase64DataUris(msgRecord.content)
+          : jsonLengthStrippingBase64DataUris(msgRecord.content || "");
       break;
     }
   }

@@ -45,9 +45,9 @@ describe("zed-hosted registry entry", () => {
     assert.equal(entry.oauth, undefined);
   });
 
-  test("executor is wired in the executors map", () => {
+  test("executor is wired in the executors map", async () => {
     assert.ok(hasSpecializedExecutor("zed-hosted"));
-    assert.ok(getExecutor("zed-hosted") instanceof ZedHostedExecutor);
+    assert.ok(await getExecutor("zed-hosted") instanceof ZedHostedExecutor);
   });
 });
 
@@ -260,22 +260,57 @@ describe("mapZedModel", () => {
 // ─── Executor: provider-family inference ────────────────────────────────────
 
 describe("normalizeZedProvider", () => {
-  test("maps explicit provider strings", () => {
-    assert.equal(normalizeZedProvider("anthropic", "any"), "Anthropic");
-    assert.equal(normalizeZedProvider("openai", "any"), "OpenAi");
-    assert.equal(normalizeZedProvider("open_ai", "any"), "OpenAi");
-    assert.equal(normalizeZedProvider("google", "any"), "Google");
-    assert.equal(normalizeZedProvider("gemini", "any"), "Google");
-    assert.equal(normalizeZedProvider("xai", "any"), "XAi");
-    assert.equal(normalizeZedProvider("x-ai", "any"), "XAi");
+  // The return value is not internal — it is serialized straight into the
+  // `provider` field of the POST /completions envelope, so it must be a wire
+  // value cloud.zed.dev accepts. Verified live against the API:
+  //
+  //   {"provider":"anthropic",...} -> 200
+  //   {"provider":"Anthropic",...} -> 500 {"message":"An internal server error occurred."}
+  //   {"provider":"open_ai",...}   -> reaches the OpenAI request parser
+  //   {"provider":"openai",...}    -> 500 (same internal error)
+  //
+  // Zed's own GET /models catalog reports exactly `anthropic`, `open_ai` and
+  // `google`, which is the authority these values follow.
+  test("returns the wire values cloud.zed.dev accepts", () => {
+    assert.equal(normalizeZedProvider("anthropic", "any"), "anthropic");
+    assert.equal(normalizeZedProvider("openai", "any"), "open_ai");
+    assert.equal(normalizeZedProvider("open_ai", "any"), "open_ai");
+    assert.equal(normalizeZedProvider("google", "any"), "google");
+    assert.equal(normalizeZedProvider("gemini", "any"), "google");
+    assert.equal(normalizeZedProvider("xai", "any"), "x_ai");
+    assert.equal(normalizeZedProvider("x-ai", "any"), "x_ai");
+  });
+
+  test("round-trips the provider values Zed's own catalog reports", () => {
+    // rawById entries carry `provider` straight from GET /models. Feeding those
+    // back must be identity — anything else corrupts a value Zed already gave us.
+    for (const wire of ["anthropic", "open_ai", "google"]) {
+      assert.equal(normalizeZedProvider(wire, "any"), wire);
+    }
   });
 
   test("infers from the model id when provider is absent", () => {
-    assert.equal(normalizeZedProvider(null, "claude-sonnet-5"), "Anthropic");
-    assert.equal(normalizeZedProvider(null, "gemini-3.1-pro"), "Google");
-    assert.equal(normalizeZedProvider(null, "grok-4"), "XAi");
-    assert.equal(normalizeZedProvider(null, "gpt-5.5"), "OpenAi");
-    assert.equal(normalizeZedProvider(null, "some-unknown-model"), "OpenAi");
+    assert.equal(normalizeZedProvider(null, "claude-sonnet-5"), "anthropic");
+    assert.equal(normalizeZedProvider(null, "gemini-3.1-pro"), "google");
+    assert.equal(normalizeZedProvider(null, "grok-4"), "x_ai");
+    assert.equal(normalizeZedProvider(null, "gpt-5.5"), "open_ai");
+    assert.equal(normalizeZedProvider(null, "some-unknown-model"), "open_ai");
+  });
+
+  test("never emits a capitalized provider — the shape that 500s upstream", () => {
+    const cases: [unknown, string][] = [
+      ["anthropic", "any"],
+      ["openai", "any"],
+      ["google", "any"],
+      ["xai", "any"],
+      [null, "claude-sonnet-5"],
+      [null, "gpt-5.5"],
+      [null, "some-unknown-model"],
+    ];
+    for (const [raw, model] of cases) {
+      const out = normalizeZedProvider(raw, model);
+      assert.equal(out, out.toLowerCase(), `${String(raw)}/${model} produced "${out}"`);
+    }
   });
 });
 
@@ -354,7 +389,7 @@ describe("ZedHostedExecutor.resolveModel + zedLlmFetch (mocked upstream)", () =>
       undefined,
       undefined
     );
-    assert.equal(result.provider, "Anthropic");
+    assert.equal(result.provider, "anthropic");
     assert.ok(calls.some((u) => u.includes("/client/llm_tokens")));
     assert.ok(calls.some((u) => u.includes("/models")));
   });
@@ -378,7 +413,7 @@ describe("ZedHostedExecutor.resolveModel + zedLlmFetch (mocked upstream)", () =>
       undefined,
       { warn: (_tag: string, msg: string) => warnCalls.push(msg) } as ExecutorLog
     );
-    assert.equal(result.provider, "Google");
+    assert.equal(result.provider, "google");
     assert.ok(warnCalls.length > 0);
   });
 });

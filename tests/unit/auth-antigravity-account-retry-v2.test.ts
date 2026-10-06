@@ -23,13 +23,13 @@ function connectionId(connection: unknown): string {
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("round-robin same-model retry treats multi-exclude as fallback LRU and skips all excluded accounts", async () => {
@@ -152,12 +152,7 @@ test("Antigravity 429 rate-limited locks only the exact model so siblings stay e
 
   // The exhausted model itself is locked: getProviderCredentials reports
   // model-scope cooldown for that exact model on the only connection.
-  const sameModel = await auth.getProviderCredentials(
-    "antigravity",
-    null,
-    null,
-    "gemini-3-pro"
-  );
+  const sameModel = await auth.getProviderCredentials("antigravity", null, null, "gemini-3-pro");
   assert.ok(sameModel);
   assert.ok("allRateLimited" in sameModel && sameModel.allRateLimited);
   assert.equal(sameModel.cooldownScope, "model");

@@ -24,7 +24,7 @@ test("test:unit:serial existe e roda o diretório de quarentena com concurrency=
 });
 
 test("todos os runners paralelos terminam com o passo serial", () => {
-  for (const key of ["test:unit", "test:unit:ci", "test:unit:fast", "test:coverage:runner"]) {
+  for (const key of ["test", "test:unit", "test:unit:ci", "test:unit:fast", "test:coverage:runner"]) {
     assert.ok(
       scripts[key].endsWith("&& npm run test:unit:serial"),
       `${key} deve encadear o passo serial no fim`

@@ -36,3 +36,52 @@ test("multiple sequential withRateLimit calls work", async () => {
   ]);
   assert.deepEqual(results.sort(), ["a", "b"]);
 });
+
+test("abort signal rejection does not leak as unhandledRejection", async () => {
+  // Simulate the combo-per-model-timeout scenario: abort signal fires while
+  // fn is running inside Bottleneck's limiter. The abortPromise rejects and
+  // wins Promise.race, but fn's eventual rejection must be silently caught
+  // (not surface as unhandledRejection).
+  enableRateLimitProtection("test-queue-abort");
+
+  let unhandledRejectionFired = false;
+  const handler = (reason: unknown) => {
+    if (reason instanceof Error && reason.message === "combo-per-model-timeout") {
+      unhandledRejectionFired = true;
+    }
+  };
+  process.on("unhandledRejection", handler);
+
+  const ac = new AbortController();
+  const err = new Error("combo-per-model-timeout");
+
+  // Schedule a slow function, then abort mid-flight.
+  const promise = withRateLimit(
+    "openai",
+    "test-queue-abort",
+    "gpt-4",
+    async () => {
+      // Simulate work that respects the abort signal (like a fetch).
+      await new Promise((r) => setTimeout(r, 200));
+      throw err;
+    },
+    ac.signal
+  );
+
+  // Abort quickly so abortPromise wins the race.
+  setTimeout(() => ac.abort(err), 10);
+
+  // The withRateLimit call itself should reject (from abortPromise).
+  await assert.rejects(promise, (e: Error) => e.message === "combo-per-model-timeout");
+
+  // Give Bottleneck time to finish the orphaned job and let any
+  // unhandledRejection fire.
+  await new Promise((r) => setTimeout(r, 500));
+
+  process.removeListener("unhandledRejection", handler);
+  assert.equal(
+    unhandledRejectionFired,
+    false,
+    "fn rejection after abort must be silently caught, not leak as unhandledRejection"
+  );
+});

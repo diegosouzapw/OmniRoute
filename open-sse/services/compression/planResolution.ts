@@ -128,8 +128,18 @@ export function buildNamedComboLookup(
  * silent behaviour change for installs whose backfilled engine flags don't exactly match
  * their old defaultMode.
  */
+/** The config fields the default-plan derivation reads (the dashboard preview passes its own
+ *  panel-shaped config, so the full server CompressionConfig is not required — #14700). */
+export type DefaultPlanConfig = Pick<CompressionConfig, "enabled" | "engines" | "activeComboId"> &
+  Partial<
+    Pick<
+      CompressionConfig,
+      "enginesExplicit" | "defaultMode" | "stackedPipeline" | "comboOverrides"
+    >
+  >;
+
 export function deriveDefaultPlanFromConfig(
-  config: CompressionConfig,
+  config: DefaultPlanConfig,
   comboId: string | null,
   combos: NamedCombos = {}
 ): DerivedPlan {

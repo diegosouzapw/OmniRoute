@@ -85,30 +85,55 @@ describe("runChaosPanel", () => {
 });
 
 describe("serializeChaosPart", () => {
-  it("emits a comment + omni-chaos-part event envelope", () => {
+  it("emits a comment + omni-chaos-part event envelope when custom event is requested", () => {
     const part: ChaosPart = { model: "a/gpt", index: 0, ok: true, text: "hi" };
-    const s = serializeChaosPart(part, false);
+    const s = serializeChaosPart(part, false, true);
     expect(s).toContain("event: omni-chaos-part");
     expect(s).toContain('"type":"omni-chaos-part"');
     expect(s).toContain('"model":"a/gpt"');
     expect(s).toContain(": chaos 0 ok a/gpt");
   });
+
+  it("emits ONLY the SSE comment (no event/data) by default for OpenAI-compatible clients", () => {
+    const part: ChaosPart = { model: "a/gpt", index: 0, ok: true, text: "hi" };
+    const s = serializeChaosPart(part, false);
+    // comment line kept (ignored by every SSE parser by spec)
+    expect(s).toContain(": chaos 0 ok a/gpt");
+    // NO custom event/data — those break openai-node / @ai-sdk validators
+    expect(s).not.toContain("event: omni-chaos-part");
+    expect(s).not.toContain('"type":"omni-chaos-part"');
+    expect(s).not.toMatch(/^data:/m);
+  });
 });
 
 describe("handleChaosChat", () => {
-  it("emits broadcast events + final OpenAI chunk", async () => {
+  it("emits ONLY SSE comments (no custom event) by default + final OpenAI chunk", async () => {
     const handle = fakeHandle(async (model) => textResponse(`ans-${model}`));
     const res = await handleChaosChat({
-      body: { messages: [] },
+      body: { stream: true, messages: [] },
       models: ["a/gpt", "b/opus"],
       handleSingleModel: handle,
     });
     expect(res.headers.get("X-OmniRoute-Chaos")).toBe("true");
     expect(res.headers.get("X-OmniRoute-Chaos-Panel")).toBe("2");
     const body = await res.text();
-    // each model gets a broadcast event
-    expect(body.match(/event: omni-chaos-part/g)?.length).toBe(2);
+    // NO custom event by default — OpenAI-compatible parsers choke on it
+    expect(body.match(/event: omni-chaos-part/g)?.length ?? 0).toBe(0);
+    expect(body.match(/^: chaos /gm)?.length ?? 0).toBe(2);
     // final canonical chunk carries the primary answer
+    expect(body).toContain("ans-b/opus");
+    expect(body).toContain("[DONE]");
+  });
+
+  it("emits omni-chaos-part events when stream_options.include_chaos_parts is set", async () => {
+    const handle = fakeHandle(async (model) => textResponse(`ans-${model}`));
+    const res = await handleChaosChat({
+      body: { stream: true, messages: [], stream_options: { include_chaos_parts: true } },
+      models: ["a/gpt", "b/opus"],
+      handleSingleModel: handle,
+    });
+    const body = await res.text();
+    expect(body.match(/event: omni-chaos-part/g)?.length).toBe(2);
     expect(body).toContain("ans-b/opus");
     expect(body).toContain("[DONE]");
   });
@@ -130,7 +155,7 @@ describe("handleChaosChat", () => {
       throw new Error("dead");
     });
     const res = await handleChaosChat({
-      body: {},
+      body: { stream: true },
       models: ["a/x", "b/y"],
       handleSingleModel: handle,
     });
@@ -138,8 +163,8 @@ describe("handleChaosChat", () => {
     // client learns via the error final chunk rather than a bare 503.
     expect(res.status).toBe(200);
     const body = await res.text();
-    // each model gets a broadcast fail event
-    expect(body.match(/event: omni-chaos-part/g)?.length).toBe(2);
+    // NO custom events by default (comments only), error conveyed via final chunk
+    expect(body.match(/event: omni-chaos-part/g)?.length ?? 0).toBe(0);
     expect(body).toContain("All chaos panel models failed");
     expect(body).toContain("[DONE]");
   });

@@ -8,6 +8,7 @@ import { logger } from "@omniroute/open-sse/utils/logger";
 import { matchesCron } from "@/lib/jobs/cronMatch";
 import { getCircuitBreakerStore } from "./warmupScheduler/circuitBreakerFactory";
 import { TERMINAL_CONNECTION_STATUSES } from "@/lib/quota/connectionRecovery";
+import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import type { WarmupResult, WarmupFailureKind, WarmupTarget } from "./warmupScheduler/core";
 
 export type { WarmupResult, WarmupFailureKind } from "./warmupScheduler/core";
@@ -155,6 +156,7 @@ async function executeWarmup(): Promise<void> {
   const headers = await getWarmupHeaders();
 
   for (const conn of connections) {
+    if (await isConnectionUnavailableToAuxiliaryActivity(conn.id)) continue;
     if (enabledMap?.[conn.id] !== true) {
       log.debug("warmup skip", { connectionId: conn.id, reason: "not opted-in" });
       continue;

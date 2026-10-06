@@ -18,7 +18,8 @@ npm run typecheck:core         # TypeScript check (should be clean)
 npm run typecheck:noimplicit:core  # Strict check (no implicit any)
 npm run test:coverage          # Unit tests + coverage gate (60/60/60/60 — statements/lines/functions/branches)
 npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm run check:cycles           # Detect circular dependencies (advisory — lists the SCCs)
+npm run check:cycles:ratchet   # Same scan, blocking above the quality-baseline ceiling
 npm run check:docs-all         # Run after changing documentation (includes fabricated-docs validation)
 ```
 
@@ -46,22 +47,22 @@ Repository map and Reference Documentation sections below.
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 339 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 358 LLM providers, auto-fallback.
 
-| Layer         | Location                | Purpose                                                                                                                                                 |
-| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                                       |
-| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                                              |
-| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                                         |
-| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                |
-| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                        |
-| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                |
-| Database      | `src/lib/db/`           | SQLite domain modules (145 migrations)                                                                                                                  |
-| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                               |
-| MCP Server    | `open-sse/mcp-server/`  | 105 tools (43 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 31 scopes |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                             |
-| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                              |
-| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                        |
+| Layer         | Location                | Purpose                                                                                                                                                                   |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                                                         |
+| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                                                                |
+| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                                                           |
+| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                                  |
+| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                                          |
+| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                                  |
+| Database      | `src/lib/db/`           | SQLite domain modules (193 migrations)                                                                                                                                    |
+| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                                                 |
+| MCP Server    | `open-sse/mcp-server/`  | 110 tools (45 canonical + memory/skill/GitHub/pool/gamification/plugin/Notion/Obsidian/local-corpus/RTK modules), 3 transports (stdio / SSE / Streamable HTTP), 33 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                                               |
+| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                                                |
+| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                                          |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
 
@@ -83,7 +84,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
 
-**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 14-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 16-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -110,19 +111,36 @@ upstream/service level, so one unhealthy provider does not slow down every reque
 - Shared wrappers: `open-sse/services/accountFallback.ts`
 - Persisted state table: `domain_circuit_breakers`
 
-**States**:
+**States** (4 — `src/shared/utils/circuitBreaker.ts`):
 
 - `CLOSED`: normal traffic is allowed.
+- `DEGRADED`: early-warning band — failures crossed the degradation threshold but not the
+  breaker threshold yet; traffic still flows, dashboards show the warning.
 - `OPEN`: provider is temporarily blocked; callers get a provider-circuit-open response
   or combo routing skips to another target.
 - `HALF_OPEN`: reset timeout has elapsed; allow a probe request. Success closes the
   breaker, failure opens it again.
 
-**Defaults** (`open-sse/config/constants.ts`):
+**Defaults** (`open-sse/config/constants.ts` → `PROVIDER_PROFILES`, consumed via
+`DEFAULT_RESILIENCE_SETTINGS.providerBreaker` in `src/lib/resilience/settings.ts` →
+`getCircuitBreaker(provider, …)` in `src/sse/handlers/chatHelpers.ts`). The whole-provider
+breaker runs on `circuitBreakerThreshold` / `circuitBreakerReset`:
 
-- OAuth providers: threshold `3`, reset timeout `60s`.
-- API-key providers: threshold `5`, reset timeout `30s`.
-- Local providers: threshold `2`, reset timeout `15s`.
+| Profile | degrades at | opens at (`circuitBreakerThreshold`) | reset (`circuitBreakerReset`) |
+| ------- | ----------: | -----------------------------------: | ----------------------------: |
+| OAuth   |         `5` |                                  `8` |                         `60s` |
+| API key |         `7` |                                 `12` |                         `30s` |
+| Local   |   (derived) |                                  `2` |                         `15s` |
+
+`PROVIDER_PROFILES` also defines `providerFailureThreshold` (10/15/2),
+`providerFailureWindowMs` (15/30/5 min) and `providerCooldownMs` (5/10/1 min): these power the
+**window gate of the opt-in global Provider Cooldown** (`PROVIDER_COOLDOWN_ENABLED`, default
+off) — a provider-level entry in `open-sse/services/providerCooldownTracker.ts` only counts as
+cooling after `providerFailureThreshold` failures inside `providerFailureWindowMs`, and then
+cools for `providerCooldownMs`. They are NOT the live breaker's thresholds — do not tune them
+expecting breaker behavior. Every default is overridable through the
+`OMNIROUTE_PROVIDER_BREAKER_*` and `OMNIROUTE_CIRCUIT_BREAKER_*` env vars; the
+runtime-accurate reference table lives in `docs/architecture/RESILIENCE_GUIDE.md`.
 
 Only provider-level failure statuses should trip the provider breaker:
 
@@ -190,7 +208,7 @@ baseCooldownMs * 2 ** failureIndex;
 The anti-thundering-herd guard prevents concurrent failures on the same connection from
 repeatedly extending the cooldown or double-incrementing `backoffLevel`.
 
-Terminal states are not cooldowns. `banned`, `expired`, and `credits_exhausted` are
+Terminal states are not cooldowns. `banned`, `expired` (which becomes terminal only after N bounded retries via `EXPIRED_RETRY_MAX`), and `credits_exhausted` are
 intended to stay unavailable until credentials/settings change or an operator resets
 them. Do not overwrite terminal states with transient cooldown state.
 
@@ -235,7 +253,7 @@ Read the nearest `AGENTS.md` and the linked deep-dive before making a non-trivia
 | Streaming request handling         | `open-sse/handlers/`                                    | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)                                                                         |
 | Provider execution and translation | `open-sse/executors/`, `open-sse/translator/`           | [`docs/architecture/CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md)                                                     |
 | Routing and resilience             | `open-sse/services/`                                    | [`open-sse/services/AGENTS.md`](open-sse/services/AGENTS.md), [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)                         |
-| Database and migrations            | `src/lib/db/`, `db/migrations/`                         | [`src/lib/db/AGENTS.md`](src/lib/db/AGENTS.md)                                                                                                   |
+| Database and migrations            | `src/lib/db/`, `src/lib/db/migrations/`                 | [`src/lib/db/AGENTS.md`](src/lib/db/AGENTS.md)                                                                                                   |
 | Domain policy                      | `src/domain/`                                           | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)                                                                         |
 | MCP and A2A                        | `open-sse/mcp-server/`, `src/lib/a2a/`                  | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md), [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)               |
 | Agent features                     | `src/lib/{acp,memory,skills,cloudAgent}/`               | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md), [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md) |
@@ -247,13 +265,13 @@ Read the nearest `AGENTS.md` and the linked deep-dive before making a non-trivia
 ## File placement & repo-root hygiene
 
 - **Test files**: ALL unit tests, integration tests, ecosystem tests, or Vitest files MUST strictly be placed within the `tests/` directory (e.g., `tests/unit/`, `tests/integration/`). NEVER create test files in the project root (`/`).
-- **Scripts and utilities**: ALL maintenance, debugging, generation, or experimental scripts (`.cjs`, `.mjs`, `.js`, `.ts`) MUST be placed strictly inside one of the `scripts/` subfolders (`build/`, `dev/`, `check/`, `docs/`, `i18n/`, `ad-hoc/`, `quality/`, `release/`, `ci/`, `ops/`, `perf/`, `research/`, `sre/`, `vps/`, `homolog/`, `raycast/`, `skills/`, `test/`, `cli/`, `compression/`, `compression-eval/`, `devin-bridge/`, `docker/`, `features/`, `router-eval/`). One-shot or experimental code goes under `scripts/ad-hoc/`. NEVER dump loose scripts in the project root (`/`) or the top-level `scripts/` folder.
+- **Scripts and utilities**: ALL maintenance, debugging, generation, or experimental scripts (`.cjs`, `.mjs`, `.js`, `.ts`) MUST be placed strictly inside one of the `scripts/` subfolders (`build/`, `dev/`, `check/`, `docs/`, `i18n/`, `ad-hoc/`, `quality/`, `release/`, `ci/`, `ops/`, `perf/`, `research/`, `sre/`, `vps/`, `homolog/`, `packs/`, `skills/`, `test/`, `cli/`, `compression/`, `compression-eval/`, `devin-bridge/`, `docker/`, `features/`, `router-eval/`). One-shot or experimental code goes under `scripts/ad-hoc/`. NEVER dump loose scripts in the project root (`/`) or the top-level `scripts/` folder.
 
 **The project root MUST ONLY contain:**
 
 - Configuration files (`vitest.config.ts`, `next.config.mjs`, `eslint.config.mjs`, `tsconfig*.json`, `playwright.config.ts`, `prettier.config.mjs`, `postcss.config.mjs`, `sonar-project.properties`, `fly.toml`, `docker-compose*.yml`, `Dockerfile`)
 - Dependency files (`package.json`, `package-lock.json`)
-- Documentation files (`README.md`, `CHANGELOG.md`, `ROADMAP.md`, `LICENSE`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `llm.txt`, `Tuto_Qdrant.md`)
+- Documentation files (`README.md`, `CHANGELOG.md`, `ROADMAP.md`, `LICENSE`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `llm.txt`)
 - CI/CD files and ignore definitions (`.gitignore`, `.dockerignore`, `.npmignore`, `.npmrc`, `.node-version`, `.nvmrc`, `.env.example`)
 
 When creating _any_ validation tests or one-off logic scripts, default to `scripts/ad-hoc/` or `tests/unit/` according to your goals. Do not pollute the `/` root context.
@@ -282,8 +300,7 @@ When creating _any_ validation tests or one-off logic scripts, default to `scrip
 ### Database
 
 - **Always** go through `src/lib/db/` domain modules — **never** write raw SQL in routes or handlers
-- **Never** add logic to `src/lib/localDb.ts` (re-export layer only)
-- **Never** barrel-import from `localDb.ts` — import specific `db/` modules instead
+- **Never** barrel-import from `localDb.ts` — import specific `src/lib/db/*` modules
 - DB singleton: `getDbInstance()` from `src/lib/db/core.ts` (WAL journaling)
 - Migrations: `src/lib/db/migrations/` — versioned SQL files, idempotent, run in transactions
 
@@ -327,6 +344,7 @@ Documentation must describe verified behavior, not plausible behavior.
 
 ### Adding a New Provider
 
+0. Check `docs/reference/REMOVED_PROVIDERS.md` first — providers removed at their operator's request must never be reintroduced (guarded by `tests/unit/removed-providers-blocklist.test.ts`)
 1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
 2. Add executor in `open-sse/executors/` if custom logic needed (extend `BaseExecutor`)
 3. Add translator in `open-sse/translator/` if non-OpenAI format
@@ -348,19 +366,18 @@ Documentation must describe verified behavior, not plausible behavior.
 1. Create `src/lib/db/yourModule.ts` — import `getDbInstance` from `./core.ts`
 2. Export CRUD functions for your domain table(s)
 3. Add migration in `src/lib/db/migrations/` if new tables needed
-4. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
-5. Write tests
+4. Write tests
 
 ### Adding a New MCP Tool
 
 1. Add tool definition in `open-sse/mcp-server/tools/` with Zod input schema + async handler
 2. Register in tool set (wired by `createMcpServer()`)
 3. Assign to appropriate scope(s)
-4. Write tests (tool invocation logged to `mcp_audit` table)
+4. Write tests (tool invocation logged to the `mcp_tool_audit` table)
 
 ### Adding a New A2A Skill
 
-1. Create skill in `src/lib/a2a/skills/` (5 already exist: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+1. Create skill in `src/lib/a2a/skills/` (6 already exist: smart-routing, quota-management, provider-discovery, cost-analysis, health-report, list-capabilities)
 2. Skill receives task context (messages, metadata) → returns structured result
 3. Register in `A2A_SKILL_HANDLERS` in `src/lib/a2a/taskExecution.ts`
 4. Expose in `src/app/.well-known/agent.json/route.ts` (Agent Card)
@@ -369,7 +386,7 @@ Documentation must describe verified behavior, not plausible behavior.
 
 ### Adding a New Cloud Agent
 
-1. Create agent class in `src/lib/cloudAgent/agents/` extending `CloudAgentBase` (3 already exist: codex-cloud, devin, jules)
+1. Create agent class in `src/lib/cloudAgent/agents/` extending `CloudAgentBase` (4 already exist: codex-cloud, devin, jules, cursor-cloud)
 2. Implement `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
 3. Register in `src/lib/cloudAgent/registry.ts`
 4. Add OAuth/credentials handling if needed (`src/lib/oauth/providers/`)
@@ -380,7 +397,7 @@ Documentation must describe verified behavior, not plausible behavior.
 1. Create installer in `src/lib/services/installers/{name}.ts` modeled on `ninerouter.ts` (use `runNpm` from `installers/utils.ts` — no shell interpolation, hard rule #13).
 2. Register the service in `src/lib/services/bootstrap.ts` (add to `SERVICES[]` array and extend `buildSpawnArgsFactory()`).
 3. Add a DB seed row for the new service in `src/lib/db/migrations/` (`version_manager` table, `status='not_installed'`, `auto_start=0`).
-4. Create 7 API endpoints under `src/app/api/services/{name}/` (`_lib.ts`, `install`, `start`, `stop`, `restart`, `update`, `status`, `auto-start`). All delegate errors through `createErrorResponse()`. The shared `logs` endpoint is already wired via `[name]/logs/route.ts`.
+4. Create 8 API endpoints under `src/app/api/services/{name}/` (`_lib.ts`, `install`, `start`, `stop`, `restart`, `update`, `status`, `auto-start`, `auto-restart-adopted`). All delegate errors through `createErrorResponse()`. The shared `logs` endpoint is already wired via `[name]/logs/route.ts`.
 5. Verify `/api/services/` is in `LOCAL_ONLY_API_PREFIXES` in `src/server/authz/routeGuard.ts`; add a test asserting `isLocalOnlyPath()` returns `true` for the new prefix if you add one (hard rule #17).
 6. Add a UI tab in `src/app/(dashboard)/dashboard/providers/services/tabs/` reusing `ServiceStatusCard`, `ServiceLifecycleButtons`, `ServiceLogsPanel`.
 7. Document in `docs/frameworks/EMBEDDED-SERVICES.md` (update §1 service table + §4 API reference) and `docs/openapi.yaml`.
@@ -392,6 +409,9 @@ Documentation must describe verified behavior, not plausible behavior.
 - Eval suite: `src/lib/evals/` → docs: `docs/frameworks/EVALS.md`
 - Skill (sandbox): `src/lib/skills/` → docs: `docs/frameworks/SKILLS.md`
 - Webhook event: `src/lib/webhookDispatcher.ts` → docs: `docs/frameworks/WEBHOOKS.md`
+- Log-export destination: add `src/lib/logExport/destinations/<name>.ts` + one line in
+  `src/lib/logExport/registry.ts` → docs: `docs/frameworks/LOG-EXPORT.md`. The runner, REST layer
+  and dashboard form all read the registry, so nothing else changes.
 
 ---
 
@@ -404,7 +424,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                   |
 | Architecture                                  | `docs/architecture/ARCHITECTURE.md`                     |
 | Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
-| Auto-Combo (14-factor scoring, 19 strategies) | `docs/routing/AUTO-COMBO.md`                            |
+| Auto-Combo (16-factor scoring, 19 strategies) | `docs/routing/AUTO-COMBO.md`                            |
 | Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
 | Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
 | Skills framework                              | `docs/frameworks/SKILLS.md`                             |
@@ -417,6 +437,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Evals                                         | `docs/frameworks/EVALS.md`                              |
 | Compliance / audit                            | `docs/security/COMPLIANCE.md`                           |
 | Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                           |
+| Log export (call logs → BigQuery/…)           | `docs/frameworks/LOG-EXPORT.md`                         |
 | Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                      |
 | Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                        |
 | Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`              |
@@ -426,24 +447,25 @@ For any non-trivial change, read the matching deep-dive first:
 | Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                  |
 | Tunnels                                       | `docs/ops/TUNNELS_GUIDE.md`                             |
 | Electron desktop app                          | `docs/guides/ELECTRON_GUIDE.md`                         |
+| VS Code Copilot Chat (OmniCopilot extension)  | `docs/guides/VSCODE-COPILOT.md`                         |
 | Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                         |
 | Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                  |
-| Quality gates (~80 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                    |
+| Quality gates (~90 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                    |
 
 ---
 
 ## Testing
 
-| What                    | Command                                                                     |
-| ----------------------- | --------------------------------------------------------------------------- |
-| Unit tests              | `npm run test:unit`                                                         |
-| Single file             | `node --import tsx/esm --test tests/unit/your-file.test.ts`                 |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                       |
-| E2E (Playwright)        | `npm run test:e2e`                                                          |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                                |
-| Ecosystem               | `npm run test:ecosystem`                                                    |
-| Coverage gate           | `npm run test:coverage` (60/60/60/60 — statements/lines/functions/branches) |
-| Coverage report         | `npm run coverage:report`                                                   |
+| What                    | Command                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| Unit tests              | `npm run test:unit`                                                           |
+| Single file             | `node --import tsx/esm --test tests/unit/your-file.test.ts`                   |
+| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                         |
+| E2E (Playwright)        | `npm run test:e2e`                                                            |
+| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e` (CI job `test-protocols-e2e`, advisory — #10049) |
+| Ecosystem               | `npm run test:ecosystem` (CI job `test-ecosystem`, blocking)                  |
+| Coverage gate           | `npm run test:coverage` (60/60/60/60 — statements/lines/functions/branches)   |
+| Coverage report         | `npm run coverage:report`                                                     |
 
 **PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`, you must include or update tests in the same PR.
 
@@ -474,6 +496,12 @@ Why this matters: fixing bug A while opening bug B is worse than not fixing at a
   pipeline, and A2A skills.
 - Do not close a contributor pull request after using its code; merge it through GitHub so
   the contributor receives credit.
+- **Never merge a PR that touches an agent-instruction surface without explicit operator
+  approval** — `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `llm.txt` (+ mirrors) and
+  `skills/**/SKILL.md` are executed as authority by every AI session; a merged instruction
+  compromises every future agent run. Check with `gh pr diff <N> --name-only` before any
+  merge. Incident record: PR #11770 (2026-09-01) told agents to execute a third-party
+  setup script and was swept in by a merge campaign; reverted in #12249.
 
 ---
 
@@ -515,6 +543,7 @@ git push -u origin feat/your-feature
 **Husky hooks**:
 
 - **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11` + `check:tracked-artifacts`
+- **commit-msg**: `check:ai-attribution` — rejects AI/bot `Co-Authored-By` trailers and AI-generation footers in the message (Hard Rule #16; human co-authors allowed; also in the `quality.yml` fast-gates loop (PR→`release/**`) and a PR-only `ci.yml` lint step (PR→`main`) — #14436)
 - **pre-push**: intentionally light (PATH/npm sanity only). `any-budget` + `tracked-artifacts`
   already run on pre-commit; re-running them on every push was pure double-pay. CI still
   enforces both. (Was Fase 6A.12 full pre-push gate; folded into pre-commit in #6716.)
@@ -551,13 +580,30 @@ own dedicated branch, and you MUST confirm the base branch with the operator bef
    # HARD LINKS (`cp -al`), never a symlink: ~5s for the whole tree and near-zero extra
    # disk (the inodes are shared), and unlike a symlink it does not break the dev server.
    cp -al "$(git -C <main_checkout> rev-parse --show-toplevel)/node_modules" node_modules
+   # `.husky/_` is gitignored, so a fresh worktree does NOT have it and
+   # `core.hooksPath=.husky/_` then points at a directory that does not exist —
+   # every pre-commit gate goes silently mute. Copy it too.
+   cp -a "$(git -C <main_checkout> rev-parse --show-toplevel)/.husky/_" .husky/_
    ```
+
+   `scripts/dev/new-worktree.sh <branch> [base]` does all of the above (canonical path,
+   hard-linked `node_modules`, `.husky/_`) and then **verifies** the hook is actually
+   executable, so prefer it over running the steps by hand.
 
    **Never `ln -s` node_modules.** Turbopack rejects a symlink that resolves outside the
    project root, so `npm run dev` dies with a FATAL panic (`Symlink [project]/node_modules
 is invalid, it points out of the filesystem root`) while typecheck, lint and the test
    runners all keep passing — the error names "filesystem root", not the worktree, so it
    reads like a Next/build bug and costs real time to trace (incident 2026-07-31, #9043).
+
+   **A worktree without `.husky/_` runs NO pre-commit gate — and says nothing.** `git`
+   resolves `core.hooksPath` relative to the worktree top; when the directory is missing it
+   simply finds no hook and commits. Nothing is printed, the commit succeeds, and the
+   identity/lint/docs gates never ran. This is how 59 commits carrying a stale identity
+   override (name of a contributor + the maintainer's e-mail) got past
+   `scripts/check/check-git-identity.sh` between 2026-08-29 and 09-02 — they were all made in
+   `cp -al` worktrees. Verify with `ls .husky/_/pre-commit` inside a new worktree, or just use
+   `scripts/dev/new-worktree.sh`, which fails loudly when the hook is not executable.
 
 3. **Work, commit, push, open the PR — all from inside the worktree.** Never `git checkout` a
    different branch inside a worktree another session might share.
@@ -586,6 +632,18 @@ inside your feature branch (a base-red fix is its own freeze-gated `fix/release-
 PR); and if you must open a PR anyway, add `⚠️ base-red inherited: #<issue>` to the PR body so
 reviewers and CI babysitters do not chase ghosts.
 
+### Sync-back landings are fast-forward, never squash
+
+A `main → release/vX+1` sync-back (Phase 5 of `/generate-release`, or any later "bring main's
+post-release commits over" PR) must reach the release branch as the merge commit it already is:
+`git merge-base --is-ancestor origin/release/vX+1 <head>` then
+`git push origin <head>:refs/heads/release/vX+1` (GitHub marks the PR merged). Squash-merging it
+drops `main` from the release branch's ancestry and the next sync-back re-conflicts on every file
+main touched (551 conflicts on the v3.8.50 → v3.8.51 sync before the two-step merge). After
+landing, `git merge-base --is-ancestor origin/main origin/release/vX+1` must be true — and check
+that `config/quality/eslint-suppressions.json` / `quality-baseline.json` carried main's freezes
+(they merge as "ours" silently). Details: `.agents/skills/generate-release/phases/phase-5-next-cycle.md`.
+
 ---
 
 ## Upstream contributions
@@ -607,8 +665,8 @@ focused checks, and use a Conventional Commit message (for example, `docs: slim 
 
 ## Environment
 
-- **Runtime**: Node.js ≥22.0.0 <23 || ≥24.0.0 <27, ES Modules. This is the **only supported** runtime for the published `omniroute` CLI, the server, and the test suites (`node:test` + vitest) — `engines.node` is authoritative and end users never need Bun. A **best-effort `bun:sqlite` compatibility path** exists so a global Bun install (`bun install -g omniroute`) can start without `better-sqlite3` (driver adapter + Bun-aware process spawning); it is **not** a supported runtime — no support guarantees — and every Bun-specific runtime change MUST preserve the Node driver/fallback chain and ship a Bun test (`test:bun:db`) or an explicit reason why the path is Node-only.
-- **Bun (build/dev script runner + compatibility smoke only)**: Bun `1.3.14` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression` — plus the focused `test:bun:db` compatibility smoke suite for the best-effort `bun:sqlite` path. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the supported published runtime, or the main test runners — those stay on Node. Any new Bun-invoking gate/generator script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those scripts with `bun: not found`).
+- **Runtime**: Node.js ≥22.22.2 <23 || ≥24.0.0 <27, ES Modules. This is the **only supported** runtime for the published `omniroute` CLI, the server, and the test suites (`node:test` + vitest) — `engines.node` is authoritative and end users never need Bun. A **best-effort `bun:sqlite` compatibility path** exists so a global Bun install (`bun install -g omniroute`) can start without `better-sqlite3` (driver adapter + Bun-aware process spawning); it is **not** a supported runtime — no support guarantees — and every Bun-specific runtime change MUST preserve the Node driver/fallback chain and ship a Bun test (`test:bun:db`) or an explicit reason why the path is Node-only.
+- **Bun (build/dev script runner + compatibility smoke only)**: Bun `1.4.2` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression` — plus the focused `test:bun:db` compatibility smoke suite for the best-effort `bun:sqlite` path. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the supported published runtime, or the main test runners — those stay on Node. Any new Bun-invoking gate/generator script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those scripts with `bun: not found`).
 - **TypeScript**: 6.0+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard on same port)
@@ -620,12 +678,12 @@ focused checks, and use a Conventional Commit message (for example, `docs: slim 
 
 ## Quality Gates & Ratchets
 
-OmniRoute has **~80 quality-gate scripts** (`scripts/check/` + `scripts/quality/`) wired
+OmniRoute has **~90 quality-gate scripts** (`scripts/check/` + `scripts/quality/`) wired
 across **9 gate-running jobs** in `.github/workflows/ci.yml` (`lint`, `quality-gate`,
 `quality-extended`, `docs-sync-strict`, `i18n-ui-coverage`, `i18n`, `pr-test-policy`,
 `test-vitest`, `sonarqube`), plus the `quality.yml` fast-gates job (PR→`release/**`) and
-3 nightly workflows (`nightly-property`, `nightly-resilience`, `nightly-llm-security`;
-`nightly-mutation` once merged). Full inventory, per-job breakdown, and operational
+5 quality nightly workflows (`nightly-property`, `nightly-resilience`,
+`nightly-llm-security`, `nightly-mutation`, `nightly-schemathesis`). Full inventory, per-job breakdown, and operational
 procedures are in [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md).
 
 **Quick reference:**
@@ -637,6 +695,10 @@ procedures are in [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALI
   `npm run quality:ratchet -- --update` when a metric genuinely improves.
 - Job `test-vitest` runs `npm run test:vitest` (MCP tools, autoCombo, cache) — blocking.
   `test:vitest:ui` has been blocking since PR #7127.
+- **Velocity phase (2026-08-30 → v4.0)**: every numeric baseline is loosened by 20% and
+  `--require-tighten` is advisory (`quality-baseline.json` → `_policy`); the nightly
+  `baseline-headroom` job tracks how much of the budget is left in the issue
+  "📈 Baseline headroom". See `docs/architecture/QUALITY_GATES.md` → "Velocity phase".
 
 **Allowlist policy (short form):** Fix the cause; use the allowlist only for pre-existing
 violations you cannot fix in the same PR. Add a comment with justification + issue number.
@@ -648,7 +710,7 @@ the stale-enforcement added in Fase 6A.3.
 ## Hard Rules
 
 1. Never commit secrets or credentials
-2. Never add logic to `localDb.ts`
+2. Never barrel-import from `localDb.ts` — import specific `src/lib/db/*` modules
 3. Never use `eval()` / `new Function()` / implied eval
 4. Never commit directly to `main`
 5. Never write raw SQL in routes — use `src/lib/db/` modules
@@ -679,7 +741,7 @@ the stale-enforcement added in Fase 6A.3.
     causa-raiz de DOIS wipes (2026-08-08 e 2026-08-10: `git reset --hard` materializou o
     symlink rastreado por cima do diretório real e o git apagou todo o conteúdo ignorado sem
     aviso); (c) após qualquer escrita relevante, `git -C _tasks add -A && git -C _tasks commit
-    && git -C _tasks push` — o push frequente é o backup real; (d) repetir esta proibição
+&& git -C _tasks push` — o push frequente é o backup real; (d) repetir esta proibição
     VERBATIM no prompt de todo subagente que toque git; (e) se `_tasks` aparecer como symlink
     quebrado, NÃO commitar nada — restaurar do remote e avisar o operador. O gate
     `check:tracked-artifacts` (pre-commit + CI) bloqueia `_tasks` rastreado em qualquer forma.
@@ -710,3 +772,13 @@ The dashboard is reachable at the operator's chosen URL/port (default `http://lo
 - **Local VPS / shared dev environments**: ask the operator for the URL and current credentials — they live in their personal vault, NOT in this repo.
 
 > Any credential observed in a previous version of this file was a non-production demo value; treat it as compromised and do not reuse it.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

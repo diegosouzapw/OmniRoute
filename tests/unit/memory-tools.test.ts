@@ -16,7 +16,7 @@ const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/set
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(tmpDir, { recursive: true });
   core.getDbInstance();
 }
@@ -34,7 +34,7 @@ test.beforeEach(async () => {
 test.after(() => {
   core.resetDbInstance();
   process.env.DATA_DIR = originalDataDir;
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("memory add stores entries with default session and metadata", async () => {

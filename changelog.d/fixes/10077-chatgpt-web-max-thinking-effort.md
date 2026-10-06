@@ -1,1 +1,0 @@
-- **fix(chatgpt-web):** Preserve native `max` thinking effort through ChatGPT Web routing ([#10077](https://github.com/diegosouzapw/OmniRoute/pull/10077)) — thanks @zannen7

@@ -20,10 +20,10 @@ import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { PlanUpsertSchema } from "@/shared/schemas/quota";
 import {
-  getProviderPlan,
-  upsertProviderPlan,
-  deleteProviderPlan,
-} from "@/lib/localDb";
+  getPlan as getProviderPlan,
+  upsertPlan as upsertProviderPlan,
+  deletePlan as deleteProviderPlan,
+} from "@/lib/db/providerPlans";
 import { resolvePlan } from "@/lib/quota/planResolver";
 import { resolveConnectionProvider } from "@/lib/quota/connectionProvider";
 import { logAuditEvent, getAuditRequestContext } from "@/lib/compliance/index";

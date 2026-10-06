@@ -59,7 +59,9 @@ export default function StatusPage() {
   }, [t]);
 
   useEffect(() => {
-    void loadHealth();
+    void (async () => {
+      await loadHealth();
+    })();
   }, [loadHealth]);
 
   const providerStats = useMemo(() => {

@@ -20,7 +20,8 @@ process.env.API_KEY_SECRET = "test-all-statuses-secret";
 
 // Import DB modules after setting DATA_DIR
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 
 // Import cliTools modules (batchStatusCache for cache tests)
@@ -39,7 +40,7 @@ async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -55,7 +56,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── Auth tests ────────────────────────────────────────────────────────────────
@@ -253,4 +254,41 @@ test("refresh=true bypasses a matching cached CLI result", async () => {
   assert.equal(response.status, 200);
   const body = (await response.json()) as Record<string, { detection?: { version?: string } }>;
   assert.notEqual(body[toolId]?.detection?.version, cachedVersion);
+});
+
+test("grok-build status uses GROK_HOME and returns its managed endpoint", async () => {
+  const grokHome = fs.mkdtempSync(path.join(os.tmpdir(), "all-statuses-grok-home-"));
+  const original = process.env.GROK_HOME;
+  process.env.GROK_HOME = grokHome;
+  try {
+    fs.writeFileSync(
+      path.join(grokHome, "config.toml"),
+      [
+        "[models]",
+        'default = "omniroute"',
+        "",
+        "[model.omniroute]",
+        'model = "openai/gpt-5.5"',
+        'base_url = "https://gateway.example/v1"',
+        'api_backend = "chat_completions"',
+        "",
+      ].join("\n")
+    );
+    const response = await allStatusesRoute.GET(
+      new Request("http://localhost/api/cli-tools/all-statuses?refresh=true")
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as Record<
+      string,
+      { config?: { status?: string; endpoint?: string | null } }
+    >;
+    if (body["grok-build"]?.config?.status !== "not_installed") {
+      assert.equal(body["grok-build"]?.config?.status, "configured");
+    }
+    assert.equal(body["grok-build"]?.config?.endpoint, "https://gateway.example/v1");
+  } finally {
+    if (original === undefined) delete process.env.GROK_HOME;
+    else process.env.GROK_HOME = original;
+    fs.rmSync(grokHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
 });

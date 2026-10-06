@@ -121,10 +121,15 @@ test("PoolWizard.tsx: pre-fill uses editPoolExclusive ?? false (not setExclusive
   );
   // The literal `setExclusive(false)` must NOT appear in the edit-mode pre-fill block
   // (it may still appear in the close-reset block, which is correct)
-  const editFillIdx = wizardSrc.indexOf("} else if (editPool)");
-  assert.ok(editFillIdx >= 0, "Expected '} else if (editPool)' block in PoolWizard");
-  const closingBrace = wizardSrc.indexOf("\n    }", editFillIdx);
-  const editFillBlock = wizardSrc.slice(editFillIdx, closingBrace > 0 ? closingBrace + 6 : editFillIdx + 1200);
+  // #12146 batch 5: the pre-fill moved from the reset effect ("} else if (editPool)")
+  // into useWizardOpenCloseAdjustment's render adjustment.
+  const editFillIdx = wizardSrc.indexOf("if (changed && open && editPool)");
+  assert.ok(editFillIdx >= 0, "Expected the editPool pre-fill adjustment block in PoolWizard");
+  const closingBrace = wizardSrc.indexOf("\n  }", editFillIdx);
+  const editFillBlock = wizardSrc.slice(
+    editFillIdx,
+    closingBrace > 0 ? closingBrace + 4 : editFillIdx + 1200
+  );
   assert.ok(
     !editFillBlock.includes("setExclusive(false)"),
     "setExclusive(false) must not appear in the editPool pre-fill block — must use editPoolExclusive"

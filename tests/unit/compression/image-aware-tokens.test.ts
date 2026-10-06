@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert";
 import { estimateCompressionTokens } from "../../../open-sse/services/compression/stats.ts";
-import { transformAnthropicMessages } from "omniglyph";
+import { transformAnthropicMessages, transformOpenAIChatCompletions } from "omniglyph";
 
 const CHARS_PER_TOKEN = 4;
 
@@ -66,4 +66,34 @@ test("regressão: corpo sem imagem estima o MESMO valor de antes (char-count pur
   };
   const expected = Math.ceil(JSON.stringify(plainBody).length / CHARS_PER_TOKEN);
   assert.equal(estimateCompressionTokens(plainBody), expected);
+});
+
+test("estimateCompressionTokens contabiliza image_url PNG no wire OpenAI", async () => {
+  const originalBody = {
+    model: "gpt-5.6",
+    messages: [
+      { role: "system", content: DENSE },
+      { role: "user", content: "oi" },
+    ],
+  };
+  const encoded = new TextEncoder().encode(JSON.stringify(originalBody));
+  const result = await transformOpenAIChatCompletions(encoded);
+  assert.equal(result.info.compressed, true);
+  const compressedBody = JSON.parse(new TextDecoder().decode(result.body)) as Record<
+    string,
+    unknown
+  >;
+  assert.ok(JSON.stringify(compressedBody).includes('"type":"image_url"'));
+
+  const originalEstimate = estimateCompressionTokens(originalBody);
+  const compressedEstimate = estimateCompressionTokens(compressedBody);
+  const naiveEstimate = Math.ceil(JSON.stringify(compressedBody).length / CHARS_PER_TOKEN);
+  assert.ok(
+    compressedEstimate < naiveEstimate,
+    `expected image-aware (${compressedEstimate}) < base64 char estimate (${naiveEstimate})`
+  );
+  assert.ok(
+    compressedEstimate < originalEstimate,
+    `expected OpenAI image compression (${compressedEstimate}) < original (${originalEstimate})`
+  );
 });

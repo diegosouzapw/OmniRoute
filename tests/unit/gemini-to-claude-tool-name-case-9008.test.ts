@@ -18,8 +18,7 @@ const { claudeToGeminiRequest } =
   await import("../../open-sse/translator/request/claude-to-gemini.ts");
 const { openaiToGeminiRequest } =
   await import("../../open-sse/translator/request/openai-to-gemini.ts");
-const { restoreClaudeToolName } =
-  await import("../../open-sse/services/claudeCodeToolRemapper.ts");
+const { restoreClaudeToolName } = await import("../../open-sse/services/claudeCodeToolRemapper.ts");
 
 function toolUseName(events: Array<Record<string, unknown>> | null): string | undefined {
   const start = (events || []).find(
@@ -27,9 +26,7 @@ function toolUseName(events: Array<Record<string, unknown>> | null): string | un
       e.type === "content_block_start" &&
       (e.content_block as Record<string, unknown> | undefined)?.type === "tool_use"
   );
-  return (start?.content_block as Record<string, unknown> | undefined)?.name as
-    | string
-    | undefined;
+  return (start?.content_block as Record<string, unknown> | undefined)?.name as string | undefined;
 }
 
 test("#9008 restoreClaudeToolName: preserves PascalCase from the request map", () => {
@@ -50,9 +47,13 @@ test("#9008 restoreClaudeToolName: maps lowercased upstream names back to declar
   assert.equal(restoreClaudeToolName("websearch", map), "WebSearch");
 });
 
-test("#9008 restoreClaudeToolName: still lowercases TitleCase when no request map (#7926)", () => {
-  assert.equal(restoreClaudeToolName("Bash", null), "bash");
-  assert.equal(restoreClaudeToolName("Read", undefined), "read");
+test("#9008 restoreClaudeToolName: keeps canonical TitleCase when no request map (#11085 live repro)", () => {
+  // Live-tested 2026-08-22 (glm via opencode-go → /v1/messages): the gateway
+  // echoed Bash/Read TitleCase and claude-to-openai ships no _toolNameMap;
+  // downcasing here made Claude Code reject its own tools. Legacy lowercase
+  // clients are protected by explicit alias maps instead of blind downcasing.
+  assert.equal(restoreClaudeToolName("Bash", null), "Bash");
+  assert.equal(restoreClaudeToolName("Read", undefined), "Read");
 });
 
 test("#9008 Gemini → Claude: PascalCase tool_use survives when upstream echoes TitleCase", () => {

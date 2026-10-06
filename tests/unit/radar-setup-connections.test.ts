@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   firstProviderConnectionId,
+  providerSetupConnectionUrl,
   providerConnectionsRequestUrl,
 } from "../../src/lib/radar/setupConnections.ts";
 
@@ -25,4 +26,11 @@ test("firstProviderConnectionId selects a real connection id, never the provider
     "connection-active"
   );
   assert.equal(firstProviderConnectionId([], "groq"), null);
+});
+
+test("providerSetupConnectionUrl targets the real provider form with an explicit action", () => {
+  assert.equal(
+    providerSetupConnectionUrl("openrouter/custom"),
+    "/dashboard/providers/openrouter%2Fcustom?action=add-api-key"
+  );
 });

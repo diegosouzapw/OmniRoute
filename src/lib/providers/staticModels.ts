@@ -35,6 +35,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   ],
   antigravity: () => ANTIGRAVITY_PUBLIC_MODELS.map((model) => ({ ...model })),
   claude: () => [
+    { id: "claude-fable-5-1", name: "Claude Fable 5.1" },
     { id: "claude-fable-5", name: "Claude Fable 5" },
     { id: "claude-opus-5", name: "Claude Opus 5" },
     { id: "claude-opus-4-8", name: "Claude Opus 4.8" },
@@ -57,6 +58,11 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   gitlab: () => [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
   nlpcloud: () =>
     getModelsByProviderId("nlpcloud").map((model) => ({
+      id: model.id,
+      name: model.name || model.id,
+    })),
+  oneminai: () =>
+    getModelsByProviderId("oneminai").map((model) => ({
       id: model.id,
       name: model.name || model.id,
     })),
@@ -99,6 +105,15 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "google_scholar", name: "Google Scholar" },
     { id: "duckduckgo", name: "DuckDuckGo" },
   ],
+  "v0-vercel-web": () => [
+    // v0-vercel-web web-cookie codegen provider — no upstream /v1/models endpoint,
+    // no registry `models` and no discovery config, so seed the current v0 lineup
+    // as a static catalog mirroring the v0-vercel API provider (shared.ts) so the
+    // model-import UI serves a list instead of the tail 400 (#10990).
+    { id: "v0-1.0-md", name: "V0 1.0 MD" },
+    { id: "v0-1.5-lg", name: "V0 1.5 LG" },
+    { id: "v0-1.5-md", name: "V0 1.5 MD" },
+  ],
   "venice-web": () => [
     // Venice.ai web-cookie provider — no upstream /v1/models endpoint, so seed the
     // current lineup as a static catalog (#6269). Venice rotates its catalog; keep
@@ -114,6 +129,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
 const SEARCH_TYPE_LABELS: Record<string, string> = {
   web: "Web Search",
   news: "News Search",
+  x: "X Search",
 };
 
 function formatSearchTypeLabel(searchType: string): string {
@@ -153,6 +169,9 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
     return searchFallback;
   }
 
+  // "Import from /models" posts these rows to POST /api/provider-models, so each
+  // apiFormat must be a value providerModelMutationSchema accepts — "audio" /
+  // "images" were rejected with 400 and nothing got imported.
   const specialtyModels: LocalCatalogModel[] = [];
   const appendModels = (
     models: Array<{ id: string; name?: string }>,
@@ -194,7 +213,7 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
   const imageProvider = getImageProvider(provider);
   if (imageProvider && !hasChatRegistry) {
     appendModels(imageProvider.models, {
-      apiFormat: "images",
+      apiFormat: "images-generations",
       supportedEndpoints: ["images"],
     });
   }
@@ -210,16 +229,16 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
   const speechProvider = getSpeechProvider(provider);
   if (speechProvider) {
     appendModels(speechProvider.models, {
-      apiFormat: "audio",
-      supportedEndpoints: ["audio"],
+      apiFormat: "audio-speech",
+      supportedEndpoints: ["audio-speech"],
     });
   }
 
   const transcriptionProvider = getTranscriptionProvider(provider);
   if (transcriptionProvider) {
     appendModels(transcriptionProvider.models, {
-      apiFormat: "audio",
-      supportedEndpoints: ["audio"],
+      apiFormat: "audio-transcriptions",
+      supportedEndpoints: ["audio-transcriptions"],
     });
   }
 

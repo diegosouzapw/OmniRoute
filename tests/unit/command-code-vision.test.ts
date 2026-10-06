@@ -1,9 +1,13 @@
 /**
  * Vision / multimodal support tests for the Command Code executor.
  *
- * Verifies that vision-capable models (MiniMax M3, MiMo V2.5, Kimi K2, Qwen 3.x, GPT-5, Claude 3/4, Fable 5, Gemini 3.x, Stepfun, Fugu, etc.)
- * receive image parts in Command Code CLI format, while text-only
- * models strip images as before (no regression).
+ * Since #10265 the executor posts to the documented /provider/v1/chat/completions
+ * endpoint, which speaks the standard OpenAI chat.completions format. User image
+ * content (OpenAI `image_url` parts and Anthropic Messages-style source blocks)
+ * passes through unchanged — the endpoint natively understands both shapes, so
+ * there is no CLI-specific conversion (and no CLI-wire image stripping) left to
+ * verify. These tests pin that passthrough plus the #10809 wire-model
+ * normalization, which still applies to /provider/v1.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -19,15 +23,14 @@ const core = await import("../../src/lib/db/core.ts");
 
 const originalFetch = globalThis.fetch;
 
-function commandCodeStream(lines: unknown[]) {
-  const text = lines.map((l) => JSON.stringify(l)).join("\n") + "\n";
-  return new Response(text, { status: 200, headers: { "Content-Type": "application/x-ndjson" } });
+function okResponse() {
+  return new Response("{}", { status: 200, headers: { "Content-Type": "application/json" } });
 }
 
 test.after(() => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test.afterEach(() => {
@@ -52,19 +55,56 @@ function captureFetch(response: Response) {
 }
 
 function userContent(calls: FetchCall[]): unknown {
-  return (
-    (calls[0].body.params as Record<string, unknown[]>).messages as Record<string, unknown>[]
-  )[0].content;
+  return (calls[0].body.messages as Record<string, unknown>[])[0].content;
 }
 
-// ── vision models: image parts preserved in CC CLI format ─────────────
+function wireModel(calls: FetchCall[]): string {
+  return calls[0].body.model as string;
+}
 
-test("vision model minimax-m3 preserves image_url part as CC CLI {type:image}", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
+// ── wire model normalization (#10809) ────────────────────────────────
 
-  await getExecutor("command-code").execute({
+test("#10809: command-code/mimo-v2.5 wire model is normalized to xiaomi/mimo-v2.5", async () => {
+  const calls = captureFetch(okResponse());
+  (await getExecutor("command-code")).execute({
+    model: "command-code/mimo-v2.5",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { model: "command-code/mimo-v2.5", messages: [{ role: "user", content: "hi" }] },
+  });
+  assert.equal(wireModel(calls), "xiaomi/mimo-v2.5");
+});
+
+test("#10809: cmd/mimo-v2.5 (alias prefix) is also normalized", async () => {
+  const calls = captureFetch(okResponse());
+  (await getExecutor("command-code")).execute({
+    model: "cmd/mimo-v2.5",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { model: "cmd/mimo-v2.5", messages: [{ role: "user", content: "hi" }] },
+  });
+  assert.equal(wireModel(calls), "xiaomi/mimo-v2.5");
+});
+
+test("#10809: already vendor-prefixed wire ids pass through unchanged", async () => {
+  const calls = captureFetch(okResponse());
+  (await getExecutor("command-code")).execute({
+    model: "command-code/deepseek/deepseek-v4-pro",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      model: "command-code/deepseek/deepseek-v4-pro",
+      messages: [{ role: "user", content: "hi" }],
+    },
+  });
+  assert.equal(wireModel(calls), "deepseek/deepseek-v4-pro");
+});
+
+// ── image content passthrough (OpenAI /provider/v1 surface) ──────────
+
+test("image_url parts pass through unchanged (text + image preserved)", async () => {
+  const calls = captureFetch(okResponse());
+  (await getExecutor("command-code")).execute({
     model: "MiniMaxAI/MiniMax-M3",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -74,452 +114,23 @@ test("vision model minimax-m3 preserves image_url part as CC CLI {type:image}", 
           role: "user",
           content: [
             { type: "text", text: "What's in this?" },
-            {
-              type: "image_url",
-              image_url: { url: "data:image/png;base64,iVBORw0KGgo=" },
-            },
+            { type: "image_url", image_url: { url: "data:image/png;base64,iVBORw0KGgo=" } },
           ],
         },
       ],
     },
   });
 
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content), "vision model user content must be an array");
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2);
-
-  // Text part preserved
-  assert.equal(parts[0].type, "text");
-  assert.equal(parts[0].text, "What's in this?");
-
-  // Image part converted to CC CLI format
-  assert.equal(parts[1].type, "image");
-  assert.equal(parts[1].image, "data:image/png;base64,iVBORw0KGgo=");
+  const content = userContent(calls) as Record<string, unknown>[];
+  assert.equal(content.length, 2);
+  assert.equal(content[0].type, "text");
+  assert.equal(content[1].type, "image_url", "image_url part preserved as-is");
+  assert.equal((content[1].image_url as { url: string }).url, "data:image/png;base64,iVBORw0KGgo=");
 });
 
-test("vision model minimax-m3 preserves image_url with HTTP URL", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "minimax-m3",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Describe" },
-            {
-              type: "image_url",
-              image_url: { url: "https://example.com/photo.jpg" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content));
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2);
-  assert.equal(parts[1].type, "image");
-  assert.equal(parts[1].image, "https://example.com/photo.jpg");
-});
-
-test("vision model mimo-v2.5 preserves image parts", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "mimo-v2.5",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Analyze" },
-            {
-              type: "image_url",
-              image_url: { url: "https://example.com/img.png" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content));
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2);
-  assert.equal(parts[1].type, "image");
-});
-
-test("vision model mimo-v2.5-pro is text-only (no image parts)", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "mimo-v2.5-pro",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Hi" },
-            {
-              type: "image_url",
-              image_url: { url: "https://example.com/img.png" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  // mimo-v2.5-pro is text-only — content must be flattened to a plain string
-  assert.equal(typeof content, "string");
-  assert.equal(content, "Hi");
-});
-
-test("vision model mimo-v2-omni preserves image parts", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "mimo-v2-omni",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Check" },
-            {
-              type: "image_url",
-              image_url: { url: "data:image/jpeg;base64,/9j/4AAQ=" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content));
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2);
-  assert.equal(parts[1].type, "image");
-  assert.equal(parts[1].image, "data:image/jpeg;base64,/9j/4AAQ=");
-});
-
-// ── non-vision models: images still stripped (no regression) ──────────
-
-test("text-only model deepseek-v4-pro strips image_url parts", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "deepseek/deepseek-v4-pro",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Hello" },
-            {
-              type: "image_url",
-              image_url: { url: "https://example.com/img.png" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  // Non-vision model: content is a plain string, images stripped
-  assert.equal(typeof content, "string");
-  assert.equal(content, "Hello");
-});
-
-test("text-only model deepseek-v4-flash strips image_url parts (no regression)", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "deepseek/deepseek-v4-flash",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Text only" },
-            {
-              type: "image_url",
-              image_url: { url: "data:image/png;base64,AAA=" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  assert.equal(typeof content, "string");
-  assert.equal(content, "Text only");
-});
-
-// ── edge cases ────────────────────────────────────────────────────────
-
-test("vision model with only image content emits empty text fallback", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "minimax-m3",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image_url",
-              image_url: { url: "data:image/png;base64,iVBOR=" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content));
-  const parts = content as Record<string, unknown>[];
-  // Single image part preserved — no empty text injected because
-  // the image itself keeps content non-empty.
-  assert.equal(parts.length, 1);
-  assert.equal(parts[0].type, "image");
-  assert.equal(parts[0].image, "data:image/png;base64,iVBOR=");
-});
-
-test("vision model passes plain string content through unchanged", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "minimax-m3",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [{ role: "user", content: "Plain string message" }],
-    },
-  });
-
-  const content = userContent(calls);
-  assert.equal(typeof content, "string");
-  assert.equal(content, "Plain string message");
-});
-
-test("vision model honors body.model rewrite for vision detection", async () => {
-  // #5166 scenario: body.model overwrites the execute model arg.
-  // Vision detection must use the rewritten model id.
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  // execute() gets a non-vision combo model, body.model rewrites to a vision model
-  await getExecutor("command-code").execute({
-    model: "gpt-5.4-mini",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      model: "MiniMaxAI/MiniMax-M3",
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Describe" },
-            {
-              type: "image_url",
-              image_url: { url: "https://example.com/img.png" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  // body.model = MiniMax-M3 (vision) → images preserved
-  assert.ok(Array.isArray(content));
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2);
-  assert.equal(parts[1].type, "image");
-});
-
-test("vision model with multiple image parts preserves all of them", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "minimax-m3",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Compare" },
-            {
-              type: "image_url",
-              image_url: { url: "https://example.com/a.jpg" },
-            },
-            {
-              type: "image_url",
-              image_url: { url: "https://example.com/b.jpg" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content));
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 3);
-  assert.equal(parts[0].type, "text");
-  assert.equal(parts[1].type, "image");
-  assert.equal(parts[1].image, "https://example.com/a.jpg");
-  assert.equal(parts[2].type, "image");
-  assert.equal(parts[2].image, "https://example.com/b.jpg");
-});
-
-test("vision model with image_url as plain string (no object wrapper) still works", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "minimax-m3",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Look" },
-            {
-              type: "image_url",
-              image_url: "https://example.com/img.png",
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content));
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2);
-  assert.equal(parts[1].type, "image");
-  assert.equal(parts[1].image, "https://example.com/img.png");
-});
-
-// ── CC vision models (Command Code docs registry) ──────────────────
-
-const VISION_CASES = [
-  ["Kimi K2.6", "moonshotai/Kimi-K2.6"],
-  ["Kimi K2.7 Code", "moonshotai/Kimi-K2.7-Code"],
-  ["Kimi K2.5", "moonshotai/Kimi-K2.5"],
-  ["Qwen 3.6 Plus", "Qwen/Qwen3.6-Plus"],
-  ["Qwen 3.7 Plus", "Qwen/Qwen3.7-Plus"],
-  ["Step 3.7 Flash", "stepfun/Step-3.7-Flash"],
-  ["GPT-5.5", "gpt-5.5"],
-  ["GPT-5.4", "gpt-5.4"],
-  ["GPT-5.3 Codex", "gpt-5.3-codex"],
-  ["GPT-5.4 Mini", "gpt-5.4-mini"],
-  ["Claude Fable 5", "claude-fable-5"],
-  ["Sakana Fugu Ultra", "sakana/fugu-ultra"],
-  ["Claude Opus 4.7 (isVisionModelId)", "claude-opus-4-7"],
-  ["Claude Sonnet 4.6 (isVisionModelId)", "claude-sonnet-4-6"],
-  ["Gemini 3.5 Flash (isVisionModelId)", "google/gemini-3.5-flash"],
-];
-
-for (const [name, model] of VISION_CASES) {
-  test(`vision model ${name} preserves image parts`, async () => {
-    const calls = captureFetch(
-      commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-    );
-    await getExecutor("command-code").execute({
-      model,
-      stream: false,
-      credentials: { apiKey: "cc_test_key" },
-      body: {
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Check" },
-              {
-                type: "image_url",
-                image_url: { url: "https://example.com/img.png" },
-              },
-            ],
-          },
-        ],
-      },
-    });
-    const content = userContent(calls);
-    assert.ok(Array.isArray(content), `${name} user content must be an array`);
-    const parts = content;
-    assert.equal(parts.length, 2);
-    assert.equal(parts[1].type, "image");
-  });
-}
-
-// ── Anthropic-shaped image blocks (Zoo Code / Claude-Code-compatible clients) ──
-
-test("vision model mimo-v2.5 preserves Anthropic source.base64 image block", async () => {
-  // Zoo Code sends Messages-API-shaped content blocks to the OpenAI
-  // /v1/chat/completions surface: { type:"image", source:{ base64 } }.
-  // The vision-bridge guardrail skips vision-capable models (cmd/xiaomi/mimo-v2.5
-  // resolves supportsVision=true via the mimo-v2.5 leaf spec), so the raw block
-  // must survive to the executor and be converted to CC CLI { type:"image" }.
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
+test("Anthropic Messages-style source image blocks pass through unchanged", async () => {
+  const calls = captureFetch(okResponse());
+  (await getExecutor("command-code")).execute({
     model: "xiaomi/mimo-v2.5",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -543,25 +154,19 @@ test("vision model mimo-v2.5 preserves Anthropic source.base64 image block", asy
     },
   });
 
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content), "user content must be an array");
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2, "text + image parts preserved");
-  assert.equal(parts[0].type, "text");
-  assert.equal(parts[1].type, "image");
+  const content = userContent(calls) as Record<string, unknown>[];
+  assert.equal(content.length, 2, "text + image parts preserved");
+  assert.equal(content[1].type, "image");
+  assert.equal((content[1].source as { type: string }).type, "base64");
   assert.equal(
-    parts[1].image,
-    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
-    "base64 payload is rebuilt into a CC CLI data URL"
+    (content[1].source as { data: string }).data,
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
   );
 });
 
-test("vision model preserves Anthropic source.url image block", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
+test("Anthropic source.url image block passes through unchanged", async () => {
+  const calls = captureFetch(okResponse());
+  (await getExecutor("command-code")).execute({
     model: "xiaomi/mimo-v2.5",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -571,31 +176,23 @@ test("vision model preserves Anthropic source.url image block", async () => {
           role: "user",
           content: [
             { type: "text", text: "Look" },
-            {
-              type: "image",
-              source: { type: "url", url: "https://example.com/img.png" },
-            },
+            { type: "image", source: { type: "url", url: "https://example.com/img.png" } },
           ],
         },
       ],
     },
   });
 
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content));
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2);
-  assert.equal(parts[1].type, "image");
-  assert.equal(parts[1].image, "https://example.com/img.png");
+  const content = userContent(calls) as Record<string, unknown>[];
+  assert.equal(content.length, 2);
+  assert.equal(content[1].type, "image");
+  assert.deepEqual(content[1].source, { type: "url", url: "https://example.com/img.png" });
 });
 
-test("text-only model deepseek-v4-flash strips Anthropic source.base64 image block", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "deepseek/deepseek-v4-flash",
+test("multiple image parts are all preserved", async () => {
+  const calls = captureFetch(okResponse());
+  (await getExecutor("command-code")).execute({
+    model: "minimax-m3",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
     body: {
@@ -603,43 +200,41 @@ test("text-only model deepseek-v4-flash strips Anthropic source.base64 image blo
         {
           role: "user",
           content: [
-            { type: "text", text: "Text only" },
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: "image/png",
-                data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
-              },
-            },
+            { type: "text", text: "Compare" },
+            { type: "image_url", image_url: { url: "https://example.com/a.jpg" } },
+            { type: "image_url", image_url: { url: "https://example.com/b.jpg" } },
           ],
         },
       ],
     },
   });
 
+  const content = userContent(calls) as Record<string, unknown>[];
+  assert.equal(content.length, 3);
+  assert.equal(content[1].type, "image_url");
+  assert.equal(content[2].type, "image_url");
+});
+
+test("plain string content passes through unchanged", async () => {
+  const calls = captureFetch(okResponse());
+  (await getExecutor("command-code")).execute({
+    model: "minimax-m3",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Plain string message" }] },
+  });
+
   const content = userContent(calls);
-  // Text-only model: content flattened to plain string, image stripped.
   assert.equal(typeof content, "string");
-  assert.equal(content, "Text only");
+  assert.equal(content, "Plain string message");
 });
 
-// ── conservative vision family lock (gpt-5.4-mini / gpt-5.3-codex) ─────
-//
-// These two ids stay INSIDE the `/gpt-5/` vision family: both accept image
-// input on the OpenAI API, and there is no verified Command Code backend data
-// marking them text-only. These tests pin that conservative behavior so a
-// future "narrow the regex" change cannot silently strip images from models
-// that can see them (the #4071 regression class). Revisit ONLY with per-model
-// CC registry capability data proving they are text-only.
-
-test("gpt-5.4-mini keeps image parts (conservative vision family lock)", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "gpt-5.4-mini",
+test("text-only model still forwards image parts (passthrough, no CLI stripping)", async () => {
+  // The /provider/v1 OpenAI surface accepts image content for any model id; the
+  // executor forwards content untouched, so there is no text-only stripping.
+  const calls = captureFetch(okResponse());
+  (await getExecutor("command-code")).execute({
+    model: "deepseek/deepseek-v4-pro",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
     body: {
@@ -647,54 +242,15 @@ test("gpt-5.4-mini keeps image parts (conservative vision family lock)", async (
         {
           role: "user",
           content: [
-            { type: "text", text: "What's in this?" },
-            {
-              type: "image_url",
-              image_url: { url: "https://example.com/img.png" },
-            },
+            { type: "text", text: "Hello" },
+            { type: "image_url", image_url: { url: "https://example.com/img.png" } },
           ],
         },
       ],
     },
   });
 
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content), "gpt-5.4-mini must be treated as vision-capable");
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2);
-  assert.equal(parts[1].type, "image");
-  assert.equal(parts[1].image, "https://example.com/img.png");
-});
-
-test("gpt-5.3-codex keeps image parts (conservative vision family lock)", async () => {
-  const calls = captureFetch(
-    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-  );
-
-  await getExecutor("command-code").execute({
-    model: "gpt-5.3-codex",
-    stream: false,
-    credentials: { apiKey: "cc_test_key" },
-    body: {
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Describe" },
-            {
-              type: "image_url",
-              image_url: { url: "https://example.com/img.png" },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  const content = userContent(calls);
-  assert.ok(Array.isArray(content), "gpt-5.3-codex must be treated as vision-capable");
-  const parts = content as Record<string, unknown>[];
-  assert.equal(parts.length, 2);
-  assert.equal(parts[1].type, "image");
-  assert.equal(parts[1].image, "https://example.com/img.png");
+  const content = userContent(calls) as Record<string, unknown>[];
+  assert.equal(content.length, 2, "content array forwarded unchanged");
+  assert.equal(content[1].type, "image_url");
 });

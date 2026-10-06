@@ -125,8 +125,13 @@ class AutoRefreshDaemon {
             `[AutoRefreshDaemon] Credential expired for "${providerId}" (${config.displayName})`
           );
         }
-      } catch {
-        // Network errors are non-fatal — retry next cycle
+      } catch (err) {
+        // Network errors are non-fatal — retry next cycle. G8: log which
+        // provider failed so credential problems are not silently masked.
+        console.warn(
+          `[AutoRefreshDaemon] Network error validating credential for "${providerId}" — retry next cycle`,
+          err instanceof Error ? err.message : err
+        );
       }
     }
 
@@ -165,8 +170,16 @@ class AutoRefreshDaemon {
       }
 
       return true;
-    } catch {
-      // Network errors (timeout, DNS failure) don't mean the credential is bad
+    } catch (err) {
+      // Network errors (timeout, DNS failure) don't mean the credential is bad.
+      // G8 (silent-stop fix): the previous bare `catch { return true; }` swallowed
+      // the error entirely — operators could never tell a credential was failing
+      // to validate due to network trouble. Log it (provider + reason) before
+      // returning the fail-open result.
+      console.warn(
+        `[AutoRefreshDaemon] Network error validating credential for "${providerId}" — treated as valid (fail-open), will retry next cycle`,
+        err instanceof Error ? err.message : err
+      );
       return true;
     } finally {
       clearTimeout(timeout);

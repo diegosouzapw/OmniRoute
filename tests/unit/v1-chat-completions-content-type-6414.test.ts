@@ -72,7 +72,7 @@ test("#6414 accepts application/json with charset parameter", async () => {
 
 test.after(() => {
   try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     /* Windows tempdir cleanup is best-effort */
   }

@@ -149,7 +149,7 @@ test("translates canonical items to Jina's modality-keyed request contract", asy
   });
 });
 
-test("translates one canonical array to Gemini native embedContent parts", async () => {
+test("translates N canonical items to Gemini batchEmbedContents (N vectors)", async () => {
   const { prepareStructuredEmbeddingRequest } =
     await import("../../open-sse/handlers/embeddingStructuredInput.ts");
   const provider = {
@@ -186,17 +186,99 @@ test("translates one canonical array to Gemini native embedContent parts", async
   );
   assert.equal(
     prepared.url,
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent"
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents"
   );
   assert.deepEqual(prepared.authHeader, { name: "x-goog-api-key", value: "gemini-key" });
+  assert.deepEqual(prepared.body, {
+    requests: [
+      {
+        model: "models/gemini-embedding-2",
+        content: { parts: [{ text: "caption" }] },
+        output_dimensionality: 1536,
+        task_type: "RETRIEVAL_QUERY",
+      },
+      {
+        model: "models/gemini-embedding-2",
+        content: { parts: [{ inline_data: { mime_type: "image/png", data: "aQ==" } }] },
+        output_dimensionality: 1536,
+        task_type: "RETRIEVAL_QUERY",
+      },
+      {
+        model: "models/gemini-embedding-2",
+        content: { parts: [{ inline_data: { mime_type: "audio/mpeg", data: "YQ==" } }] },
+        output_dimensionality: 1536,
+        task_type: "RETRIEVAL_QUERY",
+      },
+      {
+        model: "models/gemini-embedding-2",
+        content: { parts: [{ inline_data: { mime_type: "video/mp4", data: "dg==" } }] },
+        output_dimensionality: 1536,
+        task_type: "RETRIEVAL_QUERY",
+      },
+      {
+        model: "models/gemini-embedding-2",
+        content: { parts: [{ inline_data: { mime_type: "application/pdf", data: "cA==" } }] },
+        output_dimensionality: 1536,
+        task_type: "RETRIEVAL_QUERY",
+      },
+    ],
+  });
+  assert.deepEqual(
+    prepared.normalizeResponse?.({
+      embeddings: [{ values: [0.1] }, { values: [0.2] }, { values: [0.3] }],
+    }),
+    {
+      object: "list",
+      data: [
+        { object: "embedding", embedding: [0.1], index: 0 },
+        { object: "embedding", embedding: [0.2], index: 1 },
+        { object: "embedding", embedding: [0.3], index: 2 },
+      ],
+      usage: { prompt_tokens: 0, total_tokens: 0 },
+    }
+  );
+});
+
+test("translates one fused Gemini Content to embedContent (one vector)", async () => {
+  const { prepareStructuredEmbeddingRequest } =
+    await import("../../open-sse/handlers/embeddingStructuredInput.ts");
+  const provider = {
+    id: "gemini",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    structuredInputProtocol: "gemini-embed-content" as const,
+    models: [],
+  };
+  const prepared = await prepareStructuredEmbeddingRequest(
+    provider,
+    "gemini-embedding-2",
+    {
+      input: {
+        parts: [
+          { text: "caption" },
+          { inline_data: { mime_type: "image/png", data: "aQ==" } },
+        ],
+      },
+      dimensions: 1536,
+      task: "retrieval.query",
+    },
+    "gemini-key",
+    {
+      fetchMedia: async () => {
+        throw new Error("unexpected URL");
+      },
+    }
+  );
+  assert.equal(
+    prepared.url,
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent"
+  );
   assert.deepEqual(prepared.body, {
     content: {
       parts: [
         { text: "caption" },
         { inline_data: { mime_type: "image/png", data: "aQ==" } },
-        { inline_data: { mime_type: "audio/mpeg", data: "YQ==" } },
-        { inline_data: { mime_type: "video/mp4", data: "dg==" } },
-        { inline_data: { mime_type: "application/pdf", data: "cA==" } },
       ],
     },
     output_dimensionality: 1536,

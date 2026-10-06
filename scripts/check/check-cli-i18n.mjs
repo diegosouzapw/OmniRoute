@@ -69,6 +69,7 @@ const files = walk(COMMANDS_DIR);
 const usedKeys = collectTKeys(files);
 const en = loadJson(join(LOCALES_DIR, "en.json"));
 const ptBR = loadJson(join(LOCALES_DIR, "pt-BR.json"));
+const zhLocales = ["zh-CN", "zh-TW"].map((n) => [n, loadJson(join(LOCALES_DIR, `${n}.json`))]);
 const enKeys = flattenKeys(en);
 
 let errors = 0;
@@ -93,6 +94,19 @@ if (missingTopLevel.length > 0) {
   errors += missingTopLevel.length;
 } else {
   console.log(`[cli-i18n] ✓ pt-BR.json has all ${enTopLevel.length} top-level sections`);
+}
+
+// Check 3: zh-CN and zh-TW have full key parity with en.json
+for (const [name, cat] of zhLocales) {
+  const catKeys = flattenKeys(cat);
+  const missingKeys = [...enKeys].filter((k) => !catKeys.has(k));
+  if (missingKeys.length > 0) {
+    console.error(`[cli-i18n] Keys in en.json missing from ${name}.json:`);
+    for (const k of missingKeys) console.error(`  ✗ ${k}`);
+    errors += missingKeys.length;
+  } else {
+    console.log(`[cli-i18n] ✓ ${name}.json has full parity (${enKeys.size} keys)`);
+  }
 }
 
 if (errors > 0) {

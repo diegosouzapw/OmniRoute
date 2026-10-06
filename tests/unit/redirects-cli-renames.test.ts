@@ -38,6 +38,14 @@ test("next.config.mjs has permanent wildcard redirect from /dashboard/agents/:pa
   );
 });
 
+test("next.config.mjs has permanent redirect from /dashboard/providers/freepik to /dashboard/providers/magnific", () => {
+  assert.ok(
+    configSource.includes('source: "/dashboard/providers/freepik"') &&
+      configSource.includes('destination: "/dashboard/providers/magnific"'),
+    "expected /dashboard/providers/freepik → /dashboard/providers/magnific redirect in next.config.mjs"
+  );
+});
+
 test("all 4 CLI redirect entries use permanent: true", () => {
   // Extract the CLI Pages block
   const cliBlock = configSource.slice(configSource.indexOf("// CLI Pages — Plano 14 (F9)"));

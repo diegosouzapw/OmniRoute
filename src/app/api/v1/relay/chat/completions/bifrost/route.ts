@@ -29,9 +29,14 @@
  */
 
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
+import { stripSensitiveResponseHeaders } from "@omniroute/open-sse/utils/upstreamResponseHeaders";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getRelayTokenByHash, checkRateLimit, recordRelayUsage } from "@/lib/db/relayProxies";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import {
+  buildErrorBody,
+  parseUpstreamError,
+  sanitizeErrorMessage,
+} from "@omniroute/open-sse/utils/error";
 import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
 import { z } from "zod";
 import {
@@ -299,7 +304,11 @@ export async function POST(request: Request) {
       });
     };
 
-    const newHeaders = new Headers(upstream.headers);
+    // Never copy the upstream headers wholesale: the sidecar receives our
+    // `Authorization: Bearer ${BIFROST_API_KEY}` and anything it echoes back —
+    // that header, its own set-cookie — would reach the relay-token holder
+    // (GHSA-9m72-44hg-w32g).
+    const newHeaders = stripSensitiveResponseHeaders(upstream.headers);
     newHeaders.set("X-Routed-By", "bifrost");
     newHeaders.set("X-Relay-Token", token.tokenPrefix + "...");
     if (!wantsStream) {
@@ -321,6 +330,28 @@ export async function POST(request: Request) {
     }
 
     clearTimeout(tid);
+
+    // Normalize non-2xx through parseUpstreamError + buildErrorBody instead of
+    // relaying the sidecar body verbatim — parity with the TS sibling route and
+    // Hard Rule #12 (GHSA-9m72-44hg-w32g).
+    if (!upstream.ok) {
+      const parsed = await parseUpstreamError(upstream, null);
+      const errorBody = buildErrorBody(
+        parsed.statusCode,
+        sanitizeErrorMessage(parsed.message),
+        parsed.responseBody
+      );
+      newHeaders.set("Content-Type", "application/json");
+      if (parsed.retryAfterMs && parsed.retryAfterMs > 0) {
+        newHeaders.set("Retry-After", String(Math.ceil(parsed.retryAfterMs / 1000)));
+      }
+      recordUsage("error", parsed.statusCode);
+      return new Response(JSON.stringify(errorBody), {
+        status: parsed.statusCode,
+        headers: newHeaders,
+      });
+    }
+
     recordUsage(upstream.status < 500 ? "success" : "error", upstream.status);
 
     return new Response(upstream.body, {

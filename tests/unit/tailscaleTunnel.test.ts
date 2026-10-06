@@ -82,7 +82,7 @@ test.beforeEach(async () => {
   resetTailscaleTestEnv(fakeBinaryPath);
   mitmManager.clearCachedPassword();
   dbCore.resetDbInstance();
-  await fs.rm(TEST_DATA_DIR, { recursive: true, force: true });
+  await fs.rm(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   await fs.mkdir(TEST_DATA_DIR, { recursive: true });
   const recreatedBinaryPath = await createFakeTailscaleBinary();
   resetTailscaleTestEnv(recreatedBinaryPath);
@@ -108,7 +108,7 @@ test.after(async () => {
   else process.env.TAILSCALE_TEST_LOGIN_OUTPUT = originalEnv.loginOutput;
   if (originalEnv.loginExitCode === undefined) delete process.env.TAILSCALE_TEST_LOGIN_EXIT_CODE;
   else process.env.TAILSCALE_TEST_LOGIN_EXIT_CODE = originalEnv.loginExitCode;
-  await fs.rm(TEST_DATA_DIR, { recursive: true, force: true });
+  await fs.rm(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("extractTailscaleAuthUrl and extractTailscaleEnableUrl parse login URLs", () => {

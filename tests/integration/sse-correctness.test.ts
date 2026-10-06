@@ -76,17 +76,43 @@ test("2. client cancel propagates to upstream (abort propagation)", async () => 
 test("3. no leaked idle timers across N sequential streams", async () => {
   // createSSEStream installs a setInterval idle watchdog per stream.
   // If cleanup (clearInterval) does not run on stream close, timers accumulate.
-  // This test creates 10 streams and drains them; it acts as a smoke test that
-  // the process does not hang (a leaked setInterval that fires 10s later would
-  // prevent the test process from exiting cleanly in --test-force-exit mode).
-  for (let i = 0; i < 10; i++) {
+  // Each stream carries a real content delta: a stream whose upstream forwards
+  // no valuable chunk is rejected by the empty-content guard
+  // (open-sse/utils/streamEmptyChoices.ts) and would never reach the flush path
+  // whose cleanup this test is about.
+  //
+  // Drained inline, without drain()'s timeout guard: that guard leaves its own
+  // uncleared setTimeout behind and would drown out the very signal measured here.
+  const activeTimers = () =>
+    process.getActiveResourcesInfo().filter((resource) => resource === "Timeout").length;
+
+  const timersBefore = activeTimers();
+  const N = 10;
+  for (let i = 0; i < N; i++) {
     const { up, out } = makeStream();
+    up.push(`data: {"choices":[{"delta":{"content":"chunk-${i}"}}]}\n\n`);
     up.push("data: [DONE]\n\n");
     up.close();
-    await drain(out);
+
+    const reader = out.getReader();
+    const decoder = new TextDecoder();
+    let text = "";
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      text += decoder.decode(value);
+    }
+    // Positive anchor: the stream really ran and really closed.
+    assert.ok(text.includes(`chunk-${i}`), `stream ${i} lost its content: ${JSON.stringify(text)}`);
   }
-  // If we reach here without a timeout, no blocking resources were leaked.
-  assert.ok(true, "all 10 streams completed without hanging");
+
+  // The watchdog of every closed stream must have been cleared. One slot of slack
+  // absorbs unrelated runtime timers, but N leaked watchdogs cannot hide in it.
+  const timersAfter = activeTimers();
+  assert.ok(
+    timersAfter <= timersBefore + 1,
+    `idle watchdog timers leaked across ${N} streams: ${timersBefore} active before, ${timersAfter} after`
+  );
 });
 
 test("4. final snapshot does not duplicate tail text", async () => {

@@ -3,6 +3,9 @@ import { deleteModelAlias, getModelAliases, setModelAlias } from "@/lib/db/model
 export const DEFAULT_MODEL_ALIAS_SEED = Object.freeze({
   "gemini-3.1-pro": "agy/gemini-pro-agent",
   "gemini-3.1-flash-lite-preview": "gemini/gemini-3.1-flash-lite",
+  "claude-sonnet-4-6": "agy/claude-sonnet-4-6",
+  "claude-opus-4-6-thinking": "agy/claude-opus-4-6-thinking",
+  "gemini-3.6-flash-low": "agy/gemini-3.6-flash-low",
 });
 
 // Remove only aliases that still match a default value previously shipped by OmniRoute.

@@ -18,40 +18,38 @@ interface LiteCompressionOptions {
   supportsVision?: boolean | null;
   preserveSystemPrompt?: boolean;
   compressToolResults?: boolean;
+  maxToolLength?: number;
 }
 
-function trimTrailingHorizontalWhitespace(line: string): string {
-  let end = line.length;
-  while (end > 0) {
-    const code = line.charCodeAt(end - 1);
-    if (code !== 32 && code !== 9) break;
-    end--;
-  }
-  return end === line.length ? line : line.slice(0, end);
+const DEFAULT_MAX_TOOL_LENGTH = 2000;
+const MIN_MAX_TOOL_LENGTH = 256;
+const MAX_MAX_TOOL_LENGTH = 1_000_000;
+
+function envInt(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (raw === undefined || raw === null || raw === "") return fallback;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return fallback;
+  const n = Math.floor(parsed);
+  if (n < MIN_MAX_TOOL_LENGTH || n > MAX_MAX_TOOL_LENGTH) return fallback;
+  return n;
 }
 
-function collapseNewlineRuns(content: string): string {
-  let normalized = "";
-  let newlineRun = 0;
+/** True when a value can be used as a Lite tool-result cap (not merely `typeof number`). */
+export function isUsableLiteMaxToolLength(value: unknown): value is number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return false;
+  const n = Math.floor(value);
+  return n >= MIN_MAX_TOOL_LENGTH && n <= MAX_MAX_TOOL_LENGTH;
+}
 
-  for (const char of content) {
-    if (char === "\n") {
-      newlineRun++;
-      if (newlineRun <= 2) {
-        normalized += char;
-      }
-      continue;
-    }
-
-    newlineRun = 0;
-    normalized += char;
-  }
-
-  return normalized;
+export function resolveLiteMaxToolLength(maxToolLength?: number): number {
+  if (isUsableLiteMaxToolLength(maxToolLength)) return Math.floor(maxToolLength);
+  return envInt("OMNIROUTE_LITE_MAX_TOOL_LENGTH", DEFAULT_MAX_TOOL_LENGTH);
 }
 
 function normalizeMessageWhitespace(content: string): string {
-  return collapseNewlineRuns(content).split("\n").map(trimTrailingHorizontalWhitespace).join("\n");
+  if (!content) return "";
+  return content.replace(/\n{3,}/g, "\n\n").replace(/[ \t]+$/gm, "");
 }
 
 // Vision detection is centralized in `@/shared/constants/visionModels` (#4072) so
@@ -147,14 +145,23 @@ function backOffToWordBoundary(content: string, cutIndex: number): number {
   return cutIndex;
 }
 
-export function compressToolResults(body: ChatBody): {
+export function compressToolResults(
+  body: ChatBody,
+  options: LiteCompressionOptions = {}
+): {
   body: ChatBody;
   applied: boolean;
 } {
   if (!body.messages) return { body, applied: false };
-  const MAX_TOOL_LENGTH = 2000;
+  const MAX_TOOL_LENGTH = resolveLiteMaxToolLength(options.maxToolLength);
+  // Results of the latest tool calls (after the last assistant message) are
+  // what the model asked for this turn. Cutting them makes it re-read the same
+  // file forever, since every re-read is cut again.
+  const lastAssistant = body.messages.findLastIndex((msg) => msg.role === "assistant");
+  const currentTurnStart = lastAssistant === -1 ? body.messages.length : lastAssistant + 1;
   let applied = false;
-  const messages = body.messages.map((msg) => {
+  const messages = body.messages.map((msg, index) => {
+    if (index >= currentTurnStart) return msg;
     if (msg.role !== "tool" || typeof msg.content !== "string") return msg;
     if (msg.content.length <= MAX_TOOL_LENGTH) return msg;
     applied = true;
@@ -186,6 +193,7 @@ export function removeRedundantContent(
     const contentStr = typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content);
     if (
       i > 0 &&
+      msg.role !== "tool" &&
       body.messages[i - 1].role === msg.role &&
       typeof body.messages[i - 1].content === "string" &&
       body.messages[i - 1].content === contentStr
@@ -255,7 +263,7 @@ export function applyLiteCompression(
   if (r2.applied) techniquesApplied.push("system-dedup");
 
   if (options?.compressToolResults !== false) {
-    const r3 = compressToolResults(current);
+    const r3 = compressToolResults(current, options);
     current = r3.body;
     if (r3.applied) techniquesApplied.push("tool-compress");
   }

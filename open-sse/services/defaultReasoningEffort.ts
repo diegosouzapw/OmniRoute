@@ -30,18 +30,28 @@ function hasExplicitReasoningField(body: Record<string, unknown>): boolean {
  *
  * `suffixEffort` (#7694) is the tier a `<prefix>/<model>-{effort}` synced-model alias
  * resolved to (`src/sse/services/model.ts`'s `resolveSyncedModelIdAndEffort`) — an
- * explicit, request-time model selection, so it takes priority over the static
- * `ModelSpec.defaultReasoningEffort` fleet-wide default (#6879) when both are present.
+ * explicit, request-time model selection, so it takes priority over both defaults
+ * below when present.
+ *
+ * `syncedDefaultEffort` is the vendor-declared default captured at sync time
+ * (`reasoning.default_effort`, e.g. OpenRouter `stealth/ox-alpha` declares `max`) —
+ * see `detectDefaultThinkingEffort`. A model that only produces usable output with
+ * an explicit effort gets the vendor default instead of an empty upstream response.
+ * It is the LOWEST-priority default: an explicit client value wins, the suffix alias
+ * wins, and a static `ModelSpec.defaultReasoningEffort` (operator-configured
+ * strip-by-default, #6879) also wins over the vendor default.
  */
 export function applyDefaultReasoningEffort<T extends Record<string, unknown>>(
   body: T,
   modelId: string,
-  suffixEffort?: string | null
+  suffixEffort?: string | null,
+  syncedDefaultEffort?: string | null
 ): T {
   if (!body || typeof body !== "object") return body;
   if (hasExplicitReasoningField(body)) return body;
 
-  const defaultEffort = suffixEffort || getModelSpec(modelId)?.defaultReasoningEffort;
+  const defaultEffort =
+    suffixEffort || getModelSpec(modelId)?.defaultReasoningEffort || syncedDefaultEffort;
   if (!defaultEffort) return body;
 
   return { ...body, reasoning_effort: defaultEffort };

@@ -94,7 +94,7 @@ function deriveCatalog(): AgentSkill[] {
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Returns the full catalog (45 entries). Cached in module scope after first call.
+ * Returns the full catalog (46 entries). Cached in module scope after first call.
  * Safe to call multiple times — re-derives only after `refreshCatalog()`.
  */
 export function getCatalog(): AgentSkill[] {

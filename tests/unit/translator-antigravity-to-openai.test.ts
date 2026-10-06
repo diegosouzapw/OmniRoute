@@ -162,7 +162,13 @@ test("Antigravity -> OpenAI keeps co-located function call and text but strips t
             role: "model",
             parts: [
               { text: "Let me look that up." },
-              { functionResponse: { id: "call_9", name: "lookup", response: { result: { ok: true } } } },
+              {
+                functionResponse: {
+                  id: "call_9",
+                  name: "lookup",
+                  response: { result: { ok: true } },
+                },
+              },
               { functionCall: { id: "call_10", name: "lookup", args: { q: "weather" } } },
             ],
           },
@@ -249,7 +255,7 @@ test("Antigravity -> OpenAI lowers schema types recursively", () => {
     false
   );
 
-  assert.deepEqual((result.tools[0].function as any).parameters, {
+  assert.deepEqual((result.tools[0].function as Record<string, unknown>).parameters, {
     type: "object",
     properties: {
       items: {
@@ -298,12 +304,17 @@ test("Antigravity -> OpenAI strips enumDescriptions from tool schema (top-level 
     false
   );
 
-  const parameters = (result.tools[0].function as any).parameters;
+  const parameters = (result.tools[0].function as Record<string, unknown>).parameters as Record<
+    string,
+    unknown
+  >;
+  const props = parameters.properties as Record<string, unknown>;
+  const tags = props.tags as Record<string, unknown>;
 
   // enumDescriptions must be removed at every level of the schema tree...
   assert.equal("enumDescriptions" in parameters, false);
-  assert.equal("enumDescriptions" in parameters.properties.mode, false);
-  assert.equal("enumDescriptions" in parameters.properties.tags.items, false);
+  assert.equal("enumDescriptions" in (props.mode as Record<string, unknown>), false);
+  assert.equal("enumDescriptions" in (tags.items as Record<string, unknown>), false);
 
   // ...while leaving the rest of the schema (incl. enum values) intact.
   assert.deepEqual(parameters, {
@@ -349,7 +360,10 @@ test("Antigravity -> OpenAI preserves the required array on Draft 2020-12 tool s
     false
   );
 
-  const params = (result.tools[0].function as any).parameters;
+  const params = (result.tools[0].function as Record<string, unknown>).parameters as Record<
+    string,
+    unknown
+  >;
   // The required array must survive so the model treats mandatory args as mandatory.
   assert.deepEqual(params.required, ["path", "contents"]);
   // Types are still lowered and Draft 2020-12 meta keywords are stripped.
@@ -385,6 +399,104 @@ test("Antigravity -> OpenAI drops required entries that no longer exist in prope
     false
   );
 
-  const params = (result.tools[0].function as any).parameters;
+  const params = (result.tools[0].function as Record<string, unknown>).parameters as Record<
+    string,
+    unknown
+  >;
   assert.deepEqual(params.required, ["kept"]);
+});
+
+test("Antigravity -> OpenAI preserves falsy primitive results in function responses (false, 0, empty string, null)", () => {
+  const cases: Array<[unknown, string]> = [
+    [false, "false"],
+    [0, "0"],
+    ["", '""'],
+    [null, "null"],
+    [true, "true"],
+    [42, "42"],
+    ["done", '"done"'],
+  ];
+
+  for (const [inputVal, expected] of cases) {
+    const result = antigravityToOpenAIRequest(
+      "gpt-4o",
+      {
+        request: {
+          contents: [
+            {
+              role: "model",
+              parts: [
+                {
+                  functionCall: {
+                    id: "call_test",
+                    name: "check_condition",
+                    args: {},
+                  },
+                },
+              ],
+            },
+            {
+              role: "user",
+              parts: [
+                {
+                  functionResponse: {
+                    id: "call_test",
+                    name: "check_condition",
+                    response: { result: inputVal },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+      false
+    );
+
+    const toolMsg = result.messages.find((m) => m.role === "tool");
+    assert.ok(toolMsg, "expected role:tool message");
+    assert.equal(toolMsg.tool_call_id, "call_test");
+    assert.equal(toolMsg.content, expected);
+  }
+});
+
+test("Antigravity -> OpenAI preserves custom response objects without result key", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        contents: [
+          {
+            role: "model",
+            parts: [
+              {
+                functionCall: {
+                  id: "call_custom",
+                  name: "custom_op",
+                  args: {},
+                },
+              },
+            ],
+          },
+          {
+            role: "user",
+            parts: [
+              {
+                functionResponse: {
+                  id: "call_custom",
+                  name: "custom_op",
+                  response: { output: "value", success: false },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  const toolMsg = result.messages.find((m) => m.role === "tool");
+  assert.ok(toolMsg, "expected role:tool message");
+  assert.equal(toolMsg.content, '{"output":"value","success":false}');
 });

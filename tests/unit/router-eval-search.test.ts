@@ -135,7 +135,7 @@ test("router eval search ranks candidates and writes retained summary artifacts"
       )
     );
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -197,7 +197,7 @@ test("router eval search objective modes can choose different candidates", () =>
     assert.equal(qualitySuggestion.objective, "quality");
     assert.equal(qualitySuggestion.recommendedConfigId, "cheap");
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -253,6 +253,6 @@ test("router eval search cost objective can select a non-AIQ-top config inside a
     assert.equal(suggestion.recommendedConfigId, "cost-top");
     assert.equal(patch.operations?.[0]?.value, "cost-top");
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

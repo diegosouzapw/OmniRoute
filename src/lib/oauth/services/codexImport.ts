@@ -26,10 +26,28 @@ export type CodexImportPayload = {
   idToken?: string;
   email: string;
   expiresAt: string;
+  // Mirrors expiresAt — the dashboard token-health badge prefers tokenExpiresAt
+  // over expiresAt, so an upsert that leaves the old row's stale value behind
+  // shows "Token Expired" for freshly imported tokens (#5326 pattern).
+  tokenExpiresAt: string;
   testStatus: "active";
+  isActive: true;
+  errorCode: null;
+  lastError: null;
+  lastErrorAt: null;
+  lastErrorType: null;
+  lastErrorSource: null;
+  backoffLevel: 0;
+  rateLimitedUntil: null;
+  priority?: number;
   providerSpecificData?: {
     chatgptAccountId?: string;
+    // Canonical alias consumed by the existing Codex workspace upsert path.
+    workspaceId?: string;
     chatgptPlanType?: string;
+    // On a matching re-import the existing row's providerSpecificData is
+    // carried through here (preserveExistingCodexConnectionState).
+    [key: string]: unknown;
   };
 };
 
@@ -224,7 +242,12 @@ export function normalizeCodexImportRecord(input: unknown): NormalizeResult {
   const expiresAt = parseExpiry(rec.expired) ?? parseAccessTokenExp(accessToken);
 
   const providerSpecificData: CodexImportPayload["providerSpecificData"] = {};
-  if (chatgptAccountId) providerSpecificData.chatgptAccountId = chatgptAccountId;
+  if (chatgptAccountId) {
+    providerSpecificData.chatgptAccountId = chatgptAccountId;
+    // CodexSwitcher stores this stable value as account_id; mirror it into
+    // workspaceId so createProviderConnection performs its existing upsert.
+    providerSpecificData.workspaceId = chatgptAccountId;
+  }
   if (chatgptPlanType) providerSpecificData.chatgptPlanType = chatgptPlanType;
 
   const payload: CodexImportPayload = {
@@ -234,14 +257,77 @@ export function normalizeCodexImportRecord(input: unknown): NormalizeResult {
     refreshToken,
     email,
     expiresAt,
+    tokenExpiresAt: expiresAt,
     testStatus: "active",
+    // Fresh imported OAuth credentials supersede a previous refresh failure.
+    isActive: true,
+    errorCode: null,
+    lastError: null,
+    lastErrorAt: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    backoffLevel: 0,
+    rateLimitedUntil: null,
   };
   if (idToken) payload.idToken = idToken;
+  if (typeof rec.priority === "number" && Number.isInteger(rec.priority) && rec.priority > 0) {
+    payload.priority = rec.priority;
+  }
   if (Object.keys(providerSpecificData).length > 0) {
     payload.providerSpecificData = providerSpecificData;
   }
 
   return { ok: true, payload };
+}
+
+function toPsdRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+/**
+ * When a bulk-imported record matches an existing connection (same email +
+ * providerSpecificData.workspaceId — the exact key createProviderConnection's
+ * Codex oauth upsert matches on), the upsert replaces every column the payload
+ * supplies wholesale. Adjust the payload so a re-import refreshes credentials
+ * WITHOUT clobbering state the import cannot know about (#11954 follow-up):
+ *
+ * - providerSpecificData: merge the import's keys OVER the existing row's, so
+ *   chatgptUserId / organizations / workspacePlanType (OAuth login flow),
+ *   runtime quota state (codexExhaustedWindowByScope, codexScopeRateLimitedUntil)
+ *   and the operator-set codexFingerprintMode survive — the same pattern the
+ *   single-file import uses (codexAuthImport.ts).
+ * - priority: drop the forwarded 9router priority — the upsert path never
+ *   reorders siblings, so overwriting the matched row's priority can duplicate
+ *   another connection's. The operator's existing ordering wins.
+ *
+ * Pure: the caller supplies the candidate connections (provider "codex",
+ * authType "oauth"); no match returns the payload unchanged.
+ */
+export function preserveExistingCodexConnectionState(
+  payload: CodexImportPayload,
+  existingConnections: Array<Record<string, unknown>>
+): CodexImportPayload {
+  const workspaceId = payload.providerSpecificData?.workspaceId;
+  if (!workspaceId) return payload;
+  const match = existingConnections.find(
+    (conn) =>
+      conn.provider === "codex" &&
+      conn.authType === "oauth" &&
+      conn.email === payload.email &&
+      toPsdRecord(conn.providerSpecificData).workspaceId === workspaceId
+  );
+  if (!match) return payload;
+  const adjusted: CodexImportPayload = {
+    ...payload,
+    providerSpecificData: {
+      ...toPsdRecord(match.providerSpecificData),
+      ...payload.providerSpecificData,
+    },
+  };
+  delete adjusted.priority;
+  return adjusted;
 }
 
 /**

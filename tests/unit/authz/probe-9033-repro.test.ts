@@ -6,9 +6,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { NextRequest } from "next/server";
+import { wrapRequestListenerWithPeerStamp } from "../../../scripts/dev/peer-stamp.mjs";
 
 const TEST_DATA_DIR = path.join(process.env.DATA_DIR!, "probe-9033-repro");
 // NOTE: Not reassigning process.env.DATA_DIR at module scope because
@@ -28,14 +28,14 @@ const ORIGINAL_STAMP_TOKEN = process.env.OMNIROUTE_PEER_STAMP_TOKEN;
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_STAMP_TOKEN === undefined) delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
   else process.env.OMNIROUTE_PEER_STAMP_TOKEN = ORIGINAL_STAMP_TOKEN;
 });
 
 test.beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   ipFilter.resetIPFilter();
   delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
@@ -112,6 +112,47 @@ test("D3: behind reverse proxy (peer stamp=loopback + via-proxy marker + XFF=bla
     res.status,
     403,
     `behind-proxy blacklisted IP must be blocked, got status=${res.status}`
+  );
+});
+
+test("D4: behind Cloudflare (cf-connecting-ip + via-proxy marker, no XFF) blocks the client IP", async () => {
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = "stamp-tok";
+  ipFilter.configureIPFilter({ enabled: true, mode: "blacklist" });
+  ipFilter.addToBlacklist(BLOCKED);
+
+  // Simulate the real custom-server path: the request arrives at the Node HTTP
+  // server, stampPeerIp runs first, then the request (with stamped headers) is
+  // forwarded into the Next.js pipeline. Use a Cloudflare edge IP as the socket
+  // peer so cf-connecting-ip is trusted as a proxy marker.
+  const stampedHeaders: Record<string, string> = {};
+  const wrapped = wrapRequestListenerWithPeerStamp((_req) => {
+    Object.assign(stampedHeaders, _req.headers);
+  });
+  wrapped(
+    {
+      headers: { "cf-connecting-ip": BLOCKED },
+      socket: { remoteAddress: "172.71.150.1" },
+    } as never,
+    {} as never
+  );
+
+  assert.equal(
+    stampedHeaders["x-omniroute-via-proxy"],
+    "stamp-tok|1",
+    "Cloudflare request must be stamped as via-proxy"
+  );
+  assert.equal(
+    stampedHeaders["x-omniroute-peer-ip"],
+    "stamp-tok|172.71.150.1",
+    "Cloudflare request must have the edge IP stamped"
+  );
+
+  const res = await pipeline.runAuthzPipeline(makeRequest(stampedHeaders), { enforce: true });
+
+  assert.equal(
+    res.status,
+    403,
+    `behind-Cloudflare blacklisted IP must be blocked via cf-connecting-ip, got status=${res.status}`
   );
 });
 

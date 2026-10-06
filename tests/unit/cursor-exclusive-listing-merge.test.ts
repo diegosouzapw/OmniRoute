@@ -76,4 +76,31 @@ describe("mergeProviderModelListing (cursor exclusive)", () => {
     const ids = models.map((m) => m.id);
     assert.deepEqual(ids, ["gpt-4o", "gpt-4o-mini"]);
   });
+
+  it("overlays same-id custom metadata without erasing discovered fields", () => {
+    const models = mergeProviderModelListing({
+      providerId: "openai-compatible-chat-test",
+      registryModels: [],
+      syncedModels: [
+        {
+          id: "shared",
+          name: "Discovered name",
+          supportsVision: true,
+          contextLength: 128000,
+        },
+      ],
+      customModels: [{ id: "shared", name: "Operator name", supportsVision: false }],
+      usesCuratedModelsOnly: false,
+    });
+
+    assert.deepEqual(models, [
+      {
+        id: "shared",
+        name: "Operator name",
+        source: "custom",
+        supportsVision: false,
+        contextLength: 128000,
+      },
+    ]);
+  });
 });

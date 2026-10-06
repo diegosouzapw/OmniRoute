@@ -25,7 +25,7 @@ const MiB = 1024 ** 2;
 async function resetStorage() {
   resetAllCircuitBreakers();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   // Restore a non-shedding resource pressure runtime between tests.
   reloadResourcePressureRuntime({
@@ -41,7 +41,7 @@ async function resetStorage() {
         availableBytes: null,
         constrainedBytes: null,
       },
-      cgroup: { currentBytes: null, maxBytes: null, highBytes: null, events: null },
+      cgroup: { currentBytes: null, maxBytes: null, highBytes: null, fileBytes: null, events: null },
       psi: null,
     }),
   });
@@ -53,7 +53,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("executeChatWithBreaker returns typed pressure 503 before normal, bypass, and shadow breaker paths", async () => {
@@ -157,7 +157,7 @@ test("direct handleChatCore default still applies resource pressure guard", asyn
         availableBytes: null,
         constrainedBytes: null,
       },
-      cgroup: { currentBytes: null, maxBytes: null, highBytes: null, events: null },
+      cgroup: { currentBytes: null, maxBytes: null, highBytes: null, fileBytes: null, events: null },
       psi: null,
     }),
   });
@@ -198,7 +198,7 @@ test("handleChatCore skipResourcePressureGuard bypasses the inside-core fuse", a
         availableBytes: null,
         constrainedBytes: null,
       },
-      cgroup: { currentBytes: null, maxBytes: null, highBytes: null, events: null },
+      cgroup: { currentBytes: null, maxBytes: null, highBytes: null, fileBytes: null, events: null },
       psi: null,
     }),
   });

@@ -19,12 +19,14 @@ const { resolveModelOrError } = await import("../../src/sse/handlers/chatHelpers
 test.beforeEach(() => core.resetDbInstance());
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#6458 empty auto-combo pool returns a 503 instead of an empty combo", async () => {
   // No provider connections seeded → any auto category resolves to an empty pool.
-  const result = await resolveModelOrError("auto/coding:pro", { messages: [{ role: "user", content: "hi" }] });
+  const result = await resolveModelOrError("auto/coding:pro", {
+    messages: [{ role: "user", content: "hi" }],
+  });
   assert.ok(result.error, "expected an error result, not a combo");
   assert.equal(result.error.status, 503, "empty auto pool must fail fast with 503");
   assert.equal(result.combo, undefined, "must not return a combo for an empty pool");

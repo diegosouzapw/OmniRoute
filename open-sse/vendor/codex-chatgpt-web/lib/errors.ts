@@ -1,4 +1,4 @@
-/* Adapted from miuuyy/codex-chatgpt-web commit 55592fca0ba19a27f1b769cec8fff61ff340a785 (MIT). */
+/* Adapted from miuuyy/codex-chatgpt-web commit 09877fa21ffdbf20979623ef501046fc02a750d7 (MIT). */
 export interface CodexErrorPayload {
   message: string;
   type: string;
@@ -55,10 +55,8 @@ function isPermissionMessage(text: string): boolean {
 }
 
 /**
- * Client cancelled / closed the turn. Matches ONLY abort phrases this codebase
- * produces — "client closed request during web-search" (src/web-search/loop.ts),
- * "Client cancelled request" (src/server/responses.ts) — plus the explicit
- * "request cancel(l)ed by client" forms. Deliberately narrow: bare "client closed"
+ * Client cancelled / closed the turn. Matches only explicit client-abort phrases
+ * produced by request handlers and adapters. Deliberately narrow: bare "client closed"
  * would also swallow legitimate upstream failures like "upstream HTTP client
  * closed idle connection" and turn a real 502 into a 499.
  */
@@ -75,8 +73,8 @@ export function isClientClosedMessage(text: string): boolean {
 
 export function classifyError(status: number, type: string, message: string): CodexErrorPayload {
   const text = message.toLowerCase();
-  // Preserve explicit cancel types used by compact/combo JSON errors; unify message-inferred
-  // client closes (web-search abort text) onto client_closed_request for /api/logs.
+  // Preserve explicit cancel types; unify message-inferred client closes onto
+  // client_closed_request for /api/logs.
   if (type === "client_cancelled") {
     return { message, type: "client_cancelled", code: "client_cancelled" };
   }
@@ -176,7 +174,7 @@ export function parseRetryAfterFromMessage(message: string): number | undefined 
 /** Infer HTTP status from adapter terminal error text (provider-agnostic keyword matching). */
 export function inferHttpStatusFromAdapterMessage(message: string): number {
   const lower = message.toLowerCase();
-  // Client aborts (e.g. mid web-search loop) must not look like upstream 502s in /api/logs.
+  // Client aborts must not look like upstream 502s in /api/logs.
   if (isClientClosedMessage(lower)) return 499;
   if (
     lower.includes("resource_exhausted") ||

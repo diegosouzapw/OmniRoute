@@ -8,7 +8,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { gheCopilotProvider } = await import("../../open-sse/config/providers/registry/ghe-copilot/index.ts");
+const { gheCopilotProvider } =
+  await import("../../open-sse/config/providers/registry/ghe-copilot/index.ts");
 const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 
 type ModelEntry = { id: string; targetFormat?: string; [k: string]: unknown };
@@ -30,7 +31,7 @@ const MUST_NOT_BE_RESPONSES = [
   "claude-sonnet-4.5",
   "claude-haiku-4.5",
   "gemini-3.1-pro-preview",
-  "gemini-3.5-flash",
+  "gemini-3.7-flash",
 ];
 
 for (const id of MUST_NOT_BE_RESPONSES) {

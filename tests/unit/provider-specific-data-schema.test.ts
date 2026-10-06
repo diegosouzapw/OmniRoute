@@ -163,6 +163,27 @@ test("provider schemas accept max but reject ultra as a server-side Codex defaul
   assert.equal(ultra.success, false);
 });
 
+test("provider schemas accept Codex fingerprint modes and reject unknown values", () => {
+  for (const mode of ["off", "device", "session", "full"]) {
+    const created = createProviderSchema.safeParse({
+      provider: "codex",
+      apiKey: "token",
+      name: "Codex",
+      providerSpecificData: { codexFingerprintMode: mode },
+    });
+    const updated = updateProviderConnectionSchema.safeParse({
+      providerSpecificData: { codexFingerprintMode: mode },
+    });
+    assert.equal(created.success, true, mode);
+    assert.equal(updated.success, true, mode);
+  }
+
+  const rejected = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: { codexFingerprintMode: "aggressive" },
+  });
+  assert.equal(rejected.success, false);
+});
+
 test("provider schemas reject unknown Codex service tiers", () => {
   const created = createProviderSchema.safeParse({
     provider: "codex",
@@ -368,4 +389,27 @@ test("provider schemas reject invalid quotaPerUnit values", () => {
   assert.equal(zero.success, false);
   assert.equal(negative.success, false);
   assert.equal(string.success, false);
+});
+
+test("provider schemas accept integer timeoutMs in providerSpecificData", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "openai",
+    apiKey: "token",
+    name: "OpenAI",
+    providerSpecificData: { timeoutMs: 1_800_000 },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: { timeoutMs: 900_000 },
+  });
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+});
+
+test("provider schemas reject invalid timeoutMs values", () => {
+  for (const bad of [-1, 0, 1.5, "60000", 86_400_001]) {
+    const updated = updateProviderConnectionSchema.safeParse({
+      providerSpecificData: { timeoutMs: bad },
+    });
+    assert.equal(updated.success, false, `timeoutMs=${String(bad)} must be rejected`);
+  }
 });

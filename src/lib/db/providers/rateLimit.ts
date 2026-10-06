@@ -4,6 +4,9 @@
 
 import { getDbInstance } from "../core";
 import { invalidateDbCache } from "../readCache";
+import { backupDbFile } from "../backup";
+import { bumpProxyConfigGeneration } from "../settings";
+import { stripCodexChildCooldownsFromConnection } from "./codexAccountState";
 
 interface StatementLike<TRow = unknown> {
   all: (...params: unknown[]) => TRow[];
@@ -28,11 +31,22 @@ interface DbLike {
  * @param until - Epoch ms when the rate limit expires (null to clear)
  */
 export function setConnectionRateLimitUntil(connectionId: string, until: number | null): void {
+  // Guard: never persist a non-finite or already-expired timestamp. The TEXT
+  // column would store "NaN"/"Infinity" and pollute every future read. null
+  // is the only clear path (via clearConnectionRateLimit); past/zero
+  // timestamps are noops so an expired write cannot overwrite a live row.
+  if (until !== null && (!Number.isFinite(until) || until <= Date.now())) return;
+  if (until == null) {
+    stripCodexChildCooldownsFromConnection(connectionId, { alsoClearTopLevel: true });
+    return;
+  }
   const db = getDbInstance() as unknown as DbLike;
   db.prepare(
     "UPDATE provider_connections SET rate_limited_until = ?, updated_at = ? WHERE id = ?"
   ).run(until, new Date().toISOString(), connectionId);
-  invalidateDbCache("connections");
+  // Routing-only write (rate_limited_until) — the /v1/models builder never reads
+  // it, so bust the connections read cache without dropping the catalog cache.
+  invalidateDbCache("connections", connectionId, { skipModelCatalog: true });
 }
 
 /**
@@ -125,6 +139,27 @@ export function getEffectiveQuotaUsage(
 }
 
 /**
+ * Normalize a persisted `rate_limited_until` to epoch ms.
+ *
+ * The column is written in two shapes: epoch ms by `setConnectionRateLimitUntil`
+ * (the chat path) and an ISO-8601 string by `updateProviderConnection` (the
+ * dashboard/AUTH path). Returns null when the value is absent or unparseable —
+ * callers treat that as "no usable deadline".
+ */
+function parseCooldownUntilMs(value: string | number | null | undefined): number | null {
+  if (value == null || value === "") return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  const raw = String(value).trim();
+  if (raw === "") return null;
+  if (/^\d+$/.test(raw)) {
+    const numeric = Number(raw);
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
  * T05: Startup crash-recovery — clear stale transient connection cooldowns.
  *
  * After an unclean crash (SIGKILL, OOM-kill, large-body burst) the normal
@@ -138,9 +173,19 @@ export function getEffectiveQuotaUsage(
  *  - Only connections with `rate_limited_until IS NOT NULL` are touched.
  *  - Terminal states (`banned`, `expired`, `credits_exhausted`) are skipped —
  *    those require a deliberate credential change or operator reset.
- *  - Past timestamps are also cleared: they are already expired in the lazy
+ *  - Past timestamps are cleared: they are already expired in the lazy
  *    expiry sense, but clearing them resets `backoffLevel` / transient error
- *    fields so the connection gets a clean slate on this fresh process.
+ *    fields so the connection gets a clean slate on this fresh process. An
+ *    unparseable timestamp is treated the same way — it can never expire
+ *    lazily, so leaving it would strand the connection forever.
+ *  - FUTURE timestamps are NEVER cleared. Clearing them was the original
+ *    behaviour and it wiped legitimate multi-day quota cooldowns on every
+ *    container recreate: a GLM weekly cap persisted until 2026-08-29 came
+ *    back `active` with `rate_limited_until = NULL`, combo dispatched it
+ *    immediately, and the connection re-earned a real upstream 429. A stale
+ *    crash-backoff value is bounded by the engine's own cooldown cap, so
+ *    honouring it costs at most that window — far less than burning quota
+ *    against an upstream that is provably exhausted.
  *
  * Must be called once, early in the startup sequence, before any request
  * is handled.  Returns the number of connections that were cleared.
@@ -148,6 +193,7 @@ export function getEffectiveQuotaUsage(
 export function clearStaleCrashCooldowns(): { cleared: number } {
   const db = getDbInstance() as unknown as DbLike;
   const now = new Date().toISOString();
+  const nowMs = Date.now();
 
   // Fetch all connections that have a rate_limited_until set and are NOT in
   // a terminal state.  We do the terminal-status filter in JS to reuse the
@@ -156,13 +202,20 @@ export function clearStaleCrashCooldowns(): { cleared: number } {
 
   const rows = db
     .prepare(
-      `SELECT id, test_status FROM provider_connections WHERE rate_limited_until IS NOT NULL`
+      `SELECT id, test_status, rate_limited_until FROM provider_connections WHERE rate_limited_until IS NOT NULL`
     )
-    .all() as Array<{ id: string; test_status: string | null }>;
+    .all() as Array<{
+    id: string;
+    test_status: string | null;
+    rate_limited_until: string | number | null;
+  }>;
 
   const toReset = rows.filter((r) => {
     const status = (r.test_status || "").trim().toLowerCase();
-    return !TERMINAL_STATUSES.has(status);
+    if (TERMINAL_STATUSES.has(status)) return false;
+    const untilMs = parseCooldownUntilMs(r.rate_limited_until);
+    // Unparseable → clear (cannot expire lazily). Future → keep.
+    return untilMs === null || untilMs <= nowMs;
   });
 
   if (toReset.length === 0) return { cleared: 0 };
@@ -185,9 +238,79 @@ export function clearStaleCrashCooldowns(): { cleared: number } {
     stmt.run(now, row.id);
   }
 
-  invalidateDbCache("connections");
+  // Routing/health-only fields (rate_limited_until, test_status, backoff_level,
+  // last_error*, error_code) — the /v1/models builder never reads them.
+  invalidateDbCache("connections", undefined, { skipModelCatalog: true });
 
   return { cleared: toReset.length };
+}
+
+/**
+ * Atomic conditional clear of recoverable error state on a connection row.
+ *
+ * Returns true when the row was cleared, false when a concurrent writer
+ * (markAccountUnavailable, connectionRecovery tick, test, etc.) changed the
+ * row between the caller's snapshot read and this UPDATE — in which case the
+ * clear is skipped to preserve the freshest error state. Closes the TOCTOU
+ * window in the quota-recovery path.
+ *
+ * CAS token = (test_status, last_error_at, rate_limited_until).
+ * Nested Codex child cooldown maps are stripped in the same UPDATE so a
+ * concurrent writer cannot re-persist them between two statements.
+ */
+export async function clearConnectionErrorIfUnchanged(
+  id: string,
+  expected: {
+    testStatus: string | null | undefined;
+    lastErrorAt: string | null | undefined;
+    rateLimitedUntil: string | null | undefined;
+  }
+): Promise<boolean> {
+  const db = getDbInstance() as unknown as DbLike;
+  backupDbFile("pre-write");
+  const result = db
+    .prepare(
+      `
+    UPDATE provider_connections SET
+      test_status = 'active',
+      last_error = NULL,
+      last_error_at = NULL,
+      last_error_type = NULL,
+      last_error_source = NULL,
+      error_code = NULL,
+      rate_limited_until = NULL,
+      backoff_level = 0,
+      provider_specific_data = CASE
+        WHEN provider = 'codex' AND json_valid(provider_specific_data)
+          THEN json_remove(
+            provider_specific_data,
+            '$.codexScopeRateLimitedUntil',
+            '$.codexScopeRateLimitSource'
+          )
+        ELSE provider_specific_data
+      END,
+      updated_at = ?
+    WHERE id = ?
+      AND IFNULL(test_status, '') = ?
+      AND IFNULL(last_error_at, '') = ?
+      AND IFNULL(rate_limited_until, '') = ?
+    `
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
+  const applied = (result.changes ?? 0) > 0;
+  if (applied) {
+    // Routing/health-only fields + codex-scope cooldown keys — none are read by
+    // the /v1/models builder (it only reads providerSpecificData.excludedModels).
+    invalidateDbCache("connections", id, { skipModelCatalog: true });
+    bumpProxyConfigGeneration();
+  }
+  return applied;
 }
 
 // T13: Format a reset countdown as a human-readable string ("2h 35m" / "4m 30s").

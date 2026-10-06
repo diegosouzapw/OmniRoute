@@ -27,6 +27,34 @@ function recordToHeaderRows(rec: Record<string, string>, genId: () => string): H
   return entries.map(([name, value]) => ({ id: genId(), name, value }));
 }
 
+// Bounded re-run budget for the model param-filter save: if the draft changed while the PUT was
+// in flight, the save repeats with the newer draft instead of clearing the dirty flag on a
+// payload that no longer matches what the user typed (#8910).
+const PARAM_SAVE_MAX_ATTEMPTS = 3;
+
+// Param filters are stored as one document per provider. Model rows render independent popover
+// instances, so their GET -> whole-document PUT transactions must share a provider-level queue;
+// instance-local saving refs cannot prevent sibling rows from overwriting each other's updates.
+const paramFilterSaveQueues = new Map<string, Promise<void>>();
+
+async function serializeProviderParamFilterSave<T>(
+  providerId: string,
+  save: () => Promise<T>
+): Promise<T> {
+  const previous = paramFilterSaveQueues.get(providerId) ?? Promise.resolve();
+  const result = previous.then(save);
+  const tail = result.then(
+    () => undefined,
+    () => undefined
+  );
+  paramFilterSaveQueues.set(providerId, tail);
+  try {
+    return await result;
+  } finally {
+    if (paramFilterSaveQueues.get(providerId) === tail) paramFilterSaveQueues.delete(providerId);
+  }
+}
+
 function parseCommaList(text: string): string[] {
   return text
     ? text
@@ -41,6 +69,21 @@ interface ParamFilterConfigLike {
   allow?: string[];
   models?: Record<string, unknown>;
   autoLearn?: boolean;
+}
+
+// An unsaved param-filter draft, bound to the provider/model it was typed for. The save path
+// writes through THIS target instead of the props the callback happens to close over, so a draft
+// can never be persisted under a provider/model the user never edited (#8910).
+interface ParamFilterDraft {
+  key: string;
+  providerId: string;
+  modelId: string;
+  block: string;
+  allow: string;
+}
+
+function paramTargetKeyOf(providerId: string, modelId: string): string {
+  return `${providerId}\u0000${modelId}`;
 }
 
 // Builds the PUT body for the model-level block/allow save. Extracted so the
@@ -97,6 +140,8 @@ export interface ModelCompatPopoverProps {
 
 export default function ModelCompatPopover({
   t,
+  providerId,
+  modelId,
   effectiveModelNormalize,
   effectiveModelPreserveDeveloper,
   getUpstreamHeadersRecord,
@@ -110,8 +155,8 @@ export default function ModelCompatPopover({
   const [headerRows, setHeaderRows] = useState<HeaderDraftRow[]>([]);
   const [blockText, setBlockText] = useState("");
   const [allowText, setAllowText] = useState("");
-  const [paramDirty, setParamDirty] = useState(false);
   const [paramSaving, setParamSaving] = useState(false);
+  const [paramSaveFailed, setParamSaveFailed] = useState(false);
   const [valuePeekRowId, setValuePeekRowId] = useState<string | null>(null);
   const [valueFocusRowId, setValueFocusRowId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -123,8 +168,87 @@ export default function ModelCompatPopover({
     width: number;
   } | null>(null);
   const headerRowIdRef = useRef(0);
+  // Mirror of headerRows, kept in sync by applyHeaderRows below (every state
+  // write goes through it), so blur/close commits read the freshest rows
+  // without touching the ref during render.
   const headerRowsRef = useRef<HeaderDraftRow[]>([]);
-  headerRowsRef.current = headerRows;
+
+  // Param-filter drafts are mirrored into a ref so the close/unmount save path reads the
+  // latest typed values instead of the values captured when the handler was created (#8910).
+  const paramSavingRef = useRef(false);
+  // Every unsaved draft, keyed by the provider/model it was typed for. A per-target map (rather
+  // than a single slot) is required because a live popover can be re-pointed at another target
+  // while a draft is still unsaved: with one slot the next keystroke on the new target destroyed
+  // the previous target's unsaved work, and the new target's successful save then cleared the
+  // failure indicator — a green UI over data that was never written, i.e. exactly the silent
+  // data loss reported in #8910. Drafts are recorded when edited — never derived from a completed
+  // load — so an unsaved draft survives even when no load ever succeeded for that target, and
+  // every write lands on the draft's own target rather than whatever the popover now points at.
+  const paramDraftsRef = useRef<Map<string, ParamFilterDraft>>(new Map());
+
+  const paramTargetKey = paramTargetKeyOf(providerId, modelId);
+  const paramTargetRef = useRef<{ key: string; providerId: string; modelId: string }>({
+    key: paramTargetKey,
+    providerId,
+    modelId,
+  });
+  // Mirrored in an effect (never during render): the ref is only read from
+  // event handlers and the save path, which run after this effect committed.
+  useEffect(() => {
+    paramTargetRef.current = { key: paramTargetKey, providerId, modelId };
+  }, [paramTargetKey, providerId, modelId]);
+
+  // Mirrors of the displayed text, so an edit can snapshot both fields
+  // synchronously. applyParamFields below is the ONLY writer of
+  // blockText/allowText and keeps these refs in sync itself, so no render-time
+  // mirroring is needed (and none is allowed by the compiler's refs rule).
+  const blockTextRef = useRef("");
+  const allowTextRef = useRef("");
+  // Which target the values currently in the fields belong to. Guards the invariant that
+  // blockTextRef/allowTextRef never hold content belonging to a target other than the one being
+  // displayed — the desync that let one model's server values be saved under another (#8910).
+  const fieldsTargetKeyRef = useRef<string | null>(null);
+
+  const applyParamFields = useCallback((targetKey: string, block: string, allow: string) => {
+    fieldsTargetKeyRef.current = targetKey;
+    blockTextRef.current = block;
+    allowTextRef.current = allow;
+    setBlockText(block);
+    setAllowText(allow);
+  }, []);
+
+  // Every edit rewrites the draft for the CURRENT target. The counterpart field is only trusted
+  // when the values on screen belong to this target; otherwise it is taken from this target's own
+  // pending draft (or empty), so another target's value can never be captured into this draft and
+  // then persisted here (#8910). Object identity doubles as the draft revision an in-flight save
+  // compares against.
+  const editParamDraft = useCallback(
+    (field: "block" | "allow", value: string) => {
+      const target = paramTargetRef.current;
+      const fieldsOwned = fieldsTargetKeyRef.current === target.key;
+      const pending = paramDraftsRef.current.get(target.key);
+      const block =
+        field === "block" ? value : fieldsOwned ? blockTextRef.current : (pending?.block ?? "");
+      const allow =
+        field === "allow" ? value : fieldsOwned ? allowTextRef.current : (pending?.allow ?? "");
+      applyParamFields(target.key, block, allow);
+      paramDraftsRef.current.set(target.key, {
+        key: target.key,
+        providerId: target.providerId,
+        modelId: target.modelId,
+        block,
+        allow,
+      });
+    },
+    [applyParamFields]
+  );
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const genHeaderRowId = () => {
     headerRowIdRef.current += 1;
@@ -156,77 +280,194 @@ export default function ModelCompatPopover({
     };
   }, [open, tryCommitHeaderRows]);
 
-  useEffect(() => {
-    if (!open) return;
-    const rec = getUpstreamHeadersRecord(protocol);
-    setHeaderRows(recordToHeaderRows(rec, genHeaderRowId));
-    // Only re-load rows when opening or switching protocol — not when the parent passes a new
-    // inline callback every render (would wipe in-progress edits).
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
-  }, [open, protocol]);
+  // Rows (re)load from the parent when the popover opens or the protocol
+  // switches — both user gestures — so the load lives in those handlers
+  // (handleToggleOpen / handleProtocolChange) instead of an effect. This keeps
+  // the old guarantee: a new inline parent callback on a re-render never wipes
+  // in-progress edits.
+  const applyHeaderRows = (rows: HeaderDraftRow[]) => {
+    headerRowsRef.current = rows;
+    setHeaderRows(rows);
+  };
+
+  const loadHeaderRowsFor = (nextProtocol: string) => {
+    const rec = getUpstreamHeadersRecord(nextProtocol);
+    applyHeaderRows(recordToHeaderRows(rec, genHeaderRowId));
+  };
+
+  const resetValueVisibility = () => {
+    setValuePeekRowId(null);
+    setValueFocusRowId(null);
+  };
+
+  const handleToggleOpen = () => {
+    const next = !open;
+    setOpen(next);
+    resetValueVisibility();
+    if (next) loadHeaderRowsFor(protocol);
+  };
+
+  const handleProtocolChange = (nextProtocol: string) => {
+    setProtocol(nextProtocol);
+    resetValueVisibility();
+    if (open) loadHeaderRowsFor(nextProtocol);
+  };
 
   // Load model-level block/allow from param-filters API
   useEffect(() => {
     if (!open) return;
+    const draftKey = paramTargetKeyOf(providerId, modelId);
+    const draftForThisTarget = () => paramDraftsRef.current.get(draftKey);
+    // The fields must always show THIS target's content, and nothing else may ever be read back
+    // out of them. A draft that is still pending for this exact provider/model was never persisted
+    // (failed or exhausted save): restore it into the inputs instead of loading server state over
+    // it, because reloading here would silently revert it — the very complaint behind #8910.
+    const pending = draftForThisTarget();
+    if (pending) {
+      applyParamFields(draftKey, pending.block, pending.allow);
+      return;
+    }
+    // No draft for this target: drop whatever the previously displayed target left on screen so
+    // the fields can never present (or contribute) another target's values.
+    if (fieldsTargetKeyRef.current !== draftKey) applyParamFields(draftKey, "", "");
+    let cancelled = false;
     (async () => {
       try {
         const res = await fetch(`/api/providers/${providerId}/param-filters`);
+        if (!res.ok) throw new Error(`param-filters GET failed: ${res.status}`);
         const data = await res.json();
+        if (cancelled || !mountedRef.current) return;
+        // Re-check after the await: the user may have typed while the GET was in flight, and a
+        // load result must never overwrite (or acknowledge) a draft that is not on the server.
+        if (draftForThisTarget()) return;
         const modelCfg = data?.models?.[modelId];
-        setBlockText(modelCfg ? (modelCfg.block ?? []).join(", ") : "");
-        setAllowText(modelCfg ? (modelCfg.allow ?? []).join(", ") : "");
+        applyParamFields(
+          draftKey,
+          modelCfg ? (modelCfg.block ?? []).join(", ") : "",
+          modelCfg ? (modelCfg.allow ?? []).join(", ") : ""
+        );
+        // A load never clears a draft: any draft still pending here belongs to a DIFFERENT
+        // target and is still owed a write to that target (#8910). The failure indicator is
+        // only cleared once nothing is left unsaved anywhere.
+        if (paramDraftsRef.current.size === 0) setParamSaveFailed(false);
       } catch {
-        setBlockText("");
-        setAllowText("");
+        // Keep whatever the user has in the fields (and its dirty flag) on load failure.
       }
-      setParamDirty(false);
     })();
-  }, [open]);
+    return () => {
+      cancelled = true;
+    };
+    // Reload only when opening or when the popover targets a different provider/model.
+  }, [open, providerId, modelId, applyParamFields]);
 
+  // Drains EVERY pending draft, each written through its OWN provider/model — never the props this
+  // callback happens to be bound to — so a draft typed for target A can never be persisted under a
+  // target B the user never edited, and re-pointing the popover cannot destroy target A's unsaved
+  // work (#8910). Each draft is re-read after every await for the same reason the load effect
+  // re-checks its guard: the user can keep typing while a write is in flight.
   const saveModelParamFilters = useCallback(async () => {
-    if (!paramDirty) return;
-    setParamSaving(true);
-    try {
-      const res = await fetch(`/api/providers/${providerId}/param-filters`);
-      const current = await res.json();
-      const payload = buildModelParamFilterPayload(current, modelId, blockText, allowText);
-      await fetch(`/api/providers/${providerId}/param-filters`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      setParamDirty(false);
-    } catch {
-      // Silently ignore save error
-    } finally {
-      setParamSaving(false);
-    }
-  }, [paramDirty, blockText, allowText]);
+    if (paramDraftsRef.current.size === 0 || paramSavingRef.current) return;
+    paramSavingRef.current = true;
+    if (mountedRef.current) setParamSaving(true);
 
+    // Returns true once nothing is owed for this target any more.
+    const saveDraftForTarget = async (key: string): Promise<boolean> => {
+      // Re-run while the draft changed under the in-flight write: the payload is snapshotted
+      // before the PUT resolves, so a keystroke landing in that window would otherwise be
+      // acknowledged (draft dropped) but never persisted — the #8910 lost update.
+      for (let attempt = 0; attempt < PARAM_SAVE_MAX_ATTEMPTS; attempt += 1) {
+        const draft = paramDraftsRef.current.get(key);
+        if (!draft) return true;
+        try {
+          const wroteDraft = await serializeProviderParamFilterSave(draft.providerId, async () => {
+            const res = await fetch(`/api/providers/${draft.providerId}/param-filters`);
+            if (!res.ok) throw new Error(`param-filters GET failed: ${res.status}`);
+            const current = await res.json();
+            // The fetched config belongs to draft.providerId; if the draft was replaced by a newer
+            // one while the GET (or this instance's queue wait) was in flight, restart fresh.
+            if (paramDraftsRef.current.get(key) !== draft) return false;
+            const payload = buildModelParamFilterPayload(
+              current,
+              draft.modelId,
+              draft.block,
+              draft.allow
+            );
+            const putRes = await fetch(`/api/providers/${draft.providerId}/param-filters`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            if (!putRes.ok) throw new Error(`param-filters PUT failed: ${putRes.status}`);
+            return true;
+          });
+          if (!wroteDraft) continue;
+          // Only the exact draft that was written may be discarded.
+          if (paramDraftsRef.current.get(key) === draft) {
+            paramDraftsRef.current.delete(key);
+            return true;
+          }
+        } catch {
+          // Save failed — the draft (and the target it belongs to) is intentionally preserved so
+          // the next blur/close/unmount save retries it against its own provider/model.
+          return false;
+        }
+      }
+      // Budget exhausted (the user is still typing): stay dirty for this target.
+      return false;
+    };
+
+    try {
+      // Do not snapshot the keys once: a second target can become dirty while an earlier target's
+      // PUT is in flight. Keep selecting live drafts until only revisions that already failed in
+      // this drain remain. Remember the failed object (not just its key), so a newer edit for that
+      // target that lands while another request is pending still gets one save attempt.
+      const failedDrafts = new Map<string, ParamFilterDraft>();
+      while (true) {
+        const next = Array.from(paramDraftsRef.current.entries()).find(
+          ([key, draft]) => failedDrafts.get(key) !== draft
+        );
+        if (!next) break;
+        const [key] = next;
+        if (!(await saveDraftForTarget(key))) {
+          const failedDraft = paramDraftsRef.current.get(key);
+          if (failedDraft) failedDrafts.set(key, failedDraft);
+        }
+      }
+      // The indicator tracks unsaved work across ALL targets: a successful write for the target
+      // now on screen must not signal "saved" while another target's draft is still owed a write.
+      if (mountedRef.current) setParamSaveFailed(paramDraftsRef.current.size > 0);
+    } finally {
+      paramSavingRef.current = false;
+      if (mountedRef.current) setParamSaving(false);
+    }
+  }, []);
+
+  // Persist pending param-filter drafts when the popover closes, unmounts, or is re-pointed at a
+  // different provider/model (#8910).
   useEffect(() => {
-    setValuePeekRowId(null);
-    setValueFocusRowId(null);
-  }, [open, protocol]);
+    if (!open) return;
+    return () => {
+      void saveModelParamFilters();
+    };
+  }, [open, paramTargetKey, saveModelParamFilters]);
 
   const namedHeaderCount = headerRows.filter((r) => r.name.trim()).length;
   const canAddHeaderRow = namedHeaderCount < UPSTREAM_HEADERS_UI_MAX;
 
   const updateHeaderRow = (id: string, patch: Partial<Pick<HeaderDraftRow, "name" | "value">>) => {
-    setHeaderRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+    applyHeaderRows(headerRowsRef.current.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   };
 
   const addHeaderRow = () => {
     if (!canAddHeaderRow) return;
-    setHeaderRows((prev) => [...prev, { id: genHeaderRowId(), name: "", value: "" }]);
+    applyHeaderRows([...headerRowsRef.current, { id: genHeaderRowId(), name: "", value: "" }]);
   };
 
   const removeHeaderRow = (id: string) => {
-    setHeaderRows((prev) => {
-      const next = prev.filter((r) => r.id !== id);
-      const normalized = next.length === 0 ? [{ id: genHeaderRowId(), name: "", value: "" }] : next;
-      queueMicrotask(() => tryCommitHeaderRows(normalized));
-      return normalized;
-    });
+    const next = headerRowsRef.current.filter((r) => r.id !== id);
+    const normalized = next.length === 0 ? [{ id: genHeaderRowId(), name: "", value: "" }] : next;
+    applyHeaderRows(normalized);
+    queueMicrotask(() => tryCommitHeaderRows(normalized));
   };
 
   useEffect(() => {
@@ -235,7 +476,11 @@ export default function ModelCompatPopover({
       const target = e.target as Node;
       const insideTrigger = ref.current?.contains(target);
       const insidePanel = panelRef.current?.contains(target);
-      if (!insideTrigger && !insidePanel) setOpen(false);
+      if (!insideTrigger && !insidePanel) {
+        setOpen(false);
+        setValuePeekRowId(null);
+        setValueFocusRowId(null);
+      }
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
@@ -261,10 +506,10 @@ export default function ModelCompatPopover({
   }, [open]);
 
   useLayoutEffect(() => {
-    if (!open) {
-      setPortalPanelRect(null);
-      return;
-    }
+    // No rect reset on close: the portal render is gated on `open`, and
+    // reopening recomputes the rect below before the browser paints, so a
+    // stale rect is never visible.
+    if (!open) return;
     updatePortalPanelRect();
     window.addEventListener("resize", updatePortalPanelRect);
     window.addEventListener("scroll", updatePortalPanelRect, true);
@@ -281,7 +526,7 @@ export default function ModelCompatPopover({
     <div className="relative inline-flex" ref={ref}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggleOpen}
         disabled={disabled}
         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background text-text-muted hover:bg-muted hover:text-text-main disabled:opacity-50 transition-colors"
         title={t("compatAdjustmentsTitle")}
@@ -318,7 +563,7 @@ export default function ModelCompatPopover({
               </label>
               <select
                 value={protocol}
-                onChange={(e) => setProtocol(e.target.value)}
+                onChange={(e) => handleProtocolChange(e.target.value)}
                 disabled={disabled}
                 className="mb-4 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-xs text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-900"
               >
@@ -360,10 +605,7 @@ export default function ModelCompatPopover({
                   <input
                     type="text"
                     value={blockText}
-                    onChange={(e) => {
-                      setBlockText(e.target.value);
-                      setParamDirty(true);
-                    }}
+                    onChange={(e) => editParamDraft("block", e.target.value)}
                     onBlur={() => saveModelParamFilters()}
                     placeholder={t("compatBlockedParamsPlaceholder")}
                     disabled={disabled}
@@ -376,16 +618,22 @@ export default function ModelCompatPopover({
                       "Blocked params (stripped from requests)"
                     )}
                     {paramSaving && ` ● ${t("compatSaving")}`}
+                    {paramSaveFailed && !paramSaving && (
+                      <span
+                        role="alert"
+                        className="ml-1 font-medium text-red-600 dark:text-red-400"
+                        title={t("failedSaveConnectionRetry")}
+                      >
+                        ● {t("failed")}
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div>
                   <input
                     type="text"
                     value={allowText}
-                    onChange={(e) => {
-                      setAllowText(e.target.value);
-                      setParamDirty(true);
-                    }}
+                    onChange={(e) => editParamDraft("allow", e.target.value)}
                     onBlur={() => saveModelParamFilters()}
                     placeholder={t("compatAllowedParamsPlaceholder")}
                     disabled={disabled}
@@ -459,7 +707,10 @@ export default function ModelCompatPopover({
                       </div>
                       <button
                         type="button"
-                        disabled={disabled || headerRows.length <= 1}
+                        disabled={
+                          disabled ||
+                          (headerRows.length <= 1 && !row.name.trim() && !row.value.trim())
+                        }
                         onClick={() => removeHeaderRow(row.id)}
                         title={t("compatUpstreamRemoveRow")}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/80 text-text-muted hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"

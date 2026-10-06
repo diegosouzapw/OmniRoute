@@ -3,7 +3,7 @@ import { MCP_TOOLS, MCP_TOOL_MAP } from "@omniroute/open-sse/mcp-server/schemas/
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {
-  const authError = await requireManagementAuth(request);
+  const authError = await requireManagementAuth(request, { acceptMcpConnectScope: true });
   if (authError) return authError;
   try {
     return NextResponse.json({

@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -91,6 +101,13 @@ test(
       const cli = await importFresh("bin/cli/sqlite.mjs");
       const setup = await cli.openOmniRouteDb();
       assert.ok(fs.existsSync(setup.dbPath), "setup created storage.sqlite");
+      setup.db
+        .prepare(
+          `INSERT INTO provider_connections
+            (id, provider, created_at, updated_at)
+           VALUES (?, ?, ?, ?)`
+        )
+        .run("setup-provider", "openai", "2026-09-02T00:00:00.000Z", "2026-09-02T00:00:00.000Z");
       setup.db.close();
 
       const onDisk = new Database(setup.dbPath, { readonly: true });
@@ -122,17 +139,38 @@ test(
       }, "first serve must not abort on a fresh setup DB that only has the 001 seed (#9934)");
 
       // Prove the fresh DB actually got migrated past 001 to the latest version.
-      const maxRow = db.prepare(
-        "SELECT MAX(CAST(version AS INTEGER)) AS maxV FROM _omniroute_migrations"
-      ).get();
+      const maxRow = db
+        .prepare("SELECT MAX(CAST(version AS INTEGER)) AS maxV FROM _omniroute_migrations")
+        .get();
       assert.ok(
         (maxRow?.maxV ?? 0) > 1,
         `expected migrations beyond 001 to run, got max=${maxRow?.maxV}`
       );
+
+      const backupDir = path.join(dataDir, "db_backups");
+      const snapshots = fs
+        .readdirSync(backupDir)
+        .filter((name) => /^db_state-[a-f0-9]{64}_pre-migration\.sqlite$/.test(name));
+      assert.equal(
+        snapshots.length,
+        1,
+        "a setup-created file is logically fresh for the mass guard but physically existing for snapshot safety"
+      );
+
+      const snapshot = new Database(path.join(backupDir, snapshots[0]!), { readonly: true });
+      try {
+        assert.deepEqual(
+          snapshot.prepare("SELECT id, provider FROM provider_connections").get(),
+          { id: "setup-provider", provider: "openai" },
+          "the mandatory snapshot must preserve setup-created provider state"
+        );
+      } finally {
+        snapshot.close();
+      }
     } finally {
       if (originalDataDir === undefined) delete process.env.DATA_DIR;
       else process.env.DATA_DIR = originalDataDir;
-      fs.rmSync(dataDir, { recursive: true, force: true });
+      fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   }
 );

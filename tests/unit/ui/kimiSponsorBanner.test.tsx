@@ -12,7 +12,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const STORAGE_KEY = "omniroute-kimi-sponsor-banner-dismissed-v2";
 const LEGACY_V1_STORAGE_KEY = "omniroute-kimi-sponsor-banner-dismissed-v1";
-const KIMI_PLATFORM_AFF_URL = "https://platform.kimi.ai?aff=omniroute";
+const KIMI_PLATFORM_AFF_URL =
+  "https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute";
 
 vi.mock("next-intl", () => ({ useTranslations: () => (k: string) => k }));
 vi.mock("@/shared/components/ProviderIcon", () => ({ default: () => null }));

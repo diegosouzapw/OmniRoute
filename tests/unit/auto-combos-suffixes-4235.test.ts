@@ -22,14 +22,14 @@ const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.beforeEach(() => resetStorage());
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#4235 parseAutoSuffix parses category and category:tier", () => {
@@ -86,6 +86,16 @@ test("#4235 reliability-first mode pack exists and is normalized", () => {
   assert.ok(Math.abs(sum - 1.0) < 0.01, `reliability-first weights sum to ~1.0 (got ${sum})`);
   // health + stability should dominate
   assert.ok(pack.health >= 0.3, "reliability-first leans on circuit-breaker health");
+});
+
+test("every pack carries quality>0 and reliability>0", () => {
+  for (const [name, w] of Object.entries(modePacks.MODE_PACKS)) {
+    const weights = w as { quality?: unknown; reliability?: unknown } & Record<string, unknown>;
+    assert.ok(Number(weights.quality) > 0, `${name} quality>0`);
+    assert.ok(Number(weights.reliability) > 0, `${name} reliability>0`);
+    const sum = Object.values(weights).reduce((a: number, b: unknown) => a + Number(b), 0);
+    assert.ok(Math.abs(sum - 0.9999) < 0.002, `${name} sum ~0.9999 got ${sum}`);
+  }
 });
 
 test("#4235 createBuiltinAutoCombo composes tier weights for auto/coding:fast", async () => {

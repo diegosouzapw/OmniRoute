@@ -143,6 +143,37 @@ test("vision-bridge: falls back to reasoning_content when content is null", asyn
   }
 });
 
+test("vision-bridge: falls back to plain `reasoning` when content is null (opencode gateway)", async () => {
+  // opencode-routed gateways name the reasoning field `reasoning` (not
+  // `reasoning_content`) — e.g. opencode/mimo-v2.5-free (#6623 / #10809).
+  // extractOpenAICompatibleContent must use it as the description.
+  const reasoningText =
+    "The image shows a young black Labrador puppy with golden-brown eyes sitting on weathered wooden planks.";
+  const mockResponse = {
+    ok: true,
+    json: async () => ({
+      choices: [
+        {
+          finish_reason: "length",
+          message: {
+            content: null,
+            reasoning: reasoningText,
+          },
+        },
+      ],
+    }),
+  };
+
+  globalThis.fetch = async () => mockResponse as unknown as Response;
+
+  try {
+    const result = await callVisionModel(TINY_PNG, baseConfig());
+    assert.strictEqual(result, reasoningText);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("vision-bridge: parses SSE reasoning_content deltas when content is empty", async () => {
   const reasoningPart1 = "The user wants a concise description of an image. ";
   const reasoningPart2 = "A black Labrador puppy gazes up at the camera.";

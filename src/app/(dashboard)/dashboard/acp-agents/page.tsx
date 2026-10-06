@@ -81,7 +81,9 @@ export default function AgentsPage() {
   }, []);
 
   useEffect(() => {
-    fetchAgents();
+    void (async () => {
+      await fetchAgents();
+    })();
   }, [fetchAgents]);
 
   const handleRefresh = async () => {

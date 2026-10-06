@@ -70,7 +70,7 @@ function insertCallLog(row: Record<string, unknown>) {
 
 test.before(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   // Seed 25 rows with strictly increasing timestamps (id N -> minute N).
   for (let i = 0; i < 25; i++) {
@@ -81,7 +81,7 @@ test.before(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#2565: getCallLogs honors limit and returns newest-first", async () => {

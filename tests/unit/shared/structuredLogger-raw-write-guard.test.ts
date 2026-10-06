@@ -89,7 +89,7 @@ test("error() with a destroyed stderr does not crash, and still writes to the lo
     "fatal() must still reach writeToFile after the stderr write is skipped"
   );
 
-  rmSync(dir, { recursive: true, force: true });
+  rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // Guard against collateral damage: #1006's suppression policy must be untouched by this change.

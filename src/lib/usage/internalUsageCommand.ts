@@ -13,7 +13,7 @@ const TEXT_PLAIN_HEADERS = { "Content-Type": "text/plain; charset=utf-8" } as co
 
 type JsonRecord = Record<string, unknown>;
 
-interface UsageCommandApiKeyMetadata {
+export interface UsageCommandApiKeyMetadata {
   id: string;
   name?: string;
   allowedConnections?: string[] | null;
@@ -31,7 +31,7 @@ interface ProviderConnectionLike {
   quotaWindowThresholds?: Record<string, number> | null;
 }
 
-interface UsageSnapshot {
+export interface UsageSnapshot {
   connectionId: string;
   provider: string;
   plan: unknown;
@@ -39,7 +39,7 @@ interface UsageSnapshot {
   quotaWindowThresholds?: Record<string, number> | null;
 }
 
-interface UsageCommandSelection {
+export interface UsageCommandSelection {
   preferredProvider?: string | null;
   preferredConnectionId?: string | null;
 }
@@ -99,7 +99,7 @@ async function normalizeDeps(deps: InternalUsageCommandDeps = {}): Promise<Requi
 
 async function getDefaultUsageCommandQuotaPolicy(): Promise<UsageCommandQuotaPolicy> {
   const [{ getCachedSettings }, { resolveResilienceSettings }] = await Promise.all([
-    import("@/lib/localDb"),
+    import("@/lib/db/readCache"),
     import("@/lib/resilience/settings"),
   ]);
   const resilience = resolveResilienceSettings(await getCachedSettings());
@@ -258,7 +258,7 @@ function snapshotFromConnection(
   };
 }
 
-async function collectUsageSnapshots(
+export async function collectUsageSnapshots(
   metadata: UsageCommandApiKeyMetadata,
   deps: RequiredDeps
 ): Promise<UsageSnapshot[]> {
@@ -525,6 +525,55 @@ function appendQuotaBlock(
   lines.push(`⏱ reset in ${formatResetIn(getResetAt(match?.quota ?? null), now)}`);
 }
 
+/**
+ * Structured form of the usage command — what {@link buildUsageCommandText}
+ * renders as text, exposed as data for API consumers (the OmniCopilot panel
+ * asks for it via `?format=json`). Text and JSON share the exact same
+ * collectors, so the two can never disagree about a number.
+ *
+ * The key design constraint is the 403 case: a key without `allowUsageCommand`
+ * must reach the client as a *structured* reason, not a bare text error — a
+ * caller rendering a usage panel has to be able to tell "the server does not
+ * know your limits yet" apart from "this key may not ask".
+ */
+/** Discriminated so the caller never reads a data field off a refusal:
+ * `allowed:false` carries only `error`; `allowed:true` carries the data. */
+export type UsageCommandJson =
+  | { allowed: false; error: { message: string } }
+  | {
+      allowed: true;
+      /** Present only when the key opted into per-key usage limits. */
+      personal: unknown | null;
+      /** The selected provider snapshot, or null when nothing is cached. */
+      provider: UsageSnapshot | null;
+      /** Every connection's snapshot, so a panel can render Codex / Claude /
+       * OpenCode side by side instead of only the selected one (#11191). The
+       * single-pick in `provider` is a presentation choice for a terminal; the
+       * collector already gathered all of them. */
+      providers: UsageSnapshot[];
+    };
+
+export async function buildUsageCommandJson(
+  metadata: UsageCommandApiKeyMetadata,
+  deps: InternalUsageCommandDeps = {},
+  selection: UsageCommandSelection = {}
+): Promise<UsageCommandJson> {
+  const resolvedDeps = await normalizeDeps(deps);
+  const personal =
+    metadata.usageLimitEnabled === true
+      ? await resolvedDeps.getApiKeyUsageLimitStatus(
+          {
+            ...metadata,
+            preferredProvider: selection.preferredProvider ?? metadata.preferredProvider ?? null,
+          },
+          { now: resolvedDeps.now }
+        )
+      : null;
+  const snapshots = await collectUsageSnapshots(metadata, resolvedDeps);
+  const provider = selectUsageSnapshot(snapshots, selection);
+  return { allowed: true, personal, provider, providers: snapshots };
+}
+
 export async function buildUsageCommandText(
   metadata: UsageCommandApiKeyMetadata,
   deps: InternalUsageCommandDeps = {},
@@ -585,6 +634,17 @@ function inferHttpUsageCommandSelection(request: Request): UsageCommandSelection
       preferredConnectionId: readHeader(request, "x-omniroute-connection")?.trim() || null,
       preferredProvider: null,
     };
+  }
+}
+
+/** `?format=json` (or `?format=JSON`) — anything else falls back to the text
+ * form, which is the historical contract of this endpoint. */
+function wantsUsageCommandJson(request: Request): boolean {
+  try {
+    const format = new URL(request.url, "http://localhost").searchParams.get("format");
+    return format !== null && format.trim().toLowerCase() === "json";
+  } catch {
+    return false;
   }
 }
 
@@ -764,22 +824,54 @@ export async function handleInternalUsageCommandHttpRequest(
 ): Promise<Response> {
   try {
     const resolvedDeps = await normalizeDeps(deps);
+    const json = wantsUsageCommandJson(request);
     const apiKey = extractUsageCommandApiKey(request);
     if (!apiKey || !(await resolvedDeps.isValidApiKey(apiKey))) {
+      if (json) {
+        return Response.json(
+          {
+            allowed: false,
+            error: { message: USAGE_COMMAND_AUTH_REQUIRED_MESSAGE },
+          } satisfies UsageCommandJson,
+          { status: 401 }
+        );
+      }
       return createPlainUsageCommandResponse(USAGE_COMMAND_AUTH_REQUIRED_MESSAGE, 401);
     }
 
     const metadata = await resolvedDeps.getApiKeyMetadata(apiKey);
     if (!metadata?.id) {
+      if (json) {
+        return Response.json(
+          {
+            allowed: false,
+            error: { message: USAGE_COMMAND_AUTH_REQUIRED_MESSAGE },
+          } satisfies UsageCommandJson,
+          { status: 401 }
+        );
+      }
       return createPlainUsageCommandResponse(USAGE_COMMAND_AUTH_REQUIRED_MESSAGE, 401);
     }
 
     if (metadata.allowUsageCommand !== true) {
+      if (json) {
+        return Response.json(
+          {
+            allowed: false,
+            error: { message: USAGE_COMMAND_DISABLED_MESSAGE },
+          } satisfies UsageCommandJson,
+          { status: 403 }
+        );
+      }
       return createPlainUsageCommandResponse(USAGE_COMMAND_DISABLED_MESSAGE, 403);
     }
 
+    const selection = inferHttpUsageCommandSelection(request);
+    if (json) {
+      return Response.json(await buildUsageCommandJson(metadata, resolvedDeps, selection));
+    }
     return createPlainUsageCommandResponse(
-      await buildUsageCommandText(metadata, resolvedDeps, inferHttpUsageCommandSelection(request))
+      await buildUsageCommandText(metadata, resolvedDeps, selection)
     );
   } catch (err) {
     const body = buildErrorBody(500, err instanceof Error ? err.message : String(err));

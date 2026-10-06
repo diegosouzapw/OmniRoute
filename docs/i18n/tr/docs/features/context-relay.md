@@ -1,65 +1,57 @@
 # Context Relay (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../../docs/features/context-relay.md) · 🇪🇸 [es](../../../es/docs/features/context-relay.md) · 🇫🇷 [fr](../../../fr/docs/features/context-relay.md) · 🇩🇪 [de](../../../de/docs/features/context-relay.md) · 🇮🇹 [it](../../../it/docs/features/context-relay.md) · 🇷🇺 [ru](../../../ru/docs/features/context-relay.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/features/context-relay.md) · 🇯🇵 [ja](../../../ja/docs/features/context-relay.md) · 🇰🇷 [ko](../../../ko/docs/features/context-relay.md) · 🇸🇦 [ar](../../../ar/docs/features/context-relay.md) · 🇮🇳 [hi](../../../hi/docs/features/context-relay.md) · 🇮🇳 [in](../../../in/docs/features/context-relay.md) · 🇹🇭 [th](../../../th/docs/features/context-relay.md) · 🇻🇳 [vi](../../../vi/docs/features/context-relay.md) · 🇮🇩 [id](../../../id/docs/features/context-relay.md) · 🇲🇾 [ms](../../../ms/docs/features/context-relay.md) · 🇳🇱 [nl](../../../nl/docs/features/context-relay.md) · 🇵🇱 [pl](../../../pl/docs/features/context-relay.md) · 🇸🇪 [sv](../../../sv/docs/features/context-relay.md) · 🇳🇴 [no](../../../no/docs/features/context-relay.md) · 🇩🇰 [da](../../../da/docs/features/context-relay.md) · 🇫🇮 [fi](../../../fi/docs/features/context-relay.md) · 🇵🇹 [pt](../../../pt/docs/features/context-relay.md) · 🇷🇴 [ro](../../../ro/docs/features/context-relay.md) · 🇭🇺 [hu](../../../hu/docs/features/context-relay.md) · 🇧🇬 [bg](../../../bg/docs/features/context-relay.md) · 🇸🇰 [sk](../../../sk/docs/features/context-relay.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/features/context-relay.md) · 🇮🇱 [he](../../../he/docs/features/context-relay.md) · 🇵🇭 [phi](../../../phi/docs/features/context-relay.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/features/context-relay.md) · 🇨🇿 [cs](../../../cs/docs/features/context-relay.md) · 🇹🇷 [tr](../../../tr/docs/features/context-relay.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../features/context-relay.md) · 🇸🇦 [ar](../../../ar/docs/features/context-relay.md) · 🇦🇿 [az](../../../az/docs/features/context-relay.md) · 🇧🇬 [bg](../../../bg/docs/features/context-relay.md) · 🇨🇿 [cs](../../../cs/docs/features/context-relay.md) · 🇩🇰 [da](../../../da/docs/features/context-relay.md) · 🇩🇪 [de](../../../de/docs/features/context-relay.md) · 🇪🇸 [es](../../../es/docs/features/context-relay.md) · 🇫🇮 [fi](../../../fi/docs/features/context-relay.md) · 🇫🇷 [fr](../../../fr/docs/features/context-relay.md) · 🇮🇱 [he](../../../he/docs/features/context-relay.md) · 🇮🇳 [hi](../../../hi/docs/features/context-relay.md) · 🇭🇺 [hu](../../../hu/docs/features/context-relay.md) · 🇮🇩 [id](../../../id/docs/features/context-relay.md) · 🇮🇹 [it](../../../it/docs/features/context-relay.md) · 🇯🇵 [ja](../../../ja/docs/features/context-relay.md) · 🇰🇷 [ko](../../../ko/docs/features/context-relay.md) · 🇲🇾 [ms](../../../ms/docs/features/context-relay.md) · 🇳🇱 [nl](../../../nl/docs/features/context-relay.md) · 🇳🇴 [no](../../../no/docs/features/context-relay.md) · 🇵🇭 [phi](../../../phi/docs/features/context-relay.md) · 🇵🇹 [pt](../../../pt/docs/features/context-relay.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/features/context-relay.md) · 🇷🇴 [ro](../../../ro/docs/features/context-relay.md) · 🇷🇺 [ru](../../../ru/docs/features/context-relay.md) · 🇸🇰 [sk](../../../sk/docs/features/context-relay.md) · 🇸🇪 [sv](../../../sv/docs/features/context-relay.md) · 🇹🇭 [th](../../../th/docs/features/context-relay.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/features/context-relay.md) · 🇻🇳 [vi](../../../vi/docs/features/context-relay.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/features/context-relay.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/features/context-relay.md)
 
 ---
 
-`context-relay` is a combo strategy that keeps session continuity when the active account
-rotates before the conversation is finished.
+`context-relay`, konuşma tamamlanmadan önce aktif hesap değiştiğinde (rotasyon) oturum sürekliliğini koruyan bir kombo stratejisidir.
 
-The current runtime behaves like priority routing for model selection, then adds a
-handoff layer on top:
+Mevcut çalışma zamanı model seçimi için öncelikli (priority) yönlendirme gibi davranır, ardından üzerine bir devir (handoff) katmanı ekler:
 
-- before the active account is exhausted, OmniRoute generates a compact structured summary
-- after authentication selects a different account for the same session, OmniRoute injects
-  that summary as a system message into the next request
-- once the handoff is consumed successfully, it is removed from storage
+- Aktif hesap tükenmeden önce OmniRoute kompakt ve yapılandırılmış bir özet üretir
+- Kimlik doğrulama aynı oturum için farklı bir hesap seçtikten sonra, OmniRoute bu özeti sonraki isteğe bir sistem mesajı olarak enjekte eder
+- Devir başarıyla tüketildiğinde depodan silinir
 
-## When To Use It
+## Ne Zaman Kullanılmalı
 
-Use `context-relay` when all of the following are true:
+Aşağıdakilerin tümü doğru olduğunda `context-relay` kullanın:
 
-- the combo is expected to rotate between multiple accounts of the same provider
-- losing short-term conversational continuity would hurt task quality
-- the provider exposes enough quota information to predict an approaching account limit
+- Kombonun aynı sağlayıcının birden çok hesabı arasında geçiş yapması bekleniyorsa
+- Kısa vadeli konuşma sürekliliğini kaybetmek görev kalitesine zarar verecekse
+- Sağlayıcı yaklaşan bir hesap sınırını tahmin etmek için yeterli kota bilgisi sunuyorsa
 
-This is most useful for long-running coding or research sessions that may outlive a single
-account window.
+Bu özellik, tek bir hesap penceresinden daha uzun sürebilecek uzun kodlama veya araştırma oturumları için son derece kullanışlıdır.
 
-## Runtime Flow
+## Çalışma Zamanı Akışı
 
-The current behavior is intentionally split across two runtime layers.
+Mevcut davranış kasıtlı olarak iki çalışma zamanı katmanına ayrılmıştır.
 
-### 0% to 84% quota used
+### %0 ila %84 Kota Kullanımı
 
-No handoff is generated. Requests behave like normal priority routing.
+Hiçbir devir özeti üretilmez. İstekler normal öncelik yönlendirmesi gibi davranır.
 
-### 85% to 94% quota used
+### %85 ila %94 Kota Kullanımı
 
-If the active provider is enabled in `handoffProviders`, OmniRoute generates a structured
-handoff summary in the background before the account is fully exhausted.
+Aktif sağlayıcı `handoffProviders` içinde etkinleştirilmişse, OmniRoute hesap tamamen tükenmeden önce arka planda yapılandırılmış bir devir özeti üretir.
 
-Important details:
+Önemli detaylar:
 
-- the default warning threshold is `0.85`
-- the hard stop for generation is `0.95`
-- only one in-flight handoff generation is allowed per `sessionId + comboName`
-- if an active handoff already exists for that session/combo, no duplicate summary is generated
+- Varsayılan uyarı eşiği `0.85`'tir
+- Üretim için kesin durma noktası `0.95`'tir
+- `sessionId + comboName` başına yalnızca bir devam eden devir üretimine izin verilir
+- Bu oturum/kombo için zaten etkin bir devir varsa, mükerrer özet üretilmez
 
-### 95% or more quota used
+### %95 veya Daha Fazla Kota Kullanımı
 
-No new handoff is generated. At this point the system is already in or near exhaustion and
-the runtime avoids scheduling another summary request.
+Yeni bir devir üretilmez. Bu noktada sistem zaten tükenme sınırındadır veya tükenmiştir; çalışma zamanı başka bir özet isteği zamanlamaktan kaçınır.
 
-### After account rotation
+### Hesap Rotasyonundan Sonra
 
-When the next request for the same session resolves to a different authenticated account,
-OmniRoute prepends the stored handoff as a system message. Injection happens only after the
-real account switch is known.
+Aynı oturum için bir sonraki istek farklı bir kimliği doğrulanmış hesaba çözümlendiğinde, OmniRoute saklanan devir özetini bir sistem mesajı olarak başa ekler. Enjeksiyon yalnızca gerçek hesap değişikliği bilindikten sonra gerçekleşir.
 
-## Handoff Payload
+## Devir Yükü (Handoff Payload)
 
-The persisted handoff payload is stored in `context_handoffs` and includes:
+Kalıcı devir yükü `context_handoffs` tablosunda saklanır ve şunları içerir:
 
 - `sessionId`
 - `comboName`
@@ -74,57 +66,49 @@ The persisted handoff payload is stored in `context_handoffs` and includes:
 - `generatedAt`
 - `expiresAt`
 
-The summary model is instructed to return a JSON object with this structure:
+Özet modeline şu yapıda bir JSON nesnesi döndürmesi talimatı verilir:
 
 ```json
 {
-  "summary": "Dense summary of what matters for continuity",
-  "keyDecisions": ["Decision 1", "Decision 2"],
-  "taskProgress": "What is done, what is pending, and the next step",
-  "activeEntities": ["fileA.ts", "feature X", "provider Y"]
+  "summary": "Süreklilik için önemli olan konuların yoğun özeti",
+  "keyDecisions": ["Karar 1", "Karar 2"],
+  "taskProgress": "Ne yapıldı, ne bekliyor ve bir sonraki adım",
+  "activeEntities": ["dosyaA.ts", "özellik X", "sağlayıcı Y"]
 }
 ```
 
-At injection time, OmniRoute converts that payload into a `<context_handoff>` system
-message so the next account can continue with the correct local context.
+Enjeksiyon anında OmniRoute bu yükü bir `<context_handoff>` sistem mesajına dönüştürür; böylece sonraki hesap doğru yerel bağlamla devam edebilir.
 
 ## Yapılandırma
 
-`context-relay` supports these config fields:
+`context-relay` şu yapılandırma alanlarını destekler:
 
-- `handoffThreshold`: warning threshold for summary generation, default `0.85`
-- `handoffModel`: optional model override used only for summary generation
-- `handoffProviders`: allowlist of providers allowed to trigger handoff generation
+- `handoffThreshold`: Özet üretimi için uyarı eşiği, varsayılan `0.85`
+- `handoffModel`: Yalnızca özet üretimi için kullanılan isteğe bağlı model geçersiz kılma
+- `handoffProviders`: Devir üretimini tetiklemesine izin verilen sağlayıcıların izin listesi
 
-Global defaults can be configured in Settings, and combo-specific values can override them
-in the Combos page.
+Genel varsayılanlar Ayarlar sayfasında yapılandırılabilir ve kombo bazlı değerler bunları Kombolar sayfasında geçersiz kılabilir.
 
-## Architectural Note
+## Mimari Not
 
-The current implementation does not use a standalone `handleContextRelayCombo` handler.
+Mevcut uygulama bağımsız bir `handleContextRelayCombo` işleyicisi kullanmaz.
 
-Instead:
+Bunun yerine:
 
-- `open-sse/services/combo.ts` decides whether a successful turn should generate a handoff
-- `src/sse/handlers/chat.ts` injects the handoff only after authentication resolves the
-  actual account used for the request
+- `open-sse/services/combo.ts` başarılı bir turun devir üretip üretmeyeceğine karar verir
+- `src/sse/handlers/chat.ts` devir özetini yalnızca kimlik doğrulama istek için kullanılan gerçek hesabı belirledikten sonra enjekte eder
 
-This split is intentional in the current codebase because the combo loop alone does not know
-whether the request stayed on the same account or actually switched accounts.
+## Sınırlamalar
 
-## Limitations
+- Etkili çalışma zamanı desteği şu anda `codex` kota rotasyonu üzerinde yoğunlaşmıştır.
+- `handoffProviders` bir yapılandırma yüzeyi olarak modellenmiştir ancak gerçek devir üretimi hala sağlayıcıya özel kota altyapısına bağlıdır.
+- Özet kasıtlı olarak kompakt ve yakın geçmişe dayalıdır; tam bir konuşma geçmişi tekrar oynatma mekanizması değildir.
+- Devirler `sessionId + comboName` ile kapsama alınır ve otomatik olarak sona erer.
+- Oturum hesap değiştirmezse, saklanan devir enjekte edilmez.
 
-- Effective runtime support is currently centered on `codex` quota rotation.
-- `handoffProviders` is already modeled as a config surface, but real handoff generation
-  still depends on provider-specific quota plumbing.
-- The summary is intentionally compact and recent-history based; it is not a full transcript
-  replay mechanism.
-- Handoffs are scoped by `sessionId + comboName` and expire automatically.
-- If the session does not switch accounts, the stored handoff is not injected.
+## Önerilen Kullanım Modeli
 
-## Recommended Usage Pattern
-
-- use multiple accounts from the same provider
-- keep stable `sessionId` values across the session
-- set `handoffThreshold` early enough to leave room for the background summary request
-- treat the feature as continuity assistance, not as a replacement for persistent memory
+- Aynı sağlayıcıdan birden fazla hesap kullanın
+- Oturum boyunca kararlı `sessionId` değerleri koruyun
+- Arka plan özet isteğine yer bırakmak için `handoffThreshold` değerini yeterince erken bir seviyeye ayarlayın
+- Bu özelliği kalıcı belleğin yerine geçen bir mekanizma olarak değil, bir süreklilik desteği olarak değerlendirin

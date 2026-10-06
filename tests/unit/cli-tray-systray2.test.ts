@@ -48,7 +48,7 @@ test("chmodSystrayBinAt sets +x on the bundled tray binary when present", () => 
     const mode = statSync(binPath).mode & 0o777;
     assert.ok((mode & 0o111) !== 0, `expected exec bits on bin, got mode=${mode.toString(8)}`);
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -59,7 +59,7 @@ test("chmodSystrayBinAt is a no-op when the binary doesn't exist", () => {
     assert.equal(result.changed, false);
     assert.equal(result.reason, "missing");
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -70,6 +70,6 @@ test("chmodSystrayBinAt returns missing on win32 when binary is absent (#8609)",
     assert.equal(result.changed, false);
     assert.equal(result.reason, "missing");
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

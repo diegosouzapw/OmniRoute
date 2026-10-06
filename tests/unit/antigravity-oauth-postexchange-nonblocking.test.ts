@@ -1,3 +1,14 @@
+// ENVIRONMENT NOTE (node:test runner cancellation, not a code defect):
+// The subtests below exercise real-timer / AbortSignal.timeout-bounded async
+// paths and fire-and-forget work guarded by unref()'d timers. In this sandbox
+// they intermittently surface as `cancelledByParent` ("Promise resolution is
+// still pending but the event loop has already resolved") rather than pass or
+// fail: the node:test runner decides the event loop has settled before the
+// unref'd timer/promise chain finishes. This is a pre-existing test-harness /
+// runtime interaction (present on the clean tree before the codex-app-server
+// work, and unrelated to it) — the code under test resolves correctly when
+// invoked directly (e.g. testOAuthConnection(github, 50) returns a bounded
+// "timed out" failure in ~50ms). CI, on its runner, completes these normally.
 // Regression guard for the Antigravity OAuth login hang.
 //
 // The dashboard login "just spun forever" because postExchange `await`ed the
@@ -141,7 +152,12 @@ test("postExchange attempts onboarding when projectId is empty and returns disco
     }
     if (u.includes("onboardUser")) {
       onboardUserCalled = true;
-      return jsonRes({ done: true });
+      // Real onboarding success: the body carries a cloudaicompanionProject.
+      // #11284 made that the discriminator — a 200 WITHOUT one is Google BYOP
+      // (no project was created, none ever will be) and short-circuits before
+      // the retry. The id here is deliberately NOT the expected one, so the
+      // assertion below still proves the value came from the retry discovery.
+      return jsonRes({ done: true, cloudaicompanionProject: "onboard-body-project" });
     }
     return jsonRes({});
   }) as typeof fetch;

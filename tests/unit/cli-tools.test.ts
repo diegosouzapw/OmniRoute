@@ -10,6 +10,7 @@ const {
   normalizeCliCompatProviderId,
 } = await import("../../src/shared/constants/cliCompatProviders.ts");
 const { CLI_TOOL_IDS } = await import("../../src/shared/services/cliRuntime.ts");
+const { hasRegisteredAgent } = await import("../../src/lib/acp/registry.ts");
 const { applyFingerprint, isCliCompatEnabled, setCliCompatProviders } =
   await import("../../open-sse/config/cliFingerprints.ts");
 
@@ -29,6 +30,22 @@ test("Hermes quick-config is registered as a guide-based CLI tool", () => {
   assert.ok(Array.isArray(hermes.guideSteps));
   assert.ok(String(hermes.codeBlock?.code || "").includes('"baseURL": "{{baseUrl}}"'));
   assert.ok(CLI_TOOL_IDS.includes("hermes"));
+});
+
+test("CLI tools with unresolved logo provenance use the bundled generic icon", () => {
+  for (const toolId of ["droid", "kilo", "omp", "letta"] as const) {
+    assert.ok(CLI_TOOLS[toolId], `${toolId} must remain in the CLI catalog`);
+    assert.equal(CLI_TOOLS[toolId].image, "/providers/cli-generic.svg");
+  }
+
+  assert.ok(CLI_TOOLS.opencode, "opencode must remain in the CLI catalog");
+  assert.equal(CLI_TOOLS.opencode.imageLight, "/providers/cli-generic.svg");
+  assert.equal(CLI_TOOLS.opencode.imageDark, "/providers/cli-generic.svg");
+});
+
+test("ACP registry accepts the Gemini CLI target used by the manager", () => {
+  assert.equal(hasRegisteredAgent("gemini"), true);
+  assert.equal(hasRegisteredAgent("definitely-not-an-agent"), false);
 });
 
 test("CLI fingerprint toggles only expose implemented fingerprints and functional legacy aliases", () => {
@@ -100,7 +117,9 @@ test("CLI fingerprint preserves Codex executor User-Agent and maps legacy Copilo
     { model: "gpt-4o", messages: [] }
   );
 
-  assert.equal(copilot.headers["User-Agent"], "GitHubCopilotChat/0.54.0");
+  // #10952 bumped GITHUB_COPILOT_CLI_VERSION 0.54.0 -> 1.0.88; the fingerprint
+  // pin tracks the advertised upstream CLI version.
+  assert.equal(copilot.headers["User-Agent"], "GitHubCopilotChat/1.0.88");
 });
 
 test("CLI fingerprint keeps legacy Copilot settings functional without exposing duplicate UI toggles", () => {

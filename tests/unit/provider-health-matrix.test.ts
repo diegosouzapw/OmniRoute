@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-health-matrix-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -22,10 +23,12 @@ const route = await import("../../src/app/api/providers/health-matrix/route.ts")
 const accountFallback = await import("@omniroute/open-sse/services/accountFallback");
 
 const PROVIDER = "matrix-test-provider";
+const ALIAS_PROVIDER = "nous";
+const CANONICAL_ALIAS_PROVIDER = "nous-research";
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   for (const lockout of accountFallback.getAllModelLockouts()) {
     if (lockout.provider === PROVIDER) {
@@ -33,6 +36,13 @@ async function resetStorage() {
     }
   }
   accountFallback.clearProviderFailure(PROVIDER);
+  accountFallback.clearProviderFailure(ALIAS_PROVIDER);
+  accountFallback.clearProviderFailure(CANONICAL_ALIAS_PROVIDER);
+  for (const lockout of accountFallback.getAllModelLockouts()) {
+    if (lockout.provider === ALIAS_PROVIDER || lockout.provider === CANONICAL_ALIAS_PROVIDER) {
+      accountFallback.clearModelLock(lockout.provider, lockout.connectionId, lockout.model);
+    }
+  }
 }
 
 async function enableManagementAuth() {
@@ -46,7 +56,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  await cleanupTempDataDir(TEST_DATA_DIR);
 
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
@@ -137,6 +147,60 @@ test("provider health matrix combines connections, synced models, logs and locko
   assert.ok(locked);
   assert.equal(locked.status, "locked");
   assert.equal(locked.lockoutReason, "quota_exhausted");
+});
+
+test("provider health matrix collapses alias-keyed signals into one canonical provider", async () => {
+  const connection = (await providersDb.createProviderConnection({
+    id: "matrix-nous-connection",
+    provider: CANONICAL_ALIAS_PROVIDER,
+    authType: "apikey",
+    name: "nous-key",
+    apiKey: "test-key",
+    isActive: true,
+  })) as Record<string, unknown>;
+  const connectionId = String(connection.id);
+
+  accountFallback.lockModel(
+    ALIAS_PROVIDER,
+    connectionId,
+    "nous-locked-model",
+    "quota_exhausted",
+    60_000,
+    {}
+  );
+  accountFallback.recordProviderFailure(ALIAS_PROVIDER, undefined, undefined, {
+    failureThreshold: 1,
+    resetTimeoutMs: 60_000,
+  });
+
+  const report = await matrix.buildProviderHealthMatrix({ includeHealthy: true, range: "24h" });
+  const canonicalRows = report.providers.filter(
+    (provider) => provider.provider === CANONICAL_ALIAS_PROVIDER
+  );
+
+  assert.equal(canonicalRows.length, 1, "the canonical provider must have exactly one health row");
+  assert.equal(
+    report.providers.some((provider) => provider.provider === ALIAS_PROVIDER),
+    false,
+    "the alias must not create a duplicate provider row"
+  );
+
+  const provider = canonicalRows[0];
+  assert.equal(provider.connections.total, 1);
+  assert.equal(provider.circuitBreaker?.state, "OPEN");
+  assert.equal(provider.modelLockoutCount, 1);
+  assert.equal(provider.accounts[0]?.models[0]?.model, "nous-locked-model");
+  assert.equal(provider.accounts[0]?.models[0]?.isLockedOut, true);
+
+  const filteredByAlias = await matrix.buildProviderHealthMatrix({
+    provider: ALIAS_PROVIDER,
+    includeHealthy: true,
+    range: "24h",
+  });
+  assert.equal(filteredByAlias.providers.length, 1);
+  assert.equal(filteredByAlias.providers[0]?.provider, CANONICAL_ALIAS_PROVIDER);
+  assert.equal(filteredByAlias.providers[0]?.connections.total, 1);
+  assert.equal(filteredByAlias.providers[0]?.circuitBreaker?.state, "OPEN");
 });
 
 test("provider health matrix treats recovered models as degraded instead of error", async () => {

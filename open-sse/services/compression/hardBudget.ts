@@ -162,16 +162,17 @@ export function applyHardBudget(
   // Distribute the aggregate budget proportionally per message so the SUM stays
   // ≤ target (passing the full target to each message would let an N-message body
   // come back N× over budget).
+  let changed = false;
   const newMessages = messages.map((m) => {
     if (typeof m.content !== "string") return m;
     const msgTokens = countTextTokens(m.content, tokenizerContext);
     const perMsgTarget =
       totalTokens > 0 ? Math.floor(effectiveTarget * (msgTokens / totalTokens)) : effectiveTarget;
     const out = compressText(m.content, perMsgTarget, tokenizerContext);
-    return out === m.content ? m : { ...m, content: out };
+    if (out === m.content) return m;
+    changed = true;
+    return { ...m, content: out };
   });
-
-  const changed = newMessages.some((m, i) => JSON.stringify(m) !== JSON.stringify(messages[i]));
 
   // Measure the result to detect when preserve-guarded content makes the target
   // unreachable, so callers are not silently left over budget.

@@ -1,0 +1,36 @@
+name: API Route Typecheck
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "release/**"
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  api-typecheck:
+    name: API Route Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - name: Reject new API-route TypeScript diagnostics
+        run: node scripts/check/check-api-typecheck.mjs
+      - name: API typecheck gate unit tests
+        run: node --import tsx/esm --test tests/unit/build/check-api-typecheck.test.ts

@@ -18,6 +18,22 @@ import assert from "node:assert/strict";
 // call. If `extra` is dropped, the caller resolves to "anonymous", the store key
 // misses, and retrieval errors out.
 
+// A precondição deste teste é que NÃO exista um principal de API key resolvível: ele
+// prova que o `extra` chega ao handler comparando o principal derivado de `clientId`. Com
+// `OMNIROUTE_API_KEY` no shell, `resolveMcpCallerApiKeyId()` resolve primeiro e mascara
+// exatamente o que o teste mede — red fantasma local que não reproduz no CI.
+const ORIGINAL_OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY;
+const ORIGINAL_ROUTER_API_KEY = process.env.ROUTER_API_KEY;
+delete process.env.OMNIROUTE_API_KEY;
+delete process.env.ROUTER_API_KEY;
+
+test.after(() => {
+  if (ORIGINAL_OMNIROUTE_API_KEY === undefined) delete process.env.OMNIROUTE_API_KEY;
+  else process.env.OMNIROUTE_API_KEY = ORIGINAL_OMNIROUTE_API_KEY;
+  if (ORIGINAL_ROUTER_API_KEY === undefined) delete process.env.ROUTER_API_KEY;
+  else process.env.ROUTER_API_KEY = ORIGINAL_ROUTER_API_KEY;
+});
+
 const { createMcpServer } = await import("../../open-sse/mcp-server/server.ts");
 const { storeBlock, resetCcrStore } = await import(
   "../../open-sse/services/compression/engines/ccr/index.ts"

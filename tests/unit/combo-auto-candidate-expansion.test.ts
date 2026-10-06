@@ -14,12 +14,13 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
 const combo = await import("../../open-sse/services/combo.ts");
 const providerModels = await import("../../open-sse/config/providerModels.ts");
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -27,7 +28,7 @@ test.beforeEach(() => resetStorage());
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
@@ -61,6 +62,97 @@ test("expandAutoComboCandidatePool adds every model of an active provider when n
       `expected expanded targets to include ${id}`
     );
   }
+});
+
+test("expandAutoComboCandidatePool excludes retired Qwen rows with synced models", async () => {
+  const db = core.getDbInstance();
+  db.exec(`
+    DROP TRIGGER provider_connections_retire_qwen_web_insert;
+    DROP TRIGGER provider_connections_retire_qwen_web_update;
+  `);
+
+  const qwenWeb = await providersDb.createProviderConnection({
+    provider: "qwen-web",
+    authType: "apikey",
+    name: "Retired Qwen Web",
+    apiKey: "retired-qwen-web-key",
+  });
+  const legacyAlias = await providersDb.createProviderConnection({
+    provider: "qw",
+    authType: "apikey",
+    name: "Retired Qwen Web Alias",
+    apiKey: "retired-qw-key",
+  });
+  const qwenCloud = await providersDb.createProviderConnection({
+    provider: "qwen-cloud",
+    authType: "apikey",
+    name: "Qwen Cloud Control",
+    apiKey: "qwen-cloud-key",
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("qwen-web", qwenWeb.id, [
+    { id: "retired-web-model", name: "Retired Web Model" },
+  ]);
+  await modelsDb.replaceSyncedAvailableModelsForConnection("qw", legacyAlias.id, [
+    { id: "retired-alias-model", name: "Retired Alias Model" },
+  ]);
+  await modelsDb.replaceSyncedAvailableModelsForConnection("qwen-cloud", qwenCloud.id, [
+    { id: "qwen3.8-max", name: "Qwen3.8 Max" },
+  ]);
+
+  const expanded = await combo.expandAutoComboCandidatePool([], { config: {} });
+
+  assert.equal(
+    expanded.some((target) => target.provider === "qwen-web"),
+    false
+  );
+  assert.equal(
+    expanded.some((target) => target.provider === "qw"),
+    false
+  );
+  assert.ok(expanded.some((target) => target.modelStr === "qwen-cloud/qwen3.8-max"));
+});
+
+test("expandAutoComboCandidatePool includes clean-room ChatGPT Web and excludes its legacy alias", async () => {
+  const db = core.getDbInstance();
+  db.exec(`
+    DROP TRIGGER IF EXISTS provider_connections_retire_chatgpt_web_insert;
+    DROP TRIGGER IF EXISTS provider_connections_retire_chatgpt_web_update;
+  `);
+  for (const provider of ["chatgpt-web", "cgpt-web"]) {
+    const model = provider === "chatgpt-web" ? "gpt-5-5-thinking" : "gpt-5.5";
+    const credential =
+      provider === "chatgpt-web"
+        ? JSON.stringify({
+            cookies: [
+              {
+                name: "session",
+                value: "fixture",
+                domain: ".chatgpt.com",
+                path: "/",
+                expires: -1,
+                httpOnly: true,
+                secure: true,
+                sameSite: "Lax",
+              },
+            ],
+            origins: [],
+          })
+        : `sk-${provider}-restored-expansion`;
+    db.prepare(
+      "INSERT INTO provider_connections " +
+        "(id, provider, auth_type, name, api_key, is_active, test_status, created_at, updated_at) " +
+        "VALUES (?, ?, 'apikey', ?, ?, 1, 'active', datetime('now'), datetime('now'))"
+    ).run(`${provider}-restored-expansion`, provider, `${provider} restored expansion`, credential);
+    await modelsDb.addCustomModel(provider, model, `${provider} model fixture`);
+  }
+
+  const expanded = await combo.expandAutoComboCandidatePool([], { config: {} });
+  assert.ok(expanded.some((target) => target.modelStr === "chatgpt-web/gpt-5-5-thinking"));
+  assert.equal(
+    expanded.some((target) => target.provider === "cgpt-web"),
+    false
+  );
 });
 
 test("expandAutoComboCandidatePool is a no-op when an explicit candidatePool exists", async () => {
@@ -208,4 +300,37 @@ test("expandAutoComboCandidatePool does not duplicate an already-present modelSt
   // …and the original pinned entry (weight 5 / conn-1) is preserved, not overwritten.
   assert.equal(matches[0].connectionId, "conn-1");
   assert.equal(matches[0].weight, 5);
+});
+
+test("expandAutoComboCandidatePool excludes trigger-bypassed Microsoft Designer providers", async () => {
+  await core.ensureDbInitialized();
+  const db = core.getDbInstance();
+  db.exec("DROP TRIGGER IF EXISTS trg_retire_microsoft_designer_web_provider_insert");
+  db.exec("DROP TRIGGER IF EXISTS trg_retire_microsoft_designer_web_provider_update");
+
+  for (const provider of ["microsoft-designer-web", "msdesigner", "openai"]) {
+    await providersDb.createProviderConnection({
+      provider,
+      authType: "apikey",
+      name: `${provider}-trigger-bypass`,
+      apiKey: `sk-${provider}-test`,
+      defaultModel: provider === "openai" ? "gpt-4o-mini" : "dall-e-3",
+      isActive: true,
+    });
+    if (provider !== "openai") {
+      await modelsDb.addCustomModel(provider, "designer-chat-bypass", "Bypass model");
+    }
+  }
+
+  const expanded = await combo.expandAutoComboCandidatePool([], { config: {} });
+
+  assert.equal(
+    expanded.some((target) => ["microsoft-designer-web", "msdesigner"].includes(target.provider)),
+    false
+  );
+  assert.equal(
+    expanded.some((target) => target.provider === "openai"),
+    true,
+    "supported active providers must remain expandable"
+  );
 });

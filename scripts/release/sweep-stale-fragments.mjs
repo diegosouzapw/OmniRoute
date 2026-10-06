@@ -111,6 +111,18 @@ export function classifyFragments({ fragments = [], changelog = "" }) {
   return { stale, keep };
 }
 
+/**
+ * Count a stale list by how each entry was matched, for the human report line.
+ * classifyFragments only ever sets matchedBy to "pr-number" (the filename convention) or
+ * "text" (the normalized-bullet fallback); the summary must bucket under those exact values.
+ * Pure - the two counts always add up to stale.length and never mislabel a category.
+ */
+export function summarizeStale(stale) {
+  const byPrNumber = (stale || []).filter((s) => s.matchedBy === "pr-number").length;
+  const byText = (stale || []).filter((s) => s.matchedBy === "text").length;
+  return { byPrNumber, byText };
+}
+
 export function readFragments(root) {
   const out = [];
   for (const sub of FRAGMENT_DIRS) {
@@ -141,9 +153,8 @@ function main(argv) {
     return 0;
   }
 
-  const byRef = stale.filter((s) => s.matchedBy === "ref").length;
-  const byText = stale.length - byRef;
-  process.stdout.write(`  matched by ref: ${byRef} · by text: ${byText}\n`);
+  const { byPrNumber, byText } = summarizeStale(stale);
+  process.stdout.write(`  matched by pr-number: ${byPrNumber} · by text: ${byText}\n`);
   for (const s of stale) process.stdout.write(`  ${apply ? "removed" : "stale"}: ${s.rel} — ${s.reason}\n`);
 
   if (!apply) {

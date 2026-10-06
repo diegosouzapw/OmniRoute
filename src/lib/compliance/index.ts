@@ -111,6 +111,7 @@ const AUDIT_LOG_REQUIRED_COLUMNS: Record<string, string> = {
 
 const SENSITIVE_AUDIT_KEYS = new Set([
   "apikey",
+  "extraapikeys",
   "accesstoken",
   "refreshtoken",
   "idtoken",

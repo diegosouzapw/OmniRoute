@@ -25,7 +25,7 @@ const builtinCatalog = await import("../../open-sse/services/autoCombo/builtinCa
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -35,7 +35,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#4164 /v1/models advertises every built-in auto/* combo", async () => {
@@ -113,7 +113,11 @@ test("#4189 every auto/* entry exposes token limits + baseline capabilities", as
       `${entry.id} must expose a numeric context_length`
     );
     assert.ok((entry.context_length ?? 0) > 0, `${entry.id} context_length must be positive`);
-    assert.equal(typeof entry.max_input_tokens, "number", `${entry.id} must expose max_input_tokens`);
+    assert.equal(
+      typeof entry.max_input_tokens,
+      "number",
+      `${entry.id} must expose max_input_tokens`
+    );
     assert.equal(
       typeof entry.max_output_tokens,
       "number",

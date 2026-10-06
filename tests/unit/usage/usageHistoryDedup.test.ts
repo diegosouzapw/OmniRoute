@@ -27,7 +27,7 @@ const { saveRequestUsage } = await import("../../../src/lib/usage/usageHistory.t
 // Cleanup: close DB handle and temp directory so the test runner doesn't hang.
 test.after(() => {
   resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── helpers ──────────────────────────────────────────────────────────────────

@@ -16,7 +16,8 @@ async function resetStorage() {
   core.resetDbInstance();
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
-      if (fs.existsSync(TEST_DATA_DIR)) fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      if (fs.existsSync(TEST_DATA_DIR))
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       break;
     } catch (error: unknown) {
       const code = (error as { code?: string } | undefined)?.code;
@@ -33,7 +34,7 @@ test.beforeEach(async () => {
 });
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#7740: orphaned provider connection (id removed from catalog) keeps surfacing apiKeyHealth and 404s on click, but deleting purges in-memory key-health", async () => {

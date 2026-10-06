@@ -65,7 +65,7 @@ export function orderTargetsForWeightedFallback<T extends { executionKey: string
  */
 export async function sortModelsByCost(models: string[]): Promise<string[]> {
   try {
-    const { getPricingForModel } = await import("../../../src/lib/localDb");
+    const { getPricingForModel } = await import("@/lib/db/settings");
     const withCost = await Promise.all(
       models.map(async (modelStr) => {
         const parsed = parseModel(modelStr);

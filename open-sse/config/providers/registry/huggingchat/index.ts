@@ -2,8 +2,8 @@ import type { RegistryEntry } from "../../shared.ts";
 
 export const huggingchatProvider: RegistryEntry = {
   id: "huggingchat",
-  // Distinct alias: "hc" belongs to the hackclub provider; huggingchat is
-  // addressed by its own id to avoid the alias collision.
+  // Distinct alias: huggingchat is addressed by its own id to avoid the
+  // historical "hc" alias collision (the colliding provider was removed, #11176).
   alias: "huggingchat",
   format: "openai",
   executor: "huggingchat",

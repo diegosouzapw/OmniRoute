@@ -1,7 +1,15 @@
 name: DAST smoke (PR)
+# PRs into main only since #11946. The job's "Build CLI bundle" step is a backend-only
+# `next build`; on the hosted 7 GB runner it fits main's tree (~5.5 min) but dies on
+# release/v3.8.51 (VM shutdown ~7 min in, before the server even starts), and because the
+# job is continue-on-error the result was a permanently red advisory check on every
+# release PR — noise, not signal. DAST coverage for release/** lives on the nightly rail
+# (nightly-schemathesis.yml, nightly-llm-security.yml); dispatch this workflow by hand
+# to smoke a release branch on demand.
 on:
+  workflow_dispatch:
   pull_request:
-    branches: ["main", "release/**"]
+    branches: ["main"]
     # Runner-cost guard (#8084): the CLI-bundle build alone is 6-11min; a docs-only PR
     # cannot change DAST behavior, so skip the whole workflow for pure docs/markdown
     # changes. Any code path in the diff still runs the full smoke.
@@ -37,7 +45,7 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - name: Build CLI bundle
         env:
           OMNIROUTE_BUILD_BACKEND_ONLY: "1"
@@ -46,6 +54,7 @@ jobs:
         env:
           PORT: "20128"
           INJECTION_GUARD_MODE: block
+          REQUIRE_API_KEY: "false"
         run: |
           node dist/server.js > server.log 2>&1 &
           echo $! > server.pid
@@ -64,16 +73,20 @@ jobs:
           # those 302s as "the API accepted a schema-violating request" and the configured-off
           # 400 as "rejected a schema-compliant request". Documenting the flow in the spec is
           # still right (operators need it); fuzzing it is not what this smoke is for.
+          # /api/auth/login has brute-force rate limiting: repeated failed logins return 429,
+          # which Schemathesis flags as rejection of schema-compliant requests.
           schemathesis run docs/openapi.yaml --url http://localhost:20128 \
             --include-path-regex '^/v1/(chat/completions|models)$|^/api/(auth|keys)' \
-            --exclude-path-regex '^/api/auth/oidc/' \
+            --exclude-path-regex '^/api/auth/(oidc/|login)' \
             --max-examples 8 --workers 4 --checks all --max-response-time 30 \
             --request-timeout 20 --suppress-health-check all --no-color
+      - name: Install promptfoo
+        run: npm install -g promptfoo@0.122.0
       - name: promptfoo injection-guard (blocking)
         env:
           OMNIROUTE_URL: http://localhost:20128
           OMNIROUTE_API_KEY: not-needed-blocked-before-upstream
-        run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache
+        run: promptfoo eval -c promptfooconfig.yaml --no-cache
       - name: Stop server
         if: always()
         run: kill "$(cat server.pid)" || true

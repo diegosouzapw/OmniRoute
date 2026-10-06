@@ -97,6 +97,12 @@ Plugins are discovered from:
 1. `~/.omniroute/plugins/<name>/` — user-local installs
 2. `OMNIROUTE_PLUGIN_PATH` env var — custom directory
 
+Both are **CLI-only**. The server-side plugin runtime (the marketplace/`plugin.json`
+plugins that run inside the proxy) has its own scanner with its own override,
+`OMNIROUTE_PLUGINS_DIR` — see
+[PLUGIN_MARKETPLACE.md → Plugin directory](./PLUGIN_MARKETPLACE.md#plugin-directory).
+Setting one does not affect the other.
+
 Loading errors are caught and printed as warnings — a broken plugin never crashes the CLI.
 
 ## Security

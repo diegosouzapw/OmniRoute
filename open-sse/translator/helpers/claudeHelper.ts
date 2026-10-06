@@ -3,6 +3,7 @@ import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingS
 import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts";
 import { getModelTargetFormat } from "../../config/providerModels.ts";
 import { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../../utils/reasoningPlaceholder.ts";
+import { sanitizeToolId } from "./schemaCoercion.ts";
 
 export { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../../utils/reasoningPlaceholder.ts";
 
@@ -300,6 +301,20 @@ function markMessageCacheControl(msg: ClaudeMessage, ttl?: string): boolean {
   return true;
 }
 
+/**
+ * Build the cache marker OmniRoute adds when the client did not provide one.
+ * Vertex defaults to five minutes when ttl is omitted; unlike 1h, that mode is
+ * supported by every cache-capable Claude model on Vertex and has cheaper writes.
+ */
+export function createDefaultClaudeCacheControl(provider?: string | null): {
+  type: string;
+  ttl?: string;
+} {
+  return provider === "vertex" || provider === "vertex-partner"
+    ? { type: "ephemeral" }
+    : { type: "ephemeral", ttl: "1h" };
+}
+
 /** True when the body carries at least one cache_control marker anywhere
  * (system blocks, message content blocks, or tools). Used to decide whether
  * preserve-mode has anything to preserve. */
@@ -360,10 +375,15 @@ export function prepareClaudeRequest(
     preserveCacheControl = false;
   }
 
-  // 1. System: remove all cache_control, add only to last block with ttl 1h
+  // 1. System: remove all cache_control, add only to the last block with the provider TTL
   // In passthrough mode, preserve existing cache_control markers
+  const isVertexClaudeProvider = provider === "vertex" || provider === "vertex-partner";
   const supportsPromptCaching =
-    provider === "claude" || provider?.startsWith?.("anthropic-compatible-");
+    provider === "claude" ||
+    isVertexClaudeProvider ||
+    provider?.startsWith?.("anthropic-compatible-");
+  // Vertex's documented default is a five-minute ephemeral cache. Omitting ttl is
+  // both cheaper and compatible with Claude models that reject the optional 1h TTL.
   const isKimiCoding = provider === "kimi-coding" || provider === "kimi-coding-apikey";
 
   // Non-Anthropic Claude-shape providers (kimi-coding, glmt, zai, …) cannot
@@ -388,7 +408,7 @@ export function prepareClaudeRequest(
     body.system = systemBlocks.map((block, i) => {
       const { cache_control, ...rest } = block;
       if (i === systemBlocks.length - 1 && supportsPromptCaching) {
-        return { ...rest, cache_control: { type: "ephemeral", ttl: "1h" } };
+        return { ...rest, cache_control: createDefaultClaudeCacheControl(provider) };
       }
       return rest;
     });
@@ -429,6 +449,22 @@ export function prepareClaudeRequest(
         msg.content = msg.content.filter(
           (block) => block.type !== "tool_result" || block.tool_use_id
         );
+        // Anthropic-shape upstreams enforce `^[a-zA-Z0-9_-]+$` on tool ids. Client
+        // histories can carry ids with `.`/`:`/`#` (e.g. replayed from another
+        // provider), which 400s as TOOL_SCHEMA_INVALID. Rewrite both sides with the
+        // same function so tool_use/tool_result pairing survives — the later
+        // ordering passes match on these ids.
+        for (const block of msg.content) {
+          if (block.type === "tool_use" && typeof block.id === "string" && block.id) {
+            block.id = sanitizeToolId(block.id);
+          } else if (
+            block.type === "tool_result" &&
+            typeof block.tool_use_id === "string" &&
+            block.tool_use_id
+          ) {
+            block.tool_use_id = sanitizeToolId(block.tool_use_id);
+          }
+        }
       }
     }
 
@@ -704,7 +740,7 @@ export function prepareClaudeRequest(
     }
   }
 
-  // 3. Tools: remove all cache_control, add only to last non-deferred tool with ttl 1h
+  // 3. Tools: remove all cache_control, add only to the last non-deferred tool
   // Tools with defer_loading=true cannot have cache_control (API rejects it)
   // In passthrough mode, preserve existing cache_control markers
   if (body.tools && Array.isArray(body.tools) && !preserveCacheControl) {
@@ -715,7 +751,7 @@ export function prepareClaudeRequest(
     if (supportsPromptCaching) {
       for (let i = body.tools.length - 1; i >= 0; i--) {
         if (!body.tools[i].defer_loading) {
-          body.tools[i].cache_control = { type: "ephemeral", ttl: "1h" };
+          body.tools[i].cache_control = createDefaultClaudeCacheControl(provider);
           break;
         }
       }

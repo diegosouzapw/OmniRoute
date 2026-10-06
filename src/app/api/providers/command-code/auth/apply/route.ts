@@ -1,10 +1,7 @@
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { consumeCommandCodeAuthSecret } from "@/lib/db/commandCodeAuth";
-import {
-  createProviderConnection,
-  updateProviderConnection,
-} from "@/lib/db/providers";
-import { getCachedProviderConnectionById } from "@/lib/localDb";
+import { createProviderConnection, updateProviderConnection } from "@/lib/db/providers";
+import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import { sanitizeProviderSpecificDataForResponse } from "@/lib/providers/requestDefaults";
 
 import { commandCodeApplySchema, noStoreJson, stateHashFromState } from "../shared";

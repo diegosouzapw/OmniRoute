@@ -52,7 +52,7 @@ test.after(() => {
   globalThis.fetch = originalFetch;
   globalThis.setTimeout = originalSetTimeout;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("video route returns 200 with normalized b64_json for Veo AI Free", async () => {

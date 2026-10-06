@@ -48,7 +48,7 @@ async function readTransformed(chunks: string[], options: object): Promise<strin
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -363,4 +363,64 @@ test("Claude to Responses translation includes canonical Codex usage", async () 
   assert.equal(completed.response.usage.input_tokens, 88);
   assert.equal(completed.response.usage.output_tokens, 6);
   assert.equal(completed.response.usage.total_tokens, 94);
+});
+
+// #10156 — the live-frame drop above works correctly, but real upstreams (as in
+// the issue's repro) echo the ALREADY-DROPPED commentary item back inside the
+// terminal `response.completed.response.output` array. Because that array is
+// non-empty, `backfillResponsesCompletedOutput` never touches it, so the
+// terminal snapshot silently disagreed with the events already delivered to
+// the client. This must stay filtered too.
+test("response.completed strips a commentary item the upstream echoes back non-empty (#10156)", async () => {
+  const output = await readTransformed(
+    [
+      ...buildResponsesStream().slice(0, -1),
+      sse({
+        type: "response.completed",
+        response: {
+          id: "resp_10156",
+          output: [
+            {
+              id: "msg_commentary",
+              type: "message",
+              role: "assistant",
+              phase: "commentary",
+              content: [{ type: "output_text", text: COMMENTARY_TEXT }],
+            },
+            {
+              id: "msg_final",
+              type: "message",
+              role: "assistant",
+              phase: "final",
+              content: [{ type: "output_text", text: FINAL_TEXT }],
+            },
+          ],
+        },
+      }),
+    ],
+    { ...PASSTHROUGH_RESPONSES_OPTIONS, dropResponsesCommentary: true }
+  );
+
+  assert.ok(
+    !output.includes(COMMENTARY_TEXT),
+    "commentary text must never reach the client, live or in the terminal snapshot"
+  );
+  assert.ok(
+    !output.includes("msg_commentary"),
+    "the commentary item id must not appear anywhere in the forwarded stream"
+  );
+
+  const completedLine = output
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("data:") && line.includes('"response.completed"'));
+  assert.ok(completedLine, "the terminal Responses event must be forwarded");
+  const completed = JSON.parse(completedLine.slice(5).trim());
+  assert.ok(
+    !completed.response.output.some((item: { phase?: string }) => item.phase === "commentary"),
+    "BUG #10156: response.completed.response.output must not retain the commentary item once its live SSE frames were suppressed — live stream and terminal snapshot must stay consistent"
+  );
+  assert.ok(
+    completed.response.output.some((item: { id?: string }) => item.id === "msg_final"),
+    "the final answer item must still be present in the terminal snapshot"
+  );
 });

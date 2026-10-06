@@ -6,6 +6,9 @@ import assert from "node:assert";
 // free tier that does not exist. The budget catalog already dropped them. The 2026-06-18 batch
 // (gitlawb, gitlawb-gmi, aimlapi, yi) was each re-verified against the official source before flipping
 // (aimlapi docs: "The Free Tier is currently paused"; gitlawb GitHub issue #1345: MiMo revoked).
+// 2026-08-22 (#10071): the five g4f.space sub-providers lost their anonymous tier to a proof-of-work
+// credit wall (keyless POST -> HTTP 402 insufficient_credits). They remain usable with a g4f.dev
+// member key, so only hasFree/freeNote/authHint changed - registry wiring is untouched.
 describe("2026 discontinued free tiers — providers.ts hasFree reconciliation", () => {
   it("APIKEY_PROVIDERS dead tiers no longer advertise a free tier", async () => {
     const { APIKEY_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
@@ -27,6 +30,42 @@ describe("2026 discontinued free tiers — providers.ts hasFree reconciliation",
     }
   });
 
+  it("g4f.space sub-providers no longer advertise an anonymous free tier", async () => {
+    const { APIKEY_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
+    // 2026-08-22 live re-verification: every g4f.space sub-path still lists models keylessly, but a
+    // keyless POST /v1/chat/completions returns HTTP 402 {"type":"insufficient_credits"} pointing at
+    // a proof-of-work "cake" wall (g4f.dev/chat) or a member key (g4f.dev/members.html). The gateway
+    // is NOT dead - it works with a g4f.dev member key - so the registry entries and their
+    // authType:"optional" are deliberately untouched; only the free-tier advertisement is corrected.
+    for (const id of ["g4f-groq", "g4f-gemini", "g4f-pollinations", "g4f-ollama", "g4f-nvidia"]) {
+      const p = (
+        APIKEY_PROVIDERS as Record<
+          string,
+          { hasFree?: boolean; freeNote?: string; authHint?: string }
+        >
+      )[id];
+      assert.ok(
+        p,
+        `${id} should still exist in APIKEY_PROVIDERS (gateway still usable with a member key)`
+      );
+      assert.strictEqual(
+        p.hasFree,
+        false,
+        `${id} should have hasFree:false (anonymous tier walled behind proof-of-work credits in 2026)`
+      );
+      assert.match(
+        p.freeNote ?? "",
+        /proof-of-work/i,
+        `${id} freeNote should explain the proof-of-work credit wall`
+      );
+      assert.match(
+        p.authHint ?? "",
+        /member key/i,
+        `${id} authHint should state that a g4f.dev member key is required`
+      );
+    }
+  });
+
   it("phind is fully removed (service shut down 2026-01) from both catalogs", async () => {
     const { APIKEY_PROVIDERS, WEB_COOKIE_PROVIDERS } =
       await import("../../src/shared/constants/providers.ts");
@@ -35,19 +74,11 @@ describe("2026 discontinued free tiers — providers.ts hasFree reconciliation",
   });
 
   it("intentionally-kept providers still advertise free (genuinely free / ToS-flagged, not flipped)", async () => {
-    const { NOAUTH_PROVIDERS, APIKEY_PROVIDERS } =
-      await import("../../src/shared/constants/providers.ts");
-    // theoldllm is a keyless, no-signup web chat (genuinely free, just no catalogable API tier) — kept.
+    const { APIKEY_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
     // iflytek/sparkdesk stay hasFree:true but carry a ToS-caution freeNote (Spark Lite is free, the ToS
     // restricts proxy/relay use). gitlawb/gitlawb-gmi/aimlapi/yi were re-verified dead 2026-06-18 and are
     // asserted false above — keeping them out of this list guards against a silent re-flip-to-true.
-    const noauth = NOAUTH_PROVIDERS as Record<string, { hasFree?: boolean }>;
     const apikey = APIKEY_PROVIDERS as Record<string, { hasFree?: boolean; freeNote?: string }>;
-    assert.strictEqual(
-      noauth["theoldllm"]?.hasFree,
-      true,
-      "theoldllm intentionally kept hasFree:true"
-    );
     assert.strictEqual(apikey["iflytek"]?.hasFree, true, "iflytek kept free with ToS-caution note");
     assert.match(
       apikey["iflytek"]?.freeNote ?? "",

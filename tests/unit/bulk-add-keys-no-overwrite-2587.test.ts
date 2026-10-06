@@ -37,7 +37,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error) {
@@ -58,7 +58,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("bulk-add appends N+M connections and preserves the existing connection's state (the #2587 fix)", async () => {
@@ -138,9 +138,7 @@ test("bulk-add appends N+M connections and preserves the existing connection's s
   assert.equal(survivor!.rateLimitedUntil, future, "existing cooldown must survive");
   assert.equal(survivor!.backoffLevel, 2, "existing backoffLevel must survive");
 
-  const newNames = after
-    .filter((c) => c.id !== (existing as ConnectionRow).id)
-    .map((c) => c.name);
+  const newNames = after.filter((c) => c.id !== (existing as ConnectionRow).id).map((c) => c.name);
   assert.equal(new Set(newNames).size, newNames.length, "no duplicate names among new entries");
   assert.ok(!newNames.includes("Key 1"));
 });

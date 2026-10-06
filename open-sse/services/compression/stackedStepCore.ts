@@ -110,5 +110,8 @@ export function mergeStackStep(
     techniquesUsed: result.stats.techniquesUsed,
     ...(result.stats.rulesApplied ? { rulesApplied: result.stats.rulesApplied } : {}),
     ...(result.stats.durationMs !== undefined ? { durationMs: result.stats.durationMs } : {}),
+    // O agregado do pipeline soma tokens de todas as engines; a contabilidade
+    // física do omniglyph só faz sentido no passo que a produziu.
+    ...(result.stats.omniglyph ? { omniglyph: result.stats.omniglyph } : {}),
   });
 }

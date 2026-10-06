@@ -148,7 +148,11 @@ export default function MarkdownMessage({ content, className }: MarkdownMessageP
   };
 
   return (
-    <div className={className}>
+    // break-words: long unspaced runs (raw JSON, ids, tokens) have no natural
+    // wrap point, so without it they overflow their container instead of
+    // wrapping — invisible in a wide full-page layout, glaring in a narrower
+    // one (e.g. the conversation tree modal).
+    <div className={`break-words ${className ?? ""}`}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {content}
       </ReactMarkdown>

@@ -22,8 +22,15 @@ const VALID_FORMATS = new Set(["json", "env"]);
 const SECURE_FILE_MODE = 0o600;
 
 export function registerAuthExport(program) {
+  // #11226: `.command("auth export")` does NOT register a two-word command — commander
+  // parses the bare word `export` as a required positional argument of `auth`, so the
+  // action received (exportArgValue, options, command) while expecting (options, command)
+  // and crashed with "cmd.optsWithGlobals is not a function". Register `export` as a
+  // proper nested subcommand instead; the CLI surface stays `omniroute auth export`.
   program
-    .command("auth export")
+    .command("auth")
+    .description(t("authExport.description"))
+    .command("export")
     .description(t("authExport.description"))
     .option("--id <id>", t("authExport.idOpt"))
     .option("--format <format>", t("authExport.formatOpt"), "json")

@@ -4,8 +4,8 @@ import { Suspense, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import ModalityBridgeComingSoonTab from "@/app/(dashboard)/dashboard/settings/components/modalityBridge/ModalityBridgeComingSoonTab";
 import ModalityBridgeAudioTab from "@/app/(dashboard)/dashboard/settings/components/modalityBridge/ModalityBridgeAudioTab";
+import ModalityBridgeVideoTab from "@/app/(dashboard)/dashboard/settings/components/modalityBridge/ModalityBridgeVideoTab";
 import ModalityBridgeVisionTab from "@/app/(dashboard)/dashboard/settings/components/modalityBridge/ModalityBridgeVisionTab";
 
 type TabId = "vision" | "audio" | "video";
@@ -63,9 +63,7 @@ function ModalityBridgePageContent() {
       <div id="modality-bridge-tabpanel" role="tabpanel">
         {activeTab === "vision" && <ModalityBridgeVisionTab />}
         {activeTab === "audio" && <ModalityBridgeAudioTab />}
-        {activeTab === "video" && (
-          <ModalityBridgeComingSoonTab bodyKey="modalityBridgeVideoComingSoon" />
-        )}
+        {activeTab === "video" && <ModalityBridgeVideoTab />}
       </div>
     </div>
   );

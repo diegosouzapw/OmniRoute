@@ -80,7 +80,7 @@ test.after(() => {
   else process.env.OMNIROUTE_NO_SUDO = originalNoSudo;
   if (originalSkipSystemTrust === undefined) delete process.env.OMNIROUTE_SKIP_SYSTEM_TRUST;
   else process.env.OMNIROUTE_SKIP_SYSTEM_TRUST = originalSkipSystemTrust;
-  fs.rmSync(tmpRoot, { recursive: true, force: true });
+  fs.rmSync(tmpRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function resetCaptured(): void {
@@ -165,11 +165,14 @@ test("filesystem proof: cp under umask 0077 creates mode 0600 (why the fix is ne
 
   const oldUmask = process.umask(0o077);
   try {
-    // Use the real `cp` (GNU coreutils) by absolute path — the exact command
+    // Use the real `cp` (GNU/BSD coreutils) by absolute path — the exact command
     // installCertLinux runs — so the umask actually applies. Node's
     // fs.copyFileSync preserves the source mode, which would mask the bug, and
     // the bare `cp` on PATH below is a logging stub from the install tests.
-    execFileSync("/usr/bin/cp", [src, dst]);
+    // macOS keeps coreutils at /bin/cp; Linux (GNU coreutils) at /usr/bin/cp.
+    const realCp = ["/usr/bin/cp", "/bin/cp"].find((p) => fs.existsSync(p));
+    assert.ok(realCp, "a real cp binary must exist for this filesystem proof");
+    execFileSync(realCp, [src, dst]);
     const mode = fs.statSync(dst).mode & 0o777;
     assert.equal(mode, 0o600, "cp under umask 0077 must produce 0600 — the bug this fix repairs");
   } finally {

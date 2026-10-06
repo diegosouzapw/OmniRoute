@@ -171,6 +171,6 @@ test("GOLDEN guard catches translate-path drift", () => {
     assert.throws(() => goldenSnapshot("provider/translate-path", mutated, tmpDir));
   } finally {
     delete process.env.UPDATE_GOLDEN;
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

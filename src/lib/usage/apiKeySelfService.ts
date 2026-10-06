@@ -1,8 +1,5 @@
-import {
-  hasSelfAccountQuotaScope,
-  hasSelfUsageScope,
-} from "@/shared/constants/selfServiceScopes";
-import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
+import { hasSelfAccountQuotaScope, hasSelfUsageScope } from "@/shared/constants/selfServiceScopes";
+import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 
 type JsonRecord = Record<string, unknown>;
 type DateLike = number | string | Date | null | undefined;
@@ -67,6 +64,7 @@ interface AccountQuotaConnection {
   id: string;
   provider: string;
   lookupFailed?: boolean;
+  providerSpecificData?: unknown;
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -211,11 +209,14 @@ function normalizePlan(value: unknown): unknown {
   return undefined;
 }
 
-function isSupportedProvider(provider: string): boolean {
-  return USAGE_SUPPORTED_PROVIDERS.includes(provider as (typeof USAGE_SUPPORTED_PROVIDERS)[number]);
+function isSupportedProvider(
+  provider: string,
+  connection?: { provider?: string; providerSpecificData?: unknown },
+): boolean {
+  return supportsProviderQuota(provider, connection);
 }
 
-function getConnectionIdentity(value: unknown): { id: string; provider: string } | null {
+function getConnectionIdentity(value: unknown): AccountQuotaConnection | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as JsonRecord;
   if (record.isActive === false) return null;
@@ -224,7 +225,11 @@ function getConnectionIdentity(value: unknown): { id: string; provider: string }
   const provider = typeof record.provider === "string" ? record.provider : "";
   if (!id || !provider) return null;
 
-  return { id, provider };
+  return {
+    id,
+    provider,
+    providerSpecificData: record.providerSpecificData,
+  };
 }
 
 async function listAccountQuotaConnections(
@@ -300,7 +305,7 @@ async function resolveConnectionAccountQuota(
     };
   }
 
-  if (!isSupportedProvider(connection.provider)) {
+  if (!isSupportedProvider(connection.provider, connection)) {
     return {
       provider: connection.provider,
       connectionId: connection.id,
@@ -363,7 +368,7 @@ async function normalizeDeps(deps: ApiKeySelfServiceDeps): Promise<RequiredDeps>
   const localDb =
     deps.getProviderConnectionById && deps.getProviderConnections
       ? null
-      : await import("@/lib/localDb");
+      : await import("@/lib/db/providers");
   const providerLimits = deps.fetchAndPersistProviderLimits
     ? null
     : await import("@/lib/usage/providerLimits");
@@ -396,11 +401,11 @@ export async function buildApiKeySelfServiceStatus(
   const tokens = aggregateTokens(
     resolvedDeps.getDbInstance() as DbLike,
     metadata.id,
-    cost.periodStartAt ?? new Date(getCurrentMonthWindow(resolvedDeps.now()).periodStartAt).toISOString()
+    cost.periodStartAt ??
+      new Date(getCurrentMonthWindow(resolvedDeps.now()).periodStartAt).toISOString()
   );
   const accountQuotas = await resolveAccountQuotas(metadata, resolvedDeps);
-  const accountQuota =
-    accountQuotas && accountQuotas.length === 1 ? accountQuotas[0] : undefined;
+  const accountQuota = accountQuotas && accountQuotas.length === 1 ? accountQuotas[0] : undefined;
 
   return {
     apiKey: {

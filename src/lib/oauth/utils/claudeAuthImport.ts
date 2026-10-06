@@ -1,8 +1,10 @@
+import crypto from "node:crypto";
 import {
   getProviderConnections,
   createProviderConnection,
   updateProviderConnection,
-} from "@/lib/localDb";
+} from "@/lib/db/providers";
+import { getClaudeCodeUserAgent } from "@/shared/constants/claudeCodeClient";
 import { ClaudeAuthFileError } from "@/lib/oauth/utils/claudeAuthFile";
 
 type JsonRecord = Record<string, unknown>;
@@ -119,6 +121,8 @@ export async function enrichWithBootstrap(
         Authorization: `Bearer ${parsed.accessToken}`,
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
+        "User-Agent": getClaudeCodeUserAgent("cli"),
+        "anthropic-beta": "oauth-2025-04-20",
       },
       signal: controller.signal,
     });
@@ -212,6 +216,12 @@ export async function createConnectionFromAuthFile(
           subscriptionType: enriched.subscriptionType,
           bootstrapEmail: enriched.email,
           importedAt: new Date().toISOString(),
+          // #10143: preserve an already-persisted device identity across
+          // re-imports so the connection doesn't present as a new device to
+          // Anthropic on every process restart; only mint one if absent.
+          cliUserID:
+            toNonEmptyString(toRecord(existing.providerSpecificData).cliUserID) ||
+            crypto.randomBytes(32).toString("hex"),
         },
       });
 
@@ -252,6 +262,10 @@ export async function createConnectionFromAuthFile(
       subscriptionType: enriched.subscriptionType,
       bootstrapEmail: enriched.email,
       importedAt: new Date().toISOString(),
+      // #10143: mint a persistent device identity so this imported
+      // connection doesn't fall back to a lazy-random device id that
+      // regenerates on every process restart (see resolveCliUserID).
+      cliUserID: crypto.randomBytes(32).toString("hex"),
     },
   });
 

@@ -10,7 +10,7 @@
  * @module lib/idempotencyLayer
  */
 
-import { getSettings } from "@/lib/localDb";
+import { getSettings } from "@/lib/db/settings";
 
 const DEFAULT_WINDOW_MS = 5000;
 

@@ -120,7 +120,7 @@ describe("runCursorAgentNudge", () => {
 
   afterEach(() => {
     clearFakeCursorAgentEnv();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it('invokes the binary with exactly ["--list-models"] and never "login"', async () => {
@@ -180,7 +180,7 @@ describe("checkCursorAgentAvailability", () => {
     if (ORIGINAL_USERPROFILE !== undefined) process.env.USERPROFILE = ORIGINAL_USERPROFILE;
     else delete process.env.USERPROFILE;
     clearFakeCursorAgentEnv();
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("reports available:true when the resolved binary is authenticated", async () => {
@@ -298,7 +298,7 @@ describe("getCachedCursorAgentAvailability (Task 5 Step 1 — 5-minute TTL wrapp
     if (ORIGINAL_USERPROFILE !== undefined) process.env.USERPROFILE = ORIGINAL_USERPROFILE;
     else delete process.env.USERPROFILE;
     clearFakeCursorAgentEnv();
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   // A single test, one continuous mocked timeline: getCachedCursorAgentAvailability()'s
@@ -364,7 +364,7 @@ describe("renewCursorConnection", () => {
     if (ORIGINAL_USERPROFILE !== undefined) process.env.USERPROFILE = ORIGINAL_USERPROFILE;
     else delete process.env.USERPROFILE;
     clearFakeCursorAgentEnv();
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   async function writeIdeToken(accessToken: string, machineId?: string): Promise<void> {

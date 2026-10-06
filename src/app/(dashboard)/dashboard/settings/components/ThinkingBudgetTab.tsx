@@ -4,29 +4,31 @@ import { useState, useEffect } from "react";
 import { Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
+// Dedicated i18n keys — do NOT reuse settings.auto / autoDesc (those are routing
+// "Auto Combo" strings and previously made Thinking Budget look like a routing mode).
 const MODES = [
   {
     value: "passthrough",
-    labelKey: "passthrough",
-    descKey: "passthroughDesc",
+    labelKey: "thinkingModePassthrough",
+    descKey: "thinkingModePassthroughDesc",
     icon: "arrow_forward",
   },
   {
     value: "auto",
-    labelKey: "auto",
-    descKey: "autoDesc",
+    labelKey: "thinkingModeAuto",
+    descKey: "thinkingModeAutoDesc",
     icon: "auto_awesome",
   },
   {
     value: "custom",
-    labelKey: "custom",
-    descKey: "customDesc",
+    labelKey: "thinkingModeCustom",
+    descKey: "thinkingModeCustomDesc",
     icon: "tune",
   },
   {
     value: "adaptive",
-    labelKey: "adaptive",
-    descKey: "adaptiveDesc",
+    labelKey: "thinkingModeAdaptive",
+    descKey: "thinkingModeAdaptiveDesc",
     icon: "trending_up",
   },
 ];
@@ -94,6 +96,9 @@ export default function ThinkingBudgetTab() {
         <div>
           <h3 className="text-lg font-semibold">{t("thinkingBudgetTitle")}</h3>
           <p className="text-sm text-text-muted">{t("thinkingBudgetDesc")}</p>
+          <p className="text-xs text-text-muted mt-1 leading-relaxed">
+            {t("thinkingBudgetIndependenceHint")}
+          </p>
         </div>
         {status === "saved" && (
           <span className="ml-auto text-xs font-medium text-emerald-500 flex items-center gap-1">

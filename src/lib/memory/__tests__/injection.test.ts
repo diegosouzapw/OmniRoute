@@ -188,6 +188,32 @@ describe("injectMemory — edge cases", () => {
   });
 });
 
+describe("injectMemory — Claude-family cache-safe splice gate (#11290)", () => {
+  test("does not splice mid-array on anthropic when the last turn before the splice point is plain assistant text", () => {
+    const request = makeRequest({
+      messages: [
+        { role: "system", content: "SYSTEM PROMPT" },
+        { role: "user", content: "turn 1 question" },
+        { role: "assistant", content: "turn 1 answer" },
+        { role: "user", content: "turn 2 question" },
+      ],
+    });
+    const memories = [makeMemory("dark mode")];
+
+    const result = injectMemory(request, memories, "anthropic", { cacheSafe: true });
+
+    // The plain-text assistant turn must stay immediately followed by the final user
+    // turn — no system message spliced between them (that shape is what Opus 5 rejects
+    // with HTTP 400, #11290). Memory is merged into the leading system message instead.
+    expect(result.messages).toHaveLength(4);
+    expect(result.messages[0].role).toBe("system");
+    expect(result.messages[0].content).toContain("Memory context: dark mode");
+    expect(result.messages[0].content).toContain("SYSTEM PROMPT");
+    expect(result.messages[2]).toEqual({ role: "assistant", content: "turn 1 answer" });
+    expect(result.messages[3]).toEqual({ role: "user", content: "turn 2 question" });
+  });
+});
+
 describe("shouldInjectMemory", () => {
   test("returns true when messages are present and enabled not set", () => {
     const request = makeRequest();

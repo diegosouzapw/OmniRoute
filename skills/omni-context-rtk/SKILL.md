@@ -29,7 +29,7 @@ Update RTK compression settings
 
 ```bash
 curl -X PUT https://localhost:20128/api/context/rtk/config \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -49,7 +49,7 @@ Validate or install an RTK TOML schema v1 filter file
 
 ```bash
 curl -X POST https://localhost:20128/api/context/rtk/import \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -60,7 +60,7 @@ Run RTK compression preview for text
 
 ```bash
 curl -X POST https://localhost:20128/api/context/rtk/test \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -71,6 +71,24 @@ Read retained redacted RTK raw output
 
 ```bash
 curl https://localhost:20128/api/context/rtk/raw-output/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/context/rtk/discover
+
+GET context › rtk › discover
+
+```bash
+curl https://localhost:20128/api/context/rtk/discover \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/context/rtk/learn
+
+GET context › rtk › learn
+
+```bash
+curl https://localhost:20128/api/context/rtk/learn \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 

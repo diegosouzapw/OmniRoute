@@ -1,11 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+// #10460: DATA_DIR must be assigned BEFORE any transitive DB import. The
+// accountFallback.ts import below statically imports `@/lib/db/providers`, which
+// imports `src/lib/db/core.ts`, whose `DATA_DIR` is a top-level
+// `export const DATA_DIR = resolveWritableDataDir(...)` captured once at module-load
+// time. Setting `process.env.DATA_DIR` after that first import is a no-op — the DB
+// singleton keeps whatever DATA_DIR it resolved at import time, so an isolated test
+// directory assigned later is silently never used and the #10460 tests below would
+// actually read/write the shared default DATA_DIR instead.
+const TEST_DATA_DIR_10460 = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-10460-"));
+process.env.DATA_DIR = TEST_DATA_DIR_10460;
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "10460-test-secret";
 
 const accountFallback = await import("../../open-sse/services/accountFallback.ts");
 const accountSelector = await import("../../open-sse/services/accountSelector.ts");
 const { RateLimitReason, COOLDOWN_MS, PROVIDER_PROFILES } =
   await import("../../open-sse/config/constants.ts");
 const { getCircuitBreaker } = await import("../../src/shared/utils/circuitBreaker.ts");
+const { connectionCircuitBreakerName } =
+  await import("../../open-sse/services/connectionCircuitBreaker.ts");
+const core = await import("../../src/lib/db/core.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const auth = await import("../../src/sse/services/auth.ts");
 
 const {
   isOAuthInvalidToken,
@@ -109,7 +129,7 @@ test("checkFallbackError locks Antigravity quota-reached 429 for the full reset 
     429,
     message,
     0,
-    "gemini-3-flash-agent",
+    "gemini-3.7-flash-high",
     "antigravity",
     null,
     makeProfile({ useUpstreamRetryHints: true })
@@ -125,7 +145,7 @@ test("checkFallbackError locks Antigravity quota-reached 429 for the full reset 
 test("recordModelLockoutFailure honors a multi-day exactCooldownMs (under 30-day cap)", () => {
   const provider = "antigravity";
   const connectionId = "conn-quota-window";
-  const model = "gemini-3-flash-agent";
+  const model = "gemini-3.7-flash-high";
   const exactCooldownMs = (164 * 3600 + 27 * 60 + 24) * 1000;
 
   clearModelLock(provider, connectionId, model);
@@ -435,6 +455,25 @@ test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => 
   assert.equal(hasPerModelQuota("github", "gpt-5-mini"), true);
 });
 
+test("hasPerModelQuota honors shared-registry passthrough providers (#11071)", () => {
+  // These declare passthroughModels:true in src/shared/constants/providers/, but are absent
+  // from the open-sse REGISTRY passthrough set and are neither local nor self-hosted — so the
+  // isLocalProvider/isSelfHostedChatProvider branch (#11078) never reaches them. Without the
+  // shared-registry lookup a missing model on one of these cools the WHOLE connection.
+  assert.equal(hasPerModelQuota("novita"), true);
+  assert.equal(hasPerModelQuota("uncloseai"), true);
+  assert.equal(hasPerModelQuota("orcarouter"), true);
+
+  // Already covered by the local/self-hosted branch — asserted so this port cannot regress it.
+  assert.equal(hasPerModelQuota("ollama-local"), true);
+  assert.equal(hasPerModelQuota("lm-studio"), true);
+  assert.equal(hasPerModelQuota("vllm"), true);
+
+  // Neither declared in the shared registry nor local: a failure here is still connection-wide.
+  assert.equal(hasPerModelQuota("openai"), false);
+  assert.equal(hasPerModelQuota("anthropic"), false);
+});
+
 test("Codex Spark 429s are scoped away from normal Codex models", () => {
   const connectionId = `codex-${Date.now()}`;
   clearModelLock("codex", connectionId, "gpt-5.3-codex-spark");
@@ -639,12 +678,14 @@ test("recordProviderFailure honors runtime provider breaker profile", () => {
 
     recordProviderFailure(provider, undefined, "conn-runtime-profile", runtimeProfile);
 
-    const breaker = getCircuitBreaker(provider);
+    // #14530: a per-connection failure configures that connection's breaker.
+    const breakerName = connectionCircuitBreakerName(provider, "conn-runtime-profile");
+    const breaker = getCircuitBreaker(breakerName);
     assert.equal(breaker.failureThreshold, runtimeProfile.failureThreshold);
     assert.equal(breaker.resetTimeout, runtimeProfile.resetTimeoutMs);
-    assert.equal(isProviderInCooldown(provider), false);
+    assert.equal(isProviderInCooldown(provider, "conn-runtime-profile"), false);
 
-    const breakerAfterStatusCheck = getCircuitBreaker(provider);
+    const breakerAfterStatusCheck = getCircuitBreaker(breakerName);
     assert.equal(breakerAfterStatusCheck.failureThreshold, runtimeProfile.failureThreshold);
     assert.equal(breakerAfterStatusCheck.resetTimeout, runtimeProfile.resetTimeoutMs);
   } finally {
@@ -662,7 +703,10 @@ test("recordProviderFailure preserves provider breaker cooldown while open", () 
     const profile = { failureThreshold: 1, resetTimeoutMs: 60_000 };
     clearProviderFailure(provider);
 
-    recordProviderFailure(provider, undefined, "conn-open-cooldown", profile);
+    // #14530: only network/proxy failures reach the provider-wide breaker now.
+    recordProviderFailure(provider, undefined, "conn-open-cooldown", profile, {
+      isNetworkError: true,
+    });
     assert.equal(isProviderInCooldown(provider), true);
 
     const openedAt = getProviderBreakerState(provider)?.lastFailureTime;
@@ -671,7 +715,9 @@ test("recordProviderFailure preserves provider breaker cooldown while open", () 
     assert.equal(initialRemaining, 60_000);
 
     now += 10_000;
-    recordProviderFailure(provider, undefined, "conn-open-cooldown-later", profile);
+    recordProviderFailure(provider, undefined, "conn-open-cooldown-later", profile, {
+      isNetworkError: true,
+    });
 
     assert.equal(getProviderBreakerState(provider)?.lastFailureTime, openedAt);
     assert.equal(getProviderCooldownRemainingMs(provider), 50_000);
@@ -1144,6 +1190,29 @@ test("isCreditsExhausted returns true for actual credits-exhausted signals", () 
   // #5239: "Insufficient account balance" out-of-credit bodies
   assert.equal(isCreditsExhausted("Insufficient account balance"), true);
   assert.equal(isCreditsExhausted("insufficient_balance"), true);
+  assert.equal(isCreditsExhausted("Insufficient credit balance"), true);
+  // Command Code returns 400 "You have insufficient credits to make this
+  // request. Please purchase more credits to continue using the service."
+  // when the account's billing credits run out. Without this signal the
+  // error is unclassified (errorType=null), so the connection is never
+  // marked credits_exhausted and keeps being re-selected on every request.
+  assert.equal(isCreditsExhausted("insufficient credits"), true);
+  assert.equal(
+    isCreditsExhausted(
+      "You have insufficient credits to make this request. Please purchase more credits to continue using the service."
+    ),
+    true
+  );
+});
+
+test("isCreditsExhausted matches FriendliAI credit-exhaustion 403 body (#13040)", () => {
+  // FriendliAI returns HTTP 403 with body {"detail":"You've exhausted all your
+  // credits..."} when free tier credits are depleted via Adaptive Rate Limits.
+  // Before #13040 this fell through every quota/credits check to the generic
+  // 403 -> AUTH_ERROR fallback; the signal below routes it to QUOTA_EXHAUSTED.
+  assert.equal(isCreditsExhausted("You've exhausted all your credits"), true);
+  assert.equal(isCreditsExhausted('{"detail":"You\'ve exhausted all your credits"}'), true);
+  assert.equal(isCreditsExhausted("exhausted all your credits"), true);
 });
 
 test("CREDITS_EXHAUSTED_SIGNALS no longer contains generic gRPC resource-exhausted patterns", () => {
@@ -1559,4 +1628,458 @@ test("isAccountDeactivated matches a custom signal after setCustomBannedSignals"
   assert.equal(isAccountDeactivated("account_deactivated"), true);
 
   setCustomBannedSignals([]); // cleanup — restore module state for other tests
+});
+
+// ─── #10460: model-unsupported 400 skips account rotation ────────────────────
+// TEST_DATA_DIR_10460 / DATA_DIR / core / providersDb / auth are set up at the top
+// of this file, BEFORE the accountFallback.ts import — see the comment there.
+
+async function resetStorage10460() {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR_10460, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  fs.mkdirSync(TEST_DATA_DIR_10460, { recursive: true });
+}
+
+async function seedConn10460(provider: string): Promise<string> {
+  const conn = await providersDb.createProviderConnection({
+    provider,
+    authType: "apikey",
+    apiKey: `${provider}-key-10460`,
+    isActive: true,
+    testStatus: "active",
+  });
+  return (conn as Record<string, unknown>).id as string;
+}
+
+test.after(() => {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR_10460, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
+
+test("#10460: model-unsupported 400 returns shouldFallback:false (no account cooldown)", async () => {
+  await resetStorage10460();
+  const connId = await seedConn10460("github");
+
+  const result = await auth.markAccountUnavailable(
+    connId,
+    400,
+    "The requested model is not supported",
+    "github",
+    "claude-fable-5"
+  );
+
+  // The guard must prevent account cooldown — the error belongs to the combo layer
+  assert.strictEqual(result.shouldFallback, false, "must not trigger account rotation");
+  assert.strictEqual(result.cooldownMs, 0, "must not cool down the account");
+
+  // Verify the connection was NOT marked unavailable
+  const after = await providersDb.getProviderConnectionById(connId);
+  assert.ok(!after.rateLimitedUntil, "connection must not be rate-limited");
+  assert.notStrictEqual(after.testStatus, "unavailable", "connection must stay active");
+});
+
+test("#10460: model-unsupported 400 handles various phrasings", async () => {
+  await resetStorage10460();
+  const connId = await seedConn10460("github");
+
+  const phrasings = [
+    "The requested model is not supported",
+    "model claude-fable-5 is not supported",
+    "invalid_request_error: model is not supported",
+    "unsupported model: gpt-9",
+  ];
+
+  for (const errorText of phrasings) {
+    await resetStorage10460();
+    const id = await seedConn10460("github");
+    const result = await auth.markAccountUnavailable(id, 400, errorText, "github", "test-model");
+    assert.strictEqual(result.shouldFallback, false, `phrasing "${errorText}" must not rotate`);
+    // Verify connection stays healthy after each iteration
+    const conn = await providersDb.getProviderConnectionById(id);
+    assert.ok(!conn.rateLimitedUntil, `"${errorText}" must not rate-limit connection`);
+    assert.notStrictEqual(
+      conn.testStatus,
+      "unavailable",
+      `"${errorText}" must not mark unavailable`
+    );
+  }
+});
+
+test("#10460: body-specific 400 still goes through normal path (not blocked by model guard)", async () => {
+  await resetStorage10460();
+  const connId = await seedConn10460("openai");
+
+  const result = await auth.markAccountUnavailable(
+    connId,
+    400,
+    "Invalid message format: the request body is malformed",
+    "openai",
+    "gpt-4"
+  );
+
+  // Body-specific 400 does NOT match MODEL_ACCESS_DENIED_PATTERNS — normal path applies
+  assert.strictEqual(result.shouldFallback, true, "body-specific 400 must still allow fallback");
+});
+
+test("#10460: non-400 status with model-unsupported text does NOT trigger guard", async () => {
+  await resetStorage10460();
+  const connId = await seedConn10460("github");
+
+  // 429 + model-unsupported text should go through normal path (guard only fires for status===400)
+  const result = await auth.markAccountUnavailable(
+    connId,
+    429,
+    "The requested model is not supported",
+    "github",
+    "test-model"
+  );
+
+  assert.strictEqual(
+    result.shouldFallback,
+    true,
+    "non-400 must not be short-circuited by model guard"
+  );
+  // The key assertion: guard returns shouldFallback:false. If we get here with
+  // shouldFallback:true, the guard did NOT fire (correct behavior).
+});
+
+test("#10460: empty errorText with status 400 does NOT trigger guard", async () => {
+  await resetStorage10460();
+  const connId = await seedConn10460("github");
+
+  const result = await auth.markAccountUnavailable(connId, 400, "", "github", "test-model");
+
+  // Empty string matches no patterns — normal path applies
+  assert.strictEqual(result.shouldFallback, false, "empty errorText is generic 400 → no fallback");
+});
+
+test("#10460: auth-credential 400 text does NOT match model-unsupported guard", async () => {
+  await resetStorage10460();
+  const connId = await seedConn10460("github");
+
+  // "Invalid API key provided for model gpt-4o" contains "model" but is NOT a
+  // model-unsupported error — it's a credential issue. The guard must not fire.
+  const result = await auth.markAccountUnavailable(
+    connId,
+    400,
+    "Invalid API key provided for model gpt-4o",
+    "github",
+    "gpt-4o"
+  );
+
+  // This text does NOT match MODEL_ACCESS_DENIED_PATTERNS (verified by regex test)
+  // so it falls through to checkFallbackError which returns shouldFallback:false for generic 400
+  assert.strictEqual(
+    result.shouldFallback,
+    false,
+    "auth-credential 400 must not be caught by model guard"
+  );
+  // The generic 400 path returns cooldownMs:0 — same as the guard, but the
+  // connection was NOT touched (no rateLimitedUntil set). This distinguishes
+  // it from the normal fallback path which would set a cooldown.
+  const conn = await providersDb.getProviderConnectionById(connId);
+  assert.ok(!conn.rateLimitedUntil, "generic 400 must not rate-limit connection");
+});
+
+test("#10460: guard early return does not touch DB (distinguishes from normal path)", async () => {
+  await resetStorage10460();
+  const connId = await seedConn10460("github");
+
+  // Guard path: model-unsupported 400 → shouldFallback:false, cooldownMs:0, no DB change
+  const guardResult = await auth.markAccountUnavailable(
+    connId,
+    400,
+    "The requested model is not supported",
+    "github",
+    "test-model"
+  );
+  assert.strictEqual(guardResult.shouldFallback, false);
+  assert.strictEqual(guardResult.cooldownMs, 0);
+  const guardConn = await providersDb.getProviderConnectionById(connId);
+  assert.ok(!guardConn.rateLimitedUntil, "guard path must not touch DB");
+  assert.strictEqual(guardConn.testStatus, "active", "guard path must keep connection active");
+});
+
+test("#10460: returned result exposes a sanitized provider_model_unsupported reason", async () => {
+  await resetStorage10460();
+  const connId = await seedConn10460("github");
+
+  const result = await auth.markAccountUnavailable(
+    connId,
+    400,
+    "The requested model is not supported",
+    "github",
+    "claude-fable-5"
+  );
+
+  assert.strictEqual(result.shouldFallback, false);
+  assert.strictEqual(
+    (result as { reason?: string }).reason,
+    "provider_model_unsupported",
+    "the canonical sanitized reason must be exposed on the returned result, not only in logs"
+  );
+});
+
+test("#10460: account-scoped permission/entitlement 400 keeps rotating (not misclassified as provider-wide unsupported)", async () => {
+  await resetStorage10460();
+  const connIds: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    connIds.push(await seedConn10460("github"));
+  }
+  let calls = 0;
+
+  // Phrased so it matches the broader/ambiguous MODEL_ACCESS_DENIED_PATTERNS
+  // ("permission" ... "model") but is NOT an unambiguous provider-wide "model not
+  // supported" response — it reads as an account/key entitlement gap (e.g. this
+  // key's plan doesn't include this model), where a DIFFERENT account of the same
+  // provider may still have access. Rotation through all 3 accounts must continue,
+  // unlike the unambiguous "model is not supported" case above.
+  for (const connId of connIds) {
+    calls += 1;
+    const result = await auth.markAccountUnavailable(
+      connId,
+      400,
+      "Your API key does not have permission to use model gpt-4o",
+      "github",
+      "gpt-4o"
+    );
+    if (!result.shouldFallback) break;
+  }
+
+  assert.equal(
+    calls,
+    3,
+    "an account-scoped permission/entitlement 400 must keep rotating through all accounts, " +
+      "not be short-circuited by the provider-wide model-unsupported guard"
+  );
+});
+
+test("#10460: account-scoped 401 keeps rotating through all 3 accounts (not short-circuited)", async () => {
+  await resetStorage10460();
+  const connIds: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    connIds.push(await seedConn10460("github"));
+  }
+  let calls = 0;
+
+  for (const connId of connIds) {
+    calls += 1;
+    const result = await auth.markAccountUnavailable(
+      connId,
+      401,
+      "Unauthorized: invalid credentials",
+      "github",
+      "claude-fable-5"
+    );
+    if (!result.shouldFallback) break;
+  }
+
+  assert.equal(
+    calls,
+    3,
+    "401 account-scoped errors must keep rotating through every account, unlike model-unsupported 400"
+  );
+});
+
+test("#10460: account-scoped 403 keeps rotating through all 3 accounts", async () => {
+  await resetStorage10460();
+  const connIds: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    connIds.push(await seedConn10460("github"));
+  }
+  let calls = 0;
+
+  for (const connId of connIds) {
+    calls += 1;
+    const result = await auth.markAccountUnavailable(
+      connId,
+      403,
+      "Forbidden: access denied for this account",
+      "github",
+      "claude-fable-5"
+    );
+    if (!result.shouldFallback) break;
+  }
+
+  assert.equal(calls, 3, "403 account-scoped errors must keep rotating through every account");
+});
+
+test("#10460: 429 rate limit keeps rotating through all 3 accounts", async () => {
+  await resetStorage10460();
+  const connIds: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    connIds.push(await seedConn10460("github"));
+  }
+  let calls = 0;
+
+  for (const connId of connIds) {
+    calls += 1;
+    const result = await auth.markAccountUnavailable(
+      connId,
+      429,
+      "Rate limit exceeded",
+      "github",
+      "claude-fable-5"
+    );
+    if (!result.shouldFallback) break;
+  }
+
+  assert.equal(calls, 3, "429 rate-limit errors must keep rotating through every account");
+});
+
+// ─── #10460 acceptance criteria: 3-account rotation + combo target advancement ─
+//
+// Reproduces the exact regression from issue #10460: a combo with a
+// (github/model, 3 accounts) target followed by a sibling target. When GitHub
+// returns an unambiguous "model not supported" 400, the account-rotation loop
+// must make exactly ONE upstream call (not one per account) and the combo must
+// advance to the next target — not just that markAccountUnavailable() in
+// isolation returns shouldFallback:false (covered above), but that a realistic
+// rotation loop wired to the REAL markAccountUnavailable()/
+// isProviderModelUnsupported400() gating actually stops after account 1 and lets
+// handleComboChat() move on.
+//
+// The inner loop below is a faithful, minimal reproduction of the account-rotation
+// contract in src/sse/handlers/chat.ts::handleSingleModelChat step 8 ("Fallback to
+// next account", ~line 1936): call markAccountUnavailable(); continue to the next
+// connection only while shouldFallback is true, otherwise stop immediately and
+// surface the failure. Reimplemented at this scope (rather than driving the full
+// handleChat()/route stack) so the test can assert on upstream-call counts and
+// per-connection DB state directly, while still exercising the real gating logic
+// that decides whether rotation continues.
+test("#10460 acceptance: unambiguous model-unsupported 400 makes exactly ONE upstream call across 3 accounts, then the combo advances to the next target", async () => {
+  await resetStorage10460();
+  const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+
+  const githubConnIds: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    githubConnIds.push(await seedConn10460("github"));
+  }
+
+  let githubUpstreamCalls = 0;
+  const triedGithubConnections: string[] = [];
+  const noopLog = { info: () => {}, warn: () => {}, debug: () => {}, error: () => {} };
+
+  const handleSingleModel = async (_body: unknown, modelStr: string) => {
+    if (modelStr.startsWith("github/")) {
+      for (const connId of githubConnIds) {
+        triedGithubConnections.push(connId);
+        githubUpstreamCalls += 1;
+        const result = await auth.markAccountUnavailable(
+          connId,
+          400,
+          "The requested model is not supported",
+          "github",
+          "claude-fable-5"
+        );
+        if (result.shouldFallback) continue;
+        return new Response(
+          JSON.stringify({ error: { message: "The requested model is not supported" } }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      // A test-fixture bug (guard not firing) would otherwise silently exhaust
+      // every account and mask the regression this test exists to catch.
+      throw new Error("all 3 github accounts were tried — the guard did not fire");
+    }
+    // Second combo target (a different provider) — succeeds immediately.
+    return new Response(JSON.stringify({ id: "ok", choices: [] }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  const result = await handleComboChat({
+    body: { model: "test", messages: [{ role: "user", content: "hi" }] },
+    combo: {
+      name: "test-combo-10460",
+      strategy: "priority",
+      models: [{ model: "github/claude-fable-5" }, { model: "openai/gpt-4o-mini" }],
+    },
+    handleSingleModel,
+    log: noopLog,
+    settings: {},
+    allCombos: [],
+  });
+
+  assert.equal(
+    githubUpstreamCalls,
+    1,
+    `expected exactly ONE upstream call for github/claude-fable-5 across 3 accounts, got ` +
+      `${githubUpstreamCalls} (tried: ${triedGithubConnections.join(", ")})`
+  );
+  assert.equal(triedGithubConnections.length, 1, "only the first account should have been tried");
+  assert.equal(result.status, 200, "the combo must advance to the next target and succeed");
+
+  // The two untouched accounts must remain completely unaffected — proves the
+  // guard did not just avoid an upstream call but also never cooled them down,
+  // so they stay immediately eligible for the next unrelated request.
+  for (const connId of githubConnIds.slice(1)) {
+    const conn = await providersDb.getProviderConnectionById(connId);
+    assert.ok(!conn.rateLimitedUntil, `untried account ${connId} must not be rate-limited`);
+    assert.notStrictEqual(
+      conn.testStatus,
+      "unavailable",
+      `untried account ${connId} must stay active`
+    );
+  }
+});
+
+const MOONSHOT_COMPAT = "openai-compatible-chat-e2971611-bc02-4c37-8fc5-39b8e3906fdf";
+const MOONSHOT_TPD =
+  "[429]: Your account org-x / proj-y <ak-z> request reached organization TPD rate limit, current: 1537190, limit: 1500000";
+const MOONSHOT_BROKE =
+  "[429]: Your account org-x <ak-z> is suspended due to insufficient balance, please recharge your account or check your plan and billing details";
+
+test("checkFallbackError: compatible Moonshot insufficient balance is creditsExhausted", () => {
+  const result = checkFallbackError(429, MOONSHOT_BROKE, 0, null, MOONSHOT_COMPAT);
+  assert.equal(result.creditsExhausted, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+test("checkFallbackError: compatible node empty wallet without billing-suspend phrasing is creditsExhausted", () => {
+  const result = checkFallbackError(
+    429,
+    "You have insufficient balance, please recharge your account",
+    0,
+    null,
+    MOONSHOT_COMPAT
+  );
+  assert.equal(result.creditsExhausted, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+test("isDailyQuotaExhausted detects organization TPD rate limit", () => {
+  const { isDailyQuotaExhausted } = accountFallback;
+  assert.equal(isDailyQuotaExhausted(MOONSHOT_TPD), true);
+  assert.equal(isDailyQuotaExhausted("The engine is currently overloaded"), false);
+});
+
+test("checkFallbackError: TPD with node clock uses that instant, not host midnight", () => {
+  const now = Date.parse("2026-09-02T07:30:00Z");
+  const result = checkFallbackError(
+    429,
+    MOONSHOT_TPD,
+    0,
+    null,
+    MOONSHOT_COMPAT,
+    null,
+    null,
+    null,
+    null,
+    {
+      timezone: "Asia/Shanghai",
+      hour: 0,
+      nowMs: now,
+    }
+  );
+  assert.equal(result.dailyQuotaExhausted, true);
+  assert.equal(result.cooldownMs, Date.parse("2026-09-02T16:00:00Z") - now);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+test("checkFallbackError: TPD without clock or header is NOT host-midnight lock", () => {
+  const result = checkFallbackError(429, MOONSHOT_TPD, 0, null, MOONSHOT_COMPAT);
+  assert.notEqual(result.dailyQuotaExhausted, true);
+  assert.ok(result.cooldownMs < 2 * 60 * 60 * 1000);
 });

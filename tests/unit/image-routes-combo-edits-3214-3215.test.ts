@@ -5,7 +5,7 @@
  *  - `/v1/images/generations` resolved built-in ids and `prefix/model` custom ids but NOT
  *    a bare combo/alias name (`model: "image"`) — it fell through to "Invalid image model".
  *  - `/v1/images/edits` resolved a base URL only for `/images/generations` and rejected any
- *    non-chatgpt-web provider, so custom OpenAI-compatible providers could not edit, and
+ *    non-default web provider, so custom OpenAI-compatible providers could not edit, and
  *    JSON/data-URL edit clients got "Invalid multipart body".
  */
 import test from "node:test";
@@ -35,7 +35,7 @@ const { createCombo } = await import("../../src/lib/db/combos.ts");
 
 test.after(() => {
   resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
@@ -188,7 +188,15 @@ test("resolveImageRouteModel keeps codex bare aliases over same-name combos", as
   assert.equal(await resolveImageRouteModel("gpt-5.6-sol"), "gpt-5.6-sol");
 });
 
-test("resolveImageRouteModel leaves built-in / already-resolved ids untouched", async () => {
-  assert.equal(await resolveImageRouteModel("cgpt-web/gpt-5.5"), "cgpt-web/gpt-5.5");
+test("resolveImageRouteModel preserves clean-room ChatGPT Web and rejects its retired alias", async () => {
+  assert.equal(
+    await resolveImageRouteModel("chatgpt-web/gpt-5-5-thinking"),
+    "chatgpt-web/gpt-5-5-thinking"
+  );
+  await assert.rejects(resolveImageRouteModel("cgpt-web/gpt-5.5"), {
+    code: "PROVIDER_RETIRED",
+    status: 410,
+  });
+  assert.equal(await resolveImageRouteModel("codex/gpt-5.6-sol"), "codex/gpt-5.6-sol");
   assert.equal(await resolveSingleImageComboTarget("definitely-not-a-combo-3215"), null);
 });

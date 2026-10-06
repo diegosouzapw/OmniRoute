@@ -374,7 +374,9 @@ export default function CachePage() {
   }, []);
 
   useEffect(() => {
-    void fetchStats();
+    void (async () => {
+      await fetchStats();
+    })();
     const id = setInterval(() => void fetchStats(), REFRESH_INTERVAL_MS);
     return () => clearInterval(id);
   }, [fetchStats]);

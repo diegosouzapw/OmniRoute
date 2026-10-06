@@ -86,13 +86,13 @@ test("zenmux-free model names are human-readable strings", () => {
 
 // ── Executor ──────────────────────────────────────────────────────────────────
 
-test("getExecutor returns ZenmuxFreeExecutor for 'zenmux-free'", () => {
-  const e = getExecutor("zenmux-free");
+test("getExecutor returns ZenmuxFreeExecutor for 'zenmux-free'", async () => {
+  const e = await getExecutor("zenmux-free");
   assert.ok(e instanceof ZenmuxFreeExecutor, "executor must be ZenmuxFreeExecutor");
 });
 
-test("getExecutor returns ZenmuxFreeExecutor for 'zmf' alias", () => {
-  const e = getExecutor("zmf");
+test("getExecutor returns ZenmuxFreeExecutor for 'zmf' alias", async () => {
+  const e = await getExecutor("zmf");
   assert.ok(e instanceof ZenmuxFreeExecutor, "alias 'zmf' must resolve to ZenmuxFreeExecutor");
 });
 

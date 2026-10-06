@@ -47,11 +47,6 @@ test("getModelRpd strips gemma- prefix correctly for gemma models", () => {
   assert.equal(getModelRpd("gemini/gemma-4-31b-it"), 14400);
 });
 
-test("getModelRpd handles image-generation models (no RPM value, -1)", () => {
-  // RPD is 25 for imagen models; RPM is -1 in the JSON
-  assert.equal(getModelRpd("imagen-4-generate"), 25);
-});
-
 test("getModelRpd handles models with unlimited RPD (-1)", () => {
   // gemini-3.5-live-translate has rpd: -1
   assert.equal(getModelRpd("gemini-3.5-live-translate"), 0);
@@ -207,8 +202,8 @@ test("getModelRpm returns 0 for empty string", () => {
   assert.equal(getModelRpm(""), 0);
 });
 
-test("getModelRpm returns 0 for models with RPM=-1 (imagen)", () => {
-  assert.equal(getModelRpm("imagen-4-generate"), 0);
+test("getModelRpm returns 0 for models with RPM=-1", () => {
+  assert.equal(getModelRpm("gemini-3.5-live-translate"), 0);
 });
 
 test("getModelRpm returns 0 for null input", () => {
@@ -288,9 +283,9 @@ test("isRpmExhausted returns false for unknown model", () => {
   assert.equal(isRpmExhausted("gemini/unknown-model"), false);
 });
 
-test("isRpmExhausted returns false for model with RPM=-1 (imagen)", () => {
-  incrementRequestCount("imagen-4-generate");
-  assert.equal(isRpmExhausted("imagen-4-generate"), false);
+test("isRpmExhausted returns false for model with RPM=-1", () => {
+  incrementRequestCount("gemini-3.5-live-translate");
+  assert.equal(isRpmExhausted("gemini-3.5-live-translate"), false);
 });
 
 test("isRpmExhausted works with gemini/ prefix", () => {

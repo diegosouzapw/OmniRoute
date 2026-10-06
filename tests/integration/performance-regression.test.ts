@@ -226,7 +226,7 @@ describe("Performance: memory API route handler (1000 records)", () => {
     db.prepare("DELETE FROM memories WHERE api_key_id = ?").run(TEST_API_KEY_ID);
     // Final cleanup: reset DB instance and remove temp dir
     core.resetDbInstance();
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it(`should handle GET /api/memory?limit=50 in <${THRESHOLD_API_ROUTE_MS}ms`, async () => {

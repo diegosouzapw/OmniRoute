@@ -1,13 +1,20 @@
 import { isIP } from "node:net";
 import dns from "node:dns";
-import { Agent, fetch as undiciFetch } from "undici";
 import {
   type OutboundUrlGuardMode,
   isPrivateHost,
+  parseAndValidateNonMetadataUrl,
   parseAndValidatePublicUrl,
   parseOutboundUrl,
 } from "@/shared/network/outboundUrlGuard";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
+// #12569: `createPinnedFetch` now lives in the shared `dnsPinnedFetch.ts` module so the
+// webhook outbound-URL guard can reuse the exact same connection-pinning mechanism instead of
+// duplicating it. Re-exported here for backward compatibility with existing importers of
+// `@/shared/network/remoteImageFetch`.
+import { createPinnedFetch } from "@/shared/network/dnsPinnedFetch";
+
+export { createPinnedFetch };
 
 const DEFAULT_MAX_REMOTE_IMAGE_BYTES = 20 * 1024 * 1024;
 const DEFAULT_MAX_REDIRECTS = 3;
@@ -23,6 +30,8 @@ export type RemoteImageLookup = (
 ) => Promise<Array<{ address: string; family: number }>>;
 
 export interface RemoteImageFetchOptions {
+  /** Require HTTPS for the initial URL and every redirect hop. Default false for compatibility. */
+  enforceHttps?: boolean;
   fetchImpl?: typeof fetch;
   /** Pin the network connection to a DNS answer that passed validation. */
   pinDns?: boolean;
@@ -44,8 +53,21 @@ export interface RemoteImageFetchResult {
   url: string;
 }
 
+/** Generic aliases for non-image callers that need the same SSRF/bounds policy. */
+export type RemoteMediaFetchOptions = RemoteImageFetchOptions;
+export type RemoteMediaFetchResult = RemoteImageFetchResult;
+
 function validateRemoteImageUrl(input: string | URL, guard: OutboundUrlGuardMode) {
-  return guard === "public-only" ? parseAndValidatePublicUrl(input) : parseOutboundUrl(input);
+  if (guard === "public-only") return parseAndValidatePublicUrl(input);
+  if (guard === "block-metadata") return parseAndValidateNonMetadataUrl(input);
+  return parseOutboundUrl(input);
+}
+
+function requireHttps(url: URL, enabled: boolean): URL {
+  if (enabled && url.protocol !== "https:") {
+    throw new Error("Remote media requires HTTPS at every redirect hop");
+  }
+  return url;
 }
 
 const defaultLookup: RemoteImageLookup = (hostname) => dns.promises.lookup(hostname, { all: true });
@@ -78,48 +100,6 @@ async function assertHostnameResolvesPublic(
     }
   }
   return resolved;
-}
-/**
- * Build a `fetch` bound to a single already-DNS-validated address, ignoring
- * whatever the hostname resolves to at connect time. Exported for direct
- * testing: this is the mechanism that closes the DNS-rebinding TOCTOU gap
- * (GHSA-cmhj-wh2f-9cgx) — a second, real DNS lookup at connect time could
- * otherwise return a different (possibly private) address than the one
- * `assertHostnameResolvesPublic` validated.
- */
-export function createPinnedFetch(address: string, family: number): typeof fetch {
-  const dispatcher = new Agent({
-    connect: {
-      // Node's `net.connect`/`tls.connect` invoke a custom `lookup` in one of
-      // two incompatible shapes depending on `options.all`: modern Node
-      // (autoSelectFamily / Happy Eyeballs, on by default since Node 18)
-      // calls `lookup(hostname, { all: true, ... }, callback)` and requires
-      // `callback(err, addresses[])` — an array of `{ address, family }`.
-      // Only when `all` is falsy does it accept the single-address form
-      // `callback(err, address, family)`. Handling only the single-address
-      // form here (as an earlier draft did) throws `ERR_INVALID_IP_ADDRESS`
-      // for every real request once autoSelectFamily kicks in, silently
-      // breaking every pinned fetch — verified by
-      // `tests/unit/remote-image-fetch-pin-dns-connection.test.ts`.
-      lookup: (_hostname, options, callback) => {
-        if (options && typeof options === "object" && "all" in options && options.all) {
-          callback(null, [{ address, family }]);
-          return;
-        }
-        callback(null, address, family);
-      },
-    },
-  });
-  return (async (input, init) => {
-    try {
-      return (await undiciFetch(input as string | URL, {
-        ...(init as Parameters<typeof undiciFetch>[1]),
-        dispatcher,
-      })) as unknown as Response;
-    } finally {
-      await dispatcher.close();
-    }
-  }) as typeof fetch;
 }
 function combineSignals(signal: AbortSignal | undefined, timeoutMs: number) {
   const timeoutSignal = AbortSignal.timeout(timeoutMs);
@@ -166,10 +146,20 @@ async function readResponseBuffer(response: Response, maxBytes: number) {
   return Buffer.concat(chunks, totalBytes);
 }
 
-export async function fetchRemoteImage(
+// #13883: test-only escape hatch for `pinDns: true` callers that have no `fetchImpl` seam
+// of their own (imageGeneration.ts / imageUpscale/shared.ts). `createPinnedFetch` opens a
+// real undici connection, bypassing a test's monkeypatched `globalThis.fetch`; setting this
+// override lets such a test keep exercising its mock instead of a real network attempt.
+// Production callers never call the setter, so `pinDns` still pins for real in production.
+let pinnedFetchTestOverride: typeof fetch | undefined;
+export function setPinnedFetchTestOverride(fetchImpl: typeof fetch | undefined): void {
+  pinnedFetchTestOverride = fetchImpl;
+}
+
+export async function fetchRemoteMedia(
   input: string | URL,
-  options: RemoteImageFetchOptions = {}
-): Promise<RemoteImageFetchResult> {
+  options: RemoteMediaFetchOptions = {}
+): Promise<RemoteMediaFetchResult> {
   const injectedFetch = options.fetchImpl;
   // Default off: production callers that need connection pinning opt in. This keeps
   // globalThis.fetch mockable for image-generation tests and preserves the previous
@@ -181,13 +171,17 @@ export async function fetchRemoteImage(
   const signal = combineSignals(options.signal, options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
   const lookup = options.lookup ?? defaultLookup;
 
-  let currentUrl = validateRemoteImageUrl(input, guard);
+  let currentUrl = requireHttps(
+    validateRemoteImageUrl(input, guard),
+    options.enforceHttps === true
+  );
   for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount++) {
     // DNS-rebinding guard: validate every hop's hostname against its resolved
     // IPs before issuing the request (GHSA-cmhj-wh2f-9cgx).
     const addresses = await assertHostnameResolvesPublic(currentUrl, guard, lookup);
     const fetchImpl =
       injectedFetch ??
+      pinnedFetchTestOverride ??
       (pinDns && addresses.length
         ? createPinnedFetch(addresses[0].address, addresses[0].family)
         : fetch);
@@ -205,7 +199,10 @@ export async function fetchRemoteImage(
       if (redirectCount >= maxRedirects) {
         throw new Error(`Remote image exceeded ${maxRedirects} redirect limit`);
       }
-      currentUrl = validateRemoteImageUrl(new URL(location, currentUrl), guard);
+      currentUrl = requireHttps(
+        validateRemoteImageUrl(new URL(location, currentUrl), guard),
+        options.enforceHttps === true
+      );
       continue;
     }
 
@@ -221,4 +218,38 @@ export async function fetchRemoteImage(
   }
 
   throw new Error(`Remote image exceeded ${maxRedirects} redirect limit`);
+}
+
+/** Backward-compatible image-specific entry point. */
+export async function fetchRemoteImage(
+  input: string | URL,
+  options: RemoteImageFetchOptions = {}
+): Promise<RemoteImageFetchResult> {
+  return fetchRemoteMedia(input, options);
+}
+
+/**
+ * Fetch an image from a URL that did NOT originate from an OmniRoute-controlled host: a
+ * caller-supplied `image_url` / `image` body field (any of the request-body aliases,
+ * `provider_options.*`, message parts) or a result URL echoed back by an upstream provider.
+ *
+ * GHSA-34rg-3pqj-35g9 / #13883: the SSRF-hardened policy is hard-coded here so it is no longer
+ * an opt-in every call site has to remember (omni-code-review LEDGER-32 / LEDGER-50):
+ *
+ * - `guard: "public-only"` — never the operator outbound policy (`block-metadata` on a
+ *   local-first default install), which would let a request body make the server fetch
+ *   loopback/LAN URLs and forward the bytes to an image provider. Every resolved DNS answer
+ *   is validated, not just the hostname string.
+ * - `pinDns: true` — closes the DNS-rebinding TOCTOU: without it, a second, un-pinned
+ *   resolution at connect time could answer differently than the validated lookup and bypass
+ *   the public-only guard.
+ *
+ * Any `guard` / `pinDns` the caller passes is overridden; the remaining options (`maxBytes`,
+ * `timeoutMs`, `signal`, test seams such as `lookup` / `fetchImpl`) pass through unchanged.
+ */
+export async function fetchUntrustedRemoteImage(
+  input: string | URL,
+  opts: RemoteImageFetchOptions = {}
+): Promise<RemoteImageFetchResult> {
+  return fetchRemoteImage(input, { ...opts, guard: "public-only", pinDns: true });
 }

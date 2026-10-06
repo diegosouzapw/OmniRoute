@@ -18,6 +18,7 @@
  * never turn into a second failure on the response path.
  */
 import { saveCallLog, saveRequestUsage } from "@/lib/usageDb";
+import { redactVideoTranscriptFieldsForLog } from "@/lib/guardrails/videoBridgeSnapshotRedaction";
 
 export interface RejectedRequestUsageInput {
   status: number;
@@ -30,6 +31,8 @@ export interface RejectedRequestUsageInput {
   comboStepId?: string | null;
   comboExecutionKey?: string | null;
   correlationId?: string | null;
+  /** Conversation id (X-ConversationId) — see open-sse/services/conversationTracker.ts. */
+  sessionTag?: string | null;
   apiKeyId?: string | null;
   apiKeyName?: string | null;
   connectionId?: string | null;
@@ -56,6 +59,7 @@ export async function recordRejectedRequestUsage(input: RejectedRequestUsageInpu
     comboStepId = null,
     comboExecutionKey = null,
     correlationId = null,
+    sessionTag = null,
     apiKeyId = null,
     apiKeyName = null,
     connectionId = undefined,
@@ -67,7 +71,7 @@ export async function recordRejectedRequestUsage(input: RejectedRequestUsageInpu
   const duration = typeof startTime === "number" ? now - startTime : 0;
 
   // 1. call_logs — preserves /dashboard/logs visibility (unchanged behavior).
-  saveCallLog({
+  await saveCallLog({
     id: undefined,
     method: "POST",
     path: endpoint || "/v1/chat/completions",
@@ -79,13 +83,19 @@ export async function recordRejectedRequestUsage(input: RejectedRequestUsageInpu
     duration,
     tokens: {},
     error: error || null,
-    requestBody,
+    // #12150 P2 item 7: this request was rejected BEFORE the guardrail chain ran
+    // (circuit-breaker-open / combo-exhausted), so the video-bridge guardrail
+    // never redacted the transcript. Redact defensively here — a no-op clone for
+    // any non-video body, structured field substitution (never bypassable by cue
+    // content) for a video one. See videoBridgeSnapshotRedaction.ts.
+    requestBody: requestBody == null ? requestBody : redactVideoTranscriptFieldsForLog(requestBody),
     comboName,
     comboStepId,
     comboExecutionKey,
     apiKeyId,
     apiKeyName,
     correlationId,
+    sessionTag,
   }).catch(() => {});
 
   // 2. usage_history — so the per-api-key usage counter reflects rejected

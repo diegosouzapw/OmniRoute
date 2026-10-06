@@ -26,8 +26,21 @@ export function usesClaudeBridge(
 export function stripStore(
   body: Record<string, unknown>,
   provider: string,
-  targetFormat: string
+  targetFormat: string,
+  providerSpecificData?: unknown
 ): void {
+  if (provider.startsWith("openai-compatible-") && targetFormat === FORMATS.OPENAI_RESPONSES) {
+    const psd =
+      providerSpecificData && typeof providerSpecificData === "object"
+        ? (providerSpecificData as Record<string, unknown>)
+        : undefined;
+    if (psd?.openaiStoreEnabled === true) {
+      return;
+    }
+    body.store = false;
+    return;
+  }
+
   const supportsStore =
     provider === "openai" ||
     (provider === "agentrouter" && targetFormat === FORMATS.OPENAI_RESPONSES);

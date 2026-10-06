@@ -39,6 +39,26 @@ test("permissions modal uses i18n for management access description", () => {
   assert.doesNotMatch(managementBlock, /Allow this API key to manage OmniRoute configuration\./);
 });
 
+test("API manager page renders purpose-first header", () => {
+  const source = readApiManagerPage();
+  const headerBlock = source.slice(
+    source.indexOf('<h1 className="text-3xl'),
+    source.indexOf("{/* Filter Bar", source.indexOf('<h1 className="text-3xl'))
+  );
+
+  assert.match(headerBlock, /\{t\("keyManagement"\)\}/);
+  assert.match(headerBlock, /\{t\("keyManagementDesc"\)\}/);
+  assert.match(headerBlock, /aria-label=\{t\("requestFlowAria"\)\}/);
+  assert.match(headerBlock, /\{t\("requestFlowYourApp"\)\}/);
+  assert.match(headerBlock, /\{t\("requestFlowApiKey"\)\}/);
+  assert.match(headerBlock, /\{t\("requestFlowOmniRoute"\)\}/);
+  assert.doesNotMatch(headerBlock, />\s*Your app\s*</);
+  assert.doesNotMatch(headerBlock, />\s*API key\s*</);
+  assert.doesNotMatch(headerBlock, />\s*OmniRoute\s*</);
+  assert.match(headerBlock, /setShowAddModal\(true\)/);
+  assert.match(headerBlock, /\{t\("createKey"\)\}/);
+});
+
 test("permissions modal converts API key expiration ISO timestamps to local datetime input values", () => {
   const source = readApiManagerPage();
   const expirationBlock = source.slice(
@@ -88,6 +108,26 @@ test("permissions modal switch buttons declare button type", () => {
     assert.ok(compSwitches >= 1, `${rel} must render a switch`);
     assert.equal(compTyped, compSwitches, `${rel}: every switch declares type="button"`);
   }
+});
+
+test("permissions modal serializes All and empty Restrict Combo access distinctly", () => {
+  const source = readApiManagerPage();
+
+  assert.match(
+    source,
+    /import \{ ALL_COMBOS_ACCESS_RULE \} from "@\/shared\/constants\/comboAccess";/
+  );
+  assert.match(
+    source,
+    /const \[allowAllCombos, setAllowAllCombos\] = useState\(\s*apiKey\?\.allowedCombos\?\.includes\(ALL_COMBOS_ACCESS_RULE\) === true\s*\)/
+  );
+  assert.match(source, /allowAllCombos \? \[ALL_COMBOS_ACCESS_RULE\] : selectedCombos/);
+  assert.match(
+    source,
+    /Array\.isArray\(key\.allowedCombos\) &&\s*!key\.allowedCombos\.includes\(ALL_COMBOS_ACCESS_RULE\)/
+  );
+  assert.match(source, /setAllowAllCombos\(false\)/);
+  assert.doesNotMatch(source, /!allowAllCombos && selectedCombos\.length === 0[^\n]*return/);
 });
 
 test("permissions modal persists the per-key prompt-compression switch", () => {
@@ -222,4 +262,51 @@ test("self-service API key scope labels do not expose missing placeholders", () 
       );
     }
   }
+});
+
+test("exclusive lease badge and notice use i18n translation keys", () => {
+  const source = readApiManagerPage();
+  const rowBadgesStart = source.indexOf("{/* Existing badges */}");
+  const rowBadgesEnd = source.indexOf("{/* Actions column */}", rowBadgesStart);
+  const rowBadges = source.slice(rowBadgesStart, rowBadgesEnd);
+
+  assert.match(rowBadges, /hasExclusiveLeaseScope &&/);
+  assert.match(rowBadges, /\{t\("exclusiveLease"\)\}/);
+  assert.doesNotMatch(rowBadges, />\s*Exclusive Lease\s*</);
+
+  const modalStart = source.indexOf("const PermissionsModal");
+  const modalNoticeStart = source.indexOf("{/* Exclusive Lease Notice */}", modalStart);
+  const modalNoticeEnd = source.indexOf("{/* Allowed Connections Section */}", modalNoticeStart);
+  const modalNotice = source.slice(modalNoticeStart, modalNoticeEnd);
+
+  assert.match(modalNotice, /hasExclusiveLeaseScope &&/);
+  assert.match(modalNotice, /\{t\("exclusiveLeaseNoticeTitle"\)\}/);
+  assert.match(modalNotice, /\{t\("exclusiveLeaseNoticeDesc"\)\}/);
+});
+
+test("permissions modal connection controls and empty-restrict validation use i18n translation keys", () => {
+  const source = readApiManagerPage();
+  const modalStart = source.indexOf("const PermissionsModal");
+  const handleSaveStart = source.indexOf("const handleSave = useCallback", modalStart);
+  const handleSaveEnd = source.indexOf("const handleBlockClaudeCodeFamily", handleSaveStart);
+  const handleSave = source.slice(handleSaveStart, handleSaveEnd);
+
+  assert.match(handleSave, /!allowAllConnections && selectedConnections\.length === 0/);
+  assert.match(handleSave, /setSaveError\(t\("selectAtLeastOneConnection"\)\)/);
+  assert.doesNotMatch(handleSave, /setSaveError\("Select at least one connection/);
+
+  const connectionsSectionStart = source.indexOf("{/* Allowed Connections Section */}", modalStart);
+  const connectionsSectionEnd = source.indexOf(
+    "{/* Allowed Combos Section */}",
+    connectionsSectionStart
+  );
+  const connectionsSection = source.slice(connectionsSectionStart, connectionsSectionEnd);
+
+  assert.match(connectionsSection, /\{t\("allConnections"\)\}/);
+  assert.match(connectionsSection, /\{t\("onlySelectedConnections"\)\}/);
+  assert.match(connectionsSection, /t\("selectAtLeastOneConnection"\)/);
+  assert.match(connectionsSection, /t\("allConnectionsDesc"\)/);
+  assert.match(connectionsSection, /t\("restrictedToConnections"/);
+  assert.doesNotMatch(connectionsSection, />\s*All\s*<\/button>/);
+  assert.doesNotMatch(connectionsSection, />\s*Restrict\s*<\/button>/);
 });

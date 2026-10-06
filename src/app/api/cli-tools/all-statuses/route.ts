@@ -8,16 +8,29 @@ import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { CLI_TOOLS } from "@/shared/constants/cliTools";
-import { getCliRuntimeStatus, getCliPrimaryConfigPath } from "@/shared/services/cliRuntime";
+import {
+  getCliConfigHome,
+  getCliRuntimeStatus,
+  getCliPrimaryConfigPath,
+} from "@/shared/services/cliRuntime";
 import { getAllCliToolLastConfigured } from "@/lib/db/cliToolState";
 import { checkToolConfigStatus } from "@/lib/cliTools/checkToolConfigStatus";
 import { findOmniRouteQwenCodeModel } from "@/shared/services/qwenCodeConfig";
+import {
+  parseGrokBuildConfig,
+  resolveGrokBuildConfigPath,
+} from "@/shared/services/grokBuildConfig";
 import { getCached, setCached } from "@/lib/cliTools/batchStatusCache";
 import type { ToolBatchStatus, ToolBatchStatusMap } from "@/shared/types/cliBatchStatus";
 
 const logger = pino({ name: "cli-tools-all-statuses-api" });
 
 const TOOL_CHECK_TIMEOUT_MS = 5000; // 5s per tool max
+
+const getConfigPath = (toolId: string): string | null =>
+  toolId === "grok-build"
+    ? resolveGrokBuildConfigPath(process.env, getCliConfigHome())
+    : getCliPrimaryConfigPath(toolId);
 
 /**
  * Attempt to extract the endpoint from a config file for a given toolId.
@@ -29,6 +42,10 @@ async function extractEndpointFromConfig(
 ): Promise<string | null> {
   try {
     const content = await fs.readFile(configPath, "utf-8");
+
+    if (toolId === "grok-build") {
+      return parseGrokBuildConfig(content).model?.base_url ?? null;
+    }
 
     // TOML-based tools (codex) — do a best-effort text search
     if (toolId === "codex") {
@@ -64,6 +81,14 @@ async function extractEndpointFromConfig(
         const match = content.match(/base_url\s*=\s*["']([^"'\n]+)["']/i);
         return match ? match[1] : null;
       }
+      case "omp": {
+        const omnirouteBlock = content.match(/omniroute:\s*\n(?:[^\n]+\n)*?\s*baseUrl:\s*["']?([^"'\r\n]+)["']?/i);
+        if (omnirouteBlock) return omnirouteBlock[1].trim();
+        const match =
+          content.match(/baseUrl:\s*["']?([^"'\r\n]*(?:omniroute|20128)[^"'\r\n]*)["']?/i) ||
+          content.match(/baseUrl:\s*["']?([^"'\r\n]+)["']?/i);
+        return match ? match[1].trim() : null;
+      }
       default:
         return null;
     }
@@ -96,7 +121,7 @@ export async function GET(request: Request): Promise<Response> {
     const mtimesMap: Record<string, number> = {};
     await Promise.allSettled(
       toolIds.map(async (toolId) => {
-        const configPath = getCliPrimaryConfigPath(toolId);
+        const configPath = getConfigPath(toolId);
         if (!configPath) {
           mtimesMap[toolId] = 0;
           return;
@@ -149,7 +174,7 @@ export async function GET(request: Request): Promise<Response> {
             !runtime.installed || !runtime.runnable ? "not_installed" : configStatus;
 
           // Try to extract endpoint from config file
-          const configPath = getCliPrimaryConfigPath(toolId);
+          const configPath = getConfigPath(toolId);
           const endpoint = configPath ? await extractEndpointFromConfig(toolId, configPath) : null;
 
           const result: ToolBatchStatus = {

@@ -40,6 +40,8 @@ const ROOT = path.resolve(__dirname, "..", "..");
 // U+2010 HYPHEN separates the locale prefix in localized wiki page names.
 const LOCALE_SEP = "‐";
 export const WIKI_BANNER = "> 🌍 [View in other languages](Languages)\n\n\n";
+export const GITHUB_REPO_URL = "https://github.com/diegosouzapw/OmniRoute";
+export const GITHUB_RAW_URL = "https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main";
 
 // Docs that must never become public wiki pages (internal reports/plans/index).
 export const NEW_PAGE_EXCLUDE = new Set([
@@ -103,9 +105,104 @@ export function toWikiName(basename) {
     .join("-");
 }
 
+/**
+ * Rewrites relative doc and code links in markdown for GitHub Wiki flat structure.
+ * - Relative doc links within `docs/` -> `Wiki-Page-Name[#anchor]`
+ * - Links to repository source code or root files outside `docs/` -> GitHub blob URL
+ * - Non-markdown doc assets (e.g. SVG diagrams) -> Raw GitHub usercontent URL
+ * - Pure anchor links (`#section`) and external links (`https://...`) -> untouched
+ */
+export function rewriteWikiLinks(
+  content,
+  {
+    srcFile = null,
+    wikiKeyMap = null,
+    locale = null,
+    repoUrl = GITHUB_REPO_URL,
+    rawUrl = GITHUB_RAW_URL,
+  } = {}
+) {
+  const docDir = srcFile ? path.dirname(path.resolve(ROOT, srcFile)) : path.join(ROOT, "docs");
+
+  function resolveHref(href, isImage = false) {
+    if (!href || /^(?:https?:|mailto:|#)/i.test(href)) return href;
+
+    const [rawPath, anchor] = href.includes("#")
+      ? [href.slice(0, href.indexOf("#")), href.slice(href.indexOf("#") + 1)]
+      : [href, null];
+    if (!rawPath) return href;
+
+    const resolvedAbs = path.resolve(docDir, rawPath);
+    const repoRel = path.relative(ROOT, resolvedAbs).replace(/\\/g, "/");
+    const anchorSuffix = anchor ? `#${anchor}` : "";
+
+    // If inside docs/ and ends with .md
+    if ((repoRel.startsWith("docs/") || repoRel.startsWith("docs\\")) && repoRel.endsWith(".md")) {
+      const base = path.basename(repoRel, ".md");
+      if (NEW_PAGE_EXCLUDE.has(base)) {
+        return `${repoUrl}/blob/main/${repoRel}${anchorSuffix}`;
+      }
+      const key = normKey(base);
+      const wikiName = wikiKeyMap?.get(key) || toWikiName(base);
+      const prefix = locale ? `${locale}${LOCALE_SEP}` : "";
+      return `${prefix}${wikiName}${anchorSuffix}`;
+    }
+
+    if (isImage || /\.(?:png|jpe?g|gif|svg|webp)$/i.test(repoRel)) {
+      return `${rawUrl}/${repoRel}`;
+    }
+
+    // Repo code or root markdown file (README, CHANGELOG, etc.)
+    return `${repoUrl}/blob/main/${repoRel}${anchorSuffix}`;
+  }
+
+  let out = content;
+
+  // 1. Inline links: [text](url "title"?)
+  out = out.replace(
+    /(^|[^!])\[([^\]]*)\]\(([^)\s]+)(\s+["'][^"']*["'])?\)/g,
+    (m, lead, text, href, title) => {
+      const newHref = resolveHref(href, false);
+      return `${lead}[${text}](${newHref}${title || ""})`;
+    }
+  );
+
+  // 2. Images: ![alt](url "title"?)
+  out = out.replace(
+    /!\[([^\]]*)\]\(([^)\s]+)(\s+["'][^"']*["'])?\)/g,
+    (m, text, href, title) => {
+      const newHref = resolveHref(href, true);
+      return `![${text}](${newHref}${title || ""})`;
+    }
+  );
+
+  // 3. Reference links: ^[label]: href "title"?
+  out = out.replace(
+    /^\[([^\]]+)\]:\s*([^\s]+)(\s+["'][^"']*["'])?$/gm,
+    (m, label, href, title) => {
+      const newHref = resolveHref(href, false);
+      return `[${label}]: ${newHref}${title || ""}`;
+    }
+  );
+
+  // 4. HTML anchors: <a ... href="..." ...>
+  out = out.replace(
+    /<a\b([^>]*\bhref=["'])([^"']+)(["'][^>]*)>/gi,
+    (m, before, href, after) => {
+      const newHref = resolveHref(href, false);
+      return `<a${before}${newHref}${after}>`;
+    }
+  );
+
+  return out;
+}
+
 /** Strip YAML frontmatter and prepend the wiki language banner. Pure; exported for tests. */
-export function toWikiContent(docMarkdown) {
-  const body = docMarkdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "").replace(/^\s+/, "");
+export function toWikiContent(docMarkdown, options = {}) {
+  let body = docMarkdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "").replace(/^\s+/, "");
+  if (options.srcFile || options.wikiKeyMap || options.locale) {
+    body = rewriteWikiLinks(body, options);
+  }
   return WIKI_BANNER + body.replace(/\s*$/, "") + "\n";
 }
 
@@ -239,6 +336,20 @@ function main() {
   const enWikiKeys = new Set();
   const localeIndexes = new Map();
 
+  // Pre-build normKey -> wikiPageName map for English docs
+  const wikiKeyMap = new Map();
+  for (const page of wikiPages) {
+    const { locale, name } = parseWikiPage(page);
+    if (!locale && page !== "Home") {
+      wikiKeyMap.set(normKey(name), name);
+    }
+  }
+  for (const [key, { base }] of enDocs) {
+    if (!wikiKeyMap.has(key) && !NEW_PAGE_EXCLUDE.has(base)) {
+      wikiKeyMap.set(key, toWikiName(base));
+    }
+  }
+
   const plan = { update: [], add: [], untouched: [], countsChanged: false };
 
   // 1. Update existing wiki pages from their docs source.
@@ -258,16 +369,20 @@ function main() {
       plan.untouched.push(page);
       continue;
     }
-    const next = toWikiContent(fs.readFileSync(srcFile, "utf8"));
+    const next = toWikiContent(fs.readFileSync(srcFile, "utf8"), {
+      srcFile,
+      wikiKeyMap,
+      locale,
+    });
     const cur = fs.readFileSync(path.join(wikiDir, `${page}.md`), "utf8");
-    if (next !== cur) plan.update.push({ page, srcFile });
+    if (next !== cur) plan.update.push({ page, srcFile, locale });
   }
 
   // 2. Add curated new English pages (unmatched docs, minus the exclude list).
   for (const [key, { file, base }] of enDocs) {
     if (enWikiKeys.has(key)) continue;
     if (NEW_PAGE_EXCLUDE.has(base)) continue;
-    plan.add.push({ page: toWikiName(base), srcFile: file, base });
+    plan.add.push({ page: toWikiName(base), srcFile: file, base, locale: null });
   }
 
   // 3. Home cover counts.
@@ -313,10 +428,14 @@ function main() {
   }
 
   // ---- write ----
-  for (const { page, srcFile } of [...updates, ...plan.add]) {
+  for (const { page, srcFile, locale } of [...updates, ...plan.add]) {
     fs.writeFileSync(
       path.join(wikiDir, `${page}.md`),
-      toWikiContent(fs.readFileSync(srcFile, "utf8"))
+      toWikiContent(fs.readFileSync(srcFile, "utf8"), {
+        srcFile,
+        wikiKeyMap,
+        locale: locale || parseWikiPage(page).locale,
+      })
     );
   }
   if (plan.countsChanged && homeAfter != null) fs.writeFileSync(homePath, homeAfter);

@@ -61,16 +61,18 @@ test("usage present → buffer then filter, mutates in place", () => {
   assert.equal((resp.usage as Record<string, unknown>)._filtered, true);
 });
 
-test("all-zero usage stub → estimate (not constant buffer-only 2000)", () => {
+test("all-zero usage stub → sanitize then buffer (not a constant 2000 estimate)", () => {
   const { deps, calls } = makeDeps();
   const resp: Record<string, unknown> = {
     usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
     choices: [{ message: { content: "PONG" } }],
   };
   applyClientUsageBuffer(resp, { messages: [{ role: "user", content: "hi" }] }, "openai", {}, deps);
-  assert.equal(calls.buffer.length, 0, "must not buffer zeros into USAGE_TOKEN_BUFFER");
-  assert.equal(calls.estimate.length, 1);
-  assert.equal((resp.usage as Record<string, unknown>)._estimated, true);
+  // #10705 repairs provider-reported zeros on a non-trivial request, so the
+  // block is no longer empty and takes the buffer path (never the old 2000 stub).
+  assert.equal(calls.buffer.length, 1);
+  assert.equal(calls.estimate.length, 0);
+  assert.equal((resp.usage as Record<string, unknown>)._buffered, true);
 });
 
 test("no usage but content present → estimate then filter", () => {

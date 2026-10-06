@@ -25,6 +25,16 @@ export const AUTHZ_HEADER_AUTH_SCOPES = "x-omniroute-auth-scopes";
 export const CLI_TOKEN_HEADER = "x-omniroute-cli-token";
 
 /**
+ * Client-supplied one-shot fresh-install bootstrap token (#14296). Unlike the
+ * PEER_IP_HEADER/VIA_PROXY_HEADER family this is NOT server-trusted/stamped —
+ * it is compared against the in-memory value `src/lib/auth/bootstrapToken.ts`
+ * generated and printed to the container/process log, so it is safe to leave
+ * on the forwarded request (not in AUTHZ_TRUSTED_HEADERS) for the route
+ * handler to consume after a successful bootstrap write.
+ */
+export const BOOTSTRAP_TOKEN_HEADER = "x-omniroute-bootstrap-token";
+
+/**
  * The real TCP peer IP, stamped by the custom Node server BEFORE Next runs
  * (scripts/dev/peer-stamp.mjs), formatted as `<token>|<ip>`. The middleware has
  * no socket, so this is the only trustworthy locality signal — but ONLY when the
@@ -40,8 +50,11 @@ export const PEER_IP_HEADER = "x-omniroute-peer-ip";
 /**
  * Trusted "request arrived via a reverse proxy" marker stamped by the custom
  * Node server alongside PEER_IP_HEADER, formatted as `<token>|1` when the
- * inbound TCP request carried forwarding headers (`x-forwarded-for` /
- * `x-real-ip`) and `<token>|0` otherwise. The middleware combines this with
+ * inbound TCP request came from a peer that may be a proxy (this host, a
+ * private-network address, a Cloudflare edge or an address named in
+ * OMNIROUTE_TRUSTED_PROXIES) and carried forwarding headers (`x-forwarded-for` /
+ * `x-real-ip`), or came from a Cloudflare edge with `cf-connecting-ip`, and
+ * `<token>|0` otherwise. The middleware combines this with
  * the stamped peer IP so a loopback / private-LAN socket that is actually the
  * proxy hop (e.g. OmniRoute behind nginx / Caddy / Cloudflare Tunnel) is NOT
  * trusted as local — closing the upstream da667836 vulnerability that would
@@ -54,6 +67,14 @@ export const PEER_IP_HEADER = "x-omniroute-peer-ip";
 export const VIA_PROXY_HEADER = "x-omniroute-via-proxy";
 
 /**
+ * The address the IP allow/deny list judges, stamped by the custom Node server as
+ * `<token>|<ip>`: the TCP peer, or the client a trusted proxy reported for it. Token-validated
+ * like PEER_IP_HEADER and stripped from forwarded headers in pipeline.ts.
+ * Keep in sync with CLIENT_IP_HEADER in scripts/dev/peer-stamp.mjs.
+ */
+export const CLIENT_IP_HEADER = "x-omniroute-client-ip";
+
+/**
  * Trusted locality verdict ("loopback" | "lan" | "remote") that the pipeline
  * computes from the stamped real peer IP and forwards to route handlers. Route
  * code (e.g. cliTokenAuth) reads THIS instead of re-deriving locality from the
@@ -61,6 +82,16 @@ export const VIA_PROXY_HEADER = "x-omniroute-via-proxy";
  * client input and re-set by the pipeline, so a remote caller cannot forge it.
  */
 export const AUTHZ_HEADER_PEER_LOCALITY = "x-omniroute-peer-locality";
+
+/**
+ * The resolved real peer IP, stamped by the pipeline AFTER verifying the
+ * token-stamped PEER_IP_HEADER. This is the trusted, non-spoofable IP that
+ * route handlers (e.g. login rate-limit key) should use instead of re-deriving
+ * from X-Forwarded-For / X-Real-IP. Set only when the stamp token is configured
+ * and the HMAC signature validates; absent when the stamp is not in use.
+ * Stripped from incoming requests like all other trusted headers.
+ */
+export const AUTHZ_HEADER_TRUSTED_PEER_IP = "x-omniroute-trusted-peer-ip";
 
 /**
  * Headers the pipeline must NEVER trust on incoming requests. They are
@@ -73,4 +104,5 @@ export const AUTHZ_TRUSTED_HEADERS: ReadonlyArray<string> = [
   AUTHZ_HEADER_AUTH_LABEL,
   AUTHZ_HEADER_AUTH_SCOPES,
   AUTHZ_HEADER_PEER_LOCALITY,
+  AUTHZ_HEADER_TRUSTED_PEER_IP,
 ];

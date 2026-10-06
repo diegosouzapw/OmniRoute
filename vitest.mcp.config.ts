@@ -19,6 +19,7 @@ export default defineConfig({
       "open-sse/services/__tests__/fail-fast-concurrency-gate.test.ts",
       "src/lib/memory/__tests__/generic-backend.test.ts",
       "tests/unit/autoCombo/**/*.test.ts",
+      "tests/unit/api/**/*.spec.ts",
       "tests/unit/encryption.spec.ts",
       "src/shared/components/**/*.test.tsx",
       "src/shared/hooks/__tests__/**/*.test.tsx",

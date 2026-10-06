@@ -19,7 +19,7 @@ const route = await import("../../src/app/api/cli-tools/qwen-settings/route.ts")
 
 const authCookie = async (): Promise<string> => {
   process.env.JWT_SECRET = "qwen-settings-route-test-secret";
-  const token = await new SignJWT({ sub: "qwen-route-test" })
+  const token = await new SignJWT({ authenticated: true, sub: "qwen-route-test" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1h")
@@ -38,13 +38,13 @@ const request = async (method: string, body?: unknown): Promise<Request> =>
   });
 
 test.beforeEach(async () => {
-  await fs.rm(TEST_HOME, { recursive: true, force: true });
+  await fs.rm(TEST_HOME, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   await fs.mkdir(path.dirname(SETTINGS_PATH), { recursive: true });
 });
 
 test.after(async () => {
   os.homedir = originalHome;
-  await fs.rm(TEST_HOME, { recursive: true, force: true });
+  await fs.rm(TEST_HOME, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (originalJwtSecret === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = originalJwtSecret;
   if (originalWriteFlag === undefined) delete process.env.CLI_ALLOW_CONFIG_WRITES;

@@ -28,7 +28,7 @@ type MetadataModel = {
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -39,7 +39,7 @@ test.beforeEach(async () => {
 test.after(() => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("vscode model metadata routes keep Responses text-generation models", async () => {
@@ -86,9 +86,7 @@ test("vscode model metadata routes keep Responses text-generation models", async
   ]);
   const rawBody = (await rawResponse.json()) as { data?: MetadataModel[] };
   const groupedBody = (await groupedResponse.json()) as { data?: MetadataModel[] };
-  const rawModel = (rawBody.data || []).find(
-    (entry) => entry.id === "cx/future-codex-responses"
-  );
+  const rawModel = (rawBody.data || []).find((entry) => entry.id === "cx/future-codex-responses");
   const groupedModel = (groupedBody.data || []).find(
     (entry) => entry.root === "future-codex-responses"
   );

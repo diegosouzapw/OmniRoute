@@ -5,7 +5,7 @@ import {
   createMiddlewareHook,
   getMiddlewareHook,
   getHookLogs,
-} from "@/lib/localDb";
+} from "@/lib/db/middleware";
 import { registerHook, getAllHooks } from "@/lib/middleware/registry";
 import type { HookConfig, CreateHookRequest } from "@/lib/middleware/types";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -115,6 +115,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ hook: saved }, { status: 201 });
   } catch (error: any) {
     console.error("[API] POST /api/middleware/hooks error:", error);
-    return NextResponse.json({ error: sanitizeErrorMessage(error) || "Failed to create hook" }, { status: 500 });
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(error) || "Failed to create hook" },
+      { status: 500 }
+    );
   }
 }

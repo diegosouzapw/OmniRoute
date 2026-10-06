@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
-import { getCachedSettings, updateSettings } from "@/lib/localDb";
-import { SignJWT, jwtVerify, createRemoteJWKSet } from "jose";
+import { getCachedSettings } from "@/lib/db/readCache";
+import { updateSettings } from "@/lib/db/settings";
+import { jwtVerify, createRemoteJWKSet } from "jose";
 import { cookies } from "next/headers";
+import { timingSafeCompare } from "@/shared/utils/timingSafeCompare";
+import {
+  getDashboardJwtSecret,
+  mintDashboardSessionToken,
+} from "@/shared/utils/dashboardSessionToken";
 // Test seam (static) — allows tests to inject a cookie store and capture the minted auth_token.
 // Mirrors the pattern in src/app/api/auth/login/route.ts
 export const oidcCallbackInternals = {
@@ -48,14 +54,17 @@ export async function GET(request: Request) {
   const originEarly = `${schemeEarly}://${hostEarly}`;
 
   if (!code || !returnedState) {
-    return NextResponse.redirect(new URL("/login?oidc_error=missing_code", reqUrlEarly));
+    return NextResponse.redirect(new URL("/login?oidc_error=missing_code", originEarly));
   }
 
   // Validate state from cookie (via seam so tests can capture)
   const cookieStore = await oidcCallbackInternals.getCookieStore();
   const storedState = cookieStore.get("oidc_state")?.value;
-  if (!storedState || storedState !== returnedState) {
-    return NextResponse.redirect(new URL("/login?oidc_error=invalid_state", reqUrlEarly));
+  // Constant-time: `!==` short-circuits on the first differing byte, so
+  // rejection time correlates with matching-prefix length (GHSA-7434-6q4c-33fh).
+  // The sibling OAuth callback already compares `state` this way.
+  if (!storedState || !timingSafeCompare(storedState, returnedState)) {
+    return NextResponse.redirect(new URL("/login?oidc_error=invalid_state", originEarly));
   }
 
   // Clear state cookie
@@ -69,8 +78,8 @@ export async function GET(request: Request) {
   const settings = await getCachedSettings();
 
   const enabled = settings.oidcEnabled === true;
-  const issuer =
-    typeof settings.oidcIssuer === "string" ? settings.oidcIssuer.trim().replace(/\/$/, "") : "";
+  const rawIssuer = typeof settings.oidcIssuer === "string" ? settings.oidcIssuer.trim() : "";
+  const issuerBase = rawIssuer.replace(/\/+$/, "");
   const clientId = typeof settings.oidcClientId === "string" ? settings.oidcClientId.trim() : "";
   const clientSecret =
     typeof settings.oidcClientSecret === "string" ? settings.oidcClientSecret.trim() : "";
@@ -79,8 +88,8 @@ export async function GET(request: Request) {
       ? settings.oidcRedirectPath
       : "/api/auth/oidc/callback";
 
-  if (!enabled || !issuer || !clientId || !clientSecret) {
-    return NextResponse.redirect(new URL("/login?oidc_error=not_configured", reqUrlEarly));
+  if (!enabled || !rawIssuer || !clientId || !clientSecret) {
+    return NextResponse.redirect(new URL("/login?oidc_error=not_configured", originEarly));
   }
 
   // Compute absolute redirect_uri matching what we sent
@@ -95,18 +104,26 @@ export async function GET(request: Request) {
   const redirectUri = `${origin}${redirectPath}`;
 
   // Discover endpoints
-  let tokenEndpoint = `${issuer}/token`;
-  let jwksUri = `${issuer}/jwks`;
+  let tokenEndpoint = `${issuerBase}/token`;
+  let jwksUri = `${issuerBase}/jwks`;
+  let discoveredIssuer: string | undefined;
   try {
-    const wellKnownResp = await fetch(`${issuer}/.well-known/openid-configuration`, {
+    const wellKnownResp = await fetch(`${issuerBase}/.well-known/openid-configuration`, {
       signal: AbortSignal.timeout(5000),
     });
     if (wellKnownResp.ok) {
       const data: unknown = await wellKnownResp.json();
       if (data && typeof data === "object") {
         const rec = data as Record<string, unknown>;
-        if (typeof rec.token_endpoint === "string") tokenEndpoint = rec.token_endpoint;
-        if (typeof rec.jwks_uri === "string") jwksUri = rec.jwks_uri;
+        if (typeof rec.token_endpoint === "string" && rec.token_endpoint.length > 0) {
+          tokenEndpoint = rec.token_endpoint;
+        }
+        if (typeof rec.jwks_uri === "string" && rec.jwks_uri.length > 0) {
+          jwksUri = rec.jwks_uri;
+        }
+        if (typeof rec.issuer === "string" && rec.issuer.trim().length > 0) {
+          discoveredIssuer = rec.issuer.trim();
+        }
       }
     }
   } catch {
@@ -131,35 +148,48 @@ export async function GET(request: Request) {
       signal: AbortSignal.timeout(10000),
     });
   } catch {
-    return NextResponse.redirect(new URL("/login?oidc_error=token_exchange", reqUrlEarly));
+    return NextResponse.redirect(new URL("/login?oidc_error=token_exchange", originEarly));
   }
 
   if (!tokenResp.ok) {
-    return NextResponse.redirect(new URL("/login?oidc_error=token_exchange", reqUrlEarly));
+    return NextResponse.redirect(new URL("/login?oidc_error=token_exchange", originEarly));
   }
 
   let tokenData: unknown;
   try {
     tokenData = await tokenResp.json();
   } catch {
-    return NextResponse.redirect(new URL("/login?oidc_error=token_response", reqUrlEarly));
+    return NextResponse.redirect(new URL("/login?oidc_error=token_response", originEarly));
   }
 
   if (!tokenData || typeof tokenData !== "object") {
-    return NextResponse.redirect(new URL("/login?oidc_error=token_response", reqUrlEarly));
+    return NextResponse.redirect(new URL("/login?oidc_error=token_response", originEarly));
   }
 
   const td = tokenData as Record<string, unknown>;
   const idToken = typeof td.id_token === "string" ? td.id_token : undefined;
   if (!idToken) {
-    return NextResponse.redirect(new URL("/login?oidc_error=no_id_token", reqUrlEarly));
+    return NextResponse.redirect(new URL("/login?oidc_error=no_id_token", originEarly));
   }
 
   // Validate ID token
   try {
+    const expectedIssuers = Array.from(
+      new Set(
+        [
+          rawIssuer,
+          issuerBase,
+          `${issuerBase}/`,
+          discoveredIssuer,
+          discoveredIssuer ? discoveredIssuer.replace(/\/+$/, "") : undefined,
+          discoveredIssuer ? `${discoveredIssuer.replace(/\/+$/, "")}/` : undefined,
+        ].filter((s): s is string => typeof s === "string" && s.length > 0)
+      )
+    );
+
     const JWKS = getJwksClient(jwksUri);
     const { payload } = await jwtVerify(idToken, JWKS, {
-      issuer,
+      issuer: expectedIssuers.length === 1 ? expectedIssuers[0] : expectedIssuers,
       audience: clientId,
     });
 
@@ -178,13 +208,11 @@ export async function GET(request: Request) {
         return email !== "" && v.toLowerCase() === email;
       });
       if (!ok) {
-        return NextResponse.redirect(
-          new URL("/login?oidc_error=subject_not_allowed", reqUrlEarly)
-        );
+        return NextResponse.redirect(new URL("/login?oidc_error=subject_not_allowed", originEarly));
       }
     }
   } catch {
-    return NextResponse.redirect(new URL("/login?oidc_error=id_token_invalid", reqUrlEarly));
+    return NextResponse.redirect(new URL("/login?oidc_error=id_token_invalid", originEarly));
   }
   // First successful OIDC login marks setupComplete (like password bootstrap).
   try {
@@ -193,10 +221,9 @@ export async function GET(request: Request) {
     // non-fatal — login can still proceed
   }
   // Mint the exact same dashboard session JWT as password login
-  if (!process.env.JWT_SECRET) {
-    return NextResponse.redirect(
-      new URL("/login?oidc_error=server_misconfigured", reqUrlEarly)
-    );
+  const secret = getDashboardJwtSecret();
+  if (!secret) {
+    return NextResponse.redirect(new URL("/login?oidc_error=server_misconfigured", originEarly));
   }
 
   const forceSecureCookie = process.env.AUTH_COOKIE_SECURE === "true";
@@ -205,10 +232,7 @@ export async function GET(request: Request) {
   const isHttpsRequest = fp === "https" || reqUrl.protocol === "https:";
   const useSecureCookie = forceSecureCookie || isHttpsRequest;
 
-  const jwt = await new SignJWT({ authenticated: true })
-    .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("30d")
-    .sign(new TextEncoder().encode(process.env.JWT_SECRET || ""));
+  const jwt = await mintDashboardSessionToken(secret);
 
   const store = await oidcCallbackInternals.getCookieStore();
   store.set("auth_token", jwt, {

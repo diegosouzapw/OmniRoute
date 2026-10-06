@@ -42,7 +42,7 @@ test("redactString: invalid octet (256) is NOT redacted", () => {
   // It's possible that a partial substring like "56.300" might still match
   // through other regex runs; assert that no full-IP redaction appears.
   assert.equal(output.includes("[REDACTED_IPV4]"), false);
-  assert.equal((counts.IPV4 ?? 0), 0);
+  assert.equal(counts.IPV4 ?? 0, 0);
 });
 
 test("redactString: 127.0.0.1 is redacted (loopback is still PII for log shipping)", () => {
@@ -81,7 +81,7 @@ test("redactString: 'Bearer' word without a token is preserved", () => {
   const { output, counts } = redactString("the bearer of bad news");
   // "bad news" is too short to match (needs 16+ chars).
   assert.equal(output, "the bearer of bad news");
-  assert.equal((counts.BEARER ?? 0), 0);
+  assert.equal(counts.BEARER ?? 0, 0);
 });
 
 // ─── 5. OpenAI keys ─────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ test("redactString: github_pat_ token is redacted", () => {
 // ─── 7. AWS keys ────────────────────────────────────────────────────────────
 
 test("redactString: AKIA access key is redacted", () => {
-  const key = "AKIAIOSFODNN7EXAMPLE"; // 20 chars
+  const key = "AKIAEXAMPLE123456789"; // 20 chars
   const { output, counts } = redactString(`aws_access_key_id=${key}`);
   assert.match(output, /\[REDACTED_AWS_KEY\]/);
   assert.equal(counts.AWS_KEY, 1);
@@ -161,7 +161,7 @@ test("redactString: password=... is redacted", () => {
 test("redactString: short value (< 12 chars) is NOT redacted", () => {
   const { output, counts } = redactString("password: short");
   assert.equal(output, "password: short");
-  assert.equal((counts.GENERIC_KEY ?? 0), 0);
+  assert.equal(counts.GENERIC_KEY ?? 0, 0);
 });
 
 // ─── 9. Combined / order of operations ──────────────────────────────────────
@@ -185,7 +185,7 @@ test("redactString: empty string yields empty output", () => {
 });
 
 test("redactString: non-PII log line is unchanged", () => {
-  const line = '2026-06-25T07:00:00Z INFO request_id=req_abc123 method=GET path=/v1/models';
+  const line = "2026-06-25T07:00:00Z INFO request_id=req_abc123 method=GET path=/v1/models";
   const { output } = redactString(line);
   assert.equal(output, line);
 });
@@ -195,7 +195,7 @@ test("redactString: key inside larger word (not at boundary) is not matched", ()
   // not match the OPENAI_KEY pattern.
   const { output, counts } = redactString("some task-abcdefghij1234567890KL here");
   assert.equal(output, "some task-abcdefghij1234567890KL here");
-  assert.equal((counts.OPENAI_KEY ?? 0), 0);
+  assert.equal(counts.OPENAI_KEY ?? 0, 0);
 });
 
 // ─── 10. Stable markers across runs ─────────────────────────────────────────
@@ -232,19 +232,62 @@ test("RedactTransform: streams input chunks to output, redacting as it goes", as
       controller.close();
     },
   });
-  await src.pipeThrough(new TextDecoderStream()).pipeThrough(t).pipeTo(
-    new WritableStream({
-      write(chunk) {
-        sink.write(chunk, "utf8", () => {});
-      },
-    }),
-  );
+  await src
+    .pipeThrough(new TextDecoderStream())
+    .pipeThrough(t)
+    .pipeTo(
+      new WritableStream({
+        write(chunk) {
+          sink.write(chunk, "utf8", () => {});
+        },
+      })
+    );
   const joined = out.join("");
   assert.match(joined, /\[REDACTED_EMAIL\]/);
   assert.match(joined, /\[REDACTED_IPV4\]/);
   // Counts accumulated on the transform.
   assert.equal(t.counts.EMAIL ?? 0, 1);
   assert.equal(t.counts.IPV4 ?? 0, 1);
+});
+
+test("RedactTransform: redacts every sensitive pattern across every chunk boundary", async () => {
+  const samples = [
+    ["ANTHROPIC_KEY", `sk-ant-${"a".repeat(24)}`, "[REDACTED_API_KEY]"],
+    ["GOOGLE_KEY", `AIza${"A".repeat(35)}`, "[REDACTED_API_KEY]"],
+    ["GITHUB_TOKEN", `ghp_${"A".repeat(36)}`, "[REDACTED_API_KEY]"],
+    ["OPENAI_KEY", `sk-proj-${"A".repeat(24)}`, "[REDACTED_API_KEY]"],
+    ["AWS_KEY", `AKIA${"A".repeat(16)}`, "[REDACTED_AWS_KEY]"],
+    ["BEARER", `Bearer ${"A".repeat(20)}`, "[REDACTED_BEARER]"],
+    ["EMAIL", "alice@example.com", "[REDACTED_EMAIL]"],
+    ["GENERIC_KEY", `password=${"x".repeat(16)}`, "[REDACTED_API_KEY]"],
+    ["IPV4", "192.168.1.42", "[REDACTED_IPV4]"],
+    ["IPV6", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", "[REDACTED_IPV6]"],
+  ];
+
+  for (const [name, sensitive, marker] of samples) {
+    for (let offset = 1; offset < sensitive.length; offset += 1) {
+      const transform = new RedactTransform();
+      const output = [];
+      const source = new ReadableStream({
+        start(controller) {
+          controller.enqueue(sensitive.slice(0, offset));
+          controller.enqueue(`${sensitive.slice(offset)}\n`);
+          controller.close();
+        },
+      });
+
+      await source.pipeThrough(transform).pipeTo(
+        new WritableStream({
+          write(chunk) {
+            output.push(new TextDecoder().decode(chunk));
+          },
+        })
+      );
+
+      assert.equal(output.join(""), `${marker}\n`, `${name} split at ${offset}`);
+      assert.equal(transform.counts[name], 1, `${name} count split at ${offset}`);
+    }
+  }
 });
 
 // ─── 13. Counts are independent between calls ───────────────────────────────

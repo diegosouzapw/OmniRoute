@@ -17,9 +17,21 @@ import { SAMPLE_BEFORE_TEXT, SAMPLE_PAGE_PNG_DATA_URI, SAMPLE_METRICS } from "./
 
 interface CompressionConfigLite {
   engines?: Record<string, { enabled: boolean; level?: string }>;
+  omniglyph?: { profile?: string };
 }
 
 type EngineMap = Record<string, { enabled: boolean; level?: string }>;
+
+/** Perfis do pacote, na ordem do mais permissivo ao mais restrito. O primeiro é
+ *  o default: a política que os recibos publicados mediram. */
+const PROFILES = [
+  { id: "aggressive", key: "aggressive" },
+  { id: "balanced", key: "balanced" },
+  { id: "coding-safe", key: "codingSafe" },
+  { id: "passthrough", key: "passthrough" },
+] as const;
+
+type ProfileId = (typeof PROFILES)[number]["id"];
 
 /** The measured fail-closed gate chain, in evaluation order. Every no-op is telemetered
  *  as `skip:<reason>`; the engine only fires when all pass. */
@@ -157,6 +169,40 @@ function GatesCard() {
   );
 }
 
+function ProfileCard(props: {
+  profile: ProfileId;
+  disabled: boolean;
+  onChange: (next: ProfileId) => void;
+}) {
+  const t = useTranslations("omniglyph");
+  const selected = PROFILES.find((p) => p.id === props.profile) ?? PROFILES[0];
+  return (
+    <Card className="p-6">
+      <div className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">{t("profileTitle")}</h2>
+        <p className="max-w-xl text-sm text-text-muted">{t("profileDescription")}</p>
+        <select
+          className="w-full max-w-sm rounded-md border border-border bg-surface px-3 py-2 text-sm"
+          value={props.profile}
+          disabled={props.disabled}
+          aria-label={t("profileAria")}
+          data-testid="omniglyph-profile-select"
+          onChange={(e) => props.onChange(e.target.value as ProfileId)}
+        >
+          {PROFILES.map((p) => (
+            <option key={p.id} value={p.id}>
+              {t(`profiles.${p.key}.label`)}
+            </option>
+          ))}
+        </select>
+        <span className="max-w-xl text-xs text-text-muted">
+          {t(`profiles.${selected.key}.description`)}
+        </span>
+      </div>
+    </Card>
+  );
+}
+
 function EnableCard(props: {
   enabled: boolean;
   disabled: boolean;
@@ -199,6 +245,7 @@ function EnableCard(props: {
 export default function OmniglyphContextPageClient() {
   const [engines, setEngines] = useState<EngineMap>({});
   const [enabled, setEnabled] = useState(false);
+  const [profile, setProfile] = useState<ProfileId>("aggressive");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
@@ -210,6 +257,8 @@ export default function OmniglyphContextPageClient() {
         const e = data?.engines ?? {};
         setEngines(e);
         setEnabled(e.omniglyph?.enabled === true);
+        const stored = data?.omniglyph?.profile;
+        if (PROFILES.some((p) => p.id === stored)) setProfile(stored as ProfileId);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -245,12 +294,41 @@ export default function OmniglyphContextPageClient() {
     }
   };
 
+  // O perfil vive na config do engine (não no mapa `engines`), então é um PATCH
+  // próprio — misturá-lo no payload do toggle reescreveria o mapa inteiro.
+  const changeProfile = async (next: ProfileId) => {
+    const previous = profile;
+    setProfile(next);
+    setSaving(true);
+    setStatus("");
+    try {
+      const res = await fetch("/api/settings/compression", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ omniglyph: { profile: next } }),
+      });
+      if (res.ok) {
+        setStatus("saved");
+        setTimeout(() => setStatus(""), 2000);
+      } else {
+        setProfile(previous);
+        setStatus("error");
+      }
+    } catch {
+      setProfile(previous);
+      setStatus("error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6" data-testid="omniglyph-page">
       <PageHeader />
       <EconomicsCard />
       <BeforeAfterCard />
       <GatesCard />
+      <ProfileCard profile={profile} disabled={loading || saving} onChange={changeProfile} />
       <EnableCard
         enabled={enabled}
         disabled={loading || saving}

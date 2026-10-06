@@ -8,14 +8,12 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7364-max-
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const {
-  stripUnsupportedParams,
-  __STRIP_RULES_FOR_TEST,
-} = await import("../../open-sse/translator/paramSupport.ts");
+const { stripUnsupportedParams, __STRIP_RULES_FOR_TEST } =
+  await import("../../open-sse/translator/paramSupport.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#7364 Defect B: zai/glm-4.6v max_tokens above the 32768 ceiling is clamped before dispatch", () => {

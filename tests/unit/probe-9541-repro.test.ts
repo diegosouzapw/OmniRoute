@@ -50,6 +50,11 @@ test("FIX-GREEN: isTransientProbeError does NOT classify fatal errors", () => {
 test("FIX-GREEN: isTransientProbeError classifies BUSY/PROTOCOL/IOERR/ENOENT", () => {
   const transientPatterns = [
     "SQLITE_BUSY: database is locked",
+    // better-sqlite3 can omit the symbolic SQLite error code entirely.
+    "database is locked",
+    "database table is locked",
+    "database schema is locked: main",
+    "database is busy",
     "SQLITE_PROTOCOL: locking protocol",
     "SQLITE_IOERR: disk I/O error",
     "ENOENT: no such file or directory, open '/tmp/db.sqlite'",
@@ -107,7 +112,7 @@ test("BUG-CONFIRMED (regression guard): probe failure renames DB and loses persi
     );
   } finally {
     try {
-      fs.rmSync(dir, { recursive: true, force: true });
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     } catch {
       /* ok */
     }

@@ -3,7 +3,10 @@
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
 import {
+  GPT_6_ASTRA_PRICING,
+  CLAUDE_FABLE_5_1_PRICING,
   CLAUDE_OPUS_5_PRICING,
+  GEMINI_3_7_FLASH_PROMO_PRICING,
   GPT_5_3_CODEX_PRICING,
   GPT_5_5_PRICING,
   GPT_5_6_LUNA_PRICING,
@@ -11,8 +14,34 @@ import {
   GPT_5_6_TERRA_PRICING,
 } from "./shared-tiers";
 
+const ANTIGRAVITY_GEMINI_3_7_PRICING = {
+  "gemini-3.7-flash-low": GEMINI_3_7_FLASH_PROMO_PRICING,
+  "gemini-3.7-flash-medium": GEMINI_3_7_FLASH_PROMO_PRICING,
+  "gemini-3.7-flash-high": GEMINI_3_7_FLASH_PROMO_PRICING,
+};
+
+// Codex Standard: 250 / 25 / 1250 credits per MTok, at 25 credits per USD.
+// https://developers.openai.com/codex/pricing
+const GPT_6_ASTRA_CODEX_PRICING = GPT_6_ASTRA_PRICING;
+// Codex Standard: Sol 50 / 5 / 250 and Luna 2.5 / 0.25 / 12.5 credits per MTok.
+const GPT_6_SOL_CODEX_PRICING = {
+  input: 2.0,
+  output: 10.0,
+  cached: 0.2,
+  reasoning: 10.0,
+  cache_creation: 2.5,
+};
+const GPT_6_LUNA_CODEX_PRICING = {
+  input: 0.1,
+  output: 0.5,
+  cached: 0.01,
+  reasoning: 0.5,
+  cache_creation: 0.125,
+};
+
 export const DEFAULT_PRICING_OAUTH = {
   cc: {
+    "claude-fable-5-1": CLAUDE_FABLE_5_1_PRICING,
     "claude-fable-5": {
       input: 10.0,
       output: 50.0,
@@ -79,6 +108,26 @@ export const DEFAULT_PRICING_OAUTH = {
     },
   },
   cx: {
+    "gpt-6-astra": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-ultra": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-max": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-xhigh": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-high": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-medium": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-low": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-sol": GPT_6_SOL_CODEX_PRICING,
+    "gpt-6-sol-ultra": GPT_6_SOL_CODEX_PRICING,
+    "gpt-6-sol-max": GPT_6_SOL_CODEX_PRICING,
+    "gpt-6-sol-xhigh": GPT_6_SOL_CODEX_PRICING,
+    "gpt-6-sol-high": GPT_6_SOL_CODEX_PRICING,
+    "gpt-6-sol-medium": GPT_6_SOL_CODEX_PRICING,
+    "gpt-6-sol-low": GPT_6_SOL_CODEX_PRICING,
+    "gpt-6-luna": GPT_6_LUNA_CODEX_PRICING,
+    "gpt-6-luna-max": GPT_6_LUNA_CODEX_PRICING,
+    "gpt-6-luna-xhigh": GPT_6_LUNA_CODEX_PRICING,
+    "gpt-6-luna-high": GPT_6_LUNA_CODEX_PRICING,
+    "gpt-6-luna-medium": GPT_6_LUNA_CODEX_PRICING,
+    "gpt-6-luna-low": GPT_6_LUNA_CODEX_PRICING,
     "codex-auto-review": GPT_5_5_PRICING,
     // Codex uses credits per 1M tokens. OmniRoute stores the dollar-equivalent
     // values below at the documented conversion of 25 credits per USD.
@@ -277,35 +326,6 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 18.0,
       cache_creation: 2.0,
     },
-    // Antigravity 2.0.4+ exposes Gemini 3.5 Flash as three public client ids
-    // (see ANTIGRAVITY_PUBLIC_MODELS in open-sse/config/antigravityModelAliases.ts):
-    //   gemini-3.5-flash-extra-low → "Gemini 3.5 Flash (Low)"
-    //   gemini-3-flash-agent   → "Gemini 3.5 Flash (High)"
-    //   gemini-3.5-flash-low   → "Gemini 3.5 Flash (Medium)"
-    // Without these rows, getPricingForModel("ag", id) returns null and downstream
-    // cost and quota calculations silently fall back to $0.
-    "gemini-3.5-flash-extra-low": {
-      input: 0.5,
-      output: 3.0,
-      cached: 0.03,
-      reasoning: 4.5,
-      cache_creation: 0.5,
-    },
-    "gemini-3-flash-agent": {
-      input: 0.5,
-      output: 3.0,
-      cached: 0.03,
-      reasoning: 4.5,
-      cache_creation: 0.5,
-    },
-    "gemini-3.5-flash-low": {
-      input: 0.5,
-      output: 3.0,
-      cached: 0.03,
-      reasoning: 4.5,
-      cache_creation: 0.5,
-    },
-    // `gemini-pro-agent` is the callable Antigravity id for Gemini 3.1 Pro (High).
     "gemini-pro-agent": {
       input: 4.0,
       output: 18.0,
@@ -313,33 +333,7 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 27.0,
       cache_creation: 4.0,
     },
-    // Gemini 3.6 Flash (released 2026-07-21) - three tier variants like 3.5 Flash
-    // (see ANTIGRAVITY_PUBLIC_MODELS / MODEL_SPECS which already carry the catalog
-    // entries). Without these rows, getPricingForModel("ag", id) returns null and
-    // downstream cost and quota calculations silently fall back to $0.
-    // Pricing: $1.50 input / $7.50 output / $0.15 cached per MTok. Thinking tokens
-    // billed at output rate.
-    "gemini-3.6-flash-low": {
-      input: 1.5,
-      output: 7.5,
-      cached: 0.15,
-      reasoning: 7.5,
-      cache_creation: 1.5,
-    },
-    "gemini-3.6-flash-medium": {
-      input: 1.5,
-      output: 7.5,
-      cached: 0.15,
-      reasoning: 7.5,
-      cache_creation: 1.5,
-    },
-    "gemini-3.6-flash-high": {
-      input: 1.5,
-      output: 7.5,
-      cached: 0.15,
-      reasoning: 7.5,
-      cache_creation: 1.5,
-    },
+    ...ANTIGRAVITY_GEMINI_3_7_PRICING,
     "claude-sonnet-4-6": {
       input: 3.0,
       output: 15.0,
@@ -362,6 +356,8 @@ export const DEFAULT_PRICING_OAUTH = {
       cache_creation: 0.5,
     },
   },
+  antigravity: ANTIGRAVITY_GEMINI_3_7_PRICING,
+  agy: ANTIGRAVITY_GEMINI_3_7_PRICING,
   gh: {
     "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "gpt-5": {
@@ -434,6 +430,7 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 4.5,
       cache_creation: 0.5,
     },
+    "gemini-3.7-flash": GEMINI_3_7_FLASH_PROMO_PRICING,
     "gemini-2.5-pro": {
       input: 2.0,
       output: 12.0,

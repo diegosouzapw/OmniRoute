@@ -11,6 +11,7 @@
  */
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { DATA_DIR } from "@/lib/db/core";
 import { upsertVersionManagerTool } from "@/lib/db/versionManager";
@@ -100,8 +101,14 @@ export async function update(): Promise<InstallResult> {
  * ServiceSupervisor calls spawnArgs() synchronously just before spawn(), so
  * async file I/O is not available here.
  */
-export function resolveSpawnArgs(port: number): SpawnArgs {
-  const symlinkPath = path.join(BIN_DIR, "cliproxyapi");
+export function resolveSpawnArgs(port: number, managementKey?: string): SpawnArgs {
+  // #11236 (bug 3 residual): runtime os.platform() read — a process.platform
+  // literal here is constant-folded to the Linux build machine when the
+  // published artifact is bundled, dropping the `.exe` suffix from the spawn
+  // path on Windows and failing with ENOENT even when a valid .exe exists
+  // (same fold class as b43a212680 / #10244/#10293).
+  const executableName = os.platform() === "win32" ? "cliproxyapi.exe" : "cliproxyapi";
+  const symlinkPath = path.join(BIN_DIR, executableName);
 
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
   const configPath = path.join(CONFIG_DIR, "config.yaml");
@@ -109,10 +116,12 @@ export function resolveSpawnArgs(port: number): SpawnArgs {
     fs.writeFileSync(configPath, `port: ${port}\nhost: 127.0.0.1\nlog_level: warn\n`, "utf8");
   }
 
+  const env = { ...process.env };
+  if (managementKey) env.MANAGEMENT_PASSWORD = managementKey;
   return {
     command: symlinkPath,
     args: ["--config", configPath],
-    env: { ...process.env },
+    env,
     cwd: CONFIG_DIR,
   };
 }

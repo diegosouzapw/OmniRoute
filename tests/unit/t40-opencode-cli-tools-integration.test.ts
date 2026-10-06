@@ -20,7 +20,9 @@ test("T40: OpenCode card documents config paths and --variant usage", () => {
     .join(" ")
     .toLowerCase();
 
-  assert.match(notesText, /\.config\/opencode\/opencode\.json/);
+  assert.match(notesText, /or opencode\.json\b/);
+  assert.match(notesText, /\.config\/opencode\/opencode\.jsonc/);
+  assert.match(notesText, /preferred when present/);
   // #3330: OpenCode uses ~/.config on all platforms (incl. Windows) — the note
   // must no longer point Windows users at %APPDATA%.
   assert.doesNotMatch(notesText, /%appdata%/);
@@ -108,7 +110,11 @@ test("T40: OpenCode config document uses current provider schema", () => {
     configDocument.provider.omniroute.models["gg/gemini-2.5-pro"].name,
     "Gemini 2.5 Pro"
   );
-  assert.equal(configDocument.providers, undefined);
+  // v2 provider schema is dual-written alongside the v1 block.
+  assert.equal(
+    configDocument.providers.omniroute.package,
+    "@opencode-ai/ai/providers/openai-compatible"
+  );
 });
 
 test("T40: OpenCode explicit multi-model selection overrides fallback defaults", () => {
@@ -156,31 +162,31 @@ test("T40: OpenCode merge preserves unrelated config and updates only provider.o
     github: { command: "npx", args: ["-y", "@modelcontextprotocol/server-github"] },
   });
   assert.deepEqual(mergedConfig.provider.omniroute.models, {
-    "cx/gpt-5.6-sol": { name: "GPT-5.6 Sol" },
+    "cx/gpt-5.6-sol": {
+      name: "GPT-5.6 Sol",
+      limit: {
+        context: 128_000,
+        output: 8_192,
+      },
+    },
   });
 });
 
-test("T40: OpenCode tool card references theme-aware brand assets", () => {
+test("T40: OpenCode tool card uses the internal generic asset", () => {
   const opencode = CLI_TOOLS.opencode;
   assert.equal(opencode.image, undefined);
-  assert.equal(opencode.imageLight, "/providers/opencode-light.svg");
-  assert.equal(opencode.imageDark, "/providers/opencode-dark.svg");
+  assert.equal(opencode.imageLight, "/providers/cli-generic.svg");
+  assert.equal(opencode.imageDark, "/providers/cli-generic.svg");
 });
 
-test("T40: OpenCode light/dark provider assets are valid SVG files", async () => {
-  const light = await fs.readFile(
-    path.join(process.cwd(), "public/providers/opencode-light.svg"),
-    "utf-8"
-  );
-  const dark = await fs.readFile(
-    path.join(process.cwd(), "public/providers/opencode-dark.svg"),
+test("T40: OpenCode generic provider asset is a valid SVG file", async () => {
+  const generic = await fs.readFile(
+    path.join(process.cwd(), "public/providers/cli-generic.svg"),
     "utf-8"
   );
 
-  assert.match(light, /^<svg[\s>]/);
-  assert.match(dark, /^<svg[\s>]/);
-  assert.doesNotMatch(light, /<html/i);
-  assert.doesNotMatch(dark, /<html/i);
+  assert.match(generic, /^<svg[\s>]/);
+  assert.doesNotMatch(generic, /<html/i);
 });
 
 test("T40: Windsurf was removed from CLI_TOOLS in plan 14 D17 (MITM backlog plan 11)", () => {

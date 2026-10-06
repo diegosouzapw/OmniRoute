@@ -4,6 +4,7 @@ import {
   KIMI_CODING_ANTHROPIC_URL,
   KIMI_CODING_OPENAI_URL,
 } from "../config/providers/registry/kimi/coding/runtime.ts";
+import { flattenOpenAIToolRootAnyOf } from "../services/toolSchemaSanitizer.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { DefaultExecutor } from "./default.ts";
 import type { ProviderCredentials } from "./base.ts";
@@ -182,6 +183,7 @@ function normalizeOpenAIRequest(
   delete next.max_tokens;
 
   applyOpenAIThinking(next, policy);
+  if (Array.isArray(next.tools)) next.tools = flattenOpenAIToolRootAnyOf(next.tools);
 
   if (stream) {
     next.stream_options = {

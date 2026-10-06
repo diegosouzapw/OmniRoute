@@ -7,7 +7,7 @@ import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 // reasoning models (prevents empty content when the budget is undersized).
 // Previously gated to clinepass only; now applies to all providers (#6912).
 
-test("bumps undersized max_tokens to 4096 for a clinepass reasoning model", () => {
+test("keeps a client-supplied budget instead of raising it to 4096 (#14888)", () => {
   const executor = new DefaultExecutor("clinepass");
   const body = {
     model: "cline-pass/deepseek-v4-pro",
@@ -16,7 +16,7 @@ test("bumps undersized max_tokens to 4096 for a clinepass reasoning model", () =
   } as Record<string, unknown>;
 
   executor.ensureThinkingBudget(body, "cline-pass/deepseek-v4-pro");
-  assert.equal(body.max_tokens, 4096);
+  assert.equal(body.max_tokens, 512);
 });
 
 test("sets max_tokens floor when absent for a reasoning model", () => {
@@ -53,7 +53,7 @@ test("no-op when reasoning is disabled", () => {
   assert.equal(body.max_tokens, 100);
 });
 
-test("applies the floor to GLM-5.2 now that the official catalog marks it reasoning-capable", () => {
+test("keeps a client-supplied budget on GLM-5.2 even though the catalog marks it reasoning-capable", () => {
   const executor = new DefaultExecutor("clinepass");
   const body = {
     model: "cline-pass/glm-5.2",
@@ -62,7 +62,7 @@ test("applies the floor to GLM-5.2 now that the official catalog marks it reason
   } as Record<string, unknown>;
 
   executor.ensureThinkingBudget(body, "cline-pass/glm-5.2");
-  assert.equal(body.max_tokens, 4096);
+  assert.equal(body.max_tokens, 100);
 });
 
 test("no-op for an unknown model without reasoning metadata", () => {
@@ -77,17 +77,17 @@ test("no-op for an unknown model without reasoning metadata", () => {
   assert.equal(body.max_tokens, 100);
 });
 
-test("bumps undersized max_tokens for a non-clinepass reasoning provider (gate removed, #6912)", () => {
-  // Issue #6912: ensureThinkingBudget was gated to clinepass only.
-  // Now it applies to all providers. Use nvidia (non-clinepass) which has
-  // Nemotron Nano with supportsReasoning in the NVIDIA registry.
+test("keeps a client-supplied budget for a non-clinepass reasoning provider (#14888)", () => {
+  // Issue #6912 removed the clinepass-only gate, so the floor applies to every
+  // provider. #14888 then stopped the floor from overriding a budget the client
+  // already set. nvidia has Nemotron Nano marked supportsReasoning.
   const executor = new DefaultExecutor("nvidia");
   const body = {
-    model: "nvidia/nvidia-nemotron-nano-9b-v2",
+    model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
     reasoning_effort: "high",
     max_tokens: 100,
   } as Record<string, unknown>;
 
-  executor.ensureThinkingBudget(body, "nvidia/nvidia-nemotron-nano-9b-v2");
-  assert.equal(body.max_tokens, 4096);
+  executor.ensureThinkingBudget(body, "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning");
+  assert.equal(body.max_tokens, 100);
 });

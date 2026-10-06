@@ -69,7 +69,7 @@ export interface AgentSkill {
 }
 
 export interface SkillCoverage {
-  // Totals are derived from the catalog id lists (literal types went stale the
+  // Totals are derived from the canonical catalog id lists (literal types went stale the
   // first time the catalog grew — cli-skill-collector, 2026-07-15).
   api: { have: number; total: number };
   cli: { have: number; total: number };

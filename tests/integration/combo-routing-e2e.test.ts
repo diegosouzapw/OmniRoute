@@ -81,7 +81,7 @@ test("round-robin combo cycles through three providers", async () => {
     name: "router-rr",
     strategy: "round-robin",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6", "gemini/gemini-2.5-flash"],
   });
 
   const seenProviders = [];
@@ -130,7 +130,7 @@ test("priority combo sticks to the primary model while healthy", async () => {
   await combosDb.createCombo({
     name: "router-priority-healthy",
     strategy: "priority",
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
 
   const seenTargets = [];
@@ -163,7 +163,7 @@ test("priority combo falls back to the secondary model when the first one fails"
     name: "router-fallback",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
 
   const attempts = [];
@@ -365,8 +365,10 @@ test("unmapped custom model requests fail after combo resolution falls through",
   const json = (await response.json()) as any;
 
   // Upstream port decolua/9router#336: 400 → 404 so combo routing can fall through
-  // to the next target when a provider has zero usable credentials.
-  assert.equal(response.status, 404);
+  // to the next target when a provider has zero usable credentials. This request
+  // never resolves to a combo target (unmapped model), so it takes the
+  // single-model path — #10797 remaps that 404 → 401.
+  assert.equal(response.status, 401);
   assert.match(json.error.message, /No active credentials for provider: tenant/);
 });
 
@@ -376,7 +378,7 @@ test("strategy updates take effect for later requests on the same combo name", a
   const combo = await combosDb.createCombo({
     name: "router-dynamic",
     strategy: "priority",
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
 
   const seenProviders = [];

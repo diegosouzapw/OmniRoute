@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import Link from "next/link";
 import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/shared/components";
 import Toggle from "@/shared/components/Toggle";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { isPublicDisplayBaseUrl, useDisplayBaseUrl } from "@/shared/hooks";
-import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
-import { getProviderDisplayName } from "@/lib/display/names";
 import { useTranslations } from "next-intl";
 import A2ADashboardPage from "./components/A2ADashboard";
 import McpDashboardPage from "./components/MCPDashboard";
@@ -138,7 +135,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   // Endpoints / models state
   const [allModels, setAllModels] = useState([]);
   const [modelsLoading, setModelsLoading] = useState(true);
-  const [expandedEndpoint, setExpandedEndpoint] = useState(null);
 
   // Cloud sync state
   const [cloudEnabled, setCloudEnabled] = useState(false);
@@ -151,8 +147,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [selectedProvider, setSelectedProvider] = useState(null); // for provider models popup
   const [cloudBaseUrl, setCloudBaseUrl] = useState(BUILD_TIME_CLOUD_URL); // dynamic cloud URL from API response
   const [cloudConfigured, setCloudConfigured] = useState(Boolean(BUILD_TIME_CLOUD_URL));
-  const [mcpStatus, setMcpStatus] = useState<any>(null);
-  const [a2aStatus, setA2aStatus] = useState<any>(null);
+  const [_mcpStatus, setMcpStatus] = useState<any>(null);
+  const [_a2aStatus, setA2aStatus] = useState<any>(null);
   const [searchProviders, setSearchProviders] = useState<any[]>([]);
   const [cloudflaredStatus, setCloudflaredStatus] = useState<CloudflaredTunnelStatus | null>(null);
   const [cloudflaredBusy, setCloudflaredBusy] = useState(false);
@@ -172,7 +168,9 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [ngrokToken, setNgrokToken] = useState("");
   const [showNgrokTunnel, setShowNgrokTunnel] = useState(true);
   const [expandedTunnel, setExpandedTunnel] = useState<string | null>(null);
-  const [localApiUrl, setLocalApiUrl] = useState("http://localhost:20128/v1");
+  const [localApiUrl, setLocalApiUrl] = useState(
+    typeof window !== "undefined" ? `${window.location.origin}/v1` : "http://localhost:20128/v1"
+  );
   const [lanUrls, setLanUrls] = useState<string[]>([]);
   const [tailscaleIpUrl, setTailscaleIpUrl] = useState<string | null>(null);
   const [activeEndpointTab, setActiveEndpointTab] = useState<EndpointTab>("apis");
@@ -302,52 +300,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     },
     [translateOrFallback]
   );
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadPage = async () => {
-      const tunnelVisibility = await loadCloudSettings(() => mounted);
-
-      if (!mounted) return;
-      setLoading(false);
-
-      runEndpointBackgroundTask("models", fetchModels);
-      runEndpointBackgroundTask("protocol-status", fetchProtocolStatus);
-      runEndpointBackgroundTask("search-providers", fetchSearchProviders);
-      runEndpointBackgroundTask("network-info", async () => {
-        try {
-          const res = await fetch("/api/network/info");
-          if (res.ok) {
-            const data = await res.json();
-            if (mounted) {
-              if (data.localUrl) setLocalApiUrl(data.localUrl);
-              setLanUrls(data.lanUrls ?? []);
-              if (data.tailscaleIpUrl) setTailscaleIpUrl(data.tailscaleIpUrl);
-            }
-          }
-        } catch {
-          // non-critical
-        }
-      });
-
-      if (tunnelVisibility.showCloudflaredTunnel) {
-        runEndpointBackgroundTask("cloudflared-status", () => fetchCloudflaredStatus(true));
-      }
-      if (tunnelVisibility.showTailscaleFunnel) {
-        runEndpointBackgroundTask("tailscale-status", () => fetchTailscaleStatus(true));
-      }
-      if (tunnelVisibility.showNgrokTunnel) {
-        runEndpointBackgroundTask("ngrok-status", () => fetchNgrokStatus(true));
-      }
-    };
-
-    void loadPage();
-
-    return () => {
-      mounted = false;
-    };
-  }, [fetchCloudflaredStatus, fetchTailscaleStatus, fetchNgrokStatus]);
 
   const fetchModels = async () => {
     setModelsLoading(true);
@@ -510,6 +462,55 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
 
     return DEFAULT_TUNNEL_VISIBILITY;
   };
+
+  // Moved below the loader/fetcher declarations it schedules — referencing them from
+  // an effect declared above their `const` bindings is a TDZ read the compiler rejects
+  // (react-hooks/immutability).
+  useEffect(() => {
+    let mounted = true;
+
+    const loadPage = async () => {
+      const tunnelVisibility = await loadCloudSettings(() => mounted);
+
+      if (!mounted) return;
+      setLoading(false);
+
+      runEndpointBackgroundTask("models", fetchModels);
+      runEndpointBackgroundTask("protocol-status", fetchProtocolStatus);
+      runEndpointBackgroundTask("search-providers", fetchSearchProviders);
+      runEndpointBackgroundTask("network-info", async () => {
+        try {
+          const res = await fetch("/api/network/info");
+          if (res.ok) {
+            const data = await res.json();
+            if (mounted) {
+              if (data.localUrl) setLocalApiUrl(data.localUrl);
+              setLanUrls(data.lanUrls ?? []);
+              if (data.tailscaleIpUrl) setTailscaleIpUrl(data.tailscaleIpUrl);
+            }
+          }
+        } catch {
+          // non-critical
+        }
+      });
+
+      if (tunnelVisibility.showCloudflaredTunnel) {
+        runEndpointBackgroundTask("cloudflared-status", () => fetchCloudflaredStatus(true));
+      }
+      if (tunnelVisibility.showTailscaleFunnel) {
+        runEndpointBackgroundTask("tailscale-status", () => fetchTailscaleStatus(true));
+      }
+      if (tunnelVisibility.showNgrokTunnel) {
+        runEndpointBackgroundTask("ngrok-status", () => fetchNgrokStatus(true));
+      }
+    };
+
+    void loadPage();
+
+    return () => {
+      mounted = false;
+    };
+  }, [fetchCloudflaredStatus, fetchTailscaleStatus, fetchNgrokStatus]);
 
   const handleCustomSystemPromptEnabledChange = (value: boolean) => {
     setCustomSystemPromptEnabled(value);
@@ -1132,10 +1133,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     showNgrokTunnel && ngrokStatus?.running,
   ].filter(Boolean).length;
 
-  const mcpOnline = Boolean(mcpStatus?.online);
-  const a2aOnline = a2aStatus?.status === "ok";
-  const mcpToolCount = Number(mcpStatus?.heartbeat?.toolCount || 0);
-  const a2aActiveStreams = Number(a2aStatus?.tasks?.activeStreams || 0);
   const cloudflaredPhase = cloudflaredStatus?.phase || "not_installed";
   const cloudflaredPhaseMeta: Record<CloudflaredTunnelPhase, { label: string; className: string }> =
     {
@@ -1169,10 +1166,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     : cloudflaredStatus?.installed
       ? translateOrFallback("cloudflaredEnable", "Enable Tunnel")
       : translateOrFallback("cloudflaredInstallAndEnable", "Install & Enable");
-  const cloudflaredUrlNotice = translateOrFallback(
-    "cloudflaredUrlNotice",
-    "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
-  );
   const tailscalePhase = tailscaleStatus?.phase || "not_installed";
   const tailscalePhaseMeta: Record<TailscaleTunnelPhase, { label: string; className: string }> = {
     running: {
@@ -1250,6 +1243,22 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
 
   return (
     <div className="flex flex-col gap-8">
+      {/* Guided connection header (#11228): /v1 URL + test action lead; advanced protocols demoted */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <p className="text-text-muted">{t("subtitle")}</p>
+        <div className="flex items-center gap-3 mt-2">
+          <code className="text-sm bg-card-subtle px-3 py-1 rounded-md text-text-main font-mono">
+            {displayBaseUrl}/v1
+          </code>
+          <a href="#test" className="text-sm text-action font-medium hover:underline">
+            {t("testEndpoint")}
+          </a>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-text-muted">
+          <span>{t("advancedProtocols")}</span>
+        </div>
+      </div>
       <SegmentedControl
         options={ENDPOINT_TABS.map((tab) => ({ ...tab, label: t(tab.labelKey) }))}
         value={activeEndpointTab}
@@ -2069,7 +2078,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               iconBg="bg-teal-500/10"
               title={t("listModels")}
               path="/v1/models"
-              models={null}
+              models={allModels}
+              modelsLoading={modelsLoading}
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
@@ -2477,141 +2487,6 @@ function EndpointCard({
           </span>
         </button>
       </div>
-    </div>
-  );
-}
-
-function EndpointSection({
-  icon,
-  iconColor,
-  iconBg,
-  title,
-  path,
-  description,
-  models,
-  expanded,
-  onToggle,
-  copy,
-  copied,
-  baseUrl,
-  modelsLoading = false,
-}: Readonly<{
-  icon: string;
-  iconColor: string;
-  iconBg: string;
-  title: string;
-  path: string;
-  description: string;
-  models: EndpointModelSummary[];
-  expanded: boolean;
-  onToggle: () => void;
-  copy: CopyHandler;
-  copied?: string | null;
-  baseUrl: string;
-  modelsLoading?: boolean;
-}>) {
-  const t = useTranslations("endpoint");
-  const grouped = useMemo(() => {
-    const map = {};
-    for (const m of models) {
-      const owner = m.owned_by || "unknown";
-      if (!map[owner]) map[owner] = [];
-      map[owner].push(m);
-    }
-    return Object.entries(map).sort((a: any, b: any) => b[1].length - a[1].length);
-  }, [models]);
-
-  const resolveProvider = (id) => AI_PROVIDERS[id] || getProviderByAlias(id);
-  const providerColor = (id) => resolveProvider(id)?.color || "#888";
-  const providerName = (id) => getProviderDisplayName(id, resolveProvider(id));
-  const copyId = `endpoint_${path}`;
-
-  return (
-    <div className="border border-border rounded-lg overflow-hidden">
-      {/* Header (always visible) */}
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center gap-3 p-4 hover:bg-surface/50 transition-colors text-left"
-      >
-        <div className={`flex items-center justify-center size-10 rounded-lg ${iconBg} shrink-0`}>
-          <span className={`material-symbols-outlined text-xl ${iconColor}`}>{icon}</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm">{title}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-surface text-text-muted font-medium">
-              {modelsLoading ? "..." : t("modelsCount", { count: models.length })}
-            </span>
-          </div>
-          <p className="text-xs text-text-muted mt-0.5">{description}</p>
-        </div>
-        <span
-          className={`material-symbols-outlined text-text-muted text-lg transition-transform ${expanded ? "rotate-180" : ""}`}
-        >
-          expand_more
-        </span>
-      </button>
-
-      {/* Expanded content */}
-      {expanded && (
-        <div className="border-t border-border px-4 pb-4">
-          {/* Endpoint path + copy */}
-          <div className="flex items-center gap-2 mt-3 mb-3">
-            <code className="flex-1 text-xs font-mono text-text-muted bg-surface/80 px-3 py-1.5 rounded-lg truncate">
-              {baseUrl.replace(/\/v1$/, "")}
-              {path}
-            </code>
-            <button
-              onClick={() => copy(`${baseUrl.replace(/\/v1$/, "")}${path}`, copyId)}
-              className="p-1.5 hover:bg-surface rounded-lg text-text-muted hover:text-primary transition-colors shrink-0"
-            >
-              <span className="material-symbols-outlined text-[16px]">
-                {copied === copyId ? "check" : "content_copy"}
-              </span>
-            </button>
-          </div>
-
-          {/* Models grouped by provider */}
-          {modelsLoading ? (
-            <div className="flex items-center gap-2 rounded-lg border border-border/70 bg-surface/40 px-3 py-2 text-xs text-text-muted">
-              <span className="material-symbols-outlined animate-spin text-sm">
-                progress_activity
-              </span>
-              <span>{t("loadingModels")}</span>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {grouped.map(([providerId, providerModels]) => (
-                <div key={providerId}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div
-                      className="size-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: providerColor(providerId) }}
-                    />
-                    <span className="text-xs font-semibold text-text-main">
-                      {providerName(providerId)}
-                    </span>
-                    <span className="text-xs text-text-muted">
-                      ({(providerModels as any).length})
-                    </span>
-                  </div>
-                  <div className="ml-5 flex flex-wrap gap-1.5">
-                    {(providerModels as any).map((m) => (
-                      <span
-                        key={m.id}
-                        className="text-xs px-2 py-0.5 rounded-md bg-surface/80 text-text-muted font-mono"
-                        title={m.id}
-                      >
-                        {m.root || m.id.split("/").pop()}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

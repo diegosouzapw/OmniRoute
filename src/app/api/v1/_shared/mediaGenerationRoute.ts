@@ -112,6 +112,8 @@ export async function successfulMediaGenerationResponse({
   model,
   startTime,
   duration,
+  strategy,
+  fallbackAttempts,
 }: {
   result: { data: unknown };
   billingMode: "audio" | "video";
@@ -119,6 +121,11 @@ export async function successfulMediaGenerationResponse({
   model: string;
   startTime: number;
   duration: unknown;
+  // Set by combo execution so the response reports which strategy picked the
+  // target and how many earlier targets were skipped. Omitted on the direct
+  // single-model path, where neither is meaningful.
+  strategy?: string;
+  fallbackAttempts?: number;
 }) {
   const seconds = Number(duration) || 0;
   const costUsd = await calculateModalCost(billingMode, provider, model, { seconds });
@@ -129,6 +136,8 @@ export async function successfulMediaGenerationResponse({
     costUsd,
     latencyMs: Date.now() - startTime,
     requestId: generateRequestId(),
+    ...(strategy ? { strategy } : {}),
+    ...(fallbackAttempts !== undefined ? { fallbackAttempts } : {}),
   });
 
   return new Response(JSON.stringify(result.data), {

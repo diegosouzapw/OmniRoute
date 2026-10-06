@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Card from "@/shared/components/Card";
-import type { GrokBillingStatus } from "@/shared/utils/grokBilling";
+import {
+  isProviderBillingProvider,
+  type ProviderBillingStatus,
+} from "@/shared/utils/providerBilling";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import {
   normalizePlanTier,
@@ -35,8 +38,8 @@ interface QuotaCardProps {
         quotas?: any[];
         plan?: string | null;
         message?: string | null;
-        billing?: GrokBillingStatus | null;
-        raw?: { billing?: GrokBillingStatus | null };
+        billing?: ProviderBillingStatus | null;
+        raw?: { billing?: ProviderBillingStatus | null };
         stale?: { since?: string; reason?: string } | null;
       }
     | undefined;
@@ -151,7 +154,9 @@ export default function QuotaCard({
         error={error}
         message={quota?.message ?? null}
         billing={
-          connection.provider === "grok-cli" ? (quota?.billing ?? quota?.raw?.billing) : null
+          isProviderBillingProvider(connection.provider)
+            ? (quota?.billing ?? quota?.raw?.billing)
+            : null
         }
         refreshedAt={displayRefreshedAt}
         hasStaleData={hasStaleData}

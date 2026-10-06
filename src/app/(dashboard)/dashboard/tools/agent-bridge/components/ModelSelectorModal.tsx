@@ -46,7 +46,9 @@ export function ModelSelectorModal({
 
   useEffect(() => {
     if (!open) return;
-    loadModels();
+    void (async () => {
+      await loadModels();
+    })();
   }, [open, loadModels]);
 
   useEffect(() => {

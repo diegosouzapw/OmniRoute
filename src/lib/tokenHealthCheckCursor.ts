@@ -8,7 +8,7 @@
  * import technique — tokenHealthCheck.ts-private helpers passed as params
  * rather than imported) but greenfield: type-checked normally, no
  * @ts-nocheck, and imports updateProviderConnection directly from its
- * owning module rather than the localDb barrel (Hard Rule #2).
+ * owning db/ module (Hard Rule #2).
  */
 
 import { updateProviderConnection } from "@/lib/db/providers";

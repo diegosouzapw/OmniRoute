@@ -13,7 +13,7 @@ const deliveriesDb = await import("../../src/lib/db/webhookDeliveries.ts");
 
 async function resetStorage() {
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DIR, { recursive: true });
 }
 
@@ -23,7 +23,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("insertDelivery stores a row and getDeliveries returns it", () => {

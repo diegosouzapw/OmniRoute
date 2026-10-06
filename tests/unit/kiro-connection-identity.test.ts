@@ -79,3 +79,49 @@ test("findKiroConnectionByIdentity never overwrites a different authentication t
     null
   );
 });
+
+// #10815 — a profile ARN identifies the CodeWhisperer profile, not the account: two
+// distinct social (Google/GitHub) Builder ID accounts share the same ARN, so matching
+// on it alone made the second login overwrite the first connection.
+const SHARED_PROFILE_ARN = "arn:aws:codewhisperer:us-east-1:1:profile/SHARED";
+
+const firstSocialAccount = {
+  id: "social-account-1",
+  authType: "oauth",
+  name: null,
+  email: null,
+  providerSpecificData: {
+    profileArn: SHARED_PROFILE_ARN,
+    authMethod: "imported",
+    provider: "Github",
+  },
+};
+
+test("findKiroConnectionByIdentity does not match a shared profile ARN without an account identifier", () => {
+  const match = findKiroConnectionByIdentity([firstSocialAccount], {
+    authType: "oauth",
+    profileArn: SHARED_PROFILE_ARN,
+    email: null,
+  });
+  assert.equal(match, null);
+});
+
+test("findKiroConnectionByIdentity treats diverging emails on a shared profile ARN as distinct accounts", () => {
+  const stored = { ...firstSocialAccount, id: "social-a", email: "a@example.com" };
+  const match = findKiroConnectionByIdentity([stored], {
+    authType: "oauth",
+    profileArn: SHARED_PROFILE_ARN,
+    email: "b@example.com",
+  });
+  assert.equal(match, null);
+});
+
+test("findKiroConnectionByIdentity still matches the same account on a shared profile ARN", () => {
+  const stored = { ...firstSocialAccount, id: "social-a", email: "a@example.com" };
+  const match = findKiroConnectionByIdentity([stored], {
+    authType: "oauth",
+    profileArn: SHARED_PROFILE_ARN,
+    email: "a@example.com",
+  });
+  assert.equal(match?.id, "social-a");
+});

@@ -1,0 +1,372 @@
+{
+  "$schema": "allowlist-routing-swallowed-catch",
+  "_comment": "Frozen swallowed catches on routing paths for scripts/check/check-routing-error-guard.mjs. Keyed by file + normalized catch-body snippet (not line numbers); count = identical bodies in that file. Do NOT add entries without a justification; shrink or remove an entry when its catch is fixed.",
+  "entries": [
+    {
+      "file": "open-sse/services/combo.ts",
+      "snippet": "// keep empty stats — auto-combo will use runtime + bootstrap signals",
+      "count": 1,
+      "reason": "stats fallback to defaults, auto path uses runtime signals"
+    },
+    {
+      "file": "open-sse/services/combo.ts",
+      "snippet": "connectionPoolCounts.set(provider, 0); connectionsByProvider.set(provider, []);",
+      "count": 1,
+      "reason": "pool counts fallback to empty lists"
+    },
+    {
+      "file": "open-sse/services/combo.ts",
+      "snippet": "// keep default cost",
+      "count": 1,
+      "reason": "cost fallback to default pricing"
+    },
+    {
+      "file": "open-sse/services/combo.ts",
+      "snippet": "log?.debug?.( \"COMBO\", `resolveTargetTimeoutMsForTarget connection lookup failed: ${ err instanceof Error ? err.message ",
+      "count": 1,
+      "reason": "logged at debug, undefined fallback"
+    },
+    {
+      "file": "open-sse/services/combo/applyStrategyOrdering.ts",
+      "snippet": "log.warn(\"COMBO\", \"Failed to retrieve Last Known Good Provider. This is non-fatal.\", { err });",
+      "count": 1,
+      "reason": "logged, best-effort provider read fallback"
+    },
+    {
+      "file": "open-sse/services/combo/applyStrategyOrdering.ts",
+      "snippet": "log.warn({ err }, \"manifest routing failed, falling back to standard strategy\");",
+      "count": 1,
+      "reason": "logged, manifest routing fallback"
+    },
+    {
+      "file": "open-sse/services/combo/autoStrategy.ts",
+      "snippet": "log.warn?.( \"COMBO\", `Tag routing failed to load connections for provider=${providerId}: ${error instanceof Error ? erro",
+      "count": 1,
+      "reason": "logged, tag routing connections fallback"
+    },
+    {
+      "file": "open-sse/services/combo/autoStrategy.ts",
+      "snippet": "// Best-effort candidate expansion only: if loading active connections or // provider models fails, fall back to the exp",
+      "count": 1,
+      "reason": "expanded targets fallback, abort-safe"
+    },
+    {
+      "file": "open-sse/services/combo/autoStrategy.ts",
+      "snippet": "return null;",
+      "count": 1,
+      "reason": "null fallback, best-effort expansion"
+    },
+    {
+      "file": "open-sse/services/combo/comboPredicates.ts",
+      "snippet": "// A DB read failure must never block dispatch — fall through to the upstream call. return null;",
+      "count": 1,
+      "reason": "null fallback, DB read failure"
+    },
+    {
+      "file": "open-sse/services/combo/concurrencyCaps.ts",
+      "snippet": "return null; // fail-open: never block routing on a lookup error",
+      "count": 1,
+      "reason": "null fallback, fail-open routing"
+    },
+    {
+      "file": "open-sse/services/combo/connectionAwareExpansion.ts",
+      "snippet": "// Fail-open (spec section 3.1): expansion is a best-effort pre-filter, never a // hard dependency. Auth-layer gates rem",
+      "count": 1,
+      "reason": "logged, fail-open expansion"
+    },
+    {
+      "file": "open-sse/services/combo/dispatchPrelude.ts",
+      "snippet": "return false;",
+      "count": 1,
+      "reason": "false fallback, pinned dispatch check"
+    },
+    {
+      "file": "open-sse/services/combo/dispatchPrelude.ts",
+      "snippet": "pinnedClone = pinnedResult;",
+      "count": 1,
+      "reason": "pinned clone fallback, release on failure"
+    },
+    {
+      "file": "open-sse/services/combo/dispatchPrelude.ts",
+      "snippet": "log.warn( \"COMBO\", `Pinned model ${pinnedModel} threw error: ${pinErr instanceof Error ? pinErr.message : String(pinErr)",
+      "count": 1,
+      "reason": "logged, pinned model fallthrough"
+    },
+    {
+      "file": "open-sse/services/combo/executeTargetAttempt.ts",
+      "snippet": "qualityClone = result;",
+      "count": 1,
+      "reason": "clone fallback to original response"
+    },
+    {
+      "file": "open-sse/services/combo/executeTargetAttempt.ts",
+      "snippet": "deps.log.warn( \"COMBO\", \"Failed to record Last Known Good Provider. This is non-fatal.\", { err, } );",
+      "count": 1,
+      "reason": "logged at warn, success-path best-effort LKGP persist (failure only loses a routing optimization)"
+    },
+    {
+      "file": "open-sse/services/combo/executeTargetAttempt.ts",
+      "snippet": "/* Clone parse failed */",
+      "count": 1,
+      "reason": "nested clone-parse fallback, error text preserved"
+    },
+    {
+      "file": "open-sse/services/combo/executeTargetAttempt.ts",
+      "snippet": "/* Clone failed */",
+      "count": 1,
+      "reason": "clone fallback, error parse skipped"
+    },
+    {
+      "file": "open-sse/services/combo/executeTargetAttempt.ts",
+      "snippet": "errorText = String(errorText);",
+      "count": 1,
+      "reason": "stringify fallback to String()"
+    },
+    {
+      "file": "open-sse/services/combo/failureTracker.ts",
+      "snippet": "// Best effort — the counter still records the streak, future clears will // retry on the next threshold-cross.",
+      "count": 1,
+      "reason": "counter kept, retry on next threshold"
+    },
+    {
+      "file": "open-sse/services/combo/failureTracker.ts",
+      "snippet": "return { count: 0, pinClearedNow: false };",
+      "count": 1,
+      "reason": "zeroed streak fallback"
+    },
+    {
+      "file": "open-sse/services/combo/failureTracker.ts",
+      "snippet": "/* fail-open */",
+      "count": 1,
+      "reason": "fail-open tracker state fallback"
+    },
+    {
+      "file": "open-sse/services/combo/failureTracker.ts",
+      "snippet": "return 0;",
+      "count": 1,
+      "reason": "zero fallback, fail-open counter"
+    },
+    {
+      "file": "open-sse/services/combo/nativeCodexTurnPin.ts",
+      "snippet": "return undefined;",
+      "count": 1,
+      "reason": "undefined fallback, best-effort pin"
+    },
+    {
+      "file": "open-sse/services/combo/promptCacheAffinity.ts",
+      "snippet": "return \"\";",
+      "count": 1,
+      "reason": "empty-string fallback"
+    },
+    {
+      "file": "open-sse/services/combo/promptCacheAffinity.ts",
+      "snippet": "connectionsByProvider.set(provider, []);",
+      "count": 1,
+      "reason": "connections fallback to empty list"
+    },
+    {
+      "file": "open-sse/services/combo/providerWildcard.ts",
+      "snippet": "return modelIds;",
+      "count": 1,
+      "reason": "model list fallback"
+    },
+    {
+      "file": "open-sse/services/combo/quotaExhaustion.ts",
+      "snippet": "try { text = await response.clone().text(); } catch { // The status and trusted in-process classification remain availab",
+      "count": 1,
+      "reason": "status preserved, cloned text fallback"
+    },
+    {
+      "file": "open-sse/services/combo/quotaExhaustionCutoff.ts",
+      "snippet": "connection = undefined;",
+      "count": 1,
+      "reason": "undefined connection fallback"
+    },
+    {
+      "file": "open-sse/services/combo/quotaExhaustionCutoff.ts",
+      "snippet": "// Fail-open: never block routing because the preflight fetch itself errored. return { blocked: false };",
+      "count": 1,
+      "reason": "fail-open, blocked false"
+    },
+    {
+      "file": "open-sse/services/combo/quotaShareConcurrency.ts",
+      "snippet": "// Fail-open: a saturated queue / timeout must never worsen availability — // proceed without a slot rather than reject ",
+      "count": 1,
+      "reason": "fail-open, proceed without a slot"
+    },
+    {
+      "file": "open-sse/services/combo/quotaStrategies.ts",
+      "snippet": "log.warn?.(\"COMBO\", \"Reset-aware failed to load quota-aware connections.\", { comboName, err: error, operation: \"getProvi",
+      "count": 1,
+      "reason": "logged, quota-aware connections fallback"
+    },
+    {
+      "file": "open-sse/services/combo/quotaStrategies.ts",
+      "snippet": "log.warn?.(\"COMBO\", \"Reset-aware quota fetch failed.\", { comboName, connectionId, err: error, operation: \"quotaFetch\", p",
+      "count": 1,
+      "reason": "logged, reset-aware quota fetch fallback"
+    },
+    {
+      "file": "open-sse/services/combo/quotaStrategies.ts",
+      "snippet": "log.warn?.( { err: (err as Error)?.message, comboName }, \"headroom ordering failed — keeping target order\" ); return tar",
+      "count": 1,
+      "reason": "logged, headroom ordering kept"
+    },
+    {
+      "file": "open-sse/services/combo/resolveAutoStrategy.ts",
+      "snippet": "log.warn(\"COMBO\", \"Failed to retrieve Last Known Good Provider. This is non-fatal.\", { err });",
+      "count": 1,
+      "reason": "logged, provider read best-effort"
+    },
+    {
+      "file": "open-sse/services/combo/resolveAutoStrategy.ts",
+      "snippet": "log.warn( \"COMBO\", `Auto strategy '${routingStrategy}' failed (${err?.message || \"unknown\"}), falling back to rules` );",
+      "count": 1,
+      "reason": "logged, auto strategy rules fallback"
+    },
+    {
+      "file": "open-sse/services/combo/roundRobinCombo.ts",
+      "snippet": "return undefined;",
+      "count": 1,
+      "reason": "undefined fallback, quota path unaffected"
+    },
+    {
+      "file": "open-sse/services/combo/roundRobinCombo.ts",
+      "snippet": "// best-effort only",
+      "count": 1,
+      "reason": "best-effort quota reserve only"
+    },
+    {
+      "file": "open-sse/services/combo/roundRobinCombo.ts",
+      "snippet": "rrClone = result;",
+      "count": 1,
+      "reason": "clone fallback to original"
+    },
+    {
+      "file": "open-sse/services/combo/roundRobinCombo.ts",
+      "snippet": "log.warn( \"COMBO-RR\", \"Failed to record Last Known Good Provider. This is non-fatal.\", { err, } );",
+      "count": 1,
+      "reason": "logged at warn, success-path best-effort LKGP persist (failure only loses a routing optimization)"
+    },
+    {
+      "file": "open-sse/services/combo/roundRobinCombo.ts",
+      "snippet": "/* Clone parse failed */",
+      "count": 1,
+      "reason": "clone-parse fallback, error text preserved"
+    },
+    {
+      "file": "open-sse/services/combo/roundRobinCombo.ts",
+      "snippet": "/* Clone failed */",
+      "count": 1,
+      "reason": "clone fallback, error parse skipped"
+    },
+    {
+      "file": "open-sse/services/combo/roundRobinCombo.ts",
+      "snippet": "errorText = String(errorText);",
+      "count": 1,
+      "reason": "stringify fallback to String()"
+    },
+    {
+      "file": "open-sse/services/combo/roundRobinCombo.ts",
+      "snippet": "// G4: unexpected exception in the round-robin loop must never crash the // request silently — surface a 500 instead of ",
+      "count": 1,
+      "reason": "logged at error, 500 response surfaced"
+    },
+    {
+      "file": "open-sse/services/combo/runtimeUnits.ts",
+      "snippet": "unitClone = response;",
+      "count": 1,
+      "reason": "clone fallback to original response"
+    },
+    {
+      "file": "open-sse/services/combo/sessionStickiness.ts",
+      "snippet": "return undefined;",
+      "count": 2,
+      "reason": "undefined fallback, cooldown read"
+    },
+    {
+      "file": "open-sse/services/combo/sessionStickiness.ts",
+      "snippet": "return false;",
+      "count": 1,
+      "reason": "false fallback, sticky write best-effort"
+    },
+    {
+      "file": "open-sse/services/combo/sessionStickiness.ts",
+      "snippet": "// Completely unexpected error — fail-open return noOp;",
+      "count": 1,
+      "reason": "no-op fallback, fail-open stickiness"
+    },
+    {
+      "file": "open-sse/services/combo/shadowRouting.ts",
+      "snippet": "// Shadow draining is best-effort and must never affect the production response.",
+      "count": 1,
+      "reason": "best-effort shadow drain only"
+    },
+    {
+      "file": "open-sse/services/combo/shadowRouting.ts",
+      "snippet": "log.warn(\"COMBO\", \"Shadow routing skipped: failed to clone request body\", { error: error instanceof Error ? error.messag",
+      "count": 1,
+      "reason": "logged, shadow body clone skipped"
+    },
+    {
+      "file": "open-sse/services/combo/shadowRouting.ts",
+      "snippet": "recordComboShadowRequest(combo.name, target.modelStr, { success: false, latencyMs: Date.now() - startedAt, target: toRec",
+      "count": 1,
+      "reason": "combo shadow request recorded as failed"
+    },
+    {
+      "file": "open-sse/services/combo/targetResolution.ts",
+      "snippet": "logPipelineFallthrough(pipelineErr, log); return null;",
+      "count": 1,
+      "reason": "logged, pipeline fallthrough to null"
+    },
+    {
+      "file": "open-sse/services/combo/targetSorters.ts",
+      "snippet": "return { modelStr, cost: Infinity };",
+      "count": 1,
+      "reason": "infinite-cost fallback"
+    },
+    {
+      "file": "open-sse/services/combo/targetSorters.ts",
+      "snippet": "// If pricing lookup fails entirely, return original order return models;",
+      "count": 1,
+      "reason": "original order fallback"
+    },
+    {
+      "file": "open-sse/services/combo/targetTimeoutRunner.ts",
+      "snippet": "// Diagnostic logging failed — never let this break the process.",
+      "count": 1,
+      "reason": "diagnostic logging failed"
+    },
+    {
+      "file": "open-sse/services/combo/validateQuality.ts",
+      "snippet": "return null;",
+      "count": 1,
+      "reason": "null fallback, quality check skipped"
+    },
+    {
+      "file": "open-sse/services/combo/validateQuality.ts",
+      "snippet": "controller.close();",
+      "count": 1,
+      "reason": "controller closed, stream cleanup"
+    },
+    {
+      "file": "open-sse/services/combo/validateQuality.ts",
+      "snippet": "// If reading the stream fails due to a locked stream or pipe error, // the content cannot be verified — mark as invalid",
+      "count": 1,
+      "reason": "invalid fallback, unverifiable stream"
+    },
+    {
+      "file": "open-sse/services/combo/validateQuality.ts",
+      "snippet": "return { valid: true };",
+      "count": 2,
+      "reason": "valid fallback, teardown race"
+    },
+    {
+      "file": "open-sse/services/combo/validateQuality.ts",
+      "snippet": "// An SSE stream body is expected for streamed upstreams. Besides `data:` and // `event:` frames, the SSE spec also allo",
+      "count": 1,
+      "reason": "comment-line SSE frame skipped"
+    }
+  ]
+}

@@ -8,9 +8,9 @@
   },
   "caveman": {
     "tasks": {
-      "prose": 129,
-      "tool-output": 127,
-      "json": 160
+      "prose": 119,
+      "tool-output": 114,
+      "json": 136
     }
   },
   "aggressive": {
@@ -22,9 +22,9 @@
   },
   "ultra": {
     "tasks": {
-      "prose": 92,
-      "tool-output": 116,
-      "json": 117
+      "prose": 97,
+      "tool-output": 117,
+      "json": 126
     }
   },
   "rtk": {

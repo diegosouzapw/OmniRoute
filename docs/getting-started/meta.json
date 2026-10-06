@@ -3,6 +3,7 @@
   "description": "Get started with OmniRoute in minutes — no technical background needed",
   "pages": [
     "QUICK-START",
+    "SELF_HOST_GUIDE",
     "AUTO-COMBO-GUIDE",
     "PROVIDERS-GUIDE",
     "FREE-TIERS-GUIDE",

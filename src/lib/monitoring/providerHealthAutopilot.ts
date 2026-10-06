@@ -1,11 +1,9 @@
 import { createHash } from "crypto";
 
-import {
-  getProviderConnections,
-  updateProviderConnection,
-} from "@/lib/db/providers";
-import { getCachedProviderConnectionById } from "@/lib/localDb";
+import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
+import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import { clearProviderFailure, clearModelLock } from "@omniroute/open-sse/services/accountFallback";
+import { resolveProviderAlias } from "@omniroute/open-sse/services/model";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -111,6 +109,11 @@ function toRecord(value: unknown): JsonRecord {
 
 function toString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function canonicalProviderId(value: unknown): string | null {
+  const provider = toString(value);
+  return provider ? (resolveProviderAlias(provider) ?? provider) : null;
 }
 
 function toNumber(value: unknown): number | null {
@@ -253,7 +256,7 @@ export async function buildProviderHealthAutopilotReport(
   const checkedAt = new Date(now).toISOString();
   const includeHealthy = options.includeHealthy === true;
   const includeActions = options.includeActions !== false;
-  const providerFilter = toString(options.provider);
+  const providerFilter = canonicalProviderId(options.provider);
 
   const [{ getAllCircuitBreakerStatuses }, { getAllModelLockouts }, quotaMonitor] =
     await Promise.all([
@@ -262,40 +265,45 @@ export async function buildProviderHealthAutopilotReport(
       import("@omniroute/open-sse/services/quotaMonitor.ts").catch(() => null),
     ]);
 
-  const connections = (await getProviderConnections(
-    providerFilter ? { provider: providerFilter } : {}
-  )) as JsonRecord[];
+  // Connections generally use canonical ids, while breakers, lockouts, and quota
+  // snapshots can retain the alias used at dispatch time. Normalize the aggregation
+  // key, but preserve each raw source id for actions that must mutate runtime state.
+  const connections = ((await getProviderConnections({})) as JsonRecord[]).filter((connection) => {
+    const provider = canonicalProviderId(connection.provider);
+    return provider && (!providerFilter || provider === providerFilter);
+  });
   const breakers = getAllCircuitBreakerStatuses().filter((breaker) => {
     const name = toString((breaker as JsonRecord).name);
-    if (!name || name.startsWith("test-") || name.startsWith("test_")) return false;
-    return !providerFilter || name === providerFilter;
+    const provider = canonicalProviderId(name);
+    if (!name || !provider || name.startsWith("test-") || name.startsWith("test_")) return false;
+    return !providerFilter || provider === providerFilter;
   });
   const lockouts = (getAllModelLockouts() as JsonRecord[]).filter((lockout) => {
-    const provider = providerFromLockout(lockout);
+    const provider = canonicalProviderId(providerFromLockout(lockout));
     return provider && (!providerFilter || provider === providerFilter);
   });
   const quotaSnapshots = quotaMonitor?.getQuotaMonitorSnapshots
     ? (quotaMonitor.getQuotaMonitorSnapshots() as JsonRecord[]).filter((snapshot) => {
-        const provider = toString(snapshot.provider);
+        const provider = canonicalProviderId(snapshot.provider);
         return provider && (!providerFilter || provider === providerFilter);
       })
     : [];
 
   const providerIds = new Set<string>();
   for (const connection of connections) {
-    const provider = toString(connection.provider);
+    const provider = canonicalProviderId(connection.provider);
     if (provider) providerIds.add(provider);
   }
   for (const breaker of breakers) {
-    const provider = toString((breaker as JsonRecord).name);
+    const provider = canonicalProviderId((breaker as JsonRecord).name);
     if (provider) providerIds.add(provider);
   }
   for (const lockout of lockouts) {
-    const provider = providerFromLockout(lockout);
+    const provider = canonicalProviderId(providerFromLockout(lockout));
     if (provider) providerIds.add(provider);
   }
   for (const snapshot of quotaSnapshots) {
-    const provider = toString(snapshot.provider);
+    const provider = canonicalProviderId(snapshot.provider);
     if (provider) providerIds.add(provider);
   }
   if (providerFilter) providerIds.add(providerFilter);
@@ -303,19 +311,21 @@ export async function buildProviderHealthAutopilotReport(
   const providers: ProviderAutopilotProvider[] = [];
   for (const provider of [...providerIds].sort()) {
     const providerConnections = connections.filter(
-      (connection) => connection.provider === provider
+      (connection) => canonicalProviderId(connection.provider) === provider
     );
-    const breaker = breakers.find((entry) => (entry as JsonRecord).name === provider) as
-      | JsonRecord
-      | undefined;
+    const breaker = breakers.find(
+      (entry) => canonicalProviderId((entry as JsonRecord).name) === provider
+    ) as JsonRecord | undefined;
     const providerLockouts = lockouts.filter(
-      (lockout) => providerFromLockout(lockout) === provider
+      (lockout) => canonicalProviderId(providerFromLockout(lockout)) === provider
     );
-    const providerQuota = quotaSnapshots.filter((snapshot) => snapshot.provider === provider);
+    const providerQuota = quotaSnapshots.filter(
+      (snapshot) => canonicalProviderId(snapshot.provider) === provider
+    );
     const issues: ProviderAutopilotIssue[] = [];
 
     if (breaker && OPEN_BREAKER_STATES.has(String(breaker.state))) {
-      const target = { provider };
+      const target = { provider: toString(breaker.name) ?? provider };
       const evidence = {
         state: breaker.state,
         failureCount: toNumber(breaker.failureCount) ?? 0,
@@ -342,7 +352,7 @@ export async function buildProviderHealthAutopilotReport(
     for (const connection of providerConnections) {
       const connectionId = toString(connection.id);
       if (!connectionId) continue;
-      const target = { provider, connectionId };
+      const target = { provider: toString(connection.provider) ?? provider, connectionId };
       const label = sanitizeConnectionLabel(connection);
       const cooldownUntil = parseTimeMs(connection.rateLimitedUntil);
       const terminal = isTerminalConnection(connection);
@@ -450,7 +460,11 @@ export async function buildProviderHealthAutopilotReport(
       if (!connectionId || !model) continue;
       const connection = providerConnections.find((entry) => entry.id === connectionId);
       const terminalConnection = connection ? isTerminalConnection(connection) : false;
-      const target = { provider, connectionId, model };
+      const target = {
+        provider: providerFromLockout(lockout) ?? provider,
+        connectionId,
+        model,
+      };
       const evidence = {
         reason: lockout.reason ?? null,
         remainingMs: toNumber(lockout.remainingMs) ?? 0,
@@ -483,7 +497,10 @@ export async function buildProviderHealthAutopilotReport(
       if (!status || !["warning", "exhausted", "error"].includes(status)) continue;
       const connectionId = toString(snapshot.accountId) ?? undefined;
       const sessionId = toString(snapshot.sessionId) ?? undefined;
-      const target = { provider, ...(connectionId ? { connectionId } : {}) };
+      const target = {
+        provider: toString(snapshot.provider) ?? provider,
+        ...(connectionId ? { connectionId } : {}),
+      };
       issues.push({
         id: issueId("quota_monitor_warning", {
           ...target,

@@ -280,7 +280,7 @@ test.after(async () => {
   if (app) await stopProcess(app.child);
   await upstream.stop();
   core.closeDbInstance();
-  await fsp.rm(TEST_DATA_DIR, { recursive: true, force: true });
+  await fsp.rm(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── Tests ──────────────────────────────────────────────────────────────────

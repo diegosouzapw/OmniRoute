@@ -24,20 +24,18 @@ const poolsDb = await import("../../src/lib/db/quotaPools.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const { createGroup } = await import("../../src/lib/db/quotaGroups.ts");
-const { syncQuotaCombos, removeQuotaCombosForPool } = await import(
-  "../../src/lib/quota/quotaCombos.ts"
-);
+const { syncQuotaCombos, removeQuotaCombosForPool } =
+  await import("../../src/lib/quota/quotaCombos.ts");
 const { PoolUpdateSchema } = await import("../../src/shared/schemas/quota.ts");
-const { isQuotaModelName, parseQuotaModelName, quotaGroupSlug } = await import(
-  "../../src/lib/quota/quotaModelNaming.ts"
-);
+const { isQuotaModelName, parseQuotaModelName, quotaGroupSlug } =
+  await import("../../src/lib/quota/quotaModelNaming.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: unknown) {
@@ -58,7 +56,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── Helper: list only quota-named combos ───────────────────────────────────

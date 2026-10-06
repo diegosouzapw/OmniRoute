@@ -39,7 +39,9 @@ export function useEngineStatus(refreshIntervalMs = 5000): UseEngineStatusResult
 
   useEffect(() => {
     mounted.current = true;
-    void fetchOnce();
+    void (async () => {
+      await fetchOnce();
+    })();
     if (!refreshIntervalMs || refreshIntervalMs <= 0) {
       return () => {
         mounted.current = false;

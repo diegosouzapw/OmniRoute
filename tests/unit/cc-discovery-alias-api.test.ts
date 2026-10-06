@@ -14,7 +14,7 @@ const route = await import("../../src/app/api/providers/[id]/cc-alias/route.ts")
 
 function resetDb() {
   core.resetDbInstance();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(tmpDir, { recursive: true });
 }
 
@@ -41,7 +41,7 @@ describe("PUT/GET /api/providers/[id]/cc-alias", () => {
 
   after(() => {
     core.resetDbInstance();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     delete process.env.REQUIRE_API_KEY;
   });
 

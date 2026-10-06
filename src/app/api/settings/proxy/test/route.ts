@@ -6,11 +6,12 @@ import {
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+import { probeEchoTargets } from "@/lib/proxyEchoTarget";
 import { testProxySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import { getProxyById } from "@/lib/localDb";
-import { extractRelayAuth } from "@/lib/db/proxies";
+
+import { extractRelayAuth, getProxyById } from "@/lib/db/proxies";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { buildRelayTestResult } from "./relayTestResult";
@@ -215,20 +216,28 @@ export async function POST(request: Request) {
     const publicProxyUrl = proxyUrlForLogs(proxyUrl);
 
     const startTime = Date.now();
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
     const dispatcher = createProxyDispatcher(proxyUrl);
 
     try {
-      const result = await undiciRequest("https://api64.ipify.org?format=json", {
-        method: "GET",
-        dispatcher,
-        signal: controller.signal,
-        headersTimeout: 10000,
-        bodyTimeout: 10000,
-      });
-
-      const responseText = await result.body.text();
+      // #9694: an IPv4-only SOCKS5/SSH tunnel has no route to the IPv6-first
+      // echo target and used to hang here until the deadline, reporting a
+      // healthy proxy as dead. Each target gets its own slice of the budget.
+      const { result: responseText } = await probeEchoTargets(async (url, timeoutMs) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const result = await undiciRequest(url, {
+            method: "GET",
+            dispatcher,
+            signal: controller.signal,
+            headersTimeout: timeoutMs,
+            bodyTimeout: timeoutMs,
+          });
+          return await result.body.text();
+        } finally {
+          clearTimeout(timeout);
+        }
+      }, 10000);
       let parsed: { ip?: string };
       try {
         const parsedJson = JSON.parse(responseText);
@@ -260,8 +269,6 @@ export async function POST(request: Request) {
         latencyMs: Date.now() - startTime,
         proxyUrl: publicProxyUrl,
       });
-    } finally {
-      clearTimeout(timeout);
     }
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Unexpected server error");

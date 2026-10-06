@@ -152,14 +152,19 @@ export async function getProcessInfo(pid: number): Promise<{
   }
 
   try {
-    if (process.platform === "linux" || process.platform === "android") {
+    // #11236: single runtime os.platform() read for the per-OS memory probes —
+    // a process.platform literal is constant-folded to the build machine's
+    // platform in the published artifact (same fold class as b43a212680 /
+    // #10244/#10293), so the darwin probe branch would be pruned on macOS.
+    const platform = os.platform();
+    if (platform === "linux" || platform === "android") {
       const statusFile = `/proc/${pid}/status`;
       const content = await fs.readFile(statusFile, "utf-8");
       const match = content.match(/VmRSS:\s+(\d+)\s+kB/);
       if (match) {
         return { pid, alive: true, memoryUsage: parseInt(match[1], 10) * 1024 };
       }
-    } else if (process.platform === "darwin") {
+    } else if (platform === "darwin") {
       const { execFile } = await import("child_process");
       const { promisify } = await import("util");
       const execFileAsync = promisify(execFile);

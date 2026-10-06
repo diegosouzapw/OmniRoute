@@ -26,7 +26,8 @@ delete process.env.QUOTA_STORE_REDIS_URL;
 process.env.QUOTA_STORE_DRIVER = "sqlite";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const compliance = await import("../../src/lib/compliance/index.ts");
 const { resetQuotaStoreSingleton } = await import("../../src/lib/quota/QuotaStore.ts");
 const settingsRoute = await import("../../src/app/api/settings/quota-store/route.ts");
@@ -41,7 +42,7 @@ function resetDb() {
   resetQuotaStoreSingleton();
   delete process.env.QUOTA_STORE_REDIS_URL;
   delete process.env.INITIAL_PASSWORD;
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -53,7 +54,7 @@ test.beforeEach(() => {
 test.after(() => {
   core.resetDbInstance();
   resetQuotaStoreSingleton();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ---------------------------------------------------------------------------
@@ -68,9 +69,7 @@ test("GET /api/settings/quota-store without auth → 401", async () => {
 });
 
 test("GET /api/settings/quota-store returns driver + redisUrlConfigured (not URL)", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/settings/quota-store"
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/settings/quota-store");
   const res = await settingsRoute.GET(req);
   assert.equal(res.status, 200);
   const body = (await res.json()) as {
@@ -93,9 +92,7 @@ test("GET /api/settings/quota-store returns driver + redisUrlConfigured (not URL
 
 test("GET /api/settings/quota-store redisUrlConfigured=false when no URL configured", async () => {
   delete process.env.QUOTA_STORE_REDIS_URL;
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/settings/quota-store"
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/settings/quota-store");
   const res = await settingsRoute.GET(req);
   const body = (await res.json()) as { redisUrlConfigured: boolean };
   assert.equal(body.redisUrlConfigured, false);
@@ -117,13 +114,10 @@ test("PUT /api/settings/quota-store without auth → 401", async () => {
 });
 
 test("PUT /api/settings/quota-store driver=sqlite → 200", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/settings/quota-store",
-    {
-      method: "PUT",
-      body: { driver: "sqlite" },
-    }
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/settings/quota-store", {
+    method: "PUT",
+    body: { driver: "sqlite" },
+  });
   const res = await settingsRoute.PUT(req);
   assert.equal(res.status, 200);
   const body = (await res.json()) as { driver: string; redisUrl: null };
@@ -132,13 +126,10 @@ test("PUT /api/settings/quota-store driver=sqlite → 200", async () => {
 });
 
 test("PUT /api/settings/quota-store driver=redis without URL → 400", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/settings/quota-store",
-    {
-      method: "PUT",
-      body: { driver: "redis" }, // No redisUrl
-    }
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/settings/quota-store", {
+    method: "PUT",
+    body: { driver: "redis" }, // No redisUrl
+  });
   const res = await settingsRoute.PUT(req);
   assert.equal(res.status, 400);
   const body = await res.json();
@@ -147,13 +138,10 @@ test("PUT /api/settings/quota-store driver=redis without URL → 400", async () 
 });
 
 test("PUT /api/settings/quota-store driver=redis with valid URL → 200 + audit event", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/settings/quota-store",
-    {
-      method: "PUT",
-      body: { driver: "redis", redisUrl: "redis://localhost:6379" },
-    }
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/settings/quota-store", {
+    method: "PUT",
+    body: { driver: "redis", redisUrl: "redis://localhost:6379" },
+  });
   const res = await settingsRoute.PUT(req);
   assert.equal(res.status, 200);
   const body = (await res.json()) as {
@@ -187,13 +175,10 @@ test("PUT /api/settings/quota-store driver=redis with valid URL → 200 + audit 
 });
 
 test("PUT /api/settings/quota-store with invalid driver → 400 (Zod)", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/settings/quota-store",
-    {
-      method: "PUT",
-      body: { driver: "memcached" }, // Not in enum
-    }
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/settings/quota-store", {
+    method: "PUT",
+    body: { driver: "memcached" }, // Not in enum
+  });
   const res = await settingsRoute.PUT(req);
   assert.equal(res.status, 400);
   const body = await res.json();

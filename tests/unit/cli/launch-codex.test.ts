@@ -48,6 +48,18 @@ test("buildCodexProviderArgs defines the omniroute provider inline (works withou
   assert.equal(args.filter((a) => a === "-c").length, 6);
 });
 
+test("buildCodexProviderArgs selects the model through Codex's top-level model key", () => {
+  const args = buildCodexProviderArgs("http://vps:20128", "glm/glm-4.5");
+  assert.equal(args.includes("-c"), true);
+  assert.ok(args.some((arg) => arg === 'model="glm/glm-4.5"'));
+  assert.equal(
+    args.some((arg) => arg.startsWith("model_providers.omniroute.model=")),
+    false
+  );
+  // model is optional => previous 6 assignments + one extra
+  assert.equal(args.filter((a) => a === "-c").length, 7);
+});
+
 test("resolveCodexTarget: --remote wins and /v1 is stripped from the root", () => {
   const { baseUrl } = resolveCodexTarget({ remote: "http://vps:20128/v1" });
   assert.equal(baseUrl, "http://vps:20128");

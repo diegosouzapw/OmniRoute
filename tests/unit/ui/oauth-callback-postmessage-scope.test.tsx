@@ -15,8 +15,11 @@ import CallbackPage from "@/app/callback/page";
  * Regression guard for ported upstream PR decolua/9router#998 (security):
  * the OAuth callback page must never relay {code, state} to a wildcard
  * postMessage target ("*"), as a hostile opener can read the code/state and
- * complete the OAuth flow as the user. Only the same-origin parent and
- * Codex's fixed loopback helper (127.0.0.1:1455) are trusted targets.
+ * complete the OAuth flow as the user. Trusted targets are the same-origin
+ * parent, the loopback hostname variants of the same port (localhost vs
+ * 127.0.0.1 — Zed native-app redirects may land on the other spelling than the
+ * dashboard the modal was opened from; same port means the same OmniRoute
+ * server), and Codex's fixed loopback helper (127.0.0.1:1455).
  */
 describe("OAuth callback page — postMessage target origin scope (#998)", () => {
   let container: HTMLDivElement;
@@ -81,7 +84,15 @@ describe("OAuth callback page — postMessage target origin scope (#998)", () =>
       await Promise.resolve();
     });
 
-    const trusted = new Set([window.location.origin, "http://localhost:1455", "http://127.0.0.1:1455"]);
+    const loopbackSamePort = window.location.port
+      ? [`http://localhost:${window.location.port}`, `http://127.0.0.1:${window.location.port}`]
+      : [];
+    const trusted = new Set([
+      window.location.origin,
+      ...loopbackSamePort,
+      "http://localhost:1455",
+      "http://127.0.0.1:1455",
+    ]);
     const targetOrigins = postMessageSpy.mock.calls.map((call) => call[1]);
     expect(targetOrigins.length).toBeGreaterThan(0);
     for (const origin of targetOrigins) {

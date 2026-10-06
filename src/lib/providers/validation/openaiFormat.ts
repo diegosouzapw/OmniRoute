@@ -3,6 +3,7 @@
 // byte-identical to the original inline defs.
 import { randomUUID } from "node:crypto";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { COMMAND_CODE_VERSION } from "@omniroute/open-sse/executors/commandCode.ts";
 import {
   discoverBedrockNativeModels,
   isBedrockNativeApiError,
@@ -163,7 +164,11 @@ export async function validateOpenAILikeProvider({
     }
 
     if (chatRes.status === 404 || chatRes.status === 405) {
-      return { valid: false, error: "Provider validation endpoint not supported" };
+      return {
+        valid: false,
+        error: "Provider validation endpoint not supported",
+        unsupported: true,
+      };
     }
 
     if (chatRes.status >= 500) {
@@ -192,18 +197,38 @@ export async function validateOpenAILikeProvider({
 export async function validateCommandCodeProvider({ apiKey, providerSpecificData = {} }: any) {
   const entry = getRegistryEntry("command-code");
   const baseUrl = normalizeBaseUrl(entry?.baseUrl || "https://api.commandcode.ai");
-  const chatPath = entry?.chatPath || "/alpha/generate";
+  const chatPath = entry?.chatPath || "/provider/v1/chat/completions";
   const url = `${baseUrl}${chatPath.startsWith("/") ? chatPath : `/${chatPath}`}`;
   const validationModelId =
     providerSpecificData?.validationModelId ||
     entry?.models?.find((model) => model.id === "deepseek/deepseek-v4-flash")?.id ||
     "deepseek/deepseek-v4-flash";
-  const { COMMAND_CODE_VERSION } = await import("@omniroute/open-sse/executors/commandCode.ts");
 
-  return validateDirectChatProvider({
+  const result = await validateDirectChatProvider({
     url,
     providerSpecificData,
     headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      Accept: "text/event-stream",
+    },
+    body: {
+      model: validationModelId,
+      messages: [{ role: "user", content: "test" }],
+      stream: true,
+      max_tokens: 1,
+    },
+  });
+
+  if (result.valid) {
+    return result;
+  }
+
+  // Fallback: Accounts on the Go plan receive 403 on /provider/v1/chat/completions
+  // because API access is restricted to Provider tier. Fallback to probing /alpha/generate.
+  try {
+    const alphaUrl = `${baseUrl}/alpha/generate`;
+    const alphaHeaders: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       "x-command-code-version": COMMAND_CODE_VERSION,
@@ -212,33 +237,48 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       "x-taste-learning": "false",
       "x-co-flag": "false",
       "x-session-id": randomUUID(),
-    },
-    body: {
-      config: {
-        workingDir: "/workspace",
-        date: new Date().toISOString().slice(0, 10),
-        environment: "external",
-        structure: [],
-        isGitRepo: false,
-        currentBranch: "",
-        mainBranch: "",
-        gitStatus: "",
-        recentCommits: [],
-      },
-      memory: "",
-      taste: "",
-      skills: "",
+    };
+    applyCustomUserAgent(alphaHeaders, providerSpecificData);
+
+    const alphaBody = {
+      config: { environment: "external" },
       permissionMode: "standard",
+      skills: "",
       params: {
         model: validationModelId,
-        messages: [{ role: "user", content: "test" }],
-        tools: [],
-        system: "",
-        max_tokens: 1,
         stream: true,
+        max_tokens: 1,
+        messages: [{ role: "user", content: "test" }],
       },
-    },
-  });
+    };
+
+    const alphaRes = await validationWrite(alphaUrl, {
+      method: "POST",
+      headers: alphaHeaders,
+      body: JSON.stringify(alphaBody),
+    });
+
+    if (alphaRes.ok) {
+      return { valid: true, error: null, method: "command_code_alpha" };
+    }
+
+    if (alphaRes.status === 401 || alphaRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    // 400 (e.g. insufficient credits), 422, 429 indicates key is authentic and recognized
+    if (alphaRes.status === 400 || alphaRes.status === 422 || alphaRes.status === 429) {
+      return { valid: true, error: null, method: "command_code_alpha" };
+    }
+
+    if (alphaRes.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${alphaRes.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return result;
 }
 
 // HuggingFace fine-grained Inference-Provider tokens are valid even when
@@ -405,12 +445,18 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
     }
 
     // Endpoint responded and auth seems valid, but quota is exhausted/rate-limited.
-    if (modelsRes.status === 429) {
+    // A 402 here is a catalog/upstream quota signal, not proof the credential is
+    // dead — openai-compatible gateways multiplex many models behind one key.
+    if (modelsRes.status === 429 || modelsRes.status === 402) {
       return {
         valid: true,
         error: null,
         method: "models_endpoint",
-        warning: "Rate limited, but credentials are valid",
+        statusCode: modelsRes.status,
+        warning:
+          modelsRes.status === 402
+            ? "A catalog/upstream quota 402 is not a connection-wide credential failure"
+            : "Rate limited, but credentials are valid",
       };
     }
   } catch {
@@ -432,16 +478,24 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
   const chatSuffix = apiType === "responses" ? "/responses" : "/chat/completions";
   const chatUrl = `${baseUrl}${chatSuffix}`;
   const testModelId = validationModelId;
+  const testBody =
+    apiType === "responses"
+      ? {
+          model: testModelId,
+          input: [{ role: "user", content: "test" }],
+          max_output_tokens: 1,
+        }
+      : {
+          model: testModelId,
+          messages: [{ role: "user", content: "test" }],
+          max_tokens: 1,
+        };
 
   try {
     const chatRes = await validationWrite(chatUrl, {
       method: "POST",
       headers: buildBearerHeaders(apiKey, providerSpecificData),
-      body: JSON.stringify({
-        model: testModelId,
-        messages: [{ role: "user", content: "test" }],
-        max_tokens: 1,
-      }),
+      body: JSON.stringify(testBody),
     });
 
     if (chatRes.ok) {
@@ -458,6 +512,18 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
         error: null,
         method: "chat_completions",
         warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    // Representative-model 402: this one upstream is out of credit. The key
+    // still authenticated — do not fail the whole openai-compatible connection.
+    if (chatRes.status === 402) {
+      return {
+        valid: true,
+        error: null,
+        method: "chat_completions",
+        statusCode: 402,
+        warning: `Model ${testModelId} returned 402 (per-model quota); credentials remain valid`,
       };
     }
 

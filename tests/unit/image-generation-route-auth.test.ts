@@ -30,7 +30,7 @@ async function resetStorage() {
   globalThis.fetch = originalFetch;
   apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
@@ -71,7 +71,7 @@ test.after(() => {
   globalThis.fetch = originalFetch;
   apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("v1 image generation POST requires an API key when REQUIRE_API_KEY is enabled", async () => {
@@ -203,7 +203,7 @@ test("v1 image generation POST accepts a dashboard session when REQUIRE_API_KEY 
 
   try {
     const { SignJWT } = await import("jose");
-    const token = await new SignJWT({ sub: "dashboard" })
+    const token = await new SignJWT({ authenticated: true, sub: "dashboard" })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("1h")
       .sign(new TextEncoder().encode(process.env.JWT_SECRET));

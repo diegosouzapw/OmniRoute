@@ -11,6 +11,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
+import {
+  normalizeModelSupportedEndpoints,
+  type ModelSupportedEndpoint,
+} from "@/shared/constants/modelSupportedEndpoints";
 import { useNotificationStore } from "@/store/notificationStore";
 import {
   buildCompatMap,
@@ -21,6 +25,7 @@ import {
   effectivePreserveForProtocol,
   effectiveUpstreamHeadersForProtocol,
   formatProviderModelsErrorResponse,
+  parseContextWindowOverrideInput,
   providerText,
   targetFormatBadgeI18nKey,
   type CompatModelRow,
@@ -38,6 +43,7 @@ export interface CustomModelsSectionProps {
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onModelsChanged?: () => void;
+  syncedModelIds?: readonly string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -50,17 +56,46 @@ function targetFormatLabel(value: string, t: (key: string) => string): string {
   return key ? t(key) : value;
 }
 
-/**
- * #4125: parse the free-text "Context Window Override" field. Blank → no override
- * (`value: null`, not an error). A non-empty value must be a positive whole number of
- * tokens; anything else is rejected. Pulled out of saveEdit so its own branching stays
- * off that handler's cyclomatic complexity.
- */
-function parseContextWindowOverrideInput(raw: string): { value: number | null; invalid: boolean } {
-  const trimmed = raw.trim();
-  if (!trimmed) return { value: null, invalid: false };
-  if (!/^\d+$/.test(trimmed) || Number(trimmed) <= 0) return { value: null, invalid: true };
-  return { value: Number(trimmed), invalid: false };
+const MODEL_ENDPOINT_OPTIONS: ModelSupportedEndpoint[] = [
+  "chat",
+  "embeddings",
+  "rerank",
+  "images",
+  "videos",
+  "audio-speech",
+  "audio-transcriptions",
+];
+
+function endpointLabel(endpoint: ModelSupportedEndpoint, t: (key: string) => string): string {
+  const labels: Partial<Record<ModelSupportedEndpoint, string>> = {
+    chat: `💬 ${t("supportedEndpointChat")}`,
+    embeddings: `📐 ${t("supportedEndpointEmbeddings")}`,
+    rerank: providerText(t, "rerankEndpoint", "Rerank"),
+    images: `🖼️ ${t("supportedEndpointImages")}`,
+    videos: "🎬 Video",
+    "audio-speech": `🔊 ${t("audioSpeech")}`,
+    "audio-transcriptions": `🎙️ ${t("audioTranscriptions")}`,
+  };
+  return labels[endpoint] || endpoint;
+}
+
+// Fetch + parse extracted from the component so errors surface as a return
+// value (logged here) instead of state writes inside catch/finally blocks —
+// the load callback then only sets state after the await, which lets the
+// mount effect call it without a synchronous setState.
+async function fetchProviderModelsPayload(providerId: string): Promise<{
+  models: CompatModelRow[];
+  overrides: Array<CompatModelRow & { id: string }>;
+} | null> {
+  try {
+    const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return { models: data.models || [], overrides: data.modelCompatOverrides || [] };
+  } catch (e) {
+    console.error("Failed to fetch custom models:", e);
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -73,6 +108,7 @@ export default function CustomModelsSection({
   copied,
   onCopy,
   onModelsChanged,
+  syncedModelIds = [],
 }: CustomModelsSectionProps) {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
@@ -104,28 +140,36 @@ export default function CustomModelsSection({
   // the model as vision-capable by hand (read back by getCustomVisionCapabilityFields()).
   const [newSupportsVision, setNewSupportsVision] = useState(false);
   const [editingSupportsVision, setEditingSupportsVision] = useState(false);
+  const [newIsFree, setNewIsFree] = useState(false);
+  const [editingIsFree, setEditingIsFree] = useState(false);
 
   const customMap = useMemo(() => buildCompatMap(customModels), [customModels]);
   const overrideMap = useMemo(() => buildCompatMap(modelCompatOverrides), [modelCompatOverrides]);
+  const syncedModelIdSet = useMemo(() => new Set(syncedModelIds), [syncedModelIds]);
 
   const fetchCustomModels = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setCustomModels(data.models || []);
-        setModelCompatOverrides(data.modelCompatOverrides || []);
-      }
-    } catch (e) {
-      console.error("Failed to fetch custom models:", e);
-    } finally {
-      setLoading(false);
+    const payload = await fetchProviderModelsPayload(providerId);
+    if (payload) {
+      setCustomModels(payload.models);
+      setModelCompatOverrides(payload.overrides);
     }
+    setLoading(false);
   }, [providerId]);
 
+  // Initial load: the async work is defined INSIDE the effect (calling the
+  // component-scope fetchCustomModels callback synchronously from an effect is
+  // rejected by the compiler rules); every setState here runs after the await.
   useEffect(() => {
-    fetchCustomModels();
-  }, [fetchCustomModels]);
+    const run = async () => {
+      const payload = await fetchProviderModelsPayload(providerId);
+      if (payload) {
+        setCustomModels(payload.models);
+        setModelCompatOverrides(payload.overrides);
+      }
+      setLoading(false);
+    };
+    void run();
+  }, [providerId]);
 
   const handleAdd = async () => {
     if (!newModelId.trim() || adding) return;
@@ -142,6 +186,7 @@ export default function CustomModelsSection({
           supportedEndpoints: newEndpoints,
           ...(newTargetFormat ? { targetFormat: newTargetFormat } : {}),
           ...(newSupportsVision ? { supportsVision: true } : {}),
+          ...(newIsFree ? { isFree: true } : {}),
         }),
       });
       if (res.ok) {
@@ -151,6 +196,7 @@ export default function CustomModelsSection({
         setNewEndpoints(["chat"]);
         setNewTargetFormat("");
         setNewSupportsVision(false);
+        setNewIsFree(false);
         await fetchCustomModels();
         onModelsChanged?.();
       }
@@ -173,6 +219,32 @@ export default function CustomModelsSection({
       onModelsChanged?.();
     } catch (e) {
       console.error("Failed to remove custom model:", e);
+    }
+  };
+
+  const handleResetToUpstreamDefaults = async (modelId: string) => {
+    try {
+      const res = await fetch(
+        `/api/provider-models?provider=${encodeURIComponent(providerId)}&model=${encodeURIComponent(modelId)}&resetOverride=true`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) {
+        throw new Error("Failed to reset model override");
+      }
+      await fetchCustomModels();
+      onModelsChanged?.();
+      notify.success(
+        providerText(t, "resetToUpstreamDefaultsSuccess", "Restored upstream model defaults")
+      );
+    } catch (error) {
+      console.error("Failed to reset model override:", error);
+      notify.error(
+        providerText(
+          t,
+          "resetToUpstreamDefaultsFailed",
+          "Failed to restore upstream model defaults"
+        )
+      );
     }
   };
 
@@ -203,7 +275,7 @@ export default function CustomModelsSection({
     setEditingApiFormat(model.apiFormat || "chat-completions");
     setEditingEndpoints(
       Array.isArray(model.supportedEndpoints) && model.supportedEndpoints.length
-        ? model.supportedEndpoints
+        ? normalizeModelSupportedEndpoints(model.supportedEndpoints)
         : ["chat"]
     );
     setEditingTargetFormat(model.targetFormat || "");
@@ -211,6 +283,7 @@ export default function CustomModelsSection({
       typeof model.contextWindowOverride === "number" ? String(model.contextWindowOverride) : ""
     );
     setEditingSupportsVision(model.supportsVision === true);
+    setEditingIsFree(model.isFree === true);
   };
 
   const cancelEdit = () => {
@@ -220,6 +293,7 @@ export default function CustomModelsSection({
     setEditingTargetFormat("");
     setEditingContextWindowOverride("");
     setEditingSupportsVision(false);
+    setEditingIsFree(false);
     setSavingModelId(null);
   };
 
@@ -278,9 +352,8 @@ export default function CustomModelsSection({
           ...(editingTargetFormat ? { targetFormat: editingTargetFormat } : {}),
           // #4125: manual context-window override — number to set, null to clear.
           contextWindowOverride,
-          // #1904: manual vision-capability override — true/false to set, null to
-          // clear back to the id-based heuristic.
           supportsVision: editingSupportsVision ? true : null,
+          isFree: editingIsFree ? true : null,
         }),
       });
 
@@ -399,6 +472,7 @@ export default function CustomModelsSection({
               <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
               <option value="audio-speech">{t("audioSpeech")}</option>
               <option value="images-generations">{t("imagesGenerations")}</option>
+              <option value="video">Video</option>
             </select>
           </div>
           <div className="w-48">
@@ -425,7 +499,7 @@ export default function CustomModelsSection({
               {t("supportedEndpointsLabel")}
             </span>
             <div className="flex items-center gap-3">
-              {["chat", "embeddings", "rerank", "images", "audio"].map((ep) => (
+              {MODEL_ENDPOINT_OPTIONS.map((ep) => (
                 <label
                   key={ep}
                   className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer"
@@ -442,15 +516,7 @@ export default function CustomModelsSection({
                     }}
                     className="rounded border-border"
                   />
-                  {ep === "chat"
-                    ? `💬 ${t("supportedEndpointChat")}`
-                    : ep === "embeddings"
-                      ? `📐 ${t("supportedEndpointEmbeddings")}`
-                      : ep === "rerank"
-                        ? providerText(t, "rerankEndpoint", "Rerank")
-                        : ep === "images"
-                          ? `🖼️ ${t("supportedEndpointImages")}`
-                          : `🔊 ${t("supportedEndpointAudio")}`}
+                  {endpointLabel(ep, t)}
                 </label>
               ))}
             </div>
@@ -471,6 +537,20 @@ export default function CustomModelsSection({
               />
               {`👁️ ${t("visionCapableLabel")}`}
             </label>
+            <label
+              htmlFor="custom-model-is-free"
+              className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap"
+              title="Mark as free-tier (shown even when hide paid models is on)"
+            >
+              <input
+                id="custom-model-is-free"
+                type="checkbox"
+                checked={newIsFree}
+                onChange={(e) => setNewIsFree(e.target.checked)}
+                className="rounded border-border"
+              />
+              FREE
+            </label>
           </div>
         </div>
       </div>
@@ -483,6 +563,7 @@ export default function CustomModelsSection({
           {customModels.map((model) => {
             const fullModel = `${providerAlias}/${model.id}`;
             const copyKey = `custom-${model.id}`;
+            const hasSyncedBase = model.id ? syncedModelIdSet.has(model.id) : false;
             return (
               <div
                 key={model.id}
@@ -513,6 +594,18 @@ export default function CustomModelsSection({
                         {t("responses")}
                       </span>
                     )}
+                    {hasSyncedBase && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
+                        title={providerText(
+                          t,
+                          "overridesUpstreamModelHint",
+                          "Your settings override this upstream model"
+                        )}
+                      >
+                        {providerText(t, "overridesUpstreamModel", "Overrides upstream")}
+                      </span>
+                    )}
                     {model.targetFormat && (
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium"
@@ -537,6 +630,11 @@ export default function CustomModelsSection({
                         {`👁️ ${t("visionCapableLabel")}`}
                       </span>
                     )}
+                    {model.isFree === true && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">
+                        FREE
+                      </span>
+                    )}
                     {model.supportedEndpoints?.includes("embeddings") && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-medium">
                         {`📐 ${t("supportedEndpointEmbeddings")}`}
@@ -550,6 +648,22 @@ export default function CustomModelsSection({
                     {model.supportedEndpoints?.includes("audio") && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">
                         {`🔊 ${t("audioShortLabel")}`}
+                      </span>
+                    )}
+                    {(model.supportedEndpoints?.includes("videos") ||
+                      model.supportedEndpoints?.includes("video")) && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 font-medium">
+                        🎬 Video
+                      </span>
+                    )}
+                    {model.supportedEndpoints?.includes("audio-speech") && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">
+                        {`🔊 ${t("audioSpeech")}`}
+                      </span>
+                    )}
+                    {model.supportedEndpoints?.includes("audio-transcriptions") && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-medium">
+                        {`🎙️ ${t("audioTranscriptions")}`}
                       </span>
                     )}
                     {anyNormalizeCompatBadge(model.id!, customMap, overrideMap) && (
@@ -597,6 +711,7 @@ export default function CustomModelsSection({
                             <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
                             <option value="audio-speech">{t("audioSpeech")}</option>
                             <option value="images-generations">{t("imagesGenerations")}</option>
+                            <option value="video">Video</option>
                           </select>
                         </div>
                         <div className="w-[11rem] shrink-0 min-w-0">
@@ -649,13 +764,27 @@ export default function CustomModelsSection({
                             />
                             {`👁️ ${t("visionCapableLabel")}`}
                           </label>
+                          <label
+                            htmlFor={`custom-model-edit-free-${model.id}`}
+                            className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap px-2.5 py-2"
+                            title="Mark as free-tier"
+                          >
+                            <input
+                              id={`custom-model-edit-free-${model.id}`}
+                              type="checkbox"
+                              checked={editingIsFree}
+                              onChange={(e) => setEditingIsFree(e.target.checked)}
+                              className="rounded border-border"
+                            />
+                            FREE
+                          </label>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-auto overflow-y-visible [scrollbar-width:thin]">
                           <span className="text-xs text-text-muted shrink-0">
                             {t("supportedEndpointsLabel")}
                           </span>
                           <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 min-w-0">
-                            {["chat", "embeddings", "rerank", "images", "audio"].map((ep) => (
+                            {MODEL_ENDPOINT_OPTIONS.map((ep) => (
                               <label
                                 key={ep}
                                 className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap"
@@ -674,15 +803,7 @@ export default function CustomModelsSection({
                                   }}
                                   className="rounded border-border"
                                 />
-                                {ep === "chat"
-                                  ? `💬 ${t("supportedEndpointChat")}`
-                                  : ep === "embeddings"
-                                    ? `📐 ${t("supportedEndpointEmbeddings")}`
-                                    : ep === "rerank"
-                                      ? providerText(t, "rerankEndpoint", "Rerank")
-                                      : ep === "images"
-                                        ? `🖼️ ${t("supportedEndpointImages")}`
-                                        : `🔊 ${t("supportedEndpointAudio")}`}
+                                {endpointLabel(ep, t)}
                               </label>
                             ))}
                           </div>
@@ -713,6 +834,8 @@ export default function CustomModelsSection({
                   </button>
                   <ModelCompatPopover
                     t={t}
+                    providerId={providerId}
+                    modelId={model.id!}
                     effectiveModelNormalize={(p) =>
                       effectiveNormalizeForProtocol(model.id!, p, customMap, overrideMap)
                     }
@@ -740,6 +863,19 @@ export default function CustomModelsSection({
                       {model.isHidden ? "visibility_off" : "visibility"}
                     </span>
                   </button>
+                  {hasSyncedBase && (
+                    <button
+                      onClick={() => handleResetToUpstreamDefaults(model.id!)}
+                      className="rounded p-1 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                      title={providerText(
+                        t,
+                        "resetToUpstreamDefaults",
+                        "Restore upstream defaults"
+                      )}
+                    >
+                      <span className="material-symbols-outlined text-sm">restart_alt</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => handleRemove(model.id!)}
                     className="rounded p-1 text-red-500 hover:bg-red-50"

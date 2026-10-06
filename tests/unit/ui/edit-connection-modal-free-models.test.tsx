@@ -37,14 +37,6 @@ function render(props: Record<string, unknown>) {
   return el;
 }
 
-function setInputValue(input: HTMLInputElement, value: string) {
-  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
-  act(() => {
-    setter.call(input, value);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-}
-
 async function waitFor(fn: () => boolean, timeoutMs = 2000) {
   const start = Date.now();
   while (!fn()) {
@@ -195,7 +187,7 @@ describe("EditConnectionModal — encrypted Responses reasoning", () => {
     expect(onSave.mock.calls[0][0].providerSpecificData?.preserveEncryptedReasoning).toBe(false);
   });
 
-  it("defaults off and persists an opt-in for first-party OpenAI", async () => {
+  it("hides the redundant opt-in for first-party OpenAI and removes stale state on save", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const el = render({
       providerId: "openai",
@@ -203,19 +195,19 @@ describe("EditConnectionModal — encrypted Responses reasoning", () => {
         id: "conn-openai",
         provider: "openai",
         authType: "apikey",
-        providerSpecificData: {},
+        providerSpecificData: { preserveEncryptedReasoning: true },
       },
       onSave,
     });
-    const toggle = el.querySelector<HTMLButtonElement>(PRESERVE_TOGGLE)!;
-    expect(toggle.getAttribute("aria-checked")).toBe("false");
-    act(() => toggle.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(el.querySelector(PRESERVE_TOGGLE)).toBeNull();
     const saveBtn = Array.from(el.querySelectorAll("button")).find(
       (button) => button.textContent?.trim() === "save"
     )!;
     act(() => saveBtn.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await waitFor(() => onSave.mock.calls.length > 0);
-    expect(onSave.mock.calls[0][0].providerSpecificData?.preserveEncryptedReasoning).toBe(true);
+    expect(onSave.mock.calls[0][0].providerSpecificData).not.toHaveProperty(
+      "preserveEncryptedReasoning"
+    );
   });
 
   it("is absent for a chat-only compatible connection", () => {
@@ -244,7 +236,7 @@ describe("EditConnectionModal — encrypted Responses reasoning", () => {
     expect(el.querySelector(PRESERVE_TOGGLE)?.getAttribute("aria-checked")).toBe("false");
   });
 
-  it("keeps Codex controls and persists the opt-in on its OAuth save path", async () => {
+  it("hides the redundant opt-in for Codex while keeping its effective controls", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const el = render({
       providerId: "codex",
@@ -256,27 +248,24 @@ describe("EditConnectionModal — encrypted Responses reasoning", () => {
       },
       onSave,
     });
-    expect(el.querySelector(PRESERVE_TOGGLE)?.getAttribute("aria-checked")).toBe("true");
+    expect(el.querySelector(PRESERVE_TOGGLE)).toBeNull();
     expect(el.textContent).toContain("defaultThinkingStrengthLabel");
     expect(
       el.querySelector('button[role="switch"][aria-label="openaiResponsesStoreLabel"]')
     ).toBeTruthy();
-    const cooldownToggle = el.querySelector<HTMLButtonElement>(
-      'button[role="switch"][aria-label="disableCoolingLabel"]'
-    )!;
-    const reasoningToggle = el.querySelector<HTMLButtonElement>(PRESERVE_TOGGLE)!;
-    expect(reasoningToggle.parentElement?.nextElementSibling).toBe(cooldownToggle.parentElement);
     const saveBtn = Array.from(el.querySelectorAll("button")).find(
       (button) => button.textContent?.trim() === "save"
     )!;
     act(() => saveBtn.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await waitFor(() => onSave.mock.calls.length > 0);
-    expect(onSave.mock.calls[0][0].providerSpecificData?.preserveEncryptedReasoning).toBe(true);
+    expect(onSave.mock.calls[0][0].providerSpecificData).not.toHaveProperty(
+      "preserveEncryptedReasoning"
+    );
   });
 });
 
 describe("EditConnectionModal — quota scraping fields", () => {
-  it("saves OpenCode Go workspace and replacement auth cookie", async () => {
+  it("renders only the API key for OpenCode Go and saves no scraping credentials", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const el = render({
       providerId: "opencode-go",
@@ -290,13 +279,9 @@ describe("EditConnectionModal — quota scraping fields", () => {
       onSave,
     });
 
-    const workspaceInput = el.querySelector<HTMLInputElement>(
-      'input[name="opencodeGoWorkspaceId"]'
-    )!;
-    const cookieInput = el.querySelector<HTMLInputElement>('input[name="opencodeGoAuthCookie"]')!;
-    expect(workspaceInput.value).toBe("workspace-existing");
-    setInputValue(workspaceInput, "workspace-updated");
-    setInputValue(cookieInput, "auth=opencode-cookie");
+    expect(el.querySelector('input[name="opencodeGoWorkspaceId"]')).toBeNull();
+    expect(el.querySelector('input[name="opencodeGoAuthCookie"]')).toBeNull();
+    expect(el.querySelector('input[placeholder="enterNewApiKey"]')).toBeTruthy();
 
     const saveBtn = Array.from(el.querySelectorAll("button")).find(
       (b) => b.textContent?.trim() === "save"
@@ -307,8 +292,8 @@ describe("EditConnectionModal — quota scraping fields", () => {
 
     await waitFor(() => onSave.mock.calls.length > 0);
     const payload = onSave.mock.calls[0][0];
-    expect(payload.providerSpecificData?.opencodeGoWorkspaceId).toBe("workspace-updated");
-    expect(payload.providerSpecificData?.opencodeGoAuthCookie).toBe("auth=opencode-cookie");
+    expect(payload.providerSpecificData).not.toHaveProperty("opencodeGoWorkspaceId");
+    expect(payload.providerSpecificData).not.toHaveProperty("opencodeGoAuthCookie");
   });
 
   it("omits Ollama Cloud usage cookie when the edit field is left blank", async () => {

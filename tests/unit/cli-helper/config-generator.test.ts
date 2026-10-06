@@ -2,6 +2,7 @@ import { describe, it, mock } from "node:test";
 import assert from "node:assert";
 import fs, { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { parse } from "jsonc-parser";
 import * as generator from "../../../src/lib/cli-helper/config-generator/index.ts";
 
 // The UI's HERMES_ROLES catalog (HermesAgentToolCard.tsx) is a "use client" component
@@ -109,6 +110,16 @@ describe("config-generator", () => {
       assert.ok("configPath" in result);
     });
 
+    it("accepts the legacy kilocode id while generating the canonical kilo config", async () => {
+      const result = await generator.generateConfig("kilocode", {
+        baseUrl: "http://localhost:20128",
+        apiKey: "sk-test",
+      });
+      assert.strictEqual(result.success, true);
+      assert.ok(result.configPath.includes(".config/kilocode/settings.json"));
+      assert.ok(String(result.content).includes("http://localhost:20128/v1"));
+    });
+
     it("returns success for valid hermes config", async () => {
       const result = await generator.generateConfig("hermes", {
         baseUrl: "http://localhost:20128",
@@ -152,19 +163,17 @@ describe("config-generator", () => {
       assert.ok(ids.includes("delegation"));
       assert.ok(ids.includes("vision"));
       assert.ok(ids.includes("approval"));
-      // Full catalog, including the 11 auxiliary roles added alongside HERMES_AGENT_ROLES
-      // (mcp, title_generation, memory_query_rewrite, tts_audio_tags, triage_specifier,
-      // kanban_decomposer, profile_describer, goal_judge, curator, monitor,
-      // background_review). Listed explicitly (not just parity-diffed against the UI
+      // Full catalog, kept in sync with Hermes Agent's current auxiliary schema.
+      // Listed explicitly (not just parity-diffed against the UI
       // below) so a role dropped from BOTH catalogs at once still fails this test.
       const expectedIds = [
         "default",
         "delegation",
         "vision",
-        "web_extract",
         "compression",
         "skills_hub",
         "approval",
+        "review",
         "mcp",
         "title_generation",
         "memory_query_rewrite",
@@ -176,6 +185,8 @@ describe("config-generator", () => {
         "curator",
         "monitor",
         "background_review",
+        "moa_reference",
+        "moa_aggregator",
       ];
       assert.deepStrictEqual([...ids].sort(), [...expectedIds].sort());
     });
@@ -261,7 +272,7 @@ describe("config-generator", () => {
           { role: "delegation", model: "claude-3-5-sonnet" },
           { role: "vision", model: "gpt-4o" },
         ],
-      });
+      } as any);
 
       assert.ok(!result.error);
       assert.ok(typeof result.yaml === "string");
@@ -291,7 +302,7 @@ describe("config-generator", () => {
       const result = await hermesAgent.generateHermesAgentConfig({
         baseUrl: "",
         selections: [{ role: "default", model: "x" }],
-      } as any);
+      });
 
       assert.ok(result.error);
       assert.ok(result.error.includes("baseUrl"));
@@ -328,8 +339,8 @@ describe("config-generator", () => {
         selections: [{ role: "default", model: "new-model" }],
       });
 
-      // Should still contain providers block and the new model
-      assert.ok(result.yaml.includes("providers:"));
+      // Should still contain the custom provider declaration and the new model.
+      assert.ok(result.yaml.includes("custom_providers:"));
       assert.ok(result.yaml.includes("new-model"));
     });
   });
@@ -403,7 +414,7 @@ describe("config-generator", () => {
       }
     });
 
-    it("does NOT fabricate a default context when the catalog has no entry", async () => {
+    it("uses the required 128K context fallback when the catalog has no entry", async () => {
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
         const { generateOpencodeConfig } =
@@ -413,15 +424,14 @@ describe("config-generator", () => {
           apiKey: "sk-test",
         });
         const cfg = JSON.parse(out);
-        // NO_CTX_COMBO has no context_length in the catalog — generator
-        // must NOT default to 128K (or any other value). The entry is
-        // emitted without limit.context so OpenCode's own heuristic
-        // applies and the user can fix the upstream.
+        // NO_CTX_COMBO has no context_length in the catalog. OpenCode v1
+        // requires a complete limit object, so the compatibility fallback
+        // must be explicit rather than leaving the config invalid.
         const noCtx = cfg.provider.omniroute.models["NO_CTX_COMBO"];
         assert.strictEqual(
           noCtx.limit?.context,
-          undefined,
-          `NO_CTX_COMBO should not have a fabricated limit.context (got ${noCtx.limit?.context})`
+          128_000,
+          `NO_CTX_COMBO should use the 128K fallback (got ${noCtx.limit?.context})`
         );
       } finally {
         stub.restore();
@@ -513,9 +523,8 @@ describe("config-generator", () => {
         ])
       );
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
@@ -593,12 +602,16 @@ describe("config-generator", () => {
           input: 100000,
           output: 32768,
         });
-        assert.strictEqual(models["no-metadata"].limit, undefined);
+        // #10940/#11035: OpenCode's v1 provider schema requires both fields,
+        // so a model with zero metadata gets the compatibility fallbacks.
+        assert.deepStrictEqual(models["no-metadata"].limit, {
+          context: 128_000,
+          output: 8192,
+        });
 
         for (const model of Object.values(models) as Array<{ limit?: { output?: number } }>) {
           assert.ok(
-            model.limit === undefined ||
-              (typeof model.limit.output === "number" && model.limit.output > 0),
+            typeof model.limit?.output === "number" && model.limit.output > 0,
             "every emitted limit must contain a positive output"
           );
         }
@@ -648,6 +661,71 @@ describe("config-generator", () => {
           context: 131072,
           output: 4096,
         });
+      } finally {
+        stub.restore();
+        mock.restoreAll();
+      }
+    });
+
+    it("loads comments and trailing commas from opencode.jsonc and returns its real path (#10227)", async () => {
+      const existingJsonc = `{
+  // preserve this native OpenCode file instead of ignoring it
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "custom": {
+      // keep comments inside unrelated providers too
+      "name": "Custom Provider"
+    },
+    "omniroute": {
+      "models": {
+        "manual-model": { "name": "Manual", "limit": { "context": 77777, }, },
+      },
+    },
+  },
+}\n`;
+      let readPath = "";
+      mock.method(fs, "existsSync", (candidate) => String(candidate).endsWith("opencode.jsonc"));
+      mock.method(fs, "readFileSync", (candidate) => {
+        readPath = String(candidate);
+        return existingJsonc;
+      });
+      const stub = stubFetchOnce(
+        makeCatalogResponse([{ id: "manual-model", context_length: 131072 }])
+      );
+
+      try {
+        const result = await generator.generateConfig("opencode", {
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+        });
+
+        assert.strictEqual(result.success, true);
+        assert.match(result.configPath, /opencode\.jsonc$/);
+        assert.strictEqual(readPath, result.configPath);
+        assert.match(result.content || "", /preserve this native OpenCode file/);
+        assert.match(result.content || "", /keep comments inside unrelated providers too/);
+        const config = parse(result.content || "");
+        assert.deepStrictEqual(config.provider.custom, { name: "Custom Provider" });
+        assert.strictEqual(config.provider.omniroute.models["manual-model"].limit.context, 77777);
+      } finally {
+        stub.restore();
+        mock.restoreAll();
+      }
+    });
+
+    it("refuses to replace an invalid existing opencode.jsonc (#10227)", async () => {
+      mock.method(fs, "existsSync", (candidate) => String(candidate).endsWith("opencode.jsonc"));
+      mock.method(fs, "readFileSync", () => "{ invalid jsonc");
+      const stub = stubFetchOnce(makeCatalogResponse([{ id: "catalog-model", context_length: 8 }]));
+
+      try {
+        const result = await generator.generateConfig("opencode", {
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+        });
+
+        assert.strictEqual(result.success, false);
+        assert.match(result.error || "", /invalid.*JSONC|refus/i);
       } finally {
         stub.restore();
         mock.restoreAll();

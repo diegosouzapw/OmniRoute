@@ -70,9 +70,17 @@ describe("#6205 A — embed panel root no longer 404s", () => {
 // ─── SUB-BUG B: pre-spawn port/health decision ───────────────────────────────
 
 describe("#6205 B — pre-spawn port probe avoids raw EADDRINUSE", () => {
-  it("adopts a healthy existing instance (no spawn)", () => {
-    const decision = decidePreSpawn({ healthy: true, portInUse: true }, 20130);
+  it("adopts a healthy existing instance when adoption is opted in (no spawn)", () => {
+    const decision = decidePreSpawn({ healthy: true, portInUse: true }, 20130, true);
     assert.equal(decision.action, "adopt");
+  });
+
+  it("does NOT adopt a healthy listener by default — a 2xx cannot prove identity (GHSA-wg9p-6m2g-4v27)", () => {
+    const decision = decidePreSpawn({ healthy: true, portInUse: true }, 20130);
+    assert.equal(decision.action, "error");
+    assert.match(decision.message, /adopt/i);
+    assert.match(decision.message, /OMNIROUTE_ADOPT_EXISTING_SERVICE/);
+    assert.ok(!decision.message.includes("at /"), "must not leak a stack trace");
   });
 
   it("returns a clear error object (not a throw) when the port is held but unhealthy", () => {
@@ -92,9 +100,10 @@ describe("#6205 B — pre-spawn port probe avoids raw EADDRINUSE", () => {
     assert.equal(decision.action, "spawn");
   });
 
-  it("adopts a healthy instance even if the TCP probe missed it", () => {
-    // Health is authoritative: a 2xx means a real instance is serving.
-    const decision = decidePreSpawn({ healthy: true, portInUse: false }, 20130);
+  it("adopts a healthy instance (opted in) even if the TCP probe missed it", () => {
+    // With adoption opted in, health is authoritative: a 2xx means a real
+    // instance is serving even when the TCP connect probe raced and missed it.
+    const decision = decidePreSpawn({ healthy: true, portInUse: false }, 20130, true);
     assert.equal(decision.action, "adopt");
   });
 });

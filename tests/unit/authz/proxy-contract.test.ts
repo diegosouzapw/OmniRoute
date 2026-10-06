@@ -55,15 +55,19 @@ test("proxy.ts delegates to runAuthzPipeline with enforce: true", () => {
 test("proxy.ts config.matcher covers every /api/* route plus dashboard and v1 aliases", () => {
   const content = fs.readFileSync("src/proxy.ts", "utf8");
   // Required prefixes — drop one and the corresponding routes go unguarded.
+  // The client-API aliases use a case-insensitive path-to-regexp group
+  // (`([vV]1)`) so `/V1/...` reaches the pipeline too — see
+  // GHSA-jvqc-mp9f-q936 and tests/unit/authz/proxy-matcher-case.test.ts for the
+  // semantic (compiled-matcher) coverage assertions.
   const requiredMatchers = [
     '"/api/:path*"',
     '"/dashboard/:path*"',
-    '"/v1/:path*"',
-    '"/v1beta/:path*"',
-    '"/chat/:path*"',
-    '"/responses/:path*"',
-    '"/codex/:path*"',
-    '"/models"',
+    '"/:v1seg([vV]1)/:path*"',
+    '"/:v1betaseg([vV]1[bB][eE][tT][aA])/:path*"',
+    '"/:chatseg([cC][hH][aA][tT])/:path*"',
+    '"/:respseg([rR][eE][sS][pP][oO][nN][sS][eE][sS])/:path*"',
+    '"/:codexseg([cC][oO][dD][eE][xX])/:path*"',
+    '"/:modelsseg([mM][oO][dD][eE][lL][sS])"',
   ];
   for (const matcher of requiredMatchers) {
     assert.ok(

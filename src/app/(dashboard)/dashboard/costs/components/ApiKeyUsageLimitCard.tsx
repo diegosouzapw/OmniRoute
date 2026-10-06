@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
@@ -88,8 +88,11 @@ export function ApiKeyUsageLimitCard({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!payload) return;
+  // Reset the form when a new payload arrives — state adjustment during render
+  // (react-hooks/set-state-in-effect; see react.dev "adjusting state when a prop changes").
+  const [prevPayload, setPrevPayload] = useState<typeof payload>(null);
+  if (payload && payload !== prevPayload) {
+    setPrevPayload(payload);
     setEnabled(payload.key.usageLimitEnabled);
     setDailyLimit(
       typeof payload.key.dailyUsageLimitUsd === "number"
@@ -102,7 +105,7 @@ export function ApiKeyUsageLimitCard({
         : ""
     );
     setError(null);
-  }, [payload]);
+  }
 
   const formatter = useMemo(() => createCurrencyFormatter(locale), [locale]);
   const status = payload?.status;

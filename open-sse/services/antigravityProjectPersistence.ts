@@ -64,6 +64,11 @@ export function persistDiscoveredAntigravityProjectId(
     errorCode: null,
     lastError: null,
     lastErrorType: null,
+    // #11284: a discovered project proves the account is usable again —
+    // re-enable it (markAntigravityMissingCloudCodeProject may have disabled
+    // it after a confirmed-missing 422).
+    isActive: true,
+    testStatus: "active",
     providerSpecificData,
   })
     .catch(() => {})
@@ -77,7 +82,14 @@ export function markAntigravityMissingCloudCodeProject(
 ): void {
   if (!connectionId) return;
 
+  // #11284: a CONFIRMED missing Cloud Code project is not transient — disable
+  // the row so selection rotates to healthy siblings instead of re-dispatching
+  // into the same 422 every request. "unavailable" is deliberately NOT a
+  // terminal status: persistDiscoveredAntigravityProjectId() re-enables the
+  // account the moment a project shows up at request time.
   void updateProviderConnection(connectionId, {
+    isActive: false,
+    testStatus: "unavailable",
     errorCode: "missing_project_id",
     lastError:
       "Missing Google projectId for Antigravity account. Reconnect OAuth after completing Gemini Code Assist onboarding.",

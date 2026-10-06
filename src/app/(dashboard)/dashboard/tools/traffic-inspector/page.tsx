@@ -9,6 +9,7 @@ export async function generateMetadata() {
   };
 }
 
-export default function TrafficInspectorPage() {
-  return <TrafficInspectorPageClient />;
+export default async function TrafficInspectorPage() {
+  const t = await getTranslations("sidebar");
+  return <TrafficInspectorPageClient title={t("trafficInspector")} subtitle={t("trafficInspectorSubtitle")} purpose={t("trafficInspectorPurpose")} />;
 }

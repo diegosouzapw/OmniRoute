@@ -31,7 +31,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -60,7 +60,7 @@ async function makeConnection(): Promise<string> {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("round-robin (default for >1) cycles through the whole pool across calls", async () => {
@@ -176,7 +176,10 @@ test("random strategy always returns a member of the alive set", async () => {
   // The random strategy uses crypto.randomInt (not Math.random — CodeQL js/insecure-randomness).
   // Over 30 picks from a 3-member alive pool it must vary, not stick on one member
   // (P(all 30 identical) ≈ (1/3)^29 ≈ 0). Guards that randomInt selection is uniform-ish.
-  assert.ok(seen.size >= 2, `random strategy must vary its pick (saw only: ${[...seen].join(", ")})`);
+  assert.ok(
+    seen.size >= 2,
+    `random strategy must vary its pick (saw only: ${[...seen].join(", ")})`
+  );
 });
 
 test("setScopeRotationStrategy round-trips via getScopeRotationStrategy", async () => {

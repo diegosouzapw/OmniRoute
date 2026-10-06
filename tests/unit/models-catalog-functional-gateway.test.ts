@@ -12,9 +12,11 @@ import { setFunctionalGatewayProviderSetting } from "../../src/lib/db/functional
 import { resetDbInstance } from "../../src/lib/db/core.ts";
 
 const FLAG_KEY = "EXPOSE_FUNCTIONAL_GATEWAY_MIRRORS";
+const NO_THINK_FLAG = "NO_THINKING_ALIAS_ENABLED";
 
 after(() => {
   removeFeatureFlagOverride(FLAG_KEY);
+  removeFeatureFlagOverride(NO_THINK_FLAG);
   setFunctionalGatewayProviderSetting("agentrouter", null);
   resetDbInstance();
 });
@@ -24,11 +26,11 @@ function makeRequest(query = ""): Request {
   return new Request(`http://localhost/v1/models${query}`);
 }
 
-test("catalog post-filters do not add mirrors when gate off (default)", () => {
+test("catalog post-filters do not add mirrors when gate off (default)", async () => {
   const models = [
     { id: "deepseek/deepseek-v4-flash", owned_by: "deepseek", root: "deepseek-v4-flash" },
   ];
-  const out = applyCatalogPostFilters(makeRequest(), models, {
+  const out = await applyCatalogPostFilters(makeRequest(), models, {
     connections: [],
     prefixMode: "dual",
     aliasToProviderId: {},
@@ -41,7 +43,7 @@ test("final catalog permission filtering does not let a mirror inherit base acce
   setFunctionalGatewayProviderSetting("agentrouter", "on");
 
   const models = [{ id: "kmc/k3", owned_by: "kimi-coding", root: "k3" }];
-  const withMirror = applyCatalogPostFilters(makeRequest(), models, {
+  const withMirror = await applyCatalogPostFilters(makeRequest(), models, {
     connections: [
       {
         id: "conn-1",
@@ -77,14 +79,14 @@ test("final catalog permission filtering does not let a mirror inherit base acce
   );
 });
 
-test("catalog post-filters synthesize a gateway mirror when gate on and gateway has a connection", () => {
+test("catalog post-filters synthesize a gateway mirror when gate on and gateway has a connection", async () => {
   setFeatureFlagOverride(FLAG_KEY, "true");
   setFunctionalGatewayProviderSetting("agentrouter", "on");
 
   const models = [
     { id: "deepseek/deepseek-v4-flash", owned_by: "deepseek", root: "deepseek-v4-flash" },
   ];
-  const out = applyCatalogPostFilters(makeRequest(), models, {
+  const out = await applyCatalogPostFilters(makeRequest(), models, {
     connections: [
       {
         id: "conn-1",
@@ -103,4 +105,45 @@ test("catalog post-filters synthesize a gateway mirror when gate on and gateway 
     out.some((m) => m.id === "agentrouter/deepseek/deepseek-v4-flash"),
     `expected mirror to be synthesized, got: ${out.map((m) => m.id).join(", ")}`
   );
+});
+
+test("restricted catalog does not synthesize unauthorized effort or no-thinking variants", async () => {
+  setFeatureFlagOverride(NO_THINK_FLAG, "true");
+  const baseId = "acme-gateway/claude-opus-5";
+  const out = await applyCatalogPostFilters(
+    makeRequest(),
+    [{ id: baseId, owned_by: "acme-gateway", root: "claude-opus-5" }],
+    {
+      connections: [],
+      prefixMode: "dual",
+      aliasToProviderId: {},
+      authorizeSyntheticModel: async (model) => model.id === baseId,
+    }
+  );
+
+  assert.deepEqual(
+    out.map((model) => model.id),
+    [baseId]
+  );
+});
+
+test("provider wildcard authorization retains provider-scoped effort variants", async () => {
+  setFeatureFlagOverride(NO_THINK_FLAG, "true");
+  const baseId = "acme-gateway/claude-opus-5";
+  const out = await applyCatalogPostFilters(
+    makeRequest(),
+    [{ id: baseId, owned_by: "acme-gateway", root: "claude-opus-5" }],
+    {
+      connections: [],
+      prefixMode: "dual",
+      aliasToProviderId: {},
+      authorizeSyntheticModel: async (model) =>
+        typeof model.id === "string" && model.id.startsWith("acme-gateway/"),
+    }
+  );
+  const ids = out.map((model) => model.id);
+
+  assert.equal(ids.includes("acme-gateway/claude-opus-5-low"), true);
+  assert.equal(ids.includes("acme-gateway/claude-opus-5-xhigh"), true);
+  assert.equal(ids.includes("no-think/acme-gateway/claude-opus-5"), false);
 });

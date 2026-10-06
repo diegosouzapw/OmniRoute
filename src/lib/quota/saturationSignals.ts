@@ -24,6 +24,7 @@
  */
 
 import { createLogger } from "@/shared/utils/logger";
+import { boundedMap } from "./boundedMap";
 import { updateAccountBuckets, type ClaudeUsageResult } from "./accountBuckets";
 import type { QuotaUnit, QuotaWindow } from "./dimensions";
 
@@ -33,23 +34,24 @@ const log = createLogger("quota:saturation");
 // Types
 // ---------------------------------------------------------------------------
 
-interface CacheEntry {
-  value: number; // 0..1
-  ts: number; // epoch ms
-}
-
 interface DimensionSpec {
   unit: QuotaUnit;
   window: QuotaWindow;
 }
 
 // ---------------------------------------------------------------------------
-// In-memory cache (Map<cacheKey, CacheEntry>)
+// In-memory cache (boundedMap<cacheKey, saturation 0..1>, 30s TTL). Caps are
+// generous (one entry per connection/provider/dimension or provider/connection):
+// an evicted entry only costs one extra read, and normal deployments never hit them.
 // ---------------------------------------------------------------------------
 
 const CACHE_TTL_MS = 30_000; // 30 seconds
 
-const _cache = new Map<string, CacheEntry>();
+const _cache = boundedMap<number>("saturation-cache", 4096, "ttl", CACHE_TTL_MS);
+
+// Pending miss fetches, keyed like _cache. Concurrent getSaturation calls for
+// the same key share the promise instead of firing one upstream read each.
+const _inflight = new Map<string, Promise<number>>();
 
 // ---------------------------------------------------------------------------
 // Rate-limit header cache (populated by response handlers)
@@ -75,9 +77,19 @@ interface TokenHeaderEntry {
   ts: number;
 }
 
-const _rateLimitHeaders = new Map<string, RateLimitHeaderEntry>();
-const _tokenHeaders = new Map<string, TokenHeaderEntry>();
 const RL_HEADER_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const _rateLimitHeaders = boundedMap<RateLimitHeaderEntry>(
+  "saturation-rl-headers",
+  4096,
+  "ttl",
+  RL_HEADER_TTL_MS
+);
+const _tokenHeaders = boundedMap<TokenHeaderEntry>(
+  "saturation-token-headers",
+  4096,
+  "ttl",
+  RL_HEADER_TTL_MS
+);
 
 /** Test-only: clear the rate-limit + token header caches between asserts. */
 export function _clearRateLimitHeaders(): void {
@@ -245,7 +257,7 @@ export function getTokenHeaderSaturation(
   connectionId: string
 ): { saturation: number; resetAt: number | null } | null {
   const entry = _tokenHeaders.get(`${provider}:${connectionId}`);
-  if (!entry || Date.now() - entry.ts > RL_HEADER_TTL_MS) return null;
+  if (!entry) return null;
   if (!(entry.limit > 0)) return null;
   const used = entry.limit - entry.remaining;
   const saturation = Math.min(1, Math.max(0, used / entry.limit));
@@ -259,6 +271,7 @@ function cacheKey(connectionId: string, provider: string, dim: DimensionSpec): s
 // Exported for test reset
 export function _clearSaturationCache(): void {
   _cache.clear();
+  _inflight.clear();
 }
 
 // ---------------------------------------------------------------------------
@@ -306,10 +319,7 @@ async function fetchCodexSaturation(
   return Math.min(1, Math.max(0, quota.percentUsed ?? 0));
 }
 
-async function fetchBailianSaturation(
-  connectionId: string,
-  dim: DimensionSpec
-): Promise<number> {
+async function fetchBailianSaturation(connectionId: string, dim: DimensionSpec): Promise<number> {
   const mod = await import("@omniroute/open-sse/services/bailianQuotaFetcher");
   const quota = await mod.fetchBailianQuota(connectionId);
   if (!quota) return 0;
@@ -318,13 +328,13 @@ async function fetchBailianSaturation(
   let pct = 0;
   switch (dim.window) {
     case "5h":
-      pct = (q.window5h as Record<string, unknown>)?.percentUsed as number ?? 0;
+      pct = ((q.window5h as Record<string, unknown>)?.percentUsed as number) ?? 0;
       break;
     case "weekly":
-      pct = (q.windowWeekly as Record<string, unknown>)?.percentUsed as number ?? 0;
+      pct = ((q.windowWeekly as Record<string, unknown>)?.percentUsed as number) ?? 0;
       break;
     case "monthly":
-      pct = (q.windowMonthly as Record<string, unknown>)?.percentUsed as number ?? 0;
+      pct = ((q.windowMonthly as Record<string, unknown>)?.percentUsed as number) ?? 0;
       break;
     default:
       pct = (q.percentUsed as number) ?? 0;
@@ -340,7 +350,7 @@ async function fetchBailianSaturation(
  */
 function anthropicHeaderSaturation(connectionId: string): number {
   const entry = _rateLimitHeaders.get(`anthropic:${connectionId}`);
-  if (!entry || Date.now() - entry.ts > RL_HEADER_TTL_MS) return 0;
+  if (!entry) return 0;
 
   const used = entry.limit - entry.remaining;
   return Math.min(1, Math.max(0, used / entry.limit));
@@ -361,15 +371,13 @@ interface AnthropicSaturationDeps {
 let _anthropicDepsOverride: AnthropicSaturationDeps | null = null;
 
 /** Test-only: inject ({loadConnection, fetchUsage}); pass null to restore. */
-export function __setAnthropicSaturationDepsForTests(
-  deps: AnthropicSaturationDeps | null
-): void {
+export function __setAnthropicSaturationDepsForTests(deps: AnthropicSaturationDeps | null): void {
   _anthropicDepsOverride = deps;
 }
 
 async function defaultAnthropicDeps(): Promise<AnthropicSaturationDeps> {
   const [localDbMod, usageMod] = await Promise.all([
-    import("@/lib/localDb"),
+    import("@/lib/db/readCache"),
     import("@omniroute/open-sse/services/usage"),
   ]);
   return {
@@ -423,10 +431,7 @@ function planUtilizationFromUsage(usage: unknown, window: QuotaWindow): number |
   return Math.min(1, Math.max(0, used / 100));
 }
 
-async function fetchAnthropicSaturation(
-  connectionId: string,
-  dim: DimensionSpec
-): Promise<number> {
+async function fetchAnthropicSaturation(connectionId: string, dim: DimensionSpec): Promise<number> {
   // Try the REAL plan-window utilization first (5h / weekly), via the same
   // /api/oauth/usage path usage.ts already uses. This is the signal fairShare
   // actually needs for Claude Pro/Max — the per-minute request headers do not
@@ -478,19 +483,13 @@ export function __setGenericUsageFetcherForTests(fetcher: GenericUsageFetcher | 
   _genericUsageFetcherOverride = fetcher;
 }
 
-async function defaultGenericUsageFetch(
-  connectionId: string,
-  provider: string
-): Promise<unknown> {
+async function defaultGenericUsageFetch(connectionId: string, provider: string): Promise<unknown> {
   const mod = await import("@omniroute/open-sse/services/usage");
   const conn = { id: connectionId, provider } as Parameters<typeof mod.getUsageForProvider>[0];
   return mod.getUsageForProvider(conn);
 }
 
-async function fetchGenericSaturation(
-  connectionId: string,
-  provider: string
-): Promise<number> {
+async function fetchGenericSaturation(connectionId: string, provider: string): Promise<number> {
   // 1. Real usage percent is authoritative when present (a provider that
   //    actually reports utilization beats the burst-window token headers).
   try {
@@ -498,6 +497,16 @@ async function fetchGenericSaturation(
     const result = await fetcher(connectionId, provider);
     if (result && typeof result === "object") {
       const obj = result as Record<string, unknown>;
+
+      // Prefer the normalized quota shape (handles nested `quotas` map for
+      // Antigravity / Claude / etc.). Fall back to legacy top-level fields.
+      const { convertUsageToQuotaInfo } =
+        await import("@omniroute/open-sse/services/genericQuotaFetcher");
+      const quota = convertUsageToQuotaInfo(result);
+      if (quota && Number.isFinite(quota.percentUsed)) {
+        return Math.min(1, Math.max(0, quota.percentUsed));
+      }
+
       const pct =
         typeof obj.percentUsed === "number"
           ? obj.percentUsed
@@ -537,32 +546,44 @@ export async function getSaturation(
 ): Promise<number> {
   const key = cacheKey(connectionId, provider, dim);
   const cached = _cache.get(key);
-  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
-    return cached.value;
+  if (cached !== undefined) {
+    return cached;
   }
 
-  let value = 0;
-  try {
-    switch (provider) {
-      case "codex":
-        value = await fetchCodexSaturation(connectionId, dim, connection);
-        break;
-      case "bailian":
-        value = await fetchBailianSaturation(connectionId, dim);
-        break;
-      case "anthropic":
-      case "claude":
-        value = await fetchAnthropicSaturation(connectionId, dim);
-        break;
-      default:
-        value = await fetchGenericSaturation(connectionId, provider);
-        break;
+  const pending = _inflight.get(key);
+  if (pending) return pending;
+  const task = (async (): Promise<number> => {
+    let value = 0;
+    try {
+      switch (provider) {
+        case "codex":
+          value = await fetchCodexSaturation(connectionId, dim, connection);
+          break;
+        case "bailian":
+          value = await fetchBailianSaturation(connectionId, dim);
+          break;
+        case "anthropic":
+        case "claude":
+          value = await fetchAnthropicSaturation(connectionId, dim);
+          break;
+        default:
+          value = await fetchGenericSaturation(connectionId, provider);
+          break;
+      }
+    } catch (err) {
+      log.warn(
+        { err: (err as Error)?.message, connectionId, provider },
+        "saturation fetch failed — failing open with 0"
+      );
+      value = 0;
     }
-  } catch (err) {
-    log.warn({ err: (err as Error)?.message, connectionId, provider }, "saturation fetch failed — failing open with 0");
-    value = 0;
+    _cache.set(key, value);
+    return value;
+  })();
+  _inflight.set(key, task);
+  try {
+    return await task;
+  } finally {
+    _inflight.delete(key);
   }
-
-  _cache.set(key, { value, ts: Date.now() });
-  return value;
 }

@@ -12,7 +12,7 @@ async function withRecoveryEnv(fn: (dataDir: string) => Promise<void>) {
   try {
     await fn(dataDir);
   } finally {
-    fs.rmSync(dataDir, { recursive: true, force: true });
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
     else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   }

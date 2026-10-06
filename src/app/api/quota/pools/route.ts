@@ -16,7 +16,7 @@ import { NextResponse } from "next/server";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { PoolCreateSchema } from "@/shared/schemas/quota";
-import { listPools, createPool } from "@/lib/localDb";
+import { listPools, createPool, ensurePool } from "@/lib/db/quotaPools";
 import { logAuditEvent, getAuditRequestContext } from "@/lib/compliance/index";
 
 export const dynamic = "force-dynamic";
@@ -48,17 +48,28 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json(buildErrorBody(400, parsed.error.message), { status: 400 });
     }
 
-    const pool = createPool(parsed.data);
+    const ensure = new URL(request.url).searchParams.get("ensure") === "true";
+    const ensured = ensure ? ensurePool(parsed.data) : null;
+    const pool = ensured?.pool ?? createPool(parsed.data);
     const ctx = getAuditRequestContext(request);
     logAuditEvent({
-      action: "quota.pool.created",
+      action: ensured?.updated ? "quota.pool.updated" : "quota.pool.created",
       target: pool.id,
-      metadata: { connectionId: pool.connectionId, name: pool.name },
+      metadata: {
+        connectionId: pool.connectionId,
+        name: pool.name,
+        ensure,
+        created: ensured?.created ?? true,
+        updated: ensured?.updated ?? false,
+      },
       ipAddress: ctx.ipAddress ?? undefined,
       requestId: ctx.requestId,
     });
 
-    return NextResponse.json({ pool }, { status: 201 });
+    return NextResponse.json(
+      { pool, ...(ensured ? { created: ensured.created, updated: ensured.updated } : {}) },
+      { status: ensured?.created === false ? 200 : 201 }
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to create pool";
     return NextResponse.json(buildErrorBody(500, message), { status: 500 });

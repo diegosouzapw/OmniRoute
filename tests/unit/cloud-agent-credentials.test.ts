@@ -24,7 +24,7 @@ const creds = await import("../../src/lib/cloudAgent/credentials.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("migration 061 provisions cloud_agent_credentials (table exists after DB init)", () => {

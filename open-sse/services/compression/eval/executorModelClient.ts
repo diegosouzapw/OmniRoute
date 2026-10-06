@@ -16,9 +16,10 @@ export function createExecutorModelClient(
   credentials: ProviderCredentials,
   costPerKTokenOut?: number
 ): ModelClient {
-  const executor = getExecutor(provider);
   return {
     async complete(model: string, messages: ChatTurn[]): Promise<ModelCallResult> {
+      // #11220: getExecutor is async (lazy registry) — resolve per call.
+      const executor = await getExecutor(provider);
       const body = { model, messages, stream: false };
       const input: ExecuteInput = {
         model,

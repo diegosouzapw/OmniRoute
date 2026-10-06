@@ -10,6 +10,12 @@
  *  - Inlines an SSRF guard rejecting RFC1918 / loopback / link-local / IPv6 ULA
  *    targets — the Edge runtime cannot import Node helpers, the guard lives
  *    here as a string.
+ *  - Resolves x-relay-path through the SAME `resolveRelayTarget()` the Deno and
+ *    Vercel workers use (PR #4643 and its follow-up), instead of concatenating
+ *    it onto the target. Concatenation lets the path re-point the request past
+ *    the validated host. Bound to a LITERAL const name so the hardcoded call
+ *    site still resolves when the SWC-minified standalone build mangles the
+ *    source function's own name in `.toString()` output (#6149).
  *  - Strips Host + relay control headers before forwarding upstream.
  *
  * The string template is fed to Cloudflare's PUT /accounts/{id}/workers/scripts/{name}
@@ -23,6 +29,8 @@
  *  - SSRF guard is inlined so a leaked relay URL cannot scan internal IPs.
  */
 import { randomUUID } from "crypto";
+import { resolveRelayTarget } from "@/app/api/settings/proxy/deno-deploy/route";
+import { isPrivateRelayHostname } from "@/lib/proxyRelay/privateHostname";
 
 /**
  * Build the multipart/form-data request body for Cloudflare's Worker
@@ -75,33 +83,9 @@ export function buildCloudflareWorkerScript(relayAuth: string): string {
   // user-controlled input ever reaches this template, so direct interpolation
   // into the worker source string is safe.
   return `// OmniRoute Cloudflare Worker proxy relay — generated at deploy time.
-function isPrivateHostname(h) {
-  if (!h) return true;
-  const host = h.trim().toLowerCase().replace(/^\\[|\\]$/g, "");
-  if (
-    host === "localhost" ||
-    host === "0.0.0.0" || host === "127.0.0.1" || host === "::1" ||
-    host.endsWith(".localhost") ||
-    host.endsWith(".local") ||
-    host.endsWith(".internal") ||
-    host.startsWith("::ffff:")
-  ) return true;
-  const v4 = host.match(/^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$/);
-  if (v4) {
-    const a = +v4[1], b = +v4[2];
-    if (a === 0 || a === 10 || a === 127) return true;
-    if (a === 169 && b === 254) return true; // link-local IPv4
-    if (a === 192 && b === 168) return true;
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 100 && b >= 64 && b <= 127) return true;
-    return false;
-  }
-  if (host.includes(":")) {
-    // IPv6 loopback/ULA/link-local (fe80::/10)
-    return host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:");
-  }
-  return false;
-}
+const resolveRelayTarget = ${resolveRelayTarget.toString()};
+
+const isPrivateHostname = ${isPrivateRelayHostname.toString()};
 
 async function handleRelay(request) {
   const auth = request.headers.get("x-relay-auth");
@@ -125,7 +109,11 @@ async function handleRelay(request) {
   }
   const relayPath = request.headers.get("x-relay-path") || "/";
   const headers = new Headers(request.headers);
-  ["x-relay-target", "x-relay-path", "x-relay-auth", "host"].forEach((h) => headers.delete(h));
+  [
+    "host", "connection", "content-length", "keep-alive", "proxy-connection",
+    "proxy-authenticate", "proxy-authorization", "transfer-encoding", "te", "trailer", "upgrade",
+    "x-relay-target", "x-relay-path", "x-relay-auth",
+  ].forEach((h) => headers.delete(h));
   const init = {
     method: request.method,
     headers,
@@ -134,9 +122,12 @@ async function handleRelay(request) {
     init.body = request.body;
     init.duplex = "half";
   }
+  const resolved = resolveRelayTarget(target, relayPath);
+  if (!resolved.ok) {
+    return new Response(resolved.reason, { status: resolved.status });
+  }
   try {
-    const targetBase = target.endsWith("/") ? target.slice(0, -1) : target;
-    const upstream = await fetch(targetBase + relayPath, init);
+    const upstream = await fetch(resolved.url, init);
     return new Response(upstream.body, {
       status: upstream.status,
       headers: upstream.headers,

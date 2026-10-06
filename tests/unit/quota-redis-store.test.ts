@@ -20,6 +20,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-redis-store-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -31,7 +34,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (err: unknown) {
@@ -53,7 +56,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -281,4 +284,17 @@ test("redisQuotaStore: resetRedisQuotaStore resets the store singleton", async (
 
   // After reset, a new instance is created
   assert.ok(store2, "Should create new instance after reset");
+});
+
+test("redis namespace prefix: quota store KEY_PREFIX derives from REDIS_KEY_PREFIX", () => {
+  const quotaSrc = fs.readFileSync(
+    path.resolve(__dirname, "../../src/lib/quota/redisQuotaStore.ts"),
+    "utf8"
+  );
+  assert.ok(
+    quotaSrc.includes('process.env.REDIS_KEY_PREFIX?.trim() || "omniroute:"') &&
+      quotaSrc.includes("const KEY_PREFIX = `") &&
+      quotaSrc.includes("quota`"),
+    "redisQuotaStore KEY_PREFIX must derive from REDIS_KEY_PREFIX env, defaulting to omniroute:quota"
+  );
 });

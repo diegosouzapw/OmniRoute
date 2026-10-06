@@ -46,10 +46,14 @@ function fakeTimers() {
 function deps(overrides: Record<string, unknown> = {}) {
   const syncCalls: number[] = [];
   const referralsSyncCalls: number[] = [];
+  const offersSyncCalls: number[] = [];
+  const intelSyncCalls: number[] = [];
   const timers = fakeTimers();
   return {
     syncCalls,
     referralsSyncCalls,
+    offersSyncCalls,
+    intelSyncCalls,
     timers,
     d: {
       getFlag: () => true,
@@ -66,7 +70,21 @@ function deps(overrides: Record<string, unknown> = {}) {
       getReferralsCache: () => ({ fetchedAt: REFERRALS_FRESH }),
       syncReferrals: async () => {
         referralsSyncCalls.push(1);
-        return { status: "updated", generatedAt: "2026-08-06T12:00:00.000Z", tier: "live" } as const;
+        return {
+          status: "updated",
+          generatedAt: "2026-08-06T12:00:00.000Z",
+          tier: "live",
+        } as const;
+      },
+      getOffersCache: () => ({ fetchedAt: FRESH }),
+      syncOffers: async () => {
+        offersSyncCalls.push(1);
+        return { status: "updated", version: "2026.08.06.1" } as const;
+      },
+      getIntelCache: () => ({ fetchedAt: FRESH }),
+      syncIntel: async () => {
+        intelSyncCalls.push(1);
+        return { status: "updated", version: "2026.08.06.1" } as const;
       },
       now: () => NOW,
       setIntervalFn: timers.setIntervalFn,
@@ -126,18 +144,21 @@ test("radar sync scheduler", async (t) => {
     assert.equal(syncCalls.length, 1);
   });
 
-  await t.test("ensure: registers one hourly timer, fires an immediate tick, idempotent", async () => {
-    const { d, timers, syncCalls } = deps();
-    assert.equal(ensureRadarSyncScheduler(d), true);
-    assert.equal(timers.registered.length, 1);
-    assert.equal(timers.registered[0].ms, RADAR_SCHEDULER_TICK_MS);
-    // The immediate tick is fire-and-forget; give the microtask queue a turn.
-    await new Promise((resolve) => setImmediate(resolve));
-    assert.equal(syncCalls.length, 1, "immediate tick should have synced the stale cache");
-    // Second ensure is a no-op — no second timer.
-    assert.equal(ensureRadarSyncScheduler(d), false);
-    assert.equal(timers.registered.length, 1);
-  });
+  await t.test(
+    "ensure: registers one hourly timer, fires an immediate tick, idempotent",
+    async () => {
+      const { d, timers, syncCalls } = deps();
+      assert.equal(ensureRadarSyncScheduler(d), true);
+      assert.equal(timers.registered.length, 1);
+      assert.equal(timers.registered[0].ms, RADAR_SCHEDULER_TICK_MS);
+      // The immediate tick is fire-and-forget; give the microtask queue a turn.
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.equal(syncCalls.length, 1, "immediate tick should have synced the stale cache");
+      // Second ensure is a no-op — no second timer.
+      assert.equal(ensureRadarSyncScheduler(d), false);
+      assert.equal(timers.registered.length, 1);
+    }
+  );
 
   await t.test("init: flag off => never arms (flag-off boot stays timer-free)", () => {
     const { d, timers } = deps({ getFlag: () => false });
@@ -174,61 +195,100 @@ test("radar sync scheduler", async (t) => {
   // only) so the catalog-sync result shape/assertions above stay unchanged.
   // -------------------------------------------------------------------------
 
-  await t.test("tick: referrals cache fresh => referrals sync NOT called (catalog path unaffected)", async () => {
-    const { d, syncCalls, referralsSyncCalls } = deps();
-    const result = await radarSchedulerTick(d);
-    assert.equal(result.action, "synced", "catalog was due and must still sync as before");
-    assert.equal(syncCalls.length, 1);
-    assert.equal(referralsSyncCalls.length, 0, "referrals cache was fresh — must not sync");
-  });
+  await t.test(
+    "tick: referrals cache fresh => referrals sync NOT called (catalog path unaffected)",
+    async () => {
+      const { d, syncCalls, referralsSyncCalls } = deps();
+      const result = await radarSchedulerTick(d);
+      assert.equal(result.action, "synced", "catalog was due and must still sync as before");
+      assert.equal(syncCalls.length, 1);
+      assert.equal(referralsSyncCalls.length, 0, "referrals cache was fresh — must not sync");
+    }
+  );
 
-  await t.test("tick: referrals cache stale => referrals sync called, independent of catalog due-ness", async () => {
-    const { d, syncCalls, referralsSyncCalls } = deps({
-      getCache: () => ({ fetchedAt: FRESH }), // catalog NOT due
-      getReferralsCache: () => ({ fetchedAt: REFERRALS_STALE }), // referrals due
-    });
-    const result = await radarSchedulerTick(d);
-    assert.deepEqual(result, { action: "skipped", reason: "not_due" }, "catalog result shape must stay unchanged");
-    assert.equal(syncCalls.length, 0, "catalog must not sync — it was not due");
-    assert.equal(referralsSyncCalls.length, 1, "referrals were due and must sync independently");
-  });
+  await t.test(
+    "tick: referrals cache stale => referrals sync called, independent of catalog due-ness",
+    async () => {
+      const { d, syncCalls, referralsSyncCalls } = deps({
+        getCache: () => ({ fetchedAt: FRESH }), // catalog NOT due
+        getReferralsCache: () => ({ fetchedAt: REFERRALS_STALE }), // referrals due
+      });
+      const result = await radarSchedulerTick(d);
+      assert.deepEqual(
+        result,
+        { action: "skipped", reason: "not_due" },
+        "catalog result shape must stay unchanged"
+      );
+      assert.equal(syncCalls.length, 0, "catalog must not sync — it was not due");
+      assert.equal(referralsSyncCalls.length, 1, "referrals were due and must sync independently");
+    }
+  );
 
-  await t.test("tick: referrals cache missing => referrals sync called (missing counts as stale)", async () => {
-    const { d, referralsSyncCalls } = deps({
+  await t.test(
+    "tick: referrals cache missing => referrals sync called (missing counts as stale)",
+    async () => {
+      const { d, referralsSyncCalls } = deps({
+        getCache: () => ({ fetchedAt: FRESH }),
+        getReferralsCache: () => null,
+      });
+      await radarSchedulerTick(d);
+      assert.equal(referralsSyncCalls.length, 1);
+    }
+  );
+
+  await t.test(
+    "tick: flag off => referrals sync NOT called (stopped before any sync check)",
+    async () => {
+      const { d, referralsSyncCalls } = deps({
+        getFlag: () => false,
+        getReferralsCache: () => null, // would be due if ever reached
+      });
+      await radarSchedulerTick(d);
+      assert.equal(referralsSyncCalls.length, 0);
+    }
+  );
+
+  await t.test(
+    "tick: opt-in off => referrals sync NOT called (skipped before any sync check)",
+    async () => {
+      const { d, referralsSyncCalls } = deps({
+        getSettings: () => ({ optIn: false }),
+        getReferralsCache: () => null, // would be due if ever reached
+      });
+      await radarSchedulerTick(d);
+      assert.equal(referralsSyncCalls.length, 0);
+    }
+  );
+
+  await t.test(
+    "tick: referrals sync throwing => swallowed, catalog tick still completes normally",
+    async () => {
+      const { d, syncCalls } = deps({
+        getReferralsCache: () => ({ fetchedAt: REFERRALS_STALE }),
+        syncReferrals: async () => {
+          throw new Error("referrals upstream exploded");
+        },
+      });
+      const result = await radarSchedulerTick(d);
+      assert.equal(
+        result.action,
+        "synced",
+        "a throwing referrals sync must never break the catalog tick"
+      );
+      assert.equal(syncCalls.length, 1);
+    }
+  );
+
+  await t.test("tick: offers and Intel use independent staleness gates", async () => {
+    const { d, syncCalls, offersSyncCalls, intelSyncCalls } = deps({
       getCache: () => ({ fetchedAt: FRESH }),
-      getReferralsCache: () => null,
-    });
-    await radarSchedulerTick(d);
-    assert.equal(referralsSyncCalls.length, 1);
-  });
-
-  await t.test("tick: flag off => referrals sync NOT called (stopped before any sync check)", async () => {
-    const { d, referralsSyncCalls } = deps({
-      getFlag: () => false,
-      getReferralsCache: () => null, // would be due if ever reached
-    });
-    await radarSchedulerTick(d);
-    assert.equal(referralsSyncCalls.length, 0);
-  });
-
-  await t.test("tick: opt-in off => referrals sync NOT called (skipped before any sync check)", async () => {
-    const { d, referralsSyncCalls } = deps({
-      getSettings: () => ({ optIn: false }),
-      getReferralsCache: () => null, // would be due if ever reached
-    });
-    await radarSchedulerTick(d);
-    assert.equal(referralsSyncCalls.length, 0);
-  });
-
-  await t.test("tick: referrals sync throwing => swallowed, catalog tick still completes normally", async () => {
-    const { d, syncCalls } = deps({
-      getReferralsCache: () => ({ fetchedAt: REFERRALS_STALE }),
-      syncReferrals: async () => {
-        throw new Error("referrals upstream exploded");
-      },
+      getOffersCache: () => ({ fetchedAt: STALE }),
+      getIntelCache: () => null,
     });
     const result = await radarSchedulerTick(d);
-    assert.equal(result.action, "synced", "a throwing referrals sync must never break the catalog tick");
-    assert.equal(syncCalls.length, 1);
+    assert.deepEqual(result, { action: "skipped", reason: "not_due" });
+    assert.equal(syncCalls.length, 0);
+    assert.equal(offersSyncCalls.length, 1);
+    assert.equal(intelSyncCalls.length, 1);
   });
 });

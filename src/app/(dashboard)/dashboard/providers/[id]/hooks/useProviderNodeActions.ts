@@ -1,5 +1,6 @@
 // Phase 1t.4 extraction — Issue #3501
 // Encapsulates handleUpdateNode and handleUpdateConnection async handlers.
+import { readFetchErrorMessage } from "@/shared/utils/fetchError";
 import type { ProviderMessageTranslator } from "../providerPageHelpers";
 
 interface UseProviderNodeActionsParams {
@@ -22,20 +23,22 @@ export function useProviderNodeActions({
   t,
 }: UseProviderNodeActionsParams) {
   const handleUpdateNode = async (formData: any) => {
+    const res = await fetch(`/api/provider-nodes/${providerId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    if (!res.ok) {
+      throw new Error(await readFetchErrorMessage(res, t("errorOccurred")));
+    }
+
+    const data = await res.json();
+    setProviderNode(data.node);
+    setShowEditNodeModal(false);
     try {
-      const res = await fetch(`/api/provider-nodes/${providerId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setProviderNode(data.node);
-        await fetchConnections();
-        setShowEditNodeModal(false);
-      }
+      await fetchConnections();
     } catch (error) {
-      console.log("Error updating provider node:", error);
+      console.log("Provider node updated, but connections refresh failed:", error);
     }
   };
 

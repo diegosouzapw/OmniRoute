@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Badge, Button, Input, Modal, Select, Toggle } from "@/shared/components";
+import { readFetchErrorMessage } from "@/shared/utils/fetchError";
 import { isValidProviderIconUrl } from "@/shared/validation/iconUrl";
 import {
   CLIENT_IDENTITY_PROFILE_OPTIONS,
@@ -118,6 +119,7 @@ export default function AddCompatibleProviderModal({
   }>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [iconUrlError, setIconUrlError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const apiTypeOptions = useMemo(
     () => [
@@ -131,13 +133,25 @@ export default function AddCompatibleProviderModal({
     [t]
   );
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setFormData(createInitialForm(mode));
-    setValidationResult(null);
-    setCheckKey("");
-    setShowAdvanced(false);
-  }, [isOpen, mode]);
+  // Fresh form on every open (and on a mode switch while open) — applied as a
+  // render-phase adjustment guarded by the previously initialized mode
+  // (react.dev "adjusting state when a prop changes") instead of a
+  // synchronous-setState effect. Closing clears the marker so the next open
+  // re-initializes again.
+  const [initializedFor, setInitializedFor] = useState<{ mode: CompatibleMode } | null>(null);
+  if (isOpen) {
+    if (initializedFor?.mode !== mode) {
+      setInitializedFor({ mode });
+      setFormData(createInitialForm(mode));
+      setValidationResult(null);
+      setCheckKey("");
+      setShowAdvanced(false);
+      setSaveError(null);
+      setIconUrlError(null);
+    }
+  } else if (initializedFor !== null) {
+    setInitializedFor(null);
+  }
 
   const modalTitle =
     title ||
@@ -187,6 +201,8 @@ export default function AddCompatibleProviderModal({
     setCheckKey("");
     setValidationResult(null);
     setShowAdvanced(false);
+    setSaveError(null);
+    setIconUrlError(null);
   };
 
   const handleSubmit = async () => {
@@ -197,6 +213,7 @@ export default function AddCompatibleProviderModal({
       return;
     }
     setIconUrlError(null);
+    setSaveError(null);
     setSubmitting(true);
     try {
       const body: Record<string, unknown> = {
@@ -242,13 +259,21 @@ export default function AddCompatibleProviderModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = (await res.json()) as { node: CompatibleProviderNode };
-      if (res.ok) {
+      const failedCreate = providerText(t, "failedCreate", "Failed to create provider");
+      if (!res.ok) {
+        setSaveError(await readFetchErrorMessage(res, failedCreate));
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+      if (data.node) {
         onCreated(data.node);
         resetAfterCreate();
+        return;
       }
-    } catch (error) {
-      console.log(`Error creating ${mode} compatible node:`, error);
+      setSaveError(failedCreate);
+    } catch {
+      setSaveError(providerText(t, "networkError", "Network error"));
     } finally {
       setSubmitting(false);
     }
@@ -445,6 +470,15 @@ export default function AddCompatibleProviderModal({
           </div>
         )}
 
+        {saveError && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2"
+          >
+            {saveError}
+          </div>
+        )}
         <div className="flex gap-2">
           <Button onClick={handleSubmit} fullWidth disabled={!hasRequiredFields || submitting}>
             {submitting ? t("creating") : t("add")}

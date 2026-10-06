@@ -346,7 +346,7 @@ test("Gemini stream: converts textual Tool call block to structured tool_calls",
   const result = geminiToOpenAIResponse(
     {
       responseId: "resp-textual-tool",
-      modelVersion: "gemini-3.5-flash-low",
+      modelVersion: "gemini-3.7-flash-low",
       candidates: [
         {
           content: {
@@ -386,7 +386,7 @@ test("Gemini stream: routes textual reasoning tags to reasoning_content before t
   const result = geminiToOpenAIResponse(
     {
       responseId: "resp-textual-thought-tool",
-      modelVersion: "gemini-3.5-flash-high",
+      modelVersion: "gemini-3.7-flash-high",
       candidates: [
         {
           content: {
@@ -431,7 +431,7 @@ test("Gemini stream: keeps textual reasoning hidden across split chunks", () => 
   const first = geminiToOpenAIResponse(
     {
       responseId: "resp-split-thought",
-      modelVersion: "gemini-3.5-flash-high",
+      modelVersion: "gemini-3.7-flash-high",
       candidates: [{ content: { parts: [{ text: "§54§ <tho" }] } }],
     },
     state
@@ -444,7 +444,7 @@ test("Gemini stream: keeps textual reasoning hidden across split chunks", () => 
   const second = geminiToOpenAIResponse(
     {
       responseId: "resp-split-thought",
-      modelVersion: "gemini-3.5-flash-high",
+      modelVersion: "gemini-3.7-flash-high",
       candidates: [{ content: { parts: [{ text: "ught\nNeed to inspect" }] } }],
     },
     state
@@ -459,7 +459,7 @@ test("Gemini stream: keeps textual reasoning hidden across split chunks", () => 
   const third = geminiToOpenAIResponse(
     {
       responseId: "resp-split-thought",
-      modelVersion: "gemini-3.5-flash-high",
+      modelVersion: "gemini-3.7-flash-high",
       candidates: [{ content: { parts: [{ text: " more</tho" }] } }],
     },
     state
@@ -472,7 +472,7 @@ test("Gemini stream: keeps textual reasoning hidden across split chunks", () => 
   const fourth = geminiToOpenAIResponse(
     {
       responseId: "resp-split-thought",
-      modelVersion: "gemini-3.5-flash-high",
+      modelVersion: "gemini-3.7-flash-high",
       candidates: [{ content: { parts: [{ text: "ught>Visible answer" }] } }],
     },
     state
@@ -498,7 +498,7 @@ test("Gemini stream: converts prefixed textual Tool call block with zero-width c
   const result = geminiToOpenAIResponse(
     {
       responseId: "resp-textual-tool-prefixed",
-      modelVersion: "gemini-3.5-flash-low",
+      modelVersion: "gemini-3.7-flash-low",
       candidates: [
         {
           content: {
@@ -612,7 +612,7 @@ test("Gemini stream: unwraps native functionCall args when emitted as JSON strin
   const result = geminiToOpenAIResponse(
     {
       responseId: "resp-native-tool-json-string",
-      modelVersion: "gemini-3.5-flash-low",
+      modelVersion: "gemini-3.7-flash-low",
       candidates: [
         {
           content: {
@@ -648,7 +648,7 @@ test("Gemini stream: converts JSON-string encoded textual Tool call arguments", 
   const result = geminiToOpenAIResponse(
     {
       responseId: "resp-textual-tool-json-string",
-      modelVersion: "gemini-3.5-flash-low",
+      modelVersion: "gemini-3.7-flash-low",
       candidates: [
         {
           content: {
@@ -685,7 +685,7 @@ test("Gemini stream: suppresses malformed textual Tool call marker", () => {
   const result = geminiToOpenAIResponse(
     {
       responseId: "resp-textual-tool-malformed",
-      modelVersion: "gemini-3.5-flash-low",
+      modelVersion: "gemini-3.7-flash-low",
       candidates: [
         {
           content: {
@@ -717,7 +717,7 @@ test("Gemini stream: handles textual Tool call block split across chunks", () =>
   const state = createStreamingState();
   const chunk1 = {
     responseId: "resp-split",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -732,7 +732,7 @@ test("Gemini stream: handles textual Tool call block split across chunks", () =>
   };
   const chunk2 = {
     responseId: "resp-split",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -768,7 +768,7 @@ test("Gemini stream: does not swallow false positive textual tool call in backti
   const state = createStreamingState();
   const chunk1 = {
     responseId: "resp-false-positive",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -783,7 +783,7 @@ test("Gemini stream: does not swallow false positive textual tool call in backti
   };
   const chunk2 = {
     responseId: "resp-false-positive",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -817,7 +817,7 @@ test("Gemini stream: does not swallow terminated trailing false positive textual
   const state = createStreamingState();
   const chunk1 = {
     responseId: "resp-false-positive-terminated",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -842,7 +842,7 @@ test("Gemini stream: flushes left part before textual tool call candidate and fl
   const state = createStreamingState() as any;
   const chunk1 = {
     responseId: "resp-test-flush-left",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -884,7 +884,7 @@ test("Gemini stream: splits mid-stream partial candidate but preserves tool call
   const state = createStreamingState() as any;
   const chunk1 = {
     responseId: "resp-test-split-candidate",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -932,7 +932,7 @@ test("Gemini stream: index mismatch regression test with zero-width characters i
   const result = geminiToOpenAIResponse(
     {
       responseId: "resp-textual-tool-index-mismatch",
-      modelVersion: "gemini-3.5-flash-low",
+      modelVersion: "gemini-3.7-flash-low",
       candidates: [
         {
           content: {
@@ -964,7 +964,7 @@ test("Gemini stream: partial tool call with (empty) prefix check at chunk end do
   const state = createStreamingState();
   const chunk1 = {
     responseId: "resp-empty-leak",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -1011,7 +1011,7 @@ test("Gemini stream: parses textual tool call that starts in a subsequent chunk 
   const state = createStreamingState() as any;
   const chunk1 = {
     responseId: "resp-test-after-prose",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -1060,7 +1060,7 @@ test("Gemini stream: checks lastParen before lastBracket when identifying partia
   // Имитируем чанк, который кончается на частичный "(empty)[Tool call:" маркер, например "(em"
   const chunk1 = {
     responseId: "resp-test-empty-partial",
-    modelVersion: "gemini-3.5-flash-low",
+    modelVersion: "gemini-3.7-flash-low",
     candidates: [
       {
         content: {
@@ -1187,7 +1187,7 @@ test("Gemini stream: partial textual tool call survives a reasoning-only chunk",
   geminiToOpenAIResponse(
     {
       responseId: "resp-interleave",
-      modelVersion: "gemini-3.5-flash-low",
+      modelVersion: "gemini-3.7-flash-low",
       candidates: [
         { content: { parts: [{ text: '[Tool call: terminal]\nArguments: {"command":"ls' }] } },
       ],
@@ -1200,7 +1200,7 @@ test("Gemini stream: partial textual tool call survives a reasoning-only chunk",
     geminiToOpenAIResponse(
       {
         responseId: "resp-interleave",
-        modelVersion: "gemini-3.5-flash-low",
+        modelVersion: "gemini-3.7-flash-low",
         candidates: [{ content: { parts: [{ text: "<thinking>pondering</thinking>" }] } }],
       },
       state
@@ -1221,7 +1221,7 @@ test("Gemini stream: partial textual tool call survives a reasoning-only chunk",
     geminiToOpenAIResponse(
       {
         responseId: "resp-interleave",
-        modelVersion: "gemini-3.5-flash-low",
+        modelVersion: "gemini-3.7-flash-low",
         candidates: [{ content: { parts: [{ text: '"}' }] }, finishReason: "STOP" }],
       },
       state

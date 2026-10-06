@@ -1,20 +1,20 @@
 ---
 title: "Stealth Guide"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.51
+lastUpdated: 2026-09-02
 ---
 
 # Stealth Guide
 
-> **Source of truth:** `open-sse/utils/tlsClient.ts`, `open-sse/services/{chatgptTlsClient,claudeCodeCCH,claudeCodeFingerprint,claudeCodeObfuscation,claudeCodeCompatible}.ts`, `open-sse/config/cliFingerprints.ts`, `src/mitm/`
-> **Last updated:** 2026-06-28 — v3.8.40
+> **Source of truth:** `open-sse/utils/tlsClient.ts`, `open-sse/services/{tlsClientBase,claudeTlsClient,perplexityTlsClient,grokTlsClient,notionTlsClient,lmarenaTlsClient,claudeCodeCCH,claudeCodeFingerprint,claudeCodeObfuscation,claudeCodeCompatible}.ts`, `open-sse/config/cliFingerprints.ts`, `src/mitm/`
+> **Last updated:** 2026-09-02 — v3.8.51
 > **Audience:** Engineers maintaining provider-specific stealth integrations.
 
 OmniRoute integrates with providers whose edges actively fingerprint non-official clients (TLS JA3/JA4, header ordering, JSON body shape, integrity tokens). This page documents the stealth surfaces OmniRoute exposes and where they are implemented.
 
 ## Legal and Ethical Notice
 
-Stealth features exist so OmniRoute can act as a compatibility layer between user-owned official accounts (Claude Code CLI, ChatGPT Desktop/Web, Antigravity, Cursor, etc.) and OmniRoute's unified API. They are **not** for evading fraud detection, sharing credentials, or violating provider Terms of Service. The maintainers expect operators to comply with the upstream ToS they signed when creating accounts.
+Stealth features exist so OmniRoute can act as a compatibility layer between user-owned official accounts (Claude Code CLI, Codex, Antigravity, Cursor, etc.) and OmniRoute's unified API. They are **not** for evading fraud detection, sharing credentials, or violating provider Terms of Service. The maintainers expect operators to comply with the upstream ToS they signed when creating accounts.
 
 ---
 
@@ -22,24 +22,60 @@ Stealth features exist so OmniRoute can act as a compatibility layer between use
 
 ### `open-sse/utils/tlsClient.ts` — wreq-js (Chrome 124)
 
-Lazy-loaded `wreq-js` session that impersonates **Chrome 124 on macOS**. Used as a generic JA3/JA4 wrapper for upstreams behind Cloudflare. Falls back to native fetch when `wreq-js` is not installed (`available = false`).
+Persistent `wreq-js` sessions are created lazily per account scope and resolved proxy. The
+process-wide `TlsClient` pools at most 128 sessions that impersonate **Chrome 124 on macOS** for
+upstreams behind Cloudflare. `TlsClient.fetch()` fails closed when the native runtime is
+unavailable; a caller may explicitly select a fallback outside this wrapper.
 
-- Singleton session: `browser: "chrome_124", os: "macos"`
+- Session profile: `browser: "chrome_124", os: "macos"`
 - Proxy resolution (priority): `HTTPS_PROXY` → `HTTP_PROXY` → `ALL_PROXY` (also lower-case)
 - Timeout: `TLS_CLIENT_TIMEOUT_MS` (inherits from `FETCH_TIMEOUT_MS`, default 600000)
 - `wreq-js` Response is fetch-compatible (`headers`, `text()`, `json()`, `clone()`, `body`).
+- First-byte watchdog (`open-sse/utils/tlsFirstByteWatchdog.ts`, #12656): `TlsClient.fetch()`
+  resolves as soon as upstream headers arrive, so `TLS_CLIENT_TIMEOUT_MS` alone cannot bound a
+  body that never yields a first byte. `guardTlsFirstByte()` races the body's first `read()`
+  against `TLS_FIRST_BYTE_WATCHDOG_MS` (default `10000`, `0` disables it); a healthy body is
+  unaffected, while a stalled body cancels the wreq reader and lets `proxyFetch`'s existing
+  TLS-fallback logic fall through to the direct/proxy dispatcher (a non-replay-safe request, e.g.
+  a POST with a body, still throws instead of being silently retried).
 
-### `open-sse/services/chatgptTlsClient.ts` — tls-client-node (Firefox 148)
+### Web-cookie provider transport — wreq-js 3.2.0
 
-Dedicated TLS impersonator for `chatgpt.com`. ChatGPT's Cloudflare config pins `cf_clearance` to JA3/JA4 + HTTP/2 SETTINGS frame ordering — undici's handshake gets `cf-mitigated: challenge` even with valid cookies.
+`open-sse/services/tlsClientBase.ts` is the shared adapter for the five specialized
+web-cookie transports below. Each thin provider wrapper selects a browser/OS profile. The adapter
+uses the single wreq runtime loader and transport pool in `open-sse/utils/tlsClient.ts`, keyed by
+profile + OS + resolved proxy, while every request uses `cookieMode: "ephemeral"`. Accounts and
+requests therefore share transport-level connections, but never a wreq session or cookie jar.
 
-- Profile: `firefox_148` (must match the Firefox 148 `User-Agent` sent)
-- Mode: `runtimeMode: "native"` (koffi-loaded shared library; avoids managed sidecar HTTP)
-- `withRandomTLSExtensionOrder: true`
-- `tlsFetchChatGpt(url, options)` supports streaming (writes body to temp file, tailed as `ReadableStream`)
-- Hang detection: `raceWithTimeout` + `TlsClientHangError` triggers `resetClientCache()` so the next call respawns the binding
-- Proxy resolution (priority): per-call `proxyUrl` → `OMNIROUTE_TLS_PROXY_URL` → `HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY` (the native binding does **not** read these envs itself; it must be threaded through)
-- Errors: `TlsClientUnavailableError` (binary missing), `TlsClientHangError` (binding deadlocked)
+| Provider   | Profile       | Emulated OS | Stream EOF policy                |
+| ---------- | ------------- | ----------- | -------------------------------- |
+| Claude     | `chrome_146`  | Linux       | include `[DONE]`                 |
+| Perplexity | `firefox_148` | macOS       | include `event: end_of_stream`   |
+| Grok       | `chrome_146`  | Linux       | exclude `[DONE]`                 |
+| Notion     | `chrome_146`  | Windows     | include `[DONE]`                 |
+| LMArena    | `chrome_146`  | Windows     | no sentinel; close on native EOF |
+
+- Streaming consumes the native response `ReadableStream` directly; no temp file or sidecar is
+  created.
+- Up to 256 initial bytes are inspected before exposing a stream. SSE providers buffer non-SSE
+  errors; Grok/LMArena map Cloudflare challenges to `403` and HTML interstitials to `502`.
+- The native request timeout remains wrapped by an absolute JS hard deadline. A hang invalidates
+  and closes only the affected profile/OS/proxy transport before the next request recreates it.
+- Proxy resolution priority is per-call `proxyUrl` → request-scoped account/dashboard context →
+  `HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY` (including lowercase variants). Resolution errors fail
+  closed instead of leaking a direct connection. LMArena deliberately resolves against `arena.ai`.
+- `byteResponse` returns a content-typed `data:` URL without UTF-8 corruption.
+- Errors are `TlsClientUnavailableError` (package/addon unavailable), `TlsClientHangError`
+  (deadline exceeded), and `WreqTransportCapacityError` (the shared session-capacity error code)
+  when all 128 bounded profile/OS/proxy slots are active or closing.
+
+The generic `TlsClient` session above remains specialized for persistent browser-backed cookie
+state. Both paths reuse one cached wreq module loader and process lifecycle hook; their pools remain
+separate because their cookie lifetimes are intentionally different.
+
+The profiles are supported by the pinned package, but real WAF acceptance can change independently
+of local contract tests. Validate fingerprint changes against an explicitly authorized live account
+before claiming parity with an upstream browser.
 
 ---
 
@@ -88,8 +124,8 @@ Applied to: `system` blocks, all `messages[].content`, and `tools[].description`
 
 For third-party Anthropic relays that only accept "real Claude Code" traffic:
 
-- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.219 (external, sdk-cli)"`
-- `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0"`
+- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.258 (external, sdk-cli)"`
+- `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.112.1"`
 - `CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v26.3.0"`
 - `anthropic-beta = "claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24"` by default
 - The per-connection "Enable redact-thinking beta" toggle adds `redact-thinking-2026-02-12` when a CC Compatible upstream specifically requires redacted thinking streams
@@ -212,8 +248,8 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 
 | Variable                 | Default                                                         |
 | ------------------------ | --------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.219 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.142.0 (Windows 10.0.26200; x64)`                   |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
@@ -253,17 +289,17 @@ OmniRoute scrubs inbound client headers before forwarding so a request that arri
 2. Extract JA3/JA4 and the literal header order
 3. Update the relevant `CLI_FINGERPRINTS[...]` entry
 4. Bump matching `*_USER_AGENT` default in `.env.example`
-5. If TLS handshake itself changed: update `chatgptTlsClient.ts::CHATGPT_PROFILE` or wreq-js `browser:` option
-6. Run `chatgptTlsClient.test.ts` and a manual canary against the live provider
+5. If the TLS handshake itself changed, update the relevant provider wrapper or the wreq-js `browser:` option
+6. Run the provider-specific TLS tests and a manual canary against the live provider
 7. Ship in a patch release; document in `CHANGELOG.md`
 
 ---
 
 ## Tests
 
-- `open-sse/services/__tests__/chatgptTlsClient.test.ts` — proxy resolution priority, abort handling, hang recovery
+- `open-sse/services/__tests__/claudeTlsClient.test.ts` — shared TLS wrapper behavior
 - `tests/unit/anthropic-cache-fingerprint.test.ts` — fingerprint determinism
-- `tests/unit/chatgpt-web.test.ts` — end-to-end stealth path for ChatGPT
+- `tests/unit/chatgpt-web-source-retirement.test.ts` — common ChatGPT Web stealth source remains absent while Codex Web stays present
 
 ---
 

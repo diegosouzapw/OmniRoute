@@ -14,4 +14,6 @@ export const STATUS_HEX = {
   warning: "#f59e0b",
   error: "#ef4444",
   muted: "#6b7280",
+  /** Human-approval gate (waiting_approval) — violet, matching the industry de-facto palette. */
+  approval: "#8b5cf6",
 } as const;

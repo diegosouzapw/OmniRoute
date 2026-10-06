@@ -22,14 +22,15 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.JWT_SECRET = process.env.JWT_SECRET || "model-aliases-selfheal-jwt";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const modelDeprecation = await import("../../open-sse/services/modelDeprecation.ts");
 const route = await import("../../src/app/api/settings/model-aliases/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -39,7 +40,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("GET /api/settings/model-aliases hydrates custom aliases from DB when in-memory state is empty", async () => {

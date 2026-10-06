@@ -7,7 +7,7 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { createModelComboMapping, getModelComboMappings } from "@/lib/localDb";
+import { createModelComboMapping, getModelComboMappings } from "@/lib/db/modelComboMappings";
 import { paginationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { validatedJsonBody } from "@/shared/validation/helpers";

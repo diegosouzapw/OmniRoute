@@ -4,6 +4,10 @@ import { z } from "zod";
 type ValidationErrorDetail = {
   field: string;
   message: string;
+  // Present for `unrecognized_keys` issues: the unknown key names that were
+  // refused (e.g. a typo'd override key). Surfaced by callers so clients can
+  // tell exactly which keys were rejected.
+  keys?: string[];
 };
 
 type ValidationErrorPayload = {
@@ -45,6 +49,9 @@ export function validateBody<TSchema extends z.ZodTypeAny>(
       details: issues.map((e) => ({
         field: e.path.join("."),
         message: e.message,
+        ...(("keys" in e && (e as { keys?: string[] }).keys)
+          ? { keys: (e as { keys: string[] }).keys }
+          : {}),
       })),
     },
   };
@@ -54,6 +61,19 @@ export function isValidationFailure<TData>(
   validation: ValidationResult<TData>
 ): validation is ValidationFailure {
   return validation.success === false;
+}
+
+/**
+ * Build a human-readable 400 message from a validation failure, naming the
+ * first offending field instead of the generic "Invalid request" (#10849).
+ * Intended for routes that reply with a single message string (e.g.
+ * `errorResponse()`) rather than the full `{ message, details }` envelope
+ * returned by `validatedJsonBody()`.
+ */
+export function formatValidationMessage(error: ValidationErrorPayload): string {
+  const [first] = error.details;
+  if (!first) return error.message;
+  return first.field ? `${first.field}: ${first.message}` : first.message;
 }
 
 /**

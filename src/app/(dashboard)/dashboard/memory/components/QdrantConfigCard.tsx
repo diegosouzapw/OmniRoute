@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
@@ -33,9 +33,14 @@ export default function QdrantConfigCard() {
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"" | "saved" | "error">("");
-  const [health, setHealth] = useState<{ ok: boolean; latencyMs: number; error?: string } | null>(
-    null
-  );
+  const [health, setHealth] = useState<{
+    ok: boolean;
+    latencyMs: number;
+    error?: string;
+    collection?: { exists: boolean; vectorSize?: number; vectorName?: string | null };
+  } | null>(null);
+  const [searchValidated, setSearchValidated] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [checking, setChecking] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
@@ -46,6 +51,12 @@ export default function QdrantConfigCard() {
   const [cleanupMsg, setCleanupMsg] = useState("");
   const [embeddingOptions, setEmbeddingOptions] = useState<EmbeddingModelOption[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Generation counter for health checks. Bumping it invalidates any in-flight
+  // or already-resolved check so a stale result (for example one that raced a
+  // settings save and read the pre-save configuration) can never be applied
+  // out of order.
+  const healthSeqRef = useRef(0);
 
   useEffect(() => {
     Promise.all([
@@ -65,10 +76,41 @@ export default function QdrantConfigCard() {
       .finally(() => setLoading(false));
   }, []);
 
+  const checkHealth = useCallback(async () => {
+    const seq = ++healthSeqRef.current;
+    setChecking(true);
+    try {
+      const res = await fetch("/api/settings/qdrant/health");
+      if (res.ok) {
+        const data = await res.json();
+        // Drop the result if a newer save/check invalidated this one.
+        if (healthSeqRef.current !== seq) return;
+        setHealth(data);
+      } else {
+        if (healthSeqRef.current !== seq) return;
+        setHealth({ ok: false, latencyMs: 0, error: "HTTP error" });
+      }
+    } catch (e) {
+      if (healthSeqRef.current !== seq) return;
+      setHealth({
+        ok: false,
+        latencyMs: 0,
+        error: e instanceof Error ? e.message : String(e),
+      });
+    } finally {
+      if (healthSeqRef.current === seq) setChecking(false);
+    }
+  }, []);
+
   const save = useCallback(
     async (updates: Partial<QdrantSettings> & { apiKey?: string }) => {
       const prev = qdrant;
       const next = { ...qdrant, ...updates };
+      // Settings are changing, so any prior health result is stale: drop it and
+      // invalidate in-flight checks so they cannot overwrite the new state.
+      healthSeqRef.current += 1;
+      setHealth(null);
+      setSearchValidated(false);
       setQdrant(next);
       setSaving(true);
       setSaveStatus("");
@@ -91,6 +133,16 @@ export default function QdrantConfigCard() {
           setQdrant(data);
           setApiKeyInput("");
           setSaveStatus("saved");
+          // A health check started during the optimistic window (enabled just
+          // flipped and health was null) can race the PUT and read the OLD
+          // persisted settings -> not_configured/failed. Invalidate it and
+          // schedule a fresh check against the just-persisted settings. This
+          // must be explicit: if health was still null the mount effect bails
+          // on the setHealth(null) no-op, so a healthy Qdrant would stay red
+          // until a manual test.
+          healthSeqRef.current += 1;
+          setHealth(null);
+          void checkHealth();
           setTimeout(() => setSaveStatus(""), 2000);
         } else {
           setQdrant(prev);
@@ -103,25 +155,20 @@ export default function QdrantConfigCard() {
         setSaving(false);
       }
     },
-    [qdrant]
+    [qdrant, checkHealth]
   );
 
-  const checkHealth = useCallback(async () => {
-    setChecking(true);
-    try {
-      const res = await fetch("/api/settings/qdrant/health");
-      if (res.ok) setHealth(await res.json());
-      else setHealth({ ok: false, latencyMs: 0, error: "HTTP error" });
-    } catch (e) {
-      setHealth({
-        ok: false,
-        latencyMs: 0,
-        error: e instanceof Error ? e.message : String(e),
-      });
-    } finally {
-      setChecking(false);
+  // Auto-check on mount once settings load: without this the status badge
+  // renders red after a page refresh because `health` starts as null and the
+  // old code treated "not checked yet" the same as "failed". The Test
+  // connection button still drives the same check manually.
+  useEffect(() => {
+    if (!loading && qdrant.enabled && health === null) {
+      void (async () => {
+        await checkHealth();
+      })();
     }
-  }, []);
+  }, [loading, qdrant.enabled, health, checkHealth]);
 
   const runSearch = useCallback(async () => {
     const q = searchQuery.trim();
@@ -137,9 +184,13 @@ export default function QdrantConfigCard() {
       const data = await res.json().catch(() => null);
       if (res.ok && data?.ok) {
         setSearchResults(Array.isArray(data.results) ? data.results : []);
+        setSearchValidated(true);
+      } else {
+        setSearchValidated(false);
       }
     } catch {
       setSearchResults([]);
+      setSearchValidated(false);
     } finally {
       setSearching(false);
     }
@@ -182,21 +233,43 @@ export default function QdrantConfigCard() {
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-text-main">{t("qdrant.title")}</h3>
           <p className="text-xs text-text-muted">{t("qdrant.description")}</p>
+          <button
+            type="button"
+            data-testid="qdrant-setup-tutorial"
+            onClick={() => setTutorialOpen(true)}
+            className="mt-1 text-xs font-medium text-emerald-500 hover:underline"
+          >
+            Como configurar o Qdrant corretamente
+          </button>
         </div>
         <span
           className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-            qdrant.enabled ? (health?.ok ? "text-emerald-500" : "text-red-500") : "text-text-muted"
+            !qdrant.enabled
+              ? "text-text-muted"
+              : health === null
+                ? "text-text-muted"
+                : health.ok
+                  ? "text-emerald-500"
+                  : "text-red-500"
           }`}
         >
           <span
             className={`inline-block w-2.5 h-2.5 rounded-full ${
-              qdrant.enabled ? (health?.ok ? "bg-emerald-500" : "bg-red-500") : "bg-border"
+              !qdrant.enabled
+                ? "bg-border"
+                : health === null
+                  ? "bg-border"
+                  : health.ok
+                    ? "bg-emerald-500"
+                    : "bg-red-500"
             }`}
           />
           {qdrant.enabled
-            ? health?.ok
-              ? t("qdrant.statusActive")
-              : t("qdrant.statusError")
+            ? health === null
+              ? t("qdrant.testing")
+              : health.ok
+                ? t("qdrant.statusActive")
+                : t("qdrant.statusError")
             : t("qdrant.statusDisabled")}
         </span>
       </div>
@@ -224,7 +297,7 @@ export default function QdrantConfigCard() {
           <button
             data-testid="qdrant-enabled-switch"
             onClick={() => save({ enabled: !qdrant.enabled })}
-            disabled={saving}
+            disabled={saving || (!qdrant.enabled && !searchValidated)}
             role="switch"
             aria-checked={qdrant.enabled}
             className={`relative w-11 h-6 rounded-full transition-colors ${
@@ -240,6 +313,13 @@ export default function QdrantConfigCard() {
         </div>
       </div>
 
+      {!qdrant.enabled && !searchValidated && (
+        <p className="-mt-2 mb-4 text-xs text-amber-500">
+          Execute um teste de busca bem-sucedido antes de ativar. Ele valida o modelo de embedding e
+          a dimensão da coleção.
+        </p>
+      )}
+
       {health && (
         <div
           className={`mb-4 text-xs font-medium flex items-center gap-1 ${health.ok ? "text-emerald-500" : "text-red-500"}`}
@@ -250,6 +330,23 @@ export default function QdrantConfigCard() {
           {health.ok
             ? t("qdrant.healthOk", { latencyMs: health.latencyMs })
             : (health.error ?? t("qdrant.healthError"))}
+        </div>
+      )}
+      {health?.collection && (
+        <div className="mb-4 rounded-lg border border-border/50 bg-surface/30 p-3 text-xs text-text-muted">
+          {health.collection.exists ? (
+            <>
+              Coleção compatível com vetores de dimensão{" "}
+              <strong>{health.collection.vectorSize}</strong>
+              {health.collection.vectorName ? ` (vetor: ${health.collection.vectorName})` : ""}. O
+              modelo configurado deve gerar a mesma dimensão.
+            </>
+          ) : (
+            <>
+              A coleção ainda não existe. Ela será criada na primeira gravação com o modelo
+              validado.
+            </>
+          )}
         </div>
       )}
 
@@ -419,6 +516,50 @@ export default function QdrantConfigCard() {
         </div>
         {cleanupMsg && <p className="mt-2 text-xs text-text-muted">{cleanupMsg}</p>}
       </div>
+      {tutorialOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Tutorial de configuração do Qdrant"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+        >
+          <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h4 className="text-lg font-semibold">Tutorial rápido: memória com Qdrant</h4>
+                <p className="mt-2 text-sm text-text-muted">
+                  O Qdrant guarda vetores e metadados das memórias para recuperar contexto
+                  relevante. Ele não comprime tokens diretamente; a economia é indireta, ao evitar
+                  contexto sem relação com a solicitação.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTutorialOpen(false)}
+                aria-label="Fechar tutorial"
+              >
+                ×
+              </button>
+            </div>
+            <ol className="mt-5 list-decimal space-y-3 pl-5 text-sm text-text-muted">
+              <li>Proteja o servidor com HTTPS e API key antes de uso produtivo.</li>
+              <li>
+                Informe host, porta, coleção e um modelo no formato provider/model com credencial
+                configurada.
+              </li>
+              <li>
+                A dimensão da coleção precisa ser igual à dimensão produzida pelo modelo. Uma
+                coleção existente de 2048 dimensões não aceita embeddings de 1536 dimensões.
+              </li>
+              <li>Salve, teste a conexão e execute o teste de busca. Só então ative o Qdrant.</li>
+            </ol>
+            <pre className="mt-5 overflow-x-auto rounded-lg bg-surface p-3 text-xs">{`PUT /collections/minha_memoria\n{\n  "vectors": { "size": <dimensão-do-modelo>, "distance": "Cosine" }\n}`}</pre>
+            <p className="mt-5 text-xs text-text-muted">
+              Créditos: Rafa Martins — rafacpti@gmail.com
+            </p>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

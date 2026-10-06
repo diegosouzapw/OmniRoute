@@ -124,6 +124,122 @@ test("program registers 'update' command", () => {
   assert.ok(cmd, "update command exists");
 });
 
+test("nodes endpoint commands expose --endpoint and the legacy --base-url alias", () => {
+  const program = createProgram();
+  const nodes = program.commands.find((c) => c.name() === "nodes");
+  assert.ok(nodes, "nodes command exists");
+
+  for (const commandName of ["add", "update", "validate"]) {
+    const command = nodes.commands.find((c) => c.name() === commandName);
+    assert.ok(command, `nodes ${commandName} command exists`);
+    assert.ok(
+      command.options.some((option) => option.long === "--endpoint"),
+      `nodes ${commandName} exposes --endpoint for the provider-node URL`
+    );
+    assert.ok(
+      command.options.some((option) => option.long === "--base-url"),
+      `nodes ${commandName} preserves the legacy --base-url alias`
+    );
+    command.parseOptions([
+      ...(commandName === "update" ? ["node-1"] : []),
+      ...(commandName === "add" || commandName === "validate" ? ["--provider", "openai"] : []),
+      "--endpoint",
+      "https://api.openai.com/v1",
+    ]);
+    assert.equal(command.opts().endpoint, "https://api.openai.com/v1");
+  }
+});
+
+test("nodes endpoint commands keep the global server target separate from payload baseUrl", async () => {
+  const cases = [
+    {
+      command: "add",
+      args: ["--provider", "openai"],
+      expectedUrl: "https://server.example/api/provider-nodes",
+      expectedMethod: "POST",
+    },
+    {
+      command: "update",
+      args: ["node-1"],
+      expectedUrl: "https://server.example/api/provider-nodes/node-1",
+      expectedMethod: "PUT",
+    },
+    {
+      command: "validate",
+      args: ["--provider", "openai"],
+      expectedUrl: "https://server.example/api/provider-nodes/validate",
+      expectedMethod: "POST",
+    },
+  ];
+  const originalFetch = globalThis.fetch;
+  const originalBaseUrl = process.env.OMNIROUTE_BASE_URL;
+
+  try {
+    for (const { command, args, expectedUrl, expectedMethod } of cases) {
+      let capturedUrl = "";
+      let capturedMethod = "";
+      let capturedBody: Record<string, unknown> = {};
+      globalThis.fetch = (async (url, init) => {
+        capturedUrl = String(url);
+        capturedMethod = String(init?.method);
+        capturedBody = JSON.parse(String(init?.body));
+        return new Response(JSON.stringify({ id: "node-1" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }) as typeof fetch;
+
+      const program = createProgram();
+      await program.parseAsync([
+        "node",
+        "omniroute",
+        "--base-url",
+        "https://server.example",
+        "nodes",
+        command,
+        ...args,
+        "--endpoint",
+        "https://provider.example/v1",
+      ]);
+
+      assert.equal(capturedUrl, expectedUrl);
+      assert.equal(capturedMethod, expectedMethod);
+      assert.equal(capturedBody.baseUrl, "https://provider.example/v1");
+    }
+
+    process.env.OMNIROUTE_BASE_URL = "https://env-server.example";
+    let envCapturedUrl = "";
+    let envCapturedBody: Record<string, unknown> = {};
+    globalThis.fetch = (async (url, init) => {
+      envCapturedUrl = String(url);
+      envCapturedBody = JSON.parse(String(init?.body));
+      return new Response(JSON.stringify({ id: "node-1" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    const envProgram = createProgram();
+    await envProgram.parseAsync([
+      "node",
+      "omniroute",
+      "nodes",
+      "validate",
+      "--provider",
+      "openai",
+      "--endpoint",
+      "https://provider.example/v1",
+    ]);
+
+    assert.equal(envCapturedUrl, "https://env-server.example/api/provider-nodes/validate");
+    assert.equal(envCapturedBody.baseUrl, "https://provider.example/v1");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalBaseUrl === undefined) delete process.env.OMNIROUTE_BASE_URL;
+    else process.env.OMNIROUTE_BASE_URL = originalBaseUrl;
+  }
+});
+
 // ─── exitOverride / --help via Commander ─────────────────────────────────────
 
 test("--help throws CommanderError with exit code 0", async () => {

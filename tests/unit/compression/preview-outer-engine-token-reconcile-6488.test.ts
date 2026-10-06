@@ -22,7 +22,7 @@ function makeReq(body: unknown) {
 test.beforeEach(() => core.resetDbInstance());
 test.after(() => {
   core.resetDbInstance();
-  rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // Regression for #6488: outer originalTokens/compressedTokens (real tiktoken counter over

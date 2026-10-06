@@ -28,6 +28,17 @@ export function shouldForceResponsesUpstream(
   const providerSpecificData = credentials?.providerSpecificData ?? null;
   if (providerSpecificData?._omnirouteForceResponsesUpstream === true) return true;
   if (getOpenAICompatibleType(provider, providerSpecificData) === "responses") return false;
+  // apiType="chat" means the operator explicitly chose the chat/completions
+  // wire. Don't second-guess that choice by forcing /responses just because the
+  // body carries namespace tools — the standard namespace→flatten path
+  // (openai-responses.ts) handles those correctly for chat backends.
+  if (
+    providerSpecificData &&
+    typeof providerSpecificData.apiType === "string" &&
+    providerSpecificData.apiType === "chat"
+  ) {
+    return false;
+  }
 
   const hasResponsesShape =
     body.input !== undefined ||

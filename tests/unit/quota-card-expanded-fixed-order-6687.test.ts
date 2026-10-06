@@ -60,6 +60,59 @@ test("#6687 glm family: display order stays session-then-weekly regardless of re
   );
 });
 
+test("Kimi Coding: display order stays Code 5h then Code 7d regardless of remaining %", () => {
+  const rawKimiData = {
+    quotas: {
+      code_7d: {
+        displayName: "Code · 7d",
+        used: 10,
+        total: 100,
+        remainingPercentage: 90,
+        resetAt: null,
+      },
+      code_5h: {
+        displayName: "Code · 5h",
+        used: 95,
+        total: 100,
+        remainingPercentage: 5,
+        resetAt: null,
+      },
+      code_7d_2: {
+        displayName: "Code · 7d",
+        used: 20,
+        total: 100,
+        remainingPercentage: 80,
+        resetAt: null,
+      },
+    },
+  };
+
+  const parsed = parseQuotaData("kimi-coding", rawKimiData);
+  assert.deepEqual(
+    parsed.map((q: TestQuota) => q.name),
+    ["code_5h", "code_7d", "code_7d_2"]
+  );
+  assert.deepEqual(
+    resolveQuotaDisplayOrder("kimi-coding", parsed).map((q: TestQuota) => q.name),
+    ["code_5h", "code_7d", "code_7d_2"]
+  );
+});
+
+test("Kimi Coding API-key provider uses the same fixed window order", () => {
+  const parsed = parseQuotaData("kimi-coding-apikey", {
+    quotas: {
+      code_7d: { remainingPercentage: 90 },
+      code_5h_2: { remainingPercentage: 80 },
+      code_5h: { remainingPercentage: 5 },
+      code_7d_2: { remainingPercentage: 95 },
+    },
+  });
+  assert.deepEqual(
+    parsed.map((q: TestQuota) => q.name),
+    ["code_5h", "code_5h_2", "code_7d", "code_7d_2"]
+  );
+});
+
 test("#6687 non-fixed-order providers still sort by remaining percentage descending", () => {
   const quotas = [
     { name: "low", remainingPercentage: 10 },

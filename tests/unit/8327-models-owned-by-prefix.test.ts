@@ -39,7 +39,7 @@ const CONFIGURED_PREFIX = "pix4k-talk";
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
@@ -50,7 +50,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#8327: synced models on a compatible provider node expose the configured prefix as owned_by, not the raw UUID", async () => {
@@ -361,10 +361,7 @@ test("#9416: provider with configured prefix still uses the configured prefix (r
 
   // Must still use the configured prefix, NOT slugified name
   const entry = body.data.find((m) => m.id === `${CONFIGURED_PREFIX}/glm-5.2`);
-  assert.ok(
-    entry,
-    `expected entry with configured prefix "${CONFIGURED_PREFIX}/glm-5.2"`
-  );
+  assert.ok(entry, `expected entry with configured prefix "${CONFIGURED_PREFIX}/glm-5.2"`);
   assert.equal(entry!.owned_by, CONFIGURED_PREFIX);
   assert.notEqual(entry!.owned_by, "pix4k-talk-probe"); // not slugified
 });

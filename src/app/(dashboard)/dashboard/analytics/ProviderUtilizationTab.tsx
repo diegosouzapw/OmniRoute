@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
+import { getAccountDisplayName } from "@/lib/display/names";
 import dynamic from "next/dynamic";
 
 const ProviderCharts = dynamic(() => import("./components/ProviderCharts"), { ssr: false });
@@ -130,7 +131,9 @@ export default function ProviderUtilizationTab() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetchUtilization(range, aggregateBy, controller.signal);
+    void (async () => {
+      await fetchUtilization(range, aggregateBy, controller.signal);
+    })();
 
     return () => controller.abort();
   }, [fetchUtilization, range, aggregateBy]);
@@ -168,6 +171,25 @@ export default function ProviderUtilizationTab() {
   }, [data]);
 
   const latestPoints = useMemo(() => getLatestPoints(data?.data ?? []), [data?.data]);
+
+  const resolveDisplayName = useCallback(
+    (key: string) => {
+      const colonIdx = key.indexOf(":");
+      const isConnectionKey = aggregateBy === "connection" && colonIdx !== -1;
+      if (isConnectionKey) {
+        const connectionId = key.slice(colonIdx + 1);
+        const connMeta = data?.connectionMeta?.[connectionId];
+        return getAccountDisplayName({
+          id: connectionId,
+          email: connMeta?.email,
+          name: connMeta?.name,
+          displayName: connMeta?.displayName,
+        });
+      }
+      return resolveProviderName(key, nodeMap);
+    },
+    [aggregateBy, data?.connectionMeta, nodeMap]
+  );
 
   const hasData = Boolean(data?.data.length);
   const [retrying, setRetrying] = useState(false);
@@ -300,7 +322,7 @@ export default function ProviderUtilizationTab() {
               providers={data?.providers ?? []}
               providerColors={providerColors}
               range={range}
-              resolveProviderName={resolveProviderName}
+              resolveProviderName={resolveDisplayName}
               nodeMap={nodeMap}
               formatTimestamp={formatTimestamp}
               formatPercent={formatPercent}
@@ -311,20 +333,28 @@ export default function ProviderUtilizationTab() {
               {latestPoints.map((point) => {
                 const isLow = point.remainingPct <= 20;
 
+                // For Account Split, parse "provider:connectionId" and resolve display name
+                const colonIdx = point.provider.indexOf(":");
+                const isConnectionKey = aggregateBy === "connection" && colonIdx !== -1;
+                const providerPart = isConnectionKey
+                  ? point.provider.slice(0, colonIdx)
+                  : point.provider;
+                const connectionId = isConnectionKey ? point.provider.slice(colonIdx + 1) : null;
+                const cardTitle = resolveDisplayName(point.provider);
+                const cardSubtitle = isConnectionKey
+                  ? `${providerPart} · account ${(connectionId ?? "").slice(0, 8)}…`
+                  : t("providerUtilizationLatestSnapshot");
+
                 return (
                   <Card.Section key={point.provider} className="flex h-full flex-col gap-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-black/5 bg-surface text-text-main dark:border-white/5">
-                          <ProviderIcon providerId={point.provider} size={22} />
+                          <ProviderIcon providerId={providerPart} size={22} />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-text-main">
-                            {resolveProviderName(point.provider, nodeMap)}
-                          </p>
-                          <p className="text-xs text-text-muted">
-                            {t("providerUtilizationLatestSnapshot")}
-                          </p>
+                          <p className="text-sm font-semibold text-text-main">{cardTitle}</p>
+                          <p className="text-xs text-text-muted">{cardSubtitle}</p>
                         </div>
                       </div>
                       <span

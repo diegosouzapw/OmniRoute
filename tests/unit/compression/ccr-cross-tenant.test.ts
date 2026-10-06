@@ -253,7 +253,12 @@ describe("ccr security: [HIGH] ccrEngine.apply scopes the stored block to the pr
   beforeEach(() => resetCcrStore());
 
   const bigBlock = makeText("a large block that CCR would normally compress ", 5000);
-  const makeBody = () => ({ messages: [{ role: "user", content: bigBlock }] });
+  // #7746 follow-up: advertise the retrieve tool so apply() passes the caller
+  // gate (these tests exercise principal-scoped storage, not the gate itself).
+  const makeBody = () => ({
+    messages: [{ role: "user", content: bigBlock }],
+    tools: [{ type: "function", function: { name: "omniroute_ccr_retrieve" } }],
+  });
 
   it("apply with a principalId stores the block retrievable ONLY by that principal", () => {
     const result = ccrEngine.apply(makeBody(), {

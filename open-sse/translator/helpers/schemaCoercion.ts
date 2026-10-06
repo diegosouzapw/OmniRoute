@@ -290,6 +290,31 @@ export function coerceToolSchemas(tools: unknown): unknown {
   });
 }
 
+const NULL_OMISSION_NOTE = "null = omit this parameter";
+
+function schemaTypeIncludes(type: unknown, wanted: string): boolean {
+  return type === wanted || (Array.isArray(type) && type.includes(wanted));
+}
+
+function isPlainStringType(type: unknown): boolean {
+  return type === "string" || (Array.isArray(type) && type.length === 1 && type[0] === "string");
+}
+
+function appendNullOmissionMarker(description: unknown): string {
+  if (typeof description === "string" && description.length > 0) {
+    return description.includes(NULL_OMISSION_NOTE)
+      ? description
+      : `${description} (${NULL_OMISSION_NOTE})`;
+  }
+  return NULL_OMISSION_NOTE;
+}
+
+function widenTypeWithNull(type: unknown): unknown {
+  if (typeof type === "string") return [type, "null"];
+  if (Array.isArray(type) && !type.includes("null")) return [...type, "null"];
+  return type;
+}
+
 // #7023 — Responses API strict mode forces every "optional" tool property into
 // `required`, so a model that intends to OMIT an optional enum property (no declared
 // `default`) must still emit a concrete value (e.g. Agent.isolation:"remote"). Neither
@@ -299,7 +324,11 @@ export function coerceToolSchemas(tools: unknown): unknown {
 // `null` (see pureHelpers.ts::isDroppableNullEntry). Scope: top-level
 // `properties[key].enum` only — does not recurse into `items`/`anyOf`/`oneOf` branches
 // (no real-world case beyond Agent.isolation is documented; extend with a concrete repro).
-function shouldInjectNullOmission(key: string, propSchema: unknown, required: Set<string>): boolean {
+function shouldInjectNullOmission(
+  key: string,
+  propSchema: unknown,
+  required: Set<string>
+): boolean {
   return (
     isPlainObject(propSchema) &&
     Array.isArray(propSchema.enum) &&
@@ -312,17 +341,36 @@ function widenPropertyForNullOmission(propSchema: JsonRecord): JsonRecord {
   const widened: JsonRecord = { ...propSchema };
   const enumValues = propSchema.enum as unknown[];
   widened.enum = enumValues.includes(null) ? enumValues : [...enumValues, null];
-  if (typeof propSchema.type === "string") {
-    widened.type = [propSchema.type, "null"];
-  } else if (Array.isArray(propSchema.type) && !propSchema.type.includes("null")) {
-    widened.type = [...propSchema.type, "null"];
-  }
-  const note = "null = omit this parameter";
-  widened.description =
-    typeof propSchema.description === "string" && propSchema.description.length > 0
-      ? `${propSchema.description} (${note})`
-      : note;
+  widened.type = widenTypeWithNull(propSchema.type);
+  widened.description = appendNullOmissionMarker(propSchema.description);
   return widened;
+}
+
+// OpenCode `subagent.sessionID` (and any other optional default-less plain string) has
+// the same strict-mode omission problem as #7023 enums, but no enum to widen. Inject
+// the same nullable-union sentinel on top-level `properties[key]` only — do not recurse
+// into `items`/`anyOf`/`$defs`, and do not touch enums (owned by the helper above).
+function shouldInjectStringNullOmission(
+  key: string,
+  propSchema: unknown,
+  required: Set<string>
+): boolean {
+  return (
+    isPlainObject(propSchema) &&
+    !Array.isArray(propSchema.enum) &&
+    isPlainStringType(propSchema.type) &&
+    !schemaTypeIncludes(propSchema.type, "null") &&
+    !required.has(key) &&
+    !hasOwn(propSchema, "default")
+  );
+}
+
+function widenStringPropertyForNullOmission(propSchema: JsonRecord): JsonRecord {
+  return {
+    ...propSchema,
+    type: widenTypeWithNull(propSchema.type),
+    description: appendNullOmissionMarker(propSchema.description),
+  };
 }
 
 export function injectOptionalEnumOmissionSentinel(schema: unknown): unknown {
@@ -351,6 +399,43 @@ export function injectOptionalEnumOmissionForTools(tools: unknown): unknown {
     const result: JsonRecord = { ...tool };
     if ("parameters" in result && !isPlainObject(result.function)) {
       result.parameters = injectOptionalEnumOmissionSentinel(result.parameters);
+    }
+    return result;
+  });
+}
+
+export function injectOptionalStringOmissionSentinel(schema: unknown): unknown {
+  if (!isPlainObject(schema) || !isPlainObject(schema.properties)) return schema;
+
+  const required = new Set(Array.isArray(schema.required) ? schema.required : []);
+  let changed = false;
+  const nextProperties: JsonRecord = { ...schema.properties };
+
+  for (const [key, propSchema] of Object.entries(schema.properties)) {
+    if (!shouldInjectStringNullOmission(key, propSchema, required)) continue;
+    nextProperties[key] = widenStringPropertyForNullOmission(propSchema as JsonRecord);
+    changed = true;
+  }
+
+  if (!changed) return schema;
+  return { ...schema, properties: nextProperties };
+}
+
+export function injectOptionalStringOmissionForTools(tools: unknown): unknown {
+  if (!Array.isArray(tools)) return tools;
+
+  return tools.map((tool) => {
+    if (!isPlainObject(tool)) return tool;
+
+    const result: JsonRecord = { ...tool };
+    if (isPlainObject(result.function) && "parameters" in result.function) {
+      result.function = {
+        ...result.function,
+        parameters: injectOptionalStringOmissionSentinel(result.function.parameters),
+      };
+    }
+    if ("parameters" in result && !isPlainObject(result.function)) {
+      result.parameters = injectOptionalStringOmissionSentinel(result.parameters);
     }
     return result;
   });
@@ -429,6 +514,13 @@ const SCHEMA_SLOT_KEYS = [
   "else",
   "unevaluatedProperties",
   "additionalItems",
+  // draft 2020-12 applicators whose value is a schema too. Without them a
+  // placeholder in either position falls through to the scalar branch at the
+  // bottom of the walker and is forwarded as a string, which is the shape this
+  // sanitizer exists to remove. The opencode plugin's own walker
+  // (@omniroute/opencode-plugin-v2/src/shared/gemini.ts) lists both.
+  "contentSchema",
+  "unevaluatedItems",
 ];
 
 function coerceIndexedObjectToArray(value: unknown): unknown[] | null {
@@ -537,13 +629,111 @@ export function stripInvalidSchemaConstructs(schema: unknown): unknown {
   return result;
 }
 
+/**
+ * JSON Schema composition keywords Anthropic refuses at the *root* of a tool
+ * `input_schema`. Nested occurrences (inside `properties`, `items`, `$defs`, …)
+ * are valid and must be preserved.
+ */
+const CLAUDE_ROOT_UNION_KEYWORDS = ["anyOf", "oneOf", "allOf"] as const;
+
+/** Whether a union branch may contribute object properties to the flattened root. */
+function claudeUnionBranchCanBeObject(branch: JsonRecord): boolean {
+  const type = branch.type;
+  if (type === undefined) return true;
+  if (typeof type === "string") return type === "object";
+  if (Array.isArray(type)) return type.includes("object");
+  return false;
+}
+
+/** Append the string entries of `branchRequired` that are not recorded yet. */
+function mergeClaudeRequired(target: string[], seen: Set<string>, branchRequired: unknown): void {
+  if (!Array.isArray(branchRequired)) return;
+  for (const name of branchRequired) {
+    if (typeof name !== "string" || seen.has(name)) continue;
+    seen.add(name);
+    target.push(name);
+  }
+}
+
+/**
+ * Whether a tool schema carries a root-level `anyOf` / `oneOf` / `allOf`.
+ *
+ * @param schema - Candidate tool `input_schema` / `parameters` value.
+ * @returns `true` when Anthropic would reject the schema's root shape.
+ */
+export function hasRootLevelSchemaUnion(schema: unknown): boolean {
+  if (!isPlainObject(schema)) return false;
+  return CLAUDE_ROOT_UNION_KEYWORDS.some((keyword) => hasOwn(schema, keyword));
+}
+
+/**
+ * Flatten a root-level `anyOf` / `oneOf` / `allOf` into a plain object schema.
+ *
+ * Anthropic's Messages API rejects a tool whose `input_schema` root carries a
+ * composition keyword with
+ * `tools.N.custom.input_schema: input_schema does not support oneOf, allOf, or
+ * anyOf at the top level` (#13552). The request is refused *before* inference,
+ * so a single such tool from an MCP/agent client fails every request that
+ * carries the catalog — combo failover cannot recover from it either.
+ *
+ * The flattening mirrors the union handling CLIProxyAPI applies on the same
+ * wire hop: object-compatible branches contribute their `properties` (first
+ * branch wins on a name collision), the root is pinned to `type: "object"`, and
+ * only `allOf` — whose branches all apply at once — contributes `required`.
+ * `anyOf` / `oneOf` branch requirements are alternatives, so promoting them
+ * would refuse calls the original schema accepts.
+ *
+ * Schemas without a root union are returned untouched, and nested unions are
+ * never rewritten.
+ *
+ * @param schema - Tool `input_schema` as received from the client.
+ * @returns An Anthropic-compatible schema, or the input when nothing to do.
+ */
+export function normalizeClaudeToolInputSchema(schema: unknown): unknown {
+  if (!hasRootLevelSchemaUnion(schema)) return schema;
+
+  const source = schema as JsonRecord;
+  const result: JsonRecord = { ...source };
+  const properties: JsonRecord = isPlainObject(source.properties) ? { ...source.properties } : {};
+  const required: string[] = [];
+  const requiredSeen = new Set<string>();
+  mergeClaudeRequired(required, requiredSeen, source.required);
+
+  for (const keyword of CLAUDE_ROOT_UNION_KEYWORDS) {
+    if (!hasOwn(result, keyword)) continue;
+    const branches = result[keyword];
+    // Dropped even when malformed: the keyword itself is what Anthropic refuses.
+    delete result[keyword];
+    if (!Array.isArray(branches)) continue;
+
+    for (const branch of branches) {
+      if (!isPlainObject(branch) || !claudeUnionBranchCanBeObject(branch)) continue;
+      if (isPlainObject(branch.properties)) {
+        for (const [name, propertySchema] of Object.entries(branch.properties)) {
+          if (!hasOwn(properties, name)) properties[name] = propertySchema;
+        }
+      }
+      if (keyword === "allOf") mergeClaudeRequired(required, requiredSeen, branch.required);
+    }
+  }
+
+  result.type = "object";
+  result.properties = properties;
+  if (required.length > 0) result.required = required;
+
+  return result;
+}
+
 export function sanitizeClaudeToolSchema(schema: unknown): unknown {
   // stripInvalidSchemaConstructs now also coerces numeric-string constraints, so
   // it is the single pass for the Claude path. We deliberately do NOT compose
   // coerceSchemaNumericFields: it strips the valid `default` keyword (Fix #1782,
   // a translator concern) which on the native / passthrough surface would
   // silently alter tool schemas that were previously forwarded verbatim.
-  return stripInvalidSchemaConstructs(schema);
+  //
+  // The root-union flattening runs last so it sees the already-repaired shape
+  // (e.g. an index-keyed `anyOf` object coerced back into an array).
+  return normalizeClaudeToolInputSchema(stripInvalidSchemaConstructs(schema));
 }
 
 export function sanitizeClaudeToolSchemas(tools: unknown): unknown {

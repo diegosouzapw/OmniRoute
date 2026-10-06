@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { enableTailscaleTunnel } from "@/lib/tailscaleTunnel";
+import { toPublicSafeTunnelError } from "@/lib/api/publicSafeTunnelError";
 import { parseOptionalJsonBody, requireTailscaleAuth, tailscaleEnableSchema } from "../routeUtils";
 
 export const dynamic = "force-dynamic";
@@ -16,9 +17,11 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Failed to enable Tailscale Funnel",
-      },
+      toPublicSafeTunnelError(
+        error,
+        "Failed to enable the Tailscale Funnel.",
+        "tunnels/tailscale/enable POST"
+      ),
       { status: 500 }
     );
   }

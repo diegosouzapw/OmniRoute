@@ -5,6 +5,10 @@ import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { withCustomUserAgent } from "./headers";
 import { toValidationErrorResult, validationWrite } from "./transport";
+import {
+  NIMBLE_CLIENT_SOURCE,
+  NIMBLE_CLIENT_SOURCE_HEADER,
+} from "@omniroute/open-sse/config/nimble.ts";
 
 export async function validateSearchProvider(
   url: string,
@@ -69,12 +73,27 @@ export const SEARCH_VALIDATOR_CONFIGS: Record<
       body: JSON.stringify({ query: "test", numResults: 1 }),
     },
   }),
+  "anysearch-search": (apiKey) => ({
+    url: "https://api.anysearch.com/v1/search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ query: "test", max_results: 1 }),
+    },
+  }),
   "tavily-search": (apiKey) => ({
     url: "https://api.tavily.com/search",
     init: {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({ query: "test", max_results: 1 }),
+    },
+  }),
+  context7: (apiKey) => ({
+    url: "https://context7.com/api/v1/search?query=test",
+    init: {
+      method: "GET",
+      headers: { Accept: "application/json", Authorization: `Bearer ${apiKey}` },
     },
   }),
   "google-pse-search": (apiKey, providerSpecificData = {}) => {
@@ -92,6 +111,22 @@ export const SEARCH_VALIDATOR_CONFIGS: Record<
       },
     };
   },
+  "nimble-search": (apiKey) => ({
+    url: "https://sdk.nimbleway.com/v1/search",
+    init: {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        [NIMBLE_CLIENT_SOURCE_HEADER]: NIMBLE_CLIENT_SOURCE,
+      },
+      body: JSON.stringify({
+        query: "test",
+        max_results: 1,
+        search_depth: "lite",
+      }),
+    },
+  }),
   "linkup-search": (apiKey) => ({
     url: "https://api.linkup.so/v1/search",
     init: {
@@ -145,6 +180,26 @@ export const SEARCH_VALIDATOR_CONFIGS: Record<
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({ query: "test", max_results: 1 }),
+    },
+  }),
+  "x-search": (apiKey) => ({
+    url: "https://api.x.ai/v1/responses",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: "grok-4.6",
+        stream: false,
+        input: "test",
+        tools: [{ type: "x_search" }],
+      }),
+    },
+  }),
+  "xquik-search": (apiKey) => ({
+    url: "https://xquik.com/api/v1/x/tweets/search?q=test&limit=1",
+    init: {
+      method: "GET",
+      headers: { Accept: "application/json", "x-api-key": apiKey },
     },
   }),
   "zai-search": (apiKey, providerSpecificData = {}) => {

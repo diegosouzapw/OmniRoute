@@ -36,7 +36,7 @@ function parseSsePayloads(text: string): Array<Record<string, unknown>> {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("native Claude passthrough repairs impossible AgentRouter cache usage before forwarding", async () => {

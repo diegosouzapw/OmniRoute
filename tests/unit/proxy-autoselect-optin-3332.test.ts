@@ -8,9 +8,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-333
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const { FEATURE_FLAG_DEFINITIONS } = await import(
-  "../../src/shared/constants/featureFlagDefinitions.ts"
-);
+const { FEATURE_FLAG_DEFINITIONS } =
+  await import("../../src/shared/constants/featureFlagDefinitions.ts");
 const { isFeatureFlagEnabled } = await import("../../src/shared/utils/featureFlags.ts");
 const { selectWorkingProxyFallback } = await import("../../open-sse/utils/proxyFallback.ts");
 
@@ -48,7 +47,7 @@ test.after(() => {
     /* ignore */
   }
   try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     /* ignore */
   }

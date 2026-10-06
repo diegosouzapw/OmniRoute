@@ -88,9 +88,11 @@ export function ProviderSpendCard({
               <Tooltip
                 formatter={(value: number) => currencyFormatter.format(value || 0)}
                 contentStyle={{
-                  background: "var(--surface)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
+                  backgroundColor: "var(--color-surface)",
+                  borderColor: "var(--color-border)",
+                  borderRadius: 12,
+                  color: "var(--color-text-main)",
+                  boxShadow: "var(--shadow-soft)",
                 }}
               />
             </PieChart>
@@ -158,9 +160,11 @@ export function CostTrendCard({
             <Tooltip
               formatter={(value: number) => currencyFormatter.format(value || 0)}
               contentStyle={{
-                background: "var(--surface)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "12px",
+                backgroundColor: "var(--color-surface)",
+                borderColor: "var(--color-border)",
+                borderRadius: 12,
+                color: "var(--color-text-main)",
+                boxShadow: "var(--shadow-soft)",
               }}
             />
             <Line
@@ -224,9 +228,11 @@ export function WeeklyPatternCard({
                 `${new Intl.NumberFormat(locale).format(value || 0)} ${tokensLabel}`
               }
               contentStyle={{
-                background: "var(--surface)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "12px",
+                backgroundColor: "var(--color-surface)",
+                borderColor: "var(--color-border)",
+                borderRadius: 12,
+                color: "var(--color-text-main)",
+                boxShadow: "var(--shadow-soft)",
               }}
             />
             <Bar dataKey="tokens" fill="#8b5cf6" radius={[4, 4, 0, 0]} />

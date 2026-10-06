@@ -39,7 +39,7 @@ async function readSseEvents(response: Response): Promise<Record<string, unknown
 }
 
 test.after(() => {
-  fs.rmSync(TMP_DIR, { recursive: true, force: true });
+  fs.rmSync(TMP_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── buildAuggiePrompt ────────────────────────────────────────────────────

@@ -26,6 +26,14 @@ on:
         type: boolean
         default: false
 
+# One publish per ref. A merge storm used to fan out 8 concurrent hosted builds,
+# every one OOM-killing `npm run build` inside BuildKit (#11976). The :next
+# channel only needs the newest SHA; cancel-in-progress is the same pattern as
+# quality.yml / nightly-release-green.
+concurrency:
+  group: docker-publish-${{ github.ref }}
+  cancel-in-progress: true
+
 # Least-privilege default: read-only at the top level; the build and merge jobs that
 # push to GHCR grant packages: write themselves (Scorecard TokenPermissions).
 permissions:
@@ -68,6 +76,16 @@ jobs:
             "$EVENT_NAME" "$REF_TYPE" "$REF_NAME" "$INPUT_VERSION" "$DEFAULT_BRANCH")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+          # Frozen release branches keep receiving coordination commits after the
+          # next cycle becomes the default branch. They must not overwrite :next,
+          # but that expected no-op is not a workflow failure.
+          if [ "$VERSION" = "skip" ]; then
+            echo "promote_latest=false" >> "$GITHUB_OUTPUT"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping Docker publish from non-default release branch: $REF_NAME"
+            exit 0
+          fi
+
           # 2) Decide whether to promote :latest. Floating channels are never
           # eligible, and the helper independently fails closed for non-semver.
           PROMOTE="false"
@@ -108,7 +126,23 @@ jobs:
     name: Build Docker (${{ matrix.platform }})
     needs: prepare
     if: needs.prepare.outputs.skip != 'true'
-    runs-on: ${{ matrix.runner }}
+    # amd64: the .113 omni-build pool (31 GB / 32 cores, ONE listener since
+    # #12048). Hosted ubuntu-24.04 is ~7 GB and dies ResourceExhausted (#11976).
+    # Falls back to hosted when USE_VPS_RUNNER is off. arm64: no ARM box — stay
+    # on GitHub's ubuntu-24.04-arm.
+    # Webpack on BOTH arches: Turbopack on omniroute-113-6 hit
+    # TurbopackInternalError "there must be a path to a root" after 26 min
+    # (run 33253576569). The same tree's arm64 webpack build on hosted ARM
+    # succeeded (run 33264823398). Dockerfile already documents webpack as the
+    # Docker escape hatch (OMNIROUTE_USE_TURBOPACK=0).
+    runs-on: ${{ matrix.arch == 'amd64' && (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-build"]') || 'ubuntu-24.04') || 'ubuntu-24.04-arm' }}
+    # Share the 1-slot omni-build ceiling (#12048) with ci.yml `Build` /
+    # npm-publish. Same group as main's Build so a :next publish waits beside
+    # the artefact instead of sitting next to it. arm64 is hosted — its own
+    # group, cancelled by the workflow-level concurrency.
+    concurrency:
+      group: ${{ matrix.arch == 'amd64' && 'heavy-build-main' || format('docker-publish-arm-{0}', github.ref) }}
+      cancel-in-progress: ${{ matrix.arch != 'amd64' }}
     permissions:
       contents: read
       packages: write
@@ -117,10 +151,8 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: ubuntu-24.04
             arch: amd64
           - platform: linux/arm64
-            runner: ubuntu-24.04-arm
             arch: arm64
     env:
       IMAGE_NAME: diegosouzapw/omniroute
@@ -132,6 +164,9 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
           fetch-depth: 0
+
+      - name: Assert Docker Engine
+        run: docker info
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -156,12 +191,15 @@ jobs:
           context: .
           target: runner-base
           platforms: ${{ matrix.platform }}
+          build-args: |
+            OMNIROUTE_USE_TURBOPACK=0
+            OMNIROUTE_BUILD_MEMORY_MB=12288
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           tags: |
             ${{ env.IMAGE_NAME }}
             ${{ env.GHCR_IMAGE_NAME }}
           cache-from: type=gha,scope=docker-${{ matrix.arch }}
-          cache-to: type=gha,scope=docker-${{ matrix.arch }},mode=max
+          cache-to: type=gha,scope=docker-${{ matrix.arch }},mode=max,ignore-error=true
           no-cache: false
         env:
           DOCKER_BUILDKIT_INLINE_CACHE: 1
@@ -173,12 +211,71 @@ jobs:
           context: .
           target: runner-web
           platforms: ${{ matrix.platform }}
+          build-args: |
+            OMNIROUTE_USE_TURBOPACK=0
+            OMNIROUTE_BUILD_MEMORY_MB=12288
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           tags: |
             ${{ env.IMAGE_NAME }}
             ${{ env.GHCR_IMAGE_NAME }}
           cache-from: type=gha,scope=docker-web-${{ matrix.arch }}
-          cache-to: type=gha,scope=docker-web-${{ matrix.arch }},mode=max
+          cache-to: type=gha,scope=docker-web-${{ matrix.arch }},mode=max,ignore-error=true
+          no-cache: false
+        env:
+          DOCKER_BUILDKIT_INLINE_CACHE: 1
+
+      - name: Build and push BUN base platform image by digest
+        id: build-bun-base
+        # Bun is a best-effort compatibility target, not a supported runtime
+        # (AGENTS.md -> Environment). Its `bun run build` has been OOM-killing on
+        # both arches; letting that sink the whole publish means the SUPPORTED
+        # runner-base / runner-web images never reach the registry either. The
+        # image is still built and pushed whenever it succeeds — only its power to
+        # block the release is removed.
+        continue-on-error: true
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          file: Dockerfile.bun
+          target: runner-base
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            OMNIROUTE_USE_TURBOPACK=0
+            OMNIROUTE_BUILD_MEMORY_MB=12288
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          tags: |
+            ${{ env.IMAGE_NAME }}
+            ${{ env.GHCR_IMAGE_NAME }}
+          cache-from: type=gha,scope=docker-bun-base-${{ matrix.arch }}
+          cache-to: type=gha,scope=docker-bun-base-${{ matrix.arch }},mode=max,ignore-error=true
+          no-cache: false
+        env:
+          DOCKER_BUILDKIT_INLINE_CACHE: 1
+
+      - name: Build and push BUN web platform image by digest
+        id: build-bun-web
+        # Bun is a best-effort compatibility target, not a supported runtime
+        # (AGENTS.md -> Environment). Its `bun run build` has been OOM-killing on
+        # both arches; letting that sink the whole publish means the SUPPORTED
+        # runner-base / runner-web images never reach the registry either. The
+        # image is still built and pushed whenever it succeeds — only its power to
+        # block the release is removed.
+        continue-on-error: true
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          file: Dockerfile.bun
+          target: runner-web
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            OMNIROUTE_USE_TURBOPACK=0
+            OMNIROUTE_BUILD_MEMORY_MB=12288
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          tags: |
+            ${{ env.IMAGE_NAME }}
+            ${{ env.GHCR_IMAGE_NAME }}
+          cache-from: type=gha,scope=docker-bun-web-${{ matrix.arch }}
+          cache-to: type=gha,scope=docker-bun-web-${{ matrix.arch }},mode=max,ignore-error=true
           no-cache: false
         env:
           DOCKER_BUILDKIT_INLINE_CACHE: 1
@@ -187,11 +284,22 @@ jobs:
         env:
           DIGEST_BASE: ${{ steps.build.outputs.digest }}
           DIGEST_WEB: ${{ steps.build-web.outputs.digest }}
+          DIGEST_BUN_BASE: ${{ steps.build-bun-base.outputs.digest }}
+          DIGEST_BUN_WEB: ${{ steps.build-bun-web.outputs.digest }}
         run: |
           set -euo pipefail
-          mkdir -p /tmp/digests/base /tmp/digests/web
+          mkdir -p /tmp/digests/base /tmp/digests/web /tmp/digests/bun-base /tmp/digests/bun-web
           touch "/tmp/digests/base/${DIGEST_BASE#sha256:}"
           touch "/tmp/digests/web/${DIGEST_WEB#sha256:}"
+          # Empty when the (non-blocking) bun build produced no image. `if` blocks,
+          # not `[ -n ] && touch`: under `set -e` a failing AND-list aborts the step,
+          # which is precisely the case being handled here.
+          if [ -n "$DIGEST_BUN_BASE" ]; then
+            touch "/tmp/digests/bun-base/${DIGEST_BUN_BASE#sha256:}"
+          fi
+          if [ -n "$DIGEST_BUN_WEB" ]; then
+            touch "/tmp/digests/bun-web/${DIGEST_BUN_WEB#sha256:}"
+          fi
 
       - name: Upload base digests
         uses: actions/upload-artifact@v7
@@ -207,6 +315,30 @@ jobs:
           name: digests-web-${{ matrix.arch }}
           path: /tmp/digests/web/*
           if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload bun-base digests
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: digests-bun-base-${{ matrix.arch }}
+          path: /tmp/digests/bun-base/*
+          # `ignore`, not `error`: the bun build is non-blocking, so an absent
+          # digest is the expected outcome of a failed/skipped bun image — the
+          # manifest step already treats these tags as optional. Leaving `error`
+          # here just relocates the blocker from the manifest to the upload.
+          if-no-files-found: ignore
+          retention-days: 1
+
+      - name: Upload bun-web digests
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: digests-bun-web-${{ matrix.arch }}
+          path: /tmp/digests/bun-web/*
+          # `ignore`, not `error`: the bun build is non-blocking, so an absent
+          # digest is the expected outcome of a failed/skipped bun image — the
+          # manifest step already treats these tags as optional. Leaving `error`
+          # here just relocates the blocker from the manifest to the upload.
+          if-no-files-found: ignore
           retention-days: 1
 
   merge:
@@ -263,53 +395,130 @@ jobs:
           path: /tmp/digests/web
           merge-multiple: true
 
-      - name: Create Docker Hub manifest
+      - name: Download bun-base digests
+        # Non-blocking: the bun image is best-effort, so its artifact may not
+        # exist at all. The manifest step treats these tags as optional.
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: digests-bun-base-*
+          path: /tmp/digests/bun-base
+          merge-multiple: true
+
+      - name: Download bun-web digests
+        # Non-blocking: the bun image is best-effort, so its artifact may not
+        # exist at all. The manifest step treats these tags as optional.
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: digests-bun-web-*
+          path: /tmp/digests/bun-web
+          merge-multiple: true
+
+      - name: Create Docker Hub version manifests
         run: |
           set -euo pipefail
 
           create_manifest() {
-            local image="$1" suffix="$2" dir="$3"
-            local tags=(-t "${image}:${VERSION}${suffix}")
-            if [ "$PROMOTE_LATEST" = "true" ]; then
-              tags+=(-t "${image}:latest${suffix}")
-            fi
+            local image="$1" suffix="$2" dir="$3" optional="${4:-}"
             local refs=()
             while IFS= read -r digest_file; do
               refs+=("${image}@sha256:$(basename "$digest_file")")
             done < <(find "$dir" -type f | sort)
             if [ "${#refs[@]}" -eq 0 ]; then
+              if [ -n "$optional" ]; then
+                echo "::warning::No image digests in $dir — skipping optional tag ${image}:${VERSION}${suffix}" >&2
+                return 0
+              fi
               echo "No image digests in $dir" >&2
               exit 1
             fi
-            docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+            docker buildx imagetools create -t "${image}:${VERSION}${suffix}" "${refs[@]}"
           }
 
           create_manifest "${IMAGE_NAME}" "" /tmp/digests/base
           create_manifest "${IMAGE_NAME}" "-web" /tmp/digests/web
+          create_manifest "${IMAGE_NAME}" "-bun" /tmp/digests/bun-base optional
+          create_manifest "${IMAGE_NAME}" "-web-bun" /tmp/digests/bun-web optional
 
-      - name: Create GHCR manifest
+      - name: Create GHCR version manifests
         run: |
           set -euo pipefail
 
           create_manifest() {
-            local image="$1" suffix="$2" dir="$3"
-            local tags=(-t "${image}:${VERSION}${suffix}")
-            if [ "$PROMOTE_LATEST" = "true" ]; then
-              tags+=(-t "${image}:latest${suffix}")
-            fi
+            local image="$1" suffix="$2" dir="$3" optional="${4:-}"
             local refs=()
             while IFS= read -r digest_file; do
               refs+=("${image}@sha256:$(basename "$digest_file")")
             done < <(find "$dir" -type f | sort)
             if [ "${#refs[@]}" -eq 0 ]; then
+              if [ -n "$optional" ]; then
+                echo "::warning::No image digests in $dir — skipping optional tag ${image}:${VERSION}${suffix}" >&2
+                return 0
+              fi
               echo "No image digests in $dir" >&2
               exit 1
             fi
-            docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+            docker buildx imagetools create -t "${image}:${VERSION}${suffix}" "${refs[@]}"
           }
 
           create_manifest "${GHCR_IMAGE_NAME}" "" /tmp/digests/base
           create_manifest "${GHCR_IMAGE_NAME}" "-web" /tmp/digests/web
+          create_manifest "${GHCR_IMAGE_NAME}" "-bun" /tmp/digests/bun-base optional
+          create_manifest "${GHCR_IMAGE_NAME}" "-web-bun" /tmp/digests/bun-web optional
+
+      - name: Smoke-test published Docker image
+        if: needs.prepare.outputs.version != 'main'
+        run: |
+          set -euo pipefail
+          container="omniroute-smoke-${VERSION//[^a-zA-Z0-9_.-]/-}"
+          trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+          docker run --detach --name "$container" "${IMAGE_NAME}:${VERSION}"
+          for attempt in $(seq 1 30); do
+            status="$(docker inspect --format '{{.State.Health.Status}}' "$container")"
+            if [ "$status" = "healthy" ]; then
+              exit 0
+            fi
+            if [ "$status" = "unhealthy" ] || [ "$(docker inspect --format '{{.State.Status}}' "$container")" = "exited" ]; then
+              docker logs "$container"
+              exit 1
+            fi
+            sleep 2
+          done
+          docker logs "$container"
+          exit 1
+
+      - name: Promote Docker Hub latest tags
+        if: needs.prepare.outputs.promote_latest == 'true'
+        run: |
+          set -euo pipefail
+          promote_tag() {
+            local suffix="$1"
+            docker buildx imagetools create -t "${IMAGE_NAME}:latest${suffix}" "${IMAGE_NAME}:${VERSION}${suffix}"
+          }
+          promote_tag ""
+          promote_tag "-web"
+          for suffix in -bun -web-bun; do
+            if docker buildx imagetools inspect "${IMAGE_NAME}:${VERSION}${suffix}" >/dev/null 2>&1; then
+              promote_tag "$suffix"
+            fi
+          done
+
+      - name: Promote GHCR latest tags
+        if: needs.prepare.outputs.promote_latest == 'true'
+        run: |
+          set -euo pipefail
+          promote_tag() {
+            local suffix="$1"
+            docker buildx imagetools create -t "${GHCR_IMAGE_NAME}:latest${suffix}" "${GHCR_IMAGE_NAME}:${VERSION}${suffix}"
+          }
+          promote_tag ""
+          promote_tag "-web"
+          for suffix in -bun -web-bun; do
+            if docker buildx imagetools inspect "${GHCR_IMAGE_NAME}:${VERSION}${suffix}" >/dev/null 2>&1; then
+              promote_tag "$suffix"
+            fi
+          done
 
       - name: Inspect image
         if: needs.prepare.outputs.version != 'main'
@@ -368,11 +577,14 @@ jobs:
           severity: CRITICAL
           ignore-unfixed: true
           exit-code: "1"
+          # Explicit: the advisory scan above already points at it, and the blocking
+          # gate must honour the same accepted-risk list (#12084).
+          trivyignores: .trivyignore
 
       - name: Upload Trivy SARIF to Security tab
         if: needs.prepare.outputs.version != 'main'
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@v4.37.4
+        uses: github/codeql-action/upload-sarif@v4.38.1
         with:
           sarif_file: trivy-results.sarif
           category: trivy-image

@@ -56,7 +56,7 @@ async function cleanupTestDataDir() {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     try {
       core.resetDbInstance();
-      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       return;
     } catch (error: any) {
       lastError = error;

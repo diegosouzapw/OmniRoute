@@ -9,16 +9,15 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-intercept-f
 process.env.DATA_DIR = tmpDir;
 
 const core = await import("../../src/lib/db/core.ts");
-const { setInterceptionRules, resolveInterceptFetch } = await import(
-  "../../src/lib/db/interceptionRules.ts"
-);
+const { setInterceptionRules, resolveInterceptFetch } =
+  await import("../../src/lib/db/interceptionRules.ts");
 
 // #7339 — resolveInterceptFetch, a structural twin of resolveInterceptSearch
 // (tests/unit/interception-rules.test.ts), covering Phase 3 of #3384.
 describe("db/interceptionRules — resolveInterceptFetch precedence (#7339)", () => {
   function resetDb() {
     core.resetDbInstance();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     fs.mkdirSync(tmpDir, { recursive: true });
   }
 
@@ -28,7 +27,7 @@ describe("db/interceptionRules — resolveInterceptFetch precedence (#7339)", ()
 
   after(() => {
     core.resetDbInstance();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("returns undefined when no provider/model rule exists", () => {

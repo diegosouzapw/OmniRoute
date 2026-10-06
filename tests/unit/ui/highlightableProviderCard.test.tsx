@@ -18,6 +18,7 @@ import HighlightableProviderCard from "@/app/(dashboard)/dashboard/providers/com
 vi.mock("next-intl", () => ({ useTranslations: () => (k: string) => k }));
 vi.mock("@/shared/components/ProviderTestSlideOver", () => ({ default: () => null }));
 vi.mock("@/shared/components/ProviderIcon", () => ({ default: () => null }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => {} }) }));
 // Deterministic anchor so the click path does not depend on next/link's router.
 vi.mock("next/link", () => ({
   __esModule: true,

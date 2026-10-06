@@ -20,13 +20,13 @@ test("hasSpecializedExecutor returns true for t3chat alias", () => {
   assert.ok(hasSpecializedExecutor("t3chat"));
 });
 
-test("getExecutor returns T3ChatWebExecutor for t3-web", () => {
-  const exec = getExecutor("t3-web");
+test("getExecutor returns T3ChatWebExecutor for t3-web", async () => {
+  const exec = await getExecutor("t3-web");
   assert.ok(exec instanceof T3ChatWebExecutor);
 });
 
-test("getExecutor returns T3ChatWebExecutor for t3chat alias", () => {
-  const exec = getExecutor("t3chat");
+test("getExecutor returns T3ChatWebExecutor for t3chat alias", async () => {
+  const exec = await getExecutor("t3chat");
   assert.ok(exec instanceof T3ChatWebExecutor);
 });
 

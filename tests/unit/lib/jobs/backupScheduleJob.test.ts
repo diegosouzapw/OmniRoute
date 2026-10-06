@@ -13,7 +13,7 @@ async function withTmpDataDir(fn: (dataDir: string) => Promise<void>) {
   } finally {
     if (orig === undefined) delete process.env.DATA_DIR;
     else process.env.DATA_DIR = orig;
-    rmSync(dataDir, { recursive: true, force: true });
+    rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 

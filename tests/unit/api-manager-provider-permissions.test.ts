@@ -45,7 +45,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch {
@@ -63,7 +63,7 @@ test.after(async () => {
   apiKeys.resetApiKeyState();
   core.resetDbInstance();
   try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     // best-effort cleanup
   }
@@ -258,7 +258,7 @@ test("R2/R5: JSON import preserves explicit restricted + empty and infers legacy
 test("R2/R5: startup db.json migration preserves explicit restricted-empty mode", async () => {
   apiKeys.resetApiKeyState();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   fs.writeFileSync(
     path.join(TEST_DATA_DIR, "db.json"),

@@ -23,6 +23,15 @@ import { getComboByName } from "@/lib/db/combos";
 import { getAllCustomModels } from "@/lib/db/models";
 import { resolveProxyForConnection } from "@/lib/db/settings";
 import { resolveImageRouteModel } from "@/lib/images/imageRouteModel";
+import {
+  isMicrosoftDesignerWebProviderRetiredError,
+  isMicrosoftDesignerWebRetiredProviderId,
+  MICROSOFT_DESIGNER_WEB_RETIRED_MESSAGE,
+} from "@/shared/constants/designerWebRetirement";
+import {
+  resolveLocalSyncedEndpointRoute,
+  type LocalSyncedEndpointRoute,
+} from "@/lib/providerModels/syncedEndpointRouting";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
@@ -31,6 +40,12 @@ import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalo
 import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
 import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
 import { executeImageWithCredentialFallback } from "@/sse/services/imageCredentialRetry";
+import { AUTHZ_HEADER_PEER_LOCALITY } from "@/server/authz/headers";
+import {
+  assertCommonChatGptWebModelAvailable,
+  CHATGPT_WEB_RETIRED_ERROR_CODE,
+  isCommonChatGptWebRetirementError,
+} from "@/shared/constants/chatgptWebRetirement";
 
 export const dynamic = "force-dynamic";
 
@@ -75,7 +90,7 @@ function hasImageGenerationInput(body: Record<string, unknown>) {
   return false;
 }
 
-// Forward only the host-shaped headers the chatgpt-web image handler needs
+// Forward only the host-shaped headers the Gemini Web image handler needs
 // to derive the browser-facing public base URL. Avoid copying the full
 // request header set: it's wider than the handler needs (auth tokens,
 // content-type, etc.) and `Headers.forEach` collapses repeated values, which
@@ -113,25 +128,37 @@ async function postHandler(request, context) {
   const authRejection = await enforceClientApiRouteAuth(request);
   if (authRejection) return authRejection;
 
+  // Fail closed on the raw wire id before combo/alias/custom-node remapping can erase it.
+  try {
+    assertCommonChatGptWebModelAvailable(body.model);
+  } catch (error) {
+    if (isCommonChatGptWebRetirementError(error)) {
+      return errorResponse(error.status, error.message, {
+        type: "provider_error",
+        code: CHATGPT_WEB_RETIRED_ERROR_CODE,
+      });
+    }
+    throw error;
+  }
+
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
+
+  const modelPrefix = body.model.includes("/")
+    ? body.model.slice(0, body.model.indexOf("/"))
+    : body.model;
+  if (isMicrosoftDesignerWebRetiredProviderId(modelPrefix)) {
+    return errorResponse(HTTP_STATUS.GONE, MICROSOFT_DESIGNER_WEB_RETIRED_MESSAGE);
+  }
 
   // #9239: Detect combo name and divert to full image combo execution.
   // Checks before resolveImageRouteModel so we skip single-target flattening.
   if (body.model && typeof body.model === "string" && !body.model.includes("/")) {
     const combo = await getComboByName(body.model as string);
     if (combo) {
-      const { executeImageCombo } = await import(
-        "@omniroute/open-sse/services/imageCombo"
-      );
-      return executeImageCombo(
-        body.model as string,
-        body,
-        { request, policy },
-        startTime,
-        log
-      );
+      const { executeImageCombo } = await import("@omniroute/open-sse/services/imageCombo");
+      return executeImageCombo(body.model as string, body, { request, policy }, startTime, log);
     }
   }
 
@@ -139,11 +166,34 @@ async function postHandler(request, context) {
   // model (`myImg/gpt-image-2`) to its internal `<nodeId>/<model>` form so the
   // custom-model lookup and handler's resolvedProvider extraction resolve correctly.
   // Built-in and already-internal ids pass through unchanged. Shared with /images/edits.
-  body.model = await resolveImageRouteModel(body.model);
+  try {
+    body.model = await resolveImageRouteModel(body.model);
+  } catch (error) {
+    if (isMicrosoftDesignerWebProviderRetiredError(error)) {
+      return errorResponse(HTTP_STATUS.GONE, error.message);
+    }
+    if (isCommonChatGptWebRetirementError(error)) {
+      return errorResponse(error.status, error.message, {
+        type: "provider_error",
+        code: CHATGPT_WEB_RETIRED_ERROR_CODE,
+      });
+    }
+    throw error;
+  }
 
   // Parse model to get provider
   let { provider, model: requestedModel } = parseImageModel(body.model);
   let isCustomModel = false;
+  let syncedEndpointRoute: LocalSyncedEndpointRoute | null = null;
+
+  if (!provider) {
+    syncedEndpointRoute = await resolveLocalSyncedEndpointRoute(body.model, "images");
+    if (syncedEndpointRoute) {
+      provider = syncedEndpointRoute.provider;
+      body.model = `${syncedEndpointRoute.provider}/${syncedEndpointRoute.model}`;
+      isCustomModel = true;
+    }
+  }
 
   // If not in built-in registry, check custom models tagged for images
   if (!provider) {
@@ -230,7 +280,7 @@ async function postHandler(request, context) {
     credentials = await getProviderCredentialsWithQuotaPreflight(
       provider,
       null,
-      null,
+      syncedEndpointRoute?.connectionIds ?? null,
       requestedModel
     );
     if (!credentials) {
@@ -290,6 +340,12 @@ async function postHandler(request, context) {
               ...(isCustomModel && { resolvedProvider: provider }),
               signal: request.signal,
               clientHeaders: publicBaseUrlHeaders(request.headers),
+              // Trusted "loopback"|"lan"|"remote" verdict stamped by the authz
+              // pipeline from the real TCP peer (never the spoofable Host
+              // header). Only the spawn-capable cursor-agent-image provider
+              // consumes this (Hard Rules #15 + #17) — every other image
+              // provider ignores it.
+              peerLocality: request.headers.get(AUTHZ_HEADER_PEER_LOCALITY),
             })
         );
 
@@ -326,7 +382,10 @@ async function postHandler(request, context) {
     });
   }
 
-  const errorPayload = toJsonErrorPayload((result as any).error, "Image generation provider error") as {
+  const errorPayload = toJsonErrorPayload(
+    (result as any).error,
+    "Image generation provider error"
+  ) as {
     error?: { message?: string };
   };
   const message =

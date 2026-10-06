@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getApiKeyById } from "@/lib/localDb";
+import { getApiKeyById } from "@/lib/db/apiKeys";
 import { isApiKeyRevealEnabled } from "@/lib/apiKeyExposure";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";

@@ -13,9 +13,8 @@ process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
 const { getUsageHistory } = await import("../../src/lib/usage/usageHistory.ts");
-const { recordStreamingUsageStats } = await import(
-  "../../open-sse/handlers/chatCore/streamingUsageStats.ts"
-);
+const { recordStreamingUsageStats } =
+  await import("../../open-sse/handlers/chatCore/streamingUsageStats.ts");
 
 function baseCtx(overrides: Record<string, unknown> = {}) {
   return {
@@ -55,7 +54,7 @@ before(async () => {
 after(() => {
   coreDb.resetDbInstance();
   try {
-    fs.rmSync(testDataDir, { recursive: true, force: true });
+    fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     // best-effort cleanup
   }

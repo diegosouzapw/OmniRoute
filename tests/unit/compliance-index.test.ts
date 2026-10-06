@@ -15,7 +15,7 @@ const compliance = await import("../../src/lib/compliance/index.ts");
 function resetDb() {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -26,7 +26,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("compliance audit log initialization, writes and filtered reads work end to end", () => {
@@ -92,6 +92,12 @@ test("compliance audit log supports structured filters, totals and secret redact
       nested: {
         refreshToken: "refresh-secret",
       },
+      providerSpecificData: {
+        extraApiKeys: ["sk-extra-1", "sk-extra-2"],
+        token: "token-secret",
+        userToken: "user-token-secret",
+        cookie: "cookie-secret",
+      },
       changedFields: ["defaultModel"],
     },
     ipAddress: "10.0.0.4",
@@ -132,6 +138,12 @@ test("compliance audit log supports structured filters, totals and secret redact
     apiKey: "[redacted]",
     nested: {
       refreshToken: "[redacted]",
+    },
+    providerSpecificData: {
+      extraApiKeys: "[redacted]",
+      token: "[redacted]",
+      userToken: "[redacted]",
+      cookie: "[redacted]",
     },
     changedFields: ["defaultModel"],
   });

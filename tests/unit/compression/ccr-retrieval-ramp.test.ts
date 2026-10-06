@@ -78,7 +78,13 @@ describe("ccrEngine.apply — retrieval-aware compression (H8)", () => {
   const block = (len: number) => "x".repeat(len);
   const run = (content: string, retrievalRampFactor = 2) =>
     ccrEngine.apply(
-      { messages: [{ role: "user", content }] },
+      // The retrieve tool is advertised — this suite exercises the compression
+      // path itself (H8 ramp); without the tool declaration the #7746 guard
+      // skips the engine entirely.
+      {
+        messages: [{ role: "user", content }],
+        tools: [{ type: "function", function: { name: "omniroute_ccr_retrieve" } }],
+      },
       { stepConfig: { minChars: BASE, retrievalRampFactor }, principalId: P }
     );
 

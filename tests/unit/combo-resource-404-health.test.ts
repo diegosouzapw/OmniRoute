@@ -47,7 +47,7 @@ test.after(() => {
   clearAllModelLockouts();
   clearCooldownState();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("combo resource 404 never records model lockout or provider cooldown", async () => {

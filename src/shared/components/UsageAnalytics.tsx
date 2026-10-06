@@ -54,6 +54,9 @@ export default function UsageAnalytics() {
       setLoading(true);
       const params = new URLSearchParams();
       params.set("range", range);
+      // This page labels the value as an estimate, so opt into token-price
+      // equivalents for flat-rate subscriptions without changing API defaults.
+      params.set("includeFlatRateEstimates", "true");
       if (range === "custom" && customStart && customEnd) {
         params.set("startDate", customStart);
         params.set("endDate", customEnd);
@@ -272,24 +275,32 @@ export default function UsageAnalytics() {
           icon="generating_tokens"
           label={t("totalTokens")}
           value={fmt(s.totalTokens)}
+          tooltip={fmtFull(s.totalTokens)}
           subValue={`${fmtFull(s.totalRequests)} ${t("chartRequests")}`}
         />
         <StatCard
           icon="input"
           label={t("inputTokens")}
           value={fmt(s.promptTokens)}
+          tooltip={fmtFull(s.promptTokens)}
           color="text-primary"
         />
         <StatCard
           icon="output"
           label={t("outputTokens")}
           value={fmt(s.completionTokens)}
+          tooltip={fmtFull(s.completionTokens)}
           color="text-emerald-500"
         />
         <StatCard
           icon="payments"
           label={t("estCost")}
           value={fmtCost(s.totalCost)}
+          tooltip={
+            s.totalCost !== undefined && s.totalCost !== null
+              ? `$${Number(s.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`
+              : undefined
+          }
           color="text-amber-500"
         />
       </div>
@@ -318,12 +329,16 @@ export default function UsageAnalytics() {
                 icon: "speed",
                 label: t("perfAvgTokens"),
                 value: fmt(avgTokensPerReq),
+                tooltip: `tokens : ${fmtFull(avgTokensPerReq)} tokens`,
                 color: "text-cyan-500",
               },
               {
                 icon: "request_quote",
                 label: t("perfCostReq"),
                 value: fmtCost(costPerReq),
+                tooltip: costPerReq
+                  ? `cost : $${Number(costPerReq).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}`
+                  : undefined,
                 color: "text-orange-500",
               },
               {
@@ -336,6 +351,7 @@ export default function UsageAnalytics() {
                 icon: "bolt",
                 label: t("perfFastReq"),
                 value: fmt(s.fastRequests || 0),
+                tooltip: `requests : ${fmtFull(s.fastRequests || 0)} requests`,
                 color: "text-sky-500",
               },
             ],

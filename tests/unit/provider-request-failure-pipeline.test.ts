@@ -21,7 +21,8 @@ const { clearInflight } = await import("../../open-sse/services/requestDedup.ts"
 const { resetAll: resetAccountSemaphores } =
   await import("../../open-sse/services/accountSemaphore.ts");
 const { clearModelLock } = await import("../../open-sse/services/accountFallback.ts");
-const { getCallLogs, getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
+const { getCallLogs, getCallLogById, waitForCallLogSaves } =
+  await import("../../src/lib/usage/callLogs.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { resetPayloadRulesConfigForTests } = await import("../../open-sse/services/payloadRules.ts");
 const { CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA, CONTEXT_1M_BETA_HEADER } =
@@ -56,6 +57,11 @@ async function resetStorage() {
   clearIdempotency();
   clearInflight();
   clearModelLock();
+  // Call-log persistence is fire-and-forget and the first cold artifact-worker
+  // spawn can take ~2.4s, so this test's saves may still be in flight when the
+  // next test resets the DB. Drain so a late row cannot land in the next test's
+  // fresh database and get picked up by its waitFor(getLatestCallLog()) (#12780).
+  await waitForCallLogSaves(10_000);
   core.resetDbInstance();
   // A full reset must also drop the settings read-cache. Otherwise the cached
   // value (e.g. call_log_pipeline_enabled=true seeded earlier) survives the DB
@@ -63,7 +69,7 @@ async function resetStorage() {
   // under load this cache is evicted at unpredictable times, so tests that rely
   // on the stale cache flake. Make the reset honest and deterministic here.
   invalidateDbCache("settings");
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -88,7 +94,7 @@ test.after(async () => {
   clearPendingRequests();
   resetAccountSemaphores();
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("network failure persisted call log includes providerRequest in pipeline payloads", async () => {
@@ -153,7 +159,7 @@ test("network failure persisted call log includes providerRequest in pipeline pa
 
 test("network timeout persisted call log includes providerRequest in pipeline payloads", async () => {
   const { getExecutor } = await import("../../open-sse/executors/index.ts");
-  const executor = getExecutor("openai");
+  const executor = await getExecutor("openai");
   const originalGetTimeoutMs = executor.getTimeoutMs?.bind(executor);
   executor.getTimeoutMs = () => 200;
 

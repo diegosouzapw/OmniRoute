@@ -18,10 +18,18 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import {
+  baseRefArg,
+  listChangedFiles,
+  newDeadSymbols,
+  resolveMergeBase,
+  withBaseWorktree,
+} from "./newCodeMode.mjs";
 
 const ROOT = process.cwd();
 const KNIP_BIN = path.join(ROOT, "node_modules", ".bin", "knip");
 const QUIET = process.argv.includes("--quiet");
+const BASE_REF = baseRefArg();
 const PRINT_JSON = process.argv.includes("--json");
 const UPDATE = process.argv.includes("--update");
 
@@ -103,7 +111,7 @@ export function evaluateDeadCode(current, baseline) {
   };
 }
 
-function runKnip() {
+function runKnip(cwd = ROOT) {
   const args = [
     "--reporter",
     "json",
@@ -118,7 +126,7 @@ function runKnip() {
   let stdout;
   try {
     stdout = execFileSync(KNIP_BIN, args, {
-      cwd: ROOT,
+      cwd,
       encoding: "utf8",
       maxBuffer: 128 * 1024 * 1024,
       timeout: 300_000, // 5 min (knip pode ser lento em monorepos grandes)
@@ -144,6 +152,47 @@ function runKnip() {
   return knipJson;
 }
 
+/**
+ * New-code mode (PR events, `--base-ref <sha>`): knip on HEAD and on the merge-base; blocking
+ * only on dead symbols the PR introduced in files it touched. The global count is printed as
+ * an advisory (the release reconciliation re-freezes it). See newCodeMode.mjs.
+ */
+function mainNewCode(baselineValue) {
+  const mergeBase = resolveMergeBase(BASE_REF);
+  const changed = listChangedFiles(mergeBase, {
+    dirs: ["src", "open-sse", "electron", "bin", "scripts"],
+    exts: [".ts", ".tsx", ".js", ".mjs"],
+    // Knip still reports vendor symbols in the global advisory total. Exclude them only from
+    // the PR authorship comparison so vendored public APIs remain faithful to upstream.
+    excludePrefixes: ["open-sse/vendor/"],
+  });
+  const headKnip = runKnip();
+  const { deadTotal } = parseKnipMetrics(headKnip);
+  console.log(`DEAD_TOTAL=${deadTotal}`);
+  const over = deadTotal > baselineValue ? " — OVER, re-freeze at release" : "";
+  console.log(
+    `[dead-code] new-code mode: merge-base ${mergeBase.slice(0, 12)}, ${changed.length} changed file(s); global ${deadTotal} vs baseline ${baselineValue} (advisory${over})`
+  );
+  if (changed.length === 0) {
+    console.log("[dead-code] OK — no source files changed; nothing to compare.");
+    return;
+  }
+  const baseKnip = withBaseWorktree(mergeBase, (dir) => runKnip(dir));
+  const added = newDeadSymbols(headKnip, baseKnip, changed);
+  console.log(`deadExportsNewCode=${added.length}`);
+  if (added.length) {
+    process.stderr.write(
+      `[dead-code] REGRESSÃO (código novo) — ${added.length} símbolo(s) morto(s) introduzido(s) nos arquivos tocados:\n` +
+        added.map((k) => `  ✗ ${k}`).join("\n") +
+        "\n  → remova o export (ou use-o). O total global do repo não conta aqui.\n"
+    );
+    process.exit(1);
+  }
+  console.log(
+    `[dead-code] OK (código novo) — nenhum símbolo morto novo nos ${changed.length} arquivo(s) tocado(s)`
+  );
+}
+
 function main() {
   if (!fs.existsSync(BASELINE_PATH)) {
     process.stderr.write(`[dead-code] FAIL — ${path.basename(BASELINE_PATH)} ausente.\n`);
@@ -159,6 +208,7 @@ function main() {
     process.exit(2);
   }
   const baselineValue = baselineMetric.value;
+  if (BASE_REF && !PRINT_JSON && !UPDATE) return mainNewCode(baselineValue);
 
   const knipJson = runKnip();
 

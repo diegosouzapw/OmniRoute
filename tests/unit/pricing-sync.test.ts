@@ -138,9 +138,14 @@ describe("transformToOmniRoute", () => {
 
     const result = transformToOmniRoute(raw);
 
-    // deepseek maps to "if" alias
-    assert.ok(result.if, "Should map deepseek to if alias");
-    assert.ok(result.if["deepseek-chat"]);
+    // deepseek maps to "ds" (its real registry alias — open-sse/config/providers/
+    // registry/deepseek/index.ts). Previously mapped to "if" (Qoder's alias, an
+    // unrelated provider) — fixed alongside the other dead LITELLM_PROVIDER_MAP
+    // entries (bedrock/bedrock_converse/cloudflare) that pointed at a provider's
+    // `id` instead of its `alias`.
+    assert.ok(result.ds, "Should map deepseek to its real ds alias");
+    assert.ok(result.ds["deepseek-chat"]);
+    assert.ok(!result.if, "Must not route deepseek pricing onto Qoder's if alias");
   });
 
   test("skips entries without input cost", () => {

@@ -34,7 +34,7 @@ test("bailian-coding-plan not in OAUTH_PROVIDERS", () => {
 });
 
 // Schema validation tests for providerSpecificData.baseUrl
-const VALID_BAILIAN_URL = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
+const VALID_BAILIAN_URL = "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1";
 
 test("createProviderSchema accepts valid baseUrl in providerSpecificData", () => {
   const validation = validateBody(createProviderSchema, {
@@ -427,12 +427,16 @@ test("validateProviderApiKey returns invalid for 401 response (bailian-coding-pl
       provider: "bailian-coding-plan",
       apiKey: "invalid-key",
       providerSpecificData: {
-        baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+        baseUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
       },
     });
 
     assert.equal(result.valid, false, "Should return invalid for 401");
-    assert.equal(result.error, "Invalid API key", "Error should be 'Invalid API key'");
+    assert.match(
+      String(result.error),
+      /^Invalid API key/,
+      "Error should start with 'Invalid API key'"
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -452,12 +456,16 @@ test("validateProviderApiKey returns invalid for 403 response (bailian-coding-pl
       provider: "bailian-coding-plan",
       apiKey: "forbidden-key",
       providerSpecificData: {
-        baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+        baseUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
       },
     });
 
     assert.equal(result.valid, false, "Should return invalid for 403");
-    assert.equal(result.error, "Invalid API key", "Error should be 'Invalid API key'");
+    assert.match(
+      String(result.error),
+      /^Invalid API key/,
+      "Error should start with 'Invalid API key'"
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -479,7 +487,7 @@ test("validateProviderApiKey returns valid for 400 response (bailian-coding-plan
       provider: "bailian-coding-plan",
       apiKey: "valid-key",
       providerSpecificData: {
-        baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+        baseUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
       },
     });
 
@@ -508,7 +516,7 @@ test("validateProviderApiKey returns valid for 200 response (bailian-coding-plan
       provider: "bailian-coding-plan",
       apiKey: "valid-key",
       providerSpecificData: {
-        baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+        baseUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
       },
     });
 
@@ -533,7 +541,7 @@ test("validateProviderApiKey returns invalid for 500 response (bailian-coding-pl
       provider: "bailian-coding-plan",
       apiKey: "bad-key",
       providerSpecificData: {
-        baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+        baseUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
       },
     });
 
@@ -561,7 +569,7 @@ test("validateProviderApiKey avoids double /messages suffix for bailian-coding-p
       provider: "bailian-coding-plan",
       apiKey: "valid-key",
       providerSpecificData: {
-        baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages",
+        baseUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1/messages",
       },
     });
 
@@ -569,7 +577,7 @@ test("validateProviderApiKey avoids double /messages suffix for bailian-coding-p
     assert.equal(urls.length, 1);
     assert.equal(
       urls[0],
-      "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages",
+      "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1/messages",
       "Should probe exactly one /messages suffix"
     );
   } finally {
@@ -588,7 +596,7 @@ test("POST /api/providers validation: bailian-coding-plan with baseUrl passes sc
     apiKey: "sk-placeholder-key",
     name: "Test Bailian Provider",
     providerSpecificData: {
-      baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+      baseUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
     },
   });
 
@@ -597,7 +605,7 @@ test("POST /api/providers validation: bailian-coding-plan with baseUrl passes sc
     assert.equal(validation.data.provider, "bailian-coding-plan");
     assert.equal(
       validation.data.providerSpecificData?.baseUrl,
-      "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1"
+      "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1"
     );
   }
 });

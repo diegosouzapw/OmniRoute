@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { issueDashboardCsrfToken } from "@/server/authz/csrf";

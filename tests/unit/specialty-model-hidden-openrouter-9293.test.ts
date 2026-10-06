@@ -26,13 +26,13 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "9293-test-secret";
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
-const { mergeModelCompatOverride, getModelIsHidden } = await import("../../src/lib/localDb.ts");
+const { mergeModelCompatOverride, getModelIsHidden } = await import("@/lib/db/models");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
@@ -44,7 +44,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#9293 hidden OpenRouter specialty models are excluded from /v1/models catalog", async () => {

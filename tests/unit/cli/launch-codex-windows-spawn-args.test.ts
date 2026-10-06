@@ -126,7 +126,7 @@ test(
 
       assert.deepEqual(received, args, "child argv must match what the caller passed");
     } finally {
-      rmSync(dir, { recursive: true, force: true });
+      rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   }
 );

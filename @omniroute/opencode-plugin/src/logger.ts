@@ -36,39 +36,47 @@ function fmt(level: LogLevel, msg: string, tag?: string): string {
   return `${prefix} [${level.toUpperCase()}] ${msg}`;
 }
 
-export const logger = {
-  error(msg: string, ...args: unknown[]): void {
-    if (shouldLog(_level, "error")) console.error(fmt("error", msg), ...args);
-  },
-  warn(msg: string, ...args: unknown[]): void {
-    if (shouldLog(_level, "warn")) console.warn(fmt("warn", msg), ...args);
-  },
-  info(msg: string, ...args: unknown[]): void {
-    if (shouldLog(_level, "info")) console.warn(fmt("info", msg), ...args);
-  },
-  debug(msg: string, ...args: unknown[]): void {
-    if (shouldLog(_level, "debug")) console.warn(fmt("debug", msg), ...args);
-  },
-  /** Always emit regardless of level (for critical init breadcrumbs). */
-  always(msg: string, ...args: unknown[]): void {
-    console.warn(TAG, msg, ...args);
-  },
+function buildLogger(getLevel: () => LogLevel) {
+  return {
+    error(msg: string, ...args: unknown[]): void {
+      if (shouldLog(getLevel(), "error")) console.error(fmt("error", msg), ...args);
+    },
+    warn(msg: string, ...args: unknown[]): void {
+      if (shouldLog(getLevel(), "warn")) console.warn(fmt("warn", msg), ...args);
+    },
+    info(msg: string, ...args: unknown[]): void {
+      if (shouldLog(getLevel(), "info")) console.warn(fmt("info", msg), ...args);
+    },
+    debug(msg: string, ...args: unknown[]): void {
+      if (shouldLog(getLevel(), "debug")) console.warn(fmt("debug", msg), ...args);
+    },
+    /** Always emit regardless of level (for critical init breadcrumbs). */
+    always(msg: string, ...args: unknown[]): void {
+      console.warn(TAG, msg, ...args);
+    },
 
-  // ── Tagged child loggers ──────────────────────────────────────────────
-  child(tag: string) {
-    return {
-      error: (msg: string, ...args: unknown[]) =>
-        shouldLog(_level, "error") &&
-        console.error(fmt("error", msg, tag), ...args),
-      warn: (msg: string, ...args: unknown[]) =>
-        shouldLog(_level, "warn") &&
-        console.warn(fmt("warn", msg, tag), ...args),
-      info: (msg: string, ...args: unknown[]) =>
-        shouldLog(_level, "info") &&
-        console.warn(fmt("info", msg, tag), ...args),
-      debug: (msg: string, ...args: unknown[]) =>
-        shouldLog(_level, "debug") &&
-        console.warn(fmt("debug", msg, tag), ...args),
-    };
-  },
-};
+    // ── Tagged child loggers ────────────────────────────────────────────
+    child(tag: string) {
+      return {
+        error: (msg: string, ...args: unknown[]) =>
+          shouldLog(getLevel(), "error") && console.error(fmt("error", msg, tag), ...args),
+        warn: (msg: string, ...args: unknown[]) =>
+          shouldLog(getLevel(), "warn") && console.warn(fmt("warn", msg, tag), ...args),
+        info: (msg: string, ...args: unknown[]) =>
+          shouldLog(getLevel(), "info") && console.warn(fmt("info", msg, tag), ...args),
+        debug: (msg: string, ...args: unknown[]) =>
+          shouldLog(getLevel(), "debug") && console.warn(fmt("debug", msg, tag), ...args),
+      };
+    },
+  };
+}
+
+export type Logger = ReturnType<typeof buildLogger>;
+
+/** Create an instance-scoped logger whose level cannot be changed by other plugin instances. */
+export function createLogger(level: LogLevel): Logger {
+  return buildLogger(() => level);
+}
+
+/** Backward-compatible module-global logger controlled by setLogLevel(). */
+export const logger: Logger = buildLogger(() => _level);

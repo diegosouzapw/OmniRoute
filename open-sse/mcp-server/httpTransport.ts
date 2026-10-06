@@ -284,12 +284,30 @@ export async function handleMcpStreamableHTTP(request: Request): Promise<Respons
   return protectMcpSseResponse(request, await handleStreamableRequest(request));
 }
 
+interface RpcRequest {
+  method?: string;
+  [key: string]: unknown;
+}
+
 /**
  * Handle SSE requests.
  * SSE transport is implemented via Streamable HTTP transport with GET for SSE stream
  * and POST for messages (the Streamable HTTP transport supports both patterns).
  */
 export async function handleMcpSSE(request: Request): Promise<Response> {
+  if (request.method === "POST") {
+    try {
+      const body = await request.clone().json();
+      const isInitialize = Array.isArray(body)
+        ? body.some((req: RpcRequest) => req?.method === "initialize")
+        : (body as RpcRequest)?.method === "initialize";
+
+      if (isInitialize) {
+        console.log("[MCP] New client initialize detected, resetting SSE singleton...");
+        closeSseTransport();
+      }
+    } catch (err) {}
+  }
   const { transport } = ensureSseServer();
 
   try {

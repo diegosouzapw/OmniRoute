@@ -6,7 +6,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { isValidProviderIconUrl } from "../../src/shared/validation/iconUrl.ts";
+import {
+  isValidProviderIconUrl,
+  MAX_ICON_DATA_URL_LENGTH,
+  MAX_ICON_URL_LENGTH,
+} from "../../src/shared/validation/iconUrl.ts";
 import {
   createProviderNodeSchema,
   updateProviderNodeSchema,
@@ -19,7 +23,7 @@ const VALID_SVG_DATA_URL =
 const VALID_XICON_DATA_URL = "data:image/x-icon;base64,QUJDRA==";
 const VALID_JPEG_DATA_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRg==";
 const VALID_HTTP = "https://example.com/logo.png";
-const VALID_HTTP_2000 = "https://example.com/" + "a".repeat(1970) + ".png";
+const VALID_HTTP_2000 = "https://example.com/" + "a".repeat(1976) + ".png";
 
 // ---- shared validator ----
 test("isValidProviderIconUrl accepts empty and http(s)", () => {
@@ -219,4 +223,85 @@ test("updateProviderNodeSchema accepts a valid data:image/*;base64 iconUrl", () 
     iconUrl: VALID_SVG_DATA_URL,
   });
   assert.equal(result.success, true);
+});
+
+function dataIconUrlNearLength(maxLength: number): string {
+  const prefix = "data:image/png;base64,";
+  const payloadLength = maxLength - prefix.length;
+  const aligned = payloadLength - (payloadLength % 4);
+  return prefix + "A".repeat(aligned);
+}
+
+function dataIconUrlOverLimit(maxLength: number): string {
+  const atLimit = dataIconUrlNearLength(maxLength);
+  return atLimit + "AAAA";
+}
+
+test("create/update schemas accept a data:image iconUrl up to the shared 256 KiB cap", () => {
+  const iconUrl = dataIconUrlNearLength(MAX_ICON_DATA_URL_LENGTH);
+  assert.ok(iconUrl.length > MAX_ICON_URL_LENGTH);
+  assert.ok(iconUrl.length <= MAX_ICON_DATA_URL_LENGTH);
+  assert.equal(isValidProviderIconUrl(iconUrl), true);
+
+  const created = createProviderNodeSchema.safeParse({
+    name: "Test",
+    prefix: "test",
+    apiType: "chat",
+    iconUrl,
+  });
+  assert.equal(created.success, true, created.success ? "" : JSON.stringify(created.error.issues));
+
+  const updated = updateProviderNodeSchema.safeParse({
+    name: "Test",
+    prefix: "test",
+    baseUrl: "https://test.com",
+    iconUrl,
+  });
+  assert.equal(updated.success, true, updated.success ? "" : JSON.stringify(updated.error.issues));
+});
+
+test("create/update schemas reject an over-limit data:image iconUrl", () => {
+  const iconUrl = dataIconUrlOverLimit(MAX_ICON_DATA_URL_LENGTH);
+  assert.ok(iconUrl.length > MAX_ICON_DATA_URL_LENGTH);
+  assert.ok(iconUrl.length <= MAX_ICON_DATA_URL_LENGTH + 4);
+  assert.equal(isValidProviderIconUrl(iconUrl), false);
+
+  const created = createProviderNodeSchema.safeParse({
+    name: "Test",
+    prefix: "test",
+    apiType: "chat",
+    iconUrl,
+  });
+  assert.equal(created.success, false);
+
+  const updated = updateProviderNodeSchema.safeParse({
+    name: "Test",
+    prefix: "test",
+    baseUrl: "https://test.com",
+    iconUrl,
+  });
+  assert.equal(updated.success, false);
+});
+
+test("create/update schemas keep the 2000-char cap for http(s) iconUrl", () => {
+  const tooLongHttp = VALID_HTTP + "a".repeat(MAX_ICON_URL_LENGTH);
+  assert.ok(tooLongHttp.length > MAX_ICON_URL_LENGTH);
+  assert.equal(
+    createProviderNodeSchema.safeParse({
+      name: "Test",
+      prefix: "test",
+      apiType: "chat",
+      iconUrl: VALID_HTTP_2000,
+    }).success,
+    true
+  );
+  assert.equal(
+    createProviderNodeSchema.safeParse({
+      name: "Test",
+      prefix: "test",
+      apiType: "chat",
+      iconUrl: tooLongHttp,
+    }).success,
+    false
+  );
 });

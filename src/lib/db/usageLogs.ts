@@ -1,11 +1,6 @@
 /**
- * db/usageLogs.ts — Read-only aggregation queries over `usage_logs`
- * extracted from the /api/analytics/auto-routing route handler.
- *
- * Hard Rule #5: routes must not embed raw SQL — these queries live here so the
- * /api/analytics/auto-routing route can delegate.
- *
- * Sliced out of #3500 (usage_logs cluster, slice 4).
+ * Read-only auto-routing aggregations over `call_logs`.
+ * `requested_model` keeps the client auto/* id after routing resolves a target.
  */
 
 import { getDbInstance } from "./core";
@@ -19,8 +14,7 @@ export interface AutoRoutingTotalResult {
 }
 
 /**
- * Returns the total number of requests routed through auto/ prefix models.
- * Matches model = 'auto' OR model LIKE 'auto/%'.
+ * Returns the number of call-log rows requested through auto/ prefix models.
  */
 export function getAutoRoutingTotalCount(): AutoRoutingTotalResult {
   const db = getDbInstance();
@@ -28,8 +22,8 @@ export function getAutoRoutingTotalCount(): AutoRoutingTotalResult {
     .prepare(
       `
       SELECT COUNT(*) as count
-      FROM usage_logs
-      WHERE model = 'auto' OR model LIKE 'auto/%'
+      FROM call_logs
+      WHERE requested_model = 'auto' OR requested_model LIKE 'auto/%'
     `
     )
     .get() as AutoRoutingTotalResult | undefined;
@@ -42,11 +36,7 @@ export interface AutoRoutingVariantRow {
 }
 
 /**
- * Returns per-variant request counts for auto/ prefix models.
- * Variant is derived from the model name:
- *   'auto'      → 'default'
- *   'auto/X'    → 'X'
- *   other       → 'other' (should not occur given the WHERE clause)
+ * Returns per-variant request counts from the client-requested model id.
  */
 export function getAutoRoutingVariantBreakdown(): AutoRoutingVariantRow[] {
   const db = getDbInstance();
@@ -55,13 +45,13 @@ export function getAutoRoutingVariantBreakdown(): AutoRoutingVariantRow[] {
       `
       SELECT
         CASE
-          WHEN model = 'auto' THEN 'default'
-          WHEN model LIKE 'auto/%' THEN SUBSTR(model, 6)
+          WHEN requested_model = 'auto' THEN 'default'
+          WHEN requested_model LIKE 'auto/%' THEN SUBSTR(requested_model, 6)
           ELSE 'other'
         END as variant,
         COUNT(*) as count
-      FROM usage_logs
-      WHERE model = 'auto' OR model LIKE 'auto/%'
+      FROM call_logs
+      WHERE requested_model = 'auto' OR requested_model LIKE 'auto/%'
       GROUP BY variant
       ORDER BY count DESC
     `
@@ -75,7 +65,7 @@ export interface AutoRoutingTopProviderRow {
 }
 
 /**
- * Returns the top 10 providers used for auto/ prefix model requests.
+ * Returns the top 10 providers used for auto/ prefix requests.
  */
 export function getAutoRoutingTopProviders(): AutoRoutingTopProviderRow[] {
   const db = getDbInstance();
@@ -83,8 +73,10 @@ export function getAutoRoutingTopProviders(): AutoRoutingTopProviderRow[] {
     .prepare(
       `
       SELECT provider, COUNT(*) as count
-      FROM usage_logs
-      WHERE model = 'auto' OR model LIKE 'auto/%'
+      FROM call_logs
+      WHERE (requested_model = 'auto' OR requested_model LIKE 'auto/%')
+        AND provider IS NOT NULL
+        AND TRIM(provider) != ''
       GROUP BY provider
       ORDER BY count DESC
       LIMIT 10

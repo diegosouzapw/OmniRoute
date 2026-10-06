@@ -52,18 +52,14 @@ vi.mock("@xyflow/react", () => ({
   Position: { Top: "top", Bottom: "bottom", Left: "left", Right: "right" },
 }));
 
-const ProviderTopology = (
-  await import("../../../src/app/(dashboard)/home/ProviderTopology")
-).default;
+const ProviderTopology = (await import("../../../src/app/(dashboard)/home/ProviderTopology"))
+  .default;
 
-// jsdom normalises inline hex colours to `rgb(...)`, so compare in that space.
-const rgb = (hex: string) => {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
-};
-const GREEN = rgb(FLOW_EDGE_COLORS.active);
-const AMBER = rgb(FLOW_EDGE_COLORS.last);
-const RED = rgb(FLOW_EDGE_COLORS.error);
+// The flow palette is theme-aware CSS custom properties (Fase 3 D1). jsdom keeps
+// `var(...)` verbatim in inline styles, so compare against the token itself.
+const GREEN = FLOW_EDGE_COLORS.active;
+const AMBER = FLOW_EDGE_COLORS.last;
+const RED = FLOW_EDGE_COLORS.error;
 
 let container: HTMLDivElement;
 let root: ReturnType<typeof createRoot>;

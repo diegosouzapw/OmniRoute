@@ -13,7 +13,7 @@ const modelsRoute = await import("../../src/app/api/providers/[id]/models/route.
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // #3047 — OpenCode Free (no-auth) has no connection row, so the

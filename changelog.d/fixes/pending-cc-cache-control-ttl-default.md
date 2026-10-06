@@ -1,1 +1,0 @@
-- **fix(providers):** Claude Code / CC-protocol-compatible clients sending `cache_control` with no `ttl` on the native Claude OAuth path (`claude`/`cc`) now default to the 1h extended cache TTL instead of silently falling back to Anthropic's 5-minute default, even though the 1h beta is always negotiated on this path — thanks @jeff-alves

@@ -120,9 +120,9 @@ test("Kimi Code discovery uses OAuth CLI identity while the hidden legacy path k
   assert.equal(oauthHeaders?.Authorization, "Bearer oauth-token");
   assert.equal(oauthHeaders?.Accept, "application/json");
   assert.equal(oauthHeaders?.["X-Msh-Platform"], "kimi_code_cli");
-  assert.equal(oauthHeaders?.["X-Msh-Version"], "0.26.0");
+  assert.equal(oauthHeaders?.["X-Msh-Version"], "2.1.1");
   assert.equal(oauthHeaders?.["X-Msh-Device-Id"], "12345678-1234-1234-1234-1234567890ab");
-  assert.equal(oauthHeaders?.["User-Agent"], "kimi-code-cli/0.26.0");
+  assert.equal(oauthHeaders?.["User-Agent"], "kimi-code-cli/2.1.1");
 
   const primaryApiKeyHeaders = PROVIDER_MODELS_CONFIG["kimi-coding"].buildHeaders?.("api-key", {
     authType: "apikey",

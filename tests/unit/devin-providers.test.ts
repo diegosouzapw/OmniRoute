@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 import { REGISTRY } from "../../open-sse/config/providers/index.ts";
 import { getExecutor, hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
+import { DevinDesktopExecutor } from "../../open-sse/executors/devin-desktop.ts";
 import { OAUTH_PROVIDERS } from "../../src/shared/constants/providers/oauth.ts";
 
 test("Devin Desktop exposes the supported BYOK-free catalog", () => {
@@ -20,26 +21,29 @@ test("public registries do not expose windsurf or ws aliases", () => {
   assert.ok(Object.values(REGISTRY).every((entry) => entry.alias !== "ws"));
 });
 
-test("executor factory exposes only the dedicated Devin Desktop executor", () => {
+test("executor factory exposes only the dedicated Devin Desktop executor", async () => {
   assert.equal(hasSpecializedExecutor("devin-desktop"), true);
   assert.equal(hasSpecializedExecutor("windsurf"), false);
   assert.equal(hasSpecializedExecutor("ws"), false);
-  assert.equal(getExecutor("devin-desktop").constructor.name, "DevinDesktopExecutor");
+  assert.equal((await getExecutor("devin-desktop")).constructor.name, "DevinDesktopExecutor");
 });
 
-test("Devin Desktop executor uses the live endpoint and verified default identity", () => {
-  const executor = getExecutor("devin-desktop");
+test("Devin Desktop executor uses the live endpoint and verified default identity", async () => {
+  const executor = await getExecutor("devin-desktop");
   delete process.env.DEVIN_DESKTOP_VERSION;
 
+  // getExecutor() widens to BaseExecutor whose buildUrl requires args; the concrete
+  // DevinDesktopExecutor override takes none.
+  const desktop = executor as DevinDesktopExecutor;
   assert.equal(
-    executor.buildUrl(),
+    desktop.buildUrl(),
     "https://server.codeium.com/exa.api_server_pb.ApiServerService/GetChatMessage"
   );
   assert.equal(executor.buildHeaders({ accessToken: "token" })["User-Agent"], "windsurf/3.6.27");
 });
 
-test("Devin Desktop executor applies only valid version overrides to its user agent", () => {
-  const executor = getExecutor("devin-desktop");
+test("Devin Desktop executor applies only valid version overrides to its user agent", async () => {
+  const executor = await getExecutor("devin-desktop");
   process.env.DEVIN_DESKTOP_VERSION = "3.5.1";
   try {
     assert.equal(executor.buildHeaders({ accessToken: "token" })["User-Agent"], "windsurf/3.5.1");
@@ -51,7 +55,7 @@ test("Devin Desktop executor applies only valid version overrides to its user ag
 });
 
 test("Devin Desktop executor returns 401 before the upstream call without a token", async () => {
-  const executor = getExecutor("devin-desktop");
+  const executor = await getExecutor("devin-desktop");
   const originalFetch = globalThis.fetch;
   let fetchCalled = false;
   globalThis.fetch = async () => {
@@ -67,16 +71,17 @@ test("Devin Desktop executor returns 401 before the upstream call without a toke
       credentials: {},
     });
 
+    const response = result instanceof Response ? result : result.response;
     assert.equal(fetchCalled, false);
-    assert.equal(result.response.status, 401);
-    assert.match(await result.response.text(), /Devin Desktop API key is required/);
+    assert.equal(response.status, 401);
+    assert.match(await response.text(), /Devin Desktop API key is required/);
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
 
 test("Devin Desktop stream errors do not expose local paths or stack traces", async () => {
-  const executor = getExecutor("devin-desktop");
+  const executor = await getExecutor("devin-desktop");
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
     new Response(
@@ -95,7 +100,7 @@ test("Devin Desktop stream errors do not expose local paths or stack traces", as
       stream: true,
       credentials: { accessToken: "test-token" },
     });
-    const text = await result.response.text();
+    const text = await (result instanceof Response ? result : result.response).text();
 
     assert.match(text, /stream failed/);
     assert.doesNotMatch(text, /private\.ts|\/Users\/example|\bat\s+\//);

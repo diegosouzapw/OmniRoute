@@ -1,14 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+const webCookieAuth = await import("../../src/lib/providers/webCookieAuth.ts");
+
 const {
   extractCookieValue,
   normalizeSessionCookieHeader,
   stripCookieInputPrefix,
   buildGrokCookieHeader,
-  buildQwenCookieHeader,
-  extractQwenToken,
-} = await import("../../src/lib/providers/webCookieAuth.ts");
+} = webCookieAuth;
+
+test("Qwen Web cookie helpers are absent while supported cookie helpers remain", () => {
+  assert.equal("buildQwenCookieHeader" in webCookieAuth, false);
+  assert.equal("extractQwenToken" in webCookieAuth, false);
+  assert.equal(typeof webCookieAuth.stripCookieInputPrefix, "function");
+  assert.equal(typeof webCookieAuth.parseJsonCookiesToHeader, "function");
+  assert.equal(typeof webCookieAuth.normalizeSessionCookieHeader, "function");
+  assert.equal(typeof webCookieAuth.extractCookieValue, "function");
+  assert.equal(typeof webCookieAuth.buildGrokCookieHeader, "function");
+});
 
 test("stripCookieInputPrefix removes 'cookie:' and 'bearer ' prefixes", () => {
   assert.equal(stripCookieInputPrefix("Cookie: sso=abc"), "sso=abc");
@@ -109,30 +119,4 @@ test("buildGrokCookieHeader: blob with sso but no sso-rw emits only sso", () => 
 test("buildGrokCookieHeader: blob without sso returns empty string", () => {
   assert.equal(buildGrokCookieHeader("foo=1; sso-rw=CCC.ddd; bar=2"), "");
   assert.equal(buildGrokCookieHeader(""), "");
-});
-
-test("buildQwenCookieHeader: passes through a full DevTools cookie blob", () => {
-  const blob = "cna=ABC; token=jwt.tok; ssxmod_itna=1-XYZ; ssxmod_itna2=1-QRS";
-  assert.equal(buildQwenCookieHeader(blob), blob);
-});
-
-test("buildQwenCookieHeader: strips a leading 'Cookie:' prefix", () => {
-  assert.equal(buildQwenCookieHeader("Cookie: cna=ABC; token=jwt"), "cna=ABC; token=jwt");
-});
-
-test("buildQwenCookieHeader: a bare token (no cookie pairs) yields no cookie header", () => {
-  assert.equal(buildQwenCookieHeader("eyJ0eXAi.abc.def"), "");
-  assert.equal(buildQwenCookieHeader(""), "");
-});
-
-test("extractQwenToken: pulls the token= value out of a cookie blob", () => {
-  assert.equal(extractQwenToken("cna=ABC; token=jwt.tok; ssxmod_itna=1-XYZ"), "jwt.tok");
-});
-
-test("extractQwenToken: returns a bare token unchanged", () => {
-  assert.equal(extractQwenToken("eyJ0eXAi.abc.def"), "eyJ0eXAi.abc.def");
-});
-
-test("extractQwenToken: a cookie blob without a token cookie yields empty string", () => {
-  assert.equal(extractQwenToken("cna=ABC; ssxmod_itna=1-XYZ"), "");
 });

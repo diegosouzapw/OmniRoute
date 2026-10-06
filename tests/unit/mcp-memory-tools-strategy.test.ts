@@ -29,7 +29,7 @@ const core = await import("../../src/lib/db/core.ts");
 function cleanup() {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -37,16 +37,15 @@ function cleanup() {
 test.afterEach(() => cleanup());
 test.after(() => {
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
 // ── A: toMemoryRetrievalConfig: "hybrid" → retrievalStrategy="hybrid" ─────────
 
 test("toMemoryRetrievalConfig: strategy=hybrid → retrievalStrategy=hybrid", async () => {
-  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } = await import(
-    "../../src/lib/memory/settings.ts"
-  );
+  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } =
+    await import("../../src/lib/memory/settings.ts");
   const settings = { ...DEFAULT_MEMORY_SETTINGS, strategy: "hybrid" as const };
   const config = toMemoryRetrievalConfig(settings);
   assert.equal(
@@ -59,9 +58,8 @@ test("toMemoryRetrievalConfig: strategy=hybrid → retrievalStrategy=hybrid", as
 // ── B: toMemoryRetrievalConfig: "semantic" → retrievalStrategy="semantic" ─────
 
 test("toMemoryRetrievalConfig: strategy=semantic → retrievalStrategy=semantic", async () => {
-  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } = await import(
-    "../../src/lib/memory/settings.ts"
-  );
+  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } =
+    await import("../../src/lib/memory/settings.ts");
   const settings = { ...DEFAULT_MEMORY_SETTINGS, strategy: "semantic" as const };
   const config = toMemoryRetrievalConfig(settings);
   assert.equal(
@@ -74,9 +72,8 @@ test("toMemoryRetrievalConfig: strategy=semantic → retrievalStrategy=semantic"
 // ── C: toMemoryRetrievalConfig: "recent" → retrievalStrategy="exact" ──────────
 
 test("toMemoryRetrievalConfig: strategy=recent → retrievalStrategy=exact (mapped)", async () => {
-  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } = await import(
-    "../../src/lib/memory/settings.ts"
-  );
+  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } =
+    await import("../../src/lib/memory/settings.ts");
   const settings = { ...DEFAULT_MEMORY_SETTINGS, strategy: "recent" as const };
   const config = toMemoryRetrievalConfig(settings);
   assert.equal(
@@ -105,9 +102,7 @@ test("omniroute_memory_search: strategy=hybrid in DB → handler returns success
   const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
   invalidateMemorySettingsCache();
 
-  const { memoryTools } = await import(
-    "../../open-sse/mcp-server/tools/memoryTools.ts"
-  );
+  const { memoryTools } = await import("../../open-sse/mcp-server/tools/memoryTools.ts");
   const handler = memoryTools.omniroute_memory_search.handler;
 
   const result = await handler({ apiKeyId: "api-mcp-h", query: "Paris" });
@@ -135,9 +130,7 @@ test("omniroute_memory_search: strategy=recent in DB → handler maps to exact, 
   const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
   invalidateMemorySettingsCache();
 
-  const { memoryTools } = await import(
-    "../../open-sse/mcp-server/tools/memoryTools.ts"
-  );
+  const { memoryTools } = await import("../../open-sse/mcp-server/tools/memoryTools.ts");
   const handler = memoryTools.omniroute_memory_search.handler;
 
   const result = await handler({ apiKeyId: "api-mcp-r" });
@@ -150,9 +143,8 @@ test("omniroute_memory_search: strategy=recent in DB → handler maps to exact, 
 //       toMemoryRetrievalConfig used on DEFAULT maps to retrievalStrategy="hybrid" ──
 
 test("toMemoryRetrievalConfig: DEFAULT_MEMORY_SETTINGS maps to retrievalStrategy=hybrid", async () => {
-  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } = await import(
-    "../../src/lib/memory/settings.ts"
-  );
+  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } =
+    await import("../../src/lib/memory/settings.ts");
   // Verify the default strategy is "hybrid" so fallback in handler resolves to hybrid
   assert.equal(
     DEFAULT_MEMORY_SETTINGS.strategy,
@@ -174,9 +166,8 @@ test("omniroute_memory_search: hardcoded fallback config has retrievalStrategy=e
   // We verify this by examining the fallback object directly from the source logic:
   // When memorySettings is null, the handler uses retrievalStrategy: "exact" as const.
   // We test this via toMemoryRetrievalConfig with a minimal disabled-settings object.
-  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } = await import(
-    "../../src/lib/memory/settings.ts"
-  );
+  const { toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } =
+    await import("../../src/lib/memory/settings.ts");
 
   // Simulate the catch path: strategy "recent" maps to "exact" (same as hardcoded fallback)
   const disabledSettings = { ...DEFAULT_MEMORY_SETTINGS, strategy: "recent" as const };
@@ -186,4 +177,38 @@ test("omniroute_memory_search: hardcoded fallback config has retrievalStrategy=e
     "exact",
     "fallback from catch path must use retrievalStrategy=exact"
   );
+});
+
+// ── IDOR: the authenticated caller's principal must win over a caller-supplied
+// apiKeyId (GHSA-cpv3-xr7r-xf8q). With a resolvable caller (here: OMNIROUTE_API_KEY
+// on the stdio path → "env-key"), omniroute_memory_add must store under the
+// caller, NOT under the arbitrary apiKeyId in the tool arguments.
+test("omniroute_memory_add: caller principal wins over a spoofed apiKeyId (GHSA-cpv3)", async () => {
+  const db = core.getDbInstance();
+  const prevEnvKey = process.env.OMNIROUTE_API_KEY;
+  process.env.OMNIROUTE_API_KEY = "test-mcp-caller-key";
+  try {
+    const { memoryTools } = await import("../../open-sse/mcp-server/tools/memoryTools.ts");
+    const result = await memoryTools.omniroute_memory_add.handler({
+      apiKeyId: "victim-b",
+      type: "factual",
+      key: "idor-k1",
+      content: "owned-by-caller",
+    });
+    assert.equal(result.success, true, "add must succeed");
+
+    const rows = db
+      .prepare("SELECT api_key_id FROM memories WHERE key = 'idor-k1'")
+      .all() as Array<{ api_key_id: string }>;
+    assert.equal(rows.length, 1, "exactly one memory row expected");
+    assert.equal(
+      rows[0].api_key_id,
+      "env-key",
+      "memory must be stored under the resolved caller (env-key), not the spoofed apiKeyId"
+    );
+    assert.notEqual(rows[0].api_key_id, "victim-b", "must NOT store under the caller-supplied id");
+  } finally {
+    if (prevEnvKey === undefined) delete process.env.OMNIROUTE_API_KEY;
+    else process.env.OMNIROUTE_API_KEY = prevEnvKey;
+  }
 });

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LOCALES, LOCALE_COOKIE } from "@/i18n/config";
+import { LOCALES, LOCALE_ALIASES, LOCALE_COOKIE } from "@/i18n/config";
 import type { Locale } from "@/i18n/config";
 import { detectBrowserLocale } from "@/i18n/detectBrowserLocale";
 import { persistLocale } from "@/shared/lib/persistLocale";
@@ -23,7 +23,11 @@ export function LocaleAutoDetect() {
   useEffect(() => {
     if (typeof navigator === "undefined" || hasLocaleCookie()) return;
 
-    const detected = detectBrowserLocale(navigator.languages ?? [navigator.language], LOCALES);
+    const detected = detectBrowserLocale(
+      navigator.languages ?? [navigator.language],
+      LOCALES,
+      LOCALE_ALIASES
+    );
     if (!detected) return;
 
     persistLocale(detected as Locale);

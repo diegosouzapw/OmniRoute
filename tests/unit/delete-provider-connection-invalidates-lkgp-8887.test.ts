@@ -22,7 +22,7 @@ async function resetStorage() {
 
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
-      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       break;
     } catch (error: unknown) {
       const code =
@@ -60,7 +60,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#8887: single delete removes only the matching LKGP pin", async () => {

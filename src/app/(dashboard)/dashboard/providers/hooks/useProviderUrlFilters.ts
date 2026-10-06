@@ -51,26 +51,32 @@ export function useProviderUrlFilters({
   activeServiceKind,
   setActiveServiceKind,
 }: UseProviderUrlFiltersArgs): { displayModePreferenceReady: boolean } {
-  const [displayModePreferenceReady, setDisplayModePreferenceReady] = useState(false);
-  const [filtersHydrated, setFiltersHydrated] = useState(false);
+  // Snapshot of the stored display-mode preference, read once via a lazy
+  // initializer (localStorage must not be read during render). After the first
+  // hydration the URL always carries the mode, so the fallback is mount-only.
+  const [storedDisplayModePreference] = useState<ProviderDisplayMode>(() =>
+    readProviderDisplayModePreference()
+  );
+  const [hydratedFromParams, setHydratedFromParams] = useState<ReadonlyURLSearchParams | null>(
+    null
+  );
 
-  useEffect(() => {
-    const urlMode = readProviderFiltersFromUrl(searchParams).displayMode;
-    setProviderDisplayMode(urlMode ?? readProviderDisplayModePreference());
-    setDisplayModePreferenceReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
-  useEffect(() => {
+  // URL → state hydration as a render-phase adjustment guarded by the
+  // previously hydrated params object (react.dev "adjusting state when a prop
+  // changes") — replaces the two synchronous setState effects keyed on
+  // searchParams, and removes the transient default-state first paint.
+  if (hydratedFromParams !== searchParams) {
+    setHydratedFromParams(searchParams);
     const urlFilters = readProviderFiltersFromUrl(searchParams);
+    setProviderDisplayMode(urlFilters.displayMode ?? storedDisplayModePreference);
     setSearchQuery(urlFilters.searchQuery ?? "");
     setModelSearchQuery(urlFilters.modelSearchQuery ?? "");
     setActiveCategory(urlFilters.category ?? null);
     setShowFreeOnly(urlFilters.showFreeOnly ?? false);
     setActiveServiceKind(urlFilters.mediaKind ?? null);
-    setFiltersHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }
+  const displayModePreferenceReady = hydratedFromParams !== null;
+  const filtersHydrated = displayModePreferenceReady;
 
   useEffect(() => {
     if (!filtersHydrated || !displayModePreferenceReady) return;

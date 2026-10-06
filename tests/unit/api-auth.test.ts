@@ -10,24 +10,50 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const apiAuth = await import("../../src/shared/utils/apiAuth.ts");
 const { requireManagementAuth } = await import("../../src/lib/api/requireManagementAuth.ts");
 const { getLegacyCliTokenSync, getMachineTokenSync } =
   await import("../../src/lib/machineToken.ts");
-const { CLI_TOKEN_HEADER } = await import("../../src/server/authz/headers.ts");
+const { AUTHZ_HEADER_PEER_LOCALITY, CLI_TOKEN_HEADER, PEER_IP_HEADER, VIA_PROXY_HEADER } =
+  await import("../../src/server/authz/headers.ts");
 
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_PEER_STAMP_TOKEN = process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+
+// The per-process secret the custom Node server uses to stamp the real TCP peer
+// (scripts/dev/peer-stamp.mjs). Tests mint the same `<token>|<ip>` shape.
+const TEST_PEER_STAMP_TOKEN = "api-auth-test-peer-stamp-token";
 
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   delete process.env.JWT_SECRET;
   delete process.env.INITIAL_PASSWORD;
+  delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+}
+
+/**
+ * A request as the authz policy sees it: the custom server already stamped the
+ * real TCP peer into PEER_IP_HEADER (token-validated), so the verdict cannot be
+ * influenced by the URL / Host header the client chose.
+ */
+function stampedPeerRequest(url: string, peerIp: string, init: RequestInit = {}): Request {
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = TEST_PEER_STAMP_TOKEN;
+  const headers = new Headers(init.headers);
+  headers.set(PEER_IP_HEADER, `${TEST_PEER_STAMP_TOKEN}|${peerIp}`);
+  headers.set(VIA_PROXY_HEADER, `${TEST_PEER_STAMP_TOKEN}|0`);
+  return new Request(url, { ...init, headers });
+}
+
+/** A direct Node / non-pipeline caller carrying a real socket peer. */
+function socketPeerRequest(url: string, peerIp: string, init: RequestInit = {}): Request {
+  return Object.assign(new Request(url, init), { ip: peerIp }) as Request;
 }
 
 function makeCookieRequest(token: string) {
@@ -48,7 +74,7 @@ test.beforeEach(async () => {
 test.after(() => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 
   if (ORIGINAL_JWT_SECRET === undefined) {
     delete process.env.JWT_SECRET;
@@ -60,6 +86,12 @@ test.after(() => {
     delete process.env.INITIAL_PASSWORD;
   } else {
     process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+
+  if (ORIGINAL_PEER_STAMP_TOKEN === undefined) {
+    delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+  } else {
+    process.env.OMNIROUTE_PEER_STAMP_TOKEN = ORIGINAL_PEER_STAMP_TOKEN;
   }
 });
 
@@ -310,11 +342,211 @@ test("isAuthRequired is disabled while no password exists", async () => {
 test("isAuthRequired keeps fresh bootstrap open only on loopback", async () => {
   await localDb.updateSettings({ requireLogin: true, password: "" });
 
-  assert.equal(await apiAuth.isAuthRequired(new Request("http://localhost/api/providers")), false);
-  assert.equal(await apiAuth.isAuthRequired(new Request("http://127.0.0.1/api/providers")), false);
+  // Loopback is decided from the trusted peer (token-stamped real TCP peer or a
+  // real socket), never from the URL / Host header (GHSA-7pq4-8pvv-rx7r).
+  assert.equal(
+    await apiAuth.isAuthRequired(stampedPeerRequest("http://localhost/api/providers", "127.0.0.1")),
+    false
+  );
+  assert.equal(
+    await apiAuth.isAuthRequired(stampedPeerRequest("http://127.0.0.1/api/providers", "::1")),
+    false
+  );
+  assert.equal(
+    await apiAuth.isAuthRequired(socketPeerRequest("http://localhost/api/providers", "127.0.0.1")),
+    false
+  );
   assert.equal(
     await apiAuth.isAuthRequired(new Request("https://example.com/api/providers")),
     true
+  );
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      stampedPeerRequest("https://example.com/api/providers", "203.0.113.9")
+    ),
+    true
+  );
+});
+
+// ── GHSA-7pq4-8pvv-rx7r — the bootstrap gate must not trust Host / nextUrl ─────
+
+test("isLoopbackRequest ignores a spoofed Host header — a non-loopback stamped peer is never loopback (GHSA-7pq4-8pvv-rx7r)", async () => {
+  // Remote attacker sending `Host: localhost` (the URL's hostname is exactly what
+  // nextUrl.hostname / the Host header carry). The custom server stamped the real
+  // peer as 203.0.113.9 → NOT loopback, whatever the client put in Host.
+  const spoofed = stampedPeerRequest("http://localhost/api/providers", "203.0.113.9", {
+    headers: { host: "localhost" },
+  });
+  assert.equal(apiAuth.isLoopbackRequest(spoofed), false);
+
+  // A Host-only "localhost" with no trusted peer signal at all is not loopback either.
+  assert.equal(
+    apiAuth.isLoopbackRequest(new Request("http://localhost/api/providers")),
+    false,
+    "Host / nextUrl.hostname alone must never make a request loopback"
+  );
+  assert.equal(
+    apiAuth.isLoopbackRequest(
+      new Request("http://127.0.0.1/api/providers", { headers: { host: "127.0.0.1" } })
+    ),
+    false
+  );
+
+  // The forged stamp shape (`<wrong-token>|127.0.0.1`) fails closed.
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = TEST_PEER_STAMP_TOKEN;
+  assert.equal(
+    apiAuth.isLoopbackRequest(
+      new Request("http://localhost/api/providers", {
+        headers: { [PEER_IP_HEADER]: "not-the-process-token|127.0.0.1" },
+      })
+    ),
+    false
+  );
+
+  // The genuine stamp for a loopback peer IS loopback — but not when the custom
+  // server also flagged that the request arrived through a reverse-proxy hop.
+  assert.equal(
+    apiAuth.isLoopbackRequest(stampedPeerRequest("https://example.com/api/providers", "127.0.0.1")),
+    true
+  );
+  assert.equal(
+    apiAuth.isLoopbackRequest(
+      new Request("http://localhost/api/providers", {
+        headers: {
+          [PEER_IP_HEADER]: `${TEST_PEER_STAMP_TOKEN}|127.0.0.1`,
+          [VIA_PROXY_HEADER]: `${TEST_PEER_STAMP_TOKEN}|1`,
+        },
+      })
+    ),
+    false
+  );
+});
+
+test("isLoopbackRequest consults Host only when no stamping server exists in the process (GHSA-7pq4-8pvv-rx7r)", async () => {
+  // Every supported runtime calls ensurePeerStampToken() at boot, so once a token
+  // exists a signal-less request is never loopback, whatever Host says.
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = TEST_PEER_STAMP_TOKEN;
+  assert.equal(
+    apiAuth.isLoopbackRequest(
+      new Request("http://localhost/api/providers", { headers: { host: "localhost" } })
+    ),
+    false,
+    "with a stamping server in front, Host must never make a request loopback"
+  );
+
+  // No token at all = no stamping server = direct handler invocation (the unit-test
+  // harness). There is no real peer to read, so the historical URL verdict applies —
+  // and it still rejects a non-loopback hostname.
+  delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+  assert.equal(apiAuth.isLoopbackRequest(new Request("http://localhost/api/providers")), true);
+  assert.equal(apiAuth.isLoopbackRequest(new Request("https://example.com/api/providers")), false);
+});
+
+test("isLoopbackRequest trusts the pipeline locality verdict only when a stamping server is in front (GHSA-7pq4-8pvv-rx7r)", async () => {
+  // Route handlers see AUTHZ_HEADER_PEER_LOCALITY, re-stamped by the pipeline
+  // after every client-supplied copy was stripped — trustworthy only when the
+  // per-process stamp token exists (i.e. the custom server is actually stamping).
+  const verdict = new Request("https://example.com/api/providers", {
+    headers: { [AUTHZ_HEADER_PEER_LOCALITY]: "loopback" },
+  });
+  delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+  assert.equal(apiAuth.isLoopbackRequest(verdict), false);
+
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = TEST_PEER_STAMP_TOKEN;
+  assert.equal(apiAuth.isLoopbackRequest(verdict), true);
+  assert.equal(
+    apiAuth.isLoopbackRequest(
+      new Request("http://localhost/api/providers", {
+        headers: { [AUTHZ_HEADER_PEER_LOCALITY]: "remote" },
+      })
+    ),
+    false
+  );
+
+  // A forged locality header never outranks the real stamped peer.
+  assert.equal(
+    apiAuth.isLoopbackRequest(
+      stampedPeerRequest("http://localhost/api/providers", "203.0.113.9", {
+        headers: { [AUTHZ_HEADER_PEER_LOCALITY]: "loopback" },
+      })
+    ),
+    false
+  );
+});
+
+test("isAuthRequired gates the bootstrap require-login write on the trusted peer (GHSA-7pq4-8pvv-rx7r)", async () => {
+  await localDb.updateSettings({ requireLogin: true, password: "" });
+
+  // The write that disarms every other guard (requireLogin=false) used to be an
+  // unconditional `return false` — open to any network peer in the window.
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      new Request("https://example.com/api/settings/require-login", { method: "POST" })
+    ),
+    true,
+    "remote POST /api/settings/require-login must require auth in the bootstrap window"
+  );
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      stampedPeerRequest("http://localhost/api/settings/require-login", "203.0.113.9", {
+        method: "POST",
+        headers: { host: "localhost" },
+      })
+    ),
+    true,
+    "Host: localhost from a non-loopback stamped peer must not reopen the write path"
+  );
+  assert.equal(
+    await apiAuth.isAuthenticated(
+      new Request("https://example.com/api/settings/require-login", { method: "POST" })
+    ),
+    false
+  );
+
+  // The genuine local operator keeps the first-password flow — including after
+  // onboarding completed without a password (setupComplete: true).
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      stampedPeerRequest("http://localhost/api/settings/require-login", "127.0.0.1", {
+        method: "POST",
+      })
+    ),
+    false
+  );
+  await localDb.updateSettings({ requireLogin: true, password: "", setupComplete: true });
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      stampedPeerRequest("http://localhost/api/settings/require-login", "127.0.0.1", {
+        method: "POST",
+      })
+    ),
+    false
+  );
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      new Request("https://example.com/api/settings/require-login", { method: "POST" })
+    ),
+    true
+  );
+});
+
+test("isAuthRequired honours an explicit trusted loopback verdict from the policy layer", async () => {
+  await localDb.updateSettings({ requireLogin: true, password: "" });
+
+  // The authz policy resolves locality itself (peerContext) and hands the
+  // verdict down, so the bootstrap gate never re-reads the ORIGINAL request's
+  // client-controlled headers.
+  const forged = new Request("http://localhost/api/settings/require-login", {
+    method: "POST",
+    headers: { host: "localhost", [AUTHZ_HEADER_PEER_LOCALITY]: "loopback" },
+  });
+  assert.equal(await apiAuth.isAuthRequired(forged, { loopback: false }), true);
+  assert.equal(await apiAuth.isAuthRequired(forged, { loopback: true }), false);
+  assert.equal(
+    await apiAuth.isAuthRequired(new Request("https://example.com/api/providers"), {
+      loopback: true,
+    }),
+    false
   );
 });
 
@@ -367,8 +599,11 @@ test("isAuthRequired treats partial OIDC config as not configured (bootstrap beh
     // missing clientId + clientSecret
   });
 
-  // On loopback without full config → bootstrap allowed
-  assert.equal(await apiAuth.isAuthRequired(new Request("http://localhost/api/providers")), false);
+  // On loopback (trusted stamped peer) without full config → bootstrap allowed
+  assert.equal(
+    await apiAuth.isAuthRequired(stampedPeerRequest("http://localhost/api/providers", "127.0.0.1")),
+    false
+  );
   // Remote still requires auth
   assert.equal(
     await apiAuth.isAuthRequired(new Request("https://example.com/api/providers")),

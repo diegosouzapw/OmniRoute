@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
+import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
 import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/sync/bundle";
 
 const CLOUD_URL = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL;
@@ -12,6 +12,14 @@ const CLOUD_SYNC_SECRET = process.env.OMNIROUTE_CLOUD_SYNC_SECRET || "";
 // status, lastError*, rateLimitedUntil, updatedAt) so a misconfigured or
 // hostile CLOUD_URL cannot silently swap user OAuth tokens.
 const CLOUD_SYNC_SECRETS_ENABLED = process.env.OMNIROUTE_CLOUD_SYNC_SECRETS === "true";
+
+// #13679 PR A — opt-in early enforcement of the "no secret configured" branch
+// below. Bringing the v3.9 enforce-by-default switch forward as an explicit
+// opt-out-safe flag: default OFF preserves v3.8.x back-compat for peers that
+// haven't rotated in a shared secret yet (an unsigned payload still passes).
+// Set to "true" to reject even an unsigned payload when no local secret is
+// configured — the default flips to enforced in v3.9.
+const CLOUD_SYNC_ENFORCE_SIGNATURE = process.env.OMNIROUTE_CLOUD_SYNC_ENFORCE_SIGNATURE === "true";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -40,18 +48,38 @@ function toDateMs(value: unknown): number {
 //   2. We verify the signature with `crypto.timingSafeEqual` before parsing the
 //      JSON, so a MITM on the CLOUD_URL channel — or a misconfigured CLOUD_URL
 //      pointing at an attacker — cannot inject providers/tokens.
-// If `OMNIROUTE_CLOUD_SYNC_SECRET` is unset, signature validation is logged but
-// not enforced (back-compat for users on v3.8.x who haven't issued a shared
-// secret yet). The enforce-by-default switch will flip in v3.9.
+// If `OMNIROUTE_CLOUD_SYNC_SECRET` is unset, a PRESENT signature is always
+// rejected (#13679 PR A — we have no key to check it against, so a signature
+// we cannot verify is treated as invalid rather than blindly trusted) and an
+// ABSENT signature falls through in legacy unverified mode by default
+// (back-compat for users on v3.8.x who haven't issued a shared secret yet;
+// opt in early via `OMNIROUTE_CLOUD_SYNC_ENFORCE_SIGNATURE=true`). The
+// enforce-by-default switch for the absent-signature case will flip in v3.9.
 export function verifyCloudSignature(rawBody: string, sigHeader: string | null): boolean {
   if (!CLOUD_SYNC_SECRET) {
     if (sigHeader) {
-      // We can't verify, but the server is at least trying. Pass through.
-      return true;
+      // We have no secret to verify against, so a signature we can't check is
+      // treated as invalid rather than passed through (#13679 PR A item (b) —
+      // closes the "forge any X-Cloud-Sig and it's accepted" fail-open case).
+      console.warn(
+        "[cloudSync] OMNIROUTE_CLOUD_SYNC_SECRET is not set but the Cloud response carries an " +
+          "X-Cloud-Sig header — rejecting an unverifiable signature. Set the secret to enable " +
+          "verification."
+      );
+      return false;
+    }
+    if (CLOUD_SYNC_ENFORCE_SIGNATURE) {
+      console.warn(
+        "[cloudSync] OMNIROUTE_CLOUD_SYNC_SECRET is not set and the Cloud response carries no " +
+          "X-Cloud-Sig, and OMNIROUTE_CLOUD_SYNC_ENFORCE_SIGNATURE=true — rejecting unsigned payload."
+      );
+      return false;
     }
     console.warn(
       "[cloudSync] OMNIROUTE_CLOUD_SYNC_SECRET is not set and the Cloud response carries no X-Cloud-Sig. " +
-        "Token sync runs in legacy unverified mode — set the secret to enforce HMAC verification."
+        "Token sync runs in legacy unverified mode — set the secret (or " +
+        "OMNIROUTE_CLOUD_SYNC_ENFORCE_SIGNATURE=true) to enforce HMAC verification. This legacy " +
+        "pass-through default will flip to enforced in v3.9."
     );
     return true;
   }
@@ -207,4 +235,9 @@ async function updateLocalTokens(cloudProviders: unknown) {
   }
 }
 
-export { CLOUD_URL, CLOUD_SYNC_TIMEOUT_MS, CLOUD_SYNC_SECRETS_ENABLED };
+export {
+  CLOUD_URL,
+  CLOUD_SYNC_TIMEOUT_MS,
+  CLOUD_SYNC_SECRETS_ENABLED,
+  CLOUD_SYNC_ENFORCE_SIGNATURE,
+};

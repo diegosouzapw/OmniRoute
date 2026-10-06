@@ -110,7 +110,7 @@ test("router config patch compare reports recommendation and metric deltas", () 
       )
     );
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -178,7 +178,7 @@ test("router config patch compare only fails threshold regressions when requeste
     assert.equal(failing.status, 1);
     assert.ok((failing.stdout ?? "").includes("Passed: no"));
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -223,7 +223,7 @@ test("router config patch compare reports unchanged recommendations without fail
     assert.equal(comparison.result?.passed, true);
     assert.equal(comparison.result?.status, 0);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -256,7 +256,7 @@ test("router config patch compare rejects invalid patch inputs", () => {
     assert.match(result.stderr ?? "", /invalid patch kind/);
     assert.match(result.stderr ?? "", /router-config-suggestion/);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -307,6 +307,6 @@ test("router config patch compare rejects malformed JSON and invalid evidence", 
     assert.equal(invalidEvidenceResult.status, 2);
     assert.match(invalidEvidenceResult.stderr ?? "", /invalid numeric evidence field aiq/);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

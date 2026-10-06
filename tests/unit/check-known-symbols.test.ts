@@ -127,15 +127,16 @@ test("combo dispatch registry (runtime import) covers the canonical strategy set
 // (1) EXECUTOR CONFORMANCE — extractExecutorAliases + findNonConformingExecutors
 // ───────────────────────────────────────────────────────────────────────────
 
-test("extractExecutorAliases parses quoted and bare keys from the executors literal", () => {
+// The literal is `const lazyExecutors` since #11421 — every value is a thunk that
+// imports and constructs on first use, so the fixture has to carry that shape.
+test("extractExecutorAliases parses quoted and bare keys from the lazy executors literal", () => {
   const src = [
-    'import { Foo } from "./foo.ts";',
-    "const executors = {",
-    "  antigravity: new Foo(),",
-    "  agy: new Foo(), // Alias",
-    '  "amazon-q": new Foo("amazon-q"),',
+    "const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {",
+    '  antigravity: () => import("./antigravity.ts").then((m) => new m.AntigravityExecutor()),',
+    '  agy: () => import("./antigravity.ts").then((m) => new m.AntigravityExecutor()), // Alias',
+    '  "amazon-q": () => import("./amazon-q.ts").then((m) => new m.AmazonQExecutor()),',
     "};",
-    "export function getExecutor() {}",
+    "export async function getExecutor() {}",
   ].join("\n");
   assert.deepEqual(extractExecutorAliases(src), ["antigravity", "agy", "amazon-q"]);
 });
@@ -144,36 +145,60 @@ test("extractExecutorAliases throws when the executors map cannot be located", (
   assert.throws(() => extractExecutorAliases("const other = { a: 1 };"), /could not find/);
 });
 
-test("findNonConformingExecutors returns [] when every alias resolves to a valid executor", () => {
+test("findNonConformingExecutors returns [] when every alias resolves to a valid executor", async () => {
   const good = { execute: () => {}, getProvider: () => "x" } as ExecutorLike;
-  const resolve = (_alias: string) => good;
+  const resolve = async (_alias: string) => good;
   const isInstance = (_value: unknown) => true;
-  assert.deepEqual(findNonConformingExecutors(["a", "b"], resolve, isInstance), []);
+  assert.deepEqual(await findNonConformingExecutors(["a", "b"], resolve, isInstance), []);
 });
 
-test("findNonConformingExecutors flags an alias that does not resolve at all", () => {
+// The real resolver is async (#11421). Awaiting is the whole point: a Promise is
+// never `instanceof BaseExecutor`, so a sync call reports every alias as broken and
+// the sub-check silently stops guarding anything.
+test("findNonConformingExecutors awaits an async resolver instead of judging the Promise", async () => {
   const good = { execute: () => {}, getProvider: () => "x" } as ExecutorLike;
-  const resolve = (alias: string) => (alias === "ghost" ? null : good);
-  const isInstance = (_value: unknown) => true;
-  assert.deepEqual(findNonConformingExecutors(["a", "ghost", "b"], resolve, isInstance), ["ghost"]);
+  const resolve = (_alias: string) => Promise.resolve(good);
+  const isInstance = (value: unknown) => value === good;
+  assert.deepEqual(await findNonConformingExecutors(["a", "b"], resolve, isInstance), []);
 });
 
-test("findNonConformingExecutors flags an alias resolving to a non-BaseExecutor instance", () => {
+test("findNonConformingExecutors flags an alias whose lazy load rejects", async () => {
+  const good = { execute: () => {}, getProvider: () => "x" } as ExecutorLike;
+  const resolve = async (alias: string) => {
+    if (alias === "boom") throw new Error("module not found");
+    return good;
+  };
+  const isInstance = (_value: unknown) => true;
+  assert.deepEqual(await findNonConformingExecutors(["a", "boom", "b"], resolve, isInstance), [
+    "boom",
+  ]);
+});
+
+test("findNonConformingExecutors flags an alias that does not resolve at all", async () => {
+  const good = { execute: () => {}, getProvider: () => "x" } as ExecutorLike;
+  const resolve = async (alias: string) => (alias === "ghost" ? null : good);
+  const isInstance = (_value: unknown) => true;
+  assert.deepEqual(await findNonConformingExecutors(["a", "ghost", "b"], resolve, isInstance), [
+    "ghost",
+  ]);
+});
+
+test("findNonConformingExecutors flags an alias resolving to a non-BaseExecutor instance", async () => {
   const stray = { execute: () => {}, getProvider: () => "x" } as ExecutorLike;
-  const resolve = (_alias: string) => stray;
+  const resolve = async (_alias: string) => stray;
   // Simulate `instanceof BaseExecutor` returning false for the stray object.
   const isInstance = (_value: unknown) => false;
-  assert.deepEqual(findNonConformingExecutors(["stray"], resolve, isInstance), ["stray"]);
+  assert.deepEqual(await findNonConformingExecutors(["stray"], resolve, isInstance), ["stray"]);
 });
 
-test("findNonConformingExecutors flags an executor missing execute() or getProvider()", () => {
+test("findNonConformingExecutors flags an executor missing execute() or getProvider()", async () => {
   const noExecute = { getProvider: () => "x" } as ExecutorLike;
   const noProvider = { execute: () => {} } as ExecutorLike;
   const valid = { execute: () => {}, getProvider: () => "x" } as ExecutorLike;
   const map: Record<string, ExecutorLike> = { ne: noExecute, np: noProvider, ok: valid };
-  const resolve = (alias: string) => map[alias];
+  const resolve = async (alias: string) => map[alias];
   const isInstance = (_value: unknown) => true;
-  assert.deepEqual(findNonConformingExecutors(["ne", "np", "ok"], resolve, isInstance), [
+  assert.deepEqual(await findNonConformingExecutors(["ne", "np", "ok"], resolve, isInstance), [
     "ne",
     "np",
   ]);

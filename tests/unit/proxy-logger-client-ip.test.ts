@@ -13,7 +13,7 @@ const proxyLogger = await import("../../src/lib/proxyLogger.ts");
 function resetStorage() {
   proxyLogger.clearProxyLogs();
   core.closeDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 

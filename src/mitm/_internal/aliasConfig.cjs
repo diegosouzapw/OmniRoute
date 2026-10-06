@@ -7,12 +7,12 @@
 // or the reasoning-effort vocabulary changes.
 //
 // The canonical effort vocabulary mirrors `@/shared/reasoning/effortStandardization.ts`
-// (`CANONICAL_EFFORT_VALUES` + the `extra`/`max` → `xhigh` alias). Ported from upstream
+// (`CANONICAL_EFFORT_VALUES` + the `extra` → `xhigh` alias; `max` is canonical). Ported from upstream
 // decolua/9router#2584 ("add Antigravity reasoning effort overrides").
 // =========================================================================
 
-const CANONICAL_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"];
-const EFFORT_TIER_ALIASES = { extra: "xhigh", max: "xhigh" };
+const CANONICAL_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh", "max"];
+const EFFORT_TIER_ALIASES = { extra: "xhigh" };
 
 function normalizeReasoningEffort(value) {
   if (typeof value !== "string") return undefined;

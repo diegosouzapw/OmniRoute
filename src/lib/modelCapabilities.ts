@@ -2,7 +2,12 @@ import {
   PROVIDER_ID_TO_ALIAS,
   PROVIDER_MODELS,
 } from "@omniroute/open-sse/config/providerModels.ts";
-import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
+import {
+  hasKnownProviderModel,
+  parseModel,
+  resolveCanonicalProviderModel,
+  resolveProviderAlias,
+} from "@omniroute/open-sse/services/model.ts";
 import {
   findModelSpecIdByExactOrAlias,
   getAuthoritativeContextWindow,
@@ -13,13 +18,19 @@ import {
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { MODELS_DEV_PROVIDER_MAP } from "@/lib/modelsDevSync/transform";
 import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
-import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
-import { getDbInstance } from "@/lib/db/core";
-import { getKeyValue } from "@/lib/db/models/shared";
+import {
+  getModelCapabilityOverride,
+  getReasoningEffortsOverride,
+} from "@/lib/db/modelCapabilityOverrides";
+import { getModelCompatVisionOverride } from "@/lib/db/models/compat";
+import { getCustomModelVisionOverride, getSyncedAvailableModelVision } from "@/lib/db/models";
 import type { ModelCapabilityResolutionSnapshot } from "@/lib/modelCapabilityResolutionSnapshot";
+import { resolveAudioCapability, resolveVideoCapability } from "@/lib/modelCapabilityModalities";
+import { getNoAuthHydrationProviderIds } from "@/sse/services/noAuthProviderSiblings";
 
 export type { ModelCapabilityResolutionSnapshot } from "@/lib/modelCapabilityResolutionSnapshot";
 export { createModelCapabilityResolutionSnapshot } from "@/lib/modelCapabilityResolutionSnapshot";
+export { resolveAudioCapability } from "@/lib/modelCapabilityModalities";
 import { isVisionModelId } from "@/shared/constants/visionModels";
 import { getUnsupportedParams } from "@omniroute/open-sse/config/providerRegistry.ts";
 import {
@@ -46,13 +57,6 @@ const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [
   "stable-diffusion",
 ];
 const REASONING_UNSUPPORTED_PATTERNS = [
-  "antigravity/claude-sonnet-4-6",
-  "antigravity/claude-sonnet-4-5",
-  "antigravity/claude-sonnet-4",
-  // Non-Claude antigravity models don't support thinking params (#1361)
-  "antigravity/gemini-",
-  "antigravity/gpt-oss-",
-  "antigravity/gemini-3",
   "antigravity/tab_",
   // Specialty / non-chat surfaces (#8016)
   "whisper",
@@ -95,6 +99,7 @@ const MAX_TOKENS_UNSUPPORTED_PATTERNS = [
   "o3",
   "gpt-5.4",
   "gpt-5.5",
+  "gpt-6",
 ];
 
 type CapabilityInput =
@@ -123,9 +128,12 @@ export interface ResolvedModelCapabilities {
   toolCalling: boolean;
   reasoning: boolean;
   supportsThinking: boolean | null;
+  supportedThinkingEfforts: readonly string[] | null;
+  reasoningEffortsOverride: boolean;
   supportsTools: boolean | null;
   supportsVision: boolean | null;
   supportsAudio: boolean | null;
+  supportsVideo: boolean | null;
   supportsMaxTokens: boolean;
   attachment: boolean | null;
   structuredOutput: boolean | null;
@@ -174,15 +182,38 @@ function getRegistryModel(providerIdOrAlias: string | null, modelId: string | nu
   return models.find((model) => model?.id === normalizedModelId) || null;
 }
 
+/**
+ * Combo steps carry the provider's own routing prefix in the model
+ * (`{ providerId: "codex", model: "cx/gpt-6-sol" }`). Strip that prefix so the
+ * object form keys every capability source by the provider-scoped id, like
+ * parseModel does for the string form. Keep the slash when the first segment
+ * names another provider (`openrouter` + `meta-llama/…`) or when the full id is
+ * the provider's own registry id (`nvidia` + `nvidia/nemotron-…`, #12112).
+ */
+function stripOwnProviderPrefix(provider: string, model: string | null): string | null {
+  const slash = model ? model.indexOf("/") : -1;
+  if (!model || slash <= 0) return model;
+  const scopedModel = model.slice(slash + 1).trim();
+  // `oc` stops at the registered `opencode` id (#2901) while `opencode` itself
+  // resolves further, so compare against both forms of the step provider.
+  const prefixProvider = resolveProviderAlias(model.slice(0, slash).trim());
+  const ownPrefix =
+    prefixProvider === provider || prefixProvider === resolveProviderAlias(provider);
+  if (!scopedModel || !ownPrefix || hasKnownProviderModel(provider, model)) return model;
+  return scopedModel;
+}
+
 function resolveCapabilityInput(input: CapabilityInput) {
   if (typeof input === "string") {
     const parsed = parseModel(input);
     const rawModel = toNonEmptyString(parsed.model);
+    const rawProvider = toNonEmptyString(parsed.providerAlias || parsed.provider);
     if (parsed.provider) {
       const canonical = resolveCanonicalProviderModel(parsed.provider, rawModel);
       return {
         provider: canonical.provider,
         model: toNonEmptyString(canonical.model),
+        rawProvider,
         rawModel,
         lookupKey: input,
       };
@@ -191,6 +222,7 @@ function resolveCapabilityInput(input: CapabilityInput) {
     return {
       provider: null,
       model: rawModel,
+      rawProvider,
       rawModel,
       lookupKey: input,
     };
@@ -199,10 +231,14 @@ function resolveCapabilityInput(input: CapabilityInput) {
   const rawProvider = toNonEmptyString(input.provider);
   const rawModel = toNonEmptyString(input.model);
   if (rawProvider) {
-    const canonical = resolveCanonicalProviderModel(rawProvider, rawModel);
+    const canonical = resolveCanonicalProviderModel(
+      rawProvider,
+      stripOwnProviderPrefix(rawProvider, rawModel)
+    );
     return {
       provider: canonical.provider,
       model: toNonEmptyString(canonical.model),
+      rawProvider,
       rawModel,
       lookupKey: rawModel ? `${canonical.provider}/${rawModel}` : canonical.provider,
     };
@@ -211,6 +247,7 @@ function resolveCapabilityInput(input: CapabilityInput) {
   return {
     provider: null,
     model: rawModel,
+    rawProvider,
     rawModel,
     lookupKey: rawModel || "",
   };
@@ -252,6 +289,39 @@ function leafModelId(modelId: string | null | undefined): string | null {
   if (!modelId || !modelId.includes("/")) return null;
   const leaf = modelId.split("/").filter(Boolean).pop() ?? null;
   return leaf && leaf !== modelId ? leaf : null;
+}
+
+/**
+ * Effort suffixes the catalog synthesizes as `<base>-<tier>` variant ids from a
+ * base model's `supportedThinkingEfforts` (mirrors REGISTERED_EFFORT_SUFFIXES
+ * in open-sse/utils/registeredEffortVariants.ts, plus `minimal` for muse).
+ */
+const EFFORT_VARIANT_SUFFIXES = [
+  "none",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
+
+/**
+ * Strip a trailing effort-tier suffix off a model id (e.g.
+ * `deepseek-v4-flash-max` → `deepseek-v4-flash`). Longest token first so
+ * `xhigh` is matched before `high`. Returns null when no known suffix matches
+ * or the id would be left empty.
+ */
+function stripKnownEffortSuffix(modelId: string): string | null {
+  const normalized = String(modelId || "").trim();
+  if (!normalized) return null;
+  for (const suffix of EFFORT_VARIANT_SUFFIXES) {
+    const token = `-${suffix}`;
+    if (normalized.length > token.length && normalized.endsWith(token)) {
+      return normalized.slice(0, -token.length);
+    }
+  }
+  return null;
 }
 
 function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSpec | undefined {
@@ -439,10 +509,19 @@ export function modelIdLikelyVision(modelId: string | null | undefined): boolean
  * models are text-only (mimo.mi.com .../image-understanding; hermes-agent#18884).
  * Anchored to the full id (`$`) and tolerant of a `provider/` prefix so `mimo-v2.5-pro`
  * never matches the multimodal `mimo-v2.5`, and `mimo-v2-pro` never matches `mimo-v2-omni`.
+ *
+ * Command Code `cmd/gpt-5.3-codex*` (#10703): the Command Code registry marks
+ * `gpt-5.3-codex` as `supportsVision: true`, but the gateway actually exposes
+ * it as a text-only code model — selecting it as a Vision Bridge candidate
+ * failed every image describe call (#10703, CONTRIBUTOR-reported). Scoped to
+ * the command-code alias/id so only the Command-Code-gateway Codex variants
+ * are overridden; genuine multimodal `gpt-5.x` chat models (e.g. `gpt-5.5`,
+ * `gpt-5.4-mini`, real OpenAI `openai/gpt-5.3-codex`) keep their vision verdict.
  */
 const KNOWN_TEXT_ONLY_DESPITE_SYNC: readonly RegExp[] = [
   /(?:^|\/)mimo-v2\.5-pro$/i,
   /(?:^|\/)mimo-v2-pro$/i,
+  /^(?:cmd|command-code)\/gpt-5\.3-codex(?:-|$)/i,
 ];
 
 function isKnownTextOnlyDespiteSync(modelId: string | null | undefined): boolean {
@@ -459,31 +538,6 @@ function modalitiesDeclareVision(modalities: readonly string[]): boolean {
   });
 }
 
-/**
- * #9195: Read the customModels supportsVision override for a given provider/model
- * pair from the database. Returns true/false when an explicit override exists, or
- * null if no custom model entry or no explicit flag. Sync read (better-sqlite3).
- */
-function getCustomModelVisionOverride(provider: string, model: string): boolean | null {
-  try {
-    const db = getDbInstance();
-    const row = db
-      .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
-      .get(provider);
-    if (!row) return null;
-    const parsed = getKeyValue(row);
-    if (!parsed.value) return null;
-    const models: Array<{ id: string; supportsVision?: boolean }> = JSON.parse(parsed.value);
-    const entry = models.find((m) => m.id === model);
-    if (entry && typeof entry.supportsVision === "boolean") {
-      return entry.supportsVision;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 function resolveVisionCapability(
   spec: ModelSpec | undefined,
   registryModel: { supportsVision?: boolean } | null,
@@ -491,7 +545,9 @@ function resolveVisionCapability(
   modalitiesInput: string[],
   modalitiesOutput: string[],
   modelId?: string,
-  customVisionOverride?: boolean | null
+  customVisionOverride?: boolean | null,
+  compatVisionOverride?: boolean | null,
+  syncedAvailableModelVision?: boolean | null
 ): boolean | null {
   const allModalities = [...modalitiesInput, ...modalitiesOutput].map((entry) =>
     String(entry).toLowerCase()
@@ -505,10 +561,25 @@ function resolveVisionCapability(
     return customVisionOverride;
   }
 
+  // #14587: the compat-only edit path is the same explicit operator control
+  // runtime routing already consumes. Custom Models stays first; compat then
+  // wins over synced/catalog/heuristic sources, including with explicit false.
+  if (typeof compatVisionOverride === "boolean") {
+    return compatVisionOverride;
+  }
+
   // Hard override FIRST: a wrong synced `attachment:true` (or image modality) must not
   // win for models the vendor documents as text-only. Beats every branch below so an
   // image request can never be routed to a blind model (#4071).
   if (isKnownTextOnlyDespiteSync(modelId)) return false;
+
+  // #14081: a custom OpenAI-compatible node's synced `syncedAvailableModels`
+  // row already made /v1/models report capabilities.vision:true for this
+  // model (buildSyncedCapabilities). Agree with that catalog verdict here too
+  // so the Vision Bridge guardrail does not reroute an image-capable model as
+  // text-only. Positive-only: this source is never `false`, so it can only
+  // add vision, never downgrade another source's verdict.
+  if (syncedAvailableModelVision === true) return true;
 
   if (typeof synced?.attachment === "boolean") {
     // #8250: models.dev sometimes ships attachment=false alongside image/video
@@ -546,25 +617,6 @@ function resolveVisionCapability(
   if (modelIdLikelyVision(modelId)) return true;
 
   return null;
-}
-
-/**
- * Resolve whether a chat model accepts audio input.
- *
- * Explicit catalog metadata wins. Synced input modalities are authoritative
- * only when they contain at least one declared modality; an empty list means
- * that no source knows the answer and remains `null` so Audio Bridge can act
- * conservatively.
- */
-export function resolveAudioCapability(
-  spec: Pick<ModelSpec, "supportsAudio"> | undefined,
-  registryModel: { supportsAudio?: boolean } | null,
-  modalitiesInput: readonly string[]
-): boolean | null {
-  if (typeof registryModel?.supportsAudio === "boolean") return registryModel.supportsAudio;
-  if (typeof spec?.supportsAudio === "boolean") return spec.supportsAudio;
-  if (modalitiesInput.length === 0) return null;
-  return modalitiesInput.some((entry) => String(entry).toLowerCase().includes("audio"));
 }
 
 /**
@@ -616,9 +668,15 @@ function getContextOverride(
 /**
  * Resolve a persisted context override by canonical id, then by the exact raw
  * alias supplied by the caller. Neither lookup inherits to related models.
+ *
+ * `snapshot` is the #9147 build-local bulk load; when supplied the on-demand
+ * SQLite read is skipped and the preloaded nested map is used instead.
  */
-export function getResolvedModelContextOverride(input: CapabilityInput): number | null {
-  return getContextOverride(resolveCapabilityInput(input));
+export function getResolvedModelContextOverride(
+  input: CapabilityInput,
+  snapshot?: ModelCapabilityResolutionSnapshot | null
+): number | null {
+  return getContextOverride(resolveCapabilityInput(input), snapshot);
 }
 
 function getInputTokenCapabilityOverride(resolved: {
@@ -680,6 +738,59 @@ function getMaxInputTokenCapabilityOverride(
   );
 }
 
+/** Resolve an exact reasoning-effort vocabulary from the build-local snapshot
+ * when present, otherwise from the on-demand persisted override lookup. */
+function getReasoningEffortsCapabilityOverride(
+  resolved: {
+    provider: string | null;
+    model: string | null;
+    rawModel: string | null;
+  },
+  snapshot?: ModelCapabilityResolutionSnapshot | null
+): readonly string[] | null {
+  const bulk = snapshot?.reasoningEffortsOverrides ?? null;
+  return (
+    getReasoningEffortsOverride(resolved.provider, resolved.model, bulk) ??
+    (resolved.rawModel && resolved.rawModel !== resolved.model
+      ? getReasoningEffortsOverride(resolved.provider, resolved.rawModel, bulk)
+      : null)
+  );
+}
+
+/** Resolve the runtime-compatible provider/model keys for a compat vision override. */
+function getCompatVisionOverride(
+  resolved: {
+    provider: string | null;
+    model: string | null;
+    rawProvider: string | null;
+    rawModel: string | null;
+  },
+  snapshot?: ModelCapabilityResolutionSnapshot | null
+): boolean | null {
+  if (!resolved.provider || !resolved.model) return null;
+  const providerCandidates = Array.from(
+    new Set(
+      [
+        ...getNoAuthHydrationProviderIds(resolved.provider),
+        resolved.rawProvider,
+        resolved.rawProvider ? resolveProviderAlias(resolved.rawProvider) : null,
+      ].filter((value): value is string => Boolean(value))
+    )
+  );
+  const modelCandidates = Array.from(
+    new Set([resolved.model, resolved.rawModel].filter((value): value is string => Boolean(value)))
+  );
+  for (const providerId of providerCandidates) {
+    const value = getModelCompatVisionOverride(
+      providerId,
+      modelCandidates,
+      snapshot?.compatVisionOverrides
+    );
+    if (value !== null) return value;
+  }
+  return null;
+}
+
 export function getExplicitModelOutputCap(
   input: CapabilityInput,
   snapshot?: ModelCapabilityResolutionSnapshot | null
@@ -714,14 +825,37 @@ export function getResolvedModelCapabilities(
   // persisted override never feeds back into the comparison that (re)writes it.
   const usePersistedOverrides = options?.persistedOverrides !== false;
   const resolved = resolveCapabilityInput(input);
-  const spec = getStaticSpec(resolved.model, resolved.rawModel);
-  const registryModel = getRegistryModel(resolved.provider, resolved.model);
-  const synced = getSyncedCapabilityForResolved(
+  let spec = getStaticSpec(resolved.model, resolved.rawModel);
+  let registryModel = getRegistryModel(resolved.provider, resolved.model);
+  let synced = getSyncedCapabilityForResolved(
     resolved.provider,
     resolved.model,
     resolved.rawModel,
     snapshot
   );
+
+  // Effort-suffixed variants (e.g. command-code `deepseek-v4-flash-max`,
+  // `meta/muse-spark-1.2-contributor-xhigh`) are synthesized in the catalog
+  // from the base model's `supportedThinkingEfforts`; they have no registry
+  // row, synced row, or static spec of their own. Without a base-model
+  // fallback the variant resolves with NULL tool/vision/context capabilities,
+  // so a tool-bearing combo request treats the target as incompatible and
+  // silently reorders it behind models with confirmed capabilities. Resolve
+  // the variant's capabilities from its base model when every direct source
+  // misses.
+  if (!spec && !registryModel && !synced && resolved.provider && resolved.model) {
+    const baseModelId = stripKnownEffortSuffix(resolved.model);
+    if (baseModelId && baseModelId !== resolved.model) {
+      spec = getStaticSpec(baseModelId, resolved.rawModel);
+      registryModel = getRegistryModel(resolved.provider, baseModelId);
+      synced = getSyncedCapabilityForResolved(
+        resolved.provider,
+        baseModelId,
+        resolved.rawModel,
+        snapshot
+      );
+    }
+  }
 
   const modalitiesInput = parseModalities(synced?.modalities_input);
   const modalitiesOutput = parseModalities(synced?.modalities_output);
@@ -751,13 +885,18 @@ export function getResolvedModelCapabilities(
     (typeof spec?.supportsTools === "boolean" ? spec.supportsTools : null) ??
     (providerDeniesTools ? false : null);
 
-  const supportsThinking = reasoningDenied
-    ? false
-    : (synced?.reasoning ??
-      (typeof registryModel?.supportsReasoning === "boolean"
-        ? registryModel.supportsReasoning
-        : null) ??
-      (typeof spec?.supportsThinking === "boolean" ? spec.supportsThinking : null));
+  const reasoningEffortsOverride = usePersistedOverrides
+    ? getReasoningEffortsCapabilityOverride(resolved, snapshot)
+    : null;
+  const supportsThinking = reasoningEffortsOverride
+    ? true
+    : reasoningDenied
+      ? false
+      : (synced?.reasoning ??
+        (typeof registryModel?.supportsReasoning === "boolean"
+          ? registryModel.supportsReasoning
+          : null) ??
+        (typeof spec?.supportsThinking === "boolean" ? spec.supportsThinking : null));
 
   const authoritativeContextWindow = getAuthoritativeStaticContextWindow(
     resolved.provider,
@@ -768,7 +907,9 @@ export function getResolvedModelCapabilities(
   // reflects the real *total* window and wins over every static/synced source.
   // `maxInputTokens` still follows its own precedence chain; only when that
   // chain has no narrower source does it naturally fall back to this window.
-  const persistedContextWindow = usePersistedOverrides ? getContextOverride(resolved, snapshot) : null;
+  const persistedContextWindow = usePersistedOverrides
+    ? getContextOverride(resolved, snapshot)
+    : null;
   const contextWindow =
     persistedContextWindow ??
     authoritativeContextWindow ??
@@ -792,11 +933,32 @@ export function getResolvedModelCapabilities(
   // fields keep using the non-leaf `spec` from getStaticSpec() above.
   const visionSpec = getVisionStaticSpec(resolved.model, resolved.rawModel);
 
-  // #9195: read the custom model's supportsVision override from the DB so the
-  // dashboard "Vision capable" toggle affects Combo routing.
+  // #9195 / #12758: keep the original provider&&model short-circuit. All
+  // three advertised id forms still parse to both halves; the matcher
+  // recovers the stored connection-id row via lookupKey / path leftover.
   const customVisionOverride =
     resolved.provider && resolved.model
-      ? getCustomModelVisionOverride(resolved.provider, resolved.model)
+      ? getCustomModelVisionOverride(
+          resolved.provider,
+          resolved.model,
+          snapshot?.customVisionOverrides,
+          { lookupKey: resolved.lookupKey ?? resolved.rawModel ?? lookupKey }
+        )
+      : null;
+
+  const compatVisionOverride = usePersistedOverrides
+    ? getCompatVisionOverride(resolved, snapshot)
+    : null;
+
+  // #14081: positive-only vision verdict from a custom node's synced
+  // `syncedAvailableModels` row, mirroring the catalog's buildSyncedCapabilities.
+  const syncedAvailableModelVision =
+    resolved.provider && resolved.model
+      ? getSyncedAvailableModelVision(
+          resolved.provider,
+          resolved.model,
+          snapshot?.syncedAvailableModelVision
+        )
       : null;
 
   const supportsVision = resolveVisionCapability(
@@ -806,9 +968,12 @@ export function getResolvedModelCapabilities(
     modalitiesInput,
     modalitiesOutput,
     lookupKey,
-    customVisionOverride
+    customVisionOverride,
+    compatVisionOverride,
+    syncedAvailableModelVision
   );
   const supportsAudio = resolveAudioCapability(spec, registryModel, modalitiesInput);
+  const supportsVideo = resolveVideoCapability(spec, registryModel, modalitiesInput);
 
   // #8250: when resolve promoted vision over a contradictory attachment=false,
   // expose attachment=true so catalog / Vision Bridge / clients see one verdict.
@@ -824,9 +989,13 @@ export function getResolvedModelCapabilities(
     toolCalling: supportsTools ?? heuristicToolCalling(lookupKey),
     reasoning: supportsThinking ?? heuristicReasoning(lookupKey),
     supportsThinking,
+    supportedThinkingEfforts:
+      reasoningEffortsOverride ?? registryModel?.supportedThinkingEfforts ?? null,
+    reasoningEffortsOverride: reasoningEffortsOverride !== null,
     supportsTools,
     supportsVision,
     supportsAudio,
+    supportsVideo,
     supportsMaxTokens: heuristicMaxTokens(lookupKey),
     attachment,
     structuredOutput: synced?.structured_output ?? null,
@@ -991,7 +1160,11 @@ export function getModelContextLimit(
 ): number | null {
   const resolved =
     typeof providerOrInput === "string" && modelId !== undefined
-      ? getResolvedModelCapabilities({ provider: providerOrInput, model: modelId }, undefined, snapshot)
+      ? getResolvedModelCapabilities(
+          { provider: providerOrInput, model: modelId },
+          undefined,
+          snapshot
+        )
       : getResolvedModelCapabilities(providerOrInput, undefined, snapshot);
   // Feature 5004: a persisted override (operator-set or auto-discovered) wins over the
   // static catalog / models.dev sync. `getResolvedModelCapabilities` stays override-free

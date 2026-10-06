@@ -1,6 +1,7 @@
 import type { RegistryEntry, RegistryModel } from "../../shared.ts";
 
 export const ALIBABA_MODEL_STUDIO_MODELS: RegistryModel[] = [
+  { id: "qwen3.8-max", name: "Qwen3.8 Max" },
   { id: "qwen3.7-max", name: "Qwen3.7 Max" },
   { id: "qwen3.7-plus", name: "Qwen3.7 Plus" },
   { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },

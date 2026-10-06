@@ -25,6 +25,7 @@ INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSetting
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'quotaSnapshots', '90');
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'compressionAnalytics', '30');
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'mcpAudit', '30');
+INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'configAudit', '30');
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'a2aEvents', '30');
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'callLogs', '90');
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'usageHistory', '365');

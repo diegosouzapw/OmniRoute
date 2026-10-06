@@ -21,7 +21,7 @@ const core = await import("../../src/lib/db/core.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("puter provider is removed from the chat registry (id and alias)", () => {

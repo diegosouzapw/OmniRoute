@@ -10,6 +10,7 @@ type ApiKeyRecord = {
   key: string;
   fullKey: string;
   allowedModels: string[] | null;
+  allowedCombos: string[] | null;
   allowedConnections: string[] | null;
   /** Public shape: "all" | "restricted". Absent on legacy keys. */
   modelAccessMode?: "all" | "restricted" | null;
@@ -164,6 +165,7 @@ test.describe("API keys flow", () => {
           key: maskedKey,
           fullKey,
           allowedModels: null,
+          allowedCombos: ["combo/*"],
           allowedConnections: null,
           createdAt: new Date("2026-04-05T20:00:00.000Z").toISOString(),
         });
@@ -306,6 +308,7 @@ test.describe("API keys flow", () => {
           key: maskedKey,
           fullKey,
           allowedModels: null,
+          allowedCombos: ["combo/*"],
           allowedConnections: null,
           createdAt: new Date("2026-04-05T20:00:00.000Z").toISOString(),
         });
@@ -384,6 +387,92 @@ test.describe("API keys flow", () => {
     await expect(page.getByText("Renamed Key")).toBeVisible();
   });
 
+  test("saves Restrict with no allowed Combos", async ({ page }) => {
+    const state = {
+      key: {
+        id: "key-combo-restricted",
+        name: "No Combos Key",
+        key: "sk-live-****combo",
+        fullKey: "sk-live-combo-secret",
+        allowedModels: null,
+        allowedCombos: ["combo/*"],
+        allowedConnections: null,
+        createdAt: new Date("2026-04-05T20:00:00.000Z").toISOString(),
+      } satisfies ApiKeyRecord,
+      patchPayload: null as Record<string, unknown> | null,
+    };
+
+    await page.route("**/v1/models", async (route) => {
+      await fulfillJson(route, { data: [] });
+    });
+    await page.route("**/api/settings", async (route) => {
+      await fulfillJson(route, {});
+    });
+    await page.route("**/api/providers", async (route) => {
+      await fulfillJson(route, { connections: [] });
+    });
+    await page.route("**/api/combos", async (route) => {
+      await fulfillJson(route, {
+        combos: [{ id: "combo-fast", name: "fast-chat", models: ["openai/gpt-4.1"] }],
+      });
+    });
+    await page.route(/\/api\/usage\/call-logs(?:\?.*)?$/, async (route) => {
+      await fulfillJson(route, []);
+    });
+    await page.route("**/api/sessions", async (route) => {
+      await fulfillJson(route, { byApiKey: {} });
+    });
+    await page.route(/\/api\/keys\/key-combo-restricted$/, async (route) => {
+      if (route.request().method() !== "PATCH") {
+        await fulfillJson(route, { error: "Method not allowed" }, 405);
+        return;
+      }
+      state.patchPayload = (await route.request().postDataJSON()) as Record<string, unknown>;
+      state.key.allowedCombos = state.patchPayload.allowedCombos as string[];
+      await fulfillJson(route, {
+        message: "API key settings updated successfully",
+        ...state.patchPayload,
+      });
+    });
+    await page.route("**/api/keys", async (route) => {
+      await fulfillJson(route, {
+        keys: [{ ...state.key, fullKey: undefined }],
+        allowKeyReveal: true,
+      });
+    });
+
+    await gotoDashboardRoute(page, "/dashboard/api-manager", {
+      timeoutMs: NAVIGATION_TIMEOUT_MS,
+    });
+    await waitForPageToSettle(page);
+    await waitForNextDevCompileToFinish(page);
+
+    const keyRow = page
+      .locator("div")
+      .filter({ has: page.getByText("No Combos Key", { exact: true }) })
+      .first();
+    await expect(keyRow.getByText("1 combos", { exact: true })).toHaveCount(0);
+    await keyRow.locator('button[title="Edit permissions"]').click({ force: true });
+
+    const permissionsDialog = page.getByRole("dialog", {
+      name: /permissions: no combos key/i,
+    });
+    await expect(permissionsDialog).toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+    await permissionsDialog
+      .getByRole("button", { name: /restrict/i })
+      .nth(1)
+      .click();
+    await expect(permissionsDialog.getByText(/restricted to 0 combos/i)).toBeVisible();
+
+    await permissionsDialog.getByRole("button", { name: /save permissions/i }).click();
+
+    await expect.poll(() => state.patchPayload?.allowedCombos).toEqual([]);
+    await expect(permissionsDialog).not.toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+    await expect(page.getByRole("button", { name: /0 combos/i })).toBeVisible({
+      timeout: UI_STABILITY_TIMEOUT_MS,
+    });
+  });
+
   test("validation error appears inside the create key modal, not behind the backdrop", async ({
     page,
   }) => {
@@ -430,6 +519,7 @@ test.describe("API keys flow", () => {
           key: maskedKey,
           fullKey,
           allowedModels: null,
+          allowedCombos: ["combo/*"],
           allowedConnections: null,
           createdAt: new Date().toISOString(),
         });
@@ -567,6 +657,7 @@ test.describe("API keys flow", () => {
           key: maskedKey,
           fullKey,
           allowedModels: null,
+          allowedCombos: ["combo/*"],
           allowedConnections: null,
           createdAt: new Date("2026-04-05T20:00:00.000Z").toISOString(),
         });
@@ -953,6 +1044,12 @@ test.describe("API keys flow", () => {
     const denyAllPatch = state.patchPayloads[state.patchPayloads.length - 1]!;
     expect(denyAllPatch.modelAccessMode).toBe("restricted");
     expect(denyAllPatch.allowedModels).toEqual([]);
+
+    // The PATCH is recorded before the page finishes its post-save refetch and closes
+    // the modal. Reopening while it is still mounted makes the forced click land on the
+    // overlay (closeOnOverlay → onClose), so no dialog ever reappears. Wait for the
+    // close first, exactly as the first reopen above does.
+    await expect(reopened).not.toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
 
     await keyRow.locator('button[title="Edit permissions"]').click({ force: true });
     const denyAllReopened = page.getByRole("dialog", {

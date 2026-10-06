@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   const apiKey = extractBearerToken(request);
   if (!apiKey) return authError(401);
 
-  const { validateApiKey, getApiKeyMetadata } = await import("@/lib/localDb");
+  const { validateApiKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
 
   const valid = await validateApiKey(apiKey);
   if (!valid) return authError(401);

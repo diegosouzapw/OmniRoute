@@ -1,5 +1,3 @@
-const decoder = new TextDecoder();
-
 /**
  * Progress Tracker — Phase 9.3
  *
@@ -31,8 +29,14 @@ export function createProgressTransform({
   let startTime = Date.now();
   let intervalId;
   let writer;
+  let pendingLine = "";
 
   const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  const countDataLines = (text: string) => {
+    tokenCount += text.split("\n").filter((line) => line.startsWith("data: ")).length;
+  };
 
   return new TransformStream(
     {
@@ -68,16 +72,24 @@ export function createProgressTransform({
       },
 
       transform(chunk, controller) {
-        // Count token events in the chunk
-        const text = typeof chunk === "string" ? chunk : decoder.decode(chunk);
-        // Count data lines (each is roughly one token event)
-        const dataLines = text.split("\n").filter((l) => l.startsWith("data: "));
-        tokenCount += dataLines.length;
+        const text =
+          typeof chunk === "string"
+            ? decoder.decode() + chunk
+            : decoder.decode(chunk, { stream: true });
+        pendingLine += text;
+
+        const lastNewline = pendingLine.lastIndexOf("\n");
+        if (lastNewline >= 0) {
+          countDataLines(pendingLine.slice(0, lastNewline + 1));
+          pendingLine = pendingLine.slice(lastNewline + 1);
+        }
         controller.enqueue(chunk);
       },
 
       flush() {
         clearInterval(intervalId);
+        pendingLine += decoder.decode();
+        countDataLines(pendingLine);
         // Final progress event
         if (writer) {
           try {

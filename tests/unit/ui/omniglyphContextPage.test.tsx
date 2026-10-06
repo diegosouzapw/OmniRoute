@@ -108,7 +108,11 @@ describe("OmniglyphContextPage", () => {
     expect(img!.getAttribute("src")).toMatch(/^data:image\/png;base64,/);
     // Gates
     expect(text).toContain("claude-fable-5");
-    expect(text).toContain("direct Anthropic");
+    // A cópia do gate deixou de dizer "direct Anthropic" quando os wires OpenAI
+    // nativos entraram: transporte direto é condição de TODO provider, e o que
+    // restringe a rota ao Anthropic é o recibo de fidelidade de bytes, não o
+    // rótulo do transporte.
+    expect(text).toContain("direct provider");
     // Config control
     expect(container.querySelector('[data-testid="omniglyph-enable-toggle"]')).toBeTruthy();
   });
@@ -137,5 +141,67 @@ describe("OmniglyphContextPage", () => {
     // The other engines must survive the whole-map PUT.
     expect(engines.rtk?.enabled).toBe(true);
     expect(engines.caveman?.enabled).toBe(false);
+  });
+
+  it("carrega o perfil salvo e faz PATCH só do perfil, sem reescrever o mapa de engines", async () => {
+    const puts: CapturedPut[] = [];
+    const json = (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), {
+        status,
+        headers: { "Content-Type": "application/json" },
+      });
+    const stored = {
+      enabled: true,
+      engines: { rtk: { enabled: true, level: "standard" } },
+      omniglyph: { profile: "coding-safe" },
+    };
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        const method = (init?.method ?? "GET").toUpperCase();
+        if (url.includes("/api/settings/compression")) {
+          if (method === "PUT") {
+            puts.push({ url, body: JSON.parse(String(init?.body ?? "{}")) });
+            return json(stored);
+          }
+          return json(stored);
+        }
+        return json({}, 404);
+      }
+    );
+
+    const { default: Page } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient"
+    );
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mount(<Page />);
+    });
+    await flush();
+
+    const select = container.querySelector(
+      '[data-testid="omniglyph-profile-select"]'
+    ) as HTMLSelectElement | null;
+    expect(select, "o seletor de perfil deve existir").toBeTruthy();
+    expect(select!.value, "o perfil salvo tem de vir selecionado").toBe("coding-safe");
+
+    // Os quatro perfis do pacote, com aggressive como primeiro (default).
+    expect(Array.from(select!.options).map((o) => o.value)).toEqual([
+      "aggressive",
+      "balanced",
+      "coding-safe",
+      "passthrough",
+    ]);
+
+    await act(async () => {
+      select!.value = "passthrough";
+      select!.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await flush();
+
+    expect(puts.length).toBe(1);
+    expect(puts[0]!.body).toEqual({ omniglyph: { profile: "passthrough" } });
+    // O perfil vive fora do mapa `engines`: mandá-lo junto reescreveria o mapa inteiro.
+    expect(puts[0]!.body.engines).toBeUndefined();
   });
 });

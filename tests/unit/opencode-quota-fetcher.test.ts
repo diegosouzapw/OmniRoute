@@ -1,12 +1,12 @@
-import test from "node:test";
 import assert from "node:assert/strict";
+import test from "node:test";
 
 import {
   fetchOpencodeQuota,
   invalidateOpencodeQuotaCache,
   registerOpencodeQuotaFetcher,
 } from "../../open-sse/services/opencodeQuotaFetcher.ts";
-import { preflightQuota } from "../../open-sse/services/quotaPreflight.ts";
+import { getQuotaFetcher, getQuotaWindows } from "../../open-sse/services/quotaPreflight.ts";
 import {
   clearQuotaMonitors,
   getActiveMonitorCount,
@@ -15,7 +15,37 @@ import {
 } from "../../open-sse/services/quotaMonitor.ts";
 import { clearSessions, touchSession } from "../../open-sse/services/sessionManager.ts";
 
+type UsageStatus = "ok" | "rate-limited";
+type UsageWindow = {
+  status: UsageStatus;
+  percent: number;
+  resetsAt: string;
+};
+type OfficialUsage = {
+  rolling: UsageWindow;
+  weekly: UsageWindow;
+  monthly: UsageWindow;
+};
+
 const originalFetch = globalThis.fetch;
+const RESET_ROLLING = "2026-09-01T01:02:03.000Z";
+const RESET_WEEKLY = "2026-09-05T04:05:06.000Z";
+const RESET_MONTHLY = "2026-09-30T07:08:09.000Z";
+
+function healthyUsage(): OfficialUsage {
+  return {
+    rolling: { status: "ok", percent: 25, resetsAt: RESET_ROLLING },
+    weekly: { status: "ok", percent: 50, resetsAt: RESET_WEEKLY },
+    monthly: { status: "ok", percent: 10, resetsAt: RESET_MONTHLY },
+  };
+}
+
+function jsonResponse(usage: unknown): Response {
+  return new Response(JSON.stringify({ usage }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+}
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
@@ -23,377 +53,217 @@ test.afterEach(() => {
   clearSessions();
 });
 
-// ─── null / missing credentials ──────────────────────────────────────────────
-
-test("fetchOpencodeQuota returns null when no API key is provided", async () => {
-  const quota = await fetchOpencodeQuota(`missing-${Date.now()}`);
-  assert.equal(quota, null);
-});
-
-test("fetchOpencodeQuota returns null when connection has empty apiKey", async () => {
-  const quota = await fetchOpencodeQuota(`empty-key-${Date.now()}`, { apiKey: "" });
-  assert.equal(quota, null);
-});
-
-// ─── non-200 responses (fail-open) ───────────────────────────────────────────
-
-test("fetchOpencodeQuota returns null on 404 response", async () => {
-  const connectionId = `oc-404-${Date.now()}`;
-
-  globalThis.fetch = async () => new Response(null, { status: 404 });
-
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-  assert.equal(quota, null);
-
-  invalidateOpencodeQuotaCache(connectionId);
-});
-
-test("fetchOpencodeQuota returns null on 401 (invalid token)", async () => {
-  const connectionId = `oc-401-${Date.now()}`;
-
-  globalThis.fetch = async () => new Response(null, { status: 401 });
-
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "bad-key" });
-  assert.equal(quota, null);
-});
-
-test("fetchOpencodeQuota returns null on 403 (forbidden)", async () => {
-  const connectionId = `oc-403-${Date.now()}`;
-
-  globalThis.fetch = async () => new Response(null, { status: 403 });
-
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "bad-key" });
-  assert.equal(quota, null);
-});
-
-test("fetchOpencodeQuota returns null on 500 server error", async () => {
-  const connectionId = `oc-500-${Date.now()}`;
-
-  globalThis.fetch = async () => new Response(null, { status: 500 });
-
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-  assert.equal(quota, null);
-
-  invalidateOpencodeQuotaCache(connectionId);
-});
-
-test("fetchOpencodeQuota returns null on network error (fail-open)", async () => {
-  const connectionId = `oc-net-${Date.now()}`;
-
+test("fetchOpencodeQuota returns null without an API key", async () => {
+  let called = false;
   globalThis.fetch = async () => {
-    throw new Error("Network error");
+    called = true;
+    return jsonResponse(healthyUsage());
   };
 
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-  assert.equal(quota, null);
+  assert.equal(await fetchOpencodeQuota(`missing-${Date.now()}`), null);
+  assert.equal(await fetchOpencodeQuota(`empty-${Date.now()}`, { apiKey: "" }), null);
+  assert.equal(called, false);
 });
 
-test("fetchOpencodeQuota returns null on timeout (fail-open)", async () => {
-  const connectionId = `oc-timeout-${Date.now()}`;
+test("fetchOpencodeQuota parses official usage windows as fractions and sends Bearer auth", async () => {
+  const connectionId = `official-${Date.now()}`;
+  let authorization: string | null = null;
+  let method = "";
 
-  globalThis.fetch = async () => {
-    await new Promise<never>((_, reject) => setTimeout(reject, 100));
-    throw new Error("Timeout");
+  globalThis.fetch = async (input, init) => {
+    const request = new Request(input, init);
+    authorization = request.headers.get("Authorization");
+    method = request.method;
+    return jsonResponse(healthyUsage());
   };
 
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-  assert.equal(quota, null);
-});
+  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "Bearer opencode-key" });
 
-// ─── 3-window parsing ($12/5h, $30/wk, $60/mo) ───────────────────────────────
-
-test("fetchOpencodeQuota parses three-window quota response", async () => {
-  const connectionId = `oc-three-${Date.now()}`;
-  const calls: { url: string; init: RequestInit }[] = [];
-
-  globalThis.fetch = async (url, init) => {
-    calls.push({ url: url as string, init: init as RequestInit });
-    return new Response(
-      JSON.stringify({
-        quota: {
-          window_5h: { used: 4.0, limit: 12.0, reset_at: null },
-          window_weekly: { used: 15.0, limit: 30.0, reset_at: null },
-          window_monthly: { used: 20.0, limit: 60.0, reset_at: null },
-        },
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
-  };
-
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-
-  assert.equal(calls.length, 1);
-  assert.ok(
-    (calls[0].init as Record<string, unknown>)?.headers &&
-      ((calls[0].init as Record<string, unknown>).headers as Record<string, unknown>)[
-        "Authorization"
-      ] === "Bearer test-key",
-    "should send Bearer auth"
-  );
-
-  assert.ok(quota !== null, "should return a quota object");
-  assert.ok(quota!.windows, "should have windows map");
-
-  // window_5h: 4/12 = 33.3%
-  assert.ok(
-    Math.abs((quota!.windows!["window_5h"].percentUsed as number) - 4 / 12) < 0.001,
-    "window_5h percentUsed should be ~0.333"
-  );
-  // window_weekly: 15/30 = 50%
-  assert.ok(
-    Math.abs((quota!.windows!["window_weekly"].percentUsed as number) - 0.5) < 0.001,
-    "window_weekly percentUsed should be 0.5"
-  );
-  // window_monthly: 20/60 = 33.3%
-  assert.ok(
-    Math.abs((quota!.windows!["window_monthly"].percentUsed as number) - 20 / 60) < 0.001,
-    "window_monthly percentUsed should be ~0.333"
-  );
-
-  // Worst-case: weekly at 50%
-  assert.ok(
-    Math.abs(quota!.percentUsed - 0.5) < 0.001,
-    "overall percentUsed should mirror worst window"
-  );
+  assert.ok(quota);
+  assert.equal(authorization, "Bearer opencode-key");
+  assert.equal(method, "GET");
+  assert.equal(quota.percentUsed, 0.5);
+  assert.equal(quota.resetAt, RESET_WEEKLY);
+  assert.equal(quota.limitReached, false);
+  assert.deepEqual(quota.windows, {
+    window_5h: { percentUsed: 0.25, resetAt: RESET_ROLLING },
+    window_weekly: { percentUsed: 0.5, resetAt: RESET_WEEKLY },
+    window_monthly: { percentUsed: 0.1, resetAt: RESET_MONTHLY },
+  });
+  assert.deepEqual(quota.window5h, { percentUsed: 0.25, resetAt: RESET_ROLLING });
+  assert.deepEqual(quota.windowWeekly, { percentUsed: 0.5, resetAt: RESET_WEEKLY });
+  assert.deepEqual(quota.windowMonthly, { percentUsed: 0.1, resetAt: RESET_MONTHLY });
 
   invalidateOpencodeQuotaCache(connectionId);
 });
 
-test("fetchOpencodeQuota parses reset_at timestamps in windows", async () => {
-  const connectionId = `oc-reset-${Date.now()}`;
-  const futureTs = Math.floor((Date.now() + 3_600_000) / 1000); // +1h unix seconds
+test("fetchOpencodeQuota makes a rate-limited window effectively exhausted", async () => {
+  const connectionId = `rate-limited-${Date.now()}`;
+  const usage = healthyUsage();
+  usage.rolling = { status: "rate-limited", percent: 37, resetsAt: RESET_ROLLING };
+  globalThis.fetch = async () => jsonResponse(usage);
 
-  globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({
-        quota: {
-          window_5h: { used: 10.0, limit: 12.0, reset_at: futureTs },
-          window_weekly: { used: 28.0, limit: 30.0, reset_at: null },
-          window_monthly: { used: 55.0, limit: 60.0, reset_at: null },
-        },
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
+  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "opencode-key" });
 
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-
-  assert.ok(quota !== null);
-  // window_5h reset_at should be an ISO string
-  const resetAt5h = quota!.windows?.["window_5h"]?.resetAt;
-  assert.ok(typeof resetAt5h === "string", "window_5h resetAt should be an ISO string");
-  assert.ok(
-    new Date(resetAt5h as string).getTime() > Date.now(),
-    "resetAt should be in the future"
-  );
+  assert.ok(quota);
+  assert.equal(quota.window5h.percentUsed, 1);
+  assert.equal(quota.windows?.window_5h.percentUsed, 1);
+  assert.equal(quota.percentUsed, 1);
+  assert.equal(quota.resetAt, RESET_ROLLING);
+  assert.equal(quota.limitReached, true);
 
   invalidateOpencodeQuotaCache(connectionId);
 });
 
-test("fetchOpencodeQuota sets limitReached when any window is exhausted", async () => {
-  const connectionId = `oc-exhausted-${Date.now()}`;
+test("fetchOpencodeQuota treats an ok window at 100 percent as exhausted", async () => {
+  const connectionId = `hundred-${Date.now()}`;
+  const usage = healthyUsage();
+  usage.monthly = { status: "ok", percent: 100, resetsAt: RESET_MONTHLY };
+  globalThis.fetch = async () => jsonResponse(usage);
 
-  globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({
-        quota: {
-          window_5h: { used: 12.0, limit: 12.0, reset_at: null },
-          window_weekly: { used: 5.0, limit: 30.0, reset_at: null },
-          window_monthly: { used: 10.0, limit: 60.0, reset_at: null },
-        },
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
+  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "opencode-key" });
 
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-
-  assert.ok(quota !== null);
-  // window_5h is 100% used → worst-case
-  assert.ok(Math.abs(quota!.percentUsed - 1.0) < 0.001, "percentUsed should be 1.0 when exhausted");
-  assert.equal((quota as any).limitReached, true, "limitReached should be true");
+  assert.ok(quota);
+  assert.equal(quota.windowMonthly.percentUsed, 1);
+  assert.equal(quota.percentUsed, 1);
+  assert.equal(quota.limitReached, true);
 
   invalidateOpencodeQuotaCache(connectionId);
 });
 
-test("fetchOpencodeQuota returns null when quota object is absent from response", async () => {
-  const connectionId = `oc-no-quota-${Date.now()}`;
+test("fetchOpencodeQuota fails open on non-200, network, and invalid JSON responses", async (t) => {
+  await t.test("non-200", async () => {
+    const connectionId = `non-200-${Date.now()}`;
+    globalThis.fetch = async () => new Response("unavailable", { status: 503 });
+    assert.equal(await fetchOpencodeQuota(connectionId, { apiKey: "opencode-key" }), null);
+    invalidateOpencodeQuotaCache(connectionId);
+  });
 
-  globalThis.fetch = async () =>
-    new Response(JSON.stringify({ message: "ok" }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
+  await t.test("network error", async () => {
+    const connectionId = `network-${Date.now()}`;
+    globalThis.fetch = async () => {
+      throw new Error("network offline");
+    };
+    assert.equal(await fetchOpencodeQuota(connectionId, { apiKey: "opencode-key" }), null);
+    invalidateOpencodeQuotaCache(connectionId);
+  });
+
+  await t.test("invalid JSON", async () => {
+    const connectionId = `invalid-json-${Date.now()}`;
+    globalThis.fetch = async () =>
+      new Response("<html>not json</html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+    assert.equal(await fetchOpencodeQuota(connectionId, { apiKey: "opencode-key" }), null);
+    invalidateOpencodeQuotaCache(connectionId);
+  });
+});
+
+test("fetchOpencodeQuota rejects malformed official usage windows", async (t) => {
+  const malformedBodies: Array<{ name: string; usage: unknown }> = [
+    {
+      name: "unknown status",
+      usage: {
+        ...healthyUsage(),
+        rolling: {
+          status: "paused",
+          percent: 25,
+          resetsAt: RESET_ROLLING,
+        },
+      },
+    },
+    {
+      name: "out-of-range percent",
+      usage: {
+        ...healthyUsage(),
+        weekly: { status: "ok", percent: 101, resetsAt: RESET_WEEKLY },
+      },
+    },
+    {
+      name: "invalid reset timestamp",
+      usage: {
+        ...healthyUsage(),
+        monthly: { status: "ok", percent: 10, resetsAt: "not-a-date" },
+      },
+    },
+  ];
+
+  for (const malformed of malformedBodies) {
+    await t.test(malformed.name, async () => {
+      const connectionId = `malformed-${malformed.name}-${Date.now()}`;
+      globalThis.fetch = async () => jsonResponse(malformed.usage);
+      assert.equal(await fetchOpencodeQuota(connectionId, { apiKey: "opencode-key" }), null);
+      invalidateOpencodeQuotaCache(connectionId);
     });
-
-  const quota = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-  assert.equal(quota, null);
-
-  invalidateOpencodeQuotaCache(connectionId);
+  }
 });
 
-// ─── caching ─────────────────────────────────────────────────────────────────
-
-test("fetchOpencodeQuota caches results within TTL (second call is a no-op)", async () => {
-  const connectionId = `oc-cache-${Date.now()}`;
+test("fetchOpencodeQuota caches for 60 seconds but not across API key changes", async () => {
+  const connectionId = `cache-${Date.now()}`;
+  const originalNow = Date.now;
+  let now = originalNow();
   let calls = 0;
-
-  globalThis.fetch = async () => {
-    calls++;
-    return new Response(
-      JSON.stringify({
-        quota: {
-          window_5h: { used: 2.0, limit: 12.0, reset_at: null },
-          window_weekly: { used: 10.0, limit: 30.0, reset_at: null },
-          window_monthly: { used: 20.0, limit: 60.0, reset_at: null },
-        },
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
+  const authorizations: Array<string | null> = [];
+  Date.now = () => now;
+  globalThis.fetch = async (input, init) => {
+    calls += 1;
+    authorizations.push(new Request(input, init).headers.get("Authorization"));
+    const usage = healthyUsage();
+    usage.weekly.percent = calls === 1 ? 50 : calls === 2 ? 75 : 80;
+    return jsonResponse(usage);
   };
 
-  const first = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-  const second = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
+  try {
+    const first = await fetchOpencodeQuota(connectionId, { apiKey: "first-key" });
+    now += 59_999;
+    const cached = await fetchOpencodeQuota(connectionId, { apiKey: "first-key" });
+    assert.equal(calls, 1);
+    assert.deepEqual(cached, first);
 
-  assert.equal(calls, 1, "should only hit the network once");
-  assert.deepEqual(first, second, "cached result should be identical");
+    const changedKey = await fetchOpencodeQuota(connectionId, { apiKey: "second-key" });
+    assert.ok(changedKey);
+    assert.equal(calls, 2);
+    assert.equal(changedKey.percentUsed, 0.75);
+    assert.deepEqual(authorizations, ["Bearer first-key", "Bearer second-key"]);
 
-  invalidateOpencodeQuotaCache(connectionId);
+    now += 59_999;
+    const secondKeyCached = await fetchOpencodeQuota(connectionId, { apiKey: "second-key" });
+    assert.equal(calls, 2);
+    assert.deepEqual(secondKeyCached, changedKey);
 
-  const third = await fetchOpencodeQuota(connectionId, { apiKey: "test-key" });
-  assert.equal(calls, 2, "should re-fetch after cache invalidation");
-  assert.ok(third !== null);
-
-  invalidateOpencodeQuotaCache(connectionId);
+    now += 1;
+    const refreshed = await fetchOpencodeQuota(connectionId, { apiKey: "second-key" });
+    assert.ok(refreshed);
+    assert.equal(calls, 3);
+    assert.equal(refreshed.percentUsed, 0.8);
+  } finally {
+    Date.now = originalNow;
+    invalidateOpencodeQuotaCache(connectionId);
+  }
 });
 
-// ─── registration + preflight integration ────────────────────────────────────
-
-test("registerOpencodeQuotaFetcher exposes opencode-go quota to preflight system", async () => {
-  const connectionId = `oc-preflight-${Date.now()}`;
-
+test("registerOpencodeQuotaFetcher registers every OpenCode provider and quota window", () => {
   registerOpencodeQuotaFetcher();
 
-  // Fully exhausted 5h window — preflight should block
-  globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({
-        quota: {
-          window_5h: { used: 12.0, limit: 12.0, reset_at: null },
-          window_weekly: { used: 5.0, limit: 30.0, reset_at: null },
-          window_monthly: { used: 10.0, limit: 60.0, reset_at: null },
-        },
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
-
-  const preflight = await preflightQuota("opencode-go", connectionId, {
-    apiKey: "test-key",
-    providerSpecificData: { quotaPreflightEnabled: true },
-  });
-
-  assert.equal(preflight.proceed, false, "preflight should block when window is exhausted");
-  assert.equal(preflight.reason, "quota_exhausted");
-
-  invalidateOpencodeQuotaCache(connectionId);
+  for (const provider of ["opencode-go", "opencode", "opencode-zen"]) {
+    assert.equal(getQuotaFetcher(provider), fetchOpencodeQuota);
+    assert.deepEqual(getQuotaWindows(provider), ["window_5h", "window_weekly", "window_monthly"]);
+  }
 });
 
-test("preflight honors an explicit opencode limit_reached flag even before a window reaches 100%", async () => {
-  const connectionId = `oc-limit-reached-${Date.now()}`;
-  const resetAt = Math.floor((Date.now() + 30 * 60_000) / 1000);
-
+test("registerOpencodeQuotaFetcher keeps OpenCode Go quota monitoring available", () => {
+  const sessionId = `session-${Date.now()}`;
+  const connectionId = `monitor-${Date.now()}`;
   registerOpencodeQuotaFetcher();
+  touchSession(sessionId, connectionId);
 
-  globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({
-        limit_reached: true,
-        quota: {
-          window_5h: { used: 10.0, limit: 12.0, reset_at: resetAt },
-          window_weekly: { used: 20.0, limit: 30.0, reset_at: null },
-          window_monthly: { used: 30.0, limit: 60.0, reset_at: null },
-        },
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
-
-  const preflight = await preflightQuota("opencode-go", connectionId, {
-    apiKey: "test-key",
-    providerSpecificData: { quotaPreflightEnabled: true },
-  });
-
-  assert.equal(preflight.proceed, false, "explicit limit_reached must block the account");
-  assert.equal(preflight.reason, "quota_exhausted");
-  assert.equal(preflight.quotaPercent, 10 / 12);
-  assert.equal(preflight.resetAt, new Date(resetAt * 1000).toISOString());
-
-  invalidateOpencodeQuotaCache(connectionId);
-});
-
-test("registerOpencodeQuotaFetcher also covers opencode and opencode-zen providers", async () => {
-  registerOpencodeQuotaFetcher();
-
-  const { getQuotaFetcher } = await import("../../open-sse/services/quotaPreflight.ts");
-
-  assert.ok(getQuotaFetcher("opencode-go"), "opencode-go should be registered");
-  assert.ok(getQuotaFetcher("opencode"), "opencode should be registered");
-  assert.ok(getQuotaFetcher("opencode-zen"), "opencode-zen should be registered");
-});
-
-test("registerOpencodeQuotaFetcher registers opencode-go in quotaMonitor system", async () => {
-  const connectionId = `oc-monitor-${Date.now()}`;
-
-  registerOpencodeQuotaFetcher();
-
-  globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({
-        quota: {
-          window_5h: { used: 11.0, limit: 12.0, reset_at: null },
-          window_weekly: { used: 29.0, limit: 30.0, reset_at: null },
-          window_monthly: { used: 58.0, limit: 60.0, reset_at: null },
-        },
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
-
-  touchSession("session-oc", connectionId);
-  startQuotaMonitor("session-oc", "opencode-go", connectionId, {
+  startQuotaMonitor(sessionId, "opencode-go", connectionId, {
+    apiKey: "opencode-key",
     providerSpecificData: { quotaMonitorEnabled: true },
   });
-
   assert.equal(getActiveMonitorCount(), 1);
 
-  stopQuotaMonitor("session-oc");
+  stopQuotaMonitor(sessionId);
   assert.equal(getActiveMonitorCount(), 0);
-
-  invalidateOpencodeQuotaCache(connectionId);
-});
-
-// ─── 404 warning: log once, cache 5 min ────────────────────────────────────
-
-test("404 response is cached for 5 minutes to avoid hammering", async () => {
-  let callCount = 0;
-  globalThis.fetch = (async () => {
-    callCount += 1;
-    return new Response("Not Found", { status: 404 });
-  }) as typeof fetch;
-
-  const connectionId = `conn-cache-${Date.now()}`;
-
-  // First call: 1 fetch, no cache
-  await fetchOpencodeQuota(connectionId, { apiKey: "sk-test-key" });
-  const callsAfterFirst = callCount;
-  assert.equal(callsAfterFirst, 1);
-
-  // Second call within 5 min: should hit cache, no fetch
-  await fetchOpencodeQuota(connectionId, { apiKey: "sk-test-key" });
-  const callsAfterSecond = callCount;
-  assert.equal(
-    callsAfterSecond,
-    1,
-    `expected cache hit on second 404 call, but fetch ran ${callsAfterSecond - callsAfterFirst} extra times`
-  );
-
-  // After invalidation: 1 fresh fetch
-  invalidateOpencodeQuotaCache(connectionId);
-  await fetchOpencodeQuota(connectionId, { apiKey: "sk-test-key" });
-  assert.equal(callCount, callsAfterSecond + 1);
 });

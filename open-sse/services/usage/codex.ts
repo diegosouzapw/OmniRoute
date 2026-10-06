@@ -9,6 +9,7 @@
  */
 
 import { buildCodexUsageQuotas } from "../codexUsageQuotas.ts";
+import { getCodexBackendIdentityHeaders } from "../../config/codexClient.ts";
 import { getFieldValue } from "./scalars.ts";
 
 // Codex (OpenAI) API config
@@ -36,6 +37,10 @@ export async function getCodexUsage(
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       Accept: "application/json",
+      // Same UA/version identity chain as Codex inference (sub2api v0.1.178
+      // unified-outbound-identity): usage probes must not show up upstream as
+      // an anonymous half-identity next to the converged inference traffic.
+      ...getCodexBackendIdentityHeaders(),
     };
     if (accountId) {
       headers["chatgpt-account-id"] = accountId;

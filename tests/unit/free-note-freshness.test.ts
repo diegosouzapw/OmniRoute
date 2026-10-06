@@ -14,6 +14,9 @@ test("longcat freeNote reflects the post-2026-05-29 5M tokens/day reality", () =
   assert.match(note("longcat"), /5M tokens\/day|LongCat-2\.0/i);
 });
 
-test("cerebras freeNote reflects the tightened 30K TPM", () => {
-  assert.match(note("cerebras"), /30K TPM|1M tokens\/day/i);
+test("cerebras freeNote reflects the $5 card-gated signup credit (#11773)", () => {
+  const n = note("cerebras");
+  assert.match(n, /\$5/);
+  assert.match(n, /payment method|credit card/i);
+  assert.equal(/1M tokens\/day|30K TPM/.test(n), false);
 });

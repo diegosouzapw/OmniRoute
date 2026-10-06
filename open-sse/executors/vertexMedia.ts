@@ -156,13 +156,13 @@ export function pcmToWav(
   return Buffer.concat([header, pcm]);
 }
 
-function parseSampleRate(mimeType: string | undefined): number {
+export function parsePcmSampleRate(mimeType: string | undefined): number {
   if (!mimeType) return 24000;
   const match = /rate=(\d+)/i.exec(mimeType);
   return match ? parseInt(match[1], 10) : 24000;
 }
 
-function extractInlineAudio(
+export function extractInlineAudio(
   data: unknown
 ): { base64: string; mimeType: string } | null {
   const parts = (data as { candidates?: Array<{ content?: { parts?: unknown[] } }> })?.candidates?.[0]
@@ -215,7 +215,7 @@ export async function vertexGenerateSpeech(
   const inline = extractInlineAudio(data);
   if (!inline) throw new Error("Vertex TTS returned no audio content");
   const pcm = Buffer.from(inline.base64, "base64");
-  return { audio: pcmToWav(pcm, parseSampleRate(inline.mimeType)), contentType: "audio/wav" };
+  return { audio: pcmToWav(pcm, parsePcmSampleRate(inline.mimeType)), contentType: "audio/wav" };
 }
 
 /** Gemini transcription (audio → text). `audioBase64` is the raw file bytes, base64-encoded. */

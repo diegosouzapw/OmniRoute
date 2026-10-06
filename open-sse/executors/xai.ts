@@ -3,6 +3,7 @@ import { PROVIDERS } from "../config/constants.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import { isResponsesEndpointPath } from "../utils/responsesEndpoint.ts";
 import { chatRequestToXaiResponses } from "@/lib/providers/xai/translators/openai-chat.ts";
+import { capXaiRequestHistory } from "../services/xaiMessageCap.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -157,7 +158,8 @@ export class XaiExecutor extends BaseExecutor {
       }
       // Keep model id from the routed request when the translator left it empty.
       if (out.model == null && model) out.model = model;
-      return out;
+      // After chat→Responses expansion, `input` is what xAI counts toward 800.
+      return capXaiRequestHistory(out);
     }
 
     let modelId = typeof out.model === "string" ? out.model : model;
@@ -185,7 +187,7 @@ export class XaiExecutor extends BaseExecutor {
       if (effort) out.reasoning_effort = effort;
     }
 
-    return out;
+    return capXaiRequestHistory(out);
   }
 }
 

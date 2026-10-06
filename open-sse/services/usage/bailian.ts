@@ -10,6 +10,7 @@
  */
 
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "../bailianQuotaFetcher.ts";
+import { getQwenTokenPlanUsage } from "./qwen-token-plan.ts";
 
 /**
  * Bailian (Alibaba Token Plan) Usage
@@ -21,11 +22,25 @@ export async function getBailianCodingPlanUsage(
   providerSpecificData?: Record<string, unknown>
 ) {
   try {
+    // The catalog entry is "Alibaba Token Plan" and now points at the Token Plan
+    // endpoint, so prefer the Token Plan quota (console cookie) when one is
+    // configured. The Coding Plan path below stays as the fallback for accounts
+    // that really do hold a Coding Plan key (#9603).
+    const tokenPlanUsage = await getQwenTokenPlanUsage(
+      connectionId,
+      apiKey,
+      providerSpecificData,
+      "bailian-coding-plan"
+    );
+    if ("quotas" in tokenPlanUsage) return tokenPlanUsage;
+
     const connection = { apiKey, providerSpecificData };
     const quota = await fetchBailianQuota(connectionId, connection);
 
     if (!quota) {
-      return { message: "Alibaba Token Plan connected. Unable to fetch quota." };
+      // Neither surface answered — surface the Token Plan guidance, which tells the
+      // operator how to supply the cookie the console gateway requires.
+      return tokenPlanUsage;
     }
 
     const bailianQuota = quota as BailianTripleWindowQuota;

@@ -13,6 +13,8 @@
  *       content_block_stop, message_delta, message_stop
  */
 
+import { restoreClaudeToolName } from "@omniroute/open-sse/services/claudeCodeToolRemapper";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AnthropicImageSource {
@@ -334,10 +336,12 @@ export function xaiCompletedToClaudeJson(
       } catch {
         inputObj = { _raw: item.arguments };
       }
+      // Fix: Map lowercase tool names from providers to Claude Code expected PascalCase
+      const correctedName = restoreClaudeToolName(item.name);
       content.push({
         type: "tool_use",
         id: item.call_id ?? item.id ?? genId("toolu"),
-        name: item.name,
+        name: correctedName,
         input: inputObj,
       });
     } else if (item.type === "reasoning" && Array.isArray(item.summary)) {

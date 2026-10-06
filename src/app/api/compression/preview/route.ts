@@ -226,8 +226,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId: rawEngineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
-    parsed.data;
+  const {
+    messages,
+    mode,
+    engineId: rawEngineId,
+    pipeline,
+    config,
+    fidelityGate,
+    fuzzyDedup,
+    riskGate,
+    quantumLock,
+    heatmap: heatmapMode,
+  } = parsed.data;
   // Alias: `mode: "caveman"` is a synonym for `engineId: "caveman"` (single-engine stacked run).
   // The caveman engine is not a top-level CompressionMode, but it IS a registered engine.
   const engineId = mode === "caveman" && !rawEngineId ? "caveman" : rawEngineId;
@@ -238,7 +248,13 @@ export async function POST(req: Request) {
 
   try {
     const start = Date.now();
-    const requestBody = { messages };
+    // #14983 made fuzzy dedup run only for callers that advertise omniroute_ccr_retrieve
+    // (its marker is otherwise unresolvable). The studio is a dry run with no real caller, so
+    // with the fuzzy toggle on it simulates a CCR-capable one (same as the compression
+    // benchmark harness) — without this the toggle is a silent no-op.
+    const requestBody = fuzzyDedup?.enabled
+      ? { messages, tools: [{ type: "function", function: { name: "omniroute_ccr_retrieve" } }] }
+      : { messages };
     const result = await dispatchCompression(requestBody as Record<string, unknown>, {
       engineId,
       pipeline,

@@ -29,7 +29,7 @@ Create API key
 
 ```bash
 curl -X POST https://localhost:20128/api/keys \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -49,7 +49,7 @@ Update API key
 
 ```bash
 curl -X PATCH https://localhost:20128/api/keys/{id} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -71,6 +71,142 @@ Lists the distinct devices (masked IP + User-Agent fingerprints) tracked for an 
 
 ```bash
 curl https://localhost:20128/api/keys/{id}/devices \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/keys/{id}/regenerate
+
+POST keys › <id> › regenerate
+
+```bash
+curl -X POST https://localhost:20128/api/keys/{id}/regenerate \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/keys/{id}/reveal
+
+GET keys › <id> › reveal
+
+```bash
+curl https://localhost:20128/api/keys/{id}/reveal \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/keys/{id}/usage-limits
+
+GET keys › <id> › usage limits
+
+```bash
+curl https://localhost:20128/api/keys/{id}/usage-limits \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/keys/groups
+
+GET keys › groups
+
+```bash
+curl https://localhost:20128/api/keys/groups \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/keys/groups
+
+POST keys › groups
+
+```bash
+curl -X POST https://localhost:20128/api/keys/groups \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/keys/groups/{id}
+
+GET keys › groups › <id>
+
+```bash
+curl https://localhost:20128/api/keys/groups/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PUT /api/keys/groups/{id}
+
+PUT keys › groups › <id>
+
+```bash
+curl -X PUT https://localhost:20128/api/keys/groups/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/keys/groups/{id}
+
+DELETE keys › groups › <id>
+
+```bash
+curl -X DELETE https://localhost:20128/api/keys/groups/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/keys/groups/{id}/keys
+
+GET keys › groups › <id> › keys
+
+```bash
+curl https://localhost:20128/api/keys/groups/{id}/keys \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/keys/groups/{id}/keys
+
+POST keys › groups › <id> › keys
+
+```bash
+curl -X POST https://localhost:20128/api/keys/groups/{id}/keys \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/keys/groups/{id}/keys
+
+DELETE keys › groups › <id> › keys
+
+```bash
+curl -X DELETE https://localhost:20128/api/keys/groups/{id}/keys \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/keys/groups/{id}/permissions
+
+GET keys › groups › <id> › permissions
+
+```bash
+curl https://localhost:20128/api/keys/groups/{id}/permissions \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/keys/groups/{id}/permissions
+
+POST keys › groups › <id> › permissions
+
+```bash
+curl -X POST https://localhost:20128/api/keys/groups/{id}/permissions \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/keys/groups/{id}/permissions
+
+DELETE keys › groups › <id> › permissions
+
+```bash
+curl -X DELETE https://localhost:20128/api/keys/groups/{id}/permissions \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 

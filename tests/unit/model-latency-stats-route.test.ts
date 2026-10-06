@@ -20,7 +20,7 @@ const route = await import("../../src/app/api/usage/model-latency-stats/route.ts
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -55,7 +55,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
@@ -184,15 +184,15 @@ test("model latency stats route returns 400 for maxRows above the allowed cap", 
 test("model latency stats route returns sanitized 500 body when the aggregate throws", async () => {
   await enableManagementAuth();
 
-  // Close the underlying SQLite handle without resetting the module-level
-  // singleton reference, so the next getDbInstance() call inside the route
-  // hits a closed connection ("The database connection is not open") and
-  // the route's catch block has to produce a real sanitized 500 — no
-  // module-namespace mocking (ESM bindings here are non-writable at runtime
-  // under node:test) and no fabricated error message.
-  core.closeDbInstance();
-  const db = core.getDbInstance();
-  db.close();
+  // Drop the table the aggregate reads so getModelLatencyStats() hits a real
+  // SQLite error ("no such table: usage_history") and the route's catch block
+  // has to produce a real sanitized 500 — no module-namespace mocking (ESM
+  // bindings here are non-writable at runtime under node:test) and no
+  // fabricated error message. The whole handle is NOT closed any more: since
+  // #15063 management auth reads the dashboard-session state from the DB and
+  // fails closed (401) on a closed connection, which would never reach the
+  // aggregate.
+  core.getDbInstance().exec("DROP TABLE usage_history");
 
   try {
     const response = await route.GET(

@@ -66,5 +66,5 @@ test("repro-8847: better-sqlite3 prebuilds are bundled alongside the compiled bi
     "linux-x64 prebuild must be in the standalone bundle"
   );
 
-  fs.rmSync(tmp, { recursive: true, force: true });
+  fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });

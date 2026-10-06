@@ -498,13 +498,13 @@ describe("NineRouterExecutor", () => {
   describe("getExecutor registration", () => {
     it("getExecutor('9router') returns a NineRouterExecutor", async () => {
       const { getExecutor } = await import("../../open-sse/executors/index.ts");
-      const exec = getExecutor("9router");
+      const exec = await getExecutor("9router");
       assert.equal(exec.getProvider(), "9router");
     });
 
     it("getExecutor('nr') alias resolves to NineRouterExecutor", async () => {
       const { getExecutor } = await import("../../open-sse/executors/index.ts");
-      const exec = getExecutor("nr");
+      const exec = await getExecutor("nr");
       assert.equal(exec.getProvider(), "9router");
     });
   });

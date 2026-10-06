@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useApiKey } from "../../providers/hooks/useApiKey";
 import { buildCurl } from "../../providers/utils/buildCurl";
+import { PLAYGROUND_KEY_ID_HEADER, resolvePlaygroundKeyId } from "../../providers/utils/playgroundAuth";
 import { PlaygroundCard } from "./PlaygroundCard";
 
 interface Props {
@@ -64,7 +65,7 @@ function SearchResultRenderer(data: unknown, fallbackTitle: (number: number) => 
 
 export function WebSearchExampleCard({ providerId }: Props) {
   const t = useTranslations("miniPlayground");
-  const { apiKey } = useApiKey();
+  const { apiKey, keys } = useApiKey();
 
   const [query, setQuery] = useState<string>(() => t("webSearchSample"));
   const [numResults, setNumResults] = useState<number>(5);
@@ -72,14 +73,17 @@ export function WebSearchExampleCard({ providerId }: Props) {
   const [result, setResult] = useState<{ data: unknown; latencyMs: number } | undefined>();
   const [error, setError] = useState<string | null>(null);
 
-  const buildBody = () => ({ query, max_results: numResults });
+  // #13245 — The /api/v1/search route selects providers from body.provider,
+  // not the x-connection-id header.  Send both: the body field drives the
+  // backend; the header is kept for call-log attribution.
+  const buildBody = () => ({ query, max_results: numResults, provider: providerId });
 
   const curlSnippet = buildCurl({
     endpoint:
       (typeof window !== "undefined" ? window.location.origin : "http://localhost:20128") +
       ENDPOINT_PATH,
     headers: {
-      Authorization: `Bearer ${apiKey || "<your-api-key>"}`,
+      Authorization: "Bearer <your-api-key>",
       "Content-Type": "application/json",
     },
     body: buildBody(),
@@ -91,13 +95,18 @@ export function WebSearchExampleCard({ providerId }: Props) {
     setResult(undefined);
     const t0 = performance.now();
     try {
+      // Authenticate via the dashboard session cookie — never send the masked
+      // apiKey as a Bearer token (it is not a real credential; see #9935).
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "x-connection-id": providerId,
+      };
+      const playgroundKeyId = resolvePlaygroundKeyId(apiKey, keys);
+      if (playgroundKeyId) headers[PLAYGROUND_KEY_ID_HEADER] = playgroundKeyId;
       const res = await fetch(ENDPOINT_PATH, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "x-connection-id": providerId,
-        },
+        credentials: "same-origin",
+        headers,
         body: JSON.stringify(buildBody()),
       });
       const data: unknown = await res.json();

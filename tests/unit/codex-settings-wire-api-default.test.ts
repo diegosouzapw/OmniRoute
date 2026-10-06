@@ -18,7 +18,7 @@ const route = await import("../../src/app/api/cli-tools/codex-settings/route.ts"
 
 const authCookie = async (): Promise<string> => {
   process.env.JWT_SECRET = "codex-wire-api-default-test-secret";
-  const token = await new SignJWT({ sub: "codex-wire-api-default-test" })
+  const token = await new SignJWT({ authenticated: true, sub: "codex-wire-api-default-test" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1h")
@@ -44,7 +44,7 @@ const post = async (body: Record<string, unknown>) =>
 
 test.after(async () => {
   os.homedir = originalHome;
-  await fs.rm(TEST_HOME, { recursive: true, force: true });
+  await fs.rm(TEST_HOME, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (originalJwtSecret === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = originalJwtSecret;
   if (originalWriteFlag === undefined) delete process.env.CLI_ALLOW_CONFIG_WRITES;
@@ -78,7 +78,7 @@ test("POST resolves the Codex wire API before URL normalization and TOML generat
 
   for (const testCase of cases) {
     await t.test(testCase.name, async () => {
-      await fs.rm(TEST_HOME, { recursive: true, force: true });
+      await fs.rm(TEST_HOME, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       const response = await post(testCase.body);
       assert.equal(response.status, 200);
 

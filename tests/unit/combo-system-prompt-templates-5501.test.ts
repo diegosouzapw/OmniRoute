@@ -66,14 +66,20 @@ function bodyWithSystem(content: string) {
   return {
     model: "openai/gpt-4o-mini",
     max_tokens: 100,
-    messages: [{ role: "system", content }, { role: "user", content: "hi" }],
+    messages: [
+      { role: "system", content },
+      { role: "user", content: "hi" },
+    ],
   };
 }
 
 test("messages format: expands all placeholders in messages[0] system content", () => {
   const body = {
     messages: [
-      { role: "system", content: "M={{MODEL_ID}} P={{PROVIDER_ID}} A={{ACCOUNT}} F={{FINGERPRINT}}" },
+      {
+        role: "system",
+        content: "M={{MODEL_ID}} P={{PROVIDER_ID}} A={{ACCOUNT}} F={{FINGERPRINT}}",
+      },
       { role: "user", content: "hi" },
     ],
   };
@@ -113,7 +119,10 @@ test("empty value expands to empty string", () => {
 
 test("no placeholders: body unchanged (deep equal)", () => {
   const body = {
-    messages: [{ role: "system", content: "plain" }, { role: "user", content: "hi" }],
+    messages: [
+      { role: "system", content: "plain" },
+      { role: "user", content: "hi" },
+    ],
   };
   const out = expandComboSystemPromptTemplates(body, CTX);
   assert.deepEqual(out, body);
@@ -151,18 +160,21 @@ test("resolveTargetFingerprint: non-fp provider returns null", () => {
 
 test("resolveTargetFingerprint: pinned fingerprint wins", () => {
   assert.equal(
-    resolveTargetFingerprint({ provider: "opencode", pinnedFingerprint: "pin1", executionKey: "k@fp:abc" }),
+    resolveTargetFingerprint({
+      provider: "opencode",
+      pinnedFingerprint: "pin1",
+      executionKey: "k@fp:abc",
+    }),
     "pin1"
   );
 });
 
 test("resolveTargetFingerprint: parses @fp: suffix from executionKey", () => {
-  assert.equal(resolveTargetFingerprint({ provider: "mcode", executionKey: "k@fp:abc" }), "abc");
+  assert.equal(resolveTargetFingerprint({ provider: "opencode", executionKey: "k@fp:abc" }), "abc");
 });
 
 test("resolveTargetFingerprint: null when no source", () => {
   assert.equal(resolveTargetFingerprint({ provider: "opencode", executionKey: "k" }), null);
-  assert.equal(resolveTargetFingerprint({ provider: "mimocode" }), null);
 });
 
 // ── Integration: hook + gate through handleComboChat (#5501) ──────────────────
@@ -177,7 +189,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });

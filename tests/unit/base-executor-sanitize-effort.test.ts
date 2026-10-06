@@ -676,11 +676,9 @@ test("sanitizeReasoningEffortForProvider: NVIDIA GLM-5.2 mapping is narrowly sco
 });
 
 // ── Native DeepSeek (api.deepseek.com) ───────────────────────────────────────
-// DeepSeek V4 thinking mode accepts reasoning_effort ONLY as {high, max}. The
-// internal OmniRoute scale (low|medium|high|xhigh, xhigh = top) must be mapped
-// onto DeepSeek's native vocabulary so the client's requested effort is honored
-// instead of silently dropped to the default. This is the INVERSE of the
-// OpenRouter-DeepSeek path, whose normalized API expects xhigh, not max.
+// DeepSeek V4 thinking mode accepts reasoning_effort as {low, high, max}.
+// The internal OmniRoute scale maps medium → high and xhigh → max so the client's
+// requested effort is honored instead of silently dropped to the default.
 
 test("sanitizeReasoningEffortForProvider: native deepseek maps xhigh → max", () => {
   const log = makeLog();
@@ -716,19 +714,25 @@ test("sanitizeReasoningEffortForProvider: native deepseek preserves max", () => 
   assert.equal(log.messages.length, 0);
 });
 
-test("sanitizeReasoningEffortForProvider: native deepseek clamps low → high", () => {
+test("sanitizeReasoningEffortForProvider: native deepseek preserves low", () => {
   const body = {
     model: "deepseek-v4-pro",
     reasoning_effort: "low",
     messages: [{ role: "user", content: "hi" }],
   };
   const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
+  assert.equal(result, body, "low is already valid — passes through unchanged");
+});
+
+test("sanitizeReasoningEffortForProvider: native non-V4 deepseek clamps low → high", () => {
+  const body = {
+    model: "deepseek-chat",
+    reasoning_effort: "low",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-chat", null);
   assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal(
-    (result as Record<string, unknown>).reasoning_effort,
-    "high",
-    "below the {high, max} floor → high"
-  );
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "high");
 });
 
 test("sanitizeReasoningEffortForProvider: native deepseek clamps medium → high", () => {
@@ -786,11 +790,10 @@ test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek still preserves xh
   assert.equal((result as Record<string, unknown>).reasoning_effort, "xhigh");
 });
 
-// ── opencode-go DeepSeek V4 Pro effort variants (#4647) ──────────────────────
-// opencode-go proxies DeepSeek with the native DeepSeek API contract, which
-// accepts {high, max} literally. The OpencodeExecutor's transformRequest sets
-// reasoning_effort to the variant suffix (low|medium|high|max), and the
-// sanitizer must NOT rewrite `max` → `xhigh` for this provider+model combo.
+// ── opencode-go DeepSeek V4 effort variants (#4647) ──────────────────────────
+// opencode-go proxies DeepSeek with the native DeepSeek API contract. Both V4
+// models advertise none/low/high/max, and the sanitizer must preserve those
+// literal values rather than rewriting `max` to `xhigh`.
 
 test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves max", () => {
   const body = {
@@ -803,24 +806,26 @@ test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves 
   assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
 });
 
-test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves variant suffix levels", () => {
-  for (const level of ["low", "medium", "high", "max"]) {
-    const body = {
-      model: `deepseek-v4-pro-${level}`,
-      reasoning_effort: level,
-      messages: [],
-    };
-    const result = sanitizeReasoningEffortForProvider(
-      body,
-      "opencode-go",
-      `deepseek-v4-pro-${level}`,
-      null
-    );
-    assert.equal(
-      (result as Record<string, unknown>).reasoning_effort,
-      level,
-      `opencode-go deepseek-v4-pro-${level} preserves reasoning_effort=${level}`
-    );
+test("sanitizeReasoningEffortForProvider: opencode-go preserves both V4 models' tiers", () => {
+  for (const model of ["deepseek-v4-pro", "deepseek-v4-flash"]) {
+    for (const level of ["none", "low", "high", "max"]) {
+      const body = {
+        model: `${model}-${level}`,
+        reasoning_effort: level,
+        messages: [],
+      };
+      const result = sanitizeReasoningEffortForProvider(
+        body,
+        "opencode-go",
+        `${model}-${level}`,
+        null
+      );
+      assert.equal(
+        (result as Record<string, unknown>).reasoning_effort,
+        level,
+        `opencode-go ${model}-${level} preserves reasoning_effort=${level}`
+      );
+    }
   }
 });
 
@@ -851,7 +856,11 @@ test("sanitizeReasoningEffortForProvider: command-code preserves nested literal 
   assert.equal(result.reasoning?.effort, "max");
 });
 
-test("sanitizeReasoningEffortForProvider: command-code maps normalized xhigh back to max", () => {
+test("sanitizeReasoningEffortForProvider: command-code preserves native xhigh on every carrier", () => {
+  // Command Code's own validator advertises `low|medium|high|xhigh|max`, so
+  // `xhigh` is a native and distinct tier there. It must survive on both the
+  // top-level `reasoning_effort` and the nested `reasoning.effort` that the
+  // Responses path reads.
   const body = { reasoning_effort: "xhigh", reasoning: { effort: "xhigh" } };
   const result = sanitizeReasoningEffortForProvider(
     body,
@@ -859,8 +868,59 @@ test("sanitizeReasoningEffortForProvider: command-code maps normalized xhigh bac
     "gpt-5.6-luna",
     null
   ) as EffortCarrierResult;
+  assert.equal(result.reasoning_effort, "xhigh");
+  assert.equal(result.reasoning?.effort, "xhigh");
+});
+
+test("sanitizeReasoningEffortForProvider: command-code still passes literal max through", () => {
+  const result = sanitizeReasoningEffortForProvider(
+    { reasoning_effort: "max" },
+    "command-code",
+    "gpt-5.6-luna",
+    null
+  ) as EffortCarrierResult;
   assert.equal(result.reasoning_effort, "max");
-  assert.equal(result.reasoning?.effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: max-tier model families still map xhigh to max on command-code", () => {
+  // The provider-wide rule is gone; the MODEL-level ceiling is not. Those
+  // families genuinely top out at `max` in their native API.
+  for (const model of ["z-ai/glm-5.3-flash", "deepseek/deepseek-v4-flash", "kimi-k3"]) {
+    const result = sanitizeReasoningEffortForProvider(
+      { reasoning_effort: "xhigh" },
+      "command-code",
+      model,
+      null
+    ) as EffortCarrierResult;
+    assert.equal(result.reasoning_effort, "max", `${model} keeps its max ceiling`);
+  }
+});
+
+test("sanitizeReasoningEffortForProvider: ollama-cloud still maps xhigh to max", () => {
+  const result = sanitizeReasoningEffortForProvider(
+    { reasoning_effort: "xhigh" },
+    "ollama-cloud",
+    "llama-4-scout",
+    null
+  ) as EffortCarrierResult;
+  assert.equal(result.reasoning_effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: command-code maps unsupported minimal to low", () => {
+  const log = makeLog();
+  const body = { reasoning_effort: "minimal", messages: [] };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "command-code",
+    "poolside/laguna-s-2.1-free",
+    log
+  ) as Record<string, unknown>;
+  // Upstream rejects minimal (400 "expected one of low|medium|high|xhigh|max").
+  assert.equal(result.reasoning_effort, "low");
+  assert.ok(
+    log.messages.some(([, msg]) => msg.includes("minimal → low")),
+    "sanitizer logs the downgrade"
+  );
 });
 
 test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model passes max through (new default)", () => {

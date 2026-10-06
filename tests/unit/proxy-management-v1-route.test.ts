@@ -39,7 +39,7 @@ async function withEnv(name, value, fn) {
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -65,7 +65,7 @@ async function withPrepareFailure(match, message, fn) {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("v1 management proxies supports create/list/pagination", async () => {
@@ -151,6 +151,13 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
     );
     assert.equal(deleteAuthRes.status, 401);
   });
+
+  // The INITIAL_PASSWORD block above persisted setupComplete=true (headless-deploy
+  // bootstrap in getSettings()). Since #15044, requireManagementAuth no longer inherits
+  // the public-route shortcut, so a setup-complete install without a password requires
+  // management auth even from loopback. Start the unauthenticated CRUD branches below
+  // from a fresh, pre-onboarding install, as this test originally intended.
+  await resetStorage();
 
   const providerConn = await providersDb.createProviderConnection({
     provider: "openai",
@@ -266,7 +273,7 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
   );
   assert.equal(inUseDeleteRes.status, 409);
   const inUseDeleteBody = (await inUseDeleteRes.json()) as any;
-  assert.match(inUseDeleteBody.error.message, /remove assignments first/i);
+  assert.match(inUseDeleteBody.error.message, /remove assignments or account references first/i);
 
   const forceDeleteRes = await proxyV1Route.DELETE(
     new Request(`http://localhost/api/v1/management/proxies?id=${created.id}&force=1`, {
@@ -554,6 +561,10 @@ test("v1 management health endpoint aggregates proxy log metrics", async () => {
     levelId: "openai",
     provider: "openai",
   });
+  // logProxyEvent only enqueues for the 1s/100-entry background batch; the health
+  // route below aggregates persisted proxy_logs synchronously, so flush first or
+  // the seeded rows are not yet on disk (timing-flaky otherwise).
+  proxyLogger.flushProxyLogsSync();
 
   const healthRes = await proxyHealthV1Route.GET(
     new Request("http://localhost/api/v1/management/proxies/health?hours=24")

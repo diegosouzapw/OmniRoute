@@ -1,97 +1,72 @@
-import test, { after } from "node:test";
 import assert from "node:assert/strict";
+import test from "node:test";
 
-// The OpenCode Go quota-by-API-key path is opt-in only (see #7022 — there is no
-// working default quota endpoint, so OMNIROUTE_OPENCODE_GO_QUOTA_URL must be set
-// explicitly by the operator). The module reads this env var once at import time,
-// so it has to be set BEFORE the dynamic import below for the opt-in tests in this
-// file (which simulate an operator who configured the URL) to exercise the fetch path.
-const ORIGINAL_OPENCODE_GO_QUOTA_URL = process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL;
-process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL = "https://api.z.ai/api/monitor/usage/quota/limit";
+import { getUsageForProvider } from "../../open-sse/services/usage.ts";
+import { invalidateOpencodeQuotaCache } from "../../open-sse/services/opencodeQuotaFetcher.ts";
+import { USAGE_SUPPORTED_PROVIDERS } from "../../src/shared/constants/providers.ts";
 
-const usage = await import("../../open-sse/services/usage.ts");
-const { USAGE_SUPPORTED_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
+type ProviderQuota = {
+  used: number;
+  total: number;
+  remaining: number;
+  remainingPercentage: number;
+  resetAt: string | null;
+  unlimited: boolean;
+  displayName?: string;
+  currency?: string;
+};
+type ProviderUsage = {
+  plan?: string | null;
+  quotas?: Record<string, ProviderQuota>;
+  limitReached?: boolean;
+  message?: string;
+};
 
-after(() => {
-  if (ORIGINAL_OPENCODE_GO_QUOTA_URL === undefined) {
-    delete process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL;
-  } else {
-    process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL = ORIGINAL_OPENCODE_GO_QUOTA_URL;
-  }
+const originalFetch = globalThis.fetch;
+
+test.afterEach(() => {
+  globalThis.fetch = originalFetch;
 });
 
 test("USAGE_SUPPORTED_PROVIDERS includes opencode-go", () => {
-  assert.ok(
-    (USAGE_SUPPORTED_PROVIDERS as string[]).includes("opencode-go"),
-    "opencode-go must be in the usage-supported providers allowlist"
-  );
+  assert.ok((USAGE_SUPPORTED_PROVIDERS as readonly string[]).includes("opencode-go"));
 });
 
-test("getUsageForProvider returns helpful message when opencode-go has no apiKey", async () => {
+test("getUsageForProvider does not fetch OpenCode Go quota without an API key", async () => {
   let called = false;
-  const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {
     called = true;
     return new Response("unexpected", { status: 500 });
   };
 
-  try {
-    const result = (await usage.getUsageForProvider({
-      id: "opencode-go-no-key",
-      provider: "opencode-go",
-      apiKey: "",
-    })) as { message?: string };
+  const result = (await getUsageForProvider({
+    id: `opencode-go-no-key-${Date.now()}`,
+    provider: "opencode-go",
+    apiKey: "",
+  })) as ProviderUsage;
 
-    assert.equal(called, false, "quota fetch must not run without an API key");
-    assert.match(result.message ?? "", /OpenCode Go/);
-    assert.match(result.message ?? "", /OPENCODE_GO_WORKSPACE_ID/);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+  assert.equal(called, false);
+  assert.match(result.message ?? "", /OpenCode.*API key/i);
 });
 
-test("getUsageForProvider exposes OpenCode Go 5h, weekly, and monthly quotas", async () => {
-  const originalFetch = globalThis.fetch;
-  const reset5h = Date.now() + 2 * 60 * 60 * 1000;
-  const resetWeekly = Date.now() + 4 * 24 * 60 * 60 * 1000;
-  const resetMonthly = Date.now() + 20 * 24 * 60 * 60 * 1000;
+test("getUsageForProvider shapes official OpenCode Go usage into Provider Limits quotas", async () => {
+  const connectionId = `opencode-go-usage-${Date.now()}`;
+  const rollingReset = "2026-09-01T01:02:03.000Z";
+  const weeklyReset = "2026-09-05T04:05:06.000Z";
+  const monthlyReset = "2026-09-30T07:08:09.000Z";
   let requestUrl = "";
-  let requestHeaders: Headers | null = null;
+  let authorization: string | null = null;
 
   globalThis.fetch = async (input, init) => {
-    requestUrl = String(input);
-    requestHeaders = new Headers(init?.headers as HeadersInit | undefined);
-
+    const request = new Request(input, init);
+    requestUrl = request.url;
+    authorization = request.headers.get("Authorization");
     return new Response(
       JSON.stringify({
-        code: 200,
-        success: true,
-        data: {
-          level: "pro",
-          limits: [
-            {
-              type: "TOKENS_LIMIT",
-              unit: 3,
-              number: 5,
-              percentage: 25,
-              nextResetTime: reset5h,
-            },
-            {
-              type: "TOKENS_LIMIT",
-              unit: 6,
-              number: 1,
-              percentage: 50,
-              nextResetTime: resetWeekly,
-            },
-            {
-              type: "TIME_LIMIT",
-              percentage: 10,
-              currentValue: 6,
-              usage: 60,
-              nextResetTime: resetMonthly,
-              usageDetails: [{ modelCode: "search-prime", usage: 3 }],
-            },
-          ],
+        usage: {
+          rolling: { status: "ok", percent: 25, resetsAt: rollingReset },
+          weekly: { status: "ok", percent: 50, resetsAt: weeklyReset },
+          monthly: { status: "ok", percent: 10, resetsAt: monthlyReset },
         },
       }),
       { status: 200, headers: { "content-type": "application/json" } }
@@ -99,291 +74,108 @@ test("getUsageForProvider exposes OpenCode Go 5h, weekly, and monthly quotas", a
   };
 
   try {
-    const result = (await usage.getUsageForProvider({
-      id: "opencode-go-usage",
-      provider: "opencode-go",
-      apiKey: "Bearer opencode-go-key",
-    })) as {
-      plan?: string | null;
-      quotas?: Record<
-        string,
-        {
-          used: number;
-          total: number;
-          remaining: number;
-          remainingPercentage: number;
-          resetAt: string | null;
-          displayName?: string;
-          currency?: string;
-          details?: Array<{ name: string; used: number }>;
-        }
-      >;
-    };
-
-    assert.equal(requestUrl, "https://api.z.ai/api/monitor/usage/quota/limit");
-    assert.equal(requestHeaders?.get("Authorization"), "Bearer opencode-go-key");
-    assert.equal(requestHeaders?.get("Content-Type"), "application/json");
-    assert.equal(result.plan, "OpenCode Go Pro");
-    assert.deepEqual(Object.keys(result.quotas ?? {}), ["session", "weekly", "mcp_monthly"]);
-
-    assert.equal(result.quotas!.session.displayName, "5-hour rolling");
-    assert.equal(result.quotas!.session.currency, "USD");
-    assert.equal(result.quotas!.session.used, 3);
-    assert.equal(result.quotas!.session.total, 12);
-    assert.equal(result.quotas!.session.remaining, 9);
-    assert.equal(result.quotas!.session.remainingPercentage, 75);
-    assert.equal(result.quotas!.session.resetAt, new Date(reset5h).toISOString());
-
-    assert.equal(result.quotas!.weekly.displayName, "Weekly");
-    assert.equal(result.quotas!.weekly.used, 15);
-    assert.equal(result.quotas!.weekly.total, 30);
-    assert.equal(result.quotas!.weekly.remaining, 15);
-    assert.equal(result.quotas!.weekly.remainingPercentage, 50);
-    assert.equal(result.quotas!.weekly.resetAt, new Date(resetWeekly).toISOString());
-
-    assert.equal(result.quotas!.mcp_monthly.displayName, "Monthly");
-    assert.equal(result.quotas!.mcp_monthly.used, 6);
-    assert.equal(result.quotas!.mcp_monthly.total, 60);
-    assert.equal(result.quotas!.mcp_monthly.remaining, 54);
-    assert.equal(result.quotas!.mcp_monthly.remainingPercentage, 90);
-    assert.equal(result.quotas!.mcp_monthly.resetAt, new Date(resetMonthly).toISOString());
-    assert.deepEqual(result.quotas!.mcp_monthly.details, [{ name: "search-prime", used: 3 }]);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("getUsageForProvider ignores out-of-range OpenCode Go reset timestamps", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({
-        code: 200,
-        success: true,
-        data: {
-          level: "pro",
-          limits: [
-            {
-              type: "TOKENS_LIMIT",
-              unit: 3,
-              number: 5,
-              percentage: 25,
-              nextResetTime: Number.MAX_VALUE,
-            },
-          ],
-        },
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
-
-  try {
-    const result = (await usage.getUsageForProvider({
-      id: "opencode-go-huge-reset",
+    const result = (await getUsageForProvider({
+      id: connectionId,
       provider: "opencode-go",
       apiKey: "opencode-go-key",
-    })) as { quotas?: Record<string, { resetAt: string | null }> };
+    })) as ProviderUsage;
 
-    assert.equal(result.quotas!.session.resetAt, null);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("getUsageForProvider scrapes OpenCode Go dashboard quota when workspace cookie is configured", async () => {
-  const originalFetch = globalThis.fetch;
-  const originalWorkspace = process.env.OPENCODE_GO_WORKSPACE_ID;
-  const originalCookie = process.env.OPENCODE_GO_AUTH_COOKIE;
-  let requestUrl = "";
-  let requestHeaders: Headers | null = null;
-
-  process.env.OPENCODE_GO_WORKSPACE_ID = "workspace-123";
-  process.env.OPENCODE_GO_AUTH_COOKIE = "auth-cookie-value";
-
-  globalThis.fetch = async (input, init) => {
-    requestUrl = String(input);
-    requestHeaders = new Headers(init?.headers as HeadersInit | undefined);
-    return new Response(
-      [
-        '<div data-slot="usage-item">',
-        '<span data-slot="usage-label">Rolling Usage</span>',
-        '<span data-slot="usage-value">25%</span>',
-        '<span data-slot="reset-time">Resets in 1 hour 30 minutes</span>',
-        "</div>",
-        '<div data-slot="usage-item">',
-        '<span data-slot="usage-label">Weekly Usage</span>',
-        '<span data-slot="usage-value">50%</span>',
-        '<span data-slot="reset-time">Resets in 2 days</span>',
-        "</div>",
-        '<div data-slot="usage-item">',
-        '<span data-slot="usage-label">Monthly Usage</span>',
-        '<span data-slot="usage-value">10%</span>',
-        '<span data-slot="reset-time">Resets in 10 days</span>',
-        "</div>",
-      ].join(""),
-      { status: 200, headers: { "content-type": "text/html" } }
-    );
-  };
-
-  try {
-    const result = (await usage.getUsageForProvider({
-      id: "opencode-go-dashboard",
-      provider: "opencode-go",
-      apiKey: "opencode-go-key",
-    })) as {
-      plan?: string | null;
-      quotas?: Record<string, { used: number; total: number; remainingPercentage: number }>;
-    };
-
-    assert.equal(requestUrl, "https://opencode.ai/workspace/workspace-123/go");
-    assert.equal(requestHeaders?.get("Cookie"), "auth=auth-cookie-value");
+    assert.equal(requestUrl, "https://opencode.ai/zen/go/v1/usage");
+    assert.equal(authorization, "Bearer opencode-go-key");
     assert.equal(result.plan, "OpenCode Go");
+    assert.equal(result.limitReached, false);
     assert.deepEqual(Object.keys(result.quotas ?? {}), ["session", "weekly", "mcp_monthly"]);
-    assert.equal(result.quotas!.session.used, 3);
-    assert.equal(result.quotas!.session.total, 12);
-    assert.equal(result.quotas!.session.remainingPercentage, 75);
-    assert.equal(result.quotas!.weekly.used, 15);
-    assert.equal(result.quotas!.weekly.remainingPercentage, 50);
-    assert.equal(result.quotas!.mcp_monthly.used, 6);
-    assert.equal(result.quotas!.mcp_monthly.remainingPercentage, 90);
+
+    assert.deepEqual(result.quotas?.session, {
+      used: 3,
+      total: 12,
+      remaining: 9,
+      remainingPercentage: 75,
+      resetAt: rollingReset,
+      unlimited: false,
+      displayName: "$12 / 5-hour",
+      currency: "USD",
+    });
+    assert.deepEqual(result.quotas?.weekly, {
+      used: 15,
+      total: 30,
+      remaining: 15,
+      remainingPercentage: 50,
+      resetAt: weeklyReset,
+      unlimited: false,
+      displayName: "$30 / week",
+      currency: "USD",
+    });
+    assert.deepEqual(result.quotas?.mcp_monthly, {
+      used: 6,
+      total: 60,
+      remaining: 54,
+      remainingPercentage: 90,
+      resetAt: monthlyReset,
+      unlimited: false,
+      displayName: "$60 / month",
+      currency: "USD",
+    });
   } finally {
-    globalThis.fetch = originalFetch;
-    if (originalWorkspace === undefined) delete process.env.OPENCODE_GO_WORKSPACE_ID;
-    else process.env.OPENCODE_GO_WORKSPACE_ID = originalWorkspace;
-    if (originalCookie === undefined) delete process.env.OPENCODE_GO_AUTH_COOKIE;
-    else process.env.OPENCODE_GO_AUTH_COOKIE = originalCookie;
+    invalidateOpencodeQuotaCache(connectionId);
   }
 });
 
-// Regression: React SSR wraps the reset-time text in hydration comment markers
-// (<!--$--> … <!--/-->). The reset string must be fully sanitized (complete <!--...-->
-// removal, not just the two literal markers) so the reset time still parses — and so no
-// partial "<!--" survives (CodeQL js/incomplete-multi-character-sanitization).
-test("getUsageForProvider parses OpenCode Go reset-time wrapped in React hydration comments", async () => {
-  const originalFetch = globalThis.fetch;
-  const originalWorkspace = process.env.OPENCODE_GO_WORKSPACE_ID;
-  const originalCookie = process.env.OPENCODE_GO_AUTH_COOKIE;
-
-  process.env.OPENCODE_GO_WORKSPACE_ID = "workspace-123";
-  process.env.OPENCODE_GO_AUTH_COOKIE = "auth-cookie-value";
-
+test("getUsageForProvider shows zero remaining for a rate-limited OpenCode Go window", async () => {
+  const connectionId = `opencode-go-rate-limited-${Date.now()}`;
+  const rollingReset = "2026-09-01T01:02:03.000Z";
   globalThis.fetch = async () =>
     new Response(
-      [
-        '<div data-slot="usage-item">',
-        '<span data-slot="usage-label">Rolling Usage</span>',
-        '<span data-slot="usage-value">25%</span>',
-        '<span data-slot="reset-time"><!--$-->Resets in 1 hour 30 minutes<!--/--></span>',
-        "</div>",
-      ].join(""),
-      { status: 200, headers: { "content-type": "text/html" } }
+      JSON.stringify({
+        usage: {
+          rolling: { status: "rate-limited", percent: 5, resetsAt: rollingReset },
+          weekly: {
+            status: "ok",
+            percent: 90,
+            resetsAt: "2026-09-05T04:05:06.000Z",
+          },
+          monthly: {
+            status: "ok",
+            percent: 20,
+            resetsAt: "2026-09-30T07:08:09.000Z",
+          },
+        },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
     );
 
   try {
-    const result = (await usage.getUsageForProvider({
-      id: "opencode-go-dashboard",
+    const result = (await getUsageForProvider({
+      id: connectionId,
       provider: "opencode-go",
       apiKey: "opencode-go-key",
-    })) as {
-      quotas?: Record<string, { used: number; total: number; remainingPercentage: number }>;
-    };
+    })) as ProviderUsage;
 
-    // session quota resolved → the comment-wrapped reset time was sanitized and parsed
-    assert.ok(
-      result.quotas?.session,
-      "session quota should resolve from comment-wrapped reset-time"
-    );
-    assert.equal(result.quotas!.session.remainingPercentage, 75);
+    assert.equal(result.limitReached, true);
+    assert.equal(result.quotas?.session.used, 12);
+    assert.equal(result.quotas?.session.remaining, 0);
+    assert.equal(result.quotas?.session.remainingPercentage, 0);
+    assert.equal(result.quotas?.session.resetAt, rollingReset);
+    assert.ok(Math.abs((result.quotas?.weekly.remainingPercentage ?? Number.NaN) - 10) < 1e-9);
   } finally {
-    globalThis.fetch = originalFetch;
-    if (originalWorkspace === undefined) delete process.env.OPENCODE_GO_WORKSPACE_ID;
-    else process.env.OPENCODE_GO_WORKSPACE_ID = originalWorkspace;
-    if (originalCookie === undefined) delete process.env.OPENCODE_GO_AUTH_COOKIE;
-    else process.env.OPENCODE_GO_AUTH_COOKIE = originalCookie;
+    invalidateOpencodeQuotaCache(connectionId);
   }
 });
 
-test("getUsageForProvider returns message for invalid OpenCode Go API keys", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response("nope", { status: 401 });
+test("getUsageForProvider reports unavailable quota when the official request fails open", async () => {
+  const connectionId = `opencode-go-fail-open-${Date.now()}`;
+  globalThis.fetch = async () => new Response("unavailable", { status: 503 });
 
   try {
-    const result = (await usage.getUsageForProvider({
-      id: "opencode-go-401",
-      provider: "opencode-go",
-      apiKey: "bad-key",
-    })) as { message: string };
-    assert.equal(
-      result.message,
-      "OpenCode Go API key is valid for chat/models but cannot read quota from the configured " +
-        "OMNIROUTE_OPENCODE_GO_QUOTA_URL endpoint. " +
-        "Set OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE to enable dashboard quota scraping."
-    );
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("getUsageForProvider returns message when OpenCode Go quota fetch fails", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => {
-    throw new Error("network offline");
-  };
-
-  try {
-    const result = (await usage.getUsageForProvider({
-      id: "opencode-go-network-error",
+    const result = (await getUsageForProvider({
+      id: connectionId,
       provider: "opencode-go",
       apiKey: "opencode-go-key",
-    })) as { message: string };
+    })) as ProviderUsage;
 
-    assert.match(result.message, /OpenCode Go quota API error:/);
-    assert.match(result.message, /network offline/);
+    assert.equal(result.plan, undefined);
+    assert.match(result.message ?? "", /Unable to fetch quota data/i);
   } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("getUsageForProvider returns message when OpenCode Go quota API returns 200 with auth error in body", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () =>
-    new Response(JSON.stringify({ code: 401, msg: "token expired or incorrect", success: false }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
-
-  try {
-    const result = (await usage.getUsageForProvider({
-      id: "opencode-go-body-401",
-      provider: "opencode-go",
-      apiKey: "sk-test-key",
-    })) as { message: string };
-    assert.equal(
-      result.message,
-      "OpenCode Go API key is valid for chat/models but cannot read quota from the configured " +
-        "OMNIROUTE_OPENCODE_GO_QUOTA_URL endpoint. " +
-        "Set OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE to enable dashboard quota scraping."
-    );
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("getUsageForProvider returns message when OpenCode Go quota response is invalid JSON", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () =>
-    new Response("<html>not json</html>", {
-      status: 200,
-      headers: { "content-type": "text/html" },
-    });
-
-  try {
-    const result = (await usage.getUsageForProvider({
-      id: "opencode-go-bad-json",
-      provider: "opencode-go",
-      apiKey: "sk-test-key",
-    })) as { message: string };
-    assert.equal(result.message, "OpenCode Go quota response parsing failed.");
-  } finally {
-    globalThis.fetch = originalFetch;
+    invalidateOpencodeQuotaCache(connectionId);
   }
 });

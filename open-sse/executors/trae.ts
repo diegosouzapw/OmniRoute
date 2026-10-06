@@ -19,12 +19,27 @@
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
+import { resolveTraeApiHost } from "../utils/traeHost.ts";
 
 type JsonRecord = Record<string, unknown>;
 type ChatMessage = { role?: string; content?: unknown };
 
 const STREAM_TIMEOUT_MS = parseInt(process.env.TRAE_STREAM_TIMEOUT_MS || "300000", 10);
+
+// Trae's web client origin moved from solo.trae.ai to work.trae.ai (the SOLO
+// coding agent is now served under the TraeWork product surface); the backend
+// appears to validate Origin/Referer against the JWT session's real origin, so
+// a stale value here produces a clean 401 even with a fresh token (#12190).
+// Kept overridable — via env for a fleet-wide bump without a code change, and
+// per-connection via providerSpecificData.refererOrigin for an account that
+// still authenticates against the legacy host — rather than a second
+// hardcoded guess that would go stale the same way.
+const DEFAULT_TRAE_WEB_ORIGIN = (process.env.TRAE_WEB_ORIGIN || "https://work.trae.ai").replace(
+  /\/$/,
+  ""
+);
 
 function flattenQuery(messages: ChatMessage[]): string {
   const parts: string[] = [];
@@ -61,13 +76,17 @@ export class TraeExecutor extends BaseExecutor {
   buildHeaders(credentials): Record<string, string> {
     const token = (credentials.accessToken as string) || "";
     const psd = (credentials.providerSpecificData as JsonRecord) || {};
+    const webOrigin = ((psd.refererOrigin as string) || DEFAULT_TRAE_WEB_ORIGIN).replace(/\/$/, "");
+    const timezone = psd.userTimezone as string | undefined;
     return {
       Authorization: `Cloud-IDE-JWT ${token}`,
       "Content-Type": "application/json",
       "X-Trae-Client-Type": "web",
       "X-Preferenced-Language": (psd.appLanguage as string) || "en",
       "x-user-region": (psd.userRegion as string) || "US",
-      Referer: "https://solo.trae.ai/",
+      Referer: `${webOrigin}/`,
+      Origin: webOrigin,
+      ...(timezone ? { "x-trae-user-timezone": timezone } : {}),
       "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
         "(KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
@@ -151,7 +170,12 @@ export class TraeExecutor extends BaseExecutor {
       signal: signal || undefined,
     });
     const text = await res.text();
-    if (!res.ok) throw new Error(`[${res.status}] ${text}`);
+    if (!res.ok) {
+      // Publish the received status so proxy health counts it as upstream.
+      const sink = currentAppliedProxySink();
+      if (sink) sink.upstreamStatus = res.status;
+      throw new Error(`[${res.status}] ${text}`);
+    }
     const json = JSON.parse(text);
     if (json?.code !== 0) throw new Error(`Trae create_session: ${JSON.stringify(json)}`);
     return { sessionId: json.data.chat_session_id, messageId: json.data.message_id };
@@ -170,15 +194,22 @@ export class TraeExecutor extends BaseExecutor {
   ): Promise<void> {
     const url = `${this.base()}/chat_sessions/${sessionId}/events?reply_to_message_id=${encodeURIComponent(replyTo)}`;
     const ctrl = new AbortController();
-    // If the caller's signal is already aborted, abort upfront so we don't open
-    // a network request the consumer no longer wants.
-    if (signal?.aborted) ctrl.abort();
     const timer = setTimeout(() => ctrl.abort(new Error("trae stream timeout")), STREAM_TIMEOUT_MS);
     const onAbort = () => ctrl.abort();
-    if (signal) signal.addEventListener("abort", onAbort, { once: true });
+    if (signal) {
+      // If the caller's signal is already aborted, abort upfront so we don't open
+      // a network request the consumer no longer wants.
+      if (signal.aborted) ctrl.abort();
+      signal.addEventListener("abort", onAbort, { once: true });
+    }
     try {
       const res = await fetch(url, { method: "GET", headers, signal: ctrl.signal });
-      if (!res.ok || !res.body) throw new Error(`[${res.status}] events stream failed`);
+      if (!res.ok || !res.body) {
+        // Publish the received status so proxy health counts it as upstream.
+        const sink = currentAppliedProxySink();
+        if (sink) sink.upstreamStatus = res.status;
+        throw new Error(`[${res.status}] events stream failed`);
+      }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
@@ -438,7 +469,7 @@ export class TraeExecutor extends BaseExecutor {
     const psd = (credentials?.providerSpecificData as JsonRecord) || {};
     const refreshToken = credentials?.refreshToken as string | undefined;
     if (!refreshToken) return null;
-    const host = ((psd.host as string) || "https://api-us-east.trae.ai").replace(/\/$/, "");
+    const host = resolveTraeApiHost(psd.host);
     const clientId =
       (psd.clientId as string) || resolvePublicCred("trae_id", "TRAE_OAUTH_CLIENT_ID");
     const url = `${host}/cloudide/api/v3/trae/oauth/ExchangeToken`;

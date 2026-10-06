@@ -14,18 +14,6 @@
     "jsonOpt": "以 JSON 格式輸出",
     "yesOpt": "跳過確認"
   },
-  "program": {
-    "description": "OmniRoute — 具有自動故障轉移的智慧 AI 路由器",
-    "version": "列印版本並退出",
-    "output": "輸出格式（table, json, jsonl, csv）",
-    "quiet": "禁止非必要輸出",
-    "no_color": "停用彩色輸出",
-    "timeout": "HTTP 請求超時（毫秒）",
-    "api_key": "OmniRoute 伺服器的 API 金鑰",
-    "base_url": "OmniRoute 伺服器的基礎 URL",
-    "context": "此命令使用的伺服器上下文/配置檔案",
-    "lang": "設定 CLI 顯示語言（覆蓋 OMNIROUTE_LANG）"
-  },
   "setup": {
     "title": "OmniRoute 設定",
     "passwordPrompt": "管理員密碼",
@@ -38,7 +26,8 @@
     "testFailed": "提供者測試失敗：{error}",
     "loginEnabled": "登入：已啟用（密碼已更新）",
     "loginDisabled": "登入：已停用",
-    "providerInfo": "提供者：{info}"
+    "providerInfo": "提供者：{info}",
+    "opencode": "安裝並配置隨附的 @omniroute/opencode-plugin 以用於 OpenCode"
   },
   "doctor": {
     "title": "OmniRoute 診斷",
@@ -143,6 +132,20 @@
       "none": "{days} 天內沒有金鑰過期。",
       "listTitle": "{days} 天內過期的金鑰："
     }
+  },
+  "authExport": {
+    "description": "匯出已解密的提供者憑據（僅限本機，明文輸出）",
+    "idOpt": "僅匯出與此 id/名稱/提供者相符的連線",
+    "formatOpt": "輸出格式：json 或 env",
+    "outOpt": "將輸出寫入檔案而非標準輸出（以 0600 權限寫入）",
+    "forceOpt": "確認你了解此操作會列印/寫入明文密鑰",
+    "warning": "⚠ 此操作會列印/寫入已解密的明文 API 金鑰和 OAuth 令牌。請確保你的螢幕、shell 歷史記錄以及任何輸出檔案保持私密。",
+    "confirmHeading": "⚠ 警告：此操作會以明文匯出已解密的提供者憑據",
+    "confirmBody": "此命令會為所選連線解密並列印/寫入 apiKey、accessToken、refreshToken 和\nidToken。請將輸出視為機密。",
+    "confirmFooter": "如需確認，請執行：\n  omniroute auth export --force",
+    "missingKey": "匯出憑據需要 STORAGE_ENCRYPTION_KEY。",
+    "notFound": "找不到連線：{id}",
+    "invalidFormat": "無效格式：{format}。請使用 json 或 env。"
   },
   "stream": {
     "description": "使用 SSE 檢查模式流式傳輸聊天響應",
@@ -252,7 +255,10 @@
     "no_recovery": "停用崩潰自動重啟（除錯模式）",
     "max_restarts": "30 秒內的最大崩潰重啟次數（預設：2）",
     "tray": "顯示系統托盤圖示（僅桌面，選擇加入）",
-    "no_tray": "停用系統托盤圖示"
+    "no_tray": "停用系統托盤圖示",
+    "ready_timeout": "就緒探測逾時（毫秒）（也可用 OMNIROUTE_READY_TIMEOUT_MS，預設 60000）",
+    "tls_cert": "用於提供 HTTPS 服務的 TLS 憑證（PEM）路徑（也可用 OMNIROUTE_TLS_CERT）",
+    "tls_key": "用於提供 HTTPS 服務的 TLS 私鑰（PEM）路徑（也可用 OMNIROUTE_TLS_KEY）"
   },
   "backup": {
     "title": "備份",
@@ -298,7 +304,7 @@
     "status": "狀態：{status}",
     "uptime": "執行時間：{uptime}",
     "requests": "請求數（24h）：{count}",
-    "cost": "成本（24h）："
+    "cost": "成本（24h）：${cost}"
   },
   "quota": {
     "description": "顯示提供者配額使用情況",
@@ -342,6 +348,16 @@
     "running": "MCP 伺服器正在執行（{transport}）",
     "stopped": "MCP 伺服器已停止。",
     "restarted": "MCP 伺服器已重啟。",
+    "stoppedHint": "執行 `omniroute mcp enable` 以啟用它。",
+    "enabled": "MCP 伺服器已啟用。",
+    "disabled": "MCP 伺服器已停用。",
+    "enable": {
+      "description": "啟用 MCP 伺服器",
+      "transport": "要使用的傳輸方式：stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "停用 MCP 伺服器"
+    },
     "call": {
       "description": "直接呼叫 MCP 工具",
       "args": "JSON 引數物件（內聯）",
@@ -804,6 +820,18 @@
       "event": "要模擬的事件型別（預設：request.completed）"
     }
   },
+  "program": {
+    "description": "OmniRoute — 具有自動故障轉移的智慧 AI 路由器",
+    "version": "列印版本並退出",
+    "output": "輸出格式（table, json, jsonl, csv）",
+    "quiet": "禁止非必要輸出",
+    "no_color": "停用彩色輸出",
+    "timeout": "HTTP 請求超時（毫秒）",
+    "api_key": "OmniRoute 伺服器的 API 金鑰",
+    "base_url": "OmniRoute 伺服器的基礎 URL",
+    "context": "此命令使用的伺服器上下文/配置檔案",
+    "lang": "設定 CLI 顯示語言（覆蓋 OMNIROUTE_LANG）"
+  },
   "files": {
     "description": "管理檔案（上傳、列出、獲取、下載、刪除）",
     "list": {
@@ -903,6 +931,11 @@
       "description": "顯示與上游價格的差異",
       "model": "按模型篩選"
     }
+  },
+  "radar": {
+    "description": "檢查並同步本機 Radar 目錄訂閱來源",
+    "status": "顯示本機 Radar 設定和訂閱來源快取狀態",
+    "sync": "透過本機伺服器同步目錄、推薦、優惠和 Intel"
   },
   "resilience": {
     "description": "檢查和管理彈性機制",
@@ -1231,8 +1264,8 @@
     "description": "管理 OmniRoute 開機自啟（Linux：systemd 使用者服務）",
     "enable": "啟用開機自啟",
     "disable": "停用開機自啟",
-    "status": "顯示自啟狀態",
-    "toggle": "切換開機自啟"
+    "toggle": "切換開機自啟",
+    "status": "顯示自啟狀態"
   },
   "runtime": {
     "description": "管理本地執行時依賴",
@@ -1258,5 +1291,50 @@
     "search": "搜尋 npm 登錄檔中的可用外掛",
     "update": "更新已安裝的外掛",
     "scaffold": "搭建新的外掛模板"
+  },
+  "launch": {
+    "description": "啟動指向 OmniRoute 的 Claude Code（本機或遠端，使用 --profile）",
+    "token": "Claude 用戶端應傳送的令牌（ANTHROPIC_AUTH_TOKEN）",
+    "notRunning": "無法在 {port} 存取 OmniRoute。請使用「omniroute serve」啟動它。",
+    "notFound": "在 PATH 中找不到「claude」CLI。"
+  },
+  "run": {
+    "description": "透過 OmniRoute 啟動受支援的 CLI 目標"
+  },
+  "setupClaude": {
+    "description": "從 OmniRoute 模型目錄產生 ~/.claude/profiles 的 Claude Code 配置檔"
+  },
+  "connect": {
+    "description": "連線到遠端 OmniRoute 伺服器並進入遠端模式"
+  },
+  "tokens": {
+    "description": "管理限定範圍的 CLI 存取令牌（遠端模式）"
+  },
+  "configure": {
+    "description": "從使用中的伺服器選擇提供者+模型並配置受支援的本機 CLI"
+  },
+  "launchCodex": {
+    "description": "啟動指向 OmniRoute 的 Codex CLI（本機或遠端 VPS）"
+  },
+  "setupCodex": {
+    "description": "從 OmniRoute 即時模型目錄產生 ~/.codex 配置檔"
+  },
+  "packs": {
+    "description": "管理可選的執行階段套件（ML / 瀏覽器自動化）",
+    "listDescription": "列出可選套件及其安裝狀態",
+    "installDescription": "將可選套件安裝到 DATA_DIR",
+    "verifyDescription": "根據隨附的總和檢查碼索引驗證已安裝的套件",
+    "removeDescription": "移除已安裝的可選套件",
+    "sourceOpt": "存放套件負載和套件索引的目錄",
+    "warnNoIndex": "找不到 optional-packs.index.json —— 此檢出無法進行安裝/驗證（桌面套件會隨附它）",
+    "errUnknown": "未知的套件：{name}",
+    "errNoIndex": "找不到套件索引；請透過 --source <dir> 傳入存放套件負載的目錄（桌面套件會將其隨附在應用程式旁）",
+    "installed": "套件「{name}」已安裝並在 {dir} 驗證通過",
+    "restartHint": "請重新啟動 OmniRoute 伺服器（或桌面應用程式），以便執行階段載入該套件",
+    "removed": "套件「{name}」已移除",
+    "notInstalled": "套件「{name}」未安裝",
+    "verifyOk": "所有已安裝的套件均已驗證通過",
+    "verifyFailed": "{count} 個套件驗證失敗",
+    "noneInstalled": "未安裝可選套件"
   }
 }

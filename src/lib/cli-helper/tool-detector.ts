@@ -1,13 +1,19 @@
 import os from "node:os";
-import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { getCurrentHermesAgentRoles } from "./config-generator/hermes-agent";
+import { getHermesConfigPath } from "./config-generator/hermesHome";
+import { getCliTool, listCliTools } from "../../shared/constants/cliTools";
 import {
+  CLI_TOOL_IDS,
   getLookupEnv,
+  getCliPrimaryConfigPath,
+  getCliToolCommandCandidates,
   locateCommand,
+  normalizeCliToolId,
   shouldUseShellForCommand,
 } from "../../shared/services/cliRuntime";
+import { resolveOpencodeConfigPath } from "../../shared/services/opencodeConfigPath";
 
 const execFileAsync = promisify(execFile);
 let execFileImpl = execFileAsync;
@@ -41,29 +47,28 @@ export interface DetectedTool {
   >;
 }
 
-const TOOLS = [
-  { id: "claude", name: "Claude Code", configPath: "~/.claude/settings.json" },
-  { id: "codex", name: "Codex CLI", configPath: "~/.codex/config.yaml" },
-  { id: "opencode", name: "OpenCode", configPath: "~/.config/opencode/opencode.json" },
-  { id: "cline", name: "Cline", configPath: "~/.cline/data/globalState.json" },
-  { id: "kilocode", name: "Kilo Code", configPath: "~/.config/kilocode/settings.json" },
-  { id: "continue", name: "Continue", configPath: "~/.continue/config.yaml" },
-  { id: "hermes", name: "Hermes", configPath: "~/.hermes/config.yaml" },
-  { id: "hermes-agent", name: "Hermes Agent", configPath: "~/.hermes/config.yaml" },
-  { id: "openclaw", name: "OpenClaw", configPath: "~/.openclaw/openclaw.json" },
-] as const;
+type ToolDescriptor = { id: string; name: string; configPath: string };
 
-const BINARY_NAMES: Record<string, string> = {
-  claude: "claude",
-  codex: "codex",
-  opencode: "opencode",
-  cline: "cline",
-  kilocode: "kilocode",
-  continue: "continue",
-  hermes: "hermes",
-  "hermes-agent": "hermes",
-  openclaw: "openclaw",
+// Keep the long-standing CLI status labels stable while the UI catalog uses
+// marketing names (for example, "Open Claw").
+const DETECTOR_NAME_OVERRIDES: Readonly<Record<string, string>> = {
+  claude: "Claude Code",
+  codex: "Codex CLI",
+  openclaw: "OpenClaw",
 };
+
+/**
+ * The detector is a read-only view over the shared runtime/UI catalogs.
+ * Runtime-only entries (for example qoder) are retained, while guide-only UI
+ * entries still appear with an empty config path and `installed: false`.
+ */
+const TOOLS: ToolDescriptor[] = Array.from(
+  new Set([...listCliTools().map((tool) => tool.id), ...CLI_TOOL_IDS])
+).map((id) => ({
+  id,
+  name: DETECTOR_NAME_OVERRIDES[id] || getCliTool(id)?.name || id,
+  configPath: "",
+}));
 
 function expandHome(p: string): string {
   const home = os.homedir();
@@ -72,9 +77,11 @@ function expandHome(p: string): string {
 
 function isConfigured(content: string, baseUrl: string): boolean {
   const normalized = baseUrl.replace(/\/+$/, "");
+  const port = process.env.PORT || process.env.DASHBOARD_PORT;
   return (
     content.includes(normalized) ||
     content.includes("localhost:20128") ||
+    (!!port && content.includes(`localhost:${port}`)) ||
     content.includes("OMNIROUTE_BASE_URL")
   );
 }
@@ -99,7 +106,8 @@ async function detectBinaryWindows(
     const { stdout } = await execFileImpl(located.commandPath, ["--version"], {
       timeout: 5000,
       env,
-      ...(useShell ? { shell: true } : {}),
+      windowsHide: true,
+      ...(useShell ? { shell: true, windowsVerbatimArguments: true } : {}),
     });
     return { installed: true, version: stdout.trim().replace(/^v/, "") };
   } catch {
@@ -110,27 +118,35 @@ async function detectBinaryWindows(
 }
 
 async function detectBinary(name: string): Promise<{ installed: boolean; version?: string }> {
-  const binary = BINARY_NAMES[name] || name;
+  const binaries = getCliToolCommandCandidates(name);
+  if (binaries.length === 0) return { installed: false };
   const env = getLookupEnv();
 
-  if (process.platform === "win32") {
-    return detectBinaryWindows(binary, env);
+  for (const binary of binaries) {
+    if (process.platform === "win32") {
+      const result = await detectBinaryWindows(binary, env);
+      if (result.installed) return result;
+      continue;
+    }
+
+    try {
+      const { stdout } = await execFileImpl(binary, ["--version"], { timeout: 5000, env });
+      const version = stdout.trim().replace(/^v/, "");
+      return { installed: true, version };
+    } catch {
+      try {
+        // Try `which` as fallback (routed through execFileImpl so it stays mockable)
+        const { stdout } = await execFileImpl("which", [binary], { timeout: 5000, env });
+        if (stdout.trim()) {
+          return { installed: true };
+        }
+      } catch {
+        // Try the next declared command candidate.
+      }
+    }
   }
 
-  try {
-    const { stdout } = await execFileImpl(binary, ["--version"], { timeout: 5000, env });
-    const version = stdout.trim().replace(/^v/, "");
-    return { installed: true, version };
-  } catch {
-    try {
-      // Try `which` as fallback (routed through execFileImpl so it stays mockable)
-      const { stdout } = await execFileImpl("which", [binary], { timeout: 5000, env });
-      if (stdout.trim()) {
-        return { installed: true };
-      }
-    } catch {}
-    return { installed: false };
-  }
+  return { installed: false };
 }
 
 async function readConfigFile(configPath: string): Promise<string | null> {
@@ -145,16 +161,23 @@ async function readConfigFile(configPath: string): Promise<string | null> {
 }
 
 export async function detectTool(id: string): Promise<DetectedTool | null> {
-  const tool = TOOLS.find((t) => t.id === id);
+  const canonicalId = normalizeCliToolId(id);
+  const tool = TOOLS.find((t) => t.id === canonicalId);
   if (!tool) return null;
 
   const { installed, version } = await detectBinary(tool.id);
-  const configPath = expandHome(tool.configPath);
-  const configContents = await readConfigFile(tool.configPath);
-  const configured = !!configContents && isConfigured(configContents, "http://localhost:20128");
+  const configPath =
+    tool.id === "hermes" || tool.id === "hermes-agent"
+      ? getHermesConfigPath()
+      : getCliPrimaryConfigPath(tool.id) ||
+        (tool.id === "opencode" ? resolveOpencodeConfigPath() : "");
+  const configContents = await readConfigFile(configPath);
+  const defaultPort = process.env.PORT || process.env.DASHBOARD_PORT || 20128;
+  const configured =
+    !!configContents && isConfigured(configContents, `http://localhost:${defaultPort}`);
 
   const result: DetectedTool = {
-    id: tool.id,
+    id: canonicalId,
     name: tool.name,
     installed,
     version,
@@ -168,12 +191,14 @@ export async function detectTool(id: string): Promise<DetectedTool | null> {
     try {
       const roles = await getCurrentHermesAgentRoles();
       const richRoles: Record<string, any> = {};
+      const currentPort = String(process.env.PORT || process.env.DASHBOARD_PORT || 20128);
 
       Object.entries(roles).forEach(([role, info]) => {
         const usingOmni =
           info?.provider === "omniroute" ||
           (info?.base_url || "").includes("20128") ||
-          (info?.base_url || "").includes("localhost:20128");
+          (info?.base_url || "").includes(currentPort) ||
+          (info?.base_url || "").includes("localhost");
 
         richRoles[role] = {
           model: info.model,

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { WEBHOOK_EVENT_VALUES } from "../../src/lib/webhooks/eventDescriptions.ts";
 
 const { buildDiscordPayload } = await import("../../src/lib/webhooks/integrations/discord.ts");
 
@@ -14,15 +15,7 @@ test("buildDiscordPayload — request.failed produces embed with model", () => {
 });
 
 test("buildDiscordPayload — all WEBHOOK_EVENTS return object with content or embeds", () => {
-  const events = [
-    "request.completed",
-    "request.failed",
-    "provider.error",
-    "provider.recovered",
-    "quota.exceeded",
-    "combo.switched",
-    "test.ping",
-  ] as const;
+  const events = WEBHOOK_EVENT_VALUES;
   for (const event of events) {
     const payload = buildDiscordPayload(event, {});
     assert.ok(
@@ -33,7 +26,7 @@ test("buildDiscordPayload — all WEBHOOK_EVENTS return object with content or e
 });
 
 test("buildDiscordPayload — embeds have title and color fields", () => {
-  const payload = buildDiscordPayload("provider.error", { provider: "openai" });
+  const payload = buildDiscordPayload("request.failed", { provider: "openai" });
   assert.ok(Array.isArray(payload.embeds) && payload.embeds.length > 0, "should have embeds");
   const embed = payload.embeds![0];
   assert.ok(typeof embed.title === "string" && embed.title.length > 0, "embed must have title");

@@ -1,4 +1,5 @@
 import test from "node:test";
+import { makeMcpStreamFetch } from "./helpers/mcpStreamMock.ts";
 import assert from "node:assert/strict";
 
 function makeResp(data: unknown, status = 200) {
@@ -13,25 +14,6 @@ function makeResp(data: unknown, status = 200) {
   obj.json = obj.json.bind(obj);
   obj.text = obj.text.bind(obj);
   return obj;
-}
-
-async function captureStdout(fn: () => Promise<void>): Promise<string> {
-  const chunks: string[] = [];
-  const orig = process.stdout.write.bind(process.stdout);
-  process.stdout.write = (c: string | Uint8Array) => {
-    if (typeof c === "string") chunks.push(c);
-    return true;
-  };
-  try {
-    await fn();
-  } finally {
-    process.stdout.write = orig;
-  }
-  return chunks.join("");
-}
-
-function makeCmd(output = "json") {
-  return { optsWithGlobals: () => ({ output, quiet: output !== "table" }) };
 }
 
 test("resilience status busca /api/resilience", async () => {
@@ -111,25 +93,25 @@ test("resilience reset envia provider e body correto", async () => {
   assert.equal(capturedBody.connectionId, "conn-1");
 });
 
-test("resilience profile set chama MCP tool", async () => {
-  let capturedBody: any = null;
+test("resilience profile set usa JSON-RPC tools/call", async () => {
+  let capturedCall: any = null;
   const origFetch = globalThis.fetch;
-  globalThis.fetch = ((_url: string, opts: any) => {
-    if (opts?.body) capturedBody = JSON.parse(opts.body);
-    return Promise.resolve(makeResp({ result: {} }));
+  globalThis.fetch = makeMcpStreamFetch({ toolResult: {} });
+  const inner = globalThis.fetch;
+  globalThis.fetch = ((url: any, init: any) => {
+    if (String(url).includes("/api/mcp/stream") && String(init?.body || "").includes("tools/call")) {
+      capturedCall = JSON.parse(init.body);
+    }
+    return inner(url, init);
   }) as any;
 
-  await (globalThis.fetch as any)("/api/mcp/tools/call", {
-    method: "POST",
-    body: JSON.stringify({
-      name: "omniroute_set_resilience_profile",
-      arguments: { profile: "balanced" },
-    }),
-  });
+  const { mcpCallTool } = await import("../../bin/cli/mcpClient.mjs");
+  await mcpCallTool("omniroute_set_resilience_profile", { profile: "balanced" });
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_set_resilience_profile");
-  assert.equal(capturedBody.arguments.profile, "balanced");
+  assert.equal(capturedCall.method, "tools/call");
+  assert.equal(capturedCall.params.name, "omniroute_set_resilience_profile");
+  assert.equal(capturedCall.params.arguments.profile, "balanced");
 });
 
 test("resilience.mjs pode ser importado sem erro", async () => {

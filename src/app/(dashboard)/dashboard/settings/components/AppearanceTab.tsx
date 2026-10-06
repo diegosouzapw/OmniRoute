@@ -12,7 +12,6 @@ import {
   normalizeComboConfigMode,
   type ComboConfigMode,
 } from "@/shared/constants/comboConfigMode";
-import { PIN_PROVIDER_QUOTA_TO_HOME_KEY } from "@/shared/constants/homeWidgets";
 import AccountEmailVisibilitySetting from "./AccountEmailVisibilitySetting";
 
 export default function AppearanceTab() {
@@ -38,7 +37,6 @@ export default function AppearanceTab() {
   const isValidHex = /^#([0-9a-fA-F]{6})$/.test(
     customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`
   );
-  const pinProviderQuotaToHome = settings.pinProviderQuotaToHome === true;
   const showQuickStartOnHome = settings.showQuickStartOnHome !== false;
   const showProviderTopologyOnHome = settings.showProviderTopologyOnHome !== false;
   const autoRefreshProviderQuota = settings.autoRefreshProviderQuota === true;
@@ -197,27 +195,6 @@ export default function AppearanceTab() {
 
           <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
             <div className="divide-y divide-border/70">
-              <div className="flex items-start justify-between gap-4 px-4 py-3">
-                <div>
-                  <p className="font-medium">
-                    {getSettingsLabel("homeProviderQuotaLimits", "Provider Quota Limits")}
-                  </p>
-                  <p className="text-sm text-text-muted">
-                    {getSettingsLabel(
-                      "homeProviderQuotaLimitsDesc",
-                      "Pin the Provider Quota status container (with Refresh All button) to the top of the Home page."
-                    )}
-                  </p>
-                </div>
-                <Toggle
-                  checked={pinProviderQuotaToHome}
-                  onChange={async (checked) => {
-                    await updateSetting(PIN_PROVIDER_QUOTA_TO_HOME_KEY, checked);
-                  }}
-                  disabled={loading}
-                />
-              </div>
-
               <div className="flex items-start justify-between gap-4 px-4 py-3">
                 <div>
                   <p className="font-medium">{getSettingsLabel("homeQuickStart", "Quick Start")}</p>

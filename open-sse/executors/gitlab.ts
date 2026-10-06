@@ -10,6 +10,7 @@ import {
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { isProbeContext } from "@/shared/utils/probeOrigin";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 import {
   buildStreamingResponse,
@@ -208,9 +209,7 @@ function buildToolExchangePrompt(messages: OpenAIMessage[]): string {
     const line = renderConversationTurn(message, role, text);
     if (line) convo.push(line);
   }
-  const header = systemParts.length
-    ? `System instructions:\n${systemParts.join("\n\n")}\n\n`
-    : "";
+  const header = systemParts.length ? `System instructions:\n${systemParts.join("\n\n")}\n\n` : "";
   const body = `${header}${convo.join(
     "\n\n"
   )}\n\nContinue the response using the tool result above; do not repeat the tool call.`.trim();
@@ -583,19 +582,34 @@ export class GitlabExecutor extends BaseExecutor {
       }
 
       if (response.status === 401) {
+        if (input.log) {
+          input.log.warn(
+            "GITLAB-DUO",
+            "direct_access exchange rejected (401); falling back to public completions endpoint"
+          );
+        }
         return {
-          target: null,
+          target: {
+            mode: "monolith",
+            url: endpoints.publicCompletionsUrl,
+            headers: buildMonolithHeaders(credentials.accessToken || null),
+          },
           credentials,
-          errorResponse: toOpenAIError(401, "GitLab Duo direct access token request was rejected"),
+          errorResponse: null,
         };
       }
 
-      if (response.status === 403 && !isGitLabDirectAccessDisabled(response.status, bodyText)) {
-        return {
-          target: null,
-          credentials,
-          errorResponse: toOpenAIError(403, "GitLab Duo direct access scope is unavailable"),
-        };
+      // #12958: any direct_access 403 (not only GitLab's exact "direct connections
+      // are disabled" tenant-config message) is recoverable via the public
+      // completions fallback — mirrors the 401 branch above and the connection-test
+      // path's shouldFallbackToPublicCodeSuggestions() contract.
+      if (response.status === 403 && input.log) {
+        input.log.warn(
+          "GITLAB-DUO",
+          isGitLabDirectAccessDisabled(response.status, bodyText)
+            ? "direct_access exchange rejected (403, direct connections disabled); falling back to public completions endpoint"
+            : `direct_access exchange rejected (403); falling back to public completions endpoint. Body: ${bodyText.slice(0, 500)}`
+        );
       }
 
       return {
@@ -647,8 +661,8 @@ export class GitlabExecutor extends BaseExecutor {
     // Emulate OpenAI tool calling for GitLab Duo (which has no native function
     // calling). When `tools` are present we serialize the tool contract into the
     // prompt and parse `<tool>{...}</tool>` blocks back out of the completion text
-    // into OpenAI `tool_calls` — the same web-tool-emulation idiom used by the
-    // qwen-web / duckduckgo-web executors (#6051).
+    // into OpenAI `tool_calls` — the same web-tool-emulation idiom used by other
+    // pure-API web executors such as duckduckgo-web (#6051).
     const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
       bodyObj,
       rawMessages as Array<{ role: string; content: unknown }>
@@ -662,7 +676,9 @@ export class GitlabExecutor extends BaseExecutor {
     }
 
     let activeCredentials = input.credentials;
-    if (this.needsRefresh(activeCredentials)) {
+    // Probe-origin dispatches must not consume a refresh-token rotation —
+    // routing state untouched; mirrors the base.ts guard (#9817).
+    if (!isProbeContext() && this.needsRefresh(activeCredentials)) {
       const refreshed = await this.refreshCredentials(activeCredentials, input.log || null);
       if (refreshed) {
         activeCredentials = mergeCredentials(activeCredentials, refreshed);

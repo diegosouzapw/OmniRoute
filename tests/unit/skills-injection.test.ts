@@ -8,7 +8,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-skills-in
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
+const { GLOBAL_SKILL_OWNER_ID, skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { injectSkills, injectSkillTools, detectProvider, decodeSkillToolName } =
   await import("../../src/lib/skills/injection.ts");
 
@@ -28,7 +28,7 @@ function resetRegistryState() {
 async function resetStorage() {
   resetRegistryState();
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -60,7 +60,7 @@ test.beforeEach(async () => {
 test.after(() => {
   resetRegistryState();
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("injectSkills renders enabled tools in provider-specific shapes", async () => {
@@ -81,7 +81,7 @@ test("injectSkills renders enabled tools in provider-specific shapes", async () 
     function: {
       name: "omr_skill_c2VhcmNoQDEuMC4w", // encodedName("search@1.0.0")
       description: "search the web",
-      parameters: { type: "object", properties: { query: "string" } },
+      parameters: { type: "object", properties: { query: { type: "string" } } },
     },
   });
   assert.equal(decodeSkillToolName("omr_skill_c2VhcmNoQDEuMC4w"), "search@1.0.0");
@@ -90,17 +90,85 @@ test("injectSkills renders enabled tools in provider-specific shapes", async () 
     {
       name: "omr_skill_c2VhcmNoQDEuMC4w",
       description: "search the web",
-      input_schema: { type: "object", properties: { query: "string" } },
+      input_schema: { type: "object", properties: { query: { type: "string" } } },
     },
   ]);
   assert.deepEqual(geminiTools, [
     {
       name: "omr_skill_c2VhcmNoQDEuMC4w",
       description: "search the web",
-      parameters: { type: "object", properties: { query: "string" } },
+      parameters: { type: "object", properties: { query: { type: "string" } } },
     },
   ]);
   assert.deepEqual(fallbackTools, [openaiTools[0]]);
+});
+
+// Regression for #11856: builtin skills may declare input schemas in
+// shorthand ("content": "string"). Strict schema validators (Zhipu GLM via
+// opencode-go, upstream error [1210] "Invalid API parameter") reject the
+// shorthand as malformed JSON Schema, so normalization must expand string
+// values into { type: value } in every provider shape.
+test("injectSkills expands shorthand property types into valid JSON Schemas", async () => {
+  await skillRegistry.register({
+    name: "generation",
+    version: "1.0.0",
+    description: "generate content",
+    schema: { input: { content: "string", maxTokens: "number" }, output: {} },
+    handler: "generation-handler",
+    enabled: true,
+    apiKeyId: "key-a",
+  });
+
+  type ToolShape = {
+    function?: { parameters: { properties: Record<string, unknown> } };
+    input_schema?: { properties: Record<string, unknown> };
+    parameters?: { properties: Record<string, unknown> };
+  };
+  for (const provider of ["openai", "anthropic", "google", "other"] as const) {
+    const tools = injectSkills({ provider, apiKeyId: "key-a" });
+    assert.equal(tools.length, 1);
+    const tool = tools[0] as ToolShape;
+    const parameters = tool.function?.parameters ?? tool.input_schema ?? tool.parameters;
+    const props = parameters.properties as Record<string, unknown>;
+    assert.deepEqual(props.content, { type: "string" });
+    assert.deepEqual(props.maxTokens, { type: "number" });
+    for (const [key, value] of Object.entries(props)) {
+      assert.equal(
+        typeof value,
+        "object",
+        `${provider}: property ${key} must be a schema object, got ${JSON.stringify(value)}`
+      );
+    }
+  }
+});
+
+test("injectSkills includes global skills without leaking another API key's skills", async () => {
+  await skillRegistry.register({
+    name: "releaseNotes",
+    version: "1.0.0",
+    description: "draft release notes",
+    schema: { input: {}, output: {} },
+    handler: "release-notes-handler",
+    enabled: true,
+    apiKeyId: GLOBAL_SKILL_OWNER_ID,
+  });
+  await skillRegistry.register({
+    name: "privateSkill",
+    version: "1.0.0",
+    description: "private skill",
+    schema: { input: {}, output: {} },
+    handler: "private-handler",
+    enabled: true,
+    apiKeyId: "key-b",
+  });
+
+  const tools = injectSkills({ provider: "openai", apiKeyId: "key-a" });
+
+  assert.equal(tools.length, 1);
+  assert.equal(
+    decodeSkillToolName((tools[0] as { function: { name: string } }).function.name),
+    "releaseNotes@1.0.0"
+  );
 });
 
 test("injectSkillTools only injects into the last user message without tools", async () => {
@@ -190,7 +258,7 @@ test("injectSkills auto mode matches message/context semantics and applies score
     function: {
       name: encodedName("issueSearch@1.0.0"),
       description: "search github issues and pull requests",
-      parameters: { type: "object", properties: { query: "string" } },
+      parameters: { type: "object", properties: { query: { type: "string" } } },
     },
   });
 });
@@ -308,4 +376,61 @@ test("injectSkills auto mode limits selected auto skills and keeps on-mode skill
   );
   assert.equal(names.includes("alwaysOnUtility@1.0.0"), true);
   assert.equal(names.filter((name) => name.startsWith("searchSkill")).length, 5);
+});
+
+/**
+ * Regression for #11856 — injected skill tools carried a malformed JSON Schema.
+ *
+ * Skills may declare their input in shorthand (`{ "content": "string" }`).
+ * normalizeInputSchema() wrapped that bare property map as
+ * `{ type: "object", properties: { content: "string" } }` without expanding the
+ * shorthand values — and `"string"` is not a JSON Schema object. Zhipu GLM
+ * behind the Console Go tier validates tool schemas strictly and rejected the
+ * whole request with `[1210] Invalid API parameter`, giving a 100% failure rate
+ * on that provider regardless of request content or credentials. Most other
+ * providers tolerate the malformed schema, which is why it surfaced late.
+ *
+ * SkillSchema is `z.record(z.string(), z.unknown())`, so shorthand values pass
+ * validation from every skill source — the skills API, the GitHub collector and
+ * the skillssh marketplace alike.
+ */
+test("#11856 injectSkills expands shorthand property types into valid JSON Schema", async () => {
+  await skillRegistry.register({
+    name: "generation",
+    version: "1.0.0",
+    description: "generate content",
+    schema: {
+      input: {
+        content: "string",
+        count: "number",
+        // already-expanded entries must survive untouched
+        options: { type: "object", properties: { tone: { type: "string" } } },
+      },
+      output: { result: "string" },
+    },
+    handler: "generation-handler",
+    enabled: true,
+    apiKeyId: "key-11856",
+  });
+
+  const expected = {
+    type: "object",
+    properties: {
+      content: { type: "string" },
+      count: { type: "number" },
+      options: { type: "object", properties: { tone: { type: "string" } } },
+    },
+  };
+
+  const openaiTools = injectSkills({ provider: "openai", apiKeyId: "key-11856" });
+  assert.deepEqual(
+    (openaiTools[0] as { function: { parameters: unknown } }).function.parameters,
+    expected
+  );
+
+  const claudeTools = injectSkills({ provider: "anthropic", apiKeyId: "key-11856" });
+  assert.deepEqual((claudeTools[0] as { input_schema: unknown }).input_schema, expected);
+
+  const geminiTools = injectSkills({ provider: "google", apiKeyId: "key-11856" });
+  assert.deepEqual((geminiTools[0] as { parameters: unknown }).parameters, expected);
 });

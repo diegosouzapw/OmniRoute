@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -104,8 +114,8 @@ test("omniroute reset-password subcommand applies the reset over piped stdin (#6
       "the stored password must verify against the piped value"
     );
   } finally {
-    fs.rmSync(dataDir, { recursive: true, force: true });
-    fs.rmSync(home, { recursive: true, force: true });
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -133,8 +143,8 @@ test("omniroute-reset-password applies the reset over piped two-line stdin (#625
       "the stored password must verify against the piped value"
     );
   } finally {
-    fs.rmSync(dataDir, { recursive: true, force: true });
-    fs.rmSync(home, { recursive: true, force: true });
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -162,7 +172,7 @@ test("omniroute-reset-password --password-stdin reads the whole stdin as the pas
       "the stored password must verify against the --password-stdin value"
     );
   } finally {
-    fs.rmSync(dataDir, { recursive: true, force: true });
-    fs.rmSync(home, { recursive: true, force: true });
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

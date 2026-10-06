@@ -1,4 +1,4 @@
-import { getApiKeyById, createApiKey } from "@/lib/localDb";
+import { getApiKeyById, createApiKey } from "@/lib/db/apiKeys";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 
 export async function resolveApiKey(

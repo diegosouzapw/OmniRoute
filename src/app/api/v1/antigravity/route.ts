@@ -1,5 +1,6 @@
 import { handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
+import { withChatAdmission } from "@/shared/middleware/withChatAdmission";
 
 let initialized = false;
 
@@ -41,7 +42,9 @@ export async function OPTIONS() {
  * already-registered bidirectional translators. The AgentBridge MITM proxy
  * (`server.cjs`) forwards the IDE's intercepted cloudcode request here.
  */
-export async function POST(request: Request): Promise<Response> {
+async function postHandler(request: Request): Promise<Response> {
   await ensureInitialized();
   return await handleChat(request);
 }
+
+export const POST = withChatAdmission(postHandler);

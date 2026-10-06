@@ -1,13 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  existsSync,
-  mkdtempSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -16,7 +9,6 @@ import { assembleStandalone } from "../../scripts/build/assembleStandalone.mjs";
 const REQUIRED_RUNTIME_PACKAGES = [
   "@atjsh/llmlingua-2",
   "@huggingface/transformers",
-  "@tensorflow/tfjs",
   "js-tiktoken",
 ];
 
@@ -45,10 +37,7 @@ function mkPkg(
   }
 }
 
-function buildLlmlinguaRoot(
-  rootDir: string,
-  transformersVersion = "3.5.2"
-): void {
+function buildLlmlinguaRoot(rootDir: string, transformersVersion = "4.2.0"): void {
   const rootNm = join(rootDir, "node_modules");
 
   mkPkg(
@@ -61,7 +50,6 @@ function buildLlmlinguaRoot(
       },
       peerDependencies: {
         "@huggingface/transformers": "*",
-        "@tensorflow/tfjs": "*",
         "js-tiktoken": "*",
       },
     },
@@ -71,18 +59,6 @@ function buildLlmlinguaRoot(
   );
 
   mkPkg(rootNm, "es-toolkit");
-
-  mkPkg(rootNm, "@tensorflow/tfjs", {
-    dependencies: {
-      "@tensorflow/tfjs-core": "4.22.0",
-    },
-  });
-  mkPkg(rootNm, "@tensorflow/tfjs-core", {
-    dependencies: {
-      long: "^5.0.0",
-    },
-  });
-  mkPkg(rootNm, "long");
 
   mkPkg(rootNm, "js-tiktoken", {
     dependencies: {
@@ -111,18 +87,13 @@ function createStandalone(rootDir: string): {
     recursive: true,
   });
 
-  writeFileSync(
-    join(standaloneDir, "package.json"),
-    JSON.stringify({ name: "standalone-test" })
-  );
+  writeFileSync(join(standaloneDir, "package.json"), JSON.stringify({ name: "standalone-test" }));
 
   return { distDir, standaloneDir };
 }
 
 test("#9166 standalone assembly includes the complete LLMLingua runtime closure", () => {
-  const root = mkdtempSync(
-    join(tmpdir(), "omniroute-docker-llmlingua-9166-")
-  );
+  const root = mkdtempSync(join(tmpdir(), "omniroute-docker-llmlingua-9166-"));
 
   try {
     buildLlmlinguaRoot(root);
@@ -138,53 +109,34 @@ test("#9166 standalone assembly includes the complete LLMLingua runtime closure"
     for (const packageName of [
       ...REQUIRED_RUNTIME_PACKAGES,
       "es-toolkit",
-      "@tensorflow/tfjs-core",
-      "long",
       "base64-js",
       "onnxruntime-node",
     ]) {
       assert.ok(
-        existsSync(
-          join(standaloneDir, "node_modules", packageName, "package.json")
-        ),
+        existsSync(join(standaloneDir, "node_modules", packageName, "package.json")),
         `${packageName} must be present in the standalone runtime`
       );
     }
 
     assert.ok(
-      existsSync(
-        join(
-          standaloneDir,
-          "node_modules",
-          "@atjsh",
-          "llmlingua-2",
-          "dist",
-          "index.js"
-        )
-      ),
+      existsSync(join(standaloneDir, "node_modules", "@atjsh", "llmlingua-2", "dist", "index.js")),
       "the complete LLMLingua package payload must be copied"
     );
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
 test("#9166 standalone assembly never overwrites an already pinned transformers instance", () => {
-  const root = mkdtempSync(
-    join(tmpdir(), "omniroute-docker-llmlingua-pinned-9166-")
-  );
+  const root = mkdtempSync(join(tmpdir(), "omniroute-docker-llmlingua-pinned-9166-"));
 
   try {
-    buildLlmlinguaRoot(root, "4.2.0");
+    buildLlmlinguaRoot(root, "5.0.0");
     const { distDir, standaloneDir } = createStandalone(root);
 
-    mkPkg(
-      join(standaloneDir, "node_modules"),
-      "@huggingface/transformers",
-      {
-        version: "3.5.2",
-      }
-    );
+    mkPkg(join(standaloneDir, "node_modules"), "@huggingface/transformers", {
+      version: "4.2.0",
+    });
 
     assembleStandalone({
       distDir,
@@ -195,43 +147,28 @@ test("#9166 standalone assembly never overwrites an already pinned transformers 
 
     const targetManifest = JSON.parse(
       readFileSync(
-        join(
-          standaloneDir,
-          "node_modules",
-          "@huggingface",
-          "transformers",
-          "package.json"
-        ),
+        join(standaloneDir, "node_modules", "@huggingface", "transformers", "package.json"),
         "utf8"
       )
     );
 
     assert.equal(
       targetManifest.version,
-      "3.5.2",
+      "4.2.0",
       "standalone's pinned transformers version must not be overwritten"
     );
 
     assert.ok(
-      existsSync(
-        join(
-          standaloneDir,
-          "node_modules",
-          "onnxruntime-node",
-          "package.json"
-        )
-      ),
+      existsSync(join(standaloneDir, "node_modules", "onnxruntime-node", "package.json")),
       "missing dependencies from the transformers closure must still be copied"
     );
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
 test("#9166 co-location completes a partially traced package (package.json without its main)", () => {
-  const root = mkdtempSync(
-    join(tmpdir(), "omniroute-docker-llmlingua-partial-9166-")
-  );
+  const root = mkdtempSync(join(tmpdir(), "omniroute-docker-llmlingua-partial-9166-"));
 
   try {
     buildLlmlinguaRoot(root);
@@ -254,27 +191,16 @@ test("#9166 co-location completes a partially traced package (package.json witho
     });
 
     assert.ok(
-      existsSync(
-        join(
-          standaloneDir,
-          "node_modules",
-          "@atjsh",
-          "llmlingua-2",
-          "dist",
-          "index.js"
-        )
-      ),
+      existsSync(join(standaloneDir, "node_modules", "@atjsh", "llmlingua-2", "dist", "index.js")),
       "a partially traced package must be completed, not skipped as already present"
     );
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
 test("#9166 co-location is not skipped when every closure dir exists but one is partial", () => {
-  const root = mkdtempSync(
-    join(tmpdir(), "omniroute-docker-llmlingua-partial-all-9166-")
-  );
+  const root = mkdtempSync(join(tmpdir(), "omniroute-docker-llmlingua-partial-all-9166-"));
 
   try {
     buildLlmlinguaRoot(root);
@@ -286,17 +212,19 @@ test("#9166 co-location is not skipped when every closure dir exists but one is 
     // llmlingua-2 one is the partial NFT-trace shell without its main.
     for (const packageName of [
       "es-toolkit",
-      "@tensorflow/tfjs",
-      "@tensorflow/tfjs-core",
-      "long",
       "js-tiktoken",
       "base64-js",
       "@huggingface/transformers",
       "onnxruntime-node",
     ]) {
-      mkPkg(standaloneNm, packageName, { main: "index.js" }, {
-        "index.js": "export {};\n",
-      });
+      mkPkg(
+        standaloneNm,
+        packageName,
+        { main: "index.js" },
+        {
+          "index.js": "export {};\n",
+        }
+      );
     }
     mkPkg(standaloneNm, "@atjsh/llmlingua-2", { main: "dist/index.js" });
 
@@ -308,28 +236,16 @@ test("#9166 co-location is not skipped when every closure dir exists but one is 
     });
 
     assert.ok(
-      existsSync(
-        join(
-          standaloneDir,
-          "node_modules",
-          "@atjsh",
-          "llmlingua-2",
-          "dist",
-          "index.js"
-        )
-      ),
+      existsSync(join(standaloneDir, "node_modules", "@atjsh", "llmlingua-2", "dist", "index.js")),
       "the closure-wide early-exit must not fire while any member is partial"
     );
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
 test("#9166 Docker explicitly installs and validates LLMLingua optionals", () => {
-  const dockerfile = readFileSync(
-    new URL("../../Dockerfile", import.meta.url),
-    "utf8"
-  );
+  const dockerfile = readFileSync(new URL("../../Dockerfile", import.meta.url), "utf8");
 
   const builderStart = dockerfile.indexOf("FROM base AS builder");
   const runnerStart = dockerfile.indexOf("FROM base AS runner-base");

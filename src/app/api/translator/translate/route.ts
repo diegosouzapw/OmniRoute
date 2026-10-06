@@ -7,7 +7,8 @@ import {
 } from "@omniroute/open-sse/services/provider.ts";
 import { translateRequest } from "@omniroute/open-sse/translator/index.ts";
 import { FORMATS } from "@omniroute/open-sse/translator/formats.ts";
-import { getProviderConnections } from "@/lib/localDb";
+import { getProviderConnections } from "@/lib/db/providers";
+import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { translatorTranslateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -38,9 +39,19 @@ function getProviderBaseUrl(providerSpecificData: unknown): string | undefined {
 
 async function getActiveProviderSpecificData(provider?: string | null): Promise<JsonRecord | null> {
   if (!provider) return null;
-  const connections = await getProviderConnections({ provider });
-  const connection = connections.find((c) => c.isActive !== false);
+  const connection = await getUnmanagedActiveConnection(provider);
   return connection ? asJsonRecord(connection.providerSpecificData) : null;
+}
+
+async function getUnmanagedActiveConnection(provider: string) {
+  const connections = await getProviderConnections({ provider });
+  for (const connection of connections) {
+    if (
+      connection.isActive !== false &&
+      !(await isConnectionUnavailableToAuxiliaryActivity(connection.id))
+    )
+      return connection;
+  }
 }
 
 export async function POST(request) {
@@ -165,8 +176,7 @@ export async function POST(request) {
         const model = getModelId(actualBody);
 
         // Get provider credentials
-        const connections = await getProviderConnections({ provider });
-        const connection = connections.find((c) => c.isActive !== false);
+        const connection = await getUnmanagedActiveConnection(provider);
 
         if (!connection) {
           return NextResponse.json(

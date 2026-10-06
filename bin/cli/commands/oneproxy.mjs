@@ -1,4 +1,5 @@
 import { apiFetch } from "../api.mjs";
+import { mcpCallTool } from "../mcpClient.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
@@ -8,15 +9,7 @@ function fmtTs(v) {
 }
 
 async function mcpCall(name, args) {
-  const res = await apiFetch("/api/mcp/tools/call", {
-    method: "POST",
-    body: { name, arguments: args },
-  });
-  if (!res.ok) {
-    process.stderr.write(`MCP error: ${res.status}\n`);
-    process.exit(1);
-  }
-  return res.json();
+  return mcpCallTool(name, args);
 }
 
 const proxySchema = [

@@ -171,8 +171,22 @@ for (const model of ANTIGRAVITY_GEMINI_MODELS) {
     assert.equal(upstreamCalled, true, "Antigravity request should reach the upstream executor");
     assert.equal(response.status, 200, "Antigravity cloudcode envelopes must not return 400");
 
+    // This assertion is the guard the test is named for: a cloudcode envelope has no
+    // `messages` key, so it must not be rejected by the #6402 validator.
+    //
+    // It used to read `assert.match(body, /ok/)`, aimed at the mocked upstream's
+    // "ok" text — but that text never reached this layer. The match only ever
+    // succeeded on the "ok" inside `: x-omniroute-tokens-in=0`, an SSE *comment*
+    // trailer. When #10539 flipped OMNIROUTE_SSE_COMMENTS to off-by-default the
+    // trailers stopped being emitted, the body went empty, and the coincidence —
+    // not the behavior — broke. Content relay for this provider is covered for
+    // real, at the executor level, by antigravity-streaming-passthrough.test.ts.
     const body = await response.text();
-    assert.match(body, /ok/);
+    assert.doesNotMatch(
+      body,
+      /messages.*Expected array/i,
+      "cloudcode envelope must not be caught by the missing-messages guard"
+    );
   });
 }
 
@@ -181,16 +195,10 @@ test("Antigravity Gemini-family regression covers every current callable tier", 
   for (const model of [
     "gemini-pro-agent",
     "gemini-3.1-pro-low",
-    "gemini-3.6-flash-high",
-    "gemini-3.6-flash-medium",
-    "gemini-3.6-flash-low",
-    "gemini-3-flash-agent",
-    "gemini-3.5-flash-low",
-    "gemini-3.5-flash-extra-low",
+    "gemini-3.7-flash-high",
+    "gemini-3.7-flash-medium",
+    "gemini-3.7-flash-low",
     "gemini-3.1-flash-lite",
-    "gemini-2.5-flash-thinking",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
   ]) {
     assert.ok(coveredModels.has(model), `expected regression coverage for ${model}`);
   }

@@ -56,7 +56,7 @@ describe("PromptQl — registry consistency", () => {
   it("registers a model catalog via getModelsByProviderId", () => {
     const catalog = getModelsByProviderId("promptql");
     assert.ok(catalog.length >= 5);
-    assert.ok(catalog.some((m) => m.id === "gemini-3.5-flash" || m.id.includes("gemini")));
+    assert.ok(catalog.some((m) => m.id === "gemini-3.7-flash" || m.id.includes("gemini")));
     assert.ok(catalog.some((m) => m.id.includes("gpt-5.6") || m.id.includes("fable")));
   });
 });
@@ -209,11 +209,14 @@ describe("PromptQl — helpers", () => {
   });
 
   it("resolves model slugs and prefixes", () => {
-    assert.equal(models.clientFacingPromptQlModelId("promptql/gemini-3.5-flash"), "gemini-3.5-flash");
+    assert.equal(
+      models.clientFacingPromptQlModelId("promptql/gemini-3.7-flash"),
+      "gemini-3.7-flash"
+    );
     assert.equal(models.clientFacingPromptQlModelId("pql/gpt-5.6-sol"), "gpt-5.6-sol");
     const r = models.resolvePromptQlModel("Claude Fable 5");
     assert.ok(r);
-    assert.equal(r!.id, "vertex-claude-fable-5");
+    assert.equal(r!.id, "bedrock-claude-fable-5");
   });
 
   it("converts credit micros to USD", () => {
@@ -265,7 +268,7 @@ describe("PromptQlExecutor — auth / validation", () => {
   it("returns 401 when no token is supplied", async () => {
     const executor = new mod.PromptQlExecutor();
     const result = await executor.execute({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.7-flash",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: {},
@@ -279,7 +282,7 @@ describe("PromptQlExecutor — auth / validation", () => {
   it("returns 400 when no user message is present", async () => {
     const executor = new mod.PromptQlExecutor();
     const result = await executor.execute({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.7-flash",
       body: { messages: [{ role: "assistant", content: "hi" }] },
       stream: false,
       credentials: { apiKey: sampleJwt },
@@ -614,7 +617,7 @@ describe("PromptQlExecutor — mocked GraphQL turn", () => {
     try {
       const executor = new mod.PromptQlExecutor();
       const result = await executor.execute({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.7-flash",
         body: { messages: [{ role: "user", content: "ping" }] },
         stream: false,
         credentials: { apiKey: sampleJwt },
@@ -628,7 +631,7 @@ describe("PromptQlExecutor — mocked GraphQL turn", () => {
       };
       assert.equal(json.choices[0]!.message.content, "HELLO-PQL");
       assert.equal(json.promptql_thread_id, "thread-1");
-      assert.equal(json.model, "gemini-3.5-flash");
+      assert.equal(json.model, "gemini-3.7-flash");
       assert.ok(call >= 2);
       assert.equal(result.response.headers.get("X-PromptQL-Thread-Id"), "thread-1");
     } finally {

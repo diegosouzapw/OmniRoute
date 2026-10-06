@@ -29,14 +29,14 @@ const { recordRejectedRequestUsage, summarizeComboAttemptedModels, resolveReject
 
 test.beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   usageHistory.clearPendingRequests();
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("gate-rejected request is attributed to the api key in usage_history", async () => {
@@ -60,12 +60,17 @@ test("gate-rejected request is attributed to the api key in usage_history", asyn
   assert.equal(keyRows.length, 1, "expected one usage_history row for the rejected request");
   assert.equal(keyRows[0].success, false, "rejected request must be recorded as success:false");
 
-  // call_logs visibility is preserved (dashboard/logs).
-  const logs = await callLogs.getCallLogs({});
-  const rejected = (logs.logs ?? logs).filter?.(
-    (l: { apiKeyName?: string | null }) => l.apiKeyName === "opencode-mac"
-  );
-  assert.ok(rejected && rejected.length >= 1, "expected a call_logs row for the rejected request");
+  // call_logs visibility is preserved (dashboard/logs). saveCallLog is
+  // fire-and-forget inside recordRejectedRequestUsage, so poll briefly for the
+  // row instead of asserting synchronously after the await.
+  let rejected: Array<{ apiKeyName?: string | null }> = [];
+  for (let i = 0; i < 50 && rejected.length === 0; i++) {
+    const logs = await callLogs.getCallLogs({});
+    const list = (logs.logs ?? logs) as Array<{ apiKeyName?: string | null }>;
+    rejected = (list ?? []).filter((l) => l.apiKeyName === "opencode-mac");
+    if (rejected.length === 0) await new Promise((r) => setTimeout(r, 10));
+  }
+  assert.ok(rejected.length >= 1, "expected a call_logs row for the rejected request");
 });
 
 test("combo-exhausted rejection is also counted per api key", async () => {
@@ -111,10 +116,15 @@ test("combo-exhausted rejection persists the client request body for dashboard i
     requestBody: { model: "default", messages: [{ role: "user", content: "hello" }] },
   });
 
-  const logs = await callLogs.getCallLogs({});
-  const rejected = (logs.logs ?? logs).find?.(
-    (l: { apiKeyName?: string | null }) => l.apiKeyName === "request-body-test"
-  );
+  // saveCallLog is fire-and-forget — poll briefly for the row.
+  let rejected: { id: string; hasRequestBody: boolean } | undefined;
+  for (let i = 0; i < 50 && !rejected; i++) {
+    const logs = await callLogs.getCallLogs({});
+    const list = (logs.logs ?? logs) as Array<{ apiKeyName?: string | null }>;
+    const found = (list ?? []).find((l) => l.apiKeyName === "request-body-test");
+    if (found) rejected = found as unknown as { id: string; hasRequestBody: boolean };
+    else await new Promise((r) => setTimeout(r, 10));
+  }
   assert.ok(rejected, "expected a call_logs row for the rejected request");
   assert.equal(rejected.hasRequestBody, true, "expected hasRequestBody to be true");
 
@@ -124,6 +134,68 @@ test("combo-exhausted rejection persists the client request body for dashboard i
     model: "default",
     messages: [{ role: "user", content: "hello" }],
   });
+});
+
+// #12150 P2 item 7: recordRejectedRequestUsage persists the raw client body for
+// a request rejected BEFORE the guardrail chain runs (circuit-breaker-open /
+// combo-exhausted), so the video-bridge guardrail never got a chance to redact
+// the transcript. The body is persisted defensively through
+// redactVideoTranscriptFieldsForLog, so a rejected video request's stored log
+// never retains the raw transcript cues.
+test("#12150 P2 item 7: a rejected request's persisted body has its video transcript redacted", async () => {
+  const SECRET = "top secret cue text";
+  await recordRejectedRequestUsage({
+    status: 503,
+    model: "default",
+    requestedModel: "default",
+    provider: "-",
+    endpoint: "/v1/chat/completions",
+    error: "[503] Pipeline gate rejected",
+    apiKeyId: "key-video-reject",
+    apiKeyName: "video-reject-test",
+    correlationId: "corr-video-reject",
+    startTime: Date.now() - 10,
+    requestBody: {
+      model: "default",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "look at this video" },
+            {
+              type: "input_video",
+              video_url: "https://example.com/clip.mp4",
+              transcript: { cues: [{ text: SECRET, startSeconds: 0, endSeconds: 2 }] },
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  let rejected: { id: string } | undefined;
+  for (let i = 0; i < 50 && !rejected; i++) {
+    const logs = await callLogs.getCallLogs({});
+    const list = (logs.logs ?? logs) as Array<{ apiKeyName?: string | null }>;
+    const found = (list ?? []).find((l) => l.apiKeyName === "video-reject-test");
+    if (found) rejected = found as unknown as { id: string };
+    else await new Promise((r) => setTimeout(r, 10));
+  }
+  assert.ok(rejected, "expected a call_logs row for the rejected video request");
+
+  const detail = await callLogs.getCallLogById(rejected.id);
+  assert.ok(detail, "expected to load the call log detail");
+  assert.equal(
+    JSON.stringify(detail!.requestBody).includes(SECRET),
+    false,
+    "the rejected request's persisted body must not retain the raw video transcript"
+  );
+  const transcriptField = (
+    detail!.requestBody as {
+      messages: Array<{ content: Array<{ transcript?: unknown }> }>;
+    }
+  ).messages[0].content[1].transcript;
+  assert.equal(transcriptField, "[redacted-video-transcript]");
 });
 
 test("combo-exhausted rejection without a request body still logs cleanly (no request body available)", async () => {
@@ -140,10 +212,15 @@ test("combo-exhausted rejection without a request body still logs cleanly (no re
     startTime: Date.now() - 100,
   });
 
-  const logs = await callLogs.getCallLogs({});
-  const rejected = (logs.logs ?? logs).find?.(
-    (l: { apiKeyName?: string | null }) => l.apiKeyName === "no-body-test"
-  );
+  // saveCallLog is fire-and-forget — poll briefly for the row.
+  let rejected: { id: string } | undefined;
+  for (let i = 0; i < 50 && !rejected; i++) {
+    const logs = await callLogs.getCallLogs({});
+    const list = (logs.logs ?? logs) as Array<{ apiKeyName?: string | null }>;
+    const found = (list ?? []).find((l) => l.apiKeyName === "no-body-test");
+    if (found) rejected = found as unknown as { id: string };
+    else await new Promise((r) => setTimeout(r, 10));
+  }
   assert.ok(rejected, "expected a call_logs row even without a request body");
   assert.equal(rejected.hasRequestBody, false);
 });

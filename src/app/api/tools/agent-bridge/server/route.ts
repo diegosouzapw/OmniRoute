@@ -7,8 +7,9 @@
  */
 import { AgentBridgeServerActionSchema } from "@/shared/schemas/agentBridge";
 import { getCachedPassword, setCachedPassword } from "@/mitm/manager";
-import { installCertResult, checkCertInstalled } from "@/mitm/cert/install";
+import { installCertResult, installCaCert, checkCertInstalled } from "@/mitm/cert/install";
 import { generateCert } from "@/mitm/cert/generate";
+import { resolveActiveCertPath } from "@/mitm/cert/activeCert";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
 import {
   isMitmSudoPasswordRequired,
@@ -18,7 +19,7 @@ import {
 import path from "path";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { pickApiKeyForInternalUse } from "@/lib/localDb";
+import { pickApiKeyForInternalUse } from "@/lib/db/apiKeys";
 
 /**
  * Resolve the OmniRoute API key the spawned MITM child (`server.cjs`) uses to
@@ -69,7 +70,9 @@ export async function POST(request: Request): Promise<Response> {
   try {
     if (action === "start") {
       const suppliedPassword =
-        typeof raw.sudoPassword === "string" ? normalizeMitmSudoPasswordInput(raw.sudoPassword) : "";
+        typeof raw.sudoPassword === "string"
+          ? normalizeMitmSudoPasswordInput(raw.sudoPassword)
+          : "";
       if (suppliedPassword) setCachedPassword(suppliedPassword);
       const apiKey = await resolveRouterApiKey(rawApiKey);
       const { startMitm } = await import("@/mitm/manager.runtime");
@@ -102,11 +105,22 @@ export async function POST(request: Request): Promise<Response> {
       if (isMitmSudoPasswordRequired(sudoPassword)) {
         return createErrorResponse({ status: 400, message: "Missing sudoPassword" });
       }
-      const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
-      const result = await installCertResult(sudoPassword, certPath);
+      // #14070: resolve + trust the file the active migration decision
+      // actually installs (ca.crt via installCaCert() under the root-CA
+      // model) instead of always hard-coding/trusting the legacy
+      // server.crt — mirrors manager.ts's own branch (startMitmInternal).
+      const certDir = path.join(resolveMitmDataDir(), "mitm");
+      const rootCaEnabled = process.env.MITM_ROOT_CA_ENABLED === "true";
+      const { certPath, mode } = resolveActiveCertPath(certDir, rootCaEnabled);
+      const result =
+        mode === "use-root-ca"
+          ? await installCaCert(sudoPassword, certPath)
+          : await installCertResult(sudoPassword, certPath);
       if (result.installed) {
         const suppliedPassword =
-          typeof raw.sudoPassword === "string" ? normalizeMitmSudoPasswordInput(raw.sudoPassword) : "";
+          typeof raw.sudoPassword === "string"
+            ? normalizeMitmSudoPasswordInput(raw.sudoPassword)
+            : "";
         if (process.platform !== "win32" && suppliedPassword) {
           setCachedPassword(suppliedPassword);
         }

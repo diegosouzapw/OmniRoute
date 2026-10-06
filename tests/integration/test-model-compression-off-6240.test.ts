@@ -37,7 +37,7 @@ async function resetStorage() {
   readCacheDb.invalidateDbCache();
   await new Promise((resolve) => setTimeout(resolve, 20));
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -49,7 +49,7 @@ test.after(async () => {
   globalThis.fetch = originalFetch;
   core.closeDbInstance();
   try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     // best-effort cleanup
   }
@@ -133,9 +133,11 @@ test("chatCore: x-omniroute-compression: off suppresses Output Styles injection 
     connectionId: connection.id,
     headers: new Headers(),
   });
-  const plainFirstMessage = withoutOptOut.capturedBody?.messages?.[0];
-  assert.equal(plainFirstMessage?.role, "system");
-  assert.match(plainFirstMessage?.content ?? "", /OmniRoute Output Styles/);
+  // #13383: preserve the initial user turn; inject the style after it.
+  assert.equal(withoutOptOut.capturedBody?.messages?.[0]?.role, "user");
+  const styleMessage = withoutOptOut.capturedBody?.messages?.at(-1);
+  assert.equal(styleMessage?.role, "system");
+  assert.match(styleMessage?.content ?? "", /OmniRoute Output Styles/);
 
   // The "Test model" connection test sends x-omniroute-compression: off — must be clean.
   const testModelBody = await runChatCore({
@@ -199,8 +201,9 @@ test("chatCore: a per-key opt-out wins over request headers and Output Styles (#
     apiKeyInfo: { compressionEnabled: true },
     messageContent: originalContent,
   });
-  assert.equal(enabled.capturedBody?.messages?.[0]?.role, "system");
-  assert.match(enabled.capturedBody?.messages?.[0]?.content ?? "", /OmniRoute Output Styles/);
+  assert.equal(enabled.capturedBody?.messages?.[0]?.role, "user");
+  assert.equal(enabled.capturedBody?.messages?.at(-1)?.role, "system");
+  assert.match(enabled.capturedBody?.messages?.at(-1)?.content ?? "", /OmniRoute Output Styles/);
 
   const disabled = await runChatCore({
     provider,

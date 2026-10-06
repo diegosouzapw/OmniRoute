@@ -1,10 +1,10 @@
 /**
- * KimiWebExecutor — Moonshot AI Chat via www.kimi.com (international)
+ * KimiWebExecutor — Moonshot AI Chat via www.kimi.ai (international)
  *
  * Routes requests through Kimi's consumer chat API on the international domain.
  * Originally this executor targeted `kimi.moonshot.cn` (mainland-CN consumer
  * chat). That domain now redirects every visitor outside CN to
- * `https://www.kimi.com/`, which speaks a completely different API surface:
+ * `https://www.kimi.ai/`, which speaks a completely different API surface:
  *
  *   - Endpoint:  POST /apiv2/kimi.gateway.chat.v1.ChatService/Chat
  *   - Protocol:  Connect-RPC (unary envelope framing — 5-byte header + JSON)
@@ -29,6 +29,7 @@ import {
   sanitizeErrorMessage,
 } from "../utils/error.ts";
 import { extractKimiAccessToken } from "@/lib/providers/webCookieAuth";
+import { exchangeKimiRefreshToken } from "@/lib/kimi/tokenRefresh";
 import {
   type KimiWebModelConfig,
   resolveKimiWebContextLength,
@@ -38,7 +39,23 @@ import {
 
 export { extractKimiAccessToken };
 
-const BASE_URL = "https://www.kimi.com";
+export function getKimiWebBaseUrl(): string {
+  const envUrl = process.env.KIMI_WEB_BASE_URL?.trim();
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, "");
+  }
+  return "https://www.kimi.ai";
+}
+
+export function getKimiWebChatUrl(): string {
+  const envChat = process.env.KIMI_WEB_CHAT_URL?.trim();
+  if (envChat) {
+    return envChat;
+  }
+  return `${getKimiWebBaseUrl()}/apiv2/kimi.gateway.chat.v1.ChatService/Chat`;
+}
+
+const BASE_URL = "https://www.kimi.ai";
 const CHAT_URL = `${BASE_URL}/apiv2/kimi.gateway.chat.v1.ChatService/Chat`;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
@@ -305,11 +322,11 @@ export class KimiWebExecutor extends BaseExecutor {
     const bodyObj = (body || {}) as Record<string, unknown>;
 
     const rawCredential = String(credentials?.accessToken || credentials?.apiKey || "").trim();
-    const accessToken = extractKimiAccessToken(rawCredential);
+    let accessToken = extractKimiAccessToken(rawCredential);
     if (!accessToken) {
       return makeErrorResult(
         400,
-        "Missing Kimi access_token — log in at www.kimi.com and capture access_token from localStorage.",
+        "Missing Kimi access_token — log in at www.kimi.ai and capture access_token from localStorage.",
         body,
         CHAT_URL
       );
@@ -387,6 +404,26 @@ export class KimiWebExecutor extends BaseExecutor {
         body,
         CHAT_URL
       );
+    }
+
+    if (upstream.status === 401) {
+      const refreshToken =
+        credentials?.refreshToken || credentials?.providerSpecificData?.refreshToken;
+      if (refreshToken && typeof refreshToken === "string") {
+        const refreshRes = await exchangeKimiRefreshToken(refreshToken, getKimiWebBaseUrl());
+        if (refreshRes.success && refreshRes.accessToken) {
+          accessToken = refreshRes.accessToken;
+          const retryHeaders = this.buildKimiHeaders(accessToken);
+          try {
+            upstream = await fetch(CHAT_URL, {
+              method: "POST",
+              headers: retryHeaders,
+              body: new Uint8Array(framedBody),
+              signal,
+            });
+          } catch {}
+        }
+      }
     }
 
     if (!upstream.ok) {

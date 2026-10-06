@@ -17,10 +17,10 @@ import {
   getAntigravityFetchAvailableModelsUrls,
 } from "../../config/antigravityUpstream.ts";
 import {
-  isUserCallableAntigravityModelId,
+  isUserVisibleAntigravityQuotaModelId,
   toClientAntigravityQuotaModelId,
 } from "../../config/antigravityModelAliases.ts";
-import { isUserCallableAgyModelId } from "../../config/agyModels.ts";
+import { isDiscoverableAgyModelId } from "../../config/agyModels.ts";
 import { getDbInstance } from "@/lib/db/core";
 import {
   applyAntigravityClientProfileHeaders,
@@ -273,15 +273,12 @@ async function fetchAntigravityUserQuotaCached(
   const promise = (async () => {
     try {
       for (const baseUrl of ANTIGRAVITY_RUNTIME_BASE_URLS) {
-        const response = await fetch(
-          `${baseUrl}/v1internal:retrieveUserQuota`,
-          {
-            method: "POST",
-            headers: getAntigravityContentHeaders(clientProfile, accessToken),
-            body: JSON.stringify({ project: projectId }),
-            signal: AbortSignal.timeout(10000),
-          }
-        );
+        const response = await fetch(`${baseUrl}/v1internal:retrieveUserQuota`, {
+          method: "POST",
+          headers: getAntigravityContentHeaders(clientProfile, accessToken),
+          body: JSON.stringify({ project: projectId }),
+          signal: AbortSignal.timeout(10000),
+        });
 
         if (!response.ok) continue;
 
@@ -648,8 +645,8 @@ export async function getAntigravityUsage(
         !modelKey ||
         info.isInternal === true ||
         !(provider === "agy"
-          ? isUserCallableAgyModelId(modelKey)
-          : isUserCallableAntigravityModelId(modelKey)) ||
+          ? isDiscoverableAgyModelId(modelKey)
+          : isUserVisibleAntigravityQuotaModelId(modelKey)) ||
         Object.keys(quotaInfo).length === 0
       ) {
         continue;
@@ -657,12 +654,12 @@ export async function getAntigravityUsage(
 
       const liveQuota = userQuotaEntries.get(modelKey);
       const quotaSource = liveQuota || quotaInfo;
-      const rawFraction = toNumber(quotaSource.remainingFraction, -1);
+      const rawFraction = toNumber(quotaSource.remainingFraction, Number.NaN);
       const resetAt = parseResetTime(quotaSource.resetTime);
       // Distinguish "upstream did not report remainingFraction" from "remaining is 0%".
       // fetchAvailableModels is a catalog view and can be stale/full; retrieveUserQuota is
       // the source of truth for actual Gemini consumption when it includes the model.
-      const fractionReported = rawFraction >= 0;
+      const fractionReported = Number.isFinite(rawFraction);
       if (!fractionReported) {
         console.warn(
           `[Antigravity] model ${modelKey} returned no remainingFraction — quota unknown`
@@ -672,18 +669,22 @@ export async function getAntigravityUsage(
       // Models with no resetTime AND a reported full fraction are unlimited
       // (e.g. tab-completion models). Unreported fraction is NEVER unlimited.
       const isUnlimited = fractionReported && !resetAt && remainingFraction >= 1;
-      const remainingPercentage = remainingFraction * 100;
       const QUOTA_NORMALIZED_BASE = 1000;
-      const total = QUOTA_NORMALIZED_BASE;
+      const total = fractionReported ? QUOTA_NORMALIZED_BASE : 0;
       const remaining = Math.round(total * remainingFraction);
       const used = isUnlimited ? 0 : Math.max(0, total - remaining);
 
       quotas[modelKey] = applyLocalUsageFallback(
         {
+          // An omitted fraction is unknown, not a 0% sentinel. Keep the reset
+          // timestamp for display, but omit numeric quota fields so cache and
+          // preflight fail open rather than turning uncertainty into exhaustion.
           used,
           total: isUnlimited ? 0 : total,
           resetAt,
-          remainingPercentage: isUnlimited ? 100 : remainingPercentage,
+          ...(fractionReported && {
+            remainingPercentage: isUnlimited ? 100 : remainingFraction * 100,
+          }),
           unlimited: isUnlimited,
           fractionReported,
           quotaSource: liveQuota ? "retrieveUserQuota" : "fetchAvailableModels",
@@ -701,8 +702,8 @@ export async function getAntigravityUsage(
       if (
         quotas[modelKey] ||
         !(provider === "agy"
-          ? isUserCallableAgyModelId(modelKey)
-          : isUserCallableAntigravityModelId(modelKey))
+          ? isDiscoverableAgyModelId(modelKey)
+          : isUserVisibleAntigravityQuotaModelId(modelKey))
       ) {
         continue;
       }

@@ -56,7 +56,7 @@ test("discoverPlugins descobre plugin com package.json válido", async () => {
     if (orig === undefined) delete process.env.OMNIROUTE_PLUGIN_PATH;
     else process.env.OMNIROUTE_PLUGIN_PATH = orig;
     try {
-      rmSync(pluginDir, { recursive: true });
+      rmSync(pluginDir, { recursive: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
   }
 });
@@ -83,7 +83,7 @@ test("discoverPlugins ignora pacotes sem prefixo omniroute-cmd-", async () => {
     if (orig === undefined) delete process.env.OMNIROUTE_PLUGIN_PATH;
     else process.env.OMNIROUTE_PLUGIN_PATH = orig;
     try {
-      rmSync(pluginDir, { recursive: true });
+      rmSync(pluginDir, { recursive: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
   }
 });
@@ -115,7 +115,7 @@ test("loadPlugins não quebra CLI quando plugin tem erro de load (try/catch)", a
     if (orig === undefined) delete process.env.OMNIROUTE_PLUGIN_PATH;
     else process.env.OMNIROUTE_PLUGIN_PATH = orig;
     try {
-      rmSync(pluginDir, { recursive: true });
+      rmSync(pluginDir, { recursive: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
   }
 });
@@ -155,7 +155,7 @@ test("loadPlugins carrega plugin válido e chama register()", async () => {
     if (orig === undefined) delete process.env.OMNIROUTE_PLUGIN_PATH;
     else process.env.OMNIROUTE_PLUGIN_PATH = orig;
     try {
-      rmSync(pluginDir, { recursive: true });
+      rmSync(pluginDir, { recursive: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
   }
 });

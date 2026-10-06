@@ -32,7 +32,7 @@ innych rodzin endpointów, więc wszystkie cztery produkty pozostają osobnymi I
 | Rodzina providera       | `global-sg`                                                              | `china-beijing`                                                      | Format wire |
 | ----------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------- | ----------- |
 | `alibaba`               | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`                 | `https://dashscope.aliyuncs.com/compatible-mode/v1`                  | OpenAI      |
-| `bailian-coding-plan`   | `https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1`           | `https://coding.dashscope.aliyuncs.com/apps/anthropic/v1`            | Anthropic   |
+| `bailian-coding-plan`   | `https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1`  | `https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic/v1`  | Anthropic   |
 | `qwen-cloud`            | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`                 | `https://dashscope.aliyuncs.com/compatible-mode/v1`                  | OpenAI      |
 | `qwen-cloud-token-plan` | `https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1` | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | OpenAI      |
 

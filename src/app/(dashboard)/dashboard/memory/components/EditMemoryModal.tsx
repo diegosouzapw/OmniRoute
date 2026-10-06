@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Modal, Button, Input, Select } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -29,7 +29,14 @@ export default function EditMemoryModal({ memory, isOpen, onClose, onSaved }: Pr
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  // Adjust-during-render (React docs pattern): when the modal (re)opens for a
+  // memory, seed the form fields from it before painting — no effect round-trip.
+  const [prevSync, setPrevSync] = useState<{ memory: Memory | null; isOpen: boolean }>({
+    memory: null,
+    isOpen: false,
+  });
+  if (memory !== prevSync.memory || isOpen !== prevSync.isOpen) {
+    setPrevSync({ memory, isOpen });
     if (memory && isOpen) {
       setType(memory.type);
       setKey(memory.key);
@@ -38,7 +45,7 @@ export default function EditMemoryModal({ memory, isOpen, onClose, onSaved }: Pr
       setMetadataError("");
       setError("");
     }
-  }, [memory, isOpen]);
+  }
 
   const handleMetadataChange = (value: string) => {
     setMetadataStr(value);
@@ -151,9 +158,7 @@ export default function EditMemoryModal({ memory, isOpen, onClose, onSaved }: Pr
               metadataError ? "border-red-500" : "border-border"
             }`}
           />
-          {metadataError && (
-            <p className="text-xs text-red-400 mt-1">{metadataError}</p>
-          )}
+          {metadataError && <p className="text-xs text-red-400 mt-1">{metadataError}</p>}
         </div>
       </div>
     </Modal>

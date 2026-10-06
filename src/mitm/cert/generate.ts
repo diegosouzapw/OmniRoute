@@ -16,12 +16,17 @@ const TARGET_HOST = TARGET_HOSTS[0];
 /**
  * Generate self-signed SSL certificate using selfsigned (pure JS, no openssl needed)
  */
-export async function generateCert(): Promise<{ key: string; cert: string }> {
+export async function generateCert(options?: {
+  force?: boolean;
+}): Promise<{ key: string; cert: string }> {
   const certDir = path.join(resolveMitmDataDir(), "mitm");
   const keyPath = path.join(certDir, "server.key");
   const certPath = path.join(certDir, "server.crt");
 
-  if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+  // #10467: callers that only need a cert to exist keep the existing one, but the
+  // regenerate endpoint has to actually mint a new one — otherwise a cert missing the
+  // SANs added in #6494 can never be replaced from the UI.
+  if (!options?.force && fs.existsSync(keyPath) && fs.existsSync(certPath)) {
     console.log("✅ SSL certificate already exists");
     return { key: keyPath, cert: certPath };
   }

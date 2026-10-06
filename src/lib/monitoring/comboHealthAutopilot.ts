@@ -16,6 +16,7 @@ import type {
   ComboForecastMetrics,
   ComboForecastResponse,
   ComboForecastRiskLevel,
+  ProviderAutopilotReport,
   ComboHealthMetrics,
   ComboHealthResponse,
   ComboRecord,
@@ -34,6 +35,7 @@ export interface ComboHealthAutopilotOptions {
   combos?: ComboRecord[];
   healthResponse?: ComboHealthResponse;
   forecastResponse?: ComboForecastResponse;
+  providerHealthResponse?: ProviderAutopilotReport;
 }
 
 type ProviderIssueView = {
@@ -103,7 +105,12 @@ function actionSet(
       case "open_combo_editor":
         return action(type, "Open combo editor", target, "/dashboard/combos");
       case "run_combo_test":
-        return action(type, "Run combo test", target, "/dashboard/combos");
+        return action(
+          type,
+          "Run combo test",
+          target,
+          `/dashboard/combos?test=${encodeURIComponent(target.comboId)}`
+        );
       case "open_provider_health_autopilot":
         return action(type, "Open provider autopilot", target, "/dashboard/health");
       case "review_quota_limits":
@@ -447,7 +454,8 @@ export async function buildComboHealthAutopilotReport(
         now: options.now,
         combos: combosSnapshot,
       }),
-    buildProviderHealthAutopilotReport({ includeHealthy: false, includeActions: false }),
+    options.providerHealthResponse ??
+      buildProviderHealthAutopilotReport({ includeHealthy: false, includeActions: false }),
   ]);
 
   const forecastsByComboId = new Map(forecast.combos.map((entry) => [entry.comboId, entry]));
@@ -470,7 +478,7 @@ export async function buildComboHealthAutopilotReport(
   const degradedCount = allCombos.filter((combo) => combo.state === "degraded").length;
   const healthyCount = allCombos.filter((combo) => combo.state === "healthy").length;
   const issueCount = allCombos.reduce((sum, combo) => sum + combo.issues.length, 0);
-  const actionableCount = allCombos.reduce(
+  const suggestionCount = allCombos.reduce(
     (sum, combo) =>
       sum + combo.issues.reduce((issueSum, issue) => issueSum + issue.actions.length, 0),
     0
@@ -487,7 +495,8 @@ export async function buildComboHealthAutopilotReport(
       degradedCount,
       downCount,
       issueCount,
-      actionableCount,
+      suggestionCount,
+      actionableCount: suggestionCount,
     },
     combos,
   };

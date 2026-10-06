@@ -72,10 +72,12 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
   assert.equal(freeUsage.quotas.completions.used, 0);
   assert.equal(freeUsage.quotas.completions.remainingPercentage, 100);
   assert.equal(calls[0].headers.Authorization, "token gho-free");
-  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.54.0");
-  assert.equal(calls[0].headers["Editor-Version"], "vscode/1.126.0");
-  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/0.54.0");
-  assert.equal(calls[0].headers["X-GitHub-Api-Version"], "2026-06-01");
+  // #10952 re-based the Copilot wire identity on the live-captured CLI 1.0.88
+  // (copilot-developer-cli integration id; API version 2026-08-01).
+  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/1.0.88");
+  assert.equal(calls[0].headers["Editor-Version"], "copilot/1.0.88");
+  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/1.0.88");
+  assert.equal(calls[0].headers["X-GitHub-Api-Version"], "2026-08-01");
 
   globalThis.fetch = async () => new Response("forbidden", { status: 403 });
   const forbidden: any = await usageService.getUsageForProvider({
@@ -259,7 +261,7 @@ test("usage service prefers Antigravity retrieveUserQuota over catalog quotaInfo
       return new Response(
         JSON.stringify({
           models: {
-            "gemini-3-flash-agent": {
+            "gemini-3.7-flash-high": {
               quotaInfo: {
                 remainingFraction: 1,
                 resetTime: new Date(Date.now() + 60_000).toISOString(),
@@ -276,7 +278,7 @@ test("usage service prefers Antigravity retrieveUserQuota over catalog quotaInfo
         JSON.stringify({
           buckets: [
             {
-              modelId: "gemini-3-flash-agent",
+              modelId: "gemini-3.7-flash-high",
               remainingFraction: 0.25,
               resetTime: new Date(Date.now() + 60_000).toISOString(),
             },
@@ -294,9 +296,9 @@ test("usage service prefers Antigravity retrieveUserQuota over catalog quotaInfo
     accessToken: `ag-token-live-quota-${Date.now()}`,
   });
 
-  assert.equal(usage.quotas["gemini-3-flash-agent"].remainingPercentage, 25);
-  assert.equal(usage.quotas["gemini-3-flash-agent"].used, 750);
-  assert.equal(usage.quotas["gemini-3-flash-agent"].quotaSource, "retrieveUserQuota");
+  assert.equal(usage.quotas["gemini-3.7-flash-high"].remainingPercentage, 25);
+  assert.equal(usage.quotas["gemini-3.7-flash-high"].used, 750);
+  assert.equal(usage.quotas["gemini-3.7-flash-high"].quotaSource, "retrieveUserQuota");
 });
 
 test("usage service preserves Antigravity upstream quota bucket ids", async () => {
@@ -317,10 +319,10 @@ test("usage service preserves Antigravity upstream quota bucket ids", async () =
       return new Response(
         JSON.stringify({
           models: {
-            "gemini-3.5-flash-low": { quotaInfo: { remainingFraction: 1 } },
-            "gemini-3.5-flash-high": { quotaInfo: { remainingFraction: 1 } },
+            "gemini-3.7-flash-low": { quotaInfo: { remainingFraction: 1 } },
+            "gemini-3.7-flash-medium": { quotaInfo: { remainingFraction: 1 } },
+            "gemini-3.7-flash-high": { quotaInfo: { remainingFraction: 1 } },
             "gemini-3-flash-agent": { quotaInfo: { remainingFraction: 1 } },
-            "gemini-3.5-flash-extra-low": { quotaInfo: { remainingFraction: 1 } },
           },
         }),
         { status: 200 }
@@ -331,8 +333,8 @@ test("usage service preserves Antigravity upstream quota bucket ids", async () =
       return new Response(
         JSON.stringify({
           buckets: [
-            { modelId: "gemini-3-flash-agent", remainingFraction: 0.5 },
-            { modelId: "gemini-3.5-flash-extra-low", remainingFraction: 0.25 },
+            { modelId: "gemini-3.7-flash-high", remainingFraction: 0.5 },
+            { modelId: "gemini-3.7-flash-low", remainingFraction: 0.25 },
           ],
         }),
         { status: 200 }
@@ -347,11 +349,10 @@ test("usage service preserves Antigravity upstream quota bucket ids", async () =
     accessToken: `ag-token-legacy-buckets-${Date.now()}`,
   });
 
-  assert.equal(usage.quotas["gemini-3-flash-agent"].remainingPercentage, 50);
-  assert.equal(usage.quotas["gemini-3.5-flash-extra-low"].remainingPercentage, 25);
-  assert.equal(usage.quotas["gemini-3.5-flash-low"].remainingPercentage, 100);
-  assert.equal(usage.quotas["gemini-3.5-flash-medium"], undefined);
-  assert.equal(usage.quotas["gemini-3.5-flash-high"], undefined);
+  assert.equal(usage.quotas["gemini-3.7-flash-high"].remainingPercentage, 50);
+  assert.equal(usage.quotas["gemini-3.7-flash-low"].remainingPercentage, 25);
+  assert.equal(usage.quotas["gemini-3.7-flash-medium"].remainingPercentage, 100);
+  assert.equal(usage.quotas["gemini-3-flash-agent"], undefined);
 });
 
 test("usage service retries Antigravity fetchAvailableModels across the shared fallback order", async () => {
@@ -528,7 +529,7 @@ test("usage service covers Claude OAuth success, legacy fallback and permissions
   assert.equal(oauthUsage.plan, "Claude Max");
   assert.equal(oauthUsage.quotas["session (5h)"].remaining, 10);
   assert.equal(oauthUsage.quotas["weekly (7d)"].remaining, 80);
-  assert.equal(oauthUsage.quotas["weekly sonnet (7d)"].remaining, 65);
+  assert.equal(oauthUsage.modelQuotas["weekly sonnet (7d)"].remaining, 65);
   assert.deepEqual(oauthUsage.extraUsage, { queued: true });
 
   globalThis.fetch = async (url) => {
@@ -707,6 +708,7 @@ test("usage service covers Codex, Kiro and Kimi usage parsing and error branches
           },
           limits: [
             {
+              window: { duration: 300, timeUnit: "TIME_UNIT_MINUTE" },
               detail: {
                 limit: "20",
                 remaining: "3",
@@ -772,8 +774,8 @@ test("usage service covers Codex, Kiro and Kimi usage parsing and error branches
     accessToken: "kimi-token",
   });
   assert.equal(kimi.plan, "Allegro");
-  assert.equal(kimi.quotas.Weekly.remaining, 8);
-  assert.equal(kimi.quotas.Ratelimit.remaining, 3);
+  assert.equal(kimi.quotas.code_7d.remaining, 8);
+  assert.equal(kimi.quotas.code_5h.remaining, 3);
   assert.equal(kimi.quotas["session (5h)"].remaining, 25);
 
   globalThis.fetch = async (url) => {
@@ -1409,13 +1411,16 @@ test("usage service covers NanoGPT PRO weekly token quota, FREE plan, auth denia
 });
 
 test("usage service opencode happy path returns plan and three quota windows", async () => {
+  // #12124: the fetcher now reads the official OpenCode Go usage API shape
+  // (`usage.{rolling,weekly,monthly}` with percent + resetsAt), see opencode-go-usage.test.ts.
+  const future = (ms: number) => new Date(Date.now() + ms).toISOString();
   globalThis.fetch = async () =>
     new Response(
       JSON.stringify({
-        quota: {
-          window_5h: { used: 3.0, limit: 12.0, reset_at: null },
-          window_weekly: { used: 10.0, limit: 30.0, reset_at: null },
-          window_monthly: { used: 25.0, limit: 60.0, reset_at: null },
+        usage: {
+          rolling: { status: "ok", percent: 25, resetsAt: future(5 * 3600_000) },
+          weekly: { status: "ok", percent: 33, resetsAt: future(7 * 86_400_000) },
+          monthly: { status: "ok", percent: 41, resetsAt: future(30 * 86_400_000) },
         },
       }),
       { status: 200, headers: { "content-type": "application/json" } }
@@ -1427,12 +1432,11 @@ test("usage service opencode happy path returns plan and three quota windows", a
   });
 
   assert.equal(result.plan, "OpenCode Go");
-  assert.ok(result.quotas["window_5h"], "should have window_5h quota");
-  assert.ok(result.quotas["window_weekly"], "should have window_weekly quota");
-  assert.ok(result.quotas["window_monthly"], "should have window_monthly quota");
-  assert.equal(result.quotas["window_5h"].total, 12);
-  assert.equal(result.quotas["window_weekly"].total, 30);
-  assert.equal(result.quotas["window_monthly"].total, 60);
+  assert.equal(result.limitReached, false);
+  assert.deepEqual(Object.keys(result.quotas ?? {}), ["session", "weekly", "mcp_monthly"]);
+  assert.ok(result.quotas.session, "should expose the rolling (session) window");
+  assert.ok(result.quotas.weekly, "should expose the weekly window");
+  assert.ok(result.quotas.mcp_monthly, "should expose the monthly window");
 });
 
 test("usage service opencode no-key returns missing-key message", async () => {

@@ -40,13 +40,15 @@ function getModelLifecycleError({
 export function checkLifecycle(provider: string, model: string, log?: LifecycleLogger) {
   return getModelLifecycleError({
     provider,
-    model: resolveModelAlias(model),
+    // #11503: pass the provider so a globally deprecated id this provider still serves
+    // under its original name is left alone instead of rewritten into a 404.
+    model: resolveModelAlias(model, provider),
     log,
   });
 }
 
 export function resolveLifecycle(provider: string, model: string, log?: LifecycleLogger) {
-  const resolvedModel = resolveModelAlias(model);
+  const resolvedModel = resolveModelAlias(model, provider);
   if (resolvedModel !== model) {
     log?.info?.("ALIAS", `Model alias applied: ${model} → ${resolvedModel}`);
   }

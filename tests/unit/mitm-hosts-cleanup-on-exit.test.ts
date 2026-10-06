@@ -30,7 +30,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: unknown) {
@@ -52,7 +52,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("handleExitCleanup: with a cached sudo password, best-effort reverts managed /etc/hosts entries", async () => {
@@ -99,7 +99,11 @@ test("handleExitCleanup: with a cached sudo password, best-effort reverts manage
 
 test("handleExitCleanup: with NO cached password, falls back to orphaned-state flag and skips DNS removal", async () => {
   manager.clearCachedPassword();
-  assert.equal(manager.getCachedPassword(), null, "precondition: no password cached in this session");
+  assert.equal(
+    manager.getCachedPassword(),
+    null,
+    "precondition: no password cached in this session"
+  );
 
   let removeDNSEntryCalled = false;
   let removeDNSEntriesCalled = false;

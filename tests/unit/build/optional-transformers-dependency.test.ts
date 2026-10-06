@@ -9,52 +9,135 @@ function readJson<T = Record<string, unknown>>(relPath: string): T {
   return JSON.parse(readFileSync(join(repoRoot, relPath), "utf8")) as T;
 }
 
-test("@huggingface/transformers is a regular dependency so npm ci never skips it", () => {
-  // #9962 deliberately moved @huggingface/transformers out of optionalDependencies:
-  // as an optional dep, npm silently skipped the whole subtree on Node 24/26 (old
-  // pin dragged onnxruntime-node@1.21.0 whose NAN build no longer compiles), which
-  // broke `npm ci`/`next build` with "Can't resolve @huggingface/transformers"
-  // (lazy import in src/lib/memory/embedding/transformersLocal.ts). As a regular
-  // dep with onnxruntime-node@~1.24.3 (napi prebuilds, no node-gyp) it stays
-  // installable and the memory embedding path requires() cleanly.
+test("ONNX chain (@huggingface/transformers + onnxruntime-node) stays optional so Termux/Android installs succeed", () => {
+  // #11095: onnxruntime-node declares os ["win32","darwin","linux"], so while
+  // these lived in `dependencies` every npm install on Android/Termux aborted
+  // with a fatal EBADPLATFORM. As optionalDependencies npm skips only the
+  // unsupported-platform subtree (with a warning) and installs normally
+  // everywhere else. This deliberately reverses the MECHANISM of #9962 while
+  // keeping its goal: #9962's skip happened because the old onnxruntime-node@
+  // 1.21.0 pin built from source (NAN) and failed to compile on Node 24/26;
+  // the current 1.30.0 pin ships napi prebuilds, so on supported platforms the
+  // chain always installs and `npm ci`/`next build` keep resolving it. On
+  // platforms where it IS skipped, both consumers degrade gracefully via lazy/
+  // dynamic imports (asserted below).
   const pkg = readJson<{
     dependencies?: Record<string, string>;
     optionalDependencies?: Record<string, string>;
+    overrides?: Record<string, string>;
   }>("package.json");
 
   assert.equal(
     pkg.dependencies?.["@huggingface/transformers"],
-    "^4.2.0",
-    "transformers must be a regular dependency (never optional) so npm ci cannot skip it"
+    undefined,
+    "transformers must NOT be a hard dependency (fatal EBADPLATFORM on Android)"
   );
-  assert.equal(pkg.optionalDependencies?.["@huggingface/transformers"], undefined);
-});
-
-test("transformers + onnxruntime-node are regular dependencies (not optional)", () => {
-  const pkg = readJson<{
-    dependencies?: Record<string, string>;
-    optionalDependencies?: Record<string, string>;
-  }>("package.json");
-
+  assert.equal(
+    pkg.optionalDependencies?.["@huggingface/transformers"],
+    "^4.2.0",
+    "transformers must be an optionalDependency"
+  );
   assert.equal(
     pkg.dependencies?.["onnxruntime-node"],
-    "~1.24.3",
-    "onnxruntime-node is a regular dep (napi prebuilds, installable on Node 24/26)"
+    undefined,
+    "onnxruntime-node must NOT be a hard dependency (fatal EBADPLATFORM on Android)"
   );
-  assert.equal(pkg.optionalDependencies?.["onnxruntime-node"], undefined);
+  assert.equal(
+    pkg.optionalDependencies?.["onnxruntime-node"],
+    "1.30.0",
+    "onnxruntime-node must be an optionalDependency pinned in lockstep with the overrides pin"
+  );
+  assert.equal(
+    pkg.overrides?.["onnxruntime-node"],
+    "1.30.0",
+    "the overrides pin must stay aligned with @huggingface/transformers' own pin (single-copy invariant)"
+  );
+});
 
+test("lockfile marks the whole ONNX chain optional", () => {
   const lock = readJson<{
-    packages: Record<string, { optional?: boolean; dependencies?: Record<string, string>; optionalDependencies?: Record<string, string> }>;
+    packages: Record<
+      string,
+      {
+        optional?: boolean;
+        dependencies?: Record<string, string>;
+        optionalDependencies?: Record<string, string>;
+      }
+    >;
   }>("package-lock.json");
 
   assert.equal(
-    lock.packages[""]?.dependencies?.["@huggingface/transformers"],
+    lock.packages[""]?.optionalDependencies?.["@huggingface/transformers"],
     "^4.2.0",
-    "root lock dependencies must hold transformers as a regular (non-optional) dep"
+    "root lock optionalDependencies must hold transformers"
   );
-  // Optional flag is only written `true` for genuinely optional packages;
-  // regular deps leave it absent/null. Assert each is NOT optional.
-  assert.ok(!lock.packages["node_modules/@huggingface/transformers"]?.optional, "transformers must not be marked optional in the lockfile");
-  assert.ok(!lock.packages["node_modules/onnxruntime-node"]?.optional, "onnxruntime-node must not be marked optional in the lockfile");
-  assert.ok(!lock.packages["node_modules/onnxruntime-common"]?.optional, "onnxruntime-common must not be marked optional in the lockfile");
+  assert.equal(
+    lock.packages[""]?.optionalDependencies?.["onnxruntime-node"],
+    "1.30.0",
+    "root lock optionalDependencies must hold onnxruntime-node"
+  );
+  assert.ok(
+    lock.packages["node_modules/@huggingface/transformers"]?.optional,
+    "transformers must be marked optional in the lockfile"
+  );
+  assert.ok(
+    lock.packages["node_modules/onnxruntime-node"]?.optional,
+    "onnxruntime-node must be marked optional in the lockfile"
+  );
+  assert.ok(
+    lock.packages["node_modules/onnxruntime-common"]?.optional,
+    "onnxruntime-common must be marked optional in the lockfile"
+  );
+});
+
+test("every @huggingface/transformers consumer loads it lazily so absent installs degrade gracefully", () => {
+  // If any module ever switches to a STATIC import of the optional chain,
+  // startup crashes on platforms where npm skipped it (Android/Termux).
+  // transformersLocal.ts must keep its lazy await import() (D8/D25);
+  // onnxWorker.ts must keep its runtime-variable dynamicImport indirection.
+
+  const embeddingSrc = readFileSync(
+    join(repoRoot, "src/lib/memory/embedding/transformersLocal.ts"),
+    "utf8"
+  );
+  assert.doesNotMatch(
+    embeddingSrc,
+    /^\s*import\s+(?:[^'"]*?\s+from\s+)?["']@huggingface\/transformers["']/m,
+    "transformersLocal.ts must not statically import @huggingface/transformers"
+  );
+  assert.doesNotMatch(
+    embeddingSrc,
+    /import\(\s*["']@huggingface\/transformers["']\s*\)/,
+    "transformersLocal.ts must not pass a literal specifier to import() - Next traces it at compile time"
+  );
+  assert.match(
+    embeddingSrc,
+    /webpackIgnore:\s*true/,
+    "transformersLocal.ts must mark the optional import webpackIgnore so Next does not resolve it during /health"
+  );
+  assert.match(
+    embeddingSrc,
+    /["']@huggingface\/["']\s*\+\s*["']transformers["']/,
+    "transformersLocal.ts must assemble the specifier at runtime"
+  );
+
+  const workerSrc = readFileSync(
+    join(repoRoot, "open-sse/services/compression/engines/llmlingua/onnxWorker.ts"),
+    "utf8"
+  );
+  assert.doesNotMatch(
+    workerSrc,
+    /^\s*import\s+(?:[^'"]*?\s+from\s+)?["']@huggingface\/transformers["']/m,
+    "onnxWorker.ts must not statically import @huggingface/transformers"
+  );
+  // Positive anchor (required by source-scanner-guards.test.ts): prove the read
+  // resolved to the real, non-empty onnxWorker.ts. Without this, renaming or
+  // gutting the worker would leave the negative guard above passing while
+  // protecting nothing. The worker loads the optional transformer deps lazily
+  // via a dynamicImport() helper, so anchor on that stable call.
+  assert.match(
+    workerSrc,
+    /dynamicImport\(["']@huggingface\/transformers["']\)/,
+    "onnxWorker.ts must load @huggingface/transformers via a deferred dynamicImport()"
+  );
 });

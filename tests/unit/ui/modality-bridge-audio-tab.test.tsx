@@ -117,6 +117,10 @@ describe("ModalityBridgeAudioTab", () => {
     expect(optionValues).not.toContain("deepgram/aura");
     expect(optionValues).not.toContain("openai/gpt-5.6");
     expect(el.textContent).toContain("4 modalityBridgeStatsBridged");
+    expect(el.textContent).toContain("5 requestlogger.attempts");
+    expect(el.textContent).toContain("trafficInspector.timingTotalLatency: —");
+    expect(el.textContent).toContain("avgLatency: —");
+    expect(el.textContent).not.toContain("0 ms");
   });
 
   it("PATCHes only the new audio setting when toggled", async () => {

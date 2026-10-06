@@ -4,6 +4,7 @@ import {
   setTaskRoutingConfig,
   resetTaskRoutingStats,
   getDefaultTaskModelMap,
+  getDefaultTaskPatterns,
 } from "@omniroute/open-sse/services/taskAwareRouter.ts";
 import { updateSettings } from "@/lib/db/settings";
 import { taskRoutingActionSchema, updateTaskRoutingSchema } from "@/shared/validation/schemas";
@@ -21,6 +22,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       ...getTaskRoutingConfig(),
       defaultTaskModelMap: getDefaultTaskModelMap(),
+      defaultTaskPatterns: getDefaultTaskPatterns(),
     });
   } catch (error) {
     console.error("[API ERROR] /api/settings/task-routing GET:", error);
@@ -31,7 +33,8 @@ export async function GET(request: Request) {
 /**
  * PUT /api/settings/task-routing
  * Update the task-aware routing configuration.
- * Body: { enabled?: boolean, taskModelMap?: { coding?: "...", ... }, detectionEnabled?: boolean }
+ * Body: { enabled?: boolean, taskModelMap?: { coding?: "...", ... }, detectionEnabled?: boolean,
+ *          patternOverrides?: { coding?: { patterns?: string[], userPatterns?: string[] }, ... } }
  */
 export async function PUT(request: Request) {
   const authError = await requireManagementAuth(request);

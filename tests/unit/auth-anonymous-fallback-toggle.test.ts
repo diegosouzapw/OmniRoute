@@ -33,7 +33,7 @@ const { updateSettings } = await import("../../src/lib/db/settings.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 /** Set the opt-out list; pass null to remove the key entirely (absent setting). */

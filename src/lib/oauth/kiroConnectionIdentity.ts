@@ -30,6 +30,27 @@ function providerData(connection: KiroConnectionLike): Record<string, unknown> {
     : {};
 }
 
+/** True when the identity carries something that identifies the ACCOUNT (not the profile). */
+function hasAccountIdentifier(identity: KiroConnectionIdentity): boolean {
+  return Boolean(folded(identity.email) || trimmed(identity.clientId));
+}
+
+/** True when a shared field is present on both sides and disagrees — different accounts. */
+function contradictsAccount(
+  connection: KiroConnectionLike,
+  identity: KiroConnectionIdentity
+): boolean {
+  const email = folded(identity.email);
+  const existingEmail = folded(connection.email);
+  if (email && existingEmail && email !== existingEmail) return true;
+
+  const clientId = trimmed(identity.clientId);
+  const existingClientId = trimmed(providerData(connection).clientId);
+  if (clientId && existingClientId && clientId !== existingClientId) return true;
+
+  return false;
+}
+
 /** Find an existing Kiro account without comparing OAuth tokens or API keys. */
 export function findKiroConnectionByIdentity(
   connections: KiroConnectionLike[],
@@ -45,7 +66,14 @@ export function findKiroConnectionByIdentity(
     const match = candidates.find(
       (connection) => trimmed(providerData(connection).profileArn) === profileArn
     );
-    if (match) return match;
+    // A profile ARN identifies the CodeWhisperer PROFILE, not the account: distinct
+    // Builder ID accounts (Google/GitHub social login) share the same ARN. Accepting it
+    // as identity made a second social login overwrite the first connection (#10815).
+    // Only trust the ARN when the incoming identity carries an account-level identifier
+    // that does not contradict the stored one.
+    if (match && hasAccountIdentifier(identity) && !contradictsAccount(match, identity)) {
+      return match;
+    }
   }
 
   const clientId = trimmed(identity.clientId);

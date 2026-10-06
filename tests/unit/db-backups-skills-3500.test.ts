@@ -161,9 +161,7 @@ test("exportAllSummaryRows — returns provider_connections rows (no credentials
 
   const { providers } = backupMod.exportAllSummaryRows();
 
-  const found = (providers as Array<{ id: string; provider: string }>).find(
-    (p) => p.id === connId
-  );
+  const found = (providers as Array<{ id: string; provider: string }>).find((p) => p.id === connId);
   assert.ok(found, "providers must include seeded row");
   assert.equal(found?.provider, "openai");
   // Sensitive credential columns must NOT be exported — the query only selects
@@ -229,7 +227,7 @@ test.after(() => {
     /* best effort */
   }
   try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     /* best effort */
   }

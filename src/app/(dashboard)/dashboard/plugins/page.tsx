@@ -37,7 +37,9 @@ export default function PluginsPage() {
   }, []);
 
   useEffect(() => {
-    fetchPlugins();
+    void (async () => {
+      await fetchPlugins();
+    })();
   }, [fetchPlugins]);
 
   const handleScan = async () => {
@@ -60,11 +62,17 @@ export default function PluginsPage() {
     try {
       const res = await fetch(`/api/plugins/${name}/${endpoint}`, { method: "POST" });
       if (res.ok) {
-        addNotification({ type: "success", message: enable ? t("activated", { name }) : t("deactivated", { name }) });
+        addNotification({
+          type: "success",
+          message: enable ? t("activated", { name }) : t("deactivated", { name }),
+        });
         await fetchPlugins();
       }
     } catch {
-      addNotification({ type: "error", message: enable ? t("activateFailed", { name }) : t("deactivateFailed", { name }) });
+      addNotification({
+        type: "error",
+        message: enable ? t("activateFailed", { name }) : t("deactivateFailed", { name }),
+      });
     }
   };
 
@@ -97,10 +105,7 @@ export default function PluginsPage() {
         </Button>
       </div>
       {plugins.length === 0 ? (
-        <EmptyState
-          title={t("noPlugins")}
-          description={t("noPluginsDescription")}
-        />
+        <EmptyState title={t("noPlugins")} description={t("noPluginsDescription")} />
       ) : (
         <div className="grid gap-4">
           {plugins.map((plugin) => (
@@ -131,10 +136,7 @@ export default function PluginsPage() {
                   >
                     {plugin.enabled ? t("deactivate") : t("activate")}
                   </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => handleUninstall(plugin.name)}
-                  >
+                  <Button variant="danger" onClick={() => handleUninstall(plugin.name)}>
                     {t("uninstall")}
                   </Button>
                 </div>

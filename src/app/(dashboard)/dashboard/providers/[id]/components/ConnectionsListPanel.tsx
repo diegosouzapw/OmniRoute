@@ -409,7 +409,7 @@ export default function ConnectionsListPanel({
                     ? (enabled) => handleToggleConnectionAutoSync(conn.id, enabled)
                     : undefined
                 }
-                isCodex={providerId === "codex"}
+                isCodex={providerId === "codex" || providerId === "codex-app-server"}
                 isCcCompatible={isCcCompatible}
                 cliproxyapiEnabled={cpaProviderEnabled}
                 onToggleCliproxyapiMode={(enabled) => handleToggleCliproxyapiMode(conn.id, enabled)}
@@ -610,7 +610,7 @@ export default function ConnectionsListPanel({
                         ? (enabled) => handleToggleConnectionAutoSync(conn.id, enabled)
                         : undefined
                     }
-                    isCodex={providerId === "codex"}
+                    isCodex={providerId === "codex" || providerId === "codex-app-server"}
                     isCcCompatible={isCcCompatible}
                     cliproxyapiEnabled={cpaProviderEnabled}
                     onToggleCliproxyapiMode={(enabled) =>

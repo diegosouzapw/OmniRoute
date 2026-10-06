@@ -1,5 +1,5 @@
 /**
- * #3500 — usage_logs / semantic_cache / proxy_logs SQL extracted into db modules
+ * #3500: semantic_cache / proxy_logs SQL extracted into db modules
  * (Hard Rule #5, slice 4).
  *
  * Seeds an in-memory temp SQLite DB for each table and asserts each new db
@@ -17,34 +17,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-db-logs-cache-
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const usageLogs = await import("../../src/lib/db/usageLogs.ts");
 const semanticCache = await import("../../src/lib/db/semanticCache.ts");
 const proxyLogs = await import("../../src/lib/db/proxyLogs.ts");
-
-// ---------------------------------------------------------------------------
-// Helpers — usage_logs seeding
-// usage_logs is NOT in the core.ts schema; create it as a lightweight table
-// mirroring the columns used by the auto-routing queries (model, provider).
-// ---------------------------------------------------------------------------
-
-function ensureUsageLogsTable() {
-  const db = core.getDbInstance();
-  db.prepare(
-    `CREATE TABLE IF NOT EXISTS usage_logs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      model TEXT NOT NULL,
-      provider TEXT NOT NULL,
-      timestamp TEXT NOT NULL
-    )`
-  ).run();
-}
-
-function insertUsageLog(row: { model: string; provider: string }) {
-  const db = core.getDbInstance();
-  db.prepare(
-    `INSERT INTO usage_logs (model, provider, timestamp) VALUES (?, ?, ?)`
-  ).run(row.model, row.provider, new Date().toISOString());
-}
 
 // ---------------------------------------------------------------------------
 // Helpers — semantic_cache seeding
@@ -70,7 +44,7 @@ function insertSemanticCache(row: {
     "hash_" + row.id,
     "{}",
     row.tokens_saved ?? 0,
-    row.hit_count ?? 0,
+    row.hit_count ?? 0
   );
 }
 
@@ -91,67 +65,11 @@ function insertProxyLog(row: { id: string; timestamp: string; provider?: string 
 
 test.before(() => {
   core.resetDbInstance();
-  ensureUsageLogsTable();
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-});
-
-// ===========================================================================
-// usageLogs — getAutoRoutingTotalCount
-// ===========================================================================
-
-test("#3500 getAutoRoutingTotalCount — returns 0 when no rows", () => {
-  const result = usageLogs.getAutoRoutingTotalCount();
-  assert.equal(result.count, 0);
-});
-
-test("#3500 getAutoRoutingTotalCount — counts auto and auto/* models", () => {
-  insertUsageLog({ model: "auto", provider: "openai" });
-  insertUsageLog({ model: "auto/fast", provider: "anthropic" });
-  insertUsageLog({ model: "gpt-4", provider: "openai" }); // must NOT be counted
-
-  const result = usageLogs.getAutoRoutingTotalCount();
-  assert.ok(result.count >= 2, `expected >= 2, got ${result.count}`);
-});
-
-// ===========================================================================
-// usageLogs — getAutoRoutingVariantBreakdown
-// ===========================================================================
-
-test("#3500 getAutoRoutingVariantBreakdown — maps auto → default, auto/X → X", () => {
-  // Insert another auto and auto/fast to have stable counts
-  insertUsageLog({ model: "auto", provider: "openai" });
-  insertUsageLog({ model: "auto/fast", provider: "anthropic" });
-
-  const rows = usageLogs.getAutoRoutingVariantBreakdown();
-  const byVariant: Record<string, number> = {};
-  for (const r of rows) byVariant[r.variant] = r.count;
-
-  assert.ok("default" in byVariant, "should have a 'default' variant for bare 'auto'");
-  assert.ok("fast" in byVariant, "should have a 'fast' variant for 'auto/fast'");
-  assert.ok(byVariant["default"] >= 1, "default count >= 1");
-  assert.ok(byVariant["fast"] >= 1, "fast count >= 1");
-});
-
-// ===========================================================================
-// usageLogs — getAutoRoutingTopProviders
-// ===========================================================================
-
-test("#3500 getAutoRoutingTopProviders — returns top providers for auto/* models", () => {
-  const rows = usageLogs.getAutoRoutingTopProviders();
-  assert.ok(Array.isArray(rows), "result is array");
-  assert.ok(rows.length > 0, "at least one provider row");
-  for (const r of rows) {
-    assert.equal(typeof r.provider, "string");
-    assert.equal(typeof r.count, "number");
-  }
-  // Should be ordered descending by count (first row has highest count)
-  if (rows.length > 1) {
-    assert.ok(rows[0].count >= rows[1].count, "ordered descending by count");
-  }
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ===========================================================================
@@ -316,8 +234,16 @@ test("#3500 exportProxyLogsSince — returns rows with timestamp >= since", () =
   const base = new Date("2025-01-15T10:00:00.000Z");
   const old = new Date("2025-01-14T10:00:00.000Z");
 
-  insertProxyLog({ id: "pl-new-1", timestamp: new Date("2025-01-15T11:00:00.000Z").toISOString(), provider: "openai" });
-  insertProxyLog({ id: "pl-new-2", timestamp: new Date("2025-01-15T12:00:00.000Z").toISOString(), provider: "anthropic" });
+  insertProxyLog({
+    id: "pl-new-1",
+    timestamp: new Date("2025-01-15T11:00:00.000Z").toISOString(),
+    provider: "openai",
+  });
+  insertProxyLog({
+    id: "pl-new-2",
+    timestamp: new Date("2025-01-15T12:00:00.000Z").toISOString(),
+    provider: "anthropic",
+  });
   insertProxyLog({ id: "pl-old-1", timestamp: old.toISOString(), provider: "openai" }); // outside window
 
   const rows = proxyLogs.exportProxyLogsSince(base.toISOString());

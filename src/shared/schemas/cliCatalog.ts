@@ -67,4 +67,6 @@ export const EXPECTED_CODE_COUNT = 21;
 // +2 (#6318): "omp" (Oh My Pi) and "letta" (Letta CLI) added as agent entries.
 // Note: #6318 originally also shipped duplicate "pi"/"jcode"/"codewhale" entries —
 // those tools were already delivered by a separate PR, so only omp+letta landed here.
-export const EXPECTED_AGENT_COUNT = 8;
+// +1 (#11166): "prime-agent" (PrimeIntellect-ai/prime-agent) added as an agent entry.
+// +1 (#11578): "5dive" (5dive-ai/5dive) added as an agent entry.
+export const EXPECTED_AGENT_COUNT = 10;

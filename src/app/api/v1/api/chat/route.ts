@@ -1,6 +1,7 @@
 import { handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { transformToOllama } from "@omniroute/open-sse/utils/ollamaTransform.ts";
+import { withChatAdmission } from "@/shared/middleware/withChatAdmission";
 
 let initialized = false;
 
@@ -21,7 +22,7 @@ export async function OPTIONS() {
   });
 }
 
-export async function POST(request) {
+async function postHandler(request) {
   await ensureInitialized();
 
   const clonedReq = request.clone();
@@ -34,3 +35,5 @@ export async function POST(request) {
   const response = await handleChat(request);
   return transformToOllama(response, modelName);
 }
+
+export const POST = withChatAdmission(postHandler);

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const intelligentRouting = await import("../../src/lib/combos/intelligentRouting.ts");
+const { getModePack } = await import("../../open-sse/services/autoCombo/modePacks.ts");
 
 test("getStrategyCategory classifies intelligent and deterministic strategies correctly", () => {
   assert.equal(intelligentRouting.getStrategyCategory("auto"), "intelligent");
@@ -153,6 +154,19 @@ test("sidebar visibility excludes the removed auto-combo item", async () => {
   assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["auto-combo" as any, "home"]), [
     "home",
   ]);
+});
+
+test("custom mode-pack selection preserves explicit slider intent", () => {
+  assert.deepEqual(intelligentRouting.MODE_PACK_OPTIONS[0], {
+    id: "custom",
+    label: "Custom / None (Use Sliders)",
+    emoji: "tune",
+  });
+  assert.equal(
+    intelligentRouting.normalizeIntelligentRoutingConfig({ modePack: "custom" }).modePack,
+    "custom"
+  );
+  assert.equal(getModePack("custom"), undefined);
 });
 
 test("intelligent routing helpers normalize config and build provider scores", () => {

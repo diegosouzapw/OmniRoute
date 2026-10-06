@@ -13,7 +13,7 @@ const callLogs = await import("../../src/lib/usage/callLogs.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // Captured stream chunks are prefixed with a per-chunk arrival timestamp
@@ -695,5 +695,95 @@ test("createRequestLogger disabled logger other methods are no-ops", async () =>
   logger.appendOpenAIChunk("test");
   logger.appendConvertedChunk("test");
 
+  assert.equal(logger.getPipelinePayloads(), null);
+});
+
+test("request logging never persists a raw hard-lease owner", async () => {
+  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
+  const rawOwner = `vlo_${"A".repeat(43)}`;
+  const logger = await createRequestLogger("openai", "openai", "gpt-4", {
+    enabled: true,
+    captureStreamChunks: false,
+  });
+
+  logger.logClientRawRequest(
+    "/v1/chat/completions",
+    {},
+    {
+      "X-OmniRoute-Lease-Owner": rawOwner,
+      "X-OmniRoute-Lease-Generation": "7",
+    }
+  );
+
+  const payload = logger.getPipelinePayloads()?.clientRawRequest;
+  assert.deepEqual(payload?.headers, {
+    "X-OmniRoute-Lease-Owner": "[REDACTED]",
+    "X-OmniRoute-Lease-Generation": "7",
+  });
+  assert.doesNotMatch(JSON.stringify(payload), new RegExp(rawOwner));
+});
+
+test("generic client snapshots exclude hard-lease control headers", async () => {
+  const { buildClientRawRequest } = await import("../../src/sse/handlers/chat/clientRawRequest.ts");
+  const request = new Request("http://x/v1/chat/completions", {
+    headers: {
+      "X-OmniRoute-Lease-Owner": `vlo_${"A".repeat(43)}`,
+      "X-OmniRoute-Lease-Generation": "7",
+      "X-Session-Id": "independent-routing-session",
+    },
+  });
+  const out = buildClientRawRequest(request, { model: "m" });
+
+  assert.equal(out.headers["x-omniroute-lease-owner"], undefined);
+  assert.equal(out.headers["x-omniroute-lease-generation"], undefined);
+  assert.equal(out.headers["x-session-id"], "independent-routing-session");
+});
+
+function syntheticReceipt(index: number) {
+  return {
+    index,
+    connectionId: "conn-1",
+    provider: "openai",
+    model: "gpt-4o",
+    startedAt: "2026-01-01T00:00:00.000Z",
+    endedAt: "2026-01-01T00:00:01.000Z",
+    latencyMs: 10 + index,
+    httpStatus: 200,
+    errorType: null,
+    usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+    serviceTier: null,
+    computedCostUsd: 0.001,
+    toolCalls: [{ id: `call-${index}`, name: "memory_search" }],
+    termination: "completed",
+    clientVisible: true,
+  };
+}
+
+test("logToolLoopReceipt keeps first 4 receipts and clones them", async () => {
+  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
+  const logger = await createRequestLogger("openai", "openai", "gpt-4o", {
+    enabled: true,
+    captureStreamChunks: false,
+  });
+  for (let i = 0; i < 5; i++) {
+    logger.logToolLoopReceipt(syntheticReceipt(i));
+  }
+  const payloads = logger.getPipelinePayloads();
+  assert.ok(payloads?.toolLoop);
+  assert.equal(payloads.toolLoop.legs.length, 4);
+  assert.deepEqual(
+    payloads.toolLoop.legs.map((leg) => (leg as { index: number }).index),
+    [0, 1, 2, 3]
+  );
+  assert.equal("arguments" in (payloads.toolLoop.legs[0] as object), false);
+});
+
+test("logToolLoopReceipt is a no-op when logger is disabled", async () => {
+  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
+  const logger = await createRequestLogger("openai", "openai", "gpt-4o", {
+    enabled: false,
+    captureStreamChunks: false,
+  });
+  logger.logToolLoopReceipt(syntheticReceipt(0));
   assert.equal(logger.getPipelinePayloads(), null);
 });

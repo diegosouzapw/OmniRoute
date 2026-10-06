@@ -21,6 +21,10 @@ import { upstreamErrorResponse } from "./audioTranscription.ts";
 export function resolveOpenRouterAudioFormat(file: Blob & { name?: unknown }): string {
   const fileName = typeof file.name === "string" ? file.name.toLowerCase() : "";
   const extension = fileName.includes(".") ? fileName.split(".").pop() || "" : "";
+  // `.opus` is Ogg-encapsulated Opus (RFC 7845). Without this it matched
+  // neither the extension list nor the MIME map below and fell through to the
+  // "wav" default, so Opus bytes were announced to the upstream as WAV.
+  if (extension === "opus") return "ogg";
   if (["wav", "mp3", "flac", "m4a", "ogg", "webm", "aac"].includes(extension)) {
     return extension;
   }
@@ -33,6 +37,7 @@ export function resolveOpenRouterAudioFormat(file: Blob & { name?: unknown }): s
     "audio/x-flac": "flac",
     "audio/mp4": "m4a",
     "audio/ogg": "ogg",
+    "audio/opus": "ogg",
     "audio/webm": "webm",
     "audio/aac": "aac",
   };

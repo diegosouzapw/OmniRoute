@@ -5,6 +5,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "api-manager",
   "endpoints",
   "providers",
+  "model-catalog",
   "embedded-services",
   "combos",
   "combos-live",
@@ -30,12 +31,14 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "acp-agents",
   "cloud-agents",
   "conductor",
+  "orchestration",
   "agent-bridge",
   "traffic-inspector",
   "discovery",
   // OmniProxy > Integrations
   "api-endpoints",
   "webhooks",
+  "log-export",
   // OmniProxy — proxy tools
   "mitm-proxy",
   "1proxy",
@@ -55,6 +58,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "logs-proxy",
   "logs-console",
   "logs-timeline",
+  "conversations",
   "logs-activity",
   "health",
   "runtime",
@@ -66,6 +70,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "costs-quota-share",
   "free-provider-rankings",
   "radar",
+  "radar-admin",
   // Monitoring > Audit
   "audit",
   "audit-mcp",
@@ -86,6 +91,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "leaderboard",
   "profile",
   "tokens",
+  "gamification-admin",
   // Other Features — flat
   "media",
   // Other Features > Batch
@@ -119,6 +125,7 @@ export type SidebarItemId = HideableSidebarItemId | AlwaysVisibleSidebarItemId;
 
 export type SidebarSectionId =
   | "home"
+  | "pinned"
   | "omni-proxy"
   | "analytics"
   | "costs"
@@ -172,7 +179,7 @@ export interface SidebarSectionDefinition {
   defaultPinned?: boolean;
 }
 
-export type SidebarPresetId = "all" | "minimal" | "developer" | "admin";
+export type SidebarPresetId = "all" | "essentials" | "minimal" | "developer" | "admin";
 
 export interface SidebarPresetDefinition {
   id: SidebarPresetId;

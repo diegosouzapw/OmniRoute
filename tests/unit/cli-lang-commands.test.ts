@@ -22,7 +22,7 @@ test.after(() => {
   if (origOmniLang === undefined) delete process.env.OMNIROUTE_LANG;
   else process.env.OMNIROUTE_LANG = origOmniLang;
   try {
-    rmSync(tmpDir, { recursive: true, force: true });
+    rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {}
 });
 

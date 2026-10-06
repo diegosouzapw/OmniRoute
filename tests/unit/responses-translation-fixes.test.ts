@@ -45,7 +45,7 @@ test("production Responses conversion preserves Kimi K3 reasoning history", () =
       { role: "user", content: [{ type: "input_text", text: "Call search." }] },
       {
         type: "reasoning",
-        summary: [{ type: "summary_text", text: "I should search first." }],
+        content: [{ type: "reasoning_text", text: "I should search first." }],
       },
       {
         type: "function_call",
@@ -87,7 +87,7 @@ test("Responses translation keeps authentic K3 reasoning through OpenAI cleanup"
       { role: "user", content: [{ type: "input_text", text: "Call search." }] },
       {
         type: "reasoning",
-        summary: [{ type: "summary_text", text: "I should search first." }],
+        content: [{ type: "reasoning_text", text: "I should search first." }],
       },
       {
         type: "function_call",
@@ -405,10 +405,19 @@ test("Chat→Responses: tool_choice {type:'function', function:{name}} unwrapped
   });
 });
 
-test("Responses→Chat: string tool_choice passes through unchanged", () => {
-  const body = { model: "gpt-4", input: "hello", tool_choice: "auto" };
-  const result = openaiResponsesToOpenAIRequest(null, body, null, null);
-  assert.equal((result as any).tool_choice, "auto");
+test("Responses->Chat: string tool_choice passes through when tools present, stripped when absent (#12141)", () => {
+  const withTools = {
+    model: "gpt-4",
+    input: "hello",
+    tools: [{ type: "function", name: "f", parameters: {} }],
+    tool_choice: "auto",
+  };
+  const resWith = openaiResponsesToOpenAIRequest(null, withTools, null, null) as Record<string, unknown>;
+  assert.equal(resWith.tool_choice, "auto");
+
+  const noTools = { model: "gpt-4", input: "hello", tool_choice: "auto" };
+  const resWithout = openaiResponsesToOpenAIRequest(null, noTools, null, null) as Record<string, unknown>;
+  assert.equal(resWithout.tool_choice, undefined);
 });
 
 test("Chat→Responses: string tool_choice passes through unchanged", () => {

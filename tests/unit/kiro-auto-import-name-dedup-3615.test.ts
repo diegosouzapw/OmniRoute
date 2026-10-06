@@ -24,7 +24,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-api-key-secret-
 
 test.after(() => {
   try {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     // best effort
   }
@@ -113,12 +113,18 @@ test("derived name is never empty or null", () => {
 
 const FAKE_PROFILE_ARN = "arn:aws:iam::123456789012:user/sso-user";
 
+const FAKE_CLIENT_ID = "client-abc";
+
 const fakeConnectionWithArn = {
   id: "conn-abc",
   provider: "kiro",
   authType: "oauth",
   email: null,
-  providerSpecificData: { profileArn: FAKE_PROFILE_ARN, region: "us-east-1" },
+  providerSpecificData: {
+    profileArn: FAKE_PROFILE_ARN,
+    region: "us-east-1",
+    clientId: FAKE_CLIENT_ID,
+  },
 };
 
 const fakeConnectionNoArn = {
@@ -129,13 +135,29 @@ const fakeConnectionNoArn = {
   providerSpecificData: { region: "us-east-1" },
 };
 
-test("findKiroConnectionByProfileArn returns the matching connection", async () => {
-  // The function should scan existing kiro connections and match by profileArn.
+test("findKiroConnectionByProfileArn returns the matching connection when an account identifier agrees", async () => {
+  // #10815 — matching on profileArn alone is unsafe (distinct Builder ID
+  // accounts can share a profile ARN), so the caller must also supply an
+  // account-level identifier (email or clientId) that does not contradict
+  // the stored connection, exactly like saveAndRespond()'s real call sites do.
+  const result = await findKiroConnectionByProfileArn(
+    [fakeConnectionWithArn, fakeConnectionNoArn],
+    FAKE_PROFILE_ARN,
+    { clientId: FAKE_CLIENT_ID }
+  );
+  assert.deepEqual(result, fakeConnectionWithArn);
+});
+
+test("findKiroConnectionByProfileArn returns null for a profileArn-only match with no account identifier (#10815)", async () => {
+  // Guards the #10815 fix: two different Builder ID accounts (Google/GitHub
+  // social login) can share the same CodeWhisperer profile ARN, so trusting
+  // an ARN match without any account identifier would let a second social
+  // login silently overwrite the first connection.
   const result = await findKiroConnectionByProfileArn(
     [fakeConnectionWithArn, fakeConnectionNoArn],
     FAKE_PROFILE_ARN
   );
-  assert.deepEqual(result, fakeConnectionWithArn);
+  assert.equal(result, null);
 });
 
 test("findKiroConnectionByProfileArn returns null when no match exists", async () => {

@@ -12,8 +12,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { SEARCH_PROVIDERS, SEARCH_CREDENTIAL_FALLBACKS, getSearchProvider, selectProvider } =
-  await import("../../open-sse/config/searchRegistry.ts");
+const {
+  SEARCH_PROVIDERS,
+  SEARCH_CREDENTIAL_FALLBACKS,
+  getSearchProvider,
+  selectProvider,
+  resolveSearchProvider,
+} = await import("../../open-sse/config/searchRegistry.ts");
 const { handleSearch } = await import("../../open-sse/handlers/search.ts");
 const { v1SearchSchema } = await import("../../src/shared/validation/schemas.ts");
 
@@ -54,8 +59,18 @@ test("v1SearchSchema accepts firecrawl for search (unified id)", () => {
     search_type: "news",
   });
   assert.equal(news.success, true);
+  // #10849: v1SearchSchema.provider is a free-form string, not a hard-coded enum, so
+  // the runtime catalog (resolveSearchProvider()) is the source of truth for whether an
+  // id is valid — the legacy "firecrawl-search" id is still rejected, just downstream of
+  // the schema (route.ts replies "Unknown search provider: firecrawl-search") instead of
+  // by an opaque schema-level 400.
   const legacy = v1SearchSchema.safeParse({ query: "q", provider: "firecrawl-search" });
-  assert.equal(legacy.success, false, "legacy firecrawl-search id is not accepted");
+  assert.equal(legacy.success, true, "provider is a free-form string at the schema layer");
+  assert.equal(
+    resolveSearchProvider("firecrawl-search"),
+    null,
+    "legacy firecrawl-search id does not resolve to a registered provider"
+  );
 });
 
 test("handleSearch firecrawl hits /v2/search with sources web and normalizes data.web", async () => {

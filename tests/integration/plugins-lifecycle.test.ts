@@ -20,7 +20,11 @@ const { pluginManager } = await import("../../src/lib/plugins/manager.ts");
 // Scanner expects: sourceDir/<plugin-name>/plugin.json + index.js
 // Returns the sourceDir (parent) to pass to pluginManager.install()
 
-function writeTestPlugin(opts?: { name?: string; onRequest?: boolean; enabledByDefault?: boolean }) {
+function writeTestPlugin(opts?: {
+  name?: string;
+  onRequest?: boolean;
+  enabledByDefault?: boolean;
+}) {
   const name = opts?.name ?? "test-lifecycle-plugin";
   const onRequest = opts?.onRequest ?? true;
   const enabledByDefault = opts?.enabledByDefault ?? false;
@@ -57,7 +61,7 @@ function writeTestPlugin(opts?: { name?: string; onRequest?: boolean; enabledByD
 // ── Helpers ──
 
 function cleanupDir(dir: string) {
-  fs.rmSync(dir, { recursive: true, force: true });
+  fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }
 
 // Track temp source dirs for cleanup
@@ -65,7 +69,9 @@ const activeSourceDirs: string[] = [];
 
 function cleanupSourceDirs() {
   for (const dir of activeSourceDirs) {
-    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+    try {
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    } catch {}
   }
   activeSourceDirs.length = 0;
 }
@@ -83,7 +89,9 @@ test.beforeEach(() => {
 test.after(() => {
   core.resetDbInstance();
   cleanupSourceDirs();
-  try { cleanupDir(TEST_DATA_DIR); } catch {}
+  try {
+    cleanupDir(TEST_DATA_DIR);
+  } catch {}
 });
 
 // ── Tests: Install ──
@@ -230,7 +238,11 @@ test("deactivate: unregisters all hooks for the plugin", async () => {
 
   // Hook should be gone
   const after = hooks.getHooks("onRequest");
-  assert.equal(after.find((r) => r.pluginName === name), undefined, "hook should be unregistered");
+  assert.equal(
+    after.find((r) => r.pluginName === name),
+    undefined,
+    "hook should be unregistered"
+  );
 
   await pluginManager.uninstall(name);
 });
@@ -300,7 +312,10 @@ test("uninstall: deactivates before removing if active", async () => {
 
   // Plugin should be fully gone
   assert.equal(dbPlugins.getPluginByName(name), null);
-  assert.equal(hooks.getHooks("onRequest").find((r) => r.pluginName === name), undefined);
+  assert.equal(
+    hooks.getHooks("onRequest").find((r) => r.pluginName === name),
+    undefined
+  );
 });
 
 test("uninstall: throws for nonexistent plugin", async () => {
@@ -322,7 +337,10 @@ test("full lifecycle: install -> activate -> hook fires -> deactivate -> uninsta
   await pluginManager.activate(name);
   const afterActivate = dbPlugins.getPluginByName(name);
   assert.equal(afterActivate!.status, "active");
-  assert.ok(hooks.getHooks("onRequest").find((r) => r.pluginName === name), "hook registered");
+  assert.ok(
+    hooks.getHooks("onRequest").find((r) => r.pluginName === name),
+    "hook registered"
+  );
 
   // 3. Fire hook (use emitHookBlocking — child-process isolation means plugins cannot
   //    mutate the parent's in-memory payload object; check the returned merged result).
@@ -370,8 +388,14 @@ test("multiple plugins: hooks are isolated per plugin", async () => {
   await pluginManager.deactivate("multi-p1");
 
   const afterDeactivate = hooks.getHooks("onRequest");
-  assert.equal(afterDeactivate.find((r) => r.pluginName === "multi-p1"), undefined);
-  assert.ok(afterDeactivate.find((r) => r.pluginName === "multi-p2"), "p2 hook still registered");
+  assert.equal(
+    afterDeactivate.find((r) => r.pluginName === "multi-p1"),
+    undefined
+  );
+  assert.ok(
+    afterDeactivate.find((r) => r.pluginName === "multi-p2"),
+    "p2 hook still registered"
+  );
 
   // Cleanup
   await pluginManager.uninstall("multi-p1");

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { WEBHOOK_EVENT_VALUES } from "../../src/lib/webhooks/eventDescriptions.ts";
 
 const { buildTelegramPayload, buildTelegramUrl } =
   await import("../../src/lib/webhooks/integrations/telegram.ts");
@@ -77,15 +78,7 @@ test("buildTelegramPayload — chat_id matches provided value for groups", () =>
 });
 
 test("buildTelegramPayload — all WEBHOOK_EVENTS produce valid payloads with chat_id", () => {
-  const events = [
-    "request.completed",
-    "request.failed",
-    "provider.error",
-    "provider.recovered",
-    "quota.exceeded",
-    "combo.switched",
-    "test.ping",
-  ] as const;
+  const events = WEBHOOK_EVENT_VALUES;
   for (const event of events) {
     const payload = buildTelegramPayload(event, {}, "99999");
     assert.equal(payload.chat_id, "99999");

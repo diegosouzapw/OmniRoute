@@ -461,3 +461,150 @@ test("OpenAI -> Responses: no double-escaping of already-escaped JSON arguments"
     );
   }
 });
+
+test("Chat Completions -> Responses: a truncated generation surfaces as response.incomplete with incomplete_details, not response.completed", () => {
+  // A provider that stops on the token limit (finish_reason:"length") must
+  // translate to status:"incomplete" with incomplete_details.reason set to
+  // "max_output_tokens" -- the real OpenAI Responses API contract, already
+  // implemented for the ChatGPT-web bridge but previously missing here, so
+  // a truncated/looping generation silently looked identical to a normal,
+  // successful completion downstream.
+  const events = collectEvents([
+    {
+      id: "chatcmpl-trunc",
+      model: "labs-leanstral-1-5",
+      choices: [
+        {
+          index: 0,
+          delta: { role: "assistant", content: "partial output cut off mid" },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-trunc",
+      model: "labs-leanstral-1-5",
+      choices: [{ index: 0, delta: {}, finish_reason: "length" }],
+      usage: { prompt_tokens: 100, completion_tokens: 8192, total_tokens: 8292 },
+    },
+  ]);
+
+  const completedEvent = events.find((e) => e.event === "response.completed");
+  assert.equal(
+    completedEvent,
+    undefined,
+    "must not emit response.completed for a truncated generation"
+  );
+
+  const incompleteEvent = events.find((e) => e.event === "response.incomplete");
+  assert.ok(incompleteEvent, "must emit response.incomplete instead");
+  assert.equal(incompleteEvent.data.response.status, "incomplete");
+  assert.deepEqual(incompleteEvent.data.response.incomplete_details, {
+    reason: "max_output_tokens",
+  });
+});
+
+test("Chat Completions -> Responses: an ordinary finish_reason:stop still surfaces as response.completed", () => {
+  const events = collectEvents([
+    {
+      id: "chatcmpl-ok",
+      model: "labs-leanstral-1-5",
+      choices: [{ index: 0, delta: { role: "assistant", content: "done" }, finish_reason: null }],
+    },
+    {
+      id: "chatcmpl-ok",
+      model: "labs-leanstral-1-5",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 },
+    },
+  ]);
+
+  const completedEvent = events.find((e) => e.event === "response.completed");
+  assert.ok(completedEvent, "must emit response.completed for an ordinary stop");
+  assert.equal(completedEvent.data.response.status, "completed");
+  assert.equal(completedEvent.data.response.incomplete_details, undefined);
+  assert.equal(
+    events.find((e) => e.event === "response.incomplete"),
+    undefined,
+    "must not emit response.incomplete for an ordinary stop"
+  );
+});
+
+test("Chat Completions -> Responses: finish_reason:content_filter surfaces as response.incomplete with incomplete_details.reason:content_filter", () => {
+  const events = collectEvents([
+    {
+      id: "chatcmpl-cf",
+      model: "labs-leanstral-1-5",
+      choices: [
+        {
+          index: 0,
+          delta: { role: "assistant", content: "partial" },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-cf",
+      model: "labs-leanstral-1-5",
+      choices: [{ index: 0, delta: {}, finish_reason: "content_filter" }],
+      usage: { prompt_tokens: 10, completion_tokens: 1, total_tokens: 11 },
+    },
+  ]);
+
+  assert.equal(
+    events.find((e) => e.event === "response.completed"),
+    undefined,
+    "must not emit response.completed for a content-filtered generation"
+  );
+  const incompleteEvent = events.find((e) => e.event === "response.incomplete");
+  assert.ok(incompleteEvent, "must emit response.incomplete instead");
+  assert.equal(incompleteEvent.data.response.status, "incomplete");
+  assert.deepEqual(incompleteEvent.data.response.incomplete_details, {
+    reason: "content_filter",
+  });
+});
+
+test("Chat Completions -> Responses: an upstream error arriving after a deferred finish_reason:length still wins over incomplete", () => {
+  // A finish_reason:"length" chunk with no usage yet defers sendCompleted
+  // (awaitingTrailingUsage) rather than completing immediately -- if the
+  // trailing chunk that finally arrives is a mid-stream error instead of the
+  // expected usage-only chunk, the response must still surface as
+  // status:"failed", not "incomplete": an error mid-stream is a harder
+  // failure than a length cutoff, and callers need the failure signal, not
+  // a soft "truncated" status.
+  const events = collectEvents([
+    {
+      id: "chatcmpl-err-len",
+      model: "labs-leanstral-1-5",
+      choices: [
+        { index: 0, delta: { role: "assistant", content: "partial" }, finish_reason: null },
+      ],
+    },
+    {
+      id: "chatcmpl-err-len",
+      model: "labs-leanstral-1-5",
+      // No usage here -- defers completion (state.awaitingTrailingUsage).
+      choices: [{ index: 0, delta: {}, finish_reason: "length" }],
+    },
+    {
+      // Mid-stream aggregator error with empty choices (e.g. OpenRouter-style),
+      // arriving instead of the expected trailing usage-only chunk. This
+      // branch records the error and returns before checking
+      // awaitingTrailingUsage, so completion only actually fires once the
+      // stream ends (the null-chunk flush below), same as production.
+      choices: [],
+      error: { message: "upstream capacity exceeded", code: 503 },
+    },
+    null,
+  ]);
+
+  assert.equal(
+    events.find((e) => e.event === "response.incomplete"),
+    undefined,
+    "an upstream error must win over a deferred length cutoff, not surface as incomplete"
+  );
+  const failedEvent = events.find((e) => e.event === "response.completed");
+  assert.ok(failedEvent, "response.completed carries the failed status in this translator");
+  assert.equal(failedEvent.data.response.status, "failed");
+  assert.ok(failedEvent.data.response.error, "must carry the upstream error");
+});

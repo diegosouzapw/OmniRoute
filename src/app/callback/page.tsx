@@ -23,10 +23,20 @@ export default function CallbackPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+    let code = params.get("code");
     const state = params.get("state");
     const error = params.get("error");
     const errorDescription = params.get("error_description");
+
+    // Zed native-app sign-in: the redirect carries user_id + access_token and no
+    // ?code= — the FULL URL is the exchange payload (zed-hosted's exchangeToken
+    // parses and RSA-decrypts it server-side). Rewritten here from `/` by the
+    // root page handler so the waiting OAuth modal receives it via the same
+    // postMessage/BroadcastChannel/localStorage relay as every other provider.
+    const zedAccessToken = params.get("access_token") || params.get("accessToken");
+    if (!code && zedAccessToken && (params.get("user_id") || params.get("userId"))) {
+      code = window.location.href;
+    }
 
     const callbackData = {
       code,
@@ -63,6 +73,13 @@ export default function CallbackPage() {
     // same-origin fallback when the opener was severed by COOP.
     const trustedTargetOrigins = [
       window.location.origin, // Same origin (dashboard popup mode).
+      // Loopback hostname variants of the same port: the dashboard may be open
+      // on 127.0.0.1:PORT while Zed's redirect (or vice versa) lands on
+      // localhost:PORT — both names are the operator's own machine, so the
+      // callback may be delivered to either. Same rationale as the 1455 entries.
+      ...(window.location.port
+        ? [`http://localhost:${window.location.port}`, `http://127.0.0.1:${window.location.port}`]
+        : []),
       "http://localhost:1455", // Codex helper (fixed loopback port).
       "http://127.0.0.1:1455", // Same Codex helper, IPv4 literal form.
     ];

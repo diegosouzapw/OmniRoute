@@ -40,3 +40,13 @@ test("does not overwrite an existing user-agent header", () => {
 test("a trimmed-empty user agent does not create headers on its own", () => {
   assert.equal(buildExecutorClientHeaders({}, "   "), null);
 });
+
+test("internal hard-lease control headers never reach an executor", () => {
+  const out = buildExecutorClientHeaders({
+    "X-OmniRoute-Lease-Owner": `vlo_${"A".repeat(43)}`,
+    "x-omniroute-lease-generation": "7",
+    "x-session-id": "routing-session-remains-independent",
+  });
+
+  assert.deepEqual(out, { "x-session-id": "routing-session-remains-independent" });
+});

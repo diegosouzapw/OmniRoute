@@ -24,7 +24,7 @@ const {
 
 function resetDb() {
   core.resetDbInstance();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(tmpDir, { recursive: true });
 }
 
@@ -95,7 +95,7 @@ describe("ccDiscoveryAliases storage", () => {
 
   after(() => {
     core.resetDbInstance();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("getCcAliasProviderSetting returns null when unset", () => {
@@ -171,7 +171,7 @@ describe("global CC alias state (env / DB / default)", () => {
 
   after(() => {
     core.resetDbInstance();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     delete process.env.EXPOSE_CC_DISCOVERY_ALIASES;
   });
 

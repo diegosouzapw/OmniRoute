@@ -4,6 +4,26 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+type ComboTestResult = {
+  label?: string;
+  status?: string;
+  statusCode?: number;
+  responseText?: string;
+  error?: string;
+  connectionId?: string | null;
+  executionKey?: string | null;
+};
+type ComboTestBody = {
+  testMode?: string;
+  model?: string;
+  resolvedBy?: string | null;
+  resolvedByExecutionKey?: string | null;
+  resolvedByTarget?: { connectionId?: string | null } | null;
+  results: ComboTestResult[];
+};
+type ErrorMessageBody = { error: { message: string } };
+type ErrorStringBody = { error: string };
+
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-test-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-test-route-secret";
@@ -19,7 +39,7 @@ const originalFetch = globalThis.fetch;
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -55,7 +75,7 @@ test.afterEach(() => {
 test.after(() => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("combo test route validates request payloads and combo existence", async () => {
@@ -82,12 +102,12 @@ test("combo test route validates request payloads and combo existence", async ()
       body: JSON.stringify({ comboName: "" }),
     })
   );
-  const invalidBody = (await invalidBodyResponse.json()) as any;
+  const invalidBody = (await invalidBodyResponse.json()) as ErrorMessageBody;
   assert.equal(invalidBodyResponse.status, 400);
   assert.equal(invalidBody.error.message, "Invalid request");
 
   const missingResponse = await route.POST(makeRequest("missing-combo"));
-  const missingBody = (await missingResponse.json()) as any;
+  const missingBody = (await missingResponse.json()) as ErrorStringBody;
   assert.equal(missingResponse.status, 404);
   assert.equal(missingBody.error, "Combo not found");
 });
@@ -96,8 +116,6 @@ test("combo test route marks a model healthy only when it returns assistant text
   await createTestCombo();
 
   const fetchCalls = [];
-  const originalRandom = Math.random;
-  let callCount = 0;
   globalThis.fetch = async (url, init = {}) => {
     fetchCalls.push({ url: String(url), init });
     return new Response(
@@ -118,17 +136,8 @@ test("combo test route marks a model healthy only when it returns assistant text
     );
   };
 
-  let response;
-  try {
-    Math.random = () => {
-      callCount += 1;
-      return callCount === 1 ? 0.4680222223 : 0.2677;
-    };
-    response = await route.POST(makeRequest());
-  } finally {
-    Math.random = originalRandom;
-  }
-  const body = (await response.json()) as any;
+  const response = await route.POST(makeRequest());
+  const body = (await response.json()) as ComboTestBody;
   const forwardedBody = JSON.parse(fetchCalls[0].init.body);
 
   assert.equal(response.status, 200);
@@ -138,15 +147,36 @@ test("combo test route marks a model healthy only when it returns assistant text
   assert.equal(fetchCalls[0].init.headers["X-OmniRoute-No-Cache"], "true");
   assert.match(fetchCalls[0].init.headers["X-Request-Id"], /^combo-test-/);
   assert.equal(forwardedBody.model, "openrouter/openai/gpt-5.4");
-  assert.equal(
-    forwardedBody.messages[0].content,
-    "Calculate 52122+34093, and reply with the result only."
-  );
-  assert.equal(forwardedBody.max_tokens, 2048);
+  assert.equal(forwardedBody.messages[0].content, "Reply with exactly: pong");
+  assert.equal(forwardedBody.max_tokens, 64);
+  assert.equal(forwardedBody.stream, true);
+  assert.equal(fetchCalls[0].init.headers["X-OmniRoute-Compression"], "off");
+  assert.equal(body.testMode, "target-health-check");
   assert.equal("temperature" in forwardedBody, false);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
   assert.equal(body.results[0].status, "ok");
   assert.equal(body.results[0].responseText, "OK");
+});
+
+test("combo test route skips web-session providers without sending a chat probe", async () => {
+  await createTestCombo(["deepseek-web/deepseek-v4-pro-think"]);
+
+  const fetchCalls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({ url: String(url), init });
+    return new Response(
+      JSON.stringify({ choices: [{ message: { role: "assistant", content: "PONG" } }] }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await route.POST(makeRequest());
+  const body = (await response.json()) as ComboTestBody;
+
+  assert.equal(response.status, 200);
+  assert.equal(fetchCalls.length, 0, "web-session probes must not send a chat request");
+  assert.equal(body.results[0].status, "error");
+  assert.match(body.results[0].error ?? "", /Skipped:.*web-session/i);
 });
 
 test("combo test route treats empty successful responses as failures", async () => {
@@ -171,7 +201,7 @@ test("combo test route treats empty successful responses as failures", async () 
     );
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, null);
@@ -211,7 +241,7 @@ test("combo test route accepts reasoning-only completions as healthy smoke-test 
     );
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
@@ -236,7 +266,7 @@ test("combo test route surfaces provider errors instead of downgrading them to r
     );
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, null);
@@ -246,55 +276,38 @@ test("combo test route surfaces provider errors instead of downgrading them to r
   assert.equal("probeMethod" in body.results[0], false);
 });
 
-test("combo test route launches model probes concurrently while preserving combo order", async () => {
+test("combo test route probes combo steps sequentially while preserving combo order", async () => {
   await createTestCombo(["provider/first", "provider/second", "provider/third"]);
 
   const fetchCalls = [];
-  const resolvers = [];
-  globalThis.fetch = (url, init = {}) =>
-    new Promise((resolve) => {
-      fetchCalls.push({ url: String(url), init });
-      resolvers.push(resolve);
-    });
-
-  const responsePromise = route.POST(makeRequest());
-  await new Promise((resolve) => setTimeout(resolve, 0));
-
-  assert.equal(fetchCalls.length, 3);
-  assert.deepEqual(
-    fetchCalls.map(({ init }) => JSON.parse(init.body).model),
-    ["provider/first", "provider/second", "provider/third"]
-  );
-
-  resolvers[2](
-    new Response(
+  let inFlight = 0;
+  let maxInFlight = 0;
+  globalThis.fetch = async (url, init: RequestInit = {}) => {
+    inFlight += 1;
+    maxInFlight = Math.max(maxInFlight, inFlight);
+    fetchCalls.push({ url: String(url), init });
+    const model = JSON.parse(String(init.body)).model as string;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    inFlight -= 1;
+    const text = model.split("/")[1].toUpperCase();
+    return new Response(
       JSON.stringify({
-        choices: [{ message: { role: "assistant", content: "THIRD" } }],
+        choices: [{ message: { role: "assistant", content: text } }],
       }),
       { status: 200, headers: { "content-type": "application/json" } }
-    )
-  );
-  resolvers[1](
-    new Response(
-      JSON.stringify({
-        choices: [{ message: { role: "assistant", content: "SECOND" } }],
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    )
-  );
-  resolvers[0](
-    new Response(
-      JSON.stringify({
-        choices: [{ message: { role: "assistant", content: "FIRST" } }],
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    )
-  );
+    );
+  };
 
-  const response = await responsePromise;
-  const body = (await response.json()) as any;
+  const response = await route.POST(makeRequest());
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
+  assert.equal(maxInFlight, 1);
+  assert.equal(fetchCalls.length, 3);
+  assert.deepEqual(
+    fetchCalls.map(({ init }) => JSON.parse(String(init.body)).model),
+    ["provider/first", "provider/second", "provider/third"]
+  );
   assert.equal(body.resolvedBy, "provider/first");
   assert.deepEqual(
     body.results.map((result) => ({
@@ -351,7 +364,7 @@ test("combo test route preserves structured step metadata for repeated model/acc
   };
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 2);
@@ -374,7 +387,7 @@ test("combo test route rejects empty combos and ignores forwarded origins for in
   await createTestCombo([]);
 
   const emptyResponse = await route.POST(makeRequest());
-  const emptyBody = (await emptyResponse.json()) as any;
+  const emptyBody = (await emptyResponse.json()) as ErrorStringBody;
   assert.equal(emptyResponse.status, 400);
   assert.equal(emptyBody.error, "Combo has no models");
 
@@ -434,7 +447,7 @@ test("combo test route handles upstream timeouts and non-JSON error bodies", asy
   };
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, null);
@@ -449,7 +462,7 @@ test("combo test route handles upstream timeouts and non-JSON error bodies", asy
       {
         model: "provider/timeout",
         status: "error",
-        error: "Timeout (20s)",
+        error: "Model test aborted",
         statusCode: null,
       },
       {
@@ -460,4 +473,198 @@ test("combo test route handles upstream timeouts and non-JSON error bodies", asy
       },
     ]
   );
+});
+
+test("combo test route aborts in-flight probes when the client disconnects", async () => {
+  await createTestCombo(["provider/first", "provider/second"]);
+
+  let inFlight = 0;
+  let maxInFlight = 0;
+  let fetchCalls = 0;
+  let observedCombinedSignal: AbortSignal | null = null;
+  let observedParentSignal: AbortSignal | null = null;
+  const realSetTimeout = globalThis.setTimeout;
+  const realClearTimeout = globalThis.clearTimeout;
+  let createdProbeTimers = 0;
+  let clearedProbeTimers = 0;
+
+  const externalController = new AbortController();
+
+  const setProbeTimeout = (
+    handler: (...args: unknown[]) => void,
+    ms?: number,
+    ...rest: unknown[]
+  ) => {
+    createdProbeTimers += 1;
+    return realSetTimeout(handler, ms, ...rest);
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  globalThis.setTimeout = setProbeTimeout as any;
+  globalThis.clearTimeout = ((id: unknown) => {
+    clearedProbeTimers += 1;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return realClearTimeout(id as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any;
+
+  globalThis.fetch = (async (_url, init: RequestInit = {}) => {
+    fetchCalls += 1;
+    inFlight += 1;
+    maxInFlight = Math.max(maxInFlight, inFlight);
+    observedCombinedSignal = (init.signal as AbortSignal) ?? null;
+    observedParentSignal = externalController.signal;
+    try {
+      await new Promise((_resolve, reject) => {
+        init.signal?.addEventListener("abort", () => {
+          const error = new Error("aborted");
+          error.name = "AbortError";
+          reject(error);
+        });
+      });
+      throw new Error("probe should have been aborted");
+    } finally {
+      inFlight -= 1;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any;
+
+  try {
+    const pending = route.POST(
+      new Request("http://localhost/api/combos/test", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ comboName: "strict-live-test" }),
+        signal: externalController.signal,
+      })
+    );
+    const watchdog = new Promise<never>((_resolve, reject) => {
+      realSetTimeout(() => reject(new Error("abort did not propagate within 5s")), 5000);
+    });
+    await new Promise((resolve) => realSetTimeout(resolve, 10));
+    assert.equal(fetchCalls, 1);
+    assert.equal(maxInFlight, 1);
+    externalController.abort();
+
+    const response = await Promise.race([pending, watchdog]);
+    const body = (await response.json()) as ComboTestBody;
+
+    assert.equal(response.status, 200);
+    assert.equal(fetchCalls, 1);
+    assert.equal(maxInFlight, 1);
+    assert.equal(inFlight, 0);
+    assert.equal(observedCombinedSignal?.aborted, true);
+    assert.equal(observedCombinedSignal !== observedParentSignal, true);
+    assert.equal(body.resolvedBy, null);
+    assert.equal(body.results.length, 1);
+    assert.equal(body.results[0].status, "error");
+    assert.equal(body.results[0].error, "Client disconnected");
+    assert.equal(clearedProbeTimers >= createdProbeTimers, true);
+    assert.equal(createdProbeTimers >= 1, true);
+  } finally {
+    globalThis.setTimeout = realSetTimeout;
+    globalThis.clearTimeout = realClearTimeout;
+  }
+});
+
+test("combo test route stops probing once the total budget is spent", async () => {
+  await createTestCombo(["provider/first", "provider/second", "provider/third"]);
+
+  const probed: string[] = [];
+  const realNow = Date.now;
+  let clock = realNow();
+  Date.now = () => clock;
+
+  globalThis.fetch = async (_url, init: RequestInit = {}) => {
+    probed.push(JSON.parse(String(init.body)).model);
+    clock += route.COMBO_TEST_TOTAL_TIMEOUT_MS;
+    return new Response(JSON.stringify({ error: { message: "boom" } }), {
+      status: 502,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const response = await route.POST(makeRequest());
+    const body = (await response.json()) as ComboTestBody;
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(probed, ["provider/first"]);
+    assert.equal(body.results.length, 3);
+    assert.equal(body.results[1].error, "Timeout (180s total)");
+    assert.equal(body.results[2].error, "Timeout (180s total)");
+  } finally {
+    Date.now = realNow;
+  }
+});
+
+test("combo probes consume SSE text and preserve errors inside HTTP 200 streams", async () => {
+  await createTestCombo(["vertex/gemini-3.8-flash", "provider/error"]);
+  globalThis.fetch = async (_url, init) => {
+    const model = JSON.parse(String(init?.body)).model;
+    const event = model.startsWith("vertex/")
+      ? { choices: [{ delta: { content: "OK" } }] }
+      : { error: { message: "Local execution deadline exceeded (18000ms)", code: 504 } };
+    return new Response(`data: ${JSON.stringify(event)}\n\ndata: [DONE]\n\n`, {
+      headers: { "content-type": "text/event-stream" },
+    });
+  };
+  const response = await route.POST(makeRequest());
+  const body = await response.json();
+  assert.equal(body.results[0].responseText, "OK");
+  assert.equal(body.results[0].status, "ok");
+  assert.equal(body.results[1].status, "error");
+  assert.equal(body.results[1].statusCode, 504);
+  assert.match(body.results[1].error, /18000ms/);
+});
+
+test("combo test deadline covers stream consumption and rejects timed-out partial output", async (t) => {
+  await createTestCombo(["vertex/gemini-3.8-flash"]);
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let signal: AbortSignal | undefined;
+  globalThis.fetch = async (_url, init) => {
+    signal = init?.signal ?? undefined;
+    return new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            new TextEncoder().encode('data: {"choices":[{"delta":{"content":"partial"}}]}\n\n')
+          );
+          signal?.addEventListener("abort", () => controller.error(signal?.reason), { once: true });
+        },
+      }),
+      { headers: { "content-type": "text/event-stream" } }
+    );
+  };
+  const pending = route.POST(makeRequest());
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.ok(signal);
+  t.mock.timers.tick(route.COMBO_TEST_TIMEOUT_MS - 1);
+  assert.equal(signal.aborted, false);
+  t.mock.timers.tick(1);
+  const body = await (await pending).json();
+  assert.equal(body.results[0].status, "error");
+  assert.equal(body.results[0].statusCode, 504);
+  assert.equal(body.results[0].isTimeout, true);
+  assert.equal(body.results[0].error, "No model output within 60s");
+  assert.equal(body.resolvedBy, null);
+});
+
+test("combo probes retain JSON embeddings and sanitize upstream error details", async () => {
+  await createTestCombo(["openai/text-embedding-3-small", "provider/failure"]);
+  globalThis.fetch = async (_url, init) => {
+    const payload = JSON.parse(String(init?.body));
+    if (payload.model.includes("embedding")) {
+      assert.equal(payload.input, "Hello World");
+      assert.equal(payload.stream, undefined);
+      return Response.json({ data: [{ embedding: [0.1, 0.2] }] });
+    }
+    return Response.json(
+      { error: { message: "Failed\n    at /private/server/credentials.ts:42:1" } },
+      { status: 502 }
+    );
+  };
+  const body = await (await route.POST(makeRequest())).json();
+  assert.equal(body.results[0].status, "ok");
+  assert.equal(body.results[1].statusCode, 502);
+  assert.equal(body.results[1].error.includes("at /"), false);
 });

@@ -135,10 +135,15 @@ describe("ccr engine — skip tool outputs", () => {
   it("still compresses plain user text — the skip rule is scoped to tool outputs", () => {
     // Sanity check: the fix must NOT regress the existing compression path.
     // A plain user-role message with large text content must still be compressed.
+    // #7746 follow-up: CCR now only compresses for callers that advertise the
+    // omniroute_ccr_retrieve tool (otherwise the content-addressed marker is
+    // unresolvable). Advertise it here so this guard exercises the real
+    // plain-user-text compression path rather than tripping the new caller gate.
     const LARGE_USER_TEXT = LARGE_TOOL_OUTPUT; // same length, same trigger
     const body = {
       model: "gpt-4",
       messages: [{ role: "user", content: LARGE_USER_TEXT }],
+      tools: [{ type: "function", function: { name: "omniroute_ccr_retrieve" } }],
     };
 
     const result = ccrEngine.apply(body as Record<string, unknown>);
@@ -149,8 +154,16 @@ describe("ccr engine — skip tool outputs", () => {
       "plain role:user text block above minChars MUST still be compressed (regression guard)"
     );
     const messages = result.body.messages as Array<{ role: string; content: string }>;
+    // With the retrieve tool advertised, CCR also injects a leading system
+    // instruction, so the compressed user block is no longer necessarily
+    // messages[0]. Assert the marker is present in SOME message rather than
+    // pinning an index.
     assert.ok(
-      messages[0].content.match(/\[CCR retrieve hash=[0-9a-f]{24} chars=\d+\]/),
+      messages.some(
+        (m) =>
+          typeof m.content === "string" &&
+          /\[CCR retrieve hash=[0-9a-f]{24} chars=\d+\]/.test(m.content)
+      ),
       "plain user text must still be replaced with a CCR marker"
     );
   });

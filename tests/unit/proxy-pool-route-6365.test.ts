@@ -22,9 +22,8 @@ delete process.env.INITIAL_PASSWORD; // auth not required in this test env
 
 const core = await import("../../src/lib/db/core.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
-const { GET, PUT, DELETE, PATCH } = await import(
-  "../../src/app/api/settings/proxies/pool/route.ts"
-);
+const { GET, PUT, DELETE, PATCH } =
+  await import("../../src/app/api/settings/proxies/pool/route.ts");
 
 function jsonRequest(method: string, body: unknown): Request {
   return new Request("http://localhost/api/settings/proxies/pool", {
@@ -44,7 +43,7 @@ function getRequest(query: Record<string, string>): Request {
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -64,7 +63,7 @@ async function makeProxy() {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("add → list → remove round-trips a scope pool", async () => {

@@ -97,6 +97,6 @@ test("#5006: getEnvSyncPlan(oauth) works with explicit rootDir and never throws 
     assert.deepEqual(keys.sort(), ["CLAUDE_OAUTH_CLIENT_ID", "CODEX_OAUTH_CLIENT_ID"]);
   } finally {
     process.env.DATA_DIR = origDataDir;
-    fs.rmSync(rootDir, { recursive: true, force: true });
+    fs.rmSync(rootDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

@@ -43,7 +43,7 @@ test("repro-8956: resolveProjectRoot skips synthetic .build/next/package.json (n
       `PROJECT_ROOT resolved to ${root}, which lacks .git`
     );
   } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -60,6 +60,6 @@ test("repro-8956: resolveProjectRoot still finds package.json with a name field"
     const root = resolveProjectRoot("/fallback", subDir);
     assert.equal(root, repoRoot);
   } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

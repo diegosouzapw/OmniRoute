@@ -3,6 +3,7 @@ import {
   parseEmbeddingModel,
   getEmbeddingProvider,
   buildDynamicEmbeddingProvider,
+  deriveEmbeddingProviderForChatProvider,
   type EmbeddingProviderNodeRow,
   type EmbeddingProvider,
 } from "@omniroute/open-sse/config/embeddingRegistry.ts";
@@ -10,22 +11,29 @@ import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/er
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import {
-  getCachedProviderNodes,
-  getComboByName,
-  getCombos,
-  getDatabaseSettings,
-} from "@/lib/localDb";
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  markAccountUnavailable,
+} from "@/sse/services/auth";
+import { getCachedProviderNodes } from "@/lib/db/readCache";
+import { getComboByName, getCombos } from "@/lib/db/combos";
+import { getDatabaseSettings } from "@/lib/db/databaseSettings";
 import { resolveProxyForConnection } from "@/lib/db/settings";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { findEmbeddingComboDimensionConflict } from "./familyGuard";
+import {
+  formatMissingEmbeddingCredentialsError,
+  formatUnknownEmbeddingProviderError,
+} from "./errors";
 import { isPrivateHost, isCloudMetadataHost } from "@/shared/network/outboundUrlGuard";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
+import { resolveLocalSyncedEndpointRoute } from "@/lib/providerModels/syncedEndpointRouting";
+import { resolveAlibabaProviderEmbeddingUrl } from "@/shared/constants/alibabaProviderRegions";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 type ProviderCredentialsResult = Awaited<ReturnType<typeof getProviderCredentials>>;
@@ -159,7 +167,17 @@ export async function createEmbeddingResponse(
         model: options.resolvedModel ?? body.model,
       }
     : parseEmbeddingModel(body.model, dynamicProviders);
-  const { provider, model: resolvedModel } = parsedModel;
+  let { provider, model: resolvedModel } = parsedModel;
+  // #11088: a bare local-model request routes through the connection that
+  // advertises the requested endpoint — only when no explicit resolvedProvider
+  // already won above (explicit resolution takes precedence).
+  const syncedEndpointRoute = options.resolvedProvider
+    ? null
+    : await resolveLocalSyncedEndpointRoute(body.model, "embeddings");
+  if (syncedEndpointRoute) {
+    provider = syncedEndpointRoute.provider;
+    resolvedModel = syncedEndpointRoute.model;
+  }
   if (!provider) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -167,12 +185,77 @@ export async function createEmbeddingResponse(
     );
   }
 
+  let credentials: ProviderCredentialsResult | null = null;
   let providerConfig: EmbeddingProvider | null =
     options.resolvedProvider ||
     dynamicProviders.find((dp) => dp.id === provider) ||
     getEmbeddingProvider(provider) ||
     null;
   let credentialsProviderId = provider;
+
+  // #11088: synced-endpoint route — the connection advertising this endpoint
+  // supplies credentials and its configured base URL directly.
+  if (syncedEndpointRoute) {
+    credentials = await getProviderCredentials(
+      provider,
+      null,
+      syncedEndpointRoute.connectionIds,
+      syncedEndpointRoute.model
+    );
+    if (!credentials) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `No credentials for embedding provider: ${provider}`
+      );
+    }
+    if ("allRateLimited" in credentials && credentials.allRateLimited) {
+      return unavailableResponse(
+        HTTP_STATUS.RATE_LIMITED,
+        `[${provider}] All accounts rate limited`,
+        credentials.retryAfter,
+        credentials.retryAfterHuman
+      );
+    }
+
+    const providerSpecificData = (credentials as { providerSpecificData?: Record<string, unknown> })
+      .providerSpecificData;
+    const configuredBaseUrl = providerSpecificData?.baseUrl;
+    if (typeof configuredBaseUrl !== "string" || configuredBaseUrl.trim().length === 0) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `No base URL configured for embedding provider: ${provider}`
+      );
+    }
+    let baseUrl = configuredBaseUrl.trim();
+    while (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+    providerConfig = {
+      id: provider,
+      baseUrl: baseUrl.endsWith("/embeddings") ? baseUrl : `${baseUrl}/embeddings`,
+      authType: "apikey",
+      authHeader: "bearer",
+      models: [],
+    };
+  }
+
+  // Generic fallback: a configured OpenAI-compatible chat provider with no
+  // curated embedding entry (groq, mistral, upstage, ...) still serves
+  // embeddings via the standard <base>/embeddings endpoint. Curated registry
+  // entries are checked first and keep their specialized configuration.
+  if (!providerConfig && !options.resolvedProvider) {
+    try {
+      const { REGISTRY } = await import("@omniroute/open-sse/config/providerRegistry.ts");
+      const chatEntry = (REGISTRY as Record<string, { baseUrl?: string } | undefined>)[provider];
+      providerConfig = deriveEmbeddingProviderForChatProvider(provider, chatEntry);
+      if (providerConfig) {
+        log.info(
+          "EMBED",
+          `Derived generic embedding endpoint for configured provider ${provider}: ${providerConfig.baseUrl}`
+        );
+      }
+    } catch (err) {
+      log.error("EMBED", `Failed to derive generic embedding provider ${provider}: ${err}`);
+    }
+  }
 
   if (!providerConfig) {
     try {
@@ -215,19 +298,30 @@ export async function createEmbeddingResponse(
   }
 
   if (!providerConfig) {
+    // Root cause is otherwise invisible: this 400 is returned before any
+    // call_logs row is written, so a real embedding-provider misconfiguration
+    // (e.g. a customModels override whose id prefix doesn't match its own
+    // connection's provider id, or a stale synced-model cache -- both silent
+    // for months in production) previously left no trace anywhere in
+    // OmniRoute's own logs or dashboard, only in the calling client's log.
+    log.warn(
+      "EMBED",
+      `Unknown embedding provider ${provider} for model "${body.model}" -- checked static ` +
+        "registry, provider_nodes, chat-provider fallback, and the self-hosted synced-endpoint " +
+        "route (customModels override + synced model cache) with no match"
+    );
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
-      `Unknown embedding provider: ${provider}. No matching hardcoded or local provider found.`
+      formatUnknownEmbeddingProviderError(provider, resolvedModel)
     );
   }
 
-  let credentials: ProviderCredentialsResult | null = null;
-  if (providerConfig.authType !== "none") {
+  if (!credentials && providerConfig.authType !== "none") {
     credentials = await getProviderCredentials(credentialsProviderId);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
-        `No credentials for embedding provider: ${provider}`
+        formatMissingEmbeddingCredentialsError(provider)
       );
     }
     if ("allRateLimited" in credentials && credentials.allRateLimited) {
@@ -238,11 +332,38 @@ export async function createEmbeddingResponse(
         credentials.retryAfterHuman
       );
     }
-  } else if (provider === "ollama-local") {
-    // Ollama is keyless, but a configured connection can still provide a
-    // custom local host. Hydrate that optional connection without imposing an
-    // authentication requirement, then keep the static localhost default when
-    // no connection exists.
+    if ("allExpired" in credentials && credentials.allExpired) {
+      const expiredStatus = (credentials as { expiredStatus?: string }).expiredStatus;
+      const quota = expiredStatus === "credits_exhausted";
+      const reason = quota ? "credits exhausted" : "authentication expired";
+      return errorResponse(
+        quota ? HTTP_STATUS.PAYMENT_REQUIRED : HTTP_STATUS.UNAUTHORIZED,
+        `[${provider}] All ${credentials.expiredCount || 1} connection(s) ${reason} — please reconnect in the dashboard`
+      );
+    }
+    // #13945: blockedByKeyPolicy is the third credential-diagnostic sentinel
+    // (alongside allRateLimited/allExpired above) — without this check a
+    // truthy sentinel would reach the embeddings executor below with no
+    // apiKey/accessToken. Defensive: this call site does not pass
+    // allowedConnections today, so the sentinel cannot fire yet, but it
+    // guards the same contract the moment that scope is wired in (mirrors
+    // #13832's blockedByKeyPolicy handling in the chat path).
+    if ("blockedByKeyPolicy" in credentials && credentials.blockedByKeyPolicy) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        formatMissingEmbeddingCredentialsError(provider)
+      );
+    }
+  } else if (
+    provider === "ollama-local" ||
+    provider === "lmstudio" ||
+    provider === "llama-cpp" ||
+    provider === "lemonade"
+  ) {
+    // Local providers are key-optional, but a configured connection can provide
+    // a custom host or API key (e.g. Lemonade bearer auth). Hydrate that optional
+    // connection without imposing an authentication requirement, then keep the
+    // static localhost default when no connection exists.
     const localCredentials = await getProviderCredentials(credentialsProviderId);
     if (
       localCredentials &&
@@ -251,6 +372,24 @@ export async function createEmbeddingResponse(
     ) {
       credentials = localCredentials;
     }
+  }
+
+  // Alibaba's embedding endpoint is connection-scoped: workspace and region
+  // live in providerSpecificData, so the static chat registry cannot select it.
+  if (
+    credentials &&
+    !options.resolvedProvider &&
+    (provider === "alibaba" || provider === "alibaba-cn")
+  ) {
+    const providerSpecificData = (
+      credentials as { providerSpecificData?: Record<string, unknown> | null }
+    ).providerSpecificData;
+    const connectionBaseUrl = resolveAlibabaProviderEmbeddingUrl(
+      provider,
+      providerSpecificData,
+      providerConfig.baseUrl
+    );
+    if (connectionBaseUrl) providerConfig = { ...providerConfig, baseUrl: connectionBaseUrl };
   }
 
   // #474: when the request used a bare model name (no "/" — e.g. an alias that
@@ -302,7 +441,13 @@ export async function createEmbeddingResponse(
       clientRawRequest: options.clientRawRequest || null,
       apiKeyId: options.apiKeyId || null,
       apiKeyName: options.apiKeyName || null,
-      connectionId: options.connectionId || null,
+      // #10347 — thread the selected connection id so handleEmbedding can cool the
+      // account on a hard upstream failure (previously always null on /v1/embeddings).
+      connectionId:
+        (credentials as { connectionId?: string } | null)?.connectionId ||
+        options.connectionId ||
+        connectionIdForProxy ||
+        null,
     });
 
   const result = connectionIdForProxy
@@ -312,7 +457,7 @@ export async function createEmbeddingResponse(
   const responseHeaders = new Headers(result.headers);
 
   if (result.success) {
-    if (credentials) await clearRecoveredProviderState(credentials);
+    if (credentials) await clearRecoveredProviderState(credentials as Record<string, unknown>);
     responseHeaders.set("Content-Type", "application/json");
     const usage = (result.data as { usage?: Record<string, number> })?.usage ?? null;
     const costUsd = usage ? await calculateCost(provider, effectiveModel ?? "", usage) : 0;
@@ -327,6 +472,33 @@ export async function createEmbeddingResponse(
     return new Response(JSON.stringify(result.data), {
       status: result.status,
       headers: responseHeaders,
+    });
+  }
+
+  // #10347: cool down the account on hard errors (402 subscription expired,
+  // 401 revoked, 403 forbidden, 404 model gone, 429 rate limit, 5xx server
+  // errors) so the next embedding request skips this account. Mirrors chat.ts
+  // behavior.
+  // Skip for 400 (bad request) — the account is fine, the request was wrong.
+  // Best-effort: don't block the error response on the DB write.
+  const HARD_ERROR_STATUSES = new Set([401, 402, 403, 404, 429, 500, 502, 503, 504]);
+  if (
+    credentials &&
+    "connectionId" in credentials &&
+    typeof credentials.connectionId === "string" &&
+    HARD_ERROR_STATUSES.has(result.status)
+  ) {
+    markAccountUnavailable(
+      credentials.connectionId,
+      result.status,
+      result.error || "Embedding provider error",
+      provider,
+      resolvedModel || null
+    ).catch((err) => {
+      log.debug(
+        "EMBED",
+        `Cooldown write failed for ${provider}/${credentials.connectionId?.slice(0, 8)}: ${err}`
+      );
     });
   }
 

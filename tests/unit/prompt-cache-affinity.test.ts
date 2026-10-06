@@ -134,7 +134,7 @@ test("cache-optimized strategy routes a stable prompt key to the same account", 
   };
   const first = await applyStrategyOrdering("cache-optimized", targets, deps);
   const second = await applyStrategyOrdering("cache-optimized", [...targets].reverse(), deps);
-  assert.equal(first[0].connectionId, second[0].connectionId);
+  assert.equal(first.orderedTargets[0].connectionId, second.orderedTargets[0].connectionId);
 });
 
 test("foreign OAuth session softly redirects cache affinity while the same session stays local", () => {
@@ -145,11 +145,18 @@ test("foreign OAuth session softly redirects cache affinity while the same sessi
   ];
   const fixture = Array.from({ length: 10_000 }, (_, index) => {
     const body = { prompt_cache_key: `occupied-cache-key-${index}` };
-    const baseline = applyPromptCacheAffinity(oauthTargets, body, true, "global", "session-a").targets;
+    const baseline = applyPromptCacheAffinity(
+      oauthTargets,
+      body,
+      true,
+      "global",
+      "session-a"
+    ).targets;
     const occupied = baseline[0];
     const alternative = baseline[1];
     const release = reserveOAuthSession(occupied.connectionId!, "session-a");
-    const foreignFirst = applyPromptCacheAffinity(oauthTargets, body, true, "global", "session-b").targets[0];
+    const foreignFirst = applyPromptCacheAffinity(oauthTargets, body, true, "global", "session-b")
+      .targets[0];
     release();
     return foreignFirst.connectionId === alternative.connectionId
       ? { body, occupied, alternative }
@@ -160,12 +167,14 @@ test("foreign OAuth session softly redirects cache affinity while the same sessi
   const release = reserveOAuthSession(occupied.connectionId!, "session-a");
 
   assert.equal(
-    applyPromptCacheAffinity(oauthTargets, body, true, "global", "session-a").targets[0].connectionId,
+    applyPromptCacheAffinity(oauthTargets, body, true, "global", "session-a").targets[0]
+      .connectionId,
     occupied.connectionId,
     "the owning session keeps its cache-local account"
   );
   assert.equal(
-    applyPromptCacheAffinity(oauthTargets, body, true, "global", "session-b").targets[0].connectionId,
+    applyPromptCacheAffinity(oauthTargets, body, true, "global", "session-b").targets[0]
+      .connectionId,
     alternative.connectionId,
     "a foreign session prefers the free OAuth account"
   );

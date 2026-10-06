@@ -188,3 +188,132 @@ test("#8649 the Claude-format contentless stream is caught too", async () => {
 
   assert.match(text, /event: error\r?\n/, "a contentless Claude stream must surface an error");
 });
+
+const CURSOR_RATE_MSG = "Cursor rate limit / usage exceeded: not_found: AI Model Not Found";
+
+test("#8649 error-only SSE must not be rewritten as empty content (#3685 parity)", async () => {
+  const text = await runClientStream(
+    [
+      `data: ${JSON.stringify({
+        error: { message: CURSOR_RATE_MSG, type: "rate_limit_error" },
+      })}\n\n`,
+      DONE,
+    ],
+    null
+  );
+
+  assert.match(text, /AI Model Not Found/);
+  assert.doesNotMatch(
+    text,
+    /Provider returned empty content/,
+    "an already-emitted SSE error must not get a synthetic empty-content 502"
+  );
+});
+
+test("#8649 hybrid choices:[] + error must not be rewritten as empty content", async () => {
+  // Cursor finalize historically emitted this shape before aligning with
+  // buildStreamErrorChunks — readiness sees `choices`, #8649 must still stand down.
+  const text = await runClientStream(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl-x",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "m",
+        choices: [],
+        error: { message: CURSOR_RATE_MSG, type: "rate_limit_error" },
+      })}\n\n`,
+      DONE,
+    ],
+    null
+  );
+
+  assert.match(text, /AI Model Not Found/);
+  assert.doesNotMatch(text, /Provider returned empty content/);
+});
+
+test("#8649 buildStreamErrorChunks-shaped error must not be rewritten as empty content", async () => {
+  const text = await runClientStream(
+    [
+      `data: ${JSON.stringify({
+        object: "chat.completion.chunk",
+        choices: [{ index: 0, delta: {}, finish_reason: "error" }],
+        error: {
+          message: CURSOR_RATE_MSG,
+          type: "rate_limit_error",
+          code: "rate_limit_exceeded",
+        },
+      })}\n\n`,
+      DONE,
+    ],
+    null
+  );
+
+  assert.match(text, /AI Model Not Found/);
+  assert.doesNotMatch(text, /Provider returned empty content/);
+});
+
+test("#8649 a Responses compaction-only stream is real output, not empty content", async () => {
+  // Codex remote compaction V2: POST /v1/responses with a compaction_trigger
+  // input item completes with output = [{type:"compaction", encrypted_content}]
+  // and no assistant text. The watcher's content keys do not include
+  // encrypted_content, so the healthy stream was followed by a synthetic
+  // response.failed ("Provider returned empty content") — which strict
+  // Responses clients reject even after response.completed.
+  const text = await runClientStream(
+    [
+      `data: {"type":"response.in_progress"}\n\n`,
+      `event: response.created\ndata: ${JSON.stringify({
+        type: "response.created",
+        response: { id: "resp_cmp", status: "in_progress", output: [] },
+      })}\n\n`,
+      `event: response.completed\ndata: ${JSON.stringify({
+        type: "response.completed",
+        response: {
+          id: "resp_cmp",
+          status: "completed",
+          output: [
+            { id: "cmp_1", type: "compaction", encrypted_content: "gAAAAABencryptedpayload" },
+          ],
+        },
+      })}\n\n`,
+    ],
+    FORMATS.OPENAI_RESPONSES
+  );
+
+  assert.match(text, /"type":"compaction"/);
+  assert.doesNotMatch(
+    text,
+    /Provider returned empty content|response\.failed/,
+    "a completed compaction response must not be followed by a synthetic failure frame"
+  );
+});
+
+test("#8649 an encrypted-reasoning-only stream is still empty content", async () => {
+  // Inverse of the compaction carve-out: an encrypted reasoning item is not
+  // user-visible output. A turn that produces only a reasoning trace and no
+  // message/tool call is the fake-success shape this guard exists to catch.
+  const text = await runClientStream(
+    [
+      `event: response.created\ndata: ${JSON.stringify({
+        type: "response.created",
+        response: { id: "resp_r", status: "in_progress", output: [] },
+      })}\n\n`,
+      `event: response.completed\ndata: ${JSON.stringify({
+        type: "response.completed",
+        response: {
+          id: "resp_r",
+          status: "completed",
+          output: [{ id: "rs_1", type: "reasoning", encrypted_content: "gAAAAABencryptedtrace" }],
+        },
+      })}\n\n`,
+    ],
+    FORMATS.OPENAI_RESPONSES
+  );
+
+  assert.match(
+    text,
+    /response\.failed|Provider returned empty content/,
+    "a reasoning-only turn must keep tripping the empty-content guard"
+  );
+});

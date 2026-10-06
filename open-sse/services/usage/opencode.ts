@@ -10,7 +10,7 @@
  * (dispatcher + __testing). Behavior-preserving move.
  */
 
-import { fetchOpencodeQuota, type OpencodeTripleWindowQuota } from "../opencodeQuotaFetcher.ts";
+import { fetchOpencodeQuota } from "../opencodeQuotaFetcher.ts";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
 import { type UsageQuota } from "./quota.ts";
 
@@ -27,52 +27,47 @@ export async function getOpencodeUsage(connectionId: string, apiKey: string) {
   }
 
   try {
-    const quota = (await fetchOpencodeQuota(connectionId, {
-      apiKey,
-    })) as OpencodeTripleWindowQuota | null;
+    const quota = await fetchOpencodeQuota(connectionId, { apiKey });
 
     if (!quota) {
-      return { message: "OpenCode connected. Unable to fetch quota data." };
+      return {
+        message: "OpenCode connected. Unable to fetch quota data from the official usage endpoint.",
+      };
     }
 
     const { window5h, windowWeekly, windowMonthly, limitReached } = quota;
 
-    const quotas: Record<string, UsageQuota> = {};
-
-    // $12 / 5-hour rolling window
-    quotas["window_5h"] = {
-      used: window5h.percentUsed * 12,
-      total: 12,
-      remaining: (1 - window5h.percentUsed) * 12,
-      remainingPercentage: (1 - window5h.percentUsed) * 100,
-      resetAt: window5h.resetAt,
-      unlimited: false,
-      displayName: "$12 / 5-hour",
-      currency: "USD",
-    };
-
-    // $30 / weekly window
-    quotas["window_weekly"] = {
-      used: windowWeekly.percentUsed * 30,
-      total: 30,
-      remaining: (1 - windowWeekly.percentUsed) * 30,
-      remainingPercentage: (1 - windowWeekly.percentUsed) * 100,
-      resetAt: windowWeekly.resetAt,
-      unlimited: false,
-      displayName: "$30 / week",
-      currency: "USD",
-    };
-
-    // $60 / monthly window
-    quotas["window_monthly"] = {
-      used: windowMonthly.percentUsed * 60,
-      total: 60,
-      remaining: (1 - windowMonthly.percentUsed) * 60,
-      remainingPercentage: (1 - windowMonthly.percentUsed) * 100,
-      resetAt: windowMonthly.resetAt,
-      unlimited: false,
-      displayName: "$60 / month",
-      currency: "USD",
+    const quotas: Record<string, UsageQuota> = {
+      session: {
+        used: window5h.percentUsed * 12,
+        total: 12,
+        remaining: (1 - window5h.percentUsed) * 12,
+        remainingPercentage: (1 - window5h.percentUsed) * 100,
+        resetAt: window5h.resetAt,
+        unlimited: false,
+        displayName: "$12 / 5-hour",
+        currency: "USD",
+      },
+      weekly: {
+        used: windowWeekly.percentUsed * 30,
+        total: 30,
+        remaining: (1 - windowWeekly.percentUsed) * 30,
+        remainingPercentage: (1 - windowWeekly.percentUsed) * 100,
+        resetAt: windowWeekly.resetAt,
+        unlimited: false,
+        displayName: "$30 / week",
+        currency: "USD",
+      },
+      mcp_monthly: {
+        used: windowMonthly.percentUsed * 60,
+        total: 60,
+        remaining: (1 - windowMonthly.percentUsed) * 60,
+        remainingPercentage: (1 - windowMonthly.percentUsed) * 100,
+        resetAt: windowMonthly.resetAt,
+        unlimited: false,
+        displayName: "$60 / month",
+        currency: "USD",
+      },
     };
 
     return {

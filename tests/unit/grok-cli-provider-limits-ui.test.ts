@@ -30,7 +30,7 @@ const baseBilling = {
 };
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("Grok Build product aliases normalize to one stable row and preserve collisions", () => {

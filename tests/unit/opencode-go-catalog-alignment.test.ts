@@ -62,3 +62,25 @@ test("opencode-go hy3 variants expose their context window to combo compatibilit
     );
   }
 });
+
+test("opencode-go exposes Muse Spark Contributor effort aliases with a 1M context", () => {
+  const museModelIds = [
+    "muse-spark-1.2-contributor",
+    "muse-spark-1.2-contributor-minimal",
+    "muse-spark-1.2-contributor-low",
+    "muse-spark-1.2-contributor-medium",
+    "muse-spark-1.2-contributor-high",
+    "muse-spark-1.2-contributor-xhigh",
+  ];
+  for (const modelId of museModelIds) {
+    assert.ok(
+      modelIds().includes(modelId),
+      `expected ${modelId} in opencode-go catalog, got: ${modelIds().join(", ")}`
+    );
+    assert.equal(
+      getResolvedModelCapabilities(`opencode-go/${modelId}`).contextWindow,
+      1048576,
+      `${modelId} should resolve a 1M context window`
+    );
+  }
+});

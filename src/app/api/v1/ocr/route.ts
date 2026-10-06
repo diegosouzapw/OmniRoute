@@ -1,4 +1,9 @@
-import { handleOcr } from "@omniroute/open-sse/handlers/ocr.ts";
+import {
+  handleOcr,
+  resolveVertexOcrAccessToken,
+  resolveVertexOcrBaseUrl,
+  VERTEX_DEEPSEEK_OCR_PROVIDER_ID,
+} from "@omniroute/open-sse/handlers/ocr.ts";
 import {
   getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
@@ -14,6 +19,37 @@ import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
 } from "@/app/api/v1/_shared/rateLimit";
+
+export { resolveVertexOcrAccessToken };
+
+/**
+ * Custom-endpoint providers (e.g. azure-document-intelligence, vertex-deepseek-ocr) store the
+ * connection's resource endpoint under providerSpecificData, not as a top-level credentials
+ * field — mirror the convention used across src/lib/providers/validation/* (see e.g.
+ * urlHelpers.ts). handleOcr reads credentials.baseUrl, so surface it here. An existing
+ * top-level baseUrl always wins (kept for tests/callers that pass it directly). The
+ * vertex-deepseek-ocr project/location resolution itself lives in the open-sse handler
+ * (resolveVertexOcrBaseUrl) — routes may not import executor implementations directly (see
+ * EXECUTOR_IMPORT_RESTRICTION in eslint.config.mjs).
+ */
+export function resolveOcrCredentials<
+  T extends {
+    baseUrl?: string;
+    apiKey?: string;
+    providerSpecificData?: Record<string, unknown>;
+  },
+>(credentials: T, providerId?: string): T {
+  if (credentials?.baseUrl) return credentials;
+  const providerSpecificBaseUrl = credentials?.providerSpecificData?.baseUrl;
+  if (typeof providerSpecificBaseUrl === "string" && providerSpecificBaseUrl.trim()) {
+    return { ...credentials, baseUrl: providerSpecificBaseUrl };
+  }
+  if (providerId === VERTEX_DEEPSEEK_OCR_PROVIDER_ID) {
+    const vertexBaseUrl = resolveVertexOcrBaseUrl(credentials);
+    if (vertexBaseUrl) return { ...credentials, baseUrl: vertexBaseUrl };
+  }
+  return credentials;
+}
 
 /**
  * Handle CORS preflight
@@ -66,7 +102,10 @@ async function postHandler(request, context) {
     return rateLimitedProviderResponse(resolvedProvider, credentials);
   }
 
-  const response = await handleOcr({ body: { ...body, model }, credentials });
+  const tokenReadyCredentials = await resolveVertexOcrAccessToken(resolvedProvider, credentials);
+  const ocrCredentials = resolveOcrCredentials(tokenReadyCredentials, resolvedProvider);
+
+  const response = await handleOcr({ body: { ...body, model }, credentials: ocrCredentials });
   if (response?.ok) {
     await clearRecoveredProviderState(credentials);
   }

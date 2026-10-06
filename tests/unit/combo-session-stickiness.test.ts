@@ -214,6 +214,36 @@ test("different message hashes can map to different connections", async () => {
   assert.equal(r2.targets[0].connectionId, "conn-Y");
 });
 
+test("identical first messages do not leak sticky targets across combos", async () => {
+  injectSat({ util5h: 0.0, util7d: 0.0 });
+  const messages = [{ role: "user", content: "Shared control prompt" }];
+  const targets = [
+    makeTarget("conn-primary"),
+    makeTarget("conn-intermediate"),
+    makeTarget("conn-last"),
+  ];
+
+  const firstCombo = await applySessionStickiness(targets, messages, "combo-with-last-success");
+  assert.ok(firstCombo.messageHash);
+  recordStickyBinding(firstCombo.messageHash, "conn-last");
+
+  const repeatedFirstCombo = await applySessionStickiness(
+    targets,
+    messages,
+    "combo-with-last-success"
+  );
+  assert.equal(repeatedFirstCombo.stuck, true);
+  assert.equal(repeatedFirstCombo.targets[0].connectionId, "conn-last");
+
+  const secondCombo = await applySessionStickiness(targets, messages, "fresh-priority-combo");
+  assert.equal(secondCombo.stuck, false);
+  assert.deepEqual(
+    secondCombo.targets.map((target) => target.connectionId),
+    ["conn-primary", "conn-intermediate", "conn-last"],
+    "a binding learned by another combo must not reorder this combo's configured priority"
+  );
+});
+
 test("saturation fetch error → fail-open (original order, no crash)", async () => {
   __setStickinessHeadroomFetcherForTests(async (_id: string) => {
     throw new Error("network failure");

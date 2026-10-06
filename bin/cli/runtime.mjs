@@ -1,8 +1,13 @@
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, resolve } from "node:path";
 import { apiFetch, isServerUp } from "./api.mjs";
 
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+
+// Dynamic `import()` resolves its specifier as a URL, not as a filesystem path.
+// On Windows an absolute path starts with a drive letter, which the ESM loader
+// reads as the unsupported URL scheme `e:` and rejects. Pass a file:// URL.
+const projectFileUrl = (relPath) => pathToFileURL(resolve(PROJECT_ROOT, relPath)).href;
 
 export class ServerOfflineError extends Error {
   constructor(message = "Server is offline and operation requires HTTP runtime") {
@@ -22,8 +27,8 @@ function makeHttpContext(opts) {
 
 async function importDbModules() {
   const [combos, recovery] = await Promise.all([
-    import(`${PROJECT_ROOT}/src/lib/db/combos.ts`),
-    import(`${PROJECT_ROOT}/src/lib/db/recovery.ts`),
+    import(projectFileUrl("src/lib/db/combos.ts")),
+    import(projectFileUrl("src/lib/db/recovery.ts")),
   ]);
   return { combos, recovery };
 }

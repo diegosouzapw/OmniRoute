@@ -28,12 +28,10 @@ export async function refreshCopilotToken(
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Copilot token", {
         status: response.status,
-        error: errorText,
       });
-      return null;
+      return { status: response.status };
     }
 
     const data = await response.json();
@@ -49,8 +47,8 @@ export async function refreshCopilotToken(
     };
   } catch (error) {
     log?.error?.("TOKEN_REFRESH", "Error refreshing Copilot token", {
-      error: error.message,
+      errorType: error?.name || "Error",
     });
-    return null;
+    return { status: null };
   }
 }

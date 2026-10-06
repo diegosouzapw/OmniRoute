@@ -2,6 +2,7 @@
 // Extracted verbatim from sseParser.ts (file-size cap): pure parsing, no host
 // state, following the handlers submodule pattern (chatCore/, responseSanitizer/).
 import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
+import { stripObfuscationZeroWidth } from "../../utils/zeroWidth.ts";
 
 type AccumulatedToolCall = {
   id: string;
@@ -20,7 +21,17 @@ type GeminiSSEAccumulator = {
 };
 
 function stripZeroWidth(value: unknown): unknown {
-  if (typeof value === "string") return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  if (typeof value === "string") return stripObfuscationZeroWidth(value);
+  if (value && typeof value === "object") {
+    if (Array.isArray(value)) {
+      return value.map(stripZeroWidth);
+    }
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = stripZeroWidth(v);
+    }
+    return out;
+  }
   return value;
 }
 
@@ -29,7 +40,7 @@ function stripZeroWidth(value: unknown): unknown {
  * Gemini/Antigravity models emit instead of a native functionCall part.
  */
 function tryParseTextualToolCall(text: string): { name: string; args: unknown } | null {
-  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const normalized = stripObfuscationZeroWidth(text);
   const match = normalized.match(
     /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
   );
@@ -53,7 +64,25 @@ function extractGeminiMarkdownShortcut(parsed: Record<string, unknown>): string 
 
 /** Append one candidate content part (text or textual tool call) onto the accumulator. */
 function applyCandidatePart(part: Record<string, unknown>, acc: GeminiSSEAccumulator): void {
-  if (typeof part.text !== "string" || part.thought || part.thoughtSignature) return;
+  // Native function calls (Gemini 3.x / Antigravity)
+  const fc = part.functionCall as Record<string, unknown> | undefined;
+  if (fc && typeof fc.name === "string") {
+    acc.toolCalls.push({
+      id:
+        typeof fc.id === "string" && fc.id.length > 0
+          ? fc.id
+          : `${fc.name}-${Date.now()}-${acc.toolCalls.length}`,
+      index: acc.toolCalls.length,
+      type: "function",
+      function: {
+        name: fc.name,
+        arguments: JSON.stringify(stripZeroWidth(fc.args ?? {})),
+      },
+    });
+    return;
+  }
+
+  if (typeof part.text !== "string" || part.thought === true) return;
 
   const textualToolCall = tryParseTextualToolCall(part.text);
   if (textualToolCall) {

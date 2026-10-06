@@ -62,7 +62,7 @@ describe("omniroute setup opencode", () => {
     console.info = _console.info;
     console.warn = _console.warn;
     try {
-      fs.rmSync(FIXTURE_ROOT, { recursive: true, force: true });
+      fs.rmSync(FIXTURE_ROOT, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     } catch {
       // best-effort temp cleanup
     }
@@ -74,6 +74,9 @@ describe("omniroute setup opencode", () => {
       // Commander turns `--base-url` into `baseUrl` — the runner must accept it.
       baseUrl: "http://10.0.0.5:20128",
       nonInteractive: true,
+      // These tests exercise the plugin install/merge path, not the container
+      // guard (#10057) — keep them hermetic on container devboxes/CI.
+      allowContainerWrite: true,
     });
     assert.equal(r.exitCode, 0);
 
@@ -99,6 +102,7 @@ describe("omniroute setup opencode", () => {
       configDir: CONFIG_DIR,
       baseUrl: "http://10.0.0.9:20128",
       nonInteractive: true,
+      allowContainerWrite: true,
     });
     assert.equal(r.exitCode, 0);
 
@@ -127,7 +131,11 @@ describe("omniroute setup opencode", () => {
       })
     );
 
-    const r = await runSetupOpenCodeCommand({ configDir: CONFIG_DIR, nonInteractive: true });
+    const r = await runSetupOpenCodeCommand({
+      configDir: CONFIG_DIR,
+      nonInteractive: true,
+      allowContainerWrite: true,
+    });
     assert.equal(r.exitCode, 0);
 
     const cfg = readConfig();
@@ -138,9 +146,18 @@ describe("omniroute setup opencode", () => {
   });
 
   it("fails with a clear error (exit 1) when the bundled plugin dist is missing", async () => {
-    fs.rmSync(path.join(FAKE_PLUGIN_DIR, "dist"), { recursive: true, force: true });
+    fs.rmSync(path.join(FAKE_PLUGIN_DIR, "dist"), {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
     try {
-      const r = await runSetupOpenCodeCommand({ configDir: CONFIG_DIR, nonInteractive: true });
+      const r = await runSetupOpenCodeCommand({
+        configDir: CONFIG_DIR,
+        nonInteractive: true,
+        allowContainerWrite: true,
+      });
       assert.equal(r.exitCode, 1);
     } finally {
       makeFakePluginDist();

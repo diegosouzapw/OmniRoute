@@ -20,6 +20,10 @@ type CredentialsLike =
   | null
   | undefined;
 
+type ResolvedExecutionCredentials = Record<string, unknown> & {
+  providerSpecificData: Record<string, unknown>;
+};
+
 function buildKimiThinkingMetadata(
   modelInfo: Record<string, unknown> | null | undefined,
   staticThinkingPolicy: ReturnType<typeof getKimiCodeStaticThinkingPolicy>
@@ -79,7 +83,7 @@ export function resolveExecutionCredentials(opts: {
   provider: string | null | undefined;
   ccSessionId: string | null;
   modelInfo?: Record<string, unknown> | null;
-}) {
+}): ResolvedExecutionCredentials {
   const {
     credentials,
     nativeCodexPassthrough,

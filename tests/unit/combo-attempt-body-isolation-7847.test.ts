@@ -22,6 +22,8 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const { applyReasoningInputPolicy } =
+  await import("../../open-sse/services/reasoningInputPolicy.ts");
 const core = await import("../../src/lib/db/core.ts");
 const { resetAllComboMetrics } = await import("../../open-sse/services/comboMetrics.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
@@ -95,7 +97,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
@@ -162,6 +164,85 @@ test("the caller's body object is never mutated by the combo loop", async () => 
   });
 
   assert.equal(JSON.stringify(body), before, "handleComboChat must treat `body` as read-only");
+});
+
+test("incompatible reasoning skips a target without mutating the fallback attempt", async () => {
+  const body = {
+    model: "deepseek/deepseek-v4-pro",
+    input: [
+      {
+        id: "rs_plaintext",
+        type: "reasoning",
+        content: [{ type: "reasoning_text", text: "inspect first" }],
+      },
+      {
+        id: "fc_shared",
+        type: "function_call",
+        call_id: "call_1",
+        name: "search",
+        arguments: "{}",
+      },
+    ],
+  };
+  let attempts = 0;
+
+  const response = await handleComboChat({
+    body,
+    combo: comboOf("priority", "reasoning-policy-isolation"),
+    handleSingleModel: async (received: Record<string, unknown>) => {
+      attempts++;
+      const input = received.input as Array<Record<string, unknown>>;
+      if (attempts === 1) {
+        const policy = applyReasoningInputPolicy(received, "responses", {
+          provider: "openai",
+          onIncompatibleReasoning: "drop",
+        });
+        assert.equal(policy.incompatibleReasoning, false);
+        assert.equal(
+          (received.input as Array<Record<string, unknown>>).some(
+            (item) => item.type === "reasoning"
+          ),
+          false
+        );
+        return new Response(
+          JSON.stringify({
+            error: {
+              message: "Reasoning continuation is not compatible with the selected target",
+            },
+          }),
+          { status: 400, headers: { "content-type": "application/json" } }
+        );
+      }
+
+      assert.equal(
+        input[1].id,
+        "fc_shared",
+        "the first target's nested input rewrite leaked into the fallback"
+      );
+      const policy = applyReasoningInputPolicy(received, "responses", {
+        provider: "deepseek",
+      });
+      assert.equal(policy.incompatibleReasoning, false);
+      assert.equal(
+        (received.input as Array<Record<string, unknown>>)[0].type,
+        "reasoning",
+        "the compatible fallback lost the plaintext reasoning item"
+      );
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(response.status, 200);
+  assert.ok(attempts >= 2);
+  assert.equal(
+    (body.input[1] as Record<string, unknown>).id,
+    "fc_shared",
+    "the caller's nested input was mutated"
+  );
 });
 
 // ── The copy must stay shallow — that is the whole point ─────────────────────

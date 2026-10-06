@@ -1,4 +1,4 @@
-import { listProxies } from "@/lib/localDb";
+import { listProxies } from "@/lib/db/proxies";
 import {
   handleProxyCreate,
   handleProxyDelete,

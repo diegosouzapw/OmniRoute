@@ -19,7 +19,7 @@
 
 import React, { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
 import {
   matchesAccountQuery,
   filterConnectionsByQuery,
@@ -35,6 +35,11 @@ const CONNECTIONS: ConnectionRowConnection[] = [
   { id: "conn-2", name: "Bob", email: "bob@example.com", providerSpecificData: { tag: "staging" } },
   { id: "conn-3", name: "Carol", email: "carol@gmail.com" },
   { id: "special-id-9", name: undefined, email: undefined },
+  {
+    id: "conn-grade",
+    name: "Grade-S-Node",
+    providerSpecificData: { tag: "relay", baseUrl: "http://145.10.20.30:8080" },
+  },
 ];
 
 describe("matchesAccountQuery / filterConnectionsByQuery — #7937", () => {
@@ -73,6 +78,20 @@ describe("matchesAccountQuery / filterConnectionsByQuery — #7937", () => {
 
   it("does not match a connection missing the queried field", () => {
     expect(matchesAccountQuery("anything", CONNECTIONS[3])).toBe(false);
+  });
+
+  // #12108 — detail-page search must also match providerSpecificData.baseUrl
+  // (import stores the override there; id/tag/name/email never contain the host).
+  it("matches providerSpecificData.baseUrl by host substring (#12108)", () => {
+    expect(matchesAccountQuery("145.10.20.30", CONNECTIONS[4])).toBe(true);
+    expect(matchesAccountQuery("145.10.20.30", CONNECTIONS[0])).toBe(false);
+    expect(filterConnectionsByQuery("145.10.20.30", CONNECTIONS).map((c) => c.id)).toEqual([
+      "conn-grade",
+    ]);
+  });
+
+  it("matches providerSpecificData.baseUrl case-insensitively (#12108)", () => {
+    expect(matchesAccountQuery("HTTP://145.10.20.30:8080", CONNECTIONS[4])).toBe(true);
   });
 });
 
@@ -116,6 +135,18 @@ describe("useProviderConnections — accountSearch (#7937)", () => {
   let container: HTMLElement;
   let root: ReturnType<typeof createRoot>;
 
+  // The hook pulls in a large Next/dashboard module graph; letting each `it()`
+  // do the `await import()` bills Vite's first-time transform of that graph to
+  // the 5s per-test budget and made the first test time out. Loading it once in
+  // beforeAll (with its own generous hook budget) keeps the per-test budget for
+  // the behaviour under test — no assertion is relaxed.
+  let useProviderConnections: (typeof import("@/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections"))["useProviderConnections"];
+
+  beforeAll(async () => {
+    ({ useProviderConnections } =
+      await import("@/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections"));
+  }, 60_000);
+
   beforeEach(() => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -134,10 +165,6 @@ describe("useProviderConnections — accountSearch (#7937)", () => {
   });
 
   it("defaults accountSearch to empty string and exposes setAccountSearch", async () => {
-    const { useProviderConnections } = await import(
-      "@/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections"
-    );
-
     type HookResult = ReturnType<typeof useProviderConnections>;
     let result: HookResult | null = null;
 
@@ -158,10 +185,6 @@ describe("useProviderConnections — accountSearch (#7937)", () => {
   });
 
   it("resets page to 0 when the search query changes", async () => {
-    const { useProviderConnections } = await import(
-      "@/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections"
-    );
-
     type HookResult = ReturnType<typeof useProviderConnections>;
     let result: HookResult | null = null;
 

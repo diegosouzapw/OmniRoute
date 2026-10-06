@@ -92,7 +92,7 @@ describe("xAI OAuth usage dispatch", () => {
     globalThis.fetch = originalFetch;
     core.resetDbInstance();
     try {
-      fs.rmSync(TMP, { recursive: true, force: true });
+      fs.rmSync(TMP, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     } catch {
       // best-effort temp cleanup
     }

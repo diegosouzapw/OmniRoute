@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { tryAgentAuth, tryIdeAuth } from "@/lib/cursor/tokenExtractor";
 
 /**
@@ -11,11 +11,9 @@ import { tryAgentAuth, tryIdeAuth } from "@/lib/cursor/tokenExtractor";
  * 🔒 Auth-guarded: requires JWT cookie or Bearer API key (finding #258-4).
  */
 export async function GET(request: Request) {
-  if (await isAuthRequired(request)) {
-    if (!(await isAuthenticated(request))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
+  // GHSA-mg76 / GHSA-gxv4: reading/importing host credentials is a management action.
+  const authError = await requireManagementAuth(request, { invalidApiKeyStatus: 401 });
+  if (authError) return authError;
 
   try {
     // Try Cursor IDE first (has both accessToken and machineId)
@@ -24,6 +22,7 @@ export async function GET(request: Request) {
       return NextResponse.json({
         found: true,
         accessToken: ideResult.accessToken,
+        refreshToken: ideResult.refreshToken,
         machineId: ideResult.machineId,
         source: ideResult.source,
       });

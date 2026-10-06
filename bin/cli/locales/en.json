@@ -254,8 +254,9 @@
     "log": "Show server logs inline",
     "no_recovery": "Disable auto-restart on crash (debugging mode)",
     "max_restarts": "Max crash restarts within 30s before giving up (default: 2)",
-    "tray": "Show system tray icon (desktop only, opt-in)",
+    "tray": "Start in the system tray (desktop only, opt-in)",
     "no_tray": "Disable system tray icon",
+    "ready_timeout": "Readiness probe timeout in ms (also OMNIROUTE_READY_TIMEOUT_MS, default 60000)",
     "tls_cert": "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)",
     "tls_key": "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP server running ({transport})",
     "stopped": "MCP server stopped.",
     "restarted": "MCP server restarted.",
+    "stoppedHint": "Run `omniroute mcp enable` to turn it on.",
+    "enabled": "MCP server enabled.",
+    "disabled": "MCP server disabled.",
+    "enable": {
+      "description": "Enable the MCP server",
+      "transport": "Transport to use: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Disable the MCP server"
+    },
     "call": {
       "description": "Invoke an MCP tool directly",
       "args": "JSON arguments object (inline)",
@@ -921,6 +932,11 @@
       "model": "Filter by model"
     }
   },
+  "radar": {
+    "description": "Inspect and synchronize the local Radar catalog feeds",
+    "status": "Show local Radar settings and feed cache status",
+    "sync": "Synchronize catalog, referrals, offers, and Intel through the local server"
+  },
   "resilience": {
     "description": "Inspect and manage resilience mechanisms",
     "status": {
@@ -1282,6 +1298,9 @@
     "notRunning": "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'.",
     "notFound": "The 'claude' CLI was not found in PATH."
   },
+  "run": {
+    "description": "Launch a supported CLI target through OmniRoute"
+  },
   "setupClaude": {
     "description": "Generate ~/.claude/profiles Claude Code profiles from the OmniRoute model catalog"
   },
@@ -1292,12 +1311,30 @@
     "description": "Manage scoped CLI access tokens (remote mode)"
   },
   "configure": {
-    "description": "Pick a provider+model from the active server and write a local CLI config"
+    "description": "Pick a provider+model from the active server and configure a supported local CLI"
   },
   "launchCodex": {
     "description": "Launch Codex CLI pointed at OmniRoute (local or remote VPS)"
   },
   "setupCodex": {
     "description": "Generate ~/.codex profile files from OmniRoute live model catalog"
+  },
+  "packs": {
+    "description": "Manage optional runtime packs (ML / browser automation)",
+    "listDescription": "List optional packs and their install state",
+    "installDescription": "Install an optional pack into DATA_DIR",
+    "verifyDescription": "Verify installed packs against the shipped checksum index",
+    "removeDescription": "Remove an installed optional pack",
+    "sourceOpt": "Directory holding pack payloads and the pack index",
+    "warnNoIndex": "optional-packs.index.json not found — install/verify are unavailable in this checkout (desktop bundles ship it)",
+    "errUnknown": "unknown pack: {name}",
+    "errNoIndex": "pack index not found; pass --source <dir> holding the pack payload (desktop bundles ship it next to the app)",
+    "installed": "pack \"{name}\" installed and verified at {dir}",
+    "restartHint": "restart the OmniRoute server (or desktop app) so the runtime picks the pack up",
+    "removed": "pack \"{name}\" removed",
+    "notInstalled": "pack \"{name}\" was not installed",
+    "verifyOk": "all installed packs verified",
+    "verifyFailed": "{count} pack(s) failed verification",
+    "noneInstalled": "no optional packs installed"
   }
 }

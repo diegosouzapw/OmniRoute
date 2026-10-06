@@ -113,7 +113,7 @@ test("saveSession e loadSession persistem e restauram sessão", async () => {
   } finally {
     process.env.DATA_DIR = origDataDir ?? "";
     try {
-      rmSync(tmpDir, { recursive: true });
+      rmSync(tmpDir, { recursive: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
   }
 });
@@ -129,7 +129,7 @@ test("loadSession lança erro se sessão não existe", async () => {
   } finally {
     process.env.DATA_DIR = origDataDir ?? "";
     try {
-      rmSync(tmpDir, { recursive: true });
+      rmSync(tmpDir, { recursive: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
   }
 });
@@ -154,7 +154,7 @@ test("listSessions retorna array (vazio ou com sessões)", async () => {
   } finally {
     process.env.DATA_DIR = origDataDir ?? "";
     try {
-      rmSync(tmpDir, { recursive: true });
+      rmSync(tmpDir, { recursive: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
   }
 });
@@ -172,7 +172,7 @@ test("autosave não lança erro em condições normais", async () => {
   } finally {
     process.env.DATA_DIR = origDataDir ?? "";
     try {
-      rmSync(tmpDir, { recursive: true });
+      rmSync(tmpDir, { recursive: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
   }
 });

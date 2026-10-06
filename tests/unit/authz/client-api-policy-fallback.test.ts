@@ -11,6 +11,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import Module from "node:module";
+import { cleanupTempDataDir } from "../../_setup/tempDataDir.ts";
 
 // ─── Mock validateApiKey via require interception (so the dynamic import in
 // the policy module returns our stub instead of hitting the real DB module) ─
@@ -59,13 +60,13 @@ fs.writeFileSync(
 (globalThis as unknown as { __mockValidateApiKey: ValidateFn }).__mockValidateApiKey = (key) =>
   mockValidateApiKey(key);
 
-test.after(() => {
+test.after(async () => {
   try {
     fs.unlinkSync(STUB_PATH);
   } catch {
     /* ignore */
   }
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  await cleanupTempDataDir(TEST_DATA_DIR);
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
@@ -235,9 +236,7 @@ test("#3504 — empty 'Bearer ' Authorization falls through to the URL path toke
   process.env.REQUIRE_API_KEY = "true";
   const policy = await loadPolicy();
   const headers = new Headers({ authorization: "Bearer " });
-  const out = await policy.evaluate(
-    ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions")
-  );
+  const out = await policy.evaluate(ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions"));
   assert.equal(out.allow, false);
   if (!out.allow) {
     assert.equal(out.status, 401);
@@ -253,9 +252,7 @@ test("#3504 — a non-Bearer scheme (Basic) also falls through to the URL token"
   process.env.REQUIRE_API_KEY = "true";
   const policy = await loadPolicy();
   const headers = new Headers({ authorization: "Basic Zm9vOmJhcg==" });
-  const out = await policy.evaluate(
-    ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions")
-  );
+  const out = await policy.evaluate(ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions"));
   assert.equal(out.allow, false);
   if (!out.allow) assert.equal(out.message, "Invalid API key");
 });

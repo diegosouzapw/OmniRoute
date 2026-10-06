@@ -85,6 +85,10 @@ function setupFetchMock(): { puts: CapturedPut[] } {
       caveman: { enabled: false },
     },
     activeComboId: null,
+    // GET /api/settings/compression reports a stored engines row as enginesExplicit
+    // (src/lib/db/compression.ts). Since #14700 the preview follows the runtime default
+    // derivation, which only reads the engines map when this flag is set.
+    enginesExplicit: true,
     cavemanOutputMode: { enabled: false, intensity: "full", autoClarity: true },
   };
 
@@ -207,8 +211,12 @@ describe("CompressionPanel", () => {
 
     const preview = container.querySelector(`[data-testid="derived-pipeline-preview"]`);
     expect(preview).toBeTruthy();
-    // Only rtk is enabled in the initial config → preview mentions rtk, not caveman.
-    expect(preview?.textContent).toContain("rtk");
+    // Only rtk is enabled in the initial config. rtk is lossy, and a header-less request
+    // downgrades lossy steps to the safe session-dedup → lite pipeline (#14529); the preview
+    // shows what a request actually runs (#14700), so it names that pipeline — not rtk,
+    // and never the disabled caveman engine.
+    expect(preview?.textContent).toContain("session-dedup → lite");
+    expect(preview?.textContent).not.toContain("rtk");
     expect(preview?.textContent).not.toContain("caveman");
   });
 });

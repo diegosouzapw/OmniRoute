@@ -11,10 +11,22 @@ import {
   countTextTokens,
   isCodexTokenizerContext,
   tokenizerContextFromBody,
+  MAX_EXACT_TOKEN_COUNT_CHARS,
 } from "../../../src/shared/utils/tiktokenCounter.ts";
-import { anthropicImageTokens, ANTHROPIC_IMAGE_BLOCK_OVERHEAD_TOKENS } from "omniglyph";
+import {
+  anthropicImageTokens,
+  ANTHROPIC_IMAGE_BLOCK_OVERHEAD_TOKENS,
+  openAIVisionTokens,
+} from "omniglyph";
+import { isInlineBase64ImageBlock } from "../contextManager.ts";
+import {
+  jsonLength,
+  jsonLengthStrippingBase64DataUris,
+  rawLengthStrippingBase64DataUris,
+} from "../../utils/jsonSize.ts";
 
 const CHARS_PER_TOKEN = 4;
+const DEFAULT_IMAGE_TOKEN_ESTIMATE = 1200;
 
 /**
  * Anthropic image block shape this estimator recognizes:
@@ -27,6 +39,17 @@ interface AnthropicImageBlock {
   source: { type: "base64"; media_type: string; data: string };
 }
 
+interface OpenAIChatImagePart {
+  type: "image_url";
+  image_url: { url: string; detail?: string };
+}
+
+interface OpenAIResponsesImagePart {
+  type: "input_image";
+  image_url: string;
+  detail?: string;
+}
+
 function isAnthropicPngImageBlock(value: unknown): value is AnthropicImageBlock {
   if (!value || typeof value !== "object") return false;
   const block = value as Record<string, unknown>;
@@ -36,6 +59,36 @@ function isAnthropicPngImageBlock(value: unknown): value is AnthropicImageBlock 
   return (
     source.type === "base64" && source.media_type === "image/png" && typeof source.data === "string"
   );
+}
+
+function isOpenAIChatPngImagePart(value: unknown): value is OpenAIChatImagePart {
+  if (!value || typeof value !== "object") return false;
+  const part = value as Record<string, unknown>;
+  const image = part.image_url as Record<string, unknown> | undefined;
+  return (
+    part.type === "image_url" &&
+    !!image &&
+    typeof image === "object" &&
+    typeof image.url === "string" &&
+    image.url.startsWith("data:image/png;base64,")
+  );
+}
+
+function isOpenAIResponsesPngImagePart(value: unknown): value is OpenAIResponsesImagePart {
+  const part = value as Record<string, unknown> | null;
+  return (
+    !!part &&
+    part.type === "input_image" &&
+    typeof part.image_url === "string" &&
+    part.image_url.startsWith("data:image/png;base64,")
+  );
+}
+
+function pngDimensionsFromDataUrl(value: string): { width: number; height: number } | null {
+  const marker = ";base64,";
+  const markerIndex = value.indexOf(marker);
+  if (markerIndex < 0) return null;
+  return decodePngDimensions(value.slice(markerIndex + marker.length));
 }
 
 /**
@@ -67,11 +120,15 @@ function decodePngDimensions(base64: string): { width: number; height: number } 
   }
 }
 
-/** Char-count fallback for one value (same accounting as the legacy estimator). */
+/** Char-count fallback for one value (using jsonLength to avoid allocating multi-MB strings).
+ * Base64 data URIs embedded in arbitrary strings (not just structured image blocks) are
+ * stripped so a tool-output screenshot doesn't inflate the token estimate (#7847 drift). */
 function charTokensOf(value: unknown): number {
   if (value === null || value === undefined) return 0;
-  const str = typeof value === "string" ? value : JSON.stringify(value);
-  return Math.ceil(str.length / CHARS_PER_TOKEN);
+  if (typeof value === "string") {
+    return Math.ceil(rawLengthStrippingBase64DataUris(value) / CHARS_PER_TOKEN);
+  }
+  return Math.ceil(jsonLengthStrippingBase64DataUris(value) / CHARS_PER_TOKEN);
 }
 
 /**
@@ -89,17 +146,51 @@ function blankImageBlocksAndSumImageTokens(body: Record<string, unknown>): {
   imageTokens: number;
 } {
   let imageTokens = 0;
+  const model = typeof body.model === "string" ? body.model : "";
   const clone: Record<string, unknown> = { ...body };
 
   const processContentArray = (content: unknown): unknown => {
     if (!Array.isArray(content)) return content;
     return content.map((block) => {
-      if (!isAnthropicPngImageBlock(block)) return block;
-      const dims = decodePngDimensions(block.source.data);
-      if (!dims) return block; // fall back to char-counting this block as-is
-      imageTokens += anthropicImageTokens(dims.width, dims.height, "standard");
-      imageTokens += ANTHROPIC_IMAGE_BLOCK_OVERHEAD_TOKENS;
-      return { ...block, source: { ...block.source, data: "" } };
+      if (isAnthropicPngImageBlock(block)) {
+        const dims = decodePngDimensions(block.source.data);
+        if (!dims) {
+          // Recognized image block that can't be decoded: use a bounded estimate rather
+          // than char-counting the raw base64, which would inflate the token estimate
+          // multi-MB (the #7847 OOM/drift class).
+          imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+          return { ...block, source: { ...block.source, data: "" } };
+        }
+        imageTokens += anthropicImageTokens(dims.width, dims.height, "standard");
+        imageTokens += ANTHROPIC_IMAGE_BLOCK_OVERHEAD_TOKENS;
+        return { ...block, source: { ...block.source, data: "" } };
+      }
+      if (isOpenAIChatPngImagePart(block)) {
+        const dims = pngDimensionsFromDataUrl(block.image_url.url);
+        if (!dims) {
+          imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+          return { ...block, image_url: { ...block.image_url, url: "" } };
+        }
+        imageTokens += openAIVisionTokens(model, dims.width, dims.height);
+        return { ...block, image_url: { ...block.image_url, url: "" } };
+      }
+      if (isOpenAIResponsesPngImagePart(block)) {
+        const dims = pngDimensionsFromDataUrl(block.image_url);
+        if (!dims) {
+          imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+          return { ...block, image_url: "" };
+        }
+        imageTokens += openAIVisionTokens(model, dims.width, dims.height);
+        return { ...block, image_url: "" };
+      }
+      if (isInlineBase64ImageBlock(block as Record<string, unknown>)) {
+        // Inline-base64 image content-block shape (AI SDK / Gemini / flat) not
+        // covered by the PNG decoders above. Keep the estimate bounded so a
+        // multi-MB screenshot doesn't inflate the token count (#7847 drift).
+        imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+        return { ...block, image: "" };
+      }
+      return block;
     });
   };
 
@@ -114,6 +205,16 @@ function blankImageBlocksAndSumImageTokens(body: Record<string, unknown>): {
 
   if (Array.isArray(clone.system)) {
     clone.system = processContentArray(clone.system);
+  }
+
+  if (Array.isArray(clone.input)) {
+    clone.input = clone.input.map((item) => {
+      if (!item || typeof item !== "object") return item;
+      const record = item as Record<string, unknown>;
+      return Array.isArray(record.content)
+        ? { ...record, content: processContentArray(record.content) }
+        : record;
+    });
   }
 
   return { clone, imageTokens };
@@ -131,15 +232,19 @@ export function estimateCompressionTokens(text: string | object | null | undefin
       text as Record<string, unknown>
     );
     if (imageTokens === 0) {
-      // Keep the legacy character estimate for generic payloads. Codex payloads use
-      // the model-appropriate tokenizer so their compression stats match hard budgets.
-      return useExactTokenizer
-        ? countTextTokens(JSON.stringify(text), tokenizerContext)
-        : charTokensOf(text);
+      // countTextTokens falls back to a char heuristic above MAX_EXACT_TOKEN_COUNT_CHARS,
+      // so materializing JSON.stringify(text) for a large body would only allocate a
+      // multi-MB transient that's immediately discarded (#7847 OOM class). Measure the
+      // serialized length via jsonLength instead and skip the allocation when oversized.
+      if (useExactTokenizer && jsonLength(text) <= MAX_EXACT_TOKEN_COUNT_CHARS) {
+        return countTextTokens(JSON.stringify(text), tokenizerContext);
+      }
+      return charTokensOf(text);
     }
-    return useExactTokenizer
-      ? countTextTokens(JSON.stringify(clone), tokenizerContext) + imageTokens
-      : charTokensOf(clone) + imageTokens;
+    if (useExactTokenizer && jsonLength(clone) <= MAX_EXACT_TOKEN_COUNT_CHARS) {
+      return countTextTokens(JSON.stringify(clone), tokenizerContext) + imageTokens;
+    }
+    return charTokensOf(clone) + imageTokens;
   } catch {
     // Non-serializable/unexpected shape → fall back to the legacy char-count,
     // never throw out of an estimator.

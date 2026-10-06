@@ -47,3 +47,27 @@ test("normalizes named non-function tools for other source formats", () => {
     dropped: 0,
   });
 });
+
+// #13789 — the normalization gate itself: which providers get non-function
+// tools converted/dropped before translation.
+const { shouldNormalizeFunctionToolsOnly } =
+  await import("../../open-sse/handlers/chatCore/openAICompatibleTools.ts");
+
+test("#13789 custom openai-compatible-* providers always normalize", () => {
+  for (const format of [FORMATS.OPENAI, FORMATS.OPENAI_RESPONSES, FORMATS.CLAUDE]) {
+    assert.equal(shouldNormalizeFunctionToolsOnly("openai-compatible-acme", format), true);
+  }
+});
+
+test("#13789 allowlisted built-ins normalize on the OpenAI Chat target only", () => {
+  assert.equal(shouldNormalizeFunctionToolsOnly("agentrouter", FORMATS.OPENAI), true);
+  // Responses keeps native hosted tools; Claude has its own dispatch normalization.
+  assert.equal(shouldNormalizeFunctionToolsOnly("agentrouter", FORMATS.OPENAI_RESPONSES), false);
+  assert.equal(shouldNormalizeFunctionToolsOnly("agentrouter", FORMATS.CLAUDE), false);
+});
+
+test("#13789 every other provider (including openai) is untouched", () => {
+  for (const provider of ["openai", "anthropic", "gemini", "minimax", undefined]) {
+    assert.equal(shouldNormalizeFunctionToolsOnly(provider, FORMATS.OPENAI), false);
+  }
+});

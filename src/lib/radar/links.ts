@@ -19,6 +19,8 @@
  * (spec D14: no pricing in the OSS repo).
  */
 
+import { parseRadarAdminUrl } from "@/shared/validation/radarAdminUrl";
+
 /** Default contributor-claim entry point — starts the GitHub OAuth flow. */
 const DEFAULT_CONTRIBUTOR_CLAIM_URL = "https://radar.omniroute.online/auth/github";
 
@@ -39,4 +41,12 @@ export function getContributorClaimUrl(): string {
  */
 export function getSupporterPlansUrl(): string {
   return process.env.RADAR_SUPPORTER_PLANS_URL || DEFAULT_SUPPORTER_PLANS_URL;
+}
+
+/**
+ * Private operations-panel URL configured by the instance owner.
+ * Unlike the public supporter flows, this deliberately has no default.
+ */
+export function getRadarAdminUrl(): string | null {
+  return parseRadarAdminUrl(process.env.RADAR_ADMIN_URL);
 }

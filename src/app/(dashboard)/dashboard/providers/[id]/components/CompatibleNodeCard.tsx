@@ -110,6 +110,7 @@ export default function CompatibleNodeCard({
                 });
                 if (res.ok) {
                   router.push("/dashboard/providers");
+                  router.refresh();
                 }
               } catch (error) {
                 console.error("Error deleting provider node:", error);

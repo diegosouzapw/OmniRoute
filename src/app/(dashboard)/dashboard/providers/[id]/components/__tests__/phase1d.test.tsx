@@ -177,6 +177,8 @@ describe("phase-1d extractions (#3501)", () => {
     const c = renderComponent(
       <ModelCompatPopover
         t={(k: string) => k}
+        providerId="openai"
+        modelId="gpt-test"
         effectiveModelNormalize={() => false}
         effectiveModelPreserveDeveloper={() => true}
         getUpstreamHeadersRecord={() => ({})}
@@ -190,6 +192,8 @@ describe("phase-1d extractions (#3501)", () => {
     const c = renderComponent(
       <ModelCompatPopover
         t={(k: string) => k}
+        providerId="openai"
+        modelId="gpt-test"
         effectiveModelNormalize={() => true}
         effectiveModelPreserveDeveloper={() => false}
         getUpstreamHeadersRecord={() => ({ "X-Custom": "value" })}

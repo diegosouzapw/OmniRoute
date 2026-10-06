@@ -29,11 +29,12 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
+const modelDiscovery = await import("../../src/lib/providerModels/modelDiscovery.ts");
 const { getComboBuilderOptions } = await import("../../src/lib/combos/builderOptions.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#8072 buildModelOptions: synced <model>-<tier> effort variants appear in the Combo Builder picker and inherit the base model's metadata", async () => {
@@ -140,6 +141,7 @@ test("#9485 static DeepSeek effort aliases appear when synced rows omit supporte
     `${flashId}-high`,
     `${flashId}-max`,
     `${proId}-none`,
+    `${proId}-low`,
     `${proId}-high`,
     `${proId}-max`,
   ]);
@@ -149,10 +151,6 @@ test("#9485 static DeepSeek effort aliases appear when synced rows omit supporte
       .filter((id) => id.startsWith(`${flashId}-`) || id.startsWith(`${proId}-`))
   );
   assert.deepEqual(deepSeekAliases, expectedAliases);
-  assert.equal(
-    provider!.models.some((model) => model.id === `${proId}-low`),
-    false
-  );
   assert.equal(
     provider!.models.some((model) => model.id === `${proId}-medium`),
     false
@@ -168,5 +166,85 @@ test("#9485 static DeepSeek effort aliases appear when synced rows omit supporte
     assert.equal(alias!.outputTokenLimit, base.outputTokenLimit);
     assert.deepEqual(alias!.supportedEndpoints, base.supportedEndpoints);
     assert.equal(alias!.supportsThinking, base.supportsThinking);
+  }
+});
+test("#9485 Crof synced effort aliases appear exactly in the Combo Builder picker", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "crof",
+    authType: "apikey",
+    name: "crof-9485-effort",
+    apiKey: "crof-key-9485",
+    isActive: true,
+    testStatus: "active",
+  });
+  const modelId = "crof-combo-reasoning-model";
+
+  await modelDiscovery.persistDiscoveredModels("crof", connection.id, [
+    { id: modelId, name: "Crof Combo Reasoning Model", reasoning_effort: true },
+  ]);
+
+  const payload = await getComboBuilderOptions();
+  const provider = payload.providers.find((p) => p.providerId === "crof");
+  assert.ok(provider, "crof provider must appear in the combo builder output");
+
+  const expectedAliases = new Set([
+    `${modelId}-none`,
+    `${modelId}-low`,
+    `${modelId}-medium`,
+    `${modelId}-high`,
+    `${modelId}-max`,
+  ]);
+  const actualAliases = new Set(
+    provider!.models.map((model) => model.id).filter((id) => id.startsWith(`${modelId}-`))
+  );
+  assert.deepEqual(actualAliases, expectedAliases);
+});
+
+test("Command Code static reasoning models expose all documented effort suffixes", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "command-code",
+    authType: "apikey",
+    name: "command-code-efforts",
+    apiKey: "command-code-key",
+    isActive: true,
+    testStatus: "active",
+  });
+  assert.ok(connection);
+
+  const payload = await getComboBuilderOptions();
+  const provider = payload.providers.find((entry) => entry.providerId === "command-code");
+  assert.ok(provider, "command-code provider must appear in the combo builder output");
+
+  const reasoningModels = [
+    "claude-opus-4-7",
+    "claude-opus-4-6",
+    "claude-sonnet-4-6",
+    "claude-haiku-4-5-20251001",
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini",
+    "gpt-5.3-codex",
+    "deepseek/deepseek-v4-pro",
+    "deepseek/deepseek-v4-flash",
+    "moonshotai/Kimi-K2.6",
+    "moonshotai/Kimi-K2.5",
+    "zai-org/GLM-5.1",
+    "zai-org/GLM-5",
+    "MiniMaxAI/MiniMax-M2.7",
+    "MiniMaxAI/MiniMax-M2.5",
+    "Qwen/Qwen3.6-Max-Preview",
+    "Qwen/Qwen3.6-Plus",
+  ];
+  const effortTiers = ["low", "medium", "high", "xhigh", "max"];
+  for (const baseId of reasoningModels) {
+    const base = provider!.models.find((model) => model.id === baseId);
+    assert.ok(base, `${baseId} base model must appear in the model picker`);
+    for (const effort of effortTiers) {
+      const alias = provider!.models.find((model) => model.id === `${baseId}-${effort}`);
+      assert.ok(alias, `${baseId}-${effort} must appear in the model picker`);
+      assert.equal(alias!.contextLength, base!.contextLength);
+      assert.equal(alias!.outputTokenLimit, base!.outputTokenLimit);
+      assert.equal(alias!.supportsThinking, true);
+    }
   }
 });

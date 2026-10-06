@@ -111,11 +111,26 @@ test("the TS7 shadow and zero-new-diagnostics ratchet use one pinned compiler an
 });
 
 test("the new gates run on jobs that stay pinned to hosted runners", () => {
-  // Complements tests/unit/vps-runner-variable-scope.test.ts: neither gate job
-  // may pick up a USE_VPS_RUNNER switch (setup-node measured 20m06s on .113 vs 16s hosted).
-  for (const job of ["lint-guard", "fast-gates"]) {
+  // Complements tests/unit/vps-runner-variable-scope.test.ts: the fast-gates job
+  // may not pick up a USE_VPS_RUNNER switch (setup-node measured 20m06s on .113 vs 16s hosted).
+  for (const job of ["fast-gates"]) {
     const runsOn = /^ {4}runs-on:\s*(.+)$/m.exec(jobBlock(job));
     assert.ok(runsOn, `${job} must declare runs-on`);
     assert.equal(runsOn[1].trim(), "ubuntu-latest", `${job} must stay pinned to ubuntu-latest`);
   }
+  // Documented exception (2026-08-30): a cold full lint with the eslint-plugin-react-hooks 7
+  // compiler rules is OOM-killed on the 7 GB hosted runner with no output (status null →
+  // exit 1); lint-guard runs on the box's light pool with an explicit 8 GB heap instead.
+  const lintRunsOn = /^ {4}runs-on:\s*(.+)$/m.exec(jobBlock("lint-guard"));
+  assert.ok(lintRunsOn, "lint-guard must declare runs-on");
+  assert.match(
+    lintRunsOn[1],
+    /omni-light/,
+    "lint-guard runs on the box's light pool (OOM on hosted)"
+  );
+  assert.match(
+    jobBlock("lint-guard"),
+    /NODE_OPTIONS: --max-old-space-size=8192/,
+    "lint-guard needs the explicit heap"
+  );
 });

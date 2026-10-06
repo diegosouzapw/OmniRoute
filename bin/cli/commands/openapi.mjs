@@ -41,11 +41,83 @@ function toYaml(obj, indent = 0) {
     .trimStart();
 }
 
+// Keys that live alongside operations inside a Path Item Object but are not
+// themselves operations (OpenAPI 3.x Path Item fields).
+const NON_OPERATION_PATH_KEYS = new Set([
+  "parameters",
+  "summary",
+  "description",
+  "servers",
+  "$ref",
+]);
+
+/**
+ * `GET /api/openapi/spec` answers with a compact catalog
+ * (`{ info, servers, tags, endpoints[], schemas }`) rather than an OpenAPI
+ * document with a `paths` object, while `dist/docs/openapi.yaml` is a real
+ * spec. Normalize either shape into the flat rows the CLI renders so the
+ * commands work against both instead of silently printing nothing.
+ */
+export function extractEndpoints(spec) {
+  if (!spec || typeof spec !== "object") return [];
+
+  if (spec.paths && typeof spec.paths === "object") {
+    const rows = [];
+    for (const [path, pathItem] of Object.entries(spec.paths)) {
+      if (!pathItem || typeof pathItem !== "object") continue;
+      for (const [method, def] of Object.entries(pathItem)) {
+        if (NON_OPERATION_PATH_KEYS.has(method)) continue;
+        if (!def || typeof def !== "object") continue;
+        rows.push({
+          method: method.toUpperCase(),
+          path,
+          summary: def.summary ?? def.description ?? "",
+          operationId: def.operationId,
+        });
+      }
+    }
+    return rows;
+  }
+
+  if (Array.isArray(spec.endpoints)) {
+    return spec.endpoints
+      .filter((entry) => entry && typeof entry === "object" && entry.path)
+      .map((entry) => ({
+        method: String(entry.method ?? "GET").toUpperCase(),
+        path: entry.path,
+        summary: entry.summary ?? entry.description ?? "",
+        operationId: entry.operationId,
+      }));
+  }
+
+  return [];
+}
+
+/** Sorted, de-duplicated list of paths across either shape. */
+export function extractPaths(spec) {
+  return [...new Set(extractEndpoints(spec).map((row) => row.path))].sort();
+}
+
+function matchesSearch(row, query) {
+  if (!query) return true;
+  const needle = query.toLowerCase();
+  return row.path.includes(query) || String(row.summary).toLowerCase().includes(needle);
+}
+
 function validateBasic(spec) {
   if (!spec || typeof spec !== "object") throw new Error("spec is not an object");
-  if (!spec.openapi && !spec.swagger) throw new Error("missing openapi/swagger version field");
   if (!spec.info) throw new Error("missing info object");
-  if (!spec.paths) throw new Error("missing paths object");
+
+  // A real OpenAPI document must carry a version field and a paths object.
+  if (spec.openapi || spec.swagger) {
+    if (!spec.paths) throw new Error("missing paths object");
+    return;
+  }
+
+  // The compact catalog served by /api/openapi/spec carries endpoints[] instead.
+  if (Array.isArray(spec.endpoints)) return;
+
+  throw new Error("missing openapi/swagger version field and no endpoints[] catalog");
 }
 
 const endpointSchema = [
@@ -132,20 +204,7 @@ export function registerOpenapi(program) {
         process.exit(1);
       }
       const spec = await res.json();
-      const rows = [];
-      for (const [path, methods] of Object.entries(spec.paths ?? {})) {
-        for (const [method, def] of Object.entries(methods)) {
-          if (["parameters", "summary"].includes(method)) continue;
-          const summary = def.summary ?? def.description ?? "";
-          if (
-            opts.search &&
-            !path.includes(opts.search) &&
-            !summary.toLowerCase().includes(opts.search.toLowerCase())
-          )
-            continue;
-          rows.push({ method: method.toUpperCase(), path, summary, operationId: def.operationId });
-        }
-      }
+      const rows = extractEndpoints(spec).filter((row) => matchesSearch(row, opts.search));
       emit(rows, cmd.optsWithGlobals(), endpointSchema);
     });
 
@@ -159,9 +218,8 @@ export function registerOpenapi(program) {
         process.exit(1);
       }
       const spec = await res.json();
-      const paths = Object.keys(spec.paths ?? {}).sort();
       emit(
-        paths.map((p) => ({ path: p })),
+        extractPaths(spec).map((p) => ({ path: p })),
         cmd.optsWithGlobals()
       );
     });

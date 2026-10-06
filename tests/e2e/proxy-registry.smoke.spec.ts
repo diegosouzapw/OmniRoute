@@ -197,7 +197,12 @@ test.describe("Proxy Registry smoke flow", () => {
 
     await expect(page.locator("table")).toContainText("http://smoke-updated.local:8080");
 
-    await page.getByTestId("proxy-registry-open-bulk").click();
+    // Bulk assign moved into the toolbar's "More actions" (⋯) overflow menu in
+    // #9870 — the menu only renders its items once opened, so open it first.
+    await page.getByTestId("proxy-registry-more-actions").click();
+    const actionsMenu = page.getByRole("menu");
+    await expect(actionsMenu).toBeVisible();
+    await actionsMenu.getByTestId("proxy-registry-open-bulk").click();
     const bulkDialog = page.getByRole("dialog");
     await expect(bulkDialog.getByText("Bulk Proxy Assignment")).toBeVisible();
     await bulkDialog.getByTestId("proxy-registry-bulk-scopeids-input").fill("openai,anthropic");

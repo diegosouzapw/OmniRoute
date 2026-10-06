@@ -1,31 +1,122 @@
 /**
- * Secret masking utilities for MITM traffic inspection.
- * Applied to all headers/bodies before any log or broadcast.
- * Regex patterns are pre-compiled (order matters: BEARER first).
+ * Linear secret scanner for captured Traffic Inspector text.
  *
- * Pattern sources: plano 11 §4.8 (origin: llm-interceptor proxy.py:310)
+ * Bearer credentials follow RFC 6750's token alphabet and take precedence over
+ * heuristic key masking so no suffix of a credential survives a partial match.
  */
 
-// Pre-compiled regex patterns — ORDER IS SIGNIFICANT (BEARER must run first).
-// BEARER matches the token after a standalone "Bearer " — NOT only after a
-// literal "authorization:" prefix. sanitizeHeaders() masks header *values*
-// ("Bearer <token>") with the key already stripped, so a prefix-anchored regex
-// never fired there and short/opaque-but-<40 tokens leaked into the inspector
-// (found by the AgentBridge live capture). The char class is bounded + linear
-// (no nested quantifiers) to stay ReDoS-safe.
-const BEARER = /(\bBearer\s+)[A-Za-z0-9._~+/-]+=*/gi;
-const SK_KEY = /\b(sk|ak|pk)-[A-Za-z0-9_-]{16,}\b/g;
-const LONG_TOKEN = /\b[A-Za-z0-9_-]{40,}\b/g;
+const PREFIXED_KEY_BODY_MIN = 16;
+const OPAQUE_TOKEN_MIN = 40;
 
-/**
- * Mask secrets in a string value.
- * - Bearer tokens: replaces the token after any "Bearer " with "***"
- * - sk-/ak-/pk- keys: keeps first 6 chars + last 2 chars
- * - Long opaque tokens (≥40 chars): keeps first 4 chars + last 2 chars
- */
+interface Match {
+  start: number;
+  end: number;
+  replacement: string;
+}
+
+function isAsciiLetter(code: number): boolean {
+  return (code >= 0x41 && code <= 0x5a) || (code >= 0x61 && code <= 0x7a);
+}
+
+function isAsciiDigit(code: number): boolean {
+  return code >= 0x30 && code <= 0x39;
+}
+
+function isKeyCharCode(code: number): boolean {
+  return isAsciiLetter(code) || isAsciiDigit(code) || code === 0x2d || code === 0x5f;
+}
+
+function isBearerCoreCharCode(code: number): boolean {
+  return isKeyCharCode(code) || code === 0x2e || code === 0x7e || code === 0x2b || code === 0x2f;
+}
+
+function isOpaqueCharCode(code: number): boolean {
+  return isBearerCoreCharCode(code);
+}
+
+function equalsAsciiIgnoreCase(value: string, index: number, expected: string): boolean {
+  if (index + expected.length > value.length) return false;
+  for (let offset = 0; offset < expected.length; offset += 1) {
+    const actualCode = value.charCodeAt(index + offset);
+    const expectedCode = expected.charCodeAt(offset);
+    const folded = actualCode >= 0x41 && actualCode <= 0x5a ? actualCode + 0x20 : actualCode;
+    if (folded !== expectedCode) return false;
+  }
+  return true;
+}
+
+function bearerMatch(value: string, index: number): Match | null {
+  if (!equalsAsciiIgnoreCase(value, index, "bearer")) return null;
+  if (index > 0 && isKeyCharCode(value.charCodeAt(index - 1))) return null;
+
+  const schemeEnd = index + 6;
+  if (value.charCodeAt(schemeEnd) !== 0x20) return null;
+  let tokenStart = schemeEnd;
+  while (value.charCodeAt(tokenStart) === 0x20) tokenStart += 1;
+
+  let end = tokenStart;
+  while (end < value.length && isBearerCoreCharCode(value.charCodeAt(end))) end += 1;
+  if (end === tokenStart) return null;
+  while (value.charCodeAt(end) === 0x3d) end += 1;
+
+  return { start: tokenStart, end, replacement: "***" };
+}
+
+function prefixedKeyMatch(value: string, index: number): Match | null {
+  if (index > 0 && isOpaqueCharCode(value.charCodeAt(index - 1))) return null;
+  const prefix = value.slice(index, index + 3);
+  if (prefix !== "sk-" && prefix !== "ak-" && prefix !== "pk-") return null;
+
+  let end = index + 3;
+  while (end < value.length && isOpaqueCharCode(value.charCodeAt(end))) end += 1;
+  if (end - (index + 3) < PREFIXED_KEY_BODY_MIN) return null;
+  while (value.charCodeAt(end) === 0x3d) end += 1;
+
+  const token = value.slice(index, end);
+  return {
+    start: index,
+    end,
+    replacement: `${token.slice(0, 6)}…${token.slice(-2)}`,
+  };
+}
+
+function opaqueTokenMatch(value: string, index: number): Match | null {
+  if (!isOpaqueCharCode(value.charCodeAt(index))) return null;
+  if (index > 0 && isOpaqueCharCode(value.charCodeAt(index - 1))) return null;
+
+  let end = index + 1;
+  while (end < value.length && isOpaqueCharCode(value.charCodeAt(end))) end += 1;
+  if (end - index < OPAQUE_TOKEN_MIN) return null;
+  while (value.charCodeAt(end) === 0x3d) end += 1;
+
+  const token = value.slice(index, end);
+  return {
+    start: index,
+    end,
+    replacement: `${token.slice(0, 4)}…${token.slice(-2)}`,
+  };
+}
+
+/** Mask Bearer credentials, provider-style keys, and long opaque tokens. */
 export function maskSecret(value: string): string {
-  return value
-    .replace(BEARER, "$1***")
-    .replace(SK_KEY, (m) => `${m.slice(0, 6)}…${m.slice(-2)}`)
-    .replace(LONG_TOKEN, (m) => `${m.slice(0, 4)}…${m.slice(-2)}`);
+  let output = "";
+  let literalStart = 0;
+  let index = 0;
+
+  while (index < value.length) {
+    const match =
+      bearerMatch(value, index) ?? prefixedKeyMatch(value, index) ?? opaqueTokenMatch(value, index);
+    if (!match) {
+      index += 1;
+      continue;
+    }
+
+    output += value.slice(literalStart, match.start);
+    output += match.replacement;
+    index = match.end;
+    literalStart = match.end;
+  }
+
+  if (literalStart === 0) return value;
+  return output + value.slice(literalStart);
 }

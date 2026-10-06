@@ -26,10 +26,13 @@
  * effort-capable Claude model advertises Low/Medium/High, and xHigh is added only
  * for models that support it (e.g. Fable 5, Opus 4.8, Sonnet 5 — not Opus 4.6/4.5
  * or Haiku). "none" is intentionally omitted: it is the base model id, already in
- * the catalog. Max/ultra are codex-only presets and are not synthesized here.
+ * the catalog. Kiro's Opus 5 also exposes its provider-native Max tier. Ultra
+ * remains a Codex-only preset and is not synthesized here.
  */
 import { getModelSpec } from "@/shared/constants/modelSpecs";
+import { extendCodexGpt56EffortValues } from "@/shared/reasoning/effortStandardization";
 import { supportsXHighEffort } from "../config/providerModels.ts";
+import { isDevinLiteralModelIdProvider } from "./devinLiteralModelIds.ts";
 
 /** Base reasoning-effort levels advertised for every effort-capable Claude model. */
 export const CLAUDE_EFFORT_VARIANT_LEVELS = ["low", "medium", "high"] as const;
@@ -40,7 +43,16 @@ export type ClaudeEffortVariantLevel =
   (typeof CLAUDE_EFFORT_VARIANT_LEVELS)[number] | typeof CLAUDE_XHIGH_EFFORT_LEVEL;
 
 // Ids that already carry a reasoning-effort suffix — never double-suffix them.
+// Kept byte-identical to the sibling copies in noThinkingAlias.ts and
+// ccDiscoveryAliases.ts (drift guard: tests/unit/claude-effort-variants.test.ts)
+// — do NOT add "max" here. Kiro's synthesized "-max" variant (below) is guarded
+// separately by KIRO_OPUS_5_MAX_VARIANT_RE, scoped to that one id, so the shared
+// pattern stays exactly what upstream expects for every other Claude model.
 const CLAUDE_EFFORT_SUFFIX_RE = /-(?:xhigh|high|medium|low)$/i;
+// Kiro's provider-native Opus 5 Max tier, synthesized below as "<base>-max".
+// Excluded separately (not via CLAUDE_EFFORT_SUFFIX_RE) so a second catalog
+// pass never re-synthesizes low/medium/high/xhigh/max on top of it.
+const KIRO_OPUS_5_MAX_VARIANT_RE = /^claude-opus-5-max$/i;
 const CLAUDE_NAME_RE = /claude/i;
 const NO_THINKING_PREFIX = "no-think/";
 
@@ -94,7 +106,18 @@ export function shouldExposeClaudeEffortVariants(
   if (id.startsWith(NO_THINKING_PREFIX)) return false;
   if (CLAUDE_EFFORT_SUFFIX_RE.test(id)) return false;
 
+  // Devin CLI catalogs (devin-cli / devin-cli-agentic / devin-desktop, aliases
+  // dv / dva) embed the tier in the model id itself — every tier is already a
+  // distinct catalog id, and the gateway keeps those ids literal (see
+  // devinLiteralModelIds.ts). Synthesizing `-<level>` variants on top of them
+  // would advertise unroutable phantom ids like `dva/claude-opus-5-max-low`.
+  const providerSlash = id.indexOf("/");
+  if (providerSlash > 0 && isDevinLiteralModelIdProvider(id.slice(0, providerSlash))) {
+    return false;
+  }
+
   const name = bareModelName(id);
+  if (KIRO_OPUS_5_MAX_VARIANT_RE.test(name)) return false;
   return isKnownClaudeEffortBaseModel(name);
 }
 
@@ -125,7 +148,7 @@ export function claudeEffortLevelsFor(providerId: string, modelId: string): stri
   if (supportsXHighEffort(providerId, modelId)) {
     levels.push(CLAUDE_XHIGH_EFFORT_LEVEL);
   }
-  return levels;
+  return extendCodexGpt56EffortValues(providerId, modelId, levels);
 }
 
 /**

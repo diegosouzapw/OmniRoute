@@ -22,7 +22,7 @@ const originalFetch = globalThis.fetch;
 test.after(() => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 /** Minimal but structurally valid WAV so nothing rejects the upload shape. */
@@ -72,8 +72,7 @@ test("#9134 combo name is rejected instead of resolved", async () => {
     new Response(JSON.stringify({ text: "ok" }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
-    })
-  ) as typeof fetch;
+    })) as typeof fetch;
 
   const res = await route.POST(transcriptionRequest("transcricao"));
   const body = await res.text();

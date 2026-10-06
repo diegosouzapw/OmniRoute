@@ -41,3 +41,14 @@ test("#2357 checkRateLimit falls back when REDIS_URL is unset", () => {
     "checkRateLimit must route to the in-memory fallback when Redis is disabled"
   );
 });
+
+test("redis namespace prefix: rate limiter + auth cache keys are namespaced", () => {
+  assert.ok(
+    src.includes('process.env.REDIS_KEY_PREFIX?.trim() || "omniroute:"'),
+    "rateLimiter must read REDIS_KEY_PREFIX with an omniroute: default"
+  );
+  assert.ok(
+    src.includes("keyPrefix: REDIS_KEY_PREFIX"),
+    "rateLimiter must pass the prefix as the ioredis keyPrefix so all keys are namespaced"
+  );
+});

@@ -1,19 +1,19 @@
 ---
 title: "CLI Tools — OmniRoute"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.50
+lastUpdated: 2026-08-23
 ---
 
 # CLI Tools — OmniRoute
 
-Last updated: 2026-06-28
+Last updated: 2026-08-23
 
 OmniRoute integrates with three categories of CLI tools spread across three dedicated dashboard pages:
 
 | Page           | Route                   | Concept                                                                   | Count        |
 | -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 21           |
-| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 6            |
+| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 26           |
+| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 10           |
 | **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
 Legacy routes redirect via 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
@@ -56,18 +56,55 @@ omniroute setup-codex        omniroute setup-claude       omniroute setup-openco
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
 Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
 remote OmniRoute), `--dry-run` (preview without writing), and `--port`. Tools
-without model auto-discovery (Cline, Kilo, Roo, Goose, Aider, Gemini) take
-`--model <id>` (and `--yes` for non-interactive runs). The launchers
-`omniroute launch` (Claude Code) and `omniroute launch-codex` (Codex) spawn the CLI
-with the right env injected and write no config at all.
+without model auto-discovery (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) take
+`--model <id>` (and `--yes` for non-interactive runs). `setup-5dive` is the one
+recipe that does not write under `$HOME`: it configures a 5dive agent fleet by
+writing a root-owned auth profile on the fleet host, so it re-execs through `sudo`
+and has no remote mode of its own. To launch a CLI with the
+right env injected and no config written at all, use the generic
+`omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
+gemini — targets and aliases come from `bin/cli/cli-manifest.mjs`); the legacy
+per-tool launchers `omniroute launch` (Claude Code) and `omniroute launch-codex`
+(Codex) remain available. Gemini CLI is launch-only: it is an `omniroute run`
+target but has no `setup-*`/`configure` recipe.
 
 > **Full reference:** the master table — what each command writes, every flag,
 > local vs remote, and which tools want a `/v1` suffix — lives in
 > **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
+
+### Running these inside a container
+
+A `setup-*` command executed inside the OmniRoute container writes into the
+container's own home, which no host CLI reads and which disappears with the
+container. OmniRoute detects that and exits `2` with instructions rather than
+writing. Two supported ways forward — install the CLI on the host and
+`omniroute connect` to the container, or bind-mount the config dirs and set
+`CLI_CONFIG_HOME` (the compose `host` profile). Every `setup-*` command, plus
+`omniroute configure` and `omniroute config set`, accepts
+`--allow-container-write` when configuring the container's own CLIs is what you
+actually meant; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` does the same for
+the server. See
+[Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+
+The dashboard's **apply endpoint** (`POST /api/cli-tools/apply`) enforces the
+same guard: in a container, a write whose target is not bind-mounted from the
+host answers **`422`** with `containerEphemeralTarget: true`, the safe error
+text and — for the tools with a host recipe (claude, codex, opencode, cline,
+kilo, continue) — a `hostSetupCommand` (e.g. `omniroute setup-opencode`) to run
+on the host instead; nothing is written. `dryRun: true` keeps working in container
+mode and returns a redacted preview + target path without touching disk. Preview
+content is not a credential-bearing configuration to copy or import. Apply with
+the original tool/base URL/API key/model inputs on the host, or use the indicated
+host-side setup command. See [CLI configuration security](../security/CLI-CONFIGURATION.md)
+for the preview header and request contract. This behavior is
+intentional and regression-guarded by
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — never "fix" a 422
+by removing the guard.
 
 ---
 
@@ -88,44 +125,65 @@ Each entry has these fields (defined in `src/shared/schemas/cliCatalog.ts`):
 
 Entries with `baseUrlSupport: "none"` are **not shown** in the dashboard pages — they are registered in the MITM backlog for plan 11 (see `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md`).
 
+### Capability tiers (cataloged × detectable × configurable × launchable)
+
+Not every cataloged tool is detectable, configurable or launchable. Each tier has one
+declaring source, and a drift test keeps them aligned:
+
+| Tier             | Meaning                                                            | Declared in                                                       |
+| ---------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| **Cataloged**    | Appears in the dashboard catalog (name, vendor, docs, config type) | `src/shared/constants/cliTools.ts` (`CLI_TOOLS`)                  |
+| **Detectable**   | Binary/config detection, health checks, config paths               | `src/shared/services/cliRuntime.ts` (`CLI_TOOLS` runtime catalog) |
+| **Configurable** | Supported by `omniroute configure <cli>` (setup recipe exists)     | `bin/cli/cli-manifest.mjs` (`configure: true`)                    |
+| **Launchable**   | Supported by `omniroute run <target>` (env/args injection defined) | `bin/cli/cli-manifest.mjs` (`run: true`)                          |
+
+`bin/cli/cli-manifest.mjs` is the canonical executable manifest for the CLI command
+surfaces: `run`, `configure` and the shell-completion generators all derive their
+target lists, alias resolution (for example `kilocode`/`kilo-code`/`kilo_cli` → `kilo`)
+and `--model` flag wiring from it. The drift guard
+`tests/unit/cli/cli-manifest-drift.test.ts` asserts that the manifest, the runtime
+catalog, the UI catalog and every consumer surface stay in sync — a target added to
+one surface without the others fails the suite instead of drifting silently.
+
 ---
 
-## 1. CLI Code's Catalog (25 tools)
+## 1. CLI Code's Catalog (26 tools)
 
 All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none` are wired through MITM or a manual guide instead of a custom base URL:
 
-| id | name | vendor | baseUrlSupport | configType | acpSpawnable |
-|----|------|--------|---------------|-----------|-------------|
-| claude | Claude Code | Anthropic | full | env | true |
-| codex | OpenAI Codex CLI | OpenAI | full | custom | true |
-| cline | Cline | OSS (ex-Claude Dev) | full | custom | true |
-| kilo | Kilo Code | Kilo-Org | full | custom | false |
-| roo | Roo Code | Roo (OSS) | full | guide | false |
-| continue | Continue | continue.dev | full | guide | false |
-| aider | Aider | OSS (P. Gauthier) | full | guide | true |
-| forge | ForgeCode | Antinomy HQ | full | custom | true |
-| jcode | jcode | 1jehuang (OSS) | full | custom | false |
-| deepseek-tui | DeepSeek TUI | Hunter Bown (OSS) | full | custom | false |
-| codewhale | CodeWhale | Hmbown (OSS) | full | custom | false |
-| opencode | OpenCode | Anomaly (ex-SST) | full | guide | true |
-| droid | Factory Droid | Factory AI | partial | guide | false |
-| copilot | GitHub Copilot CLI | GitHub/MS | full | custom | false |
-| cursor-cli | Cursor CLI | Anysphere | partial | guide | true |
-| smelt | Smelt | leonardcser (OSS) | full | custom | false |
-| pi | Pi (pi-coding-agent) | M. Zechner (OSS) | full | custom | false |
-| grok-build | Grok Build | xAI | full | custom | false |
-| crush | Crush | OSS (Charm) | full | custom | false |
-| qwen | Qwen Code | Alibaba | full | guide | true |
-| cursor | Cursor | Anysphere | none | guide | false |
-| antigravity | Antigravity | Google | none | mitm | false |
-| hermes | Hermes | Nous Research | none | guide | false |
-| kiro | Kiro AI | Amazon | none | mitm | false |
-| custom | Custom CLI | — | full | custom-builder | false |
+| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic           | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
+| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
+| continue     | Continue                | continue.dev        | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
+| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
+| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
 Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in the dashboard card.
 ---
 
-## 2. CLI Agents Catalog (8 tools)
+## 2. CLI Agents Catalog (10 tools)
 
 Autonomous agents that appear in `/dashboard/cli-agents`:
 
@@ -139,6 +197,8 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 | agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
 | omp          | Oh My Pi         | OSS                      | full           | true         |
 | letta        | Letta CLI        | Letta                    | full           | false        |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
+| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
 
 ---
 
@@ -201,16 +261,16 @@ interface ToolBatchStatus {
 
 New tools with `configType: "custom"` have dedicated settings API routes:
 
-| Route                                       | Tool                           |
-| ------------------------------------------- | ------------------------------ |
-| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)        |
-| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)        |
-| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, legacy) |
+| Route                                       | Tool                                                             |
+| ------------------------------------------- | ---------------------------------------------------------------- |
+| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)                                          |
+| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)                                          |
+| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, legacy)                           |
 | `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, primary + legacy `~/.deepseek` sync) |
-| `POST /api/cli-tools/smelt-settings`        | Smelt                          |
-| `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
-| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`) |
-| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + dedicated `.env` key) |
+| `POST /api/cli-tools/smelt-settings`        | Smelt                                                            |
+| `POST /api/cli-tools/pi-settings`           | Pi coding agent                                                  |
+| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`)            |
+| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + dedicated `.env` key)       |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 
@@ -304,6 +364,9 @@ npm install -g kilocode
 # Qwen Code
 npm install -g @qwen-code/qwen-code
 
+# Google Gemini CLI (launchable via `omniroute run gemini` → /v1beta surface)
+npm install -g @google/gemini-cli
+
 # Aider
 pip install aider-chat
 
@@ -337,7 +400,8 @@ export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128"
 export ANTHROPIC_AUTH_TOKEN="sk-your-omniroute-key"
-export GEMINI_BASE_URL="http://localhost:20128/v1"
+# Gemini CLI reads GOOGLE_GEMINI_BASE_URL at the ROOT (its SDK appends /v1beta/... itself)
+export GOOGLE_GEMINI_BASE_URL="http://localhost:20128"
 export GEMINI_API_KEY="sk-your-omniroute-key"
 ```
 
@@ -370,13 +434,25 @@ Use the unified Anthropic gateway root for Claude Code. Do not append `/v1` here
 
 #### OpenAI Codex
 
+Modern Codex (v0.137+) reads `~/.codex/config.toml` only — the old
+`config.yaml` belongs to the legacy npm CLI and is silently ignored. The API
+key stays in the `OMNIROUTE_API_KEY` environment variable (`env_key`), never
+inside the file:
+
 ```bash
-mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
-model: auto
-apiKey: sk-your-omniroute-key
-apiBaseUrl: http://localhost:20128/v1
+mkdir -p ~/.codex && cat > ~/.codex/config.toml << EOF
+model_provider = "omniroute"
+
+[model_providers.omniroute]
+name                 = "OmniRoute"
+base_url             = "http://localhost:20128/v1"
+env_key              = "OMNIROUTE_API_KEY"
+requires_openai_auth = false
 EOF
+export OMNIROUTE_API_KEY="sk-your-omniroute-key"
 ```
+
+Full reference (profiles, `wire_api`, context windows): [CODEX-CLI-CONFIGURATION.md](../guides/CODEX-CLI-CONFIGURATION.md).
 
 **Test:** `codex "what is 2+2?"`
 
@@ -599,10 +675,19 @@ omniroute providers list --json
 omniroute providers test <id|name>                  # Test one configured connection
 omniroute providers test-all                        # Test every active connection
 omniroute providers validate                        # Local-only structural validation
+omniroute providers add <provider> --credential-env PROVIDER_KEY
+omniroute providers import ./providers.json --dry-run --json
+omniroute providers auth <provider>                 # Existing OAuth flow
+omniroute providers edit <id|name> --default-model <model>
+omniroute providers remove <id|name> --yes
 ```
 
-> `providers available` reads the OmniRoute catalog; `providers list/test/test-all/validate`
-> read the local SQLite database directly and do not require the server to be running.
+`providers add/import/auth/edit/remove` are API-first and therefore work against
+the active local or remote context. Credential input should use
+`--credential-stdin` or `--credential-env`; `--dry-run --json` reports only
+redacted presence/shape. `providers available` reads the OmniRoute catalog;
+`providers list/test/test-all/validate` retain their local SQLite behavior and
+do not require the server to be running.
 
 ### Recovery & Reset
 
@@ -636,7 +721,7 @@ These assume a running OmniRoute server, unless noted otherwise:
 ```bash
 omniroute status                       # Comprehensive runtime status
 omniroute logs                         # Stream request logs (--json, --search, --follow)
-omniroute config show                  # Display current configuration
+omniroute config list                  # Display configured CLI tools
 
 omniroute provider list                # List available providers (alias of providers list)
 omniroute provider add                 # Register OmniRoute as a provider on a tool

@@ -1,20 +1,46 @@
-import { randomUUID, createHash } from "crypto";
+import { randomUUID } from "crypto";
+import { nodeTypeFromId } from "@/lib/db/providerNodeSelect";
+import { hydrateConnectionProviderSpecificData } from "./compatibleNodeBaseUrl.ts"; // #13452
 import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
+import { describeUpstreamFailure } from "@/shared/utils/upstreamError";
+import { buildAllExpiredCredentials } from "./authExpiredCredentials.ts";
+import { pickExpiryFirstConnection } from "./expiryFirstAccountSelection.ts";
+import { isModelScopedFailure, isQuotaExhaustedSignal } from "./modelScopedQuotaFailure.ts"; // #13548
 import {
   getCachedRawProviderConnections,
   getCachedProviderNodes,
   getCachedSettings,
+  getCachedProviderConnectionById,
 } from "@/lib/db/readCache";
 import {
   getProviderConnections,
   updateProviderConnection,
+  getProviderConnectionById,
   resetConnectionBackoff,
   touchConnectionLastUsed,
   clearConnectionErrorIfUnchanged,
 } from "@/lib/db/providers";
+import { getDbInstance } from "@/lib/db/core";
+import { getRecentEgressIpForConnection, EGRESS_IP_LOOKUP_WINDOW_MS } from "@/lib/db/proxyLogs";
 import { validateApiKey } from "@/lib/db/apiKeys";
+import {
+  getActiveExclusiveConnectionLease,
+  hashLeaseOwnerId,
+  type ExclusiveConnectionLease,
+} from "@/lib/db/exclusiveConnectionLeases";
 import { getSettings } from "@/lib/db/settings";
+import {
+  describePeakHourWindow,
+  evaluatePeakHourProtection,
+} from "@/lib/providers/peakHourProtection";
+import { buildJinaEnvCredentials } from "@/lib/providers/jina";
+import { buildGeminiEnvCredentials } from "@/lib/providers/gemini";
+import { isCommonChatGptWebRetiredProviderId } from "@/shared/constants/chatgptWebRetirement";
 import { toNumber } from "@/shared/utils/numeric";
+import { timingSafeCompare } from "@/shared/utils/timingSafeCompare";
+import { isMicrosoftDesignerWebRetiredProviderId } from "@/shared/constants/designerWebRetirement";
+import { isRuntimeRetiredProviderId } from "@/shared/constants/providerRetirement";
+import { allowlistPermitsSyntheticNoAuth } from "./noAuthAllowlist";
 import {
   createLazyConnectionView,
   toProviderConnection,
@@ -22,11 +48,24 @@ import {
 } from "@/lib/db/providers/lazyConnectionView";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
+  getCachedClaudeQuotaScopeDecision as readClaudeScope,
   getQuotaCache,
   getQuotaWindowStatus,
+  hydrateCodexQuotaCacheForRequest,
   isQuotaExhaustedForRequest,
+  resolveClaudeQuotaCooldownMs as resolveClaudeCooldown,
 } from "@/domain/quotaCache";
-import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
+import {
+  getQuotaScopeLabelForProvider,
+  isAntigravityQuotaProvider,
+} from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import {
+  rehydrateAntigravityFamilyLocksForConnections,
+  persistAntigravityFamilyCooldownIfQuota,
+} from "@omniroute/open-sse/services/antigravityFamilyCooldown.ts";
+import { markQuotaPreflightAccountUnavailable } from "./quotaPreflightUnavailable.ts";
+import { buildNoAuthModelCooldown } from "./noAuthModelCooldown.ts";
 import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import { preferAntigravityConnectionsWithStoredProject } from "@omniroute/open-sse/services/antigravityProjectPersistence.ts";
 import {
@@ -40,22 +79,41 @@ import {
   getModelLockoutInfo,
   lockModel,
   hasPerModelQuota,
+  hasPerModelFailureScope,
   getRuntimeProviderProfile,
   recordModelLockoutFailure,
+  retryHintBypassesMaxCooldownMs,
+  isProviderModelUnsupported400,
 } from "@omniroute/open-sse/services/accountFallback.ts";
+import { isSharedWalletCredits402 } from "@omniroute/open-sse/services/accountFallback/sharedWalletCredits.ts";
+import { postOutputFailureReachesLockout } from "@omniroute/open-sse/services/accountFallback/postOutputFailureStreak.ts";
+import { isOpencodeFreeTierRefusalForProvider } from "@omniroute/open-sse/executors/opencodeGeoBlock.ts";
+import { isOpencodeFreeTierSkipped } from "@omniroute/open-sse/services/opencodeFreeTierSkip.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS, RateLimitReason } from "@omniroute/open-sse/config/constants.ts";
+import * as oauthAuthBackoff from "./oauthAuthFailureBackoff.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
+import {
+  honorsRuleLockScope,
+  isEgressBucketedLockScope,
+  egressBucketedLockProviders,
+} from "@omniroute/open-sse/config/providerErrorRules.ts";
 import {
   preflightQuota,
   isQuotaPreflightEnabled,
 } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { resolveResilienceSettings } from "@/lib/resilience/settings";
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
+import {
+  buildMixedAvailabilityError,
+  isTransportCooldownErrorCode,
+} from "../services/sameAccountTransportRetry";
 import { syncHealthFromDB, type KeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
 } from "@omniroute/open-sse/services/errorClassifier.ts";
+import { resolveTerminalConnectionStatus } from "./authTerminalStatus.ts";
 import {
   ALIBABA_FREE_DRAINED_LOCK_MS,
   getAlibabaBillingMode,
@@ -65,40 +123,83 @@ import {
   mergeAlibabaFreeDrainedModels,
   rehydrateAlibabaFreeDrainedModelLocks,
 } from "@omniroute/open-sse/services/alibabaFreeTier.ts";
-
 import {
   getCodexModelScope,
   getCodexQuotaWindowFilterForModel,
   toCodexBaseQuotaWindowName,
   toCodexScopedQuotaWindowName,
 } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
+import { formatQuotaUsageReason } from "@omniroute/open-sse/services/quotaWindowLabel.ts";
+import {
+  getCodexChildCooldown,
+  isCodexChildUnavailable,
+  persistCodexChildCooldown,
+} from "@omniroute/open-sse/services/codexAccount/index.ts";
 import {
   getProviderById,
   getProviderAlias,
   resolveProviderId,
   NOAUTH_PROVIDERS,
   WEB_COOKIE_PROVIDERS,
+  isSelfHostedChatProvider,
 } from "@/shared/constants/providers";
-import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
+import {
+  isModelExcludedByConnection,
+  isModelAdvertisedByConnection,
+} from "@/domain/connectionModelRules";
+import {
+  getSyncedAvailableModelsByConnection,
+  SYNCED_AVAILABLE_MODELS_MALFORMED,
+  type SyncedAvailableModelsByConnection,
+} from "@/lib/db/models";
+import { isFreeModel } from "@/shared/utils/freeModels";
 import {
   applySessionAffinityPin,
   formatSessionKeyForLog,
+  isForcedConnectionMissingFromPool,
   resolveForcedConnectionForCredentialPool,
   resolveSessionAffinityTtlMs,
   selectSessionAffinityConnection,
+  planSessionAffinityConnection,
   syncSessionAffinityRuntimeFields,
 } from "./sessionAffinityPin";
+import {
+  EXPLICIT_INACTIVE_PROBE_INTERVAL_MS,
+  lastExplicitProbeTime,
+  noteExplicitProbe,
+  selectExplicitInactiveProbe,
+} from "./explicitInactiveProbe";
 import {
   isAnonymousFallbackDisabledBySettings,
   isNoAuthProviderBlockedBySettings,
 } from "./noAuthProviderSettings";
 import { resolveAccountProxiesFromRegistry } from "./noAuthProxyResolution";
 import { getNoAuthHydrationProviderIds } from "./noAuthProviderSiblings";
+import { loadOptionalNoAuthApiKeyCredentials } from "./noAuthOptionalApiKey";
 import { getResource404Bypass } from "./requestResourceHealth";
 import { isVertexConnectionWidePermissionDenied } from "./vertexErrorClassifier";
+import { maybeAutoDisableBannedAccount } from "./autoDisableBannedAccount";
+import {
+  buildAntigravityRoutingFields,
+  releaseRoutingLeaseFromCredentials,
+  reserveAntigravityLeaseForSelection,
+  type AntigravityLease,
+} from "./antigravityLeaseSelection";
 import * as log from "../utils/logger";
-import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
+import {
+  fisherYatesShuffle,
+  getNextFromDeckSync,
+  planNextFromDeckSync,
+} from "@/shared/utils/shuffleDeck";
+import { shouldIsolateProbeFailures } from "@/shared/utils/probeOrigin";
+import {
+  applyExclusiveConnectionLeasePolicy,
+  invalidateManagedConnectionLease,
+  mutateExclusiveConnectionLease,
+  type CredentialLeaseSelectionContext,
+} from "./exclusiveConnectionLeasePolicy";
 import { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
+import { isRequestScopedServerFailure } from "./syntheticEmptyStream.ts";
 import {
   getOAuthSessionAvailability,
   reserveOAuthSession,
@@ -114,7 +215,7 @@ interface RecoverableConnectionState {
   lastErrorType?: string | null;
   lastErrorSource?: string | null;
 }
-interface CredentialSelectionOptions {
+export interface CredentialSelectionOptions {
   allowSuppressedConnections?: boolean;
   allowRateLimitedConnections?: boolean;
   bypassQuotaPolicy?: boolean;
@@ -123,7 +224,22 @@ interface CredentialSelectionOptions {
   sessionKey?: string | null;
   sessionAffinityTtlMs?: number | null;
   reserveOAuthSession?: boolean;
+  lease?: CredentialLeaseSelectionContext;
+  materializeCredentials?: boolean;
+  deferLeaseClaim?: boolean;
+  /** Internal: a same-call UNIQUE retry already holds the provider/owner selection lock. */
+  _leaseRetryWithLockHeld?: boolean;
+  /** Internal: freeze the original policy-valid candidate set across lease race/preflight retry. */
+  _leaseCandidateIds?: string[];
+  /** Antigravity account lease (#10011): only the final chat dispatch opts in. */
+  reserveAntigravityLease?: boolean;
+  routingRequestId?: string | null;
 }
+export type ExclusiveLeaseSelectionResult = {
+  exclusiveLease: ExclusiveConnectionLease;
+  connectionId: string;
+  provider: string;
+};
 interface CooldownInspectionState {
   connection: ProviderConnectionView;
   connectionCooldownMs: number | null;
@@ -143,88 +259,8 @@ function asRecord(value: unknown): JsonRecord {
 function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
-function toNullableNumber(value: unknown): number | null {
-  if (value === null || value === undefined) return null;
-  const parsed = toNumber(value, Number.NaN);
-  return Number.isFinite(parsed) ? parsed : null;
-}
 function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
-}
-function normalizeSessionKey(value: unknown, prefix: string): string | null {
-  if (typeof value !== "string" || value.trim().length === 0) return null;
-  const trimmed = value.trim();
-  if (trimmed.length <= 180 && /^[A-Za-z0-9._:-]+$/.test(trimmed)) {
-    return `${prefix}:${trimmed}`;
-  }
-  return `${prefix}:sha256:${createHash("sha256").update(trimmed).digest("hex")}`;
-}
-function extractTextForSessionHash(value: unknown): string | null {
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) {
-    const parts = value
-      .map((item) => {
-        if (typeof item === "string") return item;
-        const record = asRecord(item);
-        if (typeof record.text === "string") return record.text;
-        if (typeof record.content === "string") return record.content;
-        return null;
-      })
-      .filter(Boolean) as string[];
-    return parts.length > 0 ? parts.join("\n") : JSON.stringify(value);
-  }
-  if (value && typeof value === "object") return JSON.stringify(value);
-  return null;
-}
-function getFirstInputText(body: unknown): string | null {
-  const record = asRecord(body);
-  if (record.input !== undefined) {
-    if (typeof record.input === "string") return record.input;
-    if (Array.isArray(record.input)) {
-      for (const item of record.input) {
-        const itemRecord = asRecord(item);
-        const text = extractTextForSessionHash(itemRecord.content ?? item);
-        if (text && text.trim().length > 0) return text;
-      }
-    }
-    const text = extractTextForSessionHash(record.input);
-    if (text && text.trim().length > 0) return text;
-  }
-
-  if (Array.isArray(record.messages)) {
-    const userMessage = record.messages.find((message) => asRecord(message).role === "user");
-    const firstMessage = userMessage ?? record.messages[0];
-    const text = extractTextForSessionHash(asRecord(firstMessage).content ?? firstMessage);
-    if (text && text.trim().length > 0) return text;
-  }
-
-  return null;
-}
-export function extractSessionAffinityKey(
-  body: unknown,
-  headers?: Headers | { get?: (name: string) => string | null } | null
-): string | null {
-  const headerKey = normalizeSessionKey(
-    readHeaderValue(headers, "x-codex-session-id") ??
-      readHeaderValue(headers, "x-session-id") ??
-      readHeaderValue(headers, "x-omniroute-session"),
-    "header"
-  );
-  if (headerKey) return headerKey;
-
-  const record = asRecord(body);
-  const metadata = asRecord(record.metadata);
-  const explicitKey =
-    normalizeSessionKey(metadata.session_id, "metadata") ??
-    normalizeSessionKey(metadata.sessionId, "metadata") ??
-    normalizeSessionKey(record.conversation_id, "conversation") ??
-    normalizeSessionKey(record.session_id, "session") ??
-    normalizeSessionKey(record.prompt_cache_key, "prompt-cache");
-  if (explicitKey) return explicitKey;
-
-  const inputText = getFirstInputText(body);
-  if (!inputText || inputText.trim().length === 0) return null;
-  return `input:sha256:${createHash("sha256").update(inputText.slice(0, 4096)).digest("hex")}`;
 }
 function getCodexLimitPolicy(providerSpecificData: JsonRecord): {
   use5h: boolean;
@@ -293,44 +329,6 @@ function applyCodexWindowPolicy(rawWindows: string[], providerSpecificData: Json
 
   return uniqueWindows(windows);
 }
-function getCodexScopeRateLimitedUntil(
-  providerSpecificData: JsonRecord,
-  model: string | null
-): string | null {
-  if (!model) return null;
-  const scope = getCodexModelScope(model);
-  const scopeMap = asRecord(providerSpecificData.codexScopeRateLimitedUntil);
-  const value = scopeMap[scope];
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-function isCodexScopeUnavailable(
-  connection: ProviderConnectionView,
-  model: string | null
-): boolean {
-  const until = getCodexScopeRateLimitedUntil(connection.providerSpecificData, model);
-  if (!until) return false;
-  return new Date(until).getTime() > Date.now();
-}
-function getEarliestCodexScopeRateLimitedUntil(
-  connections: ProviderConnectionView[],
-  model: string | null
-): string | null {
-  let earliest: string | null = null;
-  let earliestMs = Infinity;
-
-  for (const conn of connections) {
-    const until = getCodexScopeRateLimitedUntil(conn.providerSpecificData, model);
-    if (!until) continue;
-    const ms = new Date(until).getTime();
-    if (!Number.isFinite(ms) || ms <= Date.now()) continue;
-    if (ms < earliestMs) {
-      earliest = until;
-      earliestMs = ms;
-    }
-  }
-
-  return earliest;
-}
 function normalizeStatus(value: string | null): string {
   return (value || "").trim().toLowerCase();
 }
@@ -339,50 +337,31 @@ function isTerminalConnectionStatus(connection: ProviderConnectionView): boolean
   return status === "credits_exhausted" || status === "banned" || status === "expired";
 }
 
-// #8200: cookie-auth providers (perplexity-web, grok-web, ...) use a rotating browser
-// session, not a static API key — a 401 means "session needs a refresh", not "dead".
-function isRecoverableCookieAuth401(
-  provider: string | null,
-  providerErrorType: string | null
+// OpenRouter's paid balance and its `:free`-suffixed models are billed
+// separately — a 402 from a paid model call correctly locks the whole
+// connection as credits_exhausted (see openrouter-quota-6842.test.ts), but
+// that lock must not also block :free model requests on the same
+// connection, or combo failover to the user's configured free models never
+// fires. Scoped to provider === "openrouter" + status === credits_exhausted
+// only; every other terminal status (banned, expired) and every other
+// provider keep the unconditional exclusion.
+function isTerminalConnectionStatusForModel(
+  connection: ProviderConnectionView,
+  provider: string,
+  requestedModel: string | null
 ): boolean {
-  return (
-    providerErrorType !== PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED &&
-    provider != null &&
-    resolveProviderId(provider) in WEB_COOKIE_PROVIDERS
-  );
-}
-function resolveTerminalConnectionStatus(
-  status: number,
-  result: { permanent?: boolean; creditsExhausted?: boolean },
-  providerErrorType: string | null = null,
-  provider: string | null = null
-): string | null {
-  if (result.creditsExhausted || status === 402) return "credits_exhausted";
+  if (!isTerminalConnectionStatus(connection)) return false;
   if (
-    providerErrorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR ||
-    providerErrorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN ||
-    // #1010: Cloudflare fingerprint rejection is the CDN refusing the CLIENT's
-    // signature, not the account's credentials — never a terminal account state.
-    // A different client on the same key succeeds (measured 2026-08-08: curl 200,
-    // urllib 403 on byte-identical body), so banning the account here would flip a
-    // healthy free pool to ALL_ACCOUNTS_INACTIVE after two such calls.
-    providerErrorType === PROVIDER_ERROR_TYPES.FINGERPRINT_REJECTION
+    provider === "openrouter" &&
+    normalizeStatus(connection.testStatus) === "credits_exhausted" &&
+    requestedModel &&
+    isFreeModel("openrouter", { id: requestedModel })
   ) {
-    return null;
+    return false;
   }
-  if (result.permanent || providerErrorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
-    return "banned";
-  }
-  if (
-    (providerErrorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED ||
-      providerErrorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED ||
-      status === 401) &&
-    !isRecoverableCookieAuth401(provider, providerErrorType)
-  ) {
-    return "expired";
-  }
-  return null;
+  return true;
 }
+
 export function resolveQuotaLimitPolicy(
   provider: string,
   providerSpecificData: JsonRecord
@@ -413,6 +392,11 @@ export function evaluateQuotaLimitPolicy(
   connection: ProviderConnectionView,
   requestedModel: string | null = null
 ): { blocked: boolean; reasons: string[]; resetAt: string | null } {
+  // Extra-usage switch is opt-in billing, not a pre-dispatch skip. When the
+  // operator allows extra usage, 5h/weekly bars must not hide the account.
+  if (isClaudeExtraUsageAllowed(provider, connection.providerSpecificData)) {
+    return { blocked: false, reasons: [], resetAt: null };
+  }
   const policy = resolveQuotaLimitPolicy(provider, connection.providerSpecificData);
   if (!policy.enabled || policy.windows.length === 0) {
     return { blocked: false, reasons: [], resetAt: null };
@@ -430,7 +414,16 @@ export function evaluateQuotaLimitPolicy(
       policy.thresholdPercent
     );
     if (!status?.reachedThreshold) continue;
-    reasons.push(`${effectiveWindowName} usage ${Math.round(status.usedPercentage)}%`);
+    reasons.push(
+      formatQuotaUsageReason(
+        {
+          key: effectiveWindowName,
+          displayName: status.displayName,
+          windowSeconds: status.windowSeconds,
+        },
+        status.usedPercentage
+      )
+    );
     resetCandidates.push(status.resetAt);
   }
 
@@ -586,7 +579,12 @@ function getP2CConnectionScore(
     quotaExhausted = cached.exhausted;
   } else {
     quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-    quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
+    quotaExhausted = isQuotaExhaustedForRequest(
+      connection.id,
+      provider,
+      requestedModel,
+      connection.providerSpecificData
+    );
   }
 
   const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
@@ -649,11 +647,13 @@ function compareP2CConnections(
  * exclude it (#3061), otherwise it gets re-selected forever.
  */
 const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+
 type AnonymousFallbackProviderDefinition = {
   anonymousFallback?: boolean;
   noAuth?: boolean;
 };
 function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}): {
+  authType: "none";
   apiKey: null;
   accessToken: null;
   refreshToken: null;
@@ -676,6 +676,7 @@ function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}):
   retryAfterHuman?: never;
 } {
   return {
+    authType: "none",
     apiKey: null,
     accessToken: null,
     refreshToken: null,
@@ -786,12 +787,16 @@ async function maybeSyntheticNoAuthFallback(
   allowedConnections: string[] | null = null
 ) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
-  // #9057: a key pinned to specific connections via allowedConnections must
-  // NOT receive the synthetic "noauth" connection — the synthetic id is
-  // never in an explicit allowlist, so returning it would let a restricted
-  // key reach free providers (felo-chat, etc.) that it should not access.
-  if (Array.isArray(allowedConnections) && allowedConnections.length > 0) return null;
+  // #9057: a restricted key must NOT reach free providers (OpenCode Free, etc.) through the
+  // synthetic "noauth" connection unless its allowedConnections names it.
+  if (!allowlistPermitsSyntheticNoAuth(allowedConnections)) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
+  // #14313: a free-tier refusal just paused this keyless path — do not re-select
+  // the synthetic noauth connection until the short TTL expires.
+  if (isOpencodeFreeTierSkipped(providerId)) {
+    log.info("AUTH", `${providerId} | no-auth fallback skipped (OpenCode free-tier pause)`);
+    return null;
+  }
   if (
     isAnonymousFallbackOnlyProvider(providerId) &&
     (await isAnonymousFallbackDisabledBySettings(providerId))
@@ -831,6 +836,32 @@ function formatConnectionPrefixesForLog(ids: Iterable<string>, max = 6): string 
     .map((id) => `${id.slice(0, 8)}...`);
   return prefixes.length > 0 ? prefixes.join(",") : "none";
 }
+function buildPeakHourProtectionRateLimitedResult(
+  provider: string,
+  blockedByPeakHour: Array<{
+    id: string;
+    retryAfter: string;
+    windowSummary: string;
+  }>
+) {
+  const retryAfter =
+    getEarliestFutureDate(blockedByPeakHour.map((entry) => entry.retryAfter)) ||
+    new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  const blockedSummary = blockedByPeakHour
+    .map((entry) => `${entry.id.slice(0, 8)}(${entry.windowSummary})`)
+    .join("; ");
+
+  log.info("AUTH", `${provider} | peak-hour protection filtered account(s): ${blockedSummary}`);
+
+  return {
+    allRateLimited: true,
+    retryAfter,
+    retryAfterHuman: formatRetryAfter(retryAfter),
+    lastError: `All ${provider} accounts blocked by peak-hour protection`,
+    lastErrorCode: 429,
+  };
+}
+
 function buildQuotaPreflightRateLimitedResult(
   provider: string,
   blockedByPreflight: Array<{
@@ -861,34 +892,6 @@ function buildQuotaPreflightRateLimitedResult(
     lastErrorCode: 429,
   };
 }
-function quotaPreflightUnavailableUntil(resetAt?: string | null): string {
-  const resetMs = parseFutureDateMs(resetAt ?? null);
-  return new Date(resetMs ?? Date.now() + 5 * 60 * 1000).toISOString();
-}
-async function markQuotaPreflightAccountUnavailable(
-  provider: string,
-  connectionId: string,
-  preflight: { quotaPercent?: number; resetAt?: string | null },
-  requestedModel: string | null
-): Promise<string> {
-  const unavailableUntil = quotaPreflightUnavailableUntil(preflight.resetAt ?? null);
-  const percentLabel = Number.isFinite(preflight.quotaPercent)
-    ? `${Math.round((preflight.quotaPercent as number) * 100)}%`
-    : "exhausted";
-  const modelLabel = requestedModel ? ` for ${requestedModel}` : "";
-
-  await updateProviderConnection(connectionId, {
-    rateLimitedUntil: unavailableUntil,
-    testStatus: "unavailable",
-    lastError: `Quota preflight blocked${modelLabel}: ${percentLabel}`,
-    lastErrorType: "quota_exhausted",
-    lastErrorSource: "quota_preflight",
-    errorCode: 429,
-    lastErrorAt: new Date().toISOString(),
-  });
-
-  return unavailableUntil;
-}
 
 // Provider-scoped mutexes prevent race conditions during account selection without
 // serializing unrelated providers behind a single global lock.
@@ -897,6 +900,7 @@ function getSelectionMutexKey(provider: string, options: CredentialSelectionOpti
   return [
     resolveProviderId(provider) || provider,
     options.forcedConnectionId ? `forced:${options.forcedConnectionId}` : "pool",
+    options.lease ? `lease:${hashLeaseOwnerId(options.lease.context.leaseOwnerId)}` : "unmanaged",
   ].join(":");
 }
 function createSelectionLock(key: string) {
@@ -930,22 +934,29 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 // Re-export readHeaderValue and AuthRequestHeaders from headerReader.ts for
 // backwards compat with existing imports (e.g. googApiKeyAuth.ts).
 export { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
+export { extractSessionAffinityKey } from "./sessionAffinityPin";
 const PROVIDER_SEARCH_PAIRS: string[][] = [
   ["nvidia", "nvidia_nim"],
   ["kimi-coding", "kimi-coding-apikey"],
   // The model layer canonicalizes `agy/` to `antigravity`, but the Antigravity
   // CLI card stores its connection under `agy`. Same account, either id serves.
   ["antigravity", "agy"],
+  // OpenCode connection card stores under `opencode`, but model alias resolves to `opencode-zen`.
+  ["opencode", "opencode-zen"],
+  // One Jina token works on api.jina.ai, r.jina.ai, and s.jina.ai.
+  // Requested id stays first so embed/rerank do not silently pick a
+  // Reader-only row when both cards are filled. jina-search has no
+  // dashboard card — it must still see jina-ai / jina-reader keys
+  // before falling through to JINA_AI_API_KEY.
+  ["jina-ai", "jina-reader", "jina-search"],
 ];
-/**
- * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
- */
+/** Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup. */
 async function getProviderSearchPool(provider: string): Promise<string[]> {
   const canonicalProvider = resolveProviderId(provider);
   const canonicalAlias = getProviderAlias(canonicalProvider);
-
-  const pair = PROVIDER_SEARCH_PAIRS.find((aliases) => aliases.includes(provider));
-  if (pair) return pair[0] === provider ? pair : [pair[1], pair[0]];
+  if (isCommonChatGptWebRetiredProviderId(provider)) return [];
+  const group = PROVIDER_SEARCH_PAIRS.find((aliases) => aliases.includes(provider));
+  if (group) return [provider, ...group.filter((id) => id !== provider)];
 
   const searchPool = new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean));
 
@@ -961,17 +972,65 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
   // internal provider ids like openai-compatible-responses-<uuid>.
   try {
     const providerNodes = await getCachedProviderNodes();
-    for (const node of Array.isArray(providerNodes) ? providerNodes : []) {
+    const compatibleNodes = Array.isArray(providerNodes) ? providerNodes : [];
+    const nodeTypes = new Map<string, number>();
+    for (const node of compatibleNodes) {
+      const nodeRecord = asRecord(node);
+      const nodeId = typeof nodeRecord.id === "string" ? nodeRecord.id.trim() : "";
+      if (!nodeId) continue;
+      const derivedType = nodeTypeFromId(nodeId);
+      nodeTypes.set(derivedType, (nodeTypes.get(derivedType) || 0) + 1);
+    }
+
+    for (const node of compatibleNodes) {
       const nodeRecord = asRecord(node);
       const nodePrefix = typeof nodeRecord.prefix === "string" ? nodeRecord.prefix.trim() : "";
       const nodeId = typeof nodeRecord.id === "string" ? nodeRecord.id.trim() : "";
-      if (!nodePrefix || !nodeId) continue;
+      if (!nodeId) continue;
       if (
-        nodePrefix === provider ||
-        nodePrefix === canonicalProvider ||
-        nodePrefix === canonicalAlias
+        nodePrefix &&
+        (nodePrefix === provider ||
+          nodePrefix === canonicalProvider ||
+          nodePrefix === canonicalAlias)
       ) {
         searchPool.add(nodeId);
+      }
+
+      // #10085: bridge the concrete uuid node id (what the chat path resolves,
+      // "<generic-type>-<uuid>") to the GENERIC derived type id (what
+      // resolveProviderNodeForConnection also accepts for connection creation,
+      // #4421) -- and back. A connection created via the bare generic type
+      // (e.g. "openai-compatible-chat") must still be found when the chat path
+      // looks up the concrete node id, and vice versa.
+      //
+      // #10434: both bridging directions MUST require the derived type to be
+      // unambiguous (exactly one provider node of that type) before falling
+      // back to a generic-type match -- an explicit ownership check, not just
+      // a string-format coincidence. This mirrors the exact rule already
+      // enforced by selectProviderNodeForConnection() for connection CREATION
+      // (src/lib/db/providerNodeSelect.ts, #4421): "only when exactly one such
+      // node exists, so an ambiguous type never silently picks the wrong
+      // node". Without this guard on the generic->concrete direction, a bare
+      // generic-type lookup would pool in EVERY node sharing that derived
+      // type, including a connection scoped (via its own providerSpecificData
+      // baseUrl/headers) to one specific node -- leaking that node's
+      // credentials/upstream URL into a lookup for a different, unrelated
+      // node of the same generic type.
+      const derivedType = nodeTypeFromId(nodeId);
+      if (derivedType && derivedType !== nodeId) {
+        const typeIsUnambiguous = nodeTypes.get(derivedType) === 1;
+        if (typeIsUnambiguous) {
+          if (nodeId === provider || nodeId === canonicalProvider || nodeId === canonicalAlias) {
+            searchPool.add(derivedType);
+          }
+          if (
+            derivedType === provider ||
+            derivedType === canonicalProvider ||
+            derivedType === canonicalAlias
+          ) {
+            searchPool.add(nodeId);
+          }
+        }
       }
     }
   } catch {
@@ -979,6 +1038,128 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
   }
 
   return Array.from(searchPool);
+}
+
+function invalidateManagedLease(
+  options: CredentialSelectionOptions,
+  reason: Parameters<typeof invalidateManagedConnectionLease>[1]
+) {
+  invalidateManagedConnectionLease(options.lease, reason);
+}
+
+type DeferredLeaseSelection = {
+  commitSelectionSideEffects?: () => Promise<void> | void;
+  selectNextLeaseCandidate?: (excludedConnectionId: string) => Promise<unknown>;
+};
+
+function planLastUsedCommit(
+  connection: ProviderConnectionView,
+  connections: ProviderConnectionView[],
+  count: number
+) {
+  const now = new Date().toISOString();
+  return async () => {
+    await touchConnectionLastUsed(connection.id, count);
+    connection.lastUsedAt = now;
+    connection.consecutiveUseCount = count;
+    syncSessionAffinityRuntimeFields(connections, connection);
+  };
+}
+
+async function materializeConnection(
+  connection: ProviderConnectionView,
+  options: CredentialSelectionOptions,
+  extra: DeferredLeaseSelection & {
+    exclusiveLease?: ExclusiveConnectionLease;
+    reactivatedFromInactive?: boolean;
+    routingLease?: AntigravityLease;
+    requestedModel?: string | null;
+  } = {}
+) {
+  const providerSpecificData = await hydrateConnectionProviderSpecificData(connection);
+  const apiKeyHealth = providerSpecificData.apiKeyHealth as Record<string, KeyHealth> | undefined;
+  if (apiKeyHealth) syncHealthFromDB(connection.id, apiKeyHealth);
+  const releaseOAuthSession =
+    options.reserveOAuthSession === true && connection.authType === "oauth" && options.sessionKey
+      ? reserveOAuthSession(connection.id, options.sessionKey)
+      : undefined;
+  return {
+    apiKey: connection.apiKey,
+    accessToken: connection.accessToken,
+    refreshToken: connection.refreshToken,
+    expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,
+    projectId: connection.projectId,
+    defaultModel: connection.defaultModel || null,
+    copilotToken:
+      typeof providerSpecificData.copilotToken === "string"
+        ? providerSpecificData.copilotToken
+        : null,
+    providerSpecificData,
+    id: connection.id,
+    provider: connection.provider,
+    authType: connection.authType,
+    email: connection.email,
+    connectionId: connection.id,
+    testStatus: connection.testStatus,
+    lastError: connection.lastError,
+    lastErrorType: connection.lastErrorType,
+    lastErrorSource: connection.lastErrorSource,
+    errorCode: connection.errorCode,
+    rateLimitedUntil: connection.rateLimitedUntil,
+    maxConcurrent: connection.maxConcurrent,
+    quotaWindowThresholds: connection.quotaWindowThresholds ?? null,
+    ...(releaseOAuthSession ? { releaseOAuthSession } : {}),
+    ...buildAntigravityRoutingFields(extra.routingLease, connection.id, extra.requestedModel),
+    ...extra,
+  };
+}
+
+/**
+ * #11089: load the per-connection synced model inventory for self-hosted chat
+ * providers so connection selection can drop hosts that never advertised the
+ * requested model.
+ *
+ * Scoped to SELF_HOSTED_CHAT_PROVIDER_IDS: those are the providers where one
+ * provider id fans out to several independent hosts with genuinely different
+ * inventories. Hosted providers share one catalog per provider, so filtering
+ * there would only add a DB read.
+ *
+ * Returns an empty map (= no filtering) when there is no model to match, when
+ * no candidate is self-hosted, or when the persisted rows are malformed — a
+ * partial read must never silently shrink the pool.
+ */
+async function loadAdvertisedModelsForSelfHostedConnections(
+  connections: ProviderConnectionView[],
+  requestedModel: string | null
+): Promise<Map<string, Set<string>>> {
+  const advertised = new Map<string, Set<string>>();
+  if (!requestedModel) return advertised;
+
+  const selfHostedProviders = new Set(
+    connections
+      .map((c) => c.provider)
+      .filter((p): p is string => typeof p === "string" && isSelfHostedChatProvider(p))
+  );
+  if (selfHostedProviders.size === 0) return advertised;
+
+  await Promise.all(
+    [...selfHostedProviders].map(async (providerId) => {
+      let byConnection: SyncedAvailableModelsByConnection;
+      try {
+        byConnection = await getSyncedAvailableModelsByConnection(providerId);
+      } catch {
+        return;
+      }
+      // Malformed persisted rows: fail open for the whole provider.
+      if (byConnection[SYNCED_AVAILABLE_MODELS_MALFORMED]) return;
+      for (const [connectionId, models] of Object.entries(byConnection)) {
+        if (!Array.isArray(models) || models.length === 0) continue;
+        advertised.set(connectionId, new Set(models.map((m) => m.id)));
+      }
+    })
+  );
+
+  return advertised;
 }
 
 /**
@@ -994,10 +1175,24 @@ export async function getProviderCredentials(
   requestedModel: string | null = null,
   options: CredentialSelectionOptions = {}
 ) {
-  const selectionLock = createSelectionLock(getSelectionMutexKey(provider, options));
+  if (isMicrosoftDesignerWebRetiredProviderId(provider)) {
+    invalidateManagedLease(options, "AUTHORIZATION_CHANGED");
+    log.warn("AUTH", "Retired provider credential selection denied");
+    return null;
+  }
+
+  if (isRuntimeRetiredProviderId(provider)) {
+    invalidateManagedLease(options, "CONNECTION_INELIGIBLE");
+    log.warn("AUTH", "Retired provider rejected before credential selection");
+    return null;
+  }
+
+  const selectionLock = options._leaseRetryWithLockHeld
+    ? null
+    : createSelectionLock(getSelectionMutexKey(provider, options));
 
   try {
-    await selectionLock.wait;
+    await selectionLock?.wait;
 
     // No-auth providers (e.g. opencode) need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
@@ -1018,12 +1213,37 @@ export async function getProviderCredentials(
         excludeConnectionId,
         options.excludeConnectionIds
       );
-      // #9057: when allowedConnections is set, the synthetic "noauth" connection
-      // is never in the explicit allowlist, so we must NOT return it — fall through
-      // to the normal connection-selection path so the connection allowlist is
-      // respected (the no-auth provider will be rejected if it has no real connections
-      // matching the allowlist, or a real connection row will be selected if present).
-      if (!allowedConnections || allowedConnections.length === 0) {
+      const optionalKey = await loadOptionalNoAuthApiKeyCredentials(resolvedId, excludedForNoAuth);
+      if (
+        optionalKey &&
+        (!allowedConnections ||
+          allowedConnections.length === 0 ||
+          allowedConnections.includes(optionalKey.connectionId))
+      ) {
+        return optionalKey;
+      }
+      // #9057: an allowlist that does not name "noauth" falls through to the normal
+      // connection-selection path so the allowlist is respected.
+      if (allowlistPermitsSyntheticNoAuth(allowedConnections)) {
+        // #13483: check model-only lockout before handing back the synthetic
+        // connection. Without this, a locked model (e.g. 400 model_capacity)
+        // is retried on every request because the noauth path short-circuits
+        // before the per-connection status pass that classifies modelLocked.
+        const modelLockout = requestedModel
+          ? getModelLockoutInfo(resolvedId, SYNTHETIC_NOAUTH_CONNECTION_ID, requestedModel)
+          : null;
+        if (modelLockout && modelLockout.remainingMs > 0) {
+          // Not-found style locks stay a plain "no credentials"; any other lock is a
+          // temporary cooldown that the chat handler can wait out or answer with a 429.
+          return isRetryableModelLockoutReason(modelLockout.reason)
+            ? buildNoAuthModelCooldown(
+                resolvedId,
+                requestedModel!,
+                modelLockout,
+                SYNTHETIC_NOAUTH_CONNECTION_ID
+              )
+            : null;
+        }
         return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
       }
     }
@@ -1065,43 +1285,107 @@ export async function getProviderCredentials(
         );
       }
     }
+    rehydrateAntigravityFamilyLocksForConnections(provider, connections);
     // allowedConnections: restrict to specific connection IDs (from API key policy, #363)
     if (allowedConnections && allowedConnections.length > 0) {
       connections = connections.filter((conn) => allowedConnections.includes(conn.id));
     }
+    let explicitProbeKind: "probe" | "suppressed" | "skip" = "skip";
+    if (forcedConnectionId && !connections.some((c) => c.id === forcedConnectionId)) {
+      const pinnedRaw = await getCachedProviderConnectionById(forcedConnectionId);
+      const pinnedRow = pinnedRaw ? toProviderConnection(pinnedRaw) : null;
+      const nowMs = Date.now();
+      const decision = selectExplicitInactiveProbe({
+        forcedConnectionId,
+        activeConnections: connections,
+        pinnedRow,
+        providersToSearch,
+        allowedConnectionIds: allowedConnections ?? null,
+        nowMs,
+        lastProbeAtMs: lastExplicitProbeTime(forcedConnectionId),
+        intervalMs: EXPLICIT_INACTIVE_PROBE_INTERVAL_MS,
+      });
+      explicitProbeKind = decision.kind;
+      if (decision.kind === "probe" && pinnedRow) {
+        noteExplicitProbe(forcedConnectionId, nowMs);
+        connections = [pinnedRow];
+      }
+    }
+    const probeStamp =
+      explicitProbeKind === "probe" ? { reactivatedFromInactive: true as const } : {};
+    const forcedConnectionEligible = connections.some((conn) => conn.id === forcedConnectionId);
+    if (options.lease && forcedConnectionId && !forcedConnectionEligible) return null;
+    if (options.lease?.mode === "request" && forcedConnectionId) {
+      const activeLease = getActiveExclusiveConnectionLease(options.lease.context.leaseOwnerId);
+      if (activeLease && activeLease.connectionId !== forcedConnectionId) {
+        return { leaseConnectionMismatch: true };
+      }
+    }
+
+    const isCodexScopeUnavailable = (
+      connection: ProviderConnectionView,
+      model: string | null
+    ): boolean => provider === "codex" && isCodexChildUnavailable(connection, model);
 
     // #5903: an active session-affinity pin outranks a per-request reset-aware
     // forcedConnectionId (see sessionAffinityPin leaf for the full rationale).
-    forcedConnectionId =
-      applySessionAffinityPin({
+    if (!options.lease) {
+      forcedConnectionId =
+        applySessionAffinityPin({
+          forcedConnectionId,
+          options,
+          sessionAffinityTtlMs,
+          connections,
+          provider,
+          requestedModel,
+          excludedConnectionIds,
+          isTerminalConnectionStatus,
+          isCodexScopeUnavailable,
+          isQuotaPolicyBlocked: (c) =>
+            evaluateQuotaLimitPolicy(provider, c as ProviderConnectionView, requestedModel).blocked,
+        }) ?? forcedConnectionId;
+    }
+
+    // A forced connection (combo step `connectionId` / `x-omniroute-connection`) is an
+    // operator instruction, not a suggestion. resolveForcedConnectionForCredentialPool()
+    // legitimately returns null for several *intentional* pin-release cases (forced ID
+    // already in excludedConnectionIds after a failed attempt, cooldown, quota exhaustion,
+    // quota-policy block) — those must keep degrading to normal sibling fallback, unchanged.
+    // The bug is narrower: the forced connection was requested, was NOT intentionally
+    // excluded, and simply is not present in the current active/allowed pool at all (e.g.
+    // an operator deactivated it). Detect exactly that case *before* calling the resolver,
+    // so it never gets folded in with the intentional-release cases above.
+    if (isForcedConnectionMissingFromPool(forcedConnectionId, excludedConnectionIds, connections)) {
+      // Route through the existing "target has no eligible credentials" recoverable path
+      // (the connections.length === 0 branch just below) instead of falling through to the
+      // full active pool. That path already returns null/CONNECTION_INELIGIBLE, which the
+      // chat handler turns into a 404 for combo requests so the combo loop advances to its
+      // next target — the same mechanism a whole disabled provider already relies on.
+      connections = [];
+    } else {
+      forcedConnectionId = resolveForcedConnectionForCredentialPool({
         forcedConnectionId,
-        options,
-        sessionAffinityTtlMs,
-        connections,
-        provider,
-        requestedModel,
         excludedConnectionIds,
-        isTerminalConnectionStatus,
-        isCodexScopeUnavailable,
-        isQuotaPolicyBlocked: (c) =>
-          evaluateQuotaLimitPolicy(provider, c as ProviderConnectionView, requestedModel).blocked,
-      }) ?? forcedConnectionId;
+        connections,
+        allowRateLimitedConnections,
+        bypassQuotaPolicy,
+        isQuotaExhausted: (connectionId) => {
+          const conn = connections.find((candidate) => candidate.id === connectionId);
+          return isQuotaExhaustedForRequest(
+            connectionId,
+            provider,
+            requestedModel,
+            conn?.providerSpecificData
+          );
+        },
+        isQuotaPolicyBlocked: (connection) =>
+          evaluateQuotaLimitPolicy(provider, connection as ProviderConnectionView, requestedModel)
+            .blocked,
+      });
 
-    forcedConnectionId = resolveForcedConnectionForCredentialPool({
-      forcedConnectionId,
-      excludedConnectionIds,
-      connections,
-      allowRateLimitedConnections,
-      bypassQuotaPolicy,
-      isQuotaExhausted: (connectionId) =>
-        isQuotaExhaustedForRequest(connectionId, provider, requestedModel),
-      isQuotaPolicyBlocked: (connection) =>
-        evaluateQuotaLimitPolicy(provider, connection as ProviderConnectionView, requestedModel)
-          .blocked,
-    });
-
-    if (forcedConnectionId) {
-      connections = connections.filter((conn) => conn.id === forcedConnectionId);
+      if (forcedConnectionId) {
+        connections = connections.filter((conn) => conn.id === forcedConnectionId);
+      }
     }
     const activeConnectionsCount = connections.length;
     const rawConnectionsCount = connectionsRaw.length;
@@ -1136,9 +1420,16 @@ export async function getProviderCredentials(
       let allConnections = (allConnectionsResults.filter(Array.isArray).flat() as unknown[])
         .map(toProviderConnection)
         .filter((conn) => conn.id.length > 0);
+      // #13832: remember how many connections the provider really has BEFORE the
+      // key-policy filter, so an empty pool can say which gate emptied it. Without
+      // this the caller only ever saw "No active credentials for provider: X",
+      // identical to "never configured" — while /test and /sync-models kept working,
+      // because they address a connection by id and never consult the key's scope.
+      const connectionsBeforeKeyPolicy = allConnections.length;
       if (allowedConnections && allowedConnections.length > 0) {
         allConnections = allConnections.filter((conn) => allowedConnections.includes(conn.id));
       }
+      const blockedByKeyPolicyCount = connectionsBeforeKeyPolicy - allConnections.length;
       if (forcedConnectionId) {
         allConnections = allConnections.filter((conn) => conn.id === forcedConnectionId);
       }
@@ -1150,13 +1441,14 @@ export async function getProviderCredentials(
             "AUTH",
             `${provider} | all ${allConnections.length} accounts rate limited (${formatRetryAfter(earliest)})`
           );
+          invalidateManagedLease(options, "HEALTH_OR_COOLDOWN");
           return {
             allRateLimited: true,
             retryAfter: earliest,
             retryAfterHuman: formatRetryAfter(earliest),
           };
         }
-        log.warn("AUTH", `${provider} | ${allConnections.length} accounts found but none active`);
+        log.debug("AUTH", `${provider} | ${allConnections.length} accounts found but none active`);
         allConnections.forEach((c) => {
           log.debug(
             "AUTH",
@@ -1172,25 +1464,14 @@ export async function getProviderCredentials(
         // the dashboard sees a misleading "bad_request" code.
         const terminalConnections = allConnections.filter(isTerminalConnectionStatus);
         if (terminalConnections.length === allConnections.length) {
+          invalidateManagedLease(options, "AUTHORIZATION_CHANGED");
           const syntheticFallback = await maybeSyntheticNoAuthFallback(
             resolvedId,
             excludedConnectionIds,
             allowedConnections
           );
           if (syntheticFallback) return syntheticFallback;
-
-          const statusCounts = new Map<string, number>();
-          for (const c of terminalConnections) {
-            const key = normalizeStatus(c.testStatus) || "expired";
-            statusCounts.set(key, (statusCounts.get(key) || 0) + 1);
-          }
-          const dominantStatus =
-            [...statusCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "expired";
-          return {
-            allExpired: true,
-            expiredCount: terminalConnections.length,
-            expiredStatus: dominantStatus,
-          };
+          return buildAllExpiredCredentials(terminalConnections);
         }
       }
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
@@ -1199,7 +1480,36 @@ export async function getProviderCredentials(
         allowedConnections
       );
       if (syntheticFallback) return syntheticFallback;
-      log.warn("AUTH", `No credentials for ${provider}`);
+      const jinaEnvCredentials = buildJinaEnvCredentials(resolvedId, {
+        forcedConnectionId,
+        allowedConnections,
+        excludedConnectionIds,
+      });
+      if (jinaEnvCredentials) {
+        log.info("AUTH", `${provider} | using ${jinaEnvCredentials.connectionId} env fallback`);
+        return jinaEnvCredentials;
+      }
+      const geminiEnvCredentials = buildGeminiEnvCredentials(resolvedId, {
+        forcedConnectionId,
+        allowedConnections,
+        excludedConnectionIds,
+      });
+      if (geminiEnvCredentials) {
+        log.info("AUTH", `${provider} | using ${geminiEnvCredentials.connectionId} env fallback`);
+        return geminiEnvCredentials;
+      }
+      invalidateManagedLease(options, "CONNECTION_INELIGIBLE");
+      if (blockedByKeyPolicyCount > 0) {
+        // #13832: the pool is empty only because the calling key's allowlist /
+        // quota scope removed every connection. Say so instead of returning the
+        // bare null that becomes "No active credentials for provider: X".
+        log.warn(
+          "AUTH",
+          `${provider} | ${blockedByKeyPolicyCount} connection(s) hidden by the API key's allowed_connections/quota scope`
+        );
+        return { blockedByKeyPolicy: true, blockedCount: blockedByKeyPolicyCount };
+      }
+      log.debug("AUTH", `No credentials for ${provider}`);
       return null;
     }
 
@@ -1221,6 +1531,14 @@ export async function getProviderCredentials(
     let modelLockedCount = 0;
     let familyLockedCount = 0;
     const connectionFilterStatus = new Map<string, string>();
+    // #11089: multi-host self-hosted providers keep a per-connection synced
+    // inventory. Without it, a request can be routed to a host that never had
+    // the model, producing a spurious model-not-found instead of pinning to
+    // the host that does. Empty map = no inventory known = no filtering.
+    const advertisedModelsByConnection = await loadAdvertisedModelsForSelfHostedConnections(
+      connections,
+      requestedModel
+    );
     // Filter out unavailable accounts and excluded connection
     let availableConnections = connections.filter((c) => {
       if (excludedConnectionIds.has(c.id)) {
@@ -1231,12 +1549,19 @@ export async function getProviderCredentials(
         connectionFilterStatus.set(c.id, "modelExcluded");
         return false;
       }
-      if (!allowSuppressedConnections) {
+      if (
+        requestedModel &&
+        !isModelAdvertisedByConnection(requestedModel, advertisedModelsByConnection.get(c.id))
+      ) {
+        connectionFilterStatus.set(c.id, "modelNotAdvertised");
+        return false;
+      }
+      if (!allowSuppressedConnections && explicitProbeKind !== "probe") {
         if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) {
           connectionFilterStatus.set(c.id, "rateLimited");
           return false;
         }
-        if (isTerminalConnectionStatus(c)) {
+        if (isTerminalConnectionStatusForModel(c, provider, requestedModel)) {
           connectionFilterStatus.set(c.id, "terminalStatus");
           return false;
         }
@@ -1296,6 +1621,7 @@ export async function getProviderCredentials(
       const codexScopeLimited = status === "codexScopeLimited";
       const modelLocked = status === "modelLocked";
       const modelExcluded = status === "modelExcluded";
+      const modelNotAdvertised = status === "modelNotAdvertised";
       if (excluded || rateLimited) {
         log.debug(
           "AUTH",
@@ -1306,6 +1632,11 @@ export async function getProviderCredentials(
           "AUTH",
           `  → ${c.id?.slice(0, 8)} | excluded by per-account model rule for ${requestedModel}`
         );
+      } else if (modelNotAdvertised) {
+        log.debug(
+          "AUTH",
+          `  → ${c.id?.slice(0, 8)} | synced inventory does not advertise ${requestedModel}`
+        );
       } else if (terminalStatus) {
         log.debug(
           "AUTH",
@@ -1314,7 +1645,7 @@ export async function getProviderCredentials(
             : `  → ${c.id?.slice(0, 8)} | skipped terminal status=${c.testStatus}`
         );
       } else if (codexScopeLimited) {
-        const scopeUntil = getCodexScopeRateLimitedUntil(c.providerSpecificData, requestedModel);
+        const scopeUntil = getCodexChildCooldown(c, requestedModel);
         log.debug(
           "AUTH",
           allowSuppressedConnections
@@ -1337,9 +1668,7 @@ export async function getProviderCredentials(
         const connectionCooldownMs = parseFutureDateMs(connection.rateLimitedUntil);
         const codexScopeCooldownMs =
           provider === "codex"
-            ? parseFutureDateMs(
-                getCodexScopeRateLimitedUntil(connection.providerSpecificData, requestedModel)
-              )
+            ? parseFutureDateMs(getCodexChildCooldown(connection, requestedModel))
             : null;
         const modelLockout = requestedModel
           ? getModelLockoutInfo(provider, connection.id, requestedModel)
@@ -1351,12 +1680,7 @@ export async function getProviderCredentials(
             ? Date.now() + modelLockout.remainingMs
             : null;
 
-        return {
-          connection,
-          connectionCooldownMs,
-          codexScopeCooldownMs,
-          retryableModelCooldownMs,
-        };
+        return { connection, connectionCooldownMs, codexScopeCooldownMs, retryableModelCooldownMs };
       });
 
       const cooldownCandidates = cooldownStates
@@ -1398,6 +1722,10 @@ export async function getProviderCredentials(
             ? `${provider} | all ${connections.length} active accounts cooling down for model ${requestedModel} (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
             : `${provider} | all ${connections.length} active accounts rate limited (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
         );
+        invalidateManagedLease(
+          options,
+          allBlockedByModelCooldown ? "MODEL_INELIGIBLE" : "HEALTH_OR_COOLDOWN"
+        );
         return {
           allRateLimited: true,
           retryAfter: earliest,
@@ -1415,11 +1743,49 @@ export async function getProviderCredentials(
         allowedConnections
       );
       if (syntheticFallback) return syntheticFallback;
+
+      // #7611: isActive terminal rows never hit the inactive allExpired branch.
+      const terminalConnections = connections.filter(isTerminalConnectionStatus);
+      if (terminalConnections.length === connections.length) {
+        return buildAllExpiredCredentials(terminalConnections);
+      }
+      invalidateManagedLease(options, "CONNECTION_INELIGIBLE");
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);
       return null;
     }
 
-    let policyEligibleConnections = availableConnections;
+    let peakHourEligibleConnections = availableConnections;
+    const blockedByPeakHour: Array<{ id: string; retryAfter: string; windowSummary: string }> = [];
+
+    if (!allowSuppressedConnections) {
+      peakHourEligibleConnections = availableConnections.filter((connection) => {
+        const peakHour = evaluatePeakHourProtection(connection.providerSpecificData);
+        if (!peakHour.active) return true;
+        blockedByPeakHour.push({
+          id: connection.id,
+          retryAfter: peakHour.retryAfter,
+          windowSummary: describePeakHourWindow(peakHour.window),
+        });
+        connectionFilterStatus.set(connection.id, "peakHourProtected");
+        return false;
+      });
+    }
+
+    if (blockedByPeakHour.length > 0) {
+      log.info(
+        "AUTH",
+        `${provider} | peak-hour protection filtered ${blockedByPeakHour.length} account(s): ${blockedByPeakHour
+          .map((entry) => `${entry.id.slice(0, 8)}(${entry.windowSummary})`)
+          .join("; ")}`
+      );
+    }
+
+    if (peakHourEligibleConnections.length === 0 && availableConnections.length > 0) {
+      invalidateManagedLease(options, "QUOTA_UNAVAILABLE");
+      return buildPeakHourProtectionRateLimitedResult(provider, blockedByPeakHour);
+    }
+
+    let policyEligibleConnections = peakHourEligibleConnections;
     const blockedByPolicy: Array<{
       id: string;
       reasons: string[];
@@ -1427,8 +1793,14 @@ export async function getProviderCredentials(
     }> = [];
     const quotaResults = new Map<string, { blocked: boolean; exhausted: boolean }>();
 
+    if (provider === "codex") {
+      for (const connection of peakHourEligibleConnections) {
+        hydrateCodexQuotaCacheForRequest(connection, requestedModel);
+      }
+    }
+
     if (!bypassQuotaPolicy) {
-      policyEligibleConnections = availableConnections.filter((connection) => {
+      policyEligibleConnections = peakHourEligibleConnections.filter((connection) => {
         const evaluation = evaluateQuotaLimitPolicy(provider, connection, requestedModel);
         quotaResults.set(connection.id, { blocked: evaluation.blocked, exhausted: false });
         if (!evaluation.blocked) return true;
@@ -1454,6 +1826,32 @@ export async function getProviderCredentials(
     }
 
     if (policyEligibleConnections.length === 0 && availableConnections.length > 0) {
+      const transportUnavailable = connections.filter(
+        (connection) =>
+          connectionFilterStatus.get(connection.id) === "rateLimited" &&
+          isTransportCooldownErrorCode(connection.errorCode)
+      );
+      if (transportUnavailable.length > 0) {
+        const mixed = buildMixedAvailabilityError({
+          provider,
+          quotaFilteredCount: blockedByPolicy.length,
+          transportUnavailableCount: transportUnavailable.length,
+          transportStatus: Number(transportUnavailable[0]?.errorCode) || 503,
+        });
+        const retryAfter =
+          getEarliestFutureDate(
+            transportUnavailable.map((connection) => connection.rateLimitedUntil || null)
+          ) || new Date(Date.now() + 3000).toISOString();
+        invalidateManagedLease(options, "HEALTH_OR_COOLDOWN");
+        return {
+          allRateLimited: true,
+          retryAfter,
+          retryAfterHuman: formatRetryAfter(retryAfter),
+          lastError: mixed.lastError,
+          lastErrorCode: mixed.lastErrorCode,
+        };
+      }
+
       const earliestResetAt = getEarliestFutureDate(blockedByPolicy.map((entry) => entry.resetAt));
       const earliestResetMs = parseFutureDateMs(earliestResetAt);
 
@@ -1461,6 +1859,7 @@ export async function getProviderCredentials(
         ? new Date(earliestResetMs).toISOString()
         : new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
+      invalidateManagedLease(options, "QUOTA_UNAVAILABLE");
       return {
         allRateLimited: true,
         retryAfter,
@@ -1474,7 +1873,12 @@ export async function getProviderCredentials(
     const withQuota: typeof policyEligibleConnections = [];
     const exhaustedQuota: typeof policyEligibleConnections = [];
     for (const c of policyEligibleConnections) {
-      const exhausted = isQuotaExhaustedForRequest(c.id, provider, requestedModel);
+      const exhausted = isQuotaExhaustedForRequest(
+        c.id,
+        provider,
+        requestedModel,
+        c.providerSpecificData
+      );
       const existing = quotaResults.get(c.id);
       if (existing) existing.exhausted = exhausted;
       if (!exhausted) {
@@ -1504,16 +1908,40 @@ export async function getProviderCredentials(
         ? new Date(earliestResetMs).toISOString()
         : new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
+      invalidateManagedLease(options, "QUOTA_UNAVAILABLE");
       return {
         allRateLimited: true,
         retryAfter,
         retryAfterHuman: formatRetryAfter(retryAfter),
-        lastError: `All ${provider} accounts have exhausted their quota`,
+        lastError: `All ${provider} accounts have exhausted their quota (cached quota state, no upstream attempt; earliest reset ${formatRetryAfter(retryAfter)})`,
         lastErrorCode: 429,
       };
     }
 
-    const orderedConnections = [...withQuota].sort((a, b) => {
+    const policyValidLeaseCandidates = options._leaseCandidateIds
+      ? withQuota.filter((candidate) => options._leaseCandidateIds!.includes(candidate.id))
+      : withQuota;
+    if (policyValidLeaseCandidates.length === 0) return null;
+    const leasePolicy = await applyExclusiveConnectionLeasePolicy(
+      policyValidLeaseCandidates,
+      options
+    );
+    if (leasePolicy.error) return { [leasePolicy.error]: true };
+    if (leasePolicy.connections.length === 0) {
+      if (options.lease?.mode === "request" && leasePolicy.activeLease) {
+        invalidateManagedLease(options, "CONNECTION_INELIGIBLE");
+      }
+      return options.lease
+        ? {
+            waitingForCapacity: true,
+            retryAfter: leasePolicy.retryAfter,
+            eligibleCount: policyValidLeaseCandidates.length,
+            freeCount: 0,
+          }
+        : null;
+    }
+
+    const orderedConnections = [...leasePolicy.connections].sort((a, b) => {
       if (a.authType !== "oauth" || b.authType !== "oauth") return 0;
       const priorityDelta = (a.priority || 999) - (b.priority || 999);
       if (priorityDelta !== 0) return priorityDelta;
@@ -1530,16 +1958,35 @@ export async function getProviderCredentials(
     const providerOverride = providerStrategyOverrides[resolvedId] || {};
     const strategy = providerOverride.fallbackStrategy || settings.fallbackStrategy || "fill-first";
 
-    let connection;
-    const affinityConnection = await selectSessionAffinityConnection(
-      provider,
-      options.sessionKey,
-      orderedConnections,
-      sessionAffinityTtlMs
-    );
+    let commitSelectionSideEffects: (() => Promise<void> | void) | undefined;
+    let connection = leasePolicy.activeLease
+      ? orderedConnections.find(
+          (candidate) => candidate.id === leasePolicy.activeLease?.connectionId
+        )
+      : undefined;
+    const affinityPlan =
+      options.lease && !connection
+        ? planSessionAffinityConnection(
+            provider,
+            options.sessionKey,
+            orderedConnections,
+            sessionAffinityTtlMs
+          )
+        : null;
+    const affinityConnection = connection
+      ? connection
+      : options.lease
+        ? affinityPlan?.connection
+        : await selectSessionAffinityConnection(
+            provider,
+            options.sessionKey,
+            orderedConnections,
+            sessionAffinityTtlMs
+          );
     if (affinityConnection) {
       connection = affinityConnection;
-      syncSessionAffinityRuntimeFields(connectionsRaw, connection);
+      if (options.lease) commitSelectionSideEffects = affinityPlan?.commit;
+      else syncSessionAffinityRuntimeFields(connectionsRaw, connection);
     } else if (options.sessionKey) {
       log.info(
         "AUTH",
@@ -1581,15 +2028,9 @@ export async function getProviderCredentials(
           );
           // Update lastUsedAt and increment count (await to ensure persistence)
           const nextCount = (connection.consecutiveUseCount || 0) + 1;
-          await touchConnectionLastUsed(connection.id, nextCount);
-          // Sync raw cache row so subsequent calls within TTL see fresh stats
-          for (const r of connectionsRaw as Record<string, unknown>[]) {
-            if (r.id === connection.id) {
-              r.lastUsedAt = new Date().toISOString();
-              r.consecutiveUseCount = nextCount;
-              break;
-            }
-          }
+          const commit = planLastUsedCommit(connection, connectionsRaw, nextCount);
+          if (options.lease) commitSelectionSideEffects = commit;
+          else await commit();
         } else {
           // Pick the least recently used (excluding current if possible)
           // Also penalize accounts with high backoffLevel (previously rate-limited)
@@ -1612,15 +2053,9 @@ export async function getProviderCredentials(
           );
 
           // Update lastUsedAt and reset count to 1 (await to ensure persistence)
-          await touchConnectionLastUsed(connection.id, 1);
-          // Sync raw cache row so subsequent calls within TTL see fresh LRU stats
-          for (const r of connectionsRaw as Record<string, unknown>[]) {
-            if (r.id === connection.id) {
-              r.lastUsedAt = new Date().toISOString();
-              r.consecutiveUseCount = 1;
-              break;
-            }
-          }
+          const commit = planLastUsedCommit(connection, connectionsRaw, 1);
+          if (options.lease) commitSelectionSideEffects = commit;
+          else await commit();
         }
       } else {
         // Fallback scenario: excluded an account due to failure
@@ -1643,18 +2078,12 @@ export async function getProviderCredentials(
         );
 
         // Update lastUsedAt and reset count to 1 (await to ensure persistence)
-        await touchConnectionLastUsed(connection.id, 1);
-        // Sync raw cache row so subsequent calls within TTL see fresh stats
-        for (const r of connectionsRaw as Record<string, unknown>[]) {
-          if (r.id === connection.id) {
-            r.lastUsedAt = new Date().toISOString();
-            r.consecutiveUseCount = 1;
-            break;
-          }
-        }
+        const commit = planLastUsedCommit(connection, connectionsRaw, 1);
+        if (options.lease) commitSelectionSideEffects = commit;
+        else await commit();
       }
     } else if (strategy === "p2c") {
-      const candidatePool = withQuota.length > 0 ? withQuota : orderedConnections;
+      const candidatePool = orderedConnections;
       // Power of Two Choices: sample from the quota-eligible pool and compare
       // health instead of defaulting to random-first selection.
       if (candidatePool.length <= 2) {
@@ -1677,15 +2106,34 @@ export async function getProviderCredentials(
       const idx =
         parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % orderedConnections.length;
       connection = orderedConnections[idx];
-    } else if (strategy === "least-used") {
-      // Least Used: pick the one with oldest lastUsedAt
+    } else if (strategy === "least-used" || strategy === "expiry-first") {
+      // Least Used: pick the one with oldest lastUsedAt.
+      // #12279: prefer accounts without backoff first, the same tie-break the
+      // round-robin fallback branch applies. Without it the oldest lastUsedAt
+      // could belong to an account that just 429'd, so a failover landed on it
+      // for one request before the next call settled on a healthy account.
       const sorted = [...orderedConnections].sort((a, b) => {
+        const aBackoff = a.backoffLevel || 0;
+        const bBackoff = b.backoffLevel || 0;
+        if (aBackoff !== bBackoff) return aBackoff - bBackoff; // lower backoff first
         if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
         if (!a.lastUsedAt) return -1;
         if (!b.lastUsedAt) return 1;
         return new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
       });
       connection = sorted[0];
+      // expiry-first (#14533) ranks by the quota closest to being lost; see its leaf module.
+      if (strategy === "expiry-first")
+        connection = pickExpiryFirstConnection(orderedConnections, settings);
+      // Record the use (#10945). This strategy sorts on the very field it was
+      // not writing, so on a pool where every lastUsedAt is null the tie-break
+      // fell through to `priority` and returned the SAME connection on every
+      // call, forever — the opposite of the documented behaviour, and silent.
+      // round-robin is the only other strategy that reads lastUsedAt and it has
+      // always committed here; least-used now does the same.
+      const commit = planLastUsedCommit(connection, connectionsRaw, 1);
+      if (options.lease) commitSelectionSideEffects = commit;
+      else await commit();
     } else if (strategy === "cost-optimized") {
       // Cost Optimized: sort by priority ascending (lower = cheaper/preferred)
       // Future: can be enhanced with actual cost data per provider
@@ -1696,8 +2144,15 @@ export async function getProviderCredentials(
     } else if (strategy === "strict-random") {
       // Strict Random: shuffle deck — uses each account once before reshuffling
       const ids = orderedConnections.map((c) => c.id);
-      const selectedId = getNextFromDeckSync(`conn:${provider}`, ids);
-      connection = orderedConnections.find((c) => c.id === selectedId) || orderedConnections[0];
+      if (options.lease) {
+        const plan = planNextFromDeckSync(`conn:${provider}`, ids);
+        connection =
+          orderedConnections.find((c) => c.id === plan.selectedId) || orderedConnections[0];
+        commitSelectionSideEffects = plan.commit;
+      } else {
+        const selectedId = getNextFromDeckSync(`conn:${provider}`, ids);
+        connection = orderedConnections.find((c) => c.id === selectedId) || orderedConnections[0];
+      }
     } else {
       // Default: fill-first (already sorted by priority in getProviderConnections)
       connection = orderedConnections[0];
@@ -1723,6 +2178,57 @@ export async function getProviderCredentials(
       if (moreAvailablePeer) connection = moreAvailablePeer;
     }
 
+    let exclusiveLease: ExclusiveConnectionLease | undefined;
+    if (options.lease) {
+      const candidateIds = orderedConnections.map((candidate) => candidate.id);
+      const selectNextLeaseCandidate = (excludedConnectionId: string) =>
+        getProviderCredentials(provider, null, allowedConnections, requestedModel, {
+          ...options,
+          excludeConnectionIds: [...excludedConnectionIds, excludedConnectionId],
+          deferLeaseClaim: true,
+          _leaseCandidateIds: candidateIds,
+        });
+      if (options.deferLeaseClaim) {
+        return materializeConnection(connection, options, {
+          commitSelectionSideEffects,
+          selectNextLeaseCandidate,
+          ...probeStamp,
+        });
+      }
+      let claim = mutateExclusiveConnectionLease(
+        connection,
+        leasePolicy.activeLease,
+        options.lease
+      );
+      if (claim.kind === "LOST") {
+        return getProviderCredentials(provider, null, allowedConnections, requestedModel, {
+          ...options,
+          excludeConnectionIds: [...excludedConnectionIds, connection.id],
+          _leaseCandidateIds: candidateIds,
+          _leaseRetryWithLockHeld: true,
+        });
+      }
+      if (claim.kind === "STALE") return { leaseFenceStale: true };
+      exclusiveLease = claim.lease;
+      await commitSelectionSideEffects?.();
+      if (options.materializeCredentials === false) {
+        return {
+          exclusiveLease,
+          connectionId: connection.id,
+          provider: connection.provider,
+          ...probeStamp,
+        };
+      }
+    }
+
+    const reserved = reserveAntigravityLeaseForSelection(
+      provider,
+      connection,
+      requestedModel,
+      options
+    );
+    if (reserved.busy) return reserved.busy;
+
     if (provider === "antigravity" && connection) {
       log.info(
         "AUTH",
@@ -1730,57 +2236,14 @@ export async function getProviderCredentials(
       );
     }
 
-    const apiKeyHealth = connection.providerSpecificData?.apiKeyHealth as
-      Record<string, KeyHealth> | undefined;
-    if (apiKeyHealth) {
-      syncHealthFromDB(connection.id, apiKeyHealth);
-    }
-
-    const releaseOAuthSession =
-      options.reserveOAuthSession === true && connection.authType === "oauth" && options.sessionKey
-        ? reserveOAuthSession(connection.id, options.sessionKey)
-        : undefined;
-
-    return {
-      apiKey: connection.apiKey,
-      accessToken: connection.accessToken,
-      refreshToken: connection.refreshToken,
-      expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,
-      projectId: connection.projectId,
-      // #474: surface the connection's configured defaultModel so the chat /
-      // embeddings handlers can resolve a bare model name (e.g. an alias that
-      // resolved to "auto") to a real provider model ID before the upstream call.
-      defaultModel: connection.defaultModel || null,
-      copilotToken:
-        typeof connection.providerSpecificData.copilotToken === "string"
-          ? connection.providerSpecificData.copilotToken
-          : null,
-      providerSpecificData: connection.providerSpecificData,
-      // Fields the generic quota fetcher (open-sse/services/genericQuotaFetcher.ts)
-      // needs to delegate to getUsageForProvider for any provider — kept aliased
-      // (`id` + `connectionId`) for back-compat with callers that already use the
-      // connectionId name.
-      id: connection.id,
-      provider: connection.provider,
-      authType: connection.authType,
-      email: connection.email,
-      connectionId: connection.id,
-      // Include current status for optimization check
-      testStatus: connection.testStatus,
-      lastError: connection.lastError,
-      lastErrorType: connection.lastErrorType,
-      lastErrorSource: connection.lastErrorSource,
-      errorCode: connection.errorCode,
-      rateLimitedUntil: connection.rateLimitedUntil,
-      maxConcurrent: connection.maxConcurrent,
-      // Surface per-window quota overrides so the preflight latency gate in
-      // getProviderCredentialsWithQuotaPreflight can see them. Without this,
-      // user-set cutoffs would silently never enforce.
-      quotaWindowThresholds: connection.quotaWindowThresholds ?? null,
-      ...(releaseOAuthSession ? { releaseOAuthSession } : {}),
-    };
+    return materializeConnection(connection, options, {
+      exclusiveLease,
+      ...probeStamp,
+      routingLease: reserved.lease,
+      requestedModel,
+    });
   } finally {
-    selectionLock.release();
+    selectionLock?.release();
   }
 }
 export async function getProviderCredentialsWithQuotaPreflight(
@@ -1831,18 +2294,17 @@ export async function getProviderCredentialsWithQuotaPreflight(
   // tighter floor is honored.
   const FACTORY_NO_OP_REMAINING_PERCENT = 2;
   const globalDefaultIsRestrictive = defaultThresholdPercent > FACTORY_NO_OP_REMAINING_PERCENT;
+  let pendingCredentialSelection: Awaited<ReturnType<typeof getProviderCredentials>> | undefined;
 
   while (true) {
-    const credentials = await getProviderCredentials(
-      provider,
-      null,
-      allowedConnections,
-      requestedModel,
-      {
+    const credentials =
+      pendingCredentialSelection ??
+      (await getProviderCredentials(provider, null, allowedConnections, requestedModel, {
         ...options,
         excludeConnectionIds: Array.from(excludedConnectionIds),
-      }
-    );
+        ...(options.lease ? { deferLeaseClaim: true } : {}),
+      }));
+    pendingCredentialSelection = undefined;
 
     if (!credentials) {
       if (blockedByPreflight.length > 0) {
@@ -1865,14 +2327,47 @@ export async function getProviderCredentialsWithQuotaPreflight(
       return credentials;
     }
 
-    const selectedCredentials = credentials as typeof credentials & {
+    const selectedCredentials = credentials as Omit<
+      typeof credentials,
+      "selectNextLeaseCandidate"
+    > & {
       connectionId?: string;
+      commitSelectionSideEffects?: () => Promise<void> | void;
+      selectNextLeaseCandidate?: (excludedConnectionId: string) => Promise<typeof credentials>;
       releaseOAuthSession?: () => void;
     };
     const connectionId = selectedCredentials.connectionId;
     if (!connectionId) {
       return credentials;
     }
+    const commitLease = async () => {
+      if (!options.lease) return credentials;
+      const activeLease = getActiveExclusiveConnectionLease(options.lease.context.leaseOwnerId);
+      const claim = mutateExclusiveConnectionLease(
+        selectedCredentials as unknown as ProviderConnectionView,
+        activeLease,
+        options.lease
+      );
+      if (claim.kind === "LOST") {
+        selectedCredentials.releaseOAuthSession?.();
+        releaseRoutingLeaseFromCredentials(credentials);
+        excludedConnectionIds.add(connectionId);
+        pendingCredentialSelection =
+          await selectedCredentials.selectNextLeaseCandidate?.(connectionId);
+        return null;
+      }
+      if (claim.kind === "STALE") {
+        releaseRoutingLeaseFromCredentials(credentials);
+        return { leaseFenceStale: true };
+      }
+      await selectedCredentials.commitSelectionSideEffects?.();
+      if (options.materializeCredentials === false) {
+        selectedCredentials.releaseOAuthSession?.();
+        releaseRoutingLeaseFromCredentials(credentials);
+        return { exclusiveLease: claim.lease, connectionId, provider };
+      }
+      return { ...credentials, exclusiveLease: claim.lease };
+    };
 
     // Cascading resolver: per-connection override → per-(provider, window)
     // default → global default. Used per-window when the fetcher exposes
@@ -1889,6 +2384,11 @@ export async function getProviderCredentialsWithQuotaPreflight(
     //   • a per-connection override on this row
     //   • a per-(provider, window) default in resilience settings
     //   • the legacy `quotaPreflightEnabled` flag in providerSpecificData
+    //   • the operator-enabled quota cutoff (resilience.quotaPreflight.enabled /
+    //     QUOTA_PREFLIGHT_CUTOFF_ENABLED) — #11234: it previously only armed the
+    //     auto-strategy candidate builder and the per-target cutoff for pinned
+    //     connections, so priority combos over sibling connections (no pinned
+    //     connectionId) never filtered an exhausted sister
     //   • the global default is stricter than the factory no-op level
     //     (factory = 2% remaining, basically "right before 429" — anything
     //     stricter means the operator wants enforcement everywhere)
@@ -1902,17 +2402,25 @@ export async function getProviderCredentialsWithQuotaPreflight(
     const legacyForceDisable =
       (credentials as { providerSpecificData?: Record<string, unknown> }).providerSpecificData
         ?.quotaPreflightEnabled === false;
-    if (legacyForceDisable) return credentials;
+    if (legacyForceDisable) {
+      const committed = await commitLease();
+      if (committed === null) continue;
+      return committed;
+    }
 
     const hasConnectionOverrides = Object.keys(perConnectionWindowOverrides).length > 0;
-    const legacyForceEnable = isQuotaPreflightEnabled(credentials);
+    const legacyForceEnable = isQuotaPreflightEnabled(credentials as Record<string, unknown>);
+    const globalCutoffEnabled = resilience.quotaPreflight.enabled === true;
     if (
       !hasConnectionOverrides &&
       !providerHasDefaults &&
       !legacyForceEnable &&
+      !globalCutoffEnabled &&
       !globalDefaultIsRestrictive
     ) {
-      return credentials;
+      const committed = await commitLease();
+      if (committed === null) continue;
+      return committed;
     }
 
     // Returns the minimum-remaining cutoff for a window — matches the
@@ -1936,24 +2444,35 @@ export async function getProviderCredentialsWithQuotaPreflight(
       return defaultThresholdPercent;
     };
     // #6842: openrouter also needs requestedModel, for the :free-window check.
-    const modelAwarePreflight = provider === "codex" || provider === "openrouter";
+    // agy/antigravity need it so Claude weekly cannot cool a Gemini request.
+    const modelAwarePreflight =
+      provider === "codex" || provider === "openrouter" || isAntigravityQuotaProvider(provider);
     const preflightCredentials =
       requestedModel && modelAwarePreflight ? { ...credentials, requestedModel } : credentials;
     let preflight;
     try {
-      preflight = await preflightQuota(provider, connectionId, preflightCredentials, {
-        resolveMinRemainingPercent,
-        resolveWarnRemainingPercent: () => warnThresholdPercent,
-      });
+      preflight = await preflightQuota(
+        provider,
+        connectionId,
+        preflightCredentials as Record<string, unknown>,
+        {
+          resolveMinRemainingPercent,
+          resolveWarnRemainingPercent: () => warnThresholdPercent,
+        }
+      );
     } catch (error) {
       selectedCredentials.releaseOAuthSession?.();
+      releaseRoutingLeaseFromCredentials(credentials);
       throw error;
     }
     if (preflight.proceed) {
-      return credentials;
+      const committed = await commitLease();
+      if (committed === null) continue;
+      return committed;
     }
 
     selectedCredentials.releaseOAuthSession?.();
+    releaseRoutingLeaseFromCredentials(credentials);
 
     const unavailableUntil = await markQuotaPreflightAccountUnavailable(
       provider,
@@ -1967,6 +2486,7 @@ export async function getProviderCredentialsWithQuotaPreflight(
       resetAt: unavailableUntil,
     });
     excludedConnectionIds.add(connectionId);
+    pendingCredentialSelection = await selectedCredentials.selectNextLeaseCandidate?.(connectionId);
 
     log.info(
       "AUTH",
@@ -1977,6 +2497,168 @@ export async function getProviderCredentialsWithQuotaPreflight(
       } until ${unavailableUntil}`
     );
   }
+}
+
+/**
+ * #10334 — Guard for the "connection scope" quota cooldown branch in
+ * markAccountUnavailable (agentrouter-exclusive in practice: no opencode-family
+ * rule matches 403 today, so only agentrouter's "额度不足" rule reaches this
+ * predicate via 403 — but opencode-family 429 header-quota hits also qualify
+ * via the 429 path). The "never terminal" invariant of that branch is NOT
+ * structurally guaranteed by `ruleScope === "connection"`
+ * alone — it also depends on the provider rule table only ever pairing scope
+ * "connection" with a genuinely transient reason. Today
+ * (`buildAgentrouterRules()` in providerErrorRules.ts) that is true: the only
+ * rule declaring scope "connection" is the quota-exhausted one. But a FUTURE
+ * agentrouter rule for a permanent account state (e.g. "账号已封禁") — or a 402
+ * added to `AGENTROUTER_ERROR_STATUSES` with scope "connection", a natural-
+ * looking choice for an account ban — would otherwise be silently downgraded
+ * to a transient cooldown here instead of going through
+ * resolveTerminalConnectionStatus()/auto-disable below. Require the
+ * reason/permanent/creditsExhausted signals checkFallbackError already
+ * computes to explicitly confirm "this is quota, not a permanent state"
+ * before taking the early return.
+ *
+ * Exported (not just inlined) so a synthetic permanent/credits-exhausted
+ * `fallbackResult` can be tested directly — no rule in the table produces
+ * that combination today, so this predicate is the only way to pin the guard
+ * without editing the (production) rule table just for a test.
+ */
+export function isAgentrouterConnectionQuotaScope(
+  provider: string | null | undefined,
+  fallbackResult: {
+    ruleScope?: "model" | "provider" | "connection";
+    reason?: string;
+    permanent?: boolean;
+    creditsExhausted?: boolean;
+  }
+): boolean {
+  return (
+    honorsRuleLockScope(provider) &&
+    fallbackResult.ruleScope === "connection" &&
+    fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED &&
+    !fallbackResult.permanent &&
+    !fallbackResult.creditsExhausted
+  );
+}
+
+async function resolveDailyResetForProvider(
+  provider: string | null
+): Promise<{ timezone?: unknown; hour?: unknown } | null> {
+  if (!provider) return null;
+  try {
+    const nodes = await getCachedProviderNodes();
+    const node = nodes.find((candidate) => {
+      if (!candidate) return false;
+      return candidate.id === provider || candidate.prefix === provider;
+    });
+    if (!node) return null;
+    return {
+      timezone: node.dailyQuotaResetTimezone,
+      hour: node.dailyQuotaResetHour,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * #10880 — cools down every connection sharing the failing connection's last
+ * known egress IP. Best-effort and side-effect-safe by design:
+ * - The failing connection C is NOT written here: the branch marks it BEFORE
+ *   calling this helper (mirror of the connection-scoped agentrouter branch)
+ *   — the branch returns right after, so the generic path below is never
+ *   reached and opencode (passthroughModels) would otherwise get a per-model
+ *   lockModel instead of a connection cooldown.
+ * - Any DB failure is caught and logged — markAccountUnavailable must never
+ *   fail because of the egress lookup or the sibling writes.
+ * - Siblings are re-read fresh and only written when NOT terminal (T06: a
+ *   banned/credits_exhausted sibling is never downgraded by an IP-level
+ *   signal) and not already in cooldown.
+ * - No mutex per sibling (markMutexes is per-connection): concurrent 429s may
+ *   double-write, idempotent via updateProviderConnection.
+ */
+async function applyEgressIpLockout(
+  connectionId: string,
+  provider: string,
+  cooldownMs: number,
+  reason: string
+): Promise<void> {
+  try {
+    const since = new Date(Date.now() - EGRESS_IP_LOOKUP_WINDOW_MS).toISOString();
+    const recent = getRecentEgressIpForConnection(connectionId, since);
+    if (!recent) {
+      log.info(
+        "AUTH",
+        `Egress lock: no known egress IP for ${provider}:${connectionId.slice(0, 8)} — skipped`
+      );
+      return;
+    }
+    const db = getDbInstance();
+    // Siblings are scoped to the allowlisted provider family: the egress IP
+    // budget is per provider (the opencode free tier is IP-bucketed, not
+    // account-bucketed — see #9611), so a 429 from one provider must never
+    // cool an unrelated provider sharing the same host IP (the default
+    // no-proxy deployment egresses everything through one IP).
+    //
+    // The family is BOUND from the same allowlist the branch gate reads
+    // (egressBucketedLockProviders() / isEgressBucketedLockScope) — never
+    // re-spelled as a SQL literal: a duplicated list would not follow a
+    // widening of the allowlist, leaving the opt-in half applied (the gate
+    // would fire for the new provider while its siblings stayed invisible).
+    const family = egressBucketedLockProviders();
+    const familyPlaceholders = family.map(() => "?").join(",");
+    const siblingIds = db
+      .prepare(
+        `SELECT DISTINCT connection_id FROM proxy_logs
+         WHERE egress_ip = ? AND timestamp >= ? AND connection_id != ?
+         AND provider IN (${familyPlaceholders})`
+      )
+      .all(recent.egressIp, since, connectionId, ...family)
+      .map((row: { connection_id: string }) => row.connection_id);
+    const now = Date.now();
+    let cooledCount = 0;
+    for (const id of siblingIds) {
+      // Fresh camelCase re-read per sibling (never trust a stale snapshot) —
+      // reuse the house getter so terminal/cooldown checks see the same shape
+      // the rotation uses (pattern agentrouter test).
+      const sibling = toProviderConnection(await getProviderConnectionById(id));
+      if (!sibling.id) continue;
+      if (isTerminalConnectionStatus(sibling)) continue; // T06
+      // cooldownUntilMs (not a raw new Date()) because rate_limited_until can
+      // hold a numeric-epoch string (e.g. the Antigravity full-quota path) —
+      // see #3954; NaN (no/invalid value) never exceeds `now`.
+      const existingUntil = cooldownUntilMs(sibling.rateLimitedUntil);
+      if (existingUntil > now) continue; // already cooling — never shorten
+      await updateProviderConnection(id, {
+        lastErrorType: reason || RateLimitReason.QUOTA_EXHAUSTED,
+        lastError: `Shared egress IP quota exhausted (${provider})`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: 429,
+        rateLimitedUntil: getUnavailableUntil(cooldownMs),
+        testStatus: "unavailable",
+      });
+      cooledCount += 1;
+    }
+    log.info(
+      "AUTH",
+      `Egress-bucketed cooldown: ${provider} ip=${recent.egressIp} connection=${connectionId.slice(0, 8)} cooled ${cooledCount} sibling(s) for ${Math.ceil(cooldownMs / 1000)}s`
+    );
+  } catch (err) {
+    log.warn("AUTH", `Egress-bucketed lock skipped after DB error: ${(err as Error).message}`);
+  }
+}
+
+type ExhaustionOptions = NonNullable<Parameters<typeof markAccountUnavailable>[6]>;
+
+/** Build the options for markAccountUnavailable on the chat exhaustion path.
+ * Single place that forwards the request id so no chat sender can forget it:
+ * every chat caller passes its in-scope id through here. */
+export function buildExhaustionOptions(
+  correlationId: string | null,
+  rest: Omit<ExhaustionOptions, "correlationId"> = {}
+): ExhaustionOptions & { correlationId: string | null } {
+  return { ...rest, correlationId };
 }
 
 /** Persist exponential-backoff state for an unavailable provider connection. */
@@ -1991,6 +2673,9 @@ export async function markAccountUnavailable(
     persistUnavailableState?: boolean;
     /** Caller is the combo engine — it records its own model-level lockouts. */
     isCombo?: boolean;
+    headers?: Headers | Record<string, string> | null;
+    correlationId?: string | null;
+    streamOutputEmitted?: boolean;
   } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
@@ -2004,6 +2689,18 @@ export async function markAccountUnavailable(
 
   try {
     await currentMutex;
+
+    // STRICT_ZERO_COST: this connection just failed (whatever the reason) —
+    // drop any cached "SAFE" free-allowance reading for it immediately rather
+    // than waiting out the TTL, so the very next candidate-pool build reads a
+    // clean cache miss (UNKNOWN → excluded) instead of a stale SAFE. Cheap,
+    // idempotent, and correct to over-invalidate on non-quota failures too —
+    // worst case is one extra background refresh.
+    if (provider) {
+      const { invalidateFreeAccessState } =
+        await import("@omniroute/open-sse/services/autoCombo/freeAccessQuota.ts");
+      invalidateFreeAccessState(provider, connectionId);
+    }
 
     const resourceBypass = getResource404Bypass(status, errorText, connectionId, log);
     if (resourceBypass) return resourceBypass;
@@ -2024,6 +2721,10 @@ export async function markAccountUnavailable(
       );
       return { shouldFallback: true, cooldownMs: 0 };
     }
+
+    // Request-scoped refusal: nothing about it belongs on this account or this model.
+    if (isOpencodeFreeTierRefusalForProvider(provider, status, errorText))
+      return { shouldFallback: true, cooldownMs: 0 };
 
     // ─── Anti-Thundering Herd Guard ─────────────────────────────────
     // If this connection was ALREADY marked unavailable by a prior concurrent
@@ -2047,11 +2748,8 @@ export async function markAccountUnavailable(
     }
 
     // T09: Codex scope-aware lockout guard (codex vs spark independent pools).
-    if (provider === "codex" && model) {
-      const scopeRateLimitedUntil = getCodexScopeRateLimitedUntil(
-        conn?.providerSpecificData || {},
-        model
-      );
+    if (provider === "codex" && typeof model === "string" && model.trim().length > 0) {
+      const scopeRateLimitedUntil = conn ? getCodexChildCooldown(conn, model) : null;
       if (scopeRateLimitedUntil && new Date(scopeRateLimitedUntil).getTime() > Date.now()) {
         log.info(
           "AUTH",
@@ -2062,6 +2760,26 @@ export async function markAccountUnavailable(
           cooldownMs: new Date(scopeRateLimitedUntil).getTime() - Date.now(),
         };
       }
+    }
+
+    // #10460: model-unsupported 400 — the PROVIDER does not serve this model, not
+    // this account. Cooling down the account and rotating to the next one wastes an
+    // upstream call because all accounts share the same model catalog. Return
+    // shouldFallback: false so the error propagates to the combo layer, which already
+    // has isModelScoped400() (combo.ts:1827) to advance to the next combo target.
+    // Uses isProviderModelUnsupported400() — the SAME disambiguation
+    // (AUTH_CREDENTIAL_ERROR_PATTERNS exclusion) checkFallbackError's 400 branch
+    // applies, narrowed further to exclude the broader/ambiguous
+    // MODEL_ACCESS_DENIED_PATTERNS access-/permission-phrased matches (e.g. "does not
+    // have permission to access this model"), which can be an ACCOUNT-scoped
+    // entitlement gap (PRO vs free tier) rather than a provider-wide unsupported
+    // model — those must keep rotating to other accounts normally.
+    if (isProviderModelUnsupported400(status, errorText)) {
+      log.info(
+        "AUTH",
+        `${connectionId.slice(0, 8)} provider_model_unsupported 400 (${provider}/${model ?? "n/a"}) — skipping account cooldown, letting combo advance`
+      );
+      return { shouldFallback: false, cooldownMs: 0, reason: "provider_model_unsupported" };
     }
 
     const effectiveProviderProfile =
@@ -2077,9 +2795,38 @@ export async function markAccountUnavailable(
       backoffLevel,
       model,
       provider,
+      options.headers ?? null,
+      effectiveProviderProfile,
       null,
-      effectiveProviderProfile
+      null,
+      await resolveDailyResetForProvider(provider)
     );
+
+    // T-PROBE: probe-origin failures (model test-all) must never remove the
+    // connection from the pool. Record the failure for visibility but leave
+    // ALL routing state untouched — cooldowns, terminal status, per-model
+    // lockouts (T09 codex-scope, per-model quota, agentrouter #10334) and
+    // auto-disable. Only a real request-path failure deactivates (#9817);
+    // the opt-in setting probeCanDisable restores the historical behavior.
+    if (await shouldIsolateProbeFailures()) {
+      await updateProviderConnection(connectionId, {
+        // Persist safe wording only after classification has consumed the raw provider text.
+        // backoffLevel is deliberately NOT written: a positive backoff
+        // triggers the selection-time auto-decay (resetConnectionBackoff,
+        // auth.ts getProviderCredentials) which wipes lastError back to
+        // NULL on the next attempt — silently destroying the probe record.
+        // The backoff is also routing state a probe must not touch (#9817).
+        lastError: sanitizeErrorMessage(errorText) || "Provider request failed",
+        lastErrorType: fallbackResult.reason || null,
+        errorCode: status,
+        lastErrorAt: new Date().toISOString(),
+      });
+      log.warn(
+        "AUTH",
+        `[T-PROBE] ${connectionId.slice(0, 8)} ${provider ?? ""} failure ${status} recorded — connection stays in the pool`
+      );
+      return { shouldFallback: true, cooldownMs: 0 };
+    }
 
     // Read passthroughModels from connection config (user-configured per-model quota)
     const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
@@ -2097,21 +2844,193 @@ export async function markAccountUnavailable(
     // per-model lockout branches (per-model quota 403/404, codex scope) are left
     // as-is — extending disableCooling to model lockout is a follow-up.
     const disableCooling = connProviderSpecificData.disableCooling === true;
+    const claudeQuotaScope = readClaudeScope({ connectionId, provider, status, errorText, model });
+    const isModelScopedClaudeQuota = claudeQuotaScope.scope === "model";
+    const isPerModelQuotaProvider =
+      hasPerModelQuota(provider, model, connectionPassthroughModels) || isModelScopedClaudeQuota;
+    // #10334 — connection-scope branch: the matched provider rule declared scope
+    // "connection" for account-wide quota exhaustion (agentrouter "额度不足";
+    // exclusive in practice — no opencode-family rule matches 403 today).
+    // agentrouter is
+    // a passthroughModels provider (isPerModelQuotaProvider === true), so without
+    // this branch the next `if` would treat it like any other passthrough 429 and
+    // lock a SINGLE model — leaving combo routing to burn one upstream call per
+    // remaining model of the same exhausted account. Must run BEFORE that block.
+    // Deliberately ignores persistUnavailableState/isCombo: for combo the caller
+    // downgrades persistUnavailableState to false, and the generic path further
+    // below would then lock per MODEL instead of cooling the connection — exactly
+    // what this scope must override. NEVER sets a terminal status: this is a
+    // renewing quota window, not "credits_exhausted"/"banned"/"expired".
+    //
+    // The "never terminal" invariant above is NOT structurally guaranteed by
+    // ruleScope === "connection" alone — see isAgentrouterConnectionQuotaScope's
+    // doc comment for why (a future permanent-state rule could pair scope
+    // "connection" with a non-quota reason). That predicate is the actual guard.
+    const ruleScopeIsConnection = isAgentrouterConnectionQuotaScope(provider, fallbackResult);
+    // #2997's disableCooling opt-out is respected here (`!disableCooling` below):
+    // a connection with disableCooling=true skips this branch entirely and falls
+    // into the per-model-quota block further down, which locks the model for up
+    // to ~30min (mlSettings.maxCooldownMs) instead of cooling the connection for
+    // the rule's shorter transient window. That is a deliberate, if counter-
+    // intuitive, consequence of #2997's scope (opt-out was designed only for the
+    // CONNECTION-level cooldown, never extended to model lockout) — "opting out
+    // of cooldown" ends up producing a LONGER effective block for this one rule.
+    // Not addressed here; flagged for a future #2997 follow-up if it proves to be
+    // a real operator complaint.
+    //
+    // HONORS note: since the opencode family joined HONORS, an opencode-family
+    // 429 carrying upstream quota headers (x-ratelimit-remaining-*) also lands
+    // here with ruleScope "connection" — before the #10880 egress branch below,
+    // so sibling cooling is skipped on that path. Latent today: the only
+    // request-path caller forwarding headers is chat.ts:2383 (chat completions),
+    // and opencode upstreams rarely send those headers on 429 (the observed
+    // envelope is the headers-less "monthly usage limit" body, which keeps
+    // flowing to the egress block with ruleScope undefined).
+    if (ruleScopeIsConnection && provider && !disableCooling) {
+      const connectionCooldownMs =
+        fallbackResult.cooldownMs > 0 ? fallbackResult.cooldownMs : COOLDOWN_MS.rateLimit;
+      await updateProviderConnection(connectionId, {
+        lastErrorType: fallbackResult.reason || RateLimitReason.QUOTA_EXHAUSTED,
+        lastError: `Account quota exhausted (${provider})`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+        backoffLevel: fallbackResult.newBackoffLevel ?? backoffLevel,
+        rateLimitedUntil: getUnavailableUntil(connectionCooldownMs),
+        testStatus: "unavailable",
+      });
+      log.info(
+        "AUTH",
+        `Connection-scoped cooldown for ${provider}:${connectionId.slice(0, 8)} — ${status} ${fallbackResult.reason} ${Math.ceil(connectionCooldownMs / 1000)}s (rule scope=connection, overrides per-model lockout)`
+      );
+      return { shouldFallback: true, cooldownMs: connectionCooldownMs };
+    }
 
-    const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
+    // #10880 — egress-bucketed providers: the upstream quota is per EGRESS IP,
+    // not per account (the opencode free tier is IP-bucketed, not
+    // account-bucketed — see #9611). When such a provider confirms a status
+    // 429 classified quota_exhausted OR rate_limit_exceeded, every
+    // allowlisted-family connection egressing through the same IP shares the
+    // exhausted budget — cool them all down BEFORE they are tried, so the
+    // rotation does not burn one guaranteed-failed upstream call per sibling
+    // (same N-1 shape as #10460/#10525). Must run AFTER the agentrouter branch
+    // (that one owns connection-scoped rules) and BEFORE the per-model block.
+    // NEVER sets a terminal status: a renewing quota window, not
+    // credits_exhausted/banned/expired. Best-effort: if the connection's last
+    // known egress IP cannot be resolved (cold cache), behavior is unchanged.
+    //
+    // The status===429 gate keeps the documented "a 429 classified…" scope:
+    // a 402/403 (status_402/status_403 → quota_exhausted) or a 400/500 with
+    // quota/rate-limit text is an ACCOUNT-scoped signal and must not cool the
+    // IP family.
+    //
+    // Deliberately ignores persistUnavailableState/isCombo, exactly like the
+    // agentrouter branch above and for the same reason: for combo the caller
+    // downgrades persistUnavailableState to false, and the generic path below
+    // would then lock per MODEL instead of cooling the connection — which says
+    // nothing about the exhausted IP, so the combo rotation would keep burning
+    // one guaranteed-failed call per sibling. A per-model lockout is not a
+    // weaker form of this scope, it is the wrong unit.
+    //
+    // RATE_LIMIT_EXCEEDED is deliberately included: markAccountUnavailable
+    // never passes headers/structuredError to checkFallbackError and opencode
+    // is not in FULL_TEXT_RULE_PROVIDERS, so the opencode-specific rules
+    // (body reset hint / x-ratelimit-remaining-requests) never match on this
+    // path — the real opencode 429 ("monthly usage limit reached") is
+    // intercepted by the subscription-quota text fallback
+    // (quotaTextCooldowns.ts, quota_exhausted 1h); allowlisted siblings with
+    // quota-text-free envelopes (e.g. "rate limit reached") land on
+    // status_429 -> rate_limit_exceeded. For an allowlisted provider an
+    // IP-bucketed rate limit is the same signal as an exhausted quota.
+    const egressBucketed = isEgressBucketedLockScope(provider);
+    if (
+      status === 429 &&
+      egressBucketed &&
+      (fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED ||
+        fallbackResult.reason === RateLimitReason.RATE_LIMIT_EXCEEDED) &&
+      !fallbackResult.permanent &&
+      !fallbackResult.creditsExhausted &&
+      !disableCooling
+    ) {
+      const connectionCooldownMs =
+        fallbackResult.cooldownMs > 0 ? fallbackResult.cooldownMs : COOLDOWN_MS.rateLimit;
+      // CRITICAL: mark the failing connection C HERE, mirroring the
+      // connection-scoped agentrouter branch just above. The branch returns
+      // right after, so neither the per-model quota block below (opencode is
+      // passthroughModels:true — it would call recordModelLockoutFailure
+      // instead) nor the generic persistence path at the end of the function
+      // is ever reached. Without this write, C stays "active" → retried next
+      // episode (1 wasted call/episode) and backoffLevel/lastError never set.
+      await updateProviderConnection(connectionId, {
+        lastErrorType: fallbackResult.reason || RateLimitReason.QUOTA_EXHAUSTED,
+        lastError: `Shared egress IP quota exhausted (${provider})`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+        backoffLevel: fallbackResult.newBackoffLevel ?? backoffLevel,
+        rateLimitedUntil: getUnavailableUntil(connectionCooldownMs),
+        testStatus: "unavailable",
+      });
+      await applyEgressIpLockout(
+        connectionId,
+        provider!,
+        connectionCooldownMs,
+        fallbackResult.reason
+      );
+      return { shouldFallback: true, cooldownMs: connectionCooldownMs };
+    }
+
     const isNvidiaModelGone = provider === "nvidia" && status === 410;
     const modelLockoutOptions = { maxCooldownMs: effectiveProviderProfile?.maxCooldownMs };
+    // Same persisted reason the agentrouter 403 model-scope branch hard-codes
+    // ("forbidden"): the lock key is the getModelLockKey tuple shared with the
+    // combo path, and the declared 1h (same order as that combo lock) is
+    // operator-clamped by recordModelLockoutFailure to mlSettings.maxCooldownMs
+    // (~30min default) — the verbatim 1h never escapes operator control.
+    // Narrow scope: status === 400 only (never a 403/429 rule), adjacent to
+    // :2843's per-model-quota status set (which excludes 400) — malformed 400s
+    // carry no ruleScope and fall through unchanged.
+    if (model && provider && status === 400 && fallbackResult.ruleScope === "model") {
+      // Single source of truth: the rule's own cooldownMs (surfaced on
+      // fallbackResult by the 400 pre-check in checkFallbackError). The literal
+      // is only the fallback for a rule that declares no cooldown — editing
+      // the rule's cooldownMs takes effect without touching this call site.
+      const ruleCooldownMs =
+        typeof fallbackResult.cooldownMs === "number" && fallbackResult.cooldownMs > 0
+          ? fallbackResult.cooldownMs
+          : 3_600_000;
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "model_capacity",
+        400,
+        ruleCooldownMs,
+        effectiveProviderProfile,
+        { exactCooldownMs: ruleCooldownMs, maxCooldownMs: mlSettings.maxCooldownMs }
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "model_capacity",
+        lastError: `Model ${model} model_capacity`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${provider}:${model} — ${status} model_capacity ${Math.ceil(lockout.cooldownMs / 1000)}s (rule scope=model, connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
     if (
-      isPerModelQuotaProvider &&
+      (hasPerModelFailureScope(provider, model, connectionPassthroughModels, status) ||
+        isModelScopedClaudeQuota) &&
       provider &&
       provider !== "codex" &&
       model &&
-      (status === 404 || isNvidiaModelGone || status === 429 || status >= 500)
+      isModelScopedFailure(status, isNvidiaModelGone, fallbackResult)
     ) {
       const reason =
         status === 404 || isNvidiaModelGone
           ? "not_found"
-          : status === 429 && fallbackResult.reason === RateLimitReason.QUOTA_EXHAUSTED
+          : isQuotaExhaustedSignal(fallbackResult)
             ? "quota_exhausted"
             : status === 429
               ? "rate_limited"
@@ -2122,7 +3041,13 @@ export async function markAccountUnavailable(
       // combo-provider-cooldown-sibling.test.ts — "Gemini 503 should NOT skip
       // cooldown"). 502/503/504 keep the pre-#6216 model-lockout path: cooldownMs
       // 0 hot-loops the failing upstream (broke resilience-http-e2e on the PR).
-      if (status === 500) {
+      // The empty-stream 502 is synthesized by OmniRoute, not the provider: locking
+      // the model benched healthy accounts and emptied the combo (incident 2026-09-21).
+      const exemptAfterOutput =
+        status >= 500 &&
+        options.streamOutputEmitted === true &&
+        !postOutputFailureReachesLockout(provider, connectionId, model);
+      if (isRequestScopedServerFailure(status, errorText, exemptAfterOutput)) {
         updateProviderConnection(connectionId, {
           lastErrorType: reason,
           lastError: `Model ${model} ${reason}`,
@@ -2131,7 +3056,10 @@ export async function markAccountUnavailable(
         }).catch(() => {});
         log.info(
           "AUTH",
-          `Server error for ${provider}:${model} — ${status} ${reason} (no model lockout, connection stays active for sibling models)`
+          `Server error for ${provider}:${model} — ${status} ${reason}${options.streamOutputEmitted === true ? " after stream output" : ""} (no model lockout, connection stays active for sibling models)`,
+          {
+            ...(options.correlationId ? { correlationId: options.correlationId } : {}),
+          }
         );
         return { shouldFallback: true, cooldownMs: 0 };
       }
@@ -2155,26 +3083,26 @@ export async function markAccountUnavailable(
         status,
         status === 404 || isNvidiaModelGone
           ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
-          : (antigravityFamilyInferredBaseCooldownMs ??
+          : (claudeQuotaScope.cooldownMs ??
+              antigravityFamilyInferredBaseCooldownMs ??
               fallbackResult.baseCooldownMs ??
               effectiveProviderProfile?.baseCooldownMs ??
               0),
         effectiveProviderProfile,
         {
           ...modelLockoutOptions,
-          exactCooldownMs:
-            fallbackResult.usedUpstreamRetryHint === true
+          exactCooldownMs: isModelScopedClaudeQuota
+            ? claudeQuotaScope.cooldownMs
+            : fallbackResult.usedUpstreamRetryHint === true
               ? fallbackResult.cooldownMs
               : (fallbackResult.quotaResetHintMs ?? null),
           maxCooldownMs: mlSettings.maxCooldownMs,
           scope: usesExactAntigravityLock ? "exact" : undefined,
-          // #6863 vs #7940: exactCooldownMs above is only ever set from a genuine
-          // upstream signal (Retry-After/reset header or a parsed quotaResetHintMs) —
-          // never a synthetic estimate — so it must bypass maxCooldownMs instead of
-          // being clamped down to a window the upstream already told us is wrong.
+          // Only a transport header, google.rpc.RetryInfo, or cached Claude reset can bypass
+          // maxCooldownMs. Prose and generic JSON hints remain exact but operator-capped.
           exactCooldownIsUpstreamReset:
-            fallbackResult.usedUpstreamRetryHint === true ||
-            typeof fallbackResult.quotaResetHintMs === "number",
+            retryHintBypassesMaxCooldownMs(fallbackResult.retryHintSource) ||
+            isModelScopedClaudeQuota,
         }
       );
       // Update last error for observability (without changing terminal status)
@@ -2188,9 +3116,21 @@ export async function markAccountUnavailable(
         "AUTH",
         `Model-only lockout for ${provider}:${model} — ${status} ${reason} ${Math.ceil(lockout.cooldownMs / 1000)}s (failureCount=${lockout.failureCount}, connection stays active)`
       );
+      persistAntigravityFamilyCooldownIfQuota({
+        provider,
+        connectionId,
+        model,
+        cooldownMs: lockout.cooldownMs,
+        reason,
+      });
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
     const result = fallbackResult;
+    if (isSharedWalletCredits402(provider, status, errorText)) {
+      result.creditsExhausted = true;
+      result.reason = result.reason || RateLimitReason.QUOTA_EXHAUSTED;
+      result.shouldFallback = true;
+    }
     const { shouldFallback, cooldownMs: rawCooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
     const providerErrorType = classifyProviderError(status, errorText, provider);
@@ -2264,38 +3204,73 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
 
-    const terminalStatus = resolveTerminalConnectionStatus(
+    let terminalStatus = resolveTerminalConnectionStatus(
       status,
-      result as { permanent?: boolean; creditsExhausted?: boolean },
+      result as { permanent?: boolean; creditsExhausted?: boolean; ambiguousAuth?: boolean },
       providerErrorType,
-      provider
+      provider,
+      isPerModelQuotaProvider,
+      errorText,
+      connectionId
     );
+    // A still-valid access token after a successful refresh is not "expired".
+    // A follow-up 401 (timeout, hop, race) must cooldown, not park the account.
+    const tokenExpiryMs = Date.parse(String(conn?.tokenExpiresAt || conn?.expiresAt || ""));
+    if (
+      terminalStatus === "expired" &&
+      Number.isFinite(tokenExpiryMs) &&
+      tokenExpiryMs > Date.now() + 60_000
+    ) {
+      terminalStatus = null;
+    }
+    // A known 5xx is a server failure, not a quota verdict (e.g. Cursor's empty-turn
+    // hint): never park it until a cached quota reset weeks away.
     const cachedQuotaResetAt =
-      providerErrorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED ||
-      reason === RateLimitReason.QUOTA_EXHAUSTED
+      !(Number(status) >= 500) &&
+      (providerErrorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED ||
+        reason === RateLimitReason.QUOTA_EXHAUSTED)
         ? getCachedQuotaResetAt(connectionId)
         : null;
     const cachedQuotaResetMs = parseFutureDateMs(cachedQuotaResetAt);
-    const cooldownMs = terminalStatus
+    const cachedQuotaCooldownMs = cachedQuotaResetMs ? cachedQuotaResetMs - Date.now() : null;
+    const resolvedCooldownMs = terminalStatus
       ? 0
-      : cachedQuotaResetMs
-        ? cachedQuotaResetMs - Date.now()
-        : rawCooldownMs;
+      : resolveClaudeCooldown(claudeQuotaScope, cachedQuotaCooldownMs, rawCooldownMs);
+    const oauthAuthCooldownMs = oauthAuthBackoff.nextCooldownMs(connectionId, {
+      status,
+      authType: conn?.authType,
+      providerErrorType,
+      terminalStatus,
+      disableCooling,
+      resolvedCooldownMs,
+      baseCooldownMs: effectiveProviderProfile?.baseCooldownMs,
+    });
+    const cooldownMs = oauthAuthCooldownMs ?? resolvedCooldownMs;
 
-    // ── #3027: per-model subscription/permission 403 → model-only lockout ──
+    // ── #3027 / #12242 (402 variant): per-model subscription (403) or
+    // per-model billing (402) error on a passthrough/gateway provider →
+    // model-only lockout, connection stays active. A 402 here is a specific
+    // model needing credit, not a dead credential — sibling (e.g. free)
+    // models on the same connection remain usable and must not be knocked
+    // out. Deliberately excludes single-credential providers, where a 402
+    // genuinely does mean the key is out of credit (see #5239 / #10616) —
+    // isPerModelQuotaProvider is false there, so this branch never fires and
+    // the connection-wide credits_exhausted path above still applies.
     if (
       isPerModelQuotaProvider &&
-      status === 403 &&
+      (status === 403 || status === 402) &&
       provider &&
       model &&
       !terminalStatus &&
+      !isSharedWalletCredits402(provider, status, errorText) &&
       !(provider === "vertex" && isVertexConnectionWidePermissionDenied(errorText))
     ) {
+      const lockoutReason = status === 402 ? "credits" : "forbidden";
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
         model,
-        "forbidden",
+        lockoutReason,
         status,
         fallbackResult.baseCooldownMs ??
           effectiveProviderProfile?.baseCooldownMs ??
@@ -2309,14 +3284,17 @@ export async function markAccountUnavailable(
         }
       );
       updateProviderConnection(connectionId, {
-        lastErrorType: "forbidden",
-        lastError: `Model ${model} forbidden (per-model access/subscription)`,
+        lastErrorType: lockoutReason,
+        lastError:
+          status === 402
+            ? `Model ${model} out of credits (per-model billing)`
+            : `Model ${model} forbidden (per-model access/subscription)`,
         lastErrorAt: new Date().toISOString(),
         errorCode: status,
       }).catch(() => {});
       log.info(
         "AUTH",
-        `Model-only lockout for ${provider}:${model} — 403 forbidden ${Math.ceil(lockout.cooldownMs / 1000)}s (per-model quota provider, connection stays active)`
+        `Model-only lockout for ${provider}:${model} — ${status} ${lockoutReason} ${Math.ceil(lockout.cooldownMs / 1000)}s (per-model quota provider, connection stays active)`
       );
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
@@ -2353,30 +3331,26 @@ export async function markAccountUnavailable(
       );
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
-
-    const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
+    const errorMsg =
+      sanitizeErrorMessage(describeUpstreamFailure(errorText)) || "Provider request failed";
 
     // T09: Codex per-scope lockout (do not block the whole account globally).
-    if (provider === "codex" && status === 429 && model && conn) {
+    if (
+      provider === "codex" &&
+      status === 429 &&
+      typeof model === "string" &&
+      model.trim().length > 0 &&
+      conn
+    ) {
       const scope = getCodexModelScope(model);
-      const existingScopeMap = asRecord(conn.providerSpecificData.codexScopeRateLimitedUntil);
-      const persistedScopeUntil = getCodexScopeRateLimitedUntil(conn.providerSpecificData, model);
-      const scopeRateLimitedUntil = persistedScopeUntil || getUnavailableUntil(cooldownMs);
+      const scopeRateLimitedUntil =
+        getCodexChildCooldown(conn, model) || getUnavailableUntil(cooldownMs);
       const scopeCooldownMs = Math.max(new Date(scopeRateLimitedUntil).getTime() - Date.now(), 0);
 
-      await updateProviderConnection(connectionId, {
-        testStatus: "unavailable",
-        lastError: errorMsg,
-        errorCode: status,
-        lastErrorAt: new Date().toISOString(),
-        backoffLevel: newBackoffLevel ?? backoffLevel,
-        providerSpecificData: {
-          ...conn.providerSpecificData,
-          codexScopeRateLimitedUntil: {
-            ...existingScopeMap,
-            [scope]: scopeRateLimitedUntil,
-          },
-        },
+      await persistCodexChildCooldown({
+        connectionId,
+        model,
+        rateLimitedUntil: scopeRateLimitedUntil,
       });
 
       if (scopeCooldownMs > 0) {
@@ -2388,6 +3362,12 @@ export async function markAccountUnavailable(
       }
 
       return { shouldFallback: true, cooldownMs: scopeCooldownMs };
+    }
+
+    // A Codex quota response without a model cannot be assigned to either virtual child.
+    // Preserve failover without inventing a third parent-level quota/cooldown state.
+    if (provider === "codex" && status === 429) {
+      return { shouldFallback: true, cooldownMs };
     }
 
     const baseUpdate = {
@@ -2404,7 +3384,12 @@ export async function markAccountUnavailable(
       // the DB, but record an in-memory model lockout so credential selection
       // skips this exact provider+connection+model while it cools down — other
       // models on the same connection stay usable.
-      if (provider && model && cooldownMs > 0) {
+      if (
+        provider &&
+        model &&
+        cooldownMs > 0 &&
+        !isSharedWalletCredits402(provider, status, errorText)
+      ) {
         lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
       }
       await updateProviderConnection(connectionId, {
@@ -2413,8 +3398,10 @@ export async function markAccountUnavailable(
     } else if (cooldownMs > 0 && !disableCooling) {
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
-        rateLimitedUntil: getUnavailableUntil(cooldownMs),
-        testStatus: "unavailable",
+        rateLimitedUntil:
+          (oauthAuthCooldownMs === null ? claudeQuotaScope.resetAt : null) ??
+          getUnavailableUntil(cooldownMs),
+        ...(oauthAuthCooldownMs === null ? { testStatus: "unavailable" } : {}),
       });
     } else {
       await updateProviderConnection(connectionId, {
@@ -2424,27 +3411,14 @@ export async function markAccountUnavailable(
       });
     }
 
-    // T-AUTODISABLE: If auto-disable setting is enabled and error is permanent/terminal,
-    // mark account as inactive so it is never retried again.
-    // Uses getCachedSettings() to avoid DB overhead on hot error path.
-    // NOTE: For permanent bans we disable immediately — no threshold needed,
-    // because a permanent ban (403 "Verify your account" / ToS violation) will
-    // NEVER recover, so retrying is pointless regardless of attempt count.
-    if ((result as { permanent?: boolean }).permanent) {
-      try {
-        const settings = await getCachedSettings();
-        const autoDisableEnabled = settings.autoDisableBannedAccounts ?? false;
-        if (autoDisableEnabled) {
-          await updateProviderConnection(connectionId, { isActive: false });
-          log.info(
-            "AUTH",
-            `Auto-disabled ${connectionId.slice(0, 8)} — permanent ban detected (autoDisableBannedAccounts=true)`
-          );
-        }
-      } catch (e) {
-        log.info("AUTH", `Auto-disable check failed (non-fatal): ${e}`);
-      }
-    }
+    // T-AUTODISABLE: permanent bans disable immediately when the setting allows it.
+    await maybeAutoDisableBannedAccount({
+      connectionId,
+      provider,
+      authType: conn?.authType,
+      connectionProvider: conn?.provider,
+      permanent: Boolean((result as { permanent?: boolean }).permanent),
+    });
 
     if (provider && status && errorMsg) {
       console.error(`❌ ${provider} [${status}]: ${errorMsg}`);
@@ -2466,6 +3440,7 @@ export async function clearAccountError(
   connectionId: string,
   currentConnection: Partial<RecoverableConnectionState>
 ) {
+  oauthAuthBackoff.resetStreak(connectionId);
   // Only update if currently has error status
   const hasError =
     (currentConnection.testStatus && currentConnection.testStatus !== "active") ||
@@ -2491,11 +3466,9 @@ export async function clearAccountError(
 }
 
 /**
- * Optional CAS token. When provided, the clear is performed via an atomic
- * conditional UPDATE (clearConnectionErrorIfUnchanged) that aborts if the row
- * was written by a concurrent path between the caller's snapshot read and this
- * clear. Closes the TOCTOU window in the quota-recovery path. When omitted,
- * the clear is unconditional (preserves existing post-success-call behavior).
+ * Optional CAS token. When provided, clearConnectionErrorIfUnchanged atomically
+ * aborts if another path modified the row after the caller's snapshot.
+ * This closes the TOCTOU window; omission preserves unconditional clearing.
  */
 export interface RecoveredStateExpectation {
   testStatus: string | null;
@@ -2503,23 +3476,25 @@ export interface RecoveredStateExpectation {
   rateLimitedUntil: string | null;
 }
 export async function clearRecoveredProviderState(
-  credentials: Partial<RecoverableConnectionState> | null,
+  credentials: unknown,
   expectedState?: RecoveredStateExpectation
 ): Promise<{ applied: boolean }> {
-  if (!credentials?.connectionId) return { applied: false };
+  const recoverable = credentials as Partial<RecoverableConnectionState> | null;
+  if (typeof recoverable?.connectionId !== "string" || !recoverable.connectionId)
+    return { applied: false };
   if (expectedState) {
-    const applied = await clearConnectionErrorIfUnchanged(credentials.connectionId, expectedState);
+    const applied = await clearConnectionErrorIfUnchanged(recoverable.connectionId, expectedState);
     if (!applied) {
       log.info(
         "AUTH",
-        `Skipped recovery clear for ${credentials.connectionId.slice(0, 8)} — state changed concurrently (CAS miss)`
+        `Skipped recovery clear for ${recoverable.connectionId.slice(0, 8)} — state changed concurrently (CAS miss)`
       );
       return { applied: false };
     }
-    log.info("AUTH", `Account ${credentials.connectionId.slice(0, 8)} error cleared (CAS)`);
+    log.info("AUTH", `Account ${recoverable.connectionId.slice(0, 8)} error cleared (CAS)`);
     return { applied: true };
   }
-  await clearAccountError(credentials.connectionId, credentials);
+  await clearAccountError(recoverable.connectionId, recoverable);
   return { applied: true };
 }
 type AuthRequestLike = {
@@ -2639,7 +3614,7 @@ export async function isValidApiKey(apiKey: string) {
 
   // Persistent env-var key — always valid regardless of DB state (#1350)
   const envKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
-  if (envKey && apiKey === envKey) return true;
+  if (envKey && timingSafeCompare(apiKey, envKey)) return true;
 
   return await validateApiKey(apiKey);
 }

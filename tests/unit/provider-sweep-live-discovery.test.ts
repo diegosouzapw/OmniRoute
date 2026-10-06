@@ -31,13 +31,13 @@ const modelsRoute = await import("../../src/app/api/providers/[id]/models/route.
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 interface ModelsBody {
@@ -48,7 +48,7 @@ interface ModelsBody {
 }
 
 // provider → the upstream /models URL the route resolves from its registry baseUrl.
-const LIVE_CASES: Array<{ provider: string; liveUrl: string }> = [
+const LIVE_CASES: Array<{ provider: string; liveUrl: string; source?: string }> = [
   { provider: "venice", liveUrl: "https://api.venice.ai/api/v1/models" },
   { provider: "deepinfra", liveUrl: "https://api.deepinfra.com/v1/openai/models" },
   { provider: "wandb", liveUrl: "https://api.inference.wandb.ai/v1/models" },
@@ -62,7 +62,11 @@ const LIVE_CASES: Array<{ provider: string; liveUrl: string }> = [
   { provider: "ovhcloud", liveUrl: "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/models" },
   { provider: "sambanova", liveUrl: "https://api.sambanova.ai/v1/models" },
   { provider: "orcarouter", liveUrl: "https://api.orcarouter.ai/v1/models" },
-  { provider: "uncloseai", liveUrl: "https://hermes.ai.unturf.com/v1/models" },
+  {
+    provider: "uncloseai",
+    liveUrl: "https://hermes.ai.unturf.com/v1/models",
+    source: "upstream",
+  },
   { provider: "opencode-go", liveUrl: "https://opencode.ai/zen/go/v1/models" },
   { provider: "baseten", liveUrl: "https://inference.baseten.co/v1/models" },
   { provider: "hyperbolic", liveUrl: "https://api.hyperbolic.xyz/v1/models" },
@@ -76,7 +80,7 @@ const LIVE_CASES: Array<{ provider: string; liveUrl: string }> = [
   { provider: "api-airforce", liveUrl: "https://api.airforce/v1/models" },
 ];
 
-for (const { provider, liveUrl } of LIVE_CASES) {
+for (const { provider, liveUrl, source = "api" } of LIVE_CASES) {
   test(`sweep: ${provider} import fetches the live /models catalog`, async () => {
     await resetStorage();
     const connection = await providersDb.createProviderConnection({
@@ -109,7 +113,11 @@ for (const { provider, liveUrl } of LIVE_CASES) {
       const body = (await response.json()) as ModelsBody;
       assert.equal(body.provider, provider);
       assert.ok(fetched, `should have probed ${liveUrl}`);
-      assert.equal(body.source, "api", "should serve the live upstream catalog, not local_catalog");
+      assert.equal(
+        body.source,
+        source,
+        "should serve the live upstream catalog, not local_catalog"
+      );
       const ids = body.models.map((m) => m.id);
       assert.ok(
         ids.includes(`${provider}-live-a`) && ids.includes(`${provider}-live-b`),

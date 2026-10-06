@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   SEARCH_PROVIDERS,
-  SEARCH_CREDENTIAL_FALLBACKS,
+  getSearchCredentialFallbacks,
 } from "@omniroute/open-sse/config/searchRegistry.ts";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getProviderCredentials } from "@/sse/services/auth";
@@ -35,7 +35,7 @@ const FETCH_PROVIDERS: FetchProviderDef[] = [
   },
   {
     id: "jina-reader",
-    name: "Jina Reader",
+    name: "Jina Reader (r.jina.ai)",
     costPerQuery: 0.0005,
     freeMonthlyQuota: 1000,
     fetchFormats: ["markdown", "text"],
@@ -53,6 +53,20 @@ const FETCH_PROVIDERS: FetchProviderDef[] = [
     costPerQuery: 0,
     freeMonthlyQuota: 0,
     fetchFormats: ["markdown", "html"],
+  },
+  {
+    id: "nimble-search",
+    name: "Nimble Extract",
+    costPerQuery: 0.005,
+    freeMonthlyQuota: 0,
+    fetchFormats: ["markdown", "html", "links", "screenshot"],
+  },
+  {
+    id: "anysearch-search",
+    name: "AnySearch",
+    costPerQuery: 0,
+    freeMonthlyQuota: 0,
+    fetchFormats: ["markdown"],
   },
 ];
 
@@ -85,8 +99,7 @@ async function resolveProviderStatus(
     // All rate limited — check fallback before returning rate_limited
     if (isAllRateLimitedCredentials(credentials)) {
       if (useCredentialFallback) {
-        const fallbackId = SEARCH_CREDENTIAL_FALLBACKS[providerId];
-        if (fallbackId) {
+        for (const fallbackId of getSearchCredentialFallbacks(providerId)) {
           const fallbackCreds = await getProviderCredentials(fallbackId).catch(() => null);
           if (fallbackCreds && !isAllRateLimitedCredentials(fallbackCreds)) {
             return "configured";
@@ -98,16 +111,17 @@ async function resolveProviderStatus(
 
     // null → no credentials; try fallback
     if (useCredentialFallback) {
-      const fallbackId = SEARCH_CREDENTIAL_FALLBACKS[providerId];
-      if (fallbackId) {
+      let fallbackRateLimited = false;
+      for (const fallbackId of getSearchCredentialFallbacks(providerId)) {
         const fallbackCreds = await getProviderCredentials(fallbackId).catch(() => null);
         if (fallbackCreds && !isAllRateLimitedCredentials(fallbackCreds)) {
           return "configured";
         }
         if (isAllRateLimitedCredentials(fallbackCreds)) {
-          return "rate_limited";
+          fallbackRateLimited = true;
         }
       }
+      if (fallbackRateLimited) return "rate_limited";
     }
 
     return "missing";

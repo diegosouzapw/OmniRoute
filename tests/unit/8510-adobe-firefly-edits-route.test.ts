@@ -1,3 +1,4 @@
+import "../_setup/disableAdobeBrowser.ts";
 // #8510 (artickc, feat/adobe-firefly-reference-images): route-level coverage for the Adobe
 // Firefly branch that /v1/images/edits gained in this PR. Exercises the actual
 // POST(request) handler (not the inner handleAdobeFireflyImageGeneration helper directly,
@@ -9,6 +10,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-adobe-firefly-edits-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -19,10 +21,8 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
-const {
-  ADOBE_FIREFLY_IMAGE_UPLOAD_URL,
-  ADOBE_FIREFLY_IMAGE_SUBMIT_URL,
-} = await import("../../open-sse/services/adobeFireflyClient.ts");
+const { ADOBE_FIREFLY_IMAGE_UPLOAD_URL, ADOBE_FIREFLY_IMAGE_SUBMIT_URL } =
+  await import("../../open-sse/services/adobeFireflyClient.ts");
 
 interface ErrorResponseBody {
   error: { message: string; code?: string };
@@ -38,7 +38,7 @@ async function resetStorage() {
   globalThis.fetch = originalFetch;
   apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  await cleanupTempDataDir(TEST_DATA_DIR);
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
@@ -82,11 +82,11 @@ test.beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(() => {
+test.after(async () => {
   globalThis.fetch = originalFetch;
   apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 test("#8510 v1 image edit POST uploads Adobe Firefly reference images and dispatches referenceBlobs", async () => {
@@ -148,10 +148,7 @@ test("#8510 v1 image edit POST uploads Adobe Firefly reference images and dispat
     id: string;
   }>;
   assert.ok(Array.isArray(referenceBlobs), "generate-async payload must carry referenceBlobs");
-  assert.deepEqual(
-    referenceBlobs.map((r) => r.id).sort(),
-    [...uploadedIds].sort()
-  );
+  assert.deepEqual(referenceBlobs.map((r) => r.id).sort(), [...uploadedIds].sort());
 });
 
 test("#8510 v1 image edit POST rejects more than 4 Adobe Firefly reference images", async () => {
@@ -206,7 +203,9 @@ test("#8510 v1 image edit POST surfaces missing Adobe Firefly credentials", asyn
 });
 
 test("#8510 v1 image edit POST surfaces Adobe Firefly rate-limit sentinel", async () => {
-  await seedAdobeFireflyConnection({ rateLimitedUntil: new Date(Date.now() + 60_000).toISOString() });
+  await seedAdobeFireflyConnection({
+    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+  });
   globalThis.fetch = async () => {
     throw new Error("Rate-limited path must not reach upstream");
   };

@@ -55,7 +55,7 @@ describe("#6701 — claude detection should fall back to settings.json when bina
   });
 
   after(() => {
-    fs.rmSync(configHome, { recursive: true, force: true });
+    fs.rmSync(configHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     if (prevBin === undefined) delete process.env.CLI_CLAUDE_BIN;
     else process.env.CLI_CLAUDE_BIN = prevBin;
     if (prevConfigHome === undefined) delete process.env.CLI_CONFIG_HOME;

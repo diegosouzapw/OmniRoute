@@ -70,3 +70,20 @@ test("null apiKeyInfo coalesces to null for resolveDisabledGuardrails", () => {
   });
   assert.equal(received.apiKeyInfo, null);
 });
+
+test("normalizes untyped context fields before returning the guardrail contract", () => {
+  const ctx = buildPostCallGuardrailContext(
+    baseArgs({
+      apiKeyInfo: ["not", "a", "record"],
+      clientRawRequest: { endpoint: 42 },
+      responsePayloadFormat: { format: "openai" },
+      clientResponseFormat: false,
+    }),
+    () => []
+  );
+
+  assert.equal(ctx.apiKeyInfo, null);
+  assert.equal(ctx.endpoint, null);
+  assert.equal(ctx.sourceFormat, null);
+  assert.equal(ctx.targetFormat, null);
+});

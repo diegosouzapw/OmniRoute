@@ -98,27 +98,54 @@ function buildResponsesOutputItemKey(item: unknown): string | null {
   return `${type}:${id}:${callId}:${outputIndex}:${name}`;
 }
 
+// Module-level Set reused across calls to avoid allocation per event
+const _seenResponsesKeys = new Set<string>();
+
 export function pushUniqueResponsesOutputItems(target: unknown[], items: readonly unknown[]) {
-  const seen = new Set<string>();
+  // Clear the reused Set instead of allocating new one
+  _seenResponsesKeys.clear();
 
   for (const existingItem of target) {
     const key = buildResponsesOutputItemKey(existingItem);
     if (key) {
-      seen.add(key);
+      _seenResponsesKeys.add(key);
     }
   }
 
   for (const item of items) {
     const key = buildResponsesOutputItemKey(item);
-    if (key && seen.has(key)) {
+    if (key && _seenResponsesKeys.has(key)) {
       continue;
     }
 
     target.push(item);
     if (key) {
-      seen.add(key);
+      _seenResponsesKeys.add(key);
     }
   }
+}
+
+/**
+ * #10156 — strip items matched by `isCommentaryItem` (the same predicate used
+ * to drop live commentary-phase SSE frames, #6199) from a `response.completed`
+ * output array before it is forwarded or buffered for backfill. Upstreams may
+ * echo an already-dropped commentary item back inside a non-empty terminal
+ * `output` array; without this, the live stream and the terminal snapshot
+ * silently disagree about what the client actually saw.
+ */
+export function filterResponsesCommentaryFromItems(
+  items: readonly unknown[],
+  isCommentaryItem: (item: unknown) => boolean
+): { items: unknown[]; changed: boolean } {
+  let changed = false;
+  const filtered = items.filter((item) => {
+    if (isCommentaryItem(item)) {
+      changed = true;
+      return false;
+    }
+    return true;
+  });
+  return { items: filtered, changed };
 }
 
 export function backfillResponsesCompletedOutput(

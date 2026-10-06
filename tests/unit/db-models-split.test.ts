@@ -108,7 +108,6 @@ test("host db/models.ts preserves its full public API after the split", async ()
     "getModelPreserveOpenAIDeveloperRole",
     "getModelIsHidden",
     "getHiddenModelsByProvider",
-    "getModelIsDeleted",
     "setModelIsHidden",
     "getModelUpstreamExtraHeaders",
   ]) {

@@ -19,7 +19,9 @@ export function collectReferencedArtifacts(): Set<string> {
     "SELECT artifact_relpath FROM call_logs WHERE artifact_relpath IS NOT NULL LIMIT ? OFFSET ?"
   );
   for (let offset = 0; ; offset += CALL_LOG_QUERY_PAGE) {
-    const rows = stmt.all(CALL_LOG_QUERY_PAGE, offset) as Array<{ artifact_relpath: string | null }>;
+    const rows = stmt.all(CALL_LOG_QUERY_PAGE, offset) as Array<{
+      artifact_relpath: string | null;
+    }>;
     for (const row of rows) {
       if (typeof row.artifact_relpath === "string") referenced.add(row.artifact_relpath);
     }
@@ -39,4 +41,34 @@ export function selectCallLogIdsBefore(cutoff: string, limit = CALL_LOG_QUERY_PA
     .prepare("SELECT id FROM call_logs WHERE timestamp < ? ORDER BY timestamp ASC LIMIT ?")
     .all(cutoff, limit) as Array<{ id: string }>;
   return rows.map((row) => String(row.id));
+}
+
+export function selectOverflowArtifactPaths(maxEntries: number, limit: number): string[] {
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT artifact_relpath
+       FROM call_logs
+       WHERE artifact_relpath IS NOT NULL
+       ORDER BY timestamp DESC, id DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(limit, maxEntries) as Array<{ artifact_relpath: string }>;
+  return rows.map((row) => row.artifact_relpath);
+}
+
+export function findReferencedArtifacts(relativePaths: string[]): Set<string> {
+  if (relativePaths.length === 0) return new Set();
+
+  const db = getDbInstance();
+  const placeholders = relativePaths.map(() => "?").join(", ");
+  const rows = db
+    .prepare(
+      `SELECT DISTINCT artifact_relpath
+       FROM call_logs
+       WHERE artifact_relpath IN (${placeholders})
+       LIMIT ?`
+    )
+    .all(...relativePaths, relativePaths.length) as Array<{ artifact_relpath: string }>;
+  return new Set(rows.map((row) => row.artifact_relpath));
 }

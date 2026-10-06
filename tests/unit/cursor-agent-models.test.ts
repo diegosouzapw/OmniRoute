@@ -123,7 +123,7 @@ describe("resolveCursorAgentBinary", () => {
     if (ORIGINAL_USERPROFILE !== undefined) process.env.USERPROFILE = ORIGINAL_USERPROFILE;
     else delete process.env.USERPROFILE;
     process.env.PATH = ORIGINAL_PATH;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("finds the HOME-relative fixed candidate (~/.local/bin/cursor-agent) with allowPathFallback:false", () => {
@@ -152,7 +152,7 @@ describe("resolveCursorAgentBinary", () => {
       assert.equal(resolveCursorAgentBinary({ allowPathFallback: false }), fixedBinary);
       assert.equal(resolveCursorAgentBinary({ allowPathFallback: true }), fixedBinary);
     } finally {
-      fs.rmSync(pathDir, { recursive: true, force: true });
+      fs.rmSync(pathDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   });
 
@@ -175,7 +175,7 @@ describe("resolveCursorAgentBinary", () => {
       assert.equal(resolveCursorAgentBinary({ allowPathFallback: true }), pathOnlyBinary);
       assert.equal(resolveCursorAgentBinary(), pathOnlyBinary);
     } finally {
-      fs.rmSync(pathDir, { recursive: true, force: true });
+      fs.rmSync(pathDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   });
 
@@ -198,7 +198,7 @@ describe("resolveCursorAgentBinary", () => {
       try {
         assert.equal(resolveCursorAgentBinary({ allowPathFallback: false }), null);
       } finally {
-        fs.rmSync(pathDir, { recursive: true, force: true });
+        fs.rmSync(pathDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
     }
   );
@@ -261,7 +261,7 @@ if (selfExitMs) {
 
   afterEach(() => {
     delete process.env.FAKE_BIN_SELF_EXIT_MS;
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("sends SIGKILL after the follow-up window when the process ignores SIGTERM", async () => {

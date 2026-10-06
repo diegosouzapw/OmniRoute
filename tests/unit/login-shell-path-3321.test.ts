@@ -43,17 +43,29 @@ test("parseShellPathOutput returns null when no PATH line is present", () => {
   assert.equal(parseShellPathOutput(""), null);
 });
 
-test("getLoginShellPath returns null on non-darwin platforms (no-op on Linux/Windows)", () => {
+test("getLoginShellPath returns null on win32 platform (no-op on Windows)", () => {
   let called = false;
   const result = getLoginShellPath({
-    platform: "linux",
+    platform: "win32",
     runShell: () => {
       called = true;
       return "PATH=/should/not/be/used";
     },
   });
   assert.equal(result, null);
-  assert.equal(called, false, "must not spawn the shell on non-darwin");
+  assert.equal(called, false, "must not spawn the shell on win32");
+});
+
+test("getLoginShellPath returns the login-shell PATH on linux", () => {
+  const result = getLoginShellPath({
+    platform: "linux",
+    shell: "/bin/bash",
+    runShell: (sh) => {
+      assert.equal(sh, "/bin/bash");
+      return "PATH=/home/user/.nvm/versions/node/v22.23.1/bin:/usr/local/bin:/usr/bin\n";
+    },
+  });
+  assert.equal(result, "/home/user/.nvm/versions/node/v22.23.1/bin:/usr/local/bin:/usr/bin");
 });
 
 test("getLoginShellPath returns the login-shell PATH on darwin (#3321)", () => {

@@ -43,7 +43,7 @@ function cleanup() {
   // Retry with a short delay to let the OS release locks.
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
-      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       return;
     } catch {
       /* retry */
@@ -82,7 +82,12 @@ test("keeps legacy files in place when zip creation fails", async () => {
   // Remove the archive dir created by the first test, then write a file
   // at that path so mkdirSync throws EEXIST. This simulates a zip
   // creation failure. The migration should leave legacy files intact.
-  fs.rmSync(migrations.LOG_ARCHIVES_DIR, { recursive: true, force: true });
+  fs.rmSync(migrations.LOG_ARCHIVES_DIR, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 100,
+  });
   fs.writeFileSync(migrations.LOG_ARCHIVES_DIR, "not-a-directory");
 
   await assert.rejects(() => migrations.archiveLegacyRequestLogs());

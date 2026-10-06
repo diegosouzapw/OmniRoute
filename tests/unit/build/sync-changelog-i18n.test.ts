@@ -28,7 +28,7 @@ test("replaces the version section in every mirror with the root section", () =>
   const fr = fs.readFileSync(path.join(root, "docs/i18n/fr/CHANGELOG.md"), "utf8");
   assert.match(fr, /big new thing/);
   assert.doesNotMatch(fr, /_stub_/);
-  fs.rmSync(root, { recursive: true, force: true });
+  fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("inserts the section when a mirror lacks it", () => {
@@ -43,5 +43,5 @@ test("inserts the section when a mirror lacks it", () => {
   const fr = fs.readFileSync(path.join(root, "docs/i18n/fr/CHANGELOG.md"), "utf8");
   assert.match(fr, /## \[9\.9\.9\]/);
   assert.match(fr, /big new thing/);
-  fs.rmSync(root, { recursive: true, force: true });
+  fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });

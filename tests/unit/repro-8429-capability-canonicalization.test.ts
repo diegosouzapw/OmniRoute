@@ -13,24 +13,39 @@ const modelCapabilities = await import("../../src/lib/modelCapabilities.ts");
 
 function buildCapability(overrides: Record<string, unknown> = {}) {
   return {
-    tool_call: null, reasoning: null, attachment: null, structured_output: null,
-    temperature: null, modalities_input: "[]", modalities_output: "[]",
-    knowledge_cutoff: null, release_date: null, last_updated: null, status: null,
-    family: null, open_weights: null, limit_context: null, limit_input: null,
-    limit_output: null, interleaved_field: null, ...overrides,
+    tool_call: null,
+    reasoning: null,
+    attachment: null,
+    structured_output: null,
+    temperature: null,
+    modalities_input: "[]",
+    modalities_output: "[]",
+    knowledge_cutoff: null,
+    release_date: null,
+    last_updated: null,
+    status: null,
+    family: null,
+    open_weights: null,
+    limit_context: null,
+    limit_input: null,
+    limit_output: null,
+    interleaved_field: null,
+    ...overrides,
   };
 }
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-test.beforeEach(() => { resetStorage(); });
+test.beforeEach(() => {
+  resetStorage();
+});
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#8429: synced model_capabilities row written under models.dev mapping is unreachable via the canonical 'codex' provider id", () => {

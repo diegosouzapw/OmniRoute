@@ -5,10 +5,14 @@ import { ensureSettingsSchema, hashManagementPassword, updateSettings } from "./
 
 async function loadSqlite() {
   if (process.versions.bun) {
-    return { Database: (await import("bun:sqlite")).Database };
+    try {
+      return { Database: (await import("bun:sqlite")).Database, driver: "bun:sqlite" };
+    } catch (bunError) {
+      // fall through to better-sqlite3 if bun:sqlite fails
+    }
   }
   try {
-    return { Database: (await import("better-sqlite3")).default };
+    return { Database: (await import("better-sqlite3")).default, driver: "better-sqlite3" };
   } catch (error) {
     return { error };
   }
@@ -86,12 +90,14 @@ export function normalizeBunSqliteParams(params) {
 
 export function createSqliteNativeError(error) {
   const message = error instanceof Error ? error.message : String(error);
+  const isBun = Boolean(process.versions.bun);
+  const rebuildCmd = isBun ? "bun add better-sqlite3 --trust" : "npm rebuild better-sqlite3";
   if (message.includes("NODE_MODULE_VERSION") || message.includes("ERR_DLOPEN_FAILED")) {
     return new Error(
-      "better-sqlite3 native binding is incompatible with this Node.js runtime. " +
-        "Run `npm rebuild better-sqlite3` in the OmniRoute project and try again. " +
-        "Or run: omniroute runtime repair  " +
-        "(rebuilds into a user-writable runtime; works without a C++ toolchain)."
+      `better-sqlite3 native binding is incompatible with this runtime. ` +
+        `Run \`${rebuildCmd}\` in the OmniRoute project and try again. ` +
+        `Or run: omniroute runtime repair  ` +
+        `(rebuilds into a user-writable runtime; works without a C++ toolchain).`
     );
   }
   if (
@@ -100,10 +106,9 @@ export function createSqliteNativeError(error) {
     message.includes("Cannot find module 'better-sqlite3'")
   ) {
     return new Error(
-      "better-sqlite3 native binding could not be found (no prebuilt addon for this platform). " +
-        "This is common under `npx`, which runs a fresh, ephemeral install that never built the addon. " +
-        "Run: omniroute runtime repair  " +
-        "(rebuilds into a user-writable runtime; works without a C++ toolchain)."
+      `better-sqlite3 native binding could not be found (no prebuilt addon for this platform). ` +
+        `Run: omniroute runtime repair  ` +
+        `(rebuilds into a user-writable runtime; works without a C++ toolchain).`
     );
   }
   return error;
@@ -111,7 +116,7 @@ export function createSqliteNativeError(error) {
 
 async function openSqliteDatabase(dbPath, options = {}) {
   const loaded = await loadSqlite();
-  if (process.versions.bun) {
+  if (loaded.driver === "bun:sqlite" || (process.versions.bun && !loaded.Database)) {
     if (options.fileMustExist && !fs.existsSync(dbPath)) {
       throw new Error(`SQLite file does not exist: ${dbPath}`);
     }

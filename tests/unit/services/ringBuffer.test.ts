@@ -77,7 +77,7 @@ test("flush writes to file when path set", async () => {
     assert.ok(content.includes("line-one"), "flush file should contain log entry");
     assert.ok(content.includes("[stderr]"), "flush file should contain stderr entry");
   } finally {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 

@@ -7,7 +7,7 @@
  * part (usually carrying a `thoughtSignature`), so any tools request collected
  * to an empty stream and was rewritten into a synthetic 502 "Provider returned
  * empty content" — breaking Chatwit Captain Copilot / reply suggestions on
- * agy/gemini-3.5-flash-low while plain text completions kept working.
+ * agy/gemini-3.7-flash-low while plain text completions kept working.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -117,4 +117,28 @@ test("processAntigravitySSEPayload ignores a malformed functionCall without a na
 
   assert.equal(collected.toolCalls.length, 0);
   assert.equal(collected.textContent, "");
+});
+
+test("processAntigravitySSEPayload collects text carrying thoughtSignature", () => {
+  const collected = emptyCollected();
+  processAntigravitySSEPayload(
+    JSON.stringify({
+      response: {
+        candidates: [
+          {
+            content: {
+              parts: [
+                { text: "internal reasoning", thought: true },
+                { text: "visible reply after tool execution", thoughtSignature: "sig-tool-res" },
+              ],
+            },
+            finishReason: "STOP",
+          },
+        ],
+      },
+    }),
+    collected
+  );
+
+  assert.equal(collected.textContent, "visible reply after tool execution");
 });

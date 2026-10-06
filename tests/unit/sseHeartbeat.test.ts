@@ -19,8 +19,40 @@ function withEnv(value: string | undefined, fn: () => void) {
   }
 }
 
-test("sseCommentsEnabled defaults to true when the env var is unset", () => {
-  withEnv(undefined, () => assert.equal(sseCommentsEnabled(), true));
+async function withEnvAsync<T>(value: string | undefined, fn: () => Promise<T>): Promise<T> {
+  const prev = process.env.OMNIROUTE_SSE_COMMENTS;
+  try {
+    if (value === undefined) delete process.env.OMNIROUTE_SSE_COMMENTS;
+    else process.env.OMNIROUTE_SSE_COMMENTS = value;
+    return await fn();
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_SSE_COMMENTS;
+    else process.env.OMNIROUTE_SSE_COMMENTS = prev;
+  }
+}
+
+async function collectHeartbeatOutput(
+  shape: (typeof HEARTBEAT_SHAPES)[keyof typeof HEARTBEAT_SHAPES]
+) {
+  const enc = new TextEncoder();
+  let closeTimer: ReturnType<typeof setTimeout> | undefined;
+  const input = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(enc.encode("data: ordinary\n\n"));
+      closeTimer = setTimeout(() => controller.close(), 35);
+    },
+    cancel() {
+      if (closeTimer) clearTimeout(closeTimer);
+    },
+  });
+
+  return new Response(
+    input.pipeThrough(createSseHeartbeatTransform({ shape, intervalMs: 10 }))
+  ).text();
+}
+
+test("sseCommentsEnabled defaults to false when the env var is unset (#10524)", () => {
+  withEnv(undefined, () => assert.equal(sseCommentsEnabled(), false));
 });
 
 test("sseCommentsEnabled is false for 'off', 'false', '0', 'no' (case-insensitive)", () => {
@@ -39,43 +71,30 @@ test("sseCommentsEnabled is false for 'off', 'false', '0', 'no' (case-insensitiv
 test("shapeForClientFormat maps known client formats", () => {
   assert.equal(shapeForClientFormat("claude"), HEARTBEAT_SHAPES.ANTHROPIC_PING);
   assert.equal(shapeForClientFormat("openai"), HEARTBEAT_SHAPES.OPENAI_CHUNK);
-  assert.equal(shapeForClientFormat("openai-responses"), HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS);
+  assert.equal(
+    shapeForClientFormat("openai-responses"),
+    HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS
+  );
   assert.equal(shapeForClientFormat(undefined), HEARTBEAT_SHAPES.COMMENT);
 });
 
-test("createSseHeartbeatTransform suppresses COMMENT heartbeats when OMNIROUTE_SSE_COMMENTS=off", async () => {
-  const prev = process.env.OMNIROUTE_SSE_COMMENTS;
-  process.env.OMNIROUTE_SSE_COMMENTS = "off";
-  try {
-    const enc = new TextEncoder();
-    const dec = new TextDecoder();
-    const input = new ReadableStream<Uint8Array>({
-      start(c) {
-        c.enqueue(enc.encode("data: hello\n\n"));
-        c.close();
-      },
-    });
-    const reader = input
-      .pipeThrough(createSseHeartbeatTransform({ shape: HEARTBEAT_SHAPES.COMMENT, intervalMs: 20 }))
-      .pipeThrough(
-        new TransformStream<Uint8Array, string>({
-          transform(chunk, ctrl) {
-            ctrl.enqueue(dec.decode(chunk));
-          },
-        })
-      )
-      .getReader();
-    const chunks: string[] = [];
-    let res = await reader.read();
-    while (!res.done) {
-      chunks.push(res.value as string);
-      res = await reader.read();
-    }
-    const out = chunks.join("");
-    assert.ok(!out.includes(": keepalive"), "no comment heartbeat should be emitted when disabled");
-    assert.ok(out.includes("data: hello"), "original chunk passes through unchanged");
-  } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_SSE_COMMENTS;
-    else process.env.OMNIROUTE_SSE_COMMENTS = prev;
-  }
+test("comment opt-out suppresses only COMMENT heartbeats, not data-event heartbeats", async () => {
+  await withEnvAsync("off", async () => {
+    const comment = await collectHeartbeatOutput(HEARTBEAT_SHAPES.COMMENT);
+    assert.doesNotMatch(comment, /: keepalive/, "comment heartbeat should be suppressed");
+    assert.match(comment, /data: ordinary/, "ordinary data should pass through unchanged");
+
+    const openAI = await collectHeartbeatOutput(HEARTBEAT_SHAPES.OPENAI_CHUNK);
+    assert.match(openAI, /"object":"chat\.completion\.chunk"/);
+
+    const anthropic = await collectHeartbeatOutput(HEARTBEAT_SHAPES.ANTHROPIC_PING);
+    assert.match(anthropic, /event: ping\ndata: \{"type":"ping"\}/);
+
+    const responses = await collectHeartbeatOutput(HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS);
+    // #14330: the frame now carries a required `sequence_number` and `response` object.
+    assert.match(
+      responses,
+      /data: \{"type":"response\.in_progress","sequence_number":1,"response":/
+    );
+  });
 });

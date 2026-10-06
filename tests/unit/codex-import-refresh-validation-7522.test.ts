@@ -31,7 +31,7 @@ test.before(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function jsonResponse(body: unknown, status = 200) {
@@ -70,7 +70,10 @@ const BASE_RECORD = {
 test("import: rejects a record whose refresh_token is already invalidated upstream (#7522)", async () => {
   await withMockedFetch(
     (async () =>
-      jsonResponse({ error: { code: "refresh_token_invalidated" } }, 401)) as unknown as typeof fetch,
+      jsonResponse(
+        { error: { code: "refresh_token_invalidated" } },
+        401
+      )) as unknown as typeof fetch,
     async () => {
       const { status, body } = await postImport({ accounts: BASE_RECORD });
 
@@ -83,7 +86,11 @@ test("import: rejects a record whose refresh_token is already invalidated upstre
 
       const rows = await providersDb.getProviderConnections({ provider: "codex" });
       const created = rows.find((r) => r.email === BASE_RECORD.email);
-      assert.equal(created, undefined, "no connection should be persisted for a dead refresh_token");
+      assert.equal(
+        created,
+        undefined,
+        "no connection should be persisted for a dead refresh_token"
+      );
     }
   );
 });
@@ -160,7 +167,11 @@ test("import: a transient network error validating the refresh_token does not bl
 
 test("import: error responses never leak a stack trace", async () => {
   await withMockedFetch(
-    (async () => jsonResponse({ error: { code: "refresh_token_invalidated" } }, 401)) as unknown as typeof fetch,
+    (async () =>
+      jsonResponse(
+        { error: { code: "refresh_token_invalidated" } },
+        401
+      )) as unknown as typeof fetch,
     async () => {
       const { body } = await postImport({
         accounts: { ...BASE_RECORD, email: "leak-check@example.com" },

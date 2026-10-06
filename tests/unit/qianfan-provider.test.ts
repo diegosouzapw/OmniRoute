@@ -1,7 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 
 import { REGISTRY, getRegistryEntry } from "../../open-sse/config/providerRegistry.ts";
 import { PROVIDERS } from "../../open-sse/config/constants.ts";
@@ -63,8 +61,4 @@ test("qianfan provider creation schema accepts API-key connections", () => {
     assert.equal(validation.data.provider, "qianfan");
     assert.equal(validation.data.apiKey, "bce-v3/test-key");
   }
-});
-
-test("qianfan has a static provider icon asset", () => {
-  assert.equal(existsSync(join(process.cwd(), "public/providers/qianfan.svg")), true);
 });

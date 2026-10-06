@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -424,4 +434,40 @@ test("self-service status normalizes Codex account quota for one explicit connec
       },
     },
   });
+});
+
+test("self-service fetches Moonshot custom-node quota via providerSpecificData host", async () => {
+  const metadata = {
+    id: "key-mnative",
+    name: "moonshot native",
+    scopes: [SELF_USAGE_SCOPE, SELF_ACCOUNT_QUOTA_SCOPE],
+    allowedConnections: ["conn-mnative"],
+  };
+  const fetches: string[] = [];
+  const { deps } = makeDeps({
+    getProviderConnectionById: async (connectionId: string) => ({
+      id: connectionId,
+      provider: "openai-compatible-chat-e2971611-bc02-4c37-8fc5-39b8e3906fdf",
+      isActive: true,
+      providerSpecificData: { baseUrl: "https://api.moonshot.cn/v1" },
+    }),
+    fetchAndPersistProviderLimits: async (connectionId: string) => {
+      fetches.push(connectionId);
+      return {
+        connection: { id: connectionId, provider: "openai-compatible-chat-e2971611-bc02-4c37-8fc5-39b8e3906fdf" },
+        usage: {
+          plan: "Kimi 开放平台（国内）",
+          quotas: {
+            available: { remaining: 15, remainingPercentage: 100, unlimited: true, currency: "CNY" },
+          },
+        },
+        cache: { quotas: null, plan: null, message: null, fetchedAt: "" },
+      };
+    },
+  });
+
+  const status = await buildApiKeySelfServiceStatus(metadata, deps);
+  assert.deepEqual(fetches, ["conn-mnative"]);
+  assert.equal(status.accountQuotas[0].unavailable, undefined);
+  assert.equal(status.accountQuotas[0].plan, "Kimi 开放平台（国内）");
 });

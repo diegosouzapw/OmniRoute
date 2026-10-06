@@ -35,12 +35,9 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET ?? "proxy-sub-route-test
 delete process.env.INITIAL_PASSWORD; // ensure auth is NOT required
 
 const core = await import("../../src/lib/db/core.ts");
-const collectionRoute = await import(
-  "../../src/app/api/v1/management/proxy-subscriptions/route.ts"
-);
-const itemRoute = await import(
-  "../../src/app/api/v1/management/proxy-subscriptions/[id]/route.ts"
-);
+const collectionRoute =
+  await import("../../src/app/api/v1/management/proxy-subscriptions/route.ts");
+const itemRoute = await import("../../src/app/api/v1/management/proxy-subscriptions/[id]/route.ts");
 
 function jsonRequest(url: string, body: unknown, method = "POST"): Request {
   return new Request(url, {
@@ -70,7 +67,7 @@ async function createValidSubscription(name: string) {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
@@ -129,7 +126,10 @@ test("POST proxy-subscriptions — valid-JSON non-object (string) body returns 4
   // `typeof body !== "object"` guard), so it falls through to the missing-name
   // check instead — see the array-body test below for that path. A primitive
   // (string/number/boolean) is the one JSON shape that actually trips this guard.
-  const req = jsonRequest("http://localhost/api/v1/management/proxy-subscriptions", "just-a-string");
+  const req = jsonRequest(
+    "http://localhost/api/v1/management/proxy-subscriptions",
+    "just-a-string"
+  );
   const res = await collectionRoute.POST(req);
 
   assert.equal(res.status, 400);
@@ -326,7 +326,11 @@ test("PATCH proxy-subscriptions/:id — a JSON array body is an 'object' in JS, 
   );
   const res = await itemRoute.PATCH(req, { params: Promise.resolve({ id: fixture.id }) });
 
-  assert.equal(res.status, 200, "matches the original inline parser: no typed field matches, no error");
+  assert.equal(
+    res.status,
+    200,
+    "matches the original inline parser: no typed field matches, no error"
+  );
   const body = (await res.json()) as { name?: string };
   assert.equal(body.name, "patch-arraybody", "name is unchanged — the array had no usable fields");
 });

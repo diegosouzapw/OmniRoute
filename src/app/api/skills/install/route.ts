@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { skillRegistry } from "@/lib/skills/registry";
+import { GLOBAL_SKILL_OWNER_ID, skillRegistry } from "@/lib/skills/registry";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       description,
       schema: { input: schema.input, output: schema.output },
       handler: handlerCode,
-      apiKeyId: apiKeyId || "system",
+      apiKeyId: apiKeyId || GLOBAL_SKILL_OWNER_ID,
       enabled: true,
     });
 

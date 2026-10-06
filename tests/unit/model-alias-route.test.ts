@@ -12,7 +12,8 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "model-alias-route-jwt";
 const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const route = await import("../../src/app/api/models/alias/route.ts");
 const catalogRoute = await import("../../src/app/api/models/catalog/route.ts");
 const v1Catalog = await import("../../src/app/api/v1/models/catalog.ts");
@@ -20,7 +21,7 @@ const v1Catalog = await import("../../src/app/api/v1/models/catalog.ts");
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -30,7 +31,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("model alias route resolves a stored alias and emits diagnostics headers", async () => {

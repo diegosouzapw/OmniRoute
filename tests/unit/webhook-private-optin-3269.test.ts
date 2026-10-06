@@ -15,9 +15,8 @@ import path from "node:path";
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-wh-3269-"));
 
 const { OutboundUrlGuardError } = await import("../../src/shared/network/outboundUrlGuard.ts");
-const { parseAndValidateWebhookUrl } = await import(
-  "../../src/shared/network/outboundUrlGuardPolicy.ts"
-);
+const { parseAndValidateWebhookUrl } =
+  await import("../../src/shared/network/outboundUrlGuardPolicy.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 const FLAG = "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS";
@@ -76,7 +75,12 @@ after(() => {
     /* ignore */
   }
   try {
-    fs.rmSync(process.env.DATA_DIR as string, { recursive: true, force: true });
+    fs.rmSync(process.env.DATA_DIR as string, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
   } catch {
     /* ignore */
   }

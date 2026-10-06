@@ -26,13 +26,13 @@ type ImportRouteResponse = {
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function postImport(body: unknown) {
@@ -100,10 +100,7 @@ test("providers import route imports a heterogeneous list with 200 + per-row res
   assert.equal(body.created.length, 2);
   // Never echo the raw apiKey back.
   assert.ok(body.created.every((c) => c.apiKey === undefined));
-  assert.deepEqual(
-    body.created.map((c) => c.provider).sort(),
-    ["anthropic", "openai"]
-  );
+  assert.deepEqual(body.created.map((c) => c.provider).sort(), ["anthropic", "openai"]);
 });
 
 test("providers import route: partial-failure — unresolvable compatible node fails its own row only", async () => {
@@ -140,7 +137,11 @@ test("providers import route: same-batch (provider,name) collision does not over
   assert.equal(response.status, 200);
   const body = (await response.json()) as ImportRouteResponse;
   assert.equal(body.total, 2);
-  assert.equal(body.success, 2, "both rows must be created — the second must not silently upsert into the first");
+  assert.equal(
+    body.success,
+    2,
+    "both rows must be created — the second must not silently upsert into the first"
+  );
   assert.equal(body.failed, 0);
   assert.equal(body.created.length, 2);
 
@@ -148,7 +149,11 @@ test("providers import route: same-batch (provider,name) collision does not over
   const connections = (await providersDb.getProviderConnections({
     provider: "openai",
   })) as Array<{ id: string; name?: string | null; apiKey?: string }>;
-  assert.equal(connections.length, 2, "the collision must produce TWO distinct connections, never one");
+  assert.equal(
+    connections.length,
+    2,
+    "the collision must produce TWO distinct connections, never one"
+  );
 
   const first = connections.find((c) => c.apiKey === "sk-openai-first");
   const second = connections.find((c) => c.apiKey === "sk-openai-second");
@@ -185,19 +190,45 @@ test("providers import route: re-importing an existing (provider,name) does not 
 
   const connections = (await providersDb.getProviderConnections({
     provider: "openai",
-  })) as Array<{ id: string; name?: string | null; apiKey?: string; testStatus?: string; lastError?: string }>;
-  assert.equal(connections.length, 2, "re-import must APPEND a new connection, not replace the existing one");
+  })) as Array<{
+    id: string;
+    name?: string | null;
+    apiKey?: string;
+    testStatus?: string;
+    lastError?: string;
+  }>;
+  assert.equal(
+    connections.length,
+    2,
+    "re-import must APPEND a new connection, not replace the existing one"
+  );
 
   const survivor = connections.find((c) => c.id === existing!.id);
   assert.ok(survivor, "the pre-existing connection must still exist, unreplaced");
-  assert.equal(survivor!.apiKey, "sk-existing", "existing apiKey must not be overwritten by the re-import");
-  assert.equal(survivor!.testStatus, "unavailable", "existing testStatus must survive the re-import");
-  assert.equal(survivor!.lastError, "429 rate limited", "existing lastError must survive the re-import");
+  assert.equal(
+    survivor!.apiKey,
+    "sk-existing",
+    "existing apiKey must not be overwritten by the re-import"
+  );
+  assert.equal(
+    survivor!.testStatus,
+    "unavailable",
+    "existing testStatus must survive the re-import"
+  );
+  assert.equal(
+    survivor!.lastError,
+    "429 rate limited",
+    "existing lastError must survive the re-import"
+  );
 
   const imported = connections.find((c) => c.id !== existing!.id);
   assert.ok(imported, "the newly imported row must exist as a distinct connection");
   assert.equal(imported!.apiKey, "sk-reimported");
-  assert.notEqual(imported!.name, "Prod OpenAI", "the re-imported row must be disambiguated, not collide on name");
+  assert.notEqual(
+    imported!.name,
+    "Prod OpenAI",
+    "the re-imported row must be disambiguated, not collide on name"
+  );
 });
 
 test("providers import route applies a per-entry baseUrl override for compatible providers", async () => {

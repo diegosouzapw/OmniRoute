@@ -18,17 +18,15 @@ import path from "node:path";
 const tmpDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-8388-"));
 process.env.DATA_DIR = tmpDataDir;
 
-const { compressionSettingsUpdateSchema } = await import(
-  "../../src/shared/validation/compressionConfigSchemas.ts"
-);
+const { compressionSettingsUpdateSchema } =
+  await import("../../src/shared/validation/compressionConfigSchemas.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
-const { getCompressionSettings, updateCompressionSettings } = await import(
-  "../../src/lib/db/compression.ts"
-);
+const { getCompressionSettings, updateCompressionSettings } =
+  await import("../../src/lib/db/compression.ts");
 
 test.after(() => {
   resetDbInstance();
-  fs.rmSync(tmpDataDir, { recursive: true, force: true });
+  fs.rmSync(tmpDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#8388: PUT body carrying ccr detail (minChars/retrievalRampFactor) is ACCEPTED by the schema", () => {

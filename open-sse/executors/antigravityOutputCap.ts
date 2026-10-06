@@ -1,4 +1,5 @@
 import { getExplicitModelOutputCap } from "@/lib/modelCapabilities";
+import { isDiscoverableAntigravityModelId } from "../config/antigravityModelAliases";
 
 /**
  * Fallback ceiling on `generationConfig.maxOutputTokens` for Antigravity
@@ -13,7 +14,7 @@ import { getExplicitModelOutputCap } from "@/lib/modelCapabilities";
  * Both of those models are catalogue-known today, so neither one reaches this
  * constant anymore: they get their own declared limit via
  * `resolveAntigravityOutputCap` (65536 and 65535, respectively). The higher
- * limit holds against the live upstream. A gemini-3.6-flash-high request came
+ * limit holds against the live upstream. A gemini-3.7-flash-high request came
  * back with completion_tokens 16754 and finish_reason "stop", which exceeds
  * 16384 on its own and so cannot be an artifact of thinking-token accounting.
  *
@@ -38,6 +39,10 @@ export const MAX_ANTIGRAVITY_OUTPUT_TOKENS = 16384;
 export function resolveAntigravityOutputCap(modelId: string | null | undefined): number {
   const id = typeof modelId === "string" ? modelId.trim() : "";
   if (!id) return MAX_ANTIGRAVITY_OUTPUT_TOKENS;
+  // MODEL_SPECS is provider-neutral: other providers may continue serving old
+  // Gemini 3.5/3.6 ids after Antigravity retires them. Do not let those shared
+  // specs make a retired Antigravity id look active on this provider path.
+  if (!isDiscoverableAntigravityModelId(id)) return MAX_ANTIGRAVITY_OUTPUT_TOKENS;
   try {
     const declared = getExplicitModelOutputCap({ provider: "antigravity", model: id });
     return typeof declared === "number" && Number.isFinite(declared) && declared > 0

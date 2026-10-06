@@ -71,7 +71,7 @@ export function useDecollidedMigrationsDir(): void {
 
   process.on("exit", () => {
     try {
-      fs.rmSync(tmp, { recursive: true, force: true });
+      fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     } catch {
       // Best-effort cleanup — the OS reaps its temp dir eventually.
     }

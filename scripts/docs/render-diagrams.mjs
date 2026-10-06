@@ -18,10 +18,12 @@
  *     gate on it.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
+
+import { ensureSvgAccessibility, validateSvgFile } from "./validate-svg.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..", "..");
@@ -74,6 +76,31 @@ for (const src of sources) {
   );
   if (result.status !== 0) {
     console.error(`    [FAIL] ${src} (exit ${result.status})`);
+    failures += 1;
+    continue;
+  }
+
+  const source = readFileSync(input, "utf8");
+  const title = source.match(/^%%\s*svg-title:\s*(.+)$/im)?.[1]?.trim();
+  const description = source.match(/^%%\s*svg-description:\s*(.+)$/im)?.[1]?.trim();
+  if (title && description) {
+    const svg = readFileSync(output, "utf8");
+    writeFileSync(
+      output,
+      ensureSvgAccessibility(svg, {
+        title,
+        description,
+        idBase: src.replace(/\.mmd$/, ""),
+      })
+    );
+  } else if (title || description) {
+    console.warn(`    [WARN] ${src}: svg-title and svg-description must be provided together`);
+  }
+
+  const validation = validateSvgFile(output);
+  for (const warning of validation.warnings) console.warn(`    [WARN] ${src}: ${warning}`);
+  if (validation.errors.length > 0) {
+    for (const error of validation.errors) console.error(`    [FAIL] ${src}: ${error}`);
     failures += 1;
   }
 }

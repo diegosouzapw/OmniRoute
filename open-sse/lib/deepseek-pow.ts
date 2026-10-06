@@ -1,181 +1,177 @@
-import { createRequire } from "node:module";
-import fs from "node:fs";
+import { existsSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { Worker } from "node:worker_threads";
 
-// ── WASM solver (fast — ~50-100ms at difficulty 144000) ──────────────────
+import { findDeepSeekPowNonce, MAX_DEEPSEEK_POW_DIFFICULTY } from "./deepseek-pow-hash.js";
 
-class DeepSeekHashWasm {
-  private wasmInstance: any;
-  private offset = 0;
-  private cachedUint8Memory: Uint8Array | null = null;
-  private cachedTextEncoder = new TextEncoder();
+const DEEPSEEK_POW_ALGORITHM = "DeepSeekHashV1";
+const SHA3_256_HEX_PATTERN = /^[a-f0-9]{64}$/i;
+const MAX_DIFFICULTY = MAX_DEEPSEEK_POW_DIFFICULTY;
+const MAX_SALT_LENGTH = 1_024;
+const MAX_CONCURRENT_WORKERS = 2;
+const DEFAULT_TIMEOUT_MS = 10_000;
+const MAX_TIMEOUT_MS = 30_000;
 
-  private getCachedUint8Memory(): Uint8Array {
-    if (!this.cachedUint8Memory?.byteLength) {
-      this.cachedUint8Memory = new Uint8Array(this.wasmInstance.memory.buffer);
-    }
-    return this.cachedUint8Memory;
-  }
+let activeWorkerCount = 0;
 
-  private encodeString(
-    text: string,
-    allocate: (size: number, align: number) => number,
-    reallocate: (ptr: number, oldSize: number, newSize: number, align: number) => number
-  ): number {
-    const strLength = text.length;
-    let ptr = allocate(strLength, 1) >>> 0;
-    const memory = this.getCachedUint8Memory();
-    let asciiLength = 0;
-
-    for (; asciiLength < strLength; asciiLength++) {
-      if (text.charCodeAt(asciiLength) > 127) break;
-      memory[ptr + asciiLength] = text.charCodeAt(asciiLength);
-    }
-
-    if (asciiLength !== strLength) {
-      if (asciiLength > 0) text = text.slice(asciiLength);
-      ptr = reallocate(ptr, strLength, asciiLength + text.length * 3, 1) >>> 0;
-      const result = this.cachedTextEncoder.encodeInto(
-        text,
-        this.getCachedUint8Memory().subarray(ptr + asciiLength, ptr + asciiLength + text.length * 3)
-      );
-      asciiLength += result.written!;
-      ptr = reallocate(ptr, asciiLength + text.length * 3, asciiLength, 1) >>> 0;
-    }
-
-    this.offset = asciiLength;
-    return ptr;
-  }
-
-  calculateHash(challenge: string, prefix: string, difficulty: number): number | undefined {
-    try {
-      const retptr = this.wasmInstance.__wbindgen_add_to_stack_pointer(-16);
-
-      const ptr0 = this.encodeString(
-        challenge,
-        this.wasmInstance.__wbindgen_export_0,
-        this.wasmInstance.__wbindgen_export_1
-      );
-      const len0 = this.offset;
-
-      const ptr1 = this.encodeString(
-        prefix,
-        this.wasmInstance.__wbindgen_export_0,
-        this.wasmInstance.__wbindgen_export_1
-      );
-      const len1 = this.offset;
-
-      this.wasmInstance.wasm_solve(retptr, ptr0, len0, ptr1, len1, difficulty);
-
-      const dv = new DataView(this.wasmInstance.memory.buffer);
-      const status = dv.getInt32(retptr + 0, true);
-      const value = dv.getFloat64(retptr + 8, true);
-
-      return status === 0 ? undefined : value;
-    } finally {
-      this.wasmInstance.__wbindgen_add_to_stack_pointer(16);
-    }
-  }
-
-  async init(wasmPath: string): Promise<void> {
-    const wasmBuffer = await fs.promises.readFile(wasmPath);
-    const { instance } = await WebAssembly.instantiate(wasmBuffer, { wbg: {} });
-    this.wasmInstance = instance.exports;
-  }
+export interface SolveDeepSeekPowOptions {
+  signal?: AbortSignal | null;
+  timeoutMs?: number;
 }
 
-let _wasmSolver: DeepSeekHashWasm | null = null;
-let _wasmInitFailed = false;
-
-async function getWasmSolver(): Promise<DeepSeekHashWasm | null> {
-  if (_wasmInitFailed) return null;
-  if (_wasmSolver) return _wasmSolver;
-
-  try {
-    const solver = new DeepSeekHashWasm();
-    const wasmPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "sha3_wasm_bg.wasm");
-    await solver.init(wasmPath);
-    _wasmSolver = solver;
-    return solver;
-  } catch {
-    _wasmInitFailed = true;
-    return null;
-  }
+interface ValidatedChallenge {
+  challenge: string;
+  prefix: string;
+  difficulty: number;
 }
 
-// ── JS fallback solver (slow — ~5-6s at difficulty 144000) ───────────────
-
-const require = createRequire(import.meta.url);
-let _U: any | undefined;
-function loadU(): any {
-  if (_U === undefined) {
-    _U = require("./deepseek-pow-solver.cjs").U;
-  }
-  return _U;
+function createAbortError(): Error {
+  const error = new Error("DeepSeek PoW computation aborted");
+  error.name = "AbortError";
+  return error;
 }
 
-function solveWithJS(challenge: string, prefix: string, difficulty: number): number {
-  const U = loadU();
-  const createHash = () => {
-    const self: any = {};
-    self._sponge = new U({ capacity: 256, padding: 6 });
-    self.update = (s: string) => {
-      self._sponge.absorb(Buffer.from(s, "utf8"));
-      return self;
-    };
-    self.digest = (fmt?: string) => {
-      return self._sponge.squeeze(6).toString(fmt || "hex");
-    };
-    self.copy = () => {
-      const c: any = {};
-      c._sponge = self._sponge.copy();
-      c.update = (s: string) => {
-        c._sponge.absorb(Buffer.from(s, "utf8"));
-        return c;
-      };
-      c.digest = (fmt?: string) => {
-        return c._sponge.squeeze(6).toString(fmt || "hex");
-      };
-      return c;
-    };
-    return self;
+function validateChallenge(
+  algorithm: string,
+  challenge: string,
+  salt: string,
+  difficulty: number,
+  expireAt: number
+): ValidatedChallenge {
+  if (algorithm !== DEEPSEEK_POW_ALGORITHM) {
+    throw new Error(`Unsupported DeepSeek PoW algorithm: ${algorithm}`);
+  }
+  if (!SHA3_256_HEX_PATTERN.test(challenge)) {
+    throw new Error("DeepSeek PoW challenge must be a 64-character SHA3-256 hex digest");
+  }
+  if (typeof salt !== "string" || salt.length === 0 || salt.length > MAX_SALT_LENGTH) {
+    throw new Error(`DeepSeek PoW salt must contain 1-${MAX_SALT_LENGTH} characters`);
+  }
+  if (!Number.isSafeInteger(difficulty) || difficulty < 1 || difficulty > MAX_DIFFICULTY) {
+    throw new Error(`DeepSeek PoW difficulty must be an integer from 1 to ${MAX_DIFFICULTY}`);
+  }
+  if (!Number.isSafeInteger(expireAt) || expireAt < 0) {
+    throw new Error("DeepSeek PoW expiry must be a non-negative safe integer");
+  }
+
+  return {
+    challenge: challenge.toLowerCase(),
+    prefix: `${salt}_${expireAt}_`,
+    difficulty,
   };
-
-  const h = createHash();
-  h.update(prefix);
-
-  for (let nonce = 0; nonce < difficulty; nonce++) {
-    if (h.copy().update(String(nonce)).digest("hex") === challenge) {
-      return nonce;
-    }
-  }
-  return -1;
 }
 
-// ── Public API ───────────────────────────────────────────────────────────
+function resolveTimeoutMs(timeoutMs: number | undefined): number {
+  if (timeoutMs === undefined) return DEFAULT_TIMEOUT_MS;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > MAX_TIMEOUT_MS) {
+    throw new Error(`DeepSeek PoW timeout must be an integer from 1 to ${MAX_TIMEOUT_MS}ms`);
+  }
+  return timeoutMs;
+}
+
+function solveSynchronously({ challenge, prefix, difficulty }: ValidatedChallenge): number {
+  return findDeepSeekPowNonce(prefix, challenge, difficulty);
+}
+
+// Anchored on process.cwd(), never import.meta.url: the production standalone bundle
+// freezes import.meta.url to the build-machine path (same app-wide gotcha documented on
+// GATE_DEP_REL in open-sse/services/compression/engines/llmlingua/worker.ts), so an
+// import.meta.url-relative fallback here was silently dead in production. It also gave
+// this function two return branches, one of which contained a `new URL(literal,
+// import.meta.url)` construct -- Turbopack's dev-mode static worker-chunk detector
+// partially resolves that pattern independent of which branch actually runs, producing
+// an inconsistent module-graph node and crashing turbo-tasks on startup (bisected to
+// 657d3a484). A single non-branching path resolution avoids both problems.
+function resolveWorkerPath(): string {
+  const workerPath = path.join(process.cwd(), "open-sse/lib/deepseek-pow-worker.mjs");
+  if (!existsSync(workerPath)) {
+    throw new Error(`DeepSeek PoW worker script not found at ${workerPath}`);
+  }
+  return workerPath;
+}
+
+function solveInWorker(
+  validated: ValidatedChallenge,
+  options: SolveDeepSeekPowOptions
+): Promise<number> {
+  const { signal } = options;
+  if (signal?.aborted) return Promise.reject(createAbortError());
+  if (activeWorkerCount >= MAX_CONCURRENT_WORKERS) {
+    return Promise.reject(
+      new Error(`DeepSeek PoW worker capacity reached (${MAX_CONCURRENT_WORKERS})`)
+    );
+  }
+
+  const timeoutMs = resolveTimeoutMs(options.timeoutMs);
+  activeWorkerCount += 1;
+
+  return new Promise<number>((resolve, reject) => {
+    // The slot is taken before this executor runs, so anything that throws here
+    // -- a missing worker script, a spawn failure -- has to hand it back. Without
+    // this, MAX_CONCURRENT_WORKERS spawn failures wedge the solver permanently
+    // and every later call reports "capacity reached" instead of the real cause.
+    let worker: Worker;
+    try {
+      worker = new Worker(resolveWorkerPath(), { workerData: validated });
+    } catch (error) {
+      activeWorkerCount = Math.max(0, activeWorkerCount - 1);
+      reject(error instanceof Error ? error : new Error(String(error)));
+      return;
+    }
+    let settled = false;
+
+    const cleanup = () => {
+      clearTimeout(timeout);
+      signal?.removeEventListener("abort", onAbort);
+      activeWorkerCount = Math.max(0, activeWorkerCount - 1);
+    };
+    const finish = (callback: () => void, terminate: boolean) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (terminate) void worker.terminate();
+      callback();
+    };
+    const onAbort = () => {
+      finish(() => reject(createAbortError()), true);
+    };
+    const timeout = setTimeout(() => {
+      finish(() => reject(new Error(`DeepSeek PoW computation exceeded ${timeoutMs}ms`)), true);
+    }, timeoutMs);
+
+    signal?.addEventListener("abort", onAbort, { once: true });
+    worker.once("message", (answer: unknown) => {
+      if (!Number.isSafeInteger(answer) || (answer as number) < -1) {
+        finish(() => reject(new Error("DeepSeek PoW worker returned an invalid answer")), true);
+        return;
+      }
+      finish(() => resolve(answer as number), false);
+    });
+    worker.once("error", (error) => {
+      finish(() => reject(error), true);
+    });
+    worker.once("exit", (code) => {
+      if (code !== 0) {
+        finish(() => reject(new Error(`DeepSeek PoW worker exited with code ${code}`)), false);
+      } else {
+        finish(() => reject(new Error("DeepSeek PoW worker exited without an answer")), false);
+      }
+    });
+  });
+}
 
 export async function solveDeepSeekPowAsync(
   algorithm: string,
   challenge: string,
   salt: string,
   difficulty: number,
-  expireAt: number
+  expireAt: number,
+  options: SolveDeepSeekPowOptions = {}
 ): Promise<number> {
-  if (algorithm !== "DeepSeekHashV1") throw new Error(`Unsupported: ${algorithm}`);
-  const prefix = `${salt}_${expireAt}_`;
-
-  const wasm = await getWasmSolver();
-  if (wasm) {
-    const answer = wasm.calculateHash(challenge, prefix, difficulty);
-    if (answer === undefined) return -1;
-    return answer;
-  }
-
-  return solveWithJS(challenge, prefix, difficulty);
+  const validated = validateChallenge(algorithm, challenge, salt, difficulty, expireAt);
+  return solveInWorker(validated, options);
 }
 
-// Sync wrapper kept for backward compat (uses JS fallback only)
 export function solveDeepSeekPow(
   algorithm: string,
   challenge: string,
@@ -183,7 +179,9 @@ export function solveDeepSeekPow(
   difficulty: number,
   expireAt: number
 ): number {
-  if (algorithm !== "DeepSeekHashV1") throw new Error(`Unsupported: ${algorithm}`);
-  const prefix = `${salt}_${expireAt}_`;
-  return solveWithJS(challenge, prefix, difficulty);
+  // Compatibility-only synchronous API. The validated 250k ceiling bounds CPU
+  // use; request handling must use solveDeepSeekPowAsync() so hashing stays off
+  // the event loop and remains abortable.
+  const validated = validateChallenge(algorithm, challenge, salt, difficulty, expireAt);
+  return solveSynchronously(validated);
 }

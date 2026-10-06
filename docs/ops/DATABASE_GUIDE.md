@@ -1,7 +1,7 @@
 ---
 title: "Database Schema & Operations Guide"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.50
+lastUpdated: 2026-08-23
 ---
 
 # Database Schema & Operations Guide
@@ -12,7 +12,7 @@ lastUpdated: 2026-06-28
 
 - `src/lib/db/core.ts` — singleton + SCHEMA_SQL (17 base tables)
 - `src/lib/db/migrationRunner.ts` — versioned migrations
-- `src/lib/db/migrations/` — 106 versioned SQL files
+- `src/lib/db/migrations/` — 167 versioned SQL files
 - `src/lib/db/encryption.ts` — encryption helpers
 - `src/lib/db/backup.ts` — backup export/import
 - `src/lib/db/healthCheck.ts` — health diagnostics
@@ -43,11 +43,16 @@ For **single-user, single-instance** deployments (the primary OmniRoute use case
 db.pragma("journal_mode = WAL");
 db.pragma("busy_timeout = 2000");
 db.pragma("synchronous = NORMAL");
-// Settings > System & Storage > Cache Size is applied as KiB.
-db.pragma("cache_size = -16384");
+db.pragma(`cache_size = -${DEFAULT_DATABASE_SETTINGS.optimization.cacheSize}`);
 ```
 
 WAL allows **concurrent reads** during writes — important for the dashboard, which queries while requests are being recorded.
+
+The default cache size is **65,536 KiB (64 MiB)**. SQLite interprets a negative
+`cache_size` as an approximate upper bound in KiB and allocates pages on demand.
+**Settings > System & Storage > Cache Size** accepts integer values from **1 to
+1,000,000 KiB**; saving the setting applies it to the live database connection,
+and OmniRoute restores the persisted value at startup.
 
 ---
 
@@ -453,26 +458,47 @@ Run monthly during low-traffic windows. (WAL mode reduces the need, but doesn't 
 
 `src/lib/db/healthCheck.ts` provides **DB-level health diagnostics**:
 
-````bash
-GET /api/db/health
+Both verbs require authentication (`401` otherwise). `GET` diagnoses only; `POST` runs the
+same check with `autoRepair` enabled.
 
-Returns:
+```bash
+GET  /api/db/health   # diagnose
+POST /api/db/health   # diagnose + repair
+```
+
+The response is the `DbHealthCheckResult` produced by `runDbHealthCheck()`
+(`src/lib/db/healthCheck.ts`):
 
 ```json
 {
-  "status": "healthy",
-  "checks": {
-    "writable": { "status": "pass" },
-    "integrity": { "status": "pass", "result": "ok" },
-    "foreign_keys": { "status": "pass", "violations": 0 },
-    "orphaned_artifacts": { "status": "warn", "count": 12 },
-    "table_sizes": {
-      "usage_history": { "rows": 12345, "size_mb": 12.3 },
-      "call_logs": { "rows": 567, "size_mb": 2.1 }
+  "isHealthy": false,
+  "issues": [
+    {
+      "type": "broken_reference",
+      "table": "domain_budgets",
+      "description": "Domain budgets referenced API keys that no longer exist.",
+      "count": 2
     }
-  }
+  ],
+  "repairedCount": 0,
+  "backupCreated": false,
+  "autoRepair": false,
+  "checkedAt": "2026-08-18T09:00:00.000Z",
+  "driver": { "name": "better-sqlite3", "degraded": false }
 }
-````
+```
+
+| Field             | Meaning                                                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isHealthy`       | `true` when `issues` is empty. `driver` never influences it.                                                                                   |
+| `issues[].type`   | One of `integrity_check_failed`, `broken_reference`, `stale_snapshot`, `invalid_state`.                                                        |
+| `repairedCount`   | Rows repaired during this run; always `0` when `autoRepair` is false.                                                                          |
+| `backupCreated`   | Whether a backup was taken before repairing.                                                                                                   |
+| `checkedAt`       | ISO timestamp shared by the run and by any repair note it writes.                                                                              |
+| `driver.name`     | SQLite driver serving the checked database.                                                                                                    |
+| `driver.degraded` | `true` when writes are not durably backed by the database file — the `sql.js` WASM fallback (whole-file persistence) or an in-memory database. |
+
+The same payload is returned by the `omniroute_db_health_check` MCP tool.
 
 Run `PRAGMA integrity_check` to detect corruption:
 

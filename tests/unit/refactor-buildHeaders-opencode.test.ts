@@ -75,30 +75,51 @@ test("OpencodeExecutor.buildHeaders: Content-Type always application/json", () =
   assert.equal(headers["Content-Type"], "application/json");
 });
 
-test("OpencodeExecutor.buildHeaders: omits User-Agent when no client UA (forward-only, not fabricated)", () => {
-  // Forward-only contract (see opencode-executor.test.ts): opencode client identity headers
-  // are opencode-internal — inventing them risks upstream rejection, so we never fabricate a
-  // default. A pure dedup refactor (#5720) briefly regressed this by defaulting to
-  // "opencode/local"; the executor forwards a client-sent User-Agent but adds none of its own.
-  const executor = new OpencodeExecutor("opencode");
-  const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
-  assert.equal(headers["User-Agent"], undefined);
+test("OpencodeExecutor.buildHeaders: omits User-Agent when no client UA and synthesis is explicitly off", () => {
+  // Forward-only contract (see opencode-executor.test.ts) when the operator opts OUT via
+  // OPENCODE_SYNTHESIZE_CLI_HEADERS=false. PR #10571 flipped the default to ON (see
+  // tests/unit/opencode-cli-headers-synthesis-5997.test.ts) — the forward-only path is now
+  // opt-out rather than the default.
+  const saved = process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+  process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = "false";
+  try {
+    const executor = new OpencodeExecutor("opencode");
+    const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
+    assert.equal(headers["User-Agent"], undefined);
+  } finally {
+    if (saved === undefined) delete process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+    else process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = saved;
+  }
 });
 
-test("OpencodeExecutor.buildHeaders: preserves client User-Agent when provided", () => {
+test("OpencodeExecutor.buildHeaders: preserves a client User-Agent that satisfies the upstream contract", () => {
+  // The rule is now the upstream one: a UA carrying `opencode/<version >= 1.17>` is kept,
+  // anything else is replaced by the synthesized default. `opencode-cli/…` carries no
+  // parsable version, and the free tier refuses it, so it is no longer preserved.
   const executor = new OpencodeExecutor("opencode");
-  const headers = executor.buildHeaders({ apiKey: "key-1" }, true, {
+  const kept = executor.buildHeaders({ apiKey: "key-1" }, true, {
     "User-Agent": "opencode/1.17.12",
   });
-  assert.equal(headers["User-Agent"], "opencode/1.17.12");
+  assert.equal(kept["User-Agent"], "opencode/1.17.12");
+
+  const replaced = executor.buildHeaders({ apiKey: "key-1" }, true, {
+    "User-Agent": "opencode-cli/1.17.12",
+  });
+  assert.notEqual(replaced["User-Agent"], "opencode-cli/1.17.12");
 });
 
-test("OpencodeExecutor.buildHeaders: omits x-opencode-client when absent (forward-only, not fabricated)", () => {
-  // x-opencode-client / x-opencode-project valid values are opencode-internal; fabricating a
-  // default ("cli") risks upstream rejection, so they stay forward-only (see opencode-executor.test.ts).
-  const executor = new OpencodeExecutor("opencode");
-  const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
-  assert.equal(headers["x-opencode-client"], undefined);
+test("OpencodeExecutor.buildHeaders: omits x-opencode-client when absent and synthesis is explicitly off", () => {
+  // x-opencode-client / x-opencode-project fabrication is opt-out (see above) since #10571.
+  const saved = process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+  process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = "false";
+  try {
+    const executor = new OpencodeExecutor("opencode");
+    const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
+    assert.equal(headers["x-opencode-client"], undefined);
+  } finally {
+    if (saved === undefined) delete process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+    else process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = saved;
+  }
 });
 
 test("OpencodeExecutor.buildHeaders: preserves x-opencode-client from client headers", () => {

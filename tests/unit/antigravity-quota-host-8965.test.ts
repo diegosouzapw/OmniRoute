@@ -32,7 +32,7 @@ const originalFetch = globalThis.fetch;
 test.after(() => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const RESET_IN_2_HOURS = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
@@ -57,7 +57,8 @@ test("#8965: quota reads use the runtime host (daily-cloudcode-pa), not cloudcod
   const cloudcodeCount = { value: 0 };
 
   globalThis.fetch = (async (input: RequestInfo | URL) => {
-    const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+    const url =
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
     if (url.includes("daily-cloudcode-pa.googleapis.com")) {
       dailyCount.value++;
@@ -89,7 +90,7 @@ test("#8965: quota reads use the runtime host (daily-cloudcode-pa), not cloudcod
           json: async () => ({
             buckets: [
               {
-                modelId: "gemini-3-flash-agent",
+                modelId: "gemini-3.7-flash-high",
                 remainingFraction: 0.4,
                 resetTime: RESET_IN_2_HOURS,
               },
@@ -103,10 +104,10 @@ test("#8965: quota reads use the runtime host (daily-cloudcode-pa), not cloudcod
           ok: true,
           json: async () => ({
             models: {
-              "gemini-3-flash-agent": {
+              "gemini-3.7-flash-high": {
                 quotaInfo: { remainingFraction: 1.0, resetTime: RESET_IN_2_HOURS },
               },
-              "gemini-3.5-flash-low": {
+              "gemini-3.7-flash-medium": {
                 quotaInfo: { remainingFraction: 0.8, resetTime: RESET_IN_2_HOURS },
               },
             },
@@ -148,9 +149,9 @@ test("#8965: quota reads use the runtime host (daily-cloudcode-pa), not cloudcod
 
   // The per-model quota should come from retrieveUserQuota (the live source),
   // NOT fetchAvailableModels (the stale catalog fallback).
-  assert.ok(quotas["gemini-3-flash-agent"], "gemini-3-flash-agent quota present");
+  assert.ok(quotas["gemini-3.7-flash-high"], "gemini-3.7-flash-high quota present");
   assert.equal(
-    quotas["gemini-3-flash-agent"].quotaSource,
+    quotas["gemini-3.7-flash-high"].quotaSource,
     "retrieveUserQuota",
     "quota source is retrieveUserQuota (live), not fetchAvailableModels"
   );
@@ -167,7 +168,8 @@ test("#8965 behavioral impact: live quota source + weekly bucket unreachable whe
   core.resetDbInstance();
 
   globalThis.fetch = (async (input: RequestInfo | URL) => {
-    const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+    const url =
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
     if (url.includes("daily-cloudcode-pa.googleapis.com")) {
       if (url.includes("retrieveUserQuotaSummary")) {
@@ -197,7 +199,7 @@ test("#8965 behavioral impact: live quota source + weekly bucket unreachable whe
           json: async () => ({
             buckets: [
               {
-                modelId: "gemini-3-flash-agent",
+                modelId: "gemini-3.7-flash-high",
                 remainingFraction: 0.4,
                 resetTime: RESET_IN_2_HOURS,
               },
@@ -211,7 +213,7 @@ test("#8965 behavioral impact: live quota source + weekly bucket unreachable whe
           ok: true,
           json: async () => ({
             models: {
-              "gemini-3-flash-agent": {
+              "gemini-3.7-flash-high": {
                 quotaInfo: { remainingFraction: 1.0, resetTime: RESET_IN_2_HOURS },
               },
             },
@@ -250,9 +252,9 @@ test("#8965 behavioral impact: live quota source + weekly bucket unreachable whe
   const quotas = (result as UsageResult).quotas;
 
   // The per-model quota MUST come from retrieveUserQuota — the live signal.
-  assert.ok(quotas["gemini-3-flash-agent"], "gemini-3-flash-agent quota present");
+  assert.ok(quotas["gemini-3.7-flash-high"], "gemini-3.7-flash-high quota present");
   assert.equal(
-    quotas["gemini-3-flash-agent"].quotaSource,
+    quotas["gemini-3.7-flash-high"].quotaSource,
     "retrieveUserQuota",
     "quota source is retrieveUserQuota (live), not fetchAvailableModels"
   );

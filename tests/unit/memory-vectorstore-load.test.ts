@@ -31,7 +31,7 @@ function cleanup() {
   _resetVectorStoreSingleton();
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -43,7 +43,7 @@ test.afterEach(() => {
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -83,7 +83,7 @@ test("getVectorStore() returns null or a VectorStore instance (never throws)", (
   assert.equal(threw, false, "getVectorStore() must never throw — must return null on failure");
   assert.ok(
     result === null || (typeof result === "object" && result !== null),
-    `getVectorStore() must return object or null, got ${typeof result}`,
+    `getVectorStore() must return object or null, got ${typeof result}`
   );
 });
 
@@ -109,7 +109,7 @@ test("getVectorStore() result has all required VectorStore methods when not null
   for (const method of requiredMethods) {
     assert.ok(
       typeof (store as Record<string, unknown>)[method] === "function",
-      `VectorStore must have method ${method}`,
+      `VectorStore must have method ${method}`
     );
   }
 });

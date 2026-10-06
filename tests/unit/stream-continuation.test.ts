@@ -21,6 +21,30 @@ test("scanOpenAiSseText accumulates content deltas and flags an OpenAI-compat st
   assert.equal(r.terminal, false);
 });
 
+test("scanOpenAiSseText accumulates reasoning_content deltas separately from content", () => {
+  const sse =
+    'data: {"choices":[{"delta":{"role":"assistant"}}]}\n\n' +
+    'data: {"choices":[{"delta":{"reasoning_content":"thinking..."}}]}\n\n' +
+    'data: {"choices":[{"delta":{"reasoning_content":" more"}}]}\n\n';
+  const r = scanOpenAiSseText(sse);
+  assert.equal(r.reasoningText, "thinking... more");
+  assert.equal(r.text, "", "reasoning_content must never leak into the visible text field");
+  assert.equal(r.parsedOpenAi, true);
+});
+
+test("scanOpenAiSseText captures the literal finish_reason value", () => {
+  const stop = scanOpenAiSseText('data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n');
+  assert.equal(stop.finishReason, "stop");
+
+  const length = scanOpenAiSseText(
+    'data: {"choices":[{"delta":{"content":"x"},"finish_reason":"length"}]}\n\n'
+  );
+  assert.equal(length.finishReason, "length");
+
+  const none = scanOpenAiSseText('data: {"choices":[{"delta":{"content":"x"}}]}\n\n');
+  assert.equal(none.finishReason, null, "no finish_reason seen means null, not a guessed default");
+});
+
 test("scanOpenAiSseText detects the terminal [DONE] marker", () => {
   const r = scanOpenAiSseText('data: {"choices":[{"delta":{"content":"hi"}}]}\n\ndata: [DONE]\n\n');
   assert.equal(r.text, "hi");
@@ -63,6 +87,15 @@ test("makeContinuationBody refuses bodies without a messages array or empty text
   assert.equal(makeContinuationBody({ model: "x", input: [] } as never, "t"), null);
   assert.equal(makeContinuationBody({ model: "x", messages: [] }, ""), null);
   assert.equal(makeContinuationBody(null as never, "t"), null);
+});
+
+test("makeContinuationBody accepts an empty prefill by re-sending the messages unchanged", () => {
+  const body = { model: "x", stream: true, messages: [{ role: "user", content: "hi" }] };
+  const out = makeContinuationBody(body, "");
+  assert.ok(out, "an empty prefill must still produce a re-request body, not null");
+  assert.equal(out!.messages.length, 1, "no empty assistant turn is appended");
+  assert.deepEqual(out!.messages[0], { role: "user", content: "hi" });
+  assert.equal(out!.stream, true);
 });
 
 // ── trimContinuationOverlap ───────────────────────────────────────────────────

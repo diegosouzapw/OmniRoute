@@ -42,6 +42,10 @@
     "circuit breaker": {
       "canonical": "断路器",
       "synonyms": []
+    },
+    "disabled (status)": {
+      "canonical": "已禁用",
+      "synonyms": ["残疾人"]
     }
   }
 }

@@ -40,14 +40,13 @@ process.env.JWT_SECRET = "test-jwt-secret-codex-edit-6562";
 process.env.INITIAL_PASSWORD = "admin-secret";
 
 const core = await import("../../src/lib/db/core.ts");
-const { createProviderConnection, getProviderConnectionById } = await import(
-  "../../src/lib/db/providers.ts"
-);
+const { createProviderConnection, getProviderConnectionById } =
+  await import("../../src/lib/db/providers.ts");
 const providerByIdRoute = await import("../../src/app/api/providers/[id]/route.ts");
 
 function resetDb() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -57,10 +56,14 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-async function createCodexConnection(priority: number) {
+async function createCodexConnection(
+  priority: number,
+  authType = "oauth",
+  providerSpecificData: Record<string, unknown> = {}
+) {
   // Mirrors createConnectionFromAuthFile()'s real Codex-import shape
   // (src/lib/oauth/utils/codexAuthImport.ts) — an OAuth connection whose
   // providerSpecificData already carries a normalized `requestDefaults`
@@ -70,7 +73,7 @@ async function createCodexConnection(priority: number) {
   // Nth bulk-imported Codex account would already carry.
   return createProviderConnection({
     provider: "codex",
-    authType: "oauth",
+    authType,
     name: "Codex (imported)",
     email: "user@example.com",
     priority,
@@ -85,6 +88,7 @@ async function createCodexConnection(priority: number) {
       chatgptUserId: "user-123",
       importedAt: new Date().toISOString(),
       requestDefaults: { reasoningEffort: "medium", serviceTier: "fast" },
+      ...providerSpecificData,
     },
   });
 }
@@ -153,6 +157,37 @@ test("PUT /api/providers/[id] persists a Codex OAuth edit when priority already 
   assert.equal(persisted.priority, 1);
   const persistedPsd = persisted.providerSpecificData as Record<string, unknown>;
   assert.deepEqual(persistedPsd.requestDefaults, { reasoningEffort: "high" });
+});
+
+test("PUT /api/providers/[id] removes fingerprint mode from Codex API-key connections", async () => {
+  const connection = (await createCodexConnection(5, "apikey", {
+    codexFingerprintMode: "full",
+    codex_fingerprint_mode: "device",
+  })) as Record<string, unknown>;
+  const existingPsd = connection.providerSpecificData as Record<string, unknown>;
+  assert.equal(existingPsd.codexFingerprintMode, "full");
+  assert.equal(existingPsd.codex_fingerprint_mode, "device");
+
+  const payload = buildCodexEditPayload(connection);
+  payload.providerSpecificData.codexFingerprintMode = null;
+  payload.providerSpecificData.codex_fingerprint_mode = null;
+
+  const request = await makeManagementSessionRequest(
+    `http://localhost/api/providers/${connection.id}`,
+    { method: "PUT", body: payload }
+  );
+  const response = await providerByIdRoute.PUT(request, {
+    params: Promise.resolve({ id: connection.id as string }),
+  });
+
+  assert.equal(response.status, 200);
+  const persisted = (await getProviderConnectionById(connection.id as string)) as Record<
+    string,
+    unknown
+  >;
+  const persistedPsd = persisted.providerSpecificData as Record<string, unknown>;
+  assert.equal(persistedPsd.codexFingerprintMode, undefined);
+  assert.equal(persistedPsd.codex_fingerprint_mode, undefined);
 });
 
 test("PUT /api/providers/[id] still rejects a genuinely invalid priority (control)", async () => {

@@ -8,6 +8,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+// KiroService.validateImportToken() reads cached OIDC client credentials from
+// the real AWS SSO cache at `~/.aws/sso/cache/` (via os.homedir()) before it
+// ever hits the mocked `/client/register` fetch. CI runs in a clean home with
+// no such cache, so the mocked registration path is exercised. But this suite
+// can run on a host/sandbox that DOES have `~/.aws/sso/cache/*.json` (e.g. a
+// developer or agent machine with a live AWS SSO session), in which case the
+// service adopts a real cached clientId and the assertions below (which expect
+// the mocked "test-client-id") fail. Point HOME/USERPROFILE at an isolated,
+// empty temp dir so os.homedir() resolves to a cache-free home and the test is
+// hermetic regardless of the ambient machine.
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+const ISOLATED_HOME = mkdtempSync(join(tmpdir(), "omniroute-kiro-home-"));
+process.env.HOME = ISOLATED_HOME;
+process.env.USERPROFILE = ISOLATED_HOME;
+
 import { KiroService } from "../../src/lib/oauth/services/kiro.ts";
 
 // ── helpers ───────────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-skills-re
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
+const { GLOBAL_SKILL_OWNER_ID, skillRegistry } = await import("../../src/lib/skills/registry.ts");
 
 function resetRegistryState() {
   skillRegistry["registeredSkills"].clear();
@@ -21,7 +21,7 @@ function resetRegistryState() {
 async function resetStorage() {
   resetRegistryState();
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -32,7 +32,7 @@ test.beforeEach(async () => {
 test.after(() => {
   resetRegistryState();
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("skillRegistry registers, lists, sorts and resolves versions", async () => {
@@ -98,6 +98,69 @@ test("skillRegistry keeps same name/version isolated per API key", async () => {
     skillRegistry.getSkillVersions("shared-skill", "key-a").map((skill) => skill.id),
     [first.id]
   );
+});
+
+test("skillRegistry exposes global skills without crossing API-key scopes", async () => {
+  const global = await skillRegistry.register({
+    name: "marketplace-skill",
+    version: "1.0.0",
+    description: "global version",
+    schema: { input: {}, output: {} },
+    handler: "global-handler",
+    apiKeyId: GLOBAL_SKILL_OWNER_ID,
+  });
+  const globalOnly = await skillRegistry.register({
+    name: "global-only",
+    version: "1.0.0",
+    description: "global skill",
+    schema: { input: {}, output: {} },
+    handler: "global-only-handler",
+    apiKeyId: GLOBAL_SKILL_OWNER_ID,
+  });
+  const legacyOnly = await skillRegistry.register({
+    name: "legacy-marketplace-skill",
+    version: "1.0.0",
+    description: "legacy SkillsMP install",
+    schema: { input: {}, output: {} },
+    handler: "legacy-handler",
+    apiKeyId: "skillsmp",
+  });
+  await skillRegistry.register({
+    name: "global-only",
+    version: "1.0.0",
+    description: "legacy duplicate",
+    schema: { input: {}, output: {} },
+    handler: "legacy-duplicate-handler",
+    apiKeyId: "skillssh",
+  });
+  const keyOverride = await skillRegistry.register({
+    name: "marketplace-skill",
+    version: "1.0.0",
+    description: "key override",
+    schema: { input: {}, output: {} },
+    handler: "key-handler",
+    apiKeyId: "key-a",
+  });
+  await skillRegistry.register({
+    name: "private-skill",
+    version: "1.0.0",
+    description: "key b only",
+    schema: { input: {}, output: {} },
+    handler: "private-handler",
+    apiKeyId: "key-b",
+  });
+
+  resetRegistryState();
+  await skillRegistry.loadFromDatabase("key-a");
+
+  assert.deepEqual(
+    skillRegistry.list("key-a").map((skill) => skill.id),
+    [keyOverride.id, globalOnly.id, legacyOnly.id]
+  );
+  assert.equal(skillRegistry.getSkill("marketplace-skill", "key-a")?.id, keyOverride.id);
+  assert.equal(skillRegistry.getSkill(global.id, "key-a"), undefined);
+  assert.equal(skillRegistry.getSkill(globalOnly.id, "key-a")?.id, globalOnly.id);
+  assert.equal(skillRegistry.getSkill("private-skill", "key-a"), undefined);
 });
 
 test("skillRegistry can reload persisted skills from SQLite", async () => {

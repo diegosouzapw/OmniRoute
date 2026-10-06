@@ -67,7 +67,8 @@ export function applyAging(
   messages: unknown[],
   thresholds?: AgingThresholds,
   summarizer?: Summarizer,
-  preserveSystemPrompt = true
+  preserveSystemPrompt = true,
+  spareUserIndex?: number
 ): { messages: unknown[]; saved: number } {
   const t = thresholds ?? DEFAULT_AGGRESSIVE_CONFIG.thresholds;
   const sum = summarizer ?? {
@@ -81,6 +82,9 @@ export function applyAging(
   const typed = messages as ChatMessage[];
   if (typed.length === 0) return { messages: [], saved: 0 };
 
+  const lastUserIdx =
+    spareUserIndex !== undefined ? spareUserIndex : typed.findLastIndex((m) => m.role === "user");
+
   const totalMessages = typed.length;
   const result: ChatMessage[] = [];
   let saved = 0;
@@ -89,7 +93,11 @@ export function applyAging(
     const msg = typed[i];
     const text = extractTextContent(msg.content);
 
-    if ((preserveSystemPrompt && msg.role === "system") || COMPRESSED_MARKER_RE.test(text)) {
+    if (
+      (preserveSystemPrompt && msg.role === "system") ||
+      COMPRESSED_MARKER_RE.test(text) ||
+      i === lastUserIdx
+    ) {
       result.push(msg);
       continue;
     }

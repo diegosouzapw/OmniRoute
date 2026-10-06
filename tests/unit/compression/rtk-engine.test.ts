@@ -70,7 +70,8 @@ describe("RTK compression engine", () => {
     assert.equal(rtkEngine.validateConfig({ intensity: "invalid" }).valid, false);
     assert.equal(rtkEngine.validateConfig({ rawOutputRetention: "always" }).valid, true);
 
-    const body = { messages: [{ role: "tool", content: "same\nsame\nsame\nsame" }] };
+    const repeated = Array.from({ length: 20 }, () => "same").join("\n");
+    const body = { messages: [{ role: "tool", content: repeated }] };
     assert.equal(
       rtkEngine.apply(body, { config: { rtkConfig: { enabled: true } } }).stats?.engine,
       "rtk"

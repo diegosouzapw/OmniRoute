@@ -1,15 +1,17 @@
 /**
- * TDD regression guard for issue #3625 (Part A).
+ * TDD regression guard for issue #3625 (Part A) and future quota cooldown preservation.
  *
  * After an unclean process crash (SIGKILL / large-body burst), provider
- * connections can be left in the DB with a far-future `rate_limited_until`
- * (stale exponential-backoff value). On restart, getProviderCredentials()
- * skips those connections and Bottleneck queues time out at 120 s.
+ * connections can be left in the DB with expired transient cooldowns.
+ * On startup, scan `provider_connections` and clear stale transient
+ * cooldown fields for any non-terminal connection that has an EXPIRED or
+ * unparseable `rate_limited_until`.
  *
- * The fix: on startup, scan `provider_connections` and clear transient
- * cooldown fields for any non-terminal connection that has a
- * `rate_limited_until` set (past *or* future). Terminal states
- * (banned / expired / credits_exhausted) must not be touched.
+ * FUTURE timestamps (such as weekly/monthly quota cooldowns) MUST be
+ * preserved so that restarts/recreates do not wipe active cooldowns and
+ * immediately dispatch into upstream 429s.
+ *
+ * Terminal states (banned / expired / credits_exhausted) must not be touched.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -30,7 +32,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: any) {
@@ -50,56 +52,48 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-/** Far-future epoch ms (simulates a crash-burst backoff). */
-const FAR_FUTURE = Date.now() + 60 * 60 * 1000; // +1 hour
+/** Far-future epoch ms (simulates a multi-day quota reset or active cooldown). */
+const FAR_FUTURE = Date.now() + 6 * 24 * 60 * 60 * 1000; // +6 days
 
-/** Slightly past timestamp (normal lazy expiry — also cleared on startup). */
+/** Slightly past timestamp (normal lazy expiry — cleared on startup). */
 const JUST_PAST = Date.now() - 10_000; // -10 s
 
 // ─── tests ──────────────────────────────────────────────────────────────────
 
-test("clearStaleCrashCooldowns clears far-future transient cooldown on restart", async () => {
+test("clearStaleCrashCooldowns PRESERVES future transient cooldown on restart", async () => {
   const conn = await providersDb.createProviderConnection({
     provider: "openai",
     authType: "apikey",
-    name: "Stale Cooldown",
+    name: "Future Cooldown",
     apiKey: "sk-test",
   });
 
-  // Simulate crash-burst state: far-future cooldown, transient error fields
   await providersDb.updateProviderConnection(conn.id, {
     ...conn,
     rateLimitedUntil: new Date(FAR_FUTURE).toISOString(),
     testStatus: "unavailable",
-    lastError: "upstream timeout",
-    lastErrorType: "timeout",
+    lastError: "upstream weekly quota exhausted",
+    lastErrorType: "quota_exhausted",
     backoffLevel: 3,
   });
 
-  // Verify pre-condition: connection has a far-future cooldown persisted
   const pre = await providersDb.getProviderConnectionById(conn.id);
   assert.ok(
     pre?.rateLimitedUntil && new Date(pre.rateLimitedUntil as string).getTime() > Date.now(),
     "connection should have a future rate_limited_until before recovery"
   );
 
-  // Run startup recovery
   const result = providersDb.clearStaleCrashCooldowns();
+  assert.equal(result.cleared, 0, "future cooldown must NOT be cleared on startup");
 
-  assert.ok(result.cleared >= 1, `expected at least 1 cleared, got ${result.cleared}`);
-
-  // Verify post-condition: cooldown is gone (cleanNulls strips null → undefined)
   const updated = await providersDb.getProviderConnectionById(conn.id);
-  assert.ok(!updated?.rateLimitedUntil, "rateLimitedUntil should be absent/falsy after recovery");
-  assert.equal(updated?.testStatus, "active", "testStatus should be 'active' after recovery");
-  assert.equal(updated?.backoffLevel, 0, "backoffLevel should be 0 after recovery");
-  assert.ok(!updated?.lastError, "lastError should be absent/falsy after recovery");
-  assert.ok(!updated?.lastErrorType, "lastErrorType should be absent/falsy after recovery");
+  assert.ok(updated?.rateLimitedUntil, "future rateLimitedUntil must remain intact");
+  assert.equal(updated?.testStatus, "unavailable", "testStatus should remain unavailable");
 });
 
 test("clearStaleCrashCooldowns clears past-dated transient cooldown on restart", async () => {
@@ -114,6 +108,9 @@ test("clearStaleCrashCooldowns clears past-dated transient cooldown on restart",
     ...conn,
     rateLimitedUntil: new Date(JUST_PAST).toISOString(),
     testStatus: "unavailable",
+    lastError: "upstream timeout",
+    lastErrorType: "timeout",
+    errorCode: 504,
     backoffLevel: 1,
   });
 
@@ -125,6 +122,10 @@ test("clearStaleCrashCooldowns clears past-dated transient cooldown on restart",
   assert.ok(!updated?.rateLimitedUntil, "past cooldown should also be cleared on startup");
   assert.equal(updated?.testStatus, "active", "testStatus should be 'active'");
   assert.equal(updated?.backoffLevel, 0, "backoffLevel should be 0");
+  // The startup sweep resets the whole transient cluster, not just the cooldown:
+  assert.ok(!updated?.lastError, "lastError should be absent/falsy after recovery");
+  assert.ok(!updated?.lastErrorType, "lastErrorType should be absent/falsy after recovery");
+  assert.ok(!updated?.errorCode, "errorCode should be absent/falsy after recovery");
 });
 
 test("clearStaleCrashCooldowns does NOT clear terminal states (banned)", async () => {
@@ -144,14 +145,12 @@ test("clearStaleCrashCooldowns does NOT clear terminal states (banned)", async (
 
   const result = providersDb.clearStaleCrashCooldowns();
 
-  // The banned connection must NOT be cleared
   const updated = await providersDb.getProviderConnectionById(conn.id);
   assert.equal(updated?.testStatus, "banned", "banned connection must not be touched");
   assert.ok(
     updated?.rateLimitedUntil,
     "rate_limited_until on a banned connection must not be cleared"
   );
-  // cleared count should be 0 (only the banned conn exists in this test)
   assert.equal(result.cleared, 0, "no transient connections to clear");
 });
 
@@ -201,7 +200,6 @@ test("clearStaleCrashCooldowns does NOT clear terminal states (credits_exhausted
 });
 
 test("clearStaleCrashCooldowns returns cleared=0 when no transient cooldowns exist", async () => {
-  // Create a clean connection (no cooldown)
   await providersDb.createProviderConnection({
     provider: "gemini",
     authType: "apikey",
@@ -215,28 +213,29 @@ test("clearStaleCrashCooldowns returns cleared=0 when no transient cooldowns exi
 });
 
 test("clearStaleCrashCooldowns handles mixed transient + terminal connections correctly", async () => {
-  // Transient — should be cleared
-  const transient1 = await providersDb.createProviderConnection({
+  // Future transient — should be PRESERVED
+  const futureTransient = await providersDb.createProviderConnection({
     provider: "openai",
     authType: "apikey",
-    name: "Transient 1",
+    name: "Future Transient",
     apiKey: "sk-t1",
   });
-  await providersDb.updateProviderConnection(transient1.id, {
-    ...transient1,
+  await providersDb.updateProviderConnection(futureTransient.id, {
+    ...futureTransient,
     rateLimitedUntil: new Date(FAR_FUTURE).toISOString(),
     testStatus: "unavailable",
     backoffLevel: 2,
   });
 
-  const transient2 = await providersDb.createProviderConnection({
+  // Past transient — should be CLEARED
+  const pastTransient = await providersDb.createProviderConnection({
     provider: "anthropic",
     authType: "apikey",
-    name: "Transient 2",
+    name: "Past Transient",
     apiKey: "sk-t2",
   });
-  await providersDb.updateProviderConnection(transient2.id, {
-    ...transient2,
+  await providersDb.updateProviderConnection(pastTransient.id, {
+    ...pastTransient,
     rateLimitedUntil: new Date(JUST_PAST).toISOString(),
     testStatus: "unavailable",
     backoffLevel: 1,
@@ -258,20 +257,17 @@ test("clearStaleCrashCooldowns handles mixed transient + terminal connections co
 
   const result = providersDb.clearStaleCrashCooldowns();
 
-  assert.equal(result.cleared, 2, "exactly 2 transient connections cleared");
+  assert.equal(result.cleared, 1, "only 1 past transient connection cleared");
 
-  const updatedT1 = await providersDb.getProviderConnectionById(transient1.id);
-  assert.ok(!updatedT1?.rateLimitedUntil, "transient1 cooldown cleared");
-  assert.equal(updatedT1?.testStatus, "active", "transient1 status active");
+  const updatedFuture = await providersDb.getProviderConnectionById(futureTransient.id);
+  assert.ok(updatedFuture?.rateLimitedUntil, "future cooldown preserved");
+  assert.equal(updatedFuture?.testStatus, "unavailable", "future transient status preserved");
 
-  const updatedT2 = await providersDb.getProviderConnectionById(transient2.id);
-  assert.ok(!updatedT2?.rateLimitedUntil, "transient2 cooldown cleared");
-  assert.equal(updatedT2?.testStatus, "active", "transient2 status active");
+  const updatedPast = await providersDb.getProviderConnectionById(pastTransient.id);
+  assert.ok(!updatedPast?.rateLimitedUntil, "past transient cooldown cleared");
+  assert.equal(updatedPast?.testStatus, "active", "past transient status active");
 
   const updatedTerminal = await providersDb.getProviderConnectionById(terminal.id);
   assert.equal(updatedTerminal?.testStatus, "banned", "terminal connection untouched");
-  assert.ok(
-    updatedTerminal?.rateLimitedUntil,
-    "terminal rate_limited_until preserved"
-  );
+  assert.ok(updatedTerminal?.rateLimitedUntil, "terminal rate_limited_until preserved");
 });

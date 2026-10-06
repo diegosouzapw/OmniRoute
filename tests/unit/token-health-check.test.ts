@@ -23,7 +23,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: any) {
@@ -37,6 +37,99 @@ async function resetStorage() {
 
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
+
+test("GitHub access-token health demotes only a verified 401 and stores no secrets", async () => {
+  for (const status of [200, 401, 403, 429, 500]) {
+    await resetStorage();
+    const accessToken = `ghp_status_${status}_secret`;
+    const responseSecret = `response-${status}-secret`;
+    const originalFetch = globalThis.fetch;
+    const consoleOutput: unknown[] = [];
+    const originalError = console.error;
+    console.error = (...args: unknown[]) => consoleOutput.push(args);
+    globalThis.fetch = (async () =>
+      status === 200
+        ? new Response(
+            JSON.stringify({
+              token: `copilot-${status}-secret`,
+              expires_at: Math.floor(Date.now() / 1000) + 1800,
+            }),
+            { status, headers: { "content-type": "application/json" } }
+          )
+        : new Response(responseSecret, { status })) as typeof fetch;
+
+    try {
+      const connection = await providersDb.createProviderConnection({
+        provider: "github",
+        authType: "oauth",
+        name: `GitHub ${status}`,
+        accessToken,
+        healthCheckInterval: 60,
+        isActive: true,
+        testStatus: "active",
+        providerSpecificData: {
+          copilotToken: "existing-copilot-secret",
+          copilotTokenExpiresAt: Math.floor(Date.now() / 1000) + 3600,
+        },
+      });
+
+      await tokenHealthCheck.checkConnection({
+        ...connection,
+        lastHealthCheckAt: new Date(Date.now() - 61 * 60 * 1000).toISOString(),
+      });
+
+      const updated = await providersDb.getProviderConnectionById(connection.id);
+      assert.equal(updated?.testStatus, status === 401 ? "expired" : "active");
+      assert.equal(updated?.lastHealthCheckAt !== connection.lastHealthCheckAt, true);
+      assert.equal(JSON.stringify(updated).includes(responseSecret), false);
+      assert.equal(JSON.stringify(consoleOutput).includes(accessToken), false);
+      assert.equal(JSON.stringify(consoleOutput).includes(responseSecret), false);
+      if (status === 401) {
+        assert.equal(updated?.errorCode, "github_access_token_invalid");
+        assert.equal(updated?.lastErrorType, "github_access_token_invalid");
+        assert.equal(updated?.lastErrorSource, "oauth");
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
+      console.error = originalError;
+    }
+  }
+});
+
+test("GitHub access-token health keeps network failures active", async () => {
+  await resetStorage();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () => {
+    throw new Error("network down");
+  }) as typeof fetch;
+
+  try {
+    const connection = await providersDb.createProviderConnection({
+      provider: "github",
+      authType: "oauth",
+      name: "GitHub network",
+      accessToken: "ghp_network_secret",
+      healthCheckInterval: 60,
+      isActive: true,
+      testStatus: "active",
+      providerSpecificData: {
+        copilotToken: "existing-copilot-secret",
+        copilotTokenExpiresAt: Math.floor(Date.now() / 1000) + 3600,
+      },
+    });
+
+    await tokenHealthCheck.checkConnection({
+      ...connection,
+      lastHealthCheckAt: new Date(Date.now() - 61 * 60 * 1000).toISOString(),
+    });
+
+    const updated = await providersDb.getProviderConnectionById(connection.id);
+    assert.equal(updated?.testStatus, "active");
+    assert.equal(updated?.lastHealthCheckAt !== connection.lastHealthCheckAt, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
 
 async function withHttpServer(handler, fn) {
   const server = http.createServer(handler);
@@ -134,7 +227,7 @@ async function withPatchedProvider(providerId, config, fn) {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("extractResolvedProxyConfig unwraps proxy resolution metadata", () => {

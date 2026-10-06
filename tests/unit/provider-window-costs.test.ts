@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-provider-costs-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -11,7 +12,8 @@ process.env.API_KEY_SECRET = "provider-window-costs-test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeys = await import("../../src/lib/db/apiKeys.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updatePricing } = await import("@/lib/db/settings");
+const localDb = { updatePricing };
 const providerLimits = await import("../../src/lib/db/providerLimits.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const costRules = await import("../../src/domain/costRules.ts");
@@ -22,7 +24,7 @@ async function resetStorage() {
   core.resetDbInstance();
   apiKeys.resetApiKeyState();
   costRules.resetCostData();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  await cleanupTempDataDir(TEST_DATA_DIR);
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -30,11 +32,11 @@ test.beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(() => {
+test.after(async () => {
   core.resetDbInstance();
   apiKeys.resetApiKeyState();
   costRules.resetCostData();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 test("Codex provider window costs use the weekly reset window and API key USD limit", async () => {

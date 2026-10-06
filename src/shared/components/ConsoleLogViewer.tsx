@@ -48,6 +48,7 @@ export default function ConsoleLogViewer() {
   const locale = useLocale();
   const t = useTranslations("loggers");
   const tv = useTranslations("logs.consoleViewer");
+  const tc = useTranslations("common");
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +58,7 @@ export default function ConsoleLogViewer() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const copyFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -88,6 +90,13 @@ export default function ConsoleLogViewer() {
     };
   }, [fetchLogs]);
 
+  useEffect(
+    () => () => {
+      if (copyFeedbackTimerRef.current) clearTimeout(copyFeedbackTimerRef.current);
+    },
+    []
+  );
+
   // Auto-scroll to bottom on new logs
   useEffect(() => {
     if (autoScroll && scrollRef.current) {
@@ -104,8 +113,12 @@ export default function ConsoleLogViewer() {
     }
 
     setError(null);
+    if (copyFeedbackTimerRef.current) clearTimeout(copyFeedbackTimerRef.current);
     setCopiedIdx(idx);
-    setTimeout(() => setCopiedIdx(null), 2000);
+    copyFeedbackTimerRef.current = setTimeout(() => {
+      copyFeedbackTimerRef.current = null;
+      setCopiedIdx(null);
+    }, 2000);
   };
 
   const formatTime = (ts: string) => {
@@ -197,9 +210,12 @@ export default function ConsoleLogViewer() {
         <button
           onClick={fetchLogs}
           disabled={loading}
+          aria-label={tc("refresh")}
           className="px-3 py-2 rounded-lg text-sm font-medium bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:bg-[var(--color-bg-alt)] disabled:opacity-50 transition-colors"
         >
-          <span className="material-symbols-outlined text-[16px] align-middle">refresh</span>
+          <span className="material-symbols-outlined text-[16px] align-middle" aria-hidden="true">
+            refresh
+          </span>
         </button>
 
         {/* Status */}
@@ -302,12 +318,18 @@ export default function ConsoleLogViewer() {
                   <button
                     onClick={() => handleCopy(entry, idx)}
                     title={tv("copyLogEntry")}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-[#8b949e] hover:text-white"
+                    aria-label={tv("copyLogEntry")}
+                    className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity shrink-0 text-[#8b949e] hover:text-white"
                   >
-                    <span className="material-symbols-outlined text-[14px]">
+                    <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                       {copiedIdx === idx ? "check" : "content_copy"}
                     </span>
                   </button>
+                  {copiedIdx === idx && (
+                    <span className="sr-only" role="status" aria-live="polite">
+                      {tc("copied")}
+                    </span>
+                  )}
                 </div>
               );
             })

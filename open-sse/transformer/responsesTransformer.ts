@@ -7,6 +7,18 @@ import {
 } from "../utils/reasoningPlaceholder.ts";
 import * as fs from "fs";
 import * as path from "path";
+import { resolveRequestToolIdentity } from "../translator/response/openai-responses/requestToolIdentity.ts";
+import { plaintextCollaborationFields } from "../translator/response/openai-responses/collaborationPlaintextMarker.ts";
+import { finalizeResponsesTerminalStatus } from "../translator/helpers/responsesTerminalStatus.ts";
+
+// #10223: threshold for detecting corrupted request_id fields. Normal
+// request IDs are <100 chars. DeepSeek's SSE encoder bug produces 200+
+// char values with response-ID fragments. The 100-char gap between normal
+// (<100) and threshold (200) provides safety margin for providers that
+// use moderately longer IDs. The transformer never reads request_id, so
+// stripping it has no functional impact on the output.
+const CORRUPTED_REQUEST_ID_THRESHOLD = 200;
+
 /**
  * Responses API Transformer
  * Converts OpenAI Chat Completions SSE to Codex Responses API SSE format
@@ -104,6 +116,13 @@ function normalizeResponsesUsage(previous: unknown, raw: unknown): UsageRecord |
     usageNumber(inputDetails.cacheReadTokens) ??
     usageNumber(beforeInputDetails.cached_tokens) ??
     0;
+  const cacheCreationTokens =
+    usageNumber(source.cache_creation_input_tokens) ??
+    usageNumber(source.cache_write_tokens) ??
+    usageNumber(inputDetails.cache_creation_tokens) ??
+    usageNumber(inputDetails.cache_write_tokens) ??
+    usageNumber(beforeInputDetails.cache_creation_tokens) ??
+    usageNumber(beforeInputDetails.cache_write_tokens);
   const outputTokens =
     usageNumber(source.output_tokens) ??
     usageNumber(source.completion_tokens) ??
@@ -126,7 +145,10 @@ function normalizeResponsesUsage(previous: unknown, raw: unknown): UsageRecord |
 
   return {
     input_tokens: inputTokens,
-    input_tokens_details: { cached_tokens: cachedTokens },
+    input_tokens_details: {
+      cached_tokens: cachedTokens,
+      ...(cacheCreationTokens !== undefined ? { cache_creation_tokens: cacheCreationTokens } : {}),
+    },
     output_tokens: outputTokens,
     output_tokens_details: { reasoning_tokens: reasoningTokens },
     total_tokens: totalTokens,
@@ -183,9 +205,18 @@ export function createResponsesLogger(model, logsDir = null) {
 export function createResponsesApiTransformStream(
   logger = null,
   keepaliveIntervalMs = 3000,
-  options: { customToolNames?: Iterable<string> } = {}
+  options: {
+    customToolNames?: Iterable<string>;
+    requestToolIdentityMap?: ReadonlyMap<string, unknown> | null;
+  } = {}
 ) {
   const customToolNames = new Set(options.customToolNames || []);
+  // #14154 — #7936-style {namespace, name} identity restoration was missing
+  // entirely on this emitter (unlike the streaming translator / non-streaming
+  // client translator). Carried through so function_call/custom_tool_call
+  // items round-trip their namespace, and so the collaboration plaintext
+  // marker below can be gated on the restored namespace.
+  const requestToolIdentityMap = options.requestToolIdentityMap ?? null;
   const state = {
     seq: 0,
     responseId: `resp_${Date.now()}`,
@@ -209,6 +240,12 @@ export function createResponsesApiTransformStream(
     funcItemTypes: {},
     funcArgsDone: {},
     funcItemDone: {},
+    // Cached at first computation (see toolCallOutputIndexBase) so every
+    // added/delta/done event for a given tool call — including ones emitted
+    // later from the finish_reason handler or flush(), where the reasoning/
+    // message state used to derive the base is no longer meaningful to
+    // recompute — shares exactly the same output_index.
+    funcOutputIndex: {} as Record<string, number>,
     completedOutputItems: [] as Array<{
       output_index: number;
       item: Record<string, unknown>;
@@ -217,6 +254,7 @@ export function createResponsesApiTransformStream(
     buffer: "",
     completedSent: false,
     usage: null,
+    finishReason: null as string | null,
     keepaliveTimer: null,
     // #6906: true once a finish_reason chunk closed all output items but deferred
     // response.completed — a trailing usage-only chunk (choices: [], usage: {...}) may
@@ -225,6 +263,11 @@ export function createResponsesApiTransformStream(
   };
 
   const encoder = new TextEncoder();
+  // #10223: a stream:false TextDecoder recreated per transform() chunk has no
+  // cross-call state, so a multi-byte UTF-8 character (CJK/emoji) split across
+  // two TCP chunks got truncated to U+FFFD, corrupting the deltas. A single
+  // persistent decoder with { stream: true } carries pending bytes between chunks.
+  const decoder = new TextDecoder();
   const nextSeq = () => ++state.seq;
 
   // Normalize output_index to a non-negative integer (replaces fragile parseInt calls)
@@ -277,6 +320,7 @@ export function createResponsesApiTransformStream(
           id: state.reasoningId,
           type: "reasoning",
           summary: [],
+          status: "in_progress",
         },
       });
 
@@ -327,6 +371,7 @@ export function createResponsesApiTransformStream(
         id: state.reasoningId,
         type: "reasoning",
         summary: [{ type: "summary_text", text: state.reasoningBuf }],
+        status: "completed",
       };
 
       emit(controller, "response.output_item.done", {
@@ -337,6 +382,24 @@ export function createResponsesApiTransformStream(
 
       recordCompletedItem(state.reasoningIndex, reasoningItem);
     }
+  };
+
+  // #13693: post-close content (deepseek/Kimi upstreams interleave text after
+  // a real tool_call) must not land on an already-done message item — Codex
+  // CLI aborts on "OutputTextDelta without active item". Allocate the next
+  // free output_index instead, avoiding reasoning, messages and cached
+  // tool-call indexes.
+  const nextFreeMessageIndex = (requestedIdx) => {
+    let candidate = normalizeOutputIndex(requestedIdx);
+    const allocatedToolIndexes = new Set(
+      Object.values(state.funcOutputIndex || {}).map((v) => normalizeOutputIndex(v))
+    );
+    const claimed = (i) =>
+      state.msgItemAdded[i] ||
+      allocatedToolIndexes.has(i) ||
+      (state.reasoningId && i === normalizeOutputIndex(state.reasoningIndex));
+    while (claimed(candidate)) candidate += 1;
+    return candidate;
   };
 
   const closeMessage = (controller, idx) => {
@@ -368,6 +431,7 @@ export function createResponsesApiTransformStream(
         type: "message",
         content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
         role: "assistant",
+        status: "completed",
       };
 
       emit(controller, "response.output_item.done", {
@@ -380,6 +444,27 @@ export function createResponsesApiTransformStream(
     }
   };
 
+  // Tool calls sit after reasoning (if any) AND after a text message (if one
+  // was actually emitted this turn). The provider's own tool_calls[].index is
+  // scoped only to the tool_calls array and legitimately restarts at 0 — using
+  // it directly as the Responses API output_index collides with whatever
+  // reasoning/message item already claimed that slot, and a client that
+  // tracks response items by output_index silently drops the tool call.
+  //
+  // Computed once per tcIdx (from the chunk's own choice index, `chunkIdx`)
+  // and cached in state.funcOutputIndex so every added/delta/done event for
+  // that call — including ones emitted later from the finish_reason handler
+  // or flush(), which have no fresh chunk/reasoning/message state to
+  // recompute from — shares exactly the same output_index.
+  const computeToolCallOutputIndex = (chunkIdx, tcIdx) => {
+    if (state.funcOutputIndex[tcIdx] === undefined) {
+      const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : chunkIdx;
+      const base = state.msgItemAdded[msgIdx] ? msgIdx + 1 : msgIdx;
+      state.funcOutputIndex[tcIdx] = base + normalizeOutputIndex(tcIdx);
+    }
+    return state.funcOutputIndex[tcIdx];
+  };
+
   const emitToolCallAdded = (controller, idx) => {
     if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return false;
 
@@ -387,17 +472,20 @@ export function createResponsesApiTransformStream(
     const itemType = customTool ? "custom_tool_call" : "function_call";
     state.funcItemTypes[idx] = itemType;
     state.funcItemAdded[idx] = true;
+    const name = state.funcNames[idx] || "";
+    const identity = resolveRequestToolIdentity(requestToolIdentityMap, name);
 
     emit(controller, "response.output_item.added", {
       type: "response.output_item.added",
-      output_index: idx,
+      output_index: state.funcOutputIndex[idx],
       item: {
         id: `fc_${state.funcCallIds[idx]}`,
         type: itemType,
         ...(customTool ? { input: "" } : { arguments: "" }),
         call_id: state.funcCallIds[idx],
-        name: state.funcNames[idx] || "",
-        ...(customTool ? { status: "in_progress" } : {}),
+        name: identity?.name ?? name,
+        ...(identity ? { namespace: identity.namespace } : {}),
+        status: "in_progress",
       },
     });
     return true;
@@ -406,7 +494,7 @@ export function createResponsesApiTransformStream(
   const closeToolCall = (controller, idx, recordAsCompleted = true) => {
     const callId = state.funcCallIds[idx];
     if (callId && !state.funcItemDone[idx]) {
-      const normalizedIndex = normalizeOutputIndex(idx);
+      const normalizedIndex = state.funcOutputIndex[idx];
       let args = state.funcArgsBuf[idx] || "{}";
       const toolName = state.funcNames[idx] || "";
       emitToolCallAdded(controller, idx);
@@ -478,8 +566,20 @@ export function createResponsesApiTransformStream(
           arguments: args,
           call_id: callId,
           name: toolName,
+          status: "completed",
         };
       }
+
+      // #14154 — restore the request-declared {namespace, name} identity (matching
+      // the streaming translator / non-streaming client translator, #7936) and, when
+      // the restored identity is a Codex collaboration call, stamp the
+      // encrypted_function_args:[] plaintext-delivery marker Codex requires.
+      const identity = resolveRequestToolIdentity(requestToolIdentityMap, toolName);
+      if (identity) {
+        funcItem.namespace = identity.namespace;
+        funcItem.name = identity.name;
+      }
+      Object.assign(funcItem, plaintextCollaborationFields(funcItem.namespace, funcItem.name));
 
       emit(controller, "response.output_item.done", {
         type: "response.output_item.done",
@@ -520,8 +620,9 @@ export function createResponsesApiTransformStream(
         response.usage = state.usage;
       }
 
-      emit(controller, "response.completed", {
-        type: "response.completed",
+      const eventType = finalizeResponsesTerminalStatus(response, state.finishReason);
+      emit(controller, eventType, {
+        type: eventType,
         response,
       });
     }
@@ -550,7 +651,7 @@ export function createResponsesApiTransformStream(
         (state.keepaliveTimer as { unref?: () => void })?.unref?.();
       },
       transform(chunk, controller) {
-        const text = new TextDecoder().decode(chunk);
+        const text = decoder.decode(chunk, { stream: true });
         logger?.logInput(text.trim());
         state.buffer += text;
 
@@ -571,6 +672,21 @@ export function createResponsesApiTransformStream(
             parsed = JSON.parse(dataStr);
           } catch {
             continue;
+          }
+
+          // #10223: strip request_id when it looks corrupted (suspiciously
+          // long — normal request IDs are <100 chars). Some providers
+          // (DeepSeek) have SSE encoder bugs that leak response-ID fragments
+          // into this field, producing 200+ char values. Well-behaved
+          // providers' request_id is preserved.
+          if (
+            typeof parsed.request_id === "string" &&
+            parsed.request_id.length >= CORRUPTED_REQUEST_ID_THRESHOLD
+          ) {
+            logger?.logInput(
+              `[ResponsesTransformer] stripped corrupted request_id (${parsed.request_id.length} chars)`
+            );
+            delete parsed.request_id;
           }
 
           if (parsed.usage) {
@@ -622,6 +738,9 @@ export function createResponsesApiTransformStream(
                 object: "response",
                 created_at: state.created,
                 status: "in_progress",
+                background: false,
+                error: null,
+                output: [],
               },
             });
           }
@@ -691,7 +810,12 @@ export function createResponsesApiTransformStream(
                 // Use a distinct output_index for the message when reasoning was
                 // emitted, so the message item does not collide with the
                 // reasoning item's output_index.
-                const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+                let msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+                // #13693: a done item must never receive new deltas — re-home
+                // the text on a fresh message item instead.
+                if (state.msgItemDone[msgIdx]) {
+                  msgIdx = nextFreeMessageIndex(msgIdx);
+                }
 
                 // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
                 if (!state.msgTextBuf[msgIdx]) {
@@ -707,7 +831,13 @@ export function createResponsesApiTransformStream(
                   emit(controller, "response.output_item.added", {
                     type: "response.output_item.added",
                     output_index: msgIdx,
-                    item: { id: msgId, type: "message", content: [], role: "assistant" },
+                    item: {
+                      id: msgId,
+                      type: "message",
+                      content: [],
+                      role: "assistant",
+                      status: "in_progress",
+                    },
                   });
                 }
 
@@ -739,7 +869,7 @@ export function createResponsesApiTransformStream(
           }
 
           // Handle tool_calls
-          if (delta.tool_calls) {
+          if (delta.tool_calls?.length) {
             // Close reasoning first so tool calls do not collide with an
             // open reasoning item, then close the message at its real index.
             if (state.reasoningId && !state.reasoningDone) {
@@ -750,6 +880,7 @@ export function createResponsesApiTransformStream(
 
             for (const tc of delta.tool_calls) {
               const tcIdx = tc.index ?? 0;
+              const outputIndex = computeToolCallOutputIndex(idx, tcIdx);
               const newCallId = tc.id;
               const funcName = tc.function?.name;
 
@@ -765,6 +896,10 @@ export function createResponsesApiTransformStream(
                 delete state.funcItemTypes[tcIdx];
                 delete state.funcArgsDone[tcIdx];
                 delete state.funcItemDone[tcIdx];
+                // Deliberately keep funcOutputIndex[tcIdx]: the replacement call
+                // reuses the same positional slot, so it should keep the same
+                // output_index rather than recomputing (which could drift if
+                // msgItemAdded state shifted mid-turn).
               }
 
               if (funcName) state.funcNames[tcIdx] = funcName;
@@ -786,7 +921,7 @@ export function createResponsesApiTransformStream(
                   emit(controller, "response.function_call_arguments.delta", {
                     type: "response.function_call_arguments.delta",
                     item_id: `fc_${state.funcCallIds[tcIdx]}`,
-                    output_index: tcIdx,
+                    output_index: outputIndex,
                     delta: state.funcArgsBuf[tcIdx],
                   });
                 }
@@ -825,7 +960,7 @@ export function createResponsesApiTransformStream(
                   emit(controller, "response.function_call_arguments.delta", {
                     type: "response.function_call_arguments.delta",
                     item_id: `fc_${refCallId}`,
-                    output_index: tcIdx,
+                    output_index: outputIndex,
                     delta: emittedDelta,
                   });
                 }
@@ -835,6 +970,8 @@ export function createResponsesApiTransformStream(
 
           // Handle finish_reason
           if (choice.finish_reason) {
+            // Read by sendCompleted() → finalizeResponsesTerminalStatus (length/filter → incomplete).
+            state.finishReason = choice.finish_reason;
             for (const i in state.msgItemAdded) closeMessage(controller, i);
             closeReasoning(controller);
             for (const i in state.funcCallIds) closeToolCall(controller, i);
@@ -855,6 +992,11 @@ export function createResponsesApiTransformStream(
       },
 
       flush(controller) {
+        // #10223: stream-end flush — drain any bytes the persistent decoder is
+        // still holding. With { stream:true } complete multi-byte chars are
+        // emitted within transform(), so normally there is nothing left; this
+        // only releases a terminating truncated byte and frees the decoder.
+        state.buffer += decoder.decode();
         // Clear keepalive timer
         if (state.keepaliveTimer) {
           clearInterval(state.keepaliveTimer);

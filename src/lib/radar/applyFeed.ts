@@ -27,6 +27,8 @@ export interface MergedEntry {
   provider: string;
   modelId: string;
   displayName: string;
+  /** Curated cross-provider model family used for Radar combo suggestions. */
+  familyId?: string | null;
   monthlyTokens: number;
   creditTokens: number;
   freeType:
@@ -40,6 +42,8 @@ export interface MergedEntry {
   poolKey: string | null;
   tos: "ok" | "caution" | "ambiguous" | "avoid" | "unknown";
   trainsOnPrompts?: boolean;
+  /** Set when the quota only opens after a region-bound identity check; counted apart. */
+  eligibilityGate?: "regional-identity";
   /** Whether the entry is enabled for use. Defaults to true. */
   enabled?: boolean;
   /**
@@ -62,10 +66,12 @@ export interface MergedEntry {
   contextWindow?: number | null;
   /** Capability flags reported by the feed. Undefined for baseline-only entries. */
   capabilities?: {
-    tools: boolean;
-    vision: boolean;
-    thinking: boolean;
+    tools: boolean | null;
+    vision: boolean | null;
+    thinking: boolean | null;
   };
+  /** Credential-free HTTPS evidence for non-null context/capability facts. */
+  metadataEvidenceUrls?: string[];
   /** Rate/quota limits reported by the feed. Undefined for baseline-only entries. */
   limits?: {
     rpm: number | null;
@@ -102,12 +108,15 @@ export interface FeedModel {
   };
   contextWindow: number | null;
   capabilities: {
-    tools: boolean;
-    vision: boolean;
-    thinking: boolean;
+    tools: boolean | null;
+    vision: boolean | null;
+    thinking: boolean | null;
   };
+  metadataEvidenceUrls?: string[];
   trainsOnPrompts: boolean | null;
   tosRisk: MergedEntry["tos"];
+  /** Absent = the feed does not know; null = explicitly no gate. */
+  eligibilityGate?: "regional-identity" | null;
   setup: {
     keyUrl: string | null;
     steps: RadarLocalizedText[];
@@ -205,8 +214,7 @@ export function applyFeed(input: ApplyFeedInput): MergedEntry[] {
     const overrides = localOverrides.get(key);
 
     if (!feedEntry) {
-      // No feed entry: baseline passes through (rule 3: user-added survives)
-      resultMap.set(key, { ...baseEntry });
+      resultMap.set(key, applyLocalOverrideToBaseEntry(baseEntry, overrides));
       continue;
     }
 
@@ -234,6 +242,24 @@ export function applyFeed(input: ApplyFeedInput): MergedEntry[] {
 // ---------------------------------------------------------------------------
 
 /**
+ * Baseline entry with NO feed counterpart: still honour a local override
+ * (e.g. enabled:false) and mark the origin, so `computeFreeModelTotals` sees
+ * the operator's state even when the feed does not mention this baseline
+ * entry. Without an override, the baseline passes through untouched
+ * (rule 3: user-added survives).
+ */
+function applyLocalOverrideToBaseEntry(
+  baseEntry: MergedEntry,
+  overrides: Partial<MergedEntry> | undefined
+): MergedEntry {
+  if (!overrides) return { ...baseEntry };
+  const localEntry: MergedEntry = { ...baseEntry, origin: "local" as const };
+  if (overrides.displayName !== undefined) localEntry.displayName = overrides.displayName;
+  if (overrides.enabled !== undefined) localEntry.enabled = overrides.enabled;
+  return localEntry;
+}
+
+/**
  * Merge a single baseline entry with a feed entry and optional local overrides.
  * Rule 1: local overrides take precedence over feed values.
  * Rule 2: feed `enabled: false` disables with provenance.
@@ -259,6 +285,9 @@ function mergeOne(
   if (!overriddenKeys.has("displayName")) {
     result.displayName = feed.displayName;
   }
+  if (!overriddenKeys.has("familyId")) {
+    result.familyId = feed.familyId;
+  }
   if (!overriddenKeys.has("monthlyTokens")) {
     result.monthlyTokens = feedBudgetToMonthlyTokens(feed.budget);
   }
@@ -274,6 +303,11 @@ function mergeOne(
   if (!overriddenKeys.has("trainsOnPrompts")) {
     result.trainsOnPrompts = feed.trainsOnPrompts ?? undefined;
   }
+  // Absent means "this feed predates the field": keep whatever the baseline says.
+  // An explicit null is the feed clearing the gate.
+  if (!overriddenKeys.has("eligibilityGate") && feed.eligibilityGate !== undefined) {
+    result.eligibilityGate = feed.eligibilityGate ?? undefined;
+  }
   if (!overriddenKeys.has("creditTokens")) {
     // Feed doesn't have creditTokens; keep baseline
   }
@@ -283,6 +317,10 @@ function mergeOne(
   if (!overriddenKeys.has("capabilities")) {
     result.capabilities = feed.capabilities;
   }
+  result.metadataEvidenceUrls =
+    overriddenKeys.has("contextWindow") || overriddenKeys.has("capabilities")
+      ? []
+      : (feed.metadataEvidenceUrls ?? []);
   if (!overriddenKeys.has("limits")) {
     result.limits = feed.limits;
   }
@@ -293,12 +331,14 @@ function mergeOne(
   // Apply local overrides (rule 1: they win)
   if (overrides) {
     if (overrides.displayName !== undefined) result.displayName = overrides.displayName;
+    if (overrides.familyId !== undefined) result.familyId = overrides.familyId;
     if (overrides.monthlyTokens !== undefined) result.monthlyTokens = overrides.monthlyTokens;
     if (overrides.creditTokens !== undefined) result.creditTokens = overrides.creditTokens;
     if (overrides.freeType !== undefined) result.freeType = overrides.freeType;
     if (overrides.poolKey !== undefined) result.poolKey = overrides.poolKey;
     if (overrides.tos !== undefined) result.tos = overrides.tos;
     if (overrides.trainsOnPrompts !== undefined) result.trainsOnPrompts = overrides.trainsOnPrompts;
+    if (overrides.eligibilityGate !== undefined) result.eligibilityGate = overrides.eligibilityGate;
     if (overrides.enabled !== undefined) result.enabled = overrides.enabled;
     if (overrides.contextWindow !== undefined) result.contextWindow = overrides.contextWindow;
     if (overrides.capabilities !== undefined) result.capabilities = overrides.capabilities;
@@ -326,20 +366,32 @@ function feedModelToMerged(
   feed: FeedModel,
   overrides: Partial<MergedEntry> | undefined
 ): MergedEntry {
+  const metadataOverridden =
+    overrides !== undefined &&
+    (Object.hasOwn(overrides, "contextWindow") || Object.hasOwn(overrides, "capabilities"));
   const entry: MergedEntry = {
     provider: feed.provider,
     modelId: feed.modelId,
     displayName: overrides?.displayName ?? feed.displayName,
+    familyId: overrides?.familyId ?? feed.familyId,
     monthlyTokens: overrides?.monthlyTokens ?? feedBudgetToMonthlyTokens(feed.budget),
     creditTokens: overrides?.creditTokens ?? 0,
     freeType: overrides?.freeType ?? feed.freeType,
     poolKey: overrides?.poolKey ?? feedBudgetToPoolKey(feed.budget),
+    eligibilityGate: overrides?.eligibilityGate ?? feed.eligibilityGate ?? undefined,
     tos: overrides?.tos ?? feed.tosRisk,
     trainsOnPrompts: overrides?.trainsOnPrompts ?? feed.trainsOnPrompts ?? undefined,
     enabled: feed.enabled ? (overrides?.enabled ?? true) : false,
     origin: overrides ? "local" : "radar",
-    contextWindow: overrides?.contextWindow ?? feed.contextWindow,
-    capabilities: overrides?.capabilities ?? feed.capabilities,
+    contextWindow:
+      overrides !== undefined && Object.hasOwn(overrides, "contextWindow")
+        ? (overrides.contextWindow ?? null)
+        : feed.contextWindow,
+    capabilities:
+      overrides !== undefined && Object.hasOwn(overrides, "capabilities")
+        ? (overrides.capabilities ?? feed.capabilities)
+        : feed.capabilities,
+    metadataEvidenceUrls: metadataOverridden ? [] : (feed.metadataEvidenceUrls ?? []),
     limits: overrides?.limits ?? feed.limits,
     setup: overrides?.setup ?? feed.setup,
   };

@@ -1,21 +1,19 @@
 import os from "os";
 import path from "path";
-import { createRequire } from "node:module";
+import { runtimeRequire as _require } from "./adapters/runtimeRequire";
 
-const _require = createRequire(import.meta.url);
-function getDatabaseClass() {
+type DatabaseConstructor = typeof import("better-sqlite3");
+
+function getDatabaseClass(): DatabaseConstructor | null {
   try {
     if (process.versions.bun) {
-      return _require("bun:sqlite").Database;
+      return (_require("bun:sqlite") as { Database: DatabaseConstructor }).Database;
     }
-    return _require("better-sqlite3");
+    return _require("better-sqlite3") as DatabaseConstructor;
   } catch {
     return null;
   }
 }
-const Database = process.versions.bun
-  ? (_require("bun:sqlite").Database as typeof import("better-sqlite3"))
-  : (_require("better-sqlite3") as typeof import("better-sqlite3"));
 
 function databaseOptions(readonly = false) {
   return readonly ? { readonly: true } : { readwrite: true, create: true };

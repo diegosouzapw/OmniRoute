@@ -5,10 +5,11 @@ import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
 import {
   CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION,
   CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION,
-  CLAUDE_CODE_COMPATIBLE_USER_AGENT,
+  getClaudeCodeUserAgent,
 } from "../config/claudeCodeCompatibleIdentity.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
+import { normalizeClaudeToolInputSchema } from "../translator/helpers/schemaCoercion.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { resolveClaudeCodeCompatibleAnthropicBeta } from "./claudeCodeCompatibleBeta.ts";
 import { remapToolNamesInRequest } from "./claudeCodeToolRemapper.ts";
@@ -55,14 +56,6 @@ const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
     type: "text",
     text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
   },
-];
-const CONTEXT_1M_SUPPORTED_MODELS = [
-  "claude-fable-5",
-  "claude-sonnet-5",
-  "claude-sonnet-4-6",
-  "claude-opus-4-8",
-  "claude-opus-4-7",
-  "claude-opus-4-6",
 ];
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
   process.env
@@ -148,36 +141,18 @@ export function joinClaudeCodeCompatibleUrl(baseUrl: string, path: string): stri
   return joinNormalizedBaseUrlAndPath(stripClaudeCodeCompatibleEndpointSuffix(baseUrl), path);
 }
 
-export function appendAnthropicBetaHeader(
-  headers: Record<string, string>,
-  betaHeader: string
-): void {
-  const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
-  if (!existingKey) {
-    headers["anthropic-beta"] = betaHeader;
-    return;
-  }
+export {
+  appendAnthropicBetaHeader,
+  removeAnthropicBetaHeader,
+  hasCodeExecutionTool,
+  maybeAppendSkillsBeta,
+  syncSkillsBeta,
+  SKILLS_BETA_HEADER,
+} from "../config/anthropicHeaders.ts";
 
-  const existingValues = String(headers[existingKey] || "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-
-  if (!existingValues.includes(betaHeader)) {
-    headers[existingKey] = [...existingValues, betaHeader].join(",");
-  }
-}
-
-export function modelSupportsContext1mBeta(model: string | null | undefined): boolean {
-  const normalizedModel = String(model || "")
-    .trim()
-    .toLowerCase()
-    .replace(/-\d{8}$/, "");
-
-  return CONTEXT_1M_SUPPORTED_MODELS.some(
-    (supported) => normalizedModel === supported || normalizedModel.startsWith(`${supported}-`)
-  );
-}
+// Re-exported from the shared context1m module so existing importers of this
+// helper (base.ts) keep working; the eligibility list now has one source of truth.
+export { modelSupportsContext1mBeta } from "../config/context1m.ts";
 
 export function buildClaudeCodeCompatibleHeaders(
   apiKey: string,
@@ -198,7 +173,7 @@ export function buildClaudeCodeCompatibleHeaders(
     }),
     "anthropic-dangerous-direct-browser-access": "true",
     "x-app": "cli",
-    "User-Agent": CLAUDE_CODE_COMPATIBLE_USER_AGENT,
+    "User-Agent": getClaudeCodeUserAgent("sdk-cli"),
     "X-Stainless-Retry-Count": "0",
     "X-Stainless-Timeout": String(CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS),
     "X-Stainless-Lang": "js",
@@ -418,6 +393,7 @@ export { computeFingerprint } from "./claudeCodeFingerprint.ts";
 export { obfuscateSensitiveWords, setSensitiveWords } from "./claudeCodeObfuscation.ts";
 export {
   enforceThinkingTemperature,
+  finalizeClaudeBodyConstraints,
   disableThinkingIfToolChoiceForced,
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
@@ -771,10 +747,13 @@ function convertClaudeCodeCompatibleTool(tool: unknown) {
 
   const rawSchema = readRecord(toolData.parameters) ||
     readRecord(toolData.input_schema) || { type: "object", properties: {}, required: [] };
-  const inputSchema =
+  const withProperties =
     rawSchema.type === "object" && !readRecord(rawSchema.properties)
       ? { ...rawSchema, properties: {} }
       : rawSchema;
+  // Flatten a root-level anyOf/oneOf/allOf: Anthropic refuses it outright with
+  // "input_schema does not support oneOf, allOf, or anyOf at the top level" (#13552).
+  const inputSchema = normalizeClaudeToolInputSchema(withProperties);
 
   const converted: Record<string, unknown> = {
     name,

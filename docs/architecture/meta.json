@@ -12,6 +12,7 @@
     "ROUTER_BACKENDS",
     "admission-lanes",
     "cluster-decisions",
-    "persistence-backend-boundary"
+    "persistence-backend-boundary",
+    "ADAPTIVE_ROUTING"
   ]
 }

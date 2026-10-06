@@ -13,9 +13,8 @@ const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-stream-quota-tes
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { scheduleStreamingQuotaShareConsumption } = await import(
-  "../../open-sse/handlers/chatCore/streamingQuotaShare.ts"
-);
+const { scheduleStreamingQuotaShareConsumption } =
+  await import("../../open-sse/handlers/chatCore/streamingQuotaShare.ts");
 
 function makeCostSpy() {
   const calls: Array<{ provider: string; model: string }> = [];
@@ -40,7 +39,7 @@ before(async () => {
 after(() => {
   coreDb.resetDbInstance();
   try {
-    fs.rmSync(testDataDir, { recursive: true, force: true });
+    fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     // best-effort cleanup
   }

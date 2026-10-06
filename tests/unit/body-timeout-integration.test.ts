@@ -28,9 +28,11 @@ test("chatCore error classification maps BodyTimeoutError to 504 GATEWAY_TIMEOUT
   // Read the source to verify the error classification logic includes BodyTimeoutError
   const content = fs.readFileSync("open-sse/handlers/chatCore.ts", "utf8");
 
-  // The error classification block should include BodyTimeoutError alongside TimeoutError
+  // The error classification block should include BodyTimeoutError alongside TimeoutError.
+  // Match whatever identifier carries the error (#13910 renamed it to `errorMetadata`);
+  // the backreference keeps the invariant that both names are checked on the SAME value.
   const classificationPattern =
-    /error\.name === ["']TimeoutError["']\s*\|\|\s*error\.name === ["']BodyTimeoutError["']/;
+    /(\w+)\.name === ["']TimeoutError["']\s*\|\|\s*\1\.name === ["']BodyTimeoutError["']/;
   assert.ok(
     classificationPattern.test(content),
     "chatCore should classify BodyTimeoutError as GATEWAY_TIMEOUT (504)"
@@ -41,7 +43,7 @@ test("chatCore catch block decrements pending requests for all error types", () 
   const content = fs.readFileSync("open-sse/handlers/chatCore.ts", "utf8");
 
   // The catch block should call trackPendingRequest with false before error classification
-  const catchBlockPattern = /catch\s*\(error\)\s*\{[^}]*trackPendingRequest\([^)]*,\s*false\)/;
+  const catchBlockPattern = /catch\s*\(error\)\s*\{[^}]*trackPendingRequest\([^)]*,\s*false\b/;
   assert.ok(
     catchBlockPattern.test(content),
     "chatCore catch block should decrement pending requests"

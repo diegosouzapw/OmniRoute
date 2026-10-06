@@ -13,11 +13,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const { buildClientRawRequest } = await import("../../src/sse/handlers/chat.ts");
-const { cloneBoundedForLog, MAX_LOG_ARRAY_ITEMS } = await import(
-  "../../open-sse/utils/requestLogger.ts"
-);
+const { cloneBoundedForLog, MAX_LOG_ARRAY_ITEMS } =
+  await import("../../open-sse/utils/requestLogger.ts");
 
-const MESSAGES = 800;
+const MESSAGES = MAX_LOG_ARRAY_ITEMS + 500;
 
 function makeRequest(): Request {
   return new Request("http://localhost:20128/v1/chat/completions", {
@@ -85,7 +84,11 @@ test("bounding at the entry does not change what the request logger ultimately s
   const body = longHistoryBody();
   const once = cloneBoundedForLog(body);
   const twice = cloneBoundedForLog(once);
-  assert.deepEqual(twice, once, "cloneBoundedForLog must be idempotent for the entry clone to be safe");
+  assert.deepEqual(
+    twice,
+    once,
+    "cloneBoundedForLog must be idempotent for the entry clone to be safe"
+  );
 });
 
 test("buildClientRawRequest still carries endpoint, headers and signal", () => {

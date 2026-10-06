@@ -13,15 +13,14 @@ delete process.env.OMNIROUTE_API_KEY;
 
 const core = await import("../../src/lib/db/core.ts");
 const freeProxiesDb = await import("../../src/lib/db/freeProxies.ts");
-const addToPoolRoute = await import(
-  "../../src/app/api/settings/free-proxies/[id]/add-to-pool/route.ts"
-);
+const addToPoolRoute =
+  await import("../../src/app/api/settings/free-proxies/[id]/add-to-pool/route.ts");
 const syncRoute = await import("../../src/app/api/settings/free-proxies/sync/route.ts");
 const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
 
 function reset() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -36,7 +35,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
   } else {

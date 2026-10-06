@@ -14,16 +14,15 @@ process.env.API_KEY_SECRET = "test-api-key-secret-pi";
 process.env.JWT_SECRET = "test-jwt-secret-pi";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 
-const { GET, POST, DELETE } = await import(
-  "../../src/app/api/cli-tools/pi-settings/route.ts"
-);
+const { GET, POST, DELETE } = await import("../../src/app/api/cli-tools/pi-settings/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -101,10 +100,7 @@ test("pi-settings POST: writes config.json with valid body", async () => {
         }),
       })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Unexpected status ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Unexpected status ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);
@@ -118,7 +114,7 @@ test("pi-settings POST: writes config.json with valid body", async () => {
     }
   } finally {
     process.env.HOME = origHome;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -145,17 +141,14 @@ test("pi-settings DELETE: removes OmniRoute fields from existing config", async 
     const res = await DELETE(
       new Request("http://localhost/api/cli-tools/pi-settings", { method: "DELETE" })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Expected 200/403/500, got ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Expected 200/403/500, got ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);
     }
   } finally {
     process.env.HOME = origHome;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -189,7 +182,7 @@ test("pi-settings route.ts: does not call exec() or spawn() directly", () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   delete process.env.DATA_DIR;
   delete process.env.API_KEY_SECRET;
   delete process.env.JWT_SECRET;

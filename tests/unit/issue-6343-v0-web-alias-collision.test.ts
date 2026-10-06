@@ -26,7 +26,7 @@ describe("#6343: v0-vercel-web credential detection (alias collision)", () => {
     } catch {
       // best-effort cleanup
     }
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("v0-vercel and v0-vercel-web no longer share an alias", async () => {

@@ -81,7 +81,7 @@ function productionShapedSynchronousRefresh() {
 }
 
 test.after(() => {
-  fs.rmSync(CACHE_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(CACHE_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("the /v1/models route wires Next after() as its response-flush-safe scheduler", () => {
@@ -152,7 +152,7 @@ test("an external client receives the stale body before synchronous refresh fini
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "EPERM") {
       t.skip("sandbox does not permit opening HTTP listener sockets");
-      fs.rmSync(socketDir, { recursive: true, force: true });
+      fs.rmSync(socketDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       return;
     }
     throw error;
@@ -177,7 +177,7 @@ test("an external client receives the stale body before synchronous refresh fini
     );
   } finally {
     await close(server);
-    fs.rmSync(socketDir, { recursive: true, force: true });
+    fs.rmSync(socketDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     catalogCache.__resetCatalogBuilderRunsForTest();
   }
 });

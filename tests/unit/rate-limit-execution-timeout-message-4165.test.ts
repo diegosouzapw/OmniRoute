@@ -39,7 +39,7 @@ test.afterEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // Drive a real Bottleneck execution expiration with a function that outlives it.
@@ -50,12 +50,14 @@ async function triggerExecutionExpiration() {
     concurrentRequests: 1,
     requestsPerMinute: 100000,
     minTimeBetweenRequestsMs: 0,
-    maxWaitMs: 40,
+    // The execution backstop (not the queue-wait budget) feeds Bottleneck's
+    // `expiration`, so shrink the backstop to force a real expiration here.
+    executionMaxWaitMs: 40,
   });
   rateLimitManager.enableRateLimitProtection("conn-execution-timeout");
 
   return rateLimitManager.withRateLimit("openai", "conn-execution-timeout", "gpt-4o", async () => {
-    await wait(400); // > maxWaitMs (40ms) → Bottleneck fails the job
+    await wait(400); // > executionMaxWaitMs (40ms) → Bottleneck fails the job
     return "should-not-reach";
   });
 }
@@ -107,6 +109,36 @@ test("#4165 execution expiration is local and accurately named", async () => {
     "client and call-log formatting must not append the retained Bottleneck cause"
   );
 });
+
+test("execution outliving the queue-wait budget completes (opencode-go 504 regression)", async () => {
+  // Regression: the queue-wait budget (maxWaitMs) used to be passed to
+  // Bottleneck as the execution `expiration`, so a legitimate execution that
+  // outlived it (e.g. glm-5.3-flash thinking for >45s before first bytes) was
+  // killed mid-flight with a false 504. The backstop must come from
+  // executionMaxWaitMs instead.
+  await rateLimitManager.applyRequestQueueSettings({
+    ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
+    autoEnableApiKeyProviders: false,
+    concurrentRequests: 1,
+    requestsPerMinute: 100000,
+    minTimeBetweenRequestsMs: 0,
+    maxWaitMs: 40, // queue-wait budget: 40ms
+    executionMaxWaitMs: 5000, // execution backstop: 5s
+  });
+  rateLimitManager.enableRateLimitProtection("conn-slow-exec");
+
+  const result = await rateLimitManager.withRateLimit(
+    "openai",
+    "conn-slow-exec",
+    "gpt-4o",
+    async () => {
+      await wait(300); // outlives maxWaitMs, well within the execution backstop
+      return "ok";
+    }
+  );
+  assert.equal(result, "ok", "execution must not be killed by the queue-wait budget");
+});
+
 
 test("#4165 a job that completes within the execution expiration is unaffected", async () => {
   await rateLimitManager.applyRequestQueueSettings({

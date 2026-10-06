@@ -27,7 +27,7 @@ const quotaCache = await import("../../src/domain/quotaCache.ts");
 
 test.after(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#5923 setQuotaCache writes is_exhausted per-window, not the connection-wide AND aggregate", () => {

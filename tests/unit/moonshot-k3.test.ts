@@ -4,11 +4,8 @@ import assert from "node:assert/strict";
 import { getRegistryEntry } from "../../open-sse/config/providerRegistry.ts";
 import { supportsXHighEffort } from "../../open-sse/config/providerModels.ts";
 import { sanitizeReasoningEffortForProvider } from "../../open-sse/executors/base.ts";
-import {
-  getExecutor,
-  hasSpecializedExecutor,
-  MoonshotExecutor,
-} from "../../open-sse/executors/index.ts";
+import { getExecutor, hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
+import { MoonshotExecutor } from "../../open-sse/executors/moonshot.ts";
 import {
   sanitizeOpenAIResponse,
   sanitizeResponsesApiResponse,
@@ -18,6 +15,7 @@ import { normalizeMoonshotRequest } from "../../open-sse/executors/moonshot.ts";
 import {
   cacheReasoning,
   cacheReasoningByKey,
+  buildAssistantMessageCacheKey,
   deleteReasoningCacheEntry,
   requiresReasoningReplay,
 } from "../../open-sse/services/reasoningCache.ts";
@@ -62,11 +60,11 @@ test("Kimi K3 advertises its 1M context/output and native capabilities", () => {
   assert.equal(capabilities.interleavedField, "reasoning_content");
 });
 
-test("Moonshot ids use the specialized request normalizer", () => {
+test("Moonshot ids use the specialized request normalizer", async () => {
   assert.equal(hasSpecializedExecutor("moonshot"), true);
   assert.equal(hasSpecializedExecutor("kimi"), true);
-  assert.ok(getExecutor("moonshot") instanceof MoonshotExecutor);
-  assert.ok(getExecutor("kimi") instanceof MoonshotExecutor);
+  assert.ok((await getExecutor("moonshot")) instanceof MoonshotExecutor);
+  assert.ok((await getExecutor("kimi")) instanceof MoonshotExecutor);
 });
 
 test("Kimi K3 uses max reasoning, fixed sampling, and max_completion_tokens", () => {
@@ -201,7 +199,7 @@ test("Responses history preserves authentic reasoning for native Moonshot K3", (
           },
           {
             type: "reasoning",
-            summary: [{ type: "summary_text", text: "I should search first." }],
+            content: [{ type: "reasoning_text", text: "I should search first." }],
           },
           {
             type: "function_call",
@@ -263,8 +261,16 @@ test("video_url is preserved only for Moonshot's OpenAI-compatible extension", (
 });
 
 test("Moonshot keeps empty partial assistant prefixes without replaying reasoning", () => {
-  const requestId = "moonshot-partial-prefix";
-  const cacheKey = `request:${requestId}:message:0`;
+  const scope = "api-key:test\x1fpartial-prefix";
+  const messages = [
+    {
+      role: "assistant",
+      content: "",
+      name: "Kal'tsit",
+      partial: true,
+    },
+  ];
+  const cacheKey = buildAssistantMessageCacheKey(scope, messages, 0);
   cacheReasoningByKey(cacheKey, "moonshot", "kimi-k3", "unrelated prior reasoning");
 
   try {
@@ -272,20 +278,12 @@ test("Moonshot keeps empty partial assistant prefixes without replaying reasonin
       "openai",
       "openai",
       "kimi-k3",
-      {
-        _reasoningCacheRequestId: requestId,
-        messages: [
-          {
-            role: "assistant",
-            content: "",
-            name: "Kal'tsit",
-            partial: true,
-          },
-        ],
-      },
+      { messages },
       false,
       null,
-      "moonshot"
+      "moonshot",
+      null,
+      { reasoningCacheScope: scope }
     ) as { messages: Array<Record<string, unknown>> };
 
     assert.equal(output.messages.length, 1);

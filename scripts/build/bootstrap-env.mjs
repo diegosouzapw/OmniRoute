@@ -19,7 +19,7 @@
  */
 
 import { randomBytes, createDecipheriv, scryptSync, createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
@@ -67,6 +67,11 @@ function isNativeSqliteLoadError(error) {
   const message = error instanceof Error ? error.message : String(error);
   const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
 
+  // Deliberately narrower than src/lib/db/sqliteLoadError.ts. There, a
+  // non-callable export means "fall back to another driver". Here, the only
+  // consumer treats a match as "no encrypted credentials exist", which lets
+  // STORAGE_ENCRYPTION_KEY be regenerated over a database that still holds
+  // enc:v1: rows. A generic TypeError must stay loud on this path.
   return (
     message.includes("Module did not self-register") ||
     message.includes("NODE_MODULE_VERSION") ||
@@ -78,9 +83,40 @@ function isNativeSqliteLoadError(error) {
   );
 }
 
+function isLikelyBrokenNativeBinding(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("is not a function") || message.includes("is not a constructor");
+}
+
 function hasEncryptedCredentials(dataDir) {
   const dbPath = join(dataDir, "storage.sqlite");
   if (!existsSync(dbPath)) return false;
+
+  if (process.versions.bun) {
+    try {
+      const { Database } = require("bun:sqlite");
+      const db = new Database(dbPath, { readonly: true, create: false });
+      try {
+        const row = db
+          .query(
+            `SELECT 1
+               FROM provider_connections
+              WHERE access_token LIKE 'enc:v1:%'
+                 OR refresh_token LIKE 'enc:v1:%'
+                 OR api_key LIKE 'enc:v1:%'
+                 OR id_token LIKE 'enc:v1:%'
+              LIMIT 1`
+          )
+          .get();
+        return !!row;
+      } finally {
+        db.close();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}`);
+    }
+  }
 
   try {
     const Database = require("better-sqlite3");
@@ -107,7 +143,10 @@ function hasEncryptedCredentials(dataDir) {
     }
 
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}`);
+    const hint = isLikelyBrokenNativeBinding(error)
+      ? " The better-sqlite3 native binding loaded but did not expose a usable constructor; try `npm rebuild better-sqlite3`."
+      : "";
+    throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}${hint}`);
   }
 }
 
@@ -144,7 +183,42 @@ function writeEnvFile(filePath, env) {
     ...Object.entries(env).map(([k, v]) => `${k}=${v}`),
     "",
   ];
-  writeFileSync(filePath, lines.join("\n"), "utf8");
+  writeFileSync(filePath, lines.join("\n"), { encoding: "utf8", mode: 0o600 });
+  // `mode` only applies when the file is created; an existing 0644 file keeps its bits.
+  chmodQuietly(filePath, 0o600);
+}
+
+// ── Private modes for the secrets (GHSA-mh4f-3xj9-4gc4) ───────────────────────
+// server.env holds JWT_SECRET, STORAGE_ENCRYPTION_KEY and API_KEY_SECRET. Without an
+// explicit mode the umask decides (0644 / 0755 under the usual 022), which leaves them
+// readable by other local accounts. Same contract as bin/cli/privateDataDir.mjs
+// (GHSA-2pg2-xm9r-8544). chmod is best-effort: a no-op on Windows, and a DATA_DIR owned
+// by someone else (a bind mount) must not stop the server from starting.
+function chmodQuietly(path, fileMode) {
+  try {
+    chmodSync(path, fileMode);
+  } catch {
+    /* best-effort — see above */
+  }
+}
+
+function ensurePrivateDataDir(dataDir) {
+  if (existsSync(dataDir)) return;
+  mkdirSync(dataDir, { recursive: true, mode: 0o700 });
+  chmodQuietly(dataDir, 0o700);
+}
+
+/** Repair an install an earlier version left world-readable. Never throws. */
+function tightenServerEnv(dataDir, serverEnvPath) {
+  try {
+    if (existsSync(dataDir)) {
+      const current = statSync(dataDir).mode & 0o777;
+      if (current & 0o007) chmodQuietly(dataDir, current & ~0o007);
+    }
+    if (existsSync(serverEnvPath)) chmodQuietly(serverEnvPath, 0o600);
+  } catch {
+    /* best-effort — see above */
+  }
 }
 
 // ── Main bootstrap function ──────────────────────────────────────────────────
@@ -161,6 +235,7 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   const serverEnvPath = join(dataDir, "server.env");
 
   // ── Layer 1: Load persisted server.env ────────────────────────────────────
+  tightenServerEnv(dataDir, serverEnvPath);
   let persisted = parseEnvFile(serverEnvPath);
 
   // ── Layer 2: Load the same preferred .env that the CLI wrapper uses ───────
@@ -223,7 +298,7 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   // ── Persist new secrets ────────────────────────────────────────────────────
   if (needsPersist) {
     try {
-      mkdirSync(dataDir, { recursive: true });
+      ensurePrivateDataDir(dataDir);
       // Only persist keys that we auto-generated (not .env or process.env vals)
       writeEnvFile(serverEnvPath, persisted);
       log(`📁 Secrets persisted to: ${serverEnvPath}`);

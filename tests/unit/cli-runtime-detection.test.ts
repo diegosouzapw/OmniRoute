@@ -9,7 +9,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { getCliRuntimeStatus, getKnownToolPaths, CLI_TOOL_IDS } =
+const { getCliRuntimeStatus, getKnownToolPaths, normalizeCliToolId, CLI_TOOL_IDS } =
   await import("../../src/shared/services/cliRuntime.ts");
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -81,6 +81,16 @@ describe("CLI_TOOL_IDS", () => {
   });
 });
 
+describe("CLI tool id compatibility aliases", () => {
+  it("normalizes legacy binary names without creating duplicate ids", () => {
+    assert.equal(normalizeCliToolId("kilocode"), "kilo");
+    assert.equal(normalizeCliToolId("kilo-code"), "kilo");
+    assert.equal(normalizeCliToolId("openai-codex"), "codex");
+    assert.equal(normalizeCliToolId("cc"), "claude");
+    assert.equal(normalizeCliToolId("unknown-tool"), "unknown-tool");
+  });
+});
+
 // ─── Size Threshold (30 bytes) ────────────────────────────────
 
 describe("Size threshold — checkKnownPath", () => {
@@ -91,7 +101,7 @@ describe("Size threshold — checkKnownPath", () => {
   });
 
   after(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("should detect files >= 30 bytes via env var", async () => {
@@ -154,7 +164,7 @@ describe("Healthcheck — checkRunnable", () => {
   });
 
   after(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("should report runnable=true for a script that outputs version", async () => {
@@ -261,6 +271,15 @@ describe("Continue CLI detection", () => {
     );
   });
 });
+describe("Oh My Pi (omp) CLI detection", () => {
+  it("should enumerate omp in known installation paths", () => {
+    const knownPaths = getKnownToolPaths("omp");
+    assert.ok(
+      knownPaths.some((knownPath) => /^omp(?:\.exe|\.cmd)?$/i.test(path.basename(knownPath))),
+      "omp detection should search for the omp executable"
+    );
+  });
+});
 
 // Note: windsurf was removed from CLI_TOOLS in plan 14 D17 (MITM backlog plan 11).
 // cliRuntime.ts may still have windsurf for binary detection (separate catalog).
@@ -321,5 +340,39 @@ describe("resolveOpencodeConfigPath — cross-platform", () => {
       "C:\\Users\\dev"
     );
     assert.equal(result, path.join("D:\\xdg", "opencode", "opencode.json"));
+  });
+
+  it("selects an existing opencode.jsonc instead of inventing opencode.json (#10227)", () => {
+    const xdgRoot = createTempDir();
+    const configDir = path.join(xdgRoot, "opencode");
+    const jsoncPath = path.join(configDir, "opencode.jsonc");
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(jsoncPath, "{\n  // native OpenCode config\n}\n");
+
+    const result = resolveOpencodeConfigPathFn(
+      process.platform,
+      { XDG_CONFIG_HOME: xdgRoot },
+      os.homedir()
+    );
+
+    assert.equal(result, jsoncPath);
+  });
+
+  it("prefers opencode.jsonc when both native filenames exist (#10227)", () => {
+    const xdgRoot = createTempDir();
+    const configDir = path.join(xdgRoot, "opencode");
+    const jsonPath = path.join(configDir, "opencode.json");
+    const jsoncPath = path.join(configDir, "opencode.jsonc");
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(jsonPath, "{}\n");
+    fs.writeFileSync(jsoncPath, "{}\n");
+
+    const result = resolveOpencodeConfigPathFn(
+      process.platform,
+      { XDG_CONFIG_HOME: xdgRoot },
+      os.homedir()
+    );
+
+    assert.equal(result, jsoncPath);
   });
 });

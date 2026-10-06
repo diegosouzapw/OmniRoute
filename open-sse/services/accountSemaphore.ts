@@ -1,20 +1,48 @@
 /**
- * Account Semaphore
+ * Hierarchical in-memory concurrency admission.
  *
- * In-memory provider/account concurrency limiter keyed by provider and account.
- * Requests beyond the configured concurrency cap wait in a FIFO queue until a slot opens,
- * the gate is unblocked, or the queue timeout expires.
+ * `acquire()` preserves the account-semaphore API. `acquireMany()` admits one
+ * request only when every applicable global/provider/account gate has room.
  */
-
 export interface AccountSemaphoreKeyParts {
   provider: string;
   accountKey: string;
 }
 
-interface QueuedAcquire {
+export interface AcquireAccountSemaphoreOptions {
+  maxConcurrency?: number | null;
+  timeoutMs?: number;
+  signal?: AbortSignal | null;
+  /**
+   * Max queued waiters before SEMAPHORE_QUEUE_FULL. `0` (and any non-positive
+   * value) means NO queue limit — it is what chatCore forwards from
+   * `resilienceSettings.requestQueue.maxQueueDepth`, whose documented default is
+   * `0 = disabled` (#6593). To reject instead of waiting, use `failFast`.
+   */
+  maxQueueSize?: number;
+  /** Reject with SEMAPHORE_QUEUE_FULL whenever the slot cannot be taken right now. */
+  failFast?: boolean;
+}
+
+export interface SemaphoreRequirement {
+  key: string;
+  maxConcurrency?: number | null;
+}
+
+export type AcquireManyOptions = Omit<AcquireAccountSemaphoreOptions, "maxConcurrency">;
+
+interface AcquireRequest {
+  keys: string[];
   resolve: (release: () => void) => void;
   reject: (error: Error) => void;
-  timer: ReturnType<typeof setTimeout>;
+  timer: ReturnType<typeof setTimeout> | null;
+  signal: AbortSignal | null;
+  abortListener: (() => void) | null;
+  settled: boolean;
+}
+
+interface QueuedAcquire {
+  request: AcquireRequest;
 }
 
 interface AccountGate {
@@ -23,13 +51,6 @@ interface AccountGate {
   queue: QueuedAcquire[];
   blockedUntil: number | null;
   cleanupTimer: ReturnType<typeof setTimeout> | null;
-}
-
-export interface AcquireAccountSemaphoreOptions {
-  maxConcurrency?: number | null;
-  timeoutMs?: number;
-  signal?: AbortSignal | null;
-  maxQueueSize?: number;
 }
 
 export interface AccountSemaphoreStatsEntry {
@@ -41,12 +62,9 @@ export interface AccountSemaphoreStatsEntry {
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_QUEUE_SIZE = 20;
-
 const gates = new Map<string, AccountGate>();
+const queuedRequests = new Set<AcquireRequest>();
 
-/**
- * Build the canonical account semaphore key.
- */
 export function buildAccountSemaphoreKey({
   provider,
   accountKey,
@@ -55,25 +73,23 @@ export function buildAccountSemaphoreKey({
 }
 
 function isBypassed(maxConcurrency?: number | null): boolean {
-  return maxConcurrency == null || maxConcurrency <= 0;
+  return maxConcurrency == null || !Number.isFinite(maxConcurrency) || maxConcurrency <= 0;
 }
 
 function createNoopReleaseFn(): () => void {
   let released = false;
-
   return () => {
     if (released) return;
     released = true;
   };
 }
 
-function ensureGate(semaphoreKey: string, maxConcurrency: number): AccountGate {
-  const existing = gates.get(semaphoreKey);
+function ensureGate(key: string, maxConcurrency: number): AccountGate {
+  const existing = gates.get(key);
   if (existing) {
     existing.maxConcurrency = maxConcurrency;
     return existing;
   }
-
   const created: AccountGate = {
     running: 0,
     maxConcurrency,
@@ -81,7 +97,7 @@ function ensureGate(semaphoreKey: string, maxConcurrency: number): AccountGate {
     blockedUntil: null,
     cleanupTimer: null,
   };
-  gates.set(semaphoreKey, created);
+  gates.set(key, created);
   return created;
 }
 
@@ -100,238 +116,241 @@ function clearCleanupTimer(gate: AccountGate): void {
   gate.cleanupTimer = null;
 }
 
-function cleanupGateIfIdle(semaphoreKey: string): void {
-  const gate = gates.get(semaphoreKey);
-  if (!gate) return;
-  if (gate.running > 0 || gate.queue.length > 0 || isBlocked(gate)) return;
+function cleanupGateIfIdle(key: string): void {
+  const gate = gates.get(key);
+  if (!gate || gate.running > 0 || gate.queue.length > 0 || isBlocked(gate)) return;
   clearCleanupTimer(gate);
-  gates.delete(semaphoreKey);
+  gates.delete(key);
 }
 
-function scheduleCleanup(semaphoreKey: string): void {
-  const gate = gates.get(semaphoreKey);
+function scheduleCleanup(key: string): void {
+  const gate = gates.get(key);
   if (!gate) return;
   clearCleanupTimer(gate);
-
   gate.cleanupTimer = setTimeout(() => {
     gate.cleanupTimer = null;
-    cleanupGateIfIdle(semaphoreKey);
+    cleanupGateIfIdle(key);
   }, 0);
-
   gate.cleanupTimer.unref?.();
 }
 
-function drainQueue(semaphoreKey: string): void {
-  const gate = gates.get(semaphoreKey);
-  if (!gate) return;
-
-  while (gate.queue.length > 0 && gate.running < gate.maxConcurrency && !isBlocked(gate)) {
-    const next = gate.queue.shift();
-    if (!next) break;
-    clearTimeout(next.timer);
-    gate.running++;
-    next.resolve(createReleaseFn(semaphoreKey));
-  }
-
-  if (gate.running === 0 && gate.queue.length === 0) {
-    scheduleCleanup(semaphoreKey);
-  }
-}
-
-function createReleaseFn(semaphoreKey: string): () => void {
-  let released = false;
-
-  return () => {
-    if (released) return;
-    released = true;
-
-    const gate = gates.get(semaphoreKey);
-    if (!gate) return;
-    if (gate.running > 0) {
-      gate.running--;
-    }
-
-    if (gate.queue.length > 0) {
-      drainQueue(semaphoreKey);
-      return;
-    }
-
-    scheduleCleanup(semaphoreKey);
-  };
-}
-
-function createSemaphoreTimeoutError(
-  semaphoreKey: string,
-  timeoutMs: number
-): Error & { code: string } {
-  const error = new Error(`Semaphore timeout after ${timeoutMs}ms for ${semaphoreKey}`) as Error & {
-    code: string;
-  };
-  error.code = "SEMAPHORE_TIMEOUT";
+function makeAbortError(signal: AbortSignal): Error {
+  if (signal.reason instanceof Error) return signal.reason;
+  const error = new Error(
+    typeof signal.reason === "string" ? signal.reason : "The operation was aborted"
+  );
+  error.name = "AbortError";
   return error;
 }
 
-function makeAbortError(signal: AbortSignal): Error {
-  const reason = signal.reason;
-  if (reason instanceof Error) return reason;
-  const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
-  err.name = "AbortError";
-  return err;
+function createSemaphoreError(code: string, message: string): Error & { code: string } {
+  const error = new Error(message) as Error & { code: string };
+  error.code = code;
+  return error;
 }
 
-/**
- * Acquire a slot for a provider/model/account tuple.
- * Returns an idempotent release function that is safe to call in finally blocks.
- */
+function removeRequest(request: AcquireRequest): void {
+  queuedRequests.delete(request);
+  if (request.timer) clearTimeout(request.timer);
+  if (request.abortListener && request.signal) {
+    request.signal.removeEventListener("abort", request.abortListener);
+  }
+  for (const key of request.keys) {
+    const gate = gates.get(key);
+    if (!gate) continue;
+    const index = gate.queue.findIndex((queued) => queued.request === request);
+    if (index >= 0) gate.queue.splice(index, 1);
+    if (gate.running === 0 && gate.queue.length === 0) scheduleCleanup(key);
+  }
+}
+
+function canAcquire(request: AcquireRequest): boolean {
+  return request.keys.every((key) => {
+    const gate = gates.get(key);
+    return (
+      gate != null &&
+      !isBlocked(gate) &&
+      gate.running < gate.maxConcurrency &&
+      gate.queue[0]?.request === request
+    );
+  });
+}
+
+function createCompositeReleaseFn(keys: string[]): () => void {
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    for (const key of keys) {
+      const gate = gates.get(key);
+      if (gate && gate.running > 0) gate.running--;
+    }
+    drainQueues();
+    for (const key of keys) {
+      const gate = gates.get(key);
+      if (gate && gate.running === 0 && gate.queue.length === 0) scheduleCleanup(key);
+    }
+  };
+}
+
+function drainQueues(): void {
+  let progressed = true;
+  while (progressed) {
+    progressed = false;
+    for (const request of queuedRequests) {
+      if (request.settled || !canAcquire(request)) continue;
+      request.settled = true;
+      removeRequest(request);
+      for (const key of request.keys) gates.get(key)!.running++;
+      request.resolve(createCompositeReleaseFn(request.keys));
+      progressed = true;
+      break;
+    }
+  }
+}
+
 export function acquire(
-  semaphoreKey: string,
+  key: string,
   {
     maxConcurrency = null,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     signal = null,
     maxQueueSize = DEFAULT_MAX_QUEUE_SIZE,
+    failFast = false,
   }: AcquireAccountSemaphoreOptions = {}
 ): Promise<() => void> {
-  if (isBypassed(maxConcurrency)) {
-    return Promise.resolve(createNoopReleaseFn());
+  return acquireMany([{ key, maxConcurrency }], { timeoutMs, signal, maxQueueSize, failFast });
+}
+
+/**
+ * Admission policy for a request that cannot take its slots right now.
+ * `failFast` (#12911, Codex WS leases): never wait. `maxQueueSize > 0`: bounded
+ * queue. `maxQueueSize <= 0`: unbounded — the #6593 "0 = disabled" contract that
+ * chatCore relies on under default resilience settings.
+ */
+function findQueueRejection(keys: string[], maxQueueSize: number, failFast: boolean): Error | null {
+  if (failFast) {
+    return createSemaphoreError(
+      "SEMAPHORE_QUEUE_FULL",
+      `Semaphore busy (fail-fast) for ${keys[0]}`
+    );
+  }
+  if (maxQueueSize <= 0) return null;
+  for (const key of keys) {
+    if (gates.get(key)!.queue.length >= maxQueueSize) {
+      return createSemaphoreError(
+        "SEMAPHORE_QUEUE_FULL",
+        `Semaphore queue full (${maxQueueSize}) for ${key}`
+      );
+    }
+  }
+  return null;
+}
+
+/**
+ * Acquire all enabled requirements as one FIFO reservation.
+ *
+ * Waiting never increments any gate, preventing a saturated child gate from
+ * holding capacity in a parent gate.
+ */
+export function acquireMany(
+  requirements: SemaphoreRequirement[],
+  {
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    signal = null,
+    maxQueueSize = DEFAULT_MAX_QUEUE_SIZE,
+    failFast = false,
+  }: AcquireManyOptions = {}
+): Promise<() => void> {
+  const enabled = new Map<string, number>();
+  for (const requirement of requirements) {
+    if (isBypassed(requirement.maxConcurrency)) continue;
+    const limit = Math.trunc(requirement.maxConcurrency as number);
+    enabled.set(requirement.key, Math.min(enabled.get(requirement.key) ?? limit, limit));
+  }
+  if (enabled.size === 0) return Promise.resolve(createNoopReleaseFn());
+  if (signal?.aborted) return Promise.reject(makeAbortError(signal));
+
+  const keys = [...enabled.keys()].sort();
+  for (const key of keys) {
+    const gate = ensureGate(key, enabled.get(key)!);
+    clearCleanupTimer(gate);
   }
 
-  if (signal?.aborted) {
-    return Promise.reject(makeAbortError(signal));
+  const canAcquireImmediately = keys.every((key) => {
+    const gate = gates.get(key)!;
+    return gate.queue.length === 0 && gate.running < gate.maxConcurrency && !isBlocked(gate);
+  });
+  if (canAcquireImmediately) {
+    for (const key of keys) gates.get(key)!.running++;
+    return Promise.resolve(createCompositeReleaseFn(keys));
   }
 
-  // isBypassed() above already excluded null/<=0 — ensureGate requires a plain
-  // number, but a boolean-returning helper isn't a type predicate TS can narrow on.
-  const gate = ensureGate(semaphoreKey, maxConcurrency as number);
-  clearCleanupTimer(gate);
-
-  if (gate.running < gate.maxConcurrency && !isBlocked(gate)) {
-    gate.running++;
-    return Promise.resolve(createReleaseFn(semaphoreKey));
-  }
-
-  if (gate.queue.length >= maxQueueSize) {
-    const err = new Error(`Semaphore queue full (${maxQueueSize}) for ${semaphoreKey}`) as Error & {
-      code: string;
-    };
-    err.code = "SEMAPHORE_QUEUE_FULL";
-    return Promise.reject(err);
-  }
+  const rejection = findQueueRejection(keys, maxQueueSize, failFast);
+  if (rejection) return Promise.reject(rejection);
 
   return new Promise((resolve, reject) => {
-    let abortListener: (() => void) | null = null;
-
-    const cleanup = () => {
-      if (abortListener && signal) {
-        signal.removeEventListener("abort", abortListener);
-      }
+    const request: AcquireRequest = {
+      keys,
+      resolve,
+      reject,
+      timer: null,
+      signal,
+      abortListener: null,
+      settled: false,
     };
-
-    const timer = setTimeout(() => {
-      cleanup();
-      const nextGate = gates.get(semaphoreKey);
-      if (!nextGate) {
-        reject(createSemaphoreTimeoutError(semaphoreKey, timeoutMs));
-        return;
-      }
-
-      const queueIndex = nextGate.queue.findIndex((item) => item.timer === timer);
-      if (queueIndex !== -1) {
-        nextGate.queue.splice(queueIndex, 1);
-      }
-
-      if (nextGate.running === 0 && nextGate.queue.length === 0) {
-        scheduleCleanup(semaphoreKey);
-      }
-
-      reject(createSemaphoreTimeoutError(semaphoreKey, timeoutMs));
+    request.timer = setTimeout(() => {
+      if (request.settled) return;
+      request.settled = true;
+      removeRequest(request);
+      reject(
+        createSemaphoreError(
+          "SEMAPHORE_TIMEOUT",
+          `Semaphore timeout after ${timeoutMs}ms for ${keys.join(",")}`
+        )
+      );
+      drainQueues();
     }, timeoutMs);
-
-    timer.unref?.();
-
-    const queueItem: QueuedAcquire = {
-      resolve: (release) => {
-        cleanup();
-        resolve(release);
-      },
-      reject: (error) => {
-        cleanup();
-        reject(error);
-      },
-      timer,
-    };
-
-    gate.queue.push(queueItem);
-
+    request.timer.unref?.();
     if (signal) {
-      abortListener = () => {
-        cleanup();
-        clearTimeout(timer);
-
-        const nextGate = gates.get(semaphoreKey);
-        if (!nextGate) {
-          reject(makeAbortError(signal));
-          return;
-        }
-
-        const queueIndex = nextGate.queue.findIndex((item) => item.timer === timer);
-        if (queueIndex !== -1) {
-          nextGate.queue.splice(queueIndex, 1);
-        }
-
-        if (nextGate.running === 0 && nextGate.queue.length === 0) {
-          scheduleCleanup(semaphoreKey);
-        }
-
+      request.abortListener = () => {
+        if (request.settled) return;
+        request.settled = true;
+        removeRequest(request);
         reject(makeAbortError(signal));
+        drainQueues();
       };
-      if (signal.aborted) {
-        abortListener();
-      } else {
-        signal.addEventListener("abort", abortListener);
-      }
+      signal.addEventListener("abort", request.abortListener, { once: true });
     }
+    queuedRequests.add(request);
+    for (const key of keys) gates.get(key)!.queue.push({ request });
+    drainQueues();
   });
 }
 
-/**
- * Temporarily block new acquisitions for a key while allowing in-flight requests to finish.
- */
-export function markBlocked(semaphoreKey: string, cooldownMs: number): void {
-  const safeCooldownMs = Number.isFinite(cooldownMs) && cooldownMs > 0 ? cooldownMs : 0;
-  if (safeCooldownMs <= 0) {
-    const gate = gates.get(semaphoreKey);
-    if (!gate) return;
-    gate.blockedUntil = null;
-    drainQueue(semaphoreKey);
-    return;
-  }
-
-  const gate = gates.get(semaphoreKey) ?? ensureGate(semaphoreKey, 1);
+export function markBlocked(key: string, until: Date | string | number): void {
+  const untilMs =
+    until instanceof Date
+      ? until.getTime()
+      : typeof until === "number"
+        ? Date.now() + Math.max(0, until)
+        : new Date(until).getTime();
+  if (!Number.isFinite(untilMs) || untilMs <= Date.now()) return;
+  const gate = ensureGate(key, gates.get(key)?.maxConcurrency ?? 1);
   clearCleanupTimer(gate);
-  gate.blockedUntil = Date.now() + safeCooldownMs;
-
-  const timer = setTimeout(() => {
-    const nextGate = gates.get(semaphoreKey);
-    if (!nextGate) return;
-    if (nextGate.blockedUntil && Date.now() >= nextGate.blockedUntil) {
-      nextGate.blockedUntil = null;
-      drainQueue(semaphoreKey);
-      if (nextGate.running === 0 && nextGate.queue.length === 0) {
-        scheduleCleanup(semaphoreKey);
-      }
-    }
-  }, safeCooldownMs + 50);
-
-  timer.unref?.();
+  gate.blockedUntil = untilMs;
 }
 
-/**
- * Return the current in-memory semaphore snapshot.
- */
+export function unblock(key: string): void {
+  const gate = gates.get(key);
+  if (!gate) return;
+  gate.blockedUntil = null;
+  drainQueues();
+  cleanupGateIfIdle(key);
+}
+
 export function getStats(): Record<string, AccountSemaphoreStatsEntry> {
   const stats: Record<string, AccountSemaphoreStatsEntry> = {};
-
   for (const [key, gate] of gates) {
     stats[key] = {
       running: gate.running,
@@ -340,48 +359,50 @@ export function getStats(): Record<string, AccountSemaphoreStatsEntry> {
       blockedUntil: gate.blockedUntil ? new Date(gate.blockedUntil).toISOString() : null,
     };
   }
-
   return stats;
 }
 
-/**
- * Check if an account semaphore key is currently at or over its max concurrency limit.
- * Returns true if running >= maxConcurrency or blocked.
- */
 export function isAccountSemaphoreFull(
   provider: string,
   accountKey: string,
   maxConcurrency?: number | null
 ): boolean {
   if (isBypassed(maxConcurrency)) return false;
-  const key = buildAccountSemaphoreKey({ provider, accountKey });
-  const gate = gates.get(key);
+  const gate = gates.get(buildAccountSemaphoreKey({ provider, accountKey }));
   if (!gate) return false;
   const effectiveCap = maxConcurrency ?? gate.maxConcurrency;
-  if (isBypassed(effectiveCap)) return false;
-  return gate.running >= effectiveCap || isBlocked(gate);
+  return !isBypassed(effectiveCap) && (gate.running >= effectiveCap || isBlocked(gate));
 }
 
-/**
- * Reset a single key and reject queued waiters.
- */
-export function reset(semaphoreKey: string): void {
-  const gate = gates.get(semaphoreKey);
+export function reset(key: string): void {
+  const gate = gates.get(key);
   if (!gate) return;
-
   clearCleanupTimer(gate);
-  for (const entry of gate.queue) {
-    clearTimeout(entry.timer);
-    entry.reject(new Error("Semaphore reset"));
+  const error = createSemaphoreError("SEMAPHORE_RESET", `Semaphore reset for ${key}`);
+  const rejections: AcquireRequest[] = [];
+  for (const queued of [...gate.queue]) {
+    const request = queued.request;
+    if (request.settled) continue;
+    request.settled = true;
+    removeRequest(request);
+    rejections.push(request);
   }
-  gates.delete(semaphoreKey);
+  gates.delete(key);
+  for (const request of rejections) request.reject(error);
+  drainQueues();
 }
 
-/**
- * Reset all keys and reject queued waiters.
- */
 export function resetAll(): void {
-  for (const key of gates.keys()) {
-    reset(key);
+  const error = createSemaphoreError("SEMAPHORE_RESET", "Semaphore reset");
+  const rejections: AcquireRequest[] = [];
+  for (const request of [...queuedRequests]) {
+    if (request.settled) continue;
+    request.settled = true;
+    removeRequest(request);
+    rejections.push(request);
   }
+  for (const gate of gates.values()) clearCleanupTimer(gate);
+  gates.clear();
+  queuedRequests.clear();
+  for (const request of rejections) request.reject(error);
 }

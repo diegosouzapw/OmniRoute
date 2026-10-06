@@ -15,7 +15,7 @@ const auth = await import("../../src/sse/services/auth.ts");
 const fallback = await import("../../open-sse/services/accountFallback.ts");
 
 const DEAD_MODEL = "deepseek-ai/deepseek-v4-pro";
-const HEALTHY_MODEL = "z-ai/glm-5.2";
+const HEALTHY_MODEL = "nvidia/nemotron-3.5-lightning-30b-a3b";
 
 const GONE_BODY = JSON.stringify({
   type: "about:blank",
@@ -28,7 +28,7 @@ const GONE_BODY = JSON.stringify({
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -50,7 +50,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("NVIDIA 410 Gone stays model-scoped and leaves the connection usable", async () => {

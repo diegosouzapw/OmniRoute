@@ -76,7 +76,7 @@ export async function POST(request: Request): Promise<Response> {
   const chatBody = buildImproveChatBody(body);
 
   // 5. Call /v1/chat/completions on ourselves (D8)
-  const port = process.env.PORT ?? "20128";
+  const port = process.env.API_PORT ?? process.env.PORT ?? "20128";
   const baseUrl = process.env.OMNIROUTE_BASE_URL ?? `http://127.0.0.1:${port}`;
   const upstreamUrl = `${baseUrl}/v1/chat/completions`;
 

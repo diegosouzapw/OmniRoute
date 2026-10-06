@@ -59,4 +59,4 @@ test("platformBinaryLabel matches process.platform", () => {
   assert.equal(platformBinaryLabel(), expected);
 });
 
-test.after(() => rmSync(dir, { recursive: true, force: true }));
+test.after(() => rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));

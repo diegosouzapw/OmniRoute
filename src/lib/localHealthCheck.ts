@@ -11,7 +11,8 @@
  * Uses Promise.allSettled so one slow/down node doesn't block others.
  */
 
-import { getCachedProviderNodes } from "@/lib/localDb";
+import { getCachedProviderNodes } from "@/lib/db/readCache";
+import { isLoopbackNodeHost } from "@/shared/network/loopbackNodeHost";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 // ── Types ────────────────────────────────────────────────────────────────
@@ -37,7 +38,6 @@ const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
 }
-
 
 // ── State (globalThis survives HMR re-evaluation) ───────────────────────
 
@@ -82,23 +82,8 @@ function isLocalHealthCheckDisabled(): boolean {
   );
 }
 
-function isLocalhostUrl(baseUrl: string): boolean {
-  try {
-    const u = new URL(baseUrl);
-    // Block credentials in URL to prevent SSRF via user@host (e.g., http://localhost@evil.com)
-    if (u.username || u.password) return false;
-    // Note: URL.hostname returns "[::1]" WITH brackets for IPv6 — both forms checked.
-    // Verified: node -e "new URL('http://[::1]:8080').hostname" → "[::1]"
-    // Strictly matching 172.16.0.0/12 (Docker/local) and explicitly blocking ::1 per SSRF hardening
-    return (
-      u.hostname === "localhost" ||
-      u.hostname === "127.0.0.1" ||
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(u.hostname)
-    );
-  } catch {
-    return false;
-  }
-}
+/** Loopback/private-range hosts — shared definition (see `@/shared/network/loopbackNodeHost`). */
+const isLocalhostUrl = isLoopbackNodeHost;
 
 function getNextInterval(failures: number): number {
   return BACKOFF_SCHEDULE[Math.min(failures, BACKOFF_SCHEDULE.length - 1)];

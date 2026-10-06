@@ -12,7 +12,7 @@
  *   - Provider-specific rules: "openai/gpt-4"
  */
 
-import { checkKeyModelAccess, getKeyGroupsForApiKey } from "@/lib/localDb";
+import { checkKeyModelAccess, getKeyGroupsForApiKey } from "@/lib/db/apiKeyGroups";
 
 export interface KeyGroupAuthResult {
   /** Whether the request is authorized */

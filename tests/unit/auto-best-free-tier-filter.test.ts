@@ -11,7 +11,7 @@
  * `chat.ts` routes through `resolveAutoRoutingState` → `createVirtualAutoCombo`
  * (autoRouting.ts), NOT through `createBuiltinAutoCombo`. So the chat path
  * skipped the tier filter entirely and `auto/best-free` behaved as plain
- * `auto/cheap`, allowing paid models (e.g. antigravity/gemini-3.6-flash-high)
+ * `auto/cheap`, allowing paid models (e.g. antigravity/gemini-3.7-flash-high)
  * to be selected from the full pool.
  *
  * classifyAutoModel() is module-private, so this exercises it through the public

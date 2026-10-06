@@ -1,9 +1,8 @@
 /**
  * Combo context-length computation.
  *
- * Computes the effective context_window for a combo using the same resolution
- * chain as the catalog's `getComboTargetCatalogMetadata`:
- *   synced → registry → spec → getTokenLimit
+ * Computes the effective context_window for a combo from canonical model
+ * metadata, which already applies persisted overrides and source precedence.
  *
  * Only models that are registered in at least one data source (provider registry,
  * static specs, or synced capabilities) contribute to the result — matching the
@@ -12,10 +11,7 @@
 
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
 import { getCanonicalModelMetadata } from "@/lib/modelMetadataRegistry";
-import { getSyncedCapability } from "@/lib/modelsDevSync";
-import { getModelSpec } from "@/shared/constants/modelSpecs";
-import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
-import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
+import { getSourcedTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { buildAliasMaps, getComboTargetModelId } from "@/app/api/v1/models/catalogProviderMaps";
 
 /* ─── helpers ───────────────────────────────────────────────── */
@@ -30,17 +26,6 @@ function minKnownNumber(values: Array<number | undefined>): number | undefined {
   return known.length > 0 ? Math.min(...known) : undefined;
 }
 
-/** Look up a model in the provider-registry model list. */
-function getRegistryModel(
-  providerId: string,
-  modelId: string
-): { contextLength?: number; id?: string; name?: string } | null {
-  const alias = PROVIDER_ID_TO_ALIAS[providerId] || providerId;
-  const providerModels: Array<{ id?: string; contextLength?: number }> =
-    PROVIDER_MODELS[alias] || PROVIDER_MODELS[providerId] || [];
-  return providerModels.find((m) => m?.id === modelId) ?? null;
-}
-
 /* ─── public API ────────────────────────────────────────────── */
 
 /**
@@ -48,9 +33,9 @@ function getRegistryModel(
  *
  * Resolution order:
  * 1. Explicit `context_length` on the combo record itself.
- * 2. Minimum of member-model context windows — each member resolved via
- *    synced → registry → spec → getTokenLimit, only counting members that
- *    exist in at least one known data source (matching the catalog behavior).
+ * 2. Minimum of member-model effective context windows from canonical metadata,
+ *    only counting members that exist in at least one known data source
+ *    (matching the catalog behavior).
  *
  * Returns `undefined` when no known context window can be determined.
  */
@@ -75,8 +60,8 @@ export function computeComboContextLength(
 
   if (!Array.isArray(targets) || targets.length === 0) return undefined;
 
-  // 3. Per-target context resolution — same logic as the catalog's
-  //    `getComboTargetCatalogMetadata`.
+  // 3. Per-target context resolution from canonical metadata, matching the
+  //    catalog's `getComboTargetCatalogMetadata`.
   const contextValues: number[] = [];
   const aliasMaps = buildAliasMaps();
 
@@ -111,20 +96,7 @@ export function computeComboContextLength(
     const providerId = canonicalMeta.provider || resolvedTarget.providerId;
     const modelId = canonicalMeta.model || resolvedTarget.modelId;
 
-    // 3c. Resolve window: synced → registry → spec → getTokenLimit
-    const synced = getSyncedCapability(providerId, modelId);
-    const spec = getModelSpec(modelId);
-    const registryModel = getRegistryModel(providerId, modelId);
-
-    const syncedCtx = isPositiveFiniteNumber(synced?.limit_context)
-      ? (synced.limit_context as number)
-      : undefined;
-    const registryCtx = isPositiveFiniteNumber(registryModel?.contextLength)
-      ? registryModel.contextLength
-      : undefined;
-    const specCtx = isPositiveFiniteNumber(spec?.contextWindow) ? spec.contextWindow : undefined;
-
-    const targetCtx = syncedCtx ?? registryCtx ?? specCtx ?? getTokenLimit(providerId, modelId);
+    const targetCtx = getSourcedTokenLimit(providerId, modelId, canonicalMeta.limits.contextWindow);
 
     if (isPositiveFiniteNumber(targetCtx)) {
       contextValues.push(targetCtx);

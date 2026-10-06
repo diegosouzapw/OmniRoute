@@ -1,8 +1,11 @@
 import { trackPendingRequest } from "@/lib/usageDb";
-import { STREAM_IDLE_TIMEOUT_MS } from "../config/constants.ts";
+import { STREAM_ACTIVE_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS } from "../config/constants.ts";
 import { FORMATS } from "../translator/formats.ts";
+import { buildErrorBody } from "./error.ts";
 import { PENDING_REQUEST_CLEARED_MARKER } from "./stream.ts";
+import { createCompletedResponsesToolHandoffWatcher } from "./responsesToolHandoff.ts";
 import { createStreamContentWatcher, type StreamContentWatcher } from "./streamReadiness.ts";
+import { hasOpenReasoning } from "./emptyTurnRetry.ts";
 
 // Stream handler with disconnect detection - shared for all providers
 
@@ -34,8 +37,11 @@ type StreamControllerOptions = {
   provider?: string;
   model?: string;
   connectionId?: string | null;
+  pendingRequestId?: string | null;
   clientResponseFormat?: string | null;
   clientAbortSignal?: AbortSignal | null;
+  allowCompletedToolHandoffGrace?: boolean;
+  clientDisconnectGracePeriodMs?: number;
 };
 
 type StreamController = ReturnType<typeof createStreamController>;
@@ -150,7 +156,7 @@ function isPendingRequestClearedError(error: unknown): boolean {
  * chunk into the now-closed response stream, as a "Controller is already closed"
  * TypeError. Treating any of these as an upstream error wrongly cools down the
  * account/connection, so the stream error path uses this to skip the provider
- * failover/cooldown (the chatgpt-web / codex / antigravity executors already
+ * failover/cooldown (the Codex / Antigravity executors already
  * guard client aborts the same way).
  */
 export function isClientDisconnectError(error: unknown): boolean {
@@ -184,6 +190,10 @@ function getErrorStatusCode(error: unknown): number {
   return 502;
 }
 
+function getPublicErrorMessage(errorMsg: string, statusCode: number): string {
+  return buildErrorBody(statusCode, errorMsg).error.message;
+}
+
 function isDeadlineAbortReason(reason: unknown): reason is Error {
   return (
     reason instanceof Error &&
@@ -210,6 +220,14 @@ function hasClientTerminalSseMarker(text: string, clientResponseFormat?: string 
     );
   }
 
+  // OpenAI chat completions: some providers omit `data: [DONE]` (already
+  // matched above) and terminate with a finish_reason chunk instead. A
+  // non-null finish_reason value is that terminal signal — a bare
+  // `finish_reason: null` delta chunk must NOT count (#10443).
+  if (clientResponseFormat === FORMATS.OPENAI) {
+    return /"finish_reason"\s*:\s*"[^"]+"/.test(text);
+  }
+
   return false;
 }
 
@@ -228,13 +246,18 @@ export function createStreamController({
   provider,
   model,
   connectionId,
+  pendingRequestId = null,
   clientResponseFormat,
   clientAbortSignal,
+  allowCompletedToolHandoffGrace = false,
+  clientDisconnectGracePeriodMs = 0,
 }: StreamControllerOptions = {}) {
   const abortController = new AbortController();
   const startTime = Date.now();
   let disconnected = false;
   let clientTerminalSeen = false;
+  let completedToolHandoffSeen = false;
+  let completedToolHandoffDrain: (() => void) | null = null;
   let pendingRequestCleared = false;
   let cleanupClientAbortSignal: (() => void) | null = null;
 
@@ -260,7 +283,14 @@ export function createStreamController({
     pendingRequestCleared = true;
     if (!model && !provider && !connectionId) return;
     try {
-      trackPendingRequest(model || "", provider || "", connectionId ?? null, false);
+      trackPendingRequest(
+        model || "",
+        provider || "",
+        connectionId ?? null,
+        false,
+        undefined,
+        pendingRequestId ?? undefined
+      );
     } catch (e) {
       console.error(
         `[${getTimeString()}] [streamHandler] trackPendingRequest decrement failed — counter may drift`,
@@ -308,7 +338,16 @@ export function createStreamController({
       // fire when the client aborts mid-stream, so we must clean up here.
       clearPendingRequest();
 
-      abortController.abort(reason);
+      const deferUpstreamAbort =
+        allowCompletedToolHandoffGrace &&
+        clientDisconnectGracePeriodMs > 0 &&
+        completedToolHandoffSeen &&
+        completedToolHandoffDrain !== null;
+      if (deferUpstreamAbort) {
+        completedToolHandoffDrain?.();
+      } else {
+        abortController.abort(reason);
+      }
 
       onDisconnect?.({ reason, duration: Date.now() - startTime });
     },
@@ -325,6 +364,20 @@ export function createStreamController({
     markClientTerminalSeen: () => {
       clientTerminalSeen = true;
     },
+
+    markCompletedToolHandoffSeen: () => {
+      completedToolHandoffSeen = true;
+    },
+
+    registerCompletedToolHandoffDrain: (drain: () => void) => {
+      completedToolHandoffDrain = drain;
+    },
+
+    shouldDeferCompletedToolHandoff: () =>
+      allowCompletedToolHandoffGrace &&
+      clientDisconnectGracePeriodMs > 0 &&
+      completedToolHandoffSeen &&
+      completedToolHandoffDrain !== null,
 
     // Call on error
     handleError: (error: unknown) => {
@@ -368,7 +421,7 @@ export function createStreamController({
       }
 
       if (error instanceof Error) {
-        logStream(`error: ${error.message}`);
+        logStream(`error: ${getPublicErrorMessage(error.message, getErrorStatusCode(error))}`);
         return;
       }
       logStream("error: unknown");
@@ -379,6 +432,7 @@ export function createStreamController({
       abortController.abort();
     },
     clientResponseFormat,
+    clientDisconnectGracePeriodMs,
   };
 
   if (clientAbortSignal && typeof clientAbortSignal.addEventListener === "function") {
@@ -413,6 +467,7 @@ export function buildStreamErrorChunks(
   clientResponseFormat?: string | null
 ) {
   const statusMapping = getStreamErrorStatusMapping(statusCode);
+  const publicErrorMessage = getPublicErrorMessage(errorMsg, statusCode);
 
   if (isResponsesClientFormat(clientResponseFormat)) {
     const errorEvent = {
@@ -421,7 +476,7 @@ export function buildStreamErrorChunks(
         id: null,
         status: "failed",
         error: {
-          message: errorMsg,
+          message: publicErrorMessage,
           type: statusMapping.responses.type,
           code: statusMapping.responses.code,
         },
@@ -436,7 +491,7 @@ export function buildStreamErrorChunks(
       type: "error",
       error: {
         type: statusMapping.claude.type,
-        message: errorMsg,
+        message: publicErrorMessage,
       },
     };
 
@@ -459,13 +514,38 @@ export function buildStreamErrorChunks(
       },
     ],
     error: {
-      message: errorMsg,
+      message: publicErrorMessage,
       type: statusMapping.responses.type,
       code: statusMapping.responses.code,
     },
   };
 
   return encodeSseEvent(errorEvent, { includeDone: true });
+}
+
+/**
+ * Synthesized terminal frames for a graceful truncation (#7699): the upstream
+ * ended without a terminal marker AFTER content was already forwarded to the
+ * client. Instead of an `event: error` frame (which would discard the partial
+ * content and report a mid-response failure), emit a clean Claude completion —
+ * `message_delta` carrying `stop_reason: "max_tokens"` followed by
+ * `message_stop` — so Anthropic SDK / Claude Code treat the response as a
+ * budget-limited finish and keep everything already received.
+ */
+export function buildGracefulTruncationChunks(clientResponseFormat?: string | null): Uint8Array[] {
+  if (clientResponseFormat !== FORMATS.CLAUDE) return [];
+
+  return [
+    ...encodeSseEvent(
+      {
+        type: "message_delta",
+        delta: { stop_reason: "max_tokens", stop_sequence: null },
+        usage: { input_tokens: 0, output_tokens: 0 },
+      },
+      { event: "message_delta" }
+    ),
+    ...encodeSseEvent({ type: "message_stop" }, { event: "message_stop" }),
+  ];
 }
 
 /**
@@ -495,10 +575,13 @@ export function createNoopAbortWritable(): {
  * - **#7699, no terminal marker.** Scoped to Claude (`/v1/messages`), which is
  *   the issue's real scope: Anthropic's SSE spec permits a mid-stream
  *   `event: error`, and Claude clients treat a stream ending without
- *   `message_stop` as an error. For every other format (plain OpenAI chat
- *   completions included) a done-without-recognized-marker close is NOT
- *   necessarily a drop — many formats have no `[DONE]` equivalent — so
- *   synthesising an error there would be a false positive.
+ *   `message_stop` as an error. When content already reached the client this is
+ *   NOT a provider failure — the partial response is valid and must be kept — so
+ *   it resolves to a graceful truncation (`stop_reason: max_tokens`). For every
+ *   other format (plain OpenAI chat completions included) a
+ *   done-without-recognized-marker close is NOT necessarily a drop — many
+ *   formats have no `[DONE]` equivalent — so synthesising an error there would
+ *   be a false positive.
  *
  * - **#8649, no content at all.** The stream terminated properly and carried no
  *   model output. Unlike the marker case this is not format-dependent: a
@@ -506,37 +589,104 @@ export function createNoopAbortWritable(): {
  *   streaming twin of the non-streaming `isEmptyContentResponse` check. Only
  *   applies to bodies that actually looked like SSE, and terminal states where
  *   emptiness is legitimate (length / tool_calls / content_filter / max_tokens /
- *   tool_use) are excluded by the watcher.
+ *   tool_use) are excluded by the watcher. If the stream already carried a
+ *   substantive SSE `error` / `response.failed` / Claude `event:error`, stand
+ *   down — same spirit as Claude #3685 `lifecycle.hasError` and readiness #8972
+ *   (do not invent empty content on top of an actionable error).
  */
-function resolveSilentCloseReason(input: {
+type SilentCloseOutcome = { kind: "truncated" } | { kind: "error"; reason: string };
+
+function resolveSilentCloseOutcome(input: {
   bytesWereForwarded: boolean;
   clientTerminalSeen: boolean;
   clientResponseFormat?: string | null;
   contentWatcher: StreamContentWatcher;
-}): string | null {
+}): SilentCloseOutcome | null {
   if (!input.bytesWereForwarded) return null;
 
-  if (!input.clientTerminalSeen && input.clientResponseFormat === FORMATS.CLAUDE) {
-    return "Upstream stream ended without a terminal marker";
+  if (!input.clientTerminalSeen) {
+    if (input.clientResponseFormat === FORMATS.CLAUDE && input.contentWatcher.sawContent()) {
+      // #7699 — upstream dropped after content reached the client on a Claude
+      // stream. Keep the partial response: emit a clean max_tokens completion
+      // instead of an error frame so Anthropic SDK / Claude Code don't report
+      // a mid-response break.
+      return { kind: "truncated" };
+    }
+    // #10443: every known path that produces OpenAI chat chunks emits a
+    // terminal — the response translators (gemini/claude/kiro/cursor-to-openai)
+    // all emit a finish_reason chunk, the non-standard executors (kiro, cursor,
+    // nlpcloud, poe-web, copilot-m365-web, gitlab)
+    // enqueue `data: [DONE]` themselves, and standard OpenAI-compatible
+    // upstreams end with finish_reason + [DONE] per spec. So a close that
+    // forwarded content but no terminal marker is an upstream drop, not a
+    // legitimate end. Guard on sawContent() so the #8649 empty-content
+    // verdict below keeps its more precise shape for content-free closes.
+    if (input.clientResponseFormat === FORMATS.OPENAI && input.contentWatcher.sawContent()) {
+      return { kind: "error", reason: "Upstream stream ended without a terminal marker" };
+    }
+    // Responses-format clients (Codex CLI and other /v1/responses consumers):
+    // a healthy OpenAI Responses stream ALWAYS terminates with an explicit
+    // `response.completed` event — it is the format's only terminal marker and
+    // carries the final status/usage. Content forwarded without it is an
+    // upstream drop, the same class as #10443 for chat completions; surface a
+    // synthetic response.failed instead of a silent close so clients report
+    // the break instead of waiting on a completion event that never comes.
+    if (isResponsesClientFormat(input.clientResponseFormat) && input.contentWatcher.sawContent()) {
+      return { kind: "error", reason: "Upstream stream ended without a terminal marker" };
+    }
   }
 
   const watcher = input.contentWatcher;
+  if (watcher.sawError()) return null;
   if (watcher.sawSseFrame() && !watcher.sawContent() && !watcher.sawLegitEmptyTerminal()) {
-    return "Provider returned empty content";
+    return { kind: "error", reason: "Provider returned empty content" };
   }
 
   return null;
 }
 
-export function createDisconnectAwareStream(transformStream, streamController) {
+export function createDisconnectAwareStream(
+  transformStream,
+  streamController,
+  options: { highWaterMark?: number } = {}
+) {
   const reader = transformStream.readable.getReader();
   const writer = transformStream.writable.getWriter();
   const terminalDecoder = new TextDecoder();
   const contentDecoder = new TextDecoder();
   const contentWatcher = createStreamContentWatcher();
+  const completedToolHandoffWatcher = createCompletedResponsesToolHandoffWatcher();
+  const toolHandoffDecoder = new TextDecoder();
   let terminalTail = "";
   let clientTerminalSeen = false;
   let bytesWereForwarded = false;
+  let completedToolHandoffDrainStarted = false;
+
+  const drainCompletedToolHandoff = () => {
+    if (completedToolHandoffDrainStarted) return;
+    completedToolHandoffDrainStarted = true;
+    const gracePeriodMs = Math.max(0, Number(streamController.clientDisconnectGracePeriodMs) || 0);
+    const timeoutReason = "completed_tool_handoff_grace_expired";
+    const timeout = setTimeout(() => {
+      streamController.abort();
+      void Promise.allSettled([reader.cancel(timeoutReason), writer.abort(timeoutReason)]);
+    }, gracePeriodMs);
+
+    void (async () => {
+      try {
+        while (true) {
+          const { done } = await reader.read();
+          if (done) break;
+        }
+        streamController.handleComplete();
+      } catch (error) {
+        streamController.handleError(error);
+      } finally {
+        clearTimeout(timeout);
+      }
+    })();
+  };
+  streamController.registerCompletedToolHandoffDrain?.(drainCompletedToolHandoff);
 
   const noteClientChunk = (chunk: unknown) => {
     if (!(chunk instanceof Uint8Array)) return;
@@ -544,25 +694,46 @@ export function createDisconnectAwareStream(transformStream, streamController) {
     // Runs past clientTerminalSeen: the frame that carries the terminal marker
     // can carry the only content too, and #8649 needs the whole stream scanned.
     contentWatcher.note(contentDecoder.decode(chunk, { stream: true }));
+    if (
+      isResponsesClientFormat(streamController.clientResponseFormat) &&
+      completedToolHandoffWatcher.note(toolHandoffDecoder.decode(chunk, { stream: true }))
+    ) {
+      streamController.markCompletedToolHandoffSeen?.();
+    }
     if (clientTerminalSeen) return;
 
     terminalTail += terminalDecoder.decode(chunk, { stream: true });
-    if (terminalTail.length > 4096) {
-      terminalTail = terminalTail.slice(-4096);
-    }
+    // Scan before bounding retained state: a compaction terminal frame can
+    // exceed the tail budget because encrypted_content is carried inline.
     clientTerminalSeen = hasClientTerminalSseMarker(
       terminalTail,
       streamController.clientResponseFormat
     );
+    if (terminalTail.length > 4096) {
+      terminalTail = terminalTail.slice(-4096);
+    }
     if (clientTerminalSeen) {
       streamController.markClientTerminalSeen?.();
     }
   };
 
+  const highWaterMark = options.highWaterMark ?? 16384;
+
   return new ReadableStream(
     {
       async pull(controller) {
         if (!streamController.isConnected()) {
+          // Closing our side alone leaves the upstream body being pulled by the
+          // transform pipe. Cancel it so the provider stops generating for a
+          // client that is gone. Not on a completed stream (clientTerminalSeen)
+          // nor while a completed tool handoff is still draining the reader.
+          if (
+            !clientTerminalSeen &&
+            streamController.shouldDeferCompletedToolHandoff?.() !== true
+          ) {
+            const reason = "client_disconnected";
+            void Promise.allSettled([reader.cancel(reason), writer.abort(reason)]);
+          }
           controller.close();
           return;
         }
@@ -571,20 +742,35 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           const { done, value } = await reader.read();
           if (done) {
             contentWatcher.finish();
-            const silentCloseReason = resolveSilentCloseReason({
+            const silentClose = resolveSilentCloseOutcome({
               bytesWereForwarded,
               clientTerminalSeen,
               clientResponseFormat: streamController.clientResponseFormat,
               contentWatcher,
             });
 
-            if (silentCloseReason) {
+            if (silentClose?.kind === "truncated") {
+              // #7699 — the upstream dropped without a terminal marker after
+              // content reached the client. Keep the partial response: emit a
+              // clean `max_tokens` completion instead of an error frame so
+              // Anthropic SDK / Claude Code don't report a mid-response break.
+              streamController.handleComplete();
+              try {
+                for (const chunk of buildGracefulTruncationChunks(
+                  streamController.clientResponseFormat
+                )) {
+                  controller.enqueue(chunk);
+                }
+              } catch {
+                // downstream may have closed; stream already marked complete
+              }
+            } else if (silentClose) {
               streamController.handleError(
-                Object.assign(new Error(silentCloseReason), { statusCode: 502 })
+                Object.assign(new Error(silentClose.reason), { statusCode: 502 })
               );
               try {
                 for (const chunk of buildStreamErrorChunks(
-                  silentCloseReason,
+                  silentClose.reason,
                   502,
                   streamController.clientResponseFormat
                 )) {
@@ -654,15 +840,18 @@ export function createDisconnectAwareStream(transformStream, streamController) {
       },
 
       async cancel(reason) {
+        const deferCompletedToolHandoff =
+          streamController.shouldDeferCompletedToolHandoff?.() === true;
         if (clientTerminalSeen) {
           streamController.handleComplete();
         } else {
           streamController.handleDisconnect(reason || "cancelled");
         }
+        if (deferCompletedToolHandoff) return;
         await Promise.allSettled([reader.cancel(reason), writer.abort(reason)]);
       },
     },
-    { highWaterMark: 16384 }
+    { highWaterMark }
   );
 }
 
@@ -674,7 +863,9 @@ export function createDisconnectAwareStream(transformStream, streamController) {
  * output for long stretches while partial EventStream frames keep arriving;
  * measuring stall on the transform output caused false stalls. Any upstream
  * chunk resets the timer. If no bytes arrive for `stallTimeoutMs`, the
- * stream surfaces a "stream stall timeout" error and aborts.
+ * stream surfaces a "stream stall timeout" error and aborts. A separate
+ * active lifetime budget never resets on bytes and surfaces
+ * "stream active timeout" when exceeded.
  *
  * Ported from decolua/9router#1243 by @zakirkun.
  *
@@ -683,115 +874,287 @@ export function createDisconnectAwareStream(transformStream, streamController) {
  * @param streamController - Stream controller from createStreamController
  * @param opts.stallTimeoutMs - Override the stall budget (defaults to
  *   STREAM_IDLE_TIMEOUT_MS / DEFAULT_STREAM_STALL_TIMEOUT_MS). `0` disables
- *   the watchdog.
+ *   the stall watchdog.
+ * @param opts.activeTimeoutMs - Override the total active-stream budget
+ *   (defaults to STREAM_ACTIVE_TIMEOUT_MS). `0` disables the active watchdog.
  */
 export function pipeWithDisconnect(
   providerResponse: Response,
   transformStream: TransformStream<Uint8Array, Uint8Array>,
   streamController: StreamController,
-  opts: { stallTimeoutMs?: number } = {}
+  opts: {
+    stallTimeoutMs?: number;
+    activeTimeoutMs?: number;
+    contentStallTimeoutMs?: number;
+    highWaterMark?: number;
+  } = {}
 ) {
   const stallTimeoutMs = opts.stallTimeoutMs ?? DEFAULT_STREAM_STALL_TIMEOUT_MS;
+  const activeTimeoutMs = opts.activeTimeoutMs ?? STREAM_ACTIVE_TIMEOUT_MS;
+  const stallEnabled = Number.isFinite(stallTimeoutMs) && stallTimeoutMs > 0;
+  const activeEnabled = Number.isFinite(activeTimeoutMs) && activeTimeoutMs > 0;
+  // Disabled unless a caller opts in with an explicit budget (chatCore wires
+  // the adaptive streamReadinessPolicy.timeoutMs — see its own doc comment).
+  // No blanket default here: an arbitrary constant picked at this layer,
+  // without the request's actual model/provider/payload context, would risk
+  // false-stalling the exact slow-first-content reasoning models the
+  // readiness policy already knows to grant more patience.
+  const contentStallTimeoutMs = opts.contentStallTimeoutMs ?? 0;
 
-  // Watchdog disabled — preserve legacy behavior verbatim.
-  if (!stallTimeoutMs || stallTimeoutMs <= 0) {
+  // Watchdogs disabled — preserve legacy behavior verbatim.
+  if (!stallEnabled && !activeEnabled && contentStallTimeoutMs <= 0) {
     const transformedBody = providerResponse.body.pipeThrough(transformStream);
     return createDisconnectAwareStream(
       { readable: transformedBody, writable: createNoopAbortWritable() },
-      streamController
+      streamController,
+      { highWaterMark: opts.highWaterMark }
     );
   }
 
   let stallTimer: ReturnType<typeof setTimeout> | null = null;
-  // Captured on the upstream tap's `start`, used by the watchdog to error the
-  // pipeline so the downstream reader unblocks and emits a clean SSE error
-  // event. Without this, aborting the AbortController alone does not unblock
-  // a `reader.read()` already suspended on the transform pipe — the request
-  // would hang until the upstream finally closed the socket.
+  let activeTimer: ReturnType<typeof setTimeout> | null = null;
+  // Erroring the upstream tap unblocks a downstream reader suspended on the
+  // transform pipe; aborting the controller alone does not always do that.
   let upstreamTapController: TransformStreamDefaultController<Uint8Array> | null = null;
-  // Set when the watchdog fires so the downstream pull() catch (which sees
-  // the same error propagated through the pipeline) does not call
-  // handleError a second time — pending-cleanup is idempotent but onError
-  // callbacks should fire once per error.
   let stallFired = false;
+  let activeFired = false;
 
   const clearStall = () => {
-    if (stallTimer) {
-      clearTimeout(stallTimer);
-      stallTimer = null;
+    if (stallTimer) clearTimeout(stallTimer);
+    stallTimer = null;
+  };
+  const clearActive = () => {
+    if (activeTimer) clearTimeout(activeTimer);
+    activeTimer = null;
+  };
+  const clearWatchdogs = () => {
+    clearStall();
+    clearActive();
+  };
+  const triggerWatchdog = (kind: "stall" | "active") => {
+    if (stallFired || activeFired) return;
+    const message = kind === "active" ? "stream active timeout" : "stream stall timeout";
+    if (kind === "active") activeFired = true;
+    else stallFired = true;
+    clearWatchdogs();
+    const error = new Error(message);
+    try {
+      streamController.handleError?.(error);
+    } catch (e) {
+      console.debug(`[STREAM-HANDLER] ${kind} watchdog handleError failed:`, e);
+    }
+    try {
+      upstreamTapController?.error(error);
+    } catch (e) {
+      console.debug(`[STREAM-HANDLER] ${kind} watchdog upstream tap error failed:`, e);
+    }
+    try {
+      streamController.abort?.();
+    } catch (e) {
+      console.debug(`[STREAM-HANDLER] ${kind} watchdog abort failed:`, e);
     }
   };
   const armStall = () => {
+    if (!stallEnabled) return;
     clearStall();
-    stallTimer = setTimeout(() => {
-      stallTimer = null;
-      stallFired = true;
-      const stallError = new Error("stream stall timeout");
-      // Notify the controller (onError callback + pending-request cleanup).
+    stallTimer = setTimeout(() => triggerWatchdog("stall"), stallTimeoutMs);
+  };
+  const armActive = () => {
+    if (!activeEnabled) return;
+    clearActive();
+    activeTimer = setTimeout(() => triggerWatchdog("active"), activeTimeoutMs);
+  };
+
+  // Third, independent watchdog: fires when the upstream keeps sending raw
+  // bytes (so armStall() above keeps resetting and never fires) but none of
+  // them ever carry real model output — only lifecycle/ping frames
+  // (OpenAI Responses response.in_progress/response.created, bare
+  // role-only start chunks, etc). ensureStreamReadiness's own gate already
+  // treats any one of those as "ready" and hands the connection off (see its
+  // own doc comment and kiro.ts's deliberate early role-only chunk — several
+  // providers rely on that fast handoff for UX, so tightening readiness
+  // itself would regress them). Once handed off there was previously nothing
+  // watching whether the model ever actually said anything: a stalled free
+  // OpenRouter model (e.g. minimax-m3:free under load) could stream nothing
+  // but response.in_progress pings indefinitely, relayed byte-for-byte to
+  // the client, until the CLIENT's own idle timeout eventually gave up --
+  // sometimes 120s, sometimes 900s depending on the calling task, always
+  // slower and less informative than OmniRoute failing this attempt itself
+  // with a clear error the client's own retry/fallback logic can react to
+  // immediately. Armed ONCE at stream start (not re-armed by lifecycle-only
+  // bytes, unlike armStall above) and cleared permanently the first time
+  // real content is observed -- reuses the exact classifier
+  // (createStreamContentWatcher) createDisconnectAwareStream already trusts
+  // for its own end-of-stream #8649 empty-content check.
+  let contentStallTimer: ReturnType<typeof setTimeout> | null = null;
+  let contentStallFired = false;
+  const upstreamContentWatcher = createStreamContentWatcher();
+  const upstreamContentDecoder = new TextDecoder();
+  // Stall diagnostics: what the upstream had sent when the content watchdog
+  // trips. Counters live at this tap because it is the only point seeing raw
+  // upstream bytes (the sibling client-side contentWatcher in
+  // createDisconnectAwareStream observes post-transform output instead —
+  // merging the two would be a refactor, out of scope). Best-effort only:
+  // `stallTail` is a bounded sliding window, so a line split by truncation
+  // may miss a type; encrypted reasoning without an open item reads `no`
+  // (out of scope) — never content, only type names and counts.
+  const STALL_TAIL_MAX = 16 * 1024;
+  const STALL_TYPES_MAX = 50;
+  let stallBytes = 0;
+  let stallEvents = 0;
+  let stallTail = "";
+  const stallTypes = new Map<string, number>();
+
+  const bumpStallType = (name: string): void => {
+    const known = stallTypes.get(name);
+    if (known !== undefined) {
+      stallTypes.set(name, known + 1);
+      return;
+    }
+    if (stallTypes.size >= STALL_TYPES_MAX) {
+      stallTypes.set("other", (stallTypes.get("other") ?? 0) + 1);
+      return;
+    }
+    stallTypes.set(name, 1);
+  };
+
+  const noteStallLine = (trimmed: string): void => {
+    if (trimmed.startsWith("event:")) {
+      const name = trimmed.slice(6).trim().split(/\s/)[0] ?? "";
+      if (name) {
+        stallEvents += 1;
+        bumpStallType(name);
+      }
+      return;
+    }
+    if (!trimmed.startsWith("data:")) return;
+    const data = trimmed.slice(5).trim();
+    if (!data) return;
+    // A decoded chunk with no `data:` boundary at all is not SSE
+    // (plain JSON completion forwarded through the same path).
+    stallEvents += 1;
+    const match = /"type"\s*:\s*"([^"]{1,64})"/.exec(data);
+    bumpStallType(match ? match[1] : "non-sse");
+  };
+
+  const noteStallText = (text: string): void => {
+    if (!text) return;
+    stallTail += text;
+    if (stallTail.length > STALL_TAIL_MAX) {
+      stallTail = stallTail.slice(-STALL_TAIL_MAX);
+    }
+    for (const line of text.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      noteStallLine(trimmed);
+    }
+  };
+
+  const formatStallSummary = (): string => {
+    const top =
+      stallTypes.size === 0
+        ? "none"
+        : [...stallTypes.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([name, count]) => `${name}:${count}`)
+            .join(",");
+    return `bytes=${stallBytes} events=${stallEvents} top=${top} reasoning_open=${hasOpenReasoning(stallTail) ? "yes" : "no"}`;
+  };
+
+  const clearContentStall = () => {
+    if (contentStallTimer) {
+      clearTimeout(contentStallTimer);
+      contentStallTimer = null;
+    }
+  };
+  const armContentStall = () => {
+    if (contentStallTimeoutMs <= 0) return;
+    contentStallTimer = setTimeout(() => {
+      contentStallTimer = null;
+      contentStallFired = true;
+      const stallSummary = formatStallSummary();
+      const stallError = new Error(
+        `stream content stall: no model output within ${contentStallTimeoutMs}ms (${stallSummary})`
+      );
+      console.debug(`[STREAM-HANDLER] content stall: ${stallSummary}`);
       try {
         streamController.handleError?.(stallError);
       } catch (e) {
-        console.debug(`[STREAM-HANDLER] stall watchdog handleError failed:`, e);
+        console.debug(`[STREAM-HANDLER] content stall watchdog handleError failed:`, e);
       }
-      // Error the pipeline so the downstream reader unblocks. createDisconnect-
-      // AwareStream's catch block translates this into buildStreamErrorChunks
-      // (sanitized SSE error event with finish_reason:"error", per the format).
       try {
         upstreamTapController?.error(stallError);
       } catch (e) {
-        console.debug(`[STREAM-HANDLER] stall watchdog upstream tap error failed:`, e);
+        console.debug(`[STREAM-HANDLER] content stall watchdog upstream tap error failed:`, e);
       }
-      // Abort the underlying fetch so upstream releases the connection.
       try {
         streamController.abort?.();
       } catch (e) {
-        console.debug(`[STREAM-HANDLER] stall watchdog abort failed:`, e);
+        console.debug(`[STREAM-HANDLER] content stall watchdog abort failed:`, e);
       }
-    }, stallTimeoutMs);
+    }, contentStallTimeoutMs);
   };
 
-  // Wrap controller so every termination path clears the stall timer.
-  // Without this, abort/complete/error/disconnect paths leave the timer armed
+  // Wrap controller so every termination path clears all watchdog timers.
+  // Without this, abort/complete/error/disconnect paths leave a timer armed
   // and a stale abort could fire after the request has already ended.
   const wrappedController: StreamController = {
     ...streamController,
     handleComplete: () => {
-      clearStall();
+      clearWatchdogs();
+      clearContentStall();
       streamController.handleComplete();
     },
     handleError: (e: unknown) => {
-      clearStall();
-      // Watchdog already fired its own handleError — the inner pull() catch
-      // sees the same error propagated through the pipeline; suppress the
-      // duplicate to keep onError callbacks single-fire.
-      if (stallFired) return;
+      clearWatchdogs();
+      clearContentStall();
+      // A watchdog already fired its own handleError — the inner pull()
+      // catch sees the same error propagated through the pipeline; suppress
+      // the duplicate to keep onError callbacks single-fire.
+      if (stallFired || activeFired || contentStallFired) return;
       streamController.handleError(e);
     },
     handleDisconnect: (reason?: string) => {
-      clearStall();
+      clearWatchdogs();
+      clearContentStall();
       streamController.handleDisconnect(reason);
     },
     abort: () => {
-      clearStall();
+      clearWatchdogs();
+      clearContentStall();
       streamController.abort();
     },
   };
 
-  // Inert tap that resets the stall timer on every raw upstream byte chunk.
-  // Sits between the provider body and the SSE transform so reasoning models
-  // that buffer many raw bytes into a single emitted event do not look
-  // stalled to the watchdog.
+  // Inert tap that resets the byte-stall timer on every raw upstream chunk
+  // and (independently) clears the content-stall timer the first time a
+  // chunk carries real output. Sits between the provider body and the SSE
+  // transform so reasoning models that buffer many raw bytes into a single
+  // emitted event do not look stalled to either watchdog.
   const upstreamTap = new TransformStream<Uint8Array, Uint8Array>({
     start(controller) {
       upstreamTapController = controller;
       armStall();
+      armActive();
+      armContentStall();
     },
     transform(chunk, controller) {
       armStall();
+      if (contentStallTimeoutMs > 0 && !upstreamContentWatcher.sawContent()) {
+        // Second pass over the already-decoded text, not a second decode:
+        // the watcher below keeps only booleans, so counting needs its own scan.
+        const decoded = upstreamContentDecoder.decode(chunk, { stream: true });
+        stallBytes += chunk.byteLength;
+        noteStallText(decoded);
+        upstreamContentWatcher.note(decoded);
+        if (upstreamContentWatcher.sawContent()) clearContentStall();
+      }
       controller.enqueue(chunk);
     },
     flush() {
-      clearStall();
+      clearWatchdogs();
+      clearContentStall();
     },
   });
 
@@ -800,6 +1163,7 @@ export function pipeWithDisconnect(
     .pipeThrough(transformStream);
   return createDisconnectAwareStream(
     { readable: transformedBody, writable: createNoopAbortWritable() },
-    wrappedController
+    wrappedController,
+    { highWaterMark: opts.highWaterMark }
   );
 }

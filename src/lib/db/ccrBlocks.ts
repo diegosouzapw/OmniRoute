@@ -136,8 +136,3 @@ export function countCcrBlocks(principalId?: string): number {
   ) as { n: number } | undefined;
   return row?.n ?? 0;
 }
-
-/** Test seam: the write throttle is module state and has to be resettable between tests. */
-export function resetCcrBlockPruneCounter(): void {
-  writesSincePrune = 0;
-}

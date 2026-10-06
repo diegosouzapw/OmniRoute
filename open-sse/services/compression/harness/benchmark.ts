@@ -187,6 +187,12 @@ export function engineToCompressFn(engineId: string): CompressFn {
   return async (text: string): Promise<string> => {
     const body: Record<string, unknown> = {
       messages: [{ role: "user", content: text }],
+      // #7746 follow-up: CCR only compresses for callers that advertise the
+      // omniroute_ccr_retrieve tool (otherwise its content-addressed marker is
+      // unresolvable). Real CCR traffic always carries this tool, so the
+      // benchmark must too, or CCR measures as a no-op. Other engines ignore
+      // the `tools` field, so this is inert for them.
+      tools: [{ type: "function", function: { name: "omniroute_ccr_retrieve" } }],
     };
 
     try {
@@ -199,6 +205,16 @@ export function engineToCompressFn(engineId: string): CompressFn {
 
       const messages = result.body["messages"];
       if (Array.isArray(messages) && messages.length > 0) {
+        // CCR may inject a leading [CCR protocol] system instruction, so the
+        // compressed user text is not necessarily messages[0]. Prefer the LAST
+        // message with string content (the user turn we fed in); fall back to
+        // the first string content otherwise.
+        for (let i = messages.length - 1; i >= 0; i--) {
+          const c = (messages[i] as Record<string, unknown>)["content"];
+          if (typeof c === "string" && (messages[i] as Record<string, unknown>)["role"] !== "system") {
+            return c;
+          }
+        }
         const content = (messages[0] as Record<string, unknown>)["content"];
         if (typeof content === "string") return content;
       }

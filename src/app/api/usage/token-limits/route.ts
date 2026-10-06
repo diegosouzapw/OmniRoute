@@ -13,14 +13,17 @@ import { NextResponse } from "next/server";
 import { setTokenLimitSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
 import {
+  TokenLimit,
   listTokenLimits,
   upsertTokenLimit,
   deleteTokenLimit,
   getWindowUsage,
   resetWindowIfElapsed,
-} from "@/lib/localDb";
-import type { TokenLimit } from "@/lib/db/tokenLimits";
+  TokenLimitConflictError,
+  TokenLimitNotFoundError,
+} from "@/lib/db/tokenLimits";
 
 export async function GET(request: Request) {
   try {
@@ -77,6 +80,12 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ success: true, limit });
   } catch (error) {
+    if (error instanceof TokenLimitConflictError) {
+      return NextResponse.json(buildErrorBody(409, error.message), { status: 409 });
+    }
+    if (error instanceof TokenLimitNotFoundError) {
+      return NextResponse.json(buildErrorBody(404, error.message), { status: 404 });
+    }
     console.error("Error setting token limit:", error);
     return NextResponse.json(buildErrorBody(500, sanitizeErrorMessage(error)), { status: 500 });
   }

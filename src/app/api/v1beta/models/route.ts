@@ -5,9 +5,10 @@ import {
   getAllSyncedAvailableModels,
   getSyncedAvailableModels,
 } from "@/lib/db/models";
-import { getProviderConnections } from "@/lib/localDb";
+import { getProviderConnections } from "@/lib/db/providers";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { getSyncedCapabilities } from "@/lib/modelsDevSync";
+import { mergeCustomModelMetadata } from "@/lib/providers/modelMetadataPrecedence";
 
 /**
  * Build the set of provider keys (raw id + alias) that have at least one active/validated
@@ -98,7 +99,12 @@ export async function GET() {
           displayName: m.name || m.id,
           ...(typeof m.description === "string" ? { description: m.description } : {}),
           supportedGenerationMethods: ["generateContent"],
-          inputTokenLimit: typeof m.inputTokenLimit === "number" ? m.inputTokenLimit : 128000,
+          inputTokenLimit:
+            typeof m.inputTokenLimit === "number"
+              ? m.inputTokenLimit
+              : typeof m.contextWindow === "number"
+                ? m.contextWindow
+                : 128000,
           outputTokenLimit: typeof m.outputTokenLimit === "number" ? m.outputTokenLimit : 8192,
           ...(m.supportsThinking === true ? { thinking: true } : {}),
         });
@@ -130,7 +136,9 @@ export async function GET() {
             inputTokenLimit:
               typeof m.inputTokenLimit === "number"
                 ? m.inputTokenLimit
-                : resolved.maxInputTokens || resolved.contextWindow || 128000,
+                : typeof m.contextWindow === "number"
+                  ? m.contextWindow
+                  : resolved.maxInputTokens || resolved.contextWindow || 128000,
             outputTokenLimit:
               typeof m.outputTokenLimit === "number"
                 ? m.outputTokenLimit
@@ -164,8 +172,7 @@ export async function GET() {
             model: String(m.id),
           });
           const name = `models/${providerId}/${m.id}`;
-          if (existingNames.has(name)) continue;
-          models.push({
+          const customEntry = {
             name,
             displayName: m.name || m.id,
             ...(typeof m.description === "string" ? { description: m.description } : {}),
@@ -173,15 +180,25 @@ export async function GET() {
             inputTokenLimit:
               typeof m.inputTokenLimit === "number"
                 ? m.inputTokenLimit
-                : resolved.maxInputTokens || resolved.contextWindow || 128000,
+                : typeof m.contextWindow === "number"
+                  ? m.contextWindow
+                  : resolved.maxInputTokens || resolved.contextWindow || 128000,
             outputTokenLimit:
               typeof m.outputTokenLimit === "number"
                 ? m.outputTokenLimit
                 : resolved.maxOutputTokens || 8192,
-            ...(m.supportsThinking === true || resolved.supportsThinking === true
-              ? { thinking: true }
-              : {}),
-          });
+            ...(typeof m.supportsThinking === "boolean"
+              ? { thinking: m.supportsThinking }
+              : resolved.supportsThinking === true
+                ? { thinking: true }
+                : {}),
+          };
+          const existingIndex = models.findIndex((entry) => entry.name === name);
+          if (existingIndex !== -1) {
+            models[existingIndex] = mergeCustomModelMetadata(models[existingIndex], customEntry);
+            continue;
+          }
+          models.push(customEntry);
           existingNames.add(name);
         }
       }

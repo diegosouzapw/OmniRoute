@@ -9,6 +9,25 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
+// Carrega o modulo de forma ESTATICA (mesma convenção dos testes irmãos
+// chatgptTlsClient.test.ts / grokTlsClient.test.ts).
+//
+// Por que isso importa: `claudeTlsClient.ts` puxa `tlsClientBase.ts` ->
+// `open-sse/utils/proxyFetch.ts`, cujo grafo de modulos custa ~5-12s para o
+// Vite transformar dentro de um worker jsdom do Vitest. Cada `await
+// import("../claudeTlsClient.ts")` feito DENTRO de um `it()` cobrava esse custo
+// do orcamento do teste (testTimeout padrao = 5000ms), entao o PRIMEIRO teste do
+// arquivo estourava por timeout sempre que a maquina estava sob carga — que e
+// exatamente o caso quando a suite inteira roda com 20 workers em paralelo
+// (`npm run test:vitest:ui`). Rodando o arquivo sozinho numa maquina ociosa ele
+// passava por pouco, o que fazia a falha parecer poluicao entre arquivos.
+//
+// Com o import estatico o custo do grafo e pago na fase de COLETA do arquivo
+// (que nao esta sujeita ao testTimeout) e os `await import()` de dentro dos
+// testes passam a resolver do registro ja quente, em ~0ms. Nenhuma assercao foi
+// alterada.
+import "../claudeTlsClient.ts";
+
 describe("claudeTlsClient", () => {
   beforeEach(() => {
     // Clear env vars before each test
@@ -273,15 +292,16 @@ describe("claudeTlsClient", () => {
 
       await tlsFetchClaude("https://claude.ai/test", {});
 
-      // The testOverride is called with the raw options object BEFORE proxy
-      // resolution occurs (see claudeTlsClient.ts line 258:
-      //   `if (testOverride) return testOverride(url, options)`).
-      // Proxy resolution (env var → proxyUrl) only runs inside the real
-      // tls-client path, which is bypassed when an override is active.
-      // So callOptions here is exactly the {} we passed — no proxyUrl injected.
+      // #10910 passou a resolver proxyUrl ANTES de chamar o testOverride
+      // (tlsClientBase.ts: "Resolve proxyUrl early so test overrides and the real
+      // path both see it"), justamente para que o override enxergue o mesmo proxy
+      // que o caminho real usaria. A assercao anterior travava o comportamento
+      // antigo — override recebia o {} cru — e contradizia o proprio nome deste
+      // teste, que diz verificar o fallback para a env var. Agora ela confere o
+      // fallback de fato.
       expect(mockFn).toHaveBeenCalledOnce();
       const callOptions = mockFn.mock.calls[0][1];
-      expect(callOptions.proxyUrl).toBeUndefined();
+      expect(callOptions.proxyUrl).toBe("http://env-proxy:8080");
 
       __setTlsFetchOverrideForTesting(null);
       delete process.env.HTTPS_PROXY;

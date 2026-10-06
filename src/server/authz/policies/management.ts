@@ -1,7 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { isModelSyncInternalRequest } from "../../../shared/services/modelSyncScheduler";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "../../../shared/utils/apiAuth";
-import { getLegacyCliTokenSync, getMachineTokenSync } from "../../../lib/machineToken";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
@@ -13,76 +12,24 @@ import {
 } from "../../../shared/constants/managementScopes";
 import { evaluateAccessTokenAuth } from "../accessTokenAuth";
 import { isInternalServiceRequest } from "../../../lib/api/internalServiceAuth";
-import { CLI_TOKEN_HEADER, PEER_IP_HEADER, VIA_PROXY_HEADER } from "../headers";
-import { resolveStampedPeer, resolveStampedViaProxy } from "../peerStamp";
+import {
+  VIDEO_BRIDGE_BROKER_PATH,
+  VIDEO_BRIDGE_DRILLDOWN_PATH,
+  isVideoBridgeBrokerTokenRequest,
+} from "../../../lib/guardrails/videoBridgeBrokerAuth";
+import {
+  hasValidLoopbackCliToken,
+  isLoopbackRequest,
+  isPrivateLanRequest,
+  LOCAL_CLI_SUBJECT,
+} from "../peerContext";
 import {
   isAlwaysProtectedPath,
   isLocalOnlyBypassableByManageScope,
   isLocalOnlyPath,
-  isLoopbackHost,
-  isPrivateLanHost,
 } from "../routeGuard";
 
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
-
-function requestPeerAddress(ctx: PolicyContext): string | null {
-  // The Next middleware runtime exposes no socket/.ip, so the only trustworthy
-  // locality signal is the token-stamped PEER_IP_HEADER our custom server writes
-  // from the real TCP peer (scripts/dev/peer-stamp.mjs). We NEVER read the Host
-  // header here — it is client-controlled and spoofable. Absent/forged stamp →
-  // null → isLoopbackRequest/isPrivateLanRequest return false → fail closed.
-  const stamped = resolveStampedPeer(
-    ctx.request.headers?.get?.(PEER_IP_HEADER) ?? null,
-    process.env.OMNIROUTE_PEER_STAMP_TOKEN
-  );
-  if (stamped) return stamped;
-  // Non-middleware callers (tests / direct Node) may carry a real socket peer.
-  return ctx.request.ip ?? ctx.request.socket?.remoteAddress ?? null;
-}
-
-/**
- * True when the inbound TCP request carried forwarding headers
- * (`x-forwarded-for` / `x-real-ip`), as stamped by the custom Node server. When
- * set, the socket peer is the reverse-proxy hop, not the end-user — so a
- * loopback / private-LAN socket must NOT be trusted as local (Hard Rules #15 +
- * #17, port of decolua/9router da667836). Token-validated; an attacker who
- * knows the header name but not the per-process token cannot influence it.
- */
-function isViaProxyRequest(ctx: PolicyContext): boolean {
-  return resolveStampedViaProxy(
-    ctx.request.headers?.get?.(VIA_PROXY_HEADER) ?? null,
-    process.env.OMNIROUTE_PEER_STAMP_TOKEN
-  );
-}
-
-function isLoopbackRequest(ctx: PolicyContext): boolean {
-  if (isViaProxyRequest(ctx)) return false;
-  const peerAddress = requestPeerAddress(ctx);
-  return peerAddress ? isLoopbackHost(peerAddress) : false;
-}
-
-// Owner-authorized (2026-05-30): allow LOCAL_ONLY *paths* from a trusted private
-// LAN, based on the real socket peer IP (not spoofable). Does NOT relax the
-// CLI-token gate, which stays strictly loopback. Also falls back to "not LAN"
-// when a reverse-proxy hop is detected (the apparent LAN IP would be the proxy,
-// not the end-user — see isViaProxyRequest above).
-function isPrivateLanRequest(ctx: PolicyContext): boolean {
-  if (isViaProxyRequest(ctx)) return false;
-  const peerAddress = requestPeerAddress(ctx);
-  return peerAddress ? isPrivateLanHost(peerAddress) : false;
-}
-
-function hasValidCliToken(ctx: PolicyContext): boolean {
-  if (!isLoopbackRequest(ctx)) return false;
-  const headers = ctx.request.headers;
-  const provided = headers.get(CLI_TOKEN_HEADER);
-  if (!provided) return false;
-  const expectedTokens = [getMachineTokenSync(), getLegacyCliTokenSync()].filter(Boolean);
-  return expectedTokens.some((expected) => {
-    if (provided.length !== expected.length) return false;
-    return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
-  });
-}
 
 function hasBearerToken(headers: Headers): boolean {
   const authHeader = headers.get("authorization") ?? headers.get("Authorization");
@@ -241,6 +188,23 @@ export const managementPolicy: RoutePolicy = {
       return allow({ kind: "management_key", id: "model-sync", label: "internal-model-sync" });
     }
 
+    // Exact-path, per-process authenticated self-hops used by the public Video
+    // Bridge guardrail and its isolated drill-down lifecycle. The unconditional
+    // LOCAL_ONLY gate above has already rejected remote peers; this carve-out is
+    // deliberately not valid for runtime status or any future adjacent path.
+    if (
+      (path === VIDEO_BRIDGE_BROKER_PATH || path === VIDEO_BRIDGE_DRILLDOWN_PATH) &&
+      isLoopbackRequest(ctx) &&
+      isVideoBridgeBrokerTokenRequest(ctx.request as unknown as Request, path)
+    ) {
+      const drilldown = path === VIDEO_BRIDGE_DRILLDOWN_PATH;
+      return allow({
+        kind: "management_key",
+        id: drilldown ? "video-bridge-drilldown" : "video-bridge-broker",
+        label: drilldown ? "internal-video-bridge-drilldown" : "internal-video-bridge-broker",
+      });
+    }
+
     if (isLoopbackRequest(ctx) && isInternalServiceRequest(ctx.request as unknown as Request)) {
       return allow({
         kind: "management_key",
@@ -249,8 +213,8 @@ export const managementPolicy: RoutePolicy = {
       });
     }
 
-    if (hasValidCliToken(ctx)) {
-      return allow({ kind: "management_key", id: "cli", label: "local-cli-token" });
+    if (hasValidLoopbackCliToken(ctx)) {
+      return allow({ ...LOCAL_CLI_SUBJECT });
     }
 
     // MCP path carve-out (#9159): accept mcp:connect, manage, or admin
@@ -287,7 +251,17 @@ export const managementPolicy: RoutePolicy = {
     }
 
     // Tier 2: always-protected routes skip the requireLogin=false bypass.
-    if (!isAlwaysProtectedPath(path) && !(await isAuthRequired(ctx.request))) {
+    //
+    // The fresh-install bootstrap branch inside isAuthRequired() is loopback-only.
+    // Hand it the SAME trusted verdict the LOCAL_ONLY gate above used (token-stamped
+    // real TCP peer via peerContext) instead of letting it sniff ctx.request — the
+    // ORIGINAL request still carries every client-supplied header at this point,
+    // and the Host header was how a remote caller reached the anonymous
+    // POST /api/settings/require-login write (GHSA-7pq4-8pvv-rx7r).
+    if (
+      !isAlwaysProtectedPath(path) &&
+      !(await isAuthRequired(ctx.request, { loopback: isLoopbackRequest(ctx) }))
+    ) {
       return allow({ kind: "anonymous", id: "anonymous", label: "auth-disabled" });
     }
 

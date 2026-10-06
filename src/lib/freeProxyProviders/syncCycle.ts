@@ -3,7 +3,7 @@ import {
   recordFreeProxySync,
   clearFreeProxySyncErrors,
   recordFreeProxySyncErrors,
-} from "@/lib/localDb";
+} from "@/lib/db/freeProxies";
 import type { FreeProxyProvider } from "@/lib/freeProxyProviders/types";
 
 export interface FreeProxySyncCycleResult {

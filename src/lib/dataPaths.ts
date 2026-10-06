@@ -83,14 +83,95 @@ export function resolveDataDir({ isCloud = false }: { isCloud?: boolean } = {}):
  * Use this only at the single startup site that owns directory creation
  * (currently `db/core.ts`); everywhere else keep using the pure resolver.
  */
+/**
+ * #10428: true when this process looks like a test run rather than a server start.
+ *
+ * `NODE_TEST_CONTEXT` is set by `node --test` in every spawned test process, `VITEST` by
+ * vitest, and `NODE_ENV=test` by the npm scripts — between them they cover both runners
+ * plus the AGENTS.md single-file command, which does NOT load
+ * `tests/_setup/isolateDataDir.ts`.
+ */
+export function isTestContext(): boolean {
+  return (
+    process.env.NODE_ENV === "test" ||
+    !!process.env.VITEST ||
+    !!process.env.NODE_TEST_CONTEXT ||
+    process.execArgv.includes("--test") ||
+    process.argv.includes("--test")
+  );
+}
+
+/**
+ * `node --eval` / `node -e` (and their print variants) are common shapes used by
+ * one-off import probes.
+ * Such a process has no application entry point from which to establish storage intent,
+ * so defaulting it to the operator's durable database is unsafe. A deliberate production
+ * inspection can still opt in with an explicit DATA_DIR (preferred) or
+ * OMNIROUTE_ALLOW_DEFAULT_DATA_DIR=1.
+ */
+function isEvalProbeContext(): boolean {
+  return process.execArgv.some(
+    (arg) =>
+      arg === "--eval" ||
+      arg === "-e" ||
+      arg === "-pe" ||
+      arg === "-ep" ||
+      arg.startsWith("--eval=") ||
+      arg === "--print" ||
+      arg === "-p" ||
+      arg.startsWith("--print=")
+  );
+}
+
+/** Process-wide redirect target, so repeated calls share one DB instead of one per call. */
+let testContextDataDir: string | null = null;
+let testContextCleanupRegistered = false;
+
 export function resolveWritableDataDir({ isCloud = false }: { isCloud?: boolean } = {}): string {
   const resolved = resolveDataDir({ isCloud });
+  const configured = normalizeConfiguredPath(process.env.DATA_DIR);
 
   // Cloud/serverless never owns a writable home dir; leave its sentinel alone.
   if (isCloud) return resolved;
 
+  // #10428: a test/eval-probe run that never chose a DATA_DIR would otherwise open the
+  // OPERATOR'S REAL database (~/.omniroute/storage.sqlite — live provider credentials).
+  // Redirect to a throwaway dir instead of throwing: the documented single-file command
+  // (`node --import tsx/esm --test tests/unit/x.test.ts`) does not load the isolation
+  // setup, and a hard failure there would only teach people to disable the guard.
+  // `OMNIROUTE_ALLOW_DEFAULT_DATA_DIR=1` opts back in, so the intent is recorded.
+  if (
+    !configured &&
+    (isTestContext() || isEvalProbeContext()) &&
+    process.env.OMNIROUTE_ALLOW_DEFAULT_DATA_DIR !== "1"
+  ) {
+    if (!testContextDataDir) {
+      testContextDataDir = fs.mkdtempSync(path.join(os.tmpdir(), `${APP_NAME}-testctx-`));
+      if (!testContextCleanupRegistered) {
+        testContextCleanupRegistered = true;
+        process.once("exit", () => {
+          if (!testContextDataDir) return;
+          try {
+            fs.rmSync(testContextDataDir, {
+              recursive: true,
+              force: true,
+              maxRetries: 5,
+              retryDelay: 25,
+            });
+          } catch {
+            // An unclean exit is left to the operating system's temp-directory policy.
+          }
+        });
+      }
+      console.warn(
+        `[DATA_DIR] test/eval context without DATA_DIR → using '${testContextDataDir}' instead of ` +
+          `'${resolved}'. Set DATA_DIR explicitly (or load tests/_setup/isolateDataDir.ts) to silence this.`
+      );
+    }
+    return testContextDataDir;
+  }
+
   // No explicit override → already the default user dir; nothing to fall back to.
-  const configured = normalizeConfiguredPath(process.env.DATA_DIR);
   if (!configured) return resolved;
 
   try {

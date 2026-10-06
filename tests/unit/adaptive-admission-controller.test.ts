@@ -862,17 +862,25 @@ describe("adaptive algorithm", () => {
     // Immediate fast decrease: 80 * 0.5 = 40.
     assert.equal(c.snapshot().currentLimit, 40);
 
-    // Closing the same window must not multiply again (would become 20).
+    // Closing the same window must not multiply again (would become 20). #10111 idle
+    // recovery may climb the collapsed limit upward on the subsequent idle window, so it
+    // can exceed 40 — the invariant is that closing the window never RE-decreases toward
+    // the multiplied 20, and recovery stays below the 80 ceiling.
     clock.advance(100);
     c.tick();
-    assert.equal(c.snapshot().currentLimit, 40);
+    assert.ok(c.snapshot().currentLimit >= 40);
+    assert.ok(c.snapshot().currentLimit < 80);
 
-    // A fresh critical observation in a later window still decreases once.
+    // A fresh critical observation in a later window still decreases once — the immediate
+    // path applies an exact halving regardless of how far idle recovery had climbed first.
+    const beforeSecond = c.snapshot().currentLimit;
     c.observePressure("critical");
-    assert.equal(c.snapshot().currentLimit, 20);
+    assert.equal(c.snapshot().currentLimit, Math.floor(beforeSecond / 2));
+    const secondFloor = c.snapshot().currentLimit;
     clock.advance(100);
     c.tick();
-    assert.equal(c.snapshot().currentLimit, 20);
+    assert.ok(c.snapshot().currentLimit >= secondFloor);
+    assert.ok(c.snapshot().currentLimit < 80);
   });
 
   it("decreases on high pressure or sustained latency gradient", async () => {
@@ -971,7 +979,13 @@ describe("adaptive algorithm", () => {
     assert.ok(afterObservedWindow < 80);
 
     clock.advance(500);
-    assert.equal(c.snapshot().currentLimit, afterObservedWindow);
+    // Stale latency/pressure evidence is still consumed only in its observed window and
+    // never re-applied as a further decrease (the limit does not drop below
+    // afterObservedWindow). #10111 idle-recovery instead CLIMBS the collapsed limit back
+    // toward the recovery ceiling on sustained idle windows, so it recovers upward while
+    // staying below the initial 80 ceiling.
+    assert.ok(c.snapshot().currentLimit >= afterObservedWindow);
+    assert.ok(c.snapshot().currentLimit < 80);
   });
 });
 

@@ -112,8 +112,9 @@ export const EmbeddingProviderListingSchema = z.object({
 /** Response shape do GET /api/memory/engine-status (UI Engine tab — D11). */
 export const MemoryEngineStatusSchema = z.object({
   keyword: z.object({
-    available: z.literal(true),
-    backend: z.literal("FTS5"),
+    available: z.boolean(),
+    backend: z.enum(["FTS5", "none"]),
+    reason: z.string(),
   }),
   embedding: z.object({
     source: z.enum(["remote", "static", "transformers"]).nullable(),

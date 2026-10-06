@@ -132,6 +132,7 @@ omniroute context-eng list
 
 **Flags:**
 
+- `--pattern <p>`
 - `--priority <n>`
 - `--action <a>`
 
@@ -154,6 +155,10 @@ omniroute context-eng remove <id>
 ```
 
 ### `context-eng test`
+
+**Flags:**
+
+- `--file <path>`
 
 **Example:**
 
@@ -225,6 +230,7 @@ Add a new context
 
 **Flags:**
 
+- `--url <u>`
 - `--api-key <k>`
 - `--api-key-stdin`
 - `--access-token <t>`
@@ -304,6 +310,7 @@ Export contexts to JSON
 
 - `--out <path>`
 - `--no-secrets`
+- `--include-secrets`
 
 **Example:**
 
@@ -323,6 +330,20 @@ Import contexts from a JSON file
 
 ```bash
 omniroute contexts import <file>
+```
+
+### `contexts migrate`
+
+Move legacy plaintext context credentials to the OS keychain
+
+**Flags:**
+
+- `--yes`
+
+**Example:**
+
+```bash
+omniroute contexts migrate
 ```
 
 ### `sessions`
@@ -372,6 +393,7 @@ omniroute sessions expire <sessionId>
 
 **Flags:**
 
+- `--user <u>`
 - `--yes`
 
 **Example:**

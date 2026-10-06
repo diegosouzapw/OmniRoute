@@ -20,31 +20,50 @@ describe("XP/Level Engine", () => {
       assert.equal(calculateLevel(-100), 1);
     });
 
+    it("falls back to level 1 for non-finite XP", () => {
+      assert.equal(calculateLevel(Number.NaN), 1);
+      assert.equal(calculateLevel(Number.POSITIVE_INFINITY), 1);
+      assert.equal(calculateLevel(Number.NEGATIVE_INFINITY), 1);
+    });
+
+    it("bounds finite XP above the safe integer range", () => {
+      assert.equal(calculateLevel(Number.MAX_VALUE), calculateLevel(Number.MAX_SAFE_INTEGER));
+    });
+
     it("returns level 1 for small XP", () => {
       assert.equal(calculateLevel(50), 1);
     });
 
-    it("returns level ~5 for 3162 XP (xpForLevel(10))", () => {
-      const level = calculateLevel(3162);
-      assert.ok(level >= 4 && level <= 7, `Expected ~5, got ${level}`);
+    it("returns level 5 for 3162 XP", () => {
+      assert.equal(calculateLevel(3162), 5);
     });
 
-    it("returns level ~10 for cumulative level-10 XP", () => {
+    it("returns level 10 for cumulative level-10 XP", () => {
       const xp = cumulativeXpForLevel(10);
-      const level = calculateLevel(xp);
-      assert.ok(level >= 9 && level <= 11, `Expected ~10, got ${level}`);
+      assert.equal(calculateLevel(xp), 10);
     });
 
-    it("returns level ~25 for cumulative level-25 XP", () => {
+    it("returns level 25 for cumulative level-25 XP", () => {
       const xp = cumulativeXpForLevel(25);
-      const level = calculateLevel(xp);
-      assert.ok(level >= 24 && level <= 26, `Expected ~25, got ${level}`);
+      assert.equal(calculateLevel(xp), 25);
     });
 
-    it("returns level ~50 for cumulative level-50 XP", () => {
+    it("returns level 50 for cumulative level-50 XP", () => {
       const xp = cumulativeXpForLevel(50);
-      const level = calculateLevel(xp);
-      assert.ok(level >= 49 && level <= 51, `Expected ~50, got ${level}`);
+      assert.equal(calculateLevel(xp), 50);
+    });
+
+    it("matches every exact cumulative level boundary", () => {
+      for (let expected = 1; expected <= 100; expected++) {
+        assert.equal(calculateLevel(cumulativeXpForLevel(expected)), expected);
+      }
+    });
+
+    it("does not advance until the next cumulative boundary", () => {
+      for (let current = 1; current < 100; current++) {
+        const beforeNext = cumulativeXpForLevel(current + 1) - 1;
+        assert.equal(calculateLevel(beforeNext), current);
+      }
     });
 
     it("monotonically increases", () => {

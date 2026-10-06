@@ -19,11 +19,24 @@ function cloneDefaults(): ResilienceSettings {
 test("updateResilienceSchema accepts providerQuotaOverrides entries", () => {
   const parsed = updateResilienceSchema.safeParse({
     providerQuotaOverrides: {
-      minimax: { rpm: 30, concurrency: 4 },
+      minimax: { rpm: 30, concurrency: 4, providerConcurrency: 8 },
       nvidia: { rpm: 60 },
     },
   });
   assert.equal(parsed.success, true, "valid override map should parse");
+});
+
+test("provider concurrency accepts zero as disabled and survives normalization", () => {
+  const resolved = resolveResilienceSettings({
+    resilienceSettings: {
+      providerQuotaOverrides: {
+        codex: { providerConcurrency: 3 },
+        claude: { providerConcurrency: 0 },
+      },
+    },
+  });
+  assert.equal(resolved.providerQuotaOverrides.codex.providerConcurrency, 3);
+  assert.equal(resolved.providerQuotaOverrides.claude.providerConcurrency, 0);
 });
 
 test("updateResilienceSchema allows a body containing only providerQuotaOverrides", () => {

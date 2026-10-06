@@ -1,5 +1,5 @@
 /**
- * MCP Tool Schemas — Contracts for all 23 core and advanced OmniRoute MCP tools.
+ * MCP Tool Schemas — Contracts for the canonical OmniRoute MCP tools.
  *
  * Defines input/output Zod schemas, descriptions, scopes, and audit levels
  * for both essential (Phase 1) and advanced (Phase 2) MCP tools.
@@ -12,12 +12,14 @@
 import { z } from "zod";
 import { toolSearchTool } from "./toolSearch.ts";
 import { pickFastestModelTool } from "./pickFastestModel.ts";
+import { getActiveSearchProviders } from "./providerEnums";
 import { CCR_MCP_TOOLS } from "./ccrTools.ts";
+import { radarCatalogTool } from "./radarCatalog.ts";
+import { listModelsCatalogTool } from "./listModelsCatalog.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
 } from "../../../src/shared/constants/routingStrategies.ts";
-
 // ============ Shared Types ============
 // AuditLevel + McpToolDefinition live in the leaf ./toolDefinition.ts so that
 // toolSearch.ts can import the type without forming a tools.ts ↔ toolSearch.ts cycle.
@@ -26,8 +28,12 @@ export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
 import type { McpToolDefinition } from "./toolDefinition.ts";
 export { pickFastestModelInput, pickFastestModelOutput } from "./pickFastestModel.ts";
 export * from "./ccrTools.ts";
-
-// ============ Phase 1: Essential Tools (8) ============
+export {
+  listModelsCatalogInput,
+  listModelsCatalogOutput,
+  listModelsCatalogTool,
+} from "./listModelsCatalog.ts";
+// ============ Phase 1: Essential Tools ============
 
 // --- Tool 1: omniroute_get_health ---
 export const getHealthInput = z.object({}).describe("No parameters required");
@@ -68,6 +74,27 @@ export const getHealthOutput = z.object({
       provider: z.string(),
     })
     .optional(),
+  adaptiveAdmission: z
+    .object({
+      virtualLanes: z.boolean(),
+      pressure: z.string(),
+      utilization: z.number(),
+      laneCount: z.number(),
+      laneQueuedCount: z.number(),
+      laneQueuedCost: z.number(),
+      laneTenants: z.array(
+        z.object({
+          tenantKey: z.string(),
+          queuedCount: z.number(),
+          queuedCost: z.number(),
+        })
+      ),
+      admittedCount: z.number(),
+      rejectedCount: z.number(),
+      wouldRejectCount: z.number(),
+      shutdown: z.boolean(),
+    })
+    .optional(),
   degraded: z
     .array(
       z.object({
@@ -81,7 +108,7 @@ export const getHealthOutput = z.object({
 export const getHealthTool: McpToolDefinition<typeof getHealthInput, typeof getHealthOutput> = {
   name: "omniroute_get_health",
   description:
-    "Returns the current health status of OmniRoute including uptime, memory usage, circuit breaker states for all providers, rate limit status, and cache statistics. If an underlying source (health/resilience/rate-limits) could not be reached, it is listed in `degraded` instead of being silently reported as empty/zero.",
+    "Returns the current health status of OmniRoute including uptime, memory usage, circuit breaker states for all providers, rate limit status, and cache statistics. When adaptive virtual-lane admission is active, a curated `adaptiveAdmission` block reports per-lane queue pressure (top tenants by queued cost). If an underlying source (health/resilience/rate-limits) could not be reached, it is listed in `degraded` instead of being silently reported as empty/zero.",
   inputSchema: getHealthInput,
   outputSchema: getHealthOutput,
   scopes: ["read:health"],
@@ -399,77 +426,33 @@ export const costReportTool: McpToolDefinition<typeof costReportInput, typeof co
 };
 
 // --- Tool 8: omniroute_list_models_catalog ---
-export const listModelsCatalogInput = z.object({
-  provider: z.string().optional().describe("Filter by provider name"),
-  capability: z
-    .enum(["chat", "embedding", "image", "audio", "video", "rerank", "moderation"])
-    .optional()
-    .describe("Filter by model capability"),
-});
+// Schema + tool definition live in ./listModelsCatalog.ts so this frozen
+// registry file does not grow when catalog output fields are extended.
 
-export const listModelsCatalogOutput = z.object({
-  models: z.array(
-    z.object({
-      id: z.string(),
-      provider: z.string(),
-      capabilities: z.array(z.string()),
-      status: z.enum(["available", "degraded", "unavailable"]),
-      thinkingEffort: z.string().optional(),
-      pricing: z
-        .object({
-          inputPerMillion: z.number().nullable(),
-          outputPerMillion: z.number().nullable(),
-        })
-        .optional(),
-    })
-  ),
-});
+// --- Tool 10: omniroute_web_search ---
+export function buildWebSearchInputSchema(blockedProviders: string[] = []) {
+  return z.object({
+    query: z
+      .string()
+      .min(1, "Query is required")
+      .max(500, "Query must be 500 characters or fewer")
+      .describe("The search query string"),
+    max_results: z
+      .number()
+      .int()
+      .min(1)
+      .max(20)
+      .default(5)
+      .describe("Maximum number of search results to return"),
+    search_type: z.enum(["web", "news"]).default("web").describe("Type of search to perform"),
+    provider: z
+      .enum(getActiveSearchProviders(blockedProviders))
+      .optional()
+      .describe("Specific search provider to use"),
+  });
+}
 
-export const listModelsCatalogTool: McpToolDefinition<
-  typeof listModelsCatalogInput,
-  typeof listModelsCatalogOutput
-> = {
-  name: "omniroute_list_models_catalog",
-  description:
-    "Lists all available AI models across all providers with their capabilities, current status, and pricing information.",
-  inputSchema: listModelsCatalogInput,
-  outputSchema: listModelsCatalogOutput,
-  scopes: ["read:models"],
-  auditLevel: "none",
-  phase: 1,
-  sourceEndpoints: ["/api/models/catalog", "/v1/models"],
-};
-
-// --- Tool 9: omniroute_web_search ---
-export const webSearchInput = z.object({
-  query: z
-    .string()
-    .min(1, "Query is required")
-    .max(500, "Query must be 500 characters or fewer")
-    .describe("The search query string"),
-  max_results: z
-    .number()
-    .int()
-    .min(1)
-    .max(20)
-    .default(5)
-    .describe("Maximum number of search results to return"),
-  search_type: z.enum(["web", "news"]).default("web").describe("Type of search to perform"),
-  provider: z
-    .enum([
-      "serper-search",
-      "brave-search",
-      "perplexity-search",
-      "exa-search",
-      "tavily-search",
-      "google-pse-search",
-      "linkup-search",
-      "searchapi-search",
-      "searxng-search",
-    ])
-    .optional()
-    .describe("Specific search provider to use"),
-});
+export const webSearchInput = buildWebSearchInputSchema();
 
 export const webSearchOutput = z.object({
   id: z.string(),
@@ -494,8 +477,40 @@ export const webSearchOutput = z.object({
 export const webSearchTool: McpToolDefinition<typeof webSearchInput, typeof webSearchOutput> = {
   name: "omniroute_web_search",
   description:
-    "Performs a web search using OmniRoute's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily, Google PSE, Linkup, SearchAPI, SearXNG) with automatic failover. Returns search results with titles, URLs, snippets, and position data.",
+    "Performs a web search using OmniRoute's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily, AnySearch, Google PSE, Linkup, SearchAPI, SearXNG) with automatic failover. Returns search results with titles, URLs, snippets, and position data. Not X/Twitter — use omniroute_x_search for that.",
   inputSchema: webSearchInput,
+  outputSchema: webSearchOutput,
+  scopes: ["execute:search"],
+  auditLevel: "basic",
+  phase: 1,
+  sourceEndpoints: ["/v1/search"],
+};
+
+export const xSearchInput = z.object({
+  query: z
+    .string()
+    .min(1, "Query is required")
+    .max(500, "Query must be 500 characters or fewer")
+    .describe("X search query (keywords, topic, or @handle)"),
+  max_results: z
+    .number()
+    .int()
+    .min(1)
+    .max(20)
+    .default(5)
+    .describe("Maximum number of X results to return"),
+  provider: z
+    .enum(["x-search", "xquik-search"])
+    .optional()
+    .default("x-search")
+    .describe("X search backend: x-search uses xAI/SuperGrok; xquik-search uses Xquik"),
+});
+
+export const xSearchTool: McpToolDefinition<typeof xSearchInput, typeof webSearchOutput> = {
+  name: "omniroute_x_search",
+  description:
+    "Search X (Twitter) through OmniRoute. Uses SuperGrok / xAI server-side x_search by default, or Xquik when provider is xquik-search. Requires credentials for the selected backend. This is not web search.",
+  inputSchema: xSearchInput,
   outputSchema: webSearchOutput,
   scopes: ["execute:search"],
   auditLevel: "basic",
@@ -510,9 +525,20 @@ export const webFetchInput = z.object({
     .min(1, "URL is required")
     .describe("The URL to fetch content from"),
   provider: z
-    .enum(["firecrawl", "jina-reader", "tavily-search", "tinyfish"])
+    .enum([
+      "firecrawl",
+      "jina-reader",
+      "tavily-search",
+      "tinyfish",
+      "context7",
+      "nimble-search",
+      "anysearch-search",
+    ])
     .optional()
-    .describe("Specific fetch provider to use (default: first available)"),
+    .describe(
+      "Specific fetch provider to use (default: first available). " +
+        "context7 expects a library reference URL (context7.com/<owner>/<repo>) and is explicit-only."
+    ),
   format: z
     .enum(["markdown", "html", "links", "screenshot"])
     .optional()
@@ -545,6 +571,7 @@ export const webFetchOutput = z.object({
     .object({
       title: z.string().nullable(),
       description: z.string().nullable(),
+      truncated: z.boolean().optional(),
     })
     .nullable(),
   screenshot_url: z.string().nullable(),
@@ -553,7 +580,7 @@ export const webFetchOutput = z.object({
 export const webFetchTool: McpToolDefinition<typeof webFetchInput, typeof webFetchOutput> = {
   name: "omniroute_web_fetch",
   description:
-    "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily, TinyFish) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
+    "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily, TinyFish, Context7 library docs) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
   inputSchema: webFetchInput,
   outputSchema: webFetchOutput,
   scopes: ["execute:search"],
@@ -1519,7 +1546,9 @@ export const MCP_TOOLS = [
   routeRequestTool,
   costReportTool,
   listModelsCatalogTool,
+  radarCatalogTool,
   webSearchTool,
+  xSearchTool,
   webFetchTool,
   simulateRouteTool,
   setBudgetGuardTool,

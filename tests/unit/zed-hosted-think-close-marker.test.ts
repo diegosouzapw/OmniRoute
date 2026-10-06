@@ -53,7 +53,9 @@ async function readAll(stream: ReadableStream<Uint8Array>): Promise<string> {
 
 function wrapAnthropic(options?: Record<string, unknown>): Promise<string> {
   const response = new Response(buildZedAnthropicNdjson(), { status: 200 });
-  const wrapped = wrapZedCompletionStream(response, "Anthropic", "claude-test", options);
+  // "anthropic" is the wire value normalizeZedProvider now returns (and the one
+  // cloud.zed.dev accepts); the capitalized spelling 500s upstream.
+  const wrapped = wrapZedCompletionStream(response, "anthropic", "claude-test", options);
   return readAll(wrapped.body as ReadableStream<Uint8Array>);
 }
 

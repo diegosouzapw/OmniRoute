@@ -12,8 +12,13 @@ import {
 } from "@/lib/combos/intelligentRouting";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 
-function getI18nOrFallback(t: any, key: string, fallback: string) {
-  if (typeof t?.has === "function" && t.has(key)) return t(key);
+function getI18nOrFallback(
+  t: any,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+) {
+  if (typeof t?.has === "function" && t.has(key)) return t(key, values);
   return fallback;
 }
 
@@ -94,10 +99,9 @@ export default function IntelligentComboPanel({
       const updatedCombo = await response.json();
       onComboUpdated?.(updatedCombo);
       notify.success(
-        getI18nOrFallback(t, "modePackUpdated", "Mode pack updated to {pack}.").replace(
-          "{pack}",
-          modePackId
-        )
+        getI18nOrFallback(t, "modePackUpdated", "Mode pack updated to {pack}.", {
+          pack: modePackId,
+        }).replace("{pack}", modePackId)
       );
     } catch (error: any) {
       notify.error(error?.message || "Failed to update mode pack.");
@@ -184,10 +188,9 @@ export default function IntelligentComboPanel({
               </div>
               {savingModePack && (
                 <span className="text-[11px] text-text-muted">
-                  {getI18nOrFallback(t, "savingModePack", "Saving {pack}…").replace(
-                    "{pack}",
-                    savingModePack
-                  )}
+                  {getI18nOrFallback(t, "savingModePack", "Saving {pack}…", {
+                    pack: savingModePack,
+                  }).replace("{pack}", savingModePack)}
                 </span>
               )}
             </div>

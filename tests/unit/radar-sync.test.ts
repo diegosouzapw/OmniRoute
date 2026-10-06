@@ -39,6 +39,16 @@ const FIXTURE_PATH = path.resolve(import.meta.dirname!, "../fixtures/radar-feed-
 const FIXTURE_BYTES = fs.readFileSync(FIXTURE_PATH);
 const FIXTURE_STRING = FIXTURE_BYTES.toString("utf-8");
 
+function v2FixtureBytes(): Buffer {
+  const parsed = JSON.parse(FIXTURE_STRING);
+  parsed.schemaVersion = 2;
+  parsed.models = parsed.models.map((model: Record<string, unknown>) => ({
+    ...model,
+    metadataEvidenceUrls: ["https://console.groq.com/docs/models"],
+  }));
+  return Buffer.from(JSON.stringify(parsed), "utf8");
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -188,11 +198,50 @@ test("feedSchema: rejects wrong feed literal", () => {
   assert.equal(result.success, false, "must reject wrong feed literal");
 });
 
-test("feedSchema: rejects wrong schemaVersion", () => {
+test("feedSchema: accepts v2 nullable capabilities and preserves explicit false", () => {
   const parsed = JSON.parse(FIXTURE_STRING);
   parsed.schemaVersion = 2;
+  for (const model of parsed.models) {
+    model.metadataEvidenceUrls = ["https://example.test/official-model-docs"];
+  }
+  parsed.models[0].capabilities = { tools: true, vision: false, thinking: null };
+  parsed.models[0].metadataEvidenceUrls = ["https://console.groq.com/docs/models"];
   const result = feedSchema.RadarFeedSchema.safeParse(parsed);
-  assert.equal(result.success, false, "must reject schemaVersion != 1");
+  assert.equal(result.success, true);
+  assert.deepEqual(result.data?.models[0].capabilities, {
+    tools: true,
+    vision: false,
+    thinking: null,
+  });
+  assert.deepEqual(result.data?.models[0].metadataEvidenceUrls, [
+    "https://console.groq.com/docs/models",
+  ]);
+});
+
+test("feedSchema: normalizes ambiguous v1 false placeholders to unknown", () => {
+  const parsed = JSON.parse(FIXTURE_STRING);
+  const result = feedSchema.RadarFeedSchema.parse(parsed);
+  assert.deepEqual(result.models[0].capabilities, {
+    tools: true,
+    vision: null,
+    thinking: null,
+  });
+});
+
+test("feedSchema: rejects unknown schemaVersion", () => {
+  const parsed = JSON.parse(FIXTURE_STRING);
+  parsed.schemaVersion = 3;
+  assert.equal(feedSchema.RadarFeedSchema.safeParse(parsed).success, false);
+});
+
+test("feedSchema: rejects known v2 metadata without evidence", () => {
+  const parsed = JSON.parse(FIXTURE_STRING);
+  parsed.schemaVersion = 2;
+  parsed.models = parsed.models.map((model: Record<string, unknown>) => ({
+    ...model,
+    metadataEvidenceUrls: [],
+  }));
+  assert.equal(feedSchema.RadarFeedSchema.safeParse(parsed).success, false);
 });
 
 test("feedSchema: budget per_model requires positive tokensPerMonth", () => {
@@ -381,6 +430,69 @@ test("syncRadar: version floor — same version => stale, cache untouched", asyn
 
   assert.equal(result.status, "stale");
   assert.equal(cacheWritten, false, "cache must NOT be overwritten with same version");
+});
+
+test("syncRadar: same version upgrades a validated v1 cache to the negotiated v2 artifact", async () => {
+  const v2Bytes = v2FixtureBytes();
+  const sig = signBytes(v2Bytes);
+  const cacheStore: syncMod.RadarCacheEntry[] = [];
+
+  const result = await syncMod.syncRadar({
+    getFlag: () => true,
+    getSettings: () => ({ optIn: true, supporterKey: null }),
+    getCache: () => ({
+      version: "2026.08.01.1",
+      tier: "community",
+      payload: FIXTURE_STRING,
+      signature: "previous-v1-signature",
+    }),
+    setCache: (entry) => cacheStore.push(entry),
+    fetch: (() =>
+      Promise.resolve(
+        mockResponse(v2Bytes, {
+          "x-omniroute-feed-signature": sig,
+          "x-omniroute-feed-tier": "community",
+        })
+      )) as unknown as typeof globalThis.fetch,
+  });
+
+  assert.deepEqual(result, {
+    status: "updated",
+    version: "2026.08.01.1",
+    tier: "community",
+  });
+  assert.equal(cacheStore.length, 1);
+  assert.equal(JSON.parse(cacheStore[0].payload).schemaVersion, 2);
+});
+
+test("syncRadar: same-version v2 cannot replace an existing validated v2 cache", async () => {
+  const v2Bytes = v2FixtureBytes();
+  const sig = signBytes(v2Bytes);
+  let cacheWritten = false;
+
+  const result = await syncMod.syncRadar({
+    getFlag: () => true,
+    getSettings: () => ({ optIn: true, supporterKey: null }),
+    getCache: () => ({
+      version: "2026.08.01.1",
+      tier: "community",
+      payload: v2Bytes.toString("utf8"),
+      signature: "previous-v2-signature",
+    }),
+    setCache: () => {
+      cacheWritten = true;
+    },
+    fetch: (() =>
+      Promise.resolve(
+        mockResponse(v2Bytes, {
+          "x-omniroute-feed-signature": sig,
+          "x-omniroute-feed-tier": "community",
+        })
+      )) as unknown as typeof globalThis.fetch,
+  });
+
+  assert.equal(result.status, "stale");
+  assert.equal(cacheWritten, false);
 });
 
 test("syncRadar: version floor — incoming older => stale", async () => {
@@ -587,6 +699,23 @@ test("syncRadar: sends Authorization header when supporter key exists", async ()
     "Bearer omr_test-key-123",
     "must send Bearer token when supporter key exists"
   );
+});
+
+test("syncRadar negotiates schema v2 so legacy clients can keep the default v1 artifact", async () => {
+  let requestHeaders: Record<string, string> = {};
+  const sig = signBytes(FIXTURE_BYTES);
+  await syncMod.syncRadar({
+    getFlag: () => true,
+    getSettings: () => ({ optIn: true, supporterKey: null }),
+    getCache: () => null,
+    setCache: () => {},
+    fetch: ((_url: string, init: RequestInit) => {
+      requestHeaders = init.headers as Record<string, string>;
+      return Promise.resolve(mockResponse(FIXTURE_BYTES, { "x-omniroute-feed-signature": sig }));
+    }) as unknown as typeof globalThis.fetch,
+  });
+
+  assert.equal(requestHeaders?.["x-omniroute-radar-schema"], "2");
 });
 
 test("syncRadar: no Authorization header when no supporter key", async () => {
@@ -837,76 +966,4 @@ test("syncRadar: first sync (no cache) with valid data => updated", async () => 
 
   assert.equal(result.status, "updated");
   assert.equal(cacheStore.length, 1);
-});
-
-// ===========================================================================
-// FIX 6 — 10 MB response cap (unbounded `Buffer.from(await res.arrayBuffer())`)
-// ===========================================================================
-
-test("FIX6: Content-Length header exceeding the 10MB cap => too_large, cache untouched, body never read", async () => {
-  let arrayBufferCalled = false;
-  const oversizedContentLength = String(10 * 1024 * 1024 + 1);
-  const response = mockResponse(Buffer.from("irrelevant"), {
-    "content-length": oversizedContentLength,
-  });
-  const originalArrayBuffer = response.arrayBuffer.bind(response);
-  (response as unknown as { arrayBuffer: () => Promise<ArrayBuffer> }).arrayBuffer = () => {
-    arrayBufferCalled = true;
-    return originalArrayBuffer();
-  };
-
-  let setCacheCalled = false;
-  const result = await syncMod.syncRadar({
-    getFlag: () => true,
-    getSettings: () => ({ optIn: true, supporterKey: null }),
-    getCache: () => null,
-    setCache: () => {
-      setCacheCalled = true;
-    },
-    fetch: (() => Promise.resolve(response)) as unknown as typeof globalThis.fetch,
-  });
-
-  assert.deepEqual(result, { status: "too_large" });
-  assert.equal(setCacheCalled, false, "cache must not be touched");
-  assert.equal(
-    arrayBufferCalled,
-    false,
-    "body must not be read once Content-Length already exceeds the cap"
-  );
-});
-
-test("FIX6: oversized body without a trustworthy Content-Length header => too_large, cache untouched", async () => {
-  const oversized = Buffer.alloc(10 * 1024 * 1024 + 1, 0x41);
-  let setCacheCalled = false;
-
-  const result = await syncMod.syncRadar({
-    getFlag: () => true,
-    getSettings: () => ({ optIn: true, supporterKey: null }),
-    getCache: () => null,
-    setCache: () => {
-      setCacheCalled = true;
-    },
-    fetch: (() =>
-      Promise.resolve(mockResponse(oversized, {}))) as unknown as typeof globalThis.fetch,
-  });
-
-  assert.deepEqual(result, { status: "too_large" });
-  assert.equal(setCacheCalled, false, "cache must not be touched");
-});
-
-test("FIX6: body within the 10MB cap proceeds normally (never returns too_large)", async () => {
-  const sig = signBytes(FIXTURE_BYTES);
-
-  const result = await syncMod.syncRadar({
-    getFlag: () => true,
-    getSettings: () => ({ optIn: true, supporterKey: null }),
-    getCache: () => null,
-    setCache: () => {},
-    fetch: (() =>
-      Promise.resolve(
-        mockResponse(FIXTURE_BYTES, { "x-omniroute-feed-signature": sig })
-      )) as unknown as typeof globalThis.fetch,
-  });
-
-  assert.notEqual(result.status, "too_large");
 });

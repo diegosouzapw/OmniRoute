@@ -14,7 +14,7 @@ const sseModelService = await import("../../src/sse/services/model.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -24,12 +24,13 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("combo schemas accept names with spaces and square brackets", () => {
   const createResult = schemas.createComboSchema.safeParse({
     name: "Claude [1m]",
+    models: ["anthropic/claude-3-opus"],
   });
   const updateResult = schemas.updateComboSchema.safeParse({
     name: "Claude [1m]",

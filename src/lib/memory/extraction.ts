@@ -61,16 +61,65 @@ export interface ExtractedFact {
 
 // ─── Extraction Logic ────────────────────────────────────────────────────────
 
-/**
- * Sanitize a matched string: trim, collapse whitespace, cap length
- */
-function sanitizeMatch(raw: string): string {
-  return raw.trim().replace(/\s+/g, " ").slice(0, MAX_FACT_LENGTH);
+// Lookback window (chars) used to back a hard cut index off to a clean
+// sentence or word boundary instead of slicing mid-word (see #8169's
+// compressToolResults for the same pattern applied to tool-result truncation).
+const BOUNDARY_LOOKBACK = 80;
+
+function isWordChar(char: string | undefined): boolean {
+  return char !== undefined && /\S/.test(char);
 }
 
+/**
+ * Back a hard cut index off to the nearest clean boundary within
+ * BOUNDARY_LOOKBACK chars before it. Prefers a sentence-ending punctuation
+ * mark (. ! ?) so a fact reads as a complete clause; falls back to a plain
+ * whitespace/word boundary; falls back to the original cut index when
+ * neither is found in the window (e.g. one long unbroken run of chars).
+ */
+function backOffToBoundary(content: string, cutIndex: number): number {
+  if (!isWordChar(content[cutIndex - 1]) || !isWordChar(content[cutIndex])) return cutIndex;
+
+  const windowStart = Math.max(0, cutIndex - BOUNDARY_LOOKBACK);
+
+  for (let i = cutIndex; i > windowStart; i--) {
+    if (/[.!?]/.test(content[i - 1])) return i;
+  }
+
+  for (let i = cutIndex; i > windowStart; i--) {
+    if (!isWordChar(content[i - 1])) return i - 1;
+  }
+
+  return cutIndex;
+}
+
+/**
+ * Sanitize a matched string: trim, collapse whitespace, cap length without
+ * cutting mid-word or mid-clause.
+ */
+function sanitizeMatch(raw: string): string {
+  const collapsed = raw.trim().replace(/\s+/g, " ");
+  if (collapsed.length <= MAX_FACT_LENGTH) return collapsed;
+  return collapsed.slice(0, backOffToBoundary(collapsed, MAX_FACT_LENGTH));
+}
+
+/**
+ * Cap oversized extraction input to its tail, without cutting the leading
+ * edge of the kept tail mid-word.
+ */
 function capExtractionText(text: string): string {
   if (text.length <= MAX_EXTRACTION_TEXT_LENGTH) return text;
-  return text.slice(-MAX_EXTRACTION_TEXT_LENGTH);
+  const cutIndex = text.length - MAX_EXTRACTION_TEXT_LENGTH;
+  if (!isWordChar(text[cutIndex - 1]) || !isWordChar(text[cutIndex])) {
+    return text.slice(cutIndex);
+  }
+
+  const windowEnd = Math.min(text.length, cutIndex + BOUNDARY_LOOKBACK);
+  for (let i = cutIndex; i < windowEnd; i++) {
+    if (!isWordChar(text[i])) return text.slice(i);
+  }
+
+  return text.slice(cutIndex);
 }
 
 /**

@@ -1,23 +1,21 @@
 import { z } from "zod";
 
 export type CaptureSource =
-  | "agent-bridge"
-  | "custom-host"
-  | "http-proxy"
-  | "system-proxy"
-  | "tproxy";
+  "agent-bridge" | "custom-host" | "http-proxy" | "system-proxy" | "tproxy";
 export type DetectedKind = "llm" | "app" | "unknown";
 
 export interface InterceptedRequest {
-  id: string;                            // uuid
+  id: string; // uuid
   source: CaptureSource;
-  agent?: import("../types").AgentId;    // only when source === "agent-bridge"
-  timestamp: string;                     // ISO 8601
+  // Capture metadata, not a routing AgentId: server.cjs also emits "unknown".
+  // Keep the interface aligned with the string-valued ingest schema below.
+  agent?: string;
+  timestamp: string; // ISO 8601
   method: string;
   host: string;
   path: string;
   requestHeaders: Record<string, string>;
-  requestBody: string | null;            // masked
+  requestBody: string | null; // masked
   requestSize: number;
   responseHeaders: Record<string, string>;
   responseBody: string | null;
@@ -26,16 +24,16 @@ export interface InterceptedRequest {
   proxyLatencyMs?: number;
   upstreamLatencyMs?: number;
   totalLatencyMs?: number;
-  error?: string;                        // sanitized
+  error?: string; // sanitized
   sourceModel?: string | null;
   mappedModel?: string | null;
   detectedKind?: DetectedKind;
-  contextKey?: string;                   // 12-hex SHA-256 of system prompt
+  contextKey?: string; // 12-hex SHA-256 of system prompt
   annotation?: string;
   sessionId?: string;
   note?: string;
-  pid?: number;                          // originating process id (Linux only)
-  processName?: string;                  // originating process name (Linux only)
+  pid?: number; // originating process id (Linux only)
+  processName?: string; // originating process name (Linux only)
 }
 
 export const InterceptedRequestSchema = z.object({
@@ -71,11 +69,25 @@ export const InterceptedRequestSchema = z.object({
 export type NormalizedBlock =
   | { type: "text"; text: string }
   | { type: "tool_use"; id: string; name: string; input: unknown }
-  | { type: "tool_result"; tool_use_id: string; content: unknown };
+  | { type: "tool_result"; tool_use_id: string; content: unknown }
+  // A tool identity node whose display content hasn't resolved from its
+  // call-log artifact yet (see resolveTurnDisplayContent /
+  // /api/conversations/[id]/tree's own doc comment) -- distinct from a real
+  // empty text reply. Only ever produced by /dashboard/conversations while
+  // the owning request is still in flight; every other NormalizedBlock
+  // producer (buildRequestTurns/buildResponseTurns) never emits this.
+  | { type: "pending" };
 
 export interface NormalizedTurn {
   role: "system" | "user" | "assistant" | "tool";
   blocks: NormalizedBlock[];
+  /** call_logs.id that produced this turn, when a caller has one to attach
+   * (e.g. linking a turn back to its source request) — absent for a plain
+   * single-request normalization. */
+  sourceCallLogId?: string;
+  /** ISO timestamp of the call_logs row that produced this turn — same
+   * scoping as sourceCallLogId. */
+  timestamp?: string;
 }
 
 export interface NormalizedConversation {

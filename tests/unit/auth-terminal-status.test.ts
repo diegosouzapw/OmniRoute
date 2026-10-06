@@ -14,13 +14,13 @@ const accountFallback = await import("../../open-sse/services/accountFallback.ts
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("getProviderCredentials skips credits_exhausted connections", async () => {
@@ -48,7 +48,7 @@ test("getProviderCredentials skips credits_exhausted connections", async () => {
   assert.notEqual(selected.connectionId, exhausted.id);
 });
 
-test("getProviderCredentials returns null when all active connections are terminal", async () => {
+test("getProviderCredentials reports allExpired when all active connections are terminal", async () => {
   await resetStorage();
 
   await providersDb.createProviderConnection({
@@ -60,7 +60,29 @@ test("getProviderCredentials returns null when all active connections are termin
   });
 
   const selected = await auth.getProviderCredentials("openai");
-  assert.equal(selected, null);
+  assert.equal(selected?.allExpired, true);
+  assert.equal(selected?.expiredStatus, "credits_exhausted");
+  assert.equal(selected?.expiredCount, 1);
+});
+
+test("getProviderCredentials reports allExpired for isActive grok-cli with testStatus expired (#7611)", async () => {
+  await resetStorage();
+
+  await providersDb.createProviderConnection({
+    provider: "grok-cli",
+    authType: "oauth",
+    accessToken: "gcli-access-token",
+    isActive: true,
+    testStatus: "expired",
+    errorCode: "no_refresh_token",
+    lastError: "No refresh token available — re-authenticate this account.",
+  });
+
+  const selected = await auth.getProviderCredentials("grok-cli");
+  assert.equal(selected?.allExpired, true);
+  assert.equal(selected?.expiredStatus, "expired");
+  assert.equal(selected?.expiredCount, 1);
+  assert.equal("connectionId" in (selected || {}), false);
 });
 
 test("getProviderCredentials can reuse a locally suppressed connection for combo live tests", async () => {

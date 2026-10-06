@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { NodeTypes } from "@xyflow/react";
 import { useTranslations } from "next-intl";
 import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
+import { FLOW_EDGE_COLORS, flowColorAlpha } from "@/shared/components/flow/edgeStyles";
 import {
   comboRunToFlow,
   reduceComboEvent,
@@ -81,7 +82,10 @@ function FleetOverview({ comboEvents }: FleetOverviewProps) {
               <span
                 key={p}
                 className="text-[11px] px-2 py-0.5 rounded-full font-medium"
-                style={{ backgroundColor: "#22c55e20", color: "#22c55e" }}
+                style={{
+                  backgroundColor: flowColorAlpha(FLOW_EDGE_COLORS.active, 13),
+                  color: FLOW_EDGE_COLORS.active,
+                }}
               >
                 {p}
               </span>
@@ -99,7 +103,10 @@ function FleetOverview({ comboEvents }: FleetOverviewProps) {
               <span
                 key={p}
                 className="text-[11px] px-2 py-0.5 rounded-full font-medium"
-                style={{ backgroundColor: "#ef444420", color: "#ef4444" }}
+                style={{
+                  backgroundColor: flowColorAlpha(FLOW_EDGE_COLORS.error, 13),
+                  color: FLOW_EDGE_COLORS.error,
+                }}
               >
                 {p}
               </span>
@@ -321,10 +328,10 @@ export function ComboLiveStudio({
               style={{
                 color:
                   displayRun.outcome === "succeeded"
-                    ? "#22c55e"
+                    ? "var(--orch-status-success)"
                     : displayRun.outcome === "exhausted"
-                      ? "#ef4444"
-                      : "#f59e0b",
+                      ? "var(--orch-status-error)"
+                      : "var(--orch-status-warning)",
               }}
               data-testid="run-outcome"
             >

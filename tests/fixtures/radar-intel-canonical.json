@@ -1,0 +1,42 @@
+{
+  "feed": "omniroute-radar-intel",
+  "schemaVersion": 1,
+  "version": "2026.08.09.1",
+  "generatedAt": "2026-08-09T12:00:00.000Z",
+  "tier": "live",
+  "methodology": { "kind": "elo", "initialRating": 1000, "kFactor": 32 },
+  "rankings": [
+    {
+      "rank": 1,
+      "provider": "example-a",
+      "modelId": "example-model-a",
+      "category": "general",
+      "rating": 1016,
+      "matches": 1,
+      "wins": 1,
+      "losses": 0,
+      "draws": 0
+    },
+    {
+      "rank": 2,
+      "provider": "example-b",
+      "modelId": "example-model-b",
+      "category": "general",
+      "rating": 984,
+      "matches": 1,
+      "wins": 0,
+      "losses": 1,
+      "draws": 0
+    }
+  ],
+  "catalog": {
+    "currentVersion": "2026.08.09.1",
+    "previousVersion": "2026.08.08.1",
+    "currentGeneratedAt": "2026-08-09T11:00:00.000Z",
+    "ageDays": 0,
+    "freshness": "fresh",
+    "providers": { "current": 2, "added": 1, "removed": 0 },
+    "models": { "current": 2, "added": 1, "removed": 0 },
+    "trend": "growing"
+  }
+}

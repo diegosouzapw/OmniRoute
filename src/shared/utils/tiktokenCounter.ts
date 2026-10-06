@@ -21,6 +21,29 @@ export function tokenizerContextFromBody(body: unknown): TokenizerContext {
 
 const encoders = new Map<TokenizerEncoding, Tiktoken>();
 
+/**
+ * Above this many characters the exact tokenizer is skipped in favor of the
+ * char-heuristic (chars/4). js-tiktoken's pure-JS encoder is near-quadratic on
+ * large inputs — a 10 MB base64 image payload can block the event loop for
+ * tens of seconds (OmniRoute worker wedge incident). Token counting is used for
+ * compression stats/estimates only, so a heuristic on oversized inputs is
+ * acceptable and keeps the loop responsive.
+ */
+export const MAX_EXACT_TOKEN_COUNT_CHARS = 50_000;
+
+/**
+ * Base64 data URIs (e.g. OpenAI-style `image_url.url`) must not be tokenized:
+ * they are image payloads, not text. Matching a data URI of any `image/*`
+ * media type and stripping it keeps the count accurate (the raw bytes of an
+ * image are not meaningful "text" tokens) while avoiding the quadratic encode
+ * cost on large attachments.
+ */
+const BASE64_DATA_URI_RE = /data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+/gi;
+
+function stripBase64DataUris(text: string): string {
+  return text.replace(BASE64_DATA_URI_RE, "");
+}
+
 function normalize(value: unknown): string {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
@@ -60,12 +83,19 @@ function getEncoder(encoding: TokenizerEncoding): Tiktoken {
  * Existing callers retain cl100k_base; Codex callers may pass provider/model context
  * to use o200k_base.
  * Defensive: never throws in a counting path — falls back to a char heuristic.
+ * Oversized inputs (over 50k chars) and base64 image data URIs are never
+ * tokenized: the encoder is near-quadratic on large strings and would block the
+ * event loop (worker wedge regression).
  */
 export function countTextTokens(text: string, context?: TokenizerContext): number {
   if (!text || typeof text !== "string") return 0;
+  const stripped = stripBase64DataUris(text);
+  if (stripped.length > MAX_EXACT_TOKEN_COUNT_CHARS) {
+    return Math.ceil(stripped.length / 4);
+  }
   try {
-    return getEncoder(resolveTokenizerEncoding(context)).encode(text).length;
+    return getEncoder(resolveTokenizerEncoding(context)).encode(stripped).length;
   } catch {
-    return Math.ceil(text.length / 4);
+    return Math.ceil(stripped.length / 4);
   }
 }

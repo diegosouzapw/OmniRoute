@@ -38,7 +38,8 @@ before(async () => {
 
 after(() => {
   core.resetDbInstance();
-  if (tmpDataDir) rmSync(tmpDataDir, { recursive: true, force: true });
+  if (tmpDataDir)
+    rmSync(tmpDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 describe("discovery API routes", () => {
@@ -135,13 +136,19 @@ describe("discovery API routes", () => {
       riskLevel: "none",
       status: "pending",
     });
-    const first = await resultByIdRoute.DELETE(req("DELETE", `/api/discovery/results/${created.id}`), {
-      params: Promise.resolve({ id: String(created.id) }),
-    });
+    const first = await resultByIdRoute.DELETE(
+      req("DELETE", `/api/discovery/results/${created.id}`),
+      {
+        params: Promise.resolve({ id: String(created.id) }),
+      }
+    );
     assert.equal(first.status, 200);
-    const second = await resultByIdRoute.DELETE(req("DELETE", `/api/discovery/results/${created.id}`), {
-      params: Promise.resolve({ id: String(created.id) }),
-    });
+    const second = await resultByIdRoute.DELETE(
+      req("DELETE", `/api/discovery/results/${created.id}`),
+      {
+        params: Promise.resolve({ id: String(created.id) }),
+      }
+    );
     assert.equal(second.status, 404);
   });
 

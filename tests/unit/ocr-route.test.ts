@@ -183,6 +183,7 @@ test("handleOcr returns a sanitized 500 when the upstream request throws", async
   const payload = (await response.json()) as any;
 
   assert.equal(response.status, 500);
-  assert.match(payload.error.message, /OCR request failed: socket closed/);
+  assert.ok(payload.error.message.includes("OCR request failed"));
+  assert.ok(!payload.error.message.includes("socket closed"));
   assert.ok(!payload.error.message.includes("at /"));
 });

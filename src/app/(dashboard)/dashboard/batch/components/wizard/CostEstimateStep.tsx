@@ -28,27 +28,32 @@ export default function CostEstimateStep({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    try {
-      const est = estimateBatchCost({ jsonl, model, endpoint });
-      setEstimate(est);
-    } catch (err) {
-      console.error("[CostEstimateStep] cost estimation error:", err);
-      // Fallback: zero-cost estimate so user can still proceed
-      setEstimate({
-        model,
-        totalRequests: 0,
-        estimatedInputTokens: 0,
-        estimatedOutputTokens: 0,
-        syncCostUsd: 0,
-        batchCostUsd: 0,
-        savingsUsd: 0,
-        pricingSource: "fallback",
-        warnings: ["Cost estimation failed — shown as $0."],
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Deferred to a microtask: the compiler bars synchronous setState in an
+    // effect body; the loading state still settles before the next paint batch.
+    void (async () => {
+      await Promise.resolve();
+      setLoading(true);
+      try {
+        const est = estimateBatchCost({ jsonl, model, endpoint });
+        setEstimate(est);
+      } catch (err) {
+        console.error("[CostEstimateStep] cost estimation error:", err);
+        // Fallback: zero-cost estimate so user can still proceed
+        setEstimate({
+          model,
+          totalRequests: 0,
+          estimatedInputTokens: 0,
+          estimatedOutputTokens: 0,
+          syncCostUsd: 0,
+          batchCostUsd: 0,
+          savingsUsd: 0,
+          pricingSource: "fallback",
+          warnings: ["Cost estimation failed — shown as $0."],
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [jsonl, model, endpoint]);
 
   if (loading) {
@@ -96,7 +101,9 @@ export default function CostEstimateStep({
 
           {/* Stats */}
           <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-xs text-[var(--color-text-muted)]">{t("wizardCostRequests")}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">
+              {t("wizardCostRequests")}
+            </span>
             <span className="text-xs text-[var(--color-text-muted)]">
               {estimate.totalRequests.toLocaleString()} ·{" "}
               {estimate.estimatedInputTokens.toLocaleString()} {t("wizardCostInputTok")} ·{" "}
@@ -116,7 +123,9 @@ export default function CostEstimateStep({
       )}
 
       {/* Disclaimer */}
-      <p className="text-xs text-[var(--color-text-muted)] italic">{t("wizardCostEstimatedNotice")}</p>
+      <p className="text-xs text-[var(--color-text-muted)] italic">
+        {t("wizardCostEstimatedNotice")}
+      </p>
 
       {/* Warnings */}
       {estimate && estimate.warnings.length > 0 && (
@@ -151,7 +160,9 @@ export default function CostEstimateStep({
       >
         {creating ? (
           <>
-            <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+            <span className="material-symbols-outlined text-sm animate-spin">
+              progress_activity
+            </span>
             {t("wizardCreating")}
           </>
         ) : (

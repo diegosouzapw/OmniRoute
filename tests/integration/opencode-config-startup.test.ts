@@ -6,8 +6,13 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { after, it } from "node:test";
 
-const OPENCODE_VERSION = "1.18.8";
 const require = createRequire(import.meta.url);
+// Read the pin from the installed package instead of hard-coding it: the constant
+// was frozen at 1.18.8 and silently went stale when Dependabot bumped opencode-ai
+// to 1.18.18 (#10626), turning this into a base-red. Sourcing it from the resolved
+// package.json keeps the assertion just as strict (the binary must report exactly
+// the version this repo pins) while surviving future bumps.
+const OPENCODE_VERSION: string = require("opencode-ai/package.json").version;
 const testHome = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-opencode-8849-"));
 const originalHome = process.env.HOME;
 const originalFetch = globalThis.fetch;
@@ -18,7 +23,7 @@ after(() => {
   globalThis.fetch = originalFetch;
   if (originalHome === undefined) delete process.env.HOME;
   else process.env.HOME = originalHome;
-  fs.rmSync(testHome, { recursive: true, force: true });
+  fs.rmSync(testHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function runOpencode(binary: string, args: string[]) {
@@ -93,10 +98,14 @@ it("#8849 generated config is accepted by pinned OpenCode schema and startup", a
     resolvedConfig.provider.issue8849.models["context-input-output"].limit.output,
     32768
   );
-  assert.strictEqual(
-    resolvedConfig.provider.issue8849.models["no-limit-metadata"].limit,
-    undefined
-  );
+  // #11035/#11032 (PR #11054) made the generator ALWAYS emit both limit keys: a model
+  // the catalog knows nothing about now gets the 128K context / 8K output fallbacks,
+  // because OpenCode's v1 provider schema rejects the whole config on a missing
+  // `limit.context` / `limit.output`. Before that fix the entry carried no `limit` at all.
+  assert.deepStrictEqual(resolvedConfig.provider.issue8849.models["no-limit-metadata"].limit, {
+    context: 128_000,
+    output: 8_192,
+  });
 
   const startup = runOpencode(opencodeBinary, ["debug", "startup", "--pure"]);
   assert.strictEqual(startup.status, 0, startup.stderr);

@@ -3,8 +3,37 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const LOCAL_PROVIDERS = {
+  "mlx-gemma": {
+    id: "mlx-gemma",
+    serviceKinds: ["llm"],
+    alias: "mlx-gemma",
+    name: "MLX Gemma 26B",
+    icon: "memory",
+    color: "#8B5CF6",
+    textIcon: "MG",
+    website: "https://github.com/ml-explore/mlx",
+    authHint:
+      "No API key required. Runs mlx-lm server locally on port 11435. Requires uv and mlx-lm installed. Model: mlx-community/gemma-4-26B-A4B-it-qat-q4_0-mlx-aligned (~15.9GB peak memory).",
+    localDefault: "http://localhost:11435/v1",
+    passthroughModels: false,
+  },
+  "mlx-qwen": {
+    id: "mlx-qwen",
+    serviceKinds: ["llm"],
+    alias: "mlx-qwen",
+    name: "MLX Qwen 3.8 27B",
+    icon: "memory",
+    color: "#EC4899",
+    textIcon: "MQ",
+    website: "https://github.com/ml-explore/mlx",
+    authHint:
+      "No API key required. Runs mlx-lm server locally on port 11436. Requires uv and mlx-lm installed. Model: maglun/Qwen3.8-27B-MLX-Mixed-3.80bpw (~13.1GB peak memory).",
+    localDefault: "http://localhost:11436/v1",
+    passthroughModels: false,
+  },
   "ollama-local": {
     id: "ollama-local",
+    serviceKinds: ["llm"],
     alias: "ollama",
     name: "Ollama",
     icon: "pets",
@@ -18,6 +47,7 @@ export const LOCAL_PROVIDERS = {
   },
   "lm-studio": {
     id: "lm-studio",
+    serviceKinds: ["llm"],
     alias: "lmstudio",
     name: "LM Studio",
     icon: "server",
@@ -31,6 +61,7 @@ export const LOCAL_PROVIDERS = {
   },
   vllm: {
     id: "vllm",
+    serviceKinds: ["llm"],
     alias: "vllm",
     name: "vLLM",
     icon: "memory",
@@ -44,6 +75,7 @@ export const LOCAL_PROVIDERS = {
   },
   lemonade: {
     id: "lemonade",
+    serviceKinds: ["llm", "embedding"],
     alias: "lemonade",
     name: "Lemonade Server",
     icon: "bolt",
@@ -57,6 +89,7 @@ export const LOCAL_PROVIDERS = {
   },
   llamafile: {
     id: "llamafile",
+    serviceKinds: ["llm"],
     alias: "llamafile",
     name: "Llamafile",
     icon: "article",
@@ -70,6 +103,7 @@ export const LOCAL_PROVIDERS = {
   },
   "llama-cpp": {
     id: "llama-cpp",
+    serviceKinds: ["llm", "embedding"],
     alias: "llamacpp",
     name: "llama.cpp",
     icon: "memory",
@@ -83,6 +117,7 @@ export const LOCAL_PROVIDERS = {
   },
   triton: {
     id: "triton",
+    serviceKinds: ["llm"],
     alias: "triton",
     name: "NVIDIA Triton",
     icon: "developer_board",
@@ -96,6 +131,7 @@ export const LOCAL_PROVIDERS = {
   },
   "docker-model-runner": {
     id: "docker-model-runner",
+    serviceKinds: ["llm"],
     alias: "dmr",
     name: "Docker Model Runner",
     icon: "inventory_2",
@@ -109,6 +145,7 @@ export const LOCAL_PROVIDERS = {
   },
   xinference: {
     id: "xinference",
+    serviceKinds: ["llm"],
     alias: "xinference",
     name: "XInference",
     icon: "hub",
@@ -122,6 +159,7 @@ export const LOCAL_PROVIDERS = {
   },
   oobabooga: {
     id: "oobabooga",
+    serviceKinds: ["llm"],
     alias: "ooba",
     name: "oobabooga",
     icon: "dns",
@@ -135,6 +173,7 @@ export const LOCAL_PROVIDERS = {
   },
   sdwebui: {
     id: "sdwebui",
+    serviceKinds: [],
     alias: "sdwebui",
     name: "SD WebUI",
     icon: "brush",
@@ -148,6 +187,7 @@ export const LOCAL_PROVIDERS = {
   },
   comfyui: {
     id: "comfyui",
+    serviceKinds: [],
     alias: "comfyui",
     name: "ComfyUI",
     icon: "account_tree",

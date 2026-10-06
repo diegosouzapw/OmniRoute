@@ -8,13 +8,13 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-file-dele
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { createFile, deleteFile, listFiles, createBatch, getBatch, updateBatch } =
-  await import("@/lib/localDb");
+const { createFile, deleteFile, listFiles } = await import("@/lib/db/files");
+const { createBatch, getBatch, updateBatch } = await import("@/lib/db/batches");
 const { getDbInstance, resetDbInstance } = await import("@/lib/db/core");
 
 after(() => {
   resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
   } else {

@@ -12,6 +12,10 @@ import { HIDEABLE_SIDEBAR_GROUP_IDS } from "@/shared/constants/sidebarGroupVisib
 import { HIDEABLE_SIDEBAR_ITEM_IDS, SIDEBAR_SECTIONS } from "@/shared/constants/sidebarVisibility";
 import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 import { RESPONSES_PREVIOUS_RESPONSE_ID_MODES } from "@/shared/constants/responsesPreviousResponseId";
+import {
+  VIDEO_BRIDGE_TIMEOUT_MAX_MS,
+  VIDEO_BRIDGE_TIMEOUT_MIN_MS,
+} from "@/shared/constants/modalityBridgeDefaults";
 // Import from the server-free constants leaf, NOT from `@/server/authz/routeGuard`:
 // this schema is reachable from client components (dashboard onboarding wizard), and
 // routeGuard drags in server runtime (→ ioredis) that breaks the client/CLI build.
@@ -19,6 +23,7 @@ import {
   SPAWN_CAPABLE_PREFIXES,
   SPAWN_CAPABLE_PATTERN_ANCESTORS,
 } from "@/shared/constants/spawnCapablePrefixes";
+import { isHttpUrl } from "@/shared/validation/schemas/misc";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
@@ -104,6 +109,7 @@ export const updateSettingsSchema = z.object({
   language: z.string().max(10).optional(),
   requireLogin: z.boolean().optional(),
   oidcEnabled: z.boolean().optional(),
+  oidcDisablePasswordLogin: z.boolean().optional(),
   oidcIssuer: z.string().max(500).optional(),
   oidcClientId: z.string().max(200).optional(),
   oidcClientSecret: z.string().max(500).optional(),
@@ -123,6 +129,50 @@ export const updateSettingsSchema = z.object({
   blockedProviders: z.array(z.string().max(100)).optional(),
   noAuthFallbackDisabledProviders: z.array(z.string().max(100)).optional(),
   hidePaidModels: z.boolean().optional(),
+  // #9418/#13562: catalog/auto-combo already consume both flags (open-sse
+  // autoCombo + /v1/models catalog), but neither was ever added here — Zod
+  // silently strips unknown keys on a plain z.object, so PATCH /api/settings
+  // answered 200 while dropping both before they reached the DB.
+  hideAutoCombos: z.boolean().optional(),
+  hideNoThinkVariants: z.boolean().optional(),
+  // STRICT_ZERO_COST (opt-in, default "off"): stricter than hidePaidModels — a
+  // candidate must be keyless (no credential exists, so no request against it
+  // can ever be billed) OR pass a live, fresh, hard-stop-guaranteed quota
+  // check, per candidate, before ranking/dispatch. See
+  // open-sse/services/autoCombo/strictZeroCostFilter.ts.
+  freeAccessPolicy: z.enum(["off", "strict"]).optional(),
+  // Separate from freeAccessPolicy on purpose: excludes candidates whose
+  // curated `tos` verdict is "avoid" (proxy/self-hosted use conflicts with the
+  // provider's own terms) — a contractual concern, not an economic one.
+  excludeTosAvoid: z.boolean().optional(),
+  // #11481: Opt-in explicit model exposure allow/deny list for `/v1/models` AND
+  // the `auto/*` combo candidate pool (mirror in
+  // open-sse/services/autoCombo/modelExposureFilter.ts — #6512 already proved a
+  // catalog-only filter still leaks into combo routing). Entries are exact
+  // "provider/model" (or bare "model") ids, or a glob pattern via the shared
+  // globToRegex matcher (src/shared/utils/modelExposureList.ts). Independent of
+  // hidePaidModels — this is operator curation, not a cost signal. Default
+  // empty arrays = no-op (Hard Rule #20 spirit).
+  modelVisibilityAllowlist: z.array(z.string().max(200)).max(500).optional(),
+  modelVisibilityDenylist: z.array(z.string().max(200)).max(500).optional(),
+  // Subscription-first routing tuning (`auto/subscription`, `auto/thrifty`).
+  // TUNING ONLY — there is deliberately no `enabled` flag: both ids are opt-in
+  // by being requested, and a toggle able to switch them off would leave
+  // `auto/subscription` silently serving paid capacity under a name that
+  // promises the opposite. See open-sse/services/autoCombo/subscriptionLadder.ts.
+  subscriptionLadder: z
+    .object({
+      // Remaining-% at or below which a plan-included connection counts as
+      // exhausted. Matches quotaPreflight.defaultThresholdPercent's default.
+      exitCutoffPercent: z.number().min(0).max(100).optional(),
+      // Remaining-% a connection must EXCEED to be re-admitted after having
+      // been exhausted. The gap above exitCutoffPercent is the hysteresis band
+      // that stops a connection hovering at the cutoff from oscillating.
+      reentryMinRemainingPercent: z.number().min(0).max(100).optional(),
+      // Per-rung spend ceiling in USD. 0 disables a rung outright.
+      rungBudgetUsd: z.record(z.string().max(32), z.number().min(0)).optional(),
+    })
+    .optional(),
   hideHealthCheckLogs: z.boolean().optional(),
   hideEndpointCloudflaredTunnel: z.boolean().optional(),
   hideEndpointTailscaleFunnel: z.boolean().optional(),
@@ -170,6 +220,12 @@ export const updateSettingsSchema = z.object({
     )
     .optional(),
   customBannedSignals: z.array(z.string().max(200)).optional(),
+  customSystemPromptEnabled: z.boolean().optional(),
+  customSystemPrompt: z.string().max(10000).optional(),
+  // #9817: opt-in (default off) — lets a probe-origin (model test-all)
+  // failure deactivate a connection like real traffic. Off by default:
+  // probe failures are recorded but never mutate routing state.
+  probeCanDisable: z.boolean().optional(),
   debugMode: z.boolean().optional(),
   logToolSources: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
@@ -178,7 +234,10 @@ export const updateSettingsSchema = z.object({
     .array(z.enum(SIDEBAR_SECTIONS.map((s) => s.id) as [string, ...string[]]))
     .optional(),
   sidebarItemOrder: z.record(z.string(), z.array(z.string().max(100))).optional(),
-  sidebarActivePreset: z.enum(["all", "minimal", "developer", "admin"]).nullable().optional(),
+  sidebarActivePreset: z
+    .enum(["all", "essentials", "minimal", "developer", "admin"])
+    .nullable()
+    .optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
   codexServiceTier: z
     .object({
@@ -228,7 +287,7 @@ export const updateSettingsSchema = z.object({
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
   /** 9router parity: global combo expansion strategy (fallback vs round-robin). */
   comboStrategy: z.enum(["fallback", "round-robin"]).optional(),
-  comboStickyRoundRobinLimit: z.number().int().min(1).max(100).nullable().optional(),
+  comboStickyRoundRobinLimit: z.number().int().min(1).max(1000).nullable().optional(),
   providerStrategies: z
     .record(
       z.string().trim().min(1),
@@ -238,13 +297,57 @@ export const updateSettingsSchema = z.object({
       })
     )
     .optional(),
+  /**
+   * Operator-declared per-provider error rules. Consulted BEFORE the built-in
+   * `providerRuleRegistry` in open-sse/config/providerErrorRules.ts so an
+   * operator can add a scope/cooldown/reason override for a provider without
+   * editing the catalog. Matches are plain case-insensitive SUBSTRINGS of the
+   * error body (never RegExp) to keep the classification hot path ReDoS-safe.
+   * Bounded to 50 rules total so a misconfigured setting cannot blow up the
+   * matcher.
+   */
+  providerErrorRules: z
+    .record(
+      z.string().trim().min(1).max(100),
+      z.array(
+        z.object({
+          status: z.number().int().min(100).max(599),
+          match: z.string().min(1).max(200),
+          scope: z.enum(["model", "provider", "connection"]),
+          reason: z
+            .enum([
+              "auth_error",
+              "quota_exhausted",
+              "rate_limit_exceeded",
+              "model_capacity",
+              "server_error",
+              "unknown",
+            ])
+            .optional(),
+          cooldownMs: z.number().int().min(0).max(86_400_000).optional(),
+        })
+      )
+    )
+    .optional()
+    .superRefine((value, ctx) => {
+      if (!value) return;
+      const total = Object.values(value).reduce((n, rules) => n + rules.length, 0);
+      if (total > 50) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `providerErrorRules: at most 50 rules total, got ${total}`,
+        });
+      }
+    }),
   // #6168: global session-stickiness opt-out (per-combo config overrides this).
   disableSessionStickiness: z.boolean().optional(),
+  // Global connection-aware expansion fallback for group-B combo strategies is opt-in.
+  connectionAwareExpansion: z.boolean().optional(),
   /** Keep eligible combo targets close to the provider-side prompt cache. */
   promptCacheAffinityEnabled: z.boolean().optional(),
   /**
    * Per-operator quota row visibility on the usage dashboard, keyed by
-   * provider id. Independent of the model catalog's isHidden/isDeleted flags.
+   * provider id. Independent of the model catalog's isHidden flag.
    * Ported from upstream decolua/9router#2371.
    */
   quotaVisibility: z
@@ -349,10 +452,29 @@ export const updateSettingsSchema = z.object({
   modalityBridgeVisionPrompt: z.string().max(5000).optional(),
   modalityBridgeVisionTimeout: z.number().int().min(1000).max(300000).optional(),
   modalityBridgeVisionMaxImages: z.number().int().min(1).max(20).optional(),
+  modalityBridgeVisionMaxChars: z
+    .union([z.literal(0), z.number().int().min(100).max(50000)])
+    .optional(),
   modalityBridgeAudioEnabled: z.boolean().optional(),
   modalityBridgeAudioModel: z.string().max(200).optional(),
   modalityBridgeAudioTimeout: z.number().int().min(1000).max(300000).optional(),
   modalityBridgeAudioMaxClips: z.number().int().min(1).max(10).optional(),
+  modalityBridgeVideoEnabled: z.boolean().optional(),
+  modalityBridgeVideoAnalysisMode: z.enum(["full", "focused"]).optional(),
+  modalityBridgeVideoModel: z.string().max(200).optional(),
+  modalityBridgeVideoFrameCount: z.number().int().min(1).max(16).optional(),
+  modalityBridgeVideoSamplingPolicy: z.enum(["uniform", "scene_aware", "segment_aware"]).optional(),
+  modalityBridgeVideoMaxVideos: z.number().int().min(1).max(4).optional(),
+  modalityBridgeVideoTimeout: z
+    .number()
+    .int()
+    .min(VIDEO_BRIDGE_TIMEOUT_MIN_MS)
+    .max(VIDEO_BRIDGE_TIMEOUT_MAX_MS)
+    .optional(),
+  // Operator half of the FU-06 dual opt-in (#11654) for server-orchestrated
+  // Audio Bridge STT over Video Bridge audio extraction — defaults false
+  // (Hard Rule #20). A request-side opt-in is required in addition to this.
+  modalityBridgeVideoAudioTranscriptionEnabled: z.boolean().optional(),
   modalityBridgeCacheEnabled: z.boolean().optional(),
   modalityBridgeCacheTtlMinutes: z.number().int().min(1).max(1440).optional(),
   modalityBridgeCacheMaxEntries: z.number().int().min(10).max(5000).optional(),
@@ -378,6 +500,26 @@ export const updateSettingsSchema = z.object({
   // CLIProxyAPI connection settings
   cliproxyapi_fallback_enabled: z.boolean().optional(),
   cliproxyapi_url: z.string().url().max(500).optional(),
+  // #12306: external Headroom proxy URL. Empty = fall back to HEADROOM_URL / localhost:8787.
+  // Status/start already read this key; without the schema field PATCH strips it.
+  // Trim first so a padded URL matches the client (isValidHeadroomUrl trims)
+  // and whitespace-only becomes the empty fallback, not "Invalid URL".
+  // z.string().url() also accepts javascript:/data:/file:. probeProxyRunning
+  // interpolates this into fetch(`${url}/health`), so restrict to http(s).
+  headroomUrl: z
+    .string()
+    .trim()
+    .pipe(
+      z.union([
+        z.literal(""),
+        z
+          .string()
+          .url()
+          .max(500)
+          .refine((value) => isHttpUrl(value), "must be an http(s) URL"),
+      ])
+    )
+    .optional(),
   cliproxyapi_fallback_codes: z.string().max(200).optional(),
   // #7645: dedicated CLIProxyAPI credential. CLIProxyAPI requires its own
   // separately-configured `api-keys:` credential and rejects any other token

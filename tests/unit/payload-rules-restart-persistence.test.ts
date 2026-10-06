@@ -27,7 +27,7 @@ const payloadRulesService = await import("../../open-sse/services/payloadRules.t
 test.after(() => {
   payloadRulesService.resetPayloadRulesConfigForTests();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#2986 payload rules survive a restart (DB fallback when override is cleared)", async () => {

@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 /**
  * #7274: session affinity ("sticky session") was hardcoded to work for the
  * `codex` provider only — `resolveSessionAffinityTtlMs()` bailed to 0 for
@@ -52,13 +62,14 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const affinityDb = await import("../../src/lib/db/sessionAccountAffinity.ts");
 const auth = await import("../../src/sse/services/auth.ts");
-const { resolveSessionAffinityTtlMs } = await import("../../src/sse/services/sessionAffinityPin.ts");
+const { resolveSessionAffinityTtlMs } =
+  await import("../../src/sse/services/sessionAffinityPin.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -67,7 +78,8 @@ async function seedConnection(provider: string, overrides: Record<string, unknow
     provider,
     authType: (overrides.authType as string) || "api_key",
     name: (overrides.name as string) || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
-    accessToken: (overrides.accessToken as string) || `at-${Math.random().toString(16).slice(2, 10)}`,
+    accessToken:
+      (overrides.accessToken as string) || `at-${Math.random().toString(16).slice(2, 10)}`,
     isActive: (overrides.isActive as boolean) ?? true,
     testStatus: (overrides.testStatus as string) || "active",
     providerSpecificData: (overrides.providerSpecificData as Record<string, unknown>) || {},
@@ -81,7 +93,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── 1. generic (non-Codex) provider now honors the TTL ──────────────────────
@@ -96,7 +108,11 @@ test("#7274 a non-Codex provider with sessionAffinityTtlMs > 0 persists and reus
     sessionKey: "session-generic",
     forcedConnectionId: connectionA.id,
   });
-  assert.equal(request1?.connectionId, connectionA.id, "first request pins to the forced connection");
+  assert.equal(
+    request1?.connectionId,
+    connectionA.id,
+    "first request pins to the forced connection"
+  );
   assert.equal(
     affinityDb.getSessionAccountAffinity("session-generic", "glm", 60_000)?.connectionId,
     connectionA.id,
@@ -162,7 +178,7 @@ test("#7274 resolveSessionAffinityTtlMs prefers the new generic key over the leg
 
 test("#7274 resolveSessionAffinityTtlMs now applies to any provider, not just codex", () => {
   const ttl = resolveSessionAffinityTtlMs("openai", {}, { sessionAffinityTtlMs: 45_000 });
-  assert.equal(ttl, 45_000, "the provider !== \"codex\" early-return must be gone");
+  assert.equal(ttl, 45_000, 'the provider !== "codex" early-return must be gone');
 });
 
 // ── 2b. raw-SQL migration: additive, idempotent carry-over ──────────────────
@@ -190,7 +206,9 @@ test("#7274 migration 124 carries codexSessionAffinityTtlMs over to sessionAffin
     db.exec(migrationSql);
 
     const row = db
-      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'sessionAffinityTtlMs'")
+      .prepare(
+        "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'sessionAffinityTtlMs'"
+      )
       .get() as { value: string } | undefined;
     assert.equal(row?.value, "60000", "the generic key must carry the old value over");
 
@@ -199,13 +217,19 @@ test("#7274 migration 124 carries codexSessionAffinityTtlMs over to sessionAffin
         "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'codexSessionAffinityTtlMs'"
       )
       .get() as { value: string } | undefined;
-    assert.equal(oldRow?.value, "60000", "the migration is additive — the old key/row is not deleted");
+    assert.equal(
+      oldRow?.value,
+      "60000",
+      "the migration is additive — the old key/row is not deleted"
+    );
 
     // Idempotency: re-running the migration (as the runner would on a replay)
     // must not throw and must not change the already-carried-over value.
     assert.doesNotThrow(() => db.exec(migrationSql));
     const rowAfterReplay = db
-      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'sessionAffinityTtlMs'")
+      .prepare(
+        "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'sessionAffinityTtlMs'"
+      )
       .get() as { value: string } | undefined;
     assert.equal(rowAfterReplay?.value, "60000");
   } finally {
@@ -232,7 +256,9 @@ test("#7274 migration 124 is a no-op when the operator never configured the lega
 
     assert.doesNotThrow(() => db.exec(migrationSql));
     const row = db
-      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'sessionAffinityTtlMs'")
+      .prepare(
+        "SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'sessionAffinityTtlMs'"
+      )
       .get();
     assert.equal(row, undefined, "no row should be created when there was nothing to carry over");
   } finally {

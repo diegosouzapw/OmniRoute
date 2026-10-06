@@ -25,7 +25,7 @@ function jsonResponse(body, status = 200) {
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -154,7 +154,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   delete PROVIDERS["custom-oauth-local-608"];
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("token refresh wrapper delegates provider-specific refresh helpers and formatter utilities", async () => {

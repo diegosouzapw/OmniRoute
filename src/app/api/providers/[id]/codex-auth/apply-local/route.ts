@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { ensureCliConfigWriteAllowed } from "@/shared/services/cliRuntime";
-import { CodexAuthFileError, writeCodexAuthFileToLocalCli } from "@/lib/oauth/utils/codexAuthFile";
+import {
+  CodexAuthFileError,
+  writeCodexAuthFileToLocalCliIfNeeded,
+} from "@/lib/oauth/utils/codexAuthFile";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
+// Optional body { force?: boolean }. Unknown keys are stripped rather than
+// rejected so the endpoint stays tolerant of the empty/no-body calls it
+// historically accepted. Non-boolean `force` is coerced away to the default.
+const ApplyLocalBodySchema = z
+  .object({ force: z.boolean().optional() })
+  .partial()
+  .passthrough();
 
 function toErrorResponse(error: unknown) {
   if (error instanceof CodexAuthFileError) {
@@ -33,7 +45,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const { id } = await params;
-    const result = await writeCodexAuthFileToLocalCli(id);
+
+    // Optional { force?: boolean } body. By default we DON'T clobber an existing,
+    // fresh ~/.codex/auth.json (a session the user may be managing themselves);
+    // force overwrites it (a backup is always taken regardless). Malformed/empty
+    // bodies are tolerated — this endpoint historically took no body.
+    let force = false;
+    try {
+      const parsed = ApplyLocalBodySchema.safeParse(await request.json());
+      force = parsed.success ? parsed.data.force === true : false;
+    } catch {
+      /* no body — default force=false */
+    }
+
+    const applied = await writeCodexAuthFileToLocalCliIfNeeded(id, { force });
+    const result = applied.result;
 
     logAuditEvent({
       action: "provider.credentials.applied",
@@ -45,18 +71,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       requestId: auditContext.requestId,
       metadata: {
         provider: "codex",
-        authPath: result.authPath,
-        savedBakPath: result.savedBakPath,
+        decision: applied.decision,
+        authPath: applied.authPath,
+        savedBakPath: result?.savedBakPath,
       },
     });
 
     return NextResponse.json({
       success: true,
       connectionId: id,
-      connectionLabel: result.connectionLabel,
-      authPath: result.authPath,
-      savedBakPath: result.savedBakPath,
-      centralizedBackupPath: result.centralizedBackupPath,
+      // "skipped_present_fresh" means an existing healthy auth.json was kept.
+      decision: applied.decision,
+      connectionLabel: result?.connectionLabel,
+      authPath: applied.authPath,
+      savedBakPath: result?.savedBakPath,
+      centralizedBackupPath: result?.centralizedBackupPath,
       writtenAt: new Date().toISOString(),
     });
   } catch (error) {

@@ -8,13 +8,13 @@
  * routing details (account/connection ids, weights, internal labels).
  */
 import { NextResponse } from "next/server";
-import { getCombos } from "@/lib/localDb";
+import { getCombos } from "@/lib/db/combos";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
-import { projectCombo, type PublicCombo } from "./projectCombo";
+import { projectComboCollectionWithCapabilities } from "./projectCombo";
 
 export async function OPTIONS() {
   return new Response(null, {
@@ -43,10 +43,9 @@ export async function GET(request: Request) {
 
   try {
     const combos = await getCombos();
-    const data = (Array.isArray(combos) ? combos : [])
-      // #3979: advertise resolved capabilities so importing clients enable them
-      .map((c) => projectCombo(c as Record<string, unknown>, { includeCapabilities: true }))
-      .filter((c): c is PublicCombo => c !== null);
+    // #3979/#14232: project the full collection through one canonical capability
+    // snapshot so nested combos agree with /v1/models without per-member reads.
+    const data = projectComboCollectionWithCapabilities(Array.isArray(combos) ? combos : []);
 
     return NextResponse.json(
       { object: "list", data },

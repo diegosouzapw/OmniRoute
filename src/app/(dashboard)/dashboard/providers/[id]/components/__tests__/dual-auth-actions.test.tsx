@@ -167,6 +167,15 @@ describe("dual-auth provider actions (#8882)", () => {
     expectDualAuthActions(rendered.container, rendered);
   });
 
+  it("renders OAuth Connect and Manual API key for empty xAI", () => {
+    const rendered = renderEmptyProvider({
+      providerId: "xai",
+      supportsDualAuth: true,
+      providerSupportsPat: false,
+    });
+    expectDualAuthActions(rendered.container, rendered);
+  });
+
   it("renders OAuth Connect and Manual API key for populated CodeBuddy CN", () => {
     const rendered = renderPopulatedCodeBuddy();
     expectDualAuthActions(rendered.container, rendered);

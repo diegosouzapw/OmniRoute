@@ -19,7 +19,7 @@ const { probeHealth } = (await import("../../scripts/dev/healthcheck.mjs")) as {
 function startServer(host: string): Promise<{ server: http.Server; port: number }> {
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => {
-      if (req.url === "/api/monitoring/health") {
+      if (req.url === "/healthz") {
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify({ status: "ok" }));
       } else {

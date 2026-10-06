@@ -1,5 +1,5 @@
 import { CORS_HEADERS } from "@/shared/utils/cors";
-import { getLiveWsPath } from "@/shared/utils/wsPath";
+import { getLiveWsPath, resolveLiveWsPublicUrl } from "@/shared/utils/wsPath";
 import { authorizeWebSocketHandshake } from "@/lib/ws/handshake";
 
 const WS_HANDSHAKE_HEADERS = {
@@ -13,9 +13,9 @@ const WS_HANDSHAKE_HEADERS = {
  * env changes are honored, and only echoed when it is a ws:// or wss:// URL.
  */
 function getLivePublicUrl(): string | null {
-  const publicUrl = process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL;
-  if (!publicUrl) return null;
-  return publicUrl.startsWith("ws://") || publicUrl.startsWith("wss://") ? publicUrl : null;
+  // Runtime-resolved: a prebuilt image never carries a build-time NEXT_PUBLIC_*
+  // value, and this handshake is what the browser reads instead (#11331).
+  return resolveLiveWsPublicUrl();
 }
 
 function getWsProtocol() {

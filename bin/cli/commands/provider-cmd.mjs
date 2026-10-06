@@ -13,6 +13,9 @@ export function registerProvider(program) {
     omniroute providers test <name> — test a provider connection
     omniroute providers test-all    — test all active connections
     omniroute providers validate    — validate local configuration
+    omniroute providers add <id>    — add an API-key connection
+    omniroute providers auth <id>   — start an existing OAuth flow
+    omniroute providers remove <id> — remove a connection (requires confirmation)
 `);
     });
 }

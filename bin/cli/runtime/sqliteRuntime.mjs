@@ -6,7 +6,9 @@ import { pathToFileURL } from "node:url";
 import { validateBinaryMagic, platformBinaryLabel } from "./magicBytes.mjs";
 
 const RUNTIME_DIR = join(homedir(), ".omniroute", "runtime");
-const BETTER_SQLITE3_VERSION = "better-sqlite3@^12.10.1";
+// Exported so the packaging coherence guard (tests/unit/pack-boot-runtime-paths.test.ts)
+// can assert this stays on the same major as optionalDependencies.better-sqlite3 (#11242).
+export const BETTER_SQLITE3_VERSION = "better-sqlite3@^13.0.2";
 
 let resolvedCached = null;
 
@@ -23,6 +25,17 @@ let resolvedCached = null;
  */
 export async function loadSqliteRuntime() {
   if (resolvedCached) return resolvedCached;
+
+  if (process.versions.bun) {
+    try {
+      const bunSqlite = await import("bun:sqlite");
+      resolvedCached = {
+        driver: { kind: "bun-sqlite", Database: bunSqlite.Database },
+        source: "bun-sqlite",
+      };
+      return resolvedCached;
+    } catch {}
+  }
 
   const bundled = await tryLoadBundled();
   if (bundled) {

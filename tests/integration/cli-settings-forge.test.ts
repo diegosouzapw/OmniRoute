@@ -16,17 +16,16 @@ process.env.JWT_SECRET = "test-jwt-secret-forge";
 
 // Import DB reset helpers (must be before route import)
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 
 // Import route handlers
-const { GET, POST, DELETE } = await import(
-  "../../src/app/api/cli-tools/forge-settings/route.ts"
-);
+const { GET, POST, DELETE } = await import("../../src/app/api/cli-tools/forge-settings/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -107,10 +106,7 @@ test("forge-settings POST: writes config.toml with valid body", async () => {
     );
 
     // 200 = success; 403 = write guard active (test env); 500 = backup dir issue
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Unexpected status ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Unexpected status ${res.status}`);
 
     if (res.status === 200) {
       const body = await res.json();
@@ -126,7 +122,7 @@ test("forge-settings POST: writes config.toml with valid body", async () => {
     }
   } finally {
     process.env.HOME = origHome;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -143,16 +139,13 @@ test("forge-settings DELETE: removes config file when it exists", async () => {
     fs.mkdirSync(forgeDir, { recursive: true });
     fs.writeFileSync(
       path.join(forgeDir, "config.toml"),
-      "# managed by OmniRoute (plan 14)\n[openai]\nbase_url = \"http://localhost:20128\"\n"
+      '# managed by OmniRoute (plan 14)\n[openai]\nbase_url = "http://localhost:20128"\n'
     );
 
     const res = await DELETE(
       new Request("http://localhost/api/cli-tools/forge-settings", { method: "DELETE" })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Expected 200/403/500, got ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Expected 200/403/500, got ${res.status}`);
 
     if (res.status === 200) {
       const body = await res.json();
@@ -160,7 +153,7 @@ test("forge-settings DELETE: removes config file when it exists", async () => {
     }
   } finally {
     process.env.HOME = origHome;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -194,7 +187,7 @@ test("forge-settings route.ts: does not call exec() or spawn() directly", () => 
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   delete process.env.DATA_DIR;
   delete process.env.API_KEY_SECRET;
   delete process.env.JWT_SECRET;

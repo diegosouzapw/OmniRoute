@@ -28,7 +28,7 @@ const { parseModel } = await import("../../open-sse/services/model.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#2901 no-auth OpenCode combo models use the oc/ prefix (not opencode/)", async () => {

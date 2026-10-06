@@ -2,6 +2,7 @@ import { describe, it, beforeEach, afterEach, before, after } from "node:test";
 import assert from "node:assert";
 import net from "node:net";
 import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
+import type { ExecutorLog } from "../../open-sse/executors/base.ts";
 import {
   resolveProxyForRequest,
   runWithAppliedProxyCapture,
@@ -57,17 +58,21 @@ after(() => {
   serverB?.close();
 });
 
-function credentialsWithProxies() {
+/** Two fingerprints; `withProxies: false` omits accountProxies so both accounts
+ * share the default egress instead of each having a dedicated proxy. */
+function credentialsWithProxies(withProxies = true) {
   return {
     apiKey: null,
     accessToken: null,
     connectionId: "noauth",
     providerSpecificData: {
       fingerprints: [ACCOUNT_A, ACCOUNT_B],
-      accountProxies: [
-        { fingerprint: ACCOUNT_A, proxy: { type: "http", host: "127.0.0.1", port: portA } },
-        { fingerprint: ACCOUNT_B, proxy: { type: "http", host: "127.0.0.1", port: portB } },
-      ],
+      ...(withProxies && {
+        accountProxies: [
+          { fingerprint: ACCOUNT_A, proxy: { type: "http", host: "127.0.0.1", port: portA } },
+          { fingerprint: ACCOUNT_B, proxy: { type: "http", host: "127.0.0.1", port: portB } },
+        ],
+      }),
     },
   } as any;
 }
@@ -89,7 +94,8 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
   function installFetchStub(statuses: number[]) {
     let call = 0;
     globalThis.fetch = (async (input: any) => {
-      const url = typeof input === "string" ? input : input?.url || String(input);
+      const url =
+        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
       const resolved = resolveProxyForRequest(url);
       let host: string | null = null;
       let port: string | null = null;
@@ -167,6 +173,221 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
     for (const p of observed) {
       assert.strictEqual(p.source, "context", "every dispatch must egress through a proxy context");
     }
+  });
+
+  it("rotates to the next account on a network throw (not just 429)", async () => {
+    const exec = new OpencodeExecutor("opencode-zen");
+    let call = 0;
+    const originalFetchForThrow = globalThis.fetch;
+    globalThis.fetch = (async (input: Parameters<typeof fetch>[0]) => {
+      const url =
+        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      const resolved = resolveProxyForRequest(url);
+      observed.push({
+        source: resolved.source,
+        host: resolved.proxyUrl ? new URL(resolved.proxyUrl).hostname : null,
+        port: resolved.proxyUrl ? new URL(resolved.proxyUrl).port : null,
+      });
+      call++;
+      if (call === 1) {
+        throw new Error("ECONNRESET: connection reset by peer");
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof globalThis.fetch;
+
+    try {
+      const result = await exec.execute({
+        model: "deepseek-v4-flash-free",
+        body: { messages: [{ role: "user", content: "hi" }], stream: false },
+        stream: false,
+        signal: null,
+        credentials: credentialsWithProxies(),
+        log,
+      });
+
+      assert.strictEqual(
+        (result as { response: { status: number } }).response.status,
+        200,
+        "a throw on account A must not abort the request — account B must be tried"
+      );
+      assert.ok(observed.length >= 2, "should have retried on a second account after the throw");
+      assert.notStrictEqual(
+        observed[0].port,
+        observed[1].port,
+        "rotation must switch to a different account/proxy after a throw"
+      );
+    } finally {
+      globalThis.fetch = originalFetchForThrow;
+    }
+  });
+
+  it("logs a network-error rotation and does not swallow it silently", async () => {
+    const exec = new OpencodeExecutor("opencode-zen");
+    let call = 0;
+    const originalFetchForThrow = globalThis.fetch;
+    globalThis.fetch = (async () => {
+      call++;
+      if (call === 1) throw new Error("ETIMEDOUT");
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof globalThis.fetch;
+
+    const warnCalls: Array<{ tag: unknown; msg: string }> = [];
+    const spyLog: ExecutorLog = {
+      debug() {},
+      info() {},
+      warn: (tag, msg) => {
+        warnCalls.push({ tag, msg });
+      },
+      error() {},
+    };
+
+    try {
+      await exec.execute({
+        model: "deepseek-v4-flash-free",
+        body: { messages: [{ role: "user", content: "hi" }], stream: false },
+        stream: false,
+        signal: null,
+        credentials: credentialsWithProxies(),
+        log: spyLog,
+      });
+
+      assert.ok(
+        warnCalls.some((c) => c.tag === "OPENCODE" && /network error/i.test(c.msg)),
+        `expected a warn-level "network error" log; got=${JSON.stringify(warnCalls)}`
+      );
+    } finally {
+      globalThis.fetch = originalFetchForThrow;
+    }
+  });
+
+  describe("NETWORK_ROTATION_SHARED_EGRESS_GUARD", () => {
+    const FLAG = "NETWORK_ROTATION_SHARED_EGRESS_GUARD";
+    let originalEnvValue: string | undefined;
+
+    beforeEach(() => {
+      originalEnvValue = process.env[FLAG];
+    });
+
+    afterEach(() => {
+      if (originalEnvValue === undefined) delete process.env[FLAG];
+      else process.env[FLAG] = originalEnvValue;
+    });
+
+    it("rotates to a proxied account after a proxy-less account throws (mixed fleet, guard on by default)", async () => {
+      const exec = new OpencodeExecutor("opencode-zen");
+      let call = 0;
+      const originalFetchForThrow = globalThis.fetch;
+      globalThis.fetch = (async () => {
+        call++;
+        if (call === 1) throw new Error("ETIMEDOUT");
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }) as typeof globalThis.fetch;
+
+      try {
+        // ACCOUNT_A has no proxy, ACCOUNT_B does — credentialsWithProxies(true)
+        // only configures a proxy for accounts present in accountProxies; give
+        // A no entry so it stays proxy-less while B keeps its dedicated proxy.
+        const credentials = credentialsWithProxies();
+        credentials.providerSpecificData.accountProxies =
+          credentials.providerSpecificData.accountProxies.filter(
+            (ap: { fingerprint: string }) => ap.fingerprint !== ACCOUNT_A
+          );
+
+        const result = await exec.execute({
+          model: "deepseek-v4-flash-free",
+          body: { messages: [{ role: "user", content: "hi" }], stream: false },
+          stream: false,
+          signal: null,
+          credentials,
+          log,
+        });
+
+        assert.strictEqual(
+          (result as { response: { status: number } }).response.status,
+          200,
+          "the proxied account (B) must still be tried and must succeed the request"
+        );
+        assert.strictEqual(call, 2, "exactly one throw (A) then one success (B)");
+      } finally {
+        globalThis.fetch = originalFetchForThrow;
+      }
+    });
+
+    it("makes a single real network call when no account has a configured proxy (guard on by default)", async () => {
+      const exec = new OpencodeExecutor("opencode-zen");
+      let call = 0;
+      const originalFetchForThrow = globalThis.fetch;
+      globalThis.fetch = (async () => {
+        call++;
+        throw new Error("ETIMEDOUT");
+      }) as typeof globalThis.fetch;
+
+      try {
+        await assert.rejects(
+          () =>
+            exec.execute({
+              model: "deepseek-v4-flash-free",
+              body: { messages: [{ role: "user", content: "hi" }], stream: false },
+              stream: false,
+              signal: null,
+              credentials: credentialsWithProxies(false),
+              log,
+            }),
+          /ETIMEDOUT/,
+          "must ultimately propagate once no candidate account remains"
+        );
+        assert.strictEqual(
+          call,
+          1,
+          "remaining proxy-less accounts must be skipped without a network call once the shared egress is known down"
+        );
+      } finally {
+        globalThis.fetch = originalFetchForThrow;
+      }
+    });
+
+    it("propagates immediately on the first proxy-less throw when the guard is disabled", async () => {
+      process.env[FLAG] = "false";
+      const exec = new OpencodeExecutor("opencode-zen");
+      let call = 0;
+      const originalFetchForThrow = globalThis.fetch;
+      globalThis.fetch = (async () => {
+        call++;
+        throw new Error("ETIMEDOUT");
+      }) as typeof globalThis.fetch;
+
+      try {
+        await assert.rejects(
+          () =>
+            exec.execute({
+              model: "deepseek-v4-flash-free",
+              body: { messages: [{ role: "user", content: "hi" }], stream: false },
+              stream: false,
+              signal: null,
+              credentials: credentialsWithProxies(false),
+              log,
+            }),
+          /ETIMEDOUT/,
+          "a network throw on a proxy-less account must propagate, not be swallowed into rotation"
+        );
+        assert.strictEqual(
+          call,
+          1,
+          "must not retry against another account when the guard is disabled"
+        );
+      } finally {
+        globalThis.fetch = originalFetchForThrow;
+      }
+    });
   });
 
   // #5217 (Gap 2): the per-request account/proxy selection log was log.debug, which

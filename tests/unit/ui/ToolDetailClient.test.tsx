@@ -73,6 +73,17 @@ vi.mock("@/shared/constants/cliTools", () => ({
       baseUrlSupport: "full",
       defaultModels: [],
     },
+    "grok-build": {
+      id: "grok-build",
+      name: "Grok Build",
+      icon: "terminal",
+      color: "#1DA1F2",
+      category: "code",
+      configType: "custom",
+      vendor: "xAI",
+      baseUrlSupport: "full",
+      defaultModels: [],
+    },
     "hermes-agent": {
       id: "hermes-agent",
       name: "Hermes Agent",
@@ -125,6 +136,7 @@ vi.mock("../../../src/app/(dashboard)/dashboard/cli-code/components/index", () =
   CopilotToolCard: () => <div data-testid="CopilotToolCard" />,
   CustomCliCard: () => <div data-testid="CustomCliCard" />,
   HermesAgentToolCard: () => <div data-testid="HermesAgentToolCard" />,
+  GrokBuildToolCard: () => <div data-testid="GrokBuildToolCard" />,
 }));
 
 vi.mock("../../../src/app/(dashboard)/dashboard/cli-code/components/CliproxyapiToolCard", () => ({
@@ -286,6 +298,13 @@ describe("ToolDetailClient", () => {
     const card = container.querySelector("[data-testid='DefaultToolCard']");
     expect(card).not.toBeNull();
     expect(card!.getAttribute("data-toolid")).toBe("forge");
+  });
+
+  it("renders GrokBuildToolCard for grok-build", async () => {
+    const container = renderDetail("grok-build", "code");
+    await act(async () => {});
+    expect(container.querySelector("[data-testid='GrokBuildToolCard']")).not.toBeNull();
+    expect(container.querySelector("[data-testid='DefaultToolCard']")).toBeNull();
   });
 
   it("renders nothing (null) for completely unknown toolId", async () => {

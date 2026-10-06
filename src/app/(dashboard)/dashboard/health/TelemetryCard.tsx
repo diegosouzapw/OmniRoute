@@ -176,7 +176,9 @@ export default function TelemetryCard() {
   }, [t]);
 
   useEffect(() => {
-    void loadTelemetry();
+    void (async () => {
+      await loadTelemetry();
+    })();
     const interval = setInterval(() => void loadTelemetry(), REFRESH_MS);
     return () => clearInterval(interval);
   }, [loadTelemetry]);

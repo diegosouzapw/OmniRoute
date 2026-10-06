@@ -22,14 +22,14 @@ test("B: ClaudeWebExecutor alias cw-web is registered", () => {
   assert.ok(hasSpecializedExecutor("cw-web"));
 });
 
-test("C: ClaudeWebExecutor can be retrieved from executor registry", () => {
-  const executor = getExecutor("claude-web");
+test("C: ClaudeWebExecutor can be retrieved from executor registry", async () => {
+  const executor = await getExecutor("claude-web");
   assert.ok(executor instanceof ClaudeWebExecutor);
 });
 
-test("D: ClaudeWebExecutor cw-web alias resolves to same type", () => {
-  const a = getExecutor("claude-web");
-  const b = getExecutor("cw-web");
+test("D: ClaudeWebExecutor cw-web alias resolves to same type", async () => {
+  const a = await getExecutor("claude-web");
+  const b = await getExecutor("cw-web");
   assert.ok(a instanceof ClaudeWebExecutor);
   assert.ok(b instanceof ClaudeWebExecutor);
 });

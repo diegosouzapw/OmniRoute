@@ -18,13 +18,12 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
 const core = await import("../../src/lib/db/core.ts");
-const mappingsRoute = await import(
-  "../../src/app/api/tools/agent-bridge/agents/[id]/mappings/route.ts"
-);
+const mappingsRoute =
+  await import("../../src/app/api/tools/agent-bridge/agents/[id]/mappings/route.ts");
 
 function resetDb() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -33,18 +32,21 @@ test.beforeEach(() => {
 });
 
 test.after(() => {
-  try { fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true }); } catch { /* noop */ }
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  } catch {
+    /* noop */
+  }
 });
 
 // ── GET (empty) ────────────────────────────────────────────────────────────
 
 test("GET /mappings: returns empty array for new agent", async () => {
-  const res = await mappingsRoute.GET(
-    new Request("http://localhost/"),
-    { params: { id: "copilot" } }
-  );
+  const res = await mappingsRoute.GET(new Request("http://localhost/"), {
+    params: { id: "copilot" },
+  });
   assert.equal(res.status, 200);
-  const body = await res.json() as { mappings: unknown[] };
+  const body = (await res.json()) as { mappings: unknown[] };
   assert.ok(Array.isArray(body.mappings));
   assert.equal(body.mappings.length, 0);
 });
@@ -66,17 +68,21 @@ test("PUT → GET round-trip: stores and retrieves mappings", async () => {
     { params: { id: "copilot" } }
   );
   assert.equal(putRes.status, 200);
-  const putBody = await putRes.json() as { ok: boolean; mappings: Array<{ agent_id: string; source_model: string; target_model: string }> };
+  const putBody = (await putRes.json()) as {
+    ok: boolean;
+    mappings: Array<{ agent_id: string; source_model: string; target_model: string }>;
+  };
   assert.equal(putBody.ok, true);
   assert.equal(putBody.mappings.length, 2);
 
   // GET reads back the same data
-  const getRes = await mappingsRoute.GET(
-    new Request("http://localhost/"),
-    { params: { id: "copilot" } }
-  );
+  const getRes = await mappingsRoute.GET(new Request("http://localhost/"), {
+    params: { id: "copilot" },
+  });
   assert.equal(getRes.status, 200);
-  const getBody = await getRes.json() as { mappings: Array<{ source_model: string; target_model: string }> };
+  const getBody = (await getRes.json()) as {
+    mappings: Array<{ source_model: string; target_model: string }>;
+  };
   assert.equal(getBody.mappings.length, 2);
 
   const sources = getBody.mappings.map((m) => m.source_model).sort();
@@ -108,11 +114,10 @@ test("PUT: replaces all previous mappings", async () => {
   );
   assert.equal(putRes.status, 200);
 
-  const getRes = await mappingsRoute.GET(
-    new Request("http://localhost/"),
-    { params: { id: "cursor" } }
-  );
-  const body = await getRes.json() as { mappings: Array<{ source_model: string }> };
+  const getRes = await mappingsRoute.GET(new Request("http://localhost/"), {
+    params: { id: "cursor" },
+  });
+  const body = (await getRes.json()) as { mappings: Array<{ source_model: string }> };
   assert.equal(body.mappings.length, 1);
   assert.equal(body.mappings[0].source_model, "new-model");
 });
@@ -136,7 +141,7 @@ test("PUT: empty mappings array clears all mappings", async () => {
     { params: { id: "zed" } }
   );
   assert.equal(putRes.status, 200);
-  const body = await putRes.json() as { mappings: unknown[] };
+  const body = (await putRes.json()) as { mappings: unknown[] };
   assert.equal(body.mappings.length, 0);
 });
 
@@ -152,7 +157,7 @@ test("PUT: invalid body (missing mappings) returns 400", async () => {
     { params: { id: "antigravity" } }
   );
   assert.equal(res.status, 400);
-  const body = await res.json() as Record<string, unknown>;
+  const body = (await res.json()) as Record<string, unknown>;
   const errMsg = (body.error as Record<string, unknown>)?.message as string;
   assert.ok(!errMsg.includes("at /"), "stack trace leaked in 400 error");
 });
@@ -183,10 +188,9 @@ test("PUT: error responses do not leak stack traces", async () => {
 });
 
 test("GET: error responses do not leak stack traces", async () => {
-  const res = await mappingsRoute.GET(
-    new Request("http://localhost/"),
-    { params: { id: "antigravity" } }
-  );
+  const res = await mappingsRoute.GET(new Request("http://localhost/"), {
+    params: { id: "antigravity" },
+  });
   const text = await res.text();
   assert.ok(!text.includes("at /"), "stack trace leaked in GET /mappings response");
 });

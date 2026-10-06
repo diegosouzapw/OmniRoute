@@ -11,7 +11,15 @@
 // code path with zero network use.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync, chmodSync, existsSync, readFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  rmSync,
+  mkdirSync,
+  writeFileSync,
+  chmodSync,
+  existsSync,
+  readFileSync,
+} from "node:fs";
 import { join, delimiter } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -45,7 +53,7 @@ function teardown(): void {
     if (v === undefined) delete process.env[k];
     else process.env[k] = v;
   }
-  if (tmpDir) rmSync(tmpDir, { recursive: true, force: true });
+  if (tmpDir) rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }
 
 function installLineFor(pkgPrefix: string): string | undefined {

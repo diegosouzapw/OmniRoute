@@ -15,6 +15,14 @@ function createState() {
   };
 }
 
+/** State carrying explicit client thinking intent (thinking:{type:"enabled"}). */
+function createThinkingState() {
+  return {
+    ...createState(),
+    requestedThinking: true,
+  };
+}
+
 function flatten(items) {
   return items.flatMap((item) => item || []);
 }
@@ -52,7 +60,7 @@ test("OpenAI stream: text delta starts Claude message and closes cleanly on stop
 });
 
 test("OpenAI stream: reasoning_content closes before text content starts", () => {
-  const state = createState();
+  const state = createThinkingState();
   const reasoning = openaiToClaudeResponse(
     {
       id: "chatcmpl-2",
@@ -76,6 +84,42 @@ test("OpenAI stream: reasoning_content closes before text content starts", () =>
   assert.equal(result[3].type, "content_block_stop");
   assert.equal(result[4].content_block.type, "text");
   assert.equal(result[5].delta.text, "Answer");
+});
+
+test("OpenAI stream: reasoning_content is suppressed when the client did not request thinking", () => {
+  // "Did not request" is what chatCore resolves to `requestedThinking: false`
+  // (hasActiveClaudeThinking() always yields a boolean at open-sse/handlers/chatCore.ts).
+  // A bare createState() leaves it `undefined`, which is the LEGACY caller shape the
+  // non-streaming path documents as "always relay a thinking block" — so the
+  // suppression contract has to be asserted with the value production sends.
+  const state = { ...createState(), requestedThinking: false };
+  const reasoning = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-2d",
+      model: "gpt-4.1",
+      choices: [{ index: 0, delta: { reasoning_content: "Plan" }, finish_reason: null }],
+    },
+    state
+  );
+  const text = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-2d",
+      model: "gpt-4.1",
+      choices: [{ index: 0, delta: { content: "Answer" }, finish_reason: null }],
+    },
+    state
+  );
+  const result = flatten([reasoning, text]);
+
+  assert.equal(
+    result.some(
+      (event) => event.type === "content_block_start" && event.content_block?.type === "thinking"
+    ),
+    false
+  );
+  assert.equal(result[0].type, "message_start");
+  assert.equal(result[1].content_block.type, "text");
+  assert.equal(result[2].delta.text, "Answer");
 });
 
 test("OpenAI stream: internal reasoning replay placeholder stays hidden from Claude thinking block", () => {
@@ -105,7 +149,9 @@ test("OpenAI stream: internal reasoning replay placeholder stays hidden from Cla
   const result = flatten([placeholder, text]);
 
   assert.equal(
-    result.some((event) => event.type === "content_block_start" && event.content_block?.type === "thinking"),
+    result.some(
+      (event) => event.type === "content_block_start" && event.content_block?.type === "thinking"
+    ),
     false
   );
   assert.equal(result[0].type, "message_start");
@@ -217,10 +263,7 @@ test("OpenAI stream: multi-chunk content without the placeholder passes through 
     textDeltas.map((event) => event.delta.text),
     ["Hello, ", "world.", " Bye."]
   );
-  assert.equal(
-    textDeltas.map((event) => event.delta.text).join(""),
-    "Hello, world. Bye."
-  );
+  assert.equal(textDeltas.map((event) => event.delta.text).join(""), "Hello, world. Bye.");
 });
 
 test("OpenAI stream: tool calls strip Claude OAuth prefix and keep cache usage", () => {
@@ -427,9 +470,11 @@ test("OpenAI stream: XML <invoke> block in content becomes tool_use at finish", 
   // message_start → (no text block since all content was XML)
   assert.equal(result[0].type, "message_start");
   // At finish: tool_use content_block_start
-  const toolStart = result.find((e) => e.type === "content_block_start" && e.content_block?.type === "tool_use");
+  const toolStart = result.find(
+    (e) => e.type === "content_block_start" && e.content_block?.type === "tool_use"
+  );
   assert.ok(toolStart, "expected tool_use content_block_start");
-  assert.equal(toolStart.content_block.name, "bash"); // normalized via REVERSE_MAP
+  assert.equal(toolStart.content_block.name, "Bash"); // canonical echo kept (#11085 live repro)
   assert.deepEqual(toolStart.content_block.input, { command: "ls -la" });
   // tool_use content_block_stop
   const toolStop = result.find((e) => e.type === "content_block_stop");
@@ -465,7 +510,7 @@ test("OpenAI stream: XML invoke block across two streaming chunks", () => {
       choices: [
         {
           index: 0,
-          delta: { content: 'hosts</parameter></invoke>' },
+          delta: { content: "hosts</parameter></invoke>" },
           finish_reason: null,
         },
       ],
@@ -487,9 +532,11 @@ test("OpenAI stream: XML invoke block across two streaming chunks", () => {
   // Buffer should be cleared after chunk2
   assert.equal(state._xmlInvokeBuffer, "", "buffer cleared after complete block");
 
-  const toolStart = result.find((e) => e.type === "content_block_start" && e.content_block?.type === "tool_use");
+  const toolStart = result.find(
+    (e) => e.type === "content_block_start" && e.content_block?.type === "tool_use"
+  );
   assert.ok(toolStart, "expected tool_use content_block_start");
-  assert.equal(toolStart.content_block.name, "read");
+  assert.equal(toolStart.content_block.name, "Read"); // canonical echo kept (#11085 live repro)
   assert.deepEqual(toolStart.content_block.input, { file_path: "/etc/hosts" });
 });
 
@@ -538,15 +585,25 @@ test("OpenAI stream: text before XML block is emitted as text content", () => {
   const result = flatten([chunk1, chunk2, chunk3]);
 
   // "Checking..." should be emitted as text
-  const textDeltas = result.filter((e) => e.type === "content_block_delta" && e.delta?.type === "text_delta");
+  const textDeltas = result.filter(
+    (e) => e.type === "content_block_delta" && e.delta?.type === "text_delta"
+  );
   assert.ok(textDeltas.length > 0, "expected at least one text delta");
-  assert.ok(textDeltas.some((d) => d.delta.text.includes("Checking...")), "text before XML preserved");
-  assert.ok(textDeltas.some((d) => d.delta.text.includes("Done.")), "text after XML preserved");
+  assert.ok(
+    textDeltas.some((d) => d.delta.text.includes("Checking...")),
+    "text before XML preserved"
+  );
+  assert.ok(
+    textDeltas.some((d) => d.delta.text.includes("Done.")),
+    "text after XML preserved"
+  );
 
   // Tool call should still be emitted
-  const toolStart = result.find((e) => e.type === "content_block_start" && e.content_block?.type === "tool_use");
+  const toolStart = result.find(
+    (e) => e.type === "content_block_start" && e.content_block?.type === "tool_use"
+  );
   assert.ok(toolStart, "expected tool_use content_block_start");
-  assert.equal(toolStart.content_block.name, "bash");
+  assert.equal(toolStart.content_block.name, "Bash"); // canonical echo kept (#11085 live repro)
   assert.deepEqual(toolStart.content_block.input, { command: "date" });
 });
 
@@ -580,4 +637,53 @@ test("OpenAI stream: no XML in content behaves normally", () => {
 
 test("OpenAI stream: null chunk is ignored", () => {
   assert.equal(openaiToClaudeResponse(null, createState()), null);
+});
+
+// Regression for the autocompact 502 empty_response (call logs
+// 1787569671800-5782c0, 1787570213960-d98520): Claude Code sends
+// thinking:{type:"adaptive"} on autocompact. A prior gate (e28d02066) only
+// recognized type === "enabled", so adaptive left requestedThinking false and
+// the translator DROPPED a GLM-5.2 reasoning-only response — no content block
+// survived, and stream.ts:emitClaudeEmptyStreamErrorAndAbort raised a 502.
+// With adaptive now recognized (hasActiveClaudeThinking), reasoning_content
+// must become a thinking block so the stream is never empty.
+test("OpenAI stream: reasoning-only response with thinking:{type:adaptive} is relayed as a thinking block (not empty 502)", () => {
+  // Simulate the chatCore-side decision: adaptive is now treated as thinking
+  // requested (mirrors hasActiveClaudeThinking).
+  const state = createThinkingState();
+  // GLM-5.2 returns ONLY reasoning_content, no content — the autocompact case.
+  const reasoning = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-adaptive-502",
+      model: "glm-5.2",
+      choices: [
+        { index: 0, delta: { reasoning_content: "Compacting context..." }, finish_reason: null },
+      ],
+    },
+    state
+  );
+  const final = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-adaptive-502",
+      model: "glm-5.2",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 100, completion_tokens: 5, total_tokens: 105 },
+    },
+    state
+  );
+  const result = flatten([reasoning, final]);
+
+  // A thinking block MUST be present — this is what prevents the empty-stream
+  // 502 at flush time. With the old enabled-only gate, requestedThinking would
+  // be false and this block would never be emitted.
+  const thinkingStarts = result.filter((e) => e?.content_block?.type === "thinking");
+  assert.ok(
+    thinkingStarts.length >= 1,
+    "adaptive must produce a thinking block so the stream is not empty"
+  );
+  const thinkingDeltas = result.filter((e) => e?.delta?.type === "thinking_delta");
+  assert.equal(thinkingDeltas[0].delta.thinking, "Compacting context...");
+  // The message must finish normally (end_turn), not as an error.
+  const messageDeltas = result.filter((e) => e?.type === "message_delta");
+  assert.equal(messageDeltas[0].delta.stop_reason, "end_turn");
 });

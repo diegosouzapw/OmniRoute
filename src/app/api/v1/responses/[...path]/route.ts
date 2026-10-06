@@ -1,5 +1,6 @@
 import { handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
+import { withChatAdmission } from "@/shared/middleware/withChatAdmission";
 
 let initialized = false;
 
@@ -25,7 +26,9 @@ export async function OPTIONS() {
  * Reuses the shared chat handler so native Codex passthrough can keep
  * arbitrary Responses suffixes all the way to the upstream provider.
  */
-export async function POST(request) {
+async function postHandler(request) {
   await ensureInitialized();
   return await handleChat(request);
 }
+
+export const POST = withChatAdmission(postHandler);

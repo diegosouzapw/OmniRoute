@@ -9,7 +9,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-account-analytics-secret";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updatePricing } = await import("@/lib/db/settings");
+const localDb = { updatePricing };
 const providersDb = await import("../../src/lib/db/providers.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const { resolveUsageAccountIdentity } = await import("../../src/lib/usage/accountIdentity.ts");
@@ -34,14 +35,14 @@ async function readAccounts() {
 
 test.beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   usageHistory.clearPendingRequests();
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("Codex account grouping follows workspace and user identity, not email", async () => {

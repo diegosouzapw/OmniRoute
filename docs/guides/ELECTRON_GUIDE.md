@@ -39,15 +39,15 @@ system tray, auto-updater, IPC bridge, and zero-config secret bootstrap.
 
 Confirmed from `electron/package.json`:
 
-| Package            | Version                    |
-| ------------------ | -------------------------- |
-| `electron`         | `^41.5.1`                  |
-| `electron-builder` | `^26.10.0`                 |
-| `electron-updater` | `^6.8.5`                   |
-| `better-sqlite3`   | `^12.9.0`                  |
-| App version        | `3.8.0`                    |
-| App id             | `online.omniroute.desktop` |
-| Product name       | `OmniRoute`                |
+| Package            | Version                                                   |
+| ------------------ | --------------------------------------------------------- |
+| `electron`         | `^43.4.1`                                                 |
+| `electron-builder` | `^26.15.3`                                                |
+| `electron-updater` | `^6.8.9`                                                  |
+| `better-sqlite3`   | root `^13.0.2` (Node-API prebuilds — no Electron rebuild) |
+| App version        | `3.8.0`                                                   |
+| App id             | `online.omniroute.desktop`                                |
+| Product name       | `OmniRoute`                                               |
 
 ## Scripts (root `package.json`)
 
@@ -163,6 +163,30 @@ Persisted to `<DATA_DIR>/server.env`. `DATA_DIR` resolves to:
 - Linux: `$XDG_CONFIG_HOME/omniroute` or `~/.omniroute`
 - macOS: `~/.omniroute`
 
+## Environment file lookup
+
+Before spawning the server, the main process (`getPreferredEnvFilePath()` in
+`electron/main.js`) picks **one** `.env` file: the first of these that exists.
+
+1. `$DATA_DIR/.env`, when `DATA_DIR` is set in the environment the app was launched with.
+2. `<resolved DATA_DIR>/.env`, using the same defaults as above: `%APPDATA%\omniroute\.env` on
+   Windows, `$XDG_CONFIG_HOME/omniroute/.env` or `~/.omniroute/.env` on Linux and macOS.
+3. `.env` in the process working directory.
+
+The main process reads only that file; later candidates are not merged in. The server
+environment is then built with this precedence (highest first):
+
+1. The Electron process environment (variables inherited from whatever launched the app).
+2. The selected `.env` file.
+3. `<DATA_DIR>/server.env` (the bootstrap secrets above).
+
+The process environment is captured when the app starts, so a system or user environment
+variable set while the app is running (including while it sits in the tray after its window is
+closed) does not reach the server until the app is fully quit and relaunched. For runtime knobs
+such as `CONTEXT_LENGTH_<PROVIDER>` (see
+[Environment Variables: Per-provider context length](../reference/ENVIRONMENT.md#per-provider-context-length-context_length_provider)),
+prefer the `.env` file, then fully quit (tray, **Quit**) and relaunch.
+
 ## Window & Tray
 
 - `BrowserWindow`: 1400×900 (min 1024×700), `backgroundColor: "#0a0a0a"`.
@@ -252,7 +276,7 @@ AppImage signing is optional — set `LINUX_GPG_KEY` if signing.
 
 Artifacts land in `electron/dist-electron/`:
 
-- `OmniRoute Setup X.Y.Z.exe`, `OmniRoute-X.Y.Z-portable.exe` (Windows)
+- `OmniRoute.Setup.X.Y.Z.exe`, `OmniRoute X.Y.Z.exe` (Windows)
 - `OmniRoute-X.Y.Z-mac.dmg`, `OmniRoute-X.Y.Z-arm64-mac.dmg` (macOS)
 - `OmniRoute-X.Y.Z.AppImage`, `omniroute-desktop_X.Y.Z_amd64.deb` (Linux)
 
@@ -260,14 +284,14 @@ Releases are published to GitHub Releases (`diegosouzapw/OmniRoute`), which is a
 
 ## Troubleshooting
 
-| Symptom                                                         | Fix                                                                         |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `Cannot find module 'better-sqlite3'` after Electron major bump | `cd electron && npm rebuild`                                                |
-| `ERR_DLOPEN_FAILED` for native module                           | Re-run `prepare:bundle` and verify ABI matches Electron's Node              |
-| Window appears blank on Linux                                   | Confirm Next.js server actually bound to PORT (check `[Server]` logs)       |
-| macOS notarization stalls                                       | Ensure `APPLE_*` vars are exported, not just in `.env`                      |
-| Windows SmartScreen warning                                     | Sign with EV cert, or users right-click → "Run anyway"                      |
-| Smoke test fails with port-in-use                               | Stop any local dev server on 20128 before running `electron:smoke:packaged` |
+| Symptom                                                         | Fix                                                                                                                                                     |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Cannot find module 'better-sqlite3'` after Electron major bump | better-sqlite3 v13 ships Node-API prebuilds — re-run `npm install` at the root and `prepare:bundle` (it verifies the prebuild for the current platform) |
+| `ERR_DLOPEN_FAILED` for native module                           | Re-run `prepare:bundle` — it fails fast when the Node-API prebuild for the current platform is missing                                                  |
+| Window appears blank on Linux                                   | Confirm Next.js server actually bound to PORT (check `[Server]` logs)                                                                                   |
+| macOS notarization stalls                                       | Ensure `APPLE_*` vars are exported, not just in `.env`                                                                                                  |
+| Windows SmartScreen warning                                     | Sign with EV cert, or users right-click → "Run anyway"                                                                                                  |
+| Smoke test fails with port-in-use                               | Stop any local dev server on 20128 before running `electron:smoke:packaged`                                                                             |
 
 ## See Also
 

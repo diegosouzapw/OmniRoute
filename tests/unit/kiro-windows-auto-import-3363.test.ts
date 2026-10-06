@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 /**
  * Regression guard for #3363 — Kiro auto-import failed on Windows because
  * tryKiroCliSqlite() only probed the Linux/macOS path
@@ -34,7 +44,7 @@ test.beforeEach(() => {
   tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-kiro-3363-"));
   // Reset DB instance so each test gets a clean settings DB (no requireLogin).
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   // Override HOME so homedir() returns a temp dir where no kiro-cli DB exists.
   process.env.HOME = tmpHome;
@@ -59,12 +69,12 @@ test.afterEach(() => {
     delete process.env.APPDATA;
   }
   globalThis.fetch = ORIGINAL_FETCH;
-  if (tmpHome) fs.rmSync(tmpHome, { recursive: true, force: true });
+  if (tmpHome) fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // Helper to call the GET handler and parse the JSON body.
@@ -102,9 +112,7 @@ test("triedPaths does NOT include any Windows path when process.env.APPDATA is n
   const paths = body.triedPaths as string[];
 
   // No path should reference "kiro/storage.db" (the Windows IDE storage path).
-  const hasWindowsPath = paths.some(
-    (p) => p.includes("storage.db") && p.includes("kiro")
-  );
+  const hasWindowsPath = paths.some((p) => p.includes("storage.db") && p.includes("kiro"));
   assert.equal(
     hasWindowsPath,
     false,
@@ -151,10 +159,7 @@ test("GET extracts refresh_token from a Windows storage.db with ItemTable schema
     expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
     region: "us-east-1",
   });
-  db.prepare("INSERT INTO ItemTable (key, value) VALUES (?, ?)").run(
-    "kiro:auth:token",
-    tokenValue
-  );
+  db.prepare("INSERT INTO ItemTable (key, value) VALUES (?, ?)").run("kiro:auth:token", tokenValue);
   db.close();
 
   // Point APPDATA at tmpHome so tryKiroCliSqlite() resolves
@@ -188,11 +193,7 @@ test("GET extracts refresh_token from a Windows storage.db with ItemTable schema
 
   const { status, body } = await callGet();
 
-  assert.equal(
-    status,
-    200,
-    `expected HTTP 200, got ${status}: ${JSON.stringify(body)}`
-  );
+  assert.equal(status, 200, `expected HTTP 200, got ${status}: ${JSON.stringify(body)}`);
   assert.equal(
     body.found,
     true,

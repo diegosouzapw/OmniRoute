@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -22,7 +32,7 @@ async function withTempEnv(fn: (dataDir: string) => Promise<void>) {
   try {
     await fn(dataDir);
   } finally {
-    fs.rmSync(dataDir, { recursive: true, force: true });
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     if (ORIGINAL_DATA_DIR === undefined) {
       delete process.env.DATA_DIR;
     } else {
@@ -233,6 +243,35 @@ test("setup command prioritizes an explicit --password flag over INITIAL_PASSWOR
     const storedHash = JSON.parse(passwordRow.value) as string;
     assert.equal(await bcrypt.compare("flag-should-win", storedHash), true);
     assert.equal(await bcrypt.compare("env-var-should-lose", storedHash), false);
+  });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+});
+
+test("setup command does not replace an existing password from INITIAL_PASSWORD", async () => {
+  const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+  await withTempEnv(async (dataDir) => {
+    const { runSetupCommand } = await import("../../bin/cli/commands/setup.mjs");
+
+    await runSetupCommand({ nonInteractive: true, password: "existing-admin-secret" });
+
+    process.env.INITIAL_PASSWORD = "CHANGEME";
+    const exitCode = await runSetupCommand({ nonInteractive: true });
+
+    assert.equal(exitCode, 0);
+
+    const db = new Database(path.join(dataDir, "storage.sqlite"));
+    const passwordRow = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'password'")
+      .get() as { value: string };
+    db.close();
+
+    const storedHash = JSON.parse(passwordRow.value) as string;
+    assert.equal(await bcrypt.compare("existing-admin-secret", storedHash), true);
+    assert.equal(await bcrypt.compare("CHANGEME", storedHash), false);
   });
   if (ORIGINAL_INITIAL_PASSWORD === undefined) {
     delete process.env.INITIAL_PASSWORD;

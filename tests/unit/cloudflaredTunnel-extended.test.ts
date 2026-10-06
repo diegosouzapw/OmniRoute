@@ -101,7 +101,7 @@ test.afterEach(async () => {
   restoreEnv();
 
   for (const dir of tempDirs) {
-    await fs.rm(dir as any, { recursive: true, force: true });
+    await fs.rm(dir as any, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   tempDirs.clear();
 });
@@ -359,6 +359,101 @@ test("startCloudflaredTunnel records an error state when the child exits before 
     state.lastError,
     /(certificate signed by unknown authority|cloudflared exited (unexpectedly|before tunnel URL was ready) \(1\))/
   );
+});
+
+test("startCloudflaredTunnel runs a named tunnel from a config file and reports its ingress hostname", async () => {
+  const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-named-");
+  const binaryPath = path.join(
+    dataDir,
+    "cloudflared",
+    "bin",
+    process.platform === "win32" ? "cloudflared.exe" : "cloudflared"
+  );
+  // Locally-managed named tunnel: config.yml declares the tunnel UUID,
+  // credentials-file, and ingress routing. No CLOUDFLARED_HOSTNAME is set, so the
+  // public hostname must be read from the config's first ingress rule.
+  const configPath = path.join(dataDir, "cloudflared-config.yml");
+  await fs.writeFile(
+    configPath,
+    [
+      "tunnel: 5a336351-fcb0-4f44-8772-02572830459d",
+      "credentials-file: /home/op/.cloudflared/5a336351.json",
+      "ingress:",
+      "  - hostname: ai.example.com",
+      "    path: ^/(v1|api/v1)($|/.*)",
+      "    service: http://127.0.0.1:20128",
+      "  - service: http_status:404",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  process.env.DATA_DIR = dataDir;
+  process.env.API_PORT = "24229";
+  process.env.CLOUDFLARED_CONFIG = configPath;
+
+  await fs.mkdir(path.dirname(binaryPath), { recursive: true });
+  await fs.writeFile(binaryPath, "#!/bin/sh\necho cloudflared\n", { mode: 0o755 });
+
+  const alive = new Set();
+  const spawnCalls = [];
+
+  process.kill = (pid, signal) => {
+    if (signal === 0) {
+      if (alive.has(pid)) return true;
+      throw Object.assign(new Error("missing"), { code: "ESRCH" });
+    }
+    alive.delete(pid);
+    return true;
+  };
+
+  childProcess.spawn = (command, args, options) => {
+    const child = createFakeChild(41003);
+    spawnCalls.push({ command, args, options });
+    alive.add(child.pid);
+    child.kill = (signal) => {
+      child.killed = true;
+      alive.delete(child.pid);
+      child.emit("kill", signal);
+      return true;
+    };
+
+    // Named tunnels never print a public URL — cloudflared logs a registered
+    // edge connection (to stderr) once the connector is live.
+    setTimeout(() => {
+      child.stderr.write(
+        Buffer.from(
+          "2026-08-26T12:00:00Z INF Registered tunnel connection connIndex=0 connection=ab12 protocol=quic\n"
+        )
+      );
+    }, 25);
+
+    return child;
+  };
+  syncBuiltinESMExports();
+
+  const tunnel = await importFresh("named-run");
+  const started = await tunnel.startCloudflaredTunnel();
+  const statePath = path.join(dataDir, "cloudflared", "quick-tunnel-state.json");
+  const startedState = await readJsonFileWithRetry(statePath);
+
+  assert.equal(spawnCalls.length, 1);
+  assert.deepEqual(spawnCalls[0].args, [
+    "tunnel",
+    "--no-autoupdate",
+    "--config",
+    configPath,
+    "run",
+  ]);
+  // No quick-tunnel --url in named mode.
+  assert.ok(!spawnCalls[0].args.includes("--url"));
+
+  assert.equal(started.phase, "running");
+  assert.equal(started.running, true);
+  assert.equal(started.publicUrl, "https://ai.example.com");
+  assert.equal(started.apiUrl, "https://ai.example.com/v1");
+  assert.equal(startedState.status, "running");
+  assert.equal(startedState.publicUrl, "https://ai.example.com");
 });
 
 test("startCloudflaredTunnel fails fast when the spawned child has no pid", async () => {

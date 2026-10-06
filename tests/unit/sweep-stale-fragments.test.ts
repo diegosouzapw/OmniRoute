@@ -19,6 +19,7 @@ import {
   classifyFragments,
   normalizeBullet,
   refsIn,
+  summarizeStale,
 } from "../../scripts/release/sweep-stale-fragments.mjs";
 
 const CHANGELOG = `# Changelog
@@ -150,4 +151,25 @@ test("refsIn finds every number and nothing else", () => {
   assert.deepEqual(refsIn("closes #12, refs #345 and v3.8.49"), [12, 345]);
   assert.deepEqual(refsIn(""), []);
   assert.deepEqual(refsIn(undefined), []);
+});
+
+// The report line "matched by … : N · by text: M" must count every stale entry under the
+// category it was actually matched by. The summary used to compare against a `matchedBy`
+// value ("ref") that classifyFragments never emits — it emits "pr-number" — so the
+// pr-number bucket was permanently 0 and every filename-matched fragment was mis-tallied
+// as a text match. summarizeStale is the pure counter the report line uses.
+test("summarizeStale tallies pr-number and text matches under their real categories", () => {
+  const stale = [
+    { matchedBy: "pr-number" },
+    { matchedBy: "pr-number" },
+    { matchedBy: "text" },
+  ];
+  assert.deepEqual(summarizeStale(stale), { byPrNumber: 2, byText: 1 });
+});
+
+test("summarizeStale never leaks a category into the wrong bucket", () => {
+  const stale = [{ matchedBy: "pr-number" }, { matchedBy: "pr-number" }];
+  const { byPrNumber, byText } = summarizeStale(stale);
+  assert.equal(byPrNumber, 2, "both filename matches count as pr-number");
+  assert.equal(byText, 0, "no filename match may be reported as a text match");
 });

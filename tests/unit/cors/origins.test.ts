@@ -129,12 +129,12 @@ describe("cors/origins.applyCorsHeaders", () => {
     assert.match(res.headers.get("Vary") || "", /Origin/);
   });
 
-  it("CLIENT_API: echoes arbitrary Origin (+Vary) when no allowlist matches (relaxForTokenAuth)", () => {
+  it("CLIENT_API: echoes arbitrary Origin (+Vary) for a token-carrying request (relaxForTokenAuth)", () => {
     // Token-authenticated /v1/* surface (issue #5242): no allowlist, arbitrary
     // origin → echo it back so browser/Electron renderers can read the body.
     const res = NextResponse.json({ ok: true });
     const req = new Request("https://server.example.com/api/v1/models", {
-      headers: { Origin: "http://localhost" },
+      headers: { Origin: "http://localhost", Authorization: "Bearer omr_test_key" },
     });
     applyCorsHeaders(res, req, true);
     assert.equal(res.headers.get("Access-Control-Allow-Origin"), "http://localhost");
@@ -143,12 +143,38 @@ describe("cors/origins.applyCorsHeaders", () => {
     assert.equal(res.headers.get("Access-Control-Allow-Credentials"), null);
   });
 
-  it("CLIENT_API: returns '*' when no Origin header is present (relaxForTokenAuth)", () => {
+  it("CLIENT_API: returns '*' when no Origin header is present for a token-carrying request", () => {
     const res = NextResponse.json({ ok: true });
-    const req = new Request("https://server.example.com/api/v1/models");
+    const req = new Request("https://server.example.com/api/v1/models", {
+      headers: { "x-api-key": "omr_test_key" },
+    });
     applyCorsHeaders(res, req, true);
     assert.equal(res.headers.get("Access-Control-Allow-Origin"), "*");
     assert.equal(res.headers.get("Access-Control-Allow-Credentials"), null);
+  });
+
+  it("CLIENT_API: does NOT echo the Origin for a credential-less cross-origin request (GHSA-7px7)", () => {
+    // A keyless install serves /v1 anonymously; echoing the Origin to a
+    // credential-less cross-origin page would let any visited page drive the
+    // gateway. Only token-carrying requests get the permissive echo.
+    const res = NextResponse.json({ ok: true });
+    const req = new Request("https://server.example.com/api/v1/models", {
+      headers: { Origin: "https://evil.example" },
+    });
+    applyCorsHeaders(res, req, true);
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), null);
+  });
+
+  it("CLIENT_API: a CORS preflight (OPTIONS) is still allowed through (relaxForTokenAuth)", () => {
+    // Preflight never carries the auth header; blocking it would break the
+    // credentialed request that follows, so OPTIONS keeps the permissive echo.
+    const res = new Response(null, { status: 204 });
+    const req = new Request("https://server.example.com/api/v1/models", {
+      method: "OPTIONS",
+      headers: { Origin: "http://localhost" },
+    });
+    applyCorsHeaders(res, req, true);
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), "http://localhost");
   });
 
   it("MANAGEMENT: stays fail-closed for arbitrary Origin with no allowlist (relax off)", () => {
@@ -213,7 +239,11 @@ describe("cors/origins.applyCorsHeaders", () => {
 
   it("CLIENT_API: appends Vary: Accept-Encoding even without an Origin header (#6737)", () => {
     const res = NextResponse.json({ ok: true });
-    const req = new Request("https://server.example.com/api/v1/models");
+    // Token-carrying request (post-GHSA-7px7 the permissive echo requires a
+    // credential); this test's point is the Vary: Accept-Encoding stamp.
+    const req = new Request("https://server.example.com/api/v1/models", {
+      headers: { "x-api-key": "omr_test_key" },
+    });
     applyCorsHeaders(res, req, true);
     assert.equal(res.headers.get("Access-Control-Allow-Origin"), "*");
     assert.match(res.headers.get("Vary") || "", /Accept-Encoding/);
@@ -283,5 +313,11 @@ describe("cors/origins.STATIC_CORS_HEADERS", () => {
       false
     );
     assert.match(STATIC_CORS_HEADERS["Access-Control-Allow-Methods"], /OPTIONS/);
+  });
+
+  it("allows the generic managed-lease control headers", () => {
+    const allowedHeaders = STATIC_CORS_HEADERS["Access-Control-Allow-Headers"];
+    assert.match(allowedHeaders, /X-OmniRoute-Lease-Owner/i);
+    assert.match(allowedHeaders, /X-OmniRoute-Lease-Generation/i);
   });
 });

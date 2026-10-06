@@ -14,6 +14,8 @@ export interface GuardrailContext {
   method?: string | null;
   model?: string | null;
   provider?: string | null;
+  /** Caller lifecycle signal; media bridges treat request abort as a deliberate fail-open exception. */
+  signal?: AbortSignal;
   sourceFormat?: string | null;
   stream?: boolean;
   targetFormat?: string | null;

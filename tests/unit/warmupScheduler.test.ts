@@ -19,13 +19,14 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-warmup-or
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.NODE_ENV = "test";
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
+process.env.API_KEY_SECRET = "warmup-exclusive-lease-test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -76,7 +77,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("startWarmupScheduler: disabled → null (default)", async () => {
@@ -189,6 +190,41 @@ test("integration: opted-in claude_pro connection → fetch fires with Bearer to
   assert.equal(body.max_tokens, 1, "warmup must use max_tokens=1 to minimize quota burn");
   assert.equal(body.model, "claude-3-5-haiku-20241022");
 
+  delete process.env.OMNIROUTE_WARMUP_ENABLED;
+  delete process.env.OMNIROUTE_WARMUP_CRON;
+});
+
+test("warmup pings an opted-in lease-capable connection while its lease is FREE", async () => {
+  // #11775: an idle (FREE) lease-capable connection is ordinary capacity, so the warmup
+  // scheduler pings it like any other opted-in connection; only an ACTIVE lease isolates.
+  const { startWarmupScheduler, stopWarmupScheduler } =
+    await import("../../src/lib/warmupScheduler.ts");
+  const settingsDb = await import("../../src/lib/db/settings.ts");
+  const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "oauth",
+    name: "Managed Pro User",
+    accessToken: "synthetic-token",
+    refreshToken: "synthetic-refresh",
+    isActive: true,
+    providerSpecificData: { organizationType: "claude_pro" },
+  });
+  await apiKeysDb.createApiKey("managed warmup key", "test", ["lease:exclusive"], {
+    allowedConnections: [conn.id],
+  });
+  await settingsDb.updateSettings({ claudeWarmup: { connections: { [conn.id]: true } } });
+
+  const mock = installMockFetch(() => new Response("{}", { status: 200 }));
+  process.env.OMNIROUTE_WARMUP_ENABLED = "1";
+  process.env.OMNIROUTE_WARMUP_CRON = "*/1 * * * *";
+  startWarmupScheduler();
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  stopWarmupScheduler();
+  mock.restore();
+
+  assert.ok(mock.calls.length >= 1, "FREE lease-capable connection is warmed like any other");
   delete process.env.OMNIROUTE_WARMUP_ENABLED;
   delete process.env.OMNIROUTE_WARMUP_CRON;
 });

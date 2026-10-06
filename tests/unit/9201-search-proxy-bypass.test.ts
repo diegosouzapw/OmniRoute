@@ -66,7 +66,7 @@ test.after(async () => {
   searchRegistry.SEARCH_PROVIDERS["serper-search"].baseUrl = originalSerperBaseUrl;
   await new Promise<void>((resolve) => proxyServer.close(() => resolve()));
   core.resetDbInstance();
-  fs.rmSync(dataDir, { recursive: true, force: true });
+  fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function installProxyResponseCounter() {

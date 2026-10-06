@@ -7,7 +7,7 @@
  * 3. Waits for Turnstile challenge to appear
  * 4. Waits for challenge to be solved (with retry)
  * 5. Extracts cf_clearance cookie
- * 6. Returns fresh cookie for tls-client-node
+ * 6. Returns a fresh cookie for the isolated wreq-js request
  */
 
 import type { Browser, Page } from "playwright";

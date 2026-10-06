@@ -29,9 +29,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const routeModule = await import("../../src/app/api/v1/providers/[provider]/models/route.ts");
-const { isCompatibleProviderConnectionId } = await import(
-  "../../src/shared/utils/compatibleProviderId.ts"
-);
+const { isCompatibleProviderConnectionId } =
+  await import("../../src/shared/utils/compatibleProviderId.ts");
 const { getProviderDisplayName } = await import("../../src/lib/display/names.ts");
 
 function makeRequest(provider: string) {
@@ -50,7 +49,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const UUID = "02669115-2545-4896-b003-cb4dac09d441";
@@ -105,10 +104,7 @@ test("GET /v1/providers/:provider/models still rejects unrelated look-alike pref
 });
 
 test("getProviderDisplayName simplifies all 4 generated compatible id shapes", () => {
-  assert.equal(
-    getProviderDisplayName("openai-compatible-chat-" + UUID),
-    "Compatible (openai)"
-  );
+  assert.equal(getProviderDisplayName("openai-compatible-chat-" + UUID), "Compatible (openai)");
   assert.equal(
     getProviderDisplayName("openai-compatible-responses-" + UUID),
     "Compatible (openai)"

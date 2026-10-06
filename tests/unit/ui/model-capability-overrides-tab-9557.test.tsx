@@ -56,6 +56,82 @@ afterEach(() => {
 });
 
 describe("ModelCapabilityOverridesTab (issue #9557)", () => {
+  it("uses a text input and sends the raw comma-separated reasoning_efforts string", async () => {
+    const catalog = {
+      codex: {
+        id: "codex",
+        alias: "codex",
+        displayPrefix: "codex",
+        name: "Codex",
+        authType: "oauth",
+        format: "openai",
+        models: [{ id: "gpt-5.6", name: "GPT 5.6" }],
+      },
+    };
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation((input: any, init: RequestInit | undefined) => {
+      const url = String(input);
+      if (url.includes("/api/pricing/models")) return Promise.resolve(jsonResponse(catalog));
+      if (url.includes("/api/model-capability-overrides")) {
+        return Promise.resolve(
+          jsonResponse({
+            overrides:
+              init?.method === "PATCH"
+                ? [
+                    {
+                      target: "codex/gpt-5.6",
+                      key: "reasoning_efforts",
+                      value: ["low", "max", "ultra"],
+                    },
+                  ]
+                : [],
+          })
+        );
+      }
+      return Promise.resolve(jsonResponse({ error: "unexpected" }, { ok: false }));
+    });
+
+    render();
+    await act(async () => flush());
+
+    const select = document.querySelector("select") as HTMLSelectElement;
+    act(() => {
+      select.value = "reasoning_efforts";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    const valueInput = document.querySelector(
+      'input[placeholder*="English comma-separated"]'
+    ) as HTMLInputElement;
+    expect(valueInput).toBeTruthy();
+    expect(valueInput.type).toBe("text");
+
+    act(() => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      setter?.call(valueInput, " low, max, ultra ");
+      valueInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    const addButton = Array.from(document.querySelectorAll("button")).find((button) =>
+      (button.textContent ?? "").includes("Add key value")
+    );
+    await act(async () => {
+      addButton!.click();
+      await flush();
+    });
+
+    const patchCall = fetchMock.mock.calls.find(
+      ([input, init]) =>
+        String(input).includes("/api/model-capability-overrides") &&
+        (init as RequestInit | undefined)?.method === "PATCH"
+    );
+    expect(patchCall).toBeTruthy();
+    expect(JSON.parse(String(patchCall![1].body))).toEqual({
+      target: "codex/gpt-5.6",
+      key: "reasoning_efforts",
+      value: " low, max, ultra ",
+    });
+    expect(document.body.textContent).toContain("low, max, ultra");
+  });
+
   it("renders the public prefix, never the node UUID, and PATCH/DELETE use prefix/model", async () => {
     const catalog = {
       [NODE_ID]: {

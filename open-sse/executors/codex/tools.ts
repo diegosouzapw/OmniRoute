@@ -26,7 +26,14 @@ export const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
 // dropped for free-plan accounts (mirrors CLIProxyAPI's isCodexFreePlanAuth).
 export function isCodexFreePlan(providerSpecificData: unknown): boolean {
   if (!providerSpecificData || typeof providerSpecificData !== "object") return false;
-  const plan = (providerSpecificData as { workspacePlanType?: unknown }).workspacePlanType;
+  const data = providerSpecificData as {
+    workspacePlanType?: unknown;
+    chatgptPlanType?: unknown;
+  };
+  const plan =
+    typeof data.workspacePlanType === "string"
+      ? data.workspacePlanType
+      : data.chatgptPlanType;
   return typeof plan === "string" && plan.trim().toLowerCase() === "free";
 }
 

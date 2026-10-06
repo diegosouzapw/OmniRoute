@@ -17,9 +17,14 @@ import { buildOpenAiCompatibleRegistryEntry } from "../../shared.ts";
  *    the free catalog registers it as `recurring-uncapped` (never summed into
  *    the token headline) rather than inventing an RPM/RPD figure.
  *
- * Model list changes as workers come and go, so the live catalog is fetched via
- * passthrough; the entries below are the ones that have carried steady worker
- * threads and only serve as a fallback when discovery fails.
+ * Chat model list changes as workers come and go, so the live chat catalog is
+ * fetched via passthrough; the entries below are the ones that have carried
+ * steady worker threads and only serve as a fallback when discovery fails.
+ *
+ * Image models are a separate native Horde API (`/v2/generate/async`). They
+ * are discovered by polling `/v2/status/models?type=image` and only advertised
+ * while `count > 0`. An optional registered API key is stored as a normal
+ * connection and sent as the Horde `apikey` header for both chat and images.
  */
 export const aihordeProvider: RegistryEntry = buildOpenAiCompatibleRegistryEntry({
   id: "aihorde",

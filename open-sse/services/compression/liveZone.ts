@@ -1,7 +1,6 @@
-import { createHash } from "node:crypto";
-
 import { estimateCompressionTokens } from "./stats.ts";
 import type { CompressionResult, CompressionStats } from "./types.ts";
+import { jsonSha256 } from "../../utils/jsonHash.ts";
 
 export interface LiveZoneOptions {
   principalId?: string;
@@ -57,8 +56,15 @@ function serialize(value: unknown): string | null {
 }
 
 function digest(value: unknown): string | null {
-  const serialized = serialize(value);
-  return serialized === null ? null : createHash("sha256").update(serialized).digest("hex");
+  // jsonSha256 computes sha256hex(JSON.stringify(value)) WITHOUT materializing the
+  // multi-MB string, avoiding the #7847 OOM-class transient on large tool-message
+  // items (e.g. base64 screenshots). Throws on non-serializable values, matching
+  // the previous JSON.stringify behavior which the caller treats as a miss.
+  try {
+    return jsonSha256(value);
+  } catch {
+    return null;
+  }
 }
 
 function cloneItems(items: unknown[]): unknown[] | null {

@@ -12,6 +12,7 @@ import {
   AUDIO_ONLY_PROVIDERS,
   CLOUD_AGENT_PROVIDERS,
   IDE_PROVIDER_IDS,
+  getProviderConnectionFamilyIds,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
@@ -20,6 +21,7 @@ import { providersBatchTestSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
 
 // Determine auth type group for a provider id
 function getAuthGroup(providerId) {
@@ -104,7 +106,8 @@ export async function POST(request) {
       const idSet = new Set(connectionIds || []);
       connectionsToTest = allConnections.filter((c) => idSet.has(c.id));
     } else if (mode === "provider" && providerId) {
-      connectionsToTest = allConnections.filter((c) => c.provider === providerId);
+      const familyProviderIds = new Set(getProviderConnectionFamilyIds(providerId));
+      connectionsToTest = allConnections.filter((c) => familyProviderIds.has(c.provider));
     } else if (mode === "oauth") {
       connectionsToTest = allConnections.filter((c) => {
         const authGroup = getAuthGroup(c.provider);
@@ -162,10 +165,12 @@ export async function POST(request) {
     const PER_CONNECTION_TIMEOUT = 30_000; // 30s per connection
     const CONCURRENCY = 5; // max parallel tests
 
+    // GHSA-jmq6-8j86-8xqj: the local CLI probe spawns on the host — only for local callers.
+    const allowLocalRuntimeProbe = getRequestPeerLocality(request) !== "remote";
     const testOne = async (conn: Record<string, unknown>) => {
       try {
         const result = await Promise.race([
-          testSingleConnection(conn.id),
+          testSingleConnection(conn.id, undefined, { allowLocalRuntimeProbe }),
           new Promise((_, reject) =>
             setTimeout(
               () => reject(new Error("Connection test timed out after 30s")),

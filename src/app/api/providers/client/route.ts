@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProviderConnections } from "@/lib/localDb";
+import { getProviderConnections } from "@/lib/db/providers";
 
 // GET /api/providers/client - List all connections for client (includes sensitive fields for sync)
 export async function GET() {

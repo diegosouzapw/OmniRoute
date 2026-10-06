@@ -9,7 +9,9 @@ describe("PluginLogger", () => {
   const testDir = join(tmpdir(), `plugin-logger-test-${Date.now()}`);
 
   afterEach(() => {
-    try { rmSync(testDir, { recursive: true, force: true }); } catch {}
+    try {
+      rmSync(testDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    } catch {}
   });
 
   it("creates log file and writes JSON entries", () => {

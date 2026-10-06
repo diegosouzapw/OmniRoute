@@ -1,14 +1,28 @@
+import { z } from "zod";
 import { handleChat } from "@/sse/handlers/chat";
+import { CORS_HEADERS } from "@/shared/utils/cors";
+import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { resolveResponsesApiModel } from "@/app/api/internal/codex-responses-ws/modelResolution";
+import { getModelInfo, getComboForModel } from "@/sse/services/model";
+import { generateRequestId } from "@/shared/utils/requestId";
+import {
+  admitChatRequest,
+  admitChatStructure,
+  CHAT_ADMISSION_QUEUE_MAX_MS,
+  releaseChatAdmissionAfterHandler,
+  releaseChatAdmissionWhenDone,
+  resolveSessionId,
+} from "@/shared/middleware/chatBodyAdmission";
+import { SSE_HEARTBEAT_INTERVAL_MS } from "@omniroute/open-sse/config/constants";
+import { resolveStreamFlag } from "@omniroute/open-sse/utils/aiSdkCompat";
+import { errorResponse } from "@omniroute/open-sse/utils/error";
 import {
   withEarlyStreamKeepalive,
-  RESPONSES_STARTUP_THINKING_FRAME,
   OPENAI_RESPONSES_ERROR_FRAME,
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
-import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { resolveResponsesApiModel } from "@/app/api/internal/codex-responses-ws/modelResolution";
-import { getModelInfo } from "@/sse/services/model";
-import { getComboByName } from "@/lib/db/combos";
+import { createStreamDeadlineSignal } from "@omniroute/open-sse/utils/streamDeadlineSignal";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
+import { OPENAI_RESPONSES_IN_PROGRESS_FRAME } from "@omniroute/open-sse/utils/sseHeartbeat";
 
 // NOTE: We do NOT call initTranslators() here — the translator registry is
 // bootstrapped at module level inside open-sse/translator/index.ts when it
@@ -18,6 +32,10 @@ import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveTh
 // certain Node APIs used by the translator bootstrap are not available.
 // The translators are always initialized via the open-sse side (chatCore),
 // so /v1/responses just delegates to handleChat which handles everything.
+
+// `logger: null` — the guardrail registry re-evaluates this request inside
+// handleChat with the pino logger (#11936 dedupe).
+const injectionGuard = createInjectionGuard({ logger: null });
 
 export async function OPTIONS() {
   return new Response(null, {
@@ -34,8 +52,8 @@ export async function OPTIONS() {
  * the CLI sends bare "gpt-5.5" over HTTP after WS closes (1008 Policy), and
  * without this rewrite OmniRoute routes it to openrouter instead of codex.
  *
- * Accepts an optional `preParsedBody` (threaded from withInjectionGuard via #4041)
- * to avoid re-cloning the request when the body was already parsed upstream.
+ * Accepts an optional `preParsedBody` so the route-level admission and injection
+ * checks can parse once and avoid re-cloning the request on the hot path.
  *
  * Safe: only rewrites when codex/model is genuinely registered; all other models
  * pass through unchanged. Errors are caught and the original request + body are returned.
@@ -57,7 +75,7 @@ export async function withCodexPreferredModel(
     const { model, changed } = await resolveResponsesApiModel(
       body.model,
       getModelInfo,
-      async (name) => !!(await getComboByName(name))
+      async (name) => !!(await getComboForModel(name))
     );
     if (!changed) return { request, body };
 
@@ -79,34 +97,124 @@ export async function withCodexPreferredModel(
 /**
  * POST /v1/responses - OpenAI Responses API format
  * Handled by the unified chat handler (openai-responses format auto-detected).
- *
- * `preParsedBody` is threaded from withInjectionGuard (#4041) so the body is
- * parsed at most once per request instead of 3-4x on the hot codex path.
  */
-async function postHandler(request: any, context: any, preParsedBody: any = null) {
-  // Codex CLI (wire_api="responses") consumes this endpoint over SSE and its reqwest
-  // client drops the connection if no bytes arrive within ~5s. Keep the connection
-  // warm with early keepalives while the upstream produces its first token (#2544).
-  // Non-streaming callers (JSON) keep the original verbatim path untouched.
-  const { request: resolved, body: resolvedBody } = await withCodexPreferredModel(
-    request,
-    preParsedBody
-  );
-  const accept = String(request.headers?.get?.("accept") || "").toLowerCase();
-  if (accept.includes("text/event-stream")) {
-    // Adaptive threshold: web-session and anonymous-fallback providers are slower
-    // to produce the first byte, so use a longer keepalive threshold (15s vs 2s).
-    // Reuse resolvedBody.model — no extra clone/parse needed (#4041).
-    const model = resolvedBody?.model;
-    const thresholdMs = resolveKeepaliveThreshold(model);
-    return await withEarlyStreamKeepalive(handleChat(resolved, null, resolvedBody), {
+async function postHandler(request: any) {
+  // Keep the framework Request untouched until the route has parsed enough state
+  // to know this is a streaming response. Deadline lifecycle belongs to that branch.
+  const sessionId = resolveSessionId(request);
+  const admissionResult = await admitChatRequest(request, {
+    sessionId,
+    queueMs: CHAT_ADMISSION_QUEUE_MAX_MS,
+  });
+  if (admissionResult.admit === false) return admissionResult.response;
+
+  const admission = admissionResult;
+  request = admission.request;
+  const finishAdmission = (response: Response) =>
+    releaseChatAdmissionWhenDone(response, admission.lease, { signal: request.signal });
+
+  try {
+    let parsedBody;
+    try {
+      parsedBody = await request.json();
+    } catch {
+      return finishAdmission(errorResponse(400, "Invalid JSON body"));
+    }
+    const parsed = z.object({}).passthrough().safeParse(parsedBody);
+    if (!parsed.success || Array.isArray(parsed.data)) {
+      return finishAdmission(errorResponse(400, "Request body must be a JSON object"));
+    }
+    parsedBody = parsed.data;
+
+    const structuralAdmission = await admitChatStructure(parsedBody, admission.lease, {
+      sessionId,
+      queueMs: CHAT_ADMISSION_QUEUE_MAX_MS,
       signal: request.signal,
-      thresholdMs,
-      startupFrame: RESPONSES_STARTUP_THINKING_FRAME,
-      errorFrame: OPENAI_RESPONSES_ERROR_FRAME,
     });
+    if (structuralAdmission.admit === false) {
+      admission.lease?.release();
+      return finishAdmission(structuralAdmission.response);
+    }
+    admission.lease = structuralAdmission.lease;
+
+    let guardResult;
+    try {
+      guardResult = injectionGuard(parsedBody);
+    } catch (error) {
+      console.error("[SECURITY] Injection guard error:", error);
+      return finishAdmission(
+        new Response(JSON.stringify({ error: "Security check failed" }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+    }
+
+    const { blocked, result } = guardResult;
+    if (blocked) {
+      return finishAdmission(
+        new Response(
+          JSON.stringify({
+            error: {
+              message: "Request blocked: potential prompt injection detected",
+              type: "injection_detected",
+              code: "SECURITY_001",
+              detections: result.detections.length,
+            },
+          }),
+          { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        )
+      );
+    }
+    if (result.flagged) {
+      try {
+        request.headers.set("X-Injection-Flagged", "true");
+        request.headers.set("X-Injection-Detections", String(result.detections.length));
+      } catch {
+        // Detection already ran; metadata propagation is best-effort.
+      }
+    }
+
+    // Codex CLI (wire_api="responses") consumes this endpoint over SSE and its reqwest
+    // client drops the connection if no bytes arrive within ~5s. Keep the connection
+    // warm with transport comments plus sparse parser-visible events while the upstream
+    // produces its first token (#2544).
+    const { request: resolved, body: resolvedBody } = await withCodexPreferredModel(
+      request,
+      parsedBody
+    );
+    const accept = String(request.headers?.get?.("accept") || "");
+    const wantsStreaming = resolveStreamFlag(resolvedBody?.stream, accept, "openai-responses");
+    if (wantsStreaming) {
+      const thresholdMs = resolveKeepaliveThreshold(resolvedBody?.model);
+      const correlationId = generateRequestId();
+      const { signal: streamSignal, deadlineController } = createStreamDeadlineSignal(
+        request.signal
+      );
+      const handlerResponse = releaseChatAdmissionAfterHandler(
+        handleChat(resolved, null, resolvedBody, correlationId, streamSignal),
+        admission.lease,
+        { signal: streamSignal }
+      );
+      return await withEarlyStreamKeepalive(handlerResponse, {
+        signal: streamSignal,
+        thresholdMs,
+        startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+        applicationKeepalive: {
+          frame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+          intervalMs: SSE_HEARTBEAT_INTERVAL_MS,
+        },
+        errorFrame: OPENAI_RESPONSES_ERROR_FRAME,
+        correlationId,
+        deadlineController,
+      });
+    }
+
+    return finishAdmission(await handleChat(resolved, null, resolvedBody));
+  } catch (error) {
+    admission.lease?.release();
+    throw error;
   }
-  return await handleChat(resolved, null, resolvedBody);
 }
 
-export const POST = withInjectionGuard(postHandler);
+export const POST = postHandler;

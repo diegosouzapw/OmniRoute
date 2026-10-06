@@ -40,3 +40,34 @@ test("countTextTokens is additive-ish and monotonic for longer text", () => {
   assert.ok(long > short);
   assert.ok(short > 0);
 });
+
+test("countTextTokens fast-paths strings over 50k chars without tokenizing (worker wedge regression)", () => {
+  const big = "user: please review the attached patch\ntext: ".repeat(40_000);
+  const start = performance.now();
+  const tokens = countTextTokens(big);
+  const elapsed = performance.now() - start;
+  assert.equal(tokens, Math.ceil(big.length / 4));
+  assert.ok(elapsed < 1000, `fast path took ${elapsed.toFixed(0)}ms`);
+});
+
+test("countTextTokens strips base64 data URIs before tokenizing (images not counted as text)", () => {
+  const png =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  const b64 = png.repeat(60);
+  const withImage = countTextTokens(
+    `{"image_url":{"url":"data:image/png;base64,${b64}"}}`,
+    { provider: "codex" }
+  );
+  const stripped = countTextTokens('{"image_url":{"url":""}}', { provider: "codex" });
+  assert.equal(withImage, stripped);
+});
+
+test("countTextTokens does not tokenize huge base64 image payloads (wedge repro)", () => {
+  const b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  const body = `{"image_url":{"url":"data:image/png;base64,${b64.repeat(14_000)}"}}`;
+  const start = performance.now();
+  const tokens = countTextTokens(body);
+  const elapsed = performance.now() - start;
+  assert.ok(tokens < 1000, `base64 payload inflates token count to ${tokens}`);
+  assert.ok(elapsed < 1000, `took ${elapsed.toFixed(0)}ms`);
+});

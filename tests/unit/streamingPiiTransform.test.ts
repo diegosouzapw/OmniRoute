@@ -490,7 +490,7 @@ test.after(async () => {
 
   const coreDb = await import("../../src/lib/db/core.ts");
   coreDb.resetDbInstance();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("createPiiSseTransform preserves tool call arguments without buffering", async () => {

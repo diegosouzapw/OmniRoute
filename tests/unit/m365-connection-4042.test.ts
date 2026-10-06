@@ -96,7 +96,11 @@ test("buildWsUrl targets the substrate Chathub with the individual-tier query", 
 });
 
 test("redactWsUrl strips the access_token so the URL is safe to log", () => {
-  const url = buildWsUrl({ host: "substrate.office.com", chathubPath: "u@t", accessToken: "SECRET" });
+  const url = buildWsUrl({
+    host: "substrate.office.com",
+    chathubPath: "u@t",
+    accessToken: "SECRET",
+  });
   const redacted = redactWsUrl(url);
   assert.ok(!redacted.includes("SECRET"), "token must not survive redaction");
   assert.match(redacted, /access_token=REDACTED/);
@@ -109,23 +113,32 @@ test("newChatSessionId is 32 lowercase hex chars", () => {
 });
 
 // ── Prompt flattening ────────────────────────────────────────────────────
+// Updated for full-history flattening (tool-call support follow-up to #10732):
+// the prompt now carries the WHOLE bracketed history so multi-turn agent loops
+// keep assistant turns and tool results, instead of the last user message only.
 
-test("buildPrompt returns the last user message", () => {
+test("buildPrompt flattens the full message history in order", () => {
   const prompt = buildPrompt({
     messages: [
       { role: "user", content: "first" },
+      { role: "assistant", content: "hi there" },
       { role: "user", content: "second" },
     ],
   });
-  assert.equal(prompt, "second");
+  assert.ok(prompt.includes("[user]\nfirst"));
+  assert.ok(prompt.includes("[assistant]\nhi there"));
+  assert.ok(prompt.includes("[user]\nsecond"));
 });
 
-test("buildPrompt prepends system instructions", () => {
+test("buildPrompt keeps system instructions first, bracketed", () => {
   const prompt = buildPrompt({
     messages: [
       { role: "system", content: "Be terse." },
       { role: "user", content: "hi" },
     ],
   });
-  assert.match(prompt, /\[System Instructions\]\nBe terse\.\n\nhi$/);
+  // The no-tool path prefixes the answer-in-full instruction, then the history.
+  assert.match(prompt, /^Please answer the following request in full\./);
+  assert.match(prompt, /\[system\]\nBe terse\./);
+  assert.ok(prompt.includes("[user]\nhi"));
 });

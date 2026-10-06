@@ -31,7 +31,7 @@ const enginesRoute = await import("../../../src/app/api/compression/engines/rout
 
 async function setupAuth(): Promise<void> {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   await settingsDb.updateSettings({
     requireLogin: true,
@@ -53,7 +53,7 @@ test.after(() => {
   if (originalJwtSecret === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = originalJwtSecret;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── tests ────────────────────────────────────────────────────────────────────
@@ -121,6 +121,24 @@ describe("GET /api/compression/engines", () => {
     assert.ok(
       hasMinRows,
       `headroom configSchema should contain a field with key 'minRows', got keys: ${headroom.configSchema.map((f) => f.key).join(", ")}`
+    );
+  });
+
+  test("lite configSchema includes the 'maxToolLength' field key", async () => {
+    const req = await makeManagementSessionRequest("http://localhost/api/compression/engines");
+    const res = await enginesRoute.GET(req);
+    const body = (await res.json()) as {
+      engines: Array<{
+        id: string;
+        configSchema: Array<{ key: string }>;
+      }>;
+    };
+    const lite = body.engines.find((e) => e.id === "lite");
+    assert.ok(lite, "lite engine should be present");
+    const hasMaxToolLength = lite.configSchema.some((f) => f.key === "maxToolLength");
+    assert.ok(
+      hasMaxToolLength,
+      `lite configSchema should contain a field with key 'maxToolLength', got keys: ${lite.configSchema.map((f) => f.key).join(", ")}`
     );
   });
 });

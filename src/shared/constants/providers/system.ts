@@ -5,6 +5,7 @@
 export const SYSTEM_PROVIDERS = {
   auto: {
     id: "auto",
+    serviceKinds: [],
     alias: "auto",
     name: "Auto (Zero-Config)",
     icon: "auto_awesome",

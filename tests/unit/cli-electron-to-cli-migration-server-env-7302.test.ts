@@ -37,7 +37,7 @@ function runCli(dataDir: string): { code: number | null; stdout: string; stderr:
     });
     return { code: res.status, stdout: res.stdout ?? "", stderr: res.stderr ?? "" };
   } finally {
-    fs.rmSync(isolatedHome, { recursive: true, force: true });
+    fs.rmSync(isolatedHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 
@@ -72,7 +72,8 @@ test("#7302: CLI must recognize DATA_DIR/server.env (Electron's secrets file) wh
       envContent,
       new RegExp(`STORAGE_ENCRYPTION_KEY=${electronKey}`),
       "the Electron-persisted STORAGE_ENCRYPTION_KEY from server.env must be honored " +
-        "after migrating to the CLI install — got .env content: " + JSON.stringify(envContent)
+        "after migrating to the CLI install — got .env content: " +
+        JSON.stringify(envContent)
     );
 
     assert.doesNotMatch(
@@ -82,7 +83,7 @@ test("#7302: CLI must recognize DATA_DIR/server.env (Electron's secrets file) wh
         "Electron-persisted key in server.env"
     );
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -109,6 +110,6 @@ test("#7302: an existing DATA_DIR/.env must still win over DATA_DIR/server.env w
       "server.env must not leak into an existing .env"
     );
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

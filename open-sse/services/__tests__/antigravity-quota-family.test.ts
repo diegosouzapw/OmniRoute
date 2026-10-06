@@ -22,24 +22,24 @@ describe("Antigravity account quota-family cooldown", () => {
   });
 
   it("maps Gemini variants to Gemini family and Claude/Cloud variants to Claude family", () => {
-    expect(getAntigravityQuotaFamily("gemini-3.5-flash-medium")).toBe("gemini");
-    expect(getAntigravityQuotaFamily("google/gemini-3.5-flash-low")).toBe("gemini");
-    expect(getAntigravityQuotaFamily("agy/gemini-3.5-flash-medium")).toBe("gemini");
+    expect(getAntigravityQuotaFamily("gemini-3.7-flash-medium")).toBe("gemini");
+    expect(getAntigravityQuotaFamily("google/gemini-3.7-flash-low")).toBe("gemini");
+    expect(getAntigravityQuotaFamily("agy/gemini-3.7-flash-medium")).toBe("gemini");
     expect(getAntigravityQuotaFamily("claude-sonnet-4")).toBe("claude");
     expect(getAntigravityQuotaFamily("cloud/claude-opus-4")).toBe("claude");
     expect(getAntigravityQuotaFamily("some-new-model")).toBe("other");
   });
 
   it("uses family-scoped lock key for Antigravity but preserves exact-model scope elsewhere", () => {
-    expect(getQuotaScopedModelForProvider("antigravity", "gemini-3.5-flash-medium")).toBe(
+    expect(getQuotaScopedModelForProvider("antigravity", "gemini-3.7-flash-medium")).toBe(
       "family:gemini"
     );
-    expect(getQuotaScopedModelForProvider("agy", "gemini-3.5-flash-medium")).toBe("family:gemini");
-    expect(getQuotaScopedModelForProvider(provider, "gemini-3.5-flash-low")).toBe("family:gemini");
+    expect(getQuotaScopedModelForProvider("agy", "gemini-3.7-flash-medium")).toBe("family:gemini");
+    expect(getQuotaScopedModelForProvider(provider, "gemini-3.7-flash-low")).toBe("family:gemini");
     expect(getQuotaScopedModelForProvider(provider, "claude-sonnet-4")).toBe("family:claude");
     expect(getQuotaScopedModelForProvider(provider, "unknown-model")).toBe("unknown-model");
-    expect(getQuotaScopedModelForProvider("openai", "gemini-3.5-flash-medium")).toBe(
-      "gemini-3.5-flash-medium"
+    expect(getQuotaScopedModelForProvider("openai", "gemini-3.7-flash-medium")).toBe(
+      "gemini-3.7-flash-medium"
     );
   });
 
@@ -47,7 +47,7 @@ describe("Antigravity account quota-family cooldown", () => {
     recordModelLockoutFailure(
       provider,
       "account-a",
-      "gemini-3.5-flash-medium",
+      "gemini-3.7-flash-medium",
       "rate_limited",
       429,
       60_000,
@@ -55,10 +55,10 @@ describe("Antigravity account quota-family cooldown", () => {
       { maxCooldownMs: 300_000 }
     );
 
-    expect(isModelLocked(provider, "account-a", "gemini-3.5-flash-medium")).toBe(true);
-    expect(isModelLocked(provider, "account-a", "gemini-3.5-flash-low")).toBe(true);
+    expect(isModelLocked(provider, "account-a", "gemini-3.7-flash-medium")).toBe(true);
+    expect(isModelLocked(provider, "account-a", "gemini-3.7-flash-low")).toBe(true);
     expect(isModelLocked(provider, "account-a", "claude-sonnet-4")).toBe(false);
-    expect(isModelLocked(provider, "account-b", "gemini-3.5-flash-low")).toBe(false);
+    expect(isModelLocked(provider, "account-b", "gemini-3.7-flash-low")).toBe(false);
   });
 
   it("keeps Claude/Cloud family distinct from Gemini", () => {
@@ -74,7 +74,7 @@ describe("Antigravity account quota-family cooldown", () => {
     );
 
     expect(isModelLocked(provider, "account-a", "cloud/claude-opus-4")).toBe(true);
-    expect(isModelLocked(provider, "account-a", "gemini-3.5-flash-low")).toBe(false);
+    expect(isModelLocked(provider, "account-a", "gemini-3.7-flash-low")).toBe(false);
   });
 
   it("can isolate a confirmed Antigravity quota exhaustion to one exact model", () => {
@@ -88,7 +88,7 @@ describe("Antigravity account quota-family cooldown", () => {
 
     expect(isModelLocked(provider, "account-a", "claude-opus-4-6-thinking")).toBe(true);
     expect(isModelLocked(provider, "account-a", "claude-sonnet-4-6-thinking")).toBe(false);
-    expect(isModelLocked(provider, "account-a", "gemini-3.5-flash-medium")).toBe(false);
+    expect(isModelLocked(provider, "account-a", "gemini-3.7-flash-medium")).toBe(false);
 
     expect(clearModelLock(provider, "account-a", "claude-opus-4-6-thinking")).toBe(true);
     expect(isModelLocked(provider, "account-a", "claude-opus-4-6-thinking")).toBe(false);
@@ -113,7 +113,7 @@ describe("Antigravity account quota-family cooldown", () => {
     const upstream = recordModelLockoutFailure(
       provider,
       "account-a",
-      "gemini-3.5-flash-medium",
+      "gemini-3.7-flash-medium",
       "rate_limited",
       429,
       1_000,
@@ -122,13 +122,13 @@ describe("Antigravity account quota-family cooldown", () => {
     );
     expect(upstream.cooldownMs).toBe(123_000);
     expect(
-      getModelLockoutInfo(provider, "account-a", "gemini-3.5-flash-low")?.remainingMs
+      getModelLockoutInfo(provider, "account-a", "gemini-3.7-flash-low")?.remainingMs
     ).toBeGreaterThan(100_000);
 
     const inferred = recordModelLockoutFailure(
       provider,
       "account-b",
-      "gemini-3.5-flash-medium",
+      "gemini-3.7-flash-medium",
       "rate_limited",
       429,
       1_000,

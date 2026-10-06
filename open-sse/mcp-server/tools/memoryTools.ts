@@ -7,9 +7,29 @@ import {
   toMemoryRetrievalConfig,
   DEFAULT_MEMORY_SETTINGS,
 } from "@/lib/memory/settings";
+import { resolveMcpToolOwnerId } from "../mcpCallerIdentity.ts";
+import type { McpToolExtraLike } from "../scopeEnforcement.ts";
+
+/**
+ * Resolve the memory owner id for an MCP tool call.
+ *
+ * The authenticated caller's principal ALWAYS wins over a caller-supplied
+ * `apiKeyId` — otherwise any MCP caller could read, write, or delete another
+ * principal's memories by putting a different id in the tool arguments
+ * (GHSA-cpv3-xr7r-xf8q, IDOR). The caller is resolved from the per-request HTTP
+ * auth headers on SSE / Streamable HTTP transports, or from OMNIROUTE_API_KEY on
+ * stdio. The explicit argument is only honored as a fallback when no caller can
+ * be resolved (a bare local stdio process with no configured key — already
+ * trusted), preserving the local-tooling flow. Keeps MCP-stored memories under
+ * the same owner id that chat-context memory uses, so retrieval in the chat
+ * pipeline finds entries written via MCP.
+ */
+async function resolveMemoryOwnerId(explicit?: string, extra?: McpToolExtraLike): Promise<string> {
+  return (await resolveMcpToolOwnerId(extra, explicit)) ?? "mcp";
+}
 
 export const MemorySearchSchema = z.object({
-  apiKeyId: z.string(),
+  apiKeyId: z.string().optional(),
   query: z.string().optional(),
   type: z.enum(["factual", "episodic", "procedural", "semantic"]).optional(),
   maxTokens: z.number().int().positive().max(8000).optional(),
@@ -17,7 +37,7 @@ export const MemorySearchSchema = z.object({
 });
 
 export const MemoryAddSchema = z.object({
-  apiKeyId: z.string(),
+  apiKeyId: z.string().optional(),
   sessionId: z.string().optional(),
   type: z.enum(["factual", "episodic", "procedural", "semantic"]),
   key: z.string().min(1),
@@ -26,7 +46,7 @@ export const MemoryAddSchema = z.object({
 });
 
 export const MemoryClearSchema = z.object({
-  apiKeyId: z.string(),
+  apiKeyId: z.string().optional(),
   type: z.enum(["factual", "episodic", "procedural", "semantic"]).optional(),
   olderThan: z.string().optional(),
 });
@@ -37,7 +57,8 @@ export const memoryTools = {
     description: "Search memories by query, type, or API key with token budget enforcement",
     scopes: ["read:memory"],
     inputSchema: MemorySearchSchema,
-    handler: async (args: z.infer<typeof MemorySearchSchema>) => {
+    handler: async (args: z.infer<typeof MemorySearchSchema>, extra?: McpToolExtraLike) => {
+      const apiKeyId = await resolveMemoryOwnerId(args.apiKeyId, extra);
       // Plan 21 D16/Bug#7 fix: even on the error path the fallback must
       // respect DEFAULT_MEMORY_SETTINGS.strategy instead of hardcoding "exact".
       const memorySettings =
@@ -54,7 +75,7 @@ export const memoryTools = {
           (memorySettings.enabled ? memorySettings.maxTokens : DEFAULT_MEMORY_SETTINGS.maxTokens),
       };
 
-      const memories = await retrieveMemories(args.apiKeyId, config);
+      const memories = await retrieveMemories(apiKeyId, config);
 
       const filtered = args.type ? memories.filter((m) => m.type === args.type) : memories;
 
@@ -76,9 +97,10 @@ export const memoryTools = {
     description: "Add a new memory entry",
     scopes: ["write:memory"],
     inputSchema: MemoryAddSchema,
-    handler: async (args: z.infer<typeof MemoryAddSchema>) => {
+    handler: async (args: z.infer<typeof MemoryAddSchema>, extra?: McpToolExtraLike) => {
+      const apiKeyId = await resolveMemoryOwnerId(args.apiKeyId, extra);
       const memory = await createMemory({
-        apiKeyId: args.apiKeyId,
+        apiKeyId,
         sessionId: args.sessionId || "",
         type: args.type as MemoryType,
         key: args.key,
@@ -102,9 +124,10 @@ export const memoryTools = {
     description: "Clear memories for an API key, optionally filtered by type or age",
     scopes: ["write:memory"],
     inputSchema: MemoryClearSchema,
-    handler: async (args: z.infer<typeof MemoryClearSchema>) => {
+    handler: async (args: z.infer<typeof MemoryClearSchema>, extra?: McpToolExtraLike) => {
+      const apiKeyId = await resolveMemoryOwnerId(args.apiKeyId, extra);
       const result = await listMemories({
-        apiKeyId: args.apiKeyId,
+        apiKeyId,
         type: args.type as MemoryType | undefined,
       });
       const existingMemories = Array.isArray(result)

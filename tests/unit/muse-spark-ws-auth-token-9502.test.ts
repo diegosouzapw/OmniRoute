@@ -36,7 +36,7 @@ test("#9502: web-session credential spec for muse-spark-web mentions the ecto1: 
   assert.ok(startIdx >= 0, "muse-spark-web credential spec not found");
   const museSection = webSessionCredentials.slice(
     startIdx,
-    webSessionCredentials.indexOf('"hailuo-web"', startIdx)
+    webSessionCredentials.indexOf('"claude-web"', startIdx)
   );
   assert.match(museSection, /ecto1/, "credential spec must mention the ecto1: WS auth token");
 });

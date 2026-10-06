@@ -20,6 +20,10 @@ import {
   handleWebFetch,
   type WebFetchCredentials,
   type WebFetchResult,
+  WEB_FETCH_PROVIDERS as SHARED_WEB_FETCH_PROVIDERS,
+  EXPLICIT_ONLY_WEB_FETCH_PROVIDERS,
+  ANONYMOUS_CAPABLE_WEB_FETCH_PROVIDERS,
+  type WebFetchProviderId,
 } from "@omniroute/open-sse/handlers/webFetch.ts";
 import * as log from "@/sse/utils/logger";
 import {
@@ -42,8 +46,16 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "*",
 };
 
-const WEB_FETCH_PROVIDERS = ["firecrawl", "jina-reader", "tavily-search", "tinyfish"] as const;
-type WebFetchProviderId = (typeof WEB_FETCH_PROVIDERS)[number];
+const WEB_FETCH_PROVIDERS = SHARED_WEB_FETCH_PROVIDERS;
+
+// Providers that only understand their own URL shape (context7 takes a library
+// reference like context7.com/reactjs/react.dev, not a generic web URL). They
+// must be requested explicitly and never win auto-selection for arbitrary URLs.
+const EXPLICIT_ONLY_PROVIDERS = EXPLICIT_ONLY_WEB_FETCH_PROVIDERS;
+
+// Providers whose upstream serves an anonymous tier without a key. When no
+// connection is configured they resolve to empty credentials instead of a 400.
+const ANONYMOUS_CAPABLE_PROVIDERS = ANONYMOUS_CAPABLE_WEB_FETCH_PROVIDERS;
 
 // Providers whose free/low tiers surface quota exhaustion as 402/403 instead
 // of (or in addition to) 429. jina-reader has no such quota-status signal —
@@ -87,6 +99,7 @@ async function findNextFallbackProvider(
   tried: Set<WebFetchProviderId>
 ): Promise<{ providerId: WebFetchProviderId; credentials: WebFetchCredentials } | null> {
   for (const pid of WEB_FETCH_PROVIDERS) {
+    if (EXPLICIT_ONLY_PROVIDERS.has(pid)) continue;
     if (tried.has(pid)) continue;
     const creds = await resolveCredentials(pid);
     tried.add(pid);
@@ -159,6 +172,18 @@ async function resolveExplicitTarget(
   providerId: WebFetchProviderId
 ): Promise<ResolvedWebFetchTarget> {
   const creds = await resolveCredentials(providerId);
+  // Anonymous-capable providers never hard-fail on credential problems: the
+  // anonymous tier does not consume key quota, so a rate-limited (or absent)
+  // key degrades to an anonymous attempt instead of a 429/400.
+  if (ANONYMOUS_CAPABLE_PROVIDERS.has(providerId)) {
+    return {
+      ok: true,
+      provider: providerId,
+      credentials: creds && !isAllRateLimitedCredentials(creds) ? creds : {},
+      tried: new Set([providerId]),
+      isExplicit: true,
+    };
+  }
   if (isAllRateLimitedCredentials(creds)) {
     return { ok: false, response: rateLimitedProviderResponse(providerId, creds) };
   }
@@ -192,13 +217,20 @@ async function resolveAutoSelectTarget(): Promise<ResolvedWebFetchTarget> {
   } | null = null;
 
   for (const pid of WEB_FETCH_PROVIDERS) {
+    if (EXPLICIT_ONLY_PROVIDERS.has(pid)) continue;
     const creds = await resolveCredentials(pid);
     if (isAllRateLimitedCredentials(creds)) {
       firstRateLimited ??= { providerId: pid, credentials: creds };
       continue;
     }
     if (creds) {
-      return { ok: true, provider: pid, credentials: creds, tried: new Set([pid]), isExplicit: false };
+      return {
+        ok: true,
+        provider: pid,
+        credentials: creds,
+        tried: new Set([pid]),
+        isExplicit: false,
+      };
     }
   }
 
@@ -267,7 +299,11 @@ export async function POST(request: Request) {
 
   log.info("WEB_FETCH", `${target.provider} | ${body.url} | format=${body.format}`);
 
-  const { result, provider: finalProvider, poolExhausted } = await executeWithFallback(
+  const {
+    result,
+    provider: finalProvider,
+    poolExhausted,
+  } = await executeWithFallback(
     {
       url: body.url,
       format: body.format,

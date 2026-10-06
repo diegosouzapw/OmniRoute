@@ -25,14 +25,13 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-8491-antigravit
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const { AntigravityExecutor } = await import("../../open-sse/executors/antigravity.ts");
-const { clearAntigravityProjectCache } = await import(
-  "../../open-sse/services/antigravityProjectBootstrap.ts"
-);
+const { clearAntigravityProjectCache } =
+  await import("../../open-sse/services/antigravityProjectBootstrap.ts");
 
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -91,7 +90,11 @@ test("#8491 PART A: runtime-discovered projectId must be persisted to the connec
       throw new Error(`Expected an envelope but got a ${result.status} Response`);
     }
     assert.equal(loadCodeAssistCalls, 1, "loadCodeAssist must be called to recover the project");
-    assert.equal(result.project, DISCOVERED_PROJECT_ID, "the in-flight request uses the discovered id");
+    assert.equal(
+      result.project,
+      DISCOVERED_PROJECT_ID,
+      "the in-flight request uses the discovered id"
+    );
 
     const persisted = await providersDb.getProviderConnectionById(connection.id);
     assert.equal(

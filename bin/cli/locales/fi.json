@@ -14,6 +14,812 @@
     "jsonOpt": "Tulosta JSON-muodossa",
     "yesOpt": "Ohita vahvistuspyyntö"
   },
+  "setup": {
+    "title": "OmniRoute-asennus",
+    "passwordPrompt": "Ylläpitäjän salasana",
+    "providerPrompt": "Oletuspalveluntarjoaja (jätä tyhjäksi ohittaaksesi)",
+    "done": "Asennus valmis",
+    "passwordSet": "Ylläpitäjän salasana määritetty",
+    "providerSet": "Palveluntarjoaja määritetty: {name}",
+    "testingProvider": "Testataan palveluntarjoajan yhteyttä: {name}",
+    "testPassed": "Palveluntarjoajan testi onnistui",
+    "testFailed": "Palveluntarjoajan testi epäonnistui: {error}",
+    "loginEnabled": "Kirjautuminen: käytössä (salasana päivitetty)",
+    "loginDisabled": "Kirjautuminen: poistettu käytöstä",
+    "providerInfo": "Palveluntarjoaja: {info}",
+    "opencode": "Asenna ja määritä mukana toimitettu @omniroute/opencode-plugin OpenCodea varten"
+  },
+  "doctor": {
+    "title": "OmniRoute Doctor",
+    "dbOk": "Tietokanta: OK ({path})",
+    "dbMissing": "Tietokantaa ei ole alustettu — suorita `omniroute setup`",
+    "portOk": "Portti {port}: käytettävissä",
+    "portConflict": "Portti {port}: toisen prosessin käytössä",
+    "encryptionOk": "Salausavain: määritetty",
+    "encryptionMissing": "Salausavain puuttuu — suorita `omniroute setup`",
+    "allGood": "Kaikki tarkistukset läpäisty.",
+    "warnings": "{count} varoitus(ta) — katso yllä."
+  },
+  "providers": {
+    "title": "Palveluntarjoajat",
+    "noProviders": "Palveluntarjoajia ei ole määritetty. Suorita: omniroute setup",
+    "testing": "Testataan palveluntarjoajaa {name}...",
+    "available": "{count} palveluntarjoaja(a) käytettävissä",
+    "connected": "Yhdistetty",
+    "disconnected": "Yhteys katkaistu",
+    "validationFailed": "Validointi epäonnistui: {error}",
+    "metrics": {
+      "description": "Näytä palveluntarjoajien suorituskykymittarit (viive, onnistumisaste, kustannukset)",
+      "provider": "Suodata palveluntarjoajan tunnuksen mukaan",
+      "connection_id": "Suodata yhteyden tunnuksen mukaan",
+      "period": "Ajanjakso: 1h|6h|24h|7d|30d (oletus: 24h)",
+      "metric": "Keskity tiettyyn mittarikenttään",
+      "sort": "Lajittele kentän mukaan (laskevasti)",
+      "limit": "Rivien enimmäismäärä (oletus: 50)",
+      "watch": "Päivitä 5 sekunnin välein (reaaliaikainen tila)",
+      "compare": "Pilkuilla erotetut palveluntarjoajien tunnukset rinnakkaista vertailua varten"
+    },
+    "metric_single": {
+      "description": "Hae yksittäinen mittariarvo tietylle yhteydelle"
+    },
+    "rotate": {
+      "description": "Vaihda palveluntarjoajayhteyden upstream-API-avain",
+      "newKeyOpt": "Uusi API-avaimen arvo (vältä: käytä mieluummin valitsinta --from-env)",
+      "fromEnvOpt": "Lue uusi avain ympäristömuuttujasta VAR",
+      "oauthOpt": "Käynnistä sen sijaan OAuth-uudelleentodennus",
+      "skipTestOpt": "Ohita avaimen vaihdon jälkeinen yhteystesti",
+      "dryRunOpt": "Näytä tehtävät muutokset tallentamatta niitä",
+      "confirmPrompt": "Korvataanko yhteyden \"{name}\" ({id}) API-avain? [y/N]",
+      "dryRunResult": "[dry-run] Yhteyden \"{name}\" ({id}) avain vaihdettaisiin. Muutoksia ei tehty.",
+      "oauthHint": "OAuth-yhteys — suorita: omniroute oauth {provider}",
+      "envVarEmpty": "Ympäristömuuttujaa {var} ei ole asetettu tai se on tyhjä.",
+      "success": "Yhteyden \"{name}\" avain vaihdettu. Vahvista suorittamalla `providers test {id}`.",
+      "testPassed": "Avaimen vaihdon jälkeinen testi onnistui.",
+      "testFailed": "Avaimen vaihdon jälkeinen testi epäonnistui: {error}"
+    },
+    "status": {
+      "description": "Näytä kaikkien palveluntarjoajayhteyksien avainten tila (ikä, vanheneminen, jäähyaika)",
+      "providerOpt": "Suodata palveluntarjoajan nimen mukaan",
+      "header": "Tunnus     Palveluntarjoaja Nimi                     Vanhenemisen tila Testin tila   Jäähyaika päättyy",
+      "noData": "Palveluntarjoajayhteyksien tietoja ei ole saatavilla.",
+      "requiresServer": "providers status edellyttää, että OmniRoute-palvelin on käynnissä."
+    }
+  },
+  "keys": {
+    "title": "API-avaimet",
+    "addDescription": "Lisää tai päivitä palveluntarjoajan API-avain",
+    "listDescription": "Luettele kaikki määritetyt API-avaimet",
+    "removeDescription": "Poista palveluntarjoajan API-avain",
+    "regenerateDescription": "Luo OmniRoute-API-avain uudelleen",
+    "revokeDescription": "Kumoa OmniRoute-API-avain",
+    "revealDescription": "Näytä peittämätön API-avaimen arvo",
+    "usageDescription": "Näytä API-avaimen viimeaikainen käyttö",
+    "usageLimitOpt": "Viimeisimpien pyyntöjen määrä",
+    "rotateDescription": "Luo uusi avain ja mitätöi vanha",
+    "graceOpt": "Armonaika (ms) ennen vanhan avaimen mitätöintiä",
+    "stdinOpt": "Lue API-avain vakiosyötteestä argumentin sijaan",
+    "added": "Avain lisätty palveluntarjoajalle {provider}.",
+    "removed": "Avain poistettu.",
+    "listed": "{count} avain(ta).",
+    "noKeys": "Avaimia ei ole määritetty.",
+    "noUsage": "Käyttötietoja ei löytynyt.",
+    "confirmRemove": "Poistetaanko avain {id}?",
+    "confirmRegenerate": "Luodaanko avain {id} uudelleen?",
+    "confirmRevoke": "Kumotaanko avain {id}?",
+    "confirmRotate": "Vaihdetaanko avain {id}? (vanha avain mitätöidään armonajan jälkeen)",
+    "regenerated": "Luotu uudelleen. Uusi avain: {key}",
+    "revoked": "Avain {id} kumottu.",
+    "rotated": "Avain {id} vaihdettiin. Uuden avaimen tunnus: {newId}",
+    "revealWarning": "⚠  Tämä näyttää koko peittämättömän avaimen. Varmista, ettei näyttöäsi näe kukaan muu.",
+    "providerRequired": "Palveluntarjoaja vaaditaan.",
+    "keyRequired": "API-avain vaaditaan.",
+    "stdinEmpty": "stdin-syötteen kautta ei annettu API-avainta.",
+    "unknownProvider": "Tuntematon palveluntarjoaja: {provider}",
+    "policy": {
+      "title": "Avainkäytäntö",
+      "showDescription": "Näytä avaimen nopeus-/kustannuskäytäntö",
+      "setDescription": "Aseta avaimen nopeus-/kustannuskäytäntö",
+      "rateLimitOpt": "Pyyntöjen enimmäismäärä minuutissa",
+      "maxCostOpt": "Enimmäiskustannus päivässä (USD)",
+      "allowedModelsOpt": "Pilkuilla eroteltu luettelo sallituista malleista",
+      "nothingToSet": "Käytäntökenttiä ei annettu. Käytä valintaa --rate-limit, --max-cost tai --allowed-models.",
+      "updated": "Käytäntö päivitettiin."
+    },
+    "expiration": {
+      "title": "Avaimen vanheneminen",
+      "listDescription": "Luettele pian vanhenevat avaimet",
+      "daysOpt": "Näytä N päivän kuluessa vanhenevat avaimet",
+      "none": "Yksikään avain ei vanhene {days} päivän kuluessa.",
+      "listTitle": "{days} päivän kuluessa vanhenevat avaimet:"
+    }
+  },
+  "authExport": {
+    "description": "Vie palveluntarjoajan SALAAMATTOMAT tunnistetiedot (vain paikallisesti, selväkielinen tuloste)",
+    "idOpt": "Vie vain tätä tunnusta/nimeä/palveluntarjoajaa vastaava yhteys",
+    "formatOpt": "Tulostusmuoto: json tai env",
+    "outOpt": "Kirjoita tuloste stdout-vakiotulosteen sijasta tiedostoon (kirjoitetaan käyttöoikeuksilla 0600)",
+    "forceOpt": "Vahvista ymmärtäväsi, että tämä tulostaa/kirjoittaa salaisuudet selväkielisinä",
+    "warning": "⚠ Tämä tulostaa/kirjoittaa SALAAMATTOMAT API-avaimet ja OAuth-tunnukset selväkielisinä. Varmista, että näyttösi, komentotulkkisi historia ja mahdolliset tulostiedostot pysyvät yksityisinä.",
+    "confirmHeading": "⚠ VAROITUS: tämä vie palveluntarjoajan SALAAMATTOMAT tunnistetiedot selväkielisinä",
+    "confirmBody": "Tämä komento purkaa valittujen yhteyksien apiKey-, accessToken-, refreshToken- ja\nidToken-arvojen salauksen ja tulostaa/kirjoittaa ne. Käsittele tulostetta salaisuutena.",
+    "confirmFooter": "Vahvista suorittamalla:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY vaaditaan tunnistetietojen vientiin.",
+    "notFound": "Yhteyttä ei löytynyt: {id}",
+    "invalidFormat": "Virheellinen muoto: {format}. Käytä muotoa json tai env."
+  },
+  "stream": {
+    "description": "Suoratoista keskusteluvastaus SSE-tarkastustiloilla",
+    "file": "Lue kehote tiedostosta",
+    "stdin": "Lue kehote stdin-syötteestä",
+    "model": "Mallin tunnus (oletus: auto)",
+    "system": "Järjestelmäkehote",
+    "combo": "Pakota tietty nimetty yhdistelmä",
+    "max_tokens": "Vastauksen merkkijonojen enimmäismäärä",
+    "responses_api": "Käytä päätepistettä /v1/responses päätepisteen /v1/chat/completions sijasta",
+    "raw": "Tulosta raa'at SSE-rivit vastaanotetussa muodossa",
+    "debug": "Tulosta kunkin osan ajoitustiedot stderr-virtaan",
+    "save": "Tallenna kaikki SSE-tapahtumat .jsonl-tiedostoon",
+    "error": {
+      "empty_prompt": "Virhe: kehote vaaditaan (sijaintiargumentti, --file tai --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Käyttöanalytiikka, budjetit, kiintiöt ja lokit",
+    "analytics": {
+      "description": "Näytä koostettu käyttöanalytiikka",
+      "period": "Aikaväli: 1d|7d|30d|90d|ytd|all (oletus: 30d)",
+      "provider": "Suodata palveluntarjoajan tunnuksen mukaan"
+    },
+    "budget": {
+      "description": "Hallinnoi kustannusbudjetteja",
+      "set": {
+        "scope": "Budjetin laajuus (oletus: global)",
+        "period": "Budjettijakso: daily|weekly|monthly (oletus: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Näytä palveluntarjoajan kiintiön käyttö",
+      "provider": "Suodata palveluntarjoajan tunnuksen mukaan",
+      "check": "Näytä, onko kiintiötä käytettävissä uudelle pyynnölle"
+    },
+    "logs": {
+      "description": "Näytä pyyntökutsujen lokit",
+      "limit": "Palautettavien lokimerkintöjen määrä (oletus: 100)",
+      "search": "Hakukysely lokien suodattamiseen",
+      "since": "Palauta lokit tästä aikaleimasta alkaen",
+      "follow": "Seuraa jatkuvasti uusia lokimerkintöjä",
+      "api_key": "Suodata lokit API-avaimen mukaan"
+    },
+    "utilization": {
+      "description": "Näytä API-avaimen käyttöastemittarit",
+      "api_key": "Suodata API-avaimen mukaan"
+    },
+    "history": {
+      "description": "Näytä pyyntöhistoria",
+      "limit": "Historiamerkintöjen määrä (oletus: 100)"
+    },
+    "proxy_logs": {
+      "description": "Näytä välityspalvelintason pyyntölokit",
+      "limit": "Välityspalvelimen lokimerkintöjen määrä (oletus: 100)"
+    }
+  },
+  "cost": {
+    "description": "Näytä kustannusraportti eriteltynä palveluntarjoajan, mallin, yhdistelmän tai API-avaimen mukaan",
+    "period": "Aikaväli: 1d|7d|30d|90d|ytd|all (oletus: 30d)",
+    "since": "Alkamispäivä (ISO-muoto, esim. 2026-01-01) — ohittaa --period-asetuksen",
+    "until": "Päättymispäivä (ISO-muoto)",
+    "group_by": "Ryhmittele tulokset seuraavasti: provider|model|api-key|combo|day (oletus: provider)",
+    "api_key_filter": "Suodata tietyn API-avaimen mukaan",
+    "limit": "Näytettävien rivien enimmäismäärä (oletus: 100)"
+  },
+  "simulate": {
+    "description": "Reitityksen testiajosimulaatio — näytä, mitkä palveluntarjoajat valittaisiin, kutsumatta ylävirran palvelua",
+    "file": "Lataa pyynnön koko runko JSON-tiedostosta",
+    "model": "Mallitunnus (oletus: auto)",
+    "combo": "Pakota tietty yhdistelmä nimen perusteella",
+    "reasoning": "Päättelyn vaativuustaso (low|medium|high)",
+    "thinking": "Laajennetun päättelyn token-budjetti",
+    "explain": "Tulosta varapolkujen puu ja kustannusväli stderr-virtaan",
+    "noCombo": "Vastaavaa yhdistelmää ei löytynyt. Määritä sellainen komennolla: omniroute combo create"
+  },
+  "chat": {
+    "description": "Lähetä kertaluonteinen keskustelukehote OmniRoutelle",
+    "file": "Lue kehote tiedostosta",
+    "stdin": "Lue kehote vakiosyötteestä",
+    "system": "Järjestelmäkehote",
+    "model": "Mallin tunnus (oletus: auto)",
+    "max_tokens": "Vastauksen enimmäistunnustemäärä",
+    "temperature": "Otannan lämpötila (0–2)",
+    "top_p": "Top-p-ydinotanta",
+    "reasoning_effort": "Päättelyn vaativuustaso (low|medium|high)",
+    "thinking_budget": "Laajennetun päättelyn tunnustebudjetti",
+    "combo": "Pakota tietty yhdistelmä nimen perusteella",
+    "responses_api": "Käytä /v1/responses-päätepistettä /v1/chat/completions-päätepisteen sijaan",
+    "stream": "Suoratoista vastaus vaiheittain",
+    "no_history": "Älä tallenna tiedostoon ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Virhe: kehote vaaditaan (sijaintiargumentti, --file tai --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Käynnistä OmniRoute-palvelin (oletustoiminto)",
+    "starting": "Käynnistetään OmniRoute-palvelin portissa {port}...",
+    "ready": "Valmis osoitteessa http://localhost:{port}",
+    "stopping": "Pysäytetään palvelinta (PID {pid})...",
+    "stopped": "Palvelin pysäytetty.",
+    "notRunning": "Palvelin ei ole käynnissä.",
+    "port": "Kuunneltava portti (oletus: 20128)",
+    "no_open": "Älä avaa selainta automaattisesti",
+    "daemon": "Suorita palvelin taustapalveluna",
+    "log": "Näytä palvelinlokit suoraan",
+    "no_recovery": "Poista automaattinen uudelleenkäynnistys käytöstä kaatumisen jälkeen (virheenkorjaustila)",
+    "max_restarts": "Kaatumisen jälkeisten uudelleenkäynnistysten enimmäismäärä 30 sekunnin sisällä ennen luovuttamista (oletus: 2)",
+    "tray": "Käynnistä ilmaisinalueella (vain työpöytäympäristössä, valinnainen)",
+    "no_tray": "Poista ilmaisinalueen kuvake käytöstä",
+    "ready_timeout": "Valmiustarkistuksen aikakatkaisu millisekunteina (myös OMNIROUTE_READY_TIMEOUT_MS, oletus 60000)",
+    "tls_cert": "HTTPS-palvelussa käytettävän TLS-varmenteen (PEM) polku (myös OMNIROUTE_TLS_CERT)",
+    "tls_key": "HTTPS-palvelussa käytettävän yksityisen TLS-avaimen (PEM) polku (myös OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Varmuuskopiointi",
+    "description": "Luo OmniRoute-tiedoista varmuuskopio",
+    "creating": "Luodaan varmuuskopiota...",
+    "done": "Varmuuskopio tallennettu polkuun {path}",
+    "noFiles": "Ei varmuuskopioitavia tiedostoja (tietokantaa ei ole alustettu)",
+    "failed": "Varmuuskopiointi epäonnistui: {error}",
+    "restoring": "Palautetaan polusta {path}...",
+    "restored": "Palautus valmis.",
+    "restoreDescription": "Palauta varmuuskopiosta",
+    "listTitle": "Saatavilla olevat varmuuskopiot",
+    "noBackups": "Varmuuskopioita ei löytynyt.",
+    "notFound": "Varmuuskopiota ei löytynyt: {name}",
+    "confirmRestore": "Korvataanko nykyiset tiedot varmuuskopiolla ajankohdalta {ts}?",
+    "createDescription": "Luo varmuuskopio OmniRoute-tiedoista",
+    "nameOpt": "Mukautettu varmuuskopion nimi",
+    "cloudOpt": "Lataa varmuuskopio pilvitallennustilaan",
+    "encryptOpt": "Salaa varmuuskopio AES-256-GCM-salauksella",
+    "keyFileOpt": "Salauslausetta sisältävän tiedoston polku",
+    "excludeOpt": "Ohita tiedostot, jotka vastaavat kuviota (voidaan toistaa)",
+    "retentionOpt": "Säilytä vain viimeisimmät N varmuuskopiota",
+    "passphrasePrompt": "Salauslause:",
+    "noPassphrase": "Salauslause vaaditaan salattua varmuuskopiota varten.",
+    "cloudFailed": "Varoitus: lataus pilveen epäonnistui. Paikallinen varmuuskopio tallennettiin.",
+    "cloudUploaded": "Varmuuskopio ladattu pilveen: {url}",
+    "auto": {
+      "title": "Varmuuskopiointiaikataulu",
+      "enableDescription": "Ota ajastetut automaattiset varmuuskopiot käyttöön",
+      "disableDescription": "Poista ajastetut automaattiset varmuuskopiot käytöstä",
+      "statusDescription": "Näytä varmuuskopiointiaikataulun nykyinen tila",
+      "cronOpt": "Aikataulun cron-lauseke (oletus: päivittäin klo 3)",
+      "enabled": "Automaattinen varmuuskopiointi käytössä (cron: {cron}).",
+      "hint": "omniroute serve lukee aikataulun käynnistyksen yhteydessä.",
+      "disabled": "Automaattinen varmuuskopiointi poistettu käytöstä.",
+      "notConfigured": "Varmuuskopiointiaikataulua ei ole määritetty."
+    }
+  },
+  "health": {
+    "description": "Tarkista palvelimen kunto ja komponenttien tila",
+    "noServer": "Palvelin ei ole käynnissä. Käynnistä komennolla: omniroute serve",
+    "title": "Kunto",
+    "status": "Tila: {status}",
+    "uptime": "Käyttöaika: {uptime}",
+    "requests": "Pyynnöt (24 h): {count}",
+    "cost": "Kustannukset (24 h): ${cost}"
+  },
+  "quota": {
+    "description": "Näytä palveluntarjoajan kiintiön käyttö",
+    "noServer": "Palvelin ei ole käynnissä. Käynnistä komennolla: omniroute serve",
+    "noData": "Kiintiötietoja ei ole saatavilla."
+  },
+  "cache": {
+    "description": "Hallitse vastausvälimuistia",
+    "noServer": "Palvelin ei ole käynnissä. Käynnistä komennolla: omniroute serve",
+    "cleared": "Välimuisti tyhjennetty.",
+    "clearFailed": "Välimuistin tyhjentäminen epäonnistui."
+  },
+  "redis": {
+    "description": "Käynnistä paikallinen Redis-säiliö yhdellä napsautuksella (Podman tai Docker) OmniRoute-välimuistia ja kiintiöiden seurantaa varten"
+  },
+  "test": {
+    "description": "Testaa yhteys palveluntarjoajaan",
+    "noServer": "Palvelin ei ole käynnissä. Käynnistä komennolla: omniroute serve",
+    "testing": "Testataan: {provider} / {model}...",
+    "passed": "Yhteys onnistui!",
+    "failed": "Yhteys epäonnistui: {error}",
+    "allProvidersOpt": "Testaa kaikki määritetyt palveluntarjoajat",
+    "latencyOpt": "Näytä viivemittaukset (keskiarvo/minimi/maksimi ms)",
+    "repeatOpt": "Toista testi N kertaa ja yhdistä tulokset",
+    "compareOpt": "Pilkuilla erotetut vertailtavat mallit (esim. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Tallenna tulokset JSON-tiedostoon",
+    "saved": "Tulokset tallennettu polkuun {path}",
+    "compareTitle": "Mallien vertailu",
+    "compareMinTwo": "Valitsin --compare vaatii vähintään kaksi mallia (pilkuilla eroteltuina)",
+    "noProviders": "Palveluntarjoajia ei ole määritetty. Lisää palveluntarjoaja komennolla: omniroute keys add"
+  },
+  "update": {
+    "checking": "Tarkistetaan päivityksiä...",
+    "upToDate": "Käytössä on jo uusin versio ({version}).",
+    "available": "Päivitys saatavilla: {current} → {latest}",
+    "installing": "Asennetaan versiota {latest}...",
+    "done": "Päivitetty versioon {latest}. Ota päivitys käyttöön käynnistämällä palvelin uudelleen."
+  },
+  "mcp": {
+    "title": "MCP-palvelin",
+    "running": "MCP-palvelin on käynnissä ({transport})",
+    "stopped": "MCP-palvelin pysäytetty.",
+    "restarted": "MCP-palvelin käynnistetty uudelleen.",
+    "stoppedHint": "Ota se käyttöön komennolla `omniroute mcp enable`.",
+    "enabled": "MCP-palvelin otettu käyttöön.",
+    "disabled": "MCP-palvelin poistettu käytöstä.",
+    "enable": {
+      "description": "Ota MCP-palvelin käyttöön",
+      "transport": "Käytettävä siirtotapa: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Poista MCP-palvelin käytöstä"
+    },
+    "call": {
+      "description": "Kutsu MCP-työkalua suoraan",
+      "args": "JSON-argumenttiobjekti (sisäkkäisenä)",
+      "args_file": "JSON-argumenttitiedoston polku",
+      "stream": "Käytä suoratoistopäätepistettä (/api/mcp/stream)",
+      "scope": "Vaadittu käyttöoikeusalue (toistettavissa, esim. read:health)"
+    },
+    "scopes": {
+      "description": "Luettele käytettävissä olevat MCP-käyttöoikeusalueet",
+      "tool": "Näytä tietyn työkalun vaatimat käyttöoikeusalueet"
+    },
+    "tools": {
+      "description": "Tarkastele MCP-työkaluja",
+      "list": {
+        "description": "Luettele kaikki MCP-työkalut",
+        "scope": "Suodata käyttöoikeusalueen mukaan"
+      },
+      "info": {
+        "description": "Näytä MCP-työkalun metatiedot"
+      },
+      "schema": {
+        "description": "Näytä MCP-työkalun syötteen ja tulosteen JSON-skeema",
+        "io": "Skeeman tyyppi: input|output (oletus: input)"
+      }
+    },
+    "audit": {
+      "description": "MCP-auditointiloki (alias komennolle audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Luettele agenttikortin käytettävissä olevat A2A-taidot"
+    },
+    "invoke": {
+      "description": "Kutsu A2A-taitoa ja palauta tehtävän tunnus",
+      "input": "JSON-syöteobjekti",
+      "input_file": "JSON-syötetiedoston polku",
+      "wait": "Odota tehtävän valmistumista ennen palautusta",
+      "timeout": "Valmistumisen odotuksen aikakatkaisu millisekunteina (oletus: 60000)"
+    },
+    "tasks": {
+      "description": "Hallinnoi A2A-tehtäviä",
+      "list": {
+        "status": "Suodata tilan mukaan",
+        "skill": "Suodata taidon tunnuksen mukaan"
+      },
+      "watch": {
+        "description": "Tarkista tehtävän tila toistuvasti valmistumiseen asti"
+      },
+      "stream": {
+        "description": "Suoratoista tehtävän suoritustapahtumat SSE:n kautta"
+      },
+      "logs": {
+        "description": "Näytä tehtävän viestit ja artefaktit"
+      }
+    }
+  },
+  "policy": {
+    "description": "Hallinnoi OmniRoute-valtuutuskäytäntöjä",
+    "list": {
+      "description": "Luettele käytännöt",
+      "kind": "Suodata tyypin mukaan (allow|deny|rate-limit|cost-cap)",
+      "scope": "Suodata käyttöalueen mukaan (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Hae käytännön tiedot tunnuksen perusteella"
+    },
+    "create": {
+      "description": "Luo käytäntö JSON-tiedostosta",
+      "file": "Käytännön JSON-tiedoston polku"
+    },
+    "update": {
+      "description": "Päivitä käytäntö JSON-tiedostosta",
+      "file": "Käytännön JSON-tiedoston polku"
+    },
+    "delete": {
+      "description": "Poista käytäntö tunnuksen perusteella",
+      "yes": "Ohita vahvistuskehote"
+    },
+    "evaluate": {
+      "description": "Käytännön arvioinnin kuiva-ajo (poistumiskoodi 0=sallittu, 4=estetty)",
+      "api_key": "Arvioitava API-avain",
+      "action": "Tarkistettava toiminto (esim. chat, embed, admin)",
+      "resource": "Resurssipolku tai tunniste",
+      "context": "Lisäkonteksti JSON-objektina"
+    },
+    "export": {
+      "description": "Vie kaikki käytännöt JSON-tiedostoon"
+    },
+    "import": {
+      "description": "Tuo käytännöt JSON-tiedostosta",
+      "overwrite": "Korvaa olemassa olevat käytännöt, joilla on sama tunnus"
+    }
+  },
+  "compression": {
+    "description": "Määritä OmniRoute-pakkausputken asetukset ja tarkastele sitä",
+    "status": {
+      "description": "Näytä pakkauksen nykyinen tila ja asetukset"
+    },
+    "configure": {
+      "description": "Määritä pakkausasetukset",
+      "engine": "Pakkausmoottori (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Caveman-aggressiivisuus 0.0–1.0",
+      "rtk_budget": "RTK-tunnistebudjetti",
+      "language_pack": "Aktivoitava kielipaketti"
+    },
+    "engine": {
+      "description": "Hae tai aseta aktiivinen pakkausmoottori"
+    },
+    "combos": {
+      "description": "Hallitse pakkausyhdistelmien tilastoja"
+    },
+    "rules": {
+      "description": "Hallitse pakkaussääntöjä",
+      "add": {
+        "pattern": "Täsmättävä kuvio (regex tai kenttä:kuvio)",
+        "action": "Toiminto: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Luettele saatavilla olevat pakkauksen kielipaketit"
+    },
+    "preview": {
+      "description": "Esikatsele pakkauksen vaikutusta pyyntöön",
+      "file": "Pyynnön JSON-tiedoston polku"
+    }
+  },
+  "tunnel": {
+    "title": "Tunnelit",
+    "listDescription": "Luettele aktiiviset tunnelit",
+    "createDescription": "Luo tunneli",
+    "created": "Tunneli luotu: {url}",
+    "stopped": "Tunneli pysäytetty.",
+    "confirmStop": "Pysäytetäänkö tunneli {id}?",
+    "stopDescription": "Pysäytä tunneli",
+    "statusDescription": "Näytä tunnelin yksityiskohtainen tila",
+    "logsDescription": "Näytä tunnelin lokit",
+    "infoDescription": "Näytä tunnelin määritysten tiedot",
+    "rotateDescription": "Luo uusi tunnelin URL-osoite",
+    "tailOpt": "Näytettävien lokirivien määrä",
+    "typeRequired": "Tunnelin tyyppi vaaditaan.",
+    "noLogs": "Lokeja ei ole saatavilla.",
+    "notAvailable": "Tunnelin tietoja ei ole saatavilla.",
+    "noTunnels": "Ei aktiivisia tunneleita.",
+    "infoTitle": "Tunnelin tiedot: {type}",
+    "rotated": "Tunnelin URL-osoite vaihdettu: {url}",
+    "confirmRotate": "Vaihdetaanko tunnelin {type} URL-osoite? (uusi URL-osoite luodaan)"
+  },
+  "stop": {
+    "description": "Pysäytä OmniRoute-palvelin",
+    "stopping": "Pysäytetään palvelinta (PID {pid})...",
+    "stopped": "Palvelin pysäytetty.",
+    "notRunning": "Palvelin ei ole käynnissä.",
+    "portFallback": "PID-tiedostoa ei löytynyt, yritetään pysäyttää portin perusteella..."
+  },
+  "restart": {
+    "description": "Käynnistä OmniRoute-palvelin uudelleen",
+    "restarting": "Käynnistetään OmniRoute-palvelinta uudelleen..."
+  },
+  "dashboard": {
+    "description": "Avaa OmniRoute-hallintapaneeli selaimessa",
+    "opening": "Avataan hallintapaneeli osoitteessa {url}",
+    "urlOnly": "Tulosta hallintapaneelin URL-osoite avaamatta selainta",
+    "tui": "Avaa interaktiivinen TUI-hallintapaneeli (päätelaitteen käyttöliittymä, 7 välilehteä)"
+  },
+  "models": {
+    "description": "Luettele saatavilla olevat mallit (vaatii palvelimen)",
+    "search": "Suodata malleja tunnuksen, nimen, palveluntarjoajan tai kuvauksen perusteella",
+    "noServer": "Palvelin ei ole käynnissä. Käynnistä komennolla: omniroute serve",
+    "noModels": "Malleja ei löytynyt."
+  },
+  "audit": {
+    "description": "Käytä vaatimustenmukaisuuden ja MCP:n valvontalokeja",
+    "source": "Lokilähde: all|compliance|mcp (oletus: all)",
+    "since": "Palauta merkinnät tästä aikaleimasta alkaen (ISO 8601)",
+    "until": "Palauta merkinnät tähän aikaleimaan asti (ISO 8601)",
+    "tail": {
+      "description": "Näytä viimeisimmät valvontalokimerkinnät",
+      "follow": "Seuraa jatkuvasti uusia merkintöjä (kysely 2 s:n välein)",
+      "limit": "Näytettävien merkintöjen enimmäismäärä (oletus: 100)"
+    },
+    "search": {
+      "description": "Hae valvontalokimerkintöjä avainsanalla",
+      "limit": "Tulosten enimmäismäärä (oletus: 200)",
+      "actor": "Suodata toimijan tunnuksen perusteella",
+      "action": "Suodata toiminnon nimen perusteella"
+    },
+    "export": {
+      "description": "Vie valvontaloki tiedostoon",
+      "format": "Tulostusmuoto: jsonl|csv (oletus: jsonl)"
+    },
+    "stats": {
+      "description": "Näytä valvontalokin tilastot",
+      "period": "Ajanjakso: 1d|7d|30d (oletus: 7d)"
+    },
+    "get": {
+      "description": "Hae yksittäinen valvontalokimerkintä tunnuksen perusteella"
+    }
+  },
+  "skills": {
+    "description": "Hallinnoi OmniRoute-taitoja (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Luettele asennetut taidot",
+      "type": "Suodata tyypin perusteella (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Näytä vain käytössä olevat taidot",
+      "disabled": "Näytä vain käytöstä poistetut taidot",
+      "api_key": "Suodata API-avaimen perusteella"
+    },
+    "get": {
+      "description": "Hae taidon tiedot tunnuksen perusteella"
+    },
+    "install": {
+      "description": "Asenna taito tiedostosta tai URL-osoitteesta",
+      "from_file": "Taidon JSON-määritystiedoston polku",
+      "from_url": "Etätaidon määrityksen URL-osoite",
+      "type": "Taidon tyyppi (sandbox|custom|hybrid)",
+      "enable": "Ota taito käyttöön asennuksen jälkeen"
+    },
+    "enable": {
+      "description": "Ota taito käyttöön tunnuksen perusteella"
+    },
+    "disable": {
+      "description": "Poista taito käytöstä tunnuksen perusteella",
+      "yes": "Ohita vahvistuskehote"
+    },
+    "delete": {
+      "description": "Poista taito tunnuksen perusteella",
+      "yes": "Ohita vahvistuskehote"
+    },
+    "execute": {
+      "description": "Suorita taito tunnuksen perusteella",
+      "input": "JSON-syöteobjekti",
+      "input_file": "JSON-syötetiedoston polku",
+      "timeout": "Suorituksen aikakatkaisu millisekunteina (oletus: 30000)"
+    },
+    "executions": {
+      "description": "Luettele taitojen suoritushistoria",
+      "skill": "Suodata taitotunnuksen mukaan",
+      "limit": "Tulosten enimmäismäärä (oletus: 50)",
+      "status": "Suodata tilan mukaan (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Hallitse SSH:n kautta asennettuja taitoja"
+    },
+    "marketplace": {
+      "description": "Selaa ja asenna taitoja markkinapaikalta"
+    },
+    "mp": {
+      "search": {
+        "description": "Hae markkinapaikan paketteja",
+        "category": "Suodata luokan mukaan",
+        "tag": "Suodata tunnisteen mukaan",
+        "limit": "Tulosten enimmäismäärä (oletus: 30)",
+        "sort": "Lajitteluperuste: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Näytä paketin tiedot ja readme-tiedosto"
+      },
+      "install": {
+        "description": "Asenna markkinapaikan paketti",
+        "version": "Paketin versio (oletus: latest)",
+        "enable": "Ota käyttöön asennuksen jälkeen",
+        "yes": "Ohita vahvistuskehote"
+      },
+      "categories": {
+        "description": "Luettele markkinapaikan luokat"
+      },
+      "featured": {
+        "description": "Näytä markkinapaikan esittelyssä olevat paketit"
+      }
+    }
+  },
+  "memory": {
+    "description": "Hallitse OmniRouten keskustelumuistia (FTS5 + vector)",
+    "search": {
+      "description": "Hae muistimerkintöjä semanttisella kyselyllä",
+      "type": "Suodata muistityypin mukaan (user|feedback|project|reference)",
+      "limit": "Tulosten enimmäismäärä (oletus: 20)",
+      "api_key": "Suodata API-avaimen mukaan",
+      "token_budget": "Rajoita tulosten tunnisteiden kokonaismäärää"
+    },
+    "add": {
+      "description": "Lisää uusi muistimerkintä",
+      "content": "Muistin tekstisisältö",
+      "file": "Lue sisältö tiedostosta",
+      "type": "Muistityyppi (oletus: user)",
+      "metadata": "JSON-metatieto-objekti",
+      "api_key": "Liitä API-avaimeen"
+    },
+    "clear": {
+      "description": "Poista suodattimia vastaavat muistimerkinnät",
+      "type": "Suodata tyypin mukaan",
+      "older": "Poista kestoa vanhemmat merkinnät (30d, 6m, 1y)",
+      "api_key": "Suodata API-avaimen mukaan",
+      "yes": "Ohita vahvistuskehote"
+    },
+    "list": {
+      "description": "Luettele muistimerkinnät ilman hakutulosten järjestystä",
+      "type": "Suodata tyypin mukaan",
+      "limit": "Tulosten enimmäismäärä (oletus: 100)",
+      "api_key": "Suodata API-avaimen mukaan"
+    },
+    "get": {
+      "description": "Hae yksittäinen muistimerkintä tunnuksen perusteella"
+    },
+    "delete": {
+      "description": "Poista muistimerkintä tunnuksen perusteella",
+      "yes": "Ohita vahvistuskehote"
+    },
+    "health": {
+      "description": "Näytä muistialijärjestelmän tila (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Hallitse OAuth-palveluntarjoajayhteyksiä",
+    "providers": {
+      "description": "Luettele OAuth-yhteensopivat palveluntarjoajat ja niiden työnkulkutyypit"
+    },
+    "start": {
+      "description": "Käynnistä palveluntarjoajan OAuth-valtuutustyönkulku",
+      "provider": "Palveluntarjoajan tunnus (gemini, copilot, cursor, …)",
+      "no_browser": "Tulosta vain URL — älä avaa selainta",
+      "import_system": "Tuo tunnistetiedot automaattisesti paikallisista järjestelmäasetuksista",
+      "social": "Sosiaalisen kirjautumisen palveluntarjoaja (google|github) — pakollinen palvelulle kiro",
+      "timeout": "Valtuutuksen odotuksen aikakatkaisu millisekunteina (oletus: 300000)"
+    },
+    "status": {
+      "description": "Luettele aktiiviset OAuth-yhteydet",
+      "provider": "Suodata palveluntarjoajan tunnuksen mukaan"
+    },
+    "revoke": {
+      "description": "Peruuta OAuth-yhteys",
+      "provider": "Peruutettavan palveluntarjoajan tunnus",
+      "connection_id": "Peruuta tietty yhteys tunnuksen perusteella",
+      "yes": "Ohita vahvistuskehote"
+    }
+  },
+  "cloud": {
+    "description": "Hallitse pilvipohjaisten AI-agenttien tehtäviä (codex, devin, jules)",
+    "agents": {
+      "description": "Luettele käytettävissä olevat pilviagentit"
+    },
+    "agent": {
+      "description": "Hallitse pilviagentin {agent} tehtäviä",
+      "auth": {
+        "description": "Valtuuta {agent} OAuthilla"
+      }
+    },
+    "task": {
+      "description": "Hallitse pilviagenttien tehtäviä",
+      "create": {
+        "description": "Luo uusi agenttitehtävä",
+        "title": "Tehtävän otsikko (oletuksena kehotteen ensimmäiset 80 merkkiä)",
+        "prompt": "Tehtäväkehotteen teksti",
+        "prompt_file": "Lue kehote tiedostosta",
+        "repo": "Tehtävää varten kloonattavan tietovaraston URL",
+        "branch": "Käytettävän haaran nimi",
+        "metadata": "JSON-metatieto-objekti"
+      },
+      "list": {
+        "description": "Luettele agenttitehtävät",
+        "status": "Suodata tilan mukaan (running|completed|failed|cancelled)",
+        "limit": "Tulosten enimmäismäärä (oletus: 50)"
+      },
+      "get": {
+        "description": "Hae tehtävän tiedot tunnuksen perusteella"
+      },
+      "status": {
+        "description": "Tulosta tehtävän tila (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Peruuta käynnissä oleva tehtävä",
+        "yes": "Ohita vahvistuskehote"
+      },
+      "approve": {
+        "description": "Hyväksy agentin suunnitelma suorituksen aloittamiseksi"
+      },
+      "message": {
+        "description": "Lähetä viesti käynnissä olevaan tehtävään"
+      }
+    },
+    "sources": {
+      "description": "Luettele tehtävän tuottamat lähdetiedostot"
+    }
+  },
+  "eval": {
+    "description": "Hallitse arviointikokonaisuuksia ja arviointiajoja",
+    "suites": {
+      "description": "Hallitse arviointikokonaisuuksia",
+      "list": {
+        "description": "Listaa arviointikokonaisuudet"
+      },
+      "get": {
+        "description": "Hae arviointikokonaisuuden tiedot tunnuksella"
+      },
+      "create": {
+        "description": "Luo arviointikokonaisuus JSON-tiedostosta",
+        "file": "Kokonaisuuden määrityksen sisältävän JSON-tiedoston polku"
+      }
+    },
+    "run": {
+      "description": "Aloita kokonaisuuden arviointiajo",
+      "model": "Arvioitavan mallin tunnus (oletus: auto)",
+      "combo": "Pakota tietty yhdistelmä nimen perusteella",
+      "concurrency": "Samanaikaisten näytteiden määrä (oletus: 4)",
+      "tag": "Merkitse tämä ajo tunnisteella myöhempää suodatusta varten",
+      "watch": "Seuraa ajon etenemistä valmistumiseen asti"
+    },
+    "list": {
+      "description": "Listaa arviointiajot",
+      "suite": "Suodata kokonaisuuden tunnuksen perusteella",
+      "status": "Suodata tilan perusteella",
+      "since": "Palauta tämän aikaleiman jälkeiset ajot",
+      "limit": "Tulosten enimmäismäärä (oletus: 50)"
+    },
+    "get": {
+      "description": "Hae arviointiajon tiedot tunnuksella"
+    },
+    "results": {
+      "description": "Näytä arviointiajon näytetulokset",
+      "failed": "Näytä vain epäonnistuneet näytteet"
+    },
+    "cancel": {
+      "description": "Peruuta käynnissä oleva arviointi",
+      "yes": "Ohita vahvistuskehote"
+    },
+    "scorecard": {
+      "description": "Näytä valmistuneen arviointiajon tuloskortti"
+    }
+  },
+  "webhooks": {
+    "description": "Hallitse OmniRoute-webhookeja",
+    "events": {
+      "description": "Listaa kaikki käytettävissä olevat webhook-tapahtumatyypit"
+    },
+    "list": {
+      "description": "Listaa määritetyt webhookit"
+    },
+    "get": {
+      "description": "Hae webhookin tiedot tunnuksella"
+    },
+    "add": {
+      "description": "Rekisteröi uusi webhook",
+      "url": "Kohde-URL",
+      "events": "Pilkuilla eroteltu tapahtumatyyppien luettelo",
+      "secret": "HMAC-allekirjoitussalaisuus",
+      "header": "Ylimääräinen otsake muodossa key=value (toistettavissa)",
+      "no_enabled": "Luo webhook pois käytöstä -tilassa"
+    },
+    "update": {
+      "description": "Päivitä olemassa oleva webhook",
+      "enabled": "Aseta käyttötila (true|false)"
+    },
+    "remove": {
+      "description": "Poista webhook",
+      "yes": "Ohita vahvistuskehote"
+    },
+    "test": {
+      "description": "Lähetä testitapahtuma webhookiin",
+      "event": "Simuloitava tapahtumatyyppi (oletus: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Älykäs AI-reititin automaattisella fallbackilla",
     "version": "Tulosta versio ja poistu",
@@ -26,7 +832,509 @@
     "context": "Palvelimen konteksti/profiili tälle komennolle",
     "lang": "Aseta CLI-näyttökieli (ohittaa OMNIROUTE_LANG)"
   },
-  "redis": {
-    "description": "Käynnistä paikallinen Redis-säiliö yhdellä napsautuksella (Podman tai Docker) OmniRoute-välimuistia ja kiintiöiden seurantaa varten"
+  "files": {
+    "description": "Hallitse tiedostoja (lähetä, listaa, hae, lataa, poista)",
+    "list": {
+      "purpose": "Suodata käyttötarkoituksen perusteella",
+      "limit": "Tulosten enimmäismäärä"
+    },
+    "get": {
+      "description": "Hae tiedoston metatiedot"
+    },
+    "upload": {
+      "description": "Lataa tiedosto palveluun",
+      "purpose": "Tiedoston käyttötarkoitus (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Lataa tiedoston sisältö",
+      "out": "Tallenna polkuun (oletus: stdout)"
+    },
+    "delete": {
+      "yes": "Ohita vahvistus"
+    }
+  },
+  "batches": {
+    "description": "Hallitse OpenAI-yhteensopivia erätöitä",
+    "list": {
+      "status": "Suodata tilan mukaan",
+      "limit": "Tulosten enimmäismäärä"
+    },
+    "create": {
+      "description": "Luo erätyö",
+      "inputFile": "Syötetiedoston tunnus",
+      "endpoint": "Kohdepäätepiste",
+      "window": "Valmistumisaikaikkuna",
+      "metadata": "Lisää metatieto avain=arvo"
+    },
+    "submit": {
+      "description": "Lataa JSONL-tiedosto palveluun ja luo erätyö",
+      "jsonl": "JSONL-tiedoston polku",
+      "endpoint": "Kohdepäätepiste",
+      "wait": "Odota valmistumista"
+    },
+    "cancel": {
+      "yes": "Ohita vahvistus"
+    },
+    "wait": {
+      "timeout": "Aikakatkaisu millisekunteina"
+    },
+    "output": {
+      "out": "Tallenna tuloste polkuun"
+    },
+    "errors": {
+      "out": "Tallenna virheet polkuun"
+    }
+  },
+  "translator": {
+    "description": "Muunna pyyntöjen rungot LLM-muotojen välillä",
+    "detect": {
+      "description": "Tunnista rungon muoto"
+    },
+    "translate": {
+      "description": "Muunna runko muodosta toiseen"
+    },
+    "send": {
+      "description": "Muunna ja lähetä ylävirran palveluun"
+    },
+    "stream": {
+      "description": "Muunna pyynnön runko suoratoistona"
+    },
+    "from": "Lähdemuoto (openai|anthropic|gemini|cohere)",
+    "to": "Kohdemuoto (openai|anthropic|gemini|cohere)",
+    "file": "Pyynnön rungon sisältävän JSON-tiedoston polku",
+    "out": "Tallenna tuloste tiedostoon",
+    "model": "Ohita mallimääritys",
+    "history": {
+      "limit": "Tulosten enimmäismäärä"
+    }
+  },
+  "pricing": {
+    "description": "Hallitse mallien hintatietoja",
+    "sync": {
+      "description": "Synkronoi hinnat ylävirran lähteistä",
+      "provider": "Suodata palveluntarjoajan mukaan",
+      "force": "Pakota uudelleensynkronointi"
+    },
+    "list": {
+      "provider": "Suodata palveluntarjoajan mukaan",
+      "model": "Suodata mallin mukaan",
+      "limit": "Tulosten enimmäismäärä"
+    },
+    "defaults": {
+      "description": "Hallitse oletushinnoittelua",
+      "input": "Syötteen hinta / 1 milj. tokenia (USD)",
+      "output": "Tulosteen hinta / 1 milj. tokenia (USD)",
+      "cacheRead": "Välimuistista lukemisen hinta / 1 milj. tokenia (USD)",
+      "cacheWrite": "Välimuistiin kirjoittamisen hinta / 1 milj. tokenia (USD)"
+    },
+    "diff": {
+      "description": "Näytä poikkeama lähdehinnoista",
+      "model": "Suodata mallin mukaan"
+    }
+  },
+  "radar": {
+    "description": "Tarkastele ja synkronoi paikallisia Radar-luettelosyötteitä",
+    "status": "Näytä paikalliset Radar-asetukset ja syötevälimuistin tila",
+    "sync": "Synkronoi luettelo, suosittelut, tarjoukset ja Intel paikallisen palvelimen kautta"
+  },
+  "resilience": {
+    "description": "Tarkastele ja hallitse vikasietoisuusmekanismeja",
+    "status": {
+      "provider": "Suodata palveluntarjoajan mukaan"
+    },
+    "breakers": {
+      "provider": "Suodata palveluntarjoajan mukaan"
+    },
+    "cooldowns": {
+      "provider": "Suodata palveluntarjoajan mukaan",
+      "connectionId": "Suodata yhteystunnuksen mukaan"
+    },
+    "lockouts": {
+      "provider": "Suodata palveluntarjoajan mukaan",
+      "model": "Suodata mallin mukaan"
+    },
+    "reset": {
+      "description": "Nollaa katkaisijan/jäähdytysajan tila",
+      "provider": "Nollattava palveluntarjoaja",
+      "connectionId": "Nollattava yhteystunnus",
+      "model": "Malli, jonka lukitus nollataan",
+      "allCooldowns": "Nollaa kaikki palveluntarjoajan jäähdytysajat",
+      "yes": "Ohita vahvistus"
+    },
+    "profile": {
+      "description": "Hallitse vikasietoisuusprofiilia",
+      "name": "Profiilin nimi"
+    },
+    "config": {
+      "description": "Hallitse vikasietoisuusmäärityksiä",
+      "threshold": "Vikakynnys",
+      "resetTimeout": "Nollauksen aikakatkaisu millisekunteina",
+      "baseCooldown": "Perusjäähdytysaika millisekunteina"
+    }
+  },
+  "nodes": {
+    "description": "Hallitse palveluntarjoajan solmuja (päätepisteitä)",
+    "list": {
+      "provider": "Suodata palveluntarjoajan mukaan",
+      "enabled": "Näytä vain käytössä olevat solmut"
+    },
+    "add": {
+      "provider": "Palveluntarjoajan nimi",
+      "baseUrl": "Solmun perus-URL",
+      "name": "Solmun nimi",
+      "weight": "Kuormantasauksen painoarvo",
+      "region": "Aluetunniste",
+      "authHeader": "Mukautettu todennusotsake (key=value)"
+    },
+    "update": {
+      "baseUrl": "Uusi perus-URL",
+      "name": "Uusi nimi",
+      "weight": "Uusi painotus",
+      "region": "Uusi alue",
+      "enabled": "Ota käyttöön tai poista käytöstä (true|false)"
+    },
+    "remove": {
+      "yes": "Ohita vahvistus"
+    },
+    "validate": {
+      "baseUrl": "Validoitava URL",
+      "provider": "Palveluntarjoaja, jota vasten validoidaan"
+    },
+    "test": {
+      "description": "Lähetä testipyyntö solmulle"
+    },
+    "metrics": {
+      "description": "Näytä solmun mittarit",
+      "period": "Ajanjakso (esim. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Määritä kontekstinkäsittelyputki (Caveman, RTK)",
+    "analytics": {
+      "period": "Ajanjakso (esim. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Hallitse Caveman-kontekstipakkaajaa",
+      "config": {
+        "description": "Näytä tai päivitä Caveman-määritykset",
+        "aggressiveness": "Aggressiivisuus 0.0–1.0",
+        "maxShrinkPct": "Kutistuksen enimmäisprosentti",
+        "preserveTags": "Säilytettävät pilkuin erotetut tunnisteet"
+      }
+    },
+    "rtk": {
+      "description": "Hallitse RTK-kontekstioptimoijaa",
+      "config": {
+        "description": "Näytä tai päivitä RTK-määritykset",
+        "tokenBudget": "RTK:n tunnistebudjetti",
+        "reservePct": "Varaprosentti"
+      },
+      "filters": {
+        "description": "Hallitse RTK-suodattimia",
+        "pattern": "Suodatusmalli (regex)",
+        "priority": "Suodattimen prioriteetti (oletus: 100)",
+        "action": "Suodattimen toiminto: drop|shrink|replace",
+        "yes": "Ohita vahvistus"
+      },
+      "test": {
+        "file": "Pyynnön JSON-tiedoston polku"
+      }
+    },
+    "combos": {
+      "description": "Kontekstitietoinen yhdistelmien hallinta"
+    }
+  },
+  "sessions": {
+    "description": "Tarkastele ja hallitse aktiivisia istuntoja",
+    "list": {
+      "user": "Suodata käyttäjän mukaan",
+      "kind": "Suodata tyypin mukaan (dashboard|api-key|mcp|a2a)",
+      "active": "Näytä vain aktiiviset istunnot",
+      "limit": "Tulosten enimmäismäärä (oletus: 100)"
+    },
+    "expire": {
+      "yes": "Ohita vahvistus"
+    },
+    "expireAll": {
+      "user": "Käyttäjä, jonka istunnot vanhennetaan",
+      "yes": "Ohita vahvistus"
+    }
+  },
+  "tags": {
+    "description": "Hallitse resurssitunnisteita",
+    "add": {
+      "color": "Tunnisteen väri (heksakoodi tai nimi)",
+      "description": "Tunnisteen kuvaus"
+    },
+    "remove": {
+      "yes": "Ohita vahvistus"
+    },
+    "assign": {
+      "tag": "Tunnisteen nimi",
+      "to": "Kohderesurssi muodossa tyyppi:id (esim. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Tunnisteen nimi",
+      "from": "Lähderesurssi muodossa tyyppi:id"
+    }
+  },
+  "openapi": {
+    "description": "Käytä ja testaa OmniRoute OpenAPI -määritystä",
+    "dump": {
+      "description": "Tulosta OpenAPI-määritys vakiotulosteeseen tai tiedostoon",
+      "format": "Tulostusmuoto: yaml|json (oletus: yaml)",
+      "out": "Tallenna tiedostopolkuun"
+    },
+    "validate": {
+      "description": "Validoi OpenAPI-määritys"
+    },
+    "try": {
+      "description": "Testaa API-päätepistettä määrityksen avulla",
+      "method": "HTTP-menetelmä (oletus: GET)",
+      "body": "Pyynnön rungon JSON-tiedoston polku",
+      "query": "Kyselyparametri muodossa avain=arvo (voidaan toistaa)",
+      "header": "Otsake muodossa avain=arvo (voidaan toistaa)"
+    },
+    "endpoints": {
+      "description": "Luettele kaikki API-päätepisteet",
+      "search": "Suodata polun tai yhteenvedon perusteella"
+    },
+    "paths": {
+      "description": "Luettele kaikki API-polut"
+    }
+  },
+  "combo": {
+    "title": "Yhdistelmät",
+    "switched": "Aktiivinen yhdistelmä: {name}",
+    "created": "Yhdistelmä luotu: {name}",
+    "deleted": "Yhdistelmä poistettu: {name}",
+    "noCombos": "Yhdistelmiä ei ole määritetty.",
+    "confirmDelete": "Poistetaanko yhdistelmä {name}?",
+    "suggest": {
+      "description": "Ehdota tehtävään parasta yhdistelmää tekoälypisteytyksen avulla",
+      "task": "Tehtävän kuvaus",
+      "maxCost": "Enimmäiskustannus pyyntöä kohden Yhdysvaltain dollareina",
+      "maxLatencyMs": "Enimmäisviive millisekunteina",
+      "weights": "JSON-pisteytyspainot, esim. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Näytettävien parhaiden ehdokkaiden määrä (oletus: 5)",
+      "explain": "Tulosta perustelut vakiovirhetulosteeseen",
+      "switch": "Aktivoi parhaaksi sijoittunut yhdistelmä"
+    }
+  },
+  "oneproxy": {
+    "description": "Hallitse OneProxy-ylävirran välityspalvelinjoukkoa",
+    "stats": {
+      "provider": "Suodata palveluntarjoajan mukaan",
+      "period": "Ajanjakso (oletus: 24h)"
+    },
+    "fetch": {
+      "description": "Nouda välityspalvelimia joukosta",
+      "count": "Noudettavien välityspalvelimien määrä (oletus: 1)",
+      "type": "Välityspalvelimen tyyppi: http|socks5 (oletus: http)"
+    },
+    "rotate": {
+      "description": "Pakota välityspalvelimen vaihto",
+      "provider": "Palveluntarjoaja, jolle vaihto tehdään",
+      "connectionId": "Tietty vaihdettava yhteystunnus"
+    },
+    "config": {
+      "description": "Näytä tai päivitä OneProxy-määritykset",
+      "enabled": "Ota välityspalvelinpooli käyttöön (true|false)",
+      "poolSize": "Poolin koko",
+      "providerSource": "Välityspalveluntarjoajan URL",
+      "rotationPolicy": "Kierrätyskäytäntö: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Listaa nykyinen välityspalvelinpooli mittareineen"
+    }
+  },
+  "open": {
+    "description": "Avaa tietty OmniRoute-hallintapaneelin sivu selaimessa",
+    "url": "Tulosta vain URL, älä avaa selainta"
+  },
+  "telemetry": {
+    "description": "Käytä koostettuja telemetriatietoja",
+    "summary": {
+      "description": "Näytä koostettu telemetriayhteenveto",
+      "period": "Ajanjakso: 24h|7d|30d (oletus: 24h)",
+      "compareTo": "Vertaa edelliseen ajanjaksoon"
+    },
+    "export": {
+      "description": "Vie telemetriatapahtumat JSONL-muotoon",
+      "out": "Tulostiedoston polku (oletus: telemetry.jsonl)",
+      "period": "Viennin ajanjakso (oletus: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Synkronoi määritykset OmniRoute-instanssien välillä",
+    "push": {
+      "description": "Lähetä määritykset pilveen tai etäinstanssiin",
+      "target": "Kohde (cloud tai context:name)",
+      "bundle": "Synkronoitavat paketin osat",
+      "dryRun": "Esikatsele ottamatta käyttöön"
+    },
+    "pull": {
+      "description": "Nouda määritykset pilvestä tai etäinstanssista",
+      "source": "Lähde (cloud tai context:name)",
+      "merge": "Yhdistä olemassa oleviin määrityksiin",
+      "replace": "Korvaa olemassa olevat määritykset",
+      "dryRun": "Esikatsele ottamatta käyttöön"
+    },
+    "diff": {
+      "source": "Lähdekonteksti",
+      "target": "Kohdekonteksti"
+    },
+    "bundle": {
+      "description": "Vie määritykset pakettitiedostona",
+      "include": "Sisällytettävät osat (pilkuilla eroteltuina)"
+    },
+    "import": {
+      "description": "Tuo pakettitiedosto",
+      "dryRun": "Vahvista ottamatta käyttöön"
+    },
+    "initialize": {
+      "fromCloud": "Alusta pilvivarmuuskopiosta"
+    },
+    "tokens": {
+      "description": "Hallitse synkronointitunnuksia",
+      "create": {
+        "name": "Tunnuksen nimi",
+        "scope": "Tunnuksen käyttöalue",
+        "ttl": "Tunnuksen TTL (esim. 30d)"
+      },
+      "revoke": {
+        "yes": "Ohita vahvistus"
+      }
+    },
+    "resolve": {
+      "description": "Ratkaise synkronointiristiriidat vuorovaikutteisesti"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Hallitse palvelinkonteksteja/profiileja (add, use, list, show, remove, rename, export, import)"
+    },
+    "lang": {
+      "description": "Hallitse CLI:n näyttökieltä",
+      "getDescription": "Näytä tällä hetkellä aktiivinen kielikoodi",
+      "setDescription": "Aseta näyttökieli ja tallenna se määrityksiin",
+      "listDescription": "Luettele kaikki saatavilla olevat kielet",
+      "listTitle": "Saatavilla olevat kielet",
+      "current": "Kieli: {code} ({name})",
+      "saved": "Kieleksi asetettiin {code} ({name}).",
+      "noCode": "Kielikoodi vaaditaan. Näet saatavilla olevat koodit suorittamalla komennon 'omniroute config lang list'.",
+      "unknown": "Tuntematon kielikoodi: {code}. Näet saatavilla olevat koodit suorittamalla komennon 'omniroute config lang list'.",
+      "alreadySet": "Kieleksi on jo asetettu {code}.",
+      "envHint": "Vinkki: voit myös asettaa ympäristössäsi muuttujan OMNIROUTE_LANG={code}."
+    }
+  },
+  "completion": {
+    "description": "Luo tai asenna komentotulkin täydennysskriptit",
+    "zsh": "Tulosta zsh-täydennysskripti",
+    "bash": "Tulosta bash-täydennysskripti",
+    "fish": "Tulosta fish-täydennysskripti",
+    "install": "Asenna täydennysskripti järjestelmänlaajuisesti havaitulle komentotulkille",
+    "refresh": "Päivitä yhdistelmien, palveluntarjoajien ja mallien välimuisti"
+  },
+  "logs": {
+    "description": "Suoratoista tai vie pyyntölokit",
+    "follow": "Suoratoista lokit reaaliajassa",
+    "filter": "Suodata tason mukaan (error,warn,info) — pilkuilla eroteltuina",
+    "lines": "Haettavien rivien määrä",
+    "timeout": "Yhteyden aikakatkaisu millisekunteina",
+    "baseUrl": "OmniRoute API:n perus-URL-osoite",
+    "requestId": "Suodata pyynnön tunnuksen mukaan",
+    "apiKey": "Suodata API-avaimen mukaan",
+    "combo": "Suodata yhdistelmän nimen mukaan",
+    "status": "Suodata HTTP-tilakoodin mukaan",
+    "durationMin": "Pyynnön vähimmäiskesto millisekunteina",
+    "durationMax": "Pyynnön enimmäiskesto millisekunteina",
+    "export": "Tallenna lokit tiedostoon (json/jsonl/csv)",
+    "exported": "Lokit tallennettiin polkuun {path}",
+    "stopped": "Lokien suoratoisto pysäytettiin.",
+    "streamError": "Virhe lokien suoratoistossa: {message}"
+  },
+  "tray": {
+    "description": "Hallitse ilmaisinalueen kuvaketta",
+    "show": "Näytä ilmaisinalueen kuvake (jos palvelin on käynnissä valitsimella --tray)",
+    "hide": "Piilota ilmaisinalueen kuvake",
+    "quit": "Sulje OmniRoute ilmaisinalueen kautta"
+  },
+  "autostart": {
+    "description": "Hallitse OmniRouten automaattista käynnistystä järjestelmän käynnistyessä (Linux: käyttäjän systemd-palvelu)",
+    "enable": "Ota automaattinen käynnistys käyttöön järjestelmän käynnistyessä",
+    "disable": "Poista automaattinen käynnistys käytöstä järjestelmän käynnistyessä",
+    "toggle": "Vaihda automaattisen käynnistyksen tilaa järjestelmän käynnistyessä",
+    "status": "Näytä automaattisen käynnistyksen tila"
+  },
+  "runtime": {
+    "description": "Hallitse natiivien ajonaikaisten ympäristöjen riippuvuuksia",
+    "check": "Tarkista natiivien riippuvuuksien tila ajonaikaisen ympäristön hakemistossa",
+    "repair": "Asenna natiivit riippuvuudet uudelleen ajonaikaisen ympäristön hakemistoon",
+    "repair_force": "Pakota uudelleenasennus, vaikka riippuvuudet olisivat kelvollisia",
+    "clean": "Poista ajonaikaisen ympäristön hakemisto (vapauttaa levytilaa)",
+    "clean_yes": "Ohita vahvistus"
+  },
+  "repl": {
+    "description": "Interaktiivinen monivaiheinen REPL LLM:n kanssa",
+    "model": "Käytettävä malli (oletus: auto)",
+    "combo": "Käytettävän yhdistelmän nimi",
+    "system": "Järjestelmäkehote",
+    "resume": "Jatka tallennettua istuntoa nimellä"
+  },
+  "plugin": {
+    "description": "Hallitse CLI-liitännäisiä (omniroute-cmd-*)",
+    "list": "Luettele asennetut liitännäiset",
+    "install": "Asenna liitännäinen npm:stä tai paikallisesta polusta",
+    "remove": "Poista asennettu liitännäinen",
+    "info": "Näytä asennetun liitännäisen tiedot",
+    "search": "Etsi saatavilla olevia liitännäisiä npm-rekisteristä",
+    "update": "Päivitä asennetut liitännäiset",
+    "scaffold": "Luo uuden liitännäisen perusrakenne"
+  },
+  "launch": {
+    "description": "Käynnistä Claude Code OmniRouteen yhdistettynä (paikallinen tai etäyhteys, --profile-valinnalla)",
+    "token": "Tunnus, joka Claude-asiakasohjelman tulee lähettää (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute ei ole tavoitettavissa portissa {port}. Käynnistä se komennolla 'omniroute serve'.",
+    "notFound": "'claude'-CLI:tä ei löytynyt PATH-ympäristömuuttujasta."
+  },
+  "run": {
+    "description": "Käynnistä tuettu CLI-kohde OmniRouten kautta"
+  },
+  "setupClaude": {
+    "description": "Luo ~/.claude/profiles Claude Code -profiilit OmniRouten malliluettelosta"
+  },
+  "connect": {
+    "description": "Yhdistä OmniRoute-etäpalvelimeen ja siirry etätilaan"
+  },
+  "tokens": {
+    "description": "Hallitse rajattuja CLI-käyttötunnuksia (etätila)"
+  },
+  "configure": {
+    "description": "Valitse palveluntarjoaja ja malli aktiiviselta palvelimelta ja määritä tuettu paikallinen CLI"
+  },
+  "launchCodex": {
+    "description": "Käynnistä Codex CLI OmniRouteen yhdistettynä (paikallinen tai VPS-etäpalvelin)"
+  },
+  "setupCodex": {
+    "description": "Luo ~/.codex-profiilitiedostot OmniRouten reaaliaikaisesta malliluettelosta"
+  },
+  "packs": {
+    "description": "Hallitse valinnaisia ajonaikaisen ympäristön paketteja (ML / selainautomaatio)",
+    "listDescription": "Luettele valinnaiset paketit ja niiden asennustila",
+    "installDescription": "Asenna valinnainen paketti DATA_DIR-hakemistoon",
+    "verifyDescription": "Tarkista asennetut paketit mukana toimitettua tarkistussummaindeksiä vasten",
+    "removeDescription": "Poista asennettu valinnainen paketti",
+    "sourceOpt": "Pakettien sisällöt ja paketti-indeksin sisältävä hakemisto",
+    "warnNoIndex": "optional-packs.index.json-tiedostoa ei löytynyt — asennus ja tarkistus eivät ole käytettävissä tässä lähdekopiossa (työpöytäsovelluspaketit sisältävät sen)",
+    "errUnknown": "tuntematon paketti: {name}",
+    "errNoIndex": "paketti-indeksiä ei löytynyt; anna --source <dir>, joka sisältää paketin sisällön (työpöytäsovelluspaketit sisältävät sen sovelluksen vieressä)",
+    "installed": "paketti \"{name}\" on asennettu ja tarkistettu hakemistossa {dir}",
+    "restartHint": "käynnistä OmniRoute-palvelin (tai työpöytäsovellus) uudelleen, jotta ajoympäristö ottaa paketin käyttöön",
+    "removed": "paketti \"{name}\" poistettu",
+    "notInstalled": "pakettia \"{name}\" ei ollut asennettu",
+    "verifyOk": "kaikki asennetut paketit tarkistettu",
+    "verifyFailed": "{count} paketin tarkistus epäonnistui",
+    "noneInstalled": "valinnaisia paketteja ei ole asennettu"
   }
 }

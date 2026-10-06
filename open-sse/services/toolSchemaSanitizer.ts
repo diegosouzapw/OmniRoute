@@ -163,3 +163,20 @@ export function sanitizeOpenAITool(tool: unknown): unknown {
 export function sanitizeOpenAITools(tools: unknown[]): unknown[] {
   return tools.map(sanitizeOpenAITool);
 }
+
+export function flattenOpenAIToolRootAnyOf(tools: unknown): unknown {
+  if (!Array.isArray(tools)) return tools;
+  return tools.map((tool) => {
+    if (!isPlainObject(tool)) return tool;
+
+    const next = { ...tool };
+    const fn = isPlainObject(next.function) ? { ...next.function } : next;
+    if (!isPlainObject(fn.parameters) || !hasOwn(fn.parameters, "anyOf")) return tool;
+
+    const parameters = { ...fn.parameters };
+    delete parameters.anyOf;
+    fn.parameters = parameters;
+    if (fn !== next) next.function = fn;
+    return next;
+  });
+}

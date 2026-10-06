@@ -20,12 +20,10 @@ delete process.env.INITIAL_PASSWORD; // auth not required in this test env
 
 const core = await import("../../src/lib/db/core.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
-const { POST: batchDeletePost } = await import(
-  "../../src/app/api/settings/proxies/batch-delete/route.ts"
-);
-const { POST: autoTestPost } = await import(
-  "../../src/app/api/settings/proxies/auto-test/route.ts"
-);
+const { POST: batchDeletePost } =
+  await import("../../src/app/api/settings/proxies/batch-delete/route.ts");
+const { POST: autoTestPost } =
+  await import("../../src/app/api/settings/proxies/auto-test/route.ts");
 
 function jsonRequest(body: unknown): Request {
   return new Request("http://localhost/api/settings/proxies/batch-delete", {
@@ -38,13 +36,13 @@ function jsonRequest(body: unknown): Request {
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("batch-delete removes multiple existing proxies in one request", async () => {

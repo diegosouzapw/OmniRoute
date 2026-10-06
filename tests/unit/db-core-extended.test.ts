@@ -24,7 +24,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch {
@@ -134,14 +134,14 @@ test("runManualVacuum returns success result", async () => {
 test("runManagedDbHealthCheck returns health info", async () => {
   await resetStorage();
   core.getDbInstance();
-  const result = core.runManagedDbHealthCheck();
+  const result = await core.runManagedDbHealthCheck();
   assert.ok(typeof result === "object");
 });
 
 test("runManagedDbHealthCheck with autoRepair option", async () => {
   await resetStorage();
   core.getDbInstance();
-  const result = core.runManagedDbHealthCheck({ autoRepair: true });
+  const result = await core.runManagedDbHealthCheck({ autoRepair: true });
   assert.ok(typeof result === "object");
 });
 

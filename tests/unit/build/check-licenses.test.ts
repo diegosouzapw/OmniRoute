@@ -8,6 +8,7 @@
 //   - stripVersion()     — strips @version suffix from package keys
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
 import {
   classifyLicense,
@@ -15,15 +16,19 @@ import {
   loadAllowlist,
 } from "../../../scripts/check/check-licenses.mjs";
 
+const PNPM_WORKSPACE_URL = new URL("../../../pnpm-workspace.yaml", import.meta.url);
+
 // ---------------------------------------------------------------------------
 // Helpers — synthetic allowlists for testing classifyLicense in isolation
 // ---------------------------------------------------------------------------
 
-function makeAllowlist(overrides: Partial<{
-  allowed: string[];
-  allowedExpressions: string[];
-  exceptions: Record<string, { license: string; justification: string; risk: string }>;
-}> = {}) {
+function makeAllowlist(
+  overrides: Partial<{
+    allowed: string[];
+    allowedExpressions: string[];
+    exceptions: Record<string, { license: string; justification: string; risk: string }>;
+  }> = {}
+) {
   return {
     allowed: ["MIT", "Apache-2.0", "BSD-3-Clause", "ISC", "0BSD"],
     allowedExpressions: ["(MIT OR Apache-2.0)", "MIT AND ISC", "MIT*"],
@@ -31,6 +36,15 @@ function makeAllowlist(overrides: Partial<{
     ...overrides,
   };
 }
+
+test("pnpm does not auto-install the unused @lobehub/ui peer subtree", () => {
+  const workspace = fs.readFileSync(PNPM_WORKSPACE_URL, "utf8");
+  assert.match(
+    workspace,
+    /^autoInstallPeers:\s*false\s*$/m,
+    "pnpm must match npm's legacy-peer-deps posture; @lobehub/ui is not a runtime dependency"
+  );
+});
 
 // ---------------------------------------------------------------------------
 // stripVersion
@@ -53,7 +67,10 @@ test("stripVersion: handles scoped package without version", () => {
 });
 
 test("stripVersion: handles nested scope-like name with version", () => {
-  assert.equal(stripVersion("@aws-sdk/client-bedrock-runtime@3.1063.0"), "@aws-sdk/client-bedrock-runtime");
+  assert.equal(
+    stripVersion("@aws-sdk/client-bedrock-runtime@3.1063.0"),
+    "@aws-sdk/client-bedrock-runtime"
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -150,7 +167,10 @@ test("classifyLicense: LGPL package with registered exception returns 'exception
   });
   const result = classifyLicense("lgpl-native-pkg@1.2.3", "LGPL-3.0-or-later", allowlist);
   assert.equal(result.status, "exception");
-  assert.ok(result.reason.includes("exception"), `reason should mention exception: ${result.reason}`);
+  assert.ok(
+    result.reason.includes("exception"),
+    `reason should mention exception: ${result.reason}`
+  );
 });
 
 test("classifyLicense: scoped package with exception: version is stripped for lookup", () => {
@@ -185,17 +205,17 @@ test("classifyLicense: exception does not apply to different package", () => {
   assert.equal(result.status, "denied", "exception must be per-package, not per-license");
 });
 
-test("classifyLicense: exception with risk=medium still returns 'exception' (not denied)", () => {
+test("classifyLicense: a medium-risk custom exception still returns 'exception'", () => {
   const allowlist = makeAllowlist({
     exceptions: {
-      "tls-client-node": {
-        license: "Custom: LICENSE",
-        justification: "Commons Clause + Apache-2.0. TODO: revisar.",
+      "custom-runtime": {
+        license: "Custom: reviewed terms",
+        justification: "Reviewed custom runtime terms.",
         risk: "medium",
       },
     },
   });
-  const result = classifyLicense("tls-client-node@0.2.0", "Custom: LICENSE", allowlist);
+  const result = classifyLicense("custom-runtime@1.0.0", "Custom: reviewed terms", allowlist);
   assert.equal(result.status, "exception");
 });
 
@@ -265,13 +285,6 @@ test("loadAllowlist: exceptions entries have required fields", () => {
   }
 });
 
-test("loadAllowlist: tls-client-node exception has risk=medium (Commons Clause)", () => {
-  const allowlist = loadAllowlist();
-  const exc = allowlist.exceptions["tls-client-node"] as any;
-  assert.ok(exc, "tls-client-node exception must be registered");
-  assert.equal(exc.risk, "medium", "tls-client-node is a medium-risk exception (Commons Clause)");
-});
-
 test("loadAllowlist: LGPL packages have registered exceptions", () => {
   const allowlist = loadAllowlist();
   const lgplPkgs = ["@img/sharp-libvips-linux-x64", "@img/sharp-libvips-linuxmusl-x64"];
@@ -306,12 +319,6 @@ test("integration: classifyLicense passes MIT packages against real allowlist", 
   assert.equal(result.status, "allowed");
 });
 
-test("integration: classifyLicense passes tls-client-node as exception against real allowlist", () => {
-  const allowlist = loadAllowlist();
-  const result = classifyLicense("tls-client-node@0.2.0", "Custom: LICENSE", allowlist);
-  assert.equal(result.status, "exception");
-});
-
 test("integration: classifyLicense denies GPL-3.0 against real allowlist", () => {
   const allowlist = loadAllowlist();
   const result = classifyLicense("hypothetical-gpl@1.0.0", "GPL-3.0", allowlist);
@@ -322,4 +329,20 @@ test("integration: classifyLicense denies AGPL-3.0 against real allowlist", () =
   const allowlist = loadAllowlist();
   const result = classifyLicense("hypothetical-agpl@1.0.0", "AGPL-3.0", allowlist);
   assert.equal(result.status, "denied");
+});
+
+test("integration: @eloqnt/* UNKNOWN licenses are documented exceptions (next-intl transitive)", () => {
+  const allowlist = loadAllowlist();
+  for (const pkg of [
+    "@eloqnt/config@0.0.2",
+    "@eloqnt/format-json@0.0.3",
+    "@eloqnt/format-po@0.0.3",
+  ]) {
+    const result = classifyLicense(pkg, "UNKNOWN", allowlist);
+    assert.equal(
+      result.status,
+      "exception",
+      `${pkg} ships no license field; must be a documented exception, not allowed/denied`
+    );
+  }
 });

@@ -10,7 +10,17 @@ import { recordMemoryAccess } from "./store";
 import { stats as embeddingCacheStats } from "./embedding/cache";
 import { getQdrantConfig, checkQdrantHealth, searchSemanticMemory } from "./qdrant";
 import type { MemoryEngineStatus } from "@/shared/schemas/memory";
-import { estimateTokens, parseMetadata, rowToMemory, getRelevanceScore } from "./retrieval/scoring";
+import { supportsFts5 } from "../db/migrationRunner";
+import type { SqliteAdapter } from "../db/adapters/types";
+import { pickApiKeyForInternalUse } from "../db/apiKeys";
+import { getRuntimePorts } from "../runtime/ports";
+import {
+  estimateTokens,
+  parseMetadata,
+  rowToMemory,
+  getRelevanceScore,
+  sanitizeFts5Query,
+} from "./retrieval/scoring";
 import type { MemoryRow } from "./retrieval/scoring";
 
 const log = logger("MEMORY_RETRIEVAL");
@@ -47,9 +57,7 @@ export interface RetrievePreviewBundle {
   budgetMaxTokens: number;
 }
 
-export { estimateTokens } from "./retrieval/scoring";
-
-// ──────────────── Helpers ────────────────
+export { estimateTokens, sanitizeFts5Query } from "./retrieval/scoring";
 
 function hasTable(tableName: string): boolean {
   const db = getDbInstance();
@@ -96,6 +104,8 @@ interface FtsColConfig {
  */
 function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
   if (!config.query) return [];
+  const safeQuery = sanitizeFts5Query(config.query);
+  if (!safeQuery) return [];
   const db = getDbInstance();
   const {
     apiKeyCol,
@@ -103,7 +113,6 @@ function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
     createdCol,
     sessionCol,
     tableName,
-    query: q,
     scope,
     sessionId,
     retentionDays,
@@ -122,7 +131,7 @@ function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
   }
   ftsQueryStr += ` ORDER BY f.rank LIMIT 100`;
 
-  const ftsParams: unknown[] = [q, apiKeyId];
+  const ftsParams: unknown[] = [safeQuery, apiKeyId];
   if (scope === "session" && sessionId) ftsParams.push(sessionId);
   if (retentionDays && retentionDays > 0) {
     const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000).toISOString();
@@ -136,16 +145,29 @@ function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
   }
 }
 
-// Loopback rerank URL — localhost only, never routed over the network.
-// nosemgrep: javascript.lang.security.audit.non-literal-regexp.non-literal-regexp
-const RERANK_LOOPBACK_URL = "http://127.0.0.1:20128/v1/rerank";
+// Loopback rerank URL — localhost only, never routed over the network. The port is
+// derived from the same runtime source every other internal self-call uses
+// (getRuntimePorts()/process.env.PORT — see src/lib/runtime/ports.ts), never hardcoded,
+// so this keeps working when an operator overrides PORT/API_PORT (#12745).
+function getRerankLoopbackUrl(): string {
+  const { apiPort } = getRuntimePorts();
+  // nosemgrep: javascript.lang.security.audit.non-literal-regexp.non-literal-regexp
+  return `http://127.0.0.1:${apiPort}/v1/rerank`;
+}
 
 /**
  * Apply reranking via /v1/rerank (loopback-only) if rerankEnabled + rerankProviderModel is set.
  * Returns reordered array (or original order on any error — rerank failure never fails retrieval).
  *
- * Security note: the URL is a hardcoded loopback address (127.0.0.1:20128) — it never
- * carries sensitive data over a network link. HTTP is safe for loopback-only IPC.
+ * Auth note (#12745): /v1/rerank is a CLIENT_API route gated by clientApiPolicy — with
+ * REQUIRE_API_KEY=true an unauthenticated loopback call gets 401'd by the same policy
+ * that protects it from the outside, and this call used to send no credential at all,
+ * silently degrading retrieval to unranked order. Attach a real, DB-backed API key
+ * (the same internal-probe selector already used by combo-health-check / cloud-sync-verify,
+ * see pickApiKeyForInternalUse()) as a Bearer token instead of exempting the route.
+ *
+ * Security note: the URL is a loopback address (127.0.0.1) — it never carries sensitive
+ * data over a network link. HTTP is safe for loopback-only IPC.
  * nosemgrep: javascript.lang.security.detect-non-literal-url
  */
 async function applyRerank<T extends { memory: Memory; score: number }>(
@@ -164,10 +186,14 @@ async function applyRerank<T extends { memory: Memory; score: number }>(
       top_n: items.length,
     };
 
-    const res = await fetch(RERANK_LOOPBACK_URL, {
+    const internalKey = await pickApiKeyForInternalUse("internal-probe");
+    const headers: Record<string, string> = { "content-type": "application/json" };
+    if (internalKey) headers.authorization = `Bearer ${internalKey}`;
+
+    const res = await fetch(getRerankLoopbackUrl(), {
       // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers,
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(5000),
     });
@@ -915,14 +941,17 @@ export async function retrievePreview(
     // Semantic/hybrid degraded to FTS5
     let ftsRows: MemoryRow[] = [];
     if (query && ftsAvailable) {
-      const ftsQueryStr = apiKeyId
-        ? `SELECT m.* FROM ${tableName} m JOIN memory_fts f ON m.memory_id = f.rowid WHERE f.memory_fts MATCH ? AND m.${apiKeyCol} = ? ORDER BY f.rank LIMIT ?`
-        : `SELECT m.* FROM ${tableName} m JOIN memory_fts f ON m.memory_id = f.rowid WHERE f.memory_fts MATCH ? ORDER BY f.rank LIMIT ?`;
-      const ftsP: unknown[] = apiKeyId ? [query, apiKeyId, limit] : [query, limit];
-      try {
-        ftsRows = db.prepare(ftsQueryStr).all(...ftsP) as MemoryRow[];
-      } catch {
-        ftsRows = [];
+      const safeQuery = sanitizeFts5Query(query);
+      if (safeQuery) {
+        const ftsQueryStr = apiKeyId
+          ? `SELECT m.* FROM ${tableName} m JOIN memory_fts f ON m.memory_id = f.rowid WHERE f.memory_fts MATCH ? AND m.${apiKeyCol} = ? ORDER BY f.rank LIMIT ?`
+          : `SELECT m.* FROM ${tableName} m JOIN memory_fts f ON m.memory_id = f.rowid WHERE f.memory_fts MATCH ? ORDER BY f.rank LIMIT ?`;
+        const ftsP: unknown[] = apiKeyId ? [safeQuery, apiKeyId, limit] : [safeQuery, limit];
+        try {
+          ftsRows = db.prepare(ftsQueryStr).all(...ftsP) as MemoryRow[];
+        } catch {
+          ftsRows = [];
+        }
       }
     }
 
@@ -956,6 +985,34 @@ export async function retrievePreview(
     totalTokens,
     budgetMaxTokens: maxTokens,
   };
+}
+
+// ──────────────── keyword engine status (§3.2) ────────────────
+
+export interface KeywordEngineStatus {
+  available: boolean;
+  backend: "FTS5" | "none";
+  reason: string;
+}
+
+/**
+ * Probe the runtime SQLite build for FTS5 support and report the TRUTH of the
+ * keyword tier — never a hardcoded claim. `supportsFts5()` reuses the module
+ * probe already run by migrationRunner (cached per-adapter WeakMap), so an
+ * FTS5-less build (e.g. sql.js/WASM, "no such module: fts5") surfaces here as
+ * `available:false` instead of the dashboard claiming FTS5 is always available.
+ * Any unexpected probe error degrades to unavailable rather than throwing.
+ */
+export function keywordEngineStatus(db: SqliteAdapter): KeywordEngineStatus {
+  let available = false;
+  let reason = "SQLite build lacks FTS5 — keyword search unavailable (fall back to exact scan)";
+  try {
+    available = supportsFts5(db);
+    if (available) reason = "FTS5 keyword search active";
+  } catch (err: unknown) {
+    reason = `FTS5 probe failed: ${sanitizeErrorMessage(err instanceof Error ? err.message : String(err))}`;
+  }
+  return { available, backend: available ? "FTS5" : "none", reason };
 }
 
 // ──────────────── engineStatus (§3.2) ────────────────
@@ -1039,7 +1096,7 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
       : (settings.rerankProviderModel ?? null);
 
   return {
-    keyword: { available: true, backend: "FTS5" },
+    keyword: keywordEngineStatus(getDbInstance()),
     embedding: {
       source: resolution.source,
       model: resolution.model,

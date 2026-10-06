@@ -30,7 +30,7 @@ test("should_return_AUTH_007_when_models_endpoint_returns_401", async () => {
   mockFetch(401, JSON.stringify({ error: "unauthorized" }));
 
   const result = await validateWebCookieProvider({
-    provider: "chatgpt-web",
+    provider: "huggingchat",
     apiKey: "expired_cookie=session=abc123",
     providerSpecificData: {},
   });
@@ -45,7 +45,7 @@ test("should_return_AUTH_007_when_models_endpoint_returns_403", async () => {
   mockFetch(403, JSON.stringify({ error: "forbidden" }));
 
   const result = await validateWebCookieProvider({
-    provider: "chatgpt-web",
+    provider: "huggingchat",
     apiKey: "expired_cookie=session=abc123",
     providerSpecificData: {},
   });
@@ -57,8 +57,8 @@ test("should_return_AUTH_007_when_models_endpoint_returns_403", async () => {
 });
 
 test("should_return_unsupported_when_models_endpoint_returns_200_for_a_conversation_baseUrl", async () => {
-  // #7857: chatgpt-web's registry baseUrl is a conversation endpoint
-  // ("https://chatgpt.com/backend-api/conversation"), not a real API root, so
+  // #7857: huggingchat's registry baseUrl is a conversation endpoint,
+  // not a real API root, so
   // "${baseUrl}/models" is a path that never existed upstream. A 200 from that
   // nonsense path (e.g. a login-page SPA shell) is not a meaningful auth signal and
   // is indistinguishable from a genuinely valid session — it must be reported as
@@ -66,7 +66,7 @@ test("should_return_unsupported_when_models_endpoint_returns_200_for_a_conversat
   mockFetch(200, JSON.stringify({ ok: true, data: [] }));
 
   const result = await validateWebCookieProvider({
-    provider: "chatgpt-web",
+    provider: "huggingchat",
     apiKey: "valid_cookie=session=abc123",
     providerSpecificData: {},
   });
@@ -95,7 +95,7 @@ test("should_return_error_when_cookie_is_empty", async () => {
   mockFetch(200, "{}");
 
   const result = await validateWebCookieProvider({
-    provider: "chatgpt-web",
+    provider: "huggingchat",
     apiKey: "",
     providerSpecificData: {},
   });

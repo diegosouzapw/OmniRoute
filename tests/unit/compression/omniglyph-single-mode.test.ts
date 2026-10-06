@@ -3,8 +3,13 @@ import assert from "node:assert";
 import { applyCompressionAsync } from "../../../open-sse/services/compression/strategySelector.ts";
 import { registerBuiltinCompressionEngines } from "../../../open-sse/services/compression/engines/index.ts";
 
-const DENSE = "X".repeat(500) + "\n" +
-  Array.from({ length: 400 }, (_, i) => `const row_${i} = compute(${i * 17}, "${"v".repeat(80)}");`).join("\n");
+const DENSE =
+  "X".repeat(500) +
+  "\n" +
+  Array.from(
+    { length: 400 },
+    (_, i) => `const row_${i} = compute(${i * 17}, "${"v".repeat(80)}");`
+  ).join("\n");
 const body = () => ({
   model: "claude-fable-5",
   max_tokens: 128,
@@ -18,6 +23,7 @@ test("modo omniglyph sozinho comprime (selecionar o modo é o enable)", async ()
     model: "claude-fable-5",
     supportsVision: true,
     providerTransport: "direct",
+    imageTransportFidelity: "byte-preserving",
   });
   assert.equal(r.compressed, true);
   assert.ok(JSON.stringify(r.body).includes('"type":"image"'));

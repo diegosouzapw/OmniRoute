@@ -5,11 +5,8 @@ import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const {
-  ensureWindowsBuildProfileDirs,
-  getWindowsBuildProfileDir,
-  resolveNextBuildEnv,
-} = await import("../../scripts/build/build-next-isolated.mjs");
+const { ensureWindowsBuildProfileDirs, getWindowsBuildProfileDir, resolveNextBuildEnv } =
+  await import("../../scripts/build/build-next-isolated.mjs");
 
 // Port of decolua/9router#2402 ("fix(build): isolate Windows HOME/AppData during
 // next build"). Upstream wraps `npm run build` in a new `scripts/build-app.js`
@@ -88,6 +85,6 @@ test("ensureWindowsBuildProfileDirs creates the isolated AppData directories", a
     assert.equal(fsSync.existsSync(env.APPDATA), true);
     assert.equal(fsSync.existsSync(env.LOCALAPPDATA), true);
   } finally {
-    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.rm(tempDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

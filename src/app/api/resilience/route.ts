@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCachedSettings, getSettings, updateSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/db/readCache";
+import { getSettings, updateSettings } from "@/lib/db/settings";
 import {
   buildLegacyResilienceCompat,
   mergeResilienceSettings,
@@ -142,7 +143,9 @@ export async function GET() {
       comboCooldownWait: resilience.comboCooldownWait,
       quotaShareConcurrencyLimit: resilience.quotaShareConcurrencyLimit,
       providerCooldown: resilience.providerCooldown,
+      quotaPreflight: resilience.quotaPreflight,
       providerQuotaOverrides: resilience.providerQuotaOverrides,
+      credentialHealthCheck: resilience.credentialHealthCheck,
       legacy: buildLegacyResilienceCompat(resilience),
     });
   } catch (err: unknown) {
@@ -215,10 +218,19 @@ export async function PATCH(request) {
             providerCooldown: body.providerCooldown as ResilienceSettingsPatch["providerCooldown"],
           }
         : {}),
+      ...(body.quotaPreflight
+        ? { quotaPreflight: body.quotaPreflight as ResilienceSettingsPatch["quotaPreflight"] }
+        : {}),
       ...(body.providerQuotaOverrides
         ? {
             providerQuotaOverrides:
               body.providerQuotaOverrides as ResilienceSettingsPatch["providerQuotaOverrides"],
+          }
+        : {}),
+      ...(body.credentialHealthCheck
+        ? {
+            credentialHealthCheck:
+              body.credentialHealthCheck as ResilienceSettingsPatch["credentialHealthCheck"],
           }
         : {}),
       ...normalizeLegacyPatch(body),
@@ -258,7 +270,9 @@ export async function PATCH(request) {
       comboCooldownWait: nextResilience.comboCooldownWait,
       quotaShareConcurrencyLimit: nextResilience.quotaShareConcurrencyLimit,
       providerCooldown: nextResilience.providerCooldown,
+      quotaPreflight: nextResilience.quotaPreflight,
       providerQuotaOverrides: nextResilience.providerQuotaOverrides,
+      credentialHealthCheck: nextResilience.credentialHealthCheck,
       legacy: buildLegacyResilienceCompat(nextResilience),
     });
   } catch (err: unknown) {

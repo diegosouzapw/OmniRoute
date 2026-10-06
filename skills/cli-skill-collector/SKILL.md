@@ -104,6 +104,7 @@ Write config for a tool
 - `--model <model>`
 - `--non-interactive`
 - `--yes`
+- `--allow-container-write`
 
 **Example:**
 
@@ -135,6 +136,7 @@ Generate OpenCode config (alias for
 - `--model <model>`
 - `--non-interactive`
 - `--yes`
+- `--allow-container-write`
 
 **Example:**
 

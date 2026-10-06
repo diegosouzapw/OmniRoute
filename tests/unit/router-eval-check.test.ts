@@ -104,7 +104,7 @@ test("router eval check writes artifacts and passes non-regressing corpora", () 
     const artifact = JSON.parse(readFileSync(json, "utf8")) as Record<string, unknown>;
     assert.equal(artifact.kind, "router-eval-comparison");
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -201,7 +201,7 @@ test("router eval check can include patch compare as a retained gate", () => {
     assert.equal(manifest.outputs?.patchJson, "patch-comparison.json");
     assert.equal(manifest.thresholds?.patch?.maxLatencyIncrease, 0.05);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -288,7 +288,7 @@ test("router eval check fails when patch gate regresses beyond thresholds", () =
     };
     assert.equal(manifest.result?.status, 1);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -378,7 +378,7 @@ test("router eval check rejects unpaired patch inputs", () => {
     assert.equal(candidateOnly.status, 2);
     assert.match(candidateOnly.stderr ?? "", /baseline-patch and --candidate-patch/);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -479,6 +479,6 @@ test("router eval check can retain artifacts for trend summaries", () => {
     assert.ok((trendResult.stdout ?? "").includes(runId));
     assert.ok((trendResult.stdout ?? "").includes("| jsonl | all |"));
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

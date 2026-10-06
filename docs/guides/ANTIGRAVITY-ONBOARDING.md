@@ -6,7 +6,7 @@ lastUpdated: 2026-07-31
 
 # OmniRoute Antigravity (Google One AI) Onboarding Guide
 
-> **What you get**: Access to Gemini 3.1 Pro, Gemini 3.5 Flash, Claude Sonnet 4.6, and other models through your Google One AI Pro subscription — routed through OmniRoute as a unified gateway.
+> **What you get**: Access to Gemini 3.1 Pro, Gemini 3.7 Flash, Claude Sonnet 4.6, and other models through your Google One AI Pro subscription — routed through OmniRoute as a unified gateway.
 
 **Official references**:
 
@@ -45,7 +45,7 @@ Both providers share the **same Google backend** — identical OAuth client, tok
 
 **Why the model catalog differs**: Google's CLI is "optimized for speed and low overhead" and "co-optimized with Gemini models" (per Google's official blog). The Web/IDE product is "optimized for comprehensiveness." The CLI uses `:fetchAvailableModels` to dynamically discover models, while the IDE uses a static curated list.
 
-**In practice**: Use `agy/` prefix for Gemini models (e.g. `agy/gemini-3.5-flash-high`). Use `antigravity/` for the static curated list. Both hit the same Google backend, but expose different model naming. The quota is shared — using either provider counts against the same Google account's limits.
+**In practice**: Use `agy/` prefix for Gemini models (e.g. `agy/gemini-3.7-flash-high`). Use `antigravity/` for the static curated list. Both hit the same Google backend, but expose different model naming. The quota is shared — using either provider counts against the same Google account's limits.
 
 ---
 

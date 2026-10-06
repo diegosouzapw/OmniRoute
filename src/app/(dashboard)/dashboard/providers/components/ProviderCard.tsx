@@ -1,12 +1,13 @@
 "use client";
 
-import type { MouseEvent, ReactNode } from "react";
+import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { Badge, Card, Toggle } from "@/shared/components";
+import { Badge, Card, Modal, Toggle } from "@/shared/components";
 import ProviderTestSlideOver from "@/shared/components/ProviderTestSlideOver";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import {
@@ -24,6 +25,12 @@ interface ProviderStats {
   connected?: number;
   error?: number;
   warning?: number;
+  /** Highest failure count among currently "warning" api keys (#10261 — sanitized,
+   * never the raw upstream error text). */
+  warningMaxFailures?: number;
+  /** Pre-formatted relative time (e.g. "3h ago") of the most recent warning-key
+   * failure, computed by the caller via `getRelativeTime()` (#10261). */
+  warningLastFailureRelative?: string | null;
   errorCode?: string | null;
   errorTime?: string | null;
   allDisabled?: boolean;
@@ -65,6 +72,9 @@ interface ProviderCardProps {
     hasFree?: boolean;
     freeNote?: string;
     subscriptionRisk?: boolean;
+    /** Which risk copy variant to show in the details dialog (#10261). Falls back
+     * to "oauth" when absent — mirrors `ProviderModalsPanel`'s default. */
+    riskNoticeVariant?: "oauth" | "webCookie" | "deprecated" | "embedded-service";
     /** Declared service kinds — "llm" enables the inline Test button */
     serviceKinds?: string[];
     /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
@@ -114,13 +124,84 @@ function providerText(
   return fallback;
 }
 
+interface WarningBadgeDetails {
+  warningMaxFailures: number;
+  warningLastFailureRelative: string | null;
+  onActivate: () => void;
+}
+
+/** #10261 — the warning-count badge previously had no `title` (no reasons exposed)
+ * and no click affordance, even though the reasons already exist in
+ * `providerSpecificData.apiKeyHealth[]`. Renders a keyboard- and pointer-
+ * interactive wrapper around the Badge that exposes a sanitized reasons summary
+ * (never raw upstream error text — Hard Rule #12) and navigates to the
+ * connection-health view on activation. */
+function WarningBadge({
+  count,
+  t,
+  details,
+}: {
+  count: number;
+  t: ReturnType<typeof useTranslations>;
+  details: WarningBadgeDetails;
+}) {
+  const lastFailureSuffix = details.warningLastFailureRelative
+    ? providerText(t, "warningNotice.lastFailureSuffix", " (last failure {time})", {
+        time: details.warningLastFailureRelative,
+      })
+    : "";
+  const tooltip = providerText(
+    t,
+    "warningNotice.tooltip",
+    "{count} connection(s) flagged — up to {maxFailures} recent failures{lastFailureSuffix}. Click to view connection health.",
+    {
+      count,
+      maxFailures: details.warningMaxFailures,
+      lastFailureSuffix,
+    }
+  );
+  const ariaLabel = providerText(
+    t,
+    "warningNotice.ariaLabel",
+    "View connection health details, {count} warning(s)",
+    {
+      count,
+    }
+  );
+
+  const activate = (e: MouseEvent | KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    details.onActivate();
+  };
+
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      title={tooltip}
+      aria-label={ariaLabel}
+      onClick={activate}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") activate(e);
+      }}
+      className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+    >
+      <Badge variant="warning" size="sm" icon="warning">
+        {t("warningCount", { count })}
+      </Badge>
+    </span>
+  );
+}
+
 function getStatusDisplay(
   connected: number,
   error: number,
   warning: number,
   errorCode: string | null | undefined,
   t: ReturnType<typeof useTranslations>,
-  afterConnected?: ReactNode
+  afterConnected?: ReactNode,
+  warningDetails?: WarningBadgeDetails
 ) {
   const parts: ReactNode[] = [];
   if (connected > 0) {
@@ -133,9 +214,13 @@ function getStatusDisplay(
   }
   if (warning > 0) {
     parts.push(
-      <Badge key="warning" variant="warning" size="sm" dot>
-        {t("warningCount", { count: warning })}
-      </Badge>
+      warningDetails ? (
+        <WarningBadge key="warning" count={warning} t={t} details={warningDetails} />
+      ) : (
+        <Badge key="warning" variant="warning" size="sm" dot>
+          {t("warningCount", { count: warning })}
+        </Badge>
+      )
     );
   }
   if (error > 0) {
@@ -167,11 +252,13 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const tp = useTranslations("miniPlayground");
+  const router = useRouter();
   const kindLabel = (kind: string) => {
     const entry = KIND_LABEL_KEYS[kind];
     return entry ? providerText(t, entry.key, entry.fallback) : kind;
   };
   const [testExpanded, setTestExpanded] = useState<boolean>(false);
+  const [riskDetailsOpen, setRiskDetailsOpen] = useState<boolean>(false);
   const innerRef = useRef<HTMLDivElement>(null);
   const linkElementRef = useRef<HTMLAnchorElement>(null);
 
@@ -222,6 +309,14 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
     e.stopPropagation();
     setTestExpanded((v) => !v);
   };
+  const handleRiskIndicatorActivate = (e: MouseEvent | KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setRiskDetailsOpen(true);
+  };
+  const handleWarningBadgeActivate = useCallback(() => {
+    router.push(`/dashboard/providers/${providerId}`);
+  }, [router, providerId]);
   const connected = Number(stats.connected || 0);
   const error = Number(stats.error || 0);
   const allDisabled = Boolean(stats.allDisabled);
@@ -341,10 +436,9 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   };
 
   const staticIconPath = (() => {
-    if (isCompatible) {
-      return provider.apiType === "responses" ? "/providers/oai-r.png" : "/providers/oai-cc.png";
+    if (isCompatible || isAnthropicCompatible || isCcCompatible) {
+      return "/providers/cli-generic.svg";
     }
-    if (isAnthropicCompatible || isCcCompatible) return "/providers/anthropic-m.png";
     return null;
   })();
 
@@ -434,13 +528,19 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
                   </span>
                 )}
                 {provider.subscriptionRisk === true && (
-                  <span
-                    className="material-symbols-outlined text-[16px] leading-none text-amber-500"
+                  <button
+                    type="button"
+                    className="material-symbols-outlined text-[16px] leading-none text-amber-500 underline decoration-dotted decoration-1 underline-offset-2 hover:text-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/60 transition-colors"
                     title={t("riskNotice.tooltip")}
                     aria-label={t("riskNotice.tooltip")}
+                    aria-haspopup="dialog"
+                    onClick={handleRiskIndicatorActivate}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") handleRiskIndicatorActivate(e);
+                    }}
                   >
                     info
-                  </span>
+                  </button>
                 )}
                 <CategoryDot
                   color={DOT_COLORS[authType] || DOT_COLORS.apikey}
@@ -509,7 +609,14 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
                       Number(stats.warning || 0),
                       stats.errorCode,
                       t,
-                      codexServiceTierChip
+                      codexServiceTierChip,
+                      Number(stats.warning || 0) > 0
+                        ? {
+                            warningMaxFailures: Number(stats.warningMaxFailures || 0),
+                            warningLastFailureRelative: stats.warningLastFailureRelative ?? null,
+                            onActivate: handleWarningBadgeActivate,
+                          }
+                        : undefined
                     )}
                     {stats.expiryStatus === "expired" && (
                       <Badge variant="error" size="sm" dot>
@@ -569,6 +676,26 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
           provider={provider}
           staticIconPath={staticIconPath}
         />
+      )}
+      {provider.subscriptionRisk === true && (
+        <Modal
+          isOpen={riskDetailsOpen}
+          onClose={() => setRiskDetailsOpen(false)}
+          title={providerText(t, "riskNotice.detailsTitle", "Usage caveats")}
+          size="sm"
+        >
+          <div className="flex items-start gap-3 rounded-lg border border-amber-500/25 bg-amber-500/10 p-4">
+            <span
+              className="material-symbols-outlined mt-0.5 text-[22px] leading-none text-amber-500"
+              aria-hidden="true"
+            >
+              info
+            </span>
+            <p className="min-w-0 whitespace-pre-line text-sm leading-6 text-text-muted">
+              {t(`riskNotice.${provider.riskNoticeVariant ?? "oauth"}`)}
+            </p>
+          </div>
+        </Modal>
       )}
     </div>
   );

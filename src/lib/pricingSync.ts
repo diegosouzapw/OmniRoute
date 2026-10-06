@@ -105,10 +105,22 @@ const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   vertex_ai: ["gemini"],
   "vertex_ai-anthropic_models": ["anthropic"],
   google: ["gemini"],
-  deepseek: ["if"],
+  // Registry ALIAS, not registry id — pricingSync writes/reads are keyed by
+  // alias everywhere else (see getPricingForModel(provider, model) callers).
+  // Four of these previously used the provider's `id` string, which is not a
+  // valid pricing-lookup key for that provider and, worse, for `deepseek` a
+  // real (but wrong) alias existed under that string — silently routing
+  // DeepSeek's synced pricing onto Qoder (open-sse/config/providers/registry/
+  // qoder/index.ts, alias "if", an unrelated third-party API) instead of
+  // DeepSeek (alias "ds"). `bedrock`/`bedrock_converse` and `cloudflare`
+  // pointed at their provider's `id` ("kiro", "cloudflare-ai") rather than
+  // its `alias` ("kr", "cf") — not wrong-provider, just a dead key nothing
+  // downstream ever looks up, so those two providers silently never received
+  // synced pricing at all.
+  deepseek: ["ds"],
   groq: ["groq"],
   together_ai: ["openrouter"],
-  bedrock: ["kiro"],
+  bedrock: ["kr"],
   fireworks_ai: ["fireworks"],
   cerebras: ["cerebras"],
   nvidia_nim: ["nvidia"],
@@ -116,8 +128,11 @@ const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   "vertex_ai-language_models": ["gemini"],
   "vertex_ai-mistral_models": ["mistral"],
   gemini: ["gemini"],
-  bedrock_converse: ["kiro"],
-  cloudflare: ["cloudflare-ai"],
+  bedrock_converse: ["kr"],
+  cloudflare: ["cf"],
+  // stability-ai has no chat-completions registry entry (image-only:
+  // open-sse/config/providers/registry/stability-ai/imageModels.ts) — left
+  // as-is rather than guessed at; not the same bug shape as the three above.
   stability: ["stability-ai"],
 };
 
@@ -515,7 +530,7 @@ export function getSyncStatus(): SyncStatus {
   };
 }
 
-// ─── Init (called from server-init.ts) ───────────────────
+// ─── Init (called from instrumentation-node.ts) ───────────────────
 
 /**
  * Initialize pricing sync if enabled.

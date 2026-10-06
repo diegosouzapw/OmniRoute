@@ -39,7 +39,7 @@ test.before(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 async function postImportToken(body: unknown) {
@@ -75,7 +75,14 @@ test("import-token: decodes email + workspace claims from the access token and c
   assert.deepEqual(created?.providerSpecificData, {
     chatgptAccountId: "acct-bare",
     chatgptPlanType: "plus",
+    // Convergence is on by default (session mode), so the connection persists
+    // its system-managed fingerprint seed at creation time (v178 parity).
+    codexFingerprintSeed: created?.providerSpecificData?.codexFingerprintSeed,
   });
+  assert.match(
+    String(created?.providerSpecificData?.codexFingerprintSeed),
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+  );
 });
 
 test("import-token: falls back to the explicit `name` when the JWT carries no email", async () => {

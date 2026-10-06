@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 // Import BEFORE mocking global.fetch — open-sse/utils/proxyFetch.ts overwrites
 // globalThis.fetch as a module-load side effect, so a mock installed before the
-// import gets clobbered (same pattern as tests/unit/provider-models-qwen-web-redirect-6267.test.ts).
+// import gets clobbered (the same pattern used by other proxy-fetch regression tests).
 const { validateWebCookieProvider } = await import("../../src/lib/providers/validation.ts");
 
 const originalFetch = globalThis.fetch;

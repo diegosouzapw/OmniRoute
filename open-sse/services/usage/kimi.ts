@@ -10,11 +10,15 @@
 
 import { safePercentage } from "@/shared/utils/formatting";
 import {
+  KIMI_CODE_ADDITIONAL_CREDITS_URL,
+  type KimiBillingStatus,
+} from "@/shared/utils/kimiBilling";
+import {
   buildKimiCodeIdentityHeaders,
   getKimiCodeCliUserAgent,
 } from "../../config/providers/registry/kimi/coding/runtime.ts";
-import { toRecord, toNumber } from "./scalars.ts";
-import { type UsageQuota, parseResetTime } from "./quota.ts";
+import { toRecord, toNumber, clampPercentage } from "./scalars.ts";
+import { createQuotaFromUsage, type UsageQuota, parseResetTime } from "./quota.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -24,6 +28,168 @@ const KIMI_CONFIG = {
   usageUrl: "https://api.kimi.com/coding/v1/usages",
   apiVersion: "2023-06-01",
 };
+
+const KIMI_BOOSTER_FIXED_POINT_PER_CENT = 1_000_000;
+
+function toInteger(value: unknown): number | null {
+  const parsed = toNumber(value, Number.NaN);
+  return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+}
+
+function fixedPointToCents(value: number): number {
+  const cents = value / KIMI_BOOSTER_FIXED_POINT_PER_CENT;
+  if (cents > 0 && cents < 1) return 1;
+  return Math.round(cents);
+}
+
+function parseKimiMoney(value: unknown): { cents: number; currency: string } | null {
+  const money = toRecord(value);
+  const cents = toInteger(money.priceInCents);
+  const currency = money.currency;
+  if (
+    cents === null ||
+    cents < 0 ||
+    typeof currency !== "string" ||
+    !/^[A-Za-z]{3}$/.test(currency)
+  ) {
+    return null;
+  }
+  return { cents, currency: currency.toUpperCase() };
+}
+
+function parseKimiExtraUsageStatus(value: unknown): KimiBillingStatus["extraUsageStatus"] {
+  switch (value) {
+    case "STATUS_ACTIVE":
+      return "enabled";
+    case "STATUS_DISABLED":
+      return "disabled";
+    case "STATUS_FROZEN":
+      return "frozen";
+    default:
+      return "unavailable";
+  }
+}
+
+function parseKimiBoosterWallet(value: unknown): KimiBillingStatus | null {
+  const wallet = toRecord(value);
+  const balance = toRecord(wallet.balance);
+  if (balance.type !== "BOOSTER") return null;
+
+  const amount = toInteger(balance.amount);
+  const amountLeft = toInteger(balance.amountLeft);
+  const monthlyLimit = parseKimiMoney(wallet.monthlyChargeLimit);
+  const monthlyUsed = parseKimiMoney(wallet.monthlyUsed);
+  const autoRefillCharge = parseKimiMoney(wallet.autoRefillCharge);
+  const autoRefillThreshold = parseKimiMoney(wallet.autoRefillThreshold);
+  const extraUsageStatus = parseKimiExtraUsageStatus(wallet.status);
+  const hasWalletEvidence =
+    (amount !== null && amount > 0) ||
+    amountLeft !== null ||
+    monthlyLimit !== null ||
+    monthlyUsed !== null ||
+    extraUsageStatus !== "unavailable";
+  if (!hasWalletEvidence) return null;
+
+  const currency =
+    monthlyLimit?.currency ??
+    monthlyUsed?.currency ??
+    autoRefillCharge?.currency ??
+    autoRefillThreshold?.currency ??
+    "USD";
+
+  return {
+    currency,
+    // Proto JSON omits numeric zero values. Production therefore returns a
+    // BOOSTER balance record without amount/amountLeft when the preserved
+    // balance is exactly zero; treat that as an explicit zero, not unknown.
+    extraCreditsMinorUnits:
+      amountLeft === null || amountLeft < 0 ? 0 : fixedPointToCents(amountLeft),
+    monthlyUsedMinorUnits: monthlyUsed?.cents ?? 0,
+    monthlyLimitEnabled: wallet.monthlyChargeLimitEnabled === true,
+    monthlyLimitMinorUnits: monthlyLimit?.cents ?? 0,
+    extraUsageStatus,
+    additionalCreditsUrl: KIMI_CODE_ADDITIONAL_CREDITS_URL,
+  };
+}
+
+function buildKimiBillingStatus(value: unknown): KimiBillingStatus {
+  return (
+    parseKimiBoosterWallet(value) ?? {
+      currency: "USD",
+      extraUsageStatus: "unavailable",
+      additionalCreditsUrl: KIMI_CODE_ADDITIONAL_CREDITS_URL,
+    }
+  );
+}
+
+function optionalNumber(value: unknown): number | null {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  const parsed = toNumber(value, Number.NaN);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function createKimiCountQuota(value: unknown): UsageQuota | null {
+  const detail = toRecord(value);
+  const limit = optionalNumber(detail.limit ?? detail.Limit);
+  if (limit === null || limit <= 0) return null;
+
+  const reportedUsed = optionalNumber(detail.used ?? detail.Used);
+  const reportedRemaining = optionalNumber(detail.remaining ?? detail.Remaining);
+  const used = reportedUsed ?? (reportedRemaining === null ? 0 : limit - reportedRemaining);
+  return createQuotaFromUsage(used, limit, detail.resetTime ?? detail.reset_at ?? detail.resetAt);
+}
+
+function createKimiRatioQuota(value: unknown): UsageQuota | null {
+  const detail = toRecord(value);
+  const ratio = optionalNumber(detail.used_ratio ?? detail.usedRatio);
+  if (ratio === null || ratio < 0) return null;
+  // used_ratio is 0-1. ratio*100 is not binary-exact
+  // (0.147051 * 100 === 14.705099999999998). Round to four decimal percent.
+  const used = clampPercentage(Math.round(ratio * 1e6) / 1e4);
+  return createQuotaFromUsage(used, 100, detail.reset_time ?? detail.resetTime ?? detail.resetAt);
+}
+
+function applyKimiMembershipRatios(quotas: Record<string, UsageQuota>, usages: unknown): void {
+  const rec = toRecord(usages);
+  const mapping: Array<[string, string, string]> = [
+    ["limit_7d", "code_7d", "Code · 7d"],
+    ["limit_5h", "code_5h", "Code · 5h"],
+  ];
+  for (const [source, key, displayName] of mapping) {
+    const quota = createKimiRatioQuota(rec[source]);
+    if (!quota) continue;
+    quotas[key] = { ...quota, displayName };
+  }
+}
+
+type KimiWindowLabel = { key: string; displayName: string };
+
+function normalizeKimiWindow(value: unknown, fallbackIndex: number): KimiWindowLabel {
+  const window = toRecord(value);
+  const duration = optionalNumber(window.duration);
+  const timeUnit = window.timeUnit;
+
+  if (duration !== null && duration > 0) {
+    if (timeUnit === "TIME_UNIT_MINUTE" && duration % 60 === 0) {
+      const hours = duration / 60;
+      return { key: `${hours}h`, displayName: `Code · ${hours}h` };
+    }
+    if (timeUnit === "TIME_UNIT_HOUR") {
+      return { key: `${duration}h`, displayName: `Code · ${duration}h` };
+    }
+    if (timeUnit === "TIME_UNIT_DAY") {
+      return { key: `${duration}d`, displayName: `Code · ${duration}d` };
+    }
+    if (timeUnit === "TIME_UNIT_WEEK") {
+      return { key: `${duration}w`, displayName: `Code · ${duration}w` };
+    }
+    if (timeUnit === "TIME_UNIT_MINUTE") {
+      return { key: `${duration}m`, displayName: `Code · ${duration}m` };
+    }
+  }
+
+  return { key: `limit_${fallbackIndex}`, displayName: `Code · Limit ${fallbackIndex}` };
+}
 
 /**
  * Map Kimi membership level to display name
@@ -100,53 +266,41 @@ export async function getKimiUsage(
 
     const quotas: Record<string, UsageQuota> = {};
     const dataObj = toRecord(data);
+    const billing = buildKimiBillingStatus(dataObj.boosterWallet ?? dataObj.booster_wallet);
 
-    // Parse Kimi usage response format
-    // Format: { user: {...}, usage: { limit: "100", used: "92", remaining: "8", resetTime: "..." }, limits: [...] }
-    const usageObj = toRecord(dataObj.usage);
-
-    // Check for Kimi's actual usage fields (strings, not numbers)
-    const usageLimit = toNumber(usageObj.limit || usageObj.Limit, 0);
-    const usageUsed = toNumber(usageObj.used || usageObj.Used, 0);
-    const usageRemaining = toNumber(usageObj.remaining || usageObj.Remaining, 0);
-    const usageResetTime =
-      usageObj.resetTime || usageObj.ResetTime || usageObj.reset_at || usageObj.resetAt;
-
-    if (usageLimit > 0) {
-      const percentRemaining = usageLimit > 0 ? (usageRemaining / usageLimit) * 100 : 0;
-
-      quotas["Weekly"] = {
-        used: usageUsed,
-        total: usageLimit,
-        remaining: usageRemaining,
-        remainingPercentage: percentRemaining,
-        resetAt: parseResetTime(usageResetTime),
-        unlimited: false,
-      };
+    // The managed Kimi Code API reports the Code 7-day quota in `usage`.
+    // The website's separate shared-membership total/Kimi split comes from a
+    // Web-session-only endpoint and cannot be read with a Coding OAuth token.
+    const weeklyQuota = createKimiCountQuota(dataObj.usage);
+    if (weeklyQuota) {
+      quotas.code_7d = { ...weeklyQuota, displayName: "Code · 7d" };
     }
 
-    // Also parse limits array for rate limits
+    // Each limits[] item is an independent rolling window. Preserve all of
+    // them with deterministic window-derived keys instead of overwriting one
+    // generic `Ratelimit` row.
     const limitsArray = Array.isArray(dataObj.limits) ? dataObj.limits : [];
     for (let i = 0; i < limitsArray.length; i++) {
       const limitItem = toRecord(limitsArray[i]);
-      const window = toRecord(limitItem.window);
-      const detail = toRecord(limitItem.detail);
+      const quota = createKimiCountQuota(limitItem.detail);
+      if (!quota) continue;
 
-      const limit = toNumber(detail.limit || detail.Limit, 0);
-      const remaining = toNumber(detail.remaining || detail.Remaining, 0);
-      const resetTime = detail.resetTime || detail.reset_at || detail.resetAt;
-
-      if (limit > 0) {
-        quotas["Ratelimit"] = {
-          used: limit - remaining,
-          total: limit,
-          remaining,
-          remainingPercentage: limit > 0 ? (remaining / limit) * 100 : 0,
-          resetAt: parseResetTime(resetTime),
-          unlimited: false,
-        };
-      }
+      const normalized = normalizeKimiWindow(limitItem.window, i + 1);
+      const baseKey = `code_${normalized.key}`;
+      let key = baseKey;
+      let suffix = 2;
+      while (key in quotas) key = `${baseKey}_${suffix++}`;
+      const reportedName =
+        typeof limitItem.name === "string" && limitItem.name.trim() ? limitItem.name.trim() : null;
+      const displayName = reportedName
+        ? /^code\b/i.test(reportedName)
+          ? reportedName
+          : `Code · ${reportedName}`
+        : normalized.displayName;
+      quotas[key] = { ...quota, displayName };
     }
+
+    applyKimiMembershipRatios(quotas, dataObj.usages);
 
     // Check for quota windows (Claude-like format with utilization) as fallback
     const hasUtilization = (window: JsonRecord) =>
@@ -189,6 +343,7 @@ export async function getKimiUsage(
       return {
         plan: planName || "Kimi Coding",
         quotas,
+        billing,
       };
     }
 
@@ -199,6 +354,7 @@ export async function getKimiUsage(
     return {
       plan: planName || "Kimi Coding",
       message: "Kimi Coding connected. Usage tracked per request.",
+      billing,
     };
   } catch (error) {
     return {

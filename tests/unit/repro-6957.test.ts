@@ -33,7 +33,7 @@ const { getComboBuilderOptions } = await import("../../src/lib/combos/builderOpt
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // A trimmed slice of the reporter's actual payload (issue #6957 comment attachment

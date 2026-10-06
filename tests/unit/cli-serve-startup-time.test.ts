@@ -30,14 +30,14 @@ test("serve daemon mode does not accept startedAt", () => {
 
 test("serve runWithSupervisor uses startedAt before defaulted useTray", () => {
   const signatureRegex =
-    /async\s+function\s+runWithSupervisor\s*\([\s\S]*?startedAt\s*,\s*useTray\s*=\s*false\s*\)/;
+    /async\s+function\s+runWithSupervisor\s*\([\s\S]*?startedAt\s*,\s*useTray\s*=\s*false\s*,/;
   assert.match(
     serveSource,
     signatureRegex,
     "runWithSupervisor should declare startedAt before the defaulted useTray parameter"
   );
 
-  const callRegex = /runWithSupervisor\s*\([\s\S]*?startedAt\s*,\s*useTray\s*\)/;
+  const callRegex = /runWithSupervisor\s*\([\s\S]*?startedAt\s*,\s*useTray\s*,/;
   assert.match(
     serveSource,
     callRegex,

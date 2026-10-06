@@ -21,16 +21,47 @@ const TOOL_RENAME_MAP: Record<string, string> = {
   glob: "Glob",
   grep: "Grep",
   task: "Task",
+  agent: "Agent",
   webfetch: "WebFetch",
   websearch: "WebSearch",
   todowrite: "TodoWrite",
   todoread: "TodoRead",
   question: "Question",
+  askuserquestion: "AskUserQuestion",
   skill: "Skill",
+  slashcommand: "SlashCommand",
   multiedit: "MultiEdit",
   notebook: "Notebook",
+  notebookedit: "NotebookEdit",
+  notebookread: "NotebookRead",
   lsp: "Lsp",
   apply_patch: "ApplyPatch",
+  applypatch: "ApplyPatch",
+  bashoutput: "BashOutput",
+  killshell: "KillShell",
+  killbash: "KillBash",
+  enterplanmode: "EnterPlanMode",
+  exitplanmode: "ExitPlanMode",
+  enterworktree: "EnterWorktree",
+  exitworktree: "ExitWorktree",
+  artifact: "Artifact",
+  designsync: "DesignSync",
+  monitor: "Monitor",
+  sendmessage: "SendMessage",
+  listagents: "ListAgents",
+  pushnotification: "PushNotification",
+  reportfindings: "ReportFindings",
+  schedulewakeup: "ScheduleWakeup",
+  croncreate: "CronCreate",
+  crondelete: "CronDelete",
+  cronlist: "CronList",
+  taskoutput: "TaskOutput",
+  taskstop: "TaskStop",
+  taskcreate: "TaskCreate",
+  taskupdate: "TaskUpdate",
+  tasklist: "TaskList",
+  taskget: "TaskGet",
+  workflow: "Workflow",
 };
 
 const REVERSE_MAP: Record<string, string> = {};
@@ -160,7 +191,6 @@ export function remapToolNamesInResponse(
 ): string {
   if (!forceLowercase) return text;
 
-  // Replace TitleCase tool names back to lowercase in SSE chunks
   if (toolNameMap?.size) {
     for (const [mapped, original] of toolNameMap.entries()) {
       text = text.replaceAll(`"name":"${mapped}"`, `"name":"${original}"`);
@@ -179,14 +209,22 @@ export function remapToolNamesInResponse(
  * Restore a tool name for Claude-format clients (#9008).
  *
  * Preference order:
- * 1. Exact `_toolNameMap` hit (sanitized → original)
- * 2. Case-insensitive match against map keys/values (Gemini/Antigravity may
- *    echo a lowercased name for a PascalCase Claude Code tool)
- * 3. REVERSE_MAP TitleCase → lowercase fallback for clients with no request map
- *    (#7926 XML / OpenCode-style lowercase tools)
+ * 1. Exact `_toolNameMap` hit where the value differs from the key
+ *    (sanitized → original request-side alias)
+ * 2. Canonical casing upgrade for known Claude Code tools
+ *    (`croncreate` → `CronCreate`, `bash` → `Bash`, …)
+ * 3. Case-insensitive non-identity match against map keys/values
+ *    (Gemini/Antigravity may echo a lowercased name for a PascalCase
+ *    Claude Code tool)
+ * 4. Identity echo kept ONLY when no canonical upgrade exists
+ * 5. No-map fallbacks: REVERSE_MAP TitleCase → lowercase (#7926 XML /
+ *    OpenCode-style lowercase tools), then the static table
  *
- * Never apply REVERSE_MAP after a request-side original is known — that is what
- * turned Claude Code's `Read`/`WebSearch` into `read`/`websearch`.
+ * Identity entries (key === value) never pin a known tool below its
+ * canonical casing. Some upstream gateways echo the very lowercase name
+ * they emitted into the alias channel; honouring that echo is what let a
+ * literal `croncreate` reach Claude Code as an unknown tool even though
+ * the request declared `CronCreate`.
  */
 export function restoreClaudeToolName(
   rawName: string,
@@ -194,19 +232,44 @@ export function restoreClaudeToolName(
 ): string {
   if (!rawName) return rawName;
 
-  const exact = toolNameMap?.get(rawName);
-  if (typeof exact === "string") return exact;
+  // Undefined when rawName already IS the canonical form — an input that
+  // maps to itself must keep flowing to the #7926 legacy paths below.
+  const lower = rawName.toLowerCase();
+  const canonicalRaw = TOOL_RENAME_MAP[lower];
+  const canonical = canonicalRaw && canonicalRaw !== rawName ? canonicalRaw : undefined;
 
   if (toolNameMap?.size) {
-    const lower = rawName.toLowerCase();
+    const exact = toolNameMap.get(rawName);
+    if (typeof exact === "string" && (exact !== rawName || !canonical)) {
+      return exact;
+    }
+
+    let identityMatch: string | undefined;
     for (const [sanitized, original] of toolNameMap.entries()) {
-      if (sanitized.toLowerCase() === lower || original.toLowerCase() === lower) {
+      if (sanitized.toLowerCase() !== lower && original.toLowerCase() !== lower) {
+        continue;
+      }
+      if (original !== rawName) {
         return original;
       }
+      identityMatch = original;
+    }
+    if (identityMatch !== undefined && !canonical) {
+      return identityMatch;
     }
   }
 
-  return REVERSE_MAP[rawName] ?? rawName;
+  // Canonical echo is terminal: when the upstream echoes back the exact
+  // canonical form the request declared, keep it verbatim. The #7926
+  // REVERSE_MAP fallbacks below would otherwise downcase it for routes that
+  // carry no _toolNameMap (Claude Code → OpenAI-style upstreams), which is
+  // what let a literal `croncreate` reach Claude Code even though the client
+  // declared `CronCreate` (live repro, PR #11085).
+  if (canonicalRaw === rawName) return rawName;
+
+  if (canonical) return canonical;
+
+  return rawName;
 }
 
 export { TOOL_RENAME_MAP, REVERSE_MAP };

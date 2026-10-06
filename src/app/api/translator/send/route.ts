@@ -5,7 +5,8 @@ import {
   detectFormat,
   getTargetFormat,
 } from "@omniroute/open-sse/services/provider.ts";
-import { getProviderConnections } from "@/lib/localDb";
+import { getProviderConnections } from "@/lib/db/providers";
+import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { logTranslationEvent } from "@/lib/translatorEvents";
 import { translatorSendSchema } from "@/shared/validation/schemas";
@@ -47,7 +48,14 @@ export async function POST(request) {
 
     // Get provider credentials from database
     const connections = await getProviderConnections({ provider });
-    const connection = connections.find((c) => c.isActive !== false);
+    const connection = (
+      await Promise.all(
+        connections.map(async (candidate) => ({
+          candidate,
+          blocked: await isConnectionUnavailableToAuxiliaryActivity(candidate.id),
+        }))
+      )
+    ).find(({ candidate, blocked }) => candidate.isActive !== false && !blocked)?.candidate;
 
     if (!connection) {
       logTranslationEvent({

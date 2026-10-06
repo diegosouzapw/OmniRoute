@@ -17,7 +17,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: any) {
@@ -38,7 +38,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("createProviderConnection persists quotaWindowThresholds map", async () => {
@@ -106,18 +106,36 @@ test("updateProviderConnection with explicit null clears the column entirely", a
   assert.ok(reread.quotaWindowThresholds === null || reread.quotaWindowThresholds === undefined);
 });
 
-test("DB serializer drops out-of-range values silently", async () => {
-  // The DB module sanitizes the map on the way in; values outside 0-100 or
-  // non-integers are pruned. This is a defense in depth — the Zod schema
-  // already rejects them at the API boundary, but the DB shouldn't trust.
-  const created = await providersDb.createProviderConnection({
-    provider: "codex",
-    authType: "apikey",
-    name: "Codex Sanitize",
-    apiKey: "sk-san",
-    quotaWindowThresholds: { window5h: 95, bogus: 999, fractional: 1.5 },
-  });
-  assert.deepEqual(created.quotaWindowThresholds, { window5h: 95 });
+test("DB serializer refuses out-of-range / invalid values instead of dropping silently", async () => {
+  // the DB module must refuse the write (throw) rather than
+  // silently prune invalid keys/values on the way in, so operator intent is
+  // never lost without an error. The Zod schema already rejects at the API
+  // boundary; this is defense in depth for direct DB writers (seed/scripts).
+  await assert.rejects(
+    () =>
+      providersDb.createProviderConnection({
+        provider: "codex",
+        authType: "apikey",
+        name: "Codex Sanitize",
+        apiKey: "sk-san",
+        quotaWindowThresholds: { window5h: 95, bogus: 999, fractional: 1.5 },
+      }),
+    /rejected keys/
+  );
+});
+
+test("DB serializer refuses unknown rate-limit override keys instead of dropping silently", async () => {
+  await assert.rejects(
+    () =>
+      providersDb.createProviderConnection({
+        provider: "codex",
+        authType: "apikey",
+        name: "Codex Sanitize RLO",
+        apiKey: "sk-san-2",
+        rateLimitOverrides: { rpm: 10, bogus: 999, tpm: -1 },
+      }),
+    /rejected keys/
+  );
 });
 
 test("updateProviderConnectionSchema accepts a valid window map", () => {

@@ -13,12 +13,13 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+const { waitForServer } = require("../../electron/lib/serverReadiness");
 
 function raceDelays(firstMs, secondMs) {
   return new Promise((resolve) => {
@@ -272,23 +273,12 @@ describe("Server Port Management", () => {
 
 describe("Server Readiness Logic", () => {
   it("waitForServer should timeout and return false", async () => {
-    // Simulate the polling logic with an always-failing fetch
-    async function waitForServer(url, timeoutMs = 100) {
-      const start = Date.now();
-      while (Date.now() - start < timeoutMs) {
-        try {
-          const res = await fetch(url);
-          if (res.ok || res.status < 500) return true;
-        } catch {
-          /* not ready */
-        }
-        await new Promise((r) => setTimeout(r, 30));
-      }
-      return false;
-    }
-
-    // Should timeout immediately since nothing is running on that port
-    const result = await waitForServer("http://localhost:59999", 100);
+    const result = await waitForServer("http://localhost:59999/api/health/ping", 20, {
+      fetchFn: async () => ({ ok: false }),
+      pollIntervalMs: 1,
+      requestTimeoutMs: 5,
+      warnFn: () => {},
+    });
     assert.equal(result, false);
   });
 
@@ -302,18 +292,20 @@ describe("Server Readiness Logic", () => {
       serverUp = true;
     }, 60);
 
-    async function waitForServer(_url, timeoutMs) {
-      const start = Date.now();
-      while (Date.now() - start < timeoutMs) {
-        if (serverUp) return true;
-        await new Promise((r) => setTimeout(r, 15));
-      }
-      return false;
-    }
+    const readinessOptions = {
+      fetchFn: async () => ({ ok: serverUp }),
+      pollIntervalMs: 5,
+      requestTimeoutMs: 5,
+      warnFn: () => {},
+    };
 
     try {
       // Initial probe with a short budget times out (server not up yet).
-      const initialReady = await waitForServer("http://localhost/api/monitoring/health", 20);
+      const initialReady = await waitForServer(
+        "http://localhost/api/health/ping",
+        20,
+        readinessOptions
+      );
       assert.equal(initialReady, false);
 
       let reloaded = false;
@@ -325,7 +317,11 @@ describe("Server Readiness Logic", () => {
       };
 
       // Background retry with a generous budget should succeed and reload the window.
-      const retryReady = await waitForServer("http://localhost/api/monitoring/health", 5000);
+      const retryReady = await waitForServer(
+        "http://localhost/api/health/ping",
+        5000,
+        readinessOptions
+      );
       if (retryReady && mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.loadURL("http://localhost");
       }
@@ -496,7 +492,7 @@ describe("Electron SQLite credential inspection", () => {
       fn(dbPath, db);
     } finally {
       db.close();
-      rmSync(dir, { recursive: true, force: true });
+      rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   }
 
@@ -518,5 +514,68 @@ describe("Electron SQLite credential inspection", () => {
 
   it("should return false when the database file does not exist", () => {
     assert.equal(hasEncryptedCredentials(join(tmpdir(), "missing-omniroute.sqlite")), false);
+  });
+});
+
+// ─── Electron web-cookie login removal (#14705 regression guard) ──────
+//
+// The Electron web-cookie login path (login:start IPC, loginManager.js) was
+// removed on 2026-09-24: its only persist step required ../src/lib/db/secrets
+// (a TypeScript path, unresolvable from plain CJS), so every successful
+// extraction reported failure — and no renderer code ever called the
+// exposed preload API. The server-side inAppLoginService is the login
+// surface for cookie providers. This guard keeps the removal permanent:
+// if the login path is ever re-introduced, it must come back deliberately,
+// with a working persistence story — not via a silent resurrect.
+
+describe("Electron web-cookie login removal (#14705)", () => {
+  const electronDir = join(import.meta.dirname, "../../electron");
+
+  it("no longer ships loginManager.js or lib/loginHeaderCapture.js", () => {
+    for (const gone of ["loginManager.js", join("lib", "loginHeaderCapture.js")]) {
+      assert.equal(
+        existsSync(join(electronDir, gone)),
+        false,
+        `electron/${gone} must not be re-introduced`
+      );
+    }
+  });
+
+  it("main.js has no login:* IPC handlers or loginManager wiring", () => {
+    const main = readFileSync(join(electronDir, "main.js"), "utf8");
+    for (const forbidden of [
+      '"login:start"',
+      '"login:cancel"',
+      '"login:status"',
+      "./loginManager",
+    ]) {
+      assert.ok(!main.includes(forbidden), `electron/main.js must not reference ${forbidden}`);
+    }
+  });
+
+  it("preload.js no longer exposes the login API or channels", () => {
+    const preload = readFileSync(join(electronDir, "preload.js"), "utf8");
+    for (const forbidden of [
+      "login:start",
+      "login:cancel",
+      "login:status",
+      "startLogin",
+      "cancelLogin",
+      "getLoginStatus",
+      "onLoginStatus",
+    ]) {
+      assert.ok(
+        !preload.includes(forbidden),
+        `electron/preload.js must not reference ${forbidden}`
+      );
+    }
+  });
+
+  it("build.files no longer lists the removed login modules", () => {
+    const pkg = JSON.parse(readFileSync(join(electronDir, "package.json"), "utf8"));
+    const files: string[] = pkg.build?.files ?? [];
+    for (const gone of ["loginManager.js", "lib/loginHeaderCapture.js"]) {
+      assert.ok(!files.includes(gone), `electron/package.json build.files must not list ${gone}`);
+    }
   });
 });

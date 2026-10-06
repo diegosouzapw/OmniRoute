@@ -10,11 +10,24 @@ export const bedrockProvider: RegistryEntry = {
   defaultContextLength: 200000,
   models: [
     {
+      id: "anthropic.claude-fable-5-1",
+      name: "Claude Fable 5.1 (Bedrock)",
+      toolCalling: true,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
+      supportsVision: true,
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+    },
+    {
       id: "anthropic.claude-sonnet-4-6",
       name: "Claude Sonnet 4.6 (Bedrock)",
       toolCalling: true,
       supportsVision: true,
       contextLength: 1000000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "max"],
     },
     {
       id: "anthropic.claude-sonnet-4-5",
@@ -29,6 +42,8 @@ export const bedrockProvider: RegistryEntry = {
       toolCalling: true,
       supportsVision: true,
       contextLength: 1000000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "max"],
     },
     {
       id: "anthropic.claude-opus-4-7",
@@ -36,6 +51,8 @@ export const bedrockProvider: RegistryEntry = {
       toolCalling: true,
       supportsVision: true,
       contextLength: 1000000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
     {
       id: "anthropic.claude-haiku-4-5",

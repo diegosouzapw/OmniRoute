@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { homedir } from "os";
 import { join } from "path";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { isNextBuildPhase } from "@/lib/buildPhase";
 import {
   createProviderConnection,
   getProviderConnections,
@@ -31,11 +32,9 @@ import {
  * 🔒 Auth-guarded: requires JWT cookie or Bearer API key.
  */
 export async function GET(request: Request) {
-  if (await isAuthRequired(request)) {
-    if (!(await isAuthenticated(request))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
+  // GHSA-mg76 / GHSA-gxv4: reading/importing host credentials is a management action.
+  const authError = await requireManagementAuth(request, { invalidApiKeyStatus: 401 });
+  if (authError) return authError;
 
   const { searchParams } = new URL(request.url);
   const targetProvider = searchParams.get("targetProvider") === "amazon-q" ? "amazon-q" : "kiro";
@@ -85,6 +84,11 @@ async function tryKiroCliSqlite(): Promise<{
 
   let Database: any;
   try {
+    // Never load the native better-sqlite3 addon during the Next.js build:
+    // its Statement destructor aborts with SIGABRT at build-worker teardown
+    // (node::RemoveEnvironmentCleanupHook). Kiro auto-import never runs during
+    // build, so returning "not found" here is safe. (#10060)
+    if (isNextBuildPhase()) throw new Error("Skip better-sqlite3 during build");
     Database = (await import("better-sqlite3")).default;
   } catch {
     return { found: false, triedPaths: candidatePaths };
@@ -435,13 +439,22 @@ type ProviderConnectionLike = {
  * whose stored `providerSpecificData.profileArn` matches the given ARN.
  * Returns null when profileArn is undefined/null or no match is found.
  *
+ * #10815 hardened `findKiroConnectionByIdentity` to require an account-level
+ * identifier (email or clientId) alongside a matching profileArn before
+ * trusting the match — distinct Builder ID accounts (Google/GitHub social
+ * login) can share the same CodeWhisperer profile ARN, and matching on ARN
+ * alone let a second social login silently overwrite the first connection.
+ * `email`/`clientId` here let a caller supply that account identifier; the
+ * real `saveAndRespond()` call sites already do (see below).
+ *
  * Exported for unit tests (#3615).
  */
 export function findKiroConnectionByProfileArn(
   connections: ProviderConnectionLike[],
-  profileArn: string | undefined
+  profileArn: string | undefined,
+  accountIdentity?: { email?: string | null; clientId?: string | null }
 ): ProviderConnectionLike | null {
-  return findKiroConnectionByIdentity(connections, { profileArn });
+  return findKiroConnectionByIdentity(connections, { profileArn, ...accountIdentity });
 }
 
 // ── Save to OmniRoute DB ──────────────────────────────────────────────────────

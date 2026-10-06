@@ -48,3 +48,67 @@ test("resolveRequestedModel does not rewrite ids with no recognized effort suffi
     parameters: [],
   });
 });
+
+test("resolveRequestedModel splits effort off cursor-grok ids (empty-turn fix)", () => {
+  assert.deepEqual(resolveRequestedModel("cursor-grok-4.5-high"), {
+    modelId: "cursor-grok-4.5",
+    parameters: [{ id: "effort", value: "high" }],
+  });
+  assert.deepEqual(resolveRequestedModel("cursor-grok-4.5-medium"), {
+    modelId: "cursor-grok-4.5",
+    parameters: [{ id: "effort", value: "medium" }],
+  });
+});
+
+test("resolveRequestedModel splits effort off legacy grok- ids", () => {
+  // "grok-4.5-*" combos are pre-aliased to "cursor-grok-4.5-*" by
+  // CURSOR_MODEL_ALIASES (already shipped on the release tip), so this uses
+  // an unaliased grok version to actually exercise the bare "grok-" fallback
+  // in resolveGrokRequestedModel rather than the alias table's rewrite.
+  assert.deepEqual(resolveRequestedModel("grok-3-high"), {
+    modelId: "grok-3",
+    parameters: [{ id: "effort", value: "high" }],
+  });
+});
+
+test("resolveRequestedModel splits cursor-grok effort + fast together", () => {
+  assert.deepEqual(resolveRequestedModel("cursor-grok-4.5-high-fast"), {
+    modelId: "cursor-grok-4.5",
+    parameters: [
+      { id: "effort", value: "high" },
+      { id: "fast", value: "true" },
+    ],
+  });
+});
+
+test("resolveRequestedModel expands Claude 1M catalog ids into complete wire parameters", () => {
+  assert.deepEqual(resolveRequestedModel("claude-opus-5-thinking-max-fast-1m"), {
+    modelId: "claude-opus-5",
+    parameters: [
+      { id: "thinking", value: "true" },
+      { id: "context", value: "1m" },
+      { id: "effort", value: "max" },
+      { id: "fast", value: "true" },
+    ],
+  });
+  assert.deepEqual(resolveRequestedModel("claude-4.6-sonnet-high-thinking-1m"), {
+    modelId: "claude-sonnet-4-6",
+    parameters: [
+      { id: "thinking", value: "true" },
+      { id: "context", value: "1m" },
+      { id: "effort", value: "high" },
+    ],
+  });
+});
+
+test("resolveRequestedModel expands GPT-5.6 1M ids and keeps fast disabled", () => {
+  const id = "gpt-5.6-sol-xhigh-1m";
+  assert.deepEqual(resolveRequestedModel(id, { liveCatalogIds: new Set([id]) }), {
+    modelId: "gpt-5.6-sol",
+    parameters: [
+      { id: "context", value: "1m" },
+      { id: "reasoning", value: "xhigh" },
+      { id: "fast", value: "false" },
+    ],
+  });
+});

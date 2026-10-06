@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Card, Button, ModelSelectModal } from "@/shared/components";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { buildOpenCodeConfigDocument } from "@/shared/services/opencodeConfig";
@@ -303,6 +302,8 @@ export default function DefaultToolCard({
           text:
             (typeof data.error === "string" ? data.error : data.error?.message) ||
             t("failedToSave"),
+          // 422 from the container guard: the body is host-CLI guidance, not a failure.
+          containerEphemeralTarget: Boolean(data.containerEphemeralTarget),
         });
       }
     } catch (error) {
@@ -588,12 +589,16 @@ export default function DefaultToolCard({
           <div className="mt-2">
             {message && (
               <div
-                className={`flex items-center gap-2 px-2 py-1.5 rounded text-xs mb-2 ${message.type === "success" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}`}
+                className={`flex gap-2 px-2 py-1.5 rounded text-xs mb-2 ${message.containerEphemeralTarget ? "items-start" : "items-center"} ${message.type === "success" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}`}
               >
                 <span className="material-symbols-outlined text-[14px]">
                   {message.type === "success" ? "check_circle" : "error"}
                 </span>
-                <span>{message.text}</span>
+                {/* The container refusal is a multi-line runbook — keep its line
+                    breaks instead of collapsing it into one unreadable line. */}
+                <span className={message.containerEphemeralTarget ? "whitespace-pre-line" : ""}>
+                  {message.text}
+                </span>
               </div>
             )}
             <div className="flex items-center gap-2">
@@ -637,38 +642,32 @@ export default function DefaultToolCard({
   };
 
   const renderIcon = () => {
+    // Tool SVGs are non-square (e.g. opencode is 234×42, cursor is 467×532).
+    // next/image's dev check warns whenever the rendered aspect-ratio size
+    // differs from the square width/height attributes, so these render as a
+    // plain <img> capped at 32px on both axes — true ratio, no dev noise.
+    const renderImg = (src: string) => (
+      // eslint-disable-next-line @next/next/no-img-element -- local static SVG asset
+      <img
+        src={src}
+        alt={tool.name}
+        width={32}
+        height={32}
+        className="size-8 object-contain rounded-lg"
+        style={{ width: "auto", height: "auto", maxWidth: 32, maxHeight: 32 }}
+        onError={(e) => {
+          (e.currentTarget as HTMLElement).style.display = "none";
+        }}
+      />
+    );
     if (tool.image) {
-      return (
-        <Image
-          src={tool.image}
-          alt={tool.name}
-          width={32}
-          height={32}
-          className="size-8 object-contain rounded-lg"
-          sizes="32px"
-          onError={(e) => {
-            (e.currentTarget as HTMLElement).style.display = "none";
-          }}
-        />
-      );
+      return renderImg(tool.image);
     }
     if (tool.imageLight || tool.imageDark) {
       const themedSrc = isDark
         ? tool.imageDark || tool.imageLight
         : tool.imageLight || tool.imageDark;
-      return (
-        <Image
-          src={themedSrc}
-          alt={tool.name}
-          width={32}
-          height={32}
-          className="size-8 object-contain rounded-lg"
-          sizes="32px"
-          onError={(e) => {
-            (e.currentTarget as HTMLElement).style.display = "none";
-          }}
-        />
-      );
+      return renderImg(themedSrc);
     }
     if (tool.icon) {
       return (

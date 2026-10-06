@@ -12,7 +12,7 @@ interface ProviderInfo {
   id: string;
   name: string;
   website?: string;
-  color: string;
+  color?: string;
   apiType?: string;
   /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
   iconUrl?: string;

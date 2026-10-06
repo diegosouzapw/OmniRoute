@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "identity": {
+    "repository": "diegosouzapw/OmniRoute",
+    "run_id": "1",
+    "run_attempt": 1,
+    "workflow": "release-acceptance.yml",
+    "trigger": "push",
+    "scope": "release",
+    "requested_ref": "refs/heads/release/v3.8.51",
+    "base_sha": "30b5bf18fbe827a0283ce17e91bda22cc8b4c13e",
+    "candidate_sha": "30b5bf18fbe827a0283ce17e91bda22cc8b4c13e",
+    "tested_sha": "30b5bf18fbe827a0283ce17e91bda22cc8b4c13e"
+  },
+  "required_gates": [
+    {
+      "gate_id": "lint",
+      "suite_id": null,
+      "shard_index": null,
+      "shard_total": null
+    }
+  ],
+  "artifact": null
+}

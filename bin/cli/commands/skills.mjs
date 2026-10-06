@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { apiFetch } from "../api.mjs";
+import { mcpCallTool } from "../mcpClient.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
@@ -106,14 +107,7 @@ export async function runSkillsInstall(opts, cmd) {
 }
 
 export async function runSkillsEnable(id, opts, cmd) {
-  const res = await apiFetch("/api/mcp/tools/call", {
-    method: "POST",
-    body: { name: "omniroute_skills_enable", arguments: { skillId: id, enabled: true } },
-  });
-  if (!res.ok) {
-    process.stderr.write(`Error: ${res.status}\n`);
-    process.exit(1);
-  }
+  await mcpCallTool("omniroute_skills_enable", { skillId: id, enabled: true });
   process.stdout.write(`Enabled: ${id}\n`);
 }
 
@@ -122,14 +116,7 @@ export async function runSkillsDisable(id, opts, cmd) {
     const ok = await confirm(`Disable ${id}?`);
     if (!ok) return;
   }
-  const res = await apiFetch("/api/mcp/tools/call", {
-    method: "POST",
-    body: { name: "omniroute_skills_enable", arguments: { skillId: id, enabled: false } },
-  });
-  if (!res.ok) {
-    process.stderr.write(`Error: ${res.status}\n`);
-    process.exit(1);
-  }
+  await mcpCallTool("omniroute_skills_enable", { skillId: id, enabled: false });
   process.stdout.write(`Disabled: ${id}\n`);
 }
 
@@ -153,16 +140,11 @@ export async function runSkillsExecute(id, opts, cmd) {
     : opts.inputFile
       ? JSON.parse(readFileSync(opts.inputFile, "utf8"))
       : {};
-  const res = await apiFetch("/api/mcp/tools/call", {
-    method: "POST",
-    body: { name: "omniroute_skills_execute", arguments: { skillId: id, input } },
-    timeout: opts.timeout ?? 30000,
-  });
-  if (!res.ok) {
-    process.stderr.write(`Error: ${res.status}\n`);
-    process.exit(1);
-  }
-  const data = await res.json();
+  const data = await mcpCallTool(
+    "omniroute_skills_execute",
+    { skillId: id, input },
+    { timeout: opts.timeout ?? 30000 },
+  );
   emit(data, globalOpts);
 }
 

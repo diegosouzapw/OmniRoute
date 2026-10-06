@@ -60,6 +60,6 @@ test("syncStandaloneNativeAssets copies onnxruntime-node's libonnxruntime.so.1 i
     );
     assert.ok(existsSync(destSo), "libonnxruntime.so.1 must be copied into the standalone bundle");
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

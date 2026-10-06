@@ -21,6 +21,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import Database from "better-sqlite3";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-engine-status-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -33,7 +34,7 @@ const { MemoryEngineStatusSchema } = await import("../../src/shared/schemas/memo
 function cleanup() {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -41,7 +42,7 @@ function cleanup() {
 test.afterEach(() => cleanup());
 test.after(() => {
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -61,14 +62,68 @@ test("engineStatus(): output validates against MemoryEngineStatusSchema", async 
   );
 });
 
-test("engineStatus(): keyword section is always available with FTS5 backend", async () => {
+test("engineStatus(): keyword section reports FTS5 available on a real build (probe-driven)", async () => {
   core.getDbInstance();
 
   const { engineStatus } = await import("../../src/lib/memory/retrieval.ts");
   const status = await engineStatus();
 
-  assert.equal(status.keyword.available, true, "keyword.available must always be true");
-  assert.equal(status.keyword.backend, "FTS5", "keyword.backend must be 'FTS5'");
+  // On a real better-sqlite3 build the runtime probe should succeed → keyword available.
+  assert.equal(
+    status.keyword.available,
+    true,
+    "keyword.available should reflect the runtime FTS5 probe"
+  );
+  assert.equal(
+    status.keyword.backend,
+    "FTS5",
+    "keyword.backend should be FTS5 when the build supports it"
+  );
+  assert.equal(typeof status.keyword.reason, "string", "keyword.reason must be a string");
+  assert.ok(status.keyword.reason.length > 0, "keyword.reason must be non-empty");
+});
+
+test("keywordEngineStatus(): reports unavailable on an FTS5-less SQLite build (sql.js)", async () => {
+  // Simulate the sql.js/WASM driver, which is compiled WITHOUT FTS5 — this is
+  // the exact "no such module: fts5" infra failure that began this investigation.
+  const raw = new Database(":memory:");
+  const sqlJsLike = {
+    prepare(sql: string) {
+      return raw.prepare(sql);
+    },
+    exec(sql: string) {
+      if (/fts5/i.test(sql)) throw new Error("no such module: fts5");
+      raw.exec(sql);
+    },
+    pragma(pragmaStr: string) {
+      return raw.pragma(pragmaStr);
+    },
+    transaction(fn: (...args: unknown[]) => unknown) {
+      const tx = raw.transaction((...args: unknown[]) => fn(...args));
+      return (...args: unknown[]) => tx(...args);
+    },
+  };
+
+  const { keywordEngineStatus } = await import("../../src/lib/memory/retrieval.ts");
+  const status = keywordEngineStatus(sqlJsLike as never);
+
+  assert.equal(status.available, false, "FTS5-less build → keyword tier must report unavailable");
+  assert.equal(status.backend, "none", "backend must be 'none' when FTS5 is missing");
+  assert.equal(typeof status.reason, "string", "reason must be a string");
+  assert.ok(
+    status.reason.length > 0,
+    "reason must explain the absence of FTS5 (not a hardcoded lie)"
+  );
+});
+
+test("keywordEngineStatus(): reports available on a real better-sqlite3 build", async () => {
+  const { keywordEngineStatus } = await import("../../src/lib/memory/retrieval.ts");
+  const raw = new Database(":memory:");
+
+  const status = keywordEngineStatus(raw as never);
+
+  assert.equal(status.available, true, "FTS5-capable build → keyword tier available");
+  assert.equal(status.backend, "FTS5", "backend must be 'FTS5' when the probe succeeds");
 });
 
 test("engineStatus(): embedding section when no source configured", async () => {
@@ -153,11 +208,7 @@ test("engineStatus(): detail strings are English, not mixed Portuguese (#5596)",
     "degradado",
     "selecionado",
   ];
-  for (const reason of [
-    status.embedding.reason,
-    status.vectorStore.reason,
-    status.rerank.reason,
-  ]) {
+  for (const reason of [status.embedding.reason, status.vectorStore.reason, status.rerank.reason]) {
     for (const w of ptWords) {
       assert.ok(!reason.includes(w), `reason "${reason}" still contains Portuguese "${w}"`);
     }

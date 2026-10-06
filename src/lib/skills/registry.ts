@@ -1,10 +1,14 @@
-import { Skill, SkillSchema } from "./types";
+import type { Skill, SkillSchema } from "./types";
 import { SkillCreateInputSchema } from "./schemas";
 import { getDbInstance } from "../db/core";
 import { randomUUID } from "crypto";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("SKILLS");
+
+export const GLOBAL_SKILL_OWNER_ID = "system";
+const GLOBAL_SKILL_OWNER_IDS = [GLOBAL_SKILL_OWNER_ID, "skillsmp", "skillssh"] as const;
+const GLOBAL_SKILL_OWNER_ID_SET = new Set<string>(GLOBAL_SKILL_OWNER_IDS);
 
 class SkillRegistry {
   private static instance: SkillRegistry;
@@ -37,6 +41,36 @@ class SkillRegistry {
 
   private cacheKey(skill: Pick<Skill, "apiKeyId" | "name" | "version">): string {
     return `${skill.apiKeyId}:${skill.name}@${skill.version}`;
+  }
+
+  private skillIdentity(skill: Pick<Skill, "name" | "version">): string {
+    return `${skill.name}@${skill.version}`;
+  }
+
+  private isGlobalOwner(apiKeyId: string): boolean {
+    return GLOBAL_SKILL_OWNER_ID_SET.has(apiKeyId);
+  }
+
+  private scopedSkills(apiKeyId?: string): Skill[] {
+    const skills = Array.from(this.registeredSkills.values());
+    if (!apiKeyId) return skills;
+
+    const owned = skills.filter((skill) => skill.apiKeyId === apiKeyId);
+    const visibleIdentities = new Set(owned.map((skill) => this.skillIdentity(skill)));
+    const global = [
+      ...skills.filter((skill) => skill.apiKeyId === GLOBAL_SKILL_OWNER_ID),
+      ...skills.filter(
+        (skill) => skill.apiKeyId !== GLOBAL_SKILL_OWNER_ID && this.isGlobalOwner(skill.apiKeyId)
+      ),
+    ];
+    for (const skill of global) {
+      const identity = this.skillIdentity(skill);
+      if (!visibleIdentities.has(identity)) {
+        owned.push(skill);
+        visibleIdentities.add(identity);
+      }
+    }
+    return owned;
   }
 
   private cacheSkill(skill: Skill): void {
@@ -180,16 +214,11 @@ class SkillRegistry {
 
   list(apiKeyId?: string): Skill[] {
     log.debug("skills.registry.list", { apiKeyId, cached: !this.isCacheStale() });
-    if (apiKeyId) {
-      return Array.from(this.registeredSkills.values()).filter((s) => s.apiKeyId === apiKeyId);
-    }
-    return Array.from(this.registeredSkills.values());
+    return this.scopedSkills(apiKeyId);
   }
 
   getSkill(identifier: string, apiKeyId?: string): Skill | undefined {
-    const matchesScope = (skill: Skill) => !apiKeyId || skill.apiKeyId === apiKeyId;
-    const skills = Array.from(this.registeredSkills.values()).filter(matchesScope);
-
+    const skills = this.scopedSkills(apiKeyId);
     const byId = skills.find((skill) => skill.id === identifier);
     if (byId) return byId;
 
@@ -206,8 +235,8 @@ class SkillRegistry {
   }
 
   getSkillVersions(name: string, apiKeyId?: string): Skill[] {
-    return Array.from(this.registeredSkills.values())
-      .filter((skill) => skill.name === name && (!apiKeyId || skill.apiKeyId === apiKeyId))
+    return this.scopedSkills(apiKeyId)
+      .filter((skill) => skill.name === name)
       .sort((a, b) => this.compareVersions(b.version, a.version));
   }
 
@@ -304,12 +333,23 @@ class SkillRegistry {
       try {
         log.debug("skills.registry.loadFromDatabase", { cached: false });
         const db = getDbInstance();
-        const rows = apiKeyId
-          ? db.prepare("SELECT * FROM skills WHERE api_key_id = ?").all(apiKeyId)
-          : db.prepare("SELECT * FROM skills").all();
+        let rows: unknown[];
+        if (!apiKeyId) {
+          rows = db.prepare("SELECT * FROM skills").all();
+        } else if (this.isGlobalOwner(apiKeyId)) {
+          rows = db
+            .prepare("SELECT * FROM skills WHERE api_key_id IN (?, ?, ?)")
+            .all(...GLOBAL_SKILL_OWNER_IDS);
+        } else {
+          rows = db
+            .prepare("SELECT * FROM skills WHERE api_key_id IN (?, ?, ?, ?)")
+            .all(apiKeyId, ...GLOBAL_SKILL_OWNER_IDS);
+        }
 
         if (apiKeyId) {
-          this.removeCachedSkills((skill) => skill.apiKeyId === apiKeyId);
+          this.removeCachedSkills(
+            (skill) => skill.apiKeyId === apiKeyId || this.isGlobalOwner(skill.apiKeyId)
+          );
         } else {
           this.registeredSkills.clear();
           this.versionCache.clear();

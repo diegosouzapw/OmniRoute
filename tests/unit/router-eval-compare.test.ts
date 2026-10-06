@@ -78,6 +78,6 @@ test("router eval compare retains named comparison artifacts", () => {
     assert.equal(comparison.baselineName, "policy-a");
     assert.equal(comparison.candidateName, "policy-b");
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

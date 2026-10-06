@@ -21,7 +21,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: any) {
@@ -43,7 +43,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 
   if (ORIGINAL_INITIAL_PASSWORD === undefined) {
     delete process.env.INITIAL_PASSWORD;
@@ -232,6 +232,22 @@ test("LKGP overwrites connectionId when updated without one", async () => {
 
   const record = await settingsDb.getLKGP("combo-e", "model-e");
   assert.deepEqual(record, { provider: "openai" });
+});
+
+test("clearLKGP deletes only the targeted combo/model key", async () => {
+  await settingsDb.setLKGP("combo-f", "model-f", "openai");
+  await settingsDb.setLKGP("combo-f", "model-g", "anthropic");
+
+  await settingsDb.clearLKGP("combo-f", "model-f");
+
+  assert.equal(await settingsDb.getLKGP("combo-f", "model-f"), null);
+  // A sibling key under the same combo must survive.
+  assert.deepEqual(await settingsDb.getLKGP("combo-f", "model-g"), { provider: "anthropic" });
+});
+
+test("clearLKGP on a key with no existing pin does not throw", async () => {
+  await assert.doesNotReject(() => settingsDb.clearLKGP("combo-never-set", "model-never-set"));
+  assert.equal(await settingsDb.getLKGP("combo-never-set", "model-never-set"), null);
 });
 
 test("pricing helpers ignore malformed synced data and LKGP falls back to raw values", async () => {

@@ -63,21 +63,51 @@ async function pingRedis(port: string): Promise<boolean> {
   });
 }
 
+function parseRedisUrl(url?: string): { host: string; port: number } | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    return { host: u.hostname || "127.0.0.1", port: Number(u.port) || 6379 };
+  } catch {
+    return null;
+  }
+}
+
 export async function GET() {
   const guard = isLocalRequestAllowed();
   if (!guard.allowed) {
-    return NextResponse.json({ error: guard.reason }, { status: 403 });
+    const reason = (guard as { reason?: string }).reason ?? "Forbidden: not a loopback request";
+    return NextResponse.json({ error: reason }, { status: 403 });
   }
 
+  // Docker/Podman container state (the 1-click launcher path).
   const runtime = await detectRuntime();
-  if (!runtime) {
-    return NextResponse.json(
-      { exists: false, running: false, reachable: false, error: "No container runtime (podman or docker) found on PATH" },
-      { status: 503 }
-    );
+  let container = { exists: false, running: false, reachable: false };
+  if (runtime) {
+    const { exists, running } = await containerState(runtime);
+    const reachable = running ? await pingRedis(HOST_PORT) : false;
+    container = { exists, running, reachable };
   }
 
-  const { exists, running } = await containerState(runtime);
-  const reachable = running ? await pingRedis(HOST_PORT) : false;
-  return NextResponse.json({ runtime, name: CONTAINER_NAME, port: HOST_PORT, exists, running, reachable });
+  // Native Redis via REDIS_URL (the production path this instance uses). OmniRoute
+  // is "connected" whenever REDIS_URL is configured AND the server answers — even
+  // when no Docker container is present.
+  const redisUrl = process.env.REDIS_URL?.trim() || "";
+  const parsed = parseRedisUrl(redisUrl);
+  const redisUrlReachable = parsed ? await pingRedis(String(parsed.port)) : false;
+
+  const running = container.running || redisUrlReachable;
+  const reachable = container.reachable || redisUrlReachable;
+  const exists = container.exists || redisUrlReachable;
+
+  return NextResponse.json({
+    runtime: runtime ?? null,
+    name: CONTAINER_NAME,
+    port: HOST_PORT,
+    exists,
+    running,
+    reachable,
+    redisUrlConfigured: Boolean(redisUrl),
+    redisUrlReachable,
+  });
 }

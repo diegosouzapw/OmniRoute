@@ -16,7 +16,6 @@ export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
   try {
-    // Query usage_logs for auto/ prefix requests
     const totalRequests = getAutoRoutingTotalCount();
 
     // Variant breakdown

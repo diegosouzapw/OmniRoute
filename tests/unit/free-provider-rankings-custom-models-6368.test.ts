@@ -39,7 +39,7 @@ const CUSTOM_MODEL_ID = "claude-fable-5-6368";
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("mergeProviderModels: additively includes custom models, de-duping by id", () => {

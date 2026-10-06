@@ -1,9 +1,8 @@
 import type { RegistryEntry } from "../../shared.ts";
 
-// g4f.space/api/ollama — no-key hosted Ollama gateway (gpt4free project, issue #6650).
-// Fills a niche none of the existing ollama-* entries cover (local/cloud/search) —
-// this is a no-key *hosted* Ollama proxy. Same OpenAI-compatible shape as the other
-// no-key gateways.
+// g4f.space/api/ollama — optional-auth hosted Ollama gateway (gpt4free, issue #6650).
+// Anonymous requests require proof-of-work cake credits; a member API key is the
+// alternative. This remote OpenAI-compatible proxy is distinct from local/cloud/search.
 export const g4f_ollamaProvider: RegistryEntry = {
   id: "g4f-ollama",
   alias: "g4foll",

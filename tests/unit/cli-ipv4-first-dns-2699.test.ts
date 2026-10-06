@@ -53,6 +53,16 @@ test("ServerSupervisor starts Node with IPv4-first DNS", async () => {
   const dataDir = mkdtempSync(join(tmpdir(), "omniroute-ipv4-first-"));
   const previousDataDir = process.env.DATA_DIR;
   process.env.DATA_DIR = dataDir;
+  // The supervisor reads process.env (not its own `env`) to decide whether an
+  // explicit --max-old-space-size is already pinned via NODE_OPTIONS, in which
+  // case it suppresses its own heap flag (envHasExplicitHeapFlag). CI runs with
+  // no heap flag in NODE_OPTIONS, but this suite can be launched with an ambient
+  // NODE_OPTIONS=--max-old-space-size=... (e.g. the sandbox exports one), which
+  // would make the supervisor legitimately drop the flag and fail the assertion
+  // below. Neutralize it for the duration of this test so the expectation
+  // matches the CI environment.
+  const previousNodeOptions = process.env.NODE_OPTIONS;
+  delete process.env.NODE_OPTIONS;
 
   try {
     const moduleUrl = pathToFileURL(
@@ -76,6 +86,8 @@ test("ServerSupervisor starts Node with IPv4-first DNS", async () => {
   } finally {
     if (previousDataDir === undefined) delete process.env.DATA_DIR;
     else process.env.DATA_DIR = previousDataDir;
-    rmSync(dataDir, { recursive: true, force: true });
+    if (previousNodeOptions === undefined) delete process.env.NODE_OPTIONS;
+    else process.env.NODE_OPTIONS = previousNodeOptions;
+    rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

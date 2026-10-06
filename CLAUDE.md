@@ -47,6 +47,21 @@ rewrite it to the `_tasks/…` equivalent before writing:
 
 Commit those artifacts inside the `_tasks/` repo (`git -C _tasks …`), never in the main repo.
 
+## Scratch / temporary files — use `_artifacts/`, not `/tmp`
+
+This project overrides the harness's default session scratchpad (`/tmp/claude-*/…`). Write
+temporary/working files — exports, generated zips, one-off intermediate outputs, anything you'd
+otherwise put in `/tmp` — to `/home/diegosouzapw/dev/proxys/OmniRoute/_artifacts/` instead.
+
+- `_artifacts/` is a root `_*` path: already gitignored (`AGENTS.md` → "Root `_*` paths"), lives
+  on disk only, never tracked.
+- Reason: keeping scratch output inside the project (vs `/tmp`) makes it trivial for the operator
+  to find and delete everything temporary in one place, instead of hunting across ephemeral
+  session-specific `/tmp` directories that vanish or accumulate untracked.
+- Do **not** confuse this with `_tasks/` (Hard Rule #23, its own private git repo for durable
+  plans/specs/research/hand-offs) — `_artifacts/` is for disposable working files only, nothing
+  here needs to survive or be versioned.
+
 ## Base-green before opening PRs
 
 Before cutting a branch or opening a PR, run the base-green check (`AGENTS.md` → Git Workflow →

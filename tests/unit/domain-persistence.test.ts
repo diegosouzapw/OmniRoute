@@ -45,7 +45,8 @@ afterEach(async () => {
 
 after(() => {
   process.env.DATA_DIR = originalDataDir;
-  if (fs.existsSync(fileTmpDir)) fs.rmSync(fileTmpDir, { recursive: true, force: true });
+  if (fs.existsSync(fileTmpDir))
+    fs.rmSync(fileTmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── Fallback Policy Tests ────────────────────────

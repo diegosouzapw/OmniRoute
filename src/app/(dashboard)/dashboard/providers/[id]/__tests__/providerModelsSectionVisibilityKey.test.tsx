@@ -102,6 +102,9 @@ function buildProps(overrides: Partial<ProviderModelsSectionProps>): ProviderMod
     isAutoSyncEnabled: false,
     togglingAutoSync: false,
     handleToggleAutoSync: vi.fn().mockResolvedValue(undefined),
+    isAutoFetchModelsEnabled: false,
+    togglingAutoFetchModels: false,
+    handleToggleAutoFetchModels: vi.fn().mockResolvedValue(undefined),
     handleCompatibleImportWithProgress: vi.fn().mockResolvedValue(undefined),
     compatSavingModelId: null,
     togglingModelId: null,
@@ -161,6 +164,23 @@ afterEach(() => {
 });
 
 describe("ProviderModelsSection visibility-toggle key (alias !== id)", () => {
+  it("shows upstream model auto-fetch for every provider with an active connection", () => {
+    const handleToggleAutoFetchModels = vi.fn().mockResolvedValue(undefined);
+    render(
+      buildProps({
+        connections: [{ id: "connection-1", isActive: true }],
+        handleToggleAutoFetchModels,
+      })
+    );
+
+    const toggle = Array.from(document.querySelectorAll("button")).find((button) => {
+      return button.textContent?.includes("Auto-fetch upstream models");
+    });
+    expect(toggle).toBeDefined();
+    act(() => toggle?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(handleToggleAutoFetchModels).toHaveBeenCalledOnce();
+  });
+
   it("passes the canonical providerId to the passthrough section toggles", () => {
     const handleToggleModelHidden = vi.fn().mockResolvedValue(undefined);
     const handleBulkToggleModelHidden = vi.fn().mockResolvedValue(undefined);

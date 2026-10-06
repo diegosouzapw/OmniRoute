@@ -2,9 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 // Repro for #6571 — REST-fallback path of `omniroute compression` (hit only when
-// /api/mcp/tools/call is not mounted, i.e. mcpCall()'s 404/501 branch) uses the
+// the MCP surface is not mounted, i.e. mcpCall()'s 404/501 branch) uses the
 // nonexistent `engine` field instead of the canonical `defaultMode` field, and
 // the table renderer prints "[object Object]" for nested object cells.
+//
+// #10960 moved the MCP transport from the never-mounted `/api/mcp/tools/call`
+// to the real Streamable HTTP endpoint `/api/mcp/stream` (mcpClient.mjs ->
+// callMcpEndpoint()). The REST-fallback trigger in these mocks must match
+// that endpoint, not the retired one, or mcpCallTool() throws on an
+// unmocked fetch instead of exercising the fallback path this test targets.
 
 type MockResponse = Pick<Response, "ok" | "status" | "headers" | "json" | "text">;
 
@@ -45,7 +51,7 @@ test("restCompressionStatus (via runCompressionStatus REST fallback) should surf
   const origFetch = globalThis.fetch;
   globalThis.fetch = (async (url: string | URL | Request) => {
     const u = String(url);
-    if (u.includes("/api/mcp/tools/call")) return makeResp({ error: "not mounted" }, 404);
+    if (u.includes("/api/mcp/stream")) return makeResp({ error: "not mounted" }, 404);
     if (u.includes("/api/settings/compression")) {
       // Canonical server payload — NOTE: field is `defaultMode`, there is no `engine` key.
       // src/lib/db/compression.ts COMPRESSION_MODES / GET route just returns getCompressionSettings().
@@ -85,7 +91,7 @@ test("restSetEngine (via runCompressionEngineSet REST fallback) should PUT `defa
   const putBodies: Record<string, unknown>[] = [];
   globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
     const u = String(url);
-    if (u.includes("/api/mcp/tools/call")) return makeResp({ error: "not mounted" }, 404);
+    if (u.includes("/api/mcp/stream")) return makeResp({ error: "not mounted" }, 404);
     if (u.includes("/api/settings/compression") && init?.method === "PUT") {
       const body = init?.body ? JSON.parse(String(init.body)) : {};
       putBodies.push(body);

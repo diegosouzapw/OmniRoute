@@ -23,7 +23,7 @@ const { createProviderConnection } = await import("../../src/lib/db/providers.ts
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#2962 opencode-zen with no connection falls back to anonymous no-auth credentials", async () => {

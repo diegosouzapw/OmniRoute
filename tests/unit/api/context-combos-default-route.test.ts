@@ -36,7 +36,7 @@ const defaultRoute = await import("../../../src/app/api/context/combos/default/r
 
 async function setupAuth(): Promise<void> {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   await settingsDb.updateSettings({
     requireLogin: true,
@@ -58,7 +58,7 @@ test.after(() => {
   if (originalJwtSecret === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = originalJwtSecret;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── tests ────────────────────────────────────────────────────────────────────
@@ -110,7 +110,10 @@ test("GET /api/context/combos/default returns the derived stacked pipeline (refl
   assert.equal(body.mode, "stacked");
   assert.deepEqual(body.pipeline, expected.stackedPipeline);
   const engineIds = body.pipeline.map((s) => s.engine);
-  assert.ok(engineIds.includes("caveman"), `expected caveman in derived pipeline, got: ${engineIds}`);
+  assert.ok(
+    engineIds.includes("caveman"),
+    `expected caveman in derived pipeline, got: ${engineIds}`
+  );
 });
 
 test("GET /api/context/combos/default returns off when master switch is disabled", async () => {

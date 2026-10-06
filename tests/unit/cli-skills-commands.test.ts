@@ -1,4 +1,5 @@
 import test from "node:test";
+import { makeMcpStreamFetch } from "./helpers/mcpStreamMock.ts";
 import assert from "node:assert/strict";
 
 const SKILLS_DATA = [
@@ -114,34 +115,37 @@ test("runSkillsGet busca /api/skills/:id", async () => {
   assert.equal(parsed.id, "sk_pdf");
 });
 
-test("runSkillsEnable envia POST para tools/call", async () => {
-  let capturedUrl = "";
-  let capturedInit: any = null;
+test("runSkillsEnable usa JSON-RPC tools/call", async () => {
+  const calls: unknown[] = [];
   const origFetch = globalThis.fetch;
-  globalThis.fetch = ((url: string, init: any) => {
-    capturedUrl = url;
-    capturedInit = init;
-    return Promise.resolve(makeResp({ ok: true }));
+  globalThis.fetch = makeMcpStreamFetch({ toolResult: { ok: true } });
+  const inner = globalThis.fetch;
+  globalThis.fetch = ((url: unknown, init: unknown) => {
+    calls.push({ url: String(url), init });
+    return inner(url, init);
   }) as any;
 
   const { runSkillsEnable } = await import("../../bin/cli/commands/skills.mjs");
   const out = await captureStdout(() => runSkillsEnable("sk_pdf", {}, makeCmd() as any));
 
   globalThis.fetch = origFetch;
-  assert.ok(capturedUrl.includes("/api/mcp/tools/call"));
-  const body = JSON.parse(capturedInit?.body);
-  assert.equal(body.name, "omniroute_skills_enable");
-  assert.equal(body.arguments.skillId, "sk_pdf");
-  assert.equal(body.arguments.enabled, true);
+  assert.ok(calls.some((x) => String(x.url).includes("/api/mcp/stream")));
+  const callBody = JSON.parse(calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}");
+  assert.equal(callBody.method, "tools/call");
+  assert.equal(callBody.params.name, "omniroute_skills_enable");
+  assert.equal(callBody.params.arguments.skillId, "sk_pdf");
+  assert.equal(callBody.params.arguments.enabled, true);
   assert.ok(out.includes("sk_pdf"));
 });
 
-test("runSkillsExecute envia POST com skillId e input", async () => {
-  let capturedBody: any = null;
+test("runSkillsExecute usa JSON-RPC tools/call", async () => {
+  const calls: unknown[] = [];
   const origFetch = globalThis.fetch;
-  globalThis.fetch = ((_url: string, init: any) => {
-    capturedBody = JSON.parse(init.body);
-    return Promise.resolve(makeResp({ result: "ok", output: "parsed" }));
+  globalThis.fetch = makeMcpStreamFetch({ toolResult: { result: "ok", output: "parsed" } });
+  const inner = globalThis.fetch;
+  globalThis.fetch = ((url: unknown, init: unknown) => {
+    calls.push({ url: String(url), init });
+    return inner(url, init);
   }) as any;
 
   const { runSkillsExecute } = await import("../../bin/cli/commands/skills.mjs");
@@ -150,9 +154,11 @@ test("runSkillsExecute envia POST com skillId e input", async () => {
   );
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_skills_execute");
-  assert.equal(capturedBody.arguments.skillId, "sk_pdf");
-  assert.deepEqual(capturedBody.arguments.input, { file: "doc.pdf" });
+  const callBody = JSON.parse(calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}");
+  assert.equal(callBody.method, "tools/call");
+  assert.equal(callBody.params.name, "omniroute_skills_execute");
+  assert.equal(callBody.params.arguments.skillId, "sk_pdf");
+  assert.deepEqual(callBody.params.arguments.input, { file: "doc.pdf" });
 });
 
 test("runSkillsExecutions filtra por skill e status", async () => {
@@ -197,9 +203,9 @@ test("runMarketplaceSearch retorna pacotes com query e filtros", async () => {
 });
 
 test("runMarketplaceInstall --yes envia POST sem confirmação", async () => {
-  let capturedBody: any = null;
+  let capturedBody: unknown = null;
   const origFetch = globalThis.fetch;
-  globalThis.fetch = ((_url: string, init: any) => {
+  globalThis.fetch = ((_url: string, init: unknown) => {
     capturedBody = JSON.parse(init?.body ?? "{}");
     return Promise.resolve(makeResp({ skillId: "sk_pdf_installed" }));
   }) as any;

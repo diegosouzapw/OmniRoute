@@ -7,9 +7,9 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "playwright": "1.61.1"
+    "playwright": "1.62.1"
   },
   "devDependencies": {
-    "@types/node": "^22"
+    "@types/node": "^26"
   }
 }

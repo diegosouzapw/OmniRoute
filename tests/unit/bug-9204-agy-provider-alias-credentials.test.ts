@@ -8,15 +8,13 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-9204-agy-
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const { createConnectionFromAgyToken } = await import(
-  "../../src/lib/oauth/utils/agyAuthImport.ts"
-);
+const { createConnectionFromAgyToken } = await import("../../src/lib/oauth/utils/agyAuthImport.ts");
 const { parseModel } = await import("../../open-sse/services/model.ts");
 const { getProviderCredentials } = await import("../../src/sse/services/auth.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#9204: an Antigravity CLI login is eligible for an agy model request", async () => {

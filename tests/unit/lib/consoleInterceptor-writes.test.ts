@@ -56,7 +56,7 @@ function runChild(body: string[]): ChildResult {
         .map((l) => JSON.parse(l) as Record<string, string>)
     : [];
 
-  rmSync(dir, { recursive: true, force: true });
+  rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   return { status: result.status, stderr: String(result.stderr), lines };
 }
 
@@ -132,7 +132,7 @@ test("a log directory removed at runtime is recreated and logging recovers (#818
     `const { dirname } = await import("node:path");`,
     `M.initConsoleInterceptor();`,
     `console.error("before removal");`,
-    `rmSync(dirname(LOG_FILE), { recursive: true, force: true });`,
+    `rmSync(dirname(LOG_FILE), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });`,
     `if (existsSync(LOG_FILE)) { process.exit(3); }`,
     `console.error("after removal");`,
     `setTimeout(() => process.exit(0), 200);`,
@@ -154,7 +154,7 @@ test("the log-unavailable notice is emitted at most once, to the real stderr", (
     `M.initConsoleInterceptor();`,
     // Make the directory unrecreatable so the retry fails and the notice path is exercised.
     `const parent = dirname(dirname(LOG_FILE));`,
-    `rmSync(dirname(LOG_FILE), { recursive: true, force: true });`,
+    `rmSync(dirname(LOG_FILE), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });`,
     `chmodSync(parent, 0o500);`,
     `for (let i = 0; i < 5; i++) console.error("unwritable " + i);`,
     `chmodSync(parent, 0o700);`,

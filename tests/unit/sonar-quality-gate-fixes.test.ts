@@ -29,7 +29,7 @@ test("classify-pr-changes rejects a list path that escapes the workspace", () =>
     assert.match(res.stderr, /escapes the workspace/);
     fs.rmSync(outside, { force: true });
   } finally {
-    fs.rmSync(cwd, { recursive: true, force: true });
+    fs.rmSync(cwd, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -45,7 +45,7 @@ test("classify-pr-changes still accepts a workspace-relative list file", () => {
     assert.match(res.stdout, /docs=true/);
     assert.match(res.stdout, /code=false/);
   } finally {
-    fs.rmSync(cwd, { recursive: true, force: true });
+    fs.rmSync(cwd, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 

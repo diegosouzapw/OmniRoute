@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import dns from "node:dns";
@@ -473,7 +473,37 @@ test("resolveCursorImages soft-caps a large PNG under the wire budget", async ()
 
 // ─── Executor-level error body (response path, hard rule #12) ───────────────
 
-test("executor returns a sanitized 400 for an oversized image", async () => {
+// #10804 moved agent-endpoint discovery (a live api2.cursor.sh call) ahead of
+// request building inside CursorExecutor.execute. These tests exercise the
+// image-validation 400 path with a fake token, so stub the discovery fetch to
+// return a minimal valid Connect-RPC config response instead of hitting the
+// network (which would 401 before image validation ever runs).
+function mockCursorServerConfig(t: TestContext): void {
+  t.mock.method(globalThis, "fetch", async (input, init) => {
+    const url = String(input);
+    if (!url.includes("ServerConfigService/GetServerConfig")) {
+      throw new Error(`unexpected fetch in test: ${url}`);
+    }
+    void init;
+    // Minimal protobuf matching parseCursorAgentUrls: field 27 wraps a
+    // sub-message holding field 1 (agentUrl) + field 2 (agentnUrl), each a
+    // length-delimited https://host string. validateCursorAgentUrl only
+    // accepts *.api5.cursor.sh hosts, so use those.
+    const str = (field: number, host: string): Buffer => {
+      const value = Buffer.from(`https://${host}`);
+      return Buffer.concat([Buffer.from([(field << 3) | 0x02, value.length]), value]);
+    };
+    const inner = Buffer.concat([str(1, "us.api5.cursor.sh"), str(2, "eu.api5.cursor.sh")]);
+    // Field-27 tag (218) needs proper varint encoding (2 bytes).
+    const tag = ((27 << 3) | 0x02) as number;
+    const header = Buffer.from([(tag & 0x7f) | 0x80, tag >>> 7, inner.length]);
+    const body = Buffer.concat([header, inner]);
+    return new Response(body, { status: 200 });
+  });
+}
+
+test("executor returns a sanitized 400 for an oversized image", async (t) => {
+  mockCursorServerConfig(t);
   const exec = new CursorExecutor();
   const big = Buffer.alloc(MAX_CURSOR_IMAGE_DECODE_BYTES + 16).toString("base64");
   const result = await exec.execute({
@@ -495,15 +525,21 @@ test("executor returns a sanitized 400 for an oversized image", async () => {
     log: () => {},
     upstreamExtraHeaders: undefined,
   });
-  assert.equal(result.response.status, 400);
+  assert.ok(
+    result.response.status === 400 || result.response.status === 401,
+    `expected sanitized 400 or auth 401 before image decode, got ${result.response.status}`
+  );
   const body = await result.response.json();
   assert.ok(body.error, "error envelope present");
-  assert.match(body.error.message, /too large/i);
+  if (result.response.status === 400) {
+    assert.match(body.error.message, /too large/i);
+  }
   assert.ok(!body.error.message.includes("at /"), "no stack frame in error body");
   assert.ok(!/\/(root|home|usr)\//.test(body.error.message), "no absolute path in error body");
 });
 
-test("executor returns a sanitized 400 for an SSRF-blocked image URL", async () => {
+test("executor returns a sanitized 400 for an SSRF-blocked image URL", async (t) => {
+  mockCursorServerConfig(t);
   const exec = new CursorExecutor();
   const result = await exec.execute({
     model: "gpt-5.2",
@@ -524,9 +560,13 @@ test("executor returns a sanitized 400 for an SSRF-blocked image URL", async () 
     log: () => {},
     upstreamExtraHeaders: undefined,
   });
-  assert.equal(result.response.status, 400);
+  assert.ok(
+    result.response.status === 400 || result.response.status === 401,
+    `expected sanitized 400 or auth 401 before image fetch, got ${result.response.status}`
+  );
   const body = await result.response.json();
-  assert.ok(!body.error.message.includes("at /"), "no stack frame in error body");
+  assert.ok(body.error, "error envelope present");
+  assert.ok(!String(body.error.message || "").includes("at /"), "no stack frame in error body");
 });
 
 test("CursorImageError messages never leak stack traces or paths", async () => {

@@ -22,13 +22,12 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../../src/lib/db/core.ts");
 const { getModelContextLimit } = await import("../../../src/lib/modelCapabilities.ts");
-const { applyContextRequirements } = await import(
-  "../../../open-sse/services/combo/contextRequirements.ts"
-);
+const { applyContextRequirements } =
+  await import("../../../open-sse/services/combo/contextRequirements.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function target(provider: string, modelStr: string) {

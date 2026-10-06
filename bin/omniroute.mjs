@@ -14,15 +14,27 @@
  * All other commands are routed through Commander (bin/cli/program.mjs).
  */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import updateNotifier from "update-notifier";
+let updateNotifier = null;
+try {
+  updateNotifier = (await import("update-notifier")).default;
+} catch {
+  // update-notifier is optional in pruned standalone environments
+}
 import { isNativeBinaryCompatible } from "../scripts/build/native-binary-compat.mjs";
 import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
 import { getDefaultDataDir } from "./cli/data-dir.mjs";
 import { shouldProvisionStorageKey } from "./cli/utils/storageKeyProvision.mjs";
 import { isVersionFastPath } from "./cli/utils/versionFastPath.mjs";
+import { parseEnvValue } from "./cli/utils/parseEnvValue.mjs";
+import { describeVolatileEnvWarning } from "./cli/utils/volatileEnvPath.mjs";
+import {
+  ensurePrivateDataDir,
+  tightenDataDirSecrets,
+  writePrivateFile,
+} from "./cli/privateDataDir.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,6 +53,34 @@ if (isVersionFastPath(process.argv)) {
   const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
   console.log(pkg.version);
   process.exit(0);
+}
+
+// Detect an unsupported Node.js runtime BEFORE the heavy `tsx/esm` import and
+// Commander's ~70-command registration chain run. That chain pulls in `ora` ->
+// the hoisted `string-width` package, whose module contains top-level ES2024
+// Unicode-set (`v` flag) regex literals. On a Node/V8 build that predates
+// `v`-flag support, those literals fail to even *parse*, throwing a bare
+// `SyntaxError: Invalid regular expression flags` deep inside a transitive
+// dependency instead of an actionable message (#12296). Skip this for the
+// same read-only invocations `shouldProvisionStorageKey` already exempts
+// (`--help`/`-h`, `help`/`completion`) — those still need the full command
+// registry to render their output, so an incompatible runtime crashing there
+// is a separate, pre-existing limitation this fix does not attempt to solve.
+if (shouldProvisionStorageKey(process.argv)) {
+  const nodeSupport = getNodeRuntimeSupport();
+  if (!nodeSupport.nodeCompatible) {
+    const runtimeWarning = getNodeRuntimeWarning() || "Unsupported Node.js runtime detected.";
+    console.error(
+      `\x1b[31m✖ Node.js ${nodeSupport.nodeVersion} is not supported.\x1b[0m\n` +
+        `  ${runtimeWarning}\n` +
+        `  Supported runtimes: ${nodeSupport.supportedDisplay}\n` +
+        `  Recommended: Node.js ${nodeSupport.recommendedVersion}\n` +
+        `  If you installed OmniRoute globally, run \`node -v\` and confirm \`omniroute\` is not resolving to\n` +
+        `  a stale/distro-packaged \`nodejs\` binary (e.g. /usr/bin/node) instead of the version you expect —\n` +
+        `  that mismatch is the most common cause even when package.json's engines range is correct.`
+    );
+    process.exit(1);
+  }
 }
 
 // MCP stdio transport uses stdout exclusively for JSON-RPC messages. Redirect
@@ -84,10 +124,8 @@ function migrateElectronServerEnv(dataDir) {
     const envPath = join(dataDir, ".env");
     const serverEnvPath = join(dataDir, "server.env");
     if (existsSync(envPath) || !existsSync(serverEnvPath)) return;
-    writeFileSync(envPath, readFileSync(serverEnvPath, "utf-8"), "utf-8");
-    console.log(
-      `  \x1b[2m♻ Migrated Electron secrets from ${serverEnvPath} to ${envPath}\x1b[0m`
-    );
+    writePrivateFile(envPath, readFileSync(serverEnvPath, "utf-8"));
+    console.log(`  \x1b[2m♻ Migrated Electron secrets from ${serverEnvPath} to ${envPath}\x1b[0m`);
   } catch {
     // Ignore errors migrating server.env — fall back to normal env loading below.
   }
@@ -109,7 +147,12 @@ function loadEnvFile() {
     addEnvPath(join(process.env.DATA_DIR, ".env"));
   }
 
-  addEnvPath(join(getDefaultDataDir(), ".env"));
+  // Hermetic commands (real CLI smokes, migrations, recovery probes) may point
+  // DATA_DIR at an isolated tree. Do not silently mix the user's default
+  // credential env into that process when isolation is explicitly requested.
+  if (process.env.OMNIROUTE_CLI_SKIP_DEFAULT_DATA_ENV !== "1") {
+    addEnvPath(join(getDefaultDataDir(), ".env"));
+  }
 
   addEnvPath(join(process.cwd(), ".env"));
   // Skip the repo-checkout .env when explicitly requested (used by isolation tests
@@ -117,6 +160,9 @@ function loadEnvFile() {
   if (process.env.OMNIROUTE_CLI_SKIP_REPO_ENV !== "1") {
     addEnvPath(join(ROOT, ".env"));
   }
+
+  const keyOrigin = new Map();
+  const shadowed = new Map();
 
   for (const envPath of envPaths) {
     try {
@@ -128,21 +174,47 @@ function loadEnvFile() {
           const eqIdx = trimmed.indexOf("=");
           if (eqIdx > 0) {
             const key = trimmed.slice(0, eqIdx).trim();
-            const value = trimmed.slice(eqIdx + 1).trim();
             if (process.env[key] === undefined) {
-              process.env[key] = value.replace(/^["']|["']$/g, "");
+              process.env[key] = parseEnvValue(trimmed.slice(eqIdx + 1));
+              keyOrigin.set(key, envPath);
+            } else if (!shadowed.has(key)) {
+              // The line is inert: something set this key first. Report it once
+              // per key, whether the winner was an earlier file or the process
+              // environment (#6194: a shell's own HOSTNAME beat the .env and the
+              // server bound to the wrong address in silence).
+              shadowed.set(key, { winner: keyOrigin.get(key) ?? null, loser: envPath });
             }
           }
         }
         loadedEnvPaths.push(envPath);
       }
-    } catch {
-      // Ignore errors reading env files.
+    } catch (err) {
+      console.warn(`  \x1b[33m⚠ Could not read ${envPath}: ${err?.message ?? err}\x1b[0m`);
     }
   }
 
   for (const envPath of loadedEnvPaths) {
     console.log(`  \x1b[2m📋 Loaded env from ${envPath}\x1b[0m`);
+  }
+
+  for (const [key, { winner, loser }] of shadowed) {
+    const setter = winner ? winner : "the environment";
+    console.warn(`  \x1b[33m⚠ ${key} in ${loser} is ignored, ${setter} set it first\x1b[0m`);
+  }
+
+  // The package directory is replaced by the next `npm i -g`, so a .env kept
+  // there is silently lost. Say so once, and only when that file actually
+  // supplied something.
+  const durableEnvPath = join(process.env.DATA_DIR || getDefaultDataDir(), ".env");
+  const suppliedKeys = [...keyOrigin.values()].some((origin) => origin === join(ROOT, ".env"));
+  const volatileWarning = describeVolatileEnvWarning({
+    envPath: join(ROOT, ".env"),
+    packageRoot: ROOT,
+    durableEnvPath,
+    suppliedKeys,
+  });
+  if (volatileWarning && loadedEnvPaths.includes(join(ROOT, ".env"))) {
+    console.warn(`  \x1b[33m⚠ ${volatileWarning}\x1b[0m`);
   }
 }
 
@@ -167,9 +239,14 @@ loadEnvFile();
 // mutate the data dir.
 if (shouldProvisionStorageKey(process.argv)) {
   const { randomBytes } = await import("node:crypto");
-  const { existsSync, mkdirSync, readFileSync, writeFileSync } = await import("node:fs");
+  const { existsSync, readFileSync } = await import("node:fs");
   const { join } = await import("node:path");
   const { homedir } = await import("node:os");
+
+  // GHSA-2pg2-xm9r-8544: installs created before the fix have a world-readable .env and a
+  // world-traversable data dir. Repair them on every run that touches encrypted storage
+  // (best-effort; group bits are kept). Informational commands never reach this block.
+  tightenDataDirSecrets(process.env.DATA_DIR || join(homedir(), ".omniroute"));
 
   if (!process.env.STORAGE_ENCRYPTION_KEY) {
     // Persist the key into DATA_DIR when set — that's the directory mounted as a volume in
@@ -194,9 +271,8 @@ if (shouldProvisionStorageKey(process.argv)) {
       );
     } else {
       // First run (no database yet) — generate and persist a fresh key.
-      if (!existsSync(dataDir)) {
-        mkdirSync(dataDir, { recursive: true });
-      }
+      // GHSA-2pg2-xm9r-8544: owner-only — .env holds the key to every stored credential.
+      ensurePrivateDataDir(dataDir);
 
       const key = randomBytes(32).toString("hex");
 
@@ -210,7 +286,7 @@ if (shouldProvisionStorageKey(process.argv)) {
       if (!content.includes("STORAGE_ENCRYPTION_KEY=")) {
         const separator = content.trim() ? "\n" : "";
         const newContent = content.trimEnd() + separator + `STORAGE_ENCRYPTION_KEY=${key}`;
-        writeFileSync(envPath, newContent + "\n", "utf-8");
+        writePrivateFile(envPath, newContent + "\n");
         console.log(`  \x1b[2m✨ Generated STORAGE_ENCRYPTION_KEY in ${envPath}\x1b[0m`);
       }
 
@@ -227,24 +303,33 @@ if (shouldProvisionStorageKey(process.argv)) {
   const langEnv = process.env.OMNIROUTE_LANG;
   const chosen = langArg || langEnv;
   if (chosen) {
-    const { setLocale } = await import(
-      pathToFileURL(join(ROOT, "bin", "cli", "i18n.mjs")).href
-    );
+    const { setLocale } = await import(pathToFileURL(join(ROOT, "bin", "cli", "i18n.mjs")).href);
     setLocale(chosen);
   }
 }
 
 // Register update notifier — checks npm once per 24h, notifies on exit via stderr.
 const _pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
-const _notifier = updateNotifier({ pkg: _pkg, updateCheckInterval: 1000 * 60 * 60 * 24 });
+const _notifier = updateNotifier
+  ? updateNotifier({ pkg: _pkg, updateCheckInterval: 1000 * 60 * 60 * 24 })
+  : null;
 process.on("exit", () => {
+  if (!_notifier || !_notifier.update) return;
   if (process.env.OMNIROUTE_NO_UPDATE_NOTIFIER) return;
   if (process.env.CI) return;
   if (process.argv.includes("--quiet") || process.argv.includes("-q")) return;
   const outputIdx = process.argv.indexOf("--output");
   const outputVal = outputIdx >= 0 ? process.argv[outputIdx + 1] : null;
   if (outputVal === "json" || outputVal === "jsonl" || outputVal === "csv") return;
-  if (process.argv.some((a) => a.startsWith("--output=json") || a.startsWith("--output=jsonl") || a.startsWith("--output=csv"))) return;
+  if (
+    process.argv.some(
+      (a) =>
+        a.startsWith("--output=json") ||
+        a.startsWith("--output=jsonl") ||
+        a.startsWith("--output=csv")
+    )
+  )
+    return;
   if (_notifier.update) {
     _notifier.notify({
       defer: false,

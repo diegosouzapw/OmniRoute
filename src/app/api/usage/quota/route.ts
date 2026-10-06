@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProviderConnections } from "@/lib/localDb";
+import { getProviderConnections } from "@/lib/db/providers";
 import {
   getLearnedLimits,
   getRateLimitStatus,

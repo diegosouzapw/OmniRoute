@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
-import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
 import { assembleStandalone } from "./assembleStandalone.mjs";
-import { buildRebuildSpawnPlan } from "./electronRebuildPlan.mjs";
+import { assertSqlitePrebuildExists } from "./electronRebuildPlan.mjs";
+import { pruneElectronRuntimeDocs } from "./electronRuntimeDocs.mjs";
+import { stageOptionalPacks } from "./optionalPackStaging.mjs";
+import { runBuildTool } from "./buildToolRunner.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -89,9 +91,7 @@ function removeNativeModules(baseDir, prefixes = ["keytar"]) {
 // user machine as "Internal Server Error" on every route.
 function assertNoStaleHashedNatives(baseDir, prefixes) {
   if (!existsSync(baseDir)) return;
-  const leftovers = readdirSync(baseDir).filter((dir) =>
-    prefixes.some((p) => dir.startsWith(p))
-  );
+  const leftovers = readdirSync(baseDir).filter((dir) => prefixes.some((p) => dir.startsWith(p)));
   if (leftovers.length > 0) {
     throw new Error(
       `[electron] stale native module copies survived cleanup in ${baseDir}: ` +
@@ -101,77 +101,43 @@ function assertNoStaleHashedNatives(baseDir, prefixes) {
   }
 }
 
-// --- Electron-UNIQUE: rebuild better-sqlite3 against the Electron ABI --------
+// --- Electron-UNIQUE: verify better-sqlite3 Node-API prebuilds ----------------
 //
-// The `npm ci` at the repo root compiles better-sqlite3 for the CI *Node* ABI
-// (e.g. 137 for Node 24). The packaged app runs its Next.js server via
-// ELECTRON_RUN_AS_NODE, so it needs the *Electron* ABI (146 for electron 42,
-// 148 for electron 43). We cannot rely on electron-builder's @electron/rebuild
-// here: it searches `electron/node_modules` (where better-sqlite3 does not live)
-// and, with the default prebuild path, tries to fetch a prebuilt binary — but
-// better-sqlite3@12.11.1 only ships prebuilds up to electron-v146, so electron
-// 43 (v148) silently gets no rebuild and the app dies with "Nenhum driver
-// SQLite disponível — better-sqlite3 (falhou)".
+// better-sqlite3 >= 13 ships Node-API (NAPI_VERSION=10) prebuilds for every
+// platform we package (darwin/linux/linuxmusl/win32 × x64/arm64) inside the
+// npm tarball. Node-API addons are ABI-independent, so the same prebuild runs
+// under plain Node (CI, CLI) and under the packaged app's ELECTRON_RUN_AS_NODE
+// server (verified against electron 43 / NODE_MODULE_VERSION 148 — issue
+// #10321 Stage 6). The historical source rebuild below existed because
+// better-sqlite3@12 only shipped prebuilds up to electron-v146 and electron 43
+// (v148) silently got no binary; v13 makes that obsolete.
 //
-// Instead we copy the *full* module (source + binding.gyp) from the root into
-// the standalone and compile it from source against the Electron headers, so
-// `bindings` finds a correct build/Release/better_sqlite3.node regardless of
-// prebuild availability. Robust to any current/future electron version.
+// Instead of compiling from source on every build (tens of seconds to minutes
+// per platform), we fail fast when the prebuild for the CURRENT build platform
+// is missing — a missing prebuild must kill the build here, not the app on a
+// user machine with "Nenhum driver SQLite disponível — better-sqlite3 (falhou)".
 
-function readElectronVersion() {
-  const pkg = JSON.parse(readFileSync(join(ROOT, "electron", "package.json"), "utf8"));
-  const raw = pkg.devDependencies?.electron || pkg.dependencies?.electron || "";
-  return String(raw).replace(/^[\^~]/, "");
-}
-
-function rebuildBetterSqlite3ForElectron(standaloneNodeModules) {
-  const srcMod = join(ROOT, "node_modules", "better-sqlite3");
-  if (!existsSync(srcMod)) {
-    console.warn("[electron] better-sqlite3 not found at repo root — skipping ABI rebuild.");
+function verifyBetterSqlite3Prebuilds(standaloneNodeModules) {
+  const destMod = join(standaloneNodeModules, "better-sqlite3");
+  if (!existsSync(destMod)) {
+    console.warn("[electron] better-sqlite3 not found in standalone — skipping prebuild check.");
     return;
   }
-  const electronVersion = readElectronVersion();
-  if (!electronVersion) {
-    throw new Error("[electron] could not resolve electron version for better-sqlite3 rebuild.");
-  }
-  const destMod = join(standaloneNodeModules, "better-sqlite3");
-  // copyNatives only copies build/; we need the full module (src + binding.gyp)
-  // to compile from source. Overwrite the copied Node-ABI build in the process.
-  cpSync(srcMod, destMod, { recursive: true, force: true });
-  rmSync(join(destMod, "build"), { recursive: true, force: true });
 
-  console.log(`[electron] rebuilding better-sqlite3 against electron ${electronVersion} ABI…`);
-  const plan = buildRebuildSpawnPlan(process.platform);
-  const result = spawnSync(
-    plan.command,
-    plan.args,
-    {
-      cwd: destMod,
-      stdio: "inherit",
-      // .cmd shims must go through a shell on Windows (CVE-2024-27980 hardening
-      // makes a shell-less spawn fail with status null); args are fixed literals.
-      shell: plan.shell,
-      // Compile against the Electron headers (not Node's) so the .node lands in
-      // build/Release with the Electron NODE_MODULE_VERSION. No shell interpolation.
-      env: {
-        ...process.env,
-        npm_config_runtime: "electron",
-        npm_config_target: electronVersion,
-        npm_config_disturl: "https://electronjs.org/headers",
-        npm_config_arch: process.arch,
-        npm_config_build_from_source: "true",
-      },
-    }
-  );
-  if (result.status !== 0) {
-    throw new Error(
-      `[electron] better-sqlite3 rebuild against electron ${electronVersion} failed (exit ${result.status}).`
-    );
-  }
-  // Drop the now-unneeded compile inputs to keep the packaged app lean.
-  for (const dir of ["deps", "src", "build/Debug", "build/obj.target"]) {
+  // Fail fast when the loader would find no prebuild for THIS build platform.
+  // Mirrors better-sqlite3's own lib/binding.js selection logic.
+  const reportHeader = process.report?.getReport?.().header;
+  assertSqlitePrebuildExists(destMod, process.platform, process.arch, reportHeader);
+
+  // Drop compile inputs and stale Node-ABI build outputs to keep the packaged
+  // app lean and to guarantee the loader resolves the prebuild, not a leftover
+  // build/Release/better_sqlite3.node compiled for a different ABI.
+  for (const dir of ["build", "deps", "src"]) {
     rmSync(join(destMod, dir), { recursive: true, force: true });
   }
+  console.log(
+    `[electron] better-sqlite3 Node-API prebuilds verified for ${process.platform}-${process.arch}.`
+  );
 }
 
 function logContextualError(error) {
@@ -204,16 +170,45 @@ assembleStandalone({
   // app they would point at the build machine's absolute paths and break on install.
   materializeSymlinks: true,
 });
+const compressionWorkerDest = join(
+  ELECTRON_STANDALONE_DIR,
+  "open-sse",
+  "services",
+  "compression",
+  "compressionWorker.js"
+);
+mkdirSync(dirname(compressionWorkerDest), { recursive: true });
+runBuildTool(
+  "esbuild",
+  "esbuild",
+  [
+    join(ROOT, "open-sse", "services", "compression", "compressionWorker.ts"),
+    "--bundle",
+    "--platform=node",
+    "--packages=external",
+    "--format=esm",
+    `--outfile=${compressionWorkerDest}`,
+  ],
+  { stdio: "inherit" }
+);
+
+const docsPrune = pruneElectronRuntimeDocs(ELECTRON_STANDALONE_DIR);
+if (docsPrune.removedFiles > 0) {
+  console.log(
+    `[electron] pruned ${docsPrune.removedFiles} authoring doc file(s) ` +
+      `(${docsPrune.removedBytes} bytes) from the staging bundle`
+  );
+}
 
 // Electron-UNIQUE post-assembly steps
 removeGeneratedElectronArtifacts();
 
-// Rebuild better-sqlite3 from source against the Electron ABI in the primary
-// node_modules (where the standalone server resolves it). keytar is still
-// stripped so electron-builder's @electron/rebuild handles it (it has electron
-// prebuilds); also drop any stray Node-ABI better-sqlite3 under .next/node_modules
-// so it cannot shadow the rebuilt one.
-rebuildBetterSqlite3ForElectron(join(ELECTRON_STANDALONE_DIR, "node_modules"));
+// Verify better-sqlite3 Node-API prebuilds in the primary node_modules (where
+// the standalone server resolves it). keytar is still stripped so
+// electron-builder's @electron/rebuild handles it (it has electron prebuilds);
+// also drop any stray better-sqlite3 under .next/node_modules so it cannot
+// shadow the prebuild-backed one.
+verifyBetterSqlite3Prebuilds(join(ELECTRON_STANDALONE_DIR, "node_modules"));
 removeNativeModules(join(ELECTRON_STANDALONE_DIR, "node_modules"), ["keytar"]);
 removeNativeModules(join(ELECTRON_STANDALONE_DIR, NEXT_DIST_DIR, "node_modules"), [
   "better-sqlite3",
@@ -228,6 +223,18 @@ assertNoStaleHashedNatives(join(ELECTRON_STANDALONE_DIR, NEXT_DIST_DIR, "node_mo
   "better-sqlite3",
   "keytar",
 ]);
+
+// Stage 7 (issue #10321): move the optional ML/browser dependency closure out of
+// the desktop bundle into checksummed, versioned packs under
+// `.build/optional-packs/` (+ tarballs) and emit `optional-packs.index.json` at
+// the bundle root. Runs after the native-module steps so it only ever sees the
+// final staging tree. Fail-open per member (see optionalPackStaging.mjs).
+const OPTIONAL_PACKS_OUT_DIR = join(ROOT, ".build", "optional-packs");
+await stageOptionalPacks({
+  stagingRoot: ELECTRON_STANDALONE_DIR,
+  packsOutDir: OPTIONAL_PACKS_OUT_DIR,
+  log: (msg) => console.log(msg.replace(/^\[optional-packs\]/, "[electron]")),
+});
 
 console.log(
   `[electron] prepared standalone bundle: ${relative(ROOT, ELECTRON_STANDALONE_DIR) || "."}`

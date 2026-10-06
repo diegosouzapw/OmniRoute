@@ -490,18 +490,18 @@ export default function EvalsTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (targetOptions.length === 0) return;
-    if (targetOptions.some((option) => option.key === selectedTargetKey)) return;
+  // Adjust-during-render (React docs pattern): keep the selected target inside
+  // the current option set, and never compare a target against itself. Both
+  // guards self-extinguish after their setState, so the re-render settles.
+  if (
+    targetOptions.length > 0 &&
+    !targetOptions.some((option) => option.key === selectedTargetKey)
+  ) {
     setSelectedTargetKey(targetOptions[0]?.key || "suite-default:__default__");
-  }, [selectedTargetKey, targetOptions]);
-
-  useEffect(() => {
-    if (!compareTargetKey) return;
-    if (compareTargetKey === selectedTargetKey) {
-      setCompareTargetKey("");
-    }
-  }, [compareTargetKey, selectedTargetKey]);
+  }
+  if (compareTargetKey && compareTargetKey === selectedTargetKey) {
+    setCompareTargetKey("");
+  }
 
   const filteredSuites = !search.trim()
     ? suites
@@ -1846,7 +1846,11 @@ export default function EvalsTab() {
   );
 }
 
-const HeroSection = memo(function HeroSection({ t }: { t: (key: string, values?: Record<string, unknown>) => string }) {
+const HeroSection = memo(function HeroSection({
+  t,
+}: {
+  t: (key: string, values?: Record<string, unknown>) => string;
+}) {
   return (
     <Card className="p-0 overflow-hidden">
       <div

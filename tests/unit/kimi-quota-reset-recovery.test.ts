@@ -17,7 +17,7 @@ const quotaCache = await import("../../src/domain/quotaCache.ts");
 test.after(() => {
   quotaCache.__clearForTests();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("Kimi billing-cycle quota errors remain active and recover at the cached reset", async () => {

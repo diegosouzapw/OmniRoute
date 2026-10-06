@@ -42,7 +42,10 @@ export function usePools(): UsePoolsResult {
 
   useEffect(() => {
     mountedRef.current = true;
-    void fetchPools();
+    // Async continuation — see usePoolUsage (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchPools();
+    })();
     return () => {
       mountedRef.current = false;
     };

@@ -96,7 +96,7 @@ test.after(() => {
   clearModelsDevCapabilities();
   settingsDb.clearAllLKGP();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
   } else {
@@ -153,7 +153,11 @@ test(
       [],
       "vision-incapable rr-blind must never receive the image_url body, even as a last-resort fallback"
     );
-    assert.notEqual(result.status, 200, "must not silently succeed via the vision-incapable target");
+    assert.notEqual(
+      result.status,
+      200,
+      "must not silently succeed via the vision-incapable target"
+    );
   }
 );
 

@@ -108,6 +108,28 @@ test("AC-9: successful PATCH writes settings.update with diff of changed keys", 
   });
 });
 
+test("CLI subject stamp preserves actor attribution after the raw token is stripped", async () => {
+  await bootstrapWithPassword("initial-pass-cli-actor");
+  await settingsDb.updateSettings({ theme: "light" });
+
+  const response = await settingsRoute.PATCH(
+    new Request("http://localhost/api/settings", {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "x-omniroute-auth-kind": "management_key",
+        "x-omniroute-auth-label": "local-cli-token",
+      },
+      body: JSON.stringify({ theme: "dark" }),
+    })
+  );
+
+  assert.equal(response.status, 200);
+  const rows = settingsRows().filter((r) => r.action === "settings.update");
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].actor, "cli");
+});
+
 // ─── AC-10 — failure rows for each rejection path ────────────────────────
 
 test("AC-10a: PASSWORD_REQUIRED failure writes settings.update_failed", async () => {

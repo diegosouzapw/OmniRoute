@@ -22,8 +22,10 @@ export function isProviderBlockedByIdOrAlias(
 ): boolean {
   const blockedProviderSet = normalizeBlockedProviderSet(blockedProviders);
   const provider = getProviderById(providerId) as ProviderWithAlias | undefined;
+  const baseId = providerId.replace(/-search$/, "");
   return (
     blockedProviderSet.has(providerId) ||
+    blockedProviderSet.has(baseId) ||
     (typeof provider?.alias === "string" && blockedProviderSet.has(provider.alias))
   );
 }

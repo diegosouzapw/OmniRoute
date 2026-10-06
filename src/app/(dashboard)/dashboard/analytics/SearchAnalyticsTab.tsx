@@ -22,6 +22,52 @@ interface SearchStats {
   avgDurationMs: number;
 }
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isSearchStats(value: unknown): value is SearchStats {
+  if (!value || typeof value !== "object") return false;
+
+  const candidate = value as Partial<SearchStats>;
+  return (
+    isFiniteNumber(candidate.total) &&
+    isFiniteNumber(candidate.today) &&
+    isFiniteNumber(candidate.cached) &&
+    isFiniteNumber(candidate.errors) &&
+    isFiniteNumber(candidate.totalCostUsd) &&
+    isFiniteNumber(candidate.cacheHitRate) &&
+    isFiniteNumber(candidate.avgDurationMs) &&
+    !!candidate.byProvider &&
+    typeof candidate.byProvider === "object" &&
+    !Array.isArray(candidate.byProvider) &&
+    Object.values(candidate.byProvider).every(
+      (provider) =>
+        !!provider &&
+        typeof provider === "object" &&
+        isFiniteNumber(provider.count) &&
+        isFiniteNumber(provider.costUsd)
+    ) &&
+    Array.isArray(candidate.last24h) &&
+    candidate.last24h.every(
+      (point) => typeof point.hour === "string" && isFiniteNumber(point.count)
+    )
+  );
+}
+
+async function readSearchStats(response: Response): Promise<SearchStats> {
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      body && typeof body === "object" && "error" in body && typeof body.error === "string"
+        ? body.error
+        : null;
+    throw new Error(message ?? "searchAnalyticsNoData");
+  }
+  if (!isSearchStats(body)) throw new Error("searchAnalyticsNoData");
+  return body;
+}
+
 function StatCard({
   icon,
   label,
@@ -85,16 +131,25 @@ export default function SearchAnalyticsTab() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/v1/search/analytics")
-      .then((r) => r.json())
-      .then((d) => {
-        setStats(d);
-        setLoading(false);
-      })
-      .catch((e) => {
-        setError(e.message);
-        setLoading(false);
-      });
+    let cancelled = false;
+    const controller = new AbortController();
+    async function loadStats() {
+      try {
+        const response = await fetch("/api/v1/search/analytics", { signal: controller.signal });
+        const nextStats = await readSearchStats(response);
+        if (!cancelled) setStats(nextStats);
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : "searchAnalyticsNoData";
+        if (!cancelled) setError(message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void loadStats();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   if (loading) {

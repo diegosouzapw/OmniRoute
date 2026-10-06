@@ -24,7 +24,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: unknown) {
@@ -46,7 +46,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ──────────────── getMemoryVecMeta initial state ────────────────
@@ -92,7 +92,7 @@ test("setMemoryVecMeta persists activeDim and embeddingSignature", () => {
   assert.equal(meta.activeDim, 1536);
   assert.equal(meta.embeddingSignature, "remote:openai/text-embedding-3-small:1536");
   assert.equal(meta.lastResetAt, null); // not set
-  assert.equal(meta.vecLoaded, false);  // not set
+  assert.equal(meta.vecLoaded, false); // not set
 });
 
 test("setMemoryVecMeta persists vecLoaded = true", () => {
@@ -119,7 +119,11 @@ test("setMemoryVecMeta updates only the provided fields (partial update)", () =>
 
   const meta = memoryVec.getMemoryVecMeta();
   assert.equal(meta.activeDim, 1536, "activeDim should be updated");
-  assert.equal(meta.embeddingSignature, "static:potion-base-8M:768", "embeddingSignature should be preserved");
+  assert.equal(
+    meta.embeddingSignature,
+    "static:potion-base-8M:768",
+    "embeddingSignature should be preserved"
+  );
   assert.equal(meta.vecLoaded, true, "vecLoaded should be preserved");
 });
 

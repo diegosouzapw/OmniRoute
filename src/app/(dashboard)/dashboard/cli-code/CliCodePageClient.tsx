@@ -10,6 +10,8 @@ import { CliToolCard, CliConceptCard, CliComparisonCard } from "@/shared/compone
 import { useToolBatchStatuses } from "@/shared/hooks/cli/useToolBatchStatuses";
 import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
 import CliProfileAutoSyncToggles from "./components/CliProfileAutoSyncToggles";
+import CliCompanionPanel from "./components/CliCompanionPanel";
+import type { CompanionTarget } from "@/shared/utils/cliCompanion";
 
 // ── Static catalogue slice ────────────────────────────────────────────────────
 
@@ -43,14 +45,18 @@ interface ProvidersResponse {
 
 interface CliCodePageClientProps {
   machineId: string;
+  companionTargets?: CompanionTarget[];
 }
 
-export default function CliCodePageClient({ machineId: _machineId }: CliCodePageClientProps) {
+export default function CliCodePageClient({
+  machineId: _machineId,
+  companionTargets = [],
+}: CliCodePageClientProps) {
   const t = useTranslations("cliCode");
   const tCommon = useTranslations("cliCommon");
 
   // ── Batch statuses ──────────────────────────────────────────────────────────
-  const { statuses, loading, refetch } = useToolBatchStatuses();
+  const { statuses, loading, error, refetch } = useToolBatchStatuses();
 
   // ── Providers ───────────────────────────────────────────────────────────────
   const [hasActiveProviders, setHasActiveProviders] = useState<boolean>(false);
@@ -154,6 +160,13 @@ export default function CliCodePageClient({ machineId: _machineId }: CliCodePage
           {tCommon("card.refreshDetection")}
         </Button>
       </div>
+
+      <CliCompanionPanel
+        targets={companionTargets}
+        statuses={statuses}
+        loading={loading}
+        error={Boolean(error)}
+      />
 
       {/* Filter row */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">

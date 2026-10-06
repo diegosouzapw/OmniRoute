@@ -1,15 +1,17 @@
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
-// #4041: /v1/responses (Codex wire_api=responses hot path) parsed the JSON body 3-4x per
-// request — once in withInjectionGuard, once in withCodexPreferredModel, once for model
-// detection before SSE keepalive, and once more inside handleChat via resolveChatRequestBody.
-//
-// The fix threads the already-parsed body from withInjectionGuard into the wrapped handler
-// as a third argument (preParsedBody), mirroring the existing /v1/chat/completions pattern
-// (#4380). This test confirms: (a) withInjectionGuard passes the body it parsed to the inner
-// handler as a 3rd arg, and (b) withCodexPreferredModel reuses an already-parsed body
-// instead of re-cloning+re-parsing the request.
+const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-responses-parse-once-"));
+process.env.DATA_DIR = dataDir;
+after(async () => await cleanupTempDataDir(dataDir));
+
+// #4041: AI routes must parse each JSON body at most once and thread the parsed value
+// through model resolution and handleChat. /v1/responses now parses after raw-body admission;
+// withInjectionGuard retains the same preParsedBody contract for routes that still wrap it.
 
 // ─── Part A: withInjectionGuard threads the parsed body ──────────────────────
 
@@ -18,7 +20,7 @@ const { withInjectionGuard } = await import("../../src/middleware/promptInjectio
 test("#4041 withInjectionGuard passes the parsed body as 3rd arg to the inner handler", async () => {
   let receivedPreParsed: unknown = undefined;
 
-  const innerHandler = async (_request: any, _context: any, preParsedBody: unknown) => {
+  const innerHandler = async (_request: Request, _context: unknown, preParsedBody: unknown) => {
     receivedPreParsed = preParsedBody;
     return new Response("ok");
   };
@@ -44,7 +46,7 @@ test("#4041 withInjectionGuard passes the parsed body as 3rd arg to the inner ha
 test("#4041 withInjectionGuard passes null as 3rd arg when body cannot be parsed", async () => {
   let receivedPreParsed: unknown = "sentinel";
 
-  const innerHandler = async (_request: any, _context: any, preParsedBody: unknown) => {
+  const innerHandler = async (_request: Request, _context: unknown, preParsedBody: unknown) => {
     receivedPreParsed = preParsedBody;
     return new Response("ok");
   };
@@ -70,83 +72,30 @@ test("#4041 withInjectionGuard passes null as 3rd arg when body cannot be parsed
 
 // ─── Part B: withCodexPreferredModel reuses pre-parsed body ──────────────────
 
-// Import the internal helper directly. It is not exported as a named export from
-// the route file by default, but we can import the module and access it.
-// We spy on Request.prototype behaviour by counting .clone() calls instead.
-
 test("#4041 withCodexPreferredModel accepts a pre-parsed body and avoids re-cloning the request", async () => {
-  // Stub out resolveResponsesApiModel and its dependencies so we can test the
-  // parse-counting in isolation without hitting the database.
-  const originalFetch = globalThis.fetch;
-
+  const { withCodexPreferredModel } = await import("../../src/app/api/v1/responses/route.ts");
+  const body = { model: "openai/gpt-4o", input: "hello" };
+  const request = new Request("http://localhost/v1/responses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
   let cloneCount = 0;
-  let jsonCount = 0;
-
-  const fakeBody = { model: "gpt-4o", messages: [] };
-
-  // Build a minimal fake request whose .clone() / .json() we can count
-  function makeCountingRequest(body: object): Request {
-    const req = new Request("http://localhost/v1/responses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-
-    // Wrap clone so we count calls
-    const origClone = req.clone.bind(req);
-    Object.defineProperty(req, "clone", {
-      value: () => {
-        cloneCount++;
-        return origClone();
-      },
-      writable: true,
-    });
-
-    return req;
-  }
-
-  // We import the route module to call withCodexPreferredModel.
-  // Because the module-level DB / getModelInfo calls are side-effecting, we only
-  // check that the function, when given a preParsedBody, returns early without cloning.
-  // We test this by ensuring cloneCount === 0 after a call where the model is unknown
-  // (resolveResponsesApiModel returns changed=false → early return).
-  //
-  // Simplest approach: inline-test the contract via the re-exported helper.
-
-  const req = makeCountingRequest(fakeBody);
-
-  // Simulate the behavior we want: if preParsedBody is supplied and the model field is
-  // already resolved, clone() must not be called on the original request.
-  // This is a white-box contract test — if the impl calls clone() when preParsedBody is
-  // provided, cloneCount will be > 0 and the assertion fails.
-
-  // Before fix: withCodexPreferredModel always does `const clone = request.clone()`
-  // After fix: it should use the pre-parsed body directly.
-
-  // We can test this without importing the whole route by checking that `resolveChatRequestBody`
-  // (the terminal consumer) also does not re-parse when given a pre-parsed body — verifying
-  // that the end-to-end threading avoids the extra parse.
-
-  const { resolveChatRequestBody } = await import("../../src/sse/handlers/requestBody.ts");
-
-  let innerJsonCalls = 0;
-  const countingReq = {
-    json: async () => {
-      innerJsonCalls++;
-      return fakeBody;
+  const originalClone = request.clone.bind(request);
+  Object.defineProperty(request, "clone", {
+    value: () => {
+      cloneCount += 1;
+      return originalClone();
     },
-  };
+  });
 
-  const result = await resolveChatRequestBody(countingReq, fakeBody);
-  assert.deepEqual(result, fakeBody);
-  assert.equal(
-    innerJsonCalls,
-    0,
-    "resolveChatRequestBody must not call request.json() when preParsedBody is provided"
-  );
+  const result = await withCodexPreferredModel(request, body);
+
+  assert.equal(cloneCount, 0);
+  assert.equal(result.body, body);
 });
 
-// ─── Part C: full integration — count .json() calls through withInjectionGuard ──
+// ─── Part C: wrapped routes parse once before invoking their handler ─────────
 
 test("#4041 the body is parsed AT MOST ONCE through withInjectionGuard + inner handler", async () => {
   let jsonParseCount = 0;
@@ -185,7 +134,7 @@ test("#4041 the body is parsed AT MOST ONCE through withInjectionGuard + inner h
   const spyRequest = wrapWithJsonSpy(origRequest);
 
   let preParsedBodyReceived: unknown = undefined;
-  const innerHandler = async (_req: any, _ctx: any, preParsedBody: unknown) => {
+  const innerHandler = async (_req: Request, _ctx: unknown, preParsedBody: unknown) => {
     preParsedBodyReceived = preParsedBody;
     return new Response("ok");
   };

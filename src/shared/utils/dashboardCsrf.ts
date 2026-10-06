@@ -1,5 +1,5 @@
 import { DASHBOARD_CSRF_HEADER } from "@/shared/constants/dashboardCsrf";
-import { PUBLIC_API_ROUTE_PREFIXES } from "@/shared/constants/publicApiRoutes";
+import { isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
 
 interface CachedDashboardCsrfToken {
   token: string;
@@ -113,11 +113,7 @@ function isClientApiPath(pathname: string): boolean {
   );
 }
 
-function isPublicApiPath(pathname: string): boolean {
-  return PUBLIC_API_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-}
-
-function shouldAttachDashboardCsrf(url: URL): boolean {
+function shouldAttachDashboardCsrf(url: URL, method: string): boolean {
   if (
     TOP_LEVEL_MANAGEMENT_PATH_PREFIXES.some(
       (prefix) => url.pathname === prefix || url.pathname.startsWith(prefix + "/")
@@ -129,7 +125,10 @@ function shouldAttachDashboardCsrf(url: URL): boolean {
   return (
     url.pathname.startsWith("/api/") &&
     url.pathname !== "/api/auth/csrf" &&
-    !isPublicApiPath(url.pathname) &&
+    // Share the server's PUBLIC classification instead of re-scanning the
+    // prefix list here — a second copy is a second chance to disagree with the
+    // authz pipeline (GHSA-74g9-q8f6-793h).
+    !isPublicApiRoute(url.pathname, method) &&
     !isClientApiPath(url.pathname)
   );
 }
@@ -150,7 +149,7 @@ function sameOriginDashboardMutation(input: RequestInfo | URL, init?: RequestIni
     return false;
   }
 
-  return url.origin === window.location.origin && shouldAttachDashboardCsrf(url);
+  return url.origin === window.location.origin && shouldAttachDashboardCsrf(url, method);
 }
 
 function mergedHeaders(input: RequestInfo | URL, init?: RequestInit): Headers {

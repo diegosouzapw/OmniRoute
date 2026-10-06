@@ -55,6 +55,8 @@ export type SyncStatus =
 
 export interface RadarCacheEntry {
   version: string;
+  /** Date the feed's data was built (`generatedAt`), as validated by the schema. */
+  generatedAt?: string | null;
   tier: string;
   payload: string;
   signature: string;
@@ -119,6 +121,15 @@ export function compareVersions(a: string, b: string): number {
     if (na !== nb) return na - nb;
   }
   return 0;
+}
+
+function cachedSchemaVersion(cache: RadarCacheEntry): 1 | 2 | null {
+  try {
+    const parsed = RadarFeedSchema.safeParse(JSON.parse(cache.payload) as unknown);
+    return parsed.success ? parsed.data.schemaVersion : null;
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -187,7 +198,7 @@ export async function syncRadar(deps: SyncDeps = {}): Promise<SyncStatus> {
     const baseUrl = (process.env.RADAR_FEED_URL || DEFAULT_FEED_BASE_URL).replace(/\/+$/, "");
     const url = `${baseUrl}/v1/catalog/latest`;
 
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = { "x-omniroute-radar-schema": "2" };
     if (settings.supporterKey) {
       headers["Authorization"] = `Bearer ${settings.supporterKey}`;
     }
@@ -283,10 +294,20 @@ export async function syncRadar(deps: SyncDeps = {}): Promise<SyncStatus> {
     }
 
     const isEntitlementDowngrade = existingCache?.tier === "live" && servedTier === "community";
+    const versionComparison = existingCache
+      ? compareVersions(feed.version, existingCache.version)
+      : 1;
+    const isSameVersionSchemaUpgrade =
+      existingCache !== null &&
+      existingCache.tier === servedTier &&
+      versionComparison === 0 &&
+      feed.schemaVersion === 2 &&
+      cachedSchemaVersion(existingCache) === 1;
     if (
       existingCache &&
       !isEntitlementDowngrade &&
-      compareVersions(feed.version, existingCache.version) <= 0
+      !isSameVersionSchemaUpgrade &&
+      versionComparison <= 0
     ) {
       return { status: "stale" };
     }
@@ -294,6 +315,7 @@ export async function syncRadar(deps: SyncDeps = {}): Promise<SyncStatus> {
     // Step 9: Cache the result
     const cacheEntry: RadarCacheEntry = {
       version: feed.version,
+      generatedAt: feed.generatedAt,
       tier: servedTier,
       payload: rawBytes.toString("utf-8"),
       signature,

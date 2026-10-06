@@ -1,8 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { hasThinkTags, extractThinkTags, processStreamingThinkDelta, flushThinkBuffer } =
-  await import("../../open-sse/utils/thinkTagParser.ts");
+const {
+  hasThinkTags,
+  extractThinkTags,
+  processStreamingThinkDelta,
+  flushThinkBuffer,
+  containsOrMayEndWithThinkOpenTag,
+  applyThinkTag,
+} = await import("../../open-sse/utils/thinkTagParser.ts");
 
 test("hasThinkTags detects opening tags and ignores empty input", () => {
   assert.equal(hasThinkTags("before <think>plan</think> after"), true);
@@ -57,6 +63,33 @@ test("processStreamingThinkDelta extracts content and reasoning across split tag
   assert.deepEqual(flushed, {
     reasoningDelta: null,
     contentDelta: " world",
+  });
+});
+
+test("containsOrMayEndWithThinkOpenTag flags a chunk ending on any partial open tag", () => {
+  for (const partial of ["<", "<t", "<th", "<thi", "<thin", "<think"]) {
+    assert.equal(containsOrMayEndWithThinkOpenTag(`answer ${partial}`), true, partial);
+  }
+  assert.equal(containsOrMayEndWithThinkOpenTag("plain answer"), false);
+});
+
+test("applyThinkTag buffers an open tag split as '<think' + '>' across deltas", () => {
+  const ctx = { enabled: true, active: false, insideThink: false, buffer: "" };
+
+  const opening: { content: unknown; reasoning_content?: string } = { content: "<think" };
+  assert.equal(applyThinkTag(ctx, opening), true);
+  assert.equal(opening.content, "");
+
+  const rest: { content: unknown; reasoning_content?: string } = {
+    content: ">plan</think>answer",
+  };
+  assert.equal(applyThinkTag(ctx, rest), true);
+  assert.equal(rest.reasoning_content, "plan");
+  assert.equal(rest.content, "");
+
+  assert.deepEqual(flushThinkBuffer(ctx), {
+    reasoningDelta: null,
+    contentDelta: "answer",
   });
 });
 

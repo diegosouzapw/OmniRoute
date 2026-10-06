@@ -12,6 +12,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const overridesDb = await import("../../src/lib/db/modelCapabilityOverrides.ts");
+const featureFlagsDb = await import("../../src/lib/db/featureFlags.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 
 const PROVIDER = "capwire-testprov";
@@ -77,8 +78,9 @@ test.before(() => {
 
 test.after(() => {
   globalThis.fetch = originalFetch;
+  featureFlagsDb.removeFeatureFlagOverride("DISABLE_CONTEXT_WINDOW_CHECKS");
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("handleChatCore clamps an over-cap max_tokens to the model's output cap before dispatch", async () => {
@@ -113,4 +115,32 @@ test("handleChatCore dispatches input within the model input cap", async () => {
   await handleChatCore(buildRequest(1, "x"));
   assert.equal(fetchCalls, 1);
   assert.ok(dispatchedBody, "input below the cap must reach the upstream");
+});
+
+test("DISABLE_CONTEXT_WINDOW_CHECKS lets direct-model input exceed the declared input cap", async () => {
+  dispatchedBody = null;
+  fetchCalls = 0;
+  featureFlagsDb.setFeatureFlagOverride("DISABLE_CONTEXT_WINDOW_CHECKS", "true");
+  try {
+    const result = await handleChatCore(buildRequest(1, "x".repeat(200)));
+    assert.equal(result.success, true);
+    assert.equal(fetchCalls, 1, "disabled context checks must let the upstream decide");
+    assert.ok(dispatchedBody, "oversized input must reach the upstream when the flag is enabled");
+  } finally {
+    featureFlagsDb.removeFeatureFlagOverride("DISABLE_CONTEXT_WINDOW_CHECKS");
+  }
+});
+
+test("DISABLE_CONTEXT_WINDOW_CHECKS keeps the direct model output cap active", async () => {
+  dispatchedBody = null;
+  fetchCalls = 0;
+  featureFlagsDb.setFeatureFlagOverride("DISABLE_CONTEXT_WINDOW_CHECKS", "true");
+  try {
+    const result = await handleChatCore(buildRequest(REQUESTED_MAX_TOKENS, "x".repeat(200)));
+    assert.equal(result.success, true);
+    assert.equal(fetchCalls, 1);
+    assert.equal(dispatchedBody?.max_tokens, OUTPUT_CAP);
+  } finally {
+    featureFlagsDb.removeFeatureFlagOverride("DISABLE_CONTEXT_WINDOW_CHECKS");
+  }
 });

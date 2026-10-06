@@ -16,6 +16,7 @@ export default function OmniRouteLogo({ size = 20, className = "" }: OmniRouteLo
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      suppressHydrationWarning
     >
       {/* Central node */}
       <circle cx="16" cy="16" r="3" fill="currentColor" />

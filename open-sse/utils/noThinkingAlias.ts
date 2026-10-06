@@ -156,12 +156,18 @@ function normalizeProviderPrefix(
  * @param aliasToCanonical - When provided, the inner provider prefix of each variant id is
  *   normalized to its canonical form (e.g. "cc" → "claude"). Pass this when the catalog is
  *   emitting canonical-prefixed ids so no-think variants stay consistent with the prefix mode.
+ * @param options.featureEnabled - `false` returns the models untouched (feature flag off).
  */
 export function appendNoThinkingVariants<T extends CatalogModelEntry>(
   models: T[],
-  aliasToCanonical?: Record<string, string>
+  aliasToCanonical?: Record<string, string>,
+  options?: { featureEnabled?: boolean }
 ): T[] {
   if (!Array.isArray(models)) return models;
+  // #11971: the catalog passes the DISABLE_THINKING_LEVEL_VARIANTS feature flag here; when
+  // the alias feature is switched off no variant is appended (the call site typed this
+  // third argument before it existed — TS2554 on the release tip).
+  if (options?.featureEnabled === false) return models;
   const variants: T[] = [];
   for (const model of models) {
     if (!shouldExposeNoThinkingAlias(model)) continue;

@@ -9,6 +9,9 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const modelAliasesDb = await import("../../src/lib/db/models/aliases.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
+const modelAliasResolver = await import("../../src/lib/modelAliasResolver.ts");
 const { POST } = await import("../../src/app/api/v1/messages/count_tokens/route.ts");
 
 type CountTokensResponse = {
@@ -18,9 +21,20 @@ type CountTokensResponse = {
   model?: string;
 };
 
+type ErrorResponse = {
+  error?: {
+    code?: string;
+    message?: string;
+  };
+};
+
+type CountTokensErrorResponse = {
+  error: { code?: string; message?: string };
+};
+
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -38,11 +52,12 @@ async function seedConnection(provider, overrides = {}) {
 
 test.beforeEach(async () => {
   await resetStorage();
+  modelAliasResolver.invalidateAliasCache();
 });
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("messages/count_tokens uses real provider count when Claude-compatible upstream supports it", async () => {
@@ -106,6 +121,67 @@ test("messages/count_tokens falls back to estimate when model is missing", async
   const body = (await response.json()) as CountTokensResponse;
   assert.equal(body.input_tokens, 4); // tiktoken: "abcd"=1 + "12345678"=3
   assert.equal(body.source, "local");
+});
+
+test("messages/count_tokens rejects retired Felo models instead of estimating locally", async () => {
+  const response = await POST(
+    new Request("http://localhost/api/v1/messages/count_tokens", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "felo-web/gpt-4o",
+        messages: [{ role: "user", content: "Count these tokens" }],
+      }),
+    })
+  );
+
+  assert.equal(response.status, 410);
+  const body = (await response.json()) as ErrorResponse;
+  assert.equal(body.error?.code, "PROVIDER_RETIRED");
+  assert.equal(body.error?.message, "Provider is retired and unavailable.");
+  assert.equal(JSON.stringify(body).includes("felo-web"), false);
+});
+
+test("messages/count_tokens does not mask the retired ChatGPT Web alias as a local estimate", async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    throw new Error("Retired count_tokens requests must not reach the network");
+  };
+
+  try {
+    for (const provider of ["cgpt-web"]) {
+      const alias = `count-via-${provider}`;
+      await modelAliasesDb.setModelAlias(alias, `${provider}/gpt-5.5`);
+      await settingsDb.updateSettings({
+        wildcardAliases: [
+          { pattern: `count-wildcard-${provider}-*`, target: `${provider}/gpt-5.5` },
+        ],
+      });
+      modelAliasResolver.invalidateAliasCache();
+
+      for (const model of [`${provider}/gpt-5.5`, alias, `count-wildcard-${provider}-model`]) {
+        const response = await POST(
+          new Request("http://localhost/api/v1/messages/count_tokens", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model,
+              messages: [{ role: "user", content: "Count these tokens" }],
+            }),
+          })
+        );
+        const body = (await response.json()) as CountTokensErrorResponse;
+        assert.equal(response.status, 410);
+        assert.equal(body.error.code, "PROVIDER_RETIRED");
+        assert.equal(body.error.message, "Provider is retired and unavailable.");
+      }
+    }
+    assert.equal(fetchCalls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("count_tokens fallback uses exact tiktoken count with source=local", async () => {

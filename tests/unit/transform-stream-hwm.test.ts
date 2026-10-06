@@ -24,7 +24,7 @@ function cleanupDb() {
     delete process.env.DATA_DIR;
   }
   try {
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    fs.rmSync(tempDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {}
 }
 

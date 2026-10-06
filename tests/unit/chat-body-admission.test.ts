@@ -16,6 +16,7 @@ const {
   resolveSelfLoopBearer,
 } = admissionModule;
 const { withEarlyStreamKeepalive } = await import("../../open-sse/utils/earlyStreamKeepalive.ts");
+const { getActiveRequestCount } = await import("../../src/lib/gracefulShutdown.ts");
 
 /**
  * Save/restore the env-var keys that `resolveSelfLoopBearer` reads so tests can
@@ -49,6 +50,25 @@ function chatRequest(body: string, contentLength: string | null = String(body.le
   });
 }
 
+test("heavyweight leases are counted for SIGTERM drain (#11015)", () => {
+  globalThis.__omnirouteShutdown = { init: true, shuttingDown: false, activeRequests: 0 };
+  const controller = new ChatAdmissionController(2);
+  const before = getActiveRequestCount();
+  const lease = controller.tryAcquireHeavy();
+  assert.ok(lease);
+  assert.equal(getActiveRequestCount(), before + 1);
+  const headroom = controller.tryAcquireHealthyHeadroom();
+  assert.ok(headroom);
+  assert.equal(getActiveRequestCount(), before + 2);
+  lease.release();
+  assert.equal(getActiveRequestCount(), before + 1);
+  headroom.release();
+  assert.equal(getActiveRequestCount(), before);
+  lease.release();
+  headroom.release();
+  assert.equal(getActiveRequestCount(), before);
+});
+
 test("small known body is admitted without consuming heavyweight capacity", async () => {
   const controller = new ChatAdmissionController(1);
   const result = await admitChatRequest(chatRequest("{}"), {
@@ -80,7 +100,25 @@ test("a byte-light request above the message threshold acquires heavyweight capa
   assert.equal(controller.activeHeavy, 0);
 });
 
-test("a byte-light request above the tool threshold is rejected when heavy capacity is busy", async () => {
+test("Responses input items count toward heavyweight admission", async () => {
+  const controller = new ChatAdmissionController(1);
+  const result = await admitChatStructure(
+    {
+      input: [
+        { role: "user", content: "one" },
+        { role: "user", content: "two" },
+      ],
+    },
+    null,
+    { controller, maxMessages: 10, heavyMessages: 2, heavyTools: 10, heavyTokens: 10_000 }
+  );
+
+  assert.equal(result.admit, true);
+  assert.equal(controller.activeHeavy, 1);
+  if (result.admit) result.lease?.release();
+});
+
+test("a byte-light request above the tool threshold is rejected when heavy capacity is busy AND the heap is genuinely under pressure (#10183/#10268)", async () => {
   const controller = new ChatAdmissionController(1);
   const occupied = controller.tryAcquireHeavy();
   assert.ok(occupied);
@@ -88,7 +126,16 @@ test("a byte-light request above the tool threshold is rejected when heavy capac
   const result = await admitChatStructure(
     { messages: [], tools: [{ type: "function" }, { type: "function" }] },
     null,
-    { controller, maxMessages: 10, heavyMessages: 10, heavyTools: 2, heavyTokens: 10_000 }
+    {
+      controller,
+      maxMessages: 10,
+      heavyMessages: 10,
+      heavyTools: 2,
+      heavyTokens: 10_000,
+      // #10183/#10268: shedding is now conditional on real heap pressure, not
+      // capacity alone — simulate the pressured case this test targets.
+      heapPressureCheck: () => true,
+    }
   );
 
   assert.equal(result.admit, false);
@@ -135,7 +182,7 @@ test("no history cap is enforced by default; long conversations are admitted", a
   result.lease?.release();
 });
 
-test("an uncapped oversized conversation still yields to occupied heavyweight capacity", async () => {
+test("an uncapped oversized conversation still yields to occupied heavyweight capacity when the heap is genuinely under pressure (#10183/#10268)", async () => {
   const controller = new ChatAdmissionController(1);
   const occupied = controller.tryAcquireHeavy();
   assert.ok(occupied);
@@ -143,7 +190,15 @@ test("an uncapped oversized conversation still yields to occupied heavyweight ca
   const result = await admitChatStructure(
     { messages: Array.from({ length: 5_000 }, () => ({ role: "user", content: "x" })) },
     null,
-    { controller, maxMessages: 0, heavyMessages: 200, heavyTools: 64, heavyTokens: 32_000 }
+    {
+      controller,
+      maxMessages: 0,
+      heavyMessages: 200,
+      heavyTools: 64,
+      heavyTokens: 32_000,
+      // #10183/#10268: shedding is now conditional on real heap pressure.
+      heapPressureCheck: () => true,
+    }
   );
 
   assert.equal(result.admit, false);
@@ -178,6 +233,21 @@ test("a conservative token estimate classifies string messages and tool schemas 
     null,
     { controller, maxMessages: 10, heavyMessages: 10, heavyTools: 10, heavyTokens: 4 }
   );
+
+  assert.equal(result.admit, true);
+  assert.equal(controller.activeHeavy, 1);
+  if (result.admit) result.lease?.release();
+});
+
+test("Responses string input contributes to the conservative token estimate", async () => {
+  const controller = new ChatAdmissionController(1);
+  const result = await admitChatStructure({ messages: [], input: "abcdefgh" }, null, {
+    controller,
+    maxMessages: 10,
+    heavyMessages: 10,
+    heavyTools: 10,
+    heavyTokens: 2,
+  });
 
   assert.equal(result.admit, true);
   assert.equal(controller.activeHeavy, 1);
@@ -274,7 +344,13 @@ test("an existing byte-heavy lease is reused for structure-heavy admission", asy
 test("heavyweight admission is atomic and returns retryable 503 at capacity", async () => {
   const controller = new ChatAdmissionController(1);
   const body = JSON.stringify({ messages: [{ role: "user", content: "x".repeat(40) }] });
-  const options = { controller, largeBodyBytes: 32, hardMaxBytes: 1024 };
+  const options = {
+    controller,
+    largeBodyBytes: 32,
+    hardMaxBytes: 1024,
+    // #10437 byte-path: shedding still requires real heap pressure.
+    heapPressureCheck: () => true,
+  };
 
   const first = await admitChatRequest(chatRequest(body), options);
   assert.equal(first.admit, true);
@@ -337,6 +413,7 @@ test("unknown or lying-small lengths cannot bypass occupied heavyweight capacity
       controller,
       largeBodyBytes: 32,
       hardMaxBytes: 1024,
+      heapPressureCheck: () => true,
     });
     assert.equal(result.admit, false);
     if (!result.admit) assert.equal(result.response.status, 503);
@@ -701,6 +778,7 @@ test("external clients cannot use the bypass header without a trusted self-loop 
       controller,
       largeBodyBytes: 32,
       hardMaxBytes: 10 * 1024 * 1024,
+      heapPressureCheck: () => true,
     });
 
     // Unknown key + bypass header must NOT bypass — capacity is exhausted → 503.
@@ -714,10 +792,15 @@ test("external clients cannot use the bypass header without a trusted self-loop 
 
 // ── self-loop bearer resolution (env-key aware, #1350) ─────────────────
 
-test("resolveSelfLoopBearer falls back to sk_omniroute when no env key is set", () => {
+test("resolveSelfLoopBearer falls back to a random per-process secret when no env key is set (#13679)", () => {
   const restore = withSelfLoopEnv({});
   try {
-    assert.equal(resolveSelfLoopBearer(), "sk_omniroute");
+    // #13679 PR C: the fallback must NOT be the predictable checked-in literal
+    // "sk_omniroute" — it is a per-process random value (dedicated regression test:
+    // tests/unit/chat-admission-selfloop-random-bearer-13679.test.ts).
+    const bearer = resolveSelfLoopBearer();
+    assert.notEqual(bearer, "sk_omniroute");
+    assert.equal(bearer, resolveSelfLoopBearer(), "must be memoized for the process lifetime");
   } finally {
     restore();
   }
@@ -807,6 +890,7 @@ test("sk_omniroute sentinel is rejected once an env key is configured (REQUIRE_A
       controller,
       largeBodyBytes: 32,
       hardMaxBytes: 10 * 1024 * 1024,
+      heapPressureCheck: () => true,
     });
 
     assert.equal(result.admit, false, "sentinel must not bypass when an env key is configured");

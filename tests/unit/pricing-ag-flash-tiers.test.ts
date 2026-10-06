@@ -3,55 +3,52 @@ import assert from "node:assert/strict";
 
 import { getDefaultPricing } from "../../src/shared/constants/pricing.ts";
 
-// Antigravity exposes Gemini 3.5 Flash via three public client IDs in
-// ANTIGRAVITY_PUBLIC_MODELS (`open-sse/config/antigravityModelAliases.ts`):
-//   - gemini-3.5-flash-extra-low → "Gemini 3.5 Flash (Low)" — upstream Low tier
-//   - gemini-3-flash-agent   → "Gemini 3.5 Flash (High)"   — upstream High tier
-//   - gemini-3.5-flash-low   → "Gemini 3.5 Flash (Medium)" — upstream Medium tier
-//   - gemini-pro-agent       → "Gemini 3.1 Pro (High)"     — upstream Pro High alias
-// All three were missing pricing rows in `ag` (DEFAULT_PRICING.ag), so
-// getPricingForModel("ag", id) returned null and downstream cost / quota
-// calculations silently fell back to $0. Each row matches its upstream quota tier.
+const EXPECTED_GEMINI_3_7_PROMO_PRICING = {
+  input: 0.75,
+  output: 3.75,
+  cached: 0.075,
+  reasoning: 3.75,
+  cache_creation: 0.75,
+};
 
-for (const [modelId, tier] of [
-  ["gemini-3.5-flash-extra-low", "Low"],
-  ["gemini-3.5-flash-low", "Medium"],
-  ["gemini-3-flash-agent", "High"],
-] as const) {
-  test(`ag/${modelId} matches the Gemini 3.5 Flash (${tier}) tier`, () => {
-    const p = getDefaultPricing().ag[modelId];
-    assert.ok(p);
-    assert.equal(p.input, 0.5);
-    assert.equal(p.output, 3.0);
-    assert.equal(p.cached, 0.03);
-    assert.equal(p.reasoning, 4.5);
-    assert.equal(p.cache_creation, 0.5);
-  });
-}
+const ACTIVE_FLASH_IDS = [
+  "gemini-3.7-flash-low",
+  "gemini-3.7-flash-medium",
+  "gemini-3.7-flash-high",
+] as const;
 
-test("ag/gemini-pro-agent matches the Gemini 3.1 Pro (High) tier", () => {
-  const p = getDefaultPricing().ag["gemini-pro-agent"];
-  assert.equal(p.input, 4.0);
-  assert.equal(p.output, 18.0);
-  assert.equal(p.cached, 0.5);
-  assert.equal(p.reasoning, 27.0);
-  assert.equal(p.cache_creation, 4.0);
+const RETIRED_ANTIGRAVITY_FLASH_IDS = [
+  "gemini-3.6-flash-low",
+  "gemini-3.6-flash-medium",
+  "gemini-3.6-flash-high",
+  "gemini-3.5-flash-extra-low",
+  "gemini-3.5-flash-low",
+  "gemini-3.5-flash-medium",
+  "gemini-3.5-flash-high",
+  "gemini-3-flash-agent",
+] as const;
+
+test("Antigravity provider namespaces price every live Gemini 3.7 Flash tier", () => {
+  const pricing = getDefaultPricing() as Record<string, Record<string, unknown>>;
+
+  for (const provider of ["ag", "antigravity", "agy"] as const) {
+    for (const modelId of ACTIVE_FLASH_IDS) {
+      assert.deepEqual(pricing[provider][modelId], EXPECTED_GEMINI_3_7_PROMO_PRICING);
+    }
+  }
 });
 
-// Gemini 3.6 Flash (released 2026-07-21) ships three public client IDs in
-// ANTIGRAVITY_PUBLIC_MODELS (`open-sse/config/antigravityModelAliases.ts`) and
-// MODEL_SPECS (`src/shared/constants/modelSpecs.ts`), but was missing pricing
-// rows in `ag` (DEFAULT_PRICING.ag) — cost / quota calculations silently fell
-// back to $0. Pricing: $1.50 input / $7.50 output / $0.15 cached per MTok
-// (Google's 2026-07-21 announcement). Thinking tokens billed at output rate.
-for (const tier of ["low", "medium", "high"]) {
-  test(`ag/gemini-3.6-flash-${tier} has a non-null pricing row`, () => {
-    const p = getDefaultPricing().ag[`gemini-3.6-flash-${tier}`];
-    assert.ok(p, `expected a pricing row for ag/gemini-3.6-flash-${tier}`);
-    assert.equal(p.input, 1.5);
-    assert.equal(p.output, 7.5);
-    assert.equal(p.cached, 0.15);
-    assert.equal(p.reasoning, 7.5);
-    assert.equal(p.cache_creation, 1.5);
-  });
-}
+test("Antigravity pricing excludes retired Flash ids without affecting other providers", () => {
+  const pricing = getDefaultPricing() as Record<string, Record<string, unknown>>;
+
+  for (const provider of ["ag", "antigravity", "agy"] as const) {
+    for (const modelId of RETIRED_ANTIGRAVITY_FLASH_IDS) {
+      assert.equal(pricing[provider][modelId], undefined, `${provider}/${modelId}`);
+    }
+  }
+
+  assert.ok(
+    pricing.orcarouter["google/gemini-3.6-flash"],
+    "OrcaRouter must retain the Gemini 3.6 model it still serves"
+  );
+});

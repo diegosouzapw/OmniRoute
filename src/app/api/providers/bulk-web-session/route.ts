@@ -18,6 +18,7 @@ import {
   hasUsableWebSessionCredential,
   resolveWebSessionImportApiKey,
 } from "@/shared/providers/webSessionCredentials";
+import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -38,6 +39,9 @@ export async function POST(request: Request) {
   }
 
   const { provider, entries, priority, globalPriority } = validation.data;
+
+  const retirementResponse = rejectRetiredCommonChatGptWebProvider(provider);
+  if (retirementResponse) return retirementResponse;
 
   if (!requiresWebSessionCredential(provider)) {
     return NextResponse.json(

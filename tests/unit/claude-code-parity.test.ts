@@ -360,7 +360,7 @@ describe("ensureCacheControlOnLastUserMessage", () => {
     assert.deepEqual(body.messages[2].content[0].cache_control, { type: "ephemeral" });
   });
 
-  it("keeps an existing message breakpoint without adding another", () => {
+  it("keeps an existing message breakpoint and advances one to the last user message", () => {
     const body = {
       messages: [
         {
@@ -378,8 +378,32 @@ describe("ensureCacheControlOnLastUserMessage", () => {
     };
 
     ensureCacheControlOnLastUserMessage(body);
+    ensureCacheControlOnLastUserMessage(body);
 
-    assert.equal(body.messages[1].content[0].cache_control, undefined);
+    assert.deepEqual(body.messages[0].content[0].cache_control, { type: "ephemeral" });
+    assert.deepEqual(body.messages[1].content[0].cache_control, { type: "ephemeral" });
+    assert.equal(
+      body.messages.flatMap((message) => message.content).filter((block) => block.cache_control)
+        .length,
+      2
+    );
+  });
+
+  it("keeps a new tail breakpoint at 5m after an existing 5m breakpoint", () => {
+    const body = {
+      system: [
+        { type: "text", text: "long", cache_control: { type: "ephemeral", ttl: "1h" } },
+        { type: "text", text: "short", cache_control: { type: "ephemeral", ttl: "5m" } },
+      ],
+      messages: [{ role: "user", content: [{ type: "text", text: "Follow up" }] }],
+    };
+
+    ensureCacheControlOnLastUserMessage(body);
+
+    assert.deepEqual(body.messages[0].content[0].cache_control, {
+      type: "ephemeral",
+      ttl: "5m",
+    });
   });
 
   it("does not exceed four surviving system and message breakpoints", () => {
@@ -449,6 +473,25 @@ describe("normalizeCacheControlTtl", () => {
     assert.deepEqual(body.messages[0].content[0].cache_control, {
       type: "ephemeral",
       ttl: "1h",
+    });
+  });
+
+  it("defaults missing ttl to 5m after a 5m breakpoint", () => {
+    const body = {
+      system: [{ type: "text", text: "stable", cache_control: { type: "ephemeral", ttl: "5m" } }],
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "text", text: "follow up", cache_control: { type: "ephemeral" } }],
+        },
+      ],
+    };
+
+    normalizeCacheControlTtl(body);
+
+    assert.deepEqual(body.messages[0].content[0].cache_control, {
+      type: "ephemeral",
+      ttl: "5m",
     });
   });
 

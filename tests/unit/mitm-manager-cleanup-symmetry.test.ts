@@ -13,9 +13,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-mitm-cleanup-symmetry-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mitm-cleanup-symmetry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -28,7 +26,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: unknown) {
@@ -49,7 +47,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("collectManagedHosts includes every host of every agent target", () => {
@@ -66,11 +64,7 @@ test("collectManagedHosts includes every host of every agent target", () => {
 
 test("collectManagedHosts returns a de-duplicated list", () => {
   const list = manager.collectManagedHosts();
-  assert.equal(
-    list.length,
-    new Set(list).size,
-    "collectManagedHosts must not return duplicates"
-  );
+  assert.equal(list.length, new Set(list).size, "collectManagedHosts must not return duplicates");
 });
 
 test("collectManagedHosts includes custom hosts persisted in the DB", () => {

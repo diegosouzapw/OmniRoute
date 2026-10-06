@@ -24,7 +24,15 @@
  */
 
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
-import { getRadarCache, getRadarSettings, getRadarReferralsCache } from "@/lib/db/radar";
+import {
+  getRadarCache,
+  getRadarIntelCache,
+  getRadarOffersCache,
+  getRadarSettings,
+  getRadarReferralsCache,
+} from "@/lib/db/radar";
+import { shouldSyncRadarIntel, syncRadarIntel, type IntelSyncStatus } from "./intelSync";
+import { syncRadarOffers, type OffersSyncStatus } from "./offersSync";
 import { nextSyncTime, syncRadar, type SyncStatus } from "./sync";
 import {
   syncRadarReferrals,
@@ -49,6 +57,10 @@ export interface RadarSchedulerDeps {
   getReferralsCache?: () => { fetchedAt: string } | null;
   /** Referrals sync — separate from `sync` (the catalog sync). */
   syncReferrals?: () => Promise<ReferralsSyncStatus>;
+  getOffersCache?: () => { fetchedAt: string } | null;
+  syncOffers?: () => Promise<OffersSyncStatus>;
+  getIntelCache?: () => { fetchedAt: string } | null;
+  syncIntel?: () => Promise<IntelSyncStatus>;
   now?: () => number;
   setIntervalFn?: typeof setInterval;
   clearIntervalFn?: typeof clearInterval;
@@ -73,6 +85,28 @@ async function maybeSyncReferrals(deps: RadarSchedulerDeps, nowMs: number): Prom
   }
 }
 
+async function maybeSyncSupporterFeeds(deps: RadarSchedulerDeps, nowMs: number): Promise<void> {
+  try {
+    const offersCache = (deps.getOffersCache ?? getRadarOffersCache)();
+    if (nowMs >= nextSyncTime(offersCache?.fetchedAt ?? null).getTime()) {
+      await (deps.syncOffers ?? syncRadarOffers)();
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[RADAR_SYNC] Offers side-sync failed (non-fatal):", msg);
+  }
+
+  try {
+    const intelCache = (deps.getIntelCache ?? getRadarIntelCache)();
+    if (shouldSyncRadarIntel(intelCache?.fetchedAt ?? null, nowMs)) {
+      await (deps.syncIntel ?? syncRadarIntel)();
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[RADAR_SYNC] Intel side-sync failed (non-fatal):", msg);
+  }
+}
+
 /**
  * One scheduler evaluation. Exported for tests and for the immediate
  * post-start tick.
@@ -92,6 +126,7 @@ export async function radarSchedulerTick(deps: RadarSchedulerDeps = {}): Promise
   // Referrals sync on their own staleness window — independent of the
   // catalog's due-ness below, same tick.
   await maybeSyncReferrals(deps, nowMs);
+  await maybeSyncSupporterFeeds(deps, nowMs);
 
   const cache = (deps.getCache ?? getRadarCache)();
   if (nowMs < nextSyncTime(cache?.fetchedAt ?? null).getTime()) {

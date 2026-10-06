@@ -471,6 +471,7 @@ export class NlpCloudExecutor extends BaseExecutor {
     }
 
     try {
+      this.assertOutboundUrlAllowed(url); // GHSA-4f49: nlpcloud has its own fetch path
       const response = await fetch(url, {
         method: "POST",
         headers,

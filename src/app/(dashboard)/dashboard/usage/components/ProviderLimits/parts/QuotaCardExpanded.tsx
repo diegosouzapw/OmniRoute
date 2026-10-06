@@ -2,7 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { buildGrokBillingCardRows, type GrokBillingStatus } from "@/shared/utils/grokBilling";
+import { buildGrokBillingCardRows } from "@/shared/utils/grokBilling";
+import { buildKimiBillingCardRows } from "@/shared/utils/kimiBilling";
+import {
+  isKimiBillingStatus,
+  isProviderBillingProvider,
+  type ProviderBillingStatus,
+} from "@/shared/utils/providerBilling";
 import {
   formatCountdown,
   formatQuotaLabel,
@@ -13,7 +19,14 @@ import {
 } from "../utils";
 import QuotaMiniBar from "../QuotaMiniBar";
 import { translateUsageOrFallback, type UsageTranslationValues } from "../i18nFallback";
-import { hasFixedQuotaOrder } from "../quotaParsing";
+import {
+  findKiloPassQuotaRow,
+  isKiloPassDisplayRow,
+  hasFixedQuotaOrder,
+  hasCanonicalWindowOrder,
+  sortQuotasByWindow,
+} from "../quotaParsing";
+import KiloPassMeter from "./KiloPassMeter";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -27,19 +40,23 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 
 const DEFAULT_VISIBLE_ROWS = 3;
 
-function GrokBillingDetails({ billing }: { billing: GrokBillingStatus }) {
+function ProviderBillingDetails({ billing }: { billing: ProviderBillingStatus }) {
   const t = useTranslations("usage");
   const locale = useLocale();
-  const rows = buildGrokBillingCardRows(billing, locale, (key, fallback) =>
-    translateUsageOrFallback(t, key, fallback)
-  );
+  const rows = isKimiBillingStatus(billing)
+    ? buildKimiBillingCardRows(billing, locale, (key, fallback) =>
+        translateUsageOrFallback(t, key, fallback)
+      )
+    : buildGrokBillingCardRows(billing, locale, (key, fallback) =>
+        translateUsageOrFallback(t, key, fallback)
+      );
 
   return (
     <div className="flex flex-col gap-1.5 border-t border-border/40 pt-2 text-[11px] text-text-main">
       {rows.map((row) =>
         row.kind === "link" ? (
           <a
-            key={row.kind}
+            key={`${row.kind}-${row.label}`}
             href={row.href}
             target={row.target}
             rel={row.rel}
@@ -50,7 +67,7 @@ function GrokBillingDetails({ billing }: { billing: GrokBillingStatus }) {
           </a>
         ) : (
           <div
-            key={row.kind}
+            key={`${row.kind}-${row.label}`}
             className={`flex justify-between gap-2 ${
               row.kind === "status" ? "items-start" : "items-center"
             }`}
@@ -77,14 +94,22 @@ export function sortQuotasByRemaining(quotas: any[]): any[] {
 
 /**
  * Pure helper — resolves the display order for a provider's quotas.
- * Providers with a deterministic fixed-window order (codex, glm family — see
- * quotaParsing.ts's sortCodexOrder()/sortGlmOrder()) keep the order
+ * Providers with a deterministic fixed-window order (Codex, GLM family,
+ * Kimi Coding — see quotaParsing.ts) keep the order
  * parseQuotaData() already established. Every other provider still gets the
  * remaining-percentage sort. Fixes #6687 (bars re-sorted by % undid the fixed
  * session/weekly order).
+ *
+ * #7764 residual: providers outside that whitelist which nonetheless report
+ * rolling time windows (claude, minimax, zai, command-code, ...) are ordered
+ * chronologically via `hasCanonicalWindowOrder`/`sortQuotasByWindow`, so the
+ * expanded card agrees with the collapsed card (`topQuotas`) and with sibling
+ * accounts of the same provider.
  */
 export function resolveQuotaDisplayOrder(providerId: string | undefined, quotas: any[]): any[] {
-  return hasFixedQuotaOrder(providerId) ? [...quotas] : sortQuotasByRemaining(quotas);
+  if (hasFixedQuotaOrder(providerId)) return [...quotas];
+  if (hasCanonicalWindowOrder(quotas)) return sortQuotasByWindow(quotas);
+  return sortQuotasByRemaining(quotas);
 }
 
 /** Pure helper — slices the sorted quotas down to the visible window. */
@@ -115,7 +140,7 @@ interface Props {
   loading: boolean;
   error: string | null;
   message?: string | null;
-  billing?: GrokBillingStatus | null;
+  billing?: ProviderBillingStatus | null;
   refreshedAt?: string;
   hasStaleData: boolean;
   onRefresh: () => void;
@@ -135,17 +160,34 @@ interface Props {
 
 function QuotaDetailRow({
   q,
+  kiloPassRow = null,
   onHideQuota,
   onOpenResetCredits,
   loadingResetCredits = false,
 }: {
   q: any;
+  /** Collapsed Kilo Pass display row; present only on kilocode provider cards. */
+  kiloPassRow?: any | null;
   onHideQuota?: (quota: any) => void;
   onOpenResetCredits?: () => void;
   loadingResetCredits?: boolean;
 }) {
   const t = useTranslations("usage");
   const canHide = typeof onHideQuota === "function" && !q.isCredits && !q.isResetCredits;
+  if (isKiloPassDisplayRow(q)) {
+    return (
+      <KiloPassMeter
+        base={q.kiloPassBase ?? kiloPassRow?.kiloPassBase ?? 0}
+        bonus={q.kiloPassBonus ?? kiloPassRow?.kiloPassBonus ?? 0}
+        used={q.used}
+        total={q.total}
+        remaining={q.remaining}
+        nextBillingAt={q.resetAt ?? kiloPassRow?.resetAt ?? null}
+        balance={q.kiloPassBalance ?? null}
+      />
+    );
+  }
+
   if (q.isResetCredits) {
     const count = Number(q.creditCount ?? q.remaining ?? 0);
     const colors = getBarColor(q.remainingPercentage ?? 100);
@@ -314,6 +356,10 @@ export default function QuotaCardExpanded({
   );
   const hiddenCount = sortedQuotas.length - visibleQuotas.length;
 
+  // Only Kilo Code cards host the dedicated Kilo Pass meter; the collapsed display row carries
+  // the derived meter values while balance/renewal metadata render below it.
+  const kiloPassRow = providerId === "kilocode" ? findKiloPassQuotaRow(sortedQuotas) : null;
+
   const refreshedLabel = refreshedAt
     ? new Date(refreshedAt).toLocaleTimeString([], {
         hour: "2-digit",
@@ -349,6 +395,7 @@ export default function QuotaCardExpanded({
             <QuotaDetailRow
               key={`${q.name}-${q.modelKey ?? ""}-${i}`}
               q={q}
+              kiloPassRow={kiloPassRow}
               onHideQuota={onHideQuota}
               onOpenResetCredits={q.isResetCredits ? onOpenResetCredits : undefined}
               loadingResetCredits={loadingResetCredits}
@@ -357,7 +404,9 @@ export default function QuotaCardExpanded({
         </div>
       )}
 
-      {providerId === "grok-cli" && billing && <GrokBillingDetails billing={billing} />}
+      {isProviderBillingProvider(providerId) && billing && (
+        <ProviderBillingDetails billing={billing} />
+      )}
 
       {hiddenQuotaRows.length > 0 && (
         <div className="flex flex-wrap items-center gap-1 border-t border-border/40 pt-1.5 text-[10px] text-text-muted">
@@ -398,10 +447,10 @@ export default function QuotaCardExpanded({
         </button>
       )}
 
-      <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1.5 border-t border-border/40">
         {refreshedLabel && (
           <span
-            className={`text-[10px] tabular-nums ${
+            className={`text-[10px] tabular-nums shrink-0 ${
               hasStaleData ? "text-amber-500" : "text-text-muted"
             }`}
             title={
@@ -413,7 +462,7 @@ export default function QuotaCardExpanded({
             {tr("updatedShort", "Updated")} {refreshedLabel}
           </span>
         )}
-        <div className="flex items-center gap-1.5 ml-auto">
+        <div className="flex flex-wrap items-center justify-end gap-1.5 ml-auto">
           {canRedeemResetCredit && (
             <button
               type="button"
@@ -422,7 +471,7 @@ export default function QuotaCardExpanded({
                 e.stopPropagation();
                 onOpenResetCredits?.();
               }}
-              className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-primary/40 text-primary bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-primary/40 text-primary bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <span
                 className={`material-symbols-outlined text-[12px] ${
@@ -441,7 +490,7 @@ export default function QuotaCardExpanded({
               e.stopPropagation();
               onOpenCutoff();
             }}
-            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
+            className={`inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
               hasCutoffOverrides ? "border-primary/40 text-primary" : "border-border"
             }`}
           >
@@ -454,7 +503,7 @@ export default function QuotaCardExpanded({
               e.stopPropagation();
               onOpenCost();
             }}
-            className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
+            className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
           >
             <span className="material-symbols-outlined text-[12px]">bar_chart</span>
             {t("usdCost")}
@@ -466,7 +515,7 @@ export default function QuotaCardExpanded({
               e.stopPropagation();
               onRefresh();
             }}
-            className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             <span
               className={`material-symbols-outlined text-[12px] ${loading ? "animate-spin" : ""}`}

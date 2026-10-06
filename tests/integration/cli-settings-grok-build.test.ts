@@ -20,20 +20,27 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-grok-buil
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret-grok-build";
 process.env.JWT_SECRET = "test-jwt-secret-grok-build";
+// guardCliConfigWrite refuses a write when the target isn't bind-mounted from
+// the host inside a real container (see cliConfigWriteGuard.ts). This test
+// suite runs inside CI/devbox containers with no such mount for its tmpdir
+// fixtures, so allow the write here — the refusal path itself is covered by
+// tests/unit/cli-tools-apply-container-422.test.ts.
+process.env.OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE = "1";
 
 // Import DB reset helpers (must be before route import)
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 
 // Import route handlers
-const { GET, POST, DELETE } = await import(
-  "../../src/app/api/cli-tools/grok-build-settings/route.ts"
-);
+const { GET, POST, DELETE } =
+  await import("../../src/app/api/cli-tools/grok-build-settings/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -149,15 +156,15 @@ test("grok-build-settings POST: writes [model.omniroute] section and preserves e
           preservedLines.includes('base_url = "https://example.test/v1"'),
         "Pre-existing unrelated [model.*] section must be preserved"
       );
-      // The previous default must be remembered for Reset to restore.
+      // The obsolete built-in default must become an absent-value sentinel.
       assert.ok(
-        content.includes('omniroute-prev-default = "grok-build"'),
-        "Previous default should be remembered as a marker comment"
+        content.includes('omniroute-prev-default = "__omniroute_unset__"'),
+        "An obsolete default must use the absent-value sentinel"
       );
     }
   } finally {
     process.env.HOME = origHome;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -175,7 +182,7 @@ test("grok-build-settings DELETE: removes our section, preserves the rest, resto
       "[models]",
       'default = "omniroute"',
       "",
-      "# omniroute-prev-default = \"grok-build\"",
+      '# omniroute-prev-default = "grok-build"',
       "[model.omniroute]",
       'model = "grok-4.5"',
       'base_url = "http://localhost:20128/v1"',
@@ -209,11 +216,11 @@ test("grok-build-settings DELETE: removes our section, preserves the rest, resto
           survivingLines.includes('base_url = "https://example.test/v1"'),
         "Unrelated section must survive"
       );
-      assert.ok(content.includes('default = "grok-build"'), "Previous default should be restored");
+      assert.ok(!/^default\s*=/m.test(content), "The obsolete default must not be restored");
     }
   } finally {
     process.env.HOME = origHome;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -231,7 +238,112 @@ test("grok-build-settings DELETE: no-op success when no config file exists", asy
     assert.equal(body.success, true);
   } finally {
     process.env.HOME = origHome;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("grok-build-settings: honors GROK_HOME and rejects a relative value", async () => {
+  const grokHome = fs.mkdtempSync(path.join(os.tmpdir(), "grok-build-env-home-"));
+  const original = process.env.GROK_HOME;
+  try {
+    process.env.GROK_HOME = grokHome;
+    const res = await POST(
+      new Request("http://localhost/api/cli-tools/grok-build-settings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          baseUrl: "http://localhost:20128/v1/v1/",
+          apiKey: "sk-private",
+          model: "openai/gpt-5.5",
+          contextWindow: 321000,
+          subagentModels: {
+            explore: { model: "xai/grok-4", contextWindow: 256000 },
+          },
+        }),
+      })
+    );
+    assert.equal(res.status, 200);
+    const configPath = path.join(grokHome, "config.toml");
+    const content = fs.readFileSync(configPath, "utf8");
+    assert.match(content, /base_url = "http:\/\/localhost:20128\/v1"/);
+    assert.match(content, /context_window = 321000/);
+    assert.match(content, /\[model\.omniroute-explore\]/);
+    assert.match(content, /explore = "omniroute-explore"/);
+
+    const getRes = await GET(new Request("http://localhost/api/cli-tools/grok-build-settings"));
+    assert.equal(getRes.status, 200);
+    const body = await getRes.json();
+    assert.equal(body.apiKeyConfigured, true);
+    assert.equal("api_key" in body.config.model, false);
+    assert.equal("api_key" in body.config.subagentModels.explore, false);
+    assert.doesNotMatch(JSON.stringify(body), /sk-private/);
+
+    process.env.GROK_HOME = "relative/path";
+    const invalid = await POST(
+      new Request("http://localhost/api/cli-tools/grok-build-settings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ baseUrl: "http://localhost:20128", model: "xai/grok-4" }),
+      })
+    );
+    assert.equal(invalid.status, 500);
+  } finally {
+    if (original === undefined) delete process.env.GROK_HOME;
+    else process.env.GROK_HOME = original;
+    fs.rmSync(grokHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("grok-build-settings POST: returns 409 for an unowned omniroute slot", async () => {
+  const grokHome = fs.mkdtempSync(path.join(os.tmpdir(), "grok-build-conflict-"));
+  const original = process.env.GROK_HOME;
+  process.env.GROK_HOME = grokHome;
+  try {
+    fs.writeFileSync(
+      path.join(grokHome, "config.toml"),
+      '[model.omniroute]\nmodel = "private"\nbase_url = "https://example.test/v1"\n'
+    );
+    const res = await POST(
+      new Request("http://localhost/api/cli-tools/grok-build-settings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ baseUrl: "http://localhost:20128", model: "xai/grok-4" }),
+      })
+    );
+    assert.equal(res.status, 409);
+  } finally {
+    if (original === undefined) delete process.env.GROK_HOME;
+    else process.env.GROK_HOME = original;
+    fs.rmSync(grokHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("grok-build-settings POST: resolves keyId to an unmasked key", async () => {
+  const grokHome = fs.mkdtempSync(path.join(os.tmpdir(), "grok-build-key-id-"));
+  const original = process.env.GROK_HOME;
+  process.env.GROK_HOME = grokHome;
+  try {
+    const key = await apiKeysDb.createApiKey("Grok Build key", "grok-build-test-machine");
+    const res = await POST(
+      new Request("http://localhost/api/cli-tools/grok-build-settings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          baseUrl: "http://localhost:20128",
+          keyId: key.id,
+          apiKey: "sk_****",
+          model: "openai/gpt-5.5",
+        }),
+      })
+    );
+    assert.equal(res.status, 200);
+    const content = fs.readFileSync(path.join(grokHome, "config.toml"), "utf8");
+    assert.match(content, new RegExp(`api_key = ${JSON.stringify(key.key)}`));
+    assert.doesNotMatch(content, /sk_\*\*\*\*/);
+  } finally {
+    if (original === undefined) delete process.env.GROK_HOME;
+    else process.env.GROK_HOME = original;
+    fs.rmSync(grokHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -265,7 +377,7 @@ test("grok-build-settings route.ts: does not call exec() or spawn() directly", (
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   delete process.env.DATA_DIR;
   delete process.env.API_KEY_SECRET;
   delete process.env.JWT_SECRET;

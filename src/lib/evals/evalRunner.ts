@@ -9,6 +9,7 @@
  */
 
 import { getCustomEvalSuite, listCustomEvalSuites } from "@/lib/db/evals";
+import safeRegex from "safe-regex";
 import {
   goldenSet,
   codingSuite,
@@ -154,11 +155,31 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
         }
         const regex =
           expectedValue instanceof RegExp
-            ? new RegExp(expectedValue.source, expectedValue.flags.replace(/[gy]/g, ""))
-            : new RegExp(expectedValue);
+            ? new RegExp(
+                expectedValue.source,
+                // #13138 — Preserve the dotAll (s) flag so "." matches newlines
+                // in multi-line LLM answers. Strip only g (global) and y (sticky)
+                // which are inappropriate for a test() call.
+                expectedValue.flags.includes("s")
+                  ? expectedValue.flags.replace(/[gy]/g, "")
+                  : `s${expectedValue.flags.replace(/[gy]/g, "")}`
+              )
+            : // #13138 — Compile string patterns with dotAll so "." matches
+              // newlines in multi-line LLM answers.
+              new RegExp(expectedValue, "s");
         if (regex.source.length > 512) {
           passed = false;
           details.error = "Regex pattern too large for safe evaluation.";
+          break;
+        }
+        // G7 (silent-stop fix): a catastrophic regex (nested quantifiers like
+        // `(a+)+$`) can hang the event loop for minutes on adversarial output —
+        // the eval loop then "stops doing anything" with no error. safe-regex
+        // statically rejects such patterns before test() runs.
+        if (!safeRegex(regex)) {
+          passed = false;
+          details.error =
+            "Regex pattern rejected as potentially unsafe (catastrophic backtracking risk). Simplify the pattern.";
           break;
         }
         passed = regex.test(actualOutput);
@@ -228,8 +249,23 @@ export function runSuite(
       result.durationMs = Math.max(0, Math.round(Number(metrics.durationMs)));
     }
 
-    if (metrics?.error && !result.error) {
-      result.error = metrics.error;
+    if (metrics?.error) {
+      // A case whose call errored never reached a model, so there is no measured
+      // behaviour to grade. The runner surfaces failures as an ordinary output string
+      // ("[ERROR] …" — see executeEvalCase), so leaving `passed` alone lets a pattern
+      // that happens to match that text score a pass and inflate the reported rate.
+      result.passed = false;
+      if (!result.error) {
+        result.error = metrics.error;
+      }
+    }
+
+    // #13137 — A failed upstream call must never score as passed.
+    // executeEvalCase() returns the error text as output, and the grading
+    // regex can accidentally match it (e.g. /error/i on "[ERROR] ...").
+    // Force the result to failed so the pass-rate dashboard stays accurate.
+    if (metrics?.error) {
+      result.passed = false;
     }
 
     return result;

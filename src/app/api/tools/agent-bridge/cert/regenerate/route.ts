@@ -9,11 +9,10 @@ import { createErrorResponse } from "@/lib/api/errorResponse";
 
 export async function POST(): Promise<Response> {
   try {
-    // generateCert checks for existing files — force-regenerate by deleting first
-    // is not in scope; the function is idempotent (returns existing paths). If a
-    // caller needs a fresh cert they must delete the old one manually. We expose
-    // whatever generateCert decides.
-    const result = await generateCert();
+    // #10467: generateCert() returns the existing paths untouched when a cert is already
+    // on disk, which made this endpoint a no-op — the download still served the old file.
+    // This route is the one caller that must always mint a fresh cert.
+    const result = await generateCert({ force: true });
     return Response.json({ ok: true, certPath: result.cert, keyPath: result.key });
   } catch (err) {
     const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));

@@ -6,6 +6,10 @@ const TERMINAL_QUOTA_CODES = new Set([
   "credits_exhausted",
   "insufficient_quota",
   "quota_exhausted",
+  // #10966: durable wallet/balance exhaustion signalled on a 403 (not 402/429) by
+  // some upstreams — e.g. AUTHZ_INSUFFICIENT_BALANCE, "Insufficient account balance.
+  // Top up your account at …".
+  "authz_insufficient_balance",
 ]);
 
 const trustedClassifications = new WeakMap<Response, boolean>();
@@ -62,7 +66,13 @@ export async function isQuotaExhaustionResponse(
   const trusted = trustedClassifications.get(response);
   if (trusted !== undefined) return trusted;
 
-  if (response.status !== 402 && response.status !== 429) return false;
+  // #10966: 403 is included alongside 402/429 — some upstreams (e.g. durable
+  // wallet/balance exhaustion) return a 403 for a terminal quota condition instead
+  // of the more common 402/429. The structured-code/text checks below still gate
+  // this to genuine quota signals (CREDITS_EXHAUSTED_SIGNALS / TERMINAL_QUOTA_CODES /
+  // checkFallbackError's own classification), so a generic auth-only 403 (invalid
+  // key, no matching quota signal) still falls through to `false`.
+  if (response.status !== 402 && response.status !== 429 && response.status !== 403) return false;
 
   const { text, structuredError } = await parseError(response);
   if (provider === "gemini" && response.status === 429) {

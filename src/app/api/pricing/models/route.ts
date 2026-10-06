@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { getAllCustomModels, getAllSyncedAvailableModels, getPricing } from "@/lib/localDb";
+import { getAllCustomModels, getAllSyncedAvailableModels } from "@/lib/db/models";
+import { getPricing } from "@/lib/db/settings";
 import { getProviderPrefixIndex } from "@/lib/providerNodePrefixes";
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -124,19 +125,29 @@ export async function GET() {
     } catch {
       /* DB may not be ready */
     }
-
     for (const [providerId, rawModels] of Object.entries(customModelsMap)) {
-      appendDbModels(providerId, rawModels);
+      const alias = resolveAlias(providerId);
+      const providerCatalog = ensureCatalogProvider(providerId, alias);
+      for (const model of asModelArray(rawModels)) {
+        const modelId = typeof model.id === "string" ? model.id : null;
+        if (!modelId) continue;
+        const customModel = {
+          id: modelId,
+          name: typeof model.name === "string" && model.name.trim() ? model.name : modelId,
+          custom: true,
+        };
+        const existingIndex = providerCatalog.models.findIndex(
+          (entry: { id?: string }) => entry.id === modelId
+        );
+        if (existingIndex === -1) providerCatalog.models.push(customModel);
+        else providerCatalog.models[existingIndex] = customModel;
+      }
     }
 
-    // ── 4. Pricing-only models (DB) ─────────────────────────────────
-    // Pricing may be keyed by the node's public prefix (what the operator typed)
-    // or by the internal node id. When keyed by a uniquely-routable public
-    // prefix, reconcile it to that node so the model list merges into the
-    // canonical compatible-provider entry instead of duplicating it, and
-    // preserve the original pricing namespace as `pricingKey` so PricingTab can
-    // read/save/reset against it. Reserved / ambiguous prefixes have no single
-    // routable node and stay as-is.
+    // ── 4. Pricing-only models ─────────────────────────────────────
+    // Pricing uses public prefixes. Resolve unique compatible prefixes back
+    // to their internal node so Model Overrides can read/save/reset against it.
+    // Reserved / ambiguous prefixes have no single routable node and stay as-is.
     let pricingData: Record<string, any> = {};
     try {
       pricingData = await getPricing();

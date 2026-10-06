@@ -21,7 +21,7 @@ const ORIGINAL_REQUIRE_API_KEY = process.env.REQUIRE_API_KEY;
 function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   delete process.env.OMNIROUTE_API_KEY;
   delete process.env.ROUTER_API_KEY;
@@ -34,7 +34,7 @@ test.beforeEach(() => {
 });
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_OMNIROUTE_API_KEY === undefined) delete process.env.OMNIROUTE_API_KEY;
   else process.env.OMNIROUTE_API_KEY = ORIGINAL_OMNIROUTE_API_KEY;
   if (ORIGINAL_ROUTER_API_KEY === undefined) delete process.env.ROUTER_API_KEY;

@@ -42,6 +42,12 @@ test("buildPrecisionComboModelStep preserves provider/model/account triple", () 
 });
 
 test("buildManualComboModelStep resolves provider aliases and uses dynamic account", () => {
+  // #11433: `providerId` resolves to the canonical id ("codex") for
+  // duplicate-detection/routing identity, but the serialized `model` string
+  // now preserves the user-typed prefix ("cx/") verbatim instead of
+  // collapsing back to the canonical id — some canonical ids (e.g.
+  // "opencode") collide with an unrelated manual routing-alias override, so
+  // rebuilding `model` from the canonical id alone can silently misroute.
   assert.deepEqual(
     builderDraft.buildManualComboModelStep({
       value: "cx/gpt-5.5",
@@ -50,7 +56,7 @@ test("buildManualComboModelStep resolves provider aliases and uses dynamic accou
     {
       kind: "model",
       providerId: "codex",
-      model: "codex/gpt-5.5",
+      model: "cx/gpt-5.5",
       weight: 0,
     }
   );

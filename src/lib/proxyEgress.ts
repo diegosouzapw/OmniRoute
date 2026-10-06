@@ -13,10 +13,13 @@
  * entering and leaving by.
  */
 import { request as undiciRequest } from "undici";
-import { createProxyDispatcher, proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+import {
+  createProxyDispatcher,
+  proxyConfigToUrl,
+} from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
+import { probeEchoTargets } from "./proxyEchoTarget";
 
-const EGRESS_ECHO_URL = "https://api64.ipify.org?format=json";
 const EGRESS_PROBE_TIMEOUT_MS = 6000;
 const EGRESS_CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -32,18 +35,26 @@ const egressCache = new Map<string, { ip: string | null; at: number }>();
 
 async function defaultEgressProbe(proxyUrl: string | null): Promise<EgressProbeResult> {
   const start = Date.now();
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), EGRESS_PROBE_TIMEOUT_MS);
   try {
     const dispatcher = proxyUrl ? createProxyDispatcher(proxyUrl) : undefined;
-    const res = await undiciRequest(EGRESS_ECHO_URL, {
-      method: "GET",
-      dispatcher,
-      signal: controller.signal,
-      headersTimeout: EGRESS_PROBE_TIMEOUT_MS,
-      bodyTimeout: EGRESS_PROBE_TIMEOUT_MS,
-    });
-    const text = await res.body.text();
+    // #9694: each echo target gets its own controller, so exhausting the budget
+    // on an unreachable IPv6-first target does not abort the IPv4 attempt.
+    const { result: text } = await probeEchoTargets(async (url, timeoutMs) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await undiciRequest(url, {
+          method: "GET",
+          dispatcher,
+          signal: controller.signal,
+          headersTimeout: timeoutMs,
+          bodyTimeout: timeoutMs,
+        });
+        return await res.body.text();
+      } finally {
+        clearTimeout(timeout);
+      }
+    }, EGRESS_PROBE_TIMEOUT_MS);
     let ip: string | null = null;
     try {
       ip = (JSON.parse(text) as { ip?: string }).ip ?? null;
@@ -57,8 +68,6 @@ async function defaultEgressProbe(proxyUrl: string | null): Promise<EgressProbeR
       latencyMs: Date.now() - start,
       error: error instanceof Error ? error.message : String(error),
     };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
@@ -87,7 +96,7 @@ export function getCachedEgressIp(proxyUrl: string | null): string | null {
     return null;
   }
   return cached.ip;
- }
+}
 
 const warmingInFlight = new Set<string>();
 
@@ -187,6 +196,110 @@ export function analyzeEgressSharing(connections: ConnectionEgress[]): {
   return { byEgressIp, sharedWithinRotationGroup };
 }
 
+export const EGRESS_SHARING_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+export interface EgressLogRow {
+  provider: string | null;
+  account: string | null;
+  connectionId: string | null;
+  egressIp: string | null;
+}
+
+export interface EgressSharingSummary {
+  windowStart: string;
+  windowEnd: string;
+  distinctEgressIps: number;
+  sharingByRotationGroup: Array<{
+    rotationGroup: string;
+    sharedIps: number;
+    maxAccountsSharingOneIp: number;
+  }>;
+  maxAccountsSharingOneIp: number;
+}
+
+/**
+ * PURE: anonymous egress-IP sharing summary over proxy_logs-shaped rows.
+ * Dedupes per connection (proxy_logs holds one row per request, not per
+ * connection) — "max accounts behind one IP" therefore counts connections,
+ * not distinct accounts, when one account spans several connections. Reuses
+ * analyzeEgressSharing's rotation-group semantics and returns counts only —
+ * no IP literals, no account identities (#10348).
+ */
+export function summarizeEgressSharing(
+  rows: EgressLogRow[],
+  window: { start: string; end: string }
+): { summary: EgressSharingSummary; warnings: EgressSharingWarning[] } {
+  const byAccount = new Map<string, EgressLogRow>();
+  for (const r of rows) {
+    if (!r.egressIp) continue;
+    const key = r.connectionId ?? r.account;
+    if (!key) continue;
+    if (!byAccount.has(key)) byAccount.set(key, r);
+  }
+
+  const connections = [...byAccount.values()].map((r) => ({
+    connectionId: r.connectionId ?? r.account ?? "unknown",
+    provider: r.provider ?? "",
+    account: r.account ?? r.connectionId,
+    proxyLevel: "log",
+    proxyHost: null,
+    egressIp: r.egressIp,
+  }));
+
+  const { byEgressIp, sharedWithinRotationGroup } = analyzeEgressSharing(connections);
+
+  const byGroup = new Map<string, { sharedIps: number; maxAccountsSharingOneIp: number }>();
+  let maxAccountsSharingOneIp = 0;
+  for (const w of sharedWithinRotationGroup) {
+    const g = byGroup.get(w.rotationGroup) ?? { sharedIps: 0, maxAccountsSharingOneIp: 0 };
+    g.sharedIps++;
+    g.maxAccountsSharingOneIp = Math.max(g.maxAccountsSharingOneIp, w.connections.length);
+    byGroup.set(w.rotationGroup, g);
+    maxAccountsSharingOneIp = Math.max(maxAccountsSharingOneIp, w.connections.length);
+  }
+
+  return {
+    summary: {
+      windowStart: window.start,
+      windowEnd: window.end,
+      distinctEgressIps: Object.keys(byEgressIp).length,
+      sharingByRotationGroup: [...byGroup.entries()].map(([rotationGroup, v]) => ({
+        rotationGroup,
+        sharedIps: v.sharedIps,
+        maxAccountsSharingOneIp: v.maxAccountsSharingOneIp,
+      })),
+      maxAccountsSharingOneIp,
+    },
+    // Raw warnings carry IPs and labels — only ever rendered behind the
+    // PROXY_LOG_INCLUDE_IPS opt-in (#10348), never in the summary itself.
+    warnings: sharedWithinRotationGroup,
+  };
+}
+
+/**
+ * DB-backed: anonymous egress-sharing summary over the last
+ * EGRESS_SHARING_WINDOW_MS of persisted proxy_logs (egress_ip is always
+ * persisted even when the process log line is redacted). No live probes.
+ * Single place where proxy_logs rows are mapped to EgressLogRow — the sweep
+ * and the route both consume this helper. Reads all rows in the window (the
+ * existing SELECT * has no LIMIT); bounded by the 24h window.
+ */
+export async function getRecentEgressSharingSummary(): Promise<{
+  summary: EgressSharingSummary;
+  warnings: EgressSharingWarning[];
+}> {
+  const { exportProxyLogsSince } = await import("./db/proxyLogs");
+  const end = new Date();
+  const start = new Date(end.getTime() - EGRESS_SHARING_WINDOW_MS);
+  const rows: EgressLogRow[] = exportProxyLogsSince(start.toISOString()).map((r) => ({
+    provider: (r.provider as string | null) ?? null,
+    account: (r.account as string | null) ?? null,
+    connectionId: (r.connection_id as string | null) ?? null,
+    egressIp: (r.egress_ip as string | null) ?? null,
+  }));
+  return summarizeEgressSharing(rows, { start: start.toISOString(), end: end.toISOString() });
+}
+
 /**
  * Diagnose egress IPs for every OAuth connection: resolve each connection's
  * proxy, probe the real egress IP, and flag same-rotation-group IP sharing.
@@ -195,14 +308,12 @@ export async function diagnoseAllEgressIps(deps?: {
   getConnections?: () => Promise<
     Array<{ id: string; provider: string; name?: string; email?: string; authType?: string }>
   >;
-  resolveProxy?: (
-    connectionId: string
-  ) => Promise<{ proxy?: unknown; level?: string } | null>;
+  resolveProxy?: (connectionId: string) => Promise<{ proxy?: unknown; level?: string } | null>;
 }): Promise<EgressDiagnostic> {
   const getConnections =
     deps?.getConnections ??
     (async () => {
-      const { getProviderConnections } = await import("./localDb");
+      const { getProviderConnections } = await import("@/lib/db/providers");
       return (await getProviderConnections({ authType: "oauth" })) as Array<{
         id: string;
         provider: string;
@@ -252,7 +363,8 @@ export interface ProxyValidationResult {
   egressIp: string | null;
   latencyMs: number;
   previousStatus: string | null;
-  newStatus: "active" | "error";
+  newStatus: string;
+  preserved: boolean;
 }
 
 /**
@@ -266,9 +378,21 @@ export interface ProxyValidationResult {
  */
 export async function validateProxyPool(deps?: {
   listProxies?: () => Promise<
-    Array<{ id: string; type: string; host: string; port: number | string; username?: string | null; password?: string | null; status?: string | null }>
+    Array<{
+      id: string;
+      type: string;
+      host: string;
+      port: number | string;
+      username?: string | null;
+      password?: string | null;
+      status?: string | null;
+    }>
   >;
-  markStatus?: (id: string, status: string, meta: { latencyMs: number; egressIp: string | null }) => Promise<void>;
+  markStatus?: (
+    id: string,
+    status: string,
+    meta: { latencyMs: number; egressIp: string | null }
+  ) => Promise<void>;
 }): Promise<ProxyValidationResult[]> {
   const listProxies =
     deps?.listProxies ??
@@ -305,6 +429,25 @@ export async function validateProxyPool(deps?: {
     });
     const probe = await resolveEgressIp(url, { force: true });
     const alive = !!probe.ip && !probe.error;
+    // Operator/health statuses stay untouched by validation: the probe still
+    // ran above, so the report keeps its alive/egressIp signal. The two-value
+    // literal mirrors PROXY_ALIVE_PREDICATE in db/proxies/guards.ts; revisit if
+    // the status registry is ever derived from a single shared source (part 2).
+    const previous = (p.status ?? "").toLowerCase();
+    if (previous === "inactive" || previous === "dead") {
+      report.push({
+        proxyId: p.id,
+        host: p.host,
+        port: p.port,
+        alive,
+        egressIp: probe.ip,
+        latencyMs: probe.latencyMs,
+        previousStatus: p.status ?? null,
+        newStatus: p.status as string,
+        preserved: true,
+      });
+      continue;
+    }
     const newStatus: "active" | "error" = alive ? "active" : "error";
     await markStatus(p.id, newStatus, { latencyMs: probe.latencyMs, egressIp: probe.ip });
     report.push({
@@ -316,6 +459,7 @@ export async function validateProxyPool(deps?: {
       latencyMs: probe.latencyMs,
       previousStatus: p.status ?? null,
       newStatus,
+      preserved: false,
     });
   }
 
@@ -351,7 +495,11 @@ export function planProxyDistribution(
       return;
     }
     if (opts.allowSharing) {
-      assignments.push({ connectionId: c.id, account, proxyId: liveProxyIds[i % liveProxyIds.length] });
+      assignments.push({
+        connectionId: c.id,
+        account,
+        proxyId: liveProxyIds[i % liveProxyIds.length],
+      });
     } else if (i < liveProxyIds.length) {
       assignments.push({ connectionId: c.id, account, proxyId: liveProxyIds[i] });
     } else {

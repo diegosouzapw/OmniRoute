@@ -63,10 +63,21 @@ export interface RecoverableConnectionInput {
   testStatus?: string | null;
   rateLimitedUntil?: string | null;
   lastErrorAt?: string | null;
+  lastErrorType?: string | null;
 }
 
 function normalizeStatus(value: string | null | undefined): string {
   return (value || "").trim().toLowerCase();
+}
+
+/**
+ * Parse a stored timestamp (ISO string, numeric epoch, or epoch string) into
+ * epoch ms. Tolerates the same shapes as cooldownUntilMs — the
+ * last_error_at / rate_limited_until TEXT columns hold mixed encodings
+ * (#3954) — but is named for what it is: any persisted instant.
+ */
+function parseStoredInstant(value: string | null | undefined): number {
+  return cooldownUntilMs(value);
 }
 
 /**
@@ -81,10 +92,33 @@ function hasElapsedCooldown(rateLimitedUntil: string | null | undefined, nowMs: 
 }
 
 /**
+ * Transient test statuses whose stale label can be proactively cleared once
+ * any cooldown window has elapsed:
+ *   - 'unavailable' — the classic markAccountUnavailable() cooldown status
+ *   - 'error' — a failed connection test (probe/upstream error). #9623 gives
+ *     these a 30s cooldown; after it elapses (or when the row predates that
+ *     fix and carries no cooldown at all), the label is stale visual noise:
+ *     request-path selection never filtered on it in the first place, so the
+ *     recovery tick clears it to keep the dashboard honest.
+ */
+const RECOVERABLE_TRANSIENT_STATUSES = new Set([RECOVERABLE_COOLDOWN_STATUS, "error"]);
+
+/**
+ * Grace period after a test failure before a no-cooldown 'error' label becomes
+ * recoverable: the #9623 cooldown write and the recovery tick race, so a
+ * label younger than this window is left alone (avoids healthy→error flicker
+ * when the cooldown write is delayed or failed).
+ */
+const ERROR_LABEL_GRACE_MS = 60 * 1000;
+
+/**
  * Decide whether a single connection is a proactive-recovery candidate:
  *   - has a real id, AND
- *   - testStatus === 'unavailable' (the transient cooldown status), AND
- *   - rateLimitedUntil is set and already in the past (< nowMs), AND
+ *   - testStatus is a transient cooldown status ('unavailable' / 'error'), AND
+ *   - the cooldown window has elapsed — for 'unavailable' that means
+ *     rateLimitedUntil is set and in the past; for 'error' a missing
+ *     rateLimitedUntil (pre-#9623 rows) counts as elapsed once the label is
+ *     older than the grace period, AND
  *   - is NOT in a terminal state (banned / expired).
  *
  * Pure — `nowMs` is injected so callers/tests control the clock.
@@ -97,8 +131,22 @@ export function isRecoverableCooldownConnection(
     return false;
   }
   const status = normalizeStatus(connection.testStatus);
-  if (status !== RECOVERABLE_COOLDOWN_STATUS) return false;
-  if (TERMINAL_CONNECTION_STATUSES.has(status)) return false; // defensive; 'unavailable' is never terminal
+  if (!RECOVERABLE_TRANSIENT_STATUSES.has(status)) return false;
+  if (TERMINAL_CONNECTION_STATUSES.has(status)) return false; // defensive; transient statuses are never terminal
+  if (status === RECOVERABLE_COOLDOWN_STATUS) {
+    return hasElapsedCooldown(connection.rateLimitedUntil, nowMs);
+  }
+  // 'error': cooldown elapsed, or no cooldown recorded at all (stale label)
+  // once the label itself is past the grace period. A row with NEITHER
+  // cooldown NOR timestamp is unverifiable — leave it alone (conservative:
+  // a bad write to lastErrorAt must not flip a fresh error back to healthy).
+  if (!connection.rateLimitedUntil) {
+    const sinceMs = parseStoredInstant(connection.lastErrorAt);
+    if (Number.isFinite(sinceMs) && sinceMs > 0) {
+      return nowMs - sinceMs >= ERROR_LABEL_GRACE_MS;
+    }
+    return false;
+  }
   return hasElapsedCooldown(connection.rateLimitedUntil, nowMs);
 }
 
@@ -111,6 +159,37 @@ export function isRecoverableCooldownConnection(
  *
  * Pure — `nowMs` and `reprobeMs` are injected so callers/tests control the clock.
  */
+
+export const EXPIRED_REPROBE_BLOCKLIST = new Set([
+  "account_deactivated",
+  "invalid_grant",
+  "unrecoverable_refresh_error",
+  "provider_deprecated",
+  "no_refresh_token",
+]);
+
+/**
+ * Re-probe `expired` after the same window as credits_exhausted.
+ * API-key 401s and OAuth races were persisted as expired and then never
+ * retried (combo pre-skip + health-check skip). Do not reopen a real
+ * deactivation / invalid_grant.
+ */
+export function isExpiredReprobeCandidate(
+  connection: RecoverableConnectionInput | null | undefined,
+  nowMs: number,
+  reprobeMs: number = DEFAULT_CREDITS_REPROBE_MS
+): boolean {
+  if (!connection || typeof connection.id !== "string" || connection.id.length === 0) {
+    return false;
+  }
+  if (normalizeStatus(connection.testStatus) !== "expired") return false;
+  const err = (connection.lastErrorType || "").trim().toLowerCase();
+  if (EXPIRED_REPROBE_BLOCKLIST.has(err)) return false;
+  const sinceMs = cooldownUntilMs(connection.lastErrorAt || connection.rateLimitedUntil || "");
+  if (!Number.isFinite(sinceMs) || sinceMs <= 0) return true;
+  return nowMs - sinceMs >= reprobeMs;
+}
+
 export function isCreditsExhaustedReprobeCandidate(
   connection: RecoverableConnectionInput | null | undefined,
   nowMs: number,
@@ -141,7 +220,8 @@ export function selectRecoverableConnections<T extends RecoverableConnectionInpu
   return connections.filter(
     (connection) =>
       isRecoverableCooldownConnection(connection, nowMs) ||
-      isCreditsExhaustedReprobeCandidate(connection, nowMs)
+      isCreditsExhaustedReprobeCandidate(connection, nowMs) ||
+      isExpiredReprobeCandidate(connection, nowMs)
   );
 }
 
@@ -198,6 +278,7 @@ export async function runConnectionRecoveryTick(
           testStatus: typeof row.testStatus === "string" ? row.testStatus : null,
           rateLimitedUntil: typeof row.rateLimitedUntil === "string" ? row.rateLimitedUntil : null,
           lastErrorAt: typeof row.lastErrorAt === "string" ? row.lastErrorAt : null,
+          lastErrorType: typeof row.lastErrorType === "string" ? row.lastErrorType : null,
         }));
       });
     connections = await load();

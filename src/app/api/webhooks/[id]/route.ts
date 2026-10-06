@@ -8,29 +8,22 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
-import { getWebhook, updateWebhookRecord, deleteWebhook } from "@/lib/localDb";
+import { getWebhook, updateWebhook as updateWebhookRecord, deleteWebhook } from "@/lib/db/webhooks";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { encryptMetadata } from "@/lib/webhookDispatcher";
 import { isEncryptionEnabled } from "@/lib/db/encryption";
 import { parseAndValidateWebhookUrl } from "@/shared/network/outboundUrlGuardPolicy";
 
+import { WEBHOOK_EVENT_VALUES } from "@/lib/webhooks/eventDescriptions";
+
 const WEBHOOK_KINDS = ["slack", "telegram", "discord", "custom"] as const;
-const WEBHOOK_EVENT_VALUES = [
-  "*",
-  "request.completed",
-  "request.failed",
-  "provider.error",
-  "provider.recovered",
-  "quota.exceeded",
-  "combo.switched",
-  "test.ping",
-] as const;
+const WEBHOOK_EVENT_VALUES_WITH_WILDCARD = ["*", ...WEBHOOK_EVENT_VALUES] as const;
 
 const updateWebhookSchema = z
   .object({
     url: z.string().min(1).max(2000).optional(),
-    events: z.array(z.enum(WEBHOOK_EVENT_VALUES)).optional(),
+    events: z.array(z.enum(WEBHOOK_EVENT_VALUES_WITH_WILDCARD)).optional(),
     secret: z.string().max(500).optional(),
     description: z.string().max(1000).optional(),
     enabled: z.boolean().optional(),

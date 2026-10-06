@@ -18,11 +18,14 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  try { fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true }); } catch {}
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  } catch {}
 });
 
 test("recordPluginMetric stores call count", async () => {
-  const { recordPluginMetric, getPluginMetrics } = await import("../../src/lib/db/pluginMetrics.ts");
+  const { recordPluginMetric, getPluginMetrics } =
+    await import("../../src/lib/db/pluginMetrics.ts");
   recordPluginMetric("test-plugin", "onRequest", 5.2, false);
   recordPluginMetric("test-plugin", "onRequest", 3.1, false);
 
@@ -34,7 +37,8 @@ test("recordPluginMetric stores call count", async () => {
 });
 
 test("recordPluginMetric tracks errors", async () => {
-  const { recordPluginMetric, getPluginMetrics } = await import("../../src/lib/db/pluginMetrics.ts");
+  const { recordPluginMetric, getPluginMetrics } =
+    await import("../../src/lib/db/pluginMetrics.ts");
   recordPluginMetric("err-plugin", "onRequest", 1.0, true);
 
   const metrics = getPluginMetrics("err-plugin");
@@ -44,7 +48,8 @@ test("recordPluginMetric tracks errors", async () => {
 });
 
 test("recordPluginMetric tracks latency", async () => {
-  const { recordPluginMetric, getPluginMetrics } = await import("../../src/lib/db/pluginMetrics.ts");
+  const { recordPluginMetric, getPluginMetrics } =
+    await import("../../src/lib/db/pluginMetrics.ts");
   recordPluginMetric("latency-plugin", "onRequest", 42.5, false);
 
   const metrics = getPluginMetrics("latency-plugin");
@@ -54,7 +59,8 @@ test("recordPluginMetric tracks latency", async () => {
 });
 
 test("getPluginMetrics returns all plugins when no filter", async () => {
-  const { recordPluginMetric, getPluginMetrics } = await import("../../src/lib/db/pluginMetrics.ts");
+  const { recordPluginMetric, getPluginMetrics } =
+    await import("../../src/lib/db/pluginMetrics.ts");
   recordPluginMetric("p1", "onRequest", 1, false);
   recordPluginMetric("p2", "onResponse", 2, false);
 
@@ -63,7 +69,8 @@ test("getPluginMetrics returns all plugins when no filter", async () => {
 });
 
 test("clearPluginMetrics removes metrics", async () => {
-  const { recordPluginMetric, clearPluginMetrics, getPluginMetrics } = await import("../../src/lib/db/pluginMetrics.ts");
+  const { recordPluginMetric, clearPluginMetrics, getPluginMetrics } =
+    await import("../../src/lib/db/pluginMetrics.ts");
   recordPluginMetric("clear-test", "onRequest", 1, false);
   clearPluginMetrics("clear-test");
 

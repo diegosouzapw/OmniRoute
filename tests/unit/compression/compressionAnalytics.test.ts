@@ -42,7 +42,7 @@ describe("compressionAnalytics", () => {
 
   after(() => {
     core.closeDbInstance();
-    rmSync(tmpDir, { recursive: true, force: true });
+    rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("empty table returns zeroed summary", () => {

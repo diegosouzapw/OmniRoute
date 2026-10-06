@@ -34,7 +34,7 @@ test.after(() => {
   } catch {
     /* ignore */
   }
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#3496 GET /api/guardrails lists the registered guardrails with status", async () => {
@@ -119,8 +119,6 @@ test("#3496 check-docs-symbols no longer freezes guardrails/shadow + API_REFEREN
   const src = fs.readFileSync(path.join(process.cwd(), apiRefRel), "utf8");
   const docPathsByFile = [{ file: apiRefRel, paths: extractDocApiPaths(src) }];
   const misses = findStaleDocApiRefs(docPathsByFile, routeFiles, KNOWN_STALE_DOC_REFS);
-  const ghosts = misses.filter(
-    (m) => m.includes("/api/guardrails") || m.includes("/api/shadow")
-  );
+  const ghosts = misses.filter((m) => m.includes("/api/guardrails") || m.includes("/api/shadow"));
   assert.deepEqual(ghosts, [], `stale guardrails/shadow refs remain: ${ghosts.join("; ")}`);
 });

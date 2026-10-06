@@ -162,7 +162,9 @@ export default function A2APage() {
   }, []);
 
   useEffect(() => {
-    void refreshStatus();
+    void (async () => {
+      await refreshStatus();
+    })();
     const interval = setInterval(() => void refreshStatus(), 30000);
     return () => clearInterval(interval);
   }, [refreshStatus]);

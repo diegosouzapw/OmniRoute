@@ -16,6 +16,7 @@ import { join } from "node:path";
 import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
+import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
 
 function ensureV1(url) {
   const s = String(url || "").replace(/\/+$/, "");
@@ -89,7 +90,7 @@ async function fetchModelIds(baseUrl, apiKey) {
     });
     if (!res.ok) return [];
     const body = await res.json();
-    const list = Array.isArray(body) ? body : body.data ?? body.models ?? [];
+    const list = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
     return list.map((m) => (typeof m === "string" ? m : m?.id)).filter(Boolean);
   } catch {
     return [];
@@ -99,9 +100,20 @@ async function fetchModelIds(baseUrl, apiKey) {
 export async function runSetupRooCommand(opts = {}) {
   const { baseUrl, apiKey } = resolveRooTarget(opts);
   const dryRun = Boolean(opts.dryRun ?? opts["dry-run"]);
-  const importPath = opts.importPath ?? opts["import-path"] ?? join(os.homedir(), ".omniroute", "roo-settings.json");
+  const importPath =
+    opts.importPath ?? opts["import-path"] ?? join(os.homedir(), ".omniroute", "roo-settings.json");
+
+  const guard = await guardHostConfigTarget(importPath, {
+    toolLabel: "Roo Code",
+    hostCommand: "omniroute setup-roo",
+    allowContainerWrite: Boolean(opts.allowContainerWrite ?? opts["allow-container-write"]),
+    dryRun,
+  });
+  if (guard !== 0) return guard;
   const vscodePath =
-    opts.vscodeSettings ?? opts["vscode-settings"] ?? join(os.homedir(), ".config", "Code", "User", "settings.json");
+    opts.vscodeSettings ??
+    opts["vscode-settings"] ??
+    join(os.homedir(), ".config", "Code", "User", "settings.json");
 
   printHeading("OmniRoute → Roo Code (OpenAI-compatible)");
   printInfo(`Server: ${baseUrl}`);
@@ -130,8 +142,27 @@ export async function runSetupRooCommand(opts = {}) {
 
   if (dryRun) {
     console.log(`\n── [dry-run] ${importPath} ──`);
-    console.log(JSON.stringify({ ...importDoc, providerProfiles: { ...importDoc.providerProfiles, apiConfigs: { OmniRoute: { ...importDoc.providerProfiles.apiConfigs.OmniRoute, openAiApiKey: apiKey ? "set" : "sk_omniroute" } } } }, null, 2));
-    console.log(`\n── [dry-run] ${vscodePath} ── ${vscodeExists ? "(would set roo-cline.autoImportSettingsPath)" : "(skipped — file absent)"}`);
+    console.log(
+      JSON.stringify(
+        {
+          ...importDoc,
+          providerProfiles: {
+            ...importDoc.providerProfiles,
+            apiConfigs: {
+              OmniRoute: {
+                ...importDoc.providerProfiles.apiConfigs.OmniRoute,
+                openAiApiKey: apiKey ? "set" : "sk_omniroute",
+              },
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+    console.log(
+      `\n── [dry-run] ${vscodePath} ── ${vscodeExists ? "(would set roo-cline.autoImportSettingsPath)" : "(skipped — file absent)"}`
+    );
   } else {
     mkdirSync(join(importPath, ".."), { recursive: true });
     writeFileSync(importPath, JSON.stringify(importDoc, null, 2) + "\n", "utf8");
@@ -161,10 +192,20 @@ export function registerSetupRoo(program) {
     .option("--remote <url>", "Remote OmniRoute URL, e.g. http://192.168.0.15:20128")
     .option("--api-key <key>", "OmniRoute API key (defaults to OMNIROUTE_API_KEY env var)")
     .option("--model <id>", "Model id for Roo (required unless picked interactively)")
-    .option("--import-path <path>", "Roo import JSON path (default: ~/.omniroute/roo-settings.json)")
-    .option("--vscode-settings <path>", "VS Code settings.json (default: ~/.config/Code/User/settings.json)")
+    .option(
+      "--import-path <path>",
+      "Roo import JSON path (default: ~/.omniroute/roo-settings.json)"
+    )
+    .option(
+      "--vscode-settings <path>",
+      "VS Code settings.json (default: ~/.config/Code/User/settings.json)"
+    )
     .option("--yes", "Non-interactive: do not prompt (requires --model)")
     .option("--dry-run", "Print what would be written without touching the filesystem")
+    .option(
+      "--allow-container-write",
+      "Write even when the target is inside a container and not mounted from the host"
+    )
     .action(async (opts) => {
       const code = await runSetupRooCommand(opts);
       if (code !== 0) process.exit(code);

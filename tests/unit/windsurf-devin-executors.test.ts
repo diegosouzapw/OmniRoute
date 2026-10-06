@@ -16,7 +16,7 @@ function containsBytes(haystack: Uint8Array, needle: Uint8Array): boolean {
 }
 
 test("Devin Desktop sends the curated raw model id without alias rewriting", async () => {
-  const executor = getExecutor("devin-desktop");
+  const executor = await getExecutor("devin-desktop");
   const originalFetch = globalThis.fetch;
   let requestBody: Uint8Array | null = null;
   globalThis.fetch = async (url, init) => {
@@ -37,7 +37,7 @@ test("Devin Desktop sends the curated raw model id without alias rewriting", asy
       credentials: { accessToken: "test-devin-desktop-token" },
     });
 
-    assert.equal(result.response.status, 418);
+    assert.equal((result instanceof Response ? result : result.response).status, 418);
     assert.ok(requestBody);
     assert.equal(containsBytes(requestBody, new TextEncoder().encode(model)), true);
   } finally {

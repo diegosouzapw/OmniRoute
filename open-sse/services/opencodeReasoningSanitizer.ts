@@ -21,7 +21,15 @@ type JsonRecord = Record<string, unknown>;
  * Related: services/mimoThinking.ts uses the same pattern for Xiaomi MiMo.
  */
 
-const OPENCODE_GO_PROVIDERS = new Set(["ollama-cloud", "opencode-go", "opencode", "opencode-zen"]);
+const OPENCODE_GO_PROVIDERS = new Set([
+  "ollama-cloud",
+  "ollamacloud",
+  "ollama_cloud",
+  "opencode-go",
+  "opencode_go",
+  "opencode",
+  "opencode-zen",
+]);
 
 /** True when the provider is backed by the opencode-go backend. */
 export function isOpencodeGoProvider(provider: string): boolean {

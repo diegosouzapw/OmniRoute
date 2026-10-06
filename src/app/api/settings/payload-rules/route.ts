@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateSettings } from "@/lib/localDb";
+import { updateSettings } from "@/lib/db/settings";
 import {
   getPayloadRulesConfig,
   normalizePayloadRulesConfig,

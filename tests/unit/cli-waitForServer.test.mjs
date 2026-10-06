@@ -11,6 +11,7 @@ import { waitForServer } from "../../bin/cli/utils/pid.mjs";
 // listening, and (d) return false when the port merely accepts TCP and then
 // hangs without ever answering a request (#6800 — a still-booting/CPU-bound
 // process must NOT be reported as ready just because the socket is open).
+// #11766: also test that IPv6 loopback is checked when IPv4 is unavailable.
 
 async function freePort() {
   return new Promise((resolve) => {
@@ -72,6 +73,35 @@ test("waitForServer returns false when the port accepts TCP but never answers a 
       result,
       false,
       "expected waitForServer to NOT report ready for a TCP-open-but-never-responding socket"
+    );
+  } finally {
+    await new Promise((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("waitForServer detects IPv6 loopback health endpoint when IPv4 is unavailable (#11766)", async () => {
+  const port = await freePort();
+  const server = net.createServer((socket) => {
+    socket.on("data", (data) => {
+      const request = data.toString();
+      if (request.includes("GET /api/monitoring/health")) {
+        socket.end("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok");
+      }
+    });
+  });
+
+  // Listen only on IPv6 loopback
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, "::1", () => resolve());
+  });
+
+  try {
+    const result = await waitForServer(port, 8000);
+    assert.equal(
+      result,
+      true,
+      "expected waitForServer to detect health endpoint on IPv6 loopback even when IPv4 is unavailable"
     );
   } finally {
     await new Promise((resolve) => server.close(() => resolve()));

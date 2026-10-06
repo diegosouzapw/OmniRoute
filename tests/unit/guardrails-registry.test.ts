@@ -258,3 +258,24 @@ test("guardrail registry fails open when a guardrail throws", async () => {
   assert.equal(result.results[0]?.error, "boom");
   assert.equal(warnings.length, 1);
 });
+
+test("guardrail registry never fails open after the client request aborts", async () => {
+  class AbortedGuardrail extends BaseGuardrail {
+    constructor() {
+      super("aborted", { priority: 5 });
+    }
+
+    override async preCall() {
+      throw new Error("private downstream abort detail");
+    }
+  }
+
+  const controller = new AbortController();
+  controller.abort();
+  const registry = new GuardrailRegistry();
+  registry.register(new AbortedGuardrail());
+  await assert.rejects(
+    () => registry.runPreCallHooks({ safe: true }, { signal: controller.signal }),
+    /Guardrail processing aborted/
+  );
+});

@@ -7,6 +7,7 @@ import ProviderCard from "../ProviderCard";
 vi.mock("next-intl", () => ({ useTranslations: () => (k: string) => k }));
 vi.mock("@/shared/components/ProviderTestSlideOver", () => ({ default: () => null }));
 vi.mock("@/shared/components/ProviderIcon", () => ({ default: () => null }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => {} }) }));
 
 describe("ProviderCard — #6936 audio-transcriptions provider badge", () => {
   let container: HTMLDivElement | null = null;

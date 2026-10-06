@@ -16,7 +16,7 @@ test.after(() => {
   core.resetDbInstance();
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── estimateTokens ─────────────────────────────────────────────────────────
@@ -75,10 +75,15 @@ for (const modelId of HYPERAGENT_FALLBACK_MODEL_IDS) {
 }
 
 test("getTokenLimit: does not force 1M onto non-hyperagent providers serving the same model ids", () => {
-  // windsurf declares an explicit per-model contextLength of 200000 for this exact id —
-  // a provider-unscoped substring match on "claude-opus-4" would have clobbered it to 1M.
-  assert.equal(getTokenLimit("windsurf", "claude-opus-4.7-max"), 200000);
-  // bluesminds likewise pins its own claude-opus-4-5 entry to 200000.
+  // windsurf used to pin this exact id at 200000, but its built-in provider entry was
+  // retired (#8228 — replaced by devin-desktop). With no per-provider source left,
+  // #11034 resolves the effort-suffixed variant via its BASE model (`claude-opus-4.7-max`
+  // → `claude-opus-4.7` → canonical `claude-opus-4-7`), whose real catalog window IS 1M.
+  // This is a legitimate base-model resolution, not the forbidden hyperagent default leak:
+  // it comes from the shared model catalog, never from the hyperagent registry scope.
+  assert.equal(getTokenLimit("windsurf", "claude-opus-4.7-max"), 1_000_000);
+  // bluesminds still pins its own claude-opus-4-5 entry to 200000, and that pin must win
+  // over both the name heuristic and any 1M window from sibling providers/catalogs.
   assert.equal(getTokenLimit("bluesminds", "claude-opus-4-5"), 200000);
 });
 

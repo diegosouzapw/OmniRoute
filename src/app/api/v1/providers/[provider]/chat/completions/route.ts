@@ -4,6 +4,8 @@ import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { withChatAdmission } from "@/shared/middleware/withChatAdmission";
+import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 let initialized = false;
 
@@ -31,8 +33,10 @@ export async function OPTIONS() {
  * Routes to the specified provider, validating model/provider match.
  * Full body format validation is delegated to handleChat.
  */
-export async function POST(request, { params }) {
+async function postHandler(request, { params }) {
   const { provider: rawProvider } = await params;
+  const retirementResponse = rejectRetiredCommonChatGptWebProvider(rawProvider);
+  if (retirementResponse) return retirementResponse;
 
   const providerEntry = getRegistryEntry(rawProvider);
 
@@ -103,3 +107,5 @@ export async function POST(request, { params }) {
 
   return await handleChat(newRequest, () => buildClientRawRequest(request, rawBody));
 }
+
+export const POST = withChatAdmission(postHandler);

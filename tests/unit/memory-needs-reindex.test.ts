@@ -27,10 +27,12 @@ function insertTestMemory(
   content: string,
   key: string
 ): void {
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO memories (id, api_key_id, type, key, content, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-  `).run(id, "test-api-key", "factual", key, content);
+  `
+  ).run(id, "test-api-key", "factual", key, content);
 }
 
 async function resetStorage() {
@@ -39,7 +41,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: unknown) {
@@ -61,7 +63,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ──────────────── markMemoryNeedsReindex ────────────────

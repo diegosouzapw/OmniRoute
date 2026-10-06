@@ -1,8 +1,8 @@
 import type { RegistryEntry } from "../../shared.ts";
 
-// g4f.space/api/pollinations — no-key reverse proxy to Pollinations (gpt4free project,
-// issue #6650). Separate route from the existing direct pollinations.ai entry; same
-// OpenAI-compatible shape as the other no-key gateways.
+// g4f.space/api/pollinations — optional-auth remote Pollinations gateway (gpt4free,
+// issue #6650). Anonymous requests require proof-of-work cake credits; a member API key
+// is the alternative. This remains separate from the direct pollinations.ai entry.
 export const g4f_pollinationsProvider: RegistryEntry = {
   id: "g4f-pollinations",
   alias: "g4fpol",

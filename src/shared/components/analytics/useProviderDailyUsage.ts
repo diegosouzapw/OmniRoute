@@ -6,7 +6,7 @@
  * max-lines-per-function complexity gate.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { readFetchErrorMessage } from "@/shared/utils/fetchError";
 import type { ProviderDailyUsageRow } from "./RequestCountTable";
@@ -17,30 +17,34 @@ export function useProviderDailyUsage(range: string, dateFilter: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRows = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (dateFilter) {
-        params.set("date", dateFilter);
-      } else {
-        params.set("range", range);
-      }
-      const res = await fetch(`/api/usage/requests-by-provider-date?${params.toString()}`);
-      if (!res.ok) throw new Error(await readFetchErrorMessage(res, tCommon("error")));
-      const data = await res.json();
-      setRows(Array.isArray(data.rows) ? data.rows : []);
-      setError(null);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, [range, dateFilter, tCommon]);
-
   useEffect(() => {
+    let cancelled = false;
+    const fetchRows = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (dateFilter) {
+          params.set("date", dateFilter);
+        } else {
+          params.set("range", range);
+        }
+        const res = await fetch(`/api/usage/requests-by-provider-date?${params.toString()}`);
+        if (!res.ok) throw new Error(await readFetchErrorMessage(res, tCommon("error")));
+        const data = await res.json();
+        if (cancelled) return;
+        setRows(Array.isArray(data.rows) ? data.rows : []);
+        setError(null);
+      } catch (err) {
+        if (!cancelled) setError((err as Error).message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
     fetchRows();
-  }, [fetchRows]);
+    return () => {
+      cancelled = true;
+    };
+  }, [range, dateFilter, tCommon]);
 
   return { rows, loading, error };
 }

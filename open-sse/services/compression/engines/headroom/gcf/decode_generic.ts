@@ -1,7 +1,8 @@
 /**
  * GCF generic-profile decoder (decodeGeneric).
  * Vendored from gcf-typescript — generic profile only. Current with GCF spec v3.2
- * (nested object flattening) and the [N]: inline-array quoting fix.
+ * (nested object flattening), the [N]: inline-array quoting fix, the int64/2^53 numeric-
+ * domain rendering (SPEC 2.3.1), and the root-array surplus count check (SPEC 13).
  * https://github.com/blackwell-systems/gcf-typescript
  *
  * SPDX-License-Identifier: MIT
@@ -78,7 +79,14 @@ export function decodeGeneric(input: string): any {
 
   // Root array.
   if (first.startsWith("## [")) {
-    const [arr] = parseArrayFromHeader(contentLines, 0, 0, first.slice(3));
+    const [arr, consumed] = parseArrayFromHeader(contentLines, 0, 0, first.slice(3));
+    // A root array spans the whole document, so any structural line past the consumed
+    // rows is a surplus item, not sibling content. The row loop stops at the declared
+    // count, so the count assert only catches the deficit; surplus is caught here (SPEC
+    // Section 13: a mismatch, fewer OR more items than declared, is an error).
+    if (consumed < contentLines.length) {
+      throw new Error("count_mismatch: declared count is fewer than the rows present");
+    }
     return arr;
   }
 

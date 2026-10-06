@@ -52,7 +52,8 @@ test("getDbInstance() eventually caps a persistently-OOMing sql.js probe (#6835)
     "Expected getDbInstance() to eventually give up with a terminal " +
       "'Aborting startup'-style diagnostic after repeated OOM probe failures, the same way it " +
       "already does for generic corruption (#6632). Instead every call re-threw an identical, " +
-      "uncapped OOM error:\n" + errors.map((e, i) => `  [${i}] ${e}`).join("\n")
+      "uncapped OOM error:\n" +
+      errors.map((e, i) => `  [${i}] ${e}`).join("\n")
   );
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });

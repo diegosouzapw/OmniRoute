@@ -15,7 +15,10 @@ const touched: string[] = [];
 
 function creds(connectionId: string, psd: Record<string, unknown> = {}) {
   touched.push(connectionId);
-  return { connectionId, providerSpecificData: psd };
+  // Key health only applies to connections that actually carry key material —
+  // the synthetic noauth connection (apiKey/accessToken null) is covered by the
+  // dedicated #9827 no-op test below.
+  return { connectionId, apiKey: "kh-test-key", accessToken: null, providerSpecificData: psd };
 }
 
 afterEach(() => {
@@ -46,6 +49,55 @@ test("401 reaches invalid at the failure threshold (2 consecutive)", () => {
   assert.equal(h?.status, "invalid");
 });
 
+test("genuine 403 credential failures warn then invalidate only the rejected key", () => {
+  const conn = "kh-403-credential";
+  const failure = JSON.stringify({
+    error: { code: "invalid_api_key", message: "Invalid API key" },
+  });
+
+  recordKeyHealthStatus(
+    403,
+    creds(conn, { selectedKeyId: "extra_0" }),
+    noopLog,
+    undefined,
+    failure
+  );
+  let all = getAllKeyHealth();
+  assert.equal(all[`${conn}:extra_0`]?.status, "warning");
+  assert.equal(all[`${conn}:extra_0`]?.failures, 1);
+  assert.equal(all[`${conn}:primary`], undefined);
+
+  recordKeyHealthStatus(
+    403,
+    creds(conn, { selectedKeyId: "extra_0" }),
+    noopLog,
+    undefined,
+    failure
+  );
+  all = getAllKeyHealth();
+  assert.equal(all[`${conn}:extra_0`]?.status, "invalid");
+  assert.equal(all[`${conn}:extra_0`]?.failures, 2);
+  assert.equal(all[`${conn}:primary`], undefined);
+});
+
+test("model capability failures and model-sync conflicts do not touch credential health", () => {
+  const cases = [
+    [400, JSON.stringify({ error: { code: "model_not_found", message: "Model not found" } })],
+    [403, JSON.stringify({ error: { code: "unsupported_model", message: "Unsupported model" } })],
+    [409, JSON.stringify({ error: "Model discovery deferred" })],
+  ] as const;
+
+  for (const [status, failure] of cases) {
+    const conn = `kh-non-credential-${status}`;
+    recordKeyHealthStatus(status, creds(conn), noopLog, undefined, failure);
+    assert.equal(
+      getAllKeyHealth()[`${conn}:primary`],
+      undefined,
+      `HTTP ${status} must remain outside API-key credential health`
+    );
+  }
+});
+
 test("2xx after a failure resets the key to active with 0 failures", () => {
   const conn = "kh-2xx-recover";
   recordKeyHealthStatus(401, creds(conn), noopLog);
@@ -63,10 +115,33 @@ test("honors selectedKeyId — scopes the update to the active extra key, not pr
   assert.equal(all[`${conn}:primary`], undefined);
 });
 
+test("success on another key cannot clear the affected key", () => {
+  const conn = "kh-cross-key-isolation";
+  recordKeyHealthStatus(401, creds(conn), noopLog);
+  recordKeyHealthStatus(204, creds(conn, { selectedKeyId: "extra_0" }), noopLog);
+
+  const all = getAllKeyHealth();
+  assert.equal(all[`${conn}:primary`]?.status, "warning");
+  assert.equal(all[`${conn}:primary`]?.failures, 1);
+  assert.equal(all[`${conn}:extra_0`]?.status, "active");
+  assert.equal(all[`${conn}:extra_0`]?.failures, 0);
+});
+
 test("non-401 / non-2xx status does not touch key health", () => {
   const conn = "kh-5xx-noop";
   recordKeyHealthStatus(500, creds(conn), noopLog);
   assert.equal(getAllKeyHealth()[`${conn}:primary`], undefined);
+});
+
+test("401 on a keyless connection is a no-op — no key to fail (#9827)", () => {
+  const before = Object.keys(getAllKeyHealth()).length;
+  // Synthetic noauth credentials (authType "none") carry no key material.
+  recordKeyHealthStatus(
+    401,
+    { connectionId: "noauth", apiKey: null, accessToken: null, providerSpecificData: {} },
+    noopLog
+  );
+  assert.equal(Object.keys(getAllKeyHealth()).length, before);
 });
 
 test("CPA pool failures do not poison the selected native connection key", () => {

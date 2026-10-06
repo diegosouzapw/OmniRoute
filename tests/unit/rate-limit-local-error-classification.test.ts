@@ -97,7 +97,7 @@ test.afterEach(() => {
   providerCooldown.clearCooldownState();
   rateLimitSemaphore.resetAll();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
@@ -107,7 +107,7 @@ test.after(() => {
   providerCooldown.clearCooldownState();
   rateLimitSemaphore.resetAll();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("execution-timeout classification requires trusted provenance; queue codes classify by string (#9164/#9342)", () => {

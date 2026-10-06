@@ -1,8 +1,8 @@
 /**
  * Tests for the real LLMLingua worker-thread backend (`worker.ts` + `onnxWorker.ts`).
  *
- * The four optional deps (`@atjsh/llmlingua-2`, `@huggingface/transformers`,
- * `@tensorflow/tfjs`, `js-tiktoken`) are NOT installed in this worktree, so the
+ * The three optional deps (`@atjsh/llmlingua-2`, `@huggingface/transformers`,
+ * `js-tiktoken`) are NOT installed in this worktree, so the
  * default path MUST fail-open WITHOUT spawning a worker:
  *
  *  1. Deps absent → fail-open, no spawn (ALWAYS runs here): the backend returns the
@@ -23,12 +23,11 @@ import {
 
 const require = createRequire(import.meta.url);
 
-/** Whether all four optional deps resolve in this environment. */
+/** Whether all three optional deps resolve in this environment. */
 function depsResolve(): boolean {
   try {
     require.resolve("@atjsh/llmlingua-2");
     require.resolve("@huggingface/transformers");
-    require.resolve("@tensorflow/tfjs");
     require.resolve("js-tiktoken");
     return true;
   } catch {

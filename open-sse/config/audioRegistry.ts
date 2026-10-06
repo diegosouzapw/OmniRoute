@@ -7,6 +7,10 @@
  * - /v1/audio/speech (TTS API)
  */
 
+import { getProviderAlias } from "@/shared/constants/providers";
+import { isLoopbackNodeHost } from "@/shared/network/loopbackNodeHost";
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
+
 interface AudioModel {
   id: string;
   name: string;
@@ -285,6 +289,19 @@ export const AUDIO_TRANSLATION_PROVIDERS: Record<string, AudioProvider> = {
 };
 
 export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
+  google: {
+    id: "google",
+    credentialProviderId: "gemini",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/models",
+    authType: "apikey",
+    authHeader: "x-goog-api-key",
+    format: "gemini-tts",
+    models: [
+      { id: "gemini-3.1-flash-tts-preview", name: "Gemini 3.1 Flash TTS" },
+      { id: "gemini-2.5-flash-preview-tts", name: "Gemini 2.5 Flash TTS" },
+      { id: "gemini-2.5-pro-preview-tts", name: "Gemini 2.5 Pro TTS" },
+    ],
+  },
   vertex: {
     id: "vertex",
     baseUrl: "https://us-central1-aiplatform.googleapis.com/v1",
@@ -350,7 +367,12 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "soniox-tts",
-    models: [{ id: "tts-rt-v1", name: "Soniox TTS RT v1" }],
+    // tts-rt-v1 is deprecated upstream (2026-08-31) and now served by tts-rt-v2;
+    // kept so existing clients that pin v1 still resolve.
+    models: [
+      { id: "tts-rt-v2", name: "Soniox TTS RT v2" },
+      { id: "tts-rt-v1", name: "Soniox TTS RT v1" },
+    ],
   },
 
   elevenlabs: {
@@ -448,9 +470,14 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "bearer",
     format: "fishaudio",
     models: [
+      { id: "s2.1-pro-free", name: "Fish Speech S2.1 Pro Free" },
+      { id: "s2.1-pro", name: "Fish Speech S2.1 Pro" },
+      { id: "s2-pro", name: "Fish Speech S2 Pro" },
       { id: "s1", name: "Fish Speech S1" },
-      { id: "speech-1.6", name: "Fish Speech 1.6" },
-      { id: "speech-1.5", name: "Fish Speech 1.5" },
+      // Legacy ids kept for existing clients even though Fish no longer lists them
+      // in the current public model enum.
+      { id: "speech-1.6", name: "Fish Speech 1.6 (legacy)" },
+      { id: "speech-1.5", name: "Fish Speech 1.5 (legacy)" },
     ],
   },
 
@@ -529,31 +556,6 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     ],
   },
 
-  edgetts: {
-    id: "edgetts",
-    // Microsoft Edge "Read Aloud" — reverse-engineered, no API key required.
-    // WebSocket transport (unlike every other entry here) — handled by
-    // open-sse/executors/edgeTts.ts, dispatched via the "edgetts" format.
-    baseUrl: "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1",
-    authType: "none",
-    authHeader: "none",
-    format: "edgetts",
-    supportedFormats: ["mp3"],
-    models: [
-      { id: "en-US-AriaNeural", name: "Aria (EN-US, Female)" },
-      { id: "en-US-GuyNeural", name: "Guy (EN-US, Male)" },
-      { id: "en-GB-SoniaNeural", name: "Sonia (EN-GB, Female)" },
-      { id: "en-GB-RyanNeural", name: "Ryan (EN-GB, Male)" },
-      { id: "es-ES-ElviraNeural", name: "Elvira (ES-ES, Female)" },
-      { id: "pt-BR-FranciscaNeural", name: "Francisca (PT-BR, Female)" },
-      { id: "pt-BR-AntonioNeural", name: "Antonio (PT-BR, Male)" },
-      { id: "fr-FR-DeniseNeural", name: "Denise (FR-FR, Female)" },
-      { id: "de-DE-KatjaNeural", name: "Katja (DE-DE, Female)" },
-      { id: "ja-JP-NanamiNeural", name: "Nanami (JA-JP, Female)" },
-      { id: "zh-CN-XiaoxiaoNeural", name: "Xiaoxiao (ZH-CN, Female)" },
-    ],
-  },
-
   gtts: {
     id: "gtts",
     // Google Translate TTS — reverse-engineered, no API key required.
@@ -592,6 +594,20 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "tts-1", name: "TTS 1" },
     ],
   },
+
+  // UC (uncensored.com) voice synthesis over its dedicated TTS WebSocket. Auth is
+  // a Clerk session JWT minted per-connect from the durable connection cred; the
+  // `format: "uc-tts"` branch in audioSpeech.ts drives the socket. The baseUrl is
+  // a synthetic marker (the real transport is wss://tts-stream.chatuncensored.ai)
+  // and is never fetched.
+  uc: {
+    id: "uc",
+    baseUrl: "wss://tts-stream.chatuncensored.ai",
+    authType: "web-cookie",
+    authHeader: "none",
+    format: "uc-tts",
+    models: [{ id: "jade", name: "UC Voice (Jade)" }],
+  },
 };
 
 /**
@@ -624,19 +640,12 @@ export interface ProviderNodeRow {
   apiType?: string;
 }
 
-/** Hosts reachable only from the operator's machine/Docker network. */
-export function isLoopbackNodeHost(baseUrl: string): boolean {
-  try {
-    const hostname = new URL(baseUrl).hostname;
-    return (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
-    );
-  } catch {
-    return false;
-  }
-}
+/**
+ * Hosts reachable only from the operator's machine/Docker network.
+ * Re-exported from the shared module so the audio, rerank, and local-health-check paths
+ * agree on one definition (the shared version additionally rejects `user@host` URLs).
+ */
+export { isLoopbackNodeHost };
 
 /**
  * Build a dynamic AudioProvider from a provider_node DB entry.
@@ -668,12 +677,22 @@ function parseAudioModel(
   registry: Record<string, AudioProvider>,
   dynamicProviders?: AudioProvider[]
 ): { provider: string | null; model: string | null } {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
 
   // Phase 1: prefix match in hardcoded registry
   for (const [providerId] of Object.entries(registry)) {
     if (modelStr.startsWith(providerId + "/")) {
       return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
+    }
+  }
+
+  // Phase 1.5: prefix match against the short provider alias the catalog itself
+  // advertises (e.g. "el/eleven_multilingual_v2" for elevenlabs) when it differs
+  // from the canonical registry key already tried in Phase 1.
+  for (const [providerId] of Object.entries(registry)) {
+    const alias = getProviderAlias(providerId);
+    if (alias && alias !== providerId && modelStr.startsWith(alias + "/")) {
+      return { provider: providerId, model: modelStr.slice(alias.length + 1) };
     }
   }
 
@@ -709,6 +728,85 @@ export function parseSpeechModel(modelStr: string | null, dynamicProviders?: Aud
 
 export function parseTranslationModel(modelStr: string | null, dynamicProviders?: AudioProvider[]) {
   return parseAudioModel(modelStr, AUDIO_TRANSLATION_PROVIDERS, dynamicProviders);
+}
+
+export interface AudioProviderMatch {
+  provider: string;
+  model: string;
+  config: AudioProvider;
+}
+
+/**
+ * Candidate model ids to try when the prefix-matched provider has no credentials.
+ * Includes the raw request string (a gateway may list `deepgram/nova-3` as its
+ * own model id) plus the parsed native id and `provider/model`.
+ */
+export function audioModelAliasCandidates(
+  originalModel: string,
+  failedProvider: string,
+  resolvedModel: string | null
+): string[] {
+  const candidates = [originalModel];
+  if (resolvedModel) {
+    candidates.push(resolvedModel);
+    candidates.push(`${failedProvider}/${resolvedModel}`);
+  }
+  return [...new Set(candidates.filter(Boolean))];
+}
+
+/**
+ * Find another registry provider that lists one of the candidate model ids.
+ * Used when `deepgram/nova-3` prefix-matches native Deepgram but only a
+ * gateway such as OpenRouter has credentials for that model id.
+ */
+export function findAlternateAudioProvider(
+  registry: Record<string, AudioProvider>,
+  failedProvider: string,
+  candidates: string[]
+): AudioProviderMatch | null {
+  const seen = new Set<string>();
+  for (const candidate of candidates) {
+    if (!candidate || seen.has(candidate)) continue;
+    seen.add(candidate);
+    for (const [providerId, config] of Object.entries(registry)) {
+      if (providerId === failedProvider) continue;
+      if (config.models.some((m) => m.id === candidate)) {
+        return { provider: providerId, model: candidate, config };
+      }
+    }
+  }
+  return null;
+}
+
+/** Qualified catalog ids (`gateway/model`) that list the same nested model. */
+export function listAlternateAudioModelIds(
+  registry: Record<string, AudioProvider>,
+  failedProvider: string,
+  candidates: string[]
+): string[] {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    for (const [providerId, config] of Object.entries(registry)) {
+      if (providerId === failedProvider) continue;
+      if (!config.models.some((m) => m.id === candidate)) continue;
+      const id = `${providerId}/${candidate}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+export function missingAudioProviderCredentialsMessage(
+  provider: string,
+  alternateIds: string[] = []
+): string {
+  const base = `No credentials for provider: ${provider}`;
+  if (alternateIds.length === 0) return base;
+  return `${base}. The catalog also lists this model as ${alternateIds.join(", ")}`;
 }
 
 /**

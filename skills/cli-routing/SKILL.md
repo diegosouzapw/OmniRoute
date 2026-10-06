@@ -21,6 +21,7 @@ omniroute --version
 
 **Flags:**
 
+- `--task <description>`
 - `--max-cost <usd>`
 - `--max-latency-ms <ms>`
 - `--weights <json>`
@@ -69,6 +70,11 @@ omniroute combo switch <name>
 ### `combo create <name>`
 
 Create a new routing combo
+
+**Flags:**
+
+- `--models <spec>`
+- `--model <spec>`
 
 **Example:**
 

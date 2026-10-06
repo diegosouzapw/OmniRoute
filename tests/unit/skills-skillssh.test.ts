@@ -10,7 +10,7 @@ process.env.DATA_DIR = tmpDir;
 
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
-const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
+const { GLOBAL_SKILL_OWNER_ID, skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { searchSkillsSh, fetchSkillMd, SkillsShSearchResponseSchema, SkillsShSkillSchema } =
   await import("../../src/lib/skills/skillssh.ts");
 const searchRoute = await import("../../src/app/api/skills/skillssh/route.ts");
@@ -23,7 +23,7 @@ function clearSkillRegistry() {
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(tmpDir, { recursive: true });
   clearSkillRegistry();
   core.getDbInstance();
@@ -42,7 +42,7 @@ test.after(() => {
   clearSkillRegistry();
   globalThis.fetch = originalFetch;
   process.env.DATA_DIR = originalDataDir;
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── Zod schema validation tests ──
@@ -238,7 +238,8 @@ test("skillssh install route registers a skill from skills.sh", async () => {
   const skills = skillRegistry.list();
   const installed = skills.find((s) => s.name === "docker-best-practices");
   assert.ok(installed);
-  assert.equal(installed.apiKeyId, "skillssh");
+  assert.equal(installed.apiKeyId, GLOBAL_SKILL_OWNER_ID);
+  assert.equal(skillRegistry.list("customer-key")[0]?.id, installed.id);
   assert.ok(installed.handler.includes("Installed from skills.sh"));
   assert.ok(installed.handler.includes(mdContent));
 });

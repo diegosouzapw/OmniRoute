@@ -69,12 +69,9 @@ describe("ServiceSupervisor spawn-failure handling", () => {
       const status = await supervisor.start();
       assert.equal(status.state, "error");
       assert.ok(status.lastError, "lastError should describe the spawn failure");
-      assert.match(
-        status.lastError!,
-        /ENOENT|EACCES|EINVAL|EFTYPE|not recognized|spawn|%1|Win32/i
-      );
+      assert.match(status.lastError!, /ENOENT|EACCES|EINVAL|EFTYPE|not recognized|spawn|%1|Win32/i);
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   });
 

@@ -8,7 +8,14 @@ import {
 } from "@/lib/db/reasoningRoutingRules";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { normalizeRoutingTags } from "@/domain/tagRouter";
-import { splitClaudeEffortSuffix } from "@omniroute/open-sse/config/providerModels.ts";
+import {
+  splitClaudeEffortSuffix,
+  getProviderModels,
+} from "@omniroute/open-sse/config/providerModels.ts";
+import {
+  codexModelFamilySupportsExtendedEffort,
+  isCodexExtendedEffortBaseModel,
+} from "@/shared/reasoning/codexExtendedEffort";
 
 type JsonRecord = Record<string, unknown>;
 const EFFORTS = new Set<ReasoningEffort>([
@@ -76,8 +83,9 @@ function splitGenericEffortSuffix(model: string): {
 }
 
 function supportsCodexSuffix(candidate: string, normalizedBase: string): boolean {
-  if (candidate === "max") return /^gpt-5\.6-(?:sol|terra|luna)$/.test(normalizedBase);
-  if (candidate === "ultra") return /^gpt-5\.6-(?:sol|terra)$/.test(normalizedBase);
+  if (candidate === "max" || candidate === "ultra") {
+    return isCodexExtendedEffortBaseModel(normalizedBase, candidate);
+  }
   return true;
 }
 
@@ -264,12 +272,57 @@ function capabilityFor(
   const capabilities = getResolvedModelCapabilities(model);
   if (capabilities.supportsThinking === false) return "unsupported" as const;
   if (targetEffort === "max" || targetEffort === "ultra") {
-    const normalized = model.toLowerCase().replace(/^(?:codex|cx)\//, "");
-    const supported =
-      targetEffort === "ultra"
-        ? /^gpt-5\.6-(?:sol|terra)(?:-|$)/.test(normalized)
-        : /^gpt-5\.6-(?:sol|terra|luna)(?:-|$)/.test(normalized);
-    if (supported) return "supported" as const;
+    // The gate must agree with what the dispatch-time sanitizer
+    // (`open-sse/executors/base/reasoningEffort.ts`) can actually enforce.
+    // That sanitizer clamps against the STATIC registry vocabulary for a
+    // registered model; it forwards verbatim only for providers/models the
+    // registry does not declare. So:
+    //   1. A static registry vocabulary excluding the tier stays unsupported —
+    //      a DB override must not let a request pass the gate only to be
+    //      silently downgraded at dispatch.
+    //   2. For unregistered providers/models, a declared (synced or
+    //      operator-overridden) vocabulary listing the tier is authoritative —
+    //      the sanitizer forwards verbatim there (#8057 trust-the-upstream).
+    //   3. The Codex max/ultra alias sets (`codex/reasoningSuffix.ts`) remain
+    //      the fallback for undeclared models.
+    // This keeps custom OpenAI-compatible providers whose models accept `max`
+    // natively (e.g. Merge Gateway `zai/glm-5.3-flash`, accepting
+    // `low|high|max`) usable with forced-max rules instead of 400ing.
+    // The registry lookup mirrors the sanitizer exactly: alias-resolved
+    // provider namespace (`getProviderModels`, #2798/#3870) and the entry's
+    // `aliases` list, so the gate can never approve what dispatch clamps.
+    const declaredEfforts = capabilities.supportedThinkingEfforts;
+    const provider = model.includes("/") ? model.slice(0, model.indexOf("/")) : "";
+    const modelIdForRegistry = model.startsWith(`${provider}/`)
+      ? model.slice(provider.length + 1)
+      : model;
+    // Mirror the sanitizer's empty-vocabulary semantics: a registry row that
+    // exists but declares nothing (`[]`) must fall through — there the
+    // sanitizer skips its declared clamp entirely instead of rejecting.
+    const registryDeclared = provider
+      ? getProviderModels(provider).find(
+          (entry) => entry.id === modelIdForRegistry || entry.aliases?.includes(modelIdForRegistry)
+        )?.supportedThinkingEfforts
+      : undefined;
+    if (Array.isArray(registryDeclared) && registryDeclared.length > 0) {
+      return registryDeclared.includes(targetEffort)
+        ? ("supported" as const)
+        : ("unsupported" as const);
+    }
+    if (Array.isArray(declaredEfforts) && declaredEfforts.includes(targetEffort)) {
+      return "supported" as const;
+    }
+    // An operator-declared vocabulary that excludes the tier is terminal —
+    // the same lookup the override resolves from must not be overruled by the
+    // alias-set fallback below.
+    if (capabilities.reasoningEffortsOverride && Array.isArray(declaredEfforts)) {
+      return "unsupported" as const;
+    }
+    // Strip the provider namespace (`openai/`, `github/`, `opencode-zen/`,
+    // `codex/`…) so every provider serving the family resolves the same way.
+    if (codexModelFamilySupportsExtendedEffort(modelIdForRegistry, targetEffort)) {
+      return "supported" as const;
+    }
     if (capabilities.supportsThinking === null) return "unknown" as const;
     return "unsupported" as const;
   }
@@ -531,7 +584,10 @@ export function attachReasoningRuleDirective(
   return body;
 }
 
-export function applyReasoningRuleDirective(bodyInput: unknown): unknown {
+export function applyReasoningRuleDirective(
+  bodyInput: unknown,
+  targetFormat?: "openai-responses" | "claude"
+): unknown {
   const source = asRecord(bodyInput);
   const directive = asRecord(source._omnirouteReasoningRule);
   if (!directive.id) return bodyInput;
@@ -539,12 +595,25 @@ export function applyReasoningRuleDirective(bodyInput: unknown): unknown {
   delete body._omnirouteReasoningRule;
   const effortMode = directive.effortMode;
   const targetEffort = effort(directive.targetEffort);
-  if (effortMode === "force" && targetEffort === "none") clearReasoning(body);
-  else if ((effortMode === "force" || effortMode === "default") && targetEffort) {
+  if (effortMode === "force" && targetEffort === "none") {
+    clearReasoning(body);
+    // `clearReasoning` only REMOVES reasoning/thinking params. Providers whose
+    // thinking mode defaults ON (e.g. DeepSeek V4 behind its native Responses
+    // API) treat an ABSENT field as "thinking enabled" and then reject the next
+    // tool-call turn with:
+    //   400 The `reasoning_text` in the thinking mode must be passed back to the API.
+    // Emit the explicit OpenAI no-thinking carrier (`reasoning_effort: "none"`)
+    // so a forced-off rule really disables thinking. Providers that reject the
+    // literal `none` are clamped by the dispatch-time sanitizer
+    // (open-sse/executors/base/reasoningEffort.ts).
+    body.reasoning_effort = "none";
+  } else if ((effortMode === "force" || effortMode === "default") && targetEffort) {
     if (effortMode === "force") clearDiscreteReasoning(body);
-    body.reasoning_effort = targetEffort;
-    body.reasoning = { ...asRecord(body.reasoning), effort: targetEffort };
-    body.output_config = { ...asRecord(body.output_config), effort: targetEffort };
+    if (!targetFormat) body.reasoning_effort = targetEffort;
+    if (targetFormat !== "claude")
+      body.reasoning = { ...asRecord(body.reasoning), effort: targetEffort };
+    if (targetFormat !== "openai-responses")
+      body.output_config = { ...asRecord(body.output_config), effort: targetEffort };
   }
   applyBudget(
     body,

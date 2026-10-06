@@ -102,3 +102,38 @@ export function getComplexityEslintReport() {
 }
 
 getComplexityEslintReport._cache = null;
+
+/**
+ * New-code mode (#newCodeMode): lint ONLY `files` (relative to `cwd`) with the same config,
+ * in `cwd` (ROOT for HEAD, a throwaway base worktree for the merge-base). No cache: the
+ * cache key would otherwise leak between the two trees. Returns [] for an empty file list.
+ * @param {string[]} files
+ * @param {string} cwd
+ * @returns {Array<object>}
+ */
+export function runComplexityEslintOn(files, cwd = ROOT) {
+  const existing = files.filter((f) => fs.existsSync(path.join(cwd, f)));
+  if (existing.length === 0) return [];
+  const args = [
+    "--no-config-lookup",
+    "--config",
+    path.join(cwd, "eslint.complexity-ratchets.config.mjs"),
+    "--format",
+    "json",
+    "--no-error-on-unmatched-pattern",
+    ...existing,
+  ];
+  let stdout;
+  try {
+    stdout = execFileSync(ESLINT_BIN, args, {
+      cwd,
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+      shell: process.platform === "win32",
+    });
+  } catch (err) {
+    stdout = err.stdout ? String(err.stdout) : "";
+    if (!stdout.trim()) throw err;
+  }
+  return JSON.parse(stdout);
+}

@@ -71,7 +71,7 @@ test("OpenAI -> Gemini request strips encrypted from Codex collaboration tool pa
     ],
   };
 
-  const result = openaiToGeminiRequest("gemini-3.5-flash-low", body, false) as {
+  const result = openaiToGeminiRequest("gemini-3.7-flash-low", body, false) as {
     tools?: Array<{ functionDeclarations?: Array<{ parameters: unknown }> }>;
   };
 

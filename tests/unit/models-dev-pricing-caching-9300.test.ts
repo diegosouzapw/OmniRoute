@@ -47,7 +47,9 @@ describe("getModelsDevPricing caching (#9300)", () => {
     modelsDev = await importFresh("9300-cache");
 
     // Seed pricing data into DB
-    modelsDev.saveModelsDevPricing(PRICING_DATA as Record<string, Record<string, Record<string, number>>>);
+    modelsDev.saveModelsDevPricing(
+      PRICING_DATA as Record<string, Record<string, Record<string, number>>>
+    );
 
     // Reset cache to ensure a clean read from DB
     // (saveModelsDevPricing clears the cache, so next get will load from DB)
@@ -57,7 +59,7 @@ describe("getModelsDevPricing caching (#9300)", () => {
     // Clean up DB handles
     dbCore.resetDbInstance();
     try {
-      fs.rmSync(testDataDir, { recursive: true, force: true });
+      fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     } catch {
       // ignore
     }

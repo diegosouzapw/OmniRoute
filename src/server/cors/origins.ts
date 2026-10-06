@@ -21,7 +21,7 @@ const ENV_ALLOWED = "CORS_ALLOWED_ORIGINS";
 const LEGACY_ENV_SINGLE = "CORS_ORIGIN";
 
 const STANDARD_ALLOW_HEADERS =
-  "Content-Type, Authorization, x-api-key, anthropic-version, x-omniroute-connection, x-internal-test, accept";
+  "Content-Type, Authorization, x-api-key, anthropic-version, x-omniroute-connection, X-OmniRoute-Lease-Owner, X-OmniRoute-Lease-Generation, x-internal-test, accept";
 const STANDARD_ALLOW_METHODS = "GET, POST, PUT, DELETE, PATCH, OPTIONS";
 
 let runtimeAllowedOrigins: ReadonlySet<string> = new Set();
@@ -144,6 +144,26 @@ export function getCorsStatus(): CorsStatus {
  * compression middleware only appends it conditionally, so shared caches can't
  * otherwise reliably tell compressed vs uncompressed variants apart.
  */
+function requestCarriesTokenOrPreflight(request: Request): boolean {
+  // Preflight (OPTIONS) never carries the Authorization / x-api-key header, so it
+  // must be allowed through — the actual request that follows is re-evaluated by
+  // this same check and only gets the permissive Origin if it presents a token.
+  if (request.method === "OPTIONS") return true;
+  if (
+    request.headers.get("authorization") ||
+    request.headers.get("x-api-key") ||
+    request.headers.get("x-goog-api-key")
+  ) {
+    return true;
+  }
+  // A dashboard session cookie is a credential too (#5242 browser/Electron
+  // clients). auth_token is HttpOnly + SameSite, so a cross-site attacker page
+  // cannot get it auto-attached — only a truly credential-less request (the
+  // GHSA-7px7 anonymous case on a keyless install) falls through to fail-closed.
+  const cookie = request.headers.get("cookie");
+  return Boolean(cookie && /(?:^|;\s*)auth_token=/.test(cookie));
+}
+
 export function applyCorsHeaders(
   response: Response,
   request: Request,
@@ -151,7 +171,15 @@ export function applyCorsHeaders(
 ): void {
   const requestOrigin = request.headers.get("origin");
   let allowed = resolveAllowedOrigin(requestOrigin);
-  if (allowed === null && relaxForTokenAuth) {
+  if (allowed === null && relaxForTokenAuth && requestCarriesTokenOrPreflight(request)) {
+    // GHSA-7px7-29v2-m97p: the permissive Origin echo is only safe on the
+    // assumption that these routes are token-authenticated (browsers never
+    // auto-attach Authorization/x-api-key). On a keyless install that assumption
+    // breaks — an anonymous cross-origin page would be echoed its own Origin and
+    // could read the response. Only relax for a request that actually carries a
+    // credential, plus CORS preflights (OPTIONS never carries the header — the
+    // real request that follows is re-checked), so authenticated browser/Electron
+    // clients (#5242) keep working while credential-less cross-origin reads do not.
     allowed = requestOrigin && requestOrigin.length > 0 ? requestOrigin : "*";
   }
   if (allowed !== null) {

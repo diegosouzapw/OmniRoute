@@ -5,8 +5,8 @@
 #  Profiles:
 #    base  → minimal image, no CLI tools
 #    web   → runner-web (+Chromium/Playwright) for web-cookie providers
-#    cli   → CLIs installed inside the container (portable)
-#    host  → runner-base + host-mounted CLI binaries (Linux-first)
+#    cli   → bundled CLIs installed inside the container (portable)
+#    host  → runner-base + host-mounted CLI binaries (Linux-first; Linux only)
 #    cliproxyapi → CLIProxyAPI sidecar on port 8317
 #    memory  → Qdrant sidecar on port 6333 (semantic memory offload)
 #    bifrost → Bifrost Go sidecar on port 8080 (Tier-1 LLM router)
@@ -15,11 +15,17 @@
 #    docker compose --profile base up -d
 #    docker compose --profile web up -d   # gemini-web / claude-web / claude-turnstile
 #    docker compose --profile cli up -d
+#    # Windows Docker Desktop: use the bundled CLI image and rebuild it
+#    docker compose --profile cli up -d --build
 #    docker compose --profile host up -d
 #    docker compose --profile cliproxyapi up -d
 #    docker compose --profile cli --profile cliproxyapi up -d
 #    docker compose --profile base --profile memory up -d   # adds Qdrant sidecar
 #    docker compose --profile base --profile bifrost up -d  # adds Bifrost sidecar
+#
+#  Docker Compose uses `--profile <name> <command>`; `load profile` is not a
+#  valid command. The `base` profile has no CLI tools, and `host` is Linux-only.
+#  Windows Docker Desktop users who need the four bundled CLI packages should use `cli`.
 #
 #  See docs/architecture/cluster-decisions.md for the per-component rationale
 #  (Qdrant=opt-in, Bifrost=opt-in, Caddy=upstream LB, no Dragonfly/NATS/PG/Neo4j/MinIO).
@@ -37,14 +43,27 @@ x-common: &common
     - PORT=${PORT:-20128}
     - DASHBOARD_PORT=${DASHBOARD_PORT:-20128}
     - API_PORT=${API_PORT:-20129}
-    - API_HOST=${API_HOST:-0.0.0.0}
+    - API_HOST=${API_HOST:-127.0.0.1}
     - LIVE_WS_PORT=${LIVE_WS_PORT:-20132}
-    - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
+    - LIVE_WS_HOST=${LIVE_WS_HOST:-127.0.0.1}
     - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
     - REDIS_URL=${REDIS_URL:-redis://redis:6379}
     - NODE_OPTIONS=--max-old-space-size=2048
+    # Codex App-Server transport (provider: codex-app-server). Inert unless the
+    # `codex-app-server` compose profile is up (the sidecar below). Points the app
+    # at the internal sidecar; the capability token is shared via the mounted file.
+    - OMNIROUTE_CODEX_APPSERVER_WS=${OMNIROUTE_CODEX_APPSERVER_WS:-ws://codex-app-server:1456}
+    - OMNIROUTE_CODEX_APPSERVER_WS_TOKEN_FILE=${OMNIROUTE_CODEX_APPSERVER_WS_TOKEN_FILE:-/run/codex-appserver/token}
   volumes:
     - ./data:/app/data
+    # Shared capability token + codex auth for the app-server WS. Only meaningful
+    # when the codex-app-server profile is active. The token dir carries the WS
+    # capability token; the codex home is where the dashboard "Apply auth" writes
+    # ~/.codex/auth.json (getCliConfigPaths("codex") = <home>/.codex; the base
+    # image runs as `node`, so /home/node/.codex) and the SAME volume is mounted
+    # into the sidecar so its `codex app-server` reads the same auth.
+    - codex-appserver-token:/run/codex-appserver
+    - codex-appserver-home:/home/node/.codex
   healthcheck:
     test: ["CMD", "node", "healthcheck.mjs"]
     interval: 30s
@@ -86,9 +105,14 @@ services:
         OMNIROUTE_BASE_PATH: ${OMNIROUTE_BASE_PATH:-}
     image: omniroute:base
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
-      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+      # Loopback-only by default (#12568): with REQUIRE_API_KEY=false shipping
+      # as the .env.example default, an unqualified publish spec here binds
+      # 0.0.0.0 and exposes the anonymous /v1 LLM proxy on every LAN/WAN
+      # interface. Set APP_BIND_HOST=0.0.0.0 only once you've confirmed
+      # REQUIRE_API_KEY=true or an upstream reverse proxy enforces its own auth.
+      - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     profiles:
       - base
 
@@ -113,22 +137,35 @@ services:
       - PORT=${PORT:-20128}
       - DASHBOARD_PORT=${DASHBOARD_PORT:-20128}
       - API_PORT=${API_PORT:-20129}
-      - API_HOST=${API_HOST:-0.0.0.0}
+      - API_HOST=${API_HOST:-127.0.0.1}
       - LIVE_WS_PORT=${LIVE_WS_PORT:-20132}
-      - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
+      - LIVE_WS_HOST=${LIVE_WS_HOST:-127.0.0.1}
       - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - OMNIROUTE_BASE_PATH=${OMNIROUTE_BASE_PATH:-}
       - CHATGPT_WEB_CODEX_CDP_URL=http://chatgpt-web-codex-browser:9223
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
-      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+    # SECURITY (#13679): joins BOTH `default` (to keep reaching redis and the
+    # other sidecars) AND the dedicated `chatgpt-web-codex-net` (the one
+    # legitimate consumer of the CDP proxy below).
+    networks:
+      - default
+      - chatgpt-web-codex-net
     profiles:
       - web
 
   # Internal-only Chromium runtime for ChatGPT Web (Codex). No CDP or browser
   # UI port is published to the host.
+  #
+  # SECURITY (#13679): isolated onto its own `chatgpt-web-codex-net` network
+  # instead of the shared implicit default bridge — its cdp-proxy.mjs
+  # sidecar republishes Chromium's CDP on 0.0.0.0:9223, and CDP grants full
+  # control over a live browser session. Without this isolation, any
+  # compromised sibling container (redis, qdrant, bifrost, cliproxyapi,
+  # codex-app-server, ...) on the default network could reach it.
   chatgpt-web-codex-browser:
     build:
       context: .
@@ -136,8 +173,12 @@ services:
     image: omniroute:chatgpt-web-codex-browser
     restart: unless-stopped
     shm_size: "2gb"
+    environment:
+      - CDP_PROXY_TOKEN=${CDP_PROXY_TOKEN:-}
     volumes:
       - chatgpt-web-codex-browser-data:/browser-profile
+    networks:
+      - chatgpt-web-codex-net
     profiles:
       - web
 
@@ -152,11 +193,18 @@ services:
         OMNIROUTE_BASE_PATH: ${OMNIROUTE_BASE_PATH:-}
     image: omniroute:cli
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
-      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     volumes:
       - ./data:/app/data
+      # SECURITY: mounting the host Docker socket gives this container full
+      # control over the host Docker daemon — it can create/list/stop/rm any
+      # container the host runs. It is here so the in-container auto-updater
+      # (src/lib/system/autoUpdate.ts) can recreate the stack. Only use this
+      # profile on a single-tenant workstation you trust, and never publish
+      # its ports beyond 127.0.0.1. See docs/guides/DOCKER_GUIDE.md →
+      # "Escape hatch: configure the container's own CLIs" for the threat model.
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins:ro
       - ${AUTO_UPDATE_HOST_REPO_DIR:-.}:/workspace/omniroute:rw
@@ -174,17 +222,17 @@ services:
         OMNIROUTE_BASE_PATH: ${OMNIROUTE_BASE_PATH:-}
     image: omniroute:base
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
-      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     environment:
       - DATA_DIR=/app/data
       - PORT=${PORT:-20128}
       - DASHBOARD_PORT=${DASHBOARD_PORT:-20128}
       - API_PORT=${API_PORT:-20129}
-      - API_HOST=${API_HOST:-0.0.0.0}
+      - API_HOST=${API_HOST:-127.0.0.1}
       - LIVE_WS_PORT=${LIVE_WS_PORT:-20132}
-      - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
+      - LIVE_WS_HOST=${LIVE_WS_HOST:-127.0.0.1}
       - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
       - CLI_MODE=host
       - CLI_EXTRA_PATHS=/host-local/bin:/host-node/bin
@@ -223,8 +271,8 @@ services:
     container_name: omniroute-qdrant
     restart: unless-stopped
     ports:
-      - "${QDRANT_PORT:-6333}:6333"
-      - "${QDRANT_GRPC_PORT:-6334}:6334"
+      - "${QDRANT_BIND_HOST:-127.0.0.1}:${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_BIND_HOST:-127.0.0.1}:${QDRANT_GRPC_PORT:-6334}:6334"
     volumes:
       - qdrant-data:/qdrant/storage
     environment:
@@ -247,11 +295,11 @@ services:
   # fall back to the chatCore path with zero code changes. See
   # docs/architecture/cluster-decisions.md for the activation plan.
   bifrost:
-    image: ghcr.io/maximhq/bifrost:1.5.21
+    image: ghcr.io/maximhq/bifrost:v1.6.11
     container_name: omniroute-bifrost
     restart: unless-stopped
     ports:
-      - "${BIFROST_PORT:-8080}:8080"
+      - "${BIFROST_BIND_HOST:-127.0.0.1}:${BIFROST_PORT:-8080}:8080"
     volumes:
       - bifrost-data:/data
     environment:
@@ -266,17 +314,30 @@ services:
       - bifrost
 
   # ── Profile: cliproxyapi (CLIProxyAPI as sidecar) ─────────────────
+  # Official pre-built image lives on Docker Hub (eceasy/cli-proxy-api);
+  # ghcr.io/router-for-me/* is not publicly pullable. v6.9.7 is the pinned
+  # version the sidecar integration (port 8317, /v1/models healthcheck) targets.
   cliproxyapi:
     container_name: cliproxyapi
-    image: ghcr.io/router-for-me/cliproxyapi:v6.9.7
+    image: docker.io/eceasy/cli-proxy-api:v6.9.7
     restart: unless-stopped
     ports:
-      - "${CLIPROXYAPI_PORT:-8317}:${CLIPROXYAPI_PORT:-8317}"
+      # Loopback-only by default: this sidecar's data volume
+      # (cliproxiapi-data:/root/.cli-proxy-api) holds provider OAuth/API
+      # credentials, and the pinned image only reads api-keys from a mounted
+      # config.yaml (not env vars), so an unqualified "8317:8317" publish spec
+      # would put a credential-bearing service with no compose-configured
+      # data-plane auth on every LAN interface. Same reasoning as Redis above.
+      - "${CLIPROXY_BIND_HOST:-127.0.0.1}:${CLIPROXYAPI_PORT:-8317}:${CLIPROXYAPI_PORT:-8317}"
     volumes:
       - cliproxyapi-data:/root/.cli-proxy-api
     environment:
       - PORT=${CLIPROXYAPI_PORT:-8317}
       - HOST=0.0.0.0
+      # Forwards to the one auth-related env var the pinned binary actually
+      # reads (MANAGEMENT_PASSWORD) — secures the management API only; the
+      # data-plane completions endpoints have no env-based override upstream.
+      - MANAGEMENT_PASSWORD=${CLIPROXYAPI_MANAGEMENT_KEY:-}
     healthcheck:
       test:
         ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:${CLIPROXYAPI_PORT:-8317}/v1/models"]
@@ -286,6 +347,71 @@ services:
       start_period: 10s
     profiles:
       - cliproxyapi
+
+  # ── Profile: codex-app-server (Codex CLI app-server sidecar) ──────────
+  # A PLAIN Codex app-server for the `codex-app-server` provider: OmniRoute drives
+  # the Codex CLI's own `codex app-server` over JSON-RPC/WebSocket instead of
+  # replaying a session token to the API. It listens ONLY on the internal compose
+  # network (ws://codex-app-server:1456), guarded by a capability token — it is
+  # NEVER published to the host / internet. The Codex CLI (baked into
+  # omniroute:base) self-manages its OpenAI OAuth via the shared ~/.codex volume,
+  # which the dashboard "Apply auth" (device-OAuth) writes and this sidecar reads.
+  #
+  # NOTE: this is the GENERIC public sidecar. An operator wanting residential /
+  # UDP egress (via a TUN sidecar) runs that separately as an override; it is
+  # intentionally not shipped here.
+  codex-app-server:
+    image: omniroute:base
+    container_name: omniroute-codex-app-server
+    restart: unless-stopped
+    # Generate the WS capability token on first boot if absent, then run the
+    # app-server. entrypoint is overridden because the base image's default is the
+    # Next.js server.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        TOKEN_FILE=/run/codex-appserver/token
+        mkdir -p /run/codex-appserver
+        if [ ! -s "$$TOKEN_FILE" ]; then
+          # 32-byte hex capability token; shared with the app via the token volume.
+          TF="$$TOKEN_FILE" node -e 'require("fs").writeFileSync(process.env.TF, require("crypto").randomBytes(32).toString("hex"))' 2>/dev/null || \
+            { head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$$TOKEN_FILE"; }
+          chmod 600 "$$TOKEN_FILE"
+        fi
+        exec codex app-server \
+          --listen ws://0.0.0.0:1456 \
+          --ws-auth capability-token \
+          --ws-token-file "$$TOKEN_FILE"
+    environment:
+      - CODEX_HOME=/home/node/.codex
+      - RUST_LOG=${CODEX_APPSERVER_RUST_LOG:-warn}
+    volumes:
+      - codex-appserver-token:/run/codex-appserver
+      - codex-appserver-home:/home/node/.codex
+    # No `ports:` — internal-only. Reached at ws://codex-app-server:1456 over the
+    # compose network by the omniroute app.
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:1456/readyz',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    profiles:
+      - codex-app-server
+
+networks:
+  # SECURITY (#13679): dedicated network for the unauthenticated-by-default
+  # CDP proxy sidecar (docker/chatgpt-web-codex-browser/cdp-proxy.mjs) —
+  # shared only with omniroute-web, not with redis/qdrant/bifrost/cliproxyapi/
+  # codex-app-server or any other sibling on the implicit default network.
+  chatgpt-web-codex-net: {}
 
 volumes:
   chatgpt-web-codex-browser-data:
@@ -298,3 +424,7 @@ volumes:
     name: omniroute-qdrant-data
   bifrost-data:
     name: omniroute-bifrost-data
+  codex-appserver-token:
+    name: omniroute-codex-appserver-token
+  codex-appserver-home:
+    name: omniroute-codex-appserver-home

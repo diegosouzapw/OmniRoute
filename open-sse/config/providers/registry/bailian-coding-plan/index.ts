@@ -60,7 +60,12 @@ export const bailian_coding_planProvider: RegistryEntry = {
   alias: "bcp",
   format: "claude",
   executor: "default",
-  baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+  // Token Plan endpoint (the catalog entry is "Alibaba Token Plan"). The former
+  // coding-intl.dashscope.aliyuncs.com host only accepts Coding Plan keys and rejects
+  // Token Plan keys with 401 invalid_api_key. Verified live 2026-08-14: this host
+  // returns 200 for every model below with the same key.
+  // Docs: https://www.alibabacloud.com/help/en/model-studio/more-tools
+  baseUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
   chatPath: "/messages",
   authType: "apikey",
   authHeader: "x-api-key",

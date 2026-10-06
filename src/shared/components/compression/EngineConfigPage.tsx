@@ -178,6 +178,12 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
         for (const field of foundEngine?.configSchema ?? []) {
           defaults[field.key] = field.defaultValue;
         }
+        // Do not seed lite.maxToolLength from the schema default. Persisting 2000
+        // would freeze the cap in settings and hide OMNIROUTE_LITE_MAX_TOOL_LENGTH.
+        // The form still shows 2000 via field.defaultValue until the operator edits it.
+        if (engineId === "lite" && currentConfig.maxToolLength === undefined) {
+          delete defaults.maxToolLength;
+        }
         setConfigState({ ...defaults, ...currentConfig });
         setLoading(false);
       }
@@ -204,10 +210,23 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
     // Strip the `enabled` key — engine on/off is the panel's responsibility.
     const { enabled: _ignored, ...formDetail } = configState;
     void _ignored;
-    const detail =
-      engineId === "lite"
-        ? { compressToolResults: formDetail.compressToolResults !== false }
-        : formDetail;
+    let detail: Record<string, unknown> = formDetail;
+    if (engineId === "lite") {
+      const raw = formDetail.maxToolLength;
+      const compressToolResults = formDetail.compressToolResults !== false;
+      if (!Object.prototype.hasOwnProperty.call(formDetail, "maxToolLength")) {
+        detail = { compressToolResults };
+      } else if (typeof raw === "number" && Number.isFinite(raw)) {
+        const n = Math.floor(raw);
+        if (n < 256 || n > 1_000_000) {
+          setSaveError(t("saveFailed"));
+          return;
+        }
+        detail = { compressToolResults, maxToolLength: n };
+      } else {
+        detail = { compressToolResults, maxToolLength: null };
+      }
+    }
     setSaving(true);
     setSaveError(null);
     try {

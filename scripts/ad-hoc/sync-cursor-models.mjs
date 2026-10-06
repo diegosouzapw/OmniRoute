@@ -1,12 +1,11 @@
 #!/usr/bin/env node
-// Sync the cursor models list in open-sse/config/providerRegistry.ts from
-// cursor-agent's runtime model list. Triggers an intentional invalid --model
-// invocation so cursor-agent prints "Available models: ..." on stderr.
+// Sync the cursor models list in open-sse/config/providers/registry/cursor/index.ts
+// from cursor-agent's runtime model list (`--list-models`).
 //
 // Usage:
 //   node scripts/ad-hoc/sync-cursor-models.mjs              # spawn cursor-agent and apply
 //   node scripts/ad-hoc/sync-cursor-models.mjs --dry-run    # print proposed block, don't write
-//   node scripts/ad-hoc/sync-cursor-models.mjs --from-stdin # read the error message from stdin
+//   node scripts/ad-hoc/sync-cursor-models.mjs --from-stdin # read --list-models output from stdin
 
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -14,7 +13,17 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const REGISTRY_PATH = resolve(__dirname, "..", "open-sse", "config", "providerRegistry.ts");
+const REGISTRY_PATH = resolve(
+  __dirname,
+  "..",
+  "..",
+  "open-sse",
+  "config",
+  "providers",
+  "registry",
+  "cursor",
+  "index.ts"
+);
 
 const args = new Set(process.argv.slice(2));
 const DRY_RUN = args.has("--dry-run");

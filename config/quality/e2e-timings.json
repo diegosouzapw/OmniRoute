@@ -27,6 +27,7 @@
   "providers-bailian-coding-plan.spec.ts": 240,
   "providers-management.spec.ts": 324,
   "proxy-registry.smoke.spec.ts": 218,
+  "radar-guided-setup.spec.ts": 177,
   "resilience-plan-alignment.spec.ts": 382,
   "responsive.spec.ts": 21,
   "search-tools-studio.spec.ts": 133,

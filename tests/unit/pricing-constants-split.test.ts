@@ -1,5 +1,5 @@
 // Characterization of the pricing.ts split (god-file decomposition): the host became a barrel that
-// re-exports DEFAULT_PRICING (now merged from 4 semantic family files that import shared tier consts)
+// re-exports DEFAULT_PRICING (merged from semantic family files that import shared tier consts)
 // and keeps the helper functions. Pure-data move → behavior identical. Locks: public surface, the
 // spread-merge integrity, and that lookups/cost math resolve unchanged.
 import { test } from "node:test";
@@ -14,13 +14,14 @@ test("barrel still exports DEFAULT_PRICING + supported helpers", () => {
   assert.equal(Object.hasOwn(P, "calculateCostFromTokens"), false);
 });
 
-test("DEFAULT_PRICING merges the 4 family files; families partition all entries", async () => {
+test("DEFAULT_PRICING merges every family file; families partition all entries", async () => {
   const merged = Object.keys((P as Record<string, object>).DEFAULT_PRICING).length;
   const families: [string, string][] = [
     ["oauth-subscriptions", "DEFAULT_PRICING_OAUTH"],
     ["frontier-labs", "DEFAULT_PRICING_FRONTIER"],
     ["inference-hosts", "DEFAULT_PRICING_INFERENCE"],
     ["regional", "DEFAULT_PRICING_REGIONAL"],
+    ["devin", "DEFAULT_PRICING_DEVIN"],
   ];
   let famTotal = 0;
   const seen = new Set<string>();

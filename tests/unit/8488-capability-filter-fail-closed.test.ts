@@ -19,6 +19,7 @@ const {
 } = await import("../../open-sse/services/combo/comboStructure.ts");
 const { resolveAutoStrategyOrder } =
   await import("../../open-sse/services/combo/resolveAutoStrategy.ts");
+const { handleComboChat } = await import("../../open-sse/services/combo.ts");
 
 function capabilityEntry(limit_context: number, overrides: Record<string, unknown> = {}) {
   return {
@@ -66,13 +67,13 @@ const log = {
 
 test.beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#8488 filter: some tool-capable targets kept (unchanged)", () => {
@@ -120,18 +121,18 @@ test("#8488 filter: zero tool-capable targets → empty (fail closed)", () => {
   assert.ok(exhaustion!.excluded.some((e) => e.reason.includes("tools")));
 });
 
-test("#8488 filter: chatgpt-web emulation providers stay eligible for tools (#5240)", () => {
-  // Registry honestly tags chatgpt-web models toolCalling:false; the prompt
+test("#8488 filter: Gemini Web emulation stays eligible for tools (#5240)", () => {
+  // Registry honestly tags Gemini Web models toolCalling:false; the prompt
   // shim is what makes tools work. Fail-closed must not hard-reject them.
-  assert.equal(providerSupportsEmulatedToolCalling("chatgpt-web"), true);
-  assert.equal(providerSupportsEmulatedToolCalling("cgpt-web"), true);
+  assert.equal(providerSupportsEmulatedToolCalling("gemini-web"), true);
+  assert.equal(providerSupportsEmulatedToolCalling("gweb"), true);
   assert.equal(providerSupportsEmulatedToolCalling("claude-web"), false); // toolCalling:"none"
   assert.equal(providerSupportsEmulatedToolCalling("openai"), false);
 
   const kept = filterTargetsByRequestCompatibility(
     [
-      target("chatgpt-web", "chatgpt-web/gpt-5.5"),
-      target("chatgpt-web", "chatgpt-web/o3"),
+      target("gemini-web", "gemini-web/gemini-3.1-pro"),
+      target("gemini-web", "gemini-web/gemini-3.7-flash"),
     ],
     {
       messages: [{ role: "user", content: "Use a tool." }],
@@ -142,13 +143,13 @@ test("#8488 filter: chatgpt-web emulation providers stay eligible for tools (#52
   assert.equal(kept.length, 2);
   assert.deepEqual(
     kept.map((t) => t.modelStr),
-    ["chatgpt-web/gpt-5.5", "chatgpt-web/o3"]
+    ["gemini-web/gemini-3.1-pro", "gemini-web/gemini-3.7-flash"]
   );
 
   const exhaustion = describeCapabilityFilterExhaustion(
     [
-      target("chatgpt-web", "chatgpt-web/gpt-5.5"),
-      target("chatgpt-web", "chatgpt-web/o3"),
+      target("gemini-web", "gemini-web/gemini-3.1-pro"),
+      target("gemini-web", "gemini-web/gemini-3.7-flash"),
     ],
     {
       messages: [{ role: "user", content: "Use a tool." }],
@@ -159,9 +160,9 @@ test("#8488 filter: chatgpt-web emulation providers stay eligible for tools (#52
   assert.equal(exhaustion, null, "emulation-capable pool must not report capability_mismatch");
 });
 
-test("#8488 auto: chatgpt-web emulation survives tool pre-filter (#5240)", async () => {
+test("#8488 auto: Gemini Web emulation survives tool pre-filter (#5240)", async () => {
   const result = await resolveAutoStrategyOrder({
-    orderedTargets: [target("chatgpt-web", "chatgpt-web/gpt-5.5")] as never,
+    orderedTargets: [target("gemini-web", "gemini-web/gemini-3.1-pro")] as never,
     body: {
       messages: [{ role: "user", content: "hi" }],
       tools: [{ type: "function", function: { name: "lookup", parameters: {} } }],
@@ -175,10 +176,13 @@ test("#8488 auto: chatgpt-web emulation survives tool pre-filter (#5240)", async
     buildAutoCandidates: (async () => []) as never,
   });
 
-  assert.ok(!("earlyResponse" in result), "must not 400 capability_mismatch for emulation providers");
+  assert.ok(
+    !("earlyResponse" in result),
+    "must not 400 capability_mismatch for emulation providers"
+  );
   if ("orderedTargets" in result) {
     assert.equal(result.orderedTargets.length, 1);
-    assert.equal(result.orderedTargets[0].modelStr, "chatgpt-web/gpt-5.5");
+    assert.equal(result.orderedTargets[0].modelStr, "gemini-web/gemini-3.1-pro");
   }
 });
 
@@ -287,7 +291,7 @@ test("#8488 auto: tool pre-filter fail-open opt-in keeps full pool", async () =>
   }
 });
 
-test("#8488 auto: context pre-filter fail closed when all known limits too small", async () => {
+test("auto context estimate still dispatches when all known limits look too small", async () => {
   saveModelsDevCapabilities({
     openai: {
       tiny: capabilityEntry(100, { tool_call: true }),
@@ -295,22 +299,53 @@ test("#8488 auto: context pre-filter fail closed when all known limits too small
   });
 
   const hugePrompt = "x".repeat(4000); // ~1000 tokens at 4 chars/token
-  const result = await resolveAutoStrategyOrder({
-    orderedTargets: [target("openai", "openai/tiny")] as never,
+  const dispatches: string[] = [];
+  const result = await handleComboChat({
     body: { messages: [{ role: "user", content: hugePrompt }] },
-    combo: { id: "c1", name: "auto-ctx", config: {} } as never,
+    combo: { id: "c1", name: "auto-ctx", strategy: "auto", models: ["openai/tiny"] },
+    handleSingleModel: async (_body, modelStr) => {
+      dispatches.push(modelStr);
+      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    isModelAvailable: async () => true,
+    log,
     settings: null,
-    config: {},
     relayOptions: null,
-    resilienceSettings: { quotaPreflight: { enabled: false } } as never,
-    log: log as never,
-    buildAutoCandidates: (async () => []) as never,
+    allCombos: null,
   });
 
-  assert.ok("earlyResponse" in result);
-  if ("earlyResponse" in result) {
-    assert.equal(result.earlyResponse.status, 400);
-    const body = await result.earlyResponse.json();
-    assert.equal(body?.error?.code, "context_length_exceeded");
-  }
+  assert.equal(result.status, 200);
+  assert.deepEqual(dispatches, ["openai/tiny"]);
+});
+
+test("#12229 exhaustion: output_tokens exclusion names max_tokens vs the model ceiling", () => {
+  saveModelsDevCapabilities({
+    claude: {
+      "claude-haiku-4-5-20251001": capabilityEntry(200000, {
+        tool_call: true,
+        structured_output: true,
+        limit_output: 64000,
+      }),
+    },
+  });
+
+  const targets = [target("claude", "claude/claude-haiku-4-5-20251001")];
+  const body = {
+    messages: [{ role: "user", content: "hoi wie ben je?" }],
+    max_tokens: 100000,
+  };
+
+  const exhaustion = describeCapabilityFilterExhaustion(targets, body, "hermes-main");
+  assert.ok(exhaustion);
+  assert.deepEqual(exhaustion!.unmet, ["output_tokens"]);
+  assert.equal(exhaustion!.excluded[0].reason, "output_tokens");
+  assert.equal(
+    exhaustion!.message,
+    "No target in combo hermes-main can produce the requested max_tokens=100000; the highest known output limit in the pool is 64000"
+  );
+  assert.doesNotMatch(exhaustion!.message, /structured output/i);
+  assert.equal(exhaustion!.terminalReason, "capability_mismatch");
 });

@@ -1,0 +1,40 @@
+# .mailmap — canonical author identities for git log/shortlog/blame.
+#
+# Why this file exists: between 2026-08-13 and 2026-08-26 this checkout carried a
+# `git config --local` whose user.name was one contributor's ("Xiangzhe" / @xz-dev)
+# and whose user.email was ANOTHER contributor's (@backryun). Every commit produced
+# on this machine in that window was therefore signed with @backryun's address —
+# 237 commits, all in the -0300 timezone, while @backryun's own work commits from
+# +0900 and continued normally throughout. The local override was removed on
+# 2026-08-26; this file repairs the RECORD without rewriting published history
+# (those commits live on release/v3.8.50 and release/v3.8.51, which other sessions
+# and open PRs build on — a rewrite would force-push both and orphan the v3.8.50 tag).
+#
+# Format: Canonical Name <canonical@email> Commit Name <commit@email>
+
+# --- Maintainer: several addresses used over the project's life ---
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> <diegosouza.pw@gmail.com>
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> <diegosouza.pw@outlook.com>
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> <diegosouzapw@users.noreply.github.com>
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> Diego Rodrigues de Sa e Souza <8016841+diegosouzapw@users.noreply.github.com>
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> Diego Souza <8016841+diegosouzapw@users.noreply.github.com>
+
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> <diego.souza.pw@gmail.com>
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> <souzamiriamrodrigues790@gmail.com>
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> <diego.souza@cdwasolutions.com.br>
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> <diegosouzapw@devbox.local>
+
+# --- The misattribution window: name Xiangzhe + @backryun's email, from -0300.
+# These are maintainer/session commits, NOT @backryun's contributions.
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> Xiangzhe <bakryun0718@proton.me>
+diegosouzapw <8016841+diegosouzapw@users.noreply.github.com> Xiangzhe <diegosouza.pw@gmail.com>
+
+# --- Xiangzhe (@xz-dev) — a distinct contributor; keep their own work intact ---
+Xiangzhe <32761048+xz-dev@users.noreply.github.com> <xz-dev@users.noreply.github.com>
+Xiangzhe <32761048+xz-dev@users.noreply.github.com> <xiangzhedev@gmail.com>
+
+# --- @backryun's own alternate addresses (their real work, kept intact) ---
+backryun <24198422+backryun@users.noreply.github.com> <bakryun0718@proton.me>
+backryun <24198422+backryun@users.noreply.github.com> <backryun@daonlab.local>
+backryun <24198422+backryun@users.noreply.github.com> <busan011@ormbiz.co.kr>
+backryun <24198422+backryun@users.noreply.github.com> <backryun@users.noreply.github.com>

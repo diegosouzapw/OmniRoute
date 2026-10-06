@@ -20,15 +20,15 @@ await settingsDb.updateSettings({
   password: "test-password-hash",
 });
 
-const { getLegacyCliTokenSync, getMachineTokenSync } = await import(
-  "../../../src/lib/machineToken.ts"
-);
+const { getLegacyCliTokenSync, getMachineTokenSync } =
+  await import("../../../src/lib/machineToken.ts");
+const { requireManagementAuth } = await import("../../../src/lib/api/requireManagementAuth.ts");
 const { managementPolicy } = await import("../../../src/server/authz/policies/management.ts");
 const { CLI_TOKEN_HEADER } = await import("../../../src/server/authz/headers.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (originalDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = originalDataDir;
 });
@@ -102,4 +102,35 @@ test("management policy rejects wrong CLI token from localhost", async () => {
   );
   const outcome = await managementPolicy.evaluate(ctx);
   assert.equal(outcome.allow, false);
+});
+
+test("route-level auth trusts only the central local-CLI subject stamp", async () => {
+  const request = new Request("http://localhost/api/cli/whoami", {
+    headers: {
+      "x-omniroute-auth-kind": "management_key",
+      "x-omniroute-auth-label": "local-cli-token",
+    },
+  });
+  assert.equal(await requireManagementAuth(request, { alwaysRequireAuth: true }), null);
+
+  const spoofedLabelOnly = new Request("http://localhost/api/cli/whoami", {
+    headers: { "x-omniroute-auth-label": "local-cli-token" },
+  });
+  assert.notEqual(await requireManagementAuth(spoofedLabelOnly, { alwaysRequireAuth: true }), null);
+});
+
+test("management policy rejects machine tokens when CLI-token auth is disabled", async () => {
+  const previous = process.env.OMNIROUTE_DISABLE_CLI_TOKEN;
+  process.env.OMNIROUTE_DISABLE_CLI_TOKEN = "true";
+  try {
+    const ctx = makeCtx(
+      { host: "localhost", [CLI_TOKEN_HEADER]: getMachineTokenSync() },
+      { socket: { remoteAddress: "127.0.0.1" } }
+    );
+    const outcome = await managementPolicy.evaluate(ctx);
+    assert.equal(outcome.allow, false);
+  } finally {
+    if (previous === undefined) delete process.env.OMNIROUTE_DISABLE_CLI_TOKEN;
+    else process.env.OMNIROUTE_DISABLE_CLI_TOKEN = previous;
+  }
 });

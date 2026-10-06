@@ -14,7 +14,7 @@ const comboRoute = await import("../../src/app/api/combos/[id]/route.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -77,7 +77,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("POST /api/combos persists names with spaces and square brackets", async () => {
@@ -270,7 +270,6 @@ test("PUT /api/combos preserves legacy string combo refs during normalization", 
   assert.equal(stored.models[0].kind, "combo-ref");
   assert.equal(stored.models[0].comboName, "child-ref");
 });
-
 
 test("POST /api/combos returns a structured 400 for invariant violations", async () => {
   const response = await createRoute.POST(

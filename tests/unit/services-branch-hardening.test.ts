@@ -19,7 +19,7 @@ test.after(() => {
     process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   }
   try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     // Best effort cleanup
   }
@@ -113,8 +113,8 @@ test("model capability helpers cover denylist, empty input and default-safe path
   );
 
   assert.equal(modelCapabilities.supportsReasoning(""), true);
-  assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4-6"), false);
-  assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4"), false);
+  assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4-6"), true);
+  assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4"), true);
   assert.equal(modelCapabilities.supportsReasoning("openai/nonexistent-default-safe-model"), true);
 });
 
@@ -410,16 +410,16 @@ test("model helpers cover malformed input, alias maps, wildcard aliases, ambigui
   assert.ok(Array.isArray(ambiguous.candidateProviders));
   assert.ok(ambiguous.candidateProviders.length >= 2);
 
-  assert.deepEqual(await modelService.getModelInfoCore("claude-unknown", {}), {
-    provider: "anthropic",
-    model: "claude-unknown",
-    extendedContext: false,
-  });
-  assert.deepEqual(await modelService.getModelInfoCore("gemini-custom", {}), {
-    provider: "gemini",
-    model: "gemini-custom",
-    extendedContext: false,
-  });
+  const unknownClaude = await modelService.getModelInfoCore("claude-unknown", {});
+  assert.equal(unknownClaude.provider, null);
+  assert.equal(unknownClaude.errorType, "model_not_found");
+  assert.ok(unknownClaude.errorMessage.includes("claude-unknown"));
+  assert.ok(unknownClaude.errorMessage.includes("provider/model prefix"));
+  const unknownGemini = await modelService.getModelInfoCore("gemini-custom", {});
+  assert.equal(unknownGemini.provider, null);
+  assert.equal(unknownGemini.errorType, "model_not_found");
+  assert.ok(unknownGemini.errorMessage.includes("gemini-custom"));
+  assert.ok(unknownGemini.errorMessage.includes("provider/model prefix"));
   const unknownModel = await modelService.getModelInfoCore("made-up-model", {});
   assert.equal(unknownModel.provider, null);
   assert.equal(unknownModel.errorType, "model_not_found");

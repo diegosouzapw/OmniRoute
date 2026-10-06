@@ -1,4 +1,5 @@
 import type { SearchProviderConfig } from "../../config/searchRegistry.ts";
+import { parseAndValidatePublicUrl } from "@/shared/network/outboundUrlGuard";
 
 export interface FirecrawlSearchParams {
   query: string;
@@ -72,8 +73,17 @@ export function buildFirecrawlSearchRequest(
   const envBase = process.env.FIRECRAWL_BASE_URL?.trim().replace(/\/+$/, "");
   const providerData = params.providerSpecificData as Record<string, unknown> | undefined;
   const paramBase = typeof params.baseUrl === "string" ? params.baseUrl : providerData?.baseUrl;
-  const customBase = typeof paramBase === "string" && paramBase.trim() ? paramBase.trim().replace(/\/+$/, "") : undefined;
+  const customBase =
+    typeof paramBase === "string" && paramBase.trim()
+      ? paramBase.trim().replace(/\/+$/, "")
+      : undefined;
   const rawBase = envBase || customBase;
+  // #3049: `customBase` (params.baseUrl / providerSpecificData.baseUrl) is client-controlled —
+  // validate it as a public URL before it is used to build the server-side fetch target, so a
+  // caller cannot redirect the search request at loopback, RFC1918, or cloud-metadata hosts.
+  if (customBase) {
+    parseAndValidatePublicUrl(customBase);
+  }
   const url = rawBase ? `${rawBase}/v2/search` : config.baseUrl;
   const { includes, excludes } = parseDomainFilter(params.domainFilter);
   const source = params.searchType === "news" ? "news" : "web";

@@ -29,7 +29,7 @@ Update rate limit configuration
 
 ```bash
 curl -X POST https://localhost:20128/api/rate-limit \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```

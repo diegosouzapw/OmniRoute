@@ -25,6 +25,7 @@ import {
 import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
+import { getCodexBackendIdentityHeaders } from "../config/codexClient.ts";
 
 /**
  * Stable identifiers for Codex's quota windows. These match the quota keys
@@ -222,6 +223,9 @@ export async function fetchCodexQuota(
       Authorization: `Bearer ${meta.accessToken}`,
       "Content-Type": "application/json",
       Accept: "application/json",
+      // Canonical Codex backend identity (UA + originator + version), same
+      // chain as inference — see getCodexUsage.
+      ...getCodexBackendIdentityHeaders(),
     };
 
     if (meta.workspaceId) {

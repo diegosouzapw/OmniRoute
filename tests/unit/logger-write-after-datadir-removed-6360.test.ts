@@ -70,7 +70,7 @@ test("logger must not crash the process when its worker transport reports a writ
 
     // Simulate the teardown every test file already does: rip out DATA_DIR
     // while the logger's worker-thread transport is still alive.
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     assert.equal(existsSync(dir), false, "sanity: DATA_DIR must actually be gone");
 
     // Simulate the worker thread reporting the resulting write failure back to
@@ -104,6 +104,6 @@ test("logger must not crash the process when its worker transport reports a writ
 test.after(async () => {
   await flushLogger();
   if (existsSync(dir)) {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

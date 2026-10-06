@@ -5,7 +5,7 @@
  * is the source of truth; this schema validates whatever we downloaded
  * before caching it locally.
  *
- * Schema version: 1
+ * Schema versions: v1 legacy + v2 with explicit unknown model metadata.
  */
 
 import { z } from "zod";
@@ -81,15 +81,44 @@ const LimitsSchema = z.object({
   tpd: IntNullable,
 });
 
-const CapabilitiesSchema = z.object({
+const CapabilitiesV1Schema = z.object({
   tools: z.boolean(),
   vision: z.boolean(),
   thinking: z.boolean(),
 });
 
+const CapabilitiesV2Schema = z.object({
+  tools: z.boolean().nullable(),
+  vision: z.boolean().nullable(),
+  thinking: z.boolean().nullable(),
+});
+
+const MetadataEvidenceUrlSchema = z
+  .string()
+  .url()
+  .superRefine((value, ctx) => {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "https:" || parsed.username || parsed.password) {
+      ctx.addIssue({ code: "custom", message: "metadata evidence must use credential-free HTTPS" });
+    }
+  });
+
+const SetupKeyUrlSchema = z
+  .string()
+  .url()
+  .superRefine((value, ctx) => {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.port) {
+      ctx.addIssue({
+        code: "custom",
+        message: "setup key URL must use credential-free HTTPS on the default port",
+      });
+    }
+  });
+
 const SetupSchema = z
   .object({
-    keyUrl: z.string().url().nullable(),
+    keyUrl: SetupKeyUrlSchema.nullable(),
     steps: z.array(RadarLocalizedTextSchema),
   })
   .nullable();
@@ -141,7 +170,7 @@ const RadarReferralsSchema = z
 // Model
 // ---------------------------------------------------------------------------
 
-const ModelSchema = z.object({
+const ModelV1Schema = z.object({
   provider: z.string(),
   modelId: z.string(),
   displayName: z.string(),
@@ -150,11 +179,26 @@ const ModelSchema = z.object({
   budget: BudgetSchema,
   limits: LimitsSchema,
   contextWindow: z.number().int().nullable(),
-  capabilities: CapabilitiesSchema,
+  capabilities: CapabilitiesV1Schema,
   trainsOnPrompts: z.boolean().nullable(),
   tosRisk: TosRiskEnum,
+  /** Real quota, but behind a regional identity verification (counted apart on the client). */
+  eligibilityGate: z.enum(["regional-identity"]).nullable().optional(),
   setup: SetupSchema,
   enabled: z.boolean(),
+});
+
+const ModelV2Schema = ModelV1Schema.extend({
+  contextWindow: z.number().int().positive().nullable(),
+  capabilities: CapabilitiesV2Schema,
+  metadataEvidenceUrls: z.array(MetadataEvidenceUrlSchema),
+}).superRefine((model, ctx) => {
+  const hasMetadata =
+    model.contextWindow !== null ||
+    Object.values(model.capabilities).some((capability) => capability !== null);
+  if (hasMetadata && model.metadataEvidenceUrls.length === 0) {
+    ctx.addIssue({ code: "custom", message: "known model metadata requires evidence" });
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -187,7 +231,7 @@ const QuirkSchema = z.object({
 // Top-level feed schema
 // ---------------------------------------------------------------------------
 
-export const RadarFeedSchema = z.object({
+const RadarFeedV1Schema = z.object({
   feed: z.literal("omniroute-radar"),
   schemaVersion: z.literal(1),
   version: z.string(),
@@ -206,7 +250,7 @@ export const RadarFeedSchema = z.object({
     models: z.number().int(),
   }),
   providers: z.array(ProviderSchema),
-  models: z.array(ModelSchema),
+  models: z.array(ModelV1Schema),
   quirks: z.array(QuirkSchema),
   referrals: RadarReferralsSchema,
   totals: z.object({
@@ -216,12 +260,40 @@ export const RadarFeedSchema = z.object({
   }),
 });
 
+const RadarFeedV2Schema = RadarFeedV1Schema.extend({
+  schemaVersion: z.literal(2),
+  models: z.array(ModelV2Schema),
+});
+
+const RawRadarFeedSchema = z.discriminatedUnion("schemaVersion", [
+  RadarFeedV1Schema,
+  RadarFeedV2Schema,
+]);
+
+export const RadarFeedSchema = RawRadarFeedSchema.transform((feed) => {
+  if (feed.schemaVersion === 2) return feed;
+  return {
+    ...feed,
+    models: feed.models.map((model) => ({
+      ...model,
+      // The v1 builder used false as an absence placeholder. True was never
+      // a default, so it remains factual; false is normalized to unknown.
+      capabilities: {
+        tools: model.capabilities.tools || null,
+        vision: model.capabilities.vision || null,
+        thinking: model.capabilities.thinking || null,
+      },
+      metadataEvidenceUrls: [],
+    })),
+  };
+});
+
 // ---------------------------------------------------------------------------
 // Inferred types
 // ---------------------------------------------------------------------------
 
 export type RadarFeed = z.infer<typeof RadarFeedSchema>;
-export type RadarModel = z.infer<typeof ModelSchema>;
+export type RadarModel = z.infer<typeof ModelV2Schema>;
 export type RadarProvider = z.infer<typeof ProviderSchema>;
 export type RadarQuirk = z.infer<typeof QuirkSchema>;
 export type RadarBudget = z.infer<typeof BudgetSchema>;

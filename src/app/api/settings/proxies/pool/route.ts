@@ -4,13 +4,11 @@ import {
   getScopeProxyPool,
   getScopeRotationStrategy,
   setScopeRotationStrategy,
-} from "@/lib/localDb";
-import {
-  proxyPoolMemberSchema,
-  proxyRotationStrategySchema,
-} from "@/shared/validation/schemas";
+} from "@/lib/db/proxies";
+import { proxyPoolMemberSchema, proxyRotationStrategySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
+import { isScopeIdMissing } from "@/lib/db/proxies/mappers";
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
@@ -44,7 +42,8 @@ export async function GET(request: Request) {
     }
     const scope = normalizeScopeAlias(rawScope);
     const scopeId = searchParams.get("scopeId");
-    if (scope !== "global" && !scopeId?.trim()) {
+    // Contract: scope carries only the key→account alias — unknown scopes stay raw, never "global".
+    if (isScopeIdMissing(scope, scopeId)) {
       return createErrorResponse({
         status: 400,
         message: "scopeId is required for provider/account/combo/key scope",

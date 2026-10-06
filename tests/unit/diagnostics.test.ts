@@ -56,6 +56,47 @@ test("synthOpenAIErrorChunk references provider in message", () => {
   );
 });
 
+test("detectMalformedNonStream allows Claude message with (empty response) + stop_reason=length (ollama qwen3)", () => {
+  const resp = {
+    type: "message",
+    content: [{ type: "text", text: "(empty response)" }],
+    stop_reason: "length",
+  };
+  assert.strictEqual(
+    detectMalformedNonStream(resp),
+    null,
+    "ollama reasoning truncation should not be empty_choices"
+  );
+});
+
+// Chat-completions spelling of the same truncation. Claude's translator maps
+// stop_reason "max_tokens" to finish_reason "length"; a thinking model can
+// burn a 1-token probe budget and return no visible text. The Claude shape
+// exempts that (#12968); the translated shape must too.
+test("detectMalformedNonStream allows a chat completion truncated at length with no visible text", () => {
+  const resp = {
+    choices: [{ finish_reason: "length", message: { role: "assistant", content: null } }],
+  };
+  assert.equal(detectMalformedNonStream(resp), null);
+});
+
+test("detectMalformedNonStream still rejects a chat completion that stopped with no output", () => {
+  const resp = {
+    choices: [{ finish_reason: "stop", message: { role: "assistant", content: null } }],
+  };
+  assert.equal(detectMalformedNonStream(resp), "empty_choices");
+});
+
+// finishReason.ts normalizes "max_tokens" to "length" before this function
+// sees it. If a caller bypasses that normalization, the raw "max_tokens"
+// spelling must still be rejected — only the normalized "length" is exempt.
+test("detectMalformedNonStream rejects a chat completion with raw max_tokens and no output", () => {
+  const resp = {
+    choices: [{ finish_reason: "max_tokens", message: { role: "assistant", content: null } }],
+  };
+  assert.equal(detectMalformedNonStream(resp), "empty_choices");
+});
+
 // ── (b) synthResponsesFailure matches a response.failed event ────────────────
 
 test("synthResponsesFailure produces a response.failed SSE event", () => {
@@ -100,6 +141,22 @@ test("failed Responses API body gets a request-scoped machine-readable classific
   assert.equal(reason, "empty_choices");
   assert.deepEqual(describeMalformedNonStream(failed, reason), {
     message: "upstream reported a failed response without usable output",
+    code: "upstream_response_failed",
+    type: "upstream_response_error",
+  });
+});
+
+test("failed Responses API body surfaces the upstream error message when present", () => {
+  const failed = {
+    object: "response",
+    status: "failed",
+    output: [],
+    error: { code: "server_error", message: "  Gemini 503: overloaded  " },
+  };
+  const reason = detectMalformedNonStream(failed);
+  assert.equal(reason, "empty_choices");
+  assert.deepEqual(describeMalformedNonStream(failed, reason), {
+    message: "upstream reported a failed response: Gemini 503: overloaded",
     code: "upstream_response_failed",
     type: "upstream_response_error",
   });
@@ -247,6 +304,72 @@ test("detectMalformedNonStream returns 'no_terminal' for Responses API with fail
   assert.equal(detectMalformedNonStream(body), "no_terminal");
 });
 
+// OpenAI Responses API spec: "incomplete" and "cancelled" are legal terminal
+// states (budget exhausted / cancelled upstream), not malformed bodies. A
+// non-streaming /v1/responses request with a small max_output_tokens on a
+// reasoning model deterministically produces status:"incomplete"; surfacing
+// that body to the client (like chat-completions finish_reason:"length")
+// is correct, while mapping it to 502 "did not reach a terminal state"
+// breaks every such request.
+test("detectMalformedNonStream passes Responses API incomplete status through", () => {
+  const body = {
+    object: "response",
+    status: "incomplete",
+    incomplete_details: { reason: "max_output_tokens" },
+    output: [
+      {
+        type: "message",
+        content: [{ type: "output_text", text: "Partial essay…" }],
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream passes Responses API cancelled status through", () => {
+  const body = {
+    object: "response",
+    status: "cancelled",
+    output: [
+      {
+        type: "message",
+        content: [{ type: "output_text", text: "Partial answer" }],
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+// parseSSEToResponsesOutput writes this spelling when the terminal event is
+// response.canceled and the snapshot omits status (sseParser.ts).
+test("detectMalformedNonStream passes the SSE parser's canceled spelling through", () => {
+  const body = {
+    object: "response",
+    status: "canceled",
+    output: [
+      {
+        type: "message",
+        content: [{ type: "output_text", text: "Bye" }],
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream still flags Responses API in_progress as no_terminal", () => {
+  const body = {
+    object: "response",
+    status: "in_progress",
+    output: [
+      {
+        type: "message",
+        content: [{ type: "output_text", text: "Mid-stream snapshot" }],
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), "no_terminal");
+});
+
 test("detectMalformedNonStream allows Responses API function_call items as valid output", () => {
   const body = {
     object: "response",
@@ -291,6 +414,30 @@ test("detectMalformedNonStream returns null for Claude message with thinking blo
 test("detectMalformedNonStream returns 'empty_choices' for Claude message with empty content", () => {
   const body = { type: "message", role: "assistant", content: [], stop_reason: "end_turn" };
   assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
+test("detectMalformedNonStream returns null for Claude content:[] with stop_reason max_tokens (Claude Code /model probe)", () => {
+  // Claude Code probes model switches with Hi + max_tokens:1. Opus can burn the
+  // token on thinking and return an empty content array with max_tokens — valid
+  // upstream 200, must not become empty_choices / 502.
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [],
+    stop_reason: "max_tokens",
+    usage: { input_tokens: 33, output_tokens: 1 },
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns null for Claude content:[] with no stop_reason (#9971 non-terminal)", () => {
+  const body = { type: "message", role: "assistant", content: [] };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns null for Claude content:[] with stop_reason tool_use (parity with errorClassifier)", () => {
+  const body = { type: "message", role: "assistant", content: [], stop_reason: "tool_use" };
+  assert.equal(detectMalformedNonStream(body), null);
 });
 
 test("detectMalformedNonStream returns 'empty_choices' for Claude message with empty-text block", () => {

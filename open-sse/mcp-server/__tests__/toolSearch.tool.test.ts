@@ -29,11 +29,28 @@ describe("omniroute_tool_search", () => {
   });
 
   it("returns relevant tool with a signature, not itself", async () => {
-    const res = await client.callTool({ name: "omniroute_tool_search", arguments: { query: "health" } });
+    const res = await client.callTool({
+      name: "omniroute_tool_search",
+      arguments: { query: "health" },
+    });
     const text = (res.content as Array<{ text: string }>)[0].text;
     const parsed = JSON.parse(text);
     expect(parsed.tools.some((t: any) => t.name === "omniroute_get_health")).toBe(true);
     expect(parsed.tools.every((t: any) => t.name !== "omniroute_tool_search")).toBe(true);
     expect(typeof parsed.tools[0].signature).toBe("string");
+  });
+
+  it("discovers all GitHub skill tools", async () => {
+    const res = await client.callTool({
+      name: "omniroute_tool_search",
+      arguments: { query: "GitHub skills", limit: 25 },
+    });
+    const text = (res.content as Array<{ text: string }>)[0].text;
+    const parsed = JSON.parse(text);
+    const names = new Set(parsed.tools.map((tool: { name: string }) => tool.name));
+
+    expect(names.has("omniroute_github_skills_search")).toBe(true);
+    expect(names.has("omniroute_github_skills_scan")).toBe(true);
+    expect(names.has("omniroute_github_skills_install")).toBe(true);
   });
 });

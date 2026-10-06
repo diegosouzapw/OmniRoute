@@ -18,11 +18,14 @@
  * message history back onto the allocating path.
  */
 
+const BASE64_DATA_URI_RE = /data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+/gi;
+
 /** Length of a JSON-encoded string, including the surrounding quotes. */
-function encodedStringLength(value: string): number {
+function encodedStringLength(value: string, stripBase64 = false): number {
+  const target = stripBase64 ? value.replace(BASE64_DATA_URI_RE, "") : value;
   let len = 2; // the quotes
-  for (let i = 0; i < value.length; i++) {
-    const code = value.charCodeAt(i);
+  for (let i = 0; i < target.length; i++) {
+    const code = target.charCodeAt(i);
     if (code === 0x22 || code === 0x5c) {
       len += 2; // \" and \\
     } else if (code === 0x08 || code === 0x09 || code === 0x0a || code === 0x0c || code === 0x0d) {
@@ -33,7 +36,7 @@ function encodedStringLength(value: string): number {
       // Surrogates: a well-formed pair serializes as its two code units (2 chars); a LONE
       // surrogate is escaped as \uXXXX since ES2019 well-formed JSON.stringify.
       const isHigh = code <= 0xdbff;
-      const next = isHigh ? value.charCodeAt(i + 1) : NaN;
+      const next = isHigh ? target.charCodeAt(i + 1) : NaN;
       const paired = isHigh && next >= 0xdc00 && next <= 0xdfff;
       if (paired) {
         len += 2;
@@ -66,14 +69,34 @@ function isPlainContainer(value: object): boolean {
  * Throws on circular structures and BigInt, exactly as JSON.stringify does.
  */
 export function jsonLength(value: unknown): number {
-  return lengthOf(value, new Set<object>());
+  return lengthOf(value, new Set<object>(), false);
 }
 
-function lengthOf(value: unknown, seen: Set<object>): number {
+/**
+ * Same as `jsonLength`, but strips `data:image/*;base64,...` data URIs from strings
+ * before counting, matching `countTextTokens(JSON.stringify(body))` semantics for
+ * token heuristics without materializing the multi-megabyte string (#7847).
+ */
+export function jsonLengthStrippingBase64DataUris(value: unknown): number {
+  return lengthOf(value, new Set<object>(), true);
+}
+
+/**
+ * Raw length of a string with `data:image/*;base64,...` data URIs removed. Unlike
+ * `jsonLengthStrippingBase64DataUris`, this returns the plain code-unit count with NO
+ * JSON-encoding overhead (no surrounding quotes/escaping). Use it where a threshold was
+ * previously fed by `string.length` (e.g. thinking-budget complexity) but the value may
+ * embed a base64 image.
+ */
+export function rawLengthStrippingBase64DataUris(value: string): number {
+  return value.replace(BASE64_DATA_URI_RE, "").length;
+}
+
+function lengthOf(value: unknown, seen: Set<object>, stripBase64: boolean): number {
   if (value === null) return 4; // "null"
   const type = typeof value;
 
-  if (type === "string") return encodedStringLength(value as string);
+  if (type === "string") return encodedStringLength(value as string, stripBase64);
   if (type === "boolean") return value ? 4 : 5;
   if (type === "number") {
     // Non-finite numbers serialize as null.
@@ -92,7 +115,8 @@ function lengthOf(value: unknown, seen: Set<object>): number {
   // Map, boxed primitives. Scoped to this subtree so the big arrays stay on the fast path.
   if (!isPlainContainer(obj) || typeof (obj as { toJSON?: unknown }).toJSON === "function") {
     const encoded = JSON.stringify(obj);
-    return encoded === undefined ? 0 : encoded.length;
+    if (encoded === undefined) return 0;
+    return stripBase64 ? encoded.replace(BASE64_DATA_URI_RE, "").length : encoded.length;
   }
 
   if (seen.has(obj)) {
@@ -106,7 +130,7 @@ function lengthOf(value: unknown, seen: Set<object>): number {
         if (i > 0) len += 1; // comma
         const item = obj[i];
         // Omitted values render as null inside arrays rather than disappearing.
-        len += isOmitted(item) ? 4 : lengthOf(item, seen);
+        len += isOmitted(item) ? 4 : lengthOf(item, seen, stripBase64);
       }
       return len;
     }
@@ -118,7 +142,7 @@ function lengthOf(value: unknown, seen: Set<object>): number {
       if (isOmitted(item)) continue; // the whole entry disappears
       if (!first) len += 1; // comma
       first = false;
-      len += encodedStringLength(key) + 1 + lengthOf(item, seen); // "key":value
+      len += encodedStringLength(key, false) + 1 + lengthOf(item, seen, stripBase64); // "key":value
     }
     return len;
   } finally {

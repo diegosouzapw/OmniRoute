@@ -22,9 +22,9 @@ bin/cli/
 ├── provider-test.mjs       ← testProviderApiKey()
 ├── settings-store.mjs      ← DB CRUD for key_value settings
 ├── locales/
-│   ├── en.json             ← English strings (source of truth, 43 locales)
+│   ├── en.json             ← English strings (source of truth, 42 locales)
 │   ├── pt-BR.json          ← Portuguese (Brazil) — fully translated
-│   └── {locale}.json       ← 42 additional locales (ar, az, de, es, fr, ja, zh-CN, …)
+│   └── {locale}.json       ← 41 additional locales (ar, az, de, es, fr, ja, zh-CN, …)
 ├── scripts/
 │   └── generate-locales.mjs ← scaffold new locale files from config/i18n.json
 └── commands/

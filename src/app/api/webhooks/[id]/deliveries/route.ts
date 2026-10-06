@@ -5,7 +5,8 @@
 
 import { NextResponse } from "next/server";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
-import { getWebhook, getDeliveries } from "@/lib/localDb";
+import { getWebhook } from "@/lib/db/webhooks";
+import { getDeliveries } from "@/lib/db/webhookDeliveries";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

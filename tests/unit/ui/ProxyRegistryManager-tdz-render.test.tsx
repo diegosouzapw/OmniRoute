@@ -16,10 +16,17 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+// The component is imported STATICALLY on purpose. Pulling it in with a dynamic
+// `await import()` inside the test body charged the whole Vite transform of its
+// dependency tree (measured at ~86s on a loaded box) against the per-test
+// timeout, so the guard timed out instead of asserting anything. At module
+// scope that cost is paid during collection, which has no per-test budget.
+// The regression itself is unaffected: the #5918 ReferenceError is thrown while
+// the component body RENDERS, not while the module is evaluated.
+import ProxyRegistryManager from "@/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager";
+
 describe("ProxyRegistryManager (TDZ regression #5918)", () => {
-  it("server-renders without a use-before-init ReferenceError", { timeout: 30000 }, async () => {
-    const { default: ProxyRegistryManager } =
-      await import("@/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager");
+  it("server-renders without a use-before-init ReferenceError", () => {
     const html = renderToString(React.createElement(ProxyRegistryManager));
     // The heading key is rendered via the mocked translator (key echo).
     expect(html).toContain("title");

@@ -27,9 +27,8 @@ fs.chmodSync(realBinaryPath, 0o755);
 const symlinkPath = path.join(localBinDir, "opencode");
 fs.symlinkSync(realBinaryPath, symlinkPath);
 
-const { getCliRuntimeStatus, checkKnownPath } = await import(
-  "../../src/shared/services/cliRuntime.ts"
-);
+const { getCliRuntimeStatus, checkKnownPath } =
+  await import("../../src/shared/services/cliRuntime.ts");
 
 test("#7753: a CLI symlink located inside an expected parent dir is wrongly reported not-installed when its resolved target escapes EXPECTED_PARENT_PATHS", async () => {
   const status = await getCliRuntimeStatus("opencode");
@@ -51,10 +50,10 @@ test("#7753: a genuinely unsafe symlink whose ORIGINAL location is also untruste
   assert.equal(result.installed, false);
   assert.equal(result.reason, "symlink_escape");
 
-  await fsp.rm(untrustedDir, { recursive: true, force: true });
+  await fsp.rm(untrustedDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test.after(async () => {
-  await fsp.rm(sandboxHome, { recursive: true, force: true });
-  await fsp.rm(outsideDir, { recursive: true, force: true });
+  await fsp.rm(sandboxHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await fsp.rm(outsideDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });

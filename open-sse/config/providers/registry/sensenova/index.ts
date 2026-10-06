@@ -27,6 +27,8 @@ export const sensenovaProvider: RegistryEntry = {
       contextLength: 1048576,
       maxOutputTokens: 65536,
       supportsReasoning: true,
+      supportedThinkingEfforts: ["none", "low", "medium", "high", "xhigh"],
+      supportsXHighEffort: true,
       interleavedField: "reasoning_content",
     },
     {

@@ -16,7 +16,8 @@ if (!process.env.API_KEY_SECRET) {
 
 const { getDbInstance, resetDbInstance } = await import("../../../src/lib/db/core.ts");
 const gami = await import("../../../src/lib/db/gamification.ts");
-const { seedBuiltinBadges, BUILTIN_BADGES } = await import("../../../src/lib/gamification/badges.ts");
+const { seedBuiltinBadges, BUILTIN_BADGES } =
+  await import("../../../src/lib/gamification/badges.ts");
 
 test.after(() => {
   try {
@@ -29,7 +30,7 @@ test.after(() => {
   } catch {
     /* ignore */
   }
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#3484 getAggregateXp on an empty ledger → zero XP, level 1, no throw", () => {
@@ -47,18 +48,21 @@ test("#3484 seedBuiltinBadges populates the catalog (getBadgeDefinitions non-emp
   assert.equal(gami.getBadgeDefinitions().length, BUILTIN_BADGES.length);
 });
 
-test("#3484 getAggregateXp sums XP across keys and takes the highest level", () => {
+test("#3484 getAggregateXp sums XP across keys and derives the level from the summed XP", () => {
   const db = getDbInstance();
   const upsert = db.prepare(
     `INSERT OR REPLACE INTO user_levels (api_key_id, total_xp, current_level, updated_at)
      VALUES (?, ?, ?, datetime('now'))`
   );
-  upsert.run("key-a", 100, 2);
-  upsert.run("key-b", 250, 5);
+  // Both keys are individually level 1 on the XP curve (cumulative threshold for
+  // level 2 is 282 XP); summed they cross it — the aggregate level must be derived
+  // from the SAME summed XP the profile displays (#11604), not MAX(stored levels).
+  upsert.run("key-a", 100, 1);
+  upsert.run("key-b", 250, 1);
 
   const agg = gami.getAggregateXp();
   assert.equal(agg.totalXp, 350);
-  assert.equal(agg.currentLevel, 5);
+  assert.equal(agg.currentLevel, 2);
 });
 
 test("#3484 getAllEarnedBadges returns distinct badges earned by any key", () => {

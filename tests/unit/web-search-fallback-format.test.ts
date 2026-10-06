@@ -58,6 +58,26 @@ test("#2390 web_search fallback stays NESTED for Chat Completions target", () =>
   );
 });
 
+test("web_search fallback is FLAT Anthropic shape for Claude target", () => {
+  const { body, fallback } = prepareWebSearchFallbackBody(makeBody(), {
+    targetFormat: "claude",
+    nativeCodexPassthrough: false,
+  });
+  assert.equal(fallback.enabled, true);
+  const injected = body.tools[0] as Record<string, unknown>;
+  assert.equal(injected.name, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+  assert.ok(injected.input_schema, "Anthropic tool must carry input_schema");
+  assert.equal(
+    injected.function,
+    undefined,
+    "Anthropic tool must not use the Chat Completions nested .function shape"
+  );
+  assert.equal(
+    injected.type,
+    undefined,
+    "Anthropic tool must not use the OpenAI 'function' type tag"
+  );
+});
 test("#2390 tool_choice matches the injected tool shape per target format", () => {
   const responses = prepareWebSearchFallbackBody(
     { ...makeBody(), tool_choice: { type: "web_search" } },
@@ -109,6 +129,37 @@ test("bypass predicate: true for Gemini target", () => {
       provider: "gemini",
       sourceFormat: "openai",
       targetFormat: "gemini",
+      nativeCodexPassthrough: false,
+    }),
+    true
+  );
+});
+
+// #13447: Antigravity executes through the Gemini lane — its executor sanitizes
+// request.tools via buildGeminiTools(), which maps native `web_search` to
+// `{ googleSearch: {} }`. Rewriting web_search to omniroute_web_search breaks
+// streaming Responses clients (they reject the undeclared tool), so Antigravity
+// must take the same native bypass as Gemini.
+test("bypass predicate: true for Antigravity target (#13447)", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "antigravity",
+      sourceFormat: "openai-responses",
+      targetFormat: "antigravity",
+      nativeCodexPassthrough: false,
+    }),
+    true
+  );
+});
+
+test("bypass predicate: true for Antigravity target even without provider name (#13447)", () => {
+  // The targetFormat check alone must suffice: some call paths resolve the
+  // format without carrying the provider string.
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: null,
+      sourceFormat: "openai-responses",
+      targetFormat: "antigravity",
       nativeCodexPassthrough: false,
     }),
     true
@@ -245,6 +296,25 @@ test("native Codex passthrough: built-in web_search_preview forwarded untouched"
 
   assert.equal(fallback.enabled, false);
   assert.equal(fallback.toolName, null);
+  assert.deepEqual(body, inputBody);
+});
+
+test("Antigravity target: native web_search forwarded untouched (#13447)", () => {
+  // End-to-end proof of the issue: on the Responses → Antigravity path the
+  // client's declared `web_search` tool must reach the translator verbatim so
+  // it can be grounded natively — not rewritten to omniroute_web_search, which
+  // streaming Responses clients reject as an undeclared tool.
+  const inputBody = { tools: [{ type: "web_search" }] };
+  const { body, fallback } = prepareWebSearchFallbackBody(inputBody, {
+    provider: "antigravity",
+    sourceFormat: "openai-responses",
+    targetFormat: "antigravity",
+    nativeCodexPassthrough: false,
+  });
+
+  assert.equal(fallback.enabled, false);
+  assert.equal(fallback.toolName, null);
+  assert.equal(fallback.convertedToolCount, 0);
   assert.deepEqual(body, inputBody);
 });
 

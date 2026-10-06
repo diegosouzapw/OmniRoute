@@ -9,19 +9,18 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { getDbInstance, resetDbInstance } = await import("../../../src/lib/db/core.ts");
-const { getCompressionSettings, updateCompressionSettings } = await import(
-  "../../../src/lib/db/compression.ts"
-);
+const { getCompressionSettings, updateCompressionSettings } =
+  await import("../../../src/lib/db/compression.ts");
 
 function freshDir() {
   resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 after(() => {
   resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
   } else {

@@ -28,6 +28,19 @@ export function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
+/**
+ * Sanitize query text for SQLite FTS5 MATCH expressions.
+ * Strips FTS control operators and wraps individual terms in double quotes.
+ */
+export function sanitizeFts5Query(query?: string): string {
+  if (!query) return "";
+  const cleaned = query.replace(/[^\w\s\u00C0-\u024F\u1E00-\u1EFF]/g, " ").trim();
+  if (!cleaned) return "";
+  const tokens = cleaned.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return "";
+  return tokens.map((t) => `"${t}"`).join(" ");
+}
+
 export function parseMetadata(raw: unknown): Record<string, unknown> {
   if (!raw || typeof raw !== "string") return {};
   try {

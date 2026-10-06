@@ -14,7 +14,7 @@ const mco = await import("../../src/lib/db/modelContextOverrides.ts");
 
 function resetStorage() {
   coreDb.resetDbInstance();
-  fs.rmSync(moduleDataDir, { recursive: true, force: true });
+  fs.rmSync(moduleDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(moduleDataDir, { recursive: true });
 }
 
@@ -26,7 +26,7 @@ beforeEach(() => {
 
 after(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(moduleDataDir, { recursive: true, force: true });
+  fs.rmSync(moduleDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 describe("modelContextOverrides", () => {
@@ -47,7 +47,10 @@ describe("modelContextOverrides", () => {
 
   it("upserts on the same (provider, model) key and records the source", () => {
     mco.setModelContextOverride("anthropic", "claude-sonnet-4-5", 200000, "auto:discovery");
-    assert.equal(mco.getModelContextOverrideRecord("anthropic", "claude-sonnet-4-5")?.source, "auto:discovery");
+    assert.equal(
+      mco.getModelContextOverrideRecord("anthropic", "claude-sonnet-4-5")?.source,
+      "auto:discovery"
+    );
     // Re-set as manual overwrites the same row.
     mco.setModelContextOverride("anthropic", "claude-sonnet-4-5", 1000000, "manual");
     const rec = mco.getModelContextOverrideRecord("anthropic", "claude-sonnet-4-5");
@@ -82,9 +85,9 @@ describe("modelContextOverrides", () => {
     mco.setModelContextOverride("anthropic", "claude-sonnet-4-5", 200000, "auto:discovery");
     const all = mco.listModelContextOverrides();
     assert.equal(all.length, 2);
-    assert.deepEqual(
-      all.map((o) => `${o.provider}/${o.modelId}`).sort(),
-      ["anthropic/claude-sonnet-4-5", "openai/gpt-5"]
-    );
+    assert.deepEqual(all.map((o) => `${o.provider}/${o.modelId}`).sort(), [
+      "anthropic/claude-sonnet-4-5",
+      "openai/gpt-5",
+    ]);
   });
 });

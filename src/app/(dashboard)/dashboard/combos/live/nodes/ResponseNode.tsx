@@ -1,7 +1,7 @@
 "use client";
 
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { FLOW_EDGE_COLORS } from "@/shared/components/flow/edgeStyles";
+import { FLOW_EDGE_COLORS, flowColorAlpha } from "@/shared/components/flow/edgeStyles";
 import type { ComboRunModel } from "../comboFlowModel";
 
 // ── Node data shape ───────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ export function ResponseNode({ data }: NodeProps) {
       className="flex flex-col items-center gap-1.5 px-3 py-2 rounded-lg border-2 bg-bg transition-all duration-300"
       style={{
         borderColor: color,
-        boxShadow: `0 0 10px ${color}30`,
+        boxShadow: `0 0 10px ${flowColorAlpha(color, 19)}`,
         minWidth: "100px",
       }}
       data-testid="response-node"

@@ -44,7 +44,7 @@ test("materializeBundledSymlinks dereferences a live symlink into a real directo
     assert.equal(lstatSync(target).isDirectory(), true);
     assert.equal(JSON.parse(readFileSync(join(target, "package.json"), "utf8")).marker, "real-ws");
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -69,7 +69,7 @@ test("materializeBundledSymlinks relinks a dangling hashed symlink to its siblin
     assert.equal(lstatSync(target).isSymbolicLink(), false);
     assert.equal(JSON.parse(readFileSync(join(target, "package.json"), "utf8")).marker, "real-bsq");
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -89,7 +89,7 @@ test("materializeBundledSymlinks drops a dangling link with no resolvable siblin
     assert.equal(summary.removed, 1);
     assert.equal(existsSync(join(nm, "mystery-deadbeefcafe0001")), false);
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -115,7 +115,7 @@ test("materializeBundledSymlinks handles scoped-package symlinks", () => {
     assert.equal(lstatSync(target).isSymbolicLink(), false);
     assert.equal(JSON.parse(readFileSync(join(target, "package.json"), "utf8")).marker, "real-hf");
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -133,7 +133,7 @@ test("materializeBundledSymlinks leaves real directories untouched and no-ops on
     const missing = materializeBundledSymlinks(join(root, "does-not-exist"));
     assert.deepEqual(missing, { materialized: 0, relinked: 0, removed: 0 });
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -154,7 +154,7 @@ test("syncRebuiltNativeModuleIntoHashedEntries overwrites a hashed entry with th
       "electron-abi-rebuilt"
     );
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -174,7 +174,7 @@ test("syncRebuiltNativeModuleIntoHashedEntries overwrites a plain-named entry to
       "electron-abi-rebuilt"
     );
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -195,7 +195,7 @@ test("syncRebuiltNativeModuleIntoHashedEntries no-ops when root module or nested
     );
     assert.deepEqual(missingNm, { synced: 0 });
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -220,6 +220,6 @@ test("syncRebuiltNativeModuleIntoHashedEntries leaves unrelated entries untouche
       "unrelated-package"
     );
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

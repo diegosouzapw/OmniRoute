@@ -34,28 +34,16 @@ test("initCloudSync: cloud sync is initialised before the registry starts any jo
   );
 });
 
-test("server-init: cloud sync is initialised before the registry starts any job", () => {
-  const source = readSource("src/server-init.ts");
-  const initCall = source.indexOf("await initializeCloudSync(");
-  const startAllCall = source.indexOf("jobRegistry.startAll(");
-
-  assert.notEqual(initCall, -1, "initializeCloudSync() call not found");
-  assert.notEqual(startAllCall, -1, "jobRegistry.startAll() call not found");
-  assert.ok(initCall < startAllCall, "startAll() must come after initializeCloudSync()");
-});
-
-test("both boot paths register the same jobs", () => {
-  for (const relativePath of ["src/lib/initCloudSync.ts", "src/server-init.ts"]) {
-    const source = readSource(relativePath);
-    assert.match(
-      source,
-      /registerBudgetResetJob\s*\(/,
-      `${relativePath} must register the budget reset job`
-    );
-    assert.match(
-      source,
-      /registerTokenHealthCheck\s*\(/,
-      `${relativePath} must register the token health check job`
-    );
-  }
+test("initCloudSync: both budget and token-health jobs are registered", () => {
+  const source = readSource("src/lib/initCloudSync.ts");
+  assert.match(
+    source,
+    /registerBudgetResetJob\s*\(/,
+    "src/lib/initCloudSync.ts must register the budget reset job"
+  );
+  assert.match(
+    source,
+    /registerTokenHealthCheck\s*\(/,
+    "src/lib/initCloudSync.ts must register the token health check job"
+  );
 });

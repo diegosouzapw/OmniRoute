@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import {
   BaseExecutor,
   ExecuteInput,
@@ -12,6 +14,11 @@ import {
 } from "../config/providerHeaderProfiles.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
+
+/** Correlation-id fallback for runtimes without crypto.randomUUID — still CSPRNG-backed. */
+function randomIdFallback(): string {
+  return `${Date.now()}-${randomBytes(9).toString("hex")}`;
+}
 
 /**
  * What a Copilot credential refresh resolves to.
@@ -84,14 +91,17 @@ export class GithubExecutor extends BaseExecutor {
       typeof overrideTargetFormat === "string"
         ? overrideTargetFormat
         : getModelTargetFormat("gh", model);
-    // Claude models: route to Copilot's Anthropic-native /v1/messages shim — the
-    // only Copilot endpoint that surfaces prompt-cache token counts for Claude and
-    // avoids a lossy round-trip of tool_use/tool_result/thinking content blocks
-    // through the OpenAI shape. Driven by the registry's per-model targetFormat
-    // (see registry/github/index.ts), which chatCore.ts also uses to translate the
-    // request to Claude shape before the executor ever sees it.
+    // Claude models: ALWAYS route to Copilot's Anthropic-native /v1/messages
+    // shim — the only Copilot endpoint that surfaces prompt-cache token counts
+    // for Claude and avoids a lossy round-trip of tool_use/tool_result/thinking
+    // content blocks through the OpenAI shape. Matched on the model NAME (not
+    // only the registry's per-model targetFormat) so a Claude model that is
+    // missing its targetFormat tag, or a custom Claude id, still gets the native
+    // shim rather than silently falling through to /chat/completions. Mirrors
+    // the Hermes copilot routing (`if "claude" in model: return CAPI_MESSAGES_URL`).
     // Port of decolua/9router#2608 (author: yidecode).
-    if (targetFormat === "claude" && this.config.messagesUrl) {
+    const isClaudeModel = /claude/i.test(model || "");
+    if ((targetFormat === "claude" || isClaudeModel) && this.config.messagesUrl) {
       return this.config.messagesUrl;
     }
     // 9router#102: Copilot Codex models advertise supported_endpoints: ["/responses"]
@@ -321,22 +331,83 @@ export class GithubExecutor extends BaseExecutor {
   ): Record<string, string> {
     const token = this.getCopilotToken(credentials) || credentials.accessToken;
     const initiator = this.resolveInitiatorHeader(clientHeaders);
+    const clientIntegrationId =
+      this.readClientHeader(clientHeaders, "copilot-integration-id") || undefined;
 
     const headers: Record<string, string> = {
-      ...getGitHubCopilotChatHeaders(stream ? "text/event-stream" : "application/json", initiator),
+      ...getGitHubCopilotChatHeaders(
+        stream ? "text/event-stream" : "application/json",
+        initiator,
+        clientIntegrationId ? { integrationId: clientIntegrationId } : undefined
+      ),
       Authorization: `Bearer ${token}`,
-      "x-request-id":
-        crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      "x-request-id": crypto.randomUUID?.() || randomIdFallback(),
     };
+
+    // Per-call / per-conversation / per-turn correlation ids the @github/copilot
+    // CLI 1.0.88 puts on every inference request (MITM-captured). The machine
+    // id (getGitHubCopilotMachineId) is stable per-install; these three are
+    // fresh uuids. A Copilot-aware client may pin the session/task ids across a
+    // conversation via its own headers — honor those when present, else mint.
+    const genId = () => crypto.randomUUID?.() || randomIdFallback();
+    headers["x-interaction-id"] =
+      this.readClientHeader(clientHeaders, "x-interaction-id") || genId();
+    headers["x-client-session-id"] =
+      this.readClientHeader(clientHeaders, "x-client-session-id") || genId();
+    headers["x-agent-task-id"] = this.readClientHeader(clientHeaders, "x-agent-task-id") || genId();
+    // Repository correlation sentinels. The CLI sends the working repo's nwo/host
+    // or these literals when there is no repository context. OmniRoute is not
+    // repo-scoped, so forward a client-supplied value when present, else sentinel.
+    headers["x-github-repository-nwo"] =
+      this.readClientHeader(clientHeaders, "x-github-repository-nwo") || "__no_repository__";
+    headers["x-github-repository-host"] =
+      this.readClientHeader(clientHeaders, "x-github-repository-host") || "__no_repository__";
+    // OpenAI-SDK (stainless) signature the CLI carries on streamed turns only.
+    if (stream) {
+      headers["x-stainless-helper-method"] = "stream";
+    }
 
     // Claude models routed to the Anthropic-native /v1/messages shim require the
     // anthropic-version header (harmless no-op on /chat/completions and /responses,
-    // but /v1/messages rejects the request without it). Port of decolua/9router#2608.
-    if (model && getModelTargetFormat("gh", model) === "claude") {
+    // but /v1/messages rejects the request without it). Match on the model NAME so
+    // it fires for every claude-* id (tagged or not), consistent with buildUrl.
+    // Port of decolua/9router#2608.
+    if (model && /claude/i.test(model)) {
       headers["anthropic-version"] = "2023-06-01";
     }
 
+    // Forward a vision signal when the client already set it. Copilot's
+    // /v1/messages proxy returns an empty content block for image turns unless
+    // copilot-vision-request:true is present; a Copilot-aware harness that sends
+    // it should have it honored rather than stripped.
+    if (
+      (this.readClientHeader(clientHeaders, "copilot-vision-request") || "").toLowerCase() ===
+      "true"
+    ) {
+      headers["copilot-vision-request"] = "true";
+    }
+
     return headers;
+  }
+
+  // Case-insensitive read of a single client header value. Client header maps
+  // arrive with inconsistent casing depending on the transport, so match on the
+  // lowercased key rather than assuming a canonical form.
+  private readClientHeader(
+    clientHeaders: Record<string, string> | null | undefined,
+    name: string
+  ): string | null {
+    if (!clientHeaders) return null;
+    const target = name.toLowerCase();
+    const direct = clientHeaders[name] ?? clientHeaders[target];
+    if (typeof direct === "string") return direct;
+    for (const key in clientHeaders) {
+      if (key.toLowerCase() === target) {
+        const val = clientHeaders[key];
+        return typeof val === "string" ? val : null;
+      }
+    }
+    return null;
   }
 
   // Forward the client's x-initiator header when present. OpenCode and other

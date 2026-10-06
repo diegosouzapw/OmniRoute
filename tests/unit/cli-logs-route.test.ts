@@ -43,7 +43,7 @@ test.before(async () => {
 
 test.after(async () => {
   await updateSettings({ requireLogin: true });
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   try {
     fs.unlinkSync(logPath);
   } catch {

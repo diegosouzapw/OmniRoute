@@ -1,3 +1,5 @@
+import { ALL_COMBOS_ACCESS_RULE } from "@/shared/constants/comboAccess";
+
 export type KeyStatus = "active" | "disabled" | "banned" | "expired";
 
 // "manage" scope = management key; "restricted" = has model/connection allowlists;
@@ -285,4 +287,23 @@ export function buildModelAccessSavePayload(input: {
 }): { modelAccessMode: "all" | "restricted"; allowedModels: string[] } {
   if (input.allowAll) return { modelAccessMode: "all", allowedModels: [] };
   return { modelAccessMode: "restricted", allowedModels: input.selectedModels };
+}
+
+/**
+ * Entries of an API key's `allowedCombos` that the Allowed Combos picker cannot
+ * render: routing-rule names (`rt-*`) that `matchesComboAccessRule()` accepts via
+ * its `rule === requestedModel` branch, or combos that are no longer loaded. The
+ * picker keeps them in the selection (so Save round-trips the stored ACL), shows
+ * them read-only, and lets them survive the "All" toggle — otherwise a later
+ * "Restrict" + Save persisted `[]`, which is deny-all (#12267). Stored order is
+ * preserved; the `combo/*` wildcard is the "All" marker, not a rule.
+ */
+export function listUnrenderableComboAccessRules(
+  selectedCombos: readonly string[],
+  allCombos: ReadonlyArray<{ name: string }>
+): string[] {
+  const renderable = new Set(allCombos.map((combo) => combo.name));
+  return selectedCombos.filter(
+    (name) => name !== ALL_COMBOS_ACCESS_RULE && !renderable.has(name)
+  );
 }

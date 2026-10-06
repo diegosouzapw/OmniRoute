@@ -32,14 +32,14 @@
  * abs-path sanitization in server.js + required-server-files  -               Y           Y    SHARED (opt-in: sanitizePaths)
  * Turbopack hashed-chunk patch (.next/server/ *.js)           -               Y           -    SHARED (opt-in: patchTurbopackChunks)
  * --- npm-UNIQUE ---
- * MITM tsc compile -> app/src/mitm/                           -               Y           -    UNIQUE (prepublish)
+ * MITM typecheck + bundle -> app/src/mitm/                    -               Y           -    UNIQUE (prepublish)
  * MCP server esbuild -> dist/open-sse/mcp-server/server.js    -               Y           -    UNIQUE (prepublish)
  * CLI esbuild -> bin/omniroute.mjs                            -               Y           -    UNIQUE (prepublish)
  * sidecar/doc copies (.env.example, docs/, sync-env, etc.)    -               Y           -    UNIQUE (prepublish)
  * prune + validate (pack-artifact-policy)                      -               Y           -    UNIQUE (prepublish)
  * data/ dir creation                                           -               Y           -    UNIQUE (prepublish)
  * --- electron-UNIQUE ---
- * better-sqlite3 native strip + Electron-ABI rebuild            -               -           Y    UNIQUE (electron)
+ * better-sqlite3 prebuild verify + compile-input strip          -               -           Y    UNIQUE (electron)
  * Turbopack hashed-module symlink materialize (node_modules)   -               -           Y    SHARED (opt-in: materializeSymlinks)
  * symlink guard (assertBundleIsPackagable)                     -               -           Y    UNIQUE (electron)
  * removeGeneratedElectronArtifacts                             -               -           Y    UNIQUE (electron)
@@ -49,6 +49,7 @@ import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import path from "node:path";
 import { colocateLlmlinguaOptionals, SEED_PACKAGES } from "./colocateOptionals.mjs";
+import { WREQ_JS_NATIVE_BINDINGS } from "./wreqJsNative.mjs";
 
 /**
  * Check whether a path exists (async).
@@ -111,7 +112,7 @@ export const NATIVE_ASSET_ENTRIES = [
 ];
 
 /** @type {{label:string, src:string[], dest:string[]}[]} */
-const EXTRA_MODULE_ENTRIES = [
+export const EXTRA_MODULE_ENTRIES = [
   {
     // tlsClient.ts intentionally resolves wreq-js through a runtime-dynamic
     // require so Turbopack cannot rewrite the package name to a hashed external.
@@ -120,6 +121,31 @@ const EXTRA_MODULE_ENTRIES = [
     label: "wreq-js TLS runtime",
     src: ["node_modules", "wreq-js"],
     dest: ["node_modules", "wreq-js"],
+  },
+  ...WREQ_JS_NATIVE_BINDINGS.map((binding) => ({
+    label: `${binding.packageName} native binding`,
+    src: ["node_modules", ...binding.packageName.split("/")],
+    dest: ["node_modules", ...binding.packageName.split("/")],
+  })),
+  {
+    label: "third-party notices",
+    src: ["THIRD_PARTY_NOTICES.md"],
+    dest: ["THIRD_PARTY_NOTICES.md"],
+  },
+  {
+    label: "wreq-js native provenance manifest",
+    src: ["config", "release", "wreq-js-native-manifest.json"],
+    dest: ["config", "release", "wreq-js-native-manifest.json"],
+  },
+  {
+    label: "wreq-js Rust license inventory",
+    src: ["config", "release", "wreq-js-rust-license-inventory.json"],
+    dest: ["config", "release", "wreq-js-rust-license-inventory.json"],
+  },
+  {
+    label: "wreq-js Rust/native notice bundle",
+    src: ["config", "release", "wreq-js-rust-notices.md"],
+    dest: ["config", "release", "wreq-js-rust-notices.md"],
   },
   {
     label: "@swc/helpers",
@@ -137,6 +163,130 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["node_modules", "pino-pretty"],
   },
   { label: "split2", src: ["node_modules", "split2"], dest: ["node_modules", "split2"] },
+  {
+    // The esbuild-bundled compression worker (colocate-standalone.mjs,
+    // --packages=external) keeps these as runtime imports, but the Next.js
+    // standalone tracer never traverses that separate entry point, so none
+    // of them land in the standalone tree on their own. Without them the
+    // worker spawn fails with ERR_MODULE_NOT_FOUND and every compression
+    // silently falls back to synchronous in-process execution — 600k-token
+    // agent histories then materialize in the main-thread V8 heap and trip
+    // the resourcePressure guard (503 resource_pressure). Diagnosed
+    // 2026-09-25 on omniroute:3.8.51-local. Dep closure included
+    // (gpt-tokenizer, regexp-tree, ip-address, smart-buffer, buffer-crc32).
+    label: "compression worker external: uuid",
+    src: ["node_modules", "uuid"],
+    dest: ["node_modules", "uuid"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: @toon-format/toon",
+    src: ["node_modules", "@toon-format", "toon"],
+    dest: ["node_modules", "@toon-format", "toon"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: omniglyph",
+    src: ["node_modules", "omniglyph"],
+    dest: ["node_modules", "omniglyph"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: gpt-tokenizer",
+    src: ["node_modules", "gpt-tokenizer"],
+    dest: ["node_modules", "gpt-tokenizer"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: safe-regex",
+    src: ["node_modules", "safe-regex"],
+    dest: ["node_modules", "safe-regex"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: regexp-tree",
+    src: ["node_modules", "regexp-tree"],
+    dest: ["node_modules", "regexp-tree"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: smol-toml",
+    src: ["node_modules", "smol-toml"],
+    dest: ["node_modules", "smol-toml"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: socks",
+    src: ["node_modules", "socks"],
+    dest: ["node_modules", "socks"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: ip-address",
+    src: ["node_modules", "ip-address"],
+    dest: ["node_modules", "ip-address"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: smart-buffer",
+    src: ["node_modules", "smart-buffer"],
+    dest: ["node_modules", "smart-buffer"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: xxhash-wasm",
+    src: ["node_modules", "xxhash-wasm"],
+    dest: ["node_modules", "xxhash-wasm"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: yazl",
+    src: ["node_modules", "yazl"],
+    dest: ["node_modules", "yazl"],
+  },
+  {
+    // compression worker runtime external — see uuid entry for background.
+    label: "compression worker external: buffer-crc32",
+    src: ["node_modules", "buffer-crc32"],
+    dest: ["node_modules", "buffer-crc32"],
+  },
+  {
+    // ioredis is a deliberately LAZY dependency (Redis is optional — see the
+    // #6559 comment in src/shared/utils/rateLimiter.ts) — reached only via a
+    // runtime `await import("ioredis")` in rateLimiter.ts,
+    // warmupScheduler/circuitBreakerFactory.ts and quota/redisQuotaStore.ts,
+    // never through a static top-level import. The standalone tracer only
+    // follows statically-analyzable imports, so it never sees these call
+    // sites and drops ioredis from node_modules/ entirely. Any self-hosted
+    // deployment that actually sets REDIS_URL crashes the first time it
+    // reaches one of those call sites with "Cannot find module 'ioredis'" —
+    // reproduced on a production Docker deployment (REDIS_URL configured,
+    // v3.8.49) where the standalone image shipped ioredis/package.json but
+    // none of its own dependencies or built/ output.
+    label: "ioredis (dynamic import — #6559)",
+    src: ["node_modules", "ioredis"],
+    dest: ["node_modules", "ioredis"],
+  },
+  {
+    // bcryptjs IS statically imported by src/lib/auth/managementPassword.ts,
+    // so the main server bundle is fine — Next's server compiler inlines the
+    // small pure-JS package directly into the compiled route chunk instead of
+    // leaving it as an external node_modules dependency. bin/cli/settings-
+    // store.mjs (the `omniroute reset-password` / bin/reset-password.mjs
+    // CLI, used to recover a lost dashboard password) is a separate,
+    // unbundled entrypoint that does a plain runtime `import bcrypt from
+    // "bcryptjs"` and needs the real package physically present in
+    // node_modules/ — which nothing else requires as a loose runtime
+    // dependency, so it is never copied. Reproduced on a production
+    // deployment: `node bin/reset-password.mjs --password-stdin` failed with
+    // "Cannot find package 'bcryptjs' imported from
+    // /app/bin/cli/settings-store.mjs" (ERR_MODULE_NOT_FOUND) even though the
+    // same container's dashboard login (which also depends on bcryptjs) was
+    // working normally.
+    label: "bcryptjs (bin/cli/settings-store.mjs — reset-password CLI)",
+    src: ["node_modules", "bcryptjs"],
+    dest: ["node_modules", "bcryptjs"],
+  },
   { label: "migrations", src: ["src", "lib", "db", "migrations"], dest: ["migrations"] },
   { label: "MITM server", src: ["src", "mitm", "server.cjs"], dest: ["src", "mitm", "server.cjs"] },
   {
@@ -184,6 +334,11 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["main-server-timeouts.mjs"],
   },
   {
+    label: "systemd sd_notify helper (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "systemd-notify.mjs"],
+    dest: ["systemd-notify.mjs"],
+  },
+  {
     label: "HTTP method guard (server-ws.mjs dependency)",
     src: ["scripts", "dev", "http-method-guard.cjs"],
     dest: ["http-method-guard.cjs"],
@@ -197,6 +352,15 @@ const EXTRA_MODULE_ENTRIES = [
     label: "responses-ws-proxy (server-ws.mjs dependency)",
     src: ["scripts", "dev", "responses-ws-proxy.mjs"],
     dest: ["responses-ws-proxy.mjs"],
+  },
+  {
+    // server-ws.mjs imports ./httpClientAbortGuard.mjs. In the repo that path is
+    // the scripts/dev shim re-exporting the shared implementation, but the
+    // assembled bundle has no src/ tree, so ship the real self-contained
+    // implementation (no relative imports of its own) under the same file name.
+    label: "http client abort guard (server-ws.mjs dependency)",
+    src: ["src", "shared", "utils", "httpClientAbortGuard.mjs"],
+    dest: ["httpClientAbortGuard.mjs"],
   },
   {
     label: "ChatGPT Web Codex MCP tunnel entrypoint",
@@ -347,7 +511,10 @@ async function syncNativeAssetsToDir(projectRoot, outDir, fsImpl, log) {
     if (!(await exists(sourcePath))) continue;
 
     const destinationPath = path.join(outDir, ...entry.dest);
-    if (path.resolve(sourcePath) === path.resolve(destinationPath)) continue;
+    // See resolvesToSamePath/clearStaleDest (sync copy path, same module) — the same
+    // ERR_FS_CP_EINVAL/ERR_FS_CP_DIR_TO_NON_DIR races apply to fsImpl.cp here.
+    if (resolvesToSamePath(sourcePath, destinationPath)) continue;
+    clearStaleDest(destinationPath);
 
     const mkdir =
       typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
@@ -385,7 +552,8 @@ async function syncExtraModulesToDir(projectRoot, outDir, fsImpl, log) {
     if (!(await exists(sourcePath))) continue;
 
     const destPath = path.join(outDir, ...entry.dest);
-    if (path.resolve(sourcePath) === path.resolve(destPath)) continue;
+    if (resolvesToSamePath(sourcePath, destPath)) continue;
+    clearStaleDest(destPath);
 
     const mkdir =
       typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
@@ -531,7 +699,70 @@ function copyStaticAndPublic({ distDir, relDistDir, projectRoot, resolvedOutDir 
   const publicSrc = path.join(projectRoot, "public");
   if (fsSync.existsSync(publicSrc)) {
     fsSync.cpSync(publicSrc, path.join(resolvedOutDir, "public"), { recursive: true, force: true });
+    stampServiceWorkerBuildId(resolvedOutDir);
   }
+}
+
+/**
+ * The service-worker update algorithm compares the BYTES of the fetched worker
+ * script against the installed worker; a changed query string only busts the
+ * HTTP cache, it does not make the browser install a new generation. So a
+ * build identifier has to be part of the sw.js bytes themselves. Stamp
+ * NEXT_PUBLIC_SW_BUILD_ID (same resolution chain as next.config.mjs) into the
+ * copied sw.js as a comment + CACHE_NAME suffix; the source file in public/
+ * stays generic for dev.
+ */
+function stampServiceWorkerBuildId(resolvedOutDir) {
+  const swDest = path.join(resolvedOutDir, "public", "sw.js");
+  if (!fsSync.existsSync(swDest)) return;
+  const buildId =
+    process.env.OMNIROUTE_SW_BUILD_ID || process.env.SOURCE_VERSION || String(Date.now());
+  let sw = fsSync.readFileSync(swDest, "utf8");
+  sw = sw.replace(
+    /^const CACHE_NAME = "omniroute-pwa-v3";$/m,
+    `const CACHE_NAME = "omniroute-pwa-v3-${buildId}"; // build ${buildId}`
+  );
+  fsSync.writeFileSync(swDest, sw);
+}
+
+/**
+ * Two independent copy passes assemble a bundle: the bulk "standalone -> outDir" tree
+ * copy (step 1 of assembleStandalone) can already have carried a prior entry's result
+ * into `dest` (e.g. an absolute pnpm-store symlink, or a directory) BEFORE this entry's
+ * own copy runs. `fs.cpSync`/`fs.cp` refuse to overwrite in two such cases even with
+ * `force: true`:
+ *   - dest already resolves (via symlink chain) to the exact same real path as src ->
+ *     ERR_FS_CP_EINVAL "src and dest cannot be the same".
+ *   - dest exists with a different node type than src (file/symlink vs directory) ->
+ *     ERR_FS_CP_DIR_TO_NON_DIR / ERR_FS_CP_NON_DIR_TO_DIR.
+ * Under heavy concurrent build I/O this manifested non-deterministically across
+ * different EXTRA_MODULE_ENTRIES/NATIVE_ASSET_ENTRIES on every retry. Resolve both
+ * cases up front: skip entirely when dest is already the right target, otherwise clear
+ * whatever stale node occupies dest (via lstat, so it also removes a broken symlink)
+ * so the fresh copy always lands cleanly.
+ *
+ * @param {string} src
+ * @param {string} dest
+ * @returns {boolean} true when dest already IS src's target and no copy is needed
+ */
+function resolvesToSamePath(src, dest) {
+  if (path.resolve(src) === path.resolve(dest)) return true;
+  if (!fsSync.existsSync(dest)) return false;
+  try {
+    return fsSync.realpathSync(src) === fsSync.realpathSync(dest);
+  } catch {
+    return false;
+  }
+}
+
+/** @see resolvesToSamePath — clears whatever stale node sits at `dest` before a copy. */
+function clearStaleDest(dest) {
+  try {
+    fsSync.lstatSync(dest);
+  } catch {
+    return;
+  }
+  fsSync.rmSync(dest, { recursive: true, force: true });
 }
 
 /**
@@ -547,7 +778,8 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
     const src = path.join(projectRoot, ...asset.src);
     if (!fsSync.existsSync(src)) continue;
     const dest = path.join(resolvedOutDir, ...asset.dest);
-    if (path.resolve(src) === path.resolve(dest)) continue;
+    if (resolvesToSamePath(src, dest)) continue;
+    clearStaleDest(dest);
     fsSync.mkdirSync(path.dirname(dest), { recursive: true });
     fsSync.cpSync(src, dest, { recursive: true, force: true });
     console.log(`[assembleStandalone] Copied native asset: ${asset.label}`);
@@ -557,7 +789,8 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
     const src = path.join(projectRoot, ...mod.src);
     if (!fsSync.existsSync(src)) continue;
     const dest = path.join(resolvedOutDir, ...mod.dest);
-    if (path.resolve(src) === path.resolve(dest)) continue;
+    if (resolvesToSamePath(src, dest)) continue;
+    clearStaleDest(dest);
     fsSync.mkdirSync(path.dirname(dest), { recursive: true });
     fsSync.cpSync(src, dest, { recursive: true, force: true });
     console.log(`[assembleStandalone] Synced module: ${mod.label}`);
@@ -577,12 +810,11 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
  * This keeps the fix narrowly scoped to packages the standalone already expects.
  *
  * @param {string} projectRoot
- * @param {string} resolvedOutDir
+ * @param {string} bundleNodeModules
  * @returns {{repaired: number, packages: string[]}}
  */
-function repairEmptyExternalPackageDirs(projectRoot, resolvedOutDir) {
+function repairEmptyExternalPackageDirs(projectRoot, bundleNodeModules) {
   const summary = { repaired: 0, packages: [] };
-  const bundleNodeModules = path.join(resolvedOutDir, "node_modules");
   const sourceNodeModules = path.join(projectRoot, "node_modules");
   if (!fsSync.existsSync(bundleNodeModules) || !fsSync.existsSync(sourceNodeModules)) {
     return summary;
@@ -617,6 +849,12 @@ function repairEmptyExternalPackageDirs(projectRoot, resolvedOutDir) {
       continue;
     }
     if (!sourceStat.isDirectory()) continue;
+    // See resolvesToSamePath/clearStaleDest above: bundlePkgDir can itself be a
+    // symlink to sourcePkgDir's realpath whose target momentarily read as empty
+    // under heavy concurrent build I/O (a transient readdirSync race, not a real
+    // hollow placeholder), or a stale non-directory node from an earlier pass.
+    if (resolvesToSamePath(sourcePkgDir, bundlePkgDir)) continue;
+    clearStaleDest(bundlePkgDir);
 
     fsSync.cpSync(sourcePkgDir, bundlePkgDir, { recursive: true, force: true });
     summary.repaired += 1;
@@ -723,6 +961,96 @@ export function materializeBundledSymlinks(nodeModulesDir) {
 }
 
 /**
+ * Materialize bare-name copies of Turbopack "hashed external module" directories.
+ *
+ * The standalone tracer emits externalized packages under their hashed name
+ * (`playwright-core-f386a448524c7e9d`), but the Turbopack server runtime asks for the BARE
+ * specifier at request time: the externals chunk does
+ * `await ctx.externalImport("playwright-core")`, and that literal carries no hash, so
+ * patchTurbopackChunks()'s `pkg-<16hex>` regex never rewrites it. Node then walks up from
+ * `<outDir>/<relDistDir>/server/chunks/` looking for `playwright-core` in node_modules and,
+ * finding only the hashed sibling, throws ERR_MODULE_NOT_FOUND.
+ *
+ * The failure is lazy and route-shaped, which is why it reads as a data bug: the externals
+ * chunk only loads when some route first reaches the module, so the server boots cleanly and
+ * a single API route 500s with an empty body (observed: /api/providers, whose chunk statically
+ * imports the ChatGPT-web adapter), blanking /dashboard/providers and /dashboard/combos while
+ * every other page keeps working.
+ *
+ * Each existing repair misses it, and the misses compose:
+ *   - materializeBundledSymlinks() (#6724/#6594) only touches symlinks; a real hashed
+ *     directory is skipped by its `if (!stat.isSymbolicLink()) continue;`.
+ *   - patchTurbopackChunks() (#7353) strips the hash off the reference — creating the bare-name
+ *     requirement in the first place.
+ *   - repairEmptyExternalPackageDirs() (#9913/#7346) only overlays dirs that already EXIST but
+ *     are hollow, and needs the package in the source node_modules. Here the bare dir does not
+ *     exist at all, and Turbopack-only deps are not in the source tree.
+ *
+ * So: copy each hashed dir to its bare name when the bare name is missing. Both names are kept,
+ * so a hashed `require("pkg-<hash>")` keeps resolving too. Idempotent — a bare dir that already
+ * exists is never clobbered.
+ *
+ * ponytail: this duplicates a package on disk (tens of MB for playwright-core). Acceptable
+ * because the alternative is a route that cannot boot; drop to a hardlink/copyFiles if a build
+ * ever needs the bytes back.
+ *
+ * @param {string} nodeModulesDir - absolute path to a bundled node_modules directory
+ * @returns {{ aliased: number, packages: string[] }}
+ */
+export function materializeHashedModuleAliases(nodeModulesDir) {
+  const summary = { aliased: 0, packages: [] };
+  if (!fsSync.existsSync(nodeModulesDir)) return summary;
+
+  // Same traversal as materializeBundledSymlinks: top level + one level of @scope/.
+  const entries = [];
+  for (const name of fsSync.readdirSync(nodeModulesDir)) {
+    const entryPath = path.join(nodeModulesDir, name);
+    if (name.startsWith("@") && fsSync.lstatSync(entryPath).isDirectory()) {
+      for (const scoped of fsSync.readdirSync(entryPath)) {
+        entries.push(path.join(entryPath, scoped));
+      }
+      continue;
+    }
+    entries.push(entryPath);
+  }
+
+  for (const entryPath of entries) {
+    // Match patchTurbopackChunks()'s hash width so both halves of the contract agree on which
+    // names are "hashed externals".
+    const hashedName = path.basename(entryPath);
+    const baseName = hashedName.replace(/-[0-9a-f]{16}$/, "");
+    if (baseName === hashedName) continue;
+
+    let stat;
+    try {
+      stat = fsSync.lstatSync(entryPath);
+    } catch {
+      continue;
+    }
+    // Real directories only. lstat reports isDirectory() === false for a symlink, so this also
+    // skips links — which matters when step 7 did not run (materializeSymlinks off) and an entry
+    // may still point into the build machine: copying it verbatim would ship a dangling link.
+    if (!stat.isDirectory()) continue;
+
+    const aliasPath = path.join(path.dirname(entryPath), baseName);
+    if (fsSync.existsSync(aliasPath)) continue;
+
+    try {
+      fsSync.cpSync(entryPath, aliasPath, { recursive: true, dereference: true });
+    } catch (err) {
+      console.warn(
+        `[assembleStandalone] Could not alias hashed module ${hashedName}: ${err.message}`
+      );
+      continue;
+    }
+    summary.aliased += 1;
+    summary.packages.push(baseName);
+  }
+
+  return summary;
+}
+
+/**
  * Sync an Electron-ABI-rebuilt native module into any hashed/plain copies of
  * that module already materialized inside a nested node_modules dir.
  *
@@ -759,6 +1087,21 @@ export function syncRebuiltNativeModuleIntoHashedEntries(rootModuleDir, nodeModu
 
   return summary;
 }
+
+/**
+ * The two node_modules locations a standalone bundle can carry: the top-level one, and — for
+ * projects with a custom distDir (see next.config.mjs) — the nested <relDistDir>/node_modules the
+ * tracer mirrors alongside the traced server chunks. The server chunks and the externals chunk
+ * resolve from the nested one, so every node_modules pass must cover both (#7346/#9913).
+ *
+ * @param {string} resolvedOutDir - assembled standalone output directory
+ * @param {string} relDistDir     - distDir relative to projectRoot (e.g. ".build/next")
+ * @returns {string[]}
+ */
+const BUNDLE_NODE_MODULES_DIRS = (resolvedOutDir, relDistDir) => [
+  path.join(resolvedOutDir, "node_modules"),
+  path.join(resolvedOutDir, relDistDir, "node_modules"),
+];
 
 /**
  * Assemble the Next.js standalone bundle into outDir.
@@ -842,12 +1185,20 @@ export function assembleStandalone({
   // 6. Optionally copy native assets + extra modules (synchronous)
   if (copyNatives) {
     copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir);
-    const emptyPkgRepair = repairEmptyExternalPackageDirs(projectRoot, resolvedOutDir);
-    if (emptyPkgRepair.repaired > 0) {
-      console.log(
-        `[assembleStandalone] Repaired ${emptyPkgRepair.repaired} hollow external package dir(s): ` +
-          emptyPkgRepair.packages.join(", ")
-      );
+    // Repair hollow externalized package dirs in BOTH locations Turbopack's standalone
+    // tracer can populate: the top-level bundle node_modules, and — for projects with a
+    // custom distDir (see next.config.mjs) — the nested <relDistDir>/node_modules mirrored
+    // alongside the traced server chunks. materializeBundledSymlinks (step 7 below) already
+    // treats these as two distinct targets; #9913 only covered the top-level one, which left
+    // the nested location's hollow dirs unrepaired (#7346).
+    for (const bundleNodeModules of BUNDLE_NODE_MODULES_DIRS(resolvedOutDir, relDistDir)) {
+      const emptyPkgRepair = repairEmptyExternalPackageDirs(projectRoot, bundleNodeModules);
+      if (emptyPkgRepair.repaired > 0) {
+        console.log(
+          `[assembleStandalone] Repaired ${emptyPkgRepair.repaired} hollow external package dir(s) in ` +
+            `${path.relative(resolvedOutDir, bundleNodeModules) || "."}: ${emptyPkgRepair.packages.join(", ")}`
+        );
+      }
     }
 
     // #9166: dynamically imported LLMLingua packages are not reliably traced
@@ -868,10 +1219,7 @@ export function assembleStandalone({
   //    native/extra-module copy so the sibling-package relink fallback can find
   //    real packages. See materializeBundledSymlinks + issues #6724, #6594.
   if (materializeSymlinks) {
-    for (const nmDir of [
-      path.join(resolvedOutDir, "node_modules"),
-      path.join(resolvedOutDir, relDistDir, "node_modules"),
-    ]) {
+    for (const nmDir of BUNDLE_NODE_MODULES_DIRS(resolvedOutDir, relDistDir)) {
       const s = materializeBundledSymlinks(nmDir);
       if (s.materialized || s.relinked || s.removed) {
         console.log(
@@ -879,6 +1227,21 @@ export function assembleStandalone({
             `${s.materialized} dereferenced, ${s.relinked} relinked, ${s.removed} dropped`
         );
       }
+    }
+  }
+
+  // 8. Give every Turbopack hashed-external directory its bare-name sibling, so the
+  //    runtime's bare `import("playwright-core")` resolves. Unconditional (not gated on a
+  //    flag): the hashed dirs are emitted by the tracer itself, and the bare name is what the
+  //    server asks for at request time. Runs after step 7 so hashed symlinks are already real
+  //    dirs and can serve as copy sources.
+  for (const nmDir of BUNDLE_NODE_MODULES_DIRS(resolvedOutDir, relDistDir)) {
+    const aliased = materializeHashedModuleAliases(nmDir);
+    if (aliased.aliased > 0) {
+      console.log(
+        `[assembleStandalone] Aliased ${aliased.aliased} hashed module dir(s) to bare names in ` +
+          `${path.relative(resolvedOutDir, nmDir) || "."}: ${aliased.packages.join(", ")}`
+      );
     }
   }
 }

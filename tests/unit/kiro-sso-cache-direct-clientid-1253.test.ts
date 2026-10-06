@@ -53,7 +53,7 @@ let tmpHome: string;
 test.beforeEach(() => {
   tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-kiro-1253-"));
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   process.env.HOME = tmpHome;
   delete process.env.APPDATA;
@@ -68,12 +68,12 @@ test.afterEach(() => {
     delete process.env.APPDATA;
   }
   globalThis.fetch = ORIGINAL_FETCH;
-  if (tmpHome) fs.rmSync(tmpHome, { recursive: true, force: true });
+  if (tmpHome) fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function cacheDirFor(home: string) {
@@ -142,7 +142,11 @@ test("auto-import: resolves clientId/clientSecret from a direct `clientId` field
       assert.equal(parsed.clientId, "correct-client-id");
       assert.equal(parsed.clientSecret, "correct-secret");
       return new Response(
-        JSON.stringify({ accessToken: "access-refreshed", refreshToken: "aorAAAAAGrefreshed", expiresIn: 3600 }),
+        JSON.stringify({
+          accessToken: "access-refreshed",
+          refreshToken: "aorAAAAAGrefreshed",
+          expiresIn: 3600,
+        }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -185,7 +189,11 @@ test("KiroService.validateImportToken: prefers the client registration matching 
       fetchedBodies.push(parsed);
       if (parsed.clientId === "correct-client-id" && parsed.clientSecret === "correct-secret") {
         return new Response(
-          JSON.stringify({ accessToken: "ok-access", refreshToken: "aorAAAAAGok", expiresIn: 3600 }),
+          JSON.stringify({
+            accessToken: "ok-access",
+            refreshToken: "aorAAAAAGok",
+            expiresIn: 3600,
+          }),
           { status: 200, headers: { "Content-Type": "application/json" } }
         );
       }

@@ -19,9 +19,8 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const route = await import("../../src/app/api/oauth/[provider]/[action]/route.ts");
 const { generateAuthData } = await import("../../src/lib/oauth/providers.ts");
 const { grokCli } = await import("../../src/lib/oauth/providers/grok-cli.ts");
-const { GROK_BUILD_OAUTH_CONFIG, XAI_OAUTH_CONFIG } = await import(
-  "../../src/lib/oauth/constants/oauth.ts"
-);
+const { GROK_BUILD_OAUTH_CONFIG, XAI_OAUTH_CONFIG } =
+  await import("../../src/lib/oauth/constants/oauth.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -32,7 +31,7 @@ test.before(async () => {
 test.after(async () => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test.afterEach(() => {
@@ -98,7 +97,11 @@ test("grok-cli exchangeToken POSTs grant_type=authorization_code with the PKCE v
     assert.equal(body.get("code"), "auth-code");
     assert.equal(body.get("redirect_uri"), "http://127.0.0.1:56122/callback");
     assert.equal(body.get("code_verifier"), "verifier");
-    return Response.json({ access_token: "gb-access", refresh_token: "gb-refresh", expires_in: 3600 });
+    return Response.json({
+      access_token: "gb-access",
+      refresh_token: "gb-refresh",
+      expires_in: 3600,
+    });
   };
 
   const tokens = await grokCli.exchangeToken(
@@ -188,7 +191,8 @@ test("POST /api/oauth/grok-cli/exchange requires a codeVerifier (PKCE branch rea
 });
 
 test("POST /api/oauth/grok-cli/exchange failure returns a sanitized 500 (Hard Rule #12)", async () => {
-  globalThis.fetch = async () => new Response("upstream secret leak: token=abc123", { status: 500 });
+  globalThis.fetch = async () =>
+    new Response("upstream secret leak: token=abc123", { status: 500 });
 
   const res = await postRoute("grok-cli", "exchange", {
     code: "auth-code",

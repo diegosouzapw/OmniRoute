@@ -31,7 +31,8 @@ export function isInternalServiceRequest(request: Request): boolean {
   return timingSafeEqual(Buffer.from(provided, "utf8"), Buffer.from(expected, "utf8"));
 }
 
-export function isTrustedLoopbackInternalServiceRequest(request: Request): boolean {
+export function isTrustedLoopbackInternalServiceRequest(request?: Request | null): boolean {
+  if (!request?.headers) return false;
   return (
     request.headers.get(AUTHZ_HEADER_PEER_LOCALITY) === "loopback" &&
     isInternalServiceRequest(request)

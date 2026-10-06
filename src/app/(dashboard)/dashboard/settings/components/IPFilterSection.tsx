@@ -25,18 +25,23 @@ export default function IPFilterSection() {
   const t = useTranslations("settings");
 
   useEffect(() => {
-    loadConfig();
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/settings/ip-filter");
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setConfig(data);
+        }
+      } catch {
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
-
-  const loadConfig = async () => {
-    try {
-      const res = await fetch("/api/settings/ip-filter");
-      if (res.ok) setConfig(await res.json());
-    } catch {
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const updateConfig = async (updates) => {
     try {

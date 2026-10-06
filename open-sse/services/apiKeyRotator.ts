@@ -31,7 +31,10 @@ const MAX_CONNECTION_EXTRA_KEYS = 500;
  */
 export function trackConnectionExtraKeys(connectionId: string, extraKeys: string[]): void {
   const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
-  if (!_connectionExtraKeys.has(connectionId) && _connectionExtraKeys.size >= MAX_CONNECTION_EXTRA_KEYS) {
+  if (
+    !_connectionExtraKeys.has(connectionId) &&
+    _connectionExtraKeys.size >= MAX_CONNECTION_EXTRA_KEYS
+  ) {
     const oldest = _connectionExtraKeys.keys().next().value;
     if (oldest !== undefined) _connectionExtraKeys.delete(oldest);
   }
@@ -306,6 +309,29 @@ export function syncHealthFromDB(connectionId: string, health?: Record<string, K
     }
     _keyHealth.set(scopedKey, keyHealth);
   }
+}
+
+/** Recover one authoritatively validated key without changing sibling-key health. */
+export function recoverKeyHealth(
+  connectionId: string,
+  keyId: string,
+  providerSpecificData: unknown
+): Record<string, unknown> | undefined {
+  const data =
+    providerSpecificData && typeof providerSpecificData === "object"
+      ? (providerSpecificData as Record<string, unknown>)
+      : {};
+  const health = data.apiKeyHealth as Record<string, KeyHealth> | undefined;
+  const currentHealth = health?.[keyId];
+  if (!currentHealth || (currentHealth.status === "active" && currentHealth.failures === 0)) {
+    return undefined;
+  }
+
+  syncHealthFromDB(connectionId, health);
+  return {
+    ...data,
+    apiKeyHealth: { ...health, [keyId]: recordKeySuccess(connectionId, keyId) },
+  };
 }
 
 /**

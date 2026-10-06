@@ -25,6 +25,7 @@ const {
 const {
   readPreferences,
   writeRemoteServerUrl,
+  writeCloseBehavior,
 } = require("../../electron/lib/remoteServerPreferences");
 
 function withTempDir(fn: (dir: string) => void) {
@@ -32,7 +33,7 @@ function withTempDir(fn: (dir: string) => void) {
   try {
     fn(dir);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 
@@ -126,7 +127,10 @@ describe("remoteServerPreferences read/write", () => {
     withTempDir((dir) => {
       const prefsPath = join(dir, "electron-preferences.json");
       writeRemoteServerUrl(prefsPath, "http://localhost:20128");
-      assert.deepEqual(readPreferences(prefsPath), { remoteServerUrl: "http://localhost:20128" });
+      assert.deepEqual(readPreferences(prefsPath), {
+        remoteServerUrl: "http://localhost:20128",
+        closeBehavior: "keep-loaded",
+      });
     });
   });
 
@@ -135,7 +139,10 @@ describe("remoteServerPreferences read/write", () => {
       const prefsPath = join(dir, "electron-preferences.json");
       writeRemoteServerUrl(prefsPath, "http://localhost:20128");
       writeRemoteServerUrl(prefsPath, null);
-      assert.deepEqual(readPreferences(prefsPath), { remoteServerUrl: null });
+      assert.deepEqual(readPreferences(prefsPath), {
+        remoteServerUrl: null,
+        closeBehavior: "keep-loaded",
+      });
     });
   });
 
@@ -144,14 +151,32 @@ describe("remoteServerPreferences read/write", () => {
       const prefsPath = join(dir, "nested", "deep", "electron-preferences.json");
       assert.doesNotThrow(() => writeRemoteServerUrl(prefsPath, "http://localhost:20128"));
       assert.equal(existsSync(prefsPath), true);
-      assert.deepEqual(readPreferences(prefsPath), { remoteServerUrl: "http://localhost:20128" });
+      assert.deepEqual(readPreferences(prefsPath), {
+        remoteServerUrl: "http://localhost:20128",
+        closeBehavior: "keep-loaded",
+      });
     });
   });
 
   it("reading a nonexistent prefs file returns remoteServerUrl: null", () => {
     withTempDir((dir) => {
       const prefsPath = join(dir, "electron-preferences.json");
-      assert.deepEqual(readPreferences(prefsPath), { remoteServerUrl: null });
+      assert.deepEqual(readPreferences(prefsPath), {
+        remoteServerUrl: null,
+        closeBehavior: "keep-loaded",
+      });
+    });
+  });
+
+  it("persists close behavior without discarding the remote server URL", () => {
+    withTempDir((dir) => {
+      const prefsPath = join(dir, "electron-preferences.json");
+      writeRemoteServerUrl(prefsPath, "https://omniroute.example.com");
+      writeCloseBehavior(prefsPath, "unload");
+      assert.deepEqual(readPreferences(prefsPath), {
+        remoteServerUrl: "https://omniroute.example.com",
+        closeBehavior: "unload",
+      });
     });
   });
 });
@@ -243,6 +268,7 @@ describe("Electron packaging manifest includes Remote Server Mode files", () => 
   for (const expected of [
     "lib/resolveRemoteServerUrl.js",
     "lib/remoteServerPreferences.js",
+    "lib/windowClosePolicy.js",
     "remoteServerPromptPreload.js",
     "remoteServerPromptRenderer.js",
     "assets/remoteServerPrompt.html",

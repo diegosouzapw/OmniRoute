@@ -17,6 +17,14 @@ describe("CliproxyServiceTab — module shape", () => {
   });
 });
 
+describe("CliproxyServiceTab — account health", () => {
+  it("exports the read-only account health card", async () => {
+    const mod =
+      await import("../../../../../src/app/(dashboard)/dashboard/providers/services/components/CliproxyAccountHealthCard.tsx");
+    assert.equal(typeof mod.CliproxyAccountHealthCard, "function");
+  });
+});
+
 // ── URL validation (mirrors isValidUrl inside the tab) ────────────────────────
 
 function isValidUrl(value: string): boolean {

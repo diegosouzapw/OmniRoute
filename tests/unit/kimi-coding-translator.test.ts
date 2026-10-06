@@ -97,7 +97,7 @@ test("Responses history preserves Kimi reasoning before a tool call", () => {
         {
           id: "rs_1",
           type: "reasoning",
-          summary: [{ type: "summary_text", text: "I should call ping first." }],
+          content: [{ type: "reasoning_text", text: "I should call ping first." }],
         },
         {
           id: "fc_1",
@@ -147,7 +147,7 @@ test("Responses history preserves Kimi reasoning on completed assistant turns", 
         {
           id: "rs_1",
           type: "reasoning",
-          summary: [{ type: "summary_text", text: "I should retain the nonce." }],
+          content: [{ type: "reasoning_text", text: "I should retain the nonce." }],
         },
         {
           type: "message",
@@ -182,7 +182,7 @@ test("Responses history preserves Kimi reasoning before a custom tool call", () 
       input: [
         {
           type: "reasoning",
-          summary: [{ type: "summary_text", text: "I should apply the patch." }],
+          content: [{ type: "reasoning_text", text: "I should apply the patch." }],
         },
         {
           type: "custom_tool_call",
@@ -223,7 +223,7 @@ test("Responses history does not carry reasoning across a user boundary", () => 
         },
         {
           type: "reasoning",
-          summary: [{ type: "summary_text", text: "Prior turn reasoning." }],
+          content: [{ type: "reasoning_text", text: "Prior turn reasoning." }],
         },
         {
           role: "user",

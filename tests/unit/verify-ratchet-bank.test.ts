@@ -61,6 +61,27 @@ test("rewriting a note is rejected — the notes are the audit trail", () => {
   assert.match(r.problems[0], /rewritten/);
 });
 
+// A note value is not always a string. The 2026-08-11 merge-storm rebaseline
+// folded four file→LOC pairs into the value of a single note key, so `frozen`
+// carries an OBJECT-valued note. Compared referentially, two structurally equal
+// objects off two JSON.parse calls are never the same reference — the verifier
+// reported "rewritten" on a tree nobody had touched and exited 1, which made the
+// nightly bank-ratchet-shrinks job (#8612) abort on every run.
+test("an object-valued note that did not change is not reported as rewritten", () => {
+  const note = () => ({ "a.tsx": 1062, "b.ts": 1051 });
+  const r = verifyFrozenMap({ _rebaseline_x: note() }, { _rebaseline_x: note() });
+  assert.deepEqual(r.problems, [], "structurally equal notes must compare equal");
+});
+
+test("an object-valued note that DID change is still rejected", () => {
+  const r = verifyFrozenMap(
+    { _rebaseline_x: { "a.tsx": 1062 } },
+    { _rebaseline_x: { "a.tsx": 9999 } }
+  );
+  assert.equal(r.problems.length, 1);
+  assert.match(r.problems[0], /rewritten/);
+});
+
 // --- file-size baseline as a whole ---
 
 const fsBefore = () => ({

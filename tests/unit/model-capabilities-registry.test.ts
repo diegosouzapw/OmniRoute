@@ -37,7 +37,7 @@ function buildCapability(overrides = {}) {
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -47,7 +47,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("canonical model capability resolver lets exact synced metadata override global specs", () => {
@@ -154,35 +154,46 @@ test("unknown models keep maxOutputTokens null instead of using a generic defaul
   );
 });
 
-test("Antigravity Gemini 3.5 upstream IDs share the Flash capability profile", () => {
+test("retired Gemini 3.5 Flash IDs have no provider-neutral model specs", () => {
   for (const modelId of [
+    "gemini-3.5-flash",
     "gemini-3.5-flash-extra-low",
     "gemini-3.5-flash-low",
     "gemini-3-flash-agent",
   ]) {
-    const spec = MODEL_SPECS[modelId];
-    assert.ok(spec, `missing exact MODEL_SPECS entry for ${modelId}`);
-    const capabilities = modelCapabilities.getResolvedModelCapabilities(`antigravity/${modelId}`);
-    assert.equal(capabilities.contextWindow, 1048576, modelId);
-    assert.equal(capabilities.maxOutputTokens, 65536, modelId);
-    assert.equal(capabilities.supportsThinking, false, modelId);
-    assert.equal(capabilities.supportsTools, true, modelId);
-    assert.equal(capabilities.supportsVision, true, modelId);
+    assert.equal(MODEL_SPECS[modelId], undefined, modelId);
   }
 });
 
-test("Antigravity Gemini 3.6 tier IDs share the Flash capability profile", () => {
+test("retired provider-neutral Gemini 3.5 tiers keep resolvable capability floors", () => {
+  // gemini-3-flash-agent lost its MODEL_SPECS entry in the 3.5 -> 3.7 catalog
+  // retirement but must still resolve the full Flash capability profile via
+  // family fallbacks; the retired -extra-low/-low neutral tiers must NOT
+  // fabricate context/output ceilings (they stay null) while keeping the
+  // vision-capable default so downstream gating stays conservative.
+  const agentCaps = modelCapabilities.getResolvedModelCapabilities("gemini-3-flash-agent");
+  assert.equal(agentCaps.contextWindow, 1048576, "agent tier keeps the 1M Flash context window");
+  assert.equal(agentCaps.maxOutputTokens, 65536, "agent tier keeps the 64K output ceiling");
+  assert.equal(agentCaps.supportsThinking, false, "agent tier encodes a non-thinking variant");
+  assert.equal(agentCaps.supportsTools, true, "agent tier supports tools");
+  assert.equal(agentCaps.supportsVision, true, "agent tier supports vision");
+
+  const retiredLow = modelCapabilities.getResolvedModelCapabilities("gemini-3.5-flash-low");
+  assert.equal(retiredLow.contextWindow, null, "retired low tier fabricates no context window");
+});
+
+test("Antigravity Gemini 3.7 tier IDs share the Flash capability profile", () => {
   for (const modelId of [
-    "gemini-3.6-flash-high",
-    "gemini-3.6-flash-medium",
-    "gemini-3.6-flash-low",
+    "gemini-3.7-flash-high",
+    "gemini-3.7-flash-medium",
+    "gemini-3.7-flash-low",
   ]) {
     const spec = MODEL_SPECS[modelId];
     assert.ok(spec, `missing exact MODEL_SPECS entry for ${modelId}`);
     const capabilities = modelCapabilities.getResolvedModelCapabilities(`antigravity/${modelId}`);
     assert.equal(capabilities.contextWindow, 1048576, modelId);
     assert.equal(capabilities.maxOutputTokens, 65536, modelId);
-    assert.equal(capabilities.supportsThinking, false, modelId);
+    assert.equal(capabilities.supportsThinking, true, modelId);
     assert.equal(capabilities.supportsTools, true, modelId);
     assert.equal(capabilities.supportsVision, true, modelId);
   }
@@ -192,7 +203,7 @@ test("GPT OSS and DeepSeek Reasoner models support tool calling", () => {
   // GPT OSS models should not be blocked by the heuristic
   assert.equal(modelCapabilities.supportsToolCalling("fake-provider/gpt-oss-120b"), true);
   assert.equal(modelCapabilities.supportsToolCalling("gpt-oss-120b"), true);
-  assert.equal(modelCapabilities.supportsToolCalling("nvidia/openai/gpt-oss-20b"), false); // in registry
+  assert.equal(modelCapabilities.supportsToolCalling("nvidia/openai/gpt-oss-120b"), false); // in registry
 
   // DeepSeek Reasoner supports tool calling
   assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), true);

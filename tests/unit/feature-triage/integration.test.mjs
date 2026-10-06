@@ -155,6 +155,6 @@ describe("feature-triage integration", () => {
     assert.equal(out.counts.skip_has_pr, 1);
     assert.equal(out.buckets.already_delivered[0].version, "v3.7.2");
 
-    rmSync(tmp, { recursive: true, force: true });
+    rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 });

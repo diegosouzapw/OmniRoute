@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
-import { getSettings, getSettingsRevision, updateSettings } from "@/lib/localDb";
-import { SettingsRevisionConflictError } from "@/lib/db/settings";
+import { z } from "zod";
+import {
+  getSettings,
+  getSettingsRevision,
+  updateSettings,
+  SettingsRevisionConflictError,
+} from "@/lib/db/settings";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -24,10 +29,25 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isPaidModelTarget } from "@/shared/utils/freeModels";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance";
-import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
+import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
+import {
+  DASHBOARD_SESSION_COOKIE,
+  REVOKED_SESSIONS_SETTING,
+  SESSIONS_VALID_AFTER_SETTING,
+  getDashboardJwtSecret,
+  mintDashboardSessionToken,
+  verifyDashboardSessionToken,
+} from "@/shared/utils/dashboardSessionToken";
 import { isCliTokenAuthValid } from "@/lib/middleware/cliTokenAuth";
 import { extractApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
+import { getRadarAdminUrl } from "@/lib/radar/links";
+import {
+  AUTHZ_HEADER_AUTH_ID,
+  AUTHZ_HEADER_AUTH_KIND,
+  AUTHZ_HEADER_PEER_LOCALITY,
+} from "@/server/authz/headers";
+import { readSubjectFromHeaders } from "@/server/authz/assertAuth";
 
 /**
  * Force this route to run dynamically per-request and never be cached/prerendered.
@@ -47,6 +67,27 @@ function settingsResponseHeaders(settingsRevision: number): Record<string, strin
     ...SETTINGS_RESPONSE_HEADERS,
     ETag: String(settingsRevision),
   };
+}
+
+const RadarAdminOwnerSubjectSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("dashboard_session"), id: z.literal("dashboard") }).strict(),
+  z.object({ kind: z.literal("anonymous"), id: z.literal("anonymous") }).strict(),
+]);
+
+export async function resolveOwnerRadarAdminUrl(request: Request): Promise<string | null> {
+  const subject = RadarAdminOwnerSubjectSchema.safeParse({
+    kind: request.headers.get(AUTHZ_HEADER_AUTH_KIND),
+    id: request.headers.get(AUTHZ_HEADER_AUTH_ID),
+  });
+  if (!subject.success) return null;
+  if (subject.data.kind === "dashboard_session") return getRadarAdminUrl();
+
+  // Fresh local installs can intentionally run without login. In that mode,
+  // only the pipeline's non-forgeable loopback verdict represents the owner;
+  // CLI/internal/manage-scope credentials must not receive the private URL.
+  if (request.headers.get(AUTHZ_HEADER_PEER_LOCALITY) !== "loopback") return null;
+  if (await isAuthRequired(request)) return null;
+  return getRadarAdminUrl();
 }
 
 /** Parse opt-in CAS token from If-Match (preferred) or PATCH body. */
@@ -89,6 +130,7 @@ const SECURITY_IMPACTING_KEYS = [
   "requireLogin",
   "newPassword",
   "oidcEnabled",
+  "oidcDisablePasswordLogin",
   "oidcClientSecret",
 ] as const;
 
@@ -105,6 +147,8 @@ async function deriveAuditActor(request: Request): Promise<string> {
   } catch {
     /* fall through */
   }
+  const subject = readSubjectFromHeaders(request.headers);
+  if (subject.kind === "management_key" && subject.label === "local-cli-token") return "cli";
   try {
     if (await isCliTokenAuthValid(request)) return "cli";
   } catch {
@@ -155,10 +199,7 @@ function attemptedKeysOf(body: Record<string, unknown> | null | undefined): stri
   if (!body || typeof body !== "object") return [];
   return Object.keys(body).filter(
     (k) =>
-      k !== "currentPassword" &&
-      k !== "newPassword" &&
-      k !== "password" &&
-      k !== "expectedRevision"
+      k !== "currentPassword" && k !== "newPassword" && k !== "password" && k !== "expectedRevision"
   );
 }
 
@@ -193,7 +234,12 @@ export async function GET(request: Request) {
   try {
     const settings = await getSettings();
     const settingsRevision = await getSettingsRevision();
-    const { password, ...safeSettings } = settings;
+    const {
+      password,
+      [SESSIONS_VALID_AFTER_SETTING]: _sessionsValidAfter,
+      [REVOKED_SESSIONS_SETTING]: _revokedSessions,
+      ...safeSettings
+    } = settings;
 
     const runtimePorts = getRuntimePorts();
     const cloudUrl = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL || null;
@@ -227,6 +273,9 @@ export async function GET(request: Request) {
         // without a dedicated round trip. See sidebarVisibility.ts's
         // `isSidebarItemVisibleForFlags()`.
         radarEnabled: isFeatureFlagEnabled("RADAR_ENABLED"),
+        // Owner-only operational link. This route is management-authenticated;
+        // the URL has no public default and is omitted from static client code.
+        radarAdminUrl: await resolveOwnerRadarAdminUrl(request),
         ...(cliproxyapiModelMapping !== null
           ? { cliproxyapi_model_mapping: cliproxyapiModelMapping }
           : {}),
@@ -237,6 +286,16 @@ export async function GET(request: Request) {
     console.log("Error getting settings:", error);
     return NextResponse.json({ error: "Failed to load settings" }, { status: 500 });
   }
+}
+
+function readCookie(request: Request, name: string): string | null {
+  for (const part of (request.headers.get("cookie") || "").split(";")) {
+    const separator = part.indexOf("=");
+    if (separator > 0 && part.slice(0, separator).trim() === name) {
+      return part.slice(separator + 1).trim() || null;
+    }
+  }
+  return null;
 }
 
 export async function PATCH(request: Request) {
@@ -390,10 +449,17 @@ export async function PATCH(request: Request) {
     // currentPassword (or the cold-boot exception fired). The gate already
     // included `newPassword` in SECURITY_IMPACTING_KEYS, so no separate
     // verify happens here — strictly hashing + body rewriting.
+    // A password change also ends every dashboard session issued before it, so a copy of the
+    // old cookie cannot outlive the password it was issued under.
+    const passwordChanged = Boolean(body.newPassword);
     if (body.newPassword) {
       body.password = await hashManagementPassword(body.newPassword);
+      body[SESSIONS_VALID_AFTER_SETTING] = Math.floor(Date.now() / 1000);
       delete body.newPassword;
     }
+    const callerSession = passwordChanged
+      ? await verifyDashboardSessionToken(readCookie(request, DASHBOARD_SESSION_COOKIE))
+      : null;
     delete body.currentPassword;
     delete body.expectedRevision;
 
@@ -500,12 +566,37 @@ export async function PATCH(request: Request) {
       // Audit failure must never break the write — swallow.
     }
 
-    const { password, ...safeSettings } = settings;
+    const {
+      password,
+      [SESSIONS_VALID_AFTER_SETTING]: _sessionsValidAfter,
+      [REVOKED_SESSIONS_SETTING]: _revokedSessions,
+      ...safeSettings
+    } = settings;
     const settingsRevision = await getSettingsRevision();
-    return NextResponse.json(
+    const response = NextResponse.json(
       { ...safeSettings, settingsRevision },
       { headers: settingsResponseHeaders(settingsRevision) }
     );
+    // The browser that changed the password keeps its own session: swap its cookie for one issued
+    // after the cutoff instead of signing the operator out of the page they are on.
+    const secret = getDashboardJwtSecret();
+    if (callerSession && secret) {
+      const forwardedProto = (request.headers.get("x-forwarded-proto") || "")
+        .split(",")[0]
+        .trim()
+        .toLowerCase();
+      response.cookies.set(DASHBOARD_SESSION_COOKIE, await mintDashboardSessionToken(secret), {
+        httpOnly: true,
+        secure:
+          process.env.AUTH_COOKIE_SECURE === "true" ||
+          forwardedProto === "https" ||
+          new URL(request.url).protocol === "https:",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+    }
+    return response;
   } catch (error) {
     console.log("Error updating settings:", error);
     return NextResponse.json({ error: "Failed to update settings" }, { status: 500 });

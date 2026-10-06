@@ -5,6 +5,7 @@
 export const SEARCH_PROVIDERS = {
   "perplexity-search": {
     id: "perplexity-search",
+    serviceKinds: ["webSearch"],
     alias: "pplx-search",
     name: "Perplexity Search",
     icon: "search",
@@ -27,13 +28,14 @@ export const SEARCH_PROVIDERS = {
   },
   "brave-search": {
     id: "brave-search",
+    serviceKinds: ["webSearch"],
     alias: "brave-search",
     name: "Brave Search",
     icon: "travel_explore",
     color: "#FB542B",
     textIcon: "BR",
     website: "https://brave.com/search/api",
-    hasFree: true,
+    hasFree: false,
     authHint: "Subscription token from Brave Search API dashboard",
   },
   "exa-search": {
@@ -60,6 +62,19 @@ export const SEARCH_PROVIDERS = {
     authHint: "API key from app.tavily.com (format: tvly-...)",
     serviceKinds: ["webSearch", "webFetch"],
   },
+  "anysearch-search": {
+    id: "anysearch-search",
+    alias: "anysearch",
+    name: "AnySearch",
+    icon: "travel_explore",
+    color: "#0D9488",
+    textIcon: "AS",
+    website: "https://anysearch.com",
+    hasFree: true,
+    authHint:
+      "Optional API key from anysearch.com (as_sk_...) - free 1000/day; keyless tier has lower limits",
+    serviceKinds: ["webSearch", "webFetch"],
+  },
   firecrawl: {
     id: "firecrawl",
     alias: "fc",
@@ -69,7 +84,8 @@ export const SEARCH_PROVIDERS = {
     textIcon: "FC",
     website: "https://firecrawl.dev",
     hasFree: true,
-    authHint: "API key from firecrawl.dev/app/api-keys (or set your self-hosted Firecrawl base URL)",
+    authHint:
+      "API key from firecrawl.dev/app/api-keys (or set your self-hosted Firecrawl base URL)",
     notice: {
       text: "Free tier: 1,000 credits/month. Powers /v1/web/fetch and /v1/search.",
       apiKeyUrl: "https://firecrawl.dev/app/api-keys",
@@ -78,6 +94,7 @@ export const SEARCH_PROVIDERS = {
   },
   "google-pse-search": {
     id: "google-pse-search",
+    serviceKinds: ["webSearch"],
     alias: "google-pse",
     name: "Google Programmable Search",
     icon: "travel_explore",
@@ -86,8 +103,20 @@ export const SEARCH_PROVIDERS = {
     website: "https://developers.google.com/custom-search/v1/overview",
     authHint: "Requires a Google API key and your Programmable Search Engine ID (cx)",
   },
+  "nimble-search": {
+    id: "nimble-search",
+    alias: "nimble",
+    name: "Nimble Search",
+    icon: "travel_explore",
+    color: "#6D28D9",
+    textIcon: "NB",
+    website: "https://docs.nimbleway.com/nimble-sdk/web-tools/search",
+    authHint: "Bearer API key from the Nimble dashboard",
+    serviceKinds: ["webSearch", "webFetch"],
+  },
   "linkup-search": {
     id: "linkup-search",
+    serviceKinds: ["webSearch"],
     alias: "linkup",
     name: "Linkup Search",
     icon: "public",
@@ -98,6 +127,7 @@ export const SEARCH_PROVIDERS = {
   },
   "searchapi-search": {
     id: "searchapi-search",
+    serviceKinds: ["webSearch"],
     alias: "searchapi",
     name: "SearchAPI",
     icon: "manage_search",
@@ -108,6 +138,7 @@ export const SEARCH_PROVIDERS = {
   },
   "youcom-search": {
     id: "youcom-search",
+    serviceKinds: ["webSearch"],
     alias: "youcom-search",
     name: "You.com Search",
     icon: "travel_explore",
@@ -118,6 +149,7 @@ export const SEARCH_PROVIDERS = {
   },
   "searxng-search": {
     id: "searxng-search",
+    serviceKinds: ["webSearch"],
     alias: "searxng",
     name: "SearXNG Search",
     icon: "search",
@@ -128,8 +160,33 @@ export const SEARCH_PROVIDERS = {
     authHint:
       "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
   },
+  "x-search": {
+    id: "x-search",
+    alias: "x_search",
+    name: "X Search (Grok)",
+    icon: "tag",
+    color: "#000000",
+    textIcon: "X",
+    website: "https://docs.x.ai/developers/tools/x-search",
+    authHint:
+      "SuperGrok OAuth (xai-oauth) or xAI API key. This is Grok X Search, not the X Developer MCP.",
+    serviceKinds: ["webSearch"],
+  },
+  "xquik-search": {
+    id: "xquik-search",
+    alias: "xquik",
+    name: "Xquik X Search",
+    icon: "tag",
+    color: "#111827",
+    textIcon: "XQ",
+    website: "https://docs.xquik.com",
+    authHint:
+      "Xquik API key (xq_...). Search is metered per returned post; the catalog estimate uses 5 results.",
+    serviceKinds: ["webSearch"],
+  },
   "ollama-search": {
     id: "ollama-search",
+    serviceKinds: ["webSearch"],
     alias: "ollama-search",
     name: "Ollama Search",
     icon: "search",
@@ -137,5 +194,18 @@ export const SEARCH_PROVIDERS = {
     textIcon: "OS",
     website: "https://ollama.com/settings/keys",
     authHint: "Same API key as Ollama Cloud (from ollama.com/settings/keys)",
+  },
+  context7: {
+    id: "context7",
+    alias: "context7",
+    name: "Context7 (library docs)",
+    icon: "menu_book",
+    color: "#6B4FBB",
+    textIcon: "C7",
+    website: "https://context7.com",
+    hasFree: true,
+    authHint:
+      "API key optional (ctx7sk-...) — anonymous tier works without a key; a key raises the rate limit",
+    serviceKinds: ["webSearch", "webFetch"],
   },
 };

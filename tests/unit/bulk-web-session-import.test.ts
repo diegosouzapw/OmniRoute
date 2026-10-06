@@ -10,6 +10,7 @@ import { bulkWebSessionImportSchema } from "../../src/shared/validation/schemas.
 import {
   requiresWebSessionCredential,
   getWebSessionCredentialRequirement,
+  canUpdateProviderApiKey,
   hasUsableWebSessionCredential,
   resolveWebSessionImportApiKey,
 } from "../../src/shared/providers/webSessionCredentials.ts";
@@ -17,7 +18,7 @@ import {
 describe("bulkWebSessionImportSchema", () => {
   it("accepts valid input with single entry", () => {
     const result = bulkWebSessionImportSchema.safeParse({
-      provider: "chatgpt-web",
+      provider: "perplexity-web",
       entries: [{ name: "Account 1", credential: "__Secure-next-auth.session-token=abc123" }],
     });
     assert.equal(result.success, true);
@@ -47,7 +48,7 @@ describe("bulkWebSessionImportSchema", () => {
 
   it("rejects empty entries array", () => {
     const result = bulkWebSessionImportSchema.safeParse({
-      provider: "chatgpt-web",
+      provider: "perplexity-web",
       entries: [],
     });
     assert.equal(result.success, false);
@@ -59,7 +60,7 @@ describe("bulkWebSessionImportSchema", () => {
       credential: "cookie=value",
     }));
     const result = bulkWebSessionImportSchema.safeParse({
-      provider: "chatgpt-web",
+      provider: "perplexity-web",
       entries,
     });
     assert.equal(result.success, false);
@@ -67,7 +68,7 @@ describe("bulkWebSessionImportSchema", () => {
 
   it("rejects entry with empty credential", () => {
     const result = bulkWebSessionImportSchema.safeParse({
-      provider: "chatgpt-web",
+      provider: "perplexity-web",
       entries: [{ name: "Account 1", credential: "" }],
     });
     assert.equal(result.success, false);
@@ -75,7 +76,7 @@ describe("bulkWebSessionImportSchema", () => {
 
   it("rejects entry with empty name", () => {
     const result = bulkWebSessionImportSchema.safeParse({
-      provider: "chatgpt-web",
+      provider: "perplexity-web",
       entries: [{ name: "", credential: "cookie=value" }],
     });
     assert.equal(result.success, false);
@@ -90,14 +91,14 @@ describe("bulkWebSessionImportSchema", () => {
 
   it("rejects priority out of range", () => {
     const result = bulkWebSessionImportSchema.safeParse({
-      provider: "chatgpt-web",
+      provider: "perplexity-web",
       entries: [{ name: "A1", credential: "cookie=value" }],
       priority: 0,
     });
     assert.equal(result.success, false);
 
     const result2 = bulkWebSessionImportSchema.safeParse({
-      provider: "chatgpt-web",
+      provider: "perplexity-web",
       entries: [{ name: "A1", credential: "cookie=value" }],
       priority: 101,
     });
@@ -110,7 +111,7 @@ describe("bulkWebSessionImportSchema", () => {
       credential: "cookie=value",
     }));
     const result = bulkWebSessionImportSchema.safeParse({
-      provider: "chatgpt-web",
+      provider: "perplexity-web",
       entries,
     });
     assert.equal(result.success, true);
@@ -119,7 +120,7 @@ describe("bulkWebSessionImportSchema", () => {
 
 describe("web-session credential helpers", () => {
   it("requiresWebSessionCredential returns true for web-cookie providers", () => {
-    assert.equal(requiresWebSessionCredential("chatgpt-web"), true);
+    assert.equal(requiresWebSessionCredential("perplexity-web"), true);
     assert.equal(requiresWebSessionCredential("grok-web"), true);
     assert.equal(requiresWebSessionCredential("claude-web"), true);
     assert.equal(requiresWebSessionCredential("deepseek-web"), true);
@@ -132,7 +133,7 @@ describe("web-session credential helpers", () => {
   });
 
   it("getWebSessionCredentialRequirement returns correct kind for cookie providers", () => {
-    const req = getWebSessionCredentialRequirement("chatgpt-web");
+    const req = getWebSessionCredentialRequirement("perplexity-web");
     assert.ok(req);
     assert.equal(req.kind, "cookie");
   });
@@ -145,18 +146,39 @@ describe("web-session credential helpers", () => {
 
   it("hasUsableWebSessionCredential validates cookie data correctly", () => {
     assert.equal(
-      hasUsableWebSessionCredential("chatgpt-web", {
+      hasUsableWebSessionCredential("perplexity-web", {
         cookie: "__Secure-next-auth.session-token=abc",
       }),
       true
     );
-    assert.equal(hasUsableWebSessionCredential("chatgpt-web", { cookie: "" }), false);
-    assert.equal(hasUsableWebSessionCredential("chatgpt-web", {}), false);
+    assert.equal(hasUsableWebSessionCredential("perplexity-web", { cookie: "" }), false);
+    assert.equal(hasUsableWebSessionCredential("perplexity-web", {}), false);
   });
 
   it("hasUsableWebSessionCredential validates token data correctly", () => {
     assert.equal(hasUsableWebSessionCredential("deepseek-web", { token: "my-token" }), true);
     assert.equal(hasUsableWebSessionCredential("deepseek-web", { token: "   " }), false);
+  });
+});
+
+describe("canUpdateProviderApiKey", () => {
+  it("preserves normal API-key credential updates", () => {
+    assert.equal(canUpdateProviderApiKey("apikey", "openai"), true);
+  });
+
+  it("allows token-kind web sessions stored with cookie authType", () => {
+    assert.equal(canUpdateProviderApiKey("cookie", "deepseek-web"), true);
+    assert.equal(canUpdateProviderApiKey("cookie", "zai-web"), true);
+  });
+
+  it("does not allow cookie-kind web sessions to update apiKey", () => {
+    assert.equal(canUpdateProviderApiKey("cookie", "perplexity-web"), false);
+    assert.equal(canUpdateProviderApiKey("cookie", "claude-web"), false);
+  });
+
+  it("does not broaden non-cookie auth types", () => {
+    assert.equal(canUpdateProviderApiKey("oauth", "deepseek-web"), false);
+    assert.equal(canUpdateProviderApiKey(null, "deepseek-web"), false);
   });
 });
 
@@ -192,7 +214,7 @@ describe("resolveWebSessionImportApiKey (token-kind imports must populate apiKey
     );
     assert.equal(
       resolveWebSessionImportApiKey(
-        getWebSessionCredentialRequirement("chatgpt-web"),
+        getWebSessionCredentialRequirement("perplexity-web"),
         "__Secure-next-auth.session-token=abc"
       ),
       null

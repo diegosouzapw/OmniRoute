@@ -20,13 +20,13 @@ const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 
 test.beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── LEDGER-1: updateProviderNode must preserve custom headers on partial update ──
@@ -133,18 +133,22 @@ test("LEDGER-2: valid custom headers still pass", () => {
   assert.equal(res.success, true, res.success ? "" : JSON.stringify(res.error?.issues));
 });
 
-// ── LEDGER-4: every minimax-m3 registry entry is flagged multimodal ──
-test("LEDGER-4: all minimax-m3 registry entries set supportsVision (matches lite.ts)", () => {
-  const entries: { id: string; supportsVision?: boolean }[] = [];
-  for (const provider of Object.values(
+// ── LEDGER-4: MiniMax M3 vision support is provider-specific ──
+test("LEDGER-4: minimax-m3 vision metadata matches each provider", () => {
+  const entries: { provider: string; id: string; supportsVision?: boolean }[] = [];
+  for (const [provider, entry] of Object.entries(
     REGISTRY as Record<string, { models?: { id: string; supportsVision?: boolean }[] }>
   )) {
-    for (const m of provider.models || []) {
-      if (/minimax-m3/i.test(m.id)) entries.push(m);
+    for (const model of entry.models || []) {
+      if (/minimax-m3/i.test(model.id)) entries.push({ provider, ...model });
     }
   }
   assert.ok(entries.length >= 6, `expected several minimax-m3 entries, got ${entries.length}`);
-  const unflagged = entries.filter((m) => m.supportsVision !== true).map((m) => m.id);
+  const promptql = entries.find((entry) => entry.provider === "promptql");
+  assert.notEqual(promptql?.supportsVision, true, "PromptQL MiniMax M3 is text-only");
+  const unflagged = entries
+    .filter((entry) => entry.provider !== "promptql" && entry.supportsVision !== true)
+    .map((entry) => `${entry.provider}/${entry.id}`);
   assert.deepEqual(
     unflagged,
     [],

@@ -18,7 +18,7 @@ const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 async function resetStorage() {
   comboMetrics.resetAllComboMetrics();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -29,7 +29,7 @@ test.beforeEach(async () => {
 test.after(() => {
   comboMetrics.resetAllComboMetrics();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("combo health route exposes step-level target health for structured combos", async () => {

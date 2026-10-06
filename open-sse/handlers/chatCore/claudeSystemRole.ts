@@ -14,6 +14,10 @@
 
 export type HoistedCacheBoundary = "moved" | "kept" | "dropped";
 
+// Re-exported from its canonical home in claudeCodeConstraints.ts so existing
+// importers of this module keep working.
+export { relocateDirectiveOnlyMessages } from "../../services/claudeCodeConstraints.ts";
+
 /** Effective cache TTL of a `cache_control` value; Anthropic defaults to 5m when `ttl` is absent. */
 function effectiveTtl(marker: unknown): string {
   const ttl = (marker as Record<string, unknown> | null | undefined)?.ttl;
@@ -135,6 +139,21 @@ export function extractSystemRoleMessages(payload: Record<string, unknown>): voi
         }
       }
     }
+    // Directive payload (message-level output_config, as emitted by Claude
+    // Code clients): the message itself is lifted away, so fold its output
+    // configuration into the top-level parameter instead of silently dropping
+    // it — whatever shape the content had. An explicit top-level output_config
+    // wins, and among several directive messages the first one wins.
+    if (payload.output_config == null) {
+      const directive = sm as Record<string, unknown>;
+      if (
+        directive.output_config != null &&
+        typeof directive.output_config === "object" &&
+        !Array.isArray(directive.output_config)
+      ) {
+        payload.output_config = directive.output_config;
+      }
+    }
   }
   if (extraBlocks.length > 0) {
     const existingSystem = payload.system;
@@ -147,4 +166,59 @@ export function extractSystemRoleMessages(payload: Record<string, unknown>): voi
     }
   }
   payload.messages = messages.filter((m) => !isSystemRole(m.role));
+}
+
+/**
+ * Hoists the leading run of text-bearing system-role messages (everything
+ * before the first real user/assistant turn) into the top-level `system`
+ * parameter. Anthropic treats `messages[0]` as the initial system prompt
+ * position and rejects any non-directive system-role message there ("use the
+ * top-level 'system' parameter for the initial system prompt"), which is
+ * exactly where the Output Styles injection lands on the mid-conversation
+ * system passthrough (provider `claude` + 1M-context models). Only the leading
+ * run is hoisted so genuine mid-conversation system turns keep their position
+ * and cache prefix; empty (directive-only) messages in the run are left in
+ * place for relocateDirectiveOnlyMessages to handle.
+ */
+export function hoistLeadingTextSystemMessages(payload: Record<string, unknown>): void {
+  if (!Array.isArray(payload.messages) || payload.messages.length === 0) return;
+  const messages = payload.messages as Array<Record<string, unknown>>;
+  const isSystemRole = (role: unknown): boolean =>
+    typeof role === "string" &&
+    (role.toLowerCase() === "system" || role.toLowerCase() === "developer");
+
+  const blocks: Array<Record<string, unknown>> = [];
+  const kept: Array<Record<string, unknown>> = [];
+  let i = 0;
+  for (; i < messages.length; i++) {
+    const m = messages[i];
+    if (m == null || typeof m !== "object" || !isSystemRole(m.role)) break;
+    if (typeof m.content === "string") {
+      if (m.content.length > 0) blocks.push({ type: "text", text: m.content });
+      continue;
+    }
+    if (Array.isArray(m.content) && m.content.length > 0) {
+      let hoisted = false;
+      for (const block of m.content as Array<Record<string, unknown>>) {
+        if (block?.type === "text" && typeof block.text === "string" && block.text.length > 0) {
+          blocks.push({ type: "text", text: block.text });
+          hoisted = true;
+        }
+      }
+      if (!hoisted) kept.push(m);
+      continue;
+    }
+    kept.push(m);
+  }
+  if (blocks.length === 0) return;
+
+  const existing = payload.system;
+  if (typeof existing === "string" && existing.length > 0) {
+    payload.system = [{ type: "text", text: existing }, ...blocks];
+  } else if (Array.isArray(existing)) {
+    payload.system = [...(existing as Array<Record<string, unknown>>), ...blocks];
+  } else {
+    payload.system = blocks;
+  }
+  payload.messages = [...kept, ...messages.slice(i)];
 }

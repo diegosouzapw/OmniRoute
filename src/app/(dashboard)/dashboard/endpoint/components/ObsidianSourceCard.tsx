@@ -50,8 +50,11 @@ export default function ObsidianSourceCard() {
   }, []);
 
   useEffect(() => {
-    void fetchConfig();
-    void fetchWebdavStatus();
+    // Async continuation — see react-hooks/set-state-in-effect.
+    void (async () => {
+      await fetchConfig();
+      await fetchWebdavStatus();
+    })();
   }, [fetchConfig, fetchWebdavStatus]);
 
   useEffect(() => {

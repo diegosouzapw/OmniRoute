@@ -73,6 +73,11 @@ type PersistedTunnelState = {
   installedAt?: string | null;
 };
 
+export type CloudflaredNamedTunnelConfig = {
+  configPath: string;
+  hostname: string | null;
+};
+
 export type CloudflaredTunnelStatus = {
   supported: boolean;
   installed: boolean;
@@ -290,6 +295,79 @@ export function extractTryCloudflareUrl(text: string) {
   return match[0];
 }
 
+/**
+ * Normalize an operator-supplied public hostname into an `https://host[:port]`
+ * origin. Accepts a bare host (`omniroute.example.com`) or a full URL and
+ * returns `null` for empty/invalid input.
+ */
+export function normalizeCloudflaredHostname(
+  rawHostname: string | null | undefined
+): string | null {
+  const value = String(rawHostname || "").trim();
+  if (!value) return null;
+
+  const candidate = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  try {
+    const url = new URL(candidate);
+    if (!url.hostname) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve named/persistent tunnel configuration from the environment. Presence
+ * of `CLOUDFLARED_CONFIG` (a path to a locally-managed cloudflared `config.yml`
+ * with `tunnel:`, `credentials-file:`, and `ingress:` entries) is what switches
+ * the tunnel out of ephemeral quick-tunnel mode. `CLOUDFLARED_HOSTNAME` is an
+ * optional override for the public hostname OmniRoute reports as the tunnel's
+ * `publicUrl`/`apiUrl`; when unset it is read from the config's first `ingress`
+ * hostname (a named tunnel emits no `*.trycloudflare.com` URL to scrape).
+ * Returns `null` when no config is set (quick-tunnel mode).
+ */
+export function getCloudflaredNamedTunnelConfig(
+  sourceEnv: NodeJS.ProcessEnv = process.env
+): CloudflaredNamedTunnelConfig | null {
+  const configPath = String(sourceEnv.CLOUDFLARED_CONFIG || "").trim();
+  if (!configPath) return null;
+
+  return {
+    configPath,
+    hostname: normalizeCloudflaredHostname(sourceEnv.CLOUDFLARED_HOSTNAME),
+  };
+}
+
+/**
+ * Extract the first `ingress` hostname from a cloudflared `config.yml` body, so
+ * OmniRoute can report a named tunnel's public URL without the operator having
+ * to repeat the hostname in `CLOUDFLARED_HOSTNAME`. Skips comments and the
+ * catch-all rule; returns `null` when no routable hostname is present.
+ */
+export function extractCloudflaredHostnameFromConfig(configText: string): string | null {
+  for (const rawLine of String(configText || "").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const match = line.match(/^-?\s*hostname:\s*["']?([^"'#\s]+)/i);
+    if (match && match[1]) {
+      return normalizeCloudflaredHostname(match[1]);
+    }
+  }
+  return null;
+}
+
+/**
+ * Detect the stable cloudflared log line emitted once a named tunnel has an
+ * active edge connection. Used as the readiness signal for named tunnels, which
+ * (unlike quick tunnels) never print a public URL to stdout/stderr.
+ */
+export function extractCloudflaredConnectionReady(text: string): boolean {
+  const value = String(text || "");
+  return (
+    /Registered tunnel connection/i.test(value) || /Connection [0-9a-f-]+ registered/i.test(value)
+  );
+}
+
 function normalizeCloudflaredLogLine(line: string) {
   return line
     .trim()
@@ -385,7 +463,18 @@ export function buildCloudflaredChildEnv(
   return childEnv;
 }
 
-export function getCloudflaredStartArgs(targetUrl: string) {
+export function getCloudflaredStartArgs(
+  targetUrl: string,
+  namedTunnel: CloudflaredNamedTunnelConfig | null = null
+) {
+  if (namedTunnel) {
+    // Named/persistent tunnel (locally-managed): run the tunnel defined by the
+    // operator's cloudflared config.yml. The config supplies the tunnel UUID,
+    // credentials-file, and ingress routing (which host maps to which local
+    // service), so no `--url` target is passed here. `run` reads credentials
+    // from the config's absolute `credentials-file` path — no `cert.pem` needed.
+    return ["tunnel", "--no-autoupdate", "--config", namedTunnel.configPath, "run"];
+  }
   return ["tunnel", "--url", targetUrl, "--no-autoupdate"];
 }
 
@@ -795,6 +884,27 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
 
     const binary = await ensureBinary();
     const targetUrl = getLocalTargetUrl();
+    const namedTunnel = getCloudflaredNamedTunnelConfig();
+
+    if (namedTunnel) {
+      // Fail fast with a clear message instead of a 30s readiness timeout when
+      // CLOUDFLARED_CONFIG points at a missing/unreadable file.
+      try {
+        await fs.access(namedTunnel.configPath);
+      } catch {
+        throw new Error(`cloudflared config file not found: ${namedTunnel.configPath}`);
+      }
+      // If the operator didn't set CLOUDFLARED_HOSTNAME, read the public hostname
+      // from the config's first ingress rule so we can still report publicUrl.
+      if (!namedTunnel.hostname) {
+        try {
+          const configText = await fs.readFile(namedTunnel.configPath, "utf8");
+          namedTunnel.hostname = extractCloudflaredHostnameFromConfig(configText);
+        } catch {
+          // Non-fatal: the tunnel can still run, we just can't report its URL.
+        }
+      }
+    }
 
     await stopExistingTunnel();
     await ensureTunnelDir();
@@ -814,11 +924,15 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
       startedAt: new Date().toISOString(),
     });
 
-    const child = spawn(binary.binaryPath as string, getCloudflaredStartArgs(targetUrl), {
-      windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe"],
-      env: buildCloudflaredChildEnv(),
-    });
+    const child = spawn(
+      binary.binaryPath as string,
+      getCloudflaredStartArgs(targetUrl, namedTunnel),
+      {
+        windowsHide: true,
+        stdio: ["ignore", "pipe", "pipe"],
+        env: buildCloudflaredChildEnv(),
+      }
+    );
 
     tunnelProcess = child;
     tunnelPid = child.pid ?? null;
@@ -855,6 +969,28 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
             lastError: errorMessage,
           });
         }
+
+        if (namedTunnel) {
+          // Named tunnels never print a public URL; treat the first registered
+          // edge connection as ready and report the operator-configured hostname
+          // (if any) as the public URL.
+          if (!extractCloudflaredConnectionReady(text)) return;
+
+          const publicUrl = namedTunnel.hostname;
+          await updateStateFile({
+            ownerPid: process.pid,
+            pid: child.pid,
+            publicUrl,
+            apiUrl: getTunnelApiUrl(publicUrl),
+            status: "running",
+            lastError: null,
+          });
+
+          const namedStatus = await getCloudflaredTunnelStatus();
+          settle(() => resolve(namedStatus));
+          return;
+        }
+
         const url = extractTryCloudflareUrl(text);
         if (!url) return;
 
@@ -879,12 +1015,14 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
         void handleOutput("stderr", chunk);
       });
 
+      const readySubject = namedTunnel ? "connection" : "URL";
+
       child.once("exit", (code, signal) => {
         void finalizeProcessExit(code, signal);
         settle(() =>
           reject(
             new Error(
-              `cloudflared exited before tunnel URL was ready (${code ?? "signal"}${signal ? `/${signal}` : ""})`
+              `cloudflared exited before tunnel ${readySubject} was ready (${code ?? "signal"}${signal ? `/${signal}` : ""})`
             )
           )
         );
@@ -892,7 +1030,9 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
 
       timeout = setTimeout(async () => {
         await stopExistingTunnel();
-        settle(() => reject(new Error("Timed out while waiting for Cloudflare tunnel URL")));
+        settle(() =>
+          reject(new Error(`Timed out while waiting for Cloudflare tunnel ${readySubject}`))
+        );
       }, START_TIMEOUT_MS);
     });
 

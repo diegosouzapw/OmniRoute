@@ -21,13 +21,20 @@ describe("runPluginDoctor", () => {
   });
 
   afterEach(() => {
-    try { rmSync(testDir, { recursive: true, force: true }); } catch {}
+    try {
+      rmSync(testDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    } catch {}
   });
 
   it("healthy plugin with valid manifest and entry point", async () => {
-    writeFileSync(join(pluginDir, "plugin.json"), JSON.stringify({
-      name: "test-plugin", version: "1.0.0", main: "index.js",
-    }));
+    writeFileSync(
+      join(pluginDir, "plugin.json"),
+      JSON.stringify({
+        name: "test-plugin",
+        version: "1.0.0",
+        main: "index.js",
+      })
+    );
     writeFileSync(join(pluginDir, "index.js"), "export default {}");
     const result = await runPluginDoctor(pluginDir, "test-plugin");
     // Plugin not in DB → db_status_correct is "warn" → overall "degraded"
@@ -48,17 +55,27 @@ describe("runPluginDoctor", () => {
   });
 
   it("reports missing entry point", async () => {
-    writeFileSync(join(pluginDir, "plugin.json"), JSON.stringify({
-      name: "no-entry", version: "1.0.0", main: "index.js",
-    }));
+    writeFileSync(
+      join(pluginDir, "plugin.json"),
+      JSON.stringify({
+        name: "no-entry",
+        version: "1.0.0",
+        main: "index.js",
+      })
+    );
     const result = await runPluginDoctor(pluginDir, "no-entry");
     assert.ok(result.checks.some((c) => c.name === "entry_point_exists" && c.status === "fail"));
   });
 
   it("degraded when only warnings", async () => {
-    writeFileSync(join(pluginDir, "plugin.json"), JSON.stringify({
-      name: "warn-plugin", version: "1.0.0", main: "index.ts",
-    }));
+    writeFileSync(
+      join(pluginDir, "plugin.json"),
+      JSON.stringify({
+        name: "warn-plugin",
+        version: "1.0.0",
+        main: "index.ts",
+      })
+    );
     writeFileSync(join(pluginDir, "index.ts"), "export default {}");
     const result = await runPluginDoctor(pluginDir, "warn-plugin");
     // .ts extension should produce a warn on can_spawn

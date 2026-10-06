@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
-import { skillRegistry } from "@/lib/skills/registry";
+import { GLOBAL_SKILL_OWNER_ID, skillRegistry } from "@/lib/skills/registry";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { fetchSkillMd } from "@/lib/skills/skillssh";
 import { getSkillsProviderSetting } from "@/lib/skills/providerSettings";
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       description,
       schema: { input: { content: "string" }, output: { result: "string" } },
       handler: `// Installed from skills.sh\n// Source: ${source}/${skillId}\n// SKILL.md content:\n${skillMdContent}`,
-      apiKeyId: provider,
+      apiKeyId: GLOBAL_SKILL_OWNER_ID,
       enabled: true,
       mode: "auto",
       sourceProvider: "skillssh",

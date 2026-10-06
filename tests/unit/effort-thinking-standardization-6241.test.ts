@@ -19,7 +19,7 @@ const registry = await import("../../src/lib/modelMetadataRegistry.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -29,7 +29,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── Schema ─────────────────────────────────────────────────────────────
@@ -54,9 +54,9 @@ test("schema still accepts the existing object-shaped thinking config (back-comp
   assert.deepEqual(parsed.thinking, { type: "enabled", budget_tokens: 2048 });
 });
 
-test("schema normalizes UI tier synonyms (extra/max) onto xhigh, rejects garbage", () => {
+test("schema normalizes UI tier synonyms (extra) onto xhigh, preserves max, rejects garbage", () => {
   assert.equal(effortRequestSchema.parse("extra"), "xhigh");
-  assert.equal(effortRequestSchema.parse("MAX"), "xhigh");
+  assert.equal(effortRequestSchema.parse("MAX"), "max");
   assert.equal(effortRequestSchema.parse("medium"), "medium");
   assert.throws(() => effortRequestSchema.parse("turbo"));
 });
@@ -67,11 +67,18 @@ test("normalizeEffort maps canonical + aliases, ignores unknown", () => {
   assert.equal(normalizeEffort("high"), "high");
   assert.equal(normalizeEffort("HIGH"), "high");
   assert.equal(normalizeEffort("extra"), "xhigh");
-  assert.equal(normalizeEffort("max"), "xhigh");
+  assert.equal(normalizeEffort("max"), "max");
   assert.equal(normalizeEffort("none"), "none");
   assert.equal(normalizeEffort("turbo"), undefined);
   assert.equal(normalizeEffort(3), undefined);
-  assert.deepEqual([...CANONICAL_EFFORT_VALUES], ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual([...CANONICAL_EFFORT_VALUES], [
+    "none",
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+  ]);
 });
 
 // ── normalizeReasoningRequest ──────────────────────────────────────────
@@ -95,11 +102,11 @@ test("canonical thinking boolean is preserved as the truthy toggle", () => {
   assert.equal(out.thinking, true);
 });
 
-test("Extra / Max collapse to xhigh through the normalizer", () => {
+test("Extra maps to xhigh, Max is preserved natively through the normalizer", () => {
   const extra = normalizeReasoningRequest({ effort: "extra" }) as Record<string, unknown>;
   assert.equal(extra.reasoning_effort, "xhigh");
   const max = normalizeReasoningRequest({ effort: "Max" }) as Record<string, unknown>;
-  assert.equal(max.reasoning_effort, "xhigh");
+  assert.equal(max.reasoning_effort, "max");
 });
 
 test("explicit client reasoning_effort is NOT overwritten by canonical effort", () => {
@@ -173,10 +180,40 @@ test("enrichCatalogModelEntry exposes supportsThinking + effort_tiers for a thin
   const caps = enriched.capabilities as Record<string, unknown>;
   assert.ok(caps, "capabilities object present");
   assert.equal(caps.supportsThinking, true);
-  assert.deepEqual(caps.effort_tiers, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(caps.effort_tiers, ["none", "low", "medium", "high", "xhigh", "max"]);
   // additive — existing flags preserved
   assert.equal(caps.thinking, true);
   assert.equal(caps.reasoning, true);
+});
+
+test("enrichCatalogModelEntry preserves Kimi's provider-declared effort contract", () => {
+  for (const model of ["k3", "k3-256k"]) {
+    const entry = registry.enrichCatalogModelEntry({
+      id: `kmc/${model}`,
+      object: "model",
+      owned_by: "kimi-coding",
+      root: model,
+      capabilities: {
+        thinking: true,
+        supportsThinking: true,
+        effort_tiers: ["low", "high", "max"],
+      },
+    }) as Record<string, unknown>;
+    assert.deepEqual(
+      (entry.capabilities as Record<string, unknown>).effort_tiers,
+      ["low", "high", "max"],
+      model
+    );
+  }
+
+  const k27 = registry.enrichCatalogModelEntry({
+    id: "kmc/kimi-for-coding",
+    object: "model",
+    owned_by: "kimi-coding",
+    root: "kimi-for-coding",
+    capabilities: { thinking: true, supportsThinking: true },
+  }) as Record<string, unknown>;
+  assert.equal("effort_tiers" in (k27.capabilities as Record<string, unknown>), false);
 });
 
 test("enrichCatalogModelEntry exposes Max for Kiro GPT-5.6 Luna", () => {

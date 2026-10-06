@@ -1,5 +1,11 @@
 import { isSelfHostedChatProvider } from "@/shared/constants/providers";
 import { getStaticModelsForProvider, type LocalCatalogModel } from "@/lib/providers/staticModels";
+import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
+import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
+import {
+  buildOllamaShowUrl,
+  enrichOllamaModelsWithCapabilities,
+} from "@/lib/providerModels/ollamaCapabilities";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -101,4 +107,36 @@ export function buildNamedOpenAiStyleHeaders(
   }
 
   return headers;
+}
+
+// #11087 — Ollama's OpenAI-compatible /v1/models response carries no capability
+// data, so every local model looked like a chat model and image/embedding
+// requests were routed to text-only models. Probe /api/show per model (bounded
+// concurrency, failures degrade to the unenriched entry) to recover the
+// advertised capabilities. Lives here rather than inline in route.ts to keep the
+// route file under its frozen file-size cap.
+export async function enrichOllamaLocalModels(
+  models: unknown[],
+  baseUrl: string,
+  proxy: unknown,
+  token: string | null | undefined
+): Promise<JsonRecord[]> {
+  const showUrl = buildOllamaShowUrl(baseUrl);
+  return enrichOllamaModelsWithCapabilities(models, async (modelId) => {
+    try {
+      const showResponse = await safeOutboundFetch(showUrl, {
+        ...SAFE_OUTBOUND_FETCH_PRESETS.modelsProbe,
+        // Same guard tier as the discovery probe above: local-first, so LAN
+        // Ollama hosts are reachable while the outbound guard stays enforced.
+        guard: getProviderValidationGuard(),
+        proxyConfig: proxy,
+        method: "POST",
+        headers: buildOptionalBearerHeaders(token),
+        body: JSON.stringify({ model: modelId, verbose: false }),
+      });
+      return showResponse.ok ? await showResponse.json() : null;
+    } catch {
+      return null;
+    }
+  });
 }

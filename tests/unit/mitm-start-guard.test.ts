@@ -44,7 +44,7 @@ const manager = await import("../../src/mitm/manager.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // Belt-and-braces: never leave the module-level lock held across tests.

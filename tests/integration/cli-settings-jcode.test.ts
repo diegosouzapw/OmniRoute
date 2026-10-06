@@ -14,16 +14,15 @@ process.env.API_KEY_SECRET = "test-api-key-secret-jcode";
 process.env.JWT_SECRET = "test-jwt-secret-jcode";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 
-const { GET, POST, DELETE } = await import(
-  "../../src/app/api/cli-tools/jcode-settings/route.ts"
-);
+const { GET, POST, DELETE } = await import("../../src/app/api/cli-tools/jcode-settings/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -82,9 +81,9 @@ test("jcode-settings POST: 400 when model is missing", async () => {
   assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
 });
 
-// ── Test 4: POST with valid body → writes config.json ───────────────────────
+// ── Test 4: POST with valid body → writes provider profile into config.toml ──
 
-test("jcode-settings POST: writes config.json with valid body", async () => {
+test("jcode-settings POST: writes [providers.omniroute] into config.toml", async () => {
   const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "jcode-home-"));
   const origHome = process.env.HOME;
   process.env.HOME = tmpHome;
@@ -101,30 +100,29 @@ test("jcode-settings POST: writes config.json with valid body", async () => {
         }),
       })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Unexpected status ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Unexpected status ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);
-      const configPath = path.join(tmpHome, ".jcode", "config.json");
+      const configPath = path.join(tmpHome, ".jcode", "config.toml");
       if (fs.existsSync(configPath)) {
-        const written = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-        assert.equal(written._managedBy, "omniroute");
-        assert.ok(written.baseUrl.includes("localhost:20128"));
-        assert.equal(written.model, "gpt-5.4-mini");
+        const written = fs.readFileSync(configPath, "utf-8");
+        assert.ok(written.includes("managed by OmniRoute"));
+        assert.ok(written.includes("[providers.omniroute]"));
+        assert.ok(written.includes('type = "openai-compatible"'));
+        assert.ok(written.includes("localhost:20128/v1"));
+        assert.ok(written.includes('default_model = "gpt-5.4-mini"'));
       }
     }
   } finally {
     process.env.HOME = origHome;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
 // ── Test 5: DELETE → removes OmniRoute fields ────────────────────────────────
 
-test("jcode-settings DELETE: removes OmniRoute fields from existing config", async () => {
+test("jcode-settings DELETE: removes only the OmniRoute-managed block", async () => {
   const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "jcode-home-del-"));
   const origHome = process.env.HOME;
   process.env.HOME = tmpHome;
@@ -132,30 +130,37 @@ test("jcode-settings DELETE: removes OmniRoute fields from existing config", asy
   try {
     const jcodeDir = path.join(tmpHome, ".jcode");
     fs.mkdirSync(jcodeDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(jcodeDir, "config.json"),
-      JSON.stringify({
-        _managedBy: "omniroute",
-        baseUrl: "http://localhost:20128",
-        apiKey: "sk-test",
-        model: "gpt-5",
-      })
-    );
+    const userSection = '[provider]\ndefault_model = "claude-opus-4-8"\n';
+    const managedBlock = [
+      "# >>> managed by OmniRoute (jcode provider profile) >>>",
+      "[providers.omniroute]",
+      'type = "openai-compatible"',
+      'base_url = "http://localhost:20128/v1"',
+      'api_key = "sk-test"',
+      'default_model = "gpt-5"',
+      "requires_api_key = false",
+      "# <<< managed by OmniRoute <<<",
+    ].join("\n");
+    fs.writeFileSync(path.join(jcodeDir, "config.toml"), `${userSection}\n${managedBlock}\n`);
 
     const res = await DELETE(
       new Request("http://localhost/api/cli-tools/jcode-settings", { method: "DELETE" })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Expected 200/403/500, got ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Expected 200/403/500, got ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);
+      const configPath = path.join(jcodeDir, "config.toml");
+      if (fs.existsSync(configPath)) {
+        const remaining = fs.readFileSync(configPath, "utf-8");
+        assert.ok(!remaining.includes("managed by OmniRoute"));
+        assert.ok(!remaining.includes("[providers.omniroute]"));
+        assert.ok(remaining.includes('default_model = "claude-opus-4-8"'));
+      }
     }
   } finally {
     process.env.HOME = origHome;
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -189,7 +194,7 @@ test("jcode-settings route.ts: does not call exec() or spawn() directly", () => 
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   delete process.env.DATA_DIR;
   delete process.env.API_KEY_SECRET;
   delete process.env.JWT_SECRET;

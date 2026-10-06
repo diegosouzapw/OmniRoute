@@ -20,18 +20,28 @@
 import { getGitHubCopilotChatHeaders } from "../config/providerHeaderProfiles.ts";
 
 export const GITHUB_COPILOT_MODELS_URL = "https://api.githubcopilot.com/models";
-export const GITHUB_COPILOT_MODEL_ALLOWLIST = [
+
+// Static fallback catalog. Used ONLY when live discovery is unavailable
+// (offline / unauthed / upstream error): the account's real entitlements can't
+// be read, so we fall back to this curated set of known-good chat ids. It is
+// NOT used to gate the LIVE response — see parseGitHubCopilotModels, which keeps
+// every entitled chat model the catalog returns (so newly-entitled models like
+// grok-4.6 / mai-code-1.1-flash / gemini-3.6-flash appear without a code edit).
+export const GITHUB_COPILOT_STATIC_FALLBACK_MODELS = [
   "claude-fable-5",
   "claude-opus-5",
   "claude-opus-4.8-fast",
   "claude-opus-4.8",
   "claude-opus-4.7",
+  "claude-opus-4.6",
   "claude-sonnet-4.6",
   "claude-opus-4.5",
   "claude-sonnet-5",
   "claude-sonnet-4.5",
   "claude-haiku-4.5",
   "gemini-3.1-pro-preview",
+  "gemini-3.7-flash",
+  "gemini-3.6-flash",
   "gemini-3.5-flash",
   "gpt-5.6-sol",
   "gpt-5.6-terra",
@@ -39,6 +49,7 @@ export const GITHUB_COPILOT_MODEL_ALLOWLIST = [
   "gpt-5.5",
   "gpt-5.4",
   "gpt-5.4-mini",
+  "gpt-5.4-nano",
   "gpt-5.3-codex",
   "gpt-5-mini",
   "gpt-4o-2024-11-20",
@@ -46,10 +57,18 @@ export const GITHUB_COPILOT_MODEL_ALLOWLIST = [
   "gpt-4-0125-preview",
   "kimi-k2.7-code",
   "mai-code-1-flash",
+  "mai-code-1.1-flash",
+  "mai-code-1-flash-picker",
+  "grok-4.6",
+  "grok-4.5",
   "oswe-vscode-prime",
 ] as const;
 
-const GITHUB_COPILOT_MODEL_ALLOWLIST_SET = new Set<string>(GITHUB_COPILOT_MODEL_ALLOWLIST);
+// Back-compat alias: earlier code + tests imported this name. It is now the
+// static FALLBACK catalog, not a live-response gate.
+export const GITHUB_COPILOT_MODEL_ALLOWLIST = GITHUB_COPILOT_STATIC_FALLBACK_MODELS;
+
+const GITHUB_COPILOT_STATIC_FALLBACK_SET = new Set<string>(GITHUB_COPILOT_STATIC_FALLBACK_MODELS);
 
 export type GitHubCopilotModel = {
   id: string;
@@ -69,10 +88,54 @@ function toNonEmptyString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+// Decide whether a live /models row is a routable chat model. Capability-driven
+// (rename-robust) rather than an id allowlist: any model the account is entitled
+// to whose capabilities.type is "chat" (or that carries a chat-shaped
+// supported_endpoints) is kept, so a newly-entitled model shows up with no code
+// change. Also filters out rows when policy.state is set and != "enabled", or
+// when model_picker_enabled=false. Explicitly non-chat rows (embeddings /
+// completion) are dropped as well.
+function isRoutableChatModel(item: RawRecord): boolean {
+  const policy = asRecord(item.policy);
+  const policyState = toNonEmptyString(policy.state);
+  if (policyState && policyState !== "enabled") return false;
+  if (item.model_picker_enabled === false) return false;
+
+  const capabilities = asRecord(item.capabilities);
+  const capType = toNonEmptyString(capabilities.type);
+  if (capType) return capType === "chat";
+
+  // No capabilities.type present — fall back to supported_endpoints shape. A
+  // chat model exposes /chat/completions, /responses, or /v1/messages.
+  const endpoints = Array.isArray(item.supported_endpoints)
+    ? (item.supported_endpoints as unknown[])
+    : Array.isArray((asRecord(item.capabilities) as RawRecord).supported_endpoints)
+      ? ((asRecord(item.capabilities) as RawRecord).supported_endpoints as unknown[])
+      : [];
+  if (endpoints.length > 0) {
+    return endpoints.some((e) => {
+      const s = toNonEmptyString(e) || "";
+      return (
+        s.includes("/chat/completions") || s.includes("/responses") || s.includes("/v1/messages")
+      );
+    });
+  }
+
+  // Neither signal present: keep it unless its id looks like a known non-chat
+  // utility (embedding / completion sentinels). This keeps discovery permissive
+  // without re-introducing a brittle positive allowlist.
+  const id = (toNonEmptyString(item.id) || toNonEmptyString(item.model) || "").toLowerCase();
+  if (!id) return false;
+  return !(id.includes("embedding") || id === "gpt-41-copilot");
+}
+
 /**
- * Parse a Copilot `/models` response into managed model rows. Only ids present
- * in the live response are returned, which is exactly the entitlement filter
- * #3121 requires.
+ * Parse a Copilot `/models` response into managed chat-model rows. Keeps every
+ * entitled CHAT model in the live response (capability-driven filtering) and
+ * drops only non-chat rows (embeddings / completion). Because only entitled
+ * models appear in the live response, this is exactly the entitlement filter
+ * #3121 needs — WITHOUT the old hardcoded id allowlist that silently dropped
+ * newly-entitled models (grok-4.6, mai-code-1.1-flash, gemini-3.6-flash, …).
  */
 export function parseGitHubCopilotModels(data: unknown): GitHubCopilotModel[] {
   const payload = asRecord(data);
@@ -89,7 +152,7 @@ export function parseGitHubCopilotModels(data: unknown): GitHubCopilotModel[] {
     const item = asRecord(value);
     const id = toNonEmptyString(item.id) || toNonEmptyString(item.model);
     if (!id || seen.has(id)) continue;
-    if (!GITHUB_COPILOT_MODEL_ALLOWLIST_SET.has(id)) continue;
+    if (!isRoutableChatModel(item)) continue;
     seen.add(id);
     const name = toNonEmptyString(item.name) || toNonEmptyString(item.display_name) || id;
     models.push({ id, name, owned_by: "github" });
@@ -120,7 +183,7 @@ function toFallbackResult(
     .map((model) => {
       const id = toNonEmptyString(model.id);
       if (!id) return null;
-      if (!GITHUB_COPILOT_MODEL_ALLOWLIST_SET.has(id)) return null;
+      if (!GITHUB_COPILOT_STATIC_FALLBACK_SET.has(id)) return null;
       return { id, name: toNonEmptyString(model.name) || id, owned_by: "github" };
     })
     .filter((model): model is GitHubCopilotModel => Boolean(model));

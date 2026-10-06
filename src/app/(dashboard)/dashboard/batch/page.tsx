@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import BatchListTab from "./BatchListTab";
-import { FileRecord } from "@/lib/db/files";
-import { BatchRecord } from "@/lib/db/batches";
+import type { FileRecord } from "@/lib/db/files";
+import type { BatchRecord } from "@/lib/db/batches";
 import { mapBatchApiToRecord, mapFileApiToRecord } from "./batch-utils";
 import BatchConceptCard from "./components/BatchConceptCard";
 import NewBatchWizard from "./components/NewBatchWizard";
@@ -246,7 +246,42 @@ export default function BatchPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Concept card (F3) */}
+      {/* Stable outcome-oriented header (replaces the collapsible card as primary orientation) */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold text-[var(--color-text-main)]">{t("batchConceptTitle")}</h1>
+          <p className="text-sm text-[var(--color-text-muted)]">{t("batchHeaderSubtitle")}</p>
+        </div>
+
+        {/* Three-step strip */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] px-3 py-2">
+            <span className="font-medium text-sm text-[var(--color-text-main)]">{t("batchStep1")}</span>
+            <span className="text-xs text-[var(--color-text-muted)] hidden sm:inline">{t("batchStep1Desc")}</span>
+          </div>
+          <span className="material-symbols-outlined text-[var(--color-text-muted)]">chevron_right</span>
+          <div className="flex items-center gap-1.5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] px-3 py-2">
+            <span className="font-medium text-sm text-[var(--color-text-main)]">{t("batchStep2")}</span>
+            <span className="text-xs text-[var(--color-text-muted)] hidden sm:inline">{t("batchStep2Desc")}</span>
+          </div>
+          <span className="material-symbols-outlined text-[var(--color-text-muted)]">chevron_right</span>
+          <div className="flex items-center gap-1.5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] px-3 py-2">
+            <span className="font-medium text-sm text-[var(--color-text-main)]">{t("batchStep3")}</span>
+            <span className="text-xs text-[var(--color-text-muted)] hidden sm:inline">{t("batchStep3Desc")}</span>
+          </div>
+        </div>
+
+        {/* Primary CTA */}
+        <button
+          onClick={() => setShowWizard(true)}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-[var(--color-accent)] text-white hover:opacity-90 transition-all duration-200 w-fit"
+        >
+          <span className="material-symbols-outlined text-[16px]">add</span>
+          {t("batchListNewButton")}
+        </button>
+      </div>
+
+      {/* Deeper explanation (optional, collapsible) */}
       <BatchConceptCard />
 
       {/* "Batch created" success banner (A-6) — auto-dismiss 5s */}

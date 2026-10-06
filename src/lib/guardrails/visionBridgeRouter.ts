@@ -4,9 +4,19 @@
  */
 
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
-import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels";
-import { hasUsableCredentialsForModel } from "./visionBridgeCredentials";
+import { getActiveSyncedCatalog } from "@/lib/db/models/activeSyncedCatalog";
+import { PROVIDER_MODELS } from "@omniroute/open-sse/config/providerModels";
+import { getRegisteredProviderEffortBaseModelId } from "@omniroute/open-sse/utils/registeredEffortVariants.ts";
+import {
+  hasUsableCredentialsForModel,
+  getUsableConnectionsForModel,
+} from "./visionBridgeCredentials";
 import { isVisionBridgeForcedModel } from "@/shared/constants/visionBridgeDefaults";
+import { resolveProviderId } from "@/shared/constants/providers";
+import {
+  isModelLocked,
+  getAllModelLockouts,
+} from "@omniroute/open-sse/services/accountFallback.ts";
 
 export interface VisionModelCandidate {
   modelId: string;
@@ -31,15 +41,35 @@ export interface VisionBridgeRouterConfig {
   maxFallbackAttempts: number;
   /** Cache TTL for selection decisions (ms) */
   selectionCacheTtlMs: number;
+  /**
+   * Cache TTL for a "no usable candidate" outcome (ms). `0` disables the
+   * negative cache and restores the pre-#14161 behaviour of rescanning the
+   * whole catalog on every call.
+   */
+  noCandidateCacheTtlMs: number;
   /** Minimum number of latency samples before trusting average */
   minLatencySamples: number;
   /** Models to exclude from auto-routing */
   excludedModels: string[];
 }
 
+/**
+ * `OMNIROUTE_VISION_BRIDGE_NEGATIVE_CACHE_MS` overrides how long a
+ * "no usable candidate" outcome is remembered. Invalid or negative values
+ * fall back to the default; `0` disables the negative cache entirely.
+ */
+function readNoCandidateCacheTtlMs(): number {
+  const raw = process.env.OMNIROUTE_VISION_BRIDGE_NEGATIVE_CACHE_MS;
+  if (raw == null || raw.trim() === "") return 30_000;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) return 30_000;
+  return Math.floor(parsed);
+}
+
 const DEFAULT_ROUTER_CONFIG: VisionBridgeRouterConfig = {
   maxFallbackAttempts: 3,
   selectionCacheTtlMs: 60_000, // 1 minute
+  noCandidateCacheTtlMs: readNoCandidateCacheTtlMs(),
   minLatencySamples: 5,
   excludedModels: [],
 };
@@ -47,6 +77,14 @@ const DEFAULT_ROUTER_CONFIG: VisionBridgeRouterConfig = {
 // In-memory latency tracker (would be Redis in production)
 const latencyStore = new Map<string, LatencyRecord[]>();
 const selectionCache = new Map<string, { modelId: string; expiresAt: number }>();
+/**
+ * Keys that recently resolved to "no vision-capable model has usable
+ * credentials". `getVisionCapableModels` walks every provider in
+ * PROVIDER_MODELS and issues a credential lookup per candidate, so without
+ * this an install with images and no usable describer repeats that scan on
+ * the request path for every image of every request.
+ */
+const noCandidateCache = new Map<string, number>();
 
 /**
  * Record a latency measurement for a model.
@@ -106,6 +144,117 @@ function calculateSuccessRate(modelId: string): number {
  */
 export interface VisionBridgeRouterDeps {
   hasUsableCredentials?: (model: string) => Promise<boolean | null>;
+  getActiveSyncedCatalog?: (provider: string) => Promise<VisionModelCatalog>;
+  /**
+   * (#12111) Per-connection model-lockout check, defaulting to the real
+   * `accountFallback.isModelLocked`. Injectable for the same reason as
+   * `hasUsableCredentials`: `node:test` has no supported ESM module-mocking.
+   */
+  isModelLocked?: (provider: string, connectionId: string, model: string) => boolean;
+}
+
+export interface VisionModelCatalog {
+  authoritative: boolean;
+  models: Array<{ id: string }>;
+}
+
+type CatalogAwareRegistryModel = {
+  id: string;
+  liveCatalogIds?: readonly string[];
+};
+
+async function readActiveCatalog(
+  providerAlias: string,
+  deps: VisionBridgeRouterDeps
+): Promise<VisionModelCatalog> {
+  const readCatalog = deps.getActiveSyncedCatalog ?? getActiveSyncedCatalog;
+  try {
+    return await readCatalog(providerAlias);
+  } catch {
+    return { authoritative: false, models: [] };
+  }
+}
+
+function createCatalogModelPredicate(
+  providerAlias: string,
+  catalog: VisionModelCatalog
+): (model: CatalogAwareRegistryModel) => boolean {
+  if (!catalog.authoritative) return () => true;
+
+  const liveIds = new Set(catalog.models.map((entry) => entry.id));
+  return (model) => {
+    if (liveIds.has(model.id) || model.liveCatalogIds?.some((id) => liveIds.has(id))) {
+      return true;
+    }
+
+    const effortBaseModelId = getRegisteredProviderEffortBaseModelId(providerAlias, model.id);
+    return effortBaseModelId !== null && liveIds.has(effortBaseModelId);
+  };
+}
+
+/**
+ * connectionIds worth probing for a `(providerAlias, modelId)` lockout check:
+ * the provider's DB-known usable connections, plus any connectionId that
+ * already has an active lockout entry for this provider (#12111) — a 404
+ * lock (`accountFallback.lockModel`) can target a connectionId the DB-backed
+ * lookup does not surface (e.g. it predates a reconnect, or the credential
+ * check path a caller injected does not go through the same DB rows), and
+ * missing it would silently fail the exclusion open.
+ */
+function collectLockoutConnectionIds(providerAlias: string): string[] {
+  const canonicalProvider = resolveProviderId(providerAlias);
+  return getAllModelLockouts()
+    .filter((entry) => entry.provider === canonicalProvider)
+    .map((entry) => entry.connectionId);
+}
+
+/**
+ * (#12111) True unless `modelId` is locked (a post-404 model lockout, see
+ * `accountFallback.lockModel`) on every connection that could actually serve
+ * it. `isModelLocked` is scoped per provider+connection+model, so a single
+ * locked connection must not exclude a model that's still reachable through
+ * another connection on the same provider — mirrors
+ * `isConnectionEligibleForModel` in
+ * open-sse/services/autoCombo/resilienceCandidateFilter.ts. Fails open (never
+ * excludes) when nothing is known about the provider's connections, matching
+ * `hasUsableCredentialsForModel`'s existing fail-open contract — this check
+ * only narrows an already-credentialed candidate, it never widens the pool.
+ */
+async function isModelUsableGivenLockouts(
+  providerAlias: string,
+  modelId: string,
+  deps: VisionBridgeRouterDeps
+): Promise<boolean> {
+  const checkLocked = deps.isModelLocked ?? isModelLocked;
+  const dbConnections = await getUsableConnectionsForModel(`${providerAlias}/${modelId}`);
+  if (dbConnections === null) return true; // indeterminate credential store — fail open
+
+  const candidateIds = new Set(dbConnections.map((conn) => conn.id));
+  for (const id of collectLockoutConnectionIds(providerAlias)) candidateIds.add(id);
+  if (candidateIds.size === 0) return true; // nothing known about this provider's connections
+
+  for (const id of candidateIds) {
+    if (!checkLocked(providerAlias, id, modelId)) return true;
+  }
+  return false;
+}
+
+async function cachedModelRemainsAvailable(
+  fullModelId: string,
+  deps: VisionBridgeRouterDeps
+): Promise<boolean> {
+  const separator = fullModelId.indexOf("/");
+  if (separator < 1) return false;
+
+  const providerAlias = fullModelId.slice(0, separator);
+  const modelId = fullModelId.slice(separator + 1);
+  const registryModel = PROVIDER_MODELS[providerAlias]?.find((model) => model.id === modelId);
+  if (!registryModel) return false;
+
+  if (!(await isModelUsableGivenLockouts(providerAlias, modelId, deps))) return false;
+
+  const catalog = await readActiveCatalog(providerAlias, deps);
+  return createCatalogModelPredicate(providerAlias, catalog)(registryModel);
 }
 
 /**
@@ -122,57 +271,78 @@ async function getVisionCapableModels(
   deps: VisionBridgeRouterDeps = {}
 ): Promise<VisionModelCandidate[]> {
   const checkCreds = deps.hasUsableCredentials ?? hasUsableCredentialsForModel;
-  const candidates: VisionModelCandidate[] = [];
-  const checks: Array<Promise<void>> = [];
-
-  for (const [providerAlias, models] of Object.entries(PROVIDER_MODELS)) {
-    if (!Array.isArray(models)) continue;
-
-    for (const model of models) {
-      if (!model?.id) continue;
-
-      const fullModelId = `${providerAlias}/${model.id}`;
-      const caps = getResolvedModelCapabilities(fullModelId);
-
-      if (caps.supportsVision === true && !isVisionBridgeForcedModel(fullModelId)) {
-        checks.push(
-          checkCreds(fullModelId).then((usable) => {
-            // Only a confirmed `false` excludes a candidate — `null` (indeterminate,
-            // e.g. unit tests / early boot) fails open so existing behavior is preserved
-            // when the credential store can't be checked.
-            if (usable === false) return;
-
-            // Determine priority based on provider type (lower = better).
-            // Do NOT prefer opencode-* first: those catalog entries often resolve to a
-            // noauth connection and 401 "Missing API key", hijacking working providers
-            // (e.g. zai/glm-5.2 combo targets) when Vision Bridge auto-reroutes.
-            let priority = 100;
-            if (providerAlias === "openai" || providerAlias === "anthropic") {
-              priority = 50; // Major providers with real API keys
-            } else if (providerAlias === "vertex" || providerAlias === "gemini") {
-              priority = 55;
-            } else if (providerAlias.startsWith("opencode-")) {
-              priority = 95; // Free/catalog — only if nothing credentialed is available
-            } else {
-              priority = 75; // Other providers
-            }
-
-            candidates.push({
-              modelId: model.id,
-              fullName: fullModelId,
-              priority,
-              averageLatencyMs: calculateAverageLatency(fullModelId),
-              lastUsedAt: 0,
-              successRate: calculateSuccessRate(fullModelId),
-            });
-          })
+  const candidatesByProvider = await Promise.all(
+    Object.entries(PROVIDER_MODELS).map(async ([providerAlias, models]) => {
+      if (!Array.isArray(models)) return [];
+      const visionModels = models.filter((model) => {
+        if (!model?.id) return false;
+        const fullModelId = `${providerAlias}/${model.id}`;
+        return (
+          getResolvedModelCapabilities(fullModelId).supportsVision === true &&
+          !isVisionBridgeForcedModel(fullModelId)
         );
-      }
-    }
-  }
+      });
+      if (visionModels.length === 0) return [];
 
-  await Promise.all(checks);
-  return candidates;
+      const credentialedModels = (
+        await Promise.all(
+          visionModels.map(async (model) =>
+            (await checkCreds(`${providerAlias}/${model.id}`)) === false ? null : model
+          )
+        )
+      ).filter((model): model is (typeof visionModels)[number] => model !== null);
+      if (credentialedModels.length === 0) return [];
+
+      // (#12111) A healthy provider connection does not mean every model on
+      // it is servable: chatCore.ts locks one specific model for 120s on a
+      // 404 while leaving the connection active, so the credential check
+      // above never sees it. Drop only the models locked on every usable
+      // connection for this provider.
+      const usableModels = (
+        await Promise.all(
+          credentialedModels.map(async (model) =>
+            (await isModelUsableGivenLockouts(providerAlias, model.id, deps)) ? model : null
+          )
+        )
+      ).filter((model): model is (typeof credentialedModels)[number] => model !== null);
+      if (usableModels.length === 0) return [];
+
+      const catalog = await readActiveCatalog(providerAlias, deps);
+      const modelExistsInCatalog = createCatalogModelPredicate(providerAlias, catalog);
+
+      const candidates = usableModels.map((model): VisionModelCandidate | null => {
+        if (!modelExistsInCatalog(model)) return null;
+
+        const fullModelId = `${providerAlias}/${model.id}`;
+
+        let priority = 100;
+        if (providerAlias === "openai" || providerAlias === "anthropic") {
+          priority = 50;
+        } else if (providerAlias === "vertex" || providerAlias === "gemini") {
+          priority = 55;
+        } else if (providerAlias.startsWith("opencode-")) {
+          priority = 95;
+        } else {
+          priority = 75;
+        }
+
+        return {
+          modelId: model.id,
+          fullName: fullModelId,
+          priority,
+          averageLatencyMs: calculateAverageLatency(fullModelId),
+          lastUsedAt: 0,
+          successRate: calculateSuccessRate(fullModelId),
+        };
+      });
+
+      return candidates.filter(
+        (candidate): candidate is VisionModelCandidate => candidate !== null
+      );
+    })
+  );
+
+  return candidatesByProvider.flat();
 }
 
 /**
@@ -209,6 +379,51 @@ function selectBestModel(
 }
 
 /**
+ * (#12237) `auto` / `auto/*` ids are VIRTUAL combos: there is no provider
+ * row for "auto", so the credential check always reports `false` for them.
+ * Member-level credentials are enforced downstream when the combo
+ * dispatches (mirrors the reroute guard in visionBridge.ts), so a virtual
+ * combo must not be discarded by the #8430 short-circuit — otherwise the
+ * combo silently falls through to auto-selection and never rotates. It is
+ * still subject to the pool check in `getBestVisionModel`: when the ENTIRE
+ * vision pool is unusable there is nothing the combo could dispatch to, and
+ * returning the combo id would let a raw image reach a text-only backend
+ * (#8430).
+ *
+ * Returns the combo id when `fixedModel` is virtual, `undefined` otherwise.
+ */
+function resolveVirtualCombo(fixedModel: string | undefined): string | undefined {
+  return fixedModel === "auto" || fixedModel?.startsWith("auto/") ? fixedModel : undefined;
+}
+
+/**
+ * Resolve a live selection-cache entry for `cacheKey`.
+ *
+ * Returns the id to hand back: the cached member for a concrete target, or
+ * `virtualCombo` once the cached member proves it still has usable
+ * credentials (the cache never re-validates credentials, and the caller
+ * exempts virtual combos from that check). A missing or expired entry yields
+ * `null`; an entry whose member is no longer available or usable is dropped
+ * so the pool is rescanned.
+ */
+async function resolveCachedSelection(
+  cacheKey: string,
+  virtualCombo: string | undefined,
+  deps: VisionBridgeRouterDeps
+): Promise<string | null> {
+  const cached = selectionCache.get(cacheKey);
+  if (!cached || cached.expiresAt <= Date.now()) return null;
+
+  if (await cachedModelRemainsAvailable(cached.modelId, deps)) {
+    if (!virtualCombo) return cached.modelId;
+    const checkCreds = deps.hasUsableCredentials ?? hasUsableCredentialsForModel;
+    if ((await checkCreds(cached.modelId)) !== false) return virtualCombo;
+  }
+  selectionCache.delete(cacheKey);
+  return null;
+}
+
+/**
  * Get the best vision model for image description.
  * Respects fixed model override if configured, but validates it has usable
  * credentials before short-circuiting — a fixedModel that is confirmed
@@ -220,12 +435,15 @@ export async function getBestVisionModel(
   deps: VisionBridgeRouterDeps = {}
 ): Promise<string | null> {
   const fullConfig = { ...DEFAULT_ROUTER_CONFIG, ...config };
+  const virtualCombo = resolveVirtualCombo(fullConfig.fixedModel);
 
   // If fixed model is configured, validate it has usable credentials first.
   // (#8430) An unreachable fixedModel (e.g. the default "openai/gpt-4o-mini"
   // on an instance with no OpenAI connection/key) must not short-circuit the
   // credential check — fall through to auto-selection instead.
-  if (fullConfig.fixedModel) {
+  // (#12237) A virtual combo is exempt here and goes through the pool
+  // selection below instead; see `resolveVirtualCombo`.
+  if (fullConfig.fixedModel && !virtualCombo) {
     const checkCreds = deps.hasUsableCredentials ?? hasUsableCredentialsForModel;
     const usable = await checkCreds(fullConfig.fixedModel);
     // Only skip credential validation when the check is indeterminate (null).
@@ -241,9 +459,16 @@ export async function getBestVisionModel(
     fullConfig.excludedModels.length > 0
       ? `excl:${[...fullConfig.excludedModels].sort().join(",")}`
       : "default";
-  const cached = selectionCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.modelId;
+  const cachedPick = await resolveCachedSelection(cacheKey, virtualCombo, deps);
+  if (cachedPick) return cachedPick;
+
+  // A recent scan already proved nothing here is usable. Re-running it costs a
+  // full PROVIDER_MODELS walk plus a credential lookup per candidate, all on
+  // the request path, and it cannot succeed until credentials change.
+  const noCandidateUntil = noCandidateCache.get(cacheKey);
+  if (noCandidateUntil !== undefined) {
+    if (noCandidateUntil > Date.now()) return null;
+    noCandidateCache.delete(cacheKey);
   }
 
   // Get all vision-capable candidates
@@ -254,8 +479,14 @@ export async function getBestVisionModel(
 
   if (!best) {
     // No vision-capable candidate has usable credentials on this instance
+    if (fullConfig.noCandidateCacheTtlMs > 0) {
+      noCandidateCache.set(cacheKey, Date.now() + fullConfig.noCandidateCacheTtlMs);
+    }
     return null;
   }
+
+  // A usable candidate appeared, so any remembered failure is stale.
+  noCandidateCache.delete(cacheKey);
 
   // Cache the selection
   selectionCache.set(cacheKey, {
@@ -263,7 +494,9 @@ export async function getBestVisionModel(
     expiresAt: Date.now() + fullConfig.selectionCacheTtlMs,
   });
 
-  return best.fullName;
+  // A virtual combo is returned as-is once the pool proves at least one
+  // vision-capable member is usable; it rotates its own members downstream.
+  return virtualCombo ?? best.fullName;
 }
 
 /**
@@ -300,6 +533,7 @@ export async function getFallbackModels(
  */
 export function clearSelectionCache(): void {
   selectionCache.clear();
+  noCandidateCache.clear();
 }
 
 /**

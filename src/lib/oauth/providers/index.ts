@@ -22,7 +22,6 @@ import { gitlabDuo } from "./gitlab-duo";
 import { kiro } from "./kiro";
 import { cursor } from "./cursor";
 import { trae } from "./trae";
-import { raycast } from "./raycast";
 import { kilocode } from "./kilocode";
 import { cline } from "./cline";
 import { devinDesktop } from "./devin-desktop";
@@ -32,6 +31,7 @@ import { openference } from "./openference";
 import { codebuddyCn } from "./codebuddy-cn";
 import { zed } from "./zed";
 import { zedHosted } from "./zed-hosted";
+import { museCode } from "./muse-code";
 
 export const PROVIDERS = {
   claude,
@@ -47,7 +47,6 @@ export const PROVIDERS = {
   "amazon-q": kiro,
   cursor,
   trae,
-  raycast,
   kilocode,
   cline,
   // clinepass reuses the Cline WorkOS OAuth flow 1:1 (same api.cline.bot host, same token
@@ -66,6 +65,7 @@ export const PROVIDERS = {
   // Zed IDE credential bridge — uses keychain import, not standard OAuth
   zed,
   "zed-hosted": zedHosted,
+  "muse-code": museCode,
 };
 
 export default PROVIDERS;

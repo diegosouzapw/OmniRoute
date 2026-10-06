@@ -289,7 +289,7 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
   assert.deepEqual(getFunctionResponse(toolResponseTurn.parts[0]), {
     id: "call_1",
     name: "weather",
-    response: { result: { temp: 20 } },
+    response: { result: '{"temp":20}' },
   });
 
   const generationConfig = (result as GeminiRequestWithConfig).generationConfig;
@@ -550,7 +550,7 @@ test("OpenAI -> Cloud Code Gemini emits native functionResponse result", () => {
   assert.deepEqual(getFunctionResponse(toolTurn.parts[0]), {
     id: "read_file_123_0",
     name: "read_file",
-    response: { result: { result: "The answer is capybara-4729." } },
+    response: { result: "The answer is capybara-4729." },
   });
 });
 
@@ -607,7 +607,7 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
 
 test("OpenAI -> Antigravity Gemini omits signature-less historical tool calls and keeps response context", () => {
   const result = openaiToAntigravityRequest(
-    "gemini-3.5-flash-low",
+    "gemini-3.7-flash-low",
     {
       messages: [
         { role: "user", content: "Update todo" },
@@ -686,7 +686,7 @@ test("OpenAI -> Antigravity Gemini omits signature-less historical tool calls an
 
 test("OpenAI -> Antigravity preserves multiple signature-less historical tool responses as context", () => {
   const result = openaiToAntigravityRequest(
-    "gemini-3.5-flash-low",
+    "gemini-3.7-flash-low",
     {
       messages: [
         { role: "user", content: "Inspect OmniRoute config" },
@@ -747,7 +747,7 @@ test("OpenAI -> Antigravity preserves signed Gemini tool calls in native form", 
   storeGeminiThoughtSignature(buildGeminiThoughtSignatureKey(ns, toolId), "SIG_AG_SIGNED_XYZ");
 
   const result = openaiToAntigravityRequest(
-    "gemini-3.5-flash-low",
+    "gemini-3.7-flash-low",
     {
       messages: [
         { role: "user", content: "Read status" },
@@ -787,7 +787,7 @@ test("OpenAI -> Antigravity preserves signed Gemini tool calls in native form", 
 
 test("OpenAI -> Antigravity escapes signature-less tool response context content", () => {
   const result = openaiToAntigravityRequest(
-    "gemini-3.5-flash-low",
+    "gemini-3.7-flash-low",
     {
       messages: [
         { role: "user", content: "Inspect previous output" },
@@ -866,7 +866,11 @@ test("OpenAI -> Antigravity maps Claude-family models to Gemini-compatible schem
   assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
   assert.equal(result.enabledCreditTypes, undefined);
   assert.equal(result.request.systemInstruction.parts[0].text, ANTIGRAVITY_DEFAULT_SYSTEM);
-  assert.equal(result.request.systemInstruction.parts.length, 1, "systemInstruction must contain only ANTIGRAVITY_DEFAULT_SYSTEM (#9030)");
+  assert.equal(
+    result.request.systemInstruction.parts.length,
+    1,
+    "systemInstruction must contain only ANTIGRAVITY_DEFAULT_SYSTEM (#9030)"
+  );
   // #9030 — Client system content moved to first user message to avoid upstream 429s
   assert.equal(result.request.contents[0].parts[0].text, "Project rules");
   assert.equal(result.request.contents[0].parts[1].text, "Read a file");
@@ -956,7 +960,7 @@ test("OpenAI -> Antigravity Claude path sanitizes tool names for Gemini schema",
   const toolResultBlock = getFunctionResponse(toolTurn.parts[0]);
   assert.equal(toolResultBlock.id, "call_long_2");
   assert.equal(toolResultBlock.name, sanitizedToolName);
-  assert.deepEqual(toolResultBlock.response, { result: { ok: true } });
+  assert.deepEqual(toolResultBlock.response, { result: '{"ok":true}' });
 });
 
 test("OpenAI -> Antigravity Claude path applies output cap and strips thinkingConfig", () => {
@@ -992,13 +996,17 @@ test("OpenAI -> Antigravity Claude path preserves lower requested output and str
       reasoning_effort: "high",
     },
     false,
-    { projectId: "proj-claude-short" } as any
-  );
+    { projectId: "proj-claude-short" } as unknown as Parameters<
+      typeof openaiToAntigravityRequest
+    >[3]
+  ) as Record<string, unknown>;
 
-  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 32769);
-  assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
-  assert.equal((result as any).request?.max_tokens, undefined);
-  assert.equal((result as any).request?.thinking, undefined);
+  const claudeRequest = result.request as Record<string, unknown> | undefined;
+  const claudeGenConfig = claudeRequest?.generationConfig as Record<string, unknown> | undefined;
+  assert.equal(claudeGenConfig?.maxOutputTokens, 32769);
+  assert.equal(claudeGenConfig?.thinkingConfig, undefined);
+  assert.equal(claudeRequest?.max_tokens, undefined);
+  assert.equal(claudeRequest?.thinking, undefined);
 });
 
 test("OpenAI -> Antigravity Gemini path preserves thinkingConfig (only Claude is stripped)", () => {
@@ -1013,17 +1021,41 @@ test("OpenAI -> Antigravity Gemini path preserves thinkingConfig (only Claude is
       reasoning_effort: "high",
     },
     false,
-    { projectId: "proj-gemini-thinking" } as any
-  );
+    { projectId: "proj-gemini-thinking" } as unknown as Parameters<
+      typeof openaiToAntigravityRequest
+    >[3]
+  ) as Record<string, unknown>;
 
   // For Gemini, thinkingConfig must remain in place because the Cloud Code
   // Gemini endpoint understands and uses it.
-  assert.ok(
-    (result as any).request?.generationConfig.thinkingConfig,
-    "thinkingConfig must be preserved for Gemini models on Antigravity"
+  const geminiRequest = result.request as Record<string, unknown> | undefined;
+  const geminiGenConfig = geminiRequest?.generationConfig as Record<string, unknown> | undefined;
+  const thinkingConfig = geminiGenConfig?.thinkingConfig as Record<string, unknown> | undefined;
+  assert.ok(thinkingConfig, "thinkingConfig must be preserved for Gemini models on Antigravity");
+  assert.equal((thinkingConfig.thinkingBudget as number) > 0, true);
+  assert.equal(thinkingConfig.includeThoughts, true);
+});
+
+test("OpenAI -> Antigravity Gemini thinking models omit maxOutputTokens when max_tokens is undefined", () => {
+  const result = openaiToAntigravityRequest(
+    "gemini-3.8-flash-tiered",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+    },
+    false,
+    { projectId: "proj-gemini-thinking" } as unknown as Parameters<
+      typeof openaiToAntigravityRequest
+    >[3]
+  ) as Record<string, unknown>;
+
+  const envelopeRequest = result.request as Record<string, unknown> | undefined;
+  const genConfig = envelopeRequest?.generationConfig as Record<string, unknown> | undefined;
+  assert.ok(genConfig?.thinkingConfig, "expected thinkingConfig to be set");
+  assert.equal(
+    genConfig.maxOutputTokens,
+    undefined,
+    "maxOutputTokens must be undefined when not requested"
   );
-  assert.equal((result as any).request?.generationConfig.thinkingConfig.thinkingBudget > 0, true);
-  assert.equal((result as any).request?.generationConfig.thinkingConfig.includeThoughts, true);
 });
 
 // Regression for #2480: when projectId is stored in providerSpecificData rather than at

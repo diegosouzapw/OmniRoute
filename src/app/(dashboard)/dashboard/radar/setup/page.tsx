@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { Card } from "@/shared/components";
 import {
   firstProviderConnectionId,
   providerConnectionsRequestUrl,
+  providerSetupConnectionUrl,
   type RadarSetupConnection,
 } from "@/lib/radar/setupConnections";
 import type { RadarLocalizedText } from "@/lib/radar/feedSchema";
@@ -47,14 +48,23 @@ function resolveText(text: RadarLocalizedText, locale: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function RadarSetupPage() {
+function RadarSetupPageContent() {
   const t = useTranslations("radarSetupPage");
   const locale = useLocale();
   const searchParams = useSearchParams();
   const provider = searchParams.get("provider");
 
   const [setupData, setSetupData] = useState<ProviderSetupData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(provider !== null);
+
+  // Adjust-during-render when the provider query param changes (React docs
+  // pattern): a null provider has nothing to load, any other transition
+  // restarts the loading state before the fetch effect fires.
+  const [prevProvider, setPrevProvider] = useState(provider);
+  if (provider !== prevProvider) {
+    setPrevProvider(provider);
+    setLoading(provider !== null);
+  }
   const [error, setError] = useState("");
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
@@ -62,7 +72,6 @@ export default function RadarSetupPage() {
   // Fetch catalog to find the provider's setup data
   useEffect(() => {
     if (!provider) {
-      setLoading(false);
       return;
     }
 
@@ -122,23 +131,24 @@ export default function RadarSetupPage() {
   }, [provider, t]);
 
   // Test connection — uses the EXISTING connection-test endpoint
+  const connectionId = setupData?.connectionId ?? null;
   const handleTestConnection = useCallback(async () => {
-    if (!setupData?.connectionId) return;
+    if (!connectionId) return;
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch(`/api/providers/${encodeURIComponent(setupData.connectionId)}/test`, {
+      const res = await fetch(`/api/providers/${encodeURIComponent(connectionId)}/test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-      if (res.ok) {
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.valid === true) {
         setTestResult({ ok: true, message: t("testSuccess") });
       } else {
-        const data = await res.json().catch(() => null);
         setTestResult({
           ok: false,
-          message: data?.error?.message || t("testFailed"),
+          message: t("testFailed"),
         });
       }
     } catch {
@@ -146,7 +156,7 @@ export default function RadarSetupPage() {
     } finally {
       setTesting(false);
     }
-  }, [setupData?.connectionId, t]);
+  }, [connectionId, t]);
 
   if (!provider) {
     return (
@@ -236,14 +246,6 @@ export default function RadarSetupPage() {
             <Card>
               <div className="text-center py-8 text-text-muted">
                 <p>{t("noGuide")}</p>
-                <a
-                  href={`https://${provider}.com`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-violet-400 hover:underline mt-2 inline-block"
-                >
-                  {t("visitDocs")}
-                </a>
               </div>
             </Card>
           )}
@@ -276,7 +278,7 @@ export default function RadarSetupPage() {
               <h2 className="font-semibold">{t("addConnection")}</h2>
               <p className="text-sm text-text-muted">{t("addConnectionDescription")}</p>
               <Link
-                href={`/dashboard/providers?add=${encodeURIComponent(provider)}`}
+                href={providerSetupConnectionUrl(provider)}
                 className="text-violet-400 hover:underline text-sm"
               >
                 {t("addConnectionLink")}
@@ -286,5 +288,13 @@ export default function RadarSetupPage() {
         </>
       ) : null}
     </div>
+  );
+}
+
+export default function RadarSetupPage() {
+  return (
+    <Suspense fallback={null}>
+      <RadarSetupPageContent />
+    </Suspense>
   );
 }

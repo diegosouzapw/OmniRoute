@@ -37,6 +37,6 @@ test("config-generator/opencode.ts imports cleanly with no tsconfig.json in scop
         `stdout: ${result.stdout}\nstderr: ${result.stderr}`
     );
   } finally {
-    rmSync(stage, { recursive: true, force: true });
+    rmSync(stage, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

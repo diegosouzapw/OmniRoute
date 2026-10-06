@@ -22,14 +22,20 @@ test("clinepass provider is flagged forceStream (streaming-only upstream)", () =
   assert.equal(REGISTRY.clinepass?.forceStream, true);
 });
 
+test("codex provider is flagged forceStream because /responses always streams upstream", () => {
+  assert.equal(REGISTRY.codex?.forceStream, true);
+});
+
 test("upstreamStream is forced true for a forceStream provider even when the client sent stream:false", () => {
   // Mirror the chatCore wiring: providerRequiresStreaming derives from the
   // registry flag, and upstreamStream ORs it in so the upstream always streams.
-  const providerRequiresStreaming = REGISTRY.cline?.forceStream === true;
-  const isClaudeCodeCompatible = false;
-  const clientStream = false; // client asked for JSON
-  const upstreamStream = clientStream || isClaudeCodeCompatible || providerRequiresStreaming;
-  assert.equal(upstreamStream, true);
+  for (const provider of ["cline", "codex"] as const) {
+    const providerRequiresStreaming = REGISTRY[provider]?.forceStream === true;
+    const isClaudeCodeCompatible = false;
+    const clientStream = false; // client asked for JSON
+    const upstreamStream = clientStream || isClaudeCodeCompatible || providerRequiresStreaming;
+    assert.equal(upstreamStream, true, provider);
+  }
 });
 
 test("client-facing stream stays false for a stream:false JSON caller (so SSE→JSON conversion runs)", () => {

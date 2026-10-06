@@ -38,7 +38,7 @@ function withStubQoderCli(fn: () => void | Promise<void>) {
   const restore = () => {
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   };
   return Promise.resolve().then(fn).finally(restore);
 }
@@ -489,7 +489,7 @@ test("runQoderCli survives qodercli exiting before it reads a large stdin (async
   } finally {
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -516,7 +516,7 @@ test("runQoderCli preserves multi-byte UTF-8 output (Chinese) via stream setEnco
   } finally {
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -581,6 +581,6 @@ test("runQoderCli resolves the request against live --list-models and passes the
     qoderCli.__clearQoderModelNamesCache();
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

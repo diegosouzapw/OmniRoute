@@ -40,6 +40,8 @@ type ConnectionsHeaderToolbarProps = {
   gateConnectionFlow: (callback: () => void) => void;
   openApiKeyAddFlow: () => void;
   openPrimaryAddFlow: () => void;
+  connectVolcengineAccount?: () => void;
+  connectingVolcengineAccount?: boolean;
   openExternalLinkFlow: () => void;
   handleOpenCommandCodeConnect: () => void;
   commandCodeAuthState: { phase: string };
@@ -86,6 +88,8 @@ export default function ConnectionsHeaderToolbar({
   gateConnectionFlow,
   openApiKeyAddFlow,
   openPrimaryAddFlow,
+  connectVolcengineAccount,
+  connectingVolcengineAccount,
   openExternalLinkFlow,
   handleOpenCommandCodeConnect,
   commandCodeAuthState,
@@ -303,6 +307,19 @@ export default function ConnectionsHeaderToolbar({
                 <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openPrimaryAddFlow)}>
                   {providerSupportsPat ? providerText(t, "addPat", "Add PAT") : t("add")}
                 </Button>
+                {(providerId === "volcengine-agent-plan" ||
+                  providerId === "volcengine-coding-plan") &&
+                  connectVolcengineAccount && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      icon="login"
+                      loading={connectingVolcengineAccount}
+                      onClick={() => gateConnectionFlow(connectVolcengineAccount)}
+                    >
+                      {providerText(t, "connectVolcengineAccount", "Connect Volcano Account")}
+                    </Button>
+                  )}
                 {providerId === "qoder" && (
                   <Button
                     size="sm"

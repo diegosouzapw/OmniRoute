@@ -84,7 +84,14 @@ export async function POST(request, { params }) {
     );
   }
 
-  const result = await handleEmbedding({ body, credentials, log });
+  const result = await handleEmbedding({
+    body,
+    credentials,
+    log,
+    // #10347 — thread the selected connection id so a hard upstream failure cools
+    // the account instead of re-hitting it on every request.
+    connectionId: (credentials as { connectionId?: string } | null)?.connectionId ?? null,
+  });
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);

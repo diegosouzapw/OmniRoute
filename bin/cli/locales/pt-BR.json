@@ -26,10 +26,11 @@
     "testFailed": "Teste do provedor falhou: {error}",
     "loginEnabled": "Login: habilitado (senha atualizada)",
     "loginDisabled": "Login: desabilitado",
-    "providerInfo": "Provedor: {info}"
+    "providerInfo": "Provedor: {info}",
+    "opencode": "Instala e configura o plugin @omniroute/opencode-plugin incluído para o OpenCode"
   },
   "doctor": {
-    "title": "OmniRoute Doctor",
+    "title": "Diagnóstico do OmniRoute",
     "dbOk": "Banco de dados: OK ({path})",
     "dbMissing": "Banco de dados: não inicializado — execute `omniroute setup`",
     "portOk": "Porta {port}: disponível",
@@ -254,7 +255,10 @@
     "no_recovery": "Desabilitar reinício automático em crash (modo debug)",
     "max_restarts": "Máximo de reinícios em 30s antes de desistir (padrão: 2)",
     "tray": "Mostrar ícone na bandeja do sistema (apenas desktop, opt-in)",
-    "no_tray": "Desabilitar ícone na bandeja do sistema"
+    "no_tray": "Desabilitar ícone na bandeja do sistema",
+    "ready_timeout": "Tempo limite da verificação de prontidão em ms (também OMNIROUTE_READY_TIMEOUT_MS, padrão 60000)",
+    "tls_cert": "Caminho para um certificado TLS (PEM) para servir HTTPS (também OMNIROUTE_TLS_CERT)",
+    "tls_key": "Caminho para a chave privada TLS (PEM) para servir HTTPS (também OMNIROUTE_TLS_KEY)"
   },
   "backup": {
     "title": "Backup",
@@ -298,7 +302,7 @@
     "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
     "title": "Saúde",
     "status": "Status: {status}",
-    "uptime": "Uptime: {uptime}",
+    "uptime": "Tempo de atividade: {uptime}",
     "requests": "Requisições (24h): {count}",
     "cost": "Custo (24h): ${cost}"
   },
@@ -341,6 +345,19 @@
   },
   "mcp": {
     "title": "Servidor MCP",
+    "running": "Servidor MCP em execução ({transport})",
+    "stopped": "Servidor MCP parado.",
+    "restarted": "Servidor MCP reiniciado.",
+    "stoppedHint": "Execute `omniroute mcp enable` para ativá-lo.",
+    "enabled": "Servidor MCP ativado.",
+    "disabled": "Servidor MCP desativado.",
+    "enable": {
+      "description": "Ativar o servidor MCP",
+      "transport": "Transporte a ser usado: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Desativar o servidor MCP"
+    },
     "call": {
       "description": "Invocar uma ferramenta MCP diretamente",
       "args": "Objeto JSON de argumentos (inline)",
@@ -368,10 +385,7 @@
     },
     "audit": {
       "description": "Log de auditoria MCP (alias para audit --source mcp)"
-    },
-    "running": "Servidor MCP em execução ({transport})",
-    "stopped": "Servidor MCP parado.",
-    "restarted": "Servidor MCP reiniciado."
+    }
   },
   "a2a": {
     "skills": {
@@ -918,6 +932,11 @@
       "model": "Filtrar por model"
     }
   },
+  "radar": {
+    "description": "Inspecionar e sincronizar os feeds locais do catálogo Radar",
+    "status": "Mostrar configurações locais e estado dos caches do Radar",
+    "sync": "Sincronizar catálogo, indicações, ofertas e Intel pelo servidor local"
+  },
   "resilience": {
     "description": "Inspecionar e gerenciar mecanismos de resiliência",
     "status": {
@@ -1085,7 +1104,7 @@
     }
   },
   "combo": {
-    "title": "Combos",
+    "title": "Combinações",
     "switched": "Combo ativo: {name}",
     "created": "Combo criado: {name}",
     "deleted": "Combo removido: {name}",
@@ -1260,7 +1279,7 @@
     "description": "REPL interativo multi-turn com LLM",
     "model": "Modelo a usar (padrão: auto)",
     "combo": "Nome do combo a usar",
-    "system": "System prompt",
+    "system": "Prompt do sistema",
     "resume": "Retomar sessão salva pelo nome"
   },
   "plugin": {
@@ -1279,6 +1298,9 @@
     "notRunning": "OmniRoute não está acessível em {port}. Inicie com 'omniroute serve'.",
     "notFound": "O CLI 'claude' não foi encontrado no PATH."
   },
+  "run": {
+    "description": "Inicia um alvo de CLI compatível pelo OmniRoute"
+  },
   "setupClaude": {
     "description": "Gera profiles do Claude Code em ~/.claude/profiles a partir do catálogo de modelos do OmniRoute"
   },
@@ -1289,12 +1311,30 @@
     "description": "Gerencia tokens de acesso CLI com escopo (modo remoto)"
   },
   "configure": {
-    "description": "Escolhe um provedor+modelo do servidor ativo e grava uma configuração de CLI local"
+    "description": "Escolhe um provedor+modelo do servidor ativo e configura uma CLI local compatível"
   },
   "launchCodex": {
     "description": "Inicia o Codex CLI apontando para o OmniRoute (local ou VPS remoto)"
   },
   "setupCodex": {
     "description": "Gera os arquivos de perfil ~/.codex a partir do catálogo de modelos ao vivo do OmniRoute"
+  },
+  "packs": {
+    "description": "Gerencia packs opcionais de runtime (ML / automação de navegador)",
+    "listDescription": "Lista os packs opcionais e seu estado de instalação",
+    "installDescription": "Instala um pack opcional no DATA_DIR",
+    "verifyDescription": "Verifica os packs instalados contra o índice de checksums embarcado",
+    "removeDescription": "Remove um pack opcional instalado",
+    "sourceOpt": "Diretório com os payloads dos packs e o índice de packs",
+    "warnNoIndex": "optional-packs.index.json não encontrado — install/verify indisponíveis neste checkout (instaladores desktop o embarcam)",
+    "errUnknown": "pack desconhecido: {name}",
+    "errNoIndex": "índice de packs não encontrado; passe --source <dir> com o payload do pack (instaladores desktop o embarcam ao lado do app)",
+    "installed": "pack \"{name}\" instalado e verificado em {dir}",
+    "restartHint": "reinicie o servidor OmniRoute (ou o app desktop) para o runtime reconhecer o pack",
+    "removed": "pack \"{name}\" removido",
+    "notInstalled": "o pack \"{name}\" não estava instalado",
+    "verifyOk": "todos os packs instalados verificados",
+    "verifyFailed": "{count} pack(s) falharam na verificação",
+    "noneInstalled": "nenhum pack opcional instalado"
   }
 }

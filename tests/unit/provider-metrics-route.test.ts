@@ -33,7 +33,7 @@ type ProviderMetricsResponse = {
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -43,7 +43,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
@@ -52,8 +52,17 @@ test.after(() => {
   }
 });
 
+function seedProviderConnection(provider: string) {
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
+  ).run(`conn-${provider}`, provider, new Date().toISOString(), new Date().toISOString());
+}
+
 test("GET /api/provider-metrics includes provider recency and error topology", async () => {
   const db = core.getDbInstance();
+  seedProviderConnection("openai");
+  seedProviderConnection("anthropic");
   db.prepare(
     `INSERT INTO call_logs (id, timestamp, provider, status, duration, error_summary)
      VALUES (?, ?, ?, ?, ?, ?)`
@@ -91,6 +100,8 @@ test("GET /api/provider-metrics errorProvider must NOT flag a provider whose mos
   // Bug (pre-fix): errorProvider = "providerA" because lastErrorAt > 0.
   // Fix (post-fix): errorProvider = "" because lastStatus for providerA is 200.
   const db = core.getDbInstance();
+  seedProviderConnection("providerA");
+  seedProviderConnection("providerB");
   db.prepare(
     `INSERT INTO call_logs (id, timestamp, provider, status, duration, error_summary)
      VALUES (?, ?, ?, ?, ?, ?)`

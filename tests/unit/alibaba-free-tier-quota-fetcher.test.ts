@@ -41,7 +41,7 @@ const SAMPLE_CONSOLE_RESPONSE = {
           freeTierQuotas: [
             {
               quotaInitTotal: 1000000,
-              quotaValidityPeriod: 1786896000000,
+              quotaValidityPeriod: 1830297600000,
               freeTierOnly: true,
               quotaTotalPercentage: 99.98,
               model: "qwen3.6-plus",

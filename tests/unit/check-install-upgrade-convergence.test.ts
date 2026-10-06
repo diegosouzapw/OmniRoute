@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 // @ts-expect-error — plain .mjs gate script, no type declarations by design
-import { evaluateConvergence } from "../../scripts/check/check-install-upgrade.mjs";
+import {
+  assertNoDiskExhaustion,
+  evaluateConvergence,
+} from "../../scripts/check/check-install-upgrade.mjs";
 
 /**
  * The whole point of this gate is that the two directions of schema divergence are NOT
@@ -66,7 +69,11 @@ test("UNKNOWN residue fails — a new divergence must not hide behind the allowl
   assert.equal(v.ok, false);
   assert.deepEqual(v.unknownResidue, ["surprise_table"]);
   assert.match(v.failures[0], /surprise_table/);
-  assert.doesNotMatch(v.failures[0], /cache_metrics/, "the known one must not be re-reported as new");
+  assert.doesNotMatch(
+    v.failures[0],
+    /cache_metrics/,
+    "the known one must not be re-reported as new"
+  );
 });
 
 test("both directions at once report both failures", () => {
@@ -92,4 +99,44 @@ test("empty/missing inputs do not crash", () => {
   const v = evaluateConvergence({ freshTables: undefined, upgradedTables: undefined });
   assert.equal(v.ok, true);
   assert.deepEqual(v.onlyFresh, []);
+});
+
+// ─── ENOSPC guard ──────────────────────────────────────────────────────────────
+//
+// The v3.8.50 publish run (CI 33104507735) failed with "15 tables a CLEAN install creates
+// but an UPGRADE does not". None of them was missing: the Phase B upgrade install had hit
+// `npm warn tar TAR_ENTRY_ERROR ENOSPC: no space left on device` 5611 times, npm still
+// exited 0, the truncated `omniroute serve` "exited with code 0 before serving", and the
+// database therefore still held the 3.8.49 schema. npm reporting disk exhaustion as a
+// warning is what let a full disk masquerade as a schema defect.
+
+test("npm ENOSPC warnings are raised as an install failure, not ignored", () => {
+  const enospc = "npm warn tar TAR_ENTRY_ERROR ENOSPC: no space left on device, write\n".repeat(3);
+  assert.throws(
+    () => assertNoDiskExhaustion(enospc, "upgrade install"),
+    (err: Error) => {
+      assert.match(err.message, /upgrade install/);
+      assert.match(err.message, /ran out of disk space/);
+      assert.match(err.message, /3 ENOSPC error/);
+      // The operator must not go looking for a migration that is not missing.
+      assert.match(err.message, /NOT a schema divergence/);
+      return true;
+    }
+  );
+});
+
+test("a clean install log does not trip the disk guard", () => {
+  assert.doesNotThrow(() =>
+    assertNoDiskExhaustion(
+      "npm warn deprecated boolean@3.2.0: Package no longer supported.\nadded 900 packages\n",
+      "clean install"
+    )
+  );
+});
+
+test("the guard also catches the bare kernel message without the ENOSPC code", () => {
+  assert.throws(
+    () => assertNoDiskExhaustion("Error: no space left on device", "clean install"),
+    /ran out of disk space/
+  );
 });

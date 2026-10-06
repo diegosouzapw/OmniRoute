@@ -45,3 +45,36 @@ export function filterUpstreamResponseHeaderEntries(
 }
 
 export const STRIP_UPSTREAM_HEADER_NAMES: ReadonlySet<string> = STRIP_HEADER_NAMES;
+
+/**
+ * Response headers that must never be relayed back to a client.
+ *
+ * A relay sends its own credential upstream (the bifrost route sends
+ * `Authorization: Bearer ${BIFROST_API_KEY}` to the sidecar). If that upstream
+ * echoes the header back — or sets its own session cookie — copying the response
+ * headers wholesale hands it to whoever holds the relay token
+ * (GHSA-9m72-44hg-w32g). `set-cookie` matters as much as `authorization`: it is
+ * a session, and the browser would store it against OUR origin.
+ */
+const SENSITIVE_RESPONSE_HEADER_NAMES: ReadonlyArray<string> = [
+  "authorization",
+  "proxy-authorization",
+  "x-api-key",
+  "x-goog-api-key",
+  "api-key",
+  "cookie",
+  "set-cookie",
+];
+
+/**
+ * New Headers with the stale framing set AND any echoed credential/session
+ * header removed. Use this instead of `new Headers(upstream.headers)` on every
+ * path that relays an upstream response to a client. Does not mutate the input.
+ */
+export function stripSensitiveResponseHeaders(input: Headers): Headers {
+  return new Headers(
+    filterUpstreamResponseHeaderEntries(input.entries(), SENSITIVE_RESPONSE_HEADER_NAMES)
+  );
+}
+
+export { SENSITIVE_RESPONSE_HEADER_NAMES };

@@ -197,6 +197,20 @@ function collectMissingEnglishDirectTranslationKeys() {
       const key = match[3].replace(/\\(['"\\])/g, "$1");
       const fullKey = binding.namespace ? `${binding.namespace}.${key}` : key;
       if (typeof lookupMessage(en, fullKey) === "string") continue;
+      // A dynamically-built key — t("effort." + rule.effortMode) — reaches us as the
+      // literal prefix with its trailing dot, so it never resolves to a string. Accept
+      // it when the prefix resolves to a namespace that actually holds messages; a
+      // prefix that does not exist at all still fails, which is what this guards.
+      if (fullKey.endsWith(".")) {
+        const namespace = lookupMessage(en, fullKey.slice(0, -1));
+        const holdsMessages =
+          namespace !== null &&
+          typeof namespace === "object" &&
+          Object.values(namespace as Record<string, unknown>).some(
+            (value) => typeof value === "string"
+          );
+        if (holdsMessages) continue;
+      }
 
       const relative = path.relative(process.cwd(), file);
       const line = raw.slice(0, match.index).split(/\r?\n/).length;

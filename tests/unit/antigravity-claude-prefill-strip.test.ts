@@ -44,14 +44,42 @@ test("(a) strips a single trailing assistant (model) turn for Claude models", as
   assert.equal(contents.at(-1)?.role, "user");
 });
 
-test("(b) does NOT strip a trailing model turn for non-Claude (native Gemini) models", async () => {
+test("(b) strips a trailing model turn for native Gemini models too (#10104)", async () => {
+  // Newer Gemini endpoints reject a request ending on a `model` turn with the same
+  // class of 400 Claude hits via Vertex ("Requests ending with a model turn are not
+  // supported"), so native Gemini models routed through Antigravity get the same
+  // guarded strip as the Claude path.
   const request = await transform("antigravity/gemini-3.1-pro", [
     { role: "user", parts: [{ text: "Hello" }] },
     { role: "model", parts: [{ text: "Hi there" }] },
   ]);
   const contents = request.contents as Array<{ role: string }>;
-  assert.equal(contents.length, 2);
-  assert.equal(contents.at(-1)?.role, "model", "native Gemini requests via Antigravity are untouched");
+  assert.equal(contents.length, 1);
+  assert.equal(contents.at(-1)?.role, "user", "transformed native Gemini request must end on user");
+});
+
+test("(b2) native Gemini 3.6 Flash tiers get the strip (#10104)", async () => {
+  for (const tier of ["high", "medium", "low"]) {
+    const request = await transform(`antigravity/gemini-3.6-flash-${tier}`, [
+      { role: "user", parts: [{ text: "Hello" }] },
+      { role: "model", parts: [{ text: "Hi there" }] }, // trailing model turn -> 400 source
+    ]);
+    const contents = request.contents as Array<{ role: string }>;
+    assert.equal(contents.length, 1, `${tier}: trailing model turn should be stripped`);
+    assert.equal(contents.at(-1)?.role, "user", `${tier}: request must end on user`);
+  }
+});
+
+test("(b3) image and older Gemini families keep their separate request contract", async () => {
+  for (const model of ["antigravity/gemini-3.1-flash-image", "antigravity/gemini-2.5-flash"]) {
+    const request = await transform(model, [
+      { role: "user", parts: [{ text: "Hello" }] },
+      { role: "model", parts: [{ text: "Hi there" }] },
+    ]);
+    const contents = request.contents as Array<{ role: string }>;
+    assert.equal(contents.length, 2, `${model}: non-target family must be unchanged`);
+    assert.equal(contents.at(-1)?.role, "model", `${model}: model turn must be preserved`);
+  }
 });
 
 test("(c) a Claude conversation already ending on user is unchanged", async () => {

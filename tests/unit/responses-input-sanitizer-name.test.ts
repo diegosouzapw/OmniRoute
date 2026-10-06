@@ -73,6 +73,23 @@ test("keeps valid server reasoning item ids", () => {
   assert.equal(result[0].id, "rs_123");
 });
 
+test("strips a non-string reasoning item id instead of passing it through (#11108)", () => {
+  // Same gap class fixed in reasoningInputPolicy.ts: some upstreams (e.g.
+  // opencode/zen) send `id: null` instead of omitting it. The previous
+  // `typeof record.id !== "string"` guard returned the record unchanged in
+  // that case, letting a malformed id reach a strict Responses-API upstream.
+  const items = [
+    {
+      id: null,
+      type: "reasoning",
+      summary: [{ type: "summary_text", text: "cached reasoning" }],
+    },
+  ];
+  const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
+  assert.equal("id" in result[0], false);
+  assert.equal(result[0].type, "reasoning");
+});
+
 test("normalizes user image_url content parts to input_image", () => {
   const items = [
     {

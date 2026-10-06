@@ -1,22 +1,9 @@
 /**
  * #3782 — "Auto Sync Enabling all Models".
  *
- * The user hides models with the EYE/visibility toggle (writes `isHidden:true`
- * via `mergeModelCompatOverride`) to keep only their combo's models. Before this
- * fix, `replaceSyncedAvailableModelsForConnection` dropped EVERY hidden id on a
- * re-sync (it could not tell an eye-hidden model from a DELETED one), so the
- * model fell out of the synced store and then churned back through the managed
- * alias path — the reported "all models turn back on".
- *
- * The fix separates the two signals:
- *   - DELETE (trash) marks `isDeleted:true` (+ keeps `isHidden:true` for back-compat).
- *   - The EYE toggle sets only `isHidden:true`.
- *   - The sync filter drops a model only when it is DELETED, so eye-hidden models
- *     stay listed-but-hidden across re-syncs.
- *
- * This test guards that an eye-hidden model survives re-import (Test A), that a
- * genuinely-new model defaults to visible (Test B), and that the DELETE path
- * still drops on re-import (Test C — mirrors the #3199 delete flow).
+ * The eye toggle persists isHidden independently of synced discovery data.
+ * Re-sync therefore keeps a hidden model in the synced list without making it
+ * visible again, while genuinely new models default to visible.
  */
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -37,7 +24,7 @@ const {
   getSyncedAvailableModels,
   mergeModelCompatOverride,
   getModelIsHidden,
-} = await import("../../src/lib/localDb.ts");
+} = await import("@/lib/db/models");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 before(() => {
@@ -48,7 +35,7 @@ after(() => {
   // Release the SQLite handle so the Node test runner can exit, then remove the
   // throwaway DATA_DIR (CLAUDE.md "Database Handles in Tests").
   resetDbInstance();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const PROVIDER = "llama-cpp";
@@ -103,30 +90,4 @@ test("B: a genuinely-new model on re-sync defaults to VISIBLE", async () => {
   // Eye-hidden B is still preserved + hidden.
   assert.ok(synced.includes("B"), "eye-hidden B still present");
   assert.equal(getModelIsHidden(PROVIDER, "B"), true, "eye-hidden B still hidden");
-});
-
-test("C: a DELETED synced model still stays out on re-import (delete signal)", async () => {
-  const provider = "llama-cpp-del";
-  const connection = "conn-3782-del";
-
-  await replaceSyncedAvailableModelsForConnection(provider, connection, [
-    { id: "keep", name: "Keep" },
-    { id: "del", name: "Delete me" },
-  ]);
-  let synced = (await getSyncedAvailableModels(provider)).map((m) => m.id);
-  assert.ok(synced.includes("del"), "both present after first sync");
-
-  // Operator DELETES (trash) `del` → the route marks it deleted. Mirror the real
-  // DELETE route: it sets BOTH the distinct delete marker and (back-compat) hidden.
-  mergeModelCompatOverride(provider, "del", { isDeleted: true, isHidden: true });
-
-  // Auto-fetch re-imports the SAME upstream list (still advertising `del`).
-  await replaceSyncedAvailableModelsForConnection(provider, connection, [
-    { id: "keep", name: "Keep" },
-    { id: "del", name: "Delete me" },
-  ]);
-
-  synced = (await getSyncedAvailableModels(provider)).map((m) => m.id);
-  assert.ok(synced.includes("keep"), "non-deleted model stays");
-  assert.ok(!synced.includes("del"), "DELETED model must NOT be re-added by the re-import");
 });

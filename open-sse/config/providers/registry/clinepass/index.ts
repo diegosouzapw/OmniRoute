@@ -32,7 +32,7 @@ export const clinepassProvider: RegistryEntry = {
     "HTTP-Referer": "https://cline.bot",
     "X-Title": "Cline",
   },
-  // Offline fallback copied from Cline CLI 3.0.46's generated catalog. Live
+  // Offline fallback copied from Cline CLI 3.0.53's generated catalog. Live
   // discovery replaces it with the authored recommended-models order.
   models: [
     {
@@ -110,6 +110,15 @@ export const clinepassProvider: RegistryEntry = {
       contextLength: 1048576,
       maxInputTokens: 1048576,
       maxOutputTokens: 131072,
+    },
+    {
+      id: "cline-pass/qwen3.8-max",
+      name: "Qwen3.8 Max",
+      toolCalling: true,
+      supportsReasoning: true,
+      contextLength: 1000000,
+      maxInputTokens: 1000000,
+      maxOutputTokens: 65536,
     },
     {
       id: "cline-pass/qwen3.7-max",

@@ -22,7 +22,8 @@ process.env.DATA_DIR = fs.mkdtempSync(
   path.join(os.tmpdir(), "omniroute-accesstoken-fallback-")
 );
 
-const { getExecutor } = await import("../../open-sse/executors/index.ts");
+const { getCredentialRefreshExecutor } =
+  await import("../../open-sse/executors/credential.ts");
 const { refreshAndUpdateCredentials } = await import("../../src/lib/usage/providerLimits.ts");
 
 // `gemini` is a non-rotating (no rotation lock group), non-github OAuth provider,
@@ -39,7 +40,7 @@ function geminiConnection() {
 }
 
 test("falls back to the existing accessToken for a non-github provider when refreshCredentials returns null", async () => {
-  const exec = getExecutor("gemini");
+  const exec = await getCredentialRefreshExecutor("gemini");
   const origNeeds = exec.needsRefresh;
   const origRefresh = exec.refreshCredentials;
   exec.needsRefresh = () => true; // force the refresh attempt
@@ -65,7 +66,7 @@ test("falls back to the existing accessToken for a non-github provider when refr
 });
 
 test("still throws when refresh fails AND there is no accessToken to fall back on", async () => {
-  const exec = getExecutor("gemini");
+  const exec = await getCredentialRefreshExecutor("gemini");
   const origNeeds = exec.needsRefresh;
   const origRefresh = exec.refreshCredentials;
   exec.needsRefresh = () => true;

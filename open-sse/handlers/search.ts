@@ -6,20 +6,36 @@ import { randomUUID } from "crypto";
  * Routes to search providers with automatic failover:
  *   serper-search, brave-search, perplexity-search, exa-search, tavily-search,
  *   firecrawl, google-pse-search, linkup-search, searchapi-search,
- *   youcom-search, searxng-search, ollama-search, zai-search, duckduckgo-free
+ *   youcom-search, searxng-search, ollama-search, zai-search, jina-search,
+ *   duckduckgo-free, x-search (Grok / SuperGrok X Search — explicit or search_type "x")
+ *   and xquik-search (direct X API search — explicit or credentialed fallback)
+ *   and anysearch-search (free public web search — fallback-only)
  *
  * Request format:
  * {
  *   "query": "search query",
  *   "provider": "serper-search" | "brave-search" | ... // optional, auto-selects cheapest
  *   "max_results": 5,
- *   "search_type": "web" | "news"
+ *   "search_type": "web" | "news" | "x"
  * }
  */
 
-import { getSearchProvider, type SearchProviderConfig } from "../config/searchRegistry.ts";
+export { resolveSearchBaseUrl, SearchBaseUrlOverrideError } from "./search/baseUrl.ts";
+import { resolveSearchBaseUrl } from "./search/baseUrl.ts";
+
+import {
+  getSearchProvider,
+  isUnconfiguredLoopbackSearchProvider,
+  type SearchProviderConfig,
+} from "../config/searchRegistry.ts";
+import { NIMBLE_CLIENT_SOURCE, NIMBLE_CLIENT_SOURCE_HEADER } from "../config/nimble.ts";
 import { buildPerplexityRequest, parsePerplexitySearchOptions } from "./search/perplexitySearch.ts";
 import * as fcSearch from "./search/firecrawlSearch.ts";
+import { type FirecrawlSearchEnvelope } from "./search/firecrawlSearch.ts";
+import { buildJinaSearchRequest, extractJinaSearchItems } from "./search/jinaSearch.ts";
+import * as xSearch from "./search/xSearch.ts";
+import * as xquikSearch from "./search/xquikSearch.ts";
+import * as anysearchSearch from "./search/anysearchSearch.ts";
 import { freeWebSearch } from "../services/freeWebSearch.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
@@ -27,7 +43,9 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { z } from "zod";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { isValidContext7LibraryId } from "../executors/context7-fetch.ts";
 import { resolveSearchProxy, executeProviderFetch } from "./search/searchProxy.ts";
+import { formatSearchProviderFailure } from "./search/providerFailure.ts";
 
 export interface SearchResult {
   title: string;
@@ -201,6 +219,49 @@ function normalizeSerperResponse(
   };
 }
 
+// Context7 library-docs search results: { results: [{ id: "/owner/repo", title,
+// description, lastUpdateDate, stars, trustScore, ... }] }. The API has no URL
+// field — the library page URL is derived from the id. The relevance score is an
+// unbounded float (observed ~276), not a 0..1 score, so it is not mapped onto the
+// normalized 0..1 score field.
+interface Context7SearchItem {
+  id?: string;
+  title?: string;
+  description?: string;
+  lastUpdateDate?: string;
+}
+
+function normalizeContext7Response(
+  data: unknown,
+  _query: string,
+  _searchType: string
+): { results: SearchResult[]; totalResults: number | null } {
+  const now = new Date().toISOString();
+  const items = (data as { results?: Context7SearchItem[] } | null)?.results;
+  if (!Array.isArray(items)) return { results: [], totalResults: null };
+  // Only canonical library ids are usable: they are interpolated into a
+  // context7.com URL, so anything else (missing, "//evil.com", ".." traversal,
+  // query junk) is dropped instead of producing a misleading or off-site link.
+  // Shared guard with the fetch executor (isValidContext7LibraryId) — no drift.
+  const usable = items.filter((item): item is Context7SearchItem & { id: string } =>
+    isValidContext7LibraryId(item?.id ?? "")
+  );
+  const results = usable.map((item, idx: number) =>
+    makeResult(
+      "context7",
+      {
+        title: item?.title,
+        url: `https://context7.com${item.id}`,
+        snippet: item?.description,
+        published_at: item?.lastUpdateDate,
+      },
+      idx,
+      now
+    )
+  );
+  return { results, totalResults: null };
+}
+
 function normalizeBraveResponse(
   data: any,
   _query: string,
@@ -260,11 +321,6 @@ function getProviderSettingString(
   return undefined;
 }
 
-function resolveSearchBaseUrl(config: SearchProviderConfig, params: SearchRequestParams): string {
-  const override = getProviderSettingString(params, "baseUrl");
-  return (override || config.baseUrl).replace(/\/+$/, "");
-}
-
 function toSearchPageNumber(offset: number | undefined, maxResults: number): number | undefined {
   if (typeof offset !== "number" || offset <= 0 || maxResults <= 0) return undefined;
   return Math.floor(offset / maxResults) + 1;
@@ -304,8 +360,30 @@ function buildSerperRequest(
     url: `${config.baseUrl}${endpoint}`,
     init: {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(params.token ? { "X-API-Key": params.token } : {}) },
+      headers: {
+        "Content-Type": "application/json",
+        ...(params.token ? { "X-API-Key": params.token } : {}),
+      },
       body: JSON.stringify(body),
+    },
+  };
+}
+
+// Context7 library-docs search: GET {baseUrl}/search?query=<q>. Key optional —
+// anonymous tier works without one; a configured ctx7sk-* key rides as Bearer.
+function buildContext7Request(
+  config: SearchProviderConfig,
+  params: SearchRequestParams
+): { url: string; init: RequestInit } {
+  const qp = new URLSearchParams({ query: params.query });
+  return {
+    url: `${config.baseUrl}/search?${qp}`,
+    init: {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        ...(params.token ? { Authorization: `Bearer ${params.token}` } : {}),
+      },
     },
   };
 }
@@ -322,7 +400,10 @@ function buildBraveRequest(
     url: `${config.baseUrl}${endpoint}?${qp}`,
     init: {
       method: "GET",
-      headers: { Accept: "application/json", ...(params.token ? { "X-Subscription-Token": params.token } : {}) },
+      headers: {
+        Accept: "application/json",
+        ...(params.token ? { "X-Subscription-Token": params.token } : {}),
+      },
     },
   };
 }
@@ -348,7 +429,10 @@ function buildExaRequest(
     url: config.baseUrl,
     init: {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(params.token ? { "x-api-key": params.token } : {}) },
+      headers: {
+        "Content-Type": "application/json",
+        ...(params.token ? { "x-api-key": params.token } : {}),
+      },
       body: JSON.stringify(body),
     },
   };
@@ -372,6 +456,38 @@ function buildTavilyRequest(
     init: {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${params.token}` },
+      body: JSON.stringify(body),
+    },
+  };
+}
+
+function buildNimbleRequest(
+  config: SearchProviderConfig,
+  params: SearchRequestParams
+): { url: string; init: RequestInit } {
+  if (!params.token) throw new Error("Nimble Search requires an API key");
+  const { includes, excludes } = parseDomainFilter(params.domainFilter);
+  const body: Record<string, unknown> = {
+    query: params.query,
+    max_results: Math.min(params.maxResults, config.maxMaxResults),
+    search_depth: "lite",
+    output_format: "plain_text",
+    focus: params.searchType === "news" ? "news" : "general",
+  };
+  if (params.country) body.country = params.country.toUpperCase();
+  if (params.language) body.locale = params.language;
+  if (params.timeRange && params.timeRange !== "any") body.time_range = params.timeRange;
+  if (includes.length) body.include_domains = includes.slice(0, 50);
+  if (excludes.length) body.exclude_domains = excludes.slice(0, 50);
+  return {
+    url: resolveSearchBaseUrl(config, params),
+    init: {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${params.token}`,
+        [NIMBLE_CLIENT_SOURCE_HEADER]: NIMBLE_CLIENT_SOURCE,
+      },
       body: JSON.stringify(body),
     },
   };
@@ -597,22 +713,39 @@ function buildOllamaRequest(
   };
 }
 
+type SearchRequestBuilder = (
+  config: SearchProviderConfig,
+  params: SearchRequestParams
+) => { url: string; init: RequestInit };
+
+const requestBuilders: Record<string, SearchRequestBuilder> = {
+  "serper-search": buildSerperRequest,
+  "brave-search": buildBraveRequest,
+  context7: buildContext7Request,
+  "perplexity-search": buildPerplexityRequest,
+  "exa-search": buildExaRequest,
+  "tavily-search": buildTavilyRequest,
+  "nimble-search": buildNimbleRequest,
+  firecrawl: fcSearch.buildFirecrawlSearchRequest,
+  "google-pse-search": buildGooglePseRequest,
+  "linkup-search": buildLinkupRequest,
+  "searchapi-search": buildSearchApiRequest,
+  "youcom-search": buildYouComRequest,
+  "searxng-search": buildSearxngRequest,
+  "ollama-search": buildOllamaRequest,
+  "jina-search": buildJinaSearchRequest,
+  "x-search": xSearch.buildXSearchRequest,
+  "xquik-search": xquikSearch.buildXquikSearchRequest,
+  "anysearch-search": anysearchSearch.buildAnysearchSearchRequest,
+};
+
 function buildRequest(
   config: SearchProviderConfig,
   params: SearchRequestParams
 ): { url: string; init: RequestInit } {
-  if (config.id === "serper-search") return buildSerperRequest(config, params);
-  if (config.id === "brave-search") return buildBraveRequest(config, params);
-  if (config.id === "perplexity-search") return buildPerplexityRequest(config, params);
-  if (config.id === "exa-search") return buildExaRequest(config, params);
-  if (config.id === "tavily-search") return buildTavilyRequest(config, params);
-  if (config.id === "firecrawl") return fcSearch.buildFirecrawlSearchRequest(config, params);
-  if (config.id === "google-pse-search") return buildGooglePseRequest(config, params);
-  if (config.id === "linkup-search") return buildLinkupRequest(config, params);
-  if (config.id === "searchapi-search") return buildSearchApiRequest(config, params);
-  if (config.id === "youcom-search") return buildYouComRequest(config, params);
-  if (config.id === "searxng-search") return buildSearxngRequest(config, params);
-  if (config.id === "ollama-search") return buildOllamaRequest(config, params);
+  const builder = requestBuilders[config.id];
+  if (builder) return builder(config, params);
+
   // Fallback for future providers: POST with bearer auth
   return {
     url: resolveSearchBaseUrl(config, params),
@@ -713,6 +846,47 @@ function normalizeTavilyResponse(
     )
   );
   return { results, totalResults: results.length };
+}
+
+interface NimbleSearchItem {
+  title?: string;
+  url?: string;
+  description?: string;
+  content?: string;
+}
+
+interface NimbleSearchEnvelope {
+  results?: NimbleSearchItem[];
+  total_results?: number;
+}
+
+function normalizeNimbleResponse(
+  data: unknown,
+  _query: string,
+  _searchType: string
+): { results: SearchResult[]; totalResults: number | null } {
+  const now = new Date().toISOString();
+  const envelope = (data ?? {}) as NimbleSearchEnvelope;
+  if (!Array.isArray(envelope.results)) return { results: [], totalResults: null };
+  const results = envelope.results.map((item, idx) =>
+    makeResult(
+      "nimble-search",
+      {
+        title: item.title,
+        url: item.url,
+        snippet: item.description || item.content?.slice(0, 300) || "",
+        full_text: item.content || undefined,
+        text_format: "text",
+      },
+      idx,
+      now
+    )
+  );
+  return {
+    results,
+    totalResults:
+      typeof envelope.total_results === "number" ? envelope.total_results : results.length,
+  };
 }
 
 function normalizeGooglePseResponse(
@@ -1153,13 +1327,37 @@ async function tryZaiMCPProvider(
       /* non-critical — logging must not block search response */
     });
 
-    return {
-      success: false,
-      status: isTimeout ? 504 : 502,
-      error: `Search provider ${isTimeout ? "timeout" : "error"}: ${sanitizeErrorMessage(err.message)}`,
-    };
+    return formatSearchProviderFailure(config.id, err, isTimeout);
   }
 }
+
+type SearchResponseNormalizer = (
+  data: unknown,
+  query: string,
+  searchType: string
+) => { results: SearchResult[]; totalResults: number | null };
+
+const responseNormalizers: Record<string, SearchResponseNormalizer> = {
+  "serper-search": normalizeSerperResponse,
+  "brave-search": normalizeBraveResponse,
+  context7: normalizeContext7Response,
+  "perplexity-search": normalizePerplexityResponse,
+  "exa-search": normalizeExaResponse,
+  "tavily-search": normalizeTavilyResponse,
+  "nimble-search": normalizeNimbleResponse,
+  firecrawl: (data: FirecrawlSearchEnvelope, _query: string, searchType: string) =>
+    fcSearch.normalizeFirecrawlSearchResponse(data, searchType, makeResult),
+  "google-pse-search": normalizeGooglePseResponse,
+  "linkup-search": normalizeLinkupResponse,
+  "searchapi-search": normalizeSearchApiResponse,
+  "youcom-search": normalizeYouComResponse,
+  "searxng-search": normalizeSearxngResponse,
+  "ollama-search": normalizeOllamaResponse,
+  "jina-search": normalizeJinaSearchResponse,
+  "x-search": normalizeXSearchResponse,
+  "xquik-search": (data) => xquikSearch.normalizeXquikSearchResponse(data, makeResult),
+  "anysearch-search": (data) => anysearchSearch.normalizeAnysearchSearchResponse(data, makeResult),
+};
 
 function normalizeResponse(
   providerId: string,
@@ -1167,23 +1365,59 @@ function normalizeResponse(
   query: string,
   searchType: string
 ): { results: SearchResult[]; totalResults: number | null } {
-  if (providerId === "serper-search") return normalizeSerperResponse(data, query, searchType);
-  if (providerId === "brave-search") return normalizeBraveResponse(data, query, searchType);
-  if (providerId === "perplexity-search")
-    return normalizePerplexityResponse(data, query, searchType);
-  if (providerId === "exa-search") return normalizeExaResponse(data, query, searchType);
-  if (providerId === "tavily-search") return normalizeTavilyResponse(data, query, searchType);
-  if (providerId === "firecrawl")
-    return fcSearch.normalizeFirecrawlSearchResponse(data, searchType, makeResult);
-  if (providerId === "google-pse-search")
-    return normalizeGooglePseResponse(data, query, searchType);
-  if (providerId === "linkup-search") return normalizeLinkupResponse(data, query, searchType);
-  if (providerId === "searchapi-search") return normalizeSearchApiResponse(data, query, searchType);
-  if (providerId === "youcom-search") return normalizeYouComResponse(data, query, searchType);
-  if (providerId === "searxng-search") return normalizeSearxngResponse(data, query, searchType);
-  if (providerId === "ollama-search") return normalizeOllamaResponse(data, query, searchType);
+  const normalizer = responseNormalizers[providerId];
+  if (normalizer) return normalizer(data, query, searchType);
   return { results: [], totalResults: null };
 }
+
+function normalizeXSearchResponse(
+  data: unknown,
+  query: string,
+  _searchType: string
+): { results: SearchResult[]; totalResults: number | null } {
+  const now = new Date().toISOString();
+  const hits = xSearch.extractXSearchHits(data, query, 20);
+  const results = hits.map((hit, idx) =>
+    makeResult(
+      "x-search",
+      {
+        title: hit.title,
+        url: hit.url,
+        snippet: hit.snippet,
+        author: hit.author,
+        source_type: "x",
+      },
+      idx,
+      now
+    )
+  );
+  return { results, totalResults: results.length };
+}
+
+function normalizeJinaSearchResponse(
+  data: unknown,
+  _query: string,
+  _searchType: string
+): { results: SearchResult[]; totalResults: number | null } {
+  const now = new Date().toISOString();
+  const items = extractJinaSearchItems(data);
+  const results = items.map((item, idx) =>
+    makeResult(
+      "jina-search",
+      {
+        title: item.title,
+        url: item.url,
+        snippet: item.description || item.snippet || "",
+        full_text: item.content || item.text,
+        text_format: "markdown",
+      },
+      idx,
+      now
+    )
+  );
+  return { results, totalResults: results.length };
+}
+
 export async function handleSearch(options: SearchHandlerOptions): Promise<SearchHandlerResult> {
   const {
     query,
@@ -1221,6 +1455,13 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
       error: `Unknown search provider: ${providerId}`,
     };
   }
+  if (primaryConfig.disabled) {
+    return {
+      success: false,
+      status: 403,
+      error: `Search provider '${providerId}' is currently disabled.`,
+    };
+  }
 
   // 3. Get alternate config for failover (pre-resolved by route)
   const alternateConfig = alternateProvider ? getSearchProvider(alternateProvider) : null;
@@ -1245,7 +1486,60 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
     }
   }
 
-  // 4. Try primary provider
+  // 4. Try primary provider (skip catalog-default SearXNG localhost:8888,
+  // unless a request/connection override resolves it to a real URL).
+  const primaryEffectiveBaseUrl = resolveSearchBaseUrl(primaryConfig, {
+    ...requestParams,
+    providerSpecificData:
+      credentials?.providerSpecificData && typeof credentials.providerSpecificData === "object"
+        ? credentials.providerSpecificData
+        : undefined,
+  });
+  if (
+    isUnconfiguredLoopbackSearchProvider({ ...primaryConfig, baseUrl: primaryEffectiveBaseUrl })
+  ) {
+    if (log) {
+      log.warn(
+        "SEARCH",
+        "skipping catalog-default searxng-search at http://localhost:8888/search; set a real SearXNG URL"
+      );
+    }
+    const alternateEffectiveBaseUrl = alternateConfig
+      ? resolveSearchBaseUrl(alternateConfig, {
+          ...requestParams,
+          providerSpecificData:
+            alternateCredentials?.providerSpecificData &&
+            typeof alternateCredentials.providerSpecificData === "object"
+              ? alternateCredentials.providerSpecificData
+              : undefined,
+        })
+      : "";
+    if (
+      alternateConfig &&
+      alternateCredentials &&
+      !isUnconfiguredLoopbackSearchProvider({
+        ...alternateConfig,
+        baseUrl: alternateEffectiveBaseUrl,
+      })
+    ) {
+      return tryProvider(
+        alternateConfig,
+        requestParams,
+        alternateCredentials,
+        startTime,
+        log,
+        alternateCredentials?.connectionId,
+        apiKeyId
+      );
+    }
+    return {
+      success: false,
+      status: 503,
+      error:
+        "SearXNG is still on the catalog default http://localhost:8888/search. Configure a real SearXNG URL or disable the provider.",
+    };
+  }
+
   const result = await tryProvider(
     primaryConfig,
     requestParams,

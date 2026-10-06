@@ -60,7 +60,7 @@ test("buildOmniRouteResponseMetaHeaders keeps ASCII model header values unchange
 });
 
 test("buildOmniRouteResponseMetaHeaders percent-encodes non-ASCII model header values", () => {
-  const model = "free-mix/[假流式]gemini-3.5-flash";
+  const model = "free-mix/[假流式]gemini-3.7-flash";
   const headers = buildOmniRouteResponseMetaHeaders({
     provider: "openai",
     model,

@@ -7,10 +7,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { EventEmitter } from "node:events";
-import {
-  canRunPrivilegedMitmSteps,
-  isMitmSudoPasswordRequired,
-} from "../../src/mitm/sudoGate.ts";
+import { canRunPrivilegedMitmSteps, isMitmSudoPasswordRequired } from "../../src/mitm/sudoGate.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mitm-sudo-gate-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -20,7 +17,7 @@ const manager = await import("../../src/mitm/manager.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("canRunPrivilegedMitmSteps is false when isMitmSudoPasswordRequired is true", () => {
@@ -53,7 +50,10 @@ test("stopMitm skips DNS teardown without sudo password but still kills server (
     return true;
   };
 
-  manager.__setServerProcessForTest(fakeProc as unknown as import("child_process").ChildProcess, 4242);
+  manager.__setServerProcessForTest(
+    fakeProc as unknown as import("child_process").ChildProcess,
+    4242
+  );
 
   await manager.stopMitm("", {
     removeDNSEntry: async () => {
@@ -70,5 +70,8 @@ test("stopMitm skips DNS teardown without sudo password but still kills server (
     0,
     "must not invoke DNS teardown with empty sudo password"
   );
-  assert.ok(events.some((event) => event.startsWith("kill:")), "server process must still be stopped");
+  assert.ok(
+    events.some((event) => event.startsWith("kill:")),
+    "server process must still be stopped"
+  );
 });

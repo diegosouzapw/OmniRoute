@@ -1,9 +1,10 @@
-import { describe, it } from "node:test";
+import { describe, it, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import { FETCH_TIMEOUT_MS } from "../../open-sse/config/constants.ts";
 import {
   DuckDuckGoWebExecutor,
   DUCKDUCKGO_BASE,
+  CHAT_URL,
   normalizeDuckDuckGoMessages,
   STATUS_URL,
 } from "../../open-sse/executors/duckduckgo-web.ts";
@@ -32,7 +33,7 @@ describe("DuckDuckGoWebExecutor", () => {
     it("should export DUCKDUCKGO_BASE constant", () => {
       assert.equal(
         DUCKDUCKGO_BASE,
-        "https://duckduckgo.com",
+        "https://duck.ai",
         "DUCKDUCKGO_BASE should be correct URL"
       );
     });
@@ -231,6 +232,122 @@ describe("DuckDuckGoWebExecutor", () => {
     });
   });
 
+  describe("system-role shielding (#ddgw)", () => {
+    type ExecuteArgs = Parameters<DuckDuckGoWebExecutor["execute"]>[0];
+    // duck.ai's duckchat/v1/chat rejects role:"system" with 400 ERR_BAD_REQUEST.
+    // The translator-side normalizer folds system/developer into the first user
+    // message; this shield guarantees the executor never forwards such roles
+    // upstream even when a future bypass reintroduces them after translation
+    // (e.g. prepareToolMessages' injected tool prompt).
+    function mockDuckChat(t: TestContext, capturedBodies: unknown[]): void {
+      t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method ?? "GET";
+        if (method === "GET" && url === STATUS_URL) {
+          return new Response(null, {
+            status: 200,
+            headers: { "x-vqd-4": "test-vqd-4" },
+          });
+        }
+        if (method === "POST" && url === CHAT_URL) {
+          capturedBodies.push(JSON.parse(String(init?.body)));
+          return new Response('data: {"message":"OK"}\n\ndata: [DONE]\n\n', {
+            status: 200,
+            headers: { "Content-Type": "text/event-stream" },
+          });
+        }
+        // warmSession + country/token fetches tolerate empty 2xx responses.
+        return new Response(null, { status: 200 });
+      });
+    }
+
+    it("folds a leading system message into the first user message before the upstream POST", async (t) => {
+      const captured: unknown[] = [];
+      mockDuckChat(t, captured);
+
+      await new DuckDuckGoWebExecutor().execute({
+        model: "gpt-5.4-nano",
+        body: {
+          messages: [
+            { role: "system", content: "You are a helpful assistant." },
+            { role: "user", content: "Reply with OK" },
+          ],
+        },
+        stream: false,
+      } as unknown as ExecuteArgs);
+
+      assert.equal(captured.length, 1, "chat POST should be captured");
+      const upstreamMessages = (captured[0] as { messages: Array<{ role: string }> }).messages;
+      const roles = upstreamMessages.map((m) => m.role);
+      assert.equal(
+        roles.some((r) => r === "system" || r === "developer"),
+        false,
+        "no system/developer role may reach the upstream payload"
+      );
+      assert.deepEqual(roles, ["user"]);
+      assert.match(
+        String((upstreamMessages[0] as { content: string }).content),
+        /^\[System Instructions\]\n/
+      );
+    });
+
+    it("preserves plain user/assistant conversations untouched", async (t) => {
+      const captured: unknown[] = [];
+      mockDuckChat(t, captured);
+
+      await new DuckDuckGoWebExecutor().execute({
+        model: "gpt-5.4-nano",
+        body: {
+          messages: [
+            { role: "user", content: "hi" },
+            { role: "assistant", content: "hello" },
+            { role: "user", content: "bye" },
+          ],
+        },
+        stream: false,
+      } as unknown as ExecuteArgs);
+
+      const upstream = (captured[0] as { messages: Array<{ role: string; content: string }> })
+        .messages;
+      assert.deepEqual(
+        upstream.map((m) => [m.role, m.content]),
+        [
+          ["user", "hi"],
+          ["assistant", "hello"],
+          ["user", "bye"],
+        ]
+      );
+    });
+
+    it("shields the executor-injected tool prompt system message too", async (t) => {
+      const captured: unknown[] = [];
+      mockDuckChat(t, captured);
+
+      await new DuckDuckGoWebExecutor().execute({
+        model: "grole",
+        body: {
+          messages: [{ role: "user", content: "list files" }],
+          tools: [
+            {
+              type: "function",
+              function: { name: "list_files", description: "lists files", parameters: {} },
+            },
+          ],
+        },
+        stream: false,
+      } as unknown as ExecuteArgs);
+
+      const upstream = (captured[0] as { messages: Array<{ role: string; content: string }> })
+        .messages;
+      assert.equal(
+        upstream.some((m) => m.role === "system" || m.role === "developer"),
+        false,
+        "the tool-prompt system message must be folded before dispatch"
+      );
+      assert.match(String(upstream.at(-1)?.content), /list_files/);
+    });
+  });
+
   describe("integration checks", () => {
     it("should be properly exported from executor module", async () => {
       // Import the singleton as well
@@ -241,7 +358,7 @@ describe("DuckDuckGoWebExecutor", () => {
 
     it("should be registered in executor index", async () => {
       const { getExecutor } = await import("../../open-sse/executors/index.ts");
-      const executor = getExecutor("duckduckgo-web");
+      const executor = await getExecutor("duckduckgo-web");
       assert.ok(executor, "executor should be registered in index");
       assert.equal(
         typeof executor.execute,

@@ -46,7 +46,7 @@ function findingsFor(fx: Fixture): Set<string> {
     }
     return out;
   } finally {
-    fs.rmSync(root, { recursive: true, force: true });
+    fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 
@@ -159,6 +159,20 @@ test("env-var: an enum / object-literal member (HALF_OPEN) in backticks is NOT f
     docs: { "resilience.md": "After the reset window the breaker enters `HALF_OPEN`.\n" },
   });
   assert.ok(!found.has("env-var::HALF_OPEN"), "object-literal/enum key must not be flagged");
+});
+
+test("env-var: an actual protocol error code in a code field is NOT flagged", () => {
+  const found = findingsFor({
+    files: {
+      "src/app/api/v1/chat/completions/route.ts":
+        'return Response.json({ error: { code: "SECURITY_001" } });\n',
+    },
+    docs: { "guardrails.md": "Blocked requests return `SECURITY_001`.\n" },
+  });
+  assert.ok(
+    !found.has("env-var::SECURITY_001"),
+    "a runtime error code must not be classified as a fabricated env var"
+  );
 });
 
 test('env-var: a var read via bracket notation process.env["X"] is NOT flagged', () => {

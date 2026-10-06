@@ -34,10 +34,7 @@ const managerSource = readFileSync(
   pathResolve(process.cwd(), "src/lib/plugins/manager.ts"),
   "utf-8"
 );
-const loaderSource = readFileSync(
-  pathResolve(process.cwd(), "src/lib/plugins/loader.ts"),
-  "utf-8"
-);
+const loaderSource = readFileSync(pathResolve(process.cwd(), "src/lib/plugins/loader.ts"), "utf-8");
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
 
@@ -74,7 +71,8 @@ function writePluginWithMain(opts: {
   );
 
   // Write the main file only for safe relative paths
-  const shouldWrite = opts.writeMainFile !== false && !opts.main.startsWith("..") && !path.isAbsolute(opts.main);
+  const shouldWrite =
+    opts.writeMainFile !== false && !opts.main.startsWith("..") && !path.isAbsolute(opts.main);
   if (shouldWrite) {
     const mainAbs = path.join(sourceDir, opts.main);
     fs.mkdirSync(path.dirname(mainAbs), { recursive: true });
@@ -110,14 +108,19 @@ function cleanInstalledPluginDirs() {
     // Remove final dir and any staging remnants
     const base = path.join(DEFAULT_PLUGIN_DIR, name);
     try {
-      fs.rmSync(base, { recursive: true, force: true });
+      fs.rmSync(base, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
     // Also clean any .staging-* leftovers
     if (fs.existsSync(DEFAULT_PLUGIN_DIR)) {
       for (const entry of fs.readdirSync(DEFAULT_PLUGIN_DIR)) {
         if (entry.startsWith(`${name}.staging-`)) {
           try {
-            fs.rmSync(path.join(DEFAULT_PLUGIN_DIR, entry), { recursive: true, force: true });
+            fs.rmSync(path.join(DEFAULT_PLUGIN_DIR, entry), {
+              recursive: true,
+              force: true,
+              maxRetries: 5,
+              retryDelay: 100,
+            });
           } catch {}
         }
       }
@@ -128,7 +131,7 @@ function cleanInstalledPluginDirs() {
 function cleanSourceDirs() {
   for (const d of activeDirs) {
     try {
-      fs.rmSync(d, { recursive: true, force: true });
+      fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     } catch {}
   }
   activeDirs.length = 0;
@@ -137,7 +140,7 @@ function cleanSourceDirs() {
 test.beforeEach(() => {
   core.resetDbInstance();
   hooks.resetHooks();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   cleanSourceDirs();
   cleanInstalledPluginDirs();
@@ -148,7 +151,7 @@ test.after(() => {
   cleanSourceDirs();
   cleanInstalledPluginDirs();
   try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {}
 });
 
@@ -306,7 +309,8 @@ test("source: assertWithinPluginDir is called before rm in uninstall", () => {
   // Get the slice from uninstall through the next method
   const afterUninstall = managerSource.slice(uninstallIdx);
   const nextMethodIdx = afterUninstall.indexOf("\n  async ", 10);
-  const uninstallBody = nextMethodIdx !== -1 ? afterUninstall.slice(0, nextMethodIdx) : afterUninstall;
+  const uninstallBody =
+    nextMethodIdx !== -1 ? afterUninstall.slice(0, nextMethodIdx) : afterUninstall;
 
   const guardIdx = uninstallBody.indexOf("assertWithinPluginDir");
   const rmIdx = uninstallBody.indexOf("await rm(");
@@ -342,7 +346,9 @@ test("source: assertWithinPluginDir throws for path outside pluginDir", () => {
   // resolve("/tmp/evil") is not fine when root is "/plugins".
   // Since we can't easily import the unexported helper, verify it uses resolve + sep.
   assert.ok(
-    managerSource.includes('resolve(pluginRoot)') || managerSource.includes('resolve(this_pluginDir)') || managerSource.includes('resolve('),
+    managerSource.includes("resolve(pluginRoot)") ||
+      managerSource.includes("resolve(this_pluginDir)") ||
+      managerSource.includes("resolve("),
     "assertWithinPluginDir must call resolve()"
   );
   assert.ok(

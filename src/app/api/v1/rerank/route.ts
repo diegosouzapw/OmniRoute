@@ -10,11 +10,25 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1RerankSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { getCachedProviderNodes } from "@/lib/localDb";
+import { loadRerankProviderNodes } from "@/app/api/v1/_shared/rerankProviderNodes";
+import {
+  buildLocalRerankRequestBody,
+  normalizeLocalRerankResponse,
+} from "@/app/api/v1/_shared/rerankLocalNodeShapes";
 import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
 } from "@/app/api/v1/_shared/rateLimit";
+import { saveCallLog } from "@/lib/usageDb";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { generateRequestId } from "@/shared/utils/requestId";
+import { CORS_HEADERS } from "@omniroute/open-sse/utils/cors.ts";
+import { deriveRerankProviderForChatProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
+import { resolveAlibabaQwen3RerankUrl } from "@/shared/constants/alibabaProviderRegions";
+import { getComboByName, getCombos } from "@/lib/db/combos";
+import { getDatabaseSettings } from "@/lib/db/databaseSettings";
+import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import * as log from "@/sse/utils/logger";
 
 /**
  * Handle CORS preflight
@@ -29,28 +43,13 @@ export async function OPTIONS() {
 }
 
 /**
- * Build dynamic rerank provider from a local provider_node.
- * Local OpenAI-compatible backends (oMLX, vLLM, etc.) expose /v1/rerank
- * under the same base URL as chat.
- */
-function buildDynamicRerankProvider(node: any) {
-  // Strip trailing /v1 if present — we'll add /rerank
-  let base = node.baseUrl || "";
-  if (base.endsWith("/v1")) base = base.slice(0, -3);
-  return {
-    id: node.prefix,
-    baseUrl: `${base}/v1/rerank`,
-    authType: "apikey",
-    authHeader: "bearer",
-    providerId: node.id, // full provider connection ID for credential lookup
-  };
-}
-
-/**
  * POST /v1/rerank - Cohere-compatible rerank endpoint
  *
  * Supports cloud providers (Cohere, Together, NVIDIA, Fireworks)
- * and local provider_nodes (oMLX, vLLM, etc.) via dynamic routing.
+ * and OpenAI-compatible provider_nodes (oMLX, vLLM, Infinity, TEI behind a gateway, …)
+ * via dynamic routing. Loopback nodes are always eligible; remote nodes require the
+ * `RERANK_REMOTE_PROVIDER_NODES` opt-in and must pass the provider outbound URL policy
+ * (see `_shared/rerankProviderNodes.ts`).
  */
 async function postHandler(request, context) {
   let rawBody;
@@ -70,47 +69,160 @@ async function postHandler(request, context) {
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
 
-  // Load local provider_nodes for rerank routing (localhost only)
-  let localProviders: ReturnType<typeof buildDynamicRerankProvider>[] = [];
-  try {
-    const nodes = await getCachedProviderNodes();
-    localProviders = (Array.isArray(nodes) ? nodes : [])
-      .filter((n: any) => {
+  return handleValidatedRerankRequestBody(
+    {
+      ...body,
+      documents: body.documents,
+      top_n: typeof body.top_n === "number" ? body.top_n : undefined,
+      return_documents:
+        typeof body.return_documents === "boolean" ? body.return_documents : undefined,
+    },
+    {
+      apiKeyId: policy.apiKeyInfo?.id || null,
+      apiKeyName: policy.apiKeyInfo?.name || null,
+    }
+  );
+}
+
+type ValidatedRerankBody = {
+  model: string;
+  query: string;
+  documents: unknown[];
+  top_n?: number;
+  return_documents?: boolean;
+};
+
+type RerankRequestMeta = {
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+};
+
+/**
+ * Dispatch a validated rerank request, including named-combo expansion.
+ *
+ * `/v1/models` advertises stored combos and chat, embeddings, and audio already resolve
+ * those names. Keeping rerank on the same contract lets a memory client use one stable
+ * route while the combo fails over between a local reranker and hosted providers.
+ */
+export async function handleValidatedRerankRequestBody(
+  body: ValidatedRerankBody,
+  meta: RerankRequestMeta = {}
+): Promise<Response> {
+  const modelStr = body.model;
+
+  if (!modelStr.includes("/")) {
+    try {
+      const combo = await getComboByName(modelStr);
+      if (combo) {
+        let allCombos: Awaited<ReturnType<typeof getCombos>> = [];
         try {
-          const hostname = new URL(n.baseUrl).hostname;
-          // Strictly matching 172.16.0.0/12 (Docker/local) and explicitly blocking ::1 per SSRF hardening
-          return (
-            hostname === "localhost" ||
-            hostname === "127.0.0.1" ||
-            /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
-          );
-        } catch {
-          return false;
-        }
-      })
-      .map((n) => {
+          allCombos = await getCombos();
+        } catch {}
+
+        let settings = {};
         try {
-          return buildDynamicRerankProvider(n);
-        } catch {
-          return null;
-        }
-      })
-      .filter((p): p is NonNullable<typeof p> => p !== null);
-  } catch {
-    // Non-critical — continue with cloud providers only
+          settings = getDatabaseSettings();
+        } catch {}
+
+        return handleComboChat({
+          body: body as any,
+          combo: combo as any,
+          handleSingleModel: async (reqBody: any, targetModelStr: string) =>
+            handleValidatedRerankRequestBody(
+              { ...reqBody, model: targetModelStr } as ValidatedRerankBody,
+              meta
+            ),
+          isModelAvailable: undefined,
+          log,
+          settings,
+          allCombos: allCombos as any,
+          relayOptions: undefined,
+          signal: undefined,
+        });
+      }
+    } catch (err) {
+      log.error("RERANK", `Combo resolution failed for ${modelStr}: ${err}`);
+    }
   }
+
+  // Load eligible provider_nodes for rerank routing (loopback always; remote when
+  // RERANK_REMOTE_PROVIDER_NODES is on and the URL passes the outbound policy).
+  const localProviders = await loadRerankProviderNodes();
 
   // Try cloud registry first
   const { provider, model: modelId } = parseRerankModel(body.model);
+  const prefixSeparator = body.model.indexOf("/");
+  const resolvedModelId =
+    provider || prefixSeparator < 0 ? modelId : body.model.slice(prefixSeparator + 1);
 
-  if (provider) {
-    // Cloud provider matched
-    const credentials = await getProviderCredentialsWithQuotaPreflight(provider);
+  // Generic fallback: a configured OpenAI-compatible chat provider with no
+  // curated rerank entry (groq, mistral, ...) still exposes a Cohere-compatible
+  // <base>/rerank endpoint. Only used when the prefix matches a chat provider
+  // that can actually derive an endpoint — otherwise fall through to local nodes.
+  let derivedProvider: ReturnType<typeof deriveRerankProviderForChatProvider> = null;
+  if (!provider) {
+    const prefix = body.model.split("/")[0];
+    if (prefix && prefix !== body.model) {
+      try {
+        const { REGISTRY } = await import("@omniroute/open-sse/config/providerRegistry.ts");
+        const chatEntry = (REGISTRY as Record<string, { baseUrl?: string } | undefined>)[prefix];
+        derivedProvider = deriveRerankProviderForChatProvider(prefix, chatEntry);
+      } catch {
+        derivedProvider = null;
+      }
+    }
+  }
+
+  if (provider || derivedProvider) {
+    // Cloud provider matched (or a generic Cohere-compatible endpoint was derived)
+    const effectiveProviderId = provider || derivedProvider!.id;
+    const credentials = await getProviderCredentialsWithQuotaPreflight(
+      effectiveProviderId,
+      null,
+      null,
+      resolvedModelId
+    );
     if (!credentials) {
-      return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `No credentials for provider: ${effectiveProviderId}`
+      );
     }
     if (isAllRateLimitedCredentials(credentials)) {
-      return rateLimitedProviderResponse(provider, credentials);
+      return rateLimitedProviderResponse(effectiveProviderId, credentials);
+    }
+
+    let runtimeProvider = derivedProvider as
+      | (NonNullable<ReturnType<typeof deriveRerankProviderForChatProvider>> & {
+          format?: string;
+        })
+      | null;
+    if (
+      (effectiveProviderId === "alibaba" || effectiveProviderId === "alibaba-cn") &&
+      resolvedModelId === "qwen3-rerank"
+    ) {
+      const providerSpecificData = (
+        credentials as { providerSpecificData?: Record<string, unknown> | null }
+      ).providerSpecificData;
+      const baseUrl = resolveAlibabaQwen3RerankUrl(
+        effectiveProviderId,
+        providerSpecificData,
+        derivedProvider?.baseUrl || ""
+      );
+      if (!baseUrl) {
+        return errorResponse(
+          HTTP_STATUS.BAD_REQUEST,
+          `No rerank endpoint configured for provider: ${effectiveProviderId}`
+        );
+      }
+      runtimeProvider = {
+        id: effectiveProviderId,
+        baseUrl,
+        authType: "apikey",
+        authHeader: "bearer",
+        models: [],
+        format: "alibaba-qwen3",
+      };
     }
 
     const response = await handleRerank({
@@ -120,7 +232,11 @@ async function postHandler(request, context) {
       top_n: body.top_n,
       return_documents: body.return_documents,
       credentials,
+      resolvedProvider: runtimeProvider,
+      resolvedModel: resolvedModelId,
       connectionId: (credentials as { connectionId?: string } | null)?.connectionId || null,
+      apiKeyId: meta.apiKeyId || null,
+      apiKeyName: meta.apiKeyName || null,
     });
     if (response?.ok) {
       await clearRecoveredProviderState(credentials);
@@ -148,35 +264,127 @@ async function postHandler(request, context) {
       }
 
       const token = credentials?.apiKey || credentials?.accessToken;
+      const startTime = Date.now();
+      // One body serves every known local server: Cohere/OpenAI spelling (`documents`,
+      // `return_documents`) plus the TEI spelling (`texts`, `return_text`). See
+      // `_shared/rerankLocalNodeShapes.ts`.
+      const upstreamBody = JSON.stringify(
+        buildLocalRerankRequestBody({
+          model: localModel,
+          query: body.query,
+          documents: body.documents,
+          top_n: body.top_n as number | undefined,
+          return_documents: body.return_documents as boolean | undefined,
+        })
+      );
+      const upstreamInit: RequestInit = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: upstreamBody,
+      };
       try {
-        const res = await fetch(localProvider.baseUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            model: localModel,
-            query: body.query,
-            documents: body.documents,
-            top_n: body.top_n || body.documents.length,
-            return_documents: body.return_documents !== false,
-          }),
-        });
+        let res = await fetch(localProvider.baseUrl, upstreamInit);
+
+        // Some local providers (e.g. Infinity, TEI) mount at /rerank rather than /v1/rerank
+        if (res.status === 404 && localProvider.baseUrl.endsWith("/v1/rerank")) {
+          const fallbackUrl = localProvider.baseUrl.replace(/\/v1\/rerank$/, "/rerank");
+          try {
+            const fallbackRes = await fetch(fallbackUrl, upstreamInit);
+            if (fallbackRes.ok || fallbackRes.status !== 404) {
+              res = fallbackRes;
+            }
+          } catch {
+            // retain original 404 response if fallback fetch fails
+          }
+        }
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          return errorResponse(
-            res.status,
-            errData.message || errData.detail || `Provider returned HTTP ${res.status}`
-          );
+          const errorMessage =
+            errData.message || errData.detail || `Provider returned HTTP ${res.status}`;
+          saveCallLog({
+            method: "POST",
+            path: "/v1/rerank",
+            status: res.status,
+            model: body.model,
+            provider: prefix,
+            connectionId:
+              (credentials as { connectionId?: string } | null)?.connectionId || undefined,
+            duration: Date.now() - startTime,
+            requestBody: {
+              model: body.model,
+              query: body.query,
+              documents: body.documents,
+              top_n: body.top_n,
+              return_documents: body.return_documents,
+            },
+            responseBody: errData,
+            error: errorMessage,
+            apiKeyId: meta.apiKeyId || undefined,
+            apiKeyName: meta.apiKeyName || undefined,
+          }).catch(() => {});
+          return errorResponse(res.status, errorMessage);
         }
 
-        const data = await res.json();
-        return Response.json(data, {
-          headers: {},
+        // Fold TEI's bare `[{index, score, text}]`, `score`-only gateways, and
+        // Voyage-style `{data: [...]}` into the Cohere envelope clients (and the
+        // memory engine, which reads `relevance_score`) expect.
+        const data = normalizeLocalRerankResponse(await res.json(), body.documents, {
+          top_n: body.top_n as number | undefined,
+          return_documents: body.return_documents as boolean | undefined,
+        });
+        const latencyMs = Date.now() - startTime;
+        saveCallLog({
+          method: "POST",
+          path: "/v1/rerank",
+          status: 200,
+          model: body.model,
+          provider: prefix,
+          connectionId:
+            (credentials as { connectionId?: string } | null)?.connectionId || undefined,
+          duration: latencyMs,
+          tokens: { prompt_tokens: 0, completion_tokens: 0 },
+          requestBody: {
+            model: body.model,
+            query: body.query,
+            documents: body.documents,
+            top_n: body.top_n,
+            return_documents: body.return_documents,
+          },
+          responseBody: data,
+          apiKeyId: meta.apiKeyId || undefined,
+          apiKeyName: meta.apiKeyName || undefined,
+        }).catch(() => {});
+
+        const headers = new Headers({ ...CORS_HEADERS, "Content-Type": "application/json" });
+        attachOmniRouteMetaHeaders(headers, {
+          provider: prefix,
+          model: localModel,
+          costUsd: 0,
+          latencyMs,
+          requestId: generateRequestId(),
+        });
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers,
         });
       } catch (err: any) {
+        saveCallLog({
+          method: "POST",
+          path: "/v1/rerank",
+          status: 500,
+          model: body.model,
+          provider: prefix,
+          connectionId:
+            (credentials as { connectionId?: string } | null)?.connectionId || undefined,
+          duration: Date.now() - startTime,
+          error: err.message,
+          apiKeyId: meta.apiKeyId || undefined,
+          apiKeyName: meta.apiKeyName || undefined,
+        }).catch(() => {});
         return errorResponse(500, `Rerank request failed: ${err.message}`);
       }
     }

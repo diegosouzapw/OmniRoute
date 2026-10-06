@@ -9,6 +9,11 @@ export function providerConnectionsRequestUrl(provider: string): string {
   return `/api/providers?provider=${encodeURIComponent(provider)}`;
 }
 
+/** Link the Radar tour to the provider's existing, validated API-key form. */
+export function providerSetupConnectionUrl(provider: string): string {
+  return `/dashboard/providers/${encodeURIComponent(provider)}?action=add-api-key`;
+}
+
 /**
  * Pick a concrete connection id for the setup test endpoint. Prefer an active
  * connection, then fall back to the first valid connection for the provider.

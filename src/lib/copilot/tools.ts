@@ -121,11 +121,7 @@ export const COPILOT_TOOLS: CopilotTool[] = [
       let output = `**${combos.length} combo(s) configured**\n\n`;
       for (const c of combos as any[]) {
         const active = c.isActive ? "✅" : "⛔";
-        const targets = c.targets
-          ? typeof c.targets === "string"
-            ? JSON.parse(c.targets).length
-            : c.targets.length
-          : 0;
+        const targets = Array.isArray(c.models) ? c.models.length : 0;
         output += `${active} **${c.name}** — strategy: \`${c.strategy}\` — ${targets} target(s)\n`;
       }
       return output;
@@ -165,7 +161,7 @@ export const COPILOT_TOOLS: CopilotTool[] = [
       const combo = await createCombo({
         name,
         strategy,
-        targets: JSON.stringify(targets),
+        models: targets,
         isActive: true,
       });
       const anyCombo = combo as any;

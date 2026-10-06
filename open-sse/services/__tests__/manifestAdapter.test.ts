@@ -22,8 +22,8 @@ function makeTarget(provider: string, model: string): ResolvedComboTarget {
 
 describe("ManifestAdapter", () => {
   describe("generateRoutingHints - trivial query", () => {
-    it("returns prefer-free modifier for greeting", () => {
-      const hints = generateRoutingHints([], {
+    it("returns prefer-free modifier for greeting", async () => {
+      const hints = await generateRoutingHints([], {
         messages: [{ content: "Hello" }],
       });
       expect(hints.strategyModifier).toBe("prefer-free");
@@ -32,8 +32,8 @@ describe("ManifestAdapter", () => {
   });
 
   describe("generateRoutingHints - expert query", () => {
-    it("returns a valid modifier for complex input", () => {
-      const hints = generateRoutingHints([], {
+    it("returns a valid modifier for complex input", async () => {
+      const hints = await generateRoutingHints([], {
         messages: [
           {
             content:
@@ -47,25 +47,25 @@ describe("ManifestAdapter", () => {
   });
 
   describe("generateRoutingHints - target classification", () => {
-    it("marks free provider as eligible for trivial query", () => {
+    it("marks free provider as eligible for trivial query", async () => {
       const targets = [makeTarget("kiro", "claude-sonnet-4.5")];
-      const hints = generateRoutingHints(targets, {
+      const hints = await generateRoutingHints(targets, {
         messages: [{ content: "Hi" }],
       });
       expect(hints.eligibleTargets.length).toBeGreaterThanOrEqual(0);
     });
 
-    it("handles empty targets array gracefully", () => {
-      const hints = generateRoutingHints([], {
+    it("handles empty targets array gracefully", async () => {
+      const hints = await generateRoutingHints([], {
         messages: [{ content: "Hello" }],
       });
       expect(hints.eligibleTargets.length).toBe(0);
       expect(hints.underqualifiedTargets.length).toBe(0);
     });
 
-    it("classifies mixed targets for simple query", () => {
+    it("classifies mixed targets for simple query", async () => {
       const targets = [makeTarget("kiro", "claude-sonnet-4.5"), makeTarget("openai", "gpt-4o")];
-      const hints = generateRoutingHints(targets, {
+      const hints = await generateRoutingHints(targets, {
         messages: [{ content: "Hello" }],
       });
       expect(hints.eligibleTargets.length).toBeGreaterThanOrEqual(0);
@@ -73,20 +73,20 @@ describe("ManifestAdapter", () => {
   });
 
   describe("compareByCostEffectiveness", () => {
-    it("takes 3 arguments and returns a number", () => {
+    it("takes 3 arguments and returns a number", async () => {
       const a = makeTarget("deepseek", "deepseek-chat");
       const b = makeTarget("openai", "gpt-4o");
-      const hints = generateRoutingHints([a, b], {
+      const hints = await generateRoutingHints([a, b], {
         messages: [{ content: "Test" }],
       });
       const result = compareByCostEffectiveness(a, b, hints);
       expect(typeof result).toBe("number");
     });
 
-    it("returns negative when a is cheaper than b", () => {
+    it("returns negative when a is cheaper than b", async () => {
       const a = makeTarget("deepseek", "deepseek-chat");
       const b = makeTarget("openai", "gpt-4o");
-      const hints = generateRoutingHints([a, b], {
+      const hints = await generateRoutingHints([a, b], {
         messages: [{ content: "Test" }],
       });
       const result = compareByCostEffectiveness(a, b, hints);
@@ -115,16 +115,16 @@ describe("ManifestAdapter", () => {
   });
 
   describe("edge cases", () => {
-    it("handles empty targets array", () => {
-      const hints = generateRoutingHints([], {
+    it("handles empty targets array", async () => {
+      const hints = await generateRoutingHints([], {
         messages: [{ content: "Hello" }],
       });
       expect(hints.eligibleTargets.length).toBe(0);
       expect(hints.underqualifiedTargets.length).toBe(0);
     });
 
-    it("returns valid hints structure with no targets", () => {
-      const hints = generateRoutingHints([], {
+    it("returns valid hints structure with no targets", async () => {
+      const hints = await generateRoutingHints([], {
         messages: [{ content: "Test" }],
       });
       expect("specificityLevel" in hints).toBe(true);

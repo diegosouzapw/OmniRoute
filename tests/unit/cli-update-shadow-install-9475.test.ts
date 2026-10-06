@@ -41,6 +41,6 @@ exit 0
     console.log = origLog;
     if (origPath === undefined) delete process.env.PATH;
     else process.env.PATH = origPath;
-    rmSync(fakeBin, { recursive: true, force: true });
+    rmSync(fakeBin, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

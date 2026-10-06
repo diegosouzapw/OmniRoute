@@ -32,7 +32,7 @@ const { getCompressionSettings, updateCompressionSettings } =
 
 beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
@@ -42,7 +42,7 @@ afterEach(() => {
 
 after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
   } else {
@@ -79,6 +79,34 @@ describe("#8056 headroom minRows persistence", () => {
       lite: { compressToolResults: "no" },
     });
     assert.equal(result.success, false);
+  });
+
+  it("schema accepts Lite maxToolLength", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { compressToolResults: true, maxToolLength: 8000 },
+    });
+    assert.equal(result.success, true, JSON.stringify(result.error?.issues));
+  });
+
+  it("schema rejects a string Lite maxToolLength", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { maxToolLength: "8000" },
+    });
+    assert.equal(result.success, false);
+  });
+
+  it("schema rejects a Lite maxToolLength below 256", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { maxToolLength: 10 },
+    });
+    assert.equal(result.success, false);
+  });
+
+  it("schema accepts null Lite maxToolLength to clear a stored cap", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { compressToolResults: true, maxToolLength: null },
+    });
+    assert.equal(result.success, true, JSON.stringify(result.error?.issues));
   });
 
   it("schema accepts headroom.minRows=5", () => {

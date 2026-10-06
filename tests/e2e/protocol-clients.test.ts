@@ -92,7 +92,7 @@ describe("Protocol clients E2E", () => {
       method: "PATCH",
       body: JSON.stringify({ a2aEnabled: true }),
     });
-    expect([200, 401]).toContain(response.status);
+    expect([200, 401, 403]).toContain(response.status);
   });
 
   it(
@@ -134,7 +134,10 @@ describe("Protocol clients E2E", () => {
       }
 
       const auditRes = await apiFetch("/api/mcp/audit?limit=50&tool=omniroute_get_health");
-      expect([200, 401]).toContain(auditRes.status);
+      // 403 = authenticated but the key lacks the manage scope — a valid
+      // authorization outcome for the management-plane audit endpoint
+      // (requireManagementAuth.ts returns 403 for scope-denied valid keys).
+      expect([200, 401, 403]).toContain(auditRes.status);
       if (auditRes.status === 200) {
         expect(auditRes.ok).toBe(true);
         const auditJson = (await auditRes.json()) as any;

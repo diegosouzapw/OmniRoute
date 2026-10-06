@@ -13,13 +13,13 @@ const auth = await import("../../src/sse/services/auth.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("clearAccountError clears stale provider error metadata after recovery", async () => {
@@ -104,6 +104,11 @@ test("clearRecoveredProviderState ignores empty payloads and clears recoverable 
 
   await auth.clearRecoveredProviderState(null);
   await auth.clearRecoveredProviderState({});
+  await auth.clearRecoveredProviderState({
+    allExpired: true,
+    expiredCount: 1,
+    expiredStatus: "expired",
+  });
   await auth.clearRecoveredProviderState({
     connectionId: created.id,
     testStatus: "unavailable",

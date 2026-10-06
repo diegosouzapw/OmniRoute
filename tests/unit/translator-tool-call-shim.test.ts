@@ -1,12 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { applyToolCallShimToBuffer, hasToolCallShim, __test } = await import(
-  "../../open-sse/translator/helpers/toolCallShim.ts"
-);
-const { openaiToClaudeResponse } = await import(
-  "../../open-sse/translator/response/openai-to-claude.ts"
-);
+const { applyToolCallShimToBuffer, hasToolCallShim, __test } =
+  await import("../../open-sse/translator/helpers/toolCallShim.ts");
+const { openaiToClaudeResponse } =
+  await import("../../open-sse/translator/response/openai-to-claude.ts");
 
 const { coerceToArray } = __test as { coerceToArray: (v: unknown) => unknown[] };
 
@@ -120,30 +118,21 @@ test("applyToolCallShimToBuffer: Read coerces numeric-string limit/offset", () =
 
 test("applyToolCallShimToBuffer: Read strips pages for non-PDF files", () => {
   const out = JSON.parse(
-    applyToolCallShimToBuffer(
-      "Read",
-      JSON.stringify({ file_path: "/etc/hosts", pages: "1-3" })
-    )
+    applyToolCallShimToBuffer("Read", JSON.stringify({ file_path: "/etc/hosts", pages: "1-3" }))
   );
   assert.equal("pages" in out, false);
 });
 
 test("applyToolCallShimToBuffer: Read strips malformed pages even on PDFs", () => {
   const out = JSON.parse(
-    applyToolCallShimToBuffer(
-      "Read",
-      JSON.stringify({ file_path: "/tmp/doc.pdf", pages: "abc" })
-    )
+    applyToolCallShimToBuffer("Read", JSON.stringify({ file_path: "/tmp/doc.pdf", pages: "abc" }))
   );
   assert.equal("pages" in out, false);
 });
 
 test("applyToolCallShimToBuffer: Read accepts a single page on PDFs", () => {
   const out = JSON.parse(
-    applyToolCallShimToBuffer(
-      "Read",
-      JSON.stringify({ file_path: "/tmp/doc.PDF", pages: "7" })
-    )
+    applyToolCallShimToBuffer("Read", JSON.stringify({ file_path: "/tmp/doc.PDF", pages: "7" }))
   );
   assert.equal(out.pages, "7");
 });
@@ -255,6 +244,12 @@ function streamChunks(chunks: any[], state: any): any[] {
     const out = openaiToClaudeResponse(c, state);
     if (out) all.push(...out);
   }
+  // End-of-stream flush: production calls the translator once more with `null`
+  // when the upstream stream closes (open-sse/utils/stream.ts flush →
+  // translateResponse(..., null, state)). Since dd35750e5f a finish chunk that
+  // carries no usage is deferred until that flush, so the driver must mirror it.
+  const flushed = openaiToClaudeResponse(null, state);
+  if (flushed) all.push(...flushed);
   return all;
 }
 

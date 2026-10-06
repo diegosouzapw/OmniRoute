@@ -1,4 +1,6 @@
 import type { ProxyItem } from "./proxyRegistryTypes";
+import type { BlockedHistoryEntry } from "@/lib/proxyHealth/blockedHistory";
+import type { SweepVerdict } from "@/lib/proxyHealth/sweepVerdict";
 
 export type UsageInfo = {
   count: number;
@@ -11,6 +13,16 @@ export type HealthInfo = {
   successRate: number | null;
   avgLatencyMs: number | null;
   lastSeenAt: string | null;
+  transportRate: number | null;
+  measured: boolean;
+  transportOk: number;
+  transportFailures: number;
+  upstream4xx: number;
+  upstream5xx: number;
+  connectionTests: number;
+  connectionTestSuccess: number;
+  sweep?: SweepVerdict & { ageMs: number };
+  blockedHistory?: BlockedHistoryEntry & { ageMs: number };
 };
 
 export type TestResult = {

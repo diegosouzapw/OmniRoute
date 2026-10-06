@@ -65,6 +65,67 @@ export function isLocalStreamLifecycleError(error: unknown): boolean {
   );
 }
 
+const LOCAL_EXECUTION_CODES = new Set([
+  "ENOENT",
+  "EACCES",
+  "EPIPE",
+  "ERR_CHILD_PROCESS_STDIO_MAXBUFFER",
+]);
+
+const LOCAL_EXECUTION_PATTERNS = [
+  /\bspawn\b.*\b(ENOENT|EACCES|EPIPE)\b/i,
+  /\bcommand not found\b/i,
+  /\bis not recognized as an internal or external command\b/i,
+  /\bchild process exited with code\b/i,
+  /\blocal host execution error\b/i,
+];
+
+/**
+ * Detect a LOCAL host execution error (missing binary ENOENT, permission EACCES,
+ * broken pipe EPIPE, child process exit errors, etc.) that must NOT count as a
+ * whole-provider failure or trip remote provider circuit breakers.
+ */
+export function isLocalExecutionError(error: unknown): boolean {
+  if (!error) return false;
+  const errObj = typeof error === "object" ? (error as Record<string, unknown>) : null;
+  const code = typeof errObj?.code === "string" ? errObj.code : "";
+  if (LOCAL_EXECUTION_CODES.has(code)) return true;
+
+  const message =
+    typeof error === "string"
+      ? error
+      : typeof errObj?.message === "string"
+        ? (errObj.message as string)
+        : "";
+  if (!message) return false;
+
+  return LOCAL_EXECUTION_PATTERNS.some((p) => p.test(message));
+}
+
+/**
+ * Anthropic/Claude model-capacity overload (HTTP 529, body "Overloaded", or a
+ * STREAM_EARLY_EOF that wraps that body as 502). This is one model being
+ * capacity-throttled, not a whole-provider outage — the same account still
+ * serves sibling models. Must not trip the provider circuit breaker.
+ *
+ * Accepts an error object/string OR a numeric HTTP status (529). Callers
+ * pass both `error` and `status` at the two breaker predicates.
+ *
+ * Live incident 2026-09-03: STREAM_EARLY_EOF: Overloaded opened `claude` and
+ * a single-target combo then pre-skipped with ALL_TARGETS_SKIPPED in ~43ms.
+ */
+export function isModelCapacityOverloadError(error: unknown): boolean {
+  if (error === 529) return true;
+  if (typeof error === "number") return false;
+  if (!error) return false;
+  const errObj = typeof error === "object" ? (error as Record<string, unknown>) : null;
+  if (errObj && (errObj.status === 529 || errObj.statusCode === 529)) return true;
+  const message =
+    typeof error === "string" ? error : typeof errObj?.message === "string" ? errObj.message : "";
+  if (!message) return false;
+  return /\boverloaded(?:_error)?\b/i.test(message);
+}
+
 export const STATE = {
   CLOSED: "CLOSED",
   DEGRADED: "DEGRADED",
@@ -113,6 +174,25 @@ interface CircuitBreakerOptions {
   backoffEscalationCount?: number;
 }
 
+/**
+ * How a RESOLVED `execute()` result is accounted (#12254). Callers such as
+ * `handleChatCore()` report most upstream failures by resolving with
+ * `{ success: false, status: 5xx }` instead of throwing, so a breaker that reads every
+ * resolution as a success never trips on that path.
+ */
+export type CircuitBreakerResultOutcome = "success" | "failure" | "ignore";
+
+export interface CircuitBreakerExecuteOptions<T> {
+  /**
+   * Classify a resolved result. Omitted: every resolution is a success (the
+   * throw-based contract every other caller relies on). Return "ignore" when the
+   * call site accounts for the outcome itself with request context the breaker
+   * does not have — the chat path does (`classifyProviderBreakerResult()` in
+   * chat.ts, `recordProviderFailure()`/`recordProviderSuccess()` in combo.ts).
+   */
+  classifyResult?: (result: T) => CircuitBreakerResultOutcome;
+}
+
 export interface TransitionRecord {
   from: string;
   to: string;
@@ -147,6 +227,8 @@ export class CircuitBreaker {
   successCount: number;
   lastFailureTime: number | null;
   halfOpenAllowed: number;
+  halfOpenProbeStartedAt: number | null;
+  halfOpenProbeGeneration: number;
   cooldownByKind: Partial<Record<FailureKind, number>>;
   classifyError: ((error: unknown) => FailureKind | undefined) | null;
   lastFailureKind: FailureKind | null;
@@ -177,6 +259,8 @@ export class CircuitBreaker {
     this.successCount = 0;
     this.lastFailureTime = null;
     this.halfOpenAllowed = 0;
+    this.halfOpenProbeStartedAt = null;
+    this.halfOpenProbeGeneration = 0;
     this.cooldownByKind = options.cooldownByKind ?? {};
     this.classifyError = options.classifyError ?? null;
     this.lastFailureKind = null;
@@ -263,7 +347,7 @@ export class CircuitBreaker {
     );
   }
 
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
+  async execute<T>(fn: () => Promise<T>, options?: CircuitBreakerExecuteOptions<T>): Promise<T> {
     this._refreshOpenState();
 
     if (this.state === STATE.OPEN) {
@@ -282,16 +366,28 @@ export class CircuitBreaker {
       );
     }
 
+    const halfOpenProbeGeneration =
+      this.state === STATE.HALF_OPEN ? this.halfOpenProbeGeneration : null;
     if (this.state === STATE.HALF_OPEN) {
       this.halfOpenAllowed--;
+      this.halfOpenProbeStartedAt ??= Date.now();
     }
 
     try {
       const result = await fn();
-      this._onSuccess();
+      if (
+        halfOpenProbeGeneration === null ||
+        halfOpenProbeGeneration === this.halfOpenProbeGeneration
+      ) {
+        this._recordResolvedResult(result, options?.classifyResult);
+      }
       return result;
     } catch (error) {
-      if (this.isFailure(error)) {
+      if (
+        (halfOpenProbeGeneration === null ||
+          halfOpenProbeGeneration === this.halfOpenProbeGeneration) &&
+        this.isFailure(error)
+      ) {
         let kind: FailureKind | undefined;
         if (this.classifyError) {
           try {
@@ -349,6 +445,29 @@ export class CircuitBreaker {
   }
 
   // ─── Internal ─────────────────────────────────
+
+  /**
+   * Account a resolved `execute()` result exactly once. A classifier that throws
+   * falls back to the legacy "resolved = success" reading, mirroring `classifyError`.
+   */
+  _recordResolvedResult<T>(
+    result: T,
+    classifyResult?: (result: T) => CircuitBreakerResultOutcome
+  ): void {
+    let outcome: CircuitBreakerResultOutcome = "success";
+    if (classifyResult) {
+      try {
+        outcome = classifyResult(result);
+      } catch {
+        outcome = "success";
+      }
+    }
+    if (outcome === "failure") {
+      this._onFailure();
+    } else if (outcome === "success") {
+      this._onSuccess();
+    }
+  }
 
   _onSuccess() {
     if (this.state === STATE.OPEN) {
@@ -448,13 +567,25 @@ export class CircuitBreaker {
     if (this.lastFailureKind !== null) {
       const override = this.cooldownByKind[this.lastFailureKind];
       if (typeof override === "number" && Number.isFinite(override) && override >= 0) {
-        return override;
+        // #14960: the per-kind override replaces the BASE reset timeout but must
+        // still honor open-cycle escalation — otherwise a quota_exhausted
+        // provider re-probes at the same fixed interval forever while
+        // openCycleCount grows. Apply the same doubling the base timeout gets,
+        // capped at override * maxBackoffMultiplier.
+        if (this.openCycleCount <= this.backoffEscalationCount) {
+          return override;
+        }
+        const escalationFactor = Math.pow(2, this.openCycleCount - this.backoffEscalationCount);
+        return Math.min(override * escalationFactor, override * this.maxBackoffMultiplier);
       }
     }
     return baseTimeout;
   }
 
   _timeUntilReset() {
+    if (this.state === STATE.HALF_OPEN && this.halfOpenProbeStartedAt !== null) {
+      return Math.max(0, this.resetTimeout - (Date.now() - this.halfOpenProbeStartedAt));
+    }
     if (!this.lastFailureTime) return 0;
     const cooldown = this._effectiveCooldown();
     return Math.max(0, cooldown - (Date.now() - this.lastFailureTime));
@@ -464,6 +595,15 @@ export class CircuitBreaker {
     if (this.state === STATE.OPEN && this._shouldAttemptReset()) {
       this._transition(STATE.HALF_OPEN, "timeout-elapsed");
       this._persistToDb();
+    } else if (
+      this.state === STATE.HALF_OPEN &&
+      this.halfOpenAllowed <= 0 &&
+      this.halfOpenProbeStartedAt !== null &&
+      Date.now() - this.halfOpenProbeStartedAt >= this.resetTimeout
+    ) {
+      this.halfOpenAllowed = this.halfOpenRequests;
+      this.halfOpenProbeStartedAt = null;
+      this.halfOpenProbeGeneration++;
     }
   }
 
@@ -474,7 +614,8 @@ export class CircuitBreaker {
     if (newState === STATE.HALF_OPEN) {
       this.halfOpenAllowed = this.halfOpenRequests;
     }
-
+    this.halfOpenProbeGeneration++;
+    this.halfOpenProbeStartedAt = null;
     // Record transition
     this.transitionHistory.push({
       from: oldState,

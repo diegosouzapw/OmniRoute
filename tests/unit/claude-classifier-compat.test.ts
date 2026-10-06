@@ -25,9 +25,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const { updateSettings } = await import("../../src/lib/db/settings.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
-const { shouldDefaultAllowClassifier, buildDefaultAllowClaudeMessage } = await import(
-  "../../open-sse/handlers/chatCore/claudeClassifierCompat.ts"
-);
+const { shouldDefaultAllowClassifier, detectClassifierFormat, buildDefaultAllowClaudeMessage } =
+  await import("../../open-sse/handlers/chatCore/claudeClassifierCompat.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 const originalFetch = globalThis.fetch;
@@ -58,10 +57,18 @@ const CLASSIFIER_BODY = {
   max_tokens: 8,
 };
 
+// Newer Claude Code builds send a "severity classifier" variant of the same internal
+// request: same security-monitor marker, but `stop_sequences` carries `</severity>`
+// instead of `</block>`, and it expects a `<severity>N</severity>` reply (#11289).
+const SEVERITY_CLASSIFIER_BODY = {
+  ...CLASSIFIER_BODY,
+  stop_sequences: ["</severity>"],
+};
+
 test.after(() => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── Settings default is opt-in (off) ────────────────────────────────────────
@@ -123,7 +130,12 @@ test("detector: always does NOT fire for normal chat without classifier marker (
 
 test("detector: always fires when classifier marker is present", () => {
   const classifier = {
-    system: [{ type: "text", text: "You are a security monitor for autonomous AI coding agents. Evaluate the following action." }],
+    system: [
+      {
+        type: "text",
+        text: "You are a security monitor for autonomous AI coding agents. Evaluate the following action.",
+      },
+    ],
     stop_sequences: ["</block>"],
   };
   assert.equal(
@@ -131,6 +143,21 @@ test("detector: always fires when classifier marker is present", () => {
     true,
     "always must short-circuit when the classifier marker is present"
   );
+});
+
+// ─── Pure detector: detectClassifierFormat (#11289) ──────────────────────────
+
+test("format detector: defaults to 'block' for the legacy </block> classifier shape", () => {
+  assert.equal(detectClassifierFormat(CLASSIFIER_BODY), "block");
+});
+
+test("format detector: returns 'severity' when stop_sequences carries </severity>", () => {
+  assert.equal(detectClassifierFormat(SEVERITY_CLASSIFIER_BODY), "severity");
+});
+
+test("format detector: defaults to 'block' when stop_sequences is missing/empty", () => {
+  assert.equal(detectClassifierFormat({}), "block");
+  assert.equal(detectClassifierFormat({ stop_sequences: [] }), "block");
 });
 
 // ─── Pure builder: buildDefaultAllowClaudeMessage ────────────────────────────
@@ -153,6 +180,16 @@ test("builder: synthetic message text STARTS WITH <block>no</block>", async () =
     `expected synthetic text to start with <block>no</block>, got: ${text}`
   );
   assert.ok(!text.includes("<block>yes"), "must not signal BLOCK");
+});
+
+test("builder: format='severity' returns <severity>0</severity> (#11289)", async () => {
+  const built = buildDefaultAllowClaudeMessage("claude-3-5-haiku-20241022", "severity");
+  assert.equal(built.success, true);
+  const payload = (await built.response.json()) as {
+    content: Array<{ type: string; text?: string }>;
+  };
+  const text = payload.content.find((b) => b.type === "text")?.text ?? "";
+  assert.equal(text, "<severity>0</severity>");
 });
 
 // ─── Handler-level: end-to-end short-circuit through handleChatCore ──────────
@@ -191,6 +228,47 @@ test("handler: claudeClassifierCompat=auto short-circuits WITHOUT calling upstre
     assert.ok(
       text.startsWith("<block>no</block>"),
       `expected classifier response to start with <block>no</block>, got: ${text}`
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handler: claudeClassifierCompat=auto emits <severity>0</severity> for the severity-classifier shape (#11289)", async () => {
+  await updateSettings({ claudeClassifierCompat: "auto" });
+
+  let fetchCalls = 0;
+  globalThis.fetch = (async () => {
+    fetchCalls++;
+    throw new Error("upstream fetch should NOT be called when the classifier short-circuits");
+  }) as typeof fetch;
+
+  try {
+    const result = await handleChatCore({
+      body: structuredClone(SEVERITY_CLASSIFIER_BODY),
+      modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
+      credentials: { apiKey: "sk-test", providerSpecificData: {} },
+      log: noopLog(),
+      clientRawRequest: {
+        endpoint: "/v1/messages",
+        body: structuredClone(SEVERITY_CLASSIFIER_BODY),
+        headers: new Headers({ accept: "application/json" }),
+      },
+      userAgent: "unit-test",
+    });
+
+    assert.equal(fetchCalls, 0, "upstream fetch must NOT be called");
+    assert.equal(result.success, true, "handleChatCore must report success");
+    const payload = (await (result as { response: Response }).response.json()) as {
+      type: string;
+      content: Array<{ type: string; text?: string }>;
+    };
+    assert.equal(payload.type, "message");
+    const text = payload.content.find((b) => b.type === "text")?.text ?? "";
+    assert.equal(
+      text,
+      "<severity>0</severity>",
+      `expected severity-classifier response to be <severity>0</severity>, got: ${text}`
     );
   } finally {
     globalThis.fetch = originalFetch;

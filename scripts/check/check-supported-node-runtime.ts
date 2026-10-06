@@ -15,6 +15,12 @@ if (!support.nodeCompatible) {
   process.exit(1);
 }
 
-console.log(
-  `Node.js ${support.nodeVersion} satisfies OmniRoute secure runtime policy (${support.supportedRange}).`
-);
+if (process.versions.bun) {
+  console.log(
+    `Bun ${process.versions.bun} (${support.nodeVersion}) satisfies OmniRoute secure runtime policy.`
+  );
+} else {
+  console.log(
+    `Node.js ${support.nodeVersion} satisfies OmniRoute secure runtime policy (${support.supportedRange}).`
+  );
+}

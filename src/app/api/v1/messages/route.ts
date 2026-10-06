@@ -1,12 +1,17 @@
 import { handleChat } from "@/sse/handlers/chat";
+import { generateRequestId } from "@/shared/utils/requestId";
+import { resolveIncomingCorrelationId } from "@/shared/utils/correlationPreserve.ts";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { withChatAdmission } from "@/shared/middleware/withChatAdmission";
 import { requireJsonContentType } from "@/shared/middleware/requireJsonContentType";
 import {
   withEarlyStreamKeepalive,
   ANTHROPIC_PING_FRAME,
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import { createStreamDeadlineSignal } from "@omniroute/open-sse/utils/streamDeadlineSignal";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
+import { resolveStreamFlag } from "@omniroute/open-sse/utils/aiSdkCompat";
 
 let initialized = false;
 
@@ -54,22 +59,42 @@ async function postHandler(request: any, context: any, preParsedBody: any = null
   // /v1/responses (#2544). Anthropic clients ignore SSE comments for their watchdog, so
   // emit a real `event: ping` (ANTHROPIC_PING_FRAME). Non-streaming callers keep the
   // verbatim path.
-  const accept = String(request.headers?.get?.("accept") || "").toLowerCase();
-  if (accept.includes("text/event-stream")) {
-    let model;
+  let body = preParsedBody;
+  if (body == null) {
     try {
-      const body = preParsedBody ?? (await request.clone().json().catch(() => null));
-      model = body?.model;
+      body = await request
+        .clone()
+        .json()
+        .catch(() => null);
     } catch {
-      // body unavailable / non-JSON — fall back to the default keepalive threshold
+      // body unavailable / non-JSON — handleChat will return its normal validation error
     }
-    return await withEarlyStreamKeepalive(handleChat(request, null, preParsedBody), {
-      signal: request.signal,
-      thresholdMs: resolveKeepaliveThreshold(model),
-      keepaliveFrame: ANTHROPIC_PING_FRAME,
-    });
   }
-  return await handleChat(request, null, preParsedBody);
+  const accept = String(request.headers?.get?.("accept") || "");
+  const wantsStreaming = resolveStreamFlag(body?.stream, accept, "claude");
+  if (wantsStreaming) {
+    // Single id for handler + keepalive bytes + deadline warn (matches the
+    // chat/completions convention: caller id preserved, generated when absent).
+    const correlationId =
+      resolveIncomingCorrelationId(request.headers.get("x-correlation-id")) ?? generateRequestId();
+    const { signal: streamSignal, deadlineController } = createStreamDeadlineSignal(request.signal);
+    return await withEarlyStreamKeepalive(
+      handleChat(request, null, body, correlationId, streamSignal),
+      {
+        signal: streamSignal,
+        thresholdMs: resolveKeepaliveThreshold(body?.model),
+        keepaliveFrame: ANTHROPIC_PING_FRAME,
+        correlationId,
+        deadlineController,
+      }
+    );
+  }
+  return await handleChat(request, null, body);
 }
 
-export const POST = withInjectionGuard(postHandler);
+// `logger: null` — the guardrail registry re-evaluates this request inside
+// handleChat with the pino logger (#11936 dedupe).
+// The outer admission wrapper still owns the route-level lease. On a stream deadline,
+// the synthetic SSE body closes, so its response lifecycle releases that lease while
+// handleChat receives the explicit streamSignal and tears provider work down directly.
+export const POST = withChatAdmission(withInjectionGuard(postHandler, { logger: null }));

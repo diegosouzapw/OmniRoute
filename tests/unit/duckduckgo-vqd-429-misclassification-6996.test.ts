@@ -7,9 +7,8 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-6996-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { DuckDuckGoWebExecutor, STATUS_URL } = await import(
-  "../../open-sse/executors/duckduckgo-web.ts"
-);
+const { DuckDuckGoWebExecutor, STATUS_URL } =
+  await import("../../open-sse/executors/duckduckgo-web.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 const executeInputBase = {
   model: "gpt-4o-mini",
@@ -32,7 +31,7 @@ describe("#6996 DuckDuckGo VQD 429 misclassification", () => {
   after(() => {
     globalThis.fetch = originalFetch;
     resetDbInstance();
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("propagates upstream 429 instead of masking it as a generic 503", async () => {
@@ -57,9 +56,7 @@ describe("#6996 DuckDuckGo VQD 429 misclassification", () => {
     const response = await executor.execute(executeInputBase);
 
     const httpResponse =
-      response instanceof Response
-        ? response
-        : (response as { response: Response }).response;
+      response instanceof Response ? response : (response as { response: Response }).response;
     const bodyText = await httpResponse.text();
 
     assert.equal(
@@ -85,9 +82,7 @@ describe("#6996 DuckDuckGo VQD 429 misclassification", () => {
     const response = await executor.execute(executeInputBase);
 
     const httpResponse =
-      response instanceof Response
-        ? response
-        : (response as { response: Response }).response;
+      response instanceof Response ? response : (response as { response: Response }).response;
     const bodyText = await httpResponse.text();
 
     assert.equal(

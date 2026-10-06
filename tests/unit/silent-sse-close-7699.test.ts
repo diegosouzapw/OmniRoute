@@ -120,7 +120,7 @@ async function drainStream(stream: ReadableStream<Uint8Array>): Promise<string> 
   );
 }
 
-test("#7699 createDisconnectAwareStream emits synthetic error when upstream ends without terminal marker (Claude)", async () => {
+test("#7699 createDisconnectAwareStream gracefully truncates (max_tokens) when upstream ends without terminal marker (Claude)", async () => {
   // Upstream sends some partial content then ends (done=true) without
   // ever emitting message_stop — reproduces the silent mid-stream close.
   const upstream = new ReadableStream<Uint8Array>({
@@ -160,10 +160,52 @@ test("#7699 createDisconnectAwareStream emits synthetic error when upstream ends
 
   // Must contain the partial content that was forwarded...
   assert.match(text, /content_block_delta/);
-  // ...AND the synthetic terminal frames (error + message_stop) — NOT a silent close.
+  // ...AND a clean max_tokens completion (message_delta + message_stop) so the
+  // client keeps the partial response instead of reporting a mid-stream error.
+  assert.match(text, /event: message_delta\r?\n/);
+  assert.match(text, /"stop_reason":\s*"max_tokens"/);
+  assert.match(text, /event: message_stop\r?\n/);
+  // Graceful truncation must NOT surface an error frame.
+  assert.doesNotMatch(text, /event: error\r?\n/);
+  assert.doesNotMatch(text, /"type":\s*"error"/);
+});
+
+test("#7699 createDisconnectAwareStream still errors when upstream ends with NO content (Claude)", async () => {
+  // A stream that terminates with an SSE frame but no content is a real failure
+  // (#8649) and must keep surfacing an error frame — not a fake max_tokens stop.
+  const upstream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode('data: {"type":"message_start"}\n\n'));
+      controller.close();
+    },
+  });
+
+  const transform = new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      controller.enqueue(chunk);
+    },
+  });
+
+  const transformedBody = upstream.pipeThrough(transform);
+
+  const sc = createStreamController({
+    provider: "test",
+    model: "test-model",
+    clientResponseFormat: FORMATS.CLAUDE,
+  });
+
+  const wrapped = createDisconnectAwareStream(
+    { readable: transformedBody, writable: createNoopAbortWritableStream() },
+    sc
+  );
+
+  const text = await drainStream(wrapped);
+
   assert.match(text, /event: error\r?\n/);
   assert.match(text, /event: message_stop\r?\n/);
-  assert.match(text, /Upstream stream ended without a terminal marker/);
+  assert.match(text, /Provider returned empty content/);
+  // Empty-content failure must NOT be masked as a max_tokens truncation.
+  assert.doesNotMatch(text, /"stop_reason":\s*"max_tokens"/);
 });
 
 // Minimal noop writable for the test wiring (mirrors createNoopAbortWritable).

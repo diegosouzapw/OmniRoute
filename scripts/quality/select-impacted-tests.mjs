@@ -4,14 +4,15 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const HUB_RE = /(setupPolyfill|tsconfig|package\.json|package-lock\.json|\.env|vitest\.config|stryker\.conf)/;
+const HUB_RE =
+  /(setupPolyfill|tsconfig|package\.json|package-lock\.json|\.env|vitest\.config|stryker\.conf)/;
 // A changed file counts as a "run-it" test ONLY if it is a node:test unit file the TIA
 // step can actually run via `node --test` — i.e. it mirrors the `npm run test:unit` glob.
 // This EXCLUDES vitest files (`.test.tsx`, `tests/unit/autoCombo/**`), e2e and integration
 // tests, and `src/**/__tests__`/`open-sse/**/__tests__`, which can't run under node:test.
 // Keep in sync with package.json test:unit* braces + serial + dashboard + *.test.mjs.
 const UNIT_SUBDIRS =
-  "api|auth|authz|build|cli|cli-helper|combo|compression|correctness|cors|dashboard|db|db-adapters|docs|gamification|guardrails|lib|mcp|memory|runtime|security|services|settings|shared|ui|usage|serial";
+  "api|auth|authz|build|cli|cli-helper|combo|compression|correctness|cors|dashboard|db|db-adapters|docs|gamification|guardrails|lib|mcp|memory|runtime|security|services|settings|shared|translator|ui|usage|serial";
 // .ts: top-level + UNIT_SUBDIRS (mirrors package.json brace globs).
 // .mjs: package.json uses tests/unit/**/*.test.mjs (any depth under tests/unit).
 const TEST_RE = new RegExp(
@@ -38,7 +39,18 @@ export function selectImpacted({ changed, map }) {
   return [...out].sort();
 }
 
+// `--stdin`: read the changed-file list from stdin (one path per line) instead of
+// diffing git. Used by scripts/quality/test-scoped.sh so `--staged` selects from the
+// index — the git-diff path here only knows about commits, never the working tree.
+export function changedFilesFromStdin(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function changedFiles() {
+  if (process.argv.includes("--stdin")) return changedFilesFromStdin(fs.readFileSync(0, "utf8"));
   const baseRef = process.env.GITHUB_BASE_REF;
   const baseTarget = process.env.GITHUB_BASE_SHA || (baseRef ? `origin/${baseRef}` : "HEAD~1");
   const stdout = execFileSync(

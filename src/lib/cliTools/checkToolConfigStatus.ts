@@ -1,8 +1,12 @@
 // DRY: shared between /api/cli-tools/status and /api/cli-tools/all-statuses (plan 14 F2)
 
 import fs from "fs/promises";
-import { getCliPrimaryConfigPath } from "@/shared/services/cliRuntime";
+import { getCliConfigHome, getCliPrimaryConfigPath } from "@/shared/services/cliRuntime";
 import { hasOmniRouteQwenCodeConfig } from "@/shared/services/qwenCodeConfig";
+import {
+  parseGrokBuildConfig,
+  resolveGrokBuildConfigPath,
+} from "@/shared/services/grokBuildConfig";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
 const { apiPort } = getRuntimePorts();
@@ -21,10 +25,23 @@ export async function checkToolConfigStatus(
   _configPathOverride?: string
 ): Promise<"configured" | "not_configured" | "not_installed" | "unknown" | "other"> {
   try {
-    const configPath = _configPathOverride ?? getCliPrimaryConfigPath(toolId);
+    const configPath =
+      _configPathOverride ??
+      (toolId === "grok-build"
+        ? resolveGrokBuildConfigPath(process.env, getCliConfigHome())
+        : getCliPrimaryConfigPath(toolId));
     if (!configPath) return "unknown";
 
     const content = await fs.readFile(configPath, "utf-8");
+
+    if (toolId === "grok-build") {
+      const settings = parseGrokBuildConfig(content);
+      return settings.default === "omniroute" &&
+        settings.model?.base_url &&
+        settings.model.api_backend === "chat_completions"
+        ? "configured"
+        : "not_configured";
+    }
 
     // Codex uses TOML config — parse as raw text, not JSON
     if (toolId === "codex") {
@@ -51,7 +68,7 @@ export async function checkToolConfigStatus(
       return "configured";
     }
 
-    if (toolId === "hermes") {
+    if (toolId === "hermes" || toolId === "omp") {
       const lower = content.toLowerCase();
       const hasOmniRoute =
         lower.includes("omniroute") ||
@@ -88,8 +105,8 @@ export async function checkToolConfigStatus(
         // (user may configure an external domain instead of localhost)
         if (
           toolId === "cline" &&
-          ((config.actModeApiProvider === "openai" || config.planModeApiProvider === "openai") &&
-            ((config.openAiBaseUrl as string) || "").trim().length > 0)
+          (config.actModeApiProvider === "openai" || config.planModeApiProvider === "openai") &&
+          ((config.openAiBaseUrl as string) || "").trim().length > 0
         ) {
           return "configured";
         }

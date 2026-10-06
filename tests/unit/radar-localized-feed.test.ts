@@ -43,3 +43,18 @@ test("RadarFeedSchema preserves schema-v1 legacy setup and quirk strings", () =>
   assert.equal(parsed.quirks[0]!.title, "Shared quota");
   assert.equal(parsed.quirks[0]!.body, "Models share one pool.");
 });
+
+test("RadarFeedSchema rejects unsafe setup.keyUrl values", () => {
+  for (const keyUrl of [
+    "http://console.example.test/keys",
+    "https://user:secret@console.example.test/keys",
+    "https://console.example.test:444/keys",
+  ]) {
+    const unsafe = structuredClone(fixture) as {
+      models: Array<{ setup: { keyUrl: string | null } | null }>;
+    };
+    assert.ok(unsafe.models[0]?.setup);
+    unsafe.models[0]!.setup!.keyUrl = keyUrl;
+    assert.equal(RadarFeedSchema.safeParse(unsafe).success, false, keyUrl);
+  }
+});

@@ -290,11 +290,13 @@ export function shouldProtectOriginalFirst(
   return (
     stickyStuck ||
     autoUsedExplicitRouter ||
+    strategy === "auto" ||
     strategy === "quota-share" ||
     strategy === "weighted" ||
     strategy === "priority" ||
     strategy === "fill-first" ||
-    strategy === "lkgp"
+    strategy === "lkgp" ||
+    strategy === "quota-weighted"
   );
 }
 

@@ -13,7 +13,7 @@ const core = await import("../../src/lib/db/core.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(testDataDir, { recursive: true, force: true });
+  fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("createSSEStream ignores non-string Claude deltas before estimating usage", async () => {

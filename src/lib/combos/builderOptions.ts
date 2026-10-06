@@ -1,12 +1,7 @@
-import {
-  getAllCustomModels,
-  getAllSyncedAvailableModels,
-  getCombos,
-  getModelIsHidden,
-  getProviderConnections,
-  getProviderNodes,
-  getSettings,
-} from "@/lib/localDb";
+import { getAllCustomModels, getAllSyncedAvailableModels, getModelIsHidden } from "@/lib/db/models";
+import { getCombos } from "@/lib/db/combos";
+import { getProviderConnections, getProviderNodes } from "@/lib/db/providers";
+import { getSettings } from "@/lib/db/settings";
 import { getAccountDisplayName, getProviderDisplayName } from "@/lib/display/names";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
@@ -35,6 +30,7 @@ type CustomModelLike = {
   apiFormat?: string;
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
+  contextWindow?: number;
   outputTokenLimit?: number;
   supportsThinking?: boolean;
   isHidden?: boolean;
@@ -46,6 +42,7 @@ type SyncedModelLike = {
   source?: string;
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
+  contextWindow?: number;
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
@@ -297,6 +294,7 @@ function addModelOption(
     contextLength?: number | null;
     outputTokenLimit?: number | null;
     supportsThinking?: boolean;
+    customPrecedence?: boolean;
   }
 ) {
   const modelId = toStringOrNull(input.id);
@@ -333,23 +331,36 @@ function addModelOption(
   if (nextSourcePriority < existingPriority) {
     existing.source = input.source;
   }
-  if (!existing.name || existing.name === existing.id) {
+  if (input.customPrecedence) {
     existing.name = toStringOrNull(input.name) || existing.name;
-  }
-  if (!existing.supportedEndpoints && input.supportedEndpoints?.length) {
-    existing.supportedEndpoints = input.supportedEndpoints;
-  }
-  if (!existing.apiFormat && toStringOrNull(input.apiFormat)) {
-    existing.apiFormat = input.apiFormat || undefined;
-  }
-  if (existing.contextLength == null && typeof input.contextLength === "number") {
-    existing.contextLength = input.contextLength;
-  }
-  if (existing.outputTokenLimit == null && typeof input.outputTokenLimit === "number") {
-    existing.outputTokenLimit = input.outputTokenLimit;
-  }
-  if (existing.supportsThinking == null && typeof input.supportsThinking === "boolean") {
-    existing.supportsThinking = input.supportsThinking;
+    if (input.supportedEndpoints?.length) existing.supportedEndpoints = input.supportedEndpoints;
+    if (toStringOrNull(input.apiFormat)) existing.apiFormat = input.apiFormat || undefined;
+    if (typeof input.contextLength === "number") existing.contextLength = input.contextLength;
+    if (typeof input.outputTokenLimit === "number") {
+      existing.outputTokenLimit = input.outputTokenLimit;
+    }
+    if (typeof input.supportsThinking === "boolean") {
+      existing.supportsThinking = input.supportsThinking;
+    }
+  } else {
+    if (!existing.name || existing.name === existing.id) {
+      existing.name = toStringOrNull(input.name) || existing.name;
+    }
+    if (!existing.supportedEndpoints && input.supportedEndpoints?.length) {
+      existing.supportedEndpoints = input.supportedEndpoints;
+    }
+    if (!existing.apiFormat && toStringOrNull(input.apiFormat)) {
+      existing.apiFormat = input.apiFormat || undefined;
+    }
+    if (existing.contextLength == null && typeof input.contextLength === "number") {
+      existing.contextLength = input.contextLength;
+    }
+    if (existing.outputTokenLimit == null && typeof input.outputTokenLimit === "number") {
+      existing.outputTokenLimit = input.outputTokenLimit;
+    }
+    if (existing.supportsThinking == null && typeof input.supportsThinking === "boolean") {
+      existing.supportsThinking = input.supportsThinking;
+    }
   }
   existing.sources = Array.from(mergedSources).sort(
     (left, right) => getSourcePriority(left) - getSourcePriority(right)
@@ -375,7 +386,10 @@ function buildModelOptions(
       name: toStringOrNull(model.name),
       source: "imported",
       supportedEndpoints: toStringArray(model.supportedEndpoints),
-      contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
+      contextLength:
+        toNumberOrNull(model.contextWindow) ??
+        toNumberOrNull(model.inputTokenLimit) ??
+        resolved.contextWindow,
       outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
       supportsThinking:
         typeof model.supportsThinking === "boolean"
@@ -513,22 +527,17 @@ function buildModelOptions(
     )
       ? "imported"
       : ("custom" as BuilderModelSource);
-    const resolved = getResolvedModelCapabilities({
-      provider: providerId,
-      model: toStringOrNull(model.id),
-    });
     addModelOption(modelMap, providerId, {
       id: toStringOrNull(model.id),
       name: toStringOrNull(model.name),
       source,
       supportedEndpoints: toStringArray(model.supportedEndpoints),
       apiFormat: toStringOrNull(model.apiFormat),
-      contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
-      outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
+      contextLength: toNumberOrNull(model.contextWindow) ?? toNumberOrNull(model.inputTokenLimit),
+      outputTokenLimit: toNumberOrNull(model.outputTokenLimit),
       supportsThinking:
-        typeof model.supportsThinking === "boolean"
-          ? model.supportsThinking
-          : (resolved.supportsThinking ?? undefined),
+        typeof model.supportsThinking === "boolean" ? model.supportsThinking : undefined,
+      customPrecedence: true,
     });
   }
 
@@ -698,7 +707,15 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
     // #2901 follow-up: a configured OpenCode connection shadows the no-auth
     // entry below, so it must receive the same `oc/` routing prefix. The raw
     // `opencode/` prefix is reserved by model parsing for the api-key tier.
-    const routingPrefix = providerId === "opencode" ? providerVisual.alias : providerId;
+    // #14135: custom provider nodes (provider-node source) configured with a prefix alias
+    // must route under their alias (e.g. "of/model"), not their raw internal database node id
+    // (e.g. "openai-compatible-chat-<uuid>/model").
+    const routingPrefix =
+      providerId === "opencode"
+        ? providerVisual.alias
+        : providerVisual.source === "provider-node" && providerVisual.alias
+          ? providerVisual.alias
+          : providerId;
     rewriteQualifiedModelPrefix(modelMap, providerId, routingPrefix);
 
     const normalizedConnections =

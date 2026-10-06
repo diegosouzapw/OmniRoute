@@ -99,15 +99,18 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   );
 
   useEffect(() => {
-    const nextLocale = getCookieLocale();
-    setLocale(nextLocale);
-    if (nextLocale === DEFAULT_LOCALE) return;
-
-    void import(`../i18n/messages/${nextLocale}.json`)
-      .then((module) =>
-        setMessages(buildGlobalErrorMessages(module.default as Record<string, unknown>))
-      )
-      .catch(() => setMessages(buildGlobalErrorMessages(enMessages)));
+    void (async () => {
+      await Promise.resolve();
+      const nextLocale = getCookieLocale();
+      setLocale(nextLocale);
+      if (nextLocale === DEFAULT_LOCALE) return;
+      try {
+        const mod = await import(`../i18n/messages/${nextLocale}.json`);
+        setMessages(buildGlobalErrorMessages(mod.default as Record<string, unknown>));
+      } catch {
+        setMessages(buildGlobalErrorMessages(enMessages));
+      }
+    })();
   }, []);
 
   return (

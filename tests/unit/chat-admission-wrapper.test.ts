@@ -278,7 +278,8 @@ describe("withChatAdmission lifecycle", () => {
       clientRaw: unknown,
       body: unknown,
       correlationId: string | undefined,
-      ctx: ChatAdmissionContext
+      ctx: ChatAdmissionContext,
+      lifecycleSignal?: AbortSignal | null
     ) => Promise<Response>
   ) {
     return withChatAdmission(impl as never, { getRuntime: () => runtime });
@@ -290,6 +291,33 @@ describe("withChatAdmission lifecycle", () => {
     assert.equal(res.status, 400);
     assert.equal(runtime.snapshot().activeCount, 0);
     assert.equal(runtime.snapshot().admittedCount, 0);
+  });
+
+  it("threads an explicit lifecycle signal without rebuilding the request", async () => {
+    const requestAbort = new AbortController();
+    const streamDeadline = new AbortController();
+    let seenSignal: AbortSignal | null | undefined;
+
+    const handle = wrap(async (_req, _raw, _body, _id, ctx, lifecycleSignal) => {
+      seenSignal = lifecycleSignal;
+      assert.equal(
+        await ctx.acquire("k-signal", { signal: lifecycleSignal }, { messages: [], stream: false }),
+        null
+      );
+      return new Response("ok");
+    });
+
+    const res = await handle(
+      { signal: requestAbort.signal },
+      null,
+      null,
+      undefined,
+      streamDeadline.signal
+    );
+    assert.equal(res.status, 200);
+    assert.equal(seenSignal, streamDeadline.signal);
+    assert.equal(requestAbort.signal.aborted, false);
+    assert.equal(runtime.snapshot().activeCount, 0);
   });
 
   it("JSON success releases active lease before return", async () => {

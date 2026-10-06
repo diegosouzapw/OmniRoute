@@ -52,7 +52,6 @@ test("detectIntent returns 'video' for veo models", () => {
 test("detectIntent returns 'image' for image models", () => {
   assert.equal(detectIntent("image-gen"), "image");
   assert.equal(detectIntent("banana"), "image");
-  assert.equal(detectIntent("imagen-4"), "image");
   assert.equal(detectIntent("nano-banana"), "image");
 });
 

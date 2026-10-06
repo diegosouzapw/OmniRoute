@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runWithProxyContext, resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
+import {
+  runWithDirectFetchContext,
+  runWithProxyContext,
+  resolveProxyForRequest,
+} from "../../open-sse/utils/proxyFetch.ts";
 
 async function withEnv(
   overrides: Record<string, string | undefined>,
@@ -57,5 +61,15 @@ test("[9551] resolveProxyForRequest: context-proxy respects NO_PROXY=*", async (
         assert.equal(resolved.source, "direct", "NO_PROXY=* should bypass context proxy");
       });
     }
+  );
+});
+
+test("direct fetch context overrides an inherited proxy context", async () => {
+  await runWithProxyContext({ type: "http", host: "127.0.0.1", port: 7897 }, () =>
+    runWithDirectFetchContext(() => {
+      const resolved = resolveProxyForRequest("https://api.commandcode.ai/alpha/generate");
+      assert.equal(resolved.source, "direct");
+      assert.equal(resolved.proxyUrl, null);
+    })
   );
 });

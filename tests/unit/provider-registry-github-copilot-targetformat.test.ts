@@ -40,7 +40,7 @@ const MUST_NOT_BE_RESPONSES = [
   "claude-sonnet-4.5",
   "claude-haiku-4.5",
   "gemini-3.1-pro-preview",
-  "gemini-3.5-flash",
+  "gemini-3.7-flash",
 ];
 
 for (const id of MUST_NOT_BE_RESPONSES) {

@@ -22,7 +22,7 @@ const { resolveReasoningBufferedMaxTokens } =
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#9507 reasoning buffer does NOT enlarge a Claude opus-5 client budget upward", () => {

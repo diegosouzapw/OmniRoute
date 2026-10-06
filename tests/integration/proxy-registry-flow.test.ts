@@ -23,13 +23,13 @@ const proxyLogger = await import("../../src/lib/proxyLogger.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("integration: proxy create with inline assignment is atomic and clears legacy config", async () => {
@@ -175,6 +175,11 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
     levelId: "openai",
     provider: "openai",
   });
+
+  // #11182 made SQLite persistence a background batch (1s timer / 100-entry
+  // threshold); the health aggregate reads the table, so drain the queue first
+  // instead of racing the timer.
+  proxyLogger.flushProxyLogsSync();
 
   const healthRes = await proxyHealthRoute.GET(
     new Request("http://localhost/api/settings/proxies/health?hours=24")

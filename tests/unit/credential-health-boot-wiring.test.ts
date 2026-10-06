@@ -31,6 +31,11 @@ test("credential health scheduler is started from the real Next.js instrumentati
     /\[STARTUP\] Credential health scheduler started/,
     "a [STARTUP] log line proves the boot wiring ran (grep-able in app.log)"
   );
+  assert.match(
+    instrumentation,
+    /\[STARTUP\] Credential health scheduler disabled/,
+    "#11016: disable env must log disabled, not lie with started"
+  );
 });
 
 test("the wiring is NOT placed in the dead src/server-init.ts (the #7432 no-op)", () => {

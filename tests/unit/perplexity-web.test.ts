@@ -91,16 +91,16 @@ function mockFetchError(error) {
 
 // ─── Test: Executor registration ────────────────────────────────────────────
 
-test("PerplexityWebExecutor is registered in executor index", () => {
+test("PerplexityWebExecutor is registered in executor index", async () => {
   assert.ok(hasSpecializedExecutor("perplexity-web"));
   assert.ok(hasSpecializedExecutor("pplx-web"));
-  const executor = getExecutor("perplexity-web");
+  const executor = await getExecutor("perplexity-web");
   assert.ok(executor instanceof PerplexityWebExecutor);
 });
 
-test("PerplexityWebExecutor alias resolves to same type", () => {
-  const a = getExecutor("perplexity-web");
-  const b = getExecutor("pplx-web");
+test("PerplexityWebExecutor alias resolves to same type", async () => {
+  const a = await getExecutor("perplexity-web");
+  const b = await getExecutor("pplx-web");
   assert.ok(a instanceof PerplexityWebExecutor);
   assert.ok(b instanceof PerplexityWebExecutor);
 });
@@ -909,6 +909,35 @@ test("Model mapping: thinking mode uses thinking variant", async () => {
     assert.equal(capturedBody.params.mode, "copilot");
   } finally {
     globalThis.fetch = original;
+  }
+});
+
+// ─── The search hint is opt-in ──────────────────────────────────────────────
+// It used to be appended to every system message and leaked into answers as
+// meta-commentary, which is noise for coding clients.
+
+test("buildQuery: search hint is off by default and opt-in via env", async () => {
+  const { buildQuery } = await import("../../open-sse/executors/perplexity-web/protocol.ts");
+  const parsed = { systemMsg: "You are terse.", history: [], currentMsg: "hi" };
+  const HINT = "built-in web search";
+  const prev = process.env.OMNIROUTE_PPLX_SEARCH_HINT;
+
+  try {
+    delete process.env.OMNIROUTE_PPLX_SEARCH_HINT;
+    const off = JSON.parse(buildQuery(parsed, null));
+    assert.deepEqual(off.instructions, ["You are terse."]);
+    assert.equal(off.query, "hi");
+
+    process.env.OMNIROUTE_PPLX_SEARCH_HINT = "1";
+    const on = JSON.parse(buildQuery(parsed, null));
+    assert.equal(on.instructions.length, 2);
+    assert.ok(on.instructions[1].includes(HINT));
+
+    process.env.OMNIROUTE_PPLX_SEARCH_HINT = "0";
+    assert.equal(JSON.parse(buildQuery(parsed, null)).instructions.length, 1);
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_PPLX_SEARCH_HINT;
+    else process.env.OMNIROUTE_PPLX_SEARCH_HINT = prev;
   }
 });
 

@@ -77,30 +77,46 @@ function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
+// Wraps the GET so a failure comes back as a value: the load callback then only
+// sets state after the await (no synchronous setState reachable from the effect).
+async function fetchCcAliasStateSafe(
+  providerId: string
+): Promise<{ ok: boolean; state?: CcAliasState; error?: string }> {
+  try {
+    return { ok: true, state: await fetchCcAliasState(providerId) };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
 /** Loads the provider's alias settings once and reports a load failure to the operator. */
 function useCcAliasData(providerId: string, t: ProviderMessageTranslator) {
   const notify = useNotificationStore();
   const [state, setState] = useState<CcAliasState>(DEFAULT_STATE);
-  const [loading, setLoading] = useState(true);
+  // Loading is derived: true until a load attempt for the CURRENT provider
+  // settles — this also re-shows the skeleton when providerId changes.
+  const [loadedProviderId, setLoadedProviderId] = useState<string | null>(null);
+  const loading = loadedProviderId !== providerId;
 
-  const loadState = useCallback(async () => {
-    setLoading(true);
-    try {
-      setState(await fetchCcAliasState(providerId));
-    } catch (err) {
-      notify.error(
-        providerText(t, "ccAliasLoadError", "Failed to load discovery-alias settings: {error}", {
-          error: errorMessage(err),
-        })
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [providerId, notify, t]);
-
+  // The async work is defined INSIDE the effect (a component-scope loader
+  // called synchronously from an effect is rejected by the compiler rules);
+  // every setState here runs after the await.
   useEffect(() => {
-    loadState();
-  }, [loadState]);
+    const run = async () => {
+      const outcome = await fetchCcAliasStateSafe(providerId);
+      if (outcome.ok) {
+        setState(outcome.state);
+      } else {
+        notify.error(
+          providerText(t, "ccAliasLoadError", "Failed to load discovery-alias settings: {error}", {
+            error: outcome.error,
+          })
+        );
+      }
+      setLoadedProviderId(providerId);
+    };
+    void run();
+  }, [providerId, notify, t]);
 
   return { state, setState, loading };
 }

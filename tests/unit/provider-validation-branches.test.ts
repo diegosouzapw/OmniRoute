@@ -39,6 +39,55 @@ test("openai-compatible validation reports missing base URL", async () => {
   assert.match(result.error, /No base URL configured/i);
 });
 
+test("openai-compatible validation treats /models 402 as valid credentials", async () => {
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    calls.push(String(url));
+    return new Response(JSON.stringify({ error: "Payment required" }), { status: 402 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-models-402",
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: "https://api.example.com/v1" },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.method, "models_endpoint");
+  assert.equal(result.statusCode, 402);
+  assert.match(result.warning, /402|quota/i);
+  assert.deepEqual(calls, ["https://api.example.com/v1/models"]);
+});
+
+test("openai-compatible validation treats representative-model chat 402 as valid credentials", async () => {
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    calls.push(String(url));
+    if (String(url).endsWith("/models")) {
+      return new Response(JSON.stringify({ error: "Not Found" }), { status: 404 });
+    }
+    return new Response(JSON.stringify({ error: "Add credits to continue" }), { status: 402 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-chat-402",
+    apiKey: "sk-test",
+    providerSpecificData: {
+      baseUrl: "https://api.example.com/v1",
+      validationModelId: "paid-upstream-model",
+    },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.method, "chat_completions");
+  assert.equal(result.statusCode, 402);
+  assert.match(result.warning, /paid-upstream-model/);
+  assert.deepEqual(calls, [
+    "https://api.example.com/v1/models",
+    "https://api.example.com/v1/chat/completions",
+  ]);
+});
+
 test("openai-compatible validation accepts rate-limited /models responses", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {

@@ -9,9 +9,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const { CODEX_NATIVE_UNPREFIXED_MODELS, getModelInfoCore } = await import(
-  "../../open-sse/services/model.ts"
-);
+const { CODEX_NATIVE_UNPREFIXED_MODELS, getModelInfoCore } =
+  await import("../../open-sse/services/model.ts");
 
 // #FIX: bare Codex-default model ids must route to the `codex` provider
 // (chatgpt.com OAuth) when no provider prefix is supplied, even when other
@@ -37,7 +36,7 @@ async function seedActiveCodexConnection() {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("CODEX_NATIVE_UNPREFIXED_MODELS includes gpt-5.6-sol tier set", () => {

@@ -3,11 +3,12 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { freeProxyBulkAddSchema } from "@/shared/validation/freeProxySchemas";
-import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/localDb";
+import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/db/freeProxies";
 import {
   createProxyDispatcher,
   proxyConfigToUrl,
 } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+import { probeEchoTargets } from "@/lib/proxyEchoTarget";
 
 type QuickTester = (
   host: string,
@@ -24,22 +25,29 @@ async function testProxyQuick(
   if (!proxyUrl) return { ok: false, latencyMs: 0 };
   const dispatcher = createProxyDispatcher(proxyUrl);
   const start = Date.now();
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
   try {
-    const res = await undiciRequest("https://api64.ipify.org?format=json", {
-      method: "GET",
-      dispatcher,
-      signal: controller.signal,
-      headersTimeout: 5000,
-      bodyTimeout: 5000,
-    });
-    await res.body.dump();
-    return { ok: res.statusCode === 200, latencyMs: Date.now() - start };
+    // #9694: try the IPv6-first echo target, then the IPv4-only one, so a proxy
+    // with no IPv6 route is not reported dead.
+    const { result } = await probeEchoTargets(async (url, timeoutMs) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await undiciRequest(url, {
+          method: "GET",
+          dispatcher,
+          signal: controller.signal,
+          headersTimeout: timeoutMs,
+          bodyTimeout: timeoutMs,
+        });
+        await res.body.dump();
+        return res.statusCode;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }, 5000);
+    return { ok: result === 200, latencyMs: Date.now() - start };
   } catch {
     return { ok: false, latencyMs: Date.now() - start };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 

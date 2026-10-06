@@ -9,14 +9,18 @@ lastUpdated: 2026-08-06
 ## Overview
 
 Redis is an **optional, soft dependency** in OmniRoute — the application degrades gracefully (in-memory
-fallbacks) when Redis is unavailable. In production, tuning Redis reduces latency for three distinct
+fallbacks) when Redis is unavailable. In production, tuning Redis reduces latency for four distinct
 workloads:
 
 | Workload | Driver | Client Factory | Key Pattern |
 |---|---|---|---|
-| Rate limiting | `rateLimiter.ts` | `getRedisClient()` — lazy `ioredis` singleton | Lua‑atomic rate limit windows |
-| Auth cache | `apiKeys.ts` | Reuses `rateLimiter`'s client | `auth:api_key:<sha256>` with TTL |
-| Quota store | `redisQuotaStore.ts` | Separate `getRedisClient(url)` singleton | Configurable per-instance |
+| Rate limiting | `rateLimiter.ts` | `getRedisClient()` — lazy `ioredis` singleton | `<prefix>rl:*` Lua‑atomic rate limit windows |
+| Auth cache | `apiKeys.ts` | Reuses `rateLimiter`'s client | `<prefix>auth:api_key:<sha256>` with TTL |
+| Quota store | `redisQuotaStore.ts` | Separate `getRedisClient(url)` singleton | `<prefix>quota:*` configurable per-instance |
+| Warmup circuit breaker | `redisCircuitBreakerStore.ts` | Separate client in `circuitBreakerFactory.ts` | `<prefix>warmup:cb:<connectionId>` |
+
+All four workloads share one namespace prefix so OmniRoute can co-exist with other apps on a
+single Redis instance (e.g. `127.0.0.1:6379`). See [Key Namespacing](#key-namespacing).
 
 ---
 
@@ -25,6 +29,7 @@ workloads:
 | Setting | Value | Where |
 |---|---|---|
 | `REDIS_URL` env var | `redis://redis:6379` (compose), optional | `rateLimiter.ts:5`, `.env.example` |
+| `REDIS_KEY_PREFIX` env var | `omniroute:` (default) | `rateLimiter.ts`, `redisQuotaStore.ts`, `redisCircuitBreakerStore.ts`, `.env.example` |
 | `QUOTA_STORE_REDIS_URL` env var | separate, can differ from `REDIS_URL` | `quota/storeFactory.ts` |
 | `QUOTA_STORE_DRIVER` | `"sqlite"` (default), `"redis"` optional | `quota/storeFactory.ts` |
 | ioredis `maxRetriesPerRequest` | `3` | `rateLimiter.ts` client creation |
@@ -33,6 +38,32 @@ workloads:
 | `retryStrategy` | not set (ioredis default: 200ms base, exponential) | — |
 | TLS / password / DB index | **not configured** | — |
 | Sentinel / Cluster | **not configured** — standalone single-node only | — |
+
+---
+
+## Key Namespacing
+
+OmniRoute shares a Redis instance with whatever else runs on the host. Without a namespace,
+keys like `auth:api_key:<sha256>` or `rl:*` could collide with keys from other applications
+using the same Redis (this instance runs Redis on `127.0.0.1:6379` alongside other services).
+
+Set `REDIS_KEY_PREFIX` to a non-empty string to prefix **every** OmniRoute key:
+
+```bash
+# .env — all OmniRoute keys become omniroute:rl:*, omniroute:auth:*, omniroute:quota:*, omniroute:warmup:cb:*
+REDIS_KEY_PREFIX=omniroute:
+```
+
+- **Default:** `omniroute:` (applied when `REDIS_KEY_PREFIX` is unset or blank).
+- **Applied to:** rate limiter + auth cache (shared `ioredis` client via `keyPrefix`) and the
+  quota store (`KEY_PREFIX = "${REDIS_KEY_PREFIX}quota"`) and the warmup circuit breaker
+  (`KEY_PREFIX = "${REDIS_KEY_PREFIX}warmup:cb:"`).
+- **Changing the prefix** when keys already exist in Redis orphans the old keys (they expire
+  via TTL / LRU). Safe to change; no migration needed. The one exception is a warmup
+  circuit-breaker key for a connection marked forbidden: it is persisted without a TTL, so
+  list leftovers with `redis-cli --scan --pattern '<old-prefix>warmup:cb:*'` and delete them.
+- **ioredis `keyPrefix`** automatically prepends the prefix on writes **and** strips it on reads,
+  so application code never sees the prefix.
 
 ---
 

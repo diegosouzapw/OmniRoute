@@ -1,0 +1,11 @@
+# Shell scripts must always be checked out with LF line endings.
+#
+# On Windows, core.autocrlf=true converts text files to CRLF in the working
+# tree. Scripts that are kernel-exec'd (Docker ENTRYPOINT, bin/*.sh on Linux
+# hosts) then fail with `exec ...: no such file or directory` because the
+# shebang becomes "#!/bin/sh\r". eol=lf overrides autocrlf for these files.
+*.sh text eol=lf
+
+# This file must stay LF too: git parses it as-is, and a trailing CR would
+# corrupt every pattern (e.g. "*.sh\r" matches nothing).
+.gitattributes text eol=lf

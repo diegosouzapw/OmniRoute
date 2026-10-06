@@ -186,3 +186,21 @@ test("multiple orphan metrics all appear in the warning", () => {
   assert.match(r.out, /newMetric1/);
   assert.match(r.out, /newMetric2/);
 });
+
+test("velocity phase (_policy.requireTighten=false) turns --require-tighten into an advisory", () => {
+  const b = {
+    _policy: { phase: "velocity", until: "4.0.0", relaxPct: 20, requireTighten: false },
+    metrics: { eslintWarnings: { value: 1000, direction: "down", tightenSlack: 10 } },
+  };
+  // Measured far below the (relaxed) baseline: without the policy this is a tighten failure.
+  const r = run(b, { eslintWarnings: 0 }, ["--require-tighten"]);
+  assert.equal(r.code, 0, r.out);
+  assert.match(r.out, /velocity phase active/);
+});
+
+test("without _policy the --require-tighten gate still bites", () => {
+  const b = { metrics: { eslintWarnings: { value: 1000, direction: "down", tightenSlack: 10 } } };
+  const r = run(b, { eslintWarnings: 0 }, ["--require-tighten"]);
+  assert.equal(r.code, 1);
+  assert.match(r.out, /require-tighten/);
+});

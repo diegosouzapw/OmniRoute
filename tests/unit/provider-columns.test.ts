@@ -87,9 +87,9 @@ test("getProviderColumns: Antigravity falls back to dynamic schema (first 3 quot
       "claude-opus-4-6-thinking": { used: 0, total: 100, remainingPercentage: 100 },
       "claude-sonnet-4-6": { used: 0, total: 100, remainingPercentage: 100 },
       "gemini-3.1-pro-low": { used: 0, total: 100, remainingPercentage: 100 },
-      "gemini-3.5-flash-low": { used: 0, total: 100, remainingPercentage: 100 },
-      "gemini-3.5-flash-medium": { used: 0, total: 100, remainingPercentage: 100 },
-      "gemini-3.5-flash-high": { used: 0, total: 100, remainingPercentage: 100 },
+      "gemini-3.7-flash-low": { used: 0, total: 100, remainingPercentage: 100 },
+      "gemini-3.7-flash-medium": { used: 0, total: 100, remainingPercentage: 100 },
+      "gemini-3.7-flash-high": { used: 0, total: 100, remainingPercentage: 100 },
     },
   });
 

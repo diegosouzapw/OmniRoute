@@ -49,7 +49,6 @@ const FALLBACK_MODEL_SEEDS: FallbackModelSeed[] = [
   { id: "claude-opus-5", vision: true, efforts: EFFORTS_XHIGH },
   { id: "claude-opus-4-8", vision: true, efforts: EFFORTS_XHIGH },
   { id: "claude-fable-5", vision: true, efforts: EFFORTS_XHIGH },
-  { id: "claude-opus-4-7", vision: true, efforts: EFFORTS_XHIGH },
   { id: "claude-sonnet-5", vision: true, efforts: EFFORTS_NO_XHIGH },
   { id: "claude-sonnet-4-6", vision: true, efforts: EFFORTS_NO_XHIGH },
   { id: "claude-haiku-4-5", vision: true, efforts: EFFORTS_STANDARD },
@@ -61,7 +60,6 @@ const FALLBACK_MODEL_SEEDS: FallbackModelSeed[] = [
   { id: "deepseek/deepseek-v4-pro", vision: false, efforts: EFFORTS_HIGH_ONLY },
   { id: "openrouter/fusion", vision: false, efforts: [] },
   { id: "z-ai/glm-5.2", vision: false, efforts: EFFORTS_STANDARD },
-  { id: "z-ai/glm-5.1", vision: false, efforts: EFFORTS_STANDARD },
   { id: "tencent/hy3", vision: false, efforts: EFFORTS_STANDARD },
   { id: "moonshotai/kimi-k3", vision: true, efforts: EFFORTS_STANDARD },
   { id: "moonshotai/kimi-k2.7-code", vision: true, efforts: EFFORTS_STANDARD },
@@ -69,7 +67,7 @@ const FALLBACK_MODEL_SEEDS: FallbackModelSeed[] = [
   { id: "qwen/qwen3.7-max", vision: false, efforts: EFFORTS_STANDARD },
   { id: "minimax/minimax-m3", vision: true, efforts: EFFORTS_STANDARD },
   { id: "stepfun/step-3.7-flash", vision: true, efforts: EFFORTS_STANDARD },
-  { id: "google/gemini-3.5-flash", vision: true, efforts: EFFORTS_STANDARD },
+  { id: "google/gemini-3.7-flash", vision: true, efforts: EFFORTS_STANDARD },
   { id: "google/gemini-3.1-pro-preview", vision: true, efforts: EFFORTS_STANDARD },
   { id: "google/gemini-3.1-flash-lite", vision: true, efforts: EFFORTS_STANDARD },
   { id: "x-ai/grok-4.3", vision: true, efforts: EFFORTS_STANDARD },
@@ -80,7 +78,7 @@ const FALLBACK_MODEL_SEEDS: FallbackModelSeed[] = [
 
 /** Presets exposed by the web client's model picker (id → text/multimodal model). */
 export const CONOL_FALLBACK_MODEL_PRESETS: ConolModelPreset[] = [
-  { id: "flash", text: "deepseek/deepseek-v4-flash", multimodal: "google/gemini-3.5-flash" },
+  { id: "flash", text: "deepseek/deepseek-v4-flash", multimodal: "google/gemini-3.7-flash" },
   { id: "moderate", text: "deepseek/deepseek-v4-pro", multimodal: "claude-sonnet-5" },
   { id: "pro", text: "z-ai/glm-5.2", multimodal: "moonshotai/kimi-k3" },
   { id: "ultra", text: "claude-fable-5", multimodal: "claude-fable-5" },

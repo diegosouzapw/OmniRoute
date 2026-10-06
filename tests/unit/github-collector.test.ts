@@ -129,7 +129,7 @@ void test("scanText: detects eval(base64) pattern", () => {
 
 void test("scanText: detects hardcoded private keys", () => {
   const content =
-    "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----";
+    "-----BEGIN RSA PRIVATE KEY-----\nTEST_RSA_PRIVATE_KEY_PLACEHOLDER_DO_NOT_USE\n-----END RSA PRIVATE KEY-----";
   const findings = scanText(content, "leaked.md");
   assert.ok(findings.some((f) => f.pattern.includes("Private key")));
 });

@@ -17,20 +17,19 @@ process.env.API_KEY_SECRET = "test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
-const { resolveProxyLookupResponse } = await import(
-  "../../src/lib/api/proxyRegistryRouteHandlers.ts"
-);
+const { resolveProxyLookupResponse } =
+  await import("../../src/lib/api/proxyRegistryRouteHandlers.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("resolveProxyLookupResponse returns null for the list path (no id)", async () => {

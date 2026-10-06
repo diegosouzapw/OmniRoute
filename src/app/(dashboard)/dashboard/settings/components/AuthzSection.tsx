@@ -93,6 +93,25 @@ function parseErrorCode(payload: unknown): ErrorCode {
 
 // ─── component ────────────────────────────────────────────────────────────
 
+type InventoryFetchResult =
+  | { kind: "ok"; data: InventoryPayload }
+  | { kind: "http-error"; code: ErrorCode }
+  | { kind: "failed" };
+
+async function fetchInventory(): Promise<InventoryFetchResult> {
+  try {
+    const res = await fetch("/api/settings/authz-inventory", {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      return { kind: "http-error", code: parseErrorCode(await res.json().catch(() => null)) };
+    }
+    return { kind: "ok", data: (await res.json()) as InventoryPayload };
+  } catch {
+    return { kind: "failed" };
+  }
+}
+
 export default function AuthzSection() {
   const t = useTranslations("settings");
   const [inventory, setInventory] = useState<InventoryPayload | null>(null);
@@ -110,32 +129,38 @@ export default function AuthzSection() {
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<StatusMessage | null>(null);
 
+  const applyInventoryResult = useCallback(
+    (result: InventoryFetchResult) => {
+      if (result.kind === "ok") {
+        setInventory(result.data);
+        setDraftEnabled(result.data.bypassEnabled);
+        setDraftPrefixes([...result.data.bypassPrefixes]);
+      } else if (result.kind === "http-error") {
+        setLoadError(t(`authz.error.${result.code}`));
+      } else {
+        setLoadError(t("authz.loadError"));
+      }
+      setLoading(false);
+    },
+    [t]
+  );
+
   const loadInventory = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
-    try {
-      const res = await fetch("/api/settings/authz-inventory", {
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const code = parseErrorCode(await res.json().catch(() => null));
-        setLoadError(t(`authz.error.${code}`));
-        return;
-      }
-      const data = (await res.json()) as InventoryPayload;
-      setInventory(data);
-      setDraftEnabled(data.bypassEnabled);
-      setDraftPrefixes([...data.bypassPrefixes]);
-    } catch {
-      setLoadError(t("authz.loadError"));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+    applyInventoryResult(await fetchInventory());
+  }, [applyInventoryResult]);
 
   useEffect(() => {
-    void loadInventory();
-  }, [loadInventory]);
+    let cancelled = false;
+    void (async () => {
+      const result = await fetchInventory();
+      if (!cancelled) applyInventoryResult(result);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [applyInventoryResult]);
 
   const dirty = useMemo(() => {
     if (!inventory) return false;

@@ -65,9 +65,43 @@ function formatExpiry(acc: DarioAccount): string {
   return "";
 }
 
+// Network + parse concerns extracted so the refresh callbacks only set state
+// after the await — the mount effect can then call them without a synchronous
+// setState (errors come back as values instead of catch-block state writes).
+async function fetchDarioAccounts(): Promise<{ accounts: DarioAccount[] } | { error: string }> {
+  try {
+    const res = await fetch("/api/services/dario/admin/accounts");
+    const json = (await res.json().catch(() => null)) as {
+      accounts?: DarioAccount[];
+      error?: string;
+    } | null;
+    if (!res.ok) {
+      throw new Error(json?.error || `HTTP ${res.status}`);
+    }
+    return { accounts: Array.isArray(json?.accounts) ? json!.accounts : [] };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+async function fetchOmniConnectionsList(): Promise<OmniConnection[] | null> {
+  try {
+    const res = await fetch("/api/services/dario/admin/import-from-omniroute");
+    const json = (await res.json().catch(() => null)) as {
+      connections?: OmniConnection[];
+      error?: string;
+    } | null;
+    if (!res.ok) return null;
+    return Array.isArray(json?.connections) ? json!.connections : [];
+  } catch {
+    /* non-fatal — import section just stays empty */
+    return null;
+  }
+}
+
 export function DarioAccountPanel() {
   const [accounts, setAccounts] = useState<DarioAccount[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [pending, setPending] = useState<PendingLogin | null>(null);
@@ -77,51 +111,48 @@ export function DarioAccountPanel() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const [omniConnections, setOmniConnections] = useState<OmniConnection[]>([]);
-  const [omniLoading, setOmniLoading] = useState(false);
+  const [omniLoading, setOmniLoading] = useState(true);
   const [importBusyId, setImportBusyId] = useState<string | null>(null);
 
   const refreshAccounts = useCallback(async () => {
+    const outcome = await fetchDarioAccounts();
+    if ("accounts" in outcome) {
+      setAccounts(outcome.accounts);
+      setError(null);
+    } else {
+      setError(outcome.error);
+    }
+    setLoading(false);
+  }, []);
+
+  // Inline-in-effect (calling the component-scope refresh callbacks
+  // synchronously from an effect is rejected by the compiler rules); every
+  // setState here runs after an await.
+  useEffect(() => {
+    const run = async () => {
+      const outcome = await fetchDarioAccounts();
+      if ("accounts" in outcome) {
+        setAccounts(outcome.accounts);
+        setError(null);
+      } else {
+        setError(outcome.error);
+      }
+      setLoading(false);
+    };
+    void run();
+    const runOmni = async () => {
+      const list = await fetchOmniConnectionsList();
+      if (list) setOmniConnections(list);
+      setOmniLoading(false);
+    };
+    void runOmni();
+  }, []);
+
+  const handleRefreshAccountsClick = () => {
     setLoading(true);
     setError(null);
-    try {
-      const res = await fetch("/api/services/dario/admin/accounts");
-      const json = (await res.json().catch(() => null)) as {
-        accounts?: DarioAccount[];
-        error?: string;
-      } | null;
-      if (!res.ok) {
-        throw new Error(json?.error || `HTTP ${res.status}`);
-      }
-      setAccounts(Array.isArray(json?.accounts) ? json!.accounts : []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const refreshOmniConnections = useCallback(async () => {
-    setOmniLoading(true);
-    try {
-      const res = await fetch("/api/services/dario/admin/import-from-omniroute");
-      const json = (await res.json().catch(() => null)) as {
-        connections?: OmniConnection[];
-        error?: string;
-      } | null;
-      if (res.ok) {
-        setOmniConnections(Array.isArray(json?.connections) ? json!.connections : []);
-      }
-    } catch {
-      /* non-fatal — import section just stays empty */
-    } finally {
-      setOmniLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
     void refreshAccounts();
-    void refreshOmniConnections();
-  }, [refreshAccounts, refreshOmniConnections]);
+  };
 
   async function importFromOmniroute(connectionId: string) {
     setImportBusyId(connectionId);
@@ -344,7 +375,7 @@ export function DarioAccountPanel() {
               size="sm"
               variant="outline"
               disabled={loading}
-              onClick={() => void refreshAccounts()}
+              onClick={handleRefreshAccountsClick}
             >
               Refresh
             </Button>

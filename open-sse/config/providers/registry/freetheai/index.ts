@@ -1,7 +1,7 @@
 import type { RegistryEntry } from "../../shared.ts";
 
 // FreeTheAi — OpenAI-compatible gateway with a Discord-signup free tier
-// (issue #6670). Same shape as the hackclub/chutes aggregator entries:
+// (issue #6670). Same shape as the chutes aggregator entries:
 // standard OpenAI chat/completions + /v1/models discovery, so no custom
 // executor/translator is needed.
 export const freetheaiProvider: RegistryEntry = {

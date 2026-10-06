@@ -1,15 +1,15 @@
 /**
  * Regression tests for the proxy-leak fix in grokTlsClient.
  *
- * Bug context (#3180): tlsFetchGrok() built its native tls-client-node
- * requestOptions without a `proxyUrl` field, so every grok-web call
+ * Bug context (#3180): tlsFetchGrok() built its native transport options
+ * without a `proxyUrl` field, so every grok-web call
  * egressed with the bare host IP regardless of the dashboard proxy config
- * or HTTP_PROXY / HTTPS_PROXY env vars (the koffi-loaded Go binary does not
- * consult Go's `http.ProxyFromEnvironment`).
+ * or HTTP_PROXY / HTTPS_PROXY env vars. Native browser transports require the
+ * resolved proxy to be passed explicitly.
  *
  * These tests pin the resolution-order contract:
  *   1. Per-call `options.proxyUrl` wins.
- *   2. OMNIROUTE_TLS_PROXY_URL env var (single-flag opt-in).
+ *   2. Request-scoped dashboard/account proxy context.
  *   3. POSIX-standard HTTPS_PROXY / HTTP_PROXY / ALL_PROXY (and lowercase variants).
  *   4. Otherwise undefined (no proxy).
  *
@@ -24,7 +24,6 @@ import { describe, it, beforeEach, afterEach, expect } from "vitest";
 import { tlsFetchGrok, __setTlsFetchOverrideForTesting } from "../grokTlsClient.ts";
 
 const PROXY_ENV_KEYS = [
-  "OMNIROUTE_TLS_PROXY_URL",
   "HTTPS_PROXY",
   "https_proxy",
   "HTTP_PROXY",
@@ -62,7 +61,6 @@ describe("grokTlsClient — proxy plumbing (#3180)", async () => {
   });
 
   it("per-call proxyUrl overrides everything", async () => {
-    process.env.OMNIROUTE_TLS_PROXY_URL = "http://env-omni:0/";
     process.env.HTTPS_PROXY = "http://env-https:0/";
 
     let observedUrl: string | undefined;

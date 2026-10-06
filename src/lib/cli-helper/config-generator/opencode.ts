@@ -1,13 +1,14 @@
-import path from "node:path";
-import os from "node:os";
 import fs from "node:fs";
+import { applyEdits, modify, parse, printParseErrorCode, type ParseError } from "jsonc-parser";
 import {
   parseOutboundUrl,
   isCloudMetadataHost,
   OutboundUrlGuardError,
 } from "../../../shared/network/outboundUrlGuard";
+import { resolveOpencodeConfigPath } from "../../../shared/services/opencodeConfigPath";
+import { readPrivateConfigFile } from "../privateConfigFile";
 
-const CONFIG_PATH = path.join(os.homedir(), ".config", "opencode", "opencode.json");
+const JSON_FORMATTING_OPTIONS = { insertSpaces: true, tabSize: 2 } as const;
 
 /**
  * SSRF guard for the catalog fetch (CodeQL js/request-forgery #326). The catalog
@@ -40,6 +41,8 @@ export function assertSafeCatalogUrl(rawUrl: string): URL {
 interface CatalogModelEntry {
   id: string;
   owned_by?: string;
+  name?: string;
+  display_name?: string;
   /** OpenAI-compatible field name; some upstreams return this. */
   context_length?: number;
   max_context_window_tokens?: number;
@@ -185,7 +188,8 @@ function deriveOpenCodeCapabilities(
   catalog: CatalogModelEntry | undefined,
   existing: ExistingModelEntry | undefined
 ): Pick<ExistingModelEntry, "attachment" | "reasoning" | "temperature" | "tool_call"> {
-  const result: Pick<ExistingModelEntry, "attachment" | "reasoning" | "temperature" | "tool_call"> = {};
+  const result: Pick<ExistingModelEntry, "attachment" | "reasoning" | "temperature" | "tool_call"> =
+    {};
 
   // attachment: explicit user flag wins, then catalog attachment, then vision, then image modality.
   if (typeof existing?.attachment === "boolean") {
@@ -242,17 +246,33 @@ function resolveContextLength(entry: CatalogModelEntry): number | undefined {
  *   1. Existing manual override in the user's opencode.json (`limit.context`).
  *   2. Catalog `context_length` / `max_context_window_tokens`.
  *
- * If neither is available, the entry is returned WITHOUT a `limit` block so
- * the caller can decide whether to skip the model entirely or surface a
- * warning. We never fabricate a default context window.
+ * If neither is available, `limit.context` is simply omitted and OpenCode's
+ * own heuristics apply — we never fabricate a default context window. The
+ * entry ALWAYS carries a `limit` block, though: `limit.output` is a
+ * required field in OpenCode's v1 provider schema, so it is always emitted
+ * (falling back to 8K when nothing else is known) — see #10940.
  */
 function buildModelEntry(
   id: string,
   catalog: CatalogModelEntry | undefined,
   existing: ExistingModelEntry | undefined
 ): ExistingModelEntry {
-  // Carry over user-set "name" first; fall back to id when absent.
-  const name = (typeof existing?.name === "string" && existing.name.trim()) || id;
+  // Carry over user-set names first, then native catalog display metadata.
+  // Technical ids remain map keys; names are presentation only.
+  const catalogName = catalog?.display_name ?? catalog?.name;
+  const nativeName = typeof catalogName === "string" ? catalogName.trim() : "";
+  const providerPrefix = catalog?.owned_by ? `${catalog.owned_by}/` : "";
+  const modelName = nativeName.startsWith(providerPrefix)
+    ? nativeName.slice(providerPrefix.length)
+    : nativeName;
+  const autoName = id.startsWith("auto/")
+    ? `Auto ${id.slice("auto/".length).replace(/(^|[-_])([a-z])/g, (_, separator, letter) => `${separator === "" ? "" : " "}${letter.toUpperCase()}`)}`
+    : "";
+  const name =
+    (typeof existing?.name === "string" && existing.name.trim() !== id && existing.name.trim()) ||
+    autoName ||
+    modelName ||
+    id;
 
   const entry: ExistingModelEntry = { name };
 
@@ -277,10 +297,9 @@ function buildModelEntry(
   }
 
   // Resolve the context window. Honor an explicit user override, then fall
-  // back to the catalog. We do NOT synthesize a default — if the catalog
-  // is unaware of a model's window, the opencode.json will simply omit
-  // `limit.context` for that model and OpenCode's own heuristics apply.
-  // (OpenCode v1 defaults to 128K when `limit.context` is missing.)
+  // back to the catalog. If the catalog is unaware of a model's window, we
+  // fall back to a safe default (128K) so OpenCode's v1 provider schema
+  // validator never rejects the config with a missing key error (#11035).
   const userLimit = existing?.limit?.context;
   const catalogLimit = catalog ? resolveContextLength(catalog) : undefined;
   const context = typeof userLimit === "number" && userLimit > 0 ? userLimit : catalogLimit;
@@ -289,9 +308,6 @@ function buildModelEntry(
   // Use the catalog's max_output_tokens when available; otherwise fall
   // back to the user's existing `limit.output` and finally to a small
   // default (8K) so OpenCode never errors on a totally missing output cap.
-  // We do NOT default context — context is a property of the model and
-  // we have no business guessing. Output is a per-request setting and a
-  // small default is harmless when truly unknown.
   const userOutput = existing?.limit?.output;
   const catalogOutput =
     catalog && typeof catalog.max_output_tokens === "number" && catalog.max_output_tokens > 0
@@ -300,50 +316,106 @@ function buildModelEntry(
   const output =
     typeof userOutput === "number" && userOutput > 0 ? userOutput : (catalogOutput ?? 8_192);
 
-  // Emit `limit` only if we have at least one of context/output. We never
-  // emit a half-baked limit block with only an `output` (would be misleading).
-  if (
-    typeof context === "number" ||
-    typeof userOutput === "number" ||
-    typeof catalogOutput === "number"
-  ) {
-    const limit: { context?: number; input?: number; output?: number } = {};
-    if (typeof context === "number") limit.context = context;
-    limit.output = output;
-    const userInput = existing?.limit?.input;
-    if (typeof userInput === "number" && userInput > 0) {
-      limit.input = userInput;
-    } else if (catalog) {
-      const maxInput = catalog.max_input_tokens;
-      if (typeof maxInput === "number" && maxInput > 0) limit.input = maxInput;
-    }
-    entry.limit = limit;
+  // Both `limit.context` and `limit.output` are REQUIRED by OpenCode's v1 provider schema
+  // regardless of whether the catalog (or the user's existing config) knows the model's
+  // context window — a model with no catalog metadata at all must still get both
+  // `limit.context` and `limit.output`, or OpenCode rejects the whole config with "Missing key
+  // provider.omniroute.models.{model}.limit.context" (#11035) or ".limit.output" (#10940, #11032).
+  // `output` above resolves to a safe fallback (8K) and `context` resolves to a safe fallback (128K)
+  // when nothing else is known, so we always emit both fields.
+  const resolvedContext = typeof context === "number" && context > 0 ? context : 128_000;
+  const limit: { context: number; input?: number; output: number } = {
+    context: resolvedContext,
+    output,
+  };
+  const userInput = existing?.limit?.input;
+  if (typeof userInput === "number" && userInput > 0) {
+    limit.input = userInput;
+  } else if (catalog) {
+    const maxInput = catalog.max_input_tokens;
+    if (typeof maxInput === "number" && maxInput > 0) limit.input = maxInput;
   }
+  entry.limit = limit;
 
   return entry;
 }
 
 /**
- * Load the user's current opencode.json (if any) so we can preserve names,
- * capability flags, and explicit `limit.context` overrides. JSONC comments
- * are not supported — we parse as plain JSON. If parsing fails, we fall
- * back to an empty config; the resulting write will lose comments, but
- * that matches the existing CLI behavior of `config set opencode`.
+ * Load the user's current OpenCode config so we can preserve names,
+ * capability flags, explicit `limit.context` overrides, and JSONC source text.
+ * Existing invalid files are a hard stop: replacing one with a regenerated
+ * document would silently lose comments, unrelated providers, and settings.
  */
-function loadExistingConfig(): ExistingConfig {
+function loadExistingConfig(configPath: string): { config: ExistingConfig; source: string | null } {
+  if (!fs.existsSync(configPath)) return { config: {}, source: null };
+
+  let source: string;
   try {
-    if (!fs.existsSync(CONFIG_PATH)) return {};
-    const raw = fs.readFileSync(CONFIG_PATH, "utf8");
-    return JSON.parse(raw) as ExistingConfig;
-  } catch {
-    return {};
+    source = readPrivateConfigFile(configPath);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to read existing OpenCode config at ${configPath}: ${message}`);
   }
+
+  const errors: ParseError[] = [];
+  const parsed = parse(source, errors, { allowTrailingComma: true, disallowComments: false });
+  if (errors.length > 0 || !parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    const detail = errors[0] ? printParseErrorCode(errors[0].error) : "root must be an object";
+    throw new Error(
+      `Existing OpenCode config at ${configPath} is invalid JSONC (${detail}); refusing to overwrite it.`
+    );
+  }
+
+  return { config: parsed as ExistingConfig, source };
+}
+
+/**
+ * Patch the generated values into an existing JSONC document without replacing
+ * its comments or unrelated keys. The generated object is authoritative for
+ * the fields the generator manages; everything else remains byte-for-byte
+ * unless jsonc-parser must adjust nearby whitespace for an edit.
+ */
+function mergeGeneratedConfigText(
+  existingSource: string | null,
+  existingConfig: ExistingConfig,
+  generatedConfig: Record<string, unknown>,
+  providerId: string
+): string {
+  if (existingSource === null) return JSON.stringify(generatedConfig, null, 2);
+
+  let nextText = existingSource;
+  const schemaEdits = modify(nextText, ["$schema"], generatedConfig.$schema, {
+    formattingOptions: JSON_FORMATTING_OPTIONS,
+  });
+  nextText = applyEdits(nextText, schemaEdits);
+
+  const generatedProvider = (
+    generatedConfig.provider as Record<string, ExistingProviderEntry> | undefined
+  )?.[providerId];
+  const providerEdits = modify(nextText, ["provider", providerId], generatedProvider, {
+    formattingOptions: JSON_FORMATTING_OPTIONS,
+  });
+  nextText = applyEdits(nextText, providerEdits);
+
+  if (generatedConfig.model !== existingConfig.model) {
+    const modelEdits = modify(nextText, ["model"], generatedConfig.model, {
+      formattingOptions: JSON_FORMATTING_OPTIONS,
+    });
+    nextText = applyEdits(nextText, modelEdits);
+  }
+
+  return nextText;
 }
 
 export interface GenerateOpencodeOptions {
   baseUrl: string;
   apiKey: string;
   model?: string;
+  /**
+   * Pre-resolved destination used by the API generator/apply pipeline so the
+   * file read for merging is guaranteed to be the file later written.
+   */
+  configPath?: string;
   /**
    * Override the default `provider.id` used in the generated config.
    * Defaults to `"omniroute"`.
@@ -352,7 +424,7 @@ export interface GenerateOpencodeOptions {
   /**
    * If `true` (default), the generator fetches the live `/v1/models` catalog
    * so every model entry has an explicit `limit.context`. The catalog is the
-   * single source of truth for context windows; we never invent defaults.
+   * primary source of truth for context windows, falling back to 128K when unknown.
    *
    * When the catalog request fails, the generator throws — opencode.json must
    * not be emitted with stale or fabricated values. The CLI can catch the
@@ -367,7 +439,7 @@ export interface GenerateOpencodeOptions {
 
 /**
  * Generate a full `opencode.json` document for OmniRoute. The catalog is the
- * single source of truth for context windows — we never hardcode values.
+ * primary source of truth for context windows, with a 128K fallback when unknown.
  *
  * Behavior:
  *  - Preserves the user's existing provider name, npm, options, and
@@ -377,8 +449,8 @@ export interface GenerateOpencodeOptions {
  *  - For each catalog model id the user did NOT have, a new entry is
  *    added with `limit.context` populated when the catalog has it.
  *  - If the catalog has no context for a model AND the user has no
- *    override, the model is emitted WITHOUT a `limit.context` field.
- *    OpenCode's own heuristic (typically 128K) applies.
+ *    override, a safe default (128K) is emitted so OpenCode's schema validator
+ *    does not reject the model.
  *  - Throws if the catalog fetch fails — the user must fix the upstream
  *    before we can generate a reliable opencode.json.
  */
@@ -389,6 +461,8 @@ export async function generateOpencodeConfig(options: GenerateOpencodeOptions): 
   const providerId = options.providerId?.trim() || "omniroute";
   const fetchCatalog = options.fetchCatalog !== false;
   const timeoutMs = options.catalogTimeoutMs ?? 5_000;
+  const configPath = options.configPath ?? resolveOpencodeConfigPath();
+  const { config: existing, source: existingSource } = loadExistingConfig(configPath);
 
   // Fetch live catalog. The catalog is the source of truth — if it fails,
   // we refuse to write an opencode.json that could mislead OpenCode into
@@ -407,7 +481,6 @@ export async function generateOpencodeConfig(options: GenerateOpencodeOptions): 
 
   // Load existing config so we preserve names, capability flags, and any
   // explicit `limit.context` overrides the user has set.
-  const existing = loadExistingConfig();
   const existingProvider = existing.provider?.[providerId];
   const existingModels = (existingProvider?.models ?? {}) as Record<string, ExistingModelEntry>;
 
@@ -465,7 +538,7 @@ export async function generateOpencodeConfig(options: GenerateOpencodeOptions): 
     config.small_model = existing.small_model;
   }
 
-  return JSON.stringify(config, null, 2);
+  return mergeGeneratedConfigText(existingSource, existing, config, providerId);
 }
 
 /**

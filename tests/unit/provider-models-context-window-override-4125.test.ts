@@ -32,7 +32,7 @@ const providerModelsRoute = await import("../../src/app/api/provider-models/rout
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -42,7 +42,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function buildRequest(method: string, body: unknown) {
@@ -103,7 +103,11 @@ test("GET surfaces contextWindowOverride on the custom model row", async () => {
     new Request("http://localhost/api/provider-models?provider=openai-compatible-demo")
   );
   const body = (await getRes.json()) as {
-    models: Array<{ id?: string; contextWindowOverride?: number; contextWindowOverrideSource?: string }>;
+    models: Array<{
+      id?: string;
+      contextWindowOverride?: number;
+      contextWindowOverrideSource?: string;
+    }>;
   };
 
   const row = body.models.find((m) => m.id === "m1");

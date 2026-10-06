@@ -52,6 +52,42 @@ curl -X DELETE https://localhost:20128/api/cache/stats \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/cache/entries
+
+GET cache › entries
+
+```bash
+curl https://localhost:20128/api/cache/entries \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### DELETE /api/cache/entries
+
+DELETE cache › entries
+
+```bash
+curl -X DELETE https://localhost:20128/api/cache/entries \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cache/reasoning
+
+GET cache › reasoning
+
+```bash
+curl https://localhost:20128/api/cache/reasoning \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### DELETE /api/cache/reasoning
+
+DELETE cache › reasoning
+
+```bash
+curl -X DELETE https://localhost:20128/api/cache/reasoning \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

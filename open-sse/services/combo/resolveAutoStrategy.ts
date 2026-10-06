@@ -4,6 +4,7 @@ import {
   errorResponseWithComboDiagnostics,
 } from "../../utils/error.ts";
 import { BudgetExceededError, selectProvider as selectAutoProvider } from "../autoCombo/engine.ts";
+import type { ScoringWeights } from "../autoCombo/scoring.ts";
 import {
   resolveRequestModePack,
   parseRequestBudgetCap,
@@ -82,6 +83,53 @@ export interface ResolveAutoStrategyDeps {
 export type ResolveAutoStrategyResult =
   | { earlyResponse: Response }
   | { orderedTargets: ResolvedComboTarget[]; autoUsedExplicitRouter: boolean };
+
+export interface EvaluateAutoCandidatesOptions {
+  targets: ResolvedComboTarget[];
+  comboName: string;
+  body: Record<string, unknown>;
+  taskType: string;
+  weights: ScoringWeights;
+  sessionId?: string | null;
+  resetWindowConfig?: ResetWindowConfig;
+  resilienceSettings?: ResilienceSettings | null;
+  manifestHint?: RoutingHint | null;
+  buildAutoCandidates: BuildAutoCandidates;
+}
+
+export async function evaluateAutoCandidates(options: EvaluateAutoCandidatesOptions) {
+  const builtCandidates = await options.buildAutoCandidates(
+    options.targets,
+    options.comboName,
+    options.sessionId,
+    options.resetWindowConfig,
+    options.resilienceSettings
+  );
+  const cacheAffinityScores = calculatePromptCacheAffinityScores(
+    builtCandidates,
+    options.body,
+    options.sessionId
+  );
+  const candidates = builtCandidates.map((candidate) => ({
+    ...candidate,
+    cacheAffinity: cacheAffinityScores.get(promptCacheTargetIdentity(candidate)) ?? 0,
+  }));
+  const routableCandidates = candidates.filter(
+    (candidate) => candidate.quotaCutoffBlocked !== true
+  );
+  return {
+    sourceCandidates: builtCandidates,
+    candidates,
+    routableCandidates,
+    scoredTargets: scoreAutoTargets(
+      options.targets,
+      routableCandidates,
+      options.taskType,
+      options.weights,
+      options.manifestHint
+    ),
+  };
+}
 
 /**
  * Resolve target ordering for the `auto` combo strategy.
@@ -179,32 +227,11 @@ export async function resolveAutoStrategyOrder(
         `Auto strategy: context-window filter kept ${filteredByContext.length}/${eligibleTargets.length} candidates (est. ${estimatedInputTokens} tokens)`
       );
       eligibleTargets = filteredByContext;
-    } else if (compatFilterFailOpen) {
+    } else {
       log.warn(
         "COMBO",
-        `Auto strategy: all candidates filtered by context-window policy (est. ${estimatedInputTokens} tokens), falling back to full pool (compatFilterFailOpen)`
+        `Auto strategy: all candidates filtered by approximate context-window policy (est. ${estimatedInputTokens} tokens), falling back to full pool`
       );
-    } else {
-      // #8488: every candidate has a known limit below the estimate — surface
-      // context_length_exceeded rather than dispatching oversized targets.
-      return {
-        earlyResponse: errorResponseWithComboDiagnostics(
-          400,
-          `Request requires approximately ${estimatedInputTokens} tokens, but every auto-strategy candidate in combo ${combo.name} has a smaller known context limit`,
-          {
-            poolSize: eligibleTargets.length,
-            attempted: 0,
-            excluded: eligibleTargets.map((target) => ({
-              provider: target.provider,
-              model: target.modelStr,
-              reason: "context_window",
-            })),
-            attemptOrder: [],
-            terminalReason: "context_length_exceeded",
-          },
-          { code: "context_length_exceeded", type: "invalid_request_error" }
-        ),
-      };
     }
 
     eligibleTargets = await expandAutoComboCandidatePool(eligibleTargets, combo);
@@ -266,7 +293,7 @@ export async function resolveAutoStrategyOrder(
 
   let lastKnownGoodProvider: string | undefined;
   try {
-    const { getLKGP } = await import("../../../src/lib/localDb");
+    const { getLKGP } = await import("@/lib/db/settings");
     const lkgp = await getLKGP(combo.name, combo.id || combo.name);
     if (lkgp) lastKnownGoodProvider = lkgp.provider;
   } catch (err) {
@@ -283,24 +310,34 @@ export async function resolveAutoStrategyOrder(
           },
         }
       : resilienceSettings;
-  const candidates = await buildAutoCandidates(
-    eligibleTargets,
-    combo.name,
-    relayOptions?.sessionId,
-    resetWindowConfig,
-    autoCandidateResilienceSettings
-  );
-  const cacheAffinityScores = calculatePromptCacheAffinityScores(
-    candidates,
-    body,
-    relayOptions?.sessionId
-  );
-  for (const candidate of candidates) {
-    candidate.cacheAffinity = cacheAffinityScores.get(promptCacheTargetIdentity(candidate)) ?? 0;
+  // Complexity-aware routing (2026, opt-in): classify the request's
+  // difficulty and feed a tier hint into scoring so tierAffinity /
+  // specificityMatch favor candidates whose tier matches the request.
+  const autoManifestHint: RoutingHint | null =
+    config.complexityAwareRouting === true
+      ? await buildComplexityRoutingHint(
+          eligibleTargets.filter((t) => t.kind === "model"),
+          body,
+          log
+        )
+      : null;
+
+  const { sourceCandidates, candidates, routableCandidates, scoredTargets } =
+    await evaluateAutoCandidates({
+      targets: eligibleTargets,
+      comboName: combo.name,
+      body,
+      taskType,
+      weights,
+      sessionId: relayOptions?.sessionId,
+      resetWindowConfig,
+      resilienceSettings: autoCandidateResilienceSettings,
+      manifestHint: autoManifestHint,
+      buildAutoCandidates,
+    });
+  for (let index = 0; index < sourceCandidates.length; index += 1) {
+    sourceCandidates[index].cacheAffinity = candidates[index]?.cacheAffinity;
   }
-  const routableCandidates = candidates.filter(
-    (candidate) => candidate.quotaCutoffBlocked !== true
-  );
   const quotaBlockedCount = candidates.length - routableCandidates.length;
   if (quotaBlockedCount > 0) {
     log.info(
@@ -332,8 +369,16 @@ export async function resolveAutoStrategyOrder(
             taskType,
             requestHasTools,
             lastKnownGoodProvider,
+            // #11181: the Routing tab persists an LKGP on/off toggle and
+            // LKGPStrategy guards on `context.lkgpEnabled === false`, but the
+            // field was never forwarded into this context, so the guard never
+            // saw the setting and the off-switch was unreachable.
+            lkgpEnabled: (settings as { lkgpEnabled?: unknown } | null | undefined)?.lkgpEnabled as
+              boolean | undefined,
             estimatedInputTokens,
             sla: slaPolicy,
+            weights,
+            explorationRate,
           },
           routingStrategy
         );
@@ -363,6 +408,7 @@ export async function resolveAutoStrategyOrder(
             modePack,
             budgetCap,
             budgetFallback,
+            estimatedInputTokens,
             explorationRate,
           },
           routableCandidates,
@@ -383,25 +429,6 @@ export async function resolveAutoStrategyOrder(
       selectionReason = `score=${selection.score.toFixed(3)}${selection.isExploration ? " (exploration)" : ""}`;
     }
 
-    // Complexity-aware routing (2026, opt-in): classify the request's
-    // difficulty and feed a tier hint into scoring so tierAffinity /
-    // specificityMatch favor candidates whose tier matches the request.
-    const autoManifestHint: RoutingHint | null =
-      config.complexityAwareRouting === true
-        ? buildComplexityRoutingHint(
-            eligibleTargets.filter((t) => t.kind === "model"),
-            body,
-            log
-          )
-        : null;
-
-    const scoredTargets = scoreAutoTargets(
-      eligibleTargets,
-      routableCandidates,
-      taskType,
-      weights,
-      autoManifestHint
-    );
     const rankedTargets = scoredTargets.map((entry) => entry.target);
     const selectedTarget =
       scoredTargets.find((entry) => {

@@ -9,7 +9,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { getModelAliases, setModelAlias } = await import("@/lib/db/models");
+const localDb = { getModelAliases, setModelAlias };
 const { compatibleProviderSupportsModelImport, getCompatibleFallbackModels } =
   await import("../../src/lib/providers/managedAvailableModels.ts");
 const {
@@ -21,7 +22,7 @@ const { getModelsByProviderId } = await import("../../src/shared/constants/model
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -31,7 +32,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("CC compatible fallback models mirror the OAuth Claude Code registry list", () => {

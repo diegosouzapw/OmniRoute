@@ -83,6 +83,11 @@ describe("compression engine registry contract", () => {
     assert.ok(
       liteSchema.some((field) => field.key === "compressToolResults" && field.defaultValue === true)
     );
+    assert.ok(
+      liteSchema.some((field) => field.key === "maxToolLength" && field.defaultValue === 2000)
+    );
+    const truncateField = liteSchema.find((field) => field.key === "compressToolResults");
+    assert.ok(truncateField?.description && !/2,000/.test(truncateField.description));
     assert.ok(!liteSchema.some((field) => field.key === "maxTokensPerMessage"));
     assert.ok(!liteSchema.some((field) => field.key === "summarizerEnabled"));
     assert.equal(
@@ -94,6 +99,9 @@ describe("compression engine registry contract", () => {
     );
     assert.equal(liteEngine.validateConfig({ preserveSystemPrompt: "yes" }).valid, false);
     assert.equal(liteEngine.validateConfig({ compressToolResults: "no" }).valid, false);
+    assert.equal(liteEngine.validateConfig({ maxToolLength: 8000 }).valid, true);
+    assert.equal(liteEngine.validateConfig({ maxToolLength: 10 }).valid, false);
+    assert.equal(liteEngine.validateConfig({ maxToolLength: 256 }).valid, true);
     assert.equal(cavemanEngine.validateConfig({ intensity: "full" }).valid, true);
     assert.equal(cavemanEngine.validateConfig({ intensity: "bad" }).valid, false);
     assert.equal(realRtkEngine.validateConfig({ maxLinesPerResult: 20 }).valid, true);

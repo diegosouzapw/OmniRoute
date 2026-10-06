@@ -14,6 +14,7 @@ import {
 } from "../../open-sse/executors/conol-web.ts";
 import {
   CONOL_FALLBACK_MODELS,
+  CONOL_FALLBACK_MODEL_PRESETS,
   clampConolEffort,
   parseConolAgentServers,
   resolveConolModelSelection,
@@ -27,6 +28,11 @@ import { getResolvedModelCapabilities } from "../../src/lib/modelCapabilities.ts
 const SESSION_COOKIE_NAME = "__Secure-better-auth.session_token";
 
 describe("Conol web provider", () => {
+  it("routes the Flash preset multimodal path to Gemini 3.7", () => {
+    const flashPreset = CONOL_FALLBACK_MODEL_PRESETS.find((preset) => preset.id === "flash");
+    assert.equal(flashPreset?.multimodal, "google/gemini-3.7-flash");
+  });
+
   it("normalizes raw, full-header, JSON, and provider-data credentials", () => {
     assert.equal(normalizeConolCookie("token-value"), `${SESSION_COOKIE_NAME}=token-value`);
     assert.equal(

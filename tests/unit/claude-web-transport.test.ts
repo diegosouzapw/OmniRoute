@@ -407,7 +407,12 @@ describe("Claude Web executor transport orchestration", () => {
     assert.match(executorSource, /export class ClaudeWebExecutor extends BaseExecutor/);
     assert.doesNotMatch(executorSource, /claudeTurnstileSolver|getCfClearanceToken|tryBackedChat/);
     assert.doesNotMatch(indexSource, /ClaudeWebWithAutoRefresh/);
-    assert.match(indexSource, /"claude-web": new ClaudeWebExecutor\(\)/);
-    assert.match(indexSource, /"cw-web": new ClaudeWebExecutor\(\)/);
+    // Both aliases still resolve to ClaudeWebExecutor. Matched on the alias key
+    // and the class name rather than the exact construction spelling: #11421 made
+    // the map lazy (`() => import(…).then((m) => new m.ClaudeWebExecutor())`), and
+    // an anchor pinned to `new ClaudeWebExecutor()` went red for a change that
+    // never touched the wiring this test is here to guard.
+    assert.match(indexSource, /"claude-web":.*ClaudeWebExecutor/);
+    assert.match(indexSource, /"cw-web":.*ClaudeWebExecutor/);
   });
 });

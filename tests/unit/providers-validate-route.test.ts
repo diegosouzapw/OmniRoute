@@ -16,13 +16,13 @@ const validateRoute = await import("../../src/app/api/providers/validate/route.t
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (originalAllowPrivateProviderUrls === undefined) {
     delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
   } else {

@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -40,7 +50,7 @@ function makeTempDir(prefix) {
 }
 
 function removePath(targetPath) {
-  fs.rmSync(targetPath, { recursive: true, force: true });
+  fs.rmSync(targetPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }
 
 async function importFresh(modulePath) {
@@ -213,6 +223,12 @@ function createRecoverableDb(sqliteFile) {
       auth_type TEXT,
       name TEXT,
       is_active INTEGER DEFAULT 1,
+      test_status TEXT,
+      error_code TEXT,
+      last_error TEXT,
+      last_error_at TEXT,
+      last_error_type TEXT,
+      last_error_source TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -464,6 +480,11 @@ test(
           HOME: fakeHome,
           USERPROFILE: fakeHome,
           APPDATA: undefined,
+          // #10428: this pins the SERVER fallback (home data dir). The test-context guard
+          // would otherwise redirect this DATA_DIR-less process to a temp dir — correct for
+          // real test runs, but it would turn this assertion into a test of the guard rather
+          // than of the home-dir fallback. `fakeHome` already keeps the real DB out of reach.
+          OMNIROUTE_ALLOW_DEFAULT_DATA_DIR: "1",
         },
         async () => {
           const core = await importFresh("src/lib/db/core.ts");
@@ -482,7 +503,13 @@ test(
   }
 );
 
-test("build phase uses an in-memory database without creating sqlite files", serial, async () => {
+test("build phase returns the no-op stub without creating sqlite files", serial, async () => {
+  // Contract changed by #10060 (via #10952): the build phase no longer opens a
+  // real in-memory SQLite with migrations — loading the native better-sqlite3
+  // addon aborts the Next.js build worker on exit (node::
+  // RemoveEnvironmentCleanupHook). getDbInstance() now returns a no-op stub
+  // (pinned by tests/unit/build/10060-build-sqlite-stub.test.ts); queries are
+  // harmless no-ops and no file is touched.
   const dataDir = makeTempDir("omniroute-db-build-");
 
   try {
@@ -495,13 +522,15 @@ test("build phase uses an in-memory database without creating sqlite files", ser
         const core = await importFresh("src/lib/db/core.ts");
         const db = core.getDbInstance();
 
-        assert.ok(
+        assert.notEqual(db.driver, "better-sqlite3");
+        assert.equal(
           db
             .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-            .get("provider_connections")
+            .get("provider_connections"),
+          undefined,
+          "the build stub must answer queries with no-ops, never a real table scan"
         );
         assert.equal(fs.existsSync(path.join(dataDir, "storage.sqlite")), false);
-        assert.equal(db.pragma("journal_mode", { simple: true }), "memory");
 
         core.resetDbInstance();
       }
@@ -511,35 +540,39 @@ test("build phase uses an in-memory database without creating sqlite files", ser
   }
 });
 
-test("invalid DATA_DIR (a file where a dir is expected) surfaces as a startup failure", serial, async () => {
-  const sandboxDir = makeTempDir("omniroute-db-bad-path-");
-  const fileAsDir = path.join(sandboxDir, "not-a-directory");
-  fs.writeFileSync(fileAsDir, "blocked");
+test(
+  "invalid DATA_DIR (a file where a dir is expected) surfaces as a startup failure",
+  serial,
+  async () => {
+    const sandboxDir = makeTempDir("omniroute-db-bad-path-");
+    const fileAsDir = path.join(sandboxDir, "not-a-directory");
+    fs.writeFileSync(fileAsDir, "blocked");
 
-  try {
-    // Since #4767, db/core.ts resolves a writable data dir at module load via
-    // resolveWritableDataDir() → mkdirSync(recursive). Pointing DATA_DIR at a
-    // regular file is a non-permission misconfiguration (EEXIST/ENOTDIR), which
-    // resolveWritableDataDir rethrows by design (only EACCES/EPERM fall back), so
-    // the failure now surfaces at import time, not lazily from getDbInstance().
-    let caught: unknown;
-    await withEnv({ DATA_DIR: fileAsDir }, () => importFresh("src/lib/db/core.ts")).then(
-      () => {
-        throw new Error("expected importing db/core with an invalid DATA_DIR to reject");
-      },
-      (err) => {
-        caught = err;
-      }
-    );
-    assert.ok(caught instanceof Error, "an invalid DATA_DIR must surface as a thrown Error");
-    assert.match(
-      String((caught as Error).message),
-      /unable to open database file|ENOTDIR|EEXIST|not a directory|file already exists/i
-    );
-  } finally {
-    removePath(sandboxDir);
+    try {
+      // Since #4767, db/core.ts resolves a writable data dir at module load via
+      // resolveWritableDataDir() → mkdirSync(recursive). Pointing DATA_DIR at a
+      // regular file is a non-permission misconfiguration (EEXIST/ENOTDIR), which
+      // resolveWritableDataDir rethrows by design (only EACCES/EPERM fall back), so
+      // the failure now surfaces at import time, not lazily from getDbInstance().
+      let caught: unknown;
+      await withEnv({ DATA_DIR: fileAsDir }, () => importFresh("src/lib/db/core.ts")).then(
+        () => {
+          throw new Error("expected importing db/core with an invalid DATA_DIR to reject");
+        },
+        (err) => {
+          caught = err;
+        }
+      );
+      assert.ok(caught instanceof Error, "an invalid DATA_DIR must surface as a thrown Error");
+      assert.match(
+        String((caught as Error).message),
+        /unable to open database file|ENOTDIR|EEXIST|not a directory|file already exists/i
+      );
+    } finally {
+      removePath(sandboxDir);
+    }
   }
-});
+);
 
 test(
   "legacy empty schema databases are renamed before a fresh sqlite database is created",
@@ -636,6 +669,12 @@ test(
         name TEXT,
         priority INTEGER DEFAULT 0,
         is_active INTEGER DEFAULT 1,
+      test_status TEXT,
+      error_code TEXT,
+      last_error TEXT,
+      last_error_at TEXT,
+      last_error_type TEXT,
+      last_error_source TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );

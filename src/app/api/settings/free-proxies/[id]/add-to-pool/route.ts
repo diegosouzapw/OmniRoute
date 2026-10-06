@@ -1,11 +1,12 @@
 import { request as undiciRequest } from "undici";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/localDb";
+import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/db/freeProxies";
 import {
   createProxyDispatcher,
   proxyConfigToUrl,
 } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+import { probeEchoTargets } from "@/lib/proxyEchoTarget";
 
 type ConnectivityTester = (
   host: string,
@@ -23,31 +24,37 @@ async function testProxyConnectivity(
 
   const dispatcher = createProxyDispatcher(proxyUrl);
   const start = Date.now();
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
 
   try {
-    const res = await undiciRequest("https://api64.ipify.org?format=json", {
-      method: "GET",
-      dispatcher,
-      signal: controller.signal,
-      headersTimeout: 5000,
-      bodyTimeout: 5000,
-    });
-    const text = await res.body.text();
+    // #9694: try the IPv6-first echo target, then the IPv4-only one, so a proxy
+    // with no IPv6 route is not reported dead.
+    const { result } = await probeEchoTargets(async (url, timeoutMs) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await undiciRequest(url, {
+          method: "GET",
+          dispatcher,
+          signal: controller.signal,
+          headersTimeout: timeoutMs,
+          bodyTimeout: timeoutMs,
+        });
+        return { statusCode: res.statusCode, text: await res.body.text() };
+      } finally {
+        clearTimeout(timeout);
+      }
+    }, 5000);
     let parsed: { ip?: string } = {};
     try {
-      parsed = JSON.parse(text) as { ip?: string };
+      parsed = JSON.parse(result.text) as { ip?: string };
     } catch {}
     return {
-      success: res.statusCode === 200,
+      success: result.statusCode === 200,
       latencyMs: Date.now() - start,
       publicIp: parsed.ip,
     };
   } catch {
     return { success: false, latencyMs: Date.now() - start };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 

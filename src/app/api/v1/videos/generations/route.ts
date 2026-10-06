@@ -1,12 +1,11 @@
 import { handleVideoGeneration } from "@omniroute/open-sse/handlers/videoGeneration.ts";
 import { resolveVideoCredentialProvider } from "@omniroute/open-sse/handlers/videoGeneration/googleFlow.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { getAllCustomModels } from "@/lib/db/models";
 import {
   getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
 } from "@/sse/services/auth";
-import { parseVideoModel, getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
+import { getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
@@ -25,6 +24,11 @@ import {
 } from "@/app/api/v1/_shared/mediaGenerationRoute";
 import type { MediaGenerationResultLike } from "@/app/api/v1/_shared/mediaGenerationRoute";
 import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
+import {
+  isVideoPromptOptional,
+  resolveLocalOverrideCredentials,
+  resolveVideoModelTarget,
+} from "@/app/api/v1/_shared/videoModelResolution";
 
 export const dynamic = "force-dynamic";
 
@@ -47,18 +51,6 @@ export async function GET(request?: Request) {
 }
 
 /**
- * #6928: best-effort per-connection base-URL override lookup for local no-auth
- * media providers (ComfyUI). Returns null instead of failing when no connection
- * exists — local providers must keep working with zero configuration.
- */
-async function resolveLocalOverrideCredentials(provider) {
-  const localCredentials = await getProviderCredentialsWithQuotaPreflight(provider);
-  return localCredentials && !isAllRateLimitedCredentials(localCredentials)
-    ? localCredentials
-    : null;
-}
-
-/**
  * POST /v1/videos/generations — generate videos
  */
 async function postHandler(request, context) {
@@ -68,57 +60,40 @@ async function postHandler(request, context) {
   }
   const body = parsed.body;
   const startTime = Date.now();
-  const parsedModel = parseVideoModel(body.model);
-
-  const promptOptional =
-    (parsedModel.model === "happyhorse-1.1-i2v" &&
-      (parsedModel.provider === "alibaba" ||
-        parsedModel.provider === "bailian-coding-plan" ||
-        parsedModel.provider === "qwen-cloud-token-plan" ||
-        parsedModel.provider === "qwen-cloud")) ||
-    (parsedModel.provider === "qwen-cloud" && parsedModel.model === "wan2.7-i2v") ||
-    (parsedModel.provider === "alibaba" &&
-      (parsedModel.model === "wan2.7-i2v-2026-04-25" || parsedModel.model === "wan2.6-i2v-flash"));
-  if (!promptOptional) {
-    const promptError = promptRequiredResponse(body);
-    if (promptError) return promptError;
-  }
 
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
 
-  // Parse model to get provider
-  let { provider, model: requestedModel } = parsedModel;
-  let isCustomModel = false;
-  if (!provider) {
-    // Custom OpenAI-compatible provider nodes (mirrors images route): scan the
-    // dynamic model registry for a matching `${nodeId}/${modelId}` entry.
-    try {
-      const customModelsMap = (await getAllCustomModels()) as Record<string, any>;
-      for (const [providerId, models] of Object.entries(customModelsMap)) {
-        if (!Array.isArray(models)) continue;
-        for (const model of models) {
-          if (!model?.id || !Array.isArray(model.supportedEndpoints)) continue;
-          if (!model.supportedEndpoints.includes("videos")) continue;
-          const fullId = `${providerId}/${model.id}`;
-          if (fullId === body.model) {
-            provider = providerId;
-            requestedModel = model.id;
-            isCustomModel = true;
-            break;
-          }
-        }
-      }
-    } catch {
-      // registry read failure — fall through to invalid-model error below
+  // Detect a combo name and divert to full video combo execution, mirroring
+  // the images route. Checks before the provider lookup — and before the
+  // prompt-required check below — so a combo name is never rejected as an
+  // invalid `provider/model` id or against the wrong model's prompt rules:
+  // /v1/models advertises these names, and prompt requirements depend on the
+  // resolved target, which for a combo is only known after expansion.
+  if (body.model && typeof body.model === "string" && !body.model.includes("/")) {
+    const { getComboByName } = await import("@/lib/db/combos");
+    const combo = await getComboByName(body.model);
+    if (combo) {
+      const { executeVideoCombo } = await import("@omniroute/open-sse/services/videoCombo");
+      return executeVideoCombo(body.model, body, { request, policy }, startTime, log);
     }
   }
+
+  // Parse model to get provider — checks the built-in registry, then custom
+  // OpenAI-compatible provider nodes tagged with the "videos" endpoint.
+  const resolvedTarget = await resolveVideoModelTarget(body.model);
+  const { provider, model: requestedModel, isCustomModel } = resolvedTarget;
   if (!provider) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
       `Invalid video model: ${body.model}. Use format: provider/model`
     );
+  }
+
+  if (!isVideoPromptOptional(resolvedTarget)) {
+    const promptError = promptRequiredResponse(body);
+    if (promptError) return promptError;
   }
 
   // Check provider config for auth bypass

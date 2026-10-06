@@ -28,7 +28,7 @@ x-runtime: &runtime
     context: ../..
     dockerfile: docker/devin-bridge/Dockerfile
     args:
-      CLAUDE_CODE_VERSION: 2.1.220
+      CLAUDE_CODE_VERSION: 2.1.258
       DEVIN_CLI_VERSION: 3000.2.17
   user: "10001:10001"
   read_only: true

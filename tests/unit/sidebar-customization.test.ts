@@ -89,9 +89,10 @@ test("applyItemOrder ignores unknown IDs in order list", () => {
 
 // ─── SIDEBAR_PRESETS ──────────────────────────────────────────────────────────
 
-test("SIDEBAR_PRESETS contains all four preset IDs", () => {
+test("SIDEBAR_PRESETS contains all five preset IDs", () => {
   const ids = SIDEBAR_PRESETS.map((p) => p.id);
   assert.ok(ids.includes("all"), "expected 'all' preset");
+  assert.ok(ids.includes("essentials"), "expected 'essentials' preset");
   assert.ok(ids.includes("minimal"), "expected 'minimal' preset");
   assert.ok(ids.includes("developer"), "expected 'developer' preset");
   assert.ok(ids.includes("admin"), "expected 'admin' preset");
@@ -110,6 +111,30 @@ test("SIDEBAR_PRESETS 'all' preset has no hidden items", () => {
   const allPreset = SIDEBAR_PRESETS.find((p) => p.id === "all");
   assert.ok(allPreset, "expected 'all' preset to exist");
   assert.deepEqual(allPreset.hiddenItems, []);
+});
+
+test("SIDEBAR_PRESETS includes essentials as the beginner path", () => {
+  assert.equal(SIDEBAR_PRESETS.length, 5);
+  assert.deepEqual(
+    SIDEBAR_PRESETS.map((p) => p.id),
+    ["all", "essentials", "minimal", "developer", "admin"]
+  );
+  const essentials = SIDEBAR_PRESETS.find((p) => p.id === "essentials");
+  assert.ok(essentials, "expected 'essentials' preset to exist");
+  const hidden = new Set(essentials.hiddenItems);
+  for (const id of [
+    "home",
+    "endpoints",
+    "api-manager",
+    "providers",
+    "health",
+    "settings-general",
+    "settings-sidebar",
+  ]) {
+    assert.equal(hidden.has(id as never), false, `${id} should stay visible in essentials`);
+  }
+  assert.equal(hidden.has("playground"), true);
+  assert.equal(hidden.has("logs"), true);
 });
 
 test("SIDEBAR_PRESETS non-all presets have at least one hidden item", () => {

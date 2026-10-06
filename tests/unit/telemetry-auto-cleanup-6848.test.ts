@@ -44,10 +44,9 @@ const { getDbInstance, resetDbInstance } = await import("../../src/lib/db/core.t
 // or the native test runner can hang indefinitely on a dangling connection.
 test.after(() => {
   resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-const DAY_SECONDS = 86_400;
 const DAY_MS = 86_400_000;
 
 /** Ensure compression_run_telemetry table exists (created lazily in production). */
@@ -161,14 +160,15 @@ test("#6848 cleanupCompressionRunTelemetry: deletes rows older than retention wi
   ensureTelemetryTable();
   const db = getDbInstance()!;
   const now = Date.now();
-  const nowSeconds = Math.floor(now / 1000);
   const insert = db.prepare(
     "INSERT INTO compression_run_telemetry (timestamp, tokens_before, tokens_after) VALUES (?, ?, ?)"
   );
 
-  insert.run(nowSeconds - 40 * DAY_SECONDS, 1000, 500);
-  insert.run(nowSeconds - 40 * DAY_SECONDS, 2000, 800);
-  insert.run(nowSeconds - 5 * DAY_SECONDS, 1500, 600);
+  // insertCompressionRunTelemetryRow() stamps Date.now() — epoch MILLISECONDS.
+  // Seeding seconds here encoded the same unit mismatch the cleanup had.
+  insert.run(now - 40 * DAY_MS, 1000, 500);
+  insert.run(now - 40 * DAY_MS, 2000, 800);
+  insert.run(now - 5 * DAY_MS, 1500, 600);
 
   const result = await cleanupCompressionRunTelemetry();
 
@@ -181,10 +181,33 @@ test("#6848 cleanupCompressionRunTelemetry: deletes rows older than retention wi
   assert.strictEqual(remaining.cnt, 1);
 });
 
+test("#6848 cleanupCompressionRunTelemetry: missing lazy table is an empty no-op", async () => {
+  getDbInstance()!.exec("DROP TABLE compression_run_telemetry");
+
+  const result = await cleanupCompressionRunTelemetry();
+
+  assert.deepStrictEqual(result, { deleted: 0, errors: 0 });
+});
+
+test("#6848 cleanupCompressionRunTelemetry: contains table lookup failures", async (t) => {
+  const db = getDbInstance()!;
+  const prepare = db.prepare.bind(db);
+  t.mock.method(db, "prepare", (sql: string) => {
+    if (sql.includes("sqlite_master")) {
+      throw new Error("injected table lookup failure");
+    }
+    return prepare(sql);
+  });
+  t.mock.method(console, "error", () => {});
+
+  const result = await cleanupCompressionRunTelemetry();
+
+  assert.deepStrictEqual(result, { deleted: 0, errors: 1 });
+});
+
 test("#6848 no rows deleted when all data is within retention window (calls all 4 real functions)", async () => {
   ensureTelemetryTable();
   const db = getDbInstance()!;
-  const nowSeconds = Math.floor(Date.now() / 1000);
   const nowMilliseconds = Date.now();
   const recentISO = new Date().toISOString();
 
@@ -201,7 +224,7 @@ test("#6848 no rows deleted when all data is within retention window (calls all 
   ).run("k", "a", 5, recentISO);
   db.prepare(
     "INSERT INTO compression_run_telemetry (timestamp, tokens_before, tokens_after) VALUES (?, ?, ?)"
-  ).run(nowSeconds - DAY_SECONDS, 100, 50);
+  ).run(nowMilliseconds - DAY_MS, 100, 50);
 
   const r1 = await cleanupDomainCostHistory();
   const r2 = await cleanupCompressionCacheStats();

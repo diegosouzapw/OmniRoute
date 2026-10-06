@@ -14,6 +14,9 @@ import { resolveStreamFlag } from "../../open-sse/utils/aiSdkCompat.ts";
 
 type TransformedBody = {
   stream?: boolean;
+  tools?: Array<{
+    function?: { parameters?: Record<string, unknown> };
+  }>;
   thinking?: Record<string, unknown>;
   output_config?: Record<string, unknown>;
   context_management?: Record<string, unknown>;
@@ -44,10 +47,10 @@ function credentials(
 }
 
 describe("KimiExecutor", () => {
-  it("forces the primary Kimi upstream to stream while preserving JSON client semantics", () => {
+  it("forces the primary Kimi upstream to stream while preserving JSON client semantics", async () => {
     assert.equal(REGISTRY.kimi?.forceStream, true);
 
-    const executor = getExecutor("kimi");
+    const executor = await getExecutor("kimi");
     assert.ok(executor instanceof MoonshotExecutor);
     assert.equal(
       executor.buildUrl("kimi-k2.5", true, 0, credentials(FORMATS.OPENAI)),
@@ -86,9 +89,9 @@ describe("KimiExecutor", () => {
     assert.equal(headers.Authorization, "Bearer oauth-token");
     assert.equal(headers["x-api-key"], undefined);
     assert.equal(headers["X-Msh-Platform"], "kimi_code_cli");
-    assert.equal(headers["X-Msh-Version"], "0.26.0");
+    assert.equal(headers["X-Msh-Version"], "2.1.1");
     assert.equal(headers["X-Msh-Device-Id"], "12345678-1234-1234-1234-1234567890ab");
-    assert.equal(headers["User-Agent"], "kimi-code-cli/0.26.0");
+    assert.equal(headers["User-Agent"], "kimi-code-cli/2.1.1");
   });
 
   it("routes Anthropic-protocol models to beta Messages with x-api-key", () => {
@@ -100,6 +103,61 @@ describe("KimiExecutor", () => {
     assert.equal(headers.Authorization, undefined);
     assert.equal(headers["x-api-key"], "oauth-token");
     assert.equal(headers["Anthropic-Version"], "2023-06-01");
+  });
+
+  it("removes only root anyOf from OpenAI tool parameters", () => {
+    const parameters = {
+      type: "object",
+      properties: {
+        path: { type: "string", anyOf: [{ minLength: 1 }, { maxLength: 20 }] },
+        scope: { type: "string" },
+      },
+      required: ["path", "scope"],
+      anyOf: [{ required: ["path"] }, { required: ["scope"] }],
+    };
+    const executor = new KimiExecutor();
+    const transformed = executor.transformRequest(
+      "k3",
+      {
+        messages: [{ role: "user", content: "hi" }],
+        tools: [{ type: "function", function: { name: "read", parameters } }],
+      },
+      false,
+      credentials(FORMATS.OPENAI)
+    ) as TransformedBody;
+    const output = transformed.tools?.[0]?.function?.parameters;
+
+    assert.equal(output?.type, "object");
+    assert.deepEqual(output?.properties, parameters.properties);
+    assert.deepEqual(output?.required, parameters.required);
+    assert.equal(output?.anyOf, undefined);
+  });
+
+  it("applies root-anyOf compatibility to Moonshot OpenAI requests", () => {
+    const parameters = {
+      type: "object",
+      properties: {
+        path: { type: "string", anyOf: [{ minLength: 1 }, { maxLength: 20 }] },
+      },
+      required: ["path"],
+      anyOf: [{ required: ["path"] }],
+    };
+    const executor = new MoonshotExecutor();
+    const transformed = executor.transformRequest(
+      "kimi-k3",
+      {
+        messages: [{ role: "user", content: "hi" }],
+        tools: [{ type: "function", function: { name: "read", parameters } }],
+      },
+      false,
+      credentials(FORMATS.OPENAI)
+    ) as TransformedBody;
+    const output = transformed.tools?.[0]?.function?.parameters;
+
+    assert.equal(output?.type, "object");
+    assert.deepEqual(output?.properties, parameters.properties);
+    assert.deepEqual(output?.required, parameters.required);
+    assert.equal(output?.anyOf, undefined);
   });
 
   it("normalizes OpenAI thinking, token limits, usage, and preserved history", () => {

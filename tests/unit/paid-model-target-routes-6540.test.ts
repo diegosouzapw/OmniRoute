@@ -12,13 +12,15 @@ const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const settingsRoute = await import("../../src/app/api/settings/route.ts");
 const comboDefaultsRoute = await import("../../src/app/api/settings/combo-defaults/route.ts");
-const backgroundDegradationRoute = await import(
-  "../../src/app/api/settings/background-degradation/route.ts"
-);
+const backgroundDegradationRoute =
+  await import("../../src/app/api/settings/background-degradation/route.ts");
+const { isPaidModelTarget } = await import("../../src/shared/utils/freeModels.ts");
 
 // A provider present in the free-model catalog (so providerHasFreeModels is
-// true) but a model id that is NOT one of its documented free models.
-const PAID_TARGET = "together/Qwen/Qwen3-235B-A22B";
+// true) but a model id that is NOT one of its documented free models. Gemini's
+// free tier is recurring and excludes the Pro line; the previous Together target
+// stopped classifying once its one-time signup credit left the catalog (#13407).
+const PAID_TARGET = "gemini/gemini-3.1-pro-preview";
 // A documented free model.
 const FREE_TARGET = "openrouter/auto";
 // No "/" or "," — a combo/alias name, fails open ("unknown").
@@ -26,7 +28,7 @@ const UNKNOWN_TARGET = "my-combo-alias";
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -36,7 +38,13 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
+
+test("fixtures classify as intended against the current free-model catalog", () => {
+  assert.equal(isPaidModelTarget(PAID_TARGET), "paid", "PAID_TARGET must stay a paid model");
+  assert.equal(isPaidModelTarget(FREE_TARGET), "free", "FREE_TARGET must stay a free model");
+  assert.equal(isPaidModelTarget(UNKNOWN_TARGET), "unknown");
 });
 
 // ── PATCH /api/settings — webSearchRouteModel ──────────────────────────────

@@ -18,6 +18,8 @@ test("classifies each credential model from the real registries", () => {
   assert.equal(getCredentialRequirement("kilocode"), "optional");
   // Verified live 2026-07-20: answers with no Authorization header, 403s on a bad key.
   assert.equal(getCredentialRequirement("ovhcloud"), "optional");
+  // Verified live 2026-08-11: HTTP 200 with no Authorization header (#10068).
+  assert.equal(getCredentialRequirement("kilo-gateway"), "optional");
   // OAuth: nothing to paste, but the user still signs in.
   assert.equal(getCredentialRequirement("agy"), "oauth");
   // Ordinary key-gated provider.

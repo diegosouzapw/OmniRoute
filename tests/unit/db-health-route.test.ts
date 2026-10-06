@@ -19,7 +19,7 @@ const TEST_INITIAL_PASSWORD = "db-health-route-password";
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   process.env.JWT_SECRET = TEST_JWT_SECRET;
   process.env.INITIAL_PASSWORD = TEST_INITIAL_PASSWORD;
@@ -58,7 +58,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_JWT_SECRET === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
   if (ORIGINAL_INITIAL_PASSWORD === undefined) delete process.env.INITIAL_PASSWORD;

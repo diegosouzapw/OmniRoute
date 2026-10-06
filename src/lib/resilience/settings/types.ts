@@ -16,11 +16,22 @@ export interface RequestQueueSettings {
   requestsPerMinute: number;
   minTimeBetweenRequestsMs: number;
   concurrentRequests: number;
+  /** Whole-process upstream concurrency cap. Zero disables the global gate. */
+  globalConcurrentRequests: number;
   /**
-   * Legacy persisted key used as Bottleneck's post-dispatch execution
-   * expiration. It does not bound time spent in Bottleneck's QUEUED state.
+   * Queue-wait budget: how long a request may wait for a rate-limit slot
+   * (gates + limiter queue) before being dropped. Does NOT bound execution.
    */
   maxWaitMs: number;
+  /**
+   * Limiter-managed execution backstop (Bottleneck `expiration`, which starts
+   * only after a job leaves QUEUED). Kept separate from `maxWaitMs` because
+   * non-incremental gateways legitimately take minutes before first bytes;
+   * the backstop must never undercut the upstream fetch-start timeout.
+   * Per-connection `rateLimitOverrides.executionMaxWaitMs` can override this
+   * global default (bounded 0..600000 via provider schema; 0 falls through).
+   */
+  executionMaxWaitMs: number;
   /**
    * Issue #6593: opt-in admission cap on the local rate-limit queue. When the
    * queue already holds `maxQueueDepth` requests, a new request is
@@ -28,6 +39,22 @@ export interface RequestQueueSettings {
    * = disabled, preserving the unbounded-queue behavior. Bounded 0-100000.
    */
   maxQueueDepth: number;
+}
+
+/**
+ * Global default cadence (minutes) for the background credential health check
+ * sweep (src/lib/credentialHealth/scheduler.ts). Applies to every active
+ * connection that does NOT carry its own per-connection override. Bounded
+ * 0-1440: 0 disables the sweep entirely, 1440 = 24 hours.
+ *
+ * The per-connection `provider_connections.healthCheckInterval` (minutes)
+ * ALWAYS wins when set — including its 0 = "never test this connection"
+ * opt-out — so an operator can globally slow the sweep and still fast-probe
+ * (or fully exclude) a single connection.
+ */
+export interface CredentialHealthCheckSettings {
+  /** Sweep interval in minutes. 0 = disabled. Max 1440 (24h). */
+  intervalMinutes: number;
 }
 
 export interface ConnectionCooldownProfileSettings {
@@ -169,6 +196,8 @@ export interface ProviderQuotaOverrideSettings {
   rpm?: number;
   /** Overrides the static per-connection concurrency cap. */
   concurrency?: number;
+  /** Shared concurrency cap across every connection for this provider. */
+  providerConcurrency?: number;
 }
 
 export interface StreamRecoverySettings {
@@ -217,6 +246,7 @@ export interface ResilienceSettings {
   quotaPreflight: QuotaPreflightSettings;
   streamRecovery: StreamRecoverySettings;
   providerQuotaOverrides: Record<string, ProviderQuotaOverrideSettings>;
+  credentialHealthCheck: CredentialHealthCheckSettings;
 }
 
 export interface ResilienceSettingsPatch {
@@ -230,4 +260,5 @@ export interface ResilienceSettingsPatch {
   quotaPreflight?: Partial<QuotaPreflightSettings>;
   streamRecovery?: Partial<StreamRecoverySettings>;
   providerQuotaOverrides?: Record<string, Partial<ProviderQuotaOverrideSettings>>;
+  credentialHealthCheck?: Partial<CredentialHealthCheckSettings>;
 }

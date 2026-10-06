@@ -148,64 +148,68 @@ export default function ModelSelectModal({
   const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
   const [modelTestStatus, setModelTestStatus] = useState<Record<string, "ok" | "error">>({});
 
-  const fetchCombos = async () => {
-    try {
-      const res = await fetch("/api/combos");
-      if (!res.ok) throw new Error(`Failed to fetch combos: ${res.status}`);
-      const data = await res.json();
-      setCombos(data.combos || []);
-    } catch (error) {
-      console.error("Error fetching combos:", error);
-      setCombos([]);
-    }
-  };
-
   useEffect(() => {
-    if (isOpen) fetchCombos();
+    if (!isOpen) return;
+    const fetchCombos = async () => {
+      try {
+        const res = await fetch("/api/combos");
+        if (!res.ok) throw new Error(`Failed to fetch combos: ${res.status}`);
+        const data = await res.json();
+        setCombos(data.combos || []);
+      } catch (error) {
+        console.error("Error fetching combos:", error);
+        setCombos([]);
+      }
+    };
+    fetchCombos();
   }, [isOpen]);
 
   // Reset provider-test bookkeeping whenever the modal closes so the next
-  // open starts from a clean selection / progress state.
+  // open starts from a clean selection / progress state (render-time
+  // adjustment per react.dev "You Might Not Need an Effect").
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) {
+      setSelectedProviderIds(new Set());
+      setTestingProviders(false);
+      setTestProgress(null);
+      setModelTestStatus({});
+    }
+  }
+
   useEffect(() => {
-    if (isOpen) return;
-    setSelectedProviderIds(new Set());
-    setTestingProviders(false);
-    setTestProgress(null);
-    setModelTestStatus({});
+    if (!isOpen) return;
+    const fetchProviderNodes = async () => {
+      try {
+        const res = await fetch("/api/provider-nodes");
+        if (!res.ok) throw new Error(`Failed to fetch provider nodes: ${res.status}`);
+        const data = await res.json();
+        setProviderNodes(data.nodes || []);
+      } catch (error) {
+        console.error("Error fetching provider nodes:", error);
+        setProviderNodes([]);
+      }
+    };
+    fetchProviderNodes();
   }, [isOpen]);
 
-  const fetchProviderNodes = async () => {
-    try {
-      const res = await fetch("/api/provider-nodes");
-      if (!res.ok) throw new Error(`Failed to fetch provider nodes: ${res.status}`);
-      const data = await res.json();
-      setProviderNodes(data.nodes || []);
-    } catch (error) {
-      console.error("Error fetching provider nodes:", error);
-      setProviderNodes([]);
-    }
-  };
-
   useEffect(() => {
-    if (isOpen) fetchProviderNodes();
-  }, [isOpen]);
-
-  const fetchCustomModels = async () => {
-    try {
-      const res = await fetch("/api/provider-models");
-      if (!res.ok) throw new Error(`Failed to fetch custom models: ${res.status}`);
-      const data = await res.json();
-      setCustomModels(data.models || {});
-      // #9203: keep the unified hidden-model map in sync with the model list.
-      setHiddenModelsByProvider(parseHiddenModelsByProvider(data.hiddenModelsByProvider));
-    } catch (error) {
-      console.error("Error fetching custom models:", error);
-      setCustomModels({});
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen) fetchCustomModels();
+    if (!isOpen) return;
+    const fetchCustomModels = async () => {
+      try {
+        const res = await fetch("/api/provider-models");
+        if (!res.ok) throw new Error(`Failed to fetch custom models: ${res.status}`);
+        const data = await res.json();
+        setCustomModels(data.models || {});
+        // #9203: keep the unified hidden-model map in sync with the model list.
+        setHiddenModelsByProvider(parseHiddenModelsByProvider(data.hiddenModelsByProvider));
+      } catch (error) {
+        console.error("Error fetching custom models:", error);
+        setCustomModels({});
+      }
+    };
+    fetchCustomModels();
   }, [isOpen]);
 
   // Fetch the live model catalog for one custom provider from its connection's

@@ -49,6 +49,26 @@ Restart the MCP server
 omniroute mcp restart
 ```
 
+### `mcp enable`
+
+**Flags:**
+
+- `--transport <transport>`
+
+**Example:**
+
+```bash
+omniroute mcp enable
+```
+
+### `mcp disable`
+
+**Example:**
+
+```bash
+omniroute mcp disable
+```
+
 ### `mcp call <tool> [argsJson]`
 
 **Flags:**
@@ -74,77 +94,4 @@ omniroute mcp call <tool> [argsJson]
 
 ```bash
 omniroute mcp scopes
-```
-
-### `mcp tools`
-
-**Example:**
-
-```bash
-omniroute mcp tools
-```
-
-### `mcp list`
-
-**Flags:**
-
-- `--scope <s>`
-
-**Example:**
-
-```bash
-omniroute mcp list
-```
-
-### `mcp info <name>`
-
-**Example:**
-
-```bash
-omniroute mcp info <name>
-```
-
-### `mcp schema <name>`
-
-**Flags:**
-
-- `--io <kind>`
-
-**Example:**
-
-```bash
-omniroute mcp schema <name>
-```
-
-### `mcp audit`
-
-**Example:**
-
-```bash
-omniroute mcp audit
-```
-
-### `mcp tail`
-
-**Flags:**
-
-- `--follow`
-- `--limit <n>`
-
-**Example:**
-
-```bash
-omniroute mcp tail
-```
-
-### `mcp stats`
-
-**Flags:**
-
-- `--period <p>`
-
-**Example:**
-
-```bash
-omniroute mcp stats
 ```

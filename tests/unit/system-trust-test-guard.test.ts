@@ -37,6 +37,6 @@ test("installCert under the guard skips the OS mutation but keeps input contract
   try {
     await installCert("", pem);
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

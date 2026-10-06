@@ -43,7 +43,7 @@ function buildCapability(overrides: Record<string, unknown> = {}) {
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -53,7 +53,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#8032 cp/cline-pass/kimi-k3: attachment=false empty modalities → vision via leaf/registry", () => {
@@ -83,9 +83,7 @@ test("#8032 leaf fallback is vision-only: aihorde/deepseek/deepseek-v4-flash kee
   // Regression guard from PR review (#8495 / #8212): shared getStaticSpec leaf
   // lookup previously promoted this live-discovered AI Horde id to the real
   // DeepSeek V4 Flash supportsTools:true spec. Leaf lookup must stay vision-only.
-  const caps = modelCapabilities.getResolvedModelCapabilities(
-    "aihorde/deepseek/deepseek-v4-flash"
-  );
+  const caps = modelCapabilities.getResolvedModelCapabilities("aihorde/deepseek/deepseek-v4-flash");
   assert.equal(caps.toolCalling, false);
   assert.equal(caps.supportsTools, false);
   assert.equal(

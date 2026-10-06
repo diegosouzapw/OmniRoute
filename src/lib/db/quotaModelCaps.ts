@@ -82,25 +82,6 @@ export function getModelCap(poolId: string, apiKeyId: string, model: string): Mo
     .get(poolId, apiKeyId, model);
   return row ? rowToModelCap(row) : null;
 }
-
-/**
- * List all model caps for a given (pool, key) pair.
- */
-export function listModelCaps(poolId: string, apiKeyId: string): ModelCap[] {
-  const rows = getDb()
-    .prepare<ModelCapRow>(
-      `SELECT pool_id, api_key_id, model, cap_value, cap_unit
-       FROM quota_allocation_model_caps
-       WHERE pool_id = ? AND api_key_id = ?`
-    )
-    .all(poolId, apiKeyId);
-  return rows.map(rowToModelCap);
-}
-
-/**
- * Insert or replace a model cap.
- * cap_value must be > 0 (enforced by DB CHECK constraint).
- */
 export function setModelCap(cap: ModelCap): void {
   getDb()
     .prepare(
@@ -112,17 +93,4 @@ export function setModelCap(cap: ModelCap): void {
          cap_unit  = excluded.cap_unit`
     )
     .run(cap.poolId, cap.apiKeyId, cap.model, cap.capValue, cap.capUnit);
-}
-
-/**
- * Remove the cap for a specific (pool, key, model) triple.
- * No-op if it does not exist.
- */
-export function deleteModelCap(poolId: string, apiKeyId: string, model: string): void {
-  getDb()
-    .prepare(
-      `DELETE FROM quota_allocation_model_caps
-       WHERE pool_id = ? AND api_key_id = ? AND model = ?`
-    )
-    .run(poolId, apiKeyId, model);
 }

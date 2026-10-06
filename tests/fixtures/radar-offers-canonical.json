@@ -1,0 +1,63 @@
+{
+  "feed": "omniroute-radar-offers",
+  "schemaVersion": 1,
+  "version": "2026.08.09.1",
+  "generatedAt": "2026-08-09T12:00:00.000Z",
+  "tier": "live",
+  "count": 2,
+  "offers": [
+    {
+      "id": "example-official-trial",
+      "provider": "example",
+      "title": {
+        "en": "Official trial",
+        "pt": "Teste oficial"
+      },
+      "description": {
+        "en": "Canonical official-offer fixture",
+        "pt": "Fixture canônico de oferta oficial"
+      },
+      "benefit": {
+        "kind": "trial_days",
+        "days": 14
+      },
+      "publicBenefit": null,
+      "conditions": {
+        "en": "Fixture only; not a real offer",
+        "pt": "Somente fixture; não é uma oferta real"
+      },
+      "validUntil": "2099-12-31T23:59:59.000Z",
+      "url": "https://provider.example/official-trial",
+      "partner": false
+    },
+    {
+      "id": "example-partner-credit",
+      "provider": "example",
+      "title": {
+        "en": "Partner credit",
+        "pt": "Crédito de parceiro"
+      },
+      "description": {
+        "en": "Canonical partner-offer fixture",
+        "pt": "Fixture canônico de oferta de parceiro"
+      },
+      "benefit": {
+        "kind": "credit",
+        "amountMinor": 1000,
+        "currency": "USD"
+      },
+      "publicBenefit": {
+        "kind": "credit",
+        "amountMinor": 500,
+        "currency": "USD"
+      },
+      "conditions": {
+        "en": "Fixture only; not a real offer",
+        "pt": "Somente fixture; não é uma oferta real"
+      },
+      "validUntil": null,
+      "url": "https://provider.example/partner-credit",
+      "partner": true
+    }
+  ]
+}

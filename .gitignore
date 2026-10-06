@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # project-specific directories
+/output/
 .slim/deepwork/
 .omnivscodeagent/
 omnirouteCloud/
@@ -13,6 +14,7 @@ _tasks/
 .agents/**
 .claude/**
 .gemini/**
+.code-forge/**
 .config/**
 .data/**
 .logs/**
@@ -69,7 +71,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# Local gitleaks artifacts (do not commit)
+gitleaks-local.json
 !.env.example
+!.env.selfhost.example
 !.env.homolog.example
 !.env.devin-bridge.example
 # Provider API keys (never commit)
@@ -214,6 +219,7 @@ scripts/i18n/_pending-keys.json
 
 # PR Reviews and local feedback files
 pr_reviews*.json
+/review/
 
 #hidden local data directories (never commit)
 .local-data/
@@ -285,3 +291,13 @@ docker-compose.yml.bak
 
 # CLI local cache/state
 .playwright-cli
+
+# Ad-hoc test sandboxes (never tracked — may contain local DBs)
+/.sandbox/
+.aider*
+
+# check:install-upgrade work trees (~12 GB, disposable)
+/.install-upgrade/
+
+# run-translation.mjs writes the state atomically via a per-process temp file
+/.i18n-state.json.*.tmp

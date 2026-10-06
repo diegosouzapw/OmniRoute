@@ -8,8 +8,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-err-sanitize-"));
+const TEST_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-err-sanitize-"));
+const TEST_DATA_DIR = path.join(TEST_ROOT, "data");
+const TEST_PLUGINS_DIR = path.join(TEST_ROOT, "plugins");
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const ORIGINAL_PLUGINS_DIR = process.env.OMNIROUTE_PLUGINS_DIR;
+const ORIGINAL_API_KEY_SECRET = process.env.API_KEY_SECRET;
+fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+fs.mkdirSync(TEST_PLUGINS_DIR, { recursive: true });
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.OMNIROUTE_PLUGINS_DIR = TEST_PLUGINS_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret-32chars-long!!";
 
 const core = await import("../../src/lib/db/core.ts");
@@ -32,7 +40,7 @@ function makeRequest(url: string, options: { method?: string; body?: unknown } =
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -42,7 +50,13 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
+  else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  if (ORIGINAL_PLUGINS_DIR === undefined) delete process.env.OMNIROUTE_PLUGINS_DIR;
+  else process.env.OMNIROUTE_PLUGINS_DIR = ORIGINAL_PLUGINS_DIR;
+  if (ORIGINAL_API_KEY_SECRET === undefined) delete process.env.API_KEY_SECRET;
+  else process.env.API_KEY_SECRET = ORIGINAL_API_KEY_SECRET;
+  fs.rmSync(TEST_ROOT, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 async function createCombo(name: string, model: string) {
@@ -225,6 +239,21 @@ test("sanitizeErrorMessage replaces absolute paths with <path>", async () => {
   assert.ok(out2.includes("<path>"));
 });
 
+test("sanitizeErrorMessage does not swallow a shielded route hint that follows an earlier redacted path (#6457)", async () => {
+  // Regression: an unshielded route-looking span ("on /v1/chat/completions")
+  // followed by ambiguous prose ("Use POST") used to make the unquoted-path
+  // scanner fail closed all the way to the end of the string, deleting a
+  // second, legitimately-shielded route reference ("POST /v1/images/...")
+  // and everything after it instead of just redacting the first span.
+  const { sanitizeErrorMessage } = await import("../../open-sse/utils/error.ts");
+  const input =
+    "Model 'x' is an image-generation model and cannot be used on /v1/chat/completions. Use POST /v1/images/generations instead.";
+  const out = sanitizeErrorMessage(input);
+  assert.match(out, /\/v1\/images\/generations/, "shielded route hint must survive");
+  assert.match(out, /instead\.$/, "text after the shielded route hint must not be dropped");
+  assert.ok(out.includes("<path>"), "the earlier unshielded route span is still redacted");
+});
+
 test("sanitizeErrorMessage handles non-string inputs safely", async () => {
   const { sanitizeErrorMessage } = await import("../../open-sse/utils/error.ts");
   assert.equal(sanitizeErrorMessage(undefined), "");
@@ -338,7 +367,8 @@ test("buildErrorBody — upstream details with stack key are stripped", async ()
     !("stack" in (body.upstream_details as any)),
     "stack must be stripped from upstream_details"
   );
-  assert.equal((body.upstream_details as any).code, "internal");
+  assert.equal((body.upstream_details as any).code, "");
+  assert.doesNotMatch(JSON.stringify(body.upstream_details), /internal/);
 });
 
 // ── createErrorResult with upstreamDetails ───────────────────────────────────

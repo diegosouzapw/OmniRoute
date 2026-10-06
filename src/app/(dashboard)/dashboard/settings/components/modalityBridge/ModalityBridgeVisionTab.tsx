@@ -23,6 +23,7 @@ interface VisionState {
   modalityBridgeVisionPrompt: string;
   modalityBridgeVisionTimeout: number;
   modalityBridgeVisionMaxImages: number;
+  modalityBridgeVisionMaxChars: number;
   modalityBridgeCacheEnabled: boolean;
   modalityBridgeCacheTtlMinutes: number;
   modalityBridgeCacheMaxEntries: number;
@@ -39,6 +40,7 @@ function fromApi(data: Record<string, unknown>): VisionState {
     modalityBridgeVisionPrompt: runtime.prompt,
     modalityBridgeVisionTimeout: runtime.timeoutMs,
     modalityBridgeVisionMaxImages: runtime.maxImages,
+    modalityBridgeVisionMaxChars: runtime.maxChars,
     modalityBridgeCacheEnabled: runtime.cacheEnabled,
     modalityBridgeCacheTtlMinutes: runtime.cacheTtlMinutes,
     modalityBridgeCacheMaxEntries: runtime.cacheMaxEntries,
@@ -107,6 +109,18 @@ export default function ModalityBridgeVisionTab() {
     void update({ [key]: value });
   };
 
+  const commitMaxChars = (raw: string) => {
+    const parsed = Number.parseInt(raw, 10);
+    // 0 disables the cap and is a valid value in its own right — only values
+    // between 1 and 99 (below the schema's floor) get pulled up to 100.
+    const value =
+      Number.isFinite(parsed) && parsed <= 0
+        ? 0
+        : clampNumber(raw, 100, 50000, MODALITY_BRIDGE_DEFAULTS.visionMaxChars);
+    setLocal({ modalityBridgeVisionMaxChars: value });
+    void update({ modalityBridgeVisionMaxChars: value });
+  };
+
   return (
     <Card
       title={t("modalityBridgeVisionTitle")}
@@ -158,6 +172,18 @@ export default function ModalityBridgeVisionTab() {
           value={settings.modalityBridgeVisionModel}
           placeholder={t("modalityBridgeVisionModelAuto")}
           allowEmpty
+          // #10809: read the unified catalog (all configured providers +
+          // user-added custom models — matching the Audio tab's modelSource)
+          // so active upstream vision models are never missed. #10703: the
+          // filter still lists only vision-capable models, so text-only code
+          // models (cmd/gpt-5.3-codex, cmd/deepseek/deepseek-v4-pro, …) never
+          // appear as Vision Bridge candidates. allowCustomInput keeps an
+          // editable text field so operators can type a self-hosted / unlisted
+          // vision model.
+          modelSource="catalog"
+          modelFilter={(model) => model.supportsVision === true}
+          allowCustomInput
+          testId="modality-bridge-vision-model"
           onChange={(value) => void update({ modalityBridgeVisionModel: value })}
           className="text-sm"
         />
@@ -227,6 +253,19 @@ export default function ModalityBridgeVisionTab() {
                 )
               }
             />
+            <div>
+              <NumberField
+                testId="modality-bridge-max-chars"
+                label={t("visionMaxCharsLabel")}
+                min={0}
+                max={50000}
+                placeholder="0"
+                value={settings.modalityBridgeVisionMaxChars}
+                onChange={(value) => setLocal({ modalityBridgeVisionMaxChars: value })}
+                onBlur={(raw) => commitMaxChars(raw)}
+              />
+              <p className="mt-1 text-xs text-text-muted">{t("visionMaxCharsHint")}</p>
+            </div>
             <div className="md:col-span-2">
               <Toggle
                 checked={settings.modalityBridgeCacheEnabled}
@@ -291,9 +330,19 @@ interface NumberFieldProps {
   value: number;
   onChange: (value: number) => void;
   onBlur: (raw: string) => void;
+  placeholder?: string;
 }
 
-function NumberField({ testId, label, min, max, value, onChange, onBlur }: NumberFieldProps) {
+function NumberField({
+  testId,
+  label,
+  min,
+  max,
+  value,
+  onChange,
+  onBlur,
+  placeholder,
+}: NumberFieldProps) {
   return (
     <label className="block text-sm font-medium">
       {label}
@@ -302,6 +351,7 @@ function NumberField({ testId, label, min, max, value, onChange, onBlur }: Numbe
         data-testid={testId}
         min={min}
         max={max}
+        placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(Number.parseInt(event.currentTarget.value, 10) || 0)}
         onBlur={(event) => onBlur(event.currentTarget.value)}

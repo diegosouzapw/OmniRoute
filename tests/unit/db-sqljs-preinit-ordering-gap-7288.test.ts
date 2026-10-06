@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -51,7 +61,7 @@ test.after(() => {
   }
   if (prevDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = prevDataDir;
-  if (dataDir) fs.rmSync(dataDir, { recursive: true, force: true });
+  if (dataDir) fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("src/lib/db/core.ts has no top-level await (breaks esbuild's CJS require() bundling — #7288 hotfix)", () => {
@@ -173,9 +183,8 @@ test(
     const dir2 = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7288-happy-"));
     const file2 = path.join(dir2, "storage.sqlite");
     try {
-      const { tryOpenSync, getSqlJsAdapter } = await import(
-        "../../src/lib/db/adapters/driverFactory"
-      );
+      const { tryOpenSync, getSqlJsAdapter } =
+        await import("../../src/lib/db/adapters/driverFactory");
       const { default: Database } = await import("better-sqlite3");
       const seed = new Database(file2);
       seed.exec("CREATE TABLE t (id INTEGER)");
@@ -194,7 +203,7 @@ test(
           "otherwise every boot would pay the WASM-load cost even on the happy path"
       );
     } finally {
-      fs.rmSync(dir2, { recursive: true, force: true });
+      fs.rmSync(dir2, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   }
 );

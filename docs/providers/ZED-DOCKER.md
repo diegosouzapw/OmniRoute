@@ -103,7 +103,7 @@ The manual import endpoint can also be called directly:
 ```
 POST /api/providers/zed/manual-import
 Content-Type: application/json
-Authorization: Bearer <management-token>
+Authorization: Bearer <oma_live_or_manage_scoped_api_key>
 
 {
   "provider": "openai",

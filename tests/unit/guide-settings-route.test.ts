@@ -11,6 +11,7 @@ const guideSettingsRoute =
 
 const DUMMY_HOME = path.join(os.tmpdir(), "omniroute-guide-settings-test-" + Date.now());
 const OPENCODE_CONFIG_PATH = path.join(DUMMY_HOME, ".config", "opencode", "opencode.json");
+const OPENCODE_JSONC_CONFIG_PATH = path.join(DUMMY_HOME, ".config", "opencode", "opencode.jsonc");
 // cliRuntime.ts hermes entry maps to .config/hermes/config.json (not .hermes/config.yaml)
 const HERMES_CONFIG_PATH = path.join(DUMMY_HOME, ".config", "hermes", "config.json");
 const originalXDG = process.env.XDG_CONFIG_HOME;
@@ -20,7 +21,7 @@ const originalJwtSecret = process.env.JWT_SECRET;
 async function createAuthCookie() {
   process.env.JWT_SECRET = "test-cli-tools-secret";
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const token = await new SignJWT({ sub: "test-user" })
+  const token = await new SignJWT({ authenticated: true, sub: "test-user" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1h")
@@ -54,7 +55,9 @@ test.beforeEach(async () => {
 });
 
 test.afterEach(async () => {
-  await fs.rm(DUMMY_HOME, { recursive: true, force: true }).catch(() => {});
+  await fs
+    .rm(DUMMY_HOME, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+    .catch(() => {});
   if (originalXDG === undefined) delete process.env.XDG_CONFIG_HOME;
   else process.env.XDG_CONFIG_HOME = originalXDG;
   if (originalAppData === undefined) delete process.env.APPDATA;
@@ -126,7 +129,11 @@ test("guide-settings POST writes OpenCode config with current schema and multi-m
     "cc/claude-sonnet-4-20250514",
     "gg/gemini-2.5-pro",
   ]);
-  assert.equal(content.providers, undefined);
+  // The v2 provider schema is dual-written alongside the v1 block: the v2
+  // entry lives under `providers.omniroute` with `package`/`settings`.
+  assert.equal(content.providers.omniroute.package, "@opencode-ai/ai/providers/openai-compatible");
+  assert.equal(content.providers.omniroute.settings.baseURL, "http://my-omni/v1");
+  assert.ok(content.providers.omniroute.settings.apiKey.startsWith("sk-"));
 });
 
 test("guide-settings POST preserves existing OpenCode config fields while only updating provider.omniroute", async () => {
@@ -197,7 +204,34 @@ test("guide-settings POST preserves existing OpenCode config fields while only u
   assert.equal(content.provider.omniroute.options.baseURL, "http://my-omni/v1");
   assert.ok(content.provider.omniroute.options.apiKey.startsWith("sk-"));
   assert.deepEqual(content.provider.omniroute.models, {
-    "cx/gpt-5.6-sol": { name: "GPT-5.6 Sol" },
-    "opencode-go/kimi-k2.6": { name: "Kimi K2.6" },
+    "cx/gpt-5.6-sol": {
+      name: "GPT-5.6 Sol",
+      limit: { context: 128_000, output: 8192 },
+    },
+    "opencode-go/kimi-k2.6": {
+      name: "Kimi K2.6",
+      limit: { context: 128_000, output: 8192 },
+    },
   });
+});
+
+test("guide-settings POST refuses to overwrite an invalid opencode.jsonc (#10227)", async () => {
+  const invalidJsonc = "{ invalid jsonc\n";
+  await fs.mkdir(path.dirname(OPENCODE_JSONC_CONFIG_PATH), { recursive: true });
+  await fs.writeFile(OPENCODE_JSONC_CONFIG_PATH, invalidJsonc, "utf-8");
+
+  const req = await buildRequest("opencode", {
+    baseUrl: "http://my-omni/v1",
+    apiKey: "sk-123",
+    models: ["cx/gpt-5.6-sol"],
+  });
+  const response = (await guideSettingsRoute.POST(req, {
+    params: { toolId: "opencode" },
+  })) as Response;
+  const data = (await response.json()) as { error?: string };
+
+  assert.equal(response.status, 500);
+  assert.match(data.error || "", /invalid JSONC.*refusing to overwrite/i);
+  assert.equal(await fs.readFile(OPENCODE_JSONC_CONFIG_PATH, "utf-8"), invalidJsonc);
+  await assert.rejects(fs.access(OPENCODE_CONFIG_PATH));
 });

@@ -21,6 +21,26 @@ test("classifyKiroSocialPoll keeps only documented pending states retryable", ()
   });
 });
 
+test("classifyKiroSocialPoll treats status as alias of error for pending states", () => {
+  // Kiro upstream returns progress in `status`, not `error`
+  assert.deepEqual(classifyKiroSocialPoll(true, 200, { status: "authorization_pending" }), {
+    kind: "pending",
+    error: "authorization_pending",
+  });
+  assert.deepEqual(classifyKiroSocialPoll(true, 200, { status: "slow_down" }), {
+    kind: "pending",
+    error: "slow_down",
+  });
+  // error takes precedence over status if both present
+  assert.deepEqual(
+    classifyKiroSocialPoll(true, 200, { error: "slow_down", status: "authorization_pending" }),
+    {
+      kind: "pending",
+      error: "slow_down",
+    }
+  );
+});
+
 test("classifyKiroSocialPoll stops on denied, expired and malformed responses", () => {
   assert.deepEqual(classifyKiroSocialPoll(false, 403, { error: "access_denied" }), {
     kind: "error",

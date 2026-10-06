@@ -485,6 +485,8 @@ describe("EngineConfigPage", () => {
     expect(toggle).not.toBeNull();
     expect(toggle?.checked).toBe(false);
     expect(container.textContent).toContain("Emergency overflow protection may still trim content");
+    expect(container.textContent).not.toContain("2,000 characters");
+    expect(container.textContent).toContain("Maximum tool-result length field");
 
     const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Save")
@@ -496,6 +498,359 @@ describe("EngineConfigPage", () => {
     });
 
     expect(settingsPuts).toContainEqual({ lite: { compressToolResults: false } });
+  });
+
+  it("saves Lite maxToolLength next to the truncation switch", async () => {
+    const settingsPuts: Array<Record<string, unknown>> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(
+            JSON.stringify({
+              engines: [
+                {
+                  id: "lite",
+                  name: "Lite",
+                  description: "Lite engine",
+                  icon: "compress",
+                  stackable: true,
+                  stackPriority: 5,
+                  metadata: { description: "Lite metadata" },
+                  configSchema: [
+                    {
+                      key: "compressToolResults",
+                      type: "boolean",
+                      label: "Proactively truncate long tool results",
+                      defaultValue: true,
+                    },
+                    {
+                      key: "maxToolLength",
+                      type: "number",
+                      label: "Maximum tool-result length",
+                      defaultValue: 2000,
+                      min: 256,
+                      max: 1_000_000,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(
+            JSON.stringify({ lite: { compressToolResults: true, maxToolLength: 8000 } }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="lite" />);
+      await Promise.resolve();
+    });
+
+    const numberInput = container.querySelector("input[type='number']") as HTMLInputElement | null;
+    expect(numberInput).not.toBeNull();
+    expect(numberInput?.value).toBe("8000");
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Save")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts).toContainEqual({
+      lite: { compressToolResults: true, maxToolLength: 8000 },
+    });
+  });
+
+  it("does not persist the schema default maxToolLength when settings omit it", async () => {
+    const settingsPuts: Array<Record<string, unknown>> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(
+            JSON.stringify({
+              engines: [
+                {
+                  id: "lite",
+                  name: "Lite",
+                  description: "Lite engine",
+                  icon: "compress",
+                  stackable: true,
+                  stackPriority: 5,
+                  metadata: { description: "Lite metadata" },
+                  configSchema: [
+                    {
+                      key: "compressToolResults",
+                      type: "boolean",
+                      label: "Proactively truncate long tool results",
+                      defaultValue: true,
+                    },
+                    {
+                      key: "maxToolLength",
+                      type: "number",
+                      label: "Maximum tool-result length",
+                      defaultValue: 2000,
+                      min: 256,
+                      max: 1_000_000,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(JSON.stringify({ lite: { compressToolResults: true } }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="lite" />);
+      await Promise.resolve();
+    });
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Save")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts).toContainEqual({ lite: { compressToolResults: true } });
+    expect(settingsPuts.some((body) => "maxToolLength" in ((body.lite as object) ?? {}))).toBe(
+      false
+    );
+  });
+
+  it("omits maxToolLength from Save when the number input is cleared", async () => {
+    const settingsPuts: Array<Record<string, unknown>> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(
+            JSON.stringify({
+              engines: [
+                {
+                  id: "lite",
+                  name: "Lite",
+                  description: "Lite engine",
+                  icon: "compress",
+                  stackable: true,
+                  stackPriority: 5,
+                  metadata: { description: "Lite metadata" },
+                  configSchema: [
+                    {
+                      key: "compressToolResults",
+                      type: "boolean",
+                      label: "Proactively truncate long tool results",
+                      defaultValue: true,
+                    },
+                    {
+                      key: "maxToolLength",
+                      type: "number",
+                      label: "Maximum tool-result length",
+                      defaultValue: 2000,
+                      min: 256,
+                      max: 1_000_000,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(
+            JSON.stringify({ lite: { compressToolResults: true, maxToolLength: 8000 } }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="lite" />);
+      await Promise.resolve();
+    });
+
+    const numberInput = container.querySelector("input[type='number']") as HTMLInputElement | null;
+    expect(numberInput).not.toBeNull();
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      setter?.call(numberInput, "");
+      numberInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Save")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts.length).toBeGreaterThan(0);
+    const lite = settingsPuts[0]?.lite as Record<string, unknown> | undefined;
+    expect(lite).toBeTruthy();
+    expect(lite?.compressToolResults).toBe(true);
+    expect(lite?.maxToolLength).toBeNull();
+  });
+
+  it("rejects Save when maxToolLength is a finite value outside the allowed range", async () => {
+    const settingsPuts: Array<Record<string, unknown>> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(
+            JSON.stringify({
+              engines: [
+                {
+                  id: "lite",
+                  name: "Lite",
+                  description: "Lite engine",
+                  icon: "compress",
+                  stackable: true,
+                  stackPriority: 5,
+                  metadata: { description: "Lite metadata" },
+                  configSchema: [
+                    {
+                      key: "compressToolResults",
+                      type: "boolean",
+                      label: "Proactively truncate long tool results",
+                      defaultValue: true,
+                    },
+                    {
+                      key: "maxToolLength",
+                      type: "number",
+                      label: "Maximum tool-result length",
+                      defaultValue: 2000,
+                      min: 256,
+                      max: 1_000_000,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(
+            JSON.stringify({ lite: { compressToolResults: true, maxToolLength: 8000 } }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="lite" />);
+      await Promise.resolve();
+    });
+
+    const numberInput = container.querySelector("input[type='number']") as HTMLInputElement | null;
+    expect(numberInput).not.toBeNull();
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      setter?.call(numberInput, "100");
+      numberInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Save")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts).toEqual([]);
+    expect(container.textContent).toContain("Failed to save configuration.");
   });
 
   it("#8056: headroom minRows is persistable — Save PUTs headroom:{minRows:5}", async () => {

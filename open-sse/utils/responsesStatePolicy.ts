@@ -4,12 +4,14 @@ import {
   RESPONSES_PREVIOUS_RESPONSE_ID_MODES,
   type ResponsesPreviousResponseIdMode,
 } from "@/shared/constants/responsesPreviousResponseId";
+import { CHATGPT_WEB_CODEX_PROVIDER_ID } from "@/shared/constants/chatgptWebCodex";
 import { FORMATS } from "../translator/formats.ts";
 
 type JsonRecord = Record<string, unknown>;
 
 type ApplyResponsesPreviousResponseIdPolicyOptions = {
   mode: unknown;
+  provider?: unknown;
   sourceFormat?: unknown;
   targetFormat?: unknown;
   credentials?: unknown;
@@ -32,6 +34,7 @@ export function normalizeResponsesPreviousResponseIdMode(
 
 export function shouldStripPreviousResponseId({
   mode,
+  provider,
   sourceFormat,
   targetFormat,
   credentials,
@@ -39,6 +42,7 @@ export function shouldStripPreviousResponseId({
   const normalizedMode = normalizeResponsesPreviousResponseIdMode(mode);
   if (normalizedMode === "preserve") return false;
   if (normalizedMode === "strip") return true;
+  if (provider === CHATGPT_WEB_CODEX_PROVIDER_ID) return false;
 
   const isResponsesSource = sourceFormat === FORMATS.OPENAI_RESPONSES;
   const isResponsesTarget = targetFormat === FORMATS.OPENAI_RESPONSES;
@@ -66,6 +70,17 @@ export function applyResponsesPreviousResponseIdPolicy(
   }
 
   if (!shouldStripPreviousResponseId({ ...options, mode })) {
+    return { body, stripped: false, mode };
+  }
+
+  // Under auto, never strip the only continuity field: if input would ship
+  // empty, GitHub Copilot /responses answers
+  //   400 One of "input" or "previous_response_id" or 'prompt' or 'conversation'
+  //       must be provided.
+  // Explicit mode "strip" still wins (operator chose statelessness).
+  const input = record.input;
+  const inputIsEmpty = input === undefined || (Array.isArray(input) && input.length === 0);
+  if (mode === "auto" && inputIsEmpty) {
     return { body, stripped: false, mode };
   }
 

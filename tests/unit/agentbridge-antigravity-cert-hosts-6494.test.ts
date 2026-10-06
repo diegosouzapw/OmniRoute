@@ -38,7 +38,7 @@ test("generateCert() issues a cert whose SAN list covers all 4 antigravity hosts
   t.after(() => {
     if (previousDataDir === undefined) delete process.env.DATA_DIR;
     else process.env.DATA_DIR = previousDataDir;
-    fs.rmSync(tmpDataDir, { recursive: true, force: true });
+    fs.rmSync(tmpDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   // Fresh module instance so it re-reads process.env.DATA_DIR via resolveMitmDataDir().
@@ -50,9 +50,6 @@ test("generateCert() issues a cert whose SAN list covers all 4 antigravity hosts
   const san = cert.subjectAltName ?? "";
 
   for (const host of EXPECTED_HOSTS) {
-    assert.ok(
-      san.includes(host),
-      `expected generated cert SAN to include "${host}" — got: ${san}`
-    );
+    assert.ok(san.includes(host), `expected generated cert SAN to include "${host}" — got: ${san}`);
   }
 });

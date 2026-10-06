@@ -46,8 +46,9 @@ function renderCard(currentType: CliConceptType): HTMLElement {
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-    true;
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
 });
 
 afterEach(() => {
@@ -74,7 +75,16 @@ describe("CliConceptCard", () => {
   it("renders with currentType=acp", () => {
     const container = renderCard("acp");
     expect(container.textContent).toContain("concept.acp.title");
+    expect(container.textContent).toContain("concept.acp.warning");
   });
+
+  it.each(["code", "agent"] satisfies CliConceptType[])(
+    "does not show the ACP warning for currentType=%s",
+    (type) => {
+      const container = renderCard(type);
+      expect(container.textContent).not.toContain("concept.acp.warning");
+    }
+  );
 
   it("for currentType=code, card has primary bg class", () => {
     const container = renderCard("code");

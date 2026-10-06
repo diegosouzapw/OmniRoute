@@ -25,9 +25,10 @@ process.env.API_KEY_SECRET = "test-quota-preview-secret";
 process.env.QUOTA_STORE_DRIVER = "sqlite";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const { createPool, upsertAllocations } = await import("@/lib/db/quotaPools");
+const localDb = { updateSettings };
 const compliance = await import("../../src/lib/compliance/index.ts");
-const { createPool, upsertAllocations } = localDb;
 const { getSqliteQuotaStore } = await import("../../src/lib/quota/sqliteQuotaStore.ts");
 const { resetQuotaStoreSingleton } = await import("../../src/lib/quota/QuotaStore.ts");
 const previewRoute = await import("../../src/app/api/quota/preview/route.ts");
@@ -40,7 +41,7 @@ async function enableManagementAuth() {
 function resetDb() {
   core.resetDbInstance();
   resetQuotaStoreSingleton();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -52,14 +53,12 @@ test.beforeEach(async () => {
 test.after(() => {
   core.resetDbInstance();
   resetQuotaStoreSingleton();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("GET /api/quota/preview without auth → 401", async () => {
   await enableManagementAuth();
-  const req = new Request(
-    "http://localhost/api/quota/preview?apiKeyId=k1&poolId=p1"
-  );
+  const req = new Request("http://localhost/api/quota/preview?apiKeyId=k1&poolId=p1");
   const res = await previewRoute.GET(req);
   assert.equal(res.status, 401);
 });
@@ -89,9 +88,7 @@ test("GET /api/quota/preview with nonexistent poolId → 404", async () => {
 test("GET /api/quota/preview with valid params → { decision } with kind", async () => {
   // Create a real pool
   const pool = createPool({ connectionId: "conn-preview", name: "Preview Pool" });
-  upsertAllocations(pool.id, [
-    { apiKeyId: "preview-key-1", weight: 100, policy: "soft" },
-  ]);
+  upsertAllocations(pool.id, [{ apiKeyId: "preview-key-1", weight: 100, policy: "soft" }]);
 
   const req = await makeManagementSessionRequest(
     `http://localhost/api/quota/preview?apiKeyId=preview-key-1&poolId=${pool.id}&estimatedTokens=100`
@@ -110,9 +107,7 @@ test("GET /api/quota/preview with valid params → { decision } with kind", asyn
 test("GET /api/quota/preview is dry-run: store counters unchanged after call", async () => {
   // Create pool and seed some consumption
   const pool = createPool({ connectionId: "conn-dryrun", name: "Dry Run Pool" });
-  upsertAllocations(pool.id, [
-    { apiKeyId: "dryrun-key", weight: 100, policy: "hard" },
-  ]);
+  upsertAllocations(pool.id, [{ apiKeyId: "dryrun-key", weight: 100, policy: "hard" }]);
 
   const store = getSqliteQuotaStore();
   const dim = { poolId: pool.id, unit: "tokens" as const, window: "daily" as const };

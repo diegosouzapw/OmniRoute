@@ -418,7 +418,7 @@ export default function ComboDefaultsTab() {
             <Input
               type="number"
               min="1"
-              max="10"
+              max="1000"
               value={comboDefaults.stickyRoundRobinLimit || 3}
               onChange={async (e) => {
                 const nextLimit = parseInt(e.target.value) || 3;
@@ -471,12 +471,39 @@ export default function ComboDefaultsTab() {
             }
             className="text-sm"
           />
+          <Input
+            label={translateOrFallback(t, "comboTimeout", "Combo timeout (seconds)")}
+            type="number"
+            min={1}
+            max={86400}
+            step={1}
+            value={msToOptionalSecondsInput(comboDefaults.comboTimeoutMs)}
+            placeholder={translateOrFallback(
+              t,
+              "inheritComboSafetyTimeout",
+              "Inherit 10-minute hang-stop"
+            )}
+            onChange={(e) =>
+              setComboDefaults((prev) => ({
+                ...prev,
+                comboTimeoutMs: secondsInputToOptionalMs(e.target.value),
+              }))
+            }
+            className="text-sm"
+          />
         </div>
         <p className="text-xs text-text-muted">
           {translateOrFallback(
             t,
             "targetTimeoutHint",
             "Combo targets inherit the current request timeout by default. Set a lower value here only when you want faster fallback."
+          )}
+        </p>
+        <p className="text-xs text-text-muted">
+          {translateOrFallback(
+            t,
+            "comboTimeoutHint",
+            "Whole-combo wall-clock budget across failover targets. Empty keeps the 10-minute hang-stop. Keep this longer than Target timeout so failover still has time."
           )}
         </p>
 

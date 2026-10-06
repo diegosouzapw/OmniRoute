@@ -25,9 +25,8 @@ delete process.env.CLI_CLAUDE_BIN;
 delete process.env.CLI_EXTRA_PATHS;
 process.env.npm_config_prefix = path.join(fakeHome, "npm-prefix-unused");
 
-const { getCliRuntimeStatus, getKnownToolPaths } = await import(
-  "../../src/shared/services/cliRuntime.ts"
-);
+const { getCliRuntimeStatus, getKnownToolPaths } =
+  await import("../../src/shared/services/cliRuntime.ts");
 
 function makeExecutable(filePath: string, content: string) {
   fs.writeFileSync(filePath, content);
@@ -55,8 +54,8 @@ describe("#7774 — known-path short-circuit hides a genuinely runnable Claude b
       if (value === undefined) delete (process.env as Record<string, string | undefined>)[key];
       else process.env[key] = value;
     }
-    fs.rmSync(fakeHome, { recursive: true, force: true });
-    fs.rmSync(realBinDir, { recursive: true, force: true });
+    fs.rmSync(fakeHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(realBinDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("should still find and report Claude as installed+runnable via PATH fallback", async () => {

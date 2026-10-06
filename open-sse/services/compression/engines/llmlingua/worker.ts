@@ -8,7 +8,7 @@
  *
  * ## Fail-open paths
  *  1. Optional-deps gate: if any of `@atjsh/llmlingua-2`, `@huggingface/transformers`,
- *     `@tensorflow/tfjs`, `js-tiktoken` does not resolve, return `text` immediately —
+ *     `js-tiktoken` does not resolve, return `text` immediately —
  *     NO worker spawn. This is the default in CI / most installs (deps are OPTIONAL).
  *  2. Per-call timeout: first call for a model gets `FIRST_CALL_TIMEOUT_MS` (one-time
  *     model load); warm calls get `LLMLINGUA_WORKER_TIMEOUT_MS`. On timeout → original
@@ -16,7 +16,7 @@
  *  3. Worker error/exit → resolve all pending with their original text + respawn next.
  *
  * ## Serialization
- *  ONNX/tfjs are not reentrant — calls are queued FIFO and only one message is
+ *  ONNX inference is not reentrant — calls are queued FIFO and only one message is
  *  in-flight at a time (the next is posted after the previous reply or its timeout).
  *
  * ## Idle eviction
@@ -35,8 +35,11 @@ import path from "node:path";
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
 
+import { notifyCompressionFailOpen } from "../../failOpenNotifier.ts";
+import { sanitizeErrorMessage } from "../../../../utils/errorSanitization.ts";
 import { LLMLINGUA_WORKER_TIMEOUT_MS, LLMLINGUA_WORKER_IDLE_MS } from "./constants.ts";
 import { resolveLlmlinguaModel } from "./modelStore.ts";
+import { packMemberInstalled } from "../../../../utils/optionalPacks.ts";
 import type { LlmlinguaBackend } from "./index.ts";
 
 /** One-time model-load budget on the first call for a given model (tinybert ~2s, bert-base ~27s). */
@@ -44,7 +47,7 @@ const FIRST_CALL_TIMEOUT_MS = 60000;
 
 /**
  * Gate probe: `@atjsh/llmlingua-2` is the entry package that declares the others
- * (`@huggingface/transformers`, `@tensorflow/tfjs`, `js-tiktoken`) as peers. We probe
+ * (`@huggingface/transformers`, `js-tiktoken`) as peers. We probe
  * ONLY it (by manifest existence) because the peers are ESM-only and `require.resolve`
  * throws for them even when installed; the worker still fail-opens if a peer is
  * genuinely missing at `import()` time.
@@ -114,6 +117,10 @@ function runtimeAnchors(): string[] {
 // ─── optional-deps gate (memoized) ──────────────────────────────────────────────
 
 let _depsAvailable: boolean | null = null;
+let workerFactory: (workerFile: URL, options: { execArgv: string[] }) => Worker = (
+  workerFile,
+  options
+) => new Worker(workerFile, options);
 
 /**
  * Lazily (and once) check whether the optional LLMLingua dependency stack is installed,
@@ -121,7 +128,12 @@ let _depsAvailable: boolean | null = null;
  */
 export function depsAvailable(): boolean {
   if (_depsAvailable !== null) return _depsAvailable;
-  _depsAvailable = firstAncestorWith(runtimeAnchors(), GATE_DEP_REL) !== null;
+  // Stage 7 (issue #10321): the desktop bundle ships the LLMLingua closure as an
+  // optional pack installed under `${DATA_DIR}/packs/ml-runtime/node_modules`
+  // (prepended to NODE_PATH by electron/main.js), so also probe the pack dirs —
+  // the ancestor walk only covers bundle-resident installs (npm/Docker).
+  _depsAvailable =
+    firstAncestorWith(runtimeAnchors(), GATE_DEP_REL) !== null || packMemberInstalled(GATE_DEP_REL);
   return _depsAvailable;
 }
 
@@ -187,6 +199,15 @@ export function resolveWorkerFile(): { workerFile: string; execArgv: string[] } 
   return { workerFile: path.join(process.cwd(), WORKER_JS_REL), execArgv: [] };
 }
 
+/**
+ * Worker entry specifier for `new Worker(...)`. Must be a URL OBJECT, never a
+ * `file://` string: Node >= 21 throws ERR_WORKER_PATH synchronously for string
+ * file:// URLs ("Wrap file:// URLs with `new URL`"). Exported for tests.
+ */
+export function llmlinguaWorkerSpecifier(workerFile: string): URL {
+  return new URL(pathToFileURL(path.resolve(workerFile)).href);
+}
+
 /** Reset the idle eviction timer; terminates the worker after the idle window. */
 function bumpIdleTimer(): void {
   if (idleTimer) clearTimeout(idleTimer);
@@ -227,8 +248,7 @@ function ensureWorker(): Worker {
   if (worker) return worker;
 
   const { workerFile, execArgv } = resolveWorkerFile();
-  const absoluteWorkerFile = path.resolve(workerFile);
-  const w = new Worker(pathToFileURL(absoluteWorkerFile).href, { execArgv });
+  const w = workerFactory(llmlinguaWorkerSpecifier(workerFile), { execArgv });
 
   w.on("message", (reply: WorkerReply) => {
     const entry = pending.get(reply.id);
@@ -281,8 +301,11 @@ function pump(): void {
   let w: Worker;
   try {
     w = ensureWorker();
-  } catch {
+  } catch (error) {
     // Spawn failed → fail-open this item and continue draining the queue.
+    notifyCompressionFailOpen(
+      `llmlingua worker spawn failed: ${sanitizeErrorMessage(error instanceof Error ? error.message : error)}`
+    );
     busy = false;
     item.resolve(item.text);
     pump();
@@ -324,8 +347,11 @@ function pump(): void {
       compressionRate: item.opts?.compressionRate,
       modelPath: item.opts?.modelPath,
     });
-  } catch {
+  } catch (error) {
     // postMessage failed → fail-open this item and respawn.
+    notifyCompressionFailOpen(
+      `llmlingua worker postMessage failed: ${sanitizeErrorMessage(error instanceof Error ? error.message : error)}`
+    );
     clearTimeout(timer);
     pending.delete(id);
     item.resolve(item.text);
@@ -370,4 +396,21 @@ export function __resetLlmlinguaWorkerForTests(): void {
   resetWorker();
   _depsAvailable = null;
   nextId = 1;
+}
+
+/**
+ * Internal: override the worker constructor / the optional-deps gate for tests so
+ * the spawn- and postMessage-failure paths run without the real deps installed.
+ * Pass `null` to restore the defaults. Not part of the public contract.
+ */
+export function __setLlmlinguaWorkerHarnessForTests(harness: {
+  factory: ((workerFile: URL, options: { execArgv: string[] }) => Worker) | null;
+  depsAvailable: boolean | null;
+}): void {
+  if (harness.factory === null) {
+    workerFactory = (workerFile, options) => new Worker(workerFile, options);
+  } else if (harness.factory) {
+    workerFactory = harness.factory;
+  }
+  _depsAvailable = harness.depsAvailable;
 }

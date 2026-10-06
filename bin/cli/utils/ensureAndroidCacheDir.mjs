@@ -94,10 +94,36 @@ export function ensureAndroidCacheDir(options = {}) {
  */
 export function isFatalInstrumentationHookFailure(text) {
   if (!text) return false;
-  return (
-    /Unsupported platform:\s*android/i.test(text) ||
-    /error occurred while loading instrumentation hook/i.test(text)
-  );
+  // Next.js wraps ANY throw inside instrumentation.register() with the generic
+  // "An error occurred while loading instrumentation hook:" prefix, on every
+  // platform (node_modules/next/dist/server/web/globals.js). That prefix alone
+  // therefore cannot identify the Android/Termux cache-probe failure — a bare
+  // generic instrumentation error on win32/desktop would be misreported as the
+  // Android bug and hide the real cause. Only match when the text actually
+  // carries the Android platform marker that Next's getCacheDirectory() emits.
+  // #10028
+  return /Unsupported platform:\s*android/i.test(text);
+}
+
+/**
+ * Detect any fatal boot-time diagnostic guarded by the `[STARTUP] Fatal:`
+ * prefix (`src/instrumentation-node.ts::ensureDbReadyForBoot()`,
+ * `src/instrumentation.ts::register()`, and any future guard using the same
+ * marker). #13314: in the default `omniroute serve` mode (no `--log`),
+ * `ServerSupervisor` only buffers stdout/stderr and flushes it to the real
+ * console on exit/crash/readiness-timeout — so if the HTTP listener still
+ * comes up after a fatal boot diagnostic was already printed (e.g. the
+ * better-sqlite3 / node:sqlite driver cascade failing hard), the operator
+ * sees "OmniRoute is running!" with zero visible diagnostic anywhere, and
+ * every route 500s. This generalizes the #10028 Android/Termux carve-out to
+ * every `[STARTUP] Fatal:` guard, not just that one platform-specific string.
+ *
+ * @param {string} text
+ * @returns {boolean}
+ */
+export function isFatalStartupDiagnostic(text) {
+  if (!text) return false;
+  return /^\[STARTUP\] Fatal:/m.test(text);
 }
 
 /**

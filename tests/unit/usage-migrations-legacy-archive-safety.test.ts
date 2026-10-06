@@ -59,7 +59,7 @@ test.after(() => {
   if (ORIGINAL_NEXT_PHASE === undefined) delete process.env.NEXT_PHASE;
   else process.env.NEXT_PHASE = ORIGINAL_NEXT_PHASE;
 
-  fs.rmSync(TEST_HOME_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_HOME_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#6799: archiveLegacyRequestLogs() must not delete the live app-logger directory (DATA_DIR/logs/application)", async () => {

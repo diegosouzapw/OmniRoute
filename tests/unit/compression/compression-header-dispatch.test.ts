@@ -95,8 +95,12 @@ describe("header precedence in resolveBasePlan (Phase 3)", () => {
       enginesExplicit: true,
       engines: { rtk: { enabled: true } },
     });
-    // Large prompt would auto-escalate to aggressive; the header pins the panel default.
-    assert.equal(planWithHeader(config, "default").mode, "rtk");
+    // Large prompt would auto-escalate to aggressive. `default` still ignores the
+    // active profile, then drops lossy engines (rtk) for dedup + whitespace.
+    const plan = planWithHeader(config, "default");
+    assert.equal(plan.mode, "stacked");
+    assert.deepEqual(plan.stackedPipeline, [{ engine: "session-dedup" }, { engine: "lite" }]);
+    assert.equal(planWithHeader(config, "engine:rtk").mode, "rtk");
   });
 
   it("an unknown header falls through to the normal resolution", () => {

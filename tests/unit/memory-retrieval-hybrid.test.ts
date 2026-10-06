@@ -28,7 +28,7 @@ async function removeTestDataDir() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       return;
     } catch (error: unknown) {
@@ -74,7 +74,12 @@ test("retrieveMemories: hybrid strategy with no vec store does NOT throw", async
   insertMemory(db, "h1", "api-hyb", "Paris is the capital of France.");
   insertMemory(db, "h2", "api-hyb", "Berlin is the capital of Germany.");
 
-  const { retrieveMemories } = await import("../../src/lib/memory/retrieval.ts");
+  const { retrieveMemories, sanitizeFts5Query } = await import("../../src/lib/memory/retrieval.ts");
+
+  assert.equal(
+    sanitizeFts5Query("<system-reminder> CRITICAL: test query! </system-reminder>"),
+    '"system" "reminder" "CRITICAL" "test" "query" "system" "reminder"'
+  );
 
   await assert.doesNotReject(async () => {
     await retrieveMemories("api-hyb", {
@@ -83,6 +88,22 @@ test("retrieveMemories: hybrid strategy with no vec store does NOT throw", async
       maxTokens: 2000,
     });
   }, "hybrid strategy with no vec store must not throw");
+});
+
+test("retrieveMemories: FTS5 punctuation in user text does not become an operator", async () => {
+  const db = core.getDbInstance();
+  insertMemory(db, "hyb-punctuation", "api-punctuation", "Reply exactly OK");
+
+  const { retrieveMemories, sanitizeFts5Query } = await import("../../src/lib/memory/retrieval.ts");
+
+  assert.equal(sanitizeFts5Query("Reply exactly: OK"), '"Reply" "exactly" "OK"');
+  await assert.doesNotReject(() =>
+    retrieveMemories("api-punctuation", {
+      retrievalStrategy: "hybrid",
+      query: "Reply exactly: OK",
+      maxTokens: 2000,
+    })
+  );
 });
 
 test("retrieveMemories: hybrid FTS5 fallback returns only correct apiKeyId memories", async () => {

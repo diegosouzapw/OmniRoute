@@ -1,6 +1,6 @@
 # OmniRoute MCP Server
 
-> **Model Context Protocol server** that exposes OmniRoute's gateway intelligence as **107 tools** for AI agents.
+> **Model Context Protocol server** that exposes OmniRoute's gateway intelligence as **110 tools** for AI agents.
 >
 > **Source of truth for the full tool catalog and REST surface:** [`docs/frameworks/MCP-SERVER.md`](../../docs/frameworks/MCP-SERVER.md). This README focuses on architecture, configuration, and integration examples; the catalog below is a summary subset.
 
@@ -122,16 +122,16 @@ omniroute --mcp
 
 ### Phase 1: Essential Tools (8)
 
-| #   | Tool                            | Scopes                | Description                                                                |
-| --- | ------------------------------- | --------------------- | -------------------------------------------------------------------------- |
-| 1   | `omniroute_get_health`          | `read:health`         | Gateway health, uptime, memory, circuit breakers, rate limits, cache stats |
-| 2   | `omniroute_list_combos`         | `read:combos`         | List all combos (model chains) with strategies and optional metrics        |
-| 3   | `omniroute_get_combo_metrics`   | `read:combos`         | Performance metrics for a specific combo                                   |
-| 4   | `omniroute_switch_combo`        | `write:combos`        | Activate or deactivate a combo for routing                                 |
-| 5   | `omniroute_check_quota`         | `read:quota`          | Remaining API quota per provider with token health status                  |
-| 6   | `omniroute_route_request`       | `execute:completions` | Send a chat completion through intelligent routing                         |
-| 7   | `omniroute_cost_report`         | `read:usage`          | Cost report by period (session/day/week/month) with per-provider breakdown |
-| 8   | `omniroute_list_models_catalog` | `read:models`         | List all available models across providers with capabilities and pricing   |
+| #   | Tool                            | Scopes                | Description                                                                                         |
+| --- | ------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------- |
+| 1   | `omniroute_get_health`          | `read:health`         | Gateway health, uptime, memory, circuit breakers, rate limits, cache stats + adaptive lane pressure |
+| 2   | `omniroute_list_combos`         | `read:combos`         | List all combos (model chains) with strategies and optional metrics                                 |
+| 3   | `omniroute_get_combo_metrics`   | `read:combos`         | Performance metrics for a specific combo                                                            |
+| 4   | `omniroute_switch_combo`        | `write:combos`        | Activate or deactivate a combo for routing                                                          |
+| 5   | `omniroute_check_quota`         | `read:quota`          | Remaining API quota per provider with token health status                                           |
+| 6   | `omniroute_route_request`       | `execute:completions` | Send a chat completion through intelligent routing                                                  |
+| 7   | `omniroute_cost_report`         | `read:usage`          | Cost report by period (session/day/week/month) with per-provider breakdown                          |
+| 8   | `omniroute_list_models_catalog` | `read:models`         | List all available models across providers with capabilities and pricing                            |
 
 ### Phase 2: Advanced Tools (8)
 
@@ -172,6 +172,74 @@ MCP listable metadata descriptions are compressed at registration/list time when
 compression is enabled. `omniroute_compression_status` exposes those savings separately as
 `analytics.mcpDescriptionCompression` with `source: "mcp_metadata_estimate"`, so clients do not
 mistake metadata shrink estimates for provider token receipts.
+
+### Discovery & Web Tools
+
+| Tool                    | Scopes           | Description                                                                                                                          |
+| ----------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `omniroute_tool_search` | `read:tools`     | Keyword search across the registered MCP tools; returns compact one-line signatures for token-efficient discovery                    |
+| `omniroute_web_fetch`   | `execute:search` | Fetch and extract a URL's content through the web-fetch gateway (Firecrawl, Jina Reader, Tavily, TinyFish) with automatic failover   |
+| `omniroute_web_search`  | `execute:search` | Web search through the search gateway (Serper, Brave, Perplexity, Exa, Tavily, Google PSE, Linkup, SearchAPI, SearXNG) with failover |
+
+### Skills & Catalog Tools
+
+| Tool                              | Scopes         | Description                                                                                              |
+| --------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`     | `read:catalog` | List all 42 agent skills with optional `category` (`api`\|`cli`) and `area` filters; metadata + coverage |
+| `omniroute_agent_skills_get`      | `read:catalog` | Full metadata + SKILL.md content for a single skill by canonical `id`                                    |
+| `omniroute_agent_skills_coverage` | `read:catalog` | Coverage stats: how many of the 22 API and 20 CLI skills have SKILL.md files on disk vs catalog totals   |
+
+### Proxy, Pricing & Data Tools
+
+| Tool                        | Scopes                            | Description                                                                                |
+| --------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------ |
+| `omniroute_oneproxy_fetch`  | `read:proxies`                    | Fetch free proxies from the 1proxy marketplace (protocol/country/quality/limit filters)    |
+| `omniroute_oneproxy_rotate` | `read:proxies`                    | Get the next available proxy by strategy (`random` / `quality` / `sequential`)             |
+| `omniroute_oneproxy_stats`  | `read:proxies`                    | Pool stats, sync status, distribution by protocol and country                              |
+| `omniroute_sync_pricing`    | `pricing:write`                   | Sync pricing from external sources (LiteLLM) without overwriting user-set prices; `dryRun` |
+| `omniroute_db_health_check` | `read:health`, `write:resilience` | Diagnose (and optionally auto-repair) database drift — broken combo refs, orphan rows      |
+
+### Combo & Routing Tools
+
+| Tool                             | Scopes                                     | Description                                                                                  |
+| -------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `omniroute_create_combo`         | `write:combos`                             | Register a new combo (model chain) with name, ordered model list, and optional strategy      |
+| `omniroute_set_routing_strategy` | `write:combos`                             | Update combo routing strategy at runtime (`priority` / `weighted` / `auto` / etc.)           |
+| `omniroute_pick_fastest_model`   | `read:combos`, `read:health`, `read:usage` | Pick the fastest reliable provider-model pair from live telemetry; can apply latency routing |
+
+---
+
+### Adaptive Admission Lane Data
+
+`omniroute_get_health` includes an `adaptiveAdmission` block whenever the gateway's adaptive
+virtual-lane admission is active. It is a curated subset of the live admission snapshot:
+
+| Field              | Meaning                                                                |
+| ------------------ | ---------------------------------------------------------------------- |
+| `virtualLanes`     | Whether per-tenant virtual-lane admission is enabled                   |
+| `pressure`         | Current pressure state (e.g. `healthy`, `high`, `critical`)            |
+| `utilization`      | Current capacity utilization (0.0–1.0)                                 |
+| `laneCount`        | Number of live lanes                                                   |
+| `laneQueuedCount`  | Total requests queued across lanes                                     |
+| `laneQueuedCost`   | Total estimated cost queued across lanes                               |
+| `laneTenants`      | Top 10 lanes by queued cost (`tenantKey`, `queuedCount`, `queuedCost`) |
+| `admittedCount`    | Requests admitted since boot                                           |
+| `rejectedCount`    | Requests rejected since boot                                           |
+| `wouldRejectCount` | Requests that would be rejected under the current limit                |
+| `shutdown`         | Whether the admission runtime is shutting down                         |
+
+`tenantKey` is an opaque per-API-key derived identifier, never the raw key. The block is omitted
+entirely when the health endpoint reports no adaptive-admission data.
+
+### Skills & Tool Navigability
+
+The tables above cover the full `schemas/` catalog (43 entries); the authoritative reference with
+scope-enforcement and transport details lives in
+[`docs/frameworks/MCP-SERVER.md`](../../docs/frameworks/MCP-SERVER.md).
+
+Agents never need to read this file to find a capability: `omniroute_tool_search` performs keyword
+search across the registered tool set and returns compact one-line signatures (token-efficient
+discovery), so newly added capabilities stay discoverable at runtime.
 
 ---
 

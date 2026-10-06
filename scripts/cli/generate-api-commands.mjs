@@ -11,7 +11,7 @@ import * as yaml from "js-yaml";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 const SPEC_PATH = process.env.OPENAPI_SPEC || join(ROOT, "docs/openapi.yaml");
-const OUT_DIR = join(ROOT, "bin/cli/api-commands");
+const OUT_DIR = process.env.OPENAPI_OUT_DIR || join(ROOT, "bin/cli/api-commands");
 
 // Operations already covered by hand-crafted commands — skip in generated output.
 const IGNORED_OP_IDS = new Set([
@@ -51,6 +51,29 @@ if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
 
 const spec = yaml.load(readFileSync(SPEC_PATH, "utf8"));
 
+// Minimal, scoped $ref resolver — only follows refs into components/parameters.
+// This is not a generic dereferencer (no cycle handling, no cross-file refs):
+// OpenAPI `parameters` entries in this spec only ever $ref a component parameter
+// (see docs/openapi.yaml → components/parameters/ResourceId), so a full
+// dereferencer would be scope creep. Without this, `p.in === "path"` silently
+// drops every $ref'd path parameter (a bare `{ $ref }` object has no `.in`),
+// which is what let generated PATCH/DELETE combo commands lose --id (#10955).
+const PARAM_REF_PREFIX = "#/components/parameters/";
+function resolveParam(p) {
+  if (p && typeof p === "object" && typeof p.$ref === "string") {
+    if (!p.$ref.startsWith(PARAM_REF_PREFIX)) {
+      throw new Error(`Unsupported parameter $ref (only ${PARAM_REF_PREFIX}* is resolved): ${p.$ref}`);
+    }
+    const name = p.$ref.slice(PARAM_REF_PREFIX.length);
+    const resolved = spec.components?.parameters?.[name];
+    if (!resolved) {
+      throw new Error(`Unresolvable parameter $ref: ${p.$ref}`);
+    }
+    return resolved;
+  }
+  return p;
+}
+
 /** @type {Record<string, Array<{path: string, method: string, opId: string, op: object}>>} */
 const byTag = {};
 
@@ -89,7 +112,7 @@ for (const [tag, ops] of Object.entries(byTag)) {
 
   for (const { path, method, opId, op } of ops) {
     const cmdName = kebab(opId);
-    const params = op.parameters || [];
+    const params = (op.parameters || []).map(resolveParam);
     const pathParams = params.filter((p) => p.in === "path");
     const queryParams = params.filter((p) => p.in === "query");
     const hasBody = !!op.requestBody;
@@ -107,7 +130,10 @@ for (const [tag, ops] of Object.entries(byTag)) {
       lines.push(`    .${flag}("--${kebab(p.name)} <${p.name}>", "${escapeStr(p.description)}")`);
     }
     if (hasBody) {
-      lines.push(`    .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")`);
+      const bodyFlag = op.requestBody.required ? "requiredOption" : "option";
+      lines.push(
+        `    .${bodyFlag}("--body <jsonOrPath>", "JSON body or @path/to/file.json")`
+      );
     }
     lines.push(`    .action(async (opts, cmd) => {`);
     lines.push(`      const gOpts = cmd.optsWithGlobals();`);

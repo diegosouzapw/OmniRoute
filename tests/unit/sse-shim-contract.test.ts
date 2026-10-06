@@ -26,7 +26,7 @@ function listProjectFiles(relativePath: string): string[] {
 }
 
 test.after(() => {
-  rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("src/sse model shim keeps parseModel behavior aligned with open-sse core", async () => {

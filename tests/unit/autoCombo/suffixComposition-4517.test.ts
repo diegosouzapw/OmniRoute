@@ -47,15 +47,14 @@ describe("suffixComposition :free tier (#4517)", () => {
   });
 
   it("buildAutoCandidateFilter keeps noAuth free providers", () => {
-    // Regression: opencode and mimocode are noAuth and free, but the
-    // pre-fix `freeProviders` list omitted them, so the filter rejected
-    // their candidates even though they ARE free upstream.
+    // Regression: opencode was noAuth and free, but the
+    // pre-fix `freeProviders` list omitted it, so the filter rejected
+    // its candidates even though it IS free upstream.
     const filter = buildAutoCandidateFilter("coding", "free");
     assert.notEqual(filter, null);
 
     assert.equal(filter!({ provider: "opencode", model: "big-pickle" }), true);
     assert.equal(filter!({ provider: "opencode", model: "minimax-m3-free" }), true);
-    assert.equal(filter!({ provider: "mimocode", model: "mimo-auto" }), true);
     assert.equal(filter!({ provider: "duckduckgo-web", model: "gpt-4o-mini" }), true);
   });
 

@@ -67,7 +67,7 @@ test("firstAncestorWith walks up from anchors to find a marker", () => {
     assert.equal(found, path.join(tmp, "dist"), "must find the dist root by walking up");
     assert.equal(firstAncestorWith([anchor], path.join("node_modules", "nope")), null);
   } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 

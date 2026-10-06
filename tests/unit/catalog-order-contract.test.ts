@@ -29,7 +29,7 @@ const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
@@ -41,7 +41,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 async function seedConnection(provider: string, overrides: Record<string, unknown> = {}) {
@@ -83,13 +83,19 @@ test("catalog /v1/models: exact provider-grouped order (blocks === distinct owne
     { id: "gpt-4", name: "GPT-4" },
     { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
   ]);
-  await modelsDb.replaceSyncedAvailableModelsForConnection("anthropic", (conn2 as { id: string }).id, [
-    { id: "claude-3-opus", name: "Claude 3 Opus" },
-  ]);
-  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode", (conn3 as { id: string }).id, [
-    { id: "kimi-k2", name: "Kimi K2" },
-    { id: "glm-4", name: "GLM-4" },
-  ]);
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    "anthropic",
+    (conn2 as { id: string }).id,
+    [{ id: "claude-3-opus", name: "Claude 3 Opus" }]
+  );
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    "opencode",
+    (conn3 as { id: string }).id,
+    [
+      { id: "kimi-k2", name: "Kimi K2" },
+      { id: "glm-4", name: "GLM-4" },
+    ]
+  );
 
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/v1/models?configuredOnly=true")

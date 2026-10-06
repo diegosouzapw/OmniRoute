@@ -6,12 +6,56 @@ export interface NodeSqliteDatabaseLike {
     run(...p: unknown[]): { changes: number | bigint; lastInsertRowid: number | bigint };
     get(...p: unknown[]): unknown;
     all(...p: unknown[]): unknown[];
+    // node:sqlite (DatabaseSync) statements expose these tuning setters. They
+    // are optional here so the shared adapter also accepts lighter test doubles.
+    setAllowUnknownNamedParameters?(enabled: boolean): void;
+    setAllowBareNamedParameters?(enabled: boolean): void;
   };
   exec(sql: string): void;
   close(): void;
 }
 
 const MAX_STMT_CACHE_SIZE = 200;
+
+// node:sqlite hands back rows whose prototype is `null` (Object.create(null)),
+// whereas better-sqlite3 (the driver we ship and run in production/CI) returns
+// ordinary Object.prototype rows. The difference is invisible for normal
+// property access but breaks callers that compare rows with structural
+// equality that also checks the prototype (e.g. Node's assert.deepStrictEqual,
+// used by unit tests written against the better-sqlite3 row shape). Normalize
+// every row to a plain object so the node:sqlite fallback is behaviourally
+// identical to the native better-sqlite3 path.
+function toPlainRow<T>(row: T): T {
+  if (row === null || typeof row !== "object") return row;
+  return { ...(row as Record<string, unknown>) } as T;
+}
+
+// better-sqlite3 (the production/CI driver) and sql.js both accept `undefined`
+// as a bound value and treat it as SQL NULL. node:sqlite is stricter and throws
+// "Provided value cannot be bound to SQLite parameter N" for undefined. Several
+// call sites pass undefined for absent optional columns (e.g. a capability sync
+// that omits modalities_input), so coerce undefined -> null here to keep the
+// node:sqlite fallback behaviourally compatible with the native driver. This
+// handles both positional params and a single named-params object.
+function normalizeBindParams(params: unknown[]): unknown[] {
+  const [first] = params;
+  const isLoneNamedParamsObject =
+    params.length === 1 &&
+    first !== null &&
+    typeof first === "object" &&
+    !Array.isArray(first) &&
+    !Buffer.isBuffer(first) &&
+    !(first instanceof Uint8Array);
+  if (isLoneNamedParamsObject) {
+    const source = first as Record<string, unknown>;
+    const normalized: Record<string, unknown> = {};
+    for (const key of Object.keys(source)) {
+      normalized[key] = source[key] === undefined ? null : source[key];
+    }
+    return [normalized];
+  }
+  return params.map((value) => (value === undefined ? null : value));
+}
 
 export function createNodeSqliteAdapterFromDatabase(
   db: NodeSqliteDatabaseLike,
@@ -41,6 +85,14 @@ export function createNodeSqliteAdapterFromDatabase(
       stmtCache.set(sql, entry);
     } else {
       const stmt = db.prepare(sql);
+      // better-sqlite3 (the production/CI driver) silently ignores named
+      // parameters supplied in the bind object that the SQL text does not
+      // reference. node:sqlite instead throws "Unknown named parameter '<x>'".
+      // Several call sites deliberately pass a superset params object (e.g. an
+      // UPDATE that omits @createdAt while the shared params builder still
+      // includes it), so relax node:sqlite to match better-sqlite3 and keep the
+      // fallback driver behaviourally compatible.
+      stmt.setAllowUnknownNamedParameters?.(true);
       if (stmtCache.size >= MAX_STMT_CACHE_SIZE) {
         const oldestKey = stmtCache.keys().next().value;
         if (oldestKey !== undefined) {
@@ -119,17 +171,19 @@ export function createNodeSqliteAdapterFromDatabase(
       const stmt = getCached(sql);
       return {
         run(...params: unknown[]): RunResult {
-          const r = stmt.run(...params);
+          const r = stmt.run(...normalizeBindParams(params));
           return {
             changes: Number(r.changes ?? 0),
             lastInsertRowid: Number(r.lastInsertRowid ?? 0),
           };
         },
         get(...params: unknown[]): unknown {
-          return stmt.get(...params);
+          return toPlainRow(stmt.get(...normalizeBindParams(params)));
         },
         all(...params: unknown[]): unknown[] {
-          return stmt.all(...params);
+          return (stmt.all(...normalizeBindParams(params)) as unknown[]).map((row) =>
+            toPlainRow(row)
+          );
         },
       };
     },

@@ -15,7 +15,10 @@ class MockM365WebSocket {
   closed = false;
   listeners = new Map<string, Listener[]>();
 
-  constructor(public url: string, public options: unknown) {
+  constructor(
+    public url: string,
+    public options: unknown
+  ) {
     MockM365WebSocket.instances.push(this);
     queueMicrotask(() => this.emit("open"));
   }
@@ -29,12 +32,24 @@ class MockM365WebSocket {
 
   send(data: string): void {
     this.sent.push(String(data));
-    const parsed = JSON.parse(String(data).replace(/\x1e$/, ""));
-    if (parsed.protocol === "json") {
+    // #10718 — a single socket write may carry multiple \x1e-terminated frames
+    // (the chat invocation and its Metrics follow-up ride together).
+    const parsedFrames = String(data)
+      .split("\x1e")
+      .filter((f) => f.length > 0)
+      .map((f) => {
+        try {
+          return JSON.parse(f);
+        } catch {
+          return null;
+        }
+      });
+    const parsed = parsedFrames.find((f) => f && f.protocol === "json") ?? parsedFrames[0];
+    if (parsed?.protocol === "json") {
       queueMicrotask(() => this.emit("message", Buffer.from(encodeFrame({}))));
       return;
     }
-    if (parsed.type === 4 && parsed.target === "chat") {
+    if (parsedFrames.some((f) => f?.type === 4 && f?.target === "chat")) {
       queueMicrotask(() => {
         this.emit(
           "message",
@@ -83,7 +98,7 @@ async function sendChatInvocation(tier: string | undefined) {
     assert.equal(MockM365WebSocket.instances.length, 1);
     const sentFrames = MockM365WebSocket.instances[0].sent;
     const chatFrameRaw = sentFrames
-      .map((f) => f.replace(/\x1e$/, ""))
+      .flatMap((f) => f.split("\x1e").filter((frame) => frame.length > 0))
       .map((f) => {
         try {
           return JSON.parse(f);
@@ -132,11 +147,16 @@ test("#7870: enterprise-tier chat invocation defaults tone to Magic", async () =
   assert.equal(invocationArgs.tone, "Magic");
 });
 
-test("#7870: individual (no tier) chat invocation payload stays byte-identical to today", async () => {
+test("2026-08-21: individual (no tier) chat invocation carries the recaptured shape", async () => {
   const invocationArgs = await sendChatInvocation(undefined);
   const optionsSets = invocationArgs.optionsSets as string[];
-  assert.ok(optionsSets.includes("enable_msa_user"));
-  assert.equal(invocationArgs.tone, "");
+  // The pre-#10718 25-entry consumer/MSA set (enable_msa_user, pdnascan, …) is
+  // still gone from the wire — only the 2026-08-21 34-entry set is current.
+  assert.ok(!optionsSets.includes("enable_msa_user"));
+  assert.ok(optionsSets.includes("enable_gg_gpt"));
+  // The individual/consumer surface now sends tone:"Magic" (capitalized) —
+  // the #10718 lowercase "magic" is stale.
+  assert.equal(invocationArgs.tone, "Magic");
   assert.deepEqual(invocationArgs.allowedMessageTypes, [
     "Chat",
     "Suggestion",
@@ -149,14 +169,33 @@ test("#7870: individual (no tier) chat invocation payload stays byte-identical t
     "AdsQuery",
     "SemanticSerp",
     "GenerateContentQuery",
+    "GenerateGraphicArt",
+    "SearchQuery",
+    "ConfirmationCard",
+    "AuthError",
+    "DeveloperLogs",
+    "TriggerPlugin",
+    "HintInvocation",
+    "MemoryUpdate",
+    "EndOfRequest",
+    "TriggerConfirmation",
+    "ResumeInvokeAction",
+    "ResumeUserInputRequest",
+    "TriggerUserInputRequest",
+    "EscapeHatch",
+    "TriggerPluginAuth",
+    "ResumePluginAuth",
+    "SideBySide",
+    "ReferencesListComplete",
+    "SwitchRespondingEndpoint",
   ]);
 });
 
-test("#7870: EDU-tier chat invocation payload stays byte-identical to today (unaffected by enterprise change)", async () => {
+test("2026-08-21: EDU-tier chat invocation carries the same recaptured shape", async () => {
   const invocationArgs = await sendChatInvocation("edu");
   const optionsSets = invocationArgs.optionsSets as string[];
-  assert.ok(optionsSets.includes("enable_msa_user"));
-  assert.equal(invocationArgs.tone, "");
+  assert.ok(!optionsSets.includes("enable_msa_user"));
+  assert.equal(invocationArgs.tone, "Magic");
 });
 
 test("#8971: enterprise-tier chat invocation must send disconnectBehavior=continue", async () => {
@@ -168,11 +207,11 @@ test("#8971: enterprise-tier chat invocation must send disconnectBehavior=contin
   );
 });
 
-test("#8971: individual (no tier) chat invocation disconnectBehavior remains empty (byte-identical to #4042)", async () => {
+test("2026-08-21: individual (no tier) chat invocation also sends disconnectBehavior=continue (now on every tier)", async () => {
   const invocationArgs = await sendChatInvocation(undefined);
   assert.equal(
     invocationArgs.disconnectBehavior,
-    "",
-    `individual-tier invocation must carry disconnectBehavior=""; got ${JSON.stringify(invocationArgs.disconnectBehavior)}`
+    "continue",
+    `individual-tier invocation must carry disconnectBehavior="continue"; got ${JSON.stringify(invocationArgs.disconnectBehavior)}`
   );
 });

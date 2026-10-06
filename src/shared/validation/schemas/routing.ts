@@ -56,18 +56,45 @@ export const taskRoutingModelMapSchema = z
   })
   .strict();
 
+// Same bound as the combo guardrail substring lists (forbiddenSubstrings/requiredSubstrings,
+// src/shared/validation/schemas/combo.ts) — matched against request text the same way
+// (plain includes(), never a regex, so no ReDoS surface), the closest existing precedent
+// for an operator-supplied list of match strings.
+const taskPatternListSchema = z.array(z.string().min(1).max(500)).max(50);
+
+const taskPatternOverrideSchema = z
+  .object({
+    patterns: taskPatternListSchema.optional(),
+    userPatterns: taskPatternListSchema.optional(),
+  })
+  .strict();
+
+export const taskPatternOverridesSchema = z
+  .object({
+    coding: taskPatternOverrideSchema.optional(),
+    creative: taskPatternOverrideSchema.optional(),
+    analysis: taskPatternOverrideSchema.optional(),
+    vision: taskPatternOverrideSchema.optional(),
+    summarization: taskPatternOverrideSchema.optional(),
+    background: taskPatternOverrideSchema.optional(),
+    chat: taskPatternOverrideSchema.optional(),
+  })
+  .strict();
+
 export const updateTaskRoutingSchema = z
   .object({
     enabled: z.boolean().optional(),
     taskModelMap: taskRoutingModelMapSchema.optional(),
     detectionEnabled: z.boolean().optional(),
+    patternOverrides: taskPatternOverridesSchema.optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
     if (
       value.enabled === undefined &&
       value.taskModelMap === undefined &&
-      value.detectionEnabled === undefined
+      value.detectionEnabled === undefined &&
+      value.patternOverrides === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

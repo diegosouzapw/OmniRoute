@@ -9,8 +9,8 @@ import { dirname, join } from "node:path";
 // top-level IIFE at *require time* — merely importing the `playwright` package crashes,
 // no browser needs to be launched. `claudeTurnstileSolver.ts` used to `import { chromium }
 // from "playwright"` statically, and that module is unconditionally reachable from the
-// Next.js instrumentation hook on every boot via open-sse/executors/index.ts, so any
-// unsupported platform crashed the whole server at startup regardless of configured provider.
+// Next.js instrumentation hook used to reach it on every boot via open-sse/executors/index.ts,
+// so any unsupported platform crashed the whole server regardless of configured provider.
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SOLVER = join(HERE, "../../open-sse/services/claudeTurnstileSolver.ts");
 
@@ -28,10 +28,9 @@ test("importing the real executor chain does not throw on an unsupported process
   Object.defineProperty(process, "platform", { value: "android", configurable: true });
 
   try {
-    // This is the exact reachability chain from the Next.js instrumentation hook:
-    // instrumentation-node.ts -> open-sse/index.ts -> executors/index.ts -> claude-web*.ts
-    // -> claudeTurnstileSolver.ts. Before the fix, this threw
-    // "Unsupported platform: android" purely from the static playwright import.
+    // Keep the executor-registry import safe for direct runtime consumers. Before the
+    // original fix, this threw "Unsupported platform: android" purely from the static
+    // playwright import; instrumentation no longer imports this graph at boot (#12074).
     await import("../../open-sse/executors/index.ts");
   } finally {
     Object.defineProperty(process, "platform", originalDescriptor);

@@ -18,6 +18,8 @@ import {
   costReportInput,
   listModelsCatalogInput,
   webSearchInput,
+  buildWebSearchInputSchema,
+  xSearchInput,
   webFetchInput,
   simulateRouteInput,
   setBudgetGuardInput,
@@ -88,15 +90,18 @@ import {
   clampMcpAccessibilityConfig,
   type McpAccessibilityConfig,
 } from "../services/compression/engines/mcpAccessibility/constants.ts";
-import { getDbInstance } from "../../src/lib/db/core.ts";
+import { getDbInstance, ensureDbInitialized } from "../../src/lib/db/core.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { isMcpScopeEnforcementEnabled } from "../../src/shared/utils/featureFlags.ts";
+import { toSafeMcpErrorMessage } from "./errorMessage.ts";
+import { mcpFetchTimeoutSignal } from "./fetchTimeout.ts";
 import { getMcpModelsCatalog } from "./catalog.ts";
+import { registerRadarCatalogTool } from "./radarCatalog.ts";
+import type { TextToolResult } from "./toolResult.ts";
 export { getMcpModelsCatalog } from "./catalog.ts";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
-const MCP_ENFORCE_SCOPES = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
 const MCP_ALLOWED_SCOPES = new Set(
   (process.env.OMNIROUTE_MCP_SCOPES || "")
     .split(",")
@@ -146,11 +151,6 @@ function readMcpAccessibilityConfig(): McpAccessibilityConfig {
   }
 }
 
-type TextToolResult = {
-  content: Array<{ type: "text"; text: string }>;
-  isError?: boolean;
-};
-
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -167,9 +167,10 @@ function toNumber(value: unknown, fallback = 0): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
-function toStringArray(value: unknown, fallback: string[] = []): string[] {
-  const values = toArray(value).filter((entry): entry is string => typeof entry === "string");
-  return values.length > 0 ? values : fallback;
+// Mirrors the runtime's env convention for lane flags ("1" | "true" are on) so a
+// future string serialization can never silently invert a boolean lane report.
+function isLaneFlagOn(value: unknown): boolean {
+  return value === true || value === "1" || value === "true";
 }
 
 function normalizeComboModels(
@@ -210,7 +211,7 @@ export async function omniRouteFetch(path: string, options: RequestInit = {}): P
     ...getInternalServiceAuthHeaders(),
   };
 
-  const signal = options.signal || AbortSignal.timeout(10000);
+  const signal = options.signal || mcpFetchTimeoutSignal("management");
   const response = await fetch(url, { ...options, headers, signal });
 
   if (!response.ok) {
@@ -231,7 +232,7 @@ function withScopeEnforcement(
     const scopeCheck = evaluateToolScopes(
       toolName,
       scopeContext.scopes,
-      MCP_ENFORCE_SCOPES,
+      isMcpScopeEnforcementEnabled(),
       toolScopes
     );
     if (!scopeCheck.allowed) {
@@ -295,6 +296,20 @@ async function handleGetHealth() {
     const cacheStatsRaw = toRecord(health.cacheStats);
     const resilienceCircuitBreakers = toArray(resilience.circuitBreakers);
     const rateLimitEntries = toArray(rateLimits.limits);
+    const adaptiveAdmissionRaw = toRecord(health.adaptiveAdmission);
+    // Curated lane subset: top lanes by queued cost so a congested tenant is
+    // visible first without shipping the whole admission snapshot to agents.
+    const laneTenants = toArray(adaptiveAdmissionRaw.laneTenants)
+      .map((tenant) => {
+        const record = toRecord(tenant);
+        return {
+          tenantKey: toString(record.tenantKey),
+          queuedCount: toNumber(record.queuedCount, 0),
+          queuedCost: toNumber(record.queuedCost, 0),
+        };
+      })
+      .sort((a, b) => b.queuedCost - a.queuedCost)
+      .slice(0, 10);
 
     // Surface fetch failures instead of letting Promise.allSettled's {} fallback
     // masquerade as genuine zero/empty data (indistinguishable "no data" vs.
@@ -308,9 +323,7 @@ async function handleGetHealth() {
       .filter(({ settled }) => settled.status === "rejected")
       .map(({ source, settled }) => ({
         source,
-        error: sanitizeErrorMessage(
-          settled.status === "rejected" ? (settled as PromiseRejectedResult).reason : undefined
-        ),
+        error: toSafeMcpErrorMessage((settled as PromiseRejectedResult).reason, ""),
       }));
 
     const result = {
@@ -336,13 +349,29 @@ async function handleGetHealth() {
             provider: toString(toRecord(health.cryptography).provider, "unknown"),
           }
         : undefined,
+      adaptiveAdmission:
+        Object.keys(adaptiveAdmissionRaw).length > 0
+          ? {
+              virtualLanes: isLaneFlagOn(adaptiveAdmissionRaw.virtualLanes),
+              pressure: toString(adaptiveAdmissionRaw.pressure),
+              utilization: toNumber(adaptiveAdmissionRaw.utilization, 0),
+              laneCount: toNumber(adaptiveAdmissionRaw.laneCount, 0),
+              laneQueuedCount: toNumber(adaptiveAdmissionRaw.laneQueuedCount, 0),
+              laneQueuedCost: toNumber(adaptiveAdmissionRaw.laneQueuedCost, 0),
+              laneTenants,
+              admittedCount: toNumber(adaptiveAdmissionRaw.admittedCount, 0),
+              rejectedCount: toNumber(adaptiveAdmissionRaw.rejectedCount, 0),
+              wouldRejectCount: toNumber(adaptiveAdmissionRaw.wouldRejectCount, 0),
+              shutdown: isLaneFlagOn(adaptiveAdmissionRaw.shutdown),
+            }
+          : undefined,
       degraded: degraded.length > 0 ? degraded : undefined,
     };
 
     await logToolCall("omniroute_get_health", {}, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_get_health", {}, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -384,7 +413,7 @@ async function handleListCombos(args: { includeMetrics?: boolean }) {
     await logToolCall("omniroute_list_combos", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_list_combos", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -399,7 +428,7 @@ async function handleGetComboMetrics(args: { comboId: string }) {
     await logToolCall("omniroute_get_combo_metrics", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_get_combo_metrics", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -415,7 +444,7 @@ async function handleSwitchCombo(args: { comboId: string; active: boolean }) {
     await logToolCall("omniroute_switch_combo", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_switch_combo", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -436,7 +465,7 @@ async function handleCreateCombo(args: {
     await logToolCall("omniroute_create_combo", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_create_combo", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -457,7 +486,7 @@ async function handleCheckQuota(args: { provider?: string; connectionId?: string
     await logToolCall("omniroute_check_quota", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_check_quota", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -485,6 +514,10 @@ async function handleRouteRequest(args: {
     const raw = (await omniRouteFetch("/v1/chat/completions", {
       method: "POST",
       body: JSON.stringify(body),
+      // #9717: this hop waits on an upstream provider (and on auto-combo
+      // candidate probing before one is even chosen), so it must not inherit
+      // the management-read budget.
+      signal: mcpFetchTimeoutSignal("upstream"),
     })) as JsonRecord;
     const choices = toArray(raw.choices);
     const firstChoice = toRecord(choices[0]);
@@ -522,7 +555,7 @@ async function handleRouteRequest(args: {
     );
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall(
       "omniroute_route_request",
       { model: args.model },
@@ -571,7 +604,7 @@ async function handleCostReport(args: { period?: string }) {
     await logToolCall("omniroute_cost_report", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_cost_report", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -591,7 +624,7 @@ async function handleListModelsCatalog(args: { provider?: string; capability?: s
     );
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_list_models_catalog", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -601,16 +634,7 @@ async function handleWebSearch(args: {
   query: string;
   max_results?: number;
   search_type?: "web" | "news";
-  provider?:
-    | "serper-search"
-    | "brave-search"
-    | "perplexity-search"
-    | "exa-search"
-    | "tavily-search"
-    | "google-pse-search"
-    | "linkup-search"
-    | "searchapi-search"
-    | "searxng-search";
+  provider?: string;
 }) {
   const start = Date.now();
   try {
@@ -624,20 +648,53 @@ async function handleWebSearch(args: {
     const result = await omniRouteFetch("/v1/search", {
       method: "POST",
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(60000),
+      signal: mcpFetchTimeoutSignal("upstream"),
     });
     await logToolCall("omniroute_web_search", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_web_search", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+async function handleXSearch(args: {
+  query: string;
+  max_results?: number;
+  provider?: "x-search" | "xquik-search";
+}) {
+  const start = Date.now();
+  try {
+    const result = await omniRouteFetch("/v1/search", {
+      method: "POST",
+      body: JSON.stringify({
+        query: args.query,
+        max_results: args.max_results ?? 5,
+        search_type: "x",
+        provider: args.provider ?? "x-search",
+      }),
+      signal: AbortSignal.timeout(120000),
+    });
+    await logToolCall("omniroute_x_search", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = toSafeMcpErrorMessage(err);
+    await logToolCall("omniroute_x_search", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }
 
 async function handleWebFetch(args: {
   url: string;
-  provider?: "firecrawl" | "jina-reader" | "tavily-search" | "tinyfish";
+  provider?:
+    | "firecrawl"
+    | "jina-reader"
+    | "tavily-search"
+    | "tinyfish"
+    | "context7"
+    | "nimble-search"
+    | "anysearch-search";
   format?: "markdown" | "html" | "links" | "screenshot";
   include_metadata?: boolean;
   depth?: number;
@@ -657,18 +714,35 @@ async function handleWebFetch(args: {
     const result = await omniRouteFetch("/v1/web/fetch", {
       method: "POST",
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(60000),
+      signal: mcpFetchTimeoutSignal("upstream"),
     });
     await logToolCall("omniroute_web_fetch", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_web_fetch", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }
 
-export function createMcpServer(): McpServer {
+export interface CreateMcpServerOptions {
+  blockedProviders?: string[] | (() => string[]);
+}
+
+export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
+  const resolveBlockedProviders = (): string[] => {
+    if (typeof options?.blockedProviders === "function") {
+      return options.blockedProviders();
+    }
+    if (Array.isArray(options?.blockedProviders)) {
+      return options.blockedProviders;
+    }
+    return [];
+  };
+
+  const blockedProviders = resolveBlockedProviders();
+  const dynamicWebSearchInput = buildWebSearchInputSchema(blockedProviders);
+
   const server = new McpServer({
     name: "omniroute",
     version: process.env.npm_package_version || "1.8.1",
@@ -842,6 +916,8 @@ export function createMcpServer(): McpServer {
     )
   );
 
+  registerRadarCatalogTool(server, withScopeEnforcement);
+
   server.registerTool(
     "omniroute_simulate_route",
     {
@@ -990,11 +1066,25 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Performs a web search using OmniRoute's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily) with automatic failover. Returns search results with titles, URLs, snippets, and position data.",
-      inputSchema: webSearchInput,
+      inputSchema: dynamicWebSearchInput,
     },
     withScopeEnforcement("omniroute_web_search", (args) =>
-      handleWebSearch(webSearchInput.parse(args))
+      // Resolve per invocation (not the startup snapshot above) so a resolver
+      // function passed via CreateMcpServerOptions sees policy changes without
+      // a server rebuild. The advertised inputSchema stays a creation-time
+      // snapshot — MCP clients fetch it once at tools/list.
+      handleWebSearch(buildWebSearchInputSchema(resolveBlockedProviders()).parse(args))
     )
+  );
+
+  server.registerTool(
+    "omniroute_x_search",
+    {
+      description:
+        "Search X (Twitter) through OmniRoute using SuperGrok / xAI server-side x_search. Requires xai-oauth or an xAI API key. Not web search.",
+      inputSchema: xSearchInput,
+    },
+    withScopeEnforcement("omniroute_x_search", (args) => handleXSearch(xSearchInput.parse(args)))
   );
 
   server.registerTool(
@@ -1085,7 +1175,7 @@ export function createMcpServer(): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Memory tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1112,7 +1202,7 @@ export function createMcpServer(): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Skill tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1137,7 +1227,7 @@ export function createMcpServer(): McpServer {
           const result = await toolDef.handler(parsedArgs, extra);
           return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
+          const msg = toSafeMcpErrorMessage(err, "Agent skill tool execution failed");
           return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
         }
       })
@@ -1162,7 +1252,7 @@ export function createMcpServer(): McpServer {
             const result = await toolDef.handler(parsedArgs);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "GitHub skill tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1189,7 +1279,7 @@ export function createMcpServer(): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Plugin tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1216,7 +1306,7 @@ export function createMcpServer(): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Compression tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1253,7 +1343,7 @@ export function createMcpServer(): McpServer {
                 content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
               };
             } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
+              const msg = toSafeMcpErrorMessage(err, "Pool tool execution failed");
               return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
             }
           },
@@ -1281,7 +1371,7 @@ export function createMcpServer(): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Gamification tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1308,7 +1398,7 @@ export function createMcpServer(): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Notion tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1335,8 +1425,9 @@ export function createMcpServer(): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (error) {
+            const msg = toSafeMcpErrorMessage(error, "Local corpus tool execution failed");
             return {
-              content: [{ type: "text" as const, text: `Error: ${sanitizeErrorMessage(error)}` }],
+              content: [{ type: "text" as const, text: `Error: ${msg}` }],
               isError: true,
             };
           }
@@ -1364,7 +1455,7 @@ export function createMcpServer(): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Obsidian tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1405,7 +1496,7 @@ export function createMcpServer(): McpServer {
                 ],
               };
             } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
+              const msg = toSafeMcpErrorMessage(err, "Skill execution failed");
               return {
                 content: [{ type: "text" as const, text: `Error: ${msg}` }],
                 isError: true,
@@ -1430,16 +1521,16 @@ export function createMcpServer(): McpServer {
  * Called when `omniroute --mcp` is used.
  */
 export async function startMcpStdio(): Promise<void> {
+  await ensureDbInitialized();
   // Stdout is reserved for JSON-RPC — bin/mcpStdioConsoleGuard.mjs is preloaded via
   // `node --import` (see bin/mcp-server.mjs) so console.log/warn already redirect to
-  // stderr before this module's own imports evaluate (DB init happens as a side effect of
-  // createMcpServer()'s tool registration, earlier than any code placed here could catch).
+  // stderr before this module's own imports evaluate.
   const server = createMcpServer();
   const transport = new StdioServerTransport();
   const version = process.env.npm_package_version || "1.8.1";
   const stopHeartbeat = startMcpHeartbeat({
     version,
-    scopesEnforced: MCP_ENFORCE_SCOPES,
+    scopesEnforced: isMcpScopeEnforcementEnabled,
     allowedScopes: Array.from(MCP_ALLOWED_SCOPES),
     toolCount: TOTAL_MCP_TOOL_COUNT,
   });

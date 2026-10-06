@@ -1,4 +1,14 @@
-import test from "node:test";
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -8,9 +18,19 @@ import Database from "better-sqlite3";
 
 const scriptPath = "scripts/router-eval/index.ts";
 
+// #10432 (guard #10428) made every process that detects a test context but has no
+// explicit DATA_DIR warn on stderr before falling back to a throwaway dir.
+// `NODE_TEST_CONTEXT` is inherited by the children spawned below, so the CLI printed
+// that warning and broke the "stderr stays empty" assertions. Give every child its own
+// DATA_DIR — the exact resolution the guard message prescribes — instead of loosening
+// the assertions.
+const cliDataDir = mkdtempSync(join(tmpdir(), "router-eval-cli-datadir-"));
+after(() => rmSync(cliDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
+
 function runCli(args: string[]) {
   return spawnSync(process.execPath, ["--import", "tsx", scriptPath, ...args], {
     encoding: "utf8",
+    env: { ...process.env, DATA_DIR: cliDataDir },
   });
 }
 
@@ -48,7 +68,7 @@ test("router-eval CLI prints a markdown report for JSONL input", () => {
     assert.ok((result.stdout ?? "").includes("Frontier"));
     assert.ok((result.stdout ?? "").includes("AIQ"));
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -103,7 +123,7 @@ test("router-eval CLI exits non-zero when regression threshold is exceeded", () 
     assert.ok((result.stdout ?? "").includes("Router Eval Comparison"));
     assert.ok((result.stdout ?? "").includes("Regressions"));
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -136,7 +156,7 @@ test("router-eval CLI writes machine-readable JSON artifacts", () => {
       path: inputPath,
     });
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -222,7 +242,7 @@ test("router-eval CLI reads usage_history DB source", () => {
       "string"
     );
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -265,6 +285,6 @@ test("router-eval CLI defaults --db to call_logs when available", () => {
     assert.ok((result.stdout ?? "").includes("Router Eval Report"));
     assert.ok((result.stdout ?? "").includes("priority"));
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

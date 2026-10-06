@@ -63,7 +63,13 @@ export function verifyFrozenMap(before = {}, after = {}, label = "frozen") {
     if (typeof prev !== "number") {
       // note key
       if (!has) problems.push(`${label}: note "${key}" was deleted — notes must be preserved`);
-      else if (after[key] !== prev)
+      // Structural, not referential. A note whose value is an OBJECT — the
+      // 2026-08-11 merge-storm entry folded four file→LOC pairs under a single
+      // note key — is a fresh object on every JSON.parse, so `!==` reported it
+      // rewritten on an UNMODIFIED tree. That made this verifier exit 1
+      // unconditionally, and the nightly bank-ratchet-shrinks job (#8612) aborts
+      // on non-zero: every shrink since has gone unbanked.
+      else if (!jsonEqual(after[key], prev))
         problems.push(`${label}: note "${key}" was rewritten — notes must be preserved verbatim`);
       continue;
     }

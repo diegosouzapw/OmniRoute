@@ -28,7 +28,7 @@ function withFixtureOpenapi(yamlContent: string): { cleanup: () => void } {
   return {
     cleanup() {
       process.chdir(originalCwd);
-      fs.rmSync(tmpDir, { recursive: true, force: true });
+      fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     },
   };
 }
@@ -191,7 +191,7 @@ test("parseOpenapi() throws if openapi.yaml is missing", () => {
     );
   } finally {
     process.chdir(originalCwd);
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 

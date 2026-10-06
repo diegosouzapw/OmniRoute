@@ -1,269 +1,338 @@
 # OmniRoute — Dashboard Features Gallery (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/FEATURES.md) · 🇸🇦 [ar](../../ar/docs/FEATURES.md) · 🇧🇬 [bg](../../bg/docs/FEATURES.md) · 🇧🇩 [bn](../../bn/docs/FEATURES.md) · 🇨🇿 [cs](../../cs/docs/FEATURES.md) · 🇩🇰 [da](../../da/docs/FEATURES.md) · 🇩🇪 [de](../../de/docs/FEATURES.md) · 🇪🇸 [es](../../es/docs/FEATURES.md) · 🇮🇷 [fa](../../fa/docs/FEATURES.md) · 🇫🇮 [fi](../../fi/docs/FEATURES.md) · 🇫🇷 [fr](../../fr/docs/FEATURES.md) · 🇮🇳 [gu](../../gu/docs/FEATURES.md) · 🇮🇱 [he](../../he/docs/FEATURES.md) · 🇮🇳 [hi](../../hi/docs/FEATURES.md) · 🇭🇺 [hu](../../hu/docs/FEATURES.md) · 🇮🇩 [id](../../id/docs/FEATURES.md) · 🇮🇹 [it](../../it/docs/FEATURES.md) · 🇯🇵 [ja](../../ja/docs/FEATURES.md) · 🇰🇷 [ko](../../ko/docs/FEATURES.md) · 🇮🇳 [mr](../../mr/docs/FEATURES.md) · 🇲🇾 [ms](../../ms/docs/FEATURES.md) · 🇳🇱 [nl](../../nl/docs/FEATURES.md) · 🇳🇴 [no](../../no/docs/FEATURES.md) · 🇵🇭 [phi](../../phi/docs/FEATURES.md) · 🇵🇱 [pl](../../pl/docs/FEATURES.md) · 🇵🇹 [pt](../../pt/docs/FEATURES.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/FEATURES.md) · 🇷🇴 [ro](../../ro/docs/FEATURES.md) · 🇷🇺 [ru](../../ru/docs/FEATURES.md) · 🇸🇰 [sk](../../sk/docs/FEATURES.md) · 🇸🇪 [sv](../../sv/docs/FEATURES.md) · 🇰🇪 [sw](../../sw/docs/FEATURES.md) · 🇮🇳 [ta](../../ta/docs/FEATURES.md) · 🇮🇳 [te](../../te/docs/FEATURES.md) · 🇹🇭 [th](../../th/docs/FEATURES.md) · 🇹🇷 [tr](../../tr/docs/FEATURES.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/FEATURES.md) · 🇵🇰 [ur](../../ur/docs/FEATURES.md) · 🇻🇳 [vi](../../vi/docs/FEATURES.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/FEATURES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇧🇦 [bs](../../../bs/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇧🇦 [bs](../../../bs/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+
+OmniRoute kontrol panelinin her bölümüne ilişkin görsel rehber.
+
+> 📅 **Son güncelleme:** 2026-06-28 — **v3.8.40**
 
 ---
 
-## 🔌 Providers
+## ✨ v3.8.0 Öne Çıkanlar
 
+v3.7.x → v3.8.0 döngüsü; sıfır yapılandırmalı otomatik yönlendirme, yeni sağlayıcılar, OAuth akışları, daha kapsamlı dayanıklılık ve çok daha zengin bir CLI deneyimi ekledi. Başlıca özellikler aşağıdadır — tüm ayrıntılar belgenin devamında ve bağlantılı teknik özelliklerde yer almaktadır.
 
-![Providers Dashboard](screenshots/01-providers.png)
+- 🤖 **Otomatik Kombinasyon / Sıfır yapılandırmalı otomatik yönlendirme** — `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos` ön eklerini kullanın. 16 faktörlü bir puanlama motoru ve özenle hazırlanmış 6 **mod paketi** (hızlı teslimat, maliyet tasarrufu, kalite öncelikli, çevrimdışı kullanım odaklı, güvenilirlik öncelikli, kaos modu) tarafından desteklenir
+- 🆕 **Command Code sağlayıcısı** (#2199) — model kataloğu ve kota takibiyle birinci sınıf kayıt desteği
+- 🆕 **Z.AI sağlayıcısı** — kota etiketlerine sahip yeni ücretsiz katman sağlayıcısı
+- 🎬 **KIE medya genişletmesi** — video oluşturma modellerini de içeren genişletilmiş katalog
+- 🔐 **Devin kimlik doğrulaması** — Desktop mevcut bir Devin API anahtarını içe aktarır; CLI ise yerel `devin auth login` kimlik bilgilerini kullanır
+- 🆓 **8 yeni ücretsiz sağlayıcı** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Manifest duyarlı W1–W4 katman yönlendirmesi** — sağlayıcı manifestleri ağırlıklı katman seçimini yönlendirir
+- 🎨 **Cursor için tam OpenAI uyumluluğu** — araç çağrıları, akış ve uçtan uca oturum yönetimi
+- 📊 **Cursor Pro planı kullanımı** — kota ve döngü verileri sağlayıcı limitleri panosunda gösterilir
+- ⚡ **Hizmet katmanı dökümü / Codex hızlı katman analitiği** — katman bazında tüketim görünürlüğü
+- 📌 **Oturum bazında kalıcı yönlendirme** — Codex oturumları, turlar arasında aynı hesaba sabitlenir
+- 🔊 **Inworld TTS geliştirmeleri** — ses katalogları, akış ve gecikme iyileştirmeleri
+- 🔑 **Kiro başsız kimlik doğrulaması** — tarayıcı gerekmeden yerel `kiro-cli` SQLite deposu üzerinden oturum açma
+- 📉 **DeepSeek kota ve limit izleme** — günlük/aylık kullanım pano üzerinden sunulur
+- 🔄 **Sıfırlama duyarlı yönlendirme stratejisi** — kombinasyonlar artık kota penceresi en kısa sürede sıfırlanacak hesapları tercih eder
+- ⏱️ **`fallbackDelayMs`** ve **dinamik araç limiti algılama** — daha hassas geri dönüş zamanlaması + sağlayıcı bazında araç sayısı limitleri
+- 🔧 **Arka plan modu indirgemesi (Responses API)** — üst sağlayıcı arka plan yoklamasını desteklemediğinde yapılandırılmış bir uyarıyla eşzamanlı moda geri döner
+- 🚦 **Sağlayıcı bazında 429 sınıflandırması** + `useUpstream429BreakerHints` geçişi — üst sağlayıcının hız limiti ipuçlarını kullanan daha hassas devre kesici davranışı
+- 🩺 **Model bekleme süreleri panosu** — model bazındaki kilitlenmeleri izleyin ve kullanıcı arayüzünden manuel olarak yeniden etkinleştirin
+- 🔒 **MITM dinamik Linux sertifika algılama** — Debian/Ubuntu, Fedora/RHEL, Arch ve diğer dağıtımlarda çalışır
+- 💻 **CLI geliştirme paketi** — `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup` dâhil 20'den fazla komut
+- 🔍 **Qdrant gömme modeli keşfi** — otomatik vektör deposu model yoklaması
+- 🔑 **`manage` kapsamına sahip API Anahtarları / Bearer anahtarları** — yönetici işlemlerini API üzerinden programatik olarak gerçekleştirin
+- 🏥 **Kombinasyon hedefi sağlık analitiği** + **yapılandırılmış kombinasyon oluşturucu** — hedef bazında sağlık durumu ve `(provider, model, connection)` adımlarını birleştirmek için kullanıcı arayüzü oluşturucusu
+- 🤝 **GitLab Duo OAuth sağlayıcısı** — GitLab kimlik bilgileriyle oturum açma
+- 🧠 **Akıl Yürütme Yeniden Oynatma Önbelleği** — akıl yürütme izlerinin hibrit bellek içi + SQLite kalıcılığı
 
----
-
-## 🎨 Combos
-
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-Recent combo improvements:
-
-- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
-- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
-- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
-- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
-
-![Combos Dashboard](screenshots/02-combos.png)
-
----
-
-## 📊 Analytics
-
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
-
----
-
-## 🏥 System Health
-
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
-
-![Health Dashboard](screenshots/04-health.png)
+📚 **İlgili belgeler:** [Beceri Çerçevesi](../frameworks/SKILLS.md) · [Bellek Sistemi](../frameworks/MEMORY.md) · [Bulut Aracıları](../frameworks/CLOUD_AGENT.md) · [Webhook'lar](../frameworks/WEBHOOKS.md) · [Akıl Yürütme Yeniden Oynatma Önbelleği](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🔧 Translator Playground
+## 🔌 Sağlayıcılar
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+Yapay zekâ sağlayıcı bağlantılarını yönetin: OAuth sağlayıcıları (Claude Code, Codex), API anahtarı sağlayıcıları (Groq, DeepSeek, OpenRouter) ve ücretsiz sağlayıcılar (Qoder, Kiro). Kiro hesapları kredi bakiyesi takibini içerir — kalan krediler, toplam limit ve yenileme tarihi Dashboard → Usage bölümünde görülebilir.
 
-![Translator Playground](screenshots/05-translator.png)
+OpenRouter bağlantıları, Advanced Settings bölümünde bağlantı başına bir `preset` saklayabilir. Ayarlandığında OmniRoute bunu OpenRouter üst düzey istek alanı olarak gönderir; örneğin `"preset": "email-copywriter"`. Ancak istemci isteği kendi `preset` değerini zaten sağladıysa bu değer gönderilmez.
 
----
-
-## 🎮 Model Playground _(v2.0.9+)_
-
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+![Sağlayıcılar Panosu](../screenshots/01-providers.png)
 
 ---
 
-## 🎨 Themes _(v2.0.5+)_
+## 🎨 Kombolar
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+19 herkese açık stratejiyle model yönlendirme komboları oluşturun: öncelik, ağırlıklı, round-robin, bağlam aktarma, önce doldurma, p2c (iki seçenekten güçlü olan), rastgele, en az kullanılan, maliyet optimizasyonlu, sıfırlama duyarlı, sıfırlama penceresi, kullanılabilir kapasite, katı rastgele, otomatik, lkgp (son bilinen iyi sağlayıcı), bağlam optimizasyonlu, önbellek optimizasyonlu, **fusion** (bir model paneline paralel olarak dağıtım yapar, ardından bir hakem aracılığıyla tek bir yanıt sentezler) ve **pipeline**. Her kombo, otomatik yedeklemeyle birden fazla modeli zincirler ve hızlı şablonlar ile hazırlık kontrolleri içerir.
 
----
+Son kombo iyileştirmeleri:
 
-## ⚙️ Settings
+- **Yapılandırılmış kombo oluşturucu** — sağlayıcıyı, modeli ve tam hesabı/bağlantıyı seçerek her adımı oluşturun
+- **Tekrarlanan sağlayıcı desteği** — `(provider, model, connection)` demeti benzersiz olduğu sürece aynı sağlayıcıyı tek bir komboda birden çok kez yeniden kullanın
+- **Kombo hedefi sağlığı** — analiz ve sistem sağlığı yüzeyleri artık her şeyi model dizgelerinde birleştirmek yerine ayrı kombo hedeflerini/adımlarını birbirinden ayırır
+- **Bileşik katman sıralaması** — `defaultTier -> fallbackTier` artık üst düzey kombo adımlarının çalışma zamanı yürütme/yedekleme sırasını etkiler
+- **Sistem istemi şablonları** — kombo `system_message`, sunucu tarafında
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` ve `{{FINGERPRINT}}`
+  yer tutucularını destekler; bunlar gönderimden hemen önce fiilen yönlendirilen hedeften genişletilir.
+  İzin verilenler listesiyle sınırlıdır ve özyinelemeli değildir; bilinmeyen yer tutucular değişmeden kalır; boş değerler
+  boş olarak genişletilir; istemci sistem istemleri asla yeniden yazılmaz. `{{FINGERPRINT}}`
+  yalnızca sabitlenmiş veya otomatik olarak döndürülen parmak izine sahip, parmak izi tabanlı ücretsiz sağlayıcılarda
+  çözümlenir — diğer durumlarda boş olarak genişletilir (ör.
+  tek parmak izli bağlantılar, fp olmayan sağlayıcılar). Genişletme;
+  standart gönderim döngüsünü, round-robin yöntemini ve sabitlenmiş bağlam önbelleği oturumlarını kapsar;
+  fusion, chaos, pipeline ve iç içe execute stratejileri henüz
+  yer tutucuları genişletmez.
 
-Comprehensive settings panel with tabs:
-
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
-
----
-
-## 🔧 CLI Tools
-
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+![Kombolar Panosu](../screenshots/02-combos.png)
 
 ---
 
-## 🤖 CLI Agents _(v2.0.11+)_
+## 📊 Analizler
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Token tüketimi, maliyet tahminleri, etkinlik ısı haritaları, haftalık dağılım grafikleri ve sağlayıcı bazında dökümler içeren kapsamlı kullanım analizleri.
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+![Analiz Panosu](../screenshots/03-analytics.png)
 
 ---
 
-## 🔗 Context Relay _(v3.5.5+)_
+## 🏥 Sistem Sağlığı
 
-A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+Gerçek zamanlı izleme: çalışma süresi, bellek, sürüm, gecikme yüzdelikleri (p50/p95/p99), önbellek istatistikleri, sağlayıcı devre kesici durumları, kota izlenen etkin oturumlar ve kombo hedefi sağlığı.
 
-Configurable via combo-level or global settings:
-
-- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
-- **Max Messages For Summary** — How much recent history to condense
-- **Summary Model** — Optional override model for generating the handoff summary
-
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+![Sistem Sağlığı Panosu](../screenshots/04-health.png)
 
 ---
 
-## 🛡️ Proxy Hardening _(v3.5.5+)_
+## 🔧 Çevirmen Deneme Alanı
 
-Comprehensive proxy configuration enforcement across the entire request pipeline:
+API çevirilerinde hata ayıklamak için dört mod: **Deneme Alanı** (biçim dönüştürücü), **Sohbet Test Aracı** (canlı istekler), **Test Tezgâhı** (toplu testler) ve **Canlı İzleyici** (gerçek zamanlı akış).
 
-- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
-- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
-- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+![Çevirmen Deneme Alanı](../screenshots/05-translator.png)
 
 ---
 
-## 📧 Email Privacy Masking _(v3.5.6+)_
+## 🎮 Model Deneme Alanı _(v2.0.9+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
-
----
-
-## 👁️ Model Visibility Toggle _(v3.5.6+)_
-
-The provider page model list now includes:
-
-- **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
-- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
+Herhangi bir modeli doğrudan kontrol panelinden test edin. Sağlayıcıyı, modeli ve uç noktayı seçin; Monaco Editor ile istemler yazın, yanıtları gerçek zamanlı olarak akış halinde alın, akışı devam ederken iptal edin ve zamanlama metriklerini görüntüleyin.
 
 ---
 
-## 🔧 OAuth Env Repair _(v3.6.1+)_
+## 🎨 Temalar _(v2.0.5+)_
 
-One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
-
-- Missing OAuth client credentials
-- Corrupted env file entries
-- Backup path sanitization
+Tüm kontrol paneli için özelleştirilebilir renk temaları. 7 hazır renkten (Mercan, Mavi, Kırmızı, Yeşil, Menekşe, Turuncu, Camgöbeği) birini seçin veya herhangi bir onaltılık renk kodunu seçerek özel bir tema oluşturun. Açık, koyu ve sistem modlarını destekler.
 
 ---
 
-## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+## ⚙️ Ayarlar
 
-Clean removal scripts for all installation methods:
+**7 sekmeden** oluşan kapsamlı ayarlar paneli:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+- **Genel** — Sistem depolama, yedekleme yönetimi (veritabanını dışa/içe aktarma)
+- **Görünüm** — Tema seçici (koyu/açık/sistem), renk teması hazır ayarları ve özel renkler, sistem durumu günlüğü görünürlüğü, kenar çubuğu öğesi ve grup ayırıcısı görünürlük denetimleri, uç nokta tüneli görünürlük denetimleri
+- **Yapay Zekâ** — Yapay zekâ asistanı özellikleri, varsayılan yönlendirme hazır ayarları (Otomatik Kombinasyon `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), akıl yürütme yeniden oynatma önbelleği ve beceri/bellek seçenekleri
+- **Güvenlik** — API uç noktası koruması, özel sağlayıcı engelleme, IP filtreleme, oturum bilgileri
+- **Yönlendirme** — Model takma adları, arka plan görevi indirgemesi, manifestoya duyarlı katman yönlendirmesi (W1–W4), `fallbackDelayMs`, oturum başına kalıcı yönlendirme
+- **Dayanıklılık** — Hız sınırı kalıcılığı, devre kesici ayarlama, yasaklanan hesapları otomatik olarak devre dışı bırakma, sağlayıcı süre sonu izleme, **Bağlam Aktarımı** devir eşiği ve özet modeli yapılandırması, sağlayıcı başına 429 sınıflandırması ve `useUpstream429BreakerHints` seçeneği, model bekleme süreleri
+- **Gelişmiş** — Yapılandırma geçersiz kılmaları, yapılandırma denetim izi, geri dönüş indirgeme modu, Responses API için arka plan modu indirgemesi
 
----
-
-## 🖼️ Media _(v2.0.3+)_
-
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
-
----
-
-## 📝 Request Logs
-
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
-
-![Usage Logs](screenshots/08-usage.png)
+![Ayarlar Kontrol Paneli](../screenshots/06-settings.png)
 
 ---
 
-## 🌐 API Endpoint
+## 🔧 CLI Araçları
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+Yapay zekâ kodlama araçları için tek tıklamayla yapılandırma: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor ve Factory Droid. Otomatik yapılandırma uygulama/sıfırlama, bağlantı profilleri ve model eşleme özelliklerini içerir.
 
-![Endpoint Dashboard](screenshots/09-endpoint.png)
-
----
-
-## 🔑 API Key Management
-
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+![CLI Araçları Kontrol Paneli](../screenshots/07-cli-tools.png)
 
 ---
 
-## 📋 Audit Log
+## 🤖 CLI Aracıları _(v2.0.11+)_
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+CLI aracılarını keşfetmek ve yönetmek için kontrol paneli. 16 yerleşik aracıyı (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) aşağıdaki bilgilerle birlikte bir ızgarada gösterir:
 
----
-
-## 🖥️ Desktop Application
-
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
-
-Key features:
-
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
-
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+- **Kurulum durumu** — Sürüm algılamayla birlikte Kurulu / Bulunamadı
+- **Protokol rozetleri** — stdio, HTTP vb.
+- **Özel aracılar** — Herhangi bir CLI aracını form aracılığıyla kaydedin (ad, ikili dosya, sürüm komutu, başlatma bağımsız değişkenleri)
+- **CLI Parmak İzi Eşleştirme** — Proxy IP'sini korurken yasaklanma riskini azaltmak amacıyla yerel CLI istek imzalarını eşleştirmek için sağlayıcı başına seçenek
+- **Yerel Devin kimlik doğrulaması** — Devin CLI, `devin auth login` kullanır; tarayıcı tabanlı OAuth akışı gerekmez
 
 ---
 
-## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
+## 🔗 Bağlam Aktarımı _(v3.5.5+)_
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+Hesap değişimi konuşmanın ortasında gerçekleştiğinde oturum sürekliliğini koruyan birleşik bir strateji. Etkin hesabın kotası tükenmeden önce OmniRoute arka planda yapılandırılmış bir aktarım özeti oluşturur. Sonraki istek farklı bir hesaba yönlendirildikten sonra özet, yeni hesabın tüm bağlamla devam edebilmesi için bir sistem mesajı olarak eklenir.
 
-Key behaviours:
+Birleşik strateji düzeyindeki veya genel ayarlar üzerinden yapılandırılabilir:
 
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
-- Streams terminated cleanly on session close or upstream error
-- Works alongside the existing HTTP+SSE streaming path simultaneously
+- **Aktarım Eşiği** — Özet oluşturmayı tetikleyen kota kullanım yüzdesi (varsayılan %85)
+- **Özet İçin Maksimum Mesaj Sayısı** — Yakın geçmişten ne kadarının özetleneceği
+- **Özet Modeli** — Aktarım özetini oluşturmak için isteğe bağlı alternatif model
 
----
-
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
-
-Multi-device and external operator access is now possible via **scoped sync tokens**:
-
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
-
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+Şu anda Codex hesap değişimini desteklemektedir. Bkz. [Bağlam Aktarımı belgeleri](../architecture/ARCHITECTURE.md).
 
 ---
 
-## 🧠 GLM Thinking Preset _(v3.6.6+)_
+## 🗜️ İstem Sıkıştırma _(v3.7.9+)_
 
-**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+Bağlam ve Önbellek artık Caveman, RTK ve Sıkıştırma Birleşimleri için özel sayfalar sunuyor:
 
-**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+- **Caveman** — dile duyarlı kural paketleri, önizleme, çıktı modu kontrolleri ve analizler
+- **RTK** — kabuk, git, test, derleme, paket, Docker, altyapı, JSON ve yığın izleme çıktıları için komuta duyarlı sıkıştırma
+- **Sıkıştırma Birleşimleri** — yönlendirme birleşimlerine atanan `rtk -> caveman` gibi adlandırılmış işlem hatları; her iki motor da uygulandığında varsayılan yığınlı hesaplama ortalama `~89%` ve uygun bağlamda `78-95%` tasarruf sağlar
+- **Ham çıktı kurtarma** — sıkıştırılmış hatalarda hata ayıklamak için isteğe bağlı, hassas bilgileri gizlenmiş RTK ham çıktı işaretçileri
 
----
-
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
-
-All provider validation and model discovery calls now go through a two-layer outbound guard:
-
-1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
-2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
-
-Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+Bkz. [Sıkıştırma Kılavuzu](../compression/COMPRESSION_GUIDE.md), [RTK Sıkıştırma](../compression/RTK_COMPRESSION.md) ve
+[Sıkıştırma Motorları](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+## 🛡️ Proxy Güçlendirme _(v3.5.5+)_
 
-Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+Tüm istek işlem hattı genelinde kapsamlı proxy yapılandırması uygulaması:
+
+- **Belirteç Durum Denetimi** — Arka plandaki OAuth yenilemesi artık proxy yapılandırmasını bağlantı başına çözümleyerek proxy gerektiren ortamlardaki hataları önlüyor
+- **API Anahtarı Doğrulama** — Sağlayıcı anahtarı doğrulaması (`POST /api/providers/validate`), sağlayıcı düzeyindeki ve genel proxy ayarlarını dikkate alarak `runWithProxyContext` üzerinden yönlendirilir
+- **undici Dispatcher Düzeltmesi** — Proxy dispatcher'ları, Node'un yerleşik fetch uygulaması yerine undici'nin kendi fetch uygulamasını kullanarak Node.js 22'deki `invalid onRequestStart method` hatalarını giderir
+- **Node.js Sürüm Algılama** — Giriş sayfası, uyumsuz Node.js sürümlerini (24+) proaktif olarak algılar ve Node 22 LTS kullanma talimatlarını içeren bir uyarı başlığı görüntüler
 
 ---
 
-## 📋 Compliance Audit v2 _(v3.6.6+)_
+## 📧 E-posta Gizlilik Maskelemesi _(v3.5.6+)_
 
-The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.
+OAuth hesaplarının e-posta adresleri, ekran görüntüleri paylaşılırken veya demolar kaydedilirken yanlışlıkla ifşa edilmelerini önlemek amacıyla varsayılan olarak maskelenir (ör. `di*****@g****.com`). Sağlayıcılar, birleşimler, günlükler, kota ve deneme alanı ekranlarında tam hesap e-posta adreslerini genel olarak göstermek veya maskelemek için Ayarlar → Görünüm → Hesap e-postası görünürlüğü seçeneğini kullanın.
+
+---
+
+## 👁️ Model Görünürlüğü Anahtarı _(v3.5.6+)_
+
+Sağlayıcı sayfasındaki model listesi artık şunları içeriyor:
+
+- **Gerçek zamanlı arama/filtreleme çubuğu** — Belirli modelleri hızla bulun
+- **Model başına görünürlük anahtarı** (👁 simgesi) — Gizli modeller soluk gösterilir ve `/v1/models` kataloğuna dahil edilmez
+- **Etkin sayı rozeti** (`N/M etkin`) — Kaç modelin etkin olduğunu ve toplam model sayısını bir bakışta gösterir
+
+---
+
+## 🔧 OAuth Env Onarımı _(v3.6.1+)_
+
+OAuth sağlayıcıları için eksik ortam değişkenlerini geri yükleyen ve bozuk kimlik doğrulama durumunu düzelten tek tıklamalı "Env'i onar" işlemi. `Dashboard → Providers → [OAuth Provider] → Repair env` yolundan erişilebilir. Aşağıdaki sorunları otomatik olarak algılar ve onarır:
+
+- Eksik OAuth istemci kimlik bilgileri
+- Bozuk env dosyası girdileri
+- Yedekleme yolu temizleme sorunları
+
+---
+
+## 🗑️ Kaldırma / Tam Kaldırma _(v3.6.2+)_
+
+Tüm kurulum yöntemleri için temiz kaldırma betikleri:
+
+| Komut                    | İşlem                                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `npm run uninstall`      | Sistem uygulamasını kaldırır ancak `~/.omniroute` içindeki **veritabanınızı ve yapılandırmalarınızı korur**. |
+| `npm run uninstall:full` | Uygulamayı kaldırır VE **tüm yapılandırmaları, anahtarları ve veritabanlarını** kalıcı olarak siler.         |
+
+---
+
+## 🖼️ Medya _(v2.0.3+)_
+
+Kontrol panelinden görseller, videolar ve müzik oluşturun. OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open ve MusicGen desteklenir.
+
+---
+
+## 📝 İstek Günlükleri
+
+Sağlayıcıya, modele, hesaba ve API anahtarına göre filtreleme özellikli gerçek zamanlı istek günlükleri. Durum kodlarını, token kullanımını, gecikme süresini ve yanıt ayrıntılarını gösterir.
+
+![Kullanım Günlükleri](../screenshots/08-usage.png)
+
+---
+
+## 🌐 API Uç Noktası
+
+Yetenek dökümüyle birlikte birleşik API uç noktanız: Sohbet Tamamlamaları, Responses API, Embeddings, Görsel Oluşturma, Yeniden Sıralama, Ses Transkripsiyonu, Metinden Konuşmaya, Moderasyonlar ve kayıtlı API anahtarları. Uzaktan erişim için Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel ve bulut proxy desteği mevcuttur.
+
+![Uç Nokta Kontrol Paneli](../screenshots/09-endpoint.png)
+
+---
+
+## 🔑 API Anahtarı Yönetimi
+
+API anahtarları oluşturun, kapsamlandırın ve iptal edin. Her anahtar, tam erişim veya salt okunur izinlerle belirli modellerle/sağlayıcılarla sınırlandırılabilir. Kullanım takibiyle görsel anahtar yönetimi.
+
+---
+
+## 📋 Denetim Günlüğü
+
+İşlem türüne, işlemi gerçekleştiren kişiye, hedefe, IP adresine ve zaman damgasına göre filtreleme özellikli yönetimsel işlem takibi. Eksiksiz güvenlik olayı geçmişi.
+
+---
+
+## 🖥️ Masaüstü Uygulaması
+
+Windows, macOS ve Linux için yerel Electron masaüstü uygulaması. OmniRoute'u sistem tepsisi entegrasyonu, çevrimdışı destek, otomatik güncelleme ve tek tıklamayla kurulum özelliklerine sahip bağımsız bir uygulama olarak çalıştırın.
+
+Temel özellikler:
+
+- Sunucu hazırlık durumu yoklaması (soğuk başlatmada boş ekran oluşmaz)
+- Port yönetimine sahip sistem tepsisi
+- İçerik Güvenliği Politikası
+- Tek örnek kilidi
+- Yeniden başlatmada otomatik güncelleme
+- Platforma koşullu kullanıcı arayüzü (macOS trafik ışıkları, Windows/Linux varsayılan başlık çubuğu)
+- Güçlendirilmiş Electron derleme paketlemesi — bağımsız pakette sembolik bağlantılı `node_modules`, paketlemeden önce algılanıp reddedilir ve çalışma zamanında derleme makinesine bağımlılık önlenir (v2.5.5+)
+- **Düzgün kapatma** — Electron `before-quit`, Next.js'i düzgün bir şekilde kapatarak SQLite WAL veritabanı kilitlerini önler (v3.6.2+)
+
+📖 Belgelerin tamamı için [`electron/README.md`](../../electron/README.md) dosyasına bakın.
+
+---
+
+## 🌐 V1 WebSocket Köprüsü _(v3.6.6+)_
+
+OmniRoute artık `/v1/ws` yükseltme uç noktası üzerinden **OpenAI uyumlu WebSocket istemcilerini** destekliyor. Özel `scripts/dev/v1-ws-bridge.mjs` sunucusu Next.js'i sarmalar ve WS bağlantılarını tam çift yönlü akış oturumlarına yükseltir. Kimlik doğrulama, HTTP istekleriyle aynı API anahtarını veya oturum çerezini kullanır.
+
+Temel davranışlar:
+
+- Bağlantı kurulmadan önce WS yükseltmesi `src/lib/ws/handshake.ts` tarafından doğrulanır
+- Akışlar, oturum kapandığında veya yukarı akış hatası oluştuğunda düzgün bir şekilde sonlandırılır
+- Mevcut HTTP+SSE akış yoluyla eş zamanlı olarak çalışır
+
+---
+
+## 🔑 Senkronizasyon Token'ları ve Yapılandırma Paketi _(v3.6.6+)_
+
+**Kapsamlı senkronizasyon token'ları** sayesinde artık birden fazla cihazdan ve harici operatörler tarafından erişim mümkündür:
+
+- **`POST /api/sync/tokens`** — Yeni bir senkronizasyon token'ı oluşturur (kapsamlı, isteğe bağlı son kullanma süresiyle)
+- **`DELETE /api/sync/tokens/:id`** — Bir token'ı iptal eder
+- **`GET /api/sync/bundle`** — Hassas olmayan tüm ayarların sürümlendirilmiş, ETag anahtarlı JSON anlık görüntüsünü indirir (parolalar gizlenir)
+
+Yapılandırma paketi `src/lib/sync/bundle.ts` tarafından oluşturulur. İstemciler, tam yükü yeniden indirmeden değişiklikleri tespit etmek için `ETag` yanıt üstbilgisini karşılaştırır.
+
+---
+
+## 🧠 GLM Thinking Ön Ayarı _(v3.6.6+)_
+
+**GLM Thinking (`glmt`)** artık birinci sınıf bir sağlayıcı olarak kayıtlıdır: maksimum 65 536 çıktı token'ı, 24 576 düşünme bütçesi, varsayılan 900 s zaman aşımı, Claude uyumlu API biçimi ve GLM ailesiyle paylaşılan kullanım senkronizasyonu.
+
+**Hibrit token sayımı** da v3.6.6 ile sunulmuştur: Claude uyumlu bir sağlayıcı `/messages/count_tokens` uç noktasını kullanıma sunduğunda OmniRoute, büyük isteklerden önce bu uç noktayı çağırır ve başarısızlık durumunda sorunsuz şekilde tahmine geri döner.
+
+---
+
+## 🛡️ Güvenli Giden İstekler ve SSRF Koruması _(v3.6.6+)_
+
+Tüm sağlayıcı doğrulama ve model keşfi çağrıları artık iki katmanlı bir giden istek korumasından geçer:
+
+1. **URL koruması** (`src/shared/network/outboundUrlGuard.ts`) — Soket açılmadan önce özel/geri döngü/yerel bağlantı IP aralıklarını engeller.
+2. **Güvenli fetch sarmalayıcısı** (`src/shared/network/safeOutboundFetch.ts`) — URL korumasını uygular, zaman aşımlarını standartlaştırır ve geçici hatalarda üstel geri çekilmeyle yeniden dener.
+
+Koruma ihlalleri HTTP 422 (`URL_GUARD_BLOCKED`) olarak gösterilir ve `providerAudit.ts` aracılığıyla uyumluluk denetim günlüğüne yazılır.
+
+---
+
+## 🔄 Bekleme Süresine Duyarlı Yeniden Denemeler _(v3.6.6+)_
+
+Bir üst sağlayıcı model kapsamlı bir bekleme süresi döndürdüğünde sohbet istekleri artık **otomatik olarak yeniden denenir**. `REQUEST_RETRY` (varsayılan: 2) ve `MAX_RETRY_INTERVAL_SEC` (varsayılan: 30 s) üzerinden yapılandırılabilir. Hız sınırı üstbilgilerini öğrenme özelliği `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens` ve `Retry-After` genelinde iyileştirilmiştir — model başına bekleme süresi durumu Dayanıklılık panosunda görüntülenebilir.
+
+---
+
+## 📋 Uyumluluk Denetimi v2 _(v3.6.6+)_
+
+Denetim günlüğü; imleç tabanlı sayfalama, istek bağlamı zenginleştirmesi (istek kimliği, kullanıcı aracısı, IP), yapılandırılmış kimlik doğrulama olayları, fark bağlamı içeren sağlayıcı CRUD olayları ve SSRF tarafından engellenen doğrulama günlük kaydıyla genişletilmiştir. Yeni olaylar `src/lib/compliance/providerAudit.ts` tarafından yayımlanır.

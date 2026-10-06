@@ -3,10 +3,13 @@
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
 import {
+  GPT_6_ASTRA_PRICING,
+  GEMINI_3_7_FLASH_PROMO_PRICING,
   GPT_5_5_PRICING,
   GPT_5_6_LUNA_PRICING,
   GPT_5_6_SOL_PRICING,
   GPT_5_6_TERRA_PRICING,
+  CLAUDE_FABLE_5_1_PRICING,
   CLAUDE_FABLE_5_PRICING,
   CLAUDE_OPUS_5_PRICING,
   CLAUDE_OPUS_4_PRICING,
@@ -18,6 +21,7 @@ import {
 
 export const DEFAULT_PRICING_FRONTIER = {
   openai: {
+    "gpt-6-astra": GPT_6_ASTRA_PRICING,
     "gpt-5.6": GPT_5_6_SOL_PRICING,
     "gpt-5.6-sol": GPT_5_6_SOL_PRICING,
     "gpt-5.6-terra": GPT_5_6_TERRA_PRICING,
@@ -212,6 +216,7 @@ export const DEFAULT_PRICING_FRONTIER = {
     // Common model IDs (without dates) used across providers
     // Intentional duplicates of dot-notation variants (e.g. claude-opus-4.6)
     // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
+    "claude-fable-5-1": CLAUDE_FABLE_5_1_PRICING,
     "claude-fable-5": CLAUDE_FABLE_5_PRICING,
     "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
@@ -226,6 +231,7 @@ export const DEFAULT_PRICING_FRONTIER = {
     "claude-opus-4": CLAUDE_OPUS_4_PRICING,
   },
   gemini: {
+    "gemini-3.7-flash": GEMINI_3_7_FLASH_PROMO_PRICING,
     // Gemini 3.1 Pro — novo flagship Google (2026-03-17)
     // Context: 1.050.000 tokens | Max Output: 65.536
     "gemini-3.1-pro": {
@@ -315,20 +321,34 @@ export const DEFAULT_PRICING_FRONTIER = {
       reasoning: 2.19,
       cache_creation: 0.55,
     },
-    // DeepSeek V4 Pro — promo until 2026-05-31, then list ($0.145 / $3.48)
+    // DeepSeek official API list prices, checked 2026-08-23. Superseded the
+    // prior 2026-08-13 flat prices below: DeepSeek switched v4-pro/v4-flash to
+    // peak/off-peak dynamic pricing on 2026-08-17 (peak = exactly 2x off-peak;
+    // peak hours 01:00-04:00 and 06:00-10:00 UTC, Monday through Friday — the
+    // whole weekend is off-peak, see
+    // https://api-docs.deepseek.com/quick_start/pricing/). That weekday clause
+    // is easy to miss: the Chinese page states it in Beijing time
+    // (「高峰时段为北京时间周一至周五 9:00 - 12:00、14:00 - 18:00」) while the English
+    // one attaches UTC to the hours and leaves the weekday unqualified. Peak is
+    // therefore 35 hours a week, not 49. This static table has
+    // no time-of-day dimension, so these are the OFF-PEAK (lower-bound) prices —
+    // a deliberate, documented undercount, never an overcount, and it now applies
+    // to 21% of the week rather than 29%. True peak-awareness would need a time
+    // dimension threaded through getPricingForModel() and every call site; out of
+    // scope for this fix.
     "deepseek-v4-pro": {
-      input: 0.435,
-      output: 0.87,
-      cached: 0.0036,
-      reasoning: 0.87,
-      cache_creation: 0.435,
+      input: 0.66,
+      output: 1.98,
+      cached: 0.022,
+      reasoning: 1.98,
+      cache_creation: 0.66,
     },
     "deepseek-v4-flash": {
-      input: 0.07,
-      output: 0.28,
-      cached: 0.014,
-      reasoning: 0.28,
-      cache_creation: 0.07,
+      input: 0.22,
+      output: 0.66,
+      cached: 0.007,
+      reasoning: 0.66,
+      cache_creation: 0.22,
     },
   },
   blackbox: {
@@ -340,6 +360,15 @@ export const DEFAULT_PRICING_FRONTIER = {
     "blackboxai-pro": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
   },
   xai: {
+    // The static rate covers prompts below 200K tokens. xAI's provider-reported
+    // cost_in_usd_ticks remains authoritative for the >=200K pricing tier.
+    "grok-4.6": {
+      input: 2.0,
+      output: 6.0,
+      cached: 0.5,
+      reasoning: 6.0,
+      cache_creation: 2.0,
+    },
     "grok-3": {
       input: 3.0,
       output: 15.0,

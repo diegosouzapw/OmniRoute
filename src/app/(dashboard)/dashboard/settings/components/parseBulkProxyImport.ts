@@ -20,6 +20,8 @@
  * Lines starting with # and blank lines are skipped.
  */
 
+import { PROXY_REGISTRY_STATUS_VALUES } from "@/shared/constants/proxyRegistryStatus";
+
 export type ParsedProxyEntry = {
   name: string;
   host: string;
@@ -28,7 +30,8 @@ export type ParsedProxyEntry = {
   password: string;
   type: string;
   region: string;
-  status: string;
+  /** Absent when the line carries no status: the import then leaves the stored one alone. */
+  status?: string;
   notes: string;
 };
 
@@ -38,7 +41,13 @@ export type ParseError = {
 };
 
 export const VALID_PROXY_TYPES: Record<string, true> = { http: true, https: true, socks5: true };
-export const VALID_PROXY_STATUSES: Record<string, true> = { active: true, inactive: true };
+// Importable statuses derive from the registry values minus dead: dead is a
+// terminal health marker that validation preserves, and error is absent from
+// the registry by construction (only pool validation sets it). The only direct
+// consumer is the pipe-path lookup below; shorthand lines carry no status.
+export const VALID_PROXY_STATUSES: Record<string, true> = Object.fromEntries<true>(
+  PROXY_REGISTRY_STATUS_VALUES.filter((s) => s !== "dead").map((s) => [s, true] as const)
+);
 
 /**
  * True if a string looks like an IPv4 address or a DNS hostname.
@@ -47,7 +56,10 @@ function looksLikeHost(s: string): boolean {
   if (!s) return false;
   // IPv4: four dot-separated octets, each 0–255
   const ipParts = s.split(".");
-  if (ipParts.length === 4 && ipParts.every((o) => /^\d+$/.test(o) && Number(o) >= 0 && Number(o) <= 255)) {
+  if (
+    ipParts.length === 4 &&
+    ipParts.every((o) => /^\d+$/.test(o) && Number(o) >= 0 && Number(o) <= 255)
+  ) {
     return true;
   }
   // Hostname: alphanumeric + dots/hyphens, at least one char
@@ -66,7 +78,7 @@ function pushShorthandEntry(
   portStr: string,
   username: string,
   password: string,
-  type: string,
+  type: string
 ): boolean {
   if (!host) {
     errors.push({ line: lineNum, reason: "bulkImportErrorMissingHost" });
@@ -90,7 +102,6 @@ function pushShorthandEntry(
     password,
     type: normalizedType,
     region: "",
-    status: "active",
     notes: "",
   });
   return true;
@@ -112,7 +123,7 @@ function parseShorthandLine(
   lineNum: number,
   defaultType: string,
   entries: ParsedProxyEntry[],
-  errors: ParseError[],
+  errors: ParseError[]
 ): boolean {
   let type = defaultType;
   let working = raw;
@@ -161,8 +172,10 @@ function parseShorthandLine(
   if (colonParts.length === 4) {
     // Two possibilities: ip:port:user:pass OR user:pass:ip:port
     // Require the "host" slot to look like an IP/hostname AND the "port" slot to be a valid port.
-    const isPort1 = /^\d+$/.test(colonParts[1]) && Number(colonParts[1]) >= 1 && Number(colonParts[1]) <= 65535;
-    const isPort3 = /^\d+$/.test(colonParts[3]) && Number(colonParts[3]) >= 1 && Number(colonParts[3]) <= 65535;
+    const isPort1 =
+      /^\d+$/.test(colonParts[1]) && Number(colonParts[1]) >= 1 && Number(colonParts[1]) <= 65535;
+    const isPort3 =
+      /^\d+$/.test(colonParts[3]) && Number(colonParts[3]) >= 1 && Number(colonParts[3]) <= 65535;
     const hostLooksLikePart0 = looksLikeHost(colonParts[0]);
     const hostLooksLikePart2 = looksLikeHost(colonParts[2]);
 
@@ -236,8 +249,8 @@ export function parseBulkImportText(text: string): {
         errors.push({ line: lineNum, reason: "bulkImportErrorInvalidType" });
         continue;
       }
-      const normalizedStatus = (status || "active").toLowerCase();
-      if (!VALID_PROXY_STATUSES[normalizedStatus]) {
+      const normalizedStatus = status ? status.toLowerCase() : undefined;
+      if (normalizedStatus !== undefined && !VALID_PROXY_STATUSES[normalizedStatus]) {
         errors.push({ line: lineNum, reason: "bulkImportErrorInvalidStatus" });
         continue;
       }
@@ -250,7 +263,7 @@ export function parseBulkImportText(text: string): {
         password: password || "",
         type: normalizedType,
         region: region || "",
-        status: normalizedStatus,
+        ...(normalizedStatus ? { status: normalizedStatus } : {}),
         notes: notes || "",
       });
       continue;

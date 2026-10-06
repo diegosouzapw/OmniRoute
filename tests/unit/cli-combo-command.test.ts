@@ -27,7 +27,14 @@ async function withComboEnv(fn: (dataDir: string) => Promise<void>) {
   } finally {
     console.log = originalLog;
     globalThis.fetch = ORIGINAL_FETCH;
-    fs.rmSync(dataDir, { recursive: true, force: true });
+    // On Windows the SQLite file may still be held open by the db module when
+    // the test ends, and rmSync then throws EPERM, failing a test whose
+    // assertions all passed. Retry, then give up quietly.
+    try {
+      fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+    } catch {
+      // best effort: the OS reclaims its own temp dir
+    }
 
     if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
     else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
@@ -37,7 +44,11 @@ async function withComboEnv(fn: (dataDir: string) => Promise<void>) {
 test("combo create inserts a new combo via db module", async () => {
   await withComboEnv(async () => {
     const { runComboCreateCommand } = await import("../../bin/cli/commands/combo.mjs");
-    const result = await runComboCreateCommand("my-combo", "priority", {});
+    // #11162: combo create refuses combos without any model — pass a model
+    // like the sibling tests updated in that commit.
+    const result = await runComboCreateCommand("my-combo", "priority", {
+      models: ["openai/gpt-4o-mini"],
+    });
     assert.equal(result, 0);
 
     // Verify via the same db module
@@ -53,10 +64,12 @@ test("combo create fails if combo already exists", async () => {
   await withComboEnv(async () => {
     const { runComboCreateCommand } = await import("../../bin/cli/commands/combo.mjs");
 
-    await runComboCreateCommand("dup-combo", "auto", {});
+    await runComboCreateCommand("dup-combo", "auto", { models: ["openai/gpt-4o-mini"] });
     const originalError = console.error;
     console.error = () => {};
-    const result = await runComboCreateCommand("dup-combo", "auto", {});
+    const result = await runComboCreateCommand("dup-combo", "auto", {
+      models: ["openai/gpt-4o-mini"],
+    });
     console.error = originalError;
 
     assert.equal(result, 1);
@@ -68,7 +81,7 @@ test("combo delete removes the combo", async () => {
     const { runComboCreateCommand, runComboDeleteCommand } =
       await import("../../bin/cli/commands/combo.mjs");
 
-    await runComboCreateCommand("to-delete", "weighted", {});
+    await runComboCreateCommand("to-delete", "weighted", { models: ["openai/gpt-4o-mini"] });
     const result = await runComboDeleteCommand("to-delete", { yes: true });
     assert.equal(result, 0);
 
@@ -91,7 +104,7 @@ test("combo switch updates active combo when server is offline", async () => {
     const { runComboCreateCommand, runComboSwitchCommand } =
       await import("../../bin/cli/commands/combo.mjs");
 
-    await runComboCreateCommand("my-switch", "round-robin", {});
+    await runComboCreateCommand("my-switch", "round-robin", { models: ["openai/gpt-4o-mini"] });
     const result = await runComboSwitchCommand("my-switch", {});
     assert.equal(result, 0);
 

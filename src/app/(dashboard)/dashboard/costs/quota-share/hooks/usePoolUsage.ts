@@ -38,7 +38,11 @@ export function usePoolUsage(poolId: string, pollIntervalMs = 15_000): UsePoolUs
 
   useEffect(() => {
     mountedRef.current = true;
-    void fetchUsage();
+    // Async continuation: the compiler only accepts setter-capturing callbacks from an
+    // effect when the call sits behind an async boundary (react-hooks/set-state-in-effect).
+    void (async () => {
+      await fetchUsage();
+    })();
 
     const interval = setInterval(() => {
       void fetchUsage();

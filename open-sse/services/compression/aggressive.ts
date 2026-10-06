@@ -64,6 +64,7 @@ export function compressAggressive(
   let summarizerSavings = 0;
   let toolResultSavings = 0;
   let agingSavings = 0;
+  const lastUserIdx = currentMessages.findLastIndex((m) => m.role === "user");
 
   // Step 1: Tool-result compression
   try {
@@ -110,7 +111,8 @@ export function compressAggressive(
       currentMessages,
       cfg.thresholds,
       summarizer,
-      cfg.preserveSystemPrompt !== false
+      cfg.preserveSystemPrompt !== false,
+      lastUserIdx
     );
     agingSavings = agingResult.saved;
     currentMessages = agingResult.messages as ChatMessage[];
@@ -121,8 +123,9 @@ export function compressAggressive(
   // Step 3: Fallback summarizer for remaining long messages
   if (cfg.summarizerEnabled) {
     try {
-      currentMessages = currentMessages.map((msg) => {
+      currentMessages = currentMessages.map((msg, idx) => {
         if (cfg.preserveSystemPrompt !== false && msg.role === "system") return msg;
+        if (idx === lastUserIdx) return msg;
         const text = extractTextContent(msg.content);
         if (!text || COMPRESSED_MARKER_RE.test(text)) return msg;
         if (text.length <= cfg.maxTokensPerMessage * 4) return msg;
@@ -133,7 +136,10 @@ export function compressAggressive(
         });
         if (summary && summary.length < text.length) {
           summarizerSavings += estimateTokens(text) - estimateTokens(summary);
-          return setContent(msg, `[COMPRESSED:summary] ${summary}`);
+          const finalSummary = COMPRESSED_MARKER_RE.test(summary)
+            ? summary
+            : `[COMPRESSED:summary] ${summary}`;
+          return setContent(msg, finalSummary);
         }
         return msg;
       });
@@ -153,13 +159,27 @@ export function compressAggressive(
 
   if (resultStats.savingsPercent < cfg.minSavingsThreshold * 100) {
     try {
-      const cavemanResult = cavemanCompress({ messages: currentMessages as unknown as Parameters<typeof cavemanCompress>[0]["messages"] });
-      if (cavemanResult?.compressed && cavemanResult.stats) {
-        const cavemanSavings = cavemanResult.stats.savingsPercent ?? 0;
-        if (cavemanSavings > resultStats.savingsPercent) {
-          currentMessages = (cavemanResult.body?.messages ?? currentMessages) as ChatMessage[];
-          resultStats.compressedTokens = cavemanResult.stats.compressedTokens ?? compressedTokens;
-          resultStats.savingsPercent = cavemanSavings;
+      const cavemanResult = cavemanCompress(
+        {
+          messages: currentMessages as unknown as Parameters<typeof cavemanCompress>[0]["messages"],
+        },
+        { enabled: true }
+      );
+      if (cavemanResult?.compressed && cavemanResult.body?.messages) {
+        const rawMsgs = cavemanResult.body.messages as ChatMessage[];
+        const candidateMsgs = rawMsgs.map((msg, idx) =>
+          idx === lastUserIdx ? currentMessages[idx] : msg
+        );
+        const candidateTokens = candidateMsgs.reduce(
+          (sum, m) => sum + estimateTokens(extractTextContent(m.content)),
+          0
+        );
+        const candidateSavings =
+          originalTokens > 0 ? ((originalTokens - candidateTokens) / originalTokens) * 100 : 0;
+        if (candidateSavings > resultStats.savingsPercent) {
+          currentMessages = candidateMsgs;
+          resultStats.compressedTokens = candidateTokens;
+          resultStats.savingsPercent = candidateSavings;
           resultStats.techniquesUsed.push("caveman-fallback");
         }
       }
@@ -172,12 +192,21 @@ export function compressAggressive(
         { messages: currentMessages },
         { preserveSystemPrompt: cfg.preserveSystemPrompt !== false }
       );
-      if (liteResult?.compressed && liteResult.stats) {
-        const liteSavings = liteResult.stats.savingsPercent ?? 0;
-        if (liteSavings > resultStats.savingsPercent) {
-          currentMessages = (liteResult.body?.messages ?? currentMessages) as ChatMessage[];
-          resultStats.compressedTokens = liteResult.stats.compressedTokens ?? compressedTokens;
-          resultStats.savingsPercent = liteSavings;
+      if (liteResult?.compressed && liteResult.body?.messages) {
+        const rawMsgs = liteResult.body.messages as ChatMessage[];
+        const candidateMsgs = rawMsgs.map((msg, idx) =>
+          idx === lastUserIdx ? currentMessages[idx] : msg
+        );
+        const candidateTokens = candidateMsgs.reduce(
+          (sum, m) => sum + estimateTokens(extractTextContent(m.content)),
+          0
+        );
+        const candidateSavings =
+          originalTokens > 0 ? ((originalTokens - candidateTokens) / originalTokens) * 100 : 0;
+        if (candidateSavings > resultStats.savingsPercent) {
+          currentMessages = candidateMsgs;
+          resultStats.compressedTokens = candidateTokens;
+          resultStats.savingsPercent = candidateSavings;
           resultStats.techniquesUsed.push("lite-fallback");
         }
       }

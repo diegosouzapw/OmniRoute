@@ -19,18 +19,27 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 function reset() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 test.beforeEach(() => reset());
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#6372: returns null when there are no keys", async () => {
   assert.equal(await apiKeysDb.pickApiKeyForInternalUse("combo-health-check"), null);
+});
+
+test("internal probes never auto-select a hard-lease key", async () => {
+  await apiKeysDb.createApiKey("managed-key", "machine-a", ["manage", "lease:exclusive"], {
+    allowedConnections: ["00000000-0000-4000-8000-000000000001"],
+  });
+
+  assert.equal(await apiKeysDb.pickApiKeyForInternalUse("combo-health-check"), null);
+  assert.equal(await apiKeysDb.pickApiKeyForInternalUse("internal-probe"), null);
 });
 
 test("#6372: prefers a management-scoped key over a plain self:usage key", async () => {

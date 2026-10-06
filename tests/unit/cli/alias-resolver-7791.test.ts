@@ -18,7 +18,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   resolveAlias,
@@ -29,6 +29,13 @@ import {
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = join(__dirname, "..", "..", "..");
+
+// The child scripts below `import()` these paths, and `import()` resolves its
+// specifier as a URL. Replacing backslashes with forward slashes is not enough
+// on Windows: the leading drive letter is then parsed as the URL scheme `e:`,
+// which the ESM loader rejects with ERR_UNSUPPORTED_ESM_URL_SCHEME. Emit a
+// real file:// URL instead.
+const repoFileUrl = (relPath) => pathToFileURL(join(REPO_ROOT, relPath)).href;
 
 describe("aliasResolver.resolveAlias (pure)", () => {
   it("returns null for non-@/ specifiers (lets Node/tsx handle them)", () => {
@@ -196,7 +203,7 @@ describe("aliasResolver.registerAliasResolver", () => {
       const ok = await registerAliasResolver(tmp);
       assert.equal(ok, false, "must return false when there is no src/ dir");
     } finally {
-      rmSync(tmp, { recursive: true, force: true });
+      rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   });
 
@@ -207,7 +214,7 @@ describe("aliasResolver.registerAliasResolver", () => {
       const ok = await registerAliasResolver(tmp);
       assert.equal(ok, true, "must register when src/ exists");
     } finally {
-      rmSync(tmp, { recursive: true, force: true });
+      rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   });
 
@@ -260,11 +267,11 @@ describe("aliasResolver end-to-end (#7791 regression)", () => {
     const script = `
       await import("tsx/esm");
       import { join } from "node:path";
-      import { registerAliasResolver } from "${join(REPO_ROOT, "bin/aliasResolver.mjs").replace(/\\/g, "/")}";
+      import { registerAliasResolver } from ${JSON.stringify(repoFileUrl("bin/aliasResolver.mjs"))};
       const ok = await registerAliasResolver(${JSON.stringify(REPO_ROOT)});
       if (!ok) { console.error("FAIL: registerAliasResolver returned false"); process.exit(2); }
       try {
-        const m = await import(${JSON.stringify(join(REPO_ROOT, "src/shared/network/outboundUrlGuard.ts").replace(/\\/g, "/"))});
+        const m = await import(${JSON.stringify(repoFileUrl("src/shared/network/outboundUrlGuard.ts"))});
         const keys = Object.keys(m).sort().join(",");
         console.log("OK:" + keys);
       } catch (err) {
@@ -286,7 +293,7 @@ describe("aliasResolver end-to-end (#7791 regression)", () => {
 
   it("does not interfere with bare/relative specifiers (regression guard)", () => {
     const script = `
-      import { registerAliasResolver } from "${join(REPO_ROOT, "bin/aliasResolver.mjs").replace(/\\/g, "/")}";
+      import { registerAliasResolver } from ${JSON.stringify(repoFileUrl("bin/aliasResolver.mjs"))};
       await registerAliasResolver(${JSON.stringify(REPO_ROOT)});
       // node:fs must still resolve via the default resolver
       const fs = await import("node:fs");

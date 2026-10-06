@@ -2,6 +2,7 @@ export { APP_CONFIG, THEME_CONFIG } from "./appConfig";
 
 // Provider API endpoints (for display only)
 export const PROVIDER_ENDPOINTS = {
+  seekai: "https://seekai.cc/v1/chat/completions",
   agentrouter: "https://agentrouter.org/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
   dgrid: "https://api.dgrid.ai/v1/chat/completions",
@@ -14,8 +15,11 @@ export const PROVIDER_ENDPOINTS = {
   anyapi: "https://api.anyapi.ai/v1/chat/completions",
   electronhub: "https://api.electronhub.ai/v1/chat/completions",
   llmgateway: "https://api.llmgateway.io/v1/chat/completions",
+  lyceum: "https://api.lyceum.technology/openai/v1/chat/completions",
   "llm-kiwi": "https://api.llm.kiwi/v1/chat/completions",
   literouter: "https://api.literouter.com/v1/chat/completions",
+  greenpt: "https://api.greenpt.ai/v1/chat/completions",
+  eurouter: "https://api.eurouter.ai/v1/chat/completions",
   "mnn-ai": "https://api.mnnai.ru/v1/chat/completions",
   "meganova-ai": "https://api.meganova.ai/v1/chat/completions",
   mixlayer: "https://models.mixlayer.ai/v1/chat/completions",
@@ -36,9 +40,11 @@ export const PROVIDER_ENDPOINTS = {
   "free-ai": "https://api.free.ai/v1/chat/",
   "void-ai": "https://api.voidai.app/v1/chat/completions",
   helixmind: "https://helixmind.online/v1/chat/completions",
+  tabitoken: "https://tabitoken.com/v1/messages",
   glm: "https://api.z.ai/api/anthropic/v1/messages",
   glmt: "https://api.z.ai/api/anthropic/v1/messages",
-  "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages",
+  "bailian-coding-plan":
+    "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1/messages",
   "qwen-cloud": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
   "qwen-cloud-token-plan":
     "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
@@ -52,6 +58,7 @@ export const PROVIDER_ENDPOINTS = {
   openadapter: "https://api.openadapter.in/v1/chat/completions",
   dit: "https://api.dit.ai/v1/chat/completions",
   tokenrouter: "https://api.tokenrouter.com/v1/chat/completions",
+  "token-kiosk": "https://agent-router.gaib.ai/v1/chat/completions",
   sumopod: "https://ai.sumopod.com/v1/chat/completions",
   x5lab: "https://api.x5lab.dev/v1/chat/completions",
   kenari: "https://kenari.id/v1/chat/completions",

@@ -11,6 +11,7 @@ import {
   normalizeCliCompatProviderId,
 } from "@/shared/constants/cliCompatProviders";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { getClaudeCodeClientBuildRevision } from "@/shared/constants/claudeCodeClient";
 import { compareTr } from "@/shared/utils/turkishText";
 import { HERMES } from "./systemTransformsHermesDefaults";
 
@@ -81,8 +82,6 @@ const DEFAULT_OBFUSCATE_WORDS = [
   "codecompanion",
   "openwebui",
   "open-webui",
-  "hermes-agent",
-  "hermes",
 ];
 
 // Mirror of DEFAULT_SYSTEM_TRANSFORMS_CONFIG from open-sse/services/systemTransforms.ts.
@@ -171,7 +170,7 @@ const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
           entrypoint: "sdk-cli",
           versionFormat: "ex-machina",
           cchAlgo: "sha256-first-user",
-          buildRevision: "1f2",
+          buildRevision: getClaudeCodeClientBuildRevision(),
         },
       ],
     },
@@ -1502,6 +1501,17 @@ export default function RoutingTab() {
                 value={String(settings.webSearchRouteModel ?? "")}
                 onChange={(v) => updateSetting({ webSearchRouteModel: v })}
                 placeholder={t("webSearchRoutePlaceholder")}
+                // The setting is documented as "leave blank to disable", but without
+                // `allowEmpty` the <Select> renders its placeholder as `disabled`
+                // (ModelSelectField -> Select `placeholderDisabled={!allowEmpty}`), so
+                // once a model was picked the override could never be cleared from the
+                // dashboard again — every web_search request stayed pinned to it
+                // (webSearchRouting.ts resolveWebSearchRouteOverride). `allowCustomInput`
+                // additionally exposes the free-text field so an unlisted/self-hosted
+                // target can be typed and blanked, matching the Modality Bridge pickers.
+                allowEmpty
+                allowCustomInput
+                testId="web-search-route-model"
                 disabled={loading}
                 ariaLabel={t("webSearchRouteTitle")}
               />

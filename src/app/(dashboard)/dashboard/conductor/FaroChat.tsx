@@ -60,8 +60,11 @@ export default function FaroChat() {
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setSttModel(safeGet(STT_KEY, "openai/whisper-1"));
-    setTtsModel(safeGet(TTS_KEY, "openai/tts-1"));
+    void (async () => {
+      await Promise.resolve();
+      setSttModel(safeGet(STT_KEY, "openai/whisper-1"));
+      setTtsModel(safeGet(TTS_KEY, "openai/tts-1"));
+    })();
   }, []);
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
@@ -202,7 +205,9 @@ export default function FaroChat() {
         {err && <Badge variant="error">{err}</Badge>}
         {pending && (
           <div className="flex items-center gap-2">
-            <Badge variant="warning" dot>{t("faroPending")}</Badge>
+            <Badge variant="warning" dot>
+              {t("faroPending")}
+            </Badge>
             <button type="button" className="text-sm underline" onClick={() => void send("sim")}>
               {t("yes")}
             </button>
@@ -223,7 +228,12 @@ export default function FaroChat() {
             }}
             disabled={busy}
           />
-          <button type="button" className="text-sm underline" onClick={() => void send(input)} disabled={busy}>
+          <button
+            type="button"
+            className="text-sm underline"
+            onClick={() => void send(input)}
+            disabled={busy}
+          >
             {t("faroSend")}
           </button>
           <button

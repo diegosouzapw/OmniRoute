@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     const providers: Record<
       string,
-      { requests: number; avg_latency_ms: number; total_cost: number }
+      { requests: number; avg_latency_ms: number | null; total_cost: number }
     > = {};
     for (const row of providerStats) {
       const costPerQuery = SEARCH_PROVIDERS[row.provider]?.costPerQuery || 0;

@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { parse } from "jsonc-parser";
 import {
   postProcessOpencodeConfig,
   resolveOpencodeTarget,
@@ -48,6 +49,31 @@ test("postProcessOpencodeConfig preserves $schema, provider name and npm", () =>
   const cfg = JSON.parse(json);
   assert.equal(cfg.$schema, "https://opencode.ai/config.json");
   assert.equal(cfg.provider.omniroute.npm, "@ai-sdk/openai-compatible");
+});
+
+test("postProcessOpencodeConfig preserves JSONC comments outside managed fields", () => {
+  const rawJsonc = `{
+    // top-level user comment
+    "provider": {
+      "custom": {
+        // nested provider comment
+        "npm": "@ai-sdk/custom",
+      },
+      "omniroute": {
+        "options": { "apiKey": "sk-secret-literal" },
+        "models": { "openai/gpt-4o": { "name": "GPT-4o" } },
+      },
+    },
+  }`;
+
+  const { json, modelCount } = postProcessOpencodeConfig(rawJsonc);
+
+  assert.match(json, /\/\/ top-level user comment/);
+  assert.match(json, /\/\/ nested provider comment/);
+  const config = parse(json);
+  assert.equal(config.provider.custom.npm, "@ai-sdk/custom");
+  assert.equal(config.provider.omniroute.options.apiKey, "{env:OMNIROUTE_API_KEY}");
+  assert.equal(modelCount, 1);
 });
 
 test("resolveOpencodeTarget: --remote wins and trailing slashes are trimmed", () => {

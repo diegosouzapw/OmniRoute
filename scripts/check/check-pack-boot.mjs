@@ -14,18 +14,33 @@
  * 0 = boots and reports the right version · 1 = boot failed · 2 = missing build.
  */
 import { execFileSync, spawn } from "node:child_process";
+import { createHmac } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const POLL_INTERVAL_MS = 2_000;
 const BOOT_DEADLINE_MS = 240_000;
+const MAX_SERVER_OUTPUT_CHARS = 1_000_000;
 const SQLJS_STARTUP_MARKER = "Pre-initializing sql.js WASM";
+const DEFAULT_CLI_SALT = "omniroute-cli-auth-v1";
 
+// Dependency-based packaging (#11242): the tarball can never contain a node_modules
+// path (files[] has "!**/node_modules/**" and check:pack-artifact fails on the
+// segment), so sql.js must be required where a clean `npm install` of the declared
+// `dependencies` places it — <packageRoot>/node_modules/sql.js — NOT under the old
+// vendored dist/node_modules location. The runtime resolves the WASM the same way
+// (src/lib/db/adapters/sqljsAdapter.ts → <cwd>/node_modules/sql.js/dist/sql-wasm.wasm).
 export const REQUIRED_SQLJS_RUNTIME_FILES = Object.freeze([
-  "dist/node_modules/sql.js/package.json",
-  "dist/node_modules/sql.js/dist/sql-wasm.js",
-  "dist/node_modules/sql.js/dist/sql-wasm.wasm",
+  "node_modules/sql.js/package.json",
+  "node_modules/sql.js/dist/sql-wasm.js",
+  "node_modules/sql.js/dist/sql-wasm.wasm",
+]);
+
+export const REQUIRED_MACHINE_TOKEN_RUNTIME_FILES = Object.freeze([
+  "node_modules/node-machine-id/package.json",
+  "node_modules/node-machine-id/index.js",
 ]);
 
 /** Parse `npm pack --json` output into the generated tarball filename. */
@@ -60,6 +75,39 @@ export function findMissingSqlJsRuntimeFiles(packageRoot, exists = fs.existsSync
   return REQUIRED_SQLJS_RUNTIME_FILES.filter(
     (relativePath) => !exists(path.join(packageRoot, relativePath))
   );
+}
+
+export function findMissingMachineTokenRuntimeFiles(packageRoot, exists = fs.existsSync) {
+  return REQUIRED_MACHINE_TOKEN_RUNTIME_FILES.filter(
+    (relativePath) => !exists(path.join(packageRoot, relativePath))
+  );
+}
+
+export function evaluateMachineTokenAuth({
+  cliToken,
+  unauthenticatedStatus,
+  invalidStatus,
+  authenticatedStatus,
+  salt = process.env.OMNIROUTE_CLI_SALT || DEFAULT_CLI_SALT,
+}) {
+  const failures = [];
+  if (!/^[0-9a-f]{64}$/.test(cliToken || "")) {
+    failures.push("packaged CLI derived an empty or malformed machine token");
+  }
+  const emptyMachineIdToken = createHmac("sha256", "").update(salt).digest("hex");
+  if (cliToken === emptyMachineIdToken) {
+    failures.push("packaged CLI derived the public empty-machine-id token");
+  }
+  if (unauthenticatedStatus !== 401) {
+    failures.push(`no-credential request returned ${unauthenticatedStatus} (expected 401)`);
+  }
+  if (invalidStatus !== 401) {
+    failures.push(`invalid-token request returned ${invalidStatus} (expected 401)`);
+  }
+  if (authenticatedStatus !== 200) {
+    failures.push(`packaged CLI token request returned ${authenticatedStatus} (expected 200)`);
+  }
+  return { ok: failures.length === 0, failures };
 }
 
 export function evaluateSqlJsRoundTrip({
@@ -106,8 +154,9 @@ async function readJsonResponse(url, options) {
   return { response, body };
 }
 
-async function verifySettingsRoundTrip(baseUrl, startupOutput) {
-  const initial = await readJsonResponse(`${baseUrl}/api/settings`);
+async function verifySettingsRoundTrip(baseUrl, startupOutput, cliToken) {
+  const authHeaders = { "x-omniroute-cli-token": cliToken };
+  const initial = await readJsonResponse(`${baseUrl}/api/settings`, { headers: authHeaders });
   if (initial.response.status !== 200 || !initial.body || typeof initial.body !== "object") {
     return {
       ok: false,
@@ -119,7 +168,7 @@ async function verifySettingsRoundTrip(baseUrl, startupOutput) {
   const expectedValue = !beforeValue;
   const patched = await readJsonResponse(`${baseUrl}/api/settings`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { ...authHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({ debugMode: expectedValue }),
   });
   if (patched.response.status !== 200 || !patched.body || typeof patched.body !== "object") {
@@ -129,7 +178,7 @@ async function verifySettingsRoundTrip(baseUrl, startupOutput) {
     };
   }
 
-  const readBack = await readJsonResponse(`${baseUrl}/api/settings`);
+  const readBack = await readJsonResponse(`${baseUrl}/api/settings`, { headers: authHeaders });
   if (readBack.response.status !== 200 || !readBack.body || typeof readBack.body !== "object") {
     return {
       ok: false,
@@ -242,22 +291,67 @@ function spawnServer(binPath, port, dataDir) {
       OMNIROUTE_SKIP_SYSTEM_TRUST: "1",
       OMNIROUTE_PACK_BOOT_SMOKE: "1",
       OMNIROUTE_PACK_BOOT_FORCE_SQLJS: "1",
+      INITIAL_PASSWORD: "pack-boot-machine-token-auth-required",
     },
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
   });
   const tail = [];
+  let retainedChars = 0;
   const keepTail = (chunk) => {
-    tail.push(String(chunk));
-    while (tail.length > 80) tail.shift();
+    const text = String(chunk);
+    tail.push(text);
+    retainedChars += text.length;
+    while (retainedChars > MAX_SERVER_OUTPUT_CHARS && tail.length > 1) {
+      retainedChars -= tail.shift().length;
+    }
   };
   child.stdout.on("data", keepTail);
   child.stderr.on("data", keepTail);
   return { child, tail };
 }
 
+/**
+ * Derive the loopback machine token exactly as the installed CLI would for this install.
+ * Since #13679/#13909 the token salt is per-install, persisted under <DATA_DIR>, so the
+ * derivation MUST see the same DATA_DIR the server boots on — otherwise the CLI resolves
+ * a different salt, the server rejects the token and health serves the anonymous view.
+ */
+export function derivePackagedCliToken(packageRoot, dataDir) {
+  const cliModuleUrl = pathToFileURL(
+    path.join(packageRoot, "bin", "cli", "utils", "cliToken.mjs")
+  ).href;
+  return execFileSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "--eval",
+      "import(process.argv[1]).then(async m => process.stdout.write(await m.getCliToken()))",
+      cliModuleUrl,
+    ],
+    { encoding: "utf8", env: { ...process.env, DATA_DIR: dataDir } }
+  ).trim();
+}
+
+async function verifyMachineTokenAuth(baseUrl, cliToken) {
+  const endpoint = `${baseUrl}/api/cli/whoami`;
+  const unauthenticatedStatus = (await fetch(endpoint)).status;
+  const invalidStatus = (
+    await fetch(endpoint, { headers: { "x-omniroute-cli-token": "0".repeat(64) } })
+  ).status;
+  const authenticatedStatus = (
+    await fetch(endpoint, { headers: { "x-omniroute-cli-token": cliToken } })
+  ).status;
+  return evaluateMachineTokenAuth({
+    cliToken,
+    unauthenticatedStatus,
+    invalidStatus,
+    authenticatedStatus,
+  });
+}
+
 /** Poll /api/monitoring/health until the packed version answers or the boot deadline passes. */
-async function waitForHealthy(port, child, expectedVersion) {
+async function waitForHealthy(port, child, expectedVersion, cliToken) {
   // Seed from authoritative state (Node sets these synchronously at death), then attach a
   // named once-listener, then re-check: a child that died before this call, or in the gap
   // before the listener attached, would otherwise never fire "exit" and waste the deadline.
@@ -279,7 +373,9 @@ async function waitForHealthy(port, child, expectedVersion) {
         return { ok: false, failures: [`process exited (${childExit}) before serving`] };
       }
       try {
-        const res = await fetch(`http://127.0.0.1:${port}/api/monitoring/health`);
+        const res = await fetch(`http://127.0.0.1:${port}/api/monitoring/health`, {
+          headers: { "x-omniroute-cli-token": cliToken },
+        });
         const body = await res.json().catch(() => null);
         verdict = evaluateBoot(res.status, body, expectedVersion);
         if (verdict.ok) return verdict;
@@ -299,8 +395,10 @@ async function waitForHealthy(port, child, expectedVersion) {
  * field throws: coercing with `=== true` would read `false` for a malformed response and
  * could falsely "pass" persistence whenever the expected value happens to be false.
  */
-async function readSettingsDebugMode(baseUrl) {
-  const { response, body } = await readJsonResponse(`${baseUrl}/api/settings`);
+async function readSettingsDebugMode(baseUrl, cliToken) {
+  const { response, body } = await readJsonResponse(`${baseUrl}/api/settings`, {
+    headers: { "x-omniroute-cli-token": cliToken },
+  });
   if (response.status !== 200 || !body || typeof body !== "object") {
     throw new Error(`settings GET HTTP ${response.status} or non-JSON body`);
   }
@@ -350,21 +448,38 @@ async function main() {
       );
     }
     log("installed package contains the complete sql.js WASM runtime");
+    const missingMachineTokenFiles = findMissingMachineTokenRuntimeFiles(packageRoot);
+    if (missingMachineTokenFiles.length > 0) {
+      throw new Error(
+        `installed package is missing the node-machine-id runtime contract: ${missingMachineTokenFiles.join(", ")}`
+      );
+    }
+    log("installed package contains the node-machine-id runtime");
 
     const port = pickPort();
     const dataDir = path.join(tmp, "data");
     fs.mkdirSync(dataDir, { recursive: true });
     const binPath = path.join(prefix, "bin", "omniroute");
+    const packagedCliToken = derivePackagedCliToken(packageRoot, dataDir);
 
     // BOOT #1 — boot, prove the forced sql.js tier, PATCH a setting, then shut down cleanly
     // so the sql.js adapter's graceful persist actually lands on disk. The in-flow stopChild
     // THROWS on failure; that lands in catch as primaryError and boot #2 never starts.
     log(`boot #1: installed CLI on :${port} (DATA_DIR isolated)…`);
     ({ child, tail } = spawnServer(binPath, port, dataDir));
-    let verdict = await waitForHealthy(port, child, expectedVersion);
+    let verdict = await waitForHealthy(port, child, expectedVersion, packagedCliToken);
     if (verdict.ok) {
       log(`healthy: HTTP 200, version ${expectedVersion}`);
-      const roundTrip = await verifySettingsRoundTrip(`http://127.0.0.1:${port}`, tail.join(""));
+      const baseUrl = `http://127.0.0.1:${port}`;
+      const machineAuth = await verifyMachineTokenAuth(baseUrl, packagedCliToken);
+      if (!machineAuth.ok) {
+        verdict = machineAuth;
+      } else {
+        log("machine-token auth passed with no/invalid/valid contrast controls");
+      }
+      const roundTrip = verdict.ok
+        ? await verifySettingsRoundTrip(baseUrl, tail.join(""), packagedCliToken)
+        : { ok: false, failures: verdict.failures };
       if (roundTrip.ok) {
         log("settings write/read succeeded through the forced sql.js driver");
         await stopChild(child); // throws here → primaryError; boot #2 is skipped
@@ -373,10 +488,13 @@ async function main() {
         // BOOT #2 — same DATA_DIR, fresh process: the value must be read back FROM DISK.
         log("boot #2: rebooting on the same DATA_DIR to prove disk persistence…");
         ({ child, tail } = spawnServer(binPath, port, dataDir));
-        verdict = await waitForHealthy(port, child, expectedVersion);
+        verdict = await waitForHealthy(port, child, expectedVersion, packagedCliToken);
         if (verdict.ok) {
           log(`healthy: HTTP 200, version ${expectedVersion}`);
-          const restartValue = await readSettingsDebugMode(`http://127.0.0.1:${port}`);
+          const restartValue = await readSettingsDebugMode(
+            `http://127.0.0.1:${port}`,
+            packagedCliToken
+          );
           const persistence = evaluateRestartPersistence({
             expectedValue: roundTrip.expectedValue,
             restartValue,

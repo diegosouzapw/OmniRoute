@@ -61,8 +61,8 @@ const KNOWN_HOOKS = new Set([
   "onDeactivate",
   "onUninstall",
   // Real callbacks wired in code that docs reference (verified present in src/):
-  // onChunk/onFirstChunk — streaming callbacks (src/shared/utils/streamTracker.ts,
-  //   playground ChatTab.tsx); onServerStatus/onPortChanged/onUpdateStatus — Electron
+  // onChunk/onFirstChunk — streaming callbacks (playground useStreamMetrics.ts and
+  //   ChatTab.tsx); onServerStatus/onPortChanged/onUpdateStatus — Electron
   //   IPC callbacks (src/shared/hooks/useElectron.ts, HomePageClient.tsx);
   //   onEmpty — model-metadata registry callback (src/lib/modelMetadataRegistry.ts).
   "onChunk",
@@ -93,6 +93,14 @@ const ENV_VAR_ALLOWLIST = new Set([
   "DATA_DIR",
   "REQUIRE_API_KEY",
   "OMNIROUTE_BUILD_PROFILE", // build-time only
+  // Docker builder-stage knobs. Both are documented in docs/guides/DOCKER_GUIDE.md
+  // because they are the two levers for a memory-constrained build host, but
+  // neither is read through process.env in this repo: OMNIROUTE_BUILD_WORKERS is
+  // a Dockerfile ARG that only feeds CIRCLE_NODE_TOTAL, and CIRCLE_NODE_TOTAL is
+  // read by Next itself (node_modules) to size the page-data worker pool. Pinned
+  // by tests/unit/docker-build-memory-budget.test.ts.
+  "OMNIROUTE_BUILD_WORKERS",
+  "CIRCLE_NODE_TOTAL",
   "OMNIROUTE_BUILD_SHA",
   "OMNIROUTE_URL", // used by ad-hoc tooling, validated elsewhere
   "OMNIROUTE_KEY", // ditto
@@ -107,6 +115,12 @@ const ENV_VAR_ALLOWLIST = new Set([
   "NINEROUTER_API_KEY", // injected into the 9router subprocess at spawn (EMBEDDED-SERVICES.md)
   "CLAUDE_CODE_MAX_OUTPUT_TOKENS", // Claude Code CLI's own env var (CODEX-CLI-CONFIGURATION.md)
   "CODEX_HOME", // Codex CLI's own config-home env var (CODEX-CLI-CONFIGURATION.md)
+  // Gemini CLI's own auth-routing env vars. `omniroute run gemini` DELETES them
+  // from the spawned child's env (bin/cli/commands/run.mjs) so a stored Vertex /
+  // Code Assist session cannot override the OmniRoute-directed launch — a delete
+  // on a copied env object, never a `process.env.X` read. (CLI-INTEGRATIONS.md)
+  "GOOGLE_GENAI_USE_VERTEXAI",
+  "GOOGLE_GENAI_USE_GCA",
   "OPENAI_API_BASE", // legacy OpenAI base-URL env var some downstream tools (e.g. Aider) read (CLI-INTEGRATIONS.md)
   "PROMPTFOO_PROVIDER_KEY", // promptfoo's own provider-key env var, used by the red-team suite (GUARDRAILS.md)
   "REDIS_PORT", // docker-compose host-port override (DOCKER_GUIDE.md)
@@ -314,6 +328,7 @@ const ENV_VAR_DENYLIST = new Set([
   "AUTHZ_NOT_INITIALIZED", // AuthzAssertionError code (AUTHZ_GUIDE.md)
   "MODULE_NOT_FOUND", // Node runtime error code watched by service supervisor (ELECTRON_GUIDE.md)
   "ERR_DLOPEN_FAILED", // Node native-module load error code (ELECTRON_GUIDE.md)
+  "SQLITE_FULL", // SQLite result code returned when the disk is full (DATABASE_GUIDE.md)
   // ── Code-symbol / naming-convention examples documented in prose ─────────────
   "UPPER_SNAKE", // the literal naming-convention token in the style guide (CODEBASE_DOCUMENTATION.md)
   "DEFAULT_TIMEOUT", // example constant name in the UPPER_SNAKE convention row (AGENTS.md)
@@ -479,6 +494,7 @@ export function buildCodebaseIndex(root = ROOT) {
   // LOCAL_ONLY_API_PREFIXES, HALF_OPEN) is NOT a fabricated env var.
   const envVars = new Set();
   const codeIdentifiers = new Set();
+  const errorCodes = new Set();
   function walkForEnv(dir) {
     const abs = path.join(root, dir);
     if (!fs.existsSync(abs)) return;
@@ -514,6 +530,14 @@ export function buildCodebaseIndex(root = ROOT) {
           // Object-literal / enum members on their own line: `HALF_OPEN: "HALF_OPEN"`.
           for (const m of content.matchAll(/^[ \t]*([A-Z][A-Z0-9_]{2,})[ \t]*[:=]/gm))
             codeIdentifiers.add(m[1]);
+          // Runtime error-code values such as `{ code: "SECURITY_001" }` are
+          // documented protocol identifiers, not environment variables. Keep this
+          // deliberately scoped to code/errorCode properties rather than accepting
+          // arbitrary ALL_CAPS string literals, which could hide a fabricated env var.
+          for (const m of content.matchAll(
+            /\b(?:code|errorCode)\s*:\s*["'`]([A-Z][A-Z0-9_]{2,})["'`]/g
+          ))
+            errorCodes.add(m[1]);
         } catch {
           /* ignore */
         }
@@ -551,6 +575,24 @@ export function buildCodebaseIndex(root = ROOT) {
   }
   readEnvContract();
 
+  // Feature flags are resolved by key at runtime — `resolveFeatureFlag()` reads
+  // `process.env[definition.key]` (src/shared/utils/featureFlags.ts), never a
+  // literal `process.env.<KEY>`, so the code-read index cannot see those reads.
+  // Every key in FEATURE_FLAG_DEFINITIONS is therefore a real, env-overridable
+  // knob (docs/reference/FEATURE_FLAGS.md documents the catalog 1:1).
+  function readFeatureFlagContract() {
+    try {
+      const t = fs.readFileSync(
+        path.join(root, "src", "shared", "constants", "featureFlagDefinitions.ts"),
+        "utf8"
+      );
+      for (const m of t.matchAll(/^\s*key:\s*"([A-Z][A-Z0-9_]+)"/gm)) envVars.add(m[1]);
+    } catch {
+      /* ignore */
+    }
+  }
+  readFeatureFlagContract();
+
   // Set of `omniroute <subcommand>` strings that exist in bin/
   const cliCommands = new Set();
   function walkCli(dir) {
@@ -582,7 +624,7 @@ export function buildCodebaseIndex(root = ROOT) {
   }
   walkCli("bin");
 
-  return { apiRoutes, apiPrefixes, apiMethods, envVars, codeIdentifiers, cliCommands };
+  return { apiRoutes, apiPrefixes, apiMethods, envVars, codeIdentifiers, errorCodes, cliCommands };
 }
 
 // ── Doc scanning ───────────────────────────────────────────────────────────
@@ -677,6 +719,7 @@ export function scanDocFile(absPath, index, root = ROOT) {
     // object-literal key) is a code symbol, not a fabricated env var.
     // E.g. LOCAL_ONLY_API_PREFIXES, HALF_OPEN, A2A_SKILL_HANDLERS, MCP_SCOPE_PRESETS.
     if (index.codeIdentifiers.has(name)) continue;
+    if (index.errorCodes.has(name)) continue;
     if (/^X-[A-Z]/.test(name)) continue;
     if (ENV_VAR_DENYLIST.has(name)) continue;
     const ln = lineOf(text, m.index);

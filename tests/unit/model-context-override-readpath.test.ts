@@ -15,14 +15,14 @@ const caps = await import("../../src/lib/modelCapabilities.ts");
 
 beforeEach(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(moduleDataDir, { recursive: true, force: true });
+  fs.rmSync(moduleDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(moduleDataDir, { recursive: true });
   coreDb.getDbInstance();
 });
 
 after(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(moduleDataDir, { recursive: true, force: true });
+  fs.rmSync(moduleDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 describe("getModelContextLimit override precedence (5004)", () => {

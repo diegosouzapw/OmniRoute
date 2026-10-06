@@ -71,6 +71,7 @@ describe("settings.ts public API surface", () => {
     "getLKGP",
     "setLKGP",
     "clearAllLKGP",
+    "clearLKGP",
     // Cache metrics (re-exported from ./settings/cacheMetrics)
     "getCacheMetrics",
     "updateCacheMetrics",

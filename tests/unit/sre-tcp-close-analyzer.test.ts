@@ -229,7 +229,7 @@ function withTempPcap<T>(fn: (pcapPath: string, tmpDir: string) => T): T {
   try {
     return fn(pcapPath, tmpDir);
   } finally {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 

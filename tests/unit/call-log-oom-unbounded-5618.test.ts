@@ -4,6 +4,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { useDecollidedMigrationsDir } from "./helpers/decollidedMigrationsDir.ts";
+
+useDecollidedMigrationsDir();
 // #5618 — `cleanupExpiredLogs` → `rotateCallLogs` ran at daemon startup and used
 // unbounded `SELECT … FROM call_logs … .all()` calls. node:sqlite's
 // StatementSync.all() materializes the whole result set, so on a large
@@ -58,19 +61,17 @@ function captureSql(run: () => void): string[] {
 }
 
 const unboundedSelectsOnCallLogs = (sqls: string[]) =>
-  sqls.filter(
-    (s) => /SELECT/i.test(s) && /\bFROM\s+call_logs\b/i.test(s) && !/LIMIT/i.test(s)
-  );
+  sqls.filter((s) => /SELECT/i.test(s) && /\bFROM\s+call_logs\b/i.test(s) && !/LIMIT/i.test(s));
 
 test.beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#5618 collectReferencedArtifacts pages with LIMIT and collects across pages — no unbounded .all()", () => {
@@ -87,6 +88,25 @@ test("#5618 collectReferencedArtifacts pages with LIMIT and collects across page
     unboundedSelectsOnCallLogs(sqls),
     [],
     `unbounded SELECT on call_logs (OOM risk): ${unboundedSelectsOnCallLogs(sqls).join("; ")}`
+  );
+});
+
+test("bounded reference lookup keeps every candidate despite duplicate rows", () => {
+  const db = core.getDbInstance();
+  db.transaction(() => {
+    for (let i = 0; i < 150; i++) {
+      insertCallLog(
+        `duplicate-${i}`,
+        `2026-01-01T00:00:${String(i % 60).padStart(2, "0")}.000Z`,
+        "2026-01/duplicate.json"
+      );
+    }
+    insertCallLog("second-path", "2026-01-01T00:01:00.000Z", "2026-01/second.json");
+  })();
+
+  assert.deepEqual(
+    bounded.findReferencedArtifacts(["2026-01/duplicate.json", "2026-01/second.json"]),
+    new Set(["2026-01/duplicate.json", "2026-01/second.json"])
   );
 });
 

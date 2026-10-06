@@ -1,0 +1,659 @@
+{
+  "//": "Vendor model lifecycle snapshot (#11503). Hand-curated from the first-party deprecation pages listed in `sources`; regenerate with `npm run quality:refresh-model-lifecycle`. Consumed by `npm run check:model-lifecycle` and by the FITNESS_TABLE / BUILT_IN_ALIASES regression tests. `replacement` is null where the vendor publishes none — never invent one.",
+  "generatedAt": "2026-08-25",
+  "sources": [
+    "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+    "https://developers.openai.com/api/docs/deprecations",
+    "https://ai.google.dev/gemini-api/docs/deprecations",
+    "https://docs.x.ai/docs/models",
+    "https://console.groq.com/docs/deprecations"
+  ],
+  "allowedRetiredInCatalog": [
+    "chatgpt-4o-latest",
+    "claude-3-5-sonnet-20241022",
+    "claude-3-7-sonnet-20250219",
+    "google/gemini-2.0-flash",
+    "gpt-4-0125-preview",
+    "gpt-5.2-codex",
+    "openai/gpt-5.2-codex"
+  ],
+  "allowedRetiredInCatalog_note": "TODO(#11503): ratchet to burn down. Each id is retired by its vendor but still routable from the provider catalog. Removing a catalog row or adding a BUILT_IN_ALIASES forward is a maintainer call (some aggregators still serve these ids), so they are allowlisted here rather than silently dropped. Delete an entry as soon as it is forwarded or removed; never add one without a tracking issue.",
+  "retired": {
+    "claude-opus-4-1-20250805": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2026-08-05",
+      "replacement": "claude-opus-4-8"
+    },
+    "claude-opus-4-20250514": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2026-06-15",
+      "replacement": "claude-opus-4-8"
+    },
+    "claude-sonnet-4-20250514": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2026-06-15",
+      "replacement": "claude-sonnet-4-6"
+    },
+    "claude-3-7-sonnet-20250219": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2026-02-19",
+      "replacement": "claude-sonnet-4-6"
+    },
+    "claude-3-5-haiku-20241022": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2026-02-19",
+      "replacement": "claude-haiku-4-5-20251001"
+    },
+    "claude-3-haiku-20240307": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2026-04-20",
+      "replacement": "claude-haiku-4-5-20251001"
+    },
+    "claude-3-opus-20240229": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2026-01-05",
+      "replacement": "claude-opus-4-8"
+    },
+    "claude-3-5-sonnet-20240620": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2025-10-28",
+      "replacement": "claude-sonnet-4-6"
+    },
+    "claude-3-5-sonnet-20241022": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2025-10-28",
+      "replacement": "claude-sonnet-4-6"
+    },
+    "claude-3-sonnet-20240229": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2025-07-21",
+      "replacement": "claude-sonnet-4-6"
+    },
+    "claude-2.0": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2025-07-21",
+      "replacement": "claude-opus-4-8"
+    },
+    "claude-2.1": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": "2025-07-21",
+      "replacement": "claude-opus-4-8"
+    },
+    "claude-1.0": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "claude-1.1": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "claude-1.2": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "claude-1.3": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "claude-instant-1.0": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "claude-instant-1.1": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "claude-instant-1.2": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "claude-mythos-preview": {
+      "vendor": "anthropic",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": "claude-mythos-5"
+    },
+    "gpt-5-codex": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5.1-codex": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5.1-codex-max": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5.1-codex-mini": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5.2-codex": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5-chat-latest": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5.1-chat-latest": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5.2-chat-latest": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5.3-chat-latest": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o1-mini": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o1-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "chatgpt-4o-latest": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "codex-mini-latest": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4.5-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "computer-use-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "computer-use-preview-2025-03-11": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o3-deep-research": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o4-mini-deep-research": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4o-search-preview-2025-03-11": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4o-mini-search-preview-2025-03-11": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "dall-e-2": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "dall-e-3": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-0314": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-0125-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-turbo-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-32k": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-32k-0613": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-32k-0314": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-vision-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "text-moderation-latest": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-3.5-turbo-0613": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-3.5-turbo-16k-0613": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4o-realtime-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4o-audio-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4o-mini-audio-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4o-mini-realtime-preview": {
+      "vendor": "openai",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-3.5-turbo-0125": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-3.5-turbo": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-0613": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-1106-preview": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-turbo": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4-turbo-2024-04-09": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4.1-nano": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4.1-nano-2025-04-14": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4o-2024-05-13": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-image-1": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o1-2024-12-17": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o1": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o1-pro-2025-03-19": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o1-pro": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o3-mini-2025-01-31": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o3-mini": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o4-mini-2025-04-16": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o4-mini": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-3.5-turbo-instruct": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "babbage-002": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "davinci-002": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-3.5-turbo-1106": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5-2025-08-07": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5-mini-2025-08-07": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5-nano-2025-08-07": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-5-pro-2025-10-06": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o3-2025-04-16": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "o3-pro-2025-06-10": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-realtime": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-audio": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4o-audio": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-4o-realtime": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-image-1-mini": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gpt-image-1.5": {
+      "vendor": "openai",
+      "status": "retiring",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gemini-2.0-flash": {
+      "vendor": "google",
+      "status": "retired",
+      "retiredOn": "2026-06-01",
+      "replacement": null
+    },
+    "gemini-2.0-flash-001": {
+      "vendor": "google",
+      "status": "retired",
+      "retiredOn": "2026-06-01",
+      "replacement": null
+    },
+    "gemini-2.0-flash-lite": {
+      "vendor": "google",
+      "status": "retired",
+      "retiredOn": "2026-06-01",
+      "replacement": null
+    },
+    "gemini-2.0-flash-lite-001": {
+      "vendor": "google",
+      "status": "retired",
+      "retiredOn": "2026-06-01",
+      "replacement": null
+    },
+    "gemini-1.5-pro": {
+      "vendor": "google",
+      "status": "retired",
+      "retiredOn": "2025-09-29",
+      "replacement": null
+    },
+    "gemini-1.5-flash": {
+      "vendor": "google",
+      "status": "retired",
+      "retiredOn": "2025-09-29",
+      "replacement": null
+    },
+    "gemini-1.5-flash-8b": {
+      "vendor": "google",
+      "status": "retired",
+      "retiredOn": "2025-09-29",
+      "replacement": null
+    },
+    "gemini-robotics-er-1.5-preview": {
+      "vendor": "google",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gemini-3-pro-preview": {
+      "vendor": "google",
+      "status": "retired",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "gemini-robotics-er-1.6-preview": {
+      "vendor": "google",
+      "status": "retiring",
+      "retiredOn": "2026-08-31",
+      "replacement": null
+    },
+    "grok-voice-think-fast-1.0": {
+      "vendor": "xai",
+      "status": "deprecated",
+      "retiredOn": null,
+      "replacement": null
+    },
+    "llama3-8b-8192": {
+      "vendor": "groq",
+      "status": "retired",
+      "retiredOn": "2025-08-30",
+      "replacement": "llama-3.1-8b-instant"
+    },
+    "llama3-70b-8192": {
+      "vendor": "groq",
+      "status": "retired",
+      "retiredOn": "2025-08-30",
+      "replacement": "llama-3.3-70b-versatile"
+    },
+    "llama-3.1-8b-instant": {
+      "vendor": "groq",
+      "status": "retiring",
+      "retiredOn": "2026-08-16",
+      "replacement": "openai/gpt-oss-20b"
+    },
+    "codestral-2405": {
+      "vendor": "mistral",
+      "status": "retired",
+      "retiredOn": "2025-06-16",
+      "replacement": "codestral-2508"
+    }
+  }
+}

@@ -19,30 +19,25 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ti-captur
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.INSPECTOR_HTTP_PROXY_PORT = "0"; // ephemeral port
 
-const captureModesRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/capture-modes/route.ts"
-);
-const httpProxyRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/capture-modes/http-proxy/route.ts"
-);
-const systemProxyRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/capture-modes/system-proxy/route.ts"
-);
-const tlsInterceptRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/capture-modes/tls-intercept/route.ts"
-);
-const { setHttpProxyHandle, getHttpProxyHandle, clearSystemProxy } = await import(
-  "../../src/lib/inspector/captureState.ts"
-);
-const { __setExec } = await import(
-  "../../src/mitm/inspector/systemProxyConfig.ts"
-);
+const captureModesRoute =
+  await import("../../src/app/api/tools/traffic-inspector/capture-modes/route.ts");
+const httpProxyRoute =
+  await import("../../src/app/api/tools/traffic-inspector/capture-modes/http-proxy/route.ts");
+const systemProxyRoute =
+  await import("../../src/app/api/tools/traffic-inspector/capture-modes/system-proxy/route.ts");
+const tlsInterceptRoute =
+  await import("../../src/app/api/tools/traffic-inspector/capture-modes/tls-intercept/route.ts");
+const { setHttpProxyHandle, getHttpProxyHandle, clearSystemProxy } =
+  await import("../../src/lib/inspector/captureState.ts");
+const { __setExec } = await import("../../src/mitm/inspector/systemProxyConfig.ts");
 
 test.beforeEach(() => {
   // Ensure no running proxy handle leaks between tests
   const handle = getHttpProxyHandle();
   if (handle) {
-    handle.stop().catch(() => {/* ignore */});
+    handle.stop().catch(() => {
+      /* ignore */
+    });
     setHttpProxyHandle(null);
   }
   clearSystemProxy();
@@ -52,10 +47,12 @@ test.after(() => {
   // Clean up any running proxy
   const handle = getHttpProxyHandle();
   if (handle) {
-    handle.stop().catch(() => {/* ignore */});
+    handle.stop().catch(() => {
+      /* ignore */
+    });
     setHttpProxyHandle(null);
   }
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── GET /capture-modes ──────────────────────────────────────────────────────
@@ -63,7 +60,7 @@ test.after(() => {
 test("GET /capture-modes: returns status of all modes", async () => {
   const res = await captureModesRoute.GET();
   assert.equal(res.status, 200);
-  const body = await res.json() as {
+  const body = (await res.json()) as {
     agentBridge: boolean;
     httpProxy: { running: boolean; port: number | null };
     systemProxy: { applied: boolean };
@@ -78,17 +75,14 @@ test("GET /capture-modes: returns status of all modes", async () => {
 // ── POST /capture-modes/http-proxy ─────────────────────────────────────────
 
 test("http-proxy: start binds an ephemeral port", async () => {
-  const req = new Request(
-    "http://localhost/api/tools/traffic-inspector/capture-modes/http-proxy",
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "start" }),
-    }
-  );
+  const req = new Request("http://localhost/api/tools/traffic-inspector/capture-modes/http-proxy", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: "start" }),
+  });
   const res = await httpProxyRoute.POST(req);
   assert.equal(res.status, 201);
-  const body = await res.json() as { ok: boolean; running: boolean; port: number };
+  const body = (await res.json()) as { ok: boolean; running: boolean; port: number };
   assert.equal(body.ok, true);
   assert.equal(body.running, true);
   assert.ok(body.port > 0, "should have a bound port");
@@ -102,17 +96,14 @@ test("http-proxy: start binds an ephemeral port", async () => {
 });
 
 test("http-proxy: stop when not running returns ok", async () => {
-  const req = new Request(
-    "http://localhost/api/tools/traffic-inspector/capture-modes/http-proxy",
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "stop" }),
-    }
-  );
+  const req = new Request("http://localhost/api/tools/traffic-inspector/capture-modes/http-proxy", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: "stop" }),
+  });
   const res = await httpProxyRoute.POST(req);
   assert.equal(res.status, 200);
-  const body = await res.json() as { ok: boolean; running: boolean };
+  const body = (await res.json()) as { ok: boolean; running: boolean };
   assert.equal(body.ok, true);
   assert.equal(body.running, false);
 });
@@ -139,16 +130,14 @@ test("http-proxy: start then stop lifecycle", async () => {
   );
   const stopRes = await httpProxyRoute.POST(stopReq);
   assert.equal(stopRes.status, 200);
-  const body = await stopRes.json() as { running: boolean };
+  const body = (await stopRes.json()) as { running: boolean };
   assert.equal(body.running, false);
 });
 
 test("http-proxy: EADDRINUSE returns 409 with structured error", async () => {
   // Import startHttpProxyServer directly so we can test the low-level error path
   // without depending on the module-cached DEFAULT_PORT.
-  const { startHttpProxyServer } = await import(
-    "../../src/mitm/inspector/httpProxyServer.ts"
-  );
+  const { startHttpProxyServer } = await import("../../src/mitm/inspector/httpProxyServer.ts");
 
   // Occupy a random port
   const blocker = net.createServer();
@@ -173,7 +162,10 @@ test("http-proxy: EADDRINUSE returns 409 with structured error", async () => {
 // ── POST /capture-modes/system-proxy ───────────────────────────────────────
 
 test("system-proxy: apply with mocked OS commands", async () => {
-  const restore = __setExec(async (_file, _args) => ({ stdout: "Enabled: No\nServer: \nPort: 0", stderr: "" }));
+  const restore = __setExec(async (_file, _args) => ({
+    stdout: "Enabled: No\nServer: \nPort: 0",
+    stderr: "",
+  }));
   try {
     const req = new Request(
       "http://localhost/api/tools/traffic-inspector/capture-modes/system-proxy",
@@ -185,7 +177,7 @@ test("system-proxy: apply with mocked OS commands", async () => {
     );
     const res = await systemProxyRoute.POST(req);
     assert.equal(res.status, 200);
-    const body = await res.json() as { ok: boolean; applied: boolean };
+    const body = (await res.json()) as { ok: boolean; applied: boolean };
     assert.equal(body.ok, true);
     assert.equal(body.applied, true);
   } finally {
@@ -207,7 +199,7 @@ test("system-proxy: revert without prior apply is a no-op", async () => {
     );
     const res = await systemProxyRoute.POST(req);
     assert.equal(res.status, 200);
-    const body = await res.json() as { applied: boolean };
+    const body = (await res.json()) as { applied: boolean };
     assert.equal(body.applied, false);
   } finally {
     restore();
@@ -240,7 +232,7 @@ test("tls-intercept: toggle on/off", async () => {
   );
   const enableRes = await tlsInterceptRoute.POST(enableReq);
   assert.equal(enableRes.status, 200);
-  const enableBody = await enableRes.json() as { tlsIntercept: { enabled: boolean } };
+  const enableBody = (await enableRes.json()) as { tlsIntercept: { enabled: boolean } };
   assert.equal(enableBody.tlsIntercept.enabled, true);
 
   const disableReq = new Request(
@@ -253,6 +245,6 @@ test("tls-intercept: toggle on/off", async () => {
   );
   const disableRes = await tlsInterceptRoute.POST(disableReq);
   assert.equal(disableRes.status, 200);
-  const disableBody = await disableRes.json() as { tlsIntercept: { enabled: boolean } };
+  const disableBody = (await disableRes.json()) as { tlsIntercept: { enabled: boolean } };
   assert.equal(disableBody.tlsIntercept.enabled, false);
 });

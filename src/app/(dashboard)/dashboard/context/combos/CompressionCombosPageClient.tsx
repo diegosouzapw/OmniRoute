@@ -3,6 +3,7 @@
 // Combos screen = Compression Hub (top) + named-combos manager (below).
 //
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { STACKED_PIPELINE_ENGINE_INTENSITIES } from "@/shared/validation/compressionConfigSchemas";
 import { CompressionPipelineEditor } from "@/shared/components/compression/CompressionPipelineEditor";
@@ -185,6 +186,22 @@ function NamedCombosManager() {
         <h2 className="text-lg font-semibold text-text-main">{t("namedCombos")}</h2>
         <p className="text-sm text-text-muted">{t("namedCombosDescription")}</p>
       </div>
+
+      {/* #12063: the master "Prompt Compression" switch (Settings page) is a hard kill that
+          runs BEFORE an active profile is even considered (strategySelector.ts resolveBasePlan).
+          Surface that dependency here so a selected profile is never silently inert. */}
+      {!compressionEnabled && activeComboId && (
+        <div
+          role="alert"
+          data-testid="compression-master-switch-warning"
+          className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400"
+        >
+          {t("activeProfileMasterSwitchOffWarning")}{" "}
+          <Link href="/dashboard/context/settings" className="font-medium underline">
+            {t("activeProfileMasterSwitchOffCta")}
+          </Link>
+        </div>
+      )}
 
       <section className="rounded-lg border border-border bg-surface p-4">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

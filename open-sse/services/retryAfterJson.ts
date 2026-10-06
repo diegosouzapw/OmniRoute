@@ -1,5 +1,12 @@
 type JsonRecord = Record<string, unknown>;
 
+export type JsonRetryHintProvenance = "google_rpc_retry_info" | "body";
+
+export type DetailedJsonRetryHint = {
+  retryAfterMs: number;
+  provenance: JsonRetryHintProvenance;
+};
+
 function objectRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -16,6 +23,22 @@ function futureTimestampMs(value: unknown, maxMs: number): number | null {
   if (!Number.isFinite(parsedTs)) return null;
   const waitMs = parsedTs - Date.now();
   return waitMs > 0 ? Math.min(waitMs, maxMs) : null;
+}
+
+/**
+ * Meta Muse / CLIProxyAPI subscription quota uses `error.resets_at` as a unix
+ * epoch (seconds). Accept seconds, milliseconds, numeric strings, and ISO.
+ */
+function futureResetAtMs(value: unknown, maxMs: number): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    const ms = value < 1e12 ? value * 1000 : value;
+    const waitMs = ms - Date.now();
+    return waitMs > 0 ? Math.min(waitMs, maxMs) : null;
+  }
+  if (typeof value === "string" && /^\d+(?:\.\d+)?$/.test(value.trim())) {
+    return futureResetAtMs(Number(value), maxMs);
+  }
+  return futureTimestampMs(value, maxMs);
 }
 
 // RetryInfo.retryDelay / "please retry in Ns" are short per-request throttling
@@ -63,7 +86,10 @@ function retryInfoDetailsMs(details: unknown): number | null {
  * Parse Retry-After hints from a 429 JSON response body. Providers use both
  * top-level and nested `error` fields for ISO timestamps and millisecond values.
  */
-export function parseRetryHintFromJsonBody(body: string, maxMs: number): number | null {
+export function parseDetailedRetryHintFromJsonBody(
+  body: string,
+  maxMs: number
+): DetailedJsonRetryHint | null {
   let parsed: unknown;
   try {
     parsed = JSON.parse(body);
@@ -76,13 +102,26 @@ export function parseRetryHintFromJsonBody(body: string, maxMs: number): number 
   const errorObj = objectRecord(root.error);
 
   const retryInfoMs = retryInfoDetailsMs(errorObj.details ?? root.details);
-  if (retryInfoMs !== null) return retryInfoMs;
+  if (retryInfoMs !== null) {
+    return { retryAfterMs: retryInfoMs, provenance: "google_rpc_retry_info" };
+  }
+
+  const resetAtHint = futureResetAtMs(
+    errorObj.resets_at ?? root.resets_at ?? errorObj.resetsAt ?? root.resetsAt,
+    maxMs
+  );
+  if (resetAtHint !== null) return { retryAfterMs: resetAtHint, provenance: "body" };
 
   const isoHint = futureTimestampMs(errorObj.retryAfter ?? root.retryAfter, maxMs);
-  if (isoHint !== null) return isoHint;
+  if (isoHint !== null) return { retryAfterMs: isoHint, provenance: "body" };
 
-  return positiveCappedMs(
+  const numericHint = positiveCappedMs(
     errorObj.retry_after_ms ?? root.retry_after_ms ?? errorObj.retryAfterMs ?? root.retryAfterMs,
     maxMs
   );
+  return numericHint === null ? null : { retryAfterMs: numericHint, provenance: "body" };
+}
+
+export function parseRetryHintFromJsonBody(body: string, maxMs: number): number | null {
+  return parseDetailedRetryHintFromJsonBody(body, maxMs)?.retryAfterMs ?? null;
 }

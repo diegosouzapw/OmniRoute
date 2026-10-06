@@ -26,13 +26,43 @@ test("sanitizeHeaders — Set-Cookie header name is matched case-insensitively",
   assert.equal(out["set-cookie"], "[REDACTED]");
 });
 
+test("sanitizeHeaders — request cookies are fully redacted regardless of token shape", () => {
+  const out = sanitizeHeaders({ Cookie: "session=short; csrf=also-short" });
+  assert.deepEqual(out, { cookie: "[REDACTED]" });
+});
+
 test("sanitizeHeaders — authorization bearer token is still masked, not leaked", () => {
   const out = sanitizeHeaders({ authorization: "Bearer sk-proj-abcdefghijklmnop" });
-  assert.ok(!out["authorization"].includes("sk-proj-abcdefghijklmnop"), "bearer token must be masked");
+  assert.ok(
+    !out["authorization"].includes("sk-proj-abcdefghijklmnop"),
+    "bearer token must be masked"
+  );
+});
+
+test("sanitizeHeaders — drops framing, hop-by-hop, and proxy credential headers", () => {
+  const out = sanitizeHeaders({
+    Host: "provider.example",
+    Connection: "keep-alive",
+    "Content-Length": "42",
+    "Proxy-Authorization": "Basic c2VjcmV0",
+    "Proxy-Authenticate": "Basic realm=proxy",
+    TE: "trailers",
+    Upgrade: "websocket",
+    "X-Keep": "visible",
+  });
+  assert.deepEqual(out, { "x-keep": "visible" });
 });
 
 test("sanitizeHeaders — non-secret headers pass through unchanged", () => {
   const out = sanitizeHeaders({ "content-type": "application/json", "x-request-id": "req-42" });
   assert.equal(out["content-type"], "application/json");
   assert.equal(out["x-request-id"], "req-42");
+});
+
+test("sanitizeHeaders — lowercases names, joins arrays predictably, and omits undefined", () => {
+  const out = sanitizeHeaders({
+    "X-Trace": ["edge-a", "edge-b"],
+    "X-Missing": undefined,
+  });
+  assert.deepEqual(out, { "x-trace": "edge-a, edge-b" });
 });

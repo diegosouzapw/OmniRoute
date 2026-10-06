@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+
 import { Card } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
@@ -74,6 +75,7 @@ export default function HealthPage() {
   const [repairingDb, setRepairingDb] = useState(false);
   const [unblocking, setUnblocking] = useState(false);
   const [unblockingKey, setUnblockingKey] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const fetchHealth = useCallback(async () => {
     try {
@@ -266,6 +268,21 @@ export default function HealthPage() {
       </div>
 
       {/* Status Banner */}
+      {/* Verdict Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">
+          {
+            data.status === "healthy"
+              ? t("healthVerdictReady")
+              : data.status === "cooling"
+                ? t("healthVerdictCoolingDown")
+                : t("healthVerdictActionRequired")
+          }
+        </h1>
+        <p className="text-text-muted text-lg">{t("healthSubtitle")}</p>
+      </div>
+
+      {/* Status Details */}
       <div
         role="status"
         aria-live="polite"
@@ -283,15 +300,29 @@ export default function HealthPage() {
           {data.status === "healthy" ? "check_circle" : "error"}
         </span>
         <span className={data.status === "healthy" ? "text-green-400" : "text-red-400"}>
-          {data.status === "healthy" ? t("allOperational") : t("issuesDetected")}
+          {data.status === "healthy"
+            ? t("allOperational")
+            : t("issuesDetected")}
         </span>
       </div>
 
-      <TelemetryCard />
-
-      <ProviderHealthAutopilotCard />
-
-      <ProviderHealthMatrixCard />
+      {/* Advanced Diagnostics Section */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">{t("advancedDiagnosticsTitle")}</h2>
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-primary hover:underline"
+          >
+            {showAdvanced ? t("hide") : t("show")}
+          </button>
+        </div>
+        <div className={showAdvanced ? "block" : "hidden"}>
+          <TelemetryCard />
+          <ProviderHealthAutopilotCard />
+          <ProviderHealthMatrixCard />
+        </div>
+      </div>
 
       <Card className="p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

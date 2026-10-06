@@ -30,10 +30,12 @@
  * Requires `npm run build:cli` first — this is a --with-build gate, like check:pack-boot.
  */
 
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 
 const BOOT_DEADLINE_MS = 180_000;
@@ -42,6 +44,61 @@ const ALLOWLIST_PATH = "config/quality/install-upgrade-allowlist.json";
 
 const log = (msg) => console.log(`[install-upgrade] ${msg}`);
 const warn = (msg) => console.log(`[install-upgrade] ⚠️  ${msg}`);
+
+/** Root of the installed package inside an `npm install -g --prefix` tree. */
+function packageRootFor(prefix) {
+  return path.join(prefix, "lib", "node_modules", "omniroute");
+}
+
+/**
+ * Credential for the health probe.
+ *
+ * GHSA-mvf8-qc78-5mxm hardened /api/monitoring/health: an ANONYMOUS caller now gets only
+ * `{ status }` — the version, node version, pid and provider config are reserved for a
+ * management principal (src/app/api/monitoring/health/route.ts → publicHealthView). An
+ * unauthenticated probe therefore reads `body.version === undefined`, and this gate's
+ * version assertion could never pass again; the v3.8.50 publish run failed with
+ * "clean: health reports version undefined, expected 3.8.50" for exactly that reason.
+ *
+ * The gate spawns the server itself, so it can mint the credential instead of guessing one:
+ * `OMNIROUTE_INTERNAL_SERVICE_TOKEN` + the `x-omniroute-internal-service-token` header is
+ * accepted by requireManagementAuth() via isTrustedLoopbackInternalServiceRequest(), and the
+ * probe is loopback by construction. Unlike the machine token `check:pack-boot` derives, this
+ * does not depend on a readable machine-id, and an older PREVIOUS version that never gated
+ * health simply ignores the header. The assertion keeps its full strength — it just presents
+ * a credential.
+ */
+const INTERNAL_SERVICE_TOKEN = crypto.randomBytes(32).toString("hex");
+const INTERNAL_SERVICE_HEADER = "x-omniroute-internal-service-token";
+
+/**
+ * Secondary credential: the same loopback machine token `check:pack-boot` derives from the
+ * packaged CLI. Sent alongside the internal-service token so a build that only honours one
+ * of the two still answers with the full payload.
+ */
+// The CLI token salt lives under <DATA_DIR> (#13679/#13909): derive against the DATA_DIR the
+// probed server boots on, or the token never matches.
+function derivePackagedCliToken(prefix, dataDir) {
+  const cliModuleUrl = pathToFileURL(
+    path.join(packageRootFor(prefix), "bin", "cli", "utils", "cliToken.mjs")
+  ).href;
+  try {
+    return execFileSync(
+      process.execPath,
+      [
+        "--input-type=module",
+        "--eval",
+        "import(process.argv[1]).then(async m => process.stdout.write(await m.getCliToken()))",
+        cliModuleUrl,
+      ],
+      { encoding: "utf8", env: { ...process.env, DATA_DIR: dataDir } }
+    ).trim();
+  } catch {
+    // A truncated/broken install cannot derive a token. Returning null keeps the boot
+    // probe running (it will fail loudly on its own) instead of crashing the gate here.
+    return null;
+  }
+}
 
 function pickTarball(packJson) {
   const filename = JSON.parse(packJson)?.[0]?.filename;
@@ -121,6 +178,11 @@ async function bootAndProbe({ prefix, dataDir, port, expectVersion, label }) {
   if (!fs.existsSync(binPath)) {
     return { ok: false, failures: [`${label}: bin not found at ${binPath}`], tail: [] };
   }
+  const cliToken = derivePackagedCliToken(prefix, dataDir);
+  const probeHeaders = {
+    [INTERNAL_SERVICE_HEADER]: INTERNAL_SERVICE_TOKEN,
+    ...(cliToken ? { "x-omniroute-cli-token": cliToken } : {}),
+  };
   const child = spawn(binPath, ["serve", "--port", String(port)], {
     env: {
       ...process.env,
@@ -130,6 +192,7 @@ async function bootAndProbe({ prefix, dataDir, port, expectVersion, label }) {
       API_KEY_SECRET: "install-upgrade-gate-api-key-secret-long",
       DISABLE_SQLITE_AUTO_BACKUP: "true",
       OMNIROUTE_SKIP_SYSTEM_TRUST: "1",
+      OMNIROUTE_INTERNAL_SERVICE_TOKEN: INTERNAL_SERVICE_TOKEN,
     },
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
@@ -151,20 +214,33 @@ async function bootAndProbe({ prefix, dataDir, port, expectVersion, label }) {
   let result = { ok: false, failures: [`${label}: never became healthy`], tail };
   while (Date.now() < deadline) {
     if (childExit !== null) {
-      result = { ok: false, failures: [`${label}: exited with code ${childExit} before serving`], tail };
+      result = {
+        ok: false,
+        failures: [`${label}: exited with code ${childExit} before serving`],
+        tail,
+      };
       break;
     }
     try {
-      const res = await fetch(`http://127.0.0.1:${port}/api/monitoring/health`);
+      const res = await fetch(`http://127.0.0.1:${port}/api/monitoring/health`, {
+        headers: probeHeaders,
+      });
       const body = await res.json().catch(() => null);
       if (res.status === 200 && body && typeof body === "object") {
         const failures = [];
         // `status` may legitimately report degraded (no providers configured) — the gate
         // targets boot crashes and version mismatches, not health of a bare install.
-        if (expectVersion && body.version !== expectVersion) {
-          failures.push(`${label}: health reports version ${body.version}, expected ${expectVersion}`);
+        const reportedVersion = body.version ?? body.system?.version;
+        if (expectVersion && reportedVersion !== expectVersion) {
+          failures.push(
+            `${label}: health reports version ${reportedVersion}, expected ${expectVersion}` +
+              (reportedVersion === undefined
+                ? " — the payload carries no version at all, which is the ANONYMOUS health " +
+                  "view: the probe's credentials were not accepted (see GHSA-mvf8-qc78-5mxm)"
+                : "")
+          );
         }
-        result = { ok: failures.length === 0, version: body.version, failures, tail };
+        result = { ok: failures.length === 0, version: reportedVersion, failures, tail };
         break;
       }
     } catch {
@@ -183,12 +259,71 @@ async function bootAndProbe({ prefix, dataDir, port, expectVersion, label }) {
   return result;
 }
 
-function npmInstallInto(prefix, spec) {
-  execFileSync("npm", ["install", "-g", "--prefix", prefix, "--no-audit", "--no-fund", spec], {
-    encoding: "utf8",
-    maxBuffer: 128 * 1024 * 1024,
-  });
+/**
+ * `npm install` reports ENOSPC as a *warning* per failed tar entry and still exits 0.
+ *
+ * That is not a theoretical concern: on the v3.8.50 publish run the Phase B upgrade install
+ * emitted 5611 `npm warn tar TAR_ENTRY_ERROR ENOSPC: no space left on device` lines, exited
+ * 0, and left a truncated package behind. `omniroute serve` then "exited with code 0 before
+ * serving", no migration ever ran, and the gate concluded the release was missing 15 tables
+ * — a full false alarm produced by a full disk. Each install tree is ~3 GB, and the run
+ * builds two of them plus a ~275 MB tarball.
+ *
+ * So: surface the truncation at the install, where it is unambiguous.
+ */
+function npmInstallInto(prefix, spec, label = spec) {
+  // spawnSync (not execFileSync): execFileSync forwards the child's stderr straight to the
+  // parent's, so the ENOSPC warnings scrolled past in CI without the script ever seeing
+  // them. spawnSync hands both streams back.
+  const run = spawnSync(
+    "npm",
+    ["install", "-g", "--prefix", prefix, "--no-audit", "--no-fund", spec],
+    { encoding: "utf8", maxBuffer: 512 * 1024 * 1024 }
+  );
+  const output = `${run.stdout ?? ""}${run.stderr ?? ""}`;
+  // Keep the install log visible, but a truncated package emits thousands of identical
+  // warnings — collapse them so the real message is not buried.
+  const stderrLines = String(run.stderr ?? "").split("\n");
+  const shown = stderrLines.length > 60 ? stderrLines.slice(0, 40) : stderrLines;
+  if (String(run.stderr ?? "").trim()) {
+    process.stderr.write(shown.join("\n") + "\n");
+    if (stderrLines.length > 60) {
+      process.stderr.write(`[install-upgrade] … ${stderrLines.length - 40} more npm line(s)\n`);
+    }
+  }
+  assertNoDiskExhaustion(output, label);
+  if (run.error) throw run.error;
+  if (run.status !== 0) {
+    throw new Error(`${label}: npm install exited with code ${run.status}`);
+  }
 }
+
+export function assertNoDiskExhaustion(output, label) {
+  if (!/ENOSPC|no space left on device/i.test(output)) return;
+  const count = (output.match(/ENOSPC/g) ?? []).length;
+  throw new Error(
+    `${label}: the install ran out of disk space (${count} ENOSPC error(s) from npm). ` +
+      `The package tree is truncated, so anything measured from it — boot, schema, ` +
+      `migrations — is meaningless. Free space in ${workDirForMessages} (each install tree is ` +
+      `~3 GB) and re-run. This is an environment failure, NOT a schema divergence.`
+  );
+}
+
+/** Best-effort free bytes on the filesystem backing `dir`, or null when unavailable. */
+function freeBytes(dir) {
+  try {
+    return fs.statfsSync(dir).bavail * fs.statfsSync(dir).bsize;
+  } catch {
+    return null;
+  }
+}
+
+const GB = 1024 ** 3;
+
+// Set once the work directory exists, so the ENOSPC message names the filesystem that
+// actually ran out — pointing at /tmp when the gate works elsewhere sends the reader to
+// free space on the wrong volume (which is what happened during the v3.8.50 publish).
+let workDirForMessages = os.tmpdir();
 
 function resolvePreviousVersion(current, explicit) {
   if (explicit) return explicit;
@@ -198,7 +333,9 @@ function resolvePreviousVersion(current, explicit) {
   if (latest === current) {
     // The version under test is already published (re-run of a shipped release): step back
     // to the highest published version strictly below it.
-    const all = JSON.parse(execFileSync("npm", ["view", "omniroute", "versions", "--json"], { encoding: "utf8" }));
+    const all = JSON.parse(
+      execFileSync("npm", ["view", "omniroute", "versions", "--json"], { encoding: "utf8" })
+    );
     const stable = all.filter((v) => !/-(rc|alpha|beta|pre|next)/.test(v) && v !== current);
     return stable[stable.length - 1];
   }
@@ -218,11 +355,25 @@ async function main() {
   }
   const version = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")).version;
   const allowlist = loadAllowlist(ROOT);
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-install-upgrade-"));
+  // NOT os.tmpdir(): on the self-hosted runner /tmp is a 12 GB tmpfs backed by RAM, while
+  // the root filesystem has ~66 GB free. This gate needs ~12 GB, so it exhausted the tmpfs
+  // and npm truncated the package — 58269 ENOSPC errors on the v3.8.50 publish, which the
+  // previous code could only report as a crash. Freeing disk did not help because the disk
+  // was never the constraint. Work on real disk beside the repo instead.
+  const workRoot =
+    process.env.OMNIROUTE_INSTALL_UPGRADE_WORKDIR || path.join(ROOT, ".install-upgrade");
+  fs.mkdirSync(workRoot, { recursive: true });
+  const tmp = fs.mkdtempSync(path.join(workRoot, "omniroute-install-upgrade-"));
+  workDirForMessages = tmp;
   const failures = [];
   const warnings = [];
 
   try {
+    // Timed, because this turned out to be the expensive part: on the 2026-08-27
+    // v3.8.50 publish `npm pack` alone took 24m37s, leaving 5 of the step's 30-minute
+    // budget for two installs and two boots. Without a duration here the log showed
+    // only "packing…" then a timeout, which reads like a hang and is not.
+    const packStarted = Date.now();
     log(`packing v${version}…`);
     const packOut = execFileSync("npm", ["pack", "--json", "--pack-destination", tmp], {
       cwd: ROOT,
@@ -230,13 +381,31 @@ async function main() {
       maxBuffer: 128 * 1024 * 1024,
     });
     const tarball = path.join(tmp, pickTarball(packOut));
+    const packMb = (fs.statSync(tarball).size / 1024 / 1024).toFixed(1);
+    log(`packed in ${Math.round((Date.now() - packStarted) / 1000)}s (${packMb} MB)`);
+
+    // Each install tree is ~3 GB and this run builds two of them, side by side, plus the
+    // ~275 MB tarball. On the v3.8.50 publish run that overflowed the runner disk mid-way
+    // through the Phase B upgrade install; npm warned per truncated tar entry and still
+    // exited 0, and every later measurement was taken from a broken tree.
+    const availableBytes = freeBytes(tmp);
+    if (availableBytes !== null) {
+      log(`free space in ${tmp}: ${(availableBytes / GB).toFixed(1)} GB`);
+      if (availableBytes < 12 * GB) {
+        warn(
+          `only ${(availableBytes / GB).toFixed(1)} GB free — this gate needs roughly 12 GB ` +
+            `(two ~3 GB install trees, the second installed over twice, plus the tarball). ` +
+            `An install truncated by ENOSPC looks like a schema divergence.`
+        );
+      }
+    }
 
     // ---- Phase A: clean install -------------------------------------------------
     log("PHASE A — clean install of the packed tarball");
     const aPrefix = path.join(tmp, "a-prefix");
     const aData = path.join(tmp, "a-data");
     fs.mkdirSync(aData, { recursive: true });
-    npmInstallInto(aPrefix, tarball);
+    npmInstallInto(aPrefix, tarball, "clean install");
     const a = await bootAndProbe({
       prefix: aPrefix,
       dataDir: aData,
@@ -245,14 +414,34 @@ async function main() {
       label: "clean",
     });
     failures.push(...a.failures);
+    const cleanBooted = a.ok;
     if (a.ok) log(`clean install healthy on v${a.version}`);
+    else if (a.tail?.length) {
+      console.error("[install-upgrade] last output from the clean-install server:");
+      console.error(a.tail.join("").split("\n").slice(-40).join("\n"));
+    }
     const aDb = findDb(aData);
     const freshTables = aDb ? readTables(aDb) : null;
     if (!freshTables) failures.push("clean: no SQLite database was created");
     else log(`clean install schema: ${freshTables.size} tables`);
 
+    // Phase A is fully measured (boot verdict + schema snapshot); its ~3 GB install tree is
+    // dead weight from here on and Phase B needs the room. The DATA_DIR stays — only the
+    // node_modules tree goes.
+    if (!skipUpgrade) {
+      fs.rmSync(aPrefix, { recursive: true, force: true });
+      const reclaimed = freeBytes(tmp);
+      log(
+        "released the clean-install tree before the upgrade phase" +
+          (reclaimed !== null ? ` (${(reclaimed / GB).toFixed(1)} GB free)` : "")
+      );
+    }
+
     // ---- Phase B: upgrade over the previous published version -------------------
     let upgradedTables = null;
+    // `--skip-upgrade` never reaches the convergence block (upgradedTables stays null), so
+    // defaulting this to true keeps that path unchanged.
+    let upgradeBooted = true;
     if (skipUpgrade) {
       warn("PHASE B skipped (--skip-upgrade)");
     } else {
@@ -262,7 +451,7 @@ async function main() {
       const bData = path.join(tmp, "b-data");
       fs.mkdirSync(bData, { recursive: true });
 
-      npmInstallInto(bPrefix, `omniroute@${previous}`);
+      npmInstallInto(bPrefix, `omniroute@${previous}`, `previous(${previous}) install`);
       const before = await bootAndProbe({
         prefix: bPrefix,
         dataDir: bData,
@@ -273,14 +462,16 @@ async function main() {
       if (!before.ok) {
         // A broken PREVIOUS version is not this release's fault — degrade to a warning so a
         // historically bad publish cannot block the current one.
-        warnings.push(`previous version ${previous} did not boot cleanly — upgrade path unverified`);
+        warnings.push(
+          `previous version ${previous} did not boot cleanly — upgrade path unverified`
+        );
         for (const f of before.failures) warn(f);
       } else {
         const beforeDb = findDb(bData);
         const beforeTables = beforeDb ? readTables(beforeDb) : new Set();
         log(`previous(${previous}) schema: ${beforeTables.size} tables — upgrading in place`);
 
-        npmInstallInto(bPrefix, tarball);
+        npmInstallInto(bPrefix, tarball, "upgrade install");
         const after = await bootAndProbe({
           prefix: bPrefix,
           dataDir: bData,
@@ -290,6 +481,11 @@ async function main() {
         });
         failures.push(...after.failures);
         if (after.ok) log(`upgrade healthy on v${after.version}`);
+        upgradeBooted = after.ok;
+        if (!after.ok && after.tail?.length) {
+          console.error("[install-upgrade] last output from the upgraded server:");
+          console.error(after.tail.join("").split("\n").slice(-40).join("\n"));
+        }
 
         const afterDb = findDb(bData);
         upgradedTables = afterDb ? readTables(afterDb) : null;
@@ -306,7 +502,19 @@ async function main() {
     }
 
     // ---- Schema convergence -----------------------------------------------------
-    if (freshTables && upgradedTables) {
+    // Only meaningful when BOTH servers actually served. A boot that died before serving
+    // never ran a migration, so its database still holds the PREVIOUS release's schema and
+    // every post-baseline table shows up as "a clean install creates but an upgrade does
+    // not" — which is what the v3.8.50 publish run reported after ENOSPC truncated the
+    // upgrade install. Comparing there does not add information, it manufactures a
+    // 15-table false alarm on top of the real failure. The run still fails: the boot
+    // failure is already in `failures`.
+    if (freshTables && upgradedTables && !(cleanBooted && upgradeBooted)) {
+      warn(
+        "schema convergence NOT evaluated — a phase failed to boot, so its database was " +
+          "never migrated and any table difference would describe the broken boot, not the schema"
+      );
+    } else if (freshTables && upgradedTables) {
       const verdict = evaluateConvergence({
         freshTables,
         upgradedTables,
@@ -334,7 +542,10 @@ async function main() {
 
 // Only run the (expensive) gate when invoked directly — importing this module for the pure
 // helper above must not pack, install or boot anything.
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)
+) {
   main().catch((err) => {
     console.error(`[install-upgrade] crashed: ${err?.message ?? err}`);
     process.exit(1);

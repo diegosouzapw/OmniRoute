@@ -103,7 +103,12 @@ describe("pluginManager reload after restart (#7806)", () => {
       // Deactivate to kill the reloaded child process — otherwise it dangles and
       // keeps the test runner's event loop alive after the suite finishes.
       await mod.pluginManager.deactivate(name).catch(() => {});
-      rmSync(dir.split("/").slice(0, -1).join("/"), { recursive: true, force: true });
+      rmSync(dir.split("/").slice(0, -1).join("/"), {
+        recursive: true,
+        force: true,
+        maxRetries: 5,
+        retryDelay: 100,
+      });
     }
   });
 
@@ -130,7 +135,12 @@ describe("pluginManager reload after restart (#7806)", () => {
       // Deactivate to kill the reloaded child process — otherwise it dangles and
       // keeps the test runner's event loop alive after the suite finishes.
       await mod.pluginManager.deactivate(name).catch(() => {});
-      rmSync(dir.split("/").slice(0, -1).join("/"), { recursive: true, force: true });
+      rmSync(dir.split("/").slice(0, -1).join("/"), {
+        recursive: true,
+        force: true,
+        maxRetries: 5,
+        retryDelay: 100,
+      });
     }
   });
 });

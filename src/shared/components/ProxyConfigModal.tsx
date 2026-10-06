@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
@@ -23,7 +23,9 @@ const BUILD_TIME_SOCKS5 = !["false", "0", "no", "off"].includes(
   (process.env.NEXT_PUBLIC_ENABLE_SOCKS5_PROXY ?? "").trim().toLowerCase()
 );
 export function buildProxyTypes(socks5Enabled: boolean) {
-  return socks5Enabled ? ALL_PROXY_TYPES : ALL_PROXY_TYPES.filter((type) => type.value !== "socks5");
+  return socks5Enabled
+    ? ALL_PROXY_TYPES
+    : ALL_PROXY_TYPES.filter((type) => type.value !== "socks5");
 }
 
 type ProxyConfigLevel = "global" | "provider" | "combo" | "key";
@@ -152,12 +154,40 @@ export default function ProxyConfigModal({
     return "8080";
   };
 
+  // Reset transient state when the modal opens (render-time adjustment per
+  // react.dev "You Might Not Need an Effect" — replaces the synchronous
+  // setStates the load effect used to issue).
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setTestResult(null);
+      setFormError(null);
+      setLoading(true);
+    }
+  }
+
+  const resetFields = useCallback(() => {
+    // ALL_PROXY_TYPES[0] is "http" whether or not SOCKS5 is enabled, so this
+    // reset has no reactive dependencies and stays referentially stable.
+    setProxyType(ALL_PROXY_TYPES[0].value);
+    setHost("");
+    setPort("");
+    setUsername("");
+    setPassword("");
+    setShowAuth(false);
+    setFormError(null);
+  }, []);
+
+  // Translated strings the load effect needs, hoisted so the effect can depend
+  // on stable string values instead of the `t` function identity (an unstable
+  // `t` — e.g. the test mock — would otherwise re-run the load loop forever).
+  const socks5HiddenError = t("errorSocks5Hidden");
+  const levelGlobalLabel = t("levelGlobal");
+
   // Load existing proxy config when modal opens
   useEffect(() => {
     if (!isOpen) return;
-    setTestResult(null);
-    setFormError(null);
-    setLoading(true);
 
     const loadProxy = async () => {
       try {
@@ -196,7 +226,9 @@ export default function ProxyConfigModal({
             const assignedProxy = registryItems.find((item) => item.id === target.proxyId);
             if (assignedProxy?.source === DASHBOARD_CUSTOM_PROXY_SOURCE) {
               const normalizedType = String(assignedProxy.type || "http").toLowerCase();
-              const hasTypeOption = runtimeProxyTypes.some((entry) => entry.value === normalizedType);
+              const hasTypeOption = runtimeProxyTypes.some(
+                (entry) => entry.value === normalizedType
+              );
               setMode("custom");
               setProxyType(hasTypeOption ? normalizedType : runtimeProxyTypes[0]?.value || "http");
               setHost(assignedProxy.host || "");
@@ -209,7 +241,7 @@ export default function ProxyConfigModal({
               );
               setShowAuth(!!(assignedProxy.username || assignedProxy.password));
               if (normalizedType === "socks5" && !runtimeSocks5) {
-                setFormError(t("errorSocks5Hidden"));
+                setFormError(socks5HiddenError);
               }
             } else {
               setMode("saved");
@@ -242,7 +274,7 @@ export default function ProxyConfigModal({
             setShowAuth(!!(proxy.username || proxy.password));
             setHasOwnProxy(true);
             if (normalizedType === "socks5" && !runtimeSocks5) {
-              setFormError(t("errorSocks5Hidden"));
+              setFormError(socks5HiddenError);
             }
             if (!hasSavedAssignment) setMode("custom");
           } else {
@@ -263,14 +295,14 @@ export default function ProxyConfigModal({
             if (level === "key") {
               // Check combo, provider, global
               if (config.global)
-                setInheritedFrom({ level: t("levelGlobal"), proxy: config.global });
+                setInheritedFrom({ level: levelGlobalLabel, proxy: config.global });
               // Provider info requires more context, showing global as fallback
             } else if (level === "combo") {
               if (config.global)
-                setInheritedFrom({ level: t("levelGlobal"), proxy: config.global });
+                setInheritedFrom({ level: levelGlobalLabel, proxy: config.global });
             } else if (level === "provider") {
               if (config.global)
-                setInheritedFrom({ level: t("levelGlobal"), proxy: config.global });
+                setInheritedFrom({ level: levelGlobalLabel, proxy: config.global });
             }
           }
         }
@@ -282,17 +314,7 @@ export default function ProxyConfigModal({
     };
 
     loadProxy();
-  }, [isOpen, level, levelId]);
-
-  const resetFields = () => {
-    setProxyType(proxyTypes[0]?.value || "http");
-    setHost("");
-    setPort("");
-    setUsername("");
-    setPassword("");
-    setShowAuth(false);
-    setFormError(null);
-  };
+  }, [isOpen, level, levelId, resetFields, socks5HiddenError, levelGlobalLabel]);
 
   const handleSave = async () => {
     if (mode === "saved" && !selectedProxyId) {

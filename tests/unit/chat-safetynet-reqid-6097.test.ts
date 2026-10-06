@@ -45,7 +45,7 @@ async function flushBackgroundWork() {
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -63,83 +63,80 @@ test.after(async () => {
   await flushBackgroundWork();
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test(
-  "#6097 safety-net combo redirect does not throw ReferenceError: reqId is not defined",
-  async () => {
-    // A healthy provider connection so the inner auto/* combo has a candidate to
-    // dispatch to once the safety-net redirect completes.
-    await providersDb.createProviderConnection({
-      provider: "openai",
-      authType: "apikey",
-      name: "openai-safetynet-6097",
-      apiKey: "sk-safetynet-6097",
-      isActive: true,
-      testStatus: "active",
+test("#6097 safety-net combo redirect does not throw ReferenceError: reqId is not defined", async () => {
+  // A healthy provider connection so the inner auto/* combo has a candidate to
+  // dispatch to once the safety-net redirect completes.
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "openai-safetynet-6097",
+    apiKey: "sk-safetynet-6097",
+    isActive: true,
+    testStatus: "active",
+  });
+
+  // A persisted combo whose single member is a virtual `auto/*` combo. The
+  // top-level handler resolves the OUTER combo; only when handleComboChat calls
+  // handleSingleModelChat("auto/fast", …) does resolveModelOrError discover the
+  // auto combo and fire the safety-net redirect.
+  await combosDb.createCombo({
+    name: "nested-auto-6097",
+    strategy: "priority",
+    models: [{ provider: "auto", model: "fast" }],
+  });
+
+  const fetchCalls: string[] = [];
+  globalThis.fetch = async (url: any) => {
+    fetchCalls.push(String(url));
+    return Response.json({
+      id: "chatcmpl-safetynet-6097",
+      choices: [{ message: { role: "assistant", content: "OK" } }],
     });
+  };
 
-    // A persisted combo whose single member is a virtual `auto/*` combo. The
-    // top-level handler resolves the OUTER combo; only when handleComboChat calls
-    // handleSingleModelChat("auto/fast", …) does resolveModelOrError discover the
-    // auto combo and fire the safety-net redirect.
-    await combosDb.createCombo({
-      name: "nested-auto-6097",
-      strategy: "priority",
-      models: [{ provider: "auto", model: "fast" }],
-    });
+  const request = new Request("http://localhost/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      // Forces the combo target to be attempted (bypasses availability
+      // pre-skipping) so the redirect path is exercised deterministically.
+      "X-Internal-Test": "combo-health-check",
+    },
+    body: JSON.stringify({
+      model: "nested-auto-6097",
+      messages: [{ role: "user", content: "Reply with OK only." }],
+      max_tokens: 16,
+      stream: false,
+      temperature: 0,
+    }),
+  });
 
-    const fetchCalls: string[] = [];
-    globalThis.fetch = async (url: any) => {
-      fetchCalls.push(String(url));
-      return Response.json({
-        id: "chatcmpl-safetynet-6097",
-        choices: [{ message: { role: "assistant", content: "OK" } }],
-      });
-    };
+  const response = await chatRoute.POST(request);
+  const bodyText = await response.text();
 
-    const request = new Request("http://localhost/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Forces the combo target to be attempted (bypasses availability
-        // pre-skipping) so the redirect path is exercised deterministically.
-        "X-Internal-Test": "combo-health-check",
-      },
-      body: JSON.stringify({
-        model: "nested-auto-6097",
-        messages: [{ role: "user", content: "Reply with OK only." }],
-        max_tokens: 16,
-        stream: false,
-        temperature: 0,
-      }),
-    });
+  // Primary guard: the exact bug signature must never appear.
+  assert.ok(
+    !bodyText.includes("reqId is not defined"),
+    `safety-net redirect leaked a ReferenceError: ${bodyText.slice(0, 200)}`
+  );
 
-    const response = await chatRoute.POST(request);
-    const bodyText = await response.text();
+  // The redirect must complete successfully (buggy version returned 502).
+  assert.equal(
+    response.status,
+    200,
+    `expected 200 after safety-net redirect, got ${response.status}: ${bodyText.slice(0, 200)}`
+  );
 
-    // Primary guard: the exact bug signature must never appear.
-    assert.ok(
-      !bodyText.includes("reqId is not defined"),
-      `safety-net redirect leaked a ReferenceError: ${bodyText.slice(0, 200)}`
-    );
+  // And it must have proceeded past the redirect into a real upstream dispatch
+  // (buggy version threw before any fetch → zero calls).
+  assert.ok(
+    fetchCalls.length > 0,
+    "expected the redirected inner combo to reach a real upstream fetch"
+  );
 
-    // The redirect must complete successfully (buggy version returned 502).
-    assert.equal(
-      response.status,
-      200,
-      `expected 200 after safety-net redirect, got ${response.status}: ${bodyText.slice(0, 200)}`
-    );
-
-    // And it must have proceeded past the redirect into a real upstream dispatch
-    // (buggy version threw before any fetch → zero calls).
-    assert.ok(
-      fetchCalls.length > 0,
-      "expected the redirected inner combo to reach a real upstream fetch"
-    );
-
-    const body = JSON.parse(bodyText) as any;
-    assert.equal(body.choices[0].message.content, "OK");
-  }
-);
+  const body = JSON.parse(bodyText) as any;
+  assert.equal(body.choices[0].message.content, "OK");
+});

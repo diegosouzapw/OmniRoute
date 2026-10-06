@@ -4,6 +4,8 @@ import { resolveAlternateFormat } from "../../open-sse/config/providers/alternat
 import type { RegistryEntry } from "../../open-sse/config/providers/shared.ts";
 import { getTargetFormat } from "../../open-sse/services/provider.ts";
 import { DefaultExecutor } from "../../open-sse/executors/default.ts";
+import { FORMATS } from "../../open-sse/translator/formats.ts";
+import { translateRequest } from "../../open-sse/translator/index.ts";
 import { getAlternateFormats } from "../../src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts";
 
 const ENTRY: RegistryEntry = {
@@ -42,7 +44,10 @@ test("retorna null quando a conexao nao tem targetFormat", () => {
 });
 
 test("retorna null quando a entry nao declara alternativas", () => {
-  assert.equal(resolveAlternateFormat({ ...ENTRY, alternateFormats: undefined }, { targetFormat: "claude" }), null);
+  assert.equal(
+    resolveAlternateFormat({ ...ENTRY, alternateFormats: undefined }, { targetFormat: "claude" }),
+    null
+  );
   assert.equal(resolveAlternateFormat(null, { targetFormat: "claude" }), null);
 });
 
@@ -103,7 +108,11 @@ test("resolveBaseUrl: baseUrl manual da conexao vence a alternativa", () => {
 });
 
 test("resolveBaseUrl: alternativa vence o baseUrl padrao", () => {
-  const url = precedence({ targetFormat: "claude" }, ENTRY_WITH_ALT, "https://default.example.com/v1");
+  const url = precedence(
+    { targetFormat: "claude" },
+    ENTRY_WITH_ALT,
+    "https://default.example.com/v1"
+  );
   assert.equal(url, "https://alt.example.com/anthropic/v1/messages");
 });
 
@@ -179,7 +188,82 @@ test("getAlternateFormats: provedor com alternativas retorna a lista", () => {
 });
 
 test("getAlternateFormats: provedor sem alternativas retorna lista vazia", () => {
-  assert.deepEqual(getAlternateFormats("deepseek"), []);
+  assert.deepEqual(getAlternateFormats("xai"), []);
   assert.deepEqual(getAlternateFormats(null), []);
   assert.deepEqual(getAlternateFormats(undefined), []);
+});
+
+test("DeepSeek defaults to OpenAI Chat Completions and exposes Responses + Anthropic as alternates", () => {
+  assert.equal(getTargetFormat("deepseek", null), "openai");
+  assert.equal(getTargetFormat("deepseek", { targetFormat: "claude" }), "claude");
+
+  const defaultExecutor = new DefaultExecutor("deepseek");
+  assert.equal(
+    defaultExecutor.buildUrl("deepseek-v4-pro", true, 0, { apiKey: "sk-test" } as never),
+    "https://api.deepseek.com/chat/completions"
+  );
+  const defaultHeaders = defaultExecutor.buildHeaders({ apiKey: "sk-test" } as never, true);
+  assert.equal(defaultHeaders.Authorization, "Bearer sk-test");
+
+  const anthropicCredentials = {
+    apiKey: "sk-test",
+    providerSpecificData: { targetFormat: "claude" },
+  } as never;
+  assert.equal(
+    defaultExecutor.buildUrl("deepseek-v4-pro", true, 0, anthropicCredentials),
+    "https://api.deepseek.com/anthropic/v1/messages"
+  );
+  const anthropicHeaders = defaultExecutor.buildHeaders(anthropicCredentials, true);
+  assert.equal(anthropicHeaders["x-api-key"], "sk-test");
+  assert.equal(typeof anthropicHeaders["Anthropic-Version"], "string");
+
+  const alternates = getAlternateFormats("deepseek");
+  assert.equal(alternates.length, 2);
+  assert.equal(alternates[0].format, "openai-responses");
+  assert.equal(alternates[1].format, "claude");
+});
+
+test("DeepSeek reuses the generic Chat-to-Responses and Responses-to-Anthropic translators", () => {
+  const responsesBody = translateRequest(
+    FORMATS.OPENAI,
+    FORMATS.OPENAI_RESPONSES,
+    "deepseek-v4-pro",
+    {
+      model: "deepseek-v4-pro",
+      messages: [{ role: "user", content: "hello" }],
+      max_tokens: 123,
+      stream: true,
+    },
+    true,
+    {},
+    "deepseek"
+  ) as Record<string, unknown>;
+  assert.equal(responsesBody.messages, undefined);
+  assert.equal(responsesBody.max_output_tokens, 123);
+  assert.deepEqual(responsesBody.input, [
+    {
+      type: "message",
+      role: "user",
+      content: [{ type: "input_text", text: "hello" }],
+      status: "completed",
+    },
+  ]);
+
+  const anthropicBody = translateRequest(
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.CLAUDE,
+    "deepseek-v4-pro",
+    {
+      model: "deepseek-v4-pro",
+      input: [{ role: "user", content: [{ type: "input_text", text: "hello" }] }],
+      stream: true,
+    },
+    true,
+    {},
+    "deepseek"
+  ) as Record<string, unknown>;
+  assert.equal(anthropicBody.input, undefined);
+  assert.deepEqual(anthropicBody.messages, [
+    { role: "user", content: [{ type: "text", text: "hello" }] },
+  ]);
 });

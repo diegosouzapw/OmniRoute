@@ -4,7 +4,7 @@ export const KIMI_CODING_OPENAI_URL = `${KIMI_CODING_BASE_URL}/chat/completions`
 export const KIMI_CODING_ANTHROPIC_URL = `${KIMI_CODING_BASE_URL}/messages?beta=true`;
 
 export const KIMI_CODE_CLI_PLATFORM = "kimi_code_cli";
-export const KIMI_CODE_CLI_VERSION = "0.26.0";
+export const KIMI_CODE_CLI_VERSION = "2.1.1";
 
 export type KimiCodeThinkingPolicy = {
   supportsThinking: boolean;

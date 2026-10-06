@@ -82,6 +82,17 @@ describe("extractCursorTokensFromRows", () => {
     assert.equal(tokens.accessToken, undefined);
     assert.equal(tokens.machineId, undefined);
   });
+
+  it("extracts refresh token when present", () => {
+    const tokens = extractCursorTokensFromRows([
+      { key: "cursorAuth/accessToken", value: "tok-1" },
+      { key: "cursorAuth/refreshToken", value: "ref-1" },
+      { key: "storage.serviceMachineId", value: "machine-1" },
+    ]);
+    assert.equal(tokens.accessToken, "tok-1");
+    assert.equal(tokens.refreshToken, "ref-1");
+    assert.equal(tokens.machineId, "machine-1");
+  });
 });
 
 describe("fuzzyExtractCursorTokensFromRows", () => {
@@ -225,7 +236,7 @@ describe("tryAgentAuth", () => {
     } else {
       delete process.env.USERPROFILE;
     }
-    fs.rmSync(tmpHome, { recursive: true, force: true });
+    fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
 
   it("finds a token in the primary auth.json candidate", async () => {
@@ -325,7 +336,7 @@ describe("tryIdeAuth", () => {
       delete process.env.USERPROFILE;
     }
     if (tmpHome) {
-      fs.rmSync(tmpHome, { recursive: true, force: true });
+      fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       tmpHome = undefined;
     }
   });

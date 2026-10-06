@@ -12,7 +12,25 @@ process.env.API_KEY_SECRET = "test-secret";
 
 // We import these as modules to allow mocking
 const core = await import("@/lib/db/core.ts");
-const localDb = await import("@/lib/localDb");
+const { createFile, getFileContent } = await import("@/lib/db/files");
+const {
+  createBatch,
+  ensureBatchItemCheckpoints,
+  getBatch,
+  markBatchItemProcessing,
+  markBatchItemResult,
+  updateBatch,
+} = await import("@/lib/db/batches");
+const localDb = {
+  createFile,
+  getFileContent,
+  createBatch,
+  ensureBatchItemCheckpoints,
+  getBatch,
+  markBatchItemProcessing,
+  markBatchItemResult,
+  updateBatch,
+};
 const { dispatch } = await import("@/lib/batches/dispatch");
 const batchProcessor = await import("../../open-sse/services/batchProcessor.ts");
 const { waitForAllBatches, getCachedHeaders, resetCachedHeaders } = batchProcessor;
@@ -35,7 +53,7 @@ async function reset() {
 
   // Clean up the temp DB directory
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 
@@ -52,7 +70,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   await reset();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 

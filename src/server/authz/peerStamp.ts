@@ -37,8 +37,9 @@ export function resolveStampedPeer(
 /**
  * Resolve the trusted "request arrived via a reverse proxy" marker stamped by
  * the custom Node server (`scripts/dev/peer-stamp.mjs::stampPeerIp`). The stamp
- * is `<token>|1` when forwarding headers (`x-forwarded-for` / `x-real-ip`) were
- * present on the inbound TCP request, and `<token>|0` otherwise.
+ * is `<token>|1` when a forwarding header (`x-forwarded-*`, `x-real-ip`, `forwarded`, `via`)
+ * was present on an inbound TCP request from a peer that may be a proxy (loopback, private
+ * network, Cloudflare edge or a configured trusted proxy), and `<token>|0` otherwise.
  *
  * Returns true ONLY when the token constant-time-matches this process's stamp
  * token AND the payload is exactly "1". Any other value — no stamp, forged

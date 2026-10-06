@@ -1,0 +1,166 @@
+# ── Multi-stage Dockerfile for Native Bun Runtime (web-latest-bun) ───────────
+FROM oven/bun:1.4.2-slim AS base
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get upgrade -y \
+  && apt-get install -y --no-install-recommends \
+     build-essential \
+     python3 \
+     python-is-python3 \
+     make \
+     g++ \
+     libsecret-1-0 \
+     ca-certificates \
+     curl \
+  && rm -rf /var/lib/apt/lists/*
+
+# ── Builder stage (100% Bun Native Install & Build) ─────────────────────────
+FROM base AS builder
+WORKDIR /app
+
+# Cache dependency layer
+COPY package.json bun.lock* pnpm-workspace.yaml* ./
+COPY open-sse/package.json ./open-sse/package.json
+COPY packages/ ./packages/
+
+# Root postinstall helpers needed during bun install lifecycle
+COPY scripts/build/ ./scripts/build/
+COPY scripts/dev/sync-env.mjs ./scripts/dev/sync-env.mjs
+
+# Fast Bun native package install
+RUN bun install --include=optional --quiet
+
+# Fail the build if wreq-js cannot resolve its current platform binding.
+RUN bun -e "const wreq = require('wreq-js'); if (typeof wreq.createTransport !== 'function') process.exit(1)"
+
+# Smoke check native database driver used by Bun (bun:sqlite)
+RUN bun -e "import { Database } from 'bun:sqlite'; const db = new Database(':memory:'); db.query('SELECT 1 AS ok').get(); db.close(); console.log('bun:sqlite smoke: OK');"
+
+COPY . .
+
+# Turbopack is supported on Bun 1.4 + Next 16.3; override via --build-arg OMNIROUTE_USE_TURBOPACK=0 if needed
+ARG OMNIROUTE_USE_TURBOPACK=1
+ENV OMNIROUTE_USE_TURBOPACK=${OMNIROUTE_USE_TURBOPACK}
+
+ARG OMNIROUTE_BASE_PATH=""
+ENV OMNIROUTE_BASE_PATH=$OMNIROUTE_BASE_PATH
+
+ARG DASHBOARD_ALLOW_EMBED=""
+ENV DASHBOARD_ALLOW_EMBED=$DASHBOARD_ALLOW_EMBED
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# Bun native Next.js build execution
+RUN bun run --quiet build
+
+# ── Runner Base stage (100% Bun Native Production Runtime) ──────────────────
+FROM oven/bun:1.4.2-slim AS runner-base
+
+LABEL org.opencontainers.image.title="omniroute" \
+  org.opencontainers.image.description="Unified AI proxy — route any LLM through one endpoint (Bun Native)" \
+  org.opencontainers.image.url="https://omniroute.online" \
+  org.opencontainers.image.source="https://github.com/diegosouzapw/OmniRoute" \
+  org.opencontainers.image.licenses="MIT"
+
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+     libsecret-1-0 \
+     ca-certificates \
+     curl \
+     sqlite3 \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV NODE_ENV=production
+ENV PORT=20128
+ENV HOSTNAME=0.0.0.0
+ENV OMNIROUTE_MEMORY_MB=1024
+
+ENV DATA_DIR=/app/data
+RUN mkdir -p /app/data
+
+COPY --from=builder /app/.build/next/standalone ./
+
+ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
+
+COPY --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
+
+# Bun uses bun:sqlite. Remove every standalone/vendor copy of the Node-only
+# addon so no traced chunk can dlopen it and abort the process before fallback.
+RUN find /app \
+      -path '*/node_modules/better-sqlite3' \
+      -prune \
+      -exec rm -rf '{}' + \
+  && test -z "$(find /app -type f -name 'better_sqlite3.node' -print -quit)"
+
+RUN chown -R bun:bun /app /app/data
+
+USER bun
+
+EXPOSE 20128
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD bun healthcheck.mjs || exit 1
+
+ENTRYPOINT ["bun", "dev/run-standalone.mjs"]
+
+# ── Runner Web stage (Bun Native + Chromium/Playwright for Web providers) ───
+FROM runner-base AS runner-web
+
+USER root
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+     chromium \
+     chromium-driver \
+     fonts-liberation \
+     libasound2t64 \
+     gconf-service \
+     libatk-bridge2.0-0 \
+     libatk1.0-0 \
+     libc6 \
+     libcairo2 \
+     libcups2 \
+     libdbus-1-3 \
+     libexpat1 \
+     libfontconfig1 \
+     libgbm1 \
+     libgcc-s1 \
+     libglib2.0-0 \
+     libgtk-3-0 \
+     libnspr4 \
+     libnss3 \
+     libpango-1.0-0 \
+     pangocairo-1.0-0 \
+     stdc++6 \
+     libx11-6 \
+     libx11-xcb1 \
+     libxcb1 \
+     libxcomposite1 \
+     libxcursor1 \
+     libxdamage1 \
+     libxext6 \
+     libxfixes3 \
+     libxi6 \
+     libxrandr2 \
+     libxrender1 \
+     libxss1 \
+     libxtst6 \
+     ca-certificates \
+     fonts-gargi \
+     fonts-ipafont-gothic \
+     fonts-kacst \
+     fonts-thai-tlwg \
+     fonts-wqy-zenhei \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+
+# Drop back to default non-root user
+USER bun
+
+ENTRYPOINT ["bun", "dev/run-standalone.mjs"]

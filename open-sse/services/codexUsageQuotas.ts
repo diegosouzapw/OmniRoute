@@ -4,6 +4,7 @@ import {
   CODEX_SPARK_QUOTA_WEEKLY,
   isCodexSparkLimitDescriptor,
 } from "../config/codexQuotaScopes.ts";
+import { inferWindowFamilyLabel } from "./quotaWindowLabel.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -110,6 +111,7 @@ function buildPercentageQuota(window: JsonRecord, displayName?: string): CodexUs
 // duration instead of assuming primary=session / secondary=weekly by position.
 const WEEKLY_MIN_WINDOW_SECONDS = 6 * 24 * 3600; // >= ~6d
 const SESSION_MAX_WINDOW_SECONDS = 6 * 3600; // <= ~6h
+const MONTHLY_MIN_WINDOW_SECONDS = 20 * 24 * 3600; // >= ~20d (ChatGPT 30d plans)
 
 /**
  * A never-started window: `used_percent === 0` and the reset still spans the
@@ -133,12 +135,15 @@ function isLatentWindow(window: JsonRecord): boolean {
  * e.g. a 7-day `primary_window` is labeled "Weekly" rather than "Session".
  * Returns undefined for durations that don't clearly map to either bucket.
  */
-function windowDurationLabel(window: JsonRecord): "Session" | "Weekly" | undefined {
+function windowDurationLabel(window: JsonRecord): "Session" | "Weekly" | "Monthly" | undefined {
   const limitWindow = toNumber(
     getFieldValue(window, "limit_window_seconds", "limitWindowSeconds"),
     0
   );
   if (limitWindow <= 0) return undefined;
+  const inferred = inferWindowFamilyLabel(limitWindow);
+  if (inferred === "Monthly" || inferred === "Weekly" || inferred === "Session") return inferred;
+  if (limitWindow >= MONTHLY_MIN_WINDOW_SECONDS) return "Monthly";
   if (limitWindow >= WEEKLY_MIN_WINDOW_SECONDS) return "Weekly";
   if (limitWindow <= SESSION_MAX_WINDOW_SECONDS) return "Session";
   return undefined;
@@ -280,7 +285,7 @@ export function buildCodexUsageQuotas(dataValue: unknown): {
     const primaryLabel = windowDurationLabel(primaryWindow);
     quotas.session = buildPercentageQuota(
       primaryWindow,
-      primaryLabel === "Weekly" ? primaryLabel : undefined
+      primaryLabel === "Weekly" || primaryLabel === "Monthly" ? primaryLabel : undefined
     );
   }
 

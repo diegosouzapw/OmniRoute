@@ -21,9 +21,7 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-apikeypolicy-quota-only-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-apikeypolicy-quota-only-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "quota-only-test-secret";
 
@@ -49,7 +47,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: unknown) {
@@ -91,7 +89,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   apiKeysDb.resetApiKeyState();
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ---------------------------------------------------------------------------
@@ -194,7 +192,10 @@ test("quota-only key requesting a quotaShared-* model from a different pool is r
 
   const result = await policy.enforceApiKeyPolicy(makeRequest(created.key), otherPoolVirtualModel);
 
-  assert.ok(result.rejection, "should produce a rejection Response for other-pool quotaShared-* model");
+  assert.ok(
+    result.rejection,
+    "should produce a rejection Response for other-pool quotaShared-* model"
+  );
   assert.equal(result.rejection.status, 403, "rejection should be 403 Forbidden");
 
   const body = await readBody(result.rejection);
@@ -218,22 +219,25 @@ test("key with empty allowedQuotas is subject to normal model restriction checks
 
   // Allowed model should pass
   const allowed = await policy.enforceApiKeyPolicy(makeRequest(created.key), "openai/gpt-4.1");
-  assert.equal(
-    allowed.rejection,
-    null,
-    "model in allowedModels should pass for a non-quota key"
-  );
+  assert.equal(allowed.rejection, null, "model in allowedModels should pass for a non-quota key");
 
   // Disallowed model should be rejected via the normal allowedModels path
-  const blocked = await policy.enforceApiKeyPolicy(makeRequest(created.key), "anthropic/claude-3-7-sonnet");
+  const blocked = await policy.enforceApiKeyPolicy(
+    makeRequest(created.key),
+    "anthropic/claude-3-7-sonnet"
+  );
   assert.ok(blocked.rejection, "disallowed model should be rejected");
   assert.equal(blocked.rejection.status, 403);
 
   const body = await readBody(blocked.rejection);
   assert.match(body.error.message, /not allowed for this API key/);
-  // The code for this case comes from errorConfig (403 → "insufficient_quota")
+  // The code for this case comes from errorConfig (403 → "permission_denied")
   // rather than QUOTA_ONLY — confirming paths are separate
-  assert.notEqual(body.error.code, "QUOTA_ONLY", "normal key rejection must NOT use QUOTA_ONLY code");
+  assert.equal(
+    body.error.code,
+    "permission_denied",
+    "normal key rejection must use the neutral 403 code, not a quota code"
+  );
 });
 
 test("non-quota key (empty allowedQuotas) requesting a qtSd model is rejected 403 QUOTA_NOT_ALLOCATED", async () => {

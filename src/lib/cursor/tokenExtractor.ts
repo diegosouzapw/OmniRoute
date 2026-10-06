@@ -64,6 +64,7 @@ export async function verifyLinuxCursorInstalled(probe: CursorInstallProbe = {})
  * exact match wins.
  */
 const ACCESS_TOKEN_KEYS = ["cursorAuth/accessToken", "cursorAuth/token"] as const;
+const REFRESH_TOKEN_KEYS = ["cursorAuth/refreshToken"] as const;
 const MACHINE_ID_KEYS = [
   "storage.serviceMachineId",
   "storage.machineId",
@@ -92,12 +93,13 @@ interface VscDbRow {
 
 interface ExtractedCursorTokens {
   accessToken?: string;
+  refreshToken?: string;
   machineId?: string;
 }
 
 /**
- * Pick the first matching access-token / machine-id from a set of rows.
- * Pure function — easy to unit-test without a SQLite handle.
+ * Pick the first matching access-token / refresh-token / machine-id from a
+ * set of rows. Pure function — easy to unit-test without a SQLite handle.
  */
 export function extractCursorTokensFromRows(rows: VscDbRow[]): ExtractedCursorTokens {
   const tokens: ExtractedCursorTokens = {};
@@ -105,6 +107,12 @@ export function extractCursorTokensFromRows(rows: VscDbRow[]): ExtractedCursorTo
     if (!tokens.accessToken && (ACCESS_TOKEN_KEYS as readonly string[]).includes(row.key)) {
       const v = normalizeVscDbValue(row.value);
       if (typeof v === "string") tokens.accessToken = v;
+    } else if (
+      !tokens.refreshToken &&
+      (REFRESH_TOKEN_KEYS as readonly string[]).includes(row.key)
+    ) {
+      const v = normalizeVscDbValue(row.value);
+      if (typeof v === "string") tokens.refreshToken = v;
     } else if (!tokens.machineId && (MACHINE_ID_KEYS as readonly string[]).includes(row.key)) {
       const v = normalizeVscDbValue(row.value);
       if (typeof v === "string") tokens.machineId = v;
@@ -114,10 +122,11 @@ export function extractCursorTokensFromRows(rows: VscDbRow[]): ExtractedCursorTo
 }
 
 /**
- * Fuzzy-match access-token / machine-id from any rows whose key vaguely
- * resembles the expected pattern (e.g. `cursorAuth/someOtherAccessTokenKey`,
- * `storage.someMachineId`). Used only when the exact-key lookup yielded
- * nothing — guards against silent breakage when Cursor renames a key.
+ * Fuzzy-match access-token / refresh-token / machine-id from any rows whose
+ * key vaguely resembles the expected pattern (e.g.
+ * `cursorAuth/someOtherAccessTokenKey`, `storage.someMachineId`). Used only
+ * when the exact-key lookup yielded nothing — guards against silent breakage
+ * when Cursor renames a key.
  */
 export function fuzzyExtractCursorTokensFromRows(
   rows: VscDbRow[],
@@ -130,6 +139,9 @@ export function fuzzyExtractCursorTokensFromRows(
     const value = normalizeVscDbValue(row.value);
     if (typeof value !== "string") continue;
     if (!tokens.accessToken && lower.includes("accesstoken")) tokens.accessToken = value;
+    if (!tokens.refreshToken && lower.includes("refreshtoken") && !lower.includes("accesstoken")) {
+      tokens.refreshToken = value;
+    }
     if (!tokens.machineId && lower.includes("machineid")) tokens.machineId = value;
   }
   return tokens;
@@ -245,6 +257,7 @@ export async function tryAgentAuth(): Promise<{
 export async function tryIdeAuth(options?: { timeoutMs?: number }): Promise<{
   found: boolean;
   accessToken?: string;
+  refreshToken?: string;
   machineId?: string;
   source?: string;
   error?: string;
@@ -329,7 +342,7 @@ export async function tryIdeAuth(options?: { timeoutMs?: number }): Promise<{
   }
 
   try {
-    const desiredKeys = [...ACCESS_TOKEN_KEYS, ...MACHINE_ID_KEYS];
+    const desiredKeys = [...ACCESS_TOKEN_KEYS, ...REFRESH_TOKEN_KEYS, ...MACHINE_ID_KEYS];
     const placeholders = desiredKeys.map(() => "?").join(",");
     const rows = db
       .prepare(`SELECT key, value FROM itemTable WHERE key IN (${placeholders})`)
@@ -360,6 +373,7 @@ export async function tryIdeAuth(options?: { timeoutMs?: number }): Promise<{
     return {
       found: true,
       accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       machineId: tokens.machineId,
       source: "cursor-ide",
     };

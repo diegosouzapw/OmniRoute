@@ -80,14 +80,15 @@ The exact credentials required depend on the provider.
 
 Different websites store authentication differently. Some require only cookies, while others may require additional headers or tokens.
 
-| Provider    | Credential Format                                              | Provider Guide                  |
-| ----------- | -------------------------------------------------------------- | ------------------------------- |
-| Claude Web  | Full Cookie request header                                     | `docs/providers/CLAUDE_WEB.md`  |
-| ChatGPT Web | Full Cookie header or `__Secure-next-auth.session-token` value | `docs/providers/CHATGPT_WEB.md` |
-| Gemini Web  | _(verify)_                                                     |                                 |
-| Copilot Web | _(verify)_                                                     |                                 |
-| Grok Web    | _(verify)_                                                     |                                 |
-| ...         | ...                                                            | ...                             |
+| Provider            | Credential Format          | Provider Guide                  |
+| ------------------- | -------------------------- | ------------------------------- |
+| Claude Web          | Full Cookie request header | `docs/providers/CLAUDE_WEB.md`  |
+| ChatGPT Web (Codex) | Full Cookie header         | `docs/providers/CHATGPT_WEB.md` |
+| Gemini Web          | _(verify)_                 |                                 |
+| Copilot Web         | _(verify)_                 | `docs/providers/COPILOT-M365.md` |
+| Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath | `docs/providers/COPILOT-M365.md` |
+| Grok Web            | _(verify)_                 |                                 |
+| ...                 | ...                        | ...                             |
 
 > Update this table as new Web Cookie providers are added or existing providers change their authentication requirements.
 

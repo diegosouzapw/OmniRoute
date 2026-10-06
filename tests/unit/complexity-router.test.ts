@@ -78,8 +78,8 @@ test("classifyRequestComplexity — tool schemas escalate the tier above free", 
   assert.notEqual(c.recommendedTier, "free", "tool-using requests must not route to the free tier");
 });
 
-test("buildComplexityRoutingHint — a tool-using request floors the hint tier above free", () => {
-  const hint = buildComplexityRoutingHint(
+test("buildComplexityRoutingHint — a tool-using request floors the hint tier above free", async () => {
+  const hint = await buildComplexityRoutingHint(
     modelTargets(),
     {
       messages: [{ role: "user", content: "weather?" }],
@@ -96,8 +96,8 @@ test("buildComplexityRoutingHint — a tool-using request floors the hint tier a
   );
 });
 
-test("buildComplexityRoutingHint — a null body is safe and still builds a tier-neutral hint", () => {
-  const hint = buildComplexityRoutingHint(modelTargets(), null, NOOP_LOG);
+test("buildComplexityRoutingHint — a null body is safe and still builds a tier-neutral hint", async () => {
+  const hint = await buildComplexityRoutingHint(modelTargets(), null, NOOP_LOG);
   assert.ok(hint, "a null body must not throw — messages default to [] and a hint is built");
   if (!hint) return;
   assert.ok(

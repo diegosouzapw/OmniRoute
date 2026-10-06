@@ -12,7 +12,7 @@
  * temp-directory filesystem.
  */
 
-import { describe, it, beforeEach, after } from "node:test";
+import { describe, it, beforeEach, after, mock } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -39,21 +39,20 @@ after(() => {
   } else {
     process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   }
-  fs.rmSync(FIXED_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(FIXED_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 describe("resolveSpawnArgs (#6877 — real filesystem)", () => {
   const dataDir = FIXED_DATA_DIR;
 
   beforeEach(() => {
-    fs.rmSync(dataDir, { recursive: true, force: true });
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     fs.mkdirSync(dataDir, { recursive: true });
   });
 
   it("uses the --config long flag and never the -c short flag", async () => {
-    const { resolveSpawnArgs } = await import(
-      "../../../../src/lib/services/installers/cliproxy.ts"
-    );
+    const { resolveSpawnArgs } =
+      await import("../../../../src/lib/services/installers/cliproxy.ts");
 
     const port = 8317;
     const result = resolveSpawnArgs(port);
@@ -61,13 +60,42 @@ describe("resolveSpawnArgs (#6877 — real filesystem)", () => {
     const configPath = path.join(dataDir, "services", "cliproxy", "config.yaml");
 
     assert.deepEqual(result.args, ["--config", configPath]);
+    assert.equal(
+      result.command,
+      path.join(dataDir, "bin", process.platform === "win32" ? "cliproxyapi.exe" : "cliproxyapi")
+    );
     assert.ok(!result.args.includes("-c"), "args must never contain the short -c flag");
+  });
+  it("injects the management password without persisting it in config.yaml", async () => {
+    const { resolveSpawnArgs } =
+      await import("../../../../src/lib/services/installers/cliproxy.ts");
+    const result = resolveSpawnArgs(8317, "management-secret");
+    assert.equal(result.env.MANAGEMENT_PASSWORD, "management-secret");
+    const configPath = path.join(dataDir, "services", "cliproxy", "config.yaml");
+    assert.equal(fs.readFileSync(configPath, "utf8").includes("management-secret"), false);
+  });
+
+  it("uses the .exe command name on Windows", async () => {
+    // resolveSpawnArgs reads os.platform() at call time (#11236 — a
+    // process.platform literal is constant-folded away by the Linux build of
+    // the published artifact), so the Windows host is simulated through the
+    // same runtime os.platform() seam binaryManager.test.ts uses for #10244.
+    const platformMock = mock.method(os, "platform", () => "win32");
+
+    try {
+      const { resolveSpawnArgs } =
+        await import("../../../../src/lib/services/installers/cliproxy.ts");
+      const result = resolveSpawnArgs(8317);
+
+      assert.equal(result.command, path.join(dataDir, "bin", "cliproxyapi.exe"));
+    } finally {
+      platformMock.mock.restore();
+    }
   });
 
   it("writes the default config.yaml template when none exists yet", async () => {
-    const { resolveSpawnArgs } = await import(
-      "../../../../src/lib/services/installers/cliproxy.ts"
-    );
+    const { resolveSpawnArgs } =
+      await import("../../../../src/lib/services/installers/cliproxy.ts");
 
     const port = 9123;
     const result = resolveSpawnArgs(port);
@@ -81,9 +109,8 @@ describe("resolveSpawnArgs (#6877 — real filesystem)", () => {
   });
 
   it("preserves a pre-existing config.yaml byte-for-byte instead of overwriting it", async () => {
-    const { resolveSpawnArgs } = await import(
-      "../../../../src/lib/services/installers/cliproxy.ts"
-    );
+    const { resolveSpawnArgs } =
+      await import("../../../../src/lib/services/installers/cliproxy.ts");
 
     const configDir = path.join(dataDir, "services", "cliproxy");
     fs.mkdirSync(configDir, { recursive: true });

@@ -16,7 +16,7 @@ const { createEmbeddingResponse } = await import("../../src/lib/embeddings/servi
 
 test.after(() => {
   core.resetDbInstance();
-  rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("ollama-local exposes a static no-auth embedding registry entry", () => {

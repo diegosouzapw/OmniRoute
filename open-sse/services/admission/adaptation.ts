@@ -17,6 +17,13 @@ export interface AdaptationParams {
 
 export interface AdaptationState {
   currentLimit: number;
+  /**
+   * Idle-recovery target: the healthy starting aggregate budget (initialLimit).
+   * Used to climb the limit back up when a latency-gradient decrease has collapsed it
+   * below serviceable requests but the system is otherwise idle (#10111). Never grows
+   * beyond the configured maxLimit.
+   */
+  recoveryCeiling: number;
   shortLatencyEwma: number;
   longLatencyEwma: number;
   pressure: AdmissionPressure;
@@ -47,6 +54,7 @@ export function createAdaptationState(
 ): AdaptationState {
   return {
     currentLimit: clampLimit(initialLimit, minLimit, maxLimit),
+    recoveryCeiling: clampLimit(initialLimit, minLimit, maxLimit),
     shortLatencyEwma: 0,
     longLatencyEwma: 0,
     pressure: "normal",
@@ -138,6 +146,14 @@ export function closeAdaptationWindow(
   // A genuinely low-utilization window recovers the latency baseline so stale gradients expire.
   if (state.utilization <= params.lowUtilizationThreshold) {
     state.shortLatencyEwma = state.longLatencyEwma;
+    // #10111 idle recovery (extracted helper): a latency-gradient decrease must not
+    // permanently lock the aggregate budget below serviceable requests. On a window with no
+    // completed work and low utilization (system idle), actively raise the limit back toward
+    // the recovery ceiling so ordinary requests can re-enter. The high-utilization/completed
+    // work increase branch above handles growth under load; this covers the no-progress
+    // starvation case. A window that completed a request (windowCompleted > 0) is the one
+    // whose latency samples triggered a decrease, so the two branches never fight.
+    next = applyIdleRecovery(state, params, next);
   }
 
   state.currentLimit = clampLimit(next, params.minLimit, params.maxLimit);
@@ -148,6 +164,25 @@ export function closeAdaptationWindow(
   state.freezeGrowth = false;
   state.criticalDecreaseConsumed = false;
   state.pressure = "normal";
+}
+
+/**
+ * #10111 idle-recovery helper. When a latency-gradient decrease has collapsed the aggregate
+ * limit below serviceable requests and the system is idle (no completed work, low
+ * utilization, normal non-critical pressure), raise the limit back toward the recovery
+ * ceiling by one bounded step so ordinary requests can re-enter.
+ */
+function applyIdleRecovery(state: AdaptationState, params: AdaptationParams, next: number): number {
+  if (
+    state.pressure !== "critical" &&
+    !state.freezeGrowth &&
+    state.windowCompleted === 0 &&
+    state.currentLimit < state.recoveryCeiling
+  ) {
+    const step = Math.min(params.increaseStep, params.maxIncreasePerWindow);
+    return Math.min(state.recoveryCeiling, next + step);
+  }
+  return next;
 }
 
 export function sampleActiveIntegral(

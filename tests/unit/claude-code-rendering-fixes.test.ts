@@ -18,7 +18,7 @@ test.after(() => {
   resetDbInstance();
   if (previousDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = previousDataDir;
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("Responses->Chat: output_item.done emits arguments when no delta chunks were sent", () => {

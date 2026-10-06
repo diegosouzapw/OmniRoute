@@ -32,6 +32,148 @@ export function enforceThinkingTemperature(body: Record<string, unknown>): void 
   }
 }
 
+/** Applies the final Anthropic wire-body invariants before serialization. */
+export function finalizeClaudeBodyConstraints(body: Record<string, unknown>): void {
+  hoistLeadingSystemMessages(body);
+  relocateDirectiveOnlyMessages(body);
+  enforceThinkingTemperature(body);
+}
+
+function isSystemRole(role: unknown): boolean {
+  return (
+    typeof role === "string" &&
+    (role.toLowerCase() === "system" || role.toLowerCase() === "developer")
+  );
+}
+
+function hasOutputConfig(message: Record<string, unknown>): boolean {
+  return (
+    message.output_config != null &&
+    typeof message.output_config === "object" &&
+    !Array.isArray(message.output_config)
+  );
+}
+
+function isEmptySystemMessage(message: unknown): message is Record<string, unknown> {
+  if (message == null || typeof message !== "object") return false;
+  const candidate = message as Record<string, unknown>;
+  return (
+    isSystemRole(candidate.role) &&
+    Array.isArray(candidate.content) &&
+    candidate.content.length === 0
+  );
+}
+
+function isDirectiveOnlyMessage(message: unknown): boolean {
+  return isEmptySystemMessage(message) && hasOutputConfig(message);
+}
+
+/**
+ * Moves a directive-only system message (empty content array + message-level
+ * `output_config`) off `messages[0]`, which Anthropic reserves for the initial
+ * system-prompt position. Legitimate directives already later in the conversation
+ * stay untouched.
+ */
+export function relocateDirectiveOnlyMessages(payload: Record<string, unknown>): void {
+  if (!Array.isArray(payload.messages) || payload.messages.length === 0) return;
+  const messages = payload.messages as Array<Record<string, unknown>>;
+  if (!isEmptySystemMessage(messages[0])) return;
+
+  let runEnd = 0;
+  while (runEnd < messages.length && isEmptySystemMessage(messages[runEnd])) runEnd++;
+  const directives = messages.slice(0, runEnd).filter(isDirectiveOnlyMessage);
+
+  let insertAfter = -1;
+  for (let i = runEnd; i < messages.length; i++) {
+    const candidate = messages[i];
+    if (candidate != null && typeof candidate === "object" && !isSystemRole(candidate.role)) {
+      insertAfter = i;
+      break;
+    }
+  }
+
+  if (insertAfter === -1) {
+    if (payload.output_config == null && directives.length > 0) {
+      payload.output_config = directives[0].output_config;
+    }
+    payload.messages = messages.slice(runEnd);
+    return;
+  }
+
+  payload.messages = [
+    ...messages.slice(runEnd, insertAfter + 1),
+    ...directives,
+    ...messages.slice(insertAfter + 1),
+  ];
+}
+
+/** Extracts non-empty text blocks from string or array message content. */
+function textBlocksFromContent(content: unknown): Array<Record<string, unknown>> {
+  if (typeof content === "string" && content.length > 0) {
+    return [{ type: "text", text: content }];
+  }
+  if (!Array.isArray(content)) return [];
+  const blocks: Array<Record<string, unknown>> = [];
+  for (const block of content) {
+    if (block == null || typeof block !== "object") continue;
+    const contentBlock = block as Record<string, unknown>;
+    if (
+      contentBlock.type === "text" &&
+      typeof contentBlock.text === "string" &&
+      contentBlock.text.length > 0
+    ) {
+      blocks.push({ ...contentBlock });
+    }
+  }
+  return blocks;
+}
+
+/** Merges hoisted blocks into the existing top-level system value. */
+function mergeSystemBlocks(
+  existing: unknown,
+  extra: Array<Record<string, unknown>>
+): Array<Record<string, unknown>> {
+  if (typeof existing === "string" && existing.length > 0) {
+    return [{ type: "text", text: existing }, ...extra];
+  }
+  if (Array.isArray(existing)) {
+    return [...(existing as Array<Record<string, unknown>>), ...extra];
+  }
+  return extra;
+}
+
+/**
+ * Hoists only the initial system/developer run into Anthropic's top-level `system` field.
+ * Directive-only entries remain in `messages` for the positional relocation pass, and
+ * mid-conversation system entries remain untouched for the context-1m beta path.
+ */
+export function hoistLeadingSystemMessages(payload: Record<string, unknown>): void {
+  if (!Array.isArray(payload.messages) || payload.messages.length === 0) return;
+  const messages = payload.messages as Array<Record<string, unknown>>;
+
+  let runEnd = 0;
+  while (runEnd < messages.length && isSystemRole(messages[runEnd]?.role)) runEnd++;
+  if (runEnd === 0) return;
+
+  const extraBlocks: Array<Record<string, unknown>> = [];
+  const directives: Array<Record<string, unknown>> = [];
+  for (const message of messages.slice(0, runEnd)) {
+    if (isDirectiveOnlyMessage(message)) {
+      directives.push(message);
+      continue;
+    }
+    extraBlocks.push(...textBlocksFromContent(message.content));
+    if (payload.output_config == null && hasOutputConfig(message)) {
+      payload.output_config = message.output_config;
+    }
+  }
+
+  if (extraBlocks.length > 0) {
+    payload.system = mergeSystemBlocks(payload.system, extraBlocks);
+  }
+  payload.messages = [...directives, ...messages.slice(runEnd)];
+}
+
 export function disableThinkingIfToolChoiceForced(body: Record<string, unknown>): void {
   const toolChoice = body.tool_choice as Record<string, unknown> | string | undefined;
   if (!toolChoice) return;
@@ -130,18 +272,23 @@ export function ensureCacheControlOnLastUserMessage(body: Record<string, unknown
   if (!Array.isArray(messages) || messages.length === 0) return;
 
   const system = body.system as Array<Record<string, unknown>> | undefined;
-  const systemCacheControlCount = Array.isArray(system)
+  let cacheControlCount = Array.isArray(system)
     ? system.filter((block) => block.cache_control).length
     : 0;
+  let hasFiveMinuteCacheControl = Array.isArray(system)
+    ? system.some(
+        (block) => (block.cache_control as Record<string, unknown> | undefined)?.ttl === "5m"
+      )
+    : false;
 
   for (const message of messages) {
     const content = message.content as Array<Record<string, unknown>> | undefined;
-    if (Array.isArray(content) && content.some((block) => block.cache_control)) {
-      return;
-    }
+    if (!Array.isArray(content)) continue;
+    cacheControlCount += content.filter((block) => block.cache_control).length;
+    hasFiveMinuteCacheControl ||= content.some(
+      (block) => (block.cache_control as Record<string, unknown> | undefined)?.ttl === "5m"
+    );
   }
-
-  if (systemCacheControlCount >= MAX_CACHE_CONTROL_BLOCKS) return;
 
   // Find the last user message
   for (let i = messages.length - 1; i >= 0; i--) {
@@ -149,8 +296,10 @@ export function ensureCacheControlOnLastUserMessage(body: Record<string, unknown
       const content = messages[i].content;
       if (Array.isArray(content) && content.length > 0) {
         const lastBlock = content[content.length - 1] as Record<string, unknown>;
-        if (!lastBlock.cache_control) {
-          lastBlock.cache_control = { type: "ephemeral" };
+        if (!lastBlock.cache_control && cacheControlCount < MAX_CACHE_CONTROL_BLOCKS) {
+          lastBlock.cache_control = hasFiveMinuteCacheControl
+            ? { type: "ephemeral", ttl: "5m" }
+            : { type: "ephemeral" };
         }
       }
       break;
@@ -158,36 +307,29 @@ export function ensureCacheControlOnLastUserMessage(body: Record<string, unknown
   }
 }
 
-/**
- * Real Claude Code (and CC-protocol-compatible clients) commonly send
- * `cache_control: { type: "ephemeral" }` with no `ttl`. On the native Claude
- * OAuth path the outbound anthropic-beta set always includes
- * extended-cache-ttl-2025-04-11 (see ANTHROPIC_BETA_BASE /
- * ANTHROPIC_BETA_CLAUDE_OAUTH in anthropicHeaders.ts), so requesting the 1h
- * TTL is always valid here — but Anthropic only honors it when `ttl` is
- * explicitly set; an absent `ttl` silently falls back to the platform
- * default of 5 minutes even though the 1h beta was negotiated. Any pause
- * longer than 5 minutes between turns then forces a full prefix rewrite
- * instead of a cache hit. Default the ttl to "1h" wherever it's missing;
- * never touch a cache_control that already specifies one (explicit client
- * choice is preserved).
- */
+/** Defaults missing TTLs to 1h until a 5m breakpoint; later defaults stay at 5m. */
 export function normalizeCacheControlTtl(body: Record<string, unknown>): void {
+  let hasFiveMinuteCacheControl = false;
+
   const defaultMissingTtl = (block: Record<string, unknown> | null | undefined) => {
     const cc = block?.cache_control as Record<string, unknown> | undefined;
-    if (cc && cc.type === "ephemeral" && cc.ttl === undefined) {
-      cc.ttl = "1h";
+    if (!cc || cc.type !== "ephemeral") return;
+
+    if (cc.ttl === "5m") {
+      hasFiveMinuteCacheControl = true;
+    } else if (cc.ttl === undefined) {
+      cc.ttl = hasFiveMinuteCacheControl ? "5m" : "1h";
     }
   };
-
-  const system = body.system as Array<Record<string, unknown>> | undefined;
-  if (Array.isArray(system)) {
-    for (const block of system) defaultMissingTtl(block);
-  }
 
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(tools)) {
     for (const tool of tools) defaultMissingTtl(tool);
+  }
+
+  const system = body.system as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(system)) {
+    for (const block of system) defaultMissingTtl(block);
   }
 
   const messages = body.messages as Array<Record<string, unknown>> | undefined;

@@ -9,3 +9,4 @@ export { default as AntigravityToolCard } from "./AntigravityToolCard";
 export { default as CopilotToolCard } from "./CopilotToolCard";
 export { default as CustomCliCard } from "./CustomCliCard";
 export { default as HermesAgentToolCard } from "./HermesAgentToolCard";
+export { default as GrokBuildToolCard } from "./GrokBuildToolCard";

@@ -114,7 +114,7 @@ Two separate retention windows are honoured:
 | `PROXY_LOGS_TABLE_MAX_ROWS` | `100000` | Row-cap trim for `proxy_logs`                                     |
 
 `cleanupExpiredLogs()` runs the retention pass. It is invoked on server startup
-from `src/server-init.ts` and `src/instrumentation-node.ts`. Each run logs a
+from `src/instrumentation-node.ts`. Each run logs a
 `compliance.cleanup` audit event with the per-table delete counts. Proxy/call
 log trimming is batched (`BATCH_SIZE = 5000`) to avoid long write locks.
 

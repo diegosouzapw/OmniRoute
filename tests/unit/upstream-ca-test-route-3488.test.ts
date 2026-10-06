@@ -47,8 +47,8 @@ fs.writeFileSync(validCaPath, TEST_CA_PEM);
 fs.writeFileSync(nonPemPath, "this is not a certificate");
 
 test.after(() => {
-  fs.rmSync(dir, { recursive: true, force: true });
-  fs.rmSync(DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  fs.rmSync(DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function postJson(body: unknown): Request {

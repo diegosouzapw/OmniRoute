@@ -59,7 +59,7 @@ async function authHeaders(): Promise<Record<string, string>> {
 
 function mockGetRequest(
   url = "http://localhost:20128/api/radar/referrals",
-  headers: Record<string, string> = {},
+  headers: Record<string, string> = {}
 ): Request {
   return new Request(url, { method: "GET", headers });
 }
@@ -68,7 +68,7 @@ function resetStorage() {
   core.resetDbInstance();
   try {
     if (fs.existsSync(TEST_DATA_DIR)) {
-      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   } catch {
     // ignore
@@ -217,7 +217,7 @@ test("GET /api/radar/referrals: stale cached referrals feed still served (sync-o
 test("GET /api/radar/referrals: never proxies the private feed server (route source has no upstream fetch)", async () => {
   const routeSrc = fs.readFileSync(
     path.resolve(process.cwd(), "src/app/api/radar/referrals/route.ts"),
-    "utf-8",
+    "utf-8"
   );
   assert.ok(!/fetch\(/.test(routeSrc), "referrals route must never call fetch() upstream");
 });

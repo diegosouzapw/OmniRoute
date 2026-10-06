@@ -6,10 +6,12 @@
  * a time-based per-connection backoff check (`nextAttemptAt`). This test
  * validates that:
  * 1. Connections with failures are retried after the backoff period elapses
- * 2. Healthy connections (no timing entry) are always due
+ * 2. Healthy connections (no timing entry) are always due; after a success the
+ *    connection is due again once its per-connection interval has elapsed
  * 3. OAuth connections respect the same time-based backoff
  * 4. Multiple failure levels have correct backoff durations
- * 5. The `scheduleSweep()` no longer couples to `maxFailuresAcrossConnections`
+ * 5. The `scheduleSweep()` runs on a stable interval independent of
+ *    per-connection failures
  */
 
 import test from "node:test";
@@ -108,19 +110,28 @@ test("never-tested connection is always due (no perConnTiming entry)", () => {
   );
 });
 
-test("connection after success (timing cleared) is due immediately", () => {
+test("connection after success (timing set to interval) is due after the interval elapses", () => {
   const perConnTiming = new Map<string, { lastAttemptAt: number; nextAttemptAt: number }>();
   const connId = "conn-bug-9289";
   const now = 1_000_000_000_000;
 
-  // Simulate failure then success (timing deleted)
-  perConnTiming.set(connId, { lastAttemptAt: now, nextAttemptAt: now + 600_000 });
-  perConnTiming.delete(connId); // On success, timing is cleared
+  // Simulate failure then success: timing now holds lastAttemptAt + interval
+  perConnTiming.set(connId, { lastAttemptAt: now, nextAttemptAt: now + DEFAULT_INTERVAL });
 
   assert.equal(
-    isConnectionDue(perConnTiming, connId, now),
+    isConnectionDue(perConnTiming, connId, now + DEFAULT_INTERVAL - 1),
+    false,
+    "Healthy connection should NOT be due before its interval elapses"
+  );
+  assert.equal(
+    isConnectionDue(perConnTiming, connId, now + DEFAULT_INTERVAL),
     true,
-    "Connection should be due immediately after success (timing cleared)"
+    "Healthy connection should be due at the interval boundary"
+  );
+  assert.equal(
+    isConnectionDue(perConnTiming, connId, now + DEFAULT_INTERVAL + 1),
+    true,
+    "Healthy connection should be due after its interval elapses"
   );
 });
 
@@ -152,7 +163,7 @@ test("multiple failure levels have correct backoff durations", () => {
 });
 
 test("scheduleSweep uses stable interval (decoupled from maxFailures)", () => {
-  // The fix decouples scheduleSweep from getMaxFailuresAcrossConnections.
+  // The fix decouples scheduleSweep from per-connection failures.
   // Previously, one failed connection would delay the global sweep for all
   // connections. Now the global sweep runs on a stable interval regardless
   // of individual connection failures. This test validates the new behavior

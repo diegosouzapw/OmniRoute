@@ -73,7 +73,7 @@ test("router eval trends reads retained and flat artifacts with limit", () => {
     assert.ok((result.stdout ?? "").includes("run-b"));
     assert.ok((result.stdout ?? "").includes("flat"));
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -107,7 +107,7 @@ test("router eval trends can print dashboard summaries", () => {
     assert.ok((result.stdout ?? "").includes("AIQ: 90.000 (+10.000)"));
     assert.ok((result.stdout ?? "").includes("Rolling Averages"));
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -123,6 +123,6 @@ test("router eval trends exits clearly for empty artifact dirs", () => {
     assert.equal(result.status, 2);
     assert.ok((result.stderr ?? "").includes("No router-eval artifacts found"));
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

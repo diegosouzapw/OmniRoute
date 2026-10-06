@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useApiKey } from "../../providers/hooks/useApiKey";
 import { buildCurl } from "../../providers/utils/buildCurl";
+import { PLAYGROUND_KEY_ID_HEADER, resolvePlaygroundKeyId } from "../../providers/utils/playgroundAuth";
 import { PlaygroundCard } from "./PlaygroundCard";
 
 interface Props {
@@ -34,7 +35,7 @@ function extractError(data: unknown): string | null {
 
 export function WebFetchExampleCard({ providerId }: Props) {
   const t = useTranslations("miniPlayground");
-  const { apiKey } = useApiKey();
+  const { apiKey, keys } = useApiKey();
 
   const [url, setUrl] = useState<string>("https://example.com");
   const [format, setFormat] = useState<FetchFormat>("markdown");
@@ -50,7 +51,7 @@ export function WebFetchExampleCard({ providerId }: Props) {
       (typeof window !== "undefined" ? window.location.origin : "http://localhost:20128") +
       ENDPOINT_PATH,
     headers: {
-      Authorization: `Bearer ${apiKey || "<your-api-key>"}`,
+      Authorization: "Bearer <your-api-key>",
       "Content-Type": "application/json",
     },
     body: buildBody(),
@@ -62,13 +63,18 @@ export function WebFetchExampleCard({ providerId }: Props) {
     setResult(undefined);
     const t0 = performance.now();
     try {
+      // Authenticate via the dashboard session cookie — never send the masked
+      // apiKey as a Bearer token (it is not a real credential; see #9935).
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "x-connection-id": providerId,
+      };
+      const playgroundKeyId = resolvePlaygroundKeyId(apiKey, keys);
+      if (playgroundKeyId) headers[PLAYGROUND_KEY_ID_HEADER] = playgroundKeyId;
       const res = await fetch(ENDPOINT_PATH, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "x-connection-id": providerId,
-        },
+        credentials: "same-origin",
+        headers,
         body: JSON.stringify(buildBody()),
       });
       const data: unknown = await res.json();

@@ -16,7 +16,7 @@ const healthCheckDb = await import("../../src/lib/db/healthCheck.ts");
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -27,7 +27,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function insertBrokenRows(db) {
@@ -204,7 +204,7 @@ test("runDbHealthCheck repairs broken combo payloads, combo refs and stale conne
 
   const result = healthCheckDb.runDbHealthCheck(db, {
     autoRepair: true,
-    createBackupBeforeRepair: () => false,
+    createBackupBeforeRepair: () => true,
   });
   const invalidCombo = JSON.parse(
     (db.prepare("SELECT data FROM combos WHERE id = ?").get("combo-invalid") as any).data
@@ -271,16 +271,41 @@ test("runDbHealthCheck diagnosis does not request backups for combo-only issues"
   assert.equal(backupAttempts, 0);
 });
 
-test("getDbInstance can auto-repair persisted broken rows when startup repair is forced", async () => {
+test("getDbInstance runs the startup health check synchronously by default (DB_HEALTHCHECK_STARTUP_DEFERRED_ENABLED off, #13717)", async () => {
   let db = core.getDbInstance();
   insertBrokenRows(db);
   core.resetDbInstance();
 
+  // This file runs under `node --test`, so isAutomatedTestProcess() is true
+  // and createManagedDbBackup() (the startup path's real callback) always
+  // returns false — runDbHealthCheck's backup gate then aborts the repair
+  // (by design, unrelated to #13717: see the parameterized
+  // "backup ... blocks every mutation" cases in db-health-resource-bounds.test.ts).
+  // That is exactly what lets this test observe the check's TIMING cleanly:
+  // the abort is logged via console.warn synchronously inside getDbInstance()
+  // when the flag is off, and only AFTER it returns when the flag is on
+  // (covered end-to-end, including a real successful repair, by the
+  // subprocess-isolated tests/unit/db-health-startup-deferred-flag-13717.test.ts,
+  // which does not run under a test-process-detected NODE_ENV/argv).
+  const warnings: string[] = [];
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    warnings.push(args.map(String).join(" "));
+  };
+
   const previousForce = process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK;
   process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK = "1";
   try {
+    // DB_HEALTHCHECK_STARTUP_DEFERRED_ENABLED is off (default, #13717): the
+    // startup health check (and its backup-gated abort) has already run
+    // synchronously by the time getDbInstance() returns — no polling needed.
     db = core.getDbInstance();
+    assert.ok(
+      warnings.some((w) => w.includes("Startup health-check failed")),
+      "the synchronous branch must have already logged the aborted health check by the time getDbInstance() returns"
+    );
   } finally {
+    console.warn = originalWarn;
     if (previousForce === undefined) {
       delete process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK;
     } else {
@@ -288,29 +313,18 @@ test("getDbInstance can auto-repair persisted broken rows when startup repair is
     }
   }
 
-  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get() as any).count, 0);
-  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get() as any).count, 0);
-  assert.equal(
-    (db.prepare("SELECT COUNT(*) AS count FROM domain_cost_history").get() as any).count,
-    0
-  );
-  assert.equal(
-    (db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get() as any).count,
-    0
-  );
-  assert.equal(
-    (db.prepare("SELECT COUNT(*) AS count FROM domain_lockout_state").get() as any).count,
-    0
-  );
-  assert.equal(
-    (
-      db
-        .prepare("SELECT options FROM domain_circuit_breakers WHERE name = ?")
-        .get("broken-breaker") as any
-    ).options,
-    null
-  );
+  // The backup-gated abort happens on the very first repair opportunity
+  // runDbHealthCheck encounters, before any DELETE/UPDATE runs anywhere —
+  // so every broken row inserted above is still present, unrepaired.
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM quota_snapshots").get() as any).count, 2);
+  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM domain_budgets").get() as any).count, 1);
 });
+
+// The DB_HEALTHCHECK_STARTUP_DEFERRED_ENABLED=on path (#13717) is exercised in
+// its own subprocess-isolated test, tests/unit/db-health-startup-deferred-flag-13717.test.ts
+// — a real file-backed DB routes the deferred check through runDbHealthInChild
+// (a genuine child process), which this file's per-test full-migration reset
+// harness is not built to interleave safely with.
 
 test("getDbInstance skips automatic startup repair during tests unless forced", async () => {
   let db = core.getDbInstance();
@@ -341,7 +355,7 @@ test("runDbHealthCheck repairs a drifted db_meta schema version", async () => {
 
   const result = healthCheckDb.runDbHealthCheck(db, {
     autoRepair: true,
-    createBackupBeforeRepair: () => false,
+    createBackupBeforeRepair: () => true,
   });
 
   assert.equal(

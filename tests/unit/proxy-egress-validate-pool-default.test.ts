@@ -20,16 +20,16 @@ const core = await import("../../src/lib/db/core.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const egress = await import("../../src/lib/proxyEgress.ts");
 const { validateProxyPool, _setEgressProbeForTests, clearEgressCache } = egress as unknown as {
-  validateProxyPool: (deps?: unknown) => Promise<
-    Array<{ proxyId: string; alive: boolean; newStatus: string }>
-  >;
+  validateProxyPool: (
+    deps?: unknown
+  ) => Promise<Array<{ proxyId: string; alive: boolean; newStatus: string }>>;
   _setEgressProbeForTests: (fn: unknown) => void;
   clearEgressCache: () => void;
 };
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -41,7 +41,7 @@ test.beforeEach(async () => {
 test.after(() => {
   _setEgressProbeForTests(null);
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("validateProxyPool() with no injected deps does not crash on the real listProxies() {items,total} shape", async () => {

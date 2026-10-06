@@ -72,6 +72,18 @@ export function getSecureFloorForMajor(major: number): NodeVersionInfo | null {
 }
 
 export function getNodeRuntimeSupport(version: string = process.versions.node): NodeRuntimeSupport {
+  if (process.versions.bun) {
+    return {
+      nodeVersion: `bun-${process.versions.bun} (Node.js API ${version})`,
+      nodeCompatible: true,
+      reason: "supported-bun",
+      supportedRange: SUPPORTED_NODE_RANGE + " || Bun >=1.1.0",
+      supportedDisplay: SUPPORTED_NODE_DISPLAY + ", or Bun 1.1+",
+      recommendedVersion: `v${RECOMMENDED_NODE_VERSION}`,
+      minimumSecureVersion: null,
+    };
+  }
+
   const parsed = parseNodeVersion(version);
   const secureFloor = getSecureFloorForMajor(parsed.major);
   const nodeCompatible = secureFloor ? compareNodeVersions(parsed, secureFloor) >= 0 : false;

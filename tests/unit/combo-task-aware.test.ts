@@ -255,9 +255,10 @@ describe("reorderByTaskWeight", () => {
 
 describe("isTaskRoutingStrategy", () => {
   it("returns true for task-aware strategy names", () => {
-    for (const name of ["smart", "task", "task-aware", "task_aware", "auto"]) {
+    for (const name of ["smart", "task", "task-aware", "task_aware"]) {
       assert.ok(isTaskRoutingStrategy(name), `Expected ${name} to be task-routing`);
     }
+    assert.ok(!isTaskRoutingStrategy("auto"), "auto scoring must not be reordered by task routing");
   });
 
   it("is case-insensitive", () => {

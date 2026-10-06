@@ -26,7 +26,7 @@ test("decideCertMigration: existing legacy leaf, no CA pair, flag off → stay o
     touch(path.join(certDir, "server.key"));
     assert.equal(decideCertMigration(certDir, false), "use-legacy-leaf");
   } finally {
-    fs.rmSync(certDir, { recursive: true, force: true });
+    fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -35,7 +35,7 @@ test("decideCertMigration: no legacy leaf and no CA pair (fresh install) → use
   try {
     assert.equal(decideCertMigration(certDir, false), "use-root-ca");
   } finally {
-    fs.rmSync(certDir, { recursive: true, force: true });
+    fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -46,7 +46,7 @@ test("decideCertMigration: legacy leaf present but explicit opt-in flag on → u
     touch(path.join(certDir, "server.key"));
     assert.equal(decideCertMigration(certDir, true), "use-root-ca");
   } finally {
-    fs.rmSync(certDir, { recursive: true, force: true });
+    fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -59,7 +59,7 @@ test("decideCertMigration: CA pair already persisted → use root CA even withou
     touch(path.join(certDir, "ca.key"));
     assert.equal(decideCertMigration(certDir, false), "use-root-ca");
   } finally {
-    fs.rmSync(certDir, { recursive: true, force: true });
+    fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -69,6 +69,6 @@ test("decideCertMigration: partial legacy pair (only server.crt) is treated as n
     touch(path.join(certDir, "server.crt"));
     assert.equal(decideCertMigration(certDir, false), "use-root-ca");
   } finally {
-    fs.rmSync(certDir, { recursive: true, force: true });
+    fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

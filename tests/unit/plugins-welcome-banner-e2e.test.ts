@@ -455,7 +455,7 @@ test("full lifecycle: install → activate → hook fires → deactivate → uni
 
 test("cleanup fixture directory", () => {
   if (existsSync(FIXTURE_DIR)) {
-    rmSync(FIXTURE_DIR, { recursive: true, force: true });
+    rmSync(FIXTURE_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   assert.ok(!existsSync(FIXTURE_DIR));
 });

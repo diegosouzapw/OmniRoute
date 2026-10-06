@@ -6,13 +6,17 @@ import path from "node:path";
 
 import {
   buildCloudflaredChildEnv,
+  extractCloudflaredConnectionReady,
   extractCloudflaredErrorMessage,
+  extractCloudflaredHostnameFromConfig,
   extractTryCloudflareUrl,
+  getCloudflaredNamedTunnelConfig,
   getCloudflaredTunnelStatus,
   getDefaultCloudflaredCertEnv,
   getCloudflaredStartArgs,
   getCloudflaredAssetSpec,
   getSha256FromGitHubDigest,
+  normalizeCloudflaredHostname,
   verifyCloudflaredDownloadDigest,
 } from "../../src/lib/cloudflaredTunnel.ts";
 
@@ -228,6 +232,109 @@ test("getCloudflaredStartArgs keeps protocol selection out of argv", () => {
   ]);
 });
 
+test("getCloudflaredStartArgs runs a named tunnel from a config file instead of --url", () => {
+  const args = getCloudflaredStartArgs("http://127.0.0.1:20128", {
+    configPath: "/home/op/.cloudflared/config.yml",
+    hostname: "https://ai.example.com",
+  });
+
+  assert.deepEqual(args, [
+    "tunnel",
+    "--no-autoupdate",
+    "--config",
+    "/home/op/.cloudflared/config.yml",
+    "run",
+  ]);
+  // Quick-tunnel `--url` must not be present in named mode.
+  assert.ok(!args.includes("--url"));
+});
+
+test("normalizeCloudflaredHostname coerces bare hosts and full URLs to an https origin", () => {
+  assert.equal(
+    normalizeCloudflaredHostname("omniroute.example.com"),
+    "https://omniroute.example.com"
+  );
+  assert.equal(
+    normalizeCloudflaredHostname("https://omniroute.example.com/"),
+    "https://omniroute.example.com"
+  );
+  assert.equal(
+    normalizeCloudflaredHostname("http://omniroute.example.com:8443/ignored/path"),
+    "http://omniroute.example.com:8443"
+  );
+  assert.equal(normalizeCloudflaredHostname("  edge.example.com  "), "https://edge.example.com");
+});
+
+test("normalizeCloudflaredHostname returns null for empty or invalid input", () => {
+  assert.equal(normalizeCloudflaredHostname(""), null);
+  assert.equal(normalizeCloudflaredHostname("   "), null);
+  assert.equal(normalizeCloudflaredHostname(undefined), null);
+  assert.equal(normalizeCloudflaredHostname(null), null);
+  assert.equal(normalizeCloudflaredHostname("https://"), null);
+});
+
+test("getCloudflaredNamedTunnelConfig returns null when CLOUDFLARED_CONFIG is unset", () => {
+  assert.equal(getCloudflaredNamedTunnelConfig({}), null);
+  assert.equal(getCloudflaredNamedTunnelConfig({ CLOUDFLARED_HOSTNAME: "edge.example.com" }), null);
+});
+
+test("getCloudflaredNamedTunnelConfig reads CLOUDFLARED_CONFIG and normalizes the hostname override", () => {
+  assert.deepEqual(
+    getCloudflaredNamedTunnelConfig({
+      CLOUDFLARED_CONFIG: "  /home/op/.cloudflared/config.yml  ",
+      CLOUDFLARED_HOSTNAME: "ai.example.com",
+    }),
+    { configPath: "/home/op/.cloudflared/config.yml", hostname: "https://ai.example.com" }
+  );
+});
+
+test("getCloudflaredNamedTunnelConfig leaves hostname null when no override is set", () => {
+  assert.deepEqual(getCloudflaredNamedTunnelConfig({ CLOUDFLARED_CONFIG: "/etc/cfd/config.yml" }), {
+    configPath: "/etc/cfd/config.yml",
+    hostname: null,
+  });
+});
+
+test("extractCloudflaredHostnameFromConfig reads the first ingress hostname", () => {
+  const config = [
+    "tunnel: 5a336351-fcb0-4f44-8772-02572830459d",
+    "credentials-file: /home/op/.cloudflared/5a336351.json",
+    "# API-only exposure",
+    "ingress:",
+    "  - hostname: ai.example.com",
+    "    path: ^/(v1|api/v1)($|/.*)",
+    "    service: http://127.0.0.1:20128",
+    "  - service: http_status:404",
+  ].join("\n");
+
+  assert.equal(extractCloudflaredHostnameFromConfig(config), "https://ai.example.com");
+});
+
+test("extractCloudflaredHostnameFromConfig returns null for a catch-all-only config", () => {
+  assert.equal(
+    extractCloudflaredHostnameFromConfig("ingress:\n  - service: http_status:404\n"),
+    null
+  );
+  assert.equal(extractCloudflaredHostnameFromConfig(""), null);
+});
+
+test("extractCloudflaredConnectionReady matches registered edge connections", () => {
+  assert.equal(
+    extractCloudflaredConnectionReady(
+      "2026-08-26T12:00:00Z INF Registered tunnel connection connIndex=0 connection=ab12 protocol=quic"
+    ),
+    true
+  );
+  assert.equal(
+    extractCloudflaredConnectionReady("INF Connection 0a1b2c3d-4e5f registered with edge"),
+    true
+  );
+  assert.equal(
+    extractCloudflaredConnectionReady("INF Requesting new quick Tunnel on trycloudflare.com..."),
+    false
+  );
+});
+
 test("getCloudflaredTunnelStatus resets stale runtime state from a previous server process", async () => {
   const originalDataDir = process.env.DATA_DIR;
   const originalBinary = process.env.CLOUDFLARED_BIN;
@@ -293,6 +400,6 @@ test("getCloudflaredTunnelStatus resets stale runtime state from a previous serv
       process.env.CLOUDFLARED_BIN = originalBinary;
     }
 
-    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.rm(tempDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

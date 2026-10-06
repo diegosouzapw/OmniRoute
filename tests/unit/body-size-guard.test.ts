@@ -7,6 +7,7 @@ import {
   MAX_BODY_BYTES_IMAGE_EDIT,
   MAX_BODY_BYTES_MEDIA,
   MAX_BODY_BYTES_LLM_API,
+  MAX_BODY_BYTES_VIDEO_BRIDGE_BROKER,
   RequestBodyTooLargeError,
   readRequestBodyWithLimit,
   getBodySizeLimit,
@@ -48,6 +49,44 @@ test("body size guard keeps dedicated upload limits as lower bounds", () => {
     getBodySizeLimit("/api/v1/images/edits", { maxBodySizeMb: 10 }),
     MAX_BODY_BYTES_MEDIA
   );
+});
+
+test("Video Bridge broker admission is exactly 50 MiB before policy and route handling", async () => {
+  const pathname = "/api/modality-bridge/video/extract";
+  const admittedBytes = 20 * 1024 * 1024;
+  const rejectedBytes = MAX_BODY_BYTES_VIDEO_BRIDGE_BROKER + 1;
+
+  assert.equal(
+    getBodySizeLimit(pathname, { maxBodySizeMb: 10 }),
+    MAX_BODY_BYTES_VIDEO_BRIDGE_BROKER
+  );
+  assert.equal(
+    getBodySizeLimit(pathname, { maxBodySizeMb: 100 }),
+    MAX_BODY_BYTES_VIDEO_BRIDGE_BROKER,
+    "a broader global setting must not widen the local spawn broker"
+  );
+  assert.equal(
+    checkBodySize(
+      new Request(`http://localhost${pathname}`, {
+        method: "POST",
+        headers: { "content-length": String(admittedBytes) },
+      }),
+      getBodySizeLimit(pathname, { maxBodySizeMb: 10 })
+    ),
+    null,
+    ">10 MiB and <=50 MiB must continue to auth policy and the streamed route cap"
+  );
+
+  const rejection = checkBodySize(
+    new Request(`http://localhost${pathname}`, {
+      method: "POST",
+      headers: { "content-length": String(rejectedBytes) },
+    }),
+    getBodySizeLimit(pathname, { maxBodySizeMb: 100 })
+  );
+  assert.ok(rejection);
+  assert.equal(rejection.status, 413);
+  assert.equal((await rejection.json()).error.code, "PAYLOAD_TOO_LARGE");
 });
 
 test("/api/v1/images/edits admits a 20 MiB image in multipart or base64 JSON envelopes", () => {

@@ -41,11 +41,11 @@ const {
   OAUTH_TIMEOUT,
   PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
-  RAYCAST_CONFIG,
   TRAE_CONFIG,
   XAI_OAUTH_CONFIG,
   OPENFERENCE_CONFIG,
   ZED_HOSTED_CONFIG,
+  MUSE_CODE_CONFIG,
 } = oauthModule;
 const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
 
@@ -65,7 +65,6 @@ const EXPECTED_PROVIDER_KEYS = [
   "amazon-q",
   "cursor",
   "trae",
-  "raycast",
   "kilocode",
   "cline",
   "clinepass",
@@ -77,6 +76,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "codebuddy-cn",
   "zed",
   "zed-hosted",
+  "muse-code",
 ];
 
 const browserUrl = "http://localhost:20128/callback";
@@ -104,7 +104,6 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   clinepass: CLINE_CONFIG, // reuses the Cline WorkOS flow (clinepass: cline in providers/index.ts)
   "devin-desktop": DEVIN_DESKTOP_CONFIG,
   "devin-cli": DEVIN_DESKTOP_CONFIG,
-  raycast: RAYCAST_CONFIG,
   trae: TRAE_CONFIG,
   "grok-cli": GROK_BUILD_OAUTH_CONFIG,
   "xai-oauth": XAI_OAUTH_CONFIG,
@@ -112,6 +111,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
   zed: ZED_CONFIG,
   "zed-hosted": ZED_HOSTED_CONFIG,
+  "muse-code": MUSE_CODE_CONFIG,
 };
 
 const KIRO_REQUIRED_FIELDS = [
@@ -161,6 +161,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   "grok-cli": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
   // prettier-ignore
   "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
+  "muse-code": ["deviceCodeUrl", "tokenUrl", "clientId", "mintUrl"],
 };
 
 function getByPath(object, path) {
@@ -450,7 +451,7 @@ test("Google OAuth callbacks stay on localhost when no custom credentials are co
 });
 
 test("device and import-token providers expose the flow-specific fields expected by their configs", () => {
-  const deviceProviders = ["kimi-coding", "github", "kiro", "amazon-q", "kilocode"];
+  const deviceProviders = ["kimi-coding", "github", "kiro", "amazon-q", "kilocode", "muse-code"];
 
   for (const providerId of deviceProviders) {
     const provider = PROVIDERS[providerId];
@@ -730,6 +731,66 @@ test("Kimi Coding executes mocked device-code flow and token mapping", async () 
     kimiDevice.verification_uri_complete,
     "https://www.kimi.com/code/authorize_device?user_code=KIMI123"
   );
+});
+
+test("Muse Code executes mocked device-code, mint, and dca-preserving mapTokens", async () => {
+  useFetchSequence([
+    (url, init) => {
+      const params = init.body;
+      assert.equal(String(url), MUSE_CODE_CONFIG.deviceCodeUrl);
+      assert.equal(params.get("client_id"), MUSE_CODE_CONFIG.clientId);
+      assert.equal(init.headers["User-Agent"], "muse-code/1.0.2");
+      assert.equal(init.headers["Content-Type"], "application/x-www-form-urlencoded");
+      return jsonResponse({
+        device_code: "muse-device",
+        user_code: "ABCD-EFGH",
+        verification_uri: "https://auth.meta.com/oauth/device/",
+        verification_uri_complete: "https://auth.meta.com/oauth/device/?code=ABCD-EFGH",
+        expires_in: 1800,
+        interval: 5,
+      });
+    },
+    (url, init) => {
+      const params = init.body;
+      assert.equal(String(url), MUSE_CODE_CONFIG.tokenUrl);
+      assert.equal(params.get("client_id"), MUSE_CODE_CONFIG.clientId);
+      assert.equal(params.get("device_code"), "muse-device");
+      assert.equal(params.get("grant_type"), "urn:ietf:params:oauth:grant-type:device_code");
+      assert.equal(init.headers["User-Agent"], "muse-code/1.0.2");
+      return jsonResponse({
+        access_token: "dca:device-access",
+        token_type: "Bearer",
+        expires_in: 3600,
+      });
+    },
+    (url, init) => {
+      assert.equal(String(url), MUSE_CODE_CONFIG.mintUrl);
+      assert.equal(init.headers.Authorization, "Bearer dca:device-access");
+      assert.equal(init.headers["User-Agent"], "muse-code/1.0.2");
+      assert.deepEqual(JSON.parse(init.body), { dca_token: "dca:device-access" });
+      return jsonResponse({
+        api_key: "LLM|minted-key",
+        base_url: "https://api.meta.ai/v1",
+        user_email: "muse@example.com",
+        user_full_name: "Muse User",
+        subs_tier_name: "Power",
+        is_subs_active: true,
+      });
+    },
+  ]);
+
+  const device = await PROVIDERS["muse-code"].requestDeviceCode(MUSE_CODE_CONFIG);
+  const poll = await PROVIDERS["muse-code"].pollToken(MUSE_CODE_CONFIG, device.device_code);
+  const extra = await PROVIDERS["muse-code"].postExchange(poll.data);
+  const mapped = PROVIDERS["muse-code"].mapTokens(poll.data, extra);
+
+  assert.equal(device.user_code, "ABCD-EFGH");
+  assert.equal(mapped.accessToken, "LLM|minted-key");
+  assert.equal(mapped.refreshToken, "dca:device-access");
+  assert.equal(mapped.expiresIn, undefined);
+  assert.equal(mapped.email, "muse@example.com");
+  assert.equal(mapped.providerSpecificData.dcaToken, "dca:device-access");
+  assert.equal(mapped.providerSpecificData.subsTierName, "Power");
 });
 
 test("GitHub executes mocked device-code and profile enrichment flows", async () => {

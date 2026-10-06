@@ -1,86 +1,345 @@
-# CLI Tools Setup Guide — OmniRoute (Tiếng Việt)
+# CLI Tools — OmniRoute (Tiếng Việt)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/CLI-TOOLS.md) · 🇸🇦 [ar](../../ar/docs/CLI-TOOLS.md) · 🇧🇬 [bg](../../bg/docs/CLI-TOOLS.md) · 🇧🇩 [bn](../../bn/docs/CLI-TOOLS.md) · 🇨🇿 [cs](../../cs/docs/CLI-TOOLS.md) · 🇩🇰 [da](../../da/docs/CLI-TOOLS.md) · 🇩🇪 [de](../../de/docs/CLI-TOOLS.md) · 🇪🇸 [es](../../es/docs/CLI-TOOLS.md) · 🇮🇷 [fa](../../fa/docs/CLI-TOOLS.md) · 🇫🇮 [fi](../../fi/docs/CLI-TOOLS.md) · 🇫🇷 [fr](../../fr/docs/CLI-TOOLS.md) · 🇮🇳 [gu](../../gu/docs/CLI-TOOLS.md) · 🇮🇱 [he](../../he/docs/CLI-TOOLS.md) · 🇮🇳 [hi](../../hi/docs/CLI-TOOLS.md) · 🇭🇺 [hu](../../hu/docs/CLI-TOOLS.md) · 🇮🇩 [id](../../id/docs/CLI-TOOLS.md) · 🇮🇹 [it](../../it/docs/CLI-TOOLS.md) · 🇯🇵 [ja](../../ja/docs/CLI-TOOLS.md) · 🇰🇷 [ko](../../ko/docs/CLI-TOOLS.md) · 🇮🇳 [mr](../../mr/docs/CLI-TOOLS.md) · 🇲🇾 [ms](../../ms/docs/CLI-TOOLS.md) · 🇳🇱 [nl](../../nl/docs/CLI-TOOLS.md) · 🇳🇴 [no](../../no/docs/CLI-TOOLS.md) · 🇵🇭 [phi](../../phi/docs/CLI-TOOLS.md) · 🇵🇱 [pl](../../pl/docs/CLI-TOOLS.md) · 🇵🇹 [pt](../../pt/docs/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/CLI-TOOLS.md) · 🇷🇴 [ro](../../ro/docs/CLI-TOOLS.md) · 🇷🇺 [ru](../../ru/docs/CLI-TOOLS.md) · 🇸🇰 [sk](../../sk/docs/CLI-TOOLS.md) · 🇸🇪 [sv](../../sv/docs/CLI-TOOLS.md) · 🇰🇪 [sw](../../sw/docs/CLI-TOOLS.md) · 🇮🇳 [ta](../../ta/docs/CLI-TOOLS.md) · 🇮🇳 [te](../../te/docs/CLI-TOOLS.md) · 🇹🇭 [th](../../th/docs/CLI-TOOLS.md) · 🇹🇷 [tr](../../tr/docs/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/CLI-TOOLS.md) · 🇵🇰 [ur](../../ur/docs/CLI-TOOLS.md) · 🇻🇳 [vi](../../vi/docs/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/CLI-TOOLS.md)
-
----
-
-This guide explains how to install and configure all supported AI coding CLI tools
-to use **OmniRoute** as the unified backend, giving you centralized key management,
-cost tracking, model switching, and request logging across every tool.
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇪🇹 [am](../../../am/docs/reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
-## How It Works
+Cập nhật lần cuối: 2026-08-23
+
+OmniRoute tích hợp với ba nhóm công cụ CLI, được phân bổ trên ba trang dashboard chuyên biệt:
+
+| Trang          | Route                   | Khái niệm                                                                          | Số lượng     |
+| -------------- | ----------------------- | ---------------------------------------------------------------------------------- | ------------ |
+| **CLI Code's** | `/dashboard/cli-code`   | Các công cụ lập trình được trỏ đến OmniRoute (Client → CLI → OmniRoute → Provider) | 26           |
+| **CLI Agents** | `/dashboard/cli-agents` | Các agent tự động được trỏ đến OmniRoute (cùng luồng, phạm vi rộng hơn)            | 10           |
+| **ACP Agents** | `/dashboard/acp-agents` | Các CLI được OmniRoute khởi chạy làm backend qua stdio/ACP (luồng ngược)           | xem registry |
+
+Các route cũ chuyển hướng qua 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
+
+---
+
+## Cách hoạt động
 
 ```
-Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
+CLI Code's / CLI Agents (luồng sử dụng):
+Claude / Codex / OpenCode / Cline / KiloCode / Continue / Hermes Agent / Goose / ...
            │
-           ▼  (all point to OmniRoute)
+           ▼  (tất cả đều trỏ đến OmniRoute)
     http://YOUR_SERVER:20128/v1
            │
-           ▼  (OmniRoute routes to the right provider)
+           ▼  (OmniRoute định tuyến đến provider phù hợp)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
+
+ACP Agents (luồng khởi chạy ngược):
+    Yêu cầu từ client → OmniRoute → khởi chạy CLI qua stdio/ACP → phản hồi
 ```
 
-**Benefits:**
+**Lợi ích:**
 
-- One API key to manage all tools
-- Cost tracking across all CLIs in the dashboard
-- Model switching without reconfiguring every tool
-- Works locally and on remote servers (VPS)
-
----
-
-## Supported Tools (Dashboard Source of Truth)
-
-The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
-Current list (v3.0.0-rc.16):
-
-| Tool               | ID            | Command    | Setup Mode | Install Method |
-| ------------------ | ------------- | ---------- | ---------- | -------------- |
-| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
-| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
-| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
-| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
-| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
-| **Cline**          | `cline`       | `cline`    | custom     | npm            |
-| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
-| **Continue**       | `continue`    | extension  | guide      | VS Code        |
-| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
-| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
-| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
-| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
-| **Qwen Code**      | `qwen`        | `qwen`     | custom     | npm            |
-
-### CLI fingerprint sync (Agents + Settings)
-
-`/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
-This keeps provider IDs aligned with CLI cards and legacy IDs.
-
-| CLI ID                                                                                               | Fingerprint Provider ID |
-| ---------------------------------------------------------------------------------------------------- | ----------------------- |
-| `kilo`                                                                                               | `kilocode`              |
-| `copilot`                                                                                            | `github`                |
-| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
-
-Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
+- Một khóa API để quản lý tất cả công cụ
+- Theo dõi chi phí của tất cả CLI trong dashboard
+- Chuyển đổi model mà không cần cấu hình lại từng công cụ
+- Hoạt động cục bộ và trên các máy chủ từ xa (VPS, Docker, Akamai, Cloudflare Tunnel)
 
 ---
 
-## Step 1 — Get an OmniRoute API Key
+## Tự động cấu hình với `setup-*`
 
-1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
-2. Click **Create API Key**
-3. Give it a name (e.g. `cli-tools`) and select all permissions
-4. Copy the key — you'll need it for every CLI below
+Bạn không cần phải tự viết cấu hình cho từng công cụ. OmniRoute cung cấp lệnh `setup-*`
+cho mỗi CLI được hỗ trợ, lệnh này đọc danh mục mô hình **trực tiếp** từ một OmniRoute đang chạy
+(cục bộ hoặc từ xa) và ghi cấu hình của công cụ đó vào máy của bạn:
 
-> Your key looks like: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+```bash
+omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
+omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
+omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
+omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
+```
+
+Mỗi lệnh chấp nhận `--remote <url> --api-key <key>` (cấu hình một công cụ cục bộ với một
+OmniRoute từ xa), `--dry-run` (xem trước mà không ghi), và `--port`. Các công cụ
+không có tính năng tự động phát hiện mô hình (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) chấp nhận
+`--model <id>` (và `--yes` cho các lần chạy không tương tác). `setup-5dive` là công thức
+duy nhất không ghi vào `$HOME`: nó cấu hình một đội tác nhân 5dive bằng cách
+ghi một hồ sơ xác thực thuộc quyền root trên máy chủ của đội, vì vậy nó thực thi lại thông qua `sudo`
+và không có chế độ từ xa riêng. Để khởi chạy một CLI với
+môi trường phù hợp được inject và không có cấu hình nào được ghi, hãy sử dụng
+trình khởi chạy chung `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
+gemini — các mục tiêu và bí danh đến từ `bin/cli/cli-manifest.mjs`); các trình khởi chạy
+cũ theo công cụ `omniroute launch` (Claude Code) và `omniroute launch-codex`
+(Codex) vẫn có sẵn. Gemini CLI chỉ khởi chạy: nó là một mục tiêu `omniroute run`
+nhưng không có công thức `setup-*`/`configure`.
+
+> **Tham khảo đầy đủ:** bảng chính — những gì mỗi lệnh ghi, mọi cờ,
+> cục bộ so với từ xa, và công cụ nào cần hậu tố `/v1` — nằm trong
+> **[Tích hợp CLI](../guides/CLI-INTEGRATIONS.md)**.
+
+### Chạy các lệnh này bên trong một container
+
+Một lệnh `setup-*` được thực thi bên trong container OmniRoute sẽ ghi vào
+thư mục home của container, mà không có CLI máy chủ nào đọc và sẽ biến mất cùng với
+container. OmniRoute phát hiện điều đó và thoát với mã `2` kèm theo hướng dẫn thay vì
+ghi. Hai cách được hỗ trợ để tiếp tục — cài đặt CLI trên máy chủ và
+`omniroute connect` vào container, hoặc bind-mount các thư mục cấu hình và đặt
+`CLI_CONFIG_HOME` (hồ sơ `host` của compose). Mọi lệnh `setup-*`, cộng với
+`omniroute configure` và `omniroute config set`, chấp nhận
+`--allow-container-write` khi cấu hình các CLI của chính container là điều bạn
+thực sự muốn; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` cũng làm điều tương tự cho
+máy chủ. Xem
+[Hướng dẫn Docker → Cấu hình công cụ CLI máy chủ](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+
+**Điểm cuối áp dụng** của bảng điều khiển (`POST /api/cli-tools/apply`) thực thi
+cùng một biện pháp bảo vệ: trong một container, một thao tác ghi mà mục tiêu không được bind-mount từ
+máy chủ sẽ trả về **`422`** với `containerEphemeralTarget: true`, văn bản lỗi an toàn và — đối với
+các công cụ có công thức máy chủ (claude, codex, opencode, cline,
+kilo, continue) — một `hostSetupCommand` (ví dụ: `omniroute setup-opencode`) để chạy
+trên máy chủ thay thế; không có gì được ghi. `dryRun: true` vẫn hoạt động ở chế độ container
+và trả về bản xem trước đã được ẩn danh + đường dẫn mục tiêu mà không chạm vào đĩa. Nội dung xem trước
+không phải là cấu hình chứa thông tin xác thực để sao chép hoặc nhập. Áp dụng với
+công cụ gốc/URL cơ sở/khóa API/đầu vào mô hình trên máy chủ, hoặc sử dụng lệnh thiết lập phía máy chủ
+được chỉ định. Xem [bảo mật cấu hình CLI](../security/CLI-CONFIGURATION.md)
+để biết tiêu đề xem trước và hợp đồng yêu cầu. Hành vi này là
+có chủ ý và được bảo vệ khỏi lỗi hồi quy bởi
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — không bao giờ "sửa" lỗi 422
+bằng cách loại bỏ biện pháp bảo vệ.
 
 ---
 
-## Step 2 — Install CLI Tools
+## Nguồn chuẩn duy nhất
 
-All npm-based tools require Node.js 18+:
+Danh mục hợp nhất nằm trong `src/shared/constants/cliTools.ts` dưới dạng `CLI_TOOLS: Record<string, CliCatalogEntry>`.
+
+Mỗi mục có các trường sau (được định nghĩa trong `src/shared/schemas/cliCatalog.ts`):
+
+| Trường                                          | Kiểu                                                         | Mô tả                                                   |
+| ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| `category`                                      | `"code" \| "agent"`                                          | Công cụ xuất hiện trên trang nào                        |
+| `vendor`                                        | `string`                                                     | Nguồn gốc công cụ ("Anthropic", "OSS (P. Gauthier)")    |
+| `acpSpawnable`                                  | `boolean`                                                    | Đồng thời có thể dùng làm ACP Agent (hiển thị huy hiệu) |
+| `baseUrlSupport`                                | `"full" \| "partial" \| "none"`                              | Mức hỗ trợ endpoint tùy chỉnh. `"none"` = tồn đọng MITM |
+| `configType`                                    | `"env" \| "custom" \| "guide" \| "custom-builder" \| "mitm"` | Cơ chế cấu hình                                         |
+| `id`, `name`, `color`, `description`, `docsUrl` | tiêu chuẩn                                                   | Các trường hiển thị cốt lõi                             |
+
+Các mục có `baseUrlSupport: "none"` **không được hiển thị** trên các trang dashboard — chúng được đăng ký trong danh sách tồn đọng MITM cho kế hoạch 11 (xem `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md`).
+
+### Các cấp độ khả năng (được lập danh mục × có thể phát hiện × có thể cấu hình × có thể khởi chạy)
+
+Không phải mọi công cụ được lập danh mục đều có thể phát hiện, cấu hình hoặc khởi chạy. Mỗi cấp có một
+nguồn khai báo, và một bài kiểm thử độ lệch giúp duy trì sự đồng bộ giữa chúng:
+
+| Cấp độ                | Ý nghĩa                                                                         | Được khai báo trong                                                |
+| --------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Được lập danh mục** | Xuất hiện trong danh mục dashboard (tên, nhà cung cấp, tài liệu, kiểu cấu hình) | `src/shared/constants/cliTools.ts` (`CLI_TOOLS`)                   |
+| **Có thể phát hiện**  | Phát hiện tệp nhị phân/cấu hình, kiểm tra tình trạng, đường dẫn cấu hình        | `src/shared/services/cliRuntime.ts` (danh mục runtime `CLI_TOOLS`) |
+| **Có thể cấu hình**   | Được `omniroute configure <cli>` hỗ trợ (có quy trình thiết lập)                | `bin/cli/cli-manifest.mjs` (`configure: true`)                     |
+| **Có thể khởi chạy**  | Được `omniroute run <target>` hỗ trợ (đã định nghĩa việc chèn env/đối số)       | `bin/cli/cli-manifest.mjs` (`run: true`)                           |
+
+`bin/cli/cli-manifest.mjs` là manifest thực thi chuẩn cho các bề mặt lệnh CLI:
+`run`, `configure` và các trình tạo tính năng hoàn thành lệnh shell đều lấy danh sách
+đích, cách phân giải bí danh (ví dụ `kilocode`/`kilo-code`/`kilo_cli` → `kilo`)
+và cách kết nối cờ `--model` từ đó. Cơ chế bảo vệ chống sai lệch
+`tests/unit/cli/cli-manifest-drift.test.ts` xác nhận rằng manifest, danh mục runtime,
+danh mục UI và mọi bề mặt sử dụng luôn đồng bộ — một đích được thêm vào
+một bề mặt mà không thêm vào các bề mặt khác sẽ khiến bộ kiểm thử thất bại thay vì âm thầm sai lệch.
+
+---
+
+## 1. Danh mục CLI Code (26 công cụ)
+
+Tất cả công cụ xuất hiện trong `/dashboard/cli-code`. Những công cụ có `baseUrlSupport: none` được kết nối thông qua MITM hoặc hướng dẫn thủ công thay vì URL cơ sở tùy chỉnh:
+
+| id           | tên                     | nhà cung cấp                  | hỗ trợ URL cơ sở | loại cấu hình       | có thể khởi chạy qua ACP |
+| ------------ | ----------------------- | ----------------------------- | ---------------- | ------------------- | ------------------------ |
+| claude       | Claude Code             | Anthropic                     | đầy đủ           | biến môi trường     | có                       |
+| codex        | OpenAI Codex CLI        | OpenAI                        | đầy đủ           | tùy chỉnh           | có                       |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                          | không            | tùy chỉnh           | không                    |
+| cline        | Cline                   | OSS (trước đây là Claude Dev) | đầy đủ           | tùy chỉnh           | có                       |
+| kilo         | Kilo Code               | Kilo-Org                      | đầy đủ           | tùy chỉnh           | không                    |
+| roo          | Roo Code                | Roo (OSS)                     | đầy đủ           | hướng dẫn           | không                    |
+| continue     | Continue                | continue.dev                  | đầy đủ           | hướng dẫn           | không                    |
+| aider        | Aider                   | OSS (P. Gauthier)             | đầy đủ           | hướng dẫn           | có                       |
+| forge        | ForgeCode               | Antinomy HQ                   | đầy đủ           | tùy chỉnh           | có                       |
+| jcode        | jcode                   | 1jehuang (OSS)                | đầy đủ           | tùy chỉnh           | không                    |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)             | đầy đủ           | tùy chỉnh           | không                    |
+| codewhale    | CodeWhale               | Hmbown (OSS)                  | đầy đủ           | tùy chỉnh           | không                    |
+| opencode     | OpenCode                | Anomaly (trước đây là SST)    | đầy đủ           | hướng dẫn           | có                       |
+| droid        | Factory Droid           | Factory AI                    | một phần         | hướng dẫn           | không                    |
+| copilot      | GitHub Copilot CLI      | GitHub/MS                     | đầy đủ           | tùy chỉnh           | không                    |
+| cursor-cli   | Cursor CLI              | Anysphere                     | một phần         | hướng dẫn           | có                       |
+| smelt        | Smelt                   | leonardcser (OSS)             | đầy đủ           | tùy chỉnh           | không                    |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)              | đầy đủ           | tùy chỉnh           | không                    |
+| grok-build   | Grok Build              | xAI                           | đầy đủ           | tùy chỉnh           | không                    |
+| crush        | Crush                   | OSS (Charm)                   | đầy đủ           | tùy chỉnh           | không                    |
+| qwen         | Qwen Code               | Alibaba                       | đầy đủ           | hướng dẫn           | có                       |
+| cursor       | Cursor                  | Anysphere                     | không            | hướng dẫn           | không                    |
+| antigravity  | Antigravity             | Google                        | không            | MITM                | không                    |
+| hermes       | Hermes                  | Nous Research                 | không            | hướng dẫn           | không                    |
+| kiro         | Kiro AI                 | Amazon                        | không            | MITM                | không                    |
+| custom       | CLI tùy chỉnh           | —                             | đầy đủ           | trình tạo tùy chỉnh | không                    |
+
+Các công cụ có `baseUrlSupport: "partial"` hiển thị huy hiệu "⚠ URL cơ sở một phần" trên thẻ bảng điều khiển.
+---
+
+## 2. Danh mục CLI Agent (10 công cụ)
+
+Các agent tự động xuất hiện trong `/dashboard/cli-agents`:
+
+| id           | tên              | nhà cung cấp             | hỗ trợ baseUrl | có thể khởi chạy qua ACP |
+| ------------ | ---------------- | ------------------------ | -------------- | ------------------------ |
+| hermes-agent | Hermes Agent     | Nous Research            | đầy đủ         | false                    |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | đầy đủ         | true                     |
+| goose        | Goose            | Block / Linux Foundation | đầy đủ         | true                     |
+| interpreter  | Open Interpreter | OSS                      | đầy đủ         | true                     |
+| warp         | Warp AI          | Warp Inc.                | một phần       | true                     |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | đầy đủ         | false                    |
+| omp          | Oh My Pi         | OSS                      | đầy đủ         | true                     |
+| letta        | Letta CLI        | Letta                    | đầy đủ         | false                    |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | đầy đủ         | false                    |
+| 5dive        | 5dive            | OSS (5dive-ai)           | đầy đủ         | false                    |
+
+---
+
+## 3. ACP Agent (/dashboard/acp-agents)
+
+Trang này (được đổi tên từ `/dashboard/agents`) hiển thị các CLI mà OmniRoute có thể **khởi chạy** làm công cụ thực thi backend thông qua giao thức stdio/ACP. Danh mục này được duy trì riêng trong `src/lib/acp/registry.ts` và **không** giống với `CLI_TOOLS`.
+
+---
+
+## 4. Danh sách tồn đọng MITM (không hiển thị trong bảng điều khiển)
+
+Các CLI sau đây không hỗ trợ URL cơ sở tùy chỉnh theo cách nguyên bản và **không được liệt kê** trên các trang CLI Code hoặc CLI Agents. Chúng là các ứng viên cho cơ chế chặn MITM trong kế hoạch 11:
+
+| CLI                 | Lý do                                                              |
+| ------------------- | ------------------------------------------------------------------ |
+| windsurf            | BYOK chỉ giới hạn ở một số mô hình Claude + URL/token doanh nghiệp |
+| amp                 | Hệ sinh thái đóng (Sourcegraph)                                    |
+| amazon-q / kiro-cli | Xác thực AWS SSO, không hỗ trợ URL tùy chỉnh                       |
+| cowork              | Anthropic Desktop, không có endpoint có thể cấu hình               |
+
+Xem `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md` để biết toàn bộ nội dung tham chiếu chéo.
+
+---
+
+## 5. API phát hiện hàng loạt
+
+Toàn bộ quá trình phát hiện công cụ được tổng hợp thông qua một endpoint duy nhất:
+
+**`GET /api/cli-tools/all-statuses`**
+
+- Xác thực: `requireCliToolsAuth(request)` (giống như các route `/api/cli-tools/` khác)
+- Trả về: `Record<toolId, ToolBatchStatus>` (kiểu: `src/shared/types/cliBatchStatus.ts`)
+- Chiến lược: `Promise.all` trên tất cả công cụ, thời gian chờ 5 giây cho mỗi công cụ
+- Bộ nhớ đệm: LRU trong bộ nhớ, được lập chỉ mục theo `mtime` của tệp cấu hình. Bộ nhớ đệm bị vô hiệu hóa khi mtime thay đổi. Được đặt lại khi máy chủ khởi động lại.
+
+Cấu trúc phản hồi cho mỗi công cụ:
+
+```ts
+interface ToolBatchStatus {
+  detection: {
+    installed: boolean;
+    runnable: boolean;
+    version?: string;
+    command?: string;
+    commandPath?: string;
+    reason?: string;
+  };
+  config: {
+    status: "configured" | "not_configured" | "not_installed" | "unknown" | "other";
+    endpoint?: string | null;
+    lastConfiguredAt?: string | null;
+  };
+  error?: string; // đã được làm sạch, không có dấu vết ngăn xếp
+}
+```
+
+---
+
+## 6. Trình xử lý cài đặt cho các công cụ mới
+
+Các công cụ mới có `configType: "custom"` sử dụng các route API cài đặt chuyên biệt:
+
+| Route                                       | Công cụ                                                           |
+| ------------------------------------------- | ----------------------------------------------------------------- |
+| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)                                           |
+| `POST /api/cli-tools/jcode-settings`        | jcode (cờ --base-url)                                             |
+| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, cũ)                                |
+| `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, chính + đồng bộ với `~/.deepseek` cũ) |
+| `POST /api/cli-tools/smelt-settings`        | Smelt                                                             |
+| `POST /api/cli-tools/pi-settings`           | Tác nhân lập trình Pi                                             |
+| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`)             |
+| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + khóa `.env` chuyên biệt)     |
+
+Tất cả các route đều sử dụng `sanitizeErrorMessage()` cho phản hồi lỗi (Quy tắc bắt buộc số 12).
+
+---
+
+## 7. Kiến trúc các trang bảng điều khiển
+
+### CLI Code (`/dashboard/cli-code`)
+
+- `src/app/(dashboard)/dashboard/cli-code/page.tsx` — thành phần phía máy chủ
+- `src/app/(dashboard)/dashboard/cli-code/CliCodePageClient.tsx` — lưới phía máy khách
+- `src/app/(dashboard)/dashboard/cli-code/[id]/page.tsx` — trang chi tiết công cụ
+- `src/app/(dashboard)/dashboard/cli-code/components/` — 12 thẻ công cụ chuyên biệt + `ToolDetailClient.tsx`
+
+### Tác nhân CLI (`/dashboard/cli-agents`)
+
+- `src/app/(dashboard)/dashboard/cli-agents/page.tsx` — thành phần phía máy chủ
+- `src/app/(dashboard)/dashboard/cli-agents/CliAgentsPageClient.tsx` — lưới phía máy khách
+- `src/app/(dashboard)/dashboard/cli-agents/[id]/page.tsx` — tái sử dụng `ToolDetailClient`
+
+### Tác nhân ACP (`/dashboard/acp-agents`)
+
+- `src/app/(dashboard)/dashboard/acp-agents/page.tsx` — thành phần phía máy chủ (được chuyển từ `agents/`)
+
+### Các thành phần giao diện dùng chung (`src/shared/components/cli/`)
+
+| Tệp                     | Mục đích                                                    |
+| ----------------------- | ----------------------------------------------------------- |
+| `CliToolCard.tsx`       | Thẻ trạng thái thông minh (phát hiện + cấu hình + endpoint) |
+| `CliConceptCard.tsx`    | Thẻ giải thích khái niệm cho từng trang                     |
+| `CliComparisonCard.tsx` | So sánh ba cột giữa các loại CLI                            |
+| `BaseUrlSelect.tsx`     | Danh sách thả xuống endpoint (Cục bộ/Đám mây/Tùy chỉnh)     |
+| `ApiKeySelect.tsx`      | Bộ chọn khóa API                                            |
+| `ManualConfigModal.tsx` | Hộp thoại đoạn cấu hình có thể sao chép                     |
+
+### Hook dùng chung (`src/shared/hooks/cli/`)
+
+| Tệp                       | Mục đích                                                                |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `useToolBatchStatuses.ts` | Truy xuất `/api/cli-tools/all-statuses`, quản lý trạng thái tải/làm mới |
+
+## 8. i18n
+
+Các namespace mới được thêm trong kế hoạch 14 F9:
+
+| Namespace   | Mục đích                                                                        |
+| ----------- | ------------------------------------------------------------------------------- |
+| `cliCommon` | Các chuỗi dùng chung (nhãn thẻ, văn bản khái niệm/so sánh, nhãn trang chi tiết) |
+| `cliCode`   | Các chuỗi trên trang CLI Code                                                   |
+| `cliAgents` | Các chuỗi trên trang CLI Agents                                                 |
+| `acpAgents` | Các chuỗi trên trang ACP Agents                                                 |
+
+Bản dịch đầy đủ cho PT-BR và EN đã được cung cấp. 39 ngôn ngữ khác tự động dự phòng về EN thông qua cơ chế hợp nhất ở cấp namespace trong `src/i18n/request.ts`.
+
+---
+
+## 9. Bắt đầu nhanh
+
+### Bước 1 — Lấy khóa API OmniRoute
+
+1. Mở `/dashboard/api-manager` → **Tạo khóa API**
+2. Đặt tên cho khóa (ví dụ: `cli-tools`) và chọn tất cả quyền
+3. Sao chép khóa — bạn sẽ cần khóa này cho mọi CLI bên dưới
+
+> Khóa của bạn có dạng: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+
+---
+
+### Bước 2 — Cài đặt các công cụ CLI
+
+Tất cả công cụ dựa trên npm đều yêu cầu Node.js 22.22.2+ hoặc 24.x:
 
 ```bash
 # Claude Code (Anthropic)
@@ -98,96 +357,138 @@ npm install -g cline
 # KiloCode
 npm install -g kilocode
 
-# Kiro CLI (Amazon — requires curl + unzip)
-apt-get install -y unzip   # on Debian/Ubuntu
-curl -fsSL https://cli.kiro.dev/install | bash
-export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
-```
+# Qwen Code
+npm install -g @qwen-code/qwen-code
 
-**Verify:**
+# Google Gemini CLI (có thể khởi chạy qua `omniroute run gemini` → giao diện /v1beta)
+npm install -g @google/gemini-cli
 
-```bash
-claude --version     # 2.x.x
-codex --version      # 0.x.x
-opencode --version   # x.x.x
-cline --version      # 2.x.x
-kilocode --version   # x.x.x (or: kilo --version)
-kiro-cli --version   # 1.x.x
+# Aider
+pip install aider-chat
+
+# Smelt
+cargo install smelt  # Dựa trên Rust
+
+# Tác nhân lập trình Pi
+# xem https://github.com/zechnerj/pi-coding-agent để biết cách cài đặt
+
+# jcode
+# xem https://github.com/1jehuang/jcode để biết cách cài đặt
 ```
 
 ---
 
-## Step 3 — Set Global Environment Variables
+### Bước 3 — Cấu hình qua bảng điều khiển
 
-Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
+1. Truy cập `http://localhost:20128/dashboard/cli-code`
+2. Tìm công cụ của bạn trong lưới
+3. Nhấp vào thẻ để mở trang chi tiết của công cụ
+4. Chọn khóa API và URL cơ sở
+5. Nhấp vào **Áp dụng cấu hình** hoặc sao chép đoạn mã cấu hình thủ công
+
+---
+
+### Bước 4 — Thiết lập các biến môi trường toàn cục
 
 ```bash
-# OmniRoute Universal Endpoint
+# Điểm cuối phổ quát OmniRoute
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
-export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
-export ANTHROPIC_API_KEY="sk-your-omniroute-key"
-export GEMINI_BASE_URL="http://localhost:20128/v1"
+export ANTHROPIC_BASE_URL="http://localhost:20128"
+export ANTHROPIC_AUTH_TOKEN="sk-your-omniroute-key"
+# Gemini CLI đọc GOOGLE_GEMINI_BASE_URL tại GỐC (SDK của nó tự nối thêm /v1beta/...)
+export GOOGLE_GEMINI_BASE_URL="http://localhost:20128"
 export GEMINI_API_KEY="sk-your-omniroute-key"
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain,
-> e.g. `http://192.168.0.15:20128`.
+> Đối với **máy chủ từ xa**, hãy thay `localhost:20128` bằng IP hoặc tên miền của máy chủ,
+> ví dụ: `http://<your-server-ip>:20128`.
 
 ---
 
-## Step 4 — Configure Each Tool
+### Bước 4 — Cấu hình từng công cụ
 
-### Claude Code
+#### Claude Code
 
 ```bash
-# Via CLI:
-claude config set --global api-base-url http://localhost:20128/v1
-
-# Or create ~/.claude/settings.json:
+# Tạo ~/.claude/settings.json:
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
-  "apiBaseUrl": "http://localhost:20128/v1",
-  "apiKey": "sk-your-omniroute-key"
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "ANTHROPIC_AUTH_TOKEN": "sk-your-omniroute-key"
+  }
 }
 EOF
 ```
 
-**Test:** `claude "say hello"`
+Sử dụng gốc cổng Anthropic hợp nhất cho Claude Code. Không thêm `/v1` vào đây.
+
+**Kiểm tra:** `claude "say hello"`
 
 ---
 
-### OpenAI Codex
+#### OpenAI Codex
+
+Codex hiện đại (v0.137+) chỉ đọc `~/.codex/config.toml` — tệp
+`config.yaml` cũ thuộc về npm CLI kế thừa và bị bỏ qua mà không có thông báo. Khóa API
+được lưu trong biến môi trường `OMNIROUTE_API_KEY` (`env_key`), không bao giờ
+đặt bên trong tệp:
 
 ```bash
-mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
-model: auto
-apiKey: sk-your-omniroute-key
-apiBaseUrl: http://localhost:20128/v1
+mkdir -p ~/.codex && cat > ~/.codex/config.toml << EOF
+model_provider = "omniroute"
+
+[model_providers.omniroute]
+name                 = "OmniRoute"
+base_url             = "http://localhost:20128/v1"
+env_key              = "OMNIROUTE_API_KEY"
+requires_openai_auth = false
+EOF
+export OMNIROUTE_API_KEY="sk-your-omniroute-key"
+```
+
+Tài liệu tham khảo đầy đủ (hồ sơ, `wire_api`, cửa sổ ngữ cảnh): [CODEX-CLI-CONFIGURATION.md](../guides/CODEX-CLI-CONFIGURATION.md).
+
+**Kiểm tra:** `codex "what is 2+2?"`
+
+---
+
+#### OpenCode
+
+```bash
+mkdir -p ~/.config/opencode && cat > ~/.config/opencode/opencode.json << EOF
+{
+  "\$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "omniroute": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OmniRoute",
+      "options": {
+        "baseURL": "http://localhost:20128/v1",
+        "apiKey": "sk-your-omniroute-key"
+      },
+      "models": {
+        "claude-sonnet-4-5": { "name": "claude-sonnet-4-5" },
+        "claude-sonnet-4-5-thinking": { "name": "claude-sonnet-4-5-thinking" },
+        "gemini-3-flash": { "name": "gemini-3-flash" }
+      }
+    }
+  }
+}
 EOF
 ```
 
-**Test:** `codex "what is 2+2?"`
+**Kiểm tra:** `opencode`
+
+> Sử dụng `opencode run "your prompt" --model omniroute/claude-sonnet-4-5-thinking --variant high`
+> để gửi các biến thể suy luận.
 
 ---
 
-### OpenCode
+#### Cline (CLI hoặc VS Code)
 
-```bash
-mkdir -p ~/.config/opencode && cat > ~/.config/opencode/config.toml << EOF
-[provider.openai]
-base_url = "http://localhost:20128/v1"
-api_key = "sk-your-omniroute-key"
-EOF
-```
-
-**Test:** `opencode`
-
----
-
-### Cline (CLI or VS Code)
-
-**CLI mode:**
+**Chế độ CLI:**
 
 ```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
@@ -199,22 +500,22 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 EOF
 ```
 
-**VS Code mode:**
-Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
+**Chế độ VS Code:**
+Cài đặt tiện ích mở rộng Cline → Nhà cung cấp API: `OpenAI Compatible` → URL cơ sở: `http://localhost:20128/v1`
 
-Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
+Hoặc sử dụng bảng điều khiển OmniRoute → **Công cụ CLI → Cline → Áp dụng cấu hình**.
 
 ---
 
-### KiloCode (CLI or VS Code)
+#### KiloCode (CLI hoặc VS Code)
 
-**CLI mode:**
+**Chế độ CLI:**
 
 ```bash
 kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 ```
 
-**VS Code settings:**
+**Cài đặt VS Code:**
 
 ```json
 {
@@ -223,13 +524,13 @@ kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 }
 ```
 
-Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
+Hoặc sử dụng bảng điều khiển OmniRoute → **Công cụ CLI → KiloCode → Áp dụng cấu hình**.
 
 ---
 
-### Continue (VS Code Extension)
+#### Continue (Tiện ích mở rộng VS Code)
 
-Edit `~/.continue/config.yaml`:
+Chỉnh sửa `~/.continue/config.yaml`:
 
 ```yaml
 models:
@@ -241,158 +542,257 @@ models:
     default: true
 ```
 
-Restart VS Code after editing.
+Khởi động lại VS Code sau khi chỉnh sửa.
 
 ---
 
-### Kiro CLI (Amazon)
+#### VS Code Insiders (`chatLanguageModels.json`)
+
+Sử dụng cách này khi VS Code Insiders được cấu hình cho các mô hình dùng điểm cuối tùy chỉnh và bạn muốn OmniRoute hoạt động mà không cần trường tiêu đề tùy chỉnh.
+
+**Vị trí được khuyến nghị:**
+
+- Linux: `~/.config/Code - Insiders/User/chatLanguageModels.json`
+- Windows: `%APPDATA%/Code - Insiders/User/chatLanguageModels.json`
+
+**Ví dụ sử dụng bí danh OmniRoute được mã hóa bằng token:**
+
+```json
+[
+  {
+    "vendor": "customendpoint",
+    "id": "auto",
+    "name": "OmniRoute Auto",
+    "family": "gpt-4",
+    "version": "1.0.0",
+    "url": "http://localhost:20128/api/v1/vscode/sk-your-omniroute-key/chat/completions",
+    "modelsUrl": "http://localhost:20128/api/v1/vscode/sk-your-omniroute-key/models",
+    "requestFormat": "openai-chat-completions",
+    "contextWindow": 256000,
+    "maxOutputTokens": 32768,
+    "auth": {
+      "type": "none"
+    }
+  }
+]
+```
+
+**Lưu ý:**
+
+- Thay `sk-your-omniroute-key` bằng khóa API được tạo trong OmniRoute.
+- Trường `url` phải trỏ đến `/api/v1/vscode/{token}/chat/completions`.
+- Trường `modelsUrl` phải trỏ đến `/api/v1/vscode/{token}/models`.
+- Ưu tiên quy trình `/v1` thông thường + header Bearer khi máy khách hỗ trợ header tùy chỉnh.
+- Token được nhúng trong URL là phương án tương thích dự phòng và có thể xuất hiện trong nhật ký của trình chỉnh sửa hoặc lịch sử proxy.
+
+---
+
+#### Kiro CLI (Amazon)
 
 ```bash
-# Login to your AWS/Kiro account:
+# Đăng nhập vào tài khoản AWS/Kiro của bạn:
 kiro-cli login
 
-# The CLI uses its own auth — OmniRoute is not needed as backend for Kiro CLI itself.
-# Use kiro-cli alongside OmniRoute for other tools.
+# CLI sử dụng cơ chế xác thực riêng — không cần OmniRoute làm backend cho chính Kiro CLI.
+# Sử dụng kiro-cli cùng với OmniRoute cho các công cụ khác.
 kiro-cli status
 ```
 
+Đối với ứng dụng máy tính **Kiro IDE**, hãy sử dụng endpoint MITM do OmniRoute cung cấp
+tại `/dashboard/cli-tools → Kiro`.
+
 ---
 
-### Qwen Code (Alibaba)
+## 10. CLI OmniRoute nội bộ
 
-Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
-
-**Option 1: Environment variables (`~/.qwen/.env`)**
+Tệp nhị phân `omniroute` cung cấp các lệnh để quản lý vòng đời máy chủ, thiết lập, chẩn đoán và quản lý nhà cung cấp. Điểm vào: `bin/omniroute.mjs`.
 
 ```bash
-mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
-OPENAI_API_KEY="sk-your-omniroute-key"
-OPENAI_BASE_URL="http://localhost:20128/v1"
-OPENAI_MODEL="auto"
-EOF
+omniroute                              # Khởi động máy chủ (cổng mặc định 20128)
+omniroute setup                        # Trình hướng dẫn thiết lập tương tác
+omniroute doctor                       # Kiểm tra cấu hình, DB, cổng và môi trường chạy
+omniroute providers list               # Các kết nối nhà cung cấp đã cấu hình
+omniroute providers test-all           # Kiểm tra mọi kết nối đang hoạt động
+omniroute reset-password               # Đặt lại mật khẩu quản trị viên
+omniroute logs                         # Truyền trực tiếp nhật ký yêu cầu
+omniroute health                       # Tình trạng chi tiết (bộ ngắt mạch, bộ nhớ đệm, bộ nhớ)
+omniroute --version                    # In phiên bản
+omniroute --help                       # Hiển thị tất cả lệnh
 ```
 
-**Option 2: `settings.json` with model providers**
-
-```json
-// ~/.qwen/settings.json
-{
-  "env": {
-    "OPENAI_API_KEY": "sk-your-omniroute-key",
-    "OPENAI_BASE_URL": "http://localhost:20128/v1"
-  },
-  "modelProviders": {
-    "openai": [
-      {
-        "id": "omniroute-default",
-        "name": "OmniRoute (Auto)",
-        "envKey": "OPENAI_API_KEY",
-        "baseUrl": "http://localhost:20128/v1"
-      }
-    ]
-  }
-}
-```
-
-**Option 3: Inline CLI flags**
+### Thiết lập & Khởi tạo
 
 ```bash
-OPENAI_BASE_URL="http://localhost:20128/v1" \
-OPENAI_API_KEY="sk-your-omniroute-key" \
-OPENAI_MODEL="auto" \
-qwen
+omniroute setup                        # Trình hướng dẫn thiết lập tương tác
+omniroute setup --non-interactive      # Chế độ CI/tự động hóa (đọc biến môi trường + cờ)
+omniroute setup --password '<value>'   # Đặt trực tiếp mật khẩu quản trị viên
+omniroute setup --add-provider \
+  --provider openai \
+  --api-key '<value>' \
+  --test-provider                      # Thêm và kiểm tra nhà cung cấp trong một lần
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain.
+Các biến môi trường được nhận dạng cho quá trình thiết lập không tương tác:
 
-**Test:** `qwen "say hello"`
+| Biến                | Mục đích                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| `OMNIROUTE_API_KEY` | Khóa API của nhà cung cấp (được liên kết với `--api-key` qua `.env()` của Commander) |
+| `DATA_DIR`          | Ghi đè thư mục dữ liệu OmniRoute                                                     |
 
-### Cursor (Desktop App)
+Tất cả đầu vào không tương tác khác được truyền dưới dạng cờ, không phải biến môi trường:
+`--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
+(xem các tùy chọn `omniroute setup` ở trên).
 
-> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
-> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
-
-Via GUI: **Settings → Models → OpenAI API Key**
-
-- Base URL: `https://your-domain.com/v1`
-- API Key: your OmniRoute key
-
----
-
-## Dashboard Auto-Configuration
-
-The OmniRoute dashboard automates configuration for most tools:
-
-1. Go to `http://localhost:20128/dashboard/cli-tools`
-2. Expand any tool card
-3. Select your API key from the dropdown
-4. Click **Apply Config** (if tool is detected as installed)
-5. Or copy the generated config snippet manually
-
----
-
-## Built-in Agents: Droid & OpenClaw
-
-**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
-They run as internal routes and use OmniRoute's model routing automatically.
-
-- Access: `http://localhost:20128/dashboard/agents`
-- Configure: same combos and providers as all other tools
-- No API key or CLI install required
-
----
-
-## Available API Endpoints
-
-| Endpoint                   | Description                   | Use For                     |
-| -------------------------- | ----------------------------- | --------------------------- |
-| `/v1/chat/completions`     | Standard chat (all providers) | All modern tools            |
-| `/v1/responses`            | Responses API (OpenAI format) | Codex, agentic workflows    |
-| `/v1/completions`          | Legacy text completions       | Older tools using `prompt:` |
-| `/v1/embeddings`           | Text embeddings               | RAG, search                 |
-| `/v1/images/generations`   | Image generation              | GPT-Image, Flux, etc.       |
-| `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
-| `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
-
----
-
-## Xử lý sự cố
-
-| Error                     | Cause                   | Fix                                        |
-| ------------------------- | ----------------------- | ------------------------------------------ |
-| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
-| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
-| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
-| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
-| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
-| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
-
----
-
-## Quick Setup Script (One Command)
+### Chẩn đoán
 
 ```bash
-# Install all CLIs and configure for OmniRoute (replace with your key and server URL)
-OMNIROUTE_URL="http://localhost:20128/v1"
-OMNIROUTE_KEY="sk-your-omniroute-key"
-
-npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
-
-# Kiro CLI
-apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash
-
-# Write configs
-mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
-
-cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
-cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
-cat >> ~/.bashrc << EOF
-export OPENAI_BASE_URL="$OMNIROUTE_URL"
-export OPENAI_API_KEY="$OMNIROUTE_KEY"
-export ANTHROPIC_BASE_URL="$OMNIROUTE_URL"
-export ANTHROPIC_API_KEY="$OMNIROUTE_KEY"
-EOF
-
-source ~/.bashrc
-echo "✅ All CLIs installed and configured for OmniRoute"
+omniroute doctor                       # Kiểm tra cấu hình, DB, cổng, môi trường chạy, bộ nhớ và trạng thái hoạt động
+omniroute doctor --json                # JSON có thể đọc bằng máy
+omniroute doctor --no-liveness         # Bỏ qua phép thăm dò tình trạng HTTP
+omniroute doctor --host 0.0.0.0        # Ghi đè máy chủ dùng để kiểm tra trạng thái hoạt động
+omniroute doctor --liveness-url <url>  # Ghi đè URL đầy đủ của điểm cuối tình trạng
 ```
+
+Lệnh doctor chạy các kiểm tra sau: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory` và `Server liveness`. Lệnh thoát với mã khác không nếu bất kỳ kiểm tra nào có trạng thái `fail`.
+
+### Quản lý nhà cung cấp
+
+```bash
+omniroute providers available                       # Danh mục nhà cung cấp OmniRoute
+omniroute providers available --search openai       # Lọc danh mục theo id/tên/bí danh/danh mục
+omniroute providers available --category api-key    # Lọc theo danh mục (api-key, oauth, free, ...)
+omniroute providers available --json                # JSON có thể đọc bằng máy
+
+omniroute providers list                            # Các kết nối nhà cung cấp đã cấu hình
+omniroute providers list --json
+
+omniroute providers test <id|name>                  # Kiểm tra một kết nối đã cấu hình
+omniroute providers test-all                        # Kiểm tra mọi kết nối đang hoạt động
+omniroute providers validate                        # Chỉ xác thực cấu trúc cục bộ
+omniroute providers add <provider> --credential-env PROVIDER_KEY
+omniroute providers import ./providers.json --dry-run --json
+omniroute providers auth <provider>                 # Luồng OAuth hiện có
+omniroute providers edit <id|name> --default-model <model>
+omniroute providers remove <id|name> --yes
+```
+
+`providers add/import/auth/edit/remove` ưu tiên API và do đó hoạt động với
+ngữ cảnh cục bộ hoặc từ xa đang hoạt động. Thông tin xác thực nên được nhập bằng
+`--credential-stdin` hoặc `--credential-env`; `--dry-run --json` chỉ báo cáo
+sự hiện diện/hình dạng đã được che giấu. `providers available` đọc danh mục OmniRoute;
+`providers list/test/test-all/validate` giữ nguyên hành vi SQLite cục bộ và
+không yêu cầu máy chủ phải đang chạy.
+
+### Khôi phục & Đặt lại
+
+```bash
+omniroute reset-password                # Đặt lại mật khẩu quản trị viên (cũng có thể dùng: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Hiển thị cảnh báo + chạy thử thao tác đặt lại thông tin xác thực đã mã hóa
+omniroute reset-encrypted-columns --force  # Thực sự đặt thông tin xác thực đã mã hóa thành null trong SQLite
+```
+
+### Xuất thông tin xác thực (⚠ xử lý cẩn thận)
+
+```bash
+omniroute auth export                                 # Hiển thị cảnh báo + yêu cầu xác nhận — không truy cập DB
+omniroute auth export --force                          # Xuất thông tin xác thực ĐÃ GIẢI MÃ của TẤT CẢ kết nối ra stdout dưới dạng JSON
+omniroute auth export --force --id <id>                 # Chỉ xuất kết nối khớp
+omniroute auth export --force --format env               # Xuất các dòng OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Ghi vào tệp (được tạo với quyền 0600)
+```
+
+`auth export` **chỉ hoạt động cục bộ** (đọc trực tiếp SQLite, không có tuyến HTTP) và có chủ đích in/ghi
+các giá trị `apiKey`/`accessToken`/`refreshToken`/`idToken` ở dạng **văn bản thuần túy** — đây là tính năng, không phải
+lỗi. Không có dữ liệu nào được đọc từ cơ sở dữ liệu và không có dữ liệu nào được giải mã nếu thiếu `--force`. Biểu ngữ
+cảnh báo luôn được in ra stderr trước khi bất kỳ văn bản thuần túy nào được xuất. Yêu cầu phải đặt `STORAGE_ENCRYPTION_KEY`.
+Trường không thể giải mã (khóa cũ, bản mã hỏng) được báo cáo dưới dạng
+`<field>DecryptFailed: true` thay vì hủy toàn bộ quá trình xuất hoặc làm rò rỉ lỗi gốc.
+
+### Các lệnh con khác
+
+Các lệnh này giả định máy chủ OmniRoute đang chạy, trừ khi có ghi chú khác:
+
+```bash
+omniroute status                       # Trạng thái runtime toàn diện
+omniroute logs                         # Phát trực tiếp nhật ký yêu cầu (--json, --search, --follow)
+omniroute config list                  # Hiển thị các công cụ CLI đã cấu hình
+
+omniroute provider list                # Liệt kê các nhà cung cấp khả dụng (bí danh của providers list)
+omniroute provider add                 # Đăng ký OmniRoute làm nhà cung cấp trên một công cụ
+omniroute keys add | list | remove     # Quản lý khóa API
+omniroute models [provider]            # Liệt kê các mô hình (--json, --search)
+omniroute combo list | switch | create | delete
+
+omniroute backup                       # Tạo bản chụp nhanh cấu hình + DB
+omniroute restore                      # Khôi phục từ bản chụp nhanh trước đó
+
+omniroute health                       # Thông tin sức khỏe chi tiết (bộ ngắt mạch, bộ nhớ đệm, bộ nhớ)
+omniroute quota                        # Mức sử dụng hạn ngạch của nhà cung cấp
+omniroute cache                        # Trạng thái bộ nhớ đệm
+omniroute cache clear                  # Xóa bộ nhớ đệm ngữ nghĩa + chữ ký
+
+omniroute mcp status | restart         # Trạng thái / khởi động lại máy chủ MCP
+omniroute a2a status | card            # Trạng thái máy chủ A2A / thẻ tác tử
+
+omniroute tunnel list | create | stop  # Quản lý đường hầm (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Kiểm tra / thiết lập biến môi trường (tạm thời)
+
+omniroute test                         # Kiểm tra nhanh kết nối với nhà cung cấp
+omniroute update                       # Kiểm tra bản cập nhật
+omniroute completion                   # Tạo tập lệnh hoàn thành lệnh cho shell
+```
+
+### Các cờ thường dùng
+
+| Cờ                  | Mô tả                                                   |
+| ------------------- | ------------------------------------------------------- |
+| `--no-open`         | Không tự động mở trình duyệt khi khởi động              |
+| `--port <n>`        | Ghi đè cổng API (mặc định là 20128)                     |
+| `--mcp`             | Chạy dưới dạng máy chủ MCP qua stdio (dành cho IDE)     |
+| `--non-interactive` | Chế độ CI (không có lời nhắc; đọc từ môi trường/cờ)     |
+| `--json`            | Đầu ra JSON mà máy có thể đọc (doctor, providers, v.v.) |
+| `--help`, `-h`      | Hiển thị trợ giúp dành riêng cho lệnh                   |
+| `--version`, `-v`   | In phiên bản đã cài đặt                                 |
+
+---
+
+## Các điểm cuối API khả dụng
+
+| Điểm cuối                  | Mô tả                                    | Dùng cho                         |
+| -------------------------- | ---------------------------------------- | -------------------------------- |
+| `/v1/chat/completions`     | Trò chuyện tiêu chuẩn (mọi nhà cung cấp) | Tất cả công cụ hiện đại          |
+| `/v1/responses`            | Responses API (định dạng OpenAI)         | Codex, quy trình làm việc tác tử |
+| `/v1/completions`          | Hoàn thành văn bản kiểu cũ               | Công cụ cũ sử dụng `prompt:`     |
+| `/v1/embeddings`           | Nhúng văn bản                            | RAG, tìm kiếm                    |
+| `/v1/images/generations`   | Tạo hình ảnh                             | GPT-Image, Flux, v.v.            |
+| `/v1/audio/speech`         | Chuyển văn bản thành giọng nói           | ElevenLabs, OpenAI TTS           |
+| `/v1/audio/transcriptions` | Chuyển giọng nói thành văn bản           | Deepgram, AssemblyAI             |
+
+Các ví dụ có thể dán trực tiếp với URL OmniRoute đã được mã hóa bằng token:
+
+```txt
+Ví dụ token: sk-a3ab3c080beaee3a-69f4a4-070d71af
+
+Cơ sở OpenAI tiêu chuẩn: http://localhost:20128/v1
+Mô hình VS Code: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/models
+Trò chuyện VS Code: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/chat/completions
+Phản hồi VS Code: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/responses
+Thẻ Ollama: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/tags
+Trò chuyện Ollama: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/chat
+```
+
+---
+
+## Khắc phục sự cố
+
+| Lỗi                                                     | Nguyên nhân                               | Cách khắc phục                                         |
+| ------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------ |
+| `Connection refused`                                    | OmniRoute chưa chạy                       | `omniroute serve`                                      |
+| `401 Unauthorized`                                      | API key không chính xác                   | Kiểm tra trong `/dashboard/api-manager`                |
+| `No combo configured`                                   | Không có tổ hợp định tuyến đang hoạt động | Thiết lập trong `/dashboard/combos`                    |
+| CLI hiển thị "not installed"                            | Tệp nhị phân không có trong PATH          | Kiểm tra bằng `which <command>`                        |
+| Bảng điều khiển hiển thị "not detected" sau khi cài đặt | Bộ nhớ đệm đã cũ                          | Nhấp vào "⟳ Làm mới phát hiện" trong bảng điều khiển   |
+| Liên kết cũ `/dashboard/cli-tools`                      | Dấu trang có từ trước v3.8.6              | Tự động chuyển hướng đến `/dashboard/cli-code` (308)   |
+| Liên kết cũ `/dashboard/agents`                         | Dấu trang có từ trước v3.8.6              | Tự động chuyển hướng đến `/dashboard/acp-agents` (308) |

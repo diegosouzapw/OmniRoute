@@ -24,5 +24,5 @@ test("getDbInstance() caps the probe-failed/restore cycle at 3 attempts (#6835)"
   const abortIndex = errors.findIndex((e) => e.includes("Aborting startup"));
   assert.notEqual(abortIndex, -1, "Expected the cap to trip; got: " + errors.join(" | "));
   assert.ok(abortIndex <= 4, "Expected cap by call #4; took until #" + abortIndex);
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });

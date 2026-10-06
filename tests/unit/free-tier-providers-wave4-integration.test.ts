@@ -17,7 +17,7 @@ const providers = [
 ] as const;
 
 for (const [id, endpoint] of providers) {
-  test(`${id} is fully wired without a specialized executor`, () => {
+  test(`${id} is fully wired without a specialized executor`, async () => {
     const registry = REGISTRY[id];
     const metadata = APIKEY_PROVIDERS[id];
 
@@ -33,7 +33,7 @@ for (const [id, endpoint] of providers) {
     assert.equal(metadata.passthroughModels, true);
     assert.equal(AGGREGATOR_PROVIDER_IDS.has(id), true);
     assert.equal(hasSpecializedExecutor(id), false);
-    const executor = getExecutor(id);
+    const executor = await getExecutor(id);
     assert.ok(executor instanceof DefaultExecutor);
     assert.equal(executor.buildUrl("live-model", false), endpoint);
     assert.equal(isValidModel(id, "future/live-catalog-model"), true);

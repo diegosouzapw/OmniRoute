@@ -6,7 +6,7 @@
  * headers (fingerprint-based User-Agent, Sec-CH-UA, etc.) and handles
  * 429/5xx responses with pool-level cooldown management.
  *
- * Future: For cookie-based providers (ChatGPT Web, DeepSeek Web, etc.)
+ * Future: For browser-session providers (DeepSeek Web, etc.)
  * the wrapper will also inject cookies from the Playwright-authenticated
  * session.
  */

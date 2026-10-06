@@ -92,14 +92,16 @@ function make42Skills(): AgentSkill[] {
 const FULL_COVERAGE: SkillCoverage = {
   api: { have: 22, total: 22 },
   cli: { have: 20, total: 20 },
-  totalSkills: 42,
+  config: { have: 2, total: 2 },
+  totalSkills: 44,
   generatedAt: new Date().toISOString(),
 };
 
 const PARTIAL_COVERAGE: SkillCoverage = {
   api: { have: 10, total: 22 },
   cli: { have: 8, total: 20 },
-  totalSkills: 18,
+  config: { have: 1, total: 2 },
+  totalSkills: 19,
   generatedAt: new Date().toISOString(),
 };
 
@@ -328,14 +330,17 @@ describe("AgentSkillsPageClient", () => {
     expect(coverageBar).not.toBeNull();
 
     const progressBars = container.querySelectorAll("[role='progressbar']");
-    expect(progressBars.length).toBe(2);
+    // A ordem de render em CoverageBar e api -> config -> cli, entao o indice do CLI
+    // acompanha a barra de config; sem isso [1] passaria a apontar para config e a
+    // assercao do CLI ficaria verde medindo a barra errada.
+    expect(progressBars.length).toBe(3);
 
     // API bar — 22/22 = 100%, should have emerald color class
     const apiBar = progressBars[0] as HTMLElement;
     expect(apiBar.className).toContain("bg-emerald-500");
 
     // CLI bar — 20/20 = 100%, should have emerald color class
-    const cliBar = progressBars[1] as HTMLElement;
+    const cliBar = progressBars[2] as HTMLElement;
     expect(cliBar.className).toContain("bg-emerald-500");
   });
 
@@ -425,7 +430,7 @@ describe("AgentSkillsPageClient", () => {
 // ── CoverageBar isolated tests ───────────────────────────────────────────────
 
 describe("CoverageBar", () => {
-  it("renders two progressbars with correct aria attributes", async () => {
+  it("renders three progressbars with correct aria attributes", async () => {
     const { CoverageBar } =
       await import("../../src/app/(dashboard)/dashboard/agent-skills/components/CoverageBar");
     const container = makeContainer();
@@ -435,13 +440,20 @@ describe("CoverageBar", () => {
     });
 
     const bars = container.querySelectorAll("[role='progressbar']");
-    expect(bars.length).toBe(2);
+    // api -> config -> cli. A barra de config entrou no MEIO, entao o indice do CLI
+    // desloca junto; conferir as tres aqui e o que impede um indice errado de passar
+    // despercebido medindo a barra vizinha.
+    expect(bars.length).toBe(3);
 
     const apiBar = bars[0] as HTMLElement;
     expect(apiBar.getAttribute("aria-valuenow")).toBe("22");
     expect(apiBar.getAttribute("aria-valuemax")).toBe("22");
 
-    const cliBar = bars[1] as HTMLElement;
+    const configBar = bars[1] as HTMLElement;
+    expect(configBar.getAttribute("aria-valuenow")).toBe("2");
+    expect(configBar.getAttribute("aria-valuemax")).toBe("2");
+
+    const cliBar = bars[2] as HTMLElement;
     expect(cliBar.getAttribute("aria-valuenow")).toBe("20");
     expect(cliBar.getAttribute("aria-valuemax")).toBe("20");
 
@@ -454,6 +466,7 @@ describe("CoverageBar", () => {
     const lowCoverage: SkillCoverage = {
       api: { have: 5, total: 22 },
       cli: { have: 0, total: 20 },
+      config: { have: 0, total: 2 },
       totalSkills: 5,
       generatedAt: new Date().toISOString(),
     };
@@ -477,7 +490,8 @@ describe("CoverageBar", () => {
     const partialCoverage: SkillCoverage = {
       api: { have: 18, total: 22 }, // ~81.8% = amber
       cli: { have: 15, total: 20 }, // 75% = amber
-      totalSkills: 33,
+      config: { have: 3, total: 4 }, // 75% = amber
+      totalSkills: 36,
       generatedAt: new Date().toISOString(),
     };
 

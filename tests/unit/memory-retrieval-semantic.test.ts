@@ -30,7 +30,7 @@ const core = await import("../../src/lib/db/core.ts");
 function cleanup() {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -38,7 +38,7 @@ function cleanup() {
 test.afterEach(() => cleanup());
 test.after(() => {
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -116,9 +116,30 @@ test("retrieveMemories: strategy=exact returns memories chronologically", async 
   // Use recent dates (within last 30 days) so retention filter does not remove them
   const now = Date.now();
   const base = new Date(now - 3 * 24 * 60 * 60 * 1000); // 3 days ago
-  insertMemory(db, "e1", "api-exact", "First memory", "first", new Date(base.getTime() + 3000).toISOString());
-  insertMemory(db, "e2", "api-exact", "Second memory", "second", new Date(base.getTime() + 2000).toISOString());
-  insertMemory(db, "e3", "api-exact", "Third memory", "third", new Date(base.getTime() + 1000).toISOString());
+  insertMemory(
+    db,
+    "e1",
+    "api-exact",
+    "First memory",
+    "first",
+    new Date(base.getTime() + 3000).toISOString()
+  );
+  insertMemory(
+    db,
+    "e2",
+    "api-exact",
+    "Second memory",
+    "second",
+    new Date(base.getTime() + 2000).toISOString()
+  );
+  insertMemory(
+    db,
+    "e3",
+    "api-exact",
+    "Third memory",
+    "third",
+    new Date(base.getTime() + 1000).toISOString()
+  );
 
   const { retrieveMemories } = await import("../../src/lib/memory/retrieval.ts");
 
@@ -181,7 +202,10 @@ test("retrieveMemories: returns only memories for the given apiKeyId", async () 
 
   const { retrieveMemories } = await import("../../src/lib/memory/retrieval.ts");
 
-  const result = await retrieveMemories("api-key1", { retrievalStrategy: "exact", maxTokens: 2000 });
+  const result = await retrieveMemories("api-key1", {
+    retrievalStrategy: "exact",
+    maxTokens: 2000,
+  });
   for (const m of result) {
     assert.equal(m.apiKeyId, "api-key1", "should only return memories for api-key1");
   }

@@ -8,6 +8,7 @@ import { AutoStartToggle } from "../components/AutoStartToggle";
 import { AutoRestartAdoptedToggle } from "../components/AutoRestartAdoptedToggle";
 import { CliproxyConnectionPanel } from "../components/CliproxyConnectionPanel";
 import { CliproxyProviderExposureCard } from "../components/CliproxyProviderExposureCard";
+import { CliproxyAccountHealthCard } from "../components/CliproxyAccountHealthCard";
 
 const NAME = "cliproxy";
 
@@ -19,6 +20,7 @@ export function CliproxyServiceTab() {
       <AutoStartToggle name={NAME} />
       <AutoRestartAdoptedToggle name={NAME} />
       <CliproxyConnectionPanel />
+      <CliproxyAccountHealthCard />
       <CliproxyProviderExposureCard />
       <CliproxyModelMappingEditor />
       <ServiceLogsPanel name={NAME} />

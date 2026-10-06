@@ -115,6 +115,6 @@ rl.on('line', (line) => {
     } else {
       delete process.env.CLI_DEVIN_BIN;
     }
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

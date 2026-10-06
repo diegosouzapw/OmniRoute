@@ -107,7 +107,12 @@ export const CHEAPERINFERENCE_MODELS: RegistryModel[] = [
     supportsReasoning: true,
     toolCalling: true,
   },
-  { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true, toolCalling: true },
+  {
+    id: "deepseek-v4-flash",
+    name: "DeepSeek V4 Flash",
+    supportsReasoning: true,
+    toolCalling: true,
+  },
   { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true, toolCalling: true },
   {
     id: "gemini-2.5-flash",
@@ -117,8 +122,8 @@ export const CHEAPERINFERENCE_MODELS: RegistryModel[] = [
     toolCalling: true,
   },
   {
-    id: "gemini-3-5-flash",
-    name: "Gemini 3.5 Flash",
+    id: "gemini-3.7-flash",
+    name: "Gemini 3.7 Flash",
     supportsVision: true,
     supportsReasoning: true,
     toolCalling: true,
@@ -237,6 +242,7 @@ export const cheaperinferenceProvider: RegistryEntry = {
   format: "openai",
   executor: "cheaperinference",
   baseUrl: "https://api.cheaperinference.com/v1/chat/completions",
+  modelsUrl: "https://api.cheaperinference.com/v1/models",
   // The gateway serves a native, STATELESS /v1/responses endpoint alongside
   // /v1/chat/completions. Consumed by CheaperInferenceExecutor.buildUrl for the
   // models tagged targetFormat: "openai-responses" above.

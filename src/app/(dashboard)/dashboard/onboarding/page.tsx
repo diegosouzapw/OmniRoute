@@ -34,6 +34,12 @@ export default function OnboardingWizard() {
   const [skipSecurity, setSkipSecurity] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
 
+  // #14296: fresh Docker/NAT-forwarded installs (peer isn't 127.0.0.1) hit a
+  // 401 on the bootstrap writes below until the operator supplies the
+  // one-shot token the server printed to its log.
+  const [bootstrapToken, setBootstrapToken] = useState("");
+  const [needsBootstrapToken, setNeedsBootstrapToken] = useState(false);
+
   // Provider step state
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [providerUrl, setProviderUrl] = useState("");
@@ -83,28 +89,53 @@ export default function OnboardingWizard() {
 
   const [errorMessage, setErrorMessage] = useState("");
 
+  // #14296: attach the operator-supplied bootstrap token when we have one —
+  // required only for a non-loopback (e.g. Docker/NAT-forwarded) caller
+  // completing a fresh install; a no-op header on every other install.
+  const bootstrapHeaders = (base: Record<string, string> = {}) =>
+    bootstrapToken ? { ...base, "x-omniroute-bootstrap-token": bootstrapToken } : base;
+
+  // Returns true when the caller should stop (a bootstrap-token prompt was
+  // shown), false when the response was a "real" failure to report normally.
+  const handleBootstrapAuthFailure = (res: Response): boolean => {
+    if (res.status === 401 && !bootstrapToken) {
+      setNeedsBootstrapToken(true);
+      setErrorMessage(t("bootstrapTokenHelp"));
+      return true;
+    }
+    return false;
+  };
+
   const handleSetPassword = async () => {
+    setErrorMessage("");
     if (skipSecurity) {
       // (#574) Explicitly disable requireLogin when skipping password setup
       try {
-        await fetch("/api/settings/require-login", {
+        const res = await fetch("/api/settings/require-login", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: bootstrapHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ requireLogin: false }),
         });
-      } catch {}
+        if (!res.ok) {
+          if (!handleBootstrapAuthFailure(res)) setErrorMessage(t("failedSetPassword"));
+          return;
+        }
+      } catch {
+        setErrorMessage(t("connectionError"));
+        return;
+      }
       handleNext();
       return;
     }
     if (password !== confirmPassword) return;
-    setErrorMessage("");
     try {
       const res = await fetch("/api/settings/require-login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: bootstrapHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ requireLogin: true, password }),
       });
       if (!res.ok) {
+        if (handleBootstrapAuthFailure(res)) return;
         const data = await res.json().catch(() => ({}));
         setErrorMessage(data.error || t("failedSetPassword"));
         return;
@@ -189,6 +220,7 @@ export default function OnboardingWizard() {
   };
 
   const handleFinish = async () => {
+    setErrorMessage("");
     try {
       // (#574) If no password was set during wizard, disable requireLogin
       // to prevent the user from being locked out on the login page
@@ -196,20 +228,31 @@ export default function OnboardingWizard() {
         .then((r) => r.json())
         .catch(() => ({}));
       if (!settings.hasPassword) {
-        await fetch("/api/settings/require-login", {
+        const requireLoginRes = await fetch("/api/settings/require-login", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: bootstrapHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ requireLogin: false }),
-        }).catch(() => {});
+        });
+        // #14296: this write used to be fire-and-forget, so a 401 from a
+        // Docker/NAT-forwarded install silently left requireLogin untouched
+        // and the wizard sailed on to setupComplete/dashboard anyway,
+        // reproducing the reported redirect loop. Surface it instead.
+        if (!requireLoginRes.ok && handleBootstrapAuthFailure(requireLoginRes)) return;
       }
 
-      await fetch("/api/settings", {
+      const patchRes = await fetch("/api/settings", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: bootstrapHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ setupComplete: true }),
       });
+      if (!patchRes.ok) {
+        if (handleBootstrapAuthFailure(patchRes)) return;
+        setErrorMessage(t("connectionError"));
+        return;
+      }
     } catch {
-      // Non-critical
+      setErrorMessage(t("connectionError"));
+      return;
     }
     router.push("/dashboard");
   };
@@ -274,6 +317,34 @@ export default function OnboardingWizard() {
             )}
           </div>
 
+          {/* #14296: fresh-install bootstrap token prompt + generic errors —
+              rendered above the step content so it applies regardless of
+              which step's write actually failed (security step or the
+              Finish/Skip-wizard buttons). */}
+          {errorMessage && (
+            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-center animate-in fade-in duration-200">
+              <p className="text-sm text-amber-400">{errorMessage}</p>
+              {needsBootstrapToken && (
+                <div className="mt-3 space-y-2">
+                  <input
+                    type="text"
+                    placeholder={t("bootstrapTokenLabel")}
+                    value={bootstrapToken}
+                    onChange={(e) => setBootstrapToken(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-lg text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                  <button
+                    onClick={isLastStep ? handleFinish : handleSetPassword}
+                    disabled={!bootstrapToken}
+                    className="px-6 py-2 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {t("retry")}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Step Content */}
           <div className="min-h-[200px]">
             {/* Welcome */}
@@ -318,6 +389,11 @@ export default function OnboardingWizard() {
                   />
                   {t("skipPassword")}
                 </label>
+                {skipSecurity && (
+                  <p className="text-xs text-amber-400 text-center animate-in fade-in duration-200">
+                    {t("securityDescSkipWarning")}
+                  </p>
+                )}
                 {!skipSecurity && (
                   <div className="space-y-3">
                     <input
@@ -358,31 +434,40 @@ export default function OnboardingWizard() {
             {currentStep.id === "provider" && (
               <div className="space-y-4">
                 <p className="text-sm text-text-muted text-center">{t("providerDesc")}</p>
-                <FreeProviderOnboardingCard />
-                <div className="flex items-center gap-3 text-[11px] text-text-muted">
-                  <span className="h-px flex-1 bg-white/10" />
-                  <span>{t("freeProviders.orUseApiKey")}</span>
-                  <span className="h-px flex-1 bg-white/10" />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {COMMON_PROVIDERS.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => {
-                        setSelectedProvider(p.id);
-                        setProviderName(p.name);
-                      }}
-                      className={`p-3 rounded-xl border text-center text-xs font-medium transition-all cursor-pointer ${
-                        selectedProvider === p.id
-                          ? "border-primary/60 bg-primary/10 text-primary"
-                          : "border-white/10 bg-white/[0.03] text-text-muted hover:border-white/20"
-                      }`}
-                    >
-                      {p.name}
-                    </button>
-                  ))}
-                </div>
-                {selectedProvider && (
+                {skipSecurity && (
+                  <div className="text-center p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg animate-in fade-in duration-200">
+                    <p className="text-sm text-amber-400">{t("providerRequiresPassword")}</p>
+                  </div>
+                )}
+                {!skipSecurity && <FreeProviderOnboardingCard />}
+                {!skipSecurity && (
+                  <div className="flex items-center gap-3 text-[11px] text-text-muted">
+                    <span className="h-px flex-1 bg-white/10" />
+                    <span>{t("freeProviders.orUseApiKey")}</span>
+                    <span className="h-px flex-1 bg-white/10" />
+                  </div>
+                )}
+                {!skipSecurity && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {COMMON_PROVIDERS.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedProvider(p.id);
+                          setProviderName(p.name);
+                        }}
+                        className={`p-3 rounded-xl border text-center text-xs font-medium transition-all cursor-pointer ${
+                          selectedProvider === p.id
+                            ? "border-primary/60 bg-primary/10 text-primary"
+                            : "border-white/10 bg-white/[0.03] text-text-muted hover:border-white/20"
+                        }`}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!skipSecurity && selectedProvider && (
                   <div className="space-y-3 mt-4">
                     <input
                       type="password"
@@ -504,7 +589,7 @@ export default function OnboardingWizard() {
                   {skipSecurity ? t("skipAndContinue") : t("setPassword")}
                 </button>
               )}
-              {currentStep.id === "provider" && (
+              {currentStep.id === "provider" && !skipSecurity ? (
                 <button
                   onClick={handleAddProvider}
                   disabled={!selectedProvider || !providerKey}
@@ -512,7 +597,7 @@ export default function OnboardingWizard() {
                 >
                   {t("addProvider")}
                 </button>
-              )}
+              ) : null}
               {currentStep.id === "test" && (
                 <button
                   onClick={handleNext}

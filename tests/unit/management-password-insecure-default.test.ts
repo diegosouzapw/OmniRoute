@@ -23,13 +23,13 @@ function makeLogger() {
 
 test.afterEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("warns when bootstrapping the management password with the CHANGEME default (Seg2)", async () => {
@@ -60,5 +60,9 @@ test("does not warn when bootstrapping with a strong password", async () => {
   });
 
   assert.equal(managementPassword.isBcryptHash(result.hash), true);
-  assert.equal(logger.warnings.length, 0, "did not expect any security warning for a strong password");
+  assert.equal(
+    logger.warnings.length,
+    0,
+    "did not expect any security warning for a strong password"
+  );
 });

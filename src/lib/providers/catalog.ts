@@ -9,6 +9,7 @@ import {
   UPSTREAM_PROXY_PROVIDERS,
   WEB_COOKIE_PROVIDERS,
   isClaudeCodeCompatibleProvider,
+  resolveProviderId,
   supportsApiKeyOnFreeProvider,
   supportsDualAuthProvider,
   type RiskNoticeVariant,
@@ -51,6 +52,8 @@ export interface ProviderCatalogMetadata {
   riskNoticeVariant?: RiskNoticeVariant;
   apiType?: string;
   baseUrl?: string;
+  /** Backend OAuth provider ID when one dashboard card fronts both auth modes. */
+  oauthProviderId?: string;
   hiddenFromDashboard?: boolean;
   /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
   iconUrl?: string;
@@ -192,9 +195,10 @@ export function getStaticProviderCatalogGroup(
 export function resolveStaticProviderCatalogEntry(
   providerId: string
 ): ResolvedStaticProviderCatalogEntry | null {
+  const canonicalId = resolveProviderId(providerId);
   for (const category of STATIC_PROVIDER_CATALOG_RESOLUTION_ORDER) {
     const group = STATIC_PROVIDER_CATALOG_GROUPS[category];
-    const provider = group.providers[providerId];
+    const provider = group.providers[canonicalId] ?? group.providers[providerId];
     if (!provider) continue;
     return {
       ...provider,

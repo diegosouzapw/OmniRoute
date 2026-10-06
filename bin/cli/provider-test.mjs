@@ -10,6 +10,10 @@ const PROVIDER_TEST_CONFIGS = {
     format: "openai",
     baseUrl: "https://openrouter.ai/api/v1",
     model: "openai/gpt-4o-mini",
+    // #11226: /models is public on OpenRouter (200 with any or no key) — probe the
+    // authenticated key-info endpoint instead so a bad key fails the test here
+    // instead of on the first real chat request.
+    keyCheckPath: "/auth/key",
   },
   groq: {
     format: "openai",
@@ -101,13 +105,19 @@ async function testOpenAILikeProvider(input, config) {
     "Content-Type": "application/json",
   };
 
-  const modelsRes = await fetchWithTimeout(joinUrl(config.baseUrl, "/models"), {
-    method: "GET",
-    headers,
-  });
+  // Providers whose /models endpoint is public (e.g. OpenRouter) declare a
+  // keyCheckPath pointing at an authenticated endpoint so the probe actually
+  // exercises the key instead of the public catalog.
+  const probeRes = await fetchWithTimeout(
+    joinUrl(config.baseUrl, config.keyCheckPath || "/models"),
+    {
+      method: "GET",
+      headers,
+    }
+  );
 
-  if (modelsRes.ok || modelsRes.status === 401 || modelsRes.status === 403) {
-    return classifyResponse(modelsRes);
+  if (probeRes.ok || probeRes.status === 401 || probeRes.status === 403) {
+    return classifyResponse(probeRes);
   }
 
   const chatRes = await fetchWithTimeout(joinUrl(config.baseUrl, "/chat/completions"), {

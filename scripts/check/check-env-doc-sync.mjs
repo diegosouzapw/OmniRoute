@@ -25,7 +25,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { execSync } from "node:child_process";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -60,7 +60,19 @@ const IGNORE_FROM_CODE = new Set([
   // OS / Node internals frequently surfaced by indirect dependencies.
   "APPDATA",
   "LOCALAPPDATA",
+  "PROGRAMFILES",
   "XDG_CONFIG_HOME",
+  // Codex-owned task/runtime locations and child-process markers. OmniRoute reads
+  // them as external execution context, not as product configuration.
+  "CODEX_HOME",
+  "CODEX_CHATGPT_WEB_BROWSER_HELPER_PROCESS",
+  // Claude Code's own config-root variable: the CLI only SETS it for the child `claude`
+  // process (bin/cli/commands/launch.mjs, setup-claude hint, #12161) — never product config.
+  "CLAUDE_CONFIG_DIR",
+  // systemd-injected notify socket path (sd_notify protocol, see
+  // scripts/dev/systemd-notify.mjs) — set by systemd only when running under
+  // a unit, never user config.
+  "NOTIFY_SOCKET",
   // XDG Base Directory cache root — read (never defined by OmniRoute) so the
   // Android/Termux serve path can honor an operator-set cache location (#8519).
   "XDG_CACHE_HOME",
@@ -91,6 +103,21 @@ const IGNORE_FROM_CODE = new Set([
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // Actions-owned output file used by scripts/ci/release-green-result.mjs.
+  // A runner protocol path, not user-configurable OmniRoute environment.
+  "GITHUB_OUTPUT",
+  // check-ai-attribution.mjs reads the PR of the Actions event payload when run without args (#14436)
+  "GITHUB_EVENT_PATH",
+  // Actions-owned output file used by scripts/ci/release-green-result.mjs.
+  // A runner protocol path, not user-configurable OmniRoute environment.
+  "GITHUB_OUTPUT",
+  // Runner-owned identity/event context and same-run job results consumed by
+  // scripts/quality/admission-verdict.mjs; never application .env settings.
+  "GITHUB_EVENT_NAME",
+  "GITHUB_RUN_ATTEMPT",
+  "GITHUB_RUN_ID",
+  "GITHUB_SHA",
+  "NEEDS_JSON",
   // Set by the Actions runner; the ts7 ratchet appends its job summary there
   // (scripts/check/check-ts7-diagnostics-ratchet.mjs) — never OmniRoute runtime config (#9985).
   "GITHUB_STEP_SUMMARY",
@@ -122,6 +149,10 @@ const IGNORE_FROM_CODE = new Set([
   // ("http://192.168.0.15:20128" / null), never OmniRoute runtime config (#5151).
   "COMBO_LIVE_BASE_URL",
   "COMBO_LIVE_API_KEY",
+  // Ad-hoc mesh/coverage scripts under scripts/ad-hoc/*.mjs (mesh-send, mesh-run,
+  // verify-coverage). Operator-supplied script secrets, not OmniRoute runtime config.
+  "BOT_TOKEN",
+  "BOT_URL",
   // Homologation E2E suite (npm run homolog) vars — configured via the dedicated
   // .env.homolog file (template: .env.homolog.example), never in the runtime .env.
   // Test/ops-only signals against the homologation VPS, same class as COMBO_LIVE_*.
@@ -148,8 +179,11 @@ const IGNORE_FROM_CODE = new Set([
   // X11/Wayland display server vars used by tray heuristic (isTraySupported).
   "DISPLAY",
   "WAYLAND_DISPLAY",
-  // Build-time override for OpenAPI spec path used by generate-api-commands.mjs.
+  // Build-time overrides for generate-api-commands.mjs (spec input / commands output dir).
+  // OPENAPI_OUT_DIR exists so tests/unit/cli-api-generator-ref-params.test.ts can regenerate
+  // into a scratch dir instead of the real bin/cli/api-commands/ tree.
   "OPENAPI_SPEC",
+  "OPENAPI_OUT_DIR",
   // Aliases for documented vars handled via fallback ordering.
   "API_KEY",
   "APP_URL",
@@ -187,6 +221,10 @@ const IGNORE_FROM_CODE = new Set([
   // Listener-owned self-fetch transport signal. The HTTP/HTTPS launchers set
   // this before application imports; it is not user-configurable product env.
   "OMNIROUTE_INTERNAL_SCHEME",
+  // Runner-owned bind-host signal. scripts/dev/run-next.mjs publishes the
+  // interface it actually binds so the in-process startup guard can name it
+  // (#13695); operators configure HOST / HOSTNAME, never this.
+  "OMNIROUTE_BOUND_HOST",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).
@@ -197,12 +235,25 @@ const IGNORE_FROM_CODE = new Set([
   // NVIDIA diagnostic/test helpers used only by ad-hoc scripts.
   "NVIDIA_BASE_URL",
   "NVIDIA_MODEL",
+  // Lemonade embedding-provider integration test (tests/integration/semantic-cache-lemonade.test.ts)
+  // — points the gated live test at an operator's local Lemonade server; the test skips itself
+  // when the endpoint is unreachable, never OmniRoute runtime config.
+  "LEMONADE_URL",
+  "LEMONADE_KEY",
+  "LEMONADE_MODEL",
+  // Discord integration ad-hoc script (scripts/ad-hoc/mesh-send.mjs) —
+  // operator-supplied bot credentials, not user-facing OmniRoute config.
+  "BOT_TOKEN",
+  "BOT_URL",
   // XDG standard data directory — set by OS/desktop session, not OmniRoute config.
   // Read by setup-open-code.mjs to locate platform-specific OpenCode data dir.
   "XDG_DATA_HOME",
   // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
   // requiring the real bundled plugin to be built.
   "OMNIROUTE_OPENCODE_PLUGIN_DIR",
+  // Test-only escape hatch: makes getMachineIdRaw() skip the macOS ioreg strategy so
+  // machineId tests reach the fallback strategies on darwin (#13539). Not user config.
+  "DISABLE_IOREG_STRATEGY",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
@@ -249,6 +300,10 @@ const DOC_ONLY_ALLOWLIST = new Set([
   // SQL keyword mentioned in the new VACUUM scheduler docs (#4437).
   // The check's regex picks up the bare word in description text.
   "VACUUM",
+  // Source-code constant (open-sse/services/combo/comboPredicates.ts:35 —
+  // `export const COMBO_LOOP_SAFETY_TIMEOUT_MS = 10 * 60 * 1000`), cited in the
+  // comboTimeoutMs narrative added by #13857. Not operator-configurable.
+  "COMBO_LOOP_SAFETY_TIMEOUT_MS",
 ]);
 
 // Vars present in .env.example but intentionally absent from ENVIRONMENT.md.
@@ -263,6 +318,9 @@ const ENV_ONLY_ALLOWLIST = new Set([
   "PII_WINDOW_SIZE",
   "TRAE_STREAM_TIMEOUT_MS",
   "TRAE_TOKEN",
+  // #12190: Trae host/Origin override. ENVIRONMENT.md documents no Trae variable at
+  // all; this joins its two siblings above under the same .env.example-only tier.
+  "TRAE_WEB_ORIGIN",
 ]);
 
 // ─── Parsing helpers ───────────────────────────────────────────────────────
@@ -414,6 +472,24 @@ function main() {
   process.exit(1);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+/**
+ * True when this module was launched directly as the Node entry point.
+ *
+ * `process.argv[1]` is an absolute filesystem path while `import.meta.url` is a
+ * file URL, so the two only match when encoded through `pathToFileURL`. A raw
+ * `file://${argv[1]}` comparison silently never matches when the checkout path
+ * contains characters the URL form percent-encodes (e.g. a space), which made
+ * the CLI exit 0 without running anything.
+ */
+export function isMainEntry(argv1, moduleUrl) {
+  if (!argv1) return false;
+  try {
+    return pathToFileURL(argv1).href === moduleUrl;
+  } catch {
+    return false;
+  }
+}
+
+if (isMainEntry(process.argv[1], import.meta.url)) {
   main();
 }

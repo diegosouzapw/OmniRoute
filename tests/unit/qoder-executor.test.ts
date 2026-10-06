@@ -49,7 +49,7 @@ function withStubQoderCli(fn: () => void | Promise<void>) {
   const restore = () => {
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   };
   return Promise.resolve().then(fn).finally(restore);
 }
@@ -425,7 +425,7 @@ test("QoderExecutor: surfaces qodercli stderr when is_error=true with empty resu
   } finally {
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 

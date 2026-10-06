@@ -15,7 +15,7 @@ const callLogs = await import("../../src/lib/usage/callLogs.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("saveCallLog persists sessionTag when explicitly supplied", async () => {

@@ -5,7 +5,7 @@ export const nlpcloudProvider: RegistryEntry = {
   alias: "nlpc",
   format: "openai",
   executor: "default",
-  baseUrl: "https://api.nlpcloud.io/v1/chat/completions",
+  baseUrl: "https://api.nlpcloud.io/v1/gpu",
   authType: "apikey",
   authHeader: "bearer",
   // Sweep 2026-06-19: NLP Cloud's branded chat models + larger Llama tiers.

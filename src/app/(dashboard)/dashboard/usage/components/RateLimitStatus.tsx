@@ -22,7 +22,9 @@ export default function RateLimitStatus() {
   }, []);
 
   useEffect(() => {
-    load();
+    void (async () => {
+      await load();
+    })();
     const interval = setInterval(load, 10000);
     return () => clearInterval(interval);
   }, [load]);

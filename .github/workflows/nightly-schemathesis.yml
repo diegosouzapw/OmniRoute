@@ -10,7 +10,10 @@ permissions:
 jobs:
   schemathesis:
     name: Schemathesis — OpenAPI contract fuzz (advisory)
-    runs-on: ubuntu-latest
+    # #11965: this job runs a backend-only `next build`; the hosted 7 GB runner cannot build
+    # release/v3.8.51 (VM shutdown ~7 min in), so it targets the box's light pool (`omni-light`:
+    # two listeners, jobs ≤ ~6 GB). Falls back to hosted when USE_VPS_RUNNER is off.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-light"]')) || 'ubuntu-latest' }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7

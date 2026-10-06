@@ -1,5 +1,11 @@
 /** Upstream proxy config persistence for upstream_proxy_config table. */
 import { getDbInstance } from "./core";
+import {
+  isCloudMetadataHost,
+  isPrivateHost as isPrivateNetworkHost,
+  mappedIpv4Host,
+} from "@/shared/network/outboundUrlGuard";
+import { normalizeHost } from "@/shared/network/privateHost";
 
 /** Which embedded proxy handles the retry leg when mode === "fallback". */
 export type FallbackBackend = "cliproxyapi" | "dario";
@@ -37,26 +43,31 @@ function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
-const BLOCKED_HOSTNAMES = ["metadata.google.internal", "169.254.169.254", "metadata.aws.internal"];
+const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"]);
 
+/**
+ * Reject a proxy target that is private or cloud-metadata, judging the ADDRESS
+ * rather than its spelling.
+ *
+ * This module used to carry its own prefix regexes, which matched only the
+ * dotted form: `http://169.254.169.254` was refused while
+ * `http://[::ffff:169.254.169.254]` — the same address, serialised by WHATWG
+ * URL as `::ffff:a9fe:a9fe` — was accepted, as were `::ffff:10.0.0.5`,
+ * `fd00::/8`, `fe80::/10` and CGNAT `100.64.0.0/10`. #10843 fixed exactly that
+ * class in the shared guard; routing this copy through the same helpers keeps
+ * the two from drifting apart again.
+ *
+ * The deliberate exception stays: CLIProxyAPI runs on localhost:8317, so
+ * loopback is allowed — and now so is its mapped spelling, for the same
+ * address-not-spelling reason.
+ */
 function isPrivateHost(hostname: string): boolean {
-  // CLIProxyAPI runs on localhost:8317 — allow loopback explicitly
-  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return false;
-  if (BLOCKED_HOSTNAMES.includes(hostname)) return true;
-  if (
-    /^10\./.test(hostname) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
-    /^192\.168\./.test(hostname)
-  )
-    return true;
-  if (
-    /^0\./.test(hostname) ||
-    /^127\./.test(hostname) ||
-    /^224\./.test(hostname) ||
-    /^169\.254\./.test(hostname)
-  )
-    return true;
-  return false;
+  const normalized = normalizeHost(hostname);
+  const asIpv4 = mappedIpv4Host(normalized) ?? normalized;
+
+  if (LOOPBACK_HOSTNAMES.has(normalized) || LOOPBACK_HOSTNAMES.has(asIpv4)) return false;
+
+  return isCloudMetadataHost(normalized) || isPrivateNetworkHost(normalized);
 }
 
 export function validateProxyUrl(
@@ -110,15 +121,6 @@ function rowToConfig(record: Record<string, unknown>): UpstreamProxyConfig {
     updatedAt: record.updated_at as string,
   };
 }
-
-export async function getUpstreamProxyConfigs() {
-  const db = getDbInstance();
-  const rows = db
-    .prepare("SELECT * FROM upstream_proxy_config ORDER BY provider_id")
-    .all() as UpstreamProxyRow[];
-  return rows.map((row) => rowToConfig(toRecord(row)));
-}
-
 export async function getUpstreamProxyConfig(providerId: string) {
   const db = getDbInstance();
   const row = db

@@ -4,12 +4,21 @@ on:
   push:
     tags:
       - "v*"
+  # A dispatch builds the ref it is dispatched ON (`gh workflow run … --ref v3.8.50` rebuilds
+  # that tag; `--ref main` builds the repaired line). The ref is deliberately NOT an input:
+  # CodeQL flags an input-controlled checkout next to the npm cache on the default branch as
+  # cache poisoning (actions/cache-poisoning/poisonable-step), and `github.ref` is trusted.
   workflow_dispatch:
     inputs:
       version:
         description: "Release version (e.g., v1.6.8)"
         required: true
         type: string
+      publish_npm:
+        description: "Also run the npm publish leg (turn off when re-attaching desktop assets to a release whose npm package already shipped)"
+        required: false
+        default: true
+        type: boolean
 
 # Least-privilege default: read-only at the top level; each job grants the writes it
 # needs (build/release upload assets, publish-npm forwards npm provenance / packages
@@ -55,9 +64,75 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "✓ Valid version: $VERSION"
 
+  web-build:
+    name: Build shared Next standalone
+    needs: validate
+    # Stage 8 (issue #10321): the four desktop legs used to each run the full
+    # `npm run build` (Next standalone) — ~111 runner-minutes per release just to
+    # produce the same platform-independent bundle four times. This job builds it
+    # once on ubuntu; every leg then restores the byte-verified archive and
+    # re-forks its native optionals (scripts/build/standaloneBundle.mjs).
+    #
+    # Rollback lever: set the repo variable ELECTRON_SHARED_STANDALONE=disabled.
+    # This job then skips, every leg falls back to building its own web bundle
+    # (the legacy step below), and the pipeline behaves exactly like pre-Stage 8 —
+    # no revert needed.
+    if: ${{ !cancelled() && needs.validate.result == 'success' && vars.ELECTRON_SHARED_STANDALONE != 'disabled' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NPM_CONFIG_LEGACY_PEER_DEPS: true
+
+      - name: Build Next.js standalone
+        # webpack, not Turbopack, for the same hosted-runner RAM reason as the
+        # linux leg (see the long comment on the fallback step in `build`).
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+          NODE_OPTIONS: "--max_old_space_size=6144"
+          OMNIROUTE_USE_TURBOPACK: "0"
+        run: npm run build
+
+      - name: Pack standalone bundle
+        # Deterministic tar.gz + byte-level manifest; the manifest embeds the
+        # archive's own sha256 so artifact-transfer corruption is caught before
+        # extraction, and every entry is re-verified after extraction.
+        run: node scripts/build/standaloneBundle.mjs pack --out web-bundle.tar.gz
+
+      - name: Upload shared web bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-standalone-bundle
+          # compression-level 0: the payload is already a deterministic tar.gz;
+          # re-zipping would only burn runner CPU without shrinking it further.
+          compression-level: 0
+          # Legs consume this within minutes; no reason to retain it like the
+          # installer artifacts (default 90d).
+          retention-days: 3
+          path: |
+            web-bundle.tar.gz
+            web-bundle.tar.gz.manifest.json
+
   build:
     name: Build Electron (${{ matrix.platform }})
-    needs: validate
+    needs: [validate, web-build]
+    # `web-build` is skipped when ELECTRON_SHARED_STANDALONE=disabled (rollback
+    # mode); legs then run the legacy per-leg web build below. If it ran and
+    # failed, fail closed: legs cannot package without the bundle, and silently
+    # falling back to four per-leg builds would hide exactly the regression the
+    # shared job exists to surface.
+    if: ${{ !cancelled() && needs.validate.result == 'success' && (needs.web-build.result == 'success' || needs.web-build.result == 'skipped') }}
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: write # electron-builder may publish artifacts with GH_TOKEN
@@ -69,19 +144,27 @@ jobs:
             runner: windows-latest
             target: win
             ext: .exe
+            os: win32
+            arch: x64
           - platform: macos-intel
             runner: macos-15-intel
             target: mac-x64
             ext: .dmg
+            os: darwin
+            arch: x64
           - platform: macos-arm64
             runner: macos-latest
             target: mac-arm64
             ext: -arm64.dmg
+            os: darwin
+            arch: arm64
           - platform: linux
             runner: ubuntu-latest
             target: linux
             ext: .AppImage
             deb_ext: .deb
+            os: linux
+            arch: x64,arm64
 
     steps:
       - uses: actions/checkout@v7
@@ -93,18 +176,26 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Cache node_modules
-        uses: actions/cache@v6.1.0
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Install dependencies
         run: npm ci
         env:
           NPM_CONFIG_LEGACY_PEER_DEPS: true
+
+      # The Linux leg produces x64 + arm64 installers from one x64 runner. npm
+      # deliberately installs only host-compatible optional dependencies, so
+      # hydrateNativeDeps cannot source the arm64 fork unless we fetch the exact
+      # package pinned in package-lock before either build path runs.
+      - name: Install Linux arm64 wreq binding for cross-package
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          npm install --no-save --ignore-scripts --force --legacy-peer-deps \
+            @wreq-js/binding-linux-arm64-gnu@3.2.0
+          git diff --exit-code -- package.json package-lock.json
+          mkdir -p "$RUNNER_TEMP/omniroute-wreq-verify"
+          DATA_DIR="$RUNNER_TEMP/omniroute-wreq-verify" node --import tsx/esm --test \
+            --test-name-pattern='wreq-js 3.2 manifest pins all nine' \
+            tests/unit/wreq-native-manifest.test.ts
 
       - name: Sanitize Windows home directory
         if: runner.os == 'Windows'
@@ -116,7 +207,11 @@ jobs:
           mkdir -p "$RUNNER_TEMP/home"
           echo "USERPROFILE=$RUNNER_TEMP/home" >> "$GITHUB_ENV"
 
-      - name: Build Next.js standalone
+      - name: Build Next.js standalone (legacy per-leg fallback)
+        # Stage 8: only runs in rollback mode (ELECTRON_SHARED_STANDALONE=disabled)
+        # or when the shared web-build job was skipped. Otherwise the leg restores
+        # the shared bundle from the `web-build` job below.
+        if: needs.web-build.result == 'skipped'
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           NODE_OPTIONS: "--max_old_space_size=6144"
@@ -133,6 +228,30 @@ jobs:
           # applied to nightly-compat's Node 26 build (#8090).
           OMNIROUTE_USE_TURBOPACK: ${{ matrix.platform == 'linux' && '0' || '1' }}
         run: npm run build
+
+      - name: Download shared web bundle
+        # Stage 8: inverse of the fallback step above — runs exactly when the
+        # shared `web-build` job produced the bundle.
+        if: needs.web-build.result == 'success'
+        uses: actions/download-artifact@v8
+        with:
+          name: web-standalone-bundle
+
+      - name: Restore + hydrate shared web bundle
+        if: needs.web-build.result == 'success'
+        shell: bash
+        # restore: verify the archive's sha256 against the manifest, extract, then
+        #          re-verify every entry (existence + size + content hash + symlink
+        #          targets, and no unlisted files) byte-for-byte.
+        # hydrate: the bundle was built on ubuntu, so install-machine-forked native
+        #          optionals (@img/sharp-*, @img/sharp-libvips-*, @ngrok/ngrok-*,
+        #          @wreq-js/binding-*, fsevents) carry linux forks. Replace them with the forks this
+        #          leg's own `npm ci` resolved, then assert every bundled native
+        #          (better-sqlite3 prebuilds, wreq-js, onnxruntime)
+        #          can service this leg's platform/arch before packaging starts.
+        run: |
+          node scripts/build/standaloneBundle.mjs restore --archive web-bundle.tar.gz
+          node scripts/build/standaloneBundle.mjs hydrate --platform ${{ matrix.os }} --arch ${{ matrix.arch }}
 
       - name: Sync version in electron/package.json
         shell: bash
@@ -158,7 +277,7 @@ jobs:
 
       - name: Install Electron dependencies
         working-directory: electron
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Build Electron for ${{ matrix.platform }}
         working-directory: electron
@@ -185,9 +304,14 @@ jobs:
 
       - name: Smoke packaged Electron app (Linux)
         if: matrix.platform == 'linux'
+        # #7592: also cold-restart against the same DATA_DIR and assert a
+        # native SQLite driver (not the sql.js WASM fallback) is selected on
+        # the second launch — blocking here since Linux has no Windows-style
+        # sandbox caveats that would make it flaky.
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
           ELECTRON_SMOKE_STREAM_LOGS: "1"
+          ELECTRON_SMOKE_COLD_RESTART: "1"
         run: xvfb-run -a npm run electron:smoke:packaged
 
       - name: Collect installers
@@ -305,7 +429,14 @@ jobs:
           tag_name: ${{ needs.validate.outputs.version }}
           draft: false
           prerelease: false
-          generate_release_notes: true
+          # NEVER. Phase 3 of the release flow creates the GitHub Release with the curated
+          # notes seconds after pushing the tag, so by the time this step runs (1-2 h of
+          # builds later) the body already exists — and `true` APPENDS GitHub's
+          # auto-generated "What's Changed" block to it (v3.8.48 shipped that way; the
+          # v3.8.50 re-attach dispatch added +1,416 chars to a 121 KB body, run
+          # 33238093090). A curated body sits ~3 KB under the 125,000-char cap, so the
+          # append can also turn this step RED and leave the release with no assets.
+          generate_release_notes: false
           fail_on_unmatched_files: false
           files: |
             release-assets/*.dmg
@@ -363,11 +494,20 @@ jobs:
   publish-npm:
     name: Publish to npm
     needs: [validate, release]
+    # A re-dispatch that only re-attaches desktop assets must not publish the npm package again.
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_npm }}
     permissions:
       # Must be `write`, not `read`: this job calls the reusable npm-publish.yml whose
       # `publish` job needs `contents: write` (gh release upload — attach the SBOM, #3874).
       # A reusable workflow's job cannot request more permission than the caller grants,
       # so a `read` here makes GitHub reject the run at startup (startup_failure).
+      #
+      # `actions: read` for the same reason: the called `publish` job downloads the next-build
+      # artefact and requests it. v3.8.50 (run 33005490476) died at startup with "The nested
+      # job 'publish' is requesting 'actions: read', but is only allowed 'actions: none'" — and
+      # because `release` lives in this same workflow, the tag shipped with ZERO assets. Keep
+      # this block a superset of every job's permissions in npm-publish.yml.
+      actions: read
       contents: write
       id-token: write # npm provenance (forwarded to the reusable workflow)
       packages: write # publish to npm.pkg.github.com

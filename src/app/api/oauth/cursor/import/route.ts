@@ -1,26 +1,25 @@
 import { NextResponse } from "next/server";
 import { CursorService } from "@/lib/oauth/services/cursor";
-import { createProviderConnection, isCloudEnabled, resolveProxyForProvider } from "@/models";
-import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { credentialsFromCursorTokens } from "@/lib/oauth/services/cursorLogin";
+import { persistCursorConnection } from "@/lib/oauth/services/persistCursorConnection";
+import { isCloudEnabled } from "@/models";
 import { syncToCloud } from "@/lib/cloudSync";
 import { cursorImportSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { resolveProxyForProvider } from "@/models";
 
 async function requireOAuthImportAuth(request: Request) {
-  if (!(await isAuthRequired(request))) return null;
-  if (await isAuthenticated(request)) return null;
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // GHSA-mg76: importing a provider connection is a state-mutating admin action;
+  // require management scope (or a dashboard session), not any valid client key.
+  return requireManagementAuth(request, { invalidApiKeyStatus: 401 });
 }
 
 /**
  * POST /api/oauth/cursor/import
- * Import and validate access token from Cursor IDE's local SQLite database
- *
- * Request body:
- * - accessToken: string - Access token from cursorAuth/accessToken
- * - machineId: string - Machine ID from storage.serviceMachineId
+ * Import access token (and optional refresh token) from Cursor IDE / paste.
  */
 export async function POST(request: Request) {
   const authResponse = await requireOAuthImportAuth(request);
@@ -46,23 +45,16 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { accessToken, machineId } = validation.data;
+    const { accessToken, machineId, refreshToken } = validation.data;
 
     const cursorService = new CursorService();
-
-    // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider("cursor");
 
-    // Validate token by making API call (through proxy if configured)
     const tokenData = await runWithProxyContext(proxy, () =>
       cursorService.validateImportToken(accessToken.trim(), machineId?.trim())
     );
 
-    // Try to extract user info from token (JWT decode, no API call)
     const jwtInfo = cursorService.extractUserInfo(tokenData.accessToken);
-
-    // Best-effort fetch real profile (email + name) from cursor.com using the
-    // same WorkOS session cookie format we use for usage limits.
     const profile = jwtInfo?.userId
       ? await runWithProxyContext(proxy, () =>
           cursorService.fetchUserInfo(tokenData.accessToken, jwtInfo.userId)
@@ -70,26 +62,41 @@ export async function POST(request: Request) {
       : null;
 
     const email = profile?.email || jwtInfo?.email || null;
+    const trimmedRefresh =
+      typeof refreshToken === "string" && refreshToken.trim().length > 0
+        ? refreshToken.trim()
+        : null;
 
-    // Save to database (no `name` — let the dashboard fall back to email so the
-    // privacy mask toggle applies, matching the codex/claude rendering).
-    const connection: any = await createProviderConnection({
-      provider: "cursor",
-      authType: "oauth",
-      accessToken: tokenData.accessToken,
-      refreshToken: null, // Cursor doesn't have public refresh endpoint
-      expiresAt: new Date(Date.now() + tokenData.expiresIn * 1000).toISOString(),
-      email,
-      providerSpecificData: {
+    let connection;
+    if (trimmedRefresh) {
+      const creds = credentialsFromCursorTokens(tokenData.accessToken, trimmedRefresh);
+      connection = await persistCursorConnection({
+        ...creds,
+        email: email || creds.email,
         machineId: tokenData.machineId,
         authMethod: "imported",
-        provider: "Imported",
-        userId: jwtInfo?.userId,
-      },
-      testStatus: "active",
-    });
+      });
+    } else {
+      // Access-only import — no refresh; user must re-import when expired.
+      const { createProviderConnection } = await import("@/models");
+      connection = await createProviderConnection({
+        provider: "cursor",
+        authType: "oauth",
+        accessToken: tokenData.accessToken,
+        refreshToken: null,
+        expiresAt: new Date(Date.now() + tokenData.expiresIn * 1000).toISOString(),
+        email,
+        providerSpecificData: {
+          machineId: tokenData.machineId,
+          authMethod: "imported",
+          provider: "Imported",
+          userId: jwtInfo?.userId,
+          accountId: jwtInfo?.userId || null,
+        },
+        testStatus: "active",
+      });
+    }
 
-    // Auto sync to Cloud if enabled
     await syncToCloudIfEnabled();
 
     return NextResponse.json({
@@ -100,7 +107,7 @@ export async function POST(request: Request) {
         email: connection.email,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Cursor import token error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
@@ -129,6 +136,12 @@ export async function GET(request: Request) {
         type: "textarea",
       },
       {
+        name: "refreshToken",
+        label: "Refresh Token (optional)",
+        description: "From cursorAuth/refreshToken — enables automatic refresh",
+        type: "textarea",
+      },
+      {
         name: "machineId",
         label: "Machine ID",
         description: "From storage.serviceMachineId in state.vscdb",
@@ -138,9 +151,6 @@ export async function GET(request: Request) {
   });
 }
 
-/**
- * Sync to Cloud if enabled
- */
 async function syncToCloudIfEnabled() {
   try {
     const cloudEnabled = await isCloudEnabled();

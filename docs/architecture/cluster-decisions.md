@@ -55,9 +55,9 @@ The two profiles here are **scale-out options for deployments that hit the SQLit
 
 **What it adds:**
 
-| Service   | Image                            | Ports  | Notes                                                                   |
-| --------- | -------------------------------- | ------ | ----------------------------------------------------------------------- |
-| `bifrost` | `ghcr.io/maximhq/bifrost:1.5.21` | `8080` | Go-based Tier-1 router; persistent logs volume `omniroute_bifrost_logs` |
+| Service   | Image                             | Ports  | Notes                                                                   |
+| --------- | --------------------------------- | ------ | ----------------------------------------------------------------------- |
+| `bifrost` | `ghcr.io/maximhq/bifrost:v1.6.11` | `8080` | Go-based Tier-1 router; persistent logs volume `omniroute_bifrost_logs` |
 
 **Activation:** set `BIFROST_BASE_URL=http://bifrost:8080` in `.env.example`. The existing sidecar proxy route at [`src/app/api/v1/relay/chat/completions/bifrost/route.ts`](../../src/app/api/v1/relay/chat/completions/bifrost/route.ts) (added in PR #4381) will pick this up automatically.
 

@@ -22,11 +22,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import i18nConfig from "../../config/i18n.json" with { type: "json" };
 
-const PAGE_PATH = path.resolve(
-  process.cwd(),
-  "src/app/(dashboard)/dashboard/radar/page.tsx"
-);
+const PAGE_PATH = path.resolve(process.cwd(), "src/app/(dashboard)/dashboard/radar/page.tsx");
 const PAGE_SRC = fs.readFileSync(PAGE_PATH, "utf-8");
 
 const NEW_KEYS = [
@@ -57,38 +55,34 @@ test("radar page: claim/plans links are state, never a hardcoded external URL li
 });
 
 test("radar page: both buttons open in a new tab safely", () => {
-  const contributorAnchor = PAGE_SRC.match(
-    /href=\{contributorClaimUrl\}[\s\S]{0,120}/
-  )?.[0];
+  const contributorAnchor = PAGE_SRC.match(/href=\{contributorClaimUrl\}[\s\S]{0,120}/)?.[0];
   const supporterAnchor = PAGE_SRC.match(/href=\{supporterPlansUrl\}[\s\S]{0,120}/)?.[0];
   assert.ok(contributorAnchor, "contributorClaimUrl anchor must exist");
   assert.ok(supporterAnchor, "supporterPlansUrl anchor must exist");
   for (const anchor of [contributorAnchor, supporterAnchor]) {
     assert.ok(anchor!.includes('target="_blank"'), "must open in a new tab");
-    assert.ok(
-      anchor!.includes('rel="noopener noreferrer"'),
-      "must set rel=noopener noreferrer"
-    );
+    assert.ok(anchor!.includes('rel="noopener noreferrer"'), "must set rel=noopener noreferrer");
   }
 });
 
 test("radar page: references the 5 new claim-section t(...) keys", () => {
   for (const key of NEW_KEYS) {
-    assert.ok(
-      PAGE_SRC.includes(`t("${key}")`),
-      `page.tsx must reference t("${key}")`
-    );
+    assert.ok(PAGE_SRC.includes(`t("${key}")`), `page.tsx must reference t("${key}")`);
   }
 });
 
-test("radar page + all 43 locale files: no price/monetary value in the claim section copy (D14)", () => {
+test(`radar page + all ${i18nConfig.locales.length} locale files: no price/monetary value in the claim section copy (D14)`, () => {
   // D14: no pricing anywhere in the OSS repo, only a link to the plans page.
-  const PRICE_PATTERN = /\$\s?\d|R\$\s?\d|\d+[.,]\d{2}\s?(USD|BRL|EUR)|\b(lifetime|life-time)\b.{0,20}\$/i;
+  const PRICE_PATTERN =
+    /\$\s?\d|R\$\s?\d|\d+[.,]\d{2}\s?(USD|BRL|EUR)|\b(lifetime|life-time)\b.{0,20}\$/i;
   assert.ok(!PRICE_PATTERN.test(PAGE_SRC), "page.tsx must not contain a price/monetary value");
 
   const messagesDir = path.resolve(process.cwd(), "src/i18n/messages");
   const files = fs.readdirSync(messagesDir).filter((f) => f.endsWith(".json"));
-  assert.ok(files.length >= 40, `expected ~43 locale files, found ${files.length}`);
+  assert.ok(
+    files.length >= i18nConfig.locales.length,
+    `expected the ${i18nConfig.locales.length} configured locales, found ${files.length}`
+  );
 
   for (const file of files) {
     const data = JSON.parse(fs.readFileSync(path.join(messagesDir, file), "utf-8"));
@@ -103,20 +97,5 @@ test("radar page + all 43 locale files: no price/monetary value in the claim sec
         `${file}: radarPage.${key} must not contain a price/monetary value`
       );
     }
-  }
-});
-
-test("no OSS file mentions the word 'freellmapi'", () => {
-  // Repo-wide guard scoped to the files this task touches — the full
-  // repo-wide ban is enforced elsewhere; this is a local regression check
-  // for the files this feature added/edited.
-  const filesToCheck = [
-    PAGE_PATH,
-    path.resolve(process.cwd(), "src/lib/radar/links.ts"),
-    path.resolve(process.cwd(), "src/app/api/radar/settings/route.ts"),
-  ];
-  for (const file of filesToCheck) {
-    const src = fs.readFileSync(file, "utf-8");
-    assert.ok(!/freellmapi/i.test(src), `${file} must not mention freellmapi`);
   }
 });

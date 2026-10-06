@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import {
   getObsidianSyncStatus,
@@ -21,10 +22,19 @@ export async function GET(request: NextRequest) {
 
   try {
     const status = await getObsidianSyncStatus();
+    // GHSA-62vw: the WebDAV password is reusable authentication material. Return
+    // the plaintext only to a genuine management principal (dashboard session or
+    // manage-scope key), never to an anonymous caller that reached this handler
+    // through the requireLogin=false open mode. The dashboard's authenticated
+    // reveal-password view is unaffected; anonymous callers get a set/unset flag.
+    const hasManagement =
+      (await requireManagementAuth(request, { alwaysRequireAuth: true })) === null;
     return NextResponse.json({
       webdavEnabled: status.webdavEnabled,
       webdavUsername: status.webdavEnabled ? status.webdavUsername : null,
-      webdavPassword: status.webdavEnabled ? status.webdavPassword : null,
+      webdavPassword:
+        status.webdavEnabled && hasManagement ? status.webdavPassword : null,
+      webdavPasswordSet: status.webdavEnabled && Boolean(status.webdavPassword),
       vaultPath: status.vaultPath,
     });
   } catch (error) {

@@ -21,7 +21,7 @@ const tierResolver = await import("../../open-sse/services/tierResolver.ts");
 function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   // classifyTier() caches by provider::model — reset the routing-side config
   // too so tests don't leak assignments across each other.
@@ -34,7 +34,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 function putRequest(body: unknown) {

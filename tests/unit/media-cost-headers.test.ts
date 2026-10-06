@@ -36,7 +36,7 @@ test.afterEach(() => {
 test.after(() => {
   restoreGlobals();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // Shared assertions: every successful media Response must carry the
@@ -142,7 +142,9 @@ test("v1 music generation success Response carries cost telemetry headers", asyn
       return new Response(
         JSON.stringify({
           "music-cost-1": {
-            outputs: { 7: { audio: [{ filename: "track.wav", subfolder: "out", type: "output" }] } },
+            outputs: {
+              7: { audio: [{ filename: "track.wav", subfolder: "out", type: "output" }] },
+            },
           },
         }),
         { status: 200, headers: { "content-type": "application/json" } }

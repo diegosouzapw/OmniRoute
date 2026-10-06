@@ -79,7 +79,7 @@ export function toJsonErrorPayload(rawError: unknown, fallbackMessage = "Upstrea
   return fallback;
 }
 
-function extractErrorMessage(value: unknown): string | null {
+export function extractErrorMessage(value: unknown): string | null {
   if (!value || typeof value !== "object") return null;
   const record = value as JsonRecord;
 
@@ -109,4 +109,49 @@ function extractErrorMessage(value: unknown): string | null {
   }
 
   return null;
+}
+
+/**
+ * One-line reason for an upstream failure, for `lastError` and the console.
+ *
+ * A non-string used to collapse to the bare fallback, which is what an operator
+ * then reads in the dashboard. The case that matters most is not a string: a
+ * failed `fetch` arrives as `TypeError: fetch failed` with the actionable part on
+ * `error.cause.code` (ECONNREFUSED, ENOTFOUND, ETIMEDOUT), so a wrong port, a
+ * firewall and a blocked proxy all looked identical.
+ *
+ * Only message-shaped fields and transport codes are read — the value is never
+ * serialized wholesale, so a request body or header attached to an error cannot
+ * leak into the stored reason.
+ */
+export function describeUpstreamFailure(
+  value: unknown,
+  fallback = "Provider error",
+  maxLength = 100
+): string {
+  const clamp = (text: string) => text.replace(/\s+/g, " ").trim().slice(0, maxLength);
+
+  if (typeof value === "string") return value.slice(0, maxLength);
+  if (!value || typeof value !== "object") return fallback;
+
+  const record = value as JsonRecord;
+  const cause = record.cause as JsonRecord | undefined;
+  const code =
+    typeof record.code === "string" && record.code
+      ? record.code
+      : cause && typeof cause === "object" && typeof cause.code === "string" && cause.code
+        ? cause.code
+        : null;
+
+  const nestedError = record.error;
+  const message =
+    extractErrorMessage(value) ??
+    (typeof nestedError === "string" && nestedError.trim()
+      ? nestedError.trim()
+      : extractErrorMessage(nestedError));
+
+  if (message) {
+    return code && !message.includes(code) ? clamp(`${message} (${code})`) : clamp(message);
+  }
+  return code ? clamp(`${fallback} (${code})`) : fallback;
 }

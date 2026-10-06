@@ -21,7 +21,7 @@ async function withCorpus(
   try {
     await run(root, index);
   } finally {
-    await fs.rm(root, { recursive: true, force: true });
+    await fs.rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 

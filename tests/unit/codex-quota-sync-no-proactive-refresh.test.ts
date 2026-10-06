@@ -27,11 +27,12 @@ import path from "node:path";
 
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-codex-quota-"));
 
-const { getExecutor } = await import("../../open-sse/executors/index.ts");
+const { getCredentialRefreshExecutor } =
+  await import("../../open-sse/executors/credential.ts");
 const { refreshAndUpdateCredentials } = await import("../../src/lib/usage/providerLimits.ts");
 
 test("codex: quota-sync must NOT proactively rotate the refresh_token (Auth0 family-revocation cascade guard)", async () => {
-  const exec = getExecutor("codex");
+  const exec = await getCredentialRefreshExecutor("codex");
   const origNeeds = exec.needsRefresh;
   const origRefresh = exec.refreshCredentials;
   let refreshCalls = 0;
@@ -68,7 +69,7 @@ test("codex: quota-sync must NOT proactively rotate the refresh_token (Auth0 fam
 });
 
 test("non-rotating OAuth provider is still refreshed proactively from quota-sync (gate is not over-broad)", async () => {
-  const exec = getExecutor("cursor");
+  const exec = await getCredentialRefreshExecutor("cursor");
   const origNeeds = exec.needsRefresh;
   const origRefresh = exec.refreshCredentials;
   let refreshCalls = 0;

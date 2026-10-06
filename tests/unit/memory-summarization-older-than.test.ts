@@ -29,7 +29,7 @@ const { summarizeMemoriesOlderThan } = await import("../../src/lib/memory/summar
 function cleanup() {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -53,7 +53,7 @@ test.afterEach(async () => {
 });
 test.after(() => {
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -175,7 +175,11 @@ test("summarizeMemoriesOlderThan: totalTokens equals sum of candidates' content 
     (sum, m) => sum + Math.ceil(m.content.length / 4),
     0
   );
-  assert.equal(result.totalTokens, expectedTokens, "totalTokens must equal sum of candidate tokens");
+  assert.equal(
+    result.totalTokens,
+    expectedTokens,
+    "totalTokens must equal sum of candidate tokens"
+  );
 });
 
 test("summarizeMemoriesOlderThan: apiKeyId=undefined scopes to ALL memories", async () => {

@@ -23,7 +23,7 @@ test("checkFallbackError ignores body reset text when upstream retry hints are d
     429,
     ANTIGRAVITY_RESET_TEXT,
     0,
-    "gemini-3-flash-agent",
+    "gemini-3.7-flash-high",
     "antigravity",
     null,
     antigravityProfile(false)
@@ -40,7 +40,7 @@ test("checkFallbackError honors body reset text when upstream retry hints are en
     429,
     ANTIGRAVITY_RESET_TEXT,
     0,
-    "gemini-3-flash-agent",
+    "gemini-3.7-flash-high",
     "antigravity",
     null,
     antigravityProfile(true)

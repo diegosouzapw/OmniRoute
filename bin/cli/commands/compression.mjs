@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { apiFetch } from "../api.mjs";
+import { mcpCallTool } from "../mcpClient.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
@@ -78,18 +79,17 @@ async function restComboStats(period) {
 }
 
 async function mcpCall(name, args, restFallback) {
-  const res = await apiFetch("/api/mcp/tools/call", {
-    method: "POST",
-    body: { name, arguments: args },
-  });
-  if (res.ok) return res.json();
-  // 404 = MCP tool surface not mounted on this build; 501 = not implemented.
-  // Anything else is a genuine error and we surface it.
-  if ((res.status === 404 || res.status === 501) && typeof restFallback === "function") {
-    return restFallback();
+  try {
+    return await mcpCallTool(name, args);
+  } catch (err) {
+    // Keep the REST fallback behavior for builds where the MCP surface
+    // is unreachable / not mounted. Anything else rethrows as an error.
+    const status = err?.status || err?.cause?.status;
+    if ((status === 404 || status === 501) && typeof restFallback === "function") {
+      return restFallback();
+    }
+    throw err;
   }
-  process.stderr.write(`Error: ${res.status}\n`);
-  process.exit(1);
 }
 
 async function confirm(q) {

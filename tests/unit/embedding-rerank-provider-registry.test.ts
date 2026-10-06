@@ -64,6 +64,7 @@ test("voyage-ai and jina-ai rerank registries expose supported models", () => {
 
   assert.ok(jina);
   assert.equal(jina.baseUrl, "https://api.jina.ai/v1/rerank");
+  assert.ok(jina.models.some((model) => model.id === "jina-reranker-v3.5"));
   assert.ok(jina.models.some((model) => model.id === "jina-reranker-v3"));
   assert.ok(jina.models.some((model) => model.id === "jina-reranker-m0"));
 

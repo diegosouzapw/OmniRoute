@@ -78,6 +78,10 @@
       "canonical": "專案",
       "synonyms": [],
       "note": "Enforcement deferred: 項目 is also the correct rendering of 'item' (依賴項目, 必要項目, 共通項目), which dominates real usage. Only 項目概覽 -> 專案概覽 is normalized by hand."
+    },
+    "disabled (status)": {
+      "canonical": "已停用",
+      "synonyms": ["殘疾人", "殘障人士"]
     }
   }
 }

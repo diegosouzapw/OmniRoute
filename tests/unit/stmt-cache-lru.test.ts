@@ -24,7 +24,7 @@ function cleanup() {
     delete process.env.DATA_DIR;
   }
   try {
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    fs.rmSync(tempDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {}
 }
 
@@ -50,9 +50,9 @@ test("statement cache handles 200+ unique SELECTs without errors (LRU eviction)"
     }
 
     // Verify the DB is still functional after eviction churn
-    const finalRow = db
-      .prepare("SELECT COUNT(*) AS cnt FROM stmt_cache_test")
-      .get() as { cnt: number };
+    const finalRow = db.prepare("SELECT COUNT(*) AS cnt FROM stmt_cache_test").get() as {
+      cnt: number;
+    };
     assert.equal(finalRow.cnt, 1, "table should still have 1 row after cache churn");
   } finally {
     cleanup();

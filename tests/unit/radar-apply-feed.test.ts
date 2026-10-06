@@ -589,6 +589,7 @@ test("getRadarCatalog: corrupt payload returns baseline without throwing", () =>
 test("getRadarCatalog: valid cache returns merged entries with meta", () => {
   const result = getRadarCatalog({
     getFlag: () => true,
+    getLocalState: () => ({ localOverrides: new Map(), tombstones: new Set() }),
     getCache: () => ({
       version: "2026.08.01.1",
       tier: "community",
@@ -743,6 +744,87 @@ test("FIX2 feedModelToMerged path: contextWindow/capabilities/limits/setup survi
     keyUrl: "https://new-provider.example/keys",
     steps: ["Step A"],
   });
+});
+
+test("metadata evidence is removed when a baseline model overrides feed metadata", () => {
+  const evidence = "https://provider.example/docs/model";
+  const baseline = makeBaseline();
+  const feed = [
+    makeFeedModel({
+      provider: "groq",
+      modelId: "llama-3.3-70b-versatile",
+      contextWindow: 100,
+      capabilities: { tools: true, vision: false, thinking: null },
+      metadataEvidenceUrls: [evidence],
+    }),
+  ];
+  const key = "groq:llama-3.3-70b-versatile";
+
+  const [entry] = applyFeed({
+    baseline,
+    feed,
+    localOverrides: new Map([
+      [key, { contextWindow: 999, capabilities: { tools: false, vision: null, thinking: null } }],
+    ]),
+    tombstones: new Set(),
+  });
+
+  assert.equal(entry.contextWindow, 999);
+  assert.deepEqual(entry.metadataEvidenceUrls, []);
+});
+
+test("metadata evidence is removed when a feed-only model overrides metadata with null", () => {
+  const key = "new-provider:new-model";
+  const [entry] = applyFeed({
+    baseline: [],
+    feed: [
+      makeFeedModel({
+        provider: "new-provider",
+        modelId: "new-model",
+        contextWindow: 100,
+        metadataEvidenceUrls: ["https://provider.example/docs/model"],
+      }),
+    ],
+    localOverrides: new Map([[key, { contextWindow: null }]]),
+    tombstones: new Set(),
+  });
+
+  assert.equal(entry.contextWindow, null);
+  assert.deepEqual(entry.metadataEvidenceUrls, []);
+});
+
+test("F3 mergeOne path: familyId survives the feed merge over a baseline entry", () => {
+  const result = applyFeed({
+    baseline: makeBaseline(),
+    feed: [
+      makeFeedModel({
+        provider: "groq",
+        modelId: "llama-3.3-70b-versatile",
+        familyId: "llama-3.3-70b",
+      }),
+    ],
+    localOverrides: new Map(),
+    tombstones: new Set(),
+  });
+
+  assert.equal(result.find((entry) => entry.provider === "groq")?.familyId, "llama-3.3-70b");
+});
+
+test("F3 feedModelToMerged path: familyId survives for a feed-only entry", () => {
+  const result = applyFeed({
+    baseline: [],
+    feed: [
+      makeFeedModel({
+        provider: "new-provider",
+        modelId: "shared-model",
+        familyId: "shared-family",
+      }),
+    ],
+    localOverrides: new Map(),
+    tombstones: new Set(),
+  });
+
+  assert.equal(result[0]?.familyId, "shared-family");
 });
 
 // ===========================================================================

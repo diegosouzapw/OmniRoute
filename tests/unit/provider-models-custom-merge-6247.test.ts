@@ -30,7 +30,7 @@ const originalFetch = globalThis.fetch;
 async function resetStorage() {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -71,7 +71,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("per-connection models route includes user-added custom models on the local_catalog path (#6247)", async () => {
@@ -97,6 +97,35 @@ test("per-connection models route includes user-added custom models on the local
   // RED before the fix: the custom model is absent (route never read getCustomModels).
   assert.ok(custom, "user-added custom model must appear in the per-connection catalog");
   assert.equal(custom.owned_by, "aimlapi", "custom model must be stamped owned_by = provider");
+});
+
+test("per-connection models route overlays same-id custom metadata", async () => {
+  const connection = await seedConnection("aimlapi", { apiKey: "aiml-key" });
+  await modelsDb.replaceSyncedAvailableModelsForConnection("aimlapi", connection.id, [
+    { id: "shared-model", name: "Discovered name", supportsVision: true },
+  ]);
+  await modelsDb.addCustomModel(
+    "aimlapi",
+    "shared-model",
+    "Operator name",
+    "manual",
+    "chat-completions",
+    ["chat"],
+    undefined,
+    {},
+    false
+  );
+  globalThis.fetch = (async () => new Response("upstream down", { status: 500 })) as typeof fetch;
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as {
+    models?: Array<{ id: string; name?: string; supportsVision?: boolean }>;
+  };
+  const model = body.models?.find((entry) => entry.id === "shared-model");
+
+  assert.equal(response.status, 200);
+  assert.equal(model?.name, "Operator name");
+  assert.equal(model?.supportsVision, false);
 });
 
 test("per-connection models route can exclude response-only custom models for sync", async () => {

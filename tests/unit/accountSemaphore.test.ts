@@ -3,6 +3,7 @@ import { afterEach, describe, it } from "node:test";
 
 import {
   acquire,
+  acquireMany,
   buildAccountSemaphoreKey,
   getStats,
   markBlocked,
@@ -12,6 +13,143 @@ import {
 
 afterEach(() => {
   resetAll();
+});
+
+describe("accountSemaphore acquireMany", () => {
+  it("atomically acquires every enabled gate and releases them once", async () => {
+    const release = await acquireMany([
+      { key: "global", maxConcurrency: 2 },
+      { key: "provider:codex", maxConcurrency: 1 },
+      { key: "account:codex:one", maxConcurrency: 1 },
+      { key: "disabled", maxConcurrency: 0 },
+    ]);
+
+    assert.deepEqual(getStats(), {
+      global: { running: 1, queued: 0, maxConcurrency: 2, blockedUntil: null },
+      "provider:codex": { running: 1, queued: 0, maxConcurrency: 1, blockedUntil: null },
+      "account:codex:one": { running: 1, queued: 0, maxConcurrency: 1, blockedUntil: null },
+    });
+
+    release();
+    release();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    assert.deepEqual(getStats(), {});
+  });
+
+  it("queues one atomic request without partially reserving free gates", async () => {
+    const releaseProvider = await acquire("provider:codex", { maxConcurrency: 1 });
+    const waiting = acquireMany(
+      [
+        { key: "global", maxConcurrency: 1 },
+        { key: "provider:codex", maxConcurrency: 1 },
+        { key: "account:codex:two", maxConcurrency: 1 },
+      ],
+      { timeoutMs: 200 }
+    );
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    assert.equal(getStats().global?.running ?? 0, 0);
+    assert.equal(getStats()["account:codex:two"]?.running ?? 0, 0);
+    assert.equal(getStats()["provider:codex"]?.queued, 1);
+
+    releaseProvider();
+    const release = await waiting;
+    assert.equal(getStats().global?.running, 1);
+    assert.equal(getStats()["provider:codex"]?.running, 1);
+    assert.equal(getStats()["account:codex:two"]?.running, 1);
+    release();
+  });
+
+  it("removes an atomic waiter from every gate on abort", async () => {
+    const releaseGlobal = await acquire("global", { maxConcurrency: 1 });
+    const controller = new AbortController();
+    const waiting = acquireMany(
+      [
+        { key: "global", maxConcurrency: 1 },
+        { key: "provider:codex", maxConcurrency: 1 },
+      ],
+      { signal: controller.signal, timeoutMs: 200 }
+    );
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    controller.abort();
+    await assert.rejects(waiting, { name: "AbortError" });
+    assert.equal(getStats().global?.queued, 0);
+    assert.equal(getStats()["provider:codex"]?.queued ?? 0, 0);
+    releaseGlobal();
+  });
+
+  it("times out an atomic waiter without leaking reservations", async () => {
+    const releaseGlobal = await acquire("global", { maxConcurrency: 1 });
+    await assert.rejects(
+      acquireMany(
+        [
+          { key: "global", maxConcurrency: 1 },
+          { key: "provider:codex", maxConcurrency: 1 },
+        ],
+        { timeoutMs: 10 }
+      ),
+      (error: Error & { code?: string }) => error.code === "SEMAPHORE_TIMEOUT"
+    );
+    assert.equal(getStats().global?.queued, 0);
+    assert.equal(getStats()["provider:codex"]?.running ?? 0, 0);
+    releaseGlobal();
+  });
+
+  it("rejects an atomic waiter when any required gate queue is full", async () => {
+    const releaseGlobal = await acquire("global", { maxConcurrency: 1 });
+    const queued = acquire("global", { maxConcurrency: 1, maxQueueSize: 1, timeoutMs: 200 });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    await assert.rejects(
+      acquireMany(
+        [
+          { key: "global", maxConcurrency: 1 },
+          { key: "provider:codex", maxConcurrency: 1 },
+        ],
+        { maxQueueSize: 1, timeoutMs: 200 }
+      ),
+      (error: Error & { code?: string }) => error.code === "SEMAPHORE_QUEUE_FULL"
+    );
+    assert.equal(getStats()["provider:codex"]?.queued ?? 0, 0);
+
+    releaseGlobal();
+    (await queued)();
+  });
+
+  it("fails immediately when failFast is set", async () => {
+    const release = await acquire("codex:account-a", { maxConcurrency: 1 });
+
+    await assert.rejects(
+      acquire("codex:account-a", {
+        maxConcurrency: 1,
+        failFast: true,
+        timeoutMs: 200,
+      }),
+      (error: Error & { code?: string }) => error.code === "SEMAPHORE_QUEUE_FULL"
+    );
+    assert.equal(getStats()["codex:account-a"]?.queued ?? 0, 0);
+
+    release();
+  });
+
+  it("maxQueueSize 0 means no queue limit, not fail-fast (#6593 contract)", async () => {
+    // chatCore forwards resilienceSettings.requestQueue.maxQueueDepth, whose documented
+    // default is `0 = disabled`. #12911 briefly read 0 as "reject when busy", which
+    // turned every busy account slot into a 429 under default settings.
+    const release = await acquire("codex:account-b", { maxConcurrency: 1 });
+
+    const queued = acquire("codex:account-b", {
+      maxConcurrency: 1,
+      maxQueueSize: 0,
+      timeoutMs: 500,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    assert.equal(getStats()["codex:account-b"]?.queued ?? 0, 1, "must wait in the queue");
+
+    release();
+    const releaseQueued = await queued;
+    releaseQueued();
+  });
 });
 
 describe("accountSemaphore", async () => {

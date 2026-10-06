@@ -1,5 +1,17 @@
-import { runWithProxyContext, getOriginalFetch } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { isIP } from "node:net";
+import {
+  runWithProxyContext,
+  getOriginalFetch,
+  resolveProxyForRequest,
+} from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { FetchTimeoutError, fetchWithTimeout } from "@/shared/utils/fetchTimeout";
+import {
+  bareHostname,
+  createPinnedFetch,
+  resolveHostnameAddresses,
+  type DnsLookup,
+  type DnsLookupResult,
+} from "@/shared/network/dnsPinnedFetch";
 import {
   OutboundUrlGuardError,
   type OutboundUrlGuardMode,
@@ -10,13 +22,21 @@ import {
 
 const DEFAULT_IDEMPOTENT_METHODS = ["GET", "HEAD", "OPTIONS", "PUT", "DELETE"];
 
+// Some upstream providers (Cerebras, Cloudflare AI, Groq observed in practice) routinely take
+// close to 5s to answer a lightweight /models probe, which is indistinguishable from a real
+// outage under the previous fixed 5000ms budget — the connection flaps between "active" and
+// "error" in the dashboard/topology view purely from being near the edge of the timeout, not
+// from any real failure. Configurable via env so it can be tuned per-deployment without a code
+// change; default raised from 5000ms to 8000ms to give slow-but-healthy providers headroom.
+function resolveProbeTimeoutMs(): number {
+  const parsed = parseInt(process.env.OMNIROUTE_PROVIDER_PROBE_TIMEOUT_MS || "", 10);
+  return Number.isFinite(parsed) && parsed >= 1000 ? parsed : 8000;
+}
+const PROVIDER_PROBE_TIMEOUT_MS = resolveProbeTimeoutMs();
+
 export type SafeOutboundFetchGuard = OutboundUrlGuardMode;
 export type SafeOutboundFetchErrorCode =
-  | "INVALID_URL"
-  | "URL_GUARD_BLOCKED"
-  | "TIMEOUT"
-  | "REDIRECT_BLOCKED"
-  | "NETWORK_ERROR";
+  "INVALID_URL" | "URL_GUARD_BLOCKED" | "TIMEOUT" | "REDIRECT_BLOCKED" | "NETWORK_ERROR";
 
 export interface SafeOutboundFetchRetryOptions {
   attempts?: number;
@@ -35,6 +55,11 @@ export interface SafeOutboundFetchOptions extends RequestInit {
    *  fetch directly. Use when a provider endpoint has compatibility issues
    *  with the undici dispatcher layer. */
   bypassProxyPatch?: boolean;
+  /** With `guard: "public-only"`, connect to the address that was checked instead of resolving the
+   *  name again. Skipped when the request goes through a proxy or follows redirects. */
+  pinDns?: boolean;
+  /** Resolver used by the `public-only` host check; tests inject a fake one. */
+  dnsLookup?: DnsLookup;
 }
 
 type SafeOutboundFetchPresetMap = {
@@ -47,7 +72,7 @@ type SafeOutboundFetchPresetMap = {
 
 export const SAFE_OUTBOUND_FETCH_PRESETS: SafeOutboundFetchPresetMap = {
   validationRead: {
-    timeoutMs: 5000,
+    timeoutMs: PROVIDER_PROBE_TIMEOUT_MS,
     allowRedirect: false,
     retry: {
       attempts: 2,
@@ -61,7 +86,7 @@ export const SAFE_OUTBOUND_FETCH_PRESETS: SafeOutboundFetchPresetMap = {
     retry: false,
   },
   modelsProbe: {
-    timeoutMs: 5000,
+    timeoutMs: PROVIDER_PROBE_TIMEOUT_MS,
     allowRedirect: false,
     retry: {
       attempts: 2,
@@ -183,6 +208,120 @@ function applyUrlGuard(targetUrl: URL, guard: SafeOutboundFetchGuard, method: st
   }
 }
 
+type PinnedFetchFactory = (address: string, family: number) => typeof fetch;
+let pinnedFetchTestOverride: PinnedFetchFactory | undefined;
+
+/**
+ * Test-only: replace the pinned connection used by `pinDns` (same escape hatch as
+ * `setPinnedFetchTestOverride` in remoteImageFetch.ts, #13883), for callers such as the built-in
+ * HTTP skill that have no `fetchImpl` seam of their own. Production code never calls it.
+ */
+export function setSafeOutboundPinnedFetchTestOverride(factory: PinnedFetchFactory | undefined) {
+  pinnedFetchTestOverride = factory;
+}
+
+/** Upper bound for the `public-only` host lookup; the request's own timeout applies when shorter. */
+const PUBLIC_HOST_LOOKUP_TIMEOUT_MS = 5000;
+
+/** Run a lookup that gives up after `timeoutMs` or when `signal` aborts, whichever comes first. */
+function lookupWithDeadline(
+  host: string,
+  lookup: DnsLookup | undefined,
+  timeoutMs: number,
+  signal: AbortSignal | null | undefined
+): Promise<DnsLookupResult[]> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (run: () => void) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+      run();
+    };
+    const onAbort = () => finish(() => reject(new Error(`Lookup of "${host}" was aborted`)));
+    const timer = setTimeout(
+      () => finish(() => reject(new Error(`Lookup of "${host}" timed out`))),
+      timeoutMs
+    );
+    timer.unref?.();
+    if (signal?.aborted) return onAbort();
+    signal?.addEventListener("abort", onAbort, { once: true });
+    resolveHostnameAddresses(host, lookup).then(
+      (addresses) => finish(() => resolve(addresses)),
+      (error) => finish(() => reject(error))
+    );
+  });
+}
+
+/**
+ * `public-only` judges the URL's host name, and a name can point at a private address. Resolve it
+ * and refuse it when any answer is private, so an attacker-owned name that resolves to loopback,
+ * the LAN or a metadata address does not get past a check that only reads the spelling.
+ *
+ * The lookup is bounded (the request timeout, at most PUBLIC_HOST_LOOKUP_TIMEOUT_MS) and follows
+ * the caller's abort signal, so it never holds a request longer than the request itself would
+ * run. When it fails or times out:
+ * - with `failClosed` (the connection was going to be pinned to the checked address) the request
+ *   is refused, because letting it through unpinned would connect to whatever a second lookup
+ *   returns — the very answer the check exists to judge;
+ * - otherwise the request goes ahead and fails (or not) the way it would have without the check.
+ */
+async function resolvePublicHost(
+  targetUrl: URL,
+  method: string,
+  options: {
+    lookup?: DnsLookup;
+    timeoutMs?: number;
+    signal?: AbortSignal | null;
+    failClosed: boolean;
+  }
+): Promise<DnsLookupResult[] | null> {
+  const host = bareHostname(targetUrl.hostname);
+  if (!host || isIP(host)) return null;
+
+  const deadline =
+    typeof options.timeoutMs === "number" && options.timeoutMs > 0
+      ? Math.min(options.timeoutMs, PUBLIC_HOST_LOOKUP_TIMEOUT_MS)
+      : PUBLIC_HOST_LOOKUP_TIMEOUT_MS;
+
+  let addresses: DnsLookupResult[];
+  try {
+    addresses = await lookupWithDeadline(host, options.lookup, deadline, options.signal);
+  } catch (error) {
+    if (!options.failClosed) return null;
+    throw new SafeOutboundFetchError(`Host "${host}" could not be resolved to check it`, {
+      code: "NETWORK_ERROR",
+      url: targetUrl.toString(),
+      method,
+      attempts: 1,
+      isRetryable: false,
+      cause: error,
+    });
+  }
+
+  for (const { address } of addresses) {
+    try {
+      parseAndValidatePublicUrl(
+        `${targetUrl.protocol}//${address.includes(":") ? `[${address}]` : address}/`
+      );
+    } catch (error) {
+      if (error instanceof OutboundUrlGuardError) {
+        throw new SafeOutboundFetchError(`Host "${host}" resolves to a private or local address`, {
+          code: "URL_GUARD_BLOCKED",
+          url: targetUrl.toString(),
+          method,
+          attempts: 1,
+          isRetryable: false,
+          cause: error,
+        });
+      }
+      throw error;
+    }
+  }
+  return addresses;
+}
+
 function getRetryConfig(retry: SafeOutboundFetchRetryOptions | false | undefined, method: string) {
   if (retry === false) {
     return {
@@ -276,14 +415,37 @@ export async function safeOutboundFetch(url: string | URL, options: SafeOutbound
     guard = "none",
     proxyConfig,
     bypassProxyPatch = false,
+    pinDns = false,
+    dnsLookup,
     signal,
     ...fetchOptions
   } = options;
 
   applyUrlGuard(targetUrl, guard, method);
+  // A proxy resolves the name itself and a followed redirect leaves the checked host, so the
+  // connection is only pinned to the checked address for a direct request to that one host.
+  const pinsConnection =
+    guard === "public-only" &&
+    pinDns &&
+    !allowRedirect &&
+    !proxyConfig &&
+    resolveProxyForRequest(targetUrl.toString()).source === "direct";
+  const checkedAddresses =
+    guard === "public-only"
+      ? await resolvePublicHost(targetUrl, method, {
+          lookup: dnsLookup,
+          timeoutMs,
+          signal,
+          failClosed: pinsConnection,
+        })
+      : null;
 
   const retryConfig = getRetryConfig(retry, method);
   const redirect = allowRedirect ? (fetchOptions.redirect ?? "follow") : "manual";
+  const pinTo =
+    pinsConnection && checkedAddresses?.length
+      ? (checkedAddresses.find((entry) => entry.family === 4) ?? checkedAddresses[0])
+      : null;
 
   for (let attempt = 1; attempt <= retryConfig.attempts; attempt++) {
     try {
@@ -295,7 +457,11 @@ export async function safeOutboundFetch(url: string | URL, options: SafeOutbound
           signal,
           timeoutMs,
           // When bypassing the proxy patch, use the original native fetch directly.
-          fetchFn: bypassProxyPatch ? getOriginalFetch() : undefined,
+          fetchFn: pinTo
+            ? (pinnedFetchTestOverride ?? createPinnedFetch)(pinTo.address, pinTo.family)
+            : bypassProxyPatch
+              ? getOriginalFetch()
+              : undefined,
         });
 
       const response = bypassProxyPatch

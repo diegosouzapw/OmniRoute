@@ -48,7 +48,7 @@ test.after(() => {
   if (origPath === undefined) delete process.env.PATH;
   else process.env.PATH = origPath;
   try {
-    rmSync(tmpDir, { recursive: true, force: true });
+    rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {}
 });
 
@@ -75,7 +75,8 @@ test("resolveCliPath finds omniroute.mjs from argv", async () => {
 
   if (existsSync(desktopPath)) {
     const desktop = readFileSync(desktopPath, "utf8");
-    assert.match(desktop, /Exec=.*serve --no-open/);
+    assert.match(desktop, /Exec=.*serve --no-open --tray/);
+    assert.match(desktop, /Terminal=false/);
   }
 
   disable();
@@ -100,4 +101,42 @@ test("Linux enable path prefers graphical desktop autostart over systemd", () =>
   assert.ok(graphicalBranch > -1, "expected a graphical-session branch");
   assert.ok(systemdBranch > -1, "expected a systemd fallback branch");
   assert.ok(graphicalBranch < systemdBranch, "graphical autostart should be preferred");
+});
+
+test("systemd branch writes Type=notify sd_notify directives (headless, stubs succeed)", async () => {
+  if (process.platform !== "linux") return;
+  const stubBin = join(tmpDir, "stub-bin");
+  const unitPath = join(tmpDir, ".config", "systemd", "user", "omniroute.service");
+  const envKeys = ["DISPLAY", "WAYLAND_DISPLAY", "XDG_CURRENT_DESKTOP"] as const;
+  const savedEnv: Record<string, string | undefined> = {};
+  for (const key of envKeys) savedEnv[key] = process.env[key];
+
+  try {
+    for (const key of envKeys) delete process.env[key];
+    for (const name of ["systemctl", "loginctl"]) {
+      writeFileSync(join(stubBin, name), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+    }
+    // autostart.mjs reads process.env / runs the stubs at call time, so a
+    // cached module is fine.
+    const { enable } = await import("../../../bin/cli/tray/autostart.mjs");
+
+    const ok = enable();
+    assert.equal(ok, true, "enable() should succeed through the systemd branch");
+    assert.ok(existsSync(unitPath), "systemd unit should be written");
+
+    const unit = readFileSync(unitPath, "utf8");
+    assert.match(unit, /Type=notify/);
+    assert.match(unit, /NotifyAccess=all/);
+    assert.match(unit, /WatchdogSec=180/);
+    assert.match(unit, /TimeoutStartSec=300/);
+    assert.match(unit, /Restart=on-failure/);
+  } finally {
+    for (const key of envKeys) {
+      if (savedEnv[key] === undefined) delete process.env[key];
+      else process.env[key] = savedEnv[key];
+    }
+    for (const name of ["systemctl", "loginctl"]) {
+      writeFileSync(join(stubBin, name), "#!/bin/sh\nexit 1\n", { mode: 0o755 });
+    }
+  }
 });

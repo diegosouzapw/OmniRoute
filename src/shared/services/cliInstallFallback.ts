@@ -18,11 +18,13 @@ import fsSync from "fs";
  * for any CLI tool that declares a `settings` config path (currently
  * `claude` and `droid` — see `CLI_TOOLS` in `cliRuntime.ts`).
  *
- * Only applies when the lookup's own reason is "not_found" — i.e. the binary
- * genuinely couldn't be located on PATH/known install paths. Deliberate
- * security rejections (unsafe/relative env override paths, symlink escapes,
- * suspicious file sizes, etc.) must stay `installed:false` regardless of
- * whether a settings file happens to exist.
+ * Only applies when the lookup's own reason is "not_found" or "timeout" —
+ * i.e. the binary genuinely couldn't be located on PATH/known install paths,
+ * or the probe never got a chance to answer (#10710: a probe timeout is one
+ * more variant of "not currently resolvable", the exact scenario this
+ * fallback exists for). Deliberate security rejections (unsafe/relative env
+ * override paths, symlink escapes, suspicious file sizes, etc.) must stay
+ * `installed:false` regardless of whether a settings file happens to exist.
  */
 export interface NotInstalledResult {
   installed: false;
@@ -54,7 +56,9 @@ export const withSettingsFallback = (
   settingsPath: string | undefined,
   notInstalledResult: NotInstalledResult
 ): NotInstalledResult | SettingsFallbackResult => {
-  if (notInstalledResult.reason !== "not_found") return notInstalledResult;
+  if (notInstalledResult.reason !== "not_found" && notInstalledResult.reason !== "timeout") {
+    return notInstalledResult;
+  }
   if (!settingsPath || !fsSync.existsSync(settingsPath)) return notInstalledResult;
 
   return {

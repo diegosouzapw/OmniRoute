@@ -43,6 +43,7 @@ export const HooksSchema = z.object({
   onActivate: z.boolean().optional(),
   onDeactivate: z.boolean().optional(),
   onUninstall: z.boolean().optional(),
+  onStreamComplete: z.boolean().optional(),
 });
 
 // ── Requires ──
@@ -105,6 +106,7 @@ export interface PluginManifestWithDefaults extends PluginManifest {
     onActivate: boolean;
     onDeactivate: boolean;
     onUninstall: boolean;
+    onStreamComplete: boolean;
   };
   skills: ManifestSkill[];
   enabledByDefault: boolean;
@@ -130,6 +132,7 @@ export function applyDefaults(manifest: PluginManifest): PluginManifestWithDefau
       onActivate: manifest.hooks?.onActivate ?? false,
       onDeactivate: manifest.hooks?.onDeactivate ?? false,
       onUninstall: manifest.hooks?.onUninstall ?? false,
+      onStreamComplete: manifest.hooks?.onStreamComplete ?? false,
     },
     skills: manifest.skills ?? [],
     enabledByDefault: manifest.enabledByDefault ?? false,
@@ -159,9 +162,7 @@ export function safeValidateManifest(
 
 // ── Config validation ──
 
-export type ValidatePluginConfigResult =
-  | { valid: true }
-  | { valid: false; errors: string[] };
+export type ValidatePluginConfigResult = { valid: true } | { valid: false; errors: string[] };
 
 /**
  * Validate a config object against a ConfigField schema map.

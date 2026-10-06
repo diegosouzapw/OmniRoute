@@ -26,6 +26,8 @@ npm install -g omniroute
 docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
 ```
 
+`:latest` is the highest **published** stable SemVer. It does **not** track git `main`. Pin `diegosouzapw/omniroute:X.Y.Z` for GitOps. See [Image Tags / Release Channels](../guides/DOCKER_GUIDE.md#release-channels).
+
 ### Option C: From Source
 
 ```bash
@@ -139,6 +141,8 @@ omniroute launch-codex --model auto
 ```
 
 You can do this manually via `codex` and command line parameters to specify endpoint and api key, but with the above command, OmniRoute takes care of everything for you.
+
+The same one-command launch works for other CLIs via the generic launcher — `omniroute run <target>` supports `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen`, and `gemini` (see [CLI Integrations](../guides/CLI-INTEGRATIONS.md)).
 
 3. The CLI should be sending requests to OmniRoute now.
 

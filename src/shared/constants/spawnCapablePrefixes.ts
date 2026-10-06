@@ -26,15 +26,44 @@
 export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/runtime/",
   "/api/cli-tools/qwen-settings", // GET probes the Qwen Code binary; the route also mutates local ~/.qwen files
+  // GHSA-35fw-cv32-2373: 14 cli-tools routes that reach the same getCliRuntimeStatus() /
+  // detectAllTools() spawn as their gated siblings — must never be whitelistable via
+  // manage-scope bypass (Hard Rules #15 + #17). Exact entries; NOT a "/api/cli-tools/" blanket.
+  "/api/cli-tools/all-statuses", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry
+  "/api/cli-tools/claude-settings", // GET probes the `claude` binary via getCliRuntimeStatus()
+  "/api/cli-tools/cline-settings", // GET probes the `cline` binary via getCliRuntimeStatus()
+  "/api/cli-tools/codewhale-settings", // GET probes the `codewhale` binary via getCliRuntimeStatus()
+  "/api/cli-tools/codex-settings", // GET probes the `codex` binary via getCliRuntimeStatus()
+  "/api/cli-tools/crush-settings", // GET probes the `crush` binary via getCliRuntimeStatus()
+  "/api/cli-tools/deepseek-tui-settings", // GET probes the `deepseek-tui` binary via getCliRuntimeStatus()
+  "/api/cli-tools/detect", // GET calls detectAllTools() -> execFile(binary, --version) + execFile("which") per tool
+  "/api/cli-tools/droid-settings", // GET probes the `droid` binary via getCliRuntimeStatus()
+  "/api/cli-tools/kilo-settings", // GET probes the `kilo` binary via getCliRuntimeStatus()
+  "/api/cli-tools/openclaw-settings", // GET probes the `openclaw` binary via getCliRuntimeStatus()
+  "/api/cli-tools/pi-settings", // GET probes the `pi` binary via getCliRuntimeStatus()
+  "/api/cli-tools/smelt-settings", // GET probes the `smelt` binary via getCliRuntimeStatus()
+  "/api/cli-tools/status", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry
   "/api/services/", // T-10: can run npm install + spawn node processes
+  "/api/version-manager/", // downloads, unpacks and runs the CLIProxyAPI binary (Hard Rules #15 + #17)
+  "/api/tunnels/cloudflared", // POST installs/starts/stops cloudflared; safe methods remain read-only exempt
+  "/api/tunnels/tailscale/disable", // stops Funnel and may stop tailscaled/Tailscale service
+  "/api/tunnels/tailscale/enable", // starts tailscaled/login/funnel subprocesses
+  "/api/tunnels/tailscale/install", // downloads/installs Tailscale and starts its daemon
+  "/api/tunnels/tailscale/login", // spawns `tailscale up`
+  "/api/tunnels/tailscale/start-daemon", // starts tailscaled/Tailscale service
   "/api/tools/agent-bridge/", // start/stop MITM server + DNS edits (Hard Rules #15 + #17)
+  "/api/settings/mitm", // installs a system trusted root CA + /etc/hosts DNS overrides via src/mitm/* — must never be whitelistable via manage-scope bypass (GHSA-x7vm-hp44-9p79, Hard Rules #15 + #17)
+  "/api/cli-tools/antigravity-mitm", // same privileged CA-trust + DNS surface as /api/settings/mitm (GHSA-x7vm-hp44-9p79, Hard Rules #15 + #17)
   "/api/tools/traffic-inspector/", // http-proxy listener + system proxy (Hard Rules #15 + #17)
   "/api/plugins/", // plugins: load/execute via worker_threads + child_process (Hard Rules #15 + #17)
   "/api/local/", // T-12: 1-click local service launchers (Redis today) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17)
   "/api/skills/collect/", // Skill Collector CLI detection: GET .../detect spawns a child process per CLI_TOOL_IDS entry — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17, PR #6294 review)
+  "/api/skills/install", // POST registers a handler string that can alias the built-in execute_command / eval_code (src/lib/skills/executor.ts -> builtins.ts -> sandbox.ts childProcess.spawn) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
+  "/api/skills/executions", // POST runs skillExecutor.execute() -> container spawn in src/lib/skills/sandbox.ts — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
   "/api/headroom/start", // spawns headroom-ai python CLI — must never be bypassable (Hard Rules #15 + #17)
   "/api/headroom/stop", // kills tracked PID — must never be bypassable (Hard Rules #15 + #17)
   "/api/vnc-session", // #7892: spawns Docker containers via child_process.spawn (src/lib/vncSession/service.ts) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17)
+  "/api/modality-bridge/video/", // fixed ffmpeg/ffprobe status + extraction broker (Hard Rules #15 + #17)
 ];
 
 /**
@@ -49,8 +78,10 @@ export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
  */
 export const SPAWN_CAPABLE_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/api\/providers\/[^/]+\/login\/?$/, // pre-existing gap: in LOCAL_ONLY_API_PATTERNS today but never in a spawn-capable deny-list
+  /^\/api\/providers\/volcengine-plan\/connect(\/.*)?$/, // launches Playwright to bind a Volcano Engine console session — covers the manual headful flow AND the session-based phone/SMS auto-login sub-routes (/code, /status, /cancel, /resend)
   /^\/api\/providers\/[^/]+\/refresh-cursor\/?$/, // spawns cursor-agent via renewal.ts (Hard Rules #15 + #17)
   /^\/api\/providers\/cursor\/agent-availability\/?$/, // static path (no dynamic segment), but kept in this array alongside its /api/providers/ siblings rather than the flat SPAWN_CAPABLE_PREFIXES array — spawns cursor-agent status via checkCursorAgentAvailability()/getCachedCursorAgentAvailability() (Hard Rules #15 + #17)
+  /^\/api\/providers\/[^/]+\/chatgpt-web-codex-doctor\/?$/, // spawns via getTunnelRuntimeStatus() → spawnSync("...","runtimes status") (open-sse/executors/chatgpt-web-codex/tunnelClient.ts). Mirrors LOCAL_ONLY_API_PATTERNS in routeGuard.ts; keep the two in sync (GHSA-9q3h-mjm5-f4gj).
 ];
 
 /**

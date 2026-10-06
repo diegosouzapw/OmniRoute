@@ -12,7 +12,7 @@ function flatten(items) {
 
 // ── Gemini -> OpenAI tool name casing fix (#9568) ──────────────────────
 
-test("gemini-to-openai: no toolNameMap — Gemini returns lowercase 'bash', translator outputs 'bash' (bug)", () => {
+test("gemini-to-openai: no toolNameMap — Gemini returns lowercase 'bash', translator outputs 'bash' (bug, unaffected by #10392 — that PR's static casing map applies only to the gemini-to-claude and openai-to-claude Claude Messages API paths, not this OpenAI-compatible passthrough path)", () => {
   const state = { toolCalls: new Map(), toolNameMap: null };
   const result = geminiToOpenAIResponse(
     {
@@ -75,7 +75,7 @@ test("gemini-to-openai: toolNameMap has lowercase alias — Gemini returns 'bash
 
 // ── Gemini -> Claude tool name casing fix (#9568) ──────────────────────
 
-test("gemini-to-claude: no toolNameMap — Gemini returns 'bash', translator outputs 'bash' (bug)", () => {
+test("gemini-to-claude: no toolNameMap — Gemini returns 'bash', translator outputs 'Bash' (#10392 consolidated fix)", () => {
   const state = {};
   const result = geminiToClaudeResponse(
     {
@@ -100,8 +100,8 @@ test("gemini-to-claude: no toolNameMap — Gemini returns 'bash', translator out
   const toolUse = result.find((c) => c.type === "content_block_start");
   assert.equal(
     toolUse?.content_block?.name,
-    "bash",
-    "Without toolNameMap, lowercase tool name should pass through as-is (gemini-to-claude)"
+    "Bash",
+    "Without toolNameMap, restoreClaudeToolName's static casing map now normalizes known lowercase tool names to canonical PascalCase (gemini-to-claude, #10392 closes this permanently)"
   );
 });
 

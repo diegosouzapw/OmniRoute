@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { reorderCombos, isCloudEnabled } from "@/lib/localDb";
+import { reorderCombos } from "@/lib/db/combos";
+import { isCloudEnabled } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { reorderCombosSchema } from "@/shared/validation/schemas";

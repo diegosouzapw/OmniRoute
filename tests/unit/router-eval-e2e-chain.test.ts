@@ -130,6 +130,6 @@ test("router eval retained chain runs search patches through the check wrapper g
     assert.equal(manifest.result?.status, 0);
     assert.equal(manifest.outputs?.patchJson, "patch-comparison.json");
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

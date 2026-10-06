@@ -50,7 +50,7 @@ function cleanup() {
   _resetVectorStoreSingleton();
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -62,7 +62,7 @@ test.afterEach(() => {
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -84,20 +84,19 @@ function insertMemoryWithFts(
   db: ReturnType<typeof core.getDbInstance>,
   id: string,
   apiKeyId: string,
-  content: string,
+  content: string
 ) {
   // Insert into memories — the trigger memory_fts_ai fires automatically if the DB has it.
   // In a fresh test DB the trigger exists (created by migration 023).
   db.prepare(
     `INSERT INTO memories (id, api_key_id, type, key, content, created_at)
-     VALUES (?, ?, 'factual', ?, ?, datetime('now'))`,
+     VALUES (?, ?, 'factual', ?, ?, datetime('now'))`
   ).run(id, apiKeyId, `key-${id}`, content);
   // The migration 023 trigger inserts into memory_fts using memory_id (= rowid).
   // If the trigger didn't fire (e.g. test DB without triggers), manually sync FTS.
   try {
     const row = db.prepare("SELECT rowid, memory_id FROM memories WHERE id = ?").get(id) as
-      | { rowid: number; memory_id: number | null }
-      | undefined;
+      { rowid: number; memory_id: number | null } | undefined;
     if (row) {
       const ftsRowid = row.memory_id ?? row.rowid;
       const ftsCount = db
@@ -107,7 +106,7 @@ function insertMemoryWithFts(
         db.prepare("INSERT INTO memory_fts(rowid, content, key) VALUES(?, ?, ?)").run(
           ftsRowid,
           content,
-          `key-${id}`,
+          `key-${id}`
         );
       }
     }
@@ -153,7 +152,7 @@ test("searchHybrid: results ordered DESC by rrfScore", async (t) => {
   for (let i = 0; i < hits.length - 1; i++) {
     assert.ok(
       hits[i].rrfScore >= hits[i + 1].rrfScore,
-      `results must be ordered DESC by rrfScore: ${hits[i].rrfScore} >= ${hits[i + 1].rrfScore}`,
+      `results must be ordered DESC by rrfScore: ${hits[i].rrfScore} >= ${hits[i + 1].rrfScore}`
     );
   }
 });
@@ -183,7 +182,7 @@ test("searchHybrid: doc in both FTS and vec → highest rrfScore (sum of both co
     const minRrf = 1 / (RRF_K + 1);
     assert.ok(
       bothHit.rrfScore >= minRrf,
-      `mem-both rrfScore ${bothHit.rrfScore} should be >= ${minRrf}`,
+      `mem-both rrfScore ${bothHit.rrfScore} should be >= ${minRrf}`
     );
   }
 });
@@ -210,7 +209,7 @@ test("searchHybrid: FTS-only hit has vecRank=null", async (t) => {
       // Score should be approximately the FTS contribution.
       assert.ok(
         Math.abs(ftsOnlyHit.rrfScore - expectedContrib) < 0.01,
-        `FTS-only rrfScore ${ftsOnlyHit.rrfScore} should ≈ ${expectedContrib}`,
+        `FTS-only rrfScore ${ftsOnlyHit.rrfScore} should ≈ ${expectedContrib}`
       );
     }
   }
@@ -236,7 +235,7 @@ test("searchHybrid: apiKeyId filters both vec and FTS results", async (t) => {
   // At least one of each should appear (FTS and/or vec).
   assert.ok(
     allIds.includes("mem-key1") || allIds.includes("mem-key2"),
-    "without filter should include at least one hit",
+    "without filter should include at least one hit"
   );
 
   // With filter for key1 only.
@@ -250,4 +249,24 @@ test("searchHybrid: apiKeyId filters both vec and FTS results", async (t) => {
   for (const h of key2Hits) {
     assert.notEqual(h.memoryId, "mem-key1", "key1 should not appear when filtering for key2");
   }
+});
+
+test("searchHybrid: handles control symbols and system reminder tags without FTS5 syntax errors", async (t) => {
+  const store = getStoreOrSkip(t);
+  if (!store) return;
+
+  const db = core.getDbInstance();
+  await setupTable(store);
+
+  insertMemoryWithFts(db, "mem-tag-1", "key1", "CRITICAL test query memory");
+  await store.upsertVector("mem-tag-1", makeVec(1.0, 0.0, 0.0, 0.0));
+
+  await assert.doesNotReject(async () => {
+    const hits = await store.searchHybrid(
+      makeVec(1.0, 0.0, 0.0, 0.0),
+      "<system-reminder> CRITICAL: test query! </system-reminder>",
+      10
+    );
+    assert.ok(Array.isArray(hits));
+  }, "should not throw FTS5 syntax error on control symbols or XML-like tags");
 });

@@ -2,7 +2,7 @@
 import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { AUTO_COMBO_TEMPLATES } from "@/domain/assessment/types";
 
 // Minimal i18n stub — return interpolated value so {count} works.
@@ -27,10 +27,21 @@ function makeContainer(): HTMLElement {
 }
 
 // The component pulls a heavy dependency graph (Card + i18n), so the cold
-// module import in the first test takes ~20s of transform overhead. Sibling
-// tests (agent-card.test.tsx) use a 30s timeout for the same reason; the
-// import must settle before any render assertions can run.
+// module import takes ~20s of transform overhead — and well past 60s when the
+// full vitest UI suite runs its 20 workers in parallel. That cost used to be
+// charged to whichever test imported first: it blew the per-test timeout, and
+// the abort landed *inside* an open `act()`, leaking an unbalanced act scope
+// that then failed every remaining test in the file in ~20ms ("You seem to have
+// overlapping act() calls"). Paying the import once here, on the hook's own
+// budget, keeps each test's timeout covering only render + assertions.
+let AutoComboCatalog: React.ComponentType<{ onComboCreated?: (comboId: string) => void }>;
+
 describe("AutoComboCatalog", { timeout: 60_000 }, () => {
+  beforeAll(async () => {
+    ({ default: AutoComboCatalog } =
+      await import("@/app/(dashboard)/dashboard/combos/AutoComboCatalog"));
+  }, 180_000);
+
   beforeEach(() => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -45,8 +56,6 @@ describe("AutoComboCatalog", { timeout: 60_000 }, () => {
   });
 
   it("renders the header with translated title and template-count badge", async () => {
-    const { default: AutoComboCatalog } =
-      await import("@/app/(dashboard)/dashboard/combos/AutoComboCatalog");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -59,20 +68,20 @@ describe("AutoComboCatalog", { timeout: 60_000 }, () => {
   });
 
   it("stays collapsed by default — no template rows in the DOM", async () => {
-    const { default: AutoComboCatalog } =
-      await import("@/app/(dashboard)/dashboard/combos/AutoComboCatalog");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
       root.render(<AutoComboCatalog />);
     });
+    // Absence alone is vacuously true on a container that never mounted — this
+    // test stayed green through the act-leak that failed the other four. Pin the
+    // header first so "no rows" can only mean collapsed, never "nothing rendered".
+    expect(container.textContent ?? "").toContain("autoCatalogTitle");
     const first = AUTO_COMBO_TEMPLATES[0];
     expect(container.textContent ?? "").not.toContain(first.name);
   });
 
   it("expands when toggled and lists every template name", async () => {
-    const { default: AutoComboCatalog } =
-      await import("@/app/(dashboard)/dashboard/combos/AutoComboCatalog");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -89,8 +98,6 @@ describe("AutoComboCatalog", { timeout: 60_000 }, () => {
   });
 
   it("flips the toggle aria-label between expand and collapse", async () => {
-    const { default: AutoComboCatalog } =
-      await import("@/app/(dashboard)/dashboard/combos/AutoComboCatalog");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -107,8 +114,6 @@ describe("AutoComboCatalog", { timeout: 60_000 }, () => {
   });
 
   it("renders the strategy badge for each template when expanded", async () => {
-    const { default: AutoComboCatalog } =
-      await import("@/app/(dashboard)/dashboard/combos/AutoComboCatalog");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {

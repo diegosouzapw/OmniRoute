@@ -3,6 +3,7 @@
  * Delegates to the canonical translator to avoid logic duplication.
  */
 import { requiresReasoningReplay } from "../../services/reasoningCache.ts";
+import { requiresAuthenticReasoningContent } from "../../utils/reasoningContentInjector.ts";
 import { openaiResponsesToOpenAIRequest } from "../request/openai-responses.ts";
 import { toRecord } from "../request/openai-responses/helpers.ts";
 
@@ -23,13 +24,15 @@ export function convertResponsesApiFormat(
     credentials && typeof credentials === "object" && !Array.isArray(credentials)
       ? (credentials as Record<string, unknown>)
       : {};
-  const translationCredentials = requiresReasoningReplay({
-    provider: String(provider ?? ""),
-    model: String(model ?? ""),
-    allowLegacyFallback: false,
-  })
-    ? { ...credentialRecord, _preserveReasoningContent: true }
-    : credentials;
+  const translationCredentials =
+    requiresAuthenticReasoningContent(provider, model) ||
+    requiresReasoningReplay({
+      provider: String(provider ?? ""),
+      model: String(model ?? ""),
+      allowLegacyFallback: false,
+    })
+      ? { ...credentialRecord, _preserveReasoningContent: true }
+      : credentials;
   const converted = openaiResponsesToOpenAIRequest(
     requestedModel,
     body,

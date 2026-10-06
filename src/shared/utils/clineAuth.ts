@@ -8,11 +8,11 @@
  * must route its headers through `buildClineHeaders()`.
  */
 
-import { randomUUID } from "node:crypto";
-
 import { APP_CONFIG } from "../constants/appConfig";
 
 const APP_VERSION = APP_CONFIG.version;
+const DEFAULT_CLINE_CLIENT_TYPE = "omniroute";
+const INTERNAL_HEALTH_CHECK_CLIENT_TYPE = "omniroute-internal-health-check";
 
 export interface ClineHeaderContext {
   taskId?: string;
@@ -39,37 +39,52 @@ function getHeaderCaseInsensitive(
   return key ? cleanHeaderValue(headers?.[key]) : undefined;
 }
 
-/** Keep an inbound Cline task id when supplied; otherwise create one per request. */
-export function resolveClineTaskId(clientHeaders?: Record<string, string> | null): string {
-  return getHeaderCaseInsensitive(clientHeaders, "x-task-id") ?? randomUUID();
+/** Keep an inbound Cline task id when supplied; never invent task identity at the proxy layer. */
+export function resolveClineTaskId(
+  clientHeaders?: Record<string, string> | null
+): string | undefined {
+  return getHeaderCaseInsensitive(clientHeaders, "x-task-id");
+}
+
+function resolveClineClientType(clientHeaders?: Record<string, string> | null): string | undefined {
+  return getHeaderCaseInsensitive(clientHeaders, "x-internal-test") === "combo-health-check"
+    ? INTERNAL_HEALTH_CHECK_CLIENT_TYPE
+    : undefined;
 }
 
 /**
- * Apply the required Cline billing headers with case-insensitive replacement.
- * These fields are authoritative in the official client and must win over
- * stored/configured header layers.
+ * Apply Cline billing headers with case-insensitive replacement. Task identity
+ * is optional and may only come from the request context; stored/configured
+ * header layers must not fabricate or override it.
  */
 export function applyClineProtocolHeaders(
   headers: Record<string, string>,
   context: ClineHeaderContext = {}
 ): Record<string, string> {
-  const taskId =
-    cleanHeaderValue(context.taskId) ??
-    getHeaderCaseInsensitive(headers, "x-task-id") ??
-    randomUUID();
+  const taskId = cleanHeaderValue(context.taskId);
   const clientVersion = cleanHeaderValue(context.clientVersion) ?? APP_VERSION;
+  const existingClientType = getHeaderCaseInsensitive(headers, "x-client-type");
+  const clientType =
+    cleanHeaderValue(context.clientType) ??
+    (existingClientType === INTERNAL_HEALTH_CHECK_CLIENT_TYPE
+      ? INTERNAL_HEALTH_CHECK_CLIENT_TYPE
+      : DEFAULT_CLINE_CLIENT_TYPE);
   const required: Record<string, string> = {
     "HTTP-Referer": "https://cline.bot",
     "X-Title": "Cline",
     "User-Agent": `Cline/${clientVersion}`,
     "X-IS-MULTIROOT": context.isMultiRoot === true ? "true" : "false",
-    "X-CLIENT-TYPE": cleanHeaderValue(context.clientType) ?? "omniroute",
+    "X-CLIENT-TYPE": clientType,
     "X-CLIENT-VERSION": clientVersion,
     "X-PLATFORM": cleanHeaderValue(context.platform) ?? process.platform ?? "unknown",
     "X-PLATFORM-VERSION": cleanHeaderValue(context.platformVersion) ?? process.version ?? "unknown",
     "X-CORE-VERSION": cleanHeaderValue(context.coreVersion) ?? APP_VERSION,
-    "X-Task-ID": taskId,
   };
+
+  for (const existing of Object.keys(headers)) {
+    if (existing.toLowerCase() === "x-task-id") delete headers[existing];
+  }
+  if (taskId) required["X-Task-ID"] = taskId;
 
   for (const [name, value] of Object.entries(required)) {
     for (const existing of Object.keys(headers)) {
@@ -159,7 +174,10 @@ export function applyClineAuthHeaders(
   clientHeaders: Record<string, string> | null | undefined,
   isClinepass: boolean
 ): Record<string, string> {
-  const context: ClineHeaderContext = { taskId: resolveClineTaskId(clientHeaders) };
+  const context: ClineHeaderContext = {
+    taskId: resolveClineTaskId(clientHeaders),
+    clientType: resolveClineClientType(clientHeaders),
+  };
   const built = isClinepass
     ? buildClinepassHeaders(credentials, effectiveKey, context)
     : buildClineHeaders(effectiveKey || credentials?.accessToken, {}, context);
