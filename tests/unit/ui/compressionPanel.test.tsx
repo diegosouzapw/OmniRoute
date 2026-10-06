@@ -66,7 +66,7 @@ interface CapturedPut {
   body: Record<string, unknown>;
 }
 
-function setupFetchMock(): { puts: CapturedPut[] } {
+function setupFetchMock(storedOverrides?: Record<string, unknown>): { puts: CapturedPut[] } {
   const puts: CapturedPut[] = [];
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), {
@@ -93,7 +93,7 @@ function setupFetchMock(): { puts: CapturedPut[] } {
     cavemanOutputMode: { enabled: false, intensity: "full", autoClarity: true },
   };
   // The stored row the mock's settings GET serves; each PUT merges into it before answering.
-  let stored: Record<string, unknown> = { ...initialConfig };
+  let stored: Record<string, unknown> = { ...initialConfig, ...storedOverrides };
 
   vi.spyOn(globalThis, "fetch").mockImplementation(
     async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -245,8 +245,8 @@ describe("CompressionPanel", () => {
   // Settings PUTs wait until the test answers them, so several saves stay in flight together
   // and can answer in any order. Only PUTs to the settings endpoint are held — anything else
   // falls through to the base mock, so `puts` and `answer` indices stay settings-only.
-  function holdSettingsPuts() {
-    const { storePut } = setupFetchMock();
+  function holdSettingsPuts(storedOverrides?: Record<string, unknown>) {
+    const { storePut } = setupFetchMock(storedOverrides);
     const respond = vi.mocked(globalThis.fetch).getMockImplementation()!;
     const puts: Array<Record<string, unknown>> = [];
     const answers: Array<(status: number) => void> = [];
@@ -662,6 +662,44 @@ describe("CompressionPanel", () => {
     expect(modeSelect.value).toBe("floor");
     expect(policySelect.value).toBe("percentage");
     expect(container.textContent).toContain("saveFailed");
+  });
+
+  it("keeps both contextBudget fields when mode and policy change in one turn", async () => {
+    // The policy select mounts only while mode is not off. Start on a different mode so
+    // both selects exist before the turn, and a stale spread cannot already be mode floor.
+    const { puts } = holdSettingsPuts({
+      contextBudget: { mode: "replace-autotrigger", policy: "reserve-output" },
+    });
+    const container = await renderPanel();
+    const modeSelect = container.querySelector(
+      `[data-testid="context-budget-mode-select"]`
+    ) as HTMLSelectElement;
+    const policySelect = container.querySelector(
+      `[data-testid="context-budget-policy-select"]`
+    ) as HTMLSelectElement;
+    expect(policySelect, "policy select is mounted while mode is not off").toBeTruthy();
+
+    // A controlled select commits at the end of each native event, so two fireEvents
+    // re-render even inside one act() and never share a stale closure. Call both
+    // handlers in that act before the commit — that is the turn that drops the first field.
+    type SelectChange = (event: { target: { value: string } }) => void;
+    const selectOnChange = (node: HTMLElement): SelectChange => {
+      const key = Object.keys(node).find((name) => name.startsWith("__reactProps$"));
+      const props = key
+        ? (node as unknown as Record<string, { onChange?: SelectChange }>)[key]
+        : undefined;
+      if (!props?.onChange) throw new Error("select has no onChange");
+      return props.onChange;
+    };
+    const changeMode = selectOnChange(modeSelect);
+    const changePolicy = selectOnChange(policySelect);
+    await act(async () => {
+      changeMode({ target: { value: "floor" } });
+      changePolicy({ target: { value: "percentage" } });
+    });
+
+    expect(puts[0].contextBudget).toMatchObject({ mode: "floor" });
+    expect(puts[1].contextBudget).toMatchObject({ mode: "floor", policy: "percentage" });
   });
 
   it("rolls an engine toggle back when its engines save fails", async () => {

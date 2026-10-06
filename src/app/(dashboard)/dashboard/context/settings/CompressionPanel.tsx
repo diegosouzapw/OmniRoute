@@ -291,6 +291,9 @@ export default function CompressionPanel() {
   // Saves still waiting on the server, oldest first.
   const pendingRef = useRef<Partial<CompressionConfig>[]>([]);
   const batchFailedRef = useRef(false);
+  // contextBudget is one stored object. React state is stale until the next commit, so a
+  // second patch in the same turn spreads this copy, which save() updates synchronously.
+  const contextBudgetRef = useRef<ContextBudgetConfig>({ ...DEFAULT_CONTEXT_BUDGET });
   // How many acked saves each top-level key has seen; a re-read answers only the keys no
   // ack has bumped since the re-read was dispatched, so a stale snapshot can never
   // overwrite a newer confirmed value.
@@ -301,12 +304,13 @@ export default function CompressionPanel() {
   // disables, so its saves leave them enabled, and a click that ends an edit in the box still
   // reaches the control it lands on.
   const showSaves = () => {
-    setConfig(
-      pendingRef.current.reduce<CompressionConfig>(
-        (shown, pending) => ({ ...shown, ...pending }),
-        lastConfirmedRef.current
-      )
+    const shown = pendingRef.current.reduce<CompressionConfig>(
+      (acc, pending) => ({ ...acc, ...pending }),
+      lastConfirmedRef.current
     );
+    // A failed save drops out of the overlay; keep the sync copy on that rolled-back value.
+    contextBudgetRef.current = { ...(shown.contextBudget ?? DEFAULT_CONTEXT_BUDGET) };
+    setConfig(shown);
     setSaving(
       pendingRef.current.some((pending) =>
         Object.keys(pending).some((key) => key !== "autoTriggerTokens")
@@ -351,6 +355,9 @@ export default function CompressionPanel() {
             // stale GET snapshot alone.
             showSaves();
           } else {
+            contextBudgetRef.current = {
+              ...(lastConfirmedRef.current.contextBudget ?? DEFAULT_CONTEXT_BUDGET),
+            };
             setConfig(lastConfirmedRef.current);
           }
         }
@@ -555,8 +562,9 @@ export default function CompressionPanel() {
         contextBudget={config.contextBudget ?? DEFAULT_CONTEXT_BUDGET}
         saving={saving}
         onChange={(patch) => {
-          const current = config.contextBudget ?? DEFAULT_CONTEXT_BUDGET;
-          save({ contextBudget: { ...current, ...patch } });
+          const next = { ...contextBudgetRef.current, ...patch };
+          contextBudgetRef.current = next;
+          save({ contextBudget: next });
         }}
       />
 
