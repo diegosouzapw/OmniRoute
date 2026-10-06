@@ -57,3 +57,15 @@ test("cline and kilocode bulk-key admission: supportsBulkApiKey returns true", (
   assert.equal(supportsBulkApiKey("cline"), true);
   assert.equal(supportsBulkApiKey("kilocode"), true);
 });
+
+test("cline and kilocode are registered in SPECIALTY_VALIDATORS for direct chat probe", async () => {
+  const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
+  // Missing API key returns explicit error without hitting network
+  const resCline = await validateProviderApiKey({ provider: "cline", apiKey: "" });
+  assert.equal(resCline.valid, false);
+  assert.equal(resCline.error, "Provider and API key required");
+
+  const resKilo = await validateProviderApiKey({ provider: "kilocode", apiKey: "" });
+  assert.equal(resKilo.valid, false);
+  assert.equal(resKilo.error, "Provider and API key required");
+});
