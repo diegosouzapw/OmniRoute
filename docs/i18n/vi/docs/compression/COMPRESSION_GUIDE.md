@@ -467,8 +467,7 @@ chèn thay cho tiếng Anh.
 Trên nội dung có `messages`, cơ chế bỏ qua theo nội dung (`shouldBypassCavemanOutputMode()` trong
 `open-sse/services/compression/outputMode.ts`) kiểm tra ba tin nhắn gần nhất và bỏ qua
 các phong cách cho toàn bộ lượt khi chúng khớp với từ khóa về bảo mật, hành động không thể đảo ngược,
-làm rõ hoặc phụ thuộc thứ tự. Cơ chế bỏ qua hoạt động theo bất kỳ giá trị nào được đặt cho nút chuyển
-**Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) trên bảng điều khiển.
+làm rõ hoặc phụ thuộc thứ tự. Cơ chế bỏ qua hoạt động trong khi nút chuyển **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) trên bảng điều khiển đang bật, đây là giá trị mặc định; khi nút chuyển tắt, các phong cách đã chọn cũng được áp dụng trong những lượt đó.
 
 Khi cơ chế bỏ qua cho phép lượt tiếp tục, `placeSystemInstruction()` (cùng tệp), vốn
 không bao giờ tạo `messages[0]` mới, đặt khối vào vị trí đầu tiên tìm thấy trong các vị trí sau:

@@ -467,8 +467,7 @@ hudungwa badala ya Kiingereza.
 Kwenye body yenye `messages`, upitaji wa maudhui (`shouldBypassCavemanOutputMode()` katika
 `open-sse/services/compression/outputMode.ts`) hukagua jumbe tatu za mwisho na kuruka
 mitindo kwa turn nzima zinapolingana na maneno yake muhimu ya usalama, kitendo kisichoweza kutenduliwa,
-ufafanuzi, au yanayotegemea mpangilio. Upitaji hufanya kazi kulingana na mpangilio wa
-kigeuzi cha **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) kwenye dashibodi.
+ufafanuzi, au yanayotegemea mpangilio. Upitaji hufanya kazi wakati kigeuzi cha **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) kwenye dashibodi kimewashwa, ambacho ni chaguo-msingi; kigeuzi kikizimwa, mitindo iliyochaguliwa hutumika katika turn hizo pia.
 
 Upitaji unaporuhusu turn kuendelea, `placeSystemInstruction()` (faili hiyo hiyo), ambayo
 haiundi kamwe `messages[0]` mpya, huweka kizuizi katika sehemu ya kwanza kati ya hizi inayopatikana:

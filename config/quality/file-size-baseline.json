@@ -291,7 +291,6 @@
     "_rebaseline_2026_09_04_12737_codex_ws_premature_close_tests": "PR #12737 own test growth: executor-codex.test.ts 1465->1620 (+155, entirely this PR's diff — regression coverage for the premature WebSocket close fix: emits terminal response.failed with code upstream_websocket_closed when the socket closes before any terminal event, and proves no second terminal event fires after a normal post-response.completed close).",
     "_rebaseline_pr4613_compatible_provider_groups": "Reconcile #4613 already-merged growth: providers-page-utils.test.ts 1004->1052 (+48, buildCompatibleProviderGroups partition unit test). Fast-gate PR->release does not run check:file-size, so this surfaced post-merge.",
     "tests/integration/chat-pipeline.test.ts": 1756,
-    "tests/integration/chatcore-compression-integration.test.ts": 1145,
     "tests/unit/account-fallback-service.test.ts": 2086,
     "tests/unit/batch_api.test.ts": 1353,
     "tests/unit/cc-compatible-provider.test.ts": 1225,

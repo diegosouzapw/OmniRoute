@@ -467,8 +467,7 @@ kama Bekee.
 N'ahụ nwere `messages`, nkwụsị ọdịnaya (`shouldBypassCavemanOutputMode()` na
 `open-sse/services/compression/outputMode.ts`) na-enyocha ozi atọ ikpeazụ ma na-awụfe
 ụdị maka ntụgharị ahụ dum mgbe ha dabara na nchekwa ya, omume na-enweghị ike ịgbanwe,
-nkọwa, ma ọ bụ okwu nwere mmetụta n'usoro. Nkwụsị ahụ na-agba ọsọ n'agbanyeghị ihe dashboard's
-**Auto-Clarity Bypass** toggle (`cavemanOutputMode.autoClarity`) edobere.
+nkọwa, ma ọ bụ okwu nwere mmetụta n'usoro. Nkwụsị ahụ na-agba ọsọ mgbe **Auto-Clarity Bypass** toggle (`cavemanOutputMode.autoClarity`) dị na dashboard's na-arụ ọrụ, nke bụ ntọala mbụ; mgbe atụchiri ya, ụdị ndị a họpụtara na-emetụ na ntụgharị ndị ahụkwa.
 
 Mgbe nkwụsị ahụ kwere ka ntụgharị ahụ gafee, `placeSystemInstruction()` (otu faịlụ ahụ), nke
 na-adịghị emepụta `messages[0]` ọhụrụ, na-etinye ngọngọ ahụ n'ime nke mbụ n'ime ndị a ọ hụrụ:
