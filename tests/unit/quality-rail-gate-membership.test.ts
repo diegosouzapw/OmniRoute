@@ -50,9 +50,12 @@ test("fast-gates carries the deterministic ratchets and security scanners from t
   const block = jobBlock("fast-gates");
   // #8542: all gates run inside a single aggregation step's bash loop.
   // Check that the gate names appear in the arrays or the loop body.
+  // #15306: `cycles` moved to ratchet_gates — check-cycles.mjs exits 1 on ANY cycle
+  // without --ratchet (#15281), so fast-gates must run it with the frozen ceiling in
+  // quality-baseline.json, same as ci.yml's check:cycles:ratchet.
   for (const needle of [
-    "cycles lockfile duplication dead-code type-coverage compression-budget",
-    "secrets vuln-ratchet workflows openapi-breaking",
+    "lockfile duplication dead-code type-coverage compression-budget",
+    "secrets vuln-ratchet workflows openapi-breaking cycles",
     "typecheck:core",
     "check:dashboard-typecheck",
     "check:ts7-diagnostics-ratchet",
