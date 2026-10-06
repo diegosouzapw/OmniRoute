@@ -865,7 +865,9 @@ export async function getProxyHealthStats(options?: { hours?: number }) {
          SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) THEN 1 ELSE 0 END) as real_requests,
          SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.upstream_status IS NOT NULL THEN 1 ELSE 0 END) as measured_requests,
          SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND (l.upstream_status IS NOT NULL OR l.status = 'success') THEN 1 ELSE 0 END) as transport_ok,
-         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.status IN ('error', 'timeout') AND l.upstream_status IS NULL THEN 1 ELSE 0 END) as transport_failures,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.status IN ('error', 'timeout') AND l.upstream_status IS NULL AND NOT (COALESCE(l.attempt_issue, '') = 'abandoned' AND COALESCE(l.error, '') LIKE 'OpencodeHeadersWaitTimeout:%') AND NOT (l.attempt_issue IS NOT NULL AND COALESCE(l.error, '') LIKE '%Request aborted%') THEN 1 ELSE 0 END) as transport_failures,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.status IN ('error', 'timeout') AND l.upstream_status IS NULL AND COALESCE(l.attempt_issue, '') = 'abandoned' AND COALESCE(l.error, '') LIKE 'OpencodeHeadersWaitTimeout:%' THEN 1 ELSE 0 END) as slow_abandoned,
+         SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.status IN ('error', 'timeout') AND l.upstream_status IS NULL AND l.attempt_issue IS NOT NULL AND COALESCE(l.error, '') LIKE '%Request aborted%' THEN 1 ELSE 0 END) as client_aborted,
          SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.upstream_status >= 400 AND l.upstream_status < 500 THEN 1 ELSE 0 END) as upstream_4xx,
          SUM(CASE WHEN l.id IS NOT NULL AND (l.target_url NOT LIKE '%/connection-test' OR l.target_url IS NULL) AND l.upstream_status >= 500 AND l.upstream_status < 600 THEN 1 ELSE 0 END) as upstream_5xx,
          AVG(CASE WHEN l.latency_ms IS NOT NULL THEN l.latency_ms END) as avg_latency_ms,
@@ -890,6 +892,8 @@ export async function getProxyHealthStats(options?: { hours?: number }) {
     const realRequests = Number(row.real_requests || 0);
     const transportOk = Number(row.transport_ok || 0);
     const transportFailures = Number(row.transport_failures || 0);
+    const slowAbandoned = Number(row.slow_abandoned || 0);
+    const clientAborted = Number(row.client_aborted || 0);
     const measuredRequests = Number(row.measured_requests || 0);
     const transportRate =
       !measuredRequests || transportOk + transportFailures === 0
@@ -915,6 +919,8 @@ export async function getProxyHealthStats(options?: { hours?: number }) {
       measured: measuredRequests > 0,
       transportOk,
       transportFailures,
+      slowAbandoned,
+      clientAborted,
       transportRate,
       upstream4xx: Number(row.upstream_4xx || 0),
       upstream5xx: Number(row.upstream_5xx || 0),

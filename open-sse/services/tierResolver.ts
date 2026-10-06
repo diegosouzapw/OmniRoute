@@ -250,6 +250,7 @@ export function classifyTier(provider: string, model: string): TierAssignment {
     tier = PROVIDER_TIER.PREMIUM;
     reason = `Cost-based: $${pricing.inputCostPer1M}/M input > cheap threshold ($${currentConfig.defaults.cheapThreshold}/M)`;
   }
+  if (pricing.isEstimated === true) reason += " (estimated)";
 
   const assignment: TierAssignment = {
     provider,

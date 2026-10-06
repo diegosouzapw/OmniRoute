@@ -156,3 +156,52 @@ test("writer calls carry the connection id through (absent stays absent)", async
   });
   assert.deepEqual(seen, [undefined, undefined]);
 });
+
+test("records a single combo-level pin when the combo id matches the combo name", async () => {
+  // Pin store standing in for the persisted LKGP namespace; the read below is
+  // the `getLKGP(comboName, comboId || comboName)` equivalent the routing
+  // readers use.
+  const store = new Map<string, { provider: string; connectionId?: string }>();
+  const calls: Array<[string, string, string, string | undefined]> = [];
+  const { warnings, log } = captureWarn();
+  await recordLkgpPin({
+    comboName: "combo-a",
+    executionKey: "ek-7",
+    comboId: "combo-a",
+    provider: "openai",
+    connectionId: "conn-1",
+    log,
+    tag: "COMBO",
+    setLKGP: async (comboName, modelKey, provider, connectionId) => {
+      calls.push([comboName, modelKey, provider, connectionId]);
+      store.set(`${comboName}:${modelKey}`, { provider, connectionId });
+    },
+  });
+  assert.deepEqual(warnings, []);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls, [["combo-a", "combo-a", "openai", "conn-1"]]);
+  assert.equal(store.get("combo-a:combo-a")?.provider, "openai");
+});
+
+test("records a single combo-level pin when the combo id is missing", async () => {
+  const store = new Map<string, { provider: string; connectionId?: string }>();
+  const calls: Array<[string, string, string, string | undefined]> = [];
+  const { warnings, log } = captureWarn();
+  await recordLkgpPin({
+    comboName: "combo-a",
+    executionKey: "ek-7",
+    comboId: null,
+    provider: "openai",
+    connectionId: "conn-1",
+    log,
+    tag: "COMBO",
+    setLKGP: async (comboName, modelKey, provider, connectionId) => {
+      calls.push([comboName, modelKey, provider, connectionId]);
+      store.set(`${comboName}:${modelKey}`, { provider, connectionId });
+    },
+  });
+  assert.deepEqual(warnings, []);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls, [["combo-a", "combo-a", "openai", "conn-1"]]);
+  assert.equal(store.get("combo-a:combo-a")?.provider, "openai");
+});

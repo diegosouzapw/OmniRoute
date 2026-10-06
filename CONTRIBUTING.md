@@ -410,7 +410,7 @@ Write unit tests in `tests/unit/` covering at minimum:
 - [ ] Documentation updated (if applicable)
 - [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
 - [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
+- [ ] No AI/bot `Co-authored-by` trailers in commit messages (Hard Rule #16) — human collaborators whose work is reused are credited with standard `Co-authored-by: Name <email>` trailers
 
 ---
 

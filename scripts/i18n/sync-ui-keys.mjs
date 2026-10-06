@@ -229,7 +229,7 @@ const FORBIDDEN_KEYS = new Set(["__proto__", "prototype", "constructor"]);
  * Returns a tuple: { merged, addedPaths } so the caller can report the
  * additions and (optionally) translate them.
  */
-function mergeMissing(source, target) {
+export function mergeMissing(source, target) {
   const addedPaths = [];
 
   function walk(srcNode, tgtNode, prefix) {
@@ -253,10 +253,7 @@ function mergeMissing(source, target) {
       const nextPrefix = prefix ? `${prefix}.${key}` : key;
       let tgtChild;
       if (isPlainObject(tgtNode) && Object.prototype.hasOwnProperty.call(tgtNode, key)) {
-        // Read the property via Object.entries instead of dynamic bracket
-        // access to keep static analyzers happy.
-        const entry = Object.entries(tgtNode).find(([k]) => k === key);
-        tgtChild = entry ? entry[1] : undefined;
+        tgtChild = tgtNode[key];
       }
       out[key] = walk(value, tgtChild, nextPrefix);
     }
