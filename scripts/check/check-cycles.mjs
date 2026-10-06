@@ -27,7 +27,8 @@
 // counting them invents cycles that do not exist at runtime).
 //
 // Cycle count is a ratchet, not a hard zero: see config/quality/quality-baseline.json
-// → metrics.cycles (G-02). `check:cycles` alone is advisory, `--ratchet` blocks.
+// → metrics.cycles (G-02). Plain mode blocks on ANY cycle; `--ratchet` blocks only
+// above the ceiling (fail-closed: a missing/invalid baseline also blocks).
 
 import fs from "node:fs";
 import path from "node:path";
@@ -437,7 +438,7 @@ export function analyzeCycles(roots, cwd = process.cwd()) {
 
 /**
  * Read the `cycles` ceiling from quality-baseline.json.
- * Missing/invalid baseline ⇒ null (advisory, no ceiling).
+ * Missing/invalid baseline ⇒ null (main() then exits 1 — fail-closed).
  *
  * @param {string} [baselinePath]
  * @returns {number | null}
