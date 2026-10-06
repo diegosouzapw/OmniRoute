@@ -1413,7 +1413,7 @@ export async function GET(
         token = await resolveCursorBearerToken({ apiKey, accessToken });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        warnings.push(`no usable Cursor session token (${message})`);
+        warnings.push(`no usable Cursor session token (${sanitizeErrorMessage(message)})`);
       }
 
       if (token) {
@@ -1434,7 +1434,7 @@ export async function GET(
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           console.log("[models] Cursor AvailableModels failed:", message);
-          warnings.push(`AvailableModels unavailable (${message})`);
+          warnings.push(`AvailableModels unavailable (${sanitizeErrorMessage(message)})`);
         }
       }
 
@@ -1467,7 +1467,7 @@ export async function GET(
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           console.log("[models] cursor-agent fetch failed:", message);
-          warnings.push(`cursor-agent unavailable (${message})`);
+          warnings.push(`cursor-agent unavailable (${sanitizeErrorMessage(message)})`);
         }
       }
 
