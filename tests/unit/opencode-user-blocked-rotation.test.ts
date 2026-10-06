@@ -151,8 +151,25 @@ describe("OpencodeExecutor user_blocked refusal (OPENCODE_USER_BLOCKED_ROTATION)
       it(`${status} user_blocked rotates once to a healthy account and cools the refused one`, async () => {
         const exec = new OpencodeExecutor("opencode-zen");
         installFetch([{ status, body: BLOCKED_BODY }, { status: 200 }]);
+        const warns: string[] = [];
+        const spyLog: ExecutorLog = {
+          debug() {},
+          info() {},
+          warn(_tag, message) {
+            warns.push(String(message));
+          },
+          error() {},
+        };
 
-        const response = await run(exec, credentialsFor(3));
+        const execResult = (await exec.execute({
+          model: "muse-spark-1.3-contributor-free",
+          body: { messages: [{ role: "user", content: "hi" }], stream: false },
+          stream: false,
+          signal: null,
+          credentials: credentialsFor(3),
+          log: spyLog,
+        })) as { response: Response };
+        const response = execResult.response;
 
         assert.strictEqual(response.status, 200);
         assert.strictEqual(observed.length, 2);
@@ -165,6 +182,14 @@ describe("OpencodeExecutor user_blocked refusal (OPENCODE_USER_BLOCKED_ROTATION)
         assert.strictEqual(upstream[0].bodyUsed, true, "the abandoned refusal body is cancelled");
         assert.strictEqual(response.bodyUsed, false, "the served body is untouched");
         await response.body?.cancel();
+        assert.ok(
+          warns.some((l) =>
+            new RegExp(
+              `user_blocked ${status} on account .*, rotating to next account once… \\(proxy 127\\.0\\.0\\.1:${ports[0]}\\)`
+            ).test(l)
+          ),
+          `user_blocked warn must carry the egress suffix, got=${JSON.stringify(warns)}`
+        );
       });
     }
 

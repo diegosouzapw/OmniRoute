@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Vrstni red položajev",
     "poolHealthRankingOff": "Razvrščanje zdravja izklopljeno",
     "transportRate": "{rate} % prenosa",
+    "slowAbandoned": "{count} počasnih opustitev",
+    "clientAborted": "{count} prekinitve odjemalca",
+    "slowAbandonedHint": "Opustitev po presežku praga čakanja glave, izključeno iz hitrosti prenosa",
     "previousSuccessRate": "Prej {rate} % uspešnosti",
-    "upstreamRefusals": "{count} zavrnitev upstream",
     "connectionTestsCount": "{count} preskusov povezave",
-    "notMeasured": "Ni izmerjeno"
+    "notMeasured": "Ni izmerjeno",
+    "upstream4xx": "{count} napake stranke na gornjem",
+    "upstream5xx": "{count} napake strežnika na gornjem",
+    "uniformEgressLine": "Sočasen izpad {affected} od {exits} izhodov pri {provider} (zadnjih {hours}h) — ni težava izhoda"
   },
   "playground": {
     "title": "Preizkusno okolje za modele",

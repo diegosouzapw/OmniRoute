@@ -3,11 +3,10 @@ import assert from "node:assert/strict";
 import plugin from "../src/index.js";
 
 // A catalog that only appears once the slowest optional source has answered is
-// a catalog that never appears at all on a host that exits first: an
-// unreachable `/api/combos/auto` kept models, combos and everything else
-// unpublished until its own timeout fired. Models and combos must reach the
-// draft as soon as they are known; the optional sources upgrade the snapshot
-// when they land.
+// a catalog that never appears at all on a host that exits first: a hanging
+// optional endpoint kept models, combos and everything else unpublished until
+// its own timeout fired. Models and combos must reach the draft as soon as
+// they are known; the optional sources upgrade the snapshot when they land.
 describe("plugin-v2 staged refresh: optional sources never gate the publish", () => {
   let seq = 0;
 
@@ -54,21 +53,21 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
 
   function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
     const published = new Map<string, Record<string, unknown>>();
-    for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+    for (const entry of added as Array<{
+      info: { id: string };
+      models: Array<Record<string, unknown>>;
+    }>) {
       for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
     }
     return published;
   }
 
   /**
-   * `/api/combos/auto` never answers and never honours the abort signal — the
-   * shape of a gateway that accepts the connection and then goes quiet.
+   * A hanging optional endpoint never answers and never honours the abort
+   * signal — the shape of a gateway that accepts the connection and then
+   * goes quiet.
    */
-  function stubFetch(opts: {
-    autoCombosHangs: boolean;
-    combosHangs?: boolean;
-    enrichmentDelayMs?: number;
-  }): typeof fetch {
+  function stubFetch(opts: { combosHangs?: boolean; enrichmentDelayMs?: number }): typeof fetch {
     return (async (url: unknown) => {
       const href = String(url);
       const ok = (body: unknown) => ({
@@ -77,10 +76,6 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
         statusText: "OK",
         json: async () => body,
       });
-      if (href.includes("/api/combos/auto")) {
-        if (opts.autoCombosHangs) return await new Promise(() => {});
-        return ok({ combos: [] });
-      }
       if (href.includes("/api/combos")) {
         // A gateway that accepts the connection and then goes quiet on the
         // combos endpoint: models must still publish without waiting for it.
@@ -119,10 +114,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     }
   }
 
-  it("publishes models while an optional source is still hanging", async () => {
+  it("publishes models while the combos source is still hanging", async () => {
     const restoreDisk = await isolateDisk();
     const origFetch = globalThis.fetch;
-    globalThis.fetch = stubFetch({ autoCombosHangs: true });
+    globalThis.fetch = stubFetch({ combosHangs: true });
     const reloads = { count: 0 };
     const { added, ctx } = setupCtx("staged-hang", reloads);
     try {
@@ -148,7 +143,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
   it("applies an optional source that lands after the publish, on the next transform", async () => {
     const restoreDisk = await isolateDisk();
     const origFetch = globalThis.fetch;
-    globalThis.fetch = stubFetch({ autoCombosHangs: false, enrichmentDelayMs: 120 });
+    globalThis.fetch = stubFetch({ enrichmentDelayMs: 120 });
     const reloads = { count: 0 };
     const { added, ctx } = setupCtx("staged-late", reloads);
     try {
@@ -179,7 +174,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
   it("does not ask the host to reload when the overlay came back identical", async () => {
     const restoreDisk = await isolateDisk();
     const origFetch = globalThis.fetch;
-    globalThis.fetch = stubFetch({ autoCombosHangs: false });
+    globalThis.fetch = stubFetch({});
     const reloads = { count: 0 };
     const { ctx } = setupCtx("staged-stable", reloads);
     try {
@@ -214,7 +209,6 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
         statusText: "OK",
         json: async () => body,
       });
-      if (href.includes("/api/combos/auto")) return ok({ combos: [] });
       if (href.includes("/api/combos")) return ok({ combos: [] });
       if (href.includes("/api/pricing/models")) {
         enrichCalls += 1;
@@ -262,7 +256,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     // models publish even when combos never answers.
     const restoreDisk = await isolateDisk();
     const origFetch = globalThis.fetch;
-    globalThis.fetch = stubFetch({ autoCombosHangs: false, combosHangs: true });
+    globalThis.fetch = stubFetch({ combosHangs: true });
     const reloads = { count: 0 };
     const { added, ctx } = setupCtx("staged-combos-hang", reloads);
     try {
@@ -294,6 +288,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
   });
 
   it("keeps names/pricing on the third transform when enrichment stays down", async () => {
+    const requested: string[] = [];
     // The old all-empty guard is gone by design (it also blocked genuine
     // removals); the per-source failure signal replaces it. A persistent 503
     // on the overlay must keep last-known names on EVERY later transform,
@@ -310,7 +305,6 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
         statusText: "OK",
         json: async () => body,
       });
-      if (href.includes("/api/combos/auto")) return ok({ combos: [] });
       if (href.includes("/api/combos")) return ok({ combos: [] });
       if (href.includes("/api/pricing/models")) {
         enrichCalls += 1;
@@ -347,6 +341,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
           "Omni - Model One",
           `a persistently failing overlay must not wipe names, got ${JSON.stringify(m1?.["name"])}`
         );
+        assert.ok(
+          !requested.some((p) => p === "/api/combos/auto"),
+          `retired route must never be requested, got ${JSON.stringify(requested)}`
+        );
       });
     } finally {
       globalThis.fetch = origFetch;
@@ -363,15 +361,16 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     const origFetch = globalThis.fetch;
     let modelCalls = 0;
     let down = false;
+    const requested: string[] = [];
     globalThis.fetch = (async (url: unknown) => {
       const href = String(url);
+      requested.push(new URL(href).pathname);
       const ok = (body: unknown) => ({
         ok: true,
         status: 200,
         statusText: "OK",
         json: async () => body,
       });
-      if (href.includes("/api/combos/auto")) return ok({ combos: [] });
       if (href.includes("/api/combos")) return ok({ combos: [] });
       if (href.includes("/api/pricing") || href.includes("/api/free-tier")) return ok({});
       modelCalls += 1;
@@ -395,6 +394,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
         await (plugin as unknown as { setup: (c: unknown) => Promise<void> }).setup(ctx);
         const afterArming = modelCalls;
         assert.ok(afterArming >= 2, "the failing transform tries the network once");
+        assert.ok(
+          !requested.some((p) => p === "/api/combos/auto"),
+          `retired route must never be requested, got ${JSON.stringify(requested)}`
+        );
       });
     } finally {
       globalThis.fetch = origFetch;
@@ -408,7 +411,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
     // callback is registered, and the throw is warned, not propagated.
     const restoreDisk = await isolateDisk();
     const origFetch = globalThis.fetch;
-    globalThis.fetch = stubFetch({ autoCombosHangs: false });
+    globalThis.fetch = stubFetch({});
     const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
     const ctx = {
       options: { baseURL: "https://gw.example.com", providerId: "staged-integ", apiKey: "k" },
@@ -419,10 +422,10 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
           });
           return Promise.resolve({ dispose: async () => {} });
         },
-        },
-        model: {
-          transform: () => Promise.resolve({ dispose: async () => {} }),
-        },
+      },
+      model: {
+        transform: () => Promise.resolve({ dispose: async () => {} }),
+      },
       integration: {
         transform: () => {
           throw new Error("host says no");

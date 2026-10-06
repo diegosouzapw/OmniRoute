@@ -7,12 +7,15 @@ import { isScopeIdMissing } from "@/lib/db/proxies/mappers";
 import { rankPoolCandidates } from "@/lib/db/proxies/rotation";
 import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
 import {
+  countTransportEvidenceFor,
+  getRefusalStoreInstance,
   isProxyAvoided,
   isSelectorMemberAvoided,
   listEntryMembers,
   proxyEgressKey,
   snapshotMemberSetAside,
   snapshotProxySetAside,
+  TRANSPORT_EVIDENCE_WINDOW_MS,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
 
 // Read-only pool visibility: per-member set-aside state (motive, start, expected
@@ -70,8 +73,10 @@ function toMemberView(row: MemberRow, rank: number, now: number = Date.now()) {
                   streak: memberSnapshot.streak,
                 }
               : null,
+            storeInstance: getRefusalStoreInstance(),
           };
         });
+  const evidence = countTransportEvidenceFor(key, now);
   return {
     id: typeof row.id === "string" ? row.id : null,
     name: typeof row.name === "string" ? row.name : null,
@@ -89,6 +94,12 @@ function toMemberView(row: MemberRow, rank: number, now: number = Date.now()) {
         }
       : null,
     memberSetAside,
+    transportEvidence: {
+      failures: evidence.failures,
+      crossSuccesses: evidence.crossSuccesses,
+      windowMs: TRANSPORT_EVIDENCE_WINDOW_MS,
+    },
+    storeInstance: getRefusalStoreInstance(),
   };
 }
 

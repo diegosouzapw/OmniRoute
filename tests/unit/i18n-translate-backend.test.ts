@@ -35,6 +35,7 @@ type ChatBody = {
   messages: Array<{ role: string; content: string }>;
   temperature: number;
   stream: boolean;
+  reasoning_effort?: string;
 };
 
 /** Swaps `globalThis.fetch` for the duration of `fn`, recording every call. */
@@ -72,6 +73,7 @@ const ENV_KEYS = [
   "OMNIROUTE_TRANSLATION_API_KEY",
   "OMNIROUTE_TRANSLATION_MODEL",
   "OMNIROUTE_TRANSLATION_TIMEOUT_MS",
+  "OMNIROUTE_TRANSLATION_REASONING_EFFORT",
 ] as const;
 
 /** Runs `fn` with exactly `values` set for the backend env vars, then restores the shell's. */
@@ -371,6 +373,102 @@ test("backendConfig fails fast with the documented message when a var is missing
     },
     () => {
       assert.throws(() => backendConfig(), /Missing required env var: OMNIROUTE_TRANSLATION_MODEL/);
+    }
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Optional reasoning control — off unless the operator sets the variable
+// ---------------------------------------------------------------------------
+
+test("backendConfig omits the key when the variable is unset, empty or blank", () => {
+  const base = {
+    OMNIROUTE_TRANSLATION_API_URL: "http://translation.test/v1",
+    OMNIROUTE_TRANSLATION_API_KEY: "sk-test",
+    OMNIROUTE_TRANSLATION_MODEL: "test-model",
+  };
+  withEnv(base, () => {
+    assert.deepEqual(backendConfig(), {
+      apiUrl: "http://translation.test/v1",
+      apiKey: "sk-test",
+      model: "test-model",
+      timeoutMs: 60000,
+    });
+  });
+  for (const value of ["", "   "]) {
+    withEnv({ ...base, OMNIROUTE_TRANSLATION_REASONING_EFFORT: value }, () => {
+      assert.deepEqual(backendConfig(), {
+        apiUrl: "http://translation.test/v1",
+        apiKey: "sk-test",
+        model: "test-model",
+        timeoutMs: 60000,
+      });
+    });
+  }
+});
+
+test("backendConfig forwards the trimmed value when the variable is set", () => {
+  const base = {
+    OMNIROUTE_TRANSLATION_API_URL: "http://translation.test/v1",
+    OMNIROUTE_TRANSLATION_API_KEY: "sk-test",
+    OMNIROUTE_TRANSLATION_MODEL: "test-model",
+  };
+  withEnv({ ...base, OMNIROUTE_TRANSLATION_REASONING_EFFORT: "none" }, () => {
+    assert.equal(backendConfig().reasoningEffort, "none");
+  });
+  withEnv({ ...base, OMNIROUTE_TRANSLATION_REASONING_EFFORT: " none " }, () => {
+    assert.equal(backendConfig().reasoningEffort, "none");
+  });
+});
+
+test("callChat omits the field when the backend carries none", async () => {
+  const messages = [{ role: "user", content: "x" }];
+  await withFetch(
+    () => chatCompletion("ok"),
+    async (calls) => {
+      await callChat(messages, BACKEND);
+      assert.equal(calls.length, 1);
+      assert.equal(
+        String(calls[0].init.body),
+        '{"model":"test-model","messages":[{"role":"user","content":"x"}],"temperature":0.15,"stream":false}'
+      );
+      assert.equal("reasoning_effort" in requestBody(calls[0]), false);
+    }
+  );
+});
+
+test("callChat forwards the field when the backend carries one", async () => {
+  const messages = [{ role: "user", content: "x" }];
+  await withFetch(
+    () => chatCompletion("ok"),
+    async (calls) => {
+      await callChat(messages, { ...BACKEND, reasoningEffort: "none" });
+      assert.equal(calls.length, 1);
+      const body = requestBody(calls[0]);
+      assert.equal(body.reasoning_effort, "none");
+      assert.deepEqual(Object.keys(body), [
+        "model",
+        "messages",
+        "temperature",
+        "stream",
+        "reasoning_effort",
+      ]);
+    }
+  );
+});
+
+test("callChat keeps the field on retry after a transient failure", async () => {
+  const messages = [{ role: "user", content: "x" }];
+  let n = 0;
+  await withFetch(
+    () => (++n === 1 ? new Response("busy", { status: 500 }) : chatCompletion("ok")),
+    async (calls) => {
+      const out = await callChat(messages, { ...BACKEND, reasoningEffort: "none" });
+      assert.equal(out, "ok");
+      assert.equal(calls.length, 2);
+      for (const call of calls) {
+        assert.equal(requestBody(call).reasoning_effort, "none");
+      }
     }
   );
 });

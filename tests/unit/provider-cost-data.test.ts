@@ -25,6 +25,7 @@ test("provider-specific pricing wins over a generic model fallback", () => {
       inputCostPer1M: 1,
       outputCostPer1M: 10,
       isFree: false,
+      isEstimated: false,
     });
   } finally {
     if (previousGeneric) KNOWN_MODEL_PRICING[genericKey] = previousGeneric;
@@ -39,10 +40,12 @@ test("tier pricing reads the exact Devin provider/model rate", () => {
     inputCostPer1M: 0.2,
     outputCostPer1M: 1.2,
     isFree: false,
+    isEstimated: false,
   });
   assert.deepEqual(getModelPricing("devin-cli", "gpt-5-6-luna-max-priority"), {
     inputCostPer1M: 0.4,
     outputCostPer1M: 2.4,
     isFree: false,
+    isEstimated: false,
   });
 });
