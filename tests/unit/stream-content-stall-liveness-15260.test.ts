@@ -24,8 +24,7 @@ const { resolveContentStallTimeoutMs } =
   await import("../../open-sse/utils/streamReadinessPolicy.ts");
 const { pipeWithDisconnect, createStreamController } =
   await import("../../open-sse/utils/streamHandler.ts");
-const { createSSETransformStreamWithLogger } =
-  await import("../../open-sse/utils/stream.ts");
+const { createSSETransformStreamWithLogger } = await import("../../open-sse/utils/stream.ts");
 
 const encoder = new TextEncoder();
 
@@ -152,11 +151,14 @@ function assertStrictVsLiveness(frames: string, expectStrictContent: boolean) {
 }
 
 test("Claude signature_delta and empty thinking_delta keep the model alive", () => {
+  // Base #15433 made non-empty thinking/signature payloads count as strict
+  // content as well, so the strict expectation tracks that decision here;
+  // liveness is what this branch owns.
   assertStrictVsLiveness(
     'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"thinking"}}\n\n' +
       'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":""}}\n\n' +
       'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"EqABC"}}\n\n',
-    false
+    true
   );
 });
 
