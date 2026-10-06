@@ -11094,10 +11094,15 @@
     "poolSignalPosition": "Positsioonijärjekord",
     "poolHealthRankingOff": "Tervise järjestus väljas",
     "transportRate": "{rate} % transporti",
+    "slowAbandoned": "{count} aeglased katkestused",
+    "clientAborted": "{count} kliendi katkestused",
+    "slowAbandonedHint": "Katkestatud pärast päiste oote läve ületamist, transpordimäärast välja arvatud",
     "previousSuccessRate": "Varem {rate} % edukust",
-    "upstreamRefusals": "{count} upstream-keeldumist",
     "connectionTestsCount": "{count} ühenduse testi",
-    "notMeasured": "Mõõtmata"
+    "notMeasured": "Mõõtmata",
+    "upstream4xx": "{count} ülespoole kliendivigad",
+    "upstream5xx": "{count} ülespoole serverivigad",
+    "uniformEgressLine": "{affected} {exits} väljumistest ebaõnnestuvad koos {provider} (viimased {hours}h) — mitte väljumisprobleem"
   },
   "playground": {
     "title": "Mudelite testkeskkond",

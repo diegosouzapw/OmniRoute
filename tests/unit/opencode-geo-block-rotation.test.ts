@@ -122,6 +122,15 @@ describe("OpencodeExecutor geo-block rotation", () => {
       { status: 403, body: GEO_BODY },
       { status: 200 },
     ]);
+    const warns: string[] = [];
+    const spyLog: ExecutorLog = {
+      debug() {},
+      info() {},
+      warn(_tag, message) {
+        warns.push(String(message));
+      },
+      error() {},
+    };
 
     const result = await exec.execute({
       model: "muse-spark-1.3-contributor-free",
@@ -129,7 +138,7 @@ describe("OpencodeExecutor geo-block rotation", () => {
       stream: false,
       signal: null,
       credentials: credentialsFor([FP_A, FP_B, FP_C]),
-      log,
+      log: spyLog,
     });
 
     assert.strictEqual(
@@ -143,6 +152,10 @@ describe("OpencodeExecutor geo-block rotation", () => {
         observed.includes(String(portB)) &&
         observed.includes(String(portC)),
       "first attempt on A (fresh cursor), then rotation over untried proxies"
+    );
+    assert.ok(
+      warns.some((l) => new RegExp(`\\(proxy 127\\.0\\.0\\.1:${portA}\\)`).test(l)),
+      `geo-block warn must name the applied egress, got=${JSON.stringify(warns)}`
     );
   });
 

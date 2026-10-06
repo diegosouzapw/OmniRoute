@@ -137,6 +137,27 @@ describe("invalid options say what to fix", () => {
     assert.equal(parsed.modelCacheTtlMs, 300000);
     assert.equal(resolveTimeouts(parsed).models, 15000);
   });
+
+  it("leaves providersAllow absent by default", () => {
+    assert.equal(
+      parsePluginOptions({ baseURL: "http://gw.example.com" }).providersAllow,
+      undefined
+    );
+  });
+
+  it("accepts a providersAllow list", () => {
+    assert.deepEqual(
+      parsePluginOptions({ baseURL: "http://gw.example.com", providersAllow: ["claude"] })
+        .providersAllow,
+      ["claude"]
+    );
+  });
+
+  it("rejects a non-array providersAllow", () => {
+    assert.throws(() =>
+      parsePluginOptions({ baseURL: "http://gw.example.com", providersAllow: "cc" })
+    );
+  });
 });
 
 describe("providerId is bounded because it reaches a filesystem path", () => {
