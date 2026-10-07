@@ -7,7 +7,7 @@
  * touched the connection-scoped breaker. The next request was rejected as
  * "all targets were skipped by pre-dispatch filters".
  */
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import {
   getCircuitBreaker,
@@ -15,6 +15,9 @@ import {
 } from "../../src/shared/utils/circuitBreaker.ts";
 import { recordProviderSuccess } from "../../open-sse/services/accountFallback.ts";
 import { connectionCircuitBreakerName } from "../../open-sse/services/connectionCircuitBreaker.ts";
+import { resetDbInstance } from "../../src/lib/db/core.ts";
+
+after(() => resetDbInstance());
 
 const unique = (suffix: string) =>
   `provider-close-${suffix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
@@ -42,6 +45,11 @@ test("a connection-scoped success also closes the provider-level breaker", async
   connectionBreaker.canExecute();
   assert.equal(providerBreaker.state, "HALF_OPEN");
   assert.equal(connectionBreaker.state, "HALF_OPEN");
+
+  await providerBreaker.execute(async () => ({ success: true }), {
+    classifyResult: () => "ignore",
+  });
+  assert.equal(providerBreaker.canExecute(), false, "the dispatched probe consumed its permit");
 
   recordProviderSuccess(provider, connectionId);
 

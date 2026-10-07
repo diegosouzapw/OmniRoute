@@ -1279,7 +1279,7 @@ export function recordProviderFailure(
  * When the breaker is OPEN (provider is failing), this is a no-op -- the
  * cooldown stays intact and the breaker keeps its cooldown period.
  *
- * Matches execute()'s behavior: _onSuccess() is called for all non-OPEN states.
+ * A completed HALF_OPEN probe may have consumed its permit; preserve only active OPEN cooldown.
  */
 export function recordProviderSuccess(
   provider: string | null | undefined,
@@ -1306,8 +1306,8 @@ export function recordProviderSuccess(
   if (connectionId) {
     lastConnectionFailure.delete(`${provider}:${connectionId}`);
     const providerBreaker = getProviderBreaker(provider);
-    if (providerBreaker && providerBreaker !== breaker && providerBreaker.canExecute()) {
-      providerBreaker._onSuccess();
+    if (providerBreaker && providerBreaker !== breaker) {
+      if (providerBreaker.getStatus().state !== "OPEN") providerBreaker._onSuccess();
     }
   }
   breaker._onSuccess();
