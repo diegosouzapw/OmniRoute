@@ -1010,8 +1010,17 @@ export async function executeTargetAttempt(opts: {
     recordQuotaExhaustionClassification(result, quotaExhausted);
     // Balance exhaustion is upstream truth about credits, and it outranks the
     // stored snapshot — which can be hours stale and still claim headroom. Mark
-    // it so the next quota-weighted draw stops picking this connection.
-    if (quotaExhausted && result.status === 402 && targetWithConnection.connectionId && provider) {
+    // it so the next quota-weighted / fill-first draw stops preferring this
+    // connection. Include HTTP 403: some upstreams signal durable wallet
+    // exhaustion as 403 AUTHZ_INSUFFICIENT_BALANCE / "Insufficient account
+    // balance" instead of 402 (#10966 classifier; same-request hop still
+    // advances via the failure path below).
+    if (
+      quotaExhausted &&
+      (result.status === 402 || result.status === 403) &&
+      targetWithConnection.connectionId &&
+      provider
+    ) {
       markAccountExhaustedFromCredits(targetWithConnection.connectionId, provider);
     }
     state.observeFailure(quotaExhausted, target.executionKey);
