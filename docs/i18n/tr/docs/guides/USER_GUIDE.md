@@ -137,11 +137,11 @@ Modeller:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profesyonel İpucu:** Karmaşık görevler için Opus'u, hız için Sonnet'i kullanın. OmniRoute kotayı model bazında takip eder!
+**Uzman İpucu:** Karmaşık görevler için Opus'u, hız için Sonnet'i kullanın. OmniRoute, kotayı model bazında takip eder!
 
-Claude ve Claude Code uyumlu rotalar, Opus ve Sonnet modelleri için `max` düşünme eforunu
-korur. Haiku modelleri `max` efor katmanını kabul etmez; bu nedenle OmniRoute, isteği
-üst sağlayıcıya göndermeden önce yüksek bir düşünme bütçesine düşürür.
+OmniRoute ana makinesinde tarayıcı yok mu? Claude Code'da oturum açılmış herhangi bir yerde `claude setup-token` komutunu çalıştırın ve bir yıllık token'ı **Kurulum Token'ı** sekmesine yapıştırın. Bkz. [Kurulum token'ıyla Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude ve Claude Code uyumlu rotalar, Opus ve Sonnet modelleri için `max` düşünme eforunu korur. Haiku modelleri `max` efor düzeyini kabul etmediğinden OmniRoute, isteği üst sağlayıcıya göndermeden önce yüksek bir düşünme bütçesine düşürür.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -180,34 +180,33 @@ Modeller:
 2. Coding Plan'den API anahtarını alın
 3. Kontrol Paneli → API Anahtarı Ekle: Sağlayıcı: `glm`, API Anahtarı: `your-key`
 
-**Kullanım:** `glm/glm-4.7` — **Profesyonel İpucu:** Coding Plan, maliyetin 1/7'sine 3 kat kota sunar! Her gün saat 10:00'da sıfırlanır.
+**Kullanım:** `glm/glm-4.7` — **Uzman İpucu:** Coding Plan, maliyetin 1/7'sine 3 kat kota sunar! Her gün saat 10:00'da sıfırlanır.
 
-#### MiniMax M2.1 (5 saatte bir sıfırlama, $0.20/1M)
+#### MiniMax M2.1 (5 saatte sıfırlama, $0.20/1M)
 
 1. Kaydolun: [MiniMax](https://www.minimax.io)
 2. API anahtarını alın → Kontrol Paneli → API Anahtarı Ekle
 
-**Kullanım:** `minimax/MiniMax-M2.1` — **Profesyonel İpucu:** Uzun bağlam için en ucuz seçenek (1M token)!
+**Kullanım:** `minimax/MiniMax-M2.1` — **Uzman İpucu:** Uzun bağlam (1M token) için en ucuz seçenek!
 
 #### Kimi K2 (Aylık sabit $9)
 
 1. Abone olun: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. API anahtarını alın → Kontrol Paneli → API Anahtarı Ekle
 
-**Kullanım:** `kimi/kimi-k2.5` — **Profesyonel İpucu:** 10M token için aylık sabit $9 = 1M başına efektif $0.90 maliyet!
+**Kullanım:** `kimi/kimi-k2.5` — **Uzman İpucu:** 10M token için aylık sabit $9 = etkin maliyet $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Kaydolun: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Bir Qianfan API anahtarı oluşturun → Kontrol Paneli → API Anahtarı Ekle: Sağlayıcı: `qianfan`
 
-**Kullanım:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` veya başka bir Qianfan OpenAI uyumlu model kimliği.
+**Kullanım:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` veya OpenAI ile uyumlu başka bir Qianfan model kimliği.
 
 ### 🆓 ÜCRETSİZ Sağlayıcılar
 
 Kimlik doğrulaması gerektirmeyen ücretsiz sağlayıcıların sağlayıcı sayfasında **Kimlik doğrulaması gerekli değil** seçeneğinin yanında bir anahtar bulunur.
-Bu anahtarı kapatmak ilgili sağlayıcıyı devre dışı bırakır, Sağlayıcılar'ın yapılandırılmış/kompakt görünümlerinden kaldırır ve
-modellerini `/v1/models` üzerinden kaldırır.
+Bu anahtarın kapatılması, ilgili sağlayıcıyı devre dışı bırakır, onu Sağlayıcılar'ın yapılandırılmış/kompakt görünümlerinden kaldırır ve modellerini `/v1/models` listesinden çıkarır.
 
 #### Qoder (9 ÜCRETSİZ model)
 
@@ -220,7 +219,7 @@ Modeller: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, i
 #### Kiro (Claude ÜCRETSİZ)
 
 ```bash
-Kontrol Paneli → Kiro'yu Bağla → AWS Builder ID veya Google/GitHub → Ayda yaklaşık 50 kredi
+Kontrol Paneli → Kiro'yu Bağla → AWS Builder ID veya Google/GitHub → Ayda ~50 kredi
 
 Modeller: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
