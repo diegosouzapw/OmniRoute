@@ -22,7 +22,8 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
 #
 # Refreshing npm does NOT fix them. Measured on npm@12.0.2 (2026-08-12, latest):
 #   brace-expansion 5.0.7  (needs >= 5.0.9)   CVE-2026-69152, CVE-2026-14257
-#   ip-address      10.2.0 (needs >= 10.3.1)  CVE-2026-69192/-69198/-54272
+#   ip-address      10.2.0 (needs >= 10.5.1)  CVE-2026-69192/-69198/-54272 + the
+#                   isLinkLocal / NAT64 local-use SSRF advisories fixed in 10.5.1
 #   tar             7.5.19 (needs >= 7.5.21)  GHSA-r292-9mhp-454m
 #   undici          6.27.0 (needs >= 6.28.0)  CVE-2026-16729/-16728/-15157
 # No published npm release carries patched copies, so `npm install -g npm@latest`
@@ -44,7 +45,7 @@ RUN set -eux; \
   npm install -g npm@latest; \
   npm install --prefix /tmp/npm-cve-patch --no-audit --no-fund --ignore-scripts \
     --install-strategy=nested \
-    brace-expansion@5.0.9 ip-address@10.5.0 tar@7.5.22 undici@6.28.0; \
+    brace-expansion@5.0.9 ip-address@10.7.2 tar@7.5.22 undici@6.28.0; \
   for pkg in brace-expansion ip-address tar undici; do \
     test -d "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \
     rm -rf "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \

@@ -139,19 +139,30 @@ test("Parenthesized Sol effort overrides keep the reasoning summary", () => {
   }
 });
 
-test("GPT-6.1 Sol Codex pricing and Fast multiplier match the credit rate card", () => {
+test("GPT-6.1 Sol Codex pricing and existing Fast usage multiplier remain distinct", () => {
   const ids = [MODEL, ...EFFORTS.map((effort) => `${MODEL}-${effort}`)];
   for (const id of ids) {
     const pricing = getPricingForModel("cx", id);
     assert.ok(pricing, id);
     assert.equal(pricing.input, 2, id);
-    assert.equal(pricing.cached, 0.2, id);
+    assert.equal(pricing.cached, 0.1, id);
     assert.equal(pricing.output, 10, id);
     assert.equal(pricing.reasoning, 10, id);
     assert.equal(pricing.cache_creation, 2.5, id);
     assert.equal(getCodexFastCostMultiplier("codex", id, "priority"), 2.5, id);
     assert.equal(getCodexFastCostMultiplier("cx", id, "fast"), 2.5, id);
     assert.equal(getCodexFastCostMultiplier("codex", id, "default"), 1, id);
+  }
+});
+
+test("GPT-6 Sol keeps its cached rate when GPT-6.1 Sol pricing changes", () => {
+  const ids = ["gpt-6-sol", ...EFFORTS.map((effort) => `gpt-6-sol-${effort}`)];
+  for (const id of ids) {
+    const pricing = getPricingForModel("cx", id);
+    assert.ok(pricing, id);
+    assert.equal(pricing.input, 2, id);
+    assert.equal(pricing.cached, 0.2, id);
+    assert.equal(pricing.output, 10, id);
   }
 });
 
