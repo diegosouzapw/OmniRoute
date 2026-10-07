@@ -859,6 +859,7 @@ export async function parseUpstreamError(response: Response, provider: string | 
         ? clinepassEnvError.message
         : json.error?.message ||
           json.message ||
+          (typeof json.detail === "string" ? json.detail : null) ||
           (typeof json.error === "string" ? json.error : null);
       message =
         typeof extractedMessage === "string"
