@@ -453,6 +453,8 @@ function activeClaudeResetMs(
 }
 
 function isActiveClaudeExhaustion(quota: QuotaInfo, now: number): boolean {
+  // Active critical limits can be predictive warnings while quota remains.
+  // Explicit upstream 429s still use activeClaudeResetMs without this preflight guard.
   return activeClaudeResetMs(quota, now, isPreflightBlockingClaudeQuota) !== null;
 }
 
@@ -615,22 +617,31 @@ export function getCachedClaudeQuotaScopeDecision(input: {
 
 export function getClaudeQuotaPreflightResetAt(
   connectionId: string,
-  now = Date.now()
+  requestedModel: string | null,
+  providerSpecificData?: unknown
 ): string | null {
   const entry = getState().cache.get(connectionId);
   if (!entry || resolveProviderId(entry.provider) !== "claude") return null;
-  const windows = [...Object.values(entry.quotas), ...Object.values(entry.modelQuotas)].filter(
-    (quota) => isPreflightBlockingClaudeQuota(quota)
-  );
-  let earliest: string | null = null;
-  let earliestMs = Infinity;
-  for (const quota of windows) {
-    const resetMs = activeClaudeResetMs(quota, now);
-    if (resetMs === null || !quota.resetAt || resetMs >= earliestMs) continue;
-    earliestMs = resetMs;
-    earliest = quota.resetAt;
-  }
-  return earliest;
+  const now = Date.now();
+  const config = readClaudeUsageLimitConfig(providerSpecificData);
+  const sessionRecoveryEnabled = config.lowPriorityMode || config.autoLimitReset;
+  const windows = [
+    ...Object.values(entry.quotas).filter(
+      (quota) =>
+        quota.claudeQuota &&
+        quota.claudeQuota.kind !== "weekly_scoped" &&
+        (quota.claudeQuota.kind !== "session" || !sessionRecoveryEnabled)
+    ),
+    ...Object.values(entry.modelQuotas).filter(
+      (quota) =>
+        requestedModel &&
+        quota.claudeQuota?.kind === "weekly_scoped" &&
+        claudeQuotaMatchesModel(quota.claudeQuota, requestedModel)
+    ),
+  ].filter((quota) => isActiveClaudeExhaustion(quota, now));
+  // All blocking windows on this account must reset before it can serve this model.
+  // The caller then chooses the earliest available account, not the cache park TTL.
+  return decisionForLatestClaudeReset(windows, "connection", now)?.resetAt ?? null;
 }
 
 export function isQuotaExhaustedForRequest(

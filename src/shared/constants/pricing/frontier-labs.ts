@@ -4,6 +4,7 @@
  */
 import {
   GPT_6_ASTRA_PRICING,
+  GPT_6_SOL_PRICING,
   GEMINI_3_7_FLASH_PROMO_PRICING,
   GPT_5_5_PRICING,
   GPT_5_6_LUNA_PRICING,
@@ -11,6 +12,7 @@ import {
   GPT_5_6_TERRA_PRICING,
   CLAUDE_FABLE_5_1_PRICING,
   CLAUDE_FABLE_5_PRICING,
+  CLAUDE_OPUS_5_5_PRICING,
   CLAUDE_OPUS_5_PRICING,
   CLAUDE_OPUS_4_PRICING,
   CLAUDE_SONNET_4_PRICING,
@@ -33,6 +35,7 @@ export const DEFAULT_PRICING_FRONTIER = {
       reasoning: 0.5,
       cache_creation: 0.125,
     },
+    "gpt-6.1-sol": GPT_6_SOL_PRICING,
     "gpt-5.6": GPT_5_6_SOL_PRICING,
     "gpt-5.6-sol": GPT_5_6_SOL_PRICING,
     "gpt-5.6-terra": GPT_5_6_TERRA_PRICING,
@@ -229,6 +232,7 @@ export const DEFAULT_PRICING_FRONTIER = {
     // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
     "claude-fable-5-1": CLAUDE_FABLE_5_1_PRICING,
     "claude-fable-5": CLAUDE_FABLE_5_PRICING,
+    "claude-opus-5-5": CLAUDE_OPUS_5_5_PRICING,
     "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
     "claude-sonnet-5-5": CLAUDE_SONNET_5_PRICING,

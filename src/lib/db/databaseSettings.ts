@@ -2,7 +2,7 @@ import fs from "node:fs";
 
 import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databaseSettings";
 
-import { backupDbFile } from "./backup";
+import { backupDbFile, setDbBackupMaxFiles } from "./backup";
 import { DATA_DIR, SQLITE_FILE, applyDatabaseOptimizationSettings, getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import { getDatabaseStats } from "./stats";
@@ -302,6 +302,11 @@ export function updateDatabaseSettings(
   const requestedLogs = updates.logs as Partial<UserDatabaseSettings["logs"]> | undefined;
   const pipelineEnabled = requestedLogs?.callLogPipelineEnabled;
   const detailedEnabled = requestedLogs?.detailedLogsEnabled;
+
+  const requestedBackup = updates.backup as Partial<UserDatabaseSettings["backup"]> | undefined;
+  if (requestedBackup?.keepLastNBackups !== undefined) {
+    setDbBackupMaxFiles(nextSettings.backup.keepLastNBackups);
+  }
 
   const tx = db.transaction(() => {
     for (const section of DATABASE_SETTINGS_SECTIONS) {

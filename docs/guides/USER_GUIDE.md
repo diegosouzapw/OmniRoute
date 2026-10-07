@@ -141,6 +141,8 @@ Models:
 
 **Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
 
+No browser on the OmniRoute host? Run `claude setup-token` anywhere Claude Code is logged in and paste the one-year token into the **Setup Token** tab. See [Claude Code with a setup token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
 Claude and Claude Code-compatible routes preserve `max` thinking effort for Opus and Sonnet
 models. Haiku models do not accept the `max` effort tier, so OmniRoute downgrades that
 request to a high thinking budget before sending it upstream.

@@ -31,6 +31,8 @@ omniroute
 
 Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
 
+> **npm users:** If npm warns that install scripts were blocked (e.g., `omniroute`, `better-sqlite3`), see [Troubleshooting — npm install-scripts blocked](./TROUBLESHOOTING.md#npm-install-scripts-blocked-warning-global-install).
+
 ### pnpm
 
 ```bash

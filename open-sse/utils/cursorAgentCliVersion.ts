@@ -226,7 +226,7 @@ function resolveLocalCursorAgentCliVersion(now: number): string | null {
  * (20s timeout, cached 6h) and used only when its date is strictly later than
  * the pin. A rejected or unusable fetch keeps the pin.
  */
-export async function getCursorAgentCliVersion(): Promise<string> {
+export function getCursorAgentCliVersionSync(): string {
   const now = Date.now();
   if (cachedVersion && now - cachedAt < CACHE_TTL_MS) {
     return cachedVersion;
@@ -259,6 +259,16 @@ export async function getCursorAgentCliVersion(): Promise<string> {
   cachedVersion = resolved;
   cachedAt = Date.now();
   return resolved;
+}
+
+/**
+ * Async form of {@link getCursorAgentCliVersionSync}. Nothing here awaits: the
+ * lookup answers from env, a local install, the disk cache or the pin, and the
+ * installer scrape runs in the background. Prefer the sync form wherever a
+ * synchronous contract applies (e.g. `buildHeaders`).
+ */
+export async function getCursorAgentCliVersion(): Promise<string> {
+  return getCursorAgentCliVersionSync();
 }
 
 /**

@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Tapawa ndepụta JSON",
     "claudeImportBulkModeZip": "Bulite ZIP",
     "claudeImportBulkUploadHint": "Dobe ma ọ bụ họrọ ihe ruru faịlụ .credentials.json 50 (256KB nke ọ bụla, 10MB na mkpokọta).",
-    "claudeImportBulkPasteHint": "Tapawa ndepụta ihe: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Tapawa ndepụta ihe: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP nwere ndenye .json. Kachasị ndenye 50, 10MB mgbe ewepụchara ya.",
     "claudeImportBulkSubmit": "Bubata ha niile",
     "claudeImportBulkSuccess": "Ebubatala njikọ Claude {count}",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Mado usoro JSON",
     "geminiImportBulkModeZip": "Bulite ZIP",
     "geminiImportBulkUploadHint": "Dobe ma ọ bụ họrọ ihe ruru faịlụ oauth_creds.json 50 (256KB nke ọ bụla, 10MB na mkpokọta).",
-    "geminiImportBulkPasteHint": "Mado usoro ihe: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Mado usoro ihe: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP nwere ndenye oauth_creds.json. Kachasị ndenye 50, 10MB mgbe a tọpụchara ya.",
     "geminiImportBulkSubmit": "Bubata ha niile",
     "geminiImportBulkSuccess": "E bubatara njikọ Gemini {count}",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Tapawa ndepụta",
     "codexImportBulkModeZip": "Ebe nchekwa ZIP",
     "codexImportBulkUploadHint": "Họrọ ọtụtụ faịlụ .json ma ọ bụ dọrọ ha tụnye",
-    "codexImportBulkPasteHint": "Usoro JSON [ {...}, {...} ] ma ọ bụ ọtụtụ JSON ndị e ji --- dị naanị ya n'ahịrị kewapụ",
+    "codexImportBulkPasteHint": "Usoro JSON [ '{...}', '{...}' ] ma ọ bụ ọtụtụ JSON ndị e ji --- dị naanị ya n'ahịrị kewapụ",
     "codexImportBulkZipHint": "Bulite .zip nwere faịlụ auth.json (ọ kachasị faịlụ 50, 10 MB)",
     "codexImportBulkSubmit": "Bubata akaụntụ {count}",
     "codexImportBulkLimit": "Ọ kachasị faịlụ 50 n'otu mbubata",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "dịka meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key ma ọ bụ Service Account JSON",
     "vertexCredentialHint": "API keys na-eji katalọgụ project ahọpụtara. Service Account JSON na-eme ka nchọpụta Model Garden dị ugbu a rụọ ọrụ.",
-    "vertexServiceAccountPlaceholder": "Tapawa API key, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}), ma ọ bụ OAuth access token",
+    "vertexServiceAccountPlaceholder": "Tapawa API key, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}'), ma ọ bụ OAuth access token",
     "webCookieProviders": "Ndị Na-eweta Kuki Weebụ",
     "weeklyShort": "Kwa Izu Nkenke",
     "xiaomiMimoBaseUrlHint": "Ndụmọdụ Xiaomi Mimo Base Url",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Uzuzu ọrụ mkpanaka",
-      "coreBinaryPathHelp": "Nhọrọ: dele faịlụ e mepụtara n'aka ọrụ mkpanaka tupu ị gbanwee faịlụ e zụtara ya. Hapụ ya ka e debanye ya n'akụkụ. A na-emepe folda ma ọ bụla.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Nhọrọ: dele faịlụ e mepụtara n'aka ọrụ mkpanaka tupu ị gbanwee faịlụ e zụtara ya. Hapụ ya ka e debanye ya n'akụkụ. A na-emepe folda ma ọ bụla."
     },
     "bulkHealthcheck": "Nnyocha ahụike n'ìgwè",
     "bulkHealthcheckDesc": "Nwalee proxy niile ahaziri megide URL ebumnuche iji chọpụta ndị na-arụ ọrụ.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Na-ebunye…",
     "loadFailed": "Nbudata ozi injin dara ada.",
+    "settingsLoadFailed": "Enweghị ike ibu ntọala echekwara. Oghere ndị ahụ na-egosi ụkpụrụ ndabara, Chekwaa anaghị arụ ọrụ ruo mgbe ebugharịrị ibe ahụ ọzọ.",
     "engineNotFound": "Ahụghị injin \"{engine}\".",
     "saveFailed": "Ịchekwa nhazi dara ada.",
     "previewFailed": "Nlele mbụ dara ada.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "dịka ọmụmaatụ, def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "dịka ọmụmaatụ, def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Tapawa nzaghachi a tụrụ anya ya kpọmkwem",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "dịka ọmụmaatụ, ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "dịka ọmụmaatụ, ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Jiri JavaScript regular expression na-enweghị slash ndị gbara ya gburugburu.",
     "suiteBuilderNamePlaceholder": "dịka ọmụmaatụ, Ngwugwu Ule Ogo Koodu",
     "suiteBuilderAddCase": "Tinye Ọnọdụ Ule",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Tapawa ọdịnaya NIILE nke ~/.grok/auth.json (ọ bụghị naanị mpaghara JWT \"key\"). JWT naanị ya enweghị refresh_token, ya mere njikọ ahụ na-akwụsị mgbe oge ya gwụrụ (#7610). Ọ ka mma iji modal Import auth.json pụrụ iche mgbe ọ dị.",
     "devinDesktopPasteDescription": "Tapawa igodo Devin API dị adị sitere na nnọkọ Devin a nyochara njirimara ya. Nnweta na usoro mbupụ igodo dịgasị iche dabere na ụdị Devin na akaụntụ.",
     "devinPasteDescription": "Nye WINDSURF_API_KEY gị (nke enwetara site na `devin auth login`, ma ọ bụ site na iwu Windsurf IDE \"Windsurf: Provide Auth Token\").",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "auth.json nke Grok Build",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "Igodo API / Token",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Nhazi GitLab Duo OAuth",
     "gitlabDuoSetupMessage": "Ahazibeghị GitLab Duo OAuth. Debanye ngwa OAuth na {applicationsUrl} site na iji redirect URI {redirectUri} na scopes \"{scopes}\", wee tọọ {clientIdEnv} (yana {clientSecretEnv} ma ọ bụrụ na ịchọrọ) ma malitegharịa.",
     "gitlabDuoSetupDescription": "Mgbe e debanyere ngwa ahụ ma tọọ env vars na OmniRoute instance a, pịa Gaa n'ihu iji malite nbanye OAuth.",
-    "continue": "Gaa n'ihu"
+    "continue": "Gaa n'ihu",
+    "tabPasteSetupToken": "Tokin nhazi",
+    "claudeSetupTokenDescription": "Gbaa `claude setup-token` na timinal ma mado tokin ọ bipụtara. Ọ dị irè otu afọ, ọ nweghịkwa tokin mmeghari. OmniRoute na-ezipụ otu arịrịọ nnwale na Anthropic tupu ọ chekwaa ya.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Jikọọ Cursor",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Dịkwa na Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Mechie"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Gosipụta mirror ids <gateway-alias>/<model> na /v1/models maka ụdị ndị onye nwe ha canonical na-enweghị nzere na-arụ ọrụ, mana passthrough gateway nwere nzere na-arụ ọrụ na-ebufe ha. Ịdọ aka ná ntị: mgbe agbanyere nke a n'ụwa niile, ọ na-agbakwunye ndebanye katalọgụ maka ndị ahịa niile.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Gosipụta mirror ids '<gateway-alias>'/'<model>' na /v1/models maka ụdị ndị onye nwe ha canonical na-enweghị nzere na-arụ ọrụ, mana passthrough gateway nwere nzere na-arụ ọrụ na-ebufe ha. Ịdọ aka ná ntị: mgbe agbanyere nke a n'ụwa niile, ọ na-agbakwunye ndebanye katalọgụ maka ndị ahịa niile.",
   "radarPage": {
     "title": "Katalọgụ Radar",
     "subtitle": "Katalọgụ ụdị efu nke e ji ọgụgụ isi sitere n'aka obodo ndị ọrụ kwalite",

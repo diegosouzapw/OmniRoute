@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "የJSON ድርድር ለጥፍ",
     "claudeImportBulkModeZip": "ZIP ስቀል",
     "claudeImportBulkUploadHint": "እስከ 50 .credentials.json ፋይሎችን ጣል ወይም ምረጥ (እያንዳንዱ 256KB፣ በድምሩ 10MB)።",
-    "claudeImportBulkPasteHint": "የኦብጀክቶችን ድርድር ለጥፍ፦ [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "የኦብጀክቶችን ድርድር ለጥፍ፦ ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "የ.json ግቤቶችን የያዘ ZIP። ከፍተኛው 50 ግቤቶች፣ ሲፈታ 10MB።",
     "claudeImportBulkSubmit": "ሁሉንም አስመጣ",
     "claudeImportBulkSuccess": "{count} የClaude ግንኙነቶች ገብተዋል",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "የJSON ድርድር ይለጥፉ",
     "geminiImportBulkModeZip": "ZIP ይስቀሉ",
     "geminiImportBulkUploadHint": "እስከ 50 oauth_creds.json ፋይሎችን ይጣሉ ወይም ይምረጡ (እያንዳንዳቸው 256KB፣ በድምሩ 10MB)።",
-    "geminiImportBulkPasteHint": "የነገሮችን ድርድር ይለጥፉ፦ [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "የነገሮችን ድርድር ይለጥፉ፦ ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "የoauth_creds.json ግቤቶችን የያዘ ZIP። ቢበዛ 50 ግቤቶች፣ ሲፈታ 10MB።",
     "geminiImportBulkSubmit": "ሁሉንም አስመጣ",
     "geminiImportBulkSuccess": "{count} የGemini ግንኙነቶች ገብተዋል",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "ዝርዝሩን ለጥፍ",
     "codexImportBulkModeZip": "የZIP ማኅደር",
     "codexImportBulkUploadHint": "በርካታ .json ፋይሎችን ይምረጡ ወይም ጎትተው ይጣሉ",
-    "codexImportBulkPasteHint": "የJSON ድርድር [ {...}, {...} ] ወይም በራሱ መስመር ላይ ባለ --- የተለያዩ በርካታ JSONዎች",
+    "codexImportBulkPasteHint": "የJSON ድርድር [ '{...}', '{...}' ] ወይም በራሱ መስመር ላይ ባለ --- የተለያዩ በርካታ JSONዎች",
     "codexImportBulkZipHint": "የauth.json ፋይሎችን የያዘ .zip ይስቀሉ (ከፍተኛው 50 ፋይሎች፣ 10 MB)",
     "codexImportBulkSubmit": "{count} መለያዎችን አስመጣ",
     "codexImportBulkLimit": "በእያንዳንዱ ማስመጣት ከፍተኛው 50 ፋይሎች",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "ለምሳሌ meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API ቁልፍ ወይም የአገልግሎት መለያ JSON",
     "vertexCredentialHint": "API ቁልፎች በጥንቃቄ የተመረጠውን የፕሮጀክት ካታሎግ ይጠቀማሉ። የአገልግሎት መለያ JSON ቀጥታ የModel Garden ግኝትን ያነቃል።",
-    "vertexServiceAccountPlaceholder": "API ቁልፍ፣ Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) ወይም OAuth የመዳረሻ ቶከን ይለጥፉ",
+    "vertexServiceAccountPlaceholder": "API ቁልፍ፣ Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') ወይም OAuth የመዳረሻ ቶከን ይለጥፉ",
     "webCookieProviders": "የድር ኩኪ አቅራቢዎች",
     "weeklyShort": "ሳምንታዊ አጭር",
     "xiaomiMimoBaseUrlHint": "የXiaomi Mimo Base URL ፍንጭ",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "የዋናውን መስርቀኛ መልዕክት መንገድ",
-      "coreBinaryPathHelp": "አማራጭ፦ ከመቀጠያ በፊት የተፈጠረውን ወርቀ መስርቀኛ መልዕክት አረጋግጠው የተቀባዩን ወርቀ ይረጋግጓል። በታኅወሯ መጻፊያውን ለመቀጠል ባዶ ይተዉ። ማህደሩ ባይኖር ሲፈጠር ይፈጠራል።",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "አማራጭ፦ ከመቀጠያ በፊት የተፈጠረውን ወርቀ መስርቀኛ መልዕክት አረጋግጠው የተቀባዩን ወርቀ ይረጋግጓል። በታኅወሯ መጻፊያውን ለመቀጠል ባዶ ይተዉ። ማህደሩ ባይኖር ሲፈጠር ይፈጠራል።"
     },
     "bulkHealthcheck": "የጅምላ ጤና ምርመራ",
     "bulkHealthcheckDesc": "የትኞቹ እንደሚሰሩ ለማወቅ ሁሉንም የተዋቀሩ ፕሮክሲዎች በዒላማ URL ላይ ይሞክሩ።",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "በመጫን ላይ…",
     "loadFailed": "የሞተር መረጃን መጫን አልተሳካም።",
+    "settingsLoadFailed": "የተቀመጡትን ቅንብሮች መጫን አልተሳካም። መስኮቹ ነባሪ እሴቶችን ያሳያሉ፣ እና ገጹ እንደገና እስኪጫን ድረስ አስቀምጥ እንደቦዘነ ይቆያል።",
     "engineNotFound": "ሞተር \"{engine}\" አልተገኘም።",
     "saveFailed": "ውቅረቱን ማስቀመጥ አልተሳካም።",
     "previewFailed": "ቅድመ ዕይታው አልተሳካም።",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "ለምሳሌ፣ def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "ለምሳሌ፣ def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "በትክክል የሚጠበቀውን ምላሽ ይለጥፉ",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "ለምሳሌ፣ ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "ለምሳሌ፣ ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "የJavaScript መደበኛ አገላለጽን በስላሾች ሳይጠቀልሉ ይጠቀሙ።",
     "suiteBuilderNamePlaceholder": "ለምሳሌ፣ የኮድ ጥራት ስብስብ",
     "suiteBuilderAddCase": "ጉዳይ ጨምር",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "የ~/.grok/auth.jsonን ሙሉ ይዘት ይለጥፉ (የJWT \"key\" መስክን ብቻ አይደለም)። ብቻውን የሆነ JWT refresh_token ስለሌለው፣ የሚሰራበት ጊዜ ካለፈ በኋላ ግንኙነቱ ይቋረጣል (#7610)። ካለ፣ ለዚህ የተዘጋጀውን Import auth.json መስኮት መጠቀም ይመረጣል።",
     "devinDesktopPasteDescription": "ከተረጋገጠ የDevin ክፍለ ጊዜ ነባር የDevin API ቁልፍ ይለጥፉ። ቁልፉን ወደ ውጭ የመላክ አማራጭ መኖርና ደረጃዎቹ እንደ Devin ስሪትና መለያ ይለያያሉ።",
     "devinPasteDescription": "WINDSURF_API_KEYዎን ያቅርቡ (በ`devin auth login` ወይም በWindsurf IDE \"Windsurf: Provide Auth Token\" ትዕዛዝ የተገኘ)።",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API ቁልፍ / ቶከን",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "የGitLab Duo OAuth ማዋቀር",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth አልተዋቀረም። በ{applicationsUrl} ላይ OAuth መተግበሪያን፣ የመመለሻ URI {redirectUri} እና \"{scopes}\" ወሰኖችን በመጠቀም ይመዝግቡ፤ ከዚያ {clientIdEnv}ን (እና ከፈለጉ {clientSecretEnv}ን) ያዘጋጁና እንደገና ያስጀምሩ።",
     "gitlabDuoSetupDescription": "መተግበሪያው ከተመዘገበ እና የአካባቢ ተለዋዋጮቹ በዚህ የOmniRoute ኢንስታንስ ላይ ከተዋቀሩ በኋላ፣ የOAuth መግቢያውን ለመጀመር «ቀጥል»ን ጠቅ ያድርጉ።",
-    "continue": "ቀጥል"
+    "continue": "ቀጥል",
+    "tabPasteSetupToken": "የማዋቀሪያ ቶከን",
+    "claudeSetupTokenDescription": "በተርሚናል ውስጥ `claude setup-token` ያሂዱ እና የሚያሳየውን ቶከን ይለጥፉ። ለአንድ ዓመት ያገለግላል እና የማደሻ ቶከን የለውም። OmniRoute ከማስቀመጡ በፊት አንድ የሙከራ ጥያቄ ወደ Anthropic ይልካል።",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Cursorን አገናኝ",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "በOpen VSXም ይገኛል (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "ዝጋ"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "ዋና ባለቤታቸው ንቁ የማረጋገጫ መረጃ ለሌለው፣ ነገር ግን ንቁ የማረጋገጫ መረጃ ያለው በቀጥታ የሚያሳልፍ ጌትዌይ ለሚያዞራቸው ሞዴሎች፣ በ/v1/models ላይ የ<gateway-alias>/<model> መስተዋት መለያዎችን ያሳዩ። ማስጠንቀቂያ፦ በአጠቃላይ ሲነቃ ለሁሉም ደንበኞች የካታሎግ ግቤቶችን ይጨምራል።",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "ዋና ባለቤታቸው ንቁ የማረጋገጫ መረጃ ለሌለው፣ ነገር ግን ንቁ የማረጋገጫ መረጃ ያለው በቀጥታ የሚያሳልፍ ጌትዌይ ለሚያዞራቸው ሞዴሎች፣ በ/v1/models ላይ የ'<gateway-alias>'/'<model>' መስተዋት መለያዎችን ያሳዩ። ማስጠንቀቂያ፦ በአጠቃላይ ሲነቃ ለሁሉም ደንበኞች የካታሎግ ግቤቶችን ይጨምራል።",
   "radarPage": {
     "title": "Radar ካታሎግ",
     "subtitle": "በማህበረሰብ መረጃ የዳበረ ነፃ የሞዴል ካታሎግ",

@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Liitä JSON-taulukko",
     "claudeImportBulkModeZip": "Lataa ZIP",
     "claudeImportBulkUploadHint": "Pudota tai poimi jopa 50 .credentials.json-tiedostoa (kukin 256 kt, yhteensä 10 Mt).",
-    "claudeImportBulkPasteHint": "Liitä joukko objekteja: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Liitä joukko objekteja: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP, joka sisältää .json-merkintöjä. Enintään 50 merkintää, 10 Mt pakattuna.",
     "claudeImportBulkSubmit": "Tuo kaikki",
     "claudeImportBulkSuccess": "Tuodut {count} Claude-yhteydet",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Liitä JSON-taulukko",
     "geminiImportBulkModeZip": "Lataa ZIP",
     "geminiImportBulkUploadHint": "Pudota tai poimi jopa 50 oauth_creds.json-tiedostoa (kukin 256 kt, yhteensä 10 Mt).",
-    "geminiImportBulkPasteHint": "Liitä joukko objekteja: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Liitä joukko objekteja: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP, joka sisältää oauth_creds.json-merkinnät. Enintään 50 merkintää, 10 Mt pakattuna.",
     "geminiImportBulkSubmit": "Tuo kaikki",
     "geminiImportBulkSuccess": "Tuodut {count} Gemini-yhteydet",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Liitä luettelo",
     "codexImportBulkModeZip": "ZIP-arkisto",
     "codexImportBulkUploadHint": "Valitse useita .json-tiedostoja tai vedä ja pudota",
-    "codexImportBulkPasteHint": "JSON-taulukko [ {...}, {...} ] tai useita JSON-tiedostoja erotettuna --- omalla rivillään",
+    "codexImportBulkPasteHint": "JSON-taulukko [ '{...}', '{...}' ] tai useita JSON-tiedostoja erotettuna --- omalla rivillään",
     "codexImportBulkZipHint": "Lataa auth.json-tiedostoja sisältävä .zip (enintään 50 tiedostoa, 10 Mt)",
     "codexImportBulkSubmit": "Tuo {count} tiliä",
     "codexImportBulkLimit": "Enintään 50 tiedostoa tuontia kohden",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "esim. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key tai Service Account JSON",
     "vertexCredentialHint": "API Key -avaimet käyttävät kuratoitua projektiluetteloa. Service Account JSON mahdollistaa Model Gardenin reaaliaikaisen haun.",
-    "vertexServiceAccountPlaceholder": "Liitä API key, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) tai OAuth access token",
+    "vertexServiceAccountPlaceholder": "Liitä API key, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') tai OAuth access token",
     "webCookieProviders": "Verkkoevästeiden palveluntarjoajat",
     "weeklyShort": "Viikoittainen lyhyt versio",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo Base URL -ohje",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Ydinbinäärin polku",
-      "coreBinaryPathHelp": "Valinnainen: tarkistaa generoidun tiedoston ydinbinääriä ennen otetun tiedoston korvaamista. Jätä tyhjäksi, niin kirjoitetaan sen viereen. Puuttuva hakemisto luodaan.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Valinnainen: tarkistaa generoidun tiedoston ydinbinääriä ennen otetun tiedoston korvaamista. Jätä tyhjäksi, niin kirjoitetaan sen viereen. Puuttuva hakemisto luodaan."
     },
     "bulkHealthcheck": "Kuntotarkistus joukkona",
     "bulkHealthcheckDesc": "Testaa kaikki määritetyt välityspalvelimet kohde-URL-osoitetta vasten selvittääksesi, mitkä niistä toimivat.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Ladataan…",
     "loadFailed": "Moottorin tietojen lataaminen epäonnistui.",
+    "settingsLoadFailed": "Tallennettujen asetusten lataaminen epäonnistui. Kentissä näkyvät oletusarvot, ja Tallenna pysyy poissa käytöstä, kunnes sivu ladataan uudelleen.",
     "engineNotFound": "Moottoria \"{engine}\" ei löytynyt.",
     "saveFailed": "Asetusten tallentaminen epäonnistui.",
     "previewFailed": "Esikatselu epäonnistui.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "esim. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "esim. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Liitä tarkka odotettu vastaus",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "esim. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "esim. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Käytä säännöllistä JavaScript-lauseketta ilman vinoviivaa.",
     "suiteBuilderNamePlaceholder": "esim. koodin laadun testikokoelma",
     "suiteBuilderAddCase": "Lisää testitapaus",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Liitä koko sisältö tiedostosta ~/.grok/auth.json (ei vain JWT \"key\" -kenttää). Pelkkä JWT:llä ei ole refresh_tokenia, joten yhteys katkeaa vanhentumisen jälkeen (#7610). Suosi erityistä Import auth.json -modaalia, kun se on saatavilla.",
     "devinDesktopPasteDescription": "Liitä olemassa oleva Devin API-avain todennetusta Devin-istunnosta. Avaimen vientimahdollisuudet ja vaiheet vaihtelevat Devin-version ja tilin mukaan.",
     "devinPasteDescription": "Anna WINDSURF_API_KEY (saadaksesi sen `devin auth login` -komennolla tai Windsurf IDE:n \"Windsurf: Provide Auth Token\" -komennolla).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API-avain / Token",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth -asetuksen määrittäminen",
     "gitlabDuoSetupMessage": "GitLab Duo OAuthia ei ole määritetty. Rekisteröi OAuth-sovellus osoitteessa {applicationsUrl} uudelleenohjaus-URI:lla {redirectUri} ja käyttöoikeusalueilla \"{scopes}\", sitten aseta {clientIdEnv} (ja valinnaisesti {clientSecretEnv}) ja käynnistä uudelleen.",
     "gitlabDuoSetupDescription": "Kun sovellus on rekisteröity ja ympäristömuuttujat on asetettu tälle OmniRoute-instanssille, napsauta Jatka aloittaaksesi OAuth-kirjautumisen.",
-    "continue": "Jatka"
+    "continue": "Jatka",
+    "tabPasteSetupToken": "Asetustunnus",
+    "claudeSetupTokenDescription": "Suorita `claude setup-token` päätteessä ja liitä sen tulostama tunnus. Se on voimassa vuoden, eikä sillä ole päivitystunnusta. OmniRoute lähettää Anthropicille yhden testipyynnön ennen tallentamista.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Yhdistä kohdistin IDE",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Myös Open VSX:ssä (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Sulje"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Mainosta <gateway-alias>/<model> peilid tunnuksia /v1/models -osoitteessa malleille, joiden kanoninen omistaja ei omaa aktiivista tunnistetta, mutta ohjaa niitä aktiivisella tunnisteella varustettu ohitusportti. Varoitus: lisää luettelo-merkintöjä kaikille asiakkaille, kun se on otettu käyttöön globaalisti.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Mainosta '<gateway-alias>'/'<model>' peilid tunnuksia /v1/models -osoitteessa malleille, joiden kanoninen omistaja ei omaa aktiivista tunnistetta, mutta ohjaa niitä aktiivisella tunnisteella varustettu ohitusportti. Varoitus: lisää luettelo-merkintöjä kaikille asiakkaille, kun se on otettu käyttöön globaalisti.",
   "radarPage": {
     "title": "Radar-katalogi",
     "subtitle": "Ilmainen mallikatalogi, joka on rikastettu yhteisön tiedoilla",

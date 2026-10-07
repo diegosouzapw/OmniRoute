@@ -39,6 +39,7 @@ import {
   shouldDefaultAllowClassifier,
   detectClassifierFormat,
   buildDefaultAllowClaudeMessage,
+  applyClaudeClassifierReasoningDefault,
 } from "./chatCore/claudeClassifierCompat.ts";
 import { enforceOutputTokenBudget } from "./chatCore/outputTokenBudget.ts";
 import { withResilienceActionsContext } from "./chatCore/resilienceAttemptContext.ts";
@@ -180,6 +181,7 @@ import { noteOpencodeFreeTierSkip } from "../services/opencodeFreeTierSkip.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
+import { shouldKeepConnectionActiveOnRateLimit } from "./chatCore/rateLimitConnectionGuard.ts";
 import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/keyHealth.ts";
 import { getSkillsModelIdForFormat } from "./chatCore/skillsFormat.ts";
 import { isSemaphoreCapacityError, getSafeErrorMetadata } from "./chatCore/streamErrorResult.ts";
@@ -281,7 +283,7 @@ import {
   recordCoreOwnedAntigravityQuotaState,
   shouldDeferAntigravityQuotaStateToCaller,
 } from "../services/accountFallback.ts";
-import { saveIdempotency } from "@/lib/idempotencyLayer";
+import { saveIdempotencyWithConfiguredWindow } from "@/lib/idempotencyLayer";
 
 import { computeRequestHash, shouldDeduplicate } from "../services/requestDedup.ts";
 import {
@@ -610,8 +612,9 @@ async function handleChatCoreInner({
     status: number,
     creds: Record<string, unknown> | null | undefined,
     transport?: string,
-    failureDetail?: string
-  ): void => recordKeyHealthStatusFor(status, creds, log, transport, failureDetail);
+    failureDetail?: string,
+    retryAfterMs?: number | null
+  ): void => recordKeyHealthStatusFor(status, creds, log, transport, failureDetail, retryAfterMs);
   // Endpoint/format resolution extracted to chatCore/requestFormat.ts (#3501); pure derivation
   // from the request. OUTSIDE the try below — persistFailureUsage closes over endpointPath.
   const {
@@ -691,13 +694,8 @@ async function handleChatCoreInner({
     return bypassResponse;
   }
 
-  // ── Claude Code auto-mode classifier compat (opt-in, default "off") ──
-  // Claude Code's `--permission-mode auto` sends an internal classifier request that
-  // requires the response to START with `<block>no</block>`/`<block>yes</block>`.
-  // When a combo/fallback route sends that call to a cheap model returning 200 with
-  // empty content, Claude Code fails closed on every gated action. Detect the
-  // classifier request and short-circuit with a synthetic ALLOW response, WITHOUT
-  // calling the upstream provider. See chatCore/claudeClassifierCompat.ts.
+  // Synthetic classifier ALLOW stays opt-in; ordinary classifier calls still go upstream
+  // with the native-thinking default applied below. See claudeClassifierCompat.ts.
   {
     const classifierSettings = cachedSettings ?? (await getCachedSettings());
     if (
@@ -715,6 +713,11 @@ async function handleChatCoreInner({
       return buildDefaultAllowClaudeMessage(requestedModel, classifierFormat);
     }
   }
+  body = applyClaudeClassifierReasoningDefault(
+    sourceFormat,
+    body as Record<string, unknown>,
+    { headers: clientRawRequest?.headers, resolvedThinkingEffort }
+  );
 
   // Detect source format and get target format
   // Model-specific targetFormat takes priority over provider default
@@ -2950,6 +2953,7 @@ async function handleChatCoreInner({
         provider,
         ccSessionId,
         modelInfo,
+        requestBody: body,
       }),
       reasoningRuleDirective
     );
@@ -3467,6 +3471,18 @@ async function handleChatCoreInner({
               console.warn(
                 `[provider] Node ${errorConnectionId} ${quotaScope}-only quota exhausted (${statusCode}) for ${targetModel} - ${Math.ceil(quotaCooldownMs / 1000)}s (cooldown_scope=${quotaScope}, ttl_source=${retryAfterMs ? "upstream" : "inferred"}, connection stays active)`
               );
+            } else if (shouldKeepConnectionActiveOnRateLimit(credentials, errorConnectionId)) {
+              // A 429 on one key must not disable a connection whose extra keys
+              // are still eligible. The hot key is already cooling via the
+              // per-key cooldown recorded at the execution sites.
+              await updateProviderConnection(errorConnectionId, {
+                lastErrorType: errorType,
+                lastError: persistentMessage,
+                errorCode: statusCode,
+              });
+              console.warn(
+                `[provider] Node ${errorConnectionId} rate limited on one key (${statusCode}) -- extra keys eligible, keeping connection active`
+              );
             } else {
               await writeTerminalStatus(
                 errorConnectionId,
@@ -3753,7 +3769,7 @@ async function handleChatCoreInner({
       runPluginOnResponseHook,
       sanitizeErrorMessage,
       sanitizeUpstreamDetails,
-      saveIdempotency,
+      saveIdempotency: saveIdempotencyWithConfiguredWindow,
       scheduleQuotaShareConsumption,
       semanticCacheEnabled,
       sessionAffinityKey,

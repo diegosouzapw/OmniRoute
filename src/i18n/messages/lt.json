@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Įklijuoti JSON masyvą",
     "claudeImportBulkModeZip": "Įkelti ZIP",
     "claudeImportBulkUploadHint": "Nuvilkite arba pasirinkite iki 50 .credentials.json failų (po 256 KB, iš viso 10 MB).",
-    "claudeImportBulkPasteHint": "Įklijuokite objektų masyvą: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Įklijuokite objektų masyvą: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP failas su .json įrašais. Daugiausia 50 įrašų, išskleidus – 10 MB.",
     "claudeImportBulkSubmit": "Importuoti viską",
     "claudeImportBulkSuccess": "Importuota Claude ryšių: {count}",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Įklijuoti JSON masyvą",
     "geminiImportBulkModeZip": "Įkelti ZIP",
     "geminiImportBulkUploadHint": "Nuvilkite arba pasirinkite iki 50 oauth_creds.json failų (po 256 KB, iš viso 10 MB).",
-    "geminiImportBulkPasteHint": "Įklijuokite objektų masyvą: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Įklijuokite objektų masyvą: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP archyvas su oauth_creds.json įrašais. Ne daugiau kaip 50 įrašų ir 10 MB išskleidus.",
     "geminiImportBulkSubmit": "Importuoti viską",
     "geminiImportBulkSuccess": "Importuota Gemini jungčių: {count}",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Įklijuoti sąrašą",
     "codexImportBulkModeZip": "ZIP archyvas",
     "codexImportBulkUploadHint": "Pasirinkite kelis .json failus arba nuvilkite juos čia",
-    "codexImportBulkPasteHint": "JSON masyvas [ {...}, {...} ] arba keli JSON, atskirti --- atskiroje eilutėje",
+    "codexImportBulkPasteHint": "JSON masyvas [ '{...}', '{...}' ] arba keli JSON, atskirti --- atskiroje eilutėje",
     "codexImportBulkZipHint": "Įkelkite .zip failą su auth.json failais (ne daugiau kaip 50 failų, 10 MB)",
     "codexImportBulkSubmit": "Importuoti {count} paskyras",
     "codexImportBulkLimit": "Vienu kartu galima importuoti ne daugiau kaip 50 failų",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "pvz., meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API raktas arba paslaugos paskyros JSON",
     "vertexCredentialHint": "API raktams naudojamas atrinktas projekto katalogas. Paslaugos paskyros JSON suteikia galimybę tiesiogiai aptikti Model Garden modelius.",
-    "vertexServiceAccountPlaceholder": "Įklijuokite API raktą, paslaugos paskyros JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) arba OAuth prieigos raktą",
+    "vertexServiceAccountPlaceholder": "Įklijuokite API raktą, paslaugos paskyros JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') arba OAuth prieigos raktą",
     "webCookieProviders": "Žiniatinklio slapukų teikėjai",
     "weeklyShort": "Savaitinis trumpinys",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo bazinio URL užuomina",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Pagrindinio vykdomojo failo kelias",
-      "coreBinaryPathHelp": "Neprivaloma: patikrina sugeneruotą failą pagrindiniu vykdomuoju failu prieš pakeičiant priimtą failą. Palikite tuščią, kad rašymas vyktų šalia jo. Katalogas sukuriamas, jei jo nėra.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Neprivaloma: patikrina sugeneruotą failą pagrindiniu vykdomuoju failu prieš pakeičiant priimtą failą. Palikite tuščią, kad rašymas vyktų šalia jo. Katalogas sukuriamas, jei jo nėra."
     },
     "bulkHealthcheck": "Masinis būklės patikrinimas",
     "bulkHealthcheckDesc": "Patikrinkite visus sukonfigūruotus tarpinius serverius naudodami tikslinį URL, kad nustatytumėte, kurie iš jų veikia.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Įkeliama…",
     "loadFailed": "Nepavyko įkelti informacijos apie variklį.",
+    "settingsLoadFailed": "Nepavyko įkelti išsaugotų nustatymų. Laukuose rodomos numatytosios reikšmės, o mygtukas „Išsaugoti“ lieka išjungtas, kol puslapis įkeliamas iš naujo.",
     "engineNotFound": "Variklis „{engine}“ nerastas.",
     "saveFailed": "Nepavyko išsaugoti konfigūracijos.",
     "previewFailed": "Peržiūra nepavyko.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "pvz., def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "pvz., def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Įklijuokite tikslų laukiamą atsakymą",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "pvz., ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "pvz., ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Naudokite JavaScript reguliariąją išraišką be gaubiančių pasvirųjų brūkšnių.",
     "suiteBuilderNamePlaceholder": "pvz., programavimo kokybės rinkinys",
     "suiteBuilderAddCase": "Pridėti atvejį",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Įklijuokite VISĄ ~/.grok/auth.json turinį (ne tik JWT lauką „key“). Atskirame JWT nėra refresh_token, todėl pasibaigus jo galiojimui ryšys nutrūksta (#7610). Jei įmanoma, naudokite specialų modalinį langą „Import auth.json“.",
     "devinDesktopPasteDescription": "Įklijuokite esamą Devin API raktą iš autentifikuoto Devin seanso. Rakto eksportavimo galimybės ir veiksmai priklauso nuo Devin versijos ir paskyros.",
     "devinPasteDescription": "Pateikite savo WINDSURF_API_KEY (gautą naudojant `devin auth login` arba Windsurf IDE komandą „Windsurf: Provide Auth Token“).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API raktas / prieigos raktas",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth sąranka",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth nesukonfigūruotas. Užregistruokite OAuth programą adresu {applicationsUrl}, nurodydami peradresavimo URI {redirectUri} ir aprėptis „{scopes}“, tada nustatykite {clientIdEnv} (ir pasirinktinai {clientSecretEnv}) bei paleiskite iš naujo.",
     "gitlabDuoSetupDescription": "Kai programa bus užregistruota ir šiame OmniRoute egzemplioriuje bus nustatyti aplinkos kintamieji, spustelėkite „Tęsti“, kad pradėtumėte OAuth prisijungimą.",
-    "continue": "Tęsti"
+    "continue": "Tęsti",
+    "tabPasteSetupToken": "Sąrankos žetonas",
+    "claudeSetupTokenDescription": "Terminale paleiskite `claude setup-token` ir įklijuokite jo išspausdintą žetoną. Jis galioja vienerius metus ir neturi atnaujinimo žetono. Prieš išsaugodamas OmniRoute išsiunčia vieną bandomąją užklausą į Anthropic.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Prijungti Cursor",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Taip pat pasiekiama „Open VSX“ (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Uždaryti"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Rodyti <gateway-alias>/<model> veidrodinius ID /v1/models sąraše tiems modeliams, kurių kanoninis savininkas neturi aktyvių prisijungimo duomenų, tačiau juos nukreipia tiesioginio perdavimo tinklų sietuvas su aktyviais prisijungimo duomenimis. Įspėjimas: įjungus visuotinai, katalogo įrašai pridedami visiems klientams.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Rodyti '<gateway-alias>'/'<model>' veidrodinius ID /v1/models sąraše tiems modeliams, kurių kanoninis savininkas neturi aktyvių prisijungimo duomenų, tačiau juos nukreipia tiesioginio perdavimo tinklų sietuvas su aktyviais prisijungimo duomenimis. Įspėjimas: įjungus visuotinai, katalogo įrašai pridedami visiems klientams.",
   "radarPage": {
     "title": "Radar katalogas",
     "subtitle": "Nemokamas modelių katalogas, papildytas bendruomenės įžvalgomis",

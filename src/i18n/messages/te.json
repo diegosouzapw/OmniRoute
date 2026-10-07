@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "JSON శ్రేణిని అతికించండి",
     "claudeImportBulkModeZip": "జిప్‌ను అప్‌లోడ్ చేయండి",
     "claudeImportBulkUploadHint": "50 .credentials.json ఫైల్‌లను వదలండి లేదా తీయండి (ఒక్కొక్కటి 256KB, మొత్తం 10MB).",
-    "claudeImportBulkPasteHint": "వస్తువుల శ్రేణిని అతికించండి: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "వస్తువుల శ్రేణిని అతికించండి: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json ఎంట్రీలను కలిగి ఉన్న జిప్. గరిష్టంగా 50 ఎంట్రీలు, 10MB అన్‌ప్యాక్ చేయబడింది.",
     "claudeImportBulkSubmit": "అన్నింటినీ దిగుమతి చేయండి",
     "claudeImportBulkSuccess": "{count} క్లాడ్ కనెక్షన్‌లు దిగుమతి చేయబడ్డాయి",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "JSON శ్రేణిని అతికించండి",
     "geminiImportBulkModeZip": "జిప్‌ను అప్‌లోడ్ చేయండి",
     "geminiImportBulkUploadHint": "50 oauth_creds.json ఫైల్‌లను వదలండి లేదా తీయండి (ఒక్కొక్కటి 256KB, మొత్తం 10MB).",
-    "geminiImportBulkPasteHint": "వస్తువుల శ్రేణిని అతికించండి: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "వస్తువుల శ్రేణిని అతికించండి: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "oauth_creds.json ఎంట్రీలను కలిగి ఉన్న జిప్. గరిష్టంగా 50 ఎంట్రీలు, 10MB అన్‌ప్యాక్ చేయబడింది.",
     "geminiImportBulkSubmit": "అన్నింటినీ దిగుమతి చేయండి",
     "geminiImportBulkSuccess": "{count} జెమిని కనెక్షన్‌లు దిగుమతి చేయబడ్డాయి",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "జాబితాను అతికించండి",
     "codexImportBulkModeZip": "జిప్ ఆర్కైవ్",
     "codexImportBulkUploadHint": "బహుళ .json ఫైల్‌లను ఎంచుకోండి లేదా లాగి వదలండి",
-    "codexImportBulkPasteHint": "JSON శ్రేణి [ {...}, {...} ] లేదా దాని స్వంత లైన్‌లో --- ద్వారా వేరు చేయబడిన బహుళ JSONలు",
+    "codexImportBulkPasteHint": "JSON శ్రేణి [ '{...}', '{...}' ] లేదా దాని స్వంత లైన్‌లో --- ద్వారా వేరు చేయబడిన బహుళ JSONలు",
     "codexImportBulkZipHint": "auth.json ఫైల్‌లను కలిగి ఉన్న .zipని అప్‌లోడ్ చేయండి (గరిష్టంగా 50 ఫైల్‌లు, 10 MB)",
     "codexImportBulkSubmit": "{count} ఖాతాలను దిగుమతి చేయండి",
     "codexImportBulkLimit": "ఒక్కో దిగుమతికి గరిష్టంగా 50 ఫైల్‌లు",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "ఉదా. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key లేదా Service Account JSON",
     "vertexCredentialHint": "API keys ఎంపిక చేసిన ప్రాజెక్ట్ కేటలాగ్ను ఉపయోగిస్తాయి. Service Account JSON ప్రత్యక్ష Model Garden డిస్కవరీని ప్రారంభిస్తుంది.",
-    "vertexServiceAccountPlaceholder": "API key, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) లేదా OAuth access tokenను అతికించండి",
+    "vertexServiceAccountPlaceholder": "API key, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') లేదా OAuth access tokenను అతికించండి",
     "webCookieProviders": "వెబ్ కుకీ ప్రొవైడర్లు",
     "weeklyShort": "వారపు సంక్షిప్తం",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo బేస్ URL సూచన",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "కోర్ బైనరీ పాత",
-      "coreBinaryPathHelp": "ఐచ్ఛికం: స్వీకరించిన ఫైల్‌ను భర్తీ చేయడానికి ముందు కోర్ బైనరీతో ఉత్పత్తి చేసిన ఫైల్‌ను ధృవీకరిస్తుంది. దాని పక్కనే వ్రాయడం కొనసాగించడానికి ఖాళీగా వదిలేయండి. డైరెక్టరీ లేకపోతే సృష్టించబడుతుంది.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "ఐచ్ఛికం: స్వీకరించిన ఫైల్‌ను భర్తీ చేయడానికి ముందు కోర్ బైనరీతో ఉత్పత్తి చేసిన ఫైల్‌ను ధృవీకరిస్తుంది. దాని పక్కనే వ్రాయడం కొనసాగించడానికి ఖాళీగా వదిలేయండి. డైరెక్టరీ లేకపోతే సృష్టించబడుతుంది."
     },
     "bulkHealthcheck": "బల్క్ హెల్త్చెక్",
     "bulkHealthcheckDesc": "పనిచేసే ప్రాక్సీలను గుర్తించడానికి కాన్ఫిగర్ చేసిన అన్ని ప్రాక్సీలను లక్ష్య URLతో పరీక్షించండి.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "లోడ్ అవుతోంది…",
     "loadFailed": "ఇంజిన్ సమాచారాన్ని లోడ్ చేయడం విఫలమైంది.",
+    "settingsLoadFailed": "సేవ్ చేసిన సెట్టింగ్లను లోడ్ చేయడం విఫలమైంది. ఫీల్డ్లు డిఫాల్ట్లను చూపుతాయి, మరియు పేజీ మళ్లీ లోడ్ అయ్యే వరకు సేవ్ ఆఫ్లోనే ఉంటుంది.",
     "engineNotFound": "ఇంజిన్ \"{engine}\" కనుగొనబడలేదు.",
     "saveFailed": "కాన్ఫిగరేషన్‌ను సేవ్ చేయడం విఫలమైంది.",
     "previewFailed": "ప్రివ్యూ విఫలమైంది.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "ఉదా. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "ఉదా డెఫ్ ఫైబొనాక్సీ",
     "suiteBuilderCaseExpectedPlaceholderExact": "ఖచ్చితమైన ఊహించిన ప్రతిస్పందనను అతికించండి",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "ఉదా ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "ఉదా ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "స్లాష్‌లను చుట్టకుండా JavaScript సాధారణ వ్యక్తీకరణను ఉపయోగించండి.",
     "suiteBuilderNamePlaceholder": "ఉదా. కోడింగ్ నాణ్యత సూట్",
     "suiteBuilderAddCase": "కేసును జోడించండి",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "~/.grok/auth.json యొక్క పూర్తి కంటెంట్‌ను పేస్ట్ చేయండి (JWT \"కీ\" ఫీల్డ్ మాత్రమే కాదు). ఒక నికర JWT కు refresh_token లేదు, కాబట్టి కనెక్షన్ కాలం ముగిసిన తర్వాత మృతమవుతుంది (#7610). అందుబాటులో ఉన్నప్పుడు ప్రత్యేకమైన Import auth.json మోడల్‌ను ప్రాధాన్యం ఇవ్వండి.",
     "devinDesktopPasteDescription": "ఒక ధృవీకరించిన Devin సెషన్ నుండి ఉన్న Devin API కీని పేస్ట్ చేయండి. కీ ఎగుమతి అందుబాటులో ఉండడం మరియు దశలు Devin వెర్షన్ మరియు ఖాతా ప్రకారం మారవచ్చు.",
     "devinPasteDescription": "మీ WINDSURF_API_KEYని అందించండి (ఇది `devin auth login` ద్వారా లేదా Windsurf IDEలో \"Windsurf: Provide Auth Token\" ఆదేశం ద్వారా పొందవచ్చు).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok బిల్డ్ auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "API కీ / టోకెన్",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab డ్యూ OAuth సెటప్",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth కాన్ఫిగర్ చేయబడలేదు. {applicationsUrl} వద్ద ఒక OAuth అప్లికేషన్ నమోదు చేయండి, దిశా URI {redirectUri} మరియు స్కోప్స్ \"{scopes}\" తో, తరువాత {clientIdEnv} (మరియు ఐచ్ఛికంగా {clientSecretEnv}) సెట్ చేసి పునఃప్రారంభించండి.",
     "gitlabDuoSetupDescription": "అప్లికేషన్ నమోదు చేసిన తర్వాత మరియు ఈ OmniRoute ఉదాహరణపై env vars సెట్ చేసిన తర్వాత, OAuth లాగిన్ ప్రారంభించడానికి కొనసాగించు పై క్లిక్ చేయండి.",
-    "continue": "కొనసాగించు"
+    "continue": "కొనసాగించు",
+    "tabPasteSetupToken": "సెటప్ టోకెన్",
+    "claudeSetupTokenDescription": "టెర్మినల్‌లో `claude setup-token` ను అమలు చేసి, అది ముద్రించే టోకెన్‌ను అతికించండి. ఇది ఒక సంవత్సరం చెల్లుబాటు అవుతుంది మరియు దీనికి రిఫ్రెష్ టోకెన్ లేదు. సేవ్ చేయడానికి ముందు OmniRoute Anthropic కు ఒక పరీక్ష అభ్యర్థనను పంపుతుంది.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Connect Cursor IDE",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Open VSX (Cursor, Windsurf, VSCodium…)లో కూడా అందుబాటులో ఉంది",
     "dismissAriaLabel": "తీసివేయి"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/<model> మిర్రర్ ఐడీలను /v1/models లో ప్రచారం చేయండి, కానోనికల్ యజమాని యాక్టివ్ క్రెడెన్షియల్ లేకపోతే కానీ యాక్టివ్ క్రెడెన్షియల్ రూట్ చేసే పాస్త్రూ గేట్వే ఉన్న మోడల్స్ కోసం. హెచ్చరిక: ఇది గ్లోబల్‌గా ఎనేబుల్ చేసినప్పుడు అన్ని క్లయింట్ల కోసం కాటలాగ్ ఎంట్రీలను జోడిస్తుంది.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/'<model>' మిర్రర్ ఐడీలను /v1/models లో ప్రచారం చేయండి, కానోనికల్ యజమాని యాక్టివ్ క్రెడెన్షియల్ లేకపోతే కానీ యాక్టివ్ క్రెడెన్షియల్ రూట్ చేసే పాస్త్రూ గేట్వే ఉన్న మోడల్స్ కోసం. హెచ్చరిక: ఇది గ్లోబల్‌గా ఎనేబుల్ చేసినప్పుడు అన్ని క్లయింట్ల కోసం కాటలాగ్ ఎంట్రీలను జోడిస్తుంది.",
   "radarPage": {
     "title": "రాడార్ కాటలాగ్",
     "subtitle": "సమాజ మేధస్సుతో సమృద్ధి చేసిన ఉచిత మోడల్ కాటలాగ్",

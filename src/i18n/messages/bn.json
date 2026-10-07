@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "JSON অ্যারে আটকান",
     "claudeImportBulkModeZip": "জিপ আপলোড করুন",
     "claudeImportBulkUploadHint": "50টি .credentials.json ফাইল ড্রপ বা পিক আপ করুন (প্রতিটি 256KB, মোট 10MB)।",
-    "claudeImportBulkPasteHint": "বস্তুর একটি অ্যারে আটকান: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "বস্তুর একটি অ্যারে আটকান: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json এন্ট্রি ধারণকারী ZIP. সর্বোচ্চ 50টি এন্ট্রি, 10MB আনপ্যাক করা।",
     "claudeImportBulkSubmit": "সব আমদানি করুন",
     "claudeImportBulkSuccess": "আমদানি করা {count} ক্লাউড সংযোগ",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "JSON অ্যারে আটকান",
     "geminiImportBulkModeZip": "জিপ আপলোড করুন",
     "geminiImportBulkUploadHint": "50টি oauth_creds.json ফাইল ড্রপ বা পিক আপ করুন (প্রতিটি 256KB, মোট 10MB)।",
-    "geminiImportBulkPasteHint": "বস্তুর একটি অ্যারে আটকান: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "বস্তুর একটি অ্যারে আটকান: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP-এ oauth_creds.json এন্ট্রি রয়েছে। সর্বোচ্চ 50টি এন্ট্রি, 10MB আনপ্যাক করা।",
     "geminiImportBulkSubmit": "সব আমদানি করুন",
     "geminiImportBulkSuccess": "আমদানি করা {count} মিথুন সংযোগ",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "তালিকা পেস্ট করুন",
     "codexImportBulkModeZip": "জিপ সংরক্ষণাগার",
     "codexImportBulkUploadHint": "একাধিক .json ফাইল নির্বাচন করুন বা টেনে আনুন",
-    "codexImportBulkPasteHint": "JSON অ্যারে [ {...}, {...} ] বা একাধিক JSON এর নিজস্ব লাইনে --- দ্বারা বিভক্ত",
+    "codexImportBulkPasteHint": "JSON অ্যারে [ '{...}', '{...}' ] বা একাধিক JSON এর নিজস্ব লাইনে --- দ্বারা বিভক্ত",
     "codexImportBulkZipHint": "auth.json ফাইল ধারণকারী একটি zip আপলোড করুন (সর্বোচ্চ 50 ফাইল, 10 MB)",
     "codexImportBulkSubmit": "{count} অ্যাকাউন্ট আমদানি করুন",
     "codexImportBulkLimit": "প্রতি আমদানি সর্বোচ্চ 50টি ফাইল",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "যেমন: meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key or Service Account JSON",
     "vertexCredentialHint": "API keys নির্বাচিত প্রজেক্ট ক্যাটালগ ব্যবহার করে। Service Account JSON লাইভ Model Garden আবিষ্কার সক্ষম করে।",
-    "vertexServiceAccountPlaceholder": "একটি API key, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}), অথবা OAuth access token পেস্ট করুন",
+    "vertexServiceAccountPlaceholder": "একটি API key, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}'), অথবা OAuth access token পেস্ট করুন",
     "webCookieProviders": "ওয়েব কুকি প্রদানকারী",
     "weeklyShort": "সাপ্তাহিক",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo বেস URL-এর ইঙ্গিত",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "কোর বাইনারি পাথ",
-      "coreBinaryPathHelp": "ঐচ্ছিক: গ্রহণকৃত ফাইলটি প্রতিস্থাপন করার আগে কোর বাইনারি দিয়ে তৈরি করা ফাইলটি যাচাই করে। পাশেই লেখা চালিয়ে যেতে হলে খালি রাখুন। ডিরেক্টরি না থাকলে তৈরি করা হয়।",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "ঐচ্ছিক: গ্রহণকৃত ফাইলটি প্রতিস্থাপন করার আগে কোর বাইনারি দিয়ে তৈরি করা ফাইলটি যাচাই করে। পাশেই লেখা চালিয়ে যেতে হলে খালি রাখুন। ডিরেক্টরি না থাকলে তৈরি করা হয়।"
     },
     "bulkHealthcheck": "বাল্ক স্বাস্থ্য পরীক্ষা",
     "bulkHealthcheckDesc": "কোনগুলো কাজ করে তা জানতে একটি লক্ষ্য URL-এর বিপরীতে কনফিগার করা সব প্রক্সি পরীক্ষা করুন।",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "লোড হচ্ছে…",
     "loadFailed": "ইঞ্জিনের তথ্য লোড করতে ব্যর্থ হয়েছে.",
+    "settingsLoadFailed": "সংরক্ষিত সেটিংস লোড করা যায়নি। ফিল্ডগুলোতে ডিফল্ট মান দেখানো হচ্ছে এবং পৃষ্ঠাটি পুনরায় লোড না হওয়া পর্যন্ত সংরক্ষণ নিষ্ক্রিয় থাকে।",
     "engineNotFound": "\"{engine}\" ইঞ্জিনটি পাওয়া যায়নি.",
     "saveFailed": "কনফিগারেশন সংরক্ষণ করতে ব্যর্থ হয়েছে.",
     "previewFailed": "প্রিভিউ ব্যর্থ হয়েছে.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "যেমন, def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "যেমন ডিফ ফিবোনাচি",
     "suiteBuilderCaseExpectedPlaceholderExact": "সঠিক প্রত্যাশিত প্রতিক্রিয়া আটকান",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "যেমন ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "যেমন ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "স্ল্যাশগুলি মোড়ানো ছাড়াই একটি জাভাস্ক্রিপ্ট রেগুলার এক্সপ্রেশন ব্যবহার করুন।",
     "suiteBuilderNamePlaceholder": "যেমন, Coding Quality Suite",
     "suiteBuilderAddCase": "কেস যোগ করুন",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "~/.grok/auth.json এর সম্পূর্ণ বিষয়বস্তু পেস্ট করুন (শুধু JWT \"key\" ক্ষেত্র নয়)। একটি খালি JWT এর refresh_token নেই, তাই মেয়াদ শেষ হওয়ার পরে সংযোগ বন্ধ হয়ে যায় (#7610)। উপলব্ধ থাকলে নিবেদিত Import auth.json মডালটি ব্যবহার করতে অগ্রাধিকার দিন।",
     "devinDesktopPasteDescription": "একটি প্রমাণীকৃত Devin সেশনের থেকে বিদ্যমান Devin API কী পেস্ট করুন। কী রপ্তানি করার প্রাপ্যতা এবং পদক্ষেপগুলি Devin সংস্করণ এবং অ্যাকাউন্ট অনুযায়ী পরিবর্তিত হয়।",
     "devinPasteDescription": "আপনার WINDSURF_API_KEY প্রদান করুন (যা `devin auth login` এর মাধ্যমে অথবা Windsurf IDE \"Windsurf: Provide Auth Token\" কমান্ডের মাধ্যমে প্রাপ্ত)।",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "এপিআই কী / টোকেন",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth সেটআপ",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth কনফিগার করা হয়নি। {applicationsUrl} এ একটি OAuth অ্যাপ্লিকেশন নিবন্ধন করুন যার রিডাইরেক্ট URI {redirectUri} এবং স্কোপগুলি \"{scopes}\"। তারপর {clientIdEnv} (এবং ঐচ্ছিকভাবে {clientSecretEnv}) সেট করুন এবং পুনরায় চালু করুন।",
     "gitlabDuoSetupDescription": "অ্যাপ্লিকেশন নিবন্ধিত হওয়ার পর এবং এই OmniRoute উদাহরণে env vars সেট করার পর, OAuth লগইন শুরু করতে Continue ক্লিক করুন।",
-    "continue": "চালিয়ে যান"
+    "continue": "চালিয়ে যান",
+    "tabPasteSetupToken": "সেটআপ টোকেন",
+    "claudeSetupTokenDescription": "টার্মিনালে `claude setup-token` চালান এবং এটি যে টোকেন প্রিন্ট করে তা পেস্ট করুন। এটি এক বছরের জন্য বৈধ এবং এর কোনো রিফ্রেশ টোকেন নেই। সংরক্ষণের আগে OmniRoute Anthropic-এ একটি পরীক্ষামূলক অনুরোধ পাঠায়।",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Connect Cursor IDE",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Open VSX-এও পাওয়া যায় (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "খারিজ করুন"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/<model> মিরর আইডি গুলি /v1/models এ বিজ্ঞাপন দিন তাদের জন্য মডেল যাদের ক্যানোনিকাল মালিকের কোনো সক্রিয় শংসাপত্র নেই কিন্তু একটি পাসথ্রু গেটওয়ে তাদের সক্রিয় শংসাপত্র দ্বারা রাউট করে। সতর্কতা: এটি বিশ্বব্যাপী সক্ষম হলে সমস্ত ক্লায়েন্টের জন্য ক্যাটালগ এন্ট্রি যোগ করে।",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/'<model>' মিরর আইডি গুলি /v1/models এ বিজ্ঞাপন দিন তাদের জন্য মডেল যাদের ক্যানোনিকাল মালিকের কোনো সক্রিয় শংসাপত্র নেই কিন্তু একটি পাসথ্রু গেটওয়ে তাদের সক্রিয় শংসাপত্র দ্বারা রাউট করে। সতর্কতা: এটি বিশ্বব্যাপী সক্ষম হলে সমস্ত ক্লায়েন্টের জন্য ক্যাটালগ এন্ট্রি যোগ করে।",
   "radarPage": {
     "title": "রাডার ক্যাটালগ",
     "subtitle": "কমিউনিটি বুদ্ধিমত্তা সমৃদ্ধ ফ্রি মডেল ক্যাটালগ",

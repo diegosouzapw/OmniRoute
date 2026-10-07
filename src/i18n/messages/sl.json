@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "Prilepi polje JSON",
     "claudeImportBulkModeZip": "Naloži ZIP",
     "claudeImportBulkUploadHint": "Spustite ali izberite do 50 datotek .credentials.json (vsaka največ 256 KB, skupno 10 MB).",
-    "claudeImportBulkPasteHint": "Prilepite polje objektov: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "Prilepite polje objektov: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": "ZIP z vnosi .json. Največ 50 vnosov in 10 MB po razpakiranju.",
     "claudeImportBulkSubmit": "Uvozi vse",
     "claudeImportBulkSuccess": "Uvoženih povezav s Claude: {count}",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "Prilepi polje JSON",
     "geminiImportBulkModeZip": "Naloži ZIP",
     "geminiImportBulkUploadHint": "Spustite ali izberite do 50 datotek oauth_creds.json (vsaka največ 256 KB, skupaj največ 10 MB).",
-    "geminiImportBulkPasteHint": "Prilepite polje objektov: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "Prilepite polje objektov: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ZIP z vnosi oauth_creds.json. Največ 50 vnosov in 10 MB po razširitvi.",
     "geminiImportBulkSubmit": "Uvozi vse",
     "geminiImportBulkSuccess": "Uvoženih povezav Gemini: {count}",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "Prilepi seznam",
     "codexImportBulkModeZip": "Arhiv ZIP",
     "codexImportBulkUploadHint": "Izberite več datotek .json ali jih povlecite in spustite",
-    "codexImportBulkPasteHint": "Polje JSON [ {...}, {...} ] ali več vsebin JSON, ločenih z --- v samostojni vrstici",
+    "codexImportBulkPasteHint": "Polje JSON [ '{...}', '{...}' ] ali več vsebin JSON, ločenih z --- v samostojni vrstici",
     "codexImportBulkZipHint": "Naložite datoteko .zip, ki vsebuje datoteke auth.json (največ 50 datotek, 10 MB)",
     "codexImportBulkSubmit": "Uvozi račune ({count})",
     "codexImportBulkLimit": "Največ 50 datotek pri posameznem uvozu",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "npr. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "Ključ API ali JSON računa storitve",
     "vertexCredentialHint": "Ključi API uporabljajo skrbno izbran katalog projektov. JSON računa storitve omogoča sprotno odkrivanje v Model Garden.",
-    "vertexServiceAccountPlaceholder": "Prilepite ključ API, JSON računa storitve ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) ali žeton za dostop OAuth",
+    "vertexServiceAccountPlaceholder": "Prilepite ključ API, JSON računa storitve ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') ali žeton za dostop OAuth",
     "webCookieProviders": "Ponudniki spletnih piškotkov",
     "weeklyShort": "Tedensko – kratko",
     "xiaomiMimoBaseUrlHint": "Namig za osnovni URL Xiaomi Mimo",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Pot osnovne izvorne datoteke",
-      "coreBinaryPathHelp": "Neobvezno: pred zamenjavo sprejete datoteke preveri generirano datoteko z osnovno izvorno datoteko. Pustite prazno, da bo še naprej pisalo ob njej. Imenik se ustvari, če ne obstaja.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Neobvezno: pred zamenjavo sprejete datoteke preveri generirano datoteko z osnovno izvorno datoteko. Pustite prazno, da bo še naprej pisalo ob njej. Imenik se ustvari, če ne obstaja."
     },
     "bulkHealthcheck": "Množično preverjanje stanja",
     "bulkHealthcheckDesc": "Preizkusite vse konfigurirane posredniške strežnike z dostopom do ciljnega URL-ja, da ugotovite, kateri delujejo.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Nalaganje…",
     "loadFailed": "Podatkov o mehanizmu ni bilo mogoče naložiti.",
+    "settingsLoadFailed": "Shranjenih nastavitev ni bilo mogoče naložiti. Polja prikazujejo privzete vrednosti, gumb Shrani pa ostane onemogočen, dokler se stran znova ne naloži.",
     "engineNotFound": "Mehanizma »{engine}« ni bilo mogoče najti.",
     "saveFailed": "Konfiguracije ni bilo mogoče shraniti.",
     "previewFailed": "Predogled ni uspel.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "npr. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "npr. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderExact": "Prilepite natančen pričakovani odgovor",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "npr. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "npr. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "Uporabite regularni izraz v JavaScriptu brez poševnic na začetku in koncu.",
     "suiteBuilderNamePlaceholder": "npr. Zbirka za kakovost kode",
     "suiteBuilderAddCase": "Dodaj primer",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "Prilepite CELOTNO vsebino datoteke ~/.grok/auth.json (ne le polja JWT »key«). Sam JWT nima vrednosti refresh_token, zato povezava po poteku preneha delovati (#7610). Če je na voljo, raje uporabite namensko modalno okno Uvozi auth.json.",
     "devinDesktopPasteDescription": "Prilepite obstoječi ključ API za Devin iz overjene seje Devin. Razpoložljivost in postopek izvoza ključa se razlikujeta glede na različico storitve Devin in račun.",
     "devinPasteDescription": "Vnesite svoj WINDSURF_API_KEY (pridobljen z ukazom `devin auth login` ali z ukazom »Windsurf: Provide Auth Token« v okolju Windsurf IDE).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "Ključ API / žeton",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "Nastavitev OAuth za GitLab Duo",
     "gitlabDuoSetupMessage": "OAuth za GitLab Duo ni konfiguriran. Registrirajte aplikacijo OAuth na naslovu {applicationsUrl} z URI-jem za preusmeritev {redirectUri} in obsegi »{scopes}«, nato nastavite {clientIdEnv} (in po želji {clientSecretEnv}) ter znova zaženite.",
     "gitlabDuoSetupDescription": "Ko je aplikacija registrirana in so okoljske spremenljivke nastavljene v tej instanci OmniRoute, kliknite Nadaljuj, da začnete prijavo OAuth.",
-    "continue": "Nadaljuj"
+    "continue": "Nadaljuj",
+    "tabPasteSetupToken": "Žeton za nastavitev",
+    "claudeSetupTokenDescription": "V terminalu zaženite `claude setup-token` in prilepite žeton, ki ga izpiše. Velja eno leto in nima žetona za osvežitev. OmniRoute pred shranjevanjem pošlje eno preizkusno zahtevo na Anthropic.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Poveži Cursor",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Na voljo tudi v Open VSX (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "Zapri"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Objavi zrcalne ID-je <gateway-alias>/<model> na /v1/models za modele, katerih kanonični lastnik nima aktivnih poverilnic, vendar jih usmerja prehod za neposredno posredovanje z aktivnimi poverilnicami. Opozorilo: če je možnost omogočena globalno, doda vnose v katalog za vse odjemalce.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Objavi zrcalne ID-je '<gateway-alias>'/'<model>' na /v1/models za modele, katerih kanonični lastnik nima aktivnih poverilnic, vendar jih usmerja prehod za neposredno posredovanje z aktivnimi poverilnicami. Opozorilo: če je možnost omogočena globalno, doda vnose v katalog za vse odjemalce.",
   "radarPage": {
     "title": "Katalog Radarja",
     "subtitle": "Katalog brezplačnih modelov, obogaten z znanjem skupnosti",

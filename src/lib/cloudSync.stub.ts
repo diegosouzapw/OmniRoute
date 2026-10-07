@@ -23,7 +23,8 @@ export async function fetchWithTimeout(): Promise<never> {
 
 export async function syncToCloud(
   _machineId: string,
-  _createdKey: string | null = null
+  _createdKey: string | null = null,
+  _options: { explicitEnable?: boolean } = {}
 ): Promise<{ error: string }> {
   // Soft-fail instead of throwing so the caller (api/keys/[id]/route.ts) can
   // continue serving the rest of the request — Cloud sync is best-effort.

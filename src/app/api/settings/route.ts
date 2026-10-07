@@ -242,7 +242,8 @@ export async function GET(request: Request) {
     } = settings;
 
     const runtimePorts = getRuntimePorts();
-    const cloudUrl = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL || null;
+    const { CLOUD_URL } = await import("@/lib/cloudSync");
+    const cloudUrl = CLOUD_URL || null;
     const machineId = await getConsistentMachineId();
 
     // Include cliproxyapi_model_mapping from upstream_proxy_config table

@@ -51,7 +51,8 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // of the retirement-check one hoisted before enforceApiKeyPolicy) was
     // removed as dead redundant code, 6->5. #12653 added combo target
     // resolution with the same shape as imageCombo, 5->6.
-    "src/app/api/v1/images/edits/route.ts": 6,
+    // #15513: added Antigravity/Gemini image edits support branch, 6->7.
+    "src/app/api/v1/images/edits/route.ts": 7,
     "src/app/api/v1/images/generations/route.ts": 3,
     "src/app/api/v1/images/upscale/route.ts": 1,
     "src/app/api/v1/messages/count_tokens/route.ts": 1,

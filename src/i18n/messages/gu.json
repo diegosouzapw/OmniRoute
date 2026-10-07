@@ -5693,7 +5693,7 @@
     "claudeImportBulkModePaste": "JSON એરે પેસ્ટ કરો",
     "claudeImportBulkModeZip": "ઝીપ અપલોડ કરો",
     "claudeImportBulkUploadHint": "50 .credentials.json ફાઇલો (દરેક 256KB, કુલ 10MB) છોડો અથવા પસંદ કરો.",
-    "claudeImportBulkPasteHint": "ઑબ્જેક્ટ્સની એરે પેસ્ટ કરો: [{ json, name?, email? }...]",
+    "claudeImportBulkPasteHint": "ઑબ્જેક્ટ્સની એરે પેસ્ટ કરો: ['{ json, name?, email? }'...]",
     "claudeImportBulkZipHint": ".json એન્ટ્રીઓ ધરાવતી ZIP. મહત્તમ 50 એન્ટ્રીઓ, 10MB અનપેક્ડ.",
     "claudeImportBulkSubmit": "બધા આયાત કરો",
     "claudeImportBulkSuccess": "આયાત કરેલ {count} ક્લાઉડ કનેક્શન",
@@ -5725,7 +5725,7 @@
     "geminiImportBulkModePaste": "JSON એરે પેસ્ટ કરો",
     "geminiImportBulkModeZip": "ઝીપ અપલોડ કરો",
     "geminiImportBulkUploadHint": "50 oauth_creds.json ફાઇલો (દરેક 256KB, કુલ 10MB) છોડો અથવા પસંદ કરો.",
-    "geminiImportBulkPasteHint": "ઑબ્જેક્ટ્સની એરે પેસ્ટ કરો: [{ json, name?, email? }...]",
+    "geminiImportBulkPasteHint": "ઑબ્જેક્ટ્સની એરે પેસ્ટ કરો: ['{ json, name?, email? }'...]",
     "geminiImportBulkZipHint": "ઝીપ જેમાં oauth_creds.json એન્ટ્રીઓ છે. મહત્તમ 50 એન્ટ્રીઓ, 10MB અનપેક્ડ.",
     "geminiImportBulkSubmit": "બધા આયાત કરો",
     "geminiImportBulkSuccess": "આયાત કરેલ {count} જેમિની કનેક્શન",
@@ -5774,7 +5774,7 @@
     "codexImportBulkModePaste": "યાદી પેસ્ટ કરો",
     "codexImportBulkModeZip": "ઝીપ આર્કાઇવ",
     "codexImportBulkUploadHint": "બહુવિધ .json ફાઇલો પસંદ કરો અથવા ખેંચો અને છોડો",
-    "codexImportBulkPasteHint": "JSON એરે [ {...}, {...} ] અથવા બહુવિધ JSON --- દ્વારા તેની પોતાની લાઇન પર વિભાજિત",
+    "codexImportBulkPasteHint": "JSON એરે [ '{...}', '{...}' ] અથવા બહુવિધ JSON --- દ્વારા તેની પોતાની લાઇન પર વિભાજિત",
     "codexImportBulkZipHint": "auth.json ફાઇલો ધરાવતી .zip અપલોડ કરો (મહત્તમ 50 ફાઇલો, 10 MB)",
     "codexImportBulkSubmit": "{count} એકાઉન્ટ્સ આયાત કરો",
     "codexImportBulkLimit": "આયાત દીઠ મહત્તમ 50 ફાઇલો",
@@ -6012,7 +6012,7 @@
     "validationModelIdPlaceholder": "દા.ત. meta-llama/llama-3.1-8b-instruct",
     "vertexCredentialLabel": "API Key અથવા Service Account JSON",
     "vertexCredentialHint": "API keys પસંદ કરેલા પ્રોજેક્ટ કૅટલોગનો ઉપયોગ કરે છે. Service Account JSON લાઇવ Model Garden ડિસ્કવરી સક્ષમ કરે છે.",
-    "vertexServiceAccountPlaceholder": "API key, Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) અથવા OAuth access token પેસ્ટ કરો",
+    "vertexServiceAccountPlaceholder": "API key, Service Account JSON ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') અથવા OAuth access token પેસ્ટ કરો",
     "webCookieProviders": "વેબ કૂકી પ્રદાતાઓ",
     "weeklyShort": "સાપ્તાહિકનું ટૂંકું સ્વરૂપ",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo બેઝ URL સંકેત",
@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "કોર બાઇનરી પાથ",
-      "coreBinaryPathHelp": "વૈકલ્પિક: અપનાવેલી ફાઇલને બદલતા પહેલાં કોર બાઇનરી સાથે બનાવેલી ફાઇલને ચકાસે છે. બાજુમાં જ લખવાનું ચાલુ રાખવા માટે ખાલી છોડો. ડિરેક્ટરી ન હોય તો બનાવવામાં આવે છે.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "વૈકલ્પિક: અપનાવેલી ફાઇલને બદલતા પહેલાં કોર બાઇનરી સાથે બનાવેલી ફાઇલને ચકાસે છે. બાજુમાં જ લખવાનું ચાલુ રાખવા માટે ખાલી છોડો. ડિરેક્ટરી ન હોય તો બનાવવામાં આવે છે."
     },
     "bulkHealthcheck": "બલ્ક હેલ્થચેક",
     "bulkHealthcheckDesc": "કયા પ્રોક્સી કાર્ય કરે છે તે જાણવા માટે બધા કૉન્ફિગર કરેલા પ્રોક્સીઓને લક્ષ્ય URL સામે ચકાસો.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "લોડ થઈ રહ્યું છે…",
     "loadFailed": "એન્જિન માહિતી લોડ કરવામાં નિષ્ફળ.",
+    "settingsLoadFailed": "સાચવેલી સેટિંગ્સ લોડ કરવામાં નિષ્ફળતા. ફીલ્ડ્સ ડિફૉલ્ટ મૂલ્યો બતાવે છે, અને પેજ ફરી લોડ થાય ત્યાં સુધી સાચવો બંધ રહે છે.",
     "engineNotFound": "એન્જિન \"{engine}\" મળ્યું નથી.",
     "saveFailed": "કન્ફિગરેશન સાચવવામાં નિષ્ફળ.",
     "previewFailed": "પૂર્વાવલોકન નિષ્ફળ ગયું.",
@@ -9673,7 +9674,7 @@
     "suiteBuilderCaseExpectedPlaceholder": "દા.ત. def fibonacci",
     "suiteBuilderCaseExpectedPlaceholderContains": "દા.ત. ડેફ ફિબોનાકી",
     "suiteBuilderCaseExpectedPlaceholderExact": "ચોક્કસ અપેક્ષિત પ્રતિસાદ પેસ્ટ કરો",
-    "suiteBuilderCaseExpectedPlaceholderRegex": "દા.ત. ^\\\\s*\\\\{.*\\\\}\\\\s*$",
+    "suiteBuilderCaseExpectedPlaceholderRegex": "દા.ત. ^\\\\s*\\\\'{.*\\\\}'\\\\s*$",
     "suiteBuilderCaseExpectedHintRegex": "સ્લેશને વીંટાળ્યા વિના JavaScript રેગ્યુલર એક્સપ્રેશનનો ઉપયોગ કરો.",
     "suiteBuilderNamePlaceholder": "દા.ત. કોડિંગ ગુણવત્તા સ્યુટ",
     "suiteBuilderAddCase": "કેસ ઉમેરો",
@@ -10882,7 +10883,7 @@
     "grokAuthJsonDescription": "~/.grok/auth.json ની સંપૂર્ણ સામગ્રી પેસ્ટ કરો (ફક્ત JWT \"કી\" ક્ષેત્ર નહીં). એક નગ્ન JWT માં refresh_token નથી, તેથી કનેક્શન સમાપ્ત થયા પછી મરવા જાય છે (#7610). ઉપલબ્ધ હોય ત્યારે સમર્પિત Import auth.json મોડલને પ્રાથમિકતા આપો.",
     "devinDesktopPasteDescription": "પ્રમાણિત ડેવિન સત્રમાંથી એક અસ્તિત્વમાં રહેલ ડેવિન API કી પેસ્ટ કરો. કી નિકાસ ઉપલબ્ધતા અને પગલાં ડેવિન સંસ્કરણ અને ખાતા દ્વારા બદલાય છે.",
     "devinPasteDescription": "તમારો WINDSURF_API_KEY પ્રદાન કરો (જેને `devin auth login` દ્વારા અથવા Windsurf IDE \"Windsurf: Provide Auth Token\" આદેશ દ્વારા પ્રાપ્ત કરવામાં આવ્યો છે).",
-    "grokAuthJsonPlaceholder": "{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}}",
+    "grokAuthJsonPlaceholder": "'{\"https://auth.x.ai::clientId\": {\"key\": \"eyJ...\", \"refresh_token\": \"...\"}'}",
     "grokAuthJsonLabel": "Grok Build auth.json",
     "apiTokenPlaceholder": "ws-...",
     "apiKeyTokenLabel": "એપીઆઈ કી / ટોકન",
@@ -10895,7 +10896,10 @@
     "gitlabDuoSetupTitle": "GitLab Duo OAuth સેટઅપ",
     "gitlabDuoSetupMessage": "GitLab Duo OAuth કન્ફિગર નથી કરવામાં આવ્યું. {applicationsUrl} પર એક OAuth એપ્લિકેશન નોંધણી કરો જેમાં રીડાયરેક્ટ URI {redirectUri} અને સ્કોપ્સ \"{scopes}\" છે, પછી {clientIdEnv} (અને વૈકલ્પિક રીતે {clientSecretEnv}) સેટ કરો અને પુનઃપ્રારંભ કરો.",
     "gitlabDuoSetupDescription": "આ એપ્લિકેશન નોંધણી થયા પછી અને આ OmniRoute ઉદાહરણ પર env vars સેટ થયા પછી, OAuth લોગિન શરૂ કરવા માટે ચાલુ રાખવા માટે ક્લિક કરો.",
-    "continue": "ચાલુ રાખો"
+    "continue": "ચાલુ રાખો",
+    "tabPasteSetupToken": "સેટઅપ ટોકન",
+    "claudeSetupTokenDescription": "ટર્મિનલમાં `claude setup-token` ચલાવો અને તે જે ટોકન છાપે તે પેસ્ટ કરો. તે એક વર્ષ માટે માન્ય છે અને તેમાં કોઈ રિફ્રેશ ટોકન નથી. સાચવતા પહેલાં OmniRoute Anthropic ને એક પરીક્ષણ વિનંતી મોકલે છે.",
+    "claudeSetupTokenPlaceholder": "sk-ant-oat01-..."
   },
   "cursorAuthModal": {
     "title": "Connect Cursor IDE",
@@ -13713,7 +13717,7 @@
     "secondaryNote": "Open VSX પર પણ ઉપલબ્ધ (Cursor, Windsurf, VSCodium…)",
     "dismissAriaLabel": "બંધ કરો"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/<model> મિરર આઈડીઓને /v1/models પર જાહેરાત આપો તે મોડલ્સ માટે જેમના કૅનોનિકલ માલિક પાસે કોઈ સક્રિય પ્રમાણપત્ર નથી પરંતુ એક પાસથ્રૂ ગેટવે સાથે સક્રિય પ્રમાણપત્ર તેમને માર્ગદર્શિત કરે છે. ચેતવણી: વૈશ્વિક રીતે સક્રિય કરવામાં આવે ત્યારે તમામ ક્લાયન્ટ્સ માટે કૅટલોગ એન્ટ્રીઓ ઉમેરે છે.",
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "/gateway-alias/'<model>' મિરર આઈડીઓને /v1/models પર જાહેરાત આપો તે મોડલ્સ માટે જેમના કૅનોનિકલ માલિક પાસે કોઈ સક્રિય પ્રમાણપત્ર નથી પરંતુ એક પાસથ્રૂ ગેટવે સાથે સક્રિય પ્રમાણપત્ર તેમને માર્ગદર્શિત કરે છે. ચેતવણી: વૈશ્વિક રીતે સક્રિય કરવામાં આવે ત્યારે તમામ ક્લાયન્ટ્સ માટે કૅટલોગ એન્ટ્રીઓ ઉમેરે છે.",
   "radarPage": {
     "title": "રેડાર કેટલોગ",
     "subtitle": "સમુદાયની બુદ્ધિથી સમૃદ્ધ મફત મોડલ કેટલોગ",
