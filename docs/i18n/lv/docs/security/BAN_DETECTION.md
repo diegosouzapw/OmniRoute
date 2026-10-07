@@ -4,24 +4,27 @@
 
 ---
 
-OmniRoute pārbauda augšējo pakalpojumu sniedzēju kļūdu atbildes, meklējot pazīmes, kas norāda, ka pakalpojumu sniedzēja
+OmniRoute pārbauda augšupstraumes kļūdu atbildes, meklējot pazīmes, kas norāda, ka pakalpojumu sniedzēja
 **konts ir neatgriezeniski nederīgs** (apturēts / deaktivizēts / bloķēts pakalpojumu sniegšanas noteikumu pārkāpuma dēļ), un, ja
-tiek atrasta atbilstība, pārvieto šo savienojumu **terminālā `banned` stāvoklī**, lai tas vairs
-netiktu atlasīts pieprasījumiem. To konfigurē iestatījumu kartīte **Drošība → Bloķētie atslēgvārdi**
-("Papildu atslēgvārdi, kas aktivizē neatgriezeniskas konta bloķēšanas
-noteikšanu. Iebūvētie atslēgvārdi tiek lietoti vienmēr.").
+tiek atrasta atbilstība, pārslēdz šo savienojumu **terminālā `banned` stāvoklī**, lai tas
+vairs netiktu atlasīts pieprasījumiem. To konfigurē iestatījumu kartīte **Drošība → Aizlieguma atslēgvārdi**
+("Papildu atslēgvārdi, kas aktivizē neatgriezeniskas konta bloķēšanas noteikšanu.
+Iebūvētie atslēgvārdi tiek lietoti vienmēr.").
 
-Šajā lapā ir dokumentēts iebūvētais saraksts, noteikšanas process, tā tvērums, veids, kā droši pievienot
-pielāgotus atslēgvārdus, un veids, kā atjaunot atzīmētu savienojumu. Pats terminālais
+Šajā lapā ir dokumentēts iebūvētais saraksts, noteikšanas plūsma, tās tvērums, droša
+pielāgotu atslēgvārdu pievienošana un atzīmēta savienojuma atjaunošana. Pats terminālais
 stāvoklis ir daļa no noturības modeļa — skatiet
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Terminālie stāvokļi").
 
-**Patiesās informācijas avots:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Patiesības avots:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+kā arī `open-sse/services/errorClassifier.ts` attiecībā uz neterminālo verifikācijas klasi
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) un
+403 atzaru, kas to izmanto.
 
 ## Iebūvētie atslēgvārdi
 
-Šīs 8 apakšvirknes tiek lietotas vienmēr (neņemot vērā reģistru) neatkarīgi no pielāgotā saraksta:
+Šīs 7 apakšvirknes tiek izmantotas vienmēr (nereģistrjutīgi) neatkarīgi no jebkāda pielāgota saraksta:
 
 ```
 account_deactivated
@@ -29,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Šis saraksts mainās, pakalpojumu sniedzējiem mainot bloķēšanas paziņojumu formulējumus. Autoritatīvā
+> Šis saraksts mainās, pakalpojumu sniedzējiem mainot kontu bloķēšanas formulējumus. Autoritatīvā
 > kopija ir `ACCOUNT_DEACTIVATED_SIGNALS` failā `open-sse/services/accountFallback.ts`;
-> uzskatiet iepriekš redzamo bloku par momentuzņēmumu.
+> iepriekš redzamo bloku uzskatiet par momentuzņēmumu.
 
-Tajā pašā failā atrodas divas blakus esošas, **atsevišķas** signālu tabulas, kas _nav_ daļa
-no bloķēto atslēgvārdu noteikšanas:
+### Nav konta bloķēšana: verifikācijas pieprasījumi, kurus var atrisināt operators
+
+`verify your account to continue` **agrāk bija** iekļauts iepriekš minētajā sarakstā. Tas nav konta bloķēšanas
+signāls, un tagad tas atrodas `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, kas to klasificē kā
+atkopjamu `PROJECT_ROUTE_ERROR`, nevis neatgriezeniski pārtrauc savienojumu.
+
+Google Cloud Code / Antigravity to atgriež kā `403 VALIDATION_REQUIRED`. Tas ir
+**īslaicīgs un rodas veseliem kontiem ar pilnībā pieejamu kvotu** — tas konstatēts aktīvā
+izvietojumā (2026-09-25, `proxy_logs`): viens Antigravity savienojums 10 minūšu laikā atgrieza 33 šādas
+403 atbildes un palika `active`, savukārt saistīts savienojums, kuram visos 17 periodos bija pieejami 100 %
+kvotas, tika neatgriezeniski bloķēts pēc **vienas vienīgas** šādas atbildes. Vienīgā
+atšķirība bija tajā, kurš mēģinājums tika apkalpots.
+
+Šī atšķirība ir svarīga, jo termināla atbilstība ir `permanent: true` (1 gada nogaidīšanas periods,
+bez automātiskas atkopšanas), savukārt verifikācijas pieprasījumu operators var izpildīt pārlūkprogrammā.
+Šīs frāzes saglabāšana bloķēšanas sarakstā arī padarīja atkopjamo cloud-code 403 zaru funkcijā
+`classifyProviderError` nesasniedzamu šim formulējumam, jo `accountDeactivated` tiek
+izvērtēts vispirms — tādēļ Gemini Code Assist paredzētā projekta maršruta atkopšana, kas pievienota
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) un
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452), nekad nevarēja tikt izpildīta.
+
+Trīs blakus esošās, **atsevišķās** signālu tabulas _neietilpst_ bloķēšanas atslēgvārdu noteikšanā:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — iztērēti norēķinu līdzekļi/kvota (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → terminālais `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **nav termināls**; pilnvaras atsvaidzināšana var atjaunot darbību.
+  `credit_balance_too_low`, `payment required`, …) → termināls `credits_exhausted`.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **nav termināls**; marķiera atsvaidzināšana var nodrošināt atkopšanu.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **nav termināls**; operatoram atkārtoti
+  jāverificē konts pie sākotnējā pakalpojumu sniedzēja. Atrodas `open-sse/services/errorClassifier.ts`
+  (pārējie divi atrodas `accountFallback.ts`). Skatiet iepriekšējo sadaļu.
 
-Piezīme: bieži sastopamas pārejošu kļūdu frāzes, piemēram, **`rate limit`** / `429`, apstrādā
-pieprasījumu biežuma ierobežojuma / savienojuma nogaidīšanas mehānisms, un tās **nav** bloķēšanas signāli.
+Piezīme: bieži sastopamas īslaicīgu kļūdu frāzes, piemēram, **`rate limit`** / `429`, apstrādā
+ātruma ierobežojuma / savienojuma nogaidīšanas mehānisms, un tās **nav** konta bloķēšanas signāli.
 
 ## Noteikšanas process
 

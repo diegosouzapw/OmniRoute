@@ -266,13 +266,20 @@ de ambiente / padrão. Retorna `{ cleared: <count>, message: "..." }`.
 ## Fallback Emergencial de Orçamento
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (categoria `runtime`, padrão `true`) controla o
-caminho de fallback gratuito emergencial em
+fluxo de fallback gratuito emergencial em
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
 Quando habilitado, as solicitações que esgotam seu orçamento são encaminhadas para um
-provedor/modelo de fallback gratuito em vez de falharem imediatamente. Defina-o como `false` (ou `0`) — por meio
-do botão de alternância no dashboard, de uma substituição no DB ou da variável de ambiente
-`OMNIROUTE_EMERGENCY_FALLBACK` — para desabilitar o comportamento e permitir que solicitações cujo orçamento
-foi esgotado falhem. (Disponibilizado como um botão de alternância no dashboard nos PRs #3741 / #3752.)
+provedor/modelo de fallback gratuito, em vez de falharem imediatamente. Defina-o como
+`false` (ou `0`) — por meio da opção no painel, de uma substituição no banco de dados ou da
+variável de ambiente `OMNIROUTE_EMERGENCY_FALLBACK` — para desabilitar esse comportamento
+e permitir que as solicitações com orçamento esgotado falhem. (Disponibilizado como uma
+opção no painel nos PRs #3741 / #3752.)
+
+Uma resposta fornecida por esse fallback inclui
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, permitindo
+que um cliente identifique que ela foi redirecionada sem precisar comparar
+`X-OmniRoute-Provider` com sua solicitação. O cabeçalho não está presente em nenhuma
+outra resposta.
 
 ---
 

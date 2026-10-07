@@ -512,10 +512,15 @@ export function enrichCodexModelsFromGithubCatalog(
   githubCatalogModels: CodexDiscoveryModel[]
 ): CodexDiscoveryModel[] {
   const byId = new Map(githubCatalogModels.map((model) => [model.id, model]));
-  return models.map((model) => {
+  const enriched = models.map((model) => {
     const githubModel = byId.get(model.id);
     return githubModel ? { ...githubModel, ...model } : model;
   });
+  // A non-empty live entitlement list is authoritative for membership and
+  // order. GitHub rows may only fill metadata on those ids. Catalog models
+  // the account did not return are used only when there is no live list.
+  if (models.length > 0) return enriched;
+  return [...githubCatalogModels];
 }
 
 export async function fetchCodexDiscoveryModels({

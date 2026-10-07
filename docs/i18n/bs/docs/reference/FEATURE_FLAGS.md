@@ -261,17 +261,21 @@ iz okruženja / zadanu vrijednost. Vraća `{ cleared: <count>, message: "..." }`
 
 ---
 
-## Rezervna opcija za hitni budžet
+## Rezervna opcija u slučaju prekoračenja budžeta
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (kategorija `runtime`, default `true`) kontroliše
-putanju hitne besplatne rezervne opcije u
+`OMNIROUTE_EMERGENCY_FALLBACK` (kategorija `runtime`, zadana vrijednost `true`) kontroliše
+besplatnu rezervnu opciju za hitne slučajeve u
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Kada je omogućeno, zahtjevi koji iscrpe svoj budžet se usmjeravaju na besplatnog
-rezervnog provajdera/model umjesto da odmah ne uspiju. Postavite na `false` (ili
-`0`) — putem prekidača na kontrolnoj tabli, DB nadjačavanja ili
-`OMNIROUTE_EMERGENCY_FALLBACK` varijable okruženja — da onemogućite ovo ponašanje
-i dozvolite da zahtjevi sa iscrpljenim budžetom ne uspiju. (Prikazano kao prekidač
-na kontrolnoj tabli u PR-ovima #3741 / #3752.)
+Kada je omogućena, zahtjevi koji iscrpe svoj budžet usmjeravaju se na besplatnog rezervnog
+pružaoca usluge/model umjesto da odmah ne uspiju. Postavite je na `false` (ili `0`) — putem
+prekidača na kontrolnoj ploči, zamjenske postavke u bazi podataka ili varijable okruženja
+`OMNIROUTE_EMERGENCY_FALLBACK` — kako biste onemogućili ovo ponašanje i dopustili da zahtjevi
+koji su iscrpili budžet ne uspiju. (Prikazano kao prekidač na kontrolnoj ploči u PR-ovima #3741 / #3752.)
+
+Odgovor poslužen putem ove rezervne opcije sadrži
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, tako da klijent
+može utvrditi da je zahtjev preusmjeren bez poređenja zaglavlja `X-OmniRoute-Provider` s izvornim
+zahtjevom. Ovo zaglavlje nije prisutno ni u jednom drugom odgovoru.
 
 ---
 

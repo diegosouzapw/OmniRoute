@@ -17,6 +17,7 @@ import {
   toRegistryImageModels,
 } from "../services/adobeFireflyModels.ts";
 import { AI_HORDE_IMAGE_PROVIDER } from "./providers/registry/aihorde/imageModels.ts";
+import { ZENMUX_IMAGE_PROVIDER } from "./providers/registry/zenmux/imageModels.ts";
 
 interface ImageModelEntry {
   id: string;
@@ -170,6 +171,7 @@ function resolveAliasImageRequired(alias, modelConfig) {
 }
 
 export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
+  zenmux: ZENMUX_IMAGE_PROVIDER,
   agnes: {
     id: "agnes",
     baseUrl: "https://apihub.agnes-ai.com/v1/images/generations",

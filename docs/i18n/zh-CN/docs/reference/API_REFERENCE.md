@@ -403,40 +403,40 @@ GET /api/v1/provider-plugin-manifest
 
 ## 兼容性端点
 
-| 方法 | 路径                                      | 格式                            |
-| ---- | ----------------------------------------- | ------------------------------- |
-| POST | `/v1/chat/completions`                    | OpenAI                          |
-| POST | `/v1/messages`                            | Anthropic                       |
-| POST | `/v1/responses`                           | OpenAI 响应                     |
-| POST | `/v1/embeddings`                          | OpenAI                          |
-| POST | `/v1/images/generations`                  | OpenAI 图像                     |
-| POST | `/v1/images/edits`                        | OpenAI 图像 (编辑/修复)         |
-| POST | `/v1/videos/generations`                  | OpenAI 风格的视频生成           |
-| POST | `/v1/music/generations`                   | OpenAI 风格的音乐生成           |
-| POST | `/v1/audio/transcriptions`                | OpenAI 音频 (语音转文本)        |
-| POST | `/v1/audio/speech`                        | OpenAI TTS (返回音频主体)       |
-| POST | `/v1/rerank`                              | Cohere/Voyage 风格的重排序      |
-| POST | `/v1/classify`                            | Jina 分类 (`api.jina.ai`)       |
-| POST | `/v1/segment`                             | Jina 分段器 (`segment.jina.ai`) |
-| POST | `/v1/moderations`                         | OpenAI 内容审核                 |
-| GET  | `/v1/models`                              | OpenAI                          |
-| POST | `/v1/messages/count_tokens`               | Anthropic                       |
-| GET  | `/v1beta/models`                          | Gemini                          |
-| POST | `/v1beta/models/{...path}`                | Gemini generateContent          |
-| POST | `/v1/api/chat`                            | Ollama                          |
-| GET  | `/api/v1/vscode/{token}/`                 | OpenAI 目录别名                 |
-| GET  | `/api/v1/vscode/{token}/models`           | OpenAI 模型别名                 |
-| POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI 令牌化别名               |
-| POST | `/api/v1/vscode/{token}/responses`        | OpenAI 响应令牌化别名           |
-| POST | `/api/v1/vscode/{token}/api/chat`         | Ollama 令牌化别名               |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama 标签令牌化别名           |
+| 方法 | 路径                                      | 格式                             |
+| ---- | ----------------------------------------- | -------------------------------- |
+| POST | `/v1/chat/completions`                    | OpenAI                           |
+| POST | `/v1/messages`                            | Anthropic                        |
+| POST | `/v1/responses`                           | OpenAI Responses                 |
+| POST | `/v1/embeddings`                          | OpenAI                           |
+| POST | `/v1/images/generations`                  | OpenAI Images                    |
+| POST | `/v1/images/edits`                        | OpenAI Images（编辑/局部重绘）   |
+| POST | `/v1/videos/generations`                  | OpenAI 风格的视频生成            |
+| POST | `/v1/music/generations`                   | OpenAI 风格的音乐生成            |
+| POST | `/v1/audio/transcriptions`                | OpenAI Audio（STT）              |
+| POST | `/v1/audio/speech`                        | OpenAI TTS（返回音频正文）       |
+| POST | `/v1/rerank`                              | Cohere/Voyage 风格的重排序       |
+| POST | `/v1/classify`                            | Jina 分类（`api.jina.ai`）       |
+| POST | `/v1/segment`                             | Jina 分段器（`segment.jina.ai`） |
+| POST | `/v1/moderations`                         | OpenAI Moderations               |
+| GET  | `/v1/models`                              | OpenAI                           |
+| POST | `/v1/messages/count_tokens`               | Anthropic                        |
+| GET  | `/v1beta/models`                          | Gemini                           |
+| POST | `/v1beta/models/{...path}`                | Gemini generateContent           |
+| POST | `/v1/api/chat`                            | Ollama                           |
+| GET  | `/api/v1/vscode/{token}/`                 | OpenAI 目录别名                  |
+| GET  | `/api/v1/vscode/{token}/models`           | OpenAI 模型别名                  |
+| POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI 令牌化别名                |
+| POST | `/api/v1/vscode/{token}/responses`        | OpenAI Responses 令牌化别名      |
+| POST | `/api/v1/vscode/{token}/api/chat`         | Ollama 令牌化别名                |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama 标签令牌化别名            |
 
-所有 POST 路由都遵循相同的格式：`Bearer your-api-key` + 经过 Zod 验证的 JSON 主体（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema` 等，详见 `src/shared/validation/schemas.ts`）。如果模式验证失败，将返回 4xx 错误。
+所有 POST 路由都遵循相同的形式：`Bearer your-api-key` + 经过 Zod 验证的 JSON 正文（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema` 等，参见 `src/shared/validation/schemas.ts`）。架构验证失败时会返回 4xx。
 
-对于无法附加 `Authorization: Bearer ...` 的客户端，OmniRoute 也支持通过查询字符串兼容性（`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`）或通过下方文档中列出的专用 `/api/v1/vscode/{token}/...` 端点在 URL 中接受 API 密钥。
+对于无法附加 `Authorization: Bearer ...` 的客户端，OmniRoute 也支持通过 URL 传递 API 密钥，可使用查询字符串兼容形式（`?token=...`、`?apiKey=...`、`?api_key=...`、`?key=...`），或使用下文记录的专用 `/api/v1/vscode/{token}/...` 端点。
 
 ```bash
-# 重排序（云注册表提供者，或 OpenAI 兼容的提供者节点，格式为 "<prefix>/<model>"）
+# 重排序（云注册表提供者，或模型指定为 "<prefix>/<model>" 的 OpenAI 兼容提供者节点）
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina 分类（Foundation API 凭据）
@@ -445,28 +445,48 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # Jina 分段器
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina 搜索 (s.jina.ai; 提供者别名: jina-search, jina-ai, jina)
+# Jina 搜索（s.jina.ai；提供者别名：jina-search、jina-ai、jina）
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # 内容审核
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — 返回 audio/mpeg (或请求的格式) 主体
+# TTS — 返回 audio/mpeg（或请求的格式）正文
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# 图像编辑 (多部分)
+# Soniox TTS 需要语言和语音：`language` 默认为 "en"；缺少
+# voice 或使用 OpenAI 内置语音名称（alloy、nova、…）时，将改为 "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# 图像编辑（multipart）
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# 视频/音乐生成 (带提供者前缀的模型 ID)
+# 视频/音乐生成（带提供者前缀的模型 ID）
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **重排序提供者节点：** `POST /v1/rerank` 也路由到 OpenAI 兼容的提供者节点 (oMLX, vLLM, Infinity, TEI 在网关后, …)，地址格式为 `<node-prefix>/<model>`。回环节点 (`localhost`, `127.0.0.1`, `172.16.0.0/12`) 始终符合条件。任何其他主机上的节点（局域网设备或 Tailscale 对等节点）仅在操作员启用 `RERANK_REMOTE_PROVIDER_NODES` 功能标志**并且**节点的基 URL 通过提供者出站 URL 策略 (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) 时才符合条件；云元数据主机永远不会被路由。内存引擎的重排序步骤通过回环调用此路由，因此相同的规则也适用于内存设置中的 `rerankProviderModel`。
+> **重排序提供者节点：** `POST /v1/rerank` 也会将请求路由到以
+> `<node-prefix>/<model>` 形式寻址的 OpenAI 兼容提供者节点（网关后的 oMLX、vLLM、Infinity、TEI 等）。环回
+> 节点（`localhost`、`127.0.0.1`、`172.16.0.0/12`）始终符合条件。位于任何其他
+> 主机上的节点（局域网设备或 Tailscale 对等节点）仅在运营方启用
+> `RERANK_REMOTE_PROVIDER_NODES` 功能标志，**并且**节点的基础 URL 通过提供者
+> 出站 URL 策略（`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`）时才符合条件；
+> 云元数据主机永远不会成为路由目标。内存引擎的重排序步骤通过
+> 环回地址调用此路由，因此同一规则也适用于内存设置中的 `rerankProviderModel`。
 >
-> **本地服务器形态：** 节点在 `<base>/v1/rerank` 被调用，如果返回 404，则在 `<base>/rerank` 被调用 (Infinity, TEI)。上游请求主体同时包含 Cohere/OpenAI 的拼写 (`documents`, `return_documents`) 和 TEI 的拼写 (`texts`, `return_text`)，并且上游响应被规范化为 Cohere 格式：TEI 的裸 `[{index, score, text}]`、来自轻量级网关的 `{results: [{index, score}]}` 以及 Voyage 风格的 `{data: [...]}` 都会以 `{results: [{index, relevance_score, document?}]}` 的形式返回给客户端，并按分数排序，上限为 `top_n`。
+> **本地服务器形式：** 节点首先通过 `<base>/v1/rerank` 调用；如果返回 404，则改用 `<base>/rerank`
+> （Infinity、TEI）。上游正文同时携带 Cohere/OpenAI 拼写形式（`documents`、
+> `return_documents`）和 TEI 拼写形式（`texts`、`return_text`），上游响应会被
+> 规范化为 Cohere 信封格式：TEI 的裸数组 `[{index, score, text}]`、精简网关返回的
+> `{results: [{index, score}]}`，以及 Voyage 风格的 `{data: [...]}` 都会以
+> `{results: [{index, relevance_score, document?}]}` 的形式返回给客户端，并按分数排序，且结果数量限制为 `top_n`。
 
-> **提供者节点发现：** OpenAI 兼容提供者节点上的模型会出现在 `GET /v1/models` 中，位于节点前缀下。不带端点元数据（本地 `/v1/models` 列表的典型情况）的行会继承节点的 `apiType`，因此 `embeddings` 节点的模型类型为 `type: "embedding"`，`rerank` 节点的模型类型为 `type: "rerank"`，而不是默认为聊天类型；同步或手动添加的行上的显式 `supportedEndpoints` 仍然具有优先权。
+> **提供者节点发现：** OpenAI 兼容提供者节点上的模型会显示在 `GET /v1/models`
+> 中，并带有节点前缀。不包含端点元数据的条目（本地 `/v1/models` 列表通常如此）
+> 会继承节点的 `apiType`，因此 `embeddings` 节点的模型为 `type: "embedding"`，
+> `rerank` 节点的模型为 `type: "rerank"`，而不是默认为聊天类型；已同步或手动添加的条目中显式指定的
+> `supportedEndpoints` 仍然具有更高优先级。
 
 ### 专用提供者路由
 
@@ -476,7 +496,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-如果缺少提供者前缀，则会自动添加。模型不匹配会返回 `400`。
+如果缺少提供者前缀，系统会自动添加。模型不匹配时返回 `400`。
 
 ---
 
@@ -759,7 +779,7 @@ X-OmniRoute-No-Cache: true
 
 ## 仪表盘与管理
 
-管理路由（除公共身份验证/登录之外的 `/api/*`）**不能**使用普通推理 API 密钥进行授权。有关凭据类型、权限范围和 curl 示例，请参阅：
+管理路由（除公共身份验证/登录外的 `/api/*`）**不能**使用普通的推理 API 密钥进行授权。有关凭据系列、作用域和 curl 示例，请参阅：
 [管理身份验证](../guides/MANAGEMENT-AUTH.md)。
 
 ### 身份验证
@@ -772,23 +792,24 @@ X-OmniRoute-No-Cache: true
 
 ### 提供者管理
 
-| 端点                         | 方法                  | 描述                                                                        |
-| ---------------------------- | --------------------- | --------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | 列出/创建提供者                                                             |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | 管理提供者                                                                  |
-| `/api/providers/[id]/test`   | POST                  | 测试提供者连接                                                              |
-| `/api/providers/[id]/models` | GET                   | 列出提供者模型                                                              |
-| `/api/providers/validate`    | POST                  | 验证提供者配置                                                              |
-| `/api/providers/bulk`        | POST                  | 为一个提供者批量添加 API 密钥                                               |
-| `/api/providers/import`      | POST                  | 从解析后的 CSV/JSON 文件导入异构提供者列表（#6836）；返回每行的部分失败结果 |
-| `/api/provider-nodes*`       | 多种                  | 提供者节点管理                                                              |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | 自定义模型（添加、更新、隐藏/显示、删除）                                   |
+| 端点                                    | 方法                  | 描述                                                                                                            |
+| --------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | 列出/创建提供者                                                                                                 |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | 管理提供者                                                                                                      |
+| `/api/providers/[id]/test`              | POST                  | 测试提供者连接                                                                                                  |
+| `/api/providers/[id]/models`            | GET                   | 列出提供者模型                                                                                                  |
+| `/api/providers/validate`               | POST                  | 验证提供者配置                                                                                                  |
+| `/api/providers/bulk`                   | POST                  | 为一个提供者批量添加 API 密钥                                                                                   |
+| `/api/providers/import`                 | POST                  | 从已解析的 CSV/JSON 文件导入异构提供者列表（#6836）；返回逐行部分失败结果                                       |
+| `/api/provider-nodes*`                  | 各种方法              | 提供者节点管理                                                                                                  |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | 自定义模型（添加、更新、隐藏/显示、删除）                                                                       |
+| `/api/provider-models/validate-and-add` | POST                  | 经管理身份验证、可选择启用的严格连接验证及原子式自定义模型注册；请参阅[模型验证](../guides/MODEL-VALIDATION.md) |
 
 ### OAuth 流程
 
-| 端点                             | 方法 | 描述                 |
-| -------------------------------- | ---- | -------------------- |
-| `/api/oauth/[provider]/[action]` | 多种 | 特定于提供者的 OAuth |
+| 端点                             | 方法     | 描述                 |
+| -------------------------------- | -------- | -------------------- |
+| `/api/oauth/[provider]/[action]` | 各种方法 | 特定于提供者的 OAuth |
 
 ### 路由与配置
 
@@ -796,34 +817,34 @@ X-OmniRoute-No-Cache: true
 | --------------------- | -------- | ---------------------------- |
 | `/api/models/alias`   | GET/POST | 模型别名                     |
 | `/api/models/catalog` | GET      | 按提供者和类型列出的所有模型 |
-| `/api/combos*`        | 多种     | 组合管理                     |
-| `/api/keys*`          | 多种     | API 密钥管理                 |
+| `/api/combos*`        | 各种方法 | 组合管理                     |
+| `/api/keys*`          | 各种方法 | API 密钥管理                 |
 | `/api/pricing`        | GET      | 模型定价                     |
 
 ### 使用情况与分析
 
-| Endpoint                         | 方法            | 描述                                                                                                                                                                                                                                                       |
-| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | 使用历史                                                                                                                                                                                                                                                   |
-| `/api/usage/logs`                | GET             | 使用日志                                                                                                                                                                                                                                                   |
-| `/api/usage/request-logs`        | GET             | 请求级日志                                                                                                                                                                                                                                                 |
-| `/api/usage/[connectionId]`      | GET             | 每个连接的使用情况                                                                                                                                                                                                                                         |
-| `/api/usage/token-limits`        | GET/POST/DELETE | 每个 API 密钥的令牌限额预算                                                                                                                                                                                                                                |
-| `/api/usage/model-latency-stats` | GET             | 按提供者/模型滚动统计的延迟汇总（平均值/p50/p95/p99、成功率）；筛选条件：`windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                   |
-| `/api/usage/cache-health`        | GET             | 基于 `call_logs` 的提示词缓存健康状况摘要——写入/读取比率、写入大小的 p50/p90/p99 分布、大量写入集中度、按模型拆分，以及 `healthy`/`degraded`/`thrash`/`no-data` 判定；查询参数 `range`（`1h`\|`24h`\|`7d`\|`30d`，默认值为 `24h`）和可选的 `model` (#8827) |
+| 端点                             | 方法            | 描述                                                                                                                                                                                                                                                      |
+| -------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | 使用历史                                                                                                                                                                                                                                                  |
+| `/api/usage/logs`                | GET             | 使用日志                                                                                                                                                                                                                                                  |
+| `/api/usage/request-logs`        | GET             | 请求级日志                                                                                                                                                                                                                                                |
+| `/api/usage/[connectionId]`      | GET             | 每个连接的使用情况                                                                                                                                                                                                                                        |
+| `/api/usage/token-limits`        | GET/POST/DELETE | 每个 API 密钥的令牌限额预算                                                                                                                                                                                                                               |
+| `/api/usage/model-latency-stats` | GET             | 按提供者/模型滚动汇总的延迟统计（平均值/p50/p95/p99、成功率）；筛选器：`windowHours`/`minSamples`/`maxRows`/`provider`/`model`（#6873）                                                                                                                   |
+| `/api/usage/cache-health`        | GET             | 基于 `call_logs` 的提示词缓存健康状况摘要——写入/读取比率、写入大小的 p50/p90/p99 分布、高写入集中度、按模型拆分，以及 `healthy`/`degraded`/`thrash`/`no-data` 判定；查询参数 `range`（`1h`\|`24h`\|`7d`\|`30d`，默认值为 `24h`）和可选的 `model`（#8827） |
 
 ### 设置
 
-| Endpoint                              | 方法          | 描述                                                                                                                                    |
+| 端点                                  | 方法          | 描述                                                                                                                                    |
 | ------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `/api/settings`                       | GET/PUT/PATCH | 常规设置                                                                                                                                |
 | `/api/settings/proxy`                 | GET/PUT       | 网络代理配置                                                                                                                            |
 | `/api/settings/proxy/test`            | POST          | 测试代理连接                                                                                                                            |
 | `/api/settings/ip-filter`             | GET/PUT       | IP 允许列表/阻止列表                                                                                                                    |
-| `/api/settings/thinking-budget`       | GET/PUT       | 思考/推理**请求**重写模式（透传 / 自动移除 / 自定义 / 自适应）。与压缩无关。请参阅 [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md)。 |
+| `/api/settings/thinking-budget`       | GET/PUT       | 思考/推理**请求**重写模式（透传 / 自动剥离 / 自定义 / 自适应）。独立于压缩。请参阅 [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md)。 |
 | `/api/settings/system-prompt`         | GET/PUT       | 全局系统提示词                                                                                                                          |
 | `/api/settings/compression`           | GET/PUT       | 全局压缩配置                                                                                                                            |
-| `/api/settings/purge-request-history` | POST          | 清除请求日志行和本地调用日志构件                                                                                                        |
+| `/api/settings/purge-request-history` | POST          | 清除请求日志行和本地调用日志产物                                                                                                        |
 
 ### 上下文与压缩
 
@@ -835,24 +856,24 @@ X-OmniRoute-No-Cache: true
 | `/api/context/caveman/config`          | GET/PUT        | Caveman 专用设置的别名                       |
 | `/api/context/rtk/config`              | GET/PUT        | RTK 专用设置，包括自定义过滤器和原始输出保留 |
 | `/api/context/rtk/filters`             | GET            | RTK 过滤器目录和自定义过滤器诊断             |
-| `/api/context/rtk/test`                | POST           | 针对文本负载运行 RTK 预览/测试               |
-| `/api/context/rtk/raw-output/[id]`     | GET            | 按指针 ID 读取保留的已脱敏原始输出           |
+| `/api/context/rtk/test`                | POST           | 针对文本有效载荷运行 RTK 预览/测试           |
+| `/api/context/rtk/raw-output/[id]`     | GET            | 按指针 ID 读取已保留且经脱敏处理的原始输出   |
 | `/api/context/combos`                  | GET/POST       | 列出/创建压缩组合                            |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | 压缩组合详情/更新/删除                       |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | 获取/更新/删除压缩组合详情                   |
 | `/api/context/combos/[id]/assignments` | GET/PUT        | 将压缩组合分配给路由组合                     |
-| `/api/context/analytics`               | GET            | 压缩分析的别名                               |
+| `/api/context/analytics`               | GET            | 压缩分析别名                                 |
 
 ### 监控
 
-| 端点                                 | 方法       | 描述                                                                                                                                                                                                                                                                                                                                                               |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/sessions`                      | GET        | 活跃会话跟踪                                                                                                                                                                                                                                                                                                                                                       |
-| `/api/rate-limits`                   | GET        | 每账户速率限制                                                                                                                                                                                                                                                                                                                                                     |
-| `/api/monitoring/health`             | GET        | 健康检查及提供者摘要（`catalogCount`、`configuredCount`、`activeCount`、`monitoredCount`）。管理视图包含 `credentialHealth`：探测缓存标量、`failed>0` 时的 `failedConnections`，以及 `staleDbNonOkCount`（SQLite 粘滞性 `test_status`，而非仪表值）。请参阅 [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status)。 |
-| `/api/cache/stats`                   | GET/DELETE | 缓存统计信息/清除缓存                                                                                                                                                                                                                                                                                                                                              |
-| `/api/modality-bridge/stats`         | GET        | 内存中的 `attempts`、成功次数/`bridged`、失败次数、缓存命中次数、`totalLatencyMs`、`latencySamples`、以样本数为分母的 `averageLatencyMs`，以及最后使用时间（重启时重置；需要管理身份验证）                                                                                                                                                                         |
-| `/api/modality-bridge/video/runtime` | GET        | 在管理身份验证/探测之前执行严格的受信任环回检查；返回经过净化处理的 FFmpeg/ffprobe 可用性及版本信息（不存储）                                                                                                                                                                                                                                                      |
-| `/api/modality-bridge/video/extract` | POST       | 内部已认证的受信任环回字节代理；输入上限为 50 MiB、队列有界/输出上限为 32 MiB，容量不足时返回 `503`，连接断开时返回 `499`，超出截止时间时返回 `504`；并非公共上传 API                                                                                                                                                                                              |
+| 端点                                 | 方法       | 描述                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | 活跃会话跟踪                                                                                                                                                                                                                                                                                                                                                      |
+| `/api/rate-limits`                   | GET        | 每个账户的速率限制                                                                                                                                                                                                                                                                                                                                                |
+| `/api/monitoring/health`             | GET        | 健康检查 + 提供者摘要（`catalogCount`、`configuredCount`、`activeCount`、`monitoredCount`）。管理视图包括 `credentialHealth`：探测缓存标量、`failed>0` 时的 `failedConnections`，以及 `staleDbNonOkCount`（SQLite 粘性 `test_status`，而非仪表值）。请参阅 [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status)。 |
+| `/api/cache/stats`                   | GET/DELETE | 缓存统计信息/清除缓存                                                                                                                                                                                                                                                                                                                                             |
+| `/api/modality-bridge/stats`         | GET        | 内存中的 `attempts`、成功次数/`bridged`、失败次数、缓存命中次数、`totalLatencyMs`、`latencySamples`、以样本数为分母的 `averageLatencyMs`，以及上次使用时间（重启时重置；需要管理身份验证）                                                                                                                                                                        |
+| `/api/modality-bridge/video/runtime` | GET        | 在管理身份验证/探测之前执行严格的可信环回检查；返回经净化处理的 FFmpeg/ffprobe 可用性和版本信息（不存储）                                                                                                                                                                                                                                                         |
+| `/api/modality-bridge/video/extract` | POST       | 内部经身份验证的可信环回字节代理；输入上限为 50 MiB、队列有界/输出上限为 32 MiB、`503` 表示容量不足、`499` 表示连接断开、`504` 表示超出截止时间；并非公共上传 API                                                                                                                                                                                                 |
 
 ### 备份与导出/导入
 
@@ -871,7 +892,7 @@ X-OmniRoute-No-Cache: true
 | ---------------------- | ---- | ---------- |
 | `/api/sync/cloud`      | 多种 | 云同步操作 |
 | `/api/sync/initialize` | POST | 初始化同步 |
-| `/api/cloud/*`         | 多种 | 云端管理   |
+| `/api/cloud/*`         | 多种 | 云管理     |
 
 ### 隧道
 
@@ -904,18 +925,18 @@ CLI 响应包括：`installed`、`runnable`、`command`、`commandPath`、`runti
 
 GET 响应包括 `agents[]`（id、name、binary、version、installed、protocol、isCustom）和 `summary`（total、installed、notFound、builtIn、custom）。
 
-### 弹性与速率限制
+### 弹性机制与速率限制
 
 | 端点                              | 方法      | 描述                                                                          |
 | --------------------------------- | --------- | ----------------------------------------------------------------------------- |
 | `/api/resilience`                 | GET/PATCH | 获取/更新请求队列、连接冷却、提供者断路器和等待设置                           |
 | `/api/resilience/reset`           | POST      | 重置提供者断路器                                                              |
-| `/api/resilience/model-cooldowns` | GET       | 列出每个（提供者、连接、模型）当前生效的锁定，并按剩余时间排序                |
-| `/api/resilience/model-cooldowns` | DELETE    | 清除模型锁定——请求体为 `{provider, model}`，或使用 `{all: true}` 清除全部锁定 |
+| `/api/resilience/model-cooldowns` | GET       | 列出活动的每个（提供者、连接、模型）锁定，按剩余时间排序                      |
+| `/api/resilience/model-cooldowns` | DELETE    | 清除模型锁定——请求体为 `{provider, model}`，或使用 `{all: true}` 清除全部内容 |
 | `/api/rate-limits`                | GET       | 每个账户的速率限制状态                                                        |
 | `/api/rate-limit`                 | GET       | 全局速率限制配置                                                              |
 
-> 所有四个 `/api/resilience/*` 路由都需要**管理身份验证**（`requireManagementAuth`）。有关提供者断路器、连接冷却与模型锁定的完整说明，请参阅[弹性（扩展）](#resilience-extended)。
+> 所有四个 `/api/resilience/*` 路由都需要**管理身份验证**（`requireManagementAuth`）。有关提供者断路器、连接冷却和模型锁定之间区别的完整说明，请参阅[弹性机制（扩展）](#resilience-extended)。
 
 ### 评估
 
@@ -931,9 +952,9 @@ GET 响应包括 `agents[]`（id、name、binary、version、installed、protoco
 
 ### 合规性
 
-| 端点                        | 方法 | 描述                      |
-| --------------------------- | ---- | ------------------------- |
-| `/api/compliance/audit-log` | GET  | 合规审计日志（最近 N 条） |
+| 端点                        | 方法 | 描述                        |
+| --------------------------- | ---- | --------------------------- |
+| `/api/compliance/audit-log` | GET  | 合规性审计日志（最近 N 条） |
 
 ### v1beta（兼容 Gemini）
 
@@ -942,9 +963,9 @@ GET 响应包括 `agents[]`（id、name、binary、version、installed、protoco
 | `/v1beta/models`           | GET  | 以 Gemini 格式列出模型        |
 | `/v1beta/models/{...path}` | POST | Gemini `generateContent` 端点 |
 
-这些端点复刻了 Gemini 的 API 格式，以供需要原生 Gemini SDK 兼容性的客户端使用。
+这些端点采用与 Gemini API 相同的格式，适用于需要原生 Gemini SDK 兼容性的客户端。
 
-### 内部/系统 API
+### 内部 / 系统 API
 
 | 端点                     | 方法 | 描述                                             |
 | ------------------------ | ---- | ------------------------------------------------ |
@@ -954,7 +975,7 @@ GET 响应包括 `agents[]`（id、name、binary、version、installed、protoco
 | `/api/shutdown`          | POST | 触发服务器正常关闭                               |
 | `/api/system/env/repair` | POST | 修复 OAuth 提供者的环境变量                      |
 
-> **注意：** 这些端点由系统内部使用，或用于兼容 Ollama 客户端。最终用户通常不会调用它们。
+> **注意：**这些端点由系统内部使用，或用于兼容 Ollama 客户端。最终用户通常不会调用它们。
 
 ### OAuth 环境修复 _(v3.6.1+)_
 
@@ -1107,7 +1128,7 @@ Content-Type: application/json
 }
 ```
 
-> **Schema 说明** (`setBudgetSchema`): `apiKeyId` 是必填项；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少一个必须大于零。可选字段：`warningThreshold` (0–1)，`resetInterval` (`daily` | `weekly` | `monthly`)，`resetTime` (`HH:MM`)。旧版 `{keyId, limit, period}` 格式将返回 `400 Bad Request`。
+> **模式说明** (`setBudgetSchema`)：`apiKeyId` 为必填项；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少有一项必须大于零。可选字段：`warningThreshold`（0–1）、`resetInterval`（`daily` | `weekly` | `monthly`）、`resetTime`（`HH:MM`）。旧版 `{keyId, limit, period}` 格式会返回 `400 Bad Request`。
 
 ## Token 限制
 
@@ -1391,22 +1412,22 @@ GET /.well-known/agent.json
 
 ---
 
-## 云、评估与测评
+## 云端、评测与评估
 
 | 方法 | 路径 | 描述 |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | 验证 Bearer 密钥，并为云同步客户端返回经过掩码处理的提供者连接和模型别名 |
+| POST | `/api/cloud/auth` | 验证 Bearer 密钥，并返回供云同步客户端使用的已脱敏提供者连接和模型别名 |
 | POST | `/api/cloud/credentials/update` | 更新云同步提供者的加密凭据 |
 | POST | `/api/cloud/model/resolve` | 使用本地路由表将逻辑模型 ID 解析为具体的提供者/模型 |
 | GET | `/api/cloud/models/alias` | 列出向云同步公开的模型别名 |
-| GET | `/api/assess` | 读取最新的测评分类结果（按提供者/模型） |
-| POST | `/api/assess` | 运行测评 — 请求体：`{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | 列出内置评估套件和最近的运行记录 |
-| POST | `/api/evals` | 触发评估运行 |
-| POST | `/api/evals/suites` | 创建自定义评估套件 — 请求体由 `evalSuiteSaveSchema` 验证 |
-| GET | `/api/evals/suites/[id]` | 获取自定义评估套件 |
+| GET | `/api/assess` | 读取最新的评估分类结果（按提供者/模型） |
+| POST | `/api/assess` | 运行评估 — 请求体：`{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | 列出内置评测套件及其最近一次运行 |
+| POST | `/api/evals` | 触发评测运行 |
+| POST | `/api/evals/suites` | 创建自定义评测套件 — 请求体由 `evalSuiteSaveSchema` 验证 |
+| GET | `/api/evals/suites/[id]` | 获取自定义评测套件 |
 
-**身份验证：**`/api/cloud/auth` 直接验证 Bearer 密钥；其他 `/api/cloud/*`、`/api/evals/*` 和 `/api/assess` 路由需要管理会话/API 密钥。`/api/assess` POST 使用 `validateBody` 和可辨识联合范围架构。
+**认证：** `/api/cloud/auth` 直接验证 Bearer 密钥；仅当密钥具有 `manage` / `admin` 作用域时，才返回每个连接的已脱敏密钥和 `projectId`；其他 `/api/cloud/*`、`/api/evals/*` 和 `/api/assess` 路由需要管理会话/API 密钥。`/api/assess` 的 POST 请求使用 `validateBody` 和带判别字段的联合作用域模式。
 
 ---
 

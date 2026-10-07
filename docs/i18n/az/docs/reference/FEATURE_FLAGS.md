@@ -261,16 +261,23 @@ dəyərinə qaytarır. `{ cleared: <count>, message: "..." }` qaytarır.
 
 ---
 
-## Fövqəladə büdcə ehtiyat mexanizmi
+## Fövqəladə Büdcə Ehtiyat Mexanizmi
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (`runtime` kateqoriyası, standart olaraq `true`)
+`OMNIROUTE_EMERGENCY_FALLBACK` (`runtime` kateqoriyası, standart dəyər `true`)
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts)
-faylındakı fövqəladə pulsuz ehtiyat mexanizmini idarə edir.
-Aktiv olduqda, büdcəsi tükənən sorğular tamamilə uğursuz olmaq əvəzinə pulsuz ehtiyat
-provayderə/modelə yönləndirilir. Bu davranışı deaktiv etmək və büdcəsi tükənmiş sorğuların
-uğursuz olmasına icazə vermək üçün idarəetmə panelindəki keçid, DB əvəzləməsi və ya
-`OMNIROUTE_EMERGENCY_FALLBACK` mühit dəyişəni vasitəsilə onu `false` (və ya `0`) olaraq təyin edin.
-(PR-lərdə #3741 / #3752 idarəetmə paneli keçidi kimi təqdim edilib.)
+faylındakı fövqəladə pulsuz ehtiyat marşrutunu idarə edir. Aktiv olduqda, büdcəsini
+tükədən sorğular tamamilə uğursuz olmaq əvəzinə pulsuz ehtiyat provayderə/modelə
+yönləndirilir. Bu davranışı deaktiv etmək və büdcəsi tükənmiş sorğuların uğursuz
+olmasına imkan vermək üçün idarəetmə panelindəki keçid, verilənlər bazası
+parametrinin əvəzlənməsi və ya `OMNIROUTE_EMERGENCY_FALLBACK` mühit dəyişəni
+vasitəsilə onu `false` (və ya `0`) olaraq təyin edin. (PR-lər #3741 / #3752-də
+idarəetmə paneli keçidi kimi təqdim edilib.)
+
+Bu ehtiyat mexanizmi vasitəsilə təqdim edilən cavab
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`
+başlığını daşıyır; beləliklə, müştəri `X-OmniRoute-Provider` başlığını öz sorğusu
+ilə müqayisə etmədən sorğunun yenidən yönləndirildiyini müəyyən edə bilər. Bu
+başlıq bütün digər cavablarda mövcud deyil.
 
 ---
 

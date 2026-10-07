@@ -265,13 +265,18 @@ noklusējuma vērtību. Atgriež `{ cleared: <count>, message: "..." }`.
 ## Ārkārtas budžeta rezerves mehānisms
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (kategorija `runtime`, noklusējuma vērtība `true`) kontrolē
-ārkārtas bezmaksas rezerves mehānismu failā
+ārkārtas bezmaksas rezerves maršrutēšanas ceļu failā
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Kad tas ir iespējots, pieprasījumi, kas izsmēluši savu budžetu, tiek novirzīti uz bezmaksas rezerves
+Kad tas ir iespējots, pieprasījumi, kuru budžets ir izsmelts, tiek maršrutēti uz bezmaksas rezerves
 nodrošinātāju/modeli, nevis uzreiz noraidīti. Iestatiet to uz `false` (vai `0`) — izmantojot
-informācijas paneļa slēdzi, DB pārrakstīšanu vai vides mainīgo `OMNIROUTE_EMERGENCY_FALLBACK`
-—, lai atspējotu šo darbību un ļautu pieprasījumiem ar izsmeltu budžetu
-neizdoties. (Informācijas paneļa slēdža veidā pievienots PR #3741 / #3752.)
+vadības paneļa slēdzi, DB ignorēšanas iestatījumu vai `OMNIROUTE_EMERGENCY_FALLBACK`
+vides mainīgo —, lai atspējotu šo darbību un ļautu pieprasījumiem ar izsmeltu budžetu
+beigties ar kļūdu. (Vadības paneļa slēdža veidā ieviests PR #3741 / #3752.)
+
+Atbildei, kas sniegta, izmantojot šo rezerves mehānismu, ir galvene
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, tādēļ
+klients var noteikt, ka pieprasījums tika pārmaršrutēts, nesalīdzinot `X-OmniRoute-Provider` ar savu
+pieprasījumu. Visās pārējās atbildēs šīs galvenes nav.
 
 ---
 

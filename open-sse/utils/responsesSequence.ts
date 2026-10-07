@@ -25,3 +25,27 @@ export function buildSyntheticResponsesFailedEvent(
     response,
   };
 }
+
+/**
+ * Synthetic `response.id` for the keepalive `response.in_progress` frame (#15202).
+ *
+ * The value is constant on purpose: the frame is emitted once as the very first
+ * stream byte, before the upstream has produced a real response id. Being a
+ * string (never `null`) matters because strict Responses decoders validate
+ * `response.id` as `string | undefined` and abort the stream on the first frame.
+ */
+export const SYNTHETIC_RESPONSES_KEEPALIVE_ID = "resp_keepalive_omniroute";
+
+/**
+ * Build a fresh string id for a synthesized `response.failed` frame (#15202).
+ *
+ * The `resp_error_*` prefix mirrors the precedent in streamErrorFormat.ts. A
+ * fresh id per frame keeps two failures in the same request from colliding.
+ */
+export function buildSyntheticResponsesFailureId(): string {
+  const unique =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `resp_error_${unique}`;
+}

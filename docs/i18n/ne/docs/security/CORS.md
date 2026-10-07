@@ -122,24 +122,28 @@ restart नगरी runtime मा **Dashboard → Security → CORS Allowed Or
   management/dashboard origins लाई कुनै पनि permissive config बाट बाहिर राख्नुहोस्; तिनीहरू
   ठ्याक्कै fail-closed नै रहनुपर्छ।
 
-## उदाहरण: OmniRoute को अगाडि reverse proxy
+## उदाहरण: OmniRoute को अगाडि रिभर्स प्रोक्सी
 
-CORS लाई OmniRoute स्वयंले लागू गर्छ, त्यसैले proxy ले सामान्यतया
-`Access-Control-*` headers थप्नु वा rewrite गर्नु **हुँदैन** (दोहोरो headers ले browsers मा
-समस्या उत्पन्न गर्छन्)। TLS terminate गरेर forward गर्नुहोस् — preflight को जवाफ OmniRoute लाई दिनुहोस्:
+CORS लाई OmniRoute आफैँले लागू गर्छ, त्यसैले प्रोक्सीले सामान्यतया `Access-Control-*`
+हेडरहरू थप्नु वा पुनर्लेखन गर्नु **हुँदैन** (दोहोरो हेडरहरूले ब्राउजरहरूमा समस्या निम्त्याउँछन्)। TLS अन्त्य गर्नुहोस्
+र फर्वार्ड गर्नुहोस् — प्रिफ्लाइटको जवाफ OmniRoute लाई दिन दिनुहोस्:
 
 ```nginx
-# nginx — OmniRoute मा forward गर्नुहोस्; यहाँ Access-Control-* inject नगर्नुहोस्
+# nginx — OmniRoute मा फर्वार्ड गर्नुहोस्; यहाँ Access-Control-* इन्जेक्ट नगर्नुहोस्
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For लाई 127.0.0.1 मा सेट नगर्नुहोस् — यसले loopback route guard लाई निष्प्रभावी बनाउँछ।
+    # फर्वार्डिङ हेडरहरू कायम राख्नुहोस्: उही होस्टमा रहेको प्रोक्सी लुपब्याकबाट जडान हुन्छ, र यिनैले
+    # OmniRoute लाई कल गर्ने व्यक्ति स्थानीय अपरेटर होइन भनेर बताउँछन्। यीमध्ये कुनै पनि हेडर नथप्ने प्रोक्सीले
+    # हरेक रिमोट कलरलाई स्थानीयजस्तो देखाउँछ। X-Forwarded-For लाई 127.0.0.1 मा पनि कहिल्यै सेट नगर्नुहोस्।
 }
 ```
 
-अनुमति दिइएका browser origins लाई proxy मा होइन, OmniRoute मा
-(`CORS_ALLOWED_ORIGINS` वा Security ट्याब) सेट गर्नुहोस्।
+अनुमति दिइएका ब्राउजर ओरिजिनहरू प्रोक्सीमा होइन, OmniRoute (`CORS_ALLOWED_ORIGINS` वा
+Security ट्याब) मा सेट गर्नुहोस्।
 
 ## स्रोत फाइलहरू
 

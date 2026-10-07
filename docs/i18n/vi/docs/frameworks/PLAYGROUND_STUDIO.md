@@ -188,14 +188,14 @@ Xác thực: tùy chọn (`REQUIRE_API_KEY`). Lỗi được xử lý qua `build
 
 ## Khắc phục sự cố
 
-| Triệu chứng                                         | Nguyên nhân                                  | Cách khắc phục                                                                                        |
-| --------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Trình soạn thảo Monaco không hiển thị trong tab API | SSR đã tải Monaco                            | Xác minh `ApiTab` sử dụng `dynamic(..., { ssr: false })`                                              |
-| Các luồng so sánh chạy tuần tự                      | Sử dụng `Promise.all` không đúng             | Mọi thao tác khởi chạy luồng phải được gửi trong một lệnh gọi `Promise.all`                           |
-| Chỉ số hiển thị TTFT là `null`                      | Trình xử lý chunk đầu tiên chưa được kết nối | Kiểm tra `useStreamMetrics.onFirstChunk()` được gọi trong vòng lặp đọc SSE                            |
-| Preset không được duy trì                           | Chưa chạy quá trình di chuyển DB             | Chạy `npm run db:migrate` hoặc khởi động lại máy chủ (quá trình di chuyển tự động chạy khi khởi động) |
-| Tính năng cải thiện prompt trả về 502               | Chưa đặt model trong Config                  | Người dùng phải nhập tên model trong ngăn Config trước khi cải thiện                                  |
-| Mã xuất hiển thị `MISSING_API_KEY`                  | Chưa chèn phần giữ chỗ                       | `codeExport.ts` luôn sử dụng `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                             |
+| Triệu chứng                                         | Nguyên nhân                                 | Cách khắc phục                                                             |
+| --------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------- |
+| Trình soạn thảo Monaco không hiển thị trong tab API | SSR đã tải Monaco                           | Xác minh `ApiTab` sử dụng `dynamic(..., { ssr: false })`                   |
+| Các luồng so sánh chạy tuần tự                      | Sử dụng `Promise.all` không đúng            | Tất cả luồng phải được khởi chạy trong một lệnh gọi `Promise.all`          |
+| Chỉ số hiển thị TTFT là `null`                      | Trình xử lý đoạn đầu tiên chưa được kết nối | Kiểm tra `useStreamMetrics.onFirstChunk()` được gọi trong vòng lặp đọc SSE |
+| Thiết lập sẵn không được lưu                        | Chưa chạy quá trình di chuyển DB            | Khởi động lại máy chủ: các quá trình di chuyển tự động chạy khi khởi động  |
+| Chức năng cải thiện prompt trả về 502               | Chưa đặt model trong Config                 | Người dùng phải nhập tên model trong ngăn Config trước khi cải thiện       |
+| Mã xuất hiển thị `MISSING_API_KEY`                  | Chưa chèn phần giữ chỗ                      | `codeExport.ts` luôn sử dụng `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`  |
 
 ---
 

@@ -264,16 +264,23 @@ zurück. Gibt `{ cleared: <count>, message: "..." }` zurück.
 
 ---
 
-## Notfall-Fallback für Budgets
+## Notfall-Fallback bei Budgetüberschreitung
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (Kategorie `runtime`, Standardwert `true`) steuert den
 kostenlosen Notfall-Fallback-Pfad in
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Wenn diese Option aktiviert ist, werden Anfragen, die ihr Budget ausgeschöpft haben, an einen kostenlosen Fallback-
-Anbieter bzw. ein kostenloses Fallback-Modell weitergeleitet, anstatt vollständig fehlzuschlagen. Setzen Sie den Wert auf `false` (oder `0`) — über den
-Dashboard-Umschalter, eine DB-Überschreibung oder die Umgebungsvariable `OMNIROUTE_EMERGENCY_FALLBACK`
-—, um dieses Verhalten zu deaktivieren und Anfragen mit ausgeschöpftem Budget
-fehlschlagen zu lassen. (In den PRs #3741 / #3752 als Dashboard-Umschalter bereitgestellt.)
+Wenn diese Option aktiviert ist, werden Anfragen, deren Budget ausgeschöpft ist, an
+einen kostenlosen Fallback-Anbieter bzw. ein kostenloses Fallback-Modell weitergeleitet,
+anstatt vollständig fehlzuschlagen. Setzen Sie sie auf `false` (oder `0`) — über den
+Schalter im Dashboard, eine DB-Überschreibung oder die Umgebungsvariable
+`OMNIROUTE_EMERGENCY_FALLBACK` —, um dieses Verhalten zu deaktivieren und Anfragen
+mit ausgeschöpftem Budget fehlschlagen zu lassen. (In den PRs #3741 / #3752 als
+Dashboard-Schalter verfügbar gemacht.)
+
+Eine über diesen Fallback bereitgestellte Antwort enthält
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, sodass
+ein Client erkennen kann, dass sie umgeleitet wurde, ohne `X-OmniRoute-Provider` mit
+seiner Anfrage vergleichen zu müssen. Bei allen anderen Antworten fehlt dieser Header.
 
 ---
 

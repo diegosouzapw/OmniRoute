@@ -74,24 +74,28 @@ Tazama [A2A-SERVER.md](./A2A-SERVER.md) kwa maelezo ya usafirishaji, muundo wa k
 
 ### Ni nini
 
-ACP ni **orodha ya ndani ya mawakala wa CLI** ya OmniRoute. Hutambua CLI za uandishi wa msimbo zilizosakinishwa kwenye seva mwenyeji (Cursor, Cline, Claude Code, Codex CLI, Continue, n.k.), hubaini matoleo yake, na kuyaonyesha kwenye dashibodi ili mtumiaji aweze kusanidi kila CLI ielekezwe kwa OmniRoute.
+ACP ni **orodha ya ndani ya mawakala wa CLI** ya OmniRoute. Hutambua CLI za kuandika msimbo zilizosakinishwa kwenye seva mwenyeji (Cursor, Cline, Claude Code, Codex CLI, Continue, n.k.), hubaini matoleo yake, na kuzionyesha kwenye dashibodi ili mtumiaji aweze kusanidi kila CLI ielekezwe kwenye OmniRoute.
 
-Hii SI itifaki ya nje — ni sajili ya ndani inayowezesha kiolesura cha "Zana za CLI" na ufuatiliaji wa alama za utambulisho za CLI (angalia [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Kiolesura cha HTTP ni orodha ya ndani inayowezesha UI ya "Zana za CLI" na
+ufuatiliaji wa alama bainishi za CLI (angalia [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Kando na hilo,
+kidhibiti cha ndani cha michakato kinaauni Agent Client Protocol asilia kwa
+kizinduzi cha Gemini kilichosajiliwa na adapta za zamani za stdio kwa mikataba mingine.
+Angalia [Sajili na vizinduzi vya ACP](./ACP.md) kwa hali na vikomo hivyo tofauti.
 
 ### Inachofanya
 
-- Huchunguza seva mwenyeji kutafuta faili tekelezi za CLI zilizosakinishwa (hutumia `which` / `where` kulingana na OS)
+- Huchunguza seva mwenyeji ili kupata faili tekelezi za CLI zilizosakinishwa (hutumia `which` / `where` kulingana na OS)
 - Husoma toleo la kila CLI (huita `<bin> --version`)
-- Kwa hiari, hukubali mawakala maalum waliofafanuliwa na mtumiaji (njia ya faili tekelezi + ukaguzi wa toleo + hoja za uanzishaji)
-- Huhifadhi mawakala maalum katika mipangilio
+- Kwa hiari, hukubali mawakala maalum waliobainishwa na mtumiaji (njia ya faili tekelezi + uchunguzi wa toleo + hoja za kuanzisha mchakato)
+- Huhifadhi mawakala maalum kwenye mipangilio
 - Hurejesha orodha iliyounganishwa kwenye dashibodi
 
 ### API ya REST
 
-| Endpoint          | Mbinu | Maelezo                                                                     | Uthibitishaji  |
-| ----------------- | ----- | --------------------------------------------------------------------------- | -------------- |
-| `/api/acp/agents` | GET   | Orodhesha mawakala waliotambuliwa + maalum (idadi zilizosakinishwa/jumla)   | Ufunguo wa API |
-| `/api/acp/agents` | POST  | Ongeza/sasisha/ondoa wakala maalum (kitofautishaji cha kitendo kwenye body) | Ufunguo wa API |
+| Endpoint          | Mbinu | Maelezo                                                                   | Uthibitishaji  |
+| ----------------- | ----- | ------------------------------------------------------------------------- | -------------- |
+| `/api/acp/agents` | GET   | Orodhesha mawakala waliotambuliwa + maalum (idadi iliyosakinishwa/jumla)  | Ufunguo wa API |
+| `/api/acp/agents` | POST  | Ongeza/sasisha/ondoa wakala maalum (kitofautishi cha kitendo kwenye body) | Ufunguo wa API |
 
 Muundo wa body kwa POST (`customAgentBodySchema` katika `src/app/api/acp/agents/route.ts`):
 
@@ -110,13 +114,16 @@ Muundo wa body kwa POST (`customAgentBodySchema` katika `src/app/api/acp/agents/
 
 ### Matumizi
 
-- Ukurasa wa "Zana za CLI" kwenye dashibodi huorodhesha vilivyosakinishwa na kukusaidia kuelekeza kila kimoja kwa OmniRoute
+- Ukurasa wa "Zana za CLI" wa dashibodi huorodhesha vilivyosakinishwa na kukusaidia kuelekeza kila kimoja kwenye OmniRoute
 - Mawakala maalum huwawezesha watumiaji mahiri kusajili CLI za ndani/miliki ambazo OmniRoute haizitambui kwa chaguo-msingi
-- Matokeo ya utambuzi hutumika kuunda matriki ya alama za utambulisho ya `cli-tools`
+- Matokeo ya utambuzi hujaza matriki ya alama bainishi ya `cli-tools`
 
 ### Wakati wa KUTOTUMIA ACP
 
-- ACP _haiendeshi_ kazi. Hutambua na kusanidi CLI pekee. Ili kuitumia CLI, unaianzisha mwenyewe kwa vigezo vya mazingira vinavyotolewa na OmniRoute (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, n.k.).
+- Sajili ya HTTP haikubali majukumu wala kufichua uanzishaji wa michakato. Kidhibiti cha ndani
+  kinaweza kuanzisha CLI iliyosajiliwa, lakini hakijaunganishwa kama mbadala wa kiotomatiki wa mtoa huduma.
+  Kwa matumizi ya kawaida ya maingiliano, anzisha mwenyewe CLI iliyosanidiwa au
+  tumia `omniroute run`.
 
 ## 3. Mawakala wa Wingu
 

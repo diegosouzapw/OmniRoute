@@ -8,124 +8,124 @@
 
 > Àwọn ẹ̀wọ̀n àwòṣe tó ń ṣàkóso ara wọn pẹ̀lú ìfúnni-ní-àmì tó ń mú ara mu + ìtọ́sọ́nà aládàáṣe tí kò nílò àtòjọ-ẹ̀yà kankan
 
-## Auto-Routing Tí Kò Nílò Ìṣètò (ìpele àkọ́kọ́ `auto/`)
+## Ìdarí-Ojú-ọ̀nà Aládàáṣe Láìsí Ìṣètò (`auto/` prefix)
 
-> **TITUN:** Kò nílò kíkọ combo. Lo ìpele àkọ́kọ́ `auto/` ní tààrà nínú client èyíkéyìí.
+> **TUNTUN:** Kò nílò ṣíṣẹ̀dá combo. Lo `auto/` prefix ní tààrà nínú client èyíkéyìí.
 
 ### Àwọn Àpẹẹrẹ Kíákíá
 
-| ID Model       | Ẹ̀yà      | Ìhùwàsí                                                                    |
-| -------------- | -------- | -------------------------------------------------------------------------- |
-| `auto`         | àìyípadà | Gbogbo provider tó sopọ̀, ọgbọ́n LKGP, àwọn ìwọ̀n tó dọ́gba                    |
-| `auto/coding`  | coding   | Àwọn ìwọ̀n tó fi ànímọ́ sí dídára, tó yẹ fún ṣíṣẹ̀dá code                     |
-| `auto/fast`    | fast     | Àṣàyàn oníwọ̀n tó ní latency kékeré                                         |
-| `auto/cheap`   | cheap    | Routing tí a ṣe àtúnṣe fún iye owó (iye owó tó kéré jù lọ lákọ̀ọ́kọ́)         |
-| `auto/offline` | offline  | Ó ṣojú rere sí àwọn provider tó ní quota tó pọ̀ jù lọ                       |
-| `auto/smart`   | smart    | Dídára lákọ̀ọ́kọ́ + òṣùwọ̀n ìṣàwárí tó ga (10%) fún ìṣàwárí model tó dára sí i |
-| `auto/lkgp`    | lkgp     | LKGP tí a sọ ní pàtó (kannáà bí `auto` àìyípadà)                           |
-| `auto/chaos`   | chaos    | Àwọn ìwọ̀n fault-injection fún dídán agbára ìfaradà wò (chaos engineering)  |
+| ID Model       | Variant | Ìhùwàsí                                                                      |
+| -------------- | ------- | ---------------------------------------------------------------------------- |
+| `auto`         | default | Gbogbo provider tí a ti sopọ̀, ọgbọ́n LKGP, àwọn ìwọ̀n tó dọ́gba                 |
+| `auto/coding`  | coding  | Àwọn ìwọ̀n tó fi dídára síwájú, ó yẹ fún ṣíṣẹ̀dá code                          |
+| `auto/fast`    | fast    | Yíyan pẹ̀lú ìwọ̀n tí latency rẹ̀ kéré                                           |
+| `auto/cheap`   | cheap   | Ìdarí-ọ̀nà tí a ṣe àtúnṣe fún iye owó (iye owó tó kéré jù lọ lákọ̀ọ́kọ́)         |
+| `auto/offline` | offline | Ó ṣe ojú rere sí àwọn provider tó ní quota tó pọ̀ jù lọ                       |
+| `auto/smart`   | smart   | Dídára-lákọ̀ọ́kọ́ + ìwọ̀n ìṣàwárí tó ga jù (10%) fún ìṣàwárí model tó dára sí i  |
+| `auto/lkgp`    | lkgp    | LKGP ní tààrà (kannáà bí `auto` default)                                     |
+| `auto/chaos`   | chaos   | Ìtànká ní afiwe, model kan fún provider kọ̀ọ̀kan (kì í ṣe fífi àṣìṣe sínú ètò) |
 
-### Àkópọ̀ Ẹ̀ka × Ìpele (`auto/<category>:<tier>`)
+### Àkójọpọ̀ Category × Tier (`auto/<category>:<tier>`)
 
-Àwọn suffix ara OpenRouter ń ya **irú route wo** (ẹ̀ka) sọ́tọ̀ kúrò ní **bí a ṣe máa mú un dára jù lọ** (ìpele), kí o lè ṣàkópọ̀ wọn láìsí ìdènà (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Àwọn suffix oníṣọ̀nà OpenRouter ya **irú ọ̀nà wo** (category) sọ́tọ̀ kúrò lọ́dọ̀ **bí a ṣe máa mú un péye** (tier), kí o lè ṣàkójọpọ̀ wọn bó ṣe wù ọ́ (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Àwọn ẹ̀ka** (ṣe àlẹ̀mọ́ àkójọpọ̀ olùdíje nípa agbára): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` máa ń pa àwọn model tó ní agbára vision mọ́; `reasoning` máa ń pa àwọn model reasoning/thinking mọ́.
-- **Àwọn ìpele** (yan àwọn ìwọ̀n ìṣírò àmì / àlẹ̀mọ́ àkójọpọ̀): `fast` (firanṣẹ́-kíákíá) · `cheap` (alias `floor`, olùdíná owó) · `reliable` (ìlera circuit-breaker + ìdúróṣinṣin latency) · `free` / `pro` (ṣe àlẹ̀mọ́ àkójọpọ̀ nípa ìpele model nípasẹ̀ `classifyTier` — ìpele ọ̀fẹ́ sí premium).
+- **Àwọn Category** (ṣe àlẹ́mọ́ candidate pool nípasẹ̀ agbára): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` pa àwọn model tó lágbára vision mọ́; `reasoning` pa àwọn model reasoning/thinking mọ́.
+- **Àwọn Tier** (yan àwọn ìwọ̀n ìṣírò / àlẹ́mọ́ pool): `fast` (ship-fast) · `cheap` (alias `floor`, olùfipamọ́ owó) · `reliable` (ìlera circuit-breaker + ìdúróṣinṣin latency) · `free` / `pro` (ṣe àlẹ́mọ́ pool nípasẹ̀ tier model pẹ̀lú `classifyTier` — free-tier sí premium).
 
-| Àpẹẹrẹ                 | Ó yanjú sí                                                             |
-| ---------------------- | ---------------------------------------------------------------------- |
-| `auto/coding:fast`     | àkójọpọ̀ coding, àwọn ìwọ̀n latency-kékeré                               |
-| `auto/coding:cheap`    | àkójọpọ̀ coding, tí a ṣe àtúnṣe fún iye owó (alias `auto/coding:floor`) |
-| `auto/reasoning:pro`   | àwọn model reasoning/thinking nìkan, ìpele premium                     |
-| `auto/vision`          | àwọn model tó ní agbára vision (kò sí ìpele → àwọn ìwọ̀n tó dọ́gba)      |
-| `auto/multimodal:free` | àwọn model tó ní agbára multimodal, ìpele ọ̀fẹ́ nìkan                    |
+| Àpẹẹrẹ                 | Ó yanjú sí                                                        |
+| ---------------------- | ----------------------------------------------------------------- |
+| `auto/coding:fast`     | pool coding, àwọn ìwọ̀n latency-kékeré                             |
+| `auto/coding:cheap`    | pool coding, tí a mú péye fún iye owó (alias `auto/coding:floor`) |
+| `auto/reasoning:pro`   | àwọn model reasoning/thinking nìkan, tier premium                 |
+| `auto/vision`          | àwọn model tó lágbára vision (kò sí tier → àwọn ìwọ̀n tó dọ́gba)    |
+| `auto/multimodal:free` | àwọn model tó lágbára multimodal, tier ọ̀fẹ́ nìkan                  |
 
-Gbogbo `auto/<category>[:<tier>]` tó fẹsẹ̀múlẹ̀ ni a ń yanjú nígbà tí a bá béèrè; a máa ń polówó àkójọpọ̀ kékeré tí a ti yan pẹ̀lú ìṣọ́ra nínú `/v1/models` àti dashboard (`AUTO_SUFFIX_VARIANTS` nínú `open-sse/services/autoCombo/builtinCatalog.ts`). Ṣíṣe àlẹ̀mọ́ jẹ́ **fail-open** — tí constraint kan kò bá bá model kankan tó sopọ̀ mu, gbogbo àkójọpọ̀ náà ni a máa lò kí routing má bàa dáwọ́ dúró. Core scorer (`combo.ts`) kò yí padà; a ń lo àlẹ̀mọ́ ẹ̀ka/ìpele nínú `buildAutoCandidates`.
+`auto/<category>[:<tier>]` tó bá wúlò máa ń yanjú nígbà tí a bá béèrè; àkójọ kékeré tí a ti fara balẹ̀ yàn ni a ń polówó nínú `/v1/models` àti dashboard (`AUTO_SUFFIX_VARIANTS` nínú `open-sse/services/autoCombo/builtinCatalog.ts`). Ṣíṣe àlẹ́mọ́ jẹ́ **fail-open** — bí constraint kan kò bá bá model kankan tí a ti sopọ̀ mu, a máa lo gbogbo pool náà kí ìdarí-ọ̀nà má bàjẹ́ láé. Core scorer (`combo.ts`) kò yí padà; a lo àlẹ́mọ́ category/tier nínú `buildAutoCandidates`.
 
-> **Ìmọ̀ model ní àkókò gidi:** dídára auto-routing ń gba ìtọ́sọ́nà láti inú àwọn ipò **Arena ELO** ní àkókò gidi + dátà ìpele **models.dev** nígbà tí flag `ARENA_ELO_SYNC_ENABLED` bá wà ní títàn (ó máa padà sí static fitness map bí bẹ́ẹ̀ kọ́).
+> **Ìmọ̀ nípa model ní àkókò gidi:** ìbámu ìdarí-ọ̀nà aládàáṣe ń gba ìmọ̀ láti inú àwọn ipò **Arena ELO** ní àkókò gidi + data tier **models.dev** nígbà tí flag `ARENA_ELO_SYNC_ENABLED` bá wà ní títàn (bí bẹ́ẹ̀ kọ́, ó padà sí static fitness map).
 
 **Bí a ṣe ń lò ó:**
 
 ```bash
 # IDE tàbí irinṣẹ́ CLI èyíkéyìí tó ṣe àtìlẹ́yìn fún format OpenAI
-Base URL: http://localhost:20128/v1
-API Key:  <your-endpoint-key>
+URL Ìpìlẹ̀: http://localhost:20128/v1
+Kọ́kọ́rọ́ API:  <your-endpoint-key>
 
 # Nínú code/config rẹ, ṣètò model sí:
-model: "auto"                 # àìyípadà tó dọ́gba
-model: "auto/coding"          # tó dára jù lọ fún àwọn iṣẹ́ coding
-model: "auto/fast"            # èyí tó yára jù lọ tó wà
-model: "auto/cheap"           # èyí tó din owó jù lọ fún token kọ̀ọ̀kan
+model: "auto"                 # default tó dọ́gba
+model: "auto/coding"          # èyí tó dára jù fún àwọn iṣẹ́ coding
+model: "auto/fast"            # èyí tó yára jù tó wà
+model: "auto/cheap"           # èyí tó rọrùn jù fún token kọ̀ọ̀kan
 ```
 
 **Ohun tó máa ṣẹlẹ̀:**
 
-1. OmniRoute máa ṣàwárí ìpele àkọ́kọ́ `auto/` nínú `src/sse/handlers/chat.ts`
+1. OmniRoute máa ṣàwárí `auto/` prefix nínú `src/sse/handlers/chat.ts`
 2. Ó máa béèrè gbogbo **àsopọ̀ provider tó ń ṣiṣẹ́** láti inú database
-3. Ó máa ṣe àlẹ̀mọ́ sí àwọn tó ní credential tó fẹsẹ̀múlẹ̀ (API key tàbí OAuth token)
+3. Ó máa ṣe àlẹ́mọ́ sí àwọn tó ní credentials tó wúlò (kọ́kọ́rọ́ API tàbí token OAuth)
 4. Ó máa pinnu model fún àsopọ̀ kọ̀ọ̀kan (`connection.defaultModel` tàbí model àkọ́kọ́ ti provider)
 5. Ó máa kọ **virtual combo** sínú memory (a kò fi pamọ́ sínú DB)
-6. Ó máa ṣe routing nípa lílo profile ìwọ̀n ẹ̀yà tí a yàn + ọgbọ́n LKGP
+6. Ó máa darí ojú-ọ̀nà ní lílo profaili ìwọ̀n variant tí a yàn + ọgbọ́n LKGP
 
-**Àwọn ànímọ́ pàtàkì:**
+**Àwọn àbùdá pàtàkì:**
 
-- ✅ **Ó máa ń ṣiṣẹ́ ní gbogbo ìgbà:** Kò sí toggle, kò nílò kíkọ combo, kò sì nílò ìṣètò
-- ✅ **Ó ń yí padà:** Ó máa ń ṣàfihàn àwọn provider tó sopọ̀ lọ́wọ́lọ́wọ́ láìfọwọ́ṣe
-- ✅ **Ìdìmọ́ session:** LKGP ń rí i dájú pé provider tó ṣàṣeyọrí gbẹ̀yìn ni a kọ́kọ́ fi sí ipò àkọ́kọ́
-- ✅ **Ó mọ̀ nípa ọ̀pọ̀ account:** Àsopọ̀ provider kọ̀ọ̀kan máa di olùdíje ọ̀tọ̀ọ̀tọ̀
-- ✅ **Kò kọ nǹkan sí DB:** Virtual combo wà fún request náà nìkan, kò sì sí ẹrù persistence rárá
+- ✅ **Ó máa ń ṣiṣẹ́ nígbà gbogbo:** Kò sí toggle, kò sí ṣíṣẹ̀dá combo, kò sì nílò ìṣètò
+- ✅ **Dynamic:** Ó máa ń fi àwọn provider tí a sopọ̀ lọ́wọ́lọ́wọ́ hàn ní aládàáṣe
+- ✅ **Ìdúróṣinṣin session:** LKGP ń rí i dájú pé provider tó ṣàṣeyọrí kẹ́yìn ni a fún ní ààyò
+- ✅ **Ó mọ̀ nípa ọ̀pọ̀ account:** Àsopọ̀ provider kọ̀ọ̀kan di candidate ọ̀tọ̀
+- ✅ **Kò sí kíkọ sínú DB:** Virtual combo wà fún request náà nìkan, kò sì ní persistence overhead rárá
 
-### Ìṣàkóso olùdíje fún key kọ̀ọ̀kan (#7819, Ìpele 1+2)
+### Ìṣàkóso candidate fún kọ́kọ́rọ́ kọ̀ọ̀kan (#7819, Level 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = suffix tó wà lẹ́yìn `auto/`, tàbí
-`auto` gan-an fún base channel) jẹ́ endpoint **kíkà-nìkan** tó ń ṣe àkójọ
-candidate pool lọ́wọ́lọ́wọ́ ti channel `auto/*`, tí a ṣe lọ́ṣọ̀ọ́ pẹ̀lú reachability ní àkókò gidi, nípa àtúnlò
-àwọn resilience read tó ti wà tẹ́lẹ̀ (kì í ṣe raw breaker `state` láé):
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = suffix lẹ́yìn `auto/`, tàbí
+`auto` gangan fún channel ìpìlẹ̀) jẹ́ endpoint **kíkà-nìkan** tó ṣe àtòjọ
+candidate pool lọ́wọ́lọ́wọ́ ti channel `auto/*`, tí a ṣe lọ́ṣọ̀ọ́ pẹ̀lú ìwọlé ní àkókò gidi, nípa lílo
+àwọn kíkà resilience tó ti wà tẹ́lẹ̀ (kì í lo raw breaker `state` láé):
 
 - circuit breaker provider — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
 - cooldown àsopọ̀ — `rateLimitedUntil` / `testStatus` lórí row
   `provider_connections` tí a ti yanjú
-- lockout model — `isModelLocked(provider, connectionId, model)`
+- ìdènà model — `isModelLocked(provider, connectionId, model)`
 
-Olùdíje kọ̀ọ̀kan tún ní àsíá `excluded` ti kọ́kọ́ API yìí. Àwọn ìyọkúrò ni a ń tọ́jú
-lọ́tọ̀ọ̀tọ̀ fún kọ́kọ́ API kọ̀ọ̀kan (tábìlì `auto_candidate_overrides`, ìṣíkiri `128`) — OmniRoute jẹ́
-ètò oní-alábàápín-kan tí kò ní tábìlì `users`, nítorí náà `apiKeyId` ni ìdánimọ̀ gidi
-tó sún mọ́ jù lọ fún olùpè kọ̀ọ̀kan — a sì ń fipá mú un ní ibi ìdènà adágún àwọn olùdíje nínú
-`open-sse/services/autoCombo/virtualFactory.ts` nípasẹ̀ `filterExcludedCandidates()` tí kò ní ipa-ẹgbẹ́, tí a sì ti
-ṣe àyẹ̀wò ẹyọ fún un (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Àlẹ́mọ́ náà jẹ́ **fail-open**: apiKeyId/channel tí a kò ṣètò tàbí ìkùnà ìṣàwárí DB
-yóò fi adágún náà sílẹ̀ láìṣe àlẹ́mọ́, kí olùṣàkóso tí kò ṣètò àwọn àtúnṣe kankan lè rí ìdarí
-tó jẹ́ byte-identical pẹ̀lú bí ó ti rí ṣáájú àfikún yìí.
+Candidate kọ̀ọ̀kan tún ní flag `excluded` ti kọ́kọ́rọ́ API yìí. Àwọn ohun tí a yọkúrò ni a ń tọ́jú
+fún kọ́kọ́rọ́ API kọ̀ọ̀kan (table `auto_candidate_overrides`, migration `128`) — OmniRoute jẹ́
+single-tenant tí kò ní table `users`, nítorí náà `apiKeyId` ni identity gidi fún olùpè kọ̀ọ̀kan
+tó sún mọ́ ọn jù — a sì ń fi ipa mú un ní candidate-pool chokepoint nínú
+`open-sse/services/autoCombo/virtualFactory.ts` nípasẹ̀ `filterExcludedCandidates()` tó jẹ́ pure, tí a sì ti ṣe
+unit-test rẹ̀ (`open-sse/services/autoCombo/candidateOverrides.ts`).
+Àlẹ́mọ́ náà jẹ́ **fail-open**: apiKeyId/channel tí a kò ṣètò tàbí ìkùnà lookup DB, àwọn méjèèjì
+máa fi pool náà sílẹ̀ láìṣe àlẹ́mọ́, nítorí náà operator tí kò ní override kankan tí a ṣètò máa rí ìdarí-ọ̀nà
+tó jẹ́ byte-identical sí bí ó ti rí ṣáájú feature yìí.
 
-**A ti sún un sí ọ̀ràn ìtẹ̀lé:** àwọn ìwọ̀n fún olùdíje kọ̀ọ̀kan + ìtòlẹ́sẹẹsẹ tó ṣe kedere (Ìpele 3
-— ń wọ inú àwọn ipa-ọ̀nà ìlànà ìwọ̀n/ààyò tó ti wà) àti píìnì ìlànà
-`combo.ts` kan pàtó fún channel `auto/*` kọ̀ọ̀kan (Ìpele 4). Wo ètò #7819 fún ìbéèrè tí kò tíì
-ní ìdáhùn nípa bóyá àwọn àtúnṣe yẹ kí wọ́n wà lọ́tọ̀ fún kọ́kọ́ API kọ̀ọ̀kan tàbí kí wọ́n di ti gbogbo ètò nítorí
-àwòṣe oní-alábàápín-kan náà.
+**A sun sí ọ̀ràn ìtẹ̀lé:** ìwọ̀n olùdíje-kọ̀ọ̀kan + ìṣètò tó ṣe kedere (Ìpele 3
+— èyí ń wọ inú àwọn ipa ọgbọ́n ìwọ̀n/ààyò tó wà tẹ́lẹ̀) àti fífi ọgbọ́n
+`combo.ts` kan pàtó mọ́ ikanni `auto/*` kọ̀ọ̀kan (Ìpele 4). Wo ètò #7819 fún ìbéèrè
+tó ṣì wà lórí bóyá àwọn ìkọlélórí yẹ kí ó dúró gẹ́gẹ́ bí ti kọ́kọ́rọ́-API-kọ̀ọ̀kan tàbí kí ó di ti àgbáyé nítorí
+àwòṣe ayálégbé-kan ṣoṣo náà.
 
-**Ní abẹ́ ìṣisẹ́:**
+**Lẹ́yìn ìpele:**
 
 ```txt
 Ìbéèrè: { model: "auto/coding" }
    ↓
-src/sse/handlers/chat.ts ṣàwárí prefix
+src/sse/handlers/chat.ts ṣàwárí ìṣáájú
    ↓
-createVirtualAutoCombo('coding') → candidatePool láti inú àwọn àsopọ̀ tó ń ṣiṣẹ́
+createVirtualAutoCombo('coding') → candidatePool láti inú àwọn ìsopọ̀ tó ń ṣiṣẹ́
    ↓
-handleComboChat (ẹ́ńjìnnì kan náà bí àwọn combo tí a tọ́jú)
+handleComboChat (ẹ́ńjìnnì kan náà bí àwọn combo tí a ti tọ́jú)
    ↓
-Ìṣírò-oṣùwọ̀n aládàáṣiṣẹ́ yan provider/model tó dára jù lọ fún ìbéèrè kọ̀ọ̀kan
+Ìṣírò-aifọwọ́yí yan olùpèsè/àwòṣe tó dára jù fún ìbéèrè kọ̀ọ̀kan
 ```
 
 **Àwọn fáìlì ìmúṣẹ:**
 
-| Fáìlì                                                     | Ète                                           |
-| --------------------------------------------------------- | --------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Olùtúpalẹ̀ prefix (`parseAutoPrefix`)          |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Ṣẹ̀dá àwọn ohun `AutoComboConfig` afòyemọ      |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Ìkọ̀ ìdánwò fún ṣíṣe àfarawé provider registry |
-| `src/sse/handlers/chat.ts`                                | Ìṣọ̀kan: dídáwọ́ kánkán fún auto prefix         |
-| `src/shared/constants/providers.ts`                       | Àkọọlẹ̀ ètò `SYSTEM_PROVIDERS.auto`            |
+| Fáìlì                                                     | Ète                                         |
+| --------------------------------------------------------- | ------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Olùṣàlàyé ìṣáájú (`parseAutoPrefix`)        |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Ṣẹ̀dá àwọn ohun àfojúrí `AutoComboConfig`    |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Ìkọ́ ìdánwò fún ṣíṣe àfarawé àkọsílẹ̀ olùpèsè |
+| `src/sse/handlers/chat.ts`                                | Ìṣọ̀kan: ọ̀nà-kúkúrú ìṣáájú aifọwọ́yí          |
+| `src/shared/constants/providers.ts`                       | Àkọsílẹ̀ ètò `SYSTEM_PROVIDERS.auto`         |
 
 ## Àwọn Orúkọ Combo Tó Bá Ìdánimọ̀ Àwòṣe Gidi Mu
 
@@ -215,11 +215,11 @@ Auto-Combo Engine ń yan olùpèsè/àwòṣe tó dára jù lọ fún ìbéèrè
 
 **Àpapọ̀:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0` gẹ́gẹ́ bí a ṣe kéde rẹ̀ nínú `DEFAULT_WEIGHTS`; `normalizeScoringWeights()` máa ń tún àwọn ìwọ̀n tí aṣàmúlò ṣètò ṣe sí ìpínkiri tó péye kí ìṣírò tó bẹ̀rẹ̀.
 
-## Àwọn Àkójọpọ̀ Ìpo
+## Àkójọpọ̀ Módù
 
-Àwọn prófáìlì ìwọ̀n 6 tí a ti ṣètò tẹ́lẹ̀ wà nínú `open-sse/services/autoCombo/modePacks.ts`. Àkójọpọ̀ kọ̀ọ̀kan máa ń rọ́pò àwọn ìwọ̀n àìyẹsẹ̀ pátápátá láti darí àṣàyàn sí ibi-afẹ́ kan. Àpapọ̀ àkójọpọ̀ kọ̀ọ̀kan ti jẹ́ `1.0` tẹ́lẹ̀ (`0.9999` bí a ṣe tẹ̀ ẹ́ jáde sí ibi onídẹ́símà mẹ́rin), nítorí náà `normalizeScoringWeights()` kò ní ohun tó nítumọ̀ láti ṣàtúnṣe nígbà tí àkójọpọ̀ kan bá ń ṣiṣẹ́ — àwọn iye tó wà nísàlẹ̀ ni, lẹ́yìn yíyípo, èyí tí olùṣírò àmì ń lò.
+Àwọn àkọsílẹ̀ ìwọ̀n 6 tí a ti ṣàlàyé tẹ́lẹ̀ wà nínú `open-sse/services/autoCombo/modePacks.ts`. Àkójọpọ̀ kọ̀ọ̀kan máa ń rọ́pò àwọn ìwọ̀n àìyẹsẹ̀ pátápátá láti darí yíyan sí ibi-afẹ́ kan. Àkójọpọ̀ kọ̀ọ̀kan ti ní àpapọ̀ `1.0` tẹ́lẹ̀ (`0.9999` bí a ṣe tẹ̀ ẹ́ jáde sí nọ́ńbà mẹ́rin lẹ́yìn àmì ìdámẹ́wàá), nítorí náà `normalizeScoringWeights()` kò ní ohun tó ṣe pàtàkì láti ṣàtúnṣe nígbà tí àkójọpọ̀ kan bá ń ṣiṣẹ́ — àwọn iye tó wà nísàlẹ̀ ni, pẹ̀lú yíyípo díẹ̀, èyí tí olùṣírò àmì ń lò.
 
-| Ohun Àwọn Àkójọpọ̀     | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
+| Ìfosiwewe             | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
 | `quota`               | 0.1133     | 0.1133     | 0.0752        | **0.3324**       | 0.1133            | 0.0376     |
 | `health`              | 0.2667     | 0.1810     | 0.1714        | 0.2667           | **0.3524**        | **0.4000** |
@@ -237,34 +237,34 @@ Auto-Combo Engine ń yan olùpèsè/àwòṣe tó dára jù lọ fún ìbéèrè
 | `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
 | `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
 
-Àwọn Àkíyèsí:
+Àwọn àkíyèsí:
 
-- **Àwọn àkójọpọ̀ ní `quality` àti `reliability` nínú** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`), wọ́n sì rọ́pò àwòrán ìwọ̀ náà lódindi (`weights = pack`, kì í ṣe ìdapọ̀). `DEFAULT_WEIGHTS` ní `quality 0.03 / reliability 0` nínú; yíyan `balanced`/`default` máa ń pa àwọn iye àìyẹsẹ̀ wọ̀nyẹn mọ́, ṣùgbọ́n yíyan àkójọpọ̀ kan máa ń lo àwọn iye àkójọpọ̀ náà tó wà lókè. Nínú adágún tútù (kò tíì sí àkíyèsí kankan, nítorí náà `quality 0.5` àti `reliability 1`), àwọn kókó méjèèjì yìí máa ń fi `+0.04` kún un lábẹ́ àkójọpọ̀ gbogbogbòò (`0.03 + 0.01`), `+0.045` lábẹ́ `quality-first`, àti `+0.05` lábẹ́ `reliability-first`.
+- **Àwọn àkójọpọ̀ ní `quality` àti `reliability` nínú** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`), wọ́n sì máa ń rọ́pò àwòrán ìwọ̀n náà lódindi (`weights = pack`, kì í ṣe àkópọ̀). `DEFAULT_WEIGHTS` ní `quality 0.03 / reliability 0`; yíyan `balanced`/`default` máa ń pa àwọn iye àìyẹsẹ̀ wọ̀nyẹn mọ́, ṣùgbọ́n yíyan àkójọpọ̀ kan máa ń lo àwọn iye àkójọpọ̀ tó wà lókè. Lórí àkójọpọ̀ aláìní dátà (kò tíì sí àkíyèsí kankan, nítorí náà `quality 0.5` àti `reliability 1`), àwọn ìfosiwewe méjèèjì yìí máa ń fi `+0.04` kún un lábẹ́ àkójọpọ̀ gbogbogbòò (`0.03 + 0.01`), `+0.045` lábẹ́ `quality-first`, àti `+0.05` lábẹ́ `reliability-first`.
 - `tierAffinity`, `specificityMatch` àti `resetWindowAffinity` jẹ́ `0` ní tààràtà nínú gbogbo àkójọpọ̀.
-- Ìtẹnumọ́ àkójọpọ̀ kọ̀ọ̀kan ní ṣókí:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (àwọn àsopọ̀ tó ní àìpéye-kékeré, tí wọ́n sì ní ìlera)
-  - **cost-saver** → costInv 0.3324 (àwọn token tó din owó jù lọ ló ń borí)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, èyí tó ga jù lọ nínú gbogbo àkójọpọ̀ (módẹ́lì tó dára jù lọ fún iṣẹ́ náà, tó sì dúró ṣinṣin)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (ààyè àfikún tó pọ̀ jù lọ láìka ìyára/owó sí)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, èyí tó ga jù lọ nínú gbogbo àkójọpọ̀ (àwọn ìyàlẹ́nu tó kéré jù lọ)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (prófáìlì fífi àṣìṣe sínú ètò)
+- Àfiyèsí kúkúrú sí ohun tí àkójọpọ̀ kọ̀ọ̀kan tẹnumọ́:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (àwọn àsopọ̀ tó ní ìdádúró kékeré, tó sì ní ìlera)
+  - **cost-saver** → costInv 0.3324 (àwọn tọ́kìn tó rọrùn jù ló máa ń borí)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, èyí tó ga jù nínú gbogbo àkójọpọ̀ (àwòṣe tó dára jù fún iṣẹ́ náà, tó sì dúró ṣinṣin)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (ààyè tó pọ̀ jù láìka iyára/ìnáwó sí)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, èyí tó ga jù nínú gbogbo àkójọpọ̀ (àwọn ohun àìròtẹ́lẹ̀ tó kéré jù)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (àkójọpọ̀ ìwọ̀n tí `auto/chaos` yàn fún àwọn ọmọ ẹgbẹ́ pánẹ́lì rẹ̀; ìtúká tó ń ṣiṣẹ́ ní ìfẹ̀gbẹ́ra kì í ka àwọn ìwọ̀n wọ̀nyí, èyí kì í sì í ṣe àkọsílẹ̀ fífi àṣìṣe sínú ètò, wo [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Àwọn Ìṣàkóso Fún Ìbéèrè Kọ̀ọ̀kan (àwọn header) — #6023 / #6024 / #6025 / #3470
+### Àwọn Ìṣàkóso Fún Ìbéèrè Kọ̀ọ̀kan (àwọn àkọlé) — #6023 / #6024 / #6025 / #3470
 
-A lè darí combo `auto` kan **fún ìbéèrè kọ̀ọ̀kan** nípasẹ̀ àwọn header mẹ́ta, láìyí àtòpọ̀ tí combo náà tọ́jú padà.
-Àwọn wọ̀nyí kan ọgbọ́n `auto` nìkan, wọ́n sì kan ìbéèrè tó gbé wọn nìkan;
-`modePack`/`budgetCap`/`budgetFallback` tí a fipamọ́ fún combo náà ni a máa ń lò
-nígbà tí header náà kò bá sí.
+A lè darí àkópọ̀ `auto` kan **fún ìbéèrè kọ̀ọ̀kan** nípasẹ̀ àkọlé mẹ́ta, láìyí ìṣètò
+àkópọ̀ náà tí a ti tọ́jú padà. Àwọn wọ̀nyí kan ọgbọ́n `auto` nìkan, wọ́n sì kan ìbéèrè
+tó gbé wọn nìkan; `modePack`/`budgetCap`/`budgetFallback` tí a fipamọ́ fún àkópọ̀ náà ni a máa ń lò
+nígbà tí àkọlé náà kò bá sí.
 
-| Àkọlé                         | Ohun tí ó gbà                                                                                                                                                                                           | Ipa                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `X-OmniRoute-Mode`            | orúkọ àpèjúwe títò-sílẹ̀ (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) tàbí orúkọ àkójọpọ̀ gangan (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Ó borí àwọn ìwọ̀n ìṣírò fún ìbéèrè yìí. `balanced`/`default` máa ń fipá lo àwọn ìwọ̀n àiyipada (kò sí àkójọpọ̀). A máa kọ àwọn iye tí a kò mọ̀ sílẹ̀ (ètò yóò wà bí ó ti rí).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `X-OmniRoute-Budget`          | nọ́mbà rere kan (USD tó pọ̀ jù lọ fún ìbéèrè kọ̀ọ̀kan)                                                                                                                                                      | Ààlà iye owó tí kò ṣe é ré kọjá: a máa yọ àwọn olùdíje tí àfojúsùn iye owó wọn bá kọjá rẹ̀ kúrò kí yíyan tó bẹ̀rẹ̀. Ohun tí yóò ṣẹlẹ̀ nígbà tí **gbogbo** olùdíje bá kọjá rẹ̀ ni `X-OmniRoute-Budget-Fallback` tó wà nísàlẹ̀ ń ṣàkóso.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (àiyipada, àwọn orúkọ àfikún: `cheapest-viable`, `soft`) tàbí `strict` (àwọn orúkọ àfikún: `block`, `hard`)                                                                                  | `cheapest`: yóò padà sí olùdíje tó din owó jù lọ lágbàáyé, bí ó tilẹ̀ jẹ́ pé ó ṣì kọjá ààlà náà (ìhùwàsí àtijọ́). `strict`: kò ní yan — ìbéèrè náà yóò kùnà lẹ́sẹ̀kẹsẹ̀ pẹ̀lú `HTTP 402` dípò lílo owó ju ààlà lọ ní ìdákẹ́jẹ. A máa kọ àwọn iye tí a kò mọ̀ sílẹ̀.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `X-OmniRoute-Effort`          | `auto` (a fi àwọn iye mìíràn pamọ́ fún ọjọ́ iwájú)                                                                                                                                                        | Ìnáwó ìrònú tó ń mú ara rẹ̀ bá ipò mu: nígbà tí ìbéèrè kò bá ní **kankan** lára àwọn pápá ìrònú ní eyikeyi ìrísí (`reasoning_effort`, `reasoning`, `thinking`), ẹnu-ọ̀nà náà yóò pinnu `auto` sí `low`/`medium`/`high` láti inú àwọn àmì ìrísí-ìbéèrè tí kò yí padà (gígùn ifiranṣẹ́-olùlò-tó-kẹ́yìn, ìwọ̀n àyíká-ọ̀rọ̀ títí dé ifiranṣẹ́ olùlò tó kẹ́yìn, àwọn èsì irinṣẹ́ ṣáájú, jíjìn àyíká ìlò irinṣẹ́). Àwọn àmì náà ní ààlà sí ìgbà ìbánisọ̀rọ̀ lọ́wọ́lọ́wọ́ — gbogbo ohun tó wà lẹ́yìn ifiranṣẹ́ olùlò tó kẹ́yìn ni a máa kọ sílẹ̀ — nítorí náà gbogbo ìbéèrè inú àyíká ìlò irinṣẹ́ yóò yanjú sí ìpele kan náà (ìmúdúró tí kò ní ipò fún ìgbà ìbánisọ̀rọ̀ kọ̀ọ̀kan, kò sí ipò ìgbà ìbánisọ̀rọ̀, kò sí ìgbéga láàárín àyíká tí yóò ba àwọn ìbẹ̀rẹ̀ àfẹnusọ ibi-ìpamọ́-ìtọ́sọ́nà olùpèsè jẹ́). Pápá ìrònú tí kíláyẹ́ǹtì sọ ní kedere máa ń borí nígbà gbogbo. Ó ní ààlà sí àwọn ìbéèrè tí ìfiranṣẹ́ wọn sí olùpèsè yanjú sí ìrísí OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` jẹ́ pápá onírísí OpenAI, nítorí náà àkọlé náà kò ní ipa lórí ìbéèrè tí a darí sí Claude tàbí Gemini (wo `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Àkọlé                         | Ohun tí ó gbà                                                                                                                                                                                        | Ipa                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | orúkọ ìnagijẹ ètò-tẹ́lẹ̀ (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) tàbí orúkọ àkójọpọ̀ gidi (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Ó borí àwọn òṣùwọ̀n ìṣírò fún ìbéèrè yìí. `balanced`/`default` ń fipá lo àwọn òṣùwọ̀n àìyípadà (kò sí àkójọpọ̀). A ó foju kọ àwọn iye tí a kò mọ̀ (a ó pa àtúnṣe mọ́).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `X-OmniRoute-Budget`          | nọ́ńbà tó ju òdo lọ (USD tó pọ̀ jù fún ìbéèrè kọ̀ọ̀kan)                                                                                                                                                  | Òpin iye owó tí kò ṣeé kọjá: a ó yọ àwọn olùdíje tí iye owó àfojúsùn wọn bá kọjá a kúrò kí yíyan tó bẹ̀rẹ̀. Ohun tí yóò ṣẹlẹ̀ nígbà tí **gbogbo** olùdíje bá kọjá a ni `X-OmniRoute-Budget-Fallback` tó wà nísàlẹ̀ ń ṣàkóso.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (àìyípadà, àwọn ìnagijẹ: `cheapest-viable`, `soft`) tàbí `strict` (àwọn ìnagijẹ: `block`, `hard`)                                                                                         | `cheapest`: yóò padà sí olùdíje tó ní iye owó tó kéré jù láàárín gbogbo wọn, bó tilẹ̀ jẹ́ pé ó ṣì kọjá òpin náà (ìhùwàsí àtijọ́). `strict`: kò ní yan — ìbéèrè náà yóò kùnà lẹ́sẹ̀kẹsẹ̀ pẹ̀lú `HTTP 402` dípò lílo owó ju òpin lọ ní ìkọ̀kọ̀. A ó foju kọ àwọn iye tí a kò mọ̀.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `X-OmniRoute-Effort`          | `auto` (àwọn iye mìíràn wà ní ìfipamọ́)                                                                                                                                                               | Ìnáwó fún ìrònú tó ń mú ara rẹ̀ bá ipò mu: nígbà tí ìbéèrè náà kò bá ní pápá ìrònú **kankan** ní irú èyíkéyìí (`reasoning_effort`, `reasoning`, `thinking`), ẹnu-ọ̀nà náà máa ń yanjú `auto` sí `low`/`medium`/`high` láti inú àwọn àmì ìrísí-ìbéèrè tí a lè pinnu láìsí àìdánilójú (gígùn ìfiránṣẹ́ olumulo tó kẹ́yìn, ìwọ̀n àyíká ọ̀rọ̀ títí dé ìfiránṣẹ́ olumulo tó kẹ́yìn, àwọn àbájáde irinṣẹ́ ṣáájú, jíjìn ìyípo irinṣẹ́). Àwọn àmì náà ní ààlà sí ìyípo lọ́wọ́lọ́wọ́ — gbogbo ohun tó wà lẹ́yìn ìfiránṣẹ́ olumulo tó kẹ́yìn ni a kọ̀ sílẹ̀ — nítorí náà gbogbo ìbéèrè nínú ìyípo irinṣẹ́ máa ń yanjú sí ìpele kan náà (ìmúdúró aláìní-ipò fún ìyípo kọ̀ọ̀kan, kò sí ipò sáà, kò sí ìgbéga láàárín ìyípo tó lè ba àwọn ìpele ìbẹ̀rẹ̀ kaṣe ìtọ́ni ti orísun jẹ́). Pápá ìrònú tí oníbàárà bá sọ ní kedere máa ń borí ní gbogbo ìgbà. Ó ní ààlà sí àwọn ìbéèrè tí ìfiranṣẹ́ wọn sí orísun yanjú sí ìrísí OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` jẹ́ pápá tó ní ìrísí OpenAI, nítorí náà akọlé náà kò ní ipa lórí ìbéèrè tí a darí sí Claude tàbí Gemini (wo `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Fipá mú prófáìlì tó yára jù lọ, fi òpin $0.05 sí ìbéèrè yìí, kí o sì dí i pátápátá dípò lílo owó kọjá ààlà
+# Fipá mú prófáìlì tó yára jù, fi òpin $0.05 sí ìbéèrè yìí, kí o sì dí i pátápátá dípò lílo ju iye náà lọ
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -273,9 +273,9 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Ìpinnu náà jẹ́ iṣẹ́ mímọ́ (`open-sse/services/autoCombo/requestControls.ts`); àwọn iye tí a ti pinnu ń wọ inú àwọn ìwọlé `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` tí ẹ́ńjìnnì náà ti ní tẹ́lẹ̀. `config.budgetFallback` tí a fipamọ́ fún àkójọpọ̀ kan ("strict" |
-"cheapest") ló ń ṣètò ìlànà tó wà pẹ́ títí; akọlé náà sì ń rọ́pò rẹ̀ fún ìbéèrè kan ṣoṣo.
+Ìyanjú náà jẹ́ iṣẹ́ àìlábùkù (`open-sse/services/autoCombo/requestControls.ts`); àwọn iye tí a yanjú máa ń wọ àwọn ìwọlé `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` tó ti wà tẹ́lẹ̀ nínú ẹ́ńjìnnì náà. `config.budgetFallback` tí a tọ́jú fún àkójọpọ̀ kan ("strict" |
+"cheapest") ló ń ṣètò ìlànà tó máa ń bá a lọ; akọlé náà máa ń fagi lé e fún ìbéèrè kan ṣoṣo.
 
 ## Gbogbo Àwọn Ọ̀nà Ìdarí
 
@@ -763,14 +763,14 @@ Pẹ̀lú `auto` lásán (àìyípadà) àti àwọn iye `AutoVariant` mẹ́fà
 
 (`AutoVariant` fúnra rẹ̀ ṣe àkójọ iye mẹ́fà; àṣàyàn keje ni “kò sí variant” — `auto` lásán — tí `parseAutoPrefix()` ń ṣàkóso gẹ́gẹ́ bí `variant: undefined`.)
 
-## Bí tier ṣe bá Auto-Combo mu
+## Bí àwọn ipele ṣe bá Auto-Combo mu
 
-Iṣẹ́ ìṣírò àmì onífákítà mẹ́rìndínlógún (`open-sse/services/autoCombo/scoring.ts`) ka jíjẹ́ ọmọ tier sí àmì méjì: `tierPriority` (0.0476) àti `tierAffinity` (0.0476). Wo [tábìlì fáfítà ìṣírò àmì](#how-it-works-persisted-auto-combos) àṣẹṣíṣe lókè fún gbogbo àkójọpọ̀ `DEFAULT_WEIGHTS` — àwọn ìyípadà fún pack kọ̀ọ̀kan (ship-fast/cost-saver/quality-first/
-offline-friendly) ni a tò sínú tábìlì “Àwọn weight profile fún pack kọ̀ọ̀kan”.
+Ìṣẹ́ ìṣírò olùfihàn 16 (`open-sse/services/autoCombo/scoring.ts`) ka jíjẹ́ ọmọ ẹgbẹ́ ipele sí àmì méjì: `tierPriority` (0.0476) àti `tierAffinity` (0.0476). Wo [tábìlì ìfosiwewe ìṣírò](#how-it-works-persisted-auto-combos) àṣẹlétò lókè fún gbogbo àkójọpọ̀ `DEFAULT_WEIGHTS` — àwọn àtúnṣe ti ìdìpọ̀ kọ̀ọ̀kan (ship-fast/cost-saver/quality-first/
+offline-friendly) wà nínú tábìlì "Àwọn prófáìlì ìwọ̀n fún ìdìpọ̀ kọ̀ọ̀kan".
 
-Tier nìkan **kì í** fi agbára mú Tier 1 wá ṣáájú — tí latency Tier 1 bá burú tàbí tí ìbámu iye owó sí dídára kò bá dára jù, Tier 2 yóò borí. Láti fi agbára mú ìtòlẹ́sẹẹsẹ tier ṣiṣẹ́, lo ọgbọ́n combo `priority`, kí o sì ṣètò àwọn provider nípa tier.
+Ipele nìkan **kì í** fipá mú Ipele 1 láti kọ́kọ́ wá — bí ìdádúró Ipele 1 bá burú tàbí ìwọ̀ntúnwọ̀nsì iye-owó-sí-dídára kò bá dára jù, Ipele 2 ló máa borí. Láti fipá mú ìtẹ̀lé ipele, lo ọgbọ́n àkójọpọ̀ `priority`, kí o sì ṣètò àwọn olupèsè ní ìbámu pẹ̀lú ipele wọn.
 
-Láti fún Tier 1 (subscription) ní ààyò tó lágbára, mú weight `tierPriority` pọ̀ sí i:
+Láti ṣe ojúrere tó lágbára fún Ipele 1 (ìforúkọsílẹ̀), mú ìwọ̀n `tierPriority` pọ̀ sí i:
 
 ```json
 {
@@ -779,7 +779,7 @@ Láti fún Tier 1 (subscription) ní ààyò tó lágbára, mú weight `tierPrio
 }
 ```
 
-Wo `docs/marketing/TIERS.md` fún àwọn ìtumọ̀ tier àti ìsọ̀rí provider.
+Wo [`docs/guides/TIERS.md`](../guides/TIERS.md) fún àwọn ìtumọ̀ ipele àti ìsọ̀rí àwọn olupèsè.
 
 ## Ìdánwò & Ìbojú
 

@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proksi hovuzları və opencode-un hər hesab üzrə rotasiyası yenicə uğursuz olmuş proksini (TCP yoxlaması rədd edilib və ya onun vasitəsilə 429 cavabı alınıb) hər təkrarda ikiqat artan, lakin maksimum hədlə məhdudlaşan, hər proses üçün müəyyən edilmiş müddət ərzində yenidən təqdim etmir. Heç bir proksi statusu yazılmır; bütün namizədlər kənara qoyulduqda seçim dəyişməz qalır. Defolt olaraq aktivdir; `false` adi seçimi bərpa edir.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Kvotası egress ünvanına görə bölünən provayderlər üçün, bu yaxınlarda rədd edilmiş üzvün müşahidə olunan egress ünvanını paylaşan pool üzvünü sağlam üzvlərdən dərhal aşağı sıralayır. Yalnız sıralama, heç vaxt istisna edilmir. Oxuduğu rədd siqnalını yaradan PROXY_SKIP_RECENTLY_FAILED tələb olunur. Defolt olaraq söndürülüb: seçim sırası tam olaraq adi rotasiyadır.",
   "featureFlagProxyPoolEgressObservationDescription": "İdarə panelində proksi hovuzunun altında son 24 saat ərzində onun üzvlərinə xidmət göstərən neçə çıxış IP-sinin müşahidə edildiyini, neçə bağlantının onlardan istifadə etdiyini və bir IP-nin arxasında müşahidə edilən ən yüksək sayı göstərin. Yalnız oxuma üçündür, proksi jurnalından hesablanır və marşrutlaşdırma üçün heç vaxt istifadə edilmir. Defolt olaraq deaktivdir: hovuz redaktoru dəyişməz qalır və müşahidə marşrutu null cavabı verir.",
+  "featureFlagProxyOperatorEgressDescription": "Hər hovuz üzvü üçün operator tərəfindən göndərilən tarixli müşahidə edilmiş ünvanları qəbul edin və onları göstərmə və hovuz sırası üçün jurnal oxunuşu ilə birləşdirin. Varsayılan olaraq bağlıdır: göndərmə marşrutu 404 cavabı verir və hovuz oxunuşları əvvəlki kimi davranır.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proksinin sağlamlıq yoxlamasında hədəfin rədd etdiyi yoxlamanın (401/403/429: proksi sorğunu ötürüb, təyinat nöqtəsi bu çıxış IP-sini rədd edib) uğurla ötürülmüş yoxlama kimi proksinin ardıcıl uğursuzluq sayğacını sıfırlamasına icazə verin. Defolt olaraq deaktivdir: rədd cavabı neytral qalır və ardıcıl uğursuzluq sayğacını dəyişmir. 5xx hər iki halda qeyri-müəyyən qalır və rədd cavabı heç vaxt proksini silmir, deaktiv etmir və ya yenidən aktivləşdirmir.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Avtomatik təmizləmə prosesinə OMNIROUTE_BATCH_RETENTION_DAYS müddətindən daha köhnə olan son vəziyyətdəki (tamamlanmış/uğursuz/ləğv edilmiş/müddəti bitmiş) Batch API tapşırıqlarını onların hər sətir üzrə nəzarət nöqtələri ilə birlikdə silməyə və öz expires_at vaxtı keçmiş yüklənmiş faylların BLOB məzmununu təmizləməyə icazə verin. Defolt olaraq deaktivdir: operator bunu aktiv edənədək bütün mövcud quraşdırmalar bu məlumatları əvvəlki kimi saxlayır. Operator tərəfindən işə salınan DELETE /api/v1/batches/delete-completed marşrutu istənilən halda bundan təsirlənmir — bu, ayrıca və qeyd-şərtsiz ictimai API müqaviləsidir.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "xai-oauth bağlantıları üçün sabit statik ilkin siyahı əvəzinə OAuth daşıyıcı tokenindən istifadə edərək https://api.x.ai/v1/models ünvanından aktual xAI model kataloqunu əldə edin. Defolt olaraq deaktivdir: xai-oauth statik ilkin siyahını dəyişmədən təqdim etməyə davam edir. Aşkarlama zamanı hər hansı xəta baş verərsə, ilkin siyahıdan istifadə olunur.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Yerli proksi-nüvə son nöqtəsi keçərsizdir; SS/VMess/Trojan/VLESS qovşaqlarına məhəl qoyulmadı.",
         "NEEDS_CORE_NOT_CONFIGURED": "Bu abunəlikdə yerli proksi-nüvəyə (SS/VMess/Trojan/VLESS) ehtiyacı olan qovşaqlar var; yerli nüvənin SOCKS5 son nöqtəsini konfiqurasiya edənə qədər onlar yönləndirilməyəcək.",
         "NO_USABLE_NODES": "Abunəlik heç bir istifadəyə yararlı qovşaq vermədi (http/https/socks5 və ya yerli nüvə son nöqtəsi olan qovşaqlar).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-core idarəetmə çağırışı uğursuz oldu; əvvəlki marşrut aktiv qalır. İdarəetmə URL-ni və sirri yoxlayıb yeniləyin."
+        "SELECTOR_SWITCH_FAILED": "Proxy-core idarəetmə çağırışı uğursuz oldu; əvvəlki marşrut aktiv qalır. İdarəetmə URL-ni və sirri yoxlayıb yeniləyin.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Yaradılan əsas konfiqurasiya qəbul edilmiş faylı əvəz edə bilmədi; əvəzinə yanındakı nüsxə saxlanıldı.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Generasiya zamanı bəzi yazılar atlandı. Server jurnalına baxın."
       },
       "description": "Proksi abunə linkinizi yapışdırın. Aktivləşdirildikdən sonra trafik qlobal və ya qayda (müəyyən edilmiş Provayder) rejimində proksi hovuzu vasitəsilə yönləndirilir. Abunə qovşaqları avtomatik olaraq proksi hovuzuna sinxronlaşdırılır və mövcud sorğu, sağlamlıq yoxlanışı və sızma əleyhinə mexanizmlərdən yenidən istifadə edir.",
       "addSubscription": "Abunəlik əlavə edin",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Hələ qeydə alınmış keçid yoxdur",
       "lastSwitchMember": "Xidmət edən üzv",
       "nextSwitch": "Növbəti mümkün keçid",
-      "nextSwitchNow": "İndi"
+      "nextSwitchNow": "İndi",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Əsas ikili fayl yolu",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Seçimə görə: əsas ikili fayl ilə yaradılan faylı qəbul edilmiş fayl əvəz etməzdən əvvəl yoxlayır. Yanında yazmaqda davam etmək üçün boş buraxın. Qovluq yoxdursa, yaradılır."
     },
     "bulkHealthcheck": "Toplu sağlamlıq yoxlaması",
     "bulkHealthcheckDesc": "Hansılarının işlədiyini müəyyən etmək üçün bütün konfiqurasiya edilmiş proksiləri hədəf URL-də sınaqdan keçirin.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP təsvirinin sıxılması",
     "mcpAccessibilityTitle": "MCP əlçatanlıq çıxışı",
     "compressionSettingsCavemanIntensity": "Mağara adamının intensivliyi",
-    "compressionSettingsCavemanOutputMode": "Caveman çıxış rejimi",
     "compressionSettingsOutputStyles": "Çıxış üslubları",
     "compressionStylesTileTitle": "Çıxış üslubları",
     "compressionSettingsOutputIntensity": "Çıxış intensivliyi",
-    "compressionSettingsAutoClarityBypass": "Avtomatik aydınlıq bypass",
     "compressionEffectivePipeline": "Effektiv pipeline:",
     "compressionDerivedOff": "qapalı",
     "compressionDerivedRuns": "işəsalmalar: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "GET /v1/models sorğusunun bu açar üçün göstərdiyi siyahı. Siyahının daraldılması açarın hansı modelləri çağıra biləcəyini heç vaxt dəyişmir.",
     "catalogScopeAll": "Hər ikisi",
     "catalogScopeCombos": "Yalnız kombinasiyalar",
-    "catalogScopeModels": "Yalnız modellər"
+    "catalogScopeModels": "Yalnız modellər",
+    "resilienceTokenRefreshTitle": "Token Yeniləmə Söndürücüsü",
+    "resilienceTokenRefreshDesc": "Dəfələrlə uğursuzluqdan sonra token yeniləməsini cəhd etməyi dayandırır. Hər bir bağlantı üçün sahə ölü bir hesabı təcrid edir ki, eyni provayderdəki sağlam hesablar yeniləməyə davam etsin.",
+    "resilienceTokenRefreshScope": "Bir provayder üçün token yeniləmə cəhdləri",
+    "resilienceTokenRefreshTrigger": "Ardıcıl uğursuz yeniləmə cəhdləri",
+    "resilienceTokenRefreshEffect": "Yeniləmə cəhdlərini soyuma müddəti üçün dayandırır",
+    "resilienceTokenRefreshScopeLabel": "Fəaliyyət sahəsi",
+    "resilienceTokenRefreshScopeProvider": "Təminatçı (bütün hesablar bir açarla bölüşür)",
+    "resilienceTokenRefreshScopeConnection": "Bağlantı (hər hesabın öz açarı var)",
+    "resilienceTokenRefreshThreshold": "Fasilə verilmədən əvvəl uğursuzluqlar",
+    "resilienceTokenRefreshCooldown": "İşə düşdükdən sonra fasilə"
   },
   "contextRtk": {
     "title": "RTK Mühərriki",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Yüklənir…",
     "loadFailed": "Mühərrik məlumatlarını yükləmək mümkün olmadı.",
+    "settingsLoadFailed": "Saxlanmış parametrləri yükləmək alınmadı. Sahələrdə standart dəyərlər göstərilir və səhifə yenidən yüklənənədək Yadda saxla düyməsi deaktiv qalır.",
     "engineNotFound": "\"{engine}\" mühərriki tapılmadı.",
     "saveFailed": "Konfiqurasiyanı saxlamaq mümkün olmadı.",
     "previewFailed": "Önbaxış uğursuz oldu.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Kompaktlaşdırmaq üçün minimum sətir sayı",
         "description": "Cədvəl kompaktlaşdırmasını işə salmaq üçün tələb olunan bircins JSON massivindəki minimum sətir sayı. Standart: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Sistem promptunu qoru"
       },
       "summarizerEnabled": {
         "label": "Xülasələndiricini aktivləşdir"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Bundan qısa mesajlar sıxılmır. Aşağı = daha çox sıxılma.",
     "tooltipMinSavings": "Yalnız ən azı bu qədər token saxlasa sıxışdırın.",
     "ultraSettings": "Ultra Parametrlər",
-    "ultraSettingsDesc": "SLM ilə dəstəklənən semantik sıxılma",
-    "preview": {
-      "lite": "Yığcam cavab verin. Texniki terminləri, kodu, xətaları, URL-ləri və identifikatorları qoruyun.",
-      "full": "Qısa və yığcam cavab verin. Bütün texniki məzmunu qoruyun.",
-      "ultra": "Ümumi texniki ixtisarlardan istifadə edərək son dərəcə qısa cavab verin. Simvolları olduğu kimi qoruyun."
-    }
+    "ultraSettingsDesc": "SLM ilə dəstəklənən semantik sıxılma"
   },
   "translator": {
     "title": "Tərcüməçi",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Çıxışı müəyyən edilməyən uğursuzluqlar: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} vasitəsilə çıxıb · son {hours} saat",
     "poolMemberEgressEmpty": "{host}:{port}: son {hours} saat ərzində trafik müşahidə edilməyib",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} vasitəsilə çıxıb · operator tərəfindən təmin edilmiş, {date}",
     "poolMemberEgressHint": "Bu hovuz üzvü vasitəsilə göstərilən zaman intervalında müşahidə edilmiş və proksi jurnalından oxunmuş son çıxış IP-si. Bu intervalda trafiki olmayan üzv üçün trafikin olmaması sətri göstərilir.",
     "poolRemove": "Çıxar",
     "poolRemoveFailed": "Proksini hovuzdan çıxarmaq mümkün olmadı",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "proksiyə çatmaq mümkün deyil",
     "poolSetAsideKindIpQuota429": "IP sürət limiti (429)",
     "poolSetAsideKindSlow": "yavaş cavablar",
+    "poolSetAsideKindGeoBlocked": "region bloklanıb (403/451)",
     "poolSetAsideUntil": "Rotasiyaya qayıtdı {endsAt}",
     "poolSetAsideRepeat": "Kənara qoyuldu {count, plural, one {# dəfə} other {# dəfə}}",
     "poolUnknownAddress": "Naməlum ünvan",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "Mövqe sırası",
     "poolHealthRankingOff": "Sağlamlıq reytinqi kapalı",
     "transportRate": "{rate}% nəqliyyat",
+    "slowAbandoned": "{count} yavaş tərk etmələr",
+    "clientAborted": "{count} müştəri ləğv etmələri",
+    "slowAbandonedHint": "Başlıqların gözləmə həddindən sonra tərk edildi, daşınma dərəcəsindən çıxarılıb",
     "previousSuccessRate": "Əvvəlcə {rate}% uğur",
-    "upstreamRefusals": "{count} upstream rəddi",
     "connectionTestsCount": "{count} bağlantı testi",
-    "notMeasured": "Ölçülməyib"
+    "notMeasured": "Ölçülməyib",
+    "upstream4xx": "{count} yuxarı axın müştəri səhvləri",
+    "upstream5xx": "{count} yuxarı axın server səhvləri",
+    "uniformEgressLine": "{affected} of {exits} çıxışları {provider} üzərində eyni anda uğursuz oldu (son {hours} saat) — çıxış problemi deyil"
   },
   "playground": {
     "title": "Model sınaq meydanı",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "Bağlantı hovuzunu miras alır ({count})",
     "poolEmptyBlocked": "Hovuz boşdur — sorğular uğursuz olur (birbaşa deyil)",
     "directEgress": "Birbaşa (proksisiz)",
-    "ownProxy": "Öz proksi"
+    "ownProxy": "Öz proksi",
+    "freeTierPause": "Model {model} dayandırıldı (429), {time} qayıdacaq",
+    "freeTierPauseProvider": "Dayandırıldı (429), {time} qayıdacaq",
+    "freeTierPauseNote": "Bu nüsxədə prosesdaxili fasilə"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13083,10 @@
     "inactiveCount": "{count} qeyri-aktiv",
     "dbOverrideCount": "{count} DB override-ı",
     "searchPlaceholder": "Bayraqlarda axtar...",
+    "descriptionModeLabel": "Təsvir görünüşü",
+    "descriptionModeHint": "Üzərinə gətirildikdə: kartlar kompakt qalır və təsvirin üzərinə gətirildikdə tam mətn göstərilir. Tam mətn: təsviri həmişə tam göstərin.",
+    "descriptionModeHover": "Üzərinə gətirildikdə",
+    "descriptionModeFull": "Tam mətn",
     "categories": {
       "all": "Hamısı",
       "security": "Təhlükəsizlik",

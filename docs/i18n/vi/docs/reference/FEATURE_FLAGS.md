@@ -258,16 +258,21 @@ của nó. Trả về `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Dự phòng Ngân sách Khẩn cấp
+## Phương án dự phòng ngân sách khẩn cấp
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (danh mục `runtime`, mặc định `true`) kiểm soát
-đường dẫn dự phòng miễn phí khẩn cấp trong
+luồng chuyển sang phương án dự phòng miễn phí trong trường hợp khẩn cấp tại
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Khi được bật, các yêu cầu đã hết ngân sách sẽ được chuyển hướng đến một nhà cung cấp/mô hình
-dự phòng miễn phí thay vì thất bại hoàn toàn. Đặt nó thành `false` (hoặc `0`) — thông qua
-nút bật/tắt của bảng điều khiển, ghi đè DB hoặc biến môi trường `OMNIROUTE_EMERGENCY_FALLBACK`
-— để tắt hành vi này và cho phép các yêu cầu hết ngân sách thất bại. (Được hiển thị
-dưới dạng nút bật/tắt trên bảng điều khiển trong PR #3741 / #3752.)
+Khi được bật, các yêu cầu sử dụng hết ngân sách sẽ được chuyển đến một nhà cung cấp/mô hình
+dự phòng miễn phí thay vì thất bại hoàn toàn. Đặt thành `false` (hoặc `0`) — thông qua
+nút chuyển đổi trên bảng điều khiển, giá trị ghi đè trong DB hoặc biến môi trường
+`OMNIROUTE_EMERGENCY_FALLBACK` — để tắt hành vi này và cho phép các yêu cầu đã
+hết ngân sách thất bại. (Được hiển thị dưới dạng nút chuyển đổi trên bảng điều khiển trong các PR #3741 / #3752.)
+
+Phản hồi được cung cấp bởi phương án dự phòng này có chứa
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, nhờ đó
+máy khách có thể nhận biết yêu cầu đã được định tuyến lại mà không cần so sánh `X-OmniRoute-Provider` với
+yêu cầu của mình. Header này không xuất hiện trong mọi phản hồi khác.
 
 ---
 

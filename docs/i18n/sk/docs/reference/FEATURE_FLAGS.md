@@ -263,17 +263,23 @@ predvolenú hodnotu. Vráti `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Núdzový záložný rozpočet
+## Núdzový záložný mechanizmus pri vyčerpaní rozpočtu
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (kategória `runtime`, predvolené `true`) riadi
-núdzovú bezplatnú záložnú cestu v
+`OMNIROUTE_EMERGENCY_FALLBACK` (kategória `runtime`, predvolená hodnota `true`) riadi
+núdzové bezplatné záložné smerovanie v súbore
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Keď je povolená, požiadavky, ktoré vyčerpajú svoj rozpočet, sú smerované na
-bezplatného záložného poskytovateľa/model namiesto toho, aby zlyhali. Nastavte
-ju na `false` (alebo `0`) — prostredníctvom prepínača na dashboarde, prepísania
-DB alebo premennej prostredia `OMNIROUTE_EMERGENCY_FALLBACK` — aby ste túto
-funkciu zakázali a umožnili zlyhanie požiadaviek s vyčerpaným rozpočtom.
-(Zobrazené ako prepínač na dashboarde v PR #3741 / #3752.)
+Keď je povolené, požiadavky, ktoré vyčerpajú svoj rozpočet, sa namiesto okamžitého
+zlyhania presmerujú na bezplatného záložného poskytovateľa/model. Ak chcete toto
+správanie zakázať a nechať požiadavky s vyčerpaným rozpočtom zlyhať, nastavte
+hodnotu na `false` (alebo `0`) — pomocou prepínača na ovládacom paneli, prepísania
+v databáze alebo premennej prostredia `OMNIROUTE_EMERGENCY_FALLBACK`.
+(V PR #3741 / #3752 je táto možnosť sprístupnená ako prepínač na ovládacom paneli.)
+
+Odpoveď poskytnutá týmto záložným mechanizmom obsahuje hlavičku
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, takže
+klient dokáže zistiť, že bola presmerovaná, bez porovnávania hlavičky
+`X-OmniRoute-Provider` so svojou požiadavkou. Vo všetkých ostatných odpovediach
+táto hlavička chýba.
 
 ---
 

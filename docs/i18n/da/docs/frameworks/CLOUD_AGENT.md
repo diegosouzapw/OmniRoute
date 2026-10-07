@@ -308,21 +308,26 @@ faktureringen upstream skal opgaven afsluttes i udbyderens egen konsol.
 ## REST API — integration med cloududbydere
 
 Disse hjælpeendpoints under `src/app/api/cloud/` bruges af fjernklienter
-(CLI'en, Electron-appen eller synkroniseringsprocesser) til at læse metadata om udbyderforbindelser
-og fortolke modelaliasser. De godkendes med en **almindelig API-nøgle**
-(via `validateApiKey`), ikke den administrationsgodkendelse, som opgaveendpoints bruger.
+(CLI'en, Electron-appen eller synkroniseringsprocesser) til at læse forbindelsesmetadata
+for udbydere og opløse modelaliasser. De godkendes med en **API-nøgle**
+(via `validateApiKey`), ikke den administrationsgodkendelse, der bruges af opgaveendpoints. Hvad
+`/api/cloud/auth` returnerer, afhænger af nøglens omfang (se nedenfor).
 
-| Metode | Sti                             | Formål                                                                      |
-| ------ | ------------------------------- | --------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Valider API-nøglen, returner maskerede forbindelsesmetadata + modelaliasser |
-| PUT    | `/api/cloud/credentials/update` | Opdater `accessToken` / `refreshToken` / `expiresAt`                        |
-| POST   | `/api/cloud/model/resolve`      | Fortolk en modelalias som `{ provider, model }`                             |
-| GET    | `/api/cloud/models/alias`       | Vis alle modelaliasser                                                      |
-| PUT    | `/api/cloud/models/alias`       | Angiv en modelalias (og synkroniser automatisk til Cloud, hvis aktiveret)   |
+| Metode | Sti                             | Formål                                                                         |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------ |
+| POST   | `/api/cloud/auth`               | Valider API-nøglen, og returner maskerede forbindelsesmetadata + modelaliasser |
+| PUT    | `/api/cloud/credentials/update` | Opdater `accessToken` / `refreshToken` / `expiresAt`                           |
+| POST   | `/api/cloud/model/resolve`      | Opløs en modelalias til `{ provider, model }`                                  |
+| GET    | `/api/cloud/models/alias`       | Vis alle modelaliasser                                                         |
+| PUT    | `/api/cloud/models/alias`       | Angiv en modelalias (og synkroniser automatisk med Cloud, hvis aktiveret)      |
 
 `/api/cloud/auth` returnerer aldrig rå `apiKey` / `accessToken` / `refreshToken`. Den
-returnerer `hasApiKey`, `hasAccessToken`, `hasRefreshToken` og en maskeret forhåndsvisning
-(`maskedApiKey`: de første 4 + `****` + de sidste 4).
+returnerer `hasApiKey`, `hasAccessToken`, `hasRefreshToken` for de aktive forbindelser, som nøglen
+må bruge (en nøgle, der er begrænset med `allowedConnections`, ser kun disse). For en API-nøgle med
+omfanget `manage` eller `admin`, herunder udrulningsnøglen fra `OMNIROUTE_API_KEY`, returnerer den også
+en maskeret forhåndsvisning (`maskedApiKey`: op til 4 tegn i hver ende, færre for en kort
+nøgle og ingen for 8 tegn eller færre) samt forbindelsens `projectId`. Begge felter udelades
+fra svaret for alle andre nøgler.
 
 ## Fortolkning af legitimationsoplysninger
 

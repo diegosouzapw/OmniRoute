@@ -1,0 +1,1 @@
+- **test(autoCombo):** two AutoCombo Vitest tests no longer time out under parallel load — `autoCombo.test.ts` and `tieredRotation.test.ts` warm the task-fitness DB in a scoped `beforeAll`, so the lazy first-call init no longer counts against a pure-computation test's 5 s budget ([#15253](https://github.com/diegosouzapw/OmniRoute/pull/15253)) — thanks @yourspraveen

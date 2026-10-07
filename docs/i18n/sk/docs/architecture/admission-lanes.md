@@ -7,52 +7,53 @@
 OmniRoute má **dva** lokálne systémy pruhov na úrovni procesu s rôznym rozsahom. Sú
 komplementárne; operátori by mali vedieť, na ktorý z nich sa pozerajú.
 
-## 1. Prijímanie na úrovni bajtov pre celý proces (`chatBodyAdmission.ts`)
+## 1. Prijímanie na úrovni bajtov v rámci celého procesu (`chatBodyAdmission.ts`)
 
-- **Rozsah:** cesta spracovania tela vo vyrovnávacej pamäti/halde pre `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` a ostatné trasy s formátom chatu. Chráni
-  pred znásobením využitia haldy spôsobeným veľkými telami požiadaviek programovacích agentov (#4380).
-- **Jeden globálny radič pre celý proces, nie samostatné pruhy pre jednotlivé kľúče (#10110).** Každý kľúč API
-  (vo forme hašu) alebo relácia `anonymous` používa pri prijímaní **rovnaký** zdieľaný rozpočet —
-  hašovaný identifikátor relácie sa používa IBA ako kľúč na spravodlivé plánovanie (cyklické
-  prideľovanie čakajúcich požiadaviek), nikdy nie ako samostatný kapacitný segment. Predchádzajúca verzia tejto
+- **Rozsah:** cesta spracovania tela ukladaného do vyrovnávacej pamäte/haldy pre `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses` a ostatné trasy v štýle chatu. Chráni
+  pred nafúknutím haldy spôsobeným veľkými telami požiadaviek kódovacích agentov (#4380).
+- **Jeden globálny radič pre celý proces, nie samostatné pruhy pre jednotlivé kľúče (#10110).** Každý API kľúč
+  (hashovaný) alebo relácia `anonymous` využíva pri prijímaní **rovnaký** zdieľaný rozpočet —
+  hashovaný identifikátor relácie sa používa IBA ako kľúč na spravodlivé plánovanie (cyklické
+  prideľovanie čakateľov), nikdy nie ako oddelená kapacitná časť. Predchádzajúca verzia tejto
   dokumentácie opisovala pruhy pre jednotlivé kľúče s nezávislou kapacitou; tento model bol
-  odstránený v #10110, pretože neoverené falošné prihlasovacie údaje umožňovali
-  znásobiť limit pre celý proces.
+  odstránený v #10110, pretože umožňoval neovereným falošným prihlasovacím údajom znásobiť
+  limit platný pre celý proces.
 - **Brána (#503-fanout): automaticky odvodený BAJTOVÝ rozpočet na príjem, nie pevný počet
-  požiadaviek.** Starší limit počtu požiadaviek `CHAT_MAX_HEAVY_IN_FLIGHT` (pred touto
-  opravou bola predvolená hodnota `1`) znižoval súbežnosť vetvenia programovacích agentov (viaceré podriadené agenty/CLI,
-  telá bežne > 256 KB) prakticky na ~1, čo pri úplne normálnom zaťažení
-  spôsobovalo odpovede 503. Teraz sa uplatňuje iba vtedy, keď operátor explicitne
-  nastaví `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ak nie je nastavená, prijímanie sa namiesto toho
-  riadi rozpočtom `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — rozpočtom automaticky odvodeným zo
+  požiadaviek.** Pôvodný limit počtu požiadaviek `CHAT_MAX_HEAVY_IN_FLIGHT` (pred touto opravou
+  predvolene `1`) obmedzoval rozvetvenie kódovacích agentov (viacero podriadených agentov/CLI,
+  telá bežne > 256 KB) na efektívnu súbežnosť približne 1, čo pri úplne bežnom zaťažení
+  spôsobovalo odpovede 503. Teraz sa uplatní iba vtedy, keď operátor explicitne nastaví
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ak zostane nenastavený, prijímanie je namiesto toho
+  riadené pomocou `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — rozpočtu automaticky odvodeného zo
   skutočného pamäťového limitu procesu (`src/shared/middleware/admissionBudget.ts`):
   25 % z nižšej hodnoty medzi limitom haldy V8 a ľubovoľným limitom cgroup/kontajnera,
-  vydelených 8-násobným faktorom prechodného znásobenia a obmedzených na rozsah od 8 MiB do
-  2 GiB. Explicitné prepísania používajú rovnaké hranice. Rozpočet sa sám prispôsobuje od
-  kontajnera s 512 MB až po pracovnú stanicu s 32 GB bez nastavovania premenných prostredia. Telo, ktoré sa
-  nezmestí do efektívneho rozpočtu, okamžite zlyhá s `413 body_exceeds_budget`;
-  do obmedzeného spravodlivého radu vstupujú iba konflikty medzi telami, ktoré možno samostatne obslúžiť.
-  Aktívny nástroj na sledovanie tlaku na zdroje využívajúci viacero signálov (pomer využitia haldy V8,
-  cgroup, PSI, udalosti OOM — `open-sse/utils/resourcePressurePolicy.ts`) skracuje
-  obmedzené čakanie pri tlaku `high` a pri tlaku `critical` okamžite odmieta požiadavky s
-  `503 resource_pressure` ešte pred prijatím akýchkoľvek bajtov.
-  PSI sa číta zo súboru `memory.pressure` cgroup tejto jednotky, ak je k dispozícii
-  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` platí
-  pre celý hostiteľský systém a používa sa iba ako záložná možnosť na fyzickom hardvéri / cgroup v1, takže hostiteľský systém
-  využívajúci odkladací priestor nemôže spôsobiť odpoveď 503 v nečinnom kontajneri.
+  vydelených 8-násobným faktorom prechodného nafúknutia a ohraničených na rozsah od 8 MiB do
+  2 GiB. Explicitné prepísania používajú rovnaké hranice. Rozpočet sa automaticky prispôsobuje
+  od kontajnera s 512 MB až po počítač s 32 GB bez ladenia premenných prostredia. Telo, ktoré
+  sa nezmestí do efektívneho rozpočtu, okamžite zlyhá s `413 body_exceeds_budget`;
+  do ohraničeného spravodlivého radu vstupuje iba súperenie medzi telami, ktoré možno
+  jednotlivo obslúžiť. Aktívny sledovač zaťaženia zdrojov využívajúci viacero signálov (pomer
+  haldy V8, cgroup, PSI, udalosti OOM — `open-sse/utils/resourcePressurePolicy.ts`) skracuje
+  ohraničené čakanie pri tlaku `high` a pri tlaku `critical` okamžite odmieta požiadavky s
+  `503 resource_pressure`, a to ešte pred prijatím akýchkoľvek bajtov. PSI sa číta zo súboru
+  `memory.pressure` patriaceho cgroup tejto jednotky, ak existuje
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` platí pre celý
+  hostiteľský systém a používa sa iba ako záložná možnosť na fyzickom serveri / cgroup v1,
+  takže hostiteľský systém využívajúci odkladací priestor nemôže spôsobiť odpoveď 503
+  v nečinnom kontajneri.
 - **Ladenie:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — prepísanie automaticky odvodeného bajtového rozpočtu
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — starší limit počtu požiadaviek, iba na explicitné zapnutie
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — čakanie v rade pred odpoveďou 503 (predvolená hodnota 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — poistný ventil haldy podľa počtu bajtov v rade (predvolená hodnota 4 MB)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — pôvodný limit počtu požiadaviek, iba voliteľný
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — čakanie v rade pred odpoveďou 503 (predvolene `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — pamäťový ventil pre bajty v rade (predvolene 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — zastarané
-    nastavenia bez účinku od #10110 (prijímajú sa kvôli kompatibilite konfigurácie, ale ignorujú sa)
+    nefunkčné nastavenia od #10110 (akceptované z dôvodu kompatibility konfigurácie, ignorované)
 - **Hlásenia:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — vrátane
-  položiek pridaných v rámci #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  doplnení z #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` a `countCapEnabled`
-  (pri predvolenom nasadení je hodnota false — potvrdzuje, že sa v skutočnosti uplatňuje bajtový rozpočet,
-  nie starší limit počtu).
+  (pri predvolenom nasadení má hodnotu false — potvrdzuje, že sa v skutočnosti uplatňuje
+  bajtový rozpočet, nie pôvodný limit počtu).
 
 ## 2. Adaptívne virtuálne dráhy za behu (`open-sse/services/admission`)
 

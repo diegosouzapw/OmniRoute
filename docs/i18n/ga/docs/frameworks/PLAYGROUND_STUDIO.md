@@ -189,14 +189,14 @@ Fíordheimhniú: roghnach (`REQUIRE_API_KEY`). Earráidí trí `buildErrorBody()
 
 ## Fabhtcheartú
 
-| Siomptóm                                            | Cúis                                        | Réiteach                                                                                                    |
-| --------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Ní rindreáiltear eagarthóir Monaco sa chluaisín API | Luchtaigh SSR Monaco                        | Deimhnigh go n-úsáideann `ApiTab` `dynamic(..., { ssr: false })`                                            |
-| Tosaíonn sruthanna comparáide go seicheamhach       | Úsáid mhícheart `Promise.all`               | Ní mór gach tosú srutha a sheoladh in aon ghlao amháin ar `Promise.all`                                     |
-| Taispeánann méadracht TTFT `null`                   | Níl láimhseálaí an chéad smutáin ceangailte | Seiceáil go nglaoitear `useStreamMetrics.onFirstChunk()` sa lúb léitheora SSE                               |
-| Ní mhaireann an réamhshocrú                         | Níor ritheadh asc迁移 an DB                 | Rith `npm run db:migrate` nó atosaigh an freastalaí (ritheann an t-asc迁移 go huathoibríoch ag am tosaithe) |
-| Tugann feabhsú an leid 502 ar ais                   | Níl an tsamhail socraithe in Config         | Ní mór don úsáideoir ainm samhla a iontráil sa phána Config sula bhfeabhsaítear í                           |
-| Taispeánann easpórtáil an chóid `MISSING_API_KEY`   | Níor cuireadh an sealbhóir ionaid isteach   | Úsáideann `codeExport.ts` `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` i gcónaí                             |
+| Siomptóm                                          | Cúis                                      | Réiteach                                                                              |
+| ------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------- |
+| Ní rindreálann eagarthóir Monaco sa chluaisín API | Lódáil SSR Monaco                         | Deimhnigh go n-úsáideann `ApiTab` `dynamic(..., { ssr: false })`                      |
+| Seoltar sruthanna comparáide go seicheamhach      | Úsáid mhícheart `Promise.all`             | Ní mór tús gach srutha a sheoladh in aon ghlao amháin ar `Promise.all`                |
+| Taispeánann na méadrachtaí TTFT `null`            | Níl láimhseálaí an chéad smutáin nasctha  | Seiceáil go nglaoitear ar `useStreamMetrics.onFirstChunk()` i lúb léitheora SSE       |
+| Ní choinnítear an réamhshocrú                     | Níor ritheadh asc迁ú an DB                | Atosaigh an freastalaí: ritheann asc迁uithe go huathoibríoch ag am tosaithe           |
+| Filleann feabhsú an leid 502                      | Níl samhail socraithe in Config           | Ní mór don úsáideoir ainm samhla a chur isteach sa phána Config sula bhfeabhsaítear í |
+| Taispeánann cód easpórtála `MISSING_API_KEY`      | Níor cuireadh an sealbhóir ionaid isteach | Úsáideann `codeExport.ts` `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` i gcónaí       |
 
 ---
 

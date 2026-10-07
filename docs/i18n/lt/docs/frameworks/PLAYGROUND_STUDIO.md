@@ -188,14 +188,14 @@ Autentifikavimas: pasirenkamas (`REQUIRE_API_KEY`). Klaidos pateikiamos naudojan
 
 ## Trikčių šalinimas
 
-| Požymis                                            | Priežastis                                        | Sprendimas                                                                                                       |
-| -------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| „Monaco“ redaktorius neatvaizduojamas API skirtuke | SSR įkėlė „Monaco“                                | Patikrinkite, ar `ApiTab` naudoja `dynamic(..., { ssr: false })`                                                 |
-| Palyginimo srautai paleidžiami nuosekliai          | Netinkamai naudojamas `Promise.all`               | Visi srautai turi būti paleisti vienu `Promise.all` iškvietimu                                                   |
-| Metrikose rodoma `null` TTFT                       | Neprijungta pirmojo fragmento apdorojimo priemonė | Patikrinkite, ar SSE skaitytuvo cikle iškviečiama `useStreamMetrics.onFirstChunk()`                              |
-| Išankstinis nustatymas neišsaugomas                | Nevykdyta DB migracija                            | Paleiskite `npm run db:migrate` arba iš naujo paleiskite serverį (migracija automatiškai vykdoma paleidimo metu) |
-| Užklausos patobulinimas grąžina 502                | Konfigūracijoje nenustatytas modelis              | Prieš tobulindamas naudotojas turi įvesti modelio pavadinimą konfigūracijos srityje                              |
-| Eksportuotame kode rodoma `MISSING_API_KEY`        | Neįterptas vietos rezervavimo ženklas             | `codeExport.ts` visada naudoja `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                                      |
+| Požymis                                     | Priežastis                                        | Sprendimas                                                                            |
+| ------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| „Monaco“ redaktorius nerodomas API skirtuke | SSR įkėlė „Monaco“                                | Patikrinkite, ar `ApiTab` naudoja `dynamic(..., { ssr: false })`                      |
+| Palyginimo srautai paleidžiami nuosekliai   | Netinkamai naudojamas `Promise.all`               | Visi srautai turi būti paleisti vienu `Promise.all` iškvietimu                        |
+| Metrikose rodoma `null` TTFT                | Neprijungta pirmojo fragmento apdorojimo funkcija | Patikrinkite, ar SSE skaitymo cikle iškviečiama `useStreamMetrics.onFirstChunk()`     |
+| Išankstinis nustatymas neišsaugomas         | Nevykdyta DB migracija                            | Paleiskite serverį iš naujo: migracijos paleidžiant vykdomos automatiškai             |
+| Užklausos patobulinimas grąžina 502         | Konfigūracijoje nenurodytas modelis               | Prieš patobulindamas naudotojas turi įvesti modelio pavadinimą konfigūracijos srityje |
+| Eksportuotame kode rodoma `MISSING_API_KEY` | Neįterptas vietaženklis                           | `codeExport.ts` visada naudoja `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`           |
 
 ---
 

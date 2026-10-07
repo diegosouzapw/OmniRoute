@@ -108,6 +108,14 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   "agnes",
   // Agnes CN /v1/models is not the intl catalog; this discovers that host only.
   "agnes-cn",
+  // #15307: xiaomi-mimo / xiaomi-mimo-token-plan are keyed OpenAI-style providers
+  // whose real catalog lives on the upstream `/v1/models` list (the token-plan host
+  // serves 8 models including v2.6-pro/v2.6-flash and the ASR/TTS variants, while the
+  // registry seed only has 2). Unclassified, import never probed the upstream and
+  // fell through to the hardcoded seed with "API unavailable — using local catalog".
+  // Same case as #4249 (vercel-ai-gateway). Seed stays as the offline fallback.
+  "xiaomi-mimo",
+  "xiaomi-mimo-token-plan",
 ]);
 
 export function isNamedOpenAIStyleProvider(provider: string): boolean {

@@ -182,7 +182,7 @@ rawBody)`) ก่อนแยกวิเคราะห์ JSON หากมี
 
 ---
 
-## โปรไฟล์บิลด์: `minimal`
+## โปรไฟล์การบิลด์: `minimal`
 
 สำหรับผู้ใช้ที่ต้องการอาร์ติแฟกต์ที่เป็นมิตรกับ Socket ให้บิลด์ด้วย:
 
@@ -190,22 +190,21 @@ rawBody)`) ก่อนแยกวิเคราะห์ JSON หากมี
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin` กำหนด alias ให้โมดูลสี่รายการชี้ไปยัง stub:
+`NormalModuleReplacementPlugin` ของ webpack กำหนดนามแฝงให้โมดูลสี่รายการชี้ไปยังสตับ:
 
-| โมดูล                                       | Stub                                             |
+| โมดูล                                       | สตับ                                             |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-แต่ละ stub ส่งออกอินเทอร์เฟซเดียวกัน แต่ทุกฟังก์ชันจะโยน
-`featureDisabledError(name)` ขณะรันไทม์ Route ที่ขึ้นอยู่กับโมดูลที่ถูกปิดใช้งาน
+แต่ละสตับส่งออกอินเทอร์เฟซเดียวกัน แต่ทุกฟังก์ชันจะส่งข้อผิดพลาด
+`featureDisabledError(name)` ขณะรันไทม์ เส้นทางที่ขึ้นอยู่กับโมดูลที่ถูกปิดใช้งาน
 จะส่งคืน HTTP 503 พร้อมข้อความที่ชัดเจน แทนที่จะเปิดใช้งาน
-เส้นทางโค้ดที่มีความอ่อนไหว
+เส้นทางโค้ดที่มีความละเอียดอ่อน
 
-บันเดิลที่ได้มีไว้สำหรับเผยแพร่ในชื่อ `omniroute-secure` โปรดดู
-`docs/ops/PUBLISHING_SECURE.md` สำหรับขั้นตอนการเผยแพร่
+บันเดิลที่ได้มีไว้สำหรับเผยแพร่ในชื่อ `omniroute-secure`
 
 ---
 

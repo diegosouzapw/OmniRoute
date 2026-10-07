@@ -268,16 +268,21 @@ sa din mediu / implicită. Returnează `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Alternativă de urgență pentru buget
+## Mecanism de rezervă de urgență pentru buget
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (categoria `runtime`, valoarea implicită `true`) controlează
-calea alternativă gratuită de urgență din
+ruta gratuită de rezervă pentru situații de urgență din
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Când este activată, solicitările care își epuizează bugetul sunt direcționate către un furnizor/model
-alternativ gratuit, în loc să eșueze complet. Setați-o la `false` (sau `0`) — prin intermediul
-comutatorului din panoul de control, al unei suprascrieri în DB sau al variabilei de mediu
+Când este activată, solicitările care își epuizează bugetul sunt direcționate către un
+furnizor/model de rezervă gratuit, în loc să eșueze complet. Setați-o la `false` (sau `0`) — prin
+comutatorul din panoul de control, o suprascriere în DB sau variabila de mediu
 `OMNIROUTE_EMERGENCY_FALLBACK` — pentru a dezactiva acest comportament și a permite solicitărilor
-cu bugetul epuizat să eșueze. (Expusă ca un comutator în panoul de control în PR-urile #3741 / #3752.)
+cu bugetul epuizat să eșueze. (Expusă sub forma unui comutator în panoul de control în PR-urile #3741 / #3752.)
+
+Un răspuns furnizat prin acest mecanism de rezervă conține
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, astfel încât un
+client să poată identifica faptul că solicitarea a fost redirecționată fără a compara `X-OmniRoute-Provider` cu
+solicitarea sa. Antetul lipsește din toate celelalte răspunsuri.
 
 ---
 

@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 olùpèsè upstream — kò sí RPC ìdádúró nínú `CloudAgentBase`. Láti dá ìdíyelé
 upstream dúró, parí iṣẹ́ náà nínú console ti olùpèsè fúnra rẹ̀.
 
-## REST API — Ìsopọ̀ Abẹ́lẹ̀ Olùpèsè Cloud
+## REST API — Ìsopọ̀ Olùpèsè Cloud
 
-Àwọn endpoint àfikún wọ̀nyí lábẹ́ `src/app/api/cloud/` ni àwọn client jíjìnnà
-(CLI, app Electron, tàbí àwọn worker ìmúdọ́gba) ń lò láti ka metadata ìsopọ̀ olùpèsè
-àti láti yanjú àwọn alias model. Wọ́n jẹ́rìísí pẹ̀lú **API key déédéé**
-(nípasẹ̀ `validateApiKey`), kì í ṣe ìjẹ́rìísí ìṣàkóso tí àwọn endpoint task ń lò.
+Àwọn endpoint àfikún wọ̀nyí lábẹ́ `src/app/api/cloud/` ni àwọn client jíjìn
+(CLI, Electron app, tàbí àwọn sync worker) ń lò láti ka metadata ìsopọ̀ olùpèsè
+àti láti yanjú àwọn alias model. Wọ́n jẹ́rìí ìdánimọ̀ pẹ̀lú **API key**
+(nípasẹ̀ `validateApiKey`), kì í ṣe management auth tí àwọn endpoint task ń lò; ohun tí
+`/api/cloud/auth` bá dá padà sinmi lórí scope key náà (wo ìsàlẹ̀).
 
-| Ọ̀nà  | Path                            | Ète                                                                    |
-| ---- | ------------------------------- | ---------------------------------------------------------------------- |
-| POST | `/api/cloud/auth`               | Ṣàyẹ̀wò API key, dá metadata ìsopọ̀ tí a bo + àwọn alias model padà      |
-| PUT  | `/api/cloud/credentials/update` | Ṣe ìmúdójúìwọ̀n `accessToken` / `refreshToken` / `expiresAt`            |
-| POST | `/api/cloud/model/resolve`      | Yanjú alias model kan sí `{ provider, model }`                         |
-| GET  | `/api/cloud/models/alias`       | Ṣàkójọ gbogbo àwọn alias model                                         |
-| PUT  | `/api/cloud/models/alias`       | Ṣètò alias model kan (kí o sì múdọ́gba sí Cloud láìfọwọ́ṣe bí ó bá ṣiṣẹ́) |
+| Ọ̀nà  | Path                            | Ète                                                                           |
+| ---- | ------------------------------- | ----------------------------------------------------------------------------- |
+| POST | `/api/cloud/auth`               | Ṣàyẹ̀wò API key, dá metadata ìsopọ̀ tí a fi bo + àwọn alias model padà          |
+| PUT  | `/api/cloud/credentials/update` | Ṣe àtúnṣe `accessToken` / `refreshToken` / `expiresAt`                        |
+| POST | `/api/cloud/model/resolve`      | Yanjú alias model kan sí `{ provider, model }`                                |
+| GET  | `/api/cloud/models/alias`       | Ṣàtòjọ gbogbo àwọn alias model                                                |
+| PUT  | `/api/cloud/models/alias`       | Ṣètò alias model kan (kí o sì ṣe sync aládàáṣiṣẹ́ sí Cloud tí a bá mú un ṣiṣẹ́) |
 
-`/api/cloud/auth` kì í dá `apiKey` / `accessToken` / `refreshToken` àìlábò padà láé. Ó
-máa ń dá `hasApiKey`, `hasAccessToken`, `hasRefreshToken`, àti àwòrán àkọ́kọ́ tí a bo padà
-(`maskedApiKey`: 4 àkọ́kọ́ + `****` + 4 ìkẹyìn).
+`/api/cloud/auth` kì í dá `apiKey` / `accessToken` / `refreshToken` gidi padà láé. Ó
+ń dá `hasApiKey`, `hasAccessToken`, `hasRefreshToken` padà fún àwọn ìsopọ̀ tó ń ṣiṣẹ́ tí key náà
+lè lò (key tí a fi `allowedConnections` ṣe ìhámọ́ máa ń rí ìwọ̀nyẹn nìkan). Fún API key kan tó ní
+scope `manage` tàbí `admin`, pẹ̀lú deployment key láti `OMNIROUTE_API_KEY`, ó tún
+máa ń dá àwòrán àkọ́kọ́ tí a fi bo padà (`maskedApiKey`: tó àwọn àmì 4 ní ìbẹ̀rẹ̀ àti òpin kọ̀ọ̀kan, díẹ̀ sí i fún
+key kúkúrú, kò sí rárá fún àwọn àmì 8 tàbí díẹ̀ sí i) àti `projectId` ìsopọ̀ náà. A kì í fi àwọn field méjèèjì
+sí inú response fún key mìíràn èyíkéyìí.
 
 ## Ìyanjú Credentials
 

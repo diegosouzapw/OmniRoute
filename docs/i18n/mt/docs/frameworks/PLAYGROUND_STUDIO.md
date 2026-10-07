@@ -188,16 +188,16 @@ Awtentikazzjoni: fakultattiva (`REQUIRE_API_KEY`). Żbalji permezz ta' `buildErr
 
 ---
 
-## Soluzzjoni tal-Problemi
+## Soluzzjoni tal-problemi
 
-| Sintomu                                          | Kawża                                           | Soluzzjoni                                                                                                  |
-| ------------------------------------------------ | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| L-editur Monaco ma jintweriex fit-tab tal-API    | SSR tella’ lil Monaco                           | Ivverifika li `ApiTab` juża `dynamic(..., { ssr: false })`                                                  |
-| Il-flussi tat-tqabbil jibdew wieħed wara l-ieħor | Użu ħażin ta’ `Promise.all`                     | Il-bidu tal-flussi kollha jrid jintbagħat f’sejħa waħda ta’ `Promise.all`                                   |
-| Il-metriċi juru TTFT bħala `null`                | Il-handler tal-ewwel parti mhuwiex ikkonnettjat | Iċċekkja li `useStreamMetrics.onFirstChunk()` jissejjaħ fil-loop tal-qarrej SSE                             |
-| Il-preset ma jinżammx                            | Il-migrazzjoni tad-DB ma saritx                 | Ħaddem `npm run db:migrate` jew erġa’ ibda s-server (il-migrazzjoni titħaddem awtomatikament mal-istartjar) |
-| It-titjib tal-prompt jirritorna 502              | Il-mudell mhuwiex issettjat f’Config            | L-utent irid idaħħal isem ta’ mudell fil-pannell Config qabel it-titjib                                     |
-| Il-kodiċi esportat juri `MISSING_API_KEY`        | Il-placeholder ma ddaħħalx                      | `codeExport.ts` dejjem juża `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                                    |
+| Sintomu                                       | Kawża                                           | Soluzzjoni                                                                      |
+| --------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------- |
+| L-editur Monaco ma jintweriex fit-tab tal-API | SSR tella’ lil Monaco                           | Ivverifika li `ApiTab` juża `dynamic(..., { ssr: false })`                      |
+| Il-flussi tat-tqabbil jibdew sekwenzjalment   | Użu ħażin ta’ `Promise.all`                     | Il-flussi kollha jridu jinbdew f’sejħa waħda ta’ `Promise.all`                  |
+| Il-metriċi juru TTFT bħala `null`             | Il-handler tal-ewwel parti mhuwiex ikkonnettjat | Iċċekkja li `useStreamMetrics.onFirstChunk()` jissejjaħ fil-loop tal-qarrej SSE |
+| Il-preset ma jinżammx                         | Il-migrazzjoni tad-DB ma saritx                 | Erġa’ ibda s-server: il-migrazzjonijiet isiru awtomatikament waqt l-istartjar   |
+| It-titjib tal-prompt jirritorna 502           | Il-mudell mhuwiex issettjat f’Config            | L-utent irid idaħħal isem ta’ mudell fil-pannell Config qabel it-titjib         |
+| Il-kodiċi esportat juri `MISSING_API_KEY`     | Il-placeholder ma ddaħħalx                      | `codeExport.ts` dejjem juża `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`        |
 
 ---
 

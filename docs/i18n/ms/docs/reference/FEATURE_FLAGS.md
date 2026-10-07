@@ -264,10 +264,17 @@ Mengosongkan **semua** penggantian DB sekaligus, mengembalikan setiap bendera ke
 sandaran percuma kecemasan dalam
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
 Apabila didayakan, permintaan yang telah menghabiskan bajetnya dihalakan kepada
-penyedia/model sandaran percuma dan bukannya gagal sepenuhnya. Tetapkannya kepada `false` (atau `0`) — melalui
-togol papan pemuka, penggantian DB, atau pemboleh ubah persekitaran
-`OMNIROUTE_EMERGENCY_FALLBACK` — untuk menyahdayakan tingkah laku tersebut dan membiarkan permintaan
-yang telah kehabisan bajet gagal. (Ditampilkan sebagai togol papan pemuka dalam PR #3741 / #3752.)
+penyedia/model sandaran percuma dan bukannya terus gagal. Tetapkannya kepada
+`false` (atau `0`) — melalui togol papan pemuka, penggantian DB, atau pemboleh ubah
+persekitaran `OMNIROUTE_EMERGENCY_FALLBACK` — untuk menyahdayakan tingkah laku ini
+dan membiarkan permintaan yang telah kehabisan bajet gagal. (Dipaparkan sebagai
+togol papan pemuka dalam PR #3741 / #3752.)
+
+Respons yang disediakan oleh sandaran ini mengandungi
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, supaya
+klien dapat mengetahui bahawa ia telah dihalakan semula tanpa membandingkan
+`X-OmniRoute-Provider` dengan permintaannya. Pengepala ini tidak terdapat dalam
+semua respons lain.
 
 ---
 

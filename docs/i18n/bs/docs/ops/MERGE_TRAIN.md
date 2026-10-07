@@ -4,37 +4,68 @@
 
 ---
 
-# Priručnik za Merge Queue i ručni Merge-Train
+Od v3.8.49 (WS3.2/WS3.4 plana kvaliteta/brzine) zadana putanja spajanja za
+pregledane PR-ove u `release/vX.Y.Z` jeste **Mergify red za spajanje** (`.mergify.yml`);
+**ručni voz za spajanje** dokumentovan u nastavku predstavlja REZERVNU OPCIJU — koristi se tokom incidenata,
+zamrzavanja izdanja ili ako se Mergify Open Source plan ikada promijeni.
 
-Od verzije v3.8.49 (WS3.2/WS3.4 plana kvalitete/brzine) zadani put spajanja za pregledane PR-ove u `release/vX.Y.Z` je Mergify red za spajanje (`.mergify.yml`); ručni merge-train dokumentiran u nastavku je REZERVNA OPCIJA — koristi se tijekom incidenata, zamrzavanja izdanja (release freezes) ili ako se Mergify Open Source plan ikada promijeni.
+## Zadana putanja: Mergify red
 
-## Zadani put: Mergify red
+1. Kampanje su pregledale/odobrile PR i on je odobren putem vlasnikove ⭐
+   provjere prije spajanja (izvještaj + odluka za svaku stavku — pogledajte `/merge-prs`, korak 0.75).
+2. Vlasnik (ili sesija koja postupa prema vlasnikovoj odluci) primjenjuje oznaku **`queue`**.
+   Oznaka JESTE odobrenje za spajanje; Mergify ga samo izvršava.
+3. Mergify grupiše do 10 PR-ova na čekanju, provjerava grupu pomoću brzih provjera
+   i spaja ih (squash). Neuspješna grupa se **automatski dijeli napola** — problematični PR
+   izoluje se za približno log2(N) ponovnih provjera i uklanja iz reda; ostali nastavljaju.
+4. Nakon spajanja, kontinuirani tok rada za provjeru ispravnosti izdanja provjerava novi vrh nakon slanja
+   i otvara problem za atribuciju ako je kombinacija dovela do regresije (nikada se ne vraća automatski).
 
-1. PR je pregledan/označen zelenim od strane kampanja i odobren od strane vlasnikovog pre-merge ⭐ vrata (izvještaj + odluka po stavci — pogledajte `/merge-prs` korak 0.75).
-2. Vlasnik (ili sesija koja djeluje prema odluci vlasnika) primjenjuje oznaku **`queue`**. Oznaka JE odobrenje za spajanje; Mergify ga samo izvršava.
-3. Mergify grupira do 10 PR-ova u redu, validira grupu prema brzim vratima (fast-gates) i spaja (squash). Crvena grupa se automatski bisekcionira — problematični PR se izolira u ~log2(N) revalidacija i uklanja iz reda; ostali nastavljaju.
-4. Nakon spajanja, kontinuirani release-green tijek rada validira novi vrh (tip) pri push-u i otvara problem atribucije ako je kombinacija nazadovala (nikada ne radi auto-revert).
+Zaštitna pravila (odražavaju stroga pravila #21/#22 iz `CLAUDE.md`):
 
-Zaštitne mjere (zrcali `CLAUDE.md` stroga pravila #21/#22):
+- **Otvoreno zamrzavanje izdanja** → NEMOJTE označavati PR-ove usmjerene na zamrznutu granu; prvo ih preusmjerite na
+  aktivnu `release/vX+1`.
+- **PR druge sesije koji je u toku** → nikada ga nemojte označavati; samo vlasnička sesija stavlja
+  vlastiti rad u red.
+- Izmjene koje se odnose samo na testove i PR-ovi s oznakom `hotfix` već pokreću smanjeni CI (pogledajte
+  `RELEASE_CHECKLIST.md` → Ubrzani postupak za hitne ispravke); uslovi reda prihvataju bilo koji
+  skup provjera koji je zaista pokrenut (`#check-failure=0` + `#check-pending=0`).
 
-- **Otvoreno zamrzavanje izdanja (Release freeze)** → NEMOJTE označavati PR-ove koji ciljaju zamrznutu granu; prvo preusmjerite na aktivnu `release/vX+1`.
-- **PR druge sesije koji je u tijeku** → nikada ga nemojte označavati; samo sesija vlasnika stavlja svoj rad u red.
-- **Diff-ovi koji sadrže samo testove i PR-ovi s oznakom `hotfix`** već pokreću smanjeni CI (pogledajte `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); uvjeti reda prihvaćaju bilo koji skup provjera koji je zapravo pokrenut (`#check-failure=0` + `#check-pending=0`).
+## Rezervna opcija: ručni voz za spajanje
 
-## Rezervna opcija: ručni merge-train
+Koristi se kada red nije dostupan. Ovim se formalizuje praksa kojom su obrađena 33 PR-a u
+jednom danu tokom ciklusa v3.8.47:
 
-Koristi se kada red nije dostupan. Ovo kodificira praksu koja je ispraznila 33 PR-a u jednom danu tijekom ciklusa v3.8.47:
+1. **Sastavite grupu** (~10–30 pregledanih+odobrenih PR-ova). Provjerite kolizije `linked:`
+   (isti `tap.testFiles`, isti dijelovi CHANGELOG-a) i obradite ih redom.
+2. **Provjerite JEDNOM**: u izolovanom worktreeu na vrhu grane izdanja lokalno spojite sve
+   vrhove grupe, a zatim pokrenite paket ekvivalentan izdanju
+   (`npm run check:release-green`, dodajte `--with-build` prije izdanja).
+   `scripts/release/merge-train.sh <base> <PR#>…` automatizuje korake 1–2 (PR-ovi u sukobu
+   se izbacuju, voz nastavlja). Puni način rada pokreće `npm run test:unit` — izvršivač
+   podešen za računar (`--test-concurrency=20`), **a ne** dva uzastopna CI segmenta
+   s 4 jezgre, zbog kojih je dominantna faza koristila ~25% računara sa 16 jezgri (ispravljeno
+   2026-07-18). `--fast` (pražnjenje velikog voza unutar dana, odobrio vlasnik 2026-07-18)
+   zadržava svaku statičku provjeru + vitest, ali pokreće samo node:test datoteke koje su promijenili
+   ukrcani PR-ovi; PUNI paket i dalje se mora pokrenuti najmanje jednom dnevno nad
+   akumuliranim vrhom (jedan voz bez `--fast`).
+3. **Uspješno** → spojite PR-ove redom (ponovno provjeravajući `state,headRefOid` prije svakog —
+   PR čiji je vrh promijenjen vraća se na pregled). Dokažite da je neto razlika svakog spajanja
+   vlastita izmjena tog PR-a (bez automatskog razrješavanja vraćanjem izmjena: pregledajte `git diff --stat` radi
+   brisanja izvan opsega).
+4. **Neuspješno** → podijelite grupu na polovine (provjerite svaku polovinu) umjesto ponovne provjere
+   jednog po jednog; vratite problematični PR u red za pregled zajedno s dokazima.
+5. **Nikada**: ne spajajte u zamrznutu granu tokom zamrzavanja; ne koristite `git stash` nigdje;
+   ne pokrećite CI naslijepo ponovo nadajući se da će neuspjeh nestati (pravilo: neuspjeh je informacija).
 
-1. **Sastavite grupu** (~10–30 pregledanih+odobrenih PR-ova). Provjerite `linked:` kolizije (iste `tap.testFiles`, isti CHANGELOG dijelovi) i serijalizirajte ih.
-2. **Validirajte JEDNOM**: u izoliranom radnom stablu (worktree) izvan vrha izdanja, spojite sve glave grupe lokalno, zatim pokrenite paket ekvivalentan izdanju (`npm run check:release-green`, dodajte `--with-build` prije izdanja). `scripts/release/merge-train.sh <base> <PR#>…` automatizira korake 1–2 (konfliktni PR-ovi se izbacuju, vlak nastavlja). Puni način rada pokreće `npm run test:unit` — pokretač prilagođen stroju (`--test-concurrency=20`), a ne dva sekvencijalna 4-jezgrena CI sharda, što je pokretalo dominantnu fazu na ~25% 16-jezgrenog stroja (popravljeno 18.07.2026.). `--fast` (pražnjenje mega-vlaka unutar dana, odobreno od strane vlasnika 18.07.2026.) zadržava svaka statička vrata + vitest, ali pokreće samo `node:test` datoteke koje su promijenili ukrcani PR-ovi; PUNI paket se i dalje mora pokrenuti barem jednom dnevno na akumuliranom vrhu (jedan vlak bez `--fast`).
-3. **Zeleno** → spojite PR-ove u nizu (ponovno provjeravajući `state,headRefOid` prije svakog — PR čija se glava pomaknula ponovno ulazi u pregled). Dokažite da je neto diff svakog spajanja vlastita promjena PR-a (nema auto-resolve vraćanja: revidirajte `git diff --stat` za brisanja izvan opsega).
-4. **Crveno** → bisekcionirajte grupu na polovice (validirajte svaku polovicu) umjesto ponovne validacije jedan po jedan; vratite problematični PR natrag u red za pregled s dokazima.
-5. **Nikada**: spajajte tijekom zamrzavanja u zamrznutu granu; `git stash` bilo gdje; masovno ponovno pokretanje CI-a u nadi da će crveno nestati (pravilo: crveno je informacija).
+## Nivoi (zašto je red siguran samo s brzim provjerama)
 
-## Slojevitost (zašto je red siguran samo s brzim vratima)
+- **Po PR-u** (brze provjere iz quality.yml): testovi na koje utiče TIA + puni jedinični testovi u 4 segmenta +
+  vitest + skup lint provjera + provjera tipova + integritet dokumentacije/dnevnika izmjena.
+- **Po grupi/vrhu** (kontinuirana provjera ispravnosti izdanja): STROGE provjere `--quick` pri svakom slanju na
+  granu izdanja; puna skeniranja `--with-build --full-ci` 3× dnevno.
+- **Po izdanju** (ci.yml na PR-u izdanja): potpuna matrica, uključujući E2E ×9,
+  artefakt paketa + osnovnu provjeru pokretanja tarballa, pokrivenost/pragove.
 
-- **Po PR-u** (`quality.yml` brza vrata): TIA-pogođeni testovi + puni unit 4-shard + vitest + lint paket + typecheck + integritet dokumenata/changelog-a.
-- **Po grupi/vrhu** (kontinuirani release-green): `--quick` TVRDA vrata pri svakom push-u na granu izdanja; puni `--with-build --full-ci` prolazi 3×/dnevno.
-- **Po izdanju** (`ci.yml` na PR-u izdanja): potpuna matrica uklj. E2E ×9, package-artifact + tarball boot-smoke, pokrivenost/ratchets.
-
-Ništa se ne validira manje nego prije — teška površina se samo pokreće po grupi/vrhu umjesto po PR-u, što uklanja O(N) povratnih putovanja.
+Ništa se ne provjerava manje nego ranije — zahtjevne provjere samo se pokreću po grupi/vrhu
+umjesto po PR-u, čime se uklanjaju O(N) povratni ciklusi.

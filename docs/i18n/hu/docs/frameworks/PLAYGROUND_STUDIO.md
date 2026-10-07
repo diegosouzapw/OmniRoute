@@ -190,14 +190,14 @@ Hitelesítés: opcionális (`REQUIRE_API_KEY`). A hibák kezelése a `buildError
 
 ## Hibaelhárítás
 
-| Tünet                                                | Ok                                       | Megoldás                                                                                                             |
-| ---------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| A Monaco szerkesztő nem jelenik meg az API lapon     | Az SSR betöltötte a Monacót              | Ellenőrizze, hogy az `ApiTab` a `dynamic(..., { ssr: false })` beállítást használja                                  |
-| Az összehasonlítási streamek egymás után indulnak el | A `Promise.all` helytelen használata     | Minden streamindítást egyetlen `Promise.all` hívásban kell elindítani                                                |
-| A metrikák `null` TTFT-értéket mutatnak              | Az első adatrész kezelője nincs bekötve  | Ellenőrizze, hogy a rendszer meghívja-e a `useStreamMetrics.onFirstChunk()` függvényt az SSE-olvasó ciklusban        |
-| Az előbeállítás nem marad meg                        | Az adatbázis-migráció nem futott le      | Futtassa az `npm run db:migrate` parancsot, vagy indítsa újra a szervert (a migráció indításkor automatikusan lefut) |
-| A prompt javítása 502-es hibát ad                    | Nincs modell beállítva a konfigurációban | A javítás előtt a felhasználónak meg kell adnia egy modellnevet a konfigurációs panelen                              |
-| Az exportált kód `MISSING_API_KEY` értéket mutat     | A helyőrző nincs beillesztve             | A `codeExport.ts` mindig az `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` értéket használja                           |
+| Tünet                                             | Ok                                       | Javítás                                                                                                        |
+| ------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| A Monaco szerkesztő nem jelenik meg az API lapon  | Az SSR betöltötte a Monacót              | Ellenőrizze, hogy az `ApiTab` a `dynamic(..., { ssr: false })` megoldást használja                             |
+| Az összehasonlítási streamek egymás után indulnak | A `Promise.all` hibás használata         | Minden stream indítását egyetlen `Promise.all` hívásban kell elindítani                                        |
+| A metrikák `null` TTFT-értéket mutatnak           | Az első darab kezelője nincs bekötve     | Ellenőrizze, hogy a rendszer meghívja-e a `useStreamMetrics.onFirstChunk()` függvényt az SSE-olvasó ciklusában |
+| A beállításkészlet nem marad meg                  | Az adatbázis-migráció nem futott le      | Indítsa újra a szervert: a migrációk automatikusan lefutnak indításkor                                         |
+| A prompt javítása 502-es hibát ad                 | Nincs modell beállítva a konfigurációban | A javítás előtt a felhasználónak meg kell adnia egy modellnevet a konfigurációs panelen                        |
+| Az exportált kódban `MISSING_API_KEY` jelenik meg | A helyőrző nincs beszúrva                | A `codeExport.ts` mindig az `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` értéket használja                     |
 
 ---
 

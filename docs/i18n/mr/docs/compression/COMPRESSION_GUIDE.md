@@ -451,8 +451,7 @@ const { messages: aged, saved } = applyAging(messages, {
 `messages` असलेल्या बॉडीवर, आशय बायपास (`shouldBypassCavemanOutputMode()` हा
 `open-sse/services/compression/outputMode.ts` मधील) शेवटचे तीन संदेश तपासतो आणि
 ते सुरक्षा, अपरिवर्तनीय कृती, स्पष्टीकरण किंवा क्रम-संवेदनशील कीवर्डशी जुळल्यास
-संपूर्ण टर्नसाठी शैली वगळतो. डॅशबोर्डचे **Auto-Clarity Bypass** टॉगल
-(`cavemanOutputMode.autoClarity`) जसे सेट केलेले असेल, त्यानुसार बायपास चालतो.
+संपूर्ण टर्नसाठी शैली वगळतो. डॅशबोर्डचे **Auto-Clarity Bypass** टॉगल (`cavemanOutputMode.autoClarity`) चालू असताना बायपास चालतो, जो डीफॉल्ट आहे; टॉगल बंद असताना निवडलेल्या शैली त्या टर्नवरही लागू होतात.
 
 बायपासने टर्नला अनुमती दिल्यास, `placeSystemInstruction()` (त्याच फाइलमधील), जे
 कधीही नवीन `messages[0]` तयार करत नाही, त्याला सापडणाऱ्या खालीलपैकी पहिल्या ठिकाणी ब्लॉक ठेवते:

@@ -219,8 +219,7 @@ de ameaças explícito: "o servidor assina, o cliente verifica e o operador ader
 
 ## Perfil de compilação: `minimal`
 
-Para os utilizadores que necessitem de um artefacto compatível com o Socket,
-compile com:
+Para utilizadores que necessitem de um artefacto compatível com o Socket, compile com:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
@@ -240,8 +239,7 @@ Cada stub exporta a mesma interface, mas todas as funções lançam um
 módulo desativado devolvem HTTP 503 com uma mensagem clara, em vez de ativarem
 o caminho de código sensível.
 
-O bundle resultante destina-se a ser publicado como `omniroute-secure`. Consulte
-`docs/ops/PUBLISHING_SECURE.md` para obter as instruções de publicação.
+O bundle resultante destina-se a ser publicado como `omniroute-secure`.
 
 ---
 

@@ -37,33 +37,33 @@ OmniRoute'i levinumad probleemid ja lahendused.
 
 ---
 
-### Tasuta teenusepakkujate päringusageduse piirangud (429 / 400 / 401)
+### Tasuta teenusepakkujate kiirusepiirangud (429 / 400 / 401)
 
-**Sümptom**: Kui kasutad `model: "auto"` koos tasuta või autentimist mittenõudvate teenusepakkujatega (opencode, auggie jne), saad vastuste asemel aeg-ajalt veateate `HTTP 429`, `400` või `401`. Kui proovid mõni hetk hiljem sama päringut uuesti, õnnestub see, kuid automatiseerimine (cron-tööd, agendid, skriptid) katkeb esimese tõrke korral.
+**Sümptom**: Kui kasutate seadet `model: "auto"` tasuta/autentimiseta teenusepakkujatega (opencode, auggie jne), saate vastuste asemel aeg-ajalt veateate `HTTP 429`, `400` või `401`. Päringud õnnestuvad, kui proovite sama viipa mõni hetk hiljem uuesti, kuid automatiseerimine (cron-tööd, agendid, skriptid) katkeb esimese tõrke korral.
 
-**Algpõhjus**: Korraga kuhjuvad kolm sõltumatut tõrkerežiimi:
+**Algpõhjus**: Kolm sõltumatut tõrkerežiimi võimendavad üksteist:
 
-1. **Teenusepakkuja päringusageduse piirang (`429`)**: Tasuta paketid võivad rakendada ajavahemikupõhist kvooti. Paralleelpäringute puhang ammendab selle, mistõttu keeldutakse järgmisest päringust kuni ajavahemiku lähtestamiseni.
-2. **Katkine mudel otseedastuses (`400`/`401`)**: `auto/*` kogumid võivad sisaldada `opencode`-i otseedastusmudeleid, mis on kataloogis registreeritud, kuid millel puuduvad kehtivad identimisteabe andmed (nt `oc/north-mini-code-free` → `401`). Automaatne marsruuter proovib üht neist, ebaõnnestub ja viga levib enne, kui varuvariandile lülitumine jõuab rakenduda.
-3. **Samaaegsuse võimendus (koormuse all `429`)**: Kui mitu agendi- või cron-seanssi kasutavad korraga valikut `auto`, ületab päringute kogusagedus tasuta teenusepakkujate taluvuspiiri, mistõttu märgitakse ka õiguspärased päringud kuritarvitusena.
+1. **Teenusepakkuja kiirusepiirang (`429`)**: Tasuta paketid võivad rakendada ajavahemikupõhist kvooti. Paralleelpäringute puhang ammendab selle, mistõttu järgmine päring lükatakse tagasi kuni ajavahemiku lähtestamiseni.
+2. **Vigane mudel läbivasuunamises (`400`/`401`)**: `auto/*` kogumid võivad sisaldada `opencode`-i läbivasuunamismudeleid, mis on kataloogis registreeritud, kuid millel puuduvad toimivad autentimisandmed (nt `oc/north-mini-code-free` → `401`). Automaatne marsruuter proovib üht neist, see ebaõnnestub ja viga edastatakse enne, kui varumehhanism rakendub.
+3. **Samaaegsuse võimendumine (`429` koormuse all)**: Kui mitu agendi-/cron-seanssi kasutavad korraga `auto` marsruuti, ületab päringute kogusagedus tasuta teenusepakkujate taluvuse, mistõttu õiguspärased päringud märgitakse kuritarvitusena.
 
-**Kontrollitud lahendus (kogukonna teatatud, 2026-08-10)**: kohanda kolme keskkonnamuutujat, et roteerimine, samaaegsuse juhtimine ja varuvariandile lülitumine leevendaksid tasuta paketi ebastabiilsust, mitte ei põhjustaks selle tõttu töö katkemist:
+**Kontrollitud parandus (kogukonna teatatud, 2026-08-10)**: seadistage kolm keskkonnamuutujat nii, et roteerimine, samaaegsuse piiramine ja varumehhanism leevendaksid tasuta pakettide ebastabiilsust, selle asemel et selle tõttu katkeda:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # liigu tõrke 400/401 korral järgmise mudeli või teenusepakkuja juurde (jätab katkised otseedastusmudelid vahele)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # raskekaaluliste päringute vastuvõtu selgesõnaline ülempiir (vaikimisi määramata: päringute arvu piirang puudub, vt allolevat märkust)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # pikem piiratud ooteaeg raskekaaluliste päringute läbilaskevõime vabanemiseks, mitte kohene uuesti proovitav tõrge 503
+export OMNIROUTE_ROTATE_ON_400=true           # liigu 400/401 korral teisele mudelile/teenusepakkujale (jätab vigased läbivasuunamismudelid vahele)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # suure koormusega päringute vastuvõtu selgesõnaline ülempiir (vaikimisi määramata: päringute arvu piirang puudub, vt allolevat märkust)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # pikenda piiratud ooteaega aeglaste ülesvooluteenuste jaoks üle RATE_LIMIT_MAX_WAIT_MS vaikeväärtuse
 ```
 
-Määra need OmniRoute'i protsessi keskkonnas (deemonis, näiteks LaunchAgenti plist-faili või käsu `systemctl edit` kaudu) ja taaskäivita seejärel OmniRoute. Roteerimislipp on kõige mõjusam hoob: see muudab lõpliku tõrke läbipaistvaks korduskatseks kogumi töötava teenusepakkuja kaudu.
+Määrake need OmniRoute'i protsessi keskkonnas (deemonis, nt LaunchAgenti plist-faili või `systemctl edit` kaudu) ja seejärel taaskäivitage OmniRoute. Roteerimislipp on kõige suurema mõjuga abinõu: see muudab täieliku tõrke läbipaistvaks korduskatseks kogumis oleva toimiva teenusepakkuja kaudu.
 
-**Märkus**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` piirab korraga töötavate raskekaaluliste ehk pika kontekstiga päringute arvu; see piir on vastuvõtulüüs, mitte teenusepakkuja päringusageduse piiraja. **#503-fanout värskendus:** seda muutujat ei määrata enam vaikimisi (nüüd rakendub see ainult siis, kui see on selgesõnaliselt seadistatud, nagu ülal) — raskekaaluliste päringute vastuvõttu piirab selle asemel automaatselt tuletatud baidieelarve (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), mis kohandub hosti tegeliku mälupiiranguga. Seetõttu peaks värskes juurutuses esinema palju vähem tõrkega `503 chat_admission_busy` tagasilükatud päringuid, ilma et seda muutujat üldse määrataks; selle selgesõnaline määramine siin toimib endiselt täpselt dokumenteeritud viisil. Selgesõnaliselt määratud baidieelarve alampiir on 8 MiB ja ülempiir 2 GiB. Tõrge `413 body_exceeds_budget` ei ole ajutine: suurenda baidieelarvet, vähenda väärtust `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` või suurenda protsessi mälupiirangut. Koormuse vähendamine põhjusega `inflight_bytes_budget` tuleneb ajutisest ressursikonkurentsist ja päringut saab uuesti proovida. Teenusepakkujapõhiseid päringusageduse piiranguid (`open-sse/services/rateLimitManager.ts`) juhivad eraldi `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` ja `RATE_LIMIT_AUTO_ENABLE` — vaata faili `.env.example`.
+**Märkus**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` piirab samaaegselt käitatavate suure koormusega ehk pika kontekstiga päringute arvu; see piirang on vastuvõtuvärav, mitte teenusepakkuja kiirusepiiraja. **#503-fanout värskendus:** seda muutujat ei määrata enam vaikimisi (nüüd rakendub see ainult siis, kui see on selgesõnaliselt seadistatud, nagu ülal) — suure koormusega päringute vastuvõttu juhib selle asemel automaatselt tuletatud baitide eelarve (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), mis skaleerub hosti tegeliku mälupiirangu järgi. Seetõttu peaks värske juurutus ilma seda muutujat üldse määramata saama märksa vähem `503 chat_admission_busy` tagasilükkamisi; selle selgesõnaline seadistamine siin toimib endiselt täpselt dokumenteeritud viisil. Selgesõnaliselt määratud baitide eelarve alampiir on 8 MiB ja ülempiir 2 GiB. `413 body_exceeds_budget` ei ole ajutine tõrge: suurendage baitide eelarvet, vähendage väärtust `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` või suurendage protsessi mälupiirangut. `inflight_bytes_budget`-i põhjustatud koormuse vähendamine tuleneb ajutisest ressursikonkurentsist ja selle korral saab päringut uuesti proovida. Teenusepakkuja taseme kiirusepiiramist (`open-sse/services/rateLimitManager.ts`) juhivad eraldi `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` ja `RATE_LIMIT_AUTO_ENABLE` — vt `.env.example`.
 
-**Kuidas kontrollida, et see töötas**: käivita oma agent/cron kaks korda kiiresti järjest ja veendu, et mõlemad käivitused õnnestuvad. Enne parandust annab teine käivitus tavaliselt vea `429`/`401`. Pärast parandust proovitakse ebaõnnestunud päringuid (kui neid esineb) läbipaistvalt uuesti ja kutse viiakse lõpule. Samuti võid käivitada `curl /monitoring/health` ning jälgida teenusepakkuja ühenduste välja `rateLimitedUntil` ja mõjutatud teenusepakkujate välja `circuitBreakers.providerBreakers[].state` — olek on üks järgmistest: `CLOSED`, `DEGRADED`, `OPEN` või `HALF_OPEN` (vt `src/shared/utils/circuitBreaker.ts`) ning pidevalt ebaõnnestuva teenusepakkuja olek muutub `CLOSED → DEGRADED → OPEN`, enne kui lähtestusaken lubab proovipäringu läbi (`HALF_OPEN`).
+**Kuidas kontrollida, kas parandus toimis**: käivitage oma agent/cron kaks korda kiiresti järjest ja veenduge, et mõlemad käivitused õnnestuvad. Enne parandust annab teine käivitus tavaliselt vea `429`/`401`. Pärast parandust proovitakse tõrkeid (kui neid esineb) läbipaistvalt uuesti ja väljakutse viiakse lõpule. Samuti võite käivitada `curl /monitoring/health` ning jälgida teenusepakkuja ühenduste välja `rateLimitedUntil` ja mõjutatud teenusepakkujate välja `circuitBreakers.providerBreakers[].state` — olek on üks järgmistest: `CLOSED`, `DEGRADED`, `OPEN` või `HALF_OPEN` (vt `src/shared/utils/circuitBreaker.ts`) ning pidevalt tõrkuv teenusepakkuja läheb olekusse `CLOSED → DEGRADED → OPEN`, enne kui lähtestamisaken lubab proovipäringu läbi (`HALF_OPEN`).
 
-**Kui näed endiselt viga 429**: selle teenusepakkuja aktiivse konto _kvoot_ (mitte ainult päringusageduse piirang) on tegelikult ammendunud. Lisa OmniRoute’i juhtpaneelil sama teenusepakkuja jaoks teine konto: Providers → Accounts, või lisa mõni teine tasuta teenusepakkuja (nt `routeway`, `auggie`). Vahetamine aitab ainult ajutiste sageduspiirangu ning vigade 400/401 korral; kvoodi täielik ammendumine nõuab teisi identimisteavet või teist teenusepakkujat.
+**Kui näete endiselt viga 429**: selle teenusepakkuja aktiivne konto on oma _kvoodi_ tegelikult ammendanud (tegu pole pelgalt kiirusepiiranguga). Lisage OmniRoute'i juhtpaneelil sama teenusepakkuja jaoks teine konto: Providers → Accounts, või kaasake mõni teine tasuta teenusepakkuja (nt `routeway`, `auggie`). Roteerimine aitab ainult ajutiste kiirusepiirangu-/400-/401-tõrgete korral; täielikult ammendatud kvoot nõuab teisi autentimisandmeid või teist teenusepakkujat.
 
-**Kui näed nägemismudelites (`auto/vision`, `bazaarlink/*`) viga 403**: ühendatud kontol puudub nägemisfunktsiooni sisaldav tasuline pakett või API-võtmel pole piisavaid õigusi. Veendu teenusepakkuja juhtpaneelil, et võtme õiguste ulatus hõlmab nägemis-/multimodaalseid funktsioone, või ühenda tasulise paketiga konto ja kasuta seda jätkuvalt nägemismudelite sihtkontona.
+**Kui näete visioonimudelite (`auto/vision`, `bazaarlink/*`) korral viga 403**: ühendatud kontol puudub visiooni sisaldav tasuline pakett või API-võtmel pole piisavaid õigusi. Kontrollige teenusepakkuja juhtpaneelil, et võtme ulatus hõlmaks visiooni/multimaalsust, või ühendage tasulise paketiga konto ja säilitage see visioonipäringute sihtkohana.
 
 ---
 
@@ -546,15 +546,15 @@ Vormingute teisendamise probleemide silumiseks kasutage jaotist **Töölaud → 
 
 ## Töökindluse sätted
 
-### Automaatne kiiruspiirang ei käivitu
+### Automaatne kiirusepiirang ei rakendu
 
-- Automaatne kiiruspiirang kehtib ainult API-võtme pakkujatele (mitte OAuthi/tellimuse korral)
-- Veenduge, et jaotises **Sätted → Töökindlus → Pakkuja profiilid** oleks automaatne kiiruspiirang lubatud
+- Automaatne kiirusepiirang rakendub ainult API-võtme pakkujatele (mitte OAuthi/tellimuse puhul)
+- Veenduge, et **Settings → Resilience → Provider Profiles** all oleks automaatne kiirusepiirang lubatud
 - Kontrollige, kas pakkuja tagastab olekukoode `429` või päiseid `Retry-After`
 
-### Eksponentsiaalse viivituse häälestamine
+### Eksponentsiaalse tagasivõtu häälestamine
 
-Pakkuja profiilid toetavad järgmisi sätteid:
+Pakkujaprofiilid toetavad järgmisi sätteid:
 
 - **Baasviivitus** — Esialgne ooteaeg pärast esimest tõrget (vaikimisi: 1s)
 - **Maksimaalne viivitus** — Ooteaja ülempiir (vaikimisi: 30s)
@@ -562,24 +562,25 @@ Pakkuja profiilid toetavad järgmisi sätteid:
 
 ### Päringutulva vältimine
 
-Kui palju samaaegseid päringuid jõuab kiiruspiiranguga pakkujani, kasutab OmniRoute päringute järjestamiseks ja aheltõrgete vältimiseks muteksit koos automaatse kiiruspiiranguga. API-võtme pakkujate puhul toimub see automaatselt.
+Kui palju samaaegseid päringuid jõuab kiirusepiiranguga pakkujani, kasutab OmniRoute päringute järjestamiseks ning kuhjuvate tõrgete vältimiseks mutex-lukku ja automaatset kiirusepiirangut. API-võtme pakkujate puhul toimub see automaatselt.
 
 ### Vestluspäringud nurjuvad veaga 503 / chat_admission_busy
 
 **Sümptomid:**
 
-- Vestluse lõpetamiste lõpp-punkt tagastab uuesti proovitava `503` vastuse, mille veakood on
+- Vestluse lõpuleviimise lõpp-punkt tagastab korratava `503` vastuse, mille veakood on
   `chat_admission_busy`.
-- Vastus sisaldab päist `Retry-After`. Alates muudatusest #12135 tuletatakse väärtus vaadeldud
-  hõivatusest — valitakse suurem väärtus ajast, mille päring on juba aknas `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`
-  oodanud, ja ajast, mille jooksul praeguseid suure koormusega päringute lube on hoitud — ümardatakse üles
-  täissekunditeni ning piiratakse 60 sekundiga. Jõudeolekus oleva pääsu korral säilivad varasemad
-  miinimumid: baidipõhisel teel 2 sekundit, struktuuripõhisel teel 1 sekund (viimane sisaldab ka
+- Vastus sisaldab päist `Retry-After`. Alates versioonist #12135 tuletatakse väärtus täheldatud
+  hõivatusest — kasutatakse suuremat väärtust ajast, mille päring on juba aknas
+  `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` oodanud, ja ajast, mille jooksul praeguseid suure koormusega
+  reserveeringuid on hoitud — ümardatuna üles täissekunditeni ning piiratud 60 sekundiga.
+  Jõudeolekus pääsuvärava puhul säilitatakse varasemad miinimumid: baidipõhisel teel 2 sekundit,
+  struktuuripõhisel teel 1 sekund (mis sisaldab ka väärtust
   `reason: "structure_limit"`).
-- See võib juhtuda ajal, mil mõni teine suure koormusega vestlus või kaua kestev voogvastus on endiselt
-  pooleli.
+- See võib juhtuda ajal, mil mõni teine suure koormusega vestlus või kaua kestev voogvastus on
+  endiselt pooleli.
 
-Baidipõhise vastuse keha on:
+Baidipõhise vastuse keha on järgmine:
 
 ```json
 {
@@ -591,54 +592,56 @@ Baidipõhise vastuse keha on:
 }
 ```
 
-Struktuuripõhine vastus kasutab sama tüüpi ja koodi ning sisaldab teadet
+Struktuuripõhine vastus kasutab sama tüüpi ja koodi ning sõnumit
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 ja väärtust `reason: "structure_limit"`.
-Vaikimisi lävendite korral on päring struktuuriliselt mahukas, kui selles on vähemalt `200` sõnumit,
-vähemalt `64` tööriista või vähemalt `32,000` hinnangulist luba või kui piiratud struktuurihinnang
-ammendab oma piirid: `10,000` külastatud sõlme või sügavus `12`.
+Vaikimisi lävendite korral on päring struktuuriliselt suure koormusega, kui see sisaldab vähemalt
+`200` sõnumit, vähemalt `64` tööriista või vähemalt `32,000` hinnangulist luba või kui piiratud
+struktuurihinnang ammendab oma piirid: `10,000` külastatud sõlme või sügavus `12`.
 
-**Põhjus:** See on OmniRoute'i tahtlik koormuse vähendamine, mitte ülesvoolu pakkuja tõrge.
-Iga protsess kasutab protsessisisest kaitsemehhanismi, et reserveerida piiratud mahukate päringute
-töötlemisvõimsus enne suure päringukeha mälus hoidmist ja parsimist. Mahuka päringu luba jääb kehtima
-kogu SSE-vastuse eluea jooksul.
+**Põhjus:** See on OmniRoute'i sisene tahtlik koormuse vähendamine, mitte ülesvoolu pakkuja tõrge.
+Iga protsess kasutab protsessikohalikku kaitsemehhanismi, et reserveerida piiratud suure koormuse
+taluvus enne suure päringukeha säilitamist ja parsimist. Suure koormuse reserveering jääb jõusse
+kogu SSE-vastuse elueaks.
 
-**#503-hargnemine:** enne seda parandust piiras kaitsemehhanism samaaegsust fikseeritud päringute ARVU alusel
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, vaikimisi `1`), sõltumata hosti mälumahust, mistõttu programmeerimisagentide
-hargnemine (mitu alamagenti/CLI-d, päringukehad tavaliselt > 256 KB) langetas tegeliku samaaegsuse
-ligikaudu ühele ja põhjustas täiesti tavapärase koormuse korral 503-tõrkeid. Nüüd häälestub kaitsemehhanism
-automaatselt: seda juhib automaatselt tuletatud sisendi BAIDIEELARVE (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`),
-mille suurus põhineb protsessi tegelikul mälupiirangul, ning see arvestab ka reaalajas ressursisurve
-signaali — seega vähendab see koormust ainult siis, kui host on tõepoolest mälusurve all, mitte pelgalt
-seetõttu, et korraga saabus rohkem kui üks mahukas päring. Vana arvuline piirang
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) kehtib endiselt, kuid ainult siis, kui määrate selle sõnaselgelt.
+**#503-fanout:** enne seda parandust piiras kaitsemehhanism samaaegsust fikseeritud päringute ARVU
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, vaikimisi `1`) järgi sõltumata hosti mälust, mistõttu
+programmeerimisagentide hargnemine (mitu alamagenti/CLI-d, kehad tavaliselt > 256 KB) vähendas
+tegeliku samaaegsuse ligikaudu ühele ning põhjustas täiesti tavapärase koormuse korral 503-tõrkeid.
+Nüüd häälestub kaitsemehhanism ise: seda juhib automaatselt tuletatud sisestuse BAIDIeelarve
+(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), mille suurus põhineb protsessi tegelikul mälupiirangul,
+ning see arvestab ka reaalajas ressursisurve signaali — seega vähendab see koormust ainult siis,
+kui host on tõepoolest mälusurve all, mitte pelgalt seetõttu, et korraga saabus rohkem kui üks
+raske päring. Vana arvuline piirang (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) kehtib endiselt, kuid
+ainult siis, kui määrate selle sõnaselgelt.
 
-Kui töötlemisvõimsus on hõivatud, ootab mahukas päring enne uuesti proovitava `503` vastuse tagastamist
-kuni `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (vaikimisi `2000`, väärtus `0` keelab ootamise), et koht vabaneks.
-Piiratud ooteaeg võimaldab agentidel põhinevatel klientidel
-(OpenCode, Claude Code, Cursor), mis hargnevad samaaegselt mahukateks alampäringuteks, päringutulva
-järjestada, selle asemel et kulutada kogu uuesti proovimise limiit kohe saadud tagasilükkamistele ja
-katkestada ülesande täitmine. Mahukate päringute lubade praegune hõivatus, määratud baidieelarve ja
-reaalajas surve tugevus kuvatakse lõpp-punktis `GET /api/monitoring/health` → `chatAdmission`
-(`inflightBytes`, `maxInflightBytes`, `budgetSource`, `pressureSeverity`, `countCapEnabled`) — kontrollige
-neid enne mis tahes keskkonnamuutuja muutmist.
-Sätted → Töökindlus → Päringujärjekord → Samaaegsed päringud ei juhi seda; see säte
-haldab eraldi pakkuja päringujärjekorra mehhanismi.
+Kui ressursid on hõivatud, ootab suure koormusega päring kõigepealt kuni
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (vaikimisi `RATE_LIMIT_MAX_WAIT_MS`; `0` keelab ootamise), et mõni koht vabaneks,
+ning alles seejärel tagastab korratava `503` vastuse. Piiratud ooteaeg on vajalik selleks, et
+agentidel põhinevad kliendid (OpenCode, Claude Code, Cursor), mis hargnevad samaaegselt suure
+koormusega alampäringuteks, järjestaksid päringutulva selle asemel, et kulutada kogu korduskatsete
+eelarve kohestele tagasilükkamistele ja ülesande keskel töö lõpetada.
+Suure koormusega reserveeringute praegune hõivatus, arvutatud baidieelarve ja reaalajas surve
+raskusaste on nähtavad aadressil `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`,
+`maxInflightBytes`, `budgetSource`, `pressureSeverity`, `countCapEnabled`) — kontrollige neid enne
+mis tahes keskkonnamuutuja muutmist.
+Settings → Resilience → Request Queue → Concurrent Requests seda ei juhi; see säte
+reguleerib eraldi pakkuja päringujärjekorra mehhanismi.
 
-**Parandus:**
+**Lahendus:**
 
-1. Proovige esmalt uuesti. Kliendid peaksid järgima päist `Retry-After` ja kasutama viivitusega
-   korduskatseid, selle asemel et päringut kohe korrata.
+1. Proovige esmalt uuesti. Kliendid peaksid järgima päist `Retry-After` ja kasutama tagasivõttu,
+   mitte kordama päringut kohe.
 2. Enne millegi häälestamist kontrollige `/api/monitoring/health` → `chatAdmission`. `countCapEnabled:
 false` ja piisavalt suur `maxInflightBytes` tähendavad, et automaatselt tuletatud eelarve juba
-   toimib; `pressureSeverity` väärtusega `high`/`critical` tähendab, et hostil on tõepoolest vähe mälu —
-   seda ei saa parandada vastuvõttu juhtiva keskkonnamuutujaga, vaid vaja on rohkem RAM-i või väiksemat töökoormust.
+   toimib; `pressureSeverity` väärtus `high`/`critical` tähendab, et hostil on tõepoolest vähe mälu —
+   seda ei saa parandada vastuvõtu keskkonnamuutujaga, vaid vaja on rohkem RAM-i või väiksemat töökoormust.
 3. Ainult juhul, kui `/api/monitoring/health` näitab, et automaatselt tuletatud eelarve on teie
-   hosti jaoks tõepoolest liiga väike (harv olukord — see skaleerub juba konteinerist füüsilise serverini),
-   alistage see otse muutujaga `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, selle asemel et naasta päringute arvul
-   põhineva pärandpiirangu juurde.
+   hosti jaoks tõepoolest liiga väike (haruldane — see skaleerub juba konteinerist füüsilise serverini),
+   alistage see otse muutujaga `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, selle asemel et kasutada
+   pärandlahendusena päringute arvul põhinevat piirangut.
 
-Ametlikud vastuvõtusätted leiate [keskkonnamuutujate teatmikust](../reference/ENVIRONMENT.md#4-security--authentication).
+Ametlikud vastuvõtusätted leiate [keskkonnamuutujate viitest](../reference/ENVIRONMENT.md#4-security--authentication).
 
 ---
 

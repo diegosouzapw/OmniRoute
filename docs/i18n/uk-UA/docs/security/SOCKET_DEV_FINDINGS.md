@@ -216,28 +216,27 @@ rawBody)`) перед розбором JSON. Якщо секрет задано,
 
 ## Профіль збірки: `minimal`
 
-Користувачі, яким потрібен сумісний із Socket артефакт, можуть виконати збірку за допомогою:
+Для користувачів, яким потрібен артефакт, сумісний із Socket, виконайте збірку за допомогою:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack-плагін `NormalModuleReplacementPlugin` замінює чотири модулі псевдореалізаціями:
+Webpack-плагін `NormalModuleReplacementPlugin` замінює чотири модулі псевдонімами на заглушки:
 
-| Модуль                                      | Псевдореалізація                                 |
+| Модуль                                      | Заглушка                                         |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Кожна псевдореалізація експортує той самий інтерфейс, але кожна функція під час виконання
-генерує виняток `featureDisabledError(name)`. Маршрути, що залежать від вимкненого
+Кожна заглушка експортує той самий інтерфейс, але кожна функція під час виконання генерує помилку
+`featureDisabledError(name)`. Маршрути, які залежать від вимкненого
 модуля, повертають HTTP 503 із чітким повідомленням замість активації
-чутливого шляху виконання коду.
+шляху виконання чутливого коду.
 
-Отриманий пакет призначено для публікації як `omniroute-secure`. Інструкції
-з публікації див. у `docs/ops/PUBLISHING_SECURE.md`.
+Отриманий пакет призначений для публікації як `omniroute-secure`.
 
 ---
 

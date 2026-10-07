@@ -246,11 +246,10 @@ curl -X PUT http://localhost:20128/api/settings/feature-flags \
 
 `OMNIROUTE_EMERGENCY_FALLBACK`（カテゴリ `runtime`、デフォルト `true`）は、
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts)
-の緊急無料フォールバック経路を制御します。有効な場合、予算を使い果たしたリクエストは
-即座に失敗する代わりに、無料のフォールバックプロバイダー/モデルにルーティングされます。
-この動作を無効にし、予算を使い果たしたリクエストを失敗させるには、ダッシュボードのトグル、
-DB オーバーライド、または `OMNIROUTE_EMERGENCY_FALLBACK` 環境変数を使用して、
-`false`（または `0`）に設定します。（PR #3741 / #3752 でダッシュボードのトグルとして公開。）
+にある緊急時の無料フォールバック経路を制御します。有効にすると、予算を使い切ったリクエストは即座に失敗する代わりに、無料のフォールバックプロバイダー／モデルへルーティングされます。この動作を無効にし、予算を使い切ったリクエストを失敗させるには、ダッシュボードのトグル、DB オーバーライド、または環境変数 `OMNIROUTE_EMERGENCY_FALLBACK` を使用して、`false`（または `0`）に設定します。（PR #3741 / #3752 でダッシュボードのトグルとして追加されています。）
+
+このフォールバックによって処理されたレスポンスには、
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>` が含まれるため、クライアントは `X-OmniRoute-Provider` とリクエストを比較しなくても、リクエストが再ルーティングされたことを判別できます。このヘッダーは、それ以外のすべてのレスポンスには含まれません。
 
 ---
 

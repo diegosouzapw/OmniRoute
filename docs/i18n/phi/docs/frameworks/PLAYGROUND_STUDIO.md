@@ -190,14 +190,14 @@ Auth: opsyonal (`REQUIRE_API_KEY`). Mga error sa pamamagitan ng `buildErrorBody(
 
 ## Pag-troubleshoot
 
-| Sintomas                                               | Sanhi                                     | Solusyon                                                                                                     |
-| ------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Hindi lumalabas ang Monaco editor sa API tab           | Na-load ng SSR ang Monaco                 | Tiyaking gumagamit ang `ApiTab` ng `dynamic(..., { ssr: false })`                                            |
-| Sunod-sunod na gumagana ang compare streams            | Maling paggamit ng `Promise.all`          | Dapat simulan ang lahat ng stream sa iisang tawag sa `Promise.all`                                           |
-| Nagpapakita ang metrics ng `null` na TTFT              | Hindi nakakonekta ang first chunk handler | Tiyaking tinatawag ang `useStreamMetrics.onFirstChunk()` sa SSE reader loop                                  |
-| Hindi nananatili ang preset                            | Hindi napagana ang DB migration           | Patakbuhin ang `npm run db:migrate` o i-restart ang server (awtomatikong tumatakbo ang migration sa startup) |
-| Nagbabalik ng 502 ang improve prompt                   | Hindi nakatakda ang model sa Config       | Dapat maglagay ang user ng pangalan ng model sa Config pane bago mag-improve                                 |
-| Nagpapakita ang na-export na code ng `MISSING_API_KEY` | Hindi naipasok ang placeholder            | Palaging ginagamit ng `codeExport.ts` ang `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                       |
+| Sintomas                                               | Sanhi                                     | Solusyon                                                                               |
+| ------------------------------------------------------ | ----------------------------------------- | -------------------------------------------------------------------------------------- |
+| Hindi lumalabas ang Monaco editor sa API tab           | Na-load ng SSR ang Monaco                 | Tiyaking gumagamit ang `ApiTab` ng `dynamic(..., { ssr: false })`                      |
+| Sunod-sunod na tumatakbo ang mga compare stream        | Maling paggamit ng `Promise.all`          | Dapat ilunsad ang lahat ng stream sa iisang tawag sa `Promise.all`                     |
+| Nagpapakita ang metrics ng `null` na TTFT              | Hindi nakakonekta ang first chunk handler | Tiyaking tinatawag ang `useStreamMetrics.onFirstChunk()` sa SSE reader loop            |
+| Hindi nananatili ang preset                            | Hindi naisagawa ang DB migration          | I-restart ang server: awtomatikong isinasagawa ang mga migration sa startup            |
+| Nagbabalik ng 502 ang improve prompt                   | Hindi nakatakda ang model sa Config       | Dapat maglagay ang user ng pangalan ng model sa Config pane bago mag-improve           |
+| Nagpapakita ang na-export na code ng `MISSING_API_KEY` | Hindi naipasok ang placeholder            | Palaging ginagamit ng `codeExport.ts` ang `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` |
 
 ---
 

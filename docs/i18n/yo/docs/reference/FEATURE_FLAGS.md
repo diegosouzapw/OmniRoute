@@ -255,16 +255,21 @@ curl -X PUT http://localhost:20128/api/settings/feature-flags \
 
 ---
 
-## Ìpadàsẹ́yìn Ìnáwó Pàjáwìrì
+## Ọ̀nà Àfẹ́yinti Pajawiri fún Ìnáwó
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (ẹ̀ka `runtime`, iye àìyípadà `true`) ń ṣàkóso
-ọ̀nà ìpadàsẹ́yìn ọ̀fẹ́ pàjáwìrì nínú
+`OMNIROUTE_EMERGENCY_FALLBACK` (ẹ̀ka `runtime`, àìpé `true`) ń ṣàkóso
+ọ̀nà àfẹ́yinti ọ̀fẹ́ pajawiri nínú
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Nígbà tí ó bá ṣiṣẹ́, àwọn ìbéèrè tó ti lo gbogbo ìnáwó wọn ni a máa darí sí
-olùpèsè/model ìpadàsẹ́yìn ọ̀fẹ́ dípò kí wọ́n kùnà pátápátá. Ṣètò rẹ̀ sí `false` (tàbí `0`) — nípasẹ̀
-bọ́tìnì ṣíṣí/pípa pátákó ìṣàkóso, ìṣàkóso iye DB, tàbí environment variable `OMNIROUTE_EMERGENCY_FALLBACK`
-— láti pa ìhùwàsí náà, kí àwọn ìbéèrè tí ìnáwó wọn ti tán sì kùnà.
-(A fi hàn gẹ́gẹ́ bí bọ́tìnì ṣíṣí/pípa lórí pátákó ìṣàkóso nínú àwọn PR #3741 / #3752.)
+Nígbà tí a bá mú un ṣiṣẹ́, àwọn ìbéèrè tí ìnáwó wọn bá tán ni a máa darí sí
+olùpèsè/àwòṣe àfẹ́yinti ọ̀fẹ́ dípò kí wọ́n kùnà pátápátá. Ṣètò rẹ̀ sí `false` (tàbí `0`) — nípasẹ̀
+bọ́tìnì ìṣàkóso lórí dashboard, àtúnṣe DB, tàbí oníyí àyíká
+`OMNIROUTE_EMERGENCY_FALLBACK` — láti pa ìhùwàsí náà, kí àwọn ìbéèrè tí
+ìnáwó wọn ti tán sì kùnà. (A ṣàfihàn rẹ̀ gẹ́gẹ́ bí bọ́tìnì ìṣàkóso lórí dashboard nínú PRs #3741 / #3752.)
+
+Ìdáhùn tí ọ̀nà àfẹ́yinti yìí pèsè ní
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, nítorí náà
+oníbàárà lè mọ̀ pé a tún darí rẹ̀ láìfi `X-OmniRoute-Provider` wé
+ìbéèrè rẹ̀ láti wá ìyàtọ̀. Àkọlé yìí kò sí nínú gbogbo ìdáhùn mìíràn.
 
 ---
 

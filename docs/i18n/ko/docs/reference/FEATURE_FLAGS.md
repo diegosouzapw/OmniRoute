@@ -251,11 +251,17 @@ curl -X PUT http://localhost:20128/api/settings/feature-flags \
 `OMNIROUTE_EMERGENCY_FALLBACK`(카테고리 `runtime`, 기본값 `true`)은
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts)의
 긴급 무료 폴백 경로를 제어합니다.
-활성화하면 예산을 모두 소진한 요청이 바로 실패하는 대신 무료 폴백
-제공자/모델로 라우팅됩니다. 이 동작을 비활성화하여 예산을 소진한 요청이 실패하도록 하려면
-대시보드 토글, DB 재정의 또는 `OMNIROUTE_EMERGENCY_FALLBACK`
-환경 변수를 통해 값을 `false`(또는 `0`)로 설정합니다.
-(PR #3741 / #3752에서 대시보드 토글로 제공됨.)
+활성화하면 예산을 모두 소진한 요청은 즉시 실패하는 대신 무료 폴백
+제공자/모델로 라우팅됩니다. 이 동작을 비활성화하여 예산을 소진한 요청이
+실패하도록 하려면 대시보드 토글, DB 재정의 또는
+`OMNIROUTE_EMERGENCY_FALLBACK` 환경 변수를 통해 값을 `false`(또는 `0`)로
+설정하세요. (PR #3741 / #3752에서 대시보드 토글로 제공됨.)
+
+이 폴백을 통해 제공된 응답에는
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`이
+포함되므로, 클라이언트는 `X-OmniRoute-Provider`를 요청과 비교하지 않고도
+요청이 재라우팅되었는지 확인할 수 있습니다. 이 헤더는 그 외 모든 응답에는
+포함되지 않습니다.
 
 ---
 

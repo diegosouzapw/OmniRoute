@@ -253,14 +253,9 @@ Egyszerre törli **az összes** DB felülbírálást, visszaállítva minden jel
 
 ## Vészhelyzeti költségkeret-tartalék
 
-Az `OMNIROUTE_EMERGENCY_FALLBACK` (kategória: `runtime`, alapértelmezett érték: `true`) vezérli a
-vészhelyzeti ingyenes tartalék útvonalat az
-[`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts)
-fájlban. Ha engedélyezve van, a költségkeretüket kimerítő kérések teljes meghiúsulás helyett
-egy ingyenes tartalék szolgáltatóhoz/modellhez lesznek irányítva. Állítsa `false` (vagy `0`) értékre — az
-irányítópult kapcsolóján, egy DB-felülíráson vagy az `OMNIROUTE_EMERGENCY_FALLBACK`
-környezeti változón keresztül — a viselkedés letiltásához és annak engedélyezéséhez, hogy a költségkeretüket kimerítő kérések
-meghiúsuljanak. (Irányítópult-kapcsolóként megjelenítve a #3741 / #3752 PR-ekben.)
+Az `OMNIROUTE_EMERGENCY_FALLBACK` (kategória: `runtime`, alapértelmezés: `true`) vezérli a vészhelyzeti ingyenes tartalék útvonalat az [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts) fájlban. Ha engedélyezve van, a költségkeretüket kimerítő kérések teljes meghiúsulás helyett egy ingyenes tartalék szolgáltatóhoz/modellhez lesznek irányítva. Állítsa `false` (vagy `0`) értékre — az irányítópult kapcsolóján, egy adatbázis-felülbíráláson vagy az `OMNIROUTE_EMERGENCY_FALLBACK` környezeti változón keresztül — a működés letiltásához és a költségkeretüket kimerítő kérések meghiúsulásának engedélyezéséhez. (Az irányítópult kapcsolójaként a #3741 / #3752 PR-ekben jelent meg.)
+
+Az ezen tartalék útvonalon kiszolgált válasz tartalmazza az `X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>` fejlécet, így a kliens anélkül állapíthatja meg, hogy a kérés át lett irányítva, hogy össze kellene hasonlítania az `X-OmniRoute-Provider` értékét a saját kérésével. A fejléc minden más válaszból hiányzik.
 
 ---
 

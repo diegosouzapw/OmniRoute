@@ -262,15 +262,21 @@ waarde. Retourneert `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Noodbudget Terugval
+## Noodfallback voor budget
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (categorie `runtime`, standaard `true`) regelt het
-nood-vrije-terugvalpad in
+`OMNIROUTE_EMERGENCY_FALLBACK` (categorie `runtime`, standaardwaarde `true`) regelt het
+gratis noodfallbackpad in
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Wanneer ingeschakeld, worden verzoeken die hun budget uitputten, doorgestuurd naar een gratis terugvalprovider/model
-in plaats van direct te falen. Stel het in op `false` (of `0`) — via de
-dashboardschakelaar, een DB-overschrijving, of de `OMNIROUTE_EMERGENCY_FALLBACK`
-omgevingsvariabele — om het gedrag uit te schakelen en verzoeken met uitgeput budget te laten falen. (Weergegeven als een dashboardschakelaar in PR's #3741 / #3752.)
+Wanneer dit is ingeschakeld, worden aanvragen waarvan het budget is uitgeput, doorgestuurd naar een
+gratis fallbackprovider/-model in plaats van direct te mislukken. Stel dit in op `false` (of `0`) — via de
+schakelaar op het dashboard, een DB-override of de omgevingsvariabele
+`OMNIROUTE_EMERGENCY_FALLBACK` — om dit gedrag uit te schakelen en aanvragen
+waarvan het budget is uitgeput te laten mislukken. (Beschikbaar als dashboardschakelaar in PR's #3741 / #3752.)
+
+Een respons die door deze fallback wordt geleverd, bevat
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, zodat een
+client kan zien dat deze is omgeleid zonder `X-OmniRoute-Provider` met zijn
+aanvraag te vergelijken. Bij alle andere responsen ontbreekt deze header.
 
 ---
 

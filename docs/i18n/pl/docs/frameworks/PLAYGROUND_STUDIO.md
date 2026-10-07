@@ -1,4 +1,9 @@
+# Playground Studio (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/PLAYGROUND_STUDIO.md) · 🇪🇹 [am](../../../am/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇦🇿 [az](../../../az/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇩🇰 [da](../../../da/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇩🇪 [de](../../../de/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇬🇷 [el](../../../el/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇪🇸 [es](../../../es/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇪🇪 [et](../../../et/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇱 [he](../../../he/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇩 [id](../../../id/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇹 [it](../../../it/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇰🇭 [km](../../../km/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇲🇲 [my](../../../my/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇳🇴 [no](../../../no/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇳 [or](../../../or/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇱🇰 [si](../../../si/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇮🇳 [te](../../../te/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇹🇭 [th](../../../th/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/PLAYGROUND_STUDIO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/PLAYGROUND_STUDIO.md)
+
 ---
+
 title: "Playground Studio"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -192,21 +197,21 @@ Auth: opcjonalny (`REQUIRE_API_KEY`). Błędy przez `buildErrorBody()` (Hard Rul
 
 ## Rozwiązywanie problemów
 
-| Objaw                                          | Przyczyna                               | Rozwiązanie                                                                        |
-| ---------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------- |
-| Edytor Monaco nie renderuje się w zakładce API | Monaco załadowany przez SSR             | Sprawdź, że `ApiTab` używa `dynamic(..., { ssr: false })`                          |
-| Streamy Compare odpalają się sekwencyjnie      | Błędne użycie `Promise.all`             | Wszystkie starty streamów muszą iść w jednym wywołaniu `Promise.all`               |
-| Metryki pokazują `null` TTFT                   | Handler pierwszego chunka niepodłączony | Sprawdź, że `useStreamMetrics.onFirstChunk()` jest wywoływane w pętli czytnika SSE |
-| Preset się nie zapisuje                        | Migracja DB nie została uruchomiona     | Uruchom `npm run db:migrate` albo zrestartuj serwer (migracja auto przy starcie)   |
-| Improve prompt zwraca 502                      | Model nieustawiony w Config             | Użytkownik musi wpisać nazwę modelu w panelu Config przed improve                  |
-| Eksport kodu pokazuje `MISSING_API_KEY`        | Placeholder nie wstawiony               | `codeExport.ts` zawsze używa `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`          |
+| Objaw                                               | Przyczyna                                   | Rozwiązanie                                                                        |
+| --------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Edytor Monaco nie jest renderowany na karcie API    | Monaco załadowano przez SSR                 | Sprawdź, czy `ApiTab` używa `dynamic(..., { ssr: false })`                         |
+| Strumienie porównawcze uruchamiają się sekwencyjnie | Nieprawidłowe użycie `Promise.all`          | Wszystkie strumienie muszą zostać uruchomione w jednym wywołaniu `Promise.all`     |
+| Metryki pokazują `null` dla TTFT                    | Nie podłączono obsługi pierwszego fragmentu | Sprawdź, czy `useStreamMetrics.onFirstChunk()` jest wywoływane w pętli odczytu SSE |
+| Ustawienie wstępne nie jest zachowywane             | Migracja bazy danych nie została wykonana   | Uruchom serwer ponownie: migracje są wykonywane automatycznie podczas uruchamiania |
+| Ulepszanie promptu zwraca błąd 502                  | Nie ustawiono modelu w konfiguracji         | Przed ulepszeniem użytkownik musi wprowadzić nazwę modelu w panelu konfiguracji    |
+| Wyeksportowany kod zawiera `MISSING_API_KEY`        | Nie wstawiono symbolu zastępczego           | `codeExport.ts` zawsze używa `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`          |
 
 ---
 
-## Referencje
+## Odniesienia
 
-- Master plan: `_tasks/features-v3.8.6/refactorpages/_orchestration/master-plan-group-C.md`
-- Feature plan: `_tasks/features-v3.8.6/refactorpages/17-playground-studio-redesign.plan.md`
-- Code export: `src/lib/playground/codeExport.ts`
-- Prompt improver: `src/lib/playground/promptImprover.ts`
-- Search Tools Studio: `docs/frameworks/SEARCH_TOOLS_STUDIO.md`
+- Plan główny: `_tasks/features-v3.8.6/refactorpages/_orchestration/master-plan-group-C.md`
+- Plan funkcji: `_tasks/features-v3.8.6/refactorpages/17-playground-studio-redesign.plan.md`
+- Eksport kodu: `src/lib/playground/codeExport.ts`
+- Ulepszanie promptów: `src/lib/playground/promptImprover.ts`
+- Studio narzędzi wyszukiwania: `docs/frameworks/SEARCH_TOOLS_STUDIO.md`

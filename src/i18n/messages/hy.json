@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Պրոքսի խմբերը և opencode-ի՝ ըստ հաշվի ռոտացիան դադարում են կրկին տրամադրել հենց նոր ձախողված պրոքսին (մերժված TCP ստուգում կամ դրա միջոցով ստացված 429)՝ յուրաքանչյուր գործընթացի համար սահմանված ժամանակահատվածով, որը յուրաքանչյուր կրկնության դեպքում կրկնապատկվում է՝ մինչև առավելագույն սահմանաչափը։ Պրոքսիի որևէ կարգավիճակ չի գրանցվում․ երբ բոլոր թեկնածուները մի կողմ են դրված, ընտրությունը մնում է անփոփոխ։ Լռելյայն միացված է․ `false`-ը վերականգնում է սովորական ընտրությունը։",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Այն մատակարարների համար, որոնց քվոտան բաշխվում է ըստ ելքային (egress) հասցեի, pool-ի այն անդամին, որը կիսում է վերջերս մերժված անդամի դիտարկված egress հասցեն, դասում է անմիջապես առողջ անդամներից ցածր։ Միայն հերթականություն, երբեք չի բացառվում։ Պահանջում է PROXY_SKIP_RECENTLY_FAILED, որը ստեղծում է իր կարդացած մերժման ազդանշանը։ Լռելյայն անջատված է. ընտրության հերթականությունը ճիշտ սովորական ռոտացիան է։",
   "featureFlagProxyPoolEgressObservationDescription": "Վահանակում՝ պրոքսի խմբի տակ, ցույց տալ, թե վերջին 24 ժ-ի ընթացքում քանի դիտարկված ելքային IP է սպասարկել դրա անդամներին, քանի միացում է օգտագործել դրանք, և մեկ IP-ի հետևում դիտված միացումների առավելագույն քանակը։ Միայն կարդալու համար է, հաշվարկվում է պրոքսիի մատյանից և երբեք չի օգտագործվում երթուղավորման համար։ Լռելյայն անջատված է․ խմբի խմբագրիչը մնում է անփոփոխ, իսկ դիտարկման երթուղին վերադարձնում է null։",
+  "featureFlagProxyOperatorEgressDescription": "Ծառայությունը ընդունում է օպերատորի կողմից ուղարկված տարանքային հետևողական հասցեները յուրաքանչյուր պուլի անդամի համար և միացնում դրանք գրքի կարդալի հետ ցուցադրման և պուլի կարգավիճակի համար: Սկզբունքում անջատված է: պոշտ մանրաթերթիկը պատասխանում է 404-ով և պուլի կարդալը աշխատում է ճիշտ այնպես, ինչպես առաջ էր:",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Պրոքսիի առողջական վիճակի ստուգման ընթացքում թույլ տալ, որ թիրախի կողմից մերժված ստուգումը (401/403/429․ պրոքսին փոխանցել է հարցումը, իսկ նպատակակետը մերժել է այս ելքային IP-ն) զրոյացնի պրոքսիի հաջորդական ձախողումների շարքը՝ ինչպես սպասարկված ստուգման դեպքում։ Լռելյայն անջատված է․ մերժումը մնում է չեզոք և պահպանում է շարքը։ 5xx-ը երկու դեպքում էլ մնում է անորոշ, իսկ մերժումը երբեք չի հեռացնում, անջատում կամ վերաակտիվացնում պրոքսին։",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Թույլատրել, որ ավտոմատ մաքրման գործընթացը ջնջի OMNIROUTE_BATCH_RETENTION_DAYS-ից ավելի հին վերջնական կարգավիճակով (completed/failed/cancelled/expired) Batch API առաջադրանքները՝ դրանց յուրաքանչյուր տողի ստուգակետերի հետ միասին, և մաքրի այն վերբեռնված ֆայլերի BLOB բովանդակությունը, որոնց expires_at-ն անցել է։ Լռելյայն անջատված է․ բոլոր առկա տեղադրումները շարունակում են պահպանել այս տվյալները ճիշտ այնպես, ինչպես նախկինում, մինչև օպերատորը միացնի այս գործառույթը։ Օպերատորի կողմից գործարկվող DELETE /api/v1/batches/delete-completed երթուղին որևէ դեպքում չի ազդվում․ այն առանձին, անվերապահ հանրային API պայմանագիր է։",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "OAuth bearer թոքենն օգտագործելով՝ xai-oauth կապերի համար ստանալ xAI մոդելների ընթացիկ կատալոգը https://api.x.ai/v1/models հասցեից՝ սառեցված ստատիկ սկզբնական ցանկի փոխարեն։ Լռելյայն անջատված է․ xai-oauth-ը շարունակում է անփոփոխ տրամադրել ստատիկ սկզբնական ցանկը։ Լուծման ցանկացած սխալի դեպքում հայտնաբերումը որպես պահուստային տարբերակ օգտագործում է սկզբնական ցանկը։",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Տեղային proxy-core վերջնակետն անվավեր է․ SS/VMess/Trojan/VLESS հանգույցներն անտեսվել են։",
         "NEEDS_CORE_NOT_CONFIGURED": "Այս բաժանորդագրությունն ունի հանգույցներ, որոնց անհրաժեշտ է տեղային proxy core (SS/VMess/Trojan/VLESS)․ դրանք չեն երթուղավորվի, մինչև չկարգավորեք local-core SOCKS5 վերջնակետը։",
         "NO_USABLE_NODES": "Բաժանորդագրությունը չի տրամադրել օգտագործելի հանգույցներ (http/https/socks5 կամ տեղային core վերջնակետ ունեցող հանգույցներ)։",
-        "SELECTOR_SWITCH_FAILED": "Proxy-core-ի կառավարման կանչը ձախողվեց. նախորդ երթը մնում է ակտիվ։ Ստուգեք կառավարման URL-ն ու գաղտնիքը, ապա թարմացրեք։"
+        "SELECTOR_SWITCH_FAILED": "Proxy-core-ի կառավարման կանչը ձախողվեց. նախորդ երթը մնում է ակտիվ։ Ստուգեք կառավարման URL-ն ու գաղտնիքը, ապա թարմացրեք։",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Գեներացված հիմնական կոնֆիգուրացիան չկարողացավ փոխարինել ընդունված ֆայլը. Փոխարենը պահպանվեց կողքի գտնվող պատճենը։",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Ընթացքում որոշ գրառումներ բաց են թողնվել։ Տեսեք սպասարկիչի տեղեկամատյանը։"
       },
       "description": "Տեղադրեք ձեր պրոքսի բաժանորդագրության հղումը։ Միացնելուց հետո թրաֆիկը կուղղվի պրոքսիների պուլի միջոցով՝ գլոբալ կամ կանոնային (նշված Provider) ռեժիմում։ Բաժանորդագրության հանգույցներն ավտոմատ համաժամացվում են պրոքսիների պուլի հետ և վերօգտագործում առկա պարբերական հարցման, վիճակի ստուգման և արտահոսքի կանխարգելման մեխանիզմները։",
       "addSubscription": "Ավելացնել բաժանորդագրություն",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Անջատում դեռ գրանցված չէ",
       "lastSwitchMember": "Սպասարկող անդամ",
       "nextSwitch": "Հաջորդ հնարավոր անջատում",
-      "nextSwitchNow": "Հիմա"
+      "nextSwitchNow": "Հիմա",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Հիմնական բինարի ուղին",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Ընտրովի. ստուգում է գեներացված ֆայլը հիմնական բինարով նախքան ընդունված ֆայլի փոխարինումը. Դատարկ թողեք, որպեսզի շարունակի գրել նրա կողքին. Բացակայող հատուկ թղթապանակը ստեղծվում է։"
     },
     "bulkHealthcheck": "Զանգվածային հասանելիության ստուգում",
     "bulkHealthcheckDesc": "Ստուգել բոլոր կարգավորված պրոքսիները թիրախային URL-ի նկատմամբ՝ պարզելու, թե որոնք են աշխատում։",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP նկարագրության սեղմում",
     "mcpAccessibilityTitle": "MCP մատչելիության ելք",
     "compressionSettingsCavemanIntensity": "Քարանձավային ոճի ինտենսիվություն",
-    "compressionSettingsCavemanOutputMode": "Քարանձավային ոճի ելքային ռեժիմ",
     "compressionSettingsOutputStyles": "Ելքային ոճեր",
     "compressionStylesTileTitle": "Ելքային ոճեր",
     "compressionSettingsOutputIntensity": "Ելքի ինտենսիվություն",
-    "compressionSettingsAutoClarityBypass": "Հստակության ավտոմատ շրջանցում",
     "compressionEffectivePipeline": "Գործող մշակման շղթա՝",
     "compressionDerivedOff": "անջատված",
     "compressionDerivedRuns": "գործարկվում է՝ {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Ինչ է GET /v1/models-ը ցուցադրում այս բանալիի համար։ Ցանկի սահմանափակումը երբեք չի փոխում այն, թե ինչ կարող է կանչել բանալին։",
     "catalogScopeAll": "Երկուսն էլ",
     "catalogScopeCombos": "Միայն կոմբինացիաները",
-    "catalogScopeModels": "Միայն մոդելները"
+    "catalogScopeModels": "Միայն մոդելները",
+    "resilienceTokenRefreshTitle": "Թոկենի թարմացման ընդհատիչ",
+    "resilienceTokenRefreshDesc": "Կանգնեցնում է հաստատման նշանի թարմացման կրկնակի փորձերը բազմակի անհաջողություններից հետո: Միակապ ծավալը մեկուսացնում է մահացած հաշիվը, որպեսզի նույն մատակարարի առողջ հաշիվները շարունակեն թարմացվել:",
+    "resilienceTokenRefreshScope": "Մեկ մատակարարի համար թոքենի թարմացման փորձեր",
+    "resilienceTokenRefreshTrigger": "Կապակցված հաջորդական անհաջող թարմացման փորձեր",
+    "resilienceTokenRefreshEffect": "Հետաձգում է թարմացման փորձերը սառեցման ժամանակահատվածի համար",
+    "resilienceTokenRefreshScopeLabel": "Ընդգրկույթ",
+    "resilienceTokenRefreshScopeProvider": "Մատակարար (բոլոր հաշիվները կիսում են մեկ ընդհատիչ)",
+    "resilienceTokenRefreshScopeConnection": "Կապ (յուրաքանչյուր հաշիվ ունի իր ընդհատիչը)",
+    "resilienceTokenRefreshThreshold": "Հաջողությունից առաջ կանգնեցնելու համար պարտություններ",
+    "resilienceTokenRefreshCooldown": "Կանգ առնել անջատվելուց հետո"
   },
   "contextRtk": {
     "title": "RTK շարժիչ",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Բեռնվում է…",
     "loadFailed": "Չհաջողվեց բեռնել շարժիչի մասին տեղեկությունները։",
+    "settingsLoadFailed": "Չհաջողվեց բեռնել պահպանված կարգավորումները։ Դաշտերում ցուցադրվում են կանխադրված արժեքները, իսկ «Պահպանել» կոճակը մնում է ապաակտիվ, մինչև էջը վերաբեռնվի։",
     "engineNotFound": "«{engine}» շարժիչը չի գտնվել։",
     "saveFailed": "Չհաջողվեց պահպանել կազմաձևումը։",
     "previewFailed": "Նախադիտումը ձախողվեց։",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Սեղմման համար տողերի նվազագույն քանակը",
         "description": "Աղյուսակային սեղմումը գործարկելու համար միատարր JSON զանգվածում պահանջվող տողերի նվազագույն քանակը։ Լռելյայն՝ 8։"
-      },
-      "preserveSystemPrompt": {
-        "label": "Պահպանել համակարգային հուշումը"
       },
       "summarizerEnabled": {
         "label": "Միացնել ամփոփիչը"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Սրանից կարճ հաղորդագրությունները չեն սեղմվում։ Ավելի ցածր = ավելի շատ սեղմում։",
     "tooltipMinSavings": "Սեղմել միայն այն դեպքում, եթե խնայվում է առնվազն այսքան տոկեն։",
     "ultraSettings": "Ultra կարգավորումներ",
-    "ultraSettingsDesc": "SLM-ով աշխատող իմաստային սեղմում",
-    "preview": {
-      "lite": "Պատասխանեք հակիրճ։ Պահպանեք տեխնիկական եզրույթները, կոդը, սխալները, URL-ները և նույնացուցիչները։",
-      "full": "Պատասխանել շատ հակիրճ և սեղմ։ Պահպանել ամբողջ տեխնիկական բովանդակությունը։",
-      "ultra": "Պատասխանել ծայրահեղ հակիրճ՝ օգտագործելով տարածված տեխնիկական հապավումներ։ Պահպանել ճշգրիտ նշանները։"
-    }
+    "ultraSettingsDesc": "SLM-ով աշխատող իմաստային սեղմում"
   },
   "translator": {
     "title": "Թարգմանիչ",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Ձախողումներ առանց վերագրված ելքի՝ {count}",
     "poolMemberEgress": "{host}:{port}՝ ելք {egressIp}-ի միջոցով · վերջին {hours} ժ",
     "poolMemberEgressEmpty": "{host}:{port}՝ վերջին {hours} ժ ընթացքում երթևեկություն չի դիտարկվել",
+    "poolMemberEgressOperator": "{host}:{port} անցել միջոցով {egressIp} · օպերատորի կողմից տրամադրված, {date}",
     "poolMemberEgressHint": "Պրոքսիի մատյանից վերցված՝ տվյալ ժամանակային միջակայքում պուլի այս անդամի միջոցով դիտարկված վերջին ելքային IP հասցեն։ Եթե անդամի համար այդ միջակայքում երթևեկություն չի եղել, ցուցադրվում է երթևեկության բացակայության տողը։",
     "poolRemove": "Հեռացնել",
     "poolRemoveFailed": "Չհաջողվեց պրոքսին հեռացնել պուլից",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "պրոքսին անհասանելի է",
     "poolSetAsideKindIpQuota429": "IP արագության սահմանափակում (429)",
     "poolSetAsideKindSlow": "դանդաղ պատասխաններ",
+    "poolSetAsideKindGeoBlocked": "Տարածաշրջանարգելված (403/451)",
     "poolSetAsideUntil": "Վերադարձ ռոտացիայի {endsAt}",
     "poolSetAsideRepeat": "Մի կողմ դրված {count, plural, one {# անգամ} other {# անգամ}}",
     "poolUnknownAddress": "Անհայտ հասցե",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "Դիրքի կարգ",
     "poolHealthRankingOff": "Առողջության վարկանիշն անջատված է",
     "transportRate": "{rate}% փոխադրում",
+    "slowAbandoned": "{count} դանդաղ լքումներ",
+    "clientAborted": "{count} հաճախորդի չեղարկումներ",
+    "slowAbandonedHint": "Լքվել է վերնագրերի սպասման շեմից հետո, չի ներառվում տրանսպորտի դասին",
     "previousSuccessRate": "Նախկինում {rate}% հաջողություն",
-    "upstreamRefusals": "{count} upstream մերժում",
     "connectionTestsCount": "{count} կապի թեստ",
-    "notMeasured": "Չի չափվել"
+    "notMeasured": "Չի չափվել",
+    "upstream4xx": "{count} վերահոսքային հաճախորդի սխալներ",
+    "upstream5xx": "{count} վերահոսքային սերվերի սխալներ",
+    "uniformEgressLine": "{affected}-ը {exits} ելքերից միասին ձախողվում են {provider}-ում (վերջին {hours}ժ) — ելքի խնդիր չէ"
   },
   "playground": {
     "title": "Մոդելների փորձարկման հարթակ",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "Ժառանգում է կապերի խումբը ({count})",
     "poolEmptyBlocked": "Խումբը դատարկ է — հարցումները ձախողվում են (ոչ ուղիղ)",
     "directEgress": "Ուղիղ (առանց պրոքսիի)",
-    "ownProxy": "Սեփական պրոքսի"
+    "ownProxy": "Սեփական պրոքսի",
+    "freeTierPause": "Մոդել {model} կանգնեցված է (429), կվերադառնա {time}",
+    "freeTierPauseProvider": "Կանգնեցված է (429), կվերադառնա {time}",
+    "freeTierPauseNote": "Գործընթացի ներսում կանգնեցում այս օրինակի համար"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13083,10 @@
     "inactiveCount": "{count} ոչ ակտիվ",
     "dbOverrideCount": "{count} DB վերասահմանում",
     "searchPlaceholder": "Որոնել դրոշակներ...",
+    "descriptionModeLabel": "Նկարագրության դիտում",
+    "descriptionModeHint": "Կասկելիս՝ քարտերը մնում են սեղմ, և նկարագրության վրա կասկելիս ցուցադրվում է ամբողջ տեքստը. Ամբողջ տեքստ՝ միշտ ցուցադրել ամբողջ նկարագրությունը։",
+    "descriptionModeHover": "Կասկելիս",
+    "descriptionModeFull": "Ամբողջ տեքստ",
     "categories": {
       "all": "Բոլորը",
       "security": "Անվտանգություն",

@@ -265,14 +265,21 @@ Zwraca `{ cleared: <count>, message: "..." }`.
 
 ## Awaryjny mechanizm zastępczy budżetu
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (kategoria `runtime`, wartość domyślna `true`) kontroluje
-awaryjną bezpłatną ścieżkę zastępczą w
+`OMNIROUTE_EMERGENCY_FALLBACK` (kategoria `runtime`, domyślnie `true`) kontroluje
+awaryjną ścieżkę przełączania na bezpłatną alternatywę w pliku
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Gdy jest włączona, żądania, które wyczerpią swój budżet, są kierowane do bezpłatnego
-dostawcy/modelu zastępczego zamiast kończyć się niepowodzeniem. Ustaw ją na `false` (lub `0`) — za pomocą
-przełącznika w panelu administracyjnym, nadpisania w bazie danych albo zmiennej środowiskowej
-`OMNIROUTE_EMERGENCY_FALLBACK` — aby wyłączyć to zachowanie i pozwolić, by żądania
-z wyczerpanym budżetem kończyły się niepowodzeniem. (Udostępniono jako przełącznik w panelu administracyjnym w PR-ach #3741 / #3752.)
+Po jej włączeniu żądania, które wyczerpią swój budżet, są kierowane do bezpłatnego
+dostawcy/modelu zastępczego zamiast kończyć się niepowodzeniem. Ustaw wartość
+`false` (lub `0`) — za pomocą przełącznika w panelu, nadpisania w bazie danych
+lub zmiennej środowiskowej `OMNIROUTE_EMERGENCY_FALLBACK` — aby wyłączyć to
+zachowanie i pozwolić, by żądania z wyczerpanym budżetem kończyły się
+niepowodzeniem. (Udostępniono jako przełącznik w panelu w PR-ach #3741 / #3752).
+
+Odpowiedź obsłużona przez ten mechanizm zastępczy zawiera nagłówek
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`,
+dzięki czemu klient może stwierdzić, że żądanie zostało przekierowane, bez
+porównywania nagłówka `X-OmniRoute-Provider` z pierwotnym żądaniem. Nagłówek ten
+nie występuje w żadnej innej odpowiedzi.
 
 ---
 

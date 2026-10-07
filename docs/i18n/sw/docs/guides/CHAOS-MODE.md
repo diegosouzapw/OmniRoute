@@ -4,22 +4,45 @@
 
 ---
 
-> **Dashibodi:** **Hali ya Chaos** (upau wa pembeni) → `/dashboard/chaos`  
+> **Dashibodi:** **Chaos Mode** (upau wa pembeni) → `/dashboard/chaos`  
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (kipindi cha dashibodi) · `POST /api/skills/collect/chaos` (ufunguo wa API)  
-> **Msimbo chanzo:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
+> **Chanzo:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Hali ya Chaos hutuma **jukumu moja kwa watoa huduma kadhaa kwa wakati mmoja** — kila mtoa huduma anayeshiriki
-huchangia nakala moja ya modeli, na unapata majibu yote sambamba (au kwa mfuatano). Hii ni
+Chaos Mode hutuma **jukumu moja kwa watoa huduma kadhaa kwa wakati mmoja** — kila mtoa huduma anayeshiriki
+huchangia instansi moja ya modeli, na unapata majibu yote yakiwa sambamba (au yakiwa yameunganishwa kwa mfululizo). Hii ni
 sehemu ya utekelezaji wa modeli nyingi, si mkakati wa uelekezaji: trafiki yako ya kawaida ya `/v1/chat/completions`
-haiathiriwi nayo kamwe.
+haiathiriwi kamwe nayo.
 
-**Ufafanuzi — vitu vitatu tofauti hutolewa vikiwa na "chaos" katika jina:**
+**Ufafanuzi — kuna vitu vitatu tofauti vinavyotolewa vikiwa na "chaos" katika jina:**
 
-| Kitu                             | Maelezo yake                                                                                                                                   | Kilipoandikwa katika nyaraka                 |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Hali ya Chaos**                | Ukurasa wa dashibodi + API iliyoelezwa hapa: sambaza jukumu moja kwa watoa huduma wengi (sambamba au kwa ushirikiano).                         | Mwongozo huu                                 |
-| `auto/chaos`                     | Kitambulisho cha modeli ya Auto-Combo chenye uzani wa alama za kuingiza hitilafu, kwa ajili ya majaribio ya ustahimilivu. Hakuna cha kusanidi. | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Usanidi wa mchanganyiko wa Chaos | Mchanganyiko uliohifadhiwa wenye `config.chaos.enabled` husambaza jukumu kwa jopo lenye modeli ya hiari ya kuhukumu (API pekee).               | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Kitu                      | Ni nini                                                                                                                                                                                               | Kilipoelezewa                                |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**            | Ukurasa wa dashibodi + API iliyoelezewa hapa: sambaza jukumu moja kwa watoa huduma wengi (kwa sambamba au kwa ushirikiano).                                                                           | Mwongozo huu                                 |
+| `auto/chaos`              | Kitambulisho cha modeli ya Auto-Combo: usambazaji sambamba, modeli moja kwa kila mtoa huduma, mwito mmoja wa chanzo kwa kila mmoja. Si udungaji wa hitilafu ([maelezo](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Usanidi wa combo ya Chaos | Combo iliyohifadhiwa yenye `config.chaos.enabled` husambaza kwa njia hiyo hiyo (API pekee); `judgeModel` huchagua tu jibu la mwisho, bila mwito wa usanisi.                                           | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: usambazaji sambamba
+
+`auto/chaos` **si** kidhibiti cha udungaji wa hitilafu au majaribio ya ustahimilivu. Kuomba
+`model: "auto/chaos"` kwenye `/v1/chat/completions`:
+
+1. Huunda jopo la **modeli moja kwa kila mtoa huduma**: mgombea wa kwanza wa kila
+   mtoa huduma aliyeunganishwa, kwa mpangilio wa kundi la wagombea, hadi wanachama 5
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, ikiwa na kikomo cha 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Kifurushi cha uzito cha `chaos-mode`
+   huweka tu `weight` ya kila mwanachama; usambazaji hausomi thamani hiyo.
+2. Hutuma ombi lilelile kwa kila mwanachama wa jopo **kwa sambamba**, hivyo ombi moja
+   hugharimu mwito mmoja wa chanzo kwa kila mwanachama wa jopo
+   (`open-sse/services/autoCombo/chaosEngine.ts`, likitumwa kutoka
+   `open-sse/services/combo.ts`).
+3. Hutiririsha mstari mmoja wa hali kwa kila mwanachama wa jopo unapowasili: maoni ya SSE
+   (`: chaos <index> ok|fail <model>`) kwa chaguo-msingi, pamoja na tukio la `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) wakati ombi linaweka
+   `stream_options.include_chaos_parts: true`. Haya hayabebi maandishi ya jibu.
+4. Hutuma jibu **moja** la jopo kama sehemu ya mwisho yenye mtindo wa OpenAI: la mwanachama wa kwanza
+   wa jopo (`auto/chaos` humweka kama `judgeModel`) anapofaulu, vinginevyo
+   la mwanachama aliyefaulu mwisho. Majibu mengine ya jopo hayarejeshwi, kwa hivyo
+   unalipia miito N na kupokea ukamilishaji mmoja.
 
 ## Usanidi
 

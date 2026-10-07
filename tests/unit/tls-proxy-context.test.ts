@@ -49,9 +49,7 @@ async function withEnv(env: EnvState, fn: () => Promise<void> | void): Promise<v
   }
 }
 
-function fakeTlsClient(
-  fetch: (url: string, options?: TlsFetchOptions) => Promise<Response>,
-) {
+function fakeTlsClient(fetch: (url: string, options?: TlsFetchOptions) => Promise<Response>) {
   return { available: true, fetch };
 }
 
@@ -108,7 +106,7 @@ test("circuit failures are isolated to the exact session scope and proxy", async
       client.fetch("https://upstream.example", {
         proxy: "http://bad.proxy:8080",
         sessionScope: "bad-account",
-      }),
+      })
     );
   }
 
@@ -146,7 +144,7 @@ test("Request input bypasses wreq without losing method headers or body", async 
         fakeTlsClient(async () => {
           tlsCalls++;
           return new Response("tls");
-        }),
+        })
       );
 
       const input = new Request("https://upstream.example/v1", {
@@ -155,12 +153,16 @@ test("Request input bypasses wreq without losing method headers or body", async 
         body: "payload",
       });
       const tracked = await runWithTlsTracking("codex", () =>
-        proxyFetch(input, {}, {
-          undiciFetch: async (forwarded) => {
-            received = forwarded as Request;
-            return new Response("dispatcher");
-          },
-        }),
+        proxyFetch(
+          input,
+          {},
+          {
+            undiciFetch: async (forwarded) => {
+              received = forwarded as Request;
+              return new Response("dispatcher");
+            },
+          }
+        )
       );
 
       assert.equal(tlsCalls, 0);
@@ -169,7 +171,85 @@ test("Request input bypasses wreq without losing method headers or body", async 
       assert.equal(received?.headers.get("x-test"), "present");
       assert.equal(await received?.text(), "payload");
       assert.equal(tracked.tlsFingerprintUsed, false);
+    }
+  );
+});
+
+test("RequestInit.next does not by itself disable TLS fingerprint eligibility", async () => {
+  await withEnv(
+    {
+      ENABLE_TLS_FINGERPRINT: "true",
+      TLS_FINGERPRINT_PROVIDERS: "codex",
     },
+    async () => {
+      let tlsCalls = 0;
+      let forwardedNext: unknown = "unset";
+      let dispatcherCalls = 0;
+      setTlsClientForTest(
+        fakeTlsClient(async (_url, options) => {
+          tlsCalls++;
+          forwardedNext =
+            "next" in (options ?? {}) ? (options as { next?: unknown }).next : undefined;
+          return new Response("tls", { status: 200 });
+        })
+      );
+
+      const init = {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+        signal: new AbortController().signal,
+        next: { revalidate: 0, tags: ["chat"] },
+      };
+      const tracked = await runWithTlsTracking("codex", () =>
+        proxyFetch("https://upstream.example/v1/chat/completions", init, {
+          undiciFetch: async () => {
+            dispatcherCalls++;
+            return new Response("dispatcher", { status: 599 });
+          },
+        })
+      );
+
+      assert.equal(tlsCalls, 1);
+      assert.equal(dispatcherCalls, 0);
+      assert.equal(tracked.tlsFingerprintUsed, true);
+      assert.equal((tracked.result as Response).status, 200);
+      assert.equal(forwardedNext, undefined);
+    }
+  );
+});
+
+test("an unrecognized RequestInit key still bypasses TLS fingerprinting", async () => {
+  await withEnv(
+    {
+      ENABLE_TLS_FINGERPRINT: "true",
+      TLS_FINGERPRINT_PROVIDERS: "codex",
+    },
+    async () => {
+      let tlsCalls = 0;
+      setTlsClientForTest(
+        fakeTlsClient(async () => {
+          tlsCalls++;
+          return new Response("tls", { status: 200 });
+        })
+      );
+
+      const init = {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+        cache: "no-store",
+      };
+      const tracked = await runWithTlsTracking("codex", () =>
+        proxyFetch("https://upstream.example/v1/chat/completions", init, {
+          undiciFetch: async () => new Response("dispatcher", { status: 599 }),
+        })
+      );
+
+      assert.equal(tlsCalls, 0);
+      assert.equal(tracked.tlsFingerprintUsed, false);
+      assert.equal((tracked.result as Response).status, 599);
+    }
   );
 });
 
@@ -184,7 +264,7 @@ test("non-idempotent TLS failures are never replayed", async () => {
       setTlsClientForTest(
         fakeTlsClient(async () => {
           throw new Error("post-send transport failure");
-        }),
+        })
       );
 
       await assert.rejects(
@@ -197,15 +277,15 @@ test("non-idempotent TLS failures are never replayed", async () => {
                 dispatcherCalls++;
                 return new Response("unexpected");
               },
-            },
-          ),
+            }
+          )
         ),
         (error: Error & { code?: string }) =>
           error.code === "TLS_FINGERPRINT_FAILED" &&
-          error.message === "TLS fingerprint request failed; request is not safe to replay",
+          error.message === "TLS fingerprint request failed; request is not safe to replay"
       );
       assert.equal(dispatcherCalls, 0);
-    },
+    }
   );
 });
 
@@ -220,22 +300,26 @@ test("safe GET TLS failure falls back through the same configured proxy", async 
       setTlsClientForTest(
         fakeTlsClient(async () => {
           throw new Error("transport failed");
-        }),
+        })
       );
       let dispatcher: unknown;
       const tracked = await runWithTlsTracking("codex", () =>
-        proxyFetch("https://upstream.example/v1", {}, {
-          undiciFetch: async (_input, init) => {
-            dispatcher = init?.dispatcher;
-            return new Response("fallback");
-          },
-        }),
+        proxyFetch(
+          "https://upstream.example/v1",
+          {},
+          {
+            undiciFetch: async (_input, init) => {
+              dispatcher = init?.dispatcher;
+              return new Response("fallback");
+            },
+          }
+        )
       );
 
       assert.ok(dispatcher);
       assert.equal(await tracked.result.text(), "fallback");
       assert.equal(tracked.tlsFingerprintUsed, false);
-    },
+    }
   );
 });
 
@@ -252,21 +336,25 @@ test("internal TimeoutError is not classified as a caller abort", async () => {
       setTlsClientForTest(
         fakeTlsClient(async () => {
           throw timeout;
-        }),
+        })
       );
 
       const tracked = await runWithTlsTracking("codex", () =>
-        proxyFetch("https://upstream.example/v1", {}, {
-          undiciFetch: async () => {
-            dispatcherCalls++;
-            return new Response("fallback");
-          },
-        }),
+        proxyFetch(
+          "https://upstream.example/v1",
+          {},
+          {
+            undiciFetch: async () => {
+              dispatcherCalls++;
+              return new Response("fallback");
+            },
+          }
+        )
       );
 
       assert.equal(dispatcherCalls, 1);
       assert.equal(await tracked.result.text(), "fallback");
-    },
+    }
   );
 });
 
@@ -280,11 +368,11 @@ test("control-plane direct fallback bypasses an environment proxy", async () => 
       const result = await runWithProxyContext(
         { type: "http", host: "127.0.0.1", port: "9" },
         () => resolveProxyForRequest("https://upstream.example/v1"),
-        { directFallbackOnUnreachable: true },
+        { directFallbackOnUnreachable: true }
       );
 
       assert.deepEqual(result, { source: "direct", proxyUrl: null });
-    },
+    }
   );
 });
 
@@ -302,22 +390,26 @@ test("new proxied TLS transport requires an explicit provider allowlist", async 
         fakeTlsClient(async () => {
           tlsCalls++;
           return new Response("tls");
-        }),
+        })
       );
 
       const tracked = await runWithTlsTracking("codex", () =>
-        proxyFetch("https://upstream.example/v1", {}, {
-          undiciFetch: async () => {
-            dispatcherCalls++;
-            return new Response("dispatcher");
-          },
-        }),
+        proxyFetch(
+          "https://upstream.example/v1",
+          {},
+          {
+            undiciFetch: async () => {
+              dispatcherCalls++;
+              return new Response("dispatcher");
+            },
+          }
+        )
       );
 
       assert.equal(tlsCalls, 0);
       assert.equal(dispatcherCalls, 1);
       assert.equal(await tracked.result.text(), "dispatcher");
-    },
+    }
   );
 });
 
@@ -335,7 +427,7 @@ test("caller abort propagates unchanged and never falls back", async () => {
         fakeTlsClient(async () => {
           controller.abort(abortError);
           throw abortError;
-        }),
+        })
       );
 
       await assert.rejects(
@@ -348,13 +440,13 @@ test("caller abort propagates unchanged and never falls back", async () => {
                 dispatcherCalls++;
                 return new Response("unexpected");
               },
-            },
-          ),
+            }
+          )
         ),
-        (error) => error === abortError,
+        (error) => error === abortError
       );
       assert.equal(dispatcherCalls, 0);
-    },
+    }
   );
 });
 
@@ -371,24 +463,28 @@ test("stateful TLS session failures never fall back even for GET", async () => {
           const error = new Error("transport failed");
           Object.defineProperty(error, "sessionHadCookies", { value: true });
           throw error;
-        }),
+        })
       );
 
       await assert.rejects(
         runWithTlsTracking("codex", () =>
-          proxyFetch("https://upstream.example/v1", {}, {
-            undiciFetch: async () => {
-              dispatcherCalls++;
-              return new Response("unexpected");
-            },
-          }),
+          proxyFetch(
+            "https://upstream.example/v1",
+            {},
+            {
+              undiciFetch: async () => {
+                dispatcherCalls++;
+                return new Response("unexpected");
+              },
+            }
+          )
         ),
         (error: Error & { code?: string }) =>
           error.code === "TLS_FINGERPRINT_FAILED" &&
-          error.message === "TLS fingerprint request failed; stateful session cannot be replayed",
+          error.message === "TLS fingerprint request failed; stateful session cannot be replayed"
       );
       assert.equal(dispatcherCalls, 0);
-    },
+    }
   );
 });
 
@@ -406,23 +502,31 @@ test("TLS transport failures never expose proxy credentials", async () => {
       try {
         setTlsClientForTest(
           fakeTlsClient(async () => {
-            throw new Error(
-              "connect failed via http://user:password@placeholder.proxy:8080",
-            );
-          }),
+            throw new Error("connect failed via http://user:password@placeholder.proxy:8080");
+          })
         );
         const tracked = await runWithTlsTracking("codex", () =>
-          proxyFetch("https://upstream.example/v1", {}, {
-            undiciFetch: async () => new Response("fallback"),
-          }),
+          proxyFetch(
+            "https://upstream.example/v1",
+            {},
+            {
+              undiciFetch: async () => new Response("fallback"),
+            }
+          )
         );
         assert.equal(await tracked.result.text(), "fallback");
-        assert.equal(warnings.some((line) => line.includes("user:password")), false);
-        assert.equal(warnings.some((line) => line.includes("placeholder.proxy")), false);
+        assert.equal(
+          warnings.some((line) => line.includes("user:password")),
+          false
+        );
+        assert.equal(
+          warnings.some((line) => line.includes("placeholder.proxy")),
+          false
+        );
       } finally {
         console.warn = originalWarn;
       }
-    },
+    }
   );
 });
 
@@ -440,21 +544,25 @@ test("family-pinned proxies retain dispatcher enforcement instead of using wreq"
         fakeTlsClient(async () => {
           tlsCalls++;
           return new Response("tls");
-        }),
+        })
       );
 
       const tracked = await runWithTlsTracking("codex", () =>
-        proxyFetch("https://upstream.example/v1", {}, {
-          undiciFetch: async () => {
-            dispatcherCalls++;
-            return new Response("dispatcher");
-          },
-        }),
+        proxyFetch(
+          "https://upstream.example/v1",
+          {},
+          {
+            undiciFetch: async () => {
+              dispatcherCalls++;
+              return new Response("dispatcher");
+            },
+          }
+        )
       );
       assert.equal(tlsCalls, 0);
       assert.equal(dispatcherCalls, 1);
       assert.equal(await tracked.result.text(), "dispatcher");
-    },
+    }
   );
 });
 
@@ -471,25 +579,27 @@ test("relay contexts never route through wreq", async () => {
         fakeTlsClient(async () => {
           tlsCalls++;
           return new Response("tls");
-        }),
+        })
       );
 
       const tracked = await runWithTlsTracking("codex", () =>
-        runWithProxyContext(
-          { type: "vercel", host: "relay.example", relayAuth: "test-auth" },
-          () =>
-            proxyFetch("https://upstream.example/v1", {}, {
+        runWithProxyContext({ type: "vercel", host: "relay.example", relayAuth: "test-auth" }, () =>
+          proxyFetch(
+            "https://upstream.example/v1",
+            {},
+            {
               undiciFetch: async () => {
                 relayCalls++;
                 return new Response("relay");
               },
-            }),
-        ),
+            }
+          )
+        )
       );
       assert.equal(tlsCalls, 0);
       assert.equal(relayCalls, 1);
       assert.equal(await tracked.result.text(), "relay");
-    },
+    }
   );
 });
 
@@ -613,23 +723,27 @@ test("allowlisted proxied TLS receives the exact proxy and account scope", async
         fakeTlsClient(async (_url, options) => {
           observedOptions = options;
           return new Response("tls");
-        }),
+        })
       );
       const tracked = await runWithTlsTracking(
         { provider: "codex", sessionScope: "connection-123" },
         () =>
-          proxyFetch("https://upstream.example/v1", {}, {
-            undiciFetch: async () => {
-              throw new Error("dispatcher must not run");
-            },
-          }),
+          proxyFetch(
+            "https://upstream.example/v1",
+            {},
+            {
+              undiciFetch: async () => {
+                throw new Error("dispatcher must not run");
+              },
+            }
+          )
       );
 
       assert.equal(observedOptions?.proxy, "http://placeholder.proxy:8080");
       assert.equal(observedOptions?.sessionScope, "connection-123");
       assert.equal(tracked.tlsFingerprintUsed, true);
       assert.equal(await tracked.result.text(), "tls");
-    },
+    }
   );
 });
 
@@ -646,34 +760,41 @@ test("proxy dispatcher failures sanitize logs and propagated errors", async () =
       try {
         let caught: unknown;
         try {
-          await proxyFetch("https://upstream.example/v1", {}, {
-            undiciFetch: async () => {
-              const error = new Error(
-                "connect failed via http://user:password@placeholder.proxy:8080",
-              ) as Error & { code?: string };
-              error.code = "ECONNREFUSED";
-              throw error;
-            },
-          });
+          await proxyFetch(
+            "https://upstream.example/v1",
+            {},
+            {
+              undiciFetch: async () => {
+                const error = new Error(
+                  "connect failed via http://user:password@placeholder.proxy:8080"
+                ) as Error & { code?: string };
+                error.code = "ECONNREFUSED";
+                throw error;
+              },
+            }
+          );
         } catch (error) {
           caught = error;
         }
         assert.ok(caught instanceof Error);
         // #10032: the underlying reason is kept for diagnosability, with the
         // proxy URL (credentials included) redacted before propagation (#9837).
-        assert.equal(
-          caught.message,
-          "Proxy request failed: connect failed via [redacted-proxy]",
-        );
+        assert.equal(caught.message, "Proxy request failed: connect failed via [redacted-proxy]");
         assert.equal(caught.message.includes("user:password"), false);
         assert.equal(caught.message.includes("placeholder.proxy"), false);
         assert.equal("code" in caught ? caught.code : undefined, "PROXY_UNREACHABLE");
-        assert.equal(errors.some((line) => line.includes("user:password")), false);
-        assert.equal(errors.some((line) => line.includes("placeholder.proxy")), false);
+        assert.equal(
+          errors.some((line) => line.includes("user:password")),
+          false
+        );
+        assert.equal(
+          errors.some((line) => line.includes("placeholder.proxy")),
+          false
+        );
       } finally {
         console.error = originalError;
       }
-    },
+    }
   );
 });
 
@@ -701,7 +822,7 @@ test("half-open circuit admits only one probe for an isolated session key", asyn
           proxy: null,
           sessionScope: "connection-123",
         }),
-        /wreq-js transport failed/,
+        /wreq-js transport failed/
       );
     }
     probeMode = true;
@@ -719,9 +840,7 @@ test("half-open circuit admits only one probe for an isolated session key", asyn
         sessionScope: "connection-123",
       }),
       (error: unknown) =>
-        error instanceof Error &&
-        "code" in error &&
-        error.code === "TLS_CIRCUIT_OPEN",
+        error instanceof Error && "code" in error && error.code === "TLS_CIRCUIT_OPEN"
     );
     assert.equal(fetchCalls, 4);
     probeGate.resolve();
@@ -753,9 +872,7 @@ test("circuit invalidation snapshots cookies before closing the failed session",
           sessionScope: "connection-123",
         }),
         (error: unknown) =>
-          error instanceof Error &&
-          "sessionHadCookies" in error &&
-          error.sessionHadCookies === true,
+          error instanceof Error && "sessionHadCookies" in error && error.sessionHadCookies === true
       );
     }
     await Promise.resolve();
@@ -770,7 +887,7 @@ test("circuit invalidation snapshots cookies before closing the failed session",
         "code" in error &&
         error.code === "TLS_CIRCUIT_OPEN" &&
         "sessionHadCookies" in error &&
-        error.sessionHadCookies === true,
+        error.sessionHadCookies === true
     );
   } finally {
     await client.exit();
@@ -778,10 +895,7 @@ test("circuit invalidation snapshots cookies before closing the failed session",
 });
 
 test("pending session creation is bounded per TLS client", async () => {
-  const sessionGates = [
-    Promise.withResolvers<WreqSession>(),
-    Promise.withResolvers<WreqSession>(),
-  ];
+  const sessionGates = [Promise.withResolvers<WreqSession>(), Promise.withResolvers<WreqSession>()];
   let creates = 0;
   const client = new TlsClient(() => {
     const gate = sessionGates[creates++];
@@ -809,9 +923,7 @@ test("pending session creation is bounded per TLS client", async () => {
         sessionScope: "connection-3",
       }),
       (error: unknown) =>
-        error instanceof Error &&
-        "code" in error &&
-        error.code === "TLS_SESSION_CAPACITY",
+        error instanceof Error && "code" in error && error.code === "TLS_SESSION_CAPACITY"
     );
     assert.equal(creates, 2);
 
@@ -841,32 +953,36 @@ test("direct TLS fallback never auto-selects a different proxy route", async () 
         fakeTlsClient(async () => {
           tlsCalls++;
           throw new Error("wreq transport failed");
-        }),
+        })
       );
 
-      const response = await proxyFetch("https://upstream.example/v1", {}, {
-        undiciFetch: async () => {
-          dispatcherCalls++;
-          const error = new Error("fetch failed: ECONNREFUSED") as Error & { code?: string };
-          error.code = "ECONNREFUSED";
-          throw error;
-        },
-        findWorkingProxy: async () => {
-          autoSelectCalls++;
-          return "http://unexpected.proxy:8080";
-        },
-        nativeFetch: async () => {
-          nativeCalls++;
-          return new Response("native");
-        },
-      });
+      const response = await proxyFetch(
+        "https://upstream.example/v1",
+        {},
+        {
+          undiciFetch: async () => {
+            dispatcherCalls++;
+            const error = new Error("fetch failed: ECONNREFUSED") as Error & { code?: string };
+            error.code = "ECONNREFUSED";
+            throw error;
+          },
+          findWorkingProxy: async () => {
+            autoSelectCalls++;
+            return "http://unexpected.proxy:8080";
+          },
+          nativeFetch: async () => {
+            nativeCalls++;
+            return new Response("native");
+          },
+        }
+      );
 
       assert.equal(tlsCalls, 1);
       assert.equal(dispatcherCalls, 2);
       assert.equal(autoSelectCalls, 0);
       assert.equal(nativeCalls, 1);
       assert.equal(await response.text(), "native");
-    },
+    }
   );
 });
 
@@ -884,23 +1000,27 @@ test("proxied TLS compatibility overload requires an explicit session scope", as
         fakeTlsClient(async () => {
           tlsCalls++;
           return new Response("unexpected");
-        }),
+        })
       );
 
       const tracked = await runWithTlsTracking("codex", () =>
-        proxyFetch("https://upstream.example/v1", {}, {
-          undiciFetch: async () => {
-            dispatcherCalls++;
-            return new Response("dispatcher");
-          },
-        }),
+        proxyFetch(
+          "https://upstream.example/v1",
+          {},
+          {
+            undiciFetch: async () => {
+              dispatcherCalls++;
+              return new Response("dispatcher");
+            },
+          }
+        )
       );
 
       assert.equal(tlsCalls, 0);
       assert.equal(dispatcherCalls, 1);
       assert.equal(tracked.tlsFingerprintUsed, false);
       assert.equal(await tracked.result.text(), "dispatcher");
-    },
+    }
   );
 });
 
@@ -936,7 +1056,7 @@ test("circuit trip defers session close until active response streams release", 
           proxy: null,
           sessionScope: "connection-123",
         }),
-        /wreq-js transport failed/,
+        /wreq-js transport failed/
       );
     }
     assert.equal(closed, 0);
@@ -981,14 +1101,12 @@ test("streaming wreq body failures are sanitized and counted by the circuit", as
         error.message === "wreq-js response body failed" &&
         "code" in error &&
         error.code === "UND_ERR_SOCKET" &&
-        !String(error).includes("user:password"),
+        !String(error).includes("user:password")
     );
     assert.equal(
-      client.getCircuitState(
-        "http://user:password@proxy.example:8080",
-        "connection-123",
-      ).failureCount,
-      1,
+      client.getCircuitState("http://user:password@proxy.example:8080", "connection-123")
+        .failureCount,
+      1
     );
   } finally {
     await client.exit();

@@ -8,102 +8,100 @@
 
 > Ktajjen ta’ mudelli li jimmaniġġjaw lilhom infushom b’punteġġ adattiv + routing awtomatiku mingħajr konfigurazzjoni
 
-## Routing Awtomatiku Mingħajr Konfigurazzjoni (prefiss `auto/`)
+## Rotot Awtomatiċi Mingħajr Konfigurazzjoni (prefiss `auto/`)
 
-> **ĠDID:** M’hemmx għalfejn toħloq combo. Uża l-prefiss `auto/` direttament fi kwalunkwe klijent.
+> **ĠDID:** M’hemmx għalfejn jinħoloq combo. Uża l-prefiss `auto/` direttament fi kwalunkwe klijent.
 
-### Eżempji Rapidi
+### Eżempji Mgħaġġla
 
 | ID tal-Mudell  | Varjant | Imġiba                                                                                      |
 | -------------- | ------- | ------------------------------------------------------------------------------------------- |
 | `auto`         | default | Il-fornituri konnessi kollha, strateġija LKGP, piżijiet ibbilanċjati                        |
 | `auto/coding`  | coding  | Piżijiet li jagħtu prijorità lill-kwalità, adattati għall-ġenerazzjoni tal-kodiċi           |
-| `auto/fast`    | fast    | Għażla ppeżata b’latenza baxxa                                                              |
-| `auto/cheap`   | cheap   | Routing ottimizzat għall-ispiża (l-inqas spiża l-ewwel)                                     |
-| `auto/offline` | offline | Jiffavorixxi l-fornituri bl-ogħla disponibbiltà ta’ kwota                                   |
+| `auto/fast`    | fast    | Għażla ponderata b’latenza baxxa                                                            |
+| `auto/cheap`   | cheap   | Rotot ottimizzati għall-ispiża (l-inqas spiża l-ewwel)                                      |
+| `auto/offline` | offline | Jiffavorixxi lill-fornituri bl-ogħla disponibbiltà ta’ kwota                                |
 | `auto/smart`   | smart   | Prijorità lill-kwalità + rata ogħla ta’ esplorazzjoni (10%) għal skoperta aħjar tal-mudelli |
 | `auto/lkgp`    | lkgp    | LKGP espliċitu (l-istess bħall-`auto` default)                                              |
-| `auto/chaos`   | chaos   | Piżijiet ta’ injezzjoni ta’ ħsarat għall-ittestjar tar-reżiljenza (inġinerija tal-kaos)     |
+| `auto/chaos`   | chaos   | Tqassim parallel, mudell wieħed għal kull fornitur (mhux injezzjoni ta’ ħsarat)             |
 
-### Kompożizzjoni ta’ Kategorija × Livell (`auto/<category>:<tier>`)
+### Kompożizzjoni Kategorija × Livell (`auto/<category>:<tier>`)
 
-Is-suffissi fl-istil ta’ OpenRouter jisseparaw **x’tip ta’ rotta** (kategorija) minn **kif tiġi ottimizzata** (livell), sabiex tkun tista’ tikkombinahom liberament (#4235 Fażi B, `open-sse/services/autoCombo/suffixComposition.ts`):
+Is-suffissi fl-istil ta’ OpenRouter jisseparaw **x’tip ta’ rotta** (kategorija) minn **kif għandha tiġi ottimizzata** (livell), sabiex tkun tista’ tikkombinahom liberament (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Kategoriji** (jiffiltraw il-grupp ta’ kandidati skont il-kapaċità): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` iżommu mudelli b’kapaċitajiet viżivi; `reasoning` iżomm mudelli ta’ raġunament/ħsieb.
-- **Livelli** (jagħżlu l-piżijiet tal-punteġġ / il-filtru tal-grupp): `fast` (rilaxx rapidu) · `cheap` (alias `floor`, iffrankar tal-ispejjeż) · `reliable` (saħħa tas-circuit breaker + stabbiltà tal-latenza) · `free` / `pro` (jiffiltraw il-grupp skont il-livell tal-mudell permezz ta’ `classifyTier` — livell bla ħlas kontra premium).
+- **Kategoriji** (jiffiltraw il-ġabra ta’ kandidati skont il-kapaċità): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` iżommu mudelli b’kapaċitajiet viżivi; `reasoning` iżomm mudelli ta’ raġunament/ħsieb.
+- **Livelli** (jagħżlu l-piżijiet tal-punteġġ / il-filtru tal-ġabra): `fast` (kunsinna rapida) · `cheap` (alias `floor`, jiffranka l-ispejjeż) · `reliable` (saħħa tas-circuit breaker + stabbiltà tal-latenza) · `free` / `pro` (jiffiltraw il-ġabra skont il-livell tal-mudell permezz ta’ `classifyTier` — livell bla ħlas kontra premium).
 
-| Eżempju                | Jissarraf fi                                                          |
-| ---------------------- | --------------------------------------------------------------------- |
-| `auto/coding:fast`     | grupp tal-coding, piżijiet b’latenza baxxa                            |
-| `auto/coding:cheap`    | grupp tal-coding, ottimizzat għall-ispiża (alias `auto/coding:floor`) |
-| `auto/reasoning:pro`   | mudelli ta’ raġunament/ħsieb biss, livell premium                     |
-| `auto/vision`          | mudelli b’kapaċitajiet viżivi (l-ebda livell → piżijiet ibbilanċjati) |
-| `auto/multimodal:free` | mudelli b’kapaċitajiet multimodali, livell bla ħlas biss              |
+| Eżempju                | Jiġi riżolt għal                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| `auto/coding:fast`     | ġabra għall-kodifikazzjoni, piżijiet b’latenza baxxa                             |
+| `auto/coding:cheap`    | ġabra għall-kodifikazzjoni, ottimizzata għall-ispiża (alias `auto/coding:floor`) |
+| `auto/reasoning:pro`   | mudelli ta’ raġunament/ħsieb biss, livell premium                                |
+| `auto/vision`          | mudelli b’kapaċitajiet viżivi (mingħajr livell → piżijiet ibbilanċjati)          |
+| `auto/multimodal:free` | mudelli b’kapaċitajiet multimodali, il-livell bla ħlas biss                      |
 
-Kwalunkwe `auto/<category>[:<tier>]` validu jiġi solvut fuq talba; sottogrupp magħżul jiġi rreklamat f’`/v1/models` u fid-dashboard (`AUTO_SUFFIX_VARIANTS` f’`open-sse/services/autoCombo/builtinCatalog.ts`). L-iffiltrar huwa **fail-open** — jekk restrizzjoni ma taqbel ma’ ebda mudell konness, jintuża l-grupp sħiħ sabiex ir-routing qatt ma jieqaf jaħdem. Il-mekkaniżmu ewlieni tal-punteġġ (`combo.ts`) jibqa’ l-istess; il-filtru tal-kategorija/livell jiġi applikat f’`buildAutoCandidates`.
+Kwalunkwe `auto/<category>[:<tier>]` validu jiġi riżolt meta jintalab; sottogrupp magħżul jiġi reklamat f’`/v1/models` u fid-dashboard (`AUTO_SUFFIX_VARIANTS` f’`open-sse/services/autoCombo/builtinCatalog.ts`). L-iffiltrar huwa **fail-open** — jekk restrizzjoni ma taqbel ma’ ebda mudell konness, tintuża l-ġabra sħiħa sabiex ir-rotot qatt ma jieqfu jaħdmu. Il-mekkaniżmu ewlieni tal-punteġġ (`combo.ts`) ma nbidilx; il-filtru tal-kategorija/livell jiġi applikat f’`buildAutoCandidates`.
 
-> **Intelliġenza diretta dwar il-mudelli:** l-adegwatezza tar-routing awtomatiku hija infurmata minn klassifiki diretti ta’ **Arena ELO** + data dwar il-livelli minn **models.dev** meta l-flag `ARENA_ELO_SYNC_ENABLED` ikun attivat (inkella jerġa’ juża l-mappa statika tal-adegwatezza).
+> **Intelliġenza diretta dwar il-mudelli:** l-idoneità tar-rotot awtomatiċi hija infurmata minn klassifiki diretti ta’ **Arena ELO** + dejta dwar il-livelli minn **models.dev** meta l-flag `ARENA_ELO_SYNC_ENABLED` ikun attiv (inkella terġa’ tintuża l-mappa statika tal-idoneità).
 
 **Kif tużah:**
 
 ```bash
 # Kwalunkwe għodda IDE jew CLI li tappoġġja l-format OpenAI
-Base URL: http://localhost:20128/v1
-API Key:  <your-endpoint-key>
+URL Bażi: http://localhost:20128/v1
+Ċavetta API:  <your-endpoint-key>
 
 # Fil-kodiċi/konfigurazzjoni tiegħek, issettja l-mudell għal:
 model: "auto"                 # default ibbilanċjat
-model: "auto/coding"          # l-aħjar għal kompiti ta’ coding
-model: "auto/fast"            # l-aktar wieħed rapidu disponibbli
+model: "auto/coding"          # l-aħjar għal kompiti ta’ kodifikazzjoni
+model: "auto/fast"            # l-aktar wieħed veloċi disponibbli
 model: "auto/cheap"           # l-irħas għal kull token
 ```
 
 **X’jiġri:**
 
 1. OmniRoute jidentifika l-prefiss `auto/` f’`src/sse/handlers/chat.ts`
-2. Jikkonsulta l-**konnessjonijiet attivi kollha tal-fornituri** mid-database
+2. Jinterroga l-**konnessjonijiet attivi kollha tal-fornituri** mid-database
 3. Jiffiltra għal dawk bi kredenzjali validi (ċavetta API jew token OAuth)
 4. Jiddetermina l-mudell għal kull konnessjoni (`connection.defaultModel` jew l-ewwel mudell tal-fornitur)
 5. Jibni **combo virtwali** fil-memorja (ma jinħażinx fid-DB)
-6. Jagħmel ir-routing billi juża l-profil tal-piżijiet tal-varjant magħżul + l-istrateġija LKGP
+6. Jirrotta bl-użu tal-profil tal-piżijiet tal-varjant magħżul + l-istrateġija LKGP
 
 **Karatteristiċi ewlenin:**
 
-- ✅ **Dejjem attiv:** Ebda toggle, ebda ħolqien ta’ combo, ebda konfigurazzjoni meħtieġa
-- ✅ **Dinamiku:** Jirrifletti awtomatikament il-fornituri konnessi bħalissa
-- ✅ **Persistenza tas-sessjoni:** LKGP jiżgura li tingħata prijorità lill-aħħar fornitur li rnexxa
+- ✅ **Dejjem attiv:** Ebda swiċċ, ebda ħolqien ta’ combo, ebda konfigurazzjoni meħtieġa
+- ✅ **Dinamiku:** Jirrifletti awtomatikament il-fornituri konnessi attwali
+- ✅ **Persistenza tas-sessjoni:** LKGP jiżgura li l-aħħar fornitur li rnexxa jingħata prijorità
 - ✅ **Konxju minn kontijiet multipli:** Kull konnessjoni ta’ fornitur issir kandidat separat
-- ✅ **Ebda kitba fid-DB:** Il-combo virtwali jeżisti biss għat-talba, mingħajr spejjeż żejda ta’ persistenza
+- ✅ **Ebda kitba fid-DB:** Il-combo virtwali jeżisti biss għat-talba, mingħajr ebda spiża addizzjonali ta’ persistenza
 
 ### Kontroll tal-kandidati għal kull ċavetta (#7819, Livell 1+2)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = is-suffiss wara `auto/`, jew
 il-valur litterali `auto` għall-kanal bażi) huwa endpoint **għall-qari biss** li jelenka
-l-grupp attwali ta’ kandidati ta’ kanal `auto/*`, imżejjen b’informazzjoni diretta dwar
-l-aċċessibbiltà, filwaqt li jerġa’ juża l-qari eżistenti tar-reżiljenza (qatt l-`state`
-mhux ipproċessat tal-breaker):
+l-ġabra attwali ta’ kandidati ta’ kanal `auto/*`, flimkien mal-aċċessibbiltà diretta,
+billi jerġa’ juża l-qari eżistenti tar-reżiljenza (qatt l-`state` mhux ipproċessat tal-breaker):
 
 - circuit breaker tal-fornitur — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- cooldown tal-konnessjoni — `rateLimitedUntil` / `testStatus` fuq ir-ringiela solvuta
-  ta’ `provider_connections`
+- cooldown tal-konnessjoni — `rateLimitedUntil` / `testStatus` fir-ringiela
+  `provider_connections` riżolta
 - imblukkar tal-mudell — `isModelLocked(provider, connectionId, model)`
 
-Kull kandidat iġorr ukoll il-flag `excluded` ta’ din iċ-ċavetta API. L-esklużjonijiet
-jinħażnu għal kull ċavetta API (tabella `auto_candidate_overrides`, migrazzjoni `128`) —
-OmniRoute huwa single-tenant mingħajr tabella `users`, għalhekk `apiKeyId` huwa l-eqreb
-identità reali għal kull min jagħmel sejħa — u jiġu infurzati fil-punt kritiku tal-grupp
-ta’ kandidati f’`open-sse/services/autoCombo/virtualFactory.ts` permezz ta’
-`filterExcludedCandidates()` pur u ttestjat b’testijiet unitarji
-(`open-sse/services/autoCombo/candidateOverrides.ts`). Il-filtru huwa **fail-open**:
-apiKeyId/kanal mhux issettjat jew falliment f’konsultazzjoni tad-DB it-tnejn iħallu
-l-grupp mhux iffiltrat, sabiex operatur mingħajr overrides ikkonfigurati jara routing
-identiku byte b’byte għal kif kien qabel din il-karatteristika.
+Kull kandidat ikollu wkoll il-flag `excluded` ta’ din iċ-ċavetta API. L-esklużjonijiet jinħażnu
+għal kull ċavetta API (it-tabella `auto_candidate_overrides`, migrazzjoni `128`) — OmniRoute
+huwa għal tenant wieħed u m’għandux tabella `users`, għalhekk `apiKeyId` huwa l-eqreb
+identità reali għal kull min jagħmel sejħa — u jiġu infurzati fil-punt ta’ kontroll tal-ġabra
+ta’ kandidati f’`open-sse/services/autoCombo/virtualFactory.ts` permezz tal-funzjoni pura
+u ttestjata b’testijiet unitarji `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
+Il-filtru huwa **fail-open**: apiKeyId/kanal mhux issettjat jew falliment fit-tiftix fid-DB it-tnejn
+iħallu l-ġabra mhux iffiltrata, sabiex operatur mingħajr overrides ikkonfigurati jara rotot
+identiċi bit b’bit għal dawk ta’ qabel din il-karatteristika.
 
 **Differit għal kwistjoni ta’ segwitu:** piżijiet għal kull kandidat + ordni espliċitu (Livell 3
-— jidħol fil-flussi eżistenti tal-istrateġija peżata/tal-prijità) u l-iffissar ta’ strateġija
-`combo.ts` speċifika għal kull kanal `auto/*` (Livell 4). Ara l-pjan #7819 għall-mistoqsija
-miftuħa dwar jekk is-sovrascritturi għandhomx jibqgħu għal kull ċavetta tal-API jew isiru
-globali minħabba l-mudell b’inkwilin wieħed.
+— jidħol fil-mogħdijiet eżistenti tal-istrateġija ppeżata/tal-prijorità) u l-iffissar ta’ strateġija
+speċifika ta’ `combo.ts` għal kull kanal `auto/*` (Livell 4). Ara l-pjan #7819 għall-mistoqsija
+miftuħa dwar jekk l-override għandhomx jibqgħu għal kull ċavetta tal-API jew isirux globali
+fid-dawl tal-mudell b’tenant wieħed.
 
 **Wara l-kwinti:**
 
@@ -114,20 +112,20 @@ src/sse/handlers/chat.ts jidentifika l-prefiss
    ↓
 createVirtualAutoCombo('coding') → candidatePool mill-konnessjonijiet attivi
    ↓
-handleComboChat (l-istess magna bħall-combos persistiti)
+handleComboChat (l-istess magna bħall-combos ippersistiti)
    ↓
-L-iskorjar awtomatiku jagħżel l-aħjar fornitur/mudell għal kull talba
+Il-punteġġ awtomatiku jagħżel l-aħjar fornitur/mudell għal kull talba
 ```
 
 **Fajls tal-implimentazzjoni:**
 
-| Fajl                                                      | Għan                                                      |
-| --------------------------------------------------------- | --------------------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Analizzatur tal-prefiss (`parseAutoPrefix`)               |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Joħloq oġġetti virtwali `AutoComboConfig`                 |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook tat-test għall-immudellar tar-reġistru tal-fornituri |
-| `src/sse/handlers/chat.ts`                                | Integrazzjoni: short-circuit tal-prefiss auto             |
-| `src/shared/constants/providers.ts`                       | Entrata tas-sistema `SYSTEM_PROVIDERS.auto`               |
+| Fajl                                                      | Għan                                                                            |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Analizzatur tal-prefiss (`parseAutoPrefix`)                                     |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Joħloq oġġetti virtwali `AutoComboConfig`                                       |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Punt ta’ konnessjoni għat-testijiet biex jiġi simulat ir-reġistru tal-fornituri |
+| `src/sse/handlers/chat.ts`                                | Integrazzjoni: terminazzjoni bikrija għall-prefiss auto                         |
+| `src/shared/constants/providers.ts`                       | Entrata tas-sistema `SYSTEM_PROVIDERS.auto`                                     |
 
 ## Ismijiet ta’ Kombinazzjonijiet li Jaqblu ma’ Id ta’ Mudell Reali
 
@@ -211,7 +209,7 @@ L-Auto-Combo Engine jagħżel dinamikament l-aħjar fornitur/mudell għal kull t
 
 ## Pakketti tal-Modalità
 
-6 profili ta' piżijiet definiti minn qabel f'`open-sse/services/autoCombo/modePacks.ts`. Kull pakkett jissostitwixxi kompletament il-piżijiet predefiniti biex ixaqleb l-għażla lejn għan wieħed. Kull pakkett diġà għandu total ta' `1.0` (`0.9999` kif stampat b'erba' ċifri deċimali), għalhekk `normalizeScoringWeights()` ma għandu xejn sinifikanti x'jikkoreġi meta pakkett ikun attiv — il-valuri hawn taħt huma, sal-arrotondament, dawk li japplika l-mekkaniżmu tal-punteġġ.
+6 profili ta' piżijiet definiti minn qabel f’`open-sse/services/autoCombo/modePacks.ts`. Kull pakkett jissostitwixxi kompletament il-piżijiet predefiniti biex ixaqleb l-għażla lejn għan wieħed. Kull pakkett diġà għandu total ta’ `1.0` (`0.9999` kif stampat b’erba’ ċifri deċimali), għalhekk `normalizeScoringWeights()` ma għandu xejn sinifikanti x’jikkoreġi meta pakkett ikun attiv — il-valuri hawn taħt huma, sal-arrotondament, dawk li japplika l-kalkolatur tal-punteġġ.
 
 | Fattur                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -233,29 +231,32 @@ L-Auto-Combo Engine jagħżel dinamikament l-aħjar fornitur/mudell għal kull t
 
 Noti:
 
-- **Il-pakketti jinkludu `quality` u `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) u jissostitwixxu l-mappa tal-piżijiet kollha kemm hi (`weights = pack`, mhux integrazzjoni). `DEFAULT_WEIGHTS` jinkludi `quality 0.03 / reliability 0`; l-għażla ta' `balanced`/`default` iżżomm dawk il-valuri predefiniti, filwaqt li l-għażla ta' pakkett tuża l-valuri tal-pakkett ta' hawn fuq. F'pool kiesaħ (għad m'hemmx osservazzjonijiet, għalhekk `quality 0.5` u `reliability 1`) dawn iż-żewġ fatturi jżidu `+0.04` taħt pakkett ġeneriku (`0.03 + 0.01`), `+0.045` taħt `quality-first` u `+0.05` taħt `reliability-first`.
-- `tierAffinity`, `specificityMatch` u `resetWindowAffinity` huma espliċitament `0` f'kull pakkett.
-- Ħarsa fil-qosor lejn l-enfasi ta' kull pakkett:
-  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (konnessjonijiet b'latency baxxa u f'saħħithom)
-  - **cost-saver** → costInv 0.3324 (jirbħu l-irħas tokens)
+- **Il-pakketti jinkludu `quality` u `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) u jissostitwixxu l-mappa tal-piżijiet kollha kemm hi (`weights = pack`, mhux merge). `DEFAULT_WEIGHTS` jinkludi `quality 0.03 / reliability 0`; l-għażla ta’ `balanced`/`default` iżżomm dawk il-valuri predefiniti, filwaqt li l-għażla ta’ pakkett tuża l-valuri tal-pakkett ta’ hawn fuq. F’pool kiesaħ (għad m’hemm l-ebda osservazzjoni, għalhekk `quality 0.5` u `reliability 1`) dawn iż-żewġ fatturi jżidu `+0.04` taħt pakkett ġeneriku (`0.03 + 0.01`), `+0.045` taħt `quality-first` u `+0.05` taħt `reliability-first`.
+- `tierAffinity`, `specificityMatch` u `resetWindowAffinity` huma espliċitament `0` f’kull pakkett.
+- Ħarsa fil-qosor lejn l-enfasi ta’ kull pakkett:
+  - **ship-fast** → latencyInv 0.3048 + health 0.2667 (konnessjonijiet b’latenza baxxa u b’saħħithom)
+  - **cost-saver** → costInv 0.3324 (jirbħu l-orħos tokens)
   - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, l-ogħla fost il-pakketti kollha (l-aħjar mudell għall-kompitu, konsistenti)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (spazju massimu disponibbli irrispettivament mill-veloċità/mill-ispiża)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (l-akbar marġni disponibbli irrispettivament mill-veloċità/mill-ispiża)
   - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, l-ogħla fost il-pakketti kollha (l-inqas sorpriżi)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profil għall-injezzjoni ta' ħsarat)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (il-pakkett ta’ piżijiet li `auto/chaos` jassenja lill-membri tal-panel tiegħu; il-fan-out parallel ma jaqrax dawn il-piżijiet, u dan mhuwiex profil għall-injezzjoni ta’ ħsarat, ara [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
 ### Kontrolli Għal Kull Talba (headers) — #6023 / #6024 / #6025 / #3470
 
-Combo `auto` jista' jiġi ggwidat **għal kull talba** permezz ta' tliet headers, mingħajr ma tiġi mmodifikata l-konfigurazzjoni maħżuna tal-combo. Dawn japplikaw biss għall-istrateġija `auto` u biss għat-talba li ġġorrhom; il-`modePack`/`budgetCap`/`budgetFallback` issejvjati tal-combo jintużaw meta l-header ikun assenti.
+Combo `auto` jista’ jiġi dirett **għal kull talba** permezz ta’ tliet headers, mingħajr ma tinbidel il-konfigurazzjoni maħżuna tal-
+combo. Dawn japplikaw biss għall-istrateġija `auto` u biss għat-talba
+li ġġorrhom; il-`modePack`/`budgetCap`/`budgetFallback` issejvjati tal-combo jintużaw
+meta l-header ikun assenti.
 
-| Intestatura                   | Jaċċetta                                                                                                                                                                                                          | Effett                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | psewdonimu predefinit (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) jew isem mhux ipproċessat ta’ pakkett (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Jissostitwixxi l-piżijiet tal-punteġġ għal din it-talba. `balanced`/`default` jimponu l-piżijiet predefiniti (l-ebda pakkett). Valuri mhux magħrufa jiġu injorati (il-konfigurazzjoni tinżamm).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `X-OmniRoute-Budget`          | numru pożittiv (massimu ta’ USD għal kull talba)                                                                                                                                                                  | Limitu massimu riġidu tal-ispiża: il-kandidati li l-ispiża stmata tagħhom taqbeż dan il-limitu jiġu ffiltrati qabel l-għażla. Dak li jiġri meta **kull** kandidat jaqbżu huwa kkontrollat minn `X-OmniRoute-Budget-Fallback` hawn taħt.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (predefinit, psewdonimi: `cheapest-viable`, `soft`) jew `strict` (psewdonimi: `block`, `hard`)                                                                                                         | `cheapest`: jirrikorri għall-irħas kandidat globalment, minkejja li xorta jaqbeż il-limitu massimu (imġiba preċedenti). `strict`: jirrifjuta li jagħżel — it-talba tfalli minnufih b’`HTTP 402` minflok tonfoq iżżejjed mingħajr avviż. Valuri mhux magħrufa jiġu injorati.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `X-OmniRoute-Effort`          | `auto` (valuri oħra riżervati)                                                                                                                                                                                    | Baġit adattiv għall-ħsieb: meta t-talba ma jkollha **l-ebda** kamp ta’ raġunament fi kwalunkwe forma (`reasoning_effort`, `reasoning`, `thinking`), il-gateway jikkonverti `auto` għal `low`/`medium`/`high` minn sinjali deterministiċi tal-istruttura tat-talba (it-tul tal-aħħar messaġġ tal-utent, id-daqs tal-kuntest sal-aħħar messaġġ tal-utent, riżultati preċedenti tal-għodod, il-fond taċ-ċiklu tal-għodod). Is-sinjali huma limitati għad-dawra attwali — dak kollu wara l-aħħar messaġġ tal-utent jiġi injorat — għalhekk kull talba f’ċiklu tal-għodod tiġi assenjata l-istess livell (iffissar bla stat għal kull dawra, l-ebda stat tas-sessjoni, l-ebda żieda matul iċ-ċiklu li tikser il-prefissi tal-cache tal-prompt tas-sors). Kamp espliċitu tar-raġunament mill-klijent dejjem jieħu preċedenza. Limitat għal talbiet li d-dispaċċ tagħhom lejn is-sors jiġi kkonvertit għall-forma OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` huwa kamp fil-forma ta’ OpenAI, għalhekk l-intestatura ma jkollha l-ebda effett fuq talba mmirata lejn Claude jew Gemini (ara `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Header                        | Jaċċetta                                                                                                                                                                                                               | Effett                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `X-OmniRoute-Mode`            | alias issettjat minn qabel (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) jew isem mhux ipproċessat ta’ pakkett (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Jissostitwixxi l-piżijiet tal-punteġġ għal din it-talba. `balanced`/`default` jimponu l-piżijiet predefiniti (mingħajr pakkett). Valuri mhux magħrufa jiġu injorati (il-konfigurazzjoni tinżamm).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `X-OmniRoute-Budget`          | numru pożittiv (massimu ta’ USD għal kull talba)                                                                                                                                                                       | Limitu massimu strett tal-ispiża: il-kandidati li l-ispiża stmata tagħhom taqbeż dan il-limitu jiġu ffiltrati qabel l-għażla. Dak li jiġri meta **kull** kandidat jaqbżu huwa kkontrollat minn `X-OmniRoute-Budget-Fallback` hawn taħt.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (predefinit, aliases: `cheapest-viable`, `soft`) jew `strict` (aliases: `block`, `hard`)                                                                                                                    | `cheapest`: jirrikorri għall-irħas kandidat b’mod ġenerali minkejja li xorta jaqbeż il-limitu (imġiba preċedenti). `strict`: jirrifjuta li jagħżel — it-talba tfalli minnufih b’`HTTP 402` minflok ma tonfoq iżżejjed mingħajr twissija. Valuri mhux magħrufa jiġu injorati.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `X-OmniRoute-Effort`          | `auto` (valuri oħra riżervati)                                                                                                                                                                                         | Baġit adattiv għall-ħsieb: meta t-talba ma jkollha **l-ebda** qasam ta’ raġunament ta’ kwalunkwe forma (`reasoning_effort`, `reasoning`, `thinking`), il-gateway jirriżolvi `auto` għal `low`/`medium`/`high` abbażi ta’ sinjali deterministiċi mill-istruttura tat-talba (it-tul tal-aħħar messaġġ tal-utent, id-daqs tal-kuntest sal-aħħar messaġġ tal-utent, riżultati preċedenti tal-għodod, il-fond taċ-ċiklu tal-għodod). Is-sinjali huma limitati għat-turn attwali — dak kollu li jiġi wara l-aħħar messaġġ tal-utent jiġi injorat — għalhekk kull talba f’ċiklu tal-għodod tiġi riżolta għall-istess livell (iffissar mingħajr stat għal kull turn, ebda stat tas-sessjoni, u ebda eskalazzjoni f’nofs iċ-ċiklu li tista’ tkisser il-prefissi tal-cache tal-prompt upstream). Qasam espliċitu tar-raġunament mill-klijent dejjem jieħu preċedenza. Dan japplika għal talbiet li d-dispaċċ upstream tagħhom jiġi riżolt għall-format OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` huwa qasam fil-format ta’ OpenAI, għalhekk il-header ma jkollu ebda effett fuq talba mmirata lejn Claude jew Gemini (ara `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Ġiegħel l-użu tal-aktar profil veloċi, illimita din it-talba għal $0.05, u imblokka b'mod strett minflok ma jinqabeż il-baġit
+# Ġiegħel l-użu tal-aktar profil veloċi, illimita din it-talba għal $0.05, u mblokkaha kompletament minflok taqbeż il-baġit
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -266,8 +267,8 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 Ir-riżoluzzjoni hija funzjoni pura (`open-sse/services/autoCombo/requestControls.ts`); il-
 valuri riżolti jiddaħħlu fl-inputs eżistenti `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` tal-magna. Il-`config.budgetFallback` maħżun ta' combo ("strict" |
-"cheapest") jistabbilixxi l-politika persistenti; il-header jegħlibha għal talba waħda.
+`config.budgetFallback` tal-engine. Il-`config.budgetFallback` maħżun ta’ combo ("strict" |
+"cheapest") jistabbilixxi l-politika persistenti; il-header jissostitwiha għal talba waħda.
 
 ## L-Istrateġiji Kollha tar-Rotot
 
@@ -757,17 +758,17 @@ Meta tinkludi `auto` waħdu (il-valur predefinit) flimkien mas-6 valuri `AutoVar
 
 ## Kif il-livelli jidħlu f’Auto-Combo
 
-Il-funzjoni tal-punteġġ b’16-il fattur (`open-sse/services/autoCombo/scoring.ts`) tittratta s-sħubija
-f’livell bħala żewġ sinjali: `tierPriority` (0.0476) u `tierAffinity` (0.0476). Ara t-
-[tabella kanonika tal-fatturi tal-punteġġ](#how-it-works-persisted-auto-combos) hawn fuq għas-sett sħiħ ta’
-`DEFAULT_WEIGHTS` — is-sostituzzjonijiet għal kull pakkett (ship-fast/cost-saver/quality-first/
-offline-friendly) huma elenkati fit-tabella “Profili tal-piż għal kull pakkett”.
+Il-funzjoni ta’ punteġġ b’16-il fattur (`open-sse/services/autoCombo/scoring.ts`) tittratta
+s-sħubija f’livell bħala żewġ sinjali: `tierPriority` (0.0476) u `tierAffinity` (0.0476). Ara
+t-[tabella kanonika tal-fatturi tal-punteġġ](#how-it-works-persisted-auto-combos) hawn fuq għas-sett sħiħ ta’
+`DEFAULT_WEIGHTS` — il-valuri speċifiċi għal kull pakkett (ship-fast/cost-saver/quality-first/
+offline-friendly) huma elenkati fit-tabella "Profili tal-piżijiet għal kull pakkett".
 
-Il-livell waħdu **ma** jġegħilx lil Tier 1 jiġi l-ewwel — jekk il-latenza ta’ Tier 1 tkun ħażina jew
-il-proporzjon bejn l-ispiża u l-kwalità ma jkunx ottimali, jirbaħ Tier 2. Biex timponi l-ordni tal-livelli, uża l-istrateġija
-`priority` tal-combo u rranġa l-fornituri skont il-livell.
+Il-livell waħdu **ma** jġiegħelx lil-Livell 1 jiġi l-ewwel — jekk il-latenza tal-Livell 1 tkun ħażina jew
+ir-relazzjoni bejn l-ispiża u l-kwalità ma tkunx ottimali, jirbaħ il-Livell 2. Biex tinforza l-ordni tal-livelli, uża l-istrateġija
+`priority` għall-combo u rranġa l-fornituri skont il-livell.
 
-Biex tagħti preferenza qawwija lil Tier 1 (abbonament), żid il-piż ta’ `tierPriority`:
+Biex tiffavorixxi bil-qawwi lil-Livell 1 (abbonament), żid il-piż ta’ `tierPriority`:
 
 ```json
 {
@@ -776,7 +777,7 @@ Biex tagħti preferenza qawwija lil Tier 1 (abbonament), żid il-piż ta’ `tie
 }
 ```
 
-Ara `docs/marketing/TIERS.md` għad-definizzjonijiet tal-livelli u l-klassifikazzjoni tal-fornituri.
+Ara [`docs/guides/TIERS.md`](../guides/TIERS.md) għad-definizzjonijiet tal-livelli u l-klassifikazzjoni tal-fornituri.
 
 ## Ittestjar u Kopertura
 

@@ -266,13 +266,18 @@ thamani yake ya env / default. Inarudisha `{ cleared: <count>, message: "..." }`
 ## Njia Mbadala ya Dharura ya Bajeti
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (kategoria `runtime`, chaguo-msingi `true`) hudhibiti
-njia ya dharura ya kutumia chaguo mbadala lisilolipishwa katika
+njia ya dharura ya kutumia huduma mbadala isiyolipishwa katika
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Ikiwashwa, maombi yanayomaliza bajeti yao huelekezwa kwa provider/model mbadala
-isiyolipishwa badala ya kushindwa kabisa. Iweke kuwa `false` (au `0`) — kupitia
-kitufe cha kubadilisha hali kwenye dashibodi, ubatilishaji wa DB, au environment variable ya `OMNIROUTE_EMERGENCY_FALLBACK`
-— ili kuzima tabia hiyo na kuruhusu maombi yaliyomaliza bajeti
-yashindwe. (Imeonyeshwa kama kitufe cha kubadilisha hali kwenye dashibodi katika PRs #3741 / #3752.)
+Ikiwashwa, maombi yanayomaliza bajeti yake huelekezwa kwa
+mtoa huduma/modeli mbadala isiyolipishwa badala ya kushindwa moja kwa moja. Iweke kuwa `false` (au `0`) — kupitia
+kitufe cha dashibodi, ubatilishaji wa DB, au kigeu cha mazingira cha
+`OMNIROUTE_EMERGENCY_FALLBACK` — ili kuzima tabia hii na kuruhusu maombi yaliyomaliza bajeti
+yashindwe. (Imeonyeshwa kama kitufe cha dashibodi katika PR #3741 / #3752.)
+
+Jibu linalotolewa kupitia njia hii mbadala hubeba
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, ili
+kiteja kiweze kutambua kuwa lilielekezwa upya bila kulinganisha `X-OmniRoute-Provider` na
+ombi lake. Kichwa hiki hakipo katika majibu mengine yote.
 
 ---
 

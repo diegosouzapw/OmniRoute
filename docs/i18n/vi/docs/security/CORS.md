@@ -130,21 +130,25 @@ khởi động lại.
 
 ## Ví dụ: reverse proxy phía trước OmniRoute
 
-CORS được chính OmniRoute thực thi, vì vậy proxy thường **không** nên thêm hoặc
-ghi đè các header `Access-Control-*` (header trùng lặp khiến trình duyệt gặp lỗi). Kết thúc TLS
-và chuyển tiếp — hãy để OmniRoute phản hồi preflight:
+CORS được chính OmniRoute thực thi, vì vậy proxy thường **không nên** thêm hoặc
+ghi đè các header `Access-Control-*` (header trùng lặp sẽ khiến trình duyệt gặp lỗi). Hãy kết thúc TLS
+và chuyển tiếp — để OmniRoute phản hồi yêu cầu preflight:
 
 ```nginx
 # nginx — chuyển tiếp đến OmniRoute; KHÔNG chèn Access-Control-* tại đây
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # KHÔNG đặt X-Forwarded-For thành 127.0.0.1 — việc này vô hiệu hóa cơ chế bảo vệ route loopback.
+    # Giữ lại các header chuyển tiếp: một proxy trên cùng máy chủ sẽ kết nối từ địa chỉ loopback,
+    # và chúng cho OmniRoute biết rằng bên gọi không phải là người vận hành cục bộ. Một proxy không thêm
+    # bất kỳ header nào trong số đó sẽ khiến mọi bên gọi từ xa trông như đang ở cục bộ. Cũng tuyệt đối không đặt X-Forwarded-For thành 127.0.0.1.
 }
 ```
 
-Thiết lập các origin trình duyệt được phép trong OmniRoute (`CORS_ALLOWED_ORIGINS` hoặc
+Hãy đặt các nguồn gốc trình duyệt được phép trong OmniRoute (`CORS_ALLOWED_ORIGINS` hoặc
 tab Security), không phải trong proxy.
 
 ## Các tệp nguồn

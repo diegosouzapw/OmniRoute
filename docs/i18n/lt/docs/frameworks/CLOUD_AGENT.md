@@ -307,22 +307,27 @@ aukštesnio lygio paslaugos apmokestinimą, nutraukite užduotį paties teikėjo
 
 ## REST API — debesijos paslaugų teikėjų integracija
 
-Šiuos pagalbinius galinius taškus, esančius `src/app/api/cloud/`, naudoja nuotoliniai klientai
-(CLI, Electron programa arba sinchronizavimo procesai), kad nuskaitytų paslaugų teikėjo ryšio metaduomenis
-ir išspręstų modelių alternatyviuosius vardus. Jų autentifikavimui naudojamas **įprastas API raktas**
-(per `validateApiKey`), o ne užduočių galiniuose taškuose naudojamas valdymo autentifikavimas.
+Šie pagalbiniai galiniai taškai, esantys `src/app/api/cloud/`, naudojami nuotolinių klientų
+(CLI, Electron programėlės arba sinchronizavimo procesų) paslaugų teikėjų ryšio metaduomenims
+nuskaityti ir modelių pseudonimams nustatyti. Jų tapatybė patvirtinama naudojant **API raktą**
+(per `validateApiKey`), o ne užduočių galinių taškų naudojamą valdymo autentifikavimą; tai, ką
+grąžina `/api/cloud/auth`, priklauso nuo rakto aprėpties (žr. toliau).
 
-| Metodas | Kelias                          | Paskirtis                                                                                         |
-| ------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
-| POST    | `/api/cloud/auth`               | Patikrinti API raktą, grąžinti užmaskuotus ryšio metaduomenis ir modelių alternatyviuosius vardus |
-| PUT     | `/api/cloud/credentials/update` | Atnaujinti `accessToken` / `refreshToken` / `expiresAt`                                           |
-| POST    | `/api/cloud/model/resolve`      | Susieti modelio alternatyvųjį vardą su `{ provider, model }`                                      |
-| GET     | `/api/cloud/models/alias`       | Pateikti visus modelių alternatyviuosius vardus                                                   |
-| PUT     | `/api/cloud/models/alias`       | Nustatyti modelio alternatyvųjį vardą (ir automatiškai sinchronizuoti su debesija, jei įjungta)   |
+| Metodas | Kelias                          | Paskirtis                                                                              |
+| ------- | ------------------------------- | -------------------------------------------------------------------------------------- |
+| POST    | `/api/cloud/auth`               | Patikrinti API raktą, grąžinti užmaskuotus ryšio metaduomenis ir modelių pseudonimus   |
+| PUT     | `/api/cloud/credentials/update` | Atnaujinti `accessToken` / `refreshToken` / `expiresAt`                                |
+| POST    | `/api/cloud/model/resolve`      | Nustatyti modelio pseudonimą kaip `{ provider, model }`                                |
+| GET     | `/api/cloud/models/alias`       | Pateikti visų modelių pseudonimų sąrašą                                                |
+| PUT     | `/api/cloud/models/alias`       | Nustatyti modelio pseudonimą (ir automatiškai sinchronizuoti su debesija, jei įjungta) |
 
 `/api/cloud/auth` niekada negrąžina neapdorotų `apiKey` / `accessToken` / `refreshToken`. Jis
-grąžina `hasApiKey`, `hasAccessToken`, `hasRefreshToken` ir užmaskuotą peržiūrą
-(`maskedApiKey`: pirmi 4 + `****` + paskutiniai 4).
+grąžina `hasApiKey`, `hasAccessToken`, `hasRefreshToken` aktyviems ryšiams, kuriuos raktas
+gali naudoti (raktas, apribotas naudojant `allowedConnections`, mato tik šiuos ryšius). API raktui,
+turinčiam `manage` arba `admin` aprėptį, įskaitant diegimo raktą iš `OMNIROUTE_API_KEY`, taip pat
+grąžinama užmaskuota peržiūra (`maskedApiKey`: iki 4 simbolių kiekviename gale, trumpam raktui –
+mažiau, o 8 arba mažiau simbolių turinčiam raktui – nė vieno) ir ryšio `projectId`. Visiems kitiems
+raktams abu laukai atsakyme nepateikiami.
 
 ## Prisijungimo duomenų nustatymas
 

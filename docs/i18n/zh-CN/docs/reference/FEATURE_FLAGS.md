@@ -257,10 +257,15 @@ curl -X PUT http://localhost:20128/api/settings/feature-flags \
 `OMNIROUTE_EMERGENCY_FALLBACK`（类别为 `runtime`，默认值为 `true`）控制
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts)
 中的紧急免费回退路径。启用后，预算耗尽的请求将被路由到免费的回退
-提供者/模型，而不是直接失败。通过仪表板开关、DB 覆盖值或
+提供者/模型，而不是直接失败。可通过控制面板开关、数据库覆盖配置或
 `OMNIROUTE_EMERGENCY_FALLBACK` 环境变量将其设置为 `false`（或 `0`），
-即可禁用此行为，并让预算耗尽的请求失败。（在 PR #3741 / #3752 中作为
-仪表板开关提供。）
+以禁用此行为，并让预算耗尽的请求失败。（已在 PR #3741 / #3752 中作为
+控制面板开关提供。）
+
+由此回退机制处理的响应会携带
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`，
+因此客户端无需将 `X-OmniRoute-Provider` 与其请求进行比对，即可判断请求是否
+被重新路由。其他所有响应均不包含此标头。
 
 ---
 

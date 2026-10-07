@@ -1,0 +1,1 @@
+- **fix(dashboard):** list every provider, model, account and API key in the Logs tab filters, not only the values in the loaded page, so a key with no row in view (or no traffic yet) can still be selected ([#15160](https://github.com/diegosouzapw/OmniRoute/pull/15160))

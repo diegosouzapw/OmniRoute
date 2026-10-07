@@ -4,11 +4,31 @@
 
 ---
 
-OmniRoute pakub perekonna `setup-*` käske, mis konfigureerivad kodeerimise CLI (Codex, Claude Code, OpenCode, Cline, …) kasutama OmniRoute'i oma taustaprogrammina — nii suhtleb tööriist **ühe** lõpp-punktiga ja OmniRoute suunab õigele pakkujale automaatse varuvariandiga. Iga käsk loeb **elavat** mudelikataloogi töötavast OmniRoute'ist (kohalik või kaugjuhtimisega) ja kirjutab tööriista enda konfiguratsioonifaili **teie** masinasse. API võtit viidatakse keskkonnamuutujaga kõikjal, kus tööriist seda toetab. Käsud, mis säilitavad tööriistapõhise keskkonnafaili, on märgitud allpool.
+Jagatud käivitatava faili manifesti, piiratud alaprotsessikeskkondade ja püsiva
+Gemini seadistuse kohta vaadake jaotist [CLI käivituslepingud](./CLI-LAUNCH-CONTRACTS.md).
 
-Olemas on ka üldine käivitaja — `omniroute run <target>` —, mis käivitab `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` või `gemini` õige keskkonnaga, ilma et peaks üldse konfiguratsiooni kirjutama. Sihtmärgid ja nende aliased pärinevad kanoonilisest manifestist `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), ja `omniroute completion` pakub samu manifestist tuletatud sihtsõnu. Pärandatud tööriistapõhised käivitajad — `omniroute launch` (Claude Code) ja `omniroute launch-codex` (Codex) — jäävad kättesaadavaks.
+OmniRoute sisaldab `setup-*` käskude perekonda, mis seadistab programmeerimise
+CLI (Codex, Claude Code, OpenCode, Cline, …) kasutama taustateenusena OmniRoute’i —
+nii suhtleb tööriist **ühe** lõpp-punktiga ning OmniRoute suunab päringu õigele
+pakkujale, kasutades automaatset varuvarianti. Iga käsk loeb töötavast OmniRoute’ist
+(kohalikust või kaugserveris asuvast) **aktiivse** mudelikataloogi ja kirjutab
+tööriista enda konfiguratsioonifaili **teie** masinas. Kõikjal, kus tööriist seda
+toetab, viidatakse API võtmele keskkonnamuutuja kaudu. Käsud, mis salvestavad
+tööriistapõhise keskkonnafaili püsivalt, on allpool ära märgitud.
 
-Pakkuja lisamine on saadaval samast kohalikust/kaugjuhtimisega kontekstist. Allpool toodud API-esimesed käsud hoiavad halduse autentimise eraldi pakkuja mandaatidest ja ei prindi kunagi mandaati struktureeritud väljundisse:
+Saadaval on ka üldine käivitaja — `omniroute run <target>` —, mis käivitab
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` või `gemini`, lisades
+õige keskkonna, ilma ühtegi konfiguratsioonifaili kirjutamata. Sihtmärgid ja nende
+aliased pärinevad kanoonilisest manifestist `bin/cli/cli-manifest.mjs`
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`) ning `omniroute completion` pakub samu
+manifestist tuletatud sihtmärksõnu. Varasemad tööriistapõhised käivitajad —
+`omniroute launch` (Claude Code) ja `omniroute launch-codex` (Codex) — jäävad
+endiselt kättesaadavaks.
+
+Pakkujate kasutuselevõtt on saadaval samas kohalikus või kaugkontekstis. Alltoodud
+API-põhised käsud hoiavad halduse autentimise pakkuja mandaatidest eraldi ega
+väljasta struktureeritud väljundis kunagi mandaati:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +38,26 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Skriptide jaoks eelistage `--credential-stdin` või `--credential-env`; `--credential` on säilitatud kontrollitud kohalikuks kasutamiseks. `providers remove` nõuab mitteinteraktiivses terminalis `--yes`, ja kõik viis käsku arvestavad aktiivse konteksti või globaalsete `--base-url`/`--api-key` valikutega.
+Skriptides eelistage suvandeid `--credential-stdin` või `--credential-env`;
+`--credential` on säilitatud kontrollitud kohalikuks kasutuseks. `providers remove`
+nõuab mitteinteraktiivses terminalis suvandit `--yes` ning kõik viis käsku
+arvestavad aktiivse konteksti või globaalsete suvanditega `--base-url`/`--api-key`.
 
-Pakkuja valijad lükkavad tagasi ebaselged ID eesliited, nimed või pakkuja nimed; kasutage täielikku ühenduse ID-d, kui mitu ühendust vastavad. Loomise ja muutmise käsud loevad salvestatud ühenduse tagasi, ja eemaldamine kontrollib, et see ei ole enam loetav. Import jätab vahele olemasoleva pakkuja/nime paari. Imporditud kirjed ei saa alistada halduse lõpp-punkti, konteksti ega halduse mandaate, mis on CLI-le antud.
+Pakkuja selektorid lükkavad tagasi mitmetähenduslikud ID prefiksid, nimed või
+pakkujate nimed; kui vastavuses on mitu ühendust, kasutage täielikku ühenduse ID-d.
+Loomis- ja muutmiskäsud loevad salvestatud ühenduse kontrollimiseks uuesti ning
+eemaldamisel kontrollitakse, et see poleks enam loetav. Importimine jätab
+olemasoleva pakkuja ja nime paari vahele. Imporditud kirjed ei saa alistada CLI-le
+edastatud halduse lõpp-punkti, konteksti ega halduse mandaate.
 
-Kahe rikkalikuma integratsiooni ühekordse, käsitsi kirjutatud baasseadistuse kohta vaadake tööriistapõhiseid süvaanalüüse:
+Kahe kõige võimalusterohkema integratsiooni ühekordse käsitsi põhiseadistuse kohta
+vaadake tööriistapõhiseid põhjalikke juhendeid:
 
-- [Claude Code konfiguratsioon](./CLAUDE-CODE-CONFIGURATION.md)
+- [Claude Code’i konfiguratsioon](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI konfiguratsioon](./CODEX-CLI-CONFIGURATION.md)
-- [Kaugrežiim](./REMOTE-MODE.md) — juhtige kaug-OmniRoute'i (VPS / Tailnet) oma sülearvutist
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot laiendus; see saab ka neid `setup-*` käske teie eest redaktori seest käivitada
+- [Kaugrežiim](./REMOTE-MODE.md) — juhtige oma sülearvutist kaugserveris asuvat OmniRoute’i (VPS / Tailnet)
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopiloti laiendus; see saab neid
+  `setup-*` käske teie eest käivitada ka redaktori seest
 
 ---
 

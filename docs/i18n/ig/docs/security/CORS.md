@@ -127,24 +127,28 @@ restart.
   origin management/dashboard na config ọ bụla na-enye ohere sara mbara; ha ga-anọrịrị kpọmkwem
   n’ọnọdụ fail-closed.
 
-## Ọmụmaatụ: reverse proxy dị n’ihu OmniRoute
+## Ọmụmaatụ: reverse proxy n'ihu OmniRoute
 
-OmniRoute n’onwe ya na-amanye CORS, ya mere proxy ekwesịghịkarị **ịtinye** ma ọ bụ
-idegharị header `Access-Control-*` (header abụọ na-emebi ọrụ browser). Kwụsị TLS
-ma zipụ arịrịọ ahụ n’ihu — hapụ OmniRoute ka ọ zaa preflight:
+OmniRoute n'onwe ya na-amanye CORS, ya mere proxy ekwesịghị **ịgbakwunye** ma ọ bụ
+idegharị headers `Access-Control-*` (headers abụọ na-eme ka ihe nchọgharị ghara ịrụ ọrụ). Kwụsị TLS
+ma zipụ arịrịọ ahụ n'ihu — hapụ OmniRoute ka ọ zaa preflight:
 
 ```nginx
-# nginx — zipụ n’ihu gaa OmniRoute; etinyela Access-Control-* ebe a
+# nginx — zipụ n'ihu na OmniRoute; etinyekwala Access-Control-* ebe a
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Atọkwala X-Forwarded-For ka ọ bụrụ 127.0.0.1 — ọ na-emebi ihe nchebe loopback route.
+    # Debe headers ndị a na-eji eziga arịrịọ n'ihu: proxy dị n'otu host na-ejikọ site na loopback, ma ọ bụ
+    # ha na-agwa OmniRoute na onye na-akpọ ya abụghị onye nchịkwa mpaghara. Proxy na-adịghị etinye nke ọ bụla n'ime ha
+    # na-eme ka onye ọ bụla na-akpọ site n'ebe dị anya yie onye mpaghara. Etinyekwala X-Forwarded-For ka ọ bụrụ 127.0.0.1.
 }
 ```
 
-Tọọ origin browser ndị e kwere na OmniRoute (`CORS_ALLOWED_ORIGINS` ma ọ bụ
-taabụ Security), ọ bụghị na proxy.
+Tọọ origins ihe nchọgharị ndị a na-ekwe ka ha rụọ ọrụ n'ime OmniRoute (`CORS_ALLOWED_ORIGINS` ma ọ bụ
+taabụ Security), ọ bụghị n'ime proxy.
 
 ## Faịlụ source
 

@@ -266,12 +266,19 @@ değerine geri yükler. `{ cleared: <count>, message: "..." }` döndürür.
 
 `OMNIROUTE_EMERGENCY_FALLBACK` (`runtime` kategorisi, varsayılan `true`),
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts)
-içindeki acil durum ücretsiz yedek yolunu denetler.
-Etkinleştirildiğinde, bütçesini tüketen istekler doğrudan başarısız olmak yerine ücretsiz bir yedek
-sağlayıcıya/modele yönlendirilir. Bu davranışı devre dışı bırakmak ve bütçesini tüketen isteklerin
-başarısız olmasına izin vermek için kontrol panelindeki açma/kapatma düğmesi, bir DB geçersiz kılması
-veya `OMNIROUTE_EMERGENCY_FALLBACK` ortam değişkeni aracılığıyla `false` (ya da `0`) olarak ayarlayın.
-(PR'ler #3741 / #3752 kapsamında kontrol panelinde bir açma/kapatma düğmesi olarak sunulmuştur.)
+dosyasındaki acil durum ücretsiz yedek yolunu kontrol eder. Etkinleştirildiğinde,
+bütçesini tüketen istekler doğrudan başarısız olmak yerine ücretsiz bir yedek
+sağlayıcıya/modele yönlendirilir. Bu davranışı devre dışı bırakmak ve bütçesi
+tükenen isteklerin başarısız olmasına izin vermek için gösterge paneli anahtarı,
+bir DB geçersiz kılma ayarı veya `OMNIROUTE_EMERGENCY_FALLBACK` ortam değişkeni
+aracılığıyla değeri `false` (veya `0`) olarak ayarlayın. (PR #3741 / #3752 ile
+gösterge paneli anahtarı olarak sunulmuştur.)
+
+Bu yedek tarafından sunulan bir yanıt,
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`
+üstbilgisini taşır; böylece istemci, `X-OmniRoute-Provider` değerini kendi
+isteğiyle karşılaştırmak zorunda kalmadan isteğin yeniden yönlendirildiğini
+anlayabilir. Bu üstbilgi diğer tüm yanıtlarda bulunmaz.
 
 ---
 

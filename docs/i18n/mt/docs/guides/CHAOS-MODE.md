@@ -4,22 +4,45 @@
 
 ---
 
-> **Dashboard:** **Modalità Chaos** (fil-barra tal-ġenb) → `/dashboard/chaos`  
+> **Dashboard:** **Chaos Mode** (fil-sidebar) → `/dashboard/chaos`  
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sessjoni tad-dashboard) · `POST /api/skills/collect/chaos` (ċavetta tal-API)  
 > **Sors:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Il-Modalità Chaos tibgħat **kompitu wieħed lil diversi fornituri fl-istess ħin** — kull fornitur parteċipanti
-jikkontribwixxi istanza waħda ta' mudell, u tirċievi t-tweġibiet kollha maġenb xulxin (jew f'katina). Din hija
-superfiċje ta' eżekuzzjoni b'diversi mudelli, mhux strateġija ta' routing: it-traffiku normali tiegħek ta'
+Chaos Mode jibgħat **kompitu wieħed lil diversi fornituri f'daqqa** — kull fornitur parteċipanti
+jikkontribwixxi istanza waħda ta' mudell, u tirċievi t-tweġibiet kollha ħdejn xulxin (jew f'katina). Din hija
+interfaċċa ta' eżekuzzjoni b'diversi mudelli, mhux strateġija ta' direzzjonar: it-traffiku normali tiegħek ta'
 `/v1/chat/completions` qatt ma jiġi affettwat minnha.
 
-**Kjarifika — jiġu inklużi tliet affarijiet differenti li għandhom "chaos" f'isimhom:**
+**Distinzjoni — jiġu pprovduti tliet affarijiet differenti li għandhom "chaos" f'isimhom:**
 
-| Ħaġa                            | X'inhi                                                                                                                                       | Fejn hi ddokumentata                         |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Modalità Chaos**              | Il-paġna tad-dashboard + l-API deskritta hawnhekk: tqassam kompitu wieħed lil ħafna fornituri (b'mod parallel jew kollaborattiv).            | Din il-gwida                                 |
-| `auto/chaos`                    | ID ta' mudell Auto-Combo b'piżijiet ta' punteġġ għall-injezzjoni ta' ħsarat, għall-ittestjar tar-reżiljenza. M'hemm xejn x'jiġi kkonfigurat. | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Konfigurazzjoni tal-combo Chaos | Combo persistenti b'`config.chaos.enabled` tqassam ix-xogħol lil panel b'mudell ta' ġudizzju fakultattiv (permezz tal-API biss).             | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Ħaġa                            | X'inhi                                                                                                                                                                                     | Fejn hi ddokumentata                         |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| **Chaos Mode**                  | Il-paġna tad-dashboard + l-API deskritta hawnhekk: tqassam kompitu wieħed lil ħafna fornituri (b'mod parallel jew kollaborattiv).                                                          | Din il-gwida                                 |
+| `auto/chaos`                    | ID tal-mudell Auto-Combo: tqassim parallel, mudell wieħed għal kull fornitur, sejħa waħda upstream għal kull wieħed. Mhix injezzjoni ta' ħsarat ([dettalji](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Konfigurazzjoni tal-combo Chaos | Combo persistita b'`config.chaos.enabled` tqassam bl-istess mod (bl-API biss); `judgeModel` jagħżel biss it-tweġiba finali, mingħajr sejħa ta' sinteżi.                                    | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: tqassim parallel
+
+`auto/chaos` **mhuwiex** kontroll għall-injezzjoni ta' ħsarat jew għall-ittestjar tar-reżiljenza. Meta titlob
+`model: "auto/chaos"` fuq `/v1/chat/completions`:
+
+1. Jibni panel ta' **mudell wieħed għal kull fornitur**: l-ewwel kandidat ta' kull
+   fornitur konness, skont l-ordni fil-ġabra tal-kandidati, sa 5 membri
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, b'limitu massimu ta' 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Il-pakkett tal-piżijiet `chaos-mode`
+   jistabbilixxi biss il-`weight` ta' kull membru; it-tqassim ma jaqrahx.
+2. Jibgħat l-istess talba lil kull membru tal-panel **b'mod parallel**, għalhekk talba waħda
+   tiswa sejħa upstream waħda għal kull membru tal-panel
+   (`open-sse/services/autoCombo/chaosEngine.ts`, mibgħuta minn
+   `open-sse/services/combo.ts`).
+3. Jistrimja linja waħda tal-istatus għal kull membru tal-panel hekk kif tasal: kumment SSE
+   (`: chaos <index> ok|fail <model>`) b'mod awtomatiku, flimkien ma' avveniment `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) meta t-talba tissettja
+   `stream_options.include_chaos_parts: true`. Dawn ma jinkludu ebda test tat-tweġiba.
+4. Jibgħat **tweġiba waħda** tal-panel bħala l-aħħar blokka fl-istil ta' OpenAI: dik tal-ewwel membru
+   tal-panel (`auto/chaos` jissettjah bħala `judgeModel`) meta jirnexxi, inkella
+   dik tal-aħħar membru li rnexxa. It-tweġibiet l-oħra tal-panel ma jiġux irritornati, għalhekk
+   tħallas għal N sejħiet u tirċievi tlestija waħda.
 
 ## Konfigurazzjoni
 

@@ -262,16 +262,15 @@ Na-eweghachi `{ cleared: <count>, message: "..." }`.
 
 ---
 
-## Nlaghachi Ndabere Biudjet Maka Ọnọdụ Mberede
+## Ndaghachi Atụmatụ Mmefu Mberede
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (category `runtime`, default `true`) na-achịkwa
-ụzọ nlaghachi ndabere efu maka ọnọdụ mberede dị na
+`OMNIROUTE_EMERGENCY_FALLBACK` (ụdị `runtime`, ndabara `true`) na-achịkwa ụzọ ndaghachi efu nke mberede dị na
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Mgbe enyere ya aka, a na-eziga request ndị mefusịrị biudjet ha na provider/model
-nlaghachi ndabere efu kama ka ha daa kpamkpam. Tọọ ya ka ọ bụrụ `false` (ma ọ bụ `0`) — site na
-toggle dashboard, override DB, ma ọ bụ environment variable `OMNIROUTE_EMERGENCY_FALLBACK`
-— iji gbanyụọ omume ahụ ma kwe ka request ndị biudjet ha gwụrụ daa.
-(E gosipụtara ya dị ka toggle dashboard na PRs #3741 / #3752.)
+Mgbe agbanyere ya, a na-ebuga arịrịọ ndị mefuru atụmatụ mmefu ha niile na onye na-eweta ọrụ/ụdị ndaghachi efu kama ime ka ha daa ozugbo. Tọọ ya ka ọ bụrụ `false` (ma ọ bụ `0`) — site na bọtịnụ ngbanwe dị na dashboard, nhazi nnọchi DB, ma ọ bụ mgbanwe gburugburu `OMNIROUTE_EMERGENCY_FALLBACK` — iji gbanyụọ omume ahụ ma kwe ka arịrịọ ndị mefuru atụmatụ mmefu ha niile daa. (E gosipụtara ya dịka bọtịnụ ngbanwe dashboard na PRs #3741 / #3752.)
+
+Nzaghachi e nyere site na ndaghachi a na-ebu
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`, ka onye ahịa wee nwee ike ịmata na e bugharịrị ya n'ụzọ ọzọ n’ejighị ntụnyere `X-OmniRoute-Provider` na arịrịọ ya.
+Isiokwu a anaghị adị na nzaghachi ndị ọzọ niile.
 
 ---
 

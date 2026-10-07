@@ -453,8 +453,7 @@ const { messages: aged, saved } = applyAging(messages, {
 על גוף עם `messages`, עקיפת תוכן (`shouldBypassCavemanOutputMode()` ב-
 `open-sse/services/compression/outputMode.ts`) בודקת את שלוש ההודעות האחרונות ומדלגת
 על הסגנונות עבור כל הסיבוב כאשר הן תואמות למילות המפתח שלה לאבטחה, פעולה בלתי הפיכה,
-הבהרה או רגישות לסדר. העקיפה פועלת ללא קשר למצב מתג ה-**Auto-Clarity Bypass**
-(`cavemanOutputMode.autoClarity`) בלוח המחוונים.
+הבהרה או רגישות לסדר. העקיפה פועלת כלעוד מתג ה-**Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) בלוח המחוונים מופעל, וזו ברירת המחדל; כשהמתג כבוי, הסגנונות שנבחרו חלים גם בסיבובים האלה.
 
 כאשר העקיפה מאפשרת לסיבוב לעבור, `placeSystemInstruction()` (אותו קובץ),
 שלעולם אינו יוצר `messages[0]` חדש, ממקם את הבלוק בראשון מבין אלה שהוא מוצא:

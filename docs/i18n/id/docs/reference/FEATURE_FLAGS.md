@@ -261,11 +261,18 @@ Menghapus **semua** override DB sekaligus, mengembalikan setiap flag ke nilai en
 `OMNIROUTE_EMERGENCY_FALLBACK` (kategori `runtime`, default `true`) mengontrol
 jalur fallback gratis darurat di
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
-Ketika diaktifkan, permintaan yang menghabiskan anggarannya akan diarahkan ke
-penyedia/model fallback gratis alih-alih langsung gagal. Atur ke `false` (atau `0`) — melalui
-toggle dasbor, override DB, atau variabel lingkungan `OMNIROUTE_EMERGENCY_FALLBACK`
-— untuk menonaktifkan perilaku tersebut dan membiarkan permintaan yang kehabisan anggaran
-gagal. (Ditampilkan sebagai toggle dasbor dalam PR #3741 / #3752.)
+Saat diaktifkan, permintaan yang kehabisan anggaran akan dialihkan ke
+penyedia/model fallback gratis alih-alih langsung mengalami kegagalan. Atur ke
+`false` (atau `0`) — melalui toggle dasbor, override DB, atau variabel lingkungan
+`OMNIROUTE_EMERGENCY_FALLBACK` — untuk menonaktifkan perilaku ini dan membiarkan
+permintaan yang kehabisan anggaran mengalami kegagalan. (Ditampilkan sebagai
+toggle dasbor dalam PR #3741 / #3752.)
+
+Respons yang dilayani oleh fallback ini membawa
+`X-OmniRoute-Emergency-Fallback: from=<provider/model>; to=<provider/model>`,
+sehingga klien dapat mengetahui bahwa permintaan telah dialihkan tanpa perlu
+membandingkan `X-OmniRoute-Provider` dengan permintaannya. Header ini tidak ada
+pada semua respons lainnya.
 
 ---
 

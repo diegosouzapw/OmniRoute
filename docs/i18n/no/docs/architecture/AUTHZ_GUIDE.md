@@ -17,59 +17,60 @@ OmniRoute har en rutebevisst autorisasjons-pipeline som kontrollerer hver API-fo
 
 ### 1. API-nøkkel (Bearer)
 
-Brukes for de OpenAI-/Anthropic-/Gemini-kompatible klient-API-ene og enkelte administrasjonsruter når nøkkelen har `manage`-omfanget.
+Brukes for de OpenAI-/Anthropic-/Gemini-kompatible klient-API-ene og enkelte administrasjonsruter når nøkkelen har omfanget `manage`.
 
 ```
-Authorization: Bearer <api-nøkkel>
+Authorization: Bearer <api-key>
 ```
 
-Valideres av `isValidApiKey()` / `extractApiKey()` i `src/sse/services/auth.ts` og reeksporteres gjennom `src/shared/utils/apiAuth.ts`. Validatoren godtar også miljøvariablene `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` som vedvarende passthrough-nøkler (problem #1350).
+Valideres av `isValidApiKey()` / `extractApiKey()` i `src/sse/services/auth.ts` og eksporteres på nytt via `src/shared/utils/apiAuth.ts`. Validatoren godtar også miljøvariablene `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` som permanente passthrough-nøkler (sak #1350).
 
 ### 2. Kontrollpaneløkt (auth_token-informasjonskapsel)
 
 For kontrollpanelsider og administratoroperasjoner.
 
 ```
-Cookie: auth_token=<JWT signert med JWT_SECRET>
+Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-En informasjonskapsel er bare en økt når JWT-en verifiseres **og** inneholder `authenticated: true`
+En informasjonskapsel er bare en økt når JWT-en er verifisert **og** inneholder `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Alle
-som bruker informasjonskapselen (rutevakt, oppdatering av AuthZ-kjeden, WebSocket-håndtrykk, live-
-server, `/api/settings/require-login`, `/api/auth/status`), går gjennom denne hjelpefunksjonen.
-Det finnes andre JWT-er signert med `JWT_SECRET` — Cursor CLI-passthrough oppretter
-tokener med `iss "omniroute" / aud "cursor-cli"` for nøkkelinnehavere — og disse er aldri økter
+brukere av informasjonskapselen (rutebeskyttelsen for kontrollpanelet (`isDashboardSessionAuthenticated()`), oppdatering i autorisasjonspipelinen, WebSocket-håndtrykk, direkteserveren, `/api/settings/require-login`, `/api/auth/status`) går gjennom denne hjelpefunksjonen.
+Det finnes andre JWT-er signert med `JWT_SECRET` — passthrough-funksjonen for Cursor CLI utsteder
+tokener med `iss "omniroute" / aud "cursor-cli"` til nøkkelinnehavere — og disse er aldri økter
 (#13298).
 
-Verifiseres av `isDashboardSessionAuthenticated()` i `src/shared/utils/apiAuth.ts`. Kjeden oppdaterer JWT-en automatisk når det gjenstår mindre enn 7 dager av dens 30-dagers levetid.
+Verifiseres av `isDashboardSessionAuthenticated()` i `src/shared/utils/apiAuth.ts`. Pipelinen oppdaterer JWT-en automatisk når den har mindre enn 7 dager igjen av levetiden på 30 dager.
 
-Enkelte administrasjonsruter godtar **begge** moduser: informasjonskapsel ELLER `Bearer <key>` når API-nøkkelen har `manage`- (eller `admin`-) omfanget. Dette muliggjør arbeidsflyten «konfigurerbar via API-kall» som ble lagt til i v3.8.
+En økt kan også avsluttes før de 30 dagene har gått, fordi alle utstedere går gjennom `mintDashboardSessionToken` (med utstedelsestidspunktet `iat` og ID-en `jti`), og verifikatoren kontrollerer to innstillinger: `sessionsValidAfter`, som angis ved passordendring slik at alle økter utstedt før dette tidspunktet ikke lenger kan verifiseres (nettleseren som endret passordet, får en ny informasjonskapsel), og `revokedDashboardSessions`, der `POST /api/auth/logout` legger til `jti`-verdien for økten som ble logget ut. Økter utstedt av en eldre versjon inneholder ingen av disse attributtene og forblir gyldige frem til første passordendring. Hvis innstillingene ikke kan leses, anses ikke økten som pålitelig.
 
-#### Valgfri OIDC-påloggingsport (#6973)
+Enkelte administrasjonsruter godtar **begge** moduser: informasjonskapsel ELLER `Bearer <key>` når API-nøkkelen har omfanget `manage` (eller `admin`). Dette muliggjør arbeidsflyten «konfigurerbar via API-kall» som ble lagt til i v3.8.
 
-Administratorpåloggingen for kontrollpanelet støtter også en **valgfri** OIDC-flyt (OpenID Connect)
-ved siden av standard pålogging med passord — pålogging med passord fjernes aldri, men
-suppleres:
+#### Valgfri OIDC-påloggingssperre (#6973)
+
+Administratorpåloggingen til kontrollpanelet støtter også en **valgfri** OIDC-flyt (OpenID Connect)
+i tillegg til standardpåloggingen med passord — passordpåloggingen fjernes aldri, den blir bare
+supplert:
 
 - Deaktivert med mindre `settings.oidcEnabled === true` **og** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` alle er konfigurert (Innstillinger → Autentisering).
   `GET /api/auth/oidc/login` returnerer ellers `400`.
-- `GET /api/auth/oidc/login` finner `authorization_endpoint` fra utstederens
-  `/.well-known/openid-configuration` (faller tilbake til
-  `<issuer>/authorize`), bygger URI-en for omdirigering fra den innkommende forespørselen
-  (med støtte for `x-forwarded-proto`) og omdirigerer til IdP-en med en tilfeldig `state`
-  lagret i en `httpOnly` `oidc_state`-informasjonskapsel.
+- `GET /api/auth/oidc/login` finner `authorization_endpoint` fra
+  utstederens `/.well-known/openid-configuration` (bruker
+  `<issuer>/authorize` som reserve), bygger URI-en for videresending fra den innkommende forespørselen
+  (med støtte for `x-forwarded-proto`) og videresender til IdP-en med en tilfeldig `state`
+  lagret i en `httpOnly`-informasjonskapsel kalt `oidc_state`.
 - `GET /api/auth/oidc/callback` validerer `state`, utveksler autorisasjonskoden
   og verifiserer ID-tokenets signatur via utstederens JWKS
-  (`jose` sin `createRemoteJWKSet`, bufret per JWKS-URI) med kontroller av `issuer`/`audience`.
-  En valgfri `oidcAllowedSubjects`-tillatelsesliste samsvarer med tokenets
-  `sub`-krav eller dets `email`-krav — e-postkravet godtas bare når
+  (`jose`-funksjonen `createRemoteJWKSet`, bufret per JWKS-URI) med kontroller av `issuer`/`audience`.
+  En valgfri tillatelsesliste i `oidcAllowedSubjects` samsvarer med tokenets
+  `sub`-attributt eller `email`-attributt — e-postattributtet godtas bare når
   `email_verified === true`, slik at en ubekreftet e-postadresse hos IdP-en aldri kan passere
-  porten.
-- Ved vellykket pålogging opprettes **nøyaktig samme** 30-dagers `auth_token`-JWT som utstedes ved
-  passordpålogging (`src/app/api/auth/login/route.ts`), slik at resten av
-  øktkjeden for kontrollpanelet (automatisk oppdatering, innstillinger for informasjonskapsler) er uendret —
-  OIDC erstatter bare hvordan informasjonskapselen opprettes, ikke hvilke tilganger den gir.
+  sperren.
+- Ved suksess utsteder den **nøyaktig samme** 30-dagers `auth_token`-JWT-en som passordpåloggingen
+  utsteder (`src/app/api/auth/login/route.ts`), slik at resten av
+  øktpipelinen for kontrollpanelet (automatisk oppdatering, informasjonskapselinnstillinger) forblir uendret —
+  OIDC erstatter bare hvordan informasjonskapselen utstedes, ikke hvilke tilganger den gir.
 
 ## Ruteklasser
 

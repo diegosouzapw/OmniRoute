@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "프록시 풀과 opencode의 계정별 로테이션은 방금 실패한 프록시(TCP 프로브 거부 또는 해당 프록시를 통해 429 응답 수신)를 프로세스별 유예 기간 동안 다시 제공하지 않습니다. 이 기간은 실패가 반복될 때마다 두 배로 늘어나며 상한이 있습니다. 프록시 상태는 기록되지 않으며, 모든 후보가 제외되면 선택 결과는 변경되지 않습니다. 기본적으로 켜져 있으며, `false`로 설정하면 일반 선택으로 돌아갑니다.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "egress 주소 단위로 할당량이 나뉘는 공급자의 경우, 최근 거부된 멤버의 관찰된 egress 주소를 공유하는 pool 멤버를 정상 멤버 바로 아래에 배치합니다. 순서만 바꾸며 절대 제외하지 않습니다. 읽어 들이는 거부 신호를 생성하는 PROXY_SKIP_RECENTLY_FAILED가 필요합니다. 기본값은 꺼짐: 선택 순서는 정확히 일반 순환입니다.",
   "featureFlagProxyPoolEgressObservationDescription": "대시보드의 프록시 풀 아래에 지난 24시간 동안 해당 풀의 구성원에 사용된 것으로 관찰된 송신 IP 수, 해당 IP를 사용한 연결 수, 단일 IP에서 관찰된 최대 연결 수를 표시합니다. 읽기 전용이며 프록시 로그에서 계산되고 라우팅에는 절대 사용되지 않습니다. 기본적으로 꺼져 있으며, 풀 편집기는 변경되지 않고 관찰 라우트는 null을 반환합니다.",
+  "featureFlagProxyOperatorEgressDescription": "풀 멤버별로 연산자가 푸시한 날짜가 포함된 관측 주소를 수락하고, 표시 및 풀 순서를 위해 저널 읽기 데이터와 병합합니다. 기본 비활성화: 푸시 라우트는 404를 반환하며 풀 읽기 동작은 이전과 정확히 동일하게 작동합니다.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "프록시 상태 점검에서 대상이 거부한 프로브(401/403/429: 프록시는 전달했지만 대상이 이 송신 IP를 거부함)가 정상 처리된 프로브처럼 프록시의 연속 실패 횟수를 초기화하도록 합니다. 기본적으로 꺼져 있으며, 거부는 중립으로 유지되어 연속 실패 횟수에 영향을 주지 않습니다. 어느 경우든 5xx는 판단 불가로 유지되며, 거부로 인해 프록시가 제거, 비활성화 또는 재활성화되는 일은 없습니다.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "자동 정리 작업이 OMNIROUTE_BATCH_RETENTION_DAYS보다 오래된 종료 상태(완료/실패/취소/만료)의 Batch API 작업과 해당 작업의 줄별 체크포인트를 삭제하고, 자체 expires_at이 지난 업로드 파일의 BLOB 콘텐츠를 지우도록 합니다. 기본적으로 꺼져 있습니다. 운영자가 사용 설정하기 전까지 모든 기존 설치는 이 데이터를 이전과 정확히 동일하게 유지합니다. 운영자가 실행하는 DELETE /api/v1/batches/delete-completed 경로는 설정 여부와 관계없이 영향을 받지 않습니다. 이는 별도의 무조건적인 공개 API 계약입니다.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "고정된 정적 시드 대신 OAuth Bearer 토큰을 사용하여 https://api.x.ai/v1/models에서 xai-oauth 연결용 실시간 xAI 모델 카탈로그를 가져옵니다. 기본적으로 꺼져 있으며, xai-oauth는 변경 없이 정적 시드를 계속 제공합니다. 모델 확인 중 오류가 발생하면 검색은 시드로 대체됩니다.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "로컬 proxy-core 엔드포인트가 유효하지 않습니다. SS/VMess/Trojan/VLESS 노드가 무시되었습니다.",
         "NEEDS_CORE_NOT_CONFIGURED": "이 구독에는 로컬 프록시 코어(SS/VMess/Trojan/VLESS)가 필요한 노드가 있습니다. local-core SOCKS5 엔드포인트를 구성하기 전까지는 라우팅되지 않습니다.",
         "NO_USABLE_NODES": "구독에서 사용할 수 있는 노드(http/https/socks5 또는 로컬 코어 엔드포인트가 있는 노드)가 반환되지 않았습니다.",
-        "SELECTOR_SWITCH_FAILED": "프록시 코어 제어 호출에 실패했습니다. 이전 경로는 계속 유효합니다. 제어 URL과 시크릿을 확인한 뒤 새로고침하세요."
+        "SELECTOR_SWITCH_FAILED": "프록시 코어 제어 호출에 실패했습니다. 이전 경로는 계속 유효합니다. 제어 URL과 시크릿을 확인한 뒤 새로고침하세요.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "생성된 코어 구성이 채택된 파일을 대체할 수 없었습니다. 대신 그 옆에 있는 사본이 유지되었습니다.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "생성 중 일부 항목이 건너뛰었습니다. 서버 로그를 참조하세요."
       },
       "description": "프록시 구독 링크를 붙여넣으세요. 활성화되면 트래픽은 전역 또는 규칙(지정된 공급자) 모드에서 프록시 풀을 통해 라우팅됩니다. 구독 노드는 프록시 풀에 자동으로 동기화되며 기존 폴링, 상태 확인 및 누출 방지 메커니즘을 재사용합니다.",
       "addSubscription": "구독 추가",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "기록된 전환이 아직 없음",
       "lastSwitchMember": "서비스 중인 멤버",
       "nextSwitch": "다음 전환 가능",
-      "nextSwitchNow": "지금"
+      "nextSwitchNow": "지금",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "코어 바이너리 경로",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "선택 사항: 채택된 파일을 대체하기 전에 코어 바이너리로 생성된 파일을 확인합니다. 옆에 계속 쓰려면 비워 두세요. 디렉터리가 없으면 생성됩니다."
     },
     "bulkHealthcheck": "일괄 상태 확인",
     "bulkHealthcheckDesc": "구성된 모든 프록시를 대상 URL에 대해 테스트하여 작동하는 프록시를 찾습니다.",
@@ -7231,7 +7251,7 @@
     "noFallbackChains": "대체 체인 없음",
     "noFallbackChainsDesc": "모델에 대한 공급자 대체 순서를 정의하는 체인을 만듭니다.",
     "loadingFallbackChains": "대체 체인 로드 중...",
-    "deleteChainConfirm": "'{model}'에 대한 대체 체인을 삭제하시겠습니까?",
+    "deleteChainConfirm": "''{model}''에 대한 대체 체인을 삭제하시겠습니까?",
     "chainCreated": "{model}용으로 생성된 체인",
     "chainDeleted": "{model}에 대한 체인이 삭제되었습니다.",
     "failedCreateChain": "체인을 생성하지 못했습니다.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP 설명 압축",
     "mcpAccessibilityTitle": "MCP 접근성 출력",
     "compressionSettingsCavemanIntensity": "케이브맨 강도",
-    "compressionSettingsCavemanOutputMode": "케이브맨 출력 모드",
     "compressionSettingsOutputStyles": "출력 스타일",
     "compressionStylesTileTitle": "출력 스타일",
     "compressionSettingsOutputIntensity": "출력 강도",
-    "compressionSettingsAutoClarityBypass": "자동 명확성 우회",
     "compressionEffectivePipeline": "유효 파이프라인:",
     "compressionDerivedOff": "꺼짐",
     "compressionDerivedRuns": "실행: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "GET /v1/models가 이 키에 대해 표시하는 항목입니다. 목록을 제한해도 키가 호출할 수 있는 대상은 변경되지 않습니다.",
     "catalogScopeAll": "둘 다",
     "catalogScopeCombos": "콤보만",
-    "catalogScopeModels": "모델만"
+    "catalogScopeModels": "모델만",
+    "resilienceTokenRefreshTitle": "토큰 새로 고침 차단기",
+    "resilienceTokenRefreshDesc": "반복된 실패 후 토큰 새로 고침을 다시 시도하지 않습니다. 연결별 범위는 하나의 비활성 계정을 격리하여 동일한 제공업체의 정상 계정이 계속 새로 고쳐집니다.",
+    "resilienceTokenRefreshScope": "하나의 공급자에 대한 토큰 새로 고침 시도",
+    "resilienceTokenRefreshTrigger": "연속된 갱신 실패 시도",
+    "resilienceTokenRefreshEffect": "쿨다운 동안 갱신 시도를 일시 중지합니다",
+    "resilienceTokenRefreshScopeLabel": "범위",
+    "resilienceTokenRefreshScopeProvider": "공급자(모든 계정이 하나의 차단기를 공유)",
+    "resilienceTokenRefreshScopeConnection": "연결(각 계정마다 고유한 차단기가 있습니다)",
+    "resilienceTokenRefreshThreshold": "일시 중지 전 실패 횟수",
+    "resilienceTokenRefreshCooldown": "작동 후 일시 중지"
   },
   "contextRtk": {
     "title": "RTK 엔진",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "로드 중…",
     "loadFailed": "엔진 정보를 로드하지 못했습니다.",
+    "settingsLoadFailed": "저장된 설정을 불러오지 못했습니다. 필드에는 기본값이 표시되며, 페이지를 새로고침할 때까지 저장이 비활성화됩니다.",
     "engineNotFound": "엔진 \"{engine}\"을(를) 찾을 수 없습니다.",
     "saveFailed": "구성을 저장하지 못했습니다.",
     "previewFailed": "미리보기에 실패했습니다.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "압축할 최소 행 수",
         "description": "테이블 형식 압축을 트리거하는 데 필요한 동질적 JSON 배열의 최소 행 수입니다. 기본값: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "시스템 프롬프트 유지"
       },
       "summarizerEnabled": {
         "label": "요약기 활성화"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "이보다 짧은 메시지는 압축되지 않습니다. 낮음 = 더 많은 압축.",
     "tooltipMinSavings": "최소한 이만큼의 토큰을 절약할 수 있는 경우에만 압축합니다.",
     "ultraSettings": "울트라 설정",
-    "ultraSettingsDesc": "SLM 기반 의미 압축",
-    "preview": {
-      "lite": "간결하게 응답하세요. 기술 용어, 코드, 오류, URL 및 식별자는 그대로 유지하세요.",
-      "full": "짧고 압축적으로 응답하세요. 모든 기술적 내용을 유지하세요.",
-      "ultra": "일반적인 기술 약어를 사용해 극도로 짧게 응답하세요. 정확한 기호를 그대로 유지하세요."
-    }
+    "ultraSettingsDesc": "SLM 기반 의미 압축"
   },
   "translator": {
     "title": "번역기",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "출구가 지정되지 않은 실패: {count}",
     "poolMemberEgress": "{host}:{port}에서 {egressIp}을(를) 통해 나감 · 최근 {hours}시간",
     "poolMemberEgressEmpty": "{host}:{port}: 최근 {hours}시간 동안 트래픽이 관찰되지 않음",
+    "poolMemberEgressOperator": "{host}:{port}가 {egressIp}를 통해 나갔습니다 · 운영자 제공, {date}",
     "poolMemberEgressHint": "해당 기간 동안 이 풀 멤버를 통해 관찰된 마지막 송신 IP이며, 프록시 로그에서 읽어옵니다. 해당 기간에 트래픽이 없는 멤버에는 트래픽 없음 문구가 표시됩니다.",
     "poolRemove": "제거",
     "poolRemoveFailed": "풀에서 프록시를 제거하지 못했습니다",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "프록시에 연결할 수 없음",
     "poolSetAsideKindIpQuota429": "IP 속도 제한 (429)",
     "poolSetAsideKindSlow": "느린 응답",
+    "poolSetAsideKindGeoBlocked": "지역 차단 (403/451)",
     "poolSetAsideUntil": "{endsAt}에 로테이션 복귀",
     "poolSetAsideRepeat": "제외됨 {count, plural, one {#번} other {#번}}",
     "poolUnknownAddress": "알 수 없는 주소",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "위치 순서",
     "poolHealthRankingOff": "상태 순위 꺼짐",
     "transportRate": "{rate}% 전송",
+    "slowAbandoned": "{count} 느린 포기",
+    "clientAborted": "{count} 클라이언트 중단",
+    "slowAbandonedHint": "헤더 대기 임계값 이후 포기, 전송률에서 제외",
     "previousSuccessRate": "이전에 {rate}% 성공",
-    "upstreamRefusals": "{count}개 업스트림 거부",
     "connectionTestsCount": "{count}개 연결 테스트",
-    "notMeasured": "측정되지 않음"
+    "notMeasured": "측정되지 않음",
+    "upstream4xx": "{count} 상류 클라이언트 오류",
+    "upstream5xx": "{count}개의 업스트림 서버 오류",
+    "uniformEgressLine": "{provider}에서 {exits}개 exit 중 {affected}개가 함께 실패함 (최근 {hours}시간) — exit 문제가 아님"
   },
   "playground": {
     "title": "모델 플레이그라운드",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "연결 풀 상속({count})",
     "poolEmptyBlocked": "풀 비어 있음 — 요청 실패(직접 아님)",
     "directEgress": "직접(프록시 없음)",
-    "ownProxy": "자체 프록시"
+    "ownProxy": "자체 프록시",
+    "freeTierPause": "모델 {model} 일시 중지됨 (429), {time}에 복귀",
+    "freeTierPauseProvider": "일시 중지됨 (429), {time}에 복귀",
+    "freeTierPauseNote": "이 인스턴스에서 인프로세스 일시 중지"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13083,10 @@
     "inactiveCount": "{count}개 비활성",
     "dbOverrideCount": "{count}개 DB 재정의",
     "searchPlaceholder": "플래그 검색...",
+    "descriptionModeLabel": "설명 보기",
+    "descriptionModeHint": "호버 시: 카드는 간결하게 유지되며 설명 위에 호버하면 전체 텍스트가 표시됩니다. 전체 텍스트: 설명을 항상 전체 표시합니다.",
+    "descriptionModeHover": "호버 시",
+    "descriptionModeFull": "전체 텍스트",
     "categories": {
       "all": "전체",
       "security": "보안",

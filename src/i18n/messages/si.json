@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "ප්රොක්සි සංචිත සහ opencode හි ගිණුමකට වෙන් වූ මාරු කිරීම, අසාර්ථක වූ ප්රොක්සියක් (ප්රතික්ෂේප වූ TCP පරීක්ෂාවක් හෝ එය හරහා ලැබුණු 429 ප්රතිචාරයක්) එක් එක් නැවත සිදුවීමේදී දෙගුණ වන, උපරිම සීමාවකට යටත් ක්රියාවලි-විශේෂිත කාලයක් සඳහා නැවත භාවිත කිරීම නවත්වයි. කිසිදු ප්රොක්සි තත්ත්වයක් ලියනු නොලැබේ; සෑම අපේක්ෂකයෙකුම පසෙකට කළ විට තේරීම වෙනස් නොවේ. පෙරනිමියෙන් සක්‍රියයි; `false` සරල තේරීම ප්‍රතිසාධනය කරයි.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "egress ලිපිනය අනුව කෝටාව බෙදන සපයන්නන් සඳහා, මෑතකදී ප්‍රතික්ෂේප කළ සාමාජිකයෙකුගේ නිරීක්ෂිත egress ලිපිනය බෙදාගන්නා pool සාමාජිකයා සෞඛ්‍ය සම්පන්න සාමාජිකයින්ට වහාම පහළින් තබයි. අනුපිළිවෙල පමණි, කිසි විටෙක බැහැර නොකෙරේ. එය කියවන ප්‍රතික්ෂේප සංඥාව නිපදවන PROXY_SKIP_RECENTLY_FAILED අවශ්‍යයි. පෙරනිමියෙන් අක්‍රියයි: තේරීමේ අනුපිළිවෙල හරියටම සාමාන්‍ය භ්‍රමණයයි.",
   "featureFlagProxyPoolEgressObservationDescription": "උපකරණ පුවරුවේ ප්රොක්සි සංචිතයක් යටතේ, පසුගිය පැය 24 තුළ එහි සාමාජිකයන්ට සේවය සැපයූ නිරීක්ෂිත පිටතට යන IP ලිපින ගණන, ඒවා භාවිත කළ සම්බන්ධතා ගණන සහ එක් IP ලිපිනයක් පිටුපසින් නිරීක්ෂණය වූ උපරිම ගණන පෙන්වන්න. මෙය කියවීමට පමණක් වන අතර ප්රොක්සි ලොගයෙන් ගණනය කෙරෙන අතර මාර්ගගත කිරීම සඳහා කිසි විටෙක භාවිත නොකෙරේ. පෙරනිමියෙන් අක්රියයි: සංචිත සංස්කාරකය වෙනස් නොවන අතර නිරීක්ෂණ මාර්ගය null ලෙස පිළිතුරු දෙයි.",
+  "featureFlagProxyOperatorEgressDescription": "පූල් මෙම්බර් වලට අත්දකින ලද දින දින පරික්ෂණ අභියෝග අංක අත්දකින ලද අතර එය දුර්වල ප්‍රදර්ශනය සඳහා ජර්නල් කියවීමෙන් සහ පූල් අභියෝගයෙන් එක් කර ඇත. මෙය දුර්වල ප්‍රමාණයෙන් නොවේ: පුෂ් මාර්ගය විසින් 404 ප්‍රතිඵලය ලබා දෙයි සහ පූල් කියවීම් පෙර පරිදි ක්‍රියාත්මක වේ.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "ප්රොක්සි සෞඛ්ය පරීක්ෂණ වටයේදී, ඉලක්කය ප්රතික්ෂේප කළ පරීක්ෂාවකට (401/403/429: ප්රොක්සිය ඉල්ලීම යොමු කළ නමුත් ගමනාන්තය මෙම පිටතට යන IP ලිපිනය ප්රතික්ෂේප කළේය) සාර්ථකව සේවය කළ පරීක්ෂාවක් මෙන් ප්රොක්සියේ අඛණ්ඩ අසාර්ථකවීම් පෙළ යළි සැකසීමට ඉඩ දෙන්න. පෙරනිමියෙන් අක්රියයි: ප්රතික්ෂේප කිරීමක් මධ්යස්ථව පවතින අතර අඛණ්ඩ අසාර්ථකවීම් පෙළ එලෙසම තබයි. 5xx ප්රතිචාරයක් අවස්ථා දෙකේදීම අවිනිශ්චිතව පවතින අතර, ප්රතික්ෂේප කිරීමක් කිසි විටෙක ප්රොක්සියක් ඉවත් කිරීම, අක්රිය කිරීම හෝ නැවත සක්රිය කිරීම සිදු නොකරයි.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "ස්වයංක්රීය පිරිසිදු කිරීමේ ක්රියාවලියට OMNIROUTE_BATCH_RETENTION_DAYS ට වඩා පැරණි අවසන් තත්ත්වයේ (සම්පූර්ණ කළ/අසාර්ථක වූ/අවලංගු කළ/කල් ඉකුත් වූ) Batch API කාර්ය, ඒවායේ එක් එක් පේළියේ checkpoints සමඟ මකා දැමීමටත්, තමන්ගේ expires_at පසු කළ උඩුගත කළ ගොනුවල BLOB අන්තර්ගතය හිස් කිරීමටත් ඉඩ දෙන්න. පෙරනිමියෙන් අක්රියයි: ක්රියාකරු තේරීමෙන් සක්රිය කරන තෙක් පවතින සෑම ස්ථාපනයක්ම මෙම දත්ත පෙර පරිදිම තබා ගනී. ක්රියාකරු විසින් ක්රියාත්මක කරන DELETE /api/v1/batches/delete-completed මාර්ගයට මෙය කෙසේ සැකසුවත් බලපෑමක් නැත — එය වෙනම, කොන්දේසි රහිත පොදු API ගිවිසුමකි.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "ස්ථිතික seed එක වෙනුවට OAuth bearer token එක භාවිතයෙන් https://api.x.ai/v1/models වෙතින් xai-oauth සම්බන්ධතා සඳහා සජීවී xAI මාදිලි නාමාවලිය ලබා ගන්න. පෙරනිමියෙන් අක්රියයි: xai-oauth නොවෙනස් ස්ථිතික seed එක දිගටම සපයයි. විසඳීමේ කිසියම් දෝෂයකදී, සොයාගැනීම seed එක වෙත ආපසු යයි.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "දේශීය proxy-core අන්ත ලක්ෂ්යය වලංගු නොවේ; SS/VMess/Trojan/VLESS නෝඩ නොසලකා හරින ලදී.",
         "NEEDS_CORE_NOT_CONFIGURED": "මෙම දායකත්වයේ දේශීය ප්රොක්සි කෝරයක් අවශ්ය නෝඩ ඇත (SS/VMess/Trojan/VLESS); ඔබ local-core SOCKS5 අන්ත ලක්ෂ්යය වින්යාස කරන තෙක් ඒවා මාර්ගගත නොකෙරේ.",
         "NO_USABLE_NODES": "දායකත්වයෙන් භාවිත කළ හැකි නෝඩ කිසිවක් නොලැබුණි (http/https/socks5 හෝ දේශීය කෝර අන්ත ලක්ෂ්යයක් සහිත නෝඩ).",
-        "SELECTOR_SWITCH_FAILED": "ප්‍රොක්සි-කෝර් පාලන ඇමතුම අසාර්ථක විය; පෙර මාර්ගය සක්‍රීයව පවතී. පාලන URL සහ රහස පරීක්ෂා කර නැවුම් කරන්න."
+        "SELECTOR_SWITCH_FAILED": "ප්‍රොක්සි-කෝර් පාලන ඇමතුම අසාර්ථක විය; පෙර මාර්ගය සක්‍රීයව පවතී. පාලන URL සහ රහස පරීක්ෂා කර නැවුම් කරන්න.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "සකස් කළ ප්‍රධාන වින්‍යාසය ඇතුළත් කළ ගොනුව ආදේශ කළ නොහැකි විය; ඒ වෙනුවට යාබද පිටපත තබා ගන්නා ලදී.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "ජනනය කරන අතරතුර ඇතැම් ඇතුළත් කිරීම් මග හැර දැමුණි. සේවාදායක ලොග බලන්න."
       },
       "description": "ඔබේ ප්රොක්සි දායකත්ව සබැඳිය අලවන්න. සබල කළ පසු, ගමනාගමනය ගෝලීය හෝ රීති (නිශ්චිත Provider) ප්රකාරයේදී ප්රොක්සි සංචිතය හරහා මාර්ගගත කෙරේ. දායකත්ව නෝඩ ස්වයංක්රීයව ප්රොක්සි සංචිතයට සමමුහුර්ත කර, පවතින polling, health-check සහ anti-leak යාන්ත්රණ නැවත භාවිත කරයි.",
       "addSubscription": "දායකත්වයක් එක් කරන්න",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "තවම මාරුවක් සටහන් වී නැත",
       "lastSwitchMember": "සේවය කරන සාමාජිකයා",
       "nextSwitch": "ඊළඟ විය හැකි මාරුව",
-      "nextSwitchNow": "දැන්"
+      "nextSwitchNow": "දැන්",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "ප්‍රධාන බයිනරි මාර්ගය",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "විකල්ප: ඇතුළත් කළ ගොනුව ආදේශ කිරීමට පෙර ප්‍රධාන බයිනරිය මගින් සකස් කළ ගොනුව විමර්ශනය කරයි. යාබදව ලිවීම තබා ගැනීමට හිස් අතින් තබන්න. නොපවතින නම් නිහිත නිර්මාණය වේ."
     },
     "bulkHealthcheck": "සමූහ සෞඛ්ය පරීක්ෂාව",
     "bulkHealthcheckDesc": "ක්රියා කරන ඒවා හඳුනා ගැනීමට වින්යාස කර ඇති සියලුම ප්රොක්සි ඉලක්ක URL එකක් සමඟ පරීක්ෂා කරන්න.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP විස්තර සම්පීඩනය",
     "mcpAccessibilityTitle": "MCP ප්රවේශ්යතා ප්රතිදානය",
     "compressionSettingsCavemanIntensity": "Caveman තීව්රතාව",
-    "compressionSettingsCavemanOutputMode": "Caveman ප්රතිදාන ප්රකාරය",
     "compressionSettingsOutputStyles": "ප්රතිදාන ශෛලීන්",
     "compressionStylesTileTitle": "ප්රතිදාන ශෛලීන්",
     "compressionSettingsOutputIntensity": "ප්රතිදාන තීව්රතාව",
-    "compressionSettingsAutoClarityBypass": "ස්වයංක්රීය පැහැදිලිතා මඟහැරීම",
     "compressionEffectivePipeline": "ක්රියාත්මක ක්රියාදාම පෙළ:",
     "compressionDerivedOff": "අක්රියයි",
     "compressionDerivedRuns": "ධාවනය වේ: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "මෙම යතුර සඳහා GET /v1/models මඟින් ප්රචාරය කරන දේ. ලැයිස්තුව සීමා කිරීමෙන් යතුරට ඇමතිය හැකි දේ කිසිවිටෙක වෙනස් නොවේ.",
     "catalogScopeAll": "දෙකම",
     "catalogScopeCombos": "සංයෝජන පමණි",
-    "catalogScopeModels": "ආකෘති පමණි"
+    "catalogScopeModels": "ආකෘති පමණි",
+    "resilienceTokenRefreshTitle": "ටෝකන් යාවත්කාලීන කිරීමේ බ්‍රේකරය",
+    "resilienceTokenRefreshDesc": "නැවත නැවත අසාර්ථක වීමෙන් පසු ටෝකන් නැවත නැවුම් කිරීමේ උත්සාහයන් නතර කරයි. සම්බන්ධතාවයකට අදාළ වන පරාසය මිය ගිය ගිණුමක් වෙන් කරයි, එමඟින් එකම සපයන්නා යටතේ ඇති සෞඛ්‍ය සම්පන්න ගිණුම් නැවත නැවුම් වීම දිගටම සිදු වේ.",
+    "resilienceTokenRefreshScope": "එක් සපයන්නෙකු සඳහා ටෝකන් නැවුම් කිරීමේ උත්සාහයන්",
+    "resilienceTokenRefreshTrigger": "එකිනෙක අසාර්ථක නැවුම් කිරීම් උත්සාහ",
+    "resilienceTokenRefreshEffect": "තත්පර සමය තුළ නැවුම් කිරීමේ උත්සාහ තාවකාලිකව නවත්වයි",
+    "resilienceTokenRefreshScopeLabel": "විෂය පථය",
+    "resilienceTokenRefreshScopeProvider": "සැපයුම්කරු (සියලු ගිණුම් එක් බ්‍රේකරයක් බෙදා ගනී)",
+    "resilienceTokenRefreshScopeConnection": "සම්බන්ධතාවය (සෑම ගිණුමකටම එහිම බ්‍රේකරය ඇත)",
+    "resilienceTokenRefreshThreshold": "විරාමයකට පෙර අසාර්ථකතා",
+    "resilienceTokenRefreshCooldown": "සක්‍රීය වූ පසු විරාමය"
   },
   "contextRtk": {
     "title": "RTK එන්ජිම",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "පූරණය වෙමින්…",
     "loadFailed": "එන්ජින් තොරතුරු පූරණය කිරීමට අසමත් විය.",
+    "settingsLoadFailed": "සුරකින ලද සැකසීම් පූරණය කිරීමට අසමත් විය. ක්ෂේත්ර පෙරනිමි අගයන් පෙන්වන අතර, පිටුව නැවත පූරණය වන තෙක් සුරකින්න අක්රියව පවතී.",
     "engineNotFound": "\"{engine}\" එන්ජිම හමු නොවීය.",
     "saveFailed": "වින්යාසය සුරැකීමට අසමත් විය.",
     "previewFailed": "පෙරදසුන අසමත් විය.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "සංක්ෂිප්ත කිරීමට අවශ්ය අවම පේළි ගණන",
         "description": "වගුමය සංක්ෂිප්තකරණය ක්රියාත්මක කිරීමට අවශ්ය සමජාතීය JSON අරාවක අවම පේළි ගණන. පෙරනිමිය: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "පද්ධති ප්රේරකය සංරක්ෂණය කරන්න"
       },
       "summarizerEnabled": {
         "label": "සාරාංශකාරකය සබල කරන්න"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "මෙයට වඩා කෙටි පණිවිඩ සම්පීඩනය නොකෙරේ. අඩු = වැඩි සම්පීඩනයක්.",
     "tooltipMinSavings": "අවම වශයෙන් මෙම ටෝකන ගණනවත් ඉතිරි කරන්නේ නම් පමණක් සම්පීඩනය කරන්න.",
     "ultraSettings": "Ultra සැකසුම්",
-    "ultraSettingsDesc": "SLM මඟින් බලගැන්වෙන අර්ථමය සම්පීඩනය",
-    "preview": {
-      "lite": "සංක්ෂිප්තව ප්රතිචාර දක්වන්න. තාක්ෂණික පද, code, errors, URLs සහ identifiers එලෙසම තබාගන්න.",
-      "full": "ඉතා කෙටියෙන් හා සංක්ෂිප්තව ප්රතිචාර දක්වන්න. සියලු තාක්ෂණික අන්තර්ගතය සුරකින්න.",
-      "ultra": "පොදු තාක්ෂණික කෙටි යෙදුම් භාවිතයෙන් අතිශයින් කෙටියෙන් ප්රතිචාර දක්වන්න. නිශ්චිත සංකේත එලෙසම තබාගන්න."
-    }
+    "ultraSettingsDesc": "SLM මඟින් බලගැන්වෙන අර්ථමය සම්පීඩනය"
   },
   "translator": {
     "title": "පරිවර්තකය",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "නියමිත පිටවීමක් නොමැති අසාර්ථකවීම්: {count}",
     "poolMemberEgress": "{host}:{port} වෙතින් {egressIp} හරහා පිටවිය · පසුගිය පැය {hours} තුළ",
     "poolMemberEgressEmpty": "{host}:{port}: පසුගිය පැය {hours} තුළ කිසිදු ගමනාගමනයක් නිරීක්ෂණය වී නැත",
+    "poolMemberEgressOperator": "{host}:{port} විසින් {egressIp} දිගේ පිටත් වී · උපාධි ප්‍රමාණවත් වී, {date}",
     "poolMemberEgressHint": "මෙම කාල පරාසය තුළ මෙම සංචිත සාමාජිකයා හරහා අවසන් වරට නිරීක්ෂණය කළ පිටවීමේ IP ලිපිනය, ප්රොක්සි ලොගයෙන් කියවන ලදී. මෙම කාල පරාසය තුළ ගමනාගමනයක් නොමැති සාමාජිකයෙකු සඳහා ගමනාගමනයක්-නොමැති පේළිය පෙන්වයි.",
     "poolRemove": "ඉවත් කරන්න",
     "poolRemoveFailed": "සංචිතයෙන් ප්රොක්සිය ඉවත් කිරීමට අසමත් විය",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "ප්‍රොක්සියට ළඟා විය නොහැක",
     "poolSetAsideKindIpQuota429": "IP අනුපාත සීමාව (429)",
     "poolSetAsideKindSlow": "මන්දගාමී ප්‍රතිචාර",
+    "poolSetAsideKindGeoBlocked": "කලාප-අවහිර (403/451)",
     "poolSetAsideUntil": "භ්‍රමණයට ආපසු {endsAt}",
     "poolSetAsideRepeat": "වෙන්කර ඇත {count, plural, one {# වතාවක්} other {# වතාවක්}}",
     "poolUnknownAddress": "නොදන්නා ලිපිනය",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "ස්ථාන අනුපිළිවෙල",
     "poolHealthRankingOff": "සෞඛ්‍ය ශ්‍රේණිගත කිරීම අක්‍රිය",
     "transportRate": "{rate}% ප්‍රවාහනය",
+    "slowAbandoned": "{count} ස්වල්ප අත්හිටුවීම්",
+    "clientAborted": "{count} ක්ලයින්ට් අවම් කිරීම්",
+    "slowAbandonedHint": "හෙඩර්ස් අත්හිටුවීමේ තරම පසුව අත්හිටුවීම, තොග අනුපාතයෙන් අභාවිත කරනු ලැබීම",
     "previousSuccessRate": "පෙර {rate}% සාර්ථකත්වය",
-    "upstreamRefusals": "{count} upstream ප්‍රතික්ෂේප",
     "connectionTestsCount": "{count} සම්බන්ධතා පරීක්ෂණ",
-    "notMeasured": "මනින ලද්දේ නැත"
+    "notMeasured": "මනින ලද්දේ නැත",
+    "upstream4xx": "{count} උපරිම ක්‍රීඩා ප්‍රදේශය තුළ දෝෂ",
+    "upstream5xx": "{count} උපරිම සර්වර දෝෂ",
+    "uniformEgressLine": "{affected} {exits} ඕත්තු සමග අසාධුවෙයි හි {provider} (පැමිණීම {hours} පැය) — ඕත්තු ගැටළුවක් නොවේ"
   },
   "playground": {
     "title": "ආකෘති අත්හදා බැලීමේ පරිසරය",
@@ -11522,8 +11550,8 @@
       "compressed": "සම්පීඩිතයි: {from} → {to} ({percent}% ඉතිරි විය)",
       "output": "ප්රතිදානය",
       "totalOut": "මුළු ප්රතිදානය: {value}",
-      "reasoningObserved": "{value} · අක්ෂර {chars}ක් නිරීක්ෂණය විය",
       "reasoning": "තාර්කිකකරණය: {value}",
+      "reasoningObserved": "{value} · අක්ෂර {chars}ක් නිරීක්ෂණය විය",
       "requestedModel": "ඉල්ලා ඇති මාදිලිය",
       "requestProtocol": "ඉල්ලීම් ප්රොටෝකෝලය",
       "cacheSource": "කෑෂ් මූලාශ්රය",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "සම්බන්ධතා තටාකය උරුම වේ ({count})",
     "poolEmptyBlocked": "තටාකය හිස් — ඉල්ලීම් අසාර්ථකයි (සෘජු නොවේ)",
     "directEgress": "සෘජු (ප්‍රොක්සි නැතිව)",
-    "ownProxy": "ස්වකීය ප්‍රොක්සිය"
+    "ownProxy": "ස්වකීය ප්‍රොක්සිය",
+    "freeTierPause": "දේශය {model} නතර කළා (429), {time} දී නැවත එයි",
+    "freeTierPauseProvider": "නතර කළා (429), {time} දී නැවත එයි",
+    "freeTierPauseNote": "මෙම ස්ථාපනයේ ඇතුළත ක්‍රියාත්මක නැවතීම"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13083,10 @@
     "inactiveCount": "{count}ක් අක්රියයි",
     "dbOverrideCount": "DB අතික්රමණ {count}ක්",
     "searchPlaceholder": "සලකුණු සොයන්න...",
+    "descriptionModeLabel": "විස්තර දසුන",
+    "descriptionModeHint": "කර්සරය මත තැබූ විට: කාඩ්පත් සංක්ෂිප්තව පවතින අතර, විස්තරයක් මත කර්සරය තැබූ විට සම්පූර්ණ පෙළ පෙන්වයි. සම්පූර්ණ පෙළ: සෑම විටම සම්පූර්ණ විස්තරය පෙන්වන්න.",
+    "descriptionModeHover": "කර්සරය මත තැබූ විට",
+    "descriptionModeFull": "සම්පූර්ණ පෙළ",
     "categories": {
       "all": "සියල්ල",
       "security": "ආරක්ෂාව",
