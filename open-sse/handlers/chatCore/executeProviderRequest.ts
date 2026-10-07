@@ -30,6 +30,7 @@ import {
   readCodexTurnStateHeader,
 } from "../../config/codexTurnState.ts";
 import { HTTP_STATUS, STREAM_RECOVERY } from "../../config/constants.ts";
+import { parseRetryAfterMs } from "../../services/apiKeyRotator.ts";
 import { createRecoverableStream, makeContinuationBody } from "../../services/streamRecovery.ts";
 import { persistCodexChildQuotaResponse } from "../../services/codexAccount/index.ts";
 import { invalidateCodexQuotaCache } from "../../services/codexQuotaFetcher.ts";
@@ -125,7 +126,8 @@ export type ExecuteProviderRequestDeps = {
     status: number,
     creds: Record<string, unknown> | null | undefined,
     transport?: string,
-    failureDetail?: string
+    failureDetail?: string,
+    retryAfterMs?: number | null
   ) => void;
   requestedModel: string;
   resilienceSettings: ResilienceSettings;
@@ -405,7 +407,8 @@ export async function executeProviderRequest(
               stream &&
               (res.response.ok ||
                 res.response.status === HTTP_STATUS.UNAUTHORIZED ||
-                res.response.status === HTTP_STATUS.FORBIDDEN) &&
+                res.response.status === HTTP_STATUS.FORBIDDEN ||
+                res.response.status === HTTP_STATUS.RATE_LIMITED) &&
               executionConnectionId &&
               !(await shouldIsolateProbeFailures())
             ) {
@@ -415,7 +418,15 @@ export async function executeProviderRequest(
                     .clone()
                     .text()
                     .catch(() => "");
-              recordKeyHealthStatus(res.response.status, execCreds, res.transport, failureDetail);
+              recordKeyHealthStatus(
+                res.response.status,
+                execCreds,
+                res.transport,
+                failureDetail,
+                res.response.status === HTTP_STATUS.RATE_LIMITED
+                  ? parseRetryAfterMs(res.response.headers.get("retry-after"))
+                  : null
+              );
             }
 
             if (isModelScope() && res.response.status === 429 && attempts < maxAttempts - 1) {
@@ -650,7 +661,10 @@ export async function executeProviderRequest(
           status,
           rawResult._executionCredentials,
           rawResult.transport,
-          status >= 400 ? payload : ""
+          status >= 400 ? payload : "",
+          status === HTTP_STATUS.RATE_LIMITED
+            ? parseRetryAfterMs(responseHeaders.get("retry-after"))
+            : null
         );
       }
       releaseRawResultAccountSemaphore();

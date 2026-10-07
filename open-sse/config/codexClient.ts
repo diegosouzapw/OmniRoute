@@ -1,3 +1,5 @@
+import { z } from "zod";
+import type { SafeOutboundFetchOptions } from "@/shared/network/safeOutboundFetch";
 import {
   CODEX_CLI_RS_ORIGINATOR,
   DEFAULT_CODEX_CLIENT_VERSION,
@@ -8,6 +10,25 @@ export {
   DEFAULT_CODEX_CLIENT_VERSION,
   CODEX_CLI_RS_ORIGINATOR,
 } from "@/shared/constants/codexClient";
+const CODEX_VERSION_METADATA_URL = "https://registry.npmjs.org/@openai%2Fcodex/latest";
+const CODEX_VERSION_RETRY_MS = 5 * 60 * 1000;
+const CODEX_VERSION_METADATA_MAX_BYTES = 64 * 1024;
+const codexVersionMetadataSchema = z.object({
+  name: z.literal("@openai/codex"),
+  version: z
+    .string()
+    .trim()
+    .regex(/^(0|[1-9]\d{0,8})\.(0|[1-9]\d{0,8})\.(0|[1-9]\d{0,8})$/),
+});
+
+export type CodexClientVersionFetch = (
+  input: string,
+  init: SafeOutboundFetchOptions & { method: "GET"; headers: Record<string, string> }
+) => Promise<Response>;
+
+let cachedCodexVersion: string | null = null;
+let codexVersionRefreshAt = 0;
+let codexVersionRefresh: Promise<string> | null = null;
 const DEFAULT_CODEX_USER_AGENT_PLATFORM = "Windows 10.0.26200";
 const DEFAULT_CODEX_USER_AGENT_ARCH = "x64";
 const CODEX_VERSION_OVERRIDE_ENV = "CODEX_CLIENT_VERSION";
@@ -129,8 +150,109 @@ export function clearCodexClientVersionCache(): void {
 export function getCodexClientVersion(): string {
   const override = getSafeEnvValue(CODEX_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN);
   if (override) return override;
-  if (!process.env.NODE_TEST_CONTEXT && !versionCache && !versionInFlight) void resolveCodexClientVersion();
+  // Discovery may cache a registry version, but never below the release pin.
+  if (
+    cachedCodexVersion &&
+    compareDottedTriple(cachedCodexVersion, DEFAULT_CODEX_CLIENT_VERSION) >= 0
+  ) {
+    return cachedCodexVersion;
+  }
+  if (!process.env.NODE_TEST_CONTEXT && !versionCache && !versionInFlight) {
+    void resolveCodexClientVersion();
+  }
   return getCachedCodexClientVersion();
+}
+
+/** Bound registry body reads as well as the connection; a stalled body must not block discovery. */
+async function readCodexVersionMetadata(response: Response, signal: AbortSignal): Promise<unknown> {
+  if (!response.body) throw new Error("Empty Codex version metadata");
+  const reader = response.body.getReader();
+  const cancel = () => {
+    void reader.cancel().catch(() => {});
+  };
+  signal.addEventListener("abort", cancel, { once: true });
+  const decoder = new TextDecoder();
+  let text = "";
+  let bytes = 0;
+  try {
+    signal.throwIfAborted();
+    while (true) {
+      const { done, value } = await reader.read();
+      signal.throwIfAborted();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > CODEX_VERSION_METADATA_MAX_BYTES) {
+        cancel();
+        throw new Error("Codex version metadata is too large");
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    return JSON.parse(text + decoder.decode());
+  } finally {
+    signal.removeEventListener("abort", cancel);
+    reader.releaseLock();
+  }
+}
+
+/** Refresh only during model discovery. Inference reads the validated cache synchronously. */
+export function refreshCodexClientVersion(fetchImpl: CodexClientVersionFetch): Promise<string> {
+  const override = getSafeEnvValue(CODEX_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN);
+  if (override || Date.now() < codexVersionRefreshAt) {
+    return Promise.resolve(getCodexClientVersion());
+  }
+  if (codexVersionRefresh) return codexVersionRefresh;
+  codexVersionRefresh = (async () => {
+    let refreshAfter = CODEX_VERSION_RETRY_MS;
+    try {
+      const signal = AbortSignal.timeout(5_000);
+      const response = await fetchImpl(CODEX_VERSION_METADATA_URL, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        signal,
+        redirect: "error",
+        allowRedirect: false,
+        guard: "public-only",
+        pinDns: true,
+        retry: false,
+      });
+      if (response.ok) {
+        const parsed = codexVersionMetadataSchema.safeParse(
+          await readCodexVersionMetadata(response, signal)
+        );
+        if (parsed.success) {
+          const current = (cachedCodexVersion || DEFAULT_CODEX_CLIENT_VERSION)
+            .split(".")
+            .map(Number);
+          const difference =
+            parsed.data.version
+              .split(".")
+              .map((part, index) => Number(part) - current[index])
+              .find((part) => part !== 0) ?? 0;
+          if (difference >= 0) {
+            cachedCodexVersion = parsed.data.version;
+            refreshAfter = CODEX_VERSION_CACHE_TTL_MS;
+          }
+        }
+      } else {
+        await response.body?.cancel();
+      }
+    } catch {
+      // Registry unavailable or invalid: retain the last-known-good version or offline pin.
+    }
+    codexVersionRefreshAt = Date.now() + refreshAfter;
+    return getCodexClientVersion();
+  })();
+  const current = codexVersionRefresh;
+  void current.finally(() => {
+    if (codexVersionRefresh === current) codexVersionRefresh = null;
+  });
+  return current;
+}
+
+export function resetCodexClientVersionCacheForTests(): void {
+  cachedCodexVersion = null;
+  codexVersionRefreshAt = 0;
+  codexVersionRefresh = null;
 }
 
 /**
