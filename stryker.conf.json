@@ -46,6 +46,7 @@
       "tests/unit/combo-error-code-terminal.test.ts",
       "tests/unit/model-validation-runner.test.ts",
       "tests/unit/bare-403-neutral.test.ts",
+      "tests/unit/codex-gpt61-sol.test.ts",
       "tests/unit/chat-noauth-model-cooldown.test.ts",
       "tests/unit/combo-ref-capabilities-14232.test.ts",
       "tests/unit/intelligent-routing-weight-edit.test.ts",
