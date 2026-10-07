@@ -454,8 +454,7 @@ instealltar an treoir logánta in ionad an Bhéarla.
 Ar chorp le `messages`, seiceálann seachbhóthar ábhair (`shouldBypassCavemanOutputMode()` in
 `open-sse/services/compression/outputMode.ts`) na trí theachtaireacht dheireanacha agus scipeann sé
 na stíleanna don chasadh iomlán nuair a mheaitseálann siad a eochairfhocail slándála, gníomhaíochta
-do-aisiompaithe, soiléirithe, nó íogaire ó thaobh ordaithe de. Ritheann an seachbhóthar is cuma cén
-socrú atá ar scorán **Seachbhóthar Auto-Soiléireachta** an deais (`cavemanOutputMode.autoClarity`).
+do-aisiompaithe, soiléirithe, nó íogaire ó thaobh ordaithe de. Ritheann an seachbhóthar fad a bhíonn scorán **Seachbhóthar Auto-Soiléireachta** an deais (`cavemanOutputMode.autoClarity`) ar siúl, arb é sin an réamhshocrú; nuair a bhíonn an scorán múchta, cuirtear na stíleanna roghnaithe i bhfeidhm ar na casadh sin freisin.
 
 Nuair a ligeann an seachbhóthar an casadh tríd, cuireann `placeSystemInstruction()` (an comhad
 céanna), nach gcruthaíonn `messages[0]` nua riamh, an bloc sa chéad cheann díobh seo a aimsíonn sé:

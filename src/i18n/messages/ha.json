@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Rukunin proxy da juyawar opencode ta kowane asusu suna daina sake amfani da proxy da ya gaza kwanan nan (ya ƙi gwajin TCP, ko aka karɓi 429 ta cikinsa) na wani lokaci na kowane tsari wanda ke ninkuwa a duk lokacin da gazawar ta sake faruwa, har zuwa iyaka. Ba a rubuta matsayin proxy; idan aka ware dukkan waɗanda za a iya zaɓa, zaɓin ba ya canzawa. A kunne yake ta tsohuwa; `false` yana dawo da zaɓi na yau da kullum.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Ga masu samarwa waɗanda ake raba adadin amfaninsu bisa adireshin egress, yana sanya memban pool da ke raba adireshin egress da aka lura na memban da aka ƙi kwanan nan a ƙasa da membobi masu lafiya kawai. Tsari kawai, ba a taɓa cirewa ba. Yana buƙatar PROXY_SKIP_RECENTLY_FAILED, wanda ke samar da siginar ƙin da yake karantawa. A kashe ta tsoho: tsarin zaɓi daidai yake da juyawa na yau da kullum.",
   "featureFlagProxyPoolEgressObservationDescription": "A ƙarƙashin rukunin proxy a dashboard, nuna adadin IPs na fita da aka lura sun yi wa membobinsa hidima a cikin awanni 24 da suka gabata, adadin haɗin da suka yi amfani da su, da mafi yawan adadin da aka gani a bayan IP guda. Na karantawa kawai ne, ana lissafa shi daga kundin proxy, kuma ba a taɓa amfani da shi wajen routing. A kashe yake ta tsohuwa: editan rukuni ba ya canzawa kuma hanyar lura tana amsa null.",
+  "featureFlagProxyOperatorEgressDescription": "Sabi adira wanda ya kawo kafin gudan pool na operator da kafin jurnal kafin kawo suna da kawo. Kafin default: suna da 404 da kafin jurnal kafin kawo suna da kawo kamar da kawo.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "A yayin binciken lafiyar proxy, bari gwajin da manufa ta ƙi (401/403/429: proxy ya isar, amma wurin da ake nufi ya ƙi wannan IP na fita) ya sake saita jerin gazawar proxy masu jere, kamar gwajin da aka yi wa hidima. A kashe yake ta tsohuwa: ƙin amincewa yana kasancewa tsaka-tsaki kuma yana riƙe da jerin gazawar. 5xx yana kasancewa mara tabbas a kowane hali, kuma ƙin amincewa ba ya taɓa cirewa, kashewa ko sake kunna proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Bari aikin sharewa ta atomatik ya goge ayyukan Batch API da suka ƙare (an kammala/an gaza/an soke/lokaci ya ƙare) waɗanda suka girmi OMNIROUTE_BATCH_RETENTION_DAYS, tare da wuraren ci-gaban kowane layinsu, sannan ya share abun cikin BLOB na fayilolin da aka ɗora waɗanda lokacinsu na expires_at ya wuce. A kashe yake ta tsohuwa: duk shigarwar da ake da ita za ta ci gaba da riƙe wannan bayanin daidai kamar da har sai mai gudanarwa ya kunna shi. Hanyar DELETE /api/v1/batches/delete-completed da mai gudanarwa ke jawowa ba ta canzawa a kowane hali — wata yarjejeniyar API ta jama'a ce daban wadda ba ta da sharaɗi.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Ɗauko kundin samfuran xAI na kai tsaye don haɗin xai-oauth daga https://api.x.ai/v1/models ta amfani da OAuth bearer token, maimakon tsayayyen seed da ba ya sabuntawa. A kashe yake ta tsohuwa: xai-oauth zai ci gaba da amfani da tsayayyen seed ba tare da canji ba. Idan an samu kowane kuskuren tantancewa, aikin ganowa zai koma amfani da seed.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Endpoint na proxy-core na gida ba daidai ba ne; an yi watsi da nodes na SS/VMess/Trojan/VLESS.",
         "NEEDS_CORE_NOT_CONFIGURED": "Wannan biyan kuɗin yana da nodes waɗanda ke buƙatar proxy core na gida (SS/VMess/Trojan/VLESS); ba za a bi da zirga-zirga ta cikinsu ba har sai ka saita endpoint na SOCKS5 na local-core.",
         "NO_USABLE_NODES": "Biyan kuɗin bai samar da nodes da za a iya amfani da su ba (http/https/socks5 ko nodes masu local core endpoint).",
-        "SELECTOR_SWITCH_FAILED": "Kiran sarrafa proxy-core ya gaza; tsohuwar hanya tana nan. Duba URL da sirrin sarrafawa, sannan ka sabunta."
+        "SELECTOR_SWITCH_FAILED": "Kiran sarrafa proxy-core ya gaza; tsohuwar hanya tana nan. Duba URL da sirrin sarrafawa, sannan ka sabunta.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "An tsarin da aka ƙirƙira ba zai iya maye gurbin fayil ɗin da aka karɓa ba; ma'anonin da ke gefen shi ne aka riƙe a mahaqu.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Wasu shigarwa an wuce su wani lokacin samarwa. Duba jarin sarfa."
       },
       "description": "Liƙa mahaɗin biyan kuɗin proxy ɗinka. Da zarar an kunna shi, za a bi da zirga-zirga ta cikin rukunin proxy a yanayin duniya ko na ƙa'ida (Provider da aka ƙayyade). Ana daidaita nodes na biyan kuɗi ta atomatik cikin rukunin proxy, kuma suna sake amfani da hanyoyin polling, health-check, da anti-leak da ake da su.",
       "addSubscription": "Ƙara Biyan Kuɗi",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Ba a rubuta sauyawa ba tukuna",
       "lastSwitchMember": "Memban da ke hidima",
       "nextSwitch": "Sauyawa ta gaba mai yiwuwa",
-      "nextSwitchNow": "Yanzu"
+      "nextSwitchNow": "Yanzu",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Hanyar bayanan tsarin",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Na zaɓi: yana tabbatar da fayil ɗin da aka ƙirƙira tare da bayanan tsarin kafin a maye gurbin fayil ɗin da aka karɓa. Bar shi da ruwan don ci gaba da rubuta shi a gefen shi. An ƙirƙiri da'ira idan babu."
     },
     "bulkHealthcheck": "Gwajin Lafiya na Gungu",
     "bulkHealthcheckDesc": "Gwada duk proxies da aka saita da URL da aka nufa domin gano waɗanda suke aiki.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Matse bayanin MCP",
     "mcpAccessibilityTitle": "Fitowar samun dama ta MCP",
     "compressionSettingsCavemanIntensity": "Ƙarfin Caveman",
-    "compressionSettingsCavemanOutputMode": "Yanayin fitowar Caveman",
     "compressionSettingsOutputStyles": "Salon fitarwa",
     "compressionStylesTileTitle": "Salon fitarwa",
     "compressionSettingsOutputIntensity": "Ƙarfin fitarwa",
-    "compressionSettingsAutoClarityBypass": "Tsallake fayyacewa ta atomatik",
     "compressionEffectivePipeline": "Tsarin sarrafawa mai aiki:",
     "compressionDerivedOff": "a kashe",
     "compressionDerivedRuns": "gudanarwa: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Abin da GET /v1/models ke nuna wa wannan maɓalli. Taƙaita jerin ba ya taɓa canza abin da maɓallin zai iya kira.",
     "catalogScopeAll": "Duka biyun",
     "catalogScopeCombos": "Haɗe-haɗe kawai",
-    "catalogScopeModels": "Samfura kawai"
+    "catalogScopeModels": "Samfura kawai",
+    "resilienceTokenRefreshTitle": "Masarar Sabunta Alama",
+    "resilienceTokenRefreshDesc": "Yana dakewa ƙarin gwaji na sabunta alamar bayanai bayan fashewa da yawa. Kusancin kowane haɗin yana raba ɗaya daga asusun da ba su da aiki don asusun lafiya a kan mai ba da sabis ɗin ƙarshe su ci gaba da sabuntawa.",
+    "resilienceTokenRefreshScope": "Ƙoƙawar sabunta alama ga ɗaya mai bayarwa",
+    "resilienceTokenRefreshTrigger": "Gurbin ƙariya na bin-ɗan-baya na sabuntawa wanda ya gaza",
+    "resilienceTokenRefreshEffect": "Yana tsayar da ƙoƙarin sabuntawa na lokacin sanyaya",
+    "resilienceTokenRefreshScopeLabel": "Fad",
+    "resilienceTokenRefreshScopeProvider": "Mai bayarwa (duk asusuna raba ɗaya mai katsewa)",
+    "resilienceTokenRefreshScopeConnection": "Muhuji (kowane asusu na da na'sa na musu)",
+    "resilienceTokenRefreshThreshold": "Kuskuren kafin tsayawa",
+    "resilienceTokenRefreshCooldown": "Huta bayan kuskuro"
   },
   "contextRtk": {
     "title": "Injin RTK",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Ana lodawa…",
     "loadFailed": "An kasa loda bayanan injin.",
+    "settingsLoadFailed": "An kasa loda saitunan da aka ajiye. Filayen suna nuna tsoffin ƙimomi, kuma Ajiye yana ci gaba da kasancewa a kashe har sai an sake loda shafin.",
     "engineNotFound": "Ba a sami injin \"{engine}\" ba.",
     "saveFailed": "An kasa adana saitunan.",
     "previewFailed": "Samfoti ya gaza.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Mafi ƙarancin layuka don matsewa",
         "description": "Mafi ƙarancin layuka a cikin jerin JSON mai tsari iri ɗaya da ake buƙata don fara matsewa zuwa jadawali. Tsoho: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Kiyaye umarnin tsarin"
       },
       "summarizerEnabled": {
         "label": "Kunna mai taƙaitawa"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Ba a matse saƙonnin da suka fi wannan gajarta. Ƙasa = ƙarin matsewa.",
     "tooltipMinSavings": "A matse kawai idan zai adana aƙalla wannan adadin token.",
     "ultraSettings": "Saitunan Ultra",
-    "ultraSettingsDesc": "Matsewar ma'ana mai amfani da SLM",
-    "preview": {
-      "lite": "Ba da amsa a taƙaice. Kiyaye kalmomin fasaha, code, kurakurai, URLs, da alamomin ganewa.",
-      "full": "Ba da amsa a taƙaice kuma a dunƙule. Kiyaye dukkan muhimman bayanan fasaha.",
-      "ultra": "Ba da amsa mai matuƙar taƙaitawa tare da gajerun kalmomin fasaha da aka saba amfani da su. Kiyaye ainihin alamomi."
-    }
+    "ultraSettingsDesc": "Matsewar ma'ana mai amfani da SLM"
   },
   "translator": {
     "title": "Mai Fassara",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Gazawa ba tare da hanyar fita da aka danganta ba: {count}",
     "poolMemberEgress": "{host}:{port} ya fita ta {egressIp} · awanni {hours} da suka gabata",
     "poolMemberEgressEmpty": "{host}:{port}: ba a ga zirga-zirga ba a cikin awanni {hours} da suka gabata",
+    "poolMemberEgressOperator": "{host}:{port} ya fita ta {egressIp} · wanda mai aiki ya bayar, {date}",
     "poolMemberEgressHint": "Adireshin IP na fita na ƙarshe da aka gani ta wannan mamban pool a cikin lokacin dubawa, wanda aka karanta daga rajistar proxy. Mamban da ba shi da zirga-zirga a cikin wannan lokacin zai nuna layin babu-zirga-zirga.",
     "poolRemove": "Cire",
     "poolRemoveFailed": "An kasa cire proxy daga pool",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "ba a iya isa ga proxy ba",
     "poolSetAsideKindIpQuota429": "iyakar saurin IP (429)",
     "poolSetAsideKindSlow": "amsoshi masu jinkiri",
+    "poolSetAsideKindGeoBlocked": "Yankin an toshe (403/451)",
     "poolSetAsideUntil": "Komawa cikin juyawa {endsAt}",
     "poolSetAsideRepeat": "An ajiye a gefe {count, plural, one {# sau} other {# sau}}",
     "poolUnknownAddress": "Adireshi mara sani",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "Tsarin matsayi",
     "poolHealthRankingOff": "Matsayin lafiya a kashe",
     "transportRate": "{rate}% sufuri",
+    "slowAbandoned": "{count} mashiya waɗaɗa",
+    "clientAborted": "{count} mashiya aborts",
+    "slowAbandonedHint": "An abandoned after the headers wait threshold, excluded from the transport rate",
     "previousSuccessRate": "A baya {rate}% nasara",
-    "upstreamRefusals": "{count} kin amincewa daga sama",
     "connectionTestsCount": "{count} gwaje-gwajen haɗi",
-    "notMeasured": "Ba a auna ba"
+    "notMeasured": "Ba a auna ba",
+    "upstream4xx": "{count} kudin kudin kliyenti",
+    "upstream5xx": "{count} kudin kudin siriya",
+    "uniformEgressLine": "{affected} da {exits} exits sakawa suna na {provider} (suna {hours} saa) — suna sakawa"
   },
   "playground": {
     "title": "Filin Gwajin Model",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "Yana gadon tafkin haɗi ({count})",
     "poolEmptyBlocked": "Tafkin babu kowa — buƙatun suna faduwa (ba kai tsaye ba)",
     "directEgress": "Kai tsaye (babu proxy)",
-    "ownProxy": "Proxy na kai"
+    "ownProxy": "Proxy na kai",
+    "freeTierPause": "An huta {model} (429), za a dawo a {time}",
+    "freeTierPauseProvider": "An huta (429), za a dawo a {time}",
+    "freeTierPauseNote": "Tsaya aiki a cikin wannan lami"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,10 +13083,10 @@
     "inactiveCount": "{count} marasa aiki",
     "dbOverrideCount": "{count} keɓantattun sauye-sauyen DB",
     "searchPlaceholder": "Nemo tutoci...",
-    "descriptionModeLabel": "Duban bayani",
-    "descriptionModeHint": "Lokacin shawagi: katuna suna nan a taƙaice, kuma idan aka shawaga kan bayani, cikakken rubutun yana bayyana. Cikakken rubutu: a koyaushe a nuna cikakken bayanin.",
-    "descriptionModeHover": "Lokacin shawagi",
-    "descriptionModeFull": "Cikakken rubutu",
+    "descriptionModeLabel": "View na bayani",
+    "descriptionModeHint": "Lokacin rufe: katunan suna ci gaba da ƙarfi, kuma rufe bayani yana nuna rubuce-ruce gaba ɗaya. Rubuce-ruce gaba ɗaya: nuna bayani gaba ɗaya kullum.",
+    "descriptionModeHover": "Lokacin rufe",
+    "descriptionModeFull": "Rubuce-ruce gaba ɗaya",
     "categories": {
       "all": "Duka",
       "security": "Tsaro",

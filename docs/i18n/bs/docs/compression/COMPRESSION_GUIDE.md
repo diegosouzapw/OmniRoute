@@ -434,8 +434,7 @@ ubrizgava umjesto engleske.
 Na tijelu sa `messages`, zaobilaženje sadržaja (`shouldBypassCavemanOutputMode()` u
 `open-sse/services/compression/outputMode.ts`) provjerava posljednje tri poruke i preskače
 stilove za cijeli krug kada se podudaraju s njegovim ključnim riječima za sigurnost, nepovratnu akciju,
-pojašnjenje ili osjetljivost na redoslijed. Zaobilaženje se izvršava bez obzira na to kako je
-postavljen prekidač **Automatsko zaobilaženje jasnoće** na kontrolnoj tabli (`cavemanOutputMode.autoClarity`).
+pojašnjenje ili osjetljivost na redoslijed. Zaobilaženje se izvršava dok je prekidač **Automatsko zaobilaženje jasnoće** (`cavemanOutputMode.autoClarity`) na kontrolnoj tabli uključen, što je zadana postavka; kad je prekidač isključen, odabrani stilovi primjenjuju se i na tim krugovima.
 
 Kada zaobilaženje propusti krug, `placeSystemInstruction()` (ista datoteka),
 koja nikada ne stvara novu `messages[0]`, postavlja blok u prvu od ovih opcija koju pronađe:

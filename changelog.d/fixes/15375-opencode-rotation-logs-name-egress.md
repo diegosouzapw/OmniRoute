@@ -1,0 +1,1 @@
+- **fix(sse):** name the egress proxy on every opencode rotation log line ([#15375](https://github.com/diegosouzapw/OmniRoute/pull/15375)) — thanks @maxmad64bis

@@ -33,9 +33,11 @@ import {
   applyCodexClientMetadata,
   applyCodexOriginalIdentityHeaders,
   type CodexClientIdentity,
+  resolveCodexThreadScopedPromptCacheKey,
   withCodexFingerprintCredentials,
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { isUnrecoverableRefreshError } from "../services/tokenRefresh/shared.ts";
 import { sanitizeCodexResponsesInput } from "../services/responsesInputSanitizer.ts";
 import { applyReasoningInputPolicy } from "../services/reasoningInputPolicy.ts";
 import { getForcedReasoningEffort } from "../utils/reasoningRuleContext.ts";
@@ -44,7 +46,10 @@ import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudge
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { projectCodexPublicError } from "../utils/codexPublicError.ts";
 import { errorResponse } from "../utils/error.ts";
-import { buildSyntheticResponsesFailedEvent } from "../utils/responsesSequence.ts";
+import {
+  buildSyntheticResponsesFailureId,
+  buildSyntheticResponsesFailedEvent,
+} from "../utils/responsesSequence.ts";
 import { hasCodexSsePeekProgress } from "./codex/ssePeekProgress.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
@@ -495,7 +500,7 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
   if (statusCode !== null) error.status_code = statusCode;
 
   return buildSyntheticResponsesFailedEvent({
-    id: typeof response?.id === "string" ? response.id : null,
+    id: typeof response?.id === "string" ? response.id : buildSyntheticResponsesFailureId(),
     status: "failed",
     error,
   });
@@ -971,7 +976,9 @@ export class CodexExecutor extends BaseExecutor {
       const controller = streamController;
       const payload = JSON.stringify(
         buildSyntheticResponsesFailedEvent({
-          id: null,
+          // #15202: the WebSocket failure path has no upstream id to preserve, so it
+          // must synthesize a string id instead of emitting `id: null`.
+          id: buildSyntheticResponsesFailureId(),
           status: "failed",
           error: projectCodexPublicError({ status: 502, code, type: "provider_error" }),
         })
@@ -1217,6 +1224,11 @@ export class CodexExecutor extends BaseExecutor {
         "TOKEN_REFRESH",
         `Codex: token refresh failed (${result.error}) — re-authentication required`
       );
+      // A dead refresh token is terminal for this connection, not a provider
+      // outage: surface it so the retry helper skips retries and leaves the
+      // provider breaker alone. Other connections keep serving (the proactive
+      // path drops this shape before spreading it onto live credentials).
+      if (isUnrecoverableRefreshError(result)) return result;
       // Return null (not the error-only object): base.ts spreads any truthy
       // result onto activeCredentials and persists it via onCredentialsRefreshed.
       // Spreading `{ error }` would keep the stale/expired accessToken in place
@@ -1481,6 +1493,18 @@ export class CodexExecutor extends BaseExecutor {
     // Ref: openai/codex core/src/client.rs line 853:
     //   let prompt_cache_key = Some(self.client.state.conversation_id.to_string());
     // IMPORTANT: Capture session/conversation IDs BEFORE deletion below (#1643).
+    // Opt-in (`codexPromptCacheKeyScope: "thread"`): align the client's key with the
+    // converged thread id instead of forwarding it raw next to a rewritten thread.
+    const threadScopedCacheKey = resolveCodexThreadScopedPromptCacheKey(
+      body.prompt_cache_key,
+      credentials?.providerSpecificData?.codexClientIdentity as
+        CodexClientIdentity | null | undefined,
+      credentials?.providerSpecificData,
+      credentials?.connectionId ?? null
+    );
+    if (threadScopedCacheKey) {
+      body.prompt_cache_key = threadScopedCacheKey;
+    }
     if (!body.prompt_cache_key) {
       const cacheSessionId = this.getPromptCacheSessionId(credentials, body);
       if (cacheSessionId) {

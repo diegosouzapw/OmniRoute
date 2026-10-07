@@ -453,9 +453,7 @@ inglise keele asemel.
 `messages`-ga kehal kontrollib sisu möödaviik (`shouldBypassCavemanOutputMode()`
 failis `open-sse/services/compression/outputMode.ts`) kolme viimast sõnumit ja jätab
 stiilid kogu pöördeks vahele, kui need vastavad selle turvalisuse, pöördumatute toimingute,
-selgituste või järjekorra suhtes tundlikele märksõnadele. Möödaviik töötab olenemata sellest,
-mis on armatuurlaua **Auto-Clarity Bypass** lüliti (`cavemanOutputMode.autoClarity`)
-seadistatud.
+selgituste või järjekorra suhtes tundlikele märksõnadele. Möödaviik töötab, kui armatuurlaua **Auto-Clarity Bypass** lüliti (`cavemanOutputMode.autoClarity`) on sisse lülitatud, mis on vaikeväärtus; kui lüliti on välja lülitatud, rakenduvad valitud stiilid ka nendes pööretes.
 
 Kui möödaviik laseb pöörde läbi, paigutab `placeSystemInstruction()` (sama fail), mis
 kunagi ei loo uut `messages[0]`, ploki esimesse neist, mille ta leiab:

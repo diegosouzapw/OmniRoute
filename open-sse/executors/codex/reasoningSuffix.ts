@@ -39,11 +39,8 @@ export function splitCodexReasoningSuffix(model: unknown): {
   if (maxTierMatch) {
     const [, baseModel, hyphenEffort, parenthesizedEffort] = maxTierMatch;
     const effort = hyphenEffort ?? parenthesizedEffort;
-    const supportedModels = parenthesizedEffort
-      ? CODEX_MAX_ALIAS_MODELS
-      : effort === "ultra"
-        ? CODEX_ULTRA_ALIAS_MODELS
-        : CODEX_MAX_ALIAS_MODELS;
+    const supportedModels =
+      effort === "ultra" ? CODEX_ULTRA_ALIAS_MODELS : CODEX_MAX_ALIAS_MODELS;
     if (supportedModels.has(baseModel)) {
       return { baseModel, effort: effort as CodexEffortLevel };
     }

@@ -56,9 +56,6 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     const modelsStatus = opts.modelsStatus ?? 200;
     return (async (url: unknown) => {
       const href = String(url);
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return {
           ok: opts.combosStatus === 200,
@@ -71,7 +68,7 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
         ok: modelsStatus === 200,
         status: modelsStatus,
         statusText: "OK",
-        json: async () => ({ data: [{ id: "m1" }] }),
+        json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
       };
     }) as typeof fetch;
   }
@@ -159,11 +156,10 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     const added: unknown[] = [];
     const { ctx } = setupCtx({ combosStatus: 200, reloads, added });
     const origFetch = globalThis.fetch;
+    const requested: string[] = [];
     globalThis.fetch = (async (url: unknown) => {
       const href = String(url);
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
+      requested.push(new URL(href).pathname);
       if (href.includes("/api/combos")) {
         const err = new Error("This operation was aborted");
         err.name = "AbortError";
@@ -173,7 +169,7 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
         ok: true,
         status: 200,
         statusText: "OK",
-        json: async () => ({ data: [{ id: "m1" }] }),
+        json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
       };
     }) as typeof fetch;
     try {
@@ -187,6 +183,10 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
       assert.ok(
         warns.some((w) => w.includes("combos")),
         `expected a combos warn, got: ${JSON.stringify(warns)}`
+      );
+      assert.ok(
+        !requested.some((p) => p === "/api/combos/auto"),
+        `retired route must never be requested, got ${JSON.stringify(requested)}`
       );
     } finally {
       globalThis.fetch = origFetch;

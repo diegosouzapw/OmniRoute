@@ -481,8 +481,7 @@ instrukcijos įterpiama lokalizuota instrukcija.
 Turinyje su `messages` turinio apėjimo funkcija (`shouldBypassCavemanOutputMode()`, esanti
 `open-sse/services/compression/outputMode.ts`) patikrina paskutinius tris pranešimus ir praleidžia
 stilių taikymą visam veiksmui, kai juose aptinkami saugumo, negrįžtamo veiksmo,
-patikslinimo arba tvarkai jautrūs raktažodžiai. Apėjimo funkcija veikia pagal tai, kaip nustatytas
-valdymo skydelio **Auto-Clarity Bypass** jungiklis (`cavemanOutputMode.autoClarity`).
+patikslinimo arba tvarkai jautrūs raktažodžiai. Apėjimo funkcija veikia, kai valdymo skydelio **Auto-Clarity Bypass** jungiklis (`cavemanOutputMode.autoClarity`) įjungtas – tai numatytoji reikšmė; jungikliui išjungus, pasirinkti stiliai taikomi ir šiuose veiksmuose.
 
 Kai apėjimo funkcija leidžia apdoroti veiksmą, `placeSystemInstruction()` (tame pačiame faile), kuri
 niekada nesukuria naujo `messages[0]`, įterpia bloką pirmoje rastoje vietoje:

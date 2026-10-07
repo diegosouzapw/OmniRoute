@@ -287,7 +287,7 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
   }
 
   // Reasoning effort: map Claude-side thinking controls to OpenAI reasoning_effort.
-  // Priority: output_config.effort (Claude Code) > thinking.budget_tokens (Claude native).
+  // Priority: output_config.effort > enabled thinking budget > explicit opt-out fallback.
   // Budget buckets match the reverse mapping in thinkingBudget.ts::setCustomBudget.
   const outputEffort = normalizeOpenAIReasoningEffort(body.output_config?.effort) || "";
   if (outputEffort) {
@@ -305,6 +305,11 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
     } else {
       result.reasoning_effort = "xhigh";
     }
+  } else if (
+    body.thinking?.type === "disabled" ||
+    normalizeOpenAIReasoningEffort(body.reasoning_effort) === "none"
+  ) {
+    result.reasoning_effort = "none";
   }
 
   return result;

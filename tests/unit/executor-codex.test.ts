@@ -1541,11 +1541,10 @@ test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null w
   }
 });
 
-test("CodexExecutor.refreshCredentials returns null for unrecoverable errors to preserve original credentials", async () => {
-  // Source intentionally returns null (not an error object) so that base.ts does
-  // not spread stale error fields onto activeCredentials. The upstream 401/403
-  // drives the proper re-auth / mark-expired path instead.
-  // Source: open-sse/executors/codex.ts — refreshCredentials(), lines ~1205-1216.
+test("CodexExecutor.refreshCredentials surfaces an unrecoverable sentinel for dead refresh tokens", async () => {
+  // A dead refresh token is terminal for this connection, not a provider
+  // outage: the unrecoverable sentinel skips retries and spares the breaker.
+  // Source: open-sse/executors/codex.ts — refreshCredentials().
   const executor = new CodexExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
@@ -1556,7 +1555,8 @@ test("CodexExecutor.refreshCredentials returns null for unrecoverable errors to 
 
   try {
     const result = await executor.refreshCredentials({ refreshToken: "dead-token" }, null);
-    assert.equal(result, null, "should return null to leave original credentials untouched");
+    assert.equal(result?.error, "unrecoverable_refresh_error");
+    assert.equal(result?.code, "invalid_grant");
   } finally {
     globalThis.fetch = originalFetch;
   }

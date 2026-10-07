@@ -59,7 +59,9 @@ import {
   clampGlobalAttempts,
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
+  isProviderCircuitOpenResult,
   isComboRequestScopedFailure as isScopedFailure,
+  shouldRecordModelLockoutForComboFailure,
   isStreamReadinessFailureErrorBody,
   isStreamEarlyEofErrorBody,
   isLocalKeyPolicyBreachErrorBody,
@@ -79,6 +81,7 @@ import {
   releaseQualityClone,
   releaseRejectedQualityResponse,
 } from "./validateQuality.ts";
+import { isTrustedEmptyTurn } from "./emptyTurnTrust.ts";
 import {
   isQuotaExhaustionResponse,
   recordQuotaExhaustionClassification,
@@ -102,6 +105,8 @@ import type { ComboErrorBody, ComboRetryAfter, ResolvedComboTarget } from "./typ
 import type { ResponseValidationConfig } from "./responseValidation.ts";
 import { resolveComboDailyReset } from "./comboDailyResetClock.ts";
 import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
+import { isProviderProbeResponse } from "../../../src/shared/utils/providerProbeResult.ts";
+import { recordLocalCircuitRefusal } from "./localCircuitRefusal.ts";
 
 export async function executeTargetAttempt(opts: {
   index: number;
@@ -386,7 +391,9 @@ export async function executeTargetAttempt(opts: {
         qualityClone,
         deps.clientRequestedStream,
         deps.log,
-        deps.config.responseValidation as ResponseValidationConfig | null | undefined
+        deps.config.responseValidation as ResponseValidationConfig | null | undefined,
+        null,
+        await isTrustedEmptyTurn(provider, result, target.connectionId)
       );
       releaseQualityClone(qualityClone, result, quality);
       if (!quality.valid) {
@@ -517,7 +524,9 @@ export async function executeTargetAttempt(opts: {
 
       // Reset cooldown on success
       if (provider && provider !== "unknown") {
-        recordProviderSuccess(provider, effectiveConnectionId || undefined);
+        recordProviderSuccess(provider, effectiveConnectionId || undefined, {
+          providerProbeSettled: isProviderProbeResponse(result),
+        });
       }
       if (deps.strategy === "weighted" && (deps.stickyWeightedLimit ?? 0) > 1) {
         const stickySuccessKey = deps.getWeightedStepKeyForTarget?.(target);
@@ -736,6 +745,25 @@ export async function executeTargetAttempt(opts: {
       } catch {
         errorText = String(errorText);
       }
+    }
+
+    if (isProviderCircuitOpenResult(result, errorText)) {
+      const refusal = recordLocalCircuitRefusal({
+        comboName: deps.combo.name,
+        modelStr,
+        result,
+        errorText,
+        startTime: deps.startTime,
+        fallbackCount: state.fallbackCount,
+        strategy: deps.strategy,
+        target,
+      });
+      state.recordedAttempts++;
+      state.lastError = refusal.error;
+      state.lastStatus = refusal.status;
+      state.comboErrors.push(refusal.outcome);
+      if (i > 0) state.fallbackCount++;
+      return null;
     }
 
     const isStreamReadinessFailure =
@@ -996,6 +1024,7 @@ export async function executeTargetAttempt(opts: {
         requestScopedFailure: scopedFailure,
         error: errorText,
         isProxyUnreachable: structuredError?.code === "proxy_unreachable",
+        providerCircuitOpen: isProviderCircuitOpenResult(result, errorText),
       })
     ) {
       const isQueueTimeout =
@@ -1004,6 +1033,7 @@ export async function executeTargetAttempt(opts: {
       recordProviderFailure(provider, deps.log, targetWithConnection.connectionId, profile, {
         isQueueTimeout,
         isNetworkError: structuredError?.code === "proxy_unreachable",
+        providerProbeSettled: isProviderProbeResponse(result),
       });
     }
 
@@ -1077,7 +1107,7 @@ export async function executeTargetAttempt(opts: {
         provider &&
         rawModel &&
         retry === 0 &&
-        !scopedFailure &&
+        shouldRecordModelLockoutForComboFailure(scopedFailure, structuredError) &&
         !isConnectionScopedClaudeQuota
       ) {
         const mlSettings = resolveModelLockoutSettings(deps.settings);
@@ -1167,7 +1197,12 @@ export async function executeTargetAttempt(opts: {
     if (i > 0) state.fallbackCount++;
     // Wire combo failures into the resilience dashboard (model-level lockout)
     // alongside the provider-level cooldown below — they govern different scopes.
-    if (provider && rawModel && !scopedFailure && !isConnectionScopedClaudeQuota) {
+    if (
+      provider &&
+      rawModel &&
+      shouldRecordModelLockoutForComboFailure(scopedFailure, structuredError) &&
+      !isConnectionScopedClaudeQuota
+    ) {
       const mlSettings = resolveModelLockoutSettings(deps.settings);
       if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
         recordModelLockoutFailure(

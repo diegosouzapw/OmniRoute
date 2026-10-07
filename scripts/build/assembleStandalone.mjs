@@ -1185,6 +1185,11 @@ export function assembleStandalone({
   // 6. Optionally copy native assets + extra modules (synchronous)
   if (copyNatives) {
     copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir);
+    // copyNativeAssetsAndExtraModules recopies public/ with force, which
+    // overwrites the build-id stamp copyStaticAndPublic just wrote. Stamp
+    // again after that copy, or sw.js ships with the generic cache name and
+    // a browser keeps the previous deploy's worker.
+    stampServiceWorkerBuildId(resolvedOutDir);
     // Repair hollow externalized package dirs in BOTH locations Turbopack's standalone
     // tracer can populate: the top-level bundle node_modules, and — for projects with a
     // custom distDir (see next.config.mjs) — the nested <relDistDir>/node_modules mirrored

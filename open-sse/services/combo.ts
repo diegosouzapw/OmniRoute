@@ -239,20 +239,40 @@ export function poolMedianP95Ms(
 }
 
 const BOOTSTRAP_WARN_WINDOW_MS = 3600_000;
-export let bootstrapLatencyHits = 0; // exported for testability (reset in tests)
-export let bootstrapLatencyTotal = 0;
+export type BootstrapSource = "table" | "pool-median" | "constant";
+export const bootstrapSourceCounts: Record<BootstrapSource, number> = {
+  table: 0,
+  "pool-median": 0,
+  constant: 0,
+};
 let bootstrapWarnedAt = 0;
 export function resetBootstrapCounters(): void {
-  bootstrapLatencyHits = 0;
-  bootstrapLatencyTotal = 0;
+  bootstrapSourceCounts.table = 0;
+  bootstrapSourceCounts["pool-median"] = 0;
+  bootstrapSourceCounts.constant = 0;
   bootstrapWarnedAt = 0;
 }
+// Table lookup shared by the bootstrap provenance helpers below. Exact
+// normalization only (no provider/ prefix strip): callers pass parsed.model,
+// so stripping here would be dead code. Pricing strips prefixes; combo does not.
+function lookupTable(model: string): number | undefined {
+  return DEFAULT_MODEL_P95_MS[String(model || "").toLowerCase()];
+}
+// Single provenance authority: classifies a pre-resolved table value plus the
+// pool median. bootstrapMs routes through it so the hot path performs
+// exactly one table lookup on every call.
+export function bootstrapSourceFromTable(
+  table: number | undefined,
+  poolMedian: number | undefined
+): BootstrapSource {
+  if (table !== undefined) return "table";
+  if (poolMedian !== undefined) return "pool-median";
+  return "constant";
+}
 export function bootstrapMs(model: string, poolMedian: number | undefined): number {
-  bootstrapLatencyTotal++;
-  const table = DEFAULT_MODEL_P95_MS[String(model || "").toLowerCase()];
-  if (table !== undefined) return table;
-  bootstrapLatencyHits++;
-  return poolMedian ?? 1500;
+  const table = lookupTable(model);
+  bootstrapSourceCounts[bootstrapSourceFromTable(table, poolMedian)]++;
+  return table ?? poolMedian ?? 1500;
 }
 
 // Pure and testable without timers: the throttled 1h warn + cold-start exemption live here.
@@ -268,11 +288,22 @@ export function shouldWarnBootstrap(
   return now - lastWarn >= BOOTSTRAP_WARN_WINDOW_MS;
 }
 
-function maybeWarnBootstrapDominant(hasStats: boolean): void {
+// Deterministic on the module counters (not pure): reads bootstrapSourceCounts.
+// Table hits stay in the denominator to preserve the 30% threshold semantics
+// but out of the message — only estimates are reported.
+export function formatBootstrapWarning(): string {
+  const { table, "pool-median": pm, constant } = bootstrapSourceCounts;
+  const total = table + pm + constant;
+  const hits = pm + constant;
+  return `[combo] bootstrap latency dominant (${hits}/${total}, pool-median: ${pm}, constant: ${constant}) — scoring runs on guesses`;
+}
+
+export function maybeWarnBootstrapDominant(hasStats: boolean): void {
+  const { table, "pool-median": pm, constant } = bootstrapSourceCounts;
   if (
     !shouldWarnBootstrap(
-      bootstrapLatencyHits,
-      bootstrapLatencyTotal,
+      pm + constant,
+      table + pm + constant,
       hasStats,
       Date.now(),
       bootstrapWarnedAt
@@ -280,9 +311,7 @@ function maybeWarnBootstrapDominant(hasStats: boolean): void {
   )
     return;
   bootstrapWarnedAt = Date.now();
-  console.warn(
-    `[combo] bootstrap latency dominant (${bootstrapLatencyHits}/${bootstrapLatencyTotal}) — scoring runs on guesses`
-  );
+  console.warn(formatBootstrapWarning());
 }
 
 export async function buildAutoCandidates(
@@ -458,6 +487,7 @@ export async function buildAutoCandidates(
       // time (scoreAutoTargets → STATUS_SOFT_DEPRIORITIZE_FACTOR) instead.
       let statusPenalty = false;
       let statusPenaltyReason: string | undefined;
+      let quotaUnreadable = false;
       if (statusCutoffReason) {
         quotaCutoffBlocked = true;
         quotaCutoffReason = statusCutoffReason;
@@ -488,10 +518,22 @@ export async function buildAutoCandidates(
         const quota = await quotaPromises.get(quotaKey)!;
         resetWindowAffinity = calculateAutoResetWindowAffinity(quota, resetWindowConfig);
         if (!quotaCutoffBlocked) {
-          quotaRemaining = quotaRemainingPercentFromQuota(quota, {
+          const remaining = quotaRemainingPercentFromQuota(quota, {
             provider,
             requestedModel: modelStr,
           });
+          if (remaining === null) {
+            // #15347: this provider HAS a quota fetcher but gave us nothing readable (failed
+            // fetch, missing credentials, message-only or malformed payload). That is evidence
+            // about the telemetry, not the provider, so it must not outrank providers that
+            // reported a real percentage. Worst on the quota axis plus a soft penalty at
+            // scoring time (like #4540), so it ranks strictly below any real reading without
+            // being blocked or evicted. Unlimited plans report `unlimited: true` and score 100.
+            quotaRemaining = 0;
+            quotaUnreadable = true;
+          } else {
+            quotaRemaining = remaining;
+          }
         }
         if (!quotaCutoffBlocked && quotaCutoffEnabled) {
           const cutoffDecision = evaluateQuotaCutoff(
@@ -540,6 +582,7 @@ export async function buildAutoCandidates(
         quotaCutoffReason,
         statusPenalty,
         statusPenaltyReason,
+        quotaUnreadable,
         connectionPoolSize: connectionPoolCounts.get(provider) ?? 1,
         connectionId: target.connectionId ?? undefined,
         authType,

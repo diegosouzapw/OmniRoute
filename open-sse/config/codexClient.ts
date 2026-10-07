@@ -11,7 +11,6 @@ export {
   CODEX_CLI_RS_ORIGINATOR,
 } from "@/shared/constants/codexClient";
 const CODEX_VERSION_METADATA_URL = "https://registry.npmjs.org/@openai%2Fcodex/latest";
-const CODEX_VERSION_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const CODEX_VERSION_RETRY_MS = 5 * 60 * 1000;
 const CODEX_VERSION_METADATA_MAX_BYTES = 64 * 1024;
 const codexVersionMetadataSchema = z.object({
@@ -34,9 +33,23 @@ const DEFAULT_CODEX_USER_AGENT_PLATFORM = "Windows 10.0.26200";
 const DEFAULT_CODEX_USER_AGENT_ARCH = "x64";
 const CODEX_VERSION_OVERRIDE_ENV = "CODEX_CLIENT_VERSION";
 const CODEX_USER_AGENT_OVERRIDE_ENV = "CODEX_USER_AGENT";
+const CODEX_RELEASE_URL = "https://api.github.com/repos/openai/codex/releases/latest";
+export const CODEX_VERSION_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+export const CODEX_VERSION_FETCH_TIMEOUT_MS = 20_000;
 const SAFE_HEADER_TOKEN_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/;
 const SAFE_HEADER_VALUE_PATTERN = /^[\x20-\x7E]{1,200}$/;
 const SAFE_CODEX_SESSION_ID_PATTERN = /^[A-Za-z0-9._:-]{1,200}$/;
+const CODEX_DOTTED_TRIPLE_PATTERN = /^(\d+)\.(\d+)\.(\d+)$/;
+
+type CodexVersionCache = {
+  fetchedAt: number;
+  version: string;
+};
+
+type FetchLike = typeof fetch;
+
+let versionCache: CodexVersionCache | null = null;
+let versionInFlight: Promise<string> | null = null;
 
 function getSafeEnvValue(name: string, pattern: RegExp): string | null {
   const raw = process.env[name];
@@ -48,12 +61,106 @@ function getSafeEnvValue(name: string, pattern: RegExp): string | null {
   return normalized;
 }
 
+function parseCodexReleaseTag(tagName: unknown): string | null {
+  if (typeof tagName !== "string") return null;
+  const stripped = tagName.trim().replace(/^rust-v/, "");
+  const match = CODEX_DOTTED_TRIPLE_PATTERN.exec(stripped);
+  return match ? match[0] : null;
+}
+
+function compareDottedTriple(left: string, right: string): number {
+  const leftParts = left.split(".").map((part) => Number.parseInt(part, 10));
+  const rightParts = right.split(".").map((part) => Number.parseInt(part, 10));
+  for (let i = 0; i < 3; i += 1) {
+    if (leftParts[i] !== rightParts[i]) return leftParts[i] - rightParts[i];
+  }
+  return 0;
+}
+
+function pickCodexVersionAtLeastPin(candidate: string | null): string {
+  if (candidate && compareDottedTriple(candidate, DEFAULT_CODEX_CLIENT_VERSION) > 0) {
+    return candidate;
+  }
+  return DEFAULT_CODEX_CLIENT_VERSION;
+}
+
+async function fetchCodexReleaseTag(fetchImpl: FetchLike): Promise<string | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), CODEX_VERSION_FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetchImpl(CODEX_RELEASE_URL, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "OmniRoute-CodexVersion/1.0",
+      },
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+    const payload = (await response.json()) as { tag_name?: unknown };
+    return parseCodexReleaseTag(payload?.tag_name);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Refresh the advertised Codex CLI version from the latest GitHub release.
+ * A fetched dotted triple newer than the pin replaces it; any failure, a
+ * malformed tag, or an older release keeps the pin. Cached for six hours.
+ */
+export function resolveCodexClientVersion(fetchImpl: FetchLike = fetch): Promise<string> {
+  const now = Date.now();
+  if (versionCache && now - versionCache.fetchedAt < CODEX_VERSION_CACHE_TTL_MS) {
+    return Promise.resolve(pickCodexVersionAtLeastPin(versionCache.version));
+  }
+  if (versionInFlight) return versionInFlight;
+
+  versionInFlight = (async () => {
+    const fetched = await fetchCodexReleaseTag(fetchImpl);
+    const version = pickCodexVersionAtLeastPin(fetched ?? versionCache?.version ?? null);
+    if (fetched) {
+      versionCache = { fetchedAt: Date.now(), version };
+    }
+    return version;
+  })();
+
+  return versionInFlight.finally(() => {
+    versionInFlight = null;
+  });
+}
+
+export function getCachedCodexClientVersion(): string {
+  return pickCodexVersionAtLeastPin(versionCache?.version ?? null);
+}
+
+export function seedCodexClientVersionCache(version: string, fetchedAt = Date.now()): void {
+  if (!CODEX_DOTTED_TRIPLE_PATTERN.test(version)) {
+    throw new TypeError(`Invalid Codex client version: ${version}`);
+  }
+  versionCache = { fetchedAt, version };
+}
+
+export function clearCodexClientVersionCache(): void {
+  versionCache = null;
+  versionInFlight = null;
+}
+
 export function getCodexClientVersion(): string {
-  return (
-    getSafeEnvValue(CODEX_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN) ||
-    cachedCodexVersion ||
-    DEFAULT_CODEX_CLIENT_VERSION
-  );
+  const override = getSafeEnvValue(CODEX_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN);
+  if (override) return override;
+  // Discovery may cache a registry version, but never below the release pin.
+  if (
+    cachedCodexVersion &&
+    compareDottedTriple(cachedCodexVersion, DEFAULT_CODEX_CLIENT_VERSION) >= 0
+  ) {
+    return cachedCodexVersion;
+  }
+  if (!process.env.NODE_TEST_CONTEXT && !versionCache && !versionInFlight) {
+    void resolveCodexClientVersion();
+  }
+  return getCachedCodexClientVersion();
 }
 
 /** Bound registry body reads as well as the connection; a stalled body must not block discovery. */

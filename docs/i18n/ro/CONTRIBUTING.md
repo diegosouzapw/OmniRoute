@@ -391,18 +391,18 @@ Scrieți teste unitare în `tests/unit/` care să acopere cel puțin:
 
 - [ ] Testele trec (`npm test`)
 - [ ] Verificarea lint trece (`npm run lint`)
-- [ ] Compilarea reușește (`npm run build`)
+- [ ] Build-ul reușește (`npm run build`)
 - [ ] Au fost adăugate tipuri TypeScript pentru noile funcții și interfețe publice
 - [ ] Nu există secrete sau valori de rezervă codificate direct
-- [ ] Credențialele publice upstream sunt încorporate prin `resolvePublicCred()` (consultați [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), niciodată ca valori literale
+- [ ] Credențialele publice upstream sunt încorporate prin `resolvePublicCred()` (consultați [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), niciodată ca literali
 - [ ] Răspunsurile de eroare sunt procesate prin `buildErrorBody()` / `sanitizeErrorMessage()` — fără urme de stivă neprelucrate în corpurile răspunsurilor (consultați [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Comenzile shell (`exec` / `spawn`) transmit valorile din timpul execuției prin `env`, nu prin interpolarea șirurilor
 - [ ] Toate datele de intrare sunt validate cu scheme Zod
-- [ ] A fost adăugat un **fragment** de jurnal al modificărilor în `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` pentru modificările vizibile utilizatorilor (consultați [`changelog.d/README.md`](./changelog.d/README.md)) — **nu** editați direct `CHANGELOG.md`; fragmentele sunt agregate la momentul lansării și nu intră niciodată în conflict între PR-uri
+- [ ] A fost adăugat un **fragment** de jurnal de modificări în `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` pentru modificările vizibile utilizatorilor (consultați [`changelog.d/README.md`](./changelog.d/README.md)) — **nu** editați direct `CHANGELOG.md`; fragmentele sunt agregate la momentul lansării și nu intră niciodată în conflict între PR-uri
 - [ ] Documentația a fost actualizată (dacă este cazul)
-- [ ] Nu au fost deschise alerte CodeQL / Secret-Scanning noi sau fiecare a fost respinsă cu o justificare tehnică ce face referire la documentul relevant din `docs/security/`
-- [ ] Rutele care lansează procese copil (`/api/mcp/`, `/api/cli-tools/runtime/`) sunt clasificate ca `isLocalOnlyPath()` în `src/server/authz/routeGuard.ts` — consultați [Regula strictă nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Nu există trailere `Co-Authored-By` în mesajele commit-urilor — commit-urile trebuie să apară exclusiv sub identitatea Git a proprietarului depozitului (Regula strictă nr. 16)
+- [ ] Nu au fost deschise alerte CodeQL / Secret-Scanning noi sau fiecare dintre acestea a fost respinsă cu o justificare tehnică ce face referire la documentul relevant din `docs/security/`
+- [ ] Rutele care generează procese copil (`/api/mcp/`, `/api/cli-tools/runtime/`) sunt clasificate drept `isLocalOnlyPath()` în `src/server/authz/routeGuard.ts` — consultați [Regula strictă nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Mesajele de commit nu conțin trailere AI/bot `Co-authored-by` (Regula strictă nr. 16) — colaboratorii umani a căror muncă este reutilizată sunt creditați prin trailere standard `Co-authored-by: Name <email>`
 
 ---
 
