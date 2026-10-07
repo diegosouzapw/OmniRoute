@@ -1358,6 +1358,7 @@ export class OpencodeExecutor extends BaseExecutor {
       forwardOpencodeClientHeaders(headers, clientHeaders ?? {}, {
         synthesizeRequestId: true,
         cliDefaults,
+        keepAgentUserAgent: this._surface() === "go" && !gatedScope, // #15311
         sessionBody: projectOpencodeSessionBody(body),
       });
     }

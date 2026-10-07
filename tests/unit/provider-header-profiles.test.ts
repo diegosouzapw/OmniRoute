@@ -29,9 +29,9 @@ import {
 
 test("provider header profiles expose current GitHub chat and internal headers", () => {
   const chatHeaders = getGitHubCopilotChatHeaders("text/event-stream", "agent");
-  // Chat/inference path matches the @github/copilot CLI 1.0.88 wire identity.
+  // Header shape follows the captured CLI identity; the version uses the current pin.
   assert.equal(chatHeaders["editor-version"], GITHUB_COPILOT_EDITOR_VERSION);
-  assert.equal(chatHeaders["user-agent"], `copilot/1.0.88 (${process.platform}) term/unknown`);
+  assert.equal(chatHeaders["user-agent"], `copilot/1.0.91 (${process.platform}) term/unknown`);
   assert.equal(chatHeaders["x-github-api-version"], GITHUB_COPILOT_API_VERSION);
   assert.equal(chatHeaders["copilot-integration-id"], GITHUB_COPILOT_INTEGRATION_ID);
   assert.equal(chatHeaders["x-interaction-type"], GITHUB_COPILOT_INTERACTION_TYPE);
@@ -68,6 +68,23 @@ test("getGitHubCopilotMachineId is stable across calls and vision toggles the vi
   assert.equal(vision["copilot-vision-request"], "true");
   // Machine id is consistent between two header builds in the same process.
   assert.equal(plain["x-client-machine-id"], vision["x-client-machine-id"]);
+});
+
+test("Copilot chat headers honor the CLI version environment override", () => {
+  const previous = process.env.GITHUB_COPILOT_CLI_VERSION;
+  process.env.GITHUB_COPILOT_CLI_VERSION = "1.0.82";
+  try {
+    assert.equal(
+      getGitHubCopilotChatHeaders()["user-agent"],
+      `copilot/1.0.82 (${process.platform}) term/unknown`
+    );
+  } finally {
+    if (previous === undefined) {
+      delete process.env.GITHUB_COPILOT_CLI_VERSION;
+    } else {
+      process.env.GITHUB_COPILOT_CLI_VERSION = previous;
+    }
+  }
 });
 
 test("provider header profiles expose dedicated refresh, qoder and kiro variants", () => {

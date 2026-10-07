@@ -98,6 +98,67 @@ test("#3120 parseGitHubCopilotModels keeps every entitled CHAT model (capability
   assert.ok(!ids.includes("hidden-from-picker"), "model_picker_enabled=false is not routable");
 });
 
+test("discovery preserves Responses-only routing for newly entitled GPT-6 models", () => {
+  const models = parseGitHubCopilotModels({
+    data: ["gpt-6-luna", "gpt-6.1-sol"].map((id) => ({
+      id,
+      capabilities: { type: "chat" },
+      supported_endpoints: ["/responses"],
+    })),
+  });
+  assert.deepEqual(
+    models,
+    ["gpt-6-luna", "gpt-6.1-sol"].map((id) => ({
+      id,
+      name: id,
+      owned_by: "github",
+      supportedEndpoints: ["responses"],
+      targetFormat: "openai-responses",
+    }))
+  );
+});
+
+test("discovery normalizes nested endpoint metadata without guessing from GPT versions", () => {
+  const models = parseGitHubCopilotModels({
+    data: [
+      {
+        id: "new-responses-model",
+        capabilities: {
+          type: "chat",
+          supported_endpoints: [" /v1/responses/ ", "/v1/responses/", null, 42, ""],
+        },
+      },
+      {
+        id: "top-level-wins",
+        capabilities: { type: "chat", supported_endpoints: ["/responses"] },
+        supported_endpoints: ["/chat/completions"],
+      },
+      {
+        id: "messages-capable",
+        capabilities: { type: "chat" },
+        supported_endpoints: ["/responses", "/v1/messages"],
+      },
+      ...["gpt-6-unlisted", "gemini-future", "claude-future"].map((id) => ({
+        id,
+        capabilities: { type: "chat" },
+        ...(id === "gpt-6-unlisted" ? {} : { supported_endpoints: ["/responses"] }),
+      })),
+    ],
+  });
+  assert.deepEqual(models[0], {
+    id: "new-responses-model",
+    name: "new-responses-model",
+    owned_by: "github",
+    supportedEndpoints: ["responses"],
+    targetFormat: "openai-responses",
+  });
+  assert.deepEqual(models[1].supportedEndpoints, ["chat"]);
+  assert.deepEqual(models[2].supportedEndpoints, ["chat", "responses"]);
+  for (const model of models.slice(1)) {
+    assert.equal(model.targetFormat, undefined, `${model.id} must not infer Responses-only`);
+  }
+});
+
 test("#3121 a model NOT in the live response is not advertised (entitlement filtering)", () => {
   const models = parseGitHubCopilotModels(MOCK_COPILOT_MODELS_RESPONSE);
   const ids = models.map((m) => m.id);

@@ -1069,13 +1069,16 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   invalidateConnectionUpdate(id, data);
   bumpProxyConfigGeneration();
 
-  if (data.priority !== undefined) {
+  // Zero is the internal move-to-top sentinel. Explicit positive priorities
+  // are operator-selected values, not ranks to compact after every edit.
+  if (data.priority === 0) {
     const existingRecord = toRecord(existing);
     const providerId =
       typeof existingRecord.provider === "string"
         ? existingRecord.provider
         : String(existingRecord.provider || "");
     reorderConnections(db, providerId);
+    return getProviderConnectionById(id);
   }
 
   const returnedConnection = withNullableRateLimitOverrides(

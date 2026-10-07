@@ -1914,14 +1914,16 @@ export async function getProviderCredentials(
     }
 
     if (withQuota.length === 0 && exhaustedQuota.length > 0) {
-      // All remaining eligible accounts are exhausted
       const earliestResetAt = getEarliestFutureDate(
         exhaustedQuota.map((c) => {
           if (resolveProviderId(provider) === "claude") {
-            return getClaudeQuotaPreflightResetAt(c.id) || getQuotaCache(c.id)?.nextResetAt || null;
+            return (
+              getClaudeQuotaPreflightResetAt(c.id, requestedModel, c.providerSpecificData) ||
+              getQuotaCache(c.id)?.nextResetAt ||
+              null
+            );
           }
-          const entry = getQuotaCache(c.id);
-          return entry?.nextResetAt || null;
+          return getQuotaCache(c.id)?.nextResetAt || null;
         })
       );
       const earliestResetMs = parseFutureDateMs(earliestResetAt);
@@ -1934,7 +1936,7 @@ export async function getProviderCredentials(
         allRateLimited: true,
         retryAfter,
         retryAfterHuman: formatRetryAfter(retryAfter),
-        lastError: `All ${provider} accounts have exhausted their quota (cached quota state, no upstream attempt; earliest reset ${formatRetryAfter(retryAfter)})`,
+        lastError: `All ${provider} accounts have exhausted their quota (cached quota state, no upstream attempt; earliest ${formatRetryAfter(retryAfter)})`,
         lastErrorCode: 429,
       };
     }
@@ -2683,6 +2685,11 @@ export function buildExhaustionOptions(
 }
 
 /** Persist exponential-backoff state for an unavailable provider connection. */
+/** The content-stall watchdog's error (open-sse/utils/streamHandler.ts). */
+function isStreamContentStall(errorText: string): boolean {
+  return /stream content stall/i.test(String(errorText || ""));
+}
+
 export async function markAccountUnavailable(
   connectionId: string,
   status: number,
@@ -2746,6 +2753,25 @@ export async function markAccountUnavailable(
     // Request-scoped refusal: nothing about it belongs on this account or this model.
     if (isOpencodeFreeTierRefusalForProvider(provider, status, errorText))
       return { shouldFallback: true, cooldownMs: 0 };
+
+    // A stream content stall gave up on this one request (usually a long reasoning turn
+    // with no output yet); cooling the account for it takes healthy capacity out of routing.
+    if (
+      isStreamContentStall(errorText) &&
+      !resolveResilienceSettings(await getCachedSettings()).streamStallCooldown.enabled
+    ) {
+      updateProviderConnection(connectionId, {
+        lastErrorType: "server_error",
+        lastError: `Stream stalled on ${model ?? "request"} (no account cooldown)`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `${connectionId.slice(0, 8)} stream content stall on ${provider}:${model ?? "n/a"} — no account cooldown`
+      );
+      return { shouldFallback: true, cooldownMs: 0 };
+    }
 
     // ─── Anti-Thundering Herd Guard ─────────────────────────────────
     // If this connection was ALREADY marked unavailable by a prior concurrent

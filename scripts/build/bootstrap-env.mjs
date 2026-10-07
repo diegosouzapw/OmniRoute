@@ -32,12 +32,27 @@ const OPTIONAL_OAUTH_SECRETS = [
   { keys: ["QODER_OAUTH_CLIENT_SECRET"], label: "Qoder OAuth" },
 ];
 
-// ── Resolve DATA_DIR (mirrors dataPaths.ts logic) ───────────────────────────
-function resolveDataDir(overridePath, env = process.env) {
+// ── Resolve DATA_DIR (mirrors src/lib/dataPaths.ts::getDefaultDataDir) ─────────
+// Kept self-contained on purpose: assembleStandalone.mjs copies this file alone into the
+// standalone build, so it cannot import src/lib/dataPaths.ts or bin/cli/data-dir.mjs. The
+// order MUST stay identical to those two: explicit DATA_DIR → an EXISTING legacy
+// ~/.omniroute → %APPDATA% (Windows) → $XDG_CONFIG_HOME (when set) → ~/.omniroute.
+// Skipping the legacy check made a machine with XDG_CONFIG_HOME exported persist
+// server.env (incl. STORAGE_ENCRYPTION_KEY) under ~/.config/omniroute while the app opened
+// ~/.omniroute/storage.sqlite and the CLI read ~/.omniroute/.env — two keys, one database.
+export function resolveDataDir(overridePath, env = process.env) {
   if (overridePath?.trim()) return resolve(overridePath);
 
   const configured = env.DATA_DIR?.trim();
   if (configured) return resolve(configured);
+
+  // Preserve an existing legacy dir so an upgrade never splits secrets from the database.
+  const legacyDir = join(homedir(), ".omniroute");
+  try {
+    if (statSync(legacyDir).isDirectory()) return legacyDir;
+  } catch {
+    // absent or unreadable — fall through to the platform default
+  }
 
   if (process.platform === "win32") {
     const appData = env.APPDATA || join(homedir(), "AppData", "Roaming");
@@ -47,7 +62,7 @@ function resolveDataDir(overridePath, env = process.env) {
   const xdg = env.XDG_CONFIG_HOME?.trim();
   if (xdg) return join(resolve(xdg), "omniroute");
 
-  return join(homedir(), ".omniroute");
+  return legacyDir;
 }
 
 function getPreferredEnvFilePath(env = process.env) {

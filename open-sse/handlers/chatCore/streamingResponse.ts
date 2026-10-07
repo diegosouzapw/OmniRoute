@@ -171,6 +171,7 @@ export async function runStreamingResponse(deps: StreamingDeps) {
     provider,
     providerRequestCapture,
     reqLogger,
+    resilienceSettings,
     sessionAffinityKey,
     skillRequestId,
     sourceFormat,
@@ -648,7 +649,13 @@ export async function runStreamingResponse(deps: StreamingDeps) {
         ),
       3,
       log,
-      provider // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
+      provider, // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
+      {
+        ...(casConnectionId ? { connectionId: casConnectionId } : {}),
+        scope: resilienceSettings.tokenRefreshBreaker.scope,
+        failureThreshold: resilienceSettings.tokenRefreshBreaker.failureThreshold,
+        cooldownMs: resilienceSettings.tokenRefreshBreaker.cooldownMs,
+      }
     )) as null | {
       accessToken?: string;
       copilotToken?: string;

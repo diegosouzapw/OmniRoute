@@ -119,6 +119,8 @@ interface SseLifecycleFlags {
   hasContentBlock: boolean;
   hasRealContent: boolean;
   hasLifecycleEnd: boolean;
+  hasMessageStop: boolean;
+  stopReason: string | null;
 }
 
 /** Read `parsed.<key>` as a nested object bag, or null when absent/not an object. */
@@ -212,10 +214,14 @@ function applySseLifecycleEvent(
       return false;
     case "message_stop":
       flags.hasLifecycleEnd = true;
+      flags.hasMessageStop = true;
       return false;
-    case "message_delta":
+    case "message_delta": {
+      const stopReason = asObject(parsed, "delta")?.stop_reason;
+      if (typeof stopReason === "string") flags.stopReason = stopReason;
       if (messageDeltaEndsLifecycle(parsed)) flags.hasLifecycleEnd = true;
       return false;
+    }
     default:
       return false;
   }
@@ -296,7 +302,9 @@ function classifyStreamingUpstreamFailure(parsed: unknown): StreamingUpstreamFai
   const requestScoped =
     type === "invalid_request_error" ||
     code === "invalid_request_error" ||
+    type === "context_length_exceeded" ||
     code === "context_length_exceeded" ||
+    type === "context_window_exceeded" ||
     code === "context_window_exceeded";
   const message = sanitizeErrorMessage(normalized.message).slice(0, 300);
   return {
@@ -343,7 +351,8 @@ export async function validateResponseQuality(
   isStreaming: boolean,
   log: { warn?: (...args: unknown[]) => void },
   responseValidation?: ResponseValidationConfig | null,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  trustedEmptyTurn = false
 ): Promise<ResponseQualityResult> {
   // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
   // detect the empty-content-block pattern (content_filter stop_reason with
@@ -399,6 +408,8 @@ export async function validateResponseQuality(
       hasContentBlock: false,
       hasRealContent: false,
       hasLifecycleEnd: false,
+      hasMessageStop: false,
+      stopReason: null,
     };
     // #7285: OpenAI-shape lifecycle tracking, parallel to `sse` above.
     const openAi: OpenAiLifecycleFlags = { hasChoicePayload: false, hasTerminalMarker: false };
@@ -602,6 +613,17 @@ export async function validateResponseQuality(
           }
 
           if (sse.hasMessageStart && sse.hasLifecycleEnd && !sse.hasRealContent) {
+            // A first-party Claude empty turn with an ordinary stop is a valid
+            // response. Require the final message_stop and NO opened blocks:
+            // an empty start/stop block (#1382) or content_filter still fails over.
+            if (
+              trustedEmptyTurn &&
+              sse.hasMessageStop &&
+              !sse.hasContentBlock &&
+              (sse.stopReason === "end_turn" || sse.stopReason === "stop_sequence")
+            ) {
+              return { valid: true, clonedResponse: buildReplayResponse(reader) };
+            }
             // Complete Claude lifecycle with zero content blocks, or with
             // content_block_start/stop pairs that never carried real text/
             // thinking/tool_use content (#1382 — tool-heavy claude→openai

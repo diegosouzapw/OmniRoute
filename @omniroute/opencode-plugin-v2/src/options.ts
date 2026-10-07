@@ -48,6 +48,9 @@ const pluginOptionsSchema = z
     hiddenModels: z.array(z.string()).optional(),
     providersAllow: z.array(z.string()).optional(),
     usableOnly: z.boolean().default(false),
+    freeOnly: z.boolean().default(false),
+    toolsOnly: z.boolean().default(true),
+    visionOnly: z.boolean().default(false),
     // Per-provider showcase size: how many models each provider keeps in
     // the default view. Absent means the catalog default below.
     showcasePerOwner: z.number().positive().optional(),
@@ -160,6 +163,9 @@ export function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
     hiddenModels: parsed.hiddenModels,
     providersAllow: parsed.providersAllow,
     usableOnly: parsed.usableOnly,
+    freeOnly: parsed.freeOnly,
+    toolsOnly: parsed.toolsOnly,
+    visionOnly: parsed.visionOnly,
     showcasePerOwner: parsed.showcasePerOwner,
     freshPerOwner: parsed.freshPerOwner,
     freshWindowDays: parsed.freshWindowDays,

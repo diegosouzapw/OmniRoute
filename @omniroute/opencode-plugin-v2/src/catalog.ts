@@ -11,6 +11,7 @@ import {
   type ProviderResolve,
 } from "./provider-filter.js";
 import type { LegacyModel } from "./legacy-model.js";
+import { type CapabilityPresetFlags, passesCapabilityPresets } from "./capability-presets.js";
 import {
   isHttpUrl,
   type ApiFormatV2,
@@ -101,6 +102,9 @@ export interface ResolvedOptions {
   hiddenModels?: string[];
   providersAllow?: string[];
   usableOnly: boolean;
+  freeOnly?: boolean;
+  toolsOnly?: boolean;
+  visionOnly?: boolean;
   enrichment?: OmniRouteEnrichmentMap | boolean;
   /**
    * Per-provider showcase size. Absent means the catalog default
@@ -761,9 +765,18 @@ async function publishCombos(
         continue;
       }
       const mapped = mapComboToModelV2(combo, memberEntries, X, opts.baseURL, opts.apiFormat);
-      applyEnrichment(mapped, lookupEnrichment(combo.id, enrichment, canonicalToAlias), {
+      const comboEnrichment = lookupEnrichment(combo.id, enrichment, canonicalToAlias);
+      applyEnrichment(mapped, comboEnrichment, {
         isCombo: true,
       });
+      if (
+        !passesCapabilityPresets(mapped, comboEnrichment, {
+          freeOnly: opts.freeOnly,
+          toolsOnly: opts.toolsOnly,
+          visionOnly: opts.visionOnly,
+        } satisfies CapabilityPresetFlags)
+      )
+        continue;
       const mid = mapped.id.startsWith(X + "/") ? mapped.id.slice(X.length + 1) : mapped.id;
       const key = X + "/" + mid;
       if (publishedKeys.has(key)) {
@@ -903,6 +916,23 @@ export async function collectCatalog(
   const enrichment = await resolveEnrichmentOverlay(opts, fetchers, log);
   const canonicalToAlias = buildCanonicalToAliasMap(enrichment);
   const canonicalDedup = canonicalDedupSet(rawModels, canonicalToAlias);
+  // `freeOnly` reads the overlay: an empty overlay (no management token,
+  // `enrichment: false`, or fetch failure) would otherwise empty the catalog
+  // silently. Warn once per refresh and keep filtering (fail-closed).
+  if (opts.freeOnly === true) {
+    let hasFreeEntry = false;
+    for (const entry of enrichment.values()) {
+      if (entry.freeType !== undefined) {
+        hasFreeEntry = true;
+        break;
+      }
+    }
+    if (!hasFreeEntry) {
+      log.warn(
+        `[omniroute-v2] freeOnly is on but the enrichment overlay has no free-tier entries (no management token, enrichment disabled, or free-tier fetch failed); publishing an empty catalog. Disable freeOnly or configure the management token.`
+      );
+    }
+  }
 
   const usable = await resolveUsableAliases(
     opts,
@@ -999,9 +1029,18 @@ export async function collectCatalog(
       baseURL: opts.baseURL,
       apiFormat: opts.apiFormat,
     });
-    applyEnrichment(mapped, lookupEnrichment(entry.id, enrichment, canonicalToAlias), {
+    const enrichmentEntry = lookupEnrichment(entry.id, enrichment, canonicalToAlias);
+    applyEnrichment(mapped, enrichmentEntry, {
       providerTag: opts.providerTag !== false,
     });
+    if (
+      !passesCapabilityPresets(mapped, enrichmentEntry, {
+        freeOnly: opts.freeOnly,
+        toolsOnly: opts.toolsOnly,
+        visionOnly: opts.visionOnly,
+      } satisfies CapabilityPresetFlags)
+    )
+      continue;
     const mid = mapped.id.startsWith(X + "/") ? mapped.id.slice(X.length + 1) : mapped.id;
     const key = X + "/" + mid;
     collected.set(key, mapped);

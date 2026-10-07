@@ -2,6 +2,8 @@ import {
   CODEX_CLI_RS_ORIGINATOR,
   getCodexClientVersion,
   getCodexDefaultHeaders,
+  refreshCodexClientVersion,
+  type CodexClientVersionFetch,
 } from "@omniroute/open-sse/config/codexClient.ts";
 import {
   classifyCodexDiscoveryModel,
@@ -44,13 +46,7 @@ export type CodexDiscoveryModel = {
   compatibilityReason?: string;
 };
 
-export type CodexModelsFetch = (
-  input: string,
-  init: {
-    method: "GET";
-    headers: Record<string, string>;
-  }
-) => Promise<Response>;
+export type CodexModelsFetch = CodexClientVersionFetch;
 
 type CodexGithubCatalogCache = {
   models: CodexDiscoveryModel[];
@@ -512,10 +508,15 @@ export function enrichCodexModelsFromGithubCatalog(
   githubCatalogModels: CodexDiscoveryModel[]
 ): CodexDiscoveryModel[] {
   const byId = new Map(githubCatalogModels.map((model) => [model.id, model]));
-  return models.map((model) => {
+  const enriched = models.map((model) => {
     const githubModel = byId.get(model.id);
     return githubModel ? { ...githubModel, ...model } : model;
   });
+  // A non-empty live entitlement list is authoritative for membership and
+  // order. GitHub rows may only fill metadata on those ids. Catalog models
+  // the account did not return are used only when there is no live list.
+  if (models.length > 0) return enriched;
+  return [...githubCatalogModels];
 }
 
 export async function fetchCodexDiscoveryModels({
@@ -530,6 +531,7 @@ export async function fetchCodexDiscoveryModels({
   if (!accessToken) return null;
 
   try {
+    await refreshCodexClientVersion(fetchImpl);
     const workspaceId =
       toNonEmptyString(providerSpecificData?.workspaceId) ||
       toNonEmptyString(providerSpecificData?.chatgptAccountId) ||

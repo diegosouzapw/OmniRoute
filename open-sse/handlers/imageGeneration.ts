@@ -61,10 +61,12 @@ import { handleUcImageGeneration } from "./imageGeneration/providers/ucImage.ts"
 import { handleCursorAgentImageGeneration } from "./imageGeneration/providers/cursorAgentImage.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
 import { handleCloudflareAiImageGeneration } from "./imageGeneration/providers/cloudflareAi.ts";
+import { buildXaiImageRequest } from "./imageGeneration/providers/xaiImage.ts";
 import { handleMaxaiImageGeneration } from "./imageGeneration/providers/maxaiImage.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
 import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
 import { handleAiHordeImageGeneration } from "./imageGeneration/providers/aihorde.ts";
+import { handleZenmuxImageGeneration } from "./imageGeneration/providers/zenmux.ts";
 import {
   applyPollinationsAnonymousFallback,
   reportPollinationsAnonOutcome,
@@ -502,6 +504,18 @@ export async function handleImageGeneration({
       body,
       credentials,
       log,
+    });
+  }
+
+  if (providerConfig.format === "zenmux-image") {
+    return handleZenmuxImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+      signal,
     });
   }
 
@@ -1040,6 +1054,31 @@ async function handleKieImageGeneration({
  * Handle Gemini-format image generation (Antigravity / Nano Banana)
  * Uses Gemini's generateContent API with responseModalities: ["TEXT", "IMAGE"]
  */
+function geminiInlineImagePart(
+  body: unknown
+): { inlineData: { mimeType: string; data: string } } | null {
+  if (!body || typeof body !== "object") return null;
+  const record = body as Record<string, unknown>;
+  const mimeType =
+    typeof record.imageMime === "string" && record.imageMime ? record.imageMime : "image/png";
+  if (Buffer.isBuffer(record.imageBytes)) {
+    return { inlineData: { mimeType, data: record.imageBytes.toString("base64") } };
+  }
+  if (typeof record.imageBytes === "string" && record.imageBytes.length > 0) {
+    return { inlineData: { mimeType, data: record.imageBytes } };
+  }
+  if (typeof record.image_url === "string" && record.image_url.startsWith("data:")) {
+    return {
+      inlineData: {
+        mimeType:
+          record.image_url.match(/^data:(image\/[a-zA-Z0-9+-]+);base64,/)?.[1] || "image/png",
+        data: record.image_url.replace(/^data:image\/[a-zA-Z0-9+-]+;base64,/, ""),
+      },
+    };
+  }
+  return null;
+}
+
 async function handleGeminiImageGeneration({ model, providerConfig, body, credentials, log }) {
   const startTime = Date.now();
   const url = providerConfig.baseUrl;
@@ -1095,6 +1134,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     });
   }
 
+  const inlineImage = geminiInlineImagePart(body);
   const antigravityBody = {
     project: projectId,
     requestId: `image_gen/${Date.now()}/${randomUUID()}/0`,
@@ -1102,7 +1142,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       contents: [
         {
           role: "user",
-          parts: [{ text: promptText }],
+          parts: [...(inlineImage ? [inlineImage] : []), { text: promptText }],
         },
       ],
       generationConfig: {
@@ -1285,7 +1325,11 @@ async function handleOpenAIImageGeneration({
           prompt: body.prompt,
         };
 
-  if (providerConfig.format !== "agnes-image") {
+  if (providerConfig.format === "xai-image") {
+    const request = buildXaiImageRequest(model, body);
+    if ("error" in request) return { success: false, status: 400, error: request.error };
+    Object.assign(upstreamBody, request.body);
+  } else if (providerConfig.format !== "agnes-image") {
     // Pass optional parameters for ordinary OpenAI-compatible providers.
     if (body.n !== undefined) upstreamBody.n = body.n;
     if (body.size !== undefined) upstreamBody.size = body.size;

@@ -132,13 +132,18 @@ export function buildAutoCandidateFilter(
   if (category === "vision" || category === "multimodal") {
     checks.push((c) => {
       if (c.resolvedSupportsVision !== undefined) {
-        return c.resolvedSupportsVision || isVisionModelId(c.model);
+        // #vision-pool: same bridge exclusion as the on-demand path below —
+        // registry entries whose catalog overstates vision support are forced
+        // through the vision bridge and must never be picked as vision-capable.
+        const capable = c.resolvedSupportsVision || isVisionModelId(c.model);
+        if (!capable) return false;
+        return !isVisionBridgeForcedModel(`${c.provider}/${c.model}`);
       }
       try {
         const caps = getResolvedModelCapabilities({ provider: c.provider, model: c.model });
         const capable = caps.supportsVision === true || isVisionModelId(c.model);
         if (!capable) return false;
-        // #vison-pool: registry entries whose catalog OVERSTATES vision support
+        // #vision-pool: registry entries whose catalog OVERSTATES vision support
         // (opencode-go/opencode-zen/tokenrouter — the backend models are text-only)
         // are forced through the vision bridge by isVisionBridgeForcedModel.
         // They must never be selected as the vision-capable candidate itself.

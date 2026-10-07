@@ -31,7 +31,11 @@ export async function GET(request: Request) {
     // #14889: every variant below is built from the same candidate pool, so prepare
     // it once per request. createVirtualAutoCombo() prepares it again on each call,
     // which made this route rebuild the whole pool once per listed variant.
-    const prepared = await prepareVirtualAutoComboInputs();
+    // Resolve capabilities once as well: the prepared pool carries them, so each
+    // variant filter reads the snapshot instead of the database per candidate.
+    const prepared = await prepareVirtualAutoComboInputs({
+      includeResolvedCapabilities: true,
+    });
 
     const combos: Array<Record<string, unknown>> = [];
     const seenIds = new Set<string>();

@@ -141,6 +141,10 @@ test("native thinking config is removed when the last message is not from the us
     reasoning_effort: "medium",
     thinking: { type: "enabled" },
   };
+  const adaptiveAssistantLast = {
+    messages: [{ role: "assistant", content: "continue" }],
+    thinking: { type: "adaptive" },
+  };
 
   const normalized = normalizeThinkingConfig(assistantLast);
 
@@ -149,5 +153,19 @@ test("native thinking config is removed when the last message is not from the us
   assert.equal(hasThinkingConfig(userLast), true);
   assert.equal(normalized.reasoning_effort, "high");
   assert.equal("thinking" in normalized, false);
+  assert.equal("thinking" in normalizeThinkingConfig(adaptiveAssistantLast), false);
   assert.equal(normalizeThinkingConfig(userLast).reasoning_effort, "medium");
+});
+
+test("explicit disabled thinking survives every last-message role", () => {
+  for (const role of ["user", "assistant", "system"]) {
+    const body = {
+      messages: [{ role, content: "synthetic" }],
+      thinking: { type: "disabled" },
+    };
+
+    const normalized = normalizeThinkingConfig(body);
+
+    assert.deepEqual(normalized.thinking, { type: "disabled" }, role);
+  }
 });
