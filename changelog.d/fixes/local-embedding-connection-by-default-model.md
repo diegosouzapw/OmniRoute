@@ -1,1 +1,0 @@
-- **fix(embeddings):** with two or more connections of the same local embedding provider (llama.cpp, LM Studio, Ollama, Lemonade), a request is no longer sent to a connection whose configured default model names a different model — local servers ignore the request's `model`, so the wrong connection silently returned vectors from another model and dimension — thanks @hartmark
